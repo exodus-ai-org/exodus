@@ -4,35 +4,40 @@ import {
   generateText,
   Message,
   pipeDataStreamToResponse,
-  streamText
+  streamText,
+  Tool
 } from 'ai'
-import { Experimental_StdioMCPTransport } from 'ai/mcp-stdio'
+import { Experimental_StdioMCPTransport, StdioConfig } from 'ai/mcp-stdio'
 import { Request, Response, Router } from 'express'
 import { v4 as uuidV4 } from 'uuid'
-import { mcpServerConfigs } from '../../ai/mcp-server'
-import {
-  getMostRecentUserMessage,
-  sanitizeResponseMessages
-} from '../../ai/utils'
 import {
   deleteChatById,
   getChatById,
   getMessagesByChatId,
+  getSetting,
   saveChat,
   saveMessages
 } from '../../db/queries'
+import { getMostRecentUserMessage, sanitizeResponseMessages } from '../utils'
 
 const router = Router()
 
-const openai = createOpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-  baseURL: process.env.OPENAI_BASE_URL
-})
+async function getOpenAiInstance() {
+  const setting = await getSetting()
+  if (!('openaiApiKey' in setting)) {
+    return
+  }
 
-export async function connectMcpServers() {
+  return createOpenAI({
+    apiKey: setting.openaiApiKey,
+    baseURL: setting.openaiBaseUrl
+  })
+}
+
+async function retrieveTools({ command, args }: StdioConfig) {
   const transport = new Experimental_StdioMCPTransport({
-    command: 'node',
-    args: mcpServerConfigs.mcpServers['obsidian-mcp'].args
+    command,
+    args
   })
   const mcpClient = await experimental_createMCPClient({
     transport
@@ -41,11 +46,50 @@ export async function connectMcpServers() {
   return tools
 }
 
+export async function connectMcpServers(): Promise<Record<
+  string,
+  Tool
+> | null> {
+  const setting = await getSetting()
+
+  if ('mcpServers' in setting) {
+    const { mcpServers } = setting
+    try {
+      const mcpServersObj: { mcpServers: { [index: string]: StdioConfig } } =
+        JSON.parse(mcpServers)
+
+      const toolsArr = await Promise.all(
+        Object.values(mcpServersObj.mcpServers).map((stdioConfig) =>
+          retrieveTools(stdioConfig)
+        )
+      )
+
+      const tools = toolsArr.reduce((acc, obj) => {
+        if (typeof obj === 'object' && obj !== null) {
+          return { ...acc, ...obj }
+        }
+        return acc
+      }, {})
+
+      return tools
+    } catch {
+      return null
+    }
+  } else {
+    return null
+  }
+}
+
 export async function generateTitleFromUserMessage({
   message
 }: {
   message: Message
 }) {
+  const openai = await getOpenAiInstance()
+  if (!openai) {
+    return ''
+  }
+
   const { text: title } = await generateText({
     model: openai('gpt-4o'),
     system: `\n
@@ -64,6 +108,12 @@ router.post('/', async (req: Request, res: Response) => {
   const userMessage = getMostRecentUserMessage(messages)
   if (!userMessage) {
     res.status(400).send('No user message found')
+    return
+  }
+
+  const openai = await getOpenAiInstance()
+  if (!openai) {
+    res.status(500).send('No OpenAI API Key found')
     return
   }
 

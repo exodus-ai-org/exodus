@@ -40,7 +40,7 @@ const ChatBubble: FC<Props> = ({ message }) => {
           })}
         >
           {message.role === 'assistant' && (
-            <section className="relative group">
+            <section className="group relative">
               <Markdown src={message.content} />
               <MessageAction />
             </section>
