@@ -1,8 +1,9 @@
 import { defineConfig } from 'drizzle-kit'
 
 export default defineConfig({
-  out: './renderer/lib/db/migrations',
-  schema: './renderer/lib/db/schema.ts',
+  schema: './src/main/lib/db/schema.ts',
+  out: './src/main/lib/db/migrations',
+  dialect: 'postgresql',
   driver: 'pglite',
-  dialect: 'postgresql'
+  dbCredentials: { url: 'database.sqlite' }
 })
