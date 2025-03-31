@@ -46,7 +46,7 @@
     "@radix-ui/react-toggle-group": "^1.1.2",
     "@radix-ui/react-tooltip": "^1.1.8",
     "@tailwindcss/postcss": "^4.0.16",
-    "@tanstack/react-query": "^5.70.0",
+    "@tanstack/react-query": "^5.71.0",
     "@uiw/react-json-view": "2.0.0-alpha.30",
     "ai": "^4.2.5",
     "body-parser": "^2.2.0",
