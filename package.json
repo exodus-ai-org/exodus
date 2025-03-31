@@ -47,7 +47,6 @@
     "@radix-ui/react-toggle-group": "^1.1.2",
     "@radix-ui/react-tooltip": "^1.1.8",
     "@tailwindcss/postcss": "^4.0.16",
-    "@tanstack/react-query": "^5.70.0",
     "ai": "^4.2.5",
     "body-parser": "^2.2.0",
     "class-variance-authority": "^0.7.1",

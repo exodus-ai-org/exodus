@@ -120,11 +120,6 @@ export function FsManage({
             >
               {name}
             </p>
-            {/* <EditableFilename
-              initialName={name}
-              onSave={() => {}}
-              selected={selected === path}
-            /> */}
           </div>
         </ContextMenuTrigger>
         <ContextMenuContent className="w-64">

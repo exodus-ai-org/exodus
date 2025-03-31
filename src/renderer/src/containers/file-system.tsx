@@ -23,7 +23,7 @@ export function FileSystem() {
   return (
     <Suspense fallback={null}>
       <section
-        className="grid grid-cols-[repeat(auto-fill,minmax(6.25rem,1fr))] gap-8 p-4"
+        className="grid flex-1 grid-cols-[repeat(auto-fill,minmax(6.25rem,1fr))] grid-rows-[repeat(auto-fill,minmax(6.25rem,1fr))] gap-8 p-4"
         onClick={() => setSelected('')}
       >
         {directories?.map((directory) => (
