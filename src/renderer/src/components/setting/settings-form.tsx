@@ -7,23 +7,25 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { useSetting } from '@/hooks/use-setting'
-import { textFetcher } from '@/lib/utils'
+import { fetcher } from '@/lib/utils'
 import { activeAtom } from '@/stores/setting'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useAtomValue } from 'jotai'
-import { debounce } from 'lodash-es'
+import { debounce, isEqual } from 'lodash-es'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import useSWR from 'swr'
 import { z } from 'zod'
-import { JsonEditor } from './json-editor'
+import { CodeEditor } from '../code-editor'
 
 export function SettingsForm() {
   const activeTitle = useAtomValue(activeAtom)
   const { error } = useSWR(
-    activeTitle === 'Ollama' ? 'http://localhost:11434' : null,
-    textFetcher
+    activeTitle === 'Ollama'
+      ? '/api/ollama/ping?url=http://localhost:11434'
+      : null,
+    fetcher
   )
   const { data, mutate, updateSetting } = useSetting()
 
@@ -39,7 +41,8 @@ export function SettingsForm() {
     googleBaseUrl: z.string().url(),
     xAiApiKey: z.string().min(1),
     xAiBaseUrl: z.string().url(),
-    ollamaBaseUrl: z.string().min(1)
+    ollamaBaseUrl: z.string().min(1),
+    mcpServers: z.string().min(1)
   })
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -55,17 +58,16 @@ export function SettingsForm() {
   useEffect(() => {
     const subscription = form.watch(
       debounce((formValue) => {
-        if (data?.id) {
+        if (!isEqual(formValue, data)) {
           updateSetting(formValue)
           mutate()
+          toast.success('Auto saved.')
         }
-
-        toast.success('Auto saved.')
       }, 1000)
     )
 
     return () => subscription.unsubscribe()
-  }, [data, form, form.watch])
+  }, [data, form.watch])
 
   return (
     <Form {...form}>
@@ -300,18 +302,20 @@ export function SettingsForm() {
             {error === undefined ? (
               <div className="flex items-center gap-2">
                 <div className="h-3 w-3 rounded-full bg-green-400" />
-                <p className="text-sm">Ollama service is accessible.</p>
+                <p className="text-sm">Ollama is running.</p>
               </div>
             ) : (
               <div className="flex items-center gap-2">
                 <div className="h-3 w-3 rounded-full bg-red-400" />
-                <p className="text-sm">Ollama service is not accessible.</p>
+                <p className="text-sm">Ollama is not running.</p>
               </div>
             )}
           </>
         )}
 
-        {activeTitle === 'MCP Servers' && <JsonEditor />}
+        {activeTitle === 'MCP Servers' && (
+          <CodeEditor name="mcpServers" control={form.control} />
+        )}
       </form>
     </Form>
   )

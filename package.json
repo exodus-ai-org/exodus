@@ -2,7 +2,7 @@
   "name": "exodus",
   "productName": "Exodus",
   "version": "1.0.0",
-  "description": "An Electron application with React and TypeScript",
+  "description": "ChatBot featuring MCP, Artifacts, RAG, AI Agents, Deep Research, and other modern capabilities.",
   "main": "./out/main/index.js",
   "author": "example.com",
   "homepage": "https://electron-vite.org",
@@ -19,7 +19,8 @@
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
     "build:mac": "electron-vite build && electron-builder --mac",
-    "build:linux": "electron-vite build && electron-builder --linux"
+    "build:linux": "electron-vite build && electron-builder --linux",
+    "db:generate": "npx drizzle-kit generate"
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.3.2",

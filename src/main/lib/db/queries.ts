@@ -134,6 +134,7 @@ export async function getSetting() {
         xAiApiKey: '',
         xAiBaseUrl: '',
         ollamaBaseUrl: '',
+        mcpServers: '',
         id: uuidV4()
       })
     }

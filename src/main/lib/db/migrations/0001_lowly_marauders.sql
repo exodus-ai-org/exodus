@@ -1,0 +1,1 @@
+ALTER TABLE "Setting" ADD COLUMN "mcpServers" varchar DEFAULT '' NOT NULL;

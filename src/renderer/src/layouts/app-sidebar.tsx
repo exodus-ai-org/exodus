@@ -34,7 +34,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
-        <div className="flex justify-between">
+        <div className="flex items-center justify-between">
           <SearchForm />
           <Link to="/">
             <Button size="icon" variant="ghost">

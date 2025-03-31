@@ -1,5 +1,5 @@
-import { Setting } from '@/lib/db/schema'
 import { fetcher } from '@/lib/utils'
+import { Setting } from 'src/main/lib/db/schema'
 import useSWR from 'swr'
 
 export function useSetting() {
@@ -9,10 +9,14 @@ export function useSetting() {
   )
 
   const updateSetting = async (payload: Setting) => {
-    await fetch('/api/setting', {
+    const response = await fetch('http://localhost:8964/api/setting', {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
       body: JSON.stringify(payload)
     })
+    await response.json()
 
     mutate()
   }

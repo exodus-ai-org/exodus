@@ -3,6 +3,7 @@ import { UIMessage } from 'ai'
 import { FC, memo } from 'react'
 import Markdown from './markdown'
 import { Avatar, AvatarImage } from './ui/avatar'
+import AssistantImg from '@/assets/images/sayaka.jpg'
 
 interface Props {
   message: UIMessage
@@ -21,7 +22,7 @@ const ChatBubble: FC<Props> = ({ message }) => {
             'mr-4': message.role === 'assistant'
           })}
         >
-          <AvatarImage src="/logo.png" />
+          <AvatarImage src={AssistantImg} />
         </Avatar>
       )}
 

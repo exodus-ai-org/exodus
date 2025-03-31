@@ -5,6 +5,7 @@ import express, { NextFunction, Request, Response } from 'express'
 import { Server } from 'http'
 import chatRouter, { connectMcpServers } from './routes/chat'
 import historyRouter from './routes/history'
+import ollamaRouter from './routes/ollama'
 import settingRouter from './routes/setting'
 
 export async function connectHttpServer() {
@@ -23,6 +24,7 @@ export async function connectHttpServer() {
   app.use('/api/chat', chatRouter)
   app.use('/api/history', historyRouter)
   app.use('/api/setting', settingRouter)
+  app.use('/api/ollama', ollamaRouter)
 
   app.get('/ping', (req, res) => {
     res.send('pong')

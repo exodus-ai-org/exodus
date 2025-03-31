@@ -63,7 +63,8 @@ export const setting = pgTable('Setting', {
   googleBaseUrl: varchar('googleBaseUrl').notNull(),
   xAiApiKey: varchar('xAiApiKey').notNull(),
   xAiBaseUrl: varchar('xAiBaseUrl').notNull(),
-  ollamaBaseUrl: varchar('ollamaBaseUrl').notNull()
+  ollamaBaseUrl: varchar('ollamaBaseUrl').notNull(),
+  mcpServers: varchar('mcpServers').notNull().default('')
 })
 
 export type Setting = InferSelectModel<typeof setting>

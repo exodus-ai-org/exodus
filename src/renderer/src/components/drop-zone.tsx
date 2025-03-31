@@ -1,21 +1,36 @@
-import { useCallback } from 'react'
-import { useDropzone } from 'react-dropzone'
+import { cn } from '@/lib/utils'
+import { ReactNode, useCallback } from 'react'
+import { DropEvent, FileRejection, useDropzone } from 'react-dropzone'
 
-export function Dropzone() {
-  const onDrop = useCallback((acceptedFiles) => {
-    console.log('🐱', acceptedFiles)
-    // Do something with the files
-  }, [])
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop })
+export function Dropzone({ children }: { children: ReactNode }) {
+  const onDrop = useCallback(
+    (
+      acceptedFiles: File[],
+      fileRejections: FileRejection[],
+      event: DropEvent
+    ) => {
+      console.log('🐱', acceptedFiles, fileRejections, event)
+      // Do something with the files
+    },
+    []
+  )
+  const {
+    getRootProps,
+    getInputProps,
+    isDragActive,
+    isFocused,
+    isDragAccept,
+    isDragReject
+  } = useDropzone({ onDrop })
 
   return (
-    <div {...getRootProps()}>
-      <input {...getInputProps()} />
-      {isDragActive ? (
-        <p>Drop the files here ...</p>
-      ) : (
-        <p>Drag 'n' drop some files here, or click to select files</p>
-      )}
-    </div>
+    <section
+      {...getRootProps()}
+      className={cn('flex flex-1 flex-col transition-all', {
+        ['m-4 border-2 border-dashed transition-all']: isDragActive
+      })}
+    >
+      {children}
+    </section>
   )
 }
