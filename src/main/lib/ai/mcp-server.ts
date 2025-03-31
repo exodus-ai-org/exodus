@@ -5,9 +5,8 @@ export const mcpServerConfigs: McpServerConfig = {
     'obsidian-mcp': {
       command: 'node',
       args: [
-        '/path/to/obsidian-mcp/build/index.js',
-        '/Users/<USERNAME>/Library/Mobile\\ Documents/iCloud~md~obsidian/Documents/<VAULT_NAME_1>',
-        '/Users/<USERNAME>/Library/Mobile\\ Documents/iCloud~md~obsidian/Documents/<VAULT_NAME_2>'
+        '/Users/bytedance/code/obsidian-mcp/build/index.js',
+        '/Usersbytedance/Library/Mobile\\ Documents/iCloud~md~obsidian/Documents/YanceyOfficial'
       ]
     }
     // filesystem: {

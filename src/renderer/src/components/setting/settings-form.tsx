@@ -71,7 +71,7 @@ export function SettingsForm() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="flex flex-col gap-4"
+        className="flex flex-1 flex-col gap-4"
       >
         {activeTitle === 'OpenAI GPT' && (
           <>
@@ -311,11 +311,7 @@ export function SettingsForm() {
           </>
         )}
 
-        {activeTitle === 'MCP Servers' && (
-          <>
-            <JsonEditor />
-          </>
-        )}
+        {activeTitle === 'MCP Servers' && <JsonEditor />}
       </form>
     </Form>
   )
