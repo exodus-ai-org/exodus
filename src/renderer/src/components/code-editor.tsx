@@ -7,7 +7,6 @@ import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
 import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
 import { useRef } from 'react'
 import { useController, UseControllerProps } from 'react-hook-form'
-import { useTheme } from './theme-provider'
 
 self.MonacoEnvironment = {
   getWorker(_, label) {
@@ -29,7 +28,6 @@ self.MonacoEnvironment = {
 loader.config({ monaco })
 
 export function CodeEditor(props: UseControllerProps) {
-  const { theme } = useTheme()
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null)
   const { field } = useController(props)
 
@@ -38,13 +36,8 @@ export function CodeEditor(props: UseControllerProps) {
   }
 
   const defineTheme = () => {
-    if (theme === 'system') {
-      return window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'shadcn-dark'
-        : 'light'
-    }
-
-    return theme === 'dark' ? 'shadcn-dark' : 'light'
+    const isDark = window.document.documentElement.classList.contains('dark')
+    return isDark ? 'shadcn-dark' : 'light'
   }
   return (
     <MonacoEditor

@@ -41,8 +41,15 @@ const ChatBubble: FC<Props> = ({ message }) => {
         >
           {message.role === 'assistant' && (
             <section className="group relative">
-              <Markdown src={message.content} />
-              <MessageAction />
+              {message.parts.filter((part) => part.type === 'tool-invocation')
+                .length > 0 ? (
+                <p>Calling Tools...</p>
+              ) : (
+                <>
+                  <Markdown src={message.content} />
+                  <MessageAction />
+                </>
+              )}
             </section>
           )}
 
