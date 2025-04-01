@@ -1,4 +1,5 @@
 import {
+  AudioWaveform,
   BookOpenText,
   CloudDownload,
   Hammer,
@@ -41,10 +42,13 @@ export const data = {
       title: 'MCP Servers'
     },
     {
+      icon: AudioWaveform,
+      title: 'Audio and Speech'
+    },
+    {
       icon: CloudDownload,
       title: 'Software Update'
     },
-
     {
       icon: Info,
       title: 'About Exodus'

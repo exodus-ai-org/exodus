@@ -15,6 +15,13 @@
       "when": 1743415088020,
       "tag": "0001_lowly_marauders",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1743510498910,
+      "tag": "0002_aromatic_punisher",
+      "breakpoints": true
     }
   ]
 }

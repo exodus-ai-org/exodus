@@ -64,7 +64,10 @@ export const setting = pgTable('Setting', {
   xAiApiKey: varchar('xAiApiKey').notNull(),
   xAiBaseUrl: varchar('xAiBaseUrl').notNull(),
   ollamaBaseUrl: varchar('ollamaBaseUrl').notNull(),
-  mcpServers: varchar('mcpServers').notNull().default('')
+  mcpServers: varchar('mcpServers').notNull().default(''),
+  speechToTextModel: varchar('speechToTextModel').notNull().default(''),
+  textToSpeechModel: varchar('textToSpeechModel').notNull().default(''),
+  textToSpeechVoice: varchar('textToSpeechVoice').notNull().default('')
 })
 
 export type Setting = InferSelectModel<typeof setting>

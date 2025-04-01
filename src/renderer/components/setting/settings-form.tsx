@@ -1,3 +1,4 @@
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   Form,
   FormControl,
@@ -12,12 +13,20 @@ import { activeAtom } from '@/stores/setting'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useAtomValue } from 'jotai'
 import { debounce, isEqual } from 'lodash-es'
+import { AlertCircle } from 'lucide-react'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import useSWR from 'swr'
 import { z } from 'zod'
 import { CodeEditor } from '../code-editor'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '../ui/select'
 
 export function SettingsForm() {
   const activeTitle = useAtomValue(activeAtom)
@@ -42,7 +51,10 @@ export function SettingsForm() {
     xAiApiKey: z.string().min(1),
     xAiBaseUrl: z.string().url(),
     ollamaBaseUrl: z.string().min(1),
-    mcpServers: z.string().min(1)
+    mcpServers: z.string().min(1),
+    speechToTextModel: z.string().min(1),
+    textToSpeechVoice: z.string().min(1),
+    textToSpeechModel: z.string().min(1)
   })
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -315,6 +327,111 @@ export function SettingsForm() {
 
         {activeTitle === 'MCP Servers' && (
           <CodeEditor name="mcpServers" control={form.control} />
+        )}
+
+        {activeTitle === 'Audio and Speech' && (
+          <>
+            <Alert className="mb-8">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                The Text-to-Speech and Speech-to-Text services only support
+                OpenAI. Please make sure you have configured the OpenAI API
+                settings correctly before using these features.
+              </AlertDescription>
+            </Alert>
+
+            <FormField
+              control={form.control}
+              name="speechToTextModel"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Speech to Text Model</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="gpt-4o-transcribe" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="gpt-4o-transcribe">
+                        gpt-4o-transcribe
+                      </SelectItem>
+                      <SelectItem value="gpt-4o-mini-transcribe">
+                        gpt-4o-mini-transcribe
+                      </SelectItem>
+                      <SelectItem value="whisper-1">whisper-1</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="textToSpeechModel"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Text to Speech Model</FormLabel>
+
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="tts-1" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="tts-1">tts-1</SelectItem>
+                      <SelectItem value="tts-1-hd">tts-1-hd</SelectItem>
+                      <SelectItem value="gpt-4o-mini-tts">
+                        gpt-4o-mini-tts
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="textToSpeechVoice"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Text to Speech Voice</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Alloy" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="alloy">Alloy</SelectItem>
+                      <SelectItem value="ash">Ash</SelectItem>
+                      <SelectItem value="ballad">Ballad</SelectItem>
+                      <SelectItem value="coral">Coral</SelectItem>
+                      <SelectItem value="echo">Echo</SelectItem>
+                      <SelectItem value="fable">Fable</SelectItem>
+                      <SelectItem value="onyx">Onyx</SelectItem>
+                      <SelectItem value="nova">Nova</SelectItem>
+                      <SelectItem value="sage">Sage</SelectItem>
+                      <SelectItem value="shimmer">Shimmer</SelectItem>
+                      <SelectItem key="verse" value="verse">
+                        Verse
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+          </>
         )}
       </form>
     </Form>
