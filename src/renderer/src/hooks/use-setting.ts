@@ -1,3 +1,4 @@
+import { BASE_URL } from '@/lib/constants'
 import { fetcher } from '@/lib/utils'
 import { Setting } from 'src/main/lib/db/schema'
 import useSWR from 'swr'
@@ -9,7 +10,7 @@ export function useSetting() {
   )
 
   const updateSetting = async (payload: Setting) => {
-    const response = await fetch('http://localhost:8964/api/setting', {
+    const response = await fetch(`${BASE_URL}/api/setting`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

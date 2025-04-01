@@ -1,5 +1,9 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import {
+  installExtension,
+  REACT_DEVELOPER_TOOLS
+} from 'electron-devtools-installer'
 import { join } from 'path'
 import icon from '../../resources/icon.png?asset'
 import { runMigrate } from './lib/db/migrate'
@@ -41,6 +45,9 @@ function createWindow(): void {
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
     mainWindow.webContents.openDevTools()
+    installExtension(REACT_DEVELOPER_TOOLS)
+      .then((ext) => console.log(`✅ Added Extension:  ${ext.name}`))
+      .catch((err) => console.log('❌ An error occurred: ', err))
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }

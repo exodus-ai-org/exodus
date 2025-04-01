@@ -5,10 +5,10 @@ import {
   PencilRuler,
   RefreshCcw,
   ThumbsDown,
-  ThumbsUp,
-  Volume2
+  ThumbsUp
 } from 'lucide-react'
 import { ReactNode, useState } from 'react'
+import AudioPlayer from './audio-player'
 import {
   Tooltip,
   TooltipContent,
@@ -16,13 +16,15 @@ import {
   TooltipTrigger
 } from './ui/tooltip'
 
-const iconProps = {
-  size: 14,
-  className:
-    'text-muted-foreground cursor-pointer rounded-sm p-1.5 hover:bg-secondary p-1 box-content'
+export function IconWrapper({ children }: { children: ReactNode }) {
+  return (
+    <span className="hover:bg-secondary text-muted-foreground flex h-6 w-6 cursor-pointer items-center justify-center rounded-sm">
+      {children}
+    </span>
+  )
 }
 
-function MessageActionItem({
+export function MessageActionItem({
   children,
   tooltipContent
 }: {
@@ -32,7 +34,7 @@ function MessageActionItem({
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger asChild>{children}</TooltipTrigger>
+        <TooltipTrigger>{children}</TooltipTrigger>
         <TooltipContent>
           <p>{tooltipContent}</p>
           <TooltipArrow className="TooltipArrow" />
@@ -42,7 +44,7 @@ function MessageActionItem({
   )
 }
 
-export function MessageAction() {
+export function MessageAction({ content }: { content: string }) {
   const [copied, setCopied] = useState(false)
 
   const handleCopy = () => {
@@ -57,26 +59,34 @@ export function MessageAction() {
   return (
     <div className="invisible absolute flex gap-0.5 opacity-0 transition-all group-hover:visible group-hover:opacity-100 group-hover:transition-all">
       <MessageActionItem tooltipContent="Copy">
-        {!copied ? (
-          <Copy {...iconProps} onClick={handleCopy} />
-        ) : (
-          <Check {...iconProps} />
-        )}
+        <IconWrapper>
+          {!copied ? (
+            <Copy size={14} onClick={handleCopy} />
+          ) : (
+            <Check size={14} />
+          )}
+        </IconWrapper>
       </MessageActionItem>
       <MessageActionItem tooltipContent="Good response">
-        <ThumbsUp {...iconProps} />
+        <IconWrapper>
+          <ThumbsUp size={14} />
+        </IconWrapper>
       </MessageActionItem>
       <MessageActionItem tooltipContent="Bad response">
-        <ThumbsDown {...iconProps} />
+        <IconWrapper>
+          <ThumbsDown size={14} />
+        </IconWrapper>
       </MessageActionItem>
-      <MessageActionItem tooltipContent="Read aloud">
-        <Volume2 {...iconProps} />
-      </MessageActionItem>
+      <AudioPlayer content={content} />
       <MessageActionItem tooltipContent="Edit in canvas">
-        <PencilRuler {...iconProps} />
+        <IconWrapper>
+          <PencilRuler size={14} />
+        </IconWrapper>
       </MessageActionItem>
       <MessageActionItem tooltipContent="Switch model">
-        <RefreshCcw {...iconProps} />
+        <IconWrapper>
+          <RefreshCcw size={14} />
+        </IconWrapper>
       </MessageActionItem>
     </div>
   )

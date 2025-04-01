@@ -1,3 +1,4 @@
+import { BASE_URL } from '@/lib/constants'
 import { useChat } from '@ai-sdk/react'
 import type { Message } from 'ai'
 import { toast } from 'sonner'
@@ -24,7 +25,7 @@ export function Chat({ id, initialMessages }: Props) {
     stop,
     reload
   } = useChat({
-    api: 'http://localhost:8964/api/chat',
+    api: `${BASE_URL}/api/chat`,
     id,
     // body: { id, setting },
     initialMessages,

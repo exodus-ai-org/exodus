@@ -47,7 +47,7 @@ const ChatBubble: FC<Props> = ({ message }) => {
               ) : (
                 <>
                   <Markdown src={message.content} />
-                  <MessageAction />
+                  <MessageAction content={message.content} />
                 </>
               )}
             </section>

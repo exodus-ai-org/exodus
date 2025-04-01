@@ -7,6 +7,7 @@ import type {
 import { clsx, type ClassValue } from 'clsx'
 import type { Message as DBMessage } from 'src/main/lib/db/schema'
 import { twMerge } from 'tailwind-merge'
+import { BASE_URL } from './constants'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -17,8 +18,8 @@ interface ApplicationError extends Error {
   status: number
 }
 
-export const fetcher = async (url: string) => {
-  const res = await fetch('http://localhost:8964' + url)
+export const fetcher = async (path: string) => {
+  const res = await fetch(BASE_URL + path)
 
   if (!res.ok) {
     const error = new Error(

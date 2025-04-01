@@ -9,7 +9,7 @@ export function Dropzone({ children }: { children: ReactNode }) {
       fileRejections: FileRejection[],
       event: DropEvent
     ) => {
-      console.log('🐱', acceptedFiles, fileRejections, event)
+      console.log(acceptedFiles, fileRejections, event)
       // Do something with the files
     },
     []

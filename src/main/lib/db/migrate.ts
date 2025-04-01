@@ -5,11 +5,10 @@ import { db } from './db'
 
 export const runMigrate = async () => {
   console.log('⏳ Running migrations...')
-  console.log(join(cwd(), 'src/main/lib/db/migrations'))
-  const start = Date.now()
+  const start = performance.now()
   await migrate(db, {
     migrationsFolder: join(cwd(), 'src/main/lib/db/migrations')
   })
-  const end = Date.now()
+  const end = performance.now()
   console.log('✅ Migrations completed in', end - start, 'ms')
 }
