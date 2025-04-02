@@ -1,22 +1,22 @@
-import { Router } from 'express'
+import { Hono } from 'hono'
+import { Variables } from '../types'
 
-const router = Router()
+const ollama = new Hono<{ Variables: Variables }>()
 
-router.get('/ping', async function (req, res) {
-  const { url } = req.query
-  if (typeof url !== 'string' || !url) {
-    res.sendStatus(404)
-    return
+ollama.get('/ping', async (c) => {
+  const url = c.req.query('url')
+  if (!url) {
+    return c.text('Not Found', 404)
   }
 
   try {
     await fetch(url)
-    res.json({
+    return c.json({
       message: 'Ollama is running'
     })
   } catch {
-    res.sendStatus(404)
+    return c.text('Not Found', 404)
   }
 })
 
-export default router
+export default ollama

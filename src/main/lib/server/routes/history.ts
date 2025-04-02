@@ -1,11 +1,12 @@
-import { Router } from 'express'
+import { Hono } from 'hono'
 import { getChats } from '../../db/queries'
+import { Variables } from '../types'
 
-const router = Router()
+const history = new Hono<{ Variables: Variables }>()
 
-router.get('/', async function (req, res) {
+history.get('/', async (c) => {
   const chats = await getChats()
-  res.json(chats)
+  return c.json(chats)
 })
 
-export default router
+export default history

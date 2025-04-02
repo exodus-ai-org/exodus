@@ -1,64 +1,65 @@
-import { Router } from 'express'
-import multer from 'multer'
+import { Hono } from 'hono'
 import OpenAI, { toFile } from 'openai'
 import { getSetting } from '../../db/queries'
+import { Variables } from '../types'
 
-const upload = multer({ dest: 'uploads/' })
-const router = Router()
+const audio = new Hono<{ Variables: Variables }>()
 
-router.post('/speech', async function (req, res) {
-  const { text } = req.body
+audio.post('/speech', async (c) => {
+  const { text } = await c.req.json()
 
   const setting = await getSetting()
   if (!('openaiApiKey' in setting)) {
-    res.sendStatus(404).send('OpenAI configuration is missing')
-    return
+    return c.text('OpenAI configuration is missing', 404)
   }
 
   const openai = new OpenAI({
     baseURL: setting.openaiBaseUrl,
     apiKey: setting.openaiApiKey
   })
+
   const speech = await openai.audio.speech.create({
     model: 'tts-1',
     input: text,
     voice: 'alloy'
   })
+
   const buffer = Buffer.from(await speech.arrayBuffer())
-  res.set('Content-Type', 'audio/mpeg')
-  res.send(buffer)
+  return new Response(buffer, {
+    headers: {
+      'Content-Type': 'audio/mpeg'
+    }
+  })
 })
 
-router.post(
-  '/transcriptions',
-  upload.single('audio'),
-  async function (req, res) {
-    const audio = req.file
+audio.post('/transcriptions', async (c) => {
+  const formData = await c.req.formData()
+  const audioFile = formData.get('audio') as File | null
 
-    if (!audio) {
-      res.sendStatus(404).send('Audio file is missing')
-      return
-    }
-
-    const setting = await getSetting()
-    if (!('openaiApiKey' in setting)) {
-      res.sendStatus(404).send('OpenAI configuration is missing')
-      return
-    }
-
-    const openai = new OpenAI({
-      baseURL: setting.openaiBaseUrl,
-      apiKey: setting.openaiApiKey
-    })
-
-    const file = await toFile(audio.buffer)
-    const transcription = await openai.audio.transcriptions.create({
-      file,
-      model: 'gpt-4o-transcribe'
-    })
-
-    res.json(transcription)
+  if (!audioFile) {
+    return c.text('Audio file is missing', 404)
   }
-)
 
-export default router
+  const setting = await getSetting()
+  if (!('openaiApiKey' in setting)) {
+    return c.text('OpenAI configuration is missing', 404)
+  }
+
+  const openai = new OpenAI({
+    baseURL: setting.openaiBaseUrl,
+    apiKey: setting.openaiApiKey
+  })
+
+  const arrayBuffer = await audioFile.arrayBuffer()
+  const buffer = Buffer.from(arrayBuffer)
+  const file = await toFile(buffer)
+
+  const transcription = await openai.audio.transcriptions.create({
+    file,
+    model: 'gpt-4o-transcribe'
+  })
+
+  return c.json(transcription)
+})
+
+export default audio

@@ -60,7 +60,7 @@ app.whenReady().then(async () => {
   // Migrate PGlite
   await runMigrate()
 
-  // Start Express.js server
+  // Start Hono server
   const server = await connectHttpServer()
   server.start()
 

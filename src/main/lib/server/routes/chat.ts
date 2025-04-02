@@ -1,14 +1,15 @@
 import { createOpenAI } from '@ai-sdk/openai'
 import {
+  createDataStream,
   experimental_createMCPClient,
   generateText,
   Message,
-  pipeDataStreamToResponse,
   streamText,
   Tool
 } from 'ai'
 import { Experimental_StdioMCPTransport, StdioConfig } from 'ai/mcp-stdio'
-import { Request, Response, Router } from 'express'
+import { Hono } from 'hono'
+import { stream } from 'hono/streaming'
 import { v4 as uuidV4 } from 'uuid'
 import {
   deleteChatById,
@@ -18,9 +19,10 @@ import {
   saveChat,
   saveMessages
 } from '../../db/queries'
+import { Variables } from '../types'
 import { getMostRecentUserMessage, sanitizeResponseMessages } from '../utils'
 
-const router = Router()
+const chat = new Hono<{ Variables: Variables }>()
 
 async function getOpenAiInstance() {
   const setting = await getSetting()
@@ -103,22 +105,22 @@ export async function generateTitleFromUserMessage({
   return title
 }
 
-router.post('/', async (req: Request, res: Response) => {
-  const { id, messages, tools } = req.body
+chat.post('/', async (c) => {
+  const { id, messages } = await c.req.json()
+  const tools = c.get('tools')
+
   const userMessage = getMostRecentUserMessage(messages)
   if (!userMessage) {
-    res.status(400).send('No user message found')
-    return
+    return c.text('No user message found', 400)
   }
 
   const openai = await getOpenAiInstance()
   if (!openai) {
-    res.status(500).send('No OpenAI API Key found')
-    return
+    return c.text('No OpenAI API Key found', 500)
   }
 
-  const chat = await getChatById({ id })
-  if (!chat) {
+  const existingChat = await getChatById({ id })
+  if (!existingChat) {
     const title = await generateTitleFromUserMessage({
       message: userMessage
     })
@@ -129,8 +131,9 @@ router.post('/', async (req: Request, res: Response) => {
     messages: [{ ...userMessage, createdAt: new Date(), chatId: id }]
   })
 
-  pipeDataStreamToResponse(res, {
-    execute: (dataStream) => {
+  // immediately start streaming the response
+  const dataStream = createDataStream({
+    execute: async (dataStreamWriter) => {
       const result = streamText({
         model: openai('gpt-4o'),
         system:
@@ -163,48 +166,57 @@ router.post('/', async (req: Request, res: Response) => {
         }
       })
 
-      result.mergeIntoDataStream(dataStream, {
+      result.mergeIntoDataStream(dataStreamWriter, {
         sendReasoning: true
       })
     },
-    onError: (e) => {
-      return e instanceof Error ? e.message : 'Oops, an error occured!'
+    onError: (error) => {
+      // Error messages are masked by default for security reasons.
+      // If you want to expose the error message to the client, you can do so here:
+      return error instanceof Error ? error.message : String(error)
     }
   })
+
+  // Mark the response as a v1 data stream:
+  c.header('X-Vercel-AI-Data-Stream', 'v1')
+  c.header('Content-Type', 'text/plain; charset=utf-8')
+
+  return stream(c, (stream) =>
+    stream.pipe(dataStream.pipeThrough(new TextEncoderStream()))
+  )
 })
 
-router.delete('/:id', async (req: Request, res: Response) => {
-  const { id } = req.params
+chat.delete('/:id', async (c) => {
+  const id = c.req.param('id')
   if (!id) {
-    res.status(404).send('Not Found')
+    return c.text('Not Found', 404)
   }
 
   try {
     await deleteChatById({ id })
-    res.status(200).send('Chat deleted')
+    return c.text('Chat deleted', 200)
   } catch {
-    res.status(500).send('An error occurred while processing your request')
+    return c.text('An error occurred while processing your request', 500)
   }
 })
 
-router.get('/:id', async (req: Request, res: Response) => {
-  const { id } = req.params
+chat.get('/:id', async (c) => {
+  const id = c.req.param('id')
   if (!id) {
-    res.status(404).send('Not Found')
+    return c.text('Not Found', 404)
   }
 
   try {
     const chat = await getChatById({ id })
     if (!chat) {
-      res.status(404).send('Not Found')
-      return
+      return c.text('Not Found', 404)
     }
 
     const messagesFromDb = await getMessagesByChatId({ id })
-    res.json(messagesFromDb)
+    return c.json(messagesFromDb)
   } catch {
-    res.status(500).send('An error occurred while processing your request')
+    return c.text('An error occurred while processing your request', 500)
   }
 })
 
-export default router
+export default chat

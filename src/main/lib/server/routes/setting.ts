@@ -1,17 +1,18 @@
-import { Router } from 'express'
+import { Hono } from 'hono'
 import { getSetting, updateSetting } from '../../db/queries'
+import { Variables } from '../types'
 
-const router = Router()
+const setting = new Hono<{ Variables: Variables }>()
 
-router.get('/', async function (req, res) {
+setting.get('/', async (c) => {
   const setting = await getSetting()
-  res.json(setting)
+  return c.json(setting)
 })
 
-router.post('/', async function (req, res) {
-  const payload = req.body
+setting.post('/', async (c) => {
+  const payload = await c.req.json()
   const setting = await updateSetting(payload)
-  res.json(setting)
+  return c.json(setting)
 })
 
-export default router
+export default setting
