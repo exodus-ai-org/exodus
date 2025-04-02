@@ -79,7 +79,7 @@ export function SettingsForm() {
     )
 
     return () => subscription.unsubscribe()
-  }, [data, form.watch])
+  }, [data, form, form.watch, mutate, updateSetting])
 
   return (
     <Form {...form}>

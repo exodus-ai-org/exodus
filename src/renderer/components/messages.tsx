@@ -12,11 +12,11 @@ interface Props {
 }
 
 const Messages: FC<Props> = ({
-  chatId,
+  // chatId,
   messages,
-  setMessages,
-  status,
-  reload
+  // setMessages,
+  status
+  // reload
 }) => {
   const chatBoxRef = useRef<HTMLDivElement>(null)
 

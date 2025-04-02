@@ -6,7 +6,7 @@ import useSWR from 'swr'
 
 export function Detail() {
   const { id } = useParams()
-  const { data: messagesFromDb, isLoading } = useSWR<DBMessage[]>(
+  const { data: messagesFromDb } = useSWR<DBMessage[]>(
     `/api/chat/${id}`,
     fetcher,
     {

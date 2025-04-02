@@ -16,11 +16,11 @@ export function Dropzone({ children }: { children: ReactNode }) {
   )
   const {
     getRootProps,
-    getInputProps,
-    isDragActive,
-    isFocused,
-    isDragAccept,
-    isDragReject
+    isDragActive
+    // getInputProps,
+    // isFocused,
+    // isDragAccept,
+    // isDragReject
   } = useDropzone({ onDrop })
 
   return (

@@ -1,13 +1,14 @@
 import { useAudio } from '@/hooks/use-audio'
 import { AudioLines, CircleStop } from 'lucide-react'
 import { useRef, useState } from 'react'
+import { toast } from 'sonner'
 
 export function AudioRecorder() {
   const [isRecording, setIsRecording] = useState(false)
   // const [audioUrl, setAudioUrl] = useState('')
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
-  const { loading, speechToText } = useAudio()
+  const { speechToText } = useAudio()
 
   const startRecording = async () => {
     try {
@@ -23,14 +24,14 @@ export function AudioRecorder() {
         const audioBlob = new Blob(audioChunksRef.current, {
           type: 'audio/mp3'
         })
-        const transcription = await speechToText(audioBlob as File)
+        await speechToText(audioBlob as File)
 
         // const audioUrl = URL.createObjectURL(audioBlob)
         // setAudioUrl(audioUrl)
         audioChunksRef.current = []
       }
     } catch (error) {
-      // TODO:
+      toast.error(error instanceof Error ? error.message : 'Unknown error.')
     }
   }
 
