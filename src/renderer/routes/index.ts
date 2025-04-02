@@ -3,9 +3,9 @@ import { FileSystem } from '@/containers/file-system'
 import { FileSystemDetail } from '@/containers/file-system-detail'
 import { Home } from '@/containers/home'
 import { Layout } from '@/layouts'
-import { createBrowserRouter } from 'react-router'
+import { createHashRouter } from 'react-router'
 
-export const router = createBrowserRouter([
+export const router = createHashRouter([
   {
     Component: Layout,
     children: [
