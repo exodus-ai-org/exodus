@@ -39,8 +39,8 @@ export async function connectHttpServer() {
   app.get('/ping', (c) => c.text('pong'))
 
   return {
-    close() {
-      if (server) server.close()
+    close(callback?: (err?: Error) => void) {
+      if (server) server.close(callback)
     },
     start() {
       server = serve({

@@ -1,5 +1,5 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, Notification, shell } from 'electron'
 import {
   installExtension,
   REACT_DEVELOPER_TOOLS
@@ -61,7 +61,7 @@ app.whenReady().then(async () => {
   await runMigrate()
 
   // Start Hono server
-  const server = await connectHttpServer()
+  let server = await connectHttpServer()
   server.start()
 
   // Create `LocalFiles` directory if not exist
@@ -86,6 +86,17 @@ app.whenReady().then(async () => {
     getDirectoryTree(path)
   )
   ipcMain.handle('get-stat', async (_, path: string) => getStat(path))
+
+  ipcMain.handle('restart-web-server', async () => {
+    server.close(async () => {
+      server = await connectHttpServer()
+      server.start()
+      new Notification({
+        title: 'Exodus',
+        body: 'The new MCP servers are live! Enjoy chatting with MCP! ( ๑ ˃̵ᴗ˂̵)و ♡'
+      }).show()
+    })
+  })
 
   createWindow()
 
