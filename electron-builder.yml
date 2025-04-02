@@ -1,4 +1,4 @@
-appId: com.electron.app
+appId: app.yancey.exodus
 productName: Exodus
 directories:
   buildResources: build
@@ -39,5 +39,6 @@ appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
 publish:
-  provider: generic
-  url: https://example.com/auto-updates
+  provider: github
+  owner: HyperChatBot
+  repo: exodus

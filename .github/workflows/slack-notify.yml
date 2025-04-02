@@ -1,5 +1,5 @@
 on: [push, pull_request]
-name: slack-notification
+name: Slack Notification
 jobs:
   slackNotification:
     name: Slack Notification when Pushing

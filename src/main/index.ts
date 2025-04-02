@@ -68,7 +68,7 @@ app.whenReady().then(async () => {
   await createFolder(app.getPath('userData') + '/LocalFiles')
 
   // Set app user model id for windows
-  electronApp.setAppUserModelId('com.electron')
+  electronApp.setAppUserModelId('app.yancey.exodus')
 
   // Default open or close DevTools by F12 in development
   // and ignore CommandOrControl + R in production.

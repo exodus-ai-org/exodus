@@ -1,7 +1,7 @@
 {
   "name": "exodus",
   "productName": "Exodus",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "ChatBot featuring MCP, Artifacts, RAG, AI Agents, Deep Research, and other modern capabilities.",
   "main": "./out/main/index.js",
   "author": "example.com",
@@ -86,6 +86,8 @@
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
     "@electron-toolkit/eslint-config-ts": "^3.0.0",
     "@electron-toolkit/tsconfig": "^1.0.1",
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^22.13.13",
     "@types/react": "^18.3.18",
@@ -107,6 +109,7 @@
     "prettier-plugin-tailwindcss": "^0.6.11",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "semantic-release": "^24.2.3",
     "typescript": "^5.8.2",
     "vite": "^6.2.3"
   }
