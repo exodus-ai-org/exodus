@@ -1,10 +1,14 @@
 import {
+  Atom,
   AudioWaveform,
   BookOpenText,
+  BrainCircuit,
   CloudDownload,
+  Globe,
   Hammer,
   HandCoins,
-  Info
+  Info,
+  Palette
 } from 'lucide-react'
 
 export const data = {
@@ -44,6 +48,22 @@ export const data = {
     {
       icon: AudioWaveform,
       title: 'Audio and Speech'
+    },
+    {
+      icon: Globe,
+      title: 'Web Search'
+    },
+    {
+      icon: BrainCircuit,
+      title: 'Deep Research'
+    },
+    {
+      icon: Atom,
+      title: 'RAG'
+    },
+    {
+      icon: Palette,
+      title: 'Artifacts'
     },
     {
       icon: CloudDownload,

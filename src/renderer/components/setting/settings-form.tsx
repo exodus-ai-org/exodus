@@ -28,6 +28,25 @@ import {
   SelectValue
 } from '../ui/select'
 
+const formSchema = z.object({
+  openaiApiKey: z.string().min(1),
+  openaiBaseUrl: z.string().url(),
+  azureOpenaiApiKey: z.string().min(1),
+  azureOpenAiEndpoint: z.string().url(),
+  azureOpenAiApiVersion: z.string().url(),
+  anthropicApiKey: z.string().min(1),
+  anthropicBaseUrl: z.string().url(),
+  googleApiKey: z.string().min(1),
+  googleBaseUrl: z.string().url(),
+  xAiApiKey: z.string().min(1),
+  xAiBaseUrl: z.string().url(),
+  ollamaBaseUrl: z.string().min(1),
+  mcpServers: z.string().min(1),
+  speechToTextModel: z.string().min(1),
+  textToSpeechVoice: z.string().min(1),
+  textToSpeechModel: z.string().min(1)
+})
+
 export function SettingsForm() {
   const activeTitle = useAtomValue(activeAtom)
   const { error } = useSWR(
@@ -37,25 +56,6 @@ export function SettingsForm() {
     fetcher
   )
   const { data, mutate, updateSetting } = useSetting()
-
-  const formSchema = z.object({
-    openaiApiKey: z.string().min(1),
-    openaiBaseUrl: z.string().url(),
-    azureOpenaiApiKey: z.string().min(1),
-    azureOpenAiEndpoint: z.string().url(),
-    azureOpenAiApiVersion: z.string().url(),
-    anthropicApiKey: z.string().min(1),
-    anthropicBaseUrl: z.string().url(),
-    googleApiKey: z.string().min(1),
-    googleBaseUrl: z.string().url(),
-    xAiApiKey: z.string().min(1),
-    xAiBaseUrl: z.string().url(),
-    ollamaBaseUrl: z.string().min(1),
-    mcpServers: z.string().min(1),
-    speechToTextModel: z.string().min(1),
-    textToSpeechVoice: z.string().min(1),
-    textToSpeechModel: z.string().min(1)
-  })
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -326,12 +326,28 @@ export function SettingsForm() {
         )}
 
         {activeTitle === 'MCP Servers' && (
-          <CodeEditor name="mcpServers" control={form.control} />
+          <>
+            <Alert className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="block">
+                We&apos;ve detected an update to your MCP servers&apos;
+                configuration. To apply these changes, please click{' '}
+                <span className="hover:text-primary cursor-pointer font-bold underline">
+                  RESTART
+                </span>{' '}
+                to launch your servers now, or restart the application manually.
+              </AlertDescription>
+            </Alert>
+            <CodeEditor
+              props={{ control: form.control, name: 'mcpServers' }}
+              className="-mx-4 !w-[calc(100%+2rem)]"
+            />
+          </>
         )}
 
         {activeTitle === 'Audio and Speech' && (
           <>
-            <Alert className="mb-8">
+            <Alert className="mb-4">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription>
                 The Text-to-Speech and Speech-to-Text services only support
