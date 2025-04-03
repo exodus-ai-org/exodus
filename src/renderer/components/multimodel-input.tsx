@@ -1,4 +1,6 @@
+import { showArtifactSheetAtom } from '@/stores/chat'
 import { UseChatHelpers } from '@ai-sdk/react'
+import { useSetAtom } from 'jotai'
 import {
   AudioLines,
   CircleStop,
@@ -34,6 +36,7 @@ const InputBox: FC<Props> = ({
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [isTyping, setIsTyping] = useState(false)
+  const setShowArtifactSheet = useSetAtom(showArtifactSheetAtom)
 
   const adjustHeight = () => {
     if (textareaRef.current) {
@@ -108,7 +111,11 @@ const InputBox: FC<Props> = ({
           <Button variant="ghost" className="cursor-pointer rounded-4xl border">
             <Globe /> Search
           </Button>
-          <Button variant="ghost" className="cursor-pointer rounded-4xl border">
+          <Button
+            variant="ghost"
+            className="cursor-pointer rounded-4xl border"
+            onClick={() => setShowArtifactSheet(true)}
+          >
             <Palette /> Artifact
           </Button>
         </div>

@@ -1,3 +1,3 @@
 import { atom } from 'jotai'
 
-export const messages = atom([])
+export const showArtifactSheetAtom = atom(false)

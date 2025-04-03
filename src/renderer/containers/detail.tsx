@@ -1,3 +1,4 @@
+import { CodePreview } from '@/components/artifacts/code-preview'
 import { Chat } from '@/components/chat'
 import { convertToUIMessages, fetcher } from '@/lib/utils'
 import { useParams } from 'react-router'
@@ -19,5 +20,10 @@ export function Detail() {
     return null
   }
 
-  return <Chat id={id} initialMessages={convertToUIMessages(messagesFromDb)} />
+  return (
+    <>
+      <Chat id={id} initialMessages={convertToUIMessages(messagesFromDb)} />
+      <CodePreview />
+    </>
+  )
 }
