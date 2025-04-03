@@ -45,9 +45,9 @@ export async function connectHttpServer() {
     start() {
       server = serve({
         fetch: app.fetch,
-        port: 8964
+        port: 60223
       })
-      console.log('✅ Hono http server is running on 8964.')
+      console.log('✅ Hono http server is running on 60223.')
     }
   }
 }
