@@ -68,7 +68,7 @@
     "marked": "^15.0.7",
     "marked-katex-extension": "^5.1.4",
     "monaco-editor": "^0.52.2",
-    "openai": "^4.91.0",
+    "openai": "^4.91.1",
     "postcss": "^8.5.3",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
