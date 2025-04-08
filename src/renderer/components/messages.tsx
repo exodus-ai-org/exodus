@@ -2,7 +2,8 @@ import { cn } from '@/lib/utils'
 import { showArtifactSheetAtom } from '@/stores/chat'
 import { UseChatHelpers } from '@ai-sdk/react'
 import { useAtomValue } from 'jotai'
-import { FC, memo, useRef } from 'react'
+import { throttle } from 'lodash-es'
+import { FC, memo, useEffect, useRef } from 'react'
 import ChatBubble from './chat-bubble'
 import { MessageSpinner } from './message-spinner'
 
@@ -24,6 +25,22 @@ const Messages: FC<Props> = ({
   const chatBoxRef = useRef<HTMLDivElement>(null)
   const showArtifactSheet = useAtomValue(showArtifactSheetAtom)
 
+  const scrollToBottom = throttle(() => {
+    if (!chatBoxRef.current) return
+    const $el = chatBoxRef.current
+
+    if ($el.scrollHeight > $el.scrollTop + $el.clientHeight + 24) {
+      $el.scrollTo({
+        top: $el.scrollHeight,
+        left: 0
+      })
+    }
+  }, 1000)
+
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages, scrollToBottom])
+
   return (
     <section
       className={cn(
@@ -42,6 +59,8 @@ const Messages: FC<Props> = ({
             <MessageSpinner />
           )}
       </div>
+
+      <p className="h-px w-px" />
     </section>
   )
 }
