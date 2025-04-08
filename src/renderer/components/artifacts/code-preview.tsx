@@ -5,9 +5,17 @@ import {
   SheetTitle
 } from '@/components/ui/sheet'
 import { showArtifactSheetAtom } from '@/stores/chat'
+import {
+  SandpackCodeEditor,
+  SandpackLayout,
+  SandpackPreview,
+  SandpackProvider
+} from '@codesandbox/sandpack-react'
 import { useAtom } from 'jotai'
-import { ReactCodeRunner } from './code-runner'
-import { expamleCode } from './example-code'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
+import { dependencies } from './essential-deps'
+import { exampleCode } from './example-code'
+import { importFiles } from './import-files'
 
 export function CodePreview() {
   const [showArtifactSheet, setShowArtifactSheet] = useAtom(
@@ -17,35 +25,69 @@ export function CodePreview() {
     <Sheet open={showArtifactSheet} onOpenChange={setShowArtifactSheet}>
       <SheetContent side="right" className="w-[800px] min-w-[800px] p-4">
         <SheetHeader>
-          <SheetTitle>Canvas</SheetTitle>
+          <SheetTitle>Artifact</SheetTitle>
         </SheetHeader>
         <section className="flex-1">
           {/* <header className="flex items-center justify-between"></header> */}
 
-          <ReactCodeRunner code={expamleCode} />
-
-          {/* <SandpackProvider template="react-ts">
-            <SandpackLayout>
+          <SandpackProvider
+            theme="auto"
+            template="react-ts"
+            files={{
+              'App.tsx': exampleCode.trim(),
+              ...importFiles,
+              '/tsconfig.json': {
+                code: `{
+                      "include": [
+                        "./**/*"
+                      ],
+                      "compilerOptions": {
+                        "strict": true,
+                        "esModuleInterop": true,
+                        "lib": [ "dom", "es2015" ],
+                        "jsx": "react-jsx",
+                        "baseUrl": "./",
+                        "paths": {
+                          "@/components/*": ["components/*"],
+                          "@/lib/*": ["lib/*"]
+                        }
+                      }
+                    }
+                  `
+              }
+            }}
+            options={{
+              externalResources: [
+                'https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4'
+              ]
+            }}
+            customSetup={{
+              dependencies
+            }}
+          >
+            <SandpackLayout className="bg-background">
               <Tabs defaultValue="code" className="h-full w-[800px]">
                 <TabsList>
                   <TabsTrigger value="code">Code</TabsTrigger>
                   <TabsTrigger value="preview">Preview</TabsTrigger>
                 </TabsList>
                 <TabsContent value="code">
-                  <SandpackCodeEditor className="overscroll-y-scroll h-[calc(100vh-8rem)]" />
+                  <SandpackCodeEditor className="overscroll-y-scroll h-[calc(100vh-9.4rem)]" />
                 </TabsContent>
                 <TabsContent value="preview">
-                  <SandpackPreview className="overscroll-y-scroll h-[calc(100vh-8rem)]" />
+                  <SandpackPreview
+                    showNavigator={false}
+                    showOpenInCodeSandbox={false}
+                    showRefreshButton={false}
+                    showRestartButton={false}
+                    showOpenNewtab={false}
+                    className="overscroll-y-scroll h-[calc(100vh-9.4rem)]"
+                  />
                 </TabsContent>
               </Tabs>
             </SandpackLayout>
-          </SandpackProvider> */}
+          </SandpackProvider>
         </section>
-        {/* <SheetFooter>
-          <SheetClose asChild>
-            <Button type="submit">Save changes</Button>
-          </SheetClose>
-        </SheetFooter> */}
       </SheetContent>
     </Sheet>
   )
