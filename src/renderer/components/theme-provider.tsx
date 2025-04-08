@@ -10,11 +10,13 @@ type ThemeProviderProps = {
 
 type ThemeProviderState = {
   theme: Theme
+  actualTheme: Exclude<Theme, 'system'>
   setTheme: (theme: Theme) => void
 }
 
 const initialState: ThemeProviderState = {
   theme: 'system',
+  actualTheme: 'light',
   setTheme: () => null
 }
 
@@ -29,6 +31,8 @@ export function ThemeProvider({
   const [theme, setTheme] = useState<Theme>(
     () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
   )
+  const [actualTheme, setActualTheme] =
+    useState<Exclude<Theme, 'system'>>('light')
 
   useEffect(() => {
     const root = window.document.documentElement
@@ -41,10 +45,12 @@ export function ThemeProvider({
         : 'light'
 
       root.classList.add(systemTheme)
+      setActualTheme(systemTheme)
       return
     }
 
     root.classList.add(theme)
+    setActualTheme(theme)
   }, [theme])
 
   useEffect(() => {
@@ -53,6 +59,7 @@ export function ThemeProvider({
       const root = window.document.documentElement
       root.classList.remove('light', 'dark')
       root.classList.add(e.matches ? 'dark' : 'light')
+      setActualTheme(e.matches ? 'dark' : 'light')
     }
 
     mediaQuery.addEventListener('change', handleChange)
@@ -61,6 +68,7 @@ export function ThemeProvider({
 
   const value = {
     theme,
+    actualTheme,
     setTheme: (theme: Theme) => {
       localStorage.setItem(storageKey, theme)
       setTheme(theme)

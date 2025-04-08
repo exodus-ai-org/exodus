@@ -174,14 +174,6 @@
       @apply mb-4 pl-1;
     }
 
-    a {
-      @apply break-words;
-    }
-
-    table {
-      @apply w-full caption-bottom text-sm;
-    }
-
     thead {
       @apply [&_tr]:border-b;
     }
