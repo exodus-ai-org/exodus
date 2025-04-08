@@ -1,5 +1,7 @@
+import { showArtifactSheetAtom } from '@/stores/chat'
 import hljs from 'highlight.js'
 import 'highlight.js/styles/atom-one-dark.css'
+import { useAtomValue } from 'jotai'
 import { Marked, Renderer, Tokens } from 'marked'
 import markedKatex from 'marked-katex-extension'
 import { FC, memo, useCallback } from 'react'
@@ -9,6 +11,8 @@ interface Props {
 }
 
 const Markdown: FC<Props> = ({ src }) => {
+  const showArtifactSheet = useAtomValue(showArtifactSheetAtom)
+
   const parseMarkdown = useCallback(() => {
     const renderer = new Renderer()
 
@@ -20,7 +24,7 @@ const Markdown: FC<Props> = ({ src }) => {
           ? hljs.highlight(text, { language: language }).value
           : hljs.highlightAuto(text).value
 
-      return `<pre class="mb-4 rounded-xl overflow-x-scroll text-xs"><code class=" hljs ${language}">${highlighted}</code></pre>`
+      return `<pre class="mb-4 rounded-md overflow-x-scroll text-xs ${showArtifactSheet ? 'w-[20rem] bg-red-400' : ''}"><code class="hljs ${language}">${highlighted}</code></pre>`
     }
 
     renderer.codespan = ({ text }: Tokens.Codespan) =>
@@ -46,7 +50,7 @@ const Markdown: FC<Props> = ({ src }) => {
     marked.use(markedKatex())
 
     return marked.parse(src)
-  }, [src])
+  }, [src, showArtifactSheet])
 
   return (
     <section

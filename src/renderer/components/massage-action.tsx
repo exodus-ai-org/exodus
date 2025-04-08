@@ -61,31 +61,31 @@ export function MessageAction({ content }: { content: string }) {
       <MessageActionItem tooltipContent="Copy">
         <IconWrapper>
           {!copied ? (
-            <Copy size={14} onClick={handleCopy} />
+            <Copy size={14} strokeWidth={2.5} onClick={handleCopy} />
           ) : (
-            <Check size={14} />
+            <Check size={14} strokeWidth={2.5} />
           )}
         </IconWrapper>
       </MessageActionItem>
       <MessageActionItem tooltipContent="Good response">
         <IconWrapper>
-          <ThumbsUp size={14} />
+          <ThumbsUp size={14} strokeWidth={2.5} />
         </IconWrapper>
       </MessageActionItem>
       <MessageActionItem tooltipContent="Bad response">
         <IconWrapper>
-          <ThumbsDown size={14} />
+          <ThumbsDown size={14} strokeWidth={2.5} />
         </IconWrapper>
       </MessageActionItem>
       <AudioPlayer content={content} />
       <MessageActionItem tooltipContent="Edit in canvas">
         <IconWrapper>
-          <PencilRuler size={14} />
+          <PencilRuler size={14} strokeWidth={2.5} />
         </IconWrapper>
       </MessageActionItem>
       <MessageActionItem tooltipContent="Switch model">
         <IconWrapper>
-          <RefreshCcw size={14} />
+          <RefreshCcw size={14} strokeWidth={2.5} />
         </IconWrapper>
       </MessageActionItem>
     </div>

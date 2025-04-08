@@ -50,19 +50,23 @@ export function AudioPlayer({ content }: { content: string }) {
       <span>
         {!(loading || isPlaying) && (
           <IconWrapper>
-            <Volume2 size={14} onClick={fetchSpeech} />
+            <Volume2 size={14} strokeWidth={2.5} onClick={fetchSpeech} />
           </IconWrapper>
         )}
 
         {loading && (
           <IconWrapper>
-            <Loader size={14} className={cn('animate-spin')} />
+            <Loader
+              size={14}
+              strokeWidth={2.5}
+              className={cn('animate-spin')}
+            />
           </IconWrapper>
         )}
 
         {isPlaying && (
           <IconWrapper>
-            <CircleStop size={14} onClick={handleStop} />
+            <CircleStop size={14} strokeWidth={2.5} onClick={handleStop} />
           </IconWrapper>
         )}
 

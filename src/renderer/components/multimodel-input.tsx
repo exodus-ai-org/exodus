@@ -1,9 +1,17 @@
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu'
+import { cn } from '@/lib/utils'
 import { showArtifactSheetAtom } from '@/stores/chat'
 import { UseChatHelpers } from '@ai-sdk/react'
-import { useSetAtom } from 'jotai'
+import { useAtom } from 'jotai'
 import {
   AudioLines,
   CircleStop,
+  Ellipsis,
   Globe,
   Lightbulb,
   Palette,
@@ -13,6 +21,7 @@ import {
 import { FC, memo, useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from './ui/button'
+import { useSidebar } from './ui/sidebar'
 import { Textarea } from './ui/textarea'
 
 interface Props {
@@ -36,7 +45,10 @@ const InputBox: FC<Props> = ({
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [isTyping, setIsTyping] = useState(false)
-  const setShowArtifactSheet = useSetAtom(showArtifactSheetAtom)
+  const [showArtifactSheet, setShowArtifactSheet] = useAtom(
+    showArtifactSheetAtom
+  )
+  const { open, toggleSidebar } = useSidebar()
 
   const adjustHeight = () => {
     if (textareaRef.current) {
@@ -64,6 +76,14 @@ const InputBox: FC<Props> = ({
     resetHeight()
   }, [handleSubmit, chatId])
 
+  const handleArtifact = () => {
+    if (open) {
+      toggleSidebar()
+    }
+
+    setShowArtifactSheet(true)
+  }
+
   useEffect(() => {
     if (textareaRef.current) {
       adjustHeight()
@@ -71,7 +91,12 @@ const InputBox: FC<Props> = ({
   }, [])
 
   return (
-    <div className="border-input mx-auto mb-4 flex w-full flex-col gap-2 rounded-2xl border p-1 shadow-sm md:max-w-3xl">
+    <div
+      className={cn(
+        'border-input mx-auto mb-4 flex w-full flex-col gap-2 rounded-2xl border p-1 shadow-sm md:max-w-3xl',
+        { ['mx-0 ml-4 w-[23rem]']: showArtifactSheet }
+      )}
+    >
       <form>
         <Textarea
           ref={textareaRef}
@@ -102,22 +127,35 @@ const InputBox: FC<Props> = ({
       </form>
       <div className="mx-2 mb-2 flex justify-between">
         <div className="flex gap-2">
-          <Button variant="ghost" className="cursor-pointer rounded-4xl border">
-            <Plus /> Attach
-          </Button>
-          <Button variant="ghost" className="cursor-pointer rounded-4xl border">
-            <Lightbulb /> Reason
-          </Button>
-          <Button variant="ghost" className="cursor-pointer rounded-4xl border">
-            <Globe /> Search
-          </Button>
           <Button
             variant="ghost"
-            className="cursor-pointer rounded-4xl border"
-            onClick={() => setShowArtifactSheet(true)}
+            className="h-9 w-9 cursor-pointer rounded-full border"
           >
-            <Palette /> Artifact
+            <Plus />
           </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                className="h-9 w-9 cursor-pointer rounded-full border"
+              >
+                <Ellipsis />
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent>
+              <DropdownMenuItem>
+                <Globe /> Search
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Lightbulb /> Reason
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleArtifact}>
+                <Palette /> Artifact
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {status === 'streaming' ? (

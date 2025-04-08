@@ -1,9 +1,12 @@
+import { Button } from '@/components/ui/button'
 import {
   Sheet,
+  SheetClose,
   SheetContent,
-  SheetHeader,
   SheetTitle
 } from '@/components/ui/sheet'
+import { useSidebar } from '@/components/ui/sidebar'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { showArtifactSheetAtom } from '@/stores/chat'
 import {
   SandpackCodeEditor,
@@ -12,7 +15,7 @@ import {
   SandpackProvider
 } from '@codesandbox/sandpack-react'
 import { useAtom } from 'jotai'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
+import { X } from 'lucide-react'
 import { dependencies } from './essential-deps'
 import { exampleCode } from './example-code'
 import { importFiles } from './import-files'
@@ -21,15 +24,48 @@ export function CodePreview() {
   const [showArtifactSheet, setShowArtifactSheet] = useAtom(
     showArtifactSheetAtom
   )
-  return (
-    <Sheet open={showArtifactSheet} onOpenChange={setShowArtifactSheet}>
-      <SheetContent side="right" className="w-[800px] min-w-[800px] p-4">
-        <SheetHeader>
-          <SheetTitle>Artifact</SheetTitle>
-        </SheetHeader>
-        <section className="flex-1">
-          {/* <header className="flex items-center justify-between"></header> */}
+  const { open: sideBarIsOpen, toggleSidebar } = useSidebar()
 
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      setShowArtifactSheet(open)
+    }
+  }
+
+  const handleCloseSheet = () => {
+    if (!sideBarIsOpen) {
+      toggleSidebar()
+    }
+
+    setShowArtifactSheet(false)
+  }
+
+  return (
+    <Sheet
+      open={showArtifactSheet}
+      onOpenChange={handleOpenChange}
+      modal={false}
+    >
+      <SheetContent
+        className="max-w-[calc(100vw-25rem)] min-w-[calc(100vw-25rem)] p-4 [&>button:last-of-type]:hidden"
+        aria-describedby={undefined}
+      >
+        <SheetTitle className="flex items-center gap-2">
+          <SheetClose asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="cursor-pointer"
+              onClick={handleCloseSheet}
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </SheetClose>
+
+          <p>New Document</p>
+        </SheetTitle>
+
+        <section className="flex-1">
           <SandpackProvider
             theme="auto"
             template="react-ts"
@@ -66,13 +102,13 @@ export function CodePreview() {
             }}
           >
             <SandpackLayout className="bg-background">
-              <Tabs defaultValue="code" className="h-full w-[800px]">
+              <Tabs defaultValue="code" className="h-full w-full">
                 <TabsList>
                   <TabsTrigger value="code">Code</TabsTrigger>
                   <TabsTrigger value="preview">Preview</TabsTrigger>
                 </TabsList>
                 <TabsContent value="code">
-                  <SandpackCodeEditor className="overscroll-y-scroll h-[calc(100vh-9.4rem)]" />
+                  <SandpackCodeEditor className="overscroll-y-scroll h-[calc(100vh-8.2rem)]" />
                 </TabsContent>
                 <TabsContent value="preview">
                   <SandpackPreview
@@ -81,7 +117,7 @@ export function CodePreview() {
                     showRefreshButton={false}
                     showRestartButton={false}
                     showOpenNewtab={false}
-                    className="overscroll-y-scroll h-[calc(100vh-9.4rem)]"
+                    className="overscroll-y-scroll h-[calc(100vh-8.2rem)]"
                   />
                 </TabsContent>
               </Tabs>
