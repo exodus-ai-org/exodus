@@ -74,10 +74,11 @@ export function FileSystem() {
             </DialogClose>
             <Button
               type="button"
-              onClick={() => {
-                createDirectory(name)
+              onClick={async () => {
                 setOpen(false)
                 setName('')
+                await createDirectory(name)
+                await getDirectories()
               }}
             >
               Create
