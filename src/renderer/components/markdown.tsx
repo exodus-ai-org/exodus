@@ -3,7 +3,7 @@ import { showArtifactSheetAtom } from '@/stores/chat'
 import { useAtomValue } from 'jotai'
 import 'katex/dist/katex.min.css'
 import { Check, Copy, PencilRuler } from 'lucide-react'
-import { memo, useMemo, useState } from 'react'
+import { memo, ReactNode, useMemo, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import {
@@ -22,15 +22,15 @@ const themes = {
 
 export function Markdown({ src }: { src: string }) {
   const showArtifactSheet = useAtomValue(showArtifactSheetAtom)
-  const [copied, setCopied] = useState(false)
+  const [copiedContent, setCopiedContent] = useState<ReactNode>('')
   const { actualTheme } = useTheme()
   const { codeTheme, bg } = useMemo(() => themes[actualTheme], [actualTheme])
 
-  const handleCopy = () => {
-    if (!copied) {
-      setCopied(true)
+  const handleCopy = (children: ReactNode) => {
+    if (!copiedContent) {
+      setCopiedContent(children)
       setTimeout(() => {
-        setCopied(false)
+        setCopiedContent('')
       }, 2000)
     }
   }
@@ -55,10 +55,10 @@ export function Markdown({ src }: { src: string }) {
                   <span>{match[1]}</span>
                   <div className="flex items-center gap-6">
                     <>
-                      {!copied ? (
+                      {copiedContent !== children ? (
                         <span
                           className="flex cursor-pointer items-center gap-1.5"
-                          onClick={handleCopy}
+                          onClick={() => handleCopy(children)}
                         >
                           <Copy size={10} />
                           Copy
@@ -72,7 +72,7 @@ export function Markdown({ src }: { src: string }) {
                     </>
 
                     <span className="flex cursor-pointer items-center gap-1.5">
-                      <PencilRuler size={10} onClick={handleCopy} />
+                      <PencilRuler size={10} onClick={() => {}} />
                       Edit
                     </span>
                   </div>
