@@ -16,6 +16,7 @@ import {
 } from '@codesandbox/sandpack-react'
 import { useAtom } from 'jotai'
 import { X } from 'lucide-react'
+import { useTheme } from '../theme-provider'
 import { dependencies } from './essential-deps'
 import { exampleCode } from './example-code'
 import { importFiles } from './import-files'
@@ -25,6 +26,7 @@ export function CodePreview() {
     showArtifactSheetAtom
   )
   const { open: sideBarIsOpen, toggleSidebar } = useSidebar()
+  const { actualTheme } = useTheme()
 
   const handleOpenChange = (open: boolean) => {
     if (open) {
@@ -67,7 +69,7 @@ export function CodePreview() {
 
         <section className="flex-1">
           <SandpackProvider
-            theme="auto"
+            theme={actualTheme}
             template="react-ts"
             files={{
               'App.tsx': exampleCode.trim(),
