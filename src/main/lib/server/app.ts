@@ -36,7 +36,8 @@ export async function connectHttpServer() {
   app.route('/api/ollama', ollamaRouter)
   app.route('/api/audio', audioRouter)
 
-  app.get('/ping', (c) => c.text('pong'))
+  // Ping
+  app.get('/', (c) => c.text('Exodus is running.'))
 
   return {
     close(callback?: (err?: Error) => void) {

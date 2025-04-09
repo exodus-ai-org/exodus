@@ -19,9 +19,9 @@ audio.post('/speech', async (c) => {
   })
 
   const speech = await openai.audio.speech.create({
-    model: 'tts-1',
+    model: setting.textToSpeechModel,
     input: text,
-    voice: 'alloy'
+    voice: setting.textToSpeechVoice
   })
 
   const buffer = Buffer.from(await speech.arrayBuffer())
@@ -56,7 +56,7 @@ audio.post('/transcriptions', async (c) => {
 
   const transcription = await openai.audio.transcriptions.create({
     file,
-    model: 'gpt-4o-transcribe'
+    model: setting.speechToTextModel
   })
 
   return c.json(transcription)
