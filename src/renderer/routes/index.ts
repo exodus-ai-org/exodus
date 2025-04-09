@@ -12,7 +12,7 @@ export const router = createHashRouter([
       { index: true, Component: Home },
       { path: '/chat/:id', Component: Detail },
       { path: 'file-system', Component: FileSystem },
-      { path: 'file-system/:folderName', Component: FileSystemDetail }
+      { path: 'file-system/:directoryName', Component: FileSystemDetail }
     ]
   }
 ])

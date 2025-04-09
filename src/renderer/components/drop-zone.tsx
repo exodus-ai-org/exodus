@@ -1,23 +1,32 @@
+import { useFs } from '@/hooks/use-fs'
 import { cn } from '@/lib/utils'
 import { ReactNode, useCallback } from 'react'
-import { DropEvent, FileRejection, useDropzone } from 'react-dropzone'
+import { useDropzone } from 'react-dropzone'
 
-export function Dropzone({ children }: { children: ReactNode }) {
+export function Dropzone({
+  directoryName,
+  children
+}: {
+  directoryName: string
+  children: ReactNode
+}) {
+  const { copyFiles } = useFs()
+
   const onDrop = useCallback(
     (
-      acceptedFiles: File[],
-      fileRejections: FileRejection[],
-      event: DropEvent
+      acceptedFiles: File[]
+      // fileRejections: FileRejection[],
+      // event: DropEvent
     ) => {
-      console.log(acceptedFiles, fileRejections, event)
-      // Do something with the files
+      copyFiles(acceptedFiles, directoryName)
     },
-    []
+    [copyFiles, directoryName]
   )
+
   const {
     getRootProps,
     isDragActive
-    // getInputProps,
+    // getInputProps
     // isFocused,
     // isDragAccept,
     // isDragReject

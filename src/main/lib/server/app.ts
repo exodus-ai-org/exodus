@@ -1,6 +1,7 @@
 import { serve, ServerType } from '@hono/node-server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import { SERVER_PORT } from '../constants'
 import audioRouter from './routes/audio'
 import chatRouter, { connectMcpServers } from './routes/chat'
 import historyRouter from './routes/history'
@@ -46,9 +47,9 @@ export async function connectHttpServer() {
     start() {
       server = serve({
         fetch: app.fetch,
-        port: 60223
+        port: SERVER_PORT
       })
-      console.log('✅ Hono http server is running on 60223.')
+      console.log(`✅ Hono http server is running on ${SERVER_PORT}.`)
     }
   }
 }

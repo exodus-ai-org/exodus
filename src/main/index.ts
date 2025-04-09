@@ -6,12 +6,16 @@ import {
 } from 'electron-devtools-installer'
 import { join } from 'path'
 import icon from '../../resources/icon.png?asset'
+import { LOCAL_FILE_DIRECTORY } from './lib/constants'
 import { runMigrate } from './lib/db/migrate'
 import {
-  createFolder,
+  copyFiles,
+  createDirectory,
   getDirectoryTree,
   getStat,
-  openFileManagerApp
+  getUserDataPath,
+  openFileManagerApp,
+  renameFile
 } from './lib/ipc/file-system'
 import { connectHttpServer } from './lib/server/app'
 
@@ -64,8 +68,8 @@ app.whenReady().then(async () => {
   let server = await connectHttpServer()
   server.start()
 
-  // Create `LocalFiles` directory if not exist
-  await createFolder(app.getPath('userData') + '/LocalFiles')
+  // Create `LOCAL_FILE_DIRECTORY` directory if not exist
+  await createDirectory(app.getPath('userData') + `/${LOCAL_FILE_DIRECTORY}`)
 
   // Set app user model id for windows
   electronApp.setAppUserModelId('app.yancey.exodus')
@@ -85,8 +89,27 @@ app.whenReady().then(async () => {
   ipcMain.handle('get-directory-tree', async (_, path: string) =>
     getDirectoryTree(path)
   )
+  ipcMain.handle('get-user-data-path', async () => getUserDataPath())
   ipcMain.handle('get-stat', async (_, path: string) => getStat(path))
-
+  ipcMain.handle('create-directory', async (_, path: string) =>
+    createDirectory(path)
+  )
+  ipcMain.handle(
+    'rename-file',
+    async (_, source: string, destination: string) =>
+      renameFile(source, destination)
+  )
+  ipcMain.handle(
+    'copy-files',
+    async (
+      _,
+      sourceFiles: {
+        name: string
+        buffer: ArrayBuffer
+      }[],
+      destinationDir: string
+    ) => copyFiles(sourceFiles, destinationDir)
+  )
   ipcMain.handle('restart-web-server', async () => {
     server.close(async () => {
       server = await connectHttpServer()
