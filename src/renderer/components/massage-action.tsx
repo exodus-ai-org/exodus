@@ -1,3 +1,4 @@
+import { useArtifact } from '@/hooks/use-artifact'
 import { TooltipArrow } from '@radix-ui/react-tooltip'
 import {
   Check,
@@ -46,6 +47,7 @@ export function MessageActionItem({
 
 export function MessageAction({ content }: { content: string }) {
   const [copied, setCopied] = useState(false)
+  const { openArtifact } = useArtifact()
 
   const handleCopy = () => {
     if (!copied) {
@@ -78,9 +80,9 @@ export function MessageAction({ content }: { content: string }) {
         </IconWrapper>
       </MessageActionItem>
       <AudioPlayer content={content} />
-      <MessageActionItem tooltipContent="Edit in canvas">
+      <MessageActionItem tooltipContent="Edit in artifacts">
         <IconWrapper>
-          <PencilRuler size={14} strokeWidth={2.5} />
+          <PencilRuler size={14} strokeWidth={2.5} onClick={openArtifact} />
         </IconWrapper>
       </MessageActionItem>
       <MessageActionItem tooltipContent="Switch model">

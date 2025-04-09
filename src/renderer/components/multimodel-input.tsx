@@ -4,10 +4,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
+import { useArtifact } from '@/hooks/use-artifact'
 import { cn } from '@/lib/utils'
-import { showArtifactSheetAtom } from '@/stores/chat'
 import { UseChatHelpers } from '@ai-sdk/react'
-import { useAtom } from 'jotai'
 import {
   AudioLines,
   CircleStop,
@@ -21,7 +20,6 @@ import {
 import { FC, memo, useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from './ui/button'
-import { useSidebar } from './ui/sidebar'
 import { Textarea } from './ui/textarea'
 
 interface Props {
@@ -45,10 +43,7 @@ const InputBox: FC<Props> = ({
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [isTyping, setIsTyping] = useState(false)
-  const [showArtifactSheet, setShowArtifactSheet] = useAtom(
-    showArtifactSheetAtom
-  )
-  const { open, toggleSidebar } = useSidebar()
+  const { show: showArtifactSheet, openArtifact } = useArtifact()
 
   const adjustHeight = () => {
     if (textareaRef.current) {
@@ -75,14 +70,6 @@ const InputBox: FC<Props> = ({
     handleSubmit()
     resetHeight()
   }, [handleSubmit, chatId])
-
-  const handleArtifact = () => {
-    if (open) {
-      toggleSidebar()
-    }
-
-    setShowArtifactSheet(true)
-  }
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -151,7 +138,7 @@ const InputBox: FC<Props> = ({
               <DropdownMenuItem>
                 <Lightbulb /> Reason
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleArtifact}>
+              <DropdownMenuItem onClick={openArtifact}>
                 <Palette /> Artifact
               </DropdownMenuItem>
             </DropdownMenuContent>

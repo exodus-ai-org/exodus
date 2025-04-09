@@ -1,6 +1,5 @@
+import { useArtifact } from '@/hooks/use-artifact'
 import { cn } from '@/lib/utils'
-import { showArtifactSheetAtom } from '@/stores/chat'
-import { useAtomValue } from 'jotai'
 import 'katex/dist/katex.min.css'
 import { Check, Copy, PencilRuler } from 'lucide-react'
 import { memo, ReactNode, useMemo, useState } from 'react'
@@ -21,7 +20,7 @@ const themes = {
 }
 
 export function Markdown({ src }: { src: string }) {
-  const showArtifactSheet = useAtomValue(showArtifactSheetAtom)
+  const { show: showArtifactSheet, openArtifact } = useArtifact()
   const [copiedContent, setCopiedContent] = useState<ReactNode>('')
   const { actualTheme } = useTheme()
   const { codeTheme, bg } = useMemo(() => themes[actualTheme], [actualTheme])
@@ -71,8 +70,11 @@ export function Markdown({ src }: { src: string }) {
                       )}
                     </>
 
-                    <span className="flex cursor-pointer items-center gap-1.5">
-                      <PencilRuler size={10} onClick={() => {}} />
+                    <span
+                      className="flex cursor-pointer items-center gap-1.5"
+                      onClick={openArtifact}
+                    >
+                      <PencilRuler size={10} />
                       Edit
                     </span>
                   </div>

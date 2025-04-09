@@ -1,7 +1,6 @@
+import { useArtifact } from '@/hooks/use-artifact'
 import { cn } from '@/lib/utils'
-import { showArtifactSheetAtom } from '@/stores/chat'
 import { UseChatHelpers } from '@ai-sdk/react'
-import { useAtomValue } from 'jotai'
 import { throttle } from 'lodash-es'
 import { FC, memo, useEffect, useRef } from 'react'
 import ChatBubble from './chat-bubble'
@@ -23,7 +22,7 @@ const Messages: FC<Props> = ({
   // reload
 }) => {
   const chatBoxRef = useRef<HTMLDivElement>(null)
-  const showArtifactSheet = useAtomValue(showArtifactSheetAtom)
+  const { show: showArtifactSheet } = useArtifact()
 
   const scrollToBottom = throttle(() => {
     if (!chatBoxRef.current) return

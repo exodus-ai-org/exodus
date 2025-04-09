@@ -5,16 +5,14 @@ import {
   SheetContent,
   SheetTitle
 } from '@/components/ui/sheet'
-import { useSidebar } from '@/components/ui/sidebar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { showArtifactSheetAtom } from '@/stores/chat'
+import { useArtifact } from '@/hooks/use-artifact'
 import {
   SandpackCodeEditor,
   SandpackLayout,
   SandpackPreview,
   SandpackProvider
 } from '@codesandbox/sandpack-react'
-import { useAtom } from 'jotai'
 import { X } from 'lucide-react'
 import { useTheme } from '../theme-provider'
 import { dependencies } from './essential-deps'
@@ -22,30 +20,16 @@ import { exampleCode } from './example-code'
 import { importFiles } from './import-files'
 
 export function CodePreview() {
-  const [showArtifactSheet, setShowArtifactSheet] = useAtom(
-    showArtifactSheetAtom
-  )
-  const { open: sideBarIsOpen, toggleSidebar } = useSidebar()
+  const { show: showArtifactSheet, closeArtifact } = useArtifact()
   const { actualTheme } = useTheme()
-
-  const handleOpenChange = (open: boolean) => {
-    if (open) {
-      setShowArtifactSheet(open)
-    }
-  }
-
-  const handleCloseSheet = () => {
-    if (!sideBarIsOpen) {
-      toggleSidebar()
-    }
-
-    setShowArtifactSheet(false)
-  }
 
   return (
     <Sheet
       open={showArtifactSheet}
-      onOpenChange={handleOpenChange}
+      onOpenChange={() => {
+        // Do nothing:
+        // Ensure the sheet remains open when a click occurs outside its boundaries.
+      }}
       modal={false}
     >
       <SheetContent
@@ -58,7 +42,7 @@ export function CodePreview() {
               variant="ghost"
               size="icon"
               className="cursor-pointer"
-              onClick={handleCloseSheet}
+              onClick={closeArtifact}
             >
               <X className="h-4 w-4" />
             </Button>
