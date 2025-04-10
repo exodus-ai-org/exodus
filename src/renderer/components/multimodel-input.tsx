@@ -1,28 +1,25 @@
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
 import { useArtifact } from '@/hooks/use-artifact'
 import { cn } from '@/lib/utils'
+import { attachmentAtom } from '@/stores/chat'
 import { UseChatHelpers } from '@ai-sdk/react'
-import {
-  CircleStop,
-  Ellipsis,
-  Globe,
-  Lightbulb,
-  Palette,
-  Plus,
-  Send
-} from 'lucide-react'
-import { FC, memo, useCallback, useEffect, useRef, useState } from 'react'
+import { useAtom } from 'jotai'
+import { CircleStop, Send } from 'lucide-react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { AudioRecorder } from './audio-recoder'
+import { FilePreview } from './file-preview'
+import { MultiModelInputTools } from './multimodel-input-tools'
+import { MultiModelInputUploader } from './multimodel-input-uploader'
 import { Button } from './ui/button'
 import { Textarea } from './ui/textarea'
 
-interface Props {
+function InputBox({
+  chatId,
+  input,
+  setInput,
+  handleSubmit,
+  status
+}: {
   chatId: string
   input: string
   append: UseChatHelpers['append']
@@ -32,18 +29,11 @@ interface Props {
   handleSubmit: UseChatHelpers['handleSubmit']
   status: UseChatHelpers['status']
   stop: UseChatHelpers['stop']
-}
-
-const InputBox: FC<Props> = ({
-  chatId,
-  input,
-  setInput,
-  handleSubmit,
-  status
-}) => {
+}) {
+  const [attachments, setAttachments] = useAtom(attachmentAtom)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [isTyping, setIsTyping] = useState(false)
-  const { show: showArtifactSheet, openArtifact } = useArtifact()
+  const { show: showArtifactSheet } = useArtifact()
 
   const adjustHeight = () => {
     if (textareaRef.current) {
@@ -67,9 +57,10 @@ const InputBox: FC<Props> = ({
 
   const submitForm = useCallback(() => {
     window.history.replaceState({}, '', `/chat/${chatId}`)
-    handleSubmit()
+    handleSubmit(undefined, { experimental_attachments: attachments })
+    setAttachments(undefined)
     resetHeight()
-  }, [handleSubmit, chatId])
+  }, [chatId, handleSubmit, attachments, setAttachments])
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -85,6 +76,7 @@ const InputBox: FC<Props> = ({
       )}
     >
       <form>
+        <FilePreview />
         <Textarea
           ref={textareaRef}
           placeholder="Send a message..."
@@ -114,35 +106,8 @@ const InputBox: FC<Props> = ({
       </form>
       <div className="mx-2 mb-2 flex justify-between">
         <div className="flex gap-2">
-          <Button
-            variant="ghost"
-            className="h-9 w-9 cursor-pointer rounded-full border"
-          >
-            <Plus />
-          </Button>
-
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="h-9 w-9 cursor-pointer rounded-full border"
-              >
-                <Ellipsis />
-              </Button>
-            </DropdownMenuTrigger>
-
-            <DropdownMenuContent>
-              <DropdownMenuItem>
-                <Globe /> Search
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Lightbulb /> Reason
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={openArtifact}>
-                <Palette /> Artifact
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <MultiModelInputUploader />
+          <MultiModelInputTools />
         </div>
 
         {status === 'streaming' ? (
