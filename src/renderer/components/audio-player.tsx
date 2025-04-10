@@ -7,7 +7,7 @@ import { IconWrapper, MessageActionItem } from './massage-action'
 export function AudioPlayer({ content }: { content: string }) {
   const [isPlaying, setIsPlaying] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
-  const { loading, result, textToSpeech } = useAudio()
+  const { data, loading, textToSpeech } = useAudio()
 
   const handleStop = () => {
     if (audioRef.current) {
@@ -31,8 +31,8 @@ export function AudioPlayer({ content }: { content: string }) {
     }
   }
 
-  const fetchSpeech = () => {
-    if (!result) {
+  const fetchSpeech = async () => {
+    if (!data) {
       textToSpeech(content)
     } else {
       playAudio()
@@ -40,17 +40,17 @@ export function AudioPlayer({ content }: { content: string }) {
   }
 
   useEffect(() => {
-    if (result) {
+    if (data) {
       playAudio()
     }
-  }, [result])
+  }, [data])
 
   return (
     <MessageActionItem tooltipContent={isPlaying ? 'Stop' : 'Read aloud'}>
       <span>
         {!(loading || isPlaying) && (
-          <IconWrapper>
-            <Volume2 size={14} strokeWidth={2.5} onClick={fetchSpeech} />
+          <IconWrapper onClick={fetchSpeech}>
+            <Volume2 size={14} strokeWidth={2.5} />
           </IconWrapper>
         )}
 
@@ -65,14 +65,14 @@ export function AudioPlayer({ content }: { content: string }) {
         )}
 
         {isPlaying && (
-          <IconWrapper>
-            <CircleStop size={14} strokeWidth={2.5} onClick={handleStop} />
+          <IconWrapper onClick={handleStop}>
+            <CircleStop size={14} strokeWidth={2.5} />
           </IconWrapper>
         )}
 
-        {result && (
+        {data && (
           <audio
-            src={result}
+            src={data}
             className="hidden"
             ref={audioRef}
             onEnded={handleEnded}

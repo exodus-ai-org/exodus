@@ -1,14 +1,21 @@
 import { useAudio } from '@/hooks/use-audio'
-import { AudioLines, CircleStop } from 'lucide-react'
-import { useRef, useState } from 'react'
+import { AudioLines, CircleStop, Loader } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { Button } from './ui/button'
 
-export function AudioRecorder() {
+export function AudioRecorder({
+  input,
+  setInput
+}: {
+  input: string
+  setInput: (input: string) => void
+}) {
   const [isRecording, setIsRecording] = useState(false)
   // const [audioUrl, setAudioUrl] = useState('')
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
-  const { speechToText } = useAudio()
+  const { data, loading, speechToText } = useAudio()
 
   const startRecording = async () => {
     try {
@@ -22,9 +29,9 @@ export function AudioRecorder() {
       }
       mediaRecorderRef.current.onstop = async () => {
         const audioBlob = new Blob(audioChunksRef.current, {
-          type: 'audio/mp3'
+          type: 'audio/wav'
         })
-        await speechToText(audioBlob as File)
+        speechToText(audioBlob as File)
 
         // const audioUrl = URL.createObjectURL(audioBlob)
         // setAudioUrl(audioUrl)
@@ -40,20 +47,36 @@ export function AudioRecorder() {
     setIsRecording(false)
   }
 
+  useEffect(() => {
+    if (data) {
+      setInput(input + data)
+    }
+  }, [data, input, setInput])
+
   return (
-    <section onClick={isRecording ? stopRecording : startRecording}>
-      <AudioLines />
-      <CircleStop />
+    <Button
+      type="submit"
+      variant="secondary"
+      className="cursor-pointer"
+      onClick={isRecording ? stopRecording : startRecording}
+    >
+      {loading ? (
+        <Loader className="animate-spin" />
+      ) : isRecording ? (
+        <CircleStop />
+      ) : (
+        <AudioLines />
+      )}
+
       {/* {
-      // the audio preview is just for test.
-      audioUrl && (
-        <audio controls>
-          <source src={audioUrl} type="audio/mp3" />
-          Your browser does not support the audio element.
-        </audio>
-      )} */}
-    </section>
+        // the audio element is just for test.
+        audioUrl && (
+          <audio controls>
+            <source src={audioUrl} type="audio/mp3" />
+            Your browser does not support the audio element.
+          </audio>
+        )
+      } */}
+    </Button>
   )
 }
-
-export default AudioRecorder

@@ -1,5 +1,5 @@
 import { Hono } from 'hono'
-import OpenAI, { toFile } from 'openai'
+import OpenAI from 'openai'
 import { getSetting } from '../../db/queries'
 import { Variables } from '../types'
 
@@ -33,10 +33,10 @@ audio.post('/speech', async (c) => {
 })
 
 audio.post('/transcriptions', async (c) => {
-  const formData = await c.req.formData()
-  const audioFile = formData.get('audio') as File | null
+  const body = await c.req.parseBody()
+  const audioFile = body['audio']
 
-  if (!audioFile) {
+  if (typeof audioFile === 'string') {
     return c.text('Audio file is missing', 404)
   }
 
@@ -50,12 +50,8 @@ audio.post('/transcriptions', async (c) => {
     apiKey: setting.openaiApiKey
   })
 
-  const arrayBuffer = await audioFile.arrayBuffer()
-  const buffer = Buffer.from(arrayBuffer)
-  const file = await toFile(buffer)
-
   const transcription = await openai.audio.transcriptions.create({
-    file,
+    file: audioFile,
     model: setting.speechToTextModel
   })
 

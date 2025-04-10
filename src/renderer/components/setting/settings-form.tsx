@@ -368,17 +368,17 @@ export function SettingsForm() {
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="gpt-4o-transcribe" />
+                        <SelectValue placeholder="whisper-1" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
+                      <SelectItem value="whisper-1">whisper-1</SelectItem>
                       <SelectItem value="gpt-4o-transcribe">
                         gpt-4o-transcribe
                       </SelectItem>
                       <SelectItem value="gpt-4o-mini-transcribe">
                         gpt-4o-mini-transcribe
                       </SelectItem>
-                      <SelectItem value="whisper-1">whisper-1</SelectItem>
                     </SelectContent>
                   </Select>
                 </FormItem>

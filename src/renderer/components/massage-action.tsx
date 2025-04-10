@@ -21,7 +21,7 @@ export function IconWrapper({
   onClick,
   children
 }: {
-  onClick: () => void
+  onClick?: () => void
   children: ReactNode
 }) {
   return (

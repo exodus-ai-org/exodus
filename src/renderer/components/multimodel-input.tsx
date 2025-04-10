@@ -8,7 +8,6 @@ import { useArtifact } from '@/hooks/use-artifact'
 import { cn } from '@/lib/utils'
 import { UseChatHelpers } from '@ai-sdk/react'
 import {
-  AudioLines,
   CircleStop,
   Ellipsis,
   Globe,
@@ -19,6 +18,7 @@ import {
 } from 'lucide-react'
 import { FC, memo, useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { AudioRecorder } from './audio-recoder'
 import { Button } from './ui/button'
 import { Textarea } from './ui/textarea'
 
@@ -150,9 +150,19 @@ const InputBox: FC<Props> = ({
             <CircleStop />
           </Button>
         ) : (
-          <Button type="submit" variant="secondary">
-            {input.trim() === '' ? <AudioLines /> : <Send />}
-          </Button>
+          <>
+            {input.trim() === '' ? (
+              <AudioRecorder input={input} setInput={setInput} />
+            ) : (
+              <Button
+                type="submit"
+                variant="secondary"
+                className="cursor-pointer"
+              >
+                <Send />
+              </Button>
+            )}
+          </>
         )}
       </div>
     </div>

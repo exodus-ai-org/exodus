@@ -5,7 +5,7 @@ import { toast } from 'sonner'
 import { useSetting } from './use-setting'
 
 export function useAudio() {
-  const [result, setResult] = useState<string | null>(null)
+  const [data, setData] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const { data: setting } = useSetting()
 
@@ -36,7 +36,7 @@ export function useAudio() {
       })
       const audioBlob = await response.blob()
       const audioUrl = URL.createObjectURL(audioBlob)
-      setResult(audioUrl)
+      setData(audioUrl)
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Unknown error')
     } finally {
@@ -55,13 +55,10 @@ export function useAudio() {
       formData.append('audio', file)
       const response = await fetch(`${BASE_URL}/api/audio/transcriptions`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
         body: formData
       })
       const transcription = await response.json()
-      setResult(transcription.text)
+      setData(transcription.text as string)
     } catch (e) {
       toast.error(e instanceof Error ? e.message : 'Unknown error')
     } finally {
@@ -69,5 +66,5 @@ export function useAudio() {
     }
   }
 
-  return { loading, result, textToSpeech, speechToText }
+  return { loading, data, textToSpeech, speechToText }
 }
