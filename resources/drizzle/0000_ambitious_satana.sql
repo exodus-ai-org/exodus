@@ -8,7 +8,8 @@ CREATE TABLE "Message" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"chatId" uuid NOT NULL,
 	"role" varchar NOT NULL,
-	"content" json NOT NULL,
+	"parts" json NOT NULL,
+	"attachments" json NOT NULL,
 	"createdAt" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
@@ -25,7 +26,11 @@ CREATE TABLE "Setting" (
 	"googleBaseUrl" varchar NOT NULL,
 	"xAiApiKey" varchar NOT NULL,
 	"xAiBaseUrl" varchar NOT NULL,
-	"ollamaBaseUrl" varchar NOT NULL
+	"ollamaBaseUrl" varchar NOT NULL,
+	"mcpServers" varchar DEFAULT '' NOT NULL,
+	"speechToTextModel" varchar DEFAULT '' NOT NULL,
+	"textToSpeechModel" varchar DEFAULT '' NOT NULL,
+	"textToSpeechVoice" varchar DEFAULT '' NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "Vote" (

@@ -1,5 +1,5 @@
 {
-  "id": "120c8ee3-a75f-4078-9c1f-cb53d5f8dc91",
+  "id": "debbae4e-d9e4-441f-9cb0-d9847596496c",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -60,8 +60,14 @@
           "primaryKey": false,
           "notNull": true
         },
-        "content": {
-          "name": "content",
+        "parts": {
+          "name": "parts",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "attachments": {
+          "name": "attachments",
           "type": "json",
           "primaryKey": false,
           "notNull": true
@@ -174,6 +180,34 @@
           "type": "varchar",
           "primaryKey": false,
           "notNull": true
+        },
+        "mcpServers": {
+          "name": "mcpServers",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "speechToTextModel": {
+          "name": "speechToTextModel",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "textToSpeechModel": {
+          "name": "textToSpeechModel",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "textToSpeechVoice": {
+          "name": "textToSpeechVoice",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
         }
       },
       "indexes": {},

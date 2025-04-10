@@ -1,5 +1,6 @@
 import { createOpenAI } from '@ai-sdk/openai'
 import {
+  appendResponseMessages,
   createDataStream,
   experimental_createMCPClient,
   generateText,
@@ -20,7 +21,7 @@ import {
   saveMessages
 } from '../../db/queries'
 import { Variables } from '../types'
-import { getMostRecentUserMessage, sanitizeResponseMessages } from '../utils'
+import { getMostRecentUserMessage, getTrailingMessageId } from '../utils'
 
 const chat = new Hono<{ Variables: Variables }>()
 
@@ -128,12 +129,22 @@ chat.post('/', async (c) => {
   }
 
   await saveMessages({
-    messages: [{ ...userMessage, createdAt: new Date(), chatId: id }]
+    messages: [
+      {
+        ...userMessage,
+        chatId: id,
+        id: userMessage.id,
+        role: 'user',
+        parts: userMessage.parts,
+        attachments: userMessage.experimental_attachments ?? [],
+        createdAt: new Date()
+      }
+    ]
   })
 
   // immediately start streaming the response
   const dataStream = createDataStream({
-    execute: async (dataStreamWriter) => {
+    execute: async (dataStream) => {
       const result = streamText({
         model: openai('gpt-4o'),
         system:
@@ -142,23 +153,40 @@ chat.post('/', async (c) => {
         maxSteps: 20,
         tools,
         experimental_generateMessageId: uuidV4,
-        onFinish: async ({ response, reasoning }) => {
+        onFinish: async ({ response }) => {
           try {
-            const sanitizedResponseMessages = sanitizeResponseMessages({
-              messages: response.messages,
-              reasoning
+            const assistantId = getTrailingMessageId({
+              messages: response.messages.filter(
+                (message) => message.role === 'assistant'
+              )
+            })
+
+            if (!assistantId) {
+              throw new Error('No assistant message found!')
+            }
+
+            const [, assistantMessage] = appendResponseMessages({
+              messages: [userMessage],
+              responseMessages: response.messages
             })
 
             await saveMessages({
-              messages: sanitizedResponseMessages.map((message) => {
-                return {
-                  id: message.id,
+              messages: [
+                {
+                  id: assistantId,
                   chatId: id,
-                  role: message.role,
-                  content: message.content,
+                  role: assistantMessage.role,
+                  parts: assistantMessage.parts,
+                  attachments: assistantMessage.experimental_attachments ?? [],
                   createdAt: new Date()
                 }
-              })
+              ]
+            })
+
+            result.consumeStream()
+
+            result.mergeIntoDataStream(dataStream, {
+              sendReasoning: true
             })
           } catch {
             console.error('Failed to save chat')
@@ -166,7 +194,7 @@ chat.post('/', async (c) => {
         }
       })
 
-      result.mergeIntoDataStream(dataStreamWriter, {
+      result.mergeIntoDataStream(dataStream, {
         sendReasoning: true
       })
     },
