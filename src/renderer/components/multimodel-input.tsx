@@ -1,10 +1,19 @@
 import { useArtifact } from '@/hooks/use-artifact'
+import { useUpload } from '@/hooks/use-upload'
 import { cn } from '@/lib/utils'
 import { attachmentAtom } from '@/stores/chat'
 import { UseChatHelpers } from '@ai-sdk/react'
 import { useAtom } from 'jotai'
 import { CircleStop, Send } from 'lucide-react'
-import { memo, useCallback, useEffect, useRef, useState } from 'react'
+import {
+  ChangeEvent,
+  ClipboardEvent,
+  memo,
+  useCallback,
+  useEffect,
+  useRef,
+  useState
+} from 'react'
 import { toast } from 'sonner'
 import { AudioRecorder } from './audio-recoder'
 import { FilePreview } from './file-preview'
@@ -31,6 +40,7 @@ function InputBox({
   stop: UseChatHelpers['stop']
 }) {
   const [attachments, setAttachments] = useAtom(attachmentAtom)
+  const { uploadFile } = useUpload()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [isTyping, setIsTyping] = useState(false)
   const { show: showArtifactSheet } = useArtifact()
@@ -50,9 +60,27 @@ function InputBox({
     }
   }
 
-  const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleInput = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setInput(event.target.value)
     adjustHeight()
+  }
+
+  const handlePaste = (event: ClipboardEvent<HTMLTextAreaElement>) => {
+    // event.preventDefault()
+
+    const items = event.clipboardData.items
+
+    const files: File[] = []
+    for (const item of items) {
+      if (item.kind === 'file' && item.type.startsWith('image/')) {
+        const file = item.getAsFile()
+        if (file) {
+          files.push(file)
+        }
+      }
+    }
+
+    uploadFile(files)
   }
 
   const submitForm = useCallback(() => {
@@ -102,6 +130,7 @@ function InputBox({
           }}
           onCompositionStart={() => setIsTyping(true)}
           onCompositionEnd={() => setIsTyping(false)}
+          onPaste={handlePaste}
         />
       </form>
       <div className="mx-2 mb-2 flex justify-between">
