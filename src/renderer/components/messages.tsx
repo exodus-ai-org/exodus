@@ -10,11 +10,11 @@ import { MessageSpinner } from './message-spinner'
 import { Avatar, AvatarImage } from './ui/avatar'
 
 function Messages({
-  // chatId,
   messages,
+  // chatId,
   // setMessages,
-  status
-  // reload
+  status,
+  reload
 }: {
   chatId: string
   messages: UseChatHelpers['messages']
@@ -53,9 +53,9 @@ function Messages({
         {messages.map((message) => (
           <div
             key={message.id}
-            className={cn('flex flex-col', {
+            className={cn('mb-8 flex flex-col', {
               'items-start': message.role === 'assistant',
-              'my-8 items-end first:mt-0': message.role === 'user'
+              'items-end first:mt-0': message.role === 'user'
             })}
           >
             {message.role === 'assistant' && (
@@ -78,6 +78,7 @@ function Messages({
                         }
                       />
                       <MessageAction
+                        reload={reload}
                         content={
                           message.parts.filter(
                             (item) => item.type === 'text'

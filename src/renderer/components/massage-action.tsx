@@ -1,5 +1,6 @@
 import { useArtifact } from '@/hooks/use-artifact'
 import { TooltipArrow } from '@radix-ui/react-tooltip'
+import { ChatRequestOptions } from 'ai'
 import {
   Check,
   Copy,
@@ -54,7 +55,15 @@ export function MessageActionItem({
   )
 }
 
-export function MessageAction({ content }: { content: string }) {
+export function MessageAction({
+  content,
+  reload
+}: {
+  content: string
+  reload: (
+    chatRequestOptions?: ChatRequestOptions
+  ) => Promise<string | null | undefined>
+}) {
   const [copied, setCopied] = useState(false)
   const { openArtifact } = useArtifact()
 
@@ -95,7 +104,7 @@ export function MessageAction({ content }: { content: string }) {
         </IconWrapper>
       </MessageActionItem>
       <MessageActionItem tooltipContent="Switch model">
-        <IconWrapper onClick={() => {}}>
+        <IconWrapper onClick={reload}>
           <RefreshCcw size={14} strokeWidth={2.5} />
         </IconWrapper>
       </MessageActionItem>

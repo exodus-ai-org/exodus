@@ -13,7 +13,6 @@ interface Props {
 }
 
 export function Chat({ id, initialMessages }: Props) {
-  // const { data: setting } = useSetting()
   const {
     messages,
     setMessages,
@@ -27,7 +26,6 @@ export function Chat({ id, initialMessages }: Props) {
   } = useChat({
     api: `${BASE_URL}/api/chat`,
     id,
-    // body: { id, setting },
     initialMessages,
     experimental_throttle: 100,
     sendExtraMessageFields: true,
@@ -36,7 +34,7 @@ export function Chat({ id, initialMessages }: Props) {
       mutate('/api/history')
     },
     onError: () => {
-      toast.error('An error occured, please try again!')
+      toast.error('An error occurred, please try again!')
     }
   })
 
