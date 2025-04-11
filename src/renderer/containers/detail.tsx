@@ -20,11 +20,6 @@ export function Detail() {
     return null
   }
 
-  console.log(
-    'convertToUIMessages(messagesFromDb)',
-    convertToUIMessages(messagesFromDb)
-  )
-
   return (
     <>
       <Chat id={id} initialMessages={convertToUIMessages(messagesFromDb)} />

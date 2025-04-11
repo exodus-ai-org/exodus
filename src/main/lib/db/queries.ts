@@ -122,23 +122,9 @@ export async function getSetting() {
     const [data] = await db.select().from(setting)
     if (!data) {
       return await db.insert(setting).values({
-        openaiApiKey: '',
-        openaiBaseUrl: '',
-        azureOpenaiApiKey: '',
-        azureOpenAiEndpoint: '',
-        azureOpenAiApiVersion: '',
-        anthropicApiKey: '',
-        anthropicBaseUrl: '',
-        googleApiKey: '',
-        googleBaseUrl: '',
-        xAiApiKey: '',
-        xAiBaseUrl: '',
-        ollamaBaseUrl: '',
-        mcpServers: '',
         id: uuidV4()
       })
     }
-
     return data
   } catch (error) {
     console.error('Failed to save settings in database')

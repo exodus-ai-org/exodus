@@ -37,6 +37,9 @@ export const data = {
           title: 'xAI Grok'
         },
         {
+          title: 'DeepSeek'
+        },
+        {
           title: 'Ollama'
         }
       ]

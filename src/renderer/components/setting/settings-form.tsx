@@ -29,22 +29,24 @@ import {
 } from '../ui/select'
 
 const formSchema = z.object({
-  openaiApiKey: z.string().min(1),
-  openaiBaseUrl: z.string().url(),
-  azureOpenaiApiKey: z.string().min(1),
-  azureOpenAiEndpoint: z.string().url(),
-  azureOpenAiApiVersion: z.string().url(),
-  anthropicApiKey: z.string().min(1),
-  anthropicBaseUrl: z.string().url(),
-  googleApiKey: z.string().min(1),
-  googleBaseUrl: z.string().url(),
-  xAiApiKey: z.string().min(1),
-  xAiBaseUrl: z.string().url(),
-  ollamaBaseUrl: z.string().min(1),
-  mcpServers: z.string().min(1),
-  speechToTextModel: z.string().min(1),
-  textToSpeechVoice: z.string().min(1),
-  textToSpeechModel: z.string().min(1)
+  openaiApiKey: z.string().min(1).nullable(),
+  openaiBaseUrl: z.string().url().nullable(),
+  azureOpenaiApiKey: z.string().min(1).nullable(),
+  azureOpenAiEndpoint: z.string().url().nullable(),
+  azureOpenAiApiVersion: z.string().url().nullable(),
+  anthropicApiKey: z.string().min(1).nullable(),
+  anthropicBaseUrl: z.string().url().nullable(),
+  googleApiKey: z.string().min(1).nullable(),
+  googleBaseUrl: z.string().url().nullable(),
+  xAiApiKey: z.string().min(1).nullable(),
+  xAiBaseUrl: z.string().url().nullable(),
+  deepSeekApiKey: z.string().min(1).nullable(),
+  deepSeekBaseUrl: z.string().url().nullable(),
+  ollamaBaseUrl: z.string().min(1).nullable(),
+  mcpServers: z.string().min(1).nullable(),
+  speechToTextModel: z.string().min(1).nullable(),
+  textToSpeechVoice: z.string().min(1).nullable(),
+  textToSpeechModel: z.string().min(1).nullable()
 })
 
 export function SettingsForm() {
@@ -102,6 +104,7 @@ export function SettingsForm() {
                       autoComplete="current-password"
                       autoFocus
                       {...field}
+                      value={field.value ?? ''}
                     />
                   </FormControl>
                 </FormItem>
@@ -114,7 +117,12 @@ export function SettingsForm() {
                 <FormItem>
                   <FormLabel>Base URL</FormLabel>
                   <FormControl>
-                    <Input type="text" id="openai-base-url-input" {...field} />
+                    <Input
+                      type="text"
+                      id="openai-base-url-input"
+                      {...field}
+                      value={field.value ?? ''}
+                    />
                   </FormControl>
                 </FormItem>
               )}
@@ -137,6 +145,7 @@ export function SettingsForm() {
                       id="azure-openai-api-key-input"
                       autoFocus
                       {...field}
+                      value={field.value ?? ''}
                     />
                   </FormControl>
                 </FormItem>
@@ -154,6 +163,7 @@ export function SettingsForm() {
                       id="azure-openai-endpoint"
                       placeholder="https://{resourceName}.openai.azure.com/openai/deployments/{modelId}{path}"
                       {...field}
+                      value={field.value ?? ''}
                     />
                   </FormControl>
                 </FormItem>
@@ -171,6 +181,7 @@ export function SettingsForm() {
                       id="azure-openai-api-version"
                       placeholder="2024-12-01-preview"
                       {...field}
+                      value={field.value ?? ''}
                     />
                   </FormControl>
                 </FormItem>
@@ -194,6 +205,7 @@ export function SettingsForm() {
                       id="anthropic-api-key-input"
                       autoFocus
                       {...field}
+                      value={field.value ?? ''}
                     />
                   </FormControl>
                 </FormItem>
@@ -210,6 +222,7 @@ export function SettingsForm() {
                       type="text"
                       id="anthropic-base-url-input"
                       {...field}
+                      value={field.value ?? ''}
                     />
                   </FormControl>
                 </FormItem>
@@ -233,6 +246,7 @@ export function SettingsForm() {
                       id="google-api-key-input"
                       autoFocus
                       {...field}
+                      value={field.value ?? ''}
                     />
                   </FormControl>
                 </FormItem>
@@ -245,7 +259,12 @@ export function SettingsForm() {
                 <FormItem>
                   <FormLabel>Base URL</FormLabel>
                   <FormControl>
-                    <Input type="text" id="google-base-url-input" {...field} />
+                    <Input
+                      type="text"
+                      id="google-base-url-input"
+                      {...field}
+                      value={field.value ?? ''}
+                    />
                   </FormControl>
                 </FormItem>
               )}
@@ -268,6 +287,7 @@ export function SettingsForm() {
                       id="xai-api-key-input"
                       autoFocus
                       {...field}
+                      value={field.value ?? ''}
                     />
                   </FormControl>
                 </FormItem>
@@ -280,7 +300,53 @@ export function SettingsForm() {
                 <FormItem>
                   <FormLabel>Base URL</FormLabel>
                   <FormControl>
-                    <Input type="text" id="xai-base-url-input" {...field} />
+                    <Input
+                      type="text"
+                      id="xai-base-url-input"
+                      {...field}
+                      value={field.value ?? ''}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </>
+        )}
+
+        {activeTitle === 'DeepSeek' && (
+          <>
+            <FormField
+              control={form.control}
+              name="deepSeekApiKey"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>API Key</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      autoComplete="current-password"
+                      id="deep-seek-api-key-input"
+                      autoFocus
+                      {...field}
+                      value={field.value ?? ''}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="deepSeekBaseUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Base URL</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      id="deep-seek-base-url-input"
+                      {...field}
+                      value={field.value ?? ''}
+                    />
                   </FormControl>
                 </FormItem>
               )}
@@ -303,6 +369,7 @@ export function SettingsForm() {
                       placeholder="http://localhost:11434"
                       autoFocus
                       {...field}
+                      value={field.value ?? ''}
                     />
                   </FormControl>
                 </FormItem>
@@ -364,7 +431,7 @@ export function SettingsForm() {
                   <FormLabel>Speech to Text Model</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    defaultValue={field.value ?? ''}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -394,7 +461,7 @@ export function SettingsForm() {
 
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    defaultValue={field.value ?? ''}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -421,7 +488,7 @@ export function SettingsForm() {
                   <FormLabel>Text to Speech Voice</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
+                    defaultValue={field.value ?? ''}
                   >
                     <FormControl>
                       <SelectTrigger>

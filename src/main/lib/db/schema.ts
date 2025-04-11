@@ -52,23 +52,25 @@ export const vote = pgTable(
 export type Vote = InferSelectModel<typeof vote>
 
 export const setting = pgTable('Setting', {
-  id: uuid('id').notNull().primaryKey().notNull().defaultRandom(),
-  openaiApiKey: varchar('openaiApiKey').notNull(),
-  openaiBaseUrl: varchar('openaiBaseUrl').notNull(),
-  azureOpenaiApiKey: varchar('azureOpenaiApiKey').notNull(),
-  azureOpenAiEndpoint: varchar('azureOpenAiEndpoint').notNull(),
-  azureOpenAiApiVersion: varchar('azureOpenAiApiVersion').notNull(),
-  anthropicApiKey: varchar('anthropicApiKey').notNull(),
-  anthropicBaseUrl: varchar('anthropicBaseUrl').notNull(),
-  googleApiKey: varchar('googleApiKey').notNull(),
-  googleBaseUrl: varchar('googleBaseUrl').notNull(),
-  xAiApiKey: varchar('xAiApiKey').notNull(),
-  xAiBaseUrl: varchar('xAiBaseUrl').notNull(),
-  ollamaBaseUrl: varchar('ollamaBaseUrl').notNull(),
-  mcpServers: varchar('mcpServers').notNull().default(''),
-  speechToTextModel: varchar('speechToTextModel').notNull().default(''),
-  textToSpeechModel: varchar('textToSpeechModel').notNull().default(''),
-  textToSpeechVoice: varchar('textToSpeechVoice').notNull().default('')
+  id: uuid('id').notNull().primaryKey().defaultRandom(),
+  openaiApiKey: varchar('openaiApiKey').default(''),
+  openaiBaseUrl: varchar('openaiBaseUrl').default(''),
+  azureOpenaiApiKey: varchar('azureOpenaiApiKey').default(''),
+  azureOpenAiEndpoint: varchar('azureOpenAiEndpoint').default(''),
+  azureOpenAiApiVersion: varchar('azureOpenAiApiVersion').default(''),
+  anthropicApiKey: varchar('anthropicApiKey').default(''),
+  anthropicBaseUrl: varchar('anthropicBaseUrl').default(''),
+  googleApiKey: varchar('googleApiKey').default(''),
+  googleBaseUrl: varchar('googleBaseUrl').default(''),
+  xAiApiKey: varchar('xAiApiKey').default(''),
+  xAiBaseUrl: varchar('xAiBaseUrl').default(''),
+  deepSeekApiKey: varchar('deepSeekApiKey').default(''),
+  deepSeekBaseUrl: varchar('deepSeekBaseUrl').default(''),
+  ollamaBaseUrl: varchar('ollamaBaseUrl').default(''),
+  mcpServers: varchar('mcpServers').default(''),
+  speechToTextModel: varchar('speechToTextModel').default(''),
+  textToSpeechModel: varchar('textToSpeechModel').default(''),
+  textToSpeechVoice: varchar('textToSpeechVoice').default('')
 })
 
 export type Setting = InferSelectModel<typeof setting>

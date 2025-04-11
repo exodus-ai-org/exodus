@@ -1,6 +1,6 @@
 {
-  "id": "bc63863f-f015-459a-9cf3-2f0215d082d4",
-  "prevId": "00000000-0000-0000-0000-000000000000",
+  "id": "a2c3e1de-99f0-411c-b610-df096f54fcb9",
+  "prevId": "bc63863f-f015-459a-9cf3-2f0215d082d4",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -113,109 +113,127 @@
           "name": "openaiApiKey",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "openaiBaseUrl": {
           "name": "openaiBaseUrl",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "azureOpenaiApiKey": {
           "name": "azureOpenaiApiKey",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "azureOpenAiEndpoint": {
           "name": "azureOpenAiEndpoint",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "azureOpenAiApiVersion": {
           "name": "azureOpenAiApiVersion",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "anthropicApiKey": {
           "name": "anthropicApiKey",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "anthropicBaseUrl": {
           "name": "anthropicBaseUrl",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "googleApiKey": {
           "name": "googleApiKey",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "googleBaseUrl": {
           "name": "googleBaseUrl",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "xAiApiKey": {
           "name": "xAiApiKey",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "xAiBaseUrl": {
           "name": "xAiBaseUrl",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "deepSeekApiKey": {
           "name": "deepSeekApiKey",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "deepSeekBaseUrl": {
           "name": "deepSeekBaseUrl",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "ollamaBaseUrl": {
           "name": "ollamaBaseUrl",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "mcpServers": {
           "name": "mcpServers",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "speechToTextModel": {
           "name": "speechToTextModel",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "textToSpeechModel": {
           "name": "textToSpeechModel",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         },
         "textToSpeechVoice": {
           "name": "textToSpeechVoice",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": false
+          "notNull": false,
+          "default": "''"
         }
       },
       "indexes": {},

@@ -15,22 +15,24 @@ CREATE TABLE "Message" (
 --> statement-breakpoint
 CREATE TABLE "Setting" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"openaiApiKey" varchar NOT NULL,
-	"openaiBaseUrl" varchar NOT NULL,
-	"azureOpenaiApiKey" varchar NOT NULL,
-	"azureOpenAiEndpoint" varchar NOT NULL,
-	"azureOpenAiApiVersion" varchar NOT NULL,
-	"anthropicApiKey" varchar NOT NULL,
-	"anthropicBaseUrl" varchar NOT NULL,
-	"googleApiKey" varchar NOT NULL,
-	"googleBaseUrl" varchar NOT NULL,
-	"xAiApiKey" varchar NOT NULL,
-	"xAiBaseUrl" varchar NOT NULL,
-	"ollamaBaseUrl" varchar NOT NULL,
-	"mcpServers" varchar DEFAULT '' NOT NULL,
-	"speechToTextModel" varchar DEFAULT '' NOT NULL,
-	"textToSpeechModel" varchar DEFAULT '' NOT NULL,
-	"textToSpeechVoice" varchar DEFAULT '' NOT NULL
+	"openaiApiKey" varchar,
+	"openaiBaseUrl" varchar,
+	"azureOpenaiApiKey" varchar,
+	"azureOpenAiEndpoint" varchar,
+	"azureOpenAiApiVersion" varchar,
+	"anthropicApiKey" varchar,
+	"anthropicBaseUrl" varchar,
+	"googleApiKey" varchar,
+	"googleBaseUrl" varchar,
+	"xAiApiKey" varchar,
+	"xAiBaseUrl" varchar,
+	"deepSeekApiKey" varchar,
+	"deepSeekBaseUrl" varchar,
+	"ollamaBaseUrl" varchar,
+	"mcpServers" varchar,
+	"speechToTextModel" varchar,
+	"textToSpeechModel" varchar,
+	"textToSpeechVoice" varchar
 );
 --> statement-breakpoint
 CREATE TABLE "Vote" (
