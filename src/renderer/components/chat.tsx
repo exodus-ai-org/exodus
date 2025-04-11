@@ -1,6 +1,6 @@
 import { BASE_URL } from '@/lib/constants'
 import { useChat } from '@ai-sdk/react'
-import type { Message } from 'ai'
+import type { UIMessage } from 'ai'
 import { toast } from 'sonner'
 import { mutate } from 'swr'
 import { v4 as uuidV4 } from 'uuid'
@@ -9,7 +9,7 @@ import MultimodalInput from './multimodel-input'
 
 interface Props {
   id: string
-  initialMessages: Message[]
+  initialMessages: UIMessage[]
 }
 
 export function Chat({ id, initialMessages }: Props) {

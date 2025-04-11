@@ -70,8 +70,20 @@ function Messages({
                     <p>Calling Tools...</p>
                   ) : (
                     <>
-                      <Markdown src={message.content} />
-                      <MessageAction content={message.content} />
+                      <Markdown
+                        src={
+                          message.parts.filter(
+                            (item) => item.type === 'text'
+                          )?.[0]?.text
+                        }
+                      />
+                      <MessageAction
+                        content={
+                          message.parts.filter(
+                            (item) => item.type === 'text'
+                          )?.[0]?.text
+                        }
+                      />
                     </>
                   )}
                 </div>
@@ -95,7 +107,10 @@ function Messages({
 
                     return null
                   })}
-                {message.content}
+                {
+                  message.parts.filter((item) => item.type === 'text')?.[0]
+                    ?.text
+                }
               </p>
             )}
           </div>
