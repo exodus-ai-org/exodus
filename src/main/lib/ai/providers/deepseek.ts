@@ -1,5 +1,5 @@
 import { createDeepSeek } from '@ai-sdk/deepseek'
-import { Setting } from '../../db/schema'
+import { Setting } from '@shared/types/db'
 
 export async function getDeepSeek(setting: Setting) {
   return createDeepSeek({

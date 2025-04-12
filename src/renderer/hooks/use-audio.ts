@@ -1,4 +1,4 @@
-import { BASE_URL } from '@/lib/constants'
+import { BASE_URL } from '@shared/constants'
 import OpenAI from 'openai'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'

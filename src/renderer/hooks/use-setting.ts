@@ -1,6 +1,6 @@
-import { BASE_URL } from '@/lib/constants'
 import { fetcher } from '@/lib/utils'
-import { Setting } from 'src/main/lib/db/schema'
+import { BASE_URL } from '@shared/constants'
+import { Setting } from '@shared/types/db'
 import useSWR from 'swr'
 
 export function useSetting() {

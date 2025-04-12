@@ -1,6 +1,9 @@
 import { createOpenAI } from '@ai-sdk/openai'
+import { Variables } from '@shared/types/ai'
 import {
   appendResponseMessages,
+  CoreAssistantMessage,
+  CoreToolMessage,
   createDataStream,
   experimental_createMCPClient,
   generateText,
@@ -20,8 +23,26 @@ import {
   saveChat,
   saveMessages
 } from '../../db/queries'
-import { Variables } from '../types'
-import { getMostRecentUserMessage, getTrailingMessageId } from '../utils'
+
+type ResponseMessageWithoutId = CoreToolMessage | CoreAssistantMessage
+type ResponseMessage = ResponseMessageWithoutId & { id: string }
+
+export function getMostRecentUserMessage(messages: Array<Message>) {
+  const userMessages = messages.filter((message) => message.role === 'user')
+  return userMessages.at(-1)
+}
+
+export function getTrailingMessageId({
+  messages
+}: {
+  messages: Array<ResponseMessage>
+}): string | null {
+  const trailingMessage = messages.at(-1)
+
+  if (!trailingMessage) return null
+
+  return trailingMessage.id
+}
 
 const chat = new Hono<{ Variables: Variables }>()
 
@@ -32,8 +53,8 @@ async function getOpenAiInstance() {
   }
 
   return createOpenAI({
-    apiKey: setting.openaiApiKey,
-    baseURL: setting.openaiBaseUrl
+    apiKey: setting.openaiApiKey ?? '',
+    baseURL: setting.openaiBaseUrl ?? undefined
   })
 }
 
@@ -57,6 +78,8 @@ export async function connectMcpServers(): Promise<Record<
 
   if ('mcpServers' in setting) {
     const { mcpServers } = setting
+    if (mcpServers === null) return null
+
     try {
       const mcpServersObj: { mcpServers: { [index: string]: StdioConfig } } =
         JSON.parse(mcpServers)

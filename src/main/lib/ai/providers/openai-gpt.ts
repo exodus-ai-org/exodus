@@ -1,5 +1,5 @@
 import { createOpenAI } from '@ai-sdk/openai'
-import { Setting } from '../../db/schema'
+import { Setting } from '@shared/types/db'
 
 export async function getOpenAi(setting: Setting) {
   return createOpenAI({

@@ -1,4 +1,5 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
+import { LOCAL_FILE_DIRECTORY } from '@shared/constants'
 import { app, BrowserWindow, ipcMain, Notification, shell } from 'electron'
 import {
   installExtension,
@@ -6,7 +7,6 @@ import {
 } from 'electron-devtools-installer'
 import { join } from 'path'
 import icon from '../../resources/icon.png?asset'
-import { LOCAL_FILE_DIRECTORY } from './lib/constants'
 import { runMigrate } from './lib/db/migrate'
 import {
   copyFiles,

@@ -1,9 +1,9 @@
 import { localFileAtom } from '@/stores/file-system'
+import { LOCAL_FILE_DIRECTORY } from '@shared/constants'
+import { DirectoryNode } from '@shared/types/fs'
 import { useAtom } from 'jotai'
 import { useCallback } from 'react'
 import { toast } from 'sonner'
-import { LOCAL_FILE_DIRECTORY } from '../../main/lib/constants'
-import { DirectoryNode } from '../../main/lib/ipc/file-system'
 
 export function useFs() {
   const [directories, setDirectories] = useAtom(localFileAtom)

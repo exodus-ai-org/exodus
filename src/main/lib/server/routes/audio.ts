@@ -1,7 +1,7 @@
+import { Variables } from '@shared/types/ai'
 import { Hono } from 'hono'
 import OpenAI from 'openai'
 import { getSetting } from '../../db/queries'
-import { Variables } from '../types'
 
 const audio = new Hono<{ Variables: Variables }>()
 
@@ -15,13 +15,13 @@ audio.post('/speech', async (c) => {
 
   const openai = new OpenAI({
     baseURL: setting.openaiBaseUrl,
-    apiKey: setting.openaiApiKey
+    apiKey: setting.openaiApiKey ?? ''
   })
 
   const speech = await openai.audio.speech.create({
-    model: setting.textToSpeechModel,
+    model: setting.textToSpeechModel ?? 'tts-1',
     input: text,
-    voice: setting.textToSpeechVoice
+    voice: setting.textToSpeechVoice ?? 'alloy'
   })
 
   const buffer = Buffer.from(await speech.arrayBuffer())
@@ -47,12 +47,12 @@ audio.post('/transcriptions', async (c) => {
 
   const openai = new OpenAI({
     baseURL: setting.openaiBaseUrl,
-    apiKey: setting.openaiApiKey
+    apiKey: setting.openaiApiKey ?? ''
   })
 
   const transcription = await openai.audio.transcriptions.create({
     file: audioFile,
-    model: setting.speechToTextModel
+    model: setting.speechToTextModel ?? 'whisper-1'
   })
 
   return c.json(transcription)

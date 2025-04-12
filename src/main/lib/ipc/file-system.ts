@@ -1,19 +1,7 @@
+import { DirectoryNode } from '@shared/types/fs'
 import { app, shell } from 'electron'
 import { mkdir, readdir, rename, stat, writeFile } from 'fs/promises'
 import { basename, join, resolve } from 'path'
-
-export interface DirectoryNode {
-  name: string
-  type: 'directory'
-  path: string
-  children: (DirectoryNode | FileNode)[]
-}
-
-export interface FileNode {
-  name: string
-  type: 'file'
-  path: string
-}
 
 export function getUserDataPath() {
   return app.getPath('userData')

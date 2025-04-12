@@ -1,5 +1,5 @@
-import { BASE_URL } from '@/lib/constants'
 import { useChat } from '@ai-sdk/react'
+import { BASE_URL } from '@shared/constants'
 import type { UIMessage } from 'ai'
 import { toast } from 'sonner'
 import { mutate } from 'swr'

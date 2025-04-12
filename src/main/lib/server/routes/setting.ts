@@ -1,6 +1,6 @@
+import { Variables } from '@shared/types/ai'
 import { Hono } from 'hono'
 import { getSetting, updateSetting } from '../../db/queries'
-import { Variables } from '../types'
 
 const setting = new Hono<{ Variables: Variables }>()
 

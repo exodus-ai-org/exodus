@@ -1,8 +1,8 @@
 import { CodePreview } from '@/components/artifacts/code-preview'
 import { Chat } from '@/components/chat'
 import { convertToUIMessages, fetcher } from '@/lib/utils'
+import type { Message as DBMessage } from '@shared/types/db'
 import { useParams } from 'react-router'
-import type { Message as DBMessage } from 'src/main/lib/db/schema'
 import useSWR from 'swr'
 
 export function Detail() {

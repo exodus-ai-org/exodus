@@ -1,8 +1,8 @@
+import { BASE_URL } from '@shared/constants'
+import type { Message as DBMessage } from '@shared/types/db'
 import type { Attachment, Message, UIMessage } from 'ai'
 import { clsx, type ClassValue } from 'clsx'
-import type { Message as DBMessage } from 'src/main/lib/db/schema'
 import { twMerge } from 'tailwind-merge'
-import { BASE_URL } from './constants'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))

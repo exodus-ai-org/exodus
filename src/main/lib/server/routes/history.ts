@@ -1,6 +1,6 @@
+import { Variables } from '@shared/types/ai'
 import { Hono } from 'hono'
 import { getChats } from '../../db/queries'
-import { Variables } from '../types'
 
 const history = new Hono<{ Variables: Variables }>()
 

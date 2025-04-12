@@ -4,7 +4,12 @@ import { resolve } from 'path'
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()]
+    plugins: [externalizeDepsPlugin()],
+    resolve: {
+      alias: {
+        '@shared': resolve('src/shared')
+      }
+    }
   },
   preload: {
     plugins: [externalizeDepsPlugin()]
@@ -12,7 +17,8 @@ export default defineConfig({
   renderer: {
     resolve: {
       alias: {
-        '@': resolve('src/renderer')
+        '@': resolve('src/renderer'),
+        '@shared': resolve('src/shared')
       }
     },
     plugins: [react()]

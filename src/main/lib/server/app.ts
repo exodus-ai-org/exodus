@@ -1,13 +1,13 @@
 import { serve, ServerType } from '@hono/node-server'
+import { SERVER_PORT } from '@shared/constants'
+import { Variables } from '@shared/types/ai'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { SERVER_PORT } from '../constants'
 import audioRouter from './routes/audio'
 import chatRouter, { connectMcpServers } from './routes/chat'
 import historyRouter from './routes/history'
 import ollamaRouter from './routes/ollama'
 import settingRouter from './routes/setting'
-import { Variables } from './types'
 
 // Export server functions
 export async function connectHttpServer() {

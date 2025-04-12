@@ -1,5 +1,5 @@
 import { createAnthropic } from '@ai-sdk/anthropic'
-import { Setting } from '../../db/schema'
+import { Setting } from '@shared/types/db'
 
 export async function getAnthropicClaude(setting: Setting) {
   return createAnthropic({

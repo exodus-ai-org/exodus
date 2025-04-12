@@ -16,10 +16,10 @@ import {
   useSidebar
 } from '@/components/ui/sidebar'
 import { fetcher, getRandomEmoji } from '@/lib/utils'
+import type { Chat } from '@shared/types/db'
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns'
 import { ArrowUpRight, MoreHorizontal, StarOff, Trash2 } from 'lucide-react'
 import { Link, useParams } from 'react-router'
-import type { Chat } from 'src/main/lib/db/schema'
 import useSWR from 'swr'
 import { Skeleton } from '../components/ui/skeleton'
 
