@@ -16,7 +16,7 @@ import {
   SidebarMenuSubItem,
   SidebarRail
 } from '../ui/sidebar'
-import { data } from './siderbar-data'
+import { schema } from './settings-schema'
 
 export function SettingsSidebar({
   ...props
@@ -46,14 +46,12 @@ export function SettingsSidebar({
       <SidebarContent className="h-[300px]">
         <SidebarGroup>
           <SidebarMenu>
-            {data.navMain.map((item) => (
+            {schema.navMain.map((item) => (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                   isActive={item.title === active}
                   onClick={() => {
-                    if (item.items === undefined) {
-                      setActive(item.title)
-                    }
+                    setActive(item.title)
                   }}
                 >
                   {item.icon && <item.icon />}

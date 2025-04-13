@@ -1,5 +1,5 @@
-import AssistantImg from '@/assets/images/sayaka.jpg'
 import { useArtifact } from '@/hooks/use-artifact'
+import { useSetting } from '@/hooks/use-setting'
 import { cn } from '@/lib/utils'
 import { UseChatHelpers } from '@ai-sdk/react'
 import { throttle } from 'lodash-es'
@@ -22,6 +22,7 @@ function Messages({
   status: UseChatHelpers['status']
   reload: UseChatHelpers['reload']
 }) {
+  const { data: settings } = useSetting()
   const chatBoxRef = useRef<HTMLDivElement>(null)
   const { show: showArtifactSheet } = useArtifact()
 
@@ -60,9 +61,14 @@ function Messages({
           >
             {message.role === 'assistant' && (
               <div className="flex gap-4">
-                <Avatar>
-                  <AvatarImage src={AssistantImg} />
-                </Avatar>
+                {!!settings?.assistantAvatar && (
+                  <Avatar>
+                    <AvatarImage
+                      src={settings.assistantAvatar}
+                      className="object-cover"
+                    />
+                  </Avatar>
+                )}
                 <div className="group relative">
                   {message.parts.filter(
                     (part) => part.type === 'tool-invocation'

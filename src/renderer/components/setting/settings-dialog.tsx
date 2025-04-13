@@ -1,7 +1,6 @@
 import {
   Breadcrumb,
   BreadcrumbItem,
-  BreadcrumbLink,
   BreadcrumbList
 } from '@/components/ui/breadcrumb'
 import {
@@ -27,7 +26,7 @@ export function SettingsDialog() {
         <DialogDescription className="sr-only">
           Customize your settings here.
         </DialogDescription>
-        <SidebarProvider className="items-start">
+        <SidebarProvider className="min-h-[500px] items-start">
           <SettingsSidebar />
           <main className="flex h-full flex-1 flex-col overflow-hidden">
             <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
@@ -35,7 +34,7 @@ export function SettingsDialog() {
                 <Breadcrumb>
                   <BreadcrumbList>
                     <BreadcrumbItem className="hidden md:block">
-                      <BreadcrumbLink href="#">{activeTitle}</BreadcrumbLink>
+                      {activeTitle}
                     </BreadcrumbItem>
                   </BreadcrumbList>
                 </Breadcrumb>

@@ -35,13 +35,6 @@ export function getMostRecentUserMessage(messages: Array<Message>) {
   return userMessages.at(-1)
 }
 
-export function getRandomEmoji() {
-  const min = 0x1f600
-  const max = 0x1f64f
-  const randomCodePoint = Math.floor(Math.random() * (max - min + 1)) + min
-  return String.fromCodePoint(randomCodePoint)
-}
-
 export const convertFileToBase64 = (file: File): Promise<string> => {
   return new Promise((resolve, reject) => {
     const fileReader = new FileReader()

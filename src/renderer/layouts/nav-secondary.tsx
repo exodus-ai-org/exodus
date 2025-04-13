@@ -24,17 +24,15 @@ export function NavSecondary({
             <SidebarMenuButton asChild>
               <Link to="/file-system">
                 <Folders />
-                <span>File System</span>
+                File System
               </Link>
             </SidebarMenuButton>
             <SidebarMenuButton
-              asChild
               onClick={() => setSettingsDialogVisible(true)}
+              className="cursor-pointer"
             >
-              <div>
-                <Settings />
-                <span>Settings</span>
-              </div>
+              <Settings />
+              Settings
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

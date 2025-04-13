@@ -15,7 +15,7 @@ import {
   SidebarMenuItem,
   useSidebar
 } from '@/components/ui/sidebar'
-import { fetcher, getRandomEmoji } from '@/lib/utils'
+import { fetcher } from '@/lib/utils'
 import type { Chat } from '@shared/types/db'
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns'
 import { ArrowUpRight, MoreHorizontal, StarOff, Trash2 } from 'lucide-react'
@@ -36,8 +36,7 @@ export function NavHistorySkeleton() {
     <section className="flex flex-col gap-3 p-2">
       <Skeleton className="m-2 h-4 w-20" />
       {new Array(10).fill(0).map((_, idx) => (
-        <div key={idx} className="flex gap-2 px-2">
-          <Skeleton className="h-5 w-5" />
+        <div key={idx} className="flex px-2">
           <Skeleton className="h-5 w-full" />
         </div>
       ))}
@@ -53,7 +52,6 @@ export function NavItems({ item }: { item: Chat }) {
     <SidebarMenuItem>
       <SidebarMenuButton asChild isActive={item.id === id}>
         <Link to={`/chat/${item.id}`}>
-          <span>{getRandomEmoji()}</span>
           <span>{item.title}</span>
         </Link>
       </SidebarMenuButton>

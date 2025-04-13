@@ -1,5 +1,4 @@
-import { createOpenAI } from '@ai-sdk/openai'
-import { Variables } from '@shared/types/ai'
+import { Providers, Variables } from '@shared/types/ai'
 import {
   appendResponseMessages,
   CoreAssistantMessage,
@@ -7,6 +6,7 @@ import {
   createDataStream,
   experimental_createMCPClient,
   generateText,
+  LanguageModelV1,
   Message,
   streamText,
   Tool
@@ -15,6 +15,7 @@ import { Experimental_StdioMCPTransport, StdioConfig } from 'ai/mcp-stdio'
 import { Hono } from 'hono'
 import { stream } from 'hono/streaming'
 import { v4 as uuidV4 } from 'uuid'
+import { providers } from '../../ai/providers'
 import {
   deleteChatById,
   getChatById,
@@ -46,16 +47,20 @@ export function getTrailingMessageId({
 
 const chat = new Hono<{ Variables: Variables }>()
 
-async function getOpenAiInstance() {
+async function getProviderInstance() {
   const setting = await getSetting()
-  if (!('openaiApiKey' in setting)) {
-    return
+  if (!('id' in setting)) {
+    throw new Error('Failed to retrieve settings.')
   }
 
-  return createOpenAI({
-    apiKey: setting.openaiApiKey ?? '',
-    baseURL: setting.openaiBaseUrl ?? undefined
-  })
+  if (!setting.provider) {
+    throw new Error('Failed to retrieve selected provider.')
+  }
+
+  const provider = providers[setting.provider as Providers]
+  const instance = provider(setting)
+
+  return instance
 }
 
 async function retrieveTools({ command, args }: StdioConfig) {
@@ -107,17 +112,14 @@ export async function connectMcpServers(): Promise<Record<
 }
 
 export async function generateTitleFromUserMessage({
+  model,
   message
 }: {
+  model: LanguageModelV1
   message: Message
 }) {
-  const openai = await getOpenAiInstance()
-  if (!openai) {
-    return ''
-  }
-
   const { text: title } = await generateText({
-    model: openai('gpt-4o'),
+    model,
     system: `\n
     - you will generate a short title based on the first message a user begins a conversation with
     - ensure it is not more than 80 characters long
@@ -133,19 +135,30 @@ chat.post('/', async (c) => {
   const { id, messages } = await c.req.json()
   const tools = c.get('tools')
 
+  const setting = await getSetting()
+  if (!('id' in setting)) {
+    throw new Error('Failed to retrieve settings.')
+  }
+
+  if (!setting.chatModel) {
+    throw new Error('Failed to retrieve selected chat model.')
+  }
+
+  if (!setting.reasoningModel) {
+    throw new Error('Failed to retrieve selected reasoning model.')
+  }
+
   const userMessage = getMostRecentUserMessage(messages)
   if (!userMessage) {
     return c.text('No user message found', 400)
   }
 
-  const openai = await getOpenAiInstance()
-  if (!openai) {
-    return c.text('No OpenAI API Key found', 500)
-  }
+  const instance = await getProviderInstance()
 
   const existingChat = await getChatById({ id })
   if (!existingChat) {
     const title = await generateTitleFromUserMessage({
+      model: instance(setting.chatModel),
       message: userMessage
     })
     await saveChat({ id, title })
@@ -169,7 +182,7 @@ chat.post('/', async (c) => {
   const dataStream = createDataStream({
     execute: async (dataStream) => {
       const result = streamText({
-        model: openai('gpt-4o'),
+        model: instance(setting.chatModel as string),
         system:
           'You are a friendly assistant! Keep your responses concise and helpful.',
         messages,

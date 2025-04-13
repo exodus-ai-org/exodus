@@ -7,19 +7,30 @@ import {
   FormLabel
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSetting } from '@/hooks/use-setting'
+import { models } from '@/lib/ai/models'
 import { fetcher } from '@/lib/utils'
 import { activeAtom } from '@/stores/setting'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { Providers } from '@shared/types/ai'
 import { useAtomValue } from 'jotai'
-import { debounce, isEqual } from 'lodash-es'
+import { debounce } from 'lodash-es'
 import { AlertCircle } from 'lucide-react'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
+import SyntaxHighlighter from 'react-syntax-highlighter'
+import {
+  atomOneDark,
+  atomOneLight
+} from 'react-syntax-highlighter/dist/esm/styles/hljs'
 import { toast } from 'sonner'
 import useSWR from 'swr'
 import { z } from 'zod'
+import { AvatarUploader } from '../avatar-uploader'
 import { CodeEditor } from '../code-editor'
+import { useTheme } from '../theme-provider'
+import { Card } from '../ui/card'
 import {
   Select,
   SelectContent,
@@ -27,8 +38,12 @@ import {
   SelectTrigger,
   SelectValue
 } from '../ui/select'
+import { UnderConstruction } from './under-construction'
 
 const formSchema = z.object({
+  provider: z.string().min(1).nullable(),
+  chatModel: z.string().min(1).nullable(),
+  reasoningModel: z.string().min(1).nullable(),
   openaiApiKey: z.string().min(1).nullable(),
   openaiBaseUrl: z.string().url().nullable(),
   azureOpenaiApiKey: z.string().min(1).nullable(),
@@ -46,14 +61,20 @@ const formSchema = z.object({
   mcpServers: z.string().min(1).nullable(),
   speechToTextModel: z.string().min(1).nullable(),
   textToSpeechVoice: z.string().min(1).nullable(),
-  textToSpeechModel: z.string().min(1).nullable()
+  textToSpeechModel: z.string().min(1).nullable(),
+  fileUploadEndpoint: z.string().min(1).nullable(),
+  assistantAvatar: z.string().min(1).nullable(),
+  googleSearchApiKey: z.string().min(1).nullable(),
+  googleCseId: z.string().min(1).nullable()
 })
 
 export function SettingsForm() {
+  const { actualTheme } = useTheme()
+  const { data: settings } = useSetting()
   const activeTitle = useAtomValue(activeAtom)
   const { error } = useSWR(
-    activeTitle === 'Ollama'
-      ? '/api/ollama/ping?url=http://localhost:11434'
+    activeTitle === 'Ollama' && settings?.ollamaBaseUrl
+      ? `/api/ollama/ping?url=${settings?.ollamaBaseUrl}`
       : null,
     fetcher
   )
@@ -61,9 +82,15 @@ export function SettingsForm() {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {},
     values: data
   })
+
+  const provider = form.watch('provider')
+
+  const modelsOfProvider = useMemo(() => {
+    if (provider) return models[provider as Providers]
+    return null
+  }, [provider])
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values)
@@ -72,7 +99,7 @@ export function SettingsForm() {
   useEffect(() => {
     const subscription = form.watch(
       debounce((formValue) => {
-        if (!isEqual(formValue, data)) {
+        if (form.formState.isDirty) {
           updateSetting(formValue)
           mutate()
           toast.success('Auto saved.')
@@ -81,7 +108,7 @@ export function SettingsForm() {
     )
 
     return () => subscription.unsubscribe()
-  }, [data, form, form.watch, mutate, updateSetting])
+  }, [form, form.formState.isDirty, mutate, updateSetting])
 
   return (
     <Form {...form}>
@@ -89,7 +116,191 @@ export function SettingsForm() {
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-1 flex-col gap-4"
       >
-        {activeTitle === 'OpenAI GPT' && (
+        {activeTitle === 'File Upload Endpoint' && (
+          <>
+            <Alert className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="inline">
+                By default, Exodus encodes uploaded attachments into{' '}
+                <strong>base64</strong> for prompt integration. To use your own
+                upload API, configure it here. Verify that the generated image
+                URLs are reachable by the models.
+                <Tabs defaultValue="request" className="mt-2 w-full">
+                  <TabsList className="grid w-full grid-cols-2">
+                    <TabsTrigger value="request">Request</TabsTrigger>
+                    <TabsTrigger value="response">Response</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="request">
+                    <Card className="rounded-md p-0">
+                      <SyntaxHighlighter
+                        PreTag="div"
+                        language="typescript"
+                        style={
+                          actualTheme === 'dark' ? atomOneDark : atomOneLight
+                        }
+                        customStyle={{
+                          borderRadius: '0.5rem',
+                          fontSize: '0.75rem'
+                        }}
+                      >
+                        {'// method POST\n\n' +
+                          'const files = e.target.files\n' +
+                          'const formData = new FormData()\n\n' +
+                          '// retrieve `files` from FormData\n' +
+                          '// and upload them to your own bucket like S3.\n' +
+                          "formData.append('files', files) "}
+                      </SyntaxHighlighter>
+                    </Card>
+                  </TabsContent>
+                  <TabsContent value="response">
+                    <Card className="rounded-md p-0">
+                      <SyntaxHighlighter
+                        PreTag="div"
+                        language="json"
+                        style={
+                          actualTheme === 'dark' ? atomOneDark : atomOneLight
+                        }
+                        customStyle={{
+                          borderRadius: '0.5rem',
+                          fontSize: '0.75rem'
+                        }}
+                      >
+                        {'// Your response JSON should be like:\n\n' +
+                          '[\n' +
+                          '  {\n' +
+                          '    "name": "fakeimg.jpg",\n' +
+                          '    "url": "e.g. https://fakeimg.pl/300/",\n' +
+                          '    "contentType": "image/jpg"\n' +
+                          '  },\n' +
+                          '  ...\n' +
+                          ']'}
+                      </SyntaxHighlighter>
+                    </Card>
+                  </TabsContent>
+                </Tabs>
+              </AlertDescription>
+            </Alert>
+            <FormField
+              control={form.control}
+              name="fileUploadEndpoint"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Endpoint</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="text"
+                      id="file-upload-endpoint-input"
+                      placeholder="https://api.your-domain.com/upload"
+                      {...field}
+                      value={field.value ?? ''}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </>
+        )}
+
+        {activeTitle === 'Assistant Avatar' && (
+          <AvatarUploader
+            props={{ control: form.control, name: 'assistantAvatar' }}
+          />
+        )}
+
+        {activeTitle === 'Providers' && (
+          <>
+            <FormField
+              control={form.control}
+              name="provider"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Provider</FormLabel>
+                  <Select
+                    value={field.value ?? ''}
+                    onValueChange={(value) => {
+                      field.onChange(value)
+                      form.setValue('chatModel', '')
+                      form.setValue('reasoningModel', '')
+                    }}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder={Providers.OpenAiGpt} />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {Object.values(Providers).map((val) => (
+                        <SelectItem key={val} value={val}>
+                          {val}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="chatModel"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Chat Model</FormLabel>
+                  <Select
+                    disabled={!provider}
+                    onValueChange={field.onChange}
+                    value={field.value ?? ''}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={`Select a chat model belongs to ${provider}`}
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {modelsOfProvider?.chatModel?.map((val) => (
+                        <SelectItem key={val} value={val}>
+                          {val}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="reasoningModel"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Reasoning Model</FormLabel>
+                  <Select
+                    disabled={!provider}
+                    onValueChange={field.onChange}
+                    value={field.value ?? ''}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue
+                          placeholder={`Select a reasoning model belongs to ${provider}`}
+                        />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {modelsOfProvider?.reasoningModel?.map((val) => (
+                        <SelectItem key={val} value={val}>
+                          {val}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormItem>
+              )}
+            />
+          </>
+        )}
+
+        {activeTitle === Providers.OpenAiGpt && (
           <>
             <FormField
               control={form.control}
@@ -130,7 +341,7 @@ export function SettingsForm() {
           </>
         )}
 
-        {activeTitle === 'Azure OpenAI' && (
+        {activeTitle === Providers.AzureOpenAi && (
           <>
             <FormField
               control={form.control}
@@ -190,7 +401,7 @@ export function SettingsForm() {
           </>
         )}
 
-        {activeTitle === 'Anthropic Claude' && (
+        {activeTitle === Providers.AnthropicClaude && (
           <>
             <FormField
               control={form.control}
@@ -231,7 +442,7 @@ export function SettingsForm() {
           </>
         )}
 
-        {activeTitle === 'Google Gemini' && (
+        {activeTitle === Providers.GoogleGemini && (
           <>
             <FormField
               control={form.control}
@@ -272,7 +483,7 @@ export function SettingsForm() {
           </>
         )}
 
-        {activeTitle === 'xAI Grok' && (
+        {activeTitle === Providers.XaiGrok && (
           <>
             <FormField
               control={form.control}
@@ -313,7 +524,7 @@ export function SettingsForm() {
           </>
         )}
 
-        {activeTitle === 'DeepSeek' && (
+        {activeTitle === Providers.DeepSeek && (
           <>
             <FormField
               control={form.control}
@@ -354,7 +565,7 @@ export function SettingsForm() {
           </>
         )}
 
-        {activeTitle === 'Ollama' && (
+        {activeTitle === Providers.Ollama && (
           <>
             <FormField
               control={form.control}
@@ -416,10 +627,11 @@ export function SettingsForm() {
           <>
             <Alert className="mb-4">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                The Text-to-Speech and Speech-to-Text services only support
-                OpenAI. Please make sure you have configured the OpenAI API
-                settings correctly before using these features.
+              <AlertDescription className="inline">
+                The Text-to-Speech and Speech-to-Text services{' '}
+                <strong>only support OpenAI</strong>. Please make sure you have
+                configured the OpenAI API settings correctly before using these
+                features.
               </AlertDescription>
             </Alert>
 
@@ -431,7 +643,7 @@ export function SettingsForm() {
                   <FormLabel>Speech to Text Model</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value ?? ''}
+                    value={field.value ?? ''}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -461,7 +673,7 @@ export function SettingsForm() {
 
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value ?? ''}
+                    value={field.value ?? ''}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -488,7 +700,7 @@ export function SettingsForm() {
                   <FormLabel>Text to Speech Voice</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value ?? ''}
+                    value={field.value ?? ''}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -516,6 +728,82 @@ export function SettingsForm() {
             />
           </>
         )}
+
+        {activeTitle === 'Web Search' && (
+          <>
+            <Alert className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="inline">
+                To use Google Web Search API, you need to create the
+                GOOGLE_API_KEY in the{' '}
+                <a
+                  href="https://console.cloud.google.com/apis/credentials"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold underline"
+                >
+                  Google Cloud credential console
+                </a>{' '}
+                and a GOOGLE_CSE_ID using the{' '}
+                <a
+                  href="https://programmablesearchengine.google.com/controlpanel/create"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold underline"
+                >
+                  Programmable Search Engine
+                </a>
+                .
+              </AlertDescription>
+            </Alert>
+            <FormField
+              control={form.control}
+              name="googleSearchApiKey"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Google API Key</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      autoComplete="current-password"
+                      id="google-search-api-key-input"
+                      autoFocus
+                      {...field}
+                      value={field.value ?? ''}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="googleCseId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Google CSE ID</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      autoComplete="current-password"
+                      id="google-cse-id-input"
+                      autoFocus
+                      {...field}
+                      value={field.value ?? ''}
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </>
+        )}
+        {activeTitle === 'Deep Research' && <UnderConstruction />}
+        {activeTitle === 'RAG' && <UnderConstruction />}
+        {activeTitle === 'Artifacts' && <UnderConstruction />}
+        {activeTitle === 'Browser Use' && <UnderConstruction />}
+        {activeTitle === 'Computer Use' && <UnderConstruction />}
+        {activeTitle === 'Import / Export Data' && <UnderConstruction />}
+        {activeTitle === 'Software Update' && <UnderConstruction />}
+        {activeTitle === 'About Exodus' && <UnderConstruction />}
       </form>
     </Form>
   )

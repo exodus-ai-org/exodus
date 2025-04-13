@@ -1,3 +1,4 @@
+import { Providers } from '@shared/types/ai'
 import { getAnthropicClaude } from './anthropic-claude'
 import { getAzureOpenAi } from './azure-openai'
 import { getDeepSeek } from './deepseek'
@@ -6,12 +7,12 @@ import { getOllama } from './ollama'
 import { getOpenAi } from './openai-gpt'
 import { getXaiGrok } from './xai-grok'
 
-export {
-  getAnthropicClaude,
-  getAzureOpenAi,
-  getDeepSeek,
-  getGoogleGemini,
-  getOllama,
-  getOpenAi,
-  getXaiGrok
+export const providers = {
+  [Providers.AnthropicClaude]: getAnthropicClaude,
+  [Providers.AzureOpenAi]: getAzureOpenAi,
+  [Providers.DeepSeek]: getDeepSeek,
+  [Providers.GoogleGemini]: getGoogleGemini,
+  [Providers.Ollama]: getOllama,
+  [Providers.OpenAiGpt]: getOpenAi,
+  [Providers.XaiGrok]: getXaiGrok
 }

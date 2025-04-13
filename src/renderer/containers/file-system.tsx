@@ -51,7 +51,7 @@ export function FileSystem() {
         ))}
       </section>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="flex flex-col">
+        <DialogContent className="flex flex-col" aria-describedby={undefined}>
           <DialogHeader>
             <DialogTitle>Create Directory</DialogTitle>
           </DialogHeader>

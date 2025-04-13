@@ -4,5 +4,5 @@ import { app } from 'electron'
 import { join } from 'path'
 
 const dbPath = join(app.getPath('userData'), 'Database')
-const client = new PGlite(dbPath)
-export const db = drizzle(client)
+export const pgLiteClient = new PGlite(dbPath)
+export const db = drizzle(pgLiteClient)

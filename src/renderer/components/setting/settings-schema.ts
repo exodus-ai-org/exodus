@@ -1,48 +1,57 @@
+import { Providers } from '@shared/types/ai'
 import {
   Atom,
   AudioWaveform,
-  BookOpenText,
+  Bot,
   BrainCircuit,
+  Chrome,
   CloudDownload,
+  Database,
+  FileUp,
   Globe,
   Hammer,
   HandCoins,
   Info,
+  Monitor,
   Palette
 } from 'lucide-react'
 
-export const data = {
+export const schema = {
   navMain: [
     {
-      title: 'General',
-      icon: BookOpenText
-    },
-    {
-      title: 'Provider',
+      title: 'Providers',
       icon: HandCoins,
       items: [
         {
-          title: 'OpenAI GPT'
+          title: Providers.OpenAiGpt
         },
         {
-          title: 'Azure OpenAI'
+          title: Providers.AzureOpenAi
         },
         {
-          title: 'Anthropic Claude'
+          title: Providers.AnthropicClaude
         },
         {
-          title: 'Google Gemini'
+          title: Providers.GoogleGemini
         },
         {
-          title: 'xAI Grok'
+          title: Providers.XaiGrok
         },
         {
-          title: 'DeepSeek'
+          title: Providers.DeepSeek
         },
         {
-          title: 'Ollama'
+          title: Providers.Ollama
         }
       ]
+    },
+    {
+      title: 'File Upload Endpoint',
+      icon: FileUp
+    },
+    {
+      title: 'Assistant Avatar',
+      icon: Bot
     },
     {
       icon: Hammer,
@@ -67,6 +76,18 @@ export const data = {
     {
       icon: Palette,
       title: 'Artifacts'
+    },
+    {
+      icon: Chrome,
+      title: 'Browser Use'
+    },
+    {
+      icon: Monitor,
+      title: 'Computer Use'
+    },
+    {
+      icon: Database,
+      title: 'Import / Export Data'
     },
     {
       icon: CloudDownload,

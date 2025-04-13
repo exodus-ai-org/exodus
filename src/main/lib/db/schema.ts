@@ -53,6 +53,9 @@ export type Vote = InferSelectModel<typeof vote>
 
 export const setting = pgTable('Setting', {
   id: uuid('id').notNull().primaryKey().defaultRandom(),
+  provider: varchar('provider').default(''),
+  chatModel: varchar('chatModel').default(''),
+  reasoningModel: varchar('reasoningModel').default(''),
   openaiApiKey: varchar('openaiApiKey').default(''),
   openaiBaseUrl: varchar('openaiBaseUrl').default(''),
   azureOpenaiApiKey: varchar('azureOpenaiApiKey').default(''),
@@ -70,7 +73,11 @@ export const setting = pgTable('Setting', {
   mcpServers: varchar('mcpServers').default(''),
   speechToTextModel: varchar('speechToTextModel').default(''),
   textToSpeechModel: varchar('textToSpeechModel').default(''),
-  textToSpeechVoice: varchar('textToSpeechVoice').default('')
+  textToSpeechVoice: varchar('textToSpeechVoice').default(''),
+  fileUploadEndpoint: varchar('fileUploadEndpoint').default(''),
+  assistantAvatar: varchar('assistantAvatar').default(''),
+  googleSearchApiKey: varchar('googleSearchApiKey').default(''),
+  googleCseId: varchar('googleCseId').default('')
 })
 
 export type Setting = InferSelectModel<typeof setting>
