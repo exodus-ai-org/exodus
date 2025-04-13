@@ -110,7 +110,7 @@ export function Markdown({ src }: { src: string }) {
                 {...rest}
                 className={cn(
                   'border-border mb-4 overflow-x-scroll rounded-md border text-xs md:max-w-[45rem]',
-                  { ['w-[20rem]']: showArtifactSheet },
+                  { ['w-[23rem]']: showArtifactSheet },
                   className
                 )}
               >

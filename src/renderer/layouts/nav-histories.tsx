@@ -15,7 +15,6 @@ import {
   SidebarMenuItem,
   useSidebar
 } from '@/components/ui/sidebar'
-import { fetcher } from '@/lib/utils'
 import type { Chat } from '@shared/types/db'
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns'
 import { ArrowUpRight, MoreHorizontal, StarOff, Trash2 } from 'lucide-react'
@@ -88,7 +87,7 @@ export function NavItems({ item }: { item: Chat }) {
 }
 
 export function NavHistories() {
-  const { data: history, isLoading } = useSWR<Chat[]>('/api/history', fetcher, {
+  const { data: history, isLoading } = useSWR<Chat[]>('/api/history', {
     fallbackData: []
   })
 

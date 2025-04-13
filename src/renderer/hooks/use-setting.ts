@@ -1,13 +1,9 @@
-import { fetcher } from '@/lib/utils'
 import { BASE_URL } from '@shared/constants'
 import { Setting } from '@shared/types/db'
 import useSWR from 'swr'
 
 export function useSetting() {
-  const { data, error, isLoading, mutate } = useSWR<Setting>(
-    `/api/setting`,
-    fetcher
-  )
+  const { data, error, isLoading, mutate } = useSWR<Setting>(`/api/setting`)
 
   const updateSetting = async (payload: Setting) => {
     const response = await fetch(`${BASE_URL}/api/setting`, {

@@ -10,7 +10,6 @@ import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSetting } from '@/hooks/use-setting'
 import { models } from '@/lib/ai/models'
-import { fetcher } from '@/lib/utils'
 import { activeAtom } from '@/stores/setting'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Providers } from '@shared/types/ai'
@@ -75,8 +74,7 @@ export function SettingsForm() {
   const { error } = useSWR(
     activeTitle === 'Ollama' && settings?.ollamaBaseUrl
       ? `/api/ollama/ping?url=${settings?.ollamaBaseUrl}`
-      : null,
-    fetcher
+      : null
   )
   const { data, mutate, updateSetting } = useSetting()
 

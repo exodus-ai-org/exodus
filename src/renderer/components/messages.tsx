@@ -60,7 +60,11 @@ function Messages({
             })}
           >
             {message.role === 'assistant' && (
-              <div className="flex gap-4">
+              <div
+                className={cn('flex gap-4', {
+                  ['flex-col']: showArtifactSheet
+                })}
+              >
                 {!!settings?.assistantAvatar && (
                   <Avatar>
                     <AvatarImage
