@@ -24,7 +24,7 @@ export function SettingsSidebar({
   const [active, setActive] = useAtom(activeAtom)
 
   return (
-    <Sidebar {...props} className="max-h-[496px] select-none">
+    <Sidebar {...props} className="max-h-[498px] select-none">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>

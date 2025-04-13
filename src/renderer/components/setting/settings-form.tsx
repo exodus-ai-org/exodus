@@ -14,10 +14,10 @@ import { fetcher } from '@/lib/utils'
 import { activeAtom } from '@/stores/setting'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Providers } from '@shared/types/ai'
+import { Setting } from '@shared/types/db'
 import { useAtomValue } from 'jotai'
-import { debounce } from 'lodash-es'
 import { AlertCircle } from 'lucide-react'
-import { useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import {
@@ -96,23 +96,18 @@ export function SettingsForm() {
     console.log(values)
   }
 
-  useEffect(() => {
-    const subscription = form.watch(
-      debounce((formValue) => {
-        if (form.formState.isDirty) {
-          updateSetting(formValue)
-          mutate()
-          toast.success('Auto saved.')
-        }
-      }, 1000)
-    )
-
-    return () => subscription.unsubscribe()
-  }, [form, form.formState.isDirty, mutate, updateSetting])
+  const handleBlur = () => {
+    if (form.formState.isDirty) {
+      updateSetting(form.getValues() as Setting)
+      mutate()
+      toast.success('Auto saved.')
+    }
+  }
 
   return (
     <Form {...form}>
       <form
+        onBlur={handleBlur}
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-1 flex-col gap-4"
       >
