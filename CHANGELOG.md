@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/HyperChatBot/exodus/compare/v1.0.0...v1.0.1) (2025-04-02)
+
+
+### Bug Fixes
+
+* resolve path in production ([5b7a198](https://github.com/HyperChatBot/exodus/commit/5b7a198e9e8237432b336a440001cba34e893c30))
+
 # 1.0.0 (2025-04-02)
 
 ### Features
