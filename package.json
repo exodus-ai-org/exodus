@@ -24,7 +24,7 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@ai-sdk/openai": "^1.3.2",
+    "@ai-sdk/openai": "^1.3.10",
     "@ai-sdk/react": "^1.2.2",
     "@electric-sql/pglite": "^0.2.17",
     "@electron-toolkit/preload": "^3.0.1",
