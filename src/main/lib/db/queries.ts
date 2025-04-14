@@ -164,7 +164,7 @@ export async function updateSetting(payload: Setting) {
 
 export async function importData(tableName: string, blob: Blob) {
   try {
-    await pgLiteClient.query(`COPY ${tableName} FROM '/dev/blob';`, [], {
+    await pgLiteClient.query(`COPY "${tableName}" FROM '/dev/blob';`, [], {
       blob
     })
   } catch (error) {
@@ -175,8 +175,10 @@ export async function importData(tableName: string, blob: Blob) {
 
 export async function exportData(tableName: string) {
   try {
-    const ret = await pgLiteClient.query(`COPY ${tableName} TO '/dev/blob';`)
-    console.log(ret)
+    const ret = await pgLiteClient.query(
+      `COPY "${tableName}" TO '/dev/blob' DELIMITER ',' CSV HEADER;`
+    )
+    return ret.blob
   } catch (error) {
     console.error('Failed to export data in database')
     throw error

@@ -3,7 +3,7 @@ import { useSetting } from '@/hooks/use-setting'
 import { cn } from '@/lib/utils'
 import { UseChatHelpers } from '@ai-sdk/react'
 import { throttle } from 'lodash-es'
-import { memo, useEffect, useRef } from 'react'
+import { Fragment, memo, useEffect, useRef } from 'react'
 import Markdown from './markdown'
 import { MessageAction } from './massage-action'
 import { MessageSpinner } from './message-spinner'
@@ -24,7 +24,7 @@ function Messages({
 }) {
   const { data: settings } = useSetting()
   const chatBoxRef = useRef<HTMLDivElement>(null)
-  const { show: showArtifactSheet } = useArtifact()
+  const { show: isArtifactVisible } = useArtifact()
 
   const scrollToBottom = throttle(() => {
     if (!chatBoxRef.current) return
@@ -46,10 +46,17 @@ function Messages({
     <section
       className={cn(
         'no-scrollbar flex min-w-0 flex-1 flex-col items-center gap-8 overflow-y-scroll p-4 transition-all',
-        { ['w-[25rem] overflow-x-hidden transition-all']: showArtifactSheet }
+        { ['w-[25rem] overflow-x-hidden transition-all']: isArtifactVisible }
       )}
       ref={chatBoxRef}
     >
+      {messages.length === 0 && (
+        <div className="mx-auto flex size-full max-w-3xl flex-col justify-center px-8 md:mt-20">
+          <p className="animate-bounce text-2xl font-semibold">Hello there!</p>
+          <p className="text-2xl text-zinc-500">How can I help you today?</p>
+        </div>
+      )}
+
       <div className="w-full md:max-w-3xl">
         {messages.map((message) => (
           <div
@@ -62,7 +69,7 @@ function Messages({
             {message.role === 'assistant' && (
               <div
                 className={cn('flex gap-4', {
-                  ['flex-col']: showArtifactSheet
+                  ['flex-col']: isArtifactVisible
                 })}
               >
                 {!!settings?.assistantAvatar && (
@@ -74,29 +81,28 @@ function Messages({
                   </Avatar>
                 )}
                 <div className="group relative">
-                  {message.parts.filter(
-                    (part) => part.type === 'tool-invocation'
-                  ).length > 0 ? (
-                    <p>Calling Tools...</p>
-                  ) : (
-                    <>
-                      <Markdown
-                        src={
-                          message.parts.filter(
-                            (item) => item.type === 'text'
-                          )?.[0]?.text
-                        }
-                      />
-                      <MessageAction
-                        reload={reload}
-                        content={
-                          message.parts.filter(
-                            (item) => item.type === 'text'
-                          )?.[0]?.text
-                        }
-                      />
-                    </>
-                  )}
+                  {message.parts.map((item, idx, arr) => {
+                    const key = `message-${message.id}-part-${idx}`
+
+                    if (item.type === 'text' && item.text.trim() !== '') {
+                      return (
+                        <Fragment key={key}>
+                          <Markdown src={item.text} />
+                          {idx === arr.length - 1 && (
+                            <MessageAction
+                              reload={reload}
+                              content={item.text}
+                            />
+                          )}
+                        </Fragment>
+                      )
+                    }
+
+                    if (item.type === 'tool-invocation') {
+                      return <p key={key}>Calling tools...</p>
+                    }
+                    return <Fragment key={idx}> </Fragment>
+                  })}
                 </div>
               </div>
             )}

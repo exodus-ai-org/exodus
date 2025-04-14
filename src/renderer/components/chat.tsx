@@ -38,6 +38,8 @@ export function Chat({ id, initialMessages }: Props) {
     }
   })
 
+  console.log(messages)
+
   return (
     <>
       <Messages

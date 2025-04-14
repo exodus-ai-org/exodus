@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useDbIo } from '@/hooks/use-db-io'
 import { useSetting } from '@/hooks/use-setting'
 import { models } from '@/lib/ai/models'
 import { activeAtom } from '@/stores/setting'
@@ -15,7 +16,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Providers } from '@shared/types/ai'
 import { Setting } from '@shared/types/db'
 import { useAtomValue } from 'jotai'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircle, Loader2 } from 'lucide-react'
 import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import SyntaxHighlighter from 'react-syntax-highlighter'
@@ -29,6 +30,7 @@ import { z } from 'zod'
 import { AvatarUploader } from '../avatar-uploader'
 import { CodeEditor } from '../code-editor'
 import { useTheme } from '../theme-provider'
+import { Button } from '../ui/button'
 import { Card } from '../ui/card'
 import {
   Select,
@@ -68,6 +70,7 @@ const formSchema = z.object({
 })
 
 export function SettingsForm() {
+  const { exportData, loading: dbIoLoading } = useDbIo()
   const { actualTheme } = useTheme()
   const { data: settings } = useSetting()
   const activeTitle = useAtomValue(activeAtom)
@@ -794,7 +797,28 @@ export function SettingsForm() {
         {activeTitle === 'Artifacts' && <UnderConstruction />}
         {activeTitle === 'Browser Use' && <UnderConstruction />}
         {activeTitle === 'Computer Use' && <UnderConstruction />}
-        {activeTitle === 'Import / Export Data' && <UnderConstruction />}
+        {activeTitle === 'Import / Export Data' && (
+          <>
+            <Alert className="mb-4">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription className="inline">
+                Database data can be exported to your local file system. The
+                data import functionality is currently under development.
+              </AlertDescription>
+            </Alert>
+
+            <Button disabled>Import</Button>
+
+            <Button
+              disabled={dbIoLoading}
+              onClick={exportData}
+              className="cursor-pointer"
+            >
+              {dbIoLoading && <Loader2 className="animate-spin" />}
+              Export
+            </Button>
+          </>
+        )}
         {activeTitle === 'Software Update' && <UnderConstruction />}
         {activeTitle === 'About Exodus' && <UnderConstruction />}
       </form>

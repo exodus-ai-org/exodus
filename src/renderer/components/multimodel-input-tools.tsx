@@ -1,5 +1,6 @@
 import { useArtifact } from '@/hooks/use-artifact'
 import { Ellipsis, Globe, Lightbulb, Palette } from 'lucide-react'
+import { useParams } from 'react-router'
 import { Button } from './ui/button'
 import {
   DropdownMenu,
@@ -9,6 +10,7 @@ import {
 } from './ui/dropdown-menu'
 
 export function MultiModelInputTools() {
+  const { id } = useParams()
   const { openArtifact } = useArtifact()
 
   return (
@@ -29,8 +31,8 @@ export function MultiModelInputTools() {
         <DropdownMenuItem>
           <Lightbulb /> Reason
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={openArtifact}>
-          <Palette /> Artifact
+        <DropdownMenuItem onClick={openArtifact} disabled={!id}>
+          <Palette /> Artifacts
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

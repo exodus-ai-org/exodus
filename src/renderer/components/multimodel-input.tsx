@@ -43,7 +43,7 @@ function InputBox({
   const { uploadFile } = useUpload()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [isTyping, setIsTyping] = useState(false)
-  const { show: showArtifactSheet } = useArtifact()
+  const { show: isArtifactVisible } = useArtifact()
 
   const adjustHeight = () => {
     if (textareaRef.current) {
@@ -100,7 +100,7 @@ function InputBox({
     <div
       className={cn(
         'border-input mx-auto mb-4 flex w-[calc(100%-2rem)] flex-col gap-2 rounded-2xl border p-1 shadow-sm md:max-w-3xl',
-        { ['mx-0 ml-4 w-[23rem]']: showArtifactSheet }
+        { ['mx-0 ml-4 w-[23rem]']: isArtifactVisible }
       )}
     >
       <form>

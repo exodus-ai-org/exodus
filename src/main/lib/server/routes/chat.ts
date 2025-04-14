@@ -219,11 +219,11 @@ chat.post('/', async (c) => {
               ]
             })
 
-            result.consumeStream()
+            // result.consumeStream()
 
-            result.mergeIntoDataStream(dataStream, {
-              sendReasoning: true
-            })
+            // result.mergeIntoDataStream(dataStream, {
+            //   sendReasoning: true
+            // })
           } catch {
             console.error('Failed to save chat')
           }

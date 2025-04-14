@@ -6,6 +6,7 @@ import { cors } from 'hono/cors'
 import audioRouter from './routes/audio'
 import chatRouter, { connectMcpServers } from './routes/chat'
 import customUploaderRouter from './routes/custom-uploader'
+import dbIoRouter from './routes/db-io'
 import historyRouter from './routes/history'
 import ollamaRouter from './routes/ollama'
 import settingRouter from './routes/setting'
@@ -38,6 +39,7 @@ export async function connectHttpServer() {
   app.route('/api/ollama', ollamaRouter)
   app.route('/api/audio', audioRouter)
   app.route('/api/custom-uploader', customUploaderRouter)
+  app.route('/api/db-io', dbIoRouter)
 
   // Ping
   app.get('/', (c) => c.text('Exodus is running.'))

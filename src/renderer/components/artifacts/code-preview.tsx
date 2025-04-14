@@ -20,12 +20,12 @@ import { exampleCode } from './example-code'
 import { importFiles } from './import-files'
 
 export function CodePreview() {
-  const { show: showArtifactSheet, closeArtifact } = useArtifact()
+  const { show: isArtifactVisible, closeArtifact } = useArtifact()
   const { actualTheme } = useTheme()
 
   return (
     <Sheet
-      open={showArtifactSheet}
+      open={isArtifactVisible}
       onOpenChange={() => {
         // Do nothing:
         // Ensure the sheet remains open when a click occurs outside its boundaries.

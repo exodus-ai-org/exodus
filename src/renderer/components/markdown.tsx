@@ -20,7 +20,7 @@ const themes = {
 }
 
 export function Markdown({ src }: { src: string }) {
-  const { show: showArtifactSheet, openArtifact } = useArtifact()
+  const { show: isArtifactVisible, openArtifact } = useArtifact()
   const [copiedContent, setCopiedContent] = useState<ReactNode>('')
   const { actualTheme } = useTheme()
   const { codeTheme, bg } = useMemo(() => themes[actualTheme], [actualTheme])
@@ -110,7 +110,7 @@ export function Markdown({ src }: { src: string }) {
                 {...rest}
                 className={cn(
                   'border-border mb-4 overflow-x-scroll rounded-md border text-xs md:max-w-[45rem]',
-                  { ['w-[23rem]']: showArtifactSheet },
+                  { ['w-[23rem]']: isArtifactVisible },
                   className
                 )}
               >
@@ -140,7 +140,7 @@ export function Markdown({ src }: { src: string }) {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           table({ className, children, node, ...rest }) {
             return (
-              <div className="mb-4 w-full caption-bottom overflow-x-scroll rounded-md border text-sm">
+              <div className="mb-4 w-full caption-bottom overflow-x-scroll rounded-md border text-sm md:max-w-[45rem]">
                 <table {...rest} className={cn(className, 'w-full')}>
                   {children}
                 </table>
