@@ -10,7 +10,6 @@ import {
 } from '@/components/ui/sidebar'
 import { Bot, Plus } from 'lucide-react'
 import * as React from 'react'
-import { Link } from 'react-router'
 import { NavHistories } from './nav-histories'
 import { NavSecondary } from './nav-secondary'
 import { SearchForm } from './search-form'
@@ -36,11 +35,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
         <div className="flex items-center justify-between">
           <SearchForm />
-          <Link to="/">
-            <Button size="icon" variant="ghost">
-              <Plus />
-            </Button>
-          </Link>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => {
+              window.location.href = '/'
+            }}
+          >
+            <Plus />
+          </Button>
         </div>
       </SidebarHeader>
       <SidebarContent className="no-scrollbar">
