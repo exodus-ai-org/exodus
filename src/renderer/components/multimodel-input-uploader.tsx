@@ -1,6 +1,6 @@
 import { useUpload } from '@/hooks/use-upload'
 import { TooltipArrow } from '@radix-ui/react-tooltip'
-import { Plus } from 'lucide-react'
+import { Paperclip } from 'lucide-react'
 import { ChangeEvent, useRef } from 'react'
 import { Button } from './ui/button'
 import {
@@ -32,7 +32,7 @@ export function MultiModelInputUploader() {
             variant="ghost"
             className="relative h-9 w-9 rounded-full border"
           >
-            <Plus />
+            <Paperclip />
             <input
               ref={ref}
               type="file"

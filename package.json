@@ -74,6 +74,7 @@
     "electron-squirrel-startup": "^1.0.1",
     "electron-updater": "^6.3.9",
     "expr-eval": "^2.0.2",
+    "framer-motion": "^12.7.2",
     "hono": "^4.7.5",
     "immer": "^10.1.1",
     "jotai": "^2.12.2",

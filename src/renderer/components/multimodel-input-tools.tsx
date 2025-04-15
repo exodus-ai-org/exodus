@@ -1,40 +1,83 @@
-import { useArtifact } from '@/hooks/use-artifact'
-import { Ellipsis, Globe, Lightbulb, Palette } from 'lucide-react'
-import { useParams } from 'react-router'
+import { cn } from '@/lib/utils'
+import { advancedToolsAtom } from '@/stores/chat'
+import { TooltipArrow } from '@radix-ui/react-tooltip'
+import { AdvancedTools } from '@shared/types/ai'
+import { produce } from 'immer'
+import { useAtom } from 'jotai'
+import { BrainCircuit, Globe, Lightbulb, Palette } from 'lucide-react'
 import { Button } from './ui/button'
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from './ui/dropdown-menu'
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from './ui/tooltip'
+
+const advancedToolsList = [
+  {
+    key: AdvancedTools.WebSearch,
+    icon: <Globe />,
+    desc: AdvancedTools.WebSearch
+  },
+  {
+    key: AdvancedTools.Reasoning,
+    icon: <Lightbulb />,
+    desc: AdvancedTools.Reasoning
+  },
+  {
+    key: AdvancedTools.DeepResearch,
+    icon: <BrainCircuit />,
+    desc: AdvancedTools.DeepResearch
+  },
+  {
+    key: AdvancedTools.Artifacts,
+    icon: <Palette />,
+    desc: AdvancedTools.Artifacts
+  }
+]
 
 export function MultiModelInputTools() {
-  const { id } = useParams()
-  const { openArtifact } = useArtifact()
+  const [advancedTools, setAdvancedTools] = useAtom(advancedToolsAtom)
+
+  const handleAdvancedTools = (advancedToolName: AdvancedTools) => {
+    setAdvancedTools(
+      produce(advancedTools, (draft) => {
+        const idx = draft.findIndex((item) => item === advancedToolName)
+
+        if (idx === -1) {
+          draft.push(advancedToolName)
+        } else {
+          draft.splice(idx, 1)
+        }
+      })
+    )
+  }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          className="h-9 w-9 cursor-pointer rounded-full border"
-        >
-          <Ellipsis />
-        </Button>
-      </DropdownMenuTrigger>
-
-      <DropdownMenuContent>
-        <DropdownMenuItem>
-          <Globe /> Search
-        </DropdownMenuItem>
-        <DropdownMenuItem>
-          <Lightbulb /> Reason
-        </DropdownMenuItem>
-        <DropdownMenuItem onClick={openArtifact} disabled={!id}>
-          <Palette /> Artifacts
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <>
+      {advancedToolsList.map(({ key, icon, desc }) => (
+        <TooltipProvider key={key}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  'text-ring h-9 w-9 cursor-pointer rounded-full border',
+                  { ['bg-secondary text-black']: advancedTools.includes(key) }
+                )}
+                onClick={() => handleAdvancedTools(key)}
+              >
+                {icon}
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{desc}</p>
+              <TooltipArrow className="TooltipArrow" />
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ))}
+    </>
   )
 }

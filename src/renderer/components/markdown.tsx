@@ -47,7 +47,7 @@ export function Markdown({ src }: { src: string }) {
               <>
                 <section
                   className={cn(
-                    'flex items-center justify-between p-3 text-[0.625rem]',
+                    'text-ring flex items-center justify-between p-3 text-xs',
                     bg
                   )}
                 >

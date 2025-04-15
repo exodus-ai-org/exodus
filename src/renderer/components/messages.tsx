@@ -2,10 +2,12 @@ import { useArtifact } from '@/hooks/use-artifact'
 import { useSetting } from '@/hooks/use-setting'
 import { cn } from '@/lib/utils'
 import { UseChatHelpers } from '@ai-sdk/react'
+import { AnimatePresence } from 'framer-motion'
 import { throttle } from 'lodash-es'
 import { Fragment, memo, useEffect, useRef } from 'react'
 import Markdown from './markdown'
 import { MessageAction } from './massage-action'
+import { MessageReasoning } from './message-reasoning'
 import { MessageSpinner } from './message-spinner'
 import { Avatar, AvatarImage } from './ui/avatar'
 
@@ -43,102 +45,127 @@ function Messages({
   }, [messages, scrollToBottom])
 
   return (
-    <section
-      className={cn(
-        'no-scrollbar flex min-w-0 flex-1 flex-col items-center gap-8 overflow-y-scroll p-4 transition-all',
-        { ['w-[25rem] overflow-x-hidden transition-all']: isArtifactVisible }
-      )}
-      ref={chatBoxRef}
-    >
-      {messages.length === 0 && (
-        <div className="mx-auto flex size-full max-w-3xl flex-col justify-center px-8 md:mt-20">
-          <p className="animate-bounce text-2xl font-semibold">Hello there!</p>
-          <p className="text-2xl text-zinc-500">How can I help you today?</p>
-        </div>
-      )}
+    <AnimatePresence>
+      <section
+        className={cn(
+          'no-scrollbar flex min-w-0 flex-1 flex-col items-center gap-8 overflow-y-scroll p-4 transition-all',
+          { ['w-[25rem] overflow-x-hidden transition-all']: isArtifactVisible }
+        )}
+        ref={chatBoxRef}
+      >
+        {messages.length === 0 && (
+          <div className="mx-auto flex size-full max-w-3xl flex-col justify-center px-8 md:mt-20">
+            <p className="animate-bounce text-2xl font-semibold">
+              Hello there!
+            </p>
+            <p className="text-2xl text-zinc-500">How can I help you today?</p>
+          </div>
+        )}
 
-      <div className="w-full md:max-w-3xl">
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={cn('mb-8 flex flex-col', {
-              'items-start': message.role === 'assistant',
-              'items-end first:mt-0': message.role === 'user'
-            })}
-          >
-            {message.role === 'assistant' && (
-              <div
-                className={cn('flex gap-4', {
-                  ['flex-col']: isArtifactVisible
-                })}
-              >
-                {!!settings?.assistantAvatar && (
-                  <Avatar>
-                    <AvatarImage
-                      src={settings.assistantAvatar}
-                      className="object-cover"
-                    />
-                  </Avatar>
-                )}
-                <div className="group relative">
-                  {message.parts.map((item, idx, arr) => {
-                    const key = `message-${message.id}-part-${idx}`
-
-                    if (item.type === 'text' && item.text.trim() !== '') {
-                      return (
-                        <Fragment key={key}>
-                          <Markdown src={item.text} />
-                          {idx === arr.length - 1 && (
-                            <MessageAction
-                              reload={reload}
-                              content={item.text}
-                            />
-                          )}
-                        </Fragment>
-                      )
-                    }
-
-                    if (item.type === 'tool-invocation') {
-                      return <p key={key}>Calling tools...</p>
-                    }
-                    return <Fragment key={idx}> </Fragment>
+        <div className="w-full md:max-w-3xl">
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={cn('mb-8 flex flex-col', {
+                'items-start': message.role === 'assistant',
+                'items-end first:mt-0': message.role === 'user'
+              })}
+            >
+              {message.role === 'assistant' && (
+                <div
+                  className={cn('flex gap-4', {
+                    ['flex-col']: isArtifactVisible
                   })}
+                >
+                  {!!settings?.assistantAvatar && (
+                    <Avatar>
+                      <AvatarImage
+                        src={settings.assistantAvatar}
+                        className="object-cover"
+                      />
+                    </Avatar>
+                  )}
+                  <div className="group relative">
+                    {message.parts.map((item, idx, arr) => {
+                      const key = `message-${message.id}-part-${idx}`
+
+                      if (item.type === 'reasoning') {
+                        return (
+                          <MessageReasoning
+                            key={key}
+                            isLoading={status === 'streaming'}
+                            reasoning={item.reasoning}
+                          />
+                        )
+                      }
+
+                      if (item.type === 'text' && item.text.trim() !== '') {
+                        return (
+                          <Fragment key={key}>
+                            <Markdown src={item.text} />
+                            {idx === arr.length - 1 && (
+                              <MessageAction
+                                reload={reload}
+                                content={item.text}
+                              />
+                            )}
+                          </Fragment>
+                        )
+                      }
+
+                      if (item.type === 'tool-invocation') {
+                        if (item.toolInvocation.state === 'call') {
+                          return (
+                            <p key={key} className="mb-4">
+                              Calling tools:{' '}
+                              <strong>{item.toolInvocation.toolName}</strong>
+                            </p>
+                          )
+                        }
+                      }
+
+                      return <Fragment key={key} />
+                    })}
+                  </div>
                 </div>
-              </div>
-            )}
-            {message.role === 'user' && (
-              <p className="bg-accent rounded-xl px-3 py-2 break-words whitespace-pre-wrap">
-                {Array.isArray(message.experimental_attachments) &&
-                  message.experimental_attachments.length > 0 &&
-                  message.experimental_attachments.map((attachment) => {
-                    if (attachment.contentType?.startsWith('image')) {
-                      return (
-                        <img
-                          className="mb-4 max-h-48"
-                          key={attachment.name}
-                          src={attachment.url}
-                          alt={attachment.name}
-                        />
-                      )
+              )}
+              {message.role === 'user' && (
+                <p className="bg-accent rounded-xl px-3 py-2 break-words whitespace-pre-wrap">
+                  {Array.isArray(message.experimental_attachments) &&
+                    message.experimental_attachments.length > 0 &&
+                    message.experimental_attachments.map((attachment) => {
+                      if (attachment.contentType?.startsWith('image')) {
+                        return (
+                          <img
+                            className="mb-4 max-h-48"
+                            key={attachment.name}
+                            src={attachment.url}
+                            alt={attachment.name}
+                          />
+                        )
+                      }
+
+                      return null
+                    })}
+                  {message.parts.map((part) => {
+                    if (part.type === 'text' && part.text !== '') {
+                      return part.text
                     }
 
                     return null
                   })}
-                {
-                  message.parts.filter((item) => item.type === 'text')?.[0]
-                    ?.text
-                }
-              </p>
-            )}
-          </div>
-        ))}
+                </p>
+              )}
+            </div>
+          ))}
 
-        {status === 'submitted' &&
-          messages[messages.length - 1].role !== 'assistant' && (
-            <MessageSpinner />
-          )}
-      </div>
-    </section>
+          {status === 'submitted' &&
+            messages[messages.length - 1].role !== 'assistant' && (
+              <MessageSpinner />
+            )}
+        </div>
+      </section>
+    </AnimatePresence>
   )
 }
 

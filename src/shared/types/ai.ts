@@ -13,3 +13,10 @@ export enum Providers {
   DeepSeek = 'DeepSeek',
   Ollama = 'Ollama'
 }
+
+export enum AdvancedTools {
+  WebSearch = 'Web Search',
+  Reasoning = 'Reasoning',
+  DeepResearch = 'Deep Research',
+  Artifacts = 'Artifacts'
+}

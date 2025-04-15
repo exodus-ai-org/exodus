@@ -23,12 +23,13 @@ export const models = {
     chatModel: ['gemini-2.0-flash'],
     reasoningModel: [
       'gemini-2.5-pro-preview-03-25',
+      'gemini-2.5-pro-exp-03-25',
       'gemini-2.0-flash-thinking-exp-01-21'
     ]
   },
   [Providers.XaiGrok]: {
-    chatModel: ['grok-3-fast'],
-    reasoningModel: ['grok-3-mini', 'grok-3-mini-fast']
+    chatModel: ['grok-3-beta', 'grok-3-fast-beta'],
+    reasoningModel: ['grok-3-mini-beta', 'grok-3-mini-fast-beta']
   },
   [Providers.DeepSeek]: {
     chatModel: ['deepseek-chat'],

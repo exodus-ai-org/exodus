@@ -1,4 +1,4 @@
-import { Providers, Variables } from '@shared/types/ai'
+import { AdvancedTools, Providers, Variables } from '@shared/types/ai'
 import {
   appendResponseMessages,
   CoreAssistantMessage,
@@ -9,7 +9,8 @@ import {
   LanguageModelV1,
   Message,
   streamText,
-  Tool
+  Tool,
+  UIMessage
 } from 'ai'
 import { Experimental_StdioMCPTransport, StdioConfig } from 'ai/mcp-stdio'
 import { Hono } from 'hono'
@@ -47,7 +48,7 @@ export function getTrailingMessageId({
 
 const chat = new Hono<{ Variables: Variables }>()
 
-async function getProviderInstance() {
+async function getModelFromProvider() {
   const setting = await getSetting()
   if (!('id' in setting)) {
     throw new Error('Failed to retrieve settings.')
@@ -58,9 +59,9 @@ async function getProviderInstance() {
   }
 
   const provider = providers[setting.provider as Providers]
-  const instance = provider(setting)
+  const models = provider(setting)
 
-  return instance
+  return models
 }
 
 async function retrieveTools({ command, args }: StdioConfig) {
@@ -132,7 +133,11 @@ export async function generateTitleFromUserMessage({
 }
 
 chat.post('/', async (c) => {
-  const { id, messages } = await c.req.json()
+  const { id, messages, advancedTools } = await c.req.json<{
+    id: string
+    messages: UIMessage[]
+    advancedTools: AdvancedTools[]
+  }>()
   const tools = c.get('tools')
 
   const setting = await getSetting()
@@ -153,12 +158,12 @@ chat.post('/', async (c) => {
     return c.text('No user message found', 400)
   }
 
-  const instance = await getProviderInstance()
+  const { chatModel, reasoningModel } = await getModelFromProvider()
 
   const existingChat = await getChatById({ id })
   if (!existingChat) {
     const title = await generateTitleFromUserMessage({
-      model: instance(setting.chatModel),
+      model: chatModel,
       message: userMessage
     })
     await saveChat({ id, title })
@@ -182,11 +187,13 @@ chat.post('/', async (c) => {
   const dataStream = createDataStream({
     execute: async (dataStream) => {
       const result = streamText({
-        model: instance(setting.chatModel as string),
+        model: advancedTools.includes(AdvancedTools.Reasoning)
+          ? reasoningModel
+          : chatModel,
         system:
           'You are a friendly assistant! Keep your responses concise and helpful.',
         messages,
-        maxSteps: 20,
+        maxSteps: setting.maxSteps ?? 1,
         tools,
         experimental_generateMessageId: uuidV4,
         onFinish: async ({ response }) => {
@@ -218,12 +225,6 @@ chat.post('/', async (c) => {
                 }
               ]
             })
-
-            // result.consumeStream()
-
-            // result.mergeIntoDataStream(dataStream, {
-            //   sendReasoning: true
-            // })
           } catch {
             console.error('Failed to save chat')
           }
@@ -231,7 +232,9 @@ chat.post('/', async (c) => {
       })
 
       result.mergeIntoDataStream(dataStream, {
-        sendReasoning: true
+        sendReasoning: true,
+        sendSources: true,
+        sendUsage: true
       })
     },
     onError: (error) => {

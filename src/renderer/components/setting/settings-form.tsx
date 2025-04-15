@@ -2,6 +2,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel
@@ -66,7 +67,8 @@ const formSchema = z.object({
   fileUploadEndpoint: z.string().min(1).nullable(),
   assistantAvatar: z.string().min(1).nullable(),
   googleSearchApiKey: z.string().min(1).nullable(),
-  googleCseId: z.string().min(1).nullable()
+  googleCseId: z.string().min(1).nullable(),
+  maxSteps: z.number().min(1).max(100).nullable()
 })
 
 export function SettingsForm() {
@@ -290,6 +292,31 @@ export function SettingsForm() {
                       ))}
                     </SelectContent>
                   </Select>
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="maxSteps"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Max Steps</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      id="max-steps-input"
+                      autoFocus
+                      {...field}
+                      value={field.value ?? ''}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Maximum number of sequential LLM calls (steps), e.g. when
+                    you use tool calls. A maximum number is required to prevent
+                    infinite loops in the case of misconfigured tools. By
+                    default, it is set to 1.
+                  </FormDescription>
                 </FormItem>
               )}
             />

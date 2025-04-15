@@ -1,6 +1,8 @@
+import { advancedToolsAtom } from '@/stores/chat'
 import { useChat } from '@ai-sdk/react'
 import { BASE_URL } from '@shared/constants'
 import type { UIMessage } from 'ai'
+import { useAtomValue } from 'jotai'
 import { toast } from 'sonner'
 import { mutate } from 'swr'
 import { v4 as uuidV4 } from 'uuid'
@@ -13,6 +15,7 @@ interface Props {
 }
 
 export function Chat({ id, initialMessages }: Props) {
+  const advancedTools = useAtomValue(advancedToolsAtom)
   const {
     messages,
     setMessages,
@@ -25,6 +28,9 @@ export function Chat({ id, initialMessages }: Props) {
     reload
   } = useChat({
     api: `${BASE_URL}/api/chat`,
+    body: {
+      advancedTools
+    },
     id,
     initialMessages,
     experimental_throttle: 100,
@@ -37,8 +43,6 @@ export function Chat({ id, initialMessages }: Props) {
       toast.error('An error occurred, please try again!')
     }
   })
-
-  console.log(messages)
 
   return (
     <>

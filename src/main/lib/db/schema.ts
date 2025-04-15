@@ -1,6 +1,7 @@
 import { type InferSelectModel } from 'drizzle-orm'
 import {
   boolean,
+  integer,
   json,
   pgTable,
   primaryKey,
@@ -77,7 +78,8 @@ export const setting = pgTable('Setting', {
   fileUploadEndpoint: varchar('fileUploadEndpoint').default(''),
   assistantAvatar: varchar('assistantAvatar').default(''),
   googleSearchApiKey: varchar('googleSearchApiKey').default(''),
-  googleCseId: varchar('googleCseId').default('')
+  googleCseId: varchar('googleCseId').default(''),
+  maxSteps: integer('maxSteps').default(1)
 })
 
 export type Setting = InferSelectModel<typeof setting>
