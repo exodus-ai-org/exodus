@@ -45,8 +45,8 @@ export const webSearch = (setting: Setting) =>
         })
 
         return JSON.stringify(result)
-      } catch {
-        return ''
+      } catch (e) {
+        return e instanceof Error ? e.message : 'Failed to use web search.'
       }
     }
   })
