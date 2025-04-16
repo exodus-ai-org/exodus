@@ -1,7 +1,7 @@
 import { createAzure } from '@ai-sdk/azure'
 import { Setting } from '@shared/types/db'
 
-export async function getAzureOpenAi(setting: Setting) {
+export function getAzureOpenAi(setting: Setting) {
   const azure = createAzure({
     apiKey: setting.azureOpenaiApiKey ?? '',
     baseURL: setting.azureOpenAiEndpoint ?? '',
@@ -9,6 +9,7 @@ export async function getAzureOpenAi(setting: Setting) {
   })
 
   return {
+    provider: azure,
     chatModel: azure(setting.chatModel ?? ''),
     reasoningModel: azure(setting.reasoningModel ?? '')
   }

@@ -1,22 +1,20 @@
-import { AdvancedTools, Providers, Variables } from '@shared/types/ai'
+import { AdvancedTools, Variables } from '@shared/types/ai'
 import {
   appendResponseMessages,
-  CoreAssistantMessage,
-  CoreToolMessage,
   createDataStream,
-  experimental_createMCPClient,
-  generateText,
-  LanguageModelV1,
-  Message,
   streamText,
-  Tool,
   UIMessage
 } from 'ai'
-import { Experimental_StdioMCPTransport, StdioConfig } from 'ai/mcp-stdio'
 import { Hono } from 'hono'
 import { stream } from 'hono/streaming'
 import { v4 as uuidV4 } from 'uuid'
-import { providers } from '../../ai/providers'
+import { calculator, date, weather, webSearch } from '../../ai/calling-tools'
+import {
+  generateTitleFromUserMessage,
+  getModelFromProvider,
+  getMostRecentUserMessage,
+  getTrailingMessageId
+} from '../../ai/utils'
 import {
   deleteChatById,
   getChatById,
@@ -26,111 +24,12 @@ import {
   saveMessages
 } from '../../db/queries'
 
-type ResponseMessageWithoutId = CoreToolMessage | CoreAssistantMessage
-type ResponseMessage = ResponseMessageWithoutId & { id: string }
-
-export function getMostRecentUserMessage(messages: Array<Message>) {
-  const userMessages = messages.filter((message) => message.role === 'user')
-  return userMessages.at(-1)
-}
-
-export function getTrailingMessageId({
-  messages
-}: {
-  messages: Array<ResponseMessage>
-}): string | null {
-  const trailingMessage = messages.at(-1)
-
-  if (!trailingMessage) return null
-
-  return trailingMessage.id
-}
-
 const chat = new Hono<{ Variables: Variables }>()
 
-async function getModelFromProvider() {
-  const setting = await getSetting()
-  if (!('id' in setting)) {
-    throw new Error('Failed to retrieve settings.')
-  }
-
-  if (!setting.provider) {
-    throw new Error('Failed to retrieve selected provider.')
-  }
-
-  const provider = providers[setting.provider as Providers]
-  const models = provider(setting)
-
-  return models
-}
-
-async function retrieveTools({ command, args }: StdioConfig) {
-  const transport = new Experimental_StdioMCPTransport({
-    command,
-    args
-  })
-  const mcpClient = await experimental_createMCPClient({
-    transport
-  })
-  const tools = await mcpClient.tools()
-  return tools
-}
-
-export async function connectMcpServers(): Promise<Record<
-  string,
-  Tool
-> | null> {
-  const setting = await getSetting()
-
-  if ('mcpServers' in setting) {
-    const { mcpServers } = setting
-    if (mcpServers === null) return null
-
-    try {
-      const mcpServersObj: { mcpServers: { [index: string]: StdioConfig } } =
-        JSON.parse(mcpServers)
-
-      const toolsArr = await Promise.all(
-        Object.values(mcpServersObj.mcpServers).map((stdioConfig) =>
-          retrieveTools(stdioConfig)
-        )
-      )
-
-      const tools = toolsArr.reduce((acc, obj) => {
-        if (typeof obj === 'object' && obj !== null) {
-          return { ...acc, ...obj }
-        }
-        return acc
-      }, {})
-
-      return tools
-    } catch {
-      return null
-    }
-  } else {
-    return null
-  }
-}
-
-export async function generateTitleFromUserMessage({
-  model,
-  message
-}: {
-  model: LanguageModelV1
-  message: Message
-}) {
-  const { text: title } = await generateText({
-    model,
-    system: `\n
-    - you will generate a short title based on the first message a user begins a conversation with
-    - ensure it is not more than 80 characters long
-    - the title should be a summary of the user's message
-    - do not use quotes or colons`,
-    prompt: JSON.stringify(message)
-  })
-
-  return title
-}
+chat.get('/mcp', async (c) => {
+  const tools = c.get('tools')
+  return c.json({ tools })
+})
 
 chat.post('/', async (c) => {
   const { id, messages, advancedTools } = await c.req.json<{
@@ -138,7 +37,7 @@ chat.post('/', async (c) => {
     messages: UIMessage[]
     advancedTools: AdvancedTools[]
   }>()
-  const tools = c.get('tools')
+  const mcpTools = c.get('tools')
 
   const setting = await getSetting()
   if (!('id' in setting)) {
@@ -182,6 +81,11 @@ chat.post('/', async (c) => {
       }
     ]
   })
+
+  const tools = { ...mcpTools, calculator, date, weather }
+  if (advancedTools.includes(AdvancedTools.WebSearch)) {
+    tools['webSearch'] = webSearch(setting)
+  }
 
   // immediately start streaming the response
   const dataStream = createDataStream({
