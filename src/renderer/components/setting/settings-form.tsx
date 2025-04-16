@@ -5,7 +5,8 @@ import {
   FormDescription,
   FormField,
   FormItem,
-  FormLabel
+  FormLabel,
+  FormMessage
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -15,7 +16,6 @@ import { models } from '@/lib/ai/models'
 import { activeAtom } from '@/stores/setting'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Providers } from '@shared/types/ai'
-import { Setting } from '@shared/types/db'
 import { useAtomValue } from 'jotai'
 import { AlertCircle, Loader2 } from 'lucide-react'
 import { useMemo } from 'react'
@@ -43,49 +43,49 @@ import {
 import { UnderConstruction } from './under-construction'
 
 const formSchema = z.object({
-  provider: z.string().min(1).nullable(),
-  chatModel: z.string().min(1).nullable(),
-  reasoningModel: z.string().min(1).nullable(),
-  openaiApiKey: z.string().min(1).nullable(),
-  openaiBaseUrl: z.string().url().nullable(),
-  azureOpenaiApiKey: z.string().min(1).nullable(),
-  azureOpenAiEndpoint: z.string().url().nullable(),
-  azureOpenAiApiVersion: z.string().url().nullable(),
-  anthropicApiKey: z.string().min(1).nullable(),
-  anthropicBaseUrl: z.string().url().nullable(),
-  googleApiKey: z.string().min(1).nullable(),
-  googleBaseUrl: z.string().url().nullable(),
-  xAiApiKey: z.string().min(1).nullable(),
-  xAiBaseUrl: z.string().url().nullable(),
-  deepSeekApiKey: z.string().min(1).nullable(),
-  deepSeekBaseUrl: z.string().url().nullable(),
-  ollamaBaseUrl: z.string().min(1).nullable(),
-  mcpServers: z.string().min(1).nullable(),
-  speechToTextModel: z.string().min(1).nullable(),
-  textToSpeechVoice: z.string().min(1).nullable(),
-  textToSpeechModel: z.string().min(1).nullable(),
-  fileUploadEndpoint: z.string().min(1).nullable(),
-  assistantAvatar: z.string().min(1).nullable(),
-  googleSearchApiKey: z.string().min(1).nullable(),
-  googleCseId: z.string().min(1).nullable(),
-  maxSteps: z.number().min(1).max(100).nullable()
+  provider: z.string().nullable(),
+  chatModel: z.string().nullable(),
+  reasoningModel: z.string().nullable(),
+  openaiApiKey: z.string().nullable(),
+  openaiBaseUrl: z.union([z.string().url().nullable(), z.literal('')]),
+  azureOpenaiApiKey: z.string().nullable(),
+  azureOpenAiEndpoint: z.union([z.string().url().nullable(), z.literal('')]),
+  azureOpenAiApiVersion: z.union([z.string().url().nullable(), z.literal('')]),
+  anthropicApiKey: z.string().nullable(),
+  anthropicBaseUrl: z.union([z.string().url().nullable(), z.literal('')]),
+  googleApiKey: z.string().nullable(),
+  googleBaseUrl: z.union([z.string().url().nullable(), z.literal('')]),
+  xAiApiKey: z.string().nullable(),
+  xAiBaseUrl: z.union([z.string().url().nullable(), z.literal('')]),
+  deepSeekApiKey: z.string().nullable(),
+  deepSeekBaseUrl: z.union([z.string().url().nullable(), z.literal('')]),
+  ollamaBaseUrl: z.string().nullable(),
+  mcpServers: z.string().nullable(),
+  speechToTextModel: z.string().nullable(),
+  textToSpeechVoice: z.string().nullable(),
+  textToSpeechModel: z.string().nullable(),
+  fileUploadEndpoint: z.string().nullable(),
+  assistantAvatar: z.string().nullable(),
+  googleSearchApiKey: z.string().nullable(),
+  googleCseId: z.string().nullable(),
+  maxSteps: z.coerce.number().nonnegative().lte(20).nullable()
 })
 
 export function SettingsForm() {
   const { exportData, loading: dbIoLoading } = useDbIo()
   const { actualTheme } = useTheme()
-  const { data: settings } = useSetting()
+  const { data: settings, mutate, updateSetting } = useSetting()
   const activeTitle = useAtomValue(activeAtom)
   const { error } = useSWR(
     activeTitle === 'Ollama' && settings?.ollamaBaseUrl
       ? `/api/ollama/ping?url=${settings?.ollamaBaseUrl}`
       : null
   )
-  const { data, mutate, updateSetting } = useSetting()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    values: data
+    values: settings,
+    mode: 'onBlur'
   })
 
   const provider = form.watch('provider')
@@ -96,12 +96,10 @@ export function SettingsForm() {
   }, [provider])
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
-  }
+    if (!settings) return
 
-  const handleBlur = () => {
     if (form.formState.isDirty) {
-      updateSetting(form.getValues() as Setting)
+      updateSetting({ id: settings.id, ...values })
       mutate()
       toast.success('Auto saved.')
     }
@@ -110,9 +108,8 @@ export function SettingsForm() {
   return (
     <Form {...form}>
       <form
-        onBlur={handleBlur}
-        onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-1 flex-col gap-4"
+        onBlur={form.handleSubmit(onSubmit)}
       >
         {activeTitle === 'File Upload Endpoint' && (
           <>
@@ -192,7 +189,8 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>
+                  </FormControl>{' '}
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -225,7 +223,8 @@ export function SettingsForm() {
                       <SelectTrigger>
                         <SelectValue placeholder={Providers.OpenAiGpt} />
                       </SelectTrigger>
-                    </FormControl>
+                    </FormControl>{' '}
+                    <FormMessage />
                     <SelectContent>
                       {Object.values(Providers).map((val) => (
                         <SelectItem key={val} value={val}>
@@ -254,7 +253,8 @@ export function SettingsForm() {
                           placeholder={`Select a chat model belongs to ${provider}`}
                         />
                       </SelectTrigger>
-                    </FormControl>
+                    </FormControl>{' '}
+                    <FormMessage />
                     <SelectContent>
                       {modelsOfProvider?.chatModel?.map((val) => (
                         <SelectItem key={val} value={val}>
@@ -283,7 +283,8 @@ export function SettingsForm() {
                           placeholder={`Select a reasoning model belongs to ${provider}`}
                         />
                       </SelectTrigger>
-                    </FormControl>
+                    </FormControl>{' '}
+                    <FormMessage />
                     <SelectContent>
                       {modelsOfProvider?.reasoningModel?.map((val) => (
                         <SelectItem key={val} value={val}>
@@ -308,7 +309,7 @@ export function SettingsForm() {
                       id="max-steps-input"
                       autoFocus
                       {...field}
-                      value={field.value ?? ''}
+                      value={field.value ?? 1}
                     />
                   </FormControl>
                   <FormDescription>
@@ -317,6 +318,7 @@ export function SettingsForm() {
                     infinite loops in the case of misconfigured tools. By
                     default, it is set to 1.
                   </FormDescription>
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -340,7 +342,8 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>
+                  </FormControl>{' '}
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -357,7 +360,8 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>
+                  </FormControl>{' '}
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -381,7 +385,8 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>
+                  </FormControl>{' '}
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -399,7 +404,8 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>
+                  </FormControl>{' '}
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -417,7 +423,8 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>
+                  </FormControl>{' '}
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -441,7 +448,8 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>
+                  </FormControl>{' '}
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -458,7 +466,8 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>
+                  </FormControl>{' '}
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -482,7 +491,8 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>
+                  </FormControl>{' '}
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -499,7 +509,8 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>
+                  </FormControl>{' '}
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -523,7 +534,8 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>
+                  </FormControl>{' '}
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -540,7 +552,8 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>
+                  </FormControl>{' '}
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -564,7 +577,8 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>
+                  </FormControl>{' '}
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -581,7 +595,8 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>
+                  </FormControl>{' '}
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -605,7 +620,8 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>
+                  </FormControl>{' '}
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -672,7 +688,8 @@ export function SettingsForm() {
                       <SelectTrigger>
                         <SelectValue placeholder="whisper-1" />
                       </SelectTrigger>
-                    </FormControl>
+                    </FormControl>{' '}
+                    <FormMessage />
                     <SelectContent>
                       <SelectItem value="whisper-1">whisper-1</SelectItem>
                       <SelectItem value="gpt-4o-transcribe">
@@ -702,7 +719,8 @@ export function SettingsForm() {
                       <SelectTrigger>
                         <SelectValue placeholder="tts-1" />
                       </SelectTrigger>
-                    </FormControl>
+                    </FormControl>{' '}
+                    <FormMessage />
                     <SelectContent>
                       <SelectItem value="tts-1">tts-1</SelectItem>
                       <SelectItem value="tts-1-hd">tts-1-hd</SelectItem>
@@ -729,7 +747,8 @@ export function SettingsForm() {
                       <SelectTrigger>
                         <SelectValue placeholder="Alloy" />
                       </SelectTrigger>
-                    </FormControl>
+                    </FormControl>{' '}
+                    <FormMessage />
                     <SelectContent>
                       <SelectItem value="alloy">Alloy</SelectItem>
                       <SelectItem value="ash">Ash</SelectItem>
@@ -794,7 +813,8 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>
+                  </FormControl>{' '}
+                  <FormMessage />
                 </FormItem>
               )}
             />
@@ -813,7 +833,8 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>
+                  </FormControl>{' '}
+                  <FormMessage />
                 </FormItem>
               )}
             />
