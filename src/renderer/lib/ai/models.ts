@@ -3,19 +3,23 @@ import { Providers } from '@shared/types/ai'
 export const models = {
   [Providers.OpenAiGpt]: {
     chatModel: [
-      'gpt-4.5-preview',
+      'gpt-4.1',
+      'gpt-4.1-mini',
+      'gpt-4.1-nano',
       'gpt-4o',
-      'chatgpt-4o-latest',
-      'gpt-4o-mini'
+      'gpt-4o-mini',
+      'chatgpt-4o-latest'
     ],
     reasoningModel: ['o3-mini', 'o1-mini', 'o3', 'o1']
   },
   [Providers.AzureOpenAi]: {
     chatModel: [
-      'gpt-4.5-preview',
+      'gpt-4.1',
+      'gpt-4.1-mini',
+      'gpt-4.1-nano',
       'gpt-4o',
-      'chatgpt-4o-latest',
-      'gpt-4o-mini'
+      'gpt-4o-mini',
+      'chatgpt-4o-latest'
     ],
     reasoningModel: ['o3-mini', 'o1-mini', 'o3', 'o1']
   },

@@ -6,9 +6,9 @@ export const weather = tool({
   parameters: z.object({ location: z.string() }),
   execute: async ({ location }: { location: string }) => {
     try {
-      const response = await fetch(`https://wttr.in/${location}`)
-      const htmlString = await response.text()
-      return htmlString.match(/<pre>(.*?)<\/pre>/s)?.[0]
+      const response = await fetch(`https://wttr.in/${location}?format=j1`)
+      const data = await response.json()
+      return JSON.stringify(data)
     } catch {
       return ''
     }

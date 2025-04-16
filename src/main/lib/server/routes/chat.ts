@@ -8,6 +8,7 @@ import {
 import { Hono } from 'hono'
 import { stream } from 'hono/streaming'
 import { v4 as uuidV4 } from 'uuid'
+import { calculator, date, weather, webSearch } from '../../ai/calling-tools'
 import {
   generateTitleFromUserMessage,
   getModelFromProvider,
@@ -36,7 +37,7 @@ chat.post('/', async (c) => {
     messages: UIMessage[]
     advancedTools: AdvancedTools[]
   }>()
-  const tools = c.get('tools')
+  const mcpTools = c.get('tools')
 
   const setting = await getSetting()
   if (!('id' in setting)) {
@@ -80,6 +81,11 @@ chat.post('/', async (c) => {
       }
     ]
   })
+
+  const tools = { ...mcpTools, calculator, date, weather }
+  if (advancedTools.includes(AdvancedTools.WebSearch)) {
+    tools['webSearch'] = webSearch(setting)
+  }
 
   // immediately start streaming the response
   const dataStream = createDataStream({

@@ -38,6 +38,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <Button
             size="icon"
             variant="ghost"
+            className="cursor-pointer"
             onClick={() => {
               window.location.href = '/'
             }}
