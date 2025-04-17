@@ -64,8 +64,8 @@ export const setting = pgTable('Setting', {
   azureOpenAiApiVersion: varchar('azureOpenAiApiVersion').default(''),
   anthropicApiKey: varchar('anthropicApiKey').default(''),
   anthropicBaseUrl: varchar('anthropicBaseUrl').default(''),
-  googleApiKey: varchar('googleApiKey').default(''),
-  googleBaseUrl: varchar('googleBaseUrl').default(''),
+  googleGeminiApiKey: varchar('googleGeminiApiKey').default(''),
+  googleGeminiBaseUrl: varchar('googleGeminiBaseUrl').default(''),
   xAiApiKey: varchar('xAiApiKey').default(''),
   xAiBaseUrl: varchar('xAiBaseUrl').default(''),
   deepSeekApiKey: varchar('deepSeekApiKey').default(''),
@@ -77,7 +77,7 @@ export const setting = pgTable('Setting', {
   textToSpeechVoice: varchar('textToSpeechVoice').default(''),
   fileUploadEndpoint: varchar('fileUploadEndpoint').default(''),
   assistantAvatar: varchar('assistantAvatar').default(''),
-  googleSearchApiKey: varchar('googleSearchApiKey').default(''),
+  googleApiKey: varchar('googleApiKey').default(''),
   googleCseId: varchar('googleCseId').default(''),
   maxSteps: integer('maxSteps').default(1)
 })

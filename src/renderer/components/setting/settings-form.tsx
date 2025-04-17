@@ -50,11 +50,11 @@ const formSchema = z.object({
   openaiBaseUrl: z.union([z.string().url().nullable(), z.literal('')]),
   azureOpenaiApiKey: z.string().nullable(),
   azureOpenAiEndpoint: z.union([z.string().url().nullable(), z.literal('')]),
-  azureOpenAiApiVersion: z.union([z.string().url().nullable(), z.literal('')]),
+  azureOpenAiApiVersion: z.string().nullable(),
   anthropicApiKey: z.string().nullable(),
   anthropicBaseUrl: z.union([z.string().url().nullable(), z.literal('')]),
-  googleApiKey: z.string().nullable(),
-  googleBaseUrl: z.union([z.string().url().nullable(), z.literal('')]),
+  googleGeminiApiKey: z.string().nullable(),
+  googleGeminiBaseUrl: z.union([z.string().url().nullable(), z.literal('')]),
   xAiApiKey: z.string().nullable(),
   xAiBaseUrl: z.union([z.string().url().nullable(), z.literal('')]),
   deepSeekApiKey: z.string().nullable(),
@@ -66,7 +66,7 @@ const formSchema = z.object({
   textToSpeechModel: z.string().nullable(),
   fileUploadEndpoint: z.string().nullable(),
   assistantAvatar: z.string().nullable(),
-  googleSearchApiKey: z.string().nullable(),
+  googleApiKey: z.string().nullable(),
   googleCseId: z.string().nullable(),
   maxSteps: z.coerce.number().nonnegative().lte(20).nullable()
 })
@@ -478,7 +478,7 @@ export function SettingsForm() {
           <>
             <FormField
               control={form.control}
-              name="googleApiKey"
+              name="googleGeminiApiKey"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>API Key</FormLabel>
@@ -498,7 +498,7 @@ export function SettingsForm() {
             />
             <FormField
               control={form.control}
-              name="googleBaseUrl"
+              name="googleGeminiBaseUrl"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Base URL</FormLabel>
@@ -800,7 +800,7 @@ export function SettingsForm() {
             </Alert>
             <FormField
               control={form.control}
-              name="googleSearchApiKey"
+              name="googleApiKey"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Google API Key</FormLabel>

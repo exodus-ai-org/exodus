@@ -24,9 +24,9 @@ export const webSearch = (setting: Setting) =>
         )
     }),
     execute: async ({ query, limit, language }) => {
-      if (!setting.googleSearchApiKey) {
+      if (!setting.googleApiKey) {
         throw new Error(
-          'To use Web Search, make sure to fill in the `googleSearchApiKey` in the settings..'
+          'To use Web Search, make sure to fill in the `googleApiKey` in the settings..'
         )
       }
 
@@ -38,7 +38,7 @@ export const webSearch = (setting: Setting) =>
 
       try {
         const result = await customsearch('v1').cse.list({
-          auth: setting.googleSearchApiKey,
+          auth: setting.googleApiKey,
           cx: setting.googleCseId,
           q: query,
           num: limit ?? 10,

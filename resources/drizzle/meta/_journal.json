@@ -43,6 +43,13 @@
       "when": 1744711024608,
       "tag": "0005_complete_quicksilver",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1744866551659,
+      "tag": "0006_chubby_crystal",
+      "breakpoints": true
     }
   ]
 }

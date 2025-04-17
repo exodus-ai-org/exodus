@@ -3,8 +3,8 @@ import { Setting } from '@shared/types/db'
 
 export function getGoogleGemini(setting: Setting) {
   const google = createGoogleGenerativeAI({
-    apiKey: setting.googleApiKey ?? '',
-    baseURL: setting.googleBaseUrl ?? undefined
+    apiKey: setting.googleGeminiApiKey ?? '',
+    baseURL: setting.googleGeminiBaseUrl ?? undefined
   })
 
   return {
