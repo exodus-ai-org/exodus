@@ -16,6 +16,7 @@ import {
 } from 'react'
 import { toast } from 'sonner'
 import { AudioRecorder } from './audio-recoder'
+import { AvailableMcpTools } from './available-mcp-tools'
 import { FilePreview } from './file-preview'
 import { MultiModelInputTools } from './multimodel-input-tools'
 import { MultiModelInputUploader } from './multimodel-input-uploader'
@@ -137,10 +138,11 @@ function InputBox({
         <div className="flex gap-2">
           <MultiModelInputUploader />
           <MultiModelInputTools />
+          <AvailableMcpTools />
         </div>
 
         {status === 'streaming' ? (
-          <Button variant="ghost" onClick={stop}>
+          <Button variant="secondary" onClick={stop}>
             <CircleStop />
           </Button>
         ) : (
@@ -152,6 +154,7 @@ function InputBox({
                 type="submit"
                 variant="secondary"
                 className="cursor-pointer"
+                onClick={handleSubmit}
               >
                 <Send />
               </Button>
