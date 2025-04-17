@@ -8,7 +8,14 @@ import {
 import { Hono } from 'hono'
 import { stream } from 'hono/streaming'
 import { v4 as uuidV4 } from 'uuid'
-import { calculator, date, weather, webSearch } from '../../ai/calling-tools'
+import {
+  calculator,
+  date,
+  googleMapPlaces,
+  googleMapRouting,
+  weather,
+  webSearch
+} from '../../ai/calling-tools'
 import {
   generateTitleFromUserMessage,
   getModelFromProvider,
@@ -82,7 +89,14 @@ chat.post('/', async (c) => {
     ]
   })
 
-  const tools = { ...mcpTools, calculator, date, weather }
+  const tools = {
+    ...mcpTools,
+    calculator,
+    date,
+    weather,
+    googleMapPlaces: googleMapPlaces(setting),
+    googleMapRouting: googleMapRouting(setting)
+  }
   if (advancedTools.includes(AdvancedTools.WebSearch)) {
     tools['webSearch'] = webSearch(setting)
   }

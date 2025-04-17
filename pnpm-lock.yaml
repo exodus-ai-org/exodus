@@ -49,6 +49,9 @@ importers:
       '@googleapis/customsearch':
         specifier: ^3.2.0
         version: 3.2.0(encoding@0.1.13)
+      '@googlemaps/js-api-loader':
+        specifier: ^1.16.8
+        version: 1.16.8
       '@googlemaps/places':
         specifier: ^2.0.1
         version: 2.0.1
@@ -1626,6 +1629,12 @@ packages:
         integrity: sha512-NTS4S3YepwYTqvk3aYKzm6g7oXjE7rQjswoXtw4leX7ykpyu2GWwflW6haaqctZHj6IJbJ1k0xgbgLTn1BByYQ==
       }
     engines: { node: '>=12.0.0' }
+
+  '@googlemaps/js-api-loader@1.16.8':
+    resolution:
+      {
+        integrity: sha512-CROqqwfKotdO6EBjZO/gQGVTbeDps5V7Mt9+8+5Q+jTg5CRMi3Ii/L9PmV3USROrt2uWxtGzJHORmByxyo9pSQ==
+      }
 
   '@googlemaps/places@2.0.1':
     resolution:
@@ -12846,6 +12855,8 @@ snapshots:
     transitivePeerDependencies:
       - encoding
       - supports-color
+
+  '@googlemaps/js-api-loader@1.16.8': {}
 
   '@googlemaps/places@2.0.1':
     dependencies:

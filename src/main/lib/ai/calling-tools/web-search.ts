@@ -26,13 +26,13 @@ export const webSearch = (setting: Setting) =>
     execute: async ({ query, limit, language }) => {
       if (!setting.googleApiKey) {
         throw new Error(
-          'To use Web Search, make sure to fill in the `googleApiKey` in the settings..'
+          'To use Web Search, make sure to fill in the `googleApiKey` in the settings.'
         )
       }
 
       if (!setting.googleCseId) {
         throw new Error(
-          'To use Web Search, make sure to fill in the `googleCseId` in the settings..'
+          'To use Web Search, make sure to fill in the `googleCseId` in the settings.'
         )
       }
 

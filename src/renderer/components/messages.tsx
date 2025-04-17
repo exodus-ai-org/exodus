@@ -5,6 +5,7 @@ import { UseChatHelpers } from '@ai-sdk/react'
 import { AnimatePresence } from 'framer-motion'
 import { throttle } from 'lodash-es'
 import { Fragment, memo, useEffect, useRef } from 'react'
+import { CallingToolsRenderer } from './calling-tools-renderer'
 import Markdown from './markdown'
 import { MessageAction } from './massage-action'
 import { MessageReasoning } from './message-reasoning'
@@ -73,7 +74,7 @@ function Messages({
             >
               {message.role === 'assistant' && (
                 <div
-                  className={cn('flex gap-4', {
+                  className={cn('flex w-full gap-4', {
                     ['flex-col']: isArtifactVisible
                   })}
                 >
@@ -85,7 +86,7 @@ function Messages({
                       />
                     </Avatar>
                   )}
-                  <div className="group relative">
+                  <div className="w-full">
                     {message.parts.map((item, idx, arr) => {
                       const key = `message-${message.id}-part-${idx}`
 
@@ -120,6 +121,15 @@ function Messages({
                               Calling tools:{' '}
                               <strong>{item.toolInvocation.toolName}</strong>
                             </p>
+                          )
+                        }
+
+                        if (item.toolInvocation.state === 'result') {
+                          return (
+                            <CallingToolsRenderer
+                              key={key}
+                              toolInvocation={item.toolInvocation}
+                            />
                           )
                         }
                       }

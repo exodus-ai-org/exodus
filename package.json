@@ -38,6 +38,7 @@
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^4.0.0",
     "@googleapis/customsearch": "^3.2.0",
+    "@googlemaps/js-api-loader": "^1.16.8",
     "@googlemaps/places": "^2.0.1",
     "@googlemaps/routing": "^2.0.1",
     "@hono/node-server": "^1.14.0",
