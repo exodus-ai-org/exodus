@@ -87,7 +87,7 @@ export const schema = {
     },
     {
       icon: Database,
-      title: 'Import / Export Data'
+      title: 'Data Controls'
     },
     {
       icon: CloudDownload,

@@ -1,4 +1,4 @@
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   Form,
   FormControl,
@@ -17,7 +17,7 @@ import { activeAtom } from '@/stores/setting'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Providers } from '@shared/types/ai'
 import { useAtomValue } from 'jotai'
-import { AlertCircle, Loader2 } from 'lucide-react'
+import { AlertCircle, Construction, Loader2 } from 'lucide-react'
 import { useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import SyntaxHighlighter from 'react-syntax-highlighter'
@@ -845,17 +845,18 @@ export function SettingsForm() {
         {activeTitle === 'Artifacts' && <UnderConstruction />}
         {activeTitle === 'Browser Use' && <UnderConstruction />}
         {activeTitle === 'Computer Use' && <UnderConstruction />}
-        {activeTitle === 'Import / Export Data' && (
+        {activeTitle === 'Data Controls' && (
           <>
             <Alert className="mb-4">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription className="inline">
-                Database data can be exported to your local file system. The
-                data import functionality is currently under development.
+                Database data can be exported to your local file system.
               </AlertDescription>
             </Alert>
 
-            <Button disabled>Import</Button>
+            <Button disabled>
+              <Construction /> Import
+            </Button>
 
             <Button
               disabled={dbIoLoading}
@@ -865,6 +866,21 @@ export function SettingsForm() {
               {dbIoLoading && <Loader2 className="animate-spin" />}
               Export
             </Button>
+
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Danger Zone</AlertTitle>
+              <AlertDescription>
+                Erase all chats data, there is no going back. Please be certain.
+                <Button
+                  disabled
+                  variant="destructive"
+                  className="mt-4 w-full cursor-pointer"
+                >
+                  <Construction /> Delete
+                </Button>
+              </AlertDescription>
+            </Alert>
           </>
         )}
         {activeTitle === 'Software Update' && <UnderConstruction />}
