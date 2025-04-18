@@ -15,11 +15,13 @@ import {
   SidebarMenuItem,
   useSidebar
 } from '@/components/ui/sidebar'
+import { BASE_URL } from '@shared/constants'
 import type { Chat } from '@shared/types/db'
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns'
-import { ArrowUpRight, MoreHorizontal, StarOff, Trash2 } from 'lucide-react'
-import { Link, useParams } from 'react-router'
-import useSWR from 'swr'
+import { Edit2, MoreHorizontal, Pin, Trash2 } from 'lucide-react'
+import { Link, useNavigate, useParams } from 'react-router'
+import { toast } from 'sonner'
+import useSWR, { mutate } from 'swr'
 import { Skeleton } from '../components/ui/skeleton'
 
 interface GroupedChats {
@@ -45,7 +47,24 @@ export function NavHistorySkeleton() {
 
 export function NavItems({ item }: { item: Chat }) {
   const { id } = useParams<{ id: string }>()
+  const navigate = useNavigate()
   const { isMobile } = useSidebar()
+
+  const deleteChat = async (chatId: string) => {
+    await fetch(`${BASE_URL}/api/chat/${chatId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    mutate('/api/history')
+    if (chatId === id) {
+      navigate('/')
+    }
+
+    toast.success(`Succeed to delete ${chatId}.`)
+  }
 
   return (
     <SidebarMenuItem>
@@ -67,18 +86,20 @@ export function NavItems({ item }: { item: Chat }) {
           align={isMobile ? 'end' : 'start'}
         >
           <DropdownMenuItem>
-            <StarOff className="text-muted-foreground" />
-            <span>Remove from Favorites</span>
+            <Pin className="text-muted-foreground" />
+            <span>Pin (Unavailable Now)</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem>
-            <ArrowUpRight className="text-muted-foreground" />
-            <span>Open in New Tab</span>
+            <Edit2 className="text-muted-foreground" />
+            <span>Rename (Unavailable Now)</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <Trash2 className="text-muted-foreground" />
-            <span>Delete</span>
+          <DropdownMenuItem onClick={() => deleteChat(item.id)}>
+            <Trash2 className="text-destructive" />
+            <span className="text-destructive hover:text-destructive">
+              Delete
+            </span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

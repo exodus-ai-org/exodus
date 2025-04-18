@@ -11,8 +11,8 @@ import { v4 as uuidV4 } from 'uuid'
 import {
   calculator,
   date,
-  googleMapPlaces,
-  googleMapRouting,
+  googleMapsPlaces,
+  googleMapsRouting,
   weather,
   webSearch
 } from '../../ai/calling-tools'
@@ -94,8 +94,8 @@ chat.post('/', async (c) => {
     calculator,
     date,
     weather,
-    googleMapPlaces: googleMapPlaces(setting),
-    googleMapRouting: googleMapRouting(setting)
+    googleMapsPlaces: googleMapsPlaces(setting),
+    googleMapsRouting: googleMapsRouting(setting)
   }
   if (advancedTools.includes(AdvancedTools.WebSearch)) {
     tools['webSearch'] = webSearch(setting)

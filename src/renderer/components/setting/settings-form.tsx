@@ -1,4 +1,4 @@
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   Form,
   FormControl,
@@ -40,6 +40,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '../ui/select'
+import { Separator } from '../ui/separator'
 import { UnderConstruction } from './under-construction'
 
 const formSchema = z.object({
@@ -847,40 +848,38 @@ export function SettingsForm() {
         {activeTitle === 'Computer Use' && <UnderConstruction />}
         {activeTitle === 'Data Controls' && (
           <>
-            <Alert className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="inline">
-                Database data can be exported to your local file system.
-              </AlertDescription>
-            </Alert>
+            <div className="flex items-center justify-between">
+              <p className="opacity-80">Import Data</p>
+              <Button disabled variant="outline">
+                <Construction /> Import
+              </Button>
+            </div>
 
-            <Button disabled>
-              <Construction /> Import
-            </Button>
+            <Separator />
 
-            <Button
-              disabled={dbIoLoading}
-              onClick={exportData}
-              className="cursor-pointer"
-            >
-              {dbIoLoading && <Loader2 className="animate-spin" />}
-              Export
-            </Button>
+            <div className="flex items-center justify-between">
+              <p className="opacity-80">Export Data</p>
 
-            <Alert variant="destructive">
-              <AlertCircle className="h-4 w-4" />
-              <AlertTitle>Danger Zone</AlertTitle>
-              <AlertDescription>
-                Erase all chats data, there is no going back. Please be certain.
-                <Button
-                  disabled
-                  variant="destructive"
-                  className="mt-4 w-full cursor-pointer"
-                >
-                  <Construction /> Delete
-                </Button>
-              </AlertDescription>
-            </Alert>
+              <Button
+                variant="outline"
+                disabled={dbIoLoading}
+                onClick={exportData}
+                className="cursor-pointer"
+              >
+                {dbIoLoading && <Loader2 className="animate-spin" />}
+                Export
+              </Button>
+            </div>
+
+            <Separator />
+
+            <div className="flex items-center justify-between">
+              <p className="opacity-80">Delete Data</p>
+
+              <Button disabled variant="destructive" className="cursor-pointer">
+                <Construction /> Delete
+              </Button>
+            </div>
           </>
         )}
         {activeTitle === 'Software Update' && <UnderConstruction />}

@@ -5,11 +5,11 @@ import { UseChatHelpers } from '@ai-sdk/react'
 import { AnimatePresence } from 'framer-motion'
 import { throttle } from 'lodash-es'
 import { Fragment, memo, useEffect, useRef } from 'react'
-import { CallingToolsRenderer } from './calling-tools-renderer'
 import Markdown from './markdown'
 import { MessageAction } from './massage-action'
 import { MessageReasoning } from './message-reasoning'
 import { MessageSpinner } from './message-spinner'
+import { MessageCallingTools } from './messages-calling-tools'
 import { Avatar, AvatarImage } from './ui/avatar'
 
 function Messages({
@@ -126,7 +126,7 @@ function Messages({
 
                         if (item.toolInvocation.state === 'result') {
                           return (
-                            <CallingToolsRenderer
+                            <MessageCallingTools
                               key={key}
                               toolInvocation={item.toolInvocation}
                             />

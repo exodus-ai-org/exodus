@@ -1,15 +1,15 @@
 import { calculator } from './calculator'
 import { date } from './date'
-import { googleMapPlaces } from './google-places'
-import { googleMapRouting } from './google-routing'
+import { googleMapsPlaces } from './google-maps-places'
+import { googleMapsRouting } from './google-maps-routing'
 import { weather } from './weather'
 import { webSearch } from './web-search'
 
 export {
   calculator,
   date,
-  googleMapPlaces,
-  googleMapRouting,
+  googleMapsPlaces,
+  googleMapsRouting,
   weather,
   webSearch
 }

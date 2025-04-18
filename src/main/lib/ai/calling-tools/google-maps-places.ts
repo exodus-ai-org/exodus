@@ -3,7 +3,7 @@ import { Setting } from '@shared/types/db'
 import { tool } from 'ai'
 import { z } from 'zod'
 
-export const googleMapPlaces = (setting: Setting) =>
+export const googleMapsPlaces = (setting: Setting) =>
   tool({
     description:
       'Display detailed location data based on the location provided by the user.',
