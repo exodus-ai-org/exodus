@@ -1,5 +1,5 @@
 import { SearchForm } from '@/layouts/search-form'
-import { activeAtom } from '@/stores/setting'
+import { settingsLabelAtom } from '@/stores/setting'
 import { useAtom } from 'jotai'
 import { GalleryVerticalEnd } from 'lucide-react'
 import * as React from 'react'
@@ -21,7 +21,7 @@ import { schema } from './settings-schema'
 export function SettingsSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
-  const [active, setActive] = useAtom(activeAtom)
+  const [active, setActive] = useAtom(settingsLabelAtom)
 
   return (
     <Sidebar {...props} className="max-h-[498px] select-none">

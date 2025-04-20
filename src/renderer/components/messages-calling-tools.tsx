@@ -1,7 +1,8 @@
 import { ToolInvocation } from 'ai'
 import { memo } from 'react'
-import { GoogleMaps } from './calling-tools/google-maps'
-import { Weather } from './calling-tools/weather'
+import { GoogleMapsPlacesCard } from './calling-tools/google-maps-places/places-card'
+import { GoogleMapsCard } from './calling-tools/google-maps-routing/routing-card'
+import { WeatherCard } from './calling-tools/weather/weather-card'
 
 function CallingTools({ toolInvocation }: { toolInvocation: ToolInvocation }) {
   if (toolInvocation.state !== 'result') return null
@@ -9,10 +10,13 @@ function CallingTools({ toolInvocation }: { toolInvocation: ToolInvocation }) {
   return (
     <section className="mb-4">
       {toolInvocation.toolName === 'googleMapsRouting' && (
-        <GoogleMaps toolResult={toolInvocation.result} />
+        <GoogleMapsCard toolResult={toolInvocation.result} />
+      )}
+      {toolInvocation.toolName === 'googleMapsPlaces' && (
+        <GoogleMapsPlacesCard toolResult={toolInvocation.result} />
       )}
       {toolInvocation.toolName === 'weather' && (
-        <Weather toolResult={toolInvocation.result} />
+        <WeatherCard toolResult={toolInvocation.result} />
       )}
     </section>
   )

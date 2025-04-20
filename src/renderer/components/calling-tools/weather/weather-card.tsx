@@ -1,10 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import {
-  Weather as IWeather,
-  WeatherAPIResponse,
-  WWO_CODE
-} from '@shared/types/weather'
+import { WeatherAPIResponse, WWO_CODE } from '@shared/types/weather'
 import { motion } from 'framer-motion'
 import {
   Cloud,
@@ -15,13 +11,17 @@ import {
   CloudSnow,
   CloudSun,
   Droplets,
+  Eye,
+  Gauge,
   Sun,
   Thermometer,
+  Umbrella,
   Wind
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { WeatherForecast } from './weather-forecast'
 
-export function Weather({ toolResult }: { toolResult: string }) {
+export function WeatherCard({ toolResult }: { toolResult: string }) {
   const [dataSource, setDataSource] = useState<WeatherAPIResponse | null>(null)
 
   const rainVariants = {
@@ -131,7 +131,9 @@ export function Weather({ toolResult }: { toolResult: string }) {
                 <h2 className="text-2xl font-bold">
                   {location.areaName[0].value}, {location.country[0].value}
                 </h2>
-                <p className="text-sm opacity-90">{current.localObsDateTime}</p>
+                <p className="text-sm opacity-90">
+                  {current.localObsDateTime} (Local Time)
+                </p>
               </div>
               <motion.div
                 initial={{ scale: 0.8, opacity: 0 }}
@@ -148,23 +150,53 @@ export function Weather({ toolResult }: { toolResult: string }) {
 
             <p className="mt-2 text-lg">{current.weatherDesc[0].value}</p>
 
-            <div className="mt-4 grid grid-cols-3 gap-2">
+            <div className="mt-4 grid grid-cols-4 gap-2">
               <div className="flex flex-col items-center rounded-lg bg-white/10 p-2">
                 <Thermometer className="mb-1 h-5 w-5" />
                 <span className="text-sm">Feels like</span>
                 <span className="font-medium">{current.FeelsLikeC}°C</span>
               </div>
               <div className="flex flex-col items-center rounded-lg bg-white/10 p-2">
-                <Wind className="mb-1 h-5 w-5" />
-                <span className="text-sm">Wind</span>
-                <span className="font-medium">
-                  {current.windspeedKmph} km/h
-                </span>
-              </div>
-              <div className="flex flex-col items-center rounded-lg bg-white/10 p-2">
                 <Droplets className="mb-1 h-5 w-5" />
                 <span className="text-sm">Humidity</span>
                 <span className="font-medium">{current.humidity}%</span>
+              </div>
+              <div className="col-span-2 flex flex-col items-center rounded-lg bg-white/10 p-2">
+                <Wind className="mb-1 h-5 w-5" />
+                <div className="flex w-full items-center justify-between">
+                  <span className="text-sm">Wind</span>
+                  <span className="font-medium">
+                    {current.windspeedKmph} km/h
+                  </span>
+                </div>
+                <div className="flex w-full items-center justify-between">
+                  <span className="text-sm">Direction</span>
+                  <span className="font-medium">
+                    {current.winddirDegree}° {current.winddir16Point}
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div className="mt-2 grid grid-cols-4 gap-2">
+              <div className="flex flex-col items-center rounded-lg bg-white/10 p-2">
+                <Umbrella className="mb-1 h-5 w-5" />
+                <span className="text-sm">Precipitation</span>
+                <span className="font-medium">{current.precipMM}mm</span>
+              </div>
+              <div className="flex flex-col items-center rounded-lg bg-white/10 p-2">
+                <Sun className="mb-1 h-5 w-5" />
+                <span className="text-sm">UV Index</span>
+                <span className="font-medium">{current.uvIndex}</span>
+              </div>
+              <div className="flex flex-col items-center rounded-lg bg-white/10 p-2">
+                <Eye className="mb-1 h-5 w-5" />
+                <span className="text-sm">Visibility</span>
+                <span className="font-medium">{current.visibility}km</span>
+              </div>
+              <div className="flex flex-col items-center rounded-lg bg-white/10 p-2">
+                <Gauge className="mb-1 h-5 w-5" />
+                <span className="text-sm">Pressure</span>
+                <span className="font-medium">{current.pressure}hPa</span>
               </div>
             </div>
           </div>
@@ -188,101 +220,5 @@ export function Weather({ toolResult }: { toolResult: string }) {
         </Tabs>
       </CardContent>
     </Card>
-  )
-}
-
-function WeatherForecast({ forecast }: { forecast: IWeather }) {
-  const getWeatherIcon = (code: string) => {
-    const weatherType = WWO_CODE[code as keyof typeof WWO_CODE] || 'Cloudy'
-
-    switch (weatherType) {
-      case 'Sunny':
-        return <Sun className="h-5 w-5 text-yellow-400" />
-      case 'PartlyCloudy':
-        return <CloudSun className="h-5 w-5 text-blue-400" />
-      case 'Cloudy':
-        return <Cloud className="h-5 w-5 text-slate-400" />
-      case 'VeryCloudy':
-        return <Cloud className="h-5 w-5 text-slate-600" />
-      case 'Fog':
-        return <CloudFog className="h-5 w-5 text-slate-300" />
-      case 'LightShowers':
-        return <CloudDrizzle className="h-5 w-5 text-blue-300" />
-      case 'LightSleetShowers':
-      case 'LightSleet':
-        return <CloudSnow className="h-5 w-5 text-blue-200" />
-      case 'LightSnow':
-      case 'LightSnowShowers':
-        return <CloudSnow className="h-5 w-5 text-slate-200" />
-      case 'HeavySnow':
-      case 'HeavySnowShowers':
-        return <CloudSnow className="h-5 w-5 text-white" />
-      case 'ThunderyShowers':
-      case 'ThunderyHeavyRain':
-      case 'ThunderySnowShowers':
-        return <CloudLightning className="h-5 w-5 text-yellow-500" />
-      case 'LightRain':
-        return <CloudRain className="h-5 w-5 text-blue-400" />
-      case 'HeavyShowers':
-      case 'HeavyRain':
-        return <CloudRain className="h-5 w-5 text-blue-600" />
-      default:
-        return <Cloud className="h-5 w-5 text-slate-400" />
-    }
-  }
-
-  // Format time from 24h to 12h
-  const formatTime = (time2400: string) => {
-    const hours24 = Number.parseInt(time2400) / 100
-    let hours12 = hours24 % 12
-    const ampm = hours24 < 12 ? 'AM' : 'PM'
-
-    if (hours12 === 0) {
-      hours12 = 12 // Midnight in 12-hour format is 12
-    }
-
-    const minutes = '00' // Since your input is always on the hour
-
-    return `${hours12}:${minutes} ${ampm}`
-  }
-
-  return (
-    <div className="p-4">
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <p className="text-muted-foreground text-sm">Min / Max</p>
-          <p className="font-medium">
-            {forecast.mintempC}° / {forecast.maxtempC}°
-          </p>
-        </div>
-        <div>
-          <p className="text-muted-foreground text-sm">Sunrise / Sunset</p>
-          <p className="font-medium">
-            {forecast.astronomy[0].sunrise} / {forecast.astronomy[0].sunset}
-          </p>
-        </div>
-      </div>
-
-      <div className="flex gap-4 overflow-x-scroll">
-        {forecast.hourly.map((hourly, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: index * 0.1 }}
-            className="flex shrink-0 flex-col items-center"
-          >
-            <span className="text-muted-foreground text-xs">
-              {formatTime(hourly.time)}
-            </span>
-            {getWeatherIcon(hourly.weatherCode)}
-            <span className="mt-1 font-medium">{hourly.tempC}°</span>
-            <span className="text-muted-foreground text-xs">
-              {hourly.chanceofrain}%
-            </span>
-          </motion.div>
-        ))}
-      </div>
-    </div>
   )
 }

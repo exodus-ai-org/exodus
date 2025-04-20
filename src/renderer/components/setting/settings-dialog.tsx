@@ -10,14 +10,14 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { SidebarProvider } from '@/components/ui/sidebar'
-import { activeAtom, settingsDialogVisibleAtom } from '@/stores/setting'
+import { isSettingsVisibleAtom, settingsLabelAtom } from '@/stores/setting'
 import { useAtom, useAtomValue } from 'jotai'
 import { SettingsForm } from './settings-form'
 import { SettingsSidebar } from './settings-sidebar'
 
 export function SettingsDialog() {
-  const activeTitle = useAtomValue(activeAtom)
-  const [open, setOpen] = useAtom(settingsDialogVisibleAtom)
+  const activeTitle = useAtomValue(settingsLabelAtom)
+  const [open, setOpen] = useAtom(isSettingsVisibleAtom)
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

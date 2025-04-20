@@ -5,7 +5,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem
 } from '@/components/ui/sidebar'
-import { settingsDialogVisibleAtom } from '@/stores/setting'
+import { isSettingsVisibleAtom } from '@/stores/setting'
 import { useSetAtom } from 'jotai'
 import { Folders, Settings } from 'lucide-react'
 import React from 'react'
@@ -14,7 +14,7 @@ import { Link } from 'react-router'
 export function NavSecondary({
   ...props
 }: React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
-  const setSettingsDialogVisible = useSetAtom(settingsDialogVisibleAtom)
+  const setSettingsDialogVisible = useSetAtom(isSettingsVisibleAtom)
 
   return (
     <SidebarGroup {...props}>

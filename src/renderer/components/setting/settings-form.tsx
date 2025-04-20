@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useDbIo } from '@/hooks/use-db-io'
 import { useSetting } from '@/hooks/use-setting'
 import { models } from '@/lib/ai/models'
-import { activeAtom } from '@/stores/setting'
+import { settingsLabelAtom } from '@/stores/setting'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Providers } from '@shared/types/ai'
 import { useAtomValue } from 'jotai'
@@ -76,7 +76,7 @@ export function SettingsForm() {
   const { exportData, loading: dbIoLoading } = useDbIo()
   const { actualTheme } = useTheme()
   const { data: settings, mutate, updateSetting } = useSetting()
-  const activeTitle = useAtomValue(activeAtom)
+  const activeTitle = useAtomValue(settingsLabelAtom)
   const { error } = useSWR(
     activeTitle === 'Ollama' && settings?.ollamaBaseUrl
       ? `/api/ollama/ping?url=${settings?.ollamaBaseUrl}`
