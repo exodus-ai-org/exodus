@@ -19,7 +19,7 @@ import { BASE_URL } from '@shared/constants'
 import type { Chat } from '@shared/types/db'
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns'
 import { Edit2, MoreHorizontal, Pin, Trash2 } from 'lucide-react'
-import { Link, useNavigate, useParams } from 'react-router'
+import { Link, useParams } from 'react-router'
 import { toast } from 'sonner'
 import useSWR, { mutate } from 'swr'
 import { Skeleton } from '../components/ui/skeleton'
@@ -47,7 +47,6 @@ export function NavHistorySkeleton() {
 
 export function NavItems({ item }: { item: Chat }) {
   const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
   const { isMobile } = useSidebar()
 
   const deleteChat = async (chatId: string) => {
@@ -60,7 +59,7 @@ export function NavItems({ item }: { item: Chat }) {
 
     mutate('/api/history')
     if (chatId === id) {
-      navigate('/')
+      window.location.href = '/'
     }
 
     toast.success(`Succeed to delete ${chatId}.`)

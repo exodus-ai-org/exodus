@@ -64,7 +64,10 @@ export function MultiModelInputTools() {
                 size="icon"
                 className={cn(
                   'text-ring h-9 w-9 cursor-pointer rounded-full border',
-                  { ['bg-secondary text-black']: advancedTools.includes(key) }
+                  {
+                    ['bg-secondary text-black dark:text-white']:
+                      advancedTools.includes(key)
+                  }
                 )}
                 onClick={() => handleAdvancedTools(key)}
               >

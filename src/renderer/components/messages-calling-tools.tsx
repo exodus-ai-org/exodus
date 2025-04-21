@@ -3,6 +3,7 @@ import { memo } from 'react'
 import { GoogleMapsPlacesCard } from './calling-tools/google-maps-places/places-card'
 import { GoogleMapsCard } from './calling-tools/google-maps-routing/routing-card'
 import { WeatherCard } from './calling-tools/weather/weather-card'
+import { WebSearchCard } from './calling-tools/web-search/web-search-card'
 
 function CallingTools({ toolInvocation }: { toolInvocation: ToolInvocation }) {
   if (toolInvocation.state !== 'result') return null
@@ -17,6 +18,9 @@ function CallingTools({ toolInvocation }: { toolInvocation: ToolInvocation }) {
       )}
       {toolInvocation.toolName === 'weather' && (
         <WeatherCard toolResult={toolInvocation.result} />
+      )}
+      {toolInvocation.toolName === 'webSearch' && (
+        <WebSearchCard toolResult={toolInvocation.result} />
       )}
     </section>
   )
