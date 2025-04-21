@@ -136,8 +136,6 @@
     scrollbar-width: none;
   }
 
-
-
   .markdown {
     h1 {
       @apply mb-4 text-3xl font-bold;
@@ -198,11 +196,11 @@
   }
 
   [data-rmiz] {
-    @apply w-full h-full;
+    @apply h-full w-full;
   }
 
   [data-rmiz-content] {
-    @apply w-full h-full;
+    @apply h-full w-full;
   }
 
   @keyframes fadeIn {
