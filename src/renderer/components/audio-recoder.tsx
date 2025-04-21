@@ -38,7 +38,11 @@ export function AudioRecorder({
         audioChunksRef.current = []
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Unknown error.')
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'An error occurred, please try again!'
+      )
     }
   }
 

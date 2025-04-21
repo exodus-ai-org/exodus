@@ -19,8 +19,10 @@ export function useDbIo() {
       const blob = await response.blob()
       console.log(blob)
       downloadFile(blob, 'export.zip')
-    } catch {
-      toast.error(`Failed to export data from database.`)
+    } catch (e) {
+      toast.error(
+        e instanceof Error ? e.message : 'Failed to export data from database.'
+      )
     } finally {
       setLoading(false)
     }

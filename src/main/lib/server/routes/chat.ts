@@ -16,6 +16,7 @@ import {
   weather,
   webSearch
 } from '../../ai/calling-tools'
+import { SYSTEM_PROMPT } from '../../ai/prompts'
 import {
   generateTitleFromUserMessage,
   getModelFromProvider,
@@ -108,8 +109,7 @@ chat.post('/', async (c) => {
         model: advancedTools.includes(AdvancedTools.Reasoning)
           ? reasoningModel
           : chatModel,
-        system:
-          'You are a friendly assistant! Keep your responses concise and helpful.',
+        system: SYSTEM_PROMPT,
         messages,
         maxSteps: setting.maxSteps ?? 1,
         tools,
@@ -144,7 +144,7 @@ chat.post('/', async (c) => {
               ]
             })
           } catch {
-            console.error('Failed to save chat')
+            throw new Error('No assistant message found!')
           }
         }
       })
@@ -165,7 +165,6 @@ chat.post('/', async (c) => {
   // Mark the response as a v1 data stream:
   c.header('X-Vercel-AI-Data-Stream', 'v1')
   c.header('Content-Type', 'text/plain; charset=utf-8')
-
   return stream(c, (stream) =>
     stream.pipe(dataStream.pipeThrough(new TextEncoderStream()))
   )

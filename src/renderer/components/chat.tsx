@@ -39,8 +39,10 @@ export function Chat({ id, initialMessages }: Props) {
     onFinish: () => {
       mutate('/api/history')
     },
-    onError: () => {
-      toast.error('An error occurred, please try again!')
+    onError: (e) => {
+      toast.error(
+        e instanceof Error ? e.message : 'An error occurred, please try again!'
+      )
     }
   })
 

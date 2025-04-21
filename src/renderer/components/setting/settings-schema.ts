@@ -63,7 +63,7 @@ export const schema = {
     },
     {
       icon: Globe,
-      title: 'Web Search'
+      title: 'Google Cloud'
     },
     {
       icon: BrainCircuit,

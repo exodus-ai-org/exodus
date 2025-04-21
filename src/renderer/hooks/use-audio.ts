@@ -38,7 +38,9 @@ export function useAudio() {
       const audioUrl = URL.createObjectURL(audioBlob)
       setData(audioUrl)
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Unknown error')
+      toast.error(
+        e instanceof Error ? e.message : 'An error occurred, please try again!'
+      )
     } finally {
       setLoading(false)
     }
@@ -60,7 +62,9 @@ export function useAudio() {
       const transcription = await response.json()
       setData(transcription.text as string)
     } catch (e) {
-      toast.error(e instanceof Error ? e.message : 'Unknown error')
+      toast.error(
+        e instanceof Error ? e.message : 'An error occurred, please try again!'
+      )
     } finally {
       setLoading(false)
     }

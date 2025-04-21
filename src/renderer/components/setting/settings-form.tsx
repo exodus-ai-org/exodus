@@ -772,31 +772,44 @@ export function SettingsForm() {
           </>
         )}
 
-        {activeTitle === 'Web Search' && (
+        {activeTitle === 'Google Cloud' && (
           <>
             <Alert className="mb-4">
               <AlertCircle className="h-4 w-4" />
+
               <AlertDescription className="inline">
-                To use Google Web Search API, you need to create the
-                GOOGLE_API_KEY in the{' '}
+                Exodus supports three built-in calling tools powered by Google
+                Cloud:{' '}
                 <a
-                  href="https://console.cloud.google.com/apis/credentials"
+                  href="https://developers.google.com/maps/documentation/routes/overview"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="font-semibold underline"
                 >
-                  Google Cloud credential console
-                </a>{' '}
-                and a GOOGLE_CSE_ID using the{' '}
-                <a
-                  href="https://programmablesearchengine.google.com/controlpanel/create"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold underline"
-                >
-                  Programmable Search Engine
+                  Google Maps Routing
                 </a>
-                .
+                ,{' '}
+                <a
+                  href="https://developers.google.com/maps/documentation/places/web-service/overview"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold underline"
+                >
+                  Google Maps Places
+                </a>{' '}
+                and{' '}
+                <a
+                  href="https://developers.google.com/custom-search/v1/introduction"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold underline"
+                >
+                  Google Custom Search
+                </a>
+                . To utilize those features, you must register a{' '}
+                <strong>Google API Key</strong>. Additionally, if you wish to
+                use Web Search, you will need to register a{' '}
+                <strong>Google CSE ID</strong>.
               </AlertDescription>
             </Alert>
             <FormField

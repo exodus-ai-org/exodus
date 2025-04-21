@@ -45,6 +45,16 @@ export async function connectHttpServer() {
   // Ping
   app.get('/', (c) => c.text('Exodus is running.'))
 
+  app.onError((err, c) => {
+    return c.json(
+      {
+        success: false,
+        message: err.message || 'Internal Server Error'
+      },
+      500
+    )
+  })
+
   return {
     close(callback?: (err?: Error) => void) {
       if (server) server.close(callback)
