@@ -190,7 +190,7 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>{' '}
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -224,7 +224,7 @@ export function SettingsForm() {
                       <SelectTrigger>
                         <SelectValue placeholder={Providers.OpenAiGpt} />
                       </SelectTrigger>
-                    </FormControl>{' '}
+                    </FormControl>
                     <FormMessage />
                     <SelectContent>
                       {Object.values(Providers).map((val) => (
@@ -254,7 +254,7 @@ export function SettingsForm() {
                           placeholder={`Select a chat model belongs to ${provider}`}
                         />
                       </SelectTrigger>
-                    </FormControl>{' '}
+                    </FormControl>
                     <FormMessage />
                     <SelectContent>
                       {modelsOfProvider?.chatModel?.map((val) => (
@@ -284,7 +284,7 @@ export function SettingsForm() {
                           placeholder={`Select a reasoning model belongs to ${provider}`}
                         />
                       </SelectTrigger>
-                    </FormControl>{' '}
+                    </FormControl>
                     <FormMessage />
                     <SelectContent>
                       {modelsOfProvider?.reasoningModel?.map((val) => (
@@ -343,7 +343,7 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>{' '}
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -361,7 +361,7 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>{' '}
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -386,7 +386,7 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>{' '}
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -405,7 +405,7 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>{' '}
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -424,7 +424,7 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>{' '}
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -449,7 +449,7 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>{' '}
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -467,7 +467,7 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>{' '}
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -492,7 +492,7 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>{' '}
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -510,7 +510,7 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>{' '}
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -535,7 +535,7 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>{' '}
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -553,7 +553,7 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>{' '}
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -578,7 +578,7 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>{' '}
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -596,7 +596,7 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>{' '}
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -621,7 +621,7 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>{' '}
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -689,7 +689,7 @@ export function SettingsForm() {
                       <SelectTrigger>
                         <SelectValue placeholder="whisper-1" />
                       </SelectTrigger>
-                    </FormControl>{' '}
+                    </FormControl>
                     <FormMessage />
                     <SelectContent>
                       <SelectItem value="whisper-1">whisper-1</SelectItem>
@@ -720,7 +720,7 @@ export function SettingsForm() {
                       <SelectTrigger>
                         <SelectValue placeholder="tts-1" />
                       </SelectTrigger>
-                    </FormControl>{' '}
+                    </FormControl>
                     <FormMessage />
                     <SelectContent>
                       <SelectItem value="tts-1">tts-1</SelectItem>
@@ -748,7 +748,7 @@ export function SettingsForm() {
                       <SelectTrigger>
                         <SelectValue placeholder="Alloy" />
                       </SelectTrigger>
-                    </FormControl>{' '}
+                    </FormControl>
                     <FormMessage />
                     <SelectContent>
                       <SelectItem value="alloy">Alloy</SelectItem>
@@ -827,7 +827,7 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>{' '}
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -847,7 +847,7 @@ export function SettingsForm() {
                       {...field}
                       value={field.value ?? ''}
                     />
-                  </FormControl>{' '}
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

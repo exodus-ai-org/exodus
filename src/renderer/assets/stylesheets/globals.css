@@ -136,6 +136,8 @@
     scrollbar-width: none;
   }
 
+
+
   .markdown {
     h1 {
       @apply mb-4 text-3xl font-bold;
@@ -193,6 +195,14 @@
     td {
       @apply p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px];
     }
+  }
+
+  [data-rmiz] {
+    @apply w-full h-full;
+  }
+
+  [data-rmiz-content] {
+    @apply w-full h-full;
   }
 
   @keyframes fadeIn {
