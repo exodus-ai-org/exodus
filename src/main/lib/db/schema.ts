@@ -68,8 +68,6 @@ export const setting = pgTable('Setting', {
   googleGeminiBaseUrl: varchar('googleGeminiBaseUrl').default(''),
   xAiApiKey: varchar('xAiApiKey').default(''),
   xAiBaseUrl: varchar('xAiBaseUrl').default(''),
-  deepSeekApiKey: varchar('deepSeekApiKey').default(''),
-  deepSeekBaseUrl: varchar('deepSeekBaseUrl').default(''),
   ollamaBaseUrl: varchar('ollamaBaseUrl').default(''),
   mcpServers: varchar('mcpServers').default(''),
   speechToTextModel: varchar('speechToTextModel').default(''),

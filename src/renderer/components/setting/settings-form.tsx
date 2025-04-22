@@ -16,7 +16,6 @@ import { MCP } from './settings-form/mcp'
 import { ProviderConfig } from './settings-form/provider-config'
 import { AnthropicClaude } from './settings-form/providers/anthropic-claude'
 import { AzureOpenAi } from './settings-form/providers/azure-openai'
-import { DeepSeek } from './settings-form/providers/deepseek'
 import { GoogleGemini } from './settings-form/providers/google-gemini'
 import { Ollama } from './settings-form/providers/ollama'
 import { OpenAiGpt } from './settings-form/providers/openai-gpt'
@@ -37,8 +36,6 @@ const formSchema = z.object({
   googleGeminiBaseUrl: z.union([z.string().url().nullable(), z.literal('')]),
   xAiApiKey: z.string().nullable(),
   xAiBaseUrl: z.union([z.string().url().nullable(), z.literal('')]),
-  deepSeekApiKey: z.string().nullable(),
-  deepSeekBaseUrl: z.union([z.string().url().nullable(), z.literal('')]),
   ollamaBaseUrl: z.string().nullable(),
   mcpServers: z.string().nullable(),
   speechToTextModel: z.string().nullable(),
@@ -92,8 +89,6 @@ export function SettingsForm() {
         {activeTitle === Providers.GoogleGemini && <GoogleGemini form={form} />}
 
         {activeTitle === Providers.XaiGrok && <GoogleGemini form={form} />}
-
-        {activeTitle === Providers.DeepSeek && <DeepSeek form={form} />}
 
         {activeTitle === Providers.Ollama && <Ollama form={form} />}
 

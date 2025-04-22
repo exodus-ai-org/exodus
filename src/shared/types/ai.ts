@@ -10,7 +10,6 @@ export enum Providers {
   AnthropicClaude = 'Anthropic Claude',
   GoogleGemini = 'Google Gemini',
   XaiGrok = 'xAI Grok',
-  DeepSeek = 'DeepSeek',
   Ollama = 'Ollama'
 }
 

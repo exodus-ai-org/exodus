@@ -38,9 +38,6 @@ export const schema = {
           title: Providers.XaiGrok
         },
         {
-          title: Providers.DeepSeek
-        },
-        {
           title: Providers.Ollama
         }
       ]

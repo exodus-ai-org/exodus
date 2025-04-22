@@ -35,10 +35,6 @@ export const models = {
     chatModel: ['grok-3-beta', 'grok-3-fast-beta'],
     reasoningModel: ['grok-3-mini-beta', 'grok-3-mini-fast-beta']
   },
-  [Providers.DeepSeek]: {
-    chatModel: ['deepseek-chat'],
-    reasoningModel: ['deepseek-reasoner']
-  },
   [Providers.AnthropicClaude]: {
     chatModel: ['claude-3-5-haiku-latest', 'claude-3-5-sonnet-latest'],
     reasoningModel: ['claude-3-7-sonnet-latest']

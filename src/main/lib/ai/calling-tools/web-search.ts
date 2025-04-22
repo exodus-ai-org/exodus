@@ -27,16 +27,21 @@ async function loadDom(link: string, html: string) {
   try {
     const $ = cheerio.load(html)
 
-    $('style').remove()
-    $('script').remove()
-    $('head').remove()
+    let favicon =
+      $('link[rel="icon"]').attr('href') ??
+      $('link[rel="shortcut icon"]').attr('href') ??
+      $('link[rel="alternate icon"]').attr('href') ??
+      $('link[rel="mask-icon"]').attr('href')
 
-    let favicon = $('link[rel="icon"], link[rel="shortcut icon"]').attr('href')
     if (!favicon) {
       const baseUrl = new URL(link).origin
       favicon = `${baseUrl}/favicon.ico`
     }
     const faviconUrl = new URL(favicon, link).href
+
+    $('style').remove()
+    $('script').remove()
+    $('head').remove()
 
     return {
       favicon: faviconUrl,
@@ -49,7 +54,16 @@ async function loadDom(link: string, html: string) {
 
 async function loadDocument(link: string) {
   try {
-    const response = await fetch(link)
+    const response = await fetch(link, {
+      headers: {
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
+        Accept:
+          'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.5',
+        Connection: 'keep-alive'
+      }
+    })
     const contentType = response.headers.get('content-type')
 
     if (contentType?.includes('application/pdf')) {
@@ -88,6 +102,7 @@ async function loadDocument(link: string) {
 
     return null
   } catch {
+    console.log(`Failed to load: ${link}\n\n`)
     return null
   }
 }
