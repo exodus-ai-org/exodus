@@ -11,7 +11,7 @@ import { AudioSpeech } from './settings-form/audio-speech'
 import { AvatarUploader } from './settings-form/avatar-uploader'
 import { DataControls } from './settings-form/data-controls'
 import { FileUploadEndpoint } from './settings-form/file-upload-endpoint'
-import { GoogleCloud } from './settings-form/google-cloud'
+import { GoogleMaps } from './settings-form/google-maps'
 import { MCP } from './settings-form/mcp'
 import { ProviderConfig } from './settings-form/provider-config'
 import { AnthropicClaude } from './settings-form/providers/anthropic-claude'
@@ -19,6 +19,7 @@ import { AzureOpenAi } from './settings-form/providers/azure-openai'
 import { GoogleGemini } from './settings-form/providers/google-gemini'
 import { Ollama } from './settings-form/providers/ollama'
 import { OpenAiGpt } from './settings-form/providers/openai-gpt'
+import { WebSearch } from './settings-form/web-search'
 import { UnderConstruction } from './under-construction'
 
 const formSchema = z.object({
@@ -44,7 +45,7 @@ const formSchema = z.object({
   fileUploadEndpoint: z.string().nullable(),
   assistantAvatar: z.string().nullable(),
   googleApiKey: z.string().nullable(),
-  googleCseId: z.string().nullable(),
+  serperApiKey: z.string().nullable(),
   maxSteps: z.coerce.number().nonnegative().lte(20).nullable()
 })
 
@@ -106,7 +107,9 @@ export function SettingsForm() {
 
         {activeTitle === 'Audio and Speech' && <AudioSpeech form={form} />}
 
-        {activeTitle === 'Google Cloud' && <GoogleCloud form={form} />}
+        {activeTitle === 'Google Maps' && <GoogleMaps form={form} />}
+
+        {activeTitle === 'Web Search' && <WebSearch form={form} />}
 
         {activeTitle === 'Deep Research' && <UnderConstruction />}
 

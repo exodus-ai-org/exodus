@@ -12,6 +12,7 @@ import {
   Hammer,
   HandCoins,
   Info,
+  Map,
   Monitor,
   Palette
 } from 'lucide-react'
@@ -60,7 +61,11 @@ export const schema = {
     },
     {
       icon: Globe,
-      title: 'Google Cloud'
+      title: 'Web Search'
+    },
+    {
+      icon: Map,
+      title: 'Google Maps'
     },
     {
       icon: BrainCircuit,

@@ -76,7 +76,7 @@ export const setting = pgTable('Setting', {
   fileUploadEndpoint: varchar('fileUploadEndpoint').default(''),
   assistantAvatar: varchar('assistantAvatar').default(''),
   googleApiKey: varchar('googleApiKey').default(''),
-  googleCseId: varchar('googleCseId').default(''),
+  serperApiKey: varchar('serperApiKey').default(''),
   maxSteps: integer('maxSteps').default(1)
 })
 

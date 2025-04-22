@@ -1,0 +1,1 @@
+ALTER TABLE "Setting" RENAME COLUMN "googleCseId" TO "serperApiKey";

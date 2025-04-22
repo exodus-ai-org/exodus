@@ -1,9 +1,9 @@
-import { customsearch } from '@googleapis/customsearch'
 import { WebPDFLoader } from '@langchain/community/document_loaders/web/pdf'
 import { Setting } from '@shared/types/db'
 import {
   DocumentType,
-  DocumentTypeWithoutTokenCount
+  DocumentTypeWithoutTokenCount,
+  WebSearchResponse
 } from '@shared/types/web-search'
 import { tool } from 'ai'
 import * as cheerio from 'cheerio'
@@ -12,6 +12,21 @@ import TurndownService from 'turndown'
 import { z } from 'zod'
 
 const enc = encodingForModel('gpt-4o')
+
+function getFaviconLink(link: string, $: cheerio.CheerioAPI) {
+  let favicon =
+    $('link[rel="icon"]').attr('href') ??
+    $('link[rel="shortcut icon"]').attr('href') ??
+    $('link[rel="alternate icon"]').attr('href') ??
+    $('link[rel="mask-icon"]').attr('href')
+
+  if (!favicon) {
+    const baseUrl = new URL(link).origin
+    favicon = `${baseUrl}/favicon.ico`
+  }
+
+  return new URL(favicon, link).href
+}
 
 async function loadPdf(blob: Blob) {
   try {
@@ -26,18 +41,7 @@ async function loadPdf(blob: Blob) {
 async function loadDom(link: string, html: string) {
   try {
     const $ = cheerio.load(html)
-
-    let favicon =
-      $('link[rel="icon"]').attr('href') ??
-      $('link[rel="shortcut icon"]').attr('href') ??
-      $('link[rel="alternate icon"]').attr('href') ??
-      $('link[rel="mask-icon"]').attr('href')
-
-    if (!favicon) {
-      const baseUrl = new URL(link).origin
-      favicon = `${baseUrl}/favicon.ico`
-    }
-    const faviconUrl = new URL(favicon, link).href
+    const faviconUrl = getFaviconLink(link, $)
 
     $('style').remove()
     $('script').remove()
@@ -102,51 +106,54 @@ async function loadDocument(link: string) {
 
     return null
   } catch {
-    console.log(`Failed to load: ${link}\n\n`)
     return null
   }
 }
 
 export const webSearch = (setting: Setting) =>
   tool({
-    description: `Search the web for up-to-date information. You should suffix a specific date to the query parameter based on user's input. Today is ${new Date().toISOString()}.`,
+    description: `Search the web for up-to-date information. Suffix a specific date to the query parameter based on user's input. Today is ${new Date().toISOString()}`,
     parameters: z.object({
       query: z.string().min(1).max(100).describe(`The search query.`)
     }),
     execute: async ({ query }) => {
-      if (!setting.googleApiKey) {
+      if (!setting.serperApiKey) {
         throw new Error(
-          'To use Web Search, make sure to fill in the `googleApiKey` in the settings.'
-        )
-      }
-
-      if (!setting.googleCseId) {
-        throw new Error(
-          'To use Web Search, make sure to fill in the `googleCseId` in the settings.'
+          'To use Web Search, make sure to fill in the `serperApiKey` in the settings.'
         )
       }
 
       try {
-        const result = await customsearch('v1').cse.list({
-          auth: setting.googleApiKey,
-          cx: setting.googleCseId,
-          q: query,
-          num: 10,
-          hl: 'en',
-          gl: 'us',
-          dateRestrict: 'm1',
-          sort: 'date'
+        const response = await fetch('https://google.serper.dev/search', {
+          method: 'POST',
+          headers: {
+            'X-API-KEY': setting.serperApiKey,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            q: query
+          })
         })
+        const result = await response.text()
 
-        const { items } = result.data
-        if (!items)
+        if (!result) {
           return JSON.stringify({
             success: false,
-            message: 'No search results!'
+            message: 'No search results found!'
           })
+        }
+
+        const { organic } = JSON.parse(result) as WebSearchResponse
+
+        if (!organic) {
+          return JSON.stringify({
+            success: false,
+            message: 'No search results found!'
+          })
+        }
 
         const results = await Promise.allSettled(
-          items
+          organic
             .filter((item) => !!item.link && !!item.title)
             .map(async (item) => {
               const document = await loadDocument(item.link as string)
@@ -166,7 +173,7 @@ export const webSearch = (setting: Setting) =>
           .filter(
             (result): result is PromiseFulfilledResult<DocumentType> =>
               result.status === 'fulfilled' &&
-              // TODO: Need to determine a more precise limit value via model.
+              // TODO: Need to determine a more precise quote based on the specific model.
               result.value.tokenCount < 180_000
           )
           .map(
@@ -183,7 +190,9 @@ export const webSearch = (setting: Setting) =>
 
         return JSON.stringify(values)
       } catch (e) {
-        return e instanceof Error ? e.message : 'Failed to use web search.'
+        return e instanceof Error
+          ? e.message
+          : 'Failed to retrieve data from web search.'
       }
     }
   })

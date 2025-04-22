@@ -10,14 +10,14 @@ import { Input } from '@/components/ui/input'
 import { AlertCircle } from 'lucide-react'
 import { UseFormReturnType } from '../settings-form'
 
-export function GoogleCloud({ form }: { form: UseFormReturnType }) {
+export function GoogleMaps({ form }: { form: UseFormReturnType }) {
   return (
     <>
       <Alert className="mb-4">
         <AlertCircle className="h-4 w-4" />
 
         <AlertDescription className="inline">
-          Exodus supports three built-in calling tools powered by Google Cloud:{' '}
+          Exodus offers two built-in calling tools powered by Google Maps:{' '}
           <a
             href="https://developers.google.com/maps/documentation/routes/overview"
             target="_blank"
@@ -26,7 +26,8 @@ export function GoogleCloud({ form }: { form: UseFormReturnType }) {
           >
             Google Maps Routing
           </a>
-          ,{' '}
+          , which helps you find the best directions from point A to point B.
+          and{' '}
           <a
             href="https://developers.google.com/maps/documentation/places/web-service/overview"
             target="_blank"
@@ -34,19 +35,10 @@ export function GoogleCloud({ form }: { form: UseFormReturnType }) {
             className="font-semibold underline"
           >
             Google Maps Places
-          </a>{' '}
-          and{' '}
-          <a
-            href="https://developers.google.com/custom-search/v1/introduction"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-semibold underline"
-          >
-            Google Custom Search
           </a>
-          . To utilize those features, you must register a{' '}
-          <strong>Google API Key</strong>. Additionally, if you wish to use Web
-          Search, you will need to register a <strong>Google CSE ID</strong>.
+          , which helps you find detailed information about specific locations.
+          To utilize those features, you must register for a{' '}
+          <strong>Google API Key</strong>.
         </AlertDescription>
       </Alert>
       <FormField
@@ -60,26 +52,6 @@ export function GoogleCloud({ form }: { form: UseFormReturnType }) {
                 type="password"
                 autoComplete="current-password"
                 id="google-search-api-key-input"
-                autoFocus
-                {...field}
-                value={field.value ?? ''}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
-        )}
-      />
-      <FormField
-        control={form.control}
-        name="googleCseId"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Google CSE ID</FormLabel>
-            <FormControl>
-              <Input
-                type="password"
-                autoComplete="current-password"
-                id="google-cse-id-input"
                 autoFocus
                 {...field}
                 value={field.value ?? ''}
