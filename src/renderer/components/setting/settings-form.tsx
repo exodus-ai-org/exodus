@@ -1,9 +1,9 @@
 import { Form } from '@/components/ui/form'
 import { useSetting } from '@/hooks/use-setting'
-import { settingsLabelAtom } from '@/stores/setting'
+import { isMcpServerChangedAtom, settingsLabelAtom } from '@/stores/setting'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Providers } from '@shared/types/ai'
-import { useAtomValue } from 'jotai'
+import { useAtomValue, useSetAtom } from 'jotai'
 import { useForm, UseFormReturn } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
@@ -52,6 +52,7 @@ const formSchema = z.object({
 export type UseFormReturnType = UseFormReturn<z.infer<typeof formSchema>>
 
 export function SettingsForm() {
+  const setIsMcpServerChanged = useSetAtom(isMcpServerChangedAtom)
   const { data: settings, mutate, updateSetting } = useSetting()
   const activeTitle = useAtomValue(settingsLabelAtom)
 
@@ -65,6 +66,10 @@ export function SettingsForm() {
     if (!settings) return
 
     if (form.formState.isDirty) {
+      if (form.formState.dirtyFields.mcpServers) {
+        setIsMcpServerChanged(true)
+      }
+
       updateSetting({ id: settings.id, ...values })
       mutate()
       toast.success('Auto saved.')

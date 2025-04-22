@@ -23,7 +23,7 @@ export function WebSearchCard({ toolResult }: { toolResult: string }) {
       <CardContent className="flex flex-col gap-4">
         {dataSource.map((item, idx) => (
           <div key={idx} className="flex gap-4">
-            <Avatar className="h-6 w-6 items-center border">
+            <Avatar className="relative top-1 h-6 w-6 items-center border">
               {item.favicon && (
                 <AvatarImage src={item.favicon} alt={item.title} />
               )}

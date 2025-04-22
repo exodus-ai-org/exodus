@@ -1,6 +1,6 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { LOCAL_FILE_DIRECTORY } from '@shared/constants'
-import { app, BrowserWindow, ipcMain, Notification, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import {
   installExtension,
   REACT_DEVELOPER_TOOLS
@@ -19,9 +19,11 @@ import {
 } from './lib/ipc/file-system'
 import { connectHttpServer } from './lib/server/app'
 
+let mainWindow: BrowserWindow | null = null
+
 function createWindow(): void {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1280,
     height: 960,
     show: false,
@@ -36,7 +38,7 @@ function createWindow(): void {
   })
 
   mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
+    mainWindow?.show()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -110,14 +112,13 @@ app.whenReady().then(async () => {
       destinationDir: string
     ) => copyFiles(sourceFiles, destinationDir)
   )
-  ipcMain.handle('restart-web-server', async () => {
+  ipcMain.handle('restart-server', async () => {
     server.close(async () => {
+      // The optional `callback` will be called once the `'close'` event occurs.
+      // So, it's time to open a new instance.
       server = await connectHttpServer()
       server.start()
-      new Notification({
-        title: 'Exodus',
-        body: 'The new MCP servers are live! Enjoy chatting with MCP! ( ๑ ˃̵ᴗ˂̵)و ♡'
-      }).show()
+      mainWindow?.webContents.send('succeed-to-restart-server')
     })
   })
 
