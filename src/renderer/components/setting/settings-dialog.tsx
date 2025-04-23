@@ -24,7 +24,7 @@ export function SettingsDialog() {
       <DialogContent className="overflow-hidden p-0 md:max-h-[500px] md:max-w-[700px] lg:max-w-[800px]">
         <DialogTitle className="sr-only">Settings</DialogTitle>
         <DialogDescription className="sr-only">
-          Customize your settings here.
+          Description of settings.
         </DialogDescription>
         <SidebarProvider className="min-h-[500px] items-start">
           <SettingsSidebar />

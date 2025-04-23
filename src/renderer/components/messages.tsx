@@ -103,7 +103,7 @@ function Messages({
                       if (item.type === 'text' && item.text.trim() !== '') {
                         return (
                           <Fragment key={key}>
-                            <Markdown src={item.text} />
+                            <Markdown src={item.text} parts={message.parts} />
                             {idx === arr.length - 1 && (
                               <MessageAction
                                 reload={reload}

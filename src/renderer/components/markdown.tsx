@@ -1,5 +1,6 @@
 import { useArtifact } from '@/hooks/use-artifact'
 import { cn } from '@/lib/utils'
+import type { UIMessage } from 'ai'
 import 'katex/dist/katex.min.css'
 import { Check, Copy, PencilRuler } from 'lucide-react'
 import { memo, ReactNode, useMemo, useState } from 'react'
@@ -9,9 +10,7 @@ import {
   atomOneDark,
   atomOneLight
 } from 'react-syntax-highlighter/dist/esm/styles/hljs'
-import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
-import remarkMath from 'remark-math'
 import { useTheme } from './theme-provider'
 
 const themes = {
@@ -19,11 +18,64 @@ const themes = {
   dark: { codeTheme: atomOneDark, bg: 'bg-[#282c34]' }
 }
 
-export function Markdown({ src }: { src: string }) {
+function parseCitations(text: ReactNode) {
+  if (typeof text !== 'string') return undefined
+
+  const citationRegex = /\[Source: ([\d,\s]+)\]/g
+  const citations: Array<{
+    text: number
+    position: number
+    sourceNumbers: number
+  }> = []
+  let match: RegExpExecArray | null = null
+
+  while ((match = citationRegex.exec(text)) !== null) {
+    const sourceNumbers = match[1]
+      .split(',')
+      .map((num) => parseInt(num.trim(), 10))
+    citations.push({
+      text: match[0],
+      position: match.index,
+      sourceNumbers
+    })
+  }
+
+  return citations
+}
+
+export function Markdown({
+  src,
+  parts
+}: {
+  src: string
+  parts: UIMessage['parts']
+}) {
   const { show: isArtifactVisible, openArtifact } = useArtifact()
   const [copiedContent, setCopiedContent] = useState<ReactNode>('')
   const { actualTheme } = useTheme()
   const { codeTheme, bg } = useMemo(() => themes[actualTheme], [actualTheme])
+  const webSearchResult = useMemo(() => {
+    try {
+      const toolInvocationPart = parts.find(
+        (part) => part.type === 'tool-invocation'
+      )
+
+      if (toolInvocationPart) {
+        const { state, toolName } = toolInvocationPart.toolInvocation
+        if (toolName === 'webSearch' && state === 'result') {
+          return JSON.parse(
+            toolInvocationPart.toolInvocation.result
+          ) as DocumentType[]
+        }
+        return undefined
+      }
+
+      return undefined
+    } catch {
+      return undefined
+    }
+  }, [parts])
+  console.log(webSearchResult)
 
   const handleCopy = (children: ReactNode) => {
     if (!copiedContent) {
@@ -37,8 +89,9 @@ export function Markdown({ src }: { src: string }) {
   return (
     <section className="markdown">
       <ReactMarkdown
-        remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[rehypeKatex]}
+        // remarkPlugins={[remarkGfm, remarkMath]}
+        // rehypePlugins={[rehypeKatex]}
+        remarkPlugins={[remarkGfm]}
         components={{
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           code({ className, children, node, ...rest }) {
@@ -116,6 +169,17 @@ export function Markdown({ src }: { src: string }) {
               >
                 {children}
               </pre>
+            )
+          },
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          p({ className, node, children, ...rest }) {
+            console.log(parseCitations(children))
+
+            // console.log(children, typeof children)
+            return (
+              <p {...rest} className={className}>
+                {children}
+              </p>
             )
           },
           // eslint-disable-next-line @typescript-eslint/no-unused-vars

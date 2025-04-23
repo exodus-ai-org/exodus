@@ -63,9 +63,9 @@ export function MultiModelInputTools() {
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  'text-ring h-9 w-9 cursor-pointer rounded-full border',
+                  'text-ring hover:text-ring h-9 w-9 cursor-pointer rounded-full border',
                   {
-                    ['bg-secondary text-black dark:text-white']:
+                    ['border-transparent bg-[#daeeff] text-[#0285ff] hover:bg-[#bddcf4] hover:text-[#0285ff] dark:bg-[#2a4a6d] dark:text-[#48aaff] hover:dark:bg-[#1a416a] hover:dark:text-[#48aaff]']:
                       advancedTools.includes(key)
                   }
                 )}
