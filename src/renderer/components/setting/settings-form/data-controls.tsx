@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
 import { useDbIo } from '@/hooks/use-db-io'
-import { Separator } from '@radix-ui/react-separator'
 import { Construction, Loader2 } from 'lucide-react'
 
 export function DataControls() {

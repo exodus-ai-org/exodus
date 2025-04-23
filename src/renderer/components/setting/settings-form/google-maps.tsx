@@ -27,7 +27,7 @@ export function GoogleMaps({ form }: { form: UseFormReturnType }) {
             Google Maps Routing
           </a>
           , which helps you find the best directions from point A to point B.
-          and{' '}
+          And{' '}
           <a
             href="https://developers.google.com/maps/documentation/places/web-service/overview"
             target="_blank"
