@@ -88,7 +88,7 @@
     "lucide-react": "^0.484.0",
     "monaco-editor": "^0.52.2",
     "ollama-ai-provider": "^1.2.0",
-    "openai": "^4.91.0",
+    "openai": "^4.95.1",
     "p-limit": "^6.2.0",
     "pdf-parse": "^1.1.1",
     "postcss": "^8.5.3",
