@@ -1,6 +1,6 @@
 import { and, asc, desc, eq } from 'drizzle-orm'
 import { v4 as uuidV4 } from 'uuid'
-import { db } from './db'
+import { db, pgLiteClient } from './db'
 import {
   chat,
   message,
@@ -122,23 +122,9 @@ export async function getSetting() {
     const [data] = await db.select().from(setting)
     if (!data) {
       return await db.insert(setting).values({
-        openaiApiKey: '',
-        openaiBaseUrl: '',
-        azureOpenaiApiKey: '',
-        azureOpenAiEndpoint: '',
-        azureOpenAiApiVersion: '',
-        anthropicApiKey: '',
-        anthropicBaseUrl: '',
-        googleApiKey: '',
-        googleBaseUrl: '',
-        xAiApiKey: '',
-        xAiBaseUrl: '',
-        ollamaBaseUrl: '',
-        mcpServers: '',
         id: uuidV4()
       })
     }
-
     return data
   } catch (error) {
     console.error('Failed to save settings in database')
@@ -175,3 +161,26 @@ export async function updateSetting(payload: Setting) {
 
 //   return similarGuides;
 // };
+
+export async function importData(tableName: string, blob: Blob) {
+  try {
+    await pgLiteClient.query(`COPY "${tableName}" FROM '/dev/blob';`, [], {
+      blob
+    })
+  } catch (error) {
+    console.error('Failed to import data in database')
+    throw error
+  }
+}
+
+export async function exportData(tableName: string) {
+  try {
+    const ret = await pgLiteClient.query(
+      `COPY "${tableName}" TO '/dev/blob' DELIMITER ',' CSV HEADER;`
+    )
+    return ret.blob
+  } catch (error) {
+    console.error('Failed to export data in database')
+    throw error
+  }
+}

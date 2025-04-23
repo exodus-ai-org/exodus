@@ -1,5 +1,5 @@
 {
-  "id": "120c8ee3-a75f-4078-9c1f-cb53d5f8dc91",
+  "id": "bc63863f-f015-459a-9cf3-2f0215d082d4",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -60,8 +60,14 @@
           "primaryKey": false,
           "notNull": true
         },
-        "content": {
-          "name": "content",
+        "parts": {
+          "name": "parts",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "attachments": {
+          "name": "attachments",
           "type": "json",
           "primaryKey": false,
           "notNull": true
@@ -107,73 +113,109 @@
           "name": "openaiApiKey",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "openaiBaseUrl": {
           "name": "openaiBaseUrl",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "azureOpenaiApiKey": {
           "name": "azureOpenaiApiKey",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "azureOpenAiEndpoint": {
           "name": "azureOpenAiEndpoint",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "azureOpenAiApiVersion": {
           "name": "azureOpenAiApiVersion",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "anthropicApiKey": {
           "name": "anthropicApiKey",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "anthropicBaseUrl": {
           "name": "anthropicBaseUrl",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "googleApiKey": {
           "name": "googleApiKey",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "googleBaseUrl": {
           "name": "googleBaseUrl",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "xAiApiKey": {
           "name": "xAiApiKey",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "xAiBaseUrl": {
           "name": "xAiBaseUrl",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
+        },
+        "deepSeekApiKey": {
+          "name": "deepSeekApiKey",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "deepSeekBaseUrl": {
+          "name": "deepSeekBaseUrl",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
         },
         "ollamaBaseUrl": {
           "name": "ollamaBaseUrl",
           "type": "varchar",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
+        },
+        "mcpServers": {
+          "name": "mcpServers",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "speechToTextModel": {
+          "name": "speechToTextModel",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "textToSpeechModel": {
+          "name": "textToSpeechModel",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "textToSpeechVoice": {
+          "name": "textToSpeechVoice",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},

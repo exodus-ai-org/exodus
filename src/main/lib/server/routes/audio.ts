@@ -1,7 +1,7 @@
+import { Variables } from '@shared/types/ai'
 import { Hono } from 'hono'
-import OpenAI, { toFile } from 'openai'
+import OpenAI from 'openai'
 import { getSetting } from '../../db/queries'
-import { Variables } from '../types'
 
 const audio = new Hono<{ Variables: Variables }>()
 
@@ -15,13 +15,13 @@ audio.post('/speech', async (c) => {
 
   const openai = new OpenAI({
     baseURL: setting.openaiBaseUrl,
-    apiKey: setting.openaiApiKey
+    apiKey: setting.openaiApiKey ?? ''
   })
 
   const speech = await openai.audio.speech.create({
-    model: 'tts-1',
+    model: setting.textToSpeechModel ?? 'tts-1',
     input: text,
-    voice: 'alloy'
+    voice: setting.textToSpeechVoice ?? 'alloy'
   })
 
   const buffer = Buffer.from(await speech.arrayBuffer())
@@ -33,10 +33,10 @@ audio.post('/speech', async (c) => {
 })
 
 audio.post('/transcriptions', async (c) => {
-  const formData = await c.req.formData()
-  const audioFile = formData.get('audio') as File | null
+  const body = await c.req.parseBody()
+  const audioFile = body['audio']
 
-  if (!audioFile) {
+  if (typeof audioFile === 'string') {
     return c.text('Audio file is missing', 404)
   }
 
@@ -47,16 +47,12 @@ audio.post('/transcriptions', async (c) => {
 
   const openai = new OpenAI({
     baseURL: setting.openaiBaseUrl,
-    apiKey: setting.openaiApiKey
+    apiKey: setting.openaiApiKey ?? ''
   })
 
-  const arrayBuffer = await audioFile.arrayBuffer()
-  const buffer = Buffer.from(arrayBuffer)
-  const file = await toFile(buffer)
-
   const transcription = await openai.audio.transcriptions.create({
-    file,
-    model: 'gpt-4o-transcribe'
+    file: audioFile,
+    model: setting.speechToTextModel ?? 'whisper-1'
   })
 
   return c.json(transcription)

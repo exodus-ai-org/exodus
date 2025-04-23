@@ -1,5 +1,7 @@
 import { atom } from 'jotai'
 
-export const activeAtom = atom<string>('General')
+export const settingsLabelAtom = atom<string>('Providers')
 
-export const settingsDialogVisibleAtom = atom(false)
+export const isSettingsVisibleAtom = atom(false)
+
+export const isMcpServerChangedAtom = atom(false)

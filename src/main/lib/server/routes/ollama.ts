@@ -1,5 +1,5 @@
+import { Variables } from '@shared/types/ai'
 import { Hono } from 'hono'
-import { Variables } from '../types'
 
 const ollama = new Hono<{ Variables: Variables }>()
 

@@ -1,6 +1,7 @@
 import { type InferSelectModel } from 'drizzle-orm'
 import {
   boolean,
+  integer,
   json,
   pgTable,
   primaryKey,
@@ -24,7 +25,8 @@ export const message = pgTable('Message', {
     .notNull()
     .references(() => chat.id),
   role: varchar('role').notNull(),
-  content: json('content').notNull(),
+  parts: json('parts').notNull(),
+  attachments: json('attachments').notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull()
 })
 
@@ -51,23 +53,31 @@ export const vote = pgTable(
 export type Vote = InferSelectModel<typeof vote>
 
 export const setting = pgTable('Setting', {
-  id: uuid('id').notNull().primaryKey().notNull().defaultRandom(),
-  openaiApiKey: varchar('openaiApiKey').notNull(),
-  openaiBaseUrl: varchar('openaiBaseUrl').notNull(),
-  azureOpenaiApiKey: varchar('azureOpenaiApiKey').notNull(),
-  azureOpenAiEndpoint: varchar('azureOpenAiEndpoint').notNull(),
-  azureOpenAiApiVersion: varchar('azureOpenAiApiVersion').notNull(),
-  anthropicApiKey: varchar('anthropicApiKey').notNull(),
-  anthropicBaseUrl: varchar('anthropicBaseUrl').notNull(),
-  googleApiKey: varchar('googleApiKey').notNull(),
-  googleBaseUrl: varchar('googleBaseUrl').notNull(),
-  xAiApiKey: varchar('xAiApiKey').notNull(),
-  xAiBaseUrl: varchar('xAiBaseUrl').notNull(),
-  ollamaBaseUrl: varchar('ollamaBaseUrl').notNull(),
-  mcpServers: varchar('mcpServers').notNull().default(''),
-  speechToTextModel: varchar('speechToTextModel').notNull().default(''),
-  textToSpeechModel: varchar('textToSpeechModel').notNull().default(''),
-  textToSpeechVoice: varchar('textToSpeechVoice').notNull().default('')
+  id: uuid('id').notNull().primaryKey().defaultRandom(),
+  provider: varchar('provider').default(''),
+  chatModel: varchar('chatModel').default(''),
+  reasoningModel: varchar('reasoningModel').default(''),
+  openaiApiKey: varchar('openaiApiKey').default(''),
+  openaiBaseUrl: varchar('openaiBaseUrl').default(''),
+  azureOpenaiApiKey: varchar('azureOpenaiApiKey').default(''),
+  azureOpenAiEndpoint: varchar('azureOpenAiEndpoint').default(''),
+  azureOpenAiApiVersion: varchar('azureOpenAiApiVersion').default(''),
+  anthropicApiKey: varchar('anthropicApiKey').default(''),
+  anthropicBaseUrl: varchar('anthropicBaseUrl').default(''),
+  googleGeminiApiKey: varchar('googleGeminiApiKey').default(''),
+  googleGeminiBaseUrl: varchar('googleGeminiBaseUrl').default(''),
+  xAiApiKey: varchar('xAiApiKey').default(''),
+  xAiBaseUrl: varchar('xAiBaseUrl').default(''),
+  ollamaBaseUrl: varchar('ollamaBaseUrl').default(''),
+  mcpServers: varchar('mcpServers').default(''),
+  speechToTextModel: varchar('speechToTextModel').default(''),
+  textToSpeechModel: varchar('textToSpeechModel').default(''),
+  textToSpeechVoice: varchar('textToSpeechVoice').default(''),
+  fileUploadEndpoint: varchar('fileUploadEndpoint').default(''),
+  assistantAvatar: varchar('assistantAvatar').default(''),
+  googleApiKey: varchar('googleApiKey').default(''),
+  serperApiKey: varchar('serperApiKey').default(''),
+  maxSteps: integer('maxSteps').default(1)
 })
 
 export type Setting = InferSelectModel<typeof setting>

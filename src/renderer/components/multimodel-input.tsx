@@ -1,19 +1,35 @@
+import { useArtifact } from '@/hooks/use-artifact'
+import { useUpload } from '@/hooks/use-upload'
+import { cn } from '@/lib/utils'
+import { attachmentAtom } from '@/stores/chat'
 import { UseChatHelpers } from '@ai-sdk/react'
+import { useAtom } from 'jotai'
+import { CircleStop, Send } from 'lucide-react'
 import {
-  AudioLines,
-  CircleStop,
-  Globe,
-  Lightbulb,
-  Palette,
-  Plus,
-  Send
-} from 'lucide-react'
-import { FC, memo, useCallback, useEffect, useRef, useState } from 'react'
+  ChangeEvent,
+  ClipboardEvent,
+  memo,
+  useCallback,
+  useEffect,
+  useRef,
+  useState
+} from 'react'
 import { toast } from 'sonner'
+import { AudioRecorder } from './audio-recoder'
+import { AvailableMcpTools } from './available-mcp-tools'
+import { FilePreview } from './file-preview'
+import { MultiModelInputTools } from './multimodel-input-tools'
+import { MultiModelInputUploader } from './multimodel-input-uploader'
 import { Button } from './ui/button'
 import { Textarea } from './ui/textarea'
 
-interface Props {
+function InputBox({
+  chatId,
+  input,
+  setInput,
+  handleSubmit,
+  status
+}: {
   chatId: string
   input: string
   append: UseChatHelpers['append']
@@ -23,17 +39,12 @@ interface Props {
   handleSubmit: UseChatHelpers['handleSubmit']
   status: UseChatHelpers['status']
   stop: UseChatHelpers['stop']
-}
-
-const InputBox: FC<Props> = ({
-  chatId,
-  input,
-  setInput,
-  handleSubmit,
-  status
-}) => {
+}) {
+  const [attachments, setAttachments] = useAtom(attachmentAtom)
+  const { uploadFile } = useUpload()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [isTyping, setIsTyping] = useState(false)
+  const { show: isArtifactVisible } = useArtifact()
 
   const adjustHeight = () => {
     if (textareaRef.current) {
@@ -50,16 +61,35 @@ const InputBox: FC<Props> = ({
     }
   }
 
-  const handleInput = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleInput = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setInput(event.target.value)
     adjustHeight()
   }
 
+  const handlePaste = (event: ClipboardEvent<HTMLTextAreaElement>) => {
+    // event.preventDefault()
+
+    const items = event.clipboardData.items
+
+    const files: File[] = []
+    for (const item of items) {
+      if (item.kind === 'file' && item.type.startsWith('image/')) {
+        const file = item.getAsFile()
+        if (file) {
+          files.push(file)
+        }
+      }
+    }
+
+    uploadFile(files)
+  }
+
   const submitForm = useCallback(() => {
-    window.history.replaceState({}, '', `/chat/${chatId}`)
-    handleSubmit()
+    window.history.replaceState({}, '', `/#/chat/${chatId}`)
+    handleSubmit(undefined, { experimental_attachments: attachments })
+    setAttachments(undefined)
     resetHeight()
-  }, [handleSubmit, chatId])
+  }, [chatId, handleSubmit, attachments, setAttachments])
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -68,8 +98,14 @@ const InputBox: FC<Props> = ({
   }, [])
 
   return (
-    <div className="border-input mx-auto mb-4 flex w-full flex-col gap-2 rounded-2xl border p-1 shadow-sm md:max-w-3xl">
+    <div
+      className={cn(
+        'border-input mx-auto mb-4 flex w-[calc(100%-2rem)] flex-col gap-2 rounded-2xl border p-1 shadow-sm md:max-w-3xl',
+        { ['mx-0 ml-4 w-[23rem]']: isArtifactVisible }
+      )}
+    >
       <form>
+        <FilePreview />
         <Textarea
           ref={textareaRef}
           placeholder="Send a message..."
@@ -95,32 +131,35 @@ const InputBox: FC<Props> = ({
           }}
           onCompositionStart={() => setIsTyping(true)}
           onCompositionEnd={() => setIsTyping(false)}
+          onPaste={handlePaste}
         />
       </form>
       <div className="mx-2 mb-2 flex justify-between">
         <div className="flex gap-2">
-          <Button variant="ghost" className="cursor-pointer rounded-4xl border">
-            <Plus /> Attach
-          </Button>
-          <Button variant="ghost" className="cursor-pointer rounded-4xl border">
-            <Lightbulb /> Reason
-          </Button>
-          <Button variant="ghost" className="cursor-pointer rounded-4xl border">
-            <Globe /> Search
-          </Button>
-          <Button variant="ghost" className="cursor-pointer rounded-4xl border">
-            <Palette /> Artifact
-          </Button>
+          <MultiModelInputUploader />
+          <MultiModelInputTools />
+          <AvailableMcpTools />
         </div>
 
         {status === 'streaming' ? (
-          <Button variant="ghost" onClick={stop}>
+          <Button variant="secondary" onClick={stop}>
             <CircleStop />
           </Button>
         ) : (
-          <Button type="submit" variant="secondary">
-            {input.trim() === '' ? <AudioLines /> : <Send />}
-          </Button>
+          <>
+            {input.trim() === '' ? (
+              <AudioRecorder input={input} setInput={setInput} />
+            ) : (
+              <Button
+                type="submit"
+                variant="secondary"
+                className="cursor-pointer"
+                onClick={handleSubmit}
+              >
+                <Send />
+              </Button>
+            )}
+          </>
         )}
       </div>
     </div>

@@ -174,14 +174,6 @@
       @apply mb-4 pl-1;
     }
 
-    a {
-      @apply break-words;
-    }
-
-    table {
-      @apply w-full caption-bottom text-sm;
-    }
-
     thead {
       @apply [&_tr]:border-b;
     }
@@ -195,12 +187,20 @@
     }
 
     th {
-      @apply text-muted-foreground h-10 px-2 text-left align-middle font-bold [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px];
+      @apply text-muted-foreground h-10 px-2 text-left align-middle font-bold whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px];
     }
 
     td {
-      @apply p-2 align-middle [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px];
+      @apply p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px];
     }
+  }
+
+  [data-rmiz] {
+    @apply h-full w-full;
+  }
+
+  [data-rmiz-content] {
+    @apply h-full w-full;
   }
 
   @keyframes fadeIn {

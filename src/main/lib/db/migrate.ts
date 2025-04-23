@@ -11,7 +11,7 @@ export const runMigrate = async () => {
     const start = performance.now()
     await migrate(db, {
       migrationsFolder: is.dev
-        ? join(cwd(), './drizzle')
+        ? join(cwd(), './resources/drizzle')
         : join(
             process.resourcesPath,
             'app.asar.unpacked',

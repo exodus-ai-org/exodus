@@ -9,10 +9,10 @@ export const router = createHashRouter([
   {
     Component: Layout,
     children: [
-      { index: true, Component: Home },
+      { path: '/', Component: Home },
       { path: '/chat/:id', Component: Detail },
       { path: 'file-system', Component: FileSystem },
-      { path: 'file-system/:folderName', Component: FileSystemDetail }
+      { path: 'file-system/:directoryName', Component: FileSystemDetail }
     ]
   }
 ])

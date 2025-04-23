@@ -1,12 +1,16 @@
 import { serve, ServerType } from '@hono/node-server'
+import { SERVER_PORT } from '@shared/constants'
+import { Variables } from '@shared/types/ai'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import { connectMcpServers } from '../ai/mcp'
 import audioRouter from './routes/audio'
-import chatRouter, { connectMcpServers } from './routes/chat'
+import chatRouter from './routes/chat'
+import customUploaderRouter from './routes/custom-uploader'
+import dbIoRouter from './routes/db-io'
 import historyRouter from './routes/history'
 import ollamaRouter from './routes/ollama'
 import settingRouter from './routes/setting'
-import { Variables } from './types'
 
 // Export server functions
 export async function connectHttpServer() {
@@ -35,8 +39,21 @@ export async function connectHttpServer() {
   app.route('/api/setting', settingRouter)
   app.route('/api/ollama', ollamaRouter)
   app.route('/api/audio', audioRouter)
+  app.route('/api/custom-uploader', customUploaderRouter)
+  app.route('/api/db-io', dbIoRouter)
 
-  app.get('/ping', (c) => c.text('pong'))
+  // Ping
+  app.get('/', (c) => c.text('Exodus is running.'))
+
+  app.onError((err, c) => {
+    return c.json(
+      {
+        success: false,
+        message: err.message || 'Internal Server Error'
+      },
+      500
+    )
+  })
 
   return {
     close(callback?: (err?: Error) => void) {
@@ -45,9 +62,9 @@ export async function connectHttpServer() {
     start() {
       server = serve({
         fetch: app.fetch,
-        port: 8964
+        port: SERVER_PORT
       })
-      console.log('✅ Hono http server is running on 8964.')
+      console.log(`✅ Hono http server is running on ${SERVER_PORT}.`)
     }
   }
 }

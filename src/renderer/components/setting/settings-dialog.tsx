@@ -1,7 +1,6 @@
 import {
   Breadcrumb,
   BreadcrumbItem,
-  BreadcrumbLink,
   BreadcrumbList
 } from '@/components/ui/breadcrumb'
 import {
@@ -11,14 +10,14 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { SidebarProvider } from '@/components/ui/sidebar'
-import { activeAtom, settingsDialogVisibleAtom } from '@/stores/setting'
+import { isSettingsVisibleAtom, settingsLabelAtom } from '@/stores/setting'
 import { useAtom, useAtomValue } from 'jotai'
 import { SettingsForm } from './settings-form'
 import { SettingsSidebar } from './settings-sidebar'
 
 export function SettingsDialog() {
-  const activeTitle = useAtomValue(activeAtom)
-  const [open, setOpen] = useAtom(settingsDialogVisibleAtom)
+  const activeTitle = useAtomValue(settingsLabelAtom)
+  const [open, setOpen] = useAtom(isSettingsVisibleAtom)
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -27,15 +26,15 @@ export function SettingsDialog() {
         <DialogDescription className="sr-only">
           Customize your settings here.
         </DialogDescription>
-        <SidebarProvider className="items-start">
+        <SidebarProvider className="min-h-[500px] items-start">
           <SettingsSidebar />
-          <main className="flex h-full flex-1 flex-col overflow-hidden">
+          <main className="flex h-full max-h-[498px] flex-1 flex-col">
             <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">
               <div className="flex items-center gap-2 px-4">
                 <Breadcrumb>
                   <BreadcrumbList>
                     <BreadcrumbItem className="hidden md:block">
-                      <BreadcrumbLink href="#">{activeTitle}</BreadcrumbLink>
+                      {activeTitle}
                     </BreadcrumbItem>
                   </BreadcrumbList>
                 </Breadcrumb>

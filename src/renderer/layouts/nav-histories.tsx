@@ -15,12 +15,13 @@ import {
   SidebarMenuItem,
   useSidebar
 } from '@/components/ui/sidebar'
-import { fetcher, getRandomEmoji } from '@/lib/utils'
+import { BASE_URL } from '@shared/constants'
+import type { Chat } from '@shared/types/db'
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns'
-import { ArrowUpRight, MoreHorizontal, StarOff, Trash2 } from 'lucide-react'
+import { Edit2, MoreHorizontal, Pin, Trash2 } from 'lucide-react'
 import { Link, useParams } from 'react-router'
-import type { Chat } from 'src/main/lib/db/schema'
-import useSWR from 'swr'
+import { toast } from 'sonner'
+import useSWR, { mutate } from 'swr'
 import { Skeleton } from '../components/ui/skeleton'
 
 interface GroupedChats {
@@ -36,8 +37,7 @@ export function NavHistorySkeleton() {
     <section className="flex flex-col gap-3 p-2">
       <Skeleton className="m-2 h-4 w-20" />
       {new Array(10).fill(0).map((_, idx) => (
-        <div key={idx} className="flex gap-2 px-2">
-          <Skeleton className="h-5 w-5" />
+        <div key={idx} className="flex px-2">
           <Skeleton className="h-5 w-full" />
         </div>
       ))}
@@ -49,11 +49,26 @@ export function NavItems({ item }: { item: Chat }) {
   const { id } = useParams<{ id: string }>()
   const { isMobile } = useSidebar()
 
+  const deleteChat = async (chatId: string) => {
+    await fetch(`${BASE_URL}/api/chat/${chatId}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+
+    mutate('/api/history')
+    if (chatId === id) {
+      window.location.href = '/'
+    }
+
+    toast.success(`Succeed to delete ${chatId}.`)
+  }
+
   return (
     <SidebarMenuItem>
       <SidebarMenuButton asChild isActive={item.id === id}>
         <Link to={`/chat/${item.id}`}>
-          <span>{getRandomEmoji()}</span>
           <span>{item.title}</span>
         </Link>
       </SidebarMenuButton>
@@ -70,18 +85,20 @@ export function NavItems({ item }: { item: Chat }) {
           align={isMobile ? 'end' : 'start'}
         >
           <DropdownMenuItem>
-            <StarOff className="text-muted-foreground" />
-            <span>Remove from Favorites</span>
+            <Pin className="text-muted-foreground" />
+            <span>Pin (Unavailable Now)</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem>
-            <ArrowUpRight className="text-muted-foreground" />
-            <span>Open in New Tab</span>
+            <Edit2 className="text-muted-foreground" />
+            <span>Rename (Unavailable Now)</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem>
-            <Trash2 className="text-muted-foreground" />
-            <span>Delete</span>
+          <DropdownMenuItem onClick={() => deleteChat(item.id)}>
+            <Trash2 className="text-destructive" />
+            <span className="text-destructive hover:text-destructive">
+              Delete
+            </span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -90,7 +107,7 @@ export function NavItems({ item }: { item: Chat }) {
 }
 
 export function NavHistories() {
-  const { data: history, isLoading } = useSWR<Chat[]>('/api/history', fetcher, {
+  const { data: history, isLoading } = useSWR<Chat[]>('/api/history', {
     fallbackData: []
   })
 

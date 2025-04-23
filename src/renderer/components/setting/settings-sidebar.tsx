@@ -1,5 +1,5 @@
 import { SearchForm } from '@/layouts/search-form'
-import { activeAtom } from '@/stores/setting'
+import { settingsLabelAtom } from '@/stores/setting'
 import { useAtom } from 'jotai'
 import { GalleryVerticalEnd } from 'lucide-react'
 import * as React from 'react'
@@ -16,15 +16,15 @@ import {
   SidebarMenuSubItem,
   SidebarRail
 } from '../ui/sidebar'
-import { data } from './siderbar-data'
+import { schema } from './settings-schema'
 
 export function SettingsSidebar({
   ...props
 }: React.ComponentProps<typeof Sidebar>) {
-  const [active, setActive] = useAtom(activeAtom)
+  const [active, setActive] = useAtom(settingsLabelAtom)
 
   return (
-    <Sidebar {...props} className="max-h-[496px] select-none">
+    <Sidebar {...props} className="max-h-[498px] select-none">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
@@ -46,14 +46,12 @@ export function SettingsSidebar({
       <SidebarContent className="h-[300px]">
         <SidebarGroup>
           <SidebarMenu>
-            {data.navMain.map((item) => (
+            {schema.navMain.map((item) => (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                   isActive={item.title === active}
                   onClick={() => {
-                    if (item.items === undefined) {
-                      setActive(item.title)
-                    }
+                    setActive(item.title)
                   }}
                 >
                   {item.icon && <item.icon />}

@@ -1,454 +1,136 @@
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel
-} from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
+import { Form } from '@/components/ui/form'
 import { useSetting } from '@/hooks/use-setting'
-import { fetcher } from '@/lib/utils'
-import { activeAtom } from '@/stores/setting'
+import { isMcpServerChangedAtom, settingsLabelAtom } from '@/stores/setting'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useAtomValue } from 'jotai'
-import { debounce, isEqual } from 'lodash-es'
-import { AlertCircle } from 'lucide-react'
-import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { Providers } from '@shared/types/ai'
+import { useAtomValue, useSetAtom } from 'jotai'
+import { useForm, UseFormReturn } from 'react-hook-form'
 import { toast } from 'sonner'
-import useSWR from 'swr'
 import { z } from 'zod'
-import { CodeEditor } from '../code-editor'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '../ui/select'
+import { AudioSpeech } from './settings-form/audio-speech'
+import { AvatarUploader } from './settings-form/avatar-uploader'
+import { DataControls } from './settings-form/data-controls'
+import { FileUploadEndpoint } from './settings-form/file-upload-endpoint'
+import { GoogleMaps } from './settings-form/google-maps'
+import { MCP } from './settings-form/mcp'
+import { ProviderConfig } from './settings-form/provider-config'
+import { AnthropicClaude } from './settings-form/providers/anthropic-claude'
+import { AzureOpenAi } from './settings-form/providers/azure-openai'
+import { GoogleGemini } from './settings-form/providers/google-gemini'
+import { Ollama } from './settings-form/providers/ollama'
+import { OpenAiGpt } from './settings-form/providers/openai-gpt'
+import { WebSearch } from './settings-form/web-search'
+import { UnderConstruction } from './under-construction'
 
 const formSchema = z.object({
-  openaiApiKey: z.string().min(1),
-  openaiBaseUrl: z.string().url(),
-  azureOpenaiApiKey: z.string().min(1),
-  azureOpenAiEndpoint: z.string().url(),
-  azureOpenAiApiVersion: z.string().url(),
-  anthropicApiKey: z.string().min(1),
-  anthropicBaseUrl: z.string().url(),
-  googleApiKey: z.string().min(1),
-  googleBaseUrl: z.string().url(),
-  xAiApiKey: z.string().min(1),
-  xAiBaseUrl: z.string().url(),
-  ollamaBaseUrl: z.string().min(1),
-  mcpServers: z.string().min(1),
-  speechToTextModel: z.string().min(1),
-  textToSpeechVoice: z.string().min(1),
-  textToSpeechModel: z.string().min(1)
+  provider: z.string().nullable(),
+  chatModel: z.string().nullable(),
+  reasoningModel: z.string().nullable(),
+  openaiApiKey: z.string().nullable(),
+  openaiBaseUrl: z.union([z.string().url().nullable(), z.literal('')]),
+  azureOpenaiApiKey: z.string().nullable(),
+  azureOpenAiEndpoint: z.union([z.string().url().nullable(), z.literal('')]),
+  azureOpenAiApiVersion: z.string().nullable(),
+  anthropicApiKey: z.string().nullable(),
+  anthropicBaseUrl: z.union([z.string().url().nullable(), z.literal('')]),
+  googleGeminiApiKey: z.string().nullable(),
+  googleGeminiBaseUrl: z.union([z.string().url().nullable(), z.literal('')]),
+  xAiApiKey: z.string().nullable(),
+  xAiBaseUrl: z.union([z.string().url().nullable(), z.literal('')]),
+  ollamaBaseUrl: z.string().nullable(),
+  mcpServers: z.string().nullable(),
+  speechToTextModel: z.string().nullable(),
+  textToSpeechVoice: z.string().nullable(),
+  textToSpeechModel: z.string().nullable(),
+  fileUploadEndpoint: z.string().nullable(),
+  assistantAvatar: z.string().nullable(),
+  googleApiKey: z.string().nullable(),
+  serperApiKey: z.string().nullable(),
+  maxSteps: z.coerce.number().nonnegative().lte(20).nullable()
 })
 
+export type UseFormReturnType = UseFormReturn<z.infer<typeof formSchema>>
+
 export function SettingsForm() {
-  const activeTitle = useAtomValue(activeAtom)
-  const { error } = useSWR(
-    activeTitle === 'Ollama'
-      ? '/api/ollama/ping?url=http://localhost:11434'
-      : null,
-    fetcher
-  )
-  const { data, mutate, updateSetting } = useSetting()
+  const setIsMcpServerChanged = useSetAtom(isMcpServerChangedAtom)
+  const { data: settings, mutate, updateSetting } = useSetting()
+  const activeTitle = useAtomValue(settingsLabelAtom)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {},
-    values: data
+    values: settings,
+    mode: 'onBlur'
   })
 
   function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
+    if (!settings) return
+
+    if (form.formState.isDirty) {
+      if (form.formState.dirtyFields.mcpServers) {
+        setIsMcpServerChanged(true)
+      }
+
+      updateSetting({ id: settings.id, ...values })
+      mutate()
+      toast.success('Auto saved.')
+    }
   }
-
-  useEffect(() => {
-    const subscription = form.watch(
-      debounce((formValue) => {
-        if (!isEqual(formValue, data)) {
-          updateSetting(formValue)
-          mutate()
-          toast.success('Auto saved.')
-        }
-      }, 1000)
-    )
-
-    return () => subscription.unsubscribe()
-  }, [data, form, form.watch, mutate, updateSetting])
 
   return (
     <Form {...form}>
       <form
-        onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-1 flex-col gap-4"
+        onBlur={form.handleSubmit(onSubmit)}
       >
-        {activeTitle === 'OpenAI GPT' && (
-          <>
-            <FormField
-              control={form.control}
-              name="openaiApiKey"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>API Key</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      id="openai-api-key-input"
-                      autoComplete="current-password"
-                      autoFocus
-                      {...field}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="openaiBaseUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Base URL</FormLabel>
-                  <FormControl>
-                    <Input type="text" id="openai-base-url-input" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </>
+        {activeTitle === 'Providers' && <ProviderConfig form={form} />}
+
+        {activeTitle === Providers.OpenAiGpt && <OpenAiGpt form={form} />}
+
+        {activeTitle === Providers.AzureOpenAi && <AzureOpenAi form={form} />}
+
+        {activeTitle === Providers.AnthropicClaude && (
+          <AnthropicClaude form={form} />
         )}
 
-        {activeTitle === 'Azure OpenAI' && (
-          <>
-            <FormField
-              control={form.control}
-              name="azureOpenaiApiKey"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>API Key</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      autoComplete="current-password"
-                      id="azure-openai-api-key-input"
-                      autoFocus
-                      {...field}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="azureOpenAiEndpoint"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Endpoint</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="text"
-                      id="azure-openai-endpoint"
-                      placeholder="https://{resourceName}.openai.azure.com/openai/deployments/{modelId}{path}"
-                      {...field}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="azureOpenAiApiVersion"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>API Version</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="text"
-                      id="azure-openai-api-version"
-                      placeholder="2024-12-01-preview"
-                      {...field}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </>
+        {activeTitle === Providers.GoogleGemini && <GoogleGemini form={form} />}
+
+        {activeTitle === Providers.XaiGrok && <GoogleGemini form={form} />}
+
+        {activeTitle === Providers.Ollama && <Ollama form={form} />}
+
+        {activeTitle === 'File Upload Endpoint' && (
+          <FileUploadEndpoint form={form} />
         )}
 
-        {activeTitle === 'Anthropic Claude' && (
-          <>
-            <FormField
-              control={form.control}
-              name="anthropicApiKey"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>API Key</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      autoComplete="current-password"
-                      id="anthropic-api-key-input"
-                      autoFocus
-                      {...field}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="anthropicBaseUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Base URL</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="text"
-                      id="anthropic-base-url-input"
-                      {...field}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </>
+        {activeTitle === 'Assistant Avatar' && (
+          <AvatarUploader
+            props={{ control: form.control, name: 'assistantAvatar' }}
+          />
         )}
 
-        {activeTitle === 'Google Gemini' && (
-          <>
-            <FormField
-              control={form.control}
-              name="googleApiKey"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>API Key</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      autoComplete="current-password"
-                      id="google-api-key-input"
-                      autoFocus
-                      {...field}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="googleBaseUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Base URL</FormLabel>
-                  <FormControl>
-                    <Input type="text" id="google-base-url-input" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </>
-        )}
+        {activeTitle === 'MCP Servers' && <MCP form={form} />}
 
-        {activeTitle === 'xAI Grok' && (
-          <>
-            <FormField
-              control={form.control}
-              name="xAiApiKey"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>API Key</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      autoComplete="current-password"
-                      id="xai-api-key-input"
-                      autoFocus
-                      {...field}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="xAiBaseUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Base URL</FormLabel>
-                  <FormControl>
-                    <Input type="text" id="xai-base-url-input" {...field} />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
-          </>
-        )}
+        {activeTitle === 'Audio and Speech' && <AudioSpeech form={form} />}
 
-        {activeTitle === 'Ollama' && (
-          <>
-            <FormField
-              control={form.control}
-              name="ollamaBaseUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Base URL</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="text"
-                      id="ollama-base-url-input"
-                      placeholder="http://localhost:11434"
-                      autoFocus
-                      {...field}
-                    />
-                  </FormControl>
-                </FormItem>
-              )}
-            />
+        {activeTitle === 'Google Maps' && <GoogleMaps form={form} />}
 
-            <FormLabel>Status</FormLabel>
+        {activeTitle === 'Web Search' && <WebSearch form={form} />}
 
-            {error === undefined ? (
-              <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full bg-green-400" />
-                <p className="text-sm">Ollama is running.</p>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2">
-                <div className="h-3 w-3 rounded-full bg-red-400" />
-                <p className="text-sm">Ollama is not running.</p>
-              </div>
-            )}
-          </>
-        )}
+        {activeTitle === 'Deep Research' && <UnderConstruction />}
 
-        {activeTitle === 'MCP Servers' && (
-          <>
-            <Alert className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription className="block">
-                We&apos;ve detected an update to your MCP servers&apos;
-                configuration. To apply these changes, please click{' '}
-                <span className="hover:text-primary cursor-pointer font-bold underline">
-                  RESTART
-                </span>{' '}
-                to launch your servers now, or restart the application manually.
-              </AlertDescription>
-            </Alert>
-            <CodeEditor
-              props={{ control: form.control, name: 'mcpServers' }}
-              className="-mx-4 !w-[calc(100%+2rem)]"
-            />
-          </>
-        )}
+        {activeTitle === 'RAG' && <UnderConstruction />}
 
-        {activeTitle === 'Audio and Speech' && (
-          <>
-            <Alert className="mb-4">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                The Text-to-Speech and Speech-to-Text services only support
-                OpenAI. Please make sure you have configured the OpenAI API
-                settings correctly before using these features.
-              </AlertDescription>
-            </Alert>
+        {activeTitle === 'Artifacts' && <UnderConstruction />}
 
-            <FormField
-              control={form.control}
-              name="speechToTextModel"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Speech to Text Model</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="gpt-4o-transcribe" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="gpt-4o-transcribe">
-                        gpt-4o-transcribe
-                      </SelectItem>
-                      <SelectItem value="gpt-4o-mini-transcribe">
-                        gpt-4o-mini-transcribe
-                      </SelectItem>
-                      <SelectItem value="whisper-1">whisper-1</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormItem>
-              )}
-            />
+        {activeTitle === 'Browser Use' && <UnderConstruction />}
 
-            <FormField
-              control={form.control}
-              name="textToSpeechModel"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Text to Speech Model</FormLabel>
+        {activeTitle === 'Computer Use' && <UnderConstruction />}
 
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="tts-1" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="tts-1">tts-1</SelectItem>
-                      <SelectItem value="tts-1-hd">tts-1-hd</SelectItem>
-                      <SelectItem value="gpt-4o-mini-tts">
-                        gpt-4o-mini-tts
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormItem>
-              )}
-            />
+        {activeTitle === 'Data Controls' && <DataControls />}
 
-            <FormField
-              control={form.control}
-              name="textToSpeechVoice"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Text to Speech Voice</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Alloy" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="alloy">Alloy</SelectItem>
-                      <SelectItem value="ash">Ash</SelectItem>
-                      <SelectItem value="ballad">Ballad</SelectItem>
-                      <SelectItem value="coral">Coral</SelectItem>
-                      <SelectItem value="echo">Echo</SelectItem>
-                      <SelectItem value="fable">Fable</SelectItem>
-                      <SelectItem value="onyx">Onyx</SelectItem>
-                      <SelectItem value="nova">Nova</SelectItem>
-                      <SelectItem value="sage">Sage</SelectItem>
-                      <SelectItem value="shimmer">Shimmer</SelectItem>
-                      <SelectItem key="verse" value="verse">
-                        Verse
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </FormItem>
-              )}
-            />
-          </>
-        )}
+        {activeTitle === 'Software Update' && <UnderConstruction />}
+
+        {activeTitle === 'About Exodus' && <UnderConstruction />}
       </form>
     </Form>
   )

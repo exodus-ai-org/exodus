@@ -1,5 +1,6 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
-import { app, BrowserWindow, ipcMain, Notification, shell } from 'electron'
+import { LOCAL_FILE_DIRECTORY } from '@shared/constants'
+import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import {
   installExtension,
   REACT_DEVELOPER_TOOLS
@@ -8,16 +9,21 @@ import { join } from 'path'
 import icon from '../../resources/icon.png?asset'
 import { runMigrate } from './lib/db/migrate'
 import {
-  createFolder,
+  copyFiles,
+  createDirectory,
   getDirectoryTree,
   getStat,
-  openFileManagerApp
+  getUserDataPath,
+  openFileManagerApp,
+  renameFile
 } from './lib/ipc/file-system'
 import { connectHttpServer } from './lib/server/app'
 
+let mainWindow: BrowserWindow | null = null
+
 function createWindow(): void {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 1280,
     height: 960,
     show: false,
@@ -32,7 +38,7 @@ function createWindow(): void {
   })
 
   mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
+    mainWindow?.show()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -64,8 +70,8 @@ app.whenReady().then(async () => {
   let server = await connectHttpServer()
   server.start()
 
-  // Create `LocalFiles` directory if not exist
-  await createFolder(app.getPath('userData') + '/LocalFiles')
+  // Create `LOCAL_FILE_DIRECTORY` directory if not exist
+  await createDirectory(app.getPath('userData') + `/${LOCAL_FILE_DIRECTORY}`)
 
   // Set app user model id for windows
   electronApp.setAppUserModelId('app.yancey.exodus')
@@ -85,16 +91,34 @@ app.whenReady().then(async () => {
   ipcMain.handle('get-directory-tree', async (_, path: string) =>
     getDirectoryTree(path)
   )
+  ipcMain.handle('get-user-data-path', async () => getUserDataPath())
   ipcMain.handle('get-stat', async (_, path: string) => getStat(path))
-
-  ipcMain.handle('restart-web-server', async () => {
+  ipcMain.handle('create-directory', async (_, path: string) =>
+    createDirectory(path)
+  )
+  ipcMain.handle(
+    'rename-file',
+    async (_, source: string, destination: string) =>
+      renameFile(source, destination)
+  )
+  ipcMain.handle(
+    'copy-files',
+    async (
+      _,
+      sourceFiles: {
+        name: string
+        buffer: ArrayBuffer
+      }[],
+      destinationDir: string
+    ) => copyFiles(sourceFiles, destinationDir)
+  )
+  ipcMain.handle('restart-server', async () => {
     server.close(async () => {
+      // The optional `callback` will be called once the `'close'` event occurs.
+      // So, it's time to open a new instance.
       server = await connectHttpServer()
       server.start()
-      new Notification({
-        title: 'Exodus',
-        body: 'The new MCP servers are live! Enjoy chatting with MCP! ( ๑ ˃̵ᴗ˂̵)و ♡'
-      }).show()
+      mainWindow?.webContents.send('succeed-to-restart-server')
     })
   })
 

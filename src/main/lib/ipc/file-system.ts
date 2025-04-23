@@ -1,25 +1,15 @@
+import { DirectoryNode } from '@shared/types/fs'
 import { app, shell } from 'electron'
-import { mkdir, readdir, stat } from 'fs/promises'
+import { mkdir, readdir, rename, stat, writeFile } from 'fs/promises'
 import { basename, join, resolve } from 'path'
 
-export interface DirectoryNode {
-  name: string
-  type: 'directory'
-  path: string
-  children: (DirectoryNode | FileNode)[]
-}
-
-export interface FileNode {
-  name: string
-  type: 'file'
-  path: string
+export function getUserDataPath() {
+  return app.getPath('userData')
 }
 
 export async function getDirectoryTree(
   path: string
 ): Promise<DirectoryNode | null> {
-  const directoryPath = app.getPath('userData') + path
-
   async function traverseDirectory(
     currentPath: string,
     currentName: string
@@ -60,13 +50,13 @@ export async function getDirectoryTree(
   }
 
   try {
-    const absoluteDirectoryPath = resolve(directoryPath)
+    const absoluteDirectoryPath = resolve(path)
     const baseName = basename(absoluteDirectoryPath)
     const tree = await traverseDirectory(absoluteDirectoryPath, baseName)
     return tree
   } catch (error) {
     console.error(
-      `Error processing directory ${directoryPath}:`,
+      `Error processing directory ${path}:`,
       error instanceof Error ? error.message : error
     )
     return null
@@ -97,6 +87,22 @@ export async function openFileManagerApp(path: string) {
   }
 }
 
-export async function createFolder(path: string) {
+export async function createDirectory(path: string) {
   await mkdir(path, { recursive: true })
+}
+
+export async function renameFile(source: string, destination: string) {
+  await rename(source, destination)
+}
+
+export async function copyFiles(
+  buffers: {
+    name: string
+    buffer: ArrayBuffer
+  }[],
+  targetDir: string
+): Promise<void> {
+  for (const { name, buffer } of buffers) {
+    await writeFile(join(targetDir, name), Buffer.from(buffer))
+  }
 }
