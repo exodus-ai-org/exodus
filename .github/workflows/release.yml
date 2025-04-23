@@ -50,6 +50,11 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: pnpm run build:linux
 
+      - name: semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx semantic-release
+
       - name: release
         uses: softprops/action-gh-release@v2
         with:
@@ -66,8 +71,3 @@ jobs:
             dist/*.yml
             dist/*.blockmap
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: semantic-release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release
