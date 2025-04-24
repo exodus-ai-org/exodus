@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/sidebar'
 import { Bot, Plus } from 'lucide-react'
 import * as React from 'react'
+import { version } from '../../../package.json'
 import { NavHistories } from './nav-histories'
 import { NavSecondary } from './nav-secondary'
 import { SearchForm } from './search-form'
@@ -27,7 +28,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-semibold">Exodus</span>
-                  <span className="truncate text-xs">v1.0.0</span>
+                  <span className="truncate text-xs">v{version}</span>
                 </div>
               </div>
             </SidebarMenuButton>

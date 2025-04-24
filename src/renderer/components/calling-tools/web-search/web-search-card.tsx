@@ -1,11 +1,11 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Card, CardContent, CardDescription } from '@/components/ui/card'
-import { DocumentTypeWithoutTokenCount } from '@shared/types/web-search'
+import { WebSearchResultWithoutTokenCount } from '@shared/types/web-search'
 import { useEffect, useState } from 'react'
 
 export function WebSearchCard({ toolResult }: { toolResult: string }) {
   const [dataSource, setDataSource] = useState<
-    DocumentTypeWithoutTokenCount[] | null
+    WebSearchResultWithoutTokenCount[] | null
   >(null)
 
   useEffect(() => {

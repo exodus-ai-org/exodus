@@ -1,9 +1,9 @@
 import { WebPDFLoader } from '@langchain/community/document_loaders/web/pdf'
 import { Setting } from '@shared/types/db'
 import {
-  DocumentType,
-  DocumentTypeWithoutTokenCount,
-  WebSearchResponse
+  WebSearchResponse,
+  WebSearchResult,
+  WebSearchResultWithoutTokenCount
 } from '@shared/types/web-search'
 import { tool } from 'ai'
 import * as cheerio from 'cheerio'
@@ -158,6 +158,7 @@ export const webSearch = (setting: Setting) =>
             .map(async (item) => {
               const document = await loadDocument(item.link as string)
               return {
+                rank: item.position,
                 link: item.link as string,
                 title: item.title as string,
                 snippet: item.snippet ?? '',
@@ -169,9 +170,9 @@ export const webSearch = (setting: Setting) =>
             })
         )
 
-        const values: DocumentTypeWithoutTokenCount[] = results
+        const values: WebSearchResultWithoutTokenCount[] = results
           .filter(
-            (result): result is PromiseFulfilledResult<DocumentType> =>
+            (result): result is PromiseFulfilledResult<WebSearchResult> =>
               result.status === 'fulfilled' &&
               // TODO: Need to determine a more precise quote based on the specific model.
               result.value.tokenCount < 180_000
@@ -179,13 +180,14 @@ export const webSearch = (setting: Setting) =>
           .map(
             ({ value }) =>
               ({
+                rank: value.rank,
                 favicon: value.favicon,
                 type: value.type,
                 link: value.link,
                 title: value.title,
                 snippet: value.snippet,
                 content: value.content
-              }) as DocumentTypeWithoutTokenCount
+              }) as WebSearchResultWithoutTokenCount
           )
 
         return JSON.stringify(values)
