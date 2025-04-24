@@ -1,14 +1,13 @@
 # [1.2.0](https://github.com/HyperChatBot/exodus/compare/v1.1.0...v1.2.0) (2025-04-24)
 
-
 ### Features
 
-* complete web search ([3b437a6](https://github.com/HyperChatBot/exodus/commit/3b437a6b613f2707308876f5e6e9bab45f98bdb2))
-* complete web search ([6ef7f56](https://github.com/HyperChatBot/exodus/commit/6ef7f564674fc8613b86e6e6af54e68fa37ad4a7))
-* **wip:** append cications to web search summaries ([35fa81d](https://github.com/HyperChatBot/exodus/commit/35fa81dc7818128dd64508b96c868998adafd088))
-* **wip:** append cications to web search summaries ([a2c04a9](https://github.com/HyperChatBot/exodus/commit/a2c04a92ded834cf32dc40a94e796c0ceb84beba))
-* **wip:** web search summary with citations ([79df47d](https://github.com/HyperChatBot/exodus/commit/79df47d17b7a1dc7aa8a202b0ffe4f137083884e))
-* **wip:** web search summary with citations ([3edd6d9](https://github.com/HyperChatBot/exodus/commit/3edd6d932cbbec89b425c6e5c8188a8ddda86da7))
+- complete web search ([3b437a6](https://github.com/HyperChatBot/exodus/commit/3b437a6b613f2707308876f5e6e9bab45f98bdb2))
+- complete web search ([6ef7f56](https://github.com/HyperChatBot/exodus/commit/6ef7f564674fc8613b86e6e6af54e68fa37ad4a7))
+- **wip:** append cications to web search summaries ([35fa81d](https://github.com/HyperChatBot/exodus/commit/35fa81dc7818128dd64508b96c868998adafd088))
+- **wip:** append cications to web search summaries ([a2c04a9](https://github.com/HyperChatBot/exodus/commit/a2c04a92ded834cf32dc40a94e796c0ceb84beba))
+- **wip:** web search summary with citations ([79df47d](https://github.com/HyperChatBot/exodus/commit/79df47d17b7a1dc7aa8a202b0ffe4f137083884e))
+- **wip:** web search summary with citations ([3edd6d9](https://github.com/HyperChatBot/exodus/commit/3edd6d932cbbec89b425c6e5c8188a8ddda86da7))
 
 # [1.1.0](https://github.com/HyperChatBot/exodus/compare/v1.0.1...v1.1.0) (2025-04-23)
 

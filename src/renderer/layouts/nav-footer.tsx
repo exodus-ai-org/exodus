@@ -11,7 +11,7 @@ import { Folders, Settings } from 'lucide-react'
 import React from 'react'
 import { Link } from 'react-router'
 
-export function NavSecondary({
+export function NavFooter({
   ...props
 }: React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
   const setSettingsDialogVisible = useSetAtom(isSettingsVisibleAtom)
