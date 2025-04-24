@@ -1,27 +1,27 @@
 import { Variables } from '@shared/types/ai'
 import { Hono } from 'hono'
 import OpenAI from 'openai'
-import { getSetting } from '../../db/queries'
+import { getSettings } from '../../db/queries'
 
 const audio = new Hono<{ Variables: Variables }>()
 
 audio.post('/speech', async (c) => {
   const { text } = await c.req.json()
 
-  const setting = await getSetting()
-  if (!('openaiApiKey' in setting)) {
+  const settings = await getSettings()
+  if (!('id' in settings)) {
     return c.text('OpenAI configuration is missing', 404)
   }
 
   const openai = new OpenAI({
-    baseURL: setting.openaiBaseUrl,
-    apiKey: setting.openaiApiKey ?? ''
+    baseURL: settings.providers?.openaiBaseUrl,
+    apiKey: settings.providers?.openaiApiKey ?? ''
   })
 
   const speech = await openai.audio.speech.create({
-    model: setting.textToSpeechModel ?? 'tts-1',
+    model: settings.audio?.textToSpeechModel ?? 'tts-1',
     input: text,
-    voice: setting.textToSpeechVoice ?? 'alloy'
+    voice: settings.audio?.textToSpeechVoice ?? 'alloy'
   })
 
   const buffer = Buffer.from(await speech.arrayBuffer())
@@ -40,19 +40,19 @@ audio.post('/transcriptions', async (c) => {
     return c.text('Audio file is missing', 404)
   }
 
-  const setting = await getSetting()
-  if (!('openaiApiKey' in setting)) {
+  const settings = await getSettings()
+  if (!('providerConfig' in settings)) {
     return c.text('OpenAI configuration is missing', 404)
   }
 
   const openai = new OpenAI({
-    baseURL: setting.openaiBaseUrl,
-    apiKey: setting.openaiApiKey ?? ''
+    baseURL: settings.providers?.openaiBaseUrl,
+    apiKey: settings.providers?.openaiApiKey ?? ''
   })
 
   const transcription = await openai.audio.transcriptions.create({
     file: audioFile,
-    model: setting.speechToTextModel ?? 'whisper-1'
+    model: settings.audio?.speechToTextModel ?? 'whisper-1'
   })
 
   return c.json(transcription)

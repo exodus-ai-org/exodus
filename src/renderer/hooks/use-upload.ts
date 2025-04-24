@@ -5,11 +5,11 @@ import { Attachment } from 'ai'
 import { useSetAtom } from 'jotai'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { useSetting } from './use-setting'
+import { useSettings } from './use-settings'
 
 export function useUpload() {
   const [loading, setLoading] = useState(false)
-  const { data: settings } = useSetting()
+  const { data: settings } = useSettings()
   const setAttachments = useSetAtom(attachmentAtom)
 
   const uploadFileToBase64 = async (files: File[]) => {

@@ -5,7 +5,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem
 } from '@/components/ui/sidebar'
-import { isSettingsVisibleAtom } from '@/stores/setting'
+import { isSettingsVisibleAtom } from '@/stores/settings'
 import { useSetAtom } from 'jotai'
 import { Folders, Settings } from 'lucide-react'
 import React from 'react'

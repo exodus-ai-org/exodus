@@ -13,8 +13,8 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
+import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { AlertCircle } from 'lucide-react'
-import { UseFormReturnType } from '../settings-form'
 
 export function AudioSpeech({ form }: { form: UseFormReturnType }) {
   return (
@@ -31,7 +31,7 @@ export function AudioSpeech({ form }: { form: UseFormReturnType }) {
 
       <FormField
         control={form.control}
-        name="speechToTextModel"
+        name="audio.speechToTextModel"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Speech to Text Model</FormLabel>
@@ -58,7 +58,7 @@ export function AudioSpeech({ form }: { form: UseFormReturnType }) {
 
       <FormField
         control={form.control}
-        name="textToSpeechModel"
+        name="audio.textToSpeechModel"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Text to Speech Model</FormLabel>
@@ -82,7 +82,7 @@ export function AudioSpeech({ form }: { form: UseFormReturnType }) {
 
       <FormField
         control={form.control}
-        name="textToSpeechVoice"
+        name="audio.textToSpeechVoice"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Text to Speech Voice</FormLabel>

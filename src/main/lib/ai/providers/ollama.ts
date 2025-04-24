@@ -1,14 +1,14 @@
-import { Setting } from '@shared/types/db'
+import { Settings } from '@shared/types/db'
 import { createOllama } from 'ollama-ai-provider'
 
-export function getOllama(setting: Setting) {
+export function getOllama(settings: Settings) {
   const ollama = createOllama({
-    baseURL: setting.ollamaBaseUrl ?? ''
+    baseURL: settings.providers?.ollamaBaseUrl ?? ''
   })
 
   return {
     provider: ollama,
-    chatModel: ollama(setting.chatModel ?? ''),
-    reasoningModel: ollama(setting.reasoningModel ?? '')
+    chatModel: ollama(settings.providerConfig?.chatModel ?? ''),
+    reasoningModel: ollama(settings.providerConfig?.reasoningModel ?? '')
   }
 }

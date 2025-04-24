@@ -15,24 +15,14 @@ CREATE TABLE "Message" (
 --> statement-breakpoint
 CREATE TABLE "Setting" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"openaiApiKey" varchar,
-	"openaiBaseUrl" varchar,
-	"azureOpenaiApiKey" varchar,
-	"azureOpenAiEndpoint" varchar,
-	"azureOpenAiApiVersion" varchar,
-	"anthropicApiKey" varchar,
-	"anthropicBaseUrl" varchar,
-	"googleApiKey" varchar,
-	"googleBaseUrl" varchar,
-	"xAiApiKey" varchar,
-	"xAiBaseUrl" varchar,
-	"deepSeekApiKey" varchar,
-	"deepSeekBaseUrl" varchar,
-	"ollamaBaseUrl" varchar,
-	"mcpServers" varchar,
-	"speechToTextModel" varchar,
-	"textToSpeechModel" varchar,
-	"textToSpeechVoice" varchar
+	"providerConfig" jsonb,
+	"providers" jsonb,
+	"mcpServers" text DEFAULT '',
+	"audio" jsonb,
+	"fileUploadEndpoint" text DEFAULT '',
+	"assistantAvatar" text DEFAULT '',
+	"googleCloud" jsonb,
+	"webSearch" jsonb
 );
 --> statement-breakpoint
 CREATE TABLE "Vote" (

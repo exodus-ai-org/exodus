@@ -1,3 +1,3 @@
-import { Chat, Message, Setting, Vote } from 'src/main/lib/db/schema'
+import { Chat, Message, Settings, Vote } from 'src/main/lib/db/schema'
 
-export type { Chat, Message, Setting, Vote }
+export type { Chat, Message, Settings, Vote }

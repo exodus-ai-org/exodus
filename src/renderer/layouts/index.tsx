@@ -1,4 +1,4 @@
-import { SettingsDialog } from '@/components/setting/settings-dialog'
+import { SettingsDialog } from '@/components/settings/settings-dialog'
 import {
   SidebarInset,
   SidebarProvider,

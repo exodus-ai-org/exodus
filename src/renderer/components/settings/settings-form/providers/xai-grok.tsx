@@ -6,14 +6,14 @@ import {
   FormMessage
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { UseFormReturnType } from '../../settings-form'
+import { UseFormReturnType } from '@shared/schemas/settings-schema'
 
-export function AnthropicClaude({ form }: { form: UseFormReturnType }) {
+export function XaiGrok({ form }: { form: UseFormReturnType }) {
   return (
     <>
       <FormField
         control={form.control}
-        name="anthropicApiKey"
+        name="providers.xAiApiKey"
         render={({ field }) => (
           <FormItem>
             <FormLabel>API Key</FormLabel>
@@ -21,7 +21,7 @@ export function AnthropicClaude({ form }: { form: UseFormReturnType }) {
               <Input
                 type="password"
                 autoComplete="current-password"
-                id="anthropic-api-key-input"
+                id="xai-api-key-input"
                 autoFocus
                 {...field}
                 value={field.value ?? ''}
@@ -33,14 +33,14 @@ export function AnthropicClaude({ form }: { form: UseFormReturnType }) {
       />
       <FormField
         control={form.control}
-        name="anthropicBaseUrl"
+        name="providers.xAiBaseUrl"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Base URL</FormLabel>
             <FormControl>
               <Input
                 type="text"
-                id="anthropic-base-url-input"
+                id="xai-base-url-input"
                 {...field}
                 value={field.value ?? ''}
               />

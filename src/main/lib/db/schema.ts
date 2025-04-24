@@ -1,8 +1,9 @@
+import { SettingsType } from '@shared/schemas/settings-schema'
 import { type InferSelectModel } from 'drizzle-orm'
 import {
   boolean,
-  integer,
   json,
+  jsonb,
   pgTable,
   primaryKey,
   text,
@@ -52,32 +53,17 @@ export const vote = pgTable(
 
 export type Vote = InferSelectModel<typeof vote>
 
-export const setting = pgTable('Setting', {
+export const settings = pgTable('Setting', {
   id: uuid('id').notNull().primaryKey().defaultRandom(),
-  provider: varchar('provider').default(''),
-  chatModel: varchar('chatModel').default(''),
-  reasoningModel: varchar('reasoningModel').default(''),
-  openaiApiKey: varchar('openaiApiKey').default(''),
-  openaiBaseUrl: varchar('openaiBaseUrl').default(''),
-  azureOpenaiApiKey: varchar('azureOpenaiApiKey').default(''),
-  azureOpenAiEndpoint: varchar('azureOpenAiEndpoint').default(''),
-  azureOpenAiApiVersion: varchar('azureOpenAiApiVersion').default(''),
-  anthropicApiKey: varchar('anthropicApiKey').default(''),
-  anthropicBaseUrl: varchar('anthropicBaseUrl').default(''),
-  googleGeminiApiKey: varchar('googleGeminiApiKey').default(''),
-  googleGeminiBaseUrl: varchar('googleGeminiBaseUrl').default(''),
-  xAiApiKey: varchar('xAiApiKey').default(''),
-  xAiBaseUrl: varchar('xAiBaseUrl').default(''),
-  ollamaBaseUrl: varchar('ollamaBaseUrl').default(''),
-  mcpServers: varchar('mcpServers').default(''),
-  speechToTextModel: varchar('speechToTextModel').default(''),
-  textToSpeechModel: varchar('textToSpeechModel').default(''),
-  textToSpeechVoice: varchar('textToSpeechVoice').default(''),
-  fileUploadEndpoint: varchar('fileUploadEndpoint').default(''),
-  assistantAvatar: varchar('assistantAvatar').default(''),
-  googleApiKey: varchar('googleApiKey').default(''),
-  serperApiKey: varchar('serperApiKey').default(''),
-  maxSteps: integer('maxSteps').default(1)
+  providerConfig:
+    jsonb('providerConfig').$type<SettingsType['providerConfig']>(),
+  providers: jsonb('providers').$type<SettingsType['providers']>(),
+  mcpServers: text('mcpServers').default(''),
+  audio: jsonb('audio').$type<SettingsType['audio']>(),
+  fileUploadEndpoint: text('fileUploadEndpoint').default(''),
+  assistantAvatar: text('assistantAvatar').default(''),
+  googleCloud: jsonb('googleCloud').$type<SettingsType['googleCloud']>(),
+  webSearch: jsonb('webSearch').$type<SettingsType['webSearch']>()
 })
 
-export type Setting = InferSelectModel<typeof setting>
+export type Settings = InferSelectModel<typeof settings>

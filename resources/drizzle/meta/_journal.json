@@ -5,64 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1744354869053,
-      "tag": "0000_overrated_gorilla_man",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1744355424440,
-      "tag": "0001_busy_komodo",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1744456939635,
-      "tag": "0002_greedy_molecule_man",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1744476082513,
-      "tag": "0003_youthful_puff_adder",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1744545080959,
-      "tag": "0004_parched_sumo",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1744711024608,
-      "tag": "0005_complete_quicksilver",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1744866551659,
-      "tag": "0006_chubby_crystal",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1745248906965,
-      "tag": "0007_lonely_blackheart",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1745307479986,
-      "tag": "0008_shocking_kulan_gath",
+      "when": 1745492738086,
+      "tag": "0000_white_mockingbird",
       "breakpoints": true
     }
   ]

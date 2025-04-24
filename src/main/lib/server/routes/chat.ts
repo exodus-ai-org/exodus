@@ -27,7 +27,7 @@ import {
   deleteChatById,
   getChatById,
   getMessagesByChatId,
-  getSetting,
+  getSettings,
   saveChat,
   saveMessages
 } from '../../db/queries'
@@ -47,16 +47,16 @@ chat.post('/', async (c) => {
   }>()
   const mcpTools = c.get('tools')
 
-  const setting = await getSetting()
-  if (!('id' in setting)) {
+  const settings = await getSettings()
+  if (!('id' in settings)) {
     throw new Error('Failed to retrieve settings.')
   }
 
-  if (!setting.chatModel) {
+  if (!settings.providerConfig?.chatModel) {
     throw new Error('Failed to retrieve selected chat model.')
   }
 
-  if (!setting.reasoningModel) {
+  if (!settings.providerConfig?.reasoningModel) {
     throw new Error('Failed to retrieve selected reasoning model.')
   }
 
@@ -95,11 +95,11 @@ chat.post('/', async (c) => {
     calculator,
     date,
     weather,
-    googleMapsPlaces: googleMapsPlaces(setting),
-    googleMapsRouting: googleMapsRouting(setting)
+    googleMapsPlaces: googleMapsPlaces(settings),
+    googleMapsRouting: googleMapsRouting(settings)
   }
   if (advancedTools.includes(AdvancedTools.WebSearch)) {
-    tools['webSearch'] = webSearch(setting)
+    tools['webSearch'] = webSearch(settings)
   }
 
   // immediately start streaming the response
@@ -111,7 +111,7 @@ chat.post('/', async (c) => {
           : chatModel,
         system: SYSTEM_PROMPT,
         messages,
-        maxSteps: setting.maxSteps ?? 1,
+        maxSteps: settings.providerConfig?.maxSteps ?? 1,
         tools,
         experimental_generateMessageId: uuidV4,
         onFinish: async ({ response }) => {

@@ -6,14 +6,14 @@ import {
   FormMessage
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { UseFormReturnType } from '../../settings-form'
+import { UseFormReturnType } from '@shared/schemas/settings-schema'
 
 export function GoogleGemini({ form }: { form: UseFormReturnType }) {
   return (
     <>
       <FormField
         control={form.control}
-        name="googleGeminiApiKey"
+        name="providers.googleGeminiApiKey"
         render={({ field }) => (
           <FormItem>
             <FormLabel>API Key</FormLabel>
@@ -33,7 +33,7 @@ export function GoogleGemini({ form }: { form: UseFormReturnType }) {
       />
       <FormField
         control={form.control}
-        name="googleGeminiBaseUrl"
+        name="providers.googleGeminiBaseUrl"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Base URL</FormLabel>

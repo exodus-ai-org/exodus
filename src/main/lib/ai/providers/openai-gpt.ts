@@ -1,15 +1,15 @@
 import { createOpenAI } from '@ai-sdk/openai'
-import { Setting } from '@shared/types/db'
+import { Settings } from '@shared/types/db'
 
-export function getOpenAi(setting: Setting) {
+export function getOpenAi(settings: Settings) {
   const openai = createOpenAI({
-    apiKey: setting.openaiApiKey ?? '',
-    baseURL: setting.openaiBaseUrl ?? undefined
+    apiKey: settings.providers?.openaiApiKey ?? '',
+    baseURL: settings.providers?.openaiBaseUrl ?? undefined
   })
 
   return {
     provider: openai,
-    chatModel: openai(setting.chatModel ?? ''),
-    reasoningModel: openai(setting.reasoningModel ?? '')
+    chatModel: openai(settings.providerConfig?.chatModel ?? ''),
+    reasoningModel: openai(settings.providerConfig?.reasoningModel ?? '')
   }
 }

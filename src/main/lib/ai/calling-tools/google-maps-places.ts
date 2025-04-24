@@ -1,9 +1,9 @@
 import { v1 } from '@googlemaps/places'
-import { Setting } from '@shared/types/db'
+import { Settings } from '@shared/types/db'
 import { tool } from 'ai'
 import { z } from 'zod'
 
-export const googleMapsPlaces = (setting: Setting) =>
+export const googleMapsPlaces = (settings: Settings) =>
   tool({
     description: 'Specify a text string on which to search for a place.',
     parameters: z.object({
@@ -16,7 +16,7 @@ export const googleMapsPlaces = (setting: Setting) =>
         )
     }),
     execute: async ({ query }: { query: string }) => {
-      if (!setting.googleApiKey) {
+      if (!settings.googleCloud?.googleApiKey) {
         throw new Error(
           'To use Google Map Places, make sure to fill in the `googleApiKey` in the settings.'
         )
@@ -24,7 +24,7 @@ export const googleMapsPlaces = (setting: Setting) =>
 
       try {
         const placesClient = new v1.PlacesClient({
-          apiKey: setting.googleApiKey
+          apiKey: settings.googleCloud?.googleApiKey
         })
 
         const response = await placesClient.searchText(

@@ -6,15 +6,15 @@ import {
   FormMessage
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { useSetting } from '@/hooks/use-setting'
+import { useSettings } from '@/hooks/use-settings'
+import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import useSWR from 'swr'
-import { UseFormReturnType } from '../../settings-form'
 
 export function Ollama({ form }: { form: UseFormReturnType }) {
-  const { data: settings } = useSetting()
+  const { data: settings } = useSettings()
   const { error } = useSWR(
-    settings?.ollamaBaseUrl
-      ? `/api/ollama/ping?url=${settings?.ollamaBaseUrl}`
+    settings?.providers?.ollamaBaseUrl
+      ? `/api/ollama/ping?url=${settings?.providers?.ollamaBaseUrl}`
       : null
   )
 
@@ -22,7 +22,7 @@ export function Ollama({ form }: { form: UseFormReturnType }) {
     <>
       <FormField
         control={form.control}
-        name="ollamaBaseUrl"
+        name="providers.ollamaBaseUrl"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Base URL</FormLabel>

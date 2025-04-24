@@ -10,7 +10,7 @@ import {
   DialogTitle
 } from '@/components/ui/dialog'
 import { SidebarProvider } from '@/components/ui/sidebar'
-import { isSettingsVisibleAtom, settingsLabelAtom } from '@/stores/setting'
+import { isSettingsVisibleAtom, settingsLabelAtom } from '@/stores/settings'
 import { useAtom, useAtomValue } from 'jotai'
 import { SettingsForm } from './settings-form'
 import { SettingsSidebar } from './settings-sidebar'

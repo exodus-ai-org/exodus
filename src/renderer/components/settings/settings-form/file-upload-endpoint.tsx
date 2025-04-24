@@ -10,13 +10,13 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { AlertCircle } from 'lucide-react'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import {
   atomOneDark,
   atomOneLight
 } from 'react-syntax-highlighter/dist/esm/styles/hljs'
-import { UseFormReturnType } from '../settings-form'
 
 export function FileUploadEndpoint({ form }: { form: UseFormReturnType }) {
   const { actualTheme } = useTheme()

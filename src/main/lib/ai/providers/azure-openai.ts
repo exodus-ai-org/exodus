@@ -1,16 +1,16 @@
 import { createAzure } from '@ai-sdk/azure'
-import { Setting } from '@shared/types/db'
+import { Settings } from '@shared/types/db'
 
-export function getAzureOpenAi(setting: Setting) {
+export function getAzureOpenAi(settings: Settings) {
   const azure = createAzure({
-    apiKey: setting.azureOpenaiApiKey ?? '',
-    baseURL: setting.azureOpenAiEndpoint ?? '',
-    apiVersion: setting.azureOpenAiApiVersion ?? ''
+    apiKey: settings.providers?.azureOpenaiApiKey ?? '',
+    baseURL: settings.providers?.azureOpenAiEndpoint ?? '',
+    apiVersion: settings.providers?.azureOpenAiApiVersion ?? ''
   })
 
   return {
     provider: azure,
-    chatModel: azure(setting.chatModel ?? ''),
-    reasoningModel: azure(setting.reasoningModel ?? '')
+    chatModel: azure(settings.providerConfig?.chatModel ?? ''),
+    reasoningModel: azure(settings.providerConfig?.reasoningModel ?? '')
   }
 }

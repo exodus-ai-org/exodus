@@ -1,15 +1,15 @@
 import { createAnthropic } from '@ai-sdk/anthropic'
-import { Setting } from '@shared/types/db'
+import { Settings } from '@shared/types/db'
 
-export function getAnthropicClaude(setting: Setting) {
+export function getAnthropicClaude(settings: Settings) {
   const anthropic = createAnthropic({
-    apiKey: setting.anthropicApiKey ?? '',
-    baseURL: setting.anthropicBaseUrl ?? undefined
+    apiKey: settings.providers?.anthropicApiKey ?? '',
+    baseURL: settings.providers?.anthropicBaseUrl ?? undefined
   })
 
   return {
     provider: anthropic,
-    chatModel: anthropic(setting.chatModel ?? ''),
-    reasoningModel: anthropic(setting.reasoningModel ?? '')
+    chatModel: anthropic(settings.providerConfig?.chatModel ?? ''),
+    reasoningModel: anthropic(settings.providerConfig?.reasoningModel ?? '')
   }
 }

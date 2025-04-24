@@ -1,6 +1,6 @@
 import { experimental_createMCPClient, Tool } from 'ai'
 import { Experimental_StdioMCPTransport, StdioConfig } from 'ai/mcp-stdio'
-import { getSetting } from '../../db/queries'
+import { getSettings } from '../../db/queries'
 
 async function retrieveMcpTools({ command, args }: StdioConfig) {
   const transport = new Experimental_StdioMCPTransport({
@@ -18,10 +18,10 @@ export async function connectMcpServers(): Promise<Record<
   string,
   Tool
 > | null> {
-  const setting = await getSetting()
+  const settings = await getSettings()
 
-  if ('mcpServers' in setting) {
-    const { mcpServers } = setting
+  if ('mcpServers' in settings) {
+    const { mcpServers } = settings
     if (mcpServers === null) return null
 
     try {

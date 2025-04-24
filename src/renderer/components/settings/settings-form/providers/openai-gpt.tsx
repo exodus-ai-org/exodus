@@ -6,14 +6,14 @@ import {
   FormMessage
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { UseFormReturnType } from '../../settings-form'
+import { UseFormReturnType } from '@shared/schemas/settings-schema'
 
 export function OpenAiGpt({ form }: { form: UseFormReturnType }) {
   return (
     <>
       <FormField
         control={form.control}
-        name="openaiApiKey"
+        name="providers.openaiApiKey"
         render={({ field }) => (
           <FormItem>
             <FormLabel>API Key</FormLabel>
@@ -33,7 +33,7 @@ export function OpenAiGpt({ form }: { form: UseFormReturnType }) {
       />
       <FormField
         control={form.control}
-        name="openaiBaseUrl"
+        name="providers.openaiBaseUrl"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Base URL</FormLabel>

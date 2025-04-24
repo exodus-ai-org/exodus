@@ -6,7 +6,7 @@ import {
   UIMessage,
   generateText
 } from 'ai'
-import { getSetting } from '../db/queries'
+import { getSettings } from '../db/queries'
 import { TITLE_GENERATION_PROMPT } from './prompts'
 import { providers } from './providers'
 
@@ -31,17 +31,17 @@ export function getTrailingMessageId({
 }
 
 export async function getModelFromProvider() {
-  const setting = await getSetting()
-  if (!('id' in setting)) {
+  const settings = await getSettings()
+  if (!('id' in settings)) {
     throw new Error('Failed to retrieve settings.')
   }
 
-  if (!setting.provider) {
+  if (!settings.providerConfig?.provider) {
     throw new Error('Failed to retrieve selected provider.')
   }
 
-  const provider = providers[setting.provider as Providers]
-  const models = provider(setting)
+  const provider = providers[settings.providerConfig?.provider as Providers]
+  const models = provider(settings)
 
   return models
 }

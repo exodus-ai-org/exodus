@@ -1,0 +1,18 @@
+import { Variables } from '@shared/types/ai'
+import { Hono } from 'hono'
+import { getSettings, updateSetting } from '../../db/queries'
+
+const settings = new Hono<{ Variables: Variables }>()
+
+settings.get('/', async (c) => {
+  const settings = await getSettings()
+  return c.json(settings)
+})
+
+settings.post('/', async (c) => {
+  const payload = await c.req.json()
+  const settings = await updateSetting(payload)
+  return c.json(settings)
+})
+
+export default settings

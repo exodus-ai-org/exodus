@@ -10,7 +10,7 @@ import customUploaderRouter from './routes/custom-uploader'
 import dbIoRouter from './routes/db-io'
 import historyRouter from './routes/history'
 import ollamaRouter from './routes/ollama'
-import settingRouter from './routes/setting'
+import settingsRouter from './routes/settings'
 
 // Export server functions
 export async function connectHttpServer() {
@@ -36,7 +36,7 @@ export async function connectHttpServer() {
   // Routes
   app.route('/api/chat', chatRouter)
   app.route('/api/history', historyRouter)
-  app.route('/api/setting', settingRouter)
+  app.route('/api/settings', settingsRouter)
   app.route('/api/ollama', ollamaRouter)
   app.route('/api/audio', audioRouter)
   app.route('/api/custom-uploader', customUploaderRouter)

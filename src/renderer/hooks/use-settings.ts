@@ -1,12 +1,12 @@
 import { BASE_URL } from '@shared/constants'
-import { Setting } from '@shared/types/db'
+import { Settings } from '@shared/types/db'
 import useSWR from 'swr'
 
-export function useSetting() {
-  const { data, error, isLoading, mutate } = useSWR<Setting>(`/api/setting`)
+export function useSettings() {
+  const { data, error, isLoading, mutate } = useSWR<Settings>(`/api/settings`)
 
-  const updateSetting = async (payload: Setting) => {
-    const response = await fetch(`${BASE_URL}/api/setting`, {
+  const updateSetting = async (payload: Settings) => {
+    const response = await fetch(`${BASE_URL}/api/settings`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

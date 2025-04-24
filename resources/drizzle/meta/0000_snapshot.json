@@ -1,5 +1,5 @@
 {
-  "id": "bc63863f-f015-459a-9cf3-2f0215d082d4",
+  "id": "209e78d1-bace-49cf-9d02-1c5d1c9ecd47",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -109,111 +109,54 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "openaiApiKey": {
-          "name": "openaiApiKey",
-          "type": "varchar",
+        "providerConfig": {
+          "name": "providerConfig",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         },
-        "openaiBaseUrl": {
-          "name": "openaiBaseUrl",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "azureOpenaiApiKey": {
-          "name": "azureOpenaiApiKey",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "azureOpenAiEndpoint": {
-          "name": "azureOpenAiEndpoint",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "azureOpenAiApiVersion": {
-          "name": "azureOpenAiApiVersion",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "anthropicApiKey": {
-          "name": "anthropicApiKey",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "anthropicBaseUrl": {
-          "name": "anthropicBaseUrl",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "googleApiKey": {
-          "name": "googleApiKey",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "googleBaseUrl": {
-          "name": "googleBaseUrl",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "xAiApiKey": {
-          "name": "xAiApiKey",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "xAiBaseUrl": {
-          "name": "xAiBaseUrl",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "deepSeekApiKey": {
-          "name": "deepSeekApiKey",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "deepSeekBaseUrl": {
-          "name": "deepSeekBaseUrl",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "ollamaBaseUrl": {
-          "name": "ollamaBaseUrl",
-          "type": "varchar",
+        "providers": {
+          "name": "providers",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         },
         "mcpServers": {
           "name": "mcpServers",
-          "type": "varchar",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "''"
+        },
+        "audio": {
+          "name": "audio",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         },
-        "speechToTextModel": {
-          "name": "speechToTextModel",
-          "type": "varchar",
+        "fileUploadEndpoint": {
+          "name": "fileUploadEndpoint",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "''"
+        },
+        "assistantAvatar": {
+          "name": "assistantAvatar",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "''"
+        },
+        "googleCloud": {
+          "name": "googleCloud",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         },
-        "textToSpeechModel": {
-          "name": "textToSpeechModel",
-          "type": "varchar",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "textToSpeechVoice": {
-          "name": "textToSpeechVoice",
-          "type": "varchar",
+        "webSearch": {
+          "name": "webSearch",
+          "type": "jsonb",
           "primaryKey": false,
           "notNull": false
         }

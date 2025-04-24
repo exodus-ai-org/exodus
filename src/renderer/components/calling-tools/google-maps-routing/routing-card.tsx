@@ -1,4 +1,4 @@
-import { useSetting } from '@/hooks/use-setting'
+import { useSettings } from '@/hooks/use-settings'
 import { protos } from '@googlemaps/routing'
 import {
   AdvancedMarker,
@@ -11,7 +11,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Polyline } from './polyline'
 
 export function GoogleMapsCard({ toolResult }: { toolResult: string }) {
-  const { data: settings } = useSetting()
+  const { data: settings } = useSettings()
   const [dataSource, setDataSource] = useState<
     | [
         protos.google.maps.routing.v2.IComputeRoutesResponse,

@@ -1,13 +1,13 @@
 import { CodeEditor } from '@/components/code-editor'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
-import { isMcpServerChangedAtom } from '@/stores/setting'
+import { isMcpServerChangedAtom } from '@/stores/settings'
+import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { motion } from 'framer-motion'
 import { useAtom } from 'jotai'
 import { AlertCircle, Loader } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
-import { UseFormReturnType } from '../settings-form'
 
 export function MCP({ form }: { form: UseFormReturnType }) {
   const [isMcpServerChanged, setIsMcpServerChanged] = useAtom(

@@ -2,23 +2,26 @@ import { BASE_URL } from '@shared/constants'
 import OpenAI from 'openai'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { useSetting } from './use-setting'
+import { useSettings } from './use-settings'
 
 export function useAudio() {
   const [data, setData] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const { data: setting } = useSetting()
+  const { data: settings } = useSettings()
 
   const openai = useMemo(() => {
-    if (setting?.openaiApiKey && setting?.openaiBaseUrl) {
+    if (
+      settings?.providers?.openaiApiKey &&
+      settings?.providers?.openaiBaseUrl
+    ) {
       return new OpenAI({
-        baseURL: setting.openaiBaseUrl,
-        apiKey: setting.openaiApiKey,
+        baseURL: settings.providers.openaiBaseUrl,
+        apiKey: settings.providers.openaiApiKey,
         dangerouslyAllowBrowser: true
       })
     }
     return null
-  }, [setting?.openaiApiKey, setting?.openaiBaseUrl])
+  }, [settings?.providers?.openaiApiKey, settings?.providers?.openaiBaseUrl])
 
   async function textToSpeech(text: string) {
     if (!openai) {

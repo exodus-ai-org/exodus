@@ -1,10 +1,11 @@
 import { Form } from '@/components/ui/form'
-import { useSetting } from '@/hooks/use-setting'
-import { isMcpServerChangedAtom, settingsLabelAtom } from '@/stores/setting'
+import { useSettings } from '@/hooks/use-settings'
+import { isMcpServerChangedAtom, settingsLabelAtom } from '@/stores/settings'
 import { zodResolver } from '@hookform/resolvers/zod'
+import { settingsSchema, SettingsType } from '@shared/schemas/settings-schema'
 import { Providers } from '@shared/types/ai'
 import { useAtomValue, useSetAtom } from 'jotai'
-import { useForm, UseFormReturn } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
 import { AudioSpeech } from './settings-form/audio-speech'
@@ -22,47 +23,18 @@ import { OpenAiGpt } from './settings-form/providers/openai-gpt'
 import { WebSearch } from './settings-form/web-search'
 import { UnderConstruction } from './under-construction'
 
-const formSchema = z.object({
-  provider: z.string().nullable(),
-  chatModel: z.string().nullable(),
-  reasoningModel: z.string().nullable(),
-  openaiApiKey: z.string().nullable(),
-  openaiBaseUrl: z.union([z.string().url().nullable(), z.literal('')]),
-  azureOpenaiApiKey: z.string().nullable(),
-  azureOpenAiEndpoint: z.union([z.string().url().nullable(), z.literal('')]),
-  azureOpenAiApiVersion: z.string().nullable(),
-  anthropicApiKey: z.string().nullable(),
-  anthropicBaseUrl: z.union([z.string().url().nullable(), z.literal('')]),
-  googleGeminiApiKey: z.string().nullable(),
-  googleGeminiBaseUrl: z.union([z.string().url().nullable(), z.literal('')]),
-  xAiApiKey: z.string().nullable(),
-  xAiBaseUrl: z.union([z.string().url().nullable(), z.literal('')]),
-  ollamaBaseUrl: z.string().nullable(),
-  mcpServers: z.string().nullable(),
-  speechToTextModel: z.string().nullable(),
-  textToSpeechVoice: z.string().nullable(),
-  textToSpeechModel: z.string().nullable(),
-  fileUploadEndpoint: z.string().nullable(),
-  assistantAvatar: z.string().nullable(),
-  googleApiKey: z.string().nullable(),
-  serperApiKey: z.string().nullable(),
-  maxSteps: z.coerce.number().nonnegative().lte(20).nullable()
-})
-
-export type UseFormReturnType = UseFormReturn<z.infer<typeof formSchema>>
-
 export function SettingsForm() {
   const setIsMcpServerChanged = useSetAtom(isMcpServerChangedAtom)
-  const { data: settings, mutate, updateSetting } = useSetting()
+  const { data: settings, mutate, updateSetting } = useSettings()
   const activeTitle = useAtomValue(settingsLabelAtom)
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<SettingsType>({
+    resolver: zodResolver(settingsSchema),
     values: settings,
     mode: 'onBlur'
   })
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof settingsSchema>) {
     if (!settings) return
 
     if (form.formState.isDirty) {
@@ -70,6 +42,7 @@ export function SettingsForm() {
         setIsMcpServerChanged(true)
       }
 
+      // @ts-expect-error TODO: Need to fix.
       updateSetting({ id: settings.id, ...values })
       mutate()
       toast.success('Auto saved.')

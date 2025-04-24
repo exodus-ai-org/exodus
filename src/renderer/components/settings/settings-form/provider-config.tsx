@@ -15,12 +15,12 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { models } from '@/lib/ai/models'
+import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { Providers } from '@shared/types/ai'
 import { useMemo } from 'react'
-import { UseFormReturnType } from '../settings-form'
 
 export function ProviderConfig({ form }: { form: UseFormReturnType }) {
-  const provider = form.watch('provider')
+  const provider = form.watch('providerConfig.provider')
 
   const modelsOfProvider = useMemo(() => {
     if (provider) return models[provider as Providers]
@@ -31,7 +31,7 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
     <>
       <FormField
         control={form.control}
-        name="provider"
+        name="providerConfig.provider"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Provider</FormLabel>
@@ -39,8 +39,8 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
               value={field.value ?? ''}
               onValueChange={(value) => {
                 field.onChange(value)
-                form.setValue('chatModel', '')
-                form.setValue('reasoningModel', '')
+                form.setValue('providerConfig.chatModel', '')
+                form.setValue('providerConfig.reasoningModel', '')
               }}
             >
               <FormControl>
@@ -62,7 +62,7 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
       />
       <FormField
         control={form.control}
-        name="chatModel"
+        name="providerConfig.chatModel"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Chat Model</FormLabel>
@@ -92,7 +92,7 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
       />
       <FormField
         control={form.control}
-        name="reasoningModel"
+        name="providerConfig.reasoningModel"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Reasoning Model</FormLabel>
@@ -123,7 +123,7 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
 
       <FormField
         control={form.control}
-        name="maxSteps"
+        name="providerConfig.maxSteps"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Max Steps</FormLabel>

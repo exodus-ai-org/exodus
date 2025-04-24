@@ -6,14 +6,14 @@ import {
   FormMessage
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
-import { UseFormReturnType } from '../../settings-form'
+import { UseFormReturnType } from '@shared/schemas/settings-schema'
 
 export function AzureOpenAi({ form }: { form: UseFormReturnType }) {
   return (
     <>
       <FormField
         control={form.control}
-        name="azureOpenaiApiKey"
+        name="providers.azureOpenaiApiKey"
         render={({ field }) => (
           <FormItem>
             <FormLabel>API Key</FormLabel>
@@ -33,7 +33,7 @@ export function AzureOpenAi({ form }: { form: UseFormReturnType }) {
       />
       <FormField
         control={form.control}
-        name="azureOpenAiEndpoint"
+        name="providers.azureOpenAiEndpoint"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Endpoint</FormLabel>
@@ -52,7 +52,7 @@ export function AzureOpenAi({ form }: { form: UseFormReturnType }) {
       />
       <FormField
         control={form.control}
-        name="azureOpenAiApiVersion"
+        name="providers.azureOpenAiApiVersion"
         render={({ field }) => (
           <FormItem>
             <FormLabel>API Version</FormLabel>

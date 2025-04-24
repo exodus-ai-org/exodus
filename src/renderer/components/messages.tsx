@@ -1,5 +1,5 @@
 import { useArtifact } from '@/hooks/use-artifact'
-import { useSetting } from '@/hooks/use-setting'
+import { useSettings } from '@/hooks/use-settings'
 import { cn } from '@/lib/utils'
 import { UseChatHelpers } from '@ai-sdk/react'
 import { AnimatePresence } from 'framer-motion'
@@ -25,7 +25,7 @@ function Messages({
   status: UseChatHelpers['status']
   reload: UseChatHelpers['reload']
 }) {
-  const { data: settings } = useSetting()
+  const { data: settings } = useSettings()
   const chatBoxRef = useRef<HTMLDivElement>(null)
   const { show: isArtifactVisible } = useArtifact()
 
