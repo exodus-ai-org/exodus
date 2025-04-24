@@ -1,5 +1,6 @@
 import { useArtifact } from '@/hooks/use-artifact'
 import { cn } from '@/lib/utils'
+import { WebSearchResult } from '@shared/types/web-search'
 import type { UIMessage } from 'ai'
 import 'katex/dist/katex.min.css'
 import { Check, Copy, PencilRuler } from 'lucide-react'
@@ -10,7 +11,10 @@ import {
   atomOneDark,
   atomOneLight
 } from 'react-syntax-highlighter/dist/esm/styles/hljs'
+import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
+import remarkMath from 'remark-math'
+import { WebSearchGroup } from './calling-tools/web-search/web-search-group'
 import { useTheme } from './theme-provider'
 
 const themes = {
@@ -23,9 +27,9 @@ function parseCitations(text: ReactNode) {
 
   const citationRegex = /\[Source: ([\d,\s]+)\]/g
   const citations: Array<{
-    text: number
+    text: string
     position: number
-    sourceNumbers: number
+    sourceNumbers: number[]
   }> = []
   let match: RegExpExecArray | null = null
 
@@ -43,6 +47,34 @@ function parseCitations(text: ReactNode) {
   return citations
 }
 
+function ParagraphWithSources({
+  children,
+  webSearchResults
+}: {
+  children: ReactNode
+  webSearchResults: WebSearchResult[] | undefined
+}) {
+  if (!webSearchResults) return children
+  const source = parseCitations(children)
+  if (!Array.isArray(source?.[0]?.sourceNumbers)) return children
+
+  const referredWebSearchResults = webSearchResults.filter((item) =>
+    source[0].sourceNumbers.includes(item.rank)
+  )
+
+  return (
+    <>
+      {typeof children === 'string' &&
+        children.replace(/\[Source: ([\d,\s]+)\]/g, '')}
+
+      <WebSearchGroup
+        webSearchResults={referredWebSearchResults}
+        variant="tiling"
+      />
+    </>
+  )
+}
+
 export function Markdown({
   src,
   parts
@@ -54,7 +86,7 @@ export function Markdown({
   const [copiedContent, setCopiedContent] = useState<ReactNode>('')
   const { actualTheme } = useTheme()
   const { codeTheme, bg } = useMemo(() => themes[actualTheme], [actualTheme])
-  const webSearchResult = useMemo(() => {
+  const webSearchResults = useMemo(() => {
     try {
       const toolInvocationPart = parts.find(
         (part) => part.type === 'tool-invocation'
@@ -65,7 +97,7 @@ export function Markdown({
         if (toolName === 'webSearch' && state === 'result') {
           return JSON.parse(
             toolInvocationPart.toolInvocation.result
-          ) as DocumentType[]
+          ) as WebSearchResult[]
         }
         return undefined
       }
@@ -75,7 +107,6 @@ export function Markdown({
       return undefined
     }
   }, [parts])
-  console.log(webSearchResult)
 
   const handleCopy = (children: ReactNode) => {
     if (!copiedContent) {
@@ -89,9 +120,21 @@ export function Markdown({
   return (
     <section className="markdown">
       <ReactMarkdown
-        // remarkPlugins={[remarkGfm, remarkMath]}
-        // rehypePlugins={[rehypeKatex]}
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={[
+          remarkGfm,
+          [
+            remarkMath,
+            {
+              // KaTeX supports both single dollar ($) and double dollar ($$) delimiters for math expressions.
+              // However, ordinary text containing single dollar signs, such as: "The daily salary ranges from $200 - $300," can be incorrectly interpreted as KaTeX.
+              // Therefore, ensure that the `singleDollarTextMath` parameter is set to `false` to prevent this.
+              // **IMPORTANT:** Instruct your LLM model to always use the double dollar ($$) format when writing mathematical formulas using KaTeX:
+              // e.g. "When writing mathematical formulas using KaTeX format, enclose them within **$$** symbols."
+              singleDollarTextMath: false
+            }
+          ]
+        ]}
+        rehypePlugins={[rehypeKatex]}
         components={{
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           code({ className, children, node, ...rest }) {
@@ -173,12 +216,11 @@ export function Markdown({
           },
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           p({ className, node, children, ...rest }) {
-            console.log(parseCitations(children))
-
-            // console.log(children, typeof children)
             return (
               <p {...rest} className={className}>
-                {children}
+                <ParagraphWithSources webSearchResults={webSearchResults}>
+                  {children}
+                </ParagraphWithSources>
               </p>
             )
           },

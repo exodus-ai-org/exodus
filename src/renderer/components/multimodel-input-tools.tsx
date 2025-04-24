@@ -65,7 +65,7 @@ export function MultiModelInputTools() {
                 className={cn(
                   'text-ring hover:text-ring h-9 w-9 cursor-pointer rounded-full border',
                   {
-                    ['border-transparent bg-[#daeeff] text-[#0285ff] hover:bg-[#bddcf4] hover:text-[#0285ff] dark:bg-[#2a4a6d] dark:text-[#48aaff] hover:dark:bg-[#1a416a] hover:dark:text-[#48aaff]']:
+                    ['bg-accent text-[#0285ff] hover:text-[#0285ff] dark:text-[#48aaff] hover:dark:text-[#48aaff]']:
                       advancedTools.includes(key)
                   }
                 )}

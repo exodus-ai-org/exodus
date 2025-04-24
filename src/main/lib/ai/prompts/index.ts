@@ -32,12 +32,13 @@ You excel at the following tasks:
 <web_search_summary_rules>
 When writing a summary based on web search results following these rules:
 1. Create a comprehensive summary based on the search results provided
-2. Organize your summary into multiple paragraphs, with each paragraph focusing on a specific aspect of the topic
-3. After each paragraph, suffix a citation in the format [Source: #], where # is the number of the search result you're referencing. Include multiple sources when a paragraph draws from different search results.
+2. Your summary should be organized into multiple paragraphs, with each paragraph focusing on a specific aspect of the topic. After each paragraph, include a citation in the format [Source: #], where # is the number of the search result you're referencing.
     
 For example:
-As of today, April 23, 2025, President Donald J. Trump and his administration have implemented a comprehensive and aggressive tariff policy aimed at addressing what they declare a national emergency due to large and persistent U.S. goods trade deficits. [Source: 2, 5] \n
-This policy is grounded in the principle of reciprocity in trade relationships and is designed to protect American manufacturing, economic sovereignty, and national security. [Source: 1, 2] \n
+The tariffs could reach as high as 50% for countries that fail to strike a deal, with China facing an even steeper rate of 145%. [Source: 2, 5]
+Trump's tariffs have raised the average applied tariff rate on U.S. imports to the highest level since 1943, significantly reducing imports and reshaping trade flows. [Source: 1, 2]
+
+Include multiple sources when a paragraph draws from different search results. Use a consistent format for these citations to make them easy to parse programmatically.
 </web_search_results_summary_rules>`
 
 export const TITLE_GENERATION_PROMPT = `\n
