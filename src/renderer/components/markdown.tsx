@@ -22,10 +22,11 @@ const themes = {
   dark: { codeTheme: atomOneDark, bg: 'bg-[#282c34]' }
 }
 
+const citationRegex = /\[Source: ([\d,\s]+)\]/g
+
 function parseCitations(text: ReactNode) {
   if (typeof text !== 'string') return undefined
 
-  const citationRegex = /\[Source: ([\d,\s]+)\]/g
   const citations: Array<{
     text: string
     position: number
@@ -64,9 +65,7 @@ function ParagraphWithSources({
 
   return (
     <>
-      {typeof children === 'string' &&
-        children.replace(/\[Source: ([\d,\s]+)\]/g, '')}
-
+      {typeof children === 'string' && children.replace(citationRegex, '')}
       <WebSearchGroup
         webSearchResults={referredWebSearchResults}
         variant="tiling"

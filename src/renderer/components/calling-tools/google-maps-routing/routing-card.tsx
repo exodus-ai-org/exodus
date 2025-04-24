@@ -1,4 +1,3 @@
-import { Card } from '@/components/ui/card'
 import { useSetting } from '@/hooks/use-setting'
 import { protos } from '@googlemaps/routing'
 import {
@@ -64,42 +63,40 @@ export function GoogleMapsCard({ toolResult }: { toolResult: string }) {
     return
 
   return (
-    <Card className="p-0">
-      <APIProvider apiKey={settings.googleApiKey} libraries={['geometry']}>
-        <Map
-          className="w-fill h-[400px] rounded-xl [&>div:first-child]:rounded-xl"
-          style={{ borderRadius: 16 }}
-          defaultCenter={{ lat: 35.693958, lng: 139.742692 }}
-          defaultZoom={3}
-          gestureHandling={'greedy'}
-          disableDefaultUI={true}
-          mapId="123"
+    <APIProvider apiKey={settings.googleApiKey} libraries={['geometry']}>
+      <Map
+        className="w-fill h-[400px] rounded-xl [&>div:first-child]:rounded-xl"
+        style={{ borderRadius: 16 }}
+        defaultCenter={{ lat: 35.693958, lng: 139.742692 }}
+        defaultZoom={3}
+        gestureHandling={'greedy'}
+        disableDefaultUI={true}
+        mapId="123"
+      >
+        <AdvancedMarker
+          position={{
+            lat: route?.legs?.[0]?.startLocation?.latLng?.latitude ?? 0,
+            lng: route?.legs?.[0]?.startLocation?.latLng?.longitude ?? 0
+          }}
         >
-          <AdvancedMarker
-            position={{
-              lat: route?.legs?.[0]?.startLocation?.latLng?.latitude ?? 0,
-              lng: route?.legs?.[0]?.startLocation?.latLng?.longitude ?? 0
-            }}
-          >
-            <Pin glyph="A" />
-          </AdvancedMarker>
-          <AdvancedMarker
-            position={{
-              lat: route?.legs?.[0]?.endLocation?.latLng?.latitude ?? 0,
-              lng: route?.legs?.[0]?.endLocation?.latLng?.longitude ?? 0
-            }}
-          >
-            <Pin
-              background={'#0f9d58'}
-              borderColor={'#006425'}
-              glyphColor={'#60d98f'}
-              glyph="B"
-            />
-          </AdvancedMarker>
-          <Polyline encodedPath={route?.polyline?.encodedPolyline} />
-          {stepMarkers}
-        </Map>
-      </APIProvider>
-    </Card>
+          <Pin glyph="A" />
+        </AdvancedMarker>
+        <AdvancedMarker
+          position={{
+            lat: route?.legs?.[0]?.endLocation?.latLng?.latitude ?? 0,
+            lng: route?.legs?.[0]?.endLocation?.latLng?.longitude ?? 0
+          }}
+        >
+          <Pin
+            background={'#0f9d58'}
+            borderColor={'#006425'}
+            glyphColor={'#60d98f'}
+            glyph="B"
+          />
+        </AdvancedMarker>
+        <Polyline encodedPath={route?.polyline?.encodedPolyline} />
+        {stepMarkers}
+      </Map>
+    </APIProvider>
   )
 }
