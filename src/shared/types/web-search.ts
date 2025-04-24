@@ -1,5 +1,7 @@
-export interface DocumentType {
+export interface WebSearchResult {
+  rank: number
   favicon: string
+  headImage: string
   type: 'pdf' | 'html'
   link: string
   title: string
@@ -8,7 +10,10 @@ export interface DocumentType {
   tokenCount: number
 }
 
-export type DocumentTypeWithoutTokenCount = Exclude<DocumentType, 'tokenCount'>
+export type WebSearchResultWithoutTokenCount = Exclude<
+  WebSearchResult,
+  'tokenCount'
+>
 
 export interface SearchParameters {
   q: string

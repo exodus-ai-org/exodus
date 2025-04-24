@@ -1,9 +1,9 @@
 import { WebPDFLoader } from '@langchain/community/document_loaders/web/pdf'
 import { Setting } from '@shared/types/db'
 import {
-  DocumentType,
-  DocumentTypeWithoutTokenCount,
-  WebSearchResponse
+  WebSearchResponse,
+  WebSearchResult,
+  WebSearchResultWithoutTokenCount
 } from '@shared/types/web-search'
 import { tool } from 'ai'
 import * as cheerio from 'cheerio'
@@ -14,18 +14,37 @@ import { z } from 'zod'
 const enc = encodingForModel('gpt-4o')
 
 function getFaviconLink(link: string, $: cheerio.CheerioAPI) {
-  let favicon =
-    $('link[rel="icon"]').attr('href') ??
-    $('link[rel="shortcut icon"]').attr('href') ??
-    $('link[rel="alternate icon"]').attr('href') ??
-    $('link[rel="mask-icon"]').attr('href')
+  try {
+    let favicon =
+      $('link[rel="apple-touch-icon"]').attr('href') ??
+      $('link[rel="apple-touch-icon-precomposed"]').attr('href') ??
+      $('link[rel="icon"]').attr('href') ??
+      $('link[rel="shortcut icon"]').attr('href') ??
+      $('link[rel="alternate icon"]').attr('href') ??
+      $('link[rel="mask-icon"]').attr('href')
 
-  if (!favicon) {
-    const baseUrl = new URL(link).origin
-    favicon = `${baseUrl}/favicon.ico`
+    if (!favicon) {
+      const baseUrl = new URL(link).origin
+      favicon = `${baseUrl}/favicon.ico`
+    }
+
+    return new URL(favicon, link).href
+  } catch {
+    return ''
   }
+}
 
-  return new URL(favicon, link).href
+function getHeadImageLink($: cheerio.CheerioAPI) {
+  try {
+    const headImage =
+      $('meta[property="og:image"]').attr('content') ??
+      $('meta[name="og:image"]').attr('content') ??
+      $('meta[name="twitter:image"]').attr('content')
+
+    return headImage
+  } catch {
+    return ''
+  }
 }
 
 async function loadPdf(blob: Blob) {
@@ -42,6 +61,7 @@ async function loadDom(link: string, html: string) {
   try {
     const $ = cheerio.load(html)
     const faviconUrl = getFaviconLink(link, $)
+    const headImageUrl = getHeadImageLink($)
 
     $('style').remove()
     $('script').remove()
@@ -49,6 +69,7 @@ async function loadDom(link: string, html: string) {
 
     return {
       favicon: faviconUrl,
+      headImage: headImageUrl,
       domStr: $.html()
     }
   } catch {
@@ -58,16 +79,7 @@ async function loadDom(link: string, html: string) {
 
 async function loadDocument(link: string) {
   try {
-    const response = await fetch(link, {
-      headers: {
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36',
-        Accept:
-          'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5',
-        Connection: 'keep-alive'
-      }
-    })
+    const response = await fetch(link)
     const contentType = response.headers.get('content-type')
 
     if (contentType?.includes('application/pdf')) {
@@ -76,7 +88,8 @@ async function loadDocument(link: string) {
       if (pdf) {
         const documentData = {
           favicon: '',
-          type: 'html',
+          headImage: '',
+          type: 'pdf',
           content: pdf,
           tokenCount: enc.encode(pdf).length
         }
@@ -95,6 +108,7 @@ async function loadDocument(link: string) {
         if (markdown) {
           const documentData = {
             favicon: domInfo.favicon,
+            headImage: domInfo.headImage,
             type: 'html',
             content: markdown,
             tokenCount: enc.encode(markdown).length
@@ -158,10 +172,12 @@ export const webSearch = (setting: Setting) =>
             .map(async (item) => {
               const document = await loadDocument(item.link as string)
               return {
+                rank: item.position,
                 link: item.link as string,
                 title: item.title as string,
                 snippet: item.snippet ?? '',
                 favicon: document?.favicon,
+                headImage: document?.headImage,
                 type: document?.type,
                 content: document?.content,
                 tokenCount: document?.tokenCount ?? 0
@@ -169,23 +185,25 @@ export const webSearch = (setting: Setting) =>
             })
         )
 
-        const values: DocumentTypeWithoutTokenCount[] = results
+        const values: WebSearchResultWithoutTokenCount[] = results
           .filter(
-            (result): result is PromiseFulfilledResult<DocumentType> =>
+            (result): result is PromiseFulfilledResult<WebSearchResult> =>
               result.status === 'fulfilled' &&
-              // TODO: Need to determine a more precise quote based on the specific model.
+              // TODO: Need to determine a more precise quota based on the specific model.
               result.value.tokenCount < 180_000
           )
           .map(
             ({ value }) =>
               ({
+                rank: value.rank,
                 favicon: value.favicon,
+                headImage: value.headImage,
                 type: value.type,
                 link: value.link,
                 title: value.title,
                 snippet: value.snippet,
                 content: value.content
-              }) as DocumentTypeWithoutTokenCount
+              }) as WebSearchResultWithoutTokenCount
           )
 
         return JSON.stringify(values)
