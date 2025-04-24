@@ -1,7 +1,7 @@
 {
   "name": "exodus",
   "productName": "Exodus",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "ChatBot featuring MCP, Artifacts, RAG, AI Agents, Deep Research, and other modern capabilities.",
   "main": "./out/main/index.js",
   "author": "example.com",
