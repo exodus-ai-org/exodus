@@ -49,7 +49,7 @@ jobs:
 
       - name: Move version.json into build directory
         run: |
-            mv build.json resources/build.json
+          mv build.json resources/build.json
 
       - name: Build Mac
         if: matrix.os == 'macos-latest'
