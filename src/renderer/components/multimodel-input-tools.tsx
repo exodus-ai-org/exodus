@@ -4,7 +4,7 @@ import { TooltipArrow } from '@radix-ui/react-tooltip'
 import { AdvancedTools } from '@shared/types/ai'
 import { produce } from 'immer'
 import { useAtom } from 'jotai'
-import { BrainCircuit, Globe, Lightbulb, Palette } from 'lucide-react'
+import { Globe, Lightbulb, Palette, Telescope } from 'lucide-react'
 import { Button } from './ui/button'
 import {
   Tooltip,
@@ -26,7 +26,7 @@ const advancedToolsList = [
   },
   {
     key: AdvancedTools.DeepResearch,
-    icon: <BrainCircuit />,
+    icon: <Telescope />,
     desc: AdvancedTools.DeepResearch
   },
   {

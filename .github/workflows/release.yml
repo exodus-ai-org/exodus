@@ -1,4 +1,5 @@
 name: Release
+
 on:
   push:
     branches:
@@ -8,90 +9,106 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
+  version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - run: pnpm install
+
+      - id: get_version
+        run: |
+          VERSION=$(npx semantic-release --dry-run | grep -oP 'The next release version is \K[0-9]+\.[0-9]+\.[0-9]+')
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "{\"version\": \"$VERSION\"}" > version.json
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: version
+          path: version.json
+
+  build:
+    needs: version
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
 
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v4
         with:
           version: 10
 
-      - name: Install Dependencies
-        run: pnpm install
+      - run: pnpm install
 
-      - name: Build Mac
-        if: matrix.os == 'macos-latest'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pnpm run build:mac
+      - name: Download version artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: version
+          path: ./
 
-      - name: Build Windows
-        if: matrix.os == 'windows-latest'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pnpm run build:win
+      - name: Update package.json version
+        run: |
+          VERSION=$(jq -r .version version.json)
+          pnpm version --no-git-tag-version $VERSION
 
-      - name: Build Linux
-        if: matrix.os == 'ubuntu-latest'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pnpm run build:linux
+      - name: Build Electron App
+        run: |
+          if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            pnpm run build:mac
+          elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            pnpm run build:win
+          else
+            pnpm run build:linux
+          fi
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: electron-artifacts-${{ matrix.os }}
-          path: |
-            dist/*.exe
-            dist/*.zip
-            dist/*.dmg
-            dist/*.AppImage
-            dist/*.snap
-            dist/*.deb
-            dist/*.rpm
-            dist/*.tar.gz
-            dist/*.yml
-            dist/*.blockmap
+          path: dist/*
           if-no-files-found: ignore
 
   release:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Check out code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
 
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v4
         with:
           version: 10
 
-      - name: Install Dependencies
-        run: pnpm install
+      - run: pnpm install
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -102,13 +119,7 @@ jobs:
         run: |
           mkdir -p release-assets
           find all-artifacts -type f -not -path "*/\.*" | xargs -I {} cp {} release-assets/
-          ls -la release-assets/
-
-      - name: Extract version
-        id: extract_version
-        run: |
-          VERSION=$(grep '"version"' package.json | cut -d '"' -f 4)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          ls -la release-assets
 
       - name: Run semantic-release
         env:
@@ -128,4 +139,3 @@ jobs:
           draft: false
           files: |
             release-assets/*
-          token: ${{ secrets.GITHUB_TOKEN }}

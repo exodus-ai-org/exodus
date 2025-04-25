@@ -59,11 +59,18 @@ export function GoogleMapsCard({ toolResult }: { toolResult: string }) {
     }
   }, [toolResult])
 
-  if (!settings?.googleApiKey || !route || !route.polyline?.encodedPolyline)
+  if (
+    !settings?.googleCloud?.googleApiKey ||
+    !route ||
+    !route.polyline?.encodedPolyline
+  )
     return
 
   return (
-    <APIProvider apiKey={settings.googleApiKey} libraries={['geometry']}>
+    <APIProvider
+      apiKey={settings.googleCloud.googleApiKey}
+      libraries={['geometry']}
+    >
       <Map
         className="w-fill h-[400px] rounded-xl [&>div:first-child]:rounded-xl"
         style={{ borderRadius: 16 }}

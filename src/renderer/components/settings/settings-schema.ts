@@ -3,7 +3,6 @@ import {
   Atom,
   AudioWaveform,
   Bot,
-  BrainCircuit,
   CloudDownload,
   Database,
   FileUp,
@@ -12,7 +11,8 @@ import {
   HandCoins,
   Info,
   Map,
-  Palette
+  Palette,
+  Telescope
 } from 'lucide-react'
 
 export const schema = {
@@ -66,7 +66,7 @@ export const schema = {
       title: 'Google Maps'
     },
     {
-      icon: BrainCircuit,
+      icon: Telescope,
       title: 'Deep Research'
     },
     {
