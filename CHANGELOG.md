@@ -1,11 +1,10 @@
 # [1.3.0](https://github.com/HyperChatBot/exodus/compare/v1.2.0...v1.3.0) (2025-04-25)
 
-
 ### Features
 
-* enhance web search ([0eca463](https://github.com/HyperChatBot/exodus/commit/0eca4636f8a46c27671f8c34d318be79bfc7ad26))
-* optimize styles ([f63967a](https://github.com/HyperChatBot/exodus/commit/f63967acc23ed302d8afd8d1feafa6c62078f7b0))
-* rename NavSecondary to NavFooter ([bdfa46e](https://github.com/HyperChatBot/exodus/commit/bdfa46ea490902e691a6850819cd3a5b9a5484fc))
+- enhance web search ([0eca463](https://github.com/HyperChatBot/exodus/commit/0eca4636f8a46c27671f8c34d318be79bfc7ad26))
+- optimize styles ([f63967a](https://github.com/HyperChatBot/exodus/commit/f63967acc23ed302d8afd8d1feafa6c62078f7b0))
+- rename NavSecondary to NavFooter ([bdfa46e](https://github.com/HyperChatBot/exodus/commit/bdfa46ea490902e691a6850819cd3a5b9a5484fc))
 
 # [1.2.0](https://github.com/HyperChatBot/exodus/compare/v1.1.0...v1.2.0) (2025-04-24)
 
