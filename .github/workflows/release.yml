@@ -36,7 +36,7 @@ jobs:
           NEXT_VERSION=$(npx semantic-release --dry-run --no-ci | grep -oP 'The next release version is \K[0-9]+\.[0-9]+\.[0-9]+')
           echo "Next version: $NEXT_VERSION"
           echo "version=$NEXT_VERSION" >> $GITHUB_OUTPUT
-  
+
   build:
     needs: version
     runs-on: ${{ matrix.os }}
@@ -64,15 +64,23 @@ jobs:
         run: |
           pnpm version --no-git-tag-version ${{ needs.version.outputs.version }}
 
-      - name: Build Electron App
-        run: |
-          if [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            pnpm run build:mac
-          elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            pnpm run build:win
-          else
-            pnpm run build:linux
-          fi
+      - name: Build Mac
+        if: matrix.os == 'macos-latest'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm run build:mac
+
+      - name: Build Windows
+        if: matrix.os == 'windows-latest'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm run build:win
+
+      - name: Build Linux
+        if: matrix.os == 'ubuntu-latest'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: pnpm run build:linux
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
