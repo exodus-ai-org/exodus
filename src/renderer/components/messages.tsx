@@ -1,5 +1,5 @@
 import { useArtifact } from '@/hooks/use-artifact'
-import { useSetting } from '@/hooks/use-setting'
+import { useSettings } from '@/hooks/use-settings'
 import { cn } from '@/lib/utils'
 import { UseChatHelpers } from '@ai-sdk/react'
 import { AnimatePresence } from 'framer-motion'
@@ -25,7 +25,7 @@ function Messages({
   status: UseChatHelpers['status']
   reload: UseChatHelpers['reload']
 }) {
-  const { data: settings } = useSetting()
+  const { data: settings } = useSettings()
   const chatBoxRef = useRef<HTMLDivElement>(null)
   const { show: isArtifactVisible } = useArtifact()
 
@@ -87,7 +87,7 @@ function Messages({
                     </Avatar>
                   )}
                   <div className="w-full">
-                    {message.parts.map((item, idx, arr) => {
+                    {message.parts.map((item, idx) => {
                       const key = `message-${message.id}-part-${idx}`
 
                       if (item.type === 'reasoning') {
@@ -102,15 +102,13 @@ function Messages({
 
                       if (item.type === 'text' && item.text.trim() !== '') {
                         return (
-                          <Fragment key={key}>
+                          <section key={key} className="group">
                             <Markdown src={item.text} parts={message.parts} />
-                            {idx === arr.length - 1 && (
-                              <MessageAction
-                                reload={reload}
-                                content={item.text}
-                              />
-                            )}
-                          </Fragment>
+                            <MessageAction
+                              reload={reload}
+                              content={item.text}
+                            />
+                          </section>
                         )
                       }
 

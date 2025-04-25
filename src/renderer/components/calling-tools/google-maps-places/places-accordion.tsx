@@ -9,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useSetting } from '@/hooks/use-setting'
+import { useSettings } from '@/hooks/use-settings'
 import { protos } from '@googlemaps/places'
 import { Globe, MapPin, Phone, Star } from 'lucide-react'
 import Zoom from 'react-medium-image-zoom'
@@ -24,10 +24,10 @@ export function PlacesAccordion({
   places,
   className = ''
 }: RestaurantAccordionProps) {
-  const { data: settings } = useSetting()
+  const { data: settings } = useSettings()
 
   const parseImg = (photo?: protos.google.maps.places.v1.IPhoto) => {
-    if (!settings || !photo)
+    if (!settings || !photo || !settings.googleCloud?.googleApiKey)
       return 'https://maps.gstatic.com/tactile/pane/result-no-thumbnail-2x.png'
     const base = 'https://places.googleapis.com/v1/'
 
@@ -35,7 +35,7 @@ export function PlacesAccordion({
       base +
       photo.name +
       '/media' +
-      `?maxWidthPx=1600&key=${settings.googleApiKey}`
+      `?maxWidthPx=1600&key=${settings.googleCloud.googleApiKey}`
     )
   }
 

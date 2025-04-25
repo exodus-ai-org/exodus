@@ -30,18 +30,18 @@ export function WebSearchGroup({
       )}
     >
       {webSearchResults.map((item, index) => (
-        <HoverCard key={index} openDelay={0} closeDelay={0}>
+        <HoverCard key={index} openDelay={150} closeDelay={150}>
           <HoverCardTrigger asChild>
             <a href={item.link} target="_blank" rel="noopener noreferrer">
               <Avatar
                 className={cn(
-                  'transition-transform',
+                  'border transition-transform',
                   {
                     ['z-10 scale-110']:
                       variant === 'overlapping' && activeIndex === index
                   },
                   {
-                    ['h-4 w-4 border']: variant === 'tiling'
+                    ['h-4 w-4']: variant === 'tiling'
                   }
                 )}
                 onMouseEnter={() => {

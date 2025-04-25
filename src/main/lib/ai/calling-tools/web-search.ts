@@ -1,5 +1,5 @@
 import { WebPDFLoader } from '@langchain/community/document_loaders/web/pdf'
-import { Setting } from '@shared/types/db'
+import { Settings } from '@shared/types/db'
 import {
   WebSearchResponse,
   WebSearchResult,
@@ -124,14 +124,14 @@ async function loadDocument(link: string) {
   }
 }
 
-export const webSearch = (setting: Setting) =>
+export const webSearch = (settings: Settings) =>
   tool({
     description: `Search the web for up-to-date information. Suffix a specific date to the query parameter based on user's input. Today is ${new Date().toISOString()}`,
     parameters: z.object({
       query: z.string().min(1).max(100).describe(`The search query.`)
     }),
     execute: async ({ query }) => {
-      if (!setting.serperApiKey) {
+      if (!settings.webSearch?.serperApiKey) {
         throw new Error(
           'To use Web Search, make sure to fill in the `serperApiKey` in the settings.'
         )
@@ -141,11 +141,13 @@ export const webSearch = (setting: Setting) =>
         const response = await fetch('https://google.serper.dev/search', {
           method: 'POST',
           headers: {
-            'X-API-KEY': setting.serperApiKey,
+            'X-API-KEY': settings.webSearch.serperApiKey,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            q: query
+            q: query,
+            gl: settings.webSearch.country,
+            hl: settings.webSearch.language
           })
         })
         const result = await response.text()

@@ -1,15 +1,15 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
-import { Setting } from '@shared/types/db'
+import { Settings } from '@shared/types/db'
 
-export function getGoogleGemini(setting: Setting) {
+export function getGoogleGemini(settings: Settings) {
   const google = createGoogleGenerativeAI({
-    apiKey: setting.googleGeminiApiKey ?? '',
-    baseURL: setting.googleGeminiBaseUrl ?? undefined
+    apiKey: settings.providers?.googleGeminiApiKey ?? '',
+    baseURL: settings.providers?.googleGeminiBaseUrl ?? undefined
   })
 
   return {
     provider: google,
-    chatModel: google(setting.chatModel ?? ''),
-    reasoningModel: google(setting.reasoningModel ?? '')
+    chatModel: google(settings.providerConfig?.chatModel ?? ''),
+    reasoningModel: google(settings.providerConfig?.reasoningModel ?? '')
   }
 }

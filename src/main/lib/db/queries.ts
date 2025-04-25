@@ -4,10 +4,10 @@ import { db, pgLiteClient } from './db'
 import {
   chat,
   message,
-  setting,
+  settings,
   vote,
   type Message,
-  type Setting
+  type Settings
 } from './schema'
 
 export async function saveChat({ title, id }: { id: string; title: string }) {
@@ -116,12 +116,12 @@ export async function getVotesByChatId({ id }: { id: string }) {
   }
 }
 
-export async function getSetting() {
+export async function getSettings() {
   try {
     // retrieve first record
-    const [data] = await db.select().from(setting)
+    const [data] = await db.select().from(settings)
     if (!data) {
-      return await db.insert(setting).values({
+      return await db.insert(settings).values({
         id: uuidV4()
       })
     }
@@ -132,14 +132,14 @@ export async function getSetting() {
   }
 }
 
-export async function updateSetting(payload: Setting) {
+export async function updateSetting(payload: Settings) {
   try {
     return await db
-      .update(setting)
+      .update(settings)
       .set(payload)
-      .where(eq(setting.id, payload.id))
+      .where(eq(settings.id, payload.id))
   } catch (error) {
-    console.error('Failed to save setting in database')
+    console.error('Failed to save settings in database')
     throw error
   }
 }

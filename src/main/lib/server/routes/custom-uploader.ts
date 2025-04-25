@@ -1,7 +1,7 @@
 import { Variables } from '@shared/types/ai'
 import { Hono } from 'hono'
 import { z } from 'zod'
-import { getSetting } from '../../db/queries'
+import { getSettings } from '../../db/queries'
 
 const Schema = z
   .object({
@@ -16,12 +16,12 @@ const customUploader = new Hono<{ Variables: Variables }>()
 customUploader.post('/', async (c) => {
   const formData = await c.req.formData()
 
-  const setting = await getSetting()
-  if (!('fileUploadEndpoint' in setting) || !setting.fileUploadEndpoint) {
+  const settings = await getSettings()
+  if (!('fileUploadEndpoint' in settings) || !settings.fileUploadEndpoint) {
     return c.text('File Upload Endpoint is missing', 404)
   }
 
-  const response = await fetch(setting.fileUploadEndpoint, {
+  const response = await fetch(settings.fileUploadEndpoint, {
     method: 'POST',
     body: formData
   })

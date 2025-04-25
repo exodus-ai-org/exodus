@@ -11,8 +11,8 @@ import {
 import { Bot, Plus } from 'lucide-react'
 import * as React from 'react'
 import { version } from '../../../package.json'
+import { NavFooter } from './nav-footer'
 import { NavHistories } from './nav-histories'
-import { NavSecondary } from './nav-secondary'
 import { SearchForm } from './search-form'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -52,7 +52,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavHistories />
       </SidebarContent>
       <SidebarFooter>
-        <NavSecondary className="mt-auto" />
+        <NavFooter className="mt-auto" />
       </SidebarFooter>
     </Sidebar>
   )
