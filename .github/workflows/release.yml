@@ -31,7 +31,7 @@ jobs:
 
       - id: get_version
         run: |
-          NEXT_VERSION=$(npx semantic-release --dry-run --no-ci --branches $GITHUB_HEAD_REF | grep -oP 'The next release version is \K[0-9]+\.[0-9]+\.[0-9]+')
+          NEXT_VERSION=$(npx semantic-release --dry-run --no-ci --branches master | grep -oP 'The next release version is \K[0-9]+\.[0-9]+\.[0-9]+')
           echo "Next version: $NEXT_VERSION"
           echo "version=$NEXT_VERSION" >> $GITHUB_OUTPUT
   
