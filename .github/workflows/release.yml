@@ -31,9 +31,9 @@ jobs:
 
       - id: get_version
         run: |
-          OUTPUT=$(npx semantic-release --dry-run)
-          NEXT_VERSION=$(echo "$OUTPUT" | grep -oP 'The next release version is \K(\d+\.\d+\.\d+)')
-          echo "version=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
+          NEXT_VERSION=$(npx semantic-release --dry-run --no-ci --branches $GITHUB_HEAD_REF | grep -oP 'The next release version is \K[0-9]+\.[0-9]+\.[0-9]+')
+          echo "Next version: $NEXT_VERSION"
+          echo "version=$NEXT_VERSION" >> $GITHUB_OUTPUT
   
   build:
     needs: version
@@ -58,15 +58,8 @@ jobs:
 
       - run: pnpm install
 
-      - name: Download version artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: version
-          path: ./
-
       - name: Update package.json version
         run: |
-          VERSION=$(jq -r .version version.json)
           pnpm version --no-git-tag-version ${{ needs.version.outputs.version }}
 
       - name: Build Electron App
