@@ -31,15 +31,10 @@ jobs:
 
       - id: get_version
         run: |
-          VERSION=$(npx semantic-release --dry-run | grep -oP 'The next release version is \K[0-9]+\.[0-9]+\.[0-9]+')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "{\"version\": \"$VERSION\"}" > version.json
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: version
-          path: version.json
-
+          OUTPUT="$(bash -c "unset GITHUB_ACTIONS && npx semantic-release --dry-run --no-ci --branches '${HEAD_REF}'")"
+          NEXT_VERSION=$(echo "$OUTPUT" | grep -oP 'The next release version is \K(\d+\.\d+\.\d+)')
+          echo "version=$NEXT_VERSION" >> "$GITHUB_OUTPUT"
+  
   build:
     needs: version
     runs-on: ${{ matrix.os }}
@@ -72,7 +67,7 @@ jobs:
       - name: Update package.json version
         run: |
           VERSION=$(jq -r .version version.json)
-          pnpm version --no-git-tag-version $VERSION
+          pnpm version --no-git-tag-version ${{ needs.version.outputs.version }}
 
       - name: Build Electron App
         run: |
