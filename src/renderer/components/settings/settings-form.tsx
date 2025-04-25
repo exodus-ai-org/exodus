@@ -20,6 +20,7 @@ import { AzureOpenAi } from './settings-form/providers/azure-openai'
 import { GoogleGemini } from './settings-form/providers/google-gemini'
 import { Ollama } from './settings-form/providers/ollama'
 import { OpenAiGpt } from './settings-form/providers/openai-gpt'
+import { SystemInfo } from './settings-form/system-info'
 import { WebSearch } from './settings-form/web-search'
 import { UnderConstruction } from './under-construction'
 
@@ -99,7 +100,7 @@ export function SettingsForm() {
 
         {activeTitle === 'Software Update' && <UnderConstruction />}
 
-        {activeTitle === 'About Exodus' && <UnderConstruction />}
+        {activeTitle === 'About Exodus' && <SystemInfo />}
       </form>
     </Form>
   )

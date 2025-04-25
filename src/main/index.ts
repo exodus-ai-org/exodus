@@ -17,6 +17,7 @@ import {
   openFileManagerApp,
   renameFile
 } from './lib/ipc/file-system'
+import { getSystemInfo } from './lib/ipc/system-info'
 import { connectHttpServer } from './lib/server/app'
 
 let mainWindow: BrowserWindow | null = null
@@ -101,6 +102,7 @@ app.whenReady().then(async () => {
     async (_, source: string, destination: string) =>
       renameFile(source, destination)
   )
+  ipcMain.handle('get-system-info', getSystemInfo)
   ipcMain.handle(
     'copy-files',
     async (
