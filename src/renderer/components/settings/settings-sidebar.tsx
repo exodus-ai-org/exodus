@@ -23,7 +23,7 @@ export function SettingsSidebar({
   return (
     <Sidebar {...props} className="max-h-[498px] select-none">
       <SidebarContent className="h-[300px]">
-        <SidebarGroup>
+        <SidebarGroup className="p-4">
           <SidebarMenu>
             {schema.navMain.map((item) => (
               <SidebarMenuItem key={item.title}>

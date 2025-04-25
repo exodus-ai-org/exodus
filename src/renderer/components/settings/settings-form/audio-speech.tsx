@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
+import { Separator } from '@/components/ui/separator'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { AlertCircle } from 'lucide-react'
 
@@ -33,11 +34,11 @@ export function AudioSpeech({ form }: { form: UseFormReturnType }) {
         control={form.control}
         name="audio.speechToTextModel"
         render={({ field }) => (
-          <FormItem>
-            <FormLabel>Speech to Text Model</FormLabel>
+          <FormItem className="flex justify-between">
+            <FormLabel className="mb-0">Speech to Text Model</FormLabel>
             <Select onValueChange={field.onChange} value={field.value ?? ''}>
-              <FormControl>
-                <SelectTrigger>
+              <FormControl className="mb-0 w-fit">
+                <SelectTrigger className="hover:bg-accent border-none shadow-none">
                   <SelectValue placeholder="whisper-1" />
                 </SelectTrigger>
               </FormControl>
@@ -55,17 +56,17 @@ export function AudioSpeech({ form }: { form: UseFormReturnType }) {
           </FormItem>
         )}
       />
-
+      <Separator className="-my-2" />
       <FormField
         control={form.control}
         name="audio.textToSpeechModel"
         render={({ field }) => (
-          <FormItem>
-            <FormLabel>Text to Speech Model</FormLabel>
+          <FormItem className="flex justify-between">
+            <FormLabel className="mb-0">Text to Speech Model</FormLabel>
 
             <Select onValueChange={field.onChange} value={field.value ?? ''}>
-              <FormControl>
-                <SelectTrigger>
+              <FormControl className="mb-0 w-fit">
+                <SelectTrigger className="hover:bg-accent border-none shadow-none">
                   <SelectValue placeholder="tts-1" />
                 </SelectTrigger>
               </FormControl>
@@ -79,16 +80,16 @@ export function AudioSpeech({ form }: { form: UseFormReturnType }) {
           </FormItem>
         )}
       />
-
+      <Separator className="-my-2" />
       <FormField
         control={form.control}
         name="audio.textToSpeechVoice"
         render={({ field }) => (
-          <FormItem>
-            <FormLabel>Text to Speech Voice</FormLabel>
+          <FormItem className="flex justify-between">
+            <FormLabel className="mb-0">Text to Speech Voice</FormLabel>
             <Select onValueChange={field.onChange} value={field.value ?? ''}>
-              <FormControl>
-                <SelectTrigger>
+              <FormControl className="mb-0 w-fit">
+                <SelectTrigger className="hover:bg-accent border-none shadow-none">
                   <SelectValue placeholder="Alloy" />
                 </SelectTrigger>
               </FormControl>

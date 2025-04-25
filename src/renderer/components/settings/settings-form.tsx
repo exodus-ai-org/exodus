@@ -95,10 +95,6 @@ export function SettingsForm() {
 
         {activeTitle === 'Artifacts' && <UnderConstruction />}
 
-        {activeTitle === 'Browser Use' && <UnderConstruction />}
-
-        {activeTitle === 'Computer Use' && <UnderConstruction />}
-
         {activeTitle === 'Data Controls' && <DataControls />}
 
         {activeTitle === 'Software Update' && <UnderConstruction />}

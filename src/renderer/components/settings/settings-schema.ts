@@ -4,7 +4,6 @@ import {
   AudioWaveform,
   Bot,
   BrainCircuit,
-  Chrome,
   CloudDownload,
   Database,
   FileUp,
@@ -13,7 +12,6 @@ import {
   HandCoins,
   Info,
   Map,
-  Monitor,
   Palette
 } from 'lucide-react'
 
@@ -78,14 +76,6 @@ export const schema = {
     {
       icon: Palette,
       title: 'Artifacts'
-    },
-    {
-      icon: Chrome,
-      title: 'Browser Use'
-    },
-    {
-      icon: Monitor,
-      title: 'Computer Use'
     },
     {
       icon: Database,

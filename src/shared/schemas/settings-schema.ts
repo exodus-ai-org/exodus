@@ -34,7 +34,9 @@ export const googleCloudSchema = z.object({
 })
 
 export const webSearchSchema = z.object({
-  serperApiKey: z.string().nullish()
+  serperApiKey: z.string().nullish(),
+  country: z.string().nullish(),
+  language: z.string().nullish()
 })
 
 export const settingsSchema = z.object({

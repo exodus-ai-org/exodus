@@ -87,7 +87,7 @@ function Messages({
                     </Avatar>
                   )}
                   <div className="w-full">
-                    {message.parts.map((item, idx, arr) => {
+                    {message.parts.map((item, idx) => {
                       const key = `message-${message.id}-part-${idx}`
 
                       if (item.type === 'reasoning') {
@@ -102,15 +102,13 @@ function Messages({
 
                       if (item.type === 'text' && item.text.trim() !== '') {
                         return (
-                          <Fragment key={key}>
+                          <section key={key} className="group">
                             <Markdown src={item.text} parts={message.parts} />
-                            {idx === arr.length - 1 && (
-                              <MessageAction
-                                reload={reload}
-                                content={item.text}
-                              />
-                            )}
-                          </Fragment>
+                            <MessageAction
+                              reload={reload}
+                              content={item.text}
+                            />
+                          </section>
                         )
                       }
 

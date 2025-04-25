@@ -145,7 +145,9 @@ export const webSearch = (settings: Settings) =>
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({
-            q: query
+            q: query,
+            gl: settings.webSearch.country,
+            hl: settings.webSearch.language
           })
         })
         const result = await response.text()
