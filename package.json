@@ -68,7 +68,7 @@
     "@radix-ui/react-tooltip": "^1.1.8",
     "@tailwindcss/postcss": "^4.0.16",
     "@vis.gl/react-google-maps": "^1.5.2",
-    "ai": "^4.3.4",
+    "ai": "^4.3.9",
     "cheerio": "^1.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
