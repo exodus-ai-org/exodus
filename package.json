@@ -89,7 +89,7 @@
     "jszip": "^3.10.1",
     "katex": "^0.16.21",
     "lodash-es": "^4.17.21",
-    "lucide-react": "^0.501.0",
+    "lucide-react": "^0.503.0",
     "monaco-editor": "^0.52.2",
     "ollama-ai-provider": "^1.2.0",
     "openai": "^4.95.1",
