@@ -1,3 +1,11 @@
+# [1.4.0](https://github.com/HyperChatBot/exodus/compare/v1.3.0...v1.4.0) (2025-04-25)
+
+
+### Features
+
+* try display system info ([dae1a1b](https://github.com/HyperChatBot/exodus/commit/dae1a1b8eb132559b1ea951ecd71f799c0381ad6))
+* try display system info ([abaab74](https://github.com/HyperChatBot/exodus/commit/abaab74ff2261e3e37c62f10126b0e6e3405b1fc))
+
 # [1.3.0](https://github.com/HyperChatBot/exodus/compare/v1.2.0...v1.3.0) (2025-04-25)
 
 ### Features
