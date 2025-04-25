@@ -35,20 +35,6 @@ jobs:
       - name: Install Dependencies
         run: pnpm install
 
-      - name: Generate version.json
-        run: |
-          COMMIT=$(git rev-parse HEAD)
-          DATE=$(date -u +"%Y-%m-%dT%H:%M:%S.%3NZ")
-          echo "{
-            \"Commit\": \"${COMMIT}\",
-            \"Date\": \"${DATE}\",
-            \"ElectronBuildId\": \"${{ github.run_id }}\"
-          }" > ./build.json
-
-      - name: Move version.json into build directory
-        run: |
-          mv build.json resources/build.json
-
       - name: Build Mac
         if: matrix.os == 'macos-latest'
         env:
