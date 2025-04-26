@@ -83,7 +83,11 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
               <FormControl className="mb-0 w-fit">
                 <SelectTrigger className="hover:bg-accent border-none shadow-none">
                   <SelectValue
-                    placeholder={`Select a chat model belongs to ${provider}`}
+                    placeholder={
+                      provider
+                        ? `Select a chat model belongs to ${provider}`
+                        : 'Select a provider first'
+                    }
                   />
                 </SelectTrigger>
               </FormControl>
@@ -114,7 +118,11 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
               <FormControl className="mb-0 w-fit">
                 <SelectTrigger className="hover:bg-accent border-none shadow-none">
                   <SelectValue
-                    placeholder={`Select a reasoning model belongs to ${provider}`}
+                    placeholder={
+                      provider
+                        ? `Select a reasoning model belongs to ${provider}`
+                        : 'Select a provider first'
+                    }
                   />
                 </SelectTrigger>
               </FormControl>

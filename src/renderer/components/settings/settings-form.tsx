@@ -20,6 +20,7 @@ import { AzureOpenAi } from './settings-form/providers/azure-openai'
 import { GoogleGemini } from './settings-form/providers/google-gemini'
 import { Ollama } from './settings-form/providers/ollama'
 import { OpenAiGpt } from './settings-form/providers/openai-gpt'
+import { XaiGrok } from './settings-form/providers/xai-grok'
 import { SystemInfo } from './settings-form/system-info'
 import { WebSearch } from './settings-form/web-search'
 import { UnderConstruction } from './under-construction'
@@ -68,7 +69,7 @@ export function SettingsForm() {
 
         {activeTitle === Providers.GoogleGemini && <GoogleGemini form={form} />}
 
-        {activeTitle === Providers.XaiGrok && <GoogleGemini form={form} />}
+        {activeTitle === Providers.XaiGrok && <XaiGrok form={form} />}
 
         {activeTitle === Providers.Ollama && <Ollama form={form} />}
 
