@@ -1,3 +1,11 @@
+## [1.4.2](https://github.com/HyperChatBot/exodus/compare/v1.4.1...v1.4.2) (2025-04-26)
+
+
+### Bug Fixes
+
+* several bug fix ([d6080cf](https://github.com/HyperChatBot/exodus/commit/d6080cf3118536085cd0e06f763f3e2f0c8f8177))
+* several bug fix ([ac032bb](https://github.com/HyperChatBot/exodus/commit/ac032bbb19c1984126a69a3433a2265780ba1cae))
+
 ## [1.4.1](https://github.com/HyperChatBot/exodus/compare/v1.4.0...v1.4.1) (2025-04-25)
 
 ### Bug Fixes
