@@ -1,10 +1,9 @@
 ## [1.4.1](https://github.com/HyperChatBot/exodus/compare/v1.4.0...v1.4.1) (2025-04-25)
 
-
 ### Bug Fixes
 
-* adapt new structure of settings ([adbf199](https://github.com/HyperChatBot/exodus/commit/adbf199451995e6e0c8b741c5c2e8215a8e7beef))
-* adapt new structure of settings ([d06e812](https://github.com/HyperChatBot/exodus/commit/d06e812f0a8552115129212b5def0ccb01415951))
+- adapt new structure of settings ([adbf199](https://github.com/HyperChatBot/exodus/commit/adbf199451995e6e0c8b741c5c2e8215a8e7beef))
+- adapt new structure of settings ([d06e812](https://github.com/HyperChatBot/exodus/commit/d06e812f0a8552115129212b5def0ccb01415951))
 
 # [1.4.0](https://github.com/HyperChatBot/exodus/compare/v1.3.0...v1.4.0) (2025-04-25)
 
