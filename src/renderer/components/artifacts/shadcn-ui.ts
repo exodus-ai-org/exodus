@@ -1,5 +1,4 @@
-export const accordion = `
-import { cn } from '@/lib/utils'
+export const accordion = `import { cn } from '@/lib/utils'
 import * as AccordionPrimitive from '@radix-ui/react-accordion'
 import { ChevronDownIcon } from 'lucide-react'
 import * as React from 'react'
@@ -64,8 +63,7 @@ function AccordionContent({
 export { Accordion, AccordionContent, AccordionItem, AccordionTrigger }
 `
 
-export const alertDialog = `
-import { buttonVariants } from '@/components/ui/button'
+export const alertDialog = `import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import * as AlertDialogPrimitive from '@radix-ui/react-alert-dialog'
 import * as React from 'react'
@@ -221,8 +219,7 @@ export {
 }
 `
 
-export const alert = `
-import { cva, type VariantProps } from 'class-variance-authority'
+export const alert = `import { cva, type VariantProps } from 'class-variance-authority'
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
@@ -290,8 +287,7 @@ function AlertDescription({
 export { Alert, AlertDescription, AlertTitle }
 `
 
-export const aspectRatio = `
-import * as AspectRatioPrimitive from '@radix-ui/react-aspect-ratio'
+export const aspectRatio = `import * as AspectRatioPrimitive from '@radix-ui/react-aspect-ratio'
 
 function AspectRatio({
   ...props
@@ -302,8 +298,7 @@ function AspectRatio({
 export { AspectRatio }
 `
 
-export const avatar = `
-import { cn } from '@/lib/utils'
+export const avatar = `import { cn } from '@/lib/utils'
 import * as AvatarPrimitive from '@radix-ui/react-avatar'
 import * as React from 'react'
 
@@ -355,8 +350,7 @@ function AvatarFallback({
 export { Avatar, AvatarFallback, AvatarImage }
 `
 
-export const badge = `
-import { cn } from '@/lib/utils'
+export const badge = `import { cn } from '@/lib/utils'
 import { Slot } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
 import * as React from 'react'
@@ -403,8 +397,7 @@ function Badge({
 export { Badge, badgeVariants }
 `
 
-export const breadcrumb = `
-import { cn } from '@/lib/utils'
+export const breadcrumb = `import { cn } from '@/lib/utils'
 import { Slot } from '@radix-ui/react-slot'
 import { ChevronRight, MoreHorizontal } from 'lucide-react'
 import * as React from 'react'
@@ -514,8 +507,7 @@ export {
 }
 `
 
-export const button = `
-import { cn } from '@/lib/utils'
+export const button = `import { cn } from '@/lib/utils'
 import { Slot } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
 import * as React from 'react'
@@ -575,8 +567,7 @@ function Button({
 export { Button, buttonVariants }
 `
 
-export const calendar = `
-import { buttonVariants } from '@/components/ui/button'
+export const calendar = `import { buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import * as React from 'react'
@@ -650,8 +641,7 @@ function Calendar({
 export { Calendar }
 `
 
-export const card = `
-import { cn } from '@/lib/utils'
+export const card = `import { cn } from '@/lib/utils'
 import * as React from 'react'
 
 function Card({ className, ...props }: React.ComponentProps<'div'>) {
@@ -720,8 +710,7 @@ function CardFooter({ className, ...props }: React.ComponentProps<'div'>) {
 export { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 `
 
-export const carousel = `
-import useEmblaCarousel, {
+export const carousel = `import useEmblaCarousel, {
   type UseEmblaCarouselType
 } from 'embla-carousel-react'
 import { ArrowLeft, ArrowRight } from 'lucide-react'
@@ -962,8 +951,7 @@ export {
 }
 `
 
-export const chart = `
-import { cn } from '@/lib/utils'
+export const chart = `import { cn } from '@/lib/utils'
 import * as React from 'react'
 import * as RechartsPrimitive from 'recharts'
 
@@ -1327,8 +1315,7 @@ export {
 }
 `
 
-export const checkbox = `
-import * as CheckboxPrimitive from '@radix-ui/react-checkbox'
+export const checkbox = `import * as CheckboxPrimitive from '@radix-ui/react-checkbox'
 import { CheckIcon } from 'lucide-react'
 import * as React from 'react'
 
@@ -1360,8 +1347,7 @@ function Checkbox({
 export { Checkbox }
 `
 
-export const collapsible = `
-import * as CollapsiblePrimitive from '@radix-ui/react-collapsible'
+export const collapsible = `import * as CollapsiblePrimitive from '@radix-ui/react-collapsible'
 
 function Collapsible({
   ...props
@@ -1394,8 +1380,7 @@ function CollapsibleContent({
 export { Collapsible, CollapsibleContent, CollapsibleTrigger }
 `
 
-export const command = `
-import { Command as CommandPrimitive } from 'cmdk'
+export const command = `import { Command as CommandPrimitive } from 'cmdk'
 import { SearchIcon } from 'lucide-react'
 import * as React from 'react'
 
@@ -1572,8 +1557,7 @@ export {
 }
 `
 
-export const contextMenu = `
-import * as ContextMenuPrimitive from '@radix-ui/react-context-menu'
+export const contextMenu = `import * as ContextMenuPrimitive from '@radix-ui/react-context-menu'
 import { CheckIcon, ChevronRightIcon, CircleIcon } from 'lucide-react'
 import * as React from 'react'
 
@@ -1825,8 +1809,7 @@ export {
 }
 `
 
-export const dialog = `
-'use client'
+export const dialog = `'use client'
 
 import { cn } from '@/lib/utils'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
@@ -1962,8 +1945,7 @@ export {
 }
 `
 
-export const drawer = `
-import { cn } from '@/lib/utils'
+export const drawer = `import { cn } from '@/lib/utils'
 import * as React from 'react'
 import { Drawer as DrawerPrimitive } from 'vaul'
 
@@ -2080,8 +2062,7 @@ export {
 }
 `
 
-export const dropdownMenu = `
-import { cn } from '@/lib/utils'
+export const dropdownMenu = `import { cn } from '@/lib/utils'
 import * as DropdownMenuPrimitive from '@radix-ui/react-dropdown-menu'
 import { CheckIcon, ChevronRightIcon, CircleIcon } from 'lucide-react'
 import * as React from 'react'
@@ -2337,8 +2318,7 @@ export {
 }
 `
 
-export const form = `
-import { cn } from '@/lib/utils'
+export const form = `import { cn } from '@/lib/utils'
 import * as LabelPrimitive from '@radix-ui/react-label'
 import { Slot } from '@radix-ui/react-slot'
 import * as React from 'react'
@@ -2515,8 +2495,7 @@ export {
 }
 `
 
-export const hoverCard = `
-import * as HoverCardPrimitive from '@radix-ui/react-hover-card'
+export const hoverCard = `import * as HoverCardPrimitive from '@radix-ui/react-hover-card'
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
@@ -2560,8 +2539,7 @@ function HoverCardContent({
 export { HoverCard, HoverCardContent, HoverCardTrigger }
 `
 
-export const inputOtp = `
-import { OTPInput, OTPInputContext } from 'input-otp'
+export const inputOtp = `import { OTPInput, OTPInputContext } from 'input-otp'
 import { MinusIcon } from 'lucide-react'
 import * as React from 'react'
 
@@ -2638,8 +2616,7 @@ function InputOTPSeparator({ ...props }: React.ComponentProps<'div'>) {
 export { InputOTP, InputOTPGroup, InputOTPSeparator, InputOTPSlot }
 `
 
-export const input = `
-import { cn } from '@/lib/utils'
+export const input = `import { cn } from '@/lib/utils'
 import * as React from 'react'
 
 function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
@@ -2661,8 +2638,7 @@ function Input({ className, type, ...props }: React.ComponentProps<'input'>) {
 export { Input }
 `
 
-export const label = `
-import { cn } from '@/lib/utils'
+export const label = `import { cn } from '@/lib/utils'
 import * as LabelPrimitive from '@radix-ui/react-label'
 import * as React from 'react'
 
@@ -2685,8 +2661,7 @@ function Label({
 export { Label }
 `
 
-export const menubar = `
-import * as MenubarPrimitive from '@radix-ui/react-menubar'
+export const menubar = `import * as MenubarPrimitive from '@radix-ui/react-menubar'
 import { CheckIcon, ChevronRightIcon, CircleIcon } from 'lucide-react'
 import * as React from 'react'
 
@@ -2962,8 +2937,7 @@ export {
 }
 `
 
-export const navigationMenu = `
-import * as NavigationMenuPrimitive from '@radix-ui/react-navigation-menu'
+export const navigationMenu = `import * as NavigationMenuPrimitive from '@radix-ui/react-navigation-menu'
 import { cva } from 'class-variance-authority'
 import { ChevronDownIcon } from 'lucide-react'
 import * as React from 'react'
@@ -3133,8 +3107,7 @@ export {
 }
 `
 
-export const pagination = `
-import {
+export const pagination = `import {
   ChevronLeftIcon,
   ChevronRightIcon,
   MoreHorizontalIcon
@@ -3263,8 +3236,7 @@ export {
 }
 `
 
-export const popover = `
-import { cn } from '@/lib/utils'
+export const popover = `import { cn } from '@/lib/utils'
 import * as PopoverPrimitive from '@radix-ui/react-popover'
 import * as React from 'react'
 
@@ -3311,8 +3283,7 @@ function PopoverAnchor({
 export { Popover, PopoverAnchor, PopoverContent, PopoverTrigger }
 `
 
-export const progress = `
-import * as ProgressPrimitive from '@radix-ui/react-progress'
+export const progress = `import * as ProgressPrimitive from '@radix-ui/react-progress'
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
@@ -3343,8 +3314,7 @@ function Progress({
 export { Progress }
 `
 
-export const radioGroup = `
-import { cn } from '@/lib/utils'
+export const radioGroup = `import { cn } from '@/lib/utils'
 import * as RadioGroupPrimitive from '@radix-ui/react-radio-group'
 import { CircleIcon } from 'lucide-react'
 import * as React from 'react'
@@ -3388,8 +3358,7 @@ function RadioGroupItem({
 export { RadioGroup, RadioGroupItem }
 `
 
-export const resizable = `
-import { GripVerticalIcon } from 'lucide-react'
+export const resizable = `import { GripVerticalIcon } from 'lucide-react'
 import * as React from 'react'
 import * as ResizablePrimitive from 'react-resizable-panels'
 
@@ -3445,8 +3414,7 @@ function ResizableHandle({
 export { ResizableHandle, ResizablePanel, ResizablePanelGroup }
 `
 
-export const scrollArea = `
-import { cn } from '@/lib/utils'
+export const scrollArea = `import { cn } from '@/lib/utils'
 import * as ScrollAreaPrimitive from '@radix-ui/react-scroll-area'
 import * as React from 'react'
 
@@ -3503,8 +3471,7 @@ function ScrollBar({
 export { ScrollArea, ScrollBar }
 `
 
-export const select = `
-import { cn } from '@/lib/utils'
+export const select = `import { cn } from '@/lib/utils'
 import * as SelectPrimitive from '@radix-ui/react-select'
 import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react'
 import * as React from 'react'
@@ -3684,8 +3651,7 @@ export {
 }
 `
 
-export const separator = `
-import { cn } from '@/lib/utils'
+export const separator = `import { cn } from '@/lib/utils'
 import * as SeparatorPrimitive from '@radix-ui/react-separator'
 import * as React from 'react'
 
@@ -3712,8 +3678,7 @@ function Separator({
 export { Separator }
 `
 
-export const sheet = `
-import { cn } from '@/lib/utils'
+export const sheet = `import { cn } from '@/lib/utils'
 import * as SheetPrimitive from '@radix-ui/react-dialog'
 import { XIcon } from 'lucide-react'
 import * as React from 'react'
@@ -3851,8 +3816,7 @@ export {
 }
 `
 
-export const sidebar = `
-import { Button } from '@/components/ui/button'
+export const sidebar = `import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import {
@@ -4574,8 +4538,7 @@ export {
 }
 `
 
-export const skeleton = `
-import { cn } from '@/lib/utils'
+export const skeleton = `import { cn } from '@/lib/utils'
 
 function Skeleton({ className, ...props }: React.ComponentProps<'div'>) {
   return (
@@ -4590,8 +4553,7 @@ function Skeleton({ className, ...props }: React.ComponentProps<'div'>) {
 export { Skeleton }
 `
 
-export const slider = `
-import { cn } from '@/lib/utils'
+export const slider = `import { cn } from '@/lib/utils'
 import * as SliderPrimitive from '@radix-ui/react-slider'
 import * as React from 'react'
 
@@ -4653,8 +4615,7 @@ function Slider({
 export { Slider }
 `
 
-export const sonner = `
-import { Toaster as Sonner, ToasterProps } from 'sonner'
+export const sonner = `import { Toaster as Sonner, ToasterProps } from 'sonner'
 import { useTheme } from '../theme-provider'
 
 const Toaster = ({ ...props }: ToasterProps) => {
@@ -4683,8 +4644,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
 export { Toaster }
 `
 
-export const switchComponent = `
-import { cn } from '@/lib/utils'
+export const switchComponent = `import { cn } from '@/lib/utils'
 import * as SwitchPrimitives from '@radix-ui/react-switch'
 import * as React from 'react'
 
@@ -4712,8 +4672,7 @@ Switch.displayName = SwitchPrimitives.Root.displayName
 export { Switch }
 `
 
-export const table = `
-import * as React from 'react'
+export const table = `import * as React from 'react'
 
 import { cn } from '@/lib/utils'
 
@@ -4829,8 +4788,7 @@ export {
 }
 `
 
-export const tabs = `
-import { cn } from '@/lib/utils'
+export const tabs = `import { cn } from '@/lib/utils'
 import * as TabsPrimitive from '@radix-ui/react-tabs'
 import * as React from 'react'
 
@@ -4884,8 +4842,7 @@ TabsContent.displayName = TabsPrimitive.Content.displayName
 export { Tabs, TabsContent, TabsList, TabsTrigger }
 `
 
-export const textarea = `
-import { cn } from '@/lib/utils'
+export const textarea = `import { cn } from '@/lib/utils'
 import * as React from 'react'
 
 function Textarea({ className, ...props }: React.ComponentProps<'textarea'>) {
@@ -4904,8 +4861,7 @@ function Textarea({ className, ...props }: React.ComponentProps<'textarea'>) {
 export { Textarea }
 `
 
-export const toggleGroup = `
-import { cn } from '@/lib/utils'
+export const toggleGroup = `import { cn } from '@/lib/utils'
 import * as ToggleGroupPrimitive from '@radix-ui/react-toggle-group'
 import { VariantProps } from 'class-variance-authority'
 import * as React from 'react'
@@ -4965,8 +4921,7 @@ ToggleGroupItem.displayName = ToggleGroupPrimitive.Item.displayName
 export { ToggleGroup, ToggleGroupItem }
 `
 
-export const toggle = `
-import { cn } from '@/lib/utils'
+export const toggle = `import { cn } from '@/lib/utils'
 import * as TogglePrimitive from '@radix-ui/react-toggle'
 import { cva, type VariantProps } from 'class-variance-authority'
 import * as React from 'react'
@@ -5012,8 +4967,7 @@ function Toggle({
 export { Toggle, toggleVariants }
 `
 
-export const tooltip = `
-import { cn } from '@/lib/utils'
+export const tooltip = `import { cn } from '@/lib/utils'
 import * as TooltipPrimitive from '@radix-ui/react-tooltip'
 import * as React from 'react'
 
@@ -5073,8 +5027,7 @@ function TooltipContent({
 export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger }
 `
 
-export const useMobile = `
-import * as React from 'react'
+export const useMobile = `import * as React from 'react'
 
 const MOBILE_BREAKPOINT = 768
 
@@ -5095,92 +5048,92 @@ export function useIsMobile() {
 }
 `
 
-export const utils = `
-import { type ClassValue, clsx } from "clsx"
+export const utils = `import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }`
 
-export const globalsCSS = `
-@import "tailwindcss";
-@import "tw-animate-css";
+export const globalsCSS = `@import 'tailwindcss';
+@import 'tw-animate-css';
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
+  --radius: 0.625rem;
   --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  --foreground: oklch(0.141 0.005 285.823);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
+  --card-foreground: oklch(0.141 0.005 285.823);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.141 0.005 285.823);
+  --primary: oklch(0.21 0.006 285.885);
   --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.967 0.001 286.375);
+  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --muted: oklch(0.967 0.001 286.375);
+  --muted-foreground: oklch(0.552 0.016 285.938);
+  --accent: oklch(0.967 0.001 286.375);
+  --accent-foreground: oklch(0.21 0.006 285.885);
   --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: oklch(0.92 0.004 286.32);
+  --input: oklch(0.92 0.004 286.32);
+  --ring: oklch(0.705 0.015 286.067);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
   --chart-4: oklch(0.828 0.189 84.429);
   --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
   --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.141 0.005 285.823);
+  --sidebar-primary: oklch(0.21 0.006 285.885);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --sidebar-accent: oklch(0.967 0.001 286.375);
+  --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
+  --sidebar-border: oklch(0.92 0.004 286.32);
+  --sidebar-ring: oklch(0.705 0.015 286.067);
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
+  --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
+  --card: oklch(0.21 0.006 285.885);
   --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
+  --popover: oklch(0.21 0.006 285.885);
   --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
+  --primary: oklch(0.92 0.004 286.32);
+  --primary-foreground: oklch(0.21 0.006 285.885);
+  --secondary: oklch(0.274 0.006 286.033);
   --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
+  --muted: oklch(0.274 0.006 286.033);
+  --muted-foreground: oklch(0.705 0.015 286.067);
+  --accent: oklch(0.274 0.006 286.033);
   --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.552 0.016 285.938);
   --chart-1: oklch(0.488 0.243 264.376);
   --chart-2: oklch(0.696 0.17 162.48);
   --chart-3: oklch(0.769 0.188 70.08);
   --chart-4: oklch(0.627 0.265 303.9);
   --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
+  --sidebar: oklch(0.21 0.006 285.885);
   --sidebar-foreground: oklch(0.985 0 0);
   --sidebar-primary: oklch(0.488 0.243 264.376);
   --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent: oklch(0.274 0.006 286.033);
   --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.552 0.016 285.938);
 }
 
 @theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -5196,7 +5149,6 @@ export const globalsCSS = `
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -5205,10 +5157,6 @@ export const globalsCSS = `
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -5223,6 +5171,7 @@ export const globalsCSS = `
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }

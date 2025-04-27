@@ -49,7 +49,7 @@ function Messages({
     <AnimatePresence>
       <section
         className={cn(
-          'no-scrollbar flex min-w-0 flex-1 flex-col items-center gap-8 overflow-y-scroll p-4 transition-all',
+          'no-scrollbar flex min-w-0 flex-1 flex-col items-center gap-8 overflow-y-scroll p-4 pt-0 transition-all',
           { ['w-[25rem] overflow-x-hidden transition-all']: isArtifactVisible }
         )}
         ref={chatBoxRef}
