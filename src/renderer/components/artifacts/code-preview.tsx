@@ -53,7 +53,6 @@ function CodePreviewActions({
 
   useEffect(() => {
     if (tabType === TabType.Preview) {
-      console.log('xxx')
       sandpack.runSandpack()
     }
 
