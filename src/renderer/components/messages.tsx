@@ -102,7 +102,7 @@ function Messages({
 
                       if (item.type === 'text' && item.text.trim() !== '') {
                         return (
-                          <section key={key} className="group">
+                          <section key={key} className="group relative">
                             <Markdown src={item.text} parts={message.parts} />
                             <MessageAction
                               reload={reload}
