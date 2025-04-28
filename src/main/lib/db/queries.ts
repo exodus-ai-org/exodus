@@ -2,6 +2,7 @@ import { and, asc, desc, eq } from 'drizzle-orm'
 import { v4 as uuidV4 } from 'uuid'
 import { db, pgLiteClient } from './db'
 import {
+  Chat,
   chat,
   message,
   settings,
@@ -22,15 +23,9 @@ export async function saveChat({ title, id }: { id: string; title: string }) {
   }
 }
 
-export async function handleFavorite({
-  id,
-  favorite
-}: {
-  id: string
-  favorite: boolean
-}) {
+export async function updateChat(payload: Chat) {
   try {
-    return await db.update(chat).set({ favorite }).where(eq(chat.id, id))
+    return await db.update(chat).set(payload).where(eq(chat.id, payload.id))
   } catch (error) {
     console.error('Failed to save chat in database')
     throw error

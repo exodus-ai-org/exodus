@@ -1,4 +1,5 @@
 import { AdvancedTools, Variables } from '@shared/types/ai'
+import { Chat } from '@shared/types/db'
 import {
   appendResponseMessages,
   createDataStream,
@@ -28,9 +29,9 @@ import {
   getChatById,
   getMessagesByChatId,
   getSettings,
-  handleFavorite,
   saveChat,
-  saveMessages
+  saveMessages,
+  updateChat
 } from '../../db/queries'
 
 const chat = new Hono<{ Variables: Variables }>()
@@ -204,19 +205,16 @@ chat.get('/:id', async (c) => {
   }
 })
 
-chat.patch('/favorite/:id', async (c) => {
-  const id = c.req.param('id')
-  const { favorite } = await c.req.json<{
-    favorite: boolean
-  }>()
+chat.put('/', async (c) => {
+  const payload = await c.req.json<Chat>()
 
-  if (!id) {
+  if (!payload.id) {
     return c.text('Not Found', 404)
   }
 
   try {
-    await handleFavorite({ id, favorite })
-    return c.text(`Set chat ${id} to ${favorite.valueOf()}`, 200)
+    await updateChat(payload)
+    return c.text(`Succeed to update chat ${payload.id}}`, 200)
   } catch {
     return c.text('An error occurred while processing your request', 500)
   }
