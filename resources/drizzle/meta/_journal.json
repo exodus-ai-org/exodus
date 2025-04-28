@@ -8,6 +8,13 @@
       "when": 1745492738086,
       "tag": "0000_white_mockingbird",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1745837876822,
+      "tag": "0001_neat_the_fury",
+      "breakpoints": true
     }
   ]
 }

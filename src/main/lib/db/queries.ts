@@ -22,6 +22,21 @@ export async function saveChat({ title, id }: { id: string; title: string }) {
   }
 }
 
+export async function handleFavorite({
+  id,
+  favorite
+}: {
+  id: string
+  favorite: boolean
+}) {
+  try {
+    return await db.update(chat).set({ favorite }).where(eq(chat.id, id))
+  } catch (error) {
+    console.error('Failed to save chat in database')
+    throw error
+  }
+}
+
 export async function getChats() {
   try {
     return await db.select().from(chat).orderBy(desc(chat.createdAt))

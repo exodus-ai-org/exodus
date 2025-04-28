@@ -15,7 +15,8 @@ import {
 export const chat = pgTable('Chat', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
-  title: text('title').notNull()
+  title: text('title').notNull(),
+  favorite: boolean().default(false)
 })
 
 export type Chat = InferSelectModel<typeof chat>

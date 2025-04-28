@@ -28,6 +28,7 @@ import {
   getChatById,
   getMessagesByChatId,
   getSettings,
+  handleFavorite,
   saveChat,
   saveMessages
 } from '../../db/queries'
@@ -198,6 +199,24 @@ chat.get('/:id', async (c) => {
 
     const messagesFromDb = await getMessagesByChatId({ id })
     return c.json(messagesFromDb)
+  } catch {
+    return c.text('An error occurred while processing your request', 500)
+  }
+})
+
+chat.patch('/favorite/:id', async (c) => {
+  const id = c.req.param('id')
+  const { favorite } = await c.req.json<{
+    favorite: boolean
+  }>()
+
+  if (!id) {
+    return c.text('Not Found', 404)
+  }
+
+  try {
+    await handleFavorite({ id, favorite })
+    return c.text(`Set chat ${id} to ${favorite.valueOf()}`, 200)
   } catch {
     return c.text('An error occurred while processing your request', 500)
   }

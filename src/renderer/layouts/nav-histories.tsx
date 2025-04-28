@@ -1,4 +1,9 @@
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger
+} from '@/components/ui/collapsible'
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -15,16 +20,18 @@ import {
   SidebarMenuItem,
   useSidebar
 } from '@/components/ui/sidebar'
+import { cn } from '@/lib/utils'
 import { BASE_URL } from '@shared/constants'
 import type { Chat } from '@shared/types/db'
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns'
-import { Edit2, MoreHorizontal, Pin, Trash2 } from 'lucide-react'
+import { ChevronRight, Edit2, MoreHorizontal, Star, Trash2 } from 'lucide-react'
 import { Link, useParams } from 'react-router'
 import { toast } from 'sonner'
 import useSWR, { mutate } from 'swr'
 import { Skeleton } from '../components/ui/skeleton'
 
 interface GroupedChats {
+  favorite: Chat[]
   today: Chat[]
   yesterday: Chat[]
   lastWeek: Chat[]
@@ -45,7 +52,15 @@ export function NavHistorySkeleton() {
   )
 }
 
-export function NavItems({ item }: { item: Chat }) {
+export function NavItems({
+  chat,
+  ignoreActive,
+  className
+}: {
+  chat: Chat
+  ignoreActive?: boolean
+  className?: string
+}) {
   const { id } = useParams<{ id: string }>()
   const { isMobile } = useSidebar()
 
@@ -65,11 +80,30 @@ export function NavItems({ item }: { item: Chat }) {
     toast.success(`Succeed to delete ${chatId}.`)
   }
 
+  const handleFavorite = async (chatId: string, favorite: boolean) => {
+    await fetch(`${BASE_URL}/api/chat/favorite/${chatId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        favorite
+      })
+    })
+
+    mutate('/api/history')
+    toast.success(
+      favorite
+        ? `Succeed to add ${chatId} to Favorite.`
+        : `Succeed to remove ${chatId} from Favorite.`
+    )
+  }
+
   return (
-    <SidebarMenuItem>
-      <SidebarMenuButton asChild isActive={item.id === id}>
-        <Link to={`/chat/${item.id}`}>
-          <span>{item.title}</span>
+    <SidebarMenuItem className={className}>
+      <SidebarMenuButton asChild isActive={!ignoreActive && chat.id === id}>
+        <Link to={`/chat/${chat.id}`}>
+          <span>{chat.title}</span>
         </Link>
       </SidebarMenuButton>
       <DropdownMenu>
@@ -84,9 +118,15 @@ export function NavItems({ item }: { item: Chat }) {
           side={isMobile ? 'bottom' : 'right'}
           align={isMobile ? 'end' : 'start'}
         >
-          <DropdownMenuItem>
-            <Pin className="text-muted-foreground" />
-            <span>Pin (Unavailable Now)</span>
+          <DropdownMenuItem
+            onClick={() => handleFavorite(chat.id, !chat.favorite)}
+          >
+            <Star
+              className={cn('text-muted-foreground', {
+                ['fill-yellow-500 text-yellow-500']: chat.favorite
+              })}
+            />
+            <span>{chat.favorite ? 'Unfavorite' : 'Favorite'}</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem>
@@ -94,7 +134,7 @@ export function NavItems({ item }: { item: Chat }) {
             <span>Rename (Unavailable Now)</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => deleteChat(item.id)}>
+          <DropdownMenuItem onClick={() => deleteChat(chat.id)}>
             <Trash2 className="text-destructive" />
             <span className="text-destructive hover:text-destructive">
               Delete
@@ -116,7 +156,10 @@ export function NavHistories() {
     const oneWeekAgo = subWeeks(now, 1)
     const oneMonthAgo = subMonths(now, 1)
 
-    return chats.reduce(
+    const favorite = chats.filter((chat) => chat.favorite)
+    const unfavorite = chats.filter((chat) => !chat.favorite)
+
+    const histories = unfavorite.reduce(
       (groups, chat) => {
         const chatDate = new Date(chat.createdAt)
 
@@ -135,6 +178,7 @@ export function NavHistories() {
         return groups
       },
       {
+        favorite: [],
         today: [],
         yesterday: [],
         lastWeek: [],
@@ -142,6 +186,11 @@ export function NavHistories() {
         older: []
       } as GroupedChats
     )
+
+    return {
+      ...histories,
+      favorite
+    }
   }
 
   if (isLoading) {
@@ -173,12 +222,40 @@ export function NavHistories() {
 
           return (
             <>
+              {groupedChats.favorite.length > 0 && (
+                <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+                  <SidebarMenu>
+                    <Collapsible className="group/collapsible">
+                      <SidebarGroupLabel
+                        asChild
+                        className="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mb-1 text-sm"
+                      >
+                        <CollapsibleTrigger className="w-full !p-0">
+                          <SidebarGroupLabel>Favorite</SidebarGroupLabel>
+                          <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                        </CollapsibleTrigger>
+                      </SidebarGroupLabel>
+                      <CollapsibleContent>
+                        {groupedChats.favorite.map((chat) => (
+                          <NavItems
+                            chat={chat}
+                            key={chat.id}
+                            ignoreActive
+                            className="mb-1 last:mb-0"
+                          />
+                        ))}
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </SidebarMenu>
+                </SidebarGroup>
+              )}
+
               {groupedChats.today.length > 0 && (
                 <SidebarGroup className="group-data-[collapsible=icon]:hidden">
                   <SidebarGroupLabel>Today</SidebarGroupLabel>
                   <SidebarMenu>
                     {groupedChats.today.map((chat) => (
-                      <NavItems item={chat} key={chat.id} />
+                      <NavItems chat={chat} key={chat.id} />
                     ))}
                   </SidebarMenu>
                 </SidebarGroup>
@@ -189,7 +266,7 @@ export function NavHistories() {
                   <SidebarGroupLabel>Yesterday</SidebarGroupLabel>
                   <SidebarMenu>
                     {groupedChats.yesterday.map((chat) => (
-                      <NavItems item={chat} key={chat.id} />
+                      <NavItems chat={chat} key={chat.id} />
                     ))}
                   </SidebarMenu>
                 </SidebarGroup>
@@ -200,7 +277,7 @@ export function NavHistories() {
                   <SidebarGroupLabel>Last Week</SidebarGroupLabel>
                   <SidebarMenu>
                     {groupedChats.lastWeek.map((chat) => (
-                      <NavItems item={chat} key={chat.id} />
+                      <NavItems chat={chat} key={chat.id} />
                     ))}
                   </SidebarMenu>
                 </SidebarGroup>
@@ -211,7 +288,7 @@ export function NavHistories() {
                   <SidebarGroupLabel>Last Month</SidebarGroupLabel>
                   <SidebarMenu>
                     {groupedChats.lastMonth.map((chat) => (
-                      <NavItems item={chat} key={chat.id} />
+                      <NavItems chat={chat} key={chat.id} />
                     ))}
                   </SidebarMenu>
                 </SidebarGroup>
@@ -222,7 +299,7 @@ export function NavHistories() {
                   <SidebarGroupLabel>Older</SidebarGroupLabel>
                   <SidebarMenu>
                     {groupedChats.older.map((chat) => (
-                      <NavItems item={chat} key={chat.id} />
+                      <NavItems chat={chat} key={chat.id} />
                     ))}
                   </SidebarMenu>
                 </SidebarGroup>
