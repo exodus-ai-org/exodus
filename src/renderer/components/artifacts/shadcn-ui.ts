@@ -5177,6 +5177,25 @@ export const globalsCSS = `@import 'tailwindcss';
   }
 }`
 
+export const tsConfig = {
+  code: `{
+    "include": [
+      "./**/*"
+    ],
+    "compilerOptions": {
+      "strict": true,
+      "esModuleInterop": true,
+      "lib": [ "dom", "es2015" ],
+      "jsx": "react-jsx",
+      "baseUrl": "./",
+      "paths": {
+        "@/components/*": ["components/*"],
+        "@/lib/*": ["lib/*"]
+      }
+    }
+  }`
+}
+
 export const shadcnComponents = {
   accordion,
   alertDialog,
@@ -5226,5 +5245,6 @@ export const shadcnComponents = {
   tooltip,
   useMobile,
   utils,
-  globalsCSS
+  globalsCSS,
+  tsConfig
 }

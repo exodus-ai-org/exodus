@@ -54,6 +54,10 @@ function Messages({
         )}
         ref={chatBoxRef}
       >
+        {isArtifactVisible && (
+          <div className="from-background via-background/75 pointer-events-none fixed top-14 left-0 z-10 h-8 w-full bg-gradient-to-b to-transparent opacity-100 transition-opacity" />
+        )}
+
         {messages.length === 0 && (
           <div className="mx-auto flex size-full max-w-3xl flex-col justify-center px-8 md:mt-20">
             <p className="animate-bounce text-2xl font-semibold">

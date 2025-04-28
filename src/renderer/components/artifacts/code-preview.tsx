@@ -6,24 +6,33 @@ import {
   SheetTitle
 } from '@/components/ui/sheet'
 import { useArtifact } from '@/hooks/use-artifact'
+import { useClipboard } from '@/hooks/use-clipboard'
 import { cn } from '@/lib/utils'
 import {
+  Navigator,
   SandpackCodeEditor,
   SandpackFileExplorer,
   SandpackLayout,
   SandpackPreview,
   SandpackProvider,
+  useActiveCode,
   useSandpack
 } from '@codesandbox/sandpack-react'
+import { DialogTitle } from '@radix-ui/react-dialog'
 import {
   AppWindowMac,
+  Check,
   ChevronsRight,
   Code,
+  Copy,
   Download,
-  GitFork
+  GitFork,
+  Maximize,
+  MousePointerClick
 } from 'lucide-react'
 import { Dispatch, SetStateAction, useEffect, useState } from 'react'
 import { useTheme } from '../theme-provider'
+import { Dialog, DialogContent } from '../ui/dialog'
 import {
   Select,
   SelectContent,
@@ -113,14 +122,9 @@ function CodePreviewActions({
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectItem value="v1">
-                <p>Version 1</p>
-                <p>8 days ago</p>
-              </SelectItem>
-              <SelectItem value="v1">Banana</SelectItem>
-              <SelectItem value="blueberry">Blueberry</SelectItem>
-              <SelectItem value="grapes">Grapes</SelectItem>
-              <SelectItem value="pineapple">Pineapple</SelectItem>
+              <SelectItem value="v1">Version 1</SelectItem>
+              <SelectItem value="v2">Version 2</SelectItem>
+              <SelectItem value="v3">Version 3</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -129,7 +133,53 @@ function CodePreviewActions({
   )
 }
 
+function CodeEditor() {
+  const {
+    sandpack: { activeFile }
+  } = useSandpack()
+  const { code } = useActiveCode()
+  const { copied, handleCopy } = useClipboard()
+  return (
+    <>
+      <SandpackFileExplorer className="!bg-primary-foreground !h-[calc(100vh-7.5625rem)]" />
+      <div className="bg-background absolute top-0 right-0 z-10 flex items-center gap-4 py-1 pl-2 dark:bg-[#151515]">
+        <span className="text-ring font-semibold">
+          {activeFile.replace(/^\//, '')}
+        </span>
+        <div className="flex items-center gap-1 pr-2">
+          <Button
+            variant="ghost"
+            className="text-ring h-7 w-7 cursor-pointer"
+            onClick={() => {
+              if (copied !== code) {
+                handleCopy(code)
+              }
+            }}
+          >
+            {copied === code ? (
+              <Check className="h-4 w-4" />
+            ) : (
+              <Copy className="h-4 w-4" />
+            )}
+          </Button>
+          <Button variant="ghost" className="text-ring h-7 w-7 cursor-pointer">
+            <Download className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      <SandpackCodeEditor
+        showLineNumbers
+        showRunButton={false}
+        showTabs={false}
+        showInlineErrors
+        className="!h-[calc(100vh-7.5625rem)]"
+      />
+    </>
+  )
+}
+
 export function CodePreview() {
+  const [isExpanded, setIsExpanded] = useState(false)
   const { show: isArtifactVisible } = useArtifact()
   const [tabType, setTabType] = useState(TabType.Code)
   const { actualTheme } = useTheme()
@@ -152,26 +202,7 @@ export function CodePreview() {
           template="react-ts"
           files={{
             'App.tsx': exampleCode.trim(),
-            ...importFiles,
-            '/tsconfig.json': {
-              code: `{
-                "include": [
-                  "./**/*"
-                ],
-                "compilerOptions": {
-                  "strict": true,
-                  "esModuleInterop": true,
-                  "lib": [ "dom", "es2015" ],
-                  "jsx": "react-jsx",
-                  "baseUrl": "./",
-                  "paths": {
-                    "@/components/*": ["components/*"],
-                    "@/lib/*": ["lib/*"]
-                  }
-                }
-              }
-            `
-            }
+            ...importFiles
           }}
           options={{
             externalResources: [
@@ -186,26 +217,60 @@ export function CodePreview() {
             <CodePreviewActions tabType={tabType} setTabType={setTabType} />
           </SheetTitle>
 
-          <SandpackLayout className="!rounded-none !rounded-br-lg !rounded-bl-lg !border-none">
-            {tabType === TabType.Code && (
-              <>
-                <SandpackFileExplorer className="!bg-primary-foreground !h-[calc(100vh-7.5625rem)]" />
-                <SandpackCodeEditor
-                  showRunButton={false}
-                  showTabs={false}
-                  className="!h-[calc(100vh-7.5625rem)]"
-                />
-              </>
-            )}
+          <SandpackLayout className="relative !rounded-none !rounded-br-lg !rounded-bl-lg !border-none">
+            {tabType === TabType.Code && <CodeEditor />}
             {tabType === TabType.Preview && (
-              <SandpackPreview
-                showNavigator
-                showOpenInCodeSandbox={false}
-                showRefreshButton={false}
-                showRestartButton={false}
-                showOpenNewtab={false}
-                className="!h-[calc(100vh-7.5625rem)]"
-              />
+              <div className="flex w-full flex-col">
+                <div className="flex">
+                  <Navigator clientId={''} className="flex-1" />
+                  <div className="bg-background flex items-center gap-1 border-b border-[#efefef] pr-2 dark:border-[#252525] dark:bg-[#151515]">
+                    <Button
+                      variant="ghost"
+                      className="text-ring h-7 w-7 cursor-pointer"
+                    >
+                      <MousePointerClick className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="text-ring h-7 w-7 cursor-pointer"
+                      onClick={() => setIsExpanded(true)}
+                    >
+                      <Maximize className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      className="text-ring h-7 w-7 cursor-pointer"
+                    >
+                      <GitFork className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                <SandpackPreview
+                  showNavigator={false}
+                  showOpenInCodeSandbox={false}
+                  showRefreshButton={false}
+                  showRestartButton={false}
+                  showOpenNewtab={false}
+                  className="!h-[calc(100vh-10.0625rem)]"
+                />
+
+                <Dialog open={isExpanded} onOpenChange={setIsExpanded}>
+                  <DialogTitle />
+                  <DialogContent
+                    className="h-11/12 max-w-11/12 min-w-11/12 border-none p-0 [&_.sp-navigator]:rounded-tl-lg [&_.sp-navigator]:rounded-tr-lg [&_.sp-preview]:rounded-lg [&_.sp-preview]:rounded-tr-lg [&_.sp-preview-container]:rounded-br-lg [&_.sp-preview-container]:rounded-bl-lg [&_.sp-preview-container]:bg-transparent [&>button:last-of-type]:top-3 [&>button:last-of-type]:cursor-pointer"
+                    aria-describedby={undefined}
+                  >
+                    <SandpackPreview
+                      showNavigator={true}
+                      showOpenInCodeSandbox={false}
+                      showRefreshButton={false}
+                      showRestartButton={false}
+                      showOpenNewtab={false}
+                    />
+                  </DialogContent>
+                </Dialog>
+              </div>
             )}
           </SandpackLayout>
         </SandpackProvider>

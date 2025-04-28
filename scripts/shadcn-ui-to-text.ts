@@ -4,6 +4,26 @@ import path, { join } from 'path'
 import * as prettier from 'prettier'
 import { cwd } from 'process'
 
+const tsConfig = `export const tsConfig = {
+  code: \`{
+    "include": [
+      "./**/*"
+    ],
+    "compilerOptions": {
+      "strict": true,
+      "esModuleInterop": true,
+      "lib": [ "dom", "es2015" ],
+      "jsx": "react-jsx",
+      "baseUrl": "./",
+      "paths": {
+        "@/components/*": ["components/*"],
+        "@/lib/*": ["lib/*"]
+      }
+    }
+  }\`
+}
+`
+
 const utils = `export const utils = \`import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -182,7 +202,9 @@ async function convertShadcnUiFilesToString() {
     '\n' +
     globalCSS +
     '\n' +
-    `export const shadcnComponents = {${[...fileNames, 'useMobile', 'utils', 'globalsCSS'].join(',')}}`
+    tsConfig +
+    '\n' +
+    `export const shadcnComponents = {${[...fileNames, 'useMobile', 'utils', 'globalsCSS', 'tsConfig'].join(',')}}`
 
   exportedString = await prettier.format(exportedString, {
     semi: false,

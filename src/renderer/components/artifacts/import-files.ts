@@ -2,6 +2,7 @@ import dedent from 'dedent'
 import * as shadcnComponents from './shadcn-ui'
 
 export const importFiles = {
+  '/tsconfig.json': shadcnComponents.tsConfig,
   '/hooks/use-mobile.ts': shadcnComponents.useMobile,
   '/lib/utils.ts': shadcnComponents.utils,
   '/lib/globals.css': shadcnComponents.globalsCSS,
