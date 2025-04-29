@@ -8,8 +8,8 @@ import { Separator } from '@radix-ui/react-separator'
 import { Outlet } from 'react-router'
 import { Toaster } from 'sonner'
 import { AppSidebar } from './app-sidebar'
-import { NavActions } from './nav-actions'
 import { SearchDialog } from './search-dialog'
+import { ThemeSwitcher } from './theme-switcher'
 
 export function Layout() {
   return (
@@ -23,7 +23,7 @@ export function Layout() {
               <Separator orientation="vertical" className="mr-2 h-4" />
             </div>
             <div className="ml-auto px-3">
-              <NavActions />
+              <ThemeSwitcher />
             </div>
           </header>
           <Outlet />
