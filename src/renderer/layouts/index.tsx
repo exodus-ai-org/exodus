@@ -8,6 +8,7 @@ import { Separator } from '@radix-ui/react-separator'
 import { Outlet } from 'react-router'
 import { Toaster } from 'sonner'
 import { AppSidebar } from './app-sidebar'
+import { RenameChatDialog } from './rename-chat-dialog'
 import { SearchDialog } from './search-dialog'
 import { ThemeSwitcher } from './theme-switcher'
 
@@ -30,6 +31,7 @@ export function Layout() {
           <Toaster />
           <SettingsDialog />
           <SearchDialog />
+          <RenameChatDialog />
         </div>
       </SidebarInset>
     </SidebarProvider>

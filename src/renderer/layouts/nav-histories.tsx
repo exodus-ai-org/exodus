@@ -1,14 +1,4 @@
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle
-} from '@/components/ui/alert-dialog'
-import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger
@@ -20,7 +10,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
-import { Input } from '@/components/ui/input'
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -32,14 +21,14 @@ import {
   useSidebar
 } from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
-import { BASE_URL } from '@shared/constants'
+import { deleteChat, updateChat } from '@/services/chat'
+import { renamedChatTitleAtom } from '@/stores/chat'
 import type { Chat } from '@shared/types/db'
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns'
+import { useSetAtom } from 'jotai'
 import { ChevronRight, Edit2, MoreHorizontal, Star, Trash2 } from 'lucide-react'
-import { useState } from 'react'
 import { Link, useParams } from 'react-router'
-import { toast } from 'sonner'
-import useSWR, { mutate } from 'swr'
+import useSWR from 'swr'
 import { Skeleton } from '../components/ui/skeleton'
 
 interface GroupedChats {
@@ -73,126 +62,61 @@ export function NavItems({
 }) {
   const { id } = useParams<{ id: string }>()
   const { isMobile } = useSidebar()
-  const [isOpenRenameDialog, setIsOpenRenameDialog] = useState(false)
-  const [chatTitle, setChatTitle] = useState('')
-
-  const updateChat = async (payload: Partial<Chat>) => {
-    await fetch(`${BASE_URL}/api/chat`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
-    })
-
-    mutate('/api/history')
-    toast.success(`Succeed to update chat ${payload.id}.`)
-  }
-
-  const deleteChat = async (chatId: string) => {
-    await fetch(`${BASE_URL}/api/chat/${chatId}`, {
-      method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    })
-
-    mutate('/api/history')
-    if (chatId === id) {
-      window.location.href = '/'
-    }
-
-    toast.success(`Succeed to delete ${chatId}.`)
-  }
+  const setRenamedChatTitle = useSetAtom(renamedChatTitleAtom)
 
   return (
-    <>
-      <SidebarMenuItem className={className}>
-        <SidebarMenuButton asChild isActive={chat.id === id}>
-          <Link to={`/chat/${chat.id}`}>
-            <span>{chat.title}</span>
-          </Link>
-        </SidebarMenuButton>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <SidebarMenuAction showOnHover>
-              <MoreHorizontal />
-              <span className="sr-only">More</span>
-            </SidebarMenuAction>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="w-56 rounded-lg"
-            side={isMobile ? 'bottom' : 'right'}
-            align={isMobile ? 'end' : 'start'}
+    <SidebarMenuItem className={className}>
+      <SidebarMenuButton asChild isActive={chat.id === id}>
+        <Link to={`/chat/${chat.id}`}>
+          <span>{chat.title}</span>
+        </Link>
+      </SidebarMenuButton>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <SidebarMenuAction showOnHover>
+            <MoreHorizontal />
+            <span className="sr-only">More</span>
+          </SidebarMenuAction>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          className="w-56 rounded-lg"
+          side={isMobile ? 'bottom' : 'right'}
+          align={isMobile ? 'end' : 'start'}
+        >
+          <DropdownMenuItem
+            onClick={() =>
+              updateChat({ id: chat.id, favorite: !chat.favorite })
+            }
           >
-            <DropdownMenuItem
-              onClick={() =>
-                updateChat({ id: chat.id, favorite: !chat.favorite })
-              }
-            >
-              <Star
-                className={cn('text-muted-foreground', {
-                  ['fill-yellow-500 text-yellow-500']: chat.favorite
-                })}
-              />
-              <span>{chat.favorite ? 'Unfavorite' : 'Favorite'}</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                setIsOpenRenameDialog(true)
-                setChatTitle(chat.title)
-              }}
-            >
-              <Edit2 className="text-muted-foreground" />
-              <span>Rename</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => deleteChat(chat.id)}>
-              <Trash2 className="text-destructive" />
-              <span className="text-destructive hover:text-destructive">
-                Delete
-              </span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </SidebarMenuItem>
-
-      <AlertDialog
-        open={isOpenRenameDialog}
-        onOpenChange={setIsOpenRenameDialog}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Rename Chat</AlertDialogTitle>
-            <AlertDialogDescription>
-              <Input
-                className="text-foreground"
-                value={chatTitle}
-                onChange={(e) => setChatTitle(e.target.value)}
-              />
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              onClick={() => {
-                setChatTitle('')
-              }}
-            >
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                updateChat({ id: chat.id, title: chatTitle })
-                setIsOpenRenameDialog(false)
-                setChatTitle('')
-              }}
-            >
-              Submit
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+            <Star
+              className={cn('text-muted-foreground', {
+                ['fill-yellow-500 text-yellow-500']: chat.favorite
+              })}
+            />
+            <span>{chat.favorite ? 'Unfavorite' : 'Favorite'}</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => {
+              setRenamedChatTitle({
+                id: chat.id,
+                title: chat.title,
+                open: true
+              })
+            }}
+          >
+            <Edit2 className="text-muted-foreground" />
+            <span>Rename</span>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem onClick={() => deleteChat(chat.id, id)}>
+            <Trash2 className="text-destructive" />
+            <span className="text-destructive hover:text-destructive">
+              Delete
+            </span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </SidebarMenuItem>
   )
 }
 
