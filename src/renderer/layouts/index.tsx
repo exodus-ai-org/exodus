@@ -9,6 +9,7 @@ import { Outlet } from 'react-router'
 import { Toaster } from 'sonner'
 import { AppSidebar } from './app-sidebar'
 import { NavActions } from './nav-actions'
+import { SearchDialog } from './search-dialog'
 
 export function Layout() {
   return (
@@ -28,6 +29,7 @@ export function Layout() {
           <Outlet />
           <Toaster />
           <SettingsDialog />
+          <SearchDialog />
         </div>
       </SidebarInset>
     </SidebarProvider>

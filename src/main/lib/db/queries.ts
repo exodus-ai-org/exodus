@@ -1,4 +1,4 @@
-import { and, asc, desc, eq } from 'drizzle-orm'
+import { and, asc, desc, eq, sql } from 'drizzle-orm'
 import { v4 as uuidV4 } from 'uuid'
 import { db, pgLiteClient } from './db'
 import {
@@ -81,6 +81,32 @@ export async function getMessagesByChatId({ id }: { id: string }) {
       .orderBy(asc(message.createdAt))
   } catch (error) {
     console.error('Failed to get messages by chat id from database', error)
+    throw error
+  }
+}
+
+export async function fullTextSearchOnMessages(query: string) {
+  try {
+    const messages = await db
+      .select()
+      .from(message)
+      .where(
+        sql`to_tsvector('simple', ${message.parts}) @@ websearch_to_tsquery('simple', ${query})`
+      )
+
+    const searchResults = await Promise.all(
+      messages.map(async (message) => {
+        const chat = await getChatById({ id: message.chatId })
+        return {
+          ...message,
+          title: chat.title
+        }
+      })
+    )
+
+    return searchResults
+  } catch (error) {
+    console.error('Failed to complete full-text search from database', error)
     throw error
   }
 }

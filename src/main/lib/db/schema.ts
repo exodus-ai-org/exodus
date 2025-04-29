@@ -1,7 +1,8 @@
 import { SettingsType } from '@shared/schemas/settings-schema'
-import { type InferSelectModel } from 'drizzle-orm'
+import { sql, type InferSelectModel } from 'drizzle-orm'
 import {
   boolean,
+  index,
   json,
   jsonb,
   pgTable,
@@ -21,16 +22,25 @@ export const chat = pgTable('Chat', {
 
 export type Chat = InferSelectModel<typeof chat>
 
-export const message = pgTable('Message', {
-  id: uuid('id').primaryKey().notNull().defaultRandom(),
-  chatId: uuid('chatId')
-    .notNull()
-    .references(() => chat.id),
-  role: varchar('role').notNull(),
-  parts: json('parts').notNull(),
-  attachments: json('attachments').notNull(),
-  createdAt: timestamp('createdAt').defaultNow().notNull()
-})
+export const message = pgTable(
+  'Message',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    chatId: uuid('chatId')
+      .notNull()
+      .references(() => chat.id),
+    role: varchar('role').notNull(),
+    parts: json('parts').notNull(),
+    attachments: json('attachments').notNull(),
+    createdAt: timestamp('createdAt').defaultNow().notNull()
+  },
+  (table) => [
+    index('message_search_index').using(
+      'gin',
+      sql`to_tsvector('simple', ${table.parts})`
+    )
+  ]
+)
 
 export type Message = InferSelectModel<typeof message>
 

@@ -26,6 +26,7 @@ import {
 } from '../../ai/utils'
 import {
   deleteChatById,
+  fullTextSearchOnMessages,
   getChatById,
   getMessagesByChatId,
   getSettings,
@@ -39,6 +40,17 @@ const chat = new Hono<{ Variables: Variables }>()
 chat.get('/mcp', async (c) => {
   const tools = c.get('tools')
   return c.json({ tools })
+})
+
+chat.get('/search', async (c) => {
+  const query = c.req.query('query')
+
+  try {
+    const result = await fullTextSearchOnMessages(query ?? '')
+    return c.json(result)
+  } catch {
+    return c.text('An error occurred while processing your request', 500)
+  }
 })
 
 chat.post('/', async (c) => {

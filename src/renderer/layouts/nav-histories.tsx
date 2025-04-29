@@ -137,7 +137,6 @@ export function NavItems({
               />
               <span>{chat.favorite ? 'Unfavorite' : 'Favorite'}</span>
             </DropdownMenuItem>
-            <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => {
                 setIsOpenRenameDialog(true)
@@ -167,6 +166,7 @@ export function NavItems({
             <AlertDialogTitle>Rename Chat</AlertDialogTitle>
             <AlertDialogDescription>
               <Input
+                className="text-foreground"
                 value={chatTitle}
                 onChange={(e) => setChatTitle(e.target.value)}
               />
@@ -275,14 +275,14 @@ export function NavHistories() {
               {groupedChats.favorite.length > 0 && (
                 <SidebarGroup className="group-data-[collapsible=icon]:hidden">
                   <SidebarMenu>
-                    <Collapsible className="group/collapsible">
+                    <Collapsible className="group/collapsible" defaultOpen>
                       <SidebarGroupLabel
                         asChild
                         className="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mb-1 text-sm"
                       >
-                        <CollapsibleTrigger className="w-full !p-0">
+                        <CollapsibleTrigger className="flex w-full cursor-pointer items-center justify-between !pl-0">
                           <SidebarGroupLabel>Favorite</SidebarGroupLabel>
-                          <ChevronRight className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                          <ChevronRight className="transition-transform group-data-[state=open]/collapsible:rotate-90" />
                         </CollapsibleTrigger>
                       </SidebarGroupLabel>
                       <CollapsibleContent>
