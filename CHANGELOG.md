@@ -1,3 +1,20 @@
+# [1.5.0](https://github.com/HyperChatBot/exodus/compare/v1.4.2...v1.5.0) (2025-04-30)
+
+
+### Features
+
+* extract RenameChatDialog ([7a81bb9](https://github.com/HyperChatBot/exodus/commit/7a81bb95c76ef1e6c660aeced38adcc490788069))
+* move all http requests to services directory ([97caed2](https://github.com/HyperChatBot/exodus/commit/97caed2c1b8ee34fb80b25417008c3cb6cb68814))
+* optimize the UI of CodePreview ([3178d43](https://github.com/HyperChatBot/exodus/commit/3178d43e909cd96e8257973df168167422593f7d))
+* remove useless console.log ([1e5a511](https://github.com/HyperChatBot/exodus/commit/1e5a5114f02b904f7991a28a586a1e7f6a79d14d))
+* rename nav-actions to theme-switcher ([63bdd0d](https://github.com/HyperChatBot/exodus/commit/63bdd0dcfd74d6f8722276e595419b831f3a42b7))
+* support full-text search ([20d49b5](https://github.com/HyperChatBot/exodus/commit/20d49b5802a854b1583113679a8d9f0e30c71ded))
+* support rename chat ([a366add](https://github.com/HyperChatBot/exodus/commit/a366add36b8018e565bb1c3a4de7c12c6b2688d9))
+* support to add chats to favorite ([92eb84f](https://github.com/HyperChatBot/exodus/commit/92eb84f9e2d244ee1e30334ce0e9cff7f21ab379))
+* supports useClipboard ([1837e13](https://github.com/HyperChatBot/exodus/commit/1837e13a682e5369070637bbd505c5b282bce0f3))
+* **wip:** auto refresh preview when switch to Preview Tab ([ac02863](https://github.com/HyperChatBot/exodus/commit/ac02863d561b11c879f302d4ace41669c7002c68))
+* **wip:** complete convertShadcnUiFilesToString ([4bda232](https://github.com/HyperChatBot/exodus/commit/4bda2320863caf27a3a2b609841d5dcf21771e65))
+
 ## [1.4.2](https://github.com/HyperChatBot/exodus/compare/v1.4.1...v1.4.2) (2025-04-26)
 
 
