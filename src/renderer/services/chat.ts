@@ -1,15 +1,13 @@
-import { BASE_URL } from '@shared/constants'
 import { Chat } from '@shared/types/db'
 import { toast } from 'sonner'
 import { mutate } from 'swr'
+import { fetcher } from './http'
 
 export const updateChat = async (payload: Partial<Chat>) => {
-  await fetch(`${BASE_URL}/api/chat`, {
+  await fetcher<string>('/api/chat', {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(payload)
+    body: payload,
+    responseType: 'text'
   })
 
   mutate('/api/history')
@@ -17,11 +15,9 @@ export const updateChat = async (payload: Partial<Chat>) => {
 }
 
 export const deleteChat = async (chatId: string, currentId?: string) => {
-  await fetch(`${BASE_URL}/api/chat/${chatId}`, {
+  await fetcher<string>(`/api/chat/${chatId}`, {
     method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json'
-    }
+    responseType: 'text'
   })
 
   mutate('/api/history')
