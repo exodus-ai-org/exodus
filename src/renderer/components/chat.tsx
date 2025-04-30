@@ -1,6 +1,6 @@
 import { advancedToolsAtom } from '@/stores/chat'
 import { useChat } from '@ai-sdk/react'
-import { BASE_URL } from '@shared/constants'
+import { BASE_URL } from '@shared/constants/systems'
 import type { UIMessage } from 'ai'
 import { useAtomValue } from 'jotai'
 import { toast } from 'sonner'

@@ -1,10 +1,11 @@
 import { useArtifact } from '@/hooks/use-artifact'
+import { useClipboard } from '@/hooks/use-clipboard'
 import { cn } from '@/lib/utils'
 import { WebSearchResult } from '@shared/types/web-search'
 import type { UIMessage } from 'ai'
 import 'katex/dist/katex.min.css'
 import { Check, Copy, PencilRuler } from 'lucide-react'
-import { memo, ReactNode, useMemo, useState } from 'react'
+import { memo, ReactNode, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import {
@@ -82,7 +83,7 @@ export function Markdown({
   parts: UIMessage['parts']
 }) {
   const { show: isArtifactVisible, openArtifact } = useArtifact()
-  const [copiedContent, setCopiedContent] = useState<ReactNode>('')
+  const { copied, handleCopy } = useClipboard()
   const { actualTheme } = useTheme()
   const { codeTheme, bg } = useMemo(() => themes[actualTheme], [actualTheme])
   const webSearchResults = useMemo(() => {
@@ -106,15 +107,6 @@ export function Markdown({
       return undefined
     }
   }, [parts])
-
-  const handleCopy = (children: ReactNode) => {
-    if (!copiedContent) {
-      setCopiedContent(children)
-      setTimeout(() => {
-        setCopiedContent('')
-      }, 2000)
-    }
-  }
 
   return (
     <section className="markdown">
@@ -149,16 +141,20 @@ export function Markdown({
                   <span>{match[1]}</span>
                   <div className="flex items-center gap-6">
                     <>
-                      {copiedContent !== children ? (
+                      {copied !== children ? (
                         <span
-                          className="flex cursor-pointer items-center gap-1.5"
-                          onClick={() => handleCopy(children)}
+                          className="hover:text-primary flex cursor-pointer items-center gap-1.5"
+                          onClick={() => {
+                            if (typeof children === 'string') {
+                              handleCopy(children)
+                            }
+                          }}
                         >
                           <Copy size={10} />
                           Copy
                         </span>
                       ) : (
-                        <span className="flex items-center gap-1.5">
+                        <span className="hover:text-primary flex items-center gap-1.5">
                           <Check size={10} strokeWidth={2.5} />
                           Copied
                         </span>
@@ -166,7 +162,7 @@ export function Markdown({
                     </>
 
                     <span
-                      className="flex cursor-pointer items-center gap-1.5"
+                      className="hover:text-primary flex cursor-pointer items-center gap-1.5"
                       onClick={openArtifact}
                     >
                       <PencilRuler size={10} />

@@ -1,4 +1,5 @@
 import { useArtifact } from '@/hooks/use-artifact'
+import { useClipboard } from '@/hooks/use-clipboard'
 import { TooltipArrow } from '@radix-ui/react-tooltip'
 import { ChatRequestOptions } from 'ai'
 import {
@@ -9,7 +10,7 @@ import {
   ThumbsDown,
   ThumbsUp
 } from 'lucide-react'
-import { ReactNode, useState } from 'react'
+import { ReactNode } from 'react'
 import AudioPlayer from './audio-player'
 import {
   Tooltip,
@@ -64,23 +65,14 @@ export function MessageAction({
     chatRequestOptions?: ChatRequestOptions
   ) => Promise<string | null | undefined>
 }) {
-  const [copied, setCopied] = useState(false)
+  const { copied, handleCopy } = useClipboard()
   const { openArtifact } = useArtifact()
-
-  const handleCopy = () => {
-    if (!copied) {
-      setCopied(true)
-      setTimeout(() => {
-        setCopied(false)
-      }, 2000)
-    }
-  }
 
   return (
     <div className="invisible absolute flex gap-0.5 opacity-0 transition-all group-hover:visible group-hover:opacity-100 group-hover:transition-all">
       <MessageActionItem tooltipContent="Copy">
-        <IconWrapper onClick={handleCopy}>
-          {!copied ? (
+        <IconWrapper onClick={() => handleCopy(content)}>
+          {copied !== content ? (
             <Copy size={14} strokeWidth={2.5} />
           ) : (
             <Check size={14} strokeWidth={2.5} />

@@ -1,4 +1,5 @@
 import { AdvancedTools, Variables } from '@shared/types/ai'
+import { Chat } from '@shared/types/db'
 import {
   appendResponseMessages,
   createDataStream,
@@ -25,11 +26,13 @@ import {
 } from '../../ai/utils'
 import {
   deleteChatById,
+  fullTextSearchOnMessages,
   getChatById,
   getMessagesByChatId,
   getSettings,
   saveChat,
-  saveMessages
+  saveMessages,
+  updateChat
 } from '../../db/queries'
 
 const chat = new Hono<{ Variables: Variables }>()
@@ -37,6 +40,17 @@ const chat = new Hono<{ Variables: Variables }>()
 chat.get('/mcp', async (c) => {
   const tools = c.get('tools')
   return c.json({ tools })
+})
+
+chat.get('/search', async (c) => {
+  const query = c.req.query('query')
+
+  try {
+    const result = await fullTextSearchOnMessages(query ?? '')
+    return c.json(result)
+  } catch {
+    return c.text('An error occurred while processing your request', 500)
+  }
 })
 
 chat.post('/', async (c) => {
@@ -198,6 +212,21 @@ chat.get('/:id', async (c) => {
 
     const messagesFromDb = await getMessagesByChatId({ id })
     return c.json(messagesFromDb)
+  } catch {
+    return c.text('An error occurred while processing your request', 500)
+  }
+})
+
+chat.put('/', async (c) => {
+  const payload = await c.req.json<Chat>()
+
+  if (!payload.id) {
+    return c.text('Not Found', 404)
+  }
+
+  try {
+    await updateChat(payload)
+    return c.text(`Succeed to update chat ${payload.id}}`, 200)
   } catch {
     return c.text('An error occurred while processing your request', 500)
   }

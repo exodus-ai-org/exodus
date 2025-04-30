@@ -1,5 +1,5 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
-import { LOCAL_FILE_DIRECTORY } from '@shared/constants'
+import { LOCAL_FILE_DIRECTORY } from '@shared/constants/systems'
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import {
   installExtension,

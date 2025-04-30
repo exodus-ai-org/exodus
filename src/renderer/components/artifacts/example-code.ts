@@ -1,527 +1,621 @@
-export const exampleCode = `
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardFooter,
-    CardHeader,
-    CardTitle,
-} from '@/components/ui/card';
-import { cn } from '@/lib/utils';
-import {
-    Brush,
-    Menu,
-    X,
-    Facebook,
-    Twitter,
-    Instagram,
-    ChevronRight
-} from 'lucide-react';
+export const exampleCode = `import {
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  MapPin,
+  Menu,
+  Pause,
+  Plus,
+  Search,
+  Settings,
+  Sparkles,
+  Users,
+  X
+} from 'lucide-react'
+import { useEffect, useState } from 'react'
 
-// 假设的图片 URL，你需要替换为实际的图片 URL
-const PLACEHOLDER_IMAGE = 'https://placehold.co/600x400/EEE/31343C';
-const PLACEHOLDER_SMALL_IMAGE = 'https://placehold.co/400x300/EEE/31343C';
-const PLACEHOLDER_NEWS_IMAGE = 'https://placehold.co/400x200/EEE/31343C';
+export default function Home() {
+  const [isLoaded, setIsLoaded] = useState(false)
+  const [showAIPopup, setShowAIPopup] = useState(false)
+  const [typedText, setTypedText] = useState('')
+  const [isPlaying, setIsPlaying] = useState(false)
 
-// 字体
-const serifFont = 'font-serif';
+  useEffect(() => {
+    setIsLoaded(true)
 
-// 导航数据
-const navLinks = [
-    { id: 'home', label: '首页', href: '#home' },
-    { id: 'about', label: '关于我们', href: '#about' },
-    { id: 'gallery', label: '作品展示', href: '#gallery' },
-    { id: 'courses', label: '课程', href: '#courses' },
-    { id: 'news', label: '新闻', href: '#news' },
-    { id: 'contact', label: '联系我们', href: '#contact' },
-];
+    // Show AI popup after 3 seconds
+    const popupTimer = setTimeout(() => {
+      setShowAIPopup(true)
+    }, 3000)
 
-// 社交媒体链接
-const socialLinks = [
-    { icon: <Facebook className="h-5 w-5" />, href: '#' },
-    { icon: <Twitter className="h-5 w-5" />, href: '#' },
-    { icon: <Instagram className="h-5 w-5" />, href: '#' },
-];
+    return () => clearTimeout(popupTimer)
+  }, [])
 
-// 友情链接
-const friendLinks = [
-    { label: '链接1', href: '#' },
-    { label: '链接2', href: '#' },
-];
-
-/**
- * 首页横幅组件
- */
-const HomeBanner = () => (
-    <section id="home" className="bg-gradient-to-r from-blue-100 to-purple-100 text-gray-800 py-20">
-        <div className="container mx-auto px-4 text-center">
-            <h2 className={cn("text-4xl font-bold mb-4", serifFont)}>传承书法艺术，弘扬文化精髓</h2>
-            <p className="text-lg mb-8">
-                我们致力于书法和绘画的教学、创作和交流，培养艺术人才，推动文化发展。
-            </p>
-            <Button
-                variant="default"
-                size="lg"
-                className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-full transition duration-300"
-                onClick={() => {
-                    const aboutSection = document.getElementById('about');
-                    if (aboutSection) {
-                        aboutSection.scrollIntoView({ behavior: 'smooth' });
-                    }
-                }}
-            >
-                了解更多
-            </Button>
-        </div>
-    </section>
-);
-
-/**
- * 关于我们组件
- */
-const AboutUs = () => (
-    <section id="about" className="bg-white py-20">
-        <div className="container mx-auto px-4 grid md:grid-cols-2 gap-10 items-center">
-            <div>
-                <h2 className={cn("text-3xl font-semibold mb-4 text-gray-800", serifFont)}>关于我们</h2>
-                <p className="text-lg text-gray-700 mb-6">
-                    书法书画院成立于[年份]，是一所致力于传承和弘扬中华优秀传统文化的艺术机构。
-                    我们拥有一支由知名书法家和画家组成的师资团队，提供专业的书法、绘画培训课程，并定期举办展览和交流活动。
-                </p>
-                <p className="text-lg text-gray-700">
-                    我们的使命是：[使命]。我们的愿景是：[愿景]。
-                </p>
-            </div>
-            <div>
-                <img src={PLACEHOLDER_IMAGE} alt="About Us" className="rounded-lg shadow-lg" />
-            </div>
-        </div>
-    </section>
-);
-
-/**
- * 作品展示组件
- */
-const Gallery = () => (
-    <section id="gallery" className="bg-gray-100 py-20">
-        <div className="container mx-auto px-4">
-            <h2 className={cn("text-3xl font-semibold mb-8 text-center text-gray-800", serifFont)}>作品展示</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {/* 作品 1 */}
-                <Card className="overflow-hidden">
-                    <img src={PLACEHOLDER_SMALL_IMAGE} alt="作品 1" className="w-full h-auto" />
-                    <CardContent className="p-4">
-                        <CardTitle className="text-xl font-semibold text-gray-800 mb-2">作品名称 1</CardTitle>
-                        <CardDescription className="text-gray-600">作者：XXX</CardDescription>
-                    </CardContent>
-                </Card>
-
-                {/* 作品 2 */}
-                <Card className="overflow-hidden">
-                    <img src={PLACEHOLDER_SMALL_IMAGE} alt="作品 2" className="w-full h-auto" />
-                    <CardContent className="p-4">
-                        <CardTitle className="text-xl font-semibold text-gray-800 mb-2">作品名称 2</CardTitle>
-                        <CardDescription className="text-gray-600">作者：XXX</CardDescription>
-                    </CardContent>
-                </Card>
-
-                {/* 作品 3 */}
-                <Card className="overflow-hidden">
-                    <img src={PLACEHOLDER_SMALL_IMAGE} alt="作品 3" className="w-full h-auto" />
-                    <CardContent className="p-4">
-                        <CardTitle className="text-xl font-semibold text-gray-800 mb-2">作品名称 3</CardTitle>
-                        <CardDescription className="text-gray-600">作者：XXX</CardDescription>
-                    </CardContent>
-                </Card>
-            </div>
-            <div className="text-center mt-10">
-                <Button
-                    variant="default"
-                    size="lg"
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-full transition duration-300"
-                >
-                    查看更多作品
-                </Button>
-            </div>
-        </div>
-    </section>
-);
-
-/**
- * 课程介绍组件
- */
-const Courses = () => (
-    <section id="courses" className="bg-white py-20">
-        <div className="container mx-auto px-4">
-            <h2 className={cn("text-3xl font-semibold mb-8 text-center text-gray-800", serifFont)}>课程介绍</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {/* 课程 1 */}
-                <Card className="bg-gray-100">
-                    <CardHeader>
-                        <CardTitle className="text-2xl font-semibold text-gray-800">书法基础班</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-gray-700 mb-4">
-                            适合零基础学员，学习基本笔画、结构和书写技巧。
-                        </p>
-                        <ul className="list-disc list-inside text-gray-600">
-                            <li>课程内容 1</li>
-                            <li>课程内容 2</li>
-                            <li>课程内容 3</li>
-                        </ul>
-                    </CardContent>
-                </Card>
-
-                {/* 课程 2 */}
-                <Card className="bg-gray-100">
-                    <CardHeader>
-                        <CardTitle className="text-2xl font-semibold text-gray-800">绘画进阶班</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-gray-700 mb-4">
-                            适合有一定基础的学员，学习更高级的绘画技巧和创作方法。
-                        </p>
-                        <ul className="list-disc list-inside text-gray-600">
-                            <li>课程内容 1</li>
-                            <li>课程内容 2</li>
-                            <li>课程内容 3</li>
-                        </ul>
-                    </CardContent>
-                </Card>
-
-                {/* 课程 3 */}
-                <Card className="bg-gray-100">
-                    <CardHeader>
-                        <CardTitle className="text-2xl font-semibold text-gray-800">书法创作班</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <p className="text-gray-700 mb-4">
-                            适合有较好书法基础的学员，指导学员进行书法创作。
-                        </p>
-                        <ul className="list-disc list-inside text-gray-600">
-                            <li>课程内容 1</li>
-                            <li>课程内容 2</li>
-                            <li>课程内容 3</li>
-                        </ul>
-                    </CardContent>
-                </Card>
-            </div>
-            <div className="text-center mt-10">
-                <Button
-                    variant="default"
-                    size="lg"
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-full transition duration-300"
-                >
-                    查看更多课程
-                </Button>
-            </div>
-        </div>
-    </section>
-);
-
-/**
- * 新闻动态组件
- */
-const News = () => (
-    <section id="news" className="bg-gray-100 py-20">
-        <div className="container mx-auto px-4">
-            <h2 className={cn("text-3xl font-semibold mb-8 text-center text-gray-800", serifFont)}>新闻动态</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {/* 新闻 1 */}
-                <Card className="overflow-hidden">
-                    <img src={PLACEHOLDER_NEWS_IMAGE} alt="新闻 1" className="w-full h-auto" />
-                    <CardContent className="p-4">
-                        <CardTitle className="text-xl font-semibold text-gray-800 mb-2">新闻标题 1</CardTitle>
-                        <CardDescription className="text-gray-600 mb-2">发布日期：2024-07-28</CardDescription>
-                        <p className="text-gray-700">新闻摘要...</p>
-                    </CardContent>
-                </Card>
-
-                {/* 新闻 2 */}
-                <Card className="overflow-hidden">
-                    <img src={PLACEHOLDER_NEWS_IMAGE} alt="新闻 2" className="w-full h-auto" />
-                    <CardContent className="p-4">
-                        <CardTitle className="text-xl font-semibold text-gray-800 mb-2">新闻标题 2</CardTitle>
-                        <CardDescription className="text-gray-600 mb-2">发布日期：2024-07-27</CardDescription>
-                        <p className="text-gray-700">新闻摘要...</p>
-                    </CardContent>
-                </Card>
-
-                {/* 新闻 3 */}
-                <Card className="overflow-hidden">
-                    <img src={PLACEHOLDER_NEWS_IMAGE} alt="新闻 3" className="w-full h-auto" />
-                    <CardContent className="p-4">
-                        <CardTitle className="text-xl font-semibold text-gray-800 mb-2">新闻标题 3</CardTitle>
-                        <CardDescription className="text-gray-600 mb-2">发布日期：2024-07-26</CardDescription>
-                        <p className="text-gray-700">新闻摘要...</p>
-                    </CardContent>
-                </Card>
-            </div>
-            <div className="text-center mt-10">
-                <Button
-                    variant="default"
-                    size="lg"
-                    className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-full transition duration-300"
-                >
-                    查看更多新闻
-                </Button>
-            </div>
-        </div>
-    </section>
-);
-
-/**
- * 联系我们组件
- */
-const Contact = () => (
-    <section id="contact" className="bg-white py-20">
-        <div className="container mx-auto px-4 grid md:grid-cols-2 gap-10">
-            <div>
-                <h2 className={cn("text-3xl font-semibold mb-4 text-gray-800", serifFont)}>联系我们</h2>
-                <p className="text-lg text-gray-700 mb-4">
-                    地址：[地址]
-                </p>
-                <p className="text-lg text-gray-700 mb-4">
-                    电话：[电话]
-                </p>
-                <p className="text-lg text-gray-700">
-                    邮箱：[邮箱]
-                </p>
-            </div>
-            <div>
-                <Card className="bg-gray-100 shadow-md">
-                    <CardHeader>
-                        <CardTitle className="text-2xl font-semibold text-gray-800">留言</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                        <div>
-                            <label htmlFor="name" className="block text-gray-700 text-sm font-bold mb-2">姓名</label>
-                            <Input
-                                id="name"
-                                name="name"
-                                placeholder="请输入您的姓名"
-                                className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="email" className="block text-gray-700 text-sm font-bold mb-2">邮箱</label>
-                            <Input
-                                id="email"
-                                name="email"
-                                type="email"
-                                placeholder="请输入您的邮箱"
-                                className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="message" className="block text-gray-700 text-sm font-bold mb-2">留言内容</label>
-                            <Textarea
-                                id="message"
-                                name="message"
-                                placeholder="请输入您的留言"
-                                className="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline h-32"
-                            />
-                        </div>
-                    </CardContent>
-                    <CardFooter>
-                        <Button
-                            variant="default"
-                            size="lg"
-                            className="bg-blue-500 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-full transition duration-300 focus:outline-none focus:shadow-outline"
-                        >
-                            发送留言
-                        </Button>
-                    </CardFooter>
-                </Card>
-            </div>
-        </div>
-    </section>
-);
-
-/**
- * 底部组件
- */
-const Footer = () => (
-    <footer className="bg-gray-200 py-6">
-        <div className="container mx-auto px-4">
-            <div className="flex justify-between items-center">
-                <p className="text-gray-600 text-sm">
-                    © 2024 书法书画院. All rights reserved.
-                </p>
-                <div className="flex space-x-4">
-                    {socialLinks.map((link, index) => (
-                        <a
-                            key={index}
-                            href={link.href}
-                            className="text-gray-700 hover:text-blue-500 transition duration-300"
-                            aria-label={\`Visit us on \${link.href.includes('facebook') ? 'Facebook' : link.href.includes('twitter') ? 'Twitter' : 'Instagram'}\`}
-                        >
-                            {link.icon}
-                        </a>
-                    ))}
-                </div>
-                <div>
-                    <p className="text-gray-600 text-sm">
-                        友情链接：
-                        {friendLinks.map((link, index) => (
-                            <React.Fragment key={index}>
-                                <a href={link.href} className="text-blue-500 hover:underline">
-                                    {link.label}
-                                </a>
-                                {index < friendLinks.length - 1 && ' '}
-                            </React.Fragment>
-                        ))}
-                    </p>
-                </div>
-            </div>
-        </div>
-    </footer>
-);
-
-/**
- * 主应用组件
- */
-const App = () => {
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [activeSection, setActiveSection] = useState('home');
-
-    const toggleMobileMenu = () => {
-        setIsMobileMenuOpen(!isMobileMenuOpen);
-    };
-
-    const closeMobileMenu = () => {
-        setIsMobileMenuOpen(false);
-    };
-
-    const handleNavLinkClick = (sectionId: string) => {
-        setActiveSection(sectionId);
-        closeMobileMenu(); // Close menu after clicking a link
-        const targetSection = document.getElementById(sectionId);
-        if (targetSection) {
-            targetSection.scrollIntoView({ behavior: 'smooth' });
+  useEffect(() => {
+    if (showAIPopup) {
+      const text =
+        "LLooks like you don't have that many meetings today. Shall I play some Hans Zimmer essentials to help you get into your Flow State?"
+      let i = 0
+      const typingInterval = setInterval(() => {
+        if (i < text.length) {
+          setTypedText((prev) => prev + text.charAt(i))
+          i++
+        } else {
+          clearInterval(typingInterval)
         }
-    };
+      }, 50)
 
-    useEffect(() => {
-        const handleScroll = () => {
-            let currentSectionId = '';
-            document.querySelectorAll('section').forEach(section => {
-                const sectionTop = section.offsetTop;
-                const sectionHeight = section.clientHeight;
-                if (window.scrollY >= sectionTop - 100 && window.scrollY < sectionTop + sectionHeight - 100) {
-                    currentSectionId = section.getAttribute('id') || '';
-                }
-            });
+      return () => clearInterval(typingInterval)
+    }
+  }, [showAIPopup])
 
-             setActiveSection(currentSectionId);
-        };
+  const [currentView, setCurrentView] = useState('week')
+  const [currentMonth, setCurrentMonth] = useState('March 2025')
+  const [currentDate, setCurrentDate] = useState('March 5')
+  const [selectedEvent, setSelectedEvent] = useState(null)
 
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
+  const handleEventClick = (event) => {
+    setSelectedEvent(event)
+  }
 
-    return (
-        <div className="bg-gray-100">
-            {/* 头部区域 */}
-            <header className="bg-white shadow-md py-4">
-                <div className="container mx-auto px-4 flex justify-between items-center">
-                    <h1 className={cn("text-2xl font-semibold text-gray-800", serifFont)}>
-                        <Brush className="inline-block text-blue-500 mr-2 h-6 w-6" />
-                        书法书画院
-                    </h1>
-                    <nav className="hidden md:block">
-                        <ul className="flex space-x-6">
-                            {navLinks.map(link => (
-                                <li key={link.id}>
-                                    <a
-                                        href={link.href}
-                                        className={cn(
-                                            "text-gray-700 hover:text-blue-500 transition duration-300",
-                                            activeSection === link.id && 'active' // Apply active class
-                                        )}
-                                        onClick={() => handleNavLinkClick(link.id)}
+  // Updated sample calendar events with all events before 4 PM
+  const events = [
+    {
+      id: 1,
+      title: 'Team Meeting',
+      startTime: '09:00',
+      endTime: '10:00',
+      color: 'bg-blue-500',
+      day: 1,
+      description: 'Weekly team sync-up',
+      location: 'Conference Room A',
+      attendees: ['John Doe', 'Jane Smith', 'Bob Johnson'],
+      organizer: 'Alice Brown'
+    },
+    {
+      id: 2,
+      title: 'Lunch with Sarah',
+      startTime: '12:30',
+      endTime: '13:30',
+      color: 'bg-green-500',
+      day: 1,
+      description: 'Discuss project timeline',
+      location: 'Cafe Nero',
+      attendees: ['Sarah Lee'],
+      organizer: 'You'
+    },
+    {
+      id: 3,
+      title: 'Project Review',
+      startTime: '14:00',
+      endTime: '15:30',
+      color: 'bg-purple-500',
+      day: 3,
+      description: 'Q2 project progress review',
+      location: 'Meeting Room 3',
+      attendees: ['Team Alpha', 'Stakeholders'],
+      organizer: 'Project Manager'
+    },
+    {
+      id: 4,
+      title: 'Client Call',
+      startTime: '10:00',
+      endTime: '11:00',
+      color: 'bg-yellow-500',
+      day: 2,
+      description: 'Quarterly review with major client',
+      location: 'Zoom Meeting',
+      attendees: ['Client Team', 'Sales Team'],
+      organizer: 'Account Manager'
+    },
+    {
+      id: 5,
+      title: 'Team Brainstorm',
+      startTime: '13:00',
+      endTime: '14:30',
+      color: 'bg-indigo-500',
+      day: 4,
+      description: 'Ideation session for new product features',
+      location: 'Creative Space',
+      attendees: ['Product Team', 'Design Team'],
+      organizer: 'Product Owner'
+    },
+    {
+      id: 6,
+      title: 'Product Demo',
+      startTime: '11:00',
+      endTime: '12:00',
+      color: 'bg-pink-500',
+      day: 5,
+      description: 'Showcase new features to stakeholders',
+      location: 'Demo Room',
+      attendees: ['Stakeholders', 'Dev Team'],
+      organizer: 'Tech Lead'
+    },
+    {
+      id: 7,
+      title: 'Marketing Meeting',
+      startTime: '13:00',
+      endTime: '14:00',
+      color: 'bg-teal-500',
+      day: 6,
+      description: 'Discuss Q3 marketing strategy',
+      location: 'Marketing Office',
+      attendees: ['Marketing Team'],
+      organizer: 'Marketing Director'
+    },
+    {
+      id: 8,
+      title: 'Code Review',
+      startTime: '15:00',
+      endTime: '16:00',
+      color: 'bg-cyan-500',
+      day: 7,
+      description: 'Review pull requests for new feature',
+      location: 'Dev Area',
+      attendees: ['Dev Team'],
+      organizer: 'Senior Developer'
+    },
+    {
+      id: 9,
+      title: 'Morning Standup',
+      startTime: '08:30',
+      endTime: '09:30', // Changed from "09:00" to "09:30"
+      color: 'bg-blue-400',
+      day: 2,
+      description: 'Daily team standup',
+      location: 'Slack Huddle',
+      attendees: ['Development Team'],
+      organizer: 'Scrum Master'
+    },
+    {
+      id: 10,
+      title: 'Design Review',
+      startTime: '14:30',
+      endTime: '15:45',
+      color: 'bg-purple-400',
+      day: 5,
+      description: 'Review new UI designs',
+      location: 'Design Lab',
+      attendees: ['UX Team', 'Product Manager'],
+      organizer: 'Lead Designer'
+    },
+    {
+      id: 11,
+      title: 'Investor Meeting',
+      startTime: '10:30',
+      endTime: '12:00',
+      color: 'bg-red-400',
+      day: 7,
+      description: 'Quarterly investor update',
+      location: 'Board Room',
+      attendees: ['Executive Team', 'Investors'],
+      organizer: 'CEO'
+    },
+    {
+      id: 12,
+      title: 'Team Training',
+      startTime: '09:30',
+      endTime: '11:30',
+      color: 'bg-green-400',
+      day: 4,
+      description: 'New tool onboarding session',
+      location: 'Training Room',
+      attendees: ['All Departments'],
+      organizer: 'HR'
+    },
+    {
+      id: 13,
+      title: 'Budget Review',
+      startTime: '13:30',
+      endTime: '15:00',
+      color: 'bg-yellow-400',
+      day: 3,
+      description: 'Quarterly budget analysis',
+      location: 'Finance Office',
+      attendees: ['Finance Team', 'Department Heads'],
+      organizer: 'CFO'
+    },
+    {
+      id: 14,
+      title: 'Client Presentation',
+      startTime: '11:00',
+      endTime: '12:30',
+      color: 'bg-orange-400',
+      day: 6,
+      description: 'Present new project proposal',
+      location: 'Client Office',
+      attendees: ['Sales Team', 'Client Representatives'],
+      organizer: 'Account Executive'
+    },
+    {
+      id: 15,
+      title: 'Product Planning',
+      startTime: '14:00',
+      endTime: '15:30',
+      color: 'bg-pink-400',
+      day: 1,
+      description: 'Roadmap discussion for Q3',
+      location: 'Strategy Room',
+      attendees: ['Product Team', 'Engineering Leads'],
+      organizer: 'Product Manager'
+    }
+  ]
 
-                                    >
-                                        {link.label}
-                                    </a>
-                                </li>
-                            ))}
-                        </ul>
-                    </nav>
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        id="hamburger-btn"
-                        className="md:hidden text-gray-700 focus:outline-none"
-                        onClick={toggleMobileMenu}
-                        aria-label="Toggle Navigation"
-                    >
-                        <Menu className="h-6 w-6" />
-                    </Button>
+  // Sample calendar days for the week view
+  const weekDays = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
+  const weekDates = [3, 4, 5, 6, 7, 8, 9]
+  const timeSlots = Array.from({ length: 9 }, (_, i) => i + 8) // 8 AM to 4 PM
+
+  // Helper function to calculate event position and height
+  const calculateEventStyle = (startTime, endTime) => {
+    const start =
+      Number.parseInt(startTime.split(':')[0]) +
+      Number.parseInt(startTime.split(':')[1]) / 60
+    const end =
+      Number.parseInt(endTime.split(':')[0]) +
+      Number.parseInt(endTime.split(':')[1]) / 60
+    const top = (start - 8) * 80 // 80px per hour
+    const height = (end - start) * 80
+    return { top: \`\${top}px\`, height: \`\${height}px\` }
+  }
+
+  // Sample calendar for mini calendar
+  const daysInMonth = 31
+  const firstDayOffset = 5 // Friday is the first day of the month in this example
+  const miniCalendarDays = Array.from(
+    { length: daysInMonth + firstDayOffset },
+    (_, i) => (i < firstDayOffset ? null : i - firstDayOffset + 1)
+  )
+
+  // Sample my calendars
+  const myCalendars = [
+    { name: 'My Calendar', color: 'bg-blue-500' },
+    { name: 'Work', color: 'bg-green-500' },
+    { name: 'Personal', color: 'bg-purple-500' },
+    { name: 'Family', color: 'bg-orange-500' }
+  ]
+
+  const togglePlay = () => {
+    setIsPlaying(!isPlaying)
+    // Here you would typically also control the actual audio playback
+  }
+
+  return (
+    <div className="relative min-h-screen w-full overflow-hidden">
+      {/* Background Image */}
+      <img
+        src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?q=80&w=2070&auto=format&fit=crop"
+        alt="Beautiful mountain landscape"
+        className="object-cover h-dvh"
+      />
+
+      {/* Navigation */}
+      <header
+        className={\`absolute top-0 right-0 left-0 z-10 flex items-center justify-between px-8 py-6  \${isLoaded ? 'animate-fade-in' : ''}\`}
+        style={{ animationDelay: '0.2s' }}
+      >
+        <div className="flex items-center gap-4">
+          <Menu className="h-6 w-6 text-white" />
+          <span className="text-2xl font-semibold text-white drop-shadow-lg">
+            Calendar
+          </span>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <Search className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-white/70" />
+            <input
+              type="text"
+              placeholder="Search"
+              className="rounded-full border border-white/20 bg-white/10 py-2 pr-4 pl-10 text-white backdrop-blur-sm placeholder:text-white/70 focus:ring-2 focus:ring-white/30 focus:outline-none"
+            />
+          </div>
+          <Settings className="h-6 w-6 text-white drop-shadow-md" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500 font-bold text-white shadow-md">
+            U
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="absolute top-20 left-0 flex w-full">
+        {/* Sidebar */}
+        <div
+          className={\`w-64 rounded-tr-3xl border-r border-white/20 bg-white/10 p-4  shadow-xl backdrop-blur-lg \${isLoaded ? 'animate-fade-in' : ''} flex flex-col justify-between h-[calc(100dvh-80px)]\`}
+          style={{ animationDelay: '0.4s' }}
+        >
+          <div>
+            <button className="mb-6 flex w-full items-center justify-center gap-2 rounded-full bg-blue-500 px-4 py-3 text-white">
+              <Plus className="h-5 w-5" />
+              <span>Create</span>
+            </button>
+
+            {/* Mini Calendar */}
+            <div className="mb-6">
+              <div className="mb-4 flex items-center justify-between">
+                <h3 className="font-medium text-white">{currentMonth}</h3>
+                <div className="flex gap-1">
+                  <button className="rounded-full p-1 hover:bg-white/20">
+                    <ChevronLeft className="h-4 w-4 text-white" />
+                  </button>
+                  <button className="rounded-full p-1 hover:bg-white/20">
+                    <ChevronRight className="h-4 w-4 text-white" />
+                  </button>
                 </div>
-            </header>
+              </div>
 
-            {/* 移动端导航菜单 */}
-            <div
-                id="mobile-menu"
-                className={cn(
-                    "fixed top-0 left-0 w-full h-full bg-gray-900 bg-opacity-90 z-50 transition-all duration-300",
-                    isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full hidden'
-                )}
-                style={{
-                    transform: isMobileMenuOpen ? 'translateX(0)' : 'translateX(100%)',
-                    display: isMobileMenuOpen ? 'block' : 'none'
-                }}
-            >
-                <div className="bg-white w-80 h-full absolute right-0 p-6">
-                    <div className="flex justify-end mb-4">
-                        <Button
-                            variant="ghost"
-                            size="icon"
-                            id="close-menu-btn"
-                            className="text-gray-700 focus:outline-none"
-                            onClick={closeMobileMenu}
-                            aria-label="Close Menu"
-                        >
-                            <X className="h-6 w-6" />
-                        </Button>
-                    </div>
-                    <nav className="block">
-                        <ul className="space-y-4">
-                            {navLinks.map(link => (
-                                <li key={link.id}>
-                                    <a
-                                        href={link.href}
-                                         className={cn(
-                                            "block text-lg text-gray-700 hover:text-blue-500 transition duration-300",
-                                             activeSection === link.id && 'active'
-                                        )}
-                                        onClick={() => handleNavLinkClick(link.id)}
-                                    >
-                                        {link.label}
-                                    </a>
-                                </li>
-                            ))}
-                        </ul>
-                    </nav>
-                </div>
+              <div className="grid grid-cols-7 gap-1 text-center">
+                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
+                  <div
+                    key={i}
+                    className="py-1 text-xs font-medium text-white/70"
+                  >
+                    {day}
+                  </div>
+                ))}
+
+                {miniCalendarDays.map((day, i) => (
+                  <div
+                    key={i}
+                    className={\`flex h-7 w-7 items-center justify-center rounded-full text-xs \${
+                      day === 5
+                        ? 'bg-blue-500 text-white'
+                        : 'text-white hover:bg-white/20'
+                    } \${!day ? 'invisible' : ''}\`}
+                  >
+                    {day}
+                  </div>
+                ))}
+              </div>
             </div>
 
-            {/* 页面内容 */}
-            <HomeBanner />
-            <AboutUs />
-            <Gallery />
-            <Courses />
-            <News />
-            <Contact />
-            <Footer />
-        </div>
-    );
-};
+            {/* My Calendars */}
+            <div>
+              <h3 className="mb-3 font-medium text-white">My calendars</h3>
+              <div className="space-y-2">
+                {myCalendars.map((cal, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className={\`h-3 w-3 rounded-sm \${cal.color}\`}></div>
+                    <span className="text-sm text-white">{cal.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
 
-export default App;
+          {/* New position for the big plus button */}
+          <button className="mt-6 flex h-14 w-14 items-center justify-center gap-2 self-start rounded-full bg-blue-500 p-4 text-white">
+            <Plus className="h-6 w-6" />
+          </button>
+        </div>
+
+        {/* Calendar View */}
+        <div
+          className={\`flex flex-1 flex-col  \${isLoaded ? 'animate-fade-in' : ''}\`}
+          style={{ animationDelay: '0.6s' }}
+        >
+          {/* Calendar Controls */}
+          <div className="flex items-center justify-between border-b border-white/20 p-4">
+            <div className="flex items-center gap-4">
+              <button className="rounded-md bg-blue-500 px-4 py-2 text-white">
+                Today
+              </button>
+              <div className="flex">
+                <button className="rounded-l-md p-2 text-white hover:bg-white/10">
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                <button className="rounded-r-md p-2 text-white hover:bg-white/10">
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+              </div>
+              <h2 className="text-xl font-semibold text-white">
+                {currentDate}
+              </h2>
+            </div>
+
+            <div className="flex items-center gap-2 rounded-md p-1">
+              <button
+                onClick={() => setCurrentView('day')}
+                className={\`rounded px-3 py-1 \${currentView === 'day' ? 'bg-white/20' : ''} text-sm text-white\`}
+              >
+                Day
+              </button>
+              <button
+                onClick={() => setCurrentView('week')}
+                className={\`rounded px-3 py-1 \${currentView === 'week' ? 'bg-white/20' : ''} text-sm text-white\`}
+              >
+                Week
+              </button>
+              <button
+                onClick={() => setCurrentView('month')}
+                className={\`rounded px-3 py-1 \${currentView === 'month' ? 'bg-white/20' : ''} text-sm text-white\`}
+              >
+                Month
+              </button>
+            </div>
+          </div>
+
+          {/* Week View */}
+          <div className="flex-1 overflow-auto p-4">
+            <div className="h-[100dvh-129px] rounded-xl border border-white/20 bg-white/20 shadow-xl backdrop-blur-lg">
+              {/* Week Header */}
+              <div className="grid grid-cols-8 border-b border-white/20">
+                <div className="p-2 text-center text-xs text-white/50"></div>
+                {weekDays.map((day, i) => (
+                  <div
+                    key={i}
+                    className="border-l border-white/20 p-2 text-center"
+                  >
+                    <div className="text-xs font-medium text-white/70">
+                      {day}
+                    </div>
+                    <div
+                      className={\`mt-1 text-lg font-medium text-white \${weekDates[i] === 5 ? 'mx-auto flex h-8 w-8 items-center justify-center rounded-full bg-blue-500' : ''}\`}
+                    >
+                      {weekDates[i]}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Time Grid */}
+              <div className="grid grid-cols-8">
+                {/* Time Labels */}
+                <div className="text-white/70">
+                  {timeSlots.map((time, i) => (
+                    <div
+                      key={i}
+                      className="h-20 border-b border-white/10 pr-2 text-right text-xs"
+                    >
+                      {time > 12 ? \`\${time - 12} PM\` : \`\${time} AM\`}
+                    </div>
+                  ))}
+                </div>
+
+                {/* Days Columns */}
+                {Array.from({ length: 7 }).map((_, dayIndex) => (
+                  <div
+                    key={dayIndex}
+                    className="relative border-l border-white/20"
+                  >
+                    {timeSlots.map((_, timeIndex) => (
+                      <div
+                        key={timeIndex}
+                        className="h-20 border-b border-white/10"
+                      ></div>
+                    ))}
+
+                    {/* Events */}
+                    {events
+                      .filter((event) => event.day === dayIndex + 1)
+                      .map((event, i) => {
+                        const eventStyle = calculateEventStyle(
+                          event.startTime,
+                          event.endTime
+                        )
+                        return (
+                          <div
+                            key={i}
+                            className={\`absolute \${event.color} cursor-pointer rounded-md p-2 text-xs text-white shadow-md transition-all duration-200 ease-in-out hover:translate-y-[-2px] hover:shadow-lg\`}
+                            style={{
+                              ...eventStyle,
+                              left: '4px',
+                              right: '4px'
+                            }}
+                            onClick={() => handleEventClick(event)}
+                          >
+                            <div className="font-medium">{event.title}</div>
+                            <div className="mt-1 text-[10px] opacity-80">{\`\${event.startTime} - \${event.endTime}\`}</div>
+                          </div>
+                        )
+                      })}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* AI Popup */}
+        {showAIPopup && (
+          <div className="fixed right-8 bottom-8 z-20">
+            <div className="relative w-[450px] rounded-2xl border border-blue-300/30 bg-gradient-to-br from-blue-400/30 via-blue-500/30 to-blue-600/30 p-6 text-white shadow-xl backdrop-blur-lg">
+              <button
+                onClick={() => setShowAIPopup(false)}
+                className="absolute top-2 right-2 text-white/70 transition-colors hover:text-white"
+              >
+                <X className="h-5 w-5" />
+              </button>
+              <div className="flex gap-3">
+                <div className="flex-shrink-0">
+                  <Sparkles className="h-5 w-5 text-blue-300" />
+                </div>
+                <div className="min-h-[80px]">
+                  <p className="text-base font-light">{typedText}</p>
+                </div>
+              </div>
+              <div className="mt-6 flex gap-3">
+                <button
+                  onClick={togglePlay}
+                  className="flex-1 rounded-xl bg-white/10 py-2.5 text-sm font-medium transition-colors hover:bg-white/20"
+                >
+                  Yes
+                </button>
+                <button
+                  onClick={() => setShowAIPopup(false)}
+                  className="flex-1 rounded-xl bg-white/10 py-2.5 text-sm font-medium transition-colors hover:bg-white/20"
+                >
+                  No
+                </button>
+              </div>
+              {isPlaying && (
+                <div className="mt-4 flex items-center justify-between">
+                  <button
+                    className="flex items-center justify-center gap-2 rounded-xl bg-white/10 px-4 py-2.5 text-sm text-white transition-colors hover:bg-white/20"
+                    onClick={togglePlay}
+                  >
+                    <Pause className="h-4 w-4" />
+                    <span>Pause Hans Zimmer</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {selectedEvent && (
+          <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center bg-black">
+            <div
+              className={\`\${selectedEvent.color} mx-4 w-full max-w-md rounded-lg p-6 shadow-xl\`}
+            >
+              <h3 className="mb-4 text-2xl font-bold text-white">
+                {selectedEvent.title}
+              </h3>
+              <div className="space-y-3 text-white">
+                <p className="flex items-center">
+                  <Clock className="mr-2 h-5 w-5" />
+                  {\`\${selectedEvent.startTime} - \${selectedEvent.endTime}\`}
+                </p>
+                <p className="flex items-center">
+                  <MapPin className="mr-2 h-5 w-5" />
+                  {selectedEvent.location}
+                </p>
+                <p className="flex items-center">
+                  <Calendar className="mr-2 h-5 w-5" />
+                  {\`\${weekDays[selectedEvent.day - 1]}, \${weekDates[selectedEvent.day - 1]} \${currentMonth}\`}
+                </p>
+                <p className="flex items-start">
+                  <Users className="mt-1 mr-2 h-5 w-5" />
+                  <span>
+                    <strong>Attendees:</strong>
+                    <br />
+                    {selectedEvent.attendees.join(', ') || 'No attendees'}
+                  </span>
+                </p>
+                <p>
+                  <strong>Organizer:</strong> {selectedEvent.organizer}
+                </p>
+                <p>
+                  <strong>Description:</strong> {selectedEvent.description}
+                </p>
+              </div>
+              <div className="mt-6 flex justify-end">
+                <button
+                  className="rounded bg-white px-4 py-2 text-gray-800 transition-colors hover:bg-gray-100"
+                  onClick={() => setSelectedEvent(null)}
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Floating Action Button - Removed */}
+      </main>
+    </div>
+  )
+}
 `

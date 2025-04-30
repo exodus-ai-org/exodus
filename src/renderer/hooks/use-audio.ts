@@ -1,4 +1,7 @@
-import { BASE_URL } from '@shared/constants'
+import {
+  speechToText as speechToTextService,
+  textToSpeech as textToSpeechService
+} from '@/services/audio'
 import OpenAI from 'openai'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
@@ -30,14 +33,7 @@ export function useAudio() {
 
     setLoading(true)
     try {
-      const response = await fetch(`${BASE_URL}/api/audio/speech`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ text })
-      })
-      const audioBlob = await response.blob()
+      const audioBlob = await textToSpeechService(text)
       const audioUrl = URL.createObjectURL(audioBlob)
       setData(audioUrl)
     } catch (e) {
@@ -58,12 +54,8 @@ export function useAudio() {
     try {
       const formData = new FormData()
       formData.append('audio', file)
-      const response = await fetch(`${BASE_URL}/api/audio/transcriptions`, {
-        method: 'POST',
-        body: formData
-      })
-      const transcription = await response.json()
-      setData(transcription.text as string)
+      const transcription = await speechToTextService(formData)
+      setData(transcription.text)
     } catch (e) {
       toast.error(
         e instanceof Error ? e.message : 'An error occurred, please try again!'

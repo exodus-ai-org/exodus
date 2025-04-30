@@ -1,7 +1,6 @@
 import { convertFileToBase64 } from '@/lib/utils'
+import { customUpload } from '@/services/upload'
 import { attachmentAtom } from '@/stores/chat'
-import { BASE_URL } from '@shared/constants'
-import { Attachment } from 'ai'
 import { useSetAtom } from 'jotai'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -33,11 +32,7 @@ export function useUpload() {
       formData.append('files', file)
     }
 
-    const response = await fetch(`${BASE_URL}/api/custom-uploader`, {
-      method: 'POST',
-      body: formData
-    })
-    const data: Attachment[] = await response.json()
+    const data = await customUpload(formData)
     setAttachments((prev) => [...(prev ?? []), ...data])
   }
 

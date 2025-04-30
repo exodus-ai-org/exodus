@@ -1,0 +1,1 @@
+ALTER TABLE "Chat" ADD COLUMN "favorite" boolean DEFAULT false;

@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Moon, Sun } from 'lucide-react'
 
-export function NavActions() {
+export function ThemeSwitcher() {
   const { setTheme } = useTheme()
 
   return (

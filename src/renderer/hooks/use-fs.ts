@@ -1,5 +1,5 @@
 import { localFileAtom } from '@/stores/file-system'
-import { LOCAL_FILE_DIRECTORY } from '@shared/constants'
+import { LOCAL_FILE_DIRECTORY } from '@shared/constants/systems'
 import { DirectoryNode } from '@shared/types/fs'
 import { useAtom } from 'jotai'
 import { useCallback } from 'react'

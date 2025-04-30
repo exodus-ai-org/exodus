@@ -1,28 +1,29 @@
-import { Button } from '@/components/ui/button'
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuButton,
   SidebarMenuItem
 } from '@/components/ui/sidebar'
-import { Bot, Plus } from 'lucide-react'
+import { isFullTextSearchVisibleAtom } from '@/stores/chat'
+import { useSetAtom } from 'jotai'
+import { Bot, Plus, Search } from 'lucide-react'
 import * as React from 'react'
 import { version } from '../../../package.json'
 import { NavFooter } from './nav-footer'
 import { NavHistories } from './nav-histories'
-import { SearchForm } from './search-form'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const setIsFullTextSearchVisible = useSetAtom(isFullTextSearchVisibleAtom)
+
   return (
     <Sidebar className="border-r-0" {...props}>
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <div>
+            <div className="flex items-center justify-between p-2">
+              <div className="flex gap-2">
                 <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
                   <Bot className="size-4" />
                 </div>
@@ -31,22 +32,26 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <span className="truncate text-xs">v{version}</span>
                 </div>
               </div>
-            </SidebarMenuButton>
+
+              <div className="flex gap-1">
+                <span
+                  className="text-accent-foreground hover:bg-accent cursor-pointer rounded-sm p-2"
+                  onClick={() => setIsFullTextSearchVisible(true)}
+                >
+                  <Search strokeWidth={2.5} size={20} />
+                </span>
+                <span
+                  className="text-accent-foreground hover:bg-accent cursor-pointer rounded-sm p-2"
+                  onClick={() => {
+                    window.location.href = '/'
+                  }}
+                >
+                  <Plus strokeWidth={2.5} size={20} />
+                </span>
+              </div>
+            </div>
           </SidebarMenuItem>
         </SidebarMenu>
-        <div className="flex items-center justify-between">
-          <SearchForm />
-          <Button
-            size="icon"
-            variant="ghost"
-            className="cursor-pointer"
-            onClick={() => {
-              window.location.href = '/'
-            }}
-          >
-            <Plus />
-          </Button>
-        </div>
       </SidebarHeader>
       <SidebarContent className="no-scrollbar">
         <NavHistories />

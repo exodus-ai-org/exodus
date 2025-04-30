@@ -1,5 +1,5 @@
 import { downloadFile } from '@/lib/utils'
-import { BASE_URL } from '@shared/constants'
+import { exportData as exportDataService } from '@/services/db'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
@@ -13,11 +13,7 @@ export function useDbIo() {
   const exportData = async () => {
     try {
       setLoading(true)
-      const response = await fetch(BASE_URL + '/api/db-io/export', {
-        method: 'POST'
-      })
-      const blob = await response.blob()
-      console.log(blob)
+      const blob = await exportDataService()
       downloadFile(blob, 'export.zip')
     } catch (e) {
       toast.error(

@@ -3,7 +3,9 @@ import {
   Atom,
   AudioWaveform,
   Bot,
+  Chrome,
   CloudDownload,
+  Computer,
   Database,
   FileUp,
   Globe,
@@ -76,6 +78,14 @@ export const schema = {
     {
       icon: Palette,
       title: 'Artifacts'
+    },
+    {
+      icon: Chrome,
+      title: 'Browser Use'
+    },
+    {
+      icon: Computer,
+      title: 'Computer Use'
     },
     {
       icon: Database,

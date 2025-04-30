@@ -73,7 +73,7 @@ export function AudioRecorder({
       )}
 
       {/* {
-        // the audio element is just for test.
+        // The audio element is just for test.
         audioUrl && (
           <audio controls>
             <source src={audioUrl} type="audio/mp3" />

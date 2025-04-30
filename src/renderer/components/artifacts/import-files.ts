@@ -1,10 +1,12 @@
 import dedent from 'dedent'
-import * as shadcnComponents from './shadcn-raw'
+import * as shadcnComponents from './shadcn-ui'
 
 export const importFiles = {
+  '/tsconfig.json': shadcnComponents.tsConfig,
+  '/hooks/use-mobile.ts': shadcnComponents.useMobile,
   '/lib/utils.ts': shadcnComponents.utils,
   '/lib/globals.css': shadcnComponents.globalsCSS,
-  '/components/ui/accordion.tsx': shadcnComponents.accordian,
+  '/components/ui/accordion.tsx': shadcnComponents.accordion,
   '/components/ui/alert-dialog.tsx': shadcnComponents.alertDialog,
   '/components/ui/alert.tsx': shadcnComponents.alert,
   '/components/ui/avatar.tsx': shadcnComponents.avatar,
@@ -22,7 +24,7 @@ export const importFiles = {
   '/components/ui/dropdown-menu.tsx': shadcnComponents.dropdownMenu,
   '/components/ui/input.tsx': shadcnComponents.input,
   '/components/ui/label.tsx': shadcnComponents.label,
-  '/components/ui/menubar.tsx': shadcnComponents.menuBar,
+  '/components/ui/menubar.tsx': shadcnComponents.menubar,
   '/components/ui/navigation-menu.tsx': shadcnComponents.navigationMenu,
   '/components/ui/pagination.tsx': shadcnComponents.pagination,
   '/components/ui/popover.tsx': shadcnComponents.popover,
@@ -36,12 +38,10 @@ export const importFiles = {
   '/components/ui/table.tsx': shadcnComponents.table,
   '/components/ui/tabs.tsx': shadcnComponents.tabs,
   '/components/ui/textarea.tsx': shadcnComponents.textarea,
-  '/components/ui/toast.tsx': shadcnComponents.toast,
-  '/components/ui/toaster.tsx': shadcnComponents.toaster,
+  '/components/ui/sonner.tsx': shadcnComponents.sonner,
   '/components/ui/toggle-group.tsx': shadcnComponents.toggleGroup,
   '/components/ui/toggle.tsx': shadcnComponents.toggle,
   '/components/ui/tooltip.tsx': shadcnComponents.tooltip,
-  '/components/ui/use-toast.tsx': shadcnComponents.useToast,
   '/public/index.html': dedent`
       <!DOCTYPE html>
       <html lang="en">

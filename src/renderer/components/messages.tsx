@@ -49,11 +49,15 @@ function Messages({
     <AnimatePresence>
       <section
         className={cn(
-          'no-scrollbar flex min-w-0 flex-1 flex-col items-center gap-8 overflow-y-scroll p-4 transition-all',
+          'no-scrollbar flex min-w-0 flex-1 flex-col items-center gap-8 overflow-y-scroll p-4 pt-0 transition-all',
           { ['w-[25rem] overflow-x-hidden transition-all']: isArtifactVisible }
         )}
         ref={chatBoxRef}
       >
+        {isArtifactVisible && (
+          <div className="from-background via-background/75 pointer-events-none fixed top-14 left-0 z-10 h-8 w-full bg-gradient-to-b to-transparent opacity-100 transition-opacity" />
+        )}
+
         {messages.length === 0 && (
           <div className="mx-auto flex size-full max-w-3xl flex-col justify-center px-8 md:mt-20">
             <p className="animate-bounce text-2xl font-semibold">
@@ -102,7 +106,7 @@ function Messages({
 
                       if (item.type === 'text' && item.text.trim() !== '') {
                         return (
-                          <section key={key} className="group">
+                          <section key={key} className="group relative">
                             <Markdown src={item.text} parts={message.parts} />
                             <MessageAction
                               reload={reload}
