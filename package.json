@@ -93,7 +93,7 @@
     "immer": "^10.1.1",
     "input-otp": "^1.4.2",
     "jotai": "^2.12.2",
-    "js-tiktoken": "^1.0.19",
+    "js-tiktoken": "^1.0.20",
     "jszip": "^3.10.1",
     "katex": "^0.16.21",
     "lodash-es": "^4.17.21",
