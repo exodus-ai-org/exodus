@@ -95,7 +95,7 @@
     "jotai": "^2.12.2",
     "js-tiktoken": "^1.0.19",
     "jszip": "^3.10.1",
-    "katex": "^0.16.21",
+    "katex": "^0.16.22",
     "lodash-es": "^4.17.21",
     "lucide-react": "^0.501.0",
     "monaco-editor": "^0.52.2",
