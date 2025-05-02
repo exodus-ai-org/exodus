@@ -134,7 +134,7 @@ export function Markdown({
               <>
                 <section
                   className={cn(
-                    'text-ring flex items-center justify-between p-3 text-xs',
+                    'text-ring flex items-center justify-between p-3 pb-0 text-xs',
                     bg
                   )}
                 >

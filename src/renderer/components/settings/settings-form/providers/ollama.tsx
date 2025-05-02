@@ -43,7 +43,7 @@ export function Ollama({ form }: { form: UseFormReturnType }) {
 
       <FormLabel>Status</FormLabel>
 
-      {error === undefined ? (
+      {settings?.providers?.ollamaBaseUrl && error === undefined ? (
         <div className="flex items-center gap-2">
           <div className="h-3 w-3 rounded-full bg-green-400" />
           <p className="text-sm">Ollama is running.</p>
