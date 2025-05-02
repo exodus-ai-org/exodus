@@ -28,6 +28,8 @@ export function AvailableMcpTools() {
     [data]
   )
 
+  if (tools.length === 0) return null
+
   return (
     <Dialog>
       <TooltipProvider>
