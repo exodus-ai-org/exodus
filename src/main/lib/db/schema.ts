@@ -74,7 +74,8 @@ export const settings = pgTable('Setting', {
   fileUploadEndpoint: text('fileUploadEndpoint').default(''),
   assistantAvatar: text('assistantAvatar').default(''),
   googleCloud: jsonb('googleCloud').$type<SettingsType['googleCloud']>(),
-  webSearch: jsonb('webSearch').$type<SettingsType['webSearch']>()
+  webSearch: jsonb('webSearch').$type<SettingsType['webSearch']>(),
+  image: jsonb('image').$type<SettingsType['image']>()
 })
 
 export type Settings = InferSelectModel<typeof settings>

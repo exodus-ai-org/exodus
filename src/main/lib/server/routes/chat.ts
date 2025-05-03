@@ -14,6 +14,7 @@ import {
   date,
   googleMapsPlaces,
   googleMapsRouting,
+  imageGeneration,
   weather,
   webSearch
 } from '../../ai/calling-tools'
@@ -110,7 +111,8 @@ chat.post('/', async (c) => {
     date,
     weather,
     googleMapsPlaces: googleMapsPlaces(settings),
-    googleMapsRouting: googleMapsRouting(settings)
+    googleMapsRouting: googleMapsRouting(settings),
+    imageGeneration: imageGeneration(settings)
   }
   if (advancedTools.includes(AdvancedTools.WebSearch)) {
     tools['webSearch'] = webSearch(settings)
