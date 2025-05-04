@@ -106,7 +106,10 @@ function Messages({
 
                       if (item.type === 'text' && item.text.trim() !== '') {
                         return (
-                          <section key={key} className="group relative">
+                          <section
+                            key={key}
+                            className="group relative mb-16 last:mb-0"
+                          >
                             <Markdown src={item.text} parts={message.parts} />
                             <MessageAction
                               reload={reload}
@@ -119,7 +122,10 @@ function Messages({
                       if (item.type === 'tool-invocation') {
                         if (item.toolInvocation.state === 'call') {
                           return (
-                            <p key={key} className="mb-4">
+                            <p
+                              key={key}
+                              className="loading-shimmer-pure-text mb-4"
+                            >
                               Calling tools:{' '}
                               <strong>{item.toolInvocation.toolName}</strong>
                             </p>

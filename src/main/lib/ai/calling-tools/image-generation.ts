@@ -20,8 +20,9 @@ export const imageGeneration = (settings: Settings) =>
           n: settings.image?.generatedCounts ?? 1,
           size: settings.image?.size as ImageGenerateParams['size'],
           quality: settings.image?.quality as ImageGenerateParams['quality'],
-          background: settings.image
-            ?.background as ImageGenerateParams['background']
+          background:
+            (settings.image?.background as ImageGenerateParams['background']) ??
+            undefined
         })
         return JSON.stringify(images)
       } catch (e) {

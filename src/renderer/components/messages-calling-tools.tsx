@@ -22,6 +22,9 @@ function CallingTools({ toolInvocation }: { toolInvocation: ToolInvocation }) {
       {toolInvocation.toolName === 'webSearch' && (
         <WebSearchCard toolResult={toolInvocation.result} />
       )}
+      {toolInvocation.toolName === 'imageGeneration' && (
+        <div className="-mb-4" />
+      )}
     </section>
   )
 }

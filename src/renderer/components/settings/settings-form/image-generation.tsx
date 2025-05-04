@@ -38,7 +38,7 @@ type ModelParamValues = {
 
 const modelParams: ModelParamValues = {
   'gpt-image-1': {
-    sizes: ['1024x1024', '1536x1024', '1024x1536'],
+    sizes: ['1024x1024', '1536x1024', '1024x1536', 'auto'],
     qualities: ['high', 'medium', 'low', 'auto'],
     outputFormats: ['png', 'jpeg', 'webp'],
     generatedCounts: { min: 1, max: 10 },
