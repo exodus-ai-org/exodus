@@ -120,13 +120,16 @@ function Messages({
                       }
 
                       if (item.type === 'tool-invocation') {
-                        if (item.toolInvocation.state === 'call') {
+                        if (
+                          item.toolInvocation.state === 'partial-call' ||
+                          item.toolInvocation.state === 'call'
+                        ) {
                           return (
                             <p
                               key={key}
                               className="loading-shimmer-pure-text mb-4"
                             >
-                              Calling tools:{' '}
+                              Calling tool:{' '}
                               <strong>{item.toolInvocation.toolName}</strong>
                             </p>
                           )

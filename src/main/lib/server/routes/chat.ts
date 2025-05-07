@@ -9,17 +9,9 @@ import {
 import { Hono } from 'hono'
 import { stream } from 'hono/streaming'
 import { v4 as uuidV4 } from 'uuid'
+import { deepResearchBootSystemPrompt, systemPrompt } from '../../ai/prompts'
 import {
-  calculator,
-  date,
-  googleMapsPlaces,
-  googleMapsRouting,
-  imageGeneration,
-  weather,
-  webSearch
-} from '../../ai/calling-tools'
-import { SYSTEM_PROMPT } from '../../ai/prompts'
-import {
+  bindCallingTools,
   generateTitleFromUserMessage,
   getModelFromProvider,
   getMostRecentUserMessage,
@@ -105,30 +97,23 @@ chat.post('/', async (c) => {
     ]
   })
 
-  const tools = {
-    ...mcpTools,
-    calculator,
-    date,
-    weather,
-    googleMapsPlaces: googleMapsPlaces(settings),
-    googleMapsRouting: googleMapsRouting(settings),
-    imageGeneration: imageGeneration(settings)
-  }
-  if (advancedTools.includes(AdvancedTools.WebSearch)) {
-    tools['webSearch'] = webSearch(settings)
-  }
-
   // immediately start streaming the response
   const dataStream = createDataStream({
     execute: async (dataStream) => {
       const result = streamText({
-        model: advancedTools.includes(AdvancedTools.Reasoning)
-          ? reasoningModel
-          : chatModel,
-        system: SYSTEM_PROMPT,
+        model:
+          advancedTools.includes(AdvancedTools.Reasoning) ||
+          advancedTools.includes(AdvancedTools.DeepResearch)
+            ? reasoningModel
+            : chatModel,
+        system: advancedTools.includes(AdvancedTools.DeepResearch)
+          ? deepResearchBootSystemPrompt
+          : systemPrompt,
         messages,
         maxSteps: settings.providerConfig?.maxSteps ?? 1,
-        tools,
+        tools: !advancedTools.includes(AdvancedTools.DeepResearch)
+          ? undefined
+          : bindCallingTools({ mcpTools, advancedTools, settings }),
         experimental_generateMessageId: uuidV4,
         onFinish: async ({ response }) => {
           try {

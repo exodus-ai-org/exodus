@@ -79,3 +79,24 @@ export const settings = pgTable('Setting', {
 })
 
 export type Settings = InferSelectModel<typeof settings>
+
+export const deepResearch = pgTable('DeepResearch', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  isDone: boolean().notNull(),
+  finalReport: text('finalReport').notNull(),
+  startTime: timestamp('startTime').defaultNow().notNull(),
+  endTime: timestamp('endTime').defaultNow().notNull()
+})
+
+export type DeepResearch = InferSelectModel<typeof deepResearch>
+
+export const deepResearchMessage = pgTable('DeepResearchMessage', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  deepResearchId: uuid('deepResearchId')
+    .notNull()
+    .references(() => deepResearch.id),
+  message: json('message').notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull()
+})
+
+export type DeepResearchMessage = InferSelectModel<typeof deepResearchMessage>

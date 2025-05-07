@@ -25,6 +25,7 @@ function CallingTools({ toolInvocation }: { toolInvocation: ToolInvocation }) {
       {toolInvocation.toolName === 'imageGeneration' && (
         <div className="-mb-4" />
       )}
+      {toolInvocation.toolName === 'deepResearch' && <div className="-mb-4" />}
     </section>
   )
 }

@@ -1,14 +1,28 @@
-import { Providers } from '@shared/types/ai'
+import { AdvancedTools, Providers } from '@shared/types/ai'
 import {
   CoreAssistantMessage,
   CoreToolMessage,
   LanguageModelV1,
+  Tool,
+  ToolSet,
   UIMessage,
   generateText
 } from 'ai'
 import { getSettings } from '../db/queries'
-import { TITLE_GENERATION_PROMPT } from './prompts'
+import { Settings } from '../db/schema'
+import {
+  calculator,
+  date,
+  deepResearch,
+  googleMapsPlaces,
+  googleMapsRouting,
+  imageGeneration,
+  weather,
+  webSearch
+} from './calling-tools'
+import { titleGenerationPrompt } from './prompts'
 import { providers } from './providers'
+import { getOpenAi } from './providers/openai-gpt'
 
 type ResponseMessageWithoutId = CoreToolMessage | CoreAssistantMessage
 type ResponseMessage = ResponseMessageWithoutId & { id: string }
@@ -55,9 +69,41 @@ export async function generateTitleFromUserMessage({
 }) {
   const { text: title } = await generateText({
     model,
-    system: TITLE_GENERATION_PROMPT,
+    system: titleGenerationPrompt,
     prompt: JSON.stringify(message)
   })
 
   return title
+}
+
+export function bindCallingTools({
+  mcpTools,
+  advancedTools,
+  settings
+}: {
+  mcpTools: Record<string, Tool>
+  advancedTools: AdvancedTools[]
+  settings: Settings
+}): ToolSet {
+  if (advancedTools.includes(AdvancedTools.DeepResearch)) {
+    const { reasoningModel } = getOpenAi(settings)
+    return {
+      deepResearch: deepResearch({ model: reasoningModel })
+    }
+  }
+
+  const tools = {
+    ...mcpTools,
+    calculator,
+    date,
+    weather,
+    googleMapsPlaces: googleMapsPlaces(settings),
+    googleMapsRouting: googleMapsRouting(settings),
+    imageGeneration: imageGeneration(settings)
+  }
+  if (advancedTools.includes(AdvancedTools.WebSearch)) {
+    tools['webSearch'] = webSearch(settings)
+  }
+
+  return tools
 }

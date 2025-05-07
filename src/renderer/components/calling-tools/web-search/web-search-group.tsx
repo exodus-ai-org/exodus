@@ -1,3 +1,4 @@
+import { LazyLoadImage } from '@/components/lazy-load-image'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   HoverCard,
@@ -62,7 +63,7 @@ export function WebSearchGroup({
           </HoverCardTrigger>
           <HoverCardContent className="w-60 rounded-lg border-0 p-0">
             {item.headImage ? (
-              <img
+              <LazyLoadImage
                 src={item.headImage}
                 alt={item.title}
                 className="h-32 w-full rounded-tl-lg rounded-tr-lg object-cover"

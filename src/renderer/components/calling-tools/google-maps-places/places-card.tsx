@@ -16,5 +16,9 @@ export function GoogleMapsPlacesCard({ toolResult }: { toolResult: string }) {
 
   if (!dataSource) return null
 
-  return <PlacesAccordion places={dataSource} />
+  return dataSource.length === 0 ? (
+    <div className="-mt-4" />
+  ) : (
+    <PlacesAccordion places={dataSource} />
+  )
 }
