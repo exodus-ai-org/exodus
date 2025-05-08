@@ -1,8 +1,16 @@
 import { Hono } from 'hono'
 
-const app = new Hono()
+export function sendSseMessage(
+  controller: ReadableStreamDefaultController,
+  data: string
+) {
+  const encodedData = `data: ${JSON.stringify({ data })}\n\n`
+  controller.enqueue(new TextEncoder().encode(encodedData))
+}
 
-app.get('/sse', (c) => {
+const deepResearch = new Hono()
+
+deepResearch.get('/', (c) => {
   const stream = new ReadableStream({
     start(controller) {
       const encoder = new TextEncoder()
@@ -31,3 +39,5 @@ app.get('/sse', (c) => {
     }
   })
 })
+
+export default deepResearch
