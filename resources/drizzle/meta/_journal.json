@@ -43,6 +43,13 @@
       "when": 1746279192023,
       "tag": "0005_misty_starfox",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1746626425094,
+      "tag": "0006_little_rhodey",
+      "breakpoints": true
     }
   ]
 }

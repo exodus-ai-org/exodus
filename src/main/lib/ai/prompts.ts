@@ -67,3 +67,16 @@ export const deepResearchSystemPrompt = `You are an expert researcher. Today is 
 - Consider new technologies and contrarian ideas, not just the conventional wisdom.
 - You may use high levels of speculation or prediction, just flag it for me.
 `
+
+export const queriesGenerationPrompt = (
+  plan: string,
+  maxQuires: number,
+  learnings?: string[]
+) =>
+  `Given the following prompt from the user, generate a list of SERP queries to research the topic. Return a maximum of ${maxQuires} queries, but feel free to return less if the original prompt is clear. Make sure each query is unique and not similar to each other: <prompt>${plan}</prompt>\n\n${
+    learnings
+      ? `Here are some learnings from previous research, use them to generate more specific queries: ${learnings.join(
+          '\n'
+        )}`
+      : ''
+  }`

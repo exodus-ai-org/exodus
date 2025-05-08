@@ -1,5 +1,4 @@
 import { tool } from 'ai'
-import { v4 as uuidV4 } from 'uuid'
 import { z } from 'zod'
 
 export const deepResearch = tool({
@@ -8,7 +7,15 @@ export const deepResearch = tool({
   parameters: z.object({
     subject: z.string().describe('The subject to research.')
   }),
-  execute: async ({ subject }: { subject: string }) => {
-    return { id: uuidV4, type: 'deep-research', done: false, subject }
+  execute: async ({ subject }: { subject: string }, { toolCallId }) => {
+    const params = {
+      jsonrpc: '2.0',
+      method: 'deep-research',
+      params: { message: subject },
+      id: toolCallId
+    }
+    console.log(params)
+
+    return null
   }
 })
