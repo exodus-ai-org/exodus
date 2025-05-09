@@ -1,0 +1,1 @@
+ALTER TABLE "DeepResearch" RENAME COLUMN "status" TO "jobStatus";

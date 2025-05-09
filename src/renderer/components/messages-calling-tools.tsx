@@ -1,5 +1,6 @@
 import { ToolInvocation } from 'ai'
 import { memo } from 'react'
+import { DeepResearchCard } from './calling-tools/deep-reseach/deep-research-card'
 import { GoogleMapsPlacesCard } from './calling-tools/google-maps-places/places-card'
 import { GoogleMapsCard } from './calling-tools/google-maps-routing/routing-card'
 import { WeatherCard } from './calling-tools/weather/weather-card'
@@ -25,7 +26,9 @@ function CallingTools({ toolInvocation }: { toolInvocation: ToolInvocation }) {
       {toolInvocation.toolName === 'imageGeneration' && (
         <div className="-mb-4" />
       )}
-      {toolInvocation.toolName === 'deepResearch' && <div className="-mb-4" />}
+      {toolInvocation.toolName === 'deepResearch' && (
+        <DeepResearchCard toolResult={toolInvocation.result} />
+      )}
     </section>
   )
 }

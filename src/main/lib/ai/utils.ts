@@ -22,7 +22,6 @@ import {
 } from './calling-tools'
 import { titleGenerationPrompt } from './prompts'
 import { providers } from './providers'
-import { getOpenAi } from './providers/openai-gpt'
 
 type ResponseMessageWithoutId = CoreToolMessage | CoreAssistantMessage
 type ResponseMessage = ResponseMessageWithoutId & { id: string }
@@ -86,9 +85,8 @@ export function bindCallingTools({
   settings: Settings
 }): ToolSet {
   if (advancedTools.includes(AdvancedTools.DeepResearch)) {
-    const { reasoningModel } = getOpenAi(settings)
     return {
-      deepResearch: deepResearch({ model: reasoningModel })
+      deepResearch
     }
   }
 

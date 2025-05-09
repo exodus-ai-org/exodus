@@ -1,33 +1,65 @@
 import { Hono } from 'hono'
+import { deepResearch as deepResearchWork } from '../../ai/deep-research/deep-research'
+import { writeFinalReport } from '../../ai/deep-research/final-report'
+import { sendSseMessage } from '../../ai/deep-research/sse'
+import { getModelFromProvider } from '../../ai/utils'
+import { getSettings } from '../../db/queries'
 
-export function sendSseMessage(
-  controller: ReadableStreamDefaultController,
-  data: string
-) {
-  const encodedData = `data: ${JSON.stringify({ data })}\n\n`
-  controller.enqueue(new TextEncoder().encode(encodedData))
+// type Type = 'queries-generation' | 'website-reading' | 'report-generation'
+
+export interface DeepResearchMessagePayload {
+  type: ''
 }
 
 const deepResearch = new Hono()
 
-deepResearch.get('/', (c) => {
+deepResearch.get('/', async (c) => {
+  const { id: deepResearchId, object } = c.req.query()
+  const settings = await getSettings()
+
+  if (!('id' in settings)) {
+    throw new Error('Failed to retrieve settings.')
+  }
+
+  if (!settings.providerConfig?.reasoningModel) {
+    throw new Error('Failed to retrieve selected reasoning model.')
+  }
+
+  if (!settings.webSearch?.serperApiKey) {
+    throw new Error('Failed to retrieve Serper API Key.')
+  }
+
+  const { reasoningModel } = await getModelFromProvider()
+
   const stream = new ReadableStream({
-    start(controller) {
-      const encoder = new TextEncoder()
+    async start(controller) {
+      await sendSseMessage({ controller, deepResearchId, payload: '' })
 
-      // 发送初始事件
-      controller.enqueue(encoder.encode('data: Connected to SSE\n\n'))
+      const { learnings, visitedUrls } = await deepResearchWork({
+        serperApiKey: settings.webSearch?.serperApiKey as string,
+        deepResearchId,
+        model: reasoningModel,
+        query: object,
+        breadth: 3,
+        depth: 2
+      })
+      await sendSseMessage({ controller, deepResearchId, payload: '' })
 
-      // 每 2 秒发送一个消息
-      const interval = setInterval(() => {
-        const data = `data: ${new Date().toISOString()}\n\n`
-        controller.enqueue(encoder.encode(data))
-      }, 2000)
+      const report = await writeFinalReport({
+        deepResearchId,
+        model: reasoningModel,
+        prompt: '',
+        learnings,
+        visitedUrls
+      })
+      console.log(report)
 
-      // 清理定时器
-      const cleanup = () => clearInterval(interval)
+      await sendSseMessage({ controller, deepResearchId, payload: '' })
+      controller.close()
 
-      c.req.raw.signal?.addEventListener('abort', cleanup)
+      c.req.raw.signal.onabort = () => {
+        controller.close()
+      }
     }
   })
 

@@ -141,7 +141,7 @@ function InputBox({
           <AvailableMcpTools />
         </div>
 
-        {status === 'streaming' ? (
+        {status === 'submitted' || status === 'streaming' ? (
           <Button variant="secondary" onClick={stop}>
             <CircleStop />
           </Button>

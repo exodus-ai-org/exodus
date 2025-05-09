@@ -50,6 +50,20 @@
       "when": 1746626425094,
       "tag": "0006_little_rhodey",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1746773419798,
+      "tag": "0007_public_hannibal_king",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1746773657754,
+      "tag": "0008_sharp_psynapse",
+      "breakpoints": true
     }
   ]
 }

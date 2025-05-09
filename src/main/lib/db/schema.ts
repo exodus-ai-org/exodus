@@ -5,6 +5,7 @@ import {
   index,
   json,
   jsonb,
+  pgEnum,
   pgTable,
   primaryKey,
   text,
@@ -80,12 +81,21 @@ export const settings = pgTable('Setting', {
 
 export type Settings = InferSelectModel<typeof settings>
 
+export const jobStatusEnum = pgEnum('jobStatus', [
+  'submitted',
+  'streaming',
+  'archived',
+  'error'
+])
+
 export const deepResearch = pgTable('DeepResearch', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
-  isDone: boolean().notNull(),
-  finalReport: text('finalReport').notNull(),
+  toolCallId: text('toolCallId').notNull(),
+  title: text('title'),
+  jobStatus: jobStatusEnum().notNull(),
+  finalReport: text('finalReport'),
   startTime: timestamp('startTime').defaultNow().notNull(),
-  endTime: timestamp('endTime').defaultNow().notNull()
+  endTime: timestamp('endTime').defaultNow()
 })
 
 export type DeepResearch = InferSelectModel<typeof deepResearch>

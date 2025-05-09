@@ -9,7 +9,7 @@ import {
 import { Hono } from 'hono'
 import { stream } from 'hono/streaming'
 import { v4 as uuidV4 } from 'uuid'
-import { deepResearchBootSystemPrompt, systemPrompt } from '../../ai/prompts'
+import { deepResearchBootPrompt, systemPrompt } from '../../ai/prompts'
 import {
   bindCallingTools,
   generateTitleFromUserMessage,
@@ -107,13 +107,11 @@ chat.post('/', async (c) => {
             ? reasoningModel
             : chatModel,
         system: advancedTools.includes(AdvancedTools.DeepResearch)
-          ? deepResearchBootSystemPrompt
+          ? deepResearchBootPrompt
           : systemPrompt,
         messages,
         maxSteps: settings.providerConfig?.maxSteps ?? 1,
-        tools: !advancedTools.includes(AdvancedTools.DeepResearch)
-          ? undefined
-          : bindCallingTools({ mcpTools, advancedTools, settings }),
+        tools: bindCallingTools({ mcpTools, advancedTools, settings }),
         experimental_generateMessageId: uuidV4,
         onFinish: async ({ response }) => {
           try {

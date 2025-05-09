@@ -110,6 +110,7 @@ The learnings will be used to research the topic further.  <content>\n${searchRe
 
 export async function deepResearch({
   serperApiKey,
+  deepResearchId,
   model,
   query,
   breadth,
@@ -119,6 +120,7 @@ export async function deepResearch({
   onProgress
 }: {
   serperApiKey: string
+  deepResearchId: string
   model: LanguageModelV1
   query: string
   breadth: number
@@ -135,6 +137,8 @@ export async function deepResearch({
     totalQueries: 0,
     completedQueries: 0
   }
+
+  console.log(deepResearchId)
 
   const reportProgress = (update: Partial<ResearchProgress>) => {
     Object.assign(progress, update)
@@ -191,6 +195,7 @@ export async function deepResearch({
 
             return deepResearch({
               model,
+              deepResearchId,
               serperApiKey,
               query: nextQuery,
               breadth: newBreadth,

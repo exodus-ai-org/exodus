@@ -4,9 +4,13 @@ import { db, pgLiteClient } from './db'
 import {
   Chat,
   chat,
+  deepResearch,
+  deepResearchMessage,
   message,
   settings,
   vote,
+  type DeepResearch,
+  type DeepResearchMessage,
   type Message,
   type Settings
 } from './schema'
@@ -217,6 +221,51 @@ export async function exportData(tableName: string) {
     return ret.blob
   } catch (error) {
     console.error('Failed to export data in database')
+    throw error
+  }
+}
+
+export async function saveDeepResearch(payload: DeepResearch) {
+  try {
+    return await db.insert(deepResearch).values(payload)
+  } catch (error) {
+    console.error('Failed to save deep research in database')
+    throw error
+  }
+}
+
+export async function getDeepResearchById({ id }: { id: string }) {
+  try {
+    const [selectedDeepSearch] = await db
+      .select()
+      .from(deepResearch)
+      .where(eq(deepResearch.toolCallId, id))
+    return selectedDeepSearch
+  } catch (error) {
+    console.error('Failed to get deep search by id from database')
+    throw error
+  }
+}
+
+export async function saveDeepResearchMessage(payload: DeepResearchMessage) {
+  try {
+    return await db.insert(deepResearchMessage).values(payload)
+  } catch (error) {
+    console.error('Failed to save deep research message in database')
+    throw error
+  }
+}
+
+export async function getDeepResearchMessageById({ id }: { id: string }) {
+  try {
+    const deepResearchMessages = await db
+      .select()
+      .from(deepResearchMessage)
+      .where(eq(deepResearchMessage.deepResearchId, id))
+      .orderBy(asc(deepResearchMessage.createdAt))
+    return deepResearchMessages
+  } catch (error) {
+    console.error('Failed to get deep research message by id from database')
     throw error
   }
 }

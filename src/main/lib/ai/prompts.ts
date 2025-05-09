@@ -48,10 +48,13 @@ export const titleGenerationPrompt = `\n
 - the title should be a summary of the user's message
 - do not use quotes or colons`
 
-export const deepResearchBootSystemPrompt =
-  'You are an expert researcher given a research subject from the user, ask some follow up questions to clarify the research direction. ' +
-  'Return a maximum of 5 questions, but feel free to return less if the original query is clear. Keep every single question is concise and only one sentence. ' +
-  "If you think  the clarification by the user is sufficient, directly call **deepResearch** tool, please don't output further step texts."
+export const deepResearchBootPrompt =
+  'You are an expert researcher tasked with exploring a subject provided by the user. ' +
+  'Begin by asking up to 5 concise follow-up questions to clarify the research direction-fewer if the query is already clear. ' +
+  'Each question should be a single, clear sentence, using ordered list. ' +
+  'Once the user responds, if their clarification is sufficient, proceed to call the deepResearch tool; otherwise, continue asking for clarification. ' +
+  "Make sure call this tool after user's clarification. " +
+  "After calling the deepResearch tool, you shouldn't output anything and end your conversation, this tool will take over the next workflow."
 
 export const deepResearchSystemPrompt = `You are an expert researcher. Today is ${new Date().toISOString()}. Follow these instructions when responding:
       
@@ -66,6 +69,11 @@ export const deepResearchSystemPrompt = `You are an expert researcher. Today is 
 - Value good arguments over authorities, the source is irrelevant.
 - Consider new technologies and contrarian ideas, not just the conventional wisdom.
 - You may use high levels of speculation or prediction, just flag it for me.
+`
+
+export const deepResearchQ = `First talk about the goal of the research that this query is meant to accomplish, 
+then go deeper into how to advance the research once the results are found, 
+mention additional research directions. Be as specific as possible, especially for additional research directions.
 `
 
 export const queriesGenerationPrompt = (
