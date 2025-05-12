@@ -1,17 +1,10 @@
 import { WebPDFLoader } from '@langchain/community/document_loaders/web/pdf'
-import { Settings } from '@shared/types/db'
-import {
-  WebSearchResponse,
-  WebSearchResult,
-  WebSearchResultWithoutTokenCount
-} from '@shared/types/web-search'
-import { tool } from 'ai'
+import { WebSearchResponse, WebSearchResult } from '@shared/types/web-search'
 import * as cheerio from 'cheerio'
 import { encodingForModel } from 'js-tiktoken'
 import TurndownService from 'turndown'
-import { z } from 'zod'
 
-const enc = encodingForModel('gpt-4o')
+const enc = encodingForModel('o4-mini')
 
 function getFaviconLink(link: string, $: cheerio.CheerioAPI) {
   try {
@@ -57,7 +50,7 @@ async function loadPdf(blob: Blob) {
   }
 }
 
-async function loadDom(link: string, html: string) {
+async function loadHtml(link: string, html: string) {
   try {
     const $ = cheerio.load(html)
     const faviconUrl = getFaviconLink(link, $)
@@ -90,8 +83,7 @@ async function loadDocument(link: string) {
           favicon: '',
           headImage: '',
           type: 'pdf',
-          content: pdf,
-          tokenCount: enc.encode(pdf).length
+          content: pdf
         }
         return documentData
       }
@@ -99,7 +91,7 @@ async function loadDocument(link: string) {
 
     if (contentType?.includes('text/html')) {
       const html = await response.text()
-      const domInfo = await loadDom(link, html)
+      const domInfo = await loadHtml(link, html)
 
       if (domInfo) {
         const turndownService = new TurndownService()
@@ -110,8 +102,7 @@ async function loadDocument(link: string) {
             favicon: domInfo.favicon,
             headImage: domInfo.headImage,
             type: 'html',
-            content: markdown,
-            tokenCount: enc.encode(markdown).length
+            content: markdown
           }
           return documentData
         }
@@ -124,95 +115,62 @@ async function loadDocument(link: string) {
   }
 }
 
-export const webSearch = (settings: Settings) =>
-  tool({
-    description: `Search the web for up-to-date information. Suffix a specific date to the query parameter based on user's input. Today is ${new Date().toISOString()}`,
-    parameters: z.object({
-      query: z.string().min(1).max(100).describe(`The search query.`)
-    }),
-    execute: async ({ query }) => {
-      if (!settings.webSearch?.serperApiKey) {
-        throw new Error(
-          'To use Web Search, make sure to fill in the `serperApiKey` in the settings.'
-        )
-      }
-
-      try {
-        const response = await fetch('https://google.serper.dev/search', {
-          method: 'POST',
-          headers: {
-            'X-API-KEY': settings.webSearch.serperApiKey,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            q: query,
-            gl: settings.webSearch.country,
-            hl: settings.webSearch.language
-          })
-        })
-        const result = await response.text()
-
-        if (!result) {
-          return JSON.stringify({
-            success: false,
-            message: 'No search results found!'
-          })
-        }
-
-        const { organic } = JSON.parse(result) as WebSearchResponse
-
-        if (!organic) {
-          return JSON.stringify({
-            success: false,
-            message: 'No search results found!'
-          })
-        }
-
-        const results = await Promise.allSettled(
-          organic
-            .filter((item) => !!item.link && !!item.title)
-            .map(async (item) => {
-              const document = await loadDocument(item.link as string)
-              return {
-                rank: item.position,
-                link: item.link as string,
-                title: item.title as string,
-                snippet: item.snippet ?? '',
-                favicon: document?.favicon,
-                headImage: document?.headImage,
-                type: document?.type,
-                content: document?.content,
-                tokenCount: document?.tokenCount ?? 0
-              }
-            })
-        )
-
-        const values: WebSearchResultWithoutTokenCount[] = results
-          .filter(
-            (result): result is PromiseFulfilledResult<WebSearchResult> =>
-              result.status === 'fulfilled' &&
-              // TODO: Need to determine a more precise quota based on the specific model.
-              result.value.tokenCount < 180_000
-          )
-          .map(
-            ({ value }) =>
-              ({
-                rank: value.rank,
-                favicon: value.favicon,
-                headImage: value.headImage,
-                type: value.type,
-                link: value.link,
-                title: value.title,
-                snippet: value.snippet,
-                content: value.content
-              }) as WebSearchResultWithoutTokenCount
-          )
-
-        return JSON.stringify(values)
-      } catch (e) {
-        return e instanceof Error
-          ? e.message
-          : 'Failed to retrieve data from web search.'
-      }
+export async function webSearch({
+  serperApiKey,
+  query
+}: {
+  serperApiKey: string
+  query: string
+}) {
+  try {
+    const response = await fetch('https://google.serper.dev/search', {
+      method: 'POST',
+      headers: {
+        'X-API-KEY': serperApiKey,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        q: query
+      })
+    })
+    const result = await response.text()
+    if (!result) {
+      return null
     }
-  })
+
+    const { organic } = JSON.parse(result) as WebSearchResponse
+    if (!organic) {
+      return null
+    }
+
+    const results = await Promise.allSettled(
+      organic
+        .filter((item) => !!item.link && !!item.title)
+        .map(async (item) => {
+          const document = await loadDocument(item.link as string)
+          return {
+            link: item.link as string,
+            title: item.title as string,
+            snippet: item.snippet ?? '',
+            favicon: document?.favicon,
+            headImage: document?.headImage,
+            type: document?.type,
+            content: document?.content
+          }
+        })
+    )
+
+    const webSearchResults = results
+      .filter(
+        (result): result is PromiseFulfilledResult<WebSearchResult> =>
+          result.status === 'fulfilled' &&
+          !!result.value.content &&
+          enc.encode(result.value.content).length < 180_000
+      )
+      .map((item) => item.value)
+
+    return webSearchResults
+  } catch {
+    return null
+  }
+}

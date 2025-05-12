@@ -18,7 +18,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const setIsFullTextSearchVisible = useSetAtom(isFullTextSearchVisibleAtom)
 
   return (
-    <Sidebar className="border-r-0" {...props}>
+    <Sidebar {...props} className="!border-r-0">
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>

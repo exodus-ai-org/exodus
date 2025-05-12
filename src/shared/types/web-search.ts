@@ -7,13 +7,7 @@ export interface WebSearchResult {
   title: string
   content: string
   snippet: string
-  tokenCount: number
 }
-
-export type WebSearchResultWithoutTokenCount = Exclude<
-  WebSearchResult,
-  'tokenCount'
->
 
 export interface SearchParameters {
   q: string

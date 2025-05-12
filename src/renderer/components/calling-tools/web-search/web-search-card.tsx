@@ -1,11 +1,9 @@
-import { WebSearchResultWithoutTokenCount } from '@shared/types/web-search'
+import { WebSearchResult } from '@shared/types/web-search'
 import { useEffect, useState } from 'react'
 import { WebSearchGroup } from './web-search-group'
 
 export function WebSearchCard({ toolResult }: { toolResult: string }) {
-  const [dataSource, setDataSource] = useState<
-    WebSearchResultWithoutTokenCount[] | null
-  >(null)
+  const [dataSource, setDataSource] = useState<WebSearchResult[] | null>(null)
 
   useEffect(() => {
     try {
