@@ -42,7 +42,7 @@
     "@hono/node-server": "^1.14.0",
     "@hookform/resolvers": "^5.0.1",
     "@langchain/community": "^0.3.40",
-    "@langchain/core": "^0.3.44",
+    "@langchain/core": "^0.3.55",
     "@langchain/textsplitters": "^0.1.0",
     "@modelcontextprotocol/sdk": "^1.10.2",
     "@monaco-editor/react": "^4.7.0",
