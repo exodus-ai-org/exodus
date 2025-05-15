@@ -1,7 +1,7 @@
 import { Chat } from '@shared/types/db'
+import { fetcher } from '@shared/utils/http'
 import { toast } from 'sonner'
 import { mutate } from 'swr'
-import { fetcher } from './http'
 
 export const updateChat = async (payload: Partial<Chat>) => {
   await fetcher<string>('/api/chat', {

@@ -1,6 +1,6 @@
 import { serve, ServerType } from '@hono/node-server'
 import { SERVER_PORT } from '@shared/constants/systems'
-import { Variables } from '@shared/types/ai'
+import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { connectMcpServers } from '../ai/mcp'

@@ -48,14 +48,11 @@ function Messages({
   return (
     <AnimatePresence>
       <section
-        className={cn(
-          'no-scrollbar flex min-w-0 flex-1 flex-col items-center gap-8 overflow-y-scroll p-4 pt-0 transition-all',
-          { ['w-[25rem] overflow-x-hidden transition-all']: isArtifactVisible }
-        )}
+        className="no-scrollbar flex min-w-0 flex-1 flex-col items-center gap-8 overflow-y-scroll p-4 pt-0 transition-all"
         ref={chatBoxRef}
       >
         {isArtifactVisible && (
-          <div className="from-background via-background/75 pointer-events-none fixed top-14 left-0 z-10 h-8 w-full bg-gradient-to-b to-transparent opacity-100 transition-opacity" />
+          <div className="from-background via-background/75 pointer-events-none absolute top-14 left-0 z-10 h-8 w-full bg-gradient-to-b to-transparent opacity-100 transition-opacity" />
         )}
 
         {messages.length === 0 && (
@@ -151,7 +148,12 @@ function Messages({
                 </div>
               )}
               {message.role === 'user' && (
-                <p className="bg-accent rounded-xl px-3 py-2 break-words whitespace-pre-wrap">
+                <p
+                  className={cn(
+                    'bg-accent rounded-xl px-3 py-2 break-words whitespace-pre-wrap',
+                    { ['w-[23rem]']: isArtifactVisible }
+                  )}
+                >
                   {Array.isArray(message.experimental_attachments) &&
                     message.experimental_attachments.length > 0 &&
                     message.experimental_attachments.map((attachment) => {

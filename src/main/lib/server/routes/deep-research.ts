@@ -1,20 +1,72 @@
+import {
+  DeepResearchProgress,
+  ReportProgressPayload
+} from '@shared/types/deep-research'
+import { Variables } from '@shared/types/server'
+import { JSONRPCNotification } from 'ai'
 import { Hono } from 'hono'
-import { deepResearch as deepResearchWork } from '../../ai/deep-research/deep-research'
+import { v4 as uuidV4 } from 'uuid'
+import { deepResearch as deepResearchAgent } from '../../ai/deep-research/deep-research'
 import { writeFinalReport } from '../../ai/deep-research/final-report'
-import { sendSseMessage } from '../../ai/deep-research/sse'
 import { getModelFromProvider } from '../../ai/utils'
-import { getSettings } from '../../db/queries'
+import {
+  getDeepResearchById,
+  getDeepResearchMessagesById,
+  getSettings,
+  saveDeepResearch,
+  saveDeepResearchMessage
+} from '../../db/queries'
 
-// type Type = 'queries-generation' | 'website-reading' | 'report-generation'
+const deepResearch = new Hono<{ Variables: Variables }>()
+const clients = new Map<string, ReadableStreamDefaultController>()
 
-export interface DeepResearchMessagePayload {
-  type: ''
+function registerClient(
+  deepResearchId: string,
+  controller: ReadableStreamDefaultController
+) {
+  clients.set(deepResearchId, controller)
 }
 
-const deepResearch = new Hono()
+function unregisterClient(deepResearchId: string) {
+  const set = clients.get(deepResearchId)
+  if (set) {
+    clients.delete(deepResearchId)
+  }
+}
 
-deepResearch.get('/', async (c) => {
-  const { id: deepResearchId, object } = c.req.query()
+async function notifyClients(
+  deepResearchId: string,
+  data: ReportProgressPayload
+) {
+  const controller = clients.get(deepResearchId)
+  if (!controller) return
+
+  const message: JSONRPCNotification = {
+    jsonrpc: '2.0',
+    method: 'message/deep-research',
+    params: { data }
+  }
+
+  const deepResearchMessage = {
+    id: uuidV4(),
+    deepResearchId,
+    message,
+    createdAt: new Date()
+  }
+
+  await saveDeepResearchMessage(deepResearchMessage)
+
+  try {
+    controller.enqueue(
+      new TextEncoder().encode(`data: ${JSON.stringify(data)}\n\n`)
+    )
+  } catch (err) {
+    console.error('SSE enqueue failed:', err)
+  }
+}
+
+deepResearch.post('/', async (c) => {
+  const { deepResearchId, query } = await c.req.json()
   const settings = await getSettings()
 
   if (!('id' in settings)) {
@@ -31,45 +83,82 @@ deepResearch.get('/', async (c) => {
 
   const { reasoningModel } = await getModelFromProvider()
 
-  const stream = new ReadableStream({
-    async start(controller) {
-      await sendSseMessage({ controller, deepResearchId, payload: '' })
+  await notifyClients(deepResearchId, {
+    type: DeepResearchProgress.StartDeepResearch
+  })
+  const { learnings, visitedUrls } = await deepResearchAgent(
+    {
+      query,
+      breadth: 3,
+      depth: 2
+    },
+    {
+      serperApiKey: settings.webSearch?.serperApiKey as string,
+      model: reasoningModel,
+      notify: (data) => notifyClients(deepResearchId, data)
+    }
+  )
 
-      const { learnings, visitedUrls } = await deepResearchWork({
-        serperApiKey: settings.webSearch?.serperApiKey as string,
-        deepResearchId,
-        model: reasoningModel,
-        query: object,
-        breadth: 3,
-        depth: 2
-      })
-      await sendSseMessage({ controller, deepResearchId, payload: '' })
+  const report = await writeFinalReport(
+    {
+      prompt: query,
+      learnings,
+      visitedUrls
+    },
+    { model: reasoningModel }
+  )
 
-      const report = await writeFinalReport({
-        deepResearchId,
-        model: reasoningModel,
-        prompt: '',
-        learnings,
-        visitedUrls
-      })
-      console.log(report)
+  const deepResearchById = await getDeepResearchById({ id: deepResearchId })
+  const finalDeepResearch = await saveDeepResearch({
+    ...deepResearchById,
+    finalReport: report.report,
+    jobStatus: 'archived',
+    endTime: new Date()
+  })
+  await notifyClients(deepResearchId, {
+    type: DeepResearchProgress.CompleteDeepResearch
+  })
 
-      await sendSseMessage({ controller, deepResearchId, payload: '' })
-      controller.close()
+  return c.json(finalDeepResearch)
+})
 
-      c.req.raw.signal.onabort = () => {
+deepResearch.get('/sse', async (c) => {
+  const deepResearchId = c.req.query('deepResearchId')
+
+  if (!deepResearchId) {
+    throw new Error('No deep research id found!')
+  }
+
+  const controller = new ReadableStream({
+    start(controller) {
+      registerClient(deepResearchId as string, controller)
+
+      c.req.raw.signal.addEventListener('abort', () => {
+        unregisterClient(deepResearchId)
         controller.close()
-      }
+      })
     }
   })
 
-  return new Response(stream, {
+  return new Response(controller, {
     headers: {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       Connection: 'keep-alive'
     }
   })
+})
+
+deepResearch.get('/messages/:id', async (c) => {
+  const { id } = c.req.param()
+  const messages = await getDeepResearchMessagesById({ id })
+  return c.json(messages)
+})
+
+deepResearch.get('/result/:id', async (c) => {
+  const { id } = c.req.param()
+  const result = await getDeepResearchById({ id })
+  return c.json(result)
 })
 
 export default deepResearch

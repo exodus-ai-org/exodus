@@ -1,18 +1,20 @@
 import { LanguageModelV1, generateObject } from 'ai'
 import { z } from 'zod'
+import { Learning } from '../../../../shared/types/deep-research'
 import { deepResearchSystemPrompt } from '../prompts'
 
-export async function generateSerpQueries({
-  query,
-  model,
-  numQueries = 3,
-  learnings
-}: {
-  query: string
-  model: LanguageModelV1
-  numQueries?: number
-  learnings?: string[]
-}) {
+export async function generateSerpQueries(
+  {
+    query,
+    numQueries = 3,
+    learnings
+  }: {
+    query: string
+    numQueries?: number
+    learnings?: Learning[]
+  },
+  { model }: { model: LanguageModelV1 }
+) {
   const response = await generateObject({
     model,
     system: deepResearchSystemPrompt,

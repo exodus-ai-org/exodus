@@ -1,5 +1,5 @@
+import { fetcher } from '@shared/utils/http'
 import { Transcription } from 'openai/resources/audio/transcriptions'
-import { fetcher } from './http'
 
 export const textToSpeech = async (text: string) =>
   fetcher<Blob>('/api/audio/speech', {

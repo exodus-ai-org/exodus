@@ -1,4 +1,4 @@
-import { Variables } from '@shared/types/ai'
+import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import JSZip from 'jszip'
 import { exportData, importData } from '../../db/queries'

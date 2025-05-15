@@ -6,6 +6,8 @@ export const isArtifactVisibleAtom = atom(false)
 
 export const isFullTextSearchVisibleAtom = atom(false)
 
+export const activeDeepResearchSseIdAtom = atom('')
+
 export const renamedChatTitleAtom = atom({
   id: '',
   title: '',

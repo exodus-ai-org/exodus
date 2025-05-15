@@ -1,6 +1,4 @@
-import { useArtifact } from '@/hooks/use-artifact'
 import { useUpload } from '@/hooks/use-upload'
-import { cn } from '@/lib/utils'
 import { attachmentAtom } from '@/stores/chat'
 import { UseChatHelpers } from '@ai-sdk/react'
 import { useAtom } from 'jotai'
@@ -44,7 +42,6 @@ function InputBox({
   const { uploadFile } = useUpload()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [isTyping, setIsTyping] = useState(false)
-  const { show: isArtifactVisible } = useArtifact()
 
   const adjustHeight = () => {
     if (textareaRef.current) {
@@ -98,12 +95,7 @@ function InputBox({
   }, [])
 
   return (
-    <div
-      className={cn(
-        'border-input mx-auto mb-4 flex w-[calc(100%-2rem)] flex-col gap-2 rounded-2xl border p-1 shadow-sm md:max-w-3xl',
-        { ['mx-0 ml-4 w-[23rem]']: isArtifactVisible }
-      )}
-    >
+    <div className="border-input mx-auto mb-4 flex w-[calc(100%-2rem)] flex-col gap-2 rounded-2xl border p-1 shadow-sm md:max-w-3xl">
       <form>
         <FilePreview />
         <Textarea
@@ -111,7 +103,7 @@ function InputBox({
           placeholder="Send a message..."
           value={input}
           onChange={handleInput}
-          className="max-h-[calc(75dvh)] min-h-[24px] resize-none rounded-2xl border-none pb-6 shadow-none focus-visible:ring-0"
+          className="max-h-[75dvh] min-h-[24px] resize-none rounded-2xl border-none pb-6 shadow-none focus-visible:ring-0"
           rows={2}
           autoFocus
           onKeyDown={(event) => {

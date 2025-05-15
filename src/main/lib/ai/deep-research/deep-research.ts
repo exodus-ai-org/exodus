@@ -1,133 +1,165 @@
+import {
+  DeepResearchProgress,
+  Learning,
+  QueryWithResearchGoal,
+  ReportProgressPayload
+} from '@shared/types/deep-research'
+import { WebSearchResult } from '@shared/types/web-search'
 import { LanguageModelV1 } from 'ai'
 import { generateSerpQueries } from './generate-queries'
 import { processSerpResult } from './process-search-results'
-import { DocumentData, ResearchProgress, ResearchResult } from './types'
 import { webSearch } from './web-search'
 
-export async function deepResearch({
-  serperApiKey,
-  deepResearchId,
-  model,
-  query,
-  breadth,
-  depth,
-  learnings: initialLearnings = [],
-  visitedUrls: initialVisitedUrls = new Map(),
-  onProgress
-}: {
-  serperApiKey: string
-  deepResearchId: string
-  model: LanguageModelV1
-  query: string
-  breadth: number
-  depth: number
-  learnings?: string[]
-  visitedUrls?: Map<string, DocumentData>
-  onProgress?: (progress: ResearchProgress) => void
-}): Promise<ResearchResult> {
-  const progress: ResearchProgress = {
-    currentDepth: depth,
-    totalDepth: depth,
-    currentBreadth: breadth,
-    totalBreadth: breadth,
-    totalQueries: 0,
-    completedQueries: 0
-  }
-
-  const reportProgress = (update: Partial<ResearchProgress>) => {
-    Object.assign(progress, update)
-    onProgress?.(progress)
-  }
-
-  const serpQueries = await generateSerpQueries({
-    query,
+export async function deepResearch(
+  { query, breadth, depth }: { query: string; breadth: number; depth: number },
+  {
     model,
-    learnings: initialLearnings,
-    numQueries: breadth
-  })
+    serperApiKey,
+    notify
+  }: {
+    model: LanguageModelV1
+    serperApiKey: string
+    notify: (payload: ReportProgressPayload) => Promise<void>
+  }
+) {
+  const learnings: Learning[] = []
+  const visitedUrls: Map<string, WebSearchResult> = new Map()
+  const serpQueries = await generateSerpQueries({ query }, { model })
 
-  reportProgress({
-    totalQueries: serpQueries.length,
-    currentQuery: serpQueries[0]?.query
+  await notify({
+    type: DeepResearchProgress.EmitSearchObjectives,
+    searchObjectives: serpQueries
   })
-
-  let allLearnings: string[] = [...initialLearnings]
-  const allVisitedUrls: Map<string, DocumentData> = new Map(initialVisitedUrls)
 
   for (const serpQuery of serpQueries) {
-    try {
-      const searchResults = await webSearch({
+    await recursiveDeepResearch(
+      {
+        serpQuery,
+        breadth,
+        depth,
+        learnings,
+        visitedUrls
+      },
+      {
+        notify,
         serperApiKey,
-        query: serpQuery.query
-      })
-
-      if (!searchResults) {
-        continue
+        model
       }
-
-      const newBreadth = Math.ceil(breadth / 2)
-      const newDepth = depth - 1
-      const newLearningsResult = await processSerpResult({
-        model,
-        query: serpQuery.query,
-        searchResults,
-        numFollowUpQuestions: newBreadth
-      })
-      const currentLearnings = [
-        ...allLearnings,
-        ...newLearningsResult.learnings
-      ]
-
-      if (newDepth > 0) {
-        reportProgress({
-          currentDepth: newDepth,
-          currentBreadth: newBreadth,
-          completedQueries: progress.completedQueries + 1,
-          currentQuery: serpQuery.query
-        })
-
-        const nextQuery = `
-          Previous research goal: ${serpQuery.researchGoal}
-          Follow-up research directions: ${newLearningsResult.followUpQuestions.map((q) => `\n${q}`).join('')}
-        `.trim()
-
-        const recursiveResult = await deepResearch({
-          model,
-          deepResearchId,
-          serperApiKey,
-          query: nextQuery,
-          breadth: newBreadth,
-          depth: newDepth,
-          learnings: currentLearnings,
-          visitedUrls: allVisitedUrls,
-          onProgress
-        })
-        allLearnings = [
-          ...new Set([...allLearnings, ...recursiveResult.learnings])
-        ]
-        for (const [url, data] of recursiveResult.visitedUrls) {
-          allVisitedUrls.set(url, data)
-        }
-      } else {
-        reportProgress({
-          currentDepth: 0,
-          completedQueries: progress.completedQueries + 1,
-          currentQuery: serpQuery.query
-        })
-        allLearnings = [...new Set([...allLearnings, ...currentLearnings])]
-        // Process visitedUrls from the current level if needed
-        // For example, if processSerpResult returns visited URLs:
-        // for (const [url, data] of newLearningsResult.visitedUrls || []) {
-        //   allVisitedUrls.set(url, data);
-        // }
-      }
-    } catch (error) {
-      console.error('Error during deep research:', error)
-    }
+    )
   }
 
-  return {
-    learnings: allLearnings,
-    visitedUrls: allVisitedUrls
+  return { learnings, visitedUrls }
+}
+
+async function recursiveDeepResearch(
+  {
+    serpQuery,
+    breadth,
+    depth,
+    learnings = [],
+    visitedUrls = new Map()
+  }: {
+    serpQuery: QueryWithResearchGoal
+    breadth: number
+    depth: number
+    learnings?: Learning[]
+    visitedUrls?: Map<string, WebSearchResult>
+  },
+  {
+    serperApiKey,
+    model,
+    notify
+  }: {
+    notify: (payload: ReportProgressPayload) => Promise<void>
+    serperApiKey: string
+    model: LanguageModelV1
+  }
+) {
+  if (depth <= 0 || breadth <= 0) return
+
+  await notify({
+    type: DeepResearchProgress.RequestWebSearch,
+    query: serpQuery.query
+  })
+
+  const searchResults = await webSearch(
+    {
+      query: serpQuery.query,
+      visitedUrls
+    },
+    { serperApiKey }
+  )
+  if (!searchResults) return
+
+  await notify({
+    type: DeepResearchProgress.RequestLearnings,
+    webSearchResults: searchResults,
+    query: serpQuery.query
+  })
+
+  const newBreadth = Math.ceil(breadth / 2)
+  const newDepth = depth - 1
+
+  const newLearningsResult = await processSerpResult(
+    {
+      query: serpQuery.query,
+      searchResults,
+      numFollowUpQuestions: newBreadth
+    },
+    { model }
+  )
+
+  await notify({
+    type: DeepResearchProgress.EmitLearnings,
+    learnings: newLearningsResult.learnings
+  })
+
+  learnings.push(...newLearningsResult.learnings)
+  searchResults.forEach((searchResult) =>
+    visitedUrls.set(searchResult.link, { ...searchResult })
+  )
+
+  const subObject = [
+    `Previous research goal: ${serpQuery.researchGoal}`,
+    `Follow-up research directions:`,
+    ...newLearningsResult.followUpQuestions.map((q) => `- ${q}`)
+  ].join('\n')
+
+  const subSerpQueries = await generateSerpQueries(
+    {
+      query: subObject,
+      learnings,
+      numQueries: newBreadth
+    },
+    { model }
+  )
+
+  // TODO: ADD query
+  await notify({
+    type: DeepResearchProgress.EmitSearchObjectives,
+    searchObjectives: subSerpQueries,
+    deeper: true
+  })
+
+  for (const subSerpQuery of subSerpQueries) {
+    await notify({
+      type: DeepResearchProgress.RequestWebSearch,
+      query: subSerpQuery.query,
+      deeper: true
+    })
+    await recursiveDeepResearch(
+      {
+        serpQuery: subSerpQuery,
+        breadth: newBreadth,
+        depth: newDepth,
+        learnings,
+        visitedUrls
+      },
+      {
+        notify,
+        serperApiKey,
+        model
+      }
+    )
   }
 }

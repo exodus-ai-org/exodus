@@ -1,5 +1,5 @@
-import { BASE_URL } from '@shared/constants/systems'
 import { DeepResearch } from '@shared/types/db'
+import { fetcher } from '@shared/utils/http'
 import { tool } from 'ai'
 import { v4 as uuidV4 } from 'uuid'
 import { z } from 'zod'
@@ -15,16 +15,25 @@ export const deepResearch = tool({
     const newDeepResearch: DeepResearch = {
       id: uuidV4(),
       toolCallId,
-      title: null,
-      jobStatus: 'submitted',
+      title: subject,
+      jobStatus: 'streaming',
       finalReport: null,
       startTime: new Date(),
       endTime: null
     }
+
     await saveDeepResearch(newDeepResearch)
-    fetch(
-      `${BASE_URL}/api/deep-research?id=${newDeepResearch.id}&subject=${subject}`
-    )
-    return newDeepResearch
+    fetcher('/api/deep-research', {
+      method: 'POST',
+      body: {
+        deepResearchId: newDeepResearch.id,
+        query: subject
+      }
+    })
+
+    return {
+      id: newDeepResearch.id,
+      toolCallId
+    }
   }
 })

@@ -1,21 +1,23 @@
 import { WebSearchResult } from '@shared/types/web-search'
 import { LanguageModelV1, generateObject } from 'ai'
 import { z } from 'zod'
+import { Learning } from '../../../../shared/types/deep-research'
 import { deepResearchSystemPrompt } from '../prompts'
 
-export async function processSerpResult({
-  query,
-  model,
-  searchResults,
-  numLearnings = 3,
-  numFollowUpQuestions = 3
-}: {
-  query: string
-  model: LanguageModelV1
-  searchResults: WebSearchResult[]
-  numLearnings?: number
-  numFollowUpQuestions?: number
-}) {
+export async function processSerpResult(
+  {
+    query,
+    searchResults,
+    numLearnings = 3,
+    numFollowUpQuestions = 3
+  }: {
+    query: string
+    searchResults: WebSearchResult[]
+    numLearnings?: number
+    numFollowUpQuestions?: number
+  },
+  { model }: { model: LanguageModelV1 }
+) {
   const response = await generateObject({
     model,
     system: deepResearchSystemPrompt,
@@ -25,11 +27,19 @@ but feel free to return less if the contents are clear. Make sure each learning 
 The learnings should be concise and to the point, as detailed and information dense as possible. 
 Make sure to include any entities like people, places, companies, products, things, etc in the learnings, 
 as well as any exact metrics, numbers, or dates. 
-The learnings will be used to research the topic further. \n ${searchResults.map(({ content }) => `<content>\n${content}\n</content>`).join('\n')}
+The learnings will be used to research the topic further. 
+${searchResults.map(({ content, rank, title }) => `<content>\n[Source: ${rank}]\n[Title: ${title}]\n${content}\n</content>`).join('\n')}
 `,
     schema: z.object({
       learnings: z
-        .array(z.string())
+        .object({
+          learning: z.string().describe('The learning from the search results'),
+          citations: z
+            .number()
+            .array()
+            .describe('Record which sources are the learning referencing.')
+        })
+        .array()
         .describe(`List of learnings, max of ${numLearnings}`),
       followUpQuestions: z
         .array(z.string())
@@ -39,7 +49,7 @@ The learnings will be used to research the topic further. \n ${searchResults.map
     })
   })
 
-  const responses: { learnings: string[]; followUpQuestions: string[] } = {
+  const responses: { learnings: Learning[]; followUpQuestions: string[] } = {
     learnings: response.object.learnings,
     followUpQuestions: response.object.followUpQuestions
   }

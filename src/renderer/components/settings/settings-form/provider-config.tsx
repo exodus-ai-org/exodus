@@ -85,7 +85,7 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
                   <SelectValue
                     placeholder={
                       provider
-                        ? `Select a chat model belongs to ${provider}`
+                        ? 'Select a chat model'
                         : 'Select a provider first'
                     }
                   />
@@ -120,7 +120,7 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
                   <SelectValue
                     placeholder={
                       provider
-                        ? `Select a reasoning model belongs to ${provider}`
+                        ? 'Select a reasoning model'
                         : 'Select a provider first'
                     }
                   />

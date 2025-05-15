@@ -80,7 +80,7 @@ export function Markdown({
   parts
 }: {
   src: string
-  parts: UIMessage['parts']
+  parts?: UIMessage['parts']
 }) {
   const { show: isArtifactVisible, openArtifact } = useArtifact()
   const { copied, handleCopy } = useClipboard()
@@ -88,7 +88,7 @@ export function Markdown({
   const { codeTheme, bg } = useMemo(() => themes[actualTheme], [actualTheme])
   const webSearchResults = useMemo(() => {
     try {
-      const toolInvocationPart = parts.find(
+      const toolInvocationPart = parts?.find(
         (part) => part.type === 'tool-invocation'
       )
 

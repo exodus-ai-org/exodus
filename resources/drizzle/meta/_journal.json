@@ -64,6 +64,20 @@
       "when": 1746773657754,
       "tag": "0008_sharp_psynapse",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1747121200273,
+      "tag": "0009_plain_ricochet",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1747123068621,
+      "tag": "0010_wide_thunderbird",
+      "breakpoints": true
     }
   ]
 }

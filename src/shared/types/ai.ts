@@ -1,9 +1,3 @@
-import { Tool } from 'ai'
-
-export interface Variables {
-  tools: Record<string, Tool>
-}
-
 export enum Providers {
   OpenAiGpt = 'OpenAI GPT',
   AzureOpenAi = 'Azure OpenAI',

@@ -1,5 +1,6 @@
-import { AdvancedTools, Variables } from '@shared/types/ai'
+import { AdvancedTools } from '@shared/types/ai'
 import { Chat } from '@shared/types/db'
+import { Variables } from '@shared/types/server'
 import {
   appendResponseMessages,
   createDataStream,

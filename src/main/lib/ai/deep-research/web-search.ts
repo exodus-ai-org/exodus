@@ -115,13 +115,20 @@ async function loadDocument(link: string) {
   }
 }
 
-export async function webSearch({
-  serperApiKey,
-  query
-}: {
-  serperApiKey: string
-  query: string
-}) {
+export async function webSearch(
+  {
+    query,
+    visitedUrls
+  }: {
+    query: string
+    visitedUrls: Map<string, WebSearchResult>
+  },
+  {
+    serperApiKey
+  }: {
+    serperApiKey: string
+  }
+) {
   try {
     const response = await fetch('https://google.serper.dev/search', {
       method: 'POST',
@@ -145,7 +152,9 @@ export async function webSearch({
 
     const results = await Promise.allSettled(
       organic
-        .filter((item) => !!item.link && !!item.title)
+        .filter(
+          (item) => !!item.link && !!item.title && !visitedUrls.has(item.link)
+        )
         .map(async (item) => {
           const document = await loadDocument(item.link as string)
           return {
@@ -167,7 +176,7 @@ export async function webSearch({
           !!result.value.content &&
           enc.encode(result.value.content).length < 180_000
       )
-      .map((item) => item.value)
+      .map((item, i) => ({ ...item.value, rank: visitedUrls.size + i + 1 }))
 
     return searchResults
   } catch {

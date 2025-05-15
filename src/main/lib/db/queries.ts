@@ -239,7 +239,7 @@ export async function getDeepResearchById({ id }: { id: string }) {
     const [selectedDeepSearch] = await db
       .select()
       .from(deepResearch)
-      .where(eq(deepResearch.toolCallId, id))
+      .where(eq(deepResearch.id, id))
     return selectedDeepSearch
   } catch (error) {
     console.error('Failed to get deep search by id from database')
@@ -256,7 +256,7 @@ export async function saveDeepResearchMessage(payload: DeepResearchMessage) {
   }
 }
 
-export async function getDeepResearchMessageById({ id }: { id: string }) {
+export async function getDeepResearchMessagesById({ id }: { id: string }) {
   try {
     const deepResearchMessages = await db
       .select()

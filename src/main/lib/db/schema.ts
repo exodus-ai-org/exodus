@@ -1,4 +1,5 @@
 import { SettingsType } from '@shared/schemas/settings-schema'
+import { JSONRPCNotification } from 'ai'
 import { sql, type InferSelectModel } from 'drizzle-orm'
 import {
   boolean,
@@ -82,10 +83,10 @@ export const settings = pgTable('Setting', {
 export type Settings = InferSelectModel<typeof settings>
 
 export const jobStatusEnum = pgEnum('jobStatus', [
-  'submitted',
   'streaming',
   'archived',
-  'error'
+  'failed',
+  'terminated'
 ])
 
 export const deepResearch = pgTable('DeepResearch', {
@@ -105,7 +106,7 @@ export const deepResearchMessage = pgTable('DeepResearchMessage', {
   deepResearchId: uuid('deepResearchId')
     .notNull()
     .references(() => deepResearch.id),
-  message: json('message').notNull(),
+  message: json('message').notNull().$type<JSONRPCNotification>(),
   createdAt: timestamp('createdAt').defaultNow().notNull()
 })
 
