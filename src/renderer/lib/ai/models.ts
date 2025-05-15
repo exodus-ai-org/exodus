@@ -24,7 +24,7 @@ export const models = {
     reasoningModel: ['o4-mini', 'o3-mini', 'o3', 'o1', 'o1-pro']
   },
   [Providers.GoogleGemini]: {
-    chatModel: ['gemini-2.0-flash'],
+    chatModel: ['gemini-2.5-flash-preview-04-17', 'gemini-2.0-flash'],
     reasoningModel: [
       'gemini-2.5-pro-preview-03-25',
       'gemini-2.5-pro-exp-03-25',

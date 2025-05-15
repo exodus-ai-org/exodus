@@ -1,19 +1,10 @@
 import { WebSearchResult } from '@shared/types/web-search'
-import { useEffect, useState } from 'react'
 import { WebSearchGroup } from './web-search-group'
 
-export function WebSearchCard({ toolResult }: { toolResult: string }) {
-  const [dataSource, setDataSource] = useState<WebSearchResult[] | null>(null)
-
-  useEffect(() => {
-    try {
-      setDataSource(JSON.parse(toolResult))
-    } catch {
-      // Do nothing...
-    }
-  }, [toolResult])
-
-  if (!dataSource) return null
-
-  return <WebSearchGroup webSearchResults={dataSource} variant="overlapping" />
+export function WebSearchCard({
+  toolResult
+}: {
+  toolResult: WebSearchResult[]
+}) {
+  return <WebSearchGroup webSearchResults={toolResult} variant="overlapping" />
 }

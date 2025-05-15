@@ -24,7 +24,7 @@ export const imageGeneration = (settings: Settings) =>
             (settings.image?.background as ImageGenerateParams['background']) ??
             undefined
         })
-        return JSON.stringify(images)
+        return images
       } catch (e) {
         throw e instanceof Error ? e.message : 'Failed to generate images'
       }

@@ -58,6 +58,7 @@ function ParagraphWithSources({
 }) {
   if (!webSearchResults) return children
   const source = parseCitations(children)
+  console.log(source)
   if (!Array.isArray(source?.[0]?.sourceNumbers)) return children
 
   const referredWebSearchResults = webSearchResults.filter((item) =>
@@ -92,12 +93,12 @@ export function Markdown({
         (part) => part.type === 'tool-invocation'
       )
 
+      console.log(toolInvocationPart)
+
       if (toolInvocationPart) {
         const { state, toolName } = toolInvocationPart.toolInvocation
         if (toolName === 'webSearch' && state === 'result') {
-          return JSON.parse(
-            toolInvocationPart.toolInvocation.result
-          ) as WebSearchResult[]
+          return toolInvocationPart.toolInvocation.result
         }
         return undefined
       }

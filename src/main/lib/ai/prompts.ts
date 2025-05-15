@@ -39,7 +39,7 @@ The tariffs could reach as high as 50% for countries that fail to strike a deal,
 Trump's tariffs have raised the average applied tariff rate on U.S. imports to the highest level since 1943, significantly reducing imports and reshaping trade flows. [Source: 1, 2]
 
 Include multiple sources when a paragraph draws from different search results. Use a consistent format for these citations to make them easy to parse programmatically.
-</web_search_results_summary_rules>
+</web_search_summary_rules>
 `
 
 export const titleGenerationPrompt = `\n

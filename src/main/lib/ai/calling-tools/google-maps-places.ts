@@ -39,7 +39,7 @@ export const googleMapsPlaces = (settings: Settings) =>
             }
           }
         )
-        return JSON.stringify(response)
+        return response
       } catch (e) {
         throw e instanceof Error ? e.message : 'Failed to retrieve places data'
       }

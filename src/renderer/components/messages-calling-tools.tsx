@@ -1,6 +1,6 @@
 import { ToolInvocation } from 'ai'
 import { memo } from 'react'
-import { DeepResearchCard } from './calling-tools/deep-reseach/deep-research-card'
+import { DeepResearchCard } from './calling-tools/deep-research/deep-research-card'
 import { GoogleMapsPlacesCard } from './calling-tools/google-maps-places/places-card'
 import { GoogleMapsCard } from './calling-tools/google-maps-routing/routing-card'
 import { WeatherCard } from './calling-tools/weather/weather-card'
