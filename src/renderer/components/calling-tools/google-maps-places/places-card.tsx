@@ -10,7 +10,6 @@ export function GoogleMapsPlacesCard({
     object | undefined
   ]
 }) {
-  console.log(toolResult[0].places)
   return !toolResult[0].places ? (
     <div className="-mt-4" />
   ) : (
