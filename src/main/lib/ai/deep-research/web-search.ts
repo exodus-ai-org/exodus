@@ -118,10 +118,10 @@ async function loadDocument(link: string) {
 export async function webSearch(
   {
     query,
-    visitedUrls
+    webSources
   }: {
     query: string
-    visitedUrls: Map<string, WebSearchResult>
+    webSources: Map<string, WebSearchResult>
   },
   {
     serperApiKey
@@ -153,7 +153,7 @@ export async function webSearch(
     const results = await Promise.allSettled(
       organic
         .filter(
-          (item) => !!item.link && !!item.title && !visitedUrls.has(item.link)
+          (item) => !!item.link && !!item.title && !webSources.has(item.link)
         )
         .map(async (item) => {
           const document = await loadDocument(item.link as string)
@@ -176,7 +176,7 @@ export async function webSearch(
           !!result.value.content &&
           enc.encode(result.value.content).length < 180_000
       )
-      .map((item, i) => ({ ...item.value, rank: visitedUrls.size + i + 1 }))
+      .map((item, i) => ({ ...item.value, rank: webSources.size + i + 1 }))
 
     return searchResults
   } catch {

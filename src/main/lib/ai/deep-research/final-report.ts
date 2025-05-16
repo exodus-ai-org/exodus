@@ -1,19 +1,15 @@
-import { WebSearchResult } from '@shared/types/web-search'
+import { Learning } from '@shared/types/deep-research'
 import { generateObject, LanguageModelV1 } from 'ai'
 import { z } from 'zod'
-import { Learning } from '../../../../shared/types/deep-research'
 import { deepResearchSystemPrompt } from '../prompts'
 
 export async function writeFinalReport(
   {
     prompt,
-    learnings,
-    visitedUrls
+    learnings
   }: {
     prompt: string
     learnings: Learning[]
-
-    visitedUrls: Map<string, WebSearchResult>
   },
   {
     model
@@ -41,5 +37,5 @@ export async function writeFinalReport(
     })
   })
 
-  return { report: response.object.report, visitedUrls }
+  return response.object.report
 }

@@ -60,7 +60,21 @@ export function DeepResearchCard({
 
       {deepResearchResult?.finalReport ? (
         <Card className="mt-4 p-4">
-          <Markdown src={deepResearchResult?.finalReport} />
+          <Markdown
+            src={deepResearchResult?.finalReport}
+            parts={[
+              {
+                type: 'tool-invocation',
+                toolInvocation: {
+                  state: 'result',
+                  toolCallId: '',
+                  toolName: '',
+                  args: {},
+                  result: deepResearchResult.webSources
+                }
+              }
+            ]}
+          />
         </Card>
       ) : null}
     </section>

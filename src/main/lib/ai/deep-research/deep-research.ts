@@ -23,7 +23,7 @@ export async function deepResearch(
   }
 ) {
   const learnings: Learning[] = []
-  const visitedUrls: Map<string, WebSearchResult> = new Map()
+  const webSources: Map<string, WebSearchResult> = new Map()
   const serpQueries = await generateSerpQueries({ query }, { model })
 
   await notify({
@@ -39,7 +39,7 @@ export async function deepResearch(
         breadth,
         depth,
         learnings,
-        visitedUrls
+        webSources
       },
       {
         notify,
@@ -49,7 +49,7 @@ export async function deepResearch(
     )
   }
 
-  return { learnings, visitedUrls }
+  return { learnings, webSources }
 }
 
 async function recursiveDeepResearch(
@@ -58,13 +58,13 @@ async function recursiveDeepResearch(
     breadth,
     depth,
     learnings = [],
-    visitedUrls = new Map()
+    webSources = new Map()
   }: {
     serpQuery: QueryWithResearchGoal
     breadth: number
     depth: number
     learnings?: Learning[]
-    visitedUrls?: Map<string, WebSearchResult>
+    webSources?: Map<string, WebSearchResult>
   },
   {
     serperApiKey,
@@ -81,7 +81,7 @@ async function recursiveDeepResearch(
   const searchResults = await webSearch(
     {
       query: serpQuery.query,
-      visitedUrls
+      webSources
     },
     { serperApiKey }
   )
@@ -112,7 +112,7 @@ async function recursiveDeepResearch(
 
   learnings.push(...newLearningsResult.learnings)
   searchResults.forEach((searchResult) =>
-    visitedUrls.set(searchResult.link, { ...searchResult })
+    webSources.set(searchResult.link, { ...searchResult })
   )
 
   const subQuery = [
@@ -144,7 +144,7 @@ async function recursiveDeepResearch(
         breadth: newBreadth,
         depth: newDepth,
         learnings,
-        visitedUrls
+        webSources
       },
       {
         notify,

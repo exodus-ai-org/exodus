@@ -168,7 +168,11 @@ export function DeepResearchProcess() {
       <div className="markdown flex max-h-[calc(100dvh-3.8125rem)] flex-col gap-4 overflow-y-scroll p-4">
         {tab === Tab.Activity &&
           deepResearchMessages?.map((deepResearchMessage, i) => (
-            <MessageItem key={i} deepResearchMessage={deepResearchMessage} />
+            <MessageItem
+              key={i}
+              webSearchResults={allWebSearchResults}
+              deepResearchMessage={deepResearchMessage}
+            />
           ))}
 
         {tab === Tab.Source && (

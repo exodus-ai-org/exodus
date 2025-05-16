@@ -1,4 +1,5 @@
 import { SettingsType } from '@shared/schemas/settings-schema'
+import { WebSearchResult } from '@shared/types/web-search'
 import { JSONRPCNotification } from 'ai'
 import { sql, type InferSelectModel } from 'drizzle-orm'
 import {
@@ -95,6 +96,7 @@ export const deepResearch = pgTable('DeepResearch', {
   title: text('title'),
   jobStatus: jobStatusEnum().notNull(),
   finalReport: text('finalReport'),
+  webSources: json('webSources').$type<WebSearchResult[]>(),
   startTime: timestamp('startTime').defaultNow().notNull(),
   endTime: timestamp('endTime').defaultNow()
 })

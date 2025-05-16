@@ -78,6 +78,13 @@
       "when": 1747123068621,
       "tag": "0010_wide_thunderbird",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1747383411881,
+      "tag": "0011_giant_mauler",
+      "breakpoints": true
     }
   ]
 }

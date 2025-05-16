@@ -1,6 +1,6 @@
+import { Learning } from '@shared/types/deep-research'
 import { LanguageModelV1, generateObject } from 'ai'
 import { z } from 'zod'
-import { Learning } from '../../../../shared/types/deep-research'
 import { deepResearchSystemPrompt } from '../prompts'
 
 export async function generateSerpQueries(

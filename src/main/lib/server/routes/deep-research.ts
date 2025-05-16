@@ -88,7 +88,7 @@ deepResearch.post('/', async (c) => {
   await notifyClients(deepResearchId, {
     type: DeepResearchProgress.StartDeepResearch
   })
-  const { learnings, visitedUrls } = await deepResearchAgent(
+  const { learnings, webSources } = await deepResearchAgent(
     {
       query,
       breadth: 3,
@@ -107,8 +107,7 @@ deepResearch.post('/', async (c) => {
   const report = await writeFinalReport(
     {
       prompt: query,
-      learnings,
-      visitedUrls
+      learnings
     },
     { model: reasoningModel }
   )
@@ -116,12 +115,14 @@ deepResearch.post('/', async (c) => {
   const deepResearchById = await getDeepResearchById({ id: deepResearchId })
   const finalDeepResearch = await updateDeepResearch({
     ...deepResearchById,
-    finalReport: report.report,
+    finalReport: report,
+    webSources: [...webSources.values()],
     jobStatus: 'archived',
     endTime: new Date()
   })
   await notifyClients(deepResearchId, {
-    type: DeepResearchProgress.CompleteDeepResearch
+    type: DeepResearchProgress.CompleteDeepResearch,
+    query
   })
 
   return c.json(finalDeepResearch)

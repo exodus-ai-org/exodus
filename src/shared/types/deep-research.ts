@@ -2,7 +2,7 @@ import { WebSearchResult } from './web-search'
 
 export interface ResearchResult {
   learnings: Learning[]
-  visitedUrls: Map<string, WebSearchResult>
+  webSources: Map<string, WebSearchResult>
 }
 
 export interface Learning {
@@ -52,6 +52,7 @@ export interface StartWritingFinalReport {
 
 export interface CompleteDeepResearch {
   type: DeepResearchProgress.CompleteDeepResearch
+  query: string
 }
 
 export type ReportProgressPayload =

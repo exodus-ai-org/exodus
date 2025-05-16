@@ -18,6 +18,7 @@ export const deepResearch = tool({
       title: subject,
       jobStatus: 'streaming',
       finalReport: null,
+      webSources: null,
       startTime: new Date(),
       endTime: null
     }
