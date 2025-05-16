@@ -27,8 +27,9 @@ export async function deepResearch(
   const serpQueries = await generateSerpQueries({ query }, { model })
 
   await notify({
-    type: DeepResearchProgress.EmitSearchObjectives,
-    searchObjectives: serpQueries
+    type: DeepResearchProgress.EmitSearchQueries,
+    query,
+    searchQueries: serpQueries
   })
 
   for (const serpQuery of serpQueries) {
@@ -77,11 +78,6 @@ async function recursiveDeepResearch(
 ) {
   if (depth <= 0 || breadth <= 0) return
 
-  await notify({
-    type: DeepResearchProgress.RequestWebSearch,
-    query: serpQuery.query
-  })
-
   const searchResults = await webSearch(
     {
       query: serpQuery.query,
@@ -92,7 +88,7 @@ async function recursiveDeepResearch(
   if (!searchResults) return
 
   await notify({
-    type: DeepResearchProgress.RequestLearnings,
+    type: DeepResearchProgress.EmitSearchResults,
     webSearchResults: searchResults,
     query: serpQuery.query
   })
@@ -119,7 +115,7 @@ async function recursiveDeepResearch(
     visitedUrls.set(searchResult.link, { ...searchResult })
   )
 
-  const subObject = [
+  const subQuery = [
     `Previous research goal: ${serpQuery.researchGoal}`,
     `Follow-up research directions:`,
     ...newLearningsResult.followUpQuestions.map((q) => `- ${q}`)
@@ -127,26 +123,21 @@ async function recursiveDeepResearch(
 
   const subSerpQueries = await generateSerpQueries(
     {
-      query: subObject,
+      query: subQuery,
       learnings,
       numQueries: newBreadth
     },
     { model }
   )
 
-  // TODO: ADD query
   await notify({
-    type: DeepResearchProgress.EmitSearchObjectives,
-    searchObjectives: subSerpQueries,
+    type: DeepResearchProgress.EmitSearchQueries,
+    query: subQuery,
+    searchQueries: subSerpQueries,
     deeper: true
   })
 
   for (const subSerpQuery of subSerpQueries) {
-    await notify({
-      type: DeepResearchProgress.RequestWebSearch,
-      query: subSerpQuery.query,
-      deeper: true
-    })
     await recursiveDeepResearch(
       {
         serpQuery: subSerpQuery,

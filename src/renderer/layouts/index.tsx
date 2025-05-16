@@ -26,7 +26,6 @@ export function Layout() {
   return (
     <SidebarProvider>
       <AppSidebar />
-
       <SidebarInset>
         <div className="bg-background flex h-dvh min-w-0 flex-col">
           <header className="sticky flex h-14 w-full shrink-0 items-center gap-2">

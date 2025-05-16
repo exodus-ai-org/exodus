@@ -13,8 +13,8 @@ import {
   getDeepResearchById,
   getDeepResearchMessagesById,
   getSettings,
-  saveDeepResearch,
-  saveDeepResearchMessage
+  saveDeepResearchMessage,
+  updateDeepResearch
 } from '../../db/queries'
 
 const deepResearch = new Hono<{ Variables: Variables }>()
@@ -38,9 +38,6 @@ async function notifyClients(
   deepResearchId: string,
   data: ReportProgressPayload
 ) {
-  const controller = clients.get(deepResearchId)
-  if (!controller) return
-
   const message: JSONRPCNotification = {
     jsonrpc: '2.0',
     method: 'message/deep-research',
@@ -57,8 +54,13 @@ async function notifyClients(
   await saveDeepResearchMessage(deepResearchMessage)
 
   try {
+    const controller = clients.get(deepResearchId)
+    if (!controller) return
+
     controller.enqueue(
-      new TextEncoder().encode(`data: ${JSON.stringify(data)}\n\n`)
+      new TextEncoder().encode(
+        `data: ${JSON.stringify(deepResearchMessage)}\n\n`
+      )
     )
   } catch (err) {
     console.error('SSE enqueue failed:', err)
@@ -99,6 +101,9 @@ deepResearch.post('/', async (c) => {
     }
   )
 
+  await notifyClients(deepResearchId, {
+    type: DeepResearchProgress.StartWritingFinalReport
+  })
   const report = await writeFinalReport(
     {
       prompt: query,
@@ -109,7 +114,7 @@ deepResearch.post('/', async (c) => {
   )
 
   const deepResearchById = await getDeepResearchById({ id: deepResearchId })
-  const finalDeepResearch = await saveDeepResearch({
+  const finalDeepResearch = await updateDeepResearch({
     ...deepResearchById,
     finalReport: report.report,
     jobStatus: 'archived',

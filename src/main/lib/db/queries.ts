@@ -247,6 +247,18 @@ export async function getDeepResearchById({ id }: { id: string }) {
   }
 }
 
+export async function updateDeepResearch(payload: DeepResearch) {
+  try {
+    return await db
+      .update(deepResearch)
+      .set(payload)
+      .where(eq(deepResearch.id, payload.id))
+  } catch (error) {
+    console.error('Failed to update deep research result in database')
+    throw error
+  }
+}
+
 export async function saveDeepResearchMessage(payload: DeepResearchMessage) {
   try {
     return await db.insert(deepResearchMessage).values(payload)

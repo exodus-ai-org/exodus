@@ -3,7 +3,8 @@ import {
   DeepResearchProgress,
   ReportProgressPayload
 } from '@shared/types/deep-research'
-import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
+import { Bot, Search } from 'lucide-react'
+import { SourceItem } from './source-item'
 
 export function MessageItem({
   deepResearchMessage
@@ -14,103 +15,96 @@ export function MessageItem({
     ?.data as unknown as ReportProgressPayload
 
   return (
-    <div className="markdown hover:bg-accent rounded-xl p-2 whitespace-pre-wrap">
+    <>
       {payload.type === DeepResearchProgress.StartDeepResearch && (
-        <div>
-          <strong className="loading-shimmer-pure-text">
-            Start deep researching...
-          </strong>
+        <div className="flex items-center gap-2">
+          <Bot
+            className="mt-px shrink-0 rounded-full border p-1"
+            size={24}
+            strokeWidth={2.5}
+          />
+          Start deep researching...
         </div>
       )}
 
       {payload.type === DeepResearchProgress.EmitLearnings && (
-        <div>
-          <strong>
-            Deep research {payload.learnings?.length} items from the previous
+        <div className="flex gap-2">
+          <Bot
+            className="mt-px shrink-0 rounded-full border p-1"
+            size={24}
+            strokeWidth={2.5}
+          />
+          <div className="flex flex-col gap-2">
+            Deep researched {payload.learnings?.length} items from the previous
             web resources:
-          </strong>
-          <ul className="text-sm last:mb-0">
-            {payload.learnings?.map((item) => (
-              <li key={item.learning} className="last:mb-0">
-                {item.learning}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {payload.type === DeepResearchProgress.EmitSearchObjectives && (
-        <div>
-          <strong>
-            Generate {payload.searchObjectives?.length} search queries:
-          </strong>
-          <ul className="text-sm last:mb-0">
-            {payload.searchObjectives?.map((item) => (
-              <li key={item.query} className="last:mb-0">
-                {item.query}
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {payload.type === DeepResearchProgress.RequestLearnings && (
-        <div>
-          <strong>
-            {payload.deeper ? 'Deep searched' : 'Searched'} web resources for
-            &quot;
-            {payload.query}&quot;
-          </strong>
-
-          <div className="my-4 flex flex-col gap-4 text-sm">
-            {payload.webSearchResults?.map((item) => (
-              <a
-                href={item.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                key={item.link}
-                className="flex flex-col gap-1 rounded-xl p-2"
-              >
-                <div className="flex w-full items-center gap-2">
-                  <Avatar className="size-6 border">
-                    <AvatarImage src={item.favicon} className="object-cover" />
-                    <AvatarFallback>{item.title?.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div className="text-primary line-clamp-1 text-sm">
-                    {item.title}
-                  </div>
-                </div>
-                <div className="text-ring line-clamp-2 text-xs">
-                  {item.snippet}
-                </div>
-              </a>
-            ))}
+            <ul className="!m-0 text-sm">
+              {payload.learnings?.map((item) => (
+                <li key={item.learning} className="last:mb-0">
+                  {item.learning}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
       )}
 
-      {payload.type === DeepResearchProgress.RequestWebSearch && (
-        <div>
-          <strong className="loading-shimmer-pure-text">
-            {payload.deeper ? 'Deep searching' : 'Searching'} web resources for{' '}
-            &quot;{payload.query}&quot;
-          </strong>
+      {payload.type === DeepResearchProgress.EmitSearchQueries && (
+        <div className="flex gap-2">
+          <Bot
+            className="mt-px shrink-0 rounded-full border p-1"
+            size={24}
+            strokeWidth={2.5}
+          />
+          <div className="flex flex-col gap-2">
+            Generated {payload.searchQueries?.length} search queries for &quot;
+            {payload.query}&quot;:
+            <ul className="!m-0 text-sm">
+              {payload.searchQueries?.map((item) => (
+                <li key={item.query} className="last:mb-0">
+                  {item.query}
+                </li>
+              ))}
+            </ul>{' '}
+          </div>
         </div>
       )}
 
-      {payload.type === DeepResearchProgress.RequestWriteFinalReport && (
-        <div>
-          <strong className="loading-shimmer-pure-text">
-            Start writing final report
-          </strong>
+      {payload.type === DeepResearchProgress.EmitSearchResults && (
+        <div className="flex gap-2">
+          <Search
+            className="mt-px shrink-0 rounded-full border p-1"
+            size={24}
+            strokeWidth={2.5}
+          />
+          <div className="flex flex-col gap-2">
+            Searched for &quot;
+            {payload.query}&quot;
+            <SourceItem webSearchResults={payload.webSearchResults} />
+          </div>
+        </div>
+      )}
+
+      {payload.type === DeepResearchProgress.StartWritingFinalReport && (
+        <div className="flex items-center gap-2">
+          <Bot
+            className="mt-px shrink-0 rounded-full border p-1"
+            size={24}
+            strokeWidth={2.5}
+          />
+          Start writing final report
         </div>
       )}
 
       {payload.type === DeepResearchProgress.CompleteDeepResearch && (
-        <div>
-          <strong>Complete deep researching</strong>
+        <div className="flex items-center gap-2">
+          <Bot
+            className="mt-px shrink-0 rounded-full border p-1"
+            size={24}
+            strokeWidth={2.5}
+          />
+          Completed deep research
         </div>
       )}
-    </div>
+    </>
   )
 }

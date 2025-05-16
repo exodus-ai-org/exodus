@@ -1,12 +1,15 @@
 import { cn } from '@/lib/utils'
 import { activeDeepResearchSseIdAtom } from '@/stores/chat'
-import { DeepResearchMessage } from '@shared/types/db'
-import { ReportProgressPayload } from '@shared/types/deep-research'
-import { WebSearchResult } from '@shared/types/web-search'
+import { BASE_URL } from '@shared/constants/systems'
+import { DeepResearch, DeepResearchMessage } from '@shared/types/db'
+import {
+  DeepResearchProgress,
+  ReportProgressPayload
+} from '@shared/types/deep-research'
 import { motion } from 'framer-motion'
 import { useAtom } from 'jotai'
 import { X } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import useSWR from 'swr'
 import { Button } from '../ui/button'
 import { MessageItem } from './message-item'
@@ -22,7 +25,12 @@ export function DeepResearchProcess() {
   const [activeDeepResearchSseId, setActiveDeepResearchSseId] = useAtom(
     activeDeepResearchSseIdAtom
   )
-  const { data: deepResearchMessages } = useSWR<DeepResearchMessage[]>(
+  const { data: deepResearchResult, mutate: muteResult } = useSWR<DeepResearch>(
+    activeDeepResearchSseId
+      ? `/api/deep-research/result/${activeDeepResearchSseId}`
+      : null
+  )
+  const { data: deepResearchMessages, mutate } = useSWR<DeepResearchMessage[]>(
     activeDeepResearchSseId
       ? `/api/deep-research/messages/${activeDeepResearchSseId}`
       : null,
@@ -33,63 +41,83 @@ export function DeepResearchProcess() {
 
   const allWebSearchResults = useMemo(
     () =>
-      (
-        deepResearchMessages
-          ?.map(
-            (item) =>
-              (item.message.params?.data as unknown as ReportProgressPayload)
-                .webSearchResults
-          )
-          ?.flat() ?? []
-      ).filter(Boolean) as WebSearchResult[],
+      deepResearchMessages
+        ?.map(
+          (item) =>
+            item.message.params?.data as unknown as ReportProgressPayload
+        )
+        .filter((item) => item.type === DeepResearchProgress.EmitSearchResults)
+        ?.map((item) => item.webSearchResults)
+        ?.flat() ?? [],
     [deepResearchMessages]
   )
 
-  // useEffect(() => {
-  //   if (!toolResult) return
+  useEffect(() => {
+    if (!activeDeepResearchSseId) return
+    if (deepResearchResult?.jobStatus !== 'streaming') return
 
-  //   const source = new EventSource(
-  //     `${BASE_URL}/api/deep-research/sse?deepResearchId=${toolResult.id}`
-  //   )
+    const source = new EventSource(
+      `${BASE_URL}/api/deep-research/sse?deepResearchId=${activeDeepResearchSseId}`
+    )
 
-  //   source.onopen = () => {
-  //     console.log('SSE connection opened')
-  //   }
+    source.onopen = () => {
+      console.log('SSE connection opened')
+    }
 
-  //   source.onmessage = (event) => {
-  //     try {
-  //       console.log(JSON.parse(event.data))
-  //       // const data = JSON.parse(event.data) as { data: DeepResearchMessage }
-  //       // const payload = data.data.message.params as {
-  //       //   data: ReportProgressPayload
-  //       // }
+    source.onmessage = (event) => {
+      try {
+        const { data: deepResearchMessage } = JSON.parse(event.data) as {
+          data?: DeepResearchMessage
+        }
 
-  //       // if (payload.data.type === DeepResearchProgress.CompleteDeepResearch) {
-  //       //   source.close()
-  //       // } else {
-  //       //   setDeepResearchMessages((prev) => [...prev, payload.data])
-  //       // }
-  //     } catch (error) {
-  //       console.error('Error parsing event data:', error)
-  //       // source.close()
-  //     }
-  //   }
+        if (!deepResearchMessage) return
 
-  //   source.onerror = (error) => {
-  //     console.error('SSE error:', error)
-  //     if (source.readyState === EventSource.CLOSED) {
-  //       console.log('SSE connection closed')
-  //     }
-  //     // source.close()
-  //   }
+        const reportProgressPayload = deepResearchMessage?.message.params
+          ?.data as unknown as ReportProgressPayload
 
-  //   return () => {
-  //     if (source) {
-  //       console.log('SSE connection closed by component unmount')
-  //       source.close()
-  //     }
-  //   }
-  // }, [toolResult, toolResult.id])
+        if (
+          reportProgressPayload.type ===
+          DeepResearchProgress.CompleteDeepResearch
+        ) {
+          muteResult()
+          source.close()
+        } else {
+          mutate(
+            deepResearchMessages
+              ? [...deepResearchMessages, deepResearchMessage].toSorted(
+                  (a, b) => +a.createdAt - +b.createdAt
+                )
+              : [deepResearchMessage],
+            false
+          )
+        }
+      } catch (error) {
+        console.error('Error parsing event data:', error)
+        source.close()
+      }
+    }
+
+    source.onerror = (error) => {
+      console.error('SSE error:', error)
+      if (source.readyState === EventSource.CLOSED) {
+        console.log('SSE connection closed')
+      }
+      source.close()
+    }
+
+    return () => {
+      if (source) {
+        console.log('SSE connection closed by component unmount')
+        source.close()
+      }
+    }
+  }, [
+    activeDeepResearchSseId,
+    deepResearchMessages,
+    deepResearchResult?.jobStatus,
+    mutate,
+    muteResult
+  ])
 
   return (
     <motion.div
@@ -137,14 +165,14 @@ export function DeepResearchProcess() {
           <X />
         </Button>
       </div>
-      <div className="flex max-h-[calc(100dvh-3.8125rem)] flex-col gap-2 overflow-y-scroll p-2">
+      <div className="markdown flex max-h-[calc(100dvh-3.8125rem)] flex-col gap-4 overflow-y-scroll p-4">
         {tab === Tab.Activity &&
           deepResearchMessages?.map((deepResearchMessage, i) => (
             <MessageItem key={i} deepResearchMessage={deepResearchMessage} />
           ))}
 
         {tab === Tab.Source && (
-          <SourceItem allWebSearchResults={allWebSearchResults} />
+          <SourceItem webSearchResults={allWebSearchResults} />
         )}
       </div>
     </motion.div>

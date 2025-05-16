@@ -2,13 +2,13 @@ import { WebSearchResult } from '@shared/types/web-search'
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar'
 
 export function SourceItem({
-  allWebSearchResults
+  webSearchResults
 }: {
-  allWebSearchResults: WebSearchResult[]
+  webSearchResults: WebSearchResult[]
 }) {
   return (
-    <div className="flex flex-col gap-2 whitespace-pre-wrap">
-      {allWebSearchResults.map((item) => (
+    <div className="flex flex-col gap-1 whitespace-pre-wrap">
+      {webSearchResults.map((item) => (
         <a
           href={item.link}
           target="_blank"

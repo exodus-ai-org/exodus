@@ -17,20 +17,47 @@ export interface QueryWithResearchGoal {
 
 export enum DeepResearchProgress {
   StartDeepResearch,
-  EmitSearchObjectives,
-  RequestWebSearch,
-  RequestLearnings,
+  EmitSearchQueries,
+  EmitSearchResults,
   EmitLearnings,
-  RequestWriteFinalReport,
+  StartWritingFinalReport,
   CompleteDeepResearch
 }
 
-export interface ReportProgressPayload {
-  type: DeepResearchProgress
-  webSearchResults?: WebSearchResult[]
-  learnings?: Learning[]
-  searchObjectives?: QueryWithResearchGoal[]
-  query?: string
-  finalReport?: string
+export interface StartDeepResearch {
+  type: DeepResearchProgress.StartDeepResearch
+}
+
+export interface EmitSearchQueries {
+  type: DeepResearchProgress.EmitSearchQueries
+  query: string
+  searchQueries: QueryWithResearchGoal[]
   deeper?: boolean
 }
+
+export interface EmitSearchResults {
+  type: DeepResearchProgress.EmitSearchResults
+  webSearchResults: WebSearchResult[]
+  query: string
+}
+
+export interface EmitLearnings {
+  type: DeepResearchProgress.EmitLearnings
+  learnings: Learning[]
+}
+
+export interface StartWritingFinalReport {
+  type: DeepResearchProgress.StartWritingFinalReport
+}
+
+export interface CompleteDeepResearch {
+  type: DeepResearchProgress.CompleteDeepResearch
+}
+
+export type ReportProgressPayload =
+  | StartDeepResearch
+  | EmitSearchQueries
+  | EmitSearchResults
+  | EmitLearnings
+  | StartWritingFinalReport
+  | CompleteDeepResearch
