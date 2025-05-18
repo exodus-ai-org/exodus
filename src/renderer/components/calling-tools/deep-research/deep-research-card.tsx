@@ -1,7 +1,7 @@
 import { Markdown } from '@/components/markdown'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import { activeDeepResearchSseIdAtom } from '@/stores/chat'
+import { activeDeepResearchIdAtom } from '@/stores/chat'
 import { DeepResearch } from '@shared/types/db'
 import { differenceInMinutes } from 'date-fns'
 import { useAtom } from 'jotai'
@@ -13,8 +13,8 @@ export function DeepResearchCard({
 }: {
   toolResult: Pick<DeepResearch, 'id' | 'toolCallId'>
 }) {
-  const [activeDeepResearchSseId, setActiveDeepResearchSseId] = useAtom(
-    activeDeepResearchSseIdAtom
+  const [activeDeepResearchId, setActiveDeepResearchId] = useAtom(
+    activeDeepResearchIdAtom
   )
 
   const { data: deepResearchResult } = useSWR<DeepResearch>(
@@ -22,20 +22,20 @@ export function DeepResearchCard({
   )
 
   const handleActiveDeepResearchSseId = () => {
-    if (activeDeepResearchSseId) {
-      setActiveDeepResearchSseId('')
+    if (activeDeepResearchId) {
+      setActiveDeepResearchId('')
     } else {
-      setActiveDeepResearchSseId(toolResult.id)
+      setActiveDeepResearchId(toolResult.id)
     }
   }
 
   useEffect(() => {
     if (deepResearchResult?.jobStatus === 'streaming') {
-      setActiveDeepResearchSseId(toolResult.id)
+      setActiveDeepResearchId(toolResult.id)
     }
   }, [
     deepResearchResult,
-    setActiveDeepResearchSseId,
+    setActiveDeepResearchId,
     toolResult.id,
     toolResult.toolCallId
   ])
@@ -53,7 +53,7 @@ export function DeepResearchCard({
         {deepResearchResult?.jobStatus === 'archived' &&
           deepResearchResult?.endTime && (
             <div>
-              {`Research completed in ${differenceInMinutes(deepResearchResult?.endTime, deepResearchResult?.startTime)}m · 74 sources · 10 searches`}
+              {`Research completed in ${differenceInMinutes(deepResearchResult?.endTime, deepResearchResult?.startTime)}m · ${deepResearchResult?.webSources?.length ?? 0} sources`}
             </div>
           )}
       </Button>
@@ -68,7 +68,7 @@ export function DeepResearchCard({
                 toolInvocation: {
                   state: 'result',
                   toolCallId: '',
-                  toolName: '',
+                  toolName: 'webSearch',
                   args: {},
                   result: deepResearchResult.webSources
                 }

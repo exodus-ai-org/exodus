@@ -1,5 +1,9 @@
 import { cn } from '@/lib/utils'
-import { activeDeepResearchSseIdAtom } from '@/stores/chat'
+import { fetchDeepResearchMessages } from '@/services/deep-research'
+import {
+  activeDeepResearchIdAtom,
+  deepResearchMessagesAtom
+} from '@/stores/chat'
 import { BASE_URL } from '@shared/constants/systems'
 import { DeepResearch, DeepResearchMessage } from '@shared/types/db'
 import {
@@ -22,22 +26,18 @@ enum Tab {
 
 export function DeepResearchProcess() {
   const [tab, setTab] = useState(Tab.Activity)
-  const [activeDeepResearchSseId, setActiveDeepResearchSseId] = useAtom(
-    activeDeepResearchSseIdAtom
+  const [activeDeepResearchId, setActiveDeepResearchId] = useAtom(
+    activeDeepResearchIdAtom
   )
-  const { data: deepResearchResult, mutate: muteResult } = useSWR<DeepResearch>(
-    activeDeepResearchSseId
-      ? `/api/deep-research/result/${activeDeepResearchSseId}`
-      : null
+  const [deepResearchMessages, setDeepResearchMessages] = useAtom(
+    deepResearchMessagesAtom
   )
-  const { data: deepResearchMessages, mutate } = useSWR<DeepResearchMessage[]>(
-    activeDeepResearchSseId
-      ? `/api/deep-research/messages/${activeDeepResearchSseId}`
-      : null,
-    {
-      fallbackData: []
-    }
-  )
+  const { data: deepResearchResult, mutate: mutateResult } =
+    useSWR<DeepResearch>(
+      activeDeepResearchId
+        ? `/api/deep-research/result/${activeDeepResearchId}`
+        : null
+    )
 
   const allWebSearchResults = useMemo(
     () =>
@@ -53,70 +53,79 @@ export function DeepResearchProcess() {
   )
 
   useEffect(() => {
-    if (!activeDeepResearchSseId) return
-    if (deepResearchResult?.jobStatus !== 'streaming') return
+    if (!activeDeepResearchId) return
 
-    const source = new EventSource(
-      `${BASE_URL}/api/deep-research/sse?deepResearchId=${activeDeepResearchSseId}`
-    )
+    const initial = async () => {
+      const messages = await fetchDeepResearchMessages(activeDeepResearchId)
+      setDeepResearchMessages(messages)
 
-    source.onopen = () => {
-      console.log('SSE connection opened')
-    }
+      if (deepResearchResult?.jobStatus !== 'streaming') return
 
-    source.onmessage = (event) => {
-      try {
-        const { data: deepResearchMessage } = JSON.parse(event.data) as {
-          data?: DeepResearchMessage
-        }
+      const source = new EventSource(
+        `${BASE_URL}/api/deep-research/sse?deepResearchId=${activeDeepResearchId}`
+      )
 
-        if (!deepResearchMessage) return
+      source.onopen = () => {
+        console.log('SSE connection opened')
+      }
 
-        const reportProgressPayload = deepResearchMessage?.message.params
-          ?.data as unknown as ReportProgressPayload
+      source.onmessage = (event) => {
+        try {
+          const deepResearchMessage = JSON.parse(
+            event.data
+          ) as DeepResearchMessage
+          console.log('🐔', event.data)
 
-        if (
-          reportProgressPayload.type ===
-          DeepResearchProgress.CompleteDeepResearch
-        ) {
-          muteResult()
+          if (!deepResearchMessage) return
+
+          const reportProgressPayload = deepResearchMessage?.message.params
+            ?.data as unknown as ReportProgressPayload
+
+          if (
+            reportProgressPayload.type ===
+            DeepResearchProgress.CompleteDeepResearch
+          ) {
+            mutateResult()
+            source.close()
+          } else {
+            setDeepResearchMessages(
+              deepResearchMessages
+                ? [...deepResearchMessages, deepResearchMessage].toSorted(
+                    (a, b) => +a.createdAt - +b.createdAt
+                  )
+                : [deepResearchMessage]
+            )
+          }
+        } catch (error) {
+          console.error('Error parsing event data:', error)
           source.close()
-        } else {
-          mutate(
-            deepResearchMessages
-              ? [...deepResearchMessages, deepResearchMessage].toSorted(
-                  (a, b) => +a.createdAt - +b.createdAt
-                )
-              : [deepResearchMessage],
-            false
-          )
         }
-      } catch (error) {
-        console.error('Error parsing event data:', error)
+      }
+
+      source.onerror = (error) => {
+        console.error('SSE error:', error)
+        if (source.readyState === EventSource.CLOSED) {
+          console.log('SSE connection closed')
+        }
         source.close()
       }
-    }
 
-    source.onerror = (error) => {
-      console.error('SSE error:', error)
-      if (source.readyState === EventSource.CLOSED) {
-        console.log('SSE connection closed')
-      }
-      source.close()
-    }
-
-    return () => {
-      if (source) {
+      return () => {
         console.log('SSE connection closed by component unmount')
         source.close()
       }
     }
+
+    const cleanupPromise = initial()
+    return () => {
+      cleanupPromise?.then((cleanup) => cleanup?.())
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    activeDeepResearchSseId,
-    deepResearchMessages,
+    activeDeepResearchId,
     deepResearchResult?.jobStatus,
-    mutate,
-    muteResult
+    mutateResult,
+    setDeepResearchMessages
   ])
 
   return (
@@ -160,7 +169,7 @@ export function DeepResearchProcess() {
           size="icon"
           variant="ghost"
           className="absolute right-3 rounded-full"
-          onClick={() => setActiveDeepResearchSseId('')}
+          onClick={() => setActiveDeepResearchId('')}
         >
           <X />
         </Button>
@@ -168,11 +177,7 @@ export function DeepResearchProcess() {
       <div className="markdown flex max-h-[calc(100dvh-3.8125rem)] flex-col gap-4 overflow-y-scroll p-4">
         {tab === Tab.Activity &&
           deepResearchMessages?.map((deepResearchMessage, i) => (
-            <MessageItem
-              key={i}
-              webSearchResults={allWebSearchResults}
-              deepResearchMessage={deepResearchMessage}
-            />
+            <MessageItem key={i} deepResearchMessage={deepResearchMessage} />
           ))}
 
         {tab === Tab.Source && (

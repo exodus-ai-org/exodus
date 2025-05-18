@@ -6,10 +6,7 @@ import {
   SidebarProvider,
   SidebarTrigger
 } from '@/components/ui/sidebar'
-import {
-  activeDeepResearchSseIdAtom,
-  isArtifactVisibleAtom
-} from '@/stores/chat'
+import { activeDeepResearchIdAtom, isArtifactVisibleAtom } from '@/stores/chat'
 import { Separator } from '@radix-ui/react-separator'
 import { AnimatePresence } from 'framer-motion'
 import { useAtomValue } from 'jotai'
@@ -21,7 +18,7 @@ import { SearchDialog } from './search-dialog'
 import { ThemeSwitcher } from './theme-switcher'
 
 export function Layout() {
-  const activeDeepResearchSseId = useAtomValue(activeDeepResearchSseIdAtom)
+  const activeDeepResearchId = useAtomValue(activeDeepResearchIdAtom)
   const isArtifactVisible = useAtomValue(isArtifactVisibleAtom)
   return (
     <SidebarProvider>
@@ -45,7 +42,7 @@ export function Layout() {
         </div>
       </SidebarInset>
       <AnimatePresence>
-        {!!activeDeepResearchSseId && <DeepResearchProcess />}
+        {!!activeDeepResearchId && <DeepResearchProcess />}
         {isArtifactVisible && <CodePreview />}
       </AnimatePresence>
     </SidebarProvider>

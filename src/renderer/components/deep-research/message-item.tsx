@@ -3,20 +3,16 @@ import {
   DeepResearchProgress,
   ReportProgressPayload
 } from '@shared/types/deep-research'
-import { WebSearchResult } from '@shared/types/web-search'
-import { Bot, Search } from 'lucide-react'
+import { Bot, Check, Search } from 'lucide-react'
 import { SourceItem } from './source-item'
 
 export function MessageItem({
-  webSearchResults,
   deepResearchMessage
 }: {
-  webSearchResults: WebSearchResult[]
   deepResearchMessage: DeepResearchMessage
 }) {
   const payload = deepResearchMessage.message.params
     ?.data as unknown as ReportProgressPayload
-  console.log(webSearchResults)
 
   return (
     <>
@@ -113,7 +109,7 @@ export function MessageItem({
 
       {payload.type === DeepResearchProgress.CompleteDeepResearch && (
         <div className="flex gap-2">
-          <Bot
+          <Check
             className="mt-px shrink-0 rounded-full border p-1"
             size={24}
             strokeWidth={2.5}
