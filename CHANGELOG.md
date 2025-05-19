@@ -1,9 +1,8 @@
 ## [1.5.1](https://github.com/HyperChatBot/exodus/compare/v1.5.0...v1.5.1) (2025-05-02)
 
-
 ### Bug Fixes
 
-* do not show AvailableMcpTools if no tools ([d2abaa4](https://github.com/HyperChatBot/exodus/commit/d2abaa40e4bec3214110ed8cdf0fc4d220aee595))
+- do not show AvailableMcpTools if no tools ([d2abaa4](https://github.com/HyperChatBot/exodus/commit/d2abaa40e4bec3214110ed8cdf0fc4d220aee595))
 
 # [1.5.0](https://github.com/HyperChatBot/exodus/compare/v1.4.2...v1.5.0) (2025-04-30)
 

@@ -1,10 +1,13 @@
 import { SettingsType } from '@shared/schemas/settings-schema'
+import { WebSearchResult } from '@shared/types/web-search'
+import { JSONRPCNotification } from 'ai'
 import { sql, type InferSelectModel } from 'drizzle-orm'
 import {
   boolean,
   index,
   json,
   jsonb,
+  pgEnum,
   pgTable,
   primaryKey,
   text,
@@ -74,7 +77,40 @@ export const settings = pgTable('Setting', {
   fileUploadEndpoint: text('fileUploadEndpoint').default(''),
   assistantAvatar: text('assistantAvatar').default(''),
   googleCloud: jsonb('googleCloud').$type<SettingsType['googleCloud']>(),
-  webSearch: jsonb('webSearch').$type<SettingsType['webSearch']>()
+  webSearch: jsonb('webSearch').$type<SettingsType['webSearch']>(),
+  image: jsonb('image').$type<SettingsType['image']>(),
+  deepResearch: jsonb('deepResearch').$type<SettingsType['deepResearch']>()
 })
 
 export type Settings = InferSelectModel<typeof settings>
+
+export const jobStatusEnum = pgEnum('jobStatus', [
+  'streaming',
+  'archived',
+  'failed',
+  'terminated'
+])
+
+export const deepResearch = pgTable('DeepResearch', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  toolCallId: text('toolCallId').notNull(),
+  title: text('title'),
+  jobStatus: jobStatusEnum().notNull(),
+  finalReport: text('finalReport'),
+  webSources: json('webSources').$type<WebSearchResult[]>(),
+  startTime: timestamp('startTime').defaultNow().notNull(),
+  endTime: timestamp('endTime').defaultNow()
+})
+
+export type DeepResearch = InferSelectModel<typeof deepResearch>
+
+export const deepResearchMessage = pgTable('DeepResearchMessage', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  deepResearchId: uuid('deepResearchId')
+    .notNull()
+    .references(() => deepResearch.id),
+  message: json('message').notNull().$type<JSONRPCNotification>(),
+  createdAt: timestamp('createdAt').defaultNow().notNull()
+})
+
+export type DeepResearchMessage = InferSelectModel<typeof deepResearchMessage>

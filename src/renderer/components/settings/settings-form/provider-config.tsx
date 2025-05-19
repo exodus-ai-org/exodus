@@ -85,7 +85,7 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
                   <SelectValue
                     placeholder={
                       provider
-                        ? `Select a chat model belongs to ${provider}`
+                        ? 'Select a chat model'
                         : 'Select a provider first'
                     }
                   />
@@ -120,7 +120,7 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
                   <SelectValue
                     placeholder={
                       provider
-                        ? `Select a reasoning model belongs to ${provider}`
+                        ? 'Select a reasoning model'
                         : 'Select a provider first'
                     }
                   />
@@ -172,11 +172,6 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
                 value={field.value ?? 1}
               />
             </FormControl>
-            {/* <FormDescription>
-              Maximum number of sequential LLM calls (steps), e.g. when you use
-              tool calls. A maximum number is required to prevent infinite loops
-              in the case of misconfigured tools. By default, it is set to 1.
-            </FormDescription> */}
             <FormMessage />
           </FormItem>
         )}

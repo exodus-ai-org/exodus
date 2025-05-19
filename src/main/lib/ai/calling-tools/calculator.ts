@@ -9,8 +9,10 @@ export const calculator = tool({
   execute: async ({ expression }: { expression: string }) => {
     try {
       return Parser.evaluate(expression).toString()
-    } catch {
-      return "I don't know how to do that."
+    } catch (e) {
+      return e instanceof Error
+        ? e.message
+        : 'Failed to calculate your expression'
     }
   }
 })

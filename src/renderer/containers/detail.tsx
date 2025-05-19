@@ -1,4 +1,3 @@
-import { CodePreview } from '@/components/artifacts/code-preview'
 import { Chat } from '@/components/chat'
 import { convertToUIMessages } from '@/lib/utils'
 import type { Message as DBMessage } from '@shared/types/db'
@@ -16,10 +15,5 @@ export function Detail() {
     return null
   }
 
-  return (
-    <>
-      <Chat id={id} initialMessages={convertToUIMessages(messagesFromDb)} />
-      <CodePreview />
-    </>
-  )
+  return <Chat id={id} initialMessages={convertToUIMessages(messagesFromDb)} />
 }

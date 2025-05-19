@@ -33,8 +33,6 @@ export const googleMapsRouting = (settings: Settings) =>
         )
       }
 
-      console.log('🐱 zzzz')
-
       try {
         const routingClient = new v2.RoutesClient({
           apiKey: settings.googleCloud.googleApiKey
@@ -73,12 +71,9 @@ export const googleMapsRouting = (settings: Settings) =>
           }
         )
 
-        return JSON.stringify(response)
+        return response
       } catch (e) {
-        console.log(e)
-        return e instanceof Error
-          ? e.message
-          : 'Failed to retrieve routing data.'
+        throw e instanceof Error ? e.message : 'Failed to retrieve routing data'
       }
     }
   })

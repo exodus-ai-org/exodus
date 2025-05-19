@@ -18,29 +18,21 @@ import {
   Umbrella,
   Wind
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
 import { WeatherForecast } from './weather-forecast'
 
-export function WeatherCard({ toolResult }: { toolResult: string }) {
-  const [dataSource, setDataSource] = useState<WeatherAPIResponse | null>(null)
-
+export function WeatherCard({
+  toolResult
+}: {
+  toolResult: WeatherAPIResponse
+}) {
   const rainVariants = {
     initial: { opacity: 0, y: -10 },
     animate: { opacity: 1, y: 0 }
   }
-  useEffect(() => {
-    try {
-      setDataSource(JSON.parse(toolResult))
-    } catch {
-      // Do nothing...
-    }
-  }, [toolResult])
 
-  if (!dataSource) return null
-
-  const current = dataSource.current_condition[0]
-  const location = dataSource.nearest_area[0]
-  const forecast = dataSource.weather
+  const current = toolResult.current_condition[0]
+  const location = toolResult.nearest_area[0]
+  const forecast = toolResult.weather
 
   const getWeatherIcon = (code: string) => {
     const weatherType = WWO_CODE[code as keyof typeof WWO_CODE] || 'Cloudy'
@@ -161,7 +153,7 @@ export function WeatherCard({ toolResult }: { toolResult: string }) {
                 <span className="text-sm">Humidity</span>
                 <span className="font-medium">{current.humidity}%</span>
               </div>
-              <div className="col-span-2 flex flex-col items-center rounded-lg bg-white/10 p-2">
+              <div className="col-span-2 flex flex-col rounded-lg bg-white/10 p-2">
                 <Wind className="mb-1 h-5 w-5" />
                 <div className="flex w-full items-center justify-between">
                   <span className="text-sm">Wind</span>

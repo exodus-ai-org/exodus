@@ -39,6 +39,20 @@ export const webSearchSchema = z.object({
   language: z.string().nullish()
 })
 
+export const imageSchema = z.object({
+  model: z.string().nullish(),
+  size: z.string().nullish(),
+  quality: z.string().nullish(),
+  outputFormat: z.string().nullish(),
+  generatedCounts: z.coerce.number().nonnegative().lte(10).nullish(),
+  background: z.string().nullish()
+})
+
+export const deepResearchSchema = z.object({
+  breadth: z.coerce.number().gte(3).lte(10).nullish(),
+  depth: z.coerce.number().gte(1).lte(5).nullish()
+})
+
 export const settingsSchema = z.object({
   providerConfig: providerConfigSchema.nullish(),
   providers: providersSchema.nullish(),
@@ -47,7 +61,9 @@ export const settingsSchema = z.object({
   fileUploadEndpoint: z.string().nullish(),
   assistantAvatar: z.string().nullish(),
   googleCloud: googleCloudSchema.nullish(),
-  webSearch: webSearchSchema.nullish()
+  webSearch: webSearchSchema.nullish(),
+  image: imageSchema.nullish(),
+  deepResearch: deepResearchSchema.nullish()
 })
 
 export type SettingsType = z.infer<typeof settingsSchema>

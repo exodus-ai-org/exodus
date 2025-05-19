@@ -6,13 +6,14 @@ import { settingsSchema, SettingsType } from '@shared/schemas/settings-schema'
 import { Providers } from '@shared/types/ai'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { useForm } from 'react-hook-form'
-import { toast } from 'sonner'
 import { z } from 'zod'
 import { AudioSpeech } from './settings-form/audio-speech'
 import { AvatarUploader } from './settings-form/avatar-uploader'
 import { DataControls } from './settings-form/data-controls'
+import { DeepResearch } from './settings-form/deep-research'
 import { FileUploadEndpoint } from './settings-form/file-upload-endpoint'
 import { GoogleMaps } from './settings-form/google-maps'
+import { ImageGeneration } from './settings-form/image-generation'
 import { MCP } from './settings-form/mcp'
 import { ProviderConfig } from './settings-form/provider-config'
 import { AnthropicClaude } from './settings-form/providers/anthropic-claude'
@@ -27,7 +28,7 @@ import { UnderConstruction } from './under-construction'
 
 export function SettingsForm() {
   const setIsMcpServerChanged = useSetAtom(isMcpServerChangedAtom)
-  const { data: settings, mutate, updateSetting } = useSettings()
+  const { data: settings, updateSetting } = useSettings()
   const activeTitle = useAtomValue(settingsLabelAtom)
 
   const form = useForm<SettingsType>({
@@ -46,8 +47,6 @@ export function SettingsForm() {
 
       // @ts-expect-error TODO: Need to fix.
       updateSetting({ id: settings.id, ...values })
-      mutate()
-      toast.success('Auto saved.')
     }
   }
 
@@ -87,11 +86,13 @@ export function SettingsForm() {
 
         {activeTitle === 'Audio and Speech' && <AudioSpeech form={form} />}
 
+        {activeTitle === 'Image Generation' && <ImageGeneration form={form} />}
+
         {activeTitle === 'Google Maps' && <GoogleMaps form={form} />}
 
         {activeTitle === 'Web Search' && <WebSearch form={form} />}
 
-        {activeTitle === 'Deep Research' && <UnderConstruction />}
+        {activeTitle === 'Deep Research' && <DeepResearch form={form} />}
 
         {activeTitle === 'RAG' && <UnderConstruction />}
 

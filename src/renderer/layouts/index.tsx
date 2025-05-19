@@ -1,10 +1,15 @@
+import { CodePreview } from '@/components/artifacts/code-preview'
+import { DeepResearchProcess } from '@/components/deep-research'
 import { SettingsDialog } from '@/components/settings/settings-dialog'
 import {
   SidebarInset,
   SidebarProvider,
   SidebarTrigger
 } from '@/components/ui/sidebar'
+import { activeDeepResearchIdAtom, isArtifactVisibleAtom } from '@/stores/chat'
 import { Separator } from '@radix-ui/react-separator'
+import { AnimatePresence } from 'framer-motion'
+import { useAtomValue } from 'jotai'
 import { Outlet } from 'react-router'
 import { Toaster } from 'sonner'
 import { AppSidebar } from './app-sidebar'
@@ -13,6 +18,8 @@ import { SearchDialog } from './search-dialog'
 import { ThemeSwitcher } from './theme-switcher'
 
 export function Layout() {
+  const activeDeepResearchId = useAtomValue(activeDeepResearchIdAtom)
+  const isArtifactVisible = useAtomValue(isArtifactVisibleAtom)
   return (
     <SidebarProvider>
       <AppSidebar />
@@ -34,6 +41,10 @@ export function Layout() {
           <RenameChatDialog />
         </div>
       </SidebarInset>
+      <AnimatePresence>
+        {!!activeDeepResearchId && <DeepResearchProcess />}
+        {isArtifactVisible && <CodePreview />}
+      </AnimatePresence>
     </SidebarProvider>
   )
 }

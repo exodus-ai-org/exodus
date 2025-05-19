@@ -95,9 +95,7 @@ export function Markdown({
       if (toolInvocationPart) {
         const { state, toolName } = toolInvocationPart.toolInvocation
         if (toolName === 'webSearch' && state === 'result') {
-          return JSON.parse(
-            toolInvocationPart.toolInvocation.result
-          ) as WebSearchResult[]
+          return toolInvocationPart.toolInvocation.result
         }
         return undefined
       }

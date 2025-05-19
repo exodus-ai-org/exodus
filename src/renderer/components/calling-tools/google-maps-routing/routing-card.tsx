@@ -7,22 +7,22 @@ import {
   Map,
   Pin
 } from '@vis.gl/react-google-maps'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Polyline } from './polyline'
 
-export function GoogleMapsCard({ toolResult }: { toolResult: string }) {
+export function GoogleMapsCard({
+  toolResult
+}: {
+  toolResult: [
+    protos.google.maps.routing.v2.IComputeRoutesResponse,
+    protos.google.maps.routing.v2.IComputeRoutesRequest | undefined,
+    object | undefined
+  ]
+}) {
   const { data: settings } = useSettings()
-  const [dataSource, setDataSource] = useState<
-    | [
-        protos.google.maps.routing.v2.IComputeRoutesResponse,
-        protos.google.maps.routing.v2.IComputeRoutesRequest | undefined,
-        object | undefined
-      ]
-    | null
-  >(null)
   const route: protos.google.maps.routing.v2.IRoute | undefined = useMemo(
-    () => dataSource?.[0]?.routes?.[0],
-    [dataSource]
+    () => toolResult?.[0]?.routes?.[0],
+    [toolResult]
   )
 
   const stepMarkerStyle = {
@@ -50,14 +50,6 @@ export function GoogleMapsCard({ toolResult }: { toolResult: string }) {
       </AdvancedMarker>
     )
   })
-
-  useEffect(() => {
-    try {
-      setDataSource(JSON.parse(toolResult))
-    } catch {
-      // Do nothing...
-    }
-  }, [toolResult])
 
   if (
     !settings?.googleCloud?.googleApiKey ||

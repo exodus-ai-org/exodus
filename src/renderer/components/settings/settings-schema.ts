@@ -11,6 +11,7 @@ import {
   Globe,
   Hammer,
   HandCoins,
+  Image,
   Info,
   Map,
   Palette,
@@ -58,6 +59,10 @@ export const schema = {
     {
       icon: AudioWaveform,
       title: 'Audio and Speech'
+    },
+    {
+      icon: Image,
+      title: 'Image Generation'
     },
     {
       icon: Globe,

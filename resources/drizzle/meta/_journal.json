@@ -36,6 +36,62 @@
       "when": 1745903009643,
       "tag": "0004_deep_eternity",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1746279192023,
+      "tag": "0005_misty_starfox",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1746626425094,
+      "tag": "0006_little_rhodey",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1746773419798,
+      "tag": "0007_public_hannibal_king",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1746773657754,
+      "tag": "0008_sharp_psynapse",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1747121200273,
+      "tag": "0009_plain_ricochet",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1747123068621,
+      "tag": "0010_wide_thunderbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1747383411881,
+      "tag": "0011_giant_mauler",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1747631603144,
+      "tag": "0012_petite_sauron",
+      "breakpoints": true
     }
   ]
 }

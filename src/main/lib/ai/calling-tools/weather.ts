@@ -8,9 +8,9 @@ export const weather = tool({
     try {
       const response = await fetch(`https://wttr.in/${location}?format=j1`)
       const data = await response.json()
-      return JSON.stringify(data)
-    } catch {
-      return ''
+      return data
+    } catch (e) {
+      return e instanceof Error ? e.message : 'Failed to retrieve weather data'
     }
   }
 })

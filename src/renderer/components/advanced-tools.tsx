@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils'
 import { advancedToolsAtom } from '@/stores/chat'
 import { TooltipArrow } from '@radix-ui/react-tooltip'
-import { AdvancedTools } from '@shared/types/ai'
+import { AdvancedTools as AdvancedToolsType } from '@shared/types/ai'
 import { produce } from 'immer'
 import { useAtom } from 'jotai'
 import { Globe, Lightbulb, Palette, Telescope } from 'lucide-react'
@@ -15,37 +15,54 @@ import {
 
 const advancedToolsList = [
   {
-    key: AdvancedTools.WebSearch,
+    key: AdvancedToolsType.WebSearch,
     icon: <Globe />,
-    desc: AdvancedTools.WebSearch
+    desc: AdvancedToolsType.WebSearch
   },
   {
-    key: AdvancedTools.Reasoning,
+    key: AdvancedToolsType.Reasoning,
     icon: <Lightbulb />,
-    desc: AdvancedTools.Reasoning
+    desc: AdvancedToolsType.Reasoning
   },
   {
-    key: AdvancedTools.DeepResearch,
+    key: AdvancedToolsType.DeepResearch,
     icon: <Telescope />,
-    desc: AdvancedTools.DeepResearch
+    desc: AdvancedToolsType.DeepResearch
   },
   {
-    key: AdvancedTools.Artifacts,
+    key: AdvancedToolsType.Artifacts,
     icon: <Palette />,
-    desc: AdvancedTools.Artifacts
+    desc: AdvancedToolsType.Artifacts
   }
 ]
 
-export function MultiModelInputTools() {
+export function AdvancedTools() {
   const [advancedTools, setAdvancedTools] = useAtom(advancedToolsAtom)
 
-  const handleAdvancedTools = (advancedToolName: AdvancedTools) => {
+  const handleAdvancedTools = (advancedToolName: AdvancedToolsType) => {
     setAdvancedTools(
       produce(advancedTools, (draft) => {
-        const idx = draft.findIndex((item) => item === advancedToolName)
+        const idx = draft.indexOf(advancedToolName)
 
         if (idx === -1) {
           draft.push(advancedToolName)
+
+          if (advancedToolName === AdvancedToolsType.DeepResearch) {
+            const reasoningIdx = draft.indexOf(AdvancedToolsType.Reasoning)
+            if (reasoningIdx > -1) draft.splice(reasoningIdx, 1)
+            const webSearchIdx = draft.indexOf(AdvancedToolsType.WebSearch)
+            if (webSearchIdx > -1) draft.splice(webSearchIdx, 1)
+          }
+
+          if (
+            advancedToolName === AdvancedToolsType.Reasoning ||
+            advancedToolName === AdvancedToolsType.WebSearch
+          ) {
+            const deepResearchIdx = draft.indexOf(
+              AdvancedToolsType.DeepResearch
+            )
+            if (deepResearchIdx > -1) draft.splice(deepResearchIdx, 1)
+          }
         } else {
           draft.splice(idx, 1)
         }
