@@ -91,8 +91,8 @@ deepResearch.post('/', async (c) => {
   const { learnings, webSources } = await deepResearchAgent(
     {
       query,
-      breadth: 3,
-      depth: 2
+      breadth: settings.deepResearch?.breadth ?? 4,
+      depth: settings.deepResearch?.depth ?? 2
     },
     {
       serperApiKey: settings.webSearch?.serperApiKey as string,

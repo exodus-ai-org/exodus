@@ -10,6 +10,7 @@ import { z } from 'zod'
 import { AudioSpeech } from './settings-form/audio-speech'
 import { AvatarUploader } from './settings-form/avatar-uploader'
 import { DataControls } from './settings-form/data-controls'
+import { DeepResearch } from './settings-form/deep-research'
 import { FileUploadEndpoint } from './settings-form/file-upload-endpoint'
 import { GoogleMaps } from './settings-form/google-maps'
 import { ImageGeneration } from './settings-form/image-generation'
@@ -91,7 +92,7 @@ export function SettingsForm() {
 
         {activeTitle === 'Web Search' && <WebSearch form={form} />}
 
-        {activeTitle === 'Deep Research' && <UnderConstruction />}
+        {activeTitle === 'Deep Research' && <DeepResearch form={form} />}
 
         {activeTitle === 'RAG' && <UnderConstruction />}
 

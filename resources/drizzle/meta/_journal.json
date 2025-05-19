@@ -85,6 +85,13 @@
       "when": 1747383411881,
       "tag": "0011_giant_mauler",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1747631603144,
+      "tag": "0012_petite_sauron",
+      "breakpoints": true
     }
   ]
 }

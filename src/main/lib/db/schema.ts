@@ -78,7 +78,8 @@ export const settings = pgTable('Setting', {
   assistantAvatar: text('assistantAvatar').default(''),
   googleCloud: jsonb('googleCloud').$type<SettingsType['googleCloud']>(),
   webSearch: jsonb('webSearch').$type<SettingsType['webSearch']>(),
-  image: jsonb('image').$type<SettingsType['image']>()
+  image: jsonb('image').$type<SettingsType['image']>(),
+  deepResearch: jsonb('deepResearch').$type<SettingsType['deepResearch']>()
 })
 
 export type Settings = InferSelectModel<typeof settings>
