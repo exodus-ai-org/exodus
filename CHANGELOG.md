@@ -1,3 +1,29 @@
+# [1.6.0](https://github.com/exodus-ai-org/exodus/compare/v1.5.1...v1.6.0) (2025-05-19)
+
+
+### Bug Fixes
+
+* should throw error messages if third parts failed in calling tools ([4c21e39](https://github.com/exodus-ai-org/exodus/commit/4c21e394e7473cc7ee9ca546a96de74452e311b2))
+
+
+### Features
+
+* add deep research parameters to db ([908ac77](https://github.com/exodus-ai-org/exodus/commit/908ac775930539d5ca9b3c47daec9e4a74987dff))
+* add shimer animation if loading text ([59e81bd](https://github.com/exodus-ai-org/exodus/commit/59e81bdc46c7aece6e7955a02bed69a4eef41996))
+* basic deep research ([6ec8d49](https://github.com/exodus-ai-org/exodus/commit/6ec8d49d61d558828eb2e8aa9890972203ccb500))
+* do not wrap  JSON.stringify on calling tools results ([df1e7cb](https://github.com/exodus-ai-org/exodus/commit/df1e7cb81a1ec59747d2a2b12cdc906512bd163b))
+* enhance the communication stream in deep research ([fbb3919](https://github.com/exodus-ai-org/exodus/commit/fbb3919cf7345ee439261e70bb2b4cb7e7917dc5))
+* enhance the ui performance to deep research ([025431a](https://github.com/exodus-ai-org/exodus/commit/025431ada4219e30bc2b49233aab1f7043e1c85b))
+* enhance web search ([2023aba](https://github.com/exodus-ai-org/exodus/commit/2023aba929f5dc5e360162a3985bb04607496c73))
+* stream deep research messages via SSE ([d42b2b5](https://github.com/exodus-ai-org/exodus/commit/d42b2b5521198109e775c43524c242747942bd92))
+* support download the final report of deep research as pdf ([4a0b5ce](https://github.com/exodus-ai-org/exodus/commit/4a0b5ce256049f658c670be2062e5166bf12a9c3))
+* supports image generation ([53bf7a8](https://github.com/exodus-ai-org/exodus/commit/53bf7a804924094bc9bdef8ce9830b830a1085e8))
+* **wip:** deep research ([678b95a](https://github.com/exodus-ai-org/exodus/commit/678b95a74a055274dcd7b6b841dc72cac3f206f1))
+* **wip:** define deep research db ([c2b0d3b](https://github.com/exodus-ai-org/exodus/commit/c2b0d3bed8a527e521898acc596e80a870edcf13))
+* **wip:** finish deep research api ([6ae9ec9](https://github.com/exodus-ai-org/exodus/commit/6ae9ec97cbf8e11ea9e5a15a82b71f3bcb8e431d))
+* **wip:** try call deep research ([1080f94](https://github.com/exodus-ai-org/exodus/commit/1080f94ba2d83ce77bbc0c4588b7682e1ae8de5e))
+* **wip:** try jsonrpc-formatted sse message ([5f66fb6](https://github.com/exodus-ai-org/exodus/commit/5f66fb6e5103890297e481fa763eeeb73cb2f599))
+
 ## [1.5.1](https://github.com/HyperChatBot/exodus/compare/v1.5.0...v1.5.1) (2025-05-02)
 
 ### Bug Fixes
