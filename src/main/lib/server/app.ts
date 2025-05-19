@@ -10,8 +10,8 @@ import customUploaderRouter from './routes/custom-uploader'
 import dbIoRouter from './routes/db-io'
 import deepResearchRouter from './routes/deep-research'
 import historyRouter from './routes/history'
-import ollamaRouter from './routes/ollama'
 import settingsRouter from './routes/settings'
+import toolsRouter from './routes/tools'
 
 // Export server functions
 export async function connectHttpServer() {
@@ -38,11 +38,11 @@ export async function connectHttpServer() {
   app.route('/api/chat', chatRouter)
   app.route('/api/history', historyRouter)
   app.route('/api/settings', settingsRouter)
-  app.route('/api/ollama', ollamaRouter)
   app.route('/api/audio', audioRouter)
   app.route('/api/custom-uploader', customUploaderRouter)
   app.route('/api/db-io', dbIoRouter)
   app.route('/api/deep-research', deepResearchRouter)
+  app.route('/api/tools', toolsRouter)
 
   // Ping
   app.get('/', (c) => c.text('Exodus is running.'))
