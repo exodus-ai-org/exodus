@@ -1,11 +1,13 @@
 import { AdvancedTools } from '@shared/types/ai'
-import { DeepResearchMessage } from '@shared/types/db'
+import { Chat, DeepResearchMessage } from '@shared/types/db'
 import { Attachment } from 'ai'
 import { atom } from 'jotai'
 
 export const isArtifactVisibleAtom = atom(false)
 
 export const isFullTextSearchVisibleAtom = atom(false)
+
+export const toBeDeletedChatAtom = atom<Chat | undefined>(undefined)
 
 export const activeDeepResearchIdAtom = atom('')
 
