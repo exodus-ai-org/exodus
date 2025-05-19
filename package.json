@@ -144,7 +144,7 @@
     "@types/react-syntax-highlighter": "^15.5.13",
     "@types/turndown": "^5.0.5",
     "@vitejs/plugin-react": "^4.3.4",
-    "drizzle-kit": "^0.30.6",
+    "drizzle-kit": "^0.31.1",
     "electron": "^35.0.3",
     "electron-builder": "^25.1.8",
     "electron-devtools-installer": "^4.0.0",
