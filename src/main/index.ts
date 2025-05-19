@@ -7,6 +7,7 @@ import {
 } from 'electron-devtools-installer'
 import { join } from 'path'
 import icon from '../../resources/icon.png?asset'
+import { setupAutoUpdater } from './auto-updater'
 import { runMigrate } from './lib/db/migrate'
 import {
   copyFiles,
@@ -125,6 +126,7 @@ app.whenReady().then(async () => {
   })
 
   createWindow()
+  setupAutoUpdater()
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the

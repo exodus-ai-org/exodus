@@ -85,7 +85,7 @@
     "drizzle-orm": "^0.41.0",
     "drizzle-zod": "^0.7.0",
     "electron-squirrel-startup": "^1.0.1",
-    "electron-updater": "^6.3.9",
+    "electron-updater": "^6.6.2",
     "embla-carousel-react": "^8.6.0",
     "expr-eval": "^2.0.2",
     "framer-motion": "^12.9.2",
