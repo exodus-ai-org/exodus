@@ -27,7 +27,7 @@ self.MonacoEnvironment = {
 }
 loader.config({ monaco })
 
-export function CodeEditor<T extends FieldValues>({
+function CodeEditor<T extends FieldValues>({
   props,
   className
 }: {
@@ -61,3 +61,5 @@ export function CodeEditor<T extends FieldValues>({
     />
   )
 }
+
+export default CodeEditor
