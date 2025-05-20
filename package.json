@@ -4,7 +4,7 @@
   "version": "1.6.0",
   "description": "ChatBot featuring MCP, Artifacts, RAG, AI Agents, Deep Research, and other modern capabilities.",
   "main": "./out/main/index.js",
-  "author": "example.com",
+  "author": "Yancey Leo",
   "homepage": "https://exdous.yancey.app",
   "scripts": {
     "format": "prettier --write .",
