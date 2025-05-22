@@ -21,7 +21,8 @@
     "build:mac": "electron-vite build && electron-builder --mac",
     "build:linux": "electron-vite build && electron-builder --linux",
     "db:generate": "npx drizzle-kit generate",
-    "shadcn/ui": "npx tsx scripts/shadcn-ui-to-text.ts",
+    "shadcn:generate": "npx tsx scripts/shadcn-ui-to-text.ts",
+    "asar:sniff": "npx tsx scripts/asar-sniff.ts",
     "prepare": "husky"
   },
   "dependencies": {
@@ -65,6 +66,7 @@
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
     "@electron-toolkit/eslint-config-ts": "^3.0.0",
     "@electron-toolkit/tsconfig": "^1.0.1",
+    "@electron/asar": "^4.0.0",
     "@hookform/resolvers": "^5.0.1",
     "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-accordion": "^1.2.7",

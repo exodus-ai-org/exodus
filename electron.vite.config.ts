@@ -10,6 +10,14 @@ export default defineConfig({
       alias: {
         '@shared': resolve('src/shared')
       }
+    },
+    build: {
+      minify: 'esbuild',
+      sourcemap: false,
+      rollupOptions: {
+        treeshake: true,
+        output: {}
+      }
     }
   },
   preload: {
