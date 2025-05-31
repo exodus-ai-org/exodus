@@ -229,11 +229,9 @@ export function Markdown({
           li({ className, node, children, ...rest }) {
             return (
               <li {...rest} className={className}>
-                <p>
-                  <ParagraphWithSources webSearchResults={webSearchResults}>
-                    {children}
-                  </ParagraphWithSources>
-                </p>
+                <ParagraphWithSources webSearchResults={webSearchResults}>
+                  {children}
+                </ParagraphWithSources>
               </li>
             )
           },
