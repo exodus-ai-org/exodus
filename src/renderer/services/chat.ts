@@ -22,7 +22,7 @@ export const deleteChat = async (chatId: string, currentId?: string) => {
 
   mutate('/api/history')
   if (chatId === currentId) {
-    window.location.href = '/'
+    window.location.hash = '#/'
   }
 
   toast.success(`Succeed to delete ${chatId}.`)
