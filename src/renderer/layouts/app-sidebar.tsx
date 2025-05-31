@@ -43,7 +43,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <span
                   className="text-accent-foreground hover:bg-accent cursor-pointer rounded-sm p-2"
                   onClick={() => {
-                    window.location.href = '/'
+                    window.location.hash = '#/'
                   }}
                 >
                   <Plus strokeWidth={2.5} size={20} />

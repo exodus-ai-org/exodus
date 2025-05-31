@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { fetchDeepResearchMessages } from '@/services/deep-research'
 import {
@@ -15,7 +16,6 @@ import { useAtom } from 'jotai'
 import { X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import useSWR from 'swr'
-import { Button } from '../ui/button'
 import { MessageItem } from './message-item'
 import { SourceItem } from './source-item'
 
@@ -137,11 +137,11 @@ export function DeepResearchProcess() {
       className="h-screen w-[25rem] border-l"
     >
       <div className="relative flex items-center justify-center border-b py-2">
-        <div className="bg-border flex items-center rounded-full border-4 transition-all">
+        <div className="bg-border flex items-center rounded-full p-1 transition-all">
           <Button
             variant="ghost"
             className={cn(
-              'bg-border min-w-24 rounded-full px-2 py-1 select-none hover:bg-transparent dark:bg-transparent dark:hover:bg-transparent',
+              'bg-border min-w-24 cursor-pointer rounded-full px-2 py-1 select-none hover:bg-transparent dark:bg-transparent dark:hover:bg-transparent',
               {
                 ['bg-background hover:bg-background dark:bg-background-foreground hover:dark:bg-background-foreground shadow-sm']:
                   tab === Tab.Activity
@@ -154,7 +154,7 @@ export function DeepResearchProcess() {
           <Button
             variant="ghost"
             className={cn(
-              'bg-border min-w-24 rounded-full px-2 py-1 select-none hover:bg-transparent dark:bg-transparent dark:hover:bg-transparent',
+              'bg-border min-w-24 cursor-pointer rounded-full px-2 py-1 select-none hover:bg-transparent dark:bg-transparent dark:hover:bg-transparent',
               {
                 ['bg-background hover:bg-background dark:bg-background-foreground hover:dark:bg-background-foreground shadow-sm']:
                   tab === Tab.Source

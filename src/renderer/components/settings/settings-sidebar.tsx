@@ -1,8 +1,3 @@
-import { settingsLabelAtom } from '@/stores/settings'
-import { useAtom } from 'jotai'
-import { Bot } from 'lucide-react'
-import * as React from 'react'
-import { version } from '../../../../package.json'
 import {
   Sidebar,
   SidebarContent,
@@ -14,7 +9,12 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem,
   SidebarRail
-} from '../ui/sidebar'
+} from '@/components/ui/sidebar'
+import { settingsLabelAtom } from '@/stores/settings'
+import { useAtom } from 'jotai'
+import { Bot } from 'lucide-react'
+import * as React from 'react'
+import { version } from '../../../../package.json'
 import { schema } from './settings-schema'
 
 export function SettingsSidebar({

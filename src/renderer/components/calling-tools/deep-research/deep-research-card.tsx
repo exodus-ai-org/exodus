@@ -61,6 +61,10 @@ export function DeepResearchCard({
     if (deepResearchResult?.jobStatus === 'streaming') {
       setActiveDeepResearchId(toolResult.id)
     }
+
+    return () => {
+      setActiveDeepResearchId('')
+    }
   }, [
     deepResearchResult,
     setActiveDeepResearchId,

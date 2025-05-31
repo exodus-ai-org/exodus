@@ -1,4 +1,3 @@
-import { CodeEditor } from '@/components/code-editor'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
 import { isMcpServerChangedAtom } from '@/stores/settings'
@@ -6,8 +5,10 @@ import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { motion } from 'framer-motion'
 import { useAtom } from 'jotai'
 import { AlertCircle, Loader } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { toast } from 'sonner'
+
+const MonacoEditor = lazy(() => import('@/components/code-editor'))
 
 export function MCP({ form }: { form: UseFormReturnType }) {
   const [isMcpServerChanged, setIsMcpServerChanged] = useAtom(
@@ -58,10 +59,12 @@ export function MCP({ form }: { form: UseFormReturnType }) {
         </Alert>
       )}
 
-      <CodeEditor
-        props={{ control: form.control, name: 'mcpServers' }}
-        className="-mx-4 !w-[calc(100%+2rem)]"
-      />
+      <Suspense fallback={null}>
+        <MonacoEditor
+          props={{ control: form.control, name: 'mcpServers' }}
+          className="-mx-4 !w-[calc(100%+2rem)]"
+        />
+      </Suspense>
 
       {loading && (
         <div className="bg-background absolute top-0 left-0 z-100 flex h-full w-full flex-col items-center justify-center gap-4">

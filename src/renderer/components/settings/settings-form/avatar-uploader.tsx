@@ -1,9 +1,9 @@
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
 import { convertFileToBase64 } from '@/lib/utils'
 import { AlertCircle, Edit, Trash } from 'lucide-react'
 import { ChangeEvent, useRef } from 'react'
 import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
-import { Alert, AlertDescription } from '../../ui/alert'
-import { Button } from '../../ui/button'
 
 export function AvatarUploader<T extends FieldValues>({
   props

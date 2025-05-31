@@ -1,12 +1,9 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { LOCAL_FILE_DIRECTORY } from '@shared/constants/systems'
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
-import {
-  installExtension,
-  REACT_DEVELOPER_TOOLS
-} from 'electron-devtools-installer'
 import { join } from 'path'
 import icon from '../../resources/icon.png?asset'
+import { setupAutoUpdater } from './auto-updater'
 import { runMigrate } from './lib/db/migrate'
 import {
   copyFiles,
@@ -52,9 +49,6 @@ function createWindow(): void {
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
     mainWindow.webContents.openDevTools()
-    installExtension(REACT_DEVELOPER_TOOLS)
-      .then((ext) => console.log(`✅ Added Extension:  ${ext.name}`))
-      .catch((err) => console.log('❌ An error occurred: ', err))
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
@@ -125,6 +119,7 @@ app.whenReady().then(async () => {
   })
 
   createWindow()
+  setupAutoUpdater()
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the

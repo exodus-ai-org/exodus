@@ -13,6 +13,7 @@ import { useAtomValue } from 'jotai'
 import { Outlet } from 'react-router'
 import { Toaster } from 'sonner'
 import { AppSidebar } from './app-sidebar'
+import { ChatDeletionConfirmationDialog } from './chat-deletion-confirmation-dialog'
 import { RenameChatDialog } from './rename-chat-dialog'
 import { SearchDialog } from './search-dialog'
 import { ThemeSwitcher } from './theme-switcher'
@@ -39,6 +40,7 @@ export function Layout() {
           <SettingsDialog />
           <SearchDialog />
           <RenameChatDialog />
+          <ChatDeletionConfirmationDialog />
         </div>
       </SidebarInset>
       <AnimatePresence>

@@ -1,4 +1,14 @@
+import { useTheme } from '@/components/theme-provider'
 import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { useArtifact } from '@/hooks/use-artifact'
 import { useClipboard } from '@/hooks/use-clipboard'
 import { cn } from '@/lib/utils'
@@ -25,16 +35,6 @@ import {
   MousePointerClick
 } from 'lucide-react'
 import { Dispatch, SetStateAction, useEffect, useState } from 'react'
-import { useTheme } from '../theme-provider'
-import { Dialog, DialogContent, DialogTitle } from '../ui/dialog'
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '../ui/select'
 import { dependencies } from './essential-deps'
 import { exampleCode } from './example-code'
 import { importFiles } from './import-files'

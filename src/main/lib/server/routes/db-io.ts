@@ -2,6 +2,7 @@ import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import JSZip from 'jszip'
 import { exportData, importData } from '../../db/queries'
+import { importDataSchema } from '../schemas'
 
 const dbIo = new Hono<{ Variables: Variables }>()
 
@@ -28,8 +29,14 @@ async function createZipFromBlobs(
 
 dbIo.post('/import', async (c) => {
   const body = await c.req.parseBody()
-  const tableName = body['tableName'] as string
-  const file = body['file'] as File
+  const result = importDataSchema.safeParse({
+    tableName: body['tableName'],
+    file: body['file']
+  })
+  if (!result.success) {
+    return c.text('Invalid request body', 400)
+  }
+  const { tableName, file } = result.data
   await importData(tableName, file)
   return c.json({ success: true })
 })

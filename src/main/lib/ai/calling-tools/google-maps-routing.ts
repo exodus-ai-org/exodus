@@ -10,7 +10,9 @@ export const googleMapsRouting = (settings: Settings) =>
       origin: z.string(),
       destination: z.string(),
       travelMode: z
-        .nativeEnum(protos.google.maps.routing.v2.RouteTravelMode)
+        // TODO: Gemini doesn't support enumeration type.
+        // .nativeEnum(protos.google.maps.routing.v2.RouteTravelMode)
+        .number()
         .nullable()
         .describe(
           'A travel mode can be specified by the user. ' +
