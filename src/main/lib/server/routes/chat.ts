@@ -4,6 +4,7 @@ import { Variables } from '@shared/types/server'
 import {
   appendResponseMessages,
   createDataStream,
+  smoothStream,
   streamText,
   UIMessage
 } from 'ai'
@@ -113,7 +114,9 @@ chat.post('/', async (c) => {
         messages,
         maxSteps: settings.providerConfig?.maxSteps ?? 1,
         tools: bindCallingTools({ mcpTools, advancedTools, settings }),
+        experimental_transform: smoothStream(),
         experimental_generateMessageId: uuidV4,
+        experimental_continueSteps: true,
         onFinish: async ({ response }) => {
           try {
             const assistantId = getTrailingMessageId({
