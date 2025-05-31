@@ -20,6 +20,7 @@ import {
   SidebarMenuItem,
   useSidebar
 } from '@/components/ui/sidebar'
+import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import { updateChat } from '@/services/chat'
 import { renamedChatTitleAtom, toBeDeletedChatAtom } from '@/stores/chat'
@@ -29,7 +30,6 @@ import { useSetAtom } from 'jotai'
 import { ChevronRight, Edit2, MoreHorizontal, Star, Trash2 } from 'lucide-react'
 import { Link, useParams } from 'react-router'
 import useSWR from 'swr'
-import { Skeleton } from '../components/ui/skeleton'
 
 interface GroupedChats {
   favorite: Chat[]

@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { fetchDeepResearchMessages } from '@/services/deep-research'
 import {
@@ -15,7 +16,6 @@ import { useAtom } from 'jotai'
 import { X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import useSWR from 'swr'
-import { Button } from '../ui/button'
 import { MessageItem } from './message-item'
 import { SourceItem } from './source-item'
 
