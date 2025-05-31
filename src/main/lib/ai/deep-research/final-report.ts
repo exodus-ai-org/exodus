@@ -29,7 +29,8 @@ export async function writeFinalReport(
     system: deepResearchSystemPrompt,
     prompt:
       'Given the following prompt from the user, write a final report on the topic using the learnings from research. ' +
-      "Every paragraph should include a citation in the format [Source: #], where # is the number of the search result you're referencing. for example: [Source: 2, 5]" +
+      "Every paragraph should include a citation in the format [Source: #], where # is the number of the search result you're referencing. for example: [Source: 2, 5] " +
+      'The learnings from your research may include images. Remember to insert them in appropriate places in your final report. ' +
       'Make it as as detailed as possible, aim for 3 or more pages, include ALL the learnings from research: ' +
       `\n<prompt>${prompt}</prompt>\n\nHere are all the learnings from previous research:\n\n<learnings>\n${learningsString}\n</learnings>`,
     schema: z.object({
