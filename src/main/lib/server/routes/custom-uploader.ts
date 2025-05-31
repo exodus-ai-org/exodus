@@ -1,15 +1,7 @@
 import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
-import { z } from 'zod'
 import { getSettings } from '../../db/queries'
-
-const Schema = z
-  .object({
-    name: z.string(),
-    url: z.string(),
-    contentType: z.string()
-  })
-  .array()
+import { customUploaderResponseSchema } from '../schemas'
 
 const customUploader = new Hono<{ Variables: Variables }>()
 
@@ -26,7 +18,7 @@ customUploader.post('/', async (c) => {
     body: formData
   })
   const data = await response.json()
-  const result = Schema.safeParse(data)
+  const result = customUploaderResponseSchema.safeParse(data)
 
   if (result.success) {
     return c.json(result.data)

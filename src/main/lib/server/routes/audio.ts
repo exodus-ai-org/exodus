@@ -2,11 +2,16 @@ import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import OpenAI from 'openai'
 import { getSettings } from '../../db/queries'
+import { speechSchema } from '../schemas'
 
 const audio = new Hono<{ Variables: Variables }>()
 
 audio.post('/speech', async (c) => {
-  const { text } = await c.req.json()
+  const result = speechSchema.safeParse(await c.req.json())
+  if (!result.success) {
+    return c.text('Invalid request body', 400)
+  }
+  const { text } = result.data
 
   const settings = await getSettings()
   if (!('id' in settings)) {

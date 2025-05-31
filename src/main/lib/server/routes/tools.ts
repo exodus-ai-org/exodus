@@ -2,6 +2,7 @@ import { Variables } from '@shared/types/server'
 import { BrowserWindow } from 'electron'
 import { Hono } from 'hono'
 import MarkdownIt from 'markdown-it'
+import { markdownToPdfSchema } from '../schemas'
 
 const tools = new Hono<{ Variables: Variables }>()
 
@@ -10,10 +11,10 @@ async function markdownStringToPdfBuffer(markdownString: string) {
   const html = md.render(markdownString)
 
   const win = new BrowserWindow({
-    show: false, // Don't show the window
+    show: false,
     webPreferences: {
-      nodeIntegration: false, // Recommended for security
-      contextIsolation: true // Recommended for security
+      nodeIntegration: false,
+      contextIsolation: true
     }
   })
 
@@ -33,7 +34,11 @@ async function markdownStringToPdfBuffer(markdownString: string) {
 }
 
 tools.post('/md-to-pdf', async (c) => {
-  const { markdown } = await c.req.json()
+  const result = markdownToPdfSchema.safeParse(await c.req.json())
+  if (!result.success) {
+    return c.text('Invalid request body', 400)
+  }
+  const { markdown } = result.data
   const buffer = await markdownStringToPdfBuffer(markdown)
   return new Response(buffer, {
     headers: {
