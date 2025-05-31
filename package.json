@@ -4,7 +4,7 @@
   "version": "1.6.0",
   "description": "ChatBot featuring MCP, Artifacts, RAG, AI Agents, Deep Research, and other modern capabilities.",
   "main": "./out/main/index.js",
-  "author": "example.com",
+  "author": "Yancey Leo",
   "homepage": "https://exdous.yancey.app",
   "scripts": {
     "format": "prettier --write .",
@@ -157,6 +157,7 @@
     "prettier": "^3.5.3",
     "prettier-plugin-organize-imports": "^4.1.0",
     "prettier-plugin-tailwindcss": "^0.6.11",
+    "rollup-plugin-visualizer": "^6.0.1",
     "semantic-release": "^24.2.3",
     "typescript": "^5.8.2",
     "vite": "^6.3.2"
