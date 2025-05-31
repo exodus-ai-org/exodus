@@ -26,6 +26,13 @@ const themes = {
 const citationRegex = /\[Source: ([\d,\s]+)\]/g
 
 function parseCitations(text: ReactNode) {
+  // e.g. <p><strong>xxx</strong> yyy [Source: 1,2,3]</p>
+  if (Array.isArray(text)) {
+    const stringText = text.find((el) => typeof el === 'string')
+    if (stringText !== undefined) {
+      text = stringText
+    }
+  }
   if (typeof text !== 'string') return undefined
 
   const citations: Array<{
@@ -67,6 +74,17 @@ function ParagraphWithSources({
   return (
     <>
       {typeof children === 'string' && children.replace(citationRegex, '')}
+      {Array.isArray(children) && (
+        <>
+          {children.map((item) => {
+            if (typeof item === 'string') {
+              return item.replace(citationRegex, '')
+            } else {
+              return item
+            }
+          })}
+        </>
+      )}
       <WebSearchGroup
         webSearchResults={referredWebSearchResults}
         variant="tiling"
@@ -205,6 +223,18 @@ export function Markdown({
               >
                 {children}
               </pre>
+            )
+          },
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          li({ className, node, children, ...rest }) {
+            return (
+              <li {...rest} className={className}>
+                <p>
+                  <ParagraphWithSources webSearchResults={webSearchResults}>
+                    {children}
+                  </ParagraphWithSources>
+                </p>
+              </li>
             )
           },
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
