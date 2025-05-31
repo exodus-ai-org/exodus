@@ -21,7 +21,8 @@
     "build:mac": "electron-vite build && electron-builder --mac",
     "build:linux": "electron-vite build && electron-builder --linux",
     "db:generate": "npx drizzle-kit generate",
-    "shadcn/ui": "npx tsx scripts/shadcn-ui-to-text.ts",
+    "shadcn:generate": "npx tsx scripts/shadcn-ui-to-text.ts",
+    "asar:sniff": "npx tsx scripts/asar-sniff.ts",
     "prepare": "husky"
   },
   "dependencies": {
@@ -135,6 +136,7 @@
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
     "@electron-toolkit/eslint-config-ts": "^3.0.0",
     "@electron-toolkit/tsconfig": "^1.0.1",
+    "@electron/asar": "^4.0.0",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
     "@types/lodash-es": "^4.17.12",
