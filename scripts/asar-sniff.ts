@@ -7,7 +7,7 @@ function extractAsarFile() {
     path.join(
       cwd(),
       'dist',
-      'mac',
+      'mac-arm64',
       'Exodus.app',
       'Contents',
       'Resources',
