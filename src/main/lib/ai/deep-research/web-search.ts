@@ -6,35 +6,14 @@ import TurndownService from 'turndown'
 
 const enc = encodingForModel('o4-mini')
 
-function getFaviconLink(link: string, $: cheerio.CheerioAPI) {
+function getOgImageLink($: cheerio.CheerioAPI) {
   try {
-    let favicon =
-      $('link[rel="apple-touch-icon"]').attr('href') ??
-      $('link[rel="apple-touch-icon-precomposed"]').attr('href') ??
-      $('link[rel="icon"]').attr('href') ??
-      $('link[rel="shortcut icon"]').attr('href') ??
-      $('link[rel="alternate icon"]').attr('href') ??
-      $('link[rel="mask-icon"]').attr('href')
-
-    if (!favicon) {
-      const baseUrl = new URL(link).origin
-      favicon = `${baseUrl}/favicon.ico`
-    }
-
-    return new URL(favicon, link).href
-  } catch {
-    return ''
-  }
-}
-
-function getHeadImageLink($: cheerio.CheerioAPI) {
-  try {
-    const headImage =
+    const ogImage =
       $('meta[property="og:image"]').attr('content') ??
       $('meta[name="og:image"]').attr('content') ??
       $('meta[name="twitter:image"]').attr('content')
 
-    return headImage
+    return ogImage
   } catch {
     return ''
   }
@@ -50,19 +29,17 @@ async function loadPdf(blob: Blob) {
   }
 }
 
-async function loadHtml(link: string, html: string) {
+async function loadHtml(html: string) {
   try {
     const $ = cheerio.load(html)
-    const faviconUrl = getFaviconLink(link, $)
-    const headImageUrl = getHeadImageLink($)
+    const headImageUrl = getOgImageLink($)
 
     $('style').remove()
     $('script').remove()
     $('head').remove()
 
     return {
-      favicon: faviconUrl,
-      headImage: headImageUrl,
+      ogImage: headImageUrl,
       domStr: $.html()
     }
   } catch {
@@ -80,8 +57,7 @@ async function loadDocument(link: string) {
       const pdf = await loadPdf(blob)
       if (pdf) {
         const documentData = {
-          favicon: '',
-          headImage: '',
+          ogImage: '',
           type: 'pdf',
           content: pdf
         }
@@ -91,7 +67,7 @@ async function loadDocument(link: string) {
 
     if (contentType?.includes('text/html')) {
       const html = await response.text()
-      const domInfo = await loadHtml(link, html)
+      const domInfo = await loadHtml(html)
 
       if (domInfo) {
         const turndownService = new TurndownService()
@@ -99,8 +75,7 @@ async function loadDocument(link: string) {
 
         if (markdown) {
           const documentData = {
-            favicon: domInfo.favicon,
-            headImage: domInfo.headImage,
+            ogImage: domInfo.ogImage,
             type: 'html',
             content: markdown
           }
@@ -161,8 +136,7 @@ export async function webSearch(
             link: item.link as string,
             title: item.title as string,
             snippet: item.snippet ?? '',
-            favicon: document?.favicon,
-            headImage: document?.headImage,
+            ogImage: document?.ogImage,
             type: document?.type,
             content: document?.content
           }

@@ -18,7 +18,11 @@ export function SourceItem({
         >
           <div className="flex w-full items-center gap-2">
             <Avatar className="size-6 border">
-              <AvatarImage src={item.favicon} className="object-cover" />
+              <AvatarImage
+                src={`https://www.google.com/s2/favicons?domain=${new URL(item.link).origin}&sz=128`}
+                alt={item.title}
+                className="object-cover"
+              />
               <AvatarFallback>{item.title?.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="text-primary line-clamp-1 text-sm">

@@ -56,15 +56,18 @@ export function WebSearchGroup({
                   }
                 }}
               >
-                <AvatarImage src={item.favicon} alt={item.title} />
+                <AvatarImage
+                  src={`https://www.google.com/s2/favicons?domain=${new URL(item.link).origin}&sz=128`}
+                  alt={item.title}
+                />
                 <AvatarFallback>{item.title.charAt(0)}</AvatarFallback>
               </Avatar>
             </a>
           </HoverCardTrigger>
           <HoverCardContent className="w-60 rounded-lg border-0 p-0">
-            {item.headImage ? (
+            {item.ogImage ? (
               <LazyLoadImage
-                src={item.headImage}
+                src={item.ogImage}
                 alt={item.title}
                 className="h-32 w-full rounded-tl-lg rounded-tr-lg object-cover"
               />

@@ -1,7 +1,6 @@
 export interface WebSearchResult {
   rank: number
-  favicon: string
-  headImage: string
+  ogImage: string
   type: 'pdf' | 'html'
   link: string
   title: string
