@@ -8,7 +8,7 @@ import { Hono } from 'hono'
 import { v4 as uuidV4 } from 'uuid'
 import { deepResearch as deepResearchAgent } from '../../ai/deep-research/deep-research'
 import { writeFinalReport } from '../../ai/deep-research/final-report'
-import { getModelFromProvider } from '../../ai/utils'
+import { getModelFromProvider } from '../../ai/utils/chat-message-util'
 import {
   getDeepResearchById,
   getDeepResearchMessagesById,

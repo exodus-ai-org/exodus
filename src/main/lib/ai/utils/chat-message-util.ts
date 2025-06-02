@@ -8,8 +8,8 @@ import {
   UIMessage,
   generateText
 } from 'ai'
-import { getSettings } from '../db/queries'
-import { Settings } from '../db/schema'
+import { getSettings } from '../../db/queries'
+import { Settings } from '../../db/schema'
 import {
   calculator,
   date,
@@ -19,9 +19,9 @@ import {
   imageGeneration,
   weather,
   webSearch
-} from './calling-tools'
-import { titleGenerationPrompt } from './prompts'
-import { providers } from './providers'
+} from '../calling-tools'
+import { titleGenerationPrompt } from '../prompts'
+import { providers } from '../providers'
 
 type ResponseMessageWithoutId = CoreToolMessage | CoreAssistantMessage
 type ResponseMessage = ResponseMessageWithoutId & { id: string }

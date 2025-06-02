@@ -1,6 +1,5 @@
 {
   "name": "exodus",
-  "productName": "Exodus",
   "version": "1.6.0",
   "description": "ChatBot featuring MCP, Artifacts, RAG, AI Agents, Deep Research, and other modern capabilities.",
   "homepage": "https://exdous.yancey.app",
@@ -48,18 +47,14 @@
     "drizzle-orm": "^0.41.0",
     "drizzle-zod": "^0.7.0",
     "electron-updater": "^6.6.2",
-    "embla-carousel-react": "^8.6.0",
     "expr-eval": "^2.0.2",
     "hono": "^4.7.7",
     "js-tiktoken": "^1.0.20",
     "jszip": "^3.10.1",
-    "lodash-es": "^4.17.21",
     "ollama-ai-provider": "^1.2.0",
     "openai": "^4.95.1",
-    "pdf-parse": "^1.1.1",
     "turndown": "^7.2.0",
     "uuid": "^11.1.0",
-    "yancey-js-util": "^3.2.0",
     "zod": "^3.24.3"
   },
   "devDependencies": {
@@ -119,6 +114,7 @@
     "electron": "^35.0.3",
     "electron-builder": "^25.1.8",
     "electron-vite": "^3.1.0",
+    "embla-carousel-react": "^8.6.0",
     "eslint": "^9.25.0",
     "eslint-plugin-react": "^7.37.4",
     "eslint-plugin-react-hooks": "^5.2.0",
@@ -130,6 +126,7 @@
     "jotai": "^2.12.3",
     "katex": "^0.16.22",
     "lint-staged": "^15.5.0",
+    "lodash-es": "^4.17.21",
     "lucide-react": "^0.506.0",
     "markdown-it": "^14.1.0",
     "monaco-editor": "^0.52.2",
@@ -162,5 +159,6 @@
     "typescript": "^5.8.2",
     "vaul": "^1.1.2",
     "vite": "^6.3.2"
-  }
+  },
+  "productName": "Exodus"
 }

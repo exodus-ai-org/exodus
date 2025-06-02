@@ -16,7 +16,7 @@ import {
   getModelFromProvider,
   getMostRecentUserMessage,
   getTrailingMessageId
-} from '../../ai/utils'
+} from '../../ai/utils/chat-message-util'
 import {
   deleteChatById,
   fullTextSearchOnMessages,
