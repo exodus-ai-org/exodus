@@ -81,7 +81,7 @@ export function DeepResearchCard({
           onClick={handleActiveDeepResearchSseId}
         >
           {deepResearchResult?.jobStatus === 'streaming' && (
-            <div className="loading-shimmer-pure-text">Deep Researching</div>
+            <div className="loading-shimmer-pure-text">Deep Researching...</div>
           )}
           {deepResearchResult?.jobStatus === 'archived' &&
             deepResearchResult?.endTime && (

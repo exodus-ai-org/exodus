@@ -14,7 +14,7 @@ import {
 import { motion } from 'framer-motion'
 import { useAtom } from 'jotai'
 import { X } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import useSWR from 'swr'
 import { MessageItem } from './message-item'
 import { SourceItem } from './source-item'
@@ -25,6 +25,7 @@ enum Tab {
 }
 
 export function DeepResearchProcess() {
+  const ref = useRef<HTMLDivElement | null>(null)
   const [tab, setTab] = useState(Tab.Activity)
   const [activeDeepResearchId, setActiveDeepResearchId] = useAtom(
     activeDeepResearchIdAtom
@@ -74,7 +75,6 @@ export function DeepResearchProcess() {
           const deepResearchMessage = JSON.parse(
             event.data
           ) as DeepResearchMessage
-          console.log('🐔', event.data)
 
           if (!deepResearchMessage) return
 
@@ -88,9 +88,9 @@ export function DeepResearchProcess() {
             mutateResult()
             source.close()
           } else {
-            setDeepResearchMessages(
-              deepResearchMessages
-                ? [...deepResearchMessages, deepResearchMessage].toSorted(
+            setDeepResearchMessages((prev) =>
+              prev
+                ? [...prev, deepResearchMessage].toSorted(
                     (a, b) => +a.createdAt - +b.createdAt
                   )
                 : [deepResearchMessage]
@@ -120,13 +120,22 @@ export function DeepResearchProcess() {
     return () => {
       cleanupPromise?.then((cleanup) => cleanup?.())
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     activeDeepResearchId,
     deepResearchResult?.jobStatus,
     mutateResult,
     setDeepResearchMessages
   ])
+
+  useEffect(() => {
+    if (ref.current) {
+      const $el = ref.current
+      $el.scrollTo({
+        top: $el.scrollHeight,
+        left: 0
+      })
+    }
+  }, [deepResearchMessages])
 
   return (
     <motion.div
@@ -174,7 +183,10 @@ export function DeepResearchProcess() {
           <X />
         </Button>
       </div>
-      <div className="markdown flex max-h-[calc(100dvh-3.8125rem)] flex-col gap-4 overflow-y-scroll p-4">
+      <div
+        className="markdown flex max-h-[calc(100dvh-3.8125rem)] flex-col gap-4 overflow-y-scroll p-4"
+        ref={ref}
+      >
         {tab === Tab.Activity &&
           deepResearchMessages?.map((deepResearchMessage, i) => (
             <MessageItem key={i} deepResearchMessage={deepResearchMessage} />

@@ -26,7 +26,7 @@ generate a list of learnings from the contents. Return a maximum of ${numLearnin
 but feel free to return less if the contents are clear. Make sure each learning is unique and not similar to each other. 
 The learnings should be concise and to the point, as detailed and information dense as possible. 
 Make sure to include any entities like people, places, companies, products, things, etc in the learnings, 
-as well as any exact metrics, numbers, or dates. If necessary, attach images referenced in the content using Markdown format. 
+as well as any exact metrics, numbers, or dates. If necessary, extract images from the contents and attach them using Markdown format, do not create images. 
 The learnings will be used to research the topic further. 
 ${searchResults.map(({ content, rank, title }) => `<content>\n[Source: ${rank}]\n[Title: ${title}]\n${content}\n</content>`).join('\n')}
 `,
