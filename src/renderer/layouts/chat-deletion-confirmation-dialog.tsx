@@ -37,7 +37,7 @@ export function ChatDeletionConfirmationDialog() {
             className="bg-destructive hover:bg-destructive/90"
             onClick={() => {
               if (!toBeDeletedChat) return
-              deleteChat(toBeDeletedChat.id, id)
+              deleteChat(toBeDeletedChat, id)
             }}
           >
             Delete

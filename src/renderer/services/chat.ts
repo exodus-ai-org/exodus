@@ -14,16 +14,16 @@ export const updateChat = async (payload: Partial<Chat>) => {
   toast.success(`Succeed to update chat ${payload.id}.`)
 }
 
-export const deleteChat = async (chatId: string, currentId?: string) => {
-  await fetcher<string>(`/api/chat/${chatId}`, {
+export const deleteChat = async (chat: Chat, currentId?: string) => {
+  await fetcher<string>(`/api/chat/${chat.id}`, {
     method: 'DELETE',
     responseType: 'text'
   })
 
   mutate('/api/history')
-  if (chatId === currentId) {
+  if (chat.id === currentId) {
     window.location.hash = '#/'
   }
 
-  toast.success(`Succeed to delete ${chatId}.`)
+  toast.success(`Succeed to delete ${chat.title}.`)
 }
