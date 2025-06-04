@@ -1,6 +1,7 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { LOCAL_FILE_DIRECTORY } from '@shared/constants/systems'
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, shell, WebContentsView } from 'electron'
+import { globalShortcut } from 'electron/main'
 import { join } from 'path'
 import icon from '../../resources/icon.png?asset'
 import { setupAutoUpdater } from './auto-updater'
@@ -18,6 +19,62 @@ import { getSystemInfo } from './lib/ipc/system-info'
 import { connectHttpServer } from './lib/server/app'
 
 let mainWindow: BrowserWindow | null = null
+let searchView: WebContentsView | null = null
+
+function registerSearchShortcut() {
+  globalShortcut.register('CmdOrCtrl+F', () => {
+    if (searchView) return
+
+    searchView = new WebContentsView({
+      webPreferences: {
+        nodeIntegration: true,
+        contextIsolation: false,
+        transparent: true,
+        preload: join(__dirname, '../preload/index.js')
+      }
+    })
+
+    searchView.setBounds({
+      x: (mainWindow?.getBounds().width ?? 0) - 418,
+      y: 0,
+      width: 418,
+      height: 86
+    })
+    mainWindow?.contentView.addChildView(searchView)
+
+    if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+      searchView.webContents.loadURL(
+        process.env['ELECTRON_RENDERER_URL'] + '/searchbar/index.html'
+      )
+      // searchView.webContents.openDevTools({ mode: 'undocked' })
+    } else {
+      searchView.webContents.loadFile(
+        join(__dirname, '../renderer/searchbar/index.html')
+      )
+    }
+
+    mainWindow?.on('resize', () => {
+      if (!mainWindow || !searchView) {
+        return
+      }
+      const bounds = mainWindow.getBounds()
+      searchView.setBounds({
+        x: bounds.width - 418,
+        y: 0,
+        width: 418,
+        height: 86
+      })
+    })
+
+    mainWindow?.webContents.on('found-in-page', (_event, result) => {
+      searchView?.webContents.send('find-in-page-result', result)
+    })
+
+    searchView.webContents.once('did-finish-load', () => {
+      searchView?.webContents.focus()
+    })
+  })
+}
 
 function createWindow(): void {
   // Create the browser window.
@@ -48,7 +105,7 @@ function createWindow(): void {
   // Load the remote URL for development or the local html file for production.
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
     mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
-    mainWindow.webContents.openDevTools()
+    mainWindow.webContents.openDevTools({ mode: 'undocked' })
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
@@ -67,6 +124,8 @@ app.whenReady().then(async () => {
 
   // Create `LOCAL_FILE_DIRECTORY` directory if not exist
   await createDirectory(app.getPath('userData') + `/${LOCAL_FILE_DIRECTORY}`)
+
+  registerSearchShortcut()
 
   // Set app user model id for windows
   electronApp.setAppUserModelId('app.yancey.exodus')
@@ -117,6 +176,37 @@ app.whenReady().then(async () => {
       mainWindow?.webContents.send('succeed-to-restart-server')
     })
   })
+  ipcMain.handle('find-in-page', (_, keyword) => {
+    if (keyword === '') {
+      mainWindow?.webContents.stopFindInPage('clearSelection')
+    } else {
+      mainWindow?.webContents.findInPage(keyword)
+    }
+  })
+  ipcMain.handle('find-next', (_, keyword) => {
+    if (keyword === '') {
+      mainWindow?.webContents.stopFindInPage('clearSelection')
+    } else {
+      mainWindow?.webContents.findInPage(keyword, { findNext: true })
+    }
+  })
+  ipcMain.handle('find-previous', (_, keyword) => {
+    if (keyword === '') {
+      mainWindow?.webContents.stopFindInPage('clearSelection')
+    } else {
+      mainWindow?.webContents.findInPage(keyword, {
+        findNext: false,
+        forward: false
+      })
+    }
+  })
+  ipcMain.handle('close-search-bar', () => {
+    if (searchView) {
+      mainWindow?.contentView.removeChildView(searchView)
+      searchView = null
+      mainWindow?.webContents.stopFindInPage('clearSelection')
+    }
+  })
 
   createWindow()
   setupAutoUpdater()
@@ -139,3 +229,6 @@ app.on('window-all-closed', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
+app.on('will-quit', () => {
+  globalShortcut.unregisterAll()
+})

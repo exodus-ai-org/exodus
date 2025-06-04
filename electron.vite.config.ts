@@ -1,6 +1,6 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
-import { resolve } from 'path'
+import path, { resolve } from 'path'
 // import { visualizer } from 'rollup-plugin-visualizer'
 
 export default defineConfig({
@@ -37,7 +37,11 @@ export default defineConfig({
       sourcemap: false,
       rollupOptions: {
         treeshake: true,
-        output: {}
+        output: {},
+        input: {
+          main: path.resolve(__dirname, 'index.html'),
+          searchbar: path.resolve(__dirname, 'searchbar', 'index.html')
+        }
       }
     }
   }
