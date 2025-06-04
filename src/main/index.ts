@@ -1,10 +1,19 @@
 import { electronApp, is, optimizer } from '@electron-toolkit/utils'
 import { LOCAL_FILE_DIRECTORY } from '@shared/constants/systems'
-import { app, BrowserWindow, ipcMain, shell, WebContentsView } from 'electron'
+import {
+  app,
+  BrowserWindow,
+  dialog,
+  ipcMain,
+  Menu,
+  MenuItemConstructorOptions,
+  shell,
+  WebContentsView
+} from 'electron'
+import { autoUpdater, UpdateDownloadedEvent } from 'electron-updater'
 import { globalShortcut } from 'electron/main'
 import { join } from 'path'
 import icon from '../../resources/icon.png?asset'
-import { setupAutoUpdater } from './auto-updater'
 import { runMigrate } from './lib/db/migrate'
 import {
   copyFiles,
@@ -18,62 +27,198 @@ import {
 import { getSystemInfo } from './lib/ipc/system-info'
 import { connectHttpServer } from './lib/server/app'
 
+const isMac = process.platform === 'darwin'
+
 let mainWindow: BrowserWindow | null = null
 let searchView: WebContentsView | null = null
 
-function registerSearchShortcut() {
-  globalShortcut.register('CmdOrCtrl+F', () => {
-    if (searchView) return
+function registerSearchMenu(mainWindow: BrowserWindow) {
+  if (searchView) return
 
-    searchView = new WebContentsView({
-      webPreferences: {
-        nodeIntegration: true,
-        contextIsolation: false,
-        transparent: true,
-        preload: join(__dirname, '../preload/index.js')
-      }
-    })
+  searchView = new WebContentsView({
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+      transparent: true,
+      preload: join(__dirname, '../preload/index.js')
+    }
+  })
 
+  searchView.setBounds({
+    x: (mainWindow?.getBounds().width ?? 0) - 418,
+    y: 0,
+    width: 418,
+    height: 86
+  })
+  mainWindow?.contentView.addChildView(searchView)
+
+  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+    searchView.webContents.loadURL(
+      process.env['ELECTRON_RENDERER_URL'] + '/searchbar/index.html'
+    )
+    // searchView.webContents.openDevTools({ mode: 'undocked' })
+  } else {
+    searchView.webContents.loadFile(
+      join(__dirname, '../renderer/searchbar/index.html')
+    )
+  }
+
+  mainWindow?.on('resize', () => {
+    if (!mainWindow || !searchView) {
+      return
+    }
+    const bounds = mainWindow.getBounds()
     searchView.setBounds({
-      x: (mainWindow?.getBounds().width ?? 0) - 418,
+      x: bounds.width - 418,
       y: 0,
       width: 418,
       height: 86
     })
-    mainWindow?.contentView.addChildView(searchView)
-
-    if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-      searchView.webContents.loadURL(
-        process.env['ELECTRON_RENDERER_URL'] + '/searchbar/index.html'
-      )
-      // searchView.webContents.openDevTools({ mode: 'undocked' })
-    } else {
-      searchView.webContents.loadFile(
-        join(__dirname, '../renderer/searchbar/index.html')
-      )
-    }
-
-    mainWindow?.on('resize', () => {
-      if (!mainWindow || !searchView) {
-        return
-      }
-      const bounds = mainWindow.getBounds()
-      searchView.setBounds({
-        x: bounds.width - 418,
-        y: 0,
-        width: 418,
-        height: 86
-      })
-    })
-
-    mainWindow?.webContents.on('found-in-page', (_event, result) => {
-      searchView?.webContents.send('find-in-page-result', result)
-    })
-
-    searchView.webContents.once('did-finish-load', () => {
-      searchView?.webContents.focus()
-    })
   })
+
+  mainWindow?.webContents.on('found-in-page', (_event, result) => {
+    searchView?.webContents.send('find-in-page-result', result)
+  })
+
+  searchView.webContents.once('did-finish-load', () => {
+    searchView?.webContents.focus()
+  })
+}
+
+const menuTemplate: MenuItemConstructorOptions[] = [
+  // @ts-expect-error The code from the official documentation
+  // { role: 'appMenu' }
+  ...(isMac
+    ? [
+        {
+          label: app.name,
+          submenu: [
+            { role: 'about' },
+            { type: 'separator' },
+            { role: 'services' },
+            { type: 'separator' },
+            { role: 'hide' },
+            { role: 'hideOthers' },
+            { role: 'unhide' },
+            { type: 'separator' },
+            { role: 'quit' }
+          ]
+        }
+      ]
+    : []),
+  // { role: 'fileMenu' }
+  {
+    label: 'File',
+    // @ts-expect-error The code from the official documentation
+    submenu: [isMac ? { role: 'close' } : { role: 'quit' }]
+  },
+  // { role: 'editMenu' }
+  {
+    label: 'Edit',
+    submenu: [
+      {
+        label: 'Find',
+        accelerator: 'CmdOrCtrl+F',
+        click: () => {
+          const mainWindow = BrowserWindow.getFocusedWindow()
+          if (!mainWindow) return
+          registerSearchMenu(mainWindow)
+        }
+      },
+      { role: 'undo' },
+      { role: 'redo' },
+      { type: 'separator' },
+      { role: 'cut' },
+      { role: 'copy' },
+      { role: 'paste' },
+      // @ts-expect-error The code from the official documentation
+      ...(isMac
+        ? [
+            { role: 'pasteAndMatchStyle' },
+            { role: 'delete' },
+            { role: 'selectAll' },
+            { type: 'separator' },
+            {
+              label: 'Speech',
+              submenu: [{ role: 'startSpeaking' }, { role: 'stopSpeaking' }]
+            }
+          ]
+        : [{ role: 'delete' }, { type: 'separator' }, { role: 'selectAll' }])
+    ]
+  },
+  // { role: 'viewMenu' }
+  {
+    label: 'View',
+    // @ts-expect-error The code from the official documentation
+    submenu: [
+      { role: 'reload' },
+      { role: 'forceReload' },
+      { role: 'toggleDevTools' },
+      { type: 'separator' },
+      { role: 'resetZoom' },
+      { role: 'zoomIn' },
+      { role: 'zoomOut' },
+      { type: 'separator' },
+      { role: 'togglefullscreen' }
+    ]
+  },
+  // { role: 'windowMenu' }
+  {
+    label: 'Window',
+    submenu: [
+      { role: 'minimize' },
+      { role: 'zoom' },
+      // @ts-expect-error The code from the official documentation
+      ...(isMac
+        ? [
+            { type: 'separator' },
+            { role: 'front' },
+            { type: 'separator' },
+            { role: 'window' }
+          ]
+        : [{ role: 'close' }])
+    ]
+  },
+  {
+    role: 'help',
+    // @ts-expect-error The code from the official documentation
+    submenu: [
+      {
+        label: 'Learn More',
+        click: async () => {
+          await shell.openExternal('https://exodus.yancey.app')
+        }
+      }
+    ]
+  }
+]
+
+function setupAutoUpdater() {
+  autoUpdater.autoDownload = true
+  autoUpdater.autoInstallOnAppQuit = true
+
+  autoUpdater.on('update-available', () => {
+    console.log('🟡 Update available.')
+  })
+
+  autoUpdater.on('update-downloaded', (data: UpdateDownloadedEvent) => {
+    const result = dialog.showMessageBoxSync({
+      type: 'info',
+      title: 'Update Available',
+      message: `The new version(v${data.version}) has been downloaded. Would you like to restart and install it now?`,
+      buttons: ['Install Now', 'Later']
+    })
+
+    if (result === 0) {
+      autoUpdater.quitAndInstall()
+    }
+  })
+
+  autoUpdater.on('error', (err) => {
+    console.error('❌ Auto-updater error:', err)
+  })
+
+  autoUpdater.checkForUpdates()
 }
 
 function createWindow(): void {
@@ -125,7 +270,7 @@ app.whenReady().then(async () => {
   // Create `LOCAL_FILE_DIRECTORY` directory if not exist
   await createDirectory(app.getPath('userData') + `/${LOCAL_FILE_DIRECTORY}`)
 
-  registerSearchShortcut()
+  Menu.setApplicationMenu(Menu.buildFromTemplate(menuTemplate))
 
   // Set app user model id for windows
   electronApp.setAppUserModelId('app.yancey.exodus')
