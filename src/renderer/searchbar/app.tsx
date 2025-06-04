@@ -54,6 +54,8 @@ export function FindBar() {
     }
   }, [])
 
+  // Unload Find-in-Page when pressing Esc
+  // The listener should be mounted in both main window and searchbar view
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {

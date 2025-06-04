@@ -9,6 +9,7 @@ import {
 import { activeDeepResearchIdAtom, isArtifactVisibleAtom } from '@/stores/chat'
 import { AnimatePresence } from 'framer-motion'
 import { useAtomValue } from 'jotai'
+import { useEffect } from 'react'
 import { Outlet } from 'react-router'
 import { Toaster } from 'sonner'
 import { AppSidebar } from './app-sidebar'
@@ -20,6 +21,19 @@ import { ThemeSwitcher } from './theme-switcher'
 export function Layout() {
   const activeDeepResearchId = useAtomValue(activeDeepResearchIdAtom)
   const isArtifactVisible = useAtomValue(isArtifactVisibleAtom)
+
+  // Unload Find-in-Page when pressing Esc
+  // The listener should be mounted in both main window and searchbar view
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        window.electron.ipcRenderer.invoke('close-search-bar')
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
+
   return (
     <SidebarProvider>
       <AppSidebar />
