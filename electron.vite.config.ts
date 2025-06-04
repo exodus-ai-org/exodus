@@ -39,8 +39,14 @@ export default defineConfig({
         treeshake: true,
         output: {},
         input: {
-          main: path.resolve(__dirname, 'index.html'),
-          searchbar: path.resolve(__dirname, 'searchbar', 'index.html')
+          main: path.resolve(__dirname, 'src', 'renderer', 'index.html'),
+          searchbar: path.resolve(
+            __dirname,
+            'src',
+            'renderer',
+            'searchbar',
+            'index.html'
+          )
         }
       }
     }
