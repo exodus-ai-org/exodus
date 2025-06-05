@@ -138,19 +138,20 @@ export function DeepResearchProcess() {
   }, [deepResearchMessages])
 
   return (
-    <motion.div
-      initial={{ x: '100%' }}
-      animate={{ x: 0 }}
-      exit={{ x: '100%' }}
-      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      className="h-screen w-[25rem] border-l"
+    <section
+      className={cn(
+        'invisible h-svh w-0 overflow-x-hidden border-l transition-[width] duration-200',
+        {
+          ['visible w-[25rem] border-l transition-[width] duration-200']:
+            activeDeepResearchId !== ''
+        }
+      )}
     >
-      <div className="relative flex items-center justify-center border-b py-2">
-        <div className="bg-border flex items-center rounded-full p-1 transition-all">
-          <Button
-            variant="ghost"
+      <div className="relative flex h-14 items-center justify-center border-b">
+        <div className="bg-border flex items-center rounded-full p-1 text-sm font-semibold">
+          <button
             className={cn(
-              'bg-border min-w-24 cursor-pointer rounded-full px-2 py-1 select-none hover:bg-transparent dark:bg-transparent dark:hover:bg-transparent',
+              'bg-border min-w-20 cursor-pointer rounded-full px-2 py-1 select-none hover:bg-transparent dark:bg-transparent dark:hover:bg-transparent',
               {
                 ['bg-background hover:bg-background dark:bg-background-foreground hover:dark:bg-background-foreground shadow-sm']:
                   tab === Tab.Activity
@@ -159,11 +160,10 @@ export function DeepResearchProcess() {
             onClick={() => setTab(Tab.Activity)}
           >
             Activity
-          </Button>
-          <Button
-            variant="ghost"
+          </button>
+          <button
             className={cn(
-              'bg-border min-w-24 cursor-pointer rounded-full px-2 py-1 select-none hover:bg-transparent dark:bg-transparent dark:hover:bg-transparent',
+              'bg-border min-w-20 cursor-pointer rounded-full px-2 py-1 select-none hover:bg-transparent dark:bg-transparent dark:hover:bg-transparent',
               {
                 ['bg-background hover:bg-background dark:bg-background-foreground hover:dark:bg-background-foreground shadow-sm']:
                   tab === Tab.Source
@@ -172,30 +172,35 @@ export function DeepResearchProcess() {
             onClick={() => setTab(Tab.Source)}
           >
             {allWebSearchResults.length} Sources
-          </Button>
+          </button>
         </div>
         <Button
           size="icon"
           variant="ghost"
-          className="absolute right-3 rounded-full"
+          className="absolute right-3 cursor-pointer rounded-full"
           onClick={() => setActiveDeepResearchId('')}
         >
           <X />
         </Button>
       </div>
-      <div
-        className="markdown flex max-h-[calc(100dvh-3.8125rem)] flex-col gap-4 overflow-y-scroll p-4"
-        ref={ref}
-      >
-        {tab === Tab.Activity &&
-          deepResearchMessages?.map((deepResearchMessage, i) => (
-            <MessageItem key={i} deepResearchMessage={deepResearchMessage} />
-          ))}
+      {activeDeepResearchId && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, ease: 'easeInOut' }}
+          className="markdown flex max-h-[calc(100dvh-3.8125rem)] flex-col gap-4 overflow-y-scroll p-4"
+          ref={ref}
+        >
+          {tab === Tab.Activity &&
+            deepResearchMessages?.map((deepResearchMessage, i) => (
+              <MessageItem key={i} deepResearchMessage={deepResearchMessage} />
+            ))}
 
-        {tab === Tab.Source && (
-          <SourceItem webSearchResults={allWebSearchResults} />
-        )}
-      </div>
-    </motion.div>
+          {tab === Tab.Source && (
+            <SourceItem webSearchResults={allWebSearchResults} />
+          )}
+        </motion.div>
+      )}
+    </section>
   )
 }

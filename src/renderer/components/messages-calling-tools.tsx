@@ -23,12 +23,12 @@ function CallingTools({ toolInvocation }: { toolInvocation: ToolInvocation }) {
       {toolInvocation.toolName === 'webSearch' && (
         <WebSearchCard toolResult={toolInvocation.result} />
       )}
-      {toolInvocation.toolName === 'imageGeneration' && (
-        <div className="-mb-4" />
-      )}
       {toolInvocation.toolName === 'deepResearch' && (
         <DeepResearchCard toolResult={toolInvocation.result} />
       )}
+      {(toolInvocation.toolName === 'imageGeneration' ||
+        toolInvocation.toolName === 'date' ||
+        toolInvocation.toolName === 'calculator') && <div className="-mb-4" />}
     </section>
   )
 }

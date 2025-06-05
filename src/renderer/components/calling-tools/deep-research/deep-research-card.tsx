@@ -42,12 +42,13 @@ export function DeepResearchCard({
   }
 
   const exportPdf = async () => {
-    if (!deepResearchResult?.finalReport || !deepResearchResult?.title) return
+    if (!deepResearchResult?.finalReport) return
 
     try {
       setLoading(true)
+      // TODO: generate a title to final report as the filename of PDF
       const blob = await markdownToPdf(deepResearchResult.finalReport)
-      downloadFile(blob, `${deepResearchResult.title}.pdf`)
+      downloadFile(blob, `${deepResearchResult.id}.pdf`)
     } catch (e) {
       toast.error(
         e instanceof Error ? e.message : 'Failed to export data from database.'
@@ -76,7 +77,9 @@ export function DeepResearchCard({
     <section>
       <div className="flex items-center justify-between">
         <Button
-          variant="ghost"
+          variant={
+            activeDeepResearchId === toolResult.id ? 'secondary' : 'ghost'
+          }
           className="cursor-pointer font-semibold"
           onClick={handleActiveDeepResearchSseId}
         >

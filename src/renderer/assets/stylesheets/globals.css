@@ -145,23 +145,18 @@
     animation-duration: 3s;
     animation-iteration-count: infinite;
     animation-name: loading-shimmer;
-    background: var(--foreground)
-      linear-gradient(
-        to right,
+    background: var(--foreground) linear-gradient(to right,
         var(--foreground) 0,
         var(--shimmer-contrast) 40%,
         var(--shimmer-contrast) 60%,
-        var(--foreground) 100%
-      );
-    background: var(--foreground) -webkit-gradient(
-        linear,
+        var(--foreground) 100%);
+    background: var(--foreground) -webkit-gradient(linear,
         100% 0,
         0 0,
         from(var(--foreground)),
         color-stop(0.4, var(--shimmer-contrast)),
         color-stop(0.6, var(--shimmer-contrast)),
-        to(var(--foreground))
-      );
+        to(var(--foreground)));
     -webkit-background-clip: text;
     background-clip: text;
     background-repeat: no-repeat;
@@ -226,6 +221,11 @@
     td {
       @apply p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px];
     }
+
+    b,
+    strong {
+      @apply font-semibold;
+    }
   }
 
   [data-rmiz] {
@@ -247,11 +247,13 @@
   }
 
   @keyframes caret-blink {
+
     0%,
     70%,
     100% {
       opacity: '1';
     }
+
     20%,
     50% {
       opacity: '0';
@@ -263,6 +265,7 @@
   0% {
     background-position: -100% 0;
   }
+
   to {
     background-position: 250% 0;
   }

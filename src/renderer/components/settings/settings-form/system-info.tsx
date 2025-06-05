@@ -3,7 +3,8 @@ import { Separator } from '@/components/ui/separator'
 import { version } from '../../../../../package.json'
 
 export function SystemInfo() {
-  const { versions, platform } = window.electron.process
+  const { versions } = window.electron.process
+  const { os } = window.api
 
   return (
     <>
@@ -34,7 +35,7 @@ export function SystemInfo() {
       <Separator />
       <div className="flex items-center justify-between">
         <FormLabel>OS</FormLabel>
-        <span className="text-ring text-sm">{platform}</span>
+        <span className="text-ring text-sm">{os}</span>
       </div>
     </>
   )

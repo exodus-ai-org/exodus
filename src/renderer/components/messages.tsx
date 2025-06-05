@@ -150,7 +150,7 @@ function Messages({
               {message.role === 'user' && (
                 <p
                   className={cn(
-                    'bg-accent rounded-xl px-3 py-2 break-words whitespace-pre-wrap',
+                    'bg-accent max-w-[60%] rounded-xl px-3 py-2 break-words whitespace-pre-wrap',
                     { ['w-[23rem]']: isArtifactVisible }
                   )}
                 >

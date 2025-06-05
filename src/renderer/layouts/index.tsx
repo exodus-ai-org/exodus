@@ -6,8 +6,7 @@ import {
   SidebarProvider,
   SidebarTrigger
 } from '@/components/ui/sidebar'
-import { activeDeepResearchIdAtom, isArtifactVisibleAtom } from '@/stores/chat'
-import { AnimatePresence } from 'framer-motion'
+import { isArtifactVisibleAtom } from '@/stores/chat'
 import { useAtomValue } from 'jotai'
 import { useEffect } from 'react'
 import { Outlet } from 'react-router'
@@ -19,7 +18,6 @@ import { SearchDialog } from './search-dialog'
 import { ThemeSwitcher } from './theme-switcher'
 
 export function Layout() {
-  const activeDeepResearchId = useAtomValue(activeDeepResearchIdAtom)
   const isArtifactVisible = useAtomValue(isArtifactVisibleAtom)
 
   // Unload Find-in-Page when pressing Esc
@@ -55,10 +53,8 @@ export function Layout() {
           <ChatDeletionConfirmationDialog />
         </div>
       </SidebarInset>
-      <AnimatePresence>
-        {!!activeDeepResearchId && <DeepResearchProcess />}
-        {isArtifactVisible && <CodePreview />}
-      </AnimatePresence>
+      <DeepResearchProcess />
+      {isArtifactVisible && <CodePreview />}
     </SidebarProvider>
   )
 }

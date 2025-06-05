@@ -11,7 +11,7 @@ export function Detail() {
   })
 
   if (!id || !messagesFromDb) {
-    // TODO: Redirect to 404
+    window.location.hash = '#/'
     return null
   }
 
