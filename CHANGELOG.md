@@ -1,3 +1,42 @@
+# [1.7.0](https://github.com/exodus-ai-org/exodus/compare/v1.6.0...v1.7.0) (2025-06-05)
+
+
+### Bug Fixes
+
+* close deep research sheet if component unloaded ([9b89d49](https://github.com/exodus-ai-org/exodus/commit/9b89d49604b24a2a4dc242ce40e7ee4d28837def))
+* extract ctations from mixed content ([f99158f](https://github.com/exodus-ai-org/exodus/commit/f99158f614287141c02d2946b4cc2ae665d0fd61))
+* Gemini calling tools don't support enumeration type ([f2f754d](https://github.com/exodus-ai-org/exodus/commit/f2f754d0f0c5faeefe3895f7ad6dd47c76e33cbb))
+* multiple entry point paths ([5ef1a26](https://github.com/exodus-ai-org/exodus/commit/5ef1a263a29b32a0dcbb64c72df7b3b2a8b44568))
+* use window.location.hash instead of window.location.href ([aadd4ce](https://github.com/exodus-ai-org/exodus/commit/aadd4ceee5dd886e7d31b766901b7bfef098fb33))
+
+
+### Features
+
+* add zod schemas for http request ([861b5aa](https://github.com/exodus-ai-org/exodus/commit/861b5aada05d6b5b92af8f9d5df08b497ffc4a0d))
+* enhance the performance of deep research ([e3db65f](https://github.com/exodus-ai-org/exodus/commit/e3db65fd86e6a5130661750424d5c746665e7a7c))
+* just use electron to render pdf rather than md-to-pdf ([b23f622](https://github.com/exodus-ai-org/exodus/commit/b23f622d814b53d63bc5f4911e5ac78dd68c2433))
+* lazy load MonacoEditor for better performance ([3ec8e28](https://github.com/exodus-ai-org/exodus/commit/3ec8e2897d78b7ca1b75b436993763dcfcfd25aa))
+* move Find-in-Page to menu ([9a9cc05](https://github.com/exodus-ai-org/exodus/commit/9a9cc05401e85337beab01e7ca819c92fa63b8e4))
+* optimitize the prompts of deep research ([9f671a5](https://github.com/exodus-ai-org/exodus/commit/9f671a5edfc284887a221fbb259bbec44fc3cee7))
+* parse citations if AI outputs them in li tag ([d0a90ca](https://github.com/exodus-ai-org/exodus/commit/d0a90ca98348d24aa99a8a33f12a4fee34100054))
+* parse citations if AI outputs them in li tag ([da179ef](https://github.com/exodus-ai-org/exodus/commit/da179efcc5bfcaa40df3165070fed990bac575ed))
+* pop a confirmation dialog when delete a chat ([61b92c5](https://github.com/exodus-ai-org/exodus/commit/61b92c5089406e7c64b39cfee35b481b78d8b963))
+* remove electron-devtools-installer ([52c936a](https://github.com/exodus-ai-org/exodus/commit/52c936a0a0b322a5f35cd0373aa79ef721cc4314))
+* several optimizations ([5567f39](https://github.com/exodus-ai-org/exodus/commit/5567f3914099141059ddd977081419ea892804d9))
+* show deleted chat title in toast rather than id ([e62861a](https://github.com/exodus-ai-org/exodus/commit/e62861a71b4c3dbcd11aca96baf52008683eb6f8))
+* sort the results by rating of Google Maps Places ([c776546](https://github.com/exodus-ai-org/exodus/commit/c7765461ff527e7b6471911e1ce033131dd89071))
+* support auto updater ([066afb2](https://github.com/exodus-ai-org/exodus/commit/066afb266e576ed74f461daaa9fe6a00bdc8a4fa))
+* support Find-in-Page ([782de7d](https://github.com/exodus-ai-org/exodus/commit/782de7df7d87b57b64cd10da6f88fae971b1f56c))
+* support smoothStream ([4aee9c2](https://github.com/exodus-ai-org/exodus/commit/4aee9c2bdcefd679e75527435b42ac71dfd62195))
+* update app logo ([70c1501](https://github.com/exodus-ai-org/exodus/commit/70c15013479d39866aaaa45b4d05a5ec1f2a520d))
+* update models for google ai ([8b8a670](https://github.com/exodus-ai-org/exodus/commit/8b8a6702b6be3f78e8a99385c7323fc954ac1690))
+* use Google api to retrieve favicon ([3fecdb3](https://github.com/exodus-ai-org/exodus/commit/3fecdb378ba5f39d5a04497c87579ee89f127b60))
+
+
+### Performance Improvements
+
+* move front-end relevant dependencies to devDependencies for shrinking bundle size ([fd1d078](https://github.com/exodus-ai-org/exodus/commit/fd1d0788f007372a6d73117986579ec624bf6e25))
+
 # [1.6.0](https://github.com/exodus-ai-org/exodus/compare/v1.5.1...v1.6.0) (2025-05-19)
 
 ### Bug Fixes
