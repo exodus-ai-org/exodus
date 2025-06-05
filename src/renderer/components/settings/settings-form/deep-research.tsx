@@ -34,7 +34,9 @@ export function DeepResearch({ form }: { form: UseFormReturnType }) {
                   </TooltipTrigger>
                   <TooltipContent>
                     <p className="max-w-60">
-                      The breadth for deep research. By default, it is set to 4.
+                      The breadth is to generate multiple search queries to
+                      explore different aspects of your topic at each level. By
+                      default, it is set to 4.
                     </p>
                     <TooltipArrow className="TooltipArrow" />
                   </TooltipContent>
@@ -69,7 +71,9 @@ export function DeepResearch({ form }: { form: UseFormReturnType }) {
                   </TooltipTrigger>
                   <TooltipContent>
                     <p className="max-w-60">
-                      The depth for deep research. By default, it is set to 2.
+                      The depth is to recursively dives deeper, following leads
+                      and uncovering connections for each branch. By default, it
+                      is set to 2.
                     </p>
                     <TooltipArrow className="TooltipArrow" />
                   </TooltipContent>

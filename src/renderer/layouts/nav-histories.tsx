@@ -20,16 +20,16 @@ import {
   SidebarMenuItem,
   useSidebar
 } from '@/components/ui/sidebar'
+import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
-import { deleteChat, updateChat } from '@/services/chat'
-import { renamedChatTitleAtom } from '@/stores/chat'
+import { updateChat } from '@/services/chat'
+import { renamedChatTitleAtom, toBeDeletedChatAtom } from '@/stores/chat'
 import type { Chat } from '@shared/types/db'
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns'
 import { useSetAtom } from 'jotai'
 import { ChevronRight, Edit2, MoreHorizontal, Star, Trash2 } from 'lucide-react'
 import { Link, useParams } from 'react-router'
 import useSWR from 'swr'
-import { Skeleton } from '../components/ui/skeleton'
 
 interface GroupedChats {
   favorite: Chat[]
@@ -63,6 +63,7 @@ export function NavItems({
   const { id } = useParams<{ id: string }>()
   const { isMobile } = useSidebar()
   const setRenamedChatTitle = useSetAtom(renamedChatTitleAtom)
+  const setToBeDeletedChat = useSetAtom(toBeDeletedChatAtom)
 
   return (
     <SidebarMenuItem className={className}>
@@ -108,7 +109,7 @@ export function NavItems({
             <span>Rename</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem onClick={() => deleteChat(chat.id, id)}>
+          <DropdownMenuItem onClick={() => setToBeDeletedChat(chat)}>
             <Trash2 className="text-destructive" />
             <span className="text-destructive hover:text-destructive">
               Delete

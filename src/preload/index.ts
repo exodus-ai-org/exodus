@@ -1,8 +1,11 @@
 import { electronAPI } from '@electron-toolkit/preload'
 import { contextBridge } from 'electron'
+import os from 'os'
 
 // Custom APIs for renderer
-const api = {}
+const api = {
+  os: `${os.type()} ${os.arch()} v${os.release()}`
+}
 
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise

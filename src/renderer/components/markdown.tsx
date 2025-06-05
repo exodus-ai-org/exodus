@@ -23,33 +23,37 @@ const themes = {
   dark: { codeTheme: atomOneDark, bg: 'bg-[#282c34]' }
 }
 
-const citationRegex = /\[Source: ([\d,\s]+)\]/g
+const citationRegex = /\[Source:\s*([\d,\s]+)\]/
 
-function parseCitations(text: ReactNode) {
-  if (typeof text !== 'string') return undefined
-
-  const citations: Array<{
-    text: string
-    position: number
-    sourceNumbers: number[]
-  }> = []
-  let match: RegExpExecArray | null = null
-
-  while ((match = citationRegex.exec(text)) !== null) {
-    const sourceNumbers = match[1]
-      .split(',')
-      .map((num) => parseInt(num.trim(), 10))
-    citations.push({
-      text: match[0],
-      position: match.index,
-      sourceNumbers
-    })
+// When using the web-search or deep-research features, the AI outputs markdown text with citation markers.
+// There are two formats:
+// 1. Pure text with appended citation markers.
+//    e.g. "The quick brown fox jumps over the lazy dog. [Source 1, 2, 3]"
+// 2. Mixed content with appended citation markers.
+//    e.g. "If `nums[k] + nums[l]` is less than the required sum. [Source 1, 2, 3]"
+//
+// For the first case, we can simply use `citationRegex` to extract the citation.
+//
+// For the second case, the content will be rendered as an array by React,
+// since it includes not only plain text but also HTML elements such as <code> or <strong>.
+// In this case, we should check whether the last element is a pure text node
+// to determine whether the citation can be extracted.
+function parseCitations(children: ReactNode) {
+  if (Array.isArray(children)) {
+    const lastChild = children[children.length - 1]
+    if (typeof lastChild === 'string') {
+      children = lastChild as string
+    }
   }
+  if (typeof children !== 'string') return null
 
+  const match = children.match(citationRegex)
+  if (!match) return null
+  const citations = match[1].split(',').map((num) => parseInt(num.trim(), 10))
   return citations
 }
 
-function ParagraphWithSources({
+function TextWithCitations({
   children,
   webSearchResults
 }: {
@@ -57,16 +61,28 @@ function ParagraphWithSources({
   webSearchResults: WebSearchResult[] | undefined
 }) {
   if (!webSearchResults) return children
-  const source = parseCitations(children)
-  if (!Array.isArray(source?.[0]?.sourceNumbers)) return children
+
+  const citations = parseCitations(children)
+  if (citations === null) return children
 
   const referredWebSearchResults = webSearchResults.filter((item) =>
-    source[0].sourceNumbers.includes(item.rank)
+    citations.includes(item.rank)
   )
 
   return (
     <>
       {typeof children === 'string' && children.replace(citationRegex, '')}
+      {Array.isArray(children) && (
+        <>
+          {children.map((item) => {
+            if (typeof item === 'string') {
+              return item.replace(citationRegex, '')
+            } else {
+              return item
+            }
+          })}
+        </>
+      )}
       <WebSearchGroup
         webSearchResults={referredWebSearchResults}
         variant="tiling"
@@ -97,12 +113,12 @@ export function Markdown({
         if (toolName === 'webSearch' && state === 'result') {
           return toolInvocationPart.toolInvocation.result
         }
-        return undefined
+        return null
       }
 
-      return undefined
+      return null
     } catch {
-      return undefined
+      return null
     }
   }, [parts])
 
@@ -208,12 +224,22 @@ export function Markdown({
             )
           },
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          li({ className, node, children, ...rest }) {
+            return (
+              <li {...rest} className={className}>
+                <TextWithCitations webSearchResults={webSearchResults}>
+                  {children}
+                </TextWithCitations>
+              </li>
+            )
+          },
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
           p({ className, node, children, ...rest }) {
             return (
               <p {...rest} className={className}>
-                <ParagraphWithSources webSearchResults={webSearchResults}>
+                <TextWithCitations webSearchResults={webSearchResults}>
                   {children}
-                </ParagraphWithSources>
+                </TextWithCitations>
               </p>
             )
           },

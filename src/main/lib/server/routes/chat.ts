@@ -1,11 +1,10 @@
 import { AdvancedTools } from '@shared/types/ai'
-import { Chat } from '@shared/types/db'
 import { Variables } from '@shared/types/server'
 import {
   appendResponseMessages,
   createDataStream,
-  streamText,
-  UIMessage
+  smoothStream,
+  streamText
 } from 'ai'
 import { Hono } from 'hono'
 import { stream } from 'hono/streaming'
@@ -17,7 +16,7 @@ import {
   getModelFromProvider,
   getMostRecentUserMessage,
   getTrailingMessageId
-} from '../../ai/utils'
+} from '../../ai/utils/chat-message-util'
 import {
   deleteChatById,
   fullTextSearchOnMessages,
@@ -28,6 +27,7 @@ import {
   saveMessages,
   updateChat
 } from '../../db/queries'
+import { createChatSchema, updateChatSchema } from '../schemas'
 
 const chat = new Hono<{ Variables: Variables }>()
 
@@ -48,11 +48,11 @@ chat.get('/search', async (c) => {
 })
 
 chat.post('/', async (c) => {
-  const { id, messages, advancedTools } = await c.req.json<{
-    id: string
-    messages: UIMessage[]
-    advancedTools: AdvancedTools[]
-  }>()
+  const result = createChatSchema.safeParse(await c.req.json())
+  if (!result.success) {
+    return c.text('Invalid request body', 400)
+  }
+  const { id, messages, advancedTools } = result.data
   const mcpTools = c.get('tools')
 
   const settings = await getSettings()
@@ -113,7 +113,9 @@ chat.post('/', async (c) => {
         messages,
         maxSteps: settings.providerConfig?.maxSteps ?? 1,
         tools: bindCallingTools({ mcpTools, advancedTools, settings }),
+        experimental_transform: smoothStream(),
         experimental_generateMessageId: uuidV4,
+        experimental_continueSteps: true,
         onFinish: async ({ response }) => {
           try {
             const assistantId = getTrailingMessageId({
@@ -204,7 +206,11 @@ chat.get('/:id', async (c) => {
 })
 
 chat.put('/', async (c) => {
-  const payload = await c.req.json<Chat>()
+  const result = updateChatSchema.safeParse(await c.req.json())
+  if (!result.success) {
+    return c.text('Invalid request body', 400)
+  }
+  const payload = result.data
 
   if (!payload.id) {
     return c.text('Not Found', 404)

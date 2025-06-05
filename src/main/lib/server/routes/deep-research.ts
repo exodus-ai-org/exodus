@@ -8,7 +8,7 @@ import { Hono } from 'hono'
 import { v4 as uuidV4 } from 'uuid'
 import { deepResearch as deepResearchAgent } from '../../ai/deep-research/deep-research'
 import { writeFinalReport } from '../../ai/deep-research/final-report'
-import { getModelFromProvider } from '../../ai/utils'
+import { getModelFromProvider } from '../../ai/utils/chat-message-util'
 import {
   getDeepResearchById,
   getDeepResearchMessagesById,
@@ -16,6 +16,7 @@ import {
   saveDeepResearchMessage,
   updateDeepResearch
 } from '../../db/queries'
+import { createDeepResearchSchema } from '../schemas'
 
 const deepResearch = new Hono<{ Variables: Variables }>()
 const clients = new Map<string, ReadableStreamDefaultController>()
@@ -68,7 +69,11 @@ async function notifyClients(
 }
 
 deepResearch.post('/', async (c) => {
-  const { deepResearchId, query } = await c.req.json()
+  const result = createDeepResearchSchema.safeParse(await c.req.json())
+  if (!result.success) {
+    return c.text('Invalid request body', 400)
+  }
+  const { deepResearchId, query } = result.data
   const settings = await getSettings()
 
   if (!('id' in settings)) {
