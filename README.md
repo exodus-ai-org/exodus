@@ -1,6 +1,7 @@
 # Exodus
 
 ![Exodus](./screenshots/screenshots.jpg)
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fexodus-ai-org%2Fexodus.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fexodus-ai-org%2Fexodus?ref=badge_shield)
 
 [![CodeQL](https://github.com/HyperChatBot/exodus/actions/workflows/github-code-scanning/codeql/badge.svg?branch=master)](https://github.com/HyperChatBot/exodus/actions/workflows/github-code-scanning/codeql)
 [![Release](https://github.com/HyperChatBot/exodus/actions/workflows/cross-platform-release.yml/badge.svg)](https://github.com/HyperChatBot/exodus/actions/workflows/cross-platform-release.yml)
@@ -92,3 +93,6 @@ The UI design is inspired by [Chat-Web-App-UI-Kit](https://www.figma.com/communi
 ## License
 
 Exodus is licensed under the terms of the [MIT licensed](https://opensource.org/licenses/MIT).
+
+
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fexodus-ai-org%2Fexodus.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fexodus-ai-org%2Fexodus?ref=badge_large)
