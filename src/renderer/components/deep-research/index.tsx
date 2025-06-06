@@ -148,12 +148,12 @@ export function DeepResearchProcess() {
       )}
     >
       <div className="relative flex h-14 items-center justify-center border-b">
-        <div className="bg-border flex items-center rounded-full p-1 text-sm font-semibold">
+        <div className="bg-border flex items-center rounded-full p-1 text-sm">
           <button
             className={cn(
-              'bg-border min-w-20 cursor-pointer rounded-full px-2 py-1 select-none hover:bg-transparent dark:bg-transparent dark:hover:bg-transparent',
+              'bg-border min-w-20 cursor-pointer rounded-full p-2 select-none hover:bg-transparent dark:bg-transparent dark:hover:bg-transparent',
               {
-                ['bg-background hover:bg-background dark:bg-background-foreground hover:dark:bg-background-foreground shadow-sm']:
+                ['bg-background hover:bg-background dark:bg-background-foreground hover:dark:bg-background-foreground font-semibold shadow-sm']:
                   tab === Tab.Activity
               }
             )}
@@ -163,9 +163,9 @@ export function DeepResearchProcess() {
           </button>
           <button
             className={cn(
-              'bg-border min-w-20 cursor-pointer rounded-full px-2 py-1 select-none hover:bg-transparent dark:bg-transparent dark:hover:bg-transparent',
+              'bg-border min-w-20 cursor-pointer rounded-full p-2 select-none hover:bg-transparent dark:bg-transparent dark:hover:bg-transparent',
               {
-                ['bg-background hover:bg-background dark:bg-background-foreground hover:dark:bg-background-foreground shadow-sm']:
+                ['bg-background hover:bg-background dark:bg-background-foreground hover:dark:bg-background-foreground font-semibold shadow-sm']:
                   tab === Tab.Source
               }
             )}
