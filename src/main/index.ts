@@ -1,12 +1,11 @@
 import { electronApp, optimizer } from '@electron-toolkit/utils'
-import { LOCAL_FILE_DIRECTORY } from '@shared/constants/systems'
 import { app, BrowserWindow, globalShortcut } from 'electron'
 import { setupAutoUpdater } from './lib/auto-updater'
 import { runMigrate } from './lib/db/migrate'
 import { setupIPC } from './lib/ipc'
-import { createDirectory } from './lib/ipc/file-system'
 import { setupMenu } from './lib/menu'
 import { connectHttpServer } from './lib/server/app'
+import { setServer } from './lib/server/instance'
 import { createWindow } from './lib/window'
 
 app.whenReady().then(async () => {
@@ -16,9 +15,7 @@ app.whenReady().then(async () => {
   // Start Hono server
   const server = await connectHttpServer()
   server.start()
-
-  // Create `LOCAL_FILE_DIRECTORY` directory if not exist
-  await createDirectory(app.getPath('userData') + `/${LOCAL_FILE_DIRECTORY}`)
+  setServer(server)
 
   // Setup menu
   setupMenu()
