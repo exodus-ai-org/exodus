@@ -46,7 +46,7 @@ importers:
         version: 1.14.1(hono@4.7.10)
       '@langchain/community':
         specifier: ^0.3.40
-        version: 0.3.43(@browserbasehq/sdk@2.6.0(encoding@0.1.13))(@browserbasehq/stagehand@1.14.0(@playwright/test@1.52.0)(deepmerge@4.3.1)(dotenv@16.5.0)(encoding@0.1.13)(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4))(zod@3.24.4))(@ibm-cloud/watsonx-ai@1.6.5)(@langchain/core@0.3.56(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4)))(axios@1.9.0)(cheerio@1.0.0)(encoding@0.1.13)(handlebars@4.7.8)(ibm-cloud-sdk-core@5.3.2)(ignore@5.3.2)(jsonwebtoken@9.0.2)(lodash@4.17.21)(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4))(pdf-parse@1.1.1)(playwright@1.52.0)(puppeteer@24.8.2(typescript@5.8.3))(ws@8.18.2)
+        version: 0.3.43(@browserbasehq/sdk@2.6.0(encoding@0.1.13))(@browserbasehq/stagehand@1.14.0(@playwright/test@1.52.0)(deepmerge@4.3.1)(dotenv@16.5.0)(encoding@0.1.13)(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4))(zod@3.24.4))(@ibm-cloud/watsonx-ai@1.6.5)(@langchain/core@0.3.56(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4)))(axios@1.10.0)(cheerio@1.0.0)(encoding@0.1.13)(handlebars@4.7.8)(ibm-cloud-sdk-core@5.3.2)(ignore@5.3.2)(jsonwebtoken@9.0.2)(lodash@4.17.21)(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4))(pdf-parse@1.1.1)(playwright@1.52.0)(puppeteer@24.8.2(typescript@5.8.3))(ws@8.18.2)
       '@langchain/core':
         specifier: ^0.3.44
         version: 0.3.56(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4))
@@ -310,8 +310,8 @@ importers:
         specifier: ^4.17.21
         version: 4.17.21
       lucide-react:
-        specifier: ^0.506.0
-        version: 0.506.0(react@19.1.0)
+        specifier: ^0.515.0
+        version: 0.515.0(react@19.1.0)
       markdown-it:
         specifier: ^14.1.0
         version: 14.1.0
@@ -2871,6 +2871,9 @@ packages:
   '@types/node@18.19.101':
     resolution: {integrity: sha512-Ykg7fcE3+cOQlLUv2Ds3zil6DVjriGQaSN/kEpl5HQ3DIGM6W0F2n9+GkWV4bRt7KjLymgzNdTnSKCbFUUJ7Kw==}
 
+  '@types/node@18.19.111':
+    resolution: {integrity: sha512-90sGdgA+QLJr1F9X79tQuEut0gEYIfkX9pydI4XGRgvFo9g2JWswefI+WUSUHPYVBHYSEfTEqBxA5hQvAZB3Mw==}
+
   '@types/node@22.15.19':
     resolution: {integrity: sha512-3vMNr4TzNQyjHcRZadojpRaD9Ofr6LsonZAoQ+HMUa/9ORTPoxVIw0e0mpqWpdjj8xybyCM+oKOUH2vwFu/oEw==}
 
@@ -3192,8 +3195,8 @@ packages:
     resolution: {integrity: sha512-wvUjBtSGN7+7SjNpq/9M2Tg350UZD3q62IFZLbRAR1bSMlCo1ZaeW+BJ+D090e4hIIZLBcTDWe4Mh4jvUDajzQ==}
     engines: {node: '>= 0.4'}
 
-  axios@1.9.0:
-    resolution: {integrity: sha512-re4CqKTJaURpzbLHtIi6XpDv20/CnpXOtjRY5/CU32L8gU8ek9UIivcfvSWvmKEngmVbrUtPpdDwWDWL7DNHvg==}
+  axios@1.10.0:
+    resolution: {integrity: sha512-/1xYAC4MP/HEG+3duIhFr4ZQXR4sQXOIe+o6sdqzeykGLx6Upp/1p8MHqhINOvGeP7xyNHe7tsiJByc4SSVUxw==}
 
   b4a@1.6.7:
     resolution: {integrity: sha512-OnAYlL5b7LEkALw87fUVafQw5rVR9RjwGd4KUwNQ6DrrNmaVaUCgLipfVlzrPQ4tWOR9P0IXGNOx50jYCCdSJg==}
@@ -5630,8 +5633,8 @@ packages:
     resolution: {integrity: sha512-jumlc0BIUrS3qJGgIkWZsyfAM7NCWiBcCDhnd+3NNM5KbBmLTgHVfWBcg6W+rLUsIpzpERPsvwUP7CckAQSOoA==}
     engines: {node: '>=12'}
 
-  lucide-react@0.506.0:
-    resolution: {integrity: sha512-/2znFFzlXcZKu0ANFCnxUOBV5I2e08m19PGtb6X+BcByRj8ODlGAl3wpe4LNVrDMLJ263JoIkZn7MOGK/5sXtw==}
+  lucide-react@0.515.0:
+    resolution: {integrity: sha512-Sy7bY0MeicRm2pzrnoHm2h6C1iVoeHyBU2fjdQDsXGP51fhkhau1/ZV/dzrcxEmAKsxYb6bGaIsMnGHuQ5s0dw==}
     peerDependencies:
       react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
@@ -7159,6 +7162,10 @@ packages:
     resolution: {integrity: sha512-D3YaD0aRxR3mEcqnidIs7ReYJFVzWdd6fXJYUM8ixcQcJRGTka/b3saV0KflYhyVJXKhb947GndU35SxYNResQ==}
     engines: {node: '>= 10.0.0', npm: '>= 3.0.0'}
 
+  socks@2.8.5:
+    resolution: {integrity: sha512-iF+tNDQla22geJdTyJB1wM/qrX9DMRwWrciEPwWLPRWAUEM8sQiyxgckLxWT1f7+9VabJS0jTGGr4QgBuvi6Ww==}
+    engines: {node: '>= 10.0.0', npm: '>= 3.0.0'}
+
   sonner@2.0.3:
     resolution: {integrity: sha512-njQ4Hht92m0sMqqHVDL32V2Oun9W1+PHO9NDv9FHfJjT3JT22IG4Jpo3FPQy+mouRKCXFWO+r67v6MrHX2zeIA==}
     peerDependencies:
@@ -7234,8 +7241,8 @@ packages:
   stream-shift@1.0.3:
     resolution: {integrity: sha512-76ORR0DO1o1hlKwTbi/DM3EXWGf3ZJYO8cXX5RJwnul2DEg2oyoZyjLNoQM8WsvZiFKCRfC1O0J7iCvie3RZmQ==}
 
-  streamx@2.22.0:
-    resolution: {integrity: sha512-sLh1evHOzBy/iWRiR6d1zRcLao4gGZr3C1kzNz4fopCOKJb6xD9ub8Mpi9Mr1R6id5o43S+d93fI48UC5uM9aw==}
+  streamx@2.22.1:
+    resolution: {integrity: sha512-znKXEBxfatz2GBNK02kRnCXjV+AA4kjZIUxeWSr3UGirZMJfTE9uiwKHobnbgxWyL/JWro8tTq+vOqAK1/qbSA==}
 
   strict-event-emitter@0.4.6:
     resolution: {integrity: sha512-12KWeb+wixJohmnwNFerbyiBrAlq5qJLwIt38etRtKtmmHyDSoGlIqFE9wx+4IwG0aDjI7GV8tc8ZccjWZZtTg==}
@@ -7375,8 +7382,8 @@ packages:
     resolution: {integrity: sha512-GNzQvQTOIP6RyTfE2Qxb8ZVlNmw0n88vp1szwWRimP02mnTsx3Wtn5qRdqY9w2XduFNUgvOwhNnQsjwCp+kqaQ==}
     engines: {node: '>=6'}
 
-  tar-fs@3.0.8:
-    resolution: {integrity: sha512-ZoROL70jptorGAlgAYiLoBLItEKw/fUxg9BSYK/dF/GAGYFJOJJJMvjPAKDJraCXFwadD456FCuvLWgfhMsPwg==}
+  tar-fs@3.0.9:
+    resolution: {integrity: sha512-XF4w9Xp+ZQgifKakjZYmFdkLoSWd34VGKcsTCwlNWM7QG3ZbaxnTsaBwnjFZqHRf/rROxaR8rXnbtwdvaDI+lA==}
 
   tar-stream@2.2.0:
     resolution: {integrity: sha512-ujeqbceABgwMZxEJnk2HDY2DlnUZ+9oEcb1KzTVfYHio0UE6dG71n60d8D2I4qNvleWrrXpmjpt7vZeF1LnMZQ==}
@@ -7924,6 +7931,9 @@ packages:
   zod@3.24.4:
     resolution: {integrity: sha512-OdqJE9UDRPwWsrHjLN2F8bPxvwJBK22EHLWtanu0LSYr5YqzsaaW3RMgmjwr8Rypg5k+meEJdSPXJZXE/yqOMg==}
 
+  zod@3.25.64:
+    resolution: {integrity: sha512-hbP9FpSZf7pkS7hRVUrOjhwKJNyampPgtXKc3AN6DsWtoHsg2Sb4SQaS4Tcay380zSwd2VPo9G9180emBACp5g==}
+
   zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}
 
@@ -8006,7 +8016,7 @@ snapshots:
 
   '@anthropic-ai/sdk@0.27.3(encoding@0.1.13)':
     dependencies:
-      '@types/node': 18.19.101
+      '@types/node': 18.19.111
       '@types/node-fetch': 2.6.12
       abort-controller: 3.0.0
       agentkeepalive: 4.6.0
@@ -8135,7 +8145,7 @@ snapshots:
 
   '@browserbasehq/sdk@2.6.0(encoding@0.1.13)':
     dependencies:
-      '@types/node': 18.19.101
+      '@types/node': 18.19.111
       '@types/node-fetch': 2.6.12
       abort-controller: 3.0.0
       agentkeepalive: 4.6.0
@@ -8726,7 +8736,7 @@ snapshots:
 
   '@ibm-cloud/watsonx-ai@1.6.5':
     dependencies:
-      '@types/node': 18.19.101
+      '@types/node': 18.19.111
       extend: 3.0.2
       ibm-cloud-sdk-core: 5.3.2
     transitivePeerDependencies:
@@ -8764,7 +8774,7 @@ snapshots:
 
   '@js-sdsl/ordered-map@4.4.2': {}
 
-  '@langchain/community@0.3.43(@browserbasehq/sdk@2.6.0(encoding@0.1.13))(@browserbasehq/stagehand@1.14.0(@playwright/test@1.52.0)(deepmerge@4.3.1)(dotenv@16.5.0)(encoding@0.1.13)(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4))(zod@3.24.4))(@ibm-cloud/watsonx-ai@1.6.5)(@langchain/core@0.3.56(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4)))(axios@1.9.0)(cheerio@1.0.0)(encoding@0.1.13)(handlebars@4.7.8)(ibm-cloud-sdk-core@5.3.2)(ignore@5.3.2)(jsonwebtoken@9.0.2)(lodash@4.17.21)(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4))(pdf-parse@1.1.1)(playwright@1.52.0)(puppeteer@24.8.2(typescript@5.8.3))(ws@8.18.2)':
+  '@langchain/community@0.3.43(@browserbasehq/sdk@2.6.0(encoding@0.1.13))(@browserbasehq/stagehand@1.14.0(@playwright/test@1.52.0)(deepmerge@4.3.1)(dotenv@16.5.0)(encoding@0.1.13)(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4))(zod@3.24.4))(@ibm-cloud/watsonx-ai@1.6.5)(@langchain/core@0.3.56(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4)))(axios@1.10.0)(cheerio@1.0.0)(encoding@0.1.13)(handlebars@4.7.8)(ibm-cloud-sdk-core@5.3.2)(ignore@5.3.2)(jsonwebtoken@9.0.2)(lodash@4.17.21)(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4))(pdf-parse@1.1.1)(playwright@1.52.0)(puppeteer@24.8.2(typescript@5.8.3))(ws@8.18.2)':
     dependencies:
       '@browserbasehq/stagehand': 1.14.0(@playwright/test@1.52.0)(deepmerge@4.3.1)(dotenv@16.5.0)(encoding@0.1.13)(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4))(zod@3.24.4)
       '@ibm-cloud/watsonx-ai': 1.6.5
@@ -8775,7 +8785,7 @@ snapshots:
       flat: 5.0.2
       ibm-cloud-sdk-core: 5.3.2
       js-yaml: 4.1.0
-      langchain: 0.3.26(@langchain/core@0.3.56(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4)))(axios@1.9.0)(cheerio@1.0.0)(encoding@0.1.13)(handlebars@4.7.8)(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4))(ws@8.18.2)
+      langchain: 0.3.26(@langchain/core@0.3.56(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4)))(axios@1.10.0)(cheerio@1.0.0)(encoding@0.1.13)(handlebars@4.7.8)(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4))(ws@8.18.2)
       langsmith: 0.3.29(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4))
       openai: 4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4)
       uuid: 10.0.0
@@ -9052,7 +9062,7 @@ snapshots:
       progress: 2.0.3
       proxy-agent: 6.5.0
       semver: 7.7.2
-      tar-fs: 3.0.8
+      tar-fs: 3.0.9
       yargs: 17.7.2
     transitivePeerDependencies:
       - bare-buffer
@@ -10104,6 +10114,10 @@ snapshots:
     dependencies:
       undici-types: 5.26.5
 
+  '@types/node@18.19.111':
+    dependencies:
+      undici-types: 5.26.5
+
   '@types/node@22.15.19':
     dependencies:
       undici-types: 6.21.0
@@ -10528,7 +10542,7 @@ snapshots:
     dependencies:
       possible-typed-array-names: 1.1.0
 
-  axios@1.9.0(debug@4.4.1):
+  axios@1.10.0(debug@4.4.1):
     dependencies:
       follow-redirects: 1.15.9(debug@4.4.1)
       form-data: 4.0.2
@@ -10563,7 +10577,7 @@ snapshots:
 
   bare-stream@2.6.5(bare-events@2.5.4):
     dependencies:
-      streamx: 2.22.0
+      streamx: 2.22.1
     optionalDependencies:
       bare-events: 2.5.4
     optional: true
@@ -10807,7 +10821,7 @@ snapshots:
     dependencies:
       devtools-protocol: 0.0.1439962
       mitt: 3.0.1
-      zod: 3.24.4
+      zod: 3.25.64
     optional: true
 
   chromium-pickle-js@0.2.0: {}
@@ -12605,9 +12619,9 @@ snapshots:
   ibm-cloud-sdk-core@5.3.2:
     dependencies:
       '@types/debug': 4.1.12
-      '@types/node': 18.19.101
+      '@types/node': 18.19.111
       '@types/tough-cookie': 4.0.5
-      axios: 1.9.0(debug@4.4.1)
+      axios: 1.10.0(debug@4.4.1)
       camelcase: 6.3.0
       debug: 4.4.1
       dotenv: 16.5.0
@@ -12617,7 +12631,7 @@ snapshots:
       isstream: 0.1.2
       jsonwebtoken: 9.0.2
       mime-types: 2.1.35
-      retry-axios: 2.6.0(axios@1.9.0)
+      retry-axios: 2.6.0(axios@1.10.0(debug@4.4.1))
       tough-cookie: 4.1.4
     transitivePeerDependencies:
       - supports-color
@@ -13040,7 +13054,7 @@ snapshots:
     dependencies:
       json-buffer: 3.0.1
 
-  langchain@0.3.26(@langchain/core@0.3.56(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4)))(axios@1.9.0)(cheerio@1.0.0)(encoding@0.1.13)(handlebars@4.7.8)(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4))(ws@8.18.2):
+  langchain@0.3.26(@langchain/core@0.3.56(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4)))(axios@1.10.0)(cheerio@1.0.0)(encoding@0.1.13)(handlebars@4.7.8)(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4))(ws@8.18.2):
     dependencies:
       '@langchain/core': 0.3.56(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4))
       '@langchain/openai': 0.5.10(@langchain/core@0.3.56(openai@4.100.0(encoding@0.1.13)(ws@8.18.2)(zod@3.24.4)))(encoding@0.1.13)(ws@8.18.2)
@@ -13056,7 +13070,7 @@ snapshots:
       zod: 3.24.4
       zod-to-json-schema: 3.24.5(zod@3.24.4)
     optionalDependencies:
-      axios: 1.9.0(debug@4.4.1)
+      axios: 1.10.0(debug@4.4.1)
       cheerio: 1.0.0
       handlebars: 4.7.8
     transitivePeerDependencies:
@@ -13264,7 +13278,7 @@ snapshots:
 
   lru-cache@7.18.3: {}
 
-  lucide-react@0.506.0(react@19.1.0):
+  lucide-react@0.515.0(react@19.1.0):
     dependencies:
       react: 19.1.0
 
@@ -14762,9 +14776,9 @@ snapshots:
       onetime: 7.0.0
       signal-exit: 4.1.0
 
-  retry-axios@2.6.0(axios@1.9.0):
+  retry-axios@2.6.0(axios@1.10.0(debug@4.4.1)):
     dependencies:
-      axios: 1.9.0(debug@4.4.1)
+      axios: 1.10.0(debug@4.4.1)
 
   retry-request@8.0.0:
     dependencies:
@@ -15077,7 +15091,7 @@ snapshots:
     dependencies:
       agent-base: 7.1.3
       debug: 4.4.1
-      socks: 2.8.4
+      socks: 2.8.5
     transitivePeerDependencies:
       - supports-color
     optional: true
@@ -15086,6 +15100,12 @@ snapshots:
     dependencies:
       ip-address: 9.0.5
       smart-buffer: 4.2.0
+
+  socks@2.8.5:
+    dependencies:
+      ip-address: 9.0.5
+      smart-buffer: 4.2.0
+    optional: true
 
   sonner@2.0.3(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
     dependencies:
@@ -15157,7 +15177,7 @@ snapshots:
 
   stream-shift@1.0.3: {}
 
-  streamx@2.22.0:
+  streamx@2.22.1:
     dependencies:
       fast-fifo: 1.3.2
       text-decoder: 1.2.3
@@ -15323,7 +15343,7 @@ snapshots:
 
   tapable@2.2.1: {}
 
-  tar-fs@3.0.8:
+  tar-fs@3.0.9:
     dependencies:
       pump: 3.0.2
       tar-stream: 3.1.7
@@ -15346,7 +15366,7 @@ snapshots:
     dependencies:
       b4a: 1.6.7
       fast-fifo: 1.3.2
-      streamx: 2.22.0
+      streamx: 2.22.1
     optional: true
 
   tar@6.2.1:
@@ -15905,5 +15925,8 @@ snapshots:
       zod: 3.24.4
 
   zod@3.24.4: {}
+
+  zod@3.25.64:
+    optional: true
 
   zwitch@2.0.4: {}
