@@ -1,5 +1,5 @@
-import { Tool } from 'ai'
+import { McpTools } from './ai'
 
 export interface Variables {
-  tools: Record<string, Tool>
+  tools: McpTools[]
 }

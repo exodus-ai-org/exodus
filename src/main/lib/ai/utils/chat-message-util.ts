@@ -1,9 +1,8 @@
-import { AdvancedTools, Providers } from '@shared/types/ai'
+import { AdvancedTools, McpTools, Providers } from '@shared/types/ai'
 import {
   CoreAssistantMessage,
   CoreToolMessage,
   LanguageModelV1,
-  Tool,
   ToolSet,
   UIMessage,
   generateText
@@ -80,7 +79,7 @@ export function bindCallingTools({
   advancedTools,
   settings
 }: {
-  mcpTools: Record<string, Tool>
+  mcpTools: McpTools[]
   advancedTools: AdvancedTools[]
   settings: Settings
 }): ToolSet {
@@ -90,8 +89,17 @@ export function bindCallingTools({
     }
   }
 
+  const mcpToolsMap = mcpTools
+    .map((mcpTool) => mcpTool.tools)
+    .reduce((acc, obj) => {
+      if (typeof obj === 'object' && obj !== null) {
+        return { ...acc, ...obj }
+      }
+      return acc
+    }, {})
+
   const tools = {
-    ...mcpTools,
+    ...mcpToolsMap,
     calculator,
     date,
     weather,
