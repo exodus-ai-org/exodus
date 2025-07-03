@@ -183,7 +183,7 @@
     }
 
     p {
-      @apply mb-4 break-words whitespace-pre-wrap;
+      @apply mb-4 break-words whitespace-pre-wrap leading-7;
     }
 
     hr {
