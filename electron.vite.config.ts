@@ -46,6 +46,13 @@ export default defineConfig({
             'renderer',
             'searchbar',
             'index.html'
+          ),
+          shortcutChat: path.resolve(
+            __dirname,
+            'src',
+            'renderer',
+            'shortcut-chat',
+            'index.html'
           )
         }
       }

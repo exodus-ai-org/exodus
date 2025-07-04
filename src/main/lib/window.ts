@@ -1,10 +1,12 @@
 import { is } from '@electron-toolkit/utils'
-import { BrowserWindow, WebContentsView, shell } from 'electron'
+import { BrowserWindow, WebContentsView, app, screen, shell } from 'electron'
 import { join } from 'path'
 import icon from '../../../resources/icon.png?asset'
 
 let mainWindow: BrowserWindow | null = null
 let searchView: WebContentsView | null = null
+let shortcutChatView: BrowserWindow | null = null
+let isQuitting = false
 
 export function createWindow(): void {
   mainWindow = new BrowserWindow({
@@ -25,13 +27,28 @@ export function createWindow(): void {
     mainWindow?.show()
   })
 
+  app.on('before-quit', () => {
+    isQuitting = true
+  })
+
+  app.on('activate', () => {
+    mainWindow?.show()
+  })
+
+  mainWindow.on('close', (event) => {
+    if (!isQuitting) {
+      event.preventDefault()
+      mainWindow?.hide()
+    }
+  })
+
   mainWindow.webContents.setWindowOpenHandler((details) => {
     shell.openExternal(details.url)
     return { action: 'deny' }
   })
 
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
-    mainWindow.loadURL(process.env['ELECTRON_RENDERER_URL'])
+  if (is.dev && process.env.ELECTRON_RENDERER_URL) {
+    mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL)
     mainWindow.webContents.openDevTools({ mode: 'undocked' })
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
@@ -58,9 +75,9 @@ export function registerSearchMenu(mainWindow: BrowserWindow) {
   })
   mainWindow?.contentView.addChildView(searchView)
 
-  if (is.dev && process.env['ELECTRON_RENDERER_URL']) {
+  if (is.dev && process.env.ELECTRON_RENDERER_URL) {
     searchView.webContents.loadURL(
-      process.env['ELECTRON_RENDERER_URL'] + '/searchbar/index.html'
+      process.env.ELECTRON_RENDERER_URL + '/searchbar/index.html'
     )
   } else {
     searchView.webContents.loadFile(
@@ -90,6 +107,43 @@ export function registerSearchMenu(mainWindow: BrowserWindow) {
   })
 }
 
+export function registerShortcutChat() {
+  if (shortcutChatView) return
+
+  shortcutChatView = new BrowserWindow({
+    frame: false,
+    transparent: true,
+    resizable: false,
+    movable: false,
+    hasShadow: true,
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false,
+      transparent: true,
+      preload: join(__dirname, '../preload/index.js')
+    }
+  })
+
+  const display = screen.getPrimaryDisplay()
+  const { width, height } = display.workArea
+  shortcutChatView.setBounds({
+    x: (width - 600) / 2,
+    y: height * 0.32,
+    width: 600,
+    height: 54
+  })
+
+  if (is.dev && process.env.ELECTRON_RENDERER_URL) {
+    shortcutChatView.webContents.loadURL(
+      process.env.ELECTRON_RENDERER_URL + '/shortcut-chat/index.html'
+    )
+  } else {
+    shortcutChatView.webContents.loadFile(
+      join(__dirname, '../renderer/shortcut-chat/index.html')
+    )
+  }
+}
+
 export function getMainWindow(): BrowserWindow | null {
   return mainWindow
 }
@@ -100,4 +154,12 @@ export function getSearchView(): WebContentsView | null {
 
 export function setSearchView(view: WebContentsView | null) {
   searchView = view
+}
+
+export function getShortcutChatView(): BrowserWindow | null {
+  return shortcutChatView
+}
+
+export function setShortcutChatView(view: BrowserWindow | null) {
+  shortcutChatView = view
 }

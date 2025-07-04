@@ -6,6 +6,7 @@ import { setupIPC } from './lib/ipc'
 import { setupMenu } from './lib/menu'
 import { connectHttpServer } from './lib/server/app'
 import { setServer } from './lib/server/instance'
+import { setTray } from './lib/tray'
 import { createWindow } from './lib/window'
 
 app.whenReady().then(async () => {
@@ -19,6 +20,9 @@ app.whenReady().then(async () => {
 
   // Setup menu
   setupMenu()
+
+  // Setup tray
+  setTray()
 
   // Set app user model id for windows
   electronApp.setAppUserModelId('app.yancey.exodus')

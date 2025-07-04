@@ -2,7 +2,10 @@ import { advancedToolsAtom } from '@/stores/chat'
 import { useChat } from '@ai-sdk/react'
 import { BASE_URL } from '@shared/constants/systems'
 import type { UIMessage } from 'ai'
+import { IpcRendererEvent } from 'electron'
 import { useAtomValue } from 'jotai'
+import { useEffect } from 'react'
+import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { mutate } from 'swr'
 import { v4 as uuidV4 } from 'uuid'
@@ -15,6 +18,10 @@ interface Props {
 }
 
 export function Chat({ id, initialMessages }: Props) {
+  const navigate = useNavigate()
+  const shortcutChatInput = window.localStorage.getItem(
+    'exodus_shortcutChatInput'
+  )
   const advancedTools = useAtomValue(advancedToolsAtom)
   const {
     messages,
@@ -32,6 +39,7 @@ export function Chat({ id, initialMessages }: Props) {
       advancedTools
     },
     id,
+    initialInput: shortcutChatInput ?? undefined,
     initialMessages,
     experimental_throttle: 100,
     sendExtraMessageFields: true,
@@ -45,6 +53,34 @@ export function Chat({ id, initialMessages }: Props) {
       )
     }
   })
+
+  useEffect(() => {
+    const shortcutChatInputHandler = async (
+      _: IpcRendererEvent,
+      input: string
+    ) => {
+      await window.electron.ipcRenderer.invoke('bring-window-to-front')
+      window.localStorage.setItem('exodus_shortcutChatInput', input)
+      window.location.href = '/'
+    }
+
+    const removeListener = window.electron.ipcRenderer.on(
+      'shortcut-chat-input',
+      shortcutChatInputHandler
+    )
+
+    return () => {
+      removeListener()
+    }
+  }, [handleSubmit, id, setInput])
+
+  useEffect(() => {
+    if (shortcutChatInput) {
+      navigate(`/chat/${id}`, { replace: true })
+      handleSubmit(undefined, {})
+      window.localStorage.removeItem('exodus_shortcutChatInput')
+    }
+  }, [handleSubmit, id, navigate, shortcutChatInput])
 
   return (
     <>

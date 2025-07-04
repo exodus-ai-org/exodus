@@ -1,7 +1,13 @@
-import { ipcMain } from 'electron'
+import { app, ipcMain } from 'electron'
 import { connectHttpServer } from '../server/app'
 import { getServer, setServer } from '../server/instance'
-import { getMainWindow, getSearchView, setSearchView } from '../window'
+import {
+  getMainWindow,
+  getSearchView,
+  getShortcutChatView,
+  setSearchView,
+  setShortcutChatView
+} from '../window'
 
 export function setupIPC() {
   ipcMain.on('ping', () => console.log('pong'))
@@ -52,5 +58,34 @@ export function setupIPC() {
       setSearchView(null)
       getMainWindow()?.webContents.stopFindInPage('clearSelection')
     }
+  })
+
+  ipcMain.handle('close-shortcut-chat', () => {
+    const shortcutChatView = getShortcutChatView()
+    if (shortcutChatView) {
+      shortcutChatView.destroy()
+      setShortcutChatView(null)
+    }
+  })
+
+  ipcMain.handle('transfer-shortcut-chat', (_, input: string) => {
+    getMainWindow()?.webContents.send('shortcut-chat-input', input)
+  })
+
+  ipcMain.handle('bring-window-to-front', () => {
+    const mainWindow = getMainWindow()
+    if (!mainWindow) return
+
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore()
+    }
+
+    if (!mainWindow.isVisible()) {
+      mainWindow.show()
+    }
+
+    mainWindow.focus()
+
+    app.focus({ steal: true })
   })
 }
