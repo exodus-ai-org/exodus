@@ -148,9 +148,9 @@ export function PlacesAccordion({
                       </TabsList>
 
                       <TabsContent value="photos">
-                        <div className="mb-4 grid grid-cols-5 gap-2">
-                          {place.photos && place.photos.length > 0 ? (
-                            place.photos.map((photo, index) => (
+                        {place.photos && place.photos.length > 0 ? (
+                          <div className="mb-4 grid grid-cols-5 gap-2">
+                            {place.photos.map((photo, index) => (
                               <div
                                 key={index}
                                 className="relative aspect-square overflow-hidden rounded-md"
@@ -162,13 +162,13 @@ export function PlacesAccordion({
                                   />
                                 </Zoom>
                               </div>
-                            ))
-                          ) : (
-                            <p className="col-span-3 py-4 text-center text-gray-500">
-                              No photos yet
-                            </p>
-                          )}
-                        </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="col-span-3 py-4 text-center text-gray-500">
+                            No photos yet
+                          </p>
+                        )}
                       </TabsContent>
 
                       <TabsContent value="reviews">

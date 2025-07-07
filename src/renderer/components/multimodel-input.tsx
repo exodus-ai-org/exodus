@@ -12,7 +12,6 @@ import {
   useRef,
   useState
 } from 'react'
-import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { AdvancedTools as AdvancedToolsType } from './advanced-tools'
 import { AudioRecorder } from './audio-recoder'
@@ -39,7 +38,6 @@ function InputBox({
   status: UseChatHelpers['status']
   stop: UseChatHelpers['stop']
 }) {
-  const navigate = useNavigate()
   const [attachments, setAttachments] = useAtom(attachmentAtom)
   const { uploadFile } = useUpload()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -84,7 +82,7 @@ function InputBox({
   }
 
   const submitForm = useCallback(() => {
-    navigate(`/chat/${chatId}`, { replace: true })
+    window.history.replaceState({}, '', `/chat/${chatId}`)
     handleSubmit(undefined, { experimental_attachments: attachments })
     setAttachments(undefined)
     resetHeight()
