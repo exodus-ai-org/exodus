@@ -5,6 +5,7 @@ import { UseChatHelpers } from '@ai-sdk/react'
 import { AnimatePresence } from 'framer-motion'
 import { throttle } from 'lodash-es'
 import { Fragment, memo, useEffect, useRef } from 'react'
+import Zoom from 'react-medium-image-zoom'
 import Markdown from './markdown'
 import { MessageAction } from './massage-action'
 import { MessageReasoning } from './message-reasoning'
@@ -148,36 +149,41 @@ function Messages({
                 </div>
               )}
               {message.role === 'user' && (
-                <p
-                  className={cn(
-                    'bg-accent max-w-[60%] rounded-xl px-3 py-2 break-words whitespace-pre-wrap',
-                    { ['w-[23rem]']: isArtifactVisible }
-                  )}
-                >
-                  {Array.isArray(message.experimental_attachments) &&
-                    message.experimental_attachments.length > 0 &&
-                    message.experimental_attachments.map((attachment) => {
-                      if (attachment.contentType?.startsWith('image')) {
-                        return (
-                          <img
-                            className="mb-4 max-h-48"
-                            key={attachment.name}
-                            src={attachment.url}
-                            alt={attachment.name}
-                          />
-                        )
+                <>
+                  <div className="mb-4 flex gap-4">
+                    {Array.isArray(message.experimental_attachments) &&
+                      message.experimental_attachments.length > 0 &&
+                      message.experimental_attachments.map((attachment) => {
+                        if (attachment.contentType?.startsWith('image')) {
+                          return (
+                            <Zoom key={attachment.name}>
+                              <img
+                                className="max-h-96 max-w-64 rounded-lg object-cover"
+                                src={attachment.url}
+                                alt={attachment.name}
+                              />
+                            </Zoom>
+                          )
+                        }
+
+                        return null
+                      })}
+                  </div>
+                  <p
+                    className={cn(
+                      'bg-accent max-w-[60%] rounded-xl px-3 py-2 break-words whitespace-pre-wrap',
+                      { ['w-[23rem]']: isArtifactVisible }
+                    )}
+                  >
+                    {message.parts.map((part) => {
+                      if (part.type === 'text' && part.text !== '') {
+                        return part.text
                       }
 
                       return null
                     })}
-                  {message.parts.map((part) => {
-                    if (part.type === 'text' && part.text !== '') {
-                      return part.text
-                    }
-
-                    return null
-                  })}
-                </p>
+                  </p>
+                </>
               )}
             </div>
           ))}

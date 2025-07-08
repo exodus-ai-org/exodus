@@ -13,7 +13,6 @@ import { useSettings } from '@/hooks/use-settings'
 import { protos } from '@googlemaps/places'
 import { Globe, MapPin, Phone, Star } from 'lucide-react'
 import Zoom from 'react-medium-image-zoom'
-import 'react-medium-image-zoom/dist/styles.css'
 
 interface RestaurantAccordionProps {
   places: protos.google.maps.places.v1.IPlace[]

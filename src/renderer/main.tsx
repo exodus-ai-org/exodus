@@ -4,6 +4,7 @@ import { router } from '@/routes'
 import { fetcher } from '@shared/utils/http'
 import { Provider } from 'jotai'
 import ReactDOM from 'react-dom/client'
+import 'react-medium-image-zoom/dist/styles.css'
 import { RouterProvider } from 'react-router'
 import { SWRConfig } from 'swr'
 
