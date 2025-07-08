@@ -95,7 +95,7 @@ function InputBox({
   }, [])
 
   return (
-    <div className="border-input mx-auto mb-4 flex w-[calc(100%-2rem)] flex-col gap-2 rounded-2xl border p-1 shadow-sm md:max-w-3xl">
+    <div className="mx-auto mb-4 flex w-[calc(100%-2rem)] flex-col gap-2 rounded-4xl border p-3 shadow-2xl md:max-w-3xl">
       <form>
         <FilePreview />
         <Textarea

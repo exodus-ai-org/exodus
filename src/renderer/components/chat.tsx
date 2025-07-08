@@ -1,5 +1,6 @@
 import { advancedToolsAtom } from '@/stores/chat'
 import { useChat } from '@ai-sdk/react'
+import { SHORTCUT_CHAT_KEY } from '@shared/constants/misc'
 import { BASE_URL } from '@shared/constants/systems'
 import type { UIMessage } from 'ai'
 import { IpcRendererEvent } from 'electron'
@@ -17,9 +18,7 @@ interface Props {
 }
 
 export function Chat({ id, initialMessages }: Props) {
-  const shortcutChatInput = window.localStorage.getItem(
-    'exodus_shortcutChatInput'
-  )
+  const shortcutChat = window.localStorage.getItem(SHORTCUT_CHAT_KEY)
   const advancedTools = useAtomValue(advancedToolsAtom)
   const {
     messages,
@@ -37,7 +36,7 @@ export function Chat({ id, initialMessages }: Props) {
       advancedTools
     },
     id,
-    initialInput: shortcutChatInput ?? undefined,
+    initialInput: shortcutChat ?? undefined,
     initialMessages,
     experimental_throttle: 100,
     sendExtraMessageFields: true,
@@ -58,7 +57,7 @@ export function Chat({ id, initialMessages }: Props) {
       input: string
     ) => {
       await window.electron.ipcRenderer.invoke('bring-window-to-front')
-      window.localStorage.setItem('exodus_shortcutChatInput', input)
+      window.localStorage.setItem(SHORTCUT_CHAT_KEY, input)
       window.location.href = '/'
     }
 
@@ -73,12 +72,12 @@ export function Chat({ id, initialMessages }: Props) {
   }, [handleSubmit, id, setInput])
 
   useEffect(() => {
-    if (shortcutChatInput) {
+    if (shortcutChat) {
       window.history.replaceState({}, '', `/chat/${id}`)
       handleSubmit(undefined, {})
-      window.localStorage.removeItem('exodus_shortcutChatInput')
+      window.localStorage.removeItem(SHORTCUT_CHAT_KEY)
     }
-  }, [handleSubmit, id, shortcutChatInput])
+  }, [handleSubmit, id, shortcutChat])
 
   return (
     <>

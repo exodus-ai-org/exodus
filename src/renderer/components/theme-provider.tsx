@@ -29,7 +29,7 @@ export function ThemeProvider({
   ...props
 }: ThemeProviderProps) {
   const [theme, setTheme] = useState<Theme>(
-    () => (localStorage.getItem(storageKey) as Theme) || defaultTheme
+    () => (window.localStorage.getItem(storageKey) as Theme) || defaultTheme
   )
   const [actualTheme, setActualTheme] =
     useState<Exclude<Theme, 'system'>>('light')
@@ -70,7 +70,7 @@ export function ThemeProvider({
     theme,
     actualTheme,
     setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme)
+      window.localStorage.setItem(storageKey, theme)
       setTheme(theme)
     }
   }
