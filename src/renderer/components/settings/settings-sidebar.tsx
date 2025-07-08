@@ -26,9 +26,7 @@ export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
     const el = containerRef.current
     if (!el) return
 
-    const isBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 1
-
-    setIsBottom(isBottom)
+    setIsBottom(el.scrollTop + el.clientHeight >= el.scrollHeight - 1)
   }
 
   return (
@@ -38,9 +36,9 @@ export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
         ref={containerRef}
         onScroll={handleScroll}
       >
-        <SidebarGroup>
+        <SidebarGroup className="pt-0">
           <SidebarMenu>
-            <SidebarMenuItem className="bg-sidebar sticky top-0 z-10">
+            <SidebarMenuItem className="bg-sidebar sticky top-0 z-10 p-2 pb-0">
               <SidebarMenuButton size="lg" asChild>
                 <div>
                   <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">

@@ -4,7 +4,7 @@ import { Settings } from '@shared/types/db'
 export function getAnthropicClaude(settings: Settings) {
   const anthropic = createAnthropic({
     apiKey: settings.providers?.anthropicApiKey ?? '',
-    baseURL: settings.providers?.anthropicBaseUrl ?? undefined
+    baseURL: settings.providers?.anthropicBaseUrl || undefined
   })
 
   return {
