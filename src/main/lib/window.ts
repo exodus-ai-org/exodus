@@ -14,6 +14,13 @@ export function createWindow(): void {
     height: 960,
     show: false,
     autoHideMenuBar: true,
+    frame: false,
+    title: '',
+    titleBarStyle: 'hidden',
+    trafficLightPosition: {
+      x: 16,
+      y: 16
+    },
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
@@ -49,7 +56,7 @@ export function createWindow(): void {
 
   if (is.dev && process.env.ELECTRON_RENDERER_URL) {
     mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL)
-    mainWindow.webContents.openDevTools({ mode: 'undocked' })
+    mainWindow.webContents.openDevTools({ mode: 'right' })
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }

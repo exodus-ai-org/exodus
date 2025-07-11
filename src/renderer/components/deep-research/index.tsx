@@ -132,7 +132,8 @@ export function DeepResearchProcess() {
       const $el = ref.current
       $el.scrollTo({
         top: $el.scrollHeight,
-        left: 0
+        left: 0,
+        behavior: 'smooth'
       })
     }
   }, [deepResearchMessages])

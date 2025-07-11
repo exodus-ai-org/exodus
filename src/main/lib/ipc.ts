@@ -1,13 +1,13 @@
 import { app, ipcMain } from 'electron'
-import { connectHttpServer } from '../server/app'
-import { getServer, setServer } from '../server/instance'
+import { connectHttpServer } from './server/app'
+import { getServer, setServer } from './server/instance'
 import {
   getMainWindow,
   getSearchView,
   getShortcutChatView,
   setSearchView,
   setShortcutChatView
-} from '../window'
+} from './window'
 
 export function setupIPC() {
   ipcMain.on('ping', () => console.log('pong'))
@@ -87,5 +87,22 @@ export function setupIPC() {
     mainWindow.focus()
 
     app.focus({ steal: true })
+  })
+
+  ipcMain.handle(
+    'check-fullscreen',
+    () => getMainWindow()?.isFullScreen() ?? false
+  )
+
+  ipcMain.handle('subscribe-fullscreen-change', () => {
+    const win = getMainWindow()
+    if (!win) return
+
+    const send = (isFullscreen: boolean) => {
+      win.webContents.send('fullscreen-changed', isFullscreen)
+    }
+
+    win.on('enter-full-screen', () => send(true))
+    win.on('leave-full-screen', () => send(false))
   })
 }

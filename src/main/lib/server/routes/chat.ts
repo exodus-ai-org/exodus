@@ -113,7 +113,7 @@ chat.post('/', async (c) => {
         messages,
         maxSteps: settings.providerConfig?.maxSteps ?? 1,
         tools: bindCallingTools({ mcpTools, advancedTools, settings }),
-        experimental_transform: smoothStream(),
+        experimental_transform: smoothStream({ chunking: 'word' }),
         experimental_generateMessageId: uuidV4,
         experimental_continueSteps: true,
         onFinish: async ({ response }) => {
