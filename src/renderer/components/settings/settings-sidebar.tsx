@@ -7,27 +7,38 @@ import {
   SidebarMenuItem,
   SidebarMenuSub,
   SidebarMenuSubButton,
-  SidebarMenuSubItem,
-  SidebarRail
+  SidebarMenuSubItem
 } from '@/components/ui/sidebar'
+import { cn } from '@/lib/utils'
 import { settingsLabelAtom } from '@/stores/settings'
 import { useAtom } from 'jotai'
 import { Bot } from 'lucide-react'
-import * as React from 'react'
+import { ComponentProps, useRef, useState } from 'react'
 import { version } from '../../../../package.json'
 import { schema } from './settings-schema'
 
-export function SettingsSidebar({
-  ...props
-}: React.ComponentProps<typeof Sidebar>) {
+export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
+  const containerRef = useRef<HTMLDivElement | null>(null)
   const [active, setActive] = useAtom(settingsLabelAtom)
+  const [isBottom, setIsBottom] = useState(false)
+
+  const handleScroll = () => {
+    const el = containerRef.current
+    if (!el) return
+
+    setIsBottom(el.scrollTop + el.clientHeight >= el.scrollHeight - 1)
+  }
 
   return (
     <Sidebar {...props} className="max-h-[498px] select-none">
-      <SidebarContent className="h-[300px]">
-        <SidebarGroup>
+      <SidebarContent
+        className="no-scrollbar h-[300px]"
+        ref={containerRef}
+        onScroll={handleScroll}
+      >
+        <SidebarGroup className="pt-0">
           <SidebarMenu>
-            <SidebarMenuItem className="bg-sidebar sticky top-0 z-10">
+            <SidebarMenuItem className="bg-sidebar sticky top-0 z-10 p-2 pb-0">
               <SidebarMenuButton size="lg" asChild>
                 <div>
                   <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
@@ -71,7 +82,12 @@ export function SettingsSidebar({
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarRail />
+      <div
+        className={cn(
+          'from-card pointer-events-none visible absolute bottom-0 left-0 h-25 w-full bg-gradient-to-t to-transparent opacity-100 transition',
+          { ['invisible opacity-0 transition']: isBottom }
+        )}
+      />
     </Sidebar>
   )
 }

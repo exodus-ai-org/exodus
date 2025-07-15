@@ -20,9 +20,6 @@ importers:
       '@ai-sdk/openai':
         specifier: ^1.3.16
         version: 1.3.22(zod@3.24.4)
-      '@ai-sdk/react':
-        specifier: ^1.2.9
-        version: 1.2.12(react@19.1.0)(zod@3.24.4)
       '@ai-sdk/xai':
         specifier: ^1.2.11
         version: 1.2.16(zod@3.24.4)
@@ -102,6 +99,9 @@ importers:
         specifier: ^3.24.3
         version: 3.24.4
     devDependencies:
+      '@ai-sdk/react':
+        specifier: ^1.2.9
+        version: 1.2.12(react@19.1.0)(zod@3.24.4)
       '@codesandbox/sandpack-react':
         specifier: ^2.20.0
         version: 2.20.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -12617,7 +12617,7 @@ snapshots:
       isstream: 0.1.2
       jsonwebtoken: 9.0.2
       mime-types: 2.1.35
-      retry-axios: 2.6.0(axios@1.9.0)
+      retry-axios: 2.6.0(axios@1.9.0(debug@4.4.1))
       tough-cookie: 4.1.4
     transitivePeerDependencies:
       - supports-color
@@ -14762,7 +14762,7 @@ snapshots:
       onetime: 7.0.0
       signal-exit: 4.1.0
 
-  retry-axios@2.6.0(axios@1.9.0):
+  retry-axios@2.6.0(axios@1.9.0(debug@4.4.1)):
     dependencies:
       axios: 1.9.0(debug@4.4.1)
 

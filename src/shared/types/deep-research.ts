@@ -8,6 +8,7 @@ export interface ResearchResult {
 export interface Learning {
   learning: string
   citations: number[]
+  image: string | null
 }
 
 export interface QueryWithResearchGoal {

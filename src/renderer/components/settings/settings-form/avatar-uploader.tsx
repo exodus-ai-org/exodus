@@ -1,5 +1,6 @@
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
+import { useSettings } from '@/hooks/use-settings'
 import { convertFileToBase64 } from '@/lib/utils'
 import { AlertCircle, Edit, Trash } from 'lucide-react'
 import { ChangeEvent, useRef } from 'react'
@@ -13,17 +14,28 @@ export function AvatarUploader<T extends FieldValues>({
 }) {
   const ref = useRef<HTMLInputElement | null>(null)
   const { field } = useController(props)
+  const { data: settings, updateSetting } = useSettings()
 
   const handleEditorChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    if (!settings) return
+
     const file = e.target.files?.[0]
     if (file) {
       const base64 = await convertFileToBase64(file)
       field.onChange(base64)
+      updateSetting({ ...settings, assistantAvatar: base64 })
     }
 
     if (ref.current) {
       ref.current.value = ''
     }
+  }
+
+  const handleRemove = () => {
+    if (!settings) return
+
+    field.onChange('')
+    updateSetting({ ...settings, assistantAvatar: '' })
   }
 
   return (
@@ -68,7 +80,7 @@ export function AvatarUploader<T extends FieldValues>({
           <Button
             variant="destructive"
             className="absolute top-48 w-fit cursor-pointer"
-            onClick={() => field.onChange('')}
+            onClick={handleRemove}
           >
             <Trash />
             Remove

@@ -124,7 +124,7 @@ export function WeatherCard({
                   {location.areaName[0].value}, {location.country[0].value}
                 </h2>
                 <p className="text-sm opacity-90">
-                  {current.localObsDateTime} (Local Time)
+                  {current.localObsDateTime} (Local Obs Time)
                 </p>
               </div>
               <motion.div

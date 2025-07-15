@@ -169,6 +169,17 @@
     display: inline-block;
   }
 
+  .draggable {
+    app-region: drag;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+  }
+
+  .no-draggable {
+    app-region: no-drag;
+  }
+
   .markdown {
     h1 {
       @apply mb-4 text-3xl font-bold;
@@ -183,7 +194,7 @@
     }
 
     p {
-      @apply mb-4 break-words whitespace-pre-wrap;
+      @apply mb-4 leading-7 break-words whitespace-pre-wrap;
     }
 
     hr {
@@ -192,7 +203,7 @@
 
     ol,
     ul {
-      @apply my-4 pl-6;
+      @apply mb-4 pl-6;
     }
 
     ol {

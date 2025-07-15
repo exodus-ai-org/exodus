@@ -4,7 +4,7 @@ import { Settings } from '@shared/types/db'
 export function getGoogleGemini(settings: Settings) {
   const google = createGoogleGenerativeAI({
     apiKey: settings.providers?.googleGeminiApiKey ?? '',
-    baseURL: settings.providers?.googleGeminiBaseUrl ?? undefined
+    baseURL: settings.providers?.googleGeminiBaseUrl || undefined
   })
 
   return {

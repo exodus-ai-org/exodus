@@ -7,9 +7,8 @@ import {
 } from '@/components/ui/sidebar'
 import { isSettingsVisibleAtom } from '@/stores/settings'
 import { useSetAtom } from 'jotai'
-import { Folders, Settings } from 'lucide-react'
+import { Settings } from 'lucide-react'
 import React from 'react'
-import { Link } from 'react-router'
 
 export function NavFooter({
   ...props
@@ -21,12 +20,6 @@ export function NavFooter({
       <SidebarGroupContent>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link to="/file-system">
-                <Folders />
-                File System
-              </Link>
-            </SidebarMenuButton>
             <SidebarMenuButton
               onClick={() => setSettingsDialogVisible(true)}
               className="cursor-pointer"

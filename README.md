@@ -1,98 +1,130 @@
 # Exodus
 
+
 ![Exodus](./screenshots/screenshots.jpg)
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fexodus-ai-org%2Fexodus.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fexodus-ai-org%2Fexodus?ref=badge_shield)
 
 [![CodeQL](https://github.com/HyperChatBot/exodus/actions/workflows/github-code-scanning/codeql/badge.svg?branch=master)](https://github.com/HyperChatBot/exodus/actions/workflows/github-code-scanning/codeql)
-[![Release](https://github.com/HyperChatBot/exodus/actions/workflows/cross-platform-release.yml/badge.svg)](https://github.com/HyperChatBot/exodus/actions/workflows/cross-platform-release.yml)
-[![Test](https://github.com/HyperChatBot/exodus/actions/workflows/cross-platform-test.yml/badge.svg)](https://github.com/HyperChatBot/exodus/actions/workflows/cross-platform-test.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Code Style](https://img.shields.io/badge/code%20style-prettier-green)](https://prettier.io/)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-green.svg)](https://github.com/HyperChatBot/exodus/pulls)
-[![Node](https://img.shields.io/badge/Node.js-%3E%3D18.19.0-green.svg)](https://nodejs.org/en/)
-[![Rust](https://img.shields.io/badge/Rust-%3E%3D1.81.0-orange.svg)](https://nodejs.org/en/)
-[![Version](https://img.shields.io/badge/Version-v2.0.1-blue.svg)](https://nodejs.org/en/)
-[![Twitter](https://img.shields.io/badge/Twitter-Connect-brightgreen?logo=twitter)](https://twitter/YanceyOfficial)
+[![Release](https://github.com/exodus-ai-org/exodus/actions/workflows/release.yml/badge.svg)](https://github.com/exodus-ai-org/exodus/actions/workflows/release.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Code Style](https://img.shields.io/badge/Code%20Style-prettier-blue)](https://prettier.io/)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/HyperChatBot/exodus/pulls)
+[![Node](https://img.shields.io/badge/Node.js-%3E%3D20.18.0-brightgreen.svg)](https://nodejs.org/en/)
+[![Chat](https://img.shields.io/badge/Chat-Discord-blue?style=flat&logo=discord)](https://twitter/YanceyOfficial)
 
 ## Introduction
 
-Exodus is a high-performance cross-platform AI chat application for desktop that is compatible with both OpenAI and Azure OpenAI services' APIs. In addition, Exodus also provides features such as Text Completion, Image Generation, Audio Transcription, and Audio Translation.
+Exodus is a high-performance, cross-platform AI chat application for desktop that is compatible with a variety of model providers.
 
-## To start using Exodus
+## Model Providers
 
-You can download Exodus on our [Landing Page](https://exodus.yancey.app), or manual download on [GitHub Release](https://github.com/HyperChatBot/exodus/releases/).
+> [!NOTE]
+> Exodus updates its model provider list as the providers are updated. The following table lists the currently supported chat and reasoning models.
 
-We always keep the dev tools(eg: Command + Option + I) open in the production environment. In Exodus, everything is transparent and controllable.
+| Provider         | Chat Models                                                                 | Reasoning Models                        |
+| ---------------- | --------------------------------------------------------------------------- | --------------------------------------- |
+| OpenAI GPT       | gpt-4.1, gpt-4.1-mini, gpt-4.1-nano, gpt-4o, gpt-4o-mini, chatgpt-4o-latest | o4-mini, o3-mini, o3, o1, o1-pro        |
+| Azure OpenAI     | gpt-4.1, gpt-4.1-mini, gpt-4.1-nano, gpt-4o, gpt-4o-mini, chatgpt-4o-latest | o4-mini, o3-mini, o3, o1, o1-pro        |
+| Google Gemini    | gemini-2.5-flash-preview-05-20                                              | gemini-2.5-pro-preview-05-06            |
+| Xai Grok         | grok-3-beta, grok-3-fast-beta                                               | grok-3-mini-beta, grok-3-mini-fast-beta |
+| Anthropic Claude | claude-3-5-haiku-latest, claude-3-5-sonnet-latest                           | claude-3-7-sonnet-latest                |
+| Ollama           | Based on your own Ollama service                                            | Based on your own Ollama service        |
+
+## Core Features
+
+### Daily Chat
+
+Exodus offers a seamless chat experience, allowing users to engage in natural conversations with the AI. The chat interface is intuitive and user-friendly, making it easy to ask questions and receive informative responses.
+
+### Deep Research
+
+This system analyzes the user’s query and research parameters (breadth and depth) and generates follow-up questions to refine the research intent. It then conducts a deep research process by issuing multiple search queries, extracting key insights, and identifying new research directions. If deeper exploration is required, it recursively continues based on previous findings while maintaining context. Finally, it compiles all results into a structured, source-cited Markdown report that presents the information clearly and comprehensively.
+
+### Built-in Calling Tools
+
+#### Web Search
+
+Exodus supports built-in web search using [Serper](https://serper.dev/) to retrieve Google Search results. To use this feature, you must first register for a Serper API key and add it in the settings.
+
+#### Weather
+
+Exodus supports built-in weather search using [Serper](https://serper.dev/) to retrieve weather information. To use this feature, you must first register for a Serper API key and add it in the settings.
+
+#### Google Maps Routing
+
+Exodus supports built-in Google Maps routing using [Serper](https://serper.dev/) to retrieve directions and location information. To use this feature, you must first register for a Serper API key and add it in the settings.
+
+#### Google Maps Place
+
+Exodus supports built-in Google Maps Place using [Serper](https://serper.dev/) to retrieve place information. To use this feature, you must first register for a Serper API key and add it in the settings.
+
+#### Image Generation
+
+The image generation service only supports OpenAI. Please make sure you have configured the OpenAI API settings correctly before using this feature.
+
+### Audio and Speech
+
+The text-to-speech and speech-to-text services only support OpenAI. Please make sure you have configured the OpenAI API settings correctly before using these features.
+
+### MCP
+
+- **Cross-Platform**: Exodus is built using Electron, ensuring a consistent experience across macOS, Windows, and Linux.
+
+## Getting Started with Exodus
+
+You can download Exodus from our [homepage](https://exodus.yancey.app) or manually from [GitHub Releases](https://github.com/HyperChatBot/exodus/releases/).
+
+We always keep the developer tools (e.g., <kbd>Command</kbd> + <kbd>Option</kbd> + <kbd>I</kbd>) open in the production environment. In Exodus, everything is transparent and controllable.
 
 ### macOS
 
-As Exodus is not planning to be released on the App Store, you may encounter the following issue when you open it for the first time. Please follow the steps below to resolve it:
+Since Exodus is not available on the App Store, you may encounter the following issue when you open it for the first time. Please follow the steps below to resolve it:
 
-![can't-be-oepn-in-macos](./screenshots/can't-be-oepn-in-macos.png)
+![cant-be-open-in-macos](./screenshots/cant-be-open-in-macos.png)
 
-1. Move the Exodus.app to the /Applications directory.
-2. Open your terminal App, execute the command `chmod +x /Applications/Hyper\ Chat.app/Contents/MacOS/Hyper\ Chat`.
+1. Move `Exodus.app` to the `/Applications` directory.
+2. Open your terminal app and execute the command `chmod +x /Applications/Exodus.app/Contents/MacOS/Exodus`.
 
-## To start developing Exodus
+## Developing Exodus
 
 ### Prerequisites
 
-We have chosen [Tauri](https://tauri.app/) as our cross-platform base. Please make sure that [Rust](https://www.rust-lang.org/) is installed on your system.
-
-Then, to install Tauri CLI globally, please follow the tutorial on [create-tauri-app](https://github.com/tauri-apps/create-tauri-app). We recommend using `cargo install tauri-cli`.
-
-Additionally, we use [React](https://react.dev/) + [Vite](https://vitejs.dev/) for rendering and packaging pages, so please install [Node.js](https://nodejs.org/en) and [pnpm](https://pnpm.io/) globally in advance.
-
-### Recommended IDE Setup
-
-- [VS Code](https://code.visualstudio.com/)
-- [Tauri](https://marketplace.visualstudio.com/items?itemName=tauri-apps.tauri-vscode)
-- [rust-analyzer](https://marketplace.visualstudio.com/items?itemName=rust-lang.rust-analyzer)
-- [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
-- [Tailwind CSS IntelliSense](https://marketplace.visualstudio.com/items?itemName=bradlc.vscode-tailwindcss)
-- [Eslint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
+We have chosen [Electron](https://www.electronjs.org/) as our cross-platform framework. Make sure that [Node.js](https://nodejs.org/) and [pnpm](https://pnpm.io/) are installed on your system.
 
 ### Available Scripts
 
-- To start tauri development window, you can execute `cargo tauri dev`.
-- To build the bundle, you can execute `cargo tauri build`.
+- To start the development server, run `pnpm dev`.
+- To build the application for macOS, run `pnpm build:mac`.
+- To build the application for Linux, run `pnpm build:linux`.
+- To build the application for Windows, run `pnpm build:win`.
 
 ## Contributing
 
-The main purpose of this repository is to continue to evolve Exodus, making it faster and easier to use. Development of Exodus happens in the open on GitHub, and we are grateful to the community for contributing bugfixes and improvements. Read below to learn how you can take part in improving Exodus.
+The main purpose of this repository is to continue to evolve Exodus, making it faster and easier to use. The development of Exodus happens in the open on GitHub, and we are grateful to the community for contributing bug fixes and improvements. Read below to learn how you can take part in improving Exodus.
 
 ### [Code of Conduct](./CODE_OF_CONDUCT.md)
 
-Exodus has adopted a Code of Conduct that we expect project participants to adhere to. Please read [the full text](./CODE_OF_CONDUCT.md) so that you can understand what actions will and will not be tolerated.
+Exodus has adopted a Code of Conduct that we expect project participants to adhere to. Please read the [full text](./CODE_OF_CONDUCT.md) so that you can understand what actions will and will not be tolerated.
 
 ### [Contributing Guide](./CONTRIBUTING.md)
 
-Read our [contributing guide](./CONTRIBUTING.md) to learn about our development process, how to propose bugfixes and improvements, and how to build and test your changes to Exodus.
+Read our [contributing guide](./CONTRIBUTING.md) to learn about our development process, how to propose bug fixes and improvements, and how to build and test your changes to Exodus.
 
 ### Good Issues
 
 Please make sure to read the [Issue Reporting Checklist](./.github/ISSUE_TEMPLATE/bug_report.md) before opening an issue. Issues not conforming to the guidelines may be closed immediately.
 
-## Upgrade Plans
-
-We are continuously working to enhance Exodus's capabilities and performance. Here are some of the features and upgrades that we plan to add in the future releases:
-
-- Support function call and plugin
-- Support audio input
-- Support for Claude, Gemini, Llama and so on
-- Improve Performance
-
 ## Discussions
 
 If you have any questions or feedback about Exodus, please visit our [official discussion forum](https://github.com/orgs/HyperChatBot/discussions/71) to start a conversation with our team or other users. We are committed to making Exodus the best possible chat application, and your feedback plays a crucial role in achieving this goal.
 
-## Thanks
+## Acknowledgements
 
-The UI design is inspired by [Chat-Web-App-UI-Kit](https://www.figma.com/community/file/1167012734150108159/Chat-Web-App-UI-Kit), Thank you [Figma UI Free](https://www.figma.com/@figmauifree)!
+- The deep research feature is adapted from Dzhng's [deep-research](https://github.com/dzhng/deep-research).
+- The fundamental chat SDK is based on the public template from Vercel's [ai-chatbot](https://github.com/vercel/ai-chatbot).
 
 ## License
 
-Exodus is licensed under the terms of the [MIT licensed](https://opensource.org/licenses/MIT).
-
+Exodus is licensed under the terms of the [MIT License](https://opensource.org/licenses/MIT).
 
 [![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fexodus-ai-org%2Fexodus.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fexodus-ai-org%2Fexodus?ref=badge_large)

@@ -11,7 +11,7 @@ export function Detail() {
   })
 
   if (!id || !messagesFromDb) {
-    window.location.hash = '#/'
+    window.location.href = '/'
     return null
   }
 

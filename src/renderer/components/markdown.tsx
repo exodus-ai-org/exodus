@@ -201,7 +201,7 @@ export function Markdown({
                 {...rest}
                 className={cn(
                   className,
-                  'text-primary bg-accent rounded-[6px] px-[6px] py-[1px] text-xs'
+                  'text-primary bg-accent rounded-sm px-[4.8px] py-[2.4px] text-xs'
                 )}
               >
                 {children}

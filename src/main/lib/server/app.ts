@@ -17,7 +17,7 @@ import toolsRouter from './routes/tools'
 export async function connectHttpServer() {
   console.log('⏳ Registering MCP servers...')
   const tools = await connectMcpServers()
-  console.log('✅ MCP servers have been registered.')
+  console.log('✅ All of the MCP servers have been registered.')
 
   let server: ServerType | null = null
   const app = new Hono<{ Variables: Variables }>()

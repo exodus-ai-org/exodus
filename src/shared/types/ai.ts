@@ -1,3 +1,5 @@
+import { Tool } from 'ai'
+
 export enum Providers {
   OpenAiGpt = 'OpenAI GPT',
   AzureOpenAi = 'Azure OpenAI',
@@ -12,4 +14,9 @@ export enum AdvancedTools {
   Reasoning = 'Reasoning',
   DeepResearch = 'Deep Research',
   Artifacts = 'Artifacts'
+}
+
+export interface McpTools {
+  mcpServerName: string
+  tools: Record<string, Tool>
 }
