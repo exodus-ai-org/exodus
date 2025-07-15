@@ -127,7 +127,7 @@
     "katex": "^0.16.22",
     "lint-staged": "^15.5.0",
     "lodash-es": "^4.17.21",
-    "lucide-react": "^0.506.0",
+    "lucide-react": "^0.525.0",
     "markdown-it": "^14.1.0",
     "monaco-editor": "^0.52.2",
     "postcss": "^8.5.3",
