@@ -110,7 +110,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "dedent": "^1.5.3",
-    "drizzle-kit": "^0.30.6",
+    "drizzle-kit": "^0.31.4",
     "electron": "^35.0.3",
     "electron-builder": "^25.1.8",
     "electron-vite": "^3.1.0",
