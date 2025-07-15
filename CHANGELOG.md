@@ -1,3 +1,27 @@
+# [1.8.0](https://github.com/exodus-ai-org/exodus/compare/v1.7.0...v1.8.0) (2025-07-15)
+
+
+### Bug Fixes
+
+* if baseUrl is an empty string, need to return undefined ([7cc949f](https://github.com/exodus-ai-org/exodus/commit/7cc949fbf2c477505927514915e0fb5f85f7d337))
+* server should be set with reference ([5dd5e01](https://github.com/exodus-ai-org/exodus/commit/5dd5e0103e5774a1136adae7a777cb7ec5ad4f1f))
+* several style bugs ([d7978da](https://github.com/exodus-ai-org/exodus/commit/d7978da5355e912f6efc3007900ad1ce3b8fb48f))
+* typo ([37ac9c7](https://github.com/exodus-ai-org/exodus/commit/37ac9c7c8ab0d810b567b8e60d5b91da766c08c5))
+* update settings when assistantAvatar updated ([9091f61](https://github.com/exodus-ai-org/exodus/commit/9091f615ed1cf8d69f31388ab8e3dec2da467ff3))
+
+
+### Features
+
+* add a mask in SettingsSidebar for better performance ([acd9b68](https://github.com/exodus-ai-org/exodus/commit/acd9b681578cc79123458a19b8969e6e6733f7d9))
+* adjust css of markdown ([e373d1b](https://github.com/exodus-ai-org/exodus/commit/e373d1bfa88e9895828a6cb7e1dfabffca6d2883))
+* delete fs module ([9e5ad74](https://github.com/exodus-ai-org/exodus/commit/9e5ad74f848cfd6e51c210b79407bf479cc4e56e))
+* display images to the final report of deep research ([f16dcfe](https://github.com/exodus-ai-org/exodus/commit/f16dcfe96b9528ddc9809a357a95226cecbc796a))
+* display mcp tool's source ([42fa9f7](https://github.com/exodus-ai-org/exodus/commit/42fa9f7823b12c00df75564853d01fdc8908f0f3))
+* hide the title bar to make Exodus likes a real native app ([2b7ca77](https://github.com/exodus-ai-org/exodus/commit/2b7ca77a070b8ce5afac2c3743c92e34448b3fbe))
+* supports a shortcut likes Spotlight on macOS ([3deabb2](https://github.com/exodus-ai-org/exodus/commit/3deabb2b9e815141f6c925c72866a0e919c7a0ea))
+* update globals.css ([e54015a](https://github.com/exodus-ai-org/exodus/commit/e54015acaf00dbf5f15333915b4f9eb9784b451f))
+* zoom images uploaded in chat messages ([66fdb7b](https://github.com/exodus-ai-org/exodus/commit/66fdb7b8674b1d727093987944e6d70d51ee0aa1))
+
 # [1.7.0](https://github.com/exodus-ai-org/exodus/compare/v1.6.0...v1.7.0) (2025-06-05)
 
 
