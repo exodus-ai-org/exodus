@@ -30,7 +30,7 @@
     "@ai-sdk/google": "^1.2.10",
     "@ai-sdk/openai": "^1.3.16",
     "@ai-sdk/xai": "^1.2.11",
-    "@electric-sql/pglite": "^0.2.17",
+    "@electric-sql/pglite": "^0.3.4",
     "@electron-toolkit/preload": "^3.0.1",
     "@electron-toolkit/utils": "^4.0.0",
     "@googlemaps/places": "^2.0.1",
