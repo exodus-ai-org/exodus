@@ -84,11 +84,11 @@ export function registerSearchMenu(mainWindow: BrowserWindow) {
 
   if (is.dev && process.env.ELECTRON_RENDERER_URL) {
     searchView.webContents.loadURL(
-      process.env.ELECTRON_RENDERER_URL + '/searchbar/index.html'
+      process.env.ELECTRON_RENDERER_URL + '/sub-apps/searchbar/index.html'
     )
   } else {
     searchView.webContents.loadFile(
-      join(__dirname, '../renderer/searchbar/index.html')
+      join(__dirname, '../renderer/sub-apps/searchbar/index.html')
     )
   }
 
@@ -142,11 +142,11 @@ export function registerShortcutChat() {
 
   if (is.dev && process.env.ELECTRON_RENDERER_URL) {
     shortcutChatView.webContents.loadURL(
-      process.env.ELECTRON_RENDERER_URL + '/shortcut-chat/index.html'
+      process.env.ELECTRON_RENDERER_URL + 'sub-apps/shortcut-chat/index.html'
     )
   } else {
     shortcutChatView.webContents.loadFile(
-      join(__dirname, '../renderer/shortcut-chat/index.html')
+      join(__dirname, '../renderer/sub-apps/shortcut-chat/index.html')
     )
   }
 }

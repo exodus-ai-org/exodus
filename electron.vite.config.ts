@@ -44,6 +44,7 @@ export default defineConfig({
             __dirname,
             'src',
             'renderer',
+            'sub-apps',
             'searchbar',
             'index.html'
           ),
@@ -51,6 +52,7 @@ export default defineConfig({
             __dirname,
             'src',
             'renderer',
+            'sub-apps',
             'shortcut-chat',
             'index.html'
           )
