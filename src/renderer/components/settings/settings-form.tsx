@@ -96,7 +96,7 @@ export function SettingsForm() {
 
         {activeTitle === 'RAG' && <UnderConstruction />}
 
-        {activeTitle === 'Artifacts' && <UnderConstruction />}
+        {activeTitle === 'Immersion' && <UnderConstruction />}
 
         {activeTitle === 'Computer Use' && <UnderConstruction />}
 

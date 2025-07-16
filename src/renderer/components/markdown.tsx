@@ -1,5 +1,5 @@
-import { useArtifact } from '@/hooks/use-artifact'
 import { useClipboard } from '@/hooks/use-clipboard'
+import { useImmersion } from '@/hooks/use-immersion'
 import { cn } from '@/lib/utils'
 import { WebSearchResult } from '@shared/types/web-search'
 import type { UIMessage } from 'ai'
@@ -19,8 +19,8 @@ import { WebSearchGroup } from './calling-tools/web-search/web-search-group'
 import { useTheme } from './theme-provider'
 
 const themes = {
-  light: { codeTheme: atomOneLight, bg: 'bg-[#fafafa]' },
-  dark: { codeTheme: atomOneDark, bg: 'bg-[#282c34]' }
+  light: { codeTheme: atomOneLight },
+  dark: { codeTheme: atomOneDark }
 }
 
 const citationRegex = /\[Source:\s*([\d,\s]+)\]/
@@ -98,10 +98,10 @@ export function Markdown({
   src: string
   parts: UIMessage['parts']
 }) {
-  const { show: isArtifactVisible, openArtifact } = useArtifact()
+  const { show: isImmersionVisible, openImmersion } = useImmersion()
   const { copied, handleCopy } = useClipboard()
   const { actualTheme } = useTheme()
-  const { codeTheme, bg } = useMemo(() => themes[actualTheme], [actualTheme])
+  const { codeTheme } = useMemo(() => themes[actualTheme], [actualTheme])
   const webSearchResults = useMemo(() => {
     try {
       const toolInvocationPart = parts.find(
@@ -148,8 +148,7 @@ export function Markdown({
               <>
                 <section
                   className={cn(
-                    'text-ring flex items-center justify-between p-3 pb-0 text-xs',
-                    bg
+                    'text-ring flex items-center justify-between pb-0 text-xs'
                   )}
                 >
                   <span>{match[1]}</span>
@@ -177,7 +176,7 @@ export function Markdown({
 
                     <span
                       className="hover:text-primary flex cursor-pointer items-center gap-1.5"
-                      onClick={openArtifact}
+                      onClick={() => openImmersion('')}
                     >
                       <PencilRuler size={10} />
                       Edit
@@ -191,19 +190,13 @@ export function Markdown({
                   PreTag="div"
                   language={match[1]}
                   style={codeTheme}
-                  customStyle={{ padding: '0.75rem' }}
+                  customStyle={{ padding: '0.75rem', paddingBottom: 0 }}
                 >
                   {String(children).replace(/\n$/, '')}
                 </SyntaxHighlighter>
               </>
             ) : (
-              <code
-                {...rest}
-                className={cn(
-                  className,
-                  'text-primary bg-accent rounded-sm px-[4.8px] py-[2.4px] text-xs'
-                )}
-              >
+              <code {...rest} className={className}>
                 {children}
               </code>
             )
@@ -213,11 +206,7 @@ export function Markdown({
             return (
               <pre
                 {...rest}
-                className={cn(
-                  'border-border mb-4 overflow-x-scroll rounded-md border text-xs md:max-w-[45rem]',
-                  { ['w-[23rem]']: isArtifactVisible },
-                  className
-                )}
+                className={cn({ ['w-[24rem]']: isImmersionVisible }, className)}
               >
                 {children}
               </pre>

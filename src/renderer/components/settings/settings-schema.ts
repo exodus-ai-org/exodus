@@ -82,7 +82,7 @@ export const schema = {
     },
     {
       icon: Palette,
-      title: 'Artifacts'
+      title: 'Immersion'
     },
     {
       icon: Chrome,

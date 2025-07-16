@@ -53,7 +53,7 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
             >
               <FormControl className="mb-0 w-fit">
                 <SelectTrigger className="hover:bg-accent border-none shadow-none">
-                  <SelectValue placeholder={Providers.OpenAiGpt} />
+                  <SelectValue placeholder="Select a provider" />
                 </SelectTrigger>
               </FormControl>
               <FormMessage />

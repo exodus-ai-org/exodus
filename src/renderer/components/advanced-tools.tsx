@@ -30,9 +30,9 @@ const advancedToolsList = [
     desc: AdvancedToolsType.DeepResearch
   },
   {
-    key: AdvancedToolsType.Artifacts,
+    key: AdvancedToolsType.Immersion,
     icon: <Palette />,
-    desc: AdvancedToolsType.Artifacts
+    desc: AdvancedToolsType.Immersion
   }
 ]
 

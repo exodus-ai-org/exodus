@@ -1,5 +1,6 @@
-import { CodePreview } from '@/components/artifacts/code-preview'
+import { CodePreview } from '@/components/code-preview'
 import { DeepResearchProcess } from '@/components/deep-research'
+import { Immersion } from '@/components/immersion'
 import { SettingsDialog } from '@/components/settings/settings-dialog'
 import {
   SidebarInset,
@@ -8,7 +9,7 @@ import {
   useSidebar
 } from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
-import { isArtifactVisibleAtom } from '@/stores/chat'
+import { isCodePreviewVisibleAtom, isImmersionVisibleAtom } from '@/stores/chat'
 import { useAtomValue } from 'jotai'
 import { useEffect } from 'react'
 import { Outlet } from 'react-router'
@@ -46,7 +47,8 @@ function InsertedSidebar() {
 }
 
 export function Layout() {
-  const isArtifactVisible = useAtomValue(isArtifactVisibleAtom)
+  const isCodePreviewVisible = useAtomValue(isCodePreviewVisibleAtom)
+  const isImmersionVisible = useAtomValue(isImmersionVisibleAtom)
 
   // Unload Find-in-Page when pressing Esc
   // The listener should be mounted in both main window and searchbar view
@@ -65,7 +67,8 @@ export function Layout() {
       <AppSidebar />
       <InsertedSidebar />
       <DeepResearchProcess />
-      {isArtifactVisible && <CodePreview />}
+      {isCodePreviewVisible && <CodePreview />}
+      {isImmersionVisible && <Immersion />}
     </SidebarProvider>
   )
 }

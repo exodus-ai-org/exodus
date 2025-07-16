@@ -9,8 +9,8 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { useArtifact } from '@/hooks/use-artifact'
 import { useClipboard } from '@/hooks/use-clipboard'
+import { useImmersion } from '@/hooks/use-immersion'
 import { cn } from '@/lib/utils'
 import {
   Navigator,
@@ -52,7 +52,7 @@ function CodePreviewActions({
   setTabType: Dispatch<SetStateAction<TabType>>
 }) {
   const { sandpack } = useSandpack()
-  const { closeArtifact } = useArtifact()
+  const { closeImmersion } = useImmersion()
 
   useEffect(() => {
     if (tabType === TabType.Preview) {
@@ -70,7 +70,7 @@ function CodePreviewActions({
           variant="ghost"
           size="icon"
           className="text-ring h-7 w-7 cursor-pointer"
-          onClick={closeArtifact}
+          onClick={closeImmersion}
         >
           <ChevronsRight className="h-4 w-4" />
         </Button>

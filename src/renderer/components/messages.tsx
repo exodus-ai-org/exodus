@@ -1,4 +1,4 @@
-import { useArtifact } from '@/hooks/use-artifact'
+import { useImmersion } from '@/hooks/use-immersion'
 import { useSettings } from '@/hooks/use-settings'
 import { cn } from '@/lib/utils'
 import { UseChatHelpers } from '@ai-sdk/react'
@@ -26,7 +26,7 @@ function Messages({
 }) {
   const { data: settings } = useSettings()
   const chatBoxRef = useRef<HTMLDivElement>(null)
-  const { show: isArtifactVisible } = useArtifact()
+  const { show: isImmersionVisible } = useImmersion()
 
   const scrollToBottom = useCallback(() => {
     if (!chatBoxRef.current) return
@@ -50,7 +50,7 @@ function Messages({
       className="no-scrollbar flex min-w-0 flex-1 flex-col items-center gap-8 overflow-y-scroll p-4 pt-0 transition-all"
       ref={chatBoxRef}
     >
-      {isArtifactVisible && (
+      {isImmersionVisible && (
         <div className="from-background via-background/75 pointer-events-none absolute top-14 left-0 z-10 h-8 w-full bg-gradient-to-b to-transparent opacity-100 transition-opacity" />
       )}
 
@@ -73,10 +73,10 @@ function Messages({
             {message.role === 'assistant' && (
               <div
                 className={cn('flex w-full gap-4', {
-                  ['flex-col']: isArtifactVisible
+                  ['flex-col']: isImmersionVisible
                 })}
               >
-                {!!settings?.assistantAvatar && (
+                {!isImmersionVisible && !!settings?.assistantAvatar && (
                   <Avatar>
                     <AvatarImage
                       src={settings.assistantAvatar}
@@ -111,10 +111,14 @@ function Messages({
                     }
 
                     if (item.type === 'tool-invocation') {
-                      if (
-                        item.toolInvocation.state === 'partial-call' ||
-                        item.toolInvocation.state === 'call'
-                      ) {
+                      if (item.toolInvocation.state === 'result') {
+                        return (
+                          <MessageCallingTools
+                            key={key}
+                            toolInvocation={item.toolInvocation}
+                          />
+                        )
+                      } else {
                         return (
                           <p
                             key={key}
@@ -123,15 +127,6 @@ function Messages({
                             Calling tool:{' '}
                             <strong>{item.toolInvocation.toolName}</strong>
                           </p>
-                        )
-                      }
-
-                      if (item.toolInvocation.state === 'result') {
-                        return (
-                          <MessageCallingTools
-                            key={key}
-                            toolInvocation={item.toolInvocation}
-                          />
                         )
                       }
                     }
@@ -165,7 +160,7 @@ function Messages({
                 <p
                   className={cn(
                     'bg-accent max-w-[60%] rounded-xl px-3 py-2 break-words whitespace-pre-wrap',
-                    { ['w-[23rem]']: isArtifactVisible }
+                    { ['max-w-[24rem]']: isImmersionVisible }
                   )}
                 >
                   {message.parts.map((part) => {
