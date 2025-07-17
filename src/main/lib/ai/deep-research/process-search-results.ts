@@ -40,7 +40,6 @@ ${searchResults.map(({ content, rank, title }) => `<content>\n[Source: ${rank}]\
             .describe('Record which sources are the learning referencing.'),
           image: z
             .string()
-            .url()
             .nullable()
             .describe(
               "Extract the most representative image URL from the search results to enhance the vividness of your learning. If the search results didn't provide proper images, return `null`"

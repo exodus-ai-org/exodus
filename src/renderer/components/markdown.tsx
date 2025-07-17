@@ -23,7 +23,7 @@ const themes = {
   dark: { codeTheme: atomOneDark }
 }
 
-const citationRegex = /\[Source:\s*([\d,\s]+)\]/
+const citationGlobalRegex = /\[Source:\s*([\d,\s]+)\]/g
 
 // When using the web-search or deep-research features, the AI outputs markdown text with citation markers.
 // There are two formats:
@@ -47,9 +47,13 @@ function parseCitations(children: ReactNode) {
   }
   if (typeof children !== 'string') return null
 
-  const match = children.match(citationRegex)
-  if (!match) return null
-  const citations = match[1].split(',').map((num) => parseInt(num.trim(), 10))
+  const matches = [...children.matchAll(citationGlobalRegex)]
+  if (matches.length === 0) return null
+
+  const citations = matches
+    .map((match) => match[1].split(',').map((num) => parseInt(num.trim(), 10)))
+    .flat()
+    .sort((a, b) => a - b)
   return citations
 }
 
@@ -71,12 +75,13 @@ function TextWithCitations({
 
   return (
     <>
-      {typeof children === 'string' && children.replace(citationRegex, '')}
+      {typeof children === 'string' &&
+        children.replaceAll(citationGlobalRegex, '')}
       {Array.isArray(children) && (
         <>
           {children.map((item) => {
             if (typeof item === 'string') {
-              return item.replace(citationRegex, '')
+              return item.replaceAll(citationGlobalRegex, '')
             } else {
               return item
             }
