@@ -18,7 +18,7 @@ export function Immersion() {
         <Button
           variant="ghost"
           size="icon"
-          className="text-ring h-7 w-7 cursor-pointer"
+          className="text-ring h-7 w-7"
           onClick={closeImmersion}
         >
           <X className="h-4 w-4" />

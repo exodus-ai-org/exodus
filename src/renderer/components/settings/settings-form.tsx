@@ -12,6 +12,7 @@ import { AvatarUploader } from './settings-form/avatar-uploader'
 import { DataControls } from './settings-form/data-controls'
 import { DeepResearch } from './settings-form/deep-research'
 import { FileUploadEndpoint } from './settings-form/file-upload-endpoint'
+import { General } from './settings-form/generals'
 import { GoogleMaps } from './settings-form/google-maps'
 import { ImageGeneration } from './settings-form/image-generation'
 import { MCP } from './settings-form/mcp'
@@ -56,6 +57,8 @@ export function SettingsForm() {
         className="flex flex-1 flex-col gap-4"
         onBlur={form.handleSubmit(onSubmit)}
       >
+        {activeTitle === 'General' && <General />}
+
         {activeTitle === 'Providers' && <ProviderConfig form={form} />}
 
         {activeTitle === Providers.OpenAiGpt && <OpenAiGpt form={form} />}

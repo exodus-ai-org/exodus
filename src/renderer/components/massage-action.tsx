@@ -28,7 +28,7 @@ export function IconWrapper({
 }) {
   return (
     <span
-      className="hover:bg-secondary text-muted-foreground flex h-6 w-6 cursor-pointer items-center justify-center rounded-sm"
+      className="hover:bg-secondary text-muted-foreground flex h-6 w-6 items-center justify-center rounded-sm"
       onClick={onClick}
     >
       {children}

@@ -54,7 +54,7 @@ export function AvatarUploader<T extends FieldValues>({
           type="file"
           accept="image/*"
           id="assistant-avatar"
-          className="absolute top-0 left-0 z-10 h-40 w-40 cursor-pointer opacity-0"
+          className="absolute top-0 left-0 z-10 h-40 w-40 opacity-0"
           onChange={handleEditorChange}
         />
         {field.value ? (
@@ -70,7 +70,7 @@ export function AvatarUploader<T extends FieldValues>({
         {!!field.value && (
           <Button
             size="icon"
-            className="absolute -right-0 bottom-2 cursor-pointer rounded-full"
+            className="absolute -right-0 bottom-2 rounded-full"
           >
             <Edit />
           </Button>
@@ -79,7 +79,7 @@ export function AvatarUploader<T extends FieldValues>({
         {!!field.value && (
           <Button
             variant="destructive"
-            className="absolute top-48 w-fit cursor-pointer"
+            className="absolute top-48 w-fit"
             onClick={handleRemove}
           >
             <Trash />

@@ -1,3 +1,4 @@
+import { Input } from '@/components/ui/input'
 import {
   Sidebar,
   SidebarContent,
@@ -10,7 +11,7 @@ import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import { cn } from '@/lib/utils'
 import { isFullTextSearchVisibleAtom } from '@/stores/chat'
 import { useSetAtom } from 'jotai'
-import { MessageCirclePlus, Search } from 'lucide-react'
+import { Search } from 'lucide-react'
 import * as React from 'react'
 import { NavFooter } from './nav-footer'
 import { NavHistories } from './nav-histories'
@@ -21,27 +22,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar {...props} className="!border-r-0">
-      <SidebarHeader className="draggable">
-        <SidebarMenu
-          className={cn({ ['mt-8']: !isFullscreen }, 'no-draggable')}
-        >
-          <SidebarMenuItem>
-            <div
-              className="text-accent-foreground hover:bg-accent flex cursor-pointer items-center gap-2 rounded-sm p-2 font-medium"
-              onClick={() => {
-                window.location.href = '/'
-              }}
-            >
-              <MessageCirclePlus strokeWidth={2.5} size={18} /> New Chat
-            </div>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <div
-              className="text-accent-foreground hover:bg-accent flex cursor-pointer items-center gap-2 rounded-sm p-2 font-medium"
-              onClick={() => setIsFullTextSearchVisible(true)}
-            >
-              <Search strokeWidth={2.5} size={18} /> Search Chat History
-            </div>
+      <SidebarHeader className="mt-4">
+        <SidebarMenu className={cn({ ['mt-8']: !isFullscreen })}>
+          <SidebarMenuItem
+            className="relative"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              setIsFullTextSearchVisible(true)
+            }}
+          >
+            <Search size={16} className="absolute top-2.5 left-2" />
+            <Input className="pl-8 shadow-none" placeholder="Search chat..." />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>

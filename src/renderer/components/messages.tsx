@@ -51,7 +51,7 @@ function Messages({
       ref={chatBoxRef}
     >
       {isImmersionVisible && (
-        <div className="from-background via-background/75 pointer-events-none absolute top-14 left-0 z-10 h-8 w-full bg-gradient-to-b to-transparent opacity-100 transition-opacity" />
+        <div className="from-background via-background/75 pointer-events-none absolute top-0 left-0 z-10 h-8 w-full bg-gradient-to-b to-transparent opacity-100 transition-opacity" />
       )}
 
       {messages.length === 0 && (

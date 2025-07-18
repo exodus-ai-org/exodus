@@ -43,7 +43,6 @@ export function MessageReasoning({
           <div className="font-medium">Reasoned for a few seconds</div>
           <Button
             variant="ghost"
-            className="cursor-pointer"
             onClick={() => {
               setIsExpanded(!isExpanded)
             }}

@@ -161,7 +161,7 @@ export function Markdown({
                     <>
                       {copied !== children ? (
                         <span
-                          className="hover:text-primary flex cursor-pointer items-center gap-1.5"
+                          className="hover:text-primary flex items-center gap-1.5"
                           onClick={() => {
                             if (typeof children === 'string') {
                               handleCopy(children)
@@ -180,7 +180,7 @@ export function Markdown({
                     </>
 
                     <span
-                      className="hover:text-primary flex cursor-pointer items-center gap-1.5"
+                      className="hover:text-primary flex items-center gap-1.5"
                       onClick={() => openImmersion('')}
                     >
                       <PencilRuler size={10} />

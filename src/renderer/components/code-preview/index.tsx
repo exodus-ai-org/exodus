@@ -69,7 +69,7 @@ function CodePreviewActions({
         <Button
           variant="ghost"
           size="icon"
-          className="text-ring h-7 w-7 cursor-pointer"
+          className="text-ring h-7 w-7"
           onClick={closeImmersion}
         >
           <ChevronsRight className="h-4 w-4" />
@@ -77,7 +77,7 @@ function CodePreviewActions({
 
         <Button
           variant="ghost"
-          className={cn('text-ring h-7 cursor-pointer', {
+          className={cn('text-ring h-7', {
             ['bg-accent text-accent-foreground dark:bg-accent/50']:
               tabType === TabType.Preview
           })}
@@ -90,7 +90,7 @@ function CodePreviewActions({
         </Button>
         <Button
           variant="ghost"
-          className={cn('text-ring h-7 cursor-pointer', {
+          className={cn('text-ring h-7', {
             ['bg-accent text-accent-foreground dark:bg-accent/50']:
               tabType === TabType.Code
           })}
@@ -102,10 +102,10 @@ function CodePreviewActions({
       </div>
 
       <div className="flex items-center gap-2">
-        <Button variant="ghost" className="text-ring h-7 w-7 cursor-pointer">
+        <Button variant="ghost" className="text-ring h-7 w-7">
           <GitFork className="h-4 w-4" />
         </Button>
-        <Button variant="ghost" className="text-ring h-7 w-7 cursor-pointer">
+        <Button variant="ghost" className="text-ring h-7 w-7">
           <Download className="h-4 w-4" />
         </Button>
         <Select>
@@ -141,7 +141,7 @@ function CodeEditor() {
         <div className="flex items-center gap-1 pr-2">
           <Button
             variant="ghost"
-            className="text-ring h-7 w-7 cursor-pointer"
+            className="text-ring h-7 w-7"
             onClick={() => {
               if (copied !== code) {
                 handleCopy(code)
@@ -154,7 +154,7 @@ function CodeEditor() {
               <Copy className="h-4 w-4" />
             )}
           </Button>
-          <Button variant="ghost" className="text-ring h-7 w-7 cursor-pointer">
+          <Button variant="ghost" className="text-ring h-7 w-7">
             <Download className="h-4 w-4" />
           </Button>
         </div>
@@ -210,23 +210,17 @@ export function CodePreview() {
               <div className="flex">
                 <Navigator clientId={''} className="flex-1" />
                 <div className="bg-background flex items-center gap-1 border-b border-[#efefef] pr-2 dark:border-[#252525] dark:bg-[#151515]">
-                  <Button
-                    variant="ghost"
-                    className="text-ring h-7 w-7 cursor-pointer"
-                  >
+                  <Button variant="ghost" className="text-ring h-7 w-7">
                     <MousePointerClick className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="ghost"
-                    className="text-ring h-7 w-7 cursor-pointer"
+                    className="text-ring h-7 w-7"
                     onClick={() => setIsExpanded(true)}
                   >
                     <Maximize className="h-4 w-4" />
                   </Button>
-                  <Button
-                    variant="ghost"
-                    className="text-ring h-7 w-7 cursor-pointer"
-                  >
+                  <Button variant="ghost" className="text-ring h-7 w-7">
                     <GitFork className="h-4 w-4" />
                   </Button>
                 </div>
@@ -244,7 +238,7 @@ export function CodePreview() {
               <Dialog open={isExpanded} onOpenChange={setIsExpanded}>
                 <DialogTitle />
                 <DialogContent
-                  className="h-11/12 max-w-11/12 min-w-11/12 border-none p-0 [&_.sp-navigator]:rounded-tl-lg [&_.sp-navigator]:rounded-tr-lg [&_.sp-preview]:rounded-lg [&_.sp-preview]:rounded-tr-lg [&_.sp-preview-container]:rounded-br-lg [&_.sp-preview-container]:rounded-bl-lg [&_.sp-preview-container]:bg-transparent [&>button:last-of-type]:top-3 [&>button:last-of-type]:cursor-pointer"
+                  className="h-11/12 max-w-11/12 min-w-11/12 border-none p-0 [&_.sp-navigator]:rounded-tl-lg [&_.sp-navigator]:rounded-tr-lg [&_.sp-preview]:rounded-lg [&_.sp-preview]:rounded-tr-lg [&_.sp-preview-container]:rounded-br-lg [&_.sp-preview-container]:rounded-bl-lg [&_.sp-preview-container]:bg-transparent [&>button:last-of-type]:top-3"
                   aria-describedby={undefined}
                 >
                   <SandpackPreview

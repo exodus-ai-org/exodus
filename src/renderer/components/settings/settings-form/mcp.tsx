@@ -49,7 +49,7 @@ export function MCP({ form }: { form: UseFormReturnType }) {
             We&apos;ve detected an update to your MCP servers&apos;
             configuration. To apply these changes, please click{' '}
             <span
-              className="hover:text-primary cursor-pointer font-bold underline"
+              className="hover:text-primary font-bold underline"
               onClick={restartServer}
             >
               RESTART

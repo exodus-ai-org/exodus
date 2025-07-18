@@ -5,6 +5,7 @@ import {
   Bot,
   Chrome,
   CloudDownload,
+  Cog,
   Computer,
   Database,
   FileUp,
@@ -18,8 +19,12 @@ import {
   Telescope
 } from 'lucide-react'
 
-export const schema = {
+export const menus = {
   navMain: [
+    {
+      title: 'General',
+      icon: Cog
+    },
     {
       title: 'Providers',
       icon: HandCoins,

@@ -20,10 +20,7 @@ export function NavFooter({
       <SidebarGroupContent>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton
-              onClick={() => setSettingsDialogVisible(true)}
-              className="cursor-pointer"
-            >
+            <SidebarMenuButton onClick={() => setSettingsDialogVisible(true)}>
               <Settings />
               Settings
             </SidebarMenuButton>

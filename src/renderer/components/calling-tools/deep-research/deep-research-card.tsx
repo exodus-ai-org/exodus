@@ -80,7 +80,7 @@ export function DeepResearchCard({
           variant={
             activeDeepResearchId === toolResult.id ? 'secondary' : 'ghost'
           }
-          className="cursor-pointer font-semibold"
+          className="font-semibold"
           onClick={handleActiveDeepResearchSseId}
         >
           {deepResearchResult?.jobStatus === 'streaming' && (
@@ -98,12 +98,7 @@ export function DeepResearchCard({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  onClick={exportPdf}
-                  className="cursor-pointer"
-                >
+                <Button size="icon" variant="ghost" onClick={exportPdf}>
                   {loading ? (
                     <Loader
                       size={14}

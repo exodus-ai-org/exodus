@@ -15,7 +15,7 @@ import { useAtom } from 'jotai'
 import { Bot } from 'lucide-react'
 import { ComponentProps, useRef, useState } from 'react'
 import { version } from '../../../../package.json'
-import { schema } from './settings-schema'
+import { menus } from './settings-menu'
 
 export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
   const containerRef = useRef<HTMLDivElement | null>(null)
@@ -51,7 +51,7 @@ export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
                 </div>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            {schema.navMain.map((item) => (
+            {menus.navMain.map((item) => (
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                   isActive={item.title === active}

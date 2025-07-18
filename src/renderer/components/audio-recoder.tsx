@@ -61,7 +61,6 @@ export function AudioRecorder({
     <Button
       type="submit"
       variant="secondary"
-      className="cursor-pointer"
       onClick={isRecording ? stopRecording : startRecording}
     >
       {loading ? (
