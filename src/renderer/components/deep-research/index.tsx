@@ -189,7 +189,7 @@ export function DeepResearchProcess() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, ease: 'easeInOut' }}
-          className="markdown flex max-h-[calc(100dvh-3.8125rem)] flex-col gap-4 overflow-y-scroll p-4"
+          className="markdown flex max-h-[calc(100dvh-3.8125rem)] flex-col gap-4 overflow-y-scroll p-3"
           ref={ref}
         >
           {tab === Tab.Activity &&

@@ -2,7 +2,6 @@ import { Providers } from '@shared/types/ai'
 import {
   Atom,
   AudioWaveform,
-  Bot,
   Chrome,
   CloudDownload,
   Cog,
@@ -52,10 +51,6 @@ export const menus = {
     {
       title: 'File Upload Endpoint',
       icon: FileUp
-    },
-    {
-      title: 'Assistant Avatar',
-      icon: Bot
     },
     {
       icon: Hammer,

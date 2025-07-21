@@ -8,7 +8,6 @@ import { useAtomValue, useSetAtom } from 'jotai'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { AudioSpeech } from './settings-form/audio-speech'
-import { AvatarUploader } from './settings-form/avatar-uploader'
 import { DataControls } from './settings-form/data-controls'
 import { DeepResearch } from './settings-form/deep-research'
 import { FileUploadEndpoint } from './settings-form/file-upload-endpoint'
@@ -57,7 +56,7 @@ export function SettingsForm() {
         className="flex flex-1 flex-col gap-4"
         onBlur={form.handleSubmit(onSubmit)}
       >
-        {activeTitle === 'General' && <General />}
+        {activeTitle === 'General' && <General form={form} />}
 
         {activeTitle === 'Providers' && <ProviderConfig form={form} />}
 
@@ -77,12 +76,6 @@ export function SettingsForm() {
 
         {activeTitle === 'File Upload Endpoint' && (
           <FileUploadEndpoint form={form} />
-        )}
-
-        {activeTitle === 'Assistant Avatar' && (
-          <AvatarUploader
-            props={{ control: form.control, name: 'assistantAvatar' }}
-          />
         )}
 
         {activeTitle === 'MCP Servers' && <MCP form={form} />}

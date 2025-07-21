@@ -15,9 +15,11 @@ import {
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
+import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { Moon, Sun, SunMoon } from 'lucide-react'
+import { AvatarUploader } from './avatar-uploader'
 
-export function General() {
+export function General({ form }: { form: UseFormReturnType }) {
   const { theme, setTheme } = useTheme()
 
   return (
@@ -58,16 +60,29 @@ export function General() {
       </FormItem>
 
       <Separator />
+
       <FormItem className="flex flex-col">
         <div className="my-2 flex items-center justify-between">
-          <FormLabel className="mb-0">Assistant Avatar</FormLabel>
+          <FormLabel className="mb-0">Menu bar</FormLabel>
           <Switch className="mb-0" />
         </div>
-        <FormDescription>
-          Personalize your assistant with an avatar for a better user
-          experience. The avatar will be displayed to the left of each assistant
-          message.
-        </FormDescription>
+        <FormDescription>Show Exodus in the menu bar</FormDescription>
+      </FormItem>
+
+      <Separator />
+      <FormItem className="flex items-center gap-4">
+        <div className="my-2 flex flex-col gap-2">
+          <FormLabel className="mb-0">Assistant Avatar</FormLabel>
+          <FormDescription>
+            Personalize your assistant with an avatar for a better user
+            experience. The avatar will be displayed to the left of each
+            assistant message.
+          </FormDescription>
+        </div>
+
+        <AvatarUploader
+          props={{ control: form.control, name: 'assistantAvatar' }}
+        />
       </FormItem>
     </div>
   )

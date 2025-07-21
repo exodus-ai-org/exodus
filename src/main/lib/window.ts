@@ -76,7 +76,7 @@ export function registerSearchMenu(mainWindow: BrowserWindow) {
 
   searchView.setBounds({
     x: (mainWindow?.getBounds().width ?? 0) - 418,
-    y: 0,
+    y: 56,
     width: 418,
     height: 86
   })
@@ -142,7 +142,7 @@ export function registerShortcutChat() {
 
   if (is.dev && process.env.ELECTRON_RENDERER_URL) {
     shortcutChatView.webContents.loadURL(
-      process.env.ELECTRON_RENDERER_URL + 'sub-apps/shortcut-chat/index.html'
+      process.env.ELECTRON_RENDERER_URL + '/sub-apps/shortcut-chat/index.html'
     )
   } else {
     shortcutChatView.webContents.loadFile(

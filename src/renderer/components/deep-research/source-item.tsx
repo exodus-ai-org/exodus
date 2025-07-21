@@ -14,7 +14,7 @@ export function SourceItem({
           target="_blank"
           rel="noopener noreferrer"
           key={item.link}
-          className="hover:bg-sidebar-accent flex flex-col gap-0.5 rounded-xl p-2"
+          className="hover:bg-sidebar-accent flex flex-col gap-0.5 rounded-xl px-3 py-2"
         >
           <div className="line-clamp-1 flex h-6 items-center gap-2 text-xs">
             <Avatar className="size-4">
@@ -28,7 +28,7 @@ export function SourceItem({
             {new URL(item.link).hostname}
           </div>
           <div className="line-clamp-2 text-sm font-semibold">{item.title}</div>
-          <div className="text-sidebar-foreground/70 line-clamp-2 text-sm leading-snug font-normal">
+          <div className="text-muted-foreground line-clamp-2 text-sm leading-snug font-normal">
             {item.snippet}
           </div>
         </a>

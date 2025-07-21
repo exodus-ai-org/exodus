@@ -157,7 +157,7 @@ export function Markdown({
                   )}
                 >
                   <span>{match[1]}</span>
-                  <div className="flex items-center gap-6">
+                  <div className="flex cursor-default items-center gap-6">
                     <>
                       {copied !== children ? (
                         <span
