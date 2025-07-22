@@ -3,10 +3,10 @@ import { connectHttpServer } from './server/app'
 import { getServer, setServer } from './server/instance'
 import {
   getMainWindow,
+  getQuickChatView,
   getSearchView,
-  getShortcutChatView,
-  setSearchView,
-  setShortcutChatView
+  setQuickChatView,
+  setSearchView
 } from './window'
 
 export function setupIPC() {
@@ -60,16 +60,16 @@ export function setupIPC() {
     }
   })
 
-  ipcMain.handle('close-shortcut-chat', () => {
-    const shortcutChatView = getShortcutChatView()
-    if (shortcutChatView) {
-      shortcutChatView.destroy()
-      setShortcutChatView(null)
+  ipcMain.handle('close-quick-chat', () => {
+    const quickChatView = getQuickChatView()
+    if (quickChatView) {
+      quickChatView.destroy()
+      setQuickChatView(null)
     }
   })
 
-  ipcMain.handle('transfer-shortcut-chat', (_, input: string) => {
-    getMainWindow()?.webContents.send('shortcut-chat-input', input)
+  ipcMain.handle('transfer-quick-chat', (_, input: string) => {
+    getMainWindow()?.webContents.send('quick-chat-input', input)
   })
 
   ipcMain.handle('bring-window-to-front', () => {

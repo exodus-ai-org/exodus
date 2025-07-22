@@ -8,13 +8,13 @@ export function FindBar() {
 
   const handleClose = () => {
     setInput('')
-    window.electron.ipcRenderer.invoke('close-shortcut-chat')
+    window.electron.ipcRenderer.invoke('close-quick-chat')
   }
 
   const handleSubmit = useCallback(() => {
     if (input.trim().length === 0) return
 
-    window.electron.ipcRenderer.invoke('transfer-shortcut-chat', input)
+    window.electron.ipcRenderer.invoke('transfer-quick-chat', input)
     handleClose()
   }, [input])
 

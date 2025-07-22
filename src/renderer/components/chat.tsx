@@ -1,6 +1,6 @@
 import { advancedToolsAtom } from '@/stores/chat'
 import { useChat } from '@ai-sdk/react'
-import { SHORTCUT_CHAT_KEY } from '@shared/constants/misc'
+import { QUICK_CHAT_KEY } from '@shared/constants/misc'
 import { BASE_URL } from '@shared/constants/systems'
 import type { UIMessage } from 'ai'
 import { IpcRendererEvent } from 'electron'
@@ -18,7 +18,7 @@ interface Props {
 }
 
 export function Chat({ id, initialMessages }: Props) {
-  const shortcutChat = window.localStorage.getItem(SHORTCUT_CHAT_KEY)
+  const quickChat = window.localStorage.getItem(QUICK_CHAT_KEY)
   const advancedTools = useAtomValue(advancedToolsAtom)
   const {
     messages,
@@ -36,7 +36,7 @@ export function Chat({ id, initialMessages }: Props) {
       advancedTools
     },
     id,
-    initialInput: shortcutChat ?? undefined,
+    initialInput: quickChat ?? undefined,
     initialMessages,
     experimental_throttle: 100,
     sendExtraMessageFields: true,
@@ -52,18 +52,18 @@ export function Chat({ id, initialMessages }: Props) {
   })
 
   useEffect(() => {
-    const shortcutChatInputHandler = async (
+    const quickChatInputHandler = async (
       _: IpcRendererEvent,
       input: string
     ) => {
       await window.electron.ipcRenderer.invoke('bring-window-to-front')
-      window.localStorage.setItem(SHORTCUT_CHAT_KEY, input)
+      window.localStorage.setItem(QUICK_CHAT_KEY, input)
       window.location.href = '/'
     }
 
     const removeListener = window.electron.ipcRenderer.on(
-      'shortcut-chat-input',
-      shortcutChatInputHandler
+      'quick-chat-input',
+      quickChatInputHandler
     )
 
     return () => {
@@ -72,12 +72,12 @@ export function Chat({ id, initialMessages }: Props) {
   }, [handleSubmit, id, setInput])
 
   useEffect(() => {
-    if (shortcutChat) {
+    if (quickChat) {
       window.history.replaceState({}, '', `/chat/${id}`)
       handleSubmit(undefined, {})
-      window.localStorage.removeItem(SHORTCUT_CHAT_KEY)
+      window.localStorage.removeItem(QUICK_CHAT_KEY)
     }
-  }, [handleSubmit, id, shortcutChat])
+  }, [handleSubmit, id, quickChat])
 
   return (
     <>

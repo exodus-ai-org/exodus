@@ -5,7 +5,7 @@ import icon from '../../../resources/icon.png?asset'
 
 let mainWindow: BrowserWindow | null = null
 let searchView: WebContentsView | null = null
-let shortcutChatView: BrowserWindow | null = null
+let quickChatView: BrowserWindow | null = null
 let isQuitting = false
 
 export function createWindow(): void {
@@ -114,10 +114,10 @@ export function registerSearchMenu(mainWindow: BrowserWindow) {
   })
 }
 
-export function registerShortcutChat() {
-  if (shortcutChatView) return
+export function registerQuickChat() {
+  if (quickChatView) return
 
-  shortcutChatView = new BrowserWindow({
+  quickChatView = new BrowserWindow({
     frame: false,
     transparent: true,
     resizable: false,
@@ -133,7 +133,7 @@ export function registerShortcutChat() {
 
   const display = screen.getPrimaryDisplay()
   const { width, height } = display.workArea
-  shortcutChatView.setBounds({
+  quickChatView.setBounds({
     x: (width - 600) / 2,
     y: height * 0.32,
     width: 600,
@@ -141,12 +141,12 @@ export function registerShortcutChat() {
   })
 
   if (is.dev && process.env.ELECTRON_RENDERER_URL) {
-    shortcutChatView.webContents.loadURL(
-      process.env.ELECTRON_RENDERER_URL + '/sub-apps/shortcut-chat/index.html'
+    quickChatView.webContents.loadURL(
+      process.env.ELECTRON_RENDERER_URL + '/sub-apps/quick-chat/index.html'
     )
   } else {
-    shortcutChatView.webContents.loadFile(
-      join(__dirname, '../renderer/sub-apps/shortcut-chat/index.html')
+    quickChatView.webContents.loadFile(
+      join(__dirname, '../renderer/sub-apps/quick-chat/index.html')
     )
   }
 }
@@ -163,10 +163,10 @@ export function setSearchView(view: WebContentsView | null) {
   searchView = view
 }
 
-export function getShortcutChatView(): BrowserWindow | null {
-  return shortcutChatView
+export function getQuickChatView(): BrowserWindow | null {
+  return quickChatView
 }
 
-export function setShortcutChatView(view: BrowserWindow | null) {
-  shortcutChatView = view
+export function setQuickChatView(view: BrowserWindow | null) {
+  quickChatView = view
 }
