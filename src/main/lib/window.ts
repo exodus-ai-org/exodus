@@ -12,6 +12,8 @@ export function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 960,
+    minWidth: 1280,
+    minHeight: 960,
     show: false,
     autoHideMenuBar: true,
     frame: false,
