@@ -1,7 +1,6 @@
-import { Button } from '@/components/ui/button'
 import { useSettings } from '@/hooks/use-settings'
 import { convertFileToBase64 } from '@/lib/utils'
-import { Plus, Trash } from 'lucide-react'
+import { Plus, X } from 'lucide-react'
 import { ChangeEvent, useRef } from 'react'
 import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
 
@@ -58,18 +57,17 @@ export function AvatarUploader<T extends FieldValues>({
       )}
 
       {!!field.value && (
-        <Button
-          variant="destructive"
-          size="icon"
-          className="dark:bg-destructive absolute -right-2 -bottom-2 z-100 rounded-full"
-          onClick={(e) => {
-            e.stopPropagation()
-            e.preventDefault()
-            handleRemove()
-          }}
-        >
-          <Trash />
-        </Button>
+        <span className="absolute -top-1 -right-1 z-100 rounded-full border-3 border-gray-50 bg-black p-0.75 dark:border-black dark:bg-white">
+          <X
+            onClick={(e) => {
+              e.stopPropagation()
+              e.preventDefault()
+              handleRemove()
+            }}
+            className="h-2.5 w-2.5 text-white dark:text-black"
+            strokeWidth={2.5}
+          />
+        </span>
       )}
     </div>
   )

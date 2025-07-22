@@ -148,7 +148,7 @@ export function DeepResearchProcess() {
         }
       )}
     >
-      <div className="relative flex h-14 items-center justify-center border-b">
+      <div className="bg-background sticky top-0 z-10 flex h-14 items-center justify-center border-b">
         <div className="bg-border flex items-center rounded-full p-1 text-sm">
           <button
             className={cn(
@@ -189,7 +189,7 @@ export function DeepResearchProcess() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, ease: 'easeInOut' }}
-          className="markdown flex max-h-[calc(100dvh-3.8125rem)] flex-col gap-4 overflow-y-scroll p-3"
+          className="markdown flex flex-col gap-4 overflow-y-scroll p-3 pb-18"
           ref={ref}
         >
           {tab === Tab.Activity &&

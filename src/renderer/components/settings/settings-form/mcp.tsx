@@ -1,5 +1,4 @@
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { cn } from '@/lib/utils'
 import { isMcpServerChangedAtom } from '@/stores/settings'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { motion } from 'framer-motion'
@@ -68,7 +67,7 @@ export function MCP({ form }: { form: UseFormReturnType }) {
 
       {loading && (
         <div className="bg-background absolute top-0 left-0 z-100 flex h-full w-full flex-col items-center justify-center gap-4">
-          <Loader size={24} strokeWidth={2.5} className={cn('animate-spin')} />
+          <Loader size={24} strokeWidth={2.5} className="animate-spin" />
           <motion.div
             variants={{
               hidden: { opacity: 0 },
