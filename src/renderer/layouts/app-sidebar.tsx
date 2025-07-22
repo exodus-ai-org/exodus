@@ -25,11 +25,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarMenu>
           <SidebarMenuItem
             className="hover:bg-sidebar-accent flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm"
-            onClick={(e) => {
-              e.preventDefault()
-              e.stopPropagation()
-              setIsFullTextSearchVisible(true)
-            }}
+            onClick={() => (window.location.href = '/')}
           >
             <SquarePen size={16} />
             New chat

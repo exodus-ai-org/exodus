@@ -138,25 +138,27 @@ function Messages({
             )}
             {message.role === 'user' && (
               <>
-                <div className="mb-4 flex gap-4">
-                  {Array.isArray(message.experimental_attachments) &&
-                    message.experimental_attachments.length > 0 &&
-                    message.experimental_attachments.map((attachment) => {
-                      if (attachment.contentType?.startsWith('image')) {
-                        return (
-                          <Zoom key={attachment.name}>
-                            <img
-                              className="max-h-96 max-w-64 rounded-lg object-cover"
-                              src={attachment.url}
-                              alt={attachment.name}
-                            />
-                          </Zoom>
-                        )
-                      }
+                {Array.isArray(message.experimental_attachments) &&
+                  message.experimental_attachments.length > 0 && (
+                    <div className="mb-4 flex gap-4">
+                      {message.experimental_attachments.map((attachment) => {
+                        if (attachment.contentType?.startsWith('image')) {
+                          return (
+                            <Zoom key={attachment.name}>
+                              <img
+                                className="max-h-96 max-w-64 rounded-lg object-cover"
+                                src={attachment.url}
+                                alt={attachment.name}
+                              />
+                            </Zoom>
+                          )
+                        }
 
-                      return null
-                    })}
-                </div>
+                        return null
+                      })}
+                    </div>
+                  )}
+
                 <p
                   className={cn(
                     'bg-accent max-w-[60%] rounded-xl px-3 py-2 break-words whitespace-pre-wrap',
