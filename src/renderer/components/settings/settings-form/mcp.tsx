@@ -1,4 +1,5 @@
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { subscribeSucceedToRestartServer } from '@/lib/ipc'
 import { isMcpServerChangedAtom } from '@/stores/settings'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { motion } from 'framer-motion'
@@ -16,27 +17,19 @@ export function MCP({ form }: { form: UseFormReturnType }) {
   const [loading, setLoading] = useState(false)
   const restartServer = () => {
     setLoading(true)
-    window.electron.ipcRenderer.invoke('restart-server')
+    restartServer()
   }
 
   useEffect(() => {
-    const succeedToRestartServerHandler = () => {
-      setLoading(false)
-      setIsMcpServerChanged(false)
-      toast.success(
-        'The new MCP servers are live! Enjoy chatting with MCP! ( ๑ ˃̵ᴗ˂̵)و ♡'
-      )
-      window.location.reload()
-    }
-
-    const removeListener = window.electron.ipcRenderer.on(
-      'succeed-to-restart-server',
-      succeedToRestartServerHandler
-    )
-
-    return () => {
-      removeListener()
-    }
+    return () =>
+      subscribeSucceedToRestartServer(() => {
+        setLoading(false)
+        setIsMcpServerChanged(false)
+        toast.success(
+          'The new MCP servers are live! Enjoy chatting with MCP! ( ๑ ˃̵ᴗ˂̵)و ♡'
+        )
+        window.location.reload()
+      })
   }, [setIsMcpServerChanged])
 
   return (

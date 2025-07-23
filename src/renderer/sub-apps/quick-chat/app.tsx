@@ -1,4 +1,5 @@
 import { Input } from '@/components/ui/input'
+import { closeQuickChat, transferQuickChat } from '@/lib/ipc'
 import { Bot } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
@@ -8,13 +9,12 @@ export function FindBar() {
 
   const handleClose = () => {
     setInput('')
-    window.electron.ipcRenderer.invoke('close-quick-chat')
+    closeQuickChat()
   }
 
   const handleSubmit = useCallback(() => {
     if (input.trim().length === 0) return
-
-    window.electron.ipcRenderer.invoke('transfer-quick-chat', input)
+    transferQuickChat(input.trim())
     handleClose()
   }, [input])
 

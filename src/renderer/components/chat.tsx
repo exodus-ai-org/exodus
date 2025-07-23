@@ -1,3 +1,4 @@
+import { bringWindowToFront, subscribeQuickChatInput } from '@/lib/ipc'
 import { advancedToolsAtom } from '@/stores/chat'
 import { useChat } from '@ai-sdk/react'
 import { QUICK_CHAT_KEY } from '@shared/constants/misc'
@@ -52,22 +53,12 @@ export function Chat({ id, initialMessages }: Props) {
   })
 
   useEffect(() => {
-    const quickChatInputHandler = async (
-      _: IpcRendererEvent,
-      input: string
-    ) => {
-      await window.electron.ipcRenderer.invoke('bring-window-to-front')
-      window.localStorage.setItem(QUICK_CHAT_KEY, input)
-      window.location.href = '/'
-    }
-
-    const removeListener = window.electron.ipcRenderer.on(
-      'quick-chat-input',
-      quickChatInputHandler
-    )
-
     return () => {
-      removeListener()
+      subscribeQuickChatInput(async (_: IpcRendererEvent, input: string) => {
+        await bringWindowToFront()
+        window.localStorage.setItem(QUICK_CHAT_KEY, input)
+        window.location.href = '/'
+      })
     }
   }, [handleSubmit, id, setInput])
 

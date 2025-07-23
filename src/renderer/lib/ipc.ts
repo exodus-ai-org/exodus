@@ -1,7 +1,7 @@
 import { IpcRendererEvent, Result } from 'electron'
 
 export function bringWindowToFront() {
-  window.electron.ipcRenderer.invoke('bring-window-to-front')
+  return window.electron.ipcRenderer.invoke('bring-window-to-front')
 }
 
 export function subscribeQuickChatInput(
@@ -11,7 +11,7 @@ export function subscribeQuickChatInput(
 }
 
 export function restartServer() {
-  window.electron.ipcRenderer.invoke('restart-server')
+  return window.electron.ipcRenderer.invoke('restart-server')
 }
 
 export function subscribeSucceedToRestartServer(callback: () => void) {
@@ -19,37 +19,41 @@ export function subscribeSucceedToRestartServer(callback: () => void) {
 }
 
 export function checkFullScreen() {
-  window.electron.ipcRenderer.invoke('check-fullscreen')
+  return window.electron.ipcRenderer.invoke('check-fullscreen')
 }
 
-export function subscribeFullscreenChange(
+export function fullScreenChange() {
+  return window.electron.ipcRenderer.invoke('subscribe-fullscreen-change')
+}
+
+export function subscribeFullScreenChanged(
   callback: (_: IpcRendererEvent, isFullscreen: boolean) => void
 ) {
   window.electron.ipcRenderer.on('fullscreen-changed', callback)
 }
 
 export function closeSearchbar() {
-  window.electron.ipcRenderer.invoke('close-search-bar')
+  return window.electron.ipcRenderer.invoke('close-search-bar')
 }
 
 export function closeQuickChat() {
-  window.electron.ipcRenderer.invoke('close-quick-chat')
+  return window.electron.ipcRenderer.invoke('close-quick-chat')
 }
 
 export function transferQuickChat(input: string) {
-  window.electron.ipcRenderer.invoke('transfer-quick-chat', input)
+  return window.electron.ipcRenderer.invoke('transfer-quick-chat', input)
 }
 
 export function findInPage(query: string) {
-  window.electron.ipcRenderer.invoke('find-in-page', query)
+  return window.electron.ipcRenderer.invoke('find-in-page', query)
 }
 
 export function findNext(query: string) {
-  window.electron.ipcRenderer.invoke('find-next', query)
+  return window.electron.ipcRenderer.invoke('find-next', query)
 }
 
 export function findPrevious(query: string) {
-  window.electron.ipcRenderer.invoke('find-previous', query)
+  return window.electron.ipcRenderer.invoke('find-previous', query)
 }
 
 export function subscribeFindInPageResult(
