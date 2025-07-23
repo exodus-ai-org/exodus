@@ -14,7 +14,7 @@ export function useDbIo() {
     try {
       setLoading(true)
       const blob = await exportDataService()
-      downloadFile(blob, 'export.zip')
+      downloadFile(blob, 'exodus-archive.zip')
     } catch (e) {
       toast.error(
         e instanceof Error ? e.message : 'Failed to export data from database.'
@@ -24,9 +24,12 @@ export function useDbIo() {
     }
   }
 
+  const deleteData = async () => {}
+
   return {
     loading,
     importData,
-    exportData
+    exportData,
+    deleteData
   }
 }

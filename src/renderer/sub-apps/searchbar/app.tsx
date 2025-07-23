@@ -11,11 +11,11 @@ export function FindBar() {
   const [query, setQuery] = useState('')
   const [searchResult, setSearchResult] = useState<Result | null>(null)
 
-  const handleChange = (value: string) => {
-    setQuery(value.trim())
-    window.electron.ipcRenderer.invoke('find-in-page', value.trim())
+  const handleChange = (query: string) => {
+    setQuery(query.trim())
+    window.electron.ipcRenderer.invoke('find-in-page', query.trim())
 
-    if (!value.trim()) {
+    if (!query.trim()) {
       setSearchResult(null)
     }
   }
