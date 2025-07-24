@@ -39,7 +39,6 @@ export function Chat({ id, initialMessages }: Props) {
     id,
     initialInput: quickChat ?? undefined,
     initialMessages,
-    experimental_throttle: 100,
     sendExtraMessageFields: true,
     generateId: uuidV4,
     onFinish: () => {
