@@ -1,4 +1,5 @@
 import { useImmersion } from '@/hooks/use-immersion'
+import { cn } from '@/lib/utils'
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import { TextStyleKit } from '@tiptap/extension-text-style'
 import { EditorContent, useEditor, useEditorState } from '@tiptap/react'
@@ -16,7 +17,7 @@ const extensions = [
   })
 ]
 
-export function RichTextEditor() {
+export function RichTextEditor({ className }: { className?: string }) {
   const { immersionContent } = useImmersion()
   const editor = useEditor({
     extensions,
@@ -55,6 +56,9 @@ export function RichTextEditor() {
 
   console.log(editorState)
   return (
-    <EditorContent editor={editor} className="markdown max-w-[36.25rem] p-4" />
+    <EditorContent
+      editor={editor}
+      className={cn('markdown max-w-[36.35rem] p-4', className)}
+    />
   )
 }

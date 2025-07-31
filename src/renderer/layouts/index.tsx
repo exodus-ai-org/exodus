@@ -44,7 +44,7 @@ function FixedHeaderAction() {
       className={cn(
         'draggable z-[11] flex h-14 w-(--sidebar-width) shrink-0 items-center justify-end border-b border-b-transparent py-3 pr-2 pl-22 transition-[border,width] duration-200 ease-linear',
         {
-          ['border-b-accent w-32 transition-[border,width] duration-200 ease-linear']:
+          ['border-b-border w-32 transition-[border,width] duration-200 ease-linear']:
             !open
         }
       )}
@@ -79,15 +79,15 @@ export function Layout() {
 
   return (
     <SidebarProvider className="flex flex-col">
-      <div className="flex w-full overflow-hidden">
+      <div className="flex w-full">
         <FixedHeaderAction />
-        <header className="draggable bg-background border-b-accent flex h-14 w-full items-center border-b p-3">
+        <header className="draggable bg-background border-b-border flex h-14 w-full items-center border-b p-3">
           ChatGPT
         </header>
       </div>
       <div className="flex h-[calc(100dvh-3.5rem)] overflow-y-hidden">
         <AppSidebar />
-        <section className="flex w-full overflow-hidden">
+        <section className="flex w-full">
           <InsertedSidebar />
           <DeepResearchProcess />
           {isCodePreviewVisible && <CodePreview />}

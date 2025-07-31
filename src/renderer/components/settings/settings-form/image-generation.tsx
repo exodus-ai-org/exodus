@@ -95,7 +95,7 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
               <Select onValueChange={field.onChange} value={field.value ?? ''}>
                 <FormControl className="mb-0 w-fit">
                   <SelectTrigger className="hover:bg-accent border-none shadow-none">
-                    <SelectValue placeholder="Select a model for image generation" />
+                    <SelectValue placeholder="Select a model" />
                   </SelectTrigger>
                 </FormControl>
                 <FormMessage />
