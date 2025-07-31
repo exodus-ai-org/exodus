@@ -44,14 +44,16 @@ export default defineConfig({
             __dirname,
             'src',
             'renderer',
+            'sub-apps',
             'searchbar',
             'index.html'
           ),
-          shortcutChat: path.resolve(
+          quickChat: path.resolve(
             __dirname,
             'src',
             'renderer',
-            'shortcut-chat',
+            'sub-apps',
+            'quick-chat',
             'index.html'
           )
         }

@@ -1,8 +1,6 @@
-import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
 import { useSettings } from '@/hooks/use-settings'
 import { convertFileToBase64 } from '@/lib/utils'
-import { AlertCircle, Edit, Trash } from 'lucide-react'
+import { Plus, X } from 'lucide-react'
 import { ChangeEvent, useRef } from 'react'
 import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
 
@@ -39,54 +37,38 @@ export function AvatarUploader<T extends FieldValues>({
   }
 
   return (
-    <>
-      <Alert className="mb-4">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription className="inline">
-          Personalize your assistant with an avatar for a better user
-          experience. The avatar will be displayed to the left of each assistant
-          message.
-        </AlertDescription>
-      </Alert>
-      <div className="relative flex h-40 w-40 items-center justify-center rounded-full border">
-        <input
-          ref={ref}
-          type="file"
-          accept="image/*"
-          id="assistant-avatar"
-          className="absolute top-0 left-0 z-10 h-40 w-40 cursor-pointer opacity-0"
-          onChange={handleEditorChange}
+    <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-full border">
+      <input
+        ref={ref}
+        type="file"
+        accept="image/*"
+        id="assistant-avatar"
+        className="absolute top-0 left-0 z-10 h-16 w-16 opacity-0"
+        onChange={handleEditorChange}
+      />
+      {field.value ? (
+        <img
+          src={field.value}
+          alt="assistant-avatar"
+          className="h-16 w-16 rounded-full object-cover"
         />
-        {field.value ? (
-          <img
-            src={field.value}
-            alt="assistant-avatar"
-            className="h-40 w-40 rounded-full object-cover"
+      ) : (
+        <Plus />
+      )}
+
+      {!!field.value && (
+        <span className="absolute -top-1 -right-1 z-100 rounded-full border-3 border-gray-50 bg-black p-0.75 dark:border-black dark:bg-white">
+          <X
+            onClick={(e) => {
+              e.stopPropagation()
+              e.preventDefault()
+              handleRemove()
+            }}
+            className="h-2.5 w-2.5 text-white dark:text-black"
+            strokeWidth={2.5}
           />
-        ) : (
-          <p>Click to upload</p>
-        )}
-
-        {!!field.value && (
-          <Button
-            size="icon"
-            className="absolute -right-0 bottom-2 cursor-pointer rounded-full"
-          >
-            <Edit />
-          </Button>
-        )}
-
-        {!!field.value && (
-          <Button
-            variant="destructive"
-            className="absolute top-48 w-fit cursor-pointer"
-            onClick={handleRemove}
-          >
-            <Trash />
-            Remove
-          </Button>
-        )}
-      </div>
-    </>
+        </span>
+      )}
+    </div>
   )
 }

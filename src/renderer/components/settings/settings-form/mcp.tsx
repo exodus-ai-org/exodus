@@ -1,5 +1,5 @@
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { cn } from '@/lib/utils'
+import { subscribeSucceedToRestartServer } from '@/lib/ipc'
 import { isMcpServerChangedAtom } from '@/stores/settings'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { motion } from 'framer-motion'
@@ -17,27 +17,19 @@ export function MCP({ form }: { form: UseFormReturnType }) {
   const [loading, setLoading] = useState(false)
   const restartServer = () => {
     setLoading(true)
-    window.electron.ipcRenderer.invoke('restart-server')
+    restartServer()
   }
 
   useEffect(() => {
-    const succeedToRestartServerHandler = () => {
-      setLoading(false)
-      setIsMcpServerChanged(false)
-      toast.success(
-        'The new MCP servers are live! Enjoy chatting with MCP! ( ๑ ˃̵ᴗ˂̵)و ♡'
-      )
-      window.location.reload()
-    }
-
-    const removeListener = window.electron.ipcRenderer.on(
-      'succeed-to-restart-server',
-      succeedToRestartServerHandler
-    )
-
-    return () => {
-      removeListener()
-    }
+    return () =>
+      subscribeSucceedToRestartServer(() => {
+        setLoading(false)
+        setIsMcpServerChanged(false)
+        toast.success(
+          'The new MCP servers are live! Enjoy chatting with MCP! ( ๑ ˃̵ᴗ˂̵)و ♡'
+        )
+        window.location.reload()
+      })
   }, [setIsMcpServerChanged])
 
   return (
@@ -49,7 +41,7 @@ export function MCP({ form }: { form: UseFormReturnType }) {
             We&apos;ve detected an update to your MCP servers&apos;
             configuration. To apply these changes, please click{' '}
             <span
-              className="hover:text-primary cursor-pointer font-bold underline"
+              className="hover:text-primary font-bold underline"
               onClick={restartServer}
             >
               RESTART
@@ -68,7 +60,7 @@ export function MCP({ form }: { form: UseFormReturnType }) {
 
       {loading && (
         <div className="bg-background absolute top-0 left-0 z-100 flex h-full w-full flex-col items-center justify-center gap-4">
-          <Loader size={24} strokeWidth={2.5} className={cn('animate-spin')} />
+          <Loader size={24} strokeWidth={2.5} className="animate-spin" />
           <motion.div
             variants={{
               hidden: { opacity: 0 },

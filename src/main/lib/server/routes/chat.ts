@@ -113,7 +113,7 @@ chat.post('/', async (c) => {
         messages,
         maxSteps: settings.providerConfig?.maxSteps ?? 1,
         tools: bindCallingTools({ mcpTools, advancedTools, settings }),
-        experimental_transform: smoothStream({ chunking: 'word' }),
+        experimental_transform: smoothStream({ chunking: 'line' }),
         experimental_generateMessageId: uuidV4,
         experimental_continueSteps: true,
         onFinish: async ({ response }) => {
@@ -158,6 +158,7 @@ chat.post('/', async (c) => {
       })
     },
     onError: (error) => {
+      console.log(error)
       // Error messages are masked by default for security reasons.
       // If you want to expose the error message to the client, you can do so here:
       return error instanceof Error ? error.message : String(error)

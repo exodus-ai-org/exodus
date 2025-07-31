@@ -36,12 +36,12 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
   }, [provider])
 
   return (
-    <>
+    <div className="flex flex-col gap-3">
       <FormField
         control={form.control}
         name="providerConfig.provider"
         render={({ field }) => (
-          <FormItem className="flex justify-between">
+          <FormItem className="flex items-center justify-between">
             <FormLabel className="mb-0">Provider</FormLabel>
             <Select
               value={field.value ?? ''}
@@ -53,7 +53,7 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
             >
               <FormControl className="mb-0 w-fit">
                 <SelectTrigger className="hover:bg-accent border-none shadow-none">
-                  <SelectValue placeholder={Providers.OpenAiGpt} />
+                  <SelectValue placeholder="Select a provider" />
                 </SelectTrigger>
               </FormControl>
               <FormMessage />
@@ -68,12 +68,12 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
           </FormItem>
         )}
       />
-      <Separator className="-my-2" />
+      <Separator />
       <FormField
         control={form.control}
         name="providerConfig.chatModel"
         render={({ field }) => (
-          <FormItem className="flex justify-between">
+          <FormItem className="flex items-center justify-between">
             <FormLabel className="mb-0">Chat Model</FormLabel>
             <Select
               disabled={!provider}
@@ -103,12 +103,12 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
           </FormItem>
         )}
       />
-      <Separator className="-my-2" />
+      <Separator />
       <FormField
         control={form.control}
         name="providerConfig.reasoningModel"
         render={({ field }) => (
-          <FormItem className="flex justify-between">
+          <FormItem className="flex items-center justify-between">
             <FormLabel className="mb-0">Reasoning Model</FormLabel>
             <Select
               disabled={!provider}
@@ -138,13 +138,13 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
           </FormItem>
         )}
       />
-      <Separator className="-my-2" />
+      <Separator />
       <FormField
         control={form.control}
         name="providerConfig.maxSteps"
         render={({ field }) => (
-          <FormItem className="flex justify-between">
-            <FormLabel>
+          <FormItem className="flex items-center justify-between">
+            <FormLabel className="mb-0">
               Max Steps
               <TooltipProvider>
                 <Tooltip>
@@ -176,6 +176,6 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
           </FormItem>
         )}
       />
-    </>
+    </div>
   )
 }

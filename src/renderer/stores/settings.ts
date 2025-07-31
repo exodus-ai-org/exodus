@@ -1,6 +1,6 @@
 import { atom } from 'jotai'
 
-export const settingsLabelAtom = atom<string>('Providers')
+export const settingsLabelAtom = atom<string>('General')
 
 export const isSettingsVisibleAtom = atom(false)
 

@@ -142,12 +142,7 @@ function InputBox({
             {input.trim() === '' ? (
               <AudioRecorder input={input} setInput={setInput} />
             ) : (
-              <Button
-                type="submit"
-                variant="secondary"
-                className="cursor-pointer"
-                onClick={handleSubmit}
-              >
+              <Button type="submit" variant="secondary" onClick={handleSubmit}>
                 <Send />
               </Button>
             )}

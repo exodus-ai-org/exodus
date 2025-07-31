@@ -5,7 +5,7 @@ import ReactDOM from 'react-dom/client'
 import { FindBar } from './app'
 
 ReactDOM.createRoot(
-  document.getElementById('shortcut-chat-root') as HTMLElement
+  document.getElementById('quick-chat-root') as HTMLElement
 ).render(
   <React.StrictMode>
     <ThemeProvider>

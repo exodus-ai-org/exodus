@@ -7,7 +7,6 @@ export function useClipboard() {
   const handleCopy = async (text: string) => {
     try {
       await window.navigator.clipboard.writeText(text)
-      toast.success('Copied!')
       setCopied(text)
       setTimeout(() => {
         setCopied('')

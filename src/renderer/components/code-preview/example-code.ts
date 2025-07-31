@@ -498,7 +498,7 @@ export default function Home() {
                         return (
                           <div
                             key={i}
-                            className={\`absolute \${event.color} cursor-pointer rounded-md p-2 text-xs text-white shadow-md transition-all duration-200 ease-in-out hover:translate-y-[-2px] hover:shadow-lg\`}
+                            className={\`absolute \${event.color} rounded-md p-2 text-xs text-white shadow-md transition-all duration-200 ease-in-out hover:translate-y-[-2px] hover:shadow-lg\`}
                             style={{
                               ...eventStyle,
                               left: '4px',

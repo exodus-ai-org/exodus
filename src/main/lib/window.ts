@@ -5,21 +5,23 @@ import icon from '../../../resources/icon.png?asset'
 
 let mainWindow: BrowserWindow | null = null
 let searchView: WebContentsView | null = null
-let shortcutChatView: BrowserWindow | null = null
+let quickChatView: BrowserWindow | null = null
 let isQuitting = false
 
 export function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 960,
+    minWidth: 1280,
+    minHeight: 960,
     show: false,
     autoHideMenuBar: true,
     frame: false,
     title: '',
     titleBarStyle: 'hidden',
     trafficLightPosition: {
-      x: 16,
-      y: 16
+      x: 20,
+      y: 20
     },
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
@@ -76,7 +78,7 @@ export function registerSearchMenu(mainWindow: BrowserWindow) {
 
   searchView.setBounds({
     x: (mainWindow?.getBounds().width ?? 0) - 418,
-    y: 0,
+    y: 56,
     width: 418,
     height: 86
   })
@@ -84,11 +86,11 @@ export function registerSearchMenu(mainWindow: BrowserWindow) {
 
   if (is.dev && process.env.ELECTRON_RENDERER_URL) {
     searchView.webContents.loadURL(
-      process.env.ELECTRON_RENDERER_URL + '/searchbar/index.html'
+      process.env.ELECTRON_RENDERER_URL + '/sub-apps/searchbar/index.html'
     )
   } else {
     searchView.webContents.loadFile(
-      join(__dirname, '../renderer/searchbar/index.html')
+      join(__dirname, '../renderer/sub-apps/searchbar/index.html')
     )
   }
 
@@ -114,10 +116,10 @@ export function registerSearchMenu(mainWindow: BrowserWindow) {
   })
 }
 
-export function registerShortcutChat() {
-  if (shortcutChatView) return
+export function registerQuickChat() {
+  if (quickChatView) return
 
-  shortcutChatView = new BrowserWindow({
+  quickChatView = new BrowserWindow({
     frame: false,
     transparent: true,
     resizable: false,
@@ -133,7 +135,7 @@ export function registerShortcutChat() {
 
   const display = screen.getPrimaryDisplay()
   const { width, height } = display.workArea
-  shortcutChatView.setBounds({
+  quickChatView.setBounds({
     x: (width - 600) / 2,
     y: height * 0.32,
     width: 600,
@@ -141,12 +143,12 @@ export function registerShortcutChat() {
   })
 
   if (is.dev && process.env.ELECTRON_RENDERER_URL) {
-    shortcutChatView.webContents.loadURL(
-      process.env.ELECTRON_RENDERER_URL + '/shortcut-chat/index.html'
+    quickChatView.webContents.loadURL(
+      process.env.ELECTRON_RENDERER_URL + '/sub-apps/quick-chat/index.html'
     )
   } else {
-    shortcutChatView.webContents.loadFile(
-      join(__dirname, '../renderer/shortcut-chat/index.html')
+    quickChatView.webContents.loadFile(
+      join(__dirname, '../renderer/sub-apps/quick-chat/index.html')
     )
   }
 }
@@ -163,10 +165,10 @@ export function setSearchView(view: WebContentsView | null) {
   searchView = view
 }
 
-export function getShortcutChatView(): BrowserWindow | null {
-  return shortcutChatView
+export function getQuickChatView(): BrowserWindow | null {
+  return quickChatView
 }
 
-export function setShortcutChatView(view: BrowserWindow | null) {
-  shortcutChatView = view
+export function setQuickChatView(view: BrowserWindow | null) {
+  quickChatView = view
 }

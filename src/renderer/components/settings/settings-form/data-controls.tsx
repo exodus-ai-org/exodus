@@ -7,7 +7,7 @@ import { Construction, Loader2 } from 'lucide-react'
 export function DataControls() {
   const { exportData, loading: dbIoLoading } = useDbIo()
   return (
-    <>
+    <div className="flex flex-col gap-3">
       <div className="flex items-center justify-between">
         <FormLabel>Import Data</FormLabel>
         <Button disabled variant="outline">
@@ -17,12 +17,7 @@ export function DataControls() {
       <Separator />
       <div className="flex items-center justify-between">
         <FormLabel>Export Data</FormLabel>
-        <Button
-          variant="outline"
-          disabled={dbIoLoading}
-          onClick={exportData}
-          className="cursor-pointer"
-        >
+        <Button variant="outline" disabled={dbIoLoading} onClick={exportData}>
           {dbIoLoading && <Loader2 className="animate-spin" />}
           Export Data
         </Button>
@@ -30,10 +25,10 @@ export function DataControls() {
       <Separator />
       <div className="flex items-center justify-between">
         <FormLabel>Delete Data</FormLabel>
-        <Button disabled variant="destructive" className="cursor-pointer">
+        <Button disabled variant="destructive">
           <Construction /> Delete
         </Button>
       </div>
-    </>
+    </div>
   )
 }

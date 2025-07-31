@@ -1,6 +1,13 @@
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
+import {
+  closeSearchbar,
+  findInPage,
+  findNext,
+  findPrevious,
+  subscribeFindInPageResult
+} from '@/lib/ipc'
 import { cn } from '@/lib/utils'
 import type { IpcRendererEvent, Result } from 'electron'
 import { ChevronDown, ChevronUp, X } from 'lucide-react'
@@ -11,26 +18,18 @@ export function FindBar() {
   const [query, setQuery] = useState('')
   const [searchResult, setSearchResult] = useState<Result | null>(null)
 
-  const handleChange = (value: string) => {
-    setQuery(value.trim())
-    window.electron.ipcRenderer.invoke('find-in-page', value.trim())
+  const handleChange = (query: string) => {
+    setQuery(query.trim())
+    findInPage(query.trim())
 
-    if (!value.trim()) {
+    if (!query.trim()) {
       setSearchResult(null)
     }
   }
 
-  const findNext = () => {
-    window.electron.ipcRenderer.invoke('find-next', query.trim())
-  }
-
-  const findPrevious = () => {
-    window.electron.ipcRenderer.invoke('find-previous', query.trim())
-  }
-
   const handleClose = () => {
     setQuery('')
-    window.electron.ipcRenderer.invoke('close-search-bar')
+    closeSearchbar()
   }
 
   useEffect(() => {
@@ -38,19 +37,12 @@ export function FindBar() {
   }, [])
 
   useEffect(() => {
-    const onFound = (_: IpcRendererEvent, result: Result) => {
-      if (result.finalUpdate) {
-        setSearchResult(result)
-      }
-    }
-
-    const removeListener = window.electron.ipcRenderer.on(
-      'find-in-page-result',
-      onFound
-    )
-
     return () => {
-      removeListener()
+      subscribeFindInPageResult((_: IpcRendererEvent, result: Result) => {
+        if (result.finalUpdate) {
+          setSearchResult(result)
+        }
+      })
     }
   }, [])
 
@@ -89,7 +81,9 @@ export function FindBar() {
       <div className="flex gap-1">
         <Button
           variant="ghost"
-          onClick={findPrevious}
+          onClick={() => {
+            findPrevious(query.trim())
+          }}
           title="Previous match"
           className="h-7 w-7 rounded-full"
           disabled={!searchResult || searchResult.matches === 0}
@@ -98,7 +92,9 @@ export function FindBar() {
         </Button>
         <Button
           variant="ghost"
-          onClick={findNext}
+          onClick={() => {
+            findNext(query.trim())
+          }}
           title="Next match"
           className="h-7 w-7 rounded-full"
           disabled={!searchResult || searchResult.matches === 0}

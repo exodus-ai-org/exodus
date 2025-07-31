@@ -205,7 +205,7 @@ export function NavHistories() {
                         asChild
                         className="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mb-1 text-sm"
                       >
-                        <CollapsibleTrigger className="flex w-full cursor-pointer items-center justify-between !pl-0">
+                        <CollapsibleTrigger className="flex w-full items-center justify-between !pl-0">
                           <SidebarGroupLabel>Favorite</SidebarGroupLabel>
                           <ChevronRight className="transition-transform group-data-[state=open]/collapsible:rotate-90" />
                         </CollapsibleTrigger>

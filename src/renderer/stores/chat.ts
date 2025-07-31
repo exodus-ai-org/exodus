@@ -3,7 +3,11 @@ import { Chat, DeepResearchMessage } from '@shared/types/db'
 import { Attachment } from 'ai'
 import { atom } from 'jotai'
 
-export const isArtifactVisibleAtom = atom(false)
+export const isImmersionVisibleAtom = atom(false)
+
+export const immersionContentAtom = atom('')
+
+export const isCodePreviewVisibleAtom = atom(false)
 
 export const isFullTextSearchVisibleAtom = atom(false)
 

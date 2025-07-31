@@ -1,5 +1,5 @@
-import { useArtifact } from '@/hooks/use-artifact'
 import { useClipboard } from '@/hooks/use-clipboard'
+import { useImmersion } from '@/hooks/use-immersion'
 import { cn } from '@/lib/utils'
 import { WebSearchResult } from '@shared/types/web-search'
 import type { UIMessage } from 'ai'
@@ -19,11 +19,11 @@ import { WebSearchGroup } from './calling-tools/web-search/web-search-group'
 import { useTheme } from './theme-provider'
 
 const themes = {
-  light: { codeTheme: atomOneLight, bg: 'bg-[#fafafa]' },
-  dark: { codeTheme: atomOneDark, bg: 'bg-[#282c34]' }
+  light: { codeTheme: atomOneLight },
+  dark: { codeTheme: atomOneDark }
 }
 
-const citationRegex = /\[Source:\s*([\d,\s]+)\]/
+const citationGlobalRegex = /\[Source:\s*([\d,\s]+)\]/g
 
 // When using the web-search or deep-research features, the AI outputs markdown text with citation markers.
 // There are two formats:
@@ -47,9 +47,13 @@ function parseCitations(children: ReactNode) {
   }
   if (typeof children !== 'string') return null
 
-  const match = children.match(citationRegex)
-  if (!match) return null
-  const citations = match[1].split(',').map((num) => parseInt(num.trim(), 10))
+  const matches = [...children.matchAll(citationGlobalRegex)]
+  if (matches.length === 0) return null
+
+  const citations = matches
+    .map((match) => match[1].split(',').map((num) => parseInt(num.trim(), 10)))
+    .flat()
+    .sort((a, b) => a - b)
   return citations
 }
 
@@ -71,12 +75,13 @@ function TextWithCitations({
 
   return (
     <>
-      {typeof children === 'string' && children.replace(citationRegex, '')}
+      {typeof children === 'string' &&
+        children.replaceAll(citationGlobalRegex, '')}
       {Array.isArray(children) && (
         <>
           {children.map((item) => {
             if (typeof item === 'string') {
-              return item.replace(citationRegex, '')
+              return item.replaceAll(citationGlobalRegex, '')
             } else {
               return item
             }
@@ -98,10 +103,10 @@ export function Markdown({
   src: string
   parts: UIMessage['parts']
 }) {
-  const { show: isArtifactVisible, openArtifact } = useArtifact()
+  const { show: isImmersionVisible, openImmersion } = useImmersion()
   const { copied, handleCopy } = useClipboard()
   const { actualTheme } = useTheme()
-  const { codeTheme, bg } = useMemo(() => themes[actualTheme], [actualTheme])
+  const { codeTheme } = useMemo(() => themes[actualTheme], [actualTheme])
   const webSearchResults = useMemo(() => {
     try {
       const toolInvocationPart = parts.find(
@@ -148,16 +153,15 @@ export function Markdown({
               <>
                 <section
                   className={cn(
-                    'text-ring flex items-center justify-between p-3 pb-0 text-xs',
-                    bg
+                    'text-ring flex items-center justify-between pb-0 text-xs'
                   )}
                 >
                   <span>{match[1]}</span>
-                  <div className="flex items-center gap-6">
+                  <div className="flex cursor-default items-center gap-6">
                     <>
                       {copied !== children ? (
                         <span
-                          className="hover:text-primary flex cursor-pointer items-center gap-1.5"
+                          className="hover:text-primary flex items-center gap-1.5"
                           onClick={() => {
                             if (typeof children === 'string') {
                               handleCopy(children)
@@ -176,8 +180,8 @@ export function Markdown({
                     </>
 
                     <span
-                      className="hover:text-primary flex cursor-pointer items-center gap-1.5"
-                      onClick={openArtifact}
+                      className="hover:text-primary flex items-center gap-1.5"
+                      onClick={() => openImmersion('')}
                     >
                       <PencilRuler size={10} />
                       Edit
@@ -191,19 +195,13 @@ export function Markdown({
                   PreTag="div"
                   language={match[1]}
                   style={codeTheme}
-                  customStyle={{ padding: '0.75rem' }}
+                  customStyle={{ padding: '0.75rem', paddingBottom: 0 }}
                 >
                   {String(children).replace(/\n$/, '')}
                 </SyntaxHighlighter>
               </>
             ) : (
-              <code
-                {...rest}
-                className={cn(
-                  className,
-                  'text-primary bg-accent rounded-sm px-[4.8px] py-[2.4px] text-xs'
-                )}
-              >
+              <code {...rest} className={className}>
                 {children}
               </code>
             )
@@ -213,11 +211,7 @@ export function Markdown({
             return (
               <pre
                 {...rest}
-                className={cn(
-                  'border-border mb-4 overflow-x-scroll rounded-md border text-xs md:max-w-[45rem]',
-                  { ['w-[23rem]']: isArtifactVisible },
-                  className
-                )}
+                className={cn({ ['w-[24rem]']: isImmersionVisible }, className)}
               >
                 {children}
               </pre>

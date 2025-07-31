@@ -100,7 +100,7 @@ export function MessageItem({
           <div className="flex flex-col gap-2">
             Start writing final report...
             <div className="!m-0 text-sm">
-              The deep research phase is complete. Your final report is being
+              The deep research phase is completed. Your final report is being
               generated and will be presented shortly.
             </div>
           </div>

@@ -2,9 +2,9 @@ import { Providers } from '@shared/types/ai'
 import {
   Atom,
   AudioWaveform,
-  Bot,
   Chrome,
   CloudDownload,
+  Cog,
   Computer,
   Database,
   FileUp,
@@ -18,8 +18,12 @@ import {
   Telescope
 } from 'lucide-react'
 
-export const schema = {
+export const menus = {
   navMain: [
+    {
+      title: 'General',
+      icon: Cog
+    },
     {
       title: 'Providers',
       icon: HandCoins,
@@ -47,10 +51,6 @@ export const schema = {
     {
       title: 'File Upload Endpoint',
       icon: FileUp
-    },
-    {
-      title: 'Assistant Avatar',
-      icon: Bot
     },
     {
       icon: Hammer,
@@ -82,7 +82,7 @@ export const schema = {
     },
     {
       icon: Palette,
-      title: 'Artifacts'
+      title: 'Immersion'
     },
     {
       icon: Chrome,

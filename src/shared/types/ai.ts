@@ -13,7 +13,7 @@ export enum AdvancedTools {
   WebSearch = 'Web Search',
   Reasoning = 'Reasoning',
   DeepResearch = 'Deep Research',
-  Artifacts = 'Artifacts'
+  Immersion = 'Immersion'
 }
 
 export interface McpTools {

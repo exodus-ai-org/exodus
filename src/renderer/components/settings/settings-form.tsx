@@ -8,10 +8,10 @@ import { useAtomValue, useSetAtom } from 'jotai'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import { AudioSpeech } from './settings-form/audio-speech'
-import { AvatarUploader } from './settings-form/avatar-uploader'
 import { DataControls } from './settings-form/data-controls'
 import { DeepResearch } from './settings-form/deep-research'
 import { FileUploadEndpoint } from './settings-form/file-upload-endpoint'
+import { General } from './settings-form/generals'
 import { GoogleMaps } from './settings-form/google-maps'
 import { ImageGeneration } from './settings-form/image-generation'
 import { MCP } from './settings-form/mcp'
@@ -56,6 +56,8 @@ export function SettingsForm() {
         className="flex flex-1 flex-col gap-4"
         onBlur={form.handleSubmit(onSubmit)}
       >
+        {activeTitle === 'General' && <General form={form} />}
+
         {activeTitle === 'Providers' && <ProviderConfig form={form} />}
 
         {activeTitle === Providers.OpenAiGpt && <OpenAiGpt form={form} />}
@@ -76,12 +78,6 @@ export function SettingsForm() {
           <FileUploadEndpoint form={form} />
         )}
 
-        {activeTitle === 'Assistant Avatar' && (
-          <AvatarUploader
-            props={{ control: form.control, name: 'assistantAvatar' }}
-          />
-        )}
-
         {activeTitle === 'MCP Servers' && <MCP form={form} />}
 
         {activeTitle === 'Audio and Speech' && <AudioSpeech form={form} />}
@@ -96,7 +92,7 @@ export function SettingsForm() {
 
         {activeTitle === 'RAG' && <UnderConstruction />}
 
-        {activeTitle === 'Artifacts' && <UnderConstruction />}
+        {activeTitle === 'Immersion' && <UnderConstruction />}
 
         {activeTitle === 'Computer Use' && <UnderConstruction />}
 

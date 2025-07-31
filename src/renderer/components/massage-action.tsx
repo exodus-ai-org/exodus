@@ -1,5 +1,5 @@
-import { useArtifact } from '@/hooks/use-artifact'
 import { useClipboard } from '@/hooks/use-clipboard'
+import { useImmersion } from '@/hooks/use-immersion'
 import { TooltipArrow } from '@radix-ui/react-tooltip'
 import { ChatRequestOptions } from 'ai'
 import {
@@ -28,7 +28,7 @@ export function IconWrapper({
 }) {
   return (
     <span
-      className="hover:bg-secondary text-muted-foreground flex h-6 w-6 cursor-pointer items-center justify-center rounded-sm"
+      className="hover:bg-secondary text-muted-foreground flex h-6 w-6 items-center justify-center rounded-sm"
       onClick={onClick}
     >
       {children}
@@ -66,10 +66,10 @@ export function MessageAction({
   ) => Promise<string | null | undefined>
 }) {
   const { copied, handleCopy } = useClipboard()
-  const { openArtifact } = useArtifact()
+  const { openImmersion } = useImmersion()
 
   return (
-    <div className="invisible absolute flex gap-0.5 opacity-0 transition-all group-hover:visible group-hover:opacity-100 group-hover:transition-all">
+    <div className="flex gap-0.5">
       <MessageActionItem tooltipContent="Copy">
         <IconWrapper onClick={() => handleCopy(content)}>
           {copied !== content ? (
@@ -90,8 +90,8 @@ export function MessageAction({
         </IconWrapper>
       </MessageActionItem>
       <AudioPlayer content={content} />
-      <MessageActionItem tooltipContent="Edit in artifacts">
-        <IconWrapper onClick={openArtifact}>
+      <MessageActionItem tooltipContent="Edit in Immersion">
+        <IconWrapper onClick={() => openImmersion(content)}>
           <PencilRuler size={14} strokeWidth={2.5} />
         </IconWrapper>
       </MessageActionItem>

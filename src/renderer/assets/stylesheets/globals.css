@@ -242,6 +242,94 @@
     strong {
       @apply font-semibold;
     }
+
+    pre {
+      @apply border-border mb-4 overflow-x-scroll rounded-md border bg-[#fafafa] p-3 text-xs md:max-w-[48rem] dark:bg-[#282c34];
+
+      code {
+        all: unset;
+      }
+    }
+
+    code {
+      @apply text-primary bg-accent rounded-sm px-[4.8px] py-[2.4px] text-xs;
+    }
+
+    blockquote {
+      @apply after:bg-border relative pl-4 after:absolute after:top-0 after:left-0 after:h-full after:w-1 after:rounded-[2px];
+    }
+  }
+
+  .tiptap {
+    outline: none;
+  }
+
+  .hljs {
+    @apply block overflow-x-auto bg-[#fafafa] p-2 text-[#383a42] dark:bg-[#282c34] dark:text-[#abb2bf];
+  }
+
+  .hljs-comment,
+  .hljs-quote {
+    @apply text-[#a0a1a7] italic dark:text-[#5c6370];
+  }
+
+  .hljs-doctag,
+  .hljs-keyword,
+  .hljs-formula {
+    @apply text-[#a626a4] dark:text-[#c678dd];
+  }
+
+  .hljs-section,
+  .hljs-name,
+  .hljs-selector-tag,
+  .hljs-deletion,
+  .hljs-subst {
+    @apply text-[#e45649] dark:text-[#e06c75];
+  }
+
+  .hljs-literal {
+    @apply text-[#0184bb] dark:text-[#56b6c2];
+  }
+
+  .hljs-string,
+  .hljs-regexp,
+  .hljs-addition,
+  .hljs-attribute,
+  .hljs-meta-string {
+    @apply text-[#50a14f] dark:text-[#98c379];
+  }
+
+  .hljs-built_in,
+  .hljs-class .hljs-title {
+    @apply text-[#c18401] dark:text-[#e6c07b];
+  }
+
+  .hljs-attr,
+  .hljs-variable,
+  .hljs-template-variable,
+  .hljs-type,
+  .hljs-selector-class,
+  .hljs-selector-attr,
+  .hljs-selector-pseudo,
+  .hljs-number {
+    @apply text-[#986801] dark:text-[#d19a66];
+  }
+
+  .hljs-symbol,
+  .hljs-bullet,
+  .hljs-link,
+  .hljs-meta,
+  .hljs-selector-id,
+  .hljs-title {
+    @apply text-[#4078f2] underline dark:text-[#61aeee];
+  }
+
+  .hljs-emphasis {
+    @apply italic;
+  }
+
+  .hljs-strong {
+    @apply font-bold;
   }
 
   [data-rmiz] {
