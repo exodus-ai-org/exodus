@@ -1,3 +1,24 @@
+# [1.9.0](https://github.com/exodus-ai-org/exodus/compare/v1.8.0...v1.9.0) (2025-07-31)
+
+
+### Bug Fixes
+
+* parse all source from deep-research final report ([04f13f1](https://github.com/exodus-ai-org/exodus/commit/04f13f1da37c17bba78c6b217fdd221f92143fa9))
+
+
+### Features
+
+* collect all ipcs to a single file ([21766ae](https://github.com/exodus-ai-org/exodus/commit/21766ae4c70fae9f4f62c6f71814a5d9534a0caa))
+* delete useless code ([7bbdf17](https://github.com/exodus-ai-org/exodus/commit/7bbdf1756f2654c1d154737d45a90dafcee9691b))
+* migrate assistant module to generals ([19023e2](https://github.com/exodus-ai-org/exodus/commit/19023e2d3cfcd2b608a6b1f4bd2b4f2a4fe0bb5b))
+* optimize settings ([be03305](https://github.com/exodus-ai-org/exodus/commit/be0330505adfd3c1732180087fb384ca2f70d14d))
+* refactor the layout ([03717de](https://github.com/exodus-ai-org/exodus/commit/03717de0dc48141edaa7d962b086fde0a55f628e))
+* rename shortcutChat as quickChat ([ddac7ab](https://github.com/exodus-ai-org/exodus/commit/ddac7ab6a5ececa80936114c94cec841494086b0))
+* set minWidth and minHeight to main window ([4169506](https://github.com/exodus-ai-org/exodus/commit/416950638aa99015186dffdc4749271b56044f2c))
+* style adjustment ([8a9c710](https://github.com/exodus-ai-org/exodus/commit/8a9c710d654935032bd9f6b0066c316db8f6ffde))
+* update MonacoEditor ([fd3c73a](https://github.com/exodus-ai-org/exodus/commit/fd3c73a56a4ee89f189c9af8bebc00a807f97c89))
+* **wip:** integrate tiptap editior preparing for immersion ([392b3c2](https://github.com/exodus-ai-org/exodus/commit/392b3c287ead8fa1c5ad4f9853c59a2c478375a4))
+
 # [1.8.0](https://github.com/exodus-ai-org/exodus/compare/v1.7.0...v1.8.0) (2025-07-15)
 
 
