@@ -48,6 +48,14 @@ function CodeEditor<T extends FieldValues>({
       defaultLanguage="json"
       value={field.value}
       onChange={handleEditorChange}
+      options={{
+        tabSize: 2,
+        insertSpaces: true,
+        detectIndentation: false,
+        formatOnPaste: true,
+        formatOnType: true,
+        minimap: { enabled: false }
+      }}
       beforeMount={(monaco) => {
         monaco.editor.defineTheme('shadcn-dark', {
           base: 'vs-dark',
