@@ -1,5 +1,4 @@
-import { openai } from '@ai-sdk/openai'
-import { embed, embedMany } from 'ai'
+import { embed, EmbeddingModel, embedMany } from 'ai'
 
 export interface Embedding {
   embedding: number[]
@@ -7,21 +6,25 @@ export interface Embedding {
 }
 
 // transform user's prompt to embedding vector
-export const generateEmbedding = async (value: string): Promise<number[]> => {
+export const generateEmbedding = async (
+  { value }: { value: string },
+  { model }: { model: EmbeddingModel<string> }
+): Promise<number[]> => {
   const input = value.replaceAll('\\n', ' ')
   const { embedding } = await embed({
-    model: openai.embedding('text-embedding-ada-002'),
+    model,
     value: input
   })
   return embedding
 }
 
-// bath transform knowledge bases to embedding vector
+// batch transform knowledge bases to embedding vector
 export const generateEmbeddings = async (
-  chunks: string[]
+  { chunks }: { chunks: string[] },
+  { model }: { model: EmbeddingModel<string> }
 ): Promise<Embedding[]> => {
   const { embeddings } = await embedMany({
-    model: openai.embedding('text-embedding-ada-002'),
+    model,
     values: chunks
   })
 

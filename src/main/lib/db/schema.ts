@@ -13,7 +13,8 @@ import {
   text,
   timestamp,
   uuid,
-  varchar
+  varchar,
+  vector
 } from 'drizzle-orm/pg-core'
 
 export const chat = pgTable('Chat', {
@@ -114,3 +115,33 @@ export const deepResearchMessage = pgTable('DeepResearchMessage', {
 })
 
 export type DeepResearchMessage = InferSelectModel<typeof deepResearchMessage>
+
+export const resources = pgTable('Resource', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  content: text('content').notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('createdAt').defaultNow().notNull()
+})
+
+export type Resources = InferSelectModel<typeof resources>
+
+export const embeddings = pgTable(
+  'Embedding',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    resourceId: varchar('resource_id', { length: 191 }).references(
+      () => resources.id,
+      { onDelete: 'cascade' }
+    ),
+    content: text('content').notNull(),
+    embedding: vector('embedding', { dimensions: 1536 }).notNull()
+  },
+  (table) => ({
+    embeddingIndex: index('embeddingIndex').using(
+      'hnsw',
+      table.embedding.op('vector_cosine_ops')
+    )
+  })
+)
+
+export type Embeddings = InferSelectModel<typeof embeddings>

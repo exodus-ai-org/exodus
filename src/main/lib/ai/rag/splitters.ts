@@ -10,6 +10,7 @@ export const transformTextsToLangChainDocument = async (texts: string[]) => {
   return document
 }
 
+// markdown
 export const generateChunksByMarkdownTextSplitter = async (
   input: string,
   chunkSize = 1000,
@@ -23,6 +24,7 @@ export const generateChunksByMarkdownTextSplitter = async (
   return output
 }
 
+// pdf, txt...
 export const generateChunksByRecursiveCharacterTextSplitter = async (
   document: Document[],
   chunkSize = 1024,

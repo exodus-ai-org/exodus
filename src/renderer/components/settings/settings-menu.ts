@@ -3,7 +3,6 @@ import {
   Atom,
   AudioWaveform,
   Chrome,
-  CloudDownload,
   Cog,
   Computer,
   Database,
@@ -95,10 +94,6 @@ export const menus = {
     {
       icon: Database,
       title: 'Data Controls'
-    },
-    {
-      icon: CloudDownload,
-      title: 'Software Update'
     },
     {
       icon: Info,

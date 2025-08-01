@@ -84,6 +84,14 @@ export function General({ form }: { form: UseFormReturnType }) {
           props={{ control: form.control, name: 'assistantAvatar' }}
         />
       </FormItem>
+
+      <Separator />
+      <FormItem className="flex flex-col">
+        <div className="my-2 flex items-center justify-between">
+          <FormLabel className="mb-0">Software Update</FormLabel>
+          <Switch className="mb-0" />
+        </div>
+      </FormItem>
     </div>
   )
 }
