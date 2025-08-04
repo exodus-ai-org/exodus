@@ -21,7 +21,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar {...props}>
-      <SidebarHeader className={cn('mt-13 gap-1', { ['mt-1']: isFullscreen })}>
+      <SidebarHeader
+        className={cn('mt-13 gap-1 transition-all', { ['mt-1']: isFullscreen })}
+      >
         <SidebarMenu>
           <SidebarMenuItem
             className="hover:bg-sidebar-accent flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm"

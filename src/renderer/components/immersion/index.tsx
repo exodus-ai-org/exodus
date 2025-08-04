@@ -12,13 +12,13 @@ export function Immersion() {
       animate={{ x: 0 }}
       exit={{ x: '100%' }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-      className="h-screen w-[calc(100vw-26rem)] border-l"
+      className="dark:border-border z-10 h-screen w-full border-l border-gray-100 shadow-[0_0_18px_rgba(0,0,0,0.075)]"
     >
-      <div className="flex items-center justify-between border-b px-2 py-2.5">
+      <div className="draggable flex h-[3.5rem] items-center justify-between px-2">
         <Button
           variant="ghost"
           size="icon"
-          className="text-ring h-7 w-7"
+          className="text-ring no-draggable h-7 w-7"
           onClick={closeImmersion}
         >
           <X className="h-4 w-4" />

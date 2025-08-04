@@ -162,7 +162,7 @@ function Messages({
                 <p
                   className={cn(
                     'bg-accent max-w-[60%] rounded-xl px-3 py-2 break-words whitespace-pre-wrap',
-                    { ['max-w-[24rem]']: isImmersionVisible }
+                    { ['max-w-[23rem]']: isImmersionVisible }
                   )}
                 >
                   {message.parts.map((part) => {

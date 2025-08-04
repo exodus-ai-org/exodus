@@ -38,7 +38,7 @@ export function AvailableMcpTools() {
         <Tooltip>
           <TooltipTrigger asChild>
             <DialogTrigger asChild>
-              <Button variant="outline">
+              <Button variant="ghost" className="h-6">
                 <Hammer /> {len}
               </Button>
             </DialogTrigger>

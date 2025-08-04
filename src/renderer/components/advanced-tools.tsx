@@ -80,9 +80,9 @@ export function AdvancedTools() {
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  'text-ring hover:text-ring h-9 w-9 rounded-full border',
+                  'text-ring hover:text-ring h-6 w-6 rounded-full bg-transparent',
                   {
-                    ['bg-accent text-[#0285ff] hover:text-[#0285ff] dark:text-[#48aaff] hover:dark:text-[#48aaff]']:
+                    ['text-[#0285ff] hover:text-[#0285ff] dark:text-[#48aaff] hover:dark:text-[#48aaff]']:
                       advancedTools.includes(key)
                   }
                 )}

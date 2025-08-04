@@ -13,12 +13,13 @@ import {
   useState
 } from 'react'
 import { toast } from 'sonner'
-import { AdvancedTools as AdvancedToolsType } from './advanced-tools'
+import { AdvancedTools } from './advanced-tools'
 import { AudioRecorder } from './audio-recoder'
 import { AvailableMcpTools } from './available-mcp-tools'
 import { FilePreview } from './file-preview'
 import { MultiModelInputUploader } from './multimodel-input-uploader'
 import { Button } from './ui/button'
+import { Separator } from './ui/separator'
 import { Textarea } from './ui/textarea'
 
 function InputBox({
@@ -126,10 +127,12 @@ function InputBox({
           onPaste={handlePaste}
         />
       </form>
-      <div className="mx-2 mb-2 flex justify-between">
+      <div className="mx-2 mb-2 flex items-center justify-between">
         <div className="flex gap-2">
           <MultiModelInputUploader />
-          <AdvancedToolsType />
+          <Separator orientation="vertical" />
+          <AdvancedTools />
+          <Separator orientation="vertical" className="!h-6" />
           <AvailableMcpTools />
         </div>
 

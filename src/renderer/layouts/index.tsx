@@ -78,22 +78,22 @@ export function Layout() {
   }, [])
 
   return (
-    <SidebarProvider className="flex flex-col">
-      <div className="flex w-full">
-        <FixedHeaderAction />
-        <header className="draggable bg-background border-b-border flex h-14 w-full items-center border-b p-3">
-          ChatGPT
-        </header>
-      </div>
-      <div className="flex h-[calc(100dvh-3.5rem)] overflow-y-hidden">
-        <AppSidebar />
-        <section className="flex w-full">
+    <SidebarProvider>
+      <div className={cn('w-full', { ['w-[25rem]']: isImmersionVisible })}>
+        <div className="flex w-full">
+          <FixedHeaderAction />
+          <header className="draggable bg-background border-b-border flex h-14 w-full items-center border-b p-3">
+            ChatGPT
+          </header>
+        </div>
+        <div className="flex h-[calc(100dvh-3.5rem)] overflow-y-hidden">
+          <AppSidebar />
           <InsertedSidebar />
-          <DeepResearchProcess />
-          {isCodePreviewVisible && <CodePreview />}
-          {isImmersionVisible && <Immersion />}
-        </section>
+        </div>
       </div>
+      <DeepResearchProcess />
+      {isCodePreviewVisible && <CodePreview />}
+      {isImmersionVisible && <Immersion />}
     </SidebarProvider>
   )
 }

@@ -211,7 +211,7 @@ export function Markdown({
             return (
               <pre
                 {...rest}
-                className={cn({ ['w-[24rem]']: isImmersionVisible }, className)}
+                className={cn({ ['w-[23rem]']: isImmersionVisible }, className)}
               >
                 {children}
               </pre>
