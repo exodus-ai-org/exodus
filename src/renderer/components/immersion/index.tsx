@@ -25,7 +25,7 @@ export function Immersion() {
         </Button>
       </div>
 
-      <div className="flex h-[calc(100dvh-7.5rem)] justify-center overflow-y-scroll p-4 pt-20">
+      <div className="flex h-[calc(100dvh-4rem)] justify-center overflow-y-scroll p-4 pt-20">
         <RichTextEditor />
       </div>
     </motion.div>

@@ -100,6 +100,7 @@
     "@tanstack/react-table": "^8.21.3",
     "@tiptap/extension-code-block-lowlight": "^3.0.7",
     "@tiptap/extension-text-style": "^3.0.7",
+    "@tiptap/pm": "^3.0.9",
     "@tiptap/react": "^3.0.7",
     "@tiptap/starter-kit": "^3.0.7",
     "@types/lodash-es": "^4.17.12",

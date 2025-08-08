@@ -79,7 +79,9 @@ export function Layout() {
 
   return (
     <SidebarProvider>
-      <div className={cn('w-full', { ['w-[25rem]']: isImmersionVisible })}>
+      <div
+        className={cn('w-full shrink-0', { ['w-[25rem]']: isImmersionVisible })}
+      >
         <div className="flex w-full">
           <FixedHeaderAction />
           <header className="draggable bg-background border-b-border flex h-14 w-full items-center border-b p-3">

@@ -130,7 +130,7 @@ function InputBox({
       <div className="mx-2 mb-2 flex items-center justify-between">
         <div className="flex gap-2">
           <MultiModelInputUploader />
-          <Separator orientation="vertical" />
+          <Separator orientation="vertical" className="!h-6" />
           <AdvancedTools />
           <Separator orientation="vertical" className="!h-6" />
           <AvailableMcpTools />
