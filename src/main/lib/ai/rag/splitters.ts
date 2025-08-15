@@ -1,40 +1,31 @@
-import { Document } from '@langchain/core/documents'
-import {
-  MarkdownTextSplitter,
-  RecursiveCharacterTextSplitter
-} from '@langchain/textsplitters'
+import { RecursiveCharacterTextSplitter } from '@langchain/textsplitters'
 
-export const transformTextsToLangChainDocument = async (texts: string[]) => {
-  const splitter = new RecursiveCharacterTextSplitter()
-  const document = await splitter.createDocuments(texts)
-  return document
-}
+export function getSplitter(fileType: string) {
+  if (fileType === 'application/pdf') {
+    return new RecursiveCharacterTextSplitter({
+      chunkSize: 1024,
+      chunkOverlap: 128,
+      separators: ['\n\n', '\n', ' ', '']
+    })
+  }
 
-// markdown
-export const generateChunksByMarkdownTextSplitter = async (
-  input: string,
-  chunkSize = 1000,
-  chunkOverlap = 200
-): Promise<string[]> => {
-  const splitter = new MarkdownTextSplitter({
-    chunkSize,
-    chunkOverlap
+  if (fileType === 'text/markdown') {
+    return RecursiveCharacterTextSplitter.fromLanguage('markdown', {
+      chunkSize: 1024,
+      chunkOverlap: 128,
+      separators: ['\n# ', '\n## ', '\n### ', '\n```', '\n\n', ' ', '']
+    })
+  }
+
+  if (fileType === 'text/plain') {
+    return new RecursiveCharacterTextSplitter({
+      chunkSize: 1024,
+      chunkOverlap: 128
+    })
+  }
+
+  return new RecursiveCharacterTextSplitter({
+    chunkSize: 1024,
+    chunkOverlap: 128
   })
-  const output = await splitter.splitText(input)
-  return output
-}
-
-// pdf, txt...
-export const generateChunksByRecursiveCharacterTextSplitter = async (
-  document: Document[],
-  chunkSize = 1024,
-  chunkOverlap = 128
-): Promise<Document[]> => {
-  const splitter = new RecursiveCharacterTextSplitter({
-    chunkSize,
-    chunkOverlap
-  })
-
-  const output = await splitter.splitDocuments(document)
-  return output
 }

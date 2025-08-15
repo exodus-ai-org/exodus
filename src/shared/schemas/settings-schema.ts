@@ -5,6 +5,7 @@ export const providerConfigSchema = z.object({
   provider: z.string().nullish(),
   chatModel: z.string().nullish(),
   reasoningModel: z.string().nullish(),
+  embeddingModel: z.string().nullish(),
   maxSteps: z.coerce.number().nonnegative().lte(100).nullish()
 })
 

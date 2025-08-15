@@ -3,12 +3,14 @@ import { migrate } from 'drizzle-orm/pglite/migrator'
 import { Notification } from 'electron'
 import { join } from 'path'
 import { cwd } from 'process'
-import { db } from './db'
+import { db, pglite } from './db'
 
 export const runMigrate = async () => {
   try {
     console.log('⏳ Running migrations...')
     const start = performance.now()
+    await pglite.waitReady
+    await pglite.exec('CREATE EXTENSION IF NOT EXISTS vector;')
     await migrate(db, {
       migrationsFolder: is.dev
         ? join(cwd(), './resources/drizzle')

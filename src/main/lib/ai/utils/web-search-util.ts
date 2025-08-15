@@ -6,7 +6,7 @@ import TurndownService from 'turndown'
 
 const enc = encodingForModel('o4-mini')
 
-export function getOgImageLink($: cheerio.CheerioAPI) {
+function getOgImageLink($: cheerio.CheerioAPI) {
   try {
     const ogImage =
       $('meta[property="og:image"]').attr('content') ??
@@ -18,7 +18,7 @@ export function getOgImageLink($: cheerio.CheerioAPI) {
   }
 }
 
-export async function loadPdf(blob: Blob) {
+async function loadPdf(blob: Blob) {
   try {
     const loader = new WebPDFLoader(blob, { parsedItemSeparator: '' })
     const docs = await loader.load()
@@ -28,7 +28,7 @@ export async function loadPdf(blob: Blob) {
   }
 }
 
-export async function loadHtml(html: string) {
+async function loadHtml(html: string) {
   try {
     const $ = cheerio.load(html)
     const headImageUrl = getOgImageLink($)
@@ -44,7 +44,7 @@ export async function loadHtml(html: string) {
   }
 }
 
-export async function loadDocument(link: string) {
+async function loadDocument(link: string) {
   try {
     const response = await fetch(link)
     const contentType = response.headers.get('content-type')

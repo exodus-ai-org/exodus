@@ -20,8 +20,8 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from '@/components/ui/tooltip'
-import { models } from '@/lib/ai/models'
 import { TooltipArrow } from '@radix-ui/react-tooltip'
+import { models } from '@shared/constants/models'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { Providers } from '@shared/types/ai'
 import { Info } from 'lucide-react'
@@ -129,6 +129,41 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
               <FormMessage />
               <SelectContent>
                 {modelsOfProvider?.reasoningModel?.map((val) => (
+                  <SelectItem key={val} value={val}>
+                    {val}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormItem>
+        )}
+      />
+      <Separator />
+      <FormField
+        control={form.control}
+        name="providerConfig.embeddingModel"
+        render={({ field }) => (
+          <FormItem className="flex items-center justify-between">
+            <FormLabel className="mb-0">Embedding Model</FormLabel>
+            <Select
+              disabled={!provider}
+              onValueChange={field.onChange}
+              value={field.value ?? ''}
+            >
+              <FormControl className="mb-0 w-fit">
+                <SelectTrigger className="hover:bg-accent border-none shadow-none">
+                  <SelectValue
+                    placeholder={
+                      provider
+                        ? 'Select a embedding model'
+                        : 'Select a provider first'
+                    }
+                  />
+                </SelectTrigger>
+              </FormControl>
+              <FormMessage />
+              <SelectContent>
+                {modelsOfProvider?.embeddingModel?.map((val) => (
                   <SelectItem key={val} value={val}>
                     {val}
                   </SelectItem>

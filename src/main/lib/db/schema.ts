@@ -116,32 +116,31 @@ export const deepResearchMessage = pgTable('DeepResearchMessage', {
 
 export type DeepResearchMessage = InferSelectModel<typeof deepResearchMessage>
 
-export const resources = pgTable('Resource', {
+export const resource = pgTable('Resource', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   content: text('content').notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
-  updatedAt: timestamp('createdAt').defaultNow().notNull()
+  updatedAt: timestamp('updatedAt').defaultNow().notNull()
 })
 
-export type Resources = InferSelectModel<typeof resources>
+export type Resources = InferSelectModel<typeof resource>
 
-export const embeddings = pgTable(
+export const embedding = pgTable(
   'Embedding',
   {
     id: uuid('id').primaryKey().notNull().defaultRandom(),
-    resourceId: varchar('resource_id', { length: 191 }).references(
-      () => resources.id,
-      { onDelete: 'cascade' }
-    ),
+    resourceId: uuid('resourceId').references(() => resource.id, {
+      onDelete: 'cascade'
+    }),
     content: text('content').notNull(),
     embedding: vector('embedding', { dimensions: 1536 }).notNull()
   },
-  (table) => ({
-    embeddingIndex: index('embeddingIndex').using(
+  (table) => [
+    index('embeddingIndex').using(
       'hnsw',
       table.embedding.op('vector_cosine_ops')
     )
-  })
+  ]
 )
 
-export type Embeddings = InferSelectModel<typeof embeddings>
+export type Embedding = InferSelectModel<typeof embedding>

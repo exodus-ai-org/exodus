@@ -1,1 +1,0 @@
-ALTER TABLE "DeepResearch" ADD COLUMN "webSources" json;

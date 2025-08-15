@@ -1,17 +1,6 @@
 import { Embedding, generateEmbedding, generateEmbeddings } from './embeddings'
-import { loadPDF } from './loaders'
-import {
-  generateChunksByMarkdownTextSplitter,
-  generateChunksByRecursiveCharacterTextSplitter,
-  transformTextsToLangChainDocument
-} from './splitters'
+import { loadFileContent } from './loaders'
+import { getSplitter } from './splitters'
 
-export {
-  generateChunksByMarkdownTextSplitter,
-  generateChunksByRecursiveCharacterTextSplitter,
-  generateEmbedding,
-  generateEmbeddings,
-  loadPDF,
-  transformTextsToLangChainDocument
-}
+export { generateEmbedding, generateEmbeddings, getSplitter, loadFileContent }
 export type { Embedding }

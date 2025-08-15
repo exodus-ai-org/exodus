@@ -132,7 +132,6 @@ function InputBox({
           <MultiModelInputUploader />
           <Separator orientation="vertical" className="!h-6" />
           <AdvancedTools />
-          <Separator orientation="vertical" className="!h-6" />
           <AvailableMcpTools />
         </div>
 

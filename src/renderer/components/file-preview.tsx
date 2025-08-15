@@ -17,7 +17,7 @@ export function FilePreview() {
   if (!attachments || attachments.length === 0) return null
 
   return (
-    <section className="m-2 mt-4 flex w-full flex-row gap-4">
+    <section className="m-2 mt-4 flex w-full flex-row gap-4 select-none">
       {attachments.map((attachment, idx) => (
         <section className="group relative" key={idx}>
           <span className="absolute -top-2 -right-2 rounded-full border-3 border-gray-50 bg-black p-0.75 dark:border-black dark:bg-white">

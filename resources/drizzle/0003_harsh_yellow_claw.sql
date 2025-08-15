@@ -1,1 +1,0 @@
-CREATE INDEX "chat_search_index" ON "Chat" USING gin (to_tsvector('english', "title"));

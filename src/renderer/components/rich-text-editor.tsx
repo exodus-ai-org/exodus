@@ -49,6 +49,7 @@ export function RichTextEditor({ className }: { className?: string }) {
     <>
       {editor && (
         <BubbleMenu
+          // @ts-expect-error should contact tiptap-markdown's author to update its configuration.
           editor={editor}
           options={{
             placement: 'bottom',

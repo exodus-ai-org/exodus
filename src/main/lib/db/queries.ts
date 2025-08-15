@@ -1,14 +1,18 @@
-import { and, asc, desc, eq, sql } from 'drizzle-orm'
+import { EmbeddingModel } from 'ai'
+import { and, asc, cosineDistance, desc, eq, gt, sql } from 'drizzle-orm'
 import { v4 as uuidV4 } from 'uuid'
-import { db, pgLiteClient } from './db'
+import { generateEmbedding, generateEmbeddings } from '../ai/rag'
+import { db, pglite } from './db'
 import {
-  Chat,
   chat,
   deepResearch,
   deepResearchMessage,
+  embedding,
   message,
+  resource,
   settings,
   vote,
+  type Chat,
   type DeepResearch,
   type DeepResearchMessage,
   type Message,
@@ -184,27 +188,31 @@ export async function updateSetting(payload: Settings) {
   }
 }
 
-// export const findRelevantContent = async (userQuery: string) => {
-//   const userQueryEmbedded = await generateEmbedding(userQuery);
+export const findRelevantContent = async (
+  { userQuery }: { userQuery: string },
+  { model }: { model: EmbeddingModel<string> }
+) => {
+  const userQueryEmbedded = await generateEmbedding(
+    { value: userQuery },
+    { model }
+  )
+  const similarity = sql<number>`1 - (${cosineDistance(
+    embedding.embedding,
+    userQueryEmbedded
+  )})`
+  const similarGuides = await db
+    .select({ name: embedding.content, similarity })
+    .from(embedding)
+    .where(gt(similarity, 0.5))
+    .orderBy((t) => desc(t.similarity))
+    .limit(4)
 
-//   const similarity = sql<number>`1 - (${cosineDistance(
-//     embeddingsTable.embedding,
-//     userQueryEmbedded,
-//   )})`;
-
-//   const similarGuides = await db
-//     .select({ name: embeddingsTable.content, similarity })
-//     .from(embeddingsTable)
-//     .where(gt(similarity, 0.5))
-//     .orderBy((t) => desc(t.similarity))
-//     .limit(4);
-
-//   return similarGuides;
-// };
+  return similarGuides
+}
 
 export async function importData(tableName: string, blob: Blob) {
   try {
-    await pgLiteClient.query(`COPY "${tableName}" FROM '/dev/blob';`, [], {
+    await pglite.query(`COPY "${tableName}" FROM '/dev/blob';`, [], {
       blob
     })
   } catch (error) {
@@ -215,7 +223,7 @@ export async function importData(tableName: string, blob: Blob) {
 
 export async function exportData(tableName: string) {
   try {
-    const ret = await pgLiteClient.query(
+    const ret = await pglite.query(
       `COPY "${tableName}" TO '/dev/blob' DELIMITER ',' CSV HEADER;`
     )
     return ret.blob
@@ -279,5 +287,62 @@ export async function getDeepResearchMessagesById({ id }: { id: string }) {
   } catch (error) {
     console.error('Failed to get deep research message by id from database')
     throw error
+  }
+}
+
+function toPgVector(arr: number[]) {
+  return `[${arr.join(',')}]`
+}
+
+export const createResource = async (
+  { content, chunks }: { content: string; chunks: string[] },
+  { model }: { model: EmbeddingModel<string> }
+) => {
+  try {
+    const [currResource] = await db
+      .insert(resource)
+      .values({ content })
+      .returning()
+
+    const embeddings = await generateEmbeddings({ chunks }, { model })
+    await db.insert(embedding).values(
+      embeddings.map(({ embedding, content }) => ({
+        id: uuidV4(),
+        resourceId: currResource.id,
+        content,
+        embedding: sql`${toPgVector(embedding)}::vector`
+      }))
+    )
+    return 'Resource successfully created and embedded.'
+  } catch (error) {
+    return error instanceof Error && error.message.length > 0
+      ? error.message
+      : 'Error, please try again.'
+  }
+}
+
+export async function getResourcePaginated(page: number, pageSize: number) {
+  const offset = (page - 1) * pageSize
+
+  const data = await db
+    .select()
+    .from(resource)
+    .orderBy(desc(resource.createdAt))
+    .limit(pageSize)
+    .offset(offset)
+
+  const [{ count: total }] = await db
+    .select({
+      count: sql<number>`count(*)`
+    })
+    .from(resource)
+
+  return {
+    data,
+    pagination: {
+      page,
+      pageSize,
+      total
+    }
   }
 }

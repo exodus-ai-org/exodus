@@ -16,6 +16,7 @@ import {
   googleMapsPlaces,
   googleMapsRouting,
   imageGeneration,
+  rag,
   weather,
   webSearch
 } from '../calling-tools'
@@ -100,6 +101,7 @@ export function bindCallingTools({
 
   const tools = {
     ...mcpToolsMap,
+    rag,
     calculator,
     date,
     weather,

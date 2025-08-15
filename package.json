@@ -117,7 +117,7 @@
     "cmdk": "^1.1.1",
     "dedent": "^1.6.0",
     "drizzle-kit": "^0.31.4",
-    "electron": "^37.2.4",
+    "electron": "^37.2.6",
     "electron-builder": "^26.0.12",
     "electron-vite": "^4.0.0",
     "embla-carousel-react": "^8.6.0",

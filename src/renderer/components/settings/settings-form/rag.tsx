@@ -11,6 +11,9 @@ import {
 } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Uploader } from '@/components/uploader'
+import { Resources } from '@shared/types/db'
+import { RagResourceList } from '@shared/types/rag'
+import { fetcher } from '@shared/utils/http'
 import {
   ColumnDef,
   ColumnFiltersState,
@@ -23,88 +26,69 @@ import {
   useReactTable,
   VisibilityState
 } from '@tanstack/react-table'
+import { format } from 'date-fns'
 import { AlertCircle } from 'lucide-react'
 import { useState } from 'react'
+import useSWR from 'swr'
 
-const data: Payment[] = [
-  {
-    id: 'm5gr84i9',
-    amount: 316,
-    status: 'success',
-    email: 'ken99@example.com'
-  },
-  {
-    id: '3u1reuv4',
-    amount: 242,
-    status: 'success',
-    email: 'Abe45@example.com'
-  },
-  {
-    id: 'derv1ws0',
-    amount: 837,
-    status: 'processing',
-    email: 'Monserrat44@example.com'
-  },
-  {
-    id: '5kma53ae',
-    amount: 874,
-    status: 'success',
-    email: 'Silas22@example.com'
-  },
-  {
-    id: 'bhqecj4p',
-    amount: 721,
-    status: 'failed',
-    email: 'carmella@example.com'
-  }
-]
-export type Payment = {
-  id: string
-  amount: number
-  status: 'pending' | 'processing' | 'success' | 'failed'
-  email: string
-}
 // eslint-disable-next-line react-refresh/only-export-components
-export const columns: ColumnDef<Payment>[] = [
+export const columns: ColumnDef<Resources>[] = [
   {
-    accessorKey: 'status',
-    header: 'Status',
+    accessorKey: 'id',
+    header: 'ID',
     cell: ({ row }) => (
-      <div className="capitalize">{row.getValue('status')}</div>
+      <div className="max-w-16 truncate">{row.getValue('id')}</div>
     )
   },
   {
-    accessorKey: 'email',
-    header: 'Email',
-    cell: ({ row }) => <div className="lowercase">{row.getValue('email')}</div>
+    accessorKey: 'content',
+    header: 'Content',
+    cell: ({ row }) => (
+      <div className="max-w-48 truncate">{row.getValue('content')}</div>
+    )
   },
   {
-    accessorKey: 'amount',
-    header: () => <div className="text-right">Amount</div>,
-    cell: ({ row }) => {
-      const amount = parseFloat(row.getValue('amount'))
-      // Format the amount as a dollar amount
-      const formatted = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD'
-      }).format(amount)
-      return <div className="text-right font-medium">{formatted}</div>
-    }
+    accessorKey: 'createdAt',
+    header: 'CreatedAt',
+    cell: ({ row }) => (
+      <div className="max-w-48 truncate">
+        {format(row.getValue('createdAt'), 'PPpp')}
+      </div>
+    )
   }
 ]
 
 export function Rag() {
+  const [page, setPage] = useState(1)
+  console.log(setPage)
+
+  const { data } = useSWR<RagResourceList>(`/api/rag?page=${page}&pageSize=10`)
+
+  const [loading, setLoading] = useState(false)
   const [sorting, setSorting] = useState<SortingState>([])
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = useState({})
 
   const handleChange = async (files: File[]) => {
-    console.log(files)
+    const formData = new FormData()
+    for (const file of files) {
+      formData.append('files', file)
+    }
+
+    try {
+      setLoading(true)
+      await fetcher('/api/rag', {
+        method: 'POST',
+        body: formData
+      })
+    } finally {
+      setLoading(false)
+    }
   }
 
   const table = useReactTable({
-    data,
+    data: data?.data ?? [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -138,7 +122,7 @@ export function Rag() {
             <Badge variant="outline">.txt</Badge>.
           </AlertDescription>
         </Alert>
-        <Uploader loading onChange={handleChange} />
+        <Uploader loading={loading} onChange={handleChange} />
       </TabsContent>
       <TabsContent value="resources">
         <div className="overflow-hidden rounded-md border">
@@ -192,10 +176,6 @@ export function Rag() {
           </Table>
         </div>
         <div className="flex items-center justify-end space-x-2 py-4">
-          <div className="text-muted-foreground flex-1 text-sm">
-            {table.getFilteredSelectedRowModel().rows.length} of{' '}
-            {table.getFilteredRowModel().rows.length} row(s) selected.
-          </div>
           <div className="space-x-2">
             <Button
               variant="outline"

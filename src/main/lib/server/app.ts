@@ -10,14 +10,21 @@ import customUploaderRouter from './routes/custom-uploader'
 import dbIoRouter from './routes/db-io'
 import deepResearchRouter from './routes/deep-research'
 import historyRouter from './routes/history'
+import ragRouter from './routes/rag'
 import settingsRouter from './routes/settings'
 import toolsRouter from './routes/tools'
 
 // Export server functions
 export async function connectHttpServer() {
   console.log('⏳ Registering MCP servers...')
+  const start = performance.now()
   const tools = await connectMcpServers()
-  console.log('✅ All of the MCP servers have been registered.')
+  const end = performance.now()
+  console.log(
+    '✅ All of the MCP servers have been registered in',
+    end - start,
+    'ms'
+  )
 
   let server: ServerType | null = null
   const app = new Hono<{ Variables: Variables }>()
@@ -43,6 +50,7 @@ export async function connectHttpServer() {
   app.route('/api/db-io', dbIoRouter)
   app.route('/api/deep-research', deepResearchRouter)
   app.route('/api/tools', toolsRouter)
+  app.route('/api/rag', ragRouter)
 
   // Ping
   app.get('/', (c) => c.text('Exodus is running.'))
@@ -66,7 +74,7 @@ export async function connectHttpServer() {
         fetch: app.fetch,
         port: SERVER_PORT
       })
-      console.log(`✅ Hono http server is running on ${SERVER_PORT}.`)
+      console.log('✅ Hono is running on', SERVER_PORT)
     }
   }
 }

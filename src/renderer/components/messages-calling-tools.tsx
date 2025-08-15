@@ -28,6 +28,7 @@ function CallingTools({ toolInvocation }: { toolInvocation: ToolInvocation }) {
       )}
       {(toolInvocation.toolName === 'imageGeneration' ||
         toolInvocation.toolName === 'date' ||
+        toolInvocation.toolName === 'rag' ||
         toolInvocation.toolName === 'calculator') && <div className="-mb-4" />}
     </section>
   )

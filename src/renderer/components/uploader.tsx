@@ -12,7 +12,7 @@ export function Uploader({
   loading: boolean
   max?: number
   accept?: string
-  onChange: (files: File[]) => void
+  onChange: (files: File[]) => Promise<void>
 }) {
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
