@@ -1,5 +1,6 @@
+import type { LanguageModelV2 } from '@ai-sdk/provider'
 import { Learning } from '@shared/types/deep-research'
-import { LanguageModelV1, generateObject } from 'ai'
+import { generateObject } from 'ai'
 import { z } from 'zod'
 import { deepResearchSystemPrompt } from '../prompts'
 
@@ -13,7 +14,7 @@ export async function generateSerpQueries(
     numQueries?: number
     learnings?: Learning[]
   },
-  { model }: { model: LanguageModelV1 }
+  { model }: { model: LanguageModelV2 }
 ) {
   const response = await generateObject({
     model,

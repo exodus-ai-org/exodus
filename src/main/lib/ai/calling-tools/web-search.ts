@@ -1,4 +1,4 @@
-import { Settings } from '@shared/types/db'
+import type { Settings } from '@shared/types/db'
 import { tool } from 'ai'
 import { z } from 'zod'
 import { fetchAndProcessSearchResults } from '../utils/web-search-util'
@@ -6,7 +6,7 @@ import { fetchAndProcessSearchResults } from '../utils/web-search-util'
 export const webSearch = (settings: Settings) =>
   tool({
     description: `Search the web for up-to-date information. Suffix a specific date to the query parameter based on user's input. Today is ${new Date().toISOString()}`,
-    parameters: z.object({
+    inputSchema: z.object({
       query: z.string().min(1).max(100).describe(`The search query.`)
     }),
     execute: async ({ query }) => {

@@ -1,5 +1,6 @@
+import type { LanguageModelV2 } from '@ai-sdk/provider'
 import { Learning } from '@shared/types/deep-research'
-import { generateObject, LanguageModelV1 } from 'ai'
+import { generateObject } from 'ai'
 import { z } from 'zod'
 import { deepResearchSystemPrompt } from '../prompts'
 
@@ -14,7 +15,7 @@ export async function writeFinalReport(
   {
     model
   }: {
-    model: LanguageModelV1
+    model: LanguageModelV2
   }
 ) {
   const learningsString = learnings

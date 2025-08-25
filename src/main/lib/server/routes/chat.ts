@@ -1,9 +1,11 @@
 import { AdvancedTools } from '@shared/types/ai'
 import { Variables } from '@shared/types/server'
+import { convertToUIMessages } from '@shared/utils/ai'
 import {
-  appendResponseMessages,
-  createDataStream,
-  smoothStream,
+  convertToModelMessages,
+  createUIMessageStream,
+  JsonToSseTransformStream,
+  stepCountIs,
   streamText
 } from 'ai'
 import { Hono } from 'hono'
@@ -14,8 +16,7 @@ import {
   bindCallingTools,
   generateTitleFromUserMessage,
   getModelFromProvider,
-  getMostRecentUserMessage,
-  getTrailingMessageId
+  getMostRecentUserMessage
 } from '../../ai/utils/chat-message-util'
 import {
   deleteChatById,
@@ -48,11 +49,11 @@ chat.get('/search', async (c) => {
 })
 
 chat.post('/', async (c) => {
-  const result = createChatSchema.safeParse(await c.req.json())
-  if (!result.success) {
+  const body = createChatSchema.safeParse(await c.req.json())
+  if (!body.success) {
     return c.text('Invalid request body', 400)
   }
-  const { id, messages, advancedTools } = result.data
+  const { id, messages, advancedTools } = body.data
   const mcpTools = c.get('tools')
 
   const settings = await getSettings()
@@ -84,23 +85,24 @@ chat.post('/', async (c) => {
     await saveChat({ id, title })
   }
 
+  const messagesFromDb = await getMessagesByChatId({ id })
+  const uiMessages = [...convertToUIMessages(messagesFromDb), userMessage]
+
   await saveMessages({
     messages: [
       {
-        ...userMessage,
         chatId: id,
         id: userMessage.id,
         role: 'user',
         parts: userMessage.parts,
-        attachments: userMessage.experimental_attachments ?? [],
+        attachments: [],
         createdAt: new Date()
       }
     ]
   })
 
-  // immediately start streaming the response
-  const dataStream = createDataStream({
-    execute: async (dataStream) => {
+  const dataStream = createUIMessageStream({
+    execute: async ({ writer }) => {
       const result = streamText({
         model:
           advancedTools.includes(AdvancedTools.Reasoning) ||
@@ -110,66 +112,46 @@ chat.post('/', async (c) => {
         system: advancedTools.includes(AdvancedTools.DeepResearch)
           ? deepResearchBootPrompt
           : systemPrompt,
-        messages,
-        maxSteps: settings.providerConfig?.maxSteps ?? 1,
-        tools: bindCallingTools({ mcpTools, advancedTools, settings }),
-        experimental_transform: smoothStream({ chunking: 'line' }),
-        experimental_generateMessageId: uuidV4,
-        experimental_continueSteps: true,
-        onFinish: async ({ response }) => {
-          try {
-            const assistantId = getTrailingMessageId({
-              messages: response.messages.filter(
-                (message) => message.role === 'assistant'
-              )
-            })
-
-            if (!assistantId) {
-              throw new Error('No assistant message found!')
-            }
-
-            const [, assistantMessage] = appendResponseMessages({
-              messages: [userMessage],
-              responseMessages: response.messages
-            })
-
-            await saveMessages({
-              messages: [
-                {
-                  id: assistantId,
-                  chatId: id,
-                  role: assistantMessage.role,
-                  parts: assistantMessage.parts,
-                  attachments: assistantMessage.experimental_attachments ?? [],
-                  createdAt: new Date()
-                }
-              ]
-            })
-          } catch {
-            throw new Error('No assistant message found!')
-          }
-        }
+        messages: convertToModelMessages(uiMessages),
+        stopWhen: stepCountIs(settings.providerConfig?.maxSteps ?? 1),
+        tools: bindCallingTools({ mcpTools, advancedTools, settings })
       })
 
-      result.mergeIntoDataStream(dataStream, {
-        sendReasoning: true,
-        sendSources: true,
-        sendUsage: true
+      writer.merge(result.toUIMessageStream())
+    },
+    generateId: uuidV4,
+    onFinish: async ({ messages }) => {
+      await saveMessages({
+        messages: messages.map((message) => ({
+          id: message.id,
+          role: message.role,
+          parts: message.parts,
+          createdAt: new Date(),
+          attachments: [],
+          chatId: id
+        }))
       })
     },
     onError: (error) => {
-      console.log(error)
       // Error messages are masked by default for security reasons.
       // If you want to expose the error message to the client, you can do so here:
       return error instanceof Error ? error.message : String(error)
     }
   })
 
-  // Mark the response as a v1 data stream:
-  c.header('X-Vercel-AI-Data-Stream', 'v1')
-  c.header('Content-Type', 'text/plain; charset=utf-8')
+  // Mark the response as a v2 data stream:
+  c.header('content-type', 'text/event-stream')
+  c.header('cache-control', 'no-cache')
+  c.header('connection', 'keep-alive')
+  c.header('x-vercel-ai-data-stream', 'v2')
+  c.header('x-accel-buffering', 'no') // disable nginx buffering
+
   return stream(c, (stream) =>
-    stream.pipe(dataStream.pipeThrough(new TextEncoderStream()))
+    stream.pipe(
+      dataStream
+        .pipeThrough(new JsonToSseTransformStream())
+        .pipeThrough(new TextEncoderStream())
+    )
   )
 })
 

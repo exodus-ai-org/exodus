@@ -1,12 +1,15 @@
 import { useUpload } from '@/hooks/use-upload'
 import { attachmentAtom } from '@/stores/chat'
 import { UseChatHelpers } from '@ai-sdk/react'
+import { ChatMessage } from '@shared/types/message'
 import { useAtom } from 'jotai'
 import { CircleStop, Send } from 'lucide-react'
 import {
   ChangeEvent,
   ClipboardEvent,
+  Dispatch,
   memo,
+  SetStateAction,
   useCallback,
   useEffect,
   useRef,
@@ -26,18 +29,19 @@ function InputBox({
   chatId,
   input,
   setInput,
-  handleSubmit,
-  status
+  status,
+  stop,
+  // messages,
+  sendMessage
 }: {
   chatId: string
   input: string
-  append: UseChatHelpers['append']
-  messages: UseChatHelpers['messages']
-  setMessages: UseChatHelpers['setMessages']
-  setInput: UseChatHelpers['setInput']
-  handleSubmit: UseChatHelpers['handleSubmit']
-  status: UseChatHelpers['status']
-  stop: UseChatHelpers['stop']
+  setInput: Dispatch<SetStateAction<string>>
+  status: UseChatHelpers<ChatMessage>['status']
+  stop: UseChatHelpers<ChatMessage>['stop']
+  messages: ChatMessage[]
+  setMessages: UseChatHelpers<ChatMessage>['setMessages']
+  sendMessage: UseChatHelpers<ChatMessage>['sendMessage']
 }) {
   const [attachments, setAttachments] = useAtom(attachmentAtom)
   const { uploadFile } = useUpload()
@@ -84,10 +88,26 @@ function InputBox({
 
   const submitForm = useCallback(() => {
     window.history.replaceState({}, '', `/chat/${chatId}`)
-    handleSubmit(undefined, { experimental_attachments: attachments })
+
+    sendMessage({
+      role: 'user',
+      parts: [
+        ...(attachments ?? []).map((attachment) => ({
+          type: 'file' as const,
+          url: attachment.url,
+          name: attachment.name,
+          mediaType: attachment.contentType
+        })),
+        {
+          type: 'text',
+          text: input
+        }
+      ]
+    })
+
     setAttachments(undefined)
     resetHeight()
-  }, [chatId, handleSubmit, attachments, setAttachments])
+  }, [chatId, sendMessage, attachments, input, setAttachments])
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -144,7 +164,7 @@ function InputBox({
             {input.trim() === '' ? (
               <AudioRecorder input={input} setInput={setInput} />
             ) : (
-              <Button type="submit" variant="secondary" onClick={handleSubmit}>
+              <Button type="submit" variant="secondary" onClick={submitForm}>
                 <Send />
               </Button>
             )}

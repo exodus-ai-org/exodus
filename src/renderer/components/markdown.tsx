@@ -2,7 +2,7 @@ import { useClipboard } from '@/hooks/use-clipboard'
 import { useImmersion } from '@/hooks/use-immersion'
 import { cn } from '@/lib/utils'
 import { WebSearchResult } from '@shared/types/web-search'
-import type { UIMessage } from 'ai'
+import type { UIMessage, UITools } from 'ai'
 import 'katex/dist/katex.min.css'
 import { Check, Copy, PencilRuler } from 'lucide-react'
 import { memo, ReactNode, useMemo } from 'react'
@@ -62,7 +62,7 @@ function TextWithCitations({
   webSearchResults
 }: {
   children: ReactNode
-  webSearchResults: WebSearchResult[] | undefined
+  webSearchResults?: WebSearchResult[] | null
 }) {
   if (!webSearchResults) return children
 
@@ -109,19 +109,12 @@ export function Markdown({
   const { codeTheme } = useMemo(() => themes[actualTheme], [actualTheme])
   const webSearchResults = useMemo(() => {
     try {
-      const toolInvocationPart = parts.find(
-        (part) => part.type === 'tool-invocation'
-      )
+      const webSearchTool = parts.find(
+        (part) =>
+          part.type === 'tool-webSearch' && part.state === 'output-available'
+      ) as UITools['tool-webSearch']
 
-      if (toolInvocationPart) {
-        const { state, toolName } = toolInvocationPart.toolInvocation
-        if (toolName === 'webSearch' && state === 'result') {
-          return toolInvocationPart.toolInvocation.result
-        }
-        return null
-      }
-
-      return null
+      return (webSearchTool.output as WebSearchResult[]) ?? null
     } catch {
       return null
     }

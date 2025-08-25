@@ -1,7 +1,8 @@
 import { useClipboard } from '@/hooks/use-clipboard'
 import { useImmersion } from '@/hooks/use-immersion'
+import { UseChatHelpers } from '@ai-sdk/react'
 import { TooltipArrow } from '@radix-ui/react-tooltip'
-import { ChatRequestOptions } from 'ai'
+import { ChatMessage } from '@shared/types/message'
 import {
   Check,
   Copy,
@@ -58,12 +59,10 @@ export function MessageActionItem({
 
 export function MessageAction({
   content,
-  reload
+  regenerate
 }: {
   content: string
-  reload: (
-    chatRequestOptions?: ChatRequestOptions
-  ) => Promise<string | null | undefined>
+  regenerate: UseChatHelpers<ChatMessage>['regenerate']
 }) {
   const { copied, handleCopy } = useClipboard()
   const { openImmersion } = useImmersion()
@@ -96,7 +95,7 @@ export function MessageAction({
         </IconWrapper>
       </MessageActionItem>
       <MessageActionItem tooltipContent="Switch model">
-        <IconWrapper onClick={reload}>
+        <IconWrapper onClick={regenerate}>
           <RefreshCcw size={14} strokeWidth={2.5} />
         </IconWrapper>
       </MessageActionItem>

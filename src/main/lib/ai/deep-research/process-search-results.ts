@@ -1,6 +1,7 @@
+import type { LanguageModelV2 } from '@ai-sdk/provider'
 import { Learning } from '@shared/types/deep-research'
 import { WebSearchResult } from '@shared/types/web-search'
-import { LanguageModelV1, generateObject } from 'ai'
+import { generateObject } from 'ai'
 import { z } from 'zod'
 import { deepResearchSystemPrompt } from '../prompts'
 
@@ -16,7 +17,7 @@ export async function processSerpResult(
     numLearnings?: number
     numFollowUpQuestions?: number
   },
-  { model }: { model: LanguageModelV1 }
+  { model }: { model: LanguageModelV2 }
 ) {
   const response = await generateObject({
     model,

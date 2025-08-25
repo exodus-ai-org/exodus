@@ -1,8 +1,8 @@
+import type { LanguageModelV2 } from '@ai-sdk/provider'
 import { AdvancedTools, McpTools, Providers } from '@shared/types/ai'
 import {
-  CoreAssistantMessage,
-  CoreToolMessage,
-  LanguageModelV1,
+  AssistantModelMessage,
+  ToolModelMessage,
   ToolSet,
   UIMessage,
   generateText
@@ -23,7 +23,7 @@ import {
 import { titleGenerationPrompt } from '../prompts'
 import { providers } from '../providers'
 
-type ResponseMessageWithoutId = CoreToolMessage | CoreAssistantMessage
+type ResponseMessageWithoutId = AssistantModelMessage | ToolModelMessage
 type ResponseMessage = ResponseMessageWithoutId & { id: string }
 
 export function getMostRecentUserMessage(messages: Array<UIMessage>) {
@@ -63,7 +63,7 @@ export async function generateTitleFromUserMessage({
   model,
   message
 }: {
-  model: LanguageModelV1
+  model: LanguageModelV2
   message: UIMessage
 }) {
   const { text: title } = await generateText({

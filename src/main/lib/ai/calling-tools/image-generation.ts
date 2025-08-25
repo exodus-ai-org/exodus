@@ -1,13 +1,13 @@
-import { Settings } from '@shared/types/db'
+import type { Settings } from '@shared/types/db'
 import { tool } from 'ai'
 import OpenAI from 'openai'
-import { ImageGenerateParams } from 'openai/resources/images'
+import type { ImageGenerateParams } from 'openai/resources/images'
 import { z } from 'zod'
 
 export const imageGeneration = (settings: Settings) =>
   tool({
     description: "Generate image according to user's requirement.",
-    parameters: z.object({ prompt: z.string() }),
+    inputSchema: z.object({ prompt: z.string() }),
     execute: async ({ prompt }: { prompt: string }) => {
       try {
         const openai = new OpenAI({

@@ -1,7 +1,0 @@
-onlyBuiltDependencies:
-  - '@tailwindcss/oxide'
-  - electron
-  - electron-winstaller
-  - es5-ext
-  - esbuild
-  - protobufjs

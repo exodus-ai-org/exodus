@@ -1,12 +1,12 @@
 import { protos, v2 } from '@googlemaps/routing'
-import { Settings } from '@shared/types/db'
+import type { Settings } from '@shared/types/db'
 import { tool } from 'ai'
 import { z } from 'zod'
 
 export const googleMapsRouting = (settings: Settings) =>
   tool({
     description: 'Compute routes from location A to location B.',
-    parameters: z.object({
+    inputSchema: z.object({
       origin: z.string(),
       destination: z.string(),
       travelMode: z

@@ -1,3 +1,4 @@
+import type { LanguageModelV2 } from '@ai-sdk/provider'
 import {
   DeepResearchProgress,
   Learning,
@@ -5,7 +6,6 @@ import {
   ReportProgressPayload
 } from '@shared/types/deep-research'
 import { WebSearchResult } from '@shared/types/web-search'
-import { LanguageModelV1 } from 'ai'
 import { generateSerpQueries } from './generate-queries'
 import { processSerpResult } from './process-search-results'
 import { webSearch } from './web-search'
@@ -17,7 +17,7 @@ export async function deepResearch(
     serperApiKey,
     notify
   }: {
-    model: LanguageModelV1
+    model: LanguageModelV2
     serperApiKey: string
     notify: (payload: ReportProgressPayload) => Promise<void>
   }
@@ -73,7 +73,7 @@ async function recursiveDeepResearch(
   }: {
     notify: (payload: ReportProgressPayload) => Promise<void>
     serperApiKey: string
-    model: LanguageModelV1
+    model: LanguageModelV2
   }
 ) {
   if (depth <= 0 || breadth <= 0) return

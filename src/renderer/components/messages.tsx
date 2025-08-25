@@ -2,6 +2,8 @@ import { useImmersion } from '@/hooks/use-immersion'
 import { useSettings } from '@/hooks/use-settings'
 import { cn } from '@/lib/utils'
 import { UseChatHelpers } from '@ai-sdk/react'
+import { ChatMessage } from '@shared/types/message'
+import { DynamicToolUIPart } from 'ai'
 import { Fragment, memo, useCallback, useEffect, useRef } from 'react'
 import Zoom from 'react-medium-image-zoom'
 import Markdown from './markdown'
@@ -16,13 +18,13 @@ function Messages({
   // chatId,
   // setMessages,
   status,
-  reload
+  regenerate
 }: {
   chatId: string
-  messages: UseChatHelpers['messages']
-  setMessages: UseChatHelpers['setMessages']
-  status: UseChatHelpers['status']
-  reload: UseChatHelpers['reload']
+  messages: ChatMessage[]
+  setMessages: UseChatHelpers<ChatMessage>['setMessages']
+  status: UseChatHelpers<ChatMessage>['status']
+  regenerate: UseChatHelpers<ChatMessage>['regenerate']
 }) {
   const { data: settings } = useSettings()
   const chatBoxRef = useRef<HTMLDivElement>(null)
@@ -85,37 +87,42 @@ function Messages({
                   </Avatar>
                 )}
                 <div className="w-full">
-                  {message.parts.map((item, idx) => {
+                  {message.parts.map((part, idx) => {
                     const key = `message-${message.id}-part-${idx}`
 
-                    if (item.type === 'reasoning') {
+                    if (part.type === 'reasoning') {
                       return (
                         <MessageReasoning
                           key={key}
                           isLoading={status === 'streaming'}
-                          reasoning={item.reasoning}
+                          reasoning={part.text}
                         />
                       )
                     }
 
-                    if (item.type === 'text' && item.text.trim() !== '') {
+                    if (part.type === 'text' && part.text.trim() !== '') {
                       return (
                         <section
                           key={key}
                           className="group relative mb-16 last:mb-0"
                         >
-                          <Markdown src={item.text} parts={message.parts} />
-                          <MessageAction reload={reload} content={item.text} />
+                          <Markdown src={part.text} parts={message.parts} />
+                          <MessageAction
+                            regenerate={regenerate}
+                            content={part.text}
+                          />
                         </section>
                       )
                     }
 
-                    if (item.type === 'tool-invocation') {
-                      if (item.toolInvocation.state === 'result') {
+                    if (part.type === 'tool-getWeather') {
+                      const tool = part as unknown as DynamicToolUIPart
+
+                      if (tool.state === 'output-available') {
                         return (
                           <MessageCallingTools
                             key={key}
-                            toolInvocation={item.toolInvocation}
+                            toolInvocation={tool.output}
                           />
                         )
                       } else {
@@ -124,8 +131,7 @@ function Messages({
                             key={key}
                             className="loading-shimmer-pure-text mb-4"
                           >
-                            Calling tool:{' '}
-                            <strong>{item.toolInvocation.toolName}</strong>
+                            Calling tool: <strong>{tool.toolName}</strong>
                           </p>
                         )
                       }
@@ -138,26 +144,25 @@ function Messages({
             )}
             {message.role === 'user' && (
               <>
-                {Array.isArray(message.experimental_attachments) &&
-                  message.experimental_attachments.length > 0 && (
-                    <div className="mb-4 flex gap-4">
-                      {message.experimental_attachments.map((attachment) => {
-                        if (attachment.contentType?.startsWith('image')) {
-                          return (
-                            <Zoom key={attachment.name}>
-                              <img
-                                className="max-h-96 max-w-64 rounded-lg object-cover"
-                                src={attachment.url}
-                                alt={attachment.name}
-                              />
-                            </Zoom>
-                          )
-                        }
+                <div className="mb-4 flex gap-4">
+                  {message.parts
+                    .filter((part) => part.type === 'file')
+                    ?.map((attachment) => {
+                      if (attachment.type?.startsWith('image')) {
+                        return (
+                          <Zoom key={attachment.filename}>
+                            <img
+                              className="max-h-96 max-w-64 rounded-lg object-cover"
+                              src={attachment.url}
+                              alt={attachment.filename}
+                            />
+                          </Zoom>
+                        )
+                      }
 
-                        return null
-                      })}
-                    </div>
-                  )}
+                      return null
+                    })}
+                </div>
 
                 <p
                   className={cn(

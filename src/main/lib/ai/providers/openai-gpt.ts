@@ -1,11 +1,12 @@
-import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
-import { Settings } from '@shared/types/db'
-import { EmbeddingModel, LanguageModelV1 } from 'ai'
+import { createOpenAI, type OpenAIProvider } from '@ai-sdk/openai'
+import type { LanguageModelV2 } from '@ai-sdk/provider'
+import type { Settings } from '@shared/types/db'
+import type { EmbeddingModel } from 'ai'
 
 export function getOpenAi(settings: Settings): {
   provider: OpenAIProvider
-  chatModel: LanguageModelV1
-  reasoningModel: LanguageModelV1
+  chatModel: LanguageModelV2
+  reasoningModel: LanguageModelV2
   embeddingModel: EmbeddingModel<string> | null
 } {
   const openai = createOpenAI({

@@ -1,12 +1,12 @@
 import { v1 } from '@googlemaps/places'
-import { Settings } from '@shared/types/db'
+import type { Settings } from '@shared/types/db'
 import { tool } from 'ai'
 import { z } from 'zod'
 
 export const googleMapsPlaces = (settings: Settings) =>
   tool({
     description: 'Specify a text string on which to search for a place.',
-    parameters: z.object({
+    inputSchema: z.object({
       query: z
         .string()
         .describe(

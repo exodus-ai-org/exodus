@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils'
 import { updateChat } from '@/services/chat'
 import { renamedChatTitleAtom, toBeDeletedChatAtom } from '@/stores/chat'
 import type { Chat } from '@shared/types/db'
+import { fetcher } from '@shared/utils/http'
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns'
 import { useSetAtom } from 'jotai'
 import { ChevronRight, Edit2, MoreHorizontal, Star, Trash2 } from 'lucide-react'
@@ -123,7 +124,8 @@ export function NavItems({
 
 export function NavHistories() {
   const { data: history, isLoading } = useSWR<Chat[]>('/api/history', {
-    fallbackData: []
+    fallbackData: [],
+    fetcher
   })
 
   const groupChatsByDate = (chats: Chat[]): GroupedChats => {

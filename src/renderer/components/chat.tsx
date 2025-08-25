@@ -3,10 +3,11 @@ import { advancedToolsAtom } from '@/stores/chat'
 import { useChat } from '@ai-sdk/react'
 import { QUICK_CHAT_KEY } from '@shared/constants/misc'
 import { BASE_URL } from '@shared/constants/systems'
-import type { UIMessage } from 'ai'
+import { ChatMessage } from '@shared/types/message'
+import { DefaultChatTransport } from 'ai'
 import { IpcRendererEvent } from 'electron'
 import { useAtomValue } from 'jotai'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { mutate } from 'swr'
 import { v4 as uuidV4 } from 'uuid'
@@ -15,41 +16,65 @@ import MultimodalInput from './multimodel-input'
 
 interface Props {
   id: string
-  initialMessages: UIMessage[]
+  initialMessages: ChatMessage[]
+}
+
+export async function fetchWithErrorHandlers(
+  input: RequestInfo | URL,
+  init?: RequestInit
+) {
+  try {
+    const response = await fetch(input, init)
+
+    if (!response.ok) {
+      const { code, cause } = await response.json()
+      throw new Error(`[${code}] ${cause}`)
+    }
+
+    return response
+  } catch (error: unknown) {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      throw new Error('offline:chat')
+    }
+
+    throw error
+  }
 }
 
 export function Chat({ id, initialMessages }: Props) {
+  const [input, setInput] = useState<string>('')
   const quickChat = window.localStorage.getItem(QUICK_CHAT_KEY)
   const advancedTools = useAtomValue(advancedToolsAtom)
-  const {
-    messages,
-    setMessages,
-    handleSubmit,
-    input,
-    status,
-    setInput,
-    append,
-    stop,
-    reload
-  } = useChat({
-    api: `${BASE_URL}/api/chat`,
-    body: {
-      advancedTools
-    },
-    id,
-    initialInput: quickChat ?? undefined,
-    initialMessages,
-    sendExtraMessageFields: true,
-    generateId: uuidV4,
-    onFinish: () => {
-      mutate('/api/history')
-    },
-    onError: (e) => {
-      toast.error(
-        e instanceof Error ? e.message : 'An error occurred, please try again!'
-      )
-    }
-  })
+  const { messages, setMessages, sendMessage, status, stop, regenerate } =
+    useChat<ChatMessage>({
+      id,
+      messages: initialMessages,
+      generateId: uuidV4,
+      transport: new DefaultChatTransport({
+        api: `${BASE_URL}/api/chat`,
+        // fetch: fetchWithErrorHandlers,
+        prepareSendMessagesRequest({ messages, id, body }) {
+          return {
+            body: {
+              id,
+              message: messages.at(-1),
+              advancedTools,
+              ...body
+            }
+          }
+        }
+      }),
+      onFinish: () => {
+        mutate('/api/history')
+      },
+      onError: (e) => {
+        toast.error(
+          e instanceof Error
+            ? e.message
+            : 'An error occurred, please try again!'
+        )
+      }
+    })
 
   useEffect(() => {
     return () => {
@@ -59,15 +84,15 @@ export function Chat({ id, initialMessages }: Props) {
         window.location.href = '/'
       })
     }
-  }, [handleSubmit, id, setInput])
+  }, [id])
 
   useEffect(() => {
     if (quickChat) {
       window.history.replaceState({}, '', `/chat/${id}`)
-      handleSubmit(undefined, {})
+      sendMessage(undefined, {})
       window.localStorage.removeItem(QUICK_CHAT_KEY)
     }
-  }, [handleSubmit, id, quickChat])
+  }, [sendMessage, id, quickChat])
 
   return (
     <>
@@ -76,18 +101,17 @@ export function Chat({ id, initialMessages }: Props) {
         status={status}
         messages={messages}
         setMessages={setMessages}
-        reload={reload}
+        regenerate={regenerate}
       />
       <MultimodalInput
         chatId={id}
-        input={input}
-        setInput={setInput}
-        handleSubmit={handleSubmit}
+        messages={messages}
         status={status}
         stop={stop}
-        messages={messages}
+        sendMessage={sendMessage}
         setMessages={setMessages}
-        append={append}
+        input={input}
+        setInput={setInput}
       />
     </>
   )

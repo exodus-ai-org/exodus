@@ -1,11 +1,12 @@
-import { AzureOpenAIProvider, createAzure } from '@ai-sdk/azure'
-import { Settings } from '@shared/types/db'
-import { EmbeddingModel, LanguageModelV1 } from 'ai'
+import { type AzureOpenAIProvider, createAzure } from '@ai-sdk/azure'
+import type { LanguageModelV2 } from '@ai-sdk/provider'
+import type { Settings } from '@shared/types/db'
+import type { EmbeddingModel } from 'ai'
 
 export function getAzureOpenAi(settings: Settings): {
   provider: AzureOpenAIProvider
-  chatModel: LanguageModelV1
-  reasoningModel: LanguageModelV1
+  chatModel: LanguageModelV2
+  reasoningModel: LanguageModelV2
   embeddingModel: EmbeddingModel<string> | null
 } {
   const azure = createAzure({
