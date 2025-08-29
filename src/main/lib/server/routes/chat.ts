@@ -1,11 +1,6 @@
 import { AdvancedTools } from '@shared/types/ai'
 import { Variables } from '@shared/types/server'
-import {
-  appendResponseMessages,
-  createDataStream,
-  smoothStream,
-  streamText
-} from 'ai'
+import { appendResponseMessages, createDataStream, streamText } from 'ai'
 import { Hono } from 'hono'
 import { stream } from 'hono/streaming'
 import { v4 as uuidV4 } from 'uuid'
@@ -113,9 +108,7 @@ chat.post('/', async (c) => {
         messages,
         maxSteps: settings.providerConfig?.maxSteps ?? 1,
         tools: bindCallingTools({ mcpTools, advancedTools, settings }),
-        experimental_transform: smoothStream({ chunking: 'line' }),
         experimental_generateMessageId: uuidV4,
-        experimental_continueSteps: true,
         onFinish: async ({ response }) => {
           try {
             const assistantId = getTrailingMessageId({
