@@ -1,7 +1,7 @@
-import { Providers } from '@shared/types/ai'
+import { AiProviders } from '@shared/types/ai'
 
 export const models = {
-  [Providers.OpenAiGpt]: {
+  [AiProviders.OpenAiGpt]: {
     chatModel: [
       'gpt-5',
       'gpt-5-mini',
@@ -21,7 +21,7 @@ export const models = {
       'text-embedding-ada-002'
     ]
   },
-  [Providers.AzureOpenAi]: {
+  [AiProviders.AzureOpenAi]: {
     chatModel: [
       'gpt-5',
       'gpt-5-mini',
@@ -41,7 +41,7 @@ export const models = {
       'text-embedding-ada-002'
     ]
   },
-  [Providers.GoogleGemini]: {
+  [AiProviders.GoogleGemini]: {
     chatModel: [
       'gemini-2.5-flash',
       'gemini-2.5-flash-lite',
@@ -50,12 +50,12 @@ export const models = {
     reasoningModel: ['gemini-2.5-pro'],
     embeddingModel: ['gemini-embedding-001']
   },
-  [Providers.XaiGrok]: {
+  [AiProviders.XaiGrok]: {
     chatModel: ['grok-3-beta', 'grok-3-fast-beta'],
     reasoningModel: ['grok-3-mini-beta', 'grok-3-mini-fast-beta'],
     embeddingModel: []
   },
-  [Providers.AnthropicClaude]: {
+  [AiProviders.AnthropicClaude]: {
     chatModel: ['claude-opus-4-1-20250805', 'claude-opus-4-20250514'],
     reasoningModel: ['claude-opus-4-1-20250805', 'claude-sonnet-4-20250514'],
     embeddingModel: [
@@ -67,7 +67,7 @@ export const models = {
       'voyage-law-2'
     ]
   },
-  [Providers.Ollama]: {
+  [AiProviders.Ollama]: {
     chatModel: [],
     reasoningModel: [],
     embeddingModel: []

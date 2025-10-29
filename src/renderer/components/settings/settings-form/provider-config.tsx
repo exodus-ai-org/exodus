@@ -23,7 +23,7 @@ import {
 import { TooltipArrow } from '@radix-ui/react-tooltip'
 import { models } from '@shared/constants/models'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
-import { Providers } from '@shared/types/ai'
+import { AiProviders } from '@shared/types/ai'
 import { Info } from 'lucide-react'
 import { useMemo } from 'react'
 
@@ -31,7 +31,7 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
   const provider = form.watch('providerConfig.provider')
 
   const modelsOfProvider = useMemo(() => {
-    if (provider) return models[provider as Providers]
+    if (provider) return models[provider as AiProviders]
     return null
   }, [provider])
 
@@ -58,7 +58,7 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
               </FormControl>
               <FormMessage />
               <SelectContent>
-                {Object.values(Providers).map((val) => (
+                {Object.values(AiProviders).map((val) => (
                   <SelectItem key={val} value={val}>
                     {val}
                   </SelectItem>

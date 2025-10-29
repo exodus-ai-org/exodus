@@ -13,6 +13,7 @@ import historyRouter from './routes/history'
 import ragRouter from './routes/rag'
 import settingsRouter from './routes/settings'
 import toolsRouter from './routes/tools'
+import workflowRouter from './routes/workflow'
 
 // Export server functions
 export async function connectHttpServer() {
@@ -51,6 +52,7 @@ export async function connectHttpServer() {
   app.route('/api/deep-research', deepResearchRouter)
   app.route('/api/tools', toolsRouter)
   app.route('/api/rag', ragRouter)
+  app.route('/api/workflow', workflowRouter)
 
   // Ping
   app.get('/', (c) => c.text('Exodus is running.'))

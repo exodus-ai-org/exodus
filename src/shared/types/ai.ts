@@ -1,6 +1,6 @@
 import { Tool } from 'ai'
 
-export enum Providers {
+export enum AiProviders {
   OpenAiGpt = 'OpenAI GPT',
   AzureOpenAi = 'Azure OpenAI',
   AnthropicClaude = 'Anthropic Claude',

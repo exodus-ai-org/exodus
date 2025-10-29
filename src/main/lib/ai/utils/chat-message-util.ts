@@ -1,4 +1,4 @@
-import { AdvancedTools, McpTools, Providers } from '@shared/types/ai'
+import { AdvancedTools, AiProviders, McpTools } from '@shared/types/ai'
 import {
   CoreAssistantMessage,
   CoreToolMessage,
@@ -53,7 +53,7 @@ export async function getModelFromProvider() {
     throw new Error('Failed to retrieve selected provider.')
   }
 
-  const provider = providers[settings.providerConfig?.provider as Providers]
+  const provider = providers[settings.providerConfig?.provider as AiProviders]
   const models = provider(settings)
 
   return models

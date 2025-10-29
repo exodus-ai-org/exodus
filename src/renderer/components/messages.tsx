@@ -9,6 +9,7 @@ import { MessageAction } from './massage-action'
 import { MessageReasoning } from './message-reasoning'
 import { MessageSpinner } from './message-spinner'
 import { MessageCallingTools } from './messages-calling-tools'
+import { ShimmeringText } from './shimmering-text'
 import { Avatar, AvatarImage } from './ui/avatar'
 
 function Messages({
@@ -120,13 +121,11 @@ function Messages({
                         )
                       } else {
                         return (
-                          <p
+                          <ShimmeringText
                             key={key}
-                            className="loading-shimmer-pure-text mb-4"
-                          >
-                            Calling tool:{' '}
-                            <strong>{item.toolInvocation.toolName}</strong>
-                          </p>
+                            className="mb-4"
+                            text={`Calling tool: ${item.toolInvocation.toolName}`}
+                          />
                         )
                       }
                     }

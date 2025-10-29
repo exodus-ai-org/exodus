@@ -3,7 +3,7 @@ import { useSettings } from '@/hooks/use-settings'
 import { isMcpServerChangedAtom, settingsLabelAtom } from '@/stores/settings'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { settingsSchema, SettingsType } from '@shared/schemas/settings-schema'
-import { Providers } from '@shared/types/ai'
+import { AiProviders } from '@shared/types/ai'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
@@ -59,21 +59,23 @@ export function SettingsForm() {
       >
         {activeTitle === 'General' && <General form={form} />}
 
-        {activeTitle === 'Providers' && <ProviderConfig form={form} />}
+        {activeTitle === 'AiProviders' && <ProviderConfig form={form} />}
 
-        {activeTitle === Providers.OpenAiGpt && <OpenAiGpt form={form} />}
+        {activeTitle === AiProviders.OpenAiGpt && <OpenAiGpt form={form} />}
 
-        {activeTitle === Providers.AzureOpenAi && <AzureOpenAi form={form} />}
+        {activeTitle === AiProviders.AzureOpenAi && <AzureOpenAi form={form} />}
 
-        {activeTitle === Providers.AnthropicClaude && (
+        {activeTitle === AiProviders.AnthropicClaude && (
           <AnthropicClaude form={form} />
         )}
 
-        {activeTitle === Providers.GoogleGemini && <GoogleGemini form={form} />}
+        {activeTitle === AiProviders.GoogleGemini && (
+          <GoogleGemini form={form} />
+        )}
 
-        {activeTitle === Providers.XaiGrok && <XaiGrok form={form} />}
+        {activeTitle === AiProviders.XaiGrok && <XaiGrok form={form} />}
 
-        {activeTitle === Providers.Ollama && <Ollama form={form} />}
+        {activeTitle === AiProviders.Ollama && <Ollama form={form} />}
 
         {activeTitle === 'File Upload Endpoint' && (
           <FileUploadEndpoint form={form} />

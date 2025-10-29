@@ -1,7 +1,8 @@
 onlyBuiltDependencies:
-  - '@tailwindcss/oxide'
+  - bufferutil
   - electron
   - electron-winstaller
   - es5-ext
   - esbuild
   - protobufjs
+  - utf-8-validate

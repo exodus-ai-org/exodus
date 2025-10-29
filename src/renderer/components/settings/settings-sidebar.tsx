@@ -15,12 +15,14 @@ import { useAtom } from 'jotai'
 import { Bot } from 'lucide-react'
 import { ComponentProps, useRef, useState } from 'react'
 import { version } from '../../../../package.json'
+import { useTheme } from '../theme-provider'
 import { menus } from './settings-menu'
 
 export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
   const containerRef = useRef<HTMLDivElement | null>(null)
   const [active, setActive] = useAtom(settingsLabelAtom)
   const [isBottom, setIsBottom] = useState(false)
+  const { actualTheme } = useTheme()
 
   const handleScroll = () => {
     const el = containerRef.current
@@ -30,7 +32,10 @@ export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
   }
 
   return (
-    <Sidebar {...props} className="max-h-[498px] select-none">
+    <Sidebar
+      {...props}
+      className="max-h-[498px] rounded-2xl border-none p-2 select-none"
+    >
       <SidebarContent
         className="no-scrollbar h-[300px]"
         ref={containerRef}
@@ -38,7 +43,7 @@ export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
       >
         <SidebarGroup className="pt-0">
           <SidebarMenu>
-            <SidebarMenuItem className="bg-sidebar sticky top-0 z-10 p-2 pb-0">
+            <SidebarMenuItem className="bg-background sticky top-0 z-10 p-2 pb-0">
               <SidebarMenuButton size="lg" asChild>
                 <div>
                   <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
@@ -82,12 +87,16 @@ export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
-      <div
-        className={cn(
-          'from-card pointer-events-none visible absolute bottom-0 left-0 h-25 w-full bg-gradient-to-t to-transparent opacity-100 transition',
-          { ['invisible opacity-0 transition']: isBottom }
-        )}
-      />
+      {actualTheme === 'light' && (
+        <div
+          className={cn(
+            'from-card pointer-events-none visible absolute bottom-0 left-0 h-25 w-full bg-gradient-to-t to-transparent opacity-100 transition',
+            {
+              ['invisible opacity-0 transition']: isBottom
+            }
+          )}
+        />
+      )}
     </Sidebar>
   )
 }

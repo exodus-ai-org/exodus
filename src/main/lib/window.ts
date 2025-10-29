@@ -20,8 +20,8 @@ export function createWindow(): void {
     title: '',
     titleBarStyle: 'hidden',
     trafficLightPosition: {
-      x: 20,
-      y: 20
+      x: 16,
+      y: 16
     },
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {

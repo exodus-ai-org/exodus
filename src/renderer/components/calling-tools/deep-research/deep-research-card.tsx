@@ -1,4 +1,5 @@
 import { Markdown } from '@/components/markdown'
+import { ShimmeringText } from '@/components/shimmering-text'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import {
@@ -84,7 +85,7 @@ export function DeepResearchCard({
           onClick={handleActiveDeepResearchSseId}
         >
           {deepResearchResult?.jobStatus === 'streaming' && (
-            <div className="loading-shimmer-pure-text">Deep Researching...</div>
+            <ShimmeringText text="Deep Researching..." />
           )}
           {deepResearchResult?.jobStatus === 'archived' &&
             deepResearchResult?.endTime && (

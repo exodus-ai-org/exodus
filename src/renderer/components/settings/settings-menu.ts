@@ -1,4 +1,4 @@
-import { Providers } from '@shared/types/ai'
+import { AiProviders } from '@shared/types/ai'
 import {
   Atom,
   AudioWaveform,
@@ -24,26 +24,26 @@ export const menus = {
       icon: Cog
     },
     {
-      title: 'Providers',
+      title: 'AiProviders',
       icon: HandCoins,
       items: [
         {
-          title: Providers.OpenAiGpt
+          title: AiProviders.OpenAiGpt
         },
         {
-          title: Providers.AzureOpenAi
+          title: AiProviders.AzureOpenAi
         },
         {
-          title: Providers.AnthropicClaude
+          title: AiProviders.AnthropicClaude
         },
         {
-          title: Providers.GoogleGemini
+          title: AiProviders.GoogleGemini
         },
         {
-          title: Providers.XaiGrok
+          title: AiProviders.XaiGrok
         },
         {
-          title: Providers.Ollama
+          title: AiProviders.Ollama
         }
       ]
     },

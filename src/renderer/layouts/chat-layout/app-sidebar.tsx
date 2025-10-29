@@ -20,7 +20,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const setIsFullTextSearchVisible = useSetAtom(isFullTextSearchVisibleAtom)
 
   return (
-    <Sidebar {...props}>
+    <Sidebar {...props} className="border-transparent p-2.5">
       <SidebarHeader
         className={cn('mt-13 gap-1 transition-all', { ['mt-1']: isFullscreen })}
       >

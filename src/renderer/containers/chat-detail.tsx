@@ -4,7 +4,7 @@ import type { Message as DBMessage } from '@shared/types/db'
 import { useParams } from 'react-router'
 import useSWR from 'swr'
 
-export function Detail() {
+export function ChatDetail() {
   const { id } = useParams()
   const { data: messagesFromDb } = useSWR<DBMessage[]>(`/api/chat/${id}`, {
     fallbackData: []
