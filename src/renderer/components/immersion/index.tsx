@@ -14,7 +14,7 @@ export function Immersion() {
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       className="dark:border-border z-10 h-screen w-full border-l border-gray-100 shadow-[0_0_18px_rgba(0,0,0,0.075)]"
     >
-      <div className="draggable flex h-[3.5rem] items-center justify-between px-2">
+      <div className="draggable flex h-14 items-center justify-between px-2">
         <Button
           variant="ghost"
           size="icon"

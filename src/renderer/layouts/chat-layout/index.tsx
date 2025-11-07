@@ -42,7 +42,7 @@ function FixedHeaderAction() {
   return (
     <div
       className={cn(
-        'draggable z-[11] flex h-14 w-(--sidebar-width) shrink-0 items-center justify-end py-3 pr-4 pl-22 transition-[,width] duration-200 ease-linear',
+        'draggable z-11 flex h-14 w-(--sidebar-width) shrink-0 items-center justify-end py-3 pr-4 pl-22 transition-[,width] duration-200 ease-linear',
         {
           ['w-32 transition-[width] duration-200 ease-linear']: !open
         }
@@ -78,9 +78,7 @@ export function Layout() {
 
   return (
     <SidebarProvider>
-      <div
-        className={cn('w-full shrink-0', { ['w-[25rem]']: isImmersionVisible })}
-      >
+      <div className={cn('w-full', { ['w-100']: isImmersionVisible })}>
         <div className="flex w-full">
           <FixedHeaderAction />
           <header className="draggable bg-background border-b-border flex h-14 w-full items-center p-3">

@@ -34,7 +34,7 @@ export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar
       {...props}
-      className="max-h-[498px] rounded-2xl border-none p-2 select-none"
+      className="max-h-[498px] rounded-2xl border-none p-2.5 pr-0 select-none"
     >
       <SidebarContent
         className="no-scrollbar h-[300px]"

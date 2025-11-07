@@ -1,6 +1,7 @@
 import { Canvas } from '@/components/workflow/canvas'
-import { DataFlowDialog } from '@/components/workflow/data-flow-dialog'
+import { DataFlowDialog } from '@/components/workflow/data-process-dialog'
 import { NodeSelectorSheet } from '@/components/workflow/node-selector-sheet'
+import { HttpRequestForm } from '@/components/workflow/nodes/data-source/http-request'
 import { Toolbar } from '@/components/workflow/toolbar'
 
 export function Workflow() {
@@ -9,7 +10,9 @@ export function Workflow() {
       <Toolbar />
       <Canvas />
       <NodeSelectorSheet />
-      <DataFlowDialog />
+      <DataFlowDialog>
+        <HttpRequestForm />
+      </DataFlowDialog>
     </div>
   )
 }

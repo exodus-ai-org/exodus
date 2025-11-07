@@ -1,30 +1,53 @@
 import {
   AiProvider,
+  ApplicationType,
   ControlFlowType,
   DataSourceType,
+  DataTransformationType,
   NodeType
 } from '@shared/types/workflow'
 import {
+  AppWindowIcon,
   BrainIcon,
+  ChartCandlestickIcon,
+  Code2Icon,
   CpuIcon,
   DatabaseIcon,
   GitBranchIcon,
   GlobeIcon,
+  LucideProps,
   NetworkIcon,
   RepeatIcon,
   SearchIcon,
   SigmaIcon,
   SparklesIcon
 } from 'lucide-react'
+import { ForwardRefExoticComponent, RefAttributes } from 'react'
 
-export const nodeTree = [
+export interface WorkflowNode {
+  type:
+    | NodeType
+    | DataSourceType
+    | ControlFlowType
+    | DataTransformationType
+    | AiProvider
+    | ApplicationType
+  icon: ForwardRefExoticComponent<
+    Omit<LucideProps, 'ref'> & RefAttributes<SVGSVGElement>
+  >
+  title: string
+  description: string
+  children?: WorkflowNode[]
+}
+
+export const nodeTree: WorkflowNode[] = [
   // --- Data Source ---
   {
     type: NodeType.DataSource,
     icon: DatabaseIcon,
     title: 'Data Source',
     description:
-      'Provides data to the workflow — from HTTP requests, APIs, or web searches.',
+      'Provides data to the workflow - from HTTP requests, APIs, or web searches.',
     children: [
       {
         type: DataSourceType.HttpJsonResponse,
@@ -49,7 +72,7 @@ export const nodeTree = [
     icon: GitBranchIcon,
     title: 'Control Flow',
     description:
-      'Control how your workflow executes — conditionally or in loops.',
+      'Control how your workflow executes - conditionally or in loops.',
     children: [
       {
         type: ControlFlowType.Condition,
@@ -77,17 +100,11 @@ export const nodeTree = [
       'Transform, clean, or map data before passing to the next node.',
     children: [
       {
-        type: 'map',
-        icon: RepeatIcon,
-        title: 'Map / Transform',
+        type: DataTransformationType.Code,
+        icon: Code2Icon,
+        title: 'Code',
         description:
-          'Modify or reshape input data objects for later processing.'
-      },
-      {
-        type: 'filter',
-        icon: GitBranchIcon,
-        title: 'Filter',
-        description: 'Filter data based on specific rules or conditions.'
+          'Run custom JavaScript code to transform the previous codes.'
       }
     ]
   },
@@ -125,6 +142,23 @@ export const nodeTree = [
         title: 'OpenAI',
         description:
           'Access ChatGPT and GPT models for text, chat, and reasoning.'
+      }
+    ]
+  },
+
+  // --- Application ---
+  {
+    type: NodeType.Application,
+    icon: AppWindowIcon,
+    title: 'Application',
+    description: 'Integrate with third-party applications.',
+    children: [
+      {
+        type: ApplicationType.InteractionBrokers,
+        icon: ChartCandlestickIcon,
+        title: 'Interactive Brokers',
+        description:
+          'Connect to Interactive Brokers for real-time market data and automated trading execution.'
       }
     ]
   }

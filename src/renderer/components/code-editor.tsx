@@ -29,10 +29,12 @@ loader.config({ monaco })
 
 function CodeEditor<T extends FieldValues>({
   props,
-  className
+  className,
+  monacoEditorOption
 }: {
   props: UseControllerProps<T>
   className?: string
+  monacoEditorOption?: monaco.editor.IStandaloneEditorConstructionOptions
 }) {
   const { field } = useController(props)
   const { actualTheme } = useTheme()
@@ -54,7 +56,8 @@ function CodeEditor<T extends FieldValues>({
         detectIndentation: false,
         formatOnPaste: true,
         formatOnType: true,
-        minimap: { enabled: false }
+        minimap: { enabled: false },
+        ...(monacoEditorOption ?? {})
       }}
       beforeMount={(monaco) => {
         monaco.editor.defineTheme('shadcn-dark', {

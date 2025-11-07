@@ -141,9 +141,9 @@ export function DeepResearchProcess() {
   return (
     <section
       className={cn(
-        'invisible h-svh w-0 overflow-x-hidden border-l transition-[width] duration-200',
+        'invisible h-svh w-0 shrink-0 overflow-x-hidden border-l transition-[width] duration-200',
         {
-          ['visible w-[25rem] border-l transition-[width] duration-200']:
+          ['visible w-100 border-l transition-[width] duration-200']:
             activeDeepResearchId !== ''
         }
       )}

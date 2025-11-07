@@ -183,6 +183,7 @@ async function convertShadcnUiFilesToString() {
       .replace(/\$/g, '\\$')
     exportedString +=
       `export const ${sanitizedFilename} = \`${escapedContent}\`` + '\n\n'
+    console.log(`🔄 ${filename}`)
   })
 
   const useMobile = fs

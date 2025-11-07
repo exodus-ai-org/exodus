@@ -4,7 +4,7 @@ export enum NodeType {
   ControlFlow,
   AI,
   Database,
-  AppAction
+  Application
 }
 
 export enum DataSourceType {
@@ -33,7 +33,7 @@ export enum AiProvider {
   Ollama
 }
 
-export enum AppAction {
+export enum ApplicationType {
   InteractionBrokers
 }
 
@@ -76,6 +76,6 @@ export enum FormElementType {
   JsonTextArea
 }
 
-export enum DataTransformation {
+export enum DataTransformationType {
   Code
 }
