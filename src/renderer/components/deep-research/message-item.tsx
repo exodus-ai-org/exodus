@@ -3,7 +3,7 @@ import {
   DeepResearchProgress,
   ReportProgressPayload
 } from '@shared/types/deep-research'
-import { Bot, Check, Search } from 'lucide-react'
+import { BotIcon, CheckIcon, SearchIcon } from 'lucide-react'
 import { SourceItem } from './source-item'
 
 export function MessageItem({
@@ -18,7 +18,7 @@ export function MessageItem({
     <>
       {payload.type === DeepResearchProgress.StartDeepResearch && (
         <div className="flex gap-2">
-          <Bot
+          <BotIcon
             className="mt-px shrink-0 rounded-full border p-1"
             size={24}
             strokeWidth={2.5}
@@ -36,7 +36,7 @@ export function MessageItem({
 
       {payload.type === DeepResearchProgress.EmitLearnings && (
         <div className="flex gap-2">
-          <Bot
+          <BotIcon
             className="mt-px shrink-0 rounded-full border p-1"
             size={24}
             strokeWidth={2.5}
@@ -56,7 +56,7 @@ export function MessageItem({
 
       {payload.type === DeepResearchProgress.EmitSearchQueries && (
         <div className="flex gap-2">
-          <Bot
+          <BotIcon
             className="mt-px shrink-0 rounded-full border p-1"
             size={24}
             strokeWidth={2.5}
@@ -78,7 +78,7 @@ export function MessageItem({
 
       {payload.type === DeepResearchProgress.EmitSearchResults && (
         <div className="flex gap-2">
-          <Search
+          <SearchIcon
             className="mt-px shrink-0 rounded-full border p-1"
             size={24}
             strokeWidth={2.5}
@@ -92,7 +92,7 @@ export function MessageItem({
 
       {payload.type === DeepResearchProgress.StartWritingFinalReport && (
         <div className="flex gap-2">
-          <Bot
+          <BotIcon
             className="mt-px shrink-0 rounded-full border p-1"
             size={24}
             strokeWidth={2.5}
@@ -109,7 +109,7 @@ export function MessageItem({
 
       {payload.type === DeepResearchProgress.CompleteDeepResearch && (
         <div className="flex gap-2">
-          <Check
+          <CheckIcon
             className="mt-px shrink-0 rounded-full border p-1"
             size={24}
             strokeWidth={2.5}

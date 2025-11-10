@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/sheet'
 import { isNodeSelectorSheetVisibleAtom } from '@/stores/workflow'
 import { useAtom } from 'jotai'
-import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ArrowRightIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { nodeTree, WorkflowNode } from './nodes/node-tree'
 
@@ -35,9 +35,9 @@ function NodeItem({
         </div>
       </div>
       {node.children ? (
-        <ChevronRight size={24} strokeWidth={1} className="shrink-0" />
+        <ChevronRightIcon size={24} strokeWidth={1} className="shrink-0" />
       ) : (
-        <ArrowRight size={24} strokeWidth={1} className="shrink-0" />
+        <ArrowRightIcon size={24} strokeWidth={1} className="shrink-0" />
       )}
     </li>
   )
@@ -179,7 +179,7 @@ export function NodeSelectorSheet() {
               size="icon"
               className="hover:bg-sidebar-accent rounded-md p-1"
             >
-              <ChevronLeft size={20} strokeWidth={1} />
+              <ChevronLeftIcon size={20} strokeWidth={1} />
             </Button>
           )}
           <SheetTitle>{currentTitle}</SheetTitle>

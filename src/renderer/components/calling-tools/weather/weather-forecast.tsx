@@ -1,14 +1,14 @@
 import { Weather, WWO_CODE } from '@shared/types/weather'
 import { motion } from 'framer-motion'
 import {
-  Cloud,
-  CloudDrizzle,
-  CloudFog,
-  CloudLightning,
-  CloudRain,
-  CloudSnow,
-  CloudSun,
-  Sun
+  CloudDrizzleIcon,
+  CloudFogIcon,
+  CloudIcon,
+  CloudLightningIcon,
+  CloudRainIcon,
+  CloudSnowIcon,
+  CloudSunIcon,
+  SunIcon
 } from 'lucide-react'
 
 export function WeatherForecast({ forecast }: { forecast: Weather }) {
@@ -17,37 +17,37 @@ export function WeatherForecast({ forecast }: { forecast: Weather }) {
 
     switch (weatherType) {
       case 'Sunny':
-        return <Sun className="h-5 w-5 text-yellow-400" />
+        return <SunIcon className="h-5 w-5 text-yellow-400" />
       case 'PartlyCloudy':
-        return <CloudSun className="h-5 w-5 text-blue-400" />
+        return <CloudSunIcon className="h-5 w-5 text-blue-400" />
       case 'Cloudy':
-        return <Cloud className="h-5 w-5 text-slate-400" />
+        return <CloudIcon className="h-5 w-5 text-slate-400" />
       case 'VeryCloudy':
-        return <Cloud className="h-5 w-5 text-slate-600" />
+        return <CloudIcon className="h-5 w-5 text-slate-600" />
       case 'Fog':
-        return <CloudFog className="h-5 w-5 text-slate-300" />
+        return <CloudFogIcon className="h-5 w-5 text-slate-300" />
       case 'LightShowers':
-        return <CloudDrizzle className="h-5 w-5 text-blue-300" />
+        return <CloudDrizzleIcon className="h-5 w-5 text-blue-300" />
       case 'LightSleetShowers':
       case 'LightSleet':
-        return <CloudSnow className="h-5 w-5 text-blue-200" />
+        return <CloudSnowIcon className="h-5 w-5 text-blue-200" />
       case 'LightSnow':
       case 'LightSnowShowers':
-        return <CloudSnow className="h-5 w-5 text-slate-200" />
+        return <CloudSnowIcon className="h-5 w-5 text-slate-200" />
       case 'HeavySnow':
       case 'HeavySnowShowers':
-        return <CloudSnow className="h-5 w-5 text-white" />
+        return <CloudSnowIcon className="h-5 w-5 text-white" />
       case 'ThunderyShowers':
       case 'ThunderyHeavyRain':
       case 'ThunderySnowShowers':
-        return <CloudLightning className="h-5 w-5 text-yellow-500" />
+        return <CloudLightningIcon className="h-5 w-5 text-yellow-500" />
       case 'LightRain':
-        return <CloudRain className="h-5 w-5 text-blue-400" />
+        return <CloudRainIcon className="h-5 w-5 text-blue-400" />
       case 'HeavyShowers':
       case 'HeavyRain':
-        return <CloudRain className="h-5 w-5 text-blue-600" />
+        return <CloudRainIcon className="h-5 w-5 text-blue-600" />
       default:
-        return <Cloud className="h-5 w-5 text-slate-400" />
+        return <CloudIcon className="h-5 w-5 text-slate-400" />
     }
   }
 
@@ -104,7 +104,7 @@ export function WeatherForecast({ forecast }: { forecast: Weather }) {
             </motion.div>
           ))}
         </div>
-        <div className="from-card pointer-events-none absolute top-0 right-0 h-full w-12 bg-gradient-to-l to-transparent" />
+        <div className="from-card pointer-events-none absolute top-0 right-0 h-full w-12 bg-linear-to-l to-transparent" />
       </div>
     </div>
   )

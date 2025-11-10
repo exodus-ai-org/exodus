@@ -27,7 +27,7 @@ import {
   VisibilityState
 } from '@tanstack/react-table'
 import { format } from 'date-fns'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircleIcon } from 'lucide-react'
 import { useState } from 'react'
 import useSWR from 'swr'
 
@@ -114,7 +114,7 @@ export function Rag() {
       </TabsList>
       <TabsContent value="embeddings">
         <Alert className="my-4">
-          <AlertCircle className="h-4 w-4" />
+          <AlertCircleIcon className="h-4 w-4" />
           <AlertDescription className="inline">
             Upload your private resources from here, now supports{' '}
             <Badge variant="outline">.pdf</Badge>,{' '}

@@ -1,4 +1,4 @@
-import { Maximize, Minus, Plus } from 'lucide-react'
+import { MaximizeIcon, MinusIcon, PlusIcon } from 'lucide-react'
 import { forwardRef } from 'react'
 
 import {
@@ -36,7 +36,7 @@ export const ZoomSlider = forwardRef<
         size="icon"
         onClick={() => zoomOut({ duration: 300 })}
       >
-        <Minus className="h-4 w-4" />
+        <MinusIcon className="h-4 w-4" />
       </Button>
       <Slider
         className="w-[140px]"
@@ -51,7 +51,7 @@ export const ZoomSlider = forwardRef<
         size="icon"
         onClick={() => zoomIn({ duration: 300 })}
       >
-        <Plus className="h-4 w-4" />
+        <PlusIcon className="h-4 w-4" />
       </Button>
       <Button
         className="min-w-20 tabular-nums"
@@ -65,7 +65,7 @@ export const ZoomSlider = forwardRef<
         size="icon"
         onClick={() => fitView({ duration: 300 })}
       >
-        <Maximize className="h-4 w-4" />
+        <MaximizeIcon className="h-4 w-4" />
       </Button>
     </Panel>
   )

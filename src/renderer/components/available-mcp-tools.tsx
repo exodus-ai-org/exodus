@@ -1,4 +1,4 @@
-import { Hammer } from 'lucide-react'
+import { HammerIcon } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -42,7 +42,7 @@ export function AvailableMcpTools() {
             <TooltipTrigger asChild>
               <DialogTrigger asChild>
                 <Button variant="ghost" className="h-6">
-                  <Hammer /> {len}
+                  <HammerIcon /> {len}
                 </Button>
               </DialogTrigger>
             </TooltipTrigger>

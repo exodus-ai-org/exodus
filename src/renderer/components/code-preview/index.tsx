@@ -24,13 +24,14 @@ import {
 } from '@codesandbox/sandpack-react'
 import { motion } from 'framer-motion'
 import {
-  AppWindowMac,
-  Check,
-  ChevronsRight,
-  Code,
-  Copy,
-  Download,
+  AppWindowMacIcon,
+  CheckIcon,
+  ChevronsRightIcon,
+  CodeIcon,
+  CopyIcon,
+  DownloadIcon,
   GitFork,
+  GitForkIcon,
   Maximize,
   MousePointerClick
 } from 'lucide-react'
@@ -72,7 +73,7 @@ function CodePreviewActions({
           className="text-ring h-7 w-7"
           onClick={closeImmersion}
         >
-          <ChevronsRight className="h-4 w-4" />
+          <ChevronsRightIcon className="h-4 w-4" />
         </Button>
 
         <Button
@@ -85,7 +86,7 @@ function CodePreviewActions({
             setTabType(TabType.Preview)
           }}
         >
-          <AppWindowMac className="h-4 w-4" />
+          <AppWindowMacIcon className="h-4 w-4" />
           Preview
         </Button>
         <Button
@@ -96,17 +97,17 @@ function CodePreviewActions({
           })}
           onClick={() => setTabType(TabType.Code)}
         >
-          <Code className="h-4 w-4" />
+          <CodeIcon className="h-4 w-4" />
           Code
         </Button>
       </div>
 
       <div className="flex items-center gap-2">
         <Button variant="ghost" className="text-ring h-7 w-7">
-          <GitFork className="h-4 w-4" />
+          <GitForkIcon className="h-4 w-4" />
         </Button>
         <Button variant="ghost" className="text-ring h-7 w-7">
-          <Download className="h-4 w-4" />
+          <DownloadIcon className="h-4 w-4" />
         </Button>
         <Select>
           <SelectTrigger className="h-7 w-fit">
@@ -133,7 +134,7 @@ function CodeEditor() {
   const { copied, handleCopy } = useClipboard()
   return (
     <>
-      <SandpackFileExplorer className="!bg-primary-foreground !h-[calc(100dvh-3.0625rem)]" />
+      <SandpackFileExplorer className="bg-primary-foreground! h-[calc(100dvh-3.0625rem)]!" />
       <div className="bg-background absolute top-0 right-0 z-10 flex items-center gap-4 py-1 pl-2 dark:bg-[#151515]">
         <span className="text-ring font-semibold">
           {activeFile.replace(/^\//, '')}
@@ -149,13 +150,13 @@ function CodeEditor() {
             }}
           >
             {copied === code ? (
-              <Check className="h-4 w-4" />
+              <CheckIcon className="h-4 w-4" />
             ) : (
-              <Copy className="h-4 w-4" />
+              <CopyIcon className="h-4 w-4" />
             )}
           </Button>
           <Button variant="ghost" className="text-ring h-7 w-7">
-            <Download className="h-4 w-4" />
+            <DownloadIcon className="h-4 w-4" />
           </Button>
         </div>
       </div>
@@ -164,7 +165,7 @@ function CodeEditor() {
         showRunButton={false}
         showTabs={false}
         showInlineErrors
-        className="!h-[calc(100dvh-3.0625rem)]"
+        className="h-[calc(100dvh-3.0625rem)]!"
       />
     </>
   )
@@ -203,7 +204,7 @@ export function CodePreview() {
           <CodePreviewActions tabType={tabType} setTabType={setTabType} />
         </div>
 
-        <SandpackLayout className="relative !rounded-none !rounded-br-lg !rounded-bl-lg !border-none">
+        <SandpackLayout className="relative rounded-none! rounded-br-lg! rounded-bl-lg! border-none!">
           {tabType === TabType.Code && <CodeEditor />}
           {tabType === TabType.Preview && (
             <div className="flex w-full flex-col">
@@ -232,7 +233,7 @@ export function CodePreview() {
                 showRefreshButton={false}
                 showRestartButton={false}
                 showOpenNewtab={false}
-                className="!h-[calc(100dvh-5.5625rem)]"
+                className="h-[calc(100dvh-5.5625rem)]!"
               />
 
               <Dialog open={isExpanded} onOpenChange={setIsExpanded}>

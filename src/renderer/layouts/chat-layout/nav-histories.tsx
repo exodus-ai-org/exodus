@@ -27,7 +27,13 @@ import { renamedChatTitleAtom, toBeDeletedChatAtom } from '@/stores/chat'
 import type { Chat } from '@shared/types/db'
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns'
 import { useSetAtom } from 'jotai'
-import { ChevronRight, Edit2, MoreHorizontal, Star, Trash2 } from 'lucide-react'
+import {
+  ChevronRightIcon,
+  Edit2Icon,
+  MoreHorizontalIcon,
+  StarIcon,
+  Trash2Icon
+} from 'lucide-react'
 import { Link, useParams } from 'react-router'
 import useSWR from 'swr'
 
@@ -75,7 +81,7 @@ export function NavItems({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <SidebarMenuAction showOnHover>
-            <MoreHorizontal />
+            <MoreHorizontalIcon />
             <span className="sr-only">More</span>
           </SidebarMenuAction>
         </DropdownMenuTrigger>
@@ -89,7 +95,7 @@ export function NavItems({
               updateChat({ id: chat.id, favorite: !chat.favorite })
             }
           >
-            <Star
+            <StarIcon
               className={cn('text-muted-foreground', {
                 ['fill-yellow-500 text-yellow-500']: chat.favorite
               })}
@@ -105,12 +111,12 @@ export function NavItems({
               })
             }}
           >
-            <Edit2 className="text-muted-foreground" />
+            <Edit2Icon className="text-muted-foreground" />
             <span>Rename</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setToBeDeletedChat(chat)}>
-            <Trash2 className="text-destructive" />
+            <Trash2Icon className="text-destructive" />
             <span className="text-destructive hover:text-destructive">
               Delete
             </span>
@@ -205,9 +211,9 @@ export function NavHistories() {
                         asChild
                         className="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mb-1 text-sm"
                       >
-                        <CollapsibleTrigger className="flex w-full items-center justify-between !pl-0">
+                        <CollapsibleTrigger className="flex w-full items-center justify-between pl-0!">
                           <SidebarGroupLabel>Favorite</SidebarGroupLabel>
-                          <ChevronRight className="transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                          <ChevronRightIcon className="transition-transform group-data-[state=open]/collapsible:rotate-90" />
                         </CollapsibleTrigger>
                       </SidebarGroupLabel>
                       <CollapsibleContent>

@@ -1,7 +1,7 @@
 import { attachmentAtom } from '@/stores/chat'
 import { produce } from 'immer'
 import { useAtom } from 'jotai'
-import { X } from 'lucide-react'
+import { XIcon } from 'lucide-react'
 
 export function FilePreview() {
   const [attachments, setAttachments] = useAtom(attachmentAtom)
@@ -21,7 +21,7 @@ export function FilePreview() {
       {attachments.map((attachment, idx) => (
         <section className="group relative" key={idx}>
           <span className="absolute -top-2 -right-2 rounded-full border-3 border-gray-50 bg-black p-0.75 dark:border-black dark:bg-white">
-            <X
+            <XIcon
               onClick={() => deleteAttachment(idx)}
               className="h-2.5 w-2.5 text-white dark:text-black"
               strokeWidth={2.5}

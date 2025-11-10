@@ -1,31 +1,31 @@
 import { AiProviders } from '@shared/types/ai'
 import {
-  Atom,
-  AudioWaveform,
-  Chrome,
-  Cog,
-  Computer,
-  Database,
-  FileUp,
-  Globe,
-  Hammer,
-  HandCoins,
-  Image,
-  Info,
-  Map,
-  Palette,
-  Telescope
+  AtomIcon,
+  AudioWaveformIcon,
+  ChromeIcon,
+  CogIcon,
+  ComputerIcon,
+  DatabaseIcon,
+  FileUpIcon,
+  GlobeIcon,
+  HammerIcon,
+  HandCoinsIcon,
+  ImageIcon,
+  InfoIcon,
+  MapIcon,
+  PaletteIcon,
+  TelescopeIcon
 } from 'lucide-react'
 
 export const menus = {
   navMain: [
     {
       title: 'General',
-      icon: Cog
+      icon: CogIcon
     },
     {
       title: 'AiProviders',
-      icon: HandCoins,
+      icon: HandCoinsIcon,
       items: [
         {
           title: AiProviders.OpenAiGpt
@@ -49,54 +49,54 @@ export const menus = {
     },
     {
       title: 'File Upload Endpoint',
-      icon: FileUp
+      icon: FileUpIcon
     },
     {
-      icon: Hammer,
+      icon: HammerIcon,
       title: 'MCP Servers'
     },
     {
-      icon: AudioWaveform,
+      icon: AudioWaveformIcon,
       title: 'Audio and Speech'
     },
     {
-      icon: Image,
+      icon: ImageIcon,
       title: 'Image Generation'
     },
     {
-      icon: Globe,
+      icon: GlobeIcon,
       title: 'Web Search'
     },
     {
-      icon: Map,
+      icon: MapIcon,
       title: 'Google Maps'
     },
     {
-      icon: Telescope,
+      icon: TelescopeIcon,
       title: 'Deep Research'
     },
     {
-      icon: Atom,
+      icon: AtomIcon,
       title: 'RAG'
     },
     {
-      icon: Palette,
+      icon: PaletteIcon,
       title: 'Immersion'
     },
     {
-      icon: Chrome,
+      icon: ChromeIcon,
       title: 'Browser Use'
     },
     {
-      icon: Computer,
+      icon: ComputerIcon,
       title: 'Computer Use'
     },
     {
-      icon: Database,
+      icon: DatabaseIcon,
       title: 'Data Controls'
     },
     {
-      icon: Info,
+      icon: InfoIcon,
       title: 'About Exodus'
     }
   ]

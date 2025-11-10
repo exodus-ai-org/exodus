@@ -24,7 +24,7 @@ import { TooltipArrow } from '@radix-ui/react-tooltip'
 import { models } from '@shared/constants/models'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { AiProviders } from '@shared/types/ai'
-import { Info } from 'lucide-react'
+import { InfoIcon } from 'lucide-react'
 import { useMemo } from 'react'
 
 export function ProviderConfig({ form }: { form: UseFormReturnType }) {
@@ -184,7 +184,7 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
-                    <Info className="text-ring h-4 w-4" />
+                    <InfoIcon className="text-ring h-4 w-4" />
                   </TooltipTrigger>
                   <TooltipContent>
                     <p className="max-w-60">

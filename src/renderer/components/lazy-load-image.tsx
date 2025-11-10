@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import { ImageOff } from 'lucide-react'
+import { ImageOffIcon } from 'lucide-react'
 import { useState } from 'react'
 
 export function LazyLoadImage({
@@ -50,7 +50,7 @@ export function LazyLoadImage({
 
       {hasError && (
         <div className="bg-accent dark:bg-card text-card dark:text-accent flex h-full w-full flex-col items-center justify-center">
-          <ImageOff size={48} />
+          <ImageOffIcon size={48} />
         </div>
       )}
     </div>

@@ -12,7 +12,7 @@ import {
 import { cn } from '@/lib/utils'
 import { settingsLabelAtom } from '@/stores/settings'
 import { useAtom } from 'jotai'
-import { Bot } from 'lucide-react'
+import { BotIcon } from 'lucide-react'
 import { ComponentProps, useRef, useState } from 'react'
 import { version } from '../../../../package.json'
 import { useTheme } from '../theme-provider'
@@ -47,7 +47,7 @@ export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
               <SidebarMenuButton size="lg" asChild>
                 <div>
                   <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                    <Bot className="size-4" />
+                    <BotIcon className="size-4" />
                   </div>
                   <div className="grid flex-1 text-left text-sm leading-tight">
                     <span className="truncate font-semibold">Exodus</span>

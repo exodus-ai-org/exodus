@@ -1,4 +1,10 @@
-import { Atom, Command, Settings, Store, Workflow } from 'lucide-react'
+import {
+  AtomIcon,
+  CommandIcon,
+  SettingsIcon,
+  StoreIcon,
+  WorkflowIcon
+} from 'lucide-react'
 import * as React from 'react'
 
 import {
@@ -25,19 +31,19 @@ const data = {
     {
       title: 'MCP Store',
       url: '#',
-      icon: Store,
+      icon: StoreIcon,
       isActive: true
     },
     {
       title: 'Workflow',
       url: '#',
-      icon: Workflow,
+      icon: WorkflowIcon,
       isActive: false
     },
     {
       title: 'RAG',
       url: '#',
-      icon: Atom,
+      icon: AtomIcon,
       isActive: false
     }
   ]
@@ -58,7 +64,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <SidebarMenuButton size="lg" asChild className="md:h-8 md:p-0">
               <a href="#">
                 <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <Command className="size-4" />
+                  <CommandIcon className="size-4" />
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight">
                   <span className="truncate font-medium">Acme Inc</span>
@@ -98,7 +104,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton onClick={() => setSettingsDialogVisible(true)}>
-                <Settings />
+                <SettingsIcon />
                 Settings
               </SidebarMenuButton>
             </SidebarMenuItem>

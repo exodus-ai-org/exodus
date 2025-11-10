@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/sidebar'
 import { isSettingsVisibleAtom } from '@/stores/settings'
 import { useSetAtom } from 'jotai'
-import { Atom, Settings, Store, Workflow } from 'lucide-react'
+import { AtomIcon, SettingsIcon, StoreIcon, WorkflowIcon } from 'lucide-react'
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
@@ -24,13 +24,13 @@ export function NavFooter({
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton>
-              <Store />
+              <StoreIcon />
               MCP Store
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton>
-              <Atom />
+              <AtomIcon />
               RAG
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -39,13 +39,13 @@ export function NavFooter({
               isActive={location.pathname.includes('workflow')}
               onClick={() => navigate('/workflow')}
             >
-              <Workflow />
+              <WorkflowIcon />
               Workflow
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton onClick={() => setSettingsDialogVisible(true)}>
-              <Settings />
+              <SettingsIcon />
               Settings
             </SidebarMenuButton>
           </SidebarMenuItem>

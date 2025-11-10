@@ -1,5 +1,5 @@
 import { useAudio } from '@/hooks/use-audio'
-import { AudioLines, CircleStop, Loader } from 'lucide-react'
+import { AudioLinesIcon, CircleStopIcon, LoaderIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { Button } from './ui/button'
@@ -64,11 +64,11 @@ export function AudioRecorder({
       onClick={isRecording ? stopRecording : startRecording}
     >
       {loading ? (
-        <Loader className="animate-spin" />
+        <LoaderIcon className="animate-spin" />
       ) : isRecording ? (
-        <CircleStop />
+        <CircleStopIcon />
       ) : (
-        <AudioLines />
+        <AudioLinesIcon />
       )}
 
       {/* {

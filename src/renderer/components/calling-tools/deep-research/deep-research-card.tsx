@@ -15,7 +15,7 @@ import { TooltipArrow } from '@radix-ui/react-tooltip'
 import { DeepResearch } from '@shared/types/db'
 import { differenceInMinutes } from 'date-fns'
 import { useAtom } from 'jotai'
-import { Download, Loader } from 'lucide-react'
+import { DownloadIcon, LoaderIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import useSWR from 'swr'
@@ -101,13 +101,13 @@ export function DeepResearchCard({
               <TooltipTrigger asChild>
                 <Button size="icon" variant="ghost" onClick={exportPdf}>
                   {loading ? (
-                    <Loader
+                    <LoaderIcon
                       size={14}
                       strokeWidth={2.5}
                       className="animate-spin"
                     />
                   ) : (
-                    <Download />
+                    <DownloadIcon />
                   )}
                 </Button>
               </TooltipTrigger>

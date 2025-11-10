@@ -1,6 +1,6 @@
 import { useImmersion } from '@/hooks/use-immersion'
 import { motion } from 'framer-motion'
-import { X } from 'lucide-react'
+import { XIcon } from 'lucide-react'
 import { RichTextEditor } from '../rich-text-editor'
 import { Button } from '../ui/button'
 
@@ -21,7 +21,7 @@ export function Immersion() {
           className="text-ring no-draggable h-7 w-7"
           onClick={closeImmersion}
         >
-          <X className="h-4 w-4" />
+          <XIcon className="h-4 w-4" />
         </Button>
       </div>
 

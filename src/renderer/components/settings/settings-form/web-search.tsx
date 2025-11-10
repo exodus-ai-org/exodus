@@ -26,13 +26,13 @@ import { cn } from '@/lib/utils'
 import { countryCodes } from '@shared/constants/country-codes'
 import { languageCodes } from '@shared/constants/language-codes'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
-import { AlertCircle, Check, ChevronsUpDown } from 'lucide-react'
+import { AlertCircleIcon, CheckIcon, ChevronsUpDownIcon } from 'lucide-react'
 
 export function WebSearch({ form }: { form: UseFormReturnType }) {
   return (
     <>
       <Alert>
-        <AlertCircle className="h-4 w-4" />
+        <AlertCircleIcon className="h-4 w-4" />
         <AlertDescription className="inline">
           Exodus supports built-in Web Search using{' '}
           <a
@@ -96,7 +96,7 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
                           ? `${countryItem.flag} ${countryItem.country}`
                           : 'Select country'}
 
-                        <ChevronsUpDown className="opacity-50" />
+                        <ChevronsUpDownIcon className="opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
@@ -122,7 +122,7 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
                                 }}
                               >
                                 {flag} {country}
-                                <Check
+                                <CheckIcon
                                   className={cn(
                                     'ml-auto',
                                     countryCode === field.value
@@ -166,7 +166,7 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
                             ({ languageCode }) => languageCode === field.value
                           )?.language
                         : 'Select language'}
-                      <ChevronsUpDown className="opacity-50" />
+                      <ChevronsUpDownIcon className="opacity-50" />
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
@@ -188,7 +188,7 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
                             }}
                           >
                             {language}
-                            <Check
+                            <CheckIcon
                               className={cn(
                                 'ml-auto',
                                 languageCode === field.value

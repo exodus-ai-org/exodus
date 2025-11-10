@@ -1,6 +1,6 @@
 import { useSettings } from '@/hooks/use-settings'
 import { convertFileToBase64 } from '@/lib/utils'
-import { Plus, X } from 'lucide-react'
+import { PlusIcon, XIcon } from 'lucide-react'
 import { ChangeEvent, useRef } from 'react'
 import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
 
@@ -53,12 +53,12 @@ export function AvatarUploader<T extends FieldValues>({
           className="h-16 w-16 rounded-full object-cover"
         />
       ) : (
-        <Plus />
+        <PlusIcon />
       )}
 
       {!!field.value && (
         <span className="absolute -top-1 -right-1 z-100 rounded-full border-3 border-gray-50 bg-black p-0.75 dark:border-black dark:bg-white">
-          <X
+          <XIcon
             onClick={(e) => {
               e.stopPropagation()
               e.preventDefault()

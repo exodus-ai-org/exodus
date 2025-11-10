@@ -1,7 +1,7 @@
 import { memo } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { Rocket } from 'lucide-react'
+import { RocketIcon } from 'lucide-react'
 import {
   BaseNode,
   BaseNodeContent,
@@ -14,7 +14,7 @@ export const BaseNodeFullDemo = memo(() => {
   return (
     <BaseNode className="w-32">
       <BaseNodeHeader className="border-b">
-        <Rocket className="size-4" />
+        <RocketIcon className="size-4" />
         <BaseNodeHeaderTitle>Header</BaseNodeHeaderTitle>
       </BaseNodeHeader>
       <BaseNodeContent>

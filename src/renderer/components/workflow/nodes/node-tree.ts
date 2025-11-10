@@ -15,14 +15,13 @@ import {
   DatabaseIcon,
   GitBranchIcon,
   GlobeIcon,
-  LucideProps,
   NetworkIcon,
   RepeatIcon,
   SearchIcon,
   SigmaIcon,
-  SparklesIcon
+  SparklesIcon,
+  type LucideIcon
 } from 'lucide-react'
-import { ForwardRefExoticComponent, RefAttributes } from 'react'
 
 export interface WorkflowNode {
   type:
@@ -32,9 +31,7 @@ export interface WorkflowNode {
     | DataTransformationType
     | AiProvider
     | ApplicationType
-  icon: ForwardRefExoticComponent<
-    Omit<LucideProps, 'ref'> & RefAttributes<SVGSVGElement>
-  >
+  icon: LucideIcon
   title: string
   description: string
   children?: WorkflowNode[]

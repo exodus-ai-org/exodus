@@ -7,11 +7,11 @@ import { BubbleMenu } from '@tiptap/react/menus'
 import StarterKit from '@tiptap/starter-kit'
 import { all, createLowlight } from 'lowlight'
 import {
-  Bold,
-  CaseSensitive,
-  Italic,
-  MessageCirclePlus,
-  Send
+  BoldIcon,
+  CaseSensitiveIcon,
+  ItalicIcon,
+  MessageCirclePlusIcon,
+  SendIcon
 } from 'lucide-react'
 import { useState } from 'react'
 import { Markdown } from 'tiptap-markdown'
@@ -49,7 +49,6 @@ export function RichTextEditor({ className }: { className?: string }) {
     <>
       {editor && (
         <BubbleMenu
-          // @ts-expect-error should contact tiptap-markdown's author to update its configuration.
           editor={editor}
           options={{
             placement: 'bottom',
@@ -73,7 +72,7 @@ export function RichTextEditor({ className }: { className?: string }) {
                   className="h-7 w-7"
                   disabled={!inputText.trim()}
                 >
-                  <Send />
+                  <SendIcon />
                 </Button>
               </div>
             ) : (
@@ -85,7 +84,7 @@ export function RichTextEditor({ className }: { className?: string }) {
                     setShowInput(true)
                   }}
                 >
-                  <MessageCirclePlus />
+                  <MessageCirclePlusIcon />
                   <span>Ask Exodus</span>
                 </Button>
                 <Separator orientation="vertical" className="mx-2 !h-6" />
@@ -99,7 +98,7 @@ export function RichTextEditor({ className }: { className?: string }) {
                       editor.isActive('bold') ? 'font-bold text-blue-500' : ''
                     )}
                   >
-                    <Bold strokeWidth={3} />
+                    <BoldIcon strokeWidth={3} />
                   </Button>
                   <Button
                     variant="ghost"
@@ -110,7 +109,7 @@ export function RichTextEditor({ className }: { className?: string }) {
                       editor.isActive('italic') ? 'text-blue-500 italic' : ''
                     )}
                   >
-                    <Italic />
+                    <ItalicIcon />
                   </Button>
                   <Button
                     variant="ghost"
@@ -118,7 +117,10 @@ export function RichTextEditor({ className }: { className?: string }) {
                     onClick={() => editor.chain().focus().toggleItalic().run()}
                     className={cn('h-7.5')}
                   >
-                    <CaseSensitive className="scale-150" strokeWidth={1.5} />
+                    <CaseSensitiveIcon
+                      className="scale-150"
+                      strokeWidth={1.5}
+                    />
                   </Button>
                 </div>
               </div>

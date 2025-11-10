@@ -9,7 +9,7 @@ import { useDebouncedValue } from '@/hooks/use-debounce'
 import { isFullTextSearchVisibleAtom } from '@/stores/chat'
 import { UIMessage } from 'ai'
 import { useAtom } from 'jotai'
-import { Search } from 'lucide-react'
+import { SearchIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 import useSWR from 'swr'
@@ -44,7 +44,7 @@ export function SearchDialog() {
         <DialogHeader>
           <DialogTitle>
             <div className="flex items-center gap-2 border-b px-3 py-1">
-              <Search size={20} />
+              <SearchIcon size={20} />
               <input
                 placeholder="Search Chat..."
                 autoFocus

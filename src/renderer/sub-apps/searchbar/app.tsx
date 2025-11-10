@@ -10,7 +10,7 @@ import {
 } from '@/lib/ipc'
 import { cn } from '@/lib/utils'
 import type { IpcRendererEvent, Result } from 'electron'
-import { ChevronDown, ChevronUp, X } from 'lucide-react'
+import { ChevronDownIcon, ChevronUpIcon, XIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 export function FindBar() {
@@ -88,7 +88,7 @@ export function FindBar() {
           className="h-7 w-7 rounded-full"
           disabled={!searchResult || searchResult.matches === 0}
         >
-          <ChevronUp />
+          <ChevronUpIcon />
         </Button>
         <Button
           variant="ghost"
@@ -99,7 +99,7 @@ export function FindBar() {
           className="h-7 w-7 rounded-full"
           disabled={!searchResult || searchResult.matches === 0}
         >
-          <ChevronDown />
+          <ChevronDownIcon />
         </Button>
 
         <Button
@@ -109,7 +109,7 @@ export function FindBar() {
           title="Close"
           className="h-7 w-7 rounded-full"
         >
-          <X />
+          <XIcon />
         </Button>
       </div>
     </div>

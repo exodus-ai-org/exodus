@@ -10,7 +10,7 @@ import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import { cn } from '@/lib/utils'
 import { isFullTextSearchVisibleAtom } from '@/stores/chat'
 import { useSetAtom } from 'jotai'
-import { Search, SquarePen } from 'lucide-react'
+import { SearchIcon, SquarePenIcon } from 'lucide-react'
 import * as React from 'react'
 import { NavFooter } from './nav-footer'
 import { NavHistories } from './nav-histories'
@@ -29,7 +29,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             className="hover:bg-sidebar-accent flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm"
             onClick={() => (window.location.href = '/')}
           >
-            <SquarePen size={16} />
+            <SquarePenIcon size={16} />
             New chat
           </SidebarMenuItem>
         </SidebarMenu>
@@ -38,7 +38,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             className="hover:bg-sidebar-accent flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm"
             onClick={() => setIsFullTextSearchVisible(true)}
           >
-            <Search size={16} />
+            <SearchIcon size={16} />
             Search chats
           </SidebarMenuItem>
         </SidebarMenu>

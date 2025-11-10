@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import { Loader, UploadCloud } from 'lucide-react'
+import { LoaderIcon, UploadCloudIcon } from 'lucide-react'
 import { useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
 
@@ -38,7 +38,7 @@ export function Uploader({
       />
       <div className="flex flex-col items-center gap-1">
         <div className="flex items-center justify-center rounded-full border p-2.5">
-          <UploadCloud className="text-muted-foreground" />
+          <UploadCloudIcon className="text-muted-foreground" />
         </div>
         <p className="text-sm font-medium">Drag &amp; drop files here</p>
         <p className="text-muted-foreground text-xs">
@@ -47,7 +47,7 @@ export function Uploader({
       </div>
       {loading && (
         <div className="bg-accent/80 absolute top-0 left-0 z-10 flex h-full w-full items-center justify-center">
-          <Loader className="text-muted-foreground animate-spin" />
+          <LoaderIcon className="text-muted-foreground animate-spin" />
         </div>
       )}
     </div>

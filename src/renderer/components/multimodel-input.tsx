@@ -2,7 +2,7 @@ import { useUpload } from '@/hooks/use-upload'
 import { attachmentAtom } from '@/stores/chat'
 import { UseChatHelpers } from '@ai-sdk/react'
 import { useAtom } from 'jotai'
-import { CircleStop, Send } from 'lucide-react'
+import { CircleStopIcon, SendIcon } from 'lucide-react'
 import {
   ChangeEvent,
   ClipboardEvent,
@@ -137,7 +137,7 @@ function InputBox({
 
         {status === 'submitted' || status === 'streaming' ? (
           <Button variant="secondary" onClick={stop}>
-            <CircleStop />
+            <CircleStopIcon />
           </Button>
         ) : (
           <>
@@ -145,7 +145,7 @@ function InputBox({
               <AudioRecorder input={input} setInput={setInput} />
             ) : (
               <Button type="submit" variant="secondary" onClick={handleSubmit}>
-                <Send />
+                <SendIcon />
               </Button>
             )}
           </>

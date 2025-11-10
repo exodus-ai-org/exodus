@@ -11,7 +11,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSettings } from '@/hooks/use-settings'
 import { protos } from '@googlemaps/places'
-import { Globe, MapPin, Phone, Star } from 'lucide-react'
+import { GlobeIcon, MapPinIcon, PhoneIcon, StarIcon } from 'lucide-react'
 import Zoom from 'react-medium-image-zoom'
 
 interface RestaurantAccordionProps {
@@ -64,7 +64,7 @@ export function PlacesAccordion({
                       </h3>
                       <div className="mt-1 flex items-center">
                         <div className="flex items-center">
-                          <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                          <StarIcon className="h-4 w-4 fill-yellow-500 text-yellow-500" />
                           <span className="ml-1 text-sm font-medium">
                             {typeof place.rating === 'number' &&
                             Number.isInteger(place.rating)
@@ -100,7 +100,7 @@ export function PlacesAccordion({
                   <div className="border-t px-4 pt-4">
                     <div className="mb-4 space-y-2 text-sm">
                       <div className="flex items-start">
-                        <MapPin className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-gray-500" />
+                        <MapPinIcon className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-gray-500" />
 
                         <a
                           className="text-blue-500 hover:underline"
@@ -117,7 +117,7 @@ export function PlacesAccordion({
 
                       {place.websiteUri && (
                         <div className="flex items-center">
-                          <Globe className="mr-2 h-4 w-4 text-gray-500" />
+                          <GlobeIcon className="mr-2 h-4 w-4 text-gray-500" />
                           <a
                             href={place.websiteUri}
                             target="_blank"
@@ -131,7 +131,7 @@ export function PlacesAccordion({
 
                       {place.internationalPhoneNumber && (
                         <div className="flex items-center">
-                          <Phone className="mr-2 h-4 w-4 text-gray-500" />
+                          <PhoneIcon className="mr-2 h-4 w-4 text-gray-500" />
                           <span className="text-gray-500">
                             {place.internationalPhoneNumber}
                           </span>
@@ -201,7 +201,7 @@ export function PlacesAccordion({
                                     </div>
                                     <div className="flex items-center">
                                       {Array.from({ length: 5 }).map((_, i) => (
-                                        <Star
+                                        <StarIcon
                                           key={i}
                                           className={`h-3 w-3 ${i < (review?.rating || 0) ? 'fill-yellow-500 text-yellow-500' : 'text-gray-300'}`}
                                         />

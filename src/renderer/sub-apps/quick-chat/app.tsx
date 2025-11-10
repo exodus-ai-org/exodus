@@ -1,6 +1,6 @@
 import { Input } from '@/components/ui/input'
 import { closeQuickChat, transferQuickChat } from '@/lib/ipc'
-import { Bot } from 'lucide-react'
+import { BotIcon } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 export function FindBar() {
@@ -52,7 +52,7 @@ export function FindBar() {
 
   return (
     <div className="bg-background flex w-[600px] items-center rounded-2xl border p-2 shadow-md">
-      <Bot />
+      <BotIcon />
       <Input
         ref={ref}
         className="w-full border-none px-2 py-0 shadow-none focus-visible:ring-0"

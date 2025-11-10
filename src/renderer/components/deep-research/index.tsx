@@ -13,7 +13,7 @@ import {
 } from '@shared/types/deep-research'
 import { motion } from 'framer-motion'
 import { useAtom } from 'jotai'
-import { X } from 'lucide-react'
+import { XIcon } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import useSWR from 'swr'
 import { MessageItem } from './message-item'
@@ -181,7 +181,7 @@ export function DeepResearchProcess() {
           className="absolute right-3 rounded-full"
           onClick={() => setActiveDeepResearchId('')}
         >
-          <X />
+          <XIcon />
         </Button>
       </div>
       {activeDeepResearchId && (

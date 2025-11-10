@@ -8,7 +8,7 @@ import { Label } from 'recharts'
 import { Button } from '../ui/button'
 import { Switch } from '../ui/switch'
 
-export function Toolbar() {
+export function WorkflowToolbar() {
   const setIsNodeSelectorSheetVisible = useSetAtom(
     isNodeSelectorSheetVisibleAtom
   )

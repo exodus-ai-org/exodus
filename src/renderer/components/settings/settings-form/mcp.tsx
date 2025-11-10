@@ -4,7 +4,7 @@ import { isMcpServerChangedAtom } from '@/stores/settings'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { motion } from 'framer-motion'
 import { useAtom } from 'jotai'
-import { AlertCircle, Loader } from 'lucide-react'
+import { AlertCircleIcon, LoaderIcon } from 'lucide-react'
 import { lazy, Suspense, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
@@ -36,7 +36,7 @@ export function MCP({ form }: { form: UseFormReturnType }) {
     <>
       {isMcpServerChanged && (
         <Alert className="mb-4">
-          <AlertCircle className="h-4 w-4" />
+          <AlertCircleIcon className="h-4 w-4" />
           <AlertDescription className="block">
             We&apos;ve detected an update to your MCP servers&apos;
             configuration. To apply these changes, please click{' '}
@@ -54,13 +54,13 @@ export function MCP({ form }: { form: UseFormReturnType }) {
       <Suspense fallback={null}>
         <MonacoEditor
           props={{ control: form.control, name: 'mcpServers' }}
-          className="-mx-4 !w-[calc(100%+2rem)]"
+          className="-mx-4 w-[calc(100%+2rem)]!"
         />
       </Suspense>
 
       {loading && (
         <div className="bg-background absolute top-0 left-0 z-100 flex h-full w-full flex-col items-center justify-center gap-4">
-          <Loader size={24} strokeWidth={2.5} className="animate-spin" />
+          <LoaderIcon size={24} strokeWidth={2.5} className="animate-spin" />
           <motion.div
             variants={{
               hidden: { opacity: 0 },

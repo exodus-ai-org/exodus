@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils'
 import { WebSearchResult } from '@shared/types/web-search'
 import type { UIMessage } from 'ai'
 import 'katex/dist/katex.min.css'
-import { Check, Copy, PencilRuler } from 'lucide-react'
+import { CheckIcon, CopyIcon, PencilRulerIcon } from 'lucide-react'
 import { memo, ReactNode, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import SyntaxHighlighter from 'react-syntax-highlighter'
@@ -168,12 +168,12 @@ export function Markdown({
                             }
                           }}
                         >
-                          <Copy size={10} />
+                          <CopyIcon size={10} />
                           Copy
                         </span>
                       ) : (
                         <span className="hover:text-primary flex items-center gap-1.5">
-                          <Check size={10} strokeWidth={2.5} />
+                          <CheckIcon size={10} strokeWidth={2.5} />
                           Copied
                         </span>
                       )}
@@ -183,7 +183,7 @@ export function Markdown({
                       className="hover:text-primary flex items-center gap-1.5"
                       onClick={() => openImmersion('')}
                     >
-                      <PencilRuler size={10} />
+                      <PencilRulerIcon size={10} />
                       Edit
                     </span>
                   </div>

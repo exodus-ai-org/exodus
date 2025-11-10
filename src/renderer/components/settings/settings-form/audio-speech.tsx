@@ -15,13 +15,13 @@ import {
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircleIcon } from 'lucide-react'
 
 export function AudioSpeech({ form }: { form: UseFormReturnType }) {
   return (
     <>
       <Alert className="mb-4">
-        <AlertCircle className="h-4 w-4" />
+        <AlertCircleIcon className="h-4 w-4" />
         <AlertDescription className="inline">
           The Text-to-Speech and Speech-to-Text services{' '}
           <strong>only support OpenAI</strong>. Please make sure you have
