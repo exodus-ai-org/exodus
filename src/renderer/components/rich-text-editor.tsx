@@ -87,7 +87,7 @@ export function RichTextEditor({ className }: { className?: string }) {
                   <MessageCirclePlusIcon />
                   <span>Ask Exodus</span>
                 </Button>
-                <Separator orientation="vertical" className="mx-2 !h-6" />
+                <Separator orientation="vertical" className="mx-2 h-6!" />
                 <div className="flex gap-2 text-sm">
                   <Button
                     variant="ghost"

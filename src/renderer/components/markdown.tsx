@@ -211,7 +211,7 @@ export function Markdown({
             return (
               <pre
                 {...rest}
-                className={cn({ ['w-[23rem]']: isImmersionVisible }, className)}
+                className={cn({ ['w-92']: isImmersionVisible }, className)}
               >
                 {children}
               </pre>
@@ -250,7 +250,7 @@ export function Markdown({
                 {...rest}
                 rel="noopener noreferrer"
                 target="_blank"
-                className={cn('font-bold break-words underline', className)}
+                className={cn('font-bold wrap-break-word underline', className)}
               >
                 {children}
               </a>
@@ -259,7 +259,7 @@ export function Markdown({
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           table({ className, children, node, ...rest }) {
             return (
-              <div className="mb-4 w-full caption-bottom overflow-x-scroll rounded-md border text-sm md:max-w-[45rem]">
+              <div className="mb-4 w-full caption-bottom overflow-x-scroll rounded-md border text-sm md:max-w-180">
                 <table {...rest} className={cn(className, 'w-full')}>
                   {children}
                 </table>

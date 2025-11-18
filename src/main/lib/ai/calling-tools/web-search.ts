@@ -15,9 +15,11 @@ export const webSearch = (settings: Settings) =>
           'To use Web Search, make sure to fill in the `serperApiKey` in the settings.'
         )
       }
-      return fetchAndProcessSearchResults(
+      const searchResults = fetchAndProcessSearchResults({
         query,
-        settings.webSearch.serperApiKey
-      )
+        serperApiKey: settings.webSearch.serperApiKey
+      })
+
+      return searchResults
     }
   })

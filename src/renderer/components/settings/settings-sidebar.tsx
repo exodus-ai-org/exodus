@@ -90,7 +90,7 @@ export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
       {actualTheme === 'light' && (
         <div
           className={cn(
-            'from-card pointer-events-none visible absolute bottom-0 left-0 h-25 w-full bg-gradient-to-t to-transparent opacity-100 transition',
+            'from-card pointer-events-none visible absolute bottom-0 left-0 h-25 w-full bg-linear-to-t to-transparent opacity-100 transition',
             {
               ['invisible opacity-0 transition']: isBottom
             }

@@ -30,10 +30,14 @@ export function WebSearchGroup({
         }
       )}
     >
-      {webSearchResults.map((item, index) => (
+      {webSearchResults.map((webSearchResult, index) => (
         <HoverCard key={index} openDelay={150} closeDelay={150}>
           <HoverCardTrigger asChild>
-            <a href={item.link} target="_blank" rel="noopener noreferrer">
+            <a
+              href={webSearchResult.link}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               <Avatar
                 className={cn(
                   'border transition-transform',
@@ -57,27 +61,29 @@ export function WebSearchGroup({
                 }}
               >
                 <AvatarImage
-                  src={`https://www.google.com/s2/favicons?domain=${new URL(item.link).origin}&sz=128`}
-                  alt={item.title}
+                  src={`https://www.google.com/s2/favicons?domain=${new URL(webSearchResult.link).origin}&sz=128`}
+                  alt={webSearchResult.title}
                 />
-                <AvatarFallback>{item.title.charAt(0)}</AvatarFallback>
+                <AvatarFallback>
+                  {webSearchResult.title.charAt(0)}
+                </AvatarFallback>
               </Avatar>
             </a>
           </HoverCardTrigger>
           <HoverCardContent className="w-60 rounded-lg border-0 p-0">
-            {item.ogImage ? (
+            {webSearchResult.ogImage ? (
               <LazyLoadImage
-                src={item.ogImage}
-                alt={item.title}
+                src={webSearchResult.ogImage}
+                alt={webSearchResult.title}
                 className="h-32 w-full rounded-tl-lg rounded-tr-lg object-cover"
               />
             ) : null}
             <div className="p-3">
               <div className="mb-2 line-clamp-2 text-sm font-semibold">
-                {item.title}
+                {webSearchResult.title}
               </div>
               <div className="text-muted-foreground line-clamp-3 text-xs">
-                {item.snippet}
+                {webSearchResult.snippet}
               </div>
             </div>
           </HoverCardContent>

@@ -162,7 +162,7 @@ async function convertShadcnUiFilesToString() {
     'src',
     'renderer',
     'components',
-    'immersion',
+    'code-preview',
     'shadcn-ui.ts'
   )
 

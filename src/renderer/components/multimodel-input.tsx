@@ -104,7 +104,7 @@ function InputBox({
           placeholder="Send a message..."
           value={input}
           onChange={handleInput}
-          className="max-h-[75dvh] min-h-[24px] resize-none rounded-2xl border-none pb-6 shadow-none focus-visible:ring-0"
+          className="max-h-[75dvh] min-h-6 resize-none rounded-2xl border-none pb-6 shadow-none focus-visible:ring-0"
           rows={2}
           autoFocus
           onKeyDown={(event) => {
@@ -130,7 +130,7 @@ function InputBox({
       <div className="mx-2 mb-2 flex items-center justify-between">
         <div className="flex gap-2">
           <MultiModelInputUploader />
-          <Separator orientation="vertical" className="!h-6" />
+          <Separator orientation="vertical" className="h-6!" />
           <AdvancedTools />
           <AvailableMcpTools />
         </div>

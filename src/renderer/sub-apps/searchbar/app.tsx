@@ -61,7 +61,7 @@ export function FindBar() {
   return (
     <div
       className={cn(
-        'bg-background fixed top-4 right-4 z-50 flex w-[24.125rem] items-center gap-2 rounded-2xl border p-2 shadow-md'
+        'bg-background fixed top-4 right-4 z-50 flex w-96.5 items-center gap-2 rounded-2xl border p-2 shadow-md'
       )}
     >
       <Input
@@ -76,7 +76,7 @@ export function FindBar() {
         </div>
       ) : null}
 
-      <Separator orientation="vertical" className="!h-6" />
+      <Separator orientation="vertical" className="h-6!" />
 
       <div className="flex gap-1">
         <Button

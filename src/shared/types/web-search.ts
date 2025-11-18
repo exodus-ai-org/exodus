@@ -35,3 +35,9 @@ export interface WebSearchResponse {
   relatedSearches: RelatedSearch[]
   credits: number
 }
+
+export enum WebSearchSourceType {
+  Search = 'search',
+  News = 'news',
+  Scholar = 'scholar'
+}

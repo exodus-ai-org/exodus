@@ -52,7 +52,7 @@ export function PlacesAccordion({
               >
                 <AccordionTrigger className="px-4 py-3 hover:no-underline">
                   <div className="flex w-full items-center text-left">
-                    <div className="relative mr-4 h-16 w-16 flex-shrink-0 overflow-hidden rounded-md">
+                    <div className="relative mr-4 h-16 w-16 shrink-0 overflow-hidden rounded-md">
                       <LazyLoadImage
                         src={parseImg(place.photos?.[0])}
                         alt={place.displayName?.text ?? ''}
@@ -100,7 +100,7 @@ export function PlacesAccordion({
                   <div className="border-t px-4 pt-4">
                     <div className="mb-4 space-y-2 text-sm">
                       <div className="flex items-start">
-                        <MapPinIcon className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-gray-500" />
+                        <MapPinIcon className="mt-0.5 mr-2 h-4 w-4 shrink-0 text-gray-500" />
 
                         <a
                           className="text-blue-500 hover:underline"

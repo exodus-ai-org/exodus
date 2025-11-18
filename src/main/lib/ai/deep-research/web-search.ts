@@ -15,5 +15,5 @@ export async function webSearch(
     serperApiKey: string
   }
 ) {
-  return fetchAndProcessSearchResults(query, serperApiKey, webSources)
+  return fetchAndProcessSearchResults({ query, serperApiKey, webSources })
 }

@@ -1,5 +1,9 @@
 import { WebPDFLoader } from '@langchain/community/document_loaders/web/pdf'
-import { WebSearchResponse, WebSearchResult } from '@shared/types/web-search'
+import {
+  WebSearchResponse,
+  WebSearchResult,
+  WebSearchSourceType
+} from '@shared/types/web-search'
 import * as cheerio from 'cheerio'
 import { encodingForModel } from 'js-tiktoken'
 import TurndownService from 'turndown'
@@ -80,22 +84,31 @@ async function loadDocument(link: string) {
   }
 }
 
-export async function fetchAndProcessSearchResults(
-  query: string,
-  serperApiKey: string,
+export async function fetchAndProcessSearchResults({
+  query,
+  serperApiKey,
+  webSources,
+  sourceType
+}: {
+  query: string
+  serperApiKey: string
   webSources?: Map<string, WebSearchResult> // Use for deep research
-) {
+  sourceType?: WebSearchSourceType
+}) {
   try {
-    const response = await fetch('https://google.serper.dev/search', {
-      method: 'POST',
-      headers: {
-        'X-API-KEY': serperApiKey,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        q: query
-      })
-    })
+    const response = await fetch(
+      `https://google.serper.dev/search/${sourceType ?? 'search'}`,
+      {
+        method: 'POST',
+        headers: {
+          'X-API-KEY': serperApiKey,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          q: query
+        })
+      }
+    )
     const result = await response.text()
     if (!result) {
       return null
