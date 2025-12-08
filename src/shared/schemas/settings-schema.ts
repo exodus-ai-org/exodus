@@ -54,6 +54,12 @@ export const deepResearchSchema = z.object({
   depth: z.coerce.number().gte(1).lte(5).nullish()
 })
 
+export const mem0Schema = z.object({
+  enable: z.coerce.boolean().nullish(),
+  mem0ApiKey: z.coerce.string().nullish(),
+  mem0UserName: z.coerce.string().nullish()
+})
+
 export const settingsSchema = z.object({
   providerConfig: providerConfigSchema.nullish(),
   providers: providersSchema.nullish(),
@@ -64,7 +70,8 @@ export const settingsSchema = z.object({
   googleCloud: googleCloudSchema.nullish(),
   webSearch: webSearchSchema.nullish(),
   image: imageSchema.nullish(),
-  deepResearch: deepResearchSchema.nullish()
+  deepResearch: deepResearchSchema.nullish(),
+  mem0: mem0Schema.nullish()
 })
 
 export type SettingsType = z.infer<typeof settingsSchema>

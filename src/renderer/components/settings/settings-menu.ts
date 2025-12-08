@@ -13,6 +13,7 @@ import {
   ImageIcon,
   InfoIcon,
   MapIcon,
+  MemoryStickIcon,
   PaletteIcon,
   TelescopeIcon
 } from 'lucide-react'
@@ -24,7 +25,7 @@ export const menus = {
       icon: CogIcon
     },
     {
-      title: 'AiProviders',
+      title: 'AI Providers',
       icon: HandCoinsIcon,
       items: [
         {
@@ -54,6 +55,10 @@ export const menus = {
     {
       icon: HammerIcon,
       title: 'MCP Servers'
+    },
+    {
+      icon: MemoryStickIcon,
+      title: 'Memory Layer'
     },
     {
       icon: AudioWaveformIcon,

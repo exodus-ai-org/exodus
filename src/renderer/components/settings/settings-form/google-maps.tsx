@@ -8,13 +8,13 @@ import {
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircleIcon } from 'lucide-react'
 
 export function GoogleMaps({ form }: { form: UseFormReturnType }) {
   return (
     <>
       <Alert className="mb-4">
-        <AlertCircle className="h-4 w-4" />
+        <AlertCircleIcon className="h-4 w-4" />
 
         <AlertDescription className="inline">
           Exodus offers two built-in calling tools powered by Google Maps:{' '}

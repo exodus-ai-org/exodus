@@ -11,7 +11,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircleIcon } from 'lucide-react'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import {
   atomOneDark,
@@ -24,7 +24,7 @@ export function FileUploadEndpoint({ form }: { form: UseFormReturnType }) {
   return (
     <>
       <Alert className="mb-4">
-        <AlertCircle className="h-4 w-4" />
+        <AlertCircleIcon className="h-4 w-4" />
         <AlertDescription className="inline">
           By default, Exodus encodes uploaded attachments into{' '}
           <strong>base64</strong> for prompt integration. To use your own upload

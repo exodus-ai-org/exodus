@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
-import { AlertCircle } from 'lucide-react'
+import { AlertCircleIcon } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
 
 type ModelParamValues = {
@@ -77,7 +77,7 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
   return (
     <>
       <Alert>
-        <AlertCircle className="h-4 w-4" />
+        <AlertCircleIcon className="h-4 w-4" />
         <AlertDescription className="inline">
           The Image Generation service <strong>only supports OpenAI</strong>.
           Please make sure you have configured the OpenAI API settings correctly

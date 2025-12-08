@@ -12,29 +12,35 @@ export const deepResearch = tool({
     subject: z.string().describe('The subject to research')
   }),
   execute: async ({ subject }: { subject: string }, { toolCallId }) => {
-    const newDeepResearch: DeepResearch = {
-      id: uuidV4(),
-      toolCallId,
-      title: subject,
-      jobStatus: 'streaming',
-      finalReport: null,
-      webSources: null,
-      startTime: new Date(),
-      endTime: null
-    }
-
-    await saveDeepResearch(newDeepResearch)
-    fetcher('/api/deep-research', {
-      method: 'POST',
-      body: {
-        deepResearchId: newDeepResearch.id,
-        query: subject
+    try {
+      const newDeepResearch: DeepResearch = {
+        id: uuidV4(),
+        toolCallId,
+        title: subject,
+        jobStatus: 'streaming',
+        finalReport: null,
+        webSources: null,
+        startTime: new Date(),
+        endTime: null
       }
-    })
 
-    return {
-      id: newDeepResearch.id,
-      toolCallId
+      await saveDeepResearch(newDeepResearch)
+      fetcher('/api/deep-research', {
+        method: 'POST',
+        body: {
+          deepResearchId: newDeepResearch.id,
+          query: subject
+        }
+      })
+
+      return {
+        id: newDeepResearch.id,
+        toolCallId
+      }
+    } catch (e) {
+      return e instanceof Error
+        ? e.message
+        : 'Failed to use deeply research the subject'
     }
   }
 })

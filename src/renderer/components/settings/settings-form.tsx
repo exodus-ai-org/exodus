@@ -15,6 +15,7 @@ import { General } from './settings-form/generals'
 import { GoogleMaps } from './settings-form/google-maps'
 import { ImageGeneration } from './settings-form/image-generation'
 import { MCP } from './settings-form/mcp'
+import { MemoryLayer } from './settings-form/memory-layer'
 import { ProviderConfig } from './settings-form/provider-config'
 import { AnthropicClaude } from './settings-form/providers/anthropic-claude'
 import { AzureOpenAi } from './settings-form/providers/azure-openai'
@@ -59,7 +60,7 @@ export function SettingsForm() {
       >
         {activeTitle === 'General' && <General form={form} />}
 
-        {activeTitle === 'AiProviders' && <ProviderConfig form={form} />}
+        {activeTitle === 'AI Providers' && <ProviderConfig form={form} />}
 
         {activeTitle === AiProviders.OpenAiGpt && <OpenAiGpt form={form} />}
 
@@ -81,8 +82,6 @@ export function SettingsForm() {
           <FileUploadEndpoint form={form} />
         )}
 
-        {activeTitle === 'MCP Servers' && <MCP form={form} />}
-
         {activeTitle === 'Audio and Speech' && <AudioSpeech form={form} />}
 
         {activeTitle === 'Image Generation' && <ImageGeneration form={form} />}
@@ -92,6 +91,10 @@ export function SettingsForm() {
         {activeTitle === 'Web Search' && <WebSearch form={form} />}
 
         {activeTitle === 'Deep Research' && <DeepResearch form={form} />}
+
+        {activeTitle === 'Memory Layer' && <MemoryLayer form={form} />}
+
+        {activeTitle === 'MCP Servers' && <MCP form={form} />}
 
         {activeTitle === 'RAG' && <Rag />}
 

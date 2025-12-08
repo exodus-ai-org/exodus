@@ -14,7 +14,7 @@ export const models = {
       'gpt-4o-mini',
       'chatgpt-4o-latest'
     ],
-    reasoningModel: ['o4-mini', 'o3-mini', 'o3'],
+    reasoningModel: ['o4-mini', 'o3-mini'],
     embeddingModel: [
       'text-embedding-3-large',
       'text-embedding-3-small',
