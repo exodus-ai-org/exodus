@@ -1,4 +1,14 @@
-import { SettingsType } from '@shared/schemas/settings-schema'
+import {
+  audioSchema,
+  deepResearchSchema,
+  googleCloudSchema,
+  imageSchema,
+  mem0Schema,
+  providerConfigSchema,
+  providersSchema,
+  s3Schema,
+  webSearchSchema
+} from '@shared/schemas/setting-schema'
 import { WebSearchResult } from '@shared/types/web-search'
 import { JSONRPCNotification } from 'ai'
 import { sql, type InferSelectModel } from 'drizzle-orm'
@@ -16,6 +26,7 @@ import {
   varchar,
   vector
 } from 'drizzle-orm/pg-core'
+import z from 'zod'
 
 export const chat = pgTable('Chat', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
@@ -68,23 +79,26 @@ export const vote = pgTable(
 
 export type Vote = InferSelectModel<typeof vote>
 
-export const settings = pgTable('Setting', {
-  id: uuid('id').notNull().primaryKey().defaultRandom(),
+export const setting = pgTable('Setting', {
+  id: text('id').primaryKey(),
   providerConfig:
-    jsonb('providerConfig').$type<SettingsType['providerConfig']>(),
-  providers: jsonb('providers').$type<SettingsType['providers']>(),
+    jsonb('providerConfig').$type<z.infer<typeof providerConfigSchema>>(),
+  providers: jsonb('providers').$type<z.infer<typeof providersSchema>>(),
   mcpServers: text('mcpServers').default(''),
-  audio: jsonb('audio').$type<SettingsType['audio']>(),
-  fileUploadEndpoint: text('fileUploadEndpoint').default(''),
+  audio: jsonb('audio').$type<z.infer<typeof audioSchema>>(),
   assistantAvatar: text('assistantAvatar').default(''),
-  googleCloud: jsonb('googleCloud').$type<SettingsType['googleCloud']>(),
-  webSearch: jsonb('webSearch').$type<SettingsType['webSearch']>(),
-  image: jsonb('image').$type<SettingsType['image']>(),
-  deepResearch: jsonb('deepResearch').$type<SettingsType['deepResearch']>(),
-  mem0: jsonb('mem0').$type<SettingsType['mem0']>()
+  googleCloud: jsonb('googleCloud').$type<z.infer<typeof googleCloudSchema>>(),
+  webSearch: jsonb('webSearch').$type<z.infer<typeof webSearchSchema>>(),
+  image: jsonb('image').$type<z.infer<typeof imageSchema>>(),
+  deepResearch:
+    jsonb('deepResearch').$type<z.infer<typeof deepResearchSchema>>(),
+  mem0: jsonb('mem0').$type<z.infer<typeof mem0Schema>>(),
+  s3: jsonb('s3').$type<z.infer<typeof s3Schema>>(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
 })
 
-export type Settings = InferSelectModel<typeof settings>
+export type Setting = InferSelectModel<typeof setting>
 
 export const jobStatusEnum = pgEnum('jobStatus', [
   'streaming',

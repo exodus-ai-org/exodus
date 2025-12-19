@@ -8,7 +8,7 @@ export const exampleCode = `import {
   Pause,
   Plus,
   Search,
-  Settings,
+  Setting,
   Sparkles,
   Users,
   X
@@ -312,7 +312,7 @@ export default function Home() {
               className="rounded-full border border-white/20 bg-white/10 py-2 pr-4 pl-10 text-white backdrop-blur-sm placeholder:text-white/70 focus:ring-2 focus:ring-white/30 focus:outline-none"
             />
           </div>
-          <Settings className="h-6 w-6 text-white drop-shadow-md" />
+          <Setting className="h-6 w-6 text-white drop-shadow-md" />
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500 font-bold text-white shadow-md">
             U
           </div>

@@ -1,0 +1,102 @@
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarGroup,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem
+} from '@/components/ui/sidebar'
+import { cn } from '@/lib/utils'
+import { settingLabelAtom } from '@/stores/setting'
+import { useAtom } from 'jotai'
+import { BotIcon } from 'lucide-react'
+import { ComponentProps, useRef, useState } from 'react'
+import { version } from '../../../../package.json'
+import { useTheme } from '../theme-provider'
+import { menus } from './setting-menu'
+
+export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
+  const containerRef = useRef<HTMLDivElement | null>(null)
+  const [active, setActive] = useAtom(settingLabelAtom)
+  const [isBottom, setIsBottom] = useState(false)
+  const { actualTheme } = useTheme()
+
+  const handleScroll = () => {
+    const el = containerRef.current
+    if (!el) return
+
+    setIsBottom(el.scrollTop + el.clientHeight >= el.scrollHeight - 1)
+  }
+
+  return (
+    <Sidebar
+      {...props}
+      className="max-h-[498px] rounded-2xl border-none p-2.5 pr-0 select-none"
+    >
+      <SidebarContent
+        className="no-scrollbar h-[300px]"
+        ref={containerRef}
+        onScroll={handleScroll}
+      >
+        <SidebarGroup className="pt-0">
+          <SidebarMenu>
+            <SidebarMenuItem className="bg-background sticky top-0 z-10 p-2 pb-0">
+              <SidebarMenuButton size="lg" asChild>
+                <div>
+                  <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+                    <BotIcon className="size-4" />
+                  </div>
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-semibold">Exodus</span>
+                    <span className="truncate text-xs">v{version}</span>
+                  </div>
+                </div>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+            {menus.navMain.map((item) => (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton
+                  isActive={item.title === active}
+                  onClick={() => {
+                    setActive(item.title)
+                  }}
+                >
+                  {item.icon && <item.icon />}
+                  {item.title}
+                </SidebarMenuButton>
+                {item.items?.length ? (
+                  <SidebarMenuSub>
+                    {item.items.map((item) => (
+                      <SidebarMenuSubItem key={item.title}>
+                        <SidebarMenuSubButton
+                          asChild
+                          isActive={item.title === active}
+                          onClick={() => setActive(item.title)}
+                        >
+                          <p>{item.title}</p>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>
+                ) : null}
+              </SidebarMenuItem>
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
+      </SidebarContent>
+      {actualTheme === 'light' && (
+        <div
+          className={cn(
+            'from-card pointer-events-none visible absolute bottom-0 left-0 h-25 w-full bg-linear-to-t to-transparent opacity-100 transition',
+            {
+              ['invisible opacity-0 transition']: isBottom
+            }
+          )}
+        />
+      )}
+    </Sidebar>
+  )
+}

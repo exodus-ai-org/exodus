@@ -23,10 +23,10 @@ async function retrieveStdioMcpTools(
 }
 
 export async function connectMcpServers(): Promise<McpTools[]> {
-  const settings = await getSettings()
+  const setting = await getSettings()
 
-  if ('mcpServers' in settings) {
-    const { mcpServers } = settings
+  if ('mcpServers' in setting) {
+    const { mcpServers } = setting
     if (mcpServers === null) return []
 
     try {

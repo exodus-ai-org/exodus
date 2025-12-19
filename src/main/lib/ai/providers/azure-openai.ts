@@ -1,25 +1,25 @@
 import { AzureOpenAIProvider, createAzure } from '@ai-sdk/azure'
-import { Settings } from '@shared/types/db'
+import { Setting } from '@shared/types/db'
 import { EmbeddingModel, LanguageModelV1 } from 'ai'
 
-export function getAzureOpenAi(settings: Settings): {
+export function getAzureOpenAi(setting: Setting): {
   provider: AzureOpenAIProvider
   chatModel: LanguageModelV1
   reasoningModel: LanguageModelV1
   embeddingModel: EmbeddingModel<string> | null
 } {
   const azure = createAzure({
-    apiKey: settings.providers?.azureOpenaiApiKey ?? '',
-    baseURL: settings.providers?.azureOpenAiEndpoint ?? '',
-    apiVersion: settings.providers?.azureOpenAiApiVersion ?? ''
+    apiKey: setting.providers?.azureOpenaiApiKey ?? '',
+    baseURL: setting.providers?.azureOpenAiEndpoint ?? '',
+    apiVersion: setting.providers?.azureOpenAiApiVersion ?? ''
   })
 
   return {
     provider: azure,
-    chatModel: azure(settings.providerConfig?.chatModel ?? ''),
-    reasoningModel: azure(settings.providerConfig?.reasoningModel ?? ''),
+    chatModel: azure(setting.providerConfig?.chatModel ?? ''),
+    reasoningModel: azure(setting.providerConfig?.reasoningModel ?? ''),
     embeddingModel: azure.textEmbeddingModel(
-      settings.providerConfig?.embeddingModel ?? ''
+      setting.providerConfig?.embeddingModel ?? ''
     )
   }
 }

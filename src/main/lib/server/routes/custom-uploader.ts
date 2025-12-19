@@ -8,12 +8,12 @@ const customUploader = new Hono<{ Variables: Variables }>()
 customUploader.post('/', async (c) => {
   const formData = await c.req.formData()
 
-  const settings = await getSettings()
-  if (!('fileUploadEndpoint' in settings) || !settings.fileUploadEndpoint) {
+  const setting = await getSettings()
+  if (!('fileUploadEndpoint' in setting) || !setting.fileUploadEndpoint) {
     return c.text('File Upload Endpoint is missing', 404)
   }
 
-  const response = await fetch(settings.fileUploadEndpoint, {
+  const response = await fetch(setting.fileUploadEndpoint, {
     method: 'POST',
     body: formData
   })

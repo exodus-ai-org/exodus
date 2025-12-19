@@ -1,9 +1,9 @@
 import { protos, v2 } from '@googlemaps/routing'
-import { Settings } from '@shared/types/db'
+import { Setting } from '@shared/types/db'
 import { tool } from 'ai'
 import { z } from 'zod'
 
-export const googleMapsRouting = (settings: Settings) =>
+export const googleMapsRouting = (setting: Setting) =>
   tool({
     description: 'Compute routes from location A to location B.',
     parameters: z.object({
@@ -29,15 +29,15 @@ export const googleMapsRouting = (settings: Settings) =>
       destination: string
       travelMode: protos.google.maps.routing.v2.RouteTravelMode | null
     }) => {
-      if (!settings.googleCloud?.googleApiKey) {
+      if (!setting.googleCloud?.googleApiKey) {
         throw new Error(
-          'To use Google Map Places, make sure to fill in the `googleApiKey` in the settings.'
+          'To use Google Map Places, make sure to fill in the `googleApiKey` in the setting.'
         )
       }
 
       try {
         const routingClient = new v2.RoutesClient({
-          apiKey: settings.googleCloud.googleApiKey
+          apiKey: setting.googleCloud.googleApiKey
         })
 
         const response = await routingClient.computeRoutes(

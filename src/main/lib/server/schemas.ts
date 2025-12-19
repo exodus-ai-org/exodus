@@ -1,5 +1,5 @@
 import { AdvancedTools } from '@shared/types/ai'
-import { Chat, Settings } from '@shared/types/db'
+import { Chat, Setting } from '@shared/types/db'
 import { UIMessage } from 'ai'
 import { z } from 'zod'
 
@@ -17,8 +17,8 @@ export const markdownToPdfSchema = z.object({
   markdown: z.string()
 })
 
-// Settings routes schemas
-export const updateSettingsSchema = z.custom<Settings>()
+// Setting routes schemas
+export const updateSettingsSchema = z.custom<Setting>()
 
 // Audio routes schemas
 export const speechSchema = z.object({

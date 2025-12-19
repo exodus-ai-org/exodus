@@ -17,7 +17,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem
 } from '@/components/ui/sidebar'
-import { isSettingsVisibleAtom } from '@/stores/settings'
+import { isSettingVisibleAtom } from '@/stores/setting'
 import { useSetAtom } from 'jotai'
 
 // This is sample data
@@ -50,7 +50,7 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const setSettingsDialogVisible = useSetAtom(isSettingsVisibleAtom)
+  const setSettingDialogVisible = useSetAtom(isSettingVisibleAtom)
 
   return (
     <Sidebar
@@ -103,9 +103,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarGroupContent>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton onClick={() => setSettingsDialogVisible(true)}>
+              <SidebarMenuButton onClick={() => setSettingDialogVisible(true)}>
                 <SettingsIcon />
-                Settings
+                Setting
               </SidebarMenuButton>
             </SidebarMenuItem>
           </SidebarMenu>

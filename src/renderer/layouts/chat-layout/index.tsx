@@ -1,7 +1,7 @@
 import { CodePreview } from '@/components/code-preview'
 import { DeepResearchProcess } from '@/components/deep-research'
 import { Immersion } from '@/components/immersion'
-import { SettingsDialog } from '@/components/settings/settings-dialog'
+import { SettingsDialog } from '@/components/setting/setting-dialog'
 import {
   SidebarInset,
   SidebarProvider,
@@ -42,7 +42,7 @@ function FixedHeaderAction() {
   return (
     <div
       className={cn(
-        'draggable z-11 flex h-14 w-(--sidebar-width) shrink-0 items-center justify-end py-3 pr-4 pl-22 transition-[,width] duration-200 ease-linear',
+        'draggable z-11 flex h-12 w-(--sidebar-width) shrink-0 items-center justify-end py-3 pr-2 pl-22 transition-[,width] duration-200 ease-linear',
         {
           ['w-32 transition-[width] duration-200 ease-linear']: !open
         }

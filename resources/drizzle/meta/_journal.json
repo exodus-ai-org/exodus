@@ -15,6 +15,20 @@
       "when": 1763709593393,
       "tag": "0001_aromatic_absorbing_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1765877530390,
+      "tag": "0002_sharp_mandrill",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1765879159393,
+      "tag": "0003_stiff_phalanx",
+      "breakpoints": true
     }
   ]
 }

@@ -2,26 +2,26 @@ import {
   createGoogleGenerativeAI,
   GoogleGenerativeAIProvider
 } from '@ai-sdk/google'
-import { Settings } from '@shared/types/db'
+import { Setting } from '@shared/types/db'
 import { EmbeddingModel, LanguageModelV1 } from 'ai'
 
-export function getGoogleGemini(settings: Settings): {
+export function getGoogleGemini(setting: Setting): {
   provider: GoogleGenerativeAIProvider
   chatModel: LanguageModelV1
   reasoningModel: LanguageModelV1
   embeddingModel: EmbeddingModel<string> | null
 } {
   const google = createGoogleGenerativeAI({
-    apiKey: settings.providers?.googleGeminiApiKey ?? '',
-    baseURL: settings.providers?.googleGeminiBaseUrl || undefined
+    apiKey: setting.providers?.googleGeminiApiKey ?? '',
+    baseURL: setting.providers?.googleGeminiBaseUrl || undefined
   })
 
   return {
     provider: google,
-    chatModel: google(settings.providerConfig?.chatModel ?? ''),
-    reasoningModel: google(settings.providerConfig?.reasoningModel ?? ''),
+    chatModel: google(setting.providerConfig?.chatModel ?? ''),
+    reasoningModel: google(setting.providerConfig?.reasoningModel ?? ''),
     embeddingModel: google.textEmbeddingModel(
-      settings.providerConfig?.embeddingModel ?? ''
+      setting.providerConfig?.embeddingModel ?? ''
     )
   }
 }

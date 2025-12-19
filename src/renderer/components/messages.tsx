@@ -1,5 +1,5 @@
 import { useImmersion } from '@/hooks/use-immersion'
-import { useSettings } from '@/hooks/use-settings'
+import { useSetting } from '@/hooks/use-setting'
 import { cn } from '@/lib/utils'
 import { UseChatHelpers } from '@ai-sdk/react'
 import { Fragment, memo, useCallback, useEffect, useRef } from 'react'
@@ -25,7 +25,7 @@ function Messages({
   status: UseChatHelpers['status']
   reload: UseChatHelpers['reload']
 }) {
-  const { data: settings } = useSettings()
+  const { data: setting } = useSetting()
   const chatBoxRef = useRef<HTMLDivElement>(null)
   const { show: isImmersionVisible } = useImmersion()
 
@@ -52,7 +52,7 @@ function Messages({
       ref={chatBoxRef}
     >
       {isImmersionVisible && (
-        <div className="from-background via-background/75 pointer-events-none absolute top-0 left-0 z-10 h-8 w-full bg-gradient-to-b to-transparent opacity-100 transition-opacity" />
+        <div className="from-background via-background/75 pointer-events-none absolute top-0 left-0 z-10 h-8 w-full bg-linear-to-b to-transparent opacity-100 transition-opacity" />
       )}
 
       {messages.length === 0 && (
@@ -66,7 +66,7 @@ function Messages({
         {messages.map((message) => (
           <div
             key={message.id}
-            className={cn('mb-8 flex flex-col', {
+            className={cn('mb-8 flex flex-col last:mb-4', {
               'items-start': message.role === 'assistant',
               'items-end first:mt-0': message.role === 'user'
             })}
@@ -77,10 +77,10 @@ function Messages({
                   ['flex-col']: isImmersionVisible
                 })}
               >
-                {!isImmersionVisible && !!settings?.assistantAvatar && (
+                {!isImmersionVisible && !!setting?.assistantAvatar && (
                   <Avatar>
                     <AvatarImage
-                      src={settings.assistantAvatar}
+                      src={setting.assistantAvatar}
                       className="object-cover"
                     />
                   </Avatar>
@@ -160,8 +160,8 @@ function Messages({
 
                 <p
                   className={cn(
-                    'bg-accent max-w-[60%] rounded-xl px-3 py-2 break-words whitespace-pre-wrap',
-                    { ['max-w-[23rem]']: isImmersionVisible }
+                    'bg-accent max-w-[60%] rounded-xl px-3 py-2 wrap-break-word whitespace-pre-wrap',
+                    { ['max-w-92']: isImmersionVisible }
                   )}
                 >
                   {message.parts.map((part) => {

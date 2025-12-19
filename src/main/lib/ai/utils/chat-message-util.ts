@@ -8,7 +8,7 @@ import {
   generateText
 } from 'ai'
 import { getSettings } from '../../db/queries'
-import { Settings } from '../../db/schema'
+import { Setting } from '../../db/schema'
 import {
   calculator,
   date,
@@ -44,17 +44,17 @@ export function getTrailingMessageId({
 }
 
 export async function getModelFromProvider() {
-  const settings = await getSettings()
-  if (!('id' in settings)) {
-    throw new Error('Failed to retrieve settings.')
+  const setting = await getSettings()
+  if (!('id' in setting)) {
+    throw new Error('Failed to retrieve setting.')
   }
 
-  if (!settings.providerConfig?.provider) {
+  if (!setting.providerConfig?.provider) {
     throw new Error('Failed to retrieve selected provider.')
   }
 
-  const provider = providers[settings.providerConfig?.provider as AiProviders]
-  const models = provider(settings)
+  const provider = providers[setting.providerConfig?.provider as AiProviders]
+  const models = provider(setting)
 
   return models
 }
@@ -78,11 +78,11 @@ export async function generateTitleFromUserMessage({
 export function bindCallingTools({
   mcpTools,
   advancedTools,
-  settings
+  setting
 }: {
   mcpTools: McpTools[]
   advancedTools: AdvancedTools[]
-  settings: Settings
+  setting: Setting
 }): ToolSet {
   if (advancedTools.includes(AdvancedTools.DeepResearch)) {
     return {
@@ -105,12 +105,12 @@ export function bindCallingTools({
     calculator,
     date,
     weather,
-    googleMapsPlaces: googleMapsPlaces(settings),
-    googleMapsRouting: googleMapsRouting(settings),
-    imageGeneration: imageGeneration(settings)
+    googleMapsPlaces: googleMapsPlaces(setting),
+    googleMapsRouting: googleMapsRouting(setting),
+    imageGeneration: imageGeneration(setting)
   }
   if (advancedTools.includes(AdvancedTools.WebSearch)) {
-    tools['webSearch'] = webSearch(settings)
+    tools['webSearch'] = webSearch(setting)
   }
 
   return tools

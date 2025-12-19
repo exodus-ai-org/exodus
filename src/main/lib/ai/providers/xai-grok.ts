@@ -1,5 +1,5 @@
 import { createXai, XaiProvider } from '@ai-sdk/xai'
-import { Settings } from '@shared/types/db'
+import { Setting } from '@shared/types/db'
 import {
   EmbeddingModel,
   extractReasoningMiddleware,
@@ -7,22 +7,22 @@ import {
   wrapLanguageModel
 } from 'ai'
 
-export function getXaiGrok(settings: Settings): {
+export function getXaiGrok(setting: Setting): {
   provider: XaiProvider
   chatModel: LanguageModelV1
   reasoningModel: LanguageModelV1
   embeddingModel: EmbeddingModel<string> | null
 } {
   const xai = createXai({
-    apiKey: settings.providers?.xAiApiKey ?? '',
-    baseURL: settings.providers?.xAiBaseUrl ?? undefined
+    apiKey: setting.providers?.xAiApiKey ?? '',
+    baseURL: setting.providers?.xAiBaseUrl ?? undefined
   })
 
   return {
     provider: xai,
-    chatModel: xai(settings.providerConfig?.chatModel ?? ''),
+    chatModel: xai(setting.providerConfig?.chatModel ?? ''),
     reasoningModel: wrapLanguageModel({
-      model: xai(settings.providerConfig?.reasoningModel ?? ''),
+      model: xai(setting.providerConfig?.reasoningModel ?? ''),
       middleware: extractReasoningMiddleware({ tagName: 'think' })
     }),
     embeddingModel: null

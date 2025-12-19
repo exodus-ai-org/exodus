@@ -1,4 +1,4 @@
-import { useSettings } from '@/hooks/use-settings'
+import { useSetting } from '@/hooks/use-setting'
 import { protos } from '@googlemaps/routing'
 import {
   AdvancedMarker,
@@ -19,7 +19,7 @@ export function GoogleMapsCard({
     object | undefined
   ]
 }) {
-  const { data: settings } = useSettings()
+  const { data: setting } = useSetting()
   const route: protos.google.maps.routing.v2.IRoute | undefined = useMemo(
     () => toolResult?.[0]?.routes?.[0],
     [toolResult]
@@ -52,7 +52,7 @@ export function GoogleMapsCard({
   })
 
   if (
-    !settings?.googleCloud?.googleApiKey ||
+    !setting?.googleCloud?.googleApiKey ||
     !route ||
     !route.polyline?.encodedPolyline
   )
@@ -60,7 +60,7 @@ export function GoogleMapsCard({
 
   return (
     <APIProvider
-      apiKey={settings.googleCloud.googleApiKey}
+      apiKey={setting.googleCloud.googleApiKey}
       libraries={['geometry']}
     >
       <Map

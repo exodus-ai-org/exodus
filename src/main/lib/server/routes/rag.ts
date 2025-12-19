@@ -2,13 +2,11 @@ import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import { getSplitter, loadFileContent } from '../../ai/rag'
 import { getModelFromProvider } from '../../ai/utils/chat-message-util'
-import { db } from '../../db/db'
 import {
   createResource,
   findRelevantContent,
   getResourcePaginated
 } from '../../db/queries'
-import { embedding } from '../../db/schema'
 
 const rag = new Hono<{ Variables: Variables }>()
 
@@ -16,7 +14,7 @@ rag.post('/retrieve', async (c) => {
   const { embeddingModel } = await getModelFromProvider()
   if (!embeddingModel) {
     return c.text(
-      'The embedding model is missing, please check your settings',
+      'The embedding model is missing, please check your setting',
       400
     )
   }
@@ -36,7 +34,7 @@ rag.post('/', async (c) => {
 
   if (!embeddingModel) {
     return c.text(
-      'The embedding model is missing, please check your settings',
+      'The embedding model is missing, please check your setting',
       400
     )
   }
@@ -57,11 +55,6 @@ rag.get('/', async (c) => {
   const pageSize = Number(c.req.query('pageSize') ?? '10')
 
   const result = await getResourcePaginated(page, pageSize)
-  return c.json(result)
-})
-
-rag.get('/embedding', async (c) => {
-  const result = await db.select().from(embedding)
   return c.json(result)
 })
 

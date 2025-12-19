@@ -1,4 +1,4 @@
-import { SettingsDialog } from '@/components/settings/settings-dialog'
+import { SettingsDialog } from '@/components/setting/setting-dialog'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { Outlet } from 'react-router'
 import { AppSidebar } from './app-sidebar'

@@ -50,16 +50,16 @@ chat.post('/', async (c) => {
   const { id, messages, advancedTools } = result.data
   const mcpTools = c.get('tools')
 
-  const settings = await getSettings()
-  if (!('id' in settings)) {
-    throw new Error('Failed to retrieve settings.')
+  const setting = await getSettings()
+  if (!('id' in setting)) {
+    throw new Error('Failed to retrieve setting.')
   }
 
-  if (!settings.providerConfig?.chatModel) {
+  if (!setting.providerConfig?.chatModel) {
     throw new Error('Failed to retrieve selected chat model.')
   }
 
-  if (!settings.providerConfig?.reasoningModel) {
+  if (!setting.providerConfig?.reasoningModel) {
     throw new Error('Failed to retrieve selected reasoning model.')
   }
 
@@ -106,8 +106,8 @@ chat.post('/', async (c) => {
           ? deepResearchBootPrompt
           : systemPrompt,
         messages,
-        maxSteps: settings.providerConfig?.maxSteps ?? 1,
-        tools: bindCallingTools({ mcpTools, advancedTools, settings }),
+        maxSteps: setting.providerConfig?.maxSteps ?? 1,
+        tools: bindCallingTools({ mcpTools, advancedTools, setting }),
         experimental_generateMessageId: uuidV4,
         onFinish: async ({ response }) => {
           try {

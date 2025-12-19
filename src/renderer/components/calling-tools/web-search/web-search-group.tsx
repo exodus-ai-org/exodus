@@ -71,21 +71,27 @@ export function WebSearchGroup({
             </a>
           </HoverCardTrigger>
           <HoverCardContent className="w-60 rounded-lg border-0 p-0">
-            {webSearchResult.ogImage ? (
-              <LazyLoadImage
-                src={webSearchResult.ogImage}
-                alt={webSearchResult.title}
-                className="h-32 w-full rounded-tl-lg rounded-tr-lg object-cover"
-              />
-            ) : null}
-            <div className="p-3">
-              <div className="mb-2 line-clamp-2 text-sm font-semibold">
-                {webSearchResult.title}
+            <a
+              href={webSearchResult.link}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {webSearchResult.ogImage ? (
+                <LazyLoadImage
+                  src={webSearchResult.ogImage}
+                  alt={webSearchResult.title}
+                  className="h-32 w-full rounded-tl-lg rounded-tr-lg object-cover"
+                />
+              ) : null}
+              <div className="p-3">
+                <div className="mb-2 line-clamp-2 text-sm font-semibold">
+                  {webSearchResult.title}
+                </div>
+                <div className="text-muted-foreground line-clamp-3 text-xs">
+                  {webSearchResult.snippet}
+                </div>
               </div>
-              <div className="text-muted-foreground line-clamp-3 text-xs">
-                {webSearchResult.snippet}
-              </div>
-            </div>
+            </a>
           </HoverCardContent>
         </HoverCard>
       ))}

@@ -4,11 +4,11 @@ import { attachmentAtom } from '@/stores/chat'
 import { useSetAtom } from 'jotai'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { useSettings } from './use-settings'
+import { useSetting } from './use-setting'
 
 export function useUpload() {
   const [loading, setLoading] = useState(false)
-  const { data: settings } = useSettings()
+  const { data: setting } = useSetting()
   const setAttachments = useSetAtom(attachmentAtom)
 
   const uploadFileToBase64 = async (files: File[]) => {
@@ -39,7 +39,7 @@ export function useUpload() {
   const uploadFile = async (files: File[], cleanup?: () => void) => {
     try {
       setLoading(true)
-      if (settings?.fileUploadEndpoint) {
+      if (setting?.fileUploadEndpoint) {
         uploadFileToEndpoint(files)
       } else {
         uploadFileToBase64(files)

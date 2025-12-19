@@ -11,7 +11,7 @@ import dbIoRouter from './routes/db-io'
 import deepResearchRouter from './routes/deep-research'
 import historyRouter from './routes/history'
 import ragRouter from './routes/rag'
-import settingsRouter from './routes/settings'
+import settingsRouter from './routes/setting'
 import toolsRouter from './routes/tools'
 import workflowRouter from './routes/workflow'
 
@@ -45,7 +45,7 @@ export async function connectHttpServer() {
   // Routes
   app.route('/api/chat', chatRouter)
   app.route('/api/history', historyRouter)
-  app.route('/api/settings', settingsRouter)
+  app.route('/api/setting', settingsRouter)
   app.route('/api/audio', audioRouter)
   app.route('/api/custom-uploader', customUploaderRouter)
   app.route('/api/db-io', dbIoRouter)

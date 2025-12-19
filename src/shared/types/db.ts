@@ -5,7 +5,7 @@ import {
   Embedding,
   Message,
   Resources,
-  Settings,
+  Setting,
   Vote
 } from 'src/main/lib/db/schema'
 
@@ -22,6 +22,6 @@ export type {
   Embedding,
   Message,
   Resources,
-  Settings,
+  Setting,
   Vote
 }

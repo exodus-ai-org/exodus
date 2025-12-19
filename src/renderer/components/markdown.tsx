@@ -38,7 +38,8 @@ const citationGlobalRegex = /\[Source:\s*([\d,\s]+)\]/g
 // since it includes not only plain text but also HTML elements such as <code> or <strong>.
 // In this case, we should check whether the last element is a pure text node
 // to determine whether the citation can be extracted.
-function parseCitations(children: ReactNode) {
+// eslint-disable-next-line react-refresh/only-export-components
+export function parseCitations(children: ReactNode) {
   if (Array.isArray(children)) {
     const lastChild = children[children.length - 1]
     if (typeof lastChild === 'string') {

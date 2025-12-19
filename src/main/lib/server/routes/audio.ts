@@ -13,20 +13,20 @@ audio.post('/speech', async (c) => {
   }
   const { text } = result.data
 
-  const settings = await getSettings()
-  if (!('id' in settings)) {
+  const setting = await getSettings()
+  if (!('id' in setting)) {
     return c.text('OpenAI configuration is missing', 404)
   }
 
   const openai = new OpenAI({
-    baseURL: settings.providers?.openaiBaseUrl,
-    apiKey: settings.providers?.openaiApiKey ?? ''
+    baseURL: setting.providers?.openaiBaseUrl,
+    apiKey: setting.providers?.openaiApiKey ?? ''
   })
 
   const speech = await openai.audio.speech.create({
-    model: settings.audio?.textToSpeechModel ?? 'tts-1',
+    model: setting.audio?.textToSpeechModel ?? 'tts-1',
     input: text,
-    voice: settings.audio?.textToSpeechVoice ?? 'alloy'
+    voice: setting.audio?.textToSpeechVoice ?? 'alloy'
   })
 
   const buffer = Buffer.from(await speech.arrayBuffer())
@@ -45,19 +45,19 @@ audio.post('/transcriptions', async (c) => {
     return c.text('Audio file is missing', 404)
   }
 
-  const settings = await getSettings()
-  if (!('providerConfig' in settings)) {
+  const setting = await getSettings()
+  if (!('providerConfig' in setting)) {
     return c.text('OpenAI configuration is missing', 404)
   }
 
   const openai = new OpenAI({
-    baseURL: settings.providers?.openaiBaseUrl,
-    apiKey: settings.providers?.openaiApiKey ?? ''
+    baseURL: setting.providers?.openaiBaseUrl,
+    apiKey: setting.providers?.openaiApiKey ?? ''
   })
 
   const transcription = await openai.audio.transcriptions.create({
     file: audioFile,
-    model: settings.audio?.speechToTextModel ?? 'whisper-1'
+    model: setting.audio?.speechToTextModel ?? 'whisper-1'
   })
 
   return c.json(transcription)

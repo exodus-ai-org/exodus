@@ -10,13 +10,13 @@ import {
   embedding,
   message,
   resource,
-  settings,
+  setting,
   vote,
   type Chat,
   type DeepResearch,
   type DeepResearchMessage,
   type Message,
-  type Settings
+  type Setting
 } from './schema'
 
 export async function saveChat({ title, id }: { id: string; title: string }) {
@@ -40,7 +40,7 @@ export async function updateChat(payload: Chat) {
   }
 }
 
-export async function getChats() {
+export async function getAllChats() {
   try {
     return await db.select().from(chat).orderBy(desc(chat.createdAt))
   } catch (error) {
@@ -152,40 +152,34 @@ export async function voteMessage({
 }
 
 export async function getVotesByChatId({ id }: { id: string }) {
-  try {
-    return await db.select().from(vote).where(eq(vote.chatId, id))
-  } catch (error) {
-    console.error('Failed to get votes by chat id from database', error)
-    throw error
-  }
+  return await db.select().from(vote).where(eq(vote.chatId, id))
+}
+
+export async function getSetting() {
+  await db.insert(setting).values({ id: 'global' }).onConflictDoNothing()
+  const [data] = await db.select().from(setting)
+  return data!
 }
 
 export async function getSettings() {
-  try {
-    // retrieve first record
-    const [data] = await db.select().from(settings)
-    if (!data) {
-      return await db.insert(settings).values({
-        id: uuidV4()
-      })
-    }
+  const [data] = await db.select().from(setting)
+
+  if (!data) {
+    const id = uuidV4()
+    await db.insert(setting).values({
+      id
+    })
+    return { id } as Setting
+  } else {
     return data
-  } catch (error) {
-    console.error('Failed to save settings in database')
-    throw error
   }
 }
 
-export async function updateSetting(payload: Settings) {
-  try {
-    return await db
-      .update(settings)
-      .set(payload)
-      .where(eq(settings.id, payload.id))
-  } catch (error) {
-    console.error('Failed to save settings in database')
-    throw error
-  }
+export async function updateSetting(payload: Setting) {
+  return await db
+    .update(setting)
+    .set(payload)
+    .where(eq(setting.id, payload.id))
 }
 
 export const findRelevantContent = async (
@@ -211,26 +205,16 @@ export const findRelevantContent = async (
 }
 
 export async function importData(tableName: string, blob: Blob) {
-  try {
-    await pglite.query(`COPY "${tableName}" FROM '/dev/blob';`, [], {
-      blob
-    })
-  } catch (error) {
-    console.error('Failed to import data in database')
-    throw error
-  }
+  await pglite.query(`COPY "${tableName}" FROM '/dev/blob';`, [], {
+    blob
+  })
 }
 
 export async function exportData(tableName: string) {
-  try {
-    const ret = await pglite.query(
-      `COPY "${tableName}" TO '/dev/blob' DELIMITER ',' CSV HEADER;`
-    )
-    return ret.blob
-  } catch (error) {
-    console.error('Failed to export data in database')
-    throw error
-  }
+  const ret = await pglite.query(
+    `COPY "${tableName}" TO '/dev/blob' DELIMITER ',' CSV HEADER;`
+  )
+  return ret.blob
 }
 
 export async function saveDeepResearch(payload: DeepResearch) {

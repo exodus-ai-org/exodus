@@ -1,11 +1,11 @@
 import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
-import { getChats } from '../../db/queries'
+import { getAllChats } from '../../db/queries'
 
 const history = new Hono<{ Variables: Variables }>()
 
 history.get('/', async (c) => {
-  const chats = await getChats()
+  const chats = await getAllChats()
   return c.json(chats)
 })
 

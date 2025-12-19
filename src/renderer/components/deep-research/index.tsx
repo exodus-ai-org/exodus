@@ -189,7 +189,7 @@ export function DeepResearchProcess() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, ease: 'easeInOut' }}
-          className="markdown flex flex-col gap-4 overflow-y-scroll p-3 pb-18"
+          className="markdown flex flex-col gap-4 overflow-y-scroll p-3"
           ref={ref}
         >
           {tab === Tab.Activity &&
@@ -198,7 +198,10 @@ export function DeepResearchProcess() {
             ))}
 
           {tab === Tab.Source && (
-            <SourceItem webSearchResults={allWebSearchResults} />
+            <SourceItem
+              webSearchResults={allWebSearchResults}
+              finalReport={deepResearchResult?.finalReport ?? ''}
+            />
           )}
         </motion.div>
       )}

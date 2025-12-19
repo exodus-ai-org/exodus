@@ -5,7 +5,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem
 } from '@/components/ui/sidebar'
-import { isSettingsVisibleAtom } from '@/stores/settings'
+import { isSettingVisibleAtom } from '@/stores/setting'
 import { useSetAtom } from 'jotai'
 import { AtomIcon, SettingsIcon, StoreIcon, WorkflowIcon } from 'lucide-react'
 import React from 'react'
@@ -14,7 +14,7 @@ import { useLocation, useNavigate } from 'react-router'
 export function NavFooter({
   ...props
 }: React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
-  const setSettingsDialogVisible = useSetAtom(isSettingsVisibleAtom)
+  const setSettingsDialogVisible = useSetAtom(isSettingVisibleAtom)
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -46,7 +46,7 @@ export function NavFooter({
           <SidebarMenuItem>
             <SidebarMenuButton onClick={() => setSettingsDialogVisible(true)}>
               <SettingsIcon />
-              Settings
+              Setting
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

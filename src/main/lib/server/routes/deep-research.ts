@@ -74,17 +74,17 @@ deepResearch.post('/', async (c) => {
     return c.text('Invalid request body', 400)
   }
   const { deepResearchId, query } = result.data
-  const settings = await getSettings()
+  const setting = await getSettings()
 
-  if (!('id' in settings)) {
-    throw new Error('Failed to retrieve settings.')
+  if (!('id' in setting)) {
+    throw new Error('Failed to retrieve setting.')
   }
 
-  if (!settings.providerConfig?.reasoningModel) {
+  if (!setting.providerConfig?.reasoningModel) {
     throw new Error('Failed to retrieve selected reasoning model.')
   }
 
-  if (!settings.webSearch?.serperApiKey) {
+  if (!setting.webSearch?.serperApiKey) {
     throw new Error('Failed to retrieve Serper API Key.')
   }
 
@@ -96,11 +96,11 @@ deepResearch.post('/', async (c) => {
   const { learnings, webSources } = await deepResearchAgent(
     {
       query,
-      breadth: settings.deepResearch?.breadth ?? 4,
-      depth: settings.deepResearch?.depth ?? 2
+      breadth: setting.deepResearch?.breadth ?? 4,
+      depth: setting.deepResearch?.depth ?? 2
     },
     {
-      serperApiKey: settings.webSearch?.serperApiKey as string,
+      serperApiKey: setting.webSearch?.serperApiKey as string,
       model: reasoningModel,
       notify: (data) => notifyClients(deepResearchId, data)
     }
