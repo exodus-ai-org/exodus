@@ -54,12 +54,6 @@ export const deepResearchSchema = z.object({
   depth: z.number().gte(1).lte(5).nullable()
 })
 
-export const mem0Schema = z.object({
-  enable: z.boolean().nullable(),
-  apiKey: z.string().nullable(),
-  userName: z.string().nullable()
-})
-
 export const s3Schema = z
   .object({
     region: z.string().nullable(),
@@ -105,7 +99,6 @@ export const settingSchema = z.object({
   webSearch: webSearchSchema.nullable(),
   image: imageSchema.nullable(),
   deepResearch: deepResearchSchema.nullable(),
-  mem0: mem0Schema.nullable(),
   s3: s3Schema.nullable(),
   createdAt: z.date(),
   updatedAt: z.date()

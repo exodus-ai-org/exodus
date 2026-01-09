@@ -29,6 +29,13 @@
       "when": 1765879159393,
       "tag": "0003_stiff_phalanx",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1767670705421,
+      "tag": "0004_redundant_starhawk",
+      "breakpoints": true
     }
   ]
 }

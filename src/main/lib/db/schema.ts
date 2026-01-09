@@ -3,7 +3,6 @@ import {
   deepResearchSchema,
   googleCloudSchema,
   imageSchema,
-  mem0Schema,
   providerConfigSchema,
   providersSchema,
   s3Schema,
@@ -20,6 +19,7 @@ import {
   pgEnum,
   pgTable,
   primaryKey,
+  real,
   text,
   timestamp,
   uuid,
@@ -92,7 +92,6 @@ export const setting = pgTable('Setting', {
   image: jsonb('image').$type<z.infer<typeof imageSchema>>(),
   deepResearch:
     jsonb('deepResearch').$type<z.infer<typeof deepResearchSchema>>(),
-  mem0: jsonb('mem0').$type<z.infer<typeof mem0Schema>>(),
   s3: jsonb('s3').$type<z.infer<typeof s3Schema>>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
@@ -159,3 +158,47 @@ export const embedding = pgTable(
 )
 
 export type Embedding = InferSelectModel<typeof embedding>
+
+export const memoryTypeEnum = pgEnum('memory_type', [
+  'preference',
+  'goal',
+  'environment',
+  'skill',
+  'project',
+  'constraint'
+])
+
+export const memorySourceEnum = pgEnum('memory_source', [
+  'explicit',
+  'implicit',
+  'system'
+])
+
+export const memory = pgTable('memory', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id').notNull(),
+  type: memoryTypeEnum('type').notNull(),
+  key: text('key').notNull(),
+  value: jsonb('value').notNull(),
+  confidence: real('confidence').default(0.8),
+  source: memorySourceEnum('source').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+  lastUsedAt: timestamp('last_used_at'),
+  isActive: boolean('is_active').default(true)
+})
+
+export const sessionSummary = pgTable('session_summary', {
+  sessionId: uuid('session_id').primaryKey(),
+  userId: uuid('user_id').notNull(),
+  summary: text('summary').notNull(),
+  updatedAt: timestamp('updated_at').defaultNow()
+})
+
+export const memoryUsageLog = pgTable('memory_usage_log', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  memoryId: uuid('memory_id'),
+  sessionId: uuid('session_id'),
+  reason: text('reason'),
+  createdAt: timestamp('created_at').defaultNow()
+})

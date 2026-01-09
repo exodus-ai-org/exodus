@@ -13,10 +13,7 @@ export function useAudio() {
   const { data: setting } = useSetting()
 
   const openai = useMemo(() => {
-    if (
-      setting?.providers?.openaiApiKey &&
-      setting?.providers?.openaiBaseUrl
-    ) {
+    if (setting?.providers?.openaiApiKey && setting?.providers?.openaiBaseUrl) {
       return new OpenAI({
         baseURL: setting.providers.openaiBaseUrl,
         apiKey: setting.providers.openaiApiKey,
