@@ -176,10 +176,7 @@ export async function getSettings() {
 }
 
 export async function updateSetting(payload: Setting) {
-  return await db
-    .update(setting)
-    .set(payload)
-    .where(eq(setting.id, payload.id))
+  return await db.update(setting).set(payload).where(eq(setting.id, payload.id))
 }
 
 export const findRelevantContent = async (

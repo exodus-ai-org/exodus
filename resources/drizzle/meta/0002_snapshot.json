@@ -146,12 +146,8 @@
           "name": "DeepResearchMessage_deepResearchId_DeepResearch_id_fk",
           "tableFrom": "DeepResearchMessage",
           "tableTo": "DeepResearch",
-          "columnsFrom": [
-            "deepResearchId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["deepResearchId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -215,12 +211,8 @@
           "name": "Embedding_resourceId_Resource_id_fk",
           "tableFrom": "Embedding",
           "tableTo": "Resource",
-          "columnsFrom": [
-            "resourceId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["resourceId"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -296,12 +288,8 @@
           "name": "Message_chatId_Chat_id_fk",
           "tableFrom": "Message",
           "tableTo": "Chat",
-          "columnsFrom": [
-            "chatId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["chatId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -483,12 +471,8 @@
           "name": "Vote_chatId_Chat_id_fk",
           "tableFrom": "Vote",
           "tableTo": "Chat",
-          "columnsFrom": [
-            "chatId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["chatId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -496,12 +480,8 @@
           "name": "Vote_messageId_Message_id_fk",
           "tableFrom": "Vote",
           "tableTo": "Message",
-          "columnsFrom": [
-            "messageId"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["messageId"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -509,10 +489,7 @@
       "compositePrimaryKeys": {
         "Vote_chatId_messageId_pk": {
           "name": "Vote_chatId_messageId_pk",
-          "columns": [
-            "chatId",
-            "messageId"
-          ]
+          "columns": ["chatId", "messageId"]
         }
       },
       "uniqueConstraints": {},
@@ -525,12 +502,7 @@
     "public.jobStatus": {
       "name": "jobStatus",
       "schema": "public",
-      "values": [
-        "streaming",
-        "archived",
-        "failed",
-        "terminated"
-      ]
+      "values": ["streaming", "archived", "failed", "terminated"]
     }
   },
   "schemas": {},
