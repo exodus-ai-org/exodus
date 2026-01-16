@@ -31,7 +31,7 @@ export async function saveChat({ title, id }: { id: string; title: string }) {
   }
 }
 
-export async function updateChat(payload: Chat) {
+export async function updateChat(payload: Omit<Chat, 'createdAt'>) {
   try {
     return await db.update(chat).set(payload).where(eq(chat.id, payload.id))
   } catch (error) {

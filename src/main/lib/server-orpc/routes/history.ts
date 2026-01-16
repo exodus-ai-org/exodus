@@ -1,6 +1,6 @@
 import { os } from '@orpc/server'
 import { getAllChats } from '../../db/queries'
 
-export const findRelevant = os.handler(async () => {
+export const getAll = os.handler(async () => {
   return await getAllChats()
 })

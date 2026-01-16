@@ -1,13 +1,17 @@
 import { os } from '@orpc/server'
-import { getSetting } from '../../db/queries'
+import { getSettings } from '../../db/queries'
+import { Setting } from '../../db/schema'
 
-export const withSetting = os.middleware(async ({ context, next }) => {
-  const setting = await getSetting()
+export const withSetting = os
+  .$context<{ setting?: Setting }>()
+  .middleware(async ({ context, next }) => {
+    const setting = await getSettings()
+    const result = await next({
+      context: {
+        ...context,
+        setting
+      }
+    })
 
-  return next({
-    context: {
-      ...context,
-      setting
-    }
+    return result
   })
-})

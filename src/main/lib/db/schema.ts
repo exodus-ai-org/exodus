@@ -1,12 +1,12 @@
 import {
-  audioSchema,
-  deepResearchSchema,
-  googleCloudSchema,
-  imageSchema,
-  providerConfigSchema,
-  providersSchema,
-  s3Schema,
-  webSearchSchema
+  AudioSchema,
+  DeepResearchSchema,
+  GoogleCloudSchema,
+  ImageSchema,
+  ProviderConfigSchema,
+  ProvidersSchema,
+  S3Schema,
+  WebSearchSchema
 } from '@shared/schemas/setting-schema'
 import { WebSearchResult } from '@shared/types/web-search'
 import { JSONRPCNotification } from 'ai'
@@ -82,17 +82,17 @@ export type Vote = InferSelectModel<typeof vote>
 export const setting = pgTable('Setting', {
   id: text('id').primaryKey(),
   providerConfig:
-    jsonb('providerConfig').$type<z.infer<typeof providerConfigSchema>>(),
-  providers: jsonb('providers').$type<z.infer<typeof providersSchema>>(),
+    jsonb('providerConfig').$type<z.infer<typeof ProviderConfigSchema>>(),
+  providers: jsonb('providers').$type<z.infer<typeof ProvidersSchema>>(),
   mcpServers: text('mcpServers').default(''),
-  audio: jsonb('audio').$type<z.infer<typeof audioSchema>>(),
+  audio: jsonb('audio').$type<z.infer<typeof AudioSchema>>(),
   assistantAvatar: text('assistantAvatar').default(''),
-  googleCloud: jsonb('googleCloud').$type<z.infer<typeof googleCloudSchema>>(),
-  webSearch: jsonb('webSearch').$type<z.infer<typeof webSearchSchema>>(),
-  image: jsonb('image').$type<z.infer<typeof imageSchema>>(),
+  googleCloud: jsonb('googleCloud').$type<z.infer<typeof GoogleCloudSchema>>(),
+  webSearch: jsonb('webSearch').$type<z.infer<typeof WebSearchSchema>>(),
+  image: jsonb('image').$type<z.infer<typeof ImageSchema>>(),
   deepResearch:
-    jsonb('deepResearch').$type<z.infer<typeof deepResearchSchema>>(),
-  s3: jsonb('s3').$type<z.infer<typeof s3Schema>>(),
+    jsonb('deepResearch').$type<z.infer<typeof DeepResearchSchema>>(),
+  s3: jsonb('s3').$type<z.infer<typeof S3Schema>>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 })

@@ -2,7 +2,7 @@ import { Form } from '@/components/ui/form'
 import { useSetting } from '@/hooks/use-setting'
 import { isMcpServerChangedAtom, settingLabelAtom } from '@/stores/setting'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Setting, settingSchema } from '@shared/schemas/setting-schema'
+import { Setting, SettingSchema } from '@shared/schemas/setting-schema'
 import { AiProviders } from '@shared/types/ai'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { useForm } from 'react-hook-form'
@@ -33,7 +33,7 @@ export function SettingsForm() {
   const activeTitle = useAtomValue(settingLabelAtom)
 
   const form = useForm({
-    resolver: zodResolver(settingSchema),
+    resolver: zodResolver(SettingSchema),
     values: setting,
     mode: 'onBlur'
   })
