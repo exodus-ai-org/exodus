@@ -9,12 +9,14 @@ The Deep Research feature has been migrated from Hono SSE to ORPC Event Iterator
 ### Key Differences: Hono vs ORPC
 
 **Hono Approach (Old):**
+
 - POST `/api/deep-research` - Start research (returns immediately)
 - GET `/api/deep-research/sse?deepResearchId=xxx` - Subscribe to SSE stream
 - Manual client registration with Map-based tracking
 - Traditional SSE with `text/event-stream`
 
 **ORPC Approach (New):**
+
 - `deepResearch.start()` - Start research (returns immediately)
 - `deepResearch.subscribe()` - Subscribe via async iterator
 - EventPublisher-based event distribution
@@ -83,6 +85,7 @@ export const start = os
 ```
 
 **Key Points:**
+
 - Returns immediately (non-blocking)
 - Research runs in background
 - Progress published via EventPublisher
@@ -97,10 +100,9 @@ export const subscribe = os
     })
   )
   .handler(async function* ({ input, signal }) {
-    const iterator = deepResearchPublisher.subscribe(
-      input.deepResearchId,
-      { signal }
-    )
+    const iterator = deepResearchPublisher.subscribe(input.deepResearchId, {
+      signal
+    })
 
     for await (const message of iterator) {
       yield message
@@ -109,6 +111,7 @@ export const subscribe = os
 ```
 
 **Key Points:**
+
 - Uses async generator (`async function*`)
 - Automatically handles connection closure via `signal`
 - Cleanup in `finally` block
@@ -169,7 +172,7 @@ export function useDeepResearch(deepResearchId: string) {
         for await (const message of stream) {
           const { data } = message.message.params
 
-          setMessages(prev => [...prev, message])
+          setMessages((prev) => [...prev, message])
           setStatus(data.type)
 
           if (data.type === DeepResearchProgress.CompleteDeepResearch) {
@@ -371,8 +374,8 @@ Each event message has this structure:
 
 ```typescript
 {
-  id: string                    // Message ID
-  deepResearchId: string        // Research session ID
+  id: string // Message ID
+  deepResearchId: string // Research session ID
   message: {
     jsonrpc: '2.0'
     method: 'message/deep-research'
@@ -388,18 +391,19 @@ Each event message has this structure:
 
 ```typescript
 enum DeepResearchProgress {
-  StartDeepResearch,              // Research started
-  EmitSearchQueries,              // Generated search queries
-  EmitSearchResults,              // Got search results
-  EmitLearnings,                  // Extracted learnings
-  StartWritingFinalReport,        // Writing final report
-  CompleteDeepResearch            // Research complete
+  StartDeepResearch, // Research started
+  EmitSearchQueries, // Generated search queries
+  EmitSearchResults, // Got search results
+  EmitLearnings, // Extracted learnings
+  StartWritingFinalReport, // Writing final report
+  CompleteDeepResearch // Research complete
 }
 ```
 
 ### Event Payloads
 
 **StartDeepResearch:**
+
 ```typescript
 {
   type: DeepResearchProgress.StartDeepResearch
@@ -407,6 +411,7 @@ enum DeepResearchProgress {
 ```
 
 **EmitSearchQueries:**
+
 ```typescript
 {
   type: DeepResearchProgress.EmitSearchQueries
@@ -420,6 +425,7 @@ enum DeepResearchProgress {
 ```
 
 **EmitSearchResults:**
+
 ```typescript
 {
   type: DeepResearchProgress.EmitSearchResults
@@ -429,6 +435,7 @@ enum DeepResearchProgress {
 ```
 
 **EmitLearnings:**
+
 ```typescript
 {
   type: DeepResearchProgress.EmitLearnings
@@ -441,6 +448,7 @@ enum DeepResearchProgress {
 ```
 
 **StartWritingFinalReport:**
+
 ```typescript
 {
   type: DeepResearchProgress.StartWritingFinalReport
@@ -448,6 +456,7 @@ enum DeepResearchProgress {
 ```
 
 **CompleteDeepResearch:**
+
 ```typescript
 {
   type: DeepResearchProgress.CompleteDeepResearch
@@ -498,20 +507,21 @@ if (error) {
 
 ## Comparison: Hono vs ORPC
 
-| Feature | Hono | ORPC |
-|---------|------|------|
-| **Start endpoint** | `POST /api/deep-research` | `orpcClient.deepResearch.start()` |
-| **Subscribe endpoint** | `GET /api/deep-research/sse` | `orpcClient.deepResearch.subscribe()` |
-| **Client registration** | Manual Map tracking | EventPublisher automatic |
-| **Streaming protocol** | SSE (text/event-stream) | Async iterator |
-| **Connection management** | Manual cleanup | Automatic via signal |
-| **Type safety** | ❌ No | ✅ Full |
-| **Error handling** | Plain strings | Error codes |
-| **Client code** | EventSource API | for await...of loop |
+| Feature                   | Hono                         | ORPC                                  |
+| ------------------------- | ---------------------------- | ------------------------------------- |
+| **Start endpoint**        | `POST /api/deep-research`    | `orpcClient.deepResearch.start()`     |
+| **Subscribe endpoint**    | `GET /api/deep-research/sse` | `orpcClient.deepResearch.subscribe()` |
+| **Client registration**   | Manual Map tracking          | EventPublisher automatic              |
+| **Streaming protocol**    | SSE (text/event-stream)      | Async iterator                        |
+| **Connection management** | Manual cleanup               | Automatic via signal                  |
+| **Type safety**           | ❌ No                        | ✅ Full                               |
+| **Error handling**        | Plain strings                | Error codes                           |
+| **Client code**           | EventSource API              | for await...of loop                   |
 
 ## Migration Checklist
 
 ### Server-Side
+
 - ✅ EventPublisher for event distribution
 - ✅ `start` endpoint for starting research
 - ✅ `subscribe` endpoint with async generator
@@ -520,6 +530,7 @@ if (error) {
 - ✅ Database persistence
 
 ### Client-Side
+
 - [ ] Replace EventSource with `orpcClient.deepResearch.subscribe()`
 - [ ] Use `for await...of` loop for consuming events
 - [ ] Update error handling to use `parseAPIError()`
@@ -531,6 +542,7 @@ if (error) {
 ### Manual Testing
 
 1. **Start Research**
+
    ```typescript
    const id = 'test-123'
    await orpcClient.deepResearch.start({
@@ -540,6 +552,7 @@ if (error) {
    ```
 
 2. **Subscribe to Updates**
+
    ```typescript
    const stream = await orpcClient.deepResearch.subscribe({
      deepResearchId: 'test-123'
@@ -551,6 +564,7 @@ if (error) {
    ```
 
 3. **Check Database**
+
    ```typescript
    const messages = await orpcClient.deepResearch.getMessages({
      id: 'test-123'
@@ -585,14 +599,19 @@ describe('Deep Research ORPC', () => {
     for await (const message of stream) {
       messages.push(message)
 
-      if (message.message.params.data.type === DeepResearchProgress.CompleteDeepResearch) {
+      if (
+        message.message.params.data.type ===
+        DeepResearchProgress.CompleteDeepResearch
+      ) {
         break
       }
     }
 
     // Verify progress events
     expect(messages.length).toBeGreaterThan(0)
-    expect(messages[0].message.params.data.type).toBe(DeepResearchProgress.StartDeepResearch)
+    expect(messages[0].message.params.data.type).toBe(
+      DeepResearchProgress.StartDeepResearch
+    )
   })
 })
 ```
@@ -609,6 +628,7 @@ describe('Deep Research ORPC', () => {
 ## Summary
 
 The ORPC implementation of Deep Research provides:
+
 - Type-safe API calls
 - Modern async iterator streaming
 - Automatic event distribution via EventPublisher

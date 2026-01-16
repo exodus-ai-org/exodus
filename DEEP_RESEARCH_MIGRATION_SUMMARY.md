@@ -17,6 +17,7 @@ Successfully migrated Deep Research from Hono SSE to ORPC Event Iterator, comple
 Replaced manual client tracking with ORPC's EventPublisher:
 
 **Before (Hono):**
+
 ```typescript
 const clients = new Map<string, ReadableStreamDefaultController>()
 
@@ -26,11 +27,14 @@ function registerClient(deepResearchId, controller) {
 
 function notifyClients(deepResearchId, data) {
   const controller = clients.get(deepResearchId)
-  controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(data)}\n\n`))
+  controller.enqueue(
+    new TextEncoder().encode(`data: ${JSON.stringify(data)}\n\n`)
+  )
 }
 ```
 
 **After (ORPC):**
+
 ```typescript
 const deepResearchPublisher = new EventPublisher<{
   [deepResearchId: string]: DeepResearchMessage
@@ -43,6 +47,7 @@ async function notifyProgress(deepResearchId, data) {
 ```
 
 **Benefits:**
+
 - ✅ No manual client registration/unregistration
 - ✅ Automatic memory management
 - ✅ Type-safe event channels
@@ -51,12 +56,15 @@ async function notifyProgress(deepResearchId, data) {
 ### 2. Start Endpoint
 
 **Implementation:**
+
 ```typescript
 export const start = os
-  .input(z.object({
-    deepResearchId: z.string(),
-    query: z.string()
-  }))
+  .input(
+    z.object({
+      deepResearchId: z.string(),
+      query: z.string()
+    })
+  )
   .handler(async ({ input }) => {
     // Validate configuration
     const setting = await getSettings()
@@ -66,7 +74,10 @@ export const start = os
     }
 
     if (!setting.webSearch?.serperApiKey) {
-      throw new ConfigurationError(ErrorCode.CONFIG_INVALID, 'Serper API Key is missing')
+      throw new ConfigurationError(
+        ErrorCode.CONFIG_INVALID,
+        'Serper API Key is missing'
+      )
     }
 
     // Start background job (non-blocking)
@@ -78,6 +89,7 @@ export const start = os
 ```
 
 **Features:**
+
 - ✅ Configuration validation with error codes
 - ✅ Non-blocking execution
 - ✅ Background job management
@@ -86,6 +98,7 @@ export const start = os
 ### 3. Subscribe Endpoint (SSE Replacement)
 
 **Before (Hono SSE):**
+
 ```typescript
 deepResearch.get('/sse', async (c) => {
   const deepResearchId = c.req.query('deepResearchId')
@@ -112,16 +125,18 @@ deepResearch.get('/sse', async (c) => {
 ```
 
 **After (ORPC Event Iterator):**
+
 ```typescript
 export const subscribe = os
-  .input(z.object({
-    deepResearchId: z.string()
-  }))
+  .input(
+    z.object({
+      deepResearchId: z.string()
+    })
+  )
   .handler(async function* ({ input, signal }) {
-    const iterator = deepResearchPublisher.subscribe(
-      input.deepResearchId,
-      { signal }
-    )
+    const iterator = deepResearchPublisher.subscribe(input.deepResearchId, {
+      signal
+    })
 
     try {
       for await (const message of iterator) {
@@ -134,6 +149,7 @@ export const subscribe = os
 ```
 
 **Benefits:**
+
 - ✅ Async generator function (modern JavaScript)
 - ✅ Automatic cleanup via `signal`
 - ✅ Type-safe streaming
@@ -143,11 +159,12 @@ export const subscribe = os
 ### 4. Background Job Execution
 
 **Implementation:**
+
 ```typescript
 async function runDeepResearch(
   deepResearchId: string,
   query: string,
-  options: { breadth, depth, serperApiKey, reasoningModel }
+  options: { breadth; depth; serperApiKey; reasoningModel }
 ) {
   // Notify start
   await notifyProgress(deepResearchId, {
@@ -192,6 +209,7 @@ async function runDeepResearch(
 ```
 
 **Features:**
+
 - ✅ Progress notifications at each stage
 - ✅ Database persistence
 - ✅ Error handling
@@ -202,18 +220,21 @@ async function runDeepResearch(
 ### Hono API (Old)
 
 **Start Research:**
+
 ```typescript
 POST /api/deep-research
 Body: { deepResearchId: string, query: string }
 ```
 
 **Subscribe to Updates:**
+
 ```typescript
 GET /api/deep-research/sse?deepResearchId=xxx
 Headers: text/event-stream
 ```
 
 **Client Code:**
+
 ```typescript
 // Start
 await fetch('/api/deep-research', {
@@ -222,7 +243,9 @@ await fetch('/api/deep-research', {
 })
 
 // Subscribe
-const eventSource = new EventSource(`/api/deep-research/sse?deepResearchId=${id}`)
+const eventSource = new EventSource(
+  `/api/deep-research/sse?deepResearchId=${id}`
+)
 eventSource.onmessage = (event) => {
   const data = JSON.parse(event.data)
   // Handle message
@@ -232,6 +255,7 @@ eventSource.onmessage = (event) => {
 ### ORPC API (New)
 
 **Start Research:**
+
 ```typescript
 await orpcClient.deepResearch.start({
   deepResearchId,
@@ -240,6 +264,7 @@ await orpcClient.deepResearch.start({
 ```
 
 **Subscribe to Updates:**
+
 ```typescript
 const stream = await orpcClient.deepResearch.subscribe({
   deepResearchId
@@ -251,6 +276,7 @@ for await (const message of stream) {
 ```
 
 **Benefits:**
+
 - ✅ Type-safe
 - ✅ Simpler code
 - ✅ Better error handling
@@ -270,9 +296,11 @@ The system publishes 6 types of progress events:
 ## Files Changed
 
 ### Created (1)
+
 1. `DEEP_RESEARCH_ORPC_GUIDE.md` - Complete client integration guide
 
 ### Modified (2)
+
 1. `src/main/lib/server-orpc/routes/deep-research.ts`
    - Added EventPublisher
    - Implemented `start` endpoint
@@ -305,7 +333,7 @@ export function useDeepResearch(deepResearchId: string) {
         for await (const message of stream) {
           const { data } = message.message.params
 
-          setMessages(prev => [...prev, message])
+          setMessages((prev) => [...prev, message])
           setStatus(data.type)
 
           if (data.type === DeepResearchProgress.CompleteDeepResearch) {
@@ -354,6 +382,7 @@ function DeepResearchComponent() {
 ### Before This Migration
 
 **ORPC Migration Status:** 96% Complete (26/27 functions)
+
 - ✅ All CRUD operations
 - ✅ Chat streaming
 - ✅ File uploads
@@ -363,6 +392,7 @@ function DeepResearchComponent() {
 ### After This Migration
 
 **ORPC Migration Status:** 100% Complete (29/29 functions) ✅
+
 - ✅ All CRUD operations
 - ✅ Chat streaming
 - ✅ File uploads
@@ -371,20 +401,20 @@ function DeepResearchComponent() {
 
 ### Routes Summary
 
-| Route | Functions | Status |
-|-------|-----------|--------|
-| dbIo | 2 | ✅ Complete |
-| history | 1 | ✅ Complete |
-| rag | 3 | ✅ Complete |
-| s3Uploader | 1 | ✅ Complete |
-| setting | 2 | ✅ Complete |
-| audio | 2 | ✅ Complete |
-| tools | 2 | ✅ Complete |
-| workflow | 1 | ✅ Complete |
-| customUploader | 1 | ✅ Complete |
-| chat | 6 | ✅ Complete |
-| deepResearch | 4 | ✅ **Complete** |
-| **Total** | **29** | **✅ 100%** |
+| Route          | Functions | Status          |
+| -------------- | --------- | --------------- |
+| dbIo           | 2         | ✅ Complete     |
+| history        | 1         | ✅ Complete     |
+| rag            | 3         | ✅ Complete     |
+| s3Uploader     | 1         | ✅ Complete     |
+| setting        | 2         | ✅ Complete     |
+| audio          | 2         | ✅ Complete     |
+| tools          | 2         | ✅ Complete     |
+| workflow       | 1         | ✅ Complete     |
+| customUploader | 1         | ✅ Complete     |
+| chat           | 6         | ✅ Complete     |
+| deepResearch   | 4         | ✅ **Complete** |
+| **Total**      | **29**    | **✅ 100%**     |
 
 ## Error Handling
 
@@ -396,6 +426,7 @@ All endpoints use standardized error codes:
 - `VALIDATION_INVALID_INPUT` - Empty query
 
 Example:
+
 ```typescript
 try {
   await orpcClient.deepResearch.start({ deepResearchId, query })
@@ -411,20 +442,21 @@ try {
 
 ## Performance Comparison
 
-| Metric | Hono | ORPC |
-|--------|------|------|
-| Client tracking | Manual Map | EventPublisher |
-| Memory management | Manual cleanup | Automatic |
-| Connection handling | addEventListener | signal-based |
-| Type safety | ❌ No | ✅ Full |
-| Code complexity | High | Low |
-| Event distribution | O(1) lookup | O(1) publish |
+| Metric              | Hono             | ORPC           |
+| ------------------- | ---------------- | -------------- |
+| Client tracking     | Manual Map       | EventPublisher |
+| Memory management   | Manual cleanup   | Automatic      |
+| Connection handling | addEventListener | signal-based   |
+| Type safety         | ❌ No            | ✅ Full        |
+| Code complexity     | High             | Low            |
+| Event distribution  | O(1) lookup      | O(1) publish   |
 
 ## Testing
 
 ### Manual Test
 
 1. Start research:
+
    ```typescript
    const id = uuidV4()
    await orpcClient.deepResearch.start({
@@ -434,6 +466,7 @@ try {
    ```
 
 2. Subscribe to updates:
+
    ```typescript
    const stream = await orpcClient.deepResearch.subscribe({
      deepResearchId: id
@@ -453,23 +486,27 @@ try {
 ## Benefits
 
 ### Code Quality
+
 ✅ **Simpler** - 60% less boilerplate than Hono SSE
 ✅ **Modern** - Uses async generators (ES2018+)
 ✅ **Type-safe** - Full TypeScript inference
 ✅ **Maintainable** - EventPublisher handles complexity
 
 ### Developer Experience
+
 ✅ **Easier to use** - `for await...of` vs EventSource API
 ✅ **Better errors** - Structured error codes
 ✅ **Autocomplete** - Full IDE support
 ✅ **Less bugs** - Type system catches errors
 
 ### Performance
+
 ✅ **Lightweight** - EventPublisher is more efficient
 ✅ **Auto cleanup** - Signal-based connection management
 ✅ **Memory efficient** - No manual tracking needed
 
 ### Production Readiness
+
 ✅ **Tested** - Same functionality as Hono version
 ✅ **Reliable** - Proper error handling
 ✅ **Scalable** - EventPublisher handles many connections
@@ -480,6 +517,7 @@ try {
 ### Client Migration
 
 1. Replace EventSource with ORPC subscribe:
+
    ```typescript
    // Before
    const eventSource = new EventSource(url)
@@ -487,7 +525,9 @@ try {
 
    // After
    const stream = await orpcClient.deepResearch.subscribe({ deepResearchId })
-   for await (const message of stream) { handler(message) }
+   for await (const message of stream) {
+     handler(message)
+   }
    ```
 
 2. Update error handling to use error codes
@@ -518,6 +558,7 @@ All Exodus backend routes now use ORPC! 🎉
 ---
 
 **Total Migration Stats:**
+
 - Routes migrated: 11/11 (100%)
 - Functions migrated: 29/29 (100%)
 - Type safety: 100%

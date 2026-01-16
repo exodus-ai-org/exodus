@@ -11,6 +11,7 @@
 **File:** `src/main/lib/server-orpc/utils.ts`
 
 **Before:**
+
 ```typescript
 export function createS3Client(setting: {
   s3AccessKeyId: string
@@ -21,6 +22,7 @@ export function createS3Client(setting: {
 ```
 
 **After:**
+
 ```typescript
 export function createS3Client(setting: Setting) {
   if (!setting.s3) {
@@ -45,6 +47,7 @@ export function createS3Client(setting: Setting) {
 **File:** `src/main/lib/server-orpc/middlewares/with-s3.ts`
 
 **Changes:**
+
 - ✅ Now chains with `withSetting` automatically
 - ✅ Validates S3 configuration (throws ConfigurationError if missing/incomplete)
 - ✅ Provides both `client` and `bucket` in context
@@ -52,11 +55,12 @@ export function createS3Client(setting: Setting) {
 - ✅ Comprehensive error handling with error codes
 
 **Key Feature - Automatic Synchronization:**
+
 ```typescript
 const version = setting.updatedAt.toISOString()
 
 if (cachedClient && cachedVersion === version) {
-  return cachedClient  // Cache hit
+  return cachedClient // Cache hit
 }
 
 // Cache miss - create new client with updated settings
@@ -66,12 +70,14 @@ cachedVersion = version
 ```
 
 **How It Works:**
+
 1. User updates S3 settings → `setting.updatedAt` changes
 2. Next API call → `withS3` compares `cachedVersion` with new `updatedAt`
 3. Mismatch detected → Create new S3Client with updated credentials
 4. Cache updated → All subsequent calls use new client
 
 **Benefits:**
+
 - ✅ Zero manual cache invalidation needed
 - ✅ No server restart required
 - ✅ Settings propagate immediately on next request
@@ -82,6 +88,7 @@ cachedVersion = version
 **File:** `src/main/lib/server-orpc/routes/s3-uploader.ts`
 
 **Before:**
+
 ```typescript
 // ❌ Hardcoded from environment variables
 export const s3 = new S3Client({
@@ -94,13 +101,14 @@ export const s3 = new S3Client({
 
 export const createUploadUrl = os.handler(async ({ input }) => {
   const command = new PutObjectCommand({
-    Bucket: process.env.S3_BUCKET!,  // ❌ From env
+    Bucket: process.env.S3_BUCKET! // ❌ From env
     // ...
   })
 })
 ```
 
 **After:**
+
 ```typescript
 // ✅ From database settings with auto-sync
 export const createUploadUrl = os
@@ -109,7 +117,7 @@ export const createUploadUrl = os
     const { s3 } = context
 
     const command = new PutObjectCommand({
-      Bucket: s3.bucket,  // ✅ From settings
+      Bucket: s3.bucket // ✅ From settings
       // ...
     })
 
@@ -122,6 +130,7 @@ export const createUploadUrl = os
 ```
 
 **Changes:**
+
 - ✅ Uses `withS3` middleware
 - ✅ Gets S3 client and bucket from context
 - ✅ Proper error handling with ServiceError
@@ -132,16 +141,19 @@ export const createUploadUrl = os
 **File:** `src/shared/constants/error-codes.ts`
 
 Added 2 new error codes:
+
 - `SERVICE_S3_UPLOAD_FAILED` - Failed to upload file to S3
 - `SERVICE_S3_PRESIGN_FAILED` - Failed to generate presigned URL
 
 With corresponding:
+
 - HTTP status codes (503)
 - User-friendly error messages
 
 ### 5. Created Documentation
 
 **Files:**
+
 - `S3_CONFIGURATION_GUIDE.md` - Complete guide (400+ lines)
 - `S3_MIGRATION_SUMMARY.md` - This file
 
@@ -193,6 +205,7 @@ export const S3Schema = z.object({
 ```
 
 **Validation:**
+
 - Either all fields empty (S3 not configured)
 - Or all fields filled (complete configuration)
 - Prevents partial configuration
@@ -205,14 +218,12 @@ export const S3Schema = z.object({
 import { os } from '@orpc/server'
 import { withS3 } from '../middlewares/with-s3'
 
-export const myRoute = os
-  .use(withS3)
-  .handler(async ({ context }) => {
-    const { s3 } = context
+export const myRoute = os.use(withS3).handler(async ({ context }) => {
+  const { s3 } = context
 
-    // s3.client - S3Client instance (auto-synced)
-    // s3.bucket - Bucket name from settings
-  })
+  // s3.client - S3Client instance (auto-synced)
+  // s3.bucket - Bucket name from settings
+})
 ```
 
 ### Client-Side (Updating Settings)
@@ -293,9 +304,10 @@ grep -r "process.env.AWS" src/main/lib/server-orpc/
    - This becomes the cache version
 
 2. **Cache Check:** On each request:
+
    ```typescript
    if (cachedVersion === setting.updatedAt.toISOString()) {
-     return cachedClient  // Use cached
+     return cachedClient // Use cached
    }
    ```
 
@@ -308,6 +320,7 @@ grep -r "process.env.AWS" src/main/lib/server-orpc/
    ```
 
 **Result:** No manual synchronization needed. The system automatically:
+
 - Detects when settings change (via updatedAt)
 - Creates new S3Client with new credentials
 - Caches the new client
@@ -316,10 +329,12 @@ grep -r "process.env.AWS" src/main/lib/server-orpc/
 ## Files Changed
 
 ### Created (2)
+
 1. `S3_CONFIGURATION_GUIDE.md` - Complete documentation
 2. `S3_MIGRATION_SUMMARY.md` - This file
 
 ### Modified (4)
+
 1. `src/main/lib/server-orpc/utils.ts` - Updated createS3Client
 2. `src/main/lib/server-orpc/middlewares/with-s3.ts` - Enhanced middleware
 3. `src/main/lib/server-orpc/routes/s3-uploader.ts` - Uses middleware

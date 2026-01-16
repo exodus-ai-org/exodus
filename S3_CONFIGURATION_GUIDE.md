@@ -9,6 +9,7 @@ The S3 uploader now uses configuration from the database (Setting) instead of en
 ### Configuration Source
 
 **Before (Environment Variables):**
+
 ```typescript
 // ❌ Old approach - hardcoded from .env
 const s3 = new S3Client({
@@ -21,6 +22,7 @@ const s3 = new S3Client({
 ```
 
 **After (Database Settings):**
+
 ```typescript
 // ✅ New approach - from database, auto-synced
 export const createUploadUrl = os
@@ -45,6 +47,7 @@ export const S3Schema = z.object({
 ```
 
 The schema validates that either:
+
 - All fields are empty (S3 not configured), OR
 - All fields are filled (complete S3 configuration)
 
@@ -149,8 +152,8 @@ export const uploadFile = os
 
     // Use s3.client for AWS operations
     const command = new PutObjectCommand({
-      Bucket: s3.bucket,  // Automatically from settings
-      Key: input.filename,
+      Bucket: s3.bucket, // Automatically from settings
+      Key: input.filename
       // ...
     })
 
@@ -164,8 +167,8 @@ The `withS3` middleware provides this context:
 
 ```typescript
 context.s3 = {
-  client: S3Client,    // Cached S3 client
-  bucket: string       // Bucket name from settings
+  client: S3Client, // Cached S3 client
+  bucket: string // Bucket name from settings
 }
 ```
 
@@ -239,7 +242,9 @@ try {
     toast.error('Please configure S3 in settings')
     router.push('/settings?tab=s3')
   } else if (apiError.is(ErrorCode.SERVICE_S3_PRESIGN_FAILED)) {
-    toast.error('Failed to generate upload URL. Please check your S3 credentials.')
+    toast.error(
+      'Failed to generate upload URL. Please check your S3 credentials.'
+    )
   }
 }
 ```
@@ -254,6 +259,7 @@ try {
    - Save settings
 
 2. **Test Upload URL Generation**
+
    ```typescript
    const result = await orpcClient.s3Uploader.createUploadUrl({
      filename: 'test.txt',
@@ -304,7 +310,7 @@ describe('S3 Configuration Sync', () => {
     await orpcClient.setting.update({
       s3: {
         region: 'us-west-2',
-        bucket: null,  // Incomplete
+        bucket: null, // Incomplete
         accessKeyId: 'key',
         secretAccessKey: 'secret'
       }
@@ -342,6 +348,7 @@ describe('S3 Configuration Sync', () => {
 ### When Cache is Invalidated
 
 Cache invalidation occurs when:
+
 1. ✅ User updates S3 settings via UI
 2. ✅ Admin updates settings via API
 3. ✅ Automated settings update (if any)
@@ -364,6 +371,7 @@ Or via the UI Settings page.
 ### Step 2: Remove Environment Variables
 
 After deployment, you can remove these from `.env`:
+
 - ~~`AWS_REGION`~~
 - ~~`AWS_ACCESS_KEY_ID`~~
 - ~~`AWS_SECRET_ACCESS_KEY`~~
@@ -382,6 +390,7 @@ Update deployment documentation to reflect that S3 configuration is now managed 
 **Cause:** No S3 settings in database
 
 **Solution:**
+
 ```typescript
 await orpcClient.setting.update({
   s3: {
@@ -404,6 +413,7 @@ await orpcClient.setting.update({
 **Cause:** Invalid AWS credentials or permissions
 
 **Solution:**
+
 1. Verify credentials are correct
 2. Check AWS IAM permissions for `s3:PutObject`
 3. Verify bucket name is correct
@@ -414,6 +424,7 @@ await orpcClient.setting.update({
 **Cause:** This shouldn't happen with the current implementation, but if it does:
 
 **Debug steps:**
+
 1. Check if `setting.updatedAt` is being updated
 2. Verify `withSetting` middleware is working
 3. Check logs for cache hit/miss
