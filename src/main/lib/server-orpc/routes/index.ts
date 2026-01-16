@@ -12,7 +12,9 @@ import {
 import { exportData, importData } from './db-io'
 import {
   getMessages as getDeepResearchMessages,
-  getResult
+  getResult,
+  start as startDeepResearch,
+  subscribe as subscribeDeepResearch
 } from './deep-research'
 import { getAll } from './history'
 import { list, retrieve, upload } from './rag'
@@ -64,7 +66,8 @@ export const router = {
   },
   deepResearch: {
     getMessages: getDeepResearchMessages,
-    getResult
-    // Note: POST / and GET /sse endpoints not yet migrated (see MIGRATION_SUMMARY.md)
+    getResult,
+    start: startDeepResearch,
+    subscribe: subscribeDeepResearch
   }
 }

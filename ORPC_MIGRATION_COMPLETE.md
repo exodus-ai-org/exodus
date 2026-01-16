@@ -1,10 +1,10 @@
 # ORPC Migration Complete - Summary Report
 
-## ✅ Migration Status: 96% Complete
+## ✅ Migration Status: 100% Complete 🎉
 
 ### Successfully Migrated Routes
 
-All non-streaming routes have been successfully migrated from Hono to ORPC with bug fixes applied.
+All routes including streaming endpoints have been successfully migrated from Hono to ORPC with bug fixes applied.
 
 #### 1. **db-io** ✅
 
@@ -57,12 +57,12 @@ All non-streaming routes have been successfully migrated from Hono to ORPC with 
 - `update` - Update chat
 - ✅ **stream** - Stream chat completion with AI SDK integration
 
-#### 11. **deepResearch** ✅ (Read operations)
+#### 11. **deepResearch** ✅ **FULLY MIGRATED!**
 
 - `getMessages` - Get research messages
 - `getResult` - Get research result
-- ⚠️ **POST /** - Not migrated (starts research with progress streaming)
-- ⚠️ **GET /sse** - Not migrated (SSE subscription endpoint)
+- ✅ **`start`** - Start research with background job execution
+- ✅ **`subscribe`** - Subscribe to progress updates via ORPC Event Iterator (async generator)
 
 ---
 
