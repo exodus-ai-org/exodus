@@ -1,5 +1,5 @@
+import { Attachment } from '@shared/types/chat'
 import { fetcher } from '@shared/utils/http'
-import { Attachment } from 'ai'
 
 export const embedding = async (formData: FormData) =>
   fetcher<Attachment[]>('/api/rag', {

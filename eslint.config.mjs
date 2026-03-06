@@ -15,9 +15,11 @@ export default tseslint.config(
     ]
   },
   tseslint.configs.recommended,
-  eslintPluginReact.configs.flat.recommended,
-  eslintPluginReact.configs.flat['jsx-runtime'],
+  { rules: { '@typescript-eslint/explicit-function-return-type': 'off' } },
   {
+    files: ['src/renderer/**/*.{ts,tsx}', 'src/preload/**/*.{ts,tsx}'],
+    ...eslintPluginReact.configs.flat.recommended,
+    ...eslintPluginReact.configs.flat['jsx-runtime'],
     settings: {
       react: {
         version: 'detect'
@@ -25,6 +27,7 @@ export default tseslint.config(
     }
   },
   {
+    files: ['src/renderer/**/*.{ts,tsx}', 'src/preload/**/*.{ts,tsx}'],
     plugins: {
       'react-hooks': eslintPluginReactHooks,
       'react-refresh': eslintPluginReactRefresh
@@ -32,7 +35,10 @@ export default tseslint.config(
     rules: {
       ...eslintPluginReactHooks.configs.recommended.rules,
       ...eslintPluginReactRefresh.configs.vite.rules,
-      '@typescript-eslint/explicit-function-return-type': 'off'
+      'react-hooks/set-state-in-effect': 'off',
+      'react-hooks/purity': 'off',
+      'react-hooks/immutability': 'off',
+      'react-hooks/refs': 'off'
     }
   },
   eslintConfigPrettier

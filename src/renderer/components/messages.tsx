@@ -2,6 +2,8 @@ import { useImmersion } from '@/hooks/use-immersion'
 import { useSetting } from '@/hooks/use-setting'
 import { cn } from '@/lib/utils'
 import { UseChatHelpers } from '@ai-sdk/react'
+import { ChatMessage } from '@shared/types/chat'
+import { getStaticToolName, isStaticToolUIPart } from 'ai'
 import { Fragment, memo, useCallback, useEffect, useRef } from 'react'
 import Zoom from 'react-medium-image-zoom'
 import Markdown from './markdown'
@@ -12,19 +14,14 @@ import { MessageCallingTools } from './messages-calling-tools'
 import { ShimmeringText } from './shimmering-text'
 import { Avatar, AvatarImage } from './ui/avatar'
 
-function Messages({
-  messages,
-  // chatId,
-  // setMessages,
-  status,
-  reload
-}: {
-  chatId: string
-  messages: UseChatHelpers['messages']
-  setMessages: UseChatHelpers['setMessages']
-  status: UseChatHelpers['status']
-  reload: UseChatHelpers['reload']
-}) {
+type MessagesProps = {
+  status: UseChatHelpers<ChatMessage>['status']
+  messages: ChatMessage[]
+  regenerate: UseChatHelpers<ChatMessage>['regenerate']
+}
+
+function Messages({ status, messages, regenerate }: MessagesProps) {
+  const isLoading = status === 'streaming' || status === 'submitted'
   const { data: setting } = useSetting()
   const chatBoxRef = useRef<HTMLDivElement>(null)
   const { show: isImmersionVisible } = useImmersion()
@@ -58,7 +55,9 @@ function Messages({
       {messages.length === 0 && (
         <div className="mx-auto flex size-full max-w-3xl flex-col justify-center px-8 md:mt-20">
           <p className="animate-bounce text-2xl font-semibold">Hello there!</p>
-          <p className="text-2xl text-zinc-500">How can I help you today?</p>
+          <p className="text-2xl text-zinc-500">
+            How can I assistant you today?
+          </p>
         </div>
       )}
 
@@ -86,37 +85,45 @@ function Messages({
                   </Avatar>
                 )}
                 <div className="w-full">
-                  {message.parts.map((item, idx) => {
+                  {message.parts.map((part, idx) => {
                     const key = `message-${message.id}-part-${idx}`
 
-                    if (item.type === 'reasoning') {
-                      return (
-                        <MessageReasoning
-                          key={key}
-                          isLoading={status === 'streaming'}
-                          reasoning={item.reasoning}
-                        />
-                      )
+                    if (part.type === 'reasoning') {
+                      const hasContent = part.text?.trim().length > 0
+                      const isStreaming =
+                        'state' in part && part.state === 'streaming'
+                      if (hasContent || isStreaming) {
+                        return (
+                          <MessageReasoning
+                            key={key}
+                            isLoading={isLoading || isStreaming}
+                            reasoning={part.text}
+                          />
+                        )
+                      }
                     }
 
-                    if (item.type === 'text' && item.text.trim() !== '') {
+                    if (part.type === 'text' && part.text.trim() !== '') {
                       return (
                         <section
                           key={key}
                           className="group relative mb-16 last:mb-0"
                         >
-                          <Markdown src={item.text} parts={message.parts} />
-                          <MessageAction reload={reload} content={item.text} />
+                          <Markdown src={part.text} parts={message.parts} />
+                          <MessageAction
+                            regenerate={regenerate}
+                            content={part.text}
+                          />
                         </section>
                       )
                     }
 
-                    if (item.type === 'tool-invocation') {
-                      if (item.toolInvocation.state === 'result') {
+                    if (isStaticToolUIPart(part)) {
+                      if (part.state === 'output-available') {
                         return (
                           <MessageCallingTools
                             key={key}
-                            toolInvocation={item.toolInvocation}
+                            toolInvocation={part}
                           />
                         )
                       } else {
@@ -124,7 +131,7 @@ function Messages({
                           <ShimmeringText
                             key={key}
                             className="mb-4"
-                            text={`Calling tool: ${item.toolInvocation.toolName}`}
+                            text={`Calling tool: ${getStaticToolName(part)}`}
                           />
                         )
                       }
@@ -137,26 +144,27 @@ function Messages({
             )}
             {message.role === 'user' && (
               <>
-                {Array.isArray(message.experimental_attachments) &&
-                  message.experimental_attachments.length > 0 && (
-                    <div className="mb-4 flex gap-4">
-                      {message.experimental_attachments.map((attachment) => {
-                        if (attachment.contentType?.startsWith('image')) {
-                          return (
-                            <Zoom key={attachment.name}>
-                              <img
-                                className="max-h-96 max-w-64 rounded-lg object-cover"
-                                src={attachment.url}
-                                alt={attachment.name}
-                              />
-                            </Zoom>
-                          )
-                        }
-
-                        return null
-                      })}
-                    </div>
-                  )}
+                {message.parts.some((p) => p.type === 'file') && (
+                  <div className="mb-4 flex gap-4">
+                    {message.parts.map((part, i) => {
+                      if (
+                        part.type === 'file' &&
+                        part.mediaType?.startsWith('image')
+                      ) {
+                        return (
+                          <Zoom key={i}>
+                            <img
+                              className="max-h-96 max-w-64 rounded-lg object-cover"
+                              src={part.url}
+                              alt={part.filename ?? 'attachment'}
+                            />
+                          </Zoom>
+                        )
+                      }
+                      return null
+                    })}
+                  </div>
+                )}
 
                 <p
                   className={cn(

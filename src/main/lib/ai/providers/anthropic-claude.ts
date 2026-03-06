@@ -1,12 +1,12 @@
 import { AnthropicProvider, createAnthropic } from '@ai-sdk/anthropic'
 import { Setting } from '@shared/types/db'
-import { EmbeddingModel, LanguageModelV1 } from 'ai'
+import { EmbeddingModel, LanguageModel } from 'ai'
 
 export function getAnthropicClaude(setting: Setting): {
   provider: AnthropicProvider
-  chatModel: LanguageModelV1
-  reasoningModel: LanguageModelV1
-  embeddingModel: EmbeddingModel<string> | null
+  chatModel: LanguageModel
+  reasoningModel: LanguageModel
+  embeddingModel: EmbeddingModel | null
 } {
   const anthropic = createAnthropic({
     apiKey: setting.providers?.anthropicApiKey ?? '',
@@ -17,7 +17,7 @@ export function getAnthropicClaude(setting: Setting): {
     provider: anthropic,
     chatModel: anthropic(setting.providerConfig?.chatModel ?? ''),
     reasoningModel: anthropic(setting.providerConfig?.reasoningModel ?? ''),
-    embeddingModel: anthropic.textEmbeddingModel(
+    embeddingModel: anthropic.embeddingModel(
       setting.providerConfig?.embeddingModel ?? ''
     )
   }

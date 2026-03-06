@@ -1,5 +1,5 @@
 import { openai } from '@ai-sdk/openai'
-import { generateObject } from 'ai'
+import { generateText, Output } from 'ai'
 import z from 'zod'
 
 export const MemoryReadFilterSchema = z.object({
@@ -17,9 +17,8 @@ export async function filterRelevantMemories({
     content: string
   }[]
 }) {
-  return generateObject({
+  return generateText({
     model: openai('gpt-4.1-mini'),
-    schema: MemoryReadFilterSchema,
     system: `
 You are selecting user memories.
 
@@ -42,6 +41,9 @@ content: ${m.content}
 `
   )
   .join('\n')}
-`
+`,
+    output: Output.object({
+      schema: MemoryReadFilterSchema
+    })
   })
 }

@@ -3,15 +3,15 @@ import { Setting } from '@shared/types/db'
 import {
   EmbeddingModel,
   extractReasoningMiddleware,
-  LanguageModelV1,
+  LanguageModel,
   wrapLanguageModel
 } from 'ai'
 
 export function getXaiGrok(setting: Setting): {
   provider: XaiProvider
-  chatModel: LanguageModelV1
-  reasoningModel: LanguageModelV1
-  embeddingModel: EmbeddingModel<string> | null
+  chatModel: LanguageModel
+  reasoningModel: LanguageModel
+  embeddingModel: EmbeddingModel | null
 } {
   const xai = createXai({
     apiKey: setting.providers?.xAiApiKey ?? '',

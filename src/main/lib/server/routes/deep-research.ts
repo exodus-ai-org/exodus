@@ -1,9 +1,9 @@
+import { JSONRPCNotification } from '@ai-sdk/mcp'
 import {
   DeepResearchProgress,
   ReportProgressPayload
 } from '@shared/types/deep-research'
 import { Variables } from '@shared/types/server'
-import { JSONRPCNotification } from 'ai'
 import { Hono } from 'hono'
 import { v4 as uuidV4 } from 'uuid'
 import { deepResearch as deepResearchAgent } from '../../ai/deep-research/deep-research'
@@ -12,11 +12,18 @@ import { getModelFromProvider } from '../../ai/utils/chat-message-util'
 import {
   getDeepResearchById,
   getDeepResearchMessagesById,
-  getSettings,
   saveDeepResearchMessage,
   updateDeepResearch
 } from '../../db/queries'
-import { createDeepResearchSchema } from '../schemas'
+import { ChatSDKError } from '../errors'
+import { createDeepResearchSchema } from '../schemas/deep-research'
+import {
+  getRequiredQuery,
+  handleDatabaseOperation,
+  successResponse,
+  validateBraveApiKey,
+  validateSchema
+} from '../utils'
 
 const deepResearch = new Hono<{ Variables: Variables }>()
 const clients = new Map<string, ReadableStreamDefaultController>()
@@ -69,26 +76,32 @@ async function notifyClients(
 }
 
 deepResearch.post('/', async (c) => {
-  const result = createDeepResearchSchema.safeParse(await c.req.json())
-  if (!result.success) {
-    return c.text('Invalid request body', 400)
-  }
-  const { deepResearchId, query } = result.data
-  const setting = await getSettings()
+  const { deepResearchId, query } = validateSchema<{
+    deepResearchId: string
+    query: string
+  }>(
+    createDeepResearchSchema,
+    await c.req.json(),
+    'deep_research',
+    'Invalid request body'
+  )
 
-  if (!('id' in setting)) {
-    throw new Error('Failed to retrieve setting.')
+  const setting = c.get('setting')
+
+  if (!setting || !('id' in setting)) {
+    throw new ChatSDKError('not_found:setting', 'Failed to retrieve setting')
   }
 
   if (!setting.providerConfig?.reasoningModel) {
-    throw new Error('Failed to retrieve selected reasoning model.')
+    throw new ChatSDKError(
+      'bad_request:deep_research',
+      'Reasoning model is not configured'
+    )
   }
 
-  if (!setting.webSearch?.serperApiKey) {
-    throw new Error('Failed to retrieve Serper API Key.')
-  }
+  const braveApiKey = validateBraveApiKey(setting)
 
-  const { reasoningModel } = await getModelFromProvider()
+  const { reasoningModel } = getModelFromProvider(setting)
 
   await notifyClients(deepResearchId, {
     type: DeepResearchProgress.StartDeepResearch
@@ -100,7 +113,7 @@ deepResearch.post('/', async (c) => {
       depth: setting.deepResearch?.depth ?? 2
     },
     {
-      serperApiKey: setting.webSearch?.serperApiKey as string,
+      braveApiKey,
       model: reasoningModel,
       notify: (data) => notifyClients(deepResearchId, data)
     }
@@ -130,15 +143,11 @@ deepResearch.post('/', async (c) => {
     query
   })
 
-  return c.json(finalDeepResearch)
+  return successResponse(c, finalDeepResearch)
 })
 
 deepResearch.get('/sse', async (c) => {
-  const deepResearchId = c.req.query('deepResearchId')
-
-  if (!deepResearchId) {
-    throw new Error('No deep research id found!')
-  }
+  const deepResearchId = getRequiredQuery(c, 'deepResearchId', 'deep_research')
 
   const controller = new ReadableStream({
     start(controller) {
@@ -162,14 +171,31 @@ deepResearch.get('/sse', async (c) => {
 
 deepResearch.get('/messages/:id', async (c) => {
   const { id } = c.req.param()
-  const messages = await getDeepResearchMessagesById({ id })
-  return c.json(messages)
+
+  const messages = await handleDatabaseOperation(
+    () => getDeepResearchMessagesById({ id }),
+    'Failed to get deep research messages'
+  )
+
+  return successResponse(c, messages)
 })
 
 deepResearch.get('/result/:id', async (c) => {
   const { id } = c.req.param()
-  const result = await getDeepResearchById({ id })
-  return c.json(result)
+
+  const result = await handleDatabaseOperation(
+    () => getDeepResearchById({ id }),
+    'Failed to get deep research result'
+  )
+
+  if (!result) {
+    throw new ChatSDKError(
+      'not_found:deep_research',
+      `Deep research with ID ${id} not found`
+    )
+  }
+
+  return successResponse(c, result)
 })
 
 export default deepResearch

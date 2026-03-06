@@ -1,6 +1,14 @@
 import { UseFormReturn } from 'react-hook-form'
 import { z } from 'zod'
 
+// Optional URL field: treats empty string as null before URL validation,
+// so clearing a Base URL field doesn't trigger a validation error.
+const optionalUrl = z
+  .string()
+  .nullable()
+  .transform((val) => (val === '' || val == null ? null : val))
+  .pipe(z.string().url().nullable())
+
 export const ProviderConfigSchema = z.object({
   provider: z.string().nullable(),
   chatModel: z.string().nullable(),
@@ -11,16 +19,16 @@ export const ProviderConfigSchema = z.object({
 
 export const ProvidersSchema = z.object({
   openaiApiKey: z.string().nullable(),
-  openaiBaseUrl: z.string().url().nullable(),
+  openaiBaseUrl: optionalUrl,
   azureOpenaiApiKey: z.string().nullable(),
-  azureOpenAiEndpoint: z.string().url().nullable(),
+  azureOpenAiEndpoint: optionalUrl,
   azureOpenAiApiVersion: z.string().nullable(),
   anthropicApiKey: z.string().nullable(),
-  anthropicBaseUrl: z.string().url().nullable(),
+  anthropicBaseUrl: optionalUrl,
   googleGeminiApiKey: z.string().nullable(),
-  googleGeminiBaseUrl: z.string().url().nullable(),
+  googleGeminiBaseUrl: optionalUrl,
   xAiApiKey: z.string().nullable(),
-  xAiBaseUrl: z.string().url().nullable(),
+  xAiBaseUrl: optionalUrl,
   ollamaBaseUrl: z.string().nullable()
 })
 
@@ -35,7 +43,7 @@ export const GoogleCloudSchema = z.object({
 })
 
 export const WebSearchSchema = z.object({
-  serperApiKey: z.string().nullable(),
+  braveApiKey: z.string().nullable(),
   country: z.string().nullable(),
   language: z.string().nullable()
 })

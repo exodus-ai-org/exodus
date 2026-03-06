@@ -1,12 +1,13 @@
 import { useUpload } from '@/hooks/use-upload'
-import { attachmentAtom } from '@/stores/chat'
-import { UseChatHelpers } from '@ai-sdk/react'
-import { useAtom } from 'jotai'
+import { UIMessage, UseChatHelpers } from '@ai-sdk/react'
+import { Attachment, ChatMessage } from '@shared/types/chat'
 import { CircleStopIcon, SendIcon } from 'lucide-react'
 import {
   ChangeEvent,
   ClipboardEvent,
+  Dispatch,
   memo,
+  SetStateAction,
   useCallback,
   useEffect,
   useRef,
@@ -26,20 +27,25 @@ function InputBox({
   chatId,
   input,
   setInput,
-  handleSubmit,
-  status
+  status,
+  stop,
+  attachments,
+  setAttachments,
+  // messages,
+  // setMessages,
+  sendMessage
 }: {
   chatId: string
   input: string
-  append: UseChatHelpers['append']
-  messages: UseChatHelpers['messages']
-  setMessages: UseChatHelpers['setMessages']
-  setInput: UseChatHelpers['setInput']
-  handleSubmit: UseChatHelpers['handleSubmit']
-  status: UseChatHelpers['status']
-  stop: UseChatHelpers['stop']
+  setInput: Dispatch<SetStateAction<string>>
+  status: UseChatHelpers<ChatMessage>['status']
+  stop: () => void
+  attachments: Attachment[]
+  setAttachments: Dispatch<SetStateAction<Attachment[]>>
+  messages: UIMessage[]
+  setMessages: UseChatHelpers<ChatMessage>['setMessages']
+  sendMessage: UseChatHelpers<ChatMessage>['sendMessage']
 }) {
-  const [attachments, setAttachments] = useAtom(attachmentAtom)
   const { uploadFile } = useUpload()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [isTyping, setIsTyping] = useState(false)
@@ -84,10 +90,27 @@ function InputBox({
 
   const submitForm = useCallback(() => {
     window.history.replaceState({}, '', `/chat/${chatId}`)
-    handleSubmit(undefined, { experimental_attachments: attachments })
-    setAttachments(undefined)
+
+    sendMessage({
+      role: 'user',
+      parts: [
+        ...attachments.map((attachment) => ({
+          type: 'file' as const,
+          url: attachment.url,
+          name: attachment.name,
+          mediaType: attachment.contentType
+        })),
+        {
+          type: 'text',
+          text: input
+        }
+      ]
+    })
+
+    setAttachments([])
+    setInput('')
     resetHeight()
-  }, [chatId, handleSubmit, attachments, setAttachments])
+  }, [attachments, chatId, input, sendMessage, setAttachments, setInput])
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -144,7 +167,7 @@ function InputBox({
             {input.trim() === '' ? (
               <AudioRecorder input={input} setInput={setInput} />
             ) : (
-              <Button type="submit" variant="secondary" onClick={handleSubmit}>
+              <Button type="submit" variant="secondary" onClick={submitForm}>
                 <SendIcon />
               </Button>
             )}

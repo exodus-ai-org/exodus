@@ -23,7 +23,7 @@ export default defineConfig({
       }
     },
     plugins: [
-      react()
+      react({})
       // visualizer({
       //   gzipSize: true,
       //   brotliSize: true,

@@ -2,9 +2,11 @@ import { EmbeddingModel } from 'ai'
 import { and, asc, cosineDistance, desc, eq, gt, sql } from 'drizzle-orm'
 import { v4 as uuidV4 } from 'uuid'
 import { generateEmbedding, generateEmbeddings } from '../ai/rag'
+import { ChatSDKError } from '../server/errors'
 import { db, pglite } from './db'
 import {
   chat,
+  DBMessage,
   deepResearch,
   deepResearchMessage,
   embedding,
@@ -93,6 +95,35 @@ export async function getMessagesByChatId({ id }: { id: string }) {
   }
 }
 
+export async function updateChatTitleById({
+  id,
+  title
+}: {
+  id: string
+  title: string
+}) {
+  try {
+    return await db.update(chat).set({ title }).where(eq(chat.id, id))
+  } catch (error) {
+    console.warn('Failed to update title for chat', id, error)
+    throw error
+  }
+}
+
+export async function updateMessage({
+  id,
+  parts
+}: {
+  id: string
+  parts: DBMessage['parts']
+}) {
+  try {
+    return await db.update(message).set({ parts }).where(eq(message.id, id))
+  } catch {
+    throw new ChatSDKError('bad_request:database', 'Failed to update message')
+  }
+}
+
 export async function fullTextSearchOnMessages(query: string) {
   try {
     const messages = await db
@@ -161,27 +192,13 @@ export async function getSetting() {
   return data!
 }
 
-export async function getSettings() {
-  const [data] = await db.select().from(setting)
-
-  if (!data) {
-    const id = uuidV4()
-    await db.insert(setting).values({
-      id
-    })
-    return { id } as Setting
-  } else {
-    return data
-  }
-}
-
 export async function updateSetting(payload: Setting) {
   return await db.update(setting).set(payload).where(eq(setting.id, payload.id))
 }
 
 export const findRelevantContent = async (
   { userQuery }: { userQuery: string },
-  { model }: { model: EmbeddingModel<string> }
+  { model }: { model: EmbeddingModel }
 ) => {
   const userQueryEmbedded = await generateEmbedding(
     { value: userQuery },
@@ -277,7 +294,7 @@ function toPgVector(arr: number[]) {
 
 export const createResource = async (
   { content, chunks }: { content: string; chunks: string[] },
-  { model }: { model: EmbeddingModel<string> }
+  { model }: { model: EmbeddingModel }
 ) => {
   try {
     const [currResource] = await db

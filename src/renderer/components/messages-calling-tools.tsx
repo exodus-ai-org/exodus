@@ -1,4 +1,4 @@
-import { ToolInvocation } from 'ai'
+import { getStaticToolName } from 'ai'
 import { memo } from 'react'
 import { DeepResearchCard } from './calling-tools/deep-research/deep-research-card'
 import { GoogleMapsPlacesCard } from './calling-tools/google-maps-places/places-card'
@@ -6,30 +6,28 @@ import { GoogleMapsCard } from './calling-tools/google-maps-routing/routing-card
 import { WeatherCard } from './calling-tools/weather/weather-card'
 import { WebSearchCard } from './calling-tools/web-search/web-search-card'
 
-function CallingTools({ toolInvocation }: { toolInvocation: ToolInvocation }) {
-  if (toolInvocation.state !== 'result') return null
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function CallingTools({ toolInvocation }: { toolInvocation: any }) {
+  if (toolInvocation.state !== 'output-available') return null
+
+  const toolName = getStaticToolName(toolInvocation)
+  const output = toolInvocation.output
 
   return (
     <section className="mb-4">
-      {toolInvocation.toolName === 'googleMapsRouting' && (
-        <GoogleMapsCard toolResult={toolInvocation.result} />
+      {toolName === 'googleMapsRouting' && (
+        <GoogleMapsCard toolResult={output} />
       )}
-      {toolInvocation.toolName === 'googleMapsPlaces' && (
-        <GoogleMapsPlacesCard toolResult={toolInvocation.result} />
+      {toolName === 'googleMapsPlaces' && (
+        <GoogleMapsPlacesCard toolResult={output} />
       )}
-      {toolInvocation.toolName === 'weather' && (
-        <WeatherCard toolResult={toolInvocation.result} />
-      )}
-      {toolInvocation.toolName === 'webSearch' && (
-        <WebSearchCard toolResult={toolInvocation.result} />
-      )}
-      {toolInvocation.toolName === 'deepResearch' && (
-        <DeepResearchCard toolResult={toolInvocation.result} />
-      )}
-      {(toolInvocation.toolName === 'imageGeneration' ||
-        toolInvocation.toolName === 'date' ||
-        toolInvocation.toolName === 'rag' ||
-        toolInvocation.toolName === 'calculator') && <div className="-mb-4" />}
+      {toolName === 'weather' && <WeatherCard toolResult={output} />}
+      {toolName === 'webSearch' && <WebSearchCard toolResult={output} />}
+      {toolName === 'deepResearch' && <DeepResearchCard toolResult={output} />}
+      {(toolName === 'imageGeneration' ||
+        toolName === 'date' ||
+        toolName === 'rag' ||
+        toolName === 'calculator') && <div className="-mb-4" />}
     </section>
   )
 }
@@ -37,10 +35,6 @@ function CallingTools({ toolInvocation }: { toolInvocation: ToolInvocation }) {
 export const MessageCallingTools = memo(
   CallingTools,
   (prevProps, nextProps) => {
-    if (prevProps.toolInvocation.state === nextProps.toolInvocation.state) {
-      return true
-    }
-
-    return true
+    return prevProps.toolInvocation.state === nextProps.toolInvocation.state
   }
 )

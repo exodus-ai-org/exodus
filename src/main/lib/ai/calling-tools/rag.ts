@@ -4,7 +4,9 @@ import { z } from 'zod'
 
 export const rag = tool({
   description: 'Get information from your knowledge base to answer questions.',
-  parameters: z.object({ question: z.string().describe('the users question') }),
+  inputSchema: z.object({
+    question: z.string().describe('the users question')
+  }),
   execute: async ({ question }) => {
     const result = await fetcher('/api/rag/retrieve', {
       method: 'POST',

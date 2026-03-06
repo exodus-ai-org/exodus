@@ -2,7 +2,7 @@ import { useClipboard } from '@/hooks/use-clipboard'
 import { useImmersion } from '@/hooks/use-immersion'
 import { cn } from '@/lib/utils'
 import { WebSearchResult } from '@shared/types/web-search'
-import type { UIMessage } from 'ai'
+import { getStaticToolName, isStaticToolUIPart, type UIMessage } from 'ai'
 import 'katex/dist/katex.min.css'
 import { CheckIcon, CopyIcon, PencilRulerIcon } from 'lucide-react'
 import { memo, ReactNode, useMemo } from 'react'
@@ -110,21 +110,20 @@ export function Markdown({
   const { codeTheme } = useMemo(() => themes[actualTheme], [actualTheme])
   const webSearchResults = useMemo(() => {
     try {
-      const toolInvocationPart = parts.find(
-        (part) => part.type === 'tool-invocation'
+      const toolPart = parts.find(
+        (part) =>
+          isStaticToolUIPart(part) && getStaticToolName(part) === 'webSearch'
       )
-
-      if (toolInvocationPart) {
-        const { state, toolName } = toolInvocationPart.toolInvocation
-        if (toolName === 'webSearch' && state === 'result') {
-          return toolInvocationPart.toolInvocation.result
-        }
-        return null
+      if (
+        toolPart &&
+        isStaticToolUIPart(toolPart) &&
+        toolPart.state === 'output-available'
+      ) {
+        return toolPart.output as WebSearchResult[]
       }
-
-      return null
+      return undefined
     } catch {
-      return null
+      return undefined
     }
   }, [parts])
 

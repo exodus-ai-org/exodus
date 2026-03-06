@@ -15,7 +15,7 @@ export const MemoryWriteSchema = z.object({
     ])
     .optional(),
   key: z.string().optional(),
-  value: z.record(z.any()).optional(),
+  value: z.record(z.string(), z.any()).optional(),
   confidence: z.number().min(0).max(1).optional(),
   source: z.enum(['explicit', 'implicit']).optional()
 })
@@ -41,7 +41,15 @@ If any condition is not met, set shouldWrite = false.
 `,
     prompt: `
 Conversation:
-${messages.map((m) => `${m.role}: ${m.content}`).join('\n')}
+${messages
+  .map((m) => {
+    const text = m.parts
+      .filter((p) => p.type === 'text')
+      .map((p) => (p as { type: 'text'; text: string }).text)
+      .join('')
+    return `${m.role}: ${text}`
+  })
+  .join('\n')}
 `
   })
 }

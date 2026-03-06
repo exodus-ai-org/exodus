@@ -8,36 +8,15 @@ export interface WebSearchResult {
   snippet: string
 }
 
-export interface SearchParameters {
-  q: string
-  type: string
-  engine: string
-}
-
-export interface OrganicResult {
+export interface BraveWebResult {
   title: string
-  link: string
-  snippet: string
-  position: number
-  sitelinks?: {
-    title: string
-    link: string
-  }[]
+  url: string
+  description?: string
+  extra_snippets?: string[]
 }
 
-export interface RelatedSearch {
-  query: string
-}
-
-export interface WebSearchResponse {
-  searchParameters: SearchParameters
-  organic: OrganicResult[]
-  relatedSearches: RelatedSearch[]
-  credits: number
-}
-
-export enum WebSearchSourceType {
-  Search = 'search',
-  News = 'news',
-  Scholar = 'scholar'
+export interface BraveSearchResponse {
+  web?: {
+    results: BraveWebResult[]
+  }
 }

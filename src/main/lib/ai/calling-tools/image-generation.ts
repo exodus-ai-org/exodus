@@ -7,7 +7,7 @@ import { z } from 'zod'
 export const imageGeneration = (setting: Setting) =>
   tool({
     description: "Generate image according to user's requirement.",
-    parameters: z.object({ prompt: z.string() }),
+    inputSchema: z.object({ prompt: z.string() }),
     execute: async ({ prompt }: { prompt: string }) => {
       try {
         const openai = new OpenAI({

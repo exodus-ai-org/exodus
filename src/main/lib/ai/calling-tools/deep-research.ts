@@ -8,7 +8,7 @@ import { saveDeepResearch } from '../../db/queries'
 export const deepResearch = tool({
   description:
     'Given a research subject and ask some follow up questions to clarify the research direction',
-  parameters: z.object({
+  inputSchema: z.object({
     subject: z.string().describe('The subject to research')
   }),
   execute: async ({ subject }: { subject: string }, { toolCallId }) => {

@@ -1,9 +1,5 @@
 import { WebPDFLoader } from '@langchain/community/document_loaders/web/pdf'
-import {
-  WebSearchResponse,
-  WebSearchResult,
-  WebSearchSourceType
-} from '@shared/types/web-search'
+import { BraveSearchResponse, WebSearchResult } from '@shared/types/web-search'
 import * as cheerio from 'cheerio'
 import { encodingForModel } from 'js-tiktoken'
 import TurndownService from 'turndown'
@@ -114,26 +110,29 @@ async function loadDocument(link: string) {
 
 /* ================= Search ================= */
 
-async function searchBySerper(
+async function searchByBrave(
   query: string,
-  serperApiKey: string,
-  sourceType?: WebSearchSourceType
+  braveApiKey: string,
+  country?: string | null,
+  language?: string | null
 ) {
   try {
+    const params = new URLSearchParams({ q: query, count: '10' })
+    if (country) params.set('country', country)
+    if (language) params.set('search_lang', language)
+
     const response = await fetch(
-      `https://google.serper.dev/search/${sourceType ?? 'search'}`,
+      `https://api.search.brave.com/res/v1/web/search?${params}`,
       {
-        method: 'POST',
         headers: {
-          'X-API-KEY': serperApiKey,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ q: query })
+          'X-Subscription-Token': braveApiKey,
+          Accept: 'application/json'
+        }
       }
     )
 
     const raw = await response.text()
-    return raw ? (JSON.parse(raw) as WebSearchResponse) : null
+    return raw ? (JSON.parse(raw) as BraveSearchResponse) : null
   } catch {
     return null
   }
@@ -143,34 +142,36 @@ async function searchBySerper(
 
 export async function fetchAndProcessSearchResults({
   query,
-  serperApiKey,
+  braveApiKey,
   webSources,
-  sourceType
+  country,
+  language
 }: {
   query: string
-  serperApiKey: string
+  braveApiKey: string
   webSources?: Map<string, WebSearchResult>
-  sourceType?: WebSearchSourceType
+  country?: string | null
+  language?: string | null
 }) {
   try {
-    const data = await searchBySerper(query, serperApiKey, sourceType)
-    const organic = data?.organic
-    if (!organic?.length) return null
+    const data = await searchByBrave(query, braveApiKey, country, language)
+    const results = data?.web?.results
+    if (!results?.length) return null
 
-    const tasks = organic
+    const tasks = results
       .filter(
         (item) =>
-          !!item.link &&
+          !!item.url &&
           !!item.title &&
-          (!webSources || !webSources.has(item.link))
+          (!webSources || !webSources.has(item.url))
       )
       .map(async (item) => {
-        const document = await loadDocument(item.link!)
+        const document = await loadDocument(item.url)
 
         return {
-          link: item.link!,
-          title: item.title!,
-          snippet: item.snippet ?? '',
+          link: item.url,
+          title: item.title,
+          snippet: item.description ?? item.extra_snippets?.[0] ?? '',
           ogImage: document?.ogImage ?? '',
           type: document?.type,
           content: document?.content

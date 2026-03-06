@@ -8,7 +8,7 @@ export interface Embedding {
 // transform user's prompt to embedding vector
 export const generateEmbedding = async (
   { value }: { value: string },
-  { model }: { model: EmbeddingModel<string> }
+  { model }: { model: EmbeddingModel }
 ): Promise<number[]> => {
   const input = value.replaceAll('\\n', ' ')
   const { embedding } = await embed({
@@ -21,7 +21,7 @@ export const generateEmbedding = async (
 // batch transform knowledge bases to embedding vector
 export const generateEmbeddings = async (
   { chunks }: { chunks: string[] },
-  { model }: { model: EmbeddingModel<string> }
+  { model }: { model: EmbeddingModel }
 ): Promise<Embedding[]> => {
   const { embeddings } = await embedMany({
     model,

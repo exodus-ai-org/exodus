@@ -6,7 +6,7 @@ import { z } from 'zod'
 export const googleMapsPlaces = (setting: Setting) =>
   tool({
     description: 'Specify a text string on which to search for a place.',
-    parameters: z.object({
+    inputSchema: z.object({
       query: z
         .string()
         .describe(

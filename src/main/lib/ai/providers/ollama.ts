@@ -1,12 +1,12 @@
 import { Setting } from '@shared/types/db'
-import { EmbeddingModel, LanguageModelV1 } from 'ai'
-import { createOllama, OllamaProvider } from 'ollama-ai-provider'
+import { EmbeddingModel, LanguageModel } from 'ai'
+import { createOllama, OllamaProvider } from 'ai-sdk-ollama'
 
 export function getOllama(setting: Setting): {
   provider: OllamaProvider
-  chatModel: LanguageModelV1
-  reasoningModel: LanguageModelV1
-  embeddingModel: EmbeddingModel<string> | null
+  chatModel: LanguageModel
+  reasoningModel: LanguageModel
+  embeddingModel: EmbeddingModel | null
 } {
   const ollama = createOllama({
     baseURL: setting.providers?.ollamaBaseUrl ?? ''

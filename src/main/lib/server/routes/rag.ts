@@ -7,55 +7,78 @@ import {
   findRelevantContent,
   getResourcePaginated
 } from '../../db/queries'
+import { ChatSDKError } from '../errors'
+import {
+  getPaginationParams,
+  handleDatabaseOperation,
+  successResponse,
+  validateEmbeddingModel
+} from '../utils'
 
 const rag = new Hono<{ Variables: Variables }>()
 
 rag.post('/retrieve', async (c) => {
-  const { embeddingModel } = await getModelFromProvider()
-  if (!embeddingModel) {
-    return c.text(
-      'The embedding model is missing, please check your setting',
-      400
+  const setting = c.get('setting')
+  const { embeddingModel } = getModelFromProvider(setting)
+  const validatedModel = validateEmbeddingModel(embeddingModel)
+
+  try {
+    const { question } = await c.req.json()
+    const result = await findRelevantContent(
+      { userQuery: question },
+      { model: validatedModel }
+    )
+
+    return successResponse(c, result)
+  } catch (error) {
+    if (error instanceof ChatSDKError) throw error
+    throw new ChatSDKError(
+      'bad_request:rag',
+      error instanceof Error
+        ? error.message
+        : 'Failed to retrieve relevant content'
     )
   }
-
-  const { question } = await c.req.json()
-  const result = await findRelevantContent(
-    { userQuery: question },
-    { model: embeddingModel }
-  )
-
-  return c.json(result)
 })
 
 rag.post('/', async (c) => {
   const formData = await c.req.formData()
-  const { embeddingModel } = await getModelFromProvider()
+  const setting = c.get('setting')
+  const { embeddingModel } = getModelFromProvider(setting)
+  const validatedModel = validateEmbeddingModel(embeddingModel)
 
-  if (!embeddingModel) {
-    return c.text(
-      'The embedding model is missing, please check your setting',
-      400
+  try {
+    const files = formData.getAll('files') as File[]
+    if (!files || files.length === 0) {
+      throw new ChatSDKError('bad_request:rag', 'No files provided')
+    }
+
+    for (const file of files) {
+      const content = await loadFileContent(file)
+      const splitter = getSplitter(content)
+      const chunks = await splitter.splitText(content)
+      await createResource({ content, chunks }, { model: validatedModel })
+    }
+
+    return successResponse(c, { success: true })
+  } catch (error) {
+    if (error instanceof ChatSDKError) throw error
+    throw new ChatSDKError(
+      'bad_request:rag',
+      error instanceof Error ? error.message : 'Failed to upload documents'
     )
   }
-
-  const files = formData.getAll('files') as File[]
-  for (const file of files) {
-    const content = await loadFileContent(file)
-    const splitter = getSplitter(content)
-    const chunks = await splitter.splitText(content)
-    await createResource({ content, chunks }, { model: embeddingModel })
-  }
-
-  return c.json({ success: true })
 })
 
 rag.get('/', async (c) => {
-  const page = Number(c.req.query('page') ?? '1')
-  const pageSize = Number(c.req.query('pageSize') ?? '10')
+  const { page, pageSize } = getPaginationParams(c)
 
-  const result = await getResourcePaginated(page, pageSize)
-  return c.json(result)
+  const result = await handleDatabaseOperation(
+    () => getResourcePaginated(page, pageSize),
+    'Failed to get resources'
+  )
+
+  return successResponse(c, result)
 })
 
 export default rag

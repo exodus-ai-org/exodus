@@ -17,6 +17,14 @@ export async function summarizeSession(messages: UIMessage[]) {
 Summarize the conversation into structured session memory.
 Be concise and factual.
 `,
-    prompt: messages.map((m) => `${m.role}: ${m.content}`).join('\n')
+    prompt: messages
+      .map((m) => {
+        const text = m.parts
+          .filter((p) => p.type === 'text')
+          .map((p) => (p as { type: 'text'; text: string }).text)
+          .join('')
+        return `${m.role}: ${text}`
+      })
+      .join('\n')
   })
 }

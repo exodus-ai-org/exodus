@@ -1,6 +1,6 @@
 import { AdvancedTools } from '@shared/types/ai'
+import { Attachment } from '@shared/types/chat'
 import { Chat, DeepResearchMessage } from '@shared/types/db'
-import { Attachment } from 'ai'
 import { atom } from 'jotai'
 
 export const isImmersionVisibleAtom = atom(false)

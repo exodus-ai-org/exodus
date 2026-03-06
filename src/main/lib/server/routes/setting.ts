@@ -1,23 +1,34 @@
 import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
-import { getSettings, updateSetting } from '../../db/queries'
-import { updateSettingsSchema } from '../schemas'
+import { updateSetting } from '../../db/queries'
+import { updateSettingsSchema } from '../schemas/setting'
+import {
+  handleDatabaseOperation,
+  successResponse,
+  validateSchema
+} from '../utils'
 
 const setting = new Hono<{ Variables: Variables }>()
 
 setting.get('/', async (c) => {
-  const setting = await getSettings()
-  return c.json(setting)
+  const setting = c.get('setting')
+  return successResponse(c, setting)
 })
 
 setting.post('/', async (c) => {
-  const result = updateSettingsSchema.safeParse(await c.req.json())
-  if (!result.success) {
-    return c.text('Invalid request body', 400)
-  }
-  const payload = result.data
-  const setting = await updateSetting(payload)
-  return c.json(setting)
+  const payload = validateSchema(
+    updateSettingsSchema,
+    await c.req.json(),
+    'setting',
+    'Invalid setting configuration'
+  )
+
+  const updatedSetting = await handleDatabaseOperation(
+    () => updateSetting(payload),
+    'Failed to update setting'
+  )
+
+  return successResponse(c, updatedSetting)
 })
 
 export default setting

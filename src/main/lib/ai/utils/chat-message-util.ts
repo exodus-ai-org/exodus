@@ -1,14 +1,16 @@
 import { AdvancedTools, AiProviders, McpTools } from '@shared/types/ai'
+import { ChatMessage, ChatTools, CustomUIDataTypes } from '@shared/types/chat'
 import {
-  CoreAssistantMessage,
-  CoreToolMessage,
-  LanguageModelV1,
+  AssistantModelMessage,
+  LanguageModel,
+  ToolModelMessage,
   ToolSet,
   UIMessage,
+  UIMessagePart,
   generateText
 } from 'ai'
-import { getSettings } from '../../db/queries'
-import { Setting } from '../../db/schema'
+import { formatISO } from 'date-fns'
+import { DBMessage, Setting } from '../../db/schema'
 import {
   calculator,
   date,
@@ -23,7 +25,7 @@ import {
 import { titleGenerationPrompt } from '../prompts'
 import { providers } from '../providers'
 
-type ResponseMessageWithoutId = CoreToolMessage | CoreAssistantMessage
+type ResponseMessageWithoutId = ToolModelMessage | AssistantModelMessage
 type ResponseMessage = ResponseMessageWithoutId & { id: string }
 
 export function getMostRecentUserMessage(messages: Array<UIMessage>) {
@@ -43,8 +45,7 @@ export function getTrailingMessageId({
   return trailingMessage.id
 }
 
-export async function getModelFromProvider() {
-  const setting = await getSettings()
+export function getModelFromProvider(setting: Setting) {
   if (!('id' in setting)) {
     throw new Error('Failed to retrieve setting.')
   }
@@ -59,20 +60,40 @@ export async function getModelFromProvider() {
   return models
 }
 
+export function getTextFromMessage(message: ChatMessage | UIMessage): string {
+  return message.parts
+    .filter((part) => part.type === 'text')
+    .map((part) => (part as { type: 'text'; text: string }).text)
+    .join('')
+}
+
+export function convertToUIMessages(messages: DBMessage[]): ChatMessage[] {
+  return messages.map((message) => ({
+    id: message.id,
+    role: message.role as 'user' | 'assistant' | 'system',
+    parts: message.parts as UIMessagePart<CustomUIDataTypes, ChatTools>[],
+    metadata: {
+      createdAt: formatISO(message.createdAt)
+    }
+  }))
+}
+
 export async function generateTitleFromUserMessage({
-  model,
-  message
+  message,
+  model
 }: {
-  model: LanguageModelV1
   message: UIMessage
+  model: LanguageModel
 }) {
-  const { text: title } = await generateText({
+  const { text } = await generateText({
     model,
     system: titleGenerationPrompt,
-    prompt: JSON.stringify(message)
+    prompt: getTextFromMessage(message)
   })
-
-  return title
+  return text
+    .replace(/^[#*"\s]+/, '')
+    .replace(/["]+$/, '')
+    .trim()
 }
 
 export function bindCallingTools({

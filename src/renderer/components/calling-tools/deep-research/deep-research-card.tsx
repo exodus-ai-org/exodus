@@ -126,14 +126,11 @@ export function DeepResearchCard({
             src={deepResearchResult?.finalReport}
             parts={[
               {
-                type: 'tool-invocation',
-                toolInvocation: {
-                  state: 'result',
-                  toolCallId: '',
-                  toolName: 'webSearch',
-                  args: {},
-                  result: deepResearchResult.webSources
-                }
+                type: 'tool-webSearch' as `tool-${string}`,
+                toolCallId: '',
+                state: 'output-available' as const,
+                input: {},
+                output: deepResearchResult.webSources
               }
             ]}
           />

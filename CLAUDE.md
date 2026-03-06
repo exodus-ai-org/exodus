@@ -2,919 +2,427 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Project Overview
+
+Exodus is a cross-platform desktop AI chat application built with Electron, React, and Node.js. It features multi-provider LLM support, RAG (Retrieval-Augmented Generation), Deep Research, MCP (Model Context Protocol) integration, and a sophisticated memory/personalization layer.
+
 ## Development Commands
 
-### Essential Commands
+### Running the Application
 
-- `pnpm dev` - Start development server with hot reload
-- `pnpm typecheck` - Type check both main process and renderer (runs both commands below)
-- `pnpm typecheck:node` - Type check main process (tsconfig.node.json)
-- `pnpm typecheck:web` - Type check renderer process (tsconfig.web.json)
-- `pnpm lint` - Run ESLint with caching
-- `pnpm format` - Format code with Prettier
-
-### Build Commands
-
-- `pnpm build` - Type check and build all processes (main/preload/renderer)
-- `pnpm build:mac` - Build macOS application (.dmg)
-- `pnpm build:win` - Build Windows application (.exe)
-- `pnpm build:linux` - Build Linux application
-- `pnpm build:unpack` - Build without packaging (for debugging)
-
-### Database Commands
-
-- `pnpm db:generate` - Generate Drizzle ORM client from schema changes
-
-### Utility Commands
-
-- `pnpm start` - Preview production build
-- `pnpm asar:sniff` - Inspect asar archive contents
-- `pnpm shadcn:generate` - Generate shadcn UI component text files
-
-## Architecture Overview
-
-### Project Structure
-
-```
-exodus/
-├── src/
-│   ├── main/              # Electron main process (Node.js)
-│   │   ├── index.ts       # Entry point: DB migration, server startup, window creation
-│   │   ├── lib/
-│   │   │   ├── ai/        # LLM providers, tools, MCP, deep research
-│   │   │   ├── db/        # PGlite database + Drizzle ORM schema and queries
-│   │   │   ├── server/    # Hono HTTP server (port 3938)
-│   │   │   ├── server-orpc/ # ORPC server (port 63129)
-│   │   │   ├── window.ts  # Window management (main, search, quick chat)
-│   │   │   └── ipc.ts     # IPC event handlers
-│   ├── renderer/          # React UI (web frontend)
-│   │   ├── components/    # React components
-│   │   ├── stores/        # Jotai atoms (global state)
-│   │   ├── hooks/         # Custom React hooks
-│   │   ├── services/      # API client functions
-│   │   ├── sub-apps/      # Separate entry points (searchbar, quick-chat)
-│   │   └── index.html     # Main app entry
-│   ├── preload/           # IPC bridge between main and renderer
-│   └── shared/            # Cross-process types, constants, utilities
-├── drizzle/               # Database migrations
-└── resources/             # Static assets (icons, etc.)
+```bash
+pnpm dev              # Start development server with hot reload
+pnpm start            # Preview built application
 ```
 
-### Technology Stack
+### Building
 
-**Core Framework:**
-
-- Electron 37 (desktop app shell)
-- React 19 + React Router 7 (UI)
-- TypeScript (strict mode)
-
-**State Management:**
-
-- Jotai (atomic state)
-- Key atoms: `advancedToolsAtom`, `attachmentAtom`, `activeDeepResearchIdAtom`
-
-**Database:**
-
-- PGlite (PostgreSQL in browser, offline-capable)
-- Drizzle ORM (type-safe queries, no codegen)
-- pgvector extension (vector embeddings for RAG)
-
-**API Layer:**
-
-- Hono (HTTP server on port 60223)
-- ORPC (structured RPC on port 63129)
-- Vercel AI SDK (streaming, tool calling)
-
-**LLM Integration:**
-
-- Vercel AI SDK with multiple providers (OpenAI, Claude, Gemini, Grok, Ollama, Azure)
-- Model Context Protocol (MCP) for extensible tools
-
-**UI Components:**
-
-- Shadcn UI + Radix UI primitives
-- Tailwind CSS 4 (utility-first styling)
-- Framer Motion (animations)
-
-### Multi-Process Architecture
-
-**Main Process** (`src/main/`):
-
-- Database initialization and migrations
-- HTTP/ORPC server management
-- Window lifecycle (main window, search bar, quick chat)
-- IPC handlers for cross-process communication
-- MCP server connections (child processes via stdio)
-
-**Renderer Process** (`src/renderer/`):
-
-- React-based UI
-- Communicates with main via IPC and HTTP (localhost:60223)
-- Three separate apps built from different entry points:
-  - Main chat UI (`index.html`)
-  - Search bar overlay (`sub-apps/searchbar/index.html`)
-  - Quick chat widget (`sub-apps/quick-chat/index.html`)
-
-**Preload Scripts** (`src/preload/`):
-
-- Secure bridge exposing limited APIs to renderer
-- IPC communication helpers
-
-### Path Aliases
-
-- `@/` → `src/renderer/` (renderer code only)
-- `@shared/` → `src/shared/` (available in both main and renderer)
-
-## Key Features Implementation
-
-### Chat System
-
-**Data Flow:**
-
-```
-User Input (React)
-  → POST /api/chat with { id, messages, advancedTools }
-  → Validate request body (createChatSchema)
-  → Check if chat exists, if not: generateTitleFromUserMessage()
-  → saveMessages() for user message
-  → getModelFromProvider() → chatModel or reasoningModel
-  → Select model based on advancedTools (Reasoning/DeepResearch uses reasoningModel)
-  → streamText() with:
-      - system prompt (systemPrompt or deepResearchBootPrompt)
-      - maxSteps from settings
-      - tools from bindCallingTools()
-  → Stream response via Vercel AI data stream protocol
-  → onFinish: saveMessages() for assistant response
-  → useChat() hook updates UI in real-time
+```bash
+pnpm build            # Build for development (runs typecheck first)
+pnpm build:mac        # Build macOS application
+pnpm build:linux      # Build Linux application
+pnpm build:win        # Build Windows application
+pnpm build:unpack     # Build without packaging (for testing)
 ```
 
-**Chat Hook Pattern:**
+### Code Quality
 
-```typescript
-const { messages, handleSubmit, input, setInput, append, stop } = useChat({
-  api: `${BASE_URL}/api/chat`,
-  id: chatId,
-  body: { advancedTools },
-  onFinish: () => mutate('/api/history')
-})
+```bash
+pnpm typecheck        # Run TypeScript checks for both node and web
+pnpm typecheck:node   # Check main process code only
+pnpm typecheck:web    # Check renderer process code only
+pnpm lint             # Run ESLint with caching
+pnpm format           # Format all files with Prettier
 ```
 
-**Message Structure:**
+### Database
 
-Messages contain `parts` (array of text/images) and optional `experimental_attachments`:
+```bash
+pnpm db:generate      # Generate Drizzle migrations from schema
+```
+
+### Other
+
+```bash
+pnpm asar:sniff       # Inspect built ASAR archive
+pnpm shadcn:generate  # Generate shadcn/ui component documentation
+```
+
+## Architecture
+
+### Electron Process Model
+
+Exodus uses a three-process architecture:
+
+1. **Main Process** (`src/main/index.ts`):
+   - Manages Electron app lifecycle, window creation, and IPC
+   - Runs Hono HTTP server on `localhost:3000`
+   - Initializes PGlite database with pgvector extension
+   - Connects to MCP servers on startup
+   - Handles auto-updates
+
+2. **Renderer Process** (`src/renderer/`):
+   - React 19 application with React Router v7
+   - Communicates with main process via HTTP (localhost:3000)
+   - Uses Jotai for global state management
+   - SWR for server state fetching
+   - Contains three entry points: main app, searchbar, quick-chat
+
+3. **Preload Process** (`src/preload/`):
+   - Provides secure bridge between renderer and Electron APIs
+   - Context isolation enabled
+   - Exposes limited API surface to renderer
+
+### Backend Server Architecture
+
+The main process runs a **Hono HTTP server** that handles all business logic:
+
+**Server Routes** (`src/main/lib/server/routes/`):
+
+- `/api/chat` - Chat streaming, message search, MCP tool listing
+- `/api/history` - Chat history CRUD operations
+- `/api/setting` - User settings management
+- `/api/audio` - Audio processing (TTS/STT)
+- `/api/rag` - RAG document upload, retrieval, pagination
+- `/api/deep-research` - Deep research execution with SSE progress updates
+- `/api/tools` - Available tools listing
+- `/api/db-io` - Database import/export
+- `/api/workflow` - Workflow execution
+- `/api/custom-uploader` - Custom file uploads
+
+**Middleware Pipeline**:
+
+1. CORS middleware (allows all origins for localhost development)
+2. Tools middleware (injects MCP tools into context)
+3. Error handler (returns JSON errors)
+
+### Database Layer
+
+**Database**: PGlite (embedded Postgres) with pgvector extension
+
+- Location: `~/.app/Database` (in userData directory)
+- ORM: Drizzle ORM with Zod schemas
+- Schema: `src/main/lib/db/schema.ts`
+- Migrations: `resources/drizzle/`
+
+**Key Tables**:
+
+- `chat` - Chat sessions (id, title, favorite, timestamps)
+- `message` - Messages with parts/attachments (GIN indexed for full-text search)
+- `vote` - User votes on messages
+- `setting` - Global settings (models, API keys, preferences)
+- `resource` - Knowledge base documents
+- `embedding` - Vector embeddings for RAG (1536-dim, HNSW indexed)
+- `deep_research` - Deep research jobs and results
+- `deep_research_message` - Progress updates during research
+- `memory` - User memory (preferences, goals, skills, environment)
+- `session_summary` - Summarized conversation context
+- `memory_usage_log` - Audit trail of memory usage
+
+### AI/LLM Integration
+
+**Multi-Provider Support** (via Vercel AI SDK v6):
+All providers are in `src/main/lib/ai/providers/` and return:
 
 ```typescript
 {
-  id: string,
-  chatId: string,
-  role: 'user' | 'assistant' | 'tool',
-  parts: Array<TextPart | ImagePart>,
-  attachments: Attachment[],
-  createdAt: Date
+  provider: ProviderInstance
+  chatModel: LanguageModel // for conversations
+  reasoningModel: LanguageModel // for o1/claude reasoning models
+  embeddingModel: EmbeddingModel // for RAG
 }
 ```
 
-### Database Schema
+Supported providers:
 
-**Core Tables:**
+- OpenAI GPT (`anthropic-claude.ts`)
+- Azure OpenAI (`azure-openai.ts`)
+- Anthropic Claude (`anthropic-claude.ts`)
+- Google Gemini (`google-gemini.ts`)
+- xAI Grok (`xai-grok.ts`)
+- Ollama (`ollama.ts` - local models)
 
-- `Chat` - Chat sessions (id, title, createdAt, favorite)
-- `Message` - Messages with JSON parts and attachments (GIN full-text search index)
-- `Vote` - Message upvotes/downvotes
-- `Setting` - User configuration (providers, API keys, MCP servers)
-- `DeepResearch` - Research job tracking
-- `Resource` - RAG knowledge bases
-- `Embedding` - Vector embeddings (pgvector with HNSW index)
-- `Memory` - Agent memory (preferences, goals, skills, constraints)
+**Chat Flow** (`src/main/lib/server/routes/chat.ts`):
 
-**Key Queries** (`src/main/lib/db/queries.ts`):
+1. Retrieve user settings (model selection, API keys)
+2. Load chat history from database
+3. Bind tools (built-in + MCP) based on `AdvancedTools` selection
+4. Call `streamText()` from AI SDK with `maxSteps` for tool execution
+5. Stream response back to renderer
+6. On completion: save messages, evaluate memory write, generate session summary
 
-- `saveChat()`, `saveMessages()`, `getMessagesByChatId()`
-- `fullTextSearchOnMessages()` - Postgres full-text search using GIN index
-- `findRelevantContent()` - Vector similarity search for RAG
-- `createResource()` - Embed and store knowledge base content
-- `getChatById()`, `deleteChatById()`, `updateChat()` - Chat management
+**Tool Architecture** (`src/main/lib/ai/calling-tools/`):
+Each tool is a Vercel AI SDK `tool()` with:
 
-**Full-Text Search:**
+- Description for LLM understanding
+- Zod schema for input validation
+- Execute function
 
-Messages have a GIN index on `parts` for fast full-text search:
+Built-in tools:
 
-```typescript
-// In schema.ts:
-index('message_search_index').using(
-  'gin',
-  sql`to_tsvector('simple', ${table.parts})`
-)
-
-// Query via: GET /api/chat/search?query=your+search
-```
-
-### MCP (Model Context Protocol)
-
-**Configuration:**
-MCP servers are stored as JSON in `setting.mcpServers`:
-
-```json
-{
-  "serverName": {
-    "command": "/path/to/server",
-    "args": ["--flag", "value"]
-  }
-}
-```
-
-**Connection Flow:**
-
-1. `connectMcpServers()` reads config from database
-2. Spawns each MCP server as child process via stdio transport
-3. Discovers tools from each server
-4. Tools added to Hono context: `c.set('tools', tools)`
-5. Tools bound to LLM during chat via `bindCallingTools()` (in `src/main/lib/ai/utils/chat-message-util.ts`)
-
-**Tool Binding:**
-
-The `bindCallingTools()` function selectively enables tools based on `advancedTools`:
-
-- If DeepResearch is enabled, only deepResearch tool is available
-- Otherwise, combines: built-in tools (webSearch, weather, etc.) + MCP tools + RAG (if enabled)
-
-**Hot Reload:**
-
-When MCP config changes, send IPC message `restart-server` to restart HTTP server with new tools.
-
-### LLM Provider System
-
-**Provider Factory** (`src/main/lib/ai/providers/index.ts`):
-Each provider exports `getProviderName(setting)` returning:
-
-```typescript
-{
-  provider: ProviderInstance,
-  chatModel: Model,
-  reasoningModel: Model,
-  embeddingModel: EmbeddingModel
-}
-```
-
-**Model Selection:**
-
-```typescript
-const { chatModel, reasoningModel } = await getModelFromProvider()
-
-// In streamText():
-model: advancedTools.includes(AdvancedTools.Reasoning)
-  ? reasoningModel
-  : chatModel
-```
-
-**Supported Providers:**
-
-- OpenAI GPT (gpt-4o, o1, o3-mini, o3, etc.)
-- Azure OpenAI (same models as OpenAI)
-- Anthropic Claude (claude-3-5-sonnet, claude-3-7-sonnet)
-- Google Gemini (gemini-2.5-flash, gemini-2.5-pro)
-- Xai Grok (grok-3-beta, grok-3-mini-beta)
-- Ollama (user-defined local models)
-
-### Deep Research
-
-**Implementation** (`src/main/lib/ai/deep-research/`):
-
-Recursive research algorithm:
-
-1. Generate initial search queries from user's research goal
-2. Execute web searches via Serper API
-3. Extract learnings from results using LLM
-4. Generate follow-up questions based on learnings
-5. Recurse with reduced breadth/depth until exhausted
-6. Compile final Markdown report with citations
-
-**Progress Tracking:**
-
-- Stores status updates in `DeepResearchMessage` table
-- Frontend polls or streams updates via `deepResearchMessagesAtom`
-- Progress types: `EmitSearchQueries`, `EmitSearchResults`, `EmitLearnings`
+- `calculator.ts` - Mathematical expression evaluation
+- `date.ts` - Date/time operations
+- `weather.ts` - Weather lookup via Serper API
+- `google-maps-places.ts` - Place search
+- `google-maps-routing.ts` - Route calculation
+- `image-generation.ts` - DALL-E integration
+- `web-search.ts` - Web search via Serper API
+- `rag.ts` - Knowledge base retrieval
+- `deep-research.ts` - Trigger deep research
 
 ### RAG (Retrieval-Augmented Generation)
 
-**Upload Flow:**
+**Implementation** (`src/main/lib/ai/rag/`):
 
-```
-Upload file → Split into chunks (CharacterTextSplitter)
-  → Generate embeddings (configurable model)
-  → Store in Resource + Embedding tables
-  → Create pgvector HNSW index
-```
+1. **Document Upload** (`loaders.ts`):
+   - Supports PDF, Markdown, plain text
+   - Uses LangChain loaders (PDFLoader, TextLoader)
+   - Extracts content from uploaded files
 
-**Query Flow:**
+2. **Text Chunking** (`splitters.ts`):
+   - `RecursiveCharacterTextSplitter` breaks content into chunks
+   - Configurable chunk size and overlap
 
-```
-User question → Embed question
-  → Similarity search (cosine > 0.5)
-  → Top 4 relevant chunks
-  → Include as context in LLM prompt
-```
+3. **Embedding Generation** (`embeddings.ts`):
+   - Converts chunks to 1536-dimensional vectors
+   - Uses configured embedding model from provider settings
+   - Stores vectors in `embedding` table with pgvector
 
-**Implementation:**
+4. **Retrieval** (during chat):
+   - User question embedded via same model
+   - Cosine similarity search against stored embeddings (HNSW index)
+   - Top-4 relevant chunks returned
+   - Context injected into chat for LLM
 
-- `createResource()` - Chunk and embed documents
-- `findRelevantContent()` - Similarity search
-- Built-in tool: "SearchInKnowledgeBase"
+**API Endpoints**:
 
-### Built-in Calling Tools
+- `POST /api/rag` - Upload document
+- `POST /api/rag/retrieve` - Search similar chunks
+- `GET /api/rag` - List uploaded documents with pagination
 
-Located in `src/main/lib/ai/calling-tools/`:
+### Deep Research
 
-- **Web Search** - Google search via Serper API
-- **Deep Research** - Multi-step research with recursive queries
-- **RAG** - Search knowledge base with vector similarity
-- **Weather** - Weather information via Serper
-- **Google Maps** - Places and routing
-- **Image Generation** - OpenAI DALL-E integration
-- **Calculator** - Math expression evaluation
-- **Date** - Current date/time
+**Architecture** (`src/main/lib/ai/deep-research/`):
 
-Each tool uses `ai.tool()` with Zod schema validation.
+Multi-level recursive research with real-time progress streaming:
 
-## Development Patterns
+1. **Query Generation** (`generate-queries.ts`):
+   - AI generates search queries based on topic
+   - Configurable breadth (default: 4 queries per level)
 
-### Adding a New LLM Provider
+2. **Search Execution** (`deep-research.ts`):
+   - Executes Serper API searches recursively
+   - Depth parameter controls recursion levels (default: 2)
+   - Processes results and extracts learnings
 
-1. Create file in `src/main/lib/ai/providers/new-provider.ts`
-2. Export function matching signature:
+3. **Result Processing** (`process-search-results.ts`):
+   - Extracts key insights from search results
+   - Identifies web sources with titles and URLs
+   - Determines next research directions
 
-```typescript
-export function getNewProvider(setting: Setting) {
-  const provider = createNewProvider({
-    apiKey: setting.providers?.newProviderApiKey,
-    baseURL: setting.providers?.newProviderBaseUrl  // Optional custom endpoint
-  })
-  return {
-    provider,
-    chatModel: provider(setting.providerConfig?.chatModel),
-    reasoningModel: provider(setting.providerConfig?.reasoningModel),
-    embeddingModel: provider.textEmbeddingModel(...)
+4. **Report Generation** (`final-report.ts`):
+   - Compiles all findings into structured Markdown report
+   - Includes source citations
+   - Stored in database for later retrieval
+
+5. **Progress Streaming** (`src/main/lib/server/routes/deep-research.ts`):
+   - SSE connection for real-time updates
+   - Status: `streaming` → `completed` or `failed`
+   - Frontend polls for progress messages
+
+### MCP (Model Context Protocol)
+
+**Integration** (`src/main/lib/ai/mcp.ts`):
+
+Allows external tools/servers to be integrated via MCP protocol:
+
+1. **Configuration**: Users define MCP servers in settings JSON:
+
+```json
+{
+  "mcpServers": {
+    "git": { "command": "git-mcp", "args": [] },
+    "filesystem": { "command": "fs-server", "args": [] }
   }
 }
 ```
 
-1. Add to provider factory in `src/main/lib/ai/providers/index.ts`:
+2. **Connection** (`connectMcpServers()`):
+   - Launches each server via StdIO transport
+   - Retrieves available tools from each server
+   - Stores tools in Hono context
 
-```typescript
-const providers = {
-  // ...existing providers
-  [AiProviders.NewProvider]: getNewProvider
-}
-```
+3. **Tool Execution**:
+   - MCP tools merged with built-in tools
+   - AI can call MCP tools during conversation
+   - Results returned via standard MCP protocol
 
-1. Update `AiProviders` enum in `src/shared/constants/providers.ts`
-2. Add provider schema in `src/shared/schemas/setting-schema.ts` (for API keys)
-3. Add UI settings in `src/renderer/components/settings/`
+**Key Dependencies**:
 
-### Adding a New Tool
+- `@ai-sdk/mcp` - MCP client
+- `@modelcontextprotocol/sdk` - MCP protocol implementation
 
-1. Create tool definition in `src/main/lib/ai/calling-tools/new-tool.ts`:
+### Memory & Personalization Layer
 
-```typescript
-import { tool } from 'ai'
-import { z } from 'zod'
+**Memory System** (`src/main/lib/ai/agents/memory/`):
 
-export const newToolSchema = z.object({
-  param1: z.string().describe('Clear description for LLM'),
-  param2: z.number().optional().describe('Optional parameter')
-})
+Tracks user preferences, goals, and context across conversations:
 
-export const newTool = tool({
-  description:
-    'Detailed description of what this tool does. The LLM uses this to decide when to call it.',
-  parameters: newToolSchema,
-  execute: async ({ param1, param2 }) => {
-    // Implementation
-    // Can be async, can throw errors, can return complex objects
-    const result = await doSomething(param1, param2)
-    return result // Return value sent back to LLM as context
-  }
-})
-```
+**Memory Types** (stored in `memory` table):
 
-1. Export from `src/main/lib/ai/calling-tools/index.ts`:
+- `preference` - UI/interaction preferences
+- `goal` - User objectives
+- `environment` - Job, location, setup context
+- `skill` - Expertise areas
+- `project` - Current projects
+- `constraint` - Limitations or rules
 
-```typescript
-export { newTool } from './new-tool'
-```
+**Memory Operations**:
 
-1. Import and add to `bindCallingTools()` in `src/main/lib/ai/utils/chat-message-util.ts`:
+1. **Memory Write Judge** (`memory-write-judge.ts`):
+   - Runs after each conversation
+   - Uses gpt-4.1-mini to evaluate if memory should be written
+   - Criteria: long-term stable (weeks+), multi-conversation useful, not sensitive
+   - Output: shouldWrite boolean + memory metadata
 
-```typescript
-import { calculator, date, newTool, ... } from '../calling-tools'
+2. **Memory Read Filter** (`memory-read-filter.ts`):
+   - Before chat, filters relevant memories from database
+   - Uses LLM to select only directly applicable memories
+   - Prevents token waste and false positives
 
-// In bindCallingTools():
-return {
-  calculator,
-  date,
-  newTool,
-  ...mcpToolsMap,
-  ...(advancedTools.includes(AdvancedTools.WebSearch) && { webSearch }),
-  // ...
-}
-```
+3. **Session Summary** (`session-summary.ts`):
+   - After conversation, summarizes key points
+   - Extracts: user goals, confirmed facts, open questions, preferences
+   - Stored for future session context
 
-1. Optionally add to `AdvancedTools` enum if it should be user-toggleable
+### Frontend Structure
 
-### Adding an API Route (ORPC)
+**Stack**:
 
-**Note: New routes should use ORPC, not Hono. See ORPC_MIGRATION_COMPLETE.md for migration details.**
+- React 19 with TypeScript
+- React Router v7 for navigation
+- Jotai for global state management (atoms in `src/renderer/stores/`)
+- SWR for server state fetching
+- Tailwind CSS + Radix UI components
+- @tiptap for rich text editing (Immersive Editor)
+- Monaco Editor for code display
+- Three.js for 3D visualizations
 
-1. Create route file in `src/main/lib/server-orpc/routes/new-route.ts`:
+**Key Directories**:
 
-```typescript
-import { os } from '@orpc/server'
-import { ErrorCode } from '@shared/constants/error-codes'
-import { NotFoundError, ValidationError } from '@shared/errors'
-import z from 'zod'
+- `components/` - Reusable UI components (including shadcn/ui)
+- `services/` - API call wrappers (chat, RAG, settings, etc.)
+- `stores/` - Jotai atoms for global state
+- `hooks/` - Custom React hooks
+- `layouts/` - Page layouts (workspace, chat)
+- `routes/` - Route definitions
+- `containers/` - Page-level components
+- `sub-apps/` - Special entry points (searchbar, quick-chat)
 
-// Define input schema
-const inputSchema = z.object({
-  id: z.string(),
-  data: z.string()
-})
+**API Communication**:
 
-// Define route
-export const getItem = os.input(inputSchema).handler(async ({ input }) => {
-  const item = await getItemById(input.id)
+- All API calls via `fetcher()` utility to `http://localhost:3000/api/*`
+- Streaming responses handled via `streamText()` SDK
+- SWR for caching and revalidation
 
-  if (!item) {
-    throw new NotFoundError(ErrorCode.RESOURCE_NOT_FOUND, 'Item not found', {
-      id: input.id
-    })
-  }
+### Path Aliases
 
-  return item
-})
+**Main Process** (`tsconfig.node.json`):
 
-// With middleware
-export const createItem = os
-  .use(withSetting)
-  .input(inputSchema)
-  .handler(async ({ input, context }) => {
-    // context.setting available from middleware
-    return await saveItem(input)
-  })
-```
+- `@shared` → `src/shared`
 
-2. Register in `src/main/lib/server-orpc/routes/index.ts`:
+**Renderer Process** (`tsconfig.web.json`):
 
-```typescript
-import { getItem, createItem } from './new-route'
+- `@` → `src/renderer`
+- `@shared` → `src/shared`
 
-export const router = {
-  // ... existing routes
-  newRoute: {
-    getItem,
-    createItem
-  }
-}
-```
+**Shared Code** (`src/shared/`):
 
-3. Use proper error handling with error codes (see Error Handling section)
+- `types/` - Shared TypeScript types
+- `constants/` - Constants used across processes
+- `utils/` - Utility functions
+- `schemas/` - Zod schemas
+- `errors/` - Custom error classes
 
-### Database Schema Changes
+## Important Implementation Notes
 
-1. Modify `src/main/lib/db/schema.ts`
-2. Run `pnpm db:generate` to create migration
-3. Migration runs automatically on next app start
-4. Update TypeScript types (auto-inferred from schema)
+### When Working with AI Providers
 
-### State Management with Jotai
+- All provider implementations must return `chatModel`, `reasoningModel`, and `embeddingModel`
+- Use `createAzure()`, `createAnthropic()`, etc. from `@ai-sdk/*` packages
+- Model names are retrieved from `setting` table
+- API keys stored in settings (never hardcode)
 
-**Atom Locations:**
+### When Working with Database
 
-- Chat-related: `src/renderer/stores/chat.ts`
-- Settings: `src/renderer/stores/setting.ts`
-- Workflow: `src/renderer/stores/workflow.ts`
+- Always use Drizzle ORM queries (`src/main/lib/db/queries.ts`)
+- Schema changes require running `pnpm db:generate` to create migrations
+- Vector searches use `cosineDistance()` from pgvector
+- All timestamps use `timestamp('created_at').notNull().defaultNow()`
 
-**Common Atoms:**
+### When Working with Tools
 
-```typescript
-// Chat state
-advancedToolsAtom // Selected tools (WebSearch, Reasoning, etc.)
-attachmentAtom // File attachments for current message
-activeDeepResearchIdAtom // Currently running deep research
-deepResearchMessagesAtom // Streaming messages from research
-isImmersionVisibleAtom // Code editor overlay toggle
-isFullTextSearchVisibleAtom // Search modal visibility
-toBeDeletedChatAtom // Chat pending deletion confirmation
-renamedChatTitleAtom // Chat rename dialog state
-availableMcpToolsAtom // MCP tools list
-```
+- Tool definitions go in `src/main/lib/ai/calling-tools/`
+- Tools are bound conditionally based on `AdvancedTools` enum
+- Always validate inputs with Zod schemas
+- Tool descriptions are critical for LLM understanding
+- Return structured data that LLM can interpret
 
-**Usage Pattern:**
+### When Working with Chat
 
-```typescript
-// Define atom in stores/
-export const myAtom = atom<MyType>(initialValue)
+- Chat route handles streaming via `streamText()` from AI SDK
+- Use `maxSteps` for multi-turn tool calling
+- `mergeIntoDataStream()` adds reasoning/sources to stream
+- Always save messages to database after completion
+- Message parts stored as JSONB in `message.parts` column
 
-// Read in component
-const value = useAtomValue(myAtom)
+### When Working with Frontend
 
-// Write in component
-const setValue = useSetAtom(myAtom)
-
-// Read and write
-const [value, setValue] = useAtom(myAtom)
-```
-
-**Best Practices:**
-
-- Keep atoms focused and single-purpose
-- Co-locate related atoms in same file
-- Use TypeScript types for atom values
-- Prefer `useAtomValue`/`useSetAtom` over `useAtom` when only reading or writing
-
-## Build Configuration
-
-### Vite Build
-
-**Config:** `electron.vite.config.ts`
-
-Three separate bundles:
-
-- **main** - Main process (Node.js target)
-- **preload** - Preload scripts (contextBridge APIs)
-- **renderer** - React UI with 3 entry points (main, searchbar, quickChat)
-
-**Minification:** esbuild (fast, production-ready)
-
-### Electron Builder
-
-**Config:** `electron-builder.yml`
-
-Platform-specific builds:
-
-- macOS: .dmg installer
-- Windows: .exe installer
-- Linux: AppImage, deb, rpm
-
-**Auto-updater:** Electron Updater checks GitHub Releases for updates
-
-## Important Notes
-
-### TypeScript Configuration
-
-Two separate tsconfigs:
-
-- `tsconfig.node.json` - Main process (includes main/, preload/, shared/)
-- `tsconfig.web.json` - Renderer process (includes renderer/, shared/)
-
-Both must pass for successful build.
-
-### IPC Communication
-
-**From Renderer to Main:**
-
-```typescript
-// In renderer
-window.electronAPI.sendIPCMessage('event-name', data)
-
-// In main (ipc.ts)
-ipcMain.on('event-name', (event, data) => { ... })
-```
-
-**From Main to Renderer:**
-
-```typescript
-// In main
-mainWindow.webContents.send('event-name', data)
-
-// In renderer
-window.electronAPI.onIPCMessage('event-name', (data) => { ... })
-```
+- Use Jotai atoms for global state (avoid prop drilling)
+- SWR hooks for server data fetching with automatic revalidation
+- Always use path alias `@` for renderer imports
+- Tailwind + Radix UI for consistent styling
+- Toast notifications via `sonner` library
 
 ### Security Considerations
 
-- Context isolation enabled (preload scripts required)
-- Node integration disabled in renderer
-- Developer tools always enabled (transparency principle)
-- API keys stored in local PGlite database (not in code)
-
-### HTTP Server Ports
-
-- **Hono HTTP Server:** `localhost:60223` (SERVER_PORT constant)
-- **ORPC Server:** `localhost:63129`
-
-These are defined in `src/shared/constants/systems.ts`. The BASE_URL constant is `http://localhost:${SERVER_PORT}`.
-
-### Code Style
-
-- Prettier with custom config (single quotes, no semicolons, 80 char width)
-- ESLint with React and TypeScript rules
-- Organize imports plugin (auto-sort imports)
-- Pre-commit hooks via Husky + lint-staged
-
-### API Routes Reference
-
-**Chat Routes** (`/api/chat`):
-
-- `POST /api/chat` - Stream chat completion
-- `GET /api/chat/:id` - Load chat messages
-- `DELETE /api/chat/:id` - Delete chat
-- `PUT /api/chat` - Update chat (title, favorite)
-- `GET /api/chat/search?query=...` - Full-text search messages
-- `GET /api/chat/mcp` - List available MCP tools
-
-**Other Routes:**
-
-- `GET /api/history` - List all chats
-- `GET /api/setting`, `POST /api/setting` - Manage user settings
-- `POST /api/deep-research` - Start deep research job
-- `POST /api/rag` - Upload knowledge base content
-- `GET /api/tools` - List available tools
-- `POST /api/audio` - Text-to-speech
-- `POST /api/custom-uploader` - Upload to S3/custom storage
-- `POST /api/db-io/export`, `POST /api/db-io/import` - Database export/import
-- `/api/workflow/*` - Workflow execution routes
-
-### Model Configuration
-
-**maxSteps:**
-
-Controls how many tool-calling iterations the LLM can make:
-
-- Default: 1 (single response)
-- Higher values: Allow LLM to call multiple tools sequentially
-- Configured in Settings → Provider Config
-- Used in `streamText()` call
-
-**Model Selection Logic:**
-
-```typescript
-// In chat route handler:
-const model =
-  advancedTools.includes(AdvancedTools.Reasoning) ||
-  advancedTools.includes(AdvancedTools.DeepResearch)
-    ? reasoningModel // o1, o3-mini, claude-3-7-sonnet, etc.
-    : chatModel // gpt-4o, claude-3-5-sonnet, etc.
-```
-
-**System Prompts:**
-
-- Standard chat: `systemPrompt` (in `src/main/lib/ai/prompts.ts`)
-- Deep research: `deepResearchBootPrompt`
-- Title generation: `titleGenerationPrompt`
-
-## Common Tasks
-
-### Running Tests
-
-No formal test suite. Validation through:
-
-1. `pnpm typecheck` - Catch type errors
-2. `pnpm lint` - Code quality checks
-3. `pnpm dev` - Manual smoke testing
-
-### Debugging
-
-**Main Process:**
-
-- Add `console.log()` statements
-- View logs in terminal running `pnpm dev`
-
-**Renderer Process:**
-
-- Use browser DevTools (Cmd+Option+I on macOS)
-- React DevTools available in development
-
-**Database:**
-
-- Query via `src/main/lib/db/queries.ts` functions
-- Use PGlite's SQL interface directly if needed
-
-### Hot Reload Behavior
-
-- **Renderer changes:** Instant hot reload (React Fast Refresh)
-- **Main process changes:** Requires Electron restart (automatic with electron-vite)
-- **Shared type changes:** Both processes reload
-
-### Working with Embeddings
-
-When modifying RAG:
-
-- Embedding dimensions must match model (stored in DB schema)
-- Similarity threshold: 0.5 (adjustable in queries)
-- HNSW index rebuilds automatically on schema changes
-- Use `js-tiktoken` for token counting before chunking
-
-### MCP Server Development
-
-When adding/testing MCP servers:
-
-1. Configure in Settings → MCP Servers
-2. Server spawned as child process on app startup
-3. Tools discovered automatically via MCP protocol
-4. Restart server via IPC message: `restart-server`
-5. Check logs for connection errors
-
-## Release Process
-
-- Semantic Release on `master` branch
-- Conventional Commits required (feat:, fix:, etc.)
-- Automatic versioning and changelog generation
-- GitHub Releases publishes binaries
-- Electron Updater fetches updates automatically
-
-## Important Conventions
-
-### Naming Patterns
-
-**Files:**
-
-- React components: PascalCase (`ChatMessage.tsx`, `SettingsDialog.tsx`)
-- Utilities/helpers: kebab-case (`chat-message-util.ts`, `web-search.ts`)
-- Constants: kebab-case (`systems.ts`, `models.ts`)
-- Types: kebab-case (`ai.ts`, `db.ts`)
-
-**Functions:**
-
-- Queries: verb + noun (`saveChat`, `getMessagesByChatId`, `fullTextSearchOnMessages`)
-- Providers: `get` + provider name (`getOpenAi`, `getAnthropicClaude`)
-- Tools: noun or verb (`calculator`, `webSearch`, `deepResearch`)
-- React hooks: `use` prefix (`useChat`, `useAtomValue`)
-
-**Types:**
-
-- Database models: Same as table name (`Chat`, `Message`, `Setting`)
-- Enums: PascalCase (`AiProviders`, `AdvancedTools`)
-- Interfaces/Types: PascalCase (`Variables`, `McpTools`)
-
-### Error Handling
-
-**⚠️ Important: Exodus uses a standardized error code system. See `ERROR_HANDLING_GUIDE.md` for complete documentation.**
-
-**In ORPC Routes:**
-
-```typescript
-import { ErrorCode } from '@shared/constants/error-codes'
-import { NotFoundError, ConfigurationError } from '@shared/errors'
-
-// Throw specific error with error code
-if (!chat) {
-  throw new NotFoundError(ErrorCode.CHAT_NOT_FOUND, undefined, { chatId: id })
-}
-
-if (!embeddingModel) {
-  throw new ConfigurationError(ErrorCode.CONFIG_MISSING_EMBEDDING_MODEL)
-}
-```
-
-**Available Error Classes:**
-
-- `ConfigurationError` - Missing or invalid configuration
-- `NotFoundError` - Resource not found (404)
-- `ValidationError` - Invalid input (400)
-- `ServiceError` - External service failures (503)
-- `DatabaseError` - Database operation failures (500)
-- `FileError` - File operation failures (500)
-- `AIError` - AI/Model errors (500)
-- `InternalError` - Internal server errors (500)
-
-**In Renderer (Client-Side):**
-
-```typescript
-import { parseAPIError } from '@shared/types/api-error'
-import { ErrorCode } from '@shared/constants/error-codes'
-
-try {
-  await orpcClient.chat.stream(data)
-} catch (error) {
-  const apiError = parseAPIError(error)
-
-  // Handle specific error codes
-  if (apiError.is(ErrorCode.CONFIG_MISSING_CHAT_MODEL)) {
-    toast.error('Please configure a chat model in settings')
-    router.push('/settings')
-    return
-  }
-
-  // Handle error categories
-  if (apiError.isConfigError()) {
-    router.push('/settings')
-  }
-
-  // Show user-friendly message
-  toast.error(apiError.getUserMessage())
-}
-```
-
-**Key Files:**
-
-- `src/shared/constants/error-codes.ts` - All error codes and messages
-- `src/shared/errors/` - Error class definitions
-- `src/shared/types/api-error.ts` - Client-side error handling utilities
-- `ERROR_HANDLING_GUIDE.md` - Complete documentation
-
-### Schema Validation
-
-All API request bodies should use Zod schemas:
-
-```typescript
-// Define in src/main/lib/server/schemas.ts
-export const createChatSchema = z.object({
-  id: z.string(),
-  messages: z.array(messageSchema),
-  advancedTools: z.array(z.nativeEnum(AdvancedTools))
-})
-
-// Validate in route handler
-const result = createChatSchema.safeParse(await c.req.json())
-if (!result.success) {
-  return c.text('Invalid request body', 400)
-}
-```
-
-### Streaming Patterns
-
-**Server-Side (Vercel AI SDK):**
-
-```typescript
-const dataStream = createDataStream({
-  execute: async (dataStream) => {
-    const result = streamText({
-      model,
-      messages,
-      tools,
-      onFinish: async ({ response }) => {
-        // Post-processing after stream completes
-      }
-    })
-    result.mergeIntoDataStream(dataStream)
-  }
-})
-
-return stream(c, async (stream) => {
-  for await (const chunk of dataStream) {
-    await stream.write(chunk)
-  }
-})
-```
-
-**Client-Side:**
-
-```typescript
-// Vercel AI SDK's useChat handles streaming automatically
-const { messages } = useChat({
-  api: '/api/chat',
-  streamProtocol: 'data' // Uses Vercel AI data stream format
-})
-```
-
-### Database Patterns
-
-**Transactions:**
-
-```typescript
-// Drizzle ORM transactions
-await db.transaction(async (tx) => {
-  await tx.insert(chat).values(newChat)
-  await tx.insert(message).values(messages)
-})
-```
-
-**Type-Safe Queries:**
-
-```typescript
-// Auto-inferred types from schema
-const chats = await db.select().from(chat).where(eq(chat.favorite, true))
-// chats: Chat[]
-```
-
-**JSON Columns:**
-
-```typescript
-// Use jsonb() with $type for type safety
-providerConfig: jsonb('providerConfig').$type<
-  z.infer<typeof providerConfigSchema>
->()
-```
-
-### Component Organization
-
-```
-components/
-├── ui/                 # shadcn/ui components (Button, Dialog, etc.)
-├── chat/              # Chat-specific components
-├── settings/          # Settings-specific components
-├── workflow/          # Workflow-specific components
-└── [feature]/         # Other feature-specific components
-```
-
-### Import Organization
-
-Prettier with `prettier-plugin-organize-imports` automatically sorts:
-
-1. React imports
-2. External packages
-3. Internal absolute imports (`@/`, `@shared/`)
-4. Relative imports
-5. Type imports (if using `import type`)
-
-No need to manually organize - just run `pnpm format`.
+- Context isolation enabled in preload
+- API keys stored locally in PGlite database
+- No external authentication (local-first application)
+- CORS allows localhost only in development
+- Sandbox disabled (required for native modules)
+
+## Testing Locally
+
+1. Install dependencies: `pnpm install`
+2. Start dev server: `pnpm dev`
+3. The app will launch with hot reload enabled
+4. Database automatically initialized on first run
+5. Configure at least one AI provider in settings before chatting
+
+## Common Development Patterns
+
+### Adding a New Tool
+
+1. Create tool file in `src/main/lib/ai/calling-tools/my-tool.ts`
+2. Define Zod schema for inputs
+3. Implement execute function
+4. Export as `tool()` from AI SDK
+5. Add to tool binding logic in `src/main/lib/ai/utils/chat-message-util.ts`
+6. Add UI toggle if needed in settings
+
+### Adding a New Route
+
+1. Create route file in `src/main/lib/server/routes/my-route.ts`
+2. Define Hono route handlers
+3. Import and register in main server setup
+4. Create corresponding service in `src/renderer/services/my-service.ts`
+5. Use SWR hook for data fetching in components
+
+### Adding a New Provider
+
+1. Create provider file in `src/main/lib/ai/providers/my-provider.ts`
+2. Return `{ provider, chatModel, reasoningModel, embeddingModel }`
+3. Add provider enum to `src/shared/constants/`
+4. Update settings UI to include new provider
+5. Update schema validation in `src/shared/schemas/`

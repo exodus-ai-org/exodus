@@ -1,3 +1,4 @@
+import { JSONRPCNotification } from '@ai-sdk/mcp'
 import {
   AudioSchema,
   DeepResearchSchema,
@@ -9,7 +10,6 @@ import {
   WebSearchSchema
 } from '@shared/schemas/setting-schema'
 import { WebSearchResult } from '@shared/types/web-search'
-import { JSONRPCNotification } from 'ai'
 import { sql, type InferSelectModel } from 'drizzle-orm'
 import {
   boolean,
@@ -57,7 +57,8 @@ export const message = pgTable(
   ]
 )
 
-export type Message = InferSelectModel<typeof message>
+export type DBMessage = InferSelectModel<typeof message>
+export type Message = DBMessage
 
 export const vote = pgTable(
   'Vote',

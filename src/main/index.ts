@@ -4,7 +4,6 @@ import { setupAutoUpdater } from './lib/auto-updater'
 import { runMigrate } from './lib/db/migrate'
 import { setupIPC } from './lib/ipc'
 import { setupMenu } from './lib/menu'
-import { connectOrpcServer } from './lib/server-orpc/app'
 import { connectHttpServer } from './lib/server/app'
 import { setServer } from './lib/server/instance'
 import { setTray } from './lib/tray'
@@ -18,10 +17,6 @@ app.whenReady().then(async () => {
   const server = await connectHttpServer()
   server.start()
   setServer(server)
-
-  // Start Orpc server
-  const orpc = await connectOrpcServer()
-  orpc.start()
 
   // Setup menu
   setupMenu()

@@ -6,7 +6,7 @@ import { z } from 'zod'
 export const googleMapsRouting = (setting: Setting) =>
   tool({
     description: 'Compute routes from location A to location B.',
-    parameters: z.object({
+    inputSchema: z.object({
       origin: z.string(),
       destination: z.string(),
       travelMode: z

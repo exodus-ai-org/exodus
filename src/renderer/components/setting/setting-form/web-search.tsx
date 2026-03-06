@@ -36,30 +36,30 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
         <AlertDescription className="inline">
           Exodus supports built-in Web Search using{' '}
           <a
-            href="https://serper.dev/"
+            href="https://brave.com/search/api/"
             target="_blank"
             rel="noopener noreferrer"
             className="font-semibold underline"
           >
-            Serper
+            Brave Search
           </a>{' '}
-          to retrieve Google Search results. To utilize the feature, you must
-          first register for a <strong>Serper API Key</strong>.
+          to retrieve search results. To utilize the feature, you must first
+          register for a <strong>Brave Search API Key</strong>.
         </AlertDescription>
       </Alert>
 
       <div className="flex flex-col gap-3">
         <FormField
           control={form.control}
-          name="webSearch.serperApiKey"
+          name="webSearch.braveApiKey"
           render={({ field }) => (
             <FormItem className="flex justify-between gap-16">
-              <FormLabel className="shrink-0">Serper API Key</FormLabel>
+              <FormLabel className="shrink-0">Brave API Key</FormLabel>
               <FormControl className="w-full">
                 <Input
                   type="password"
                   autoComplete="current-password"
-                  id="google-search-api-key-input"
+                  id="brave-search-api-key-input"
                   autoFocus
                   {...field}
                   value={field.value ?? ''}
