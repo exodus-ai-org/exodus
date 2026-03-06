@@ -4,7 +4,12 @@ import { TooltipArrow } from '@radix-ui/react-tooltip'
 import { AdvancedTools as AdvancedToolsType } from '@shared/types/ai'
 import { produce } from 'immer'
 import { useAtom } from 'jotai'
-import { Globe, Lightbulb, Palette, Telescope } from 'lucide-react'
+import {
+  GlobeIcon,
+  LightbulbIcon,
+  PaletteIcon,
+  TelescopeIcon
+} from 'lucide-react'
 import { Button } from './ui/button'
 import {
   Tooltip,
@@ -16,22 +21,22 @@ import {
 const advancedToolsList = [
   {
     key: AdvancedToolsType.WebSearch,
-    icon: <Globe />,
+    icon: <GlobeIcon />,
     desc: AdvancedToolsType.WebSearch
   },
   {
     key: AdvancedToolsType.Reasoning,
-    icon: <Lightbulb />,
+    icon: <LightbulbIcon />,
     desc: AdvancedToolsType.Reasoning
   },
   {
     key: AdvancedToolsType.DeepResearch,
-    icon: <Telescope />,
+    icon: <TelescopeIcon />,
     desc: AdvancedToolsType.DeepResearch
   },
   {
     key: AdvancedToolsType.Immersion,
-    icon: <Palette />,
+    icon: <PaletteIcon />,
     desc: AdvancedToolsType.Immersion
   }
 ]
@@ -80,9 +85,9 @@ export function AdvancedTools() {
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  'text-ring hover:text-ring h-9 w-9 rounded-full border',
+                  'text-ring hover:text-ring h-6 w-6 rounded-full bg-transparent',
                   {
-                    ['bg-accent text-[#0285ff] hover:text-[#0285ff] dark:text-[#48aaff] hover:dark:text-[#48aaff]']:
+                    ['text-[#0285ff] hover:text-[#0285ff] dark:text-[#48aaff] hover:dark:text-[#48aaff]']:
                       advancedTools.includes(key)
                   }
                 )}

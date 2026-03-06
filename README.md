@@ -15,7 +15,7 @@
 
 Exodus is a high-performance, cross-platform AI chat application for desktop that is compatible with a variety of model providers.
 
-## Model Providers
+## LLM Providers
 
 > [!NOTE]
 > Exodus updates its model provider list as the providers are updated. The following table lists the currently supported chat and reasoning models.

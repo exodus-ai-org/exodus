@@ -9,9 +9,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useSettings } from '@/hooks/use-settings'
+import { useSetting } from '@/hooks/use-setting'
 import { protos } from '@googlemaps/places'
-import { Globe, MapPin, Phone, Star } from 'lucide-react'
+import { GlobeIcon, MapPinIcon, PhoneIcon, StarIcon } from 'lucide-react'
 import Zoom from 'react-medium-image-zoom'
 
 interface RestaurantAccordionProps {
@@ -23,10 +23,10 @@ export function PlacesAccordion({
   places,
   className = ''
 }: RestaurantAccordionProps) {
-  const { data: settings } = useSettings()
+  const { data: setting } = useSetting()
 
   const parseImg = (photo?: protos.google.maps.places.v1.IPhoto) => {
-    if (!settings || !photo || !settings.googleCloud?.googleApiKey)
+    if (!setting || !photo || !setting.googleCloud?.googleApiKey)
       return 'https://maps.gstatic.com/tactile/pane/result-no-thumbnail-2x.png'
     const base = 'https://places.googleapis.com/v1/'
 
@@ -34,7 +34,7 @@ export function PlacesAccordion({
       base +
       photo.name +
       '/media' +
-      `?maxWidthPx=1600&key=${settings.googleCloud.googleApiKey}`
+      `?maxWidthPx=1600&key=${setting.googleCloud.googleApiKey}`
     )
   }
 
@@ -52,7 +52,7 @@ export function PlacesAccordion({
               >
                 <AccordionTrigger className="px-4 py-3 hover:no-underline">
                   <div className="flex w-full items-center text-left">
-                    <div className="relative mr-4 h-16 w-16 flex-shrink-0 overflow-hidden rounded-md">
+                    <div className="relative mr-4 h-16 w-16 shrink-0 overflow-hidden rounded-md">
                       <LazyLoadImage
                         src={parseImg(place.photos?.[0])}
                         alt={place.displayName?.text ?? ''}
@@ -64,7 +64,7 @@ export function PlacesAccordion({
                       </h3>
                       <div className="mt-1 flex items-center">
                         <div className="flex items-center">
-                          <Star className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                          <StarIcon className="h-4 w-4 fill-yellow-500 text-yellow-500" />
                           <span className="ml-1 text-sm font-medium">
                             {typeof place.rating === 'number' &&
                             Number.isInteger(place.rating)
@@ -100,7 +100,7 @@ export function PlacesAccordion({
                   <div className="border-t px-4 pt-4">
                     <div className="mb-4 space-y-2 text-sm">
                       <div className="flex items-start">
-                        <MapPin className="mt-0.5 mr-2 h-4 w-4 flex-shrink-0 text-gray-500" />
+                        <MapPinIcon className="mt-0.5 mr-2 h-4 w-4 shrink-0 text-gray-500" />
 
                         <a
                           className="text-blue-500 hover:underline"
@@ -117,7 +117,7 @@ export function PlacesAccordion({
 
                       {place.websiteUri && (
                         <div className="flex items-center">
-                          <Globe className="mr-2 h-4 w-4 text-gray-500" />
+                          <GlobeIcon className="mr-2 h-4 w-4 text-gray-500" />
                           <a
                             href={place.websiteUri}
                             target="_blank"
@@ -131,7 +131,7 @@ export function PlacesAccordion({
 
                       {place.internationalPhoneNumber && (
                         <div className="flex items-center">
-                          <Phone className="mr-2 h-4 w-4 text-gray-500" />
+                          <PhoneIcon className="mr-2 h-4 w-4 text-gray-500" />
                           <span className="text-gray-500">
                             {place.internationalPhoneNumber}
                           </span>
@@ -201,7 +201,7 @@ export function PlacesAccordion({
                                     </div>
                                     <div className="flex items-center">
                                       {Array.from({ length: 5 }).map((_, i) => (
-                                        <Star
+                                        <StarIcon
                                           key={i}
                                           className={`h-3 w-3 ${i < (review?.rating || 0) ? 'fill-yellow-500 text-yellow-500' : 'text-gray-300'}`}
                                         />

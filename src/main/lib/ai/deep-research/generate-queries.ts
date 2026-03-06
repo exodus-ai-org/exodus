@@ -1,5 +1,5 @@
 import { Learning } from '@shared/types/deep-research'
-import { LanguageModelV1, generateObject } from 'ai'
+import { LanguageModel, generateObject } from 'ai'
 import { z } from 'zod'
 import { deepResearchSystemPrompt } from '../prompts'
 
@@ -13,22 +13,10 @@ export async function generateSerpQueries(
     numQueries?: number
     learnings?: Learning[]
   },
-  { model }: { model: LanguageModelV1 }
+  { model }: { model: LanguageModel }
 ) {
   const response = await generateObject({
     model,
-    system: deepResearchSystemPrompt,
-    prompt:
-      'Given the following prompt from the user, generate a list of SERP queries to research the topic.' +
-      `Return a maximum of ${numQueries} queries, but feel free to return less if the original prompt is clear. ` +
-      `Make sure each query is unique and not similar to each other: <prompt>${query}</prompt>\n\n` +
-      `${
-        learnings
-          ? `Here are some learnings from previous research, use them to generate more specific queries:\n ${learnings
-              .map((learning) => `<learning>\n${learning}\n</learning>`)
-              .join('\n')}`
-          : ''
-      }`,
     schema: z.object({
       queries: z
         .array(
@@ -44,7 +32,19 @@ export async function generateSerpQueries(
           })
         )
         .describe(`List of SERP queries, max of ${numQueries}`)
-    })
+    }),
+    system: deepResearchSystemPrompt,
+    prompt:
+      'Given the following prompt from the user, generate a list of SERP queries to research the topic.' +
+      `Return a maximum of ${numQueries} queries, but feel free to return less if the original prompt is clear. ` +
+      `Make sure each query is unique and not similar to each other: <prompt>${query}</prompt>\n\n` +
+      `${
+        learnings
+          ? `Here are some learnings from previous research, use them to generate more specific queries:\n ${learnings
+              .map((learning) => `<learning>\n${learning}\n</learning>`)
+              .join('\n')}`
+          : ''
+      }`
   })
 
   return response.object.queries

@@ -8,7 +8,7 @@ export const exampleCode = `import {
   Pause,
   Plus,
   Search,
-  Settings,
+  Setting,
   Sparkles,
   Users,
   X
@@ -312,7 +312,7 @@ export default function Home() {
               className="rounded-full border border-white/20 bg-white/10 py-2 pr-4 pl-10 text-white backdrop-blur-sm placeholder:text-white/70 focus:ring-2 focus:ring-white/30 focus:outline-none"
             />
           </div>
-          <Settings className="h-6 w-6 text-white drop-shadow-md" />
+          <Setting className="h-6 w-6 text-white drop-shadow-md" />
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-500 font-bold text-white shadow-md">
             U
           </div>
@@ -521,7 +521,7 @@ export default function Home() {
         {/* AI Popup */}
         {showAIPopup && (
           <div className="fixed right-8 bottom-8 z-20">
-            <div className="relative w-[450px] rounded-2xl border border-blue-300/30 bg-gradient-to-br from-blue-400/30 via-blue-500/30 to-blue-600/30 p-6 text-white shadow-xl backdrop-blur-lg">
+            <div className="relative w-[450px] rounded-2xl border border-blue-300/30 bg-linear-to-br from-blue-400/30 via-blue-500/30 to-blue-600/30 p-6 text-white shadow-xl backdrop-blur-lg">
               <button
                 onClick={() => setShowAIPopup(false)}
                 className="absolute top-2 right-2 text-white/70 transition-colors hover:text-white"
@@ -529,10 +529,10 @@ export default function Home() {
                 <X className="h-5 w-5" />
               </button>
               <div className="flex gap-3">
-                <div className="flex-shrink-0">
+                <div className="shrink-0">
                   <Sparkles className="h-5 w-5 text-blue-300" />
                 </div>
-                <div className="min-h-[80px]">
+                <div className="min-h-20">
                   <p className="text-base font-light">{typedText}</p>
                 </div>
               </div>

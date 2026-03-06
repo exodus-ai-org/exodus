@@ -2,7 +2,14 @@ import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import JSZip from 'jszip'
 import { exportData, importData } from '../../db/queries'
-import { importDataSchema } from '../schemas'
+import { ChatSDKError } from '../errors'
+import { importDataSchema } from '../schemas/db-io'
+import {
+  handleDatabaseOperation,
+  successResponse,
+  validateSchema
+} from '../utils'
+import { bufferToArrayBuffer } from '../utils/helpers'
 
 const dbIo = new Hono<{ Variables: Variables }>()
 
@@ -17,34 +24,43 @@ async function createZipFromBlobs(
     zip.file(filename, arraybuffer)
   })
 
-  return zip
-    .generateAsync({ type: 'nodebuffer' })
-    .then((content) => {
-      return content
-    })
-    .catch((error) => {
-      throw error
-    })
+  try {
+    return await zip.generateAsync({ type: 'nodebuffer' })
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:database',
+      error instanceof Error ? error.message : 'Failed to create zip file'
+    )
+  }
 }
 
 dbIo.post('/import', async (c) => {
   const body = await c.req.parseBody()
-  const result = importDataSchema.safeParse({
-    tableName: body['tableName'],
-    file: body['file']
-  })
-  if (!result.success) {
-    return c.text('Invalid request body', 400)
-  }
-  const { tableName, file } = result.data
-  await importData(tableName, file)
-  return c.json({ success: true })
+  const { tableName, file } = validateSchema<{ tableName: string; file: File }>(
+    importDataSchema,
+    {
+      tableName: body['tableName'],
+      file: body['file']
+    },
+    'database',
+    'Invalid request body'
+  )
+
+  await handleDatabaseOperation(
+    () => importData(tableName, file),
+    'Failed to import data'
+  )
+
+  return successResponse(c, { success: true })
 })
 
 dbIo.post('/export', async () => {
   const blobs = await Promise.all(
     tableNames.map(async (tableName) => {
-      const blob = await exportData(tableName)
+      const blob = await handleDatabaseOperation(
+        () => exportData(tableName),
+        `Failed to export ${tableName}`
+      )
       return {
         arraybuffer: await (blob ?? new Blob([])).arrayBuffer(),
         filename: `${tableName}.csv`
@@ -54,7 +70,7 @@ dbIo.post('/export', async () => {
 
   const zipBlob = await createZipFromBlobs(blobs)
 
-  return new Response(zipBlob, {
+  return new Response(bufferToArrayBuffer(zipBlob), {
     headers: {
       'Content-Type': 'application/zip'
     }

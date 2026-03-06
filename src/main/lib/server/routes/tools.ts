@@ -2,7 +2,10 @@ import { Variables } from '@shared/types/server'
 import { BrowserWindow } from 'electron'
 import { Hono } from 'hono'
 import MarkdownIt from 'markdown-it'
-import { markdownToPdfSchema } from '../schemas'
+import { ChatSDKError } from '../errors'
+import { markdownToPdfSchema } from '../schemas/tools'
+import { getRequiredQuery, successResponse, validateSchema } from '../utils'
+import { bufferToArrayBuffer } from '../utils/helpers'
 
 const tools = new Hono<{ Variables: Variables }>()
 
@@ -27,20 +30,26 @@ async function markdownStringToPdfBuffer(markdownString: string) {
     })
     return buffer
   } catch (e) {
-    throw e instanceof Error ? e.message : new Error(`Failed to generate PDF`)
+    throw new ChatSDKError(
+      'bad_request:api',
+      e instanceof Error ? e.message : 'Failed to generate PDF'
+    )
   } finally {
     win.close()
   }
 }
 
 tools.post('/md-to-pdf', async (c) => {
-  const result = markdownToPdfSchema.safeParse(await c.req.json())
-  if (!result.success) {
-    return c.text('Invalid request body', 400)
-  }
-  const { markdown } = result.data
+  const { markdown } = validateSchema(
+    markdownToPdfSchema,
+    await c.req.json(),
+    'api',
+    'Invalid request body'
+  )
+
   const buffer = await markdownStringToPdfBuffer(markdown)
-  return new Response(buffer, {
+
+  return new Response(bufferToArrayBuffer(buffer), {
     headers: {
       'Content-Type': 'application/pdf'
     }
@@ -48,18 +57,15 @@ tools.post('/md-to-pdf', async (c) => {
 })
 
 tools.get('/ping-ollama', async (c) => {
-  const url = c.req.query('url')
-  if (!url) {
-    return c.text('Not Found', 404)
-  }
+  const url = getRequiredQuery(c, 'url', 'api')
 
   try {
     await fetch(url)
-    return c.json({
+    return successResponse(c, {
       message: 'Ollama is running'
     })
   } catch {
-    return c.text('Not Found', 404)
+    throw new ChatSDKError('not_found:api', 'Ollama is not reachable')
   }
 })
 

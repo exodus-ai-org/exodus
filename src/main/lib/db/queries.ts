@@ -1,18 +1,24 @@
-import { and, asc, desc, eq, sql } from 'drizzle-orm'
+import { EmbeddingModel } from 'ai'
+import { and, asc, cosineDistance, desc, eq, gt, sql } from 'drizzle-orm'
 import { v4 as uuidV4 } from 'uuid'
-import { db, pgLiteClient } from './db'
+import { generateEmbedding, generateEmbeddings } from '../ai/rag'
+import { ChatSDKError } from '../server/errors'
+import { db, pglite } from './db'
 import {
-  Chat,
   chat,
+  DBMessage,
   deepResearch,
   deepResearchMessage,
+  embedding,
   message,
-  settings,
+  resource,
+  setting,
   vote,
+  type Chat,
   type DeepResearch,
   type DeepResearchMessage,
   type Message,
-  type Settings
+  type Setting
 } from './schema'
 
 export async function saveChat({ title, id }: { id: string; title: string }) {
@@ -27,7 +33,7 @@ export async function saveChat({ title, id }: { id: string; title: string }) {
   }
 }
 
-export async function updateChat(payload: Chat) {
+export async function updateChat(payload: Omit<Chat, 'createdAt'>) {
   try {
     return await db.update(chat).set(payload).where(eq(chat.id, payload.id))
   } catch (error) {
@@ -36,7 +42,7 @@ export async function updateChat(payload: Chat) {
   }
 }
 
-export async function getChats() {
+export async function getAllChats() {
   try {
     return await db.select().from(chat).orderBy(desc(chat.createdAt))
   } catch (error) {
@@ -86,6 +92,35 @@ export async function getMessagesByChatId({ id }: { id: string }) {
   } catch (error) {
     console.error('Failed to get messages by chat id from database', error)
     throw error
+  }
+}
+
+export async function updateChatTitleById({
+  id,
+  title
+}: {
+  id: string
+  title: string
+}) {
+  try {
+    return await db.update(chat).set({ title }).where(eq(chat.id, id))
+  } catch (error) {
+    console.warn('Failed to update title for chat', id, error)
+    throw error
+  }
+}
+
+export async function updateMessage({
+  id,
+  parts
+}: {
+  id: string
+  parts: DBMessage['parts']
+}) {
+  try {
+    return await db.update(message).set({ parts }).where(eq(message.id, id))
+  } catch {
+    throw new ChatSDKError('bad_request:database', 'Failed to update message')
   }
 }
 
@@ -148,81 +183,52 @@ export async function voteMessage({
 }
 
 export async function getVotesByChatId({ id }: { id: string }) {
-  try {
-    return await db.select().from(vote).where(eq(vote.chatId, id))
-  } catch (error) {
-    console.error('Failed to get votes by chat id from database', error)
-    throw error
-  }
+  return await db.select().from(vote).where(eq(vote.chatId, id))
 }
 
-export async function getSettings() {
-  try {
-    // retrieve first record
-    const [data] = await db.select().from(settings)
-    if (!data) {
-      return await db.insert(settings).values({
-        id: uuidV4()
-      })
-    }
-    return data
-  } catch (error) {
-    console.error('Failed to save settings in database')
-    throw error
-  }
+export async function getSetting() {
+  await db.insert(setting).values({ id: 'global' }).onConflictDoNothing()
+  const [data] = await db.select().from(setting)
+  return data!
 }
 
-export async function updateSetting(payload: Settings) {
-  try {
-    return await db
-      .update(settings)
-      .set(payload)
-      .where(eq(settings.id, payload.id))
-  } catch (error) {
-    console.error('Failed to save settings in database')
-    throw error
-  }
+export async function updateSetting(payload: Setting) {
+  return await db.update(setting).set(payload).where(eq(setting.id, payload.id))
 }
 
-// export const findRelevantContent = async (userQuery: string) => {
-//   const userQueryEmbedded = await generateEmbedding(userQuery);
+export const findRelevantContent = async (
+  { userQuery }: { userQuery: string },
+  { model }: { model: EmbeddingModel }
+) => {
+  const userQueryEmbedded = await generateEmbedding(
+    { value: userQuery },
+    { model }
+  )
+  const similarity = sql<number>`1 - (${cosineDistance(
+    embedding.embedding,
+    userQueryEmbedded
+  )})`
+  const similarGuides = await db
+    .select({ name: embedding.content, similarity })
+    .from(embedding)
+    .where(gt(similarity, 0.5))
+    .orderBy((t) => desc(t.similarity))
+    .limit(4)
 
-//   const similarity = sql<number>`1 - (${cosineDistance(
-//     embeddingsTable.embedding,
-//     userQueryEmbedded,
-//   )})`;
-
-//   const similarGuides = await db
-//     .select({ name: embeddingsTable.content, similarity })
-//     .from(embeddingsTable)
-//     .where(gt(similarity, 0.5))
-//     .orderBy((t) => desc(t.similarity))
-//     .limit(4);
-
-//   return similarGuides;
-// };
+  return similarGuides
+}
 
 export async function importData(tableName: string, blob: Blob) {
-  try {
-    await pgLiteClient.query(`COPY "${tableName}" FROM '/dev/blob';`, [], {
-      blob
-    })
-  } catch (error) {
-    console.error('Failed to import data in database')
-    throw error
-  }
+  await pglite.query(`COPY "${tableName}" FROM '/dev/blob';`, [], {
+    blob
+  })
 }
 
 export async function exportData(tableName: string) {
-  try {
-    const ret = await pgLiteClient.query(
-      `COPY "${tableName}" TO '/dev/blob' DELIMITER ',' CSV HEADER;`
-    )
-    return ret.blob
-  } catch (error) {
-    console.error('Failed to export data in database')
-    throw error
-  }
+  const ret = await pglite.query(
+    `COPY "${tableName}" TO '/dev/blob' DELIMITER ',' CSV HEADER;`
+  )
+  return ret.blob
 }
 
 export async function saveDeepResearch(payload: DeepResearch) {
@@ -279,5 +285,62 @@ export async function getDeepResearchMessagesById({ id }: { id: string }) {
   } catch (error) {
     console.error('Failed to get deep research message by id from database')
     throw error
+  }
+}
+
+function toPgVector(arr: number[]) {
+  return `[${arr.join(',')}]`
+}
+
+export const createResource = async (
+  { content, chunks }: { content: string; chunks: string[] },
+  { model }: { model: EmbeddingModel }
+) => {
+  try {
+    const [currResource] = await db
+      .insert(resource)
+      .values({ content })
+      .returning()
+
+    const embeddings = await generateEmbeddings({ chunks }, { model })
+    await db.insert(embedding).values(
+      embeddings.map(({ embedding, content }) => ({
+        id: uuidV4(),
+        resourceId: currResource.id,
+        content,
+        embedding: sql`${toPgVector(embedding)}::vector`
+      }))
+    )
+    return 'Resource successfully created and embedded.'
+  } catch (error) {
+    return error instanceof Error && error.message.length > 0
+      ? error.message
+      : 'Error, please try again.'
+  }
+}
+
+export async function getResourcePaginated(page: number, pageSize: number) {
+  const offset = (page - 1) * pageSize
+
+  const data = await db
+    .select()
+    .from(resource)
+    .orderBy(desc(resource.createdAt))
+    .limit(pageSize)
+    .offset(offset)
+
+  const [{ count: total }] = await db
+    .select({
+      count: sql<number>`count(*)`
+    })
+    .from(resource)
+
+  return {
+    data,
+    pagination: {
+      page,
+      pageSize,
+      total
+    }
   }
 }

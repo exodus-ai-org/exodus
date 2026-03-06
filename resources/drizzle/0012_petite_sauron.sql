@@ -1,1 +1,0 @@
-ALTER TABLE "Setting" ADD COLUMN "deepResearch" jsonb;

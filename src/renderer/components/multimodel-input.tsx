@@ -1,44 +1,51 @@
 import { useUpload } from '@/hooks/use-upload'
-import { attachmentAtom } from '@/stores/chat'
-import { UseChatHelpers } from '@ai-sdk/react'
-import { useAtom } from 'jotai'
-import { CircleStop, Send } from 'lucide-react'
+import { UIMessage, UseChatHelpers } from '@ai-sdk/react'
+import { Attachment, ChatMessage } from '@shared/types/chat'
+import { CircleStopIcon, SendIcon } from 'lucide-react'
 import {
   ChangeEvent,
   ClipboardEvent,
+  Dispatch,
   memo,
+  SetStateAction,
   useCallback,
   useEffect,
   useRef,
   useState
 } from 'react'
 import { toast } from 'sonner'
-import { AdvancedTools as AdvancedToolsType } from './advanced-tools'
+import { AdvancedTools } from './advanced-tools'
 import { AudioRecorder } from './audio-recoder'
 import { AvailableMcpTools } from './available-mcp-tools'
 import { FilePreview } from './file-preview'
 import { MultiModelInputUploader } from './multimodel-input-uploader'
 import { Button } from './ui/button'
+import { Separator } from './ui/separator'
 import { Textarea } from './ui/textarea'
 
 function InputBox({
   chatId,
   input,
   setInput,
-  handleSubmit,
-  status
+  status,
+  stop,
+  attachments,
+  setAttachments,
+  // messages,
+  // setMessages,
+  sendMessage
 }: {
   chatId: string
   input: string
-  append: UseChatHelpers['append']
-  messages: UseChatHelpers['messages']
-  setMessages: UseChatHelpers['setMessages']
-  setInput: UseChatHelpers['setInput']
-  handleSubmit: UseChatHelpers['handleSubmit']
-  status: UseChatHelpers['status']
-  stop: UseChatHelpers['stop']
+  setInput: Dispatch<SetStateAction<string>>
+  status: UseChatHelpers<ChatMessage>['status']
+  stop: () => void
+  attachments: Attachment[]
+  setAttachments: Dispatch<SetStateAction<Attachment[]>>
+  messages: UIMessage[]
+  setMessages: UseChatHelpers<ChatMessage>['setMessages']
+  sendMessage: UseChatHelpers<ChatMessage>['sendMessage']
 }) {
-  const [attachments, setAttachments] = useAtom(attachmentAtom)
   const { uploadFile } = useUpload()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [isTyping, setIsTyping] = useState(false)
@@ -83,10 +90,27 @@ function InputBox({
 
   const submitForm = useCallback(() => {
     window.history.replaceState({}, '', `/chat/${chatId}`)
-    handleSubmit(undefined, { experimental_attachments: attachments })
-    setAttachments(undefined)
+
+    sendMessage({
+      role: 'user',
+      parts: [
+        ...attachments.map((attachment) => ({
+          type: 'file' as const,
+          url: attachment.url,
+          name: attachment.name,
+          mediaType: attachment.contentType
+        })),
+        {
+          type: 'text',
+          text: input
+        }
+      ]
+    })
+
+    setAttachments([])
+    setInput('')
     resetHeight()
-  }, [chatId, handleSubmit, attachments, setAttachments])
+  }, [attachments, chatId, input, sendMessage, setAttachments, setInput])
 
   useEffect(() => {
     if (textareaRef.current) {
@@ -95,7 +119,7 @@ function InputBox({
   }, [])
 
   return (
-    <div className="mx-auto mb-4 flex w-[calc(100%-2rem)] flex-col gap-2 rounded-4xl border p-3 shadow-2xl md:max-w-3xl">
+    <div className="mx-auto mb-4 flex w-[calc(100%-2rem)] flex-col gap-2 rounded-4xl border p-3 shadow-xl md:max-w-3xl">
       <form>
         <FilePreview />
         <Textarea
@@ -103,7 +127,7 @@ function InputBox({
           placeholder="Send a message..."
           value={input}
           onChange={handleInput}
-          className="max-h-[75dvh] min-h-[24px] resize-none rounded-2xl border-none pb-6 shadow-none focus-visible:ring-0"
+          className="max-h-[75dvh] min-h-6 resize-none rounded-2xl border-none pb-6 shadow-none focus-visible:ring-0"
           rows={2}
           autoFocus
           onKeyDown={(event) => {
@@ -126,24 +150,25 @@ function InputBox({
           onPaste={handlePaste}
         />
       </form>
-      <div className="mx-2 mb-2 flex justify-between">
+      <div className="mx-2 mb-2 flex items-center justify-between">
         <div className="flex gap-2">
           <MultiModelInputUploader />
-          <AdvancedToolsType />
+          <Separator orientation="vertical" className="h-6!" />
+          <AdvancedTools />
           <AvailableMcpTools />
         </div>
 
         {status === 'submitted' || status === 'streaming' ? (
           <Button variant="secondary" onClick={stop}>
-            <CircleStop />
+            <CircleStopIcon />
           </Button>
         ) : (
           <>
             {input.trim() === '' ? (
               <AudioRecorder input={input} setInput={setInput} />
             ) : (
-              <Button type="submit" variant="secondary" onClick={handleSubmit}>
-                <Send />
+              <Button type="submit" variant="secondary" onClick={submitForm}>
+                <SendIcon />
               </Button>
             )}
           </>

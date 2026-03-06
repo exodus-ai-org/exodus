@@ -3,20 +3,20 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { WeatherAPIResponse, WWO_CODE } from '@shared/types/weather'
 import { motion } from 'framer-motion'
 import {
-  Cloud,
-  CloudDrizzle,
-  CloudFog,
-  CloudLightning,
-  CloudRain,
-  CloudSnow,
-  CloudSun,
-  Droplets,
-  Eye,
-  Gauge,
-  Sun,
-  Thermometer,
-  Umbrella,
-  Wind
+  CloudDrizzleIcon,
+  CloudFogIcon,
+  CloudIcon,
+  CloudLightningIcon,
+  CloudRainIcon,
+  CloudSnowIcon,
+  CloudSunIcon,
+  DropletsIcon,
+  EyeIcon,
+  GaugeIcon,
+  SunIcon,
+  ThermometerIcon,
+  UmbrellaIcon,
+  WindIcon
 } from 'lucide-react'
 import { WeatherForecast } from './weather-forecast'
 
@@ -39,37 +39,37 @@ export function WeatherCard({
 
     switch (weatherType) {
       case 'Sunny':
-        return <Sun className="h-8 w-8 text-yellow-400" />
+        return <SunIcon className="h-8 w-8 text-yellow-400" />
       case 'PartlyCloudy':
-        return <CloudSun className="h-8 w-8 text-blue-400" />
+        return <CloudSunIcon className="h-8 w-8 text-blue-400" />
       case 'Cloudy':
-        return <Cloud className="h-8 w-8 text-slate-400" />
+        return <CloudIcon className="h-8 w-8 text-slate-400" />
       case 'VeryCloudy':
-        return <Cloud className="h-8 w-8 text-slate-600" />
+        return <CloudIcon className="h-8 w-8 text-slate-600" />
       case 'Fog':
-        return <CloudFog className="h-8 w-8 text-slate-300" />
+        return <CloudFogIcon className="h-8 w-8 text-slate-300" />
       case 'LightShowers':
-        return <CloudDrizzle className="h-8 w-8 text-blue-300" />
+        return <CloudDrizzleIcon className="h-8 w-8 text-blue-300" />
       case 'LightSleetShowers':
       case 'LightSleet':
-        return <CloudSnow className="h-8 w-8 text-blue-200" />
+        return <CloudSnowIcon className="h-8 w-8 text-blue-200" />
       case 'LightSnow':
       case 'LightSnowShowers':
-        return <CloudSnow className="h-8 w-8 text-slate-200" />
+        return <CloudSnowIcon className="h-8 w-8 text-slate-200" />
       case 'HeavySnow':
       case 'HeavySnowShowers':
-        return <CloudSnow className="h-8 w-8 text-white" />
+        return <CloudSnowIcon className="h-8 w-8 text-white" />
       case 'ThunderyShowers':
       case 'ThunderyHeavyRain':
       case 'ThunderySnowShowers':
-        return <CloudLightning className="h-8 w-8 text-yellow-500" />
+        return <CloudLightningIcon className="h-8 w-8 text-yellow-500" />
       case 'LightRain':
-        return <CloudRain className="h-8 w-8 text-blue-400" />
+        return <CloudRainIcon className="h-8 w-8 text-blue-400" />
       case 'HeavyShowers':
       case 'HeavyRain':
-        return <CloudRain className="h-8 w-8 text-blue-600" />
+        return <CloudRainIcon className="h-8 w-8 text-blue-600" />
       default:
-        return <Cloud className="h-8 w-8 text-slate-400" />
+        return <CloudIcon className="h-8 w-8 text-slate-400" />
     }
   }
 
@@ -80,8 +80,8 @@ export function WeatherCard({
           <div
             className={`absolute inset-0 ${
               WWO_CODE[current.weatherCode as keyof typeof WWO_CODE] === 'Sunny'
-                ? 'bg-gradient-to-br from-sky-400 to-blue-500'
-                : 'bg-gradient-to-br from-slate-500 to-slate-700'
+                ? 'bg-linear-to-br from-sky-400 to-blue-500'
+                : 'bg-linear-to-br from-slate-500 to-slate-700'
             } transition-colors duration-500`}
           />
 
@@ -144,17 +144,17 @@ export function WeatherCard({
 
             <div className="mt-4 grid grid-cols-4 gap-2">
               <div className="flex flex-col items-center rounded-lg bg-white/10 p-2">
-                <Thermometer className="mb-1 h-5 w-5" />
+                <ThermometerIcon className="mb-1 h-5 w-5" />
                 <span className="text-sm">Feels like</span>
                 <span className="font-medium">{current.FeelsLikeC}°C</span>
               </div>
               <div className="flex flex-col items-center rounded-lg bg-white/10 p-2">
-                <Droplets className="mb-1 h-5 w-5" />
+                <DropletsIcon className="mb-1 h-5 w-5" />
                 <span className="text-sm">Humidity</span>
                 <span className="font-medium">{current.humidity}%</span>
               </div>
               <div className="col-span-2 flex flex-col rounded-lg bg-white/10 p-2">
-                <Wind className="mb-1 h-5 w-5" />
+                <WindIcon className="mb-1 h-5 w-5" />
                 <div className="flex w-full items-center justify-between">
                   <span className="text-sm">Wind</span>
                   <span className="font-medium">
@@ -171,22 +171,22 @@ export function WeatherCard({
             </div>
             <div className="mt-2 grid grid-cols-4 gap-2">
               <div className="flex flex-col items-center rounded-lg bg-white/10 p-2">
-                <Umbrella className="mb-1 h-5 w-5" />
+                <UmbrellaIcon className="mb-1 h-5 w-5" />
                 <span className="text-sm">Precipitation</span>
                 <span className="font-medium">{current.precipMM}mm</span>
               </div>
               <div className="flex flex-col items-center rounded-lg bg-white/10 p-2">
-                <Sun className="mb-1 h-5 w-5" />
+                <SunIcon className="mb-1 h-5 w-5" />
                 <span className="text-sm">UV Index</span>
                 <span className="font-medium">{current.uvIndex}</span>
               </div>
               <div className="flex flex-col items-center rounded-lg bg-white/10 p-2">
-                <Eye className="mb-1 h-5 w-5" />
+                <EyeIcon className="mb-1 h-5 w-5" />
                 <span className="text-sm">Visibility</span>
                 <span className="font-medium">{current.visibility}km</span>
               </div>
               <div className="flex flex-col items-center rounded-lg bg-white/10 p-2">
-                <Gauge className="mb-1 h-5 w-5" />
+                <GaugeIcon className="mb-1 h-5 w-5" />
                 <span className="text-sm">Pressure</span>
                 <span className="font-medium">{current.pressure}hPa</span>
               </div>

@@ -1,145 +1,198 @@
 import { WebPDFLoader } from '@langchain/community/document_loaders/web/pdf'
-import { WebSearchResponse, WebSearchResult } from '@shared/types/web-search'
+import { BraveSearchResponse, WebSearchResult } from '@shared/types/web-search'
 import * as cheerio from 'cheerio'
 import { encodingForModel } from 'js-tiktoken'
 import TurndownService from 'turndown'
 
+/* ================= Constants ================= */
+
 const enc = encodingForModel('o4-mini')
 
-export function getOgImageLink($: cheerio.CheerioAPI) {
-  try {
-    const ogImage =
-      $('meta[property="og:image"]').attr('content') ??
-      $('meta[name="og:image"]').attr('content') ??
-      $('meta[name="twitter:image"]').attr('content')
-    return ogImage
-  } catch {
-    return ''
-  }
+const TURNDOWN_OPTIONS = {
+  headingStyle: 'atx',
+  codeBlockStyle: 'fenced'
+} as const
+
+/* ================= Utils ================= */
+
+function getOgImageLink($: cheerio.CheerioAPI) {
+  return (
+    $('meta[property="og:image"]').attr('content') ??
+    $('meta[name="og:image"]').attr('content') ??
+    $('meta[name="twitter:image"]').attr('content') ??
+    ''
+  )
 }
 
-export async function loadPdf(blob: Blob) {
+/* ================= Loaders ================= */
+
+async function loadPdf(blob: Blob) {
   try {
     const loader = new WebPDFLoader(blob, { parsedItemSeparator: '' })
     const docs = await loader.load()
-    return docs.reduce((acc, val) => acc + `\n${val.pageContent}`, '')
+    return docs.map((d) => d.pageContent).join('\n')
   } catch {
     return ''
   }
 }
 
-export async function loadHtml(html: string) {
+function extractHtmlBody(html: string) {
   try {
     const $ = cheerio.load(html)
-    const headImageUrl = getOgImageLink($)
-    $('style').remove()
-    $('script').remove()
-    $('head').remove()
+
+    $('script, style, noscript, iframe, svg, footer, nav, header').remove()
+
     return {
-      ogImage: headImageUrl,
-      domStr: $.html()
+      ogImage: getOgImageLink($),
+      html:
+        $('article').html() ||
+        $('#content').html() ||
+        $('.content').html() ||
+        $('#main').html() ||
+        $('main').html() ||
+        $('body').html() ||
+        ''
     }
   } catch {
-    return ''
+    return null
   }
 }
 
-export async function loadDocument(link: string) {
+function htmlToMarkdown(html: string) {
+  const turndown = new TurndownService(TURNDOWN_OPTIONS)
+  return turndown.turndown(html)
+}
+
+/* ================= Document Loader ================= */
+
+async function loadDocument(link: string) {
   try {
     const response = await fetch(link)
-    const contentType = response.headers.get('content-type')
-    if (contentType?.includes('application/pdf')) {
+    const contentType = response.headers.get('content-type') ?? ''
+
+    // --- PDF ---
+    if (contentType.includes('application/pdf')) {
       const blob = await response.blob()
       const pdf = await loadPdf(blob)
-      if (pdf) {
-        return {
-          ogImage: '',
-          type: 'pdf',
-          content: pdf
-        }
-      }
+
+      return pdf
+        ? {
+            ogImage: '',
+            type: 'pdf' as const,
+            content: pdf
+          }
+        : null
     }
-    if (contentType?.includes('text/html')) {
+
+    // --- HTML ---
+    if (contentType.includes('text/html')) {
       const html = await response.text()
-      const domInfo = await loadHtml(html)
-      if (domInfo) {
-        const turndownService = new TurndownService()
-        const markdown = turndownService.turndown(domInfo.domStr)
-        if (markdown) {
-          return {
-            ogImage: domInfo.ogImage,
-            type: 'html',
+      const dom = extractHtmlBody(html)
+
+      if (!dom?.html) return null
+
+      const markdown = htmlToMarkdown(dom.html)
+
+      return markdown
+        ? {
+            ogImage: dom.ogImage,
+            type: 'html' as const,
             content: markdown
           }
-        }
-      }
+        : null
     }
+
     return null
   } catch {
     return null
   }
 }
 
-export async function fetchAndProcessSearchResults(
+/* ================= Search ================= */
+
+async function searchByBrave(
   query: string,
-  serperApiKey: string,
-  webSources?: Map<string, WebSearchResult> // Use for deep research
+  braveApiKey: string,
+  country?: string | null,
+  language?: string | null
 ) {
   try {
-    const response = await fetch('https://google.serper.dev/search', {
-      method: 'POST',
-      headers: {
-        'X-API-KEY': serperApiKey,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        q: query
-      })
-    })
-    const result = await response.text()
-    if (!result) {
-      return null
-    }
+    const params = new URLSearchParams({ q: query, count: '10' })
+    if (country) params.set('country', country)
+    if (language) params.set('search_lang', language)
 
-    const { organic } = JSON.parse(result) as WebSearchResponse
-    if (!organic) {
-      return null
-    }
-
-    const results = await Promise.allSettled(
-      organic
-        .filter(
-          (item) =>
-            !!item.link &&
-            !!item.title &&
-            (!webSources || !webSources.has(item.link))
-        )
-        .map(async (item) => {
-          const document = await loadDocument(item.link as string)
-          return {
-            link: item.link as string,
-            title: item.title as string,
-            snippet: item.snippet ?? '',
-            ogImage: document?.ogImage,
-            type: document?.type,
-            content: document?.content
-          }
-        })
+    const response = await fetch(
+      `https://api.search.brave.com/res/v1/web/search?${params}`,
+      {
+        headers: {
+          'X-Subscription-Token': braveApiKey,
+          Accept: 'application/json'
+        }
+      }
     )
 
-    const searchResults = results
+    const raw = await response.text()
+    return raw ? (JSON.parse(raw) as BraveSearchResponse) : null
+  } catch {
+    return null
+  }
+}
+
+/* ================= Main ================= */
+
+export async function fetchAndProcessSearchResults({
+  query,
+  braveApiKey,
+  webSources,
+  country,
+  language
+}: {
+  query: string
+  braveApiKey: string
+  webSources?: Map<string, WebSearchResult>
+  country?: string | null
+  language?: string | null
+}) {
+  try {
+    const data = await searchByBrave(query, braveApiKey, country, language)
+    const results = data?.web?.results
+    if (!results?.length) return null
+
+    const tasks = results
       .filter(
-        (result): result is PromiseFulfilledResult<WebSearchResult> =>
-          result.status === 'fulfilled' &&
-          !!result.value.content &&
-          enc.encode(result.value.content).length < 180_000
+        (item) =>
+          !!item.url &&
+          !!item.title &&
+          (!webSources || !webSources.has(item.url))
       )
-      .map((item, i) => ({
-        ...item.value,
+      .map(async (item) => {
+        const document = await loadDocument(item.url)
+
+        return {
+          link: item.url,
+          title: item.title,
+          snippet: item.description ?? item.extra_snippets?.[0] ?? '',
+          ogImage: document?.ogImage ?? '',
+          type: document?.type,
+          content: document?.content
+        }
+      })
+
+    const settled = await Promise.allSettled(tasks)
+
+    const finalResults = settled
+      .filter(
+        (r): r is PromiseFulfilledResult<WebSearchResult> =>
+          r.status === 'fulfilled' &&
+          !!r.value.content &&
+          enc.encode(r.value.content).length < 180_000
+      )
+      .map((r, i) => ({
+        ...r.value,
         rank: webSources ? webSources.size + i + 1 : i + 1
       }))
 
-    return searchResults
+    return finalResults
   } catch {
     return null
   }

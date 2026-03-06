@@ -13,7 +13,7 @@ import {
 } from '@shared/types/deep-research'
 import { motion } from 'framer-motion'
 import { useAtom } from 'jotai'
-import { X } from 'lucide-react'
+import { XIcon } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import useSWR from 'swr'
 import { MessageItem } from './message-item'
@@ -141,9 +141,9 @@ export function DeepResearchProcess() {
   return (
     <section
       className={cn(
-        'invisible h-svh w-0 overflow-x-hidden border-l transition-[width] duration-200',
+        'invisible h-svh w-0 shrink-0 overflow-x-hidden border-l transition-[width] duration-200',
         {
-          ['visible w-[25rem] border-l transition-[width] duration-200']:
+          ['visible w-100 border-l transition-[width] duration-200']:
             activeDeepResearchId !== ''
         }
       )}
@@ -181,7 +181,7 @@ export function DeepResearchProcess() {
           className="absolute right-3 rounded-full"
           onClick={() => setActiveDeepResearchId('')}
         >
-          <X />
+          <XIcon />
         </Button>
       </div>
       {activeDeepResearchId && (
@@ -189,7 +189,7 @@ export function DeepResearchProcess() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, ease: 'easeInOut' }}
-          className="markdown flex flex-col gap-4 overflow-y-scroll p-3 pb-18"
+          className="markdown flex flex-col gap-4 overflow-y-scroll p-3"
           ref={ref}
         >
           {tab === Tab.Activity &&
@@ -198,7 +198,10 @@ export function DeepResearchProcess() {
             ))}
 
           {tab === Tab.Source && (
-            <SourceItem webSearchResults={allWebSearchResults} />
+            <SourceItem
+              webSearchResults={allWebSearchResults}
+              finalReport={deepResearchResult?.finalReport ?? ''}
+            />
           )}
         </motion.div>
       )}

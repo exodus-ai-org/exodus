@@ -5,7 +5,7 @@ import {
   ReportProgressPayload
 } from '@shared/types/deep-research'
 import { WebSearchResult } from '@shared/types/web-search'
-import { LanguageModelV1 } from 'ai'
+import { LanguageModel } from 'ai'
 import { generateSerpQueries } from './generate-queries'
 import { processSerpResult } from './process-search-results'
 import { webSearch } from './web-search'
@@ -14,11 +14,11 @@ export async function deepResearch(
   { query, breadth, depth }: { query: string; breadth: number; depth: number },
   {
     model,
-    serperApiKey,
+    braveApiKey,
     notify
   }: {
-    model: LanguageModelV1
-    serperApiKey: string
+    model: LanguageModel
+    braveApiKey: string
     notify: (payload: ReportProgressPayload) => Promise<void>
   }
 ) {
@@ -43,7 +43,7 @@ export async function deepResearch(
       },
       {
         notify,
-        serperApiKey,
+        braveApiKey,
         model
       }
     )
@@ -67,13 +67,13 @@ async function recursiveDeepResearch(
     webSources?: Map<string, WebSearchResult>
   },
   {
-    serperApiKey,
+    braveApiKey,
     model,
     notify
   }: {
     notify: (payload: ReportProgressPayload) => Promise<void>
-    serperApiKey: string
-    model: LanguageModelV1
+    braveApiKey: string
+    model: LanguageModel
   }
 ) {
   if (depth <= 0 || breadth <= 0) return
@@ -83,7 +83,7 @@ async function recursiveDeepResearch(
       query: serpQuery.query,
       webSources
     },
-    { serperApiKey }
+    { braveApiKey }
   )
   if (!searchResults) return
 
@@ -148,7 +148,7 @@ async function recursiveDeepResearch(
       },
       {
         notify,
-        serperApiKey,
+        braveApiKey,
         model
       }
     )

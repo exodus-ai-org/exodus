@@ -1,14 +1,21 @@
-import { Settings } from '@shared/types/db'
-import { createOllama } from 'ollama-ai-provider'
+import { Setting } from '@shared/types/db'
+import { EmbeddingModel, LanguageModel } from 'ai'
+import { createOllama, OllamaProvider } from 'ai-sdk-ollama'
 
-export function getOllama(settings: Settings) {
+export function getOllama(setting: Setting): {
+  provider: OllamaProvider
+  chatModel: LanguageModel
+  reasoningModel: LanguageModel
+  embeddingModel: EmbeddingModel | null
+} {
   const ollama = createOllama({
-    baseURL: settings.providers?.ollamaBaseUrl ?? ''
+    baseURL: setting.providers?.ollamaBaseUrl ?? ''
   })
 
   return {
     provider: ollama,
-    chatModel: ollama(settings.providerConfig?.chatModel ?? ''),
-    reasoningModel: ollama(settings.providerConfig?.reasoningModel ?? '')
+    chatModel: ollama(setting.providerConfig?.chatModel ?? ''),
+    reasoningModel: ollama(setting.providerConfig?.reasoningModel ?? ''),
+    embeddingModel: null
   }
 }

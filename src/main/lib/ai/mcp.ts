@@ -1,7 +1,10 @@
+import { createMCPClient } from '@ai-sdk/mcp'
+import {
+  Experimental_StdioMCPTransport,
+  StdioConfig
+} from '@ai-sdk/mcp/mcp-stdio'
 import { McpTools } from '@shared/types/ai'
-import { experimental_createMCPClient } from 'ai'
-import { Experimental_StdioMCPTransport, StdioConfig } from 'ai/mcp-stdio'
-import { getSettings } from '../db/queries'
+import { getSetting } from '../db/queries'
 
 async function retrieveStdioMcpTools(
   { command, args }: StdioConfig,
@@ -11,11 +14,11 @@ async function retrieveStdioMcpTools(
     command,
     args
   })
-  const mcpClient = await experimental_createMCPClient({
+  const mcpClient = await createMCPClient({
     transport
   })
   console.log(`✅ The <${mcpServerName}> MCP has been registered.`)
-  const tools = await mcpClient.tools()
+  const tools = (await mcpClient.tools()) as McpTools['tools']
   return {
     mcpServerName,
     tools
@@ -23,10 +26,10 @@ async function retrieveStdioMcpTools(
 }
 
 export async function connectMcpServers(): Promise<McpTools[]> {
-  const settings = await getSettings()
+  const setting = await getSetting()
 
-  if ('mcpServers' in settings) {
-    const { mcpServers } = settings
+  if ('mcpServers' in setting) {
+    const { mcpServers } = setting
     if (mcpServers === null) return []
 
     try {

@@ -10,10 +10,10 @@ export async function webSearch(
     webSources: Map<string, WebSearchResult>
   },
   {
-    serperApiKey
+    braveApiKey
   }: {
-    serperApiKey: string
+    braveApiKey: string
   }
 ) {
-  return fetchAndProcessSearchResults(query, serperApiKey, webSources)
+  return fetchAndProcessSearchResults({ query, braveApiKey, webSources })
 }

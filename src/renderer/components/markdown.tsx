@@ -2,9 +2,9 @@ import { useClipboard } from '@/hooks/use-clipboard'
 import { useImmersion } from '@/hooks/use-immersion'
 import { cn } from '@/lib/utils'
 import { WebSearchResult } from '@shared/types/web-search'
-import type { UIMessage } from 'ai'
+import { getStaticToolName, isStaticToolUIPart, type UIMessage } from 'ai'
 import 'katex/dist/katex.min.css'
-import { Check, Copy, PencilRuler } from 'lucide-react'
+import { CheckIcon, CopyIcon, PencilRulerIcon } from 'lucide-react'
 import { memo, ReactNode, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import SyntaxHighlighter from 'react-syntax-highlighter'
@@ -38,7 +38,8 @@ const citationGlobalRegex = /\[Source:\s*([\d,\s]+)\]/g
 // since it includes not only plain text but also HTML elements such as <code> or <strong>.
 // In this case, we should check whether the last element is a pure text node
 // to determine whether the citation can be extracted.
-function parseCitations(children: ReactNode) {
+// eslint-disable-next-line react-refresh/only-export-components
+export function parseCitations(children: ReactNode) {
   if (Array.isArray(children)) {
     const lastChild = children[children.length - 1]
     if (typeof lastChild === 'string') {
@@ -109,21 +110,20 @@ export function Markdown({
   const { codeTheme } = useMemo(() => themes[actualTheme], [actualTheme])
   const webSearchResults = useMemo(() => {
     try {
-      const toolInvocationPart = parts.find(
-        (part) => part.type === 'tool-invocation'
+      const toolPart = parts.find(
+        (part) =>
+          isStaticToolUIPart(part) && getStaticToolName(part) === 'webSearch'
       )
-
-      if (toolInvocationPart) {
-        const { state, toolName } = toolInvocationPart.toolInvocation
-        if (toolName === 'webSearch' && state === 'result') {
-          return toolInvocationPart.toolInvocation.result
-        }
-        return null
+      if (
+        toolPart &&
+        isStaticToolUIPart(toolPart) &&
+        toolPart.state === 'output-available'
+      ) {
+        return toolPart.output as WebSearchResult[]
       }
-
-      return null
+      return undefined
     } catch {
-      return null
+      return undefined
     }
   }, [parts])
 
@@ -168,12 +168,12 @@ export function Markdown({
                             }
                           }}
                         >
-                          <Copy size={10} />
+                          <CopyIcon size={10} />
                           Copy
                         </span>
                       ) : (
                         <span className="hover:text-primary flex items-center gap-1.5">
-                          <Check size={10} strokeWidth={2.5} />
+                          <CheckIcon size={10} strokeWidth={2.5} />
                           Copied
                         </span>
                       )}
@@ -183,7 +183,7 @@ export function Markdown({
                       className="hover:text-primary flex items-center gap-1.5"
                       onClick={() => openImmersion('')}
                     >
-                      <PencilRuler size={10} />
+                      <PencilRulerIcon size={10} />
                       Edit
                     </span>
                   </div>
@@ -211,7 +211,7 @@ export function Markdown({
             return (
               <pre
                 {...rest}
-                className={cn({ ['w-[24rem]']: isImmersionVisible }, className)}
+                className={cn({ ['w-92']: isImmersionVisible }, className)}
               >
                 {children}
               </pre>
@@ -250,7 +250,7 @@ export function Markdown({
                 {...rest}
                 rel="noopener noreferrer"
                 target="_blank"
-                className={cn('font-bold break-words underline', className)}
+                className={cn('font-bold wrap-break-word underline', className)}
               >
                 {children}
               </a>
@@ -259,7 +259,7 @@ export function Markdown({
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           table({ className, children, node, ...rest }) {
             return (
-              <div className="mb-4 w-full caption-bottom overflow-x-scroll rounded-md border text-sm md:max-w-[45rem]">
+              <div className="mb-4 w-full caption-bottom overflow-x-scroll rounded-md border text-sm md:max-w-180">
                 <table {...rest} className={cn(className, 'w-full')}>
                   {children}
                 </table>

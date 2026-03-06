@@ -1,14 +1,16 @@
-import { AdvancedTools, McpTools, Providers } from '@shared/types/ai'
+import { AdvancedTools, AiProviders, McpTools } from '@shared/types/ai'
+import { ChatMessage, ChatTools, CustomUIDataTypes } from '@shared/types/chat'
 import {
-  CoreAssistantMessage,
-  CoreToolMessage,
-  LanguageModelV1,
+  AssistantModelMessage,
+  LanguageModel,
+  ToolModelMessage,
   ToolSet,
   UIMessage,
+  UIMessagePart,
   generateText
 } from 'ai'
-import { getSettings } from '../../db/queries'
-import { Settings } from '../../db/schema'
+import { formatISO } from 'date-fns'
+import { DBMessage, Setting } from '../../db/schema'
 import {
   calculator,
   date,
@@ -16,13 +18,14 @@ import {
   googleMapsPlaces,
   googleMapsRouting,
   imageGeneration,
+  rag,
   weather,
   webSearch
 } from '../calling-tools'
 import { titleGenerationPrompt } from '../prompts'
 import { providers } from '../providers'
 
-type ResponseMessageWithoutId = CoreToolMessage | CoreAssistantMessage
+type ResponseMessageWithoutId = ToolModelMessage | AssistantModelMessage
 type ResponseMessage = ResponseMessageWithoutId & { id: string }
 
 export function getMostRecentUserMessage(messages: Array<UIMessage>) {
@@ -42,46 +45,65 @@ export function getTrailingMessageId({
   return trailingMessage.id
 }
 
-export async function getModelFromProvider() {
-  const settings = await getSettings()
-  if (!('id' in settings)) {
-    throw new Error('Failed to retrieve settings.')
+export function getModelFromProvider(setting: Setting) {
+  if (!('id' in setting)) {
+    throw new Error('Failed to retrieve setting.')
   }
 
-  if (!settings.providerConfig?.provider) {
+  if (!setting.providerConfig?.provider) {
     throw new Error('Failed to retrieve selected provider.')
   }
 
-  const provider = providers[settings.providerConfig?.provider as Providers]
-  const models = provider(settings)
+  const provider = providers[setting.providerConfig?.provider as AiProviders]
+  const models = provider(setting)
 
   return models
 }
 
+export function getTextFromMessage(message: ChatMessage | UIMessage): string {
+  return message.parts
+    .filter((part) => part.type === 'text')
+    .map((part) => (part as { type: 'text'; text: string }).text)
+    .join('')
+}
+
+export function convertToUIMessages(messages: DBMessage[]): ChatMessage[] {
+  return messages.map((message) => ({
+    id: message.id,
+    role: message.role as 'user' | 'assistant' | 'system',
+    parts: message.parts as UIMessagePart<CustomUIDataTypes, ChatTools>[],
+    metadata: {
+      createdAt: formatISO(message.createdAt)
+    }
+  }))
+}
+
 export async function generateTitleFromUserMessage({
-  model,
-  message
+  message,
+  model
 }: {
-  model: LanguageModelV1
   message: UIMessage
+  model: LanguageModel
 }) {
-  const { text: title } = await generateText({
+  const { text } = await generateText({
     model,
     system: titleGenerationPrompt,
-    prompt: JSON.stringify(message)
+    prompt: getTextFromMessage(message)
   })
-
-  return title
+  return text
+    .replace(/^[#*"\s]+/, '')
+    .replace(/["]+$/, '')
+    .trim()
 }
 
 export function bindCallingTools({
   mcpTools,
   advancedTools,
-  settings
+  setting
 }: {
   mcpTools: McpTools[]
   advancedTools: AdvancedTools[]
-  settings: Settings
+  setting: Setting
 }): ToolSet {
   if (advancedTools.includes(AdvancedTools.DeepResearch)) {
     return {
@@ -100,15 +122,16 @@ export function bindCallingTools({
 
   const tools = {
     ...mcpToolsMap,
+    rag,
     calculator,
     date,
     weather,
-    googleMapsPlaces: googleMapsPlaces(settings),
-    googleMapsRouting: googleMapsRouting(settings),
-    imageGeneration: imageGeneration(settings)
+    googleMapsPlaces: googleMapsPlaces(setting),
+    googleMapsRouting: googleMapsRouting(setting),
+    imageGeneration: imageGeneration(setting)
   }
   if (advancedTools.includes(AdvancedTools.WebSearch)) {
-    tools['webSearch'] = webSearch(settings)
+    tools['webSearch'] = webSearch(setting)
   }
 
   return tools

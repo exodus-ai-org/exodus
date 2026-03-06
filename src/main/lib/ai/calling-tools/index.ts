@@ -4,6 +4,7 @@ import { deepResearch } from './deep-research'
 import { googleMapsPlaces } from './google-maps-places'
 import { googleMapsRouting } from './google-maps-routing'
 import { imageGeneration } from './image-generation'
+import { rag } from './rag'
 import { weather } from './weather'
 import { webSearch } from './web-search'
 
@@ -14,6 +15,7 @@ export {
   googleMapsPlaces,
   googleMapsRouting,
   imageGeneration,
+  rag,
   weather,
   webSearch
 }

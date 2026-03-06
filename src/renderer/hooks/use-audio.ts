@@ -5,26 +5,23 @@ import {
 import OpenAI from 'openai'
 import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
-import { useSettings } from './use-settings'
+import { useSetting } from './use-setting'
 
 export function useAudio() {
   const [data, setData] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const { data: settings } = useSettings()
+  const { data: setting } = useSetting()
 
   const openai = useMemo(() => {
-    if (
-      settings?.providers?.openaiApiKey &&
-      settings?.providers?.openaiBaseUrl
-    ) {
+    if (setting?.providers?.openaiApiKey && setting?.providers?.openaiBaseUrl) {
       return new OpenAI({
-        baseURL: settings.providers.openaiBaseUrl,
-        apiKey: settings.providers.openaiApiKey,
+        baseURL: setting.providers.openaiBaseUrl,
+        apiKey: setting.providers.openaiApiKey,
         dangerouslyAllowBrowser: true
       })
     }
     return null
-  }, [settings?.providers?.openaiApiKey, settings?.providers?.openaiBaseUrl])
+  }, [setting?.providers?.openaiApiKey, setting?.providers?.openaiBaseUrl])
 
   async function textToSpeech(text: string) {
     if (!openai) {

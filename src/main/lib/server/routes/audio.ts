@@ -1,40 +1,44 @@
 import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import OpenAI from 'openai'
-import { getSettings } from '../../db/queries'
-import { speechSchema } from '../schemas'
+import { ChatSDKError } from '../errors'
+import { speechSchema } from '../schemas/audio'
+import { successResponse, validateOpenAIConfig, validateSchema } from '../utils'
 
 const audio = new Hono<{ Variables: Variables }>()
 
 audio.post('/speech', async (c) => {
-  const result = speechSchema.safeParse(await c.req.json())
-  if (!result.success) {
-    return c.text('Invalid request body', 400)
+  const { text } = validateSchema<{ text: string }>(
+    speechSchema,
+    await c.req.json(),
+    'audio',
+    'Invalid request body'
+  )
+
+  const setting = c.get('setting')
+  const openaiConfig = validateOpenAIConfig(setting)
+
+  try {
+    const openai = new OpenAI(openaiConfig)
+
+    const speech = await openai.audio.speech.create({
+      model: setting.audio?.textToSpeechModel ?? 'tts-1',
+      input: text,
+      voice: setting.audio?.textToSpeechVoice ?? 'alloy'
+    })
+
+    const buffer = Buffer.from(await speech.arrayBuffer())
+    return new Response(buffer, {
+      headers: {
+        'Content-Type': 'audio/mpeg'
+      }
+    })
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:audio',
+      error instanceof Error ? error.message : 'Failed to generate speech'
+    )
   }
-  const { text } = result.data
-
-  const settings = await getSettings()
-  if (!('id' in settings)) {
-    return c.text('OpenAI configuration is missing', 404)
-  }
-
-  const openai = new OpenAI({
-    baseURL: settings.providers?.openaiBaseUrl,
-    apiKey: settings.providers?.openaiApiKey ?? ''
-  })
-
-  const speech = await openai.audio.speech.create({
-    model: settings.audio?.textToSpeechModel ?? 'tts-1',
-    input: text,
-    voice: settings.audio?.textToSpeechVoice ?? 'alloy'
-  })
-
-  const buffer = Buffer.from(await speech.arrayBuffer())
-  return new Response(buffer, {
-    headers: {
-      'Content-Type': 'audio/mpeg'
-    }
-  })
 })
 
 audio.post('/transcriptions', async (c) => {
@@ -42,25 +46,27 @@ audio.post('/transcriptions', async (c) => {
   const audioFile = body['audio']
 
   if (typeof audioFile === 'string') {
-    return c.text('Audio file is missing', 404)
+    throw new ChatSDKError('not_found:audio', 'Audio file is missing')
   }
 
-  const settings = await getSettings()
-  if (!('providerConfig' in settings)) {
-    return c.text('OpenAI configuration is missing', 404)
+  const setting = c.get('setting')
+  const openaiConfig = validateOpenAIConfig(setting)
+
+  try {
+    const openai = new OpenAI(openaiConfig)
+
+    const transcription = await openai.audio.transcriptions.create({
+      file: audioFile,
+      model: setting.audio?.speechToTextModel ?? 'whisper-1'
+    })
+
+    return successResponse(c, transcription)
+  } catch (error) {
+    throw new ChatSDKError(
+      'bad_request:audio',
+      error instanceof Error ? error.message : 'Failed to transcribe audio'
+    )
   }
-
-  const openai = new OpenAI({
-    baseURL: settings.providers?.openaiBaseUrl,
-    apiKey: settings.providers?.openaiApiKey ?? ''
-  })
-
-  const transcription = await openai.audio.transcriptions.create({
-    file: audioFile,
-    model: settings.audio?.speechToTextModel ?? 'whisper-1'
-  })
-
-  return c.json(transcription)
 })
 
 export default audio

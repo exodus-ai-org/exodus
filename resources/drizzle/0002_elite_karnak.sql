@@ -1,1 +1,0 @@
-CREATE INDEX "message_search_index" ON "Message" USING gin (to_tsvector('english', "parts"));

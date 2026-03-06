@@ -2,6 +2,8 @@
   "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
   "include": ["src/renderer/**/*", "src/shared/**/*", "src/preload/*.d.ts"],
   "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "composite": true,
     "jsx": "react-jsx",
     "baseUrl": ".",

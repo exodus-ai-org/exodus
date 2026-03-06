@@ -1,6 +1,15 @@
-import { SettingsType } from '@shared/schemas/settings-schema'
+import { JSONRPCNotification } from '@ai-sdk/mcp'
+import {
+  AudioSchema,
+  DeepResearchSchema,
+  GoogleCloudSchema,
+  ImageSchema,
+  ProviderConfigSchema,
+  ProvidersSchema,
+  S3Schema,
+  WebSearchSchema
+} from '@shared/schemas/setting-schema'
 import { WebSearchResult } from '@shared/types/web-search'
-import { JSONRPCNotification } from 'ai'
 import { sql, type InferSelectModel } from 'drizzle-orm'
 import {
   boolean,
@@ -10,11 +19,14 @@ import {
   pgEnum,
   pgTable,
   primaryKey,
+  real,
   text,
   timestamp,
   uuid,
-  varchar
+  varchar,
+  vector
 } from 'drizzle-orm/pg-core'
+import z from 'zod'
 
 export const chat = pgTable('Chat', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
@@ -45,7 +57,8 @@ export const message = pgTable(
   ]
 )
 
-export type Message = InferSelectModel<typeof message>
+export type DBMessage = InferSelectModel<typeof message>
+export type Message = DBMessage
 
 export const vote = pgTable(
   'Vote',
@@ -67,22 +80,25 @@ export const vote = pgTable(
 
 export type Vote = InferSelectModel<typeof vote>
 
-export const settings = pgTable('Setting', {
-  id: uuid('id').notNull().primaryKey().defaultRandom(),
+export const setting = pgTable('Setting', {
+  id: text('id').primaryKey(),
   providerConfig:
-    jsonb('providerConfig').$type<SettingsType['providerConfig']>(),
-  providers: jsonb('providers').$type<SettingsType['providers']>(),
+    jsonb('providerConfig').$type<z.infer<typeof ProviderConfigSchema>>(),
+  providers: jsonb('providers').$type<z.infer<typeof ProvidersSchema>>(),
   mcpServers: text('mcpServers').default(''),
-  audio: jsonb('audio').$type<SettingsType['audio']>(),
-  fileUploadEndpoint: text('fileUploadEndpoint').default(''),
+  audio: jsonb('audio').$type<z.infer<typeof AudioSchema>>(),
   assistantAvatar: text('assistantAvatar').default(''),
-  googleCloud: jsonb('googleCloud').$type<SettingsType['googleCloud']>(),
-  webSearch: jsonb('webSearch').$type<SettingsType['webSearch']>(),
-  image: jsonb('image').$type<SettingsType['image']>(),
-  deepResearch: jsonb('deepResearch').$type<SettingsType['deepResearch']>()
+  googleCloud: jsonb('googleCloud').$type<z.infer<typeof GoogleCloudSchema>>(),
+  webSearch: jsonb('webSearch').$type<z.infer<typeof WebSearchSchema>>(),
+  image: jsonb('image').$type<z.infer<typeof ImageSchema>>(),
+  deepResearch:
+    jsonb('deepResearch').$type<z.infer<typeof DeepResearchSchema>>(),
+  s3: jsonb('s3').$type<z.infer<typeof S3Schema>>(),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull()
 })
 
-export type Settings = InferSelectModel<typeof settings>
+export type Setting = InferSelectModel<typeof setting>
 
 export const jobStatusEnum = pgEnum('jobStatus', [
   'streaming',
@@ -114,3 +130,76 @@ export const deepResearchMessage = pgTable('DeepResearchMessage', {
 })
 
 export type DeepResearchMessage = InferSelectModel<typeof deepResearchMessage>
+
+export const resource = pgTable('Resource', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  content: text('content').notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull()
+})
+
+export type Resources = InferSelectModel<typeof resource>
+
+export const embedding = pgTable(
+  'Embedding',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    resourceId: uuid('resourceId').references(() => resource.id, {
+      onDelete: 'cascade'
+    }),
+    content: text('content').notNull(),
+    embedding: vector('embedding', { dimensions: 1536 }).notNull()
+  },
+  (table) => [
+    index('embeddingIndex').using(
+      'hnsw',
+      table.embedding.op('vector_cosine_ops')
+    )
+  ]
+)
+
+export type Embedding = InferSelectModel<typeof embedding>
+
+export const memoryTypeEnum = pgEnum('memory_type', [
+  'preference',
+  'goal',
+  'environment',
+  'skill',
+  'project',
+  'constraint'
+])
+
+export const memorySourceEnum = pgEnum('memory_source', [
+  'explicit',
+  'implicit',
+  'system'
+])
+
+export const memory = pgTable('memory', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  userId: uuid('user_id').notNull(),
+  type: memoryTypeEnum('type').notNull(),
+  key: text('key').notNull(),
+  value: jsonb('value').notNull(),
+  confidence: real('confidence').default(0.8),
+  source: memorySourceEnum('source').notNull(),
+  createdAt: timestamp('created_at').defaultNow(),
+  updatedAt: timestamp('updated_at').defaultNow(),
+  lastUsedAt: timestamp('last_used_at'),
+  isActive: boolean('is_active').default(true)
+})
+
+export const sessionSummary = pgTable('session_summary', {
+  sessionId: uuid('session_id').primaryKey(),
+  userId: uuid('user_id').notNull(),
+  summary: text('summary').notNull(),
+  updatedAt: timestamp('updated_at').defaultNow()
+})
+
+export const memoryUsageLog = pgTable('memory_usage_log', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  memoryId: uuid('memory_id'),
+  sessionId: uuid('session_id'),
+  reason: text('reason'),
+  createdAt: timestamp('created_at').defaultNow()
+})

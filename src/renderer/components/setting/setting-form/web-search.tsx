@@ -1,0 +1,213 @@
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList
+} from '@/components/ui/command'
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger
+} from '@/components/ui/popover'
+import { Separator } from '@/components/ui/separator'
+import { cn } from '@/lib/utils'
+import { countryCodes } from '@shared/constants/country-codes'
+import { languageCodes } from '@shared/constants/language-codes'
+import { UseFormReturnType } from '@shared/schemas/setting-schema'
+import { AlertCircleIcon, CheckIcon, ChevronsUpDownIcon } from 'lucide-react'
+
+export function WebSearch({ form }: { form: UseFormReturnType }) {
+  return (
+    <>
+      <Alert>
+        <AlertCircleIcon className="h-4 w-4" />
+        <AlertDescription className="inline">
+          Exodus supports built-in Web Search using{' '}
+          <a
+            href="https://brave.com/search/api/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-semibold underline"
+          >
+            Brave Search
+          </a>{' '}
+          to retrieve search results. To utilize the feature, you must first
+          register for a <strong>Brave Search API Key</strong>.
+        </AlertDescription>
+      </Alert>
+
+      <div className="flex flex-col gap-3">
+        <FormField
+          control={form.control}
+          name="webSearch.braveApiKey"
+          render={({ field }) => (
+            <FormItem className="flex justify-between gap-16">
+              <FormLabel className="shrink-0">Brave API Key</FormLabel>
+              <FormControl className="w-full">
+                <Input
+                  type="password"
+                  autoComplete="current-password"
+                  id="brave-search-api-key-input"
+                  autoFocus
+                  {...field}
+                  value={field.value ?? ''}
+                  required
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Separator />
+        <FormField
+          control={form.control}
+          name="webSearch.country"
+          render={({ field }) => {
+            const countryItem = countryCodes.find(
+              ({ countryCode }) => countryCode === field.value
+            )
+            return (
+              <FormItem className="flex justify-between">
+                <FormLabel className="mb-0">Country</FormLabel>
+                <Popover modal>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant="outline"
+                        role="combobox"
+                        className={cn(
+                          'hover:bg-accent w-fit justify-between border-none shadow-none',
+                          !field.value && 'text-muted-foreground'
+                        )}
+                      >
+                        {countryItem
+                          ? `${countryItem.flag} ${countryItem.country}`
+                          : 'Select country'}
+
+                        <ChevronsUpDownIcon className="opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="p-0" side="top">
+                    <Command>
+                      <CommandInput
+                        placeholder="Search country..."
+                        className="h-9"
+                      />
+                      <CommandList>
+                        <CommandEmpty>No country found.</CommandEmpty>
+                        <CommandGroup>
+                          {countryCodes.map(
+                            ({ flag, country, countryCode }) => (
+                              <CommandItem
+                                value={countryCode}
+                                key={countryCode}
+                                onSelect={() => {
+                                  form.setValue(
+                                    'webSearch.country',
+                                    countryCode
+                                  )
+                                }}
+                              >
+                                {flag} {country}
+                                <CheckIcon
+                                  className={cn(
+                                    'ml-auto',
+                                    countryCode === field.value
+                                      ? 'opacity-100'
+                                      : 'opacity-0'
+                                  )}
+                                />
+                              </CommandItem>
+                            )
+                          )}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )
+          }}
+        />
+        <Separator />
+        <FormField
+          control={form.control}
+          name="webSearch.language"
+          render={({ field }) => (
+            <FormItem className="flex justify-between">
+              <FormLabel className="mb-0">Language</FormLabel>
+              <Popover modal>
+                <PopoverTrigger asChild>
+                  <FormControl>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      className={cn(
+                        'hover:bg-accent w-fit justify-between border-none shadow-none',
+                        !field.value && 'text-muted-foreground'
+                      )}
+                    >
+                      {field.value
+                        ? languageCodes.find(
+                            ({ languageCode }) => languageCode === field.value
+                          )?.language
+                        : 'Select language'}
+                      <ChevronsUpDownIcon className="opacity-50" />
+                    </Button>
+                  </FormControl>
+                </PopoverTrigger>
+                <PopoverContent className="w-[200px] p-0" side="top">
+                  <Command>
+                    <CommandInput
+                      placeholder="Search language..."
+                      className="h-9"
+                    />
+                    <CommandList>
+                      <CommandEmpty>No language found.</CommandEmpty>
+                      <CommandGroup>
+                        {languageCodes.map(({ language, languageCode }) => (
+                          <CommandItem
+                            value={language}
+                            key={languageCode}
+                            onSelect={() => {
+                              form.setValue('webSearch.language', languageCode)
+                            }}
+                          >
+                            {language}
+                            <CheckIcon
+                              className={cn(
+                                'ml-auto',
+                                languageCode === field.value
+                                  ? 'opacity-100'
+                                  : 'opacity-0'
+                              )}
+                            />
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+    </>
+  )
+}

@@ -1,161 +1,167 @@
 import { AdvancedTools } from '@shared/types/ai'
+import { ChatMessage } from '@shared/types/chat'
 import { Variables } from '@shared/types/server'
 import {
-  appendResponseMessages,
-  createDataStream,
-  smoothStream,
+  convertToModelMessages,
+  createUIMessageStream,
+  createUIMessageStreamResponse,
+  stepCountIs,
   streamText
 } from 'ai'
 import { Hono } from 'hono'
-import { stream } from 'hono/streaming'
 import { v4 as uuidV4 } from 'uuid'
 import { deepResearchBootPrompt, systemPrompt } from '../../ai/prompts'
 import {
   bindCallingTools,
+  convertToUIMessages,
   generateTitleFromUserMessage,
-  getModelFromProvider,
-  getMostRecentUserMessage,
-  getTrailingMessageId
+  getModelFromProvider
 } from '../../ai/utils/chat-message-util'
 import {
   deleteChatById,
   fullTextSearchOnMessages,
   getChatById,
   getMessagesByChatId,
-  getSettings,
   saveChat,
   saveMessages,
-  updateChat
+  updateChat,
+  updateChatTitleById,
+  updateMessage
 } from '../../db/queries'
-import { createChatSchema, updateChatSchema } from '../schemas'
+import { DBMessage } from '../../db/schema'
+import { ChatSDKError } from '../errors'
+import { postRequestBodySchema, updateChatSchema } from '../schemas/chat'
+import {
+  deletionSuccessResponse,
+  getRequiredParam,
+  handleDatabaseOperation,
+  successResponse,
+  updateSuccessResponse,
+  validateSchema
+} from '../utils'
 
 const chat = new Hono<{ Variables: Variables }>()
 
 chat.get('/mcp', async (c) => {
   const tools = c.get('tools')
-  return c.json({ tools })
+  return successResponse(c, { tools })
 })
 
 chat.get('/search', async (c) => {
-  const query = c.req.query('query')
+  const query = c.req.query('query') ?? ''
 
-  try {
-    const result = await fullTextSearchOnMessages(query ?? '')
-    return c.json(result)
-  } catch {
-    return c.text('An error occurred while processing your request', 500)
-  }
+  const result = await handleDatabaseOperation(
+    () => fullTextSearchOnMessages(query),
+    'Failed to search messages'
+  )
+
+  return successResponse(c, result)
 })
 
 chat.post('/', async (c) => {
-  const result = createChatSchema.safeParse(await c.req.json())
-  if (!result.success) {
-    return c.text('Invalid request body', 400)
-  }
-  const { id, messages, advancedTools } = result.data
+  const { id, message, messages, advancedTools } = validateSchema(
+    postRequestBodySchema,
+    await c.req.json(),
+    'chat',
+    'Invalid request body'
+  )
   const mcpTools = c.get('tools')
+  const setting = c.get('setting')
+  const { chatModel, reasoningModel } = getModelFromProvider(setting)
+  const isToolApprovalFlow = Boolean(messages)
+  const isReasoningModel =
+    advancedTools?.includes(AdvancedTools.Reasoning) ||
+    advancedTools?.includes(AdvancedTools.DeepResearch)
 
-  const settings = await getSettings()
-  if (!('id' in settings)) {
-    throw new Error('Failed to retrieve settings.')
-  }
+  const chat = await getChatById({ id })
+  let messagesFromDb: DBMessage[] = []
+  let titlePromise: Promise<string> | null = null
 
-  if (!settings.providerConfig?.chatModel) {
-    throw new Error('Failed to retrieve selected chat model.')
-  }
-
-  if (!settings.providerConfig?.reasoningModel) {
-    throw new Error('Failed to retrieve selected reasoning model.')
-  }
-
-  const userMessage = getMostRecentUserMessage(messages)
-  if (!userMessage) {
-    return c.text('No user message found', 400)
-  }
-
-  const { chatModel, reasoningModel } = await getModelFromProvider()
-
-  const existingChat = await getChatById({ id })
-  if (!existingChat) {
-    const title = await generateTitleFromUserMessage({
-      model: chatModel,
-      message: userMessage
+  if (chat) {
+    if (!isToolApprovalFlow) {
+      messagesFromDb = await getMessagesByChatId({ id })
+    }
+  } else if (message?.role === 'user') {
+    await saveChat({
+      id,
+      title: 'New chat'
     })
-    await saveChat({ id, title })
+    titlePromise = generateTitleFromUserMessage({ message, model: chatModel })
   }
 
-  await saveMessages({
-    messages: [
-      {
-        ...userMessage,
-        chatId: id,
-        id: userMessage.id,
-        role: 'user',
-        parts: userMessage.parts,
-        attachments: userMessage.experimental_attachments ?? [],
-        createdAt: new Date()
-      }
-    ]
-  })
+  const uiMessages = isToolApprovalFlow
+    ? (messages as ChatMessage[])
+    : [...convertToUIMessages(messagesFromDb), message as ChatMessage]
+
+  const modelMessages = await convertToModelMessages(uiMessages)
 
   // immediately start streaming the response
-  const dataStream = createDataStream({
-    execute: async (dataStream) => {
+  const stream = createUIMessageStream({
+    originalMessages: isToolApprovalFlow ? uiMessages : undefined,
+    execute: async ({ writer: dataStream }) => {
       const result = streamText({
-        model:
-          advancedTools.includes(AdvancedTools.Reasoning) ||
-          advancedTools.includes(AdvancedTools.DeepResearch)
-            ? reasoningModel
-            : chatModel,
-        system: advancedTools.includes(AdvancedTools.DeepResearch)
+        model: isReasoningModel ? reasoningModel : chatModel,
+        system: advancedTools?.includes(AdvancedTools.DeepResearch)
           ? deepResearchBootPrompt
           : systemPrompt,
-        messages,
-        maxSteps: settings.providerConfig?.maxSteps ?? 1,
-        tools: bindCallingTools({ mcpTools, advancedTools, settings }),
-        experimental_transform: smoothStream({ chunking: 'line' }),
-        experimental_generateMessageId: uuidV4,
-        experimental_continueSteps: true,
-        onFinish: async ({ response }) => {
-          try {
-            const assistantId = getTrailingMessageId({
-              messages: response.messages.filter(
-                (message) => message.role === 'assistant'
-              )
-            })
-
-            if (!assistantId) {
-              throw new Error('No assistant message found!')
+        messages: modelMessages,
+        stopWhen: stepCountIs(setting.providerConfig?.maxSteps ?? 1),
+        tools: bindCallingTools({ mcpTools, advancedTools, setting }),
+        experimental_activeTools: isReasoningModel ? [] : ['weather'],
+        providerOptions: isReasoningModel
+          ? {
+              anthropic: {
+                thinking: { type: 'enabled', budgetTokens: 10_000 }
+              }
             }
+          : undefined
+      })
 
-            const [, assistantMessage] = appendResponseMessages({
-              messages: [userMessage],
-              responseMessages: response.messages
+      dataStream.merge(result.toUIMessageStream({ sendReasoning: true }))
+
+      if (titlePromise) {
+        const title = await titlePromise
+        dataStream.write({ type: 'data-chat-title', data: title })
+        updateChatTitleById({ id, title })
+      }
+    },
+    generateId: uuidV4,
+    onFinish: async ({ messages: finishedMessages }) => {
+      if (isToolApprovalFlow) {
+        for (const finishedMsg of finishedMessages) {
+          const existingMsg = uiMessages.find((m) => m.id === finishedMsg.id)
+          if (existingMsg) {
+            await updateMessage({
+              id: finishedMsg.id,
+              parts: finishedMsg.parts
             })
-
+          } else {
             await saveMessages({
               messages: [
                 {
-                  id: assistantId,
-                  chatId: id,
-                  role: assistantMessage.role,
-                  parts: assistantMessage.parts,
-                  attachments: assistantMessage.experimental_attachments ?? [],
-                  createdAt: new Date()
+                  id: finishedMsg.id,
+                  role: finishedMsg.role,
+                  parts: finishedMsg.parts,
+                  createdAt: new Date(),
+                  attachments: [],
+                  chatId: id
                 }
               ]
             })
-          } catch {
-            throw new Error('No assistant message found!')
           }
         }
-      })
-
-      result.mergeIntoDataStream(dataStream, {
-        sendReasoning: true,
-        sendSources: true,
-        sendUsage: true
-      })
+      } else if (finishedMessages.length > 0) {
+        await saveMessages({
+          messages: finishedMessages.map((currentMessage) => ({
+            id: currentMessage.id,
+            role: currentMessage.role,
+            parts: currentMessage.parts,
+            createdAt: new Date(),
+            attachments: [],
+            chatId: id
+          }))
+        })
+      }
     },
     onError: (error) => {
       console.log(error)
@@ -165,64 +171,58 @@ chat.post('/', async (c) => {
     }
   })
 
-  // Mark the response as a v1 data stream:
-  c.header('X-Vercel-AI-Data-Stream', 'v1')
-  c.header('Content-Type', 'text/plain; charset=utf-8')
-  return stream(c, (stream) =>
-    stream.pipe(dataStream.pipeThrough(new TextEncoderStream()))
-  )
+  return createUIMessageStreamResponse({ stream })
 })
 
 chat.delete('/:id', async (c) => {
-  const id = c.req.param('id')
-  if (!id) {
-    return c.text('Not Found', 404)
-  }
+  const id = getRequiredParam(c, 'id', 'chat')
 
-  try {
-    await deleteChatById({ id })
-    return c.text('Chat deleted', 200)
-  } catch {
-    return c.text('An error occurred while processing your request', 500)
-  }
+  await handleDatabaseOperation(
+    () => deleteChatById({ id }),
+    'Failed to delete chat'
+  )
+
+  return deletionSuccessResponse(c, 'Chat')
 })
 
 chat.get('/:id', async (c) => {
-  const id = c.req.param('id')
-  if (!id) {
-    return c.text('Not Found', 404)
+  const id = getRequiredParam(c, 'id', 'chat')
+
+  const chat = await handleDatabaseOperation(
+    () => getChatById({ id }),
+    'Failed to get chat'
+  )
+
+  if (!chat) {
+    throw new ChatSDKError('not_found:chat', `Chat with ID ${id} not found`)
   }
 
-  try {
-    const chat = await getChatById({ id })
-    if (!chat) {
-      return c.text('Not Found', 404)
-    }
+  const messagesFromDb = await handleDatabaseOperation(
+    () => getMessagesByChatId({ id }),
+    'Failed to get chat messages'
+  )
 
-    const messagesFromDb = await getMessagesByChatId({ id })
-    return c.json(messagesFromDb)
-  } catch {
-    return c.text('An error occurred while processing your request', 500)
-  }
+  return successResponse(c, messagesFromDb)
 })
 
 chat.put('/', async (c) => {
-  const result = updateChatSchema.safeParse(await c.req.json())
-  if (!result.success) {
-    return c.text('Invalid request body', 400)
-  }
-  const payload = result.data
+  const payload = validateSchema(
+    updateChatSchema,
+    await c.req.json(),
+    'chat',
+    'Invalid request body'
+  )
 
   if (!payload.id) {
-    return c.text('Not Found', 404)
+    throw new ChatSDKError('not_found:chat', 'Chat ID is required')
   }
 
-  try {
-    await updateChat(payload)
-    return c.text(`Succeed to update chat ${payload.id}}`, 200)
-  } catch {
-    return c.text('An error occurred while processing your request', 500)
-  }
+  await handleDatabaseOperation(
+    () => updateChat(payload),
+    'Failed to update chat'
+  )
+
+  return updateSuccessResponse(c, 'chat', payload.id)
 })
 
 export default chat

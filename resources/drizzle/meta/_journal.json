@@ -5,92 +5,36 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1745492738086,
-      "tag": "0000_white_mockingbird",
+      "when": 1754996363532,
+      "tag": "0000_cultured_iron_monger",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1745837876822,
-      "tag": "0001_neat_the_fury",
+      "when": 1763709593393,
+      "tag": "0001_aromatic_absorbing_man",
       "breakpoints": true
     },
     {
       "idx": 2,
       "version": "7",
-      "when": 1745898333933,
-      "tag": "0002_elite_karnak",
+      "when": 1765877530390,
+      "tag": "0002_sharp_mandrill",
       "breakpoints": true
     },
     {
       "idx": 3,
       "version": "7",
-      "when": 1745902592585,
-      "tag": "0003_harsh_yellow_claw",
+      "when": 1765879159393,
+      "tag": "0003_stiff_phalanx",
       "breakpoints": true
     },
     {
       "idx": 4,
       "version": "7",
-      "when": 1745903009643,
-      "tag": "0004_deep_eternity",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1746279192023,
-      "tag": "0005_misty_starfox",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1746626425094,
-      "tag": "0006_little_rhodey",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1746773419798,
-      "tag": "0007_public_hannibal_king",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1746773657754,
-      "tag": "0008_sharp_psynapse",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1747121200273,
-      "tag": "0009_plain_ricochet",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "7",
-      "when": 1747123068621,
-      "tag": "0010_wide_thunderbird",
-      "breakpoints": true
-    },
-    {
-      "idx": 11,
-      "version": "7",
-      "when": 1747383411881,
-      "tag": "0011_giant_mauler",
-      "breakpoints": true
-    },
-    {
-      "idx": 12,
-      "version": "7",
-      "when": 1747631603144,
-      "tag": "0012_petite_sauron",
+      "when": 1767670705421,
+      "tag": "0004_redundant_starhawk",
       "breakpoints": true
     }
   ]
