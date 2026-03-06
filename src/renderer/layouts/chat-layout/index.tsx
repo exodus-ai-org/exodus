@@ -2,6 +2,7 @@ import { CodePreview } from '@/components/code-preview'
 import { DeepResearchProcess } from '@/components/deep-research'
 import { Immersion } from '@/components/immersion'
 import { SettingsDialog } from '@/components/setting/setting-dialog'
+import { useTheme } from '@/components/theme-provider'
 import {
   SidebarInset,
   SidebarProvider,
@@ -18,17 +19,32 @@ import { isCodePreviewVisibleAtom, isImmersionVisibleAtom } from '@/stores/chat'
 import { useAtomValue } from 'jotai'
 import { useEffect } from 'react'
 import { Outlet } from 'react-router'
-import { Toaster } from 'sonner'
+import { Toaster } from 'sileo'
 import { AppSidebar } from './app-sidebar'
 import { ChatDeletionConfirmationDialog } from './chat-deletion-confirmation-dialog'
 import { RenameChatDialog } from './rename-chat-dialog'
 import { SearchDialog } from './search-dialog'
 
 function InsertedSidebar() {
+  const { actualTheme } = useTheme()
+
   return (
     <SidebarInset className="bg-background flex min-w-0 flex-col">
       <Outlet />
-      <Toaster />
+      <Toaster
+        options={{
+          position: 'bottom-right',
+          fill: actualTheme === 'dark' ? '#f2f2f2' : '#1a1a1a',
+          autopilot: {
+            expand: 500,
+            collapse: 3000
+          },
+          styles: {
+            description:
+              actualTheme === 'dark' ? 'text-black/80' : 'text-white/80'
+          }
+        }}
+      />
       <SettingsDialog />
       <SearchDialog />
       <RenameChatDialog />

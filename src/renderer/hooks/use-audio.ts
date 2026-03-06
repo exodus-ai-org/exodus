@@ -4,7 +4,7 @@ import {
 } from '@/services/audio'
 import OpenAI from 'openai'
 import { useMemo, useState } from 'react'
-import { toast } from 'sonner'
+import { sileo } from 'sileo'
 import { useSetting } from './use-setting'
 
 export function useAudio() {
@@ -34,9 +34,13 @@ export function useAudio() {
       const audioUrl = URL.createObjectURL(audioBlob)
       setData(audioUrl)
     } catch (e) {
-      toast.error(
-        e instanceof Error ? e.message : 'An error occurred, please try again!'
-      )
+      sileo.error({
+        title: 'Audio error',
+        description:
+          e instanceof Error
+            ? e.message
+            : 'An error occurred, please try again!'
+      })
     } finally {
       setLoading(false)
     }
@@ -54,9 +58,13 @@ export function useAudio() {
       const transcription = await speechToTextService(formData)
       setData(transcription.text)
     } catch (e) {
-      toast.error(
-        e instanceof Error ? e.message : 'An error occurred, please try again!'
-      )
+      sileo.error({
+        title: 'Audio error',
+        description:
+          e instanceof Error
+            ? e.message
+            : 'An error occurred, please try again!'
+      })
     } finally {
       setLoading(false)
     }

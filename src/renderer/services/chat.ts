@@ -1,6 +1,6 @@
 import { Chat } from '@shared/types/db'
 import { fetcher } from '@shared/utils/http'
-import { toast } from 'sonner'
+import { sileo } from 'sileo'
 import { mutate } from 'swr'
 
 export const updateChat = async (payload: Partial<Chat>) => {
@@ -11,7 +11,7 @@ export const updateChat = async (payload: Partial<Chat>) => {
   })
 
   mutate('/api/history')
-  toast.success(`Succeed to update chat ${payload.id}.`)
+  sileo.success({ title: 'Chat updated' })
 }
 
 export const deleteChat = async (chat: Chat, currentId?: string) => {
@@ -25,5 +25,5 @@ export const deleteChat = async (chat: Chat, currentId?: string) => {
     window.location.href = '/'
   }
 
-  toast.success(`Succeed to delete ${chat.title}.`)
+  sileo.success({ title: 'Chat deleted', description: chat.title })
 }

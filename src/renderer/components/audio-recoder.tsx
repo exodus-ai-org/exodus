@@ -1,7 +1,7 @@
 import { useAudio } from '@/hooks/use-audio'
 import { AudioLinesIcon, CircleStopIcon, LoaderIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
-import { toast } from 'sonner'
+import { sileo } from 'sileo'
 import { Button } from './ui/button'
 
 export function AudioRecorder({
@@ -38,11 +38,13 @@ export function AudioRecorder({
         audioChunksRef.current = []
       }
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : 'An error occurred, please try again!'
-      )
+      sileo.error({
+        title: 'Microphone error',
+        description:
+          error instanceof Error
+            ? error.message
+            : 'An error occurred, please try again!'
+      })
     }
   }
 

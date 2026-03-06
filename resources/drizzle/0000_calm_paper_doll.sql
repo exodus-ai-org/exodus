@@ -1,4 +1,6 @@
 CREATE TYPE "public"."jobStatus" AS ENUM('streaming', 'archived', 'failed', 'terminated');--> statement-breakpoint
+CREATE TYPE "public"."memory_source" AS ENUM('explicit', 'implicit', 'system');--> statement-breakpoint
+CREATE TYPE "public"."memory_type" AS ENUM('preference', 'goal', 'environment', 'skill', 'project', 'constraint');--> statement-breakpoint
 CREATE TABLE "Chat" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"createdAt" timestamp DEFAULT now() NOT NULL,
@@ -31,6 +33,28 @@ CREATE TABLE "Embedding" (
 	"embedding" vector(1536) NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "memory" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"user_id" uuid NOT NULL,
+	"type" "memory_type" NOT NULL,
+	"key" text NOT NULL,
+	"value" jsonb NOT NULL,
+	"confidence" real DEFAULT 0.8,
+	"source" "memory_source" NOT NULL,
+	"created_at" timestamp DEFAULT now(),
+	"updated_at" timestamp DEFAULT now(),
+	"last_used_at" timestamp,
+	"is_active" boolean DEFAULT true
+);
+--> statement-breakpoint
+CREATE TABLE "memory_usage_log" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"memory_id" uuid,
+	"session_id" uuid,
+	"reason" text,
+	"created_at" timestamp DEFAULT now()
+);
+--> statement-breakpoint
 CREATE TABLE "Message" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"chatId" uuid NOT NULL,
@@ -47,18 +71,27 @@ CREATE TABLE "Resource" (
 	"updatedAt" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
+CREATE TABLE "session_summary" (
+	"session_id" uuid PRIMARY KEY NOT NULL,
+	"user_id" uuid NOT NULL,
+	"summary" text NOT NULL,
+	"updated_at" timestamp DEFAULT now()
+);
+--> statement-breakpoint
 CREATE TABLE "Setting" (
-	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"id" text PRIMARY KEY NOT NULL,
 	"providerConfig" jsonb,
 	"providers" jsonb,
 	"mcpServers" text DEFAULT '',
 	"audio" jsonb,
-	"fileUploadEndpoint" text DEFAULT '',
 	"assistantAvatar" text DEFAULT '',
 	"googleCloud" jsonb,
 	"webSearch" jsonb,
 	"image" jsonb,
-	"deepResearch" jsonb
+	"deepResearch" jsonb,
+	"s3" jsonb,
+	"created_at" timestamp DEFAULT now() NOT NULL,
+	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
 CREATE TABLE "Vote" (

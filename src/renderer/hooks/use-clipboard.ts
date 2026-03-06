@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { toast } from 'sonner'
+import { sileo } from 'sileo'
 
 export function useClipboard() {
   const [copied, setCopied] = useState('')
@@ -12,11 +12,11 @@ export function useClipboard() {
         setCopied('')
       }, 2000)
     } catch (error) {
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : 'Failed to copy, please try again!'
-      )
+      sileo.error({
+        title: 'Failed to copy',
+        description:
+          error instanceof Error ? error.message : 'Please try again!'
+      })
     }
   }
 

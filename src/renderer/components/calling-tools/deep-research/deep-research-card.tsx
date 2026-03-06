@@ -17,7 +17,7 @@ import { differenceInMinutes } from 'date-fns'
 import { useAtom } from 'jotai'
 import { DownloadIcon, LoaderIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { toast } from 'sonner'
+import { sileo } from 'sileo'
 import useSWR from 'swr'
 
 export function DeepResearchCard({
@@ -51,9 +51,11 @@ export function DeepResearchCard({
       const blob = await markdownToPdf(deepResearchResult.finalReport)
       downloadFile(blob, `${deepResearchResult.id}.pdf`)
     } catch (e) {
-      toast.error(
-        e instanceof Error ? e.message : 'Failed to export data from database.'
-      )
+      sileo.error({
+        title: 'Export failed',
+        description:
+          e instanceof Error ? e.message : 'Failed to generate PDF report.'
+      })
     } finally {
       setLoading(false)
     }

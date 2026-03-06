@@ -2,7 +2,7 @@ import { convertFileToBase64 } from '@/lib/utils'
 import { attachmentAtom } from '@/stores/chat'
 import { useSetAtom } from 'jotai'
 import { useState } from 'react'
-import { toast } from 'sonner'
+import { sileo } from 'sileo'
 
 export function useUpload() {
   const [loading, setLoading] = useState(false)
@@ -23,7 +23,10 @@ export function useUpload() {
       setLoading(true)
       await uploadFileToBase64(files)
     } catch {
-      toast.error('Failed to upload files.')
+      sileo.error({
+        title: 'Upload failed',
+        description: 'Failed to upload files.'
+      })
     } finally {
       setLoading(false)
       if (typeof cleanup === 'function') {

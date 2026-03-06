@@ -1,1 +1,0 @@
-ALTER TABLE "Setting" ADD COLUMN "mem0" jsonb;

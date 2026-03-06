@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1754996363532,
-      "tag": "0000_cultured_iron_monger",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1763709593393,
-      "tag": "0001_aromatic_absorbing_man",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1765877530390,
-      "tag": "0002_sharp_mandrill",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1765879159393,
-      "tag": "0003_stiff_phalanx",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1767670705421,
-      "tag": "0004_redundant_starhawk",
+      "when": 1772783877779,
+      "tag": "0000_calm_paper_doll",
       "breakpoints": true
     }
   ]

@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import { useAtom } from 'jotai'
 import { AlertCircleIcon, LoaderIcon } from 'lucide-react'
 import { lazy, Suspense, useEffect, useState } from 'react'
-import { toast } from 'sonner'
+import { sileo } from 'sileo'
 
 const MonacoEditor = lazy(() => import('@/components/code-editor'))
 
@@ -25,9 +25,11 @@ export function MCP({ form }: { form: UseFormReturnType }) {
       subscribeSucceedToRestartServer(() => {
         setLoading(false)
         setIsMcpServerChanged(false)
-        toast.success(
-          'The new MCP servers are live! Enjoy chatting with MCP! ( ๑ ˃̵ᴗ˂̵)و ♡'
-        )
+        sileo.success({
+          title: 'MCP servers restarted',
+          description:
+            'The new MCP servers are live! Enjoy chatting with MCP! ( ๑ ˃̵ᴗ˂̵)و ♡'
+        })
         window.location.reload()
       })
   }, [setIsMcpServerChanged])

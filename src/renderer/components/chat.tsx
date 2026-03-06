@@ -8,7 +8,7 @@ import { DefaultChatTransport, type UIMessage } from 'ai'
 import { IpcRendererEvent } from 'electron'
 import { useAtomValue } from 'jotai'
 import { useEffect, useRef, useState } from 'react'
-import { toast } from 'sonner'
+import { sileo } from 'sileo'
 import { mutate } from 'swr'
 import { v4 as uuidV4 } from 'uuid'
 import Messages from './messages'
@@ -32,8 +32,13 @@ export function Chat({ id, initialMessages }: Props) {
     useChat<ChatMessage>({
       transport: new DefaultChatTransport({
         api: `${BASE_URL}/api/chat`,
-        prepareSendMessagesRequest: ({ body }) => ({
-          body: { ...body, advancedTools: advancedToolsRef.current }
+        prepareSendMessagesRequest: ({ id, messages, body }) => ({
+          body: {
+            ...body,
+            id,
+            messages,
+            advancedTools: advancedToolsRef.current
+          }
         })
       }),
       id,
@@ -43,11 +48,13 @@ export function Chat({ id, initialMessages }: Props) {
         mutate('/api/history')
       },
       onError: (e) => {
-        toast.error(
-          e instanceof Error
-            ? e.message
-            : 'An error occurred, please try again!'
-        )
+        sileo.error({
+          title: 'Something went wrong',
+          description:
+            e instanceof Error
+              ? e.message
+              : 'An error occurred, please try again!'
+        })
       }
     })
 

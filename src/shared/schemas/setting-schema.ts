@@ -108,8 +108,8 @@ export const SettingSchema = z.object({
   image: ImageSchema.nullable(),
   deepResearch: DeepResearchSchema.nullable(),
   s3: S3Schema.nullable(),
-  createdAt: z.date(),
-  updatedAt: z.date()
+  createdAt: z.any(),
+  updatedAt: z.any()
 })
 
 export type Setting = z.infer<typeof SettingSchema>

@@ -1,7 +1,7 @@
 import { downloadFile } from '@/lib/utils'
 import { exportData as exportDataService } from '@/services/db'
 import { useState } from 'react'
-import { toast } from 'sonner'
+import { sileo } from 'sileo'
 
 export function useDbIo() {
   const [loading, setLoading] = useState(false)
@@ -16,9 +16,13 @@ export function useDbIo() {
       const blob = await exportDataService()
       downloadFile(blob, 'exodus-archive.zip')
     } catch (e) {
-      toast.error(
-        e instanceof Error ? e.message : 'Failed to export data from database.'
-      )
+      sileo.error({
+        title: 'Export failed',
+        description:
+          e instanceof Error
+            ? e.message
+            : 'Failed to export data from database.'
+      })
     } finally {
       setLoading(false)
     }

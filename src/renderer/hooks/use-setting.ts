@@ -1,5 +1,5 @@
 import { updateSetting as updateSettingService } from '@/services/setting'
-import { toast } from 'sonner'
+import { sileo } from 'sileo'
 import type { Setting } from 'src/shared/schemas/setting-schema'
 import useSWR from 'swr'
 
@@ -9,7 +9,7 @@ export function useSetting() {
   const updateSetting = async (payload: Setting) => {
     await updateSettingService(payload)
     mutate()
-    toast.success('Auto saved.')
+    sileo.success({ title: 'Auto saved' })
   }
 
   return {

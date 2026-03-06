@@ -13,7 +13,7 @@ import {
   useRef,
   useState
 } from 'react'
-import { toast } from 'sonner'
+import { sileo } from 'sileo'
 import { AdvancedTools } from './advanced-tools'
 import { AudioRecorder } from './audio-recoder'
 import { AvailableMcpTools } from './available-mcp-tools'
@@ -139,7 +139,10 @@ function InputBox({
               }
 
               if (status === 'streaming') {
-                toast.error('Please wait for the model to finish its response!')
+                sileo.warning({
+                  title: 'Please wait',
+                  description: 'The model is still generating a response.'
+                })
               } else {
                 submitForm()
               }
