@@ -21,14 +21,35 @@ import {
   PopoverContent,
   PopoverTrigger
 } from '@/components/ui/popover'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import { countryCodes } from '@shared/constants/country-codes'
 import { languageCodes } from '@shared/constants/language-codes'
 import { UseFormReturnType } from '@shared/schemas/setting-schema'
-import { AlertCircleIcon, CheckIcon, ChevronsUpDownIcon } from 'lucide-react'
+import {
+  AlertCircleIcon,
+  CheckIcon,
+  ChevronsUpDownIcon,
+  ExternalLinkIcon,
+  InfoIcon
+} from 'lucide-react'
+
+const URL_TO_MARKDOWN_PROVIDERS = [
+  { value: 'default', label: 'Default (built-in)' },
+  { value: 'jina', label: 'Jina Reader' },
+  { value: 'cloudflare', label: 'Cloudflare Browser Rendering' }
+] as const
 
 export function WebSearch({ form }: { form: UseFormReturnType }) {
+  const provider = form.watch('webSearch.urlToMarkdownProvider')
+
   return (
     <>
       <Alert>
@@ -53,9 +74,9 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
           control={form.control}
           name="webSearch.braveApiKey"
           render={({ field }) => (
-            <FormItem className="flex justify-between gap-16">
-              <FormLabel className="shrink-0">Brave API Key</FormLabel>
-              <FormControl className="w-full">
+            <FormItem>
+              <FormLabel>Brave API Key</FormLabel>
+              <FormControl>
                 <Input
                   type="password"
                   autoComplete="current-password"
@@ -63,14 +84,15 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
                   autoFocus
                   {...field}
                   value={field.value ?? ''}
-                  required
                 />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
         <Separator />
+
         <FormField
           control={form.control}
           name="webSearch.country"
@@ -79,8 +101,81 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
               ({ countryCode }) => countryCode === field.value
             )
             return (
-              <FormItem className="flex justify-between">
-                <FormLabel className="mb-0">Country</FormLabel>
+              <FormItem className="flex flex-col">
+                <div className="flex items-center justify-between">
+                  <FormLabel className="mb-0">Country</FormLabel>
+                  <Popover modal>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            'hover:bg-accent w-fit justify-between border-none shadow-none',
+                            !field.value && 'text-muted-foreground'
+                          )}
+                        >
+                          {countryItem
+                            ? `${countryItem.flag} ${countryItem.country}`
+                            : 'Select country'}
+                          <ChevronsUpDownIcon className="opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="p-0" side="top">
+                      <Command>
+                        <CommandInput
+                          placeholder="Search country..."
+                          className="h-9"
+                        />
+                        <CommandList>
+                          <CommandEmpty>No country found.</CommandEmpty>
+                          <CommandGroup>
+                            {countryCodes.map(
+                              ({ flag, country, countryCode }) => (
+                                <CommandItem
+                                  value={countryCode}
+                                  key={countryCode}
+                                  onSelect={() => {
+                                    form.setValue(
+                                      'webSearch.country',
+                                      countryCode
+                                    )
+                                  }}
+                                >
+                                  {flag} {country}
+                                  <CheckIcon
+                                    className={cn(
+                                      'ml-auto',
+                                      countryCode === field.value
+                                        ? 'opacity-100'
+                                        : 'opacity-0'
+                                    )}
+                                  />
+                                </CommandItem>
+                              )
+                            )}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+                <FormMessage />
+              </FormItem>
+            )
+          }}
+        />
+
+        <Separator />
+
+        <FormField
+          control={form.control}
+          name="webSearch.language"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <div className="flex items-center justify-between">
+                <FormLabel className="mb-0">Language</FormLabel>
                 <Popover modal>
                   <PopoverTrigger asChild>
                     <FormControl>
@@ -92,121 +187,172 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
                           !field.value && 'text-muted-foreground'
                         )}
                       >
-                        {countryItem
-                          ? `${countryItem.flag} ${countryItem.country}`
-                          : 'Select country'}
-
+                        {field.value
+                          ? languageCodes.find(
+                              ({ languageCode }) => languageCode === field.value
+                            )?.language
+                          : 'Select language'}
                         <ChevronsUpDownIcon className="opacity-50" />
                       </Button>
                     </FormControl>
                   </PopoverTrigger>
-                  <PopoverContent className="p-0" side="top">
+                  <PopoverContent className="w-[200px] p-0" side="top">
                     <Command>
                       <CommandInput
-                        placeholder="Search country..."
+                        placeholder="Search language..."
                         className="h-9"
                       />
                       <CommandList>
-                        <CommandEmpty>No country found.</CommandEmpty>
+                        <CommandEmpty>No language found.</CommandEmpty>
                         <CommandGroup>
-                          {countryCodes.map(
-                            ({ flag, country, countryCode }) => (
-                              <CommandItem
-                                value={countryCode}
-                                key={countryCode}
-                                onSelect={() => {
-                                  form.setValue(
-                                    'webSearch.country',
-                                    countryCode
-                                  )
-                                }}
-                              >
-                                {flag} {country}
-                                <CheckIcon
-                                  className={cn(
-                                    'ml-auto',
-                                    countryCode === field.value
-                                      ? 'opacity-100'
-                                      : 'opacity-0'
-                                  )}
-                                />
-                              </CommandItem>
-                            )
-                          )}
+                          {languageCodes.map(({ language, languageCode }) => (
+                            <CommandItem
+                              value={language}
+                              key={languageCode}
+                              onSelect={() => {
+                                form.setValue(
+                                  'webSearch.language',
+                                  languageCode
+                                )
+                              }}
+                            >
+                              {language}
+                              <CheckIcon
+                                className={cn(
+                                  'ml-auto',
+                                  languageCode === field.value
+                                    ? 'opacity-100'
+                                    : 'opacity-0'
+                                )}
+                              />
+                            </CommandItem>
+                          ))}
                         </CommandGroup>
                       </CommandList>
                     </Command>
                   </PopoverContent>
                 </Popover>
-                <FormMessage />
-              </FormItem>
-            )
-          }}
-        />
-        <Separator />
-        <FormField
-          control={form.control}
-          name="webSearch.language"
-          render={({ field }) => (
-            <FormItem className="flex justify-between">
-              <FormLabel className="mb-0">Language</FormLabel>
-              <Popover modal>
-                <PopoverTrigger asChild>
-                  <FormControl>
-                    <Button
-                      variant="outline"
-                      role="combobox"
-                      className={cn(
-                        'hover:bg-accent w-fit justify-between border-none shadow-none',
-                        !field.value && 'text-muted-foreground'
-                      )}
-                    >
-                      {field.value
-                        ? languageCodes.find(
-                            ({ languageCode }) => languageCode === field.value
-                          )?.language
-                        : 'Select language'}
-                      <ChevronsUpDownIcon className="opacity-50" />
-                    </Button>
-                  </FormControl>
-                </PopoverTrigger>
-                <PopoverContent className="w-[200px] p-0" side="top">
-                  <Command>
-                    <CommandInput
-                      placeholder="Search language..."
-                      className="h-9"
-                    />
-                    <CommandList>
-                      <CommandEmpty>No language found.</CommandEmpty>
-                      <CommandGroup>
-                        {languageCodes.map(({ language, languageCode }) => (
-                          <CommandItem
-                            value={language}
-                            key={languageCode}
-                            onSelect={() => {
-                              form.setValue('webSearch.language', languageCode)
-                            }}
-                          >
-                            {language}
-                            <CheckIcon
-                              className={cn(
-                                'ml-auto',
-                                languageCode === field.value
-                                  ? 'opacity-100'
-                                  : 'opacity-0'
-                              )}
-                            />
-                          </CommandItem>
-                        ))}
-                      </CommandGroup>
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              </div>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        <Separator />
+
+        <FormField
+          control={form.control}
+          name="webSearch.urlToMarkdownProvider"
+          render={({ field }) => (
+            <FormItem className="flex flex-col">
+              <div className="flex items-center justify-between">
+                <FormLabel className="mb-0">URL to Markdown</FormLabel>
+                <FormControl>
+                  <Select
+                    value={field.value ?? 'default'}
+                    onValueChange={(val) =>
+                      form.setValue(
+                        'webSearch.urlToMarkdownProvider',
+                        val as 'default' | 'jina' | 'cloudflare'
+                      )
+                    }
+                  >
+                    <SelectTrigger className="hover:bg-accent w-fit border-none shadow-none">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {URL_TO_MARKDOWN_PROVIDERS.map(({ value, label }) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </FormControl>
+              </div>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {provider === 'cloudflare' && (
+          <>
+            <Alert>
+              <InfoIcon className="h-4 w-4" />
+              <AlertDescription className="space-y-1">
+                <p>
+                  Cloudflare Browser Rendering requires enabling the service in
+                  your Cloudflare Dashboard and creating an API Token with the{' '}
+                  <strong>Browser Rendering</strong> permission.
+                </p>
+                <div className="flex flex-wrap gap-x-3 gap-y-1 pt-1">
+                  <a
+                    href="https://developers.cloudflare.com/browser-rendering/get-started/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 font-semibold underline"
+                  >
+                    Get started <ExternalLinkIcon className="h-3 w-3" />
+                  </a>
+                  <a
+                    href="https://developers.cloudflare.com/browser-rendering/rest-api/crawl-endpoint/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 font-semibold underline"
+                  >
+                    Crawl API docs <ExternalLinkIcon className="h-3 w-3" />
+                  </a>
+                  <a
+                    href="https://dash.cloudflare.com/profile/api-tokens"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 font-semibold underline"
+                  >
+                    Create API Token <ExternalLinkIcon className="h-3 w-3" />
+                  </a>
+                </div>
+              </AlertDescription>
+            </Alert>
+
+            <FormField
+              control={form.control}
+              name="webSearch.cloudflareAccountId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cloudflare Account ID</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      value={field.value ?? ''}
+                      placeholder="Your Cloudflare account ID"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="webSearch.cloudflareApiToken"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Cloudflare API Token</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      autoComplete="current-password"
+                      {...field}
+                      value={field.value ?? ''}
+                      placeholder="Token with Browser Rendering permission"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </>
+        )}
       </div>
     </>
   )

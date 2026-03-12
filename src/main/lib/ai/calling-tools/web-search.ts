@@ -19,7 +19,10 @@ export const webSearch = (setting: Setting) =>
         query,
         braveApiKey: setting.webSearch.braveApiKey,
         country: setting.webSearch.country,
-        language: setting.webSearch.language
+        language: setting.webSearch.language,
+        urlToMarkdownProvider: setting.webSearch.urlToMarkdownProvider,
+        cloudflareAccountId: setting.webSearch.cloudflareAccountId,
+        cloudflareApiToken: setting.webSearch.cloudflareApiToken
       })
 
       return searchResults

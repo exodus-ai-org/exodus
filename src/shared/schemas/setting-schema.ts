@@ -42,10 +42,16 @@ export const GoogleCloudSchema = z.object({
   googleApiKey: z.string().nullable()
 })
 
+export const UrlToMarkdownProvider = z.enum(['default', 'jina', 'cloudflare'])
+export type UrlToMarkdownProvider = z.infer<typeof UrlToMarkdownProvider>
+
 export const WebSearchSchema = z.object({
-  braveApiKey: z.string().nullable(),
-  country: z.string().nullable(),
-  language: z.string().nullable()
+  braveApiKey: z.string().nullish(),
+  country: z.string().nullish(),
+  language: z.string().nullish(),
+  urlToMarkdownProvider: UrlToMarkdownProvider.nullish(),
+  cloudflareAccountId: z.string().nullish(),
+  cloudflareApiToken: z.string().nullish()
 })
 
 export const ImageSchema = z.object({
