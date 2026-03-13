@@ -1,7 +1,6 @@
 import { CodePreview } from '@/components/code-preview'
 import { DeepResearchProcess } from '@/components/deep-research'
 import { Immersion } from '@/components/immersion'
-import { SettingsDialog } from '@/components/setting/setting-dialog'
 import { useTheme } from '@/components/theme-provider'
 import {
   SidebarInset,
@@ -61,7 +60,6 @@ function InsertedSidebar() {
           }
         }}
       />
-      <SettingsDialog />
       <SearchDialog />
       <RenameChatDialog />
       <ChatDeletionConfirmationDialog />
@@ -84,9 +82,7 @@ export function Layout() {
   }, [])
 
   return (
-    <SidebarProvider
-      style={{ '--sidebar-width': '18rem' } as React.CSSProperties}
-    >
+    <SidebarProvider>
       <div className={cn('w-full', { ['w-100']: isImmersionVisible })}>
         <div className="flex h-screen">
           <AppSidebar />

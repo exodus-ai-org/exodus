@@ -1,10 +1,10 @@
 import { Form } from '@/components/ui/form'
 import { useSetting } from '@/hooks/use-setting'
-import { isMcpServerChangedAtom, settingLabelAtom } from '@/stores/setting'
+import { settingLabelAtom } from '@/stores/setting'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Setting, SettingSchema } from '@shared/schemas/setting-schema'
 import { AiProviders } from '@shared/types/ai'
-import { useAtomValue, useSetAtom } from 'jotai'
+import { useAtomValue } from 'jotai'
 import { useForm } from 'react-hook-form'
 import { AudioSpeech } from './setting-form/audio-speech'
 import { DataControls } from './setting-form/data-controls'
@@ -12,7 +12,7 @@ import { DeepResearch } from './setting-form/deep-research'
 import { General } from './setting-form/generals'
 import { GoogleMaps } from './setting-form/google-maps'
 import { ImageGeneration } from './setting-form/image-generation'
-import { MCP } from './setting-form/mcp'
+// ARCHIVED: import { MCP } from './setting-form/mcp'
 import { MemoryLayer } from './setting-form/memory-layer'
 import { ProviderConfig } from './setting-form/provider-config'
 import { AnthropicClaude } from './setting-form/providers/anthropic-claude'
@@ -24,11 +24,12 @@ import { XaiGrok } from './setting-form/providers/xai-grok'
 import { Rag } from './setting-form/rag'
 import { S3 } from './setting-form/s3'
 import { SystemInfo } from './setting-form/system-info'
+import { Tools } from './setting-form/tools'
 import { WebSearch } from './setting-form/web-search'
 import { UnderConstruction } from './under-construction'
 
 export function SettingsForm() {
-  const setIsMcpServerChanged = useSetAtom(isMcpServerChangedAtom)
+  // ARCHIVED: const setIsMcpServerChanged = useSetAtom(isMcpServerChangedAtom)
   const { data: setting, updateSetting } = useSetting()
   const activeTitle = useAtomValue(settingLabelAtom)
 
@@ -42,10 +43,7 @@ export function SettingsForm() {
     if (!setting) return
 
     if (form.formState.isDirty) {
-      if (form.formState.dirtyFields.mcpServers) {
-        setIsMcpServerChanged(true)
-      }
-
+      // ARCHIVED: if (form.formState.dirtyFields.mcpServers) { setIsMcpServerChanged(true) }
       updateSetting({ ...values, id: setting.id })
     }
   }
@@ -90,7 +88,9 @@ export function SettingsForm() {
 
         {activeTitle === 'Memory Layer' && <MemoryLayer form={form} />}
 
-        {activeTitle === 'MCP Servers' && <MCP form={form} />}
+        {/* ARCHIVED: {activeTitle === 'MCP Servers' && <MCP form={form} />} */}
+
+        {activeTitle === 'Tools' && <Tools form={form} />}
 
         {activeTitle === 'RAG' && <Rag />}
 

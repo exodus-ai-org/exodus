@@ -1,4 +1,4 @@
-import { AdvancedTools, AiProviders, McpTools } from '@shared/types/ai'
+import { AdvancedTools, AiProviders } from '@shared/types/ai'
 import { ChatMessage, ChatTools, CustomUIDataTypes } from '@shared/types/chat'
 import {
   AssistantModelMessage,
@@ -15,12 +15,20 @@ import {
   calculator,
   date,
   deepResearch,
+  editFile,
+  findFiles,
   googleMapsPlaces,
   googleMapsRouting,
+  grep,
   imageGeneration,
+  listDirectory,
   rag,
+  readFile,
+  terminal,
   weather,
-  webSearch
+  webFetch,
+  webSearch,
+  writeFile
 } from '../calling-tools'
 import { titleGenerationPrompt } from '../prompts'
 import { providers } from '../providers'
@@ -97,11 +105,10 @@ export async function generateTitleFromUserMessage({
 }
 
 export function bindCallingTools({
-  mcpTools,
   advancedTools,
   setting
 }: {
-  mcpTools: McpTools[]
+  // ARCHIVED: mcpTools: McpTools[]
   advancedTools: AdvancedTools[]
   setting: Setting
 }): ToolSet {
@@ -111,27 +118,34 @@ export function bindCallingTools({
     }
   }
 
-  const mcpToolsMap = mcpTools
-    .map((mcpTool) => mcpTool.tools)
-    .reduce((acc, obj) => {
-      if (typeof obj === 'object' && obj !== null) {
-        return { ...acc, ...obj }
-      }
-      return acc
-    }, {})
+  // ARCHIVED: MCP tools map removed
+  // const mcpToolsMap = mcpTools.map(t => t.tools).reduce(...)
 
-  const tools = {
-    ...mcpToolsMap,
-    rag,
-    calculator,
-    date,
-    weather,
-    googleMapsPlaces: googleMapsPlaces(setting),
-    googleMapsRouting: googleMapsRouting(setting),
-    imageGeneration: imageGeneration(setting)
-  }
-  if (advancedTools.includes(AdvancedTools.WebSearch)) {
-    tools['webSearch'] = webSearch(setting)
+  const disabledTools = new Set(setting.tools?.disabledTools ?? [])
+  const enabled = (key: string) => !disabledTools.has(key)
+
+  const tools: ToolSet = {}
+  if (enabled('rag')) tools.rag = rag(setting)
+  if (enabled('calculator')) tools.calculator = calculator
+  if (enabled('date')) tools.date = date
+  if (enabled('weather')) tools.weather = weather
+  if (enabled('googleMapsPlaces'))
+    tools.googleMapsPlaces = googleMapsPlaces(setting)
+  if (enabled('googleMapsRouting'))
+    tools.googleMapsRouting = googleMapsRouting(setting)
+  if (enabled('imageGeneration'))
+    tools.imageGeneration = imageGeneration(setting)
+  if (enabled('terminal')) tools.terminal = terminal
+  if (enabled('readFile')) tools.readFile = readFile
+  if (enabled('writeFile')) tools.writeFile = writeFile
+  if (enabled('editFile')) tools.editFile = editFile
+  if (enabled('listDirectory')) tools.listDirectory = listDirectory
+  if (enabled('findFiles')) tools.findFiles = findFiles
+  if (enabled('grep')) tools.grep = grep
+  if (enabled('webFetch')) tools.webFetch = webFetch
+
+  if (advancedTools.includes(AdvancedTools.WebSearch) && enabled('webSearch')) {
+    tools.webSearch = webSearch(setting)
   }
 
   return tools

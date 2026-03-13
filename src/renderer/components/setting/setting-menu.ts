@@ -8,14 +8,15 @@ import {
   DatabaseIcon,
   FileUpIcon,
   GlobeIcon,
-  HammerIcon,
+  // ARCHIVED: HammerIcon,
   HandCoinsIcon,
   ImageIcon,
   InfoIcon,
   MapIcon,
   MemoryStickIcon,
   PaletteIcon,
-  TelescopeIcon
+  TelescopeIcon,
+  WrenchIcon
 } from 'lucide-react'
 
 export const menus = {
@@ -52,9 +53,10 @@ export const menus = {
       title: 'Amazon S3',
       icon: FileUpIcon
     },
+    // ARCHIVED: { icon: HammerIcon, title: 'MCP Servers' },
     {
-      icon: HammerIcon,
-      title: 'MCP Servers'
+      icon: WrenchIcon,
+      title: 'Tools'
     },
     {
       icon: MemoryStickIcon,

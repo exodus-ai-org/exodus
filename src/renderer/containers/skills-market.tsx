@@ -9,7 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   installSkill,
   toggleSkill,
-  uninstallSkill
+  uninstallSkill,
+  uploadLocalSkill
 } from '@/services/skills-service'
 import type {
   InstalledSkill,
@@ -26,9 +27,10 @@ import {
   SearchIcon,
   SparklesIcon,
   StarIcon,
-  Trash2Icon
+  Trash2Icon,
+  UploadIcon
 } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import useSWR from 'swr'
 
@@ -292,6 +294,8 @@ export function SkillsMarket() {
   const [cursor, setCursor] = useState<string | null>(null)
   const [cursorHistory, setCursorHistory] = useState<(string | null)[]>([null])
   const [pendingSlug, setPendingSlug] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const uploadInputRef = useRef<HTMLInputElement>(null)
 
   const debouncedSearch = useDebounce(search, 400)
   const isSearching = debouncedSearch.trim().length > 0
@@ -386,6 +390,27 @@ export function SkillsMarket() {
       } catch (e) {
         toast.error('Failed to update skill')
         console.error(e)
+      }
+    },
+    [mutateInstalled]
+  )
+
+  const handleUploadLocal = useCallback(
+    async (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0]
+      if (!file) return
+      // Reset input so the same file can be re-uploaded after uninstall
+      e.target.value = ''
+      setUploading(true)
+      try {
+        await uploadLocalSkill(file)
+        await mutateInstalled()
+        toast.success(`"${file.name}" installed successfully`)
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Upload failed'
+        toast.error(msg)
+      } finally {
+        setUploading(false)
       }
     },
     [mutateInstalled]
@@ -562,7 +587,30 @@ export function SkillsMarket() {
             value="installed"
             className="mt-3 flex-1 overflow-hidden"
           >
-            <ScrollArea className="h-full">
+            {/* Hidden file input for local upload */}
+            <input
+              ref={uploadInputRef}
+              type="file"
+              accept=".zip"
+              className="hidden"
+              onChange={handleUploadLocal}
+            />
+            <div className="mb-3 flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={uploading}
+                onClick={() => uploadInputRef.current?.click()}
+              >
+                {uploading ? (
+                  <Loader2Icon className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <UploadIcon className="mr-1.5 h-3.5 w-3.5" />
+                )}
+                Upload local skill
+              </Button>
+            </div>
+            <ScrollArea className="h-[calc(100%-44px)]">
               <div className="space-y-3 pr-3 pb-4">
                 {!installedData ? (
                   Array.from({ length: 3 }).map((_, i) => (

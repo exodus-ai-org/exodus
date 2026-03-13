@@ -17,8 +17,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem
 } from '@/components/ui/sidebar'
-import { isSettingVisibleAtom } from '@/stores/setting'
-import { useSetAtom } from 'jotai'
+import { useNavigate } from 'react-router'
 
 // This is sample data
 const data = {
@@ -50,7 +49,7 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const setSettingDialogVisible = useSetAtom(isSettingVisibleAtom)
+  const navigate = useNavigate()
 
   return (
     <Sidebar
@@ -103,7 +102,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <SidebarGroupContent>
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton onClick={() => setSettingDialogVisible(true)}>
+              <SidebarMenuButton onClick={() => navigate('/settings')}>
                 <SettingsIcon />
                 Setting
               </SidebarMenuButton>

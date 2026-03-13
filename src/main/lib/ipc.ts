@@ -1,6 +1,6 @@
 import { app, ipcMain } from 'electron'
-import { connectHttpServer } from './server/app'
-import { getServer, setServer } from './server/instance'
+// ARCHIVED: import { connectHttpServer } from './server/app'
+// ARCHIVED: import { getServer, setServer } from './server/instance'
 import {
   getMainWindow,
   getQuickChatView,
@@ -12,17 +12,18 @@ import {
 export function setupIPC() {
   ipcMain.on('ping', () => console.log('pong'))
 
-  ipcMain.handle('restart-server', async () => {
-    const oldServer = getServer()
-    if (oldServer) {
-      oldServer.close(async () => {
-        const newServer = await connectHttpServer()
-        newServer.start()
-        setServer(newServer)
-        getMainWindow()?.webContents.send('succeed-to-restart-server')
-      })
-    }
-  })
+  // ARCHIVED: MCP server restart IPC removed
+  // ipcMain.handle('restart-server', async () => {
+  //   const oldServer = getServer()
+  //   if (oldServer) {
+  //     oldServer.close(async () => {
+  //       const newServer = await connectHttpServer()
+  //       newServer.start()
+  //       setServer(newServer)
+  //       getMainWindow()?.webContents.send('succeed-to-restart-server')
+  //     })
+  //   }
+  // })
 
   ipcMain.handle('find-in-page', (_, keyword) => {
     if (keyword === '') {

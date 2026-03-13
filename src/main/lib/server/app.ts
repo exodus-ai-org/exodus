@@ -3,7 +3,7 @@ import { SERVER_PORT } from '@shared/constants/systems'
 import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { connectMcpServers } from '../ai/mcp'
+// ARCHIVED: import { connectMcpServers } from '../ai/mcp'
 import { getSetting } from '../db/queries'
 import { errorHandler } from './middlewares'
 import audioRouter from './routes/audio'
@@ -20,15 +20,8 @@ import workflowRouter from './routes/workflow'
 
 // Export server functions
 export async function connectHttpServer() {
-  console.log('⏳ Registering MCP servers...')
-  const start = performance.now()
-  const tools = await connectMcpServers()
-  const end = performance.now()
-  console.log(
-    '✅ All of the MCP servers have been registered in',
-    end - start,
-    'ms'
-  )
+  // ARCHIVED: MCP server connection removed
+  // const tools = await connectMcpServers()
 
   let server: ServerType | null = null
   const app = new Hono<{ Variables: Variables }>()
@@ -44,14 +37,11 @@ export async function connectHttpServer() {
     await next()
   })
 
-  // Add tools to context
-  app.use('/api/chat/*', async (c, next) => {
-    if (tools !== null) {
-      c.set('tools', tools)
-    }
-
-    await next()
-  })
+  // ARCHIVED: MCP tools middleware removed
+  // app.use('/api/chat/*', async (c, next) => {
+  //   if (tools !== null) { c.set('tools', tools) }
+  //   await next()
+  // })
 
   // Routes
   app.route('/api/chat', chatRouter)

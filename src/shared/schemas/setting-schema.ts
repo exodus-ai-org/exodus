@@ -96,11 +96,16 @@ export const S3Schema = z
     })
   })
 
+export const ToolsSchema = z.object({
+  disabledTools: z.array(z.string())
+})
+
 export const SettingSchema = z.object({
   id: z.string(),
   providerConfig: ProviderConfigSchema.nullable(),
   providers: ProvidersSchema.nullable(),
-  mcpServers: z.string(),
+  // ARCHIVED: mcpServers: z.string(),
+  tools: ToolsSchema.nullable(),
   audio: AudioSchema.nullable(),
   assistantAvatar: z.string(),
   googleCloud: GoogleCloudSchema.nullable(),

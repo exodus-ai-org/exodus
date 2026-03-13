@@ -8,7 +8,7 @@ import type {
   SearchResultItem,
   SkillItem,
   SkillsLockfile
-} from '../../../shared/types/skills'
+} from '../../../../shared/types/skills'
 
 const REGISTRY = 'https://clawhub.ai'
 const LOCK_FILE = '.lock.json'
@@ -133,6 +133,60 @@ export async function toggleSkillActive(
 export async function listInstalledSkills(): Promise<InstalledSkill[]> {
   const lock = await readLockfile()
   return Object.entries(lock.skills).map(([slug, info]) => ({ slug, ...info }))
+}
+
+export async function installLocalSkill(
+  zipBuffer: Buffer,
+  filename: string
+): Promise<InstalledSkill> {
+  // Derive slug from filename (e.g. "my-skill-v1.0.0.zip" → "my-skill")
+  const baseName = filename.replace(/\.zip$/i, '')
+  const slug = baseName.toLowerCase().replace(/[^a-z0-9-]/g, '-')
+
+  const skillsDir = getSkillsDir()
+  const skillDir = join(skillsDir, slug)
+
+  // Duplicate check
+  const lock = await readLockfile()
+  if (lock.skills[slug]) {
+    throw new Error(
+      `A skill named "${slug}" is already installed. Uninstall it first or rename your zip file.`
+    )
+  }
+
+  // Extract ZIP
+  const zip = await JSZip.loadAsync(zipBuffer)
+  await mkdir(skillDir, { recursive: true })
+  for (const [relativePath, file] of Object.entries(zip.files)) {
+    if (file.dir) continue
+    const targetPath = join(skillDir, relativePath)
+    await mkdir(join(targetPath, '..'), { recursive: true })
+    const content = await file.async('nodebuffer')
+    await writeFile(targetPath, content)
+  }
+
+  // Try to read display name from SKILL.md frontmatter
+  let displayName = slug
+  try {
+    const skillMd = join(skillDir, 'SKILL.md')
+    const content = await readFile(skillMd, 'utf-8')
+    const nameMatch = content.match(/^---[\s\S]*?name:\s*(.+)/m)
+    if (nameMatch) displayName = nameMatch[1].trim()
+  } catch {
+    // no SKILL.md or no name field, use slug
+  }
+
+  const installed: Omit<InstalledSkill, 'slug'> = {
+    displayName,
+    version: 'local',
+    isActive: true,
+    installPath: skillDir,
+    installedAt: Date.now()
+  }
+  lock.skills[slug] = installed
+  await writeLockfile(lock)
+
+  return { slug, ...installed }
 }
 
 export async function getActiveSkillsContent(): Promise<string> {

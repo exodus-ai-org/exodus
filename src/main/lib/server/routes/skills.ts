@@ -1,12 +1,13 @@
 import { Hono } from 'hono'
 import {
+  installLocalSkill,
   installSkill,
   listInstalledSkills,
   listRegistrySkills,
   searchRegistrySkills,
   toggleSkillActive,
   uninstallSkill
-} from '../../skills/skills-manager'
+} from '../../ai/skills/skills-manager'
 
 const skillsRouter = new Hono()
 
@@ -50,6 +51,30 @@ skillsRouter.patch('/:slug/toggle', async (c) => {
   const { isActive } = await c.req.json()
   await toggleSkillActive(slug, isActive)
   return c.json({ ok: true })
+})
+
+// Upload a local skill ZIP
+skillsRouter.post('/upload', async (c) => {
+  const body = await c.req.parseBody()
+  const file = body['file']
+  if (!file || typeof file === 'string') {
+    return c.json({ ok: false, error: 'No file provided' }, 400)
+  }
+  const filename = file.name
+  if (!filename.endsWith('.zip')) {
+    return c.json({ ok: false, error: 'Only .zip files are accepted' }, 400)
+  }
+  try {
+    const arrayBuffer = await file.arrayBuffer()
+    const installed = await installLocalSkill(
+      Buffer.from(arrayBuffer),
+      filename
+    )
+    return c.json({ ok: true, data: installed })
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : 'Failed to install skill'
+    return c.json({ ok: false, error: msg }, 400)
+  }
 })
 
 export default skillsRouter

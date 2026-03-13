@@ -8,6 +8,13 @@
       "when": 1772783877779,
       "tag": "0000_calm_paper_doll",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1773395317337,
+      "tag": "0001_flawless_mauler",
+      "breakpoints": true
     }
   ]
 }

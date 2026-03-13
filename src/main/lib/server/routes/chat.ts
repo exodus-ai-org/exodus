@@ -11,6 +11,7 @@ import {
 import { Hono } from 'hono'
 import { v4 as uuidV4 } from 'uuid'
 import { deepResearchBootPrompt, systemPrompt } from '../../ai/prompts'
+import { getActiveSkillsContent } from '../../ai/skills/skills-manager'
 import {
   bindCallingTools,
   convertToUIMessages,
@@ -29,7 +30,6 @@ import {
   updateMessage
 } from '../../db/queries'
 import { DBMessage } from '../../db/schema'
-import { getActiveSkillsContent } from '../../skills/skills-manager'
 import { ChatSDKError } from '../errors'
 import { postRequestBodySchema, updateChatSchema } from '../schemas/chat'
 import {
@@ -43,10 +43,11 @@ import {
 
 const chat = new Hono<{ Variables: Variables }>()
 
-chat.get('/mcp', async (c) => {
-  const tools = c.get('tools')
-  return successResponse(c, { tools })
-})
+// ARCHIVED: MCP tools endpoint removed
+// chat.get('/mcp', async (c) => {
+//   const tools = c.get('tools')
+//   return successResponse(c, { tools })
+// })
 
 chat.get('/search', async (c) => {
   const query = c.req.query('query') ?? ''
@@ -66,7 +67,7 @@ chat.post('/', async (c) => {
     'chat',
     'Invalid request body'
   )
-  const mcpTools = c.get('tools')
+  // ARCHIVED: const mcpTools = c.get('tools')
   const setting = c.get('setting')
   const { chatModel, reasoningModel } = getModelFromProvider(setting)
   const isToolApprovalFlow = Boolean(messages)
@@ -108,8 +109,8 @@ chat.post('/', async (c) => {
             ? deepResearchBootPrompt
             : systemPrompt) + skillsContent,
         messages: modelMessages,
-        stopWhen: stepCountIs(setting.providerConfig?.maxSteps ?? 1),
-        tools: bindCallingTools({ mcpTools, advancedTools, setting }),
+        stopWhen: stepCountIs(setting.providerConfig?.maxSteps ?? 20),
+        tools: bindCallingTools({ advancedTools, setting }),
         experimental_activeTools: isReasoningModel ? [] : ['weather'],
         providerOptions: isReasoningModel
           ? {

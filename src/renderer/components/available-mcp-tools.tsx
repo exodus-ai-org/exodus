@@ -1,95 +1,19 @@
-import { HammerIcon } from 'lucide-react'
-
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger
-} from '@/components/ui/dialog'
-import { TooltipArrow } from '@radix-ui/react-tooltip'
-import { McpTools } from '@shared/types/ai'
-import { useMemo } from 'react'
-import useSWR from 'swr'
-import { Separator } from './ui/separator'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from './ui/tooltip'
+// ARCHIVED: MCP tools display removed. Agent capabilities now come from built-in tools + Skills.
+//
+// import { HammerIcon } from 'lucide-react'
+// import { Button } from '@/components/ui/button'
+// import { Dialog, DialogContent, ... } from '@/components/ui/dialog'
+// import { McpTools } from '@shared/types/ai'
+// import useSWR from 'swr'
+// ...
+//
+// export function AvailableMcpTools() {
+//   const { data } = useSWR<{ tools: McpTools[] }>('/api/chat/mcp')
+//   const count = data?.tools?.reduce(...) ?? 0
+//   if (count === 0) return null
+//   return <Dialog>...</Dialog>
+// }
 
 export function AvailableMcpTools() {
-  const { data } = useSWR<{ tools: McpTools[] }>('/api/chat/mcp')
-  const count = useMemo(
-    () =>
-      data?.tools?.reduce(
-        (acc, val) => acc + Object.values(val.tools).length,
-        0
-      ) ?? 0,
-    [data?.tools]
-  )
-
-  if (count === 0) return null
-  return (
-    <>
-      <Separator orientation="vertical" className="h-6!" />
-      <Dialog>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <DialogTrigger asChild>
-                <Button variant="ghost" className="h-6">
-                  <HammerIcon /> {count}
-                </Button>
-              </DialogTrigger>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{count} MCP tools available</p>
-              <TooltipArrow className="TooltipArrow" />
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
-
-        <DialogContent className="sm:max-w-xl">
-          <DialogHeader>
-            <DialogTitle>Available MCP tools</DialogTitle>
-            <DialogDescription>
-              Exodus can use tools provided by specialized servers using Model
-              Context Protocol.{' '}
-              <a
-                href="https://modelcontextprotocol.io/introduction"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="font-semibold underline"
-              >
-                Learn more about MCP
-              </a>
-              .
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex max-h-[500px] flex-col gap-4 overflow-y-scroll">
-            {data?.tools?.map(({ mcpServerName, tools }) => (
-              <div key={mcpServerName} className="flex flex-col gap-4">
-                {Object.keys(tools).map((toolName) => (
-                  <div key={toolName} className="flex flex-col gap-0.5">
-                    <p className="text-xs font-semibold">{toolName}</p>
-                    <p className="text-sm text-zinc-400">
-                      {tools[toolName].description ||
-                        `There is no description for ${toolName}.`}
-                    </p>
-                    <i className="text-xs text-zinc-500">
-                      From {mcpServerName}
-                    </i>
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
-  )
+  return null
 }

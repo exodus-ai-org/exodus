@@ -37,4 +37,13 @@ export async function toggleSkill(
   })
 }
 
+export async function uploadLocalSkill(file: File): Promise<InstalledSkill> {
+  const form = new FormData()
+  form.append('file', file)
+  const res = await fetch(`${base}/upload`, { method: 'POST', body: form })
+  const data = await res.json()
+  if (!data.ok) throw new Error(data.error ?? 'Upload failed')
+  return data.data
+}
+
 export type { InstalledSkill, SearchResultItem, SkillItem }
