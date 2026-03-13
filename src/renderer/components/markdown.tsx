@@ -128,7 +128,7 @@ export function Markdown({
   }, [parts])
 
   return (
-    <section className="markdown">
+    <section className="prose prose-sm dark:prose-invert max-w-none">
       <ReactMarkdown
         remarkPlugins={[
           remarkGfm,

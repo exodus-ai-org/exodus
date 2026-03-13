@@ -29,6 +29,7 @@ import {
   updateMessage
 } from '../../db/queries'
 import { DBMessage } from '../../db/schema'
+import { getActiveSkillsContent } from '../../skills/skills-manager'
 import { ChatSDKError } from '../errors'
 import { postRequestBodySchema, updateChatSchema } from '../schemas/chat'
 import {
@@ -94,6 +95,7 @@ chat.post('/', async (c) => {
     : [...convertToUIMessages(messagesFromDb), message as ChatMessage]
 
   const modelMessages = await convertToModelMessages(uiMessages)
+  const skillsContent = await getActiveSkillsContent()
 
   // immediately start streaming the response
   const stream = createUIMessageStream({
@@ -101,9 +103,10 @@ chat.post('/', async (c) => {
     execute: async ({ writer: dataStream }) => {
       const result = streamText({
         model: isReasoningModel ? reasoningModel : chatModel,
-        system: advancedTools?.includes(AdvancedTools.DeepResearch)
-          ? deepResearchBootPrompt
-          : systemPrompt,
+        system:
+          (advancedTools?.includes(AdvancedTools.DeepResearch)
+            ? deepResearchBootPrompt
+            : systemPrompt) + skillsContent,
         messages: modelMessages,
         stopWhen: stepCountIs(setting.providerConfig?.maxSteps ?? 1),
         tools: bindCallingTools({ mcpTools, advancedTools, setting }),

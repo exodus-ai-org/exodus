@@ -1,5 +1,6 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
+@plugin '@tailwindcss/typography';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -125,6 +126,12 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* Sidebar frosted glass — target the inner element directly */
+  [data-sidebar='sidebar'] {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+  }
 }
 
 @layer utilities {
@@ -148,84 +155,78 @@
     app-region: no-drag;
   }
 
-  .markdown {
-    h1 {
-      @apply mb-4 text-3xl font-bold;
-    }
+  /* ── Prose / Markdown ──────────────────────────────────────────── */
 
-    h2 {
-      @apply mb-4 text-2xl font-bold;
-    }
+  /* Map typography-plugin tokens to our design system */
+  .prose {
+    --tw-prose-body: var(--foreground);
+    --tw-prose-headings: var(--foreground);
+    --tw-prose-lead: var(--muted-foreground);
+    --tw-prose-links: var(--primary);
+    --tw-prose-bold: var(--foreground);
+    --tw-prose-counters: var(--muted-foreground);
+    --tw-prose-bullets: var(--muted-foreground);
+    --tw-prose-hr: var(--border);
+    --tw-prose-quotes: var(--muted-foreground);
+    --tw-prose-quote-borders: var(--border);
+    --tw-prose-captions: var(--muted-foreground);
+    --tw-prose-code: var(--foreground);
+    --tw-prose-pre-code: inherit;
+    --tw-prose-pre-bg: transparent;
+    --tw-prose-th-borders: var(--border);
+    --tw-prose-td-borders: var(--border);
+  }
 
-    h3 {
-      @apply mb-4 text-xl font-bold;
-    }
+  /* Inline code: chip style, no backtick quotes */
+  .prose :where(code):not(:where(pre *, [class~='not-prose'] *)) {
+    background: var(--accent);
+    color: var(--primary);
+    border-radius: 0.25rem;
+    padding: 0.15em 0.35em;
+    font-size: 0.8em;
+    font-weight: 400;
+  }
+  .prose :where(code):not(:where(pre *, [class~='not-prose'] *))::before,
+  .prose :where(code):not(:where(pre *, [class~='not-prose'] *))::after {
+    content: none;
+  }
 
-    p {
-      @apply mb-4 leading-7 break-words whitespace-pre-wrap;
-    }
+  /* Code blocks: border + rounded wrapper; SyntaxHighlighter supplies the bg */
+  .prose :where(pre):not(:where([class~='not-prose'] *)) {
+    background: transparent;
+    padding: 0;
+    color: inherit;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
 
-    hr {
-      @apply mb-4;
-    }
+  /* Paragraphs: pre-wrap so literal newlines render */
+  .prose :where(p):not(:where([class~='not-prose'] *)) {
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
 
-    ol,
-    ul {
-      @apply mb-4 pl-6;
-    }
-
-    ol {
-      @apply list-disc;
-    }
-
-    ul {
-      @apply list-decimal;
-    }
-
-    li {
-      @apply mb-4 pl-1;
-    }
-
-    thead {
-      @apply [&_tr]:border-b;
-    }
-
-    tbody {
-      @apply [&_tr:last-child]:border-0;
-    }
-
-    tr {
-      @apply hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors;
-    }
-
-    th {
-      @apply text-muted-foreground h-10 px-2 text-left align-middle font-bold whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px];
-    }
-
-    td {
-      @apply p-2 align-middle whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px];
-    }
-
-    b,
-    strong {
-      @apply font-semibold;
-    }
-
-    pre {
-      @apply border-border mb-4 overflow-x-scroll rounded-md border bg-[#fafafa] p-3 text-xs md:max-w-[48rem] dark:bg-[#282c34];
-
-      code {
-        all: unset;
-      }
-    }
-
-    code {
-      @apply text-primary bg-accent rounded-sm px-[4.8px] py-[2.4px] text-xs;
-    }
-
-    blockquote {
-      @apply after:bg-border relative pl-4 after:absolute after:top-0 after:left-0 after:h-full after:w-1 after:rounded-[2px];
-    }
+  /* Blockquote: left accent bar, no italic */
+  .prose :where(blockquote):not(:where([class~='not-prose'] *)) {
+    font-style: normal;
+    border-left: none;
+    padding-left: 1rem;
+    position: relative;
+  }
+  .prose :where(blockquote):not(:where([class~='not-prose'] *))::before {
+    content: '';
+    position: absolute;
+    inset-block: 0;
+    left: 0;
+    width: 3px;
+    background: var(--border);
+    border-radius: 2px;
+  }
+  .prose :where(blockquote p):not(:where([class~='not-prose'] *))::before,
+  .prose :where(blockquote p):not(:where([class~='not-prose'] *))::after {
+    content: none;
   }
 
   .tiptap {

@@ -9,11 +9,6 @@ import {
   SidebarTrigger,
   useSidebar
 } from '@/components/ui/sidebar'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger
-} from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 import { isCodePreviewVisibleAtom, isImmersionVisibleAtom } from '@/stores/chat'
 import { useAtomValue } from 'jotai'
@@ -22,14 +17,35 @@ import { Outlet } from 'react-router'
 import { Toaster } from 'sileo'
 import { AppSidebar } from './app-sidebar'
 import { ChatDeletionConfirmationDialog } from './chat-deletion-confirmation-dialog'
+import { ChatTabs } from './chat-tabs'
 import { RenameChatDialog } from './rename-chat-dialog'
 import { SearchDialog } from './search-dialog'
+
+function ContentHeader() {
+  const { open } = useSidebar()
+  return (
+    <header
+      className={cn(
+        'draggable border-border bg-card flex h-14 shrink-0 items-center border-b pr-3 transition-[padding] duration-200 ease-linear',
+        // When sidebar is open, just a small left gap.
+        // When closed, push trigger past the macOS traffic lights (~84px).
+        open ? 'pl-1' : 'pl-[84px]'
+      )}
+    >
+      <SidebarTrigger className="no-draggable text-muted-foreground hover:text-foreground" />
+      <div className="no-draggable min-w-0 flex-1">
+        <ChatTabs />
+      </div>
+    </header>
+  )
+}
 
 function InsertedSidebar() {
   const { actualTheme } = useTheme()
 
   return (
-    <SidebarInset className="bg-background flex min-w-0 flex-col">
+    <SidebarInset className="bg-card flex min-w-0 flex-col">
+      <ContentHeader />
       <Outlet />
       <Toaster
         options={{
@@ -53,35 +69,10 @@ function InsertedSidebar() {
   )
 }
 
-function FixedHeaderAction() {
-  const { open } = useSidebar()
-  return (
-    <div
-      className={cn(
-        'draggable z-11 flex h-12 w-(--sidebar-width) shrink-0 items-center justify-end py-3 pr-2 pl-22 transition-[,width] duration-200 ease-linear',
-        {
-          ['w-32 transition-[width] duration-200 ease-linear']: !open
-        }
-      )}
-    >
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <SidebarTrigger className="no-draggable" />
-        </TooltipTrigger>
-        <TooltipContent>
-          <p>{open ? 'Close' : 'Open'} sidebar</p>
-        </TooltipContent>
-      </Tooltip>
-    </div>
-  )
-}
-
 export function Layout() {
   const isCodePreviewVisible = useAtomValue(isCodePreviewVisibleAtom)
   const isImmersionVisible = useAtomValue(isImmersionVisibleAtom)
 
-  // Unload Find-in-Page when pressing Esc
-  // The listener should be mounted in both main window and searchbar view
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -93,15 +84,11 @@ export function Layout() {
   }, [])
 
   return (
-    <SidebarProvider>
+    <SidebarProvider
+      style={{ '--sidebar-width': '18rem' } as React.CSSProperties}
+    >
       <div className={cn('w-full', { ['w-100']: isImmersionVisible })}>
-        <div className="flex w-full">
-          <FixedHeaderAction />
-          <header className="draggable bg-background border-b-border flex h-14 w-full items-center p-3">
-            ChatGPT
-          </header>
-        </div>
-        <div className="flex h-[calc(100dvh-3.5rem)] overflow-y-hidden">
+        <div className="flex h-screen">
           <AppSidebar />
           <InsertedSidebar />
         </div>

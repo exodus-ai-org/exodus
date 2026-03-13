@@ -14,6 +14,7 @@ import historyRouter from './routes/history'
 import ragRouter from './routes/rag'
 import s3UploaderRouter from './routes/s3-uploader'
 import settingsRouter from './routes/setting'
+import skillsRouter from './routes/skills'
 import toolsRouter from './routes/tools'
 import workflowRouter from './routes/workflow'
 
@@ -63,6 +64,7 @@ export async function connectHttpServer() {
   app.route('/api/rag', ragRouter)
   app.route('/api/workflow', workflowRouter)
   app.route('/api/s3', s3UploaderRouter)
+  app.route('/api/skills', skillsRouter)
 
   // Ping
   app.get('/', (c) => c.text('Exodus is running.'))

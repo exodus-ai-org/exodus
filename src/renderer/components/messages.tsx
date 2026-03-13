@@ -53,7 +53,7 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
       )}
 
       {messages.length === 0 && (
-        <div className="mx-auto flex size-full max-w-3xl flex-col justify-center px-8 md:mt-20">
+        <div className="mx-auto flex size-full max-w-4xl flex-col justify-center px-8 md:mt-20">
           <p className="animate-bounce text-2xl font-semibold">Hello there!</p>
           <p className="text-2xl text-zinc-500">
             How can I assistant you today?
@@ -61,7 +61,7 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
         </div>
       )}
 
-      <div className="w-full md:max-w-3xl">
+      <div className="w-full md:max-w-4xl">
         {messages.map((message) => (
           <div
             key={message.id}

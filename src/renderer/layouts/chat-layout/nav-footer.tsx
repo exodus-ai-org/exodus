@@ -7,7 +7,12 @@ import {
 } from '@/components/ui/sidebar'
 import { isSettingVisibleAtom } from '@/stores/setting'
 import { useSetAtom } from 'jotai'
-import { AtomIcon, SettingsIcon, StoreIcon, WorkflowIcon } from 'lucide-react'
+import {
+  AtomIcon,
+  SettingsIcon,
+  SparklesIcon,
+  WorkflowIcon
+} from 'lucide-react'
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
@@ -23,9 +28,12 @@ export function NavFooter({
       <SidebarGroupContent>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton>
-              <StoreIcon />
-              MCP Store
+            <SidebarMenuButton
+              isActive={location.pathname.includes('skills-market')}
+              onClick={() => navigate('/skills-market')}
+            >
+              <SparklesIcon />
+              Skills Market
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>

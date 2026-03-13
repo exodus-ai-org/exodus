@@ -23,9 +23,19 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import { updateChat } from '@/services/chat'
-import { renamedChatTitleAtom, toBeDeletedChatAtom } from '@/stores/chat'
+import {
+  openTabsAtom,
+  renamedChatTitleAtom,
+  toBeDeletedChatAtom
+} from '@/stores/chat'
 import type { Chat } from '@shared/types/db'
-import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns'
+import {
+  formatDistanceToNow,
+  isToday,
+  isYesterday,
+  subMonths,
+  subWeeks
+} from 'date-fns'
 import { useSetAtom } from 'jotai'
 import {
   ChevronRightIcon,
@@ -70,12 +80,27 @@ export function NavItems({
   const { isMobile } = useSidebar()
   const setRenamedChatTitle = useSetAtom(renamedChatTitleAtom)
   const setToBeDeletedChat = useSetAtom(toBeDeletedChatAtom)
+  const setOpenTabs = useSetAtom(openTabsAtom)
 
   return (
     <SidebarMenuItem className={className}>
       <SidebarMenuButton asChild isActive={chat.id === id}>
-        <Link to={`/chat/${chat.id}`}>
-          <span>{chat.title}</span>
+        <Link
+          to={`/chat/${chat.id}`}
+          onClick={() =>
+            setOpenTabs((prev) =>
+              prev.find((t) => t.id === chat.id)
+                ? prev
+                : [...prev, { id: chat.id, title: chat.title }]
+            )
+          }
+        >
+          <span className="flex-1 truncate">{chat.title}</span>
+          <span className="text-muted-foreground shrink-0 text-[10px]">
+            {formatDistanceToNow(new Date(chat.createdAt), {
+              addSuffix: false
+            })}
+          </span>
         </Link>
       </SidebarMenuButton>
       <DropdownMenu>

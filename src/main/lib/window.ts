@@ -20,9 +20,16 @@ export function createWindow(): void {
     title: '',
     titleBarStyle: 'hidden',
     trafficLightPosition: {
-      x: 16,
-      y: 16
+      x: 20,
+      y: 20
     },
+    ...(process.platform === 'darwin'
+      ? {
+          vibrancy: 'sidebar' as const,
+          visualEffectState: 'active' as const,
+          backgroundColor: '#00000000'
+        }
+      : {}),
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

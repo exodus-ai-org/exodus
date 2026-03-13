@@ -119,7 +119,7 @@ function InputBox({
   }, [])
 
   return (
-    <div className="mx-auto mb-4 flex w-[calc(100%-2rem)] flex-col gap-2 rounded-4xl border p-3 shadow-xl md:max-w-3xl">
+    <div className="mx-auto mb-4 flex w-[calc(100%-2rem)] flex-col gap-2 rounded-xl border p-3 md:max-w-4xl">
       <form>
         <FilePreview />
         <Textarea
@@ -127,7 +127,7 @@ function InputBox({
           placeholder="Send a message..."
           value={input}
           onChange={handleInput}
-          className="max-h-[75dvh] min-h-6 resize-none rounded-2xl border-none pb-6 shadow-none focus-visible:ring-0"
+          className="max-h-[75dvh] min-h-6 resize-none border-none pb-6 shadow-none focus-visible:ring-0"
           rows={2}
           autoFocus
           onKeyDown={(event) => {

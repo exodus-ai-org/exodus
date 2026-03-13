@@ -1,5 +1,6 @@
 import { ChatDetail } from '@/containers/chat-detail'
 import { Home } from '@/containers/home'
+import { SkillsMarket } from '@/containers/skills-market'
 import { Workflow } from '@/containers/workflow'
 import { Layout as ChatLayout } from '@/layouts/chat-layout'
 import { Layout as WorkspaceLayout } from '@/layouts/workspace-layout'
@@ -10,7 +11,8 @@ export const router = createHashRouter([
     Component: ChatLayout,
     children: [
       { path: '/', Component: Home },
-      { path: '/chat/:id', Component: ChatDetail }
+      { path: '/chat/:id', Component: ChatDetail },
+      { path: '/skills-market', Component: SkillsMarket }
     ]
   },
 

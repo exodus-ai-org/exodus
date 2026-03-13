@@ -20,13 +20,19 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const setIsFullTextSearchVisible = useSetAtom(isFullTextSearchVisibleAtom)
 
   return (
-    <Sidebar {...props} className="border-transparent p-2 pr-0">
+    <Sidebar {...props}>
+      {/* Draggable zone covering the macOS traffic-light area */}
+      <div
+        className={cn('draggable absolute inset-x-0 top-0 z-10 h-13', {
+          ['h-2']: isFullscreen
+        })}
+      />
       <SidebarHeader
-        className={cn('mt-13 gap-1 transition-all', { ['mt-1']: isFullscreen })}
+        className={cn('gap-1 pt-13 transition-all', { ['pt-2']: isFullscreen })}
       >
         <SidebarMenu>
           <SidebarMenuItem
-            className="hover:bg-sidebar-accent flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm"
+            className="no-draggable hover:bg-sidebar-accent flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm"
             onClick={() => (window.location.href = '/')}
           >
             <SquarePenIcon size={16} />
@@ -35,7 +41,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
         <SidebarMenu>
           <SidebarMenuItem
-            className="hover:bg-sidebar-accent flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm"
+            className="no-draggable hover:bg-sidebar-accent flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm"
             onClick={() => setIsFullTextSearchVisible(true)}
           >
             <SearchIcon size={16} />
