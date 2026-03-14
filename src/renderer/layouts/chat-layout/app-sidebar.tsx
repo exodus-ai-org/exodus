@@ -20,7 +20,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const setIsFullTextSearchVisible = useSetAtom(isFullTextSearchVisibleAtom)
 
   return (
-    <Sidebar collapsible="offcanvas" {...props}>
+    <Sidebar
+      collapsible="offcanvas"
+      className="border-none [--sidebar-accent-foreground:oklch(0.92_0_0)] [--sidebar-accent:oklch(1_0_0_/_12%)] [--sidebar-border:transparent] [--sidebar-foreground:oklch(0.92_0_0)]"
+      sidebarInnerClx="bg-transparent text-[oklch(0.92_0_0)]"
+      {...props}
+    >
       <SidebarHeader
         className={cn('draggable gap-1 pt-13 transition-all', {
           ['pt-2']: isFullscreen
