@@ -58,18 +58,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       className="h-[calc(dvh-44px)] w-[calc(var(--sidebar-width-icon)+1px)]! border-r"
     >
       <SidebarHeader>
-        <SidebarMenu>
+        <SidebarMenu className="gap-1">
           <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild className="md:h-8 md:p-0">
-              <a href="#">
-                <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
-                  <CommandIcon className="size-4" />
-                </div>
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium">Acme Inc</span>
-                  <span className="truncate text-xs">Enterprise</span>
-                </div>
-              </a>
+            <SidebarMenuButton
+              size="lg"
+              render={<a href="#" />}
+              className="md:h-8 md:p-0"
+            >
+              <div className="bg-sidebar-primary text-sidebar-primary-foreground flex aspect-square size-8 items-center justify-center rounded-lg">
+                <CommandIcon className="size-4" />
+              </div>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-medium">Acme Inc</span>
+                <span className="truncate text-xs">Enterprise</span>
+              </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
@@ -77,7 +79,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent className="px-1.5 md:px-0">
-            <SidebarMenu>
+            <SidebarMenu className="gap-1">
               {data.navMain.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
@@ -100,7 +102,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
       <SidebarGroup>
         <SidebarGroupContent>
-          <SidebarMenu>
+          <SidebarMenu className="gap-1">
             <SidebarMenuItem>
               <SidebarMenuButton onClick={() => navigate('/settings')}>
                 <SettingsIcon />

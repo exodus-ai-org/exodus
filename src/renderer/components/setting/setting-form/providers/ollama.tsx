@@ -1,13 +1,8 @@
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from '@/components/ui/form'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { useSetting } from '@/hooks/use-setting'
 import { UseFormReturnType } from '@shared/schemas/setting-schema'
+import { Controller } from 'react-hook-form'
 import useSWR from 'swr'
 
 export function Ollama({ form }: { form: UseFormReturnType }) {
@@ -20,28 +15,26 @@ export function Ollama({ form }: { form: UseFormReturnType }) {
 
   return (
     <>
-      <FormField
+      <Controller
         control={form.control}
         name="providers.ollamaBaseUrl"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Base URL</FormLabel>
-            <FormControl>
-              <Input
-                type="text"
-                id="ollama-base-url-input"
-                placeholder="http://localhost:11434"
-                autoFocus
-                {...field}
-                value={field.value ?? ''}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel>Base URL</FieldLabel>
+            <Input
+              type="text"
+              id="ollama-base-url-input"
+              placeholder="http://localhost:11434"
+              autoFocus
+              {...field}
+              value={field.value ?? ''}
+            />
+            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+          </Field>
         )}
       />
 
-      <FormLabel>Status</FormLabel>
+      <FieldLabel>Status</FieldLabel>
 
       {setting?.providers?.ollamaBaseUrl && error === undefined ? (
         <div className="flex items-center gap-2">

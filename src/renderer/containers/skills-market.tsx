@@ -25,7 +25,6 @@ import {
   PackageCheckIcon,
   PackageIcon,
   SearchIcon,
-  SparklesIcon,
   StarIcon,
   Trash2Icon,
   UploadIcon
@@ -307,7 +306,8 @@ export function SkillsMarket() {
   const {
     data: registryData,
     isLoading: registryLoading,
-    error: registryError
+    error: registryError,
+    mutate: mutateRegistry
   } = useSWR<RegistryResponse>(registryKey, fetcher)
 
   // Search results
@@ -435,18 +435,7 @@ export function SkillsMarket() {
   const hasNextPage = Boolean(registryData?.data?.nextCursor)
 
   return (
-    <div className="flex h-[calc(100dvh-44px)] w-full flex-col">
-      {/* Header */}
-      <div className="flex items-center gap-3 border-b px-6 py-4">
-        <SparklesIcon className="text-primary h-5 w-5" />
-        <div>
-          <h1 className="text-lg leading-tight font-semibold">Skills Market</h1>
-          <p className="text-muted-foreground text-xs">
-            Browse and install skills to enhance AI capabilities
-          </p>
-        </div>
-      </div>
-
+    <div className="flex h-full w-full flex-col">
       <div className="flex flex-1 flex-col gap-4 overflow-hidden px-6 py-4">
         {/* Search bar */}
         <div className="relative">
@@ -532,6 +521,14 @@ export function SkillsMarket() {
                         <p className="text-muted-foreground/70 mt-1 text-xs">
                           Check your internet connection and try again
                         </p>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-4"
+                          onClick={() => mutateRegistry()}
+                        >
+                          Retry
+                        </Button>
                       </div>
                     ) : registryData?.data?.items?.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-16 text-center">

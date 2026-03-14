@@ -10,6 +10,7 @@ import {
 } from 'ai'
 import { Hono } from 'hono'
 import { v4 as uuidV4 } from 'uuid'
+import { getMcpTools } from '../../ai/mcp'
 import { deepResearchBootPrompt, systemPrompt } from '../../ai/prompts'
 import { getActiveSkillsContent } from '../../ai/skills/skills-manager'
 import {
@@ -43,11 +44,10 @@ import {
 
 const chat = new Hono<{ Variables: Variables }>()
 
-// ARCHIVED: MCP tools endpoint removed
-// chat.get('/mcp', async (c) => {
-//   const tools = c.get('tools')
-//   return successResponse(c, { tools })
-// })
+chat.get('/mcp', async (c) => {
+  const tools = await getMcpTools()
+  return successResponse(c, { tools })
+})
 
 chat.get('/search', async (c) => {
   const query = c.req.query('query') ?? ''
@@ -67,7 +67,6 @@ chat.post('/', async (c) => {
     'chat',
     'Invalid request body'
   )
-  // ARCHIVED: const mcpTools = c.get('tools')
   const setting = c.get('setting')
   const { chatModel, reasoningModel } = getModelFromProvider(setting)
   const isToolApprovalFlow = Boolean(messages)
@@ -96,7 +95,10 @@ chat.post('/', async (c) => {
     : [...convertToUIMessages(messagesFromDb), message as ChatMessage]
 
   const modelMessages = await convertToModelMessages(uiMessages)
-  const skillsContent = await getActiveSkillsContent()
+  const [skillsContent, mcpTools] = await Promise.all([
+    getActiveSkillsContent(),
+    getMcpTools()
+  ])
 
   // immediately start streaming the response
   const stream = createUIMessageStream({
@@ -110,7 +112,7 @@ chat.post('/', async (c) => {
             : systemPrompt) + skillsContent,
         messages: modelMessages,
         stopWhen: stepCountIs(setting.providerConfig?.maxSteps ?? 20),
-        tools: bindCallingTools({ advancedTools, setting }),
+        tools: bindCallingTools({ advancedTools, setting, mcpTools }),
         experimental_activeTools: isReasoningModel ? [] : ['weather'],
         providerOptions: isReasoningModel
           ? {

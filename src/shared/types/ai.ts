@@ -12,8 +12,7 @@ export enum AiProviders {
 export enum AdvancedTools {
   WebSearch = 'Web Search',
   Reasoning = 'Reasoning',
-  DeepResearch = 'Deep Research',
-  Immersion = 'Immersion'
+  DeepResearch = 'Deep Research'
 }
 
 export interface McpTools {

@@ -1,4 +1,3 @@
-import { useImmersion } from '@/hooks/use-immersion'
 import { useSetting } from '@/hooks/use-setting'
 import { cn } from '@/lib/utils'
 import { UseChatHelpers } from '@ai-sdk/react'
@@ -24,7 +23,6 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
   const isLoading = status === 'streaming' || status === 'submitted'
   const { data: setting } = useSetting()
   const chatBoxRef = useRef<HTMLDivElement>(null)
-  const { show: isImmersionVisible } = useImmersion()
 
   const scrollToBottom = useCallback(() => {
     if (!chatBoxRef.current) return
@@ -48,10 +46,6 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
       className="no-scrollbar flex min-w-0 flex-1 flex-col items-center gap-8 overflow-y-scroll p-4 transition-all"
       ref={chatBoxRef}
     >
-      {isImmersionVisible && (
-        <div className="from-background via-background/75 pointer-events-none absolute top-0 left-0 z-10 h-8 w-full bg-linear-to-b to-transparent opacity-100 transition-opacity" />
-      )}
-
       {messages.length === 0 && (
         <div className="mx-auto flex size-full max-w-4xl flex-col justify-center px-8 md:mt-20">
           <p className="animate-bounce text-2xl font-semibold">Hello there!</p>
@@ -71,12 +65,8 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
             })}
           >
             {message.role === 'assistant' && (
-              <div
-                className={cn('flex w-full gap-4', {
-                  ['flex-col']: isImmersionVisible
-                })}
-              >
-                {!isImmersionVisible && !!setting?.assistantAvatar && (
+              <div className="flex w-full gap-4">
+                {!!setting?.assistantAvatar && (
                   <Avatar>
                     <AvatarImage
                       src={setting.assistantAvatar}
@@ -166,12 +156,7 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
                   </div>
                 )}
 
-                <p
-                  className={cn(
-                    'bg-accent max-w-[60%] rounded-xl px-3 py-2 wrap-break-word whitespace-pre-wrap',
-                    { ['max-w-92']: isImmersionVisible }
-                  )}
-                >
+                <p className="bg-accent max-w-[60%] rounded-xl px-3 py-2 wrap-break-word whitespace-pre-wrap">
                   {message.parts.map((part) => {
                     if (part.type === 'text' && part.text !== '') {
                       return part.text

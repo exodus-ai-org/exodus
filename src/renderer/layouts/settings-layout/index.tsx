@@ -19,7 +19,7 @@ export function SettingsLayout() {
       <header
         className={cn(
           'draggable bg-background flex h-14 shrink-0 items-center gap-3 border-b',
-          isFullscreen ? 'pl-4' : 'pl-[84px]'
+          isFullscreen ? 'pl-4' : 'pl-21'
         )}
       >
         <button

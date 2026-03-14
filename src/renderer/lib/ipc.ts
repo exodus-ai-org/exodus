@@ -32,6 +32,12 @@ export function subscribeFullScreenChanged(
   window.electron.ipcRenderer.on('fullscreen-changed', callback)
 }
 
+export function unsubscribeFullScreenChanged(
+  callback: (_: IpcRendererEvent, isFullscreen: boolean) => void
+) {
+  window.electron.ipcRenderer.removeListener('fullscreen-changed', callback)
+}
+
 export function closeSearchbar() {
   return window.electron.ipcRenderer.invoke('close-search-bar')
 }

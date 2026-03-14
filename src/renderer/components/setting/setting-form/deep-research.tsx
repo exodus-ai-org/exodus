@@ -1,69 +1,65 @@
 import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from '@/components/ui/form'
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel
+} from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
 import { UseFormReturnType } from '@shared/schemas/setting-schema'
+import { Controller } from 'react-hook-form'
 
 export function DeepResearch({ form }: { form: UseFormReturnType }) {
   return (
     <div className="flex flex-col gap-3">
-      <FormField
+      <Controller
         control={form.control}
         name="deepResearch.breadth"
-        render={({ field }) => (
-          <FormItem className="flex flex-col">
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
             <div className="flex justify-between">
-              <FormLabel className="mb-0">Breadth</FormLabel>
-              <FormControl className="w-fit">
-                <Input
-                  type="number"
-                  id="max-steps-input"
-                  autoFocus
-                  {...field}
-                  value={field.value ?? 4}
-                />
-              </FormControl>
+              <FieldLabel>Breadth</FieldLabel>
+              <Input
+                type="number"
+                id="deep-research-breadth-input"
+                autoFocus
+                {...field}
+                value={field.value ?? 4}
+                className="w-fit"
+              />
             </div>
-            <FormDescription>
+            <FieldDescription>
               The breadth is to generate multiple search queries to explore
               different aspects of your topic at each level. By default, it is
               set to 4.
-            </FormDescription>
-            <FormMessage />
-          </FormItem>
+            </FieldDescription>
+            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+          </Field>
         )}
       />
       <Separator />
-      <FormField
+      <Controller
         control={form.control}
         name="deepResearch.depth"
-        render={({ field }) => (
-          <FormItem className="flex flex-col">
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
             <div className="flex justify-between">
-              <FormLabel className="mb-0">Depth</FormLabel>
-              <FormControl className="w-fit">
-                <Input
-                  type="number"
-                  id="max-steps-input"
-                  autoFocus
-                  {...field}
-                  value={field.value ?? 2}
-                />
-              </FormControl>
+              <FieldLabel>Depth</FieldLabel>
+              <Input
+                type="number"
+                id="deep-research-depth-input"
+                {...field}
+                value={field.value ?? 2}
+                className="w-fit"
+              />
             </div>
-            <FormDescription>
+            <FieldDescription>
               The depth is to recursively dives deeper, following leads and
               uncovering connections for each branch. By default, it is set to
               2.
-            </FormDescription>
-            <FormMessage />
-          </FormItem>
+            </FieldDescription>
+            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+          </Field>
         )}
       />
     </div>

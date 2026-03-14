@@ -6,7 +6,7 @@ import { WorkflowToolbar } from '@/components/workflow/workflow-toolbar'
 
 export function Workflow() {
   return (
-    <div className="flex h-[calc(100dvh-44px)] w-[calc(100vw-44px)]">
+    <div className="flex h-full w-full">
       <WorkflowToolbar />
       <Canvas />
       <NodeSelectorSheet />

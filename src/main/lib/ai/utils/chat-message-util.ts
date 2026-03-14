@@ -1,4 +1,4 @@
-import { AdvancedTools, AiProviders } from '@shared/types/ai'
+import { AdvancedTools, AiProviders, McpTools } from '@shared/types/ai'
 import { ChatMessage, ChatTools, CustomUIDataTypes } from '@shared/types/chat'
 import {
   AssistantModelMessage,
@@ -106,11 +106,12 @@ export async function generateTitleFromUserMessage({
 
 export function bindCallingTools({
   advancedTools,
-  setting
+  setting,
+  mcpTools = []
 }: {
-  // ARCHIVED: mcpTools: McpTools[]
   advancedTools: AdvancedTools[]
   setting: Setting
+  mcpTools?: McpTools[]
 }): ToolSet {
   if (advancedTools.includes(AdvancedTools.DeepResearch)) {
     return {
@@ -118,8 +119,9 @@ export function bindCallingTools({
     }
   }
 
-  // ARCHIVED: MCP tools map removed
-  // const mcpToolsMap = mcpTools.map(t => t.tools).reduce(...)
+  const mcpToolsMap = mcpTools
+    .map((t) => t.tools)
+    .reduce((acc, tools) => ({ ...acc, ...tools }), {})
 
   const disabledTools = new Set(setting.tools?.disabledTools ?? [])
   const enabled = (key: string) => !disabledTools.has(key)
@@ -148,5 +150,5 @@ export function bindCallingTools({
     tools.webSearch = webSearch(setting)
   }
 
-  return tools
+  return { ...mcpToolsMap, ...tools }
 }

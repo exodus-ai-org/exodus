@@ -86,7 +86,7 @@ export const setting = pgTable('Setting', {
   providerConfig:
     jsonb('providerConfig').$type<z.infer<typeof ProviderConfigSchema>>(),
   providers: jsonb('providers').$type<z.infer<typeof ProvidersSchema>>(),
-  // ARCHIVED: mcpServers: text('mcpServers').default(''),
+  mcpServers: text('mcpServers').default(''),
   tools: jsonb('tools').$type<z.infer<typeof ToolsSchema>>(),
   audio: jsonb('audio').$type<z.infer<typeof AudioSchema>>(),
   assistantAvatar: text('assistantAvatar').default(''),

@@ -1,14 +1,9 @@
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from '@/components/ui/form'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { UseFormReturnType } from '@shared/schemas/setting-schema'
 import { AlertCircleIcon } from 'lucide-react'
+import { Controller } from 'react-hook-form'
 
 export function GoogleMaps({ form }: { form: UseFormReturnType }) {
   return (
@@ -41,24 +36,22 @@ export function GoogleMaps({ form }: { form: UseFormReturnType }) {
           <strong>Google API Key</strong>.
         </AlertDescription>
       </Alert>
-      <FormField
+      <Controller
         control={form.control}
         name="googleCloud.googleApiKey"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Google API Key</FormLabel>
-            <FormControl>
-              <Input
-                type="password"
-                autoComplete="current-password"
-                id="google-search-api-key-input"
-                autoFocus
-                {...field}
-                value={field.value ?? ''}
-              />
-            </FormControl>
-            <FormMessage />
-          </FormItem>
+        render={({ field, fieldState }) => (
+          <Field data-invalid={fieldState.invalid}>
+            <FieldLabel>Google API Key</FieldLabel>
+            <Input
+              type="password"
+              autoComplete="current-password"
+              id="google-search-api-key-input"
+              autoFocus
+              {...field}
+              value={field.value ?? ''}
+            />
+            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+          </Field>
         )}
       />
     </>

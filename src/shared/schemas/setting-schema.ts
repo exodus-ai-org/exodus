@@ -110,7 +110,7 @@ export const SettingSchema = z.object({
   id: z.string(),
   providerConfig: ProviderConfigSchema.nullable(),
   providers: ProvidersSchema.nullable(),
-  // ARCHIVED: mcpServers: z.string(),
+  mcpServers: z.string().nullable(),
   tools: ToolsSchema.nullable(),
   audio: AudioSchema.nullable(),
   assistantAvatar: z.string(),

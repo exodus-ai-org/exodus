@@ -1,4 +1,4 @@
-import { Avatar as AvatarPrimitive } from 'radix-ui'
+import { Avatar as AvatarPrimitive } from '@base-ui/react/avatar'
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
@@ -7,7 +7,7 @@ function Avatar({
   className,
   size = 'default',
   ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Root> & {
+}: AvatarPrimitive.Root.Props & {
   size?: 'default' | 'sm' | 'lg'
 }) {
   return (
@@ -15,7 +15,7 @@ function Avatar({
       data-slot="avatar"
       data-size={size}
       className={cn(
-        'group/avatar relative flex size-8 shrink-0 overflow-hidden rounded-full select-none data-[size=lg]:size-10 data-[size=sm]:size-6',
+        'group/avatar after:border-border relative flex size-8 shrink-0 rounded-full select-none after:absolute after:inset-0 after:rounded-full after:border after:mix-blend-darken data-[size=lg]:size-10 data-[size=sm]:size-6 dark:after:mix-blend-lighten',
         className
       )}
       {...props}
@@ -23,14 +23,14 @@ function Avatar({
   )
 }
 
-function AvatarImage({
-  className,
-  ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Image>) {
+function AvatarImage({ className, ...props }: AvatarPrimitive.Image.Props) {
   return (
     <AvatarPrimitive.Image
       data-slot="avatar-image"
-      className={cn('aspect-square size-full', className)}
+      className={cn(
+        'aspect-square size-full rounded-full object-cover',
+        className
+      )}
       {...props}
     />
   )
@@ -39,7 +39,7 @@ function AvatarImage({
 function AvatarFallback({
   className,
   ...props
-}: React.ComponentProps<typeof AvatarPrimitive.Fallback>) {
+}: AvatarPrimitive.Fallback.Props) {
   return (
     <AvatarPrimitive.Fallback
       data-slot="avatar-fallback"
@@ -57,7 +57,7 @@ function AvatarBadge({ className, ...props }: React.ComponentProps<'span'>) {
     <span
       data-slot="avatar-badge"
       className={cn(
-        'bg-primary text-primary-foreground ring-background absolute right-0 bottom-0 z-10 inline-flex items-center justify-center rounded-full ring-2 select-none',
+        'bg-primary text-primary-foreground ring-background absolute right-0 bottom-0 z-10 inline-flex items-center justify-center rounded-full bg-blend-color ring-2 select-none',
         'group-data-[size=sm]/avatar:size-2 group-data-[size=sm]/avatar:[&>svg]:hidden',
         'group-data-[size=default]/avatar:size-2.5 group-data-[size=default]/avatar:[&>svg]:size-2',
         'group-data-[size=lg]/avatar:size-3 group-data-[size=lg]/avatar:[&>svg]:size-2',

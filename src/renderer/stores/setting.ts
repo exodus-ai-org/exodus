@@ -1,7 +1,4 @@
+import { SettingLabel, SettingPage } from '@/components/setting/setting-menu'
 import { atom } from 'jotai'
 
-export const settingLabelAtom = atom<string>('General')
-
-// ARCHIVED: export const isSettingVisibleAtom = atom(false)
-
-// ARCHIVED: export const isMcpServerChangedAtom = atom(false)
+export const settingLabelAtom = atom<SettingPage>(SettingLabel.General)

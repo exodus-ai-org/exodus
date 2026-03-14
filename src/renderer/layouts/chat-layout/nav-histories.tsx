@@ -84,7 +84,7 @@ export function NavItems({
 
   return (
     <SidebarMenuItem className={className}>
-      <SidebarMenuButton asChild isActive={chat.id === id}>
+      <SidebarMenuButton isActive={chat.id === id}>
         <Link
           to={`/chat/${chat.id}`}
           onClick={() =>
@@ -104,7 +104,7 @@ export function NavItems({
         </Link>
       </SidebarMenuButton>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
+        <DropdownMenuTrigger>
           <SidebarMenuAction showOnHover>
             <MoreHorizontalIcon />
             <span className="sr-only">More</span>
@@ -230,12 +230,9 @@ export function NavHistories() {
             <>
               {groupedChats.favorite.length > 0 && (
                 <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-                  <SidebarMenu>
+                  <SidebarMenu className="gap-1">
                     <Collapsible className="group/collapsible" defaultOpen>
-                      <SidebarGroupLabel
-                        asChild
-                        className="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mb-1 text-sm"
-                      >
+                      <SidebarGroupLabel className="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mb-1 text-sm">
                         <CollapsibleTrigger className="flex w-full items-center justify-between pl-0!">
                           <SidebarGroupLabel>Favorite</SidebarGroupLabel>
                           <ChevronRightIcon className="transition-transform group-data-[state=open]/collapsible:rotate-90" />
@@ -258,7 +255,7 @@ export function NavHistories() {
               {groupedChats.today.length > 0 && (
                 <SidebarGroup className="group-data-[collapsible=icon]:hidden">
                   <SidebarGroupLabel>Today</SidebarGroupLabel>
-                  <SidebarMenu>
+                  <SidebarMenu className="gap-1">
                     {groupedChats.today.map((chat) => (
                       <NavItems chat={chat} key={chat.id} />
                     ))}
@@ -269,7 +266,7 @@ export function NavHistories() {
               {groupedChats.yesterday.length > 0 && (
                 <SidebarGroup className="group-data-[collapsible=icon]:hidden">
                   <SidebarGroupLabel>Yesterday</SidebarGroupLabel>
-                  <SidebarMenu>
+                  <SidebarMenu className="gap-1">
                     {groupedChats.yesterday.map((chat) => (
                       <NavItems chat={chat} key={chat.id} />
                     ))}
@@ -280,7 +277,7 @@ export function NavHistories() {
               {groupedChats.lastWeek.length > 0 && (
                 <SidebarGroup className="group-data-[collapsible=icon]:hidden">
                   <SidebarGroupLabel>Last Week</SidebarGroupLabel>
-                  <SidebarMenu>
+                  <SidebarMenu className="gap-1">
                     {groupedChats.lastWeek.map((chat) => (
                       <NavItems chat={chat} key={chat.id} />
                     ))}
@@ -291,7 +288,7 @@ export function NavHistories() {
               {groupedChats.lastMonth.length > 0 && (
                 <SidebarGroup className="group-data-[collapsible=icon]:hidden">
                   <SidebarGroupLabel>Last Month</SidebarGroupLabel>
-                  <SidebarMenu>
+                  <SidebarMenu className="gap-1">
                     {groupedChats.lastMonth.map((chat) => (
                       <NavItems chat={chat} key={chat.id} />
                     ))}
@@ -302,7 +299,7 @@ export function NavHistories() {
               {groupedChats.older.length > 0 && (
                 <SidebarGroup className="group-data-[collapsible=icon]:hidden">
                   <SidebarGroupLabel>Older</SidebarGroupLabel>
-                  <SidebarMenu>
+                  <SidebarMenu className="gap-1">
                     {groupedChats.older.map((chat) => (
                       <NavItems chat={chat} key={chat.id} />
                     ))}

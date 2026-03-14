@@ -37,7 +37,7 @@ export function AvatarUploader<T extends FieldValues>({
   }
 
   return (
-    <div className="relative flex h-16 w-16 shrink-0 items-center justify-center rounded-full border">
+    <div className="relative flex h-16 w-16! shrink-0 items-center justify-center rounded-full border">
       <input
         ref={ref}
         type="file"

@@ -127,7 +127,7 @@ function InputBox({
           placeholder="Send a message..."
           value={input}
           onChange={handleInput}
-          className="max-h-[75dvh] min-h-6 resize-none border-none pb-6 shadow-none focus-visible:ring-0"
+          className="max-h-[75dvh] min-h-6 resize-none border-none bg-transparent! pb-6 shadow-none focus-visible:ring-0"
           rows={2}
           autoFocus
           onKeyDown={(event) => {

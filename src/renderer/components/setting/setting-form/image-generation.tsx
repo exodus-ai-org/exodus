@@ -1,16 +1,15 @@
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from '@/components/ui/form'
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel
+} from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue
@@ -19,6 +18,7 @@ import { Separator } from '@/components/ui/separator'
 import { UseFormReturnType } from '@shared/schemas/setting-schema'
 import { AlertCircleIcon } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
+import { Controller } from 'react-hook-form'
 
 type ModelParamValues = {
   [index: string]: {
@@ -86,57 +86,62 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
       </Alert>
 
       <div className="flex flex-col gap-3">
-        <FormField
+        <Controller
           control={form.control}
           name="image.model"
-          render={({ field }) => (
-            <FormItem className="flex justify-between">
-              <FormLabel className="mb-0">Model</FormLabel>
+          render={({ field, fieldState }) => (
+            <Field orientation="horizontal" data-invalid={fieldState.invalid}>
+              <FieldLabel>Model</FieldLabel>
               <Select onValueChange={field.onChange} value={field.value ?? ''}>
-                <FormControl className="mb-0 w-fit">
-                  <SelectTrigger className="hover:bg-accent border-none shadow-none">
-                    <SelectValue placeholder="Select a model" />
-                  </SelectTrigger>
-                </FormControl>
-                <FormMessage />
+                <SelectTrigger className="hover:bg-accent w-fit border-none shadow-none">
+                  <SelectValue placeholder="Select a model" />
+                </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="gpt-image-1">gpt-image-1</SelectItem>
-                  <SelectItem value="dall-e-3">dall-e-3</SelectItem>
-                  <SelectItem value="dall-e-2">dall-e-2</SelectItem>
+                  <SelectGroup>
+                    <SelectItem value="gpt-image-1">gpt-image-1</SelectItem>
+                    <SelectItem value="dall-e-3">dall-e-3</SelectItem>
+                    <SelectItem value="dall-e-2">dall-e-2</SelectItem>
+                  </SelectGroup>
                 </SelectContent>
               </Select>
-            </FormItem>
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
           )}
         />
 
         {paramsOfModel?.sizes ? (
           <>
             <Separator />
-            <FormField
+            <Controller
               control={form.control}
               name="image.size"
-              render={({ field }) => (
-                <FormItem className="flex justify-between">
-                  <FormLabel className="mb-0">Size</FormLabel>
+              render={({ field, fieldState }) => (
+                <Field
+                  orientation="horizontal"
+                  data-invalid={fieldState.invalid}
+                >
+                  <FieldLabel>Size</FieldLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value ?? ''}
                   >
-                    <FormControl className="mb-0 w-fit">
-                      <SelectTrigger className="hover:bg-accent border-none shadow-none">
-                        <SelectValue placeholder={paramsOfModel.sizes[0]} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <FormMessage />
+                    <SelectTrigger className="hover:bg-accent w-fit border-none shadow-none">
+                      <SelectValue placeholder={paramsOfModel.sizes[0]} />
+                    </SelectTrigger>
                     <SelectContent>
-                      {paramsOfModel.sizes.map((size) => (
-                        <SelectItem key={size} value={size}>
-                          {size}
-                        </SelectItem>
-                      ))}
+                      <SelectGroup>
+                        {paramsOfModel.sizes.map((size) => (
+                          <SelectItem key={size} value={size}>
+                            {size}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
                     </SelectContent>
                   </Select>
-                </FormItem>
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
               )}
             />
           </>
@@ -145,31 +150,36 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
         {paramsOfModel?.qualities ? (
           <>
             <Separator />
-            <FormField
+            <Controller
               control={form.control}
               name="image.quality"
-              render={({ field }) => (
-                <FormItem className="flex justify-between">
-                  <FormLabel className="mb-0">Quality</FormLabel>
+              render={({ field, fieldState }) => (
+                <Field
+                  orientation="horizontal"
+                  data-invalid={fieldState.invalid}
+                >
+                  <FieldLabel>Quality</FieldLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value ?? ''}
                   >
-                    <FormControl className="mb-0 w-fit">
-                      <SelectTrigger className="hover:bg-accent border-none shadow-none">
-                        <SelectValue placeholder={paramsOfModel.qualities[0]} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <FormMessage />
+                    <SelectTrigger className="hover:bg-accent w-fit border-none shadow-none">
+                      <SelectValue placeholder={paramsOfModel.qualities[0]} />
+                    </SelectTrigger>
                     <SelectContent>
-                      {paramsOfModel.qualities.map((quality) => (
-                        <SelectItem key={quality} value={quality}>
-                          {quality}
-                        </SelectItem>
-                      ))}
+                      <SelectGroup>
+                        {paramsOfModel.qualities.map((quality) => (
+                          <SelectItem key={quality} value={quality}>
+                            {quality}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
                     </SelectContent>
                   </Select>
-                </FormItem>
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
               )}
             />
           </>
@@ -178,48 +188,48 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
         {paramsOfModel?.outputFormats ? (
           <>
             <Separator />
-            <FormField
+            <Controller
               control={form.control}
               name="image.outputFormat"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
                   <div className="flex items-center justify-between">
-                    <FormLabel className="mb-0">Output Format</FormLabel>
-
+                    <FieldLabel>Output Format</FieldLabel>
                     <Select
                       onValueChange={field.onChange}
                       value={field.value ?? ''}
                     >
-                      <FormControl className="mb-0 w-fit">
-                        <SelectTrigger className="hover:bg-accent border-none shadow-none">
-                          <SelectValue
-                            placeholder={paramsOfModel?.outputFormats?.[0]}
-                          />
-                        </SelectTrigger>
-                      </FormControl>
-
+                      <SelectTrigger className="hover:bg-accent w-fit border-none shadow-none">
+                        <SelectValue
+                          placeholder={paramsOfModel?.outputFormats?.[0]}
+                        />
+                      </SelectTrigger>
                       <SelectContent>
-                        {paramsOfModel?.outputFormats?.map((outputFormat) => (
-                          <SelectItem
-                            key={outputFormat}
-                            value={outputFormat}
-                            disabled={
-                              background === 'transparent' &&
-                              outputFormat === 'jpeg'
-                            }
-                          >
-                            {outputFormat}
-                          </SelectItem>
-                        ))}
+                        <SelectGroup>
+                          {paramsOfModel?.outputFormats?.map((outputFormat) => (
+                            <SelectItem
+                              key={outputFormat}
+                              value={outputFormat}
+                              disabled={
+                                background === 'transparent' &&
+                                outputFormat === 'jpeg'
+                              }
+                            >
+                              {outputFormat}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
                       </SelectContent>
                     </Select>
                   </div>
-                  <FormDescription>
+                  <FieldDescription>
                     If the background is transparent, the output format should
                     be set to either png (default value) or webp.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
+                  </FieldDescription>
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
               )}
             />
           </>
@@ -228,32 +238,32 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
         {paramsOfModel?.generatedCounts ? (
           <>
             <Separator />
-            <FormField
+            <Controller
               control={form.control}
               name="image.generatedCounts"
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
                   <div className="flex items-center justify-between">
-                    <FormLabel className="mb-0">Generated Counts</FormLabel>
-                    <FormControl className="w-fit">
-                      <Input
-                        type="number"
-                        id="max-steps-input"
-                        autoFocus
-                        {...field}
-                        min={paramsOfModel?.generatedCounts.min}
-                        max={paramsOfModel?.generatedCounts.max}
-                        value={field.value ?? 1}
-                      />
-                    </FormControl>
+                    <FieldLabel>Generated Counts</FieldLabel>
+                    <Input
+                      type="number"
+                      id="max-steps-input"
+                      autoFocus
+                      {...field}
+                      min={paramsOfModel?.generatedCounts.min}
+                      max={paramsOfModel?.generatedCounts.max}
+                      value={field.value ?? 1}
+                      className="w-fit"
+                    />
                   </div>
-
-                  <FormDescription>
+                  <FieldDescription>
                     The number of images to generate. Must be between 1 and 10.
                     For dall-e-3, only 1 is supported.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
+                  </FieldDescription>
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
               )}
             />
           </>
@@ -262,33 +272,38 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
         {paramsOfModel?.backgrounds ? (
           <>
             <Separator />
-            <FormField
+            <Controller
               control={form.control}
               name="image.background"
-              render={({ field }) => (
-                <FormItem className="flex justify-between">
-                  <FormLabel className="mb-0">Background</FormLabel>
+              render={({ field, fieldState }) => (
+                <Field
+                  orientation="horizontal"
+                  data-invalid={fieldState.invalid}
+                >
+                  <FieldLabel>Background</FieldLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value ?? ''}
                   >
-                    <FormControl className="mb-0 w-fit">
-                      <SelectTrigger className="hover:bg-accent border-none shadow-none">
-                        <SelectValue
-                          placeholder={paramsOfModel?.backgrounds?.[0]}
-                        />
-                      </SelectTrigger>
-                    </FormControl>
-                    <FormMessage />
+                    <SelectTrigger className="hover:bg-accent w-fit border-none shadow-none">
+                      <SelectValue
+                        placeholder={paramsOfModel?.backgrounds?.[0]}
+                      />
+                    </SelectTrigger>
                     <SelectContent>
-                      {paramsOfModel?.backgrounds?.map((background) => (
-                        <SelectItem key={background} value={background}>
-                          {background}
-                        </SelectItem>
-                      ))}
+                      <SelectGroup>
+                        {paramsOfModel?.backgrounds?.map((background) => (
+                          <SelectItem key={background} value={background}>
+                            {background}
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
                     </SelectContent>
                   </Select>
-                </FormItem>
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
               )}
             />
           </>

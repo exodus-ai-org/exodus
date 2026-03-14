@@ -8,103 +8,110 @@ import {
   DatabaseIcon,
   FileUpIcon,
   GlobeIcon,
-  // ARCHIVED: HammerIcon,
+  HammerIcon,
   HandCoinsIcon,
   ImageIcon,
   InfoIcon,
   MapIcon,
   MemoryStickIcon,
-  PaletteIcon,
   TelescopeIcon,
   WrenchIcon
 } from 'lucide-react'
 
+export enum SettingLabel {
+  General = 'General',
+  AiProviders = 'AI Providers',
+  AmazonS3 = 'Amazon S3',
+  McpServers = 'MCP Servers',
+  BuiltinTools = 'Built-in Tools',
+  MemoryLayer = 'Memory Layer',
+  AudioAndSpeech = 'Audio and Speech',
+  ImageGeneration = 'Image Generation',
+  WebSearch = 'Web Search',
+  GoogleMaps = 'Google Maps',
+  DeepResearch = 'Deep Research',
+  Rag = 'RAG',
+  BrowserUse = 'Browser Use',
+  ComputerUse = 'Computer Use',
+  DataControls = 'Data Controls',
+  AboutExodus = 'About Exodus'
+}
+
+export type SettingPage = SettingLabel | AiProviders
+
 export const menus = {
   navMain: [
     {
-      title: 'General',
+      title: SettingLabel.General,
       icon: CogIcon
     },
     {
-      title: 'AI Providers',
+      title: SettingLabel.AiProviders,
       icon: HandCoinsIcon,
       items: [
-        {
-          title: AiProviders.OpenAiGpt
-        },
-        {
-          title: AiProviders.AzureOpenAi
-        },
-        {
-          title: AiProviders.AnthropicClaude
-        },
-        {
-          title: AiProviders.GoogleGemini
-        },
-        {
-          title: AiProviders.XaiGrok
-        },
-        {
-          title: AiProviders.Ollama
-        }
+        { title: AiProviders.OpenAiGpt },
+        { title: AiProviders.AzureOpenAi },
+        { title: AiProviders.AnthropicClaude },
+        { title: AiProviders.GoogleGemini },
+        { title: AiProviders.XaiGrok },
+        { title: AiProviders.Ollama }
       ]
     },
     {
-      title: 'Amazon S3',
+      title: SettingLabel.AmazonS3,
       icon: FileUpIcon
     },
-    // ARCHIVED: { icon: HammerIcon, title: 'MCP Servers' },
+    {
+      icon: HammerIcon,
+      title: SettingLabel.McpServers
+    },
     {
       icon: WrenchIcon,
-      title: 'Tools'
+      title: SettingLabel.BuiltinTools
     },
     {
       icon: MemoryStickIcon,
-      title: 'Memory Layer'
+      title: SettingLabel.MemoryLayer
     },
     {
       icon: AudioWaveformIcon,
-      title: 'Audio and Speech'
+      title: SettingLabel.AudioAndSpeech
     },
     {
       icon: ImageIcon,
-      title: 'Image Generation'
+      title: SettingLabel.ImageGeneration
     },
     {
       icon: GlobeIcon,
-      title: 'Web Search'
+      title: SettingLabel.WebSearch
     },
     {
       icon: MapIcon,
-      title: 'Google Maps'
+      title: SettingLabel.GoogleMaps
     },
     {
       icon: TelescopeIcon,
-      title: 'Deep Research'
+      title: SettingLabel.DeepResearch
     },
     {
       icon: AtomIcon,
-      title: 'RAG'
-    },
-    {
-      icon: PaletteIcon,
-      title: 'Immersion'
+      title: SettingLabel.Rag
     },
     {
       icon: ChromeIcon,
-      title: 'Browser Use'
+      title: SettingLabel.BrowserUse
     },
     {
       icon: ComputerIcon,
-      title: 'Computer Use'
+      title: SettingLabel.ComputerUse
     },
     {
       icon: DatabaseIcon,
-      title: 'Data Controls'
+      title: SettingLabel.DataControls
     },
     {
       icon: InfoIcon,
-      title: 'About Exodus'
+      title: SettingLabel.AboutExodus
     }
   ]
 }

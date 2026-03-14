@@ -6,12 +6,6 @@ import { atom } from 'jotai'
 export type ChatTab = { id: string; title: string }
 export const openTabsAtom = atom<ChatTab[]>([])
 
-export const isImmersionVisibleAtom = atom(false)
-
-export const immersionContentAtom = atom('')
-
-export const isCodePreviewVisibleAtom = atom(false)
-
 export const isFullTextSearchVisibleAtom = atom(false)
 
 export const toBeDeletedChatAtom = atom<Chat | undefined>(undefined)

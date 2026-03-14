@@ -1,15 +1,10 @@
 import { cn } from '@/lib/utils'
 import { advancedToolsAtom } from '@/stores/chat'
-import { TooltipArrow } from '@radix-ui/react-tooltip'
+
 import { AdvancedTools as AdvancedToolsType } from '@shared/types/ai'
 import { produce } from 'immer'
 import { useAtom } from 'jotai'
-import {
-  GlobeIcon,
-  LightbulbIcon,
-  PaletteIcon,
-  TelescopeIcon
-} from 'lucide-react'
+import { GlobeIcon, LightbulbIcon, TelescopeIcon } from 'lucide-react'
 import { Button } from './ui/button'
 import {
   Tooltip,
@@ -33,11 +28,6 @@ const advancedToolsList = [
     key: AdvancedToolsType.DeepResearch,
     icon: <TelescopeIcon />,
     desc: AdvancedToolsType.DeepResearch
-  },
-  {
-    key: AdvancedToolsType.Immersion,
-    icon: <PaletteIcon />,
-    desc: AdvancedToolsType.Immersion
   }
 ]
 
@@ -98,7 +88,6 @@ export function AdvancedTools() {
             </TooltipTrigger>
             <TooltipContent>
               <p>{desc}</p>
-              <TooltipArrow className="TooltipArrow" />
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

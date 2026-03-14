@@ -8,13 +8,7 @@ import {
   CommandItem,
   CommandList
 } from '@/components/ui/command'
-import {
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage
-} from '@/components/ui/form'
+import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import {
   Popover,
@@ -24,6 +18,7 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue
@@ -40,6 +35,7 @@ import {
   ExternalLinkIcon,
   InfoIcon
 } from 'lucide-react'
+import { Controller } from 'react-hook-form'
 
 const URL_TO_MARKDOWN_PROVIDERS = [
   { value: 'default', label: 'Default (built-in)' },
@@ -70,43 +66,41 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
       </Alert>
 
       <div className="flex flex-col gap-3">
-        <FormField
+        <Controller
           control={form.control}
           name="webSearch.braveApiKey"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Brave API Key</FormLabel>
-              <FormControl>
-                <Input
-                  type="password"
-                  autoComplete="current-password"
-                  id="brave-search-api-key-input"
-                  autoFocus
-                  {...field}
-                  value={field.value ?? ''}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel>Brave API Key</FieldLabel>
+              <Input
+                type="password"
+                autoComplete="current-password"
+                id="brave-search-api-key-input"
+                autoFocus
+                {...field}
+                value={field.value ?? ''}
+              />
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
           )}
         />
 
         <Separator />
 
-        <FormField
+        <Controller
           control={form.control}
           name="webSearch.country"
-          render={({ field }) => {
+          render={({ field, fieldState }) => {
             const countryItem = countryCodes.find(
               ({ countryCode }) => countryCode === field.value
             )
             return (
-              <FormItem className="flex flex-col">
+              <Field data-invalid={fieldState.invalid}>
                 <div className="flex items-center justify-between">
-                  <FormLabel className="mb-0">Country</FormLabel>
+                  <FieldLabel>Country</FieldLabel>
                   <Popover modal>
-                    <PopoverTrigger asChild>
-                      <FormControl>
+                    <PopoverTrigger
+                      render={
                         <Button
                           variant="outline"
                           role="combobox"
@@ -120,8 +114,8 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
                             : 'Select country'}
                           <ChevronsUpDownIcon className="opacity-50" />
                         </Button>
-                      </FormControl>
-                    </PopoverTrigger>
+                      }
+                    />
                     <PopoverContent className="p-0" side="top">
                       <Command>
                         <CommandInput
@@ -161,24 +155,26 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
                     </PopoverContent>
                   </Popover>
                 </div>
-                <FormMessage />
-              </FormItem>
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
             )
           }}
         />
 
         <Separator />
 
-        <FormField
+        <Controller
           control={form.control}
           name="webSearch.language"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
               <div className="flex items-center justify-between">
-                <FormLabel className="mb-0">Language</FormLabel>
+                <FieldLabel>Language</FieldLabel>
                 <Popover modal>
-                  <PopoverTrigger asChild>
-                    <FormControl>
+                  <PopoverTrigger
+                    render={
                       <Button
                         variant="outline"
                         role="combobox"
@@ -194,8 +190,8 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
                           : 'Select language'}
                         <ChevronsUpDownIcon className="opacity-50" />
                       </Button>
-                    </FormControl>
-                  </PopoverTrigger>
+                    }
+                  />
                   <PopoverContent className="w-[200px] p-0" side="top">
                     <Command>
                       <CommandInput
@@ -233,45 +229,45 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
                   </PopoverContent>
                 </Popover>
               </div>
-              <FormMessage />
-            </FormItem>
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
           )}
         />
 
         <Separator />
 
-        <FormField
+        <Controller
           control={form.control}
           name="webSearch.urlToMarkdownProvider"
-          render={({ field }) => (
-            <FormItem className="flex flex-col">
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
               <div className="flex items-center justify-between">
-                <FormLabel className="mb-0">URL to Markdown</FormLabel>
-                <FormControl>
-                  <Select
-                    value={field.value ?? 'default'}
-                    onValueChange={(val) =>
-                      form.setValue(
-                        'webSearch.urlToMarkdownProvider',
-                        val as 'default' | 'jina' | 'cloudflare'
-                      )
-                    }
-                  >
-                    <SelectTrigger className="hover:bg-accent w-fit border-none shadow-none">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
+                <FieldLabel>URL to Markdown</FieldLabel>
+                <Select
+                  value={field.value ?? 'default'}
+                  onValueChange={(val) =>
+                    form.setValue(
+                      'webSearch.urlToMarkdownProvider',
+                      val as 'default' | 'jina' | 'cloudflare'
+                    )
+                  }
+                >
+                  <SelectTrigger className="hover:bg-accent w-fit border-none shadow-none">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
                       {URL_TO_MARKDOWN_PROVIDERS.map(({ value, label }) => (
                         <SelectItem key={value} value={value}>
                           {label}
                         </SelectItem>
                       ))}
-                    </SelectContent>
-                  </Select>
-                </FormControl>
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
               </div>
-              <FormMessage />
-            </FormItem>
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
           )}
         />
 
@@ -314,41 +310,41 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
               </AlertDescription>
             </Alert>
 
-            <FormField
+            <Controller
               control={form.control}
               name="webSearch.cloudflareAccountId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cloudflare Account ID</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      value={field.value ?? ''}
-                      placeholder="Your Cloudflare account ID"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>Cloudflare Account ID</FieldLabel>
+                  <Input
+                    {...field}
+                    value={field.value ?? ''}
+                    placeholder="Your Cloudflare account ID"
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
               )}
             />
 
-            <FormField
+            <Controller
               control={form.control}
               name="webSearch.cloudflareApiToken"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cloudflare API Token</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      autoComplete="current-password"
-                      {...field}
-                      value={field.value ?? ''}
-                      placeholder="Token with Browser Rendering permission"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>Cloudflare API Token</FieldLabel>
+                  <Input
+                    type="password"
+                    autoComplete="current-password"
+                    {...field}
+                    value={field.value ?? ''}
+                    placeholder="Token with Browser Rendering permission"
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
               )}
             />
           </>

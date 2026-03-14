@@ -20,17 +20,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const setIsFullTextSearchVisible = useSetAtom(isFullTextSearchVisibleAtom)
 
   return (
-    <Sidebar {...props}>
-      {/* Draggable zone covering the macOS traffic-light area */}
-      <div
-        className={cn('draggable absolute inset-x-0 top-0 z-10 h-13', {
-          ['h-2']: isFullscreen
-        })}
-      />
+    <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader
-        className={cn('gap-1 pt-13 transition-all', { ['pt-2']: isFullscreen })}
+        className={cn('draggable gap-1 pt-13 transition-all', {
+          ['pt-2']: isFullscreen
+        })}
       >
-        <SidebarMenu>
+        <SidebarMenu className="gap-1">
           <SidebarMenuItem
             className="no-draggable hover:bg-sidebar-accent flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm"
             onClick={() => (window.location.href = '/')}
@@ -39,7 +35,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             New chat
           </SidebarMenuItem>
         </SidebarMenu>
-        <SidebarMenu>
+        <SidebarMenu className="gap-1">
           <SidebarMenuItem
             className="no-draggable hover:bg-sidebar-accent flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm"
             onClick={() => setIsFullTextSearchVisible(true)}

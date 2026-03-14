@@ -2,12 +2,9 @@ import { WebPDFLoader } from '@langchain/community/document_loaders/web/pdf'
 import { UrlToMarkdownProvider } from '@shared/schemas/setting-schema'
 import { BraveSearchResponse, WebSearchResult } from '@shared/types/web-search'
 import * as cheerio from 'cheerio'
-import { encodingForModel } from 'js-tiktoken'
 import TurndownService from 'turndown'
 
 /* ================= Constants ================= */
-
-const enc = encodingForModel('o4-mini')
 
 const TURNDOWN_OPTIONS = {
   headingStyle: 'atx',
@@ -300,9 +297,7 @@ export async function fetchAndProcessSearchResults({
     const finalResults = settled
       .filter(
         (r): r is PromiseFulfilledResult<WebSearchResult> =>
-          r.status === 'fulfilled' &&
-          !!r.value.content &&
-          enc.encode(r.value.content).length < 180_000
+          r.status === 'fulfilled' && !!r.value.content
       )
       .map((r, i) => ({
         ...r.value,
@@ -314,5 +309,3 @@ export async function fetchAndProcessSearchResults({
     return null
   }
 }
-
-export { enc }

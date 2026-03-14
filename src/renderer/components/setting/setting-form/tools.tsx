@@ -1,4 +1,4 @@
-import { FormDescription, FormItem, FormLabel } from '@/components/ui/form'
+import { Field, FieldDescription, FieldLabel } from '@/components/ui/field'
 import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { TOOL_GROUPS, TOOL_REGISTRY, ToolGroup } from '@shared/constants/tools'
@@ -35,16 +35,16 @@ export function Tools({ form }: { form: UseFormReturnType }) {
             {tools.map((tool) => {
               const enabled = !disabledTools.includes(tool.key)
               return (
-                <FormItem key={tool.key} className="flex flex-col">
+                <Field key={tool.key}>
                   <div className="flex items-center justify-between">
-                    <FormLabel className="mb-0">{tool.label}</FormLabel>
+                    <FieldLabel>{tool.label}</FieldLabel>
                     <Switch
                       checked={enabled}
                       onCheckedChange={(checked) => toggle(tool.key, checked)}
                     />
                   </div>
-                  <FormDescription>{tool.description}</FormDescription>
-                </FormItem>
+                  <FieldDescription>{tool.description}</FieldDescription>
+                </Field>
               )
             })}
           </div>

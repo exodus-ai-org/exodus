@@ -5,12 +5,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem
 } from '@/components/ui/sidebar'
-import {
-  AtomIcon,
-  SettingsIcon,
-  SparklesIcon,
-  WorkflowIcon
-} from 'lucide-react'
+import { SettingsIcon, SparklesIcon, WorkflowIcon } from 'lucide-react'
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
@@ -23,7 +18,7 @@ export function NavFooter({
   return (
     <SidebarGroup {...props}>
       <SidebarGroupContent>
-        <SidebarMenu>
+        <SidebarMenu className="gap-1">
           <SidebarMenuItem>
             <SidebarMenuButton
               isActive={location.pathname.includes('skills-market')}
@@ -31,12 +26,6 @@ export function NavFooter({
             >
               <SparklesIcon />
               Skills Market
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton>
-              <AtomIcon />
-              RAG
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
