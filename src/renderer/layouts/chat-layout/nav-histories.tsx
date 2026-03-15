@@ -23,7 +23,11 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import { updateChat } from '@/services/chat'
-import { renamedChatTitleAtom, toBeDeletedChatAtom } from '@/stores/chat'
+import {
+  openTabsAtom,
+  renamedChatTitleAtom,
+  toBeDeletedChatAtom
+} from '@/stores/chat'
 import type { Chat } from '@shared/types/db'
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns'
 import { useSetAtom } from 'jotai'
@@ -36,6 +40,21 @@ import {
 } from 'lucide-react'
 import { Link, useParams } from 'react-router'
 import useSWR from 'swr'
+
+function compactRelativeTime(date: Date): string {
+  const diff = Date.now() - date.getTime()
+  const mins = Math.floor(diff / 60_000)
+  if (mins < 1) return 'now'
+  if (mins < 60) return `${mins}m`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}h`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days}d`
+  const weeks = Math.floor(days / 7)
+  if (weeks < 5) return `${weeks}w`
+  const months = Math.floor(days / 30)
+  return `${months}mo`
+}
 
 interface GroupedChats {
   favorite: Chat[]
@@ -70,16 +89,32 @@ export function NavItems({
   const { isMobile } = useSidebar()
   const setRenamedChatTitle = useSetAtom(renamedChatTitleAtom)
   const setToBeDeletedChat = useSetAtom(toBeDeletedChatAtom)
+  const setOpenTabs = useSetAtom(openTabsAtom)
 
   return (
-    <SidebarMenuItem className={className}>
-      <SidebarMenuButton asChild isActive={chat.id === id}>
-        <Link to={`/chat/${chat.id}`}>
-          <span>{chat.title}</span>
-        </Link>
+    <SidebarMenuItem className={cn(className, 'h-8')}>
+      <SidebarMenuButton
+        isActive={chat.id === id}
+        render={
+          <Link
+            to={`/chat/${chat.id}`}
+            onClick={() =>
+              setOpenTabs((prev) =>
+                prev.find((t) => t.id === chat.id)
+                  ? prev
+                  : [...prev, { id: chat.id, title: chat.title }]
+              )
+            }
+          />
+        }
+      >
+        <span className="min-w-0 flex-1 truncate">{chat.title}</span>
+        <span className="text-muted-foreground shrink-0 text-[10px]">
+          {compactRelativeTime(new Date(chat.createdAt))}
+        </span>
       </SidebarMenuButton>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
+        <DropdownMenuTrigger>
           <SidebarMenuAction showOnHover>
             <MoreHorizontalIcon />
             <span className="sr-only">More</span>
@@ -187,7 +222,7 @@ export function NavHistories() {
     return (
       <SidebarGroup>
         <SidebarGroupContent>
-          <div className="flex w-full flex-row items-center justify-center gap-2 px-2 text-sm text-zinc-500">
+          <div className="text-muted-foreground flex w-full flex-row items-center justify-center gap-2 px-2 text-sm">
             Your conversations will appear here once you start chatting!
           </div>
         </SidebarGroupContent>
@@ -205,15 +240,12 @@ export function NavHistories() {
             <>
               {groupedChats.favorite.length > 0 && (
                 <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-                  <SidebarMenu>
+                  <SidebarMenu className="gap-1">
                     <Collapsible className="group/collapsible" defaultOpen>
-                      <SidebarGroupLabel
-                        asChild
-                        className="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mb-1 text-sm"
-                      >
+                      <SidebarGroupLabel className="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mb-1 text-sm">
                         <CollapsibleTrigger className="flex w-full items-center justify-between pl-0!">
                           <SidebarGroupLabel>Favorite</SidebarGroupLabel>
-                          <ChevronRightIcon className="transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                          <ChevronRightIcon className="text-sidebar-foreground/50 [transition-property:rotate] duration-200 group-data-[state=open]/collapsible:rotate-90" />
                         </CollapsibleTrigger>
                       </SidebarGroupLabel>
                       <CollapsibleContent>
@@ -233,7 +265,7 @@ export function NavHistories() {
               {groupedChats.today.length > 0 && (
                 <SidebarGroup className="group-data-[collapsible=icon]:hidden">
                   <SidebarGroupLabel>Today</SidebarGroupLabel>
-                  <SidebarMenu>
+                  <SidebarMenu className="gap-1">
                     {groupedChats.today.map((chat) => (
                       <NavItems chat={chat} key={chat.id} />
                     ))}
@@ -244,7 +276,7 @@ export function NavHistories() {
               {groupedChats.yesterday.length > 0 && (
                 <SidebarGroup className="group-data-[collapsible=icon]:hidden">
                   <SidebarGroupLabel>Yesterday</SidebarGroupLabel>
-                  <SidebarMenu>
+                  <SidebarMenu className="gap-1">
                     {groupedChats.yesterday.map((chat) => (
                       <NavItems chat={chat} key={chat.id} />
                     ))}
@@ -255,7 +287,7 @@ export function NavHistories() {
               {groupedChats.lastWeek.length > 0 && (
                 <SidebarGroup className="group-data-[collapsible=icon]:hidden">
                   <SidebarGroupLabel>Last Week</SidebarGroupLabel>
-                  <SidebarMenu>
+                  <SidebarMenu className="gap-1">
                     {groupedChats.lastWeek.map((chat) => (
                       <NavItems chat={chat} key={chat.id} />
                     ))}
@@ -266,7 +298,7 @@ export function NavHistories() {
               {groupedChats.lastMonth.length > 0 && (
                 <SidebarGroup className="group-data-[collapsible=icon]:hidden">
                   <SidebarGroupLabel>Last Month</SidebarGroupLabel>
-                  <SidebarMenu>
+                  <SidebarMenu className="gap-1">
                     {groupedChats.lastMonth.map((chat) => (
                       <NavItems chat={chat} key={chat.id} />
                     ))}
@@ -277,7 +309,7 @@ export function NavHistories() {
               {groupedChats.older.length > 0 && (
                 <SidebarGroup className="group-data-[collapsible=icon]:hidden">
                   <SidebarGroupLabel>Older</SidebarGroupLabel>
-                  <SidebarMenu>
+                  <SidebarMenu className="gap-1">
                     {groupedChats.older.map((chat) => (
                       <NavItems chat={chat} key={chat.id} />
                     ))}

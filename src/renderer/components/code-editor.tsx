@@ -46,7 +46,7 @@ function CodeEditor<T extends FieldValues>({
   return (
     <MonacoEditor
       className={className}
-      theme={actualTheme === 'dark' ? 'shadcn-dark' : 'light'}
+      theme={actualTheme === 'dark' ? 'shadcn-dark' : 'shadcn-light'}
       defaultLanguage="json"
       value={field.value}
       onChange={handleEditorChange}
@@ -66,6 +66,17 @@ function CodeEditor<T extends FieldValues>({
           rules: [],
           colors: {
             'editor.background': '#000000'
+          }
+        })
+        monaco.editor.defineTheme('shadcn-light', {
+          base: 'vs',
+          inherit: true,
+          rules: [],
+          colors: {
+            'editor.background': '#f9f9f9',
+            'editor.lineHighlightBackground': '#f0f0f0',
+            'editorLineNumber.foreground': '#aaaaaa',
+            'editor.selectionBackground': '#dbeafe'
           }
         })
       }}

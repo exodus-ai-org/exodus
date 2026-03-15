@@ -10,13 +10,13 @@ export function subscribeQuickChatInput(
   window.electron.ipcRenderer.on('quick-chat-input', callback)
 }
 
-export function restartServer() {
-  return window.electron.ipcRenderer.invoke('restart-server')
-}
-
-export function subscribeSucceedToRestartServer(callback: () => void) {
-  window.electron.ipcRenderer.on('succeed-to-restart-server', callback)
-}
+// ARCHIVED: MCP server restart IPC removed
+// export function restartServer() {
+//   return window.electron.ipcRenderer.invoke('restart-server')
+// }
+// export function subscribeSucceedToRestartServer(callback: () => void) {
+//   window.electron.ipcRenderer.on('succeed-to-restart-server', callback)
+// }
 
 export function checkFullScreen() {
   return window.electron.ipcRenderer.invoke('check-fullscreen')
@@ -30,6 +30,12 @@ export function subscribeFullScreenChanged(
   callback: (_: IpcRendererEvent, isFullscreen: boolean) => void
 ) {
   window.electron.ipcRenderer.on('fullscreen-changed', callback)
+}
+
+export function unsubscribeFullScreenChanged(
+  callback: (_: IpcRendererEvent, isFullscreen: boolean) => void
+) {
+  window.electron.ipcRenderer.removeListener('fullscreen-changed', callback)
 }
 
 export function closeSearchbar() {
@@ -60,4 +66,40 @@ export function subscribeFindInPageResult(
   callback: (_: IpcRendererEvent, result: Result) => void
 ) {
   window.electron.ipcRenderer.on('find-in-page-result', callback)
+}
+
+export function setNativeTheme(source: 'dark' | 'light' | 'system') {
+  return window.electron.ipcRenderer.invoke('set-native-theme', source)
+}
+
+export function updaterGetState() {
+  return window.electron.ipcRenderer.invoke('updater-get-state')
+}
+
+export function updaterCheck() {
+  return window.electron.ipcRenderer.invoke('updater-check')
+}
+
+export function updaterDownload() {
+  return window.electron.ipcRenderer.invoke('updater-download')
+}
+
+export function updaterInstall() {
+  return window.electron.ipcRenderer.invoke('updater-install')
+}
+
+export function updaterSetAutoDownload(enable: boolean) {
+  return window.electron.ipcRenderer.invoke('updater-set-auto-download', enable)
+}
+
+export function subscribeUpdaterStateChanged(
+  callback: (_: IpcRendererEvent, payload: unknown) => void
+) {
+  window.electron.ipcRenderer.on('updater-state-changed', callback)
+}
+
+export function unsubscribeUpdaterStateChanged(
+  callback: (_: IpcRendererEvent, payload: unknown) => void
+) {
+  window.electron.ipcRenderer.removeListener('updater-state-changed', callback)
 }

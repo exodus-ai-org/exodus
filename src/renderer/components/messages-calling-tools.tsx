@@ -3,6 +3,7 @@ import { memo } from 'react'
 import { DeepResearchCard } from './calling-tools/deep-research/deep-research-card'
 import { GoogleMapsPlacesCard } from './calling-tools/google-maps-places/places-card'
 import { GoogleMapsCard } from './calling-tools/google-maps-routing/routing-card'
+import { TerminalCard } from './calling-tools/terminal/terminal-card'
 import { WeatherCard } from './calling-tools/weather/weather-card'
 import { WebSearchCard } from './calling-tools/web-search/web-search-card'
 
@@ -24,10 +25,15 @@ function CallingTools({ toolInvocation }: { toolInvocation: any }) {
       {toolName === 'weather' && <WeatherCard toolResult={output} />}
       {toolName === 'webSearch' && <WebSearchCard toolResult={output} />}
       {toolName === 'deepResearch' && <DeepResearchCard toolResult={output} />}
+      {toolName === 'terminal' && <TerminalCard toolResult={output} />}
       {(toolName === 'imageGeneration' ||
         toolName === 'date' ||
         toolName === 'rag' ||
-        toolName === 'calculator') && <div className="-mb-4" />}
+        toolName === 'calculator' ||
+        toolName === 'readFile' ||
+        toolName === 'writeFile' ||
+        toolName === 'listDirectory' ||
+        toolName === 'findFiles') && <div className="-mb-4" />}
     </section>
   )
 }

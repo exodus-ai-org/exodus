@@ -10,19 +10,26 @@ let isQuitting = false
 
 export function createWindow(): void {
   mainWindow = new BrowserWindow({
-    width: 1280,
-    height: 960,
-    minWidth: 1280,
-    minHeight: 960,
+    width: 1080,
+    height: 768,
+    minWidth: 1080,
+    minHeight: 768,
     show: false,
     autoHideMenuBar: true,
     frame: false,
     title: '',
     titleBarStyle: 'hidden',
     trafficLightPosition: {
-      x: 16,
-      y: 16
+      x: 20,
+      y: 20
     },
+    ...(process.platform === 'darwin'
+      ? {
+          vibrancy: 'sidebar' as const,
+          visualEffectState: 'active' as const,
+          backgroundColor: '#00000000'
+        }
+      : {}),
     ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),

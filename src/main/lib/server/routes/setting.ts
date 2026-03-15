@@ -1,6 +1,7 @@
 import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import { updateSetting } from '../../db/queries'
+import { Setting as DBSetting } from '../../db/schema'
 import { updateSettingsSchema } from '../schemas/setting'
 import {
   handleDatabaseOperation,
@@ -24,7 +25,7 @@ setting.post('/', async (c) => {
   )
 
   const updatedSetting = await handleDatabaseOperation(
-    () => updateSetting(payload),
+    () => updateSetting(payload as unknown as DBSetting),
     'Failed to update setting'
   )
 

@@ -35,9 +35,10 @@ export function ChatDeletionConfirmationDialog() {
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
             className="bg-destructive hover:bg-destructive/90"
-            onClick={() => {
+            onClick={async () => {
               if (!toBeDeletedChat) return
-              deleteChat(toBeDeletedChat, id)
+              await deleteChat(toBeDeletedChat, id)
+              setToBeDeletedChat(undefined)
             }}
           >
             Delete

@@ -20,22 +20,29 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const setIsFullTextSearchVisible = useSetAtom(isFullTextSearchVisibleAtom)
 
   return (
-    <Sidebar {...props} className="border-transparent p-2 pr-0">
+    <Sidebar
+      collapsible="offcanvas"
+      className="border-none [--sidebar-accent-foreground:oklch(0.2_0_0)] [--sidebar-accent:oklch(0_0_0/_8%)] [--sidebar-border:transparent] [--sidebar-foreground:oklch(0.2_0_0)] dark:[--sidebar-accent-foreground:oklch(0.92_0_0)] dark:[--sidebar-accent:oklch(1_0_0/_12%)] dark:[--sidebar-foreground:oklch(0.92_0_0)]"
+      sidebarInnerClx="bg-transparent text-[oklch(0.2_0_0)] dark:text-[oklch(0.92_0_0)]"
+      {...props}
+    >
       <SidebarHeader
-        className={cn('mt-13 gap-1 transition-all', { ['mt-1']: isFullscreen })}
+        className={cn('draggable gap-1 pt-13 transition-all', {
+          ['pt-2']: isFullscreen
+        })}
       >
-        <SidebarMenu>
+        <SidebarMenu className="gap-1">
           <SidebarMenuItem
-            className="hover:bg-sidebar-accent flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm"
+            className="no-draggable hover:bg-sidebar-accent flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm"
             onClick={() => (window.location.href = '/')}
           >
             <SquarePenIcon size={16} />
             New chat
           </SidebarMenuItem>
         </SidebarMenu>
-        <SidebarMenu>
+        <SidebarMenu className="gap-1">
           <SidebarMenuItem
-            className="hover:bg-sidebar-accent flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm"
+            className="no-draggable hover:bg-sidebar-accent flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm"
             onClick={() => setIsFullTextSearchVisible(true)}
           >
             <SearchIcon size={16} />

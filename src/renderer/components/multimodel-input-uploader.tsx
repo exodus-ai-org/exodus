@@ -1,5 +1,5 @@
 import { useUpload } from '@/hooks/use-upload'
-import { TooltipArrow } from '@radix-ui/react-tooltip'
+
 import { PaperclipIcon } from 'lucide-react'
 import { ChangeEvent, useRef } from 'react'
 import { Button } from './ui/button'
@@ -27,7 +27,7 @@ export function MultiModelInputUploader() {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger asChild>
+        <TooltipTrigger>
           <Button variant="ghost" className="relative h-6 w-6 rounded-full">
             <PaperclipIcon />
             <input
@@ -42,7 +42,6 @@ export function MultiModelInputUploader() {
         </TooltipTrigger>
         <TooltipContent>
           <p>Upload files and more</p>
-          <TooltipArrow className="TooltipArrow" />
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

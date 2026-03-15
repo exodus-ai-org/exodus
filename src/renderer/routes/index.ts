@@ -1,25 +1,21 @@
 import { ChatDetail } from '@/containers/chat-detail'
 import { Home } from '@/containers/home'
-import { Workflow } from '@/containers/workflow'
 import { Layout as ChatLayout } from '@/layouts/chat-layout'
-import { Layout as WorkspaceLayout } from '@/layouts/workspace-layout'
+import { SettingsLayout } from '@/layouts/settings-layout'
+import { SkillsMarketLayout } from '@/layouts/skills-market-layout'
+import { WorkflowLayout } from '@/layouts/workflow-layout'
 import { createHashRouter } from 'react-router'
 
 export const router = createHashRouter([
+  { path: '/settings', Component: SettingsLayout },
+  { path: '/skills-market', Component: SkillsMarketLayout },
+  { path: '/workflow', Component: WorkflowLayout },
+
   {
     Component: ChatLayout,
     children: [
       { path: '/', Component: Home },
       { path: '/chat/:id', Component: ChatDetail }
-    ]
-  },
-
-  {
-    Component: WorkspaceLayout,
-    children: [
-      { path: '/workflow', Component: Workflow },
-      { path: '/mcp-store', Component: Workflow },
-      { path: '/rag', Component: Workflow }
     ]
   }
 ])

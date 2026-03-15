@@ -1,10 +1,9 @@
-import { Form } from '@/components/ui/form'
 import { useSetting } from '@/hooks/use-setting'
-import { isMcpServerChangedAtom, settingLabelAtom } from '@/stores/setting'
+import { settingLabelAtom } from '@/stores/setting'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Setting, SettingSchema } from '@shared/schemas/setting-schema'
 import { AiProviders } from '@shared/types/ai'
-import { useAtomValue, useSetAtom } from 'jotai'
+import { useAtomValue } from 'jotai'
 import { useForm } from 'react-hook-form'
 import { AudioSpeech } from './setting-form/audio-speech'
 import { DataControls } from './setting-form/data-controls'
@@ -24,86 +23,85 @@ import { XaiGrok } from './setting-form/providers/xai-grok'
 import { Rag } from './setting-form/rag'
 import { S3 } from './setting-form/s3'
 import { SystemInfo } from './setting-form/system-info'
+import { Tools } from './setting-form/tools'
 import { WebSearch } from './setting-form/web-search'
+import { SettingLabel } from './setting-menu'
 import { UnderConstruction } from './under-construction'
 
 export function SettingsForm() {
-  const setIsMcpServerChanged = useSetAtom(isMcpServerChangedAtom)
   const { data: setting, updateSetting } = useSetting()
   const activeTitle = useAtomValue(settingLabelAtom)
 
   const form = useForm({
     resolver: zodResolver(SettingSchema),
     values: setting,
+    resetOptions: { keepDirtyValues: true },
     mode: 'onBlur'
   })
 
   function onSubmit(values: Setting) {
     if (!setting) return
-
-    if (form.formState.isDirty) {
-      if (form.formState.dirtyFields.mcpServers) {
-        setIsMcpServerChanged(true)
-      }
-
-      updateSetting({ ...values, id: setting.id })
-    }
+    updateSetting({ ...values, id: setting.id })
   }
 
   return (
-    <Form {...form}>
-      <form
-        className="flex flex-1 flex-col gap-4"
-        onBlur={form.handleSubmit(onSubmit)}
-      >
-        {activeTitle === 'General' && <General form={form} />}
+    <form
+      className="flex flex-1 flex-col gap-4"
+      onBlur={form.handleSubmit(onSubmit)}
+    >
+      {activeTitle === SettingLabel.General && <General form={form} />}
 
-        {activeTitle === 'AI Providers' && <ProviderConfig form={form} />}
+      {activeTitle === SettingLabel.AiProviders && (
+        <ProviderConfig form={form} />
+      )}
 
-        {activeTitle === AiProviders.OpenAiGpt && <OpenAiGpt form={form} />}
+      {activeTitle === AiProviders.OpenAiGpt && <OpenAiGpt form={form} />}
 
-        {activeTitle === AiProviders.AzureOpenAi && <AzureOpenAi form={form} />}
+      {activeTitle === AiProviders.AzureOpenAi && <AzureOpenAi form={form} />}
 
-        {activeTitle === AiProviders.AnthropicClaude && (
-          <AnthropicClaude form={form} />
-        )}
+      {activeTitle === AiProviders.AnthropicClaude && (
+        <AnthropicClaude form={form} />
+      )}
 
-        {activeTitle === AiProviders.GoogleGemini && (
-          <GoogleGemini form={form} />
-        )}
+      {activeTitle === AiProviders.GoogleGemini && <GoogleGemini form={form} />}
 
-        {activeTitle === AiProviders.XaiGrok && <XaiGrok form={form} />}
+      {activeTitle === AiProviders.XaiGrok && <XaiGrok form={form} />}
 
-        {activeTitle === AiProviders.Ollama && <Ollama form={form} />}
+      {activeTitle === AiProviders.Ollama && <Ollama form={form} />}
 
-        {activeTitle === 'Amazon S3' && <S3 form={form} />}
+      {activeTitle === SettingLabel.AmazonS3 && <S3 form={form} />}
 
-        {activeTitle === 'Audio and Speech' && <AudioSpeech form={form} />}
+      {activeTitle === SettingLabel.AudioAndSpeech && (
+        <AudioSpeech form={form} />
+      )}
 
-        {activeTitle === 'Image Generation' && <ImageGeneration form={form} />}
+      {activeTitle === SettingLabel.ImageGeneration && (
+        <ImageGeneration form={form} />
+      )}
 
-        {activeTitle === 'Google Maps' && <GoogleMaps form={form} />}
+      {activeTitle === SettingLabel.GoogleMaps && <GoogleMaps form={form} />}
 
-        {activeTitle === 'Web Search' && <WebSearch form={form} />}
+      {activeTitle === SettingLabel.WebSearch && <WebSearch form={form} />}
 
-        {activeTitle === 'Deep Research' && <DeepResearch form={form} />}
+      {activeTitle === SettingLabel.DeepResearch && (
+        <DeepResearch form={form} />
+      )}
 
-        {activeTitle === 'Memory Layer' && <MemoryLayer form={form} />}
+      {activeTitle === SettingLabel.MemoryLayer && <MemoryLayer form={form} />}
 
-        {activeTitle === 'MCP Servers' && <MCP form={form} />}
+      {activeTitle === SettingLabel.McpServers && <MCP form={form} />}
 
-        {activeTitle === 'RAG' && <Rag />}
+      {activeTitle === SettingLabel.BuiltinTools && <Tools form={form} />}
 
-        {activeTitle === 'Immersion' && <UnderConstruction />}
+      {activeTitle === SettingLabel.Rag && <Rag />}
 
-        {activeTitle === 'Computer Use' && <UnderConstruction />}
+      {activeTitle === SettingLabel.ComputerUse && <UnderConstruction />}
 
-        {activeTitle === 'Browser Use' && <UnderConstruction />}
+      {activeTitle === SettingLabel.BrowserUse && <UnderConstruction />}
 
-        {activeTitle === 'Data Controls' && <DataControls />}
+      {activeTitle === SettingLabel.DataControls && <DataControls />}
 
-        {activeTitle === 'About Exodus' && <SystemInfo />}
-      </form>
-    </Form>
+      {activeTitle === SettingLabel.AboutExodus && <SystemInfo />}
+    </form>
   )
 }

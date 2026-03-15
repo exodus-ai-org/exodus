@@ -1,5 +1,3 @@
-'use client'
-
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDownIcon, ChevronUpIcon, LoaderIcon } from 'lucide-react'
 import { useState } from 'react'

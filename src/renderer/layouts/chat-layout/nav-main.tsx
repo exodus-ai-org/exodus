@@ -16,10 +16,10 @@ export function NavMain({
   }[]
 }) {
   return (
-    <SidebarMenu>
+    <SidebarMenu className="gap-1">
       {items.map((item) => (
         <SidebarMenuItem key={item.title}>
-          <SidebarMenuButton asChild isActive={item.isActive}>
+          <SidebarMenuButton isActive={item.isActive}>
             <a href={item.url}>
               <item.icon />
               <span>{item.title}</span>

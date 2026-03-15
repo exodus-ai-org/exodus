@@ -1,12 +1,9 @@
 import { useClipboard } from '@/hooks/use-clipboard'
-import { useImmersion } from '@/hooks/use-immersion'
 import { UseChatHelpers } from '@ai-sdk/react'
-import { TooltipArrow } from '@radix-ui/react-tooltip'
 import { ChatMessage } from '@shared/types/chat'
 import {
   CheckIcon,
   CopyIcon,
-  PencilRulerIcon,
   RefreshCcwIcon,
   ThumbsDownIcon,
   ThumbsUpIcon
@@ -50,7 +47,6 @@ export function MessageActionItem({
         <TooltipTrigger>{children}</TooltipTrigger>
         <TooltipContent>
           <p>{tooltipContent}</p>
-          <TooltipArrow className="TooltipArrow" />
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
@@ -65,7 +61,6 @@ export function MessageAction({
   regenerate: UseChatHelpers<ChatMessage>['regenerate']
 }) {
   const { copied, handleCopy } = useClipboard()
-  const { openImmersion } = useImmersion()
 
   return (
     <div className="flex gap-0.5">
@@ -89,11 +84,6 @@ export function MessageAction({
         </IconWrapper>
       </MessageActionItem>
       <AudioPlayer content={content} />
-      <MessageActionItem tooltipContent="Edit in Immersion">
-        <IconWrapper onClick={() => openImmersion(content)}>
-          <PencilRulerIcon size={14} strokeWidth={2.5} />
-        </IconWrapper>
-      </MessageActionItem>
       <MessageActionItem tooltipContent="Switch model">
         <IconWrapper onClick={regenerate}>
           <RefreshCcwIcon size={14} strokeWidth={2.5} />

@@ -5,43 +5,38 @@ import { z } from 'zod'
 
 export const googleMapsPlaces = (setting: Setting) =>
   tool({
-    description: 'Specify a text string on which to search for a place.',
+    description:
+      'Search for places by text query using Google Maps. Returns name, address, rating, and location for each result.',
     inputSchema: z.object({
       query: z
         .string()
         .describe(
-          'The query to search for a place. ' +
-            'For example: "Spicy Vegetarian Food in Sydney, Australia" or "Fine seafood dining near Palo Alto, CA". ' +
-            'You can refine the search by specifying details such as price levels, current opening status, ratings, or specific place types. You can also specify to bias the results to a specific location, or restrict the search to a specific location.'
+          'The text query to search for a place, e.g. "Spicy Vegetarian Food in Sydney, Australia" or "Fine seafood dining near Palo Alto, CA".'
         )
     }),
-    execute: async ({ query }: { query: string }) => {
+    execute: async ({ query }) => {
       if (!setting.googleCloud?.googleApiKey) {
         throw new Error(
-          'To use Google Map Places, make sure to fill in the `googleApiKey` in the setting.'
+          'To use Google Maps Places, make sure to fill in the `googleApiKey` in the setting.'
         )
       }
-
       try {
         const placesClient = new v1.PlacesClient({
-          apiKey: setting.googleCloud?.googleApiKey
+          apiKey: setting.googleCloud.googleApiKey
         })
-
         const response = await placesClient.searchText(
-          {
-            textQuery: query
-          },
+          { textQuery: query },
           {
             otherArgs: {
-              headers: {
-                'X-Goog-FieldMask': 'places'
-              }
+              headers: { 'X-Goog-FieldMask': 'places' }
             }
           }
         )
         return response
       } catch (e) {
-        throw e instanceof Error ? e.message : 'Failed to retrieve places data'
+        throw new Error(
+          e instanceof Error ? e.message : 'Failed to retrieve places data'
+        )
       }
     }
   })

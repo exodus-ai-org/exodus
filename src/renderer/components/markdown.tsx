@@ -1,10 +1,9 @@
 import { useClipboard } from '@/hooks/use-clipboard'
-import { useImmersion } from '@/hooks/use-immersion'
 import { cn } from '@/lib/utils'
 import { WebSearchResult } from '@shared/types/web-search'
 import { getStaticToolName, isStaticToolUIPart, type UIMessage } from 'ai'
 import 'katex/dist/katex.min.css'
-import { CheckIcon, CopyIcon, PencilRulerIcon } from 'lucide-react'
+import { CheckIcon, CopyIcon } from 'lucide-react'
 import { memo, ReactNode, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import SyntaxHighlighter from 'react-syntax-highlighter'
@@ -104,7 +103,6 @@ export function Markdown({
   src: string
   parts: UIMessage['parts']
 }) {
-  const { show: isImmersionVisible, openImmersion } = useImmersion()
   const { copied, handleCopy } = useClipboard()
   const { actualTheme } = useTheme()
   const { codeTheme } = useMemo(() => themes[actualTheme], [actualTheme])
@@ -128,7 +126,7 @@ export function Markdown({
   }, [parts])
 
   return (
-    <section className="markdown">
+    <section className="prose prose-sm dark:prose-invert max-w-none">
       <ReactMarkdown
         remarkPlugins={[
           remarkGfm,
@@ -158,34 +156,24 @@ export function Markdown({
                 >
                   <span>{match[1]}</span>
                   <div className="flex cursor-default items-center gap-6">
-                    <>
-                      {copied !== children ? (
-                        <span
-                          className="hover:text-primary flex items-center gap-1.5"
-                          onClick={() => {
-                            if (typeof children === 'string') {
-                              handleCopy(children)
-                            }
-                          }}
-                        >
-                          <CopyIcon size={10} />
-                          Copy
-                        </span>
-                      ) : (
-                        <span className="hover:text-primary flex items-center gap-1.5">
-                          <CheckIcon size={10} strokeWidth={2.5} />
-                          Copied
-                        </span>
-                      )}
-                    </>
-
-                    <span
-                      className="hover:text-primary flex items-center gap-1.5"
-                      onClick={() => openImmersion('')}
-                    >
-                      <PencilRulerIcon size={10} />
-                      Edit
-                    </span>
+                    {copied !== children ? (
+                      <span
+                        className="hover:text-primary flex items-center gap-1.5"
+                        onClick={() => {
+                          if (typeof children === 'string') {
+                            handleCopy(children)
+                          }
+                        }}
+                      >
+                        <CopyIcon size={10} />
+                        Copy
+                      </span>
+                    ) : (
+                      <span className="hover:text-primary flex items-center gap-1.5">
+                        <CheckIcon size={10} strokeWidth={2.5} />
+                        Copied
+                      </span>
+                    )}
                   </div>
                 </section>
 
@@ -209,10 +197,7 @@ export function Markdown({
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           pre({ className, children, node, ...rest }) {
             return (
-              <pre
-                {...rest}
-                className={cn({ ['w-92']: isImmersionVisible }, className)}
-              >
+              <pre {...rest} className={className}>
                 {children}
               </pre>
             )

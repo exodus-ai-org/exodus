@@ -1,108 +1,91 @@
 import { AiProviders } from '@shared/types/ai'
 import {
-  AtomIcon,
-  AudioWaveformIcon,
   ChromeIcon,
   CogIcon,
   ComputerIcon,
   DatabaseIcon,
-  FileUpIcon,
-  GlobeIcon,
   HammerIcon,
   HandCoinsIcon,
-  ImageIcon,
   InfoIcon,
-  MapIcon,
   MemoryStickIcon,
-  PaletteIcon,
-  TelescopeIcon
+  WrenchIcon
 } from 'lucide-react'
+
+export enum SettingLabel {
+  General = 'General',
+  AiProviders = 'AI Providers',
+  AmazonS3 = 'AWS S3',
+  McpServers = 'MCP Servers',
+  BuiltinTools = 'Built-in Tools',
+  MemoryLayer = 'Memory Layer',
+  AudioAndSpeech = 'Audio and Speech',
+  ImageGeneration = 'Image Generation',
+  WebSearch = 'Web Search',
+  GoogleMaps = 'Google Maps',
+  DeepResearch = 'Deep Research',
+  Rag = 'RAG',
+  BrowserUse = 'Browser Use',
+  ComputerUse = 'Computer Use',
+  DataControls = 'Data Controls',
+  AboutExodus = 'About Exodus'
+}
+
+export type SettingPage = SettingLabel | AiProviders
 
 export const menus = {
   navMain: [
     {
-      title: 'General',
+      title: SettingLabel.General,
       icon: CogIcon
     },
     {
-      title: 'AI Providers',
+      title: SettingLabel.AiProviders,
       icon: HandCoinsIcon,
       items: [
-        {
-          title: AiProviders.OpenAiGpt
-        },
-        {
-          title: AiProviders.AzureOpenAi
-        },
-        {
-          title: AiProviders.AnthropicClaude
-        },
-        {
-          title: AiProviders.GoogleGemini
-        },
-        {
-          title: AiProviders.XaiGrok
-        },
-        {
-          title: AiProviders.Ollama
-        }
+        { title: AiProviders.OpenAiGpt },
+        { title: AiProviders.AzureOpenAi },
+        { title: AiProviders.AnthropicClaude },
+        { title: AiProviders.GoogleGemini },
+        { title: AiProviders.XaiGrok },
+        { title: AiProviders.Ollama }
       ]
     },
     {
-      title: 'Amazon S3',
-      icon: FileUpIcon
-    },
-    {
-      icon: HammerIcon,
-      title: 'MCP Servers'
+      icon: WrenchIcon,
+      title: SettingLabel.BuiltinTools,
+      items: [
+        { title: SettingLabel.WebSearch },
+        { title: SettingLabel.GoogleMaps },
+        { title: SettingLabel.ImageGeneration },
+        { title: SettingLabel.DeepResearch },
+        { title: SettingLabel.AudioAndSpeech },
+        { title: SettingLabel.Rag }
+      ]
     },
     {
       icon: MemoryStickIcon,
-      title: 'Memory Layer'
+      title: SettingLabel.MemoryLayer
     },
     {
-      icon: AudioWaveformIcon,
-      title: 'Audio and Speech'
-    },
-    {
-      icon: ImageIcon,
-      title: 'Image Generation'
-    },
-    {
-      icon: GlobeIcon,
-      title: 'Web Search'
-    },
-    {
-      icon: MapIcon,
-      title: 'Google Maps'
-    },
-    {
-      icon: TelescopeIcon,
-      title: 'Deep Research'
-    },
-    {
-      icon: AtomIcon,
-      title: 'RAG'
-    },
-    {
-      icon: PaletteIcon,
-      title: 'Immersion'
-    },
-    {
-      icon: ChromeIcon,
-      title: 'Browser Use'
-    },
-    {
-      icon: ComputerIcon,
-      title: 'Computer Use'
+      icon: HammerIcon,
+      title: SettingLabel.McpServers
     },
     {
       icon: DatabaseIcon,
-      title: 'Data Controls'
+      title: SettingLabel.DataControls,
+      items: [{ title: SettingLabel.AmazonS3 }]
+    },
+    {
+      icon: ChromeIcon,
+      title: SettingLabel.BrowserUse
+    },
+    {
+      icon: ComputerIcon,
+      title: SettingLabel.ComputerUse
     },
     {
       icon: InfoIcon,
-      title: 'About Exodus'
+      title: SettingLabel.AboutExodus
     }
   ]
 }

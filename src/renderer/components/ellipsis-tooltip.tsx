@@ -54,9 +54,9 @@ export function EllipsisTooltip({
   }
 
   return (
-    <TooltipProvider delayDuration={delayDuration}>
+    <TooltipProvider delay={delayDuration}>
       <Tooltip>
-        <TooltipTrigger asChild>{paragraph}</TooltipTrigger>
+        <TooltipTrigger>{paragraph}</TooltipTrigger>
         <TooltipContent side={side} className="max-w-[80vw] wrap-break-word">
           <div className="leading-relaxed whitespace-pre-wrap">{text}</div>
         </TooltipContent>

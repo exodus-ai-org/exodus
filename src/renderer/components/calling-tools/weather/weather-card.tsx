@@ -1,216 +1,300 @@
-import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { WeatherAPIResponse, WWO_CODE } from '@shared/types/weather'
+import { WeatherResult, WWO_CODE } from '@shared/types/weather'
 import { motion } from 'framer-motion'
-import {
-  CloudDrizzleIcon,
-  CloudFogIcon,
-  CloudIcon,
-  CloudLightningIcon,
-  CloudRainIcon,
-  CloudSnowIcon,
-  CloudSunIcon,
-  DropletsIcon,
-  EyeIcon,
-  GaugeIcon,
-  SunIcon,
-  ThermometerIcon,
-  UmbrellaIcon,
-  WindIcon
-} from 'lucide-react'
 import { WeatherForecast } from './weather-forecast'
 
-export function WeatherCard({
-  toolResult
+// ── per-weather-type config ───────────────────────────────────────────────────
+
+const THEME: Record<
+  string,
+  { gradient: string; emoji: string; particles?: 'rain' | 'snow' }
+> = {
+  Sunny: {
+    gradient: 'linear-gradient(135deg, #f59e0b, #fb923c, #38bdf8)',
+    emoji: '☀️'
+  },
+  PartlyCloudy: {
+    gradient: 'linear-gradient(135deg, #7dd3fc, #60a5fa, #818cf8)',
+    emoji: '⛅'
+  },
+  Cloudy: {
+    gradient: 'linear-gradient(135deg, #94a3b8, #64748b, #475569)',
+    emoji: '☁️'
+  },
+  VeryCloudy: {
+    gradient: 'linear-gradient(135deg, #64748b, #475569, #334155)',
+    emoji: '☁️'
+  },
+  Fog: {
+    gradient: 'linear-gradient(135deg, #cbd5e1, #94a3b8, #64748b)',
+    emoji: '🌫️'
+  },
+  LightShowers: {
+    gradient: 'linear-gradient(135deg, #7dd3fc, #3b82f6, #475569)',
+    emoji: '🌦️',
+    particles: 'rain'
+  },
+  LightSleetShowers: {
+    gradient: 'linear-gradient(135deg, #bae6fd, #93c5fd, #6366f1)',
+    emoji: '🌨️',
+    particles: 'snow'
+  },
+  LightSleet: {
+    gradient: 'linear-gradient(135deg, #bae6fd, #93c5fd, #6366f1)',
+    emoji: '🌨️',
+    particles: 'snow'
+  },
+  LightSnow: {
+    gradient: 'linear-gradient(135deg, #e0f2fe, #bae6fd, #a5b4fc)',
+    emoji: '🌨️',
+    particles: 'snow'
+  },
+  LightSnowShowers: {
+    gradient: 'linear-gradient(135deg, #e0f2fe, #bae6fd, #a5b4fc)',
+    emoji: '❄️',
+    particles: 'snow'
+  },
+  HeavySnow: {
+    gradient: 'linear-gradient(135deg, #f1f5f9, #bae6fd, #a5b4fc)',
+    emoji: '❄️',
+    particles: 'snow'
+  },
+  HeavySnowShowers: {
+    gradient: 'linear-gradient(135deg, #f1f5f9, #bae6fd, #a5b4fc)',
+    emoji: '❄️',
+    particles: 'snow'
+  },
+  ThunderyShowers: {
+    gradient: 'linear-gradient(135deg, #475569, #334155, #1e293b)',
+    emoji: '⛈️',
+    particles: 'rain'
+  },
+  ThunderyHeavyRain: {
+    gradient: 'linear-gradient(135deg, #334155, #1e293b, #0f172a)',
+    emoji: '⛈️',
+    particles: 'rain'
+  },
+  ThunderySnowShowers: {
+    gradient: 'linear-gradient(135deg, #475569, #334155, #312e81)',
+    emoji: '🌨️',
+    particles: 'snow'
+  },
+  LightRain: {
+    gradient: 'linear-gradient(135deg, #60a5fa, #2563eb, #475569)',
+    emoji: '🌧️',
+    particles: 'rain'
+  },
+  HeavyShowers: {
+    gradient: 'linear-gradient(135deg, #3b82f6, #1d4ed8, #334155)',
+    emoji: '🌧️',
+    particles: 'rain'
+  },
+  HeavyRain: {
+    gradient: 'linear-gradient(135deg, #1d4ed8, #1e40af, #1e293b)',
+    emoji: '⛈️',
+    particles: 'rain'
+  }
+}
+
+const DEFAULT_THEME = {
+  gradient: 'linear-gradient(135deg, #64748b, #475569, #334155)',
+  emoji: '☁️'
+}
+
+// ── particle overlays ─────────────────────────────────────────────────────────
+
+const RAIN_DROPS = Array.from({ length: 24 }, (_, i) => ({
+  left: `${(i * 4.2) % 100}%`,
+  delay: (i * 0.13) % 1.2,
+  duration: 0.6 + (i % 4) * 0.15
+}))
+
+const SNOW_FLAKES = Array.from({ length: 18 }, (_, i) => ({
+  left: `${(i * 5.6) % 100}%`,
+  delay: (i * 0.2) % 2,
+  size: i % 3 === 0 ? 6 : i % 3 === 1 ? 5 : 4
+}))
+
+function RainOverlay() {
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {RAIN_DROPS.map((d, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full bg-white/40"
+          style={{ left: d.left, top: '-8%', width: 1.5, height: 14 }}
+          animate={{ y: ['0%', '120%'], opacity: [0.6, 0] }}
+          transition={{
+            duration: d.duration,
+            repeat: Infinity,
+            delay: d.delay,
+            ease: 'linear'
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
+function SnowOverlay() {
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {SNOW_FLAKES.map((f, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full bg-white/70"
+          style={{ left: f.left, top: '-5%', width: f.size, height: f.size }}
+          animate={{
+            y: ['0%', '110%'],
+            x: [0, 12, -8, 6, 0],
+            opacity: [0.8, 0]
+          }}
+          transition={{
+            duration: 3 + (i % 3),
+            repeat: Infinity,
+            delay: f.delay,
+            ease: 'easeInOut'
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
+// ── stat pill ─────────────────────────────────────────────────────────────────
+
+function StatPill({
+  emoji,
+  value,
+  label
 }: {
-  toolResult: WeatherAPIResponse
+  emoji: string
+  value: string
+  label: string
 }) {
-  const rainVariants = {
-    initial: { opacity: 0, y: -10 },
-    animate: { opacity: 1, y: 0 }
-  }
+  return (
+    <div className="flex flex-col gap-0.5 rounded-2xl bg-white/15 px-3 py-2.5 backdrop-blur-sm">
+      <span className="text-base leading-none">{emoji}</span>
+      <span className="text-sm leading-tight font-semibold text-white">
+        {value}
+      </span>
+      <span className="text-[10px] leading-none text-white/60">{label}</span>
+    </div>
+  )
+}
 
-  const current = toolResult.current_condition[0]
-  const location = toolResult.nearest_area[0]
-  const forecast = toolResult.weather
+// ── main component ────────────────────────────────────────────────────────────
 
-  const getWeatherIcon = (code: string) => {
-    const weatherType = WWO_CODE[code as keyof typeof WWO_CODE] || 'Cloudy'
+function formatTabLabel(dateStr: string, i: number) {
+  if (i === 0) return 'Today'
+  if (i === 1) return 'Tmr'
+  const d = new Date(dateStr)
+  return d.toLocaleDateString('en', { weekday: 'short' })
+}
 
-    switch (weatherType) {
-      case 'Sunny':
-        return <SunIcon className="h-8 w-8 text-yellow-400" />
-      case 'PartlyCloudy':
-        return <CloudSunIcon className="h-8 w-8 text-blue-400" />
-      case 'Cloudy':
-        return <CloudIcon className="h-8 w-8 text-slate-400" />
-      case 'VeryCloudy':
-        return <CloudIcon className="h-8 w-8 text-slate-600" />
-      case 'Fog':
-        return <CloudFogIcon className="h-8 w-8 text-slate-300" />
-      case 'LightShowers':
-        return <CloudDrizzleIcon className="h-8 w-8 text-blue-300" />
-      case 'LightSleetShowers':
-      case 'LightSleet':
-        return <CloudSnowIcon className="h-8 w-8 text-blue-200" />
-      case 'LightSnow':
-      case 'LightSnowShowers':
-        return <CloudSnowIcon className="h-8 w-8 text-slate-200" />
-      case 'HeavySnow':
-      case 'HeavySnowShowers':
-        return <CloudSnowIcon className="h-8 w-8 text-white" />
-      case 'ThunderyShowers':
-      case 'ThunderyHeavyRain':
-      case 'ThunderySnowShowers':
-        return <CloudLightningIcon className="h-8 w-8 text-yellow-500" />
-      case 'LightRain':
-        return <CloudRainIcon className="h-8 w-8 text-blue-400" />
-      case 'HeavyShowers':
-      case 'HeavyRain':
-        return <CloudRainIcon className="h-8 w-8 text-blue-600" />
-      default:
-        return <CloudIcon className="h-8 w-8 text-slate-400" />
-    }
-  }
+export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
+  const { location, current, forecast } = toolResult
+  const weatherType =
+    WWO_CODE[current.weatherCode as keyof typeof WWO_CODE] ?? 'Cloudy'
+  const theme = THEME[weatherType] ?? DEFAULT_THEME
 
   return (
-    <Card className="w-full max-w-md overflow-hidden p-0 shadow-lg transition-all duration-300 hover:shadow-xl">
-      <CardContent className="p-0">
-        <div className="relative overflow-hidden">
-          <div
-            className={`absolute inset-0 ${
-              WWO_CODE[current.weatherCode as keyof typeof WWO_CODE] === 'Sunny'
-                ? 'bg-linear-to-br from-sky-400 to-blue-500'
-                : 'bg-linear-to-br from-slate-500 to-slate-700'
-            } transition-colors duration-500`}
-          />
+    <div className="w-full max-w-xs overflow-hidden rounded-3xl shadow-2xl">
+      {/* ── hero ── */}
+      <div className="relative" style={{ background: theme.gradient }}>
+        {theme.particles === 'rain' && <RainOverlay />}
+        {theme.particles === 'snow' && <SnowOverlay />}
 
-          {(WWO_CODE[current.weatherCode as keyof typeof WWO_CODE] ===
-            'LightRain' ||
-            WWO_CODE[current.weatherCode as keyof typeof WWO_CODE] ===
-              'HeavyRain' ||
-            WWO_CODE[current.weatherCode as keyof typeof WWO_CODE] ===
-              'LightShowers' ||
-            WWO_CODE[current.weatherCode as keyof typeof WWO_CODE] ===
-              'HeavyShowers') && (
-            <div className="absolute inset-0 overflow-hidden">
-              {[...Array(20)].map((_, i) => (
-                <motion.div
-                  key={i}
-                  className="absolute h-4 w-0.5 rounded-full bg-blue-200 opacity-70"
-                  style={{
-                    left: `${Math.random() * 100}%`,
-                    top: `-${Math.random() * 10}%`
-                  }}
-                  variants={rainVariants}
-                  initial="initial"
-                  animate="animate"
-                  transition={{
-                    duration: 0.8,
-                    repeat: Number.POSITIVE_INFINITY,
-                    repeatType: 'loop',
-                    delay: Math.random() * 2,
-                    ease: 'linear'
-                  }}
-                />
-              ))}
-            </div>
-          )}
+        <div className="relative px-5 pt-5 pb-5 text-white">
+          {/* location */}
+          <p className="mb-4 flex items-center gap-1 text-xs font-medium text-white/70">
+            <span>📍</span>
+            {location}
+          </p>
 
-          <div className="relative p-6 text-white">
-            <div className="flex items-start justify-between">
-              <div>
-                <h2 className="text-2xl font-bold">
-                  {location.areaName[0].value}, {location.country[0].value}
-                </h2>
-                <p className="text-sm opacity-90">
-                  {current.localObsDateTime} (Local Obs Time)
-                </p>
-              </div>
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                transition={{ duration: 0.5 }}
-                className="flex items-center"
-              >
-                {getWeatherIcon(current.weatherCode)}
-                <span className="ml-2 text-4xl font-bold">
-                  {current.temp_C}°
-                </span>
-              </motion.div>
-            </div>
+          {/* temp + icon */}
+          <div className="flex items-end justify-between">
+            <motion.div
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <p className="text-7xl leading-none font-thin tracking-tighter">
+                {current.tempC}°
+              </p>
+              <p className="mt-2 text-base font-light text-white/90">
+                {current.condition}
+              </p>
+              <p className="mt-0.5 text-xs text-white/55">
+                Feels {current.feelsLikeC}° · {current.observedAt}
+              </p>
+            </motion.div>
 
-            <p className="mt-2 text-lg">{current.weatherDesc[0].value}</p>
+            <motion.span
+              className="text-6xl leading-none select-none"
+              animate={{ y: [0, -6, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              {theme.emoji}
+            </motion.span>
+          </div>
 
-            <div className="mt-4 grid grid-cols-4 gap-2">
-              <div className="flex flex-col items-center rounded-lg bg-white/10 p-2">
-                <ThermometerIcon className="mb-1 h-5 w-5" />
-                <span className="text-sm">Feels like</span>
-                <span className="font-medium">{current.FeelsLikeC}°C</span>
-              </div>
-              <div className="flex flex-col items-center rounded-lg bg-white/10 p-2">
-                <DropletsIcon className="mb-1 h-5 w-5" />
-                <span className="text-sm">Humidity</span>
-                <span className="font-medium">{current.humidity}%</span>
-              </div>
-              <div className="col-span-2 flex flex-col rounded-lg bg-white/10 p-2">
-                <WindIcon className="mb-1 h-5 w-5" />
-                <div className="flex w-full items-center justify-between">
-                  <span className="text-sm">Wind</span>
-                  <span className="font-medium">
-                    {current.windspeedKmph} km/h
-                  </span>
-                </div>
-                <div className="flex w-full items-center justify-between">
-                  <span className="text-sm">Direction</span>
-                  <span className="font-medium">
-                    {current.winddirDegree}° {current.winddir16Point}
-                  </span>
-                </div>
-              </div>
-            </div>
-            <div className="mt-2 grid grid-cols-4 gap-2">
-              <div className="flex flex-col items-center rounded-lg bg-white/10 p-2">
-                <UmbrellaIcon className="mb-1 h-5 w-5" />
-                <span className="text-sm">Precipitation</span>
-                <span className="font-medium">{current.precipMM}mm</span>
-              </div>
-              <div className="flex flex-col items-center rounded-lg bg-white/10 p-2">
-                <SunIcon className="mb-1 h-5 w-5" />
-                <span className="text-sm">UV Index</span>
-                <span className="font-medium">{current.uvIndex}</span>
-              </div>
-              <div className="flex flex-col items-center rounded-lg bg-white/10 p-2">
-                <EyeIcon className="mb-1 h-5 w-5" />
-                <span className="text-sm">Visibility</span>
-                <span className="font-medium">{current.visibility}km</span>
-              </div>
-              <div className="flex flex-col items-center rounded-lg bg-white/10 p-2">
-                <GaugeIcon className="mb-1 h-5 w-5" />
-                <span className="text-sm">Pressure</span>
-                <span className="font-medium">{current.pressure}hPa</span>
-              </div>
-            </div>
+          {/* stats grid */}
+          <div className="mt-5 grid grid-cols-3 gap-2">
+            <StatPill
+              emoji="💧"
+              value={`${current.humidity}%`}
+              label="Humidity"
+            />
+            <StatPill
+              emoji="💨"
+              value={`${current.windKmph} km/h`}
+              label={`${current.windDir}`}
+            />
+            <StatPill
+              emoji="☔"
+              value={`${current.precipMM}mm`}
+              label="Precip"
+            />
+            <StatPill
+              emoji="👁"
+              value={`${current.visibility} km`}
+              label="Visibility"
+            />
+            <StatPill emoji="🔆" value={current.uvIndex} label="UV Index" />
+            <StatPill emoji="📊" value={`${current.pressure}`} label="hPa" />
           </div>
         </div>
+      </div>
 
-        <Tabs defaultValue="today" className="w-full p-4">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="today">Today</TabsTrigger>
-            <TabsTrigger value="tomorrow">Tomorrow</TabsTrigger>
-            <TabsTrigger value="dayafter">Day After</TabsTrigger>
-          </TabsList>
-          <TabsContent value="today" className="p-0">
-            <WeatherForecast forecast={forecast[0]} />
+      {/* ── forecast tabs ── */}
+      <Tabs defaultValue="0">
+        <TabsList className="mx-3 my-1 grid grid-cols-3 bg-transparent">
+          {forecast.slice(0, 3).map((day, i) => {
+            const dayType =
+              WWO_CODE[day.weatherCode as keyof typeof WWO_CODE] ?? 'Cloudy'
+            const dayEmoji = (THEME[dayType] ?? DEFAULT_THEME).emoji
+            return (
+              <TabsTrigger
+                key={i}
+                value={String(i)}
+                className="flex flex-col gap-1 py-1 text-xs"
+              >
+                <span className="text-base leading-none">{dayEmoji}</span>
+                <span className="font-medium">
+                  {formatTabLabel(day.date, i)}
+                </span>
+              </TabsTrigger>
+            )
+          })}
+        </TabsList>
+
+        {forecast.slice(0, 3).map((day, i) => (
+          <TabsContent key={i} value={String(i)} className="p-0">
+            <WeatherForecast forecast={day} />
           </TabsContent>
-          <TabsContent value="tomorrow" className="p-0">
-            <WeatherForecast forecast={forecast[1]} />
-          </TabsContent>
-          <TabsContent value="dayafter" className="p-0">
-            <WeatherForecast forecast={forecast[2]} />
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
+        ))}
+      </Tabs>
+    </div>
   )
 }

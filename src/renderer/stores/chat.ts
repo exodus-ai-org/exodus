@@ -3,11 +3,8 @@ import { Attachment } from '@shared/types/chat'
 import { Chat, DeepResearchMessage } from '@shared/types/db'
 import { atom } from 'jotai'
 
-export const isImmersionVisibleAtom = atom(false)
-
-export const immersionContentAtom = atom('')
-
-export const isCodePreviewVisibleAtom = atom(false)
+export type ChatTab = { id: string; title: string }
+export const openTabsAtom = atom<ChatTab[]>([])
 
 export const isFullTextSearchVisibleAtom = atom(false)
 

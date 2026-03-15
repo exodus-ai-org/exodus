@@ -11,7 +11,7 @@ import {
 import { downloadFile } from '@/lib/utils'
 import { markdownToPdf } from '@/services/tools'
 import { activeDeepResearchIdAtom } from '@/stores/chat'
-import { TooltipArrow } from '@radix-ui/react-tooltip'
+
 import { DeepResearch } from '@shared/types/db'
 import { differenceInMinutes } from 'date-fns'
 import { useAtom } from 'jotai'
@@ -100,7 +100,7 @@ export function DeepResearchCard({
         {!!deepResearchResult?.finalReport && (
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger asChild>
+              <TooltipTrigger>
                 <Button size="icon" variant="ghost" onClick={exportPdf}>
                   {loading ? (
                     <LoaderIcon
@@ -115,7 +115,6 @@ export function DeepResearchCard({
               </TooltipTrigger>
               <TooltipContent>
                 <p className="max-w-60">Download PDF</p>
-                <TooltipArrow className="TooltipArrow" />
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

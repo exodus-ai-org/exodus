@@ -117,6 +117,49 @@ export interface Hourly {
   windspeedMiles: string
 }
 
+// ── Tool result shape (returned by the weather calling-tool) ──────────────────
+
+export interface WeatherHourly {
+  time: string // "0" | "300" | ... | "2100"
+  tempC: string
+  weatherCode: string
+  condition: string
+  rainChance: string
+}
+
+export interface WeatherForecastDay {
+  date: string
+  condition: string
+  weatherCode: string
+  maxTempC: string
+  minTempC: string
+  sunrise: string
+  sunset: string
+  hourly: WeatherHourly[]
+}
+
+export interface WeatherResult {
+  location: string
+  current: {
+    condition: string
+    weatherCode: string
+    tempC: string
+    feelsLikeC: string
+    humidity: string
+    windKmph: string
+    windDirDegree: string
+    windDir: string
+    precipMM: string
+    uvIndex: string
+    visibility: string
+    pressure: string
+    observedAt: string
+  }
+  forecast: WeatherForecastDay[]
+}
+
+// ── Raw API response (wttr.in) ─────────────────────────────────────────────────
+
 export const WWO_CODE = {
   '113': 'Sunny',
   '116': 'PartlyCloudy',

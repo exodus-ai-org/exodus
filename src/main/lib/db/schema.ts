@@ -7,6 +7,7 @@ import {
   ProviderConfigSchema,
   ProvidersSchema,
   S3Schema,
+  ToolsSchema,
   WebSearchSchema
 } from '@shared/schemas/setting-schema'
 import { WebSearchResult } from '@shared/types/web-search'
@@ -86,6 +87,7 @@ export const setting = pgTable('Setting', {
     jsonb('providerConfig').$type<z.infer<typeof ProviderConfigSchema>>(),
   providers: jsonb('providers').$type<z.infer<typeof ProvidersSchema>>(),
   mcpServers: text('mcpServers').default(''),
+  tools: jsonb('tools').$type<z.infer<typeof ToolsSchema>>(),
   audio: jsonb('audio').$type<z.infer<typeof AudioSchema>>(),
   assistantAvatar: text('assistantAvatar').default(''),
   googleCloud: jsonb('googleCloud').$type<z.infer<typeof GoogleCloudSchema>>(),
@@ -94,6 +96,7 @@ export const setting = pgTable('Setting', {
   deepResearch:
     jsonb('deepResearch').$type<z.infer<typeof DeepResearchSchema>>(),
   s3: jsonb('s3').$type<z.infer<typeof S3Schema>>(),
+  autoUpdate: boolean('autoUpdate').default(true),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 })

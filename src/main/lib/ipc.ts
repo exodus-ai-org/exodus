@@ -1,6 +1,13 @@
-import { app, ipcMain } from 'electron'
-import { connectHttpServer } from './server/app'
-import { getServer, setServer } from './server/instance'
+import { app, ipcMain, nativeTheme } from 'electron'
+// ARCHIVED: import { connectHttpServer } from './server/app'
+// ARCHIVED: import { getServer, setServer } from './server/instance'
+import {
+  updaterCheck,
+  updaterDownload,
+  updaterGetState,
+  updaterInstall,
+  updaterSetAutoDownload
+} from './auto-updater'
 import {
   getMainWindow,
   getQuickChatView,
@@ -12,17 +19,18 @@ import {
 export function setupIPC() {
   ipcMain.on('ping', () => console.log('pong'))
 
-  ipcMain.handle('restart-server', async () => {
-    const oldServer = getServer()
-    if (oldServer) {
-      oldServer.close(async () => {
-        const newServer = await connectHttpServer()
-        newServer.start()
-        setServer(newServer)
-        getMainWindow()?.webContents.send('succeed-to-restart-server')
-      })
-    }
-  })
+  // ARCHIVED: MCP server restart IPC removed
+  // ipcMain.handle('restart-server', async () => {
+  //   const oldServer = getServer()
+  //   if (oldServer) {
+  //     oldServer.close(async () => {
+  //       const newServer = await connectHttpServer()
+  //       newServer.start()
+  //       setServer(newServer)
+  //       getMainWindow()?.webContents.send('succeed-to-restart-server')
+  //     })
+  //   }
+  // })
 
   ipcMain.handle('find-in-page', (_, keyword) => {
     if (keyword === '') {
@@ -105,4 +113,19 @@ export function setupIPC() {
     win.on('enter-full-screen', () => send(true))
     win.on('leave-full-screen', () => send(false))
   })
+
+  ipcMain.handle(
+    'set-native-theme',
+    (_, source: 'dark' | 'light' | 'system') => {
+      nativeTheme.themeSource = source
+    }
+  )
+
+  ipcMain.handle('updater-get-state', () => updaterGetState())
+  ipcMain.handle('updater-check', () => updaterCheck())
+  ipcMain.handle('updater-download', () => updaterDownload())
+  ipcMain.handle('updater-install', () => updaterInstall())
+  ipcMain.handle('updater-set-auto-download', (_, enable: boolean) =>
+    updaterSetAutoDownload(enable)
+  )
 }

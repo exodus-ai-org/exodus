@@ -1,26 +1,24 @@
 import {
   checkFullScreen,
   fullScreenChange,
-  subscribeFullScreenChanged
+  subscribeFullScreenChanged,
+  unsubscribeFullScreenChanged
 } from '@/lib/ipc'
+import { IpcRendererEvent } from 'electron'
 import { useEffect, useState } from 'react'
 
 export function useIsFullscreen() {
   const [isFullscreen, setIsFullscreen] = useState(false)
 
-  const initialScreenStatus = async () => {
-    const isFullscreen: boolean = await checkFullScreen()
-    setIsFullscreen(isFullscreen)
-  }
-
   useEffect(() => {
-    initialScreenStatus()
+    checkFullScreen().then(setIsFullscreen)
     fullScreenChange()
 
-    return () =>
-      subscribeFullScreenChanged((_, isFullscreen) =>
-        setIsFullscreen(isFullscreen)
-      )
+    const callback = (_: IpcRendererEvent, value: boolean) =>
+      setIsFullscreen(value)
+    subscribeFullScreenChanged(callback)
+
+    return () => unsubscribeFullScreenChanged(callback)
   }, [])
 
   return isFullscreen
