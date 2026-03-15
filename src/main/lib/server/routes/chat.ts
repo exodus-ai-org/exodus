@@ -15,7 +15,6 @@ import { deepResearchBootPrompt, systemPrompt } from '../../ai/prompts'
 import { getActiveSkillsContent } from '../../ai/skills/skills-manager'
 import {
   bindCallingTools,
-  convertToUIMessages,
   generateTitleFromUserMessage,
   getModelFromProvider
 } from '../../ai/utils/chat-message-util'
@@ -30,7 +29,6 @@ import {
   updateChatTitleById,
   updateMessage
 } from '../../db/queries'
-import { DBMessage } from '../../db/schema'
 import { ChatSDKError } from '../errors'
 import { postRequestBodySchema, updateChatSchema } from '../schemas/chat'
 import {
@@ -47,6 +45,15 @@ const chat = new Hono<{ Variables: Variables }>()
 chat.get('/mcp', async (c) => {
   const tools = await getMcpTools()
   return successResponse(c, { tools })
+})
+
+chat.get('/:id', async (c) => {
+  const id = getRequiredParam(c, 'id', 'chat')
+  const messages = await handleDatabaseOperation(
+    () => getMessagesByChatId({ id }),
+    'Failed to get messages'
+  )
+  return successResponse(c, messages)
 })
 
 chat.get('/search', async (c) => {
@@ -69,31 +76,27 @@ chat.post('/', async (c) => {
   )
   const setting = c.get('setting')
   const { chatModel, reasoningModel } = getModelFromProvider(setting)
-  const isToolApprovalFlow = Boolean(messages)
   const isReasoningModel =
     advancedTools?.includes(AdvancedTools.Reasoning) ||
     advancedTools?.includes(AdvancedTools.DeepResearch)
 
-  const chat = await getChatById({ id })
-  let messagesFromDb: DBMessage[] = []
+  const existingChat = await getChatById({ id })
   let titlePromise: Promise<string> | null = null
 
-  if (chat) {
-    if (!isToolApprovalFlow) {
-      messagesFromDb = await getMessagesByChatId({ id })
+  if (!existingChat) {
+    await saveChat({ id, title: 'New chat' })
+    const firstUserMsg =
+      message ?? (messages as ChatMessage[]).find((m) => m.role === 'user')
+    if (firstUserMsg) {
+      titlePromise = generateTitleFromUserMessage({
+        message: firstUserMsg,
+        model: chatModel
+      })
     }
-  } else if (message?.role === 'user') {
-    await saveChat({
-      id,
-      title: 'New chat'
-    })
-    titlePromise = generateTitleFromUserMessage({ message, model: chatModel })
   }
 
-  const uiMessages = isToolApprovalFlow
-    ? (messages as ChatMessage[])
-    : [...convertToUIMessages(messagesFromDb), message as ChatMessage]
-
+  // AI SDK v6: frontend always sends the full message list; use it directly.
+  const uiMessages = messages as ChatMessage[]
   const modelMessages = await convertToModelMessages(uiMessages)
   const [skillsContent, mcpTools] = await Promise.all([
     getActiveSkillsContent(),
@@ -102,7 +105,7 @@ chat.post('/', async (c) => {
 
   // immediately start streaming the response
   const stream = createUIMessageStream({
-    originalMessages: isToolApprovalFlow ? uiMessages : undefined,
+    originalMessages: uiMessages,
     execute: async ({ writer: dataStream }) => {
       const result = streamText({
         model: isReasoningModel ? reasoningModel : chatModel,
@@ -133,40 +136,30 @@ chat.post('/', async (c) => {
     },
     generateId: uuidV4,
     onFinish: async ({ messages: finishedMessages }) => {
-      if (isToolApprovalFlow) {
-        for (const finishedMsg of finishedMessages) {
-          const existingMsg = uiMessages.find((m) => m.id === finishedMsg.id)
-          if (existingMsg) {
-            await updateMessage({
-              id: finishedMsg.id,
-              parts: finishedMsg.parts
-            })
-          } else {
-            await saveMessages({
-              messages: [
-                {
-                  id: finishedMsg.id,
-                  role: finishedMsg.role,
-                  parts: finishedMsg.parts,
-                  createdAt: new Date(),
-                  attachments: [],
-                  chatId: id
-                }
-              ]
-            })
-          }
-        }
-      } else if (finishedMessages.length > 0) {
+      if (finishedMessages.length === 0) return
+
+      // Diff against DB: insert new messages, update existing ones (tool results).
+      const persisted = await getMessagesByChatId({ id })
+      const persistedIds = new Set(persisted.map((m) => m.id))
+
+      const toInsert = finishedMessages.filter((m) => !persistedIds.has(m.id))
+      const toUpdate = finishedMessages.filter((m) => persistedIds.has(m.id))
+
+      if (toInsert.length > 0) {
         await saveMessages({
-          messages: finishedMessages.map((currentMessage) => ({
-            id: currentMessage.id,
-            role: currentMessage.role,
-            parts: currentMessage.parts,
+          messages: toInsert.map((m) => ({
+            id: m.id,
+            role: m.role,
+            parts: m.parts,
             createdAt: new Date(),
             attachments: [],
             chatId: id
           }))
         })
+      }
+
+      for (const msg of toUpdate) {
+        await updateMessage({ id: msg.id, parts: msg.parts })
       }
     },
     onError: (error) => {

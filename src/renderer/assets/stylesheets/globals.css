@@ -121,13 +121,8 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
-  }
-
-  /* Sidebar frosted glass — target the inner element directly */
-  [data-sidebar='sidebar'] {
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    /* @apply bg-background text-foreground; */
+    @apply text-foreground bg-transparent;
   }
 }
 

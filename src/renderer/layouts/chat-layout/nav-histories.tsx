@@ -29,13 +29,7 @@ import {
   toBeDeletedChatAtom
 } from '@/stores/chat'
 import type { Chat } from '@shared/types/db'
-import {
-  formatDistanceToNow,
-  isToday,
-  isYesterday,
-  subMonths,
-  subWeeks
-} from 'date-fns'
+import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns'
 import { useSetAtom } from 'jotai'
 import {
   ChevronRightIcon,
@@ -46,6 +40,21 @@ import {
 } from 'lucide-react'
 import { Link, useParams } from 'react-router'
 import useSWR from 'swr'
+
+function compactRelativeTime(date: Date): string {
+  const diff = Date.now() - date.getTime()
+  const mins = Math.floor(diff / 60_000)
+  if (mins < 1) return 'now'
+  if (mins < 60) return `${mins}m`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}h`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days}d`
+  const weeks = Math.floor(days / 7)
+  if (weeks < 5) return `${weeks}w`
+  const months = Math.floor(days / 30)
+  return `${months}mo`
+}
 
 interface GroupedChats {
   favorite: Chat[]
@@ -83,25 +92,26 @@ export function NavItems({
   const setOpenTabs = useSetAtom(openTabsAtom)
 
   return (
-    <SidebarMenuItem className={className}>
-      <SidebarMenuButton isActive={chat.id === id}>
-        <Link
-          to={`/chat/${chat.id}`}
-          onClick={() =>
-            setOpenTabs((prev) =>
-              prev.find((t) => t.id === chat.id)
-                ? prev
-                : [...prev, { id: chat.id, title: chat.title }]
-            )
-          }
-        >
-          <span className="flex-1 truncate">{chat.title}</span>
-          <span className="text-muted-foreground shrink-0 text-[10px]">
-            {formatDistanceToNow(new Date(chat.createdAt), {
-              addSuffix: false
-            })}
-          </span>
-        </Link>
+    <SidebarMenuItem className={cn(className, 'h-8')}>
+      <SidebarMenuButton
+        isActive={chat.id === id}
+        render={
+          <Link
+            to={`/chat/${chat.id}`}
+            onClick={() =>
+              setOpenTabs((prev) =>
+                prev.find((t) => t.id === chat.id)
+                  ? prev
+                  : [...prev, { id: chat.id, title: chat.title }]
+              )
+            }
+          />
+        }
+      >
+        <span className="min-w-0 flex-1 truncate">{chat.title}</span>
+        <span className="text-muted-foreground shrink-0 text-[10px]">
+          {compactRelativeTime(new Date(chat.createdAt))}
+        </span>
       </SidebarMenuButton>
       <DropdownMenu>
         <DropdownMenuTrigger>
@@ -212,7 +222,7 @@ export function NavHistories() {
     return (
       <SidebarGroup>
         <SidebarGroupContent>
-          <div className="flex w-full flex-row items-center justify-center gap-2 px-2 text-sm text-zinc-500">
+          <div className="text-muted-foreground flex w-full flex-row items-center justify-center gap-2 px-2 text-sm">
             Your conversations will appear here once you start chatting!
           </div>
         </SidebarGroupContent>

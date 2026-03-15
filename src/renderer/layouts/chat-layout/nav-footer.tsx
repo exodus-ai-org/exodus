@@ -34,7 +34,7 @@ export function NavFooter({
               onClick={() => navigate('/workflow')}
             >
               <WorkflowIcon />
-              Workflow
+              Agent X
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>

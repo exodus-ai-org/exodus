@@ -67,3 +67,39 @@ export function subscribeFindInPageResult(
 ) {
   window.electron.ipcRenderer.on('find-in-page-result', callback)
 }
+
+export function setNativeTheme(source: 'dark' | 'light' | 'system') {
+  return window.electron.ipcRenderer.invoke('set-native-theme', source)
+}
+
+export function updaterGetState() {
+  return window.electron.ipcRenderer.invoke('updater-get-state')
+}
+
+export function updaterCheck() {
+  return window.electron.ipcRenderer.invoke('updater-check')
+}
+
+export function updaterDownload() {
+  return window.electron.ipcRenderer.invoke('updater-download')
+}
+
+export function updaterInstall() {
+  return window.electron.ipcRenderer.invoke('updater-install')
+}
+
+export function updaterSetAutoDownload(enable: boolean) {
+  return window.electron.ipcRenderer.invoke('updater-set-auto-download', enable)
+}
+
+export function subscribeUpdaterStateChanged(
+  callback: (_: IpcRendererEvent, payload: unknown) => void
+) {
+  window.electron.ipcRenderer.on('updater-state-changed', callback)
+}
+
+export function unsubscribeUpdaterStateChanged(
+  callback: (_: IpcRendererEvent, payload: unknown) => void
+) {
+  window.electron.ipcRenderer.removeListener('updater-state-changed', callback)
+}

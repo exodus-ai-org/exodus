@@ -28,10 +28,9 @@ export function ChatDetail() {
     )
   }, [id, history])
 
-  if (!id || !messagesFromDb) {
-    window.location.href = '/'
-    return null
-  }
+  if (!id) return null
 
-  return <Chat id={id} initialMessages={convertToUIMessages(messagesFromDb)} />
+  return (
+    <Chat id={id} initialMessages={convertToUIMessages(messagesFromDb ?? [])} />
+  )
 }

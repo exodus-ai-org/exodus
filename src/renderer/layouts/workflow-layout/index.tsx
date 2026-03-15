@@ -25,7 +25,7 @@ export function WorkflowLayout() {
         <span className="text-sm font-medium">Workflow</span>
       </header>
 
-      <main className="flex min-h-0 flex-1 overflow-hidden">
+      <main className="bg-background flex min-h-0 flex-1 overflow-hidden">
         <Workflow />
       </main>
     </div>

@@ -31,8 +31,8 @@ export function WebSearchGroup({
       )}
     >
       {webSearchResults.map((webSearchResult, index) => (
-        <HoverCard key={index} openDelay={150} closeDelay={150}>
-          <HoverCardTrigger asChild>
+        <HoverCard key={index}>
+          <HoverCardTrigger>
             <a
               href={webSearchResult.link}
               target="_blank"

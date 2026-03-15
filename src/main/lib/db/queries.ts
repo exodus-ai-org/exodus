@@ -193,7 +193,12 @@ export async function getSetting() {
 }
 
 export async function updateSetting(payload: Setting) {
-  return await db.update(setting).set(payload).where(eq(setting.id, payload.id))
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { createdAt, updatedAt, ...rest } = payload
+  return await db
+    .update(setting)
+    .set({ ...rest, updatedAt: new Date() })
+    .where(eq(setting.id, payload.id))
 }
 
 export const findRelevantContent = async (

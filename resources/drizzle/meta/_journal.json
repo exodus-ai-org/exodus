@@ -15,6 +15,13 @@
       "when": 1773395317337,
       "tag": "0001_flawless_mauler",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1773504132506,
+      "tag": "0002_pale_vivisector",
+      "breakpoints": true
     }
   ]
 }

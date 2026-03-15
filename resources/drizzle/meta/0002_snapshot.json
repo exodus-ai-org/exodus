@@ -1,6 +1,6 @@
 {
-  "id": "67c16cf8-52a7-4639-ae78-266e1a3bfb36",
-  "prevId": "b42659e9-6b9c-4ee8-b3e0-0e9d64ddb9f5",
+  "id": "c7ccf037-74d5-48fa-bc37-b821e736bc58",
+  "prevId": "67c16cf8-52a7-4639-ae78-266e1a3bfb36",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -145,11 +145,11 @@
         "DeepResearchMessage_deepResearchId_DeepResearch_id_fk": {
           "name": "DeepResearchMessage_deepResearchId_DeepResearch_id_fk",
           "tableFrom": "DeepResearchMessage",
-          "columnsFrom": ["deepResearchId"],
           "tableTo": "DeepResearch",
+          "columnsFrom": ["deepResearchId"],
           "columnsTo": ["id"],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -201,20 +201,20 @@
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "hnsw",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "Embedding_resourceId_Resource_id_fk": {
           "name": "Embedding_resourceId_Resource_id_fk",
           "tableFrom": "Embedding",
-          "columnsFrom": ["resourceId"],
           "tableTo": "Resource",
+          "columnsFrom": ["resourceId"],
           "columnsTo": ["id"],
-          "onUpdate": "no action",
-          "onDelete": "cascade"
+          "onDelete": "cascade",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -403,26 +403,26 @@
           "columns": [
             {
               "expression": "to_tsvector('simple', \"parts\")",
-              "isExpression": true,
               "asc": true,
+              "isExpression": true,
               "nulls": "last"
             }
           ],
           "isUnique": false,
-          "with": {},
+          "concurrently": false,
           "method": "gin",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "Message_chatId_Chat_id_fk": {
           "name": "Message_chatId_Chat_id_fk",
           "tableFrom": "Message",
-          "columnsFrom": ["chatId"],
           "tableTo": "Chat",
+          "columnsFrom": ["chatId"],
           "columnsTo": ["id"],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -538,6 +538,12 @@
           "notNull": false,
           "default": "''"
         },
+        "tools": {
+          "name": "tools",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
         "audio": {
           "name": "audio",
           "type": "jsonb",
@@ -581,12 +587,12 @@
           "primaryKey": false,
           "notNull": false
         },
-        "tools": {
-          "name": "tools",
-          "type": "jsonb",
+        "autoUpdate": {
+          "name": "autoUpdate",
+          "type": "boolean",
           "primaryKey": false,
           "notNull": false,
-          "autoincrement": false
+          "default": true
         },
         "created_at": {
           "name": "created_at",
@@ -639,20 +645,20 @@
         "Vote_chatId_Chat_id_fk": {
           "name": "Vote_chatId_Chat_id_fk",
           "tableFrom": "Vote",
-          "columnsFrom": ["chatId"],
           "tableTo": "Chat",
+          "columnsFrom": ["chatId"],
           "columnsTo": ["id"],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "Vote_messageId_Message_id_fk": {
           "name": "Vote_messageId_Message_id_fk",
           "tableFrom": "Vote",
-          "columnsFrom": ["messageId"],
           "tableTo": "Message",
+          "columnsFrom": ["messageId"],
           "columnsTo": ["id"],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -692,10 +698,10 @@
     }
   },
   "schemas": {},
-  "views": {},
   "sequences": {},
   "roles": {},
   "policies": {},
+  "views": {},
   "_meta": {
     "columns": {},
     "schemas": {},

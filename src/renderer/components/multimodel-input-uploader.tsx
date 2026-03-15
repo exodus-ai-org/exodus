@@ -27,7 +27,7 @@ export function MultiModelInputUploader() {
   return (
     <TooltipProvider>
       <Tooltip>
-        <TooltipTrigger asChild>
+        <TooltipTrigger>
           <Button variant="ghost" className="relative h-6 w-6 rounded-full">
             <PaperclipIcon />
             <input

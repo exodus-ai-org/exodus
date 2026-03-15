@@ -100,7 +100,7 @@ export function DeepResearchCard({
         {!!deepResearchResult?.finalReport && (
           <TooltipProvider>
             <Tooltip>
-              <TooltipTrigger asChild>
+              <TooltipTrigger>
                 <Button size="icon" variant="ghost" onClick={exportPdf}>
                   {loading ? (
                     <LoaderIcon

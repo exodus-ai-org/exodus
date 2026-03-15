@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 
 export type Theme = 'dark' | 'light' | 'system'
 
@@ -34,7 +34,12 @@ export function ThemeProvider({
   const [actualTheme, setActualTheme] =
     useState<Exclude<Theme, 'system'>>('light')
 
+  // Keep a ref so the media-query handler always sees the latest theme value
+  // without needing to re-register (avoids stale closure).
+  const themeRef = useRef(theme)
+
   useEffect(() => {
+    themeRef.current = theme
     const root = window.document.documentElement
     root.classList.remove('light', 'dark')
 
@@ -43,7 +48,6 @@ export function ThemeProvider({
         .matches
         ? 'dark'
         : 'light'
-
       root.classList.add(systemTheme)
       setActualTheme(systemTheme)
       return
@@ -56,6 +60,8 @@ export function ThemeProvider({
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
     const handleChange = (e: MediaQueryListEvent) => {
+      // Only auto-update when user has chosen to follow the system
+      if (themeRef.current !== 'system') return
       const root = window.document.documentElement
       root.classList.remove('light', 'dark')
       root.classList.add(e.matches ? 'dark' : 'light')

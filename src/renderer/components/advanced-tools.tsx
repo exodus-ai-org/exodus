@@ -70,7 +70,7 @@ export function AdvancedTools() {
       {advancedToolsList.map(({ key, icon, desc }) => (
         <TooltipProvider key={key}>
           <Tooltip>
-            <TooltipTrigger asChild>
+            <TooltipTrigger>
               <Button
                 variant="ghost"
                 size="icon"

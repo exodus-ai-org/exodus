@@ -56,6 +56,7 @@ function SidebarProvider({
   open: openProp,
   onOpenChange: setOpenProp,
   className,
+
   style,
   children,
   ...props
@@ -154,8 +155,10 @@ function Sidebar({
   className,
   children,
   dir,
+  sidebarInnerClx,
   ...props
 }: React.ComponentProps<'div'> & {
+  sidebarInnerClx?: string
   side?: 'left' | 'right'
   variant?: 'sidebar' | 'floating' | 'inset'
   collapsible?: 'offcanvas' | 'icon' | 'none'
@@ -240,7 +243,10 @@ function Sidebar({
         <div
           data-sidebar="sidebar"
           data-slot="sidebar-inner"
-          className="bg-sidebar group-data-[variant=floating]:ring-sidebar-border flex size-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:shadow-sm group-data-[variant=floating]:ring-1"
+          className={cn(
+            'bg-sidebar group-data-[variant=floating]:ring-sidebar-border flex size-full flex-col group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:shadow-sm group-data-[variant=floating]:ring-1',
+            sidebarInnerClx
+          )}
         >
           {children}
         </div>

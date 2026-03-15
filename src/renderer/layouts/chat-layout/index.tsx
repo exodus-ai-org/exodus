@@ -1,5 +1,5 @@
 import { DeepResearchProcess } from '@/components/deep-research'
-import { useTheme } from '@/components/theme-provider'
+import { AppToaster } from '@/components/ui/app-toaster'
 import {
   SidebarInset,
   SidebarProvider,
@@ -10,7 +10,6 @@ import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import { cn } from '@/lib/utils'
 import { useEffect } from 'react'
 import { Outlet } from 'react-router'
-import { Toaster } from 'sileo'
 import { AppSidebar } from './app-sidebar'
 import { ChatDeletionConfirmationDialog } from './chat-deletion-confirmation-dialog'
 import { ChatTabs } from './chat-tabs'
@@ -23,12 +22,12 @@ function ContentHeader() {
   return (
     <header
       className={cn(
-        'draggable border-border bg-card flex h-14 shrink-0 items-center border-b pr-3 transition-[padding] duration-200 ease-linear',
+        'draggable border-border bg-card flex h-14 shrink-0 items-center rounded-tl-xl border-b pr-3 transition-[padding] duration-200 ease-linear',
         open ? 'pl-1' : isFullscreen ? 'pl-4' : 'pl-21'
       )}
     >
       <SidebarTrigger className="no-draggable text-muted-foreground hover:text-foreground" />
-      <div className="no-draggable min-w-0 flex-1">
+      <div className="no-draggable flex min-w-0 flex-1 self-stretch">
         <ChatTabs />
       </div>
     </header>
@@ -36,26 +35,11 @@ function ContentHeader() {
 }
 
 function InsertedSidebar() {
-  const { actualTheme } = useTheme()
-
   return (
-    <SidebarInset className="bg-card flex min-w-0 flex-col">
+    <SidebarInset className="bg-card flex min-w-0 flex-col rounded-xl">
       <ContentHeader />
       <Outlet />
-      <Toaster
-        options={{
-          position: 'bottom-right',
-          fill: actualTheme === 'dark' ? '#f2f2f2' : '#1a1a1a',
-          autopilot: {
-            expand: 500,
-            collapse: 3000
-          },
-          styles: {
-            description:
-              actualTheme === 'dark' ? 'text-black/80' : 'text-white/80'
-          }
-        }}
-      />
+      <AppToaster />
       <SearchDialog />
       <RenameChatDialog />
       <ChatDeletionConfirmationDialog />

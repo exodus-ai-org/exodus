@@ -25,7 +25,7 @@ export function SkillsMarketLayout() {
         <span className="text-sm font-medium">Skills Market</span>
       </header>
 
-      <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <main className="bg-background flex min-h-0 flex-1 flex-col overflow-hidden">
         <SkillsMarket />
       </main>
     </div>

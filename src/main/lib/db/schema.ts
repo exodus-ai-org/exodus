@@ -96,6 +96,7 @@ export const setting = pgTable('Setting', {
   deepResearch:
     jsonb('deepResearch').$type<z.infer<typeof DeepResearchSchema>>(),
   s3: jsonb('s3').$type<z.infer<typeof S3Schema>>(),
+  autoUpdate: boolean('autoUpdate').default(true),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 })

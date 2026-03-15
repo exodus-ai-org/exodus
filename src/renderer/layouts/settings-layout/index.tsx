@@ -1,5 +1,6 @@
 import { SettingsForm } from '@/components/setting/setting-form'
 import { SettingsSidebar } from '@/components/setting/setting-sidebar'
+import { AppToaster } from '@/components/ui/app-toaster'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import { cn } from '@/lib/utils'
@@ -40,10 +41,11 @@ export function SettingsLayout() {
       {/* Body */}
       <SidebarProvider className="min-h-0 flex-1 overflow-hidden">
         <SettingsSidebar />
-        <main className="flex min-h-0 flex-1 flex-col overflow-y-auto p-6">
+        <main className="bg-background flex min-h-0 flex-1 flex-col overflow-y-auto p-6">
           <SettingsForm />
         </main>
       </SidebarProvider>
+      <AppToaster />
     </div>
   )
 }

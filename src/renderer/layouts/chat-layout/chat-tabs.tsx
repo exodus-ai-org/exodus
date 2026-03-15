@@ -27,16 +27,16 @@ export function ChatTabs() {
   }
 
   return (
-    <div className="no-draggable flex h-full items-end overflow-x-auto">
+    <div className="no-draggable flex w-full items-stretch overflow-x-auto pl-2">
       {tabs.map((tab) => (
         <Link
           key={tab.id}
           to={`/chat/${tab.id}`}
           className={cn(
-            'group relative flex h-8 shrink-0 items-center gap-1 px-3 text-xs whitespace-nowrap transition-colors',
+            'group relative flex shrink-0 items-center gap-1 px-3 text-xs whitespace-nowrap transition-colors',
             tab.id === activeId
-              ? 'border-primary text-foreground border-b-2'
-              : 'text-muted-foreground hover:text-foreground border-b-2 border-transparent'
+              ? 'text-foreground after:bg-primary after:absolute after:inset-x-0 after:bottom-0 after:h-0.5'
+              : 'text-muted-foreground hover:text-foreground'
           )}
         >
           <span className="max-w-32 truncate">{tab.title}</span>
