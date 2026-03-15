@@ -5,7 +5,11 @@ import path, { resolve } from 'path'
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()],
+    plugins: [
+      externalizeDepsPlugin({
+        exclude: ['@mariozechner/pi-ai', '@mariozechner/pi-agent-core']
+      })
+    ],
     resolve: {
       alias: {
         '@shared': resolve('src/shared')
