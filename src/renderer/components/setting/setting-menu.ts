@@ -4,7 +4,6 @@ import {
   CogIcon,
   ComputerIcon,
   DatabaseIcon,
-  FileUpIcon,
   HammerIcon,
   HandCoinsIcon,
   InfoIcon,
@@ -15,7 +14,7 @@ import {
 export enum SettingLabel {
   General = 'General',
   AiProviders = 'AI Providers',
-  AmazonS3 = 'Amazon S3',
+  AmazonS3 = 'AWS S3',
   McpServers = 'MCP Servers',
   BuiltinTools = 'Built-in Tools',
   MemoryLayer = 'Memory Layer',
@@ -52,14 +51,6 @@ export const menus = {
       ]
     },
     {
-      title: SettingLabel.AmazonS3,
-      icon: FileUpIcon
-    },
-    {
-      icon: HammerIcon,
-      title: SettingLabel.McpServers
-    },
-    {
       icon: WrenchIcon,
       title: SettingLabel.BuiltinTools,
       items: [
@@ -76,16 +67,21 @@ export const menus = {
       title: SettingLabel.MemoryLayer
     },
     {
+      icon: HammerIcon,
+      title: SettingLabel.McpServers
+    },
+    {
+      icon: DatabaseIcon,
+      title: SettingLabel.DataControls,
+      items: [{ title: SettingLabel.AmazonS3 }]
+    },
+    {
       icon: ChromeIcon,
       title: SettingLabel.BrowserUse
     },
     {
       icon: ComputerIcon,
       title: SettingLabel.ComputerUse
-    },
-    {
-      icon: DatabaseIcon,
-      title: SettingLabel.DataControls
     },
     {
       icon: InfoIcon,

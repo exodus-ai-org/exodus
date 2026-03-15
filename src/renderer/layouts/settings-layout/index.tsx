@@ -1,4 +1,5 @@
 import { SettingsForm } from '@/components/setting/setting-form'
+import { menus } from '@/components/setting/setting-menu'
 import { SettingsSidebar } from '@/components/setting/setting-sidebar'
 import { AppToaster } from '@/components/ui/app-toaster'
 import { SidebarProvider } from '@/components/ui/sidebar'
@@ -8,6 +9,14 @@ import { settingLabelAtom } from '@/stores/setting'
 import { useAtomValue } from 'jotai'
 import { ArrowLeftIcon } from 'lucide-react'
 import { useNavigate } from 'react-router'
+
+// Build a child → parent lookup from the menu tree
+const parentOf = new Map<string, string>()
+for (const item of menus.navMain) {
+  for (const sub of item.items ?? []) {
+    parentOf.set(sub.title, item.title)
+  }
+}
 
 export function SettingsLayout() {
   const navigate = useNavigate()
@@ -32,6 +41,14 @@ export function SettingsLayout() {
         <span className="text-sm font-medium">Settings</span>
         {activeTitle && (
           <>
+            {parentOf.has(activeTitle as string) && (
+              <>
+                <span className="text-muted-foreground/50 text-sm">/</span>
+                <span className="text-muted-foreground text-sm">
+                  {parentOf.get(activeTitle as string)}
+                </span>
+              </>
+            )}
             <span className="text-muted-foreground/50 text-sm">/</span>
             <span className="text-muted-foreground text-sm">{activeTitle}</span>
           </>
