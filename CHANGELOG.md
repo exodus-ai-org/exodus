@@ -1,3 +1,40 @@
+# [1.10.0](https://github.com/exodus-ai-org/exodus/compare/v1.9.0...v1.10.0) (2026-03-15)
+
+
+### Bug Fixes
+
+* fix transparent sidebar text color and fullscreen padding ([7ee2181](https://github.com/exodus-ai-org/exodus/commit/7ee2181e38a466d94af497de9668f78959e06d64))
+* improve and fix all calling tools ([f89cb0b](https://github.com/exodus-ai-org/exodus/commit/f89cb0bcc23a15e3b43f2da5186d94f16b5b85c8))
+
+
+### Features
+
+* add EllipsisTooltip component ([c712bcd](https://github.com/exodus-ai-org/exodus/commit/c712bcd18d8f1e59a92c2de6890e532744f341dd))
+* add foundation tools (terminal, readFile, writeFile, listDirectory, findFiles) ([185d894](https://github.com/exodus-ai-org/exodus/commit/185d8945ecb5e3d7aaf2e93e881ac202a56d1b03))
+* consolidate drizzle migrations and improve UI components ([bcf8bed](https://github.com/exodus-ai-org/exodus/commit/bcf8bed5f63d0e78c580e5c73d98ccf22dcf7790))
+* integrate Cloudflare Crawl ([b8019fa](https://github.com/exodus-ai-org/exodus/commit/b8019fa9c34aeb25c36627f48176e138947af376))
+* major feature batch — auto-updater, chat fixes, weather UI, vibrancy ([47c7121](https://github.com/exodus-ai-org/exodus/commit/47c7121d14875cef018a5e33fbed1d4f8f0d94dc))
+* memo layer ([dca915c](https://github.com/exodus-ai-org/exodus/commit/dca915c6e20cc90611fb8280bd79c0dc911f4026))
+* memo layer ([d154586](https://github.com/exodus-ai-org/exodus/commit/d15458692aeee4cd1ba970c032d6e7561f981ef9))
+* migrate AI SDK v4→v6, replace Serper with Brave Search, fix settings UX ([50eb578](https://github.com/exodus-ai-org/exodus/commit/50eb5786e2b677a9d35269ebc2fe8c2a4bb1be23))
+* migrate deepResearch service to orpc  by unaudited AI generation ([ad49195](https://github.com/exodus-ai-org/exodus/commit/ad49195867d39b2d622b5c687fa12f26e3cd2876))
+* migrate deepResearch service to orpc by unaudited AI generation ([49421e4](https://github.com/exodus-ai-org/exodus/commit/49421e48d6f7e3e0d9c1c6926597f38133ecc97e))
+* migrate Settings dialog to a new route ([b75f17f](https://github.com/exodus-ai-org/exodus/commit/b75f17fbc5359a2a3582fc92ccef0026ec69455f))
+* redesign UI, add Skills Market with ClawHub integration ([b444751](https://github.com/exodus-ai-org/exodus/commit/b444751d03f8ce515aa4b16e5467fa3222ffafe6))
+* settings S3 improvements and breadcrumb hierarchy ([fcd326e](https://github.com/exodus-ai-org/exodus/commit/fcd326e1096bef079e7d771fbc6c720095d8e55f))
+* style adjustment ([293499b](https://github.com/exodus-ai-org/exodus/commit/293499b4b125cb907720c629948ec151360c4150))
+* update the styles of advanced tools ([ecdd774](https://github.com/exodus-ai-org/exodus/commit/ecdd774f38c8aa74c46e46a7dea8afafc0014ab5))
+* using orpc by unaudited AI generation ([e6669fd](https://github.com/exodus-ai-org/exodus/commit/e6669fd792260cefd667bc4db3b79fb6a9340c3e))
+* vibrancy theme sync, sidebar light-mode colors, settings restructure ([a4e7132](https://github.com/exodus-ai-org/exodus/commit/a4e7132cf715d2f37690a45687f6c12b8b3f89ff))
+* **wip:** add Icon suffix to lucide-react import ([4656983](https://github.com/exodus-ai-org/exodus/commit/4656983cde2795f255c834a09189aa45d1f9a036))
+* **wip:** orpc ([a711476](https://github.com/exodus-ai-org/exodus/commit/a7114766b6ba023cc80ab86a72d56d8bfabb883a))
+* **wip:** rag ([43efac4](https://github.com/exodus-ai-org/exodus/commit/43efac45957c3f161022838c59a8f1c73a3398db))
+* **wip:** RAG ([7561890](https://github.com/exodus-ai-org/exodus/commit/75618906490f18dde4a5ea285057cbe9d19c8dc0))
+* **wip:** update rich text editor ([1065ba0](https://github.com/exodus-ai-org/exodus/commit/1065ba0ae3fa4c093b422921774d31ead4131908))
+* **wip:** workflow ([120878c](https://github.com/exodus-ai-org/exodus/commit/120878cfe47f243176d1ee07f2e4b6a25b5d8406))
+* **wip:** workflow ([baa61ae](https://github.com/exodus-ai-org/exodus/commit/baa61aecb0dead6b7d332a82220c9d81bc9e1e78))
+* **wip:** workflow ([2da728b](https://github.com/exodus-ai-org/exodus/commit/2da728b53b271b69635f279e1d6cd3b64fd396b9))
+
 # [1.9.0](https://github.com/exodus-ai-org/exodus/compare/v1.8.0...v1.9.0) (2025-07-31)
 
 
