@@ -14,8 +14,7 @@ type ResponseType = 'json' | 'text' | 'blob' | 'arrayBuffer'
 interface HttpFetchOptions {
   method?: HttpMethod
   headers?: Record<string, string>
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  body?: any
+  body?: Record<string, unknown> | FormData | Blob | ArrayBuffer | string
   query?: Record<string, string | number | boolean>
   timeout?: number // in milliseconds
   responseType?: ResponseType // expected response type

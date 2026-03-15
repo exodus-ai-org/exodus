@@ -22,6 +22,20 @@
       "when": 1773504132506,
       "tag": "0002_pale_vivisector",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1773590532506,
+      "tag": "0003_new_message_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1773775836000,
+      "tag": "0004_add_details_column",
+      "breakpoints": true
     }
   ]
 }

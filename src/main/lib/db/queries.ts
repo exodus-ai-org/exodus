@@ -1,15 +1,5 @@
-import type {
-  Api,
-  AssistantMessage,
-  Provider,
-  StopReason,
-  ToolResultMessage,
-  Usage,
-  UserMessage
-} from '@mariozechner/pi-ai'
 import { and, asc, cosineDistance, desc, eq, gt, sql } from 'drizzle-orm'
 import { v4 as uuidV4 } from 'uuid'
-import type { ChatMessage } from '../../../shared/types/chat'
 import {
   EmbeddingConfig,
   generateEmbedding,
@@ -360,39 +350,5 @@ export async function getResourcePaginated(page: number, pageSize: number) {
       pageSize,
       total
     }
-  }
-}
-
-export function dbMessageToChatMessage(dbMsg: DBMessage): ChatMessage {
-  if (dbMsg.role === 'user') {
-    return {
-      id: dbMsg.id,
-      role: 'user',
-      content: dbMsg.content as UserMessage['content'],
-      timestamp: dbMsg.createdAt.getTime()
-    }
-  }
-  if (dbMsg.role === 'assistant') {
-    return {
-      id: dbMsg.id,
-      role: 'assistant',
-      content: dbMsg.content as AssistantMessage['content'],
-      usage: dbMsg.usage as Usage,
-      api: (dbMsg.api ?? '') as Api,
-      provider: (dbMsg.provider ?? '') as Provider,
-      model: dbMsg.model ?? '',
-      stopReason: (dbMsg.stopReason ?? 'stop') as StopReason,
-      timestamp: dbMsg.createdAt.getTime()
-    }
-  }
-  // toolResult
-  return {
-    id: dbMsg.id,
-    role: 'toolResult',
-    toolCallId: dbMsg.toolCallId ?? '',
-    toolName: dbMsg.toolName ?? '',
-    content: dbMsg.content as ToolResultMessage['content'],
-    isError: dbMsg.isError ?? false,
-    timestamp: dbMsg.createdAt.getTime()
   }
 }

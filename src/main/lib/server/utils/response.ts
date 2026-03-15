@@ -3,9 +3,8 @@ import { Context } from 'hono'
 /**
  * Standard success response helper
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function successResponse(c: Context, data: any, status = 200) {
-  return c.json(data, status as never)
+export function successResponse(c: Context, data: unknown, status = 200) {
+  return c.json(data as object, status as never)
 }
 
 /**

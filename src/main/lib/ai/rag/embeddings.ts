@@ -9,6 +9,15 @@ export interface EmbeddingConfig {
   baseUrl?: string
 }
 
+interface EmbeddingResponseItem {
+  embedding: number[]
+  index: number
+}
+
+interface EmbeddingResponse {
+  data: EmbeddingResponseItem[]
+}
+
 // transform user's prompt to embedding vector
 export const generateEmbedding = async (
   { value }: { value: string },
@@ -25,8 +34,7 @@ export const generateEmbedding = async (
     body: JSON.stringify({ model: config.model, input })
   })
   if (!response.ok) throw new Error(`Embedding API error: ${response.status}`)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const data = (await response.json()) as any
+  const data = (await response.json()) as EmbeddingResponse
   return data.data[0].embedding
 }
 
@@ -45,10 +53,8 @@ export const generateEmbeddings = async (
     body: JSON.stringify({ model: config.model, input: chunks })
   })
   if (!response.ok) throw new Error(`Embeddings API error: ${response.status}`)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const data = (await response.json()) as any
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return data.data.map((item: any, i: number) => ({
+  const data = (await response.json()) as EmbeddingResponse
+  return data.data.map((item, i) => ({
     content: chunks[i],
     embedding: item.embedding
   }))

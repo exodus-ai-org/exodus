@@ -31,23 +31,18 @@ async function retrieveStdioMcpTools(
 
   const agentTools: AgentTool[] = toolsResult.tools.map((mcpTool) => {
     // Convert JSON Schema to TypeBox using Type.Unsafe
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const schema = Type.Unsafe<any>(
+    const schema = Type.Unsafe<Record<string, unknown>>(
       (mcpTool.inputSchema as Record<string, unknown>) ?? Type.Object({})
     )
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const agentTool: AgentTool<any> = {
+    const agentTool: AgentTool = {
       name: mcpTool.name,
       label: mcpTool.name,
       description: mcpTool.description ?? '',
       parameters: schema,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       execute: async (
         _toolCallId: string,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         params: Record<string, unknown>
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ): Promise<AgentToolResult<unknown>> => {
         const result = await client.callTool({
           name: mcpTool.name,

@@ -16,12 +16,10 @@ import { deepResearchBootPrompt, systemPrompt } from '../../ai/prompts'
 import { getActiveSkillsContent } from '../../ai/skills/skills-manager'
 import {
   bindCallingTools,
-  convertToUIMessages,
   generateTitleFromUserMessage,
   getModelFromProvider
 } from '../../ai/utils/chat-message-util'
 import {
-  dbMessageToChatMessage,
   deleteChatById,
   fullTextSearchOnMessages,
   getChatById,
@@ -29,8 +27,7 @@ import {
   saveChat,
   saveMessages,
   updateChat,
-  updateChatTitleById,
-  updateMessage
+  updateChatTitleById
 } from '../../db/queries'
 import { ChatSDKError } from '../errors'
 import { postRequestBodySchema, updateChatSchema } from '../schemas/chat'
@@ -50,6 +47,15 @@ chat.get('/mcp', async (c) => {
   return successResponse(c, { tools })
 })
 
+chat.get('/search', async (c) => {
+  const query = c.req.query('query') ?? ''
+  const result = await handleDatabaseOperation(
+    () => fullTextSearchOnMessages(query),
+    'Failed to search messages'
+  )
+  return successResponse(c, result)
+})
+
 chat.get('/:id', async (c) => {
   const id = getRequiredParam(c, 'id', 'chat')
   const messages = await handleDatabaseOperation(
@@ -59,41 +65,74 @@ chat.get('/:id', async (c) => {
   return successResponse(c, messages)
 })
 
-chat.get('/search', async (c) => {
-  const query = c.req.query('query') ?? ''
-
-  const result = await handleDatabaseOperation(
-    () => fullTextSearchOnMessages(query),
-    'Failed to search messages'
-  )
-
-  return successResponse(c, result)
-})
-
-// Convert ChatMessage[] to pi-ai Message[] (all roles)
-function chatMessageToPi(msg: ChatMessage): Message {
-  if (msg.role === 'user') {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, ...rest } = msg
-    return rest
-  }
-  if (msg.role === 'assistant') {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { id, ...rest } = msg
-    return rest
-  }
-  // toolResult
+// Strip `id` from ChatMessage to get a pi-ai Message
+function stripId(msg: ChatMessage): Message {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { id, ...rest } = msg
-  return rest
+  return rest as Message
 }
 
-function chatMessagesToPiMessages(messages: ChatMessage[]): Message[] {
-  return messages.map(chatMessageToPi)
+// Convert a ChatMessage to a DB row for insertion
+function toDbRow(msg: ChatMessage, chatId: string) {
+  const ts = msg.timestamp ? new Date(msg.timestamp) : new Date()
+  const base = {
+    id: msg.id,
+    chatId,
+    role: msg.role,
+    content: msg.content,
+    createdAt: isNaN(ts.getTime()) ? new Date() : ts
+  }
+
+  if (msg.role === 'assistant') {
+    return {
+      ...base,
+      usage: msg.usage ?? null,
+      api: msg.api ?? null,
+      provider: msg.provider ?? null,
+      model: msg.model ?? null,
+      stopReason: msg.stopReason ?? null,
+      errorMessage: msg.errorMessage ?? null,
+      toolCallId: null,
+      toolName: null,
+      details: null,
+      isError: null
+    }
+  }
+
+  if (msg.role === 'toolResult') {
+    return {
+      ...base,
+      usage: null,
+      api: null,
+      provider: null,
+      model: null,
+      stopReason: null,
+      errorMessage: null,
+      toolCallId: msg.toolCallId,
+      toolName: msg.toolName,
+      details: msg.details ?? null,
+      isError: msg.isError
+    }
+  }
+
+  // user
+  return {
+    ...base,
+    usage: null,
+    api: null,
+    provider: null,
+    model: null,
+    stopReason: null,
+    errorMessage: null,
+    toolCallId: null,
+    toolName: null,
+    details: null,
+    isError: null
+  }
 }
 
 chat.post('/', async (c) => {
-  const { id, message, messages, advancedTools } = validateSchema(
+  const { id, messages, advancedTools } = validateSchema(
     postRequestBodySchema,
     await c.req.json(),
     'chat',
@@ -105,23 +144,27 @@ chat.post('/', async (c) => {
     advancedTools?.includes(AdvancedTools.Reasoning) ||
     advancedTools?.includes(AdvancedTools.DeepResearch)
 
+  const allMessages = messages as ChatMessage[]
+
+  // The last message is the new user message; everything before is context
+  const userMessage = allMessages.at(-1)!
+  const contextMessages = allMessages.slice(0, -1)
+
+  // Create chat record if new
   const existingChat = await getChatById({ id })
   let titlePromise: Promise<string> | null = null
-
   if (!existingChat) {
     await saveChat({ id, title: 'New chat' })
-    const firstUserMsg =
-      message ?? (messages as ChatMessage[]).find((m) => m.role === 'user')
-    if (firstUserMsg) {
-      titlePromise = generateTitleFromUserMessage({
-        message: firstUserMsg as ChatMessage,
-        model: chatModel,
-        apiKey
-      })
-    }
+    titlePromise = generateTitleFromUserMessage({
+      message: userMessage,
+      model: chatModel,
+      apiKey
+    })
   }
 
-  const uiMessages = messages as ChatMessage[]
+  // Save the user message to DB immediately
+  await saveMessages({ messages: [toDbRow(userMessage, id)] })
+
   const [skillsContent, mcpTools] = await Promise.all([
     getActiveSkillsContent(),
     getMcpTools()
@@ -129,16 +172,10 @@ chat.post('/', async (c) => {
 
   const activeModel = isReasoningModel ? reasoningModel : chatModel
   const tools = bindCallingTools({ advancedTools, setting, mcpTools })
-
   const systemContent =
     (advancedTools?.includes(AdvancedTools.DeepResearch)
       ? deepResearchBootPrompt
       : systemPrompt) + skillsContent
-
-  // The last message should be the new user message to send
-  const lastUserMsg = uiMessages.at(-1)
-  // All previous messages become the context
-  const contextMessages = uiMessages.slice(0, -1)
 
   // Build SSE streaming response
   const stream = new ReadableStream({
@@ -149,33 +186,16 @@ chat.post('/', async (c) => {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`))
       }
 
-      // Track the ongoing assistant message being built
       let assistantMsgId = uuidV4()
       let currentAssistantMsg: ChatAssistantMessage | null = null
-
-      // Collect tool result messages generated in this turn
-      const pendingToolResults: ChatToolResultMessage[] = []
+      const newMessages: ChatMessage[] = []
 
       try {
-        // Convert the last user message to an AgentMessage prompt
-        const promptMsg: AgentMessage = lastUserMsg
-          ? (() => {
-              const piMsg = chatMessageToPi(lastUserMsg)
-              return piMsg as AgentMessage
-            })()
-          : {
-              role: 'user' as const,
-              content: [{ type: 'text' as const, text: '' }],
-              timestamp: Date.now()
-            }
-
-        const piContextMessages = chatMessagesToPiMessages(contextMessages)
-
         const agentStream = agentLoop(
-          [promptMsg],
+          [stripId(userMessage) as AgentMessage],
           {
             systemPrompt: systemContent,
-            messages: piContextMessages,
+            messages: contextMessages.map(stripId),
             tools
           },
           {
@@ -193,13 +213,9 @@ chat.post('/', async (c) => {
           c.req.raw.signal
         )
 
-        const finalMessages: ChatMessage[] = [...uiMessages]
-
         for await (const event of agentStream) {
           if (event.type === 'message_update') {
-            // event.message is an AssistantMessage from pi-ai
             const msg = event.message as Message & { role: 'assistant' }
-
             currentAssistantMsg = {
               id: assistantMsgId,
               role: 'assistant',
@@ -213,18 +229,14 @@ chat.post('/', async (c) => {
             }
             sendEvent({ type: 'message_update', message: currentAssistantMsg })
           } else if (event.type === 'message_end') {
-            // Finalize the assistant message
             if (currentAssistantMsg) {
-              finalMessages.push(currentAssistantMsg)
+              newMessages.push(currentAssistantMsg)
             }
-            // Reset for next potential message
             assistantMsgId = uuidV4()
             currentAssistantMsg = null
           } else if (event.type === 'tool_execution_start') {
-            // Show a shimmering tool-call in current assistant message
-            // We send an update with the tool call inline in the current content
             if (currentAssistantMsg) {
-              const updatedMsg: ChatAssistantMessage = {
+              currentAssistantMsg = {
                 ...currentAssistantMsg,
                 content: [
                   ...currentAssistantMsg.content,
@@ -236,121 +248,63 @@ chat.post('/', async (c) => {
                   }
                 ]
               }
-              currentAssistantMsg = updatedMsg
-              sendEvent({ type: 'message_update', message: updatedMsg })
+              sendEvent({
+                type: 'message_update',
+                message: currentAssistantMsg
+              })
             }
           } else if (event.type === 'tool_execution_end') {
-            // Create a separate ToolResult message
+            // Extract the actual details from AgentToolResult wrapper
+            const details =
+              event.result &&
+              typeof event.result === 'object' &&
+              'details' in event.result
+                ? event.result.details
+                : event.result
+
             const toolResultMsg: ChatToolResultMessage = {
               id: uuidV4(),
               role: 'toolResult',
               toolCallId: event.toolCallId,
               toolName: event.toolName,
-              content: event.result
+              content: details
                 ? [
                     {
                       type: 'text' as const,
                       text:
-                        typeof event.result === 'string'
-                          ? event.result
-                          : JSON.stringify(event.result)
+                        typeof details === 'string'
+                          ? details
+                          : JSON.stringify(details)
                     }
                   ]
                 : [],
-              details: event.result,
+              details,
               isError: event.isError,
               timestamp: Date.now()
             }
-            pendingToolResults.push(toolResultMsg)
+            newMessages.push(toolResultMsg)
             sendEvent({ type: 'message_update', message: toolResultMsg })
           }
-          // agent_end, turn_start, turn_end, message_start, tool_execution_update are ignored
         }
 
-        // Add pending tool results to finalMessages
-        for (const tr of pendingToolResults) {
-          finalMessages.push(tr)
-        }
-
-        // Handle title generation
+        // Generate title for new chats
         if (titlePromise) {
           const title = await titlePromise
           sendEvent({ type: 'title', title })
           updateChatTitleById({ id, title })
         }
 
-        sendEvent({ type: 'done', messages: finalMessages })
+        // Send done event with the complete conversation
+        sendEvent({
+          type: 'done',
+          messages: [...allMessages, ...newMessages]
+        })
 
-        // Persist new/updated messages to DB
-        const persisted = await getMessagesByChatId({ id })
-        const persistedIds = new Set(persisted.map((m) => m.id))
-
-        const newMessages = finalMessages.filter(
-          (m) => !uiMessages.some((um) => um.id === m.id)
-        )
-        const updatedMessages = finalMessages.filter((m) =>
-          persistedIds.has(m.id)
-        )
-
+        // Persist new assistant/toolResult messages to DB
         if (newMessages.length > 0) {
           await saveMessages({
-            messages: newMessages.map((m) => {
-              if (m.role === 'user') {
-                return {
-                  id: m.id,
-                  role: m.role,
-                  content: m.content,
-                  usage: null,
-                  api: null,
-                  provider: null,
-                  model: null,
-                  stopReason: null,
-                  toolCallId: null,
-                  toolName: null,
-                  isError: null,
-                  createdAt: new Date(m.timestamp),
-                  chatId: id
-                }
-              }
-              if (m.role === 'assistant') {
-                return {
-                  id: m.id,
-                  role: m.role,
-                  content: m.content,
-                  usage: m.usage ?? null,
-                  api: m.api ?? null,
-                  provider: m.provider ?? null,
-                  model: m.model ?? null,
-                  stopReason: m.stopReason ?? null,
-                  toolCallId: null,
-                  toolName: null,
-                  isError: null,
-                  createdAt: new Date(m.timestamp),
-                  chatId: id
-                }
-              }
-              // toolResult
-              return {
-                id: m.id,
-                role: m.role,
-                content: m.content,
-                usage: null,
-                api: null,
-                provider: null,
-                model: null,
-                stopReason: null,
-                toolCallId: m.toolCallId,
-                toolName: m.toolName,
-                isError: m.isError,
-                createdAt: new Date(m.timestamp),
-                chatId: id
-              }
-            })
+            messages: newMessages.map((m) => toDbRow(m, id))
           })
-        }
-
-        for (const msg of updatedMessages) {
-          await updateMessage({ id: msg.id, content: msg.content })
         }
       } catch (err) {
         const errMsg = err instanceof Error ? err.message : String(err)
@@ -382,26 +336,6 @@ chat.delete('/:id', async (c) => {
   return deletionSuccessResponse(c, 'Chat')
 })
 
-chat.get('/:id', async (c) => {
-  const id = getRequiredParam(c, 'id', 'chat')
-
-  const chatData = await handleDatabaseOperation(
-    () => getChatById({ id }),
-    'Failed to get chat'
-  )
-
-  if (!chatData) {
-    throw new ChatSDKError('not_found:chat', `Chat with ID ${id} not found`)
-  }
-
-  const messagesFromDb = await handleDatabaseOperation(
-    () => getMessagesByChatId({ id }),
-    'Failed to get chat messages'
-  )
-
-  return successResponse(c, messagesFromDb)
-})
-
 chat.put('/', async (c) => {
   const payload = validateSchema(
     updateChatSchema,
@@ -422,5 +356,4 @@ chat.put('/', async (c) => {
   return updateSuccessResponse(c, 'chat', payload.id)
 })
 
-export { convertToUIMessages, dbMessageToChatMessage }
 export default chat

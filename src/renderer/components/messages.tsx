@@ -2,6 +2,7 @@ import type { ChatStatus } from '@/hooks/use-chat'
 import { useSetting } from '@/hooks/use-setting'
 import { cn } from '@/lib/utils'
 import type { ChatMessage, ImageContent, TextContent } from '@shared/types/chat'
+import { WrenchIcon } from 'lucide-react'
 import { Fragment, memo, useCallback, useEffect, useRef } from 'react'
 import Zoom from 'react-medium-image-zoom'
 import Markdown from './markdown'
@@ -109,30 +110,25 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
                     }
 
                     if (block.type === 'toolCall') {
-                      return (
+                      return isLoading ? (
                         <ShimmeringText
                           key={key}
                           className="mb-4"
                           text={`Calling tool: ${block.name}`}
                         />
+                      ) : (
+                        <p
+                          key={key}
+                          className="text-muted-foreground mb-4 flex items-center gap-1.5 text-sm"
+                        >
+                          <WrenchIcon size={14} />
+                          Used tool: {block.name}
+                        </p>
                       )
                     }
 
                     return <Fragment key={key} />
                   })}
-
-                  {message.usage && (
-                    <div className="text-muted-foreground mt-1 flex gap-3 text-[11px]">
-                      <span>↑ {message.usage.input.toLocaleString()} in</span>
-                      <span>↓ {message.usage.output.toLocaleString()} out</span>
-                      <span>
-                        ∑ {message.usage.totalTokens.toLocaleString()} total
-                      </span>
-                      {message.usage.cost.total > 0 && (
-                        <span>${message.usage.cost.total.toFixed(4)}</span>
-                      )}
-                    </div>
-                  )}
                 </div>
               </div>
             )}
@@ -179,7 +175,7 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
           </div>
         ))}
 
-        {status === 'submitted' &&
+        {(status === 'submitted' || status === 'streaming') &&
           messages[messages.length - 1]?.role !== 'assistant' && (
             <MessageSpinner />
           )}

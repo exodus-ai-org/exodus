@@ -17,6 +17,5 @@ export enum AdvancedTools {
 
 export interface McpTools {
   mcpServerName: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  tools: AgentTool<any>[]
+  tools: AgentTool[]
 }

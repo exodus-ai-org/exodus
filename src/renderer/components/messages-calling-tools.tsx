@@ -9,14 +9,25 @@ import { WebSearchCard } from './calling-tools/web-search/web-search-card'
 
 function CallingTools({ toolResult }: { toolResult: ChatToolResultMessage }) {
   const toolName = toolResult.toolName
+
+  // details comes from DB directly; fallback to parsing content text for compatibility
   const output =
     toolResult.details ??
     (() => {
-      // Fallback: parse content text if no details
       const textBlock = toolResult.content.find((c) => c.type === 'text')
       if (textBlock && textBlock.type === 'text') {
         try {
-          return JSON.parse(textBlock.text)
+          const parsed = JSON.parse(textBlock.text)
+          // Unwrap legacy AgentToolResult wrapper if present
+          if (
+            parsed &&
+            typeof parsed === 'object' &&
+            'details' in parsed &&
+            'content' in parsed
+          ) {
+            return parsed.details
+          }
+          return parsed
         } catch {
           return textBlock.text
         }

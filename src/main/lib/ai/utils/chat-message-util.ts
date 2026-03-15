@@ -1,10 +1,9 @@
 import type { AgentTool } from '@mariozechner/pi-agent-core'
-import type { Model } from '@mariozechner/pi-ai'
+import type { Model, TextContent } from '@mariozechner/pi-ai'
 import { completeSimple } from '@mariozechner/pi-ai'
 import { AdvancedTools, AiProviders, McpTools } from '@shared/types/ai'
-import type { ChatAssistantMessage, ChatMessage } from '@shared/types/chat'
-import { dbMessageToChatMessage } from '../../db/queries'
-import { DBMessage, Setting } from '../../db/schema'
+import type { ChatMessage } from '@shared/types/chat'
+import { Setting } from '../../db/schema'
 import {
   calculator,
   date,
@@ -76,29 +75,19 @@ export function getModelFromProvider(setting: Setting): {
   }
 }
 
-export function getTextFromMessage(message: ChatMessage): string {
-  if (message.role === 'user') {
-    if (typeof message.content === 'string') return message.content
-    return message.content
-      .filter((c) => c.type === 'text')
-      .map((c) => (c as { type: 'text'; text: string }).text)
-      .join('')
-  }
-  if (message.role === 'assistant') {
-    return message.content
-      .filter((c) => c.type === 'text')
-      .map((c) => (c as { type: 'text'; text: string }).text)
-      .join('')
-  }
-  // toolResult
-  return message.content
-    .filter((c) => c.type === 'text')
-    .map((c) => (c as { type: 'text'; text: string }).text)
+function extractText(content: Array<{ type: string; text?: string }>): string {
+  return content
+    .filter((c): c is TextContent => c.type === 'text')
+    .map((c) => c.text)
     .join('')
 }
 
-export function convertToUIMessages(messages: DBMessage[]): ChatMessage[] {
-  return messages.map(dbMessageToChatMessage)
+export function getTextFromMessage(message: ChatMessage): string {
+  if (message.role === 'user') {
+    if (typeof message.content === 'string') return message.content
+    return extractText(message.content)
+  }
+  return extractText(message.content)
 }
 
 export async function generateTitleFromUserMessage({
@@ -126,10 +115,7 @@ export async function generateTitleFromUserMessage({
     { apiKey }
   )
 
-  const text = result.content
-    .filter((c) => c.type === 'text')
-    .map((c) => (c as { type: 'text'; text: string }).text)
-    .join('')
+  const text = extractText(result.content)
 
   return text
     .replace(/^[#*"\s]+/, '')
@@ -145,21 +131,17 @@ export function bindCallingTools({
   advancedTools: AdvancedTools[]
   setting: Setting
   mcpTools?: McpTools[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-}): AgentTool<any>[] {
+}): AgentTool[] {
   if (advancedTools.includes(AdvancedTools.DeepResearch)) {
     return [deepResearch]
   }
 
-  // Flatten MCP tools from all servers
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const mcpToolsList: AgentTool<any>[] = mcpTools.flatMap((t) => t.tools)
+  const mcpToolsList: AgentTool[] = mcpTools.flatMap((t) => t.tools)
 
   const disabledTools = new Set(setting.tools?.disabledTools ?? [])
   const enabled = (key: string) => !disabledTools.has(key)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const tools: AgentTool<any>[] = []
+  const tools: AgentTool[] = []
 
   if (enabled('rag')) tools.push(rag(setting))
   if (enabled('calculator')) tools.push(calculator)
@@ -183,6 +165,3 @@ export function bindCallingTools({
 
   return [...mcpToolsList, ...tools]
 }
-
-// Unused export kept for backwards compat with chat route re-export
-export type { ChatAssistantMessage }

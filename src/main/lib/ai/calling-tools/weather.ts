@@ -1,6 +1,49 @@
 import type { AgentTool } from '@mariozechner/pi-agent-core'
 import { Type } from '@mariozechner/pi-ai'
 
+interface WttrCondition {
+  weatherDesc?: Array<{ value?: string }>
+  weatherCode?: string
+  temp_C?: string
+  FeelsLikeC?: string
+  humidity?: string
+  windspeedKmph?: string
+  winddirDegree?: string
+  winddir16Point?: string
+  precipMM?: string
+  uvIndex?: string
+  visibility?: string
+  pressure?: string
+  localObsDateTime?: string
+}
+
+interface WttrArea {
+  areaName?: Array<{ value?: string }>
+  country?: Array<{ value?: string }>
+}
+
+interface WttrHourly {
+  time?: string
+  tempC?: string
+  weatherCode?: string
+  weatherDesc?: Array<{ value?: string }>
+  chanceofrain?: string
+}
+
+interface WttrDay {
+  date?: string
+  maxtempC?: string
+  mintempC?: string
+  astronomy?: Array<{ sunrise?: string; sunset?: string }>
+  hourly?: WttrHourly[]
+}
+
+interface WttrResponse {
+  current_condition?: WttrCondition[]
+  nearest_area?: WttrArea[]
+  weather?: WttrDay[]
+}
+
 const weatherSchema = Type.Object({
   location: Type.String({
     description: 'City name or location, e.g. "Tokyo", "New York, NY".'
@@ -20,8 +63,7 @@ export const weather: AgentTool<typeof weatherSchema> = {
     if (!response.ok) {
       throw new Error(`Weather service returned ${response.status}`)
     }
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const raw = (await response.json()) as any
+    const raw = (await response.json()) as WttrResponse
 
     const current = raw.current_condition?.[0]
     const area = raw.nearest_area?.[0]
@@ -45,8 +87,7 @@ export const weather: AgentTool<typeof weatherSchema> = {
         pressure: current?.pressure ?? '',
         observedAt: current?.localObsDateTime ?? ''
       },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      forecast: (raw.weather ?? []).slice(0, 3).map((day: any) => ({
+      forecast: (raw.weather ?? []).slice(0, 3).map((day) => ({
         date: day.date,
         condition: day.hourly?.[4]?.weatherDesc?.[0]?.value?.trim() ?? '',
         weatherCode: day.hourly?.[4]?.weatherCode ?? '',
@@ -54,8 +95,7 @@ export const weather: AgentTool<typeof weatherSchema> = {
         minTempC: day.mintempC,
         sunrise: day.astronomy?.[0]?.sunrise ?? '',
         sunset: day.astronomy?.[0]?.sunset ?? '',
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        hourly: (day.hourly ?? []).map((h: any) => ({
+        hourly: (day.hourly ?? []).map((h) => ({
           time: h.time,
           tempC: h.tempC,
           weatherCode: h.weatherCode,

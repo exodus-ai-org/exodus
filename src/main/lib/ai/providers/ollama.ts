@@ -3,8 +3,8 @@ import { Setting } from '@shared/types/db'
 import type { EmbeddingConfig } from './openai-gpt'
 
 export function getOllama(setting: Setting): {
-  chatModel: Model<'openai-completions'>
-  reasoningModel: Model<'openai-completions'>
+  chatModel: Model<string>
+  reasoningModel: Model<string>
   embeddingConfig: EmbeddingConfig | null
 } {
   const baseUrl =
@@ -13,7 +13,7 @@ export function getOllama(setting: Setting): {
   const reasoningModelId = setting.providerConfig?.reasoningModel ?? ''
   const embeddingModelId = setting.providerConfig?.embeddingModel ?? ''
 
-  const makeModel = (id: string): Model<'openai-completions'> => ({
+  const makeModel = (id: string): Model<string> => ({
     id,
     name: id,
     api: 'openai-completions',

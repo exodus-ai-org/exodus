@@ -53,9 +53,11 @@ export const message = pgTable(
     provider: varchar('provider'),
     model: varchar('model'),
     stopReason: varchar('stopReason'),
+    errorMessage: varchar('errorMessage'),
     // toolResult-specific fields
     toolCallId: varchar('toolCallId'),
     toolName: varchar('toolName'),
+    details: jsonb('details'),
     isError: boolean('isError'),
     createdAt: timestamp('createdAt').defaultNow().notNull()
   },

@@ -26,10 +26,8 @@ export interface UseChatOptions {
   prepareBody?: (opts: {
     id: string
     messages: ChatMessage[]
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    body?: Record<string, any>
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  }) => Record<string, any>
+    body?: Record<string, unknown>
+  }) => Record<string, unknown>
 }
 
 export interface UseChatHelpers {
@@ -62,9 +60,7 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
   const abortControllerRef = useRef<AbortController | null>(null)
   // Store the last user message for regeneration
   const lastUserMsgRef = useRef<SendMessageOptions | null>(null)
-  // Extra body params (e.g. advancedTools)
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const extraBodyRef = useRef<Record<string, any>>({})
+  const extraBodyRef = useRef<Record<string, unknown>>({})
 
   const stop = useCallback(() => {
     abortControllerRef.current?.abort()
