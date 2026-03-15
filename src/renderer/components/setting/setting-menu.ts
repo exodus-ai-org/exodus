@@ -1,20 +1,14 @@
 import { AiProviders } from '@shared/types/ai'
 import {
-  AtomIcon,
-  AudioWaveformIcon,
   ChromeIcon,
   CogIcon,
   ComputerIcon,
   DatabaseIcon,
   FileUpIcon,
-  GlobeIcon,
   HammerIcon,
   HandCoinsIcon,
-  ImageIcon,
   InfoIcon,
-  MapIcon,
   MemoryStickIcon,
-  TelescopeIcon,
   WrenchIcon
 } from 'lucide-react'
 
@@ -67,35 +61,19 @@ export const menus = {
     },
     {
       icon: WrenchIcon,
-      title: SettingLabel.BuiltinTools
+      title: SettingLabel.BuiltinTools,
+      items: [
+        { title: SettingLabel.WebSearch },
+        { title: SettingLabel.GoogleMaps },
+        { title: SettingLabel.ImageGeneration },
+        { title: SettingLabel.DeepResearch },
+        { title: SettingLabel.AudioAndSpeech },
+        { title: SettingLabel.Rag }
+      ]
     },
     {
       icon: MemoryStickIcon,
       title: SettingLabel.MemoryLayer
-    },
-    {
-      icon: AudioWaveformIcon,
-      title: SettingLabel.AudioAndSpeech
-    },
-    {
-      icon: ImageIcon,
-      title: SettingLabel.ImageGeneration
-    },
-    {
-      icon: GlobeIcon,
-      title: SettingLabel.WebSearch
-    },
-    {
-      icon: MapIcon,
-      title: SettingLabel.GoogleMaps
-    },
-    {
-      icon: TelescopeIcon,
-      title: SettingLabel.DeepResearch
-    },
-    {
-      icon: AtomIcon,
-      title: SettingLabel.Rag
     },
     {
       icon: ChromeIcon,

@@ -1,3 +1,4 @@
+import { setNativeTheme } from '@/lib/ipc'
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
 
 export type Theme = 'dark' | 'light' | 'system'
@@ -50,11 +51,13 @@ export function ThemeProvider({
         : 'light'
       root.classList.add(systemTheme)
       setActualTheme(systemTheme)
+      setNativeTheme('system')
       return
     }
 
     root.classList.add(theme)
     setActualTheme(theme)
+    setNativeTheme(theme)
   }, [theme])
 
   useEffect(() => {
