@@ -2,7 +2,12 @@ import type { AgentMessage } from '@mariozechner/pi-agent-core'
 import { agentLoop } from '@mariozechner/pi-agent-core'
 import type { Message } from '@mariozechner/pi-ai'
 import { AdvancedTools } from '@shared/types/ai'
-import { ChatMessage, ChatSseEvent, MessagePart } from '@shared/types/chat'
+import type {
+  ChatAssistantMessage,
+  ChatMessage,
+  ChatSseEvent,
+  ChatToolResultMessage
+} from '@shared/types/chat'
 import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import { v4 as uuidV4 } from 'uuid'
@@ -16,6 +21,7 @@ import {
   getModelFromProvider
 } from '../../ai/utils/chat-message-util'
 import {
+  dbMessageToChatMessage,
   deleteChatById,
   fullTextSearchOnMessages,
   getChatById,
@@ -64,63 +70,26 @@ chat.get('/search', async (c) => {
   return successResponse(c, result)
 })
 
-// Convert ChatMessage[] to pi-ai Message[] (only user & assistant messages)
+// Convert ChatMessage[] to pi-ai Message[] (all roles)
+function chatMessageToPi(msg: ChatMessage): Message {
+  if (msg.role === 'user') {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, ...rest } = msg
+    return rest
+  }
+  if (msg.role === 'assistant') {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { id, ...rest } = msg
+    return rest
+  }
+  // toolResult
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { id, ...rest } = msg
+  return rest
+}
+
 function chatMessagesToPiMessages(messages: ChatMessage[]): Message[] {
-  return messages
-    .filter((m) => m.role === 'user' || m.role === 'assistant')
-    .map((m) => {
-      if (m.role === 'user') {
-        return {
-          role: 'user' as const,
-          content: m.parts
-            .filter((p) => p.type === 'text' || p.type === 'file')
-            .map((p) => {
-              if (p.type === 'text') {
-                return { type: 'text' as const, text: p.text }
-              }
-              // file → image
-              return {
-                type: 'image' as const,
-                data: p.url,
-                mimeType: p.mediaType ?? 'image/png'
-              }
-            }),
-          timestamp: new Date(m.createdAt ?? Date.now()).getTime()
-        }
-      }
-      // assistant
-      return {
-        role: 'assistant' as const,
-        content: m.parts
-          .filter((p) => p.type === 'text' || p.type === 'thinking')
-          .map((p) => {
-            if (p.type === 'thinking') {
-              return {
-                type: 'thinking' as const,
-                thinking: p.text,
-                thinkingSignature: ''
-              }
-            }
-            return {
-              type: 'text' as const,
-              text: (p as { type: 'text'; text: string }).text
-            }
-          }),
-        api: 'openai-completions' as const,
-        provider: 'openai' as const,
-        model: '',
-        usage: {
-          input: 0,
-          output: 0,
-          cacheRead: 0,
-          cacheWrite: 0,
-          totalTokens: 0,
-          cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 }
-        },
-        stopReason: 'stop' as const,
-        timestamp: new Date(m.createdAt ?? Date.now()).getTime()
-      }
-    })
+  return messages.map(chatMessageToPi)
 }
 
 chat.post('/', async (c) => {
@@ -182,28 +151,18 @@ chat.post('/', async (c) => {
 
       // Track the ongoing assistant message being built
       let assistantMsgId = uuidV4()
-      let assistantParts: MessagePart[] = []
+      let currentAssistantMsg: ChatAssistantMessage | null = null
+
+      // Collect tool result messages generated in this turn
+      const pendingToolResults: ChatToolResultMessage[] = []
 
       try {
         // Convert the last user message to an AgentMessage prompt
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const promptMsg: AgentMessage = lastUserMsg
-          ? {
-              role: 'user' as const,
-              content: lastUserMsg.parts
-                .filter((p) => p.type === 'text' || p.type === 'file')
-                .map((p) => {
-                  if (p.type === 'text') {
-                    return { type: 'text' as const, text: p.text }
-                  }
-                  return {
-                    type: 'image' as const,
-                    data: p.url,
-                    mimeType: p.mediaType ?? 'image/png'
-                  }
-                }),
-              timestamp: Date.now()
-            }
+          ? (() => {
+              const piMsg = chatMessageToPi(lastUserMsg)
+              return piMsg as AgentMessage
+            })()
           : {
               role: 'user' as const,
               content: [{ type: 'text' as const, text: '' }],
@@ -223,7 +182,6 @@ chat.post('/', async (c) => {
             model: activeModel,
             apiKey,
             convertToLlm: (agentMessages: AgentMessage[]): Message[] => {
-              // AgentMessages are already pi-ai Messages in our case
               return agentMessages.filter(
                 (m): m is Message =>
                   (m as Message).role === 'user' ||
@@ -239,93 +197,79 @@ chat.post('/', async (c) => {
 
         for await (const event of agentStream) {
           if (event.type === 'message_update') {
-            // event.message is an AgentMessage (AssistantMessage here)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const msg = event.message as any
-            assistantParts = []
+            // event.message is an AssistantMessage from pi-ai
+            const msg = event.message as Message & { role: 'assistant' }
 
-            if (Array.isArray(msg.content)) {
-              for (const part of msg.content) {
-                if (part.type === 'text') {
-                  assistantParts.push({ type: 'text', text: part.text })
-                } else if (part.type === 'thinking') {
-                  assistantParts.push({
-                    type: 'thinking',
-                    text: part.thinking ?? ''
-                  })
-                }
-              }
-            }
-
-            const currentMsg: ChatMessage = {
+            currentAssistantMsg = {
               id: assistantMsgId,
               role: 'assistant',
-              parts: assistantParts,
-              createdAt: new Date().toISOString()
+              content: msg.content,
+              usage: msg.usage,
+              api: msg.api,
+              provider: msg.provider,
+              model: msg.model,
+              stopReason: msg.stopReason,
+              timestamp: msg.timestamp ?? Date.now()
             }
-            sendEvent({ type: 'message_update', message: currentMsg })
+            sendEvent({ type: 'message_update', message: currentAssistantMsg })
           } else if (event.type === 'message_end') {
             // Finalize the assistant message
-            const currentMsg: ChatMessage = {
-              id: assistantMsgId,
-              role: 'assistant',
-              parts: assistantParts,
-              createdAt: new Date().toISOString()
+            if (currentAssistantMsg) {
+              finalMessages.push(currentAssistantMsg)
             }
-            finalMessages.push(currentMsg)
             // Reset for next potential message
             assistantMsgId = uuidV4()
-            assistantParts = []
+            currentAssistantMsg = null
           } else if (event.type === 'tool_execution_start') {
-            // Update current assistant message to include tool-call part
-            const toolCallPart: MessagePart = {
-              type: 'tool-call',
-              toolCallId: event.toolCallId,
-              toolName: event.toolName,
-              args: event.args as Record<string, unknown>,
-              state: 'running'
-            }
-            assistantParts = [...assistantParts, toolCallPart]
-            const currentMsg: ChatMessage = {
-              id: assistantMsgId,
-              role: 'assistant',
-              parts: assistantParts,
-              createdAt: new Date().toISOString()
-            }
-            sendEvent({ type: 'message_update', message: currentMsg })
-            sendEvent({
-              type: 'tool_start',
-              toolCallId: event.toolCallId,
-              toolName: event.toolName,
-              args: event.args
-            })
-          } else if (event.type === 'tool_execution_end') {
-            // Update tool-call part to done
-            assistantParts = assistantParts.map((p) => {
-              if (p.type === 'tool-call' && p.toolCallId === event.toolCallId) {
-                return {
-                  ...p,
-                  state: 'done' as const,
-                  result: event.result
-                }
+            // Show a shimmering tool-call in current assistant message
+            // We send an update with the tool call inline in the current content
+            if (currentAssistantMsg) {
+              const updatedMsg: ChatAssistantMessage = {
+                ...currentAssistantMsg,
+                content: [
+                  ...currentAssistantMsg.content,
+                  {
+                    type: 'toolCall' as const,
+                    id: event.toolCallId,
+                    name: event.toolName,
+                    arguments: event.args as Record<string, unknown>
+                  }
+                ]
               }
-              return p
-            })
-            const currentMsg: ChatMessage = {
-              id: assistantMsgId,
-              role: 'assistant',
-              parts: assistantParts,
-              createdAt: new Date().toISOString()
+              currentAssistantMsg = updatedMsg
+              sendEvent({ type: 'message_update', message: updatedMsg })
             }
-            sendEvent({ type: 'message_update', message: currentMsg })
-            sendEvent({
-              type: 'tool_end',
+          } else if (event.type === 'tool_execution_end') {
+            // Create a separate ToolResult message
+            const toolResultMsg: ChatToolResultMessage = {
+              id: uuidV4(),
+              role: 'toolResult',
               toolCallId: event.toolCallId,
-              result: event.result,
-              isError: event.isError
-            })
+              toolName: event.toolName,
+              content: event.result
+                ? [
+                    {
+                      type: 'text' as const,
+                      text:
+                        typeof event.result === 'string'
+                          ? event.result
+                          : JSON.stringify(event.result)
+                    }
+                  ]
+                : [],
+              details: event.result,
+              isError: event.isError,
+              timestamp: Date.now()
+            }
+            pendingToolResults.push(toolResultMsg)
+            sendEvent({ type: 'message_update', message: toolResultMsg })
           }
           // agent_end, turn_start, turn_end, message_start, tool_execution_update are ignored
+        }
+
+        // Add pending tool results to finalMessages
+        for (const tr of pendingToolResults) {
+          finalMessages.push(tr)
         }
 
         // Handle title generation
@@ -350,19 +294,63 @@ chat.post('/', async (c) => {
 
         if (newMessages.length > 0) {
           await saveMessages({
-            messages: newMessages.map((m) => ({
-              id: m.id,
-              role: m.role,
-              parts: m.parts,
-              createdAt: new Date(),
-              attachments: [],
-              chatId: id
-            }))
+            messages: newMessages.map((m) => {
+              if (m.role === 'user') {
+                return {
+                  id: m.id,
+                  role: m.role,
+                  content: m.content,
+                  usage: null,
+                  api: null,
+                  provider: null,
+                  model: null,
+                  stopReason: null,
+                  toolCallId: null,
+                  toolName: null,
+                  isError: null,
+                  createdAt: new Date(m.timestamp),
+                  chatId: id
+                }
+              }
+              if (m.role === 'assistant') {
+                return {
+                  id: m.id,
+                  role: m.role,
+                  content: m.content,
+                  usage: m.usage ?? null,
+                  api: m.api ?? null,
+                  provider: m.provider ?? null,
+                  model: m.model ?? null,
+                  stopReason: m.stopReason ?? null,
+                  toolCallId: null,
+                  toolName: null,
+                  isError: null,
+                  createdAt: new Date(m.timestamp),
+                  chatId: id
+                }
+              }
+              // toolResult
+              return {
+                id: m.id,
+                role: m.role,
+                content: m.content,
+                usage: null,
+                api: null,
+                provider: null,
+                model: null,
+                stopReason: null,
+                toolCallId: m.toolCallId,
+                toolName: m.toolName,
+                isError: m.isError,
+                createdAt: new Date(m.timestamp),
+                chatId: id
+              }
+            })
           })
         }
 
         for (const msg of updatedMessages) {
-          await updateMessage({ id: msg.id, parts: msg.parts })
+          await updateMessage({ id: msg.id, content: msg.content })
         }
       } catch (err) {
         const errMsg = err instanceof Error ? err.message : String(err)
@@ -434,5 +422,5 @@ chat.put('/', async (c) => {
   return updateSuccessResponse(c, 'chat', payload.id)
 })
 
-export { convertToUIMessages }
+export { convertToUIMessages, dbMessageToChatMessage }
 export default chat

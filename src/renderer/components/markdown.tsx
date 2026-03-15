@@ -1,6 +1,5 @@
 import { useClipboard } from '@/hooks/use-clipboard'
 import { cn } from '@/lib/utils'
-import { MessagePart, ToolCallPart } from '@shared/types/chat'
 import { WebSearchResult } from '@shared/types/web-search'
 import 'katex/dist/katex.min.css'
 import { CheckIcon, CopyIcon } from 'lucide-react'
@@ -98,29 +97,18 @@ function TextWithCitations({
 
 export function Markdown({
   src,
-  parts
+  webSearchResults: propWebSearchResults
 }: {
   src: string
-  parts: MessagePart[]
+  parts?: unknown[]
+  webSearchResults?: WebSearchResult[]
 }) {
   const { copied, handleCopy } = useClipboard()
   const { actualTheme } = useTheme()
   const { codeTheme } = useMemo(() => themes[actualTheme], [actualTheme])
   const webSearchResults = useMemo(() => {
-    try {
-      const toolPart = parts.find(
-        (part): part is ToolCallPart =>
-          part.type === 'tool-call' && part.toolName === 'webSearch'
-      )
-      if (toolPart && toolPart.state === 'done') {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        return toolPart.result as any as WebSearchResult[]
-      }
-      return undefined
-    } catch {
-      return undefined
-    }
-  }, [parts])
+    return propWebSearchResults
+  }, [propWebSearchResults])
 
   return (
     <section className="prose prose-sm dark:prose-invert max-w-none">

@@ -1,6 +1,6 @@
 import { ChatStatus, UseChatHelpers } from '@/hooks/use-chat'
 import { useUpload } from '@/hooks/use-upload'
-import { Attachment, ChatMessage, MessageUsage } from '@shared/types/chat'
+import type { Attachment, ChatMessage, Usage } from '@shared/types/chat'
 import { CircleStopIcon, SendIcon } from 'lucide-react'
 import {
   ChangeEvent,
@@ -46,7 +46,7 @@ function InputBox({
   messages: ChatMessage[]
   setMessages: UseChatHelpers['setMessages']
   sendMessage: UseChatHelpers['sendMessage']
-  lastUsage?: MessageUsage | null
+  lastUsage?: Usage | null
 }) {
   const { uploadFile } = useUpload()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -170,10 +170,12 @@ function InputBox({
       </div>
       {lastUsage && (
         <div className="text-muted-foreground mx-2 mb-1 flex gap-3 text-[11px]">
-          <span>↑ {lastUsage.inputTokens.toLocaleString()} in</span>
-          <span>↓ {lastUsage.outputTokens.toLocaleString()} out</span>
+          <span>↑ {lastUsage.input.toLocaleString()} in</span>
+          <span>↓ {lastUsage.output.toLocaleString()} out</span>
           <span>∑ {lastUsage.totalTokens.toLocaleString()} total</span>
-          {lastUsage.cost > 0 && <span>${lastUsage.cost.toFixed(4)}</span>}
+          {lastUsage.cost.total > 0 && (
+            <span>${lastUsage.cost.total.toFixed(4)}</span>
+          )}
         </div>
       )}
     </div>

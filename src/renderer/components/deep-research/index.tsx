@@ -45,7 +45,9 @@ export function DeepResearchProcess() {
       deepResearchMessages
         ?.map(
           (item) =>
-            item.message.params?.data as unknown as ReportProgressPayload
+            (item.message as Record<string, Record<string, unknown>>)[
+              'params'
+            ]?.['data'] as unknown as ReportProgressPayload
         )
         .filter((item) => item.type === DeepResearchProgress.EmitSearchResults)
         ?.map((item) => item.webSearchResults)
@@ -78,8 +80,12 @@ export function DeepResearchProcess() {
 
           if (!deepResearchMessage) return
 
-          const reportProgressPayload = deepResearchMessage?.message.params
-            ?.data as unknown as ReportProgressPayload
+          const reportProgressPayload = (
+            deepResearchMessage?.message as Record<
+              string,
+              Record<string, unknown>
+            >
+          )['params']?.['data'] as unknown as ReportProgressPayload
 
           if (
             reportProgressPayload.type ===

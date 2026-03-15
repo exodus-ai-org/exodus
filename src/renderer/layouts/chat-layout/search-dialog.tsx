@@ -76,16 +76,16 @@ export function SearchDialog() {
                     </p>
                     <p className="text-ring line-clamp-2 pt-1 text-xs">
                       {(() => {
-                        const textPart = item.parts
-                          .filter((p) => p.type === 'text')
-                          .find(
-                            (p): p is Extract<typeof p, { type: 'text' }> =>
-                              p.type === 'text' &&
-                              (p as { type: 'text'; text: string }).text !== ''
+                        const content = item.content
+                        if (typeof content === 'string') return content
+                        if (Array.isArray(content)) {
+                          const textBlock = content.find(
+                            (c): c is { type: 'text'; text: string } =>
+                              c.type === 'text' && c.text !== ''
                           )
-                        return textPart
-                          ? (textPart as { type: 'text'; text: string }).text
-                          : ''
+                          return textBlock ? textBlock.text : ''
+                        }
+                        return ''
                       })()}
                     </p>
                   </div>

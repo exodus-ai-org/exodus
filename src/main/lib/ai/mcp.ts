@@ -29,8 +29,7 @@ async function retrieveStdioMcpTools(
 
   const toolsResult = await client.listTools()
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const agentTools: AgentTool<any>[] = toolsResult.tools.map((mcpTool) => {
+  const agentTools: AgentTool[] = toolsResult.tools.map((mcpTool) => {
     // Convert JSON Schema to TypeBox using Type.Unsafe
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const schema = Type.Unsafe<any>(

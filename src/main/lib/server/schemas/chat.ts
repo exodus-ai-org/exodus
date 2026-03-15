@@ -11,31 +11,31 @@ export const createChatSchema = z.object({
 
 export const updateChatSchema = z.custom<Chat>()
 
-const textPartSchema = z.object({
-  type: z.enum(['text']),
-  text: z.string().min(1).max(2000)
+// pi-ai user message content
+const textContentSchema = z.object({
+  type: z.literal('text'),
+  text: z.string()
 })
 
-const filePartSchema = z.object({
-  type: z.enum(['file']),
-  mediaType: z.enum(['image/jpeg', 'image/png']),
-  name: z.string().min(1).max(100),
-  url: z.string().url()
+const imageContentSchema = z.object({
+  type: z.literal('image'),
+  data: z.string(),
+  mimeType: z.string()
 })
 
-const partSchema = z.union([textPartSchema, filePartSchema])
+const userContentSchema = z.union([textContentSchema, imageContentSchema])
 
 const userMessageSchema = z.object({
   id: z.uuid('v4'),
-  role: z.enum(['user']),
-  parts: z.array(partSchema)
+  role: z.literal('user'),
+  content: z.union([z.string(), z.array(userContentSchema)])
 })
 
-// For tool approval flows, we accept all messages (more permissive schema)
+// For all messages (more permissive schema - handles user, assistant, toolResult)
 const messageSchema = z.object({
   id: z.string(),
   role: z.string(),
-  parts: z.array(z.any())
+  content: z.any()
 })
 
 export const postRequestBodySchema = z.object({

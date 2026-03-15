@@ -1,4 +1,13 @@
-import { ChatMessage, MessagePart } from '@shared/types/chat'
+import type {
+  Api,
+  AssistantMessage,
+  Provider,
+  StopReason,
+  ToolResultMessage,
+  Usage,
+  UserMessage
+} from '@mariozechner/pi-ai'
+import type { ChatMessage } from '@shared/types/chat'
 import type { Message as DBMessage } from '@shared/types/db'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
@@ -30,11 +39,51 @@ export const convertFileToBase64 = (file: File): Promise<string> => {
 export function convertToUIMessages(
   messages: Array<DBMessage>
 ): Array<ChatMessage> {
-  return messages.map((message) => ({
-    id: message.id,
-    parts: message.parts as MessagePart[],
-    role: message.role as 'user' | 'assistant'
-  }))
+  return messages.map((dbMsg) => {
+    if (dbMsg.role === 'user') {
+      return {
+        id: dbMsg.id,
+        role: 'user' as const,
+        content: dbMsg.content as UserMessage['content'],
+        timestamp: new Date(dbMsg.createdAt).getTime()
+      }
+    }
+    if (dbMsg.role === 'assistant') {
+      const m = dbMsg as typeof dbMsg & {
+        usage?: Usage
+        api?: string
+        provider?: string
+        model?: string
+        stopReason?: string
+      }
+      return {
+        id: dbMsg.id,
+        role: 'assistant' as const,
+        content: dbMsg.content as AssistantMessage['content'],
+        usage: m.usage as Usage,
+        api: (m.api ?? '') as Api,
+        provider: (m.provider ?? '') as Provider,
+        model: m.model ?? '',
+        stopReason: (m.stopReason ?? 'stop') as StopReason,
+        timestamp: new Date(dbMsg.createdAt).getTime()
+      }
+    }
+    // toolResult
+    const m = dbMsg as typeof dbMsg & {
+      toolCallId?: string
+      toolName?: string
+      isError?: boolean
+    }
+    return {
+      id: dbMsg.id,
+      role: 'toolResult' as const,
+      toolCallId: m.toolCallId ?? '',
+      toolName: m.toolName ?? '',
+      content: dbMsg.content as ToolResultMessage['content'],
+      isError: m.isError ?? false,
+      timestamp: new Date(dbMsg.createdAt).getTime()
+    }
+  })
 }
 
 export function downloadFile(blob: Blob, fileName: string) {

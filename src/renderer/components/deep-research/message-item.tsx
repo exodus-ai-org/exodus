@@ -11,8 +11,9 @@ export function MessageItem({
 }: {
   deepResearchMessage: DeepResearchMessage
 }) {
-  const payload = deepResearchMessage.message.params
-    ?.data as unknown as ReportProgressPayload
+  const payload = (
+    deepResearchMessage.message as Record<string, Record<string, unknown>>
+  )['params']?.['data'] as unknown as ReportProgressPayload
 
   return (
     <>

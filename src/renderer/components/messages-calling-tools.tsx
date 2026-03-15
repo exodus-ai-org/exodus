@@ -1,4 +1,4 @@
-import { ToolCallPart } from '@shared/types/chat'
+import type { ChatToolResultMessage } from '@shared/types/chat'
 import { memo } from 'react'
 import { DeepResearchCard } from './calling-tools/deep-research/deep-research-card'
 import { GoogleMapsPlacesCard } from './calling-tools/google-maps-places/places-card'
@@ -7,12 +7,22 @@ import { TerminalCard } from './calling-tools/terminal/terminal-card'
 import { WeatherCard } from './calling-tools/weather/weather-card'
 import { WebSearchCard } from './calling-tools/web-search/web-search-card'
 
-function CallingTools({ toolInvocation }: { toolInvocation: ToolCallPart }) {
-  if (toolInvocation.state !== 'done') return null
-
-  const toolName = toolInvocation.toolName
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const output = toolInvocation.result as any
+function CallingTools({ toolResult }: { toolResult: ChatToolResultMessage }) {
+  const toolName = toolResult.toolName
+  const output =
+    toolResult.details ??
+    (() => {
+      // Fallback: parse content text if no details
+      const textBlock = toolResult.content.find((c) => c.type === 'text')
+      if (textBlock && textBlock.type === 'text') {
+        try {
+          return JSON.parse(textBlock.text)
+        } catch {
+          return textBlock.text
+        }
+      }
+      return null
+    })()
 
   return (
     <section className="mb-4">
@@ -41,6 +51,9 @@ function CallingTools({ toolInvocation }: { toolInvocation: ToolCallPart }) {
 export const MessageCallingTools = memo(
   CallingTools,
   (prevProps, nextProps) => {
-    return prevProps.toolInvocation.state === nextProps.toolInvocation.state
+    return (
+      prevProps.toolResult.toolCallId === nextProps.toolResult.toolCallId &&
+      prevProps.toolResult.isError === nextProps.toolResult.isError
+    )
   }
 )

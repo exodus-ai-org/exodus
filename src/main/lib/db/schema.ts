@@ -1,4 +1,4 @@
-import type { JSONRPCNotification } from '@modelcontextprotocol/sdk/types.js'
+import type { Usage } from '@mariozechner/pi-ai'
 import {
   AudioSchema,
   DeepResearchSchema,
@@ -45,15 +45,24 @@ export const message = pgTable(
     chatId: uuid('chatId')
       .notNull()
       .references(() => chat.id),
-    role: varchar('role').notNull(),
-    parts: json('parts').notNull(),
-    attachments: json('attachments').notNull(),
+    role: varchar('role').notNull(), // 'user' | 'assistant' | 'toolResult'
+    content: jsonb('content').notNull(), // content array for the message
+    // assistant-specific fields
+    usage: jsonb('usage').$type<Usage>(),
+    api: varchar('api'),
+    provider: varchar('provider'),
+    model: varchar('model'),
+    stopReason: varchar('stopReason'),
+    // toolResult-specific fields
+    toolCallId: varchar('toolCallId'),
+    toolName: varchar('toolName'),
+    isError: boolean('isError'),
     createdAt: timestamp('createdAt').defaultNow().notNull()
   },
   (table) => [
     index('message_search_index').using(
       'gin',
-      sql`to_tsvector('simple', ${table.parts})`
+      sql`to_tsvector('simple', ${table.content})`
     )
   ]
 )
@@ -128,7 +137,7 @@ export const deepResearchMessage = pgTable('DeepResearchMessage', {
   deepResearchId: uuid('deepResearchId')
     .notNull()
     .references(() => deepResearch.id),
-  message: json('message').notNull().$type<JSONRPCNotification>(),
+  message: json('message').notNull().$type<Record<string, unknown>>(),
   createdAt: timestamp('createdAt').defaultNow().notNull()
 })
 

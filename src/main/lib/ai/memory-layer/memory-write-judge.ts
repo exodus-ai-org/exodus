@@ -32,10 +32,22 @@ export async function runMemoryWriteJudge({
 }) {
   const conversationText = messages
     .map((m) => {
-      const text = m.parts
-        .filter((p) => p.type === 'text')
-        .map((p) => (p as { type: 'text'; text: string }).text)
-        .join('')
+      let text = ''
+      if (m.role === 'user') {
+        if (typeof m.content === 'string') {
+          text = m.content
+        } else {
+          text = m.content
+            .filter((c) => c.type === 'text')
+            .map((c) => (c as { type: 'text'; text: string }).text)
+            .join('')
+        }
+      } else if (m.role === 'assistant') {
+        text = m.content
+          .filter((c) => c.type === 'text')
+          .map((c) => (c as { type: 'text'; text: string }).text)
+          .join('')
+      }
       return `${m.role}: ${text}`
     })
     .join('\n')

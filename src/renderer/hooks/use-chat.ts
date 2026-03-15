@@ -1,11 +1,9 @@
-import {
+import type {
   Attachment,
+  ChatAssistantMessage,
   ChatMessage,
   ChatSseEvent,
-  FilePart,
-  MessagePart,
-  MessageUsage,
-  TextPart
+  Usage
 } from '@shared/types/chat'
 import { useCallback, useRef, useState } from 'react'
 import { v4 as uuidV4 } from 'uuid'
@@ -40,7 +38,7 @@ export interface UseChatHelpers {
     messages: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])
   ) => void
   status: ChatStatus
-  lastUsage: MessageUsage | null
+  lastUsage: Usage | null
   sendMessage: (opts: SendMessageOptions) => Promise<void>
   stop: () => void
   regenerate: () => void
@@ -60,7 +58,7 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
 
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages)
   const [status, setStatus] = useState<ChatStatus>('idle')
-  const [lastUsage, setLastUsage] = useState<MessageUsage | null>(null)
+  const [lastUsage, setLastUsage] = useState<Usage | null>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
   // Store the last user message for regeneration
   const lastUserMsgRef = useRef<SendMessageOptions | null>(null)
@@ -78,25 +76,31 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
       const { text = '', attachments = [] } = opts
       lastUserMsgRef.current = opts
 
-      // Build parts for user message
-      const parts: MessagePart[] = []
+      // Build pi-ai user message content
+      const content: Array<
+        | { type: 'text'; text: string }
+        | { type: 'image'; data: string; mimeType: string }
+      > = []
+
       if (text.trim()) {
-        parts.push({ type: 'text', text: text.trim() } as TextPart)
+        content.push({ type: 'text', text: text.trim() })
       }
       for (const att of attachments) {
-        parts.push({
-          type: 'file',
-          url: att.url,
-          mediaType: att.contentType,
-          filename: att.name
-        } as FilePart)
+        content.push({
+          type: 'image',
+          data: att.url,
+          mimeType: att.contentType
+        })
       }
 
       const userMsg: ChatMessage = {
         id: generateId(),
         role: 'user',
-        parts,
-        createdAt: new Date().toISOString()
+        content:
+          content.length === 1 && content[0].type === 'text'
+            ? content[0].text
+            : content,
+        timestamp: Date.now()
       }
 
       const newMessages = [...messages, userMsg]
@@ -174,7 +178,9 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
                 setMessages([...streamMessages])
                 const lastAssistant = [...streamMessages]
                   .reverse()
-                  .find((m) => m.role === 'assistant')
+                  .find(
+                    (m): m is ChatAssistantMessage => m.role === 'assistant'
+                  )
                 if (lastAssistant?.usage) setLastUsage(lastAssistant.usage)
               } else if (event.type === 'title') {
                 onTitle?.(event.title)

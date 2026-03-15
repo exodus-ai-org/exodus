@@ -2,8 +2,8 @@ import type { AgentTool } from '@mariozechner/pi-agent-core'
 import type { Model } from '@mariozechner/pi-ai'
 import { completeSimple } from '@mariozechner/pi-ai'
 import { AdvancedTools, AiProviders, McpTools } from '@shared/types/ai'
-import { ChatMessage, MessagePart } from '@shared/types/chat'
-import { formatISO } from 'date-fns'
+import type { ChatAssistantMessage, ChatMessage } from '@shared/types/chat'
+import { dbMessageToChatMessage } from '../../db/queries'
 import { DBMessage, Setting } from '../../db/schema'
 import {
   calculator,
@@ -77,19 +77,28 @@ export function getModelFromProvider(setting: Setting): {
 }
 
 export function getTextFromMessage(message: ChatMessage): string {
-  return message.parts
-    .filter((part) => part.type === 'text')
-    .map((part) => (part as { type: 'text'; text: string }).text)
+  if (message.role === 'user') {
+    if (typeof message.content === 'string') return message.content
+    return message.content
+      .filter((c) => c.type === 'text')
+      .map((c) => (c as { type: 'text'; text: string }).text)
+      .join('')
+  }
+  if (message.role === 'assistant') {
+    return message.content
+      .filter((c) => c.type === 'text')
+      .map((c) => (c as { type: 'text'; text: string }).text)
+      .join('')
+  }
+  // toolResult
+  return message.content
+    .filter((c) => c.type === 'text')
+    .map((c) => (c as { type: 'text'; text: string }).text)
     .join('')
 }
 
 export function convertToUIMessages(messages: DBMessage[]): ChatMessage[] {
-  return messages.map((message) => ({
-    id: message.id,
-    role: message.role as 'user' | 'assistant',
-    parts: message.parts as MessagePart[],
-    createdAt: formatISO(message.createdAt)
-  }))
+  return messages.map(dbMessageToChatMessage)
 }
 
 export async function generateTitleFromUserMessage({
@@ -128,7 +137,6 @@ export async function generateTitleFromUserMessage({
     .trim()
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function bindCallingTools({
   advancedTools,
   setting,
@@ -175,3 +183,6 @@ export function bindCallingTools({
 
   return [...mcpToolsList, ...tools]
 }
+
+// Unused export kept for backwards compat with chat route re-export
+export type { ChatAssistantMessage }

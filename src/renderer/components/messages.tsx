@@ -1,7 +1,7 @@
 import type { ChatStatus } from '@/hooks/use-chat'
 import { useSetting } from '@/hooks/use-setting'
 import { cn } from '@/lib/utils'
-import { ChatMessage } from '@shared/types/chat'
+import type { ChatMessage, ImageContent, TextContent } from '@shared/types/chat'
 import { Fragment, memo, useCallback, useEffect, useRef } from 'react'
 import Zoom from 'react-medium-image-zoom'
 import Markdown from './markdown'
@@ -59,7 +59,8 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
           <div
             key={message.id}
             className={cn('mb-8 flex flex-col last:mb-4', {
-              'items-start': message.role === 'assistant',
+              'items-start':
+                message.role === 'assistant' || message.role === 'toolResult',
               'items-end first:mt-0': message.role === 'user'
             })}
           >
@@ -74,95 +75,104 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
                   </Avatar>
                 )}
                 <div className="w-full">
-                  {message.parts.map((part, idx) => {
+                  {message.content.map((block, idx) => {
                     const key = `message-${message.id}-part-${idx}`
 
-                    if (part.type === 'thinking') {
-                      const hasContent = part.text?.trim().length > 0
+                    if (block.type === 'thinking') {
+                      const hasContent = block.thinking?.trim().length > 0
                       const isStreaming =
-                        isLoading && idx === message.parts.length - 1
+                        isLoading && idx === message.content.length - 1
                       if (hasContent || isStreaming) {
                         return (
                           <MessageReasoning
                             key={key}
                             isLoading={isLoading || isStreaming}
-                            reasoning={part.text}
+                            reasoning={block.thinking}
                           />
                         )
                       }
                     }
 
-                    if (part.type === 'text' && part.text.trim() !== '') {
+                    if (block.type === 'text' && block.text.trim() !== '') {
                       return (
                         <section
                           key={key}
                           className="group relative mb-16 last:mb-0"
                         >
-                          <Markdown src={part.text} parts={message.parts} />
+                          <Markdown src={block.text} parts={[]} />
                           <MessageAction
                             regenerate={regenerate}
-                            content={part.text}
+                            content={block.text}
                           />
                         </section>
                       )
                     }
 
-                    if (part.type === 'tool-call') {
-                      if (part.state === 'done') {
-                        return (
-                          <MessageCallingTools
-                            key={key}
-                            toolInvocation={part}
-                          />
-                        )
-                      } else {
-                        return (
-                          <ShimmeringText
-                            key={key}
-                            className="mb-4"
-                            text={`Calling tool: ${part.toolName}`}
-                          />
-                        )
-                      }
+                    if (block.type === 'toolCall') {
+                      return (
+                        <ShimmeringText
+                          key={key}
+                          className="mb-4"
+                          text={`Calling tool: ${block.name}`}
+                        />
+                      )
                     }
 
                     return <Fragment key={key} />
                   })}
+
+                  {message.usage && (
+                    <div className="text-muted-foreground mt-1 flex gap-3 text-[11px]">
+                      <span>↑ {message.usage.input.toLocaleString()} in</span>
+                      <span>↓ {message.usage.output.toLocaleString()} out</span>
+                      <span>
+                        ∑ {message.usage.totalTokens.toLocaleString()} total
+                      </span>
+                      {message.usage.cost.total > 0 && (
+                        <span>${message.usage.cost.total.toFixed(4)}</span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
+
+            {message.role === 'toolResult' && (
+              <MessageCallingTools toolResult={message} />
+            )}
+
             {message.role === 'user' && (
               <>
-                {message.parts.some((p) => p.type === 'file') && (
-                  <div className="mb-4 flex gap-4">
-                    {message.parts.map((part, i) => {
-                      if (
-                        part.type === 'file' &&
-                        part.mediaType?.startsWith('image')
-                      ) {
-                        return (
-                          <Zoom key={i}>
-                            <img
-                              className="max-h-96 max-w-64 rounded-lg object-cover"
-                              src={part.url}
-                              alt={part.filename ?? 'attachment'}
-                            />
-                          </Zoom>
-                        )
-                      }
-                      return null
-                    })}
-                  </div>
-                )}
+                {/* Images in user message */}
+                {Array.isArray(message.content) &&
+                  message.content.some((c) => c.type === 'image') && (
+                    <div className="mb-4 flex gap-4">
+                      {(
+                        message.content as Array<TextContent | ImageContent>
+                      ).map((part, i) => {
+                        if (part.type === 'image') {
+                          return (
+                            <Zoom key={i}>
+                              <img
+                                className="max-h-96 max-w-64 rounded-lg object-cover"
+                                src={part.data}
+                                alt="attachment"
+                              />
+                            </Zoom>
+                          )
+                        }
+                        return null
+                      })}
+                    </div>
+                  )}
 
                 <p className="bg-accent max-w-[60%] rounded-xl px-3 py-2 text-sm wrap-break-word whitespace-pre-wrap">
-                  {message.parts.map((part) => {
-                    if (part.type === 'text' && part.text !== '') {
-                      return part.text
-                    }
-
-                    return null
-                  })}
+                  {typeof message.content === 'string'
+                    ? message.content
+                    : (message.content as Array<TextContent | ImageContent>)
+                        .filter((c) => c.type === 'text')
+                        .map((c) => (c as TextContent).text)
+                        .join('')}
                 </p>
               </>
             )}
@@ -170,7 +180,7 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
         ))}
 
         {status === 'submitted' &&
-          messages[messages.length - 1].role !== 'assistant' && (
+          messages[messages.length - 1]?.role !== 'assistant' && (
             <MessageSpinner />
           )}
       </div>
