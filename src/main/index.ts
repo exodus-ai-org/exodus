@@ -1,5 +1,5 @@
 import { electronApp, optimizer } from '@electron-toolkit/utils'
-import { app, BrowserWindow, globalShortcut, nativeTheme } from 'electron'
+import { app, BrowserWindow, globalShortcut } from 'electron'
 import { setupAutoUpdater } from './lib/auto-updater'
 import { runMigrate } from './lib/db/migrate'
 import { getSetting } from './lib/db/queries'
@@ -9,9 +9,6 @@ import { connectHttpServer } from './lib/server/app'
 import { setServer } from './lib/server/instance'
 import { setTray } from './lib/tray'
 import { createWindow } from './lib/window'
-
-// Force dark vibrancy regardless of macOS system theme
-nativeTheme.themeSource = 'dark'
 
 app.whenReady().then(async () => {
   // Migrate PGlite

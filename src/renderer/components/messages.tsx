@@ -156,7 +156,7 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
                   </div>
                 )}
 
-                <p className="bg-accent max-w-[60%] rounded-xl px-3 py-2 wrap-break-word whitespace-pre-wrap">
+                <p className="bg-accent max-w-[60%] rounded-xl px-3 py-2 text-sm wrap-break-word whitespace-pre-wrap">
                   {message.parts.map((part) => {
                     if (part.type === 'text' && part.text !== '') {
                       return part.text

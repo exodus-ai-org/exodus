@@ -35,11 +35,18 @@ export function ChatTabs() {
           className={cn(
             'group relative flex shrink-0 items-center gap-1 px-3 text-xs whitespace-nowrap transition-colors',
             tab.id === activeId
-              ? 'text-foreground after:bg-primary after:absolute after:inset-x-0 after:bottom-0 after:h-0.5'
+              ? 'text-foreground after:bg-border after:absolute after:inset-x-0 after:bottom-0 after:h-0.5'
               : 'text-muted-foreground hover:text-foreground'
           )}
         >
-          <span className="max-w-32 truncate">{tab.title}</span>
+          <span
+            className={cn(
+              'max-w-32 truncate',
+              tab.id === activeId && 'font-semibold'
+            )}
+          >
+            {tab.title}
+          </span>
           <button
             onClick={(e) => closeTab(e, tab.id)}
             className="hover:text-foreground ml-0.5 rounded opacity-0 transition-opacity group-hover:opacity-100"

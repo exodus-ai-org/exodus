@@ -126,6 +126,10 @@
   }
 }
 
+@view-transition {
+  navigation: auto;
+}
+
 @layer utilities {
   .no-scrollbar::-webkit-scrollbar {
     display: none;
