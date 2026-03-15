@@ -1,6 +1,4 @@
 import { useClipboard } from '@/hooks/use-clipboard'
-import { UseChatHelpers } from '@ai-sdk/react'
-import { ChatMessage } from '@shared/types/chat'
 import {
   CheckIcon,
   CopyIcon,
@@ -58,7 +56,7 @@ export function MessageAction({
   regenerate
 }: {
   content: string
-  regenerate: UseChatHelpers<ChatMessage>['regenerate']
+  regenerate: () => void
 }) {
   const { copied, handleCopy } = useClipboard()
 

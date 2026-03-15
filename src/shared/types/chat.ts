@@ -1,42 +1,47 @@
-import type { InferUITool, UIMessage } from 'ai'
-import type { weather } from 'src/main/lib/ai/calling-tools/weather'
-import { z } from 'zod'
+export type TextPart = { type: 'text'; text: string }
+export type ThinkingPart = { type: 'thinking'; text: string }
+export type ToolCallPart = {
+  type: 'tool-call'
+  toolCallId: string
+  toolName: string
+  args: Record<string, unknown>
+  state: 'pending' | 'running' | 'done' | 'error'
+  result?: unknown
+}
+export type FilePart = {
+  type: 'file'
+  url: string
+  mediaType?: string
+  filename?: string
+}
+export type MessagePart = TextPart | ThinkingPart | ToolCallPart | FilePart
 
-export type DataPart = { type: 'append-message'; message: string }
-
-export const messageMetadataSchema = z.object({
-  createdAt: z.string()
-})
-
-export type MessageMetadata = z.infer<typeof messageMetadataSchema>
-
-type weatherTool = InferUITool<typeof weather>
-
-export type ChatTools = {
-  getWeather: weatherTool
+export type MessageUsage = {
+  inputTokens: number
+  outputTokens: number
+  totalTokens: number
+  cost: number
 }
 
-export type CustomUIDataTypes = {
-  textDelta: string
-  imageDelta: string
-  sheetDelta: string
-  codeDelta: string
-  appendMessage: string
+export type ChatMessage = {
   id: string
-  title: string
-  clear: null
-  finish: null
-  'chat-title': string
+  role: 'user' | 'assistant'
+  parts: MessagePart[]
+  usage?: MessageUsage
+  createdAt?: string
 }
-
-export type ChatMessage = UIMessage<
-  MessageMetadata,
-  CustomUIDataTypes,
-  ChatTools
->
 
 export type Attachment = {
   name: string
   url: string
   contentType: string
 }
+
+// SSE event types for streaming protocol
+export type ChatSseEvent =
+  | { type: 'message_update'; message: ChatMessage }
+  | { type: 'tool_start'; toolCallId: string; toolName: string; args: unknown }
+  | { type: 'tool_end'; toolCallId: string; result: unknown; isError: boolean }
+  | { type: 'done'; messages: ChatMessage[] }
+  | { type: 'title'; title: string }
+  | { type: 'error'; error: string }

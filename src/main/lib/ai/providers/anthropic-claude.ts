@@ -1,24 +1,34 @@
-import { AnthropicProvider, createAnthropic } from '@ai-sdk/anthropic'
+import type { Model } from '@mariozechner/pi-ai'
 import { Setting } from '@shared/types/db'
-import { EmbeddingModel, LanguageModel } from 'ai'
+import type { EmbeddingConfig } from './openai-gpt'
 
 export function getAnthropicClaude(setting: Setting): {
-  provider: AnthropicProvider
-  chatModel: LanguageModel
-  reasoningModel: LanguageModel
-  embeddingModel: EmbeddingModel | null
+  chatModel: Model<'anthropic-messages'>
+  reasoningModel: Model<'anthropic-messages'>
+  embeddingConfig: EmbeddingConfig | null
 } {
-  const anthropic = createAnthropic({
-    apiKey: setting.providers?.anthropicApiKey ?? '',
-    baseURL: setting.providers?.anthropicBaseUrl || undefined
+  const baseUrl =
+    setting.providers?.anthropicBaseUrl ?? 'https://api.anthropic.com'
+  const chatModelId = setting.providerConfig?.chatModel ?? 'claude-opus-4-5'
+  const reasoningModelId =
+    setting.providerConfig?.reasoningModel ?? 'claude-opus-4-5'
+
+  const makeModel = (id: string): Model<'anthropic-messages'> => ({
+    id,
+    name: id,
+    api: 'anthropic-messages',
+    provider: 'anthropic',
+    baseUrl,
+    reasoning: false,
+    input: ['text', 'image'],
+    cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+    contextWindow: 200000,
+    maxTokens: 8096
   })
 
   return {
-    provider: anthropic,
-    chatModel: anthropic(setting.providerConfig?.chatModel ?? ''),
-    reasoningModel: anthropic(setting.providerConfig?.reasoningModel ?? ''),
-    embeddingModel: anthropic.embeddingModel(
-      setting.providerConfig?.embeddingModel ?? ''
-    )
+    chatModel: makeModel(chatModelId),
+    reasoningModel: makeModel(reasoningModelId),
+    embeddingConfig: null
   }
 }

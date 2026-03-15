@@ -1,12 +1,11 @@
 import { AdvancedTools } from '@shared/types/ai'
 import { Chat } from '@shared/types/db'
-import { UIMessage } from 'ai'
 import { z } from 'zod'
 
 // Chat routes schemas
 export const createChatSchema = z.object({
   id: z.string(),
-  messages: z.array(z.custom<UIMessage>()),
+  messages: z.array(z.any()),
   advancedTools: z.array(z.enum(AdvancedTools))
 })
 

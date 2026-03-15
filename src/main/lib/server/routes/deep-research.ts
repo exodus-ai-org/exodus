@@ -1,4 +1,4 @@
-import { JSONRPCNotification } from '@ai-sdk/mcp'
+import type { JSONRPCNotification } from '@modelcontextprotocol/sdk/types.js'
 import {
   DeepResearchProgress,
   ReportProgressPayload
@@ -101,7 +101,7 @@ deepResearch.post('/', async (c) => {
 
   const braveApiKey = validateBraveApiKey(setting)
 
-  const { reasoningModel } = getModelFromProvider(setting)
+  const { reasoningModel, apiKey } = getModelFromProvider(setting)
 
   await notifyClients(deepResearchId, {
     type: DeepResearchProgress.StartDeepResearch
@@ -115,6 +115,7 @@ deepResearch.post('/', async (c) => {
     {
       braveApiKey,
       model: reasoningModel,
+      apiKey,
       notify: (data) => notifyClients(deepResearchId, data)
     }
   )
@@ -127,7 +128,7 @@ deepResearch.post('/', async (c) => {
       prompt: query,
       learnings
     },
-    { model: reasoningModel }
+    { model: reasoningModel, apiKey }
   )
 
   const deepResearchById = await getDeepResearchById({ id: deepResearchId })

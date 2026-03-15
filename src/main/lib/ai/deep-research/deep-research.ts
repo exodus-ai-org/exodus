@@ -1,3 +1,4 @@
+import type { Model } from '@mariozechner/pi-ai'
 import {
   DeepResearchProgress,
   Learning,
@@ -5,7 +6,6 @@ import {
   ReportProgressPayload
 } from '@shared/types/deep-research'
 import { WebSearchResult } from '@shared/types/web-search'
-import { LanguageModel } from 'ai'
 import { generateSerpQueries } from './generate-queries'
 import { processSerpResult } from './process-search-results'
 import { webSearch } from './web-search'
@@ -14,17 +14,19 @@ export async function deepResearch(
   { query, breadth, depth }: { query: string; breadth: number; depth: number },
   {
     model,
+    apiKey,
     braveApiKey,
     notify
   }: {
-    model: LanguageModel
+    model: Model<string>
+    apiKey: string
     braveApiKey: string
     notify: (payload: ReportProgressPayload) => Promise<void>
   }
 ) {
   const learnings: Learning[] = []
   const webSources: Map<string, WebSearchResult> = new Map()
-  const serpQueries = await generateSerpQueries({ query }, { model })
+  const serpQueries = await generateSerpQueries({ query }, { model, apiKey })
 
   await notify({
     type: DeepResearchProgress.EmitSearchQueries,
@@ -44,7 +46,8 @@ export async function deepResearch(
       {
         notify,
         braveApiKey,
-        model
+        model,
+        apiKey
       }
     )
   }
@@ -69,11 +72,13 @@ async function recursiveDeepResearch(
   {
     braveApiKey,
     model,
+    apiKey,
     notify
   }: {
     notify: (payload: ReportProgressPayload) => Promise<void>
     braveApiKey: string
-    model: LanguageModel
+    model: Model<string>
+    apiKey: string
   }
 ) {
   if (depth <= 0 || breadth <= 0) return
@@ -102,7 +107,7 @@ async function recursiveDeepResearch(
       searchResults,
       numFollowUpQuestions: newBreadth
     },
-    { model }
+    { model, apiKey }
   )
 
   await notify({
@@ -127,7 +132,7 @@ async function recursiveDeepResearch(
       learnings,
       numQueries: newBreadth
     },
-    { model }
+    { model, apiKey }
   )
 
   await notify({
@@ -149,7 +154,8 @@ async function recursiveDeepResearch(
       {
         notify,
         braveApiKey,
-        model
+        model,
+        apiKey
       }
     )
   }

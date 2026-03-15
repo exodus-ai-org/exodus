@@ -1,25 +1,32 @@
-import { tool } from 'ai'
+import type { AgentTool } from '@mariozechner/pi-agent-core'
+import { Type } from '@mariozechner/pi-ai'
 import { Parser } from 'expr-eval'
-import { z } from 'zod'
 
-export const calculator = tool({
+const calculatorSchema = Type.Object({
+  expression: Type.String({
+    description:
+      'A valid mathematical expression, e.g. "2 + 2", "sqrt(144)", "sin(PI/2)".'
+  })
+})
+
+export const calculator: AgentTool<typeof calculatorSchema> = {
+  name: 'calculator',
+  label: 'Calculator',
   description:
     'Evaluate a mathematical expression and return the numeric result. Supports arithmetic, exponentiation, trigonometry, and common math functions.',
-  inputSchema: z.object({
-    expression: z
-      .string()
-      .describe(
-        'A valid mathematical expression, e.g. "2 + 2", "sqrt(144)", "sin(PI/2)".'
-      )
-  }),
-  execute: async ({ expression }) => {
+  parameters: calculatorSchema,
+  execute: async (_toolCallId, { expression }) => {
     try {
       const result = Parser.evaluate(expression)
-      return { expression, result: result.toString() }
+      const details = { expression, result: result.toString() }
+      return {
+        content: [{ type: 'text' as const, text: JSON.stringify(details) }],
+        details
+      }
     } catch (e) {
       throw new Error(
         e instanceof Error ? e.message : 'Failed to evaluate expression'
       )
     }
   }
-})
+}

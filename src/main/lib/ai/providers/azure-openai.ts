@@ -1,25 +1,36 @@
-import { AzureOpenAIProvider, createAzure } from '@ai-sdk/azure'
+import type { Model } from '@mariozechner/pi-ai'
 import { Setting } from '@shared/types/db'
-import { EmbeddingModel, LanguageModel } from 'ai'
+import type { EmbeddingConfig } from './openai-gpt'
 
 export function getAzureOpenAi(setting: Setting): {
-  provider: AzureOpenAIProvider
-  chatModel: LanguageModel
-  reasoningModel: LanguageModel
-  embeddingModel: EmbeddingModel | null
+  chatModel: Model<'azure-openai-responses'>
+  reasoningModel: Model<'azure-openai-responses'>
+  embeddingConfig: EmbeddingConfig | null
 } {
-  const azure = createAzure({
-    apiKey: setting.providers?.azureOpenaiApiKey ?? '',
-    baseURL: setting.providers?.azureOpenAiEndpoint ?? '',
-    apiVersion: setting.providers?.azureOpenAiApiVersion ?? ''
+  const apiKey = setting.providers?.azureOpenaiApiKey ?? ''
+  const baseUrl = setting.providers?.azureOpenAiEndpoint ?? ''
+  const chatModelId = setting.providerConfig?.chatModel ?? 'gpt-4o'
+  const reasoningModelId = setting.providerConfig?.reasoningModel ?? 'o1'
+  const embeddingModelId = setting.providerConfig?.embeddingModel ?? ''
+
+  const makeModel = (id: string): Model<'azure-openai-responses'> => ({
+    id,
+    name: id,
+    api: 'azure-openai-responses',
+    provider: 'azure-openai-responses',
+    baseUrl,
+    reasoning: false,
+    input: ['text', 'image'],
+    cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+    contextWindow: 128000,
+    maxTokens: 16384
   })
 
   return {
-    provider: azure,
-    chatModel: azure(setting.providerConfig?.chatModel ?? ''),
-    reasoningModel: azure(setting.providerConfig?.reasoningModel ?? ''),
-    embeddingModel: azure.embeddingModel(
-      setting.providerConfig?.embeddingModel ?? ''
-    )
+    chatModel: makeModel(chatModelId),
+    reasoningModel: makeModel(reasoningModelId),
+    embeddingConfig: embeddingModelId
+      ? { apiKey, model: embeddingModelId, baseUrl }
+      : null
   }
 }

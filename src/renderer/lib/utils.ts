@@ -1,5 +1,5 @@
+import { ChatMessage, MessagePart } from '@shared/types/chat'
 import type { Message as DBMessage } from '@shared/types/db'
-import type { UIMessage } from 'ai'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function getMostRecentUserMessage(messages: Array<UIMessage>) {
+export function getMostRecentUserMessage(messages: Array<ChatMessage>) {
   const userMessages = messages.filter((message) => message.role === 'user')
   return userMessages.at(-1)
 }
@@ -29,11 +29,11 @@ export const convertFileToBase64 = (file: File): Promise<string> => {
 
 export function convertToUIMessages(
   messages: Array<DBMessage>
-): Array<UIMessage> {
+): Array<ChatMessage> {
   return messages.map((message) => ({
     id: message.id,
-    parts: message.parts as UIMessage['parts'],
-    role: message.role as UIMessage['role']
+    parts: message.parts as MessagePart[],
+    role: message.role as 'user' | 'assistant'
   }))
 }
 

@@ -1,8 +1,7 @@
+import type { ChatStatus } from '@/hooks/use-chat'
 import { useSetting } from '@/hooks/use-setting'
 import { cn } from '@/lib/utils'
-import { UseChatHelpers } from '@ai-sdk/react'
 import { ChatMessage } from '@shared/types/chat'
-import { getStaticToolName, isStaticToolUIPart } from 'ai'
 import { Fragment, memo, useCallback, useEffect, useRef } from 'react'
 import Zoom from 'react-medium-image-zoom'
 import Markdown from './markdown'
@@ -14,9 +13,9 @@ import { ShimmeringText } from './shimmering-text'
 import { Avatar, AvatarImage } from './ui/avatar'
 
 type MessagesProps = {
-  status: UseChatHelpers<ChatMessage>['status']
+  status: ChatStatus
   messages: ChatMessage[]
-  regenerate: UseChatHelpers<ChatMessage>['regenerate']
+  regenerate: () => void
 }
 
 function Messages({ status, messages, regenerate }: MessagesProps) {
@@ -78,10 +77,10 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
                   {message.parts.map((part, idx) => {
                     const key = `message-${message.id}-part-${idx}`
 
-                    if (part.type === 'reasoning') {
+                    if (part.type === 'thinking') {
                       const hasContent = part.text?.trim().length > 0
                       const isStreaming =
-                        'state' in part && part.state === 'streaming'
+                        isLoading && idx === message.parts.length - 1
                       if (hasContent || isStreaming) {
                         return (
                           <MessageReasoning
@@ -108,8 +107,8 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
                       )
                     }
 
-                    if (isStaticToolUIPart(part)) {
-                      if (part.state === 'output-available') {
+                    if (part.type === 'tool-call') {
+                      if (part.state === 'done') {
                         return (
                           <MessageCallingTools
                             key={key}
@@ -121,7 +120,7 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
                           <ShimmeringText
                             key={key}
                             className="mb-4"
-                            text={`Calling tool: ${getStaticToolName(part)}`}
+                            text={`Calling tool: ${part.toolName}`}
                           />
                         )
                       }

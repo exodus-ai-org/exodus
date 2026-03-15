@@ -7,7 +7,7 @@ import {
 } from '@/components/ui/dialog'
 import { useDebouncedValue } from '@/hooks/use-debounce'
 import { isFullTextSearchVisibleAtom } from '@/stores/chat'
-import { UIMessage } from 'ai'
+import { ChatMessage } from '@shared/types/chat'
 import { useAtom } from 'jotai'
 import { SearchIcon } from 'lucide-react'
 import { useState } from 'react'
@@ -25,12 +25,11 @@ export function SearchDialog() {
     setQuery(value)
   }
 
-  const { data } = useSWR<Array<UIMessage & { title: string; chatId: string }>>(
-    query ? `/api/chat/search?query=${debouncedValue}` : null,
-    {
-      fallbackData: []
-    }
-  )
+  const { data } = useSWR<
+    Array<ChatMessage & { title: string; chatId: string }>
+  >(query ? `/api/chat/search?query=${debouncedValue}` : null, {
+    fallbackData: []
+  })
 
   return (
     <Dialog
@@ -76,11 +75,18 @@ export function SearchDialog() {
                       {item.title}
                     </p>
                     <p className="text-ring line-clamp-2 pt-1 text-xs">
-                      {
-                        item.parts
-                          .filter((item) => item.type === 'text')
-                          .find((item) => item.text !== '')?.text
-                      }
+                      {(() => {
+                        const textPart = item.parts
+                          .filter((p) => p.type === 'text')
+                          .find(
+                            (p): p is Extract<typeof p, { type: 'text' }> =>
+                              p.type === 'text' &&
+                              (p as { type: 'text'; text: string }).text !== ''
+                          )
+                        return textPart
+                          ? (textPart as { type: 'text'; text: string }).text
+                          : ''
+                      })()}
                     </p>
                   </div>
                 </Link>

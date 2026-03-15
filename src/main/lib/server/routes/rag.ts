@@ -19,14 +19,14 @@ const rag = new Hono<{ Variables: Variables }>()
 
 rag.post('/retrieve', async (c) => {
   const setting = c.get('setting')
-  const { embeddingModel } = getModelFromProvider(setting)
-  const validatedModel = validateEmbeddingModel(embeddingModel)
+  const { embeddingConfig } = getModelFromProvider(setting)
+  const validatedConfig = validateEmbeddingModel(embeddingConfig)
 
   try {
     const { question } = await c.req.json()
     const result = await findRelevantContent(
       { userQuery: question },
-      { model: validatedModel }
+      validatedConfig
     )
 
     return successResponse(c, result)
@@ -44,8 +44,8 @@ rag.post('/retrieve', async (c) => {
 rag.post('/', async (c) => {
   const formData = await c.req.formData()
   const setting = c.get('setting')
-  const { embeddingModel } = getModelFromProvider(setting)
-  const validatedModel = validateEmbeddingModel(embeddingModel)
+  const { embeddingConfig } = getModelFromProvider(setting)
+  const validatedConfig = validateEmbeddingModel(embeddingConfig)
 
   try {
     const files = formData.getAll('files') as File[]
@@ -57,7 +57,7 @@ rag.post('/', async (c) => {
       const content = await loadFileContent(file)
       const splitter = getSplitter(content)
       const chunks = await splitter.splitText(content)
-      await createResource({ content, chunks }, { model: validatedModel })
+      await createResource({ content, chunks }, validatedConfig)
     }
 
     return successResponse(c, { success: true })

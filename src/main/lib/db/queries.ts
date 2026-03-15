@@ -1,7 +1,10 @@
-import { EmbeddingModel } from 'ai'
 import { and, asc, cosineDistance, desc, eq, gt, sql } from 'drizzle-orm'
 import { v4 as uuidV4 } from 'uuid'
-import { generateEmbedding, generateEmbeddings } from '../ai/rag'
+import {
+  EmbeddingConfig,
+  generateEmbedding,
+  generateEmbeddings
+} from '../ai/rag'
 import { ChatSDKError } from '../server/errors'
 import { db, pglite } from './db'
 import {
@@ -203,11 +206,11 @@ export async function updateSetting(payload: Setting) {
 
 export const findRelevantContent = async (
   { userQuery }: { userQuery: string },
-  { model }: { model: EmbeddingModel }
+  config: EmbeddingConfig
 ) => {
   const userQueryEmbedded = await generateEmbedding(
     { value: userQuery },
-    { model }
+    config
   )
   const similarity = sql<number>`1 - (${cosineDistance(
     embedding.embedding,
@@ -299,7 +302,7 @@ function toPgVector(arr: number[]) {
 
 export const createResource = async (
   { content, chunks }: { content: string; chunks: string[] },
-  { model }: { model: EmbeddingModel }
+  config: EmbeddingConfig
 ) => {
   try {
     const [currResource] = await db
@@ -307,7 +310,7 @@ export const createResource = async (
       .values({ content })
       .returning()
 
-    const embeddings = await generateEmbeddings({ chunks }, { model })
+    const embeddings = await generateEmbeddings({ chunks }, config)
     await db.insert(embedding).values(
       embeddings.map(({ embedding, content }) => ({
         id: uuidV4(),

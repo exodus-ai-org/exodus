@@ -1,4 +1,4 @@
-import { getStaticToolName } from 'ai'
+import { ToolCallPart } from '@shared/types/chat'
 import { memo } from 'react'
 import { DeepResearchCard } from './calling-tools/deep-research/deep-research-card'
 import { GoogleMapsPlacesCard } from './calling-tools/google-maps-places/places-card'
@@ -7,12 +7,12 @@ import { TerminalCard } from './calling-tools/terminal/terminal-card'
 import { WeatherCard } from './calling-tools/weather/weather-card'
 import { WebSearchCard } from './calling-tools/web-search/web-search-card'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function CallingTools({ toolInvocation }: { toolInvocation: any }) {
-  if (toolInvocation.state !== 'output-available') return null
+function CallingTools({ toolInvocation }: { toolInvocation: ToolCallPart }) {
+  if (toolInvocation.state !== 'done') return null
 
-  const toolName = getStaticToolName(toolInvocation)
-  const output = toolInvocation.output
+  const toolName = toolInvocation.toolName
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const output = toolInvocation.result as any
 
   return (
     <section className="mb-4">

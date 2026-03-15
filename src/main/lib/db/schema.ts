@@ -1,4 +1,4 @@
-import { JSONRPCNotification } from '@ai-sdk/mcp'
+import type { JSONRPCNotification } from '@modelcontextprotocol/sdk/types.js'
 import {
   AudioSchema,
   DeepResearchSchema,

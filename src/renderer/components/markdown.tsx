@@ -1,7 +1,7 @@
 import { useClipboard } from '@/hooks/use-clipboard'
 import { cn } from '@/lib/utils'
+import { MessagePart, ToolCallPart } from '@shared/types/chat'
 import { WebSearchResult } from '@shared/types/web-search'
-import { getStaticToolName, isStaticToolUIPart, type UIMessage } from 'ai'
 import 'katex/dist/katex.min.css'
 import { CheckIcon, CopyIcon } from 'lucide-react'
 import { memo, ReactNode, useMemo } from 'react'
@@ -101,7 +101,7 @@ export function Markdown({
   parts
 }: {
   src: string
-  parts: UIMessage['parts']
+  parts: MessagePart[]
 }) {
   const { copied, handleCopy } = useClipboard()
   const { actualTheme } = useTheme()
@@ -109,15 +109,12 @@ export function Markdown({
   const webSearchResults = useMemo(() => {
     try {
       const toolPart = parts.find(
-        (part) =>
-          isStaticToolUIPart(part) && getStaticToolName(part) === 'webSearch'
+        (part): part is ToolCallPart =>
+          part.type === 'tool-call' && part.toolName === 'webSearch'
       )
-      if (
-        toolPart &&
-        isStaticToolUIPart(toolPart) &&
-        toolPart.state === 'output-available'
-      ) {
-        return toolPart.output as WebSearchResult[]
+      if (toolPart && toolPart.state === 'done') {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return toolPart.result as any as WebSearchResult[]
       }
       return undefined
     } catch {

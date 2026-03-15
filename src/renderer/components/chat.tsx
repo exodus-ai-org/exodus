@@ -1,10 +1,9 @@
+import { useChat } from '@/hooks/use-chat'
 import { bringWindowToFront, subscribeQuickChatInput } from '@/lib/ipc'
 import { advancedToolsAtom } from '@/stores/chat'
-import { useChat } from '@ai-sdk/react'
 import { QUICK_CHAT_KEY } from '@shared/constants/misc'
 import { BASE_URL } from '@shared/constants/systems'
 import { Attachment, ChatMessage } from '@shared/types/chat'
-import { DefaultChatTransport, type UIMessage } from 'ai'
 import { IpcRendererEvent } from 'electron'
 import { useAtomValue } from 'jotai'
 import { useEffect, useRef, useState } from 'react'
@@ -16,7 +15,7 @@ import MultimodalInput from './multimodel-input'
 
 interface Props {
   id: string
-  initialMessages: UIMessage[]
+  initialMessages: ChatMessage[]
 }
 
 export function Chat({ id, initialMessages }: Props) {
@@ -28,35 +27,38 @@ export function Chat({ id, initialMessages }: Props) {
   const [input, setInput] = useState(quickChat ?? '')
   const [attachments, setAttachments] = useState<Attachment[]>([])
 
-  const { messages, setMessages, sendMessage, status, stop, regenerate } =
-    useChat<ChatMessage>({
-      transport: new DefaultChatTransport({
-        api: `${BASE_URL}/api/chat`,
-        prepareSendMessagesRequest: ({ id, messages, body }) => ({
-          body: {
-            ...body,
-            id,
-            messages,
-            advancedTools: advancedToolsRef.current
-          }
-        })
-      }),
+  const {
+    messages,
+    setMessages,
+    sendMessage,
+    status,
+    stop,
+    regenerate,
+    lastUsage
+  } = useChat({
+    id,
+    api: `${BASE_URL}/api/chat`,
+    messages: initialMessages,
+    generateId: uuidV4,
+    prepareBody: ({ id, messages, body }) => ({
+      ...body,
       id,
-      messages: initialMessages as ChatMessage[],
-      generateId: uuidV4,
-      onFinish: () => {
-        mutate('/api/history')
-      },
-      onError: (e) => {
-        sileo.error({
-          title: 'Something went wrong',
-          description:
-            e instanceof Error
-              ? e.message
-              : 'An error occurred, please try again!'
-        })
-      }
-    })
+      messages,
+      advancedTools: advancedToolsRef.current
+    }),
+    onFinish: () => {
+      mutate('/api/history')
+    },
+    onError: (e) => {
+      sileo.error({
+        title: 'Something went wrong',
+        description:
+          e instanceof Error
+            ? e.message
+            : 'An error occurred, please try again!'
+      })
+    }
+  })
 
   useEffect(() => {
     return () => {
@@ -91,6 +93,7 @@ export function Chat({ id, initialMessages }: Props) {
         messages={messages}
         setMessages={setMessages}
         sendMessage={sendMessage}
+        lastUsage={lastUsage}
       />
     </>
   )

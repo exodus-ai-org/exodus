@@ -1,5 +1,5 @@
-import { tool } from 'ai'
-import { z } from 'zod'
+import type { AgentTool } from '@mariozechner/pi-agent-core'
+import { Type } from '@mariozechner/pi-ai'
 
 const MAX_CONTENT_LENGTH = 50_000
 
@@ -18,23 +18,26 @@ function htmlToText(html: string): string {
     .trim()
 }
 
-export const webFetch = tool({
+const webFetchSchema = Type.Object({
+  url: Type.String({ description: 'The URL to fetch.' }),
+  raw: Type.Optional(
+    Type.Boolean({
+      description:
+        'If true, return raw response without HTML-to-text conversion. Useful for JSON APIs or plain text files. Default: false.'
+    })
+  )
+})
+
+export const webFetch: AgentTool<typeof webFetchSchema> = {
+  name: 'webFetch',
+  label: 'Web Fetch',
   description:
     'Fetch the content of a URL and return it as text. ' +
     'Use this to read documentation pages, API references, GitHub files, or any web page. ' +
     'HTML pages are automatically converted to plain text. ' +
     'Do not use this for web search — use webSearch instead.',
-  inputSchema: z.object({
-    url: z.string().url().describe('The URL to fetch.'),
-    raw: z
-      .boolean()
-      .optional()
-      .default(false)
-      .describe(
-        'If true, return raw response without HTML-to-text conversion. Useful for JSON APIs or plain text files. Default: false.'
-      )
-  }),
-  execute: async ({ url, raw }) => {
+  parameters: webFetchSchema,
+  execute: async (_toolCallId, { url, raw }) => {
     let response: Response
     try {
       response = await fetch(url, {
@@ -70,12 +73,16 @@ export const webFetch = tool({
       text = text.slice(0, MAX_CONTENT_LENGTH)
     }
 
-    return {
+    const details = {
       url,
       contentType,
       length: text.length,
       truncated,
       content: text
     }
+    return {
+      content: [{ type: 'text' as const, text: JSON.stringify(details) }],
+      details
+    }
   }
-})
+}

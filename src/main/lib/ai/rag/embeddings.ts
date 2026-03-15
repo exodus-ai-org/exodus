@@ -1,32 +1,55 @@
-import { embed, EmbeddingModel, embedMany } from 'ai'
-
 export interface Embedding {
   embedding: number[]
   content: string
 }
 
+export interface EmbeddingConfig {
+  apiKey: string
+  model: string
+  baseUrl?: string
+}
+
 // transform user's prompt to embedding vector
 export const generateEmbedding = async (
   { value }: { value: string },
-  { model }: { model: EmbeddingModel }
+  config: EmbeddingConfig
 ): Promise<number[]> => {
   const input = value.replaceAll('\\n', ' ')
-  const { embedding } = await embed({
-    model,
-    value: input
+  const baseUrl = config.baseUrl ?? 'https://api.openai.com/v1'
+  const response = await fetch(`${baseUrl}/embeddings`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${config.apiKey}`
+    },
+    body: JSON.stringify({ model: config.model, input })
   })
-  return embedding
+  if (!response.ok) throw new Error(`Embedding API error: ${response.status}`)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data = (await response.json()) as any
+  return data.data[0].embedding
 }
 
 // batch transform knowledge bases to embedding vector
 export const generateEmbeddings = async (
   { chunks }: { chunks: string[] },
-  { model }: { model: EmbeddingModel }
+  config: EmbeddingConfig
 ): Promise<Embedding[]> => {
-  const { embeddings } = await embedMany({
-    model,
-    values: chunks
+  const baseUrl = config.baseUrl ?? 'https://api.openai.com/v1'
+  const response = await fetch(`${baseUrl}/embeddings`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${config.apiKey}`
+    },
+    body: JSON.stringify({ model: config.model, input: chunks })
   })
-
-  return embeddings.map((e, i) => ({ content: chunks[i], embedding: e }))
+  if (!response.ok) throw new Error(`Embeddings API error: ${response.status}`)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data = (await response.json()) as any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return data.data.map((item: any, i: number) => ({
+    content: chunks[i],
+    embedding: item.embedding
+  }))
 }

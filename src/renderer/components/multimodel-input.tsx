@@ -1,6 +1,6 @@
+import { ChatStatus, UseChatHelpers } from '@/hooks/use-chat'
 import { useUpload } from '@/hooks/use-upload'
-import { UIMessage, UseChatHelpers } from '@ai-sdk/react'
-import { Attachment, ChatMessage } from '@shared/types/chat'
+import { Attachment, ChatMessage, MessageUsage } from '@shared/types/chat'
 import { CircleStopIcon, SendIcon } from 'lucide-react'
 import {
   ChangeEvent,
@@ -33,18 +33,20 @@ function InputBox({
   setAttachments,
   // messages,
   // setMessages,
-  sendMessage
+  sendMessage,
+  lastUsage
 }: {
   chatId: string
   input: string
   setInput: Dispatch<SetStateAction<string>>
-  status: UseChatHelpers<ChatMessage>['status']
+  status: ChatStatus
   stop: () => void
   attachments: Attachment[]
   setAttachments: Dispatch<SetStateAction<Attachment[]>>
-  messages: UIMessage[]
-  setMessages: UseChatHelpers<ChatMessage>['setMessages']
-  sendMessage: UseChatHelpers<ChatMessage>['sendMessage']
+  messages: ChatMessage[]
+  setMessages: UseChatHelpers['setMessages']
+  sendMessage: UseChatHelpers['sendMessage']
+  lastUsage?: MessageUsage | null
 }) {
   const { uploadFile } = useUpload()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -92,19 +94,8 @@ function InputBox({
     window.history.replaceState({}, '', `/chat/${chatId}`)
 
     sendMessage({
-      role: 'user',
-      parts: [
-        ...attachments.map((attachment) => ({
-          type: 'file' as const,
-          url: attachment.url,
-          name: attachment.name,
-          mediaType: attachment.contentType
-        })),
-        {
-          type: 'text',
-          text: input
-        }
-      ]
+      text: input,
+      attachments
     })
 
     setAttachments([])
@@ -177,6 +168,14 @@ function InputBox({
           </>
         )}
       </div>
+      {lastUsage && (
+        <div className="text-muted-foreground mx-2 mb-1 flex gap-3 text-[11px]">
+          <span>↑ {lastUsage.inputTokens.toLocaleString()} in</span>
+          <span>↓ {lastUsage.outputTokens.toLocaleString()} out</span>
+          <span>∑ {lastUsage.totalTokens.toLocaleString()} total</span>
+          {lastUsage.cost > 0 && <span>${lastUsage.cost.toFixed(4)}</span>}
+        </div>
+      )}
     </div>
   )
 }

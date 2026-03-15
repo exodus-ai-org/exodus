@@ -1,24 +1,42 @@
-import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
+import type { Model } from '@mariozechner/pi-ai'
 import { Setting } from '@shared/types/db'
-import { EmbeddingModel, LanguageModel } from 'ai'
+
+export interface EmbeddingConfig {
+  apiKey: string
+  model: string
+  baseUrl?: string
+}
 
 export function getOpenAi(setting: Setting): {
-  provider: OpenAIProvider
-  chatModel: LanguageModel
-  reasoningModel: LanguageModel
-  embeddingModel: EmbeddingModel | null
+  chatModel: Model<'openai-completions'>
+  reasoningModel: Model<'openai-completions'>
+  embeddingConfig: EmbeddingConfig | null
 } {
-  const openai = createOpenAI({
-    apiKey: setting.providers?.openaiApiKey ?? '',
-    baseURL: setting.providers?.openaiBaseUrl || undefined
+  const apiKey = setting.providers?.openaiApiKey ?? ''
+  const baseUrl =
+    setting.providers?.openaiBaseUrl ?? 'https://api.openai.com/v1'
+  const chatModelId = setting.providerConfig?.chatModel ?? 'gpt-4o'
+  const reasoningModelId = setting.providerConfig?.reasoningModel ?? 'o1'
+  const embeddingModelId = setting.providerConfig?.embeddingModel ?? ''
+
+  const makeModel = (id: string): Model<'openai-completions'> => ({
+    id,
+    name: id,
+    api: 'openai-completions',
+    provider: 'openai',
+    baseUrl,
+    reasoning: false,
+    input: ['text', 'image'],
+    cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+    contextWindow: 128000,
+    maxTokens: 16384
   })
 
   return {
-    provider: openai,
-    chatModel: openai(setting.providerConfig?.chatModel ?? ''),
-    reasoningModel: openai(setting.providerConfig?.reasoningModel ?? ''),
-    embeddingModel: openai.embeddingModel(
-      setting.providerConfig?.embeddingModel ?? ''
-    )
+    chatModel: makeModel(chatModelId),
+    reasoningModel: makeModel(reasoningModelId),
+    embeddingConfig: embeddingModelId
+      ? { apiKey, model: embeddingModelId, baseUrl }
+      : null
   }
 }

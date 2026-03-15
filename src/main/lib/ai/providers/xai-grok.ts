@@ -1,30 +1,32 @@
-import { createXai, XaiProvider } from '@ai-sdk/xai'
+import type { Model } from '@mariozechner/pi-ai'
 import { Setting } from '@shared/types/db'
-import {
-  EmbeddingModel,
-  extractReasoningMiddleware,
-  LanguageModel,
-  wrapLanguageModel
-} from 'ai'
+import type { EmbeddingConfig } from './openai-gpt'
 
 export function getXaiGrok(setting: Setting): {
-  provider: XaiProvider
-  chatModel: LanguageModel
-  reasoningModel: LanguageModel
-  embeddingModel: EmbeddingModel | null
+  chatModel: Model<'openai-completions'>
+  reasoningModel: Model<'openai-completions'>
+  embeddingConfig: EmbeddingConfig | null
 } {
-  const xai = createXai({
-    apiKey: setting.providers?.xAiApiKey ?? '',
-    baseURL: setting.providers?.xAiBaseUrl ?? undefined
+  const baseUrl = setting.providers?.xAiBaseUrl ?? 'https://api.x.ai/v1'
+  const chatModelId = setting.providerConfig?.chatModel ?? 'grok-2'
+  const reasoningModelId = setting.providerConfig?.reasoningModel ?? 'grok-2'
+
+  const makeModel = (id: string): Model<'openai-completions'> => ({
+    id,
+    name: id,
+    api: 'openai-completions',
+    provider: 'xai',
+    baseUrl,
+    reasoning: false,
+    input: ['text', 'image'],
+    cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+    contextWindow: 131072,
+    maxTokens: 16384
   })
 
   return {
-    provider: xai,
-    chatModel: xai(setting.providerConfig?.chatModel ?? ''),
-    reasoningModel: wrapLanguageModel({
-      model: xai(setting.providerConfig?.reasoningModel ?? ''),
-      middleware: extractReasoningMiddleware({ tagName: 'think' })
-    }),
-    embeddingModel: null
+    chatModel: makeModel(chatModelId),
+    reasoningModel: makeModel(reasoningModelId),
+    embeddingConfig: null
   }
 }

@@ -1,4 +1,4 @@
-import { Tool } from 'ai'
+import type { AgentTool } from '@mariozechner/pi-agent-core'
 
 export enum AiProviders {
   OpenAiGpt = 'OpenAI GPT',
@@ -17,5 +17,6 @@ export enum AdvancedTools {
 
 export interface McpTools {
   mcpServerName: string
-  tools: Record<string, Tool>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  tools: AgentTool<any>[]
 }

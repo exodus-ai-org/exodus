@@ -1,15 +1,19 @@
-import { tool } from 'ai'
-import { z } from 'zod'
+import type { AgentTool } from '@mariozechner/pi-agent-core'
+import { Type } from '@mariozechner/pi-ai'
 
-export const weather = tool({
+const weatherSchema = Type.Object({
+  location: Type.String({
+    description: 'City name or location, e.g. "Tokyo", "New York, NY".'
+  })
+})
+
+export const weather: AgentTool<typeof weatherSchema> = {
+  name: 'weather',
+  label: 'Weather',
   description:
     'Get current weather conditions and a short forecast for a location.',
-  inputSchema: z.object({
-    location: z
-      .string()
-      .describe('City name or location, e.g. "Tokyo", "New York, NY".')
-  }),
-  execute: async ({ location }) => {
+  parameters: weatherSchema,
+  execute: async (_toolCallId, { location }) => {
     const response = await fetch(
       `https://wttr.in/${encodeURIComponent(location)}?format=j1`
     )
@@ -22,7 +26,7 @@ export const weather = tool({
     const current = raw.current_condition?.[0]
     const area = raw.nearest_area?.[0]
 
-    return {
+    const details = {
       location: [area?.areaName?.[0]?.value, area?.country?.[0]?.value]
         .filter(Boolean)
         .join(', '),
@@ -60,5 +64,10 @@ export const weather = tool({
         }))
       }))
     }
+
+    return {
+      content: [{ type: 'text' as const, text: JSON.stringify(details) }],
+      details
+    }
   }
-})
+}

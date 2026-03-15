@@ -6,6 +6,8 @@ import { getOllama } from './ollama'
 import { getOpenAi } from './openai-gpt'
 import { getXaiGrok } from './xai-grok'
 
+export type { EmbeddingConfig } from './openai-gpt'
+
 export const providers = {
   [AiProviders.AnthropicClaude]: getAnthropicClaude,
   [AiProviders.AzureOpenAi]: getAzureOpenAi,
