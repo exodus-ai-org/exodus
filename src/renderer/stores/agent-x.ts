@@ -24,6 +24,7 @@ export interface AgentData {
   mcpServerNames: string[] | null
   model: string | null
   provider: string | null
+  collaboratorIds: string[] | null
   position: { x: number; y: number } | null
   isActive: boolean | null
   createdAt: string

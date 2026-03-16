@@ -222,6 +222,7 @@ export const agent = pgTable('agent', {
   mcpServerNames: jsonb('mcpServerNames').$type<string[]>().default([]),
   model: text('model'),
   provider: text('provider'),
+  collaboratorIds: jsonb('collaboratorIds').$type<string[]>().default([]),
   position: jsonb('position').$type<{ x: number; y: number }>(),
   isActive: boolean('isActive').default(true),
   createdAt: timestamp('createdAt').defaultNow().notNull(),

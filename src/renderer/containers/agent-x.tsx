@@ -26,6 +26,7 @@ import {
 } from '@/stores/agent-x'
 import { BASE_URL } from '@shared/constants/systems'
 import type { AgentXSseEvent } from '@shared/types/agent-x'
+import { ReactFlowProvider } from '@xyflow/react'
 import { useAtom } from 'jotai'
 import { PlugIcon, PlusIcon, SendIcon } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
@@ -138,6 +139,65 @@ export function AgentXContainer() {
     setAgents((prev) => prev.filter((a) => a.id !== id))
   }, [])
 
+  const handleAddCollaboration = useCallback(
+    async (agentAId: string, agentBId: string) => {
+      // Add each agent to the other's collaboratorIds (bidirectional)
+      const agentA = agents.find((a) => a.id === agentAId)
+      const agentB = agents.find((a) => a.id === agentBId)
+      if (!agentA || !agentB) return
+
+      const aCollabs = agentA.collaboratorIds ?? []
+      const bCollabs = agentB.collaboratorIds ?? []
+      if (aCollabs.includes(agentBId)) return // already linked
+
+      const [updatedA, updatedB] = await Promise.all([
+        updateAgentApi(agentAId, {
+          collaboratorIds: [...aCollabs, agentBId]
+        }),
+        updateAgentApi(agentBId, {
+          collaboratorIds: [...bCollabs, agentAId]
+        })
+      ])
+      setAgents((prev) =>
+        prev.map((a) => {
+          if (a.id === agentAId) return updatedA
+          if (a.id === agentBId) return updatedB
+          return a
+        })
+      )
+    },
+    [agents]
+  )
+
+  const handleRemoveCollaboration = useCallback(
+    async (agentAId: string, agentBId: string) => {
+      const agentA = agents.find((a) => a.id === agentAId)
+      const agentB = agents.find((a) => a.id === agentBId)
+      if (!agentA || !agentB) return
+
+      const [updatedA, updatedB] = await Promise.all([
+        updateAgentApi(agentAId, {
+          collaboratorIds: (agentA.collaboratorIds ?? []).filter(
+            (id) => id !== agentBId
+          )
+        }),
+        updateAgentApi(agentBId, {
+          collaboratorIds: (agentB.collaboratorIds ?? []).filter(
+            (id) => id !== agentAId
+          )
+        })
+      ])
+      setAgents((prev) =>
+        prev.map((a) => {
+          if (a.id === agentAId) return updatedA
+          if (a.id === agentBId) return updatedB
+          return a
+        })
+      )
+    },
+    [agents]
+  )
+
   const handleTaskCreated = useCallback((task: TaskData) => {
     setTasks((prev) => [task, ...prev])
   }, [])
@@ -172,13 +232,17 @@ export function AgentXContainer() {
       <div className="flex min-h-0 flex-1">
         {/* Graph */}
         <div className={showPanel ? 'flex-1' : 'w-full'}>
-          <OrgGraph
-            departments={departments}
-            agents={agents}
-            onCreateAgent={handleCreateAgent}
-            onUpdateDepartment={handleUpdateDepartment}
-            onUpdateAgent={handleUpdateAgent}
-          />
+          <ReactFlowProvider>
+            <OrgGraph
+              departments={departments}
+              agents={agents}
+              onCreateAgent={handleCreateAgent}
+              onUpdateDepartment={handleUpdateDepartment}
+              onUpdateAgent={handleUpdateAgent}
+              onAddCollaboration={handleAddCollaboration}
+              onRemoveCollaboration={handleRemoveCollaboration}
+            />
+          </ReactFlowProvider>
         </div>
 
         {/* Right panel */}
