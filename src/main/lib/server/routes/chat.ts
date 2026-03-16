@@ -244,12 +244,30 @@ chat.post('/', async (c) => {
             model: activeModel,
             apiKey,
             convertToLlm: (agentMessages: AgentMessage[]): Message[] => {
-              return agentMessages.filter(
-                (m): m is Message =>
-                  (m as Message).role === 'user' ||
-                  (m as Message).role === 'assistant' ||
-                  (m as Message).role === 'toolResult'
-              )
+              return agentMessages
+                .filter(
+                  (m): m is Message =>
+                    (m as Message).role === 'user' ||
+                    (m as Message).role === 'assistant' ||
+                    (m as Message).role === 'toolResult'
+                )
+                .map((m) => {
+                  if (m.role !== 'assistant') return m
+                  // Strip thinking blocks before sending history back to the LLM.
+                  // The OpenAI Responses API embeds rs_* IDs in thinkingSignature to
+                  // reference stored reasoning items, but store:false means those items
+                  // are never persisted — subsequent turns get a 404 when referenced.
+                  const assistantMsg = m as Message & {
+                    role: 'assistant'
+                    content: Array<{ type: string }>
+                  }
+                  return {
+                    ...assistantMsg,
+                    content: assistantMsg.content.filter(
+                      (b) => b.type !== 'thinking'
+                    )
+                  } as Message
+                })
             }
           },
           c.req.raw.signal
@@ -257,43 +275,41 @@ chat.post('/', async (c) => {
 
         for await (const event of agentStream) {
           if (event.type === 'message_update') {
-            const msg = event.message as Message & { role: 'assistant' }
+            const msg = event.message as Message
+            if (msg.role !== 'assistant') continue
+            const assistantMsg = msg as Message & { role: 'assistant' }
             currentAssistantMsg = {
               id: assistantMsgId,
               role: 'assistant',
-              content: msg.content,
-              usage: msg.usage,
-              api: msg.api,
-              provider: msg.provider,
-              model: msg.model,
-              stopReason: msg.stopReason,
-              timestamp: msg.timestamp ?? Date.now()
+              content: assistantMsg.content,
+              usage: assistantMsg.usage,
+              api: assistantMsg.api,
+              provider: assistantMsg.provider,
+              model: assistantMsg.model,
+              stopReason: assistantMsg.stopReason,
+              timestamp: assistantMsg.timestamp ?? Date.now()
             }
             sendEvent({ type: 'message_update', message: currentAssistantMsg })
           } else if (event.type === 'message_end') {
-            if (currentAssistantMsg) {
-              newMessages.push(currentAssistantMsg)
-            }
-            assistantMsgId = uuidV4()
-            currentAssistantMsg = null
-          } else if (event.type === 'tool_execution_start') {
-            if (currentAssistantMsg) {
-              currentAssistantMsg = {
-                ...currentAssistantMsg,
-                content: [
-                  ...currentAssistantMsg.content,
-                  {
-                    type: 'toolCall' as const,
-                    id: event.toolCallId,
-                    name: event.toolName,
-                    arguments: event.args as Record<string, unknown>
-                  }
-                ]
+            const msg = event.message as Message
+            if (msg.role === 'assistant') {
+              const assistantMsg = msg as Message & { role: 'assistant' }
+              // Use streaming content from currentAssistantMsg but authoritative
+              // usage/stopReason from event.message (message_update carries 0 usage)
+              const finalMsg: ChatAssistantMessage = {
+                id: currentAssistantMsg?.id ?? assistantMsgId,
+                role: 'assistant',
+                content: currentAssistantMsg?.content ?? assistantMsg.content,
+                usage: assistantMsg.usage,
+                api: assistantMsg.api,
+                provider: assistantMsg.provider,
+                model: assistantMsg.model,
+                stopReason: assistantMsg.stopReason,
+                timestamp: assistantMsg.timestamp ?? Date.now()
               }
-              sendEvent({
-                type: 'message_update',
-                message: currentAssistantMsg
-              })
+              newMessages.push(finalMsg)
+              assistantMsgId = uuidV4()
+              currentAssistantMsg = null
             }
           } else if (event.type === 'tool_execution_end') {
             const details =
