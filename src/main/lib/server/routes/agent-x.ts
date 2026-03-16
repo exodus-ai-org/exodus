@@ -132,13 +132,14 @@ agentX.delete('/departments/:id', async (c) => {
 // ─── Agent CRUD ─────────────────────────────────────────────────────────────
 
 const agentSchema = z.object({
-  departmentId: z.string().uuid(),
+  departmentId: z.string().uuid().optional().nullable(),
   name: z.string().min(1),
   description: z.string().optional(),
   systemPrompt: z.string().optional(),
   toolAllowList: z.array(z.string()).optional(),
   skillSlugs: z.array(z.string()).optional(),
   mcpServerNames: z.array(z.string()).optional(),
+  collaboratorIds: z.array(z.string()).optional(),
   model: z.string().optional().nullable(),
   provider: z.string().optional().nullable(),
   position: z.object({ x: z.number(), y: z.number() }).optional().nullable(),

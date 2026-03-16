@@ -211,9 +211,9 @@ export type Department = InferSelectModel<typeof department>
 
 export const agent = pgTable('agent', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
-  departmentId: uuid('departmentId')
-    .notNull()
-    .references(() => department.id, { onDelete: 'cascade' }),
+  departmentId: uuid('departmentId').references(() => department.id, {
+    onDelete: 'set null'
+  }),
   name: text('name').notNull(),
   description: text('description').default(''),
   systemPrompt: text('systemPrompt').default(''),

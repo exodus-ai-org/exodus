@@ -28,7 +28,7 @@ import { BASE_URL } from '@shared/constants/systems'
 import type { AgentXSseEvent } from '@shared/types/agent-x'
 import { ReactFlowProvider } from '@xyflow/react'
 import { useAtom } from 'jotai'
-import { PlugIcon, PlusIcon, SendIcon } from 'lucide-react'
+import { BotIcon, Building2Icon, PlugIcon, SendIcon } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 export function AgentXContainer() {
@@ -42,7 +42,6 @@ export function AgentXContainer() {
   const [mcpDialogOpen, setMcpDialogOpen] = useState(false)
   const eventSourceRef = useRef<EventSource | null>(null)
 
-  // Load data
   const loadData = useCallback(async () => {
     const [depts, ags, ts] = await Promise.all([
       getDepartments(),
@@ -58,17 +57,13 @@ export function AgentXContainer() {
     loadData()
   }, [loadData])
 
-  // Global SSE connection
   useEffect(() => {
     const es = new EventSource(`${BASE_URL}/api/agent-x/sse`)
     eventSourceRef.current = es
-
     es.onmessage = (e) => {
       try {
         const event = JSON.parse(e.data) as AgentXSseEvent
         setEvents((prev) => [...prev.slice(-200), event])
-
-        // Refresh tasks on status changes
         if (
           event.type === 'task_status' ||
           event.type === 'task_completed' ||
@@ -80,11 +75,11 @@ export function AgentXContainer() {
         // ignore parse errors
       }
     }
-
     return () => es.close()
   }, [])
 
-  // CRUD handlers
+  // ─── Department handlers ──────────────────────────────────────────────────
+
   const handleCreateDepartment = useCallback(async () => {
     const dept = await createDepartment({
       name: 'New Department',
@@ -105,26 +100,25 @@ export function AgentXContainer() {
   const handleDeleteDepartment = useCallback(async (id: string) => {
     await deleteDepartment(id)
     setDepartments((prev) => prev.filter((d) => d.id !== id))
-    setAgents((prev) => prev.filter((a) => a.departmentId !== id))
+    // Agents that belonged to this dept become unassigned (backend sets null via ON DELETE SET NULL)
+    setAgents((prev) =>
+      prev.map((a) =>
+        a.departmentId === id ? { ...a, departmentId: null } : a
+      )
+    )
   }, [])
 
-  const handleCreateAgent = useCallback(
-    async (departmentId: string) => {
-      const dept = departments.find((d) => d.id === departmentId)
-      const deptAgents = agents.filter((a) => a.departmentId === departmentId)
-      const ag = await createAgentApi({
-        departmentId,
-        name: 'New Agent',
-        description: '',
-        position: {
-          x: (dept?.position?.x ?? 100) + 50,
-          y: (dept?.position?.y ?? 100) + 150 + deptAgents.length * 100
-        }
-      })
-      setAgents((prev) => [...prev, ag])
-    },
-    [departments, agents]
-  )
+  // ─── Agent handlers ───────────────────────────────────────────────────────
+
+  // Create a free-floating agent with no department
+  const handleCreateAgent = useCallback(async () => {
+    const ag = await createAgentApi({
+      name: 'New Agent',
+      description: '',
+      position: { x: 200 + agents.length * 180, y: 300 }
+    })
+    setAgents((prev) => [...prev, ag])
+  }, [agents.length])
 
   const handleUpdateAgent = useCallback(
     async (id: string, data: Partial<AgentData>) => {
@@ -139,24 +133,34 @@ export function AgentXContainer() {
     setAgents((prev) => prev.filter((a) => a.id !== id))
   }, [])
 
+  // ─── Membership handlers ──────────────────────────────────────────────────
+
+  const handleAssignDepartment = useCallback(
+    async (agentId: string, departmentId: string) => {
+      const updated = await updateAgentApi(agentId, { departmentId })
+      setAgents((prev) => prev.map((a) => (a.id === agentId ? updated : a)))
+    },
+    []
+  )
+
+  const handleUnassignDepartment = useCallback(async (agentId: string) => {
+    const updated = await updateAgentApi(agentId, { departmentId: null })
+    setAgents((prev) => prev.map((a) => (a.id === agentId ? updated : a)))
+  }, [])
+
+  // ─── Collaboration handlers ───────────────────────────────────────────────
+
   const handleAddCollaboration = useCallback(
     async (agentAId: string, agentBId: string) => {
-      // Add each agent to the other's collaboratorIds (bidirectional)
       const agentA = agents.find((a) => a.id === agentAId)
       const agentB = agents.find((a) => a.id === agentBId)
       if (!agentA || !agentB) return
-
       const aCollabs = agentA.collaboratorIds ?? []
+      if (aCollabs.includes(agentBId)) return
       const bCollabs = agentB.collaboratorIds ?? []
-      if (aCollabs.includes(agentBId)) return // already linked
-
       const [updatedA, updatedB] = await Promise.all([
-        updateAgentApi(agentAId, {
-          collaboratorIds: [...aCollabs, agentBId]
-        }),
-        updateAgentApi(agentBId, {
-          collaboratorIds: [...bCollabs, agentAId]
-        })
+        updateAgentApi(agentAId, { collaboratorIds: [...aCollabs, agentBId] }),
+        updateAgentApi(agentBId, { collaboratorIds: [...bCollabs, agentAId] })
       ])
       setAgents((prev) =>
         prev.map((a) => {
@@ -174,7 +178,6 @@ export function AgentXContainer() {
       const agentA = agents.find((a) => a.id === agentAId)
       const agentB = agents.find((a) => a.id === agentBId)
       if (!agentA || !agentB) return
-
       const [updatedA, updatedB] = await Promise.all([
         updateAgentApi(agentAId, {
           collaboratorIds: (agentA.collaboratorIds ?? []).filter(
@@ -202,7 +205,6 @@ export function AgentXContainer() {
     setTasks((prev) => [task, ...prev])
   }, [])
 
-  // Determine right panel content
   const showPanel = selectedNode !== null || selectedTaskId !== null
 
   return (
@@ -210,8 +212,12 @@ export function AgentXContainer() {
       {/* Top toolbar */}
       <div className="flex items-center gap-2 border-b px-4 py-2">
         <Button variant="outline" size="sm" onClick={handleCreateDepartment}>
-          <PlusIcon className="mr-1 h-3.5 w-3.5" />
+          <Building2Icon className="mr-1 h-3.5 w-3.5" />
           Department
+        </Button>
+        <Button variant="outline" size="sm" onClick={handleCreateAgent}>
+          <BotIcon className="mr-1 h-3.5 w-3.5" />
+          Agent
         </Button>
         <Button
           variant="outline"
@@ -230,22 +236,21 @@ export function AgentXContainer() {
 
       {/* Main area */}
       <div className="flex min-h-0 flex-1">
-        {/* Graph */}
         <div className={showPanel ? 'flex-1' : 'w-full'}>
           <ReactFlowProvider>
             <OrgGraph
               departments={departments}
               agents={agents}
-              onCreateAgent={handleCreateAgent}
               onUpdateDepartment={handleUpdateDepartment}
               onUpdateAgent={handleUpdateAgent}
+              onAssignDepartment={handleAssignDepartment}
+              onUnassignDepartment={handleUnassignDepartment}
               onAddCollaboration={handleAddCollaboration}
               onRemoveCollaboration={handleRemoveCollaboration}
             />
           </ReactFlowProvider>
         </div>
 
-        {/* Right panel */}
         {showPanel && (
           <div className="w-[380px] shrink-0 overflow-y-auto border-l">
             {selectedTaskId ? (
@@ -275,7 +280,6 @@ export function AgentXContainer() {
         )}
       </div>
 
-      {/* Bottom task list */}
       <TaskList
         tasks={tasks}
         agents={agents}
@@ -283,7 +287,6 @@ export function AgentXContainer() {
         onSelectTask={setSelectedTaskId}
       />
 
-      {/* Dialogs */}
       <TaskDispatchDialog
         departments={departments}
         agents={agents}

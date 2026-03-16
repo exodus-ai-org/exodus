@@ -15,7 +15,7 @@ export interface DepartmentData {
 
 export interface AgentData {
   id: string
-  departmentId: string
+  departmentId: string | null
   name: string
   description: string | null
   systemPrompt: string | null

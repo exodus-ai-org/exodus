@@ -141,8 +141,10 @@ async function runAgentLoop(
   const setting = await getSetting()
   const { chatModel, apiKey } = getModelFromProvider(setting)
 
-  // Load department config for skill/MCP scoping
-  const dept = await getDepartmentById(agentRecord.departmentId)
+  // Load department config for skill/MCP scoping (agent may be unassigned)
+  const dept = agentRecord.departmentId
+    ? await getDepartmentById(agentRecord.departmentId)
+    : null
   const deptSkillSlugs = (dept?.skillSlugs as string[] | null) ?? []
   const deptMcpNames = (dept?.mcpServerNames as string[] | null) ?? []
 
