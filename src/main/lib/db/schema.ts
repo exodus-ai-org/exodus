@@ -225,6 +225,9 @@ export const agent = pgTable('agent', {
   collaboratorIds: jsonb('collaboratorIds').$type<string[]>().default([]),
   position: jsonb('position').$type<{ x: number; y: number }>(),
   isActive: boolean('isActive').default(true),
+  // Shadow agent support: temporary clone created for high-priority preemption
+  isShadow: boolean('isShadow').default(false),
+  shadowOfAgentId: uuid('shadowOfAgentId'),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull()
 })
@@ -284,6 +287,9 @@ export const task = pgTable('task', {
   output: jsonb('output').$type<Record<string, unknown>>(),
   maxRetries: real('maxRetries').default(1),
   retryCount: real('retryCount').default(0),
+  // Scheduled task support
+  cronExpression: text('cronExpression'), // null = one-time; cron string = recurring template
+  lastRunAt: timestamp('lastRunAt'),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
   completedAt: timestamp('completedAt')

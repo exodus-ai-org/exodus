@@ -1,4 +1,4 @@
-import { asc, desc, eq, inArray } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, isNotNull } from 'drizzle-orm'
 import { db } from './db'
 import {
   agent,
@@ -86,6 +86,24 @@ export async function deleteAgent(id: string) {
   return db.delete(agent).where(eq(agent.id, id))
 }
 
+export async function getActiveAgents() {
+  return db
+    .select()
+    .from(agent)
+    .where(and(eq(agent.isActive, true), eq(agent.isShadow, false)))
+    .orderBy(asc(agent.createdAt))
+}
+
+/** Returns true if the agent has any currently running tasks */
+export async function isAgentBusy(agentId: string): Promise<boolean> {
+  const running = await db
+    .select({ id: task.id })
+    .from(task)
+    .where(and(eq(task.assignedAgentId, agentId), eq(task.status, 'running')))
+    .limit(1)
+  return running.length > 0
+}
+
 // ─── Agent Memory ───────────────────────────────────────────────────────────
 
 export async function getAgentMemories(agentId: string) {
@@ -105,6 +123,14 @@ export async function createAgentMemory(data: typeof agentMemory.$inferInsert) {
 
 export async function getAllTasks() {
   return db.select().from(task).orderBy(desc(task.createdAt))
+}
+
+/** All cron (recurring) tasks that are not cancelled */
+export async function getCronTasks() {
+  return db
+    .select()
+    .from(task)
+    .where(and(isNotNull(task.cronExpression), eq(task.status, 'pending')))
 }
 
 export async function getTaskById(id: string) {

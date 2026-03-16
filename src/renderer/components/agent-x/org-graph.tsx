@@ -12,11 +12,13 @@ import {
   type Edge,
   type EdgeChange,
   Handle,
+  MarkerType,
   type Node,
   type NodeProps,
   type OnNodesChange,
   Position,
   ReactFlow,
+  addEdge,
   applyEdgeChanges,
   applyNodeChanges,
   useReactFlow
@@ -35,18 +37,31 @@ import { ZoomSlider } from './ui/zoom-slider'
 
 // ─── Edge Styles ─────────────────────────────────────────────────────────────
 
-// Dept → Agent: membership (gray, no arrow)
+// Dept → Agent: membership (gray, with arrow)
 const MEMBERSHIP_STYLE = {
-  stroke: 'hsl(var(--muted-foreground))',
-  strokeWidth: 1.5,
-  opacity: 0.5
+  stroke: '#94a3b8',
+  strokeWidth: 2
 }
 
-// Agent ↔ Agent: collaboration (primary color, dashed, animated)
+const MEMBERSHIP_MARKER = {
+  type: MarkerType.ArrowClosed,
+  width: 16,
+  height: 16,
+  color: '#94a3b8'
+}
+
+// Agent ↔ Agent: collaboration (indigo, dashed, animated)
 const COLLABORATION_STYLE = {
-  stroke: 'hsl(var(--primary))',
+  stroke: '#6366f1',
   strokeWidth: 2,
   strokeDasharray: '6 3'
+}
+
+const COLLAB_MARKER = {
+  type: MarkerType.ArrowClosed,
+  width: 16,
+  height: 16,
+  color: '#6366f1'
 }
 
 // ─── Department Node ─────────────────────────────────────────────────────────
@@ -61,7 +76,20 @@ interface DepartmentNodeData {
 const DepartmentNodeComponent = memo(
   ({ data }: NodeProps<Node<DepartmentNodeData>>) => {
     return (
-      <BaseNode className="min-w-52">
+      <>
+        <BaseNode className="min-w-52">
+          <BaseNodeHeader>
+            <Building2Icon className="text-primary h-4 w-4 shrink-0" />
+            <BaseNodeHeaderTitle>{data.label}</BaseNodeHeaderTitle>
+          </BaseNodeHeader>
+          {data.description && (
+            <BaseNodeContent>
+              <p className="text-muted-foreground text-xs">
+                {data.description}
+              </p>
+            </BaseNodeContent>
+          )}
+        </BaseNode>
         {/* Source handle on the bottom — drag to an Agent to assign it */}
         <Handle
           type="source"
@@ -72,16 +100,7 @@ const DepartmentNodeComponent = memo(
             '!border-muted-foreground !bg-background'
           )}
         />
-        <BaseNodeHeader>
-          <Building2Icon className="text-primary h-4 w-4 shrink-0" />
-          <BaseNodeHeaderTitle>{data.label}</BaseNodeHeaderTitle>
-        </BaseNodeHeader>
-        {data.description && (
-          <BaseNodeContent>
-            <p className="text-muted-foreground text-xs">{data.description}</p>
-          </BaseNodeContent>
-        )}
-      </BaseNode>
+      </>
     )
   }
 )
@@ -100,7 +119,25 @@ interface AgentNodeData {
 
 const AgentNodeComponent = memo(({ data }: NodeProps<Node<AgentNodeData>>) => {
   return (
-    <BaseNode className={cn('group min-w-44', !data.isActive && 'opacity-50')}>
+    <>
+      <BaseNode
+        className={cn('group min-w-44', !data.isActive && 'opacity-50')}
+      >
+        <BaseNodeHeader>
+          <BotIcon className="text-primary h-4 w-4 shrink-0" />
+          <BaseNodeHeaderTitle className="text-sm">
+            {data.label}
+          </BaseNodeHeaderTitle>
+        </BaseNodeHeader>
+        {data.description && (
+          <BaseNodeContent>
+            <p className="text-muted-foreground text-xs">{data.description}</p>
+          </BaseNodeContent>
+        )}
+      </BaseNode>
+
+      {/* All handles rendered AFTER BaseNode so they sit on top (higher DOM order = higher z) */}
+
       {/* Top handle: receives dept membership edge */}
       <Handle
         type="target"
@@ -126,18 +163,6 @@ const AgentNodeComponent = memo(({ data }: NodeProps<Node<AgentNodeData>>) => {
         )}
       />
 
-      <BaseNodeHeader>
-        <BotIcon className="text-primary h-4 w-4 shrink-0" />
-        <BaseNodeHeaderTitle className="text-sm">
-          {data.label}
-        </BaseNodeHeaderTitle>
-      </BaseNodeHeader>
-      {data.description && (
-        <BaseNodeContent>
-          <p className="text-muted-foreground text-xs">{data.description}</p>
-        </BaseNodeContent>
-      )}
-
       {/* Right handle: start a collaboration edge */}
       <Handle
         type="source"
@@ -149,7 +174,7 @@ const AgentNodeComponent = memo(({ data }: NodeProps<Node<AgentNodeData>>) => {
           'opacity-0 transition-opacity group-hover:opacity-100'
         )}
       />
-    </BaseNode>
+    </>
   )
 })
 AgentNodeComponent.displayName = 'AgentNode'
@@ -166,6 +191,7 @@ const nodeTypes = {
 interface OrgGraphProps {
   departments: DepartmentData[]
   agents: AgentData[]
+  fitViewVersion?: number
   onUpdateDepartment: (id: string, data: Partial<DepartmentData>) => void
   onUpdateAgent: (id: string, data: Partial<AgentData>) => void
   onAssignDepartment: (agentId: string, departmentId: string) => void
@@ -177,6 +203,7 @@ interface OrgGraphProps {
 export function OrgGraph({
   departments,
   agents,
+  fitViewVersion,
   onUpdateDepartment,
   onUpdateAgent,
   onAssignDepartment,
@@ -230,8 +257,9 @@ export function OrgGraph({
           sourceHandle: 'dept-source',
           target: `agent-${ag.id}`,
           targetHandle: 'member-target',
-          type: 'smoothstep',
+          type: 'default',
           style: MEMBERSHIP_STYLE,
+          markerEnd: MEMBERSHIP_MARKER,
           deletable: true
         })
       }
@@ -250,10 +278,8 @@ export function OrgGraph({
           type: 'default',
           style: COLLABORATION_STYLE,
           animated: true,
-          label: 'collab',
-          labelStyle: { fill: 'hsl(var(--muted-foreground))', fontSize: 10 },
-          labelBgStyle: { fill: 'hsl(var(--background))' },
-          markerEnd: { type: 'arrowclosed' as const },
+          markerEnd: COLLAB_MARKER,
+          markerStart: COLLAB_MARKER,
           deletable: true
         })
       }
@@ -307,37 +333,70 @@ export function OrgGraph({
   )
 
   const onConnect = useCallback(
-    (connection: Connection) => {
-      const src = connection.source ?? ''
-      const tgt = connection.target ?? ''
+    (params: Connection) => {
+      const src = params.source ?? ''
+      const tgt = params.target ?? ''
 
-      const srcIsDept = src.startsWith('dept-')
-      const tgtIsAgent = tgt.startsWith('agent-')
-      const srcIsAgent = src.startsWith('agent-')
-      const tgtIsAgent2 = tgt.startsWith('agent-')
-
-      // Dept → Agent: assign membership
-      if (srcIsDept && tgtIsAgent) {
+      // Dept → Agent: membership
+      if (src.startsWith('dept-') && tgt.startsWith('agent-')) {
+        setEdges((eds) =>
+          addEdge(
+            {
+              ...params,
+              type: 'default',
+              style: MEMBERSHIP_STYLE,
+              markerEnd: MEMBERSHIP_MARKER,
+              deletable: true
+            },
+            eds
+          )
+        )
         onAssignDepartment(tgt.replace('agent-', ''), src.replace('dept-', ''))
         return
       }
 
-      // Agent → Dept: also assign membership (user may drag in reverse)
-      if (srcIsAgent && tgt.startsWith('dept-')) {
+      // Agent → Dept: membership (reverse drag)
+      if (src.startsWith('agent-') && tgt.startsWith('dept-')) {
+        setEdges((eds) =>
+          addEdge(
+            {
+              ...params,
+              type: 'default',
+              style: MEMBERSHIP_STYLE,
+              markerEnd: MEMBERSHIP_MARKER,
+              deletable: true
+            },
+            eds
+          )
+        )
         onAssignDepartment(src.replace('agent-', ''), tgt.replace('dept-', ''))
         return
       }
 
       // Agent → Agent: collaboration
-      if (srcIsAgent && tgtIsAgent2) {
+      if (src.startsWith('agent-') && tgt.startsWith('agent-')) {
         const sourceId = src.replace('agent-', '')
         const targetId = tgt.replace('agent-', '')
         if (sourceId !== targetId) {
+          setEdges((eds) =>
+            addEdge(
+              {
+                ...params,
+                type: 'default',
+                style: COLLABORATION_STYLE,
+                animated: true,
+                markerEnd: COLLAB_MARKER,
+                markerStart: COLLAB_MARKER,
+                deletable: true
+              },
+              eds
+            )
+          )
           onAddCollaboration(sourceId, targetId)
         }
       }
     },
-    [onAssignDepartment, onAddCollaboration]
+    [setEdges, onAssignDepartment, onAddCollaboration]
   )
 
   const onNodeClick = useCallback(
@@ -354,12 +413,35 @@ export function OrgGraph({
     [setSelectedNode]
   )
 
+  // Initial fitView on mount
   useEffect(() => {
     if (nodes.length > 0) {
       setTimeout(() => fitView({ padding: 0.2 }), 50)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // fitView on window resize (covers maximize / restore / panel open-close)
+  useEffect(() => {
+    let rafId: number
+    const handleResize = () => {
+      cancelAnimationFrame(rafId)
+      rafId = requestAnimationFrame(() =>
+        fitView({ padding: 0.2, duration: 200 })
+      )
+    }
+    window.addEventListener('resize', handleResize)
+    return () => {
+      window.removeEventListener('resize', handleResize)
+      cancelAnimationFrame(rafId)
+    }
+  }, [fitView])
+
+  // fitView when nodes are added/removed (version counter bumped by parent)
+  useEffect(() => {
+    if (fitViewVersion === undefined || fitViewVersion === 0) return
+    setTimeout(() => fitView({ padding: 0.2, duration: 300 }), 50)
+  }, [fitViewVersion, fitView])
 
   return (
     <div className="h-full w-full">
@@ -381,7 +463,7 @@ export function OrgGraph({
         <ZoomSlider position="bottom-left" />
         <Background
           className="no-draggable"
-          variant={BackgroundVariant.Cross}
+          variant={BackgroundVariant.Dots}
           gap={20}
           size={1}
         />

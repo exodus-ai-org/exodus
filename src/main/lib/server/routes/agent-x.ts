@@ -7,6 +7,8 @@ import {
   executeTask,
   resolveEscalation
 } from '../../ai/agent-x/execution-engine'
+import { scheduleTask, unscheduleTask } from '../../ai/agent-x/scheduler'
+import { smartDispatch } from '../../ai/agent-x/smart-dispatch'
 import { listInstalledSkills } from '../../ai/skills/skills-manager'
 import {
   batchUpdatePositions,
@@ -46,6 +48,17 @@ const agentX = new Hono<{ Variables: Variables }>()
 const taskClients = new Map<string, Set<ReadableStreamDefaultController>>()
 // Global SSE clients (receive all task events)
 const globalClients = new Set<ReadableStreamDefaultController>()
+
+export function emitToAll(event: AgentXSseEvent) {
+  const encoded = new TextEncoder().encode(`data: ${JSON.stringify(event)}\n\n`)
+  for (const controller of globalClients) {
+    try {
+      controller.enqueue(encoded)
+    } catch {
+      globalClients.delete(controller)
+    }
+  }
+}
 
 function emitToTask(taskId: string, event: AgentXSseEvent) {
   const encoded = new TextEncoder().encode(`data: ${JSON.stringify(event)}\n\n`)
@@ -197,7 +210,8 @@ const taskSchema = z.object({
   priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
   assignedDepartmentId: z.string().uuid().optional().nullable(),
   assignedAgentId: z.string().uuid().optional().nullable(),
-  input: z.record(z.string(), z.unknown()).optional().nullable()
+  input: z.record(z.string(), z.unknown()).optional().nullable(),
+  cronExpression: z.string().optional().nullable()
 })
 
 agentX.get('/tasks', async (c) => {
@@ -251,7 +265,8 @@ agentX.post('/tasks', async (c) => {
     retryCount: 0,
     assignedDepartmentId: data.assignedDepartmentId ?? null,
     assignedAgentId: data.assignedAgentId ?? null,
-    input: data.input ?? null
+    input: data.input ?? null,
+    cronExpression: data.cronExpression ?? null
   }
 
   const result = await handleDatabaseOperation(
@@ -259,11 +274,20 @@ agentX.post('/tasks', async (c) => {
     'Failed to create task'
   )
 
-  // If agent is assigned, start execution in background
-  if (result.assignedAgentId) {
-    executeTask(result.id, (event) => emitToTask(result.id, event)).catch(
-      (err) => console.error('Task execution error:', err)
-    )
+  if (result.cronExpression) {
+    // Recurring task: register with cron scheduler
+    scheduleTask(result.id, result.cronExpression)
+  } else {
+    // One-time task: smart dispatch (auto-route, check availability, shadow/queue)
+    smartDispatch(
+      result.id,
+      result.title,
+      result.description ?? null,
+      result.priority,
+      result.assignedAgentId ?? null,
+      false,
+      (event) => emitToTask(result.id, event)
+    ).catch((err) => console.error('Smart dispatch error:', err))
   }
 
   return successResponse(c, result, 201)
@@ -275,6 +299,7 @@ agentX.put('/tasks/:id', async (c) => {
 
   // Handle cancel
   if (body.status === 'cancelled') {
+    unscheduleTask(id) // no-op for non-cron tasks
     const result = await handleDatabaseOperation(
       () => updateTask(id, { status: 'cancelled' }),
       'Failed to cancel task'

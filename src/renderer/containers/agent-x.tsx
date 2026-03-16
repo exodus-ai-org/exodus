@@ -40,7 +40,10 @@ export function AgentXContainer() {
   const [, setDispatchOpen] = useAtom(isTaskDispatchDialogOpenAtom)
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
   const [mcpDialogOpen, setMcpDialogOpen] = useState(false)
+  const [fitViewVersion, setFitViewVersion] = useState(0)
   const eventSourceRef = useRef<EventSource | null>(null)
+
+  const bumpFitView = useCallback(() => setFitViewVersion((v) => v + 1), [])
 
   const loadData = useCallback(async () => {
     const [depts, ags, ts] = await Promise.all([
@@ -87,7 +90,8 @@ export function AgentXContainer() {
       position: { x: 100 + departments.length * 300, y: 100 }
     })
     setDepartments((prev) => [...prev, dept])
-  }, [departments.length])
+    bumpFitView()
+  }, [departments.length, bumpFitView])
 
   const handleUpdateDepartment = useCallback(
     async (id: string, data: Partial<DepartmentData>) => {
@@ -107,8 +111,9 @@ export function AgentXContainer() {
         )
       )
       setSelectedNode((cur) => (cur?.id === id ? null : cur))
+      bumpFitView()
     },
-    [setSelectedNode]
+    [setSelectedNode, bumpFitView]
   )
 
   // ─── Agent handlers ───────────────────────────────────────────────────────
@@ -121,7 +126,8 @@ export function AgentXContainer() {
       position: { x: 200 + agents.length * 180, y: 300 }
     })
     setAgents((prev) => [...prev, ag])
-  }, [agents.length])
+    bumpFitView()
+  }, [agents.length, bumpFitView])
 
   const handleUpdateAgent = useCallback(
     async (id: string, data: Partial<AgentData>) => {
@@ -136,24 +142,47 @@ export function AgentXContainer() {
       await deleteAgentApi(id)
       setAgents((prev) => prev.filter((a) => a.id !== id))
       setSelectedNode((cur) => (cur?.id === id ? null : cur))
+      bumpFitView()
     },
-    [setSelectedNode]
+    [setSelectedNode, bumpFitView]
   )
 
   // ─── Membership handlers ──────────────────────────────────────────────────
 
   const handleAssignDepartment = useCallback(
     async (agentId: string, departmentId: string) => {
-      const updated = await updateAgentApi(agentId, { departmentId })
-      setAgents((prev) => prev.map((a) => (a.id === agentId ? updated : a)))
+      // Optimistic update so the edge appears instantly
+      setAgents((prev) =>
+        prev.map((a) => (a.id === agentId ? { ...a, departmentId } : a))
+      )
+      try {
+        const updated = await updateAgentApi(agentId, { departmentId })
+        setAgents((prev) => prev.map((a) => (a.id === agentId ? updated : a)))
+      } catch {
+        // Rollback
+        setAgents((prev) =>
+          prev.map((a) => (a.id === agentId ? { ...a, departmentId: null } : a))
+        )
+      }
     },
     []
   )
 
-  const handleUnassignDepartment = useCallback(async (agentId: string) => {
-    const updated = await updateAgentApi(agentId, { departmentId: null })
-    setAgents((prev) => prev.map((a) => (a.id === agentId ? updated : a)))
-  }, [])
+  const handleUnassignDepartment = useCallback(
+    async (agentId: string) => {
+      // Optimistic update
+      setAgents((prev) =>
+        prev.map((a) => (a.id === agentId ? { ...a, departmentId: null } : a))
+      )
+      try {
+        const updated = await updateAgentApi(agentId, { departmentId: null })
+        setAgents((prev) => prev.map((a) => (a.id === agentId ? updated : a)))
+      } catch {
+        loadData() // Can't easily rollback without prior value, just reload
+      }
+    },
+    [loadData]
+  )
 
   // ─── Collaboration handlers ───────────────────────────────────────────────
 
@@ -165,17 +194,40 @@ export function AgentXContainer() {
       const aCollabs = agentA.collaboratorIds ?? []
       if (aCollabs.includes(agentBId)) return
       const bCollabs = agentB.collaboratorIds ?? []
-      const [updatedA, updatedB] = await Promise.all([
-        updateAgentApi(agentAId, { collaboratorIds: [...aCollabs, agentBId] }),
-        updateAgentApi(agentBId, { collaboratorIds: [...bCollabs, agentAId] })
-      ])
+      // Optimistic update
       setAgents((prev) =>
         prev.map((a) => {
-          if (a.id === agentAId) return updatedA
-          if (a.id === agentBId) return updatedB
+          if (a.id === agentAId)
+            return { ...a, collaboratorIds: [...aCollabs, agentBId] }
+          if (a.id === agentBId)
+            return { ...a, collaboratorIds: [...bCollabs, agentAId] }
           return a
         })
       )
+      try {
+        const [updatedA, updatedB] = await Promise.all([
+          updateAgentApi(agentAId, {
+            collaboratorIds: [...aCollabs, agentBId]
+          }),
+          updateAgentApi(agentBId, { collaboratorIds: [...bCollabs, agentAId] })
+        ])
+        setAgents((prev) =>
+          prev.map((a) => {
+            if (a.id === agentAId) return updatedA
+            if (a.id === agentBId) return updatedB
+            return a
+          })
+        )
+      } catch {
+        // Rollback
+        setAgents((prev) =>
+          prev.map((a) => {
+            if (a.id === agentAId) return { ...a, collaboratorIds: aCollabs }
+            if (a.id === agentBId) return { ...a, collaboratorIds: bCollabs }
+            return a
+          })
+        )
+      }
     },
     [agents]
   )
@@ -185,25 +237,50 @@ export function AgentXContainer() {
       const agentA = agents.find((a) => a.id === agentAId)
       const agentB = agents.find((a) => a.id === agentBId)
       if (!agentA || !agentB) return
-      const [updatedA, updatedB] = await Promise.all([
-        updateAgentApi(agentAId, {
-          collaboratorIds: (agentA.collaboratorIds ?? []).filter(
-            (id) => id !== agentBId
-          )
-        }),
-        updateAgentApi(agentBId, {
-          collaboratorIds: (agentB.collaboratorIds ?? []).filter(
-            (id) => id !== agentAId
-          )
-        })
-      ])
+      const aCollabs = agentA.collaboratorIds ?? []
+      const bCollabs = agentB.collaboratorIds ?? []
+      // Optimistic update
       setAgents((prev) =>
         prev.map((a) => {
-          if (a.id === agentAId) return updatedA
-          if (a.id === agentBId) return updatedB
+          if (a.id === agentAId)
+            return {
+              ...a,
+              collaboratorIds: aCollabs.filter((id) => id !== agentBId)
+            }
+          if (a.id === agentBId)
+            return {
+              ...a,
+              collaboratorIds: bCollabs.filter((id) => id !== agentAId)
+            }
           return a
         })
       )
+      try {
+        const [updatedA, updatedB] = await Promise.all([
+          updateAgentApi(agentAId, {
+            collaboratorIds: aCollabs.filter((id) => id !== agentBId)
+          }),
+          updateAgentApi(agentBId, {
+            collaboratorIds: bCollabs.filter((id) => id !== agentAId)
+          })
+        ])
+        setAgents((prev) =>
+          prev.map((a) => {
+            if (a.id === agentAId) return updatedA
+            if (a.id === agentBId) return updatedB
+            return a
+          })
+        )
+      } catch {
+        // Rollback
+        setAgents((prev) =>
+          prev.map((a) => {
+            if (a.id === agentAId) return { ...a, collaboratorIds: aCollabs }
+            if (a.id === agentBId) return { ...a, collaboratorIds: bCollabs }
+            return a
+          })
+        )
+      }
     },
     [agents]
   )
@@ -248,6 +325,7 @@ export function AgentXContainer() {
             <OrgGraph
               departments={departments}
               agents={agents}
+              fitViewVersion={fitViewVersion}
               onUpdateDepartment={handleUpdateDepartment}
               onUpdateAgent={handleUpdateAgent}
               onAssignDepartment={handleAssignDepartment}

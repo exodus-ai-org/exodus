@@ -57,6 +57,24 @@ export type AgentXSseEvent =
     }
   | { type: 'task_completed'; taskId: string; output: unknown }
   | { type: 'task_failed'; taskId: string; error: string }
+  | { type: 'cron_fired'; scheduleTaskId: string; childTaskId: string }
+  | {
+      type: 'agent_created'
+      taskId: string
+      agentId: string
+      agentName: string
+    }
+  | {
+      type: 'shadow_agent_created'
+      taskId: string
+      shadowAgentId: string
+      originalAgentId: string
+    }
+  | {
+      type: 'task_queued'
+      taskId: string
+      reason: 'agent_busy' | 'cron_no_shadow'
+    }
 
 export interface AutoRouteResult {
   departmentId: string

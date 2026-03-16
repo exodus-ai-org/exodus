@@ -6,6 +6,7 @@ import type { AgentData, TaskData } from '@/stores/agent-x'
 import type { AgentXSseEvent } from '@shared/types/agent-x'
 import {
   AlertCircleIcon,
+  CalendarClockIcon,
   CheckCircle2Icon,
   ChevronUpIcon,
   CircleDotIcon,
@@ -176,11 +177,25 @@ export function TaskList({
                   className="hover:bg-accent/50 flex w-full items-center gap-3 px-4 py-1.5 text-xs"
                   onClick={() => onSelectTask(t.id)}
                 >
-                  {statusIcons[t.status] ?? null}
+                  {t.cronExpression ? (
+                    <CalendarClockIcon
+                      className="h-3.5 w-3.5 shrink-0"
+                      style={{ color: '#6366f1' }}
+                    />
+                  ) : (
+                    (statusIcons[t.status] ?? null)
+                  )}
                   <span className="flex-1 truncate text-left font-medium">
                     {t.title}
                   </span>
-                  <span className="text-muted-foreground">{agentName}</span>
+                  {t.cronExpression && (
+                    <span className="shrink-0 rounded bg-indigo-100 px-1.5 py-0.5 font-mono text-[10px] text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
+                      {t.cronExpression}
+                    </span>
+                  )}
+                  <span className="text-muted-foreground shrink-0">
+                    {agentName}
+                  </span>
                   <span className="text-muted-foreground capitalize">
                     {t.status}
                   </span>

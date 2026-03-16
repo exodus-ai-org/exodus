@@ -27,6 +27,8 @@ export interface AgentData {
   collaboratorIds: string[] | null
   position: { x: number; y: number } | null
   isActive: boolean | null
+  isShadow: boolean | null
+  shadowOfAgentId: string | null
   createdAt: string
   updatedAt: string
 }
@@ -42,6 +44,8 @@ export interface TaskData {
   assignedAgentId: string | null
   input: Record<string, unknown> | null
   output: Record<string, unknown> | null
+  cronExpression: string | null
+  lastRunAt: string | null
   createdAt: string
   updatedAt: string
   completedAt: string | null

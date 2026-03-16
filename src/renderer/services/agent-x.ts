@@ -64,6 +64,7 @@ export const createTaskApi = (data: {
   assignedAgentId?: string | null
   assignedDepartmentId?: string | null
   input?: Record<string, unknown> | null
+  cronExpression?: string | null
 }) =>
   fetcher<TaskData>(`${BASE}/tasks`, { method: 'POST', body: data as never })
 

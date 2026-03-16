@@ -4,6 +4,7 @@ import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 // ARCHIVED: import { connectMcpServers } from '../ai/mcp'
+import { initScheduler } from '../ai/agent-x/scheduler'
 import { getSetting } from '../db/queries'
 import { errorHandler } from './middlewares'
 import agentXRouter from './routes/agent-x'
@@ -74,6 +75,13 @@ export async function connectHttpServer() {
         port: SERVER_PORT
       })
       console.log('✅ Hono is running on', SERVER_PORT)
+
+      // Initialize cron scheduler after server is up
+      void import('./routes/agent-x.js').then(({ emitToAll }) =>
+        initScheduler(emitToAll).catch((err) =>
+          console.error('[Scheduler] Init error:', err)
+        )
+      )
     }
   }
 }

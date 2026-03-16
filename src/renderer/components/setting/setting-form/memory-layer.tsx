@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue
@@ -160,11 +161,13 @@ function MemoryDialog({ open, onClose, memory, onSaved }: MemoryDialogProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {MEMORY_TYPES.map((t) => (
-                    <SelectItem key={t} value={t}>
-                      {t.charAt(0).toUpperCase() + t.slice(1)}
-                    </SelectItem>
-                  ))}
+                  <SelectGroup>
+                    {MEMORY_TYPES.map((t) => (
+                      <SelectItem key={t} value={t}>
+                        {t.charAt(0).toUpperCase() + t.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
                 </SelectContent>
               </Select>
             </div>
@@ -179,9 +182,11 @@ function MemoryDialog({ open, onClose, memory, onSaved }: MemoryDialogProps) {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="explicit">Explicit</SelectItem>
-                  <SelectItem value="implicit">Implicit</SelectItem>
-                  <SelectItem value="system">System</SelectItem>
+                  <SelectGroup>
+                    <SelectItem value="explicit">Explicit</SelectItem>
+                    <SelectItem value="implicit">Implicit</SelectItem>
+                    <SelectItem value="system">System</SelectItem>
+                  </SelectGroup>
                 </SelectContent>
               </Select>
             </div>
