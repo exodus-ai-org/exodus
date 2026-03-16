@@ -11,7 +11,6 @@ import { DeepResearch } from './setting-form/deep-research'
 import { General } from './setting-form/generals'
 import { GoogleMaps } from './setting-form/google-maps'
 import { ImageGeneration } from './setting-form/image-generation'
-import { MCP } from './setting-form/mcp'
 import { MemoryLayer } from './setting-form/memory-layer'
 import { ProviderConfig } from './setting-form/provider-config'
 import { AnthropicClaude } from './setting-form/providers/anthropic-claude'
@@ -88,8 +87,6 @@ export function SettingsForm() {
       )}
 
       {activeTitle === SettingLabel.MemoryLayer && <MemoryLayer form={form} />}
-
-      {activeTitle === SettingLabel.McpServers && <MCP form={form} />}
 
       {activeTitle === SettingLabel.BuiltinTools && <Tools form={form} />}
 

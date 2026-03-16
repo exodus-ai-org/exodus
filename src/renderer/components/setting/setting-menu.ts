@@ -4,7 +4,6 @@ import {
   CogIcon,
   ComputerIcon,
   DatabaseIcon,
-  HammerIcon,
   HandCoinsIcon,
   InfoIcon,
   MemoryStickIcon,
@@ -65,10 +64,6 @@ export const menus = {
     {
       icon: MemoryStickIcon,
       title: SettingLabel.MemoryLayer
-    },
-    {
-      icon: HammerIcon,
-      title: SettingLabel.McpServers
     },
     {
       icon: DatabaseIcon,

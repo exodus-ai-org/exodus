@@ -174,6 +174,159 @@ export const embedding = pgTable(
 
 export type Embedding = InferSelectModel<typeof embedding>
 
+// ─── MCP Registry ───────────────────────────────────────────────────────────
+
+export const mcpServer = pgTable('McpServer', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  name: text('name').notNull(),
+  description: text('description').default(''),
+  command: text('command').notNull(),
+  args: jsonb('args').$type<string[]>().default([]),
+  env: jsonb('env').$type<Record<string, string>>(),
+  isActive: boolean('isActive').default(true),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull()
+})
+
+export type McpServer = InferSelectModel<typeof mcpServer>
+
+// ─── Agent X ────────────────────────────────────────────────────────────────
+
+export const department = pgTable('Department', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  name: text('name').notNull(),
+  description: text('description').default(''),
+  icon: text('icon').default('building-2'),
+  skillSlugs: jsonb('skillSlugs').$type<string[]>().default([]),
+  mcpServerNames: jsonb('mcpServerNames').$type<string[]>().default([]),
+  position: jsonb('position').$type<{ x: number; y: number }>(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull()
+})
+
+export type Department = InferSelectModel<typeof department>
+
+export const agent = pgTable('Agent', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  departmentId: uuid('departmentId')
+    .notNull()
+    .references(() => department.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
+  description: text('description').default(''),
+  systemPrompt: text('systemPrompt').default(''),
+  toolAllowList: jsonb('toolAllowList').$type<string[]>().default([]),
+  skillSlugs: jsonb('skillSlugs').$type<string[]>().default([]),
+  mcpServerNames: jsonb('mcpServerNames').$type<string[]>().default([]),
+  model: text('model'),
+  provider: text('provider'),
+  position: jsonb('position').$type<{ x: number; y: number }>(),
+  isActive: boolean('isActive').default(true),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull()
+})
+
+export type Agent = InferSelectModel<typeof agent>
+
+export const agentMemorySourceEnum = pgEnum('agent_memory_source', [
+  'conversation',
+  'task',
+  'system'
+])
+
+export const agentMemory = pgTable('AgentMemory', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  agentId: uuid('agentId')
+    .notNull()
+    .references(() => agent.id, { onDelete: 'cascade' }),
+  key: text('key').notNull(),
+  value: jsonb('value').notNull(),
+  source: agentMemorySourceEnum('source').notNull().default('task'),
+  confidence: real('confidence').default(0.8),
+  isActive: boolean('isActive').default(true),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull()
+})
+
+export type AgentMemory = InferSelectModel<typeof agentMemory>
+
+export const taskStatusEnum = pgEnum('task_status', [
+  'pending',
+  'running',
+  'completed',
+  'failed',
+  'cancelled',
+  'waiting_for_user'
+])
+
+export const taskPriorityEnum = pgEnum('task_priority', [
+  'low',
+  'medium',
+  'high',
+  'urgent'
+])
+
+export const task = pgTable('Task', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  parentTaskId: uuid('parentTaskId'),
+  title: text('title').notNull(),
+  description: text('description').default(''),
+  status: taskStatusEnum('status').notNull().default('pending'),
+  priority: taskPriorityEnum('priority').notNull().default('medium'),
+  assignedDepartmentId: uuid('assignedDepartmentId').references(
+    () => department.id
+  ),
+  assignedAgentId: uuid('assignedAgentId').references(() => agent.id),
+  input: jsonb('input').$type<Record<string, unknown>>(),
+  output: jsonb('output').$type<Record<string, unknown>>(),
+  maxRetries: real('maxRetries').default(1),
+  retryCount: real('retryCount').default(0),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+  completedAt: timestamp('completedAt')
+})
+
+export type Task = InferSelectModel<typeof task>
+
+export const executionStatusEnum = pgEnum('execution_status', [
+  'running',
+  'completed',
+  'failed'
+])
+
+export const taskExecution = pgTable('TaskExecution', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  taskId: uuid('taskId')
+    .notNull()
+    .references(() => task.id, { onDelete: 'cascade' }),
+  agentId: uuid('agentId')
+    .notNull()
+    .references(() => agent.id),
+  status: executionStatusEnum('status').notNull().default('running'),
+  startedAt: timestamp('startedAt').defaultNow().notNull(),
+  completedAt: timestamp('completedAt'),
+  error: text('error'),
+  tokenUsage: jsonb('tokenUsage').$type<{
+    inputTokens: number
+    outputTokens: number
+  }>()
+})
+
+export type TaskExecution = InferSelectModel<typeof taskExecution>
+
+export const taskExecutionEvent = pgTable('TaskExecutionEvent', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  executionId: uuid('executionId')
+    .notNull()
+    .references(() => taskExecution.id, { onDelete: 'cascade' }),
+  eventType: text('eventType').notNull(),
+  payload: jsonb('payload').$type<Record<string, unknown>>(),
+  createdAt: timestamp('createdAt').defaultNow().notNull()
+})
+
+export type TaskExecutionEvent = InferSelectModel<typeof taskExecutionEvent>
+
+// ─── Memory & Personalization ───────────────────────────────────────────────
+
 export const memoryTypeEnum = pgEnum('memory_type', [
   'preference',
   'goal',

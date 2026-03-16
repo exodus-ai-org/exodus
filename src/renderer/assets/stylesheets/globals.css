@@ -141,6 +141,7 @@
   }
 
   .draggable {
+    -webkit-app-region: drag;
     app-region: drag;
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -148,6 +149,7 @@
   }
 
   .no-draggable {
+    -webkit-app-region: no-drag;
     app-region: no-drag;
   }
 

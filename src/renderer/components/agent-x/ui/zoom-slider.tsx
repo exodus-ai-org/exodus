@@ -1,5 +1,4 @@
-import { MaximizeIcon, MinusIcon, PlusIcon } from 'lucide-react'
-import { forwardRef } from 'react'
+import { Maximize, Minus, Plus } from 'lucide-react'
 
 import {
   Panel,
@@ -13,10 +12,10 @@ import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
 import { cn } from '@/lib/utils'
 
-export const ZoomSlider = forwardRef<
-  HTMLDivElement,
-  Omit<PanelProps, 'children'>
->(({ className, ...props }, ref) => {
+export function ZoomSlider({
+  className,
+  ...props
+}: Omit<PanelProps, 'children'>) {
   const { zoom } = useViewport()
   const { zoomTo, zoomIn, zoomOut, fitView } = useReactFlow()
   const minZoom = useStore((state) => state.minZoom)
@@ -28,7 +27,6 @@ export const ZoomSlider = forwardRef<
         'bg-primary-foreground text-foreground flex gap-1 rounded-md p-1',
         className
       )}
-      ref={ref}
       {...props}
     >
       <Button
@@ -36,25 +34,25 @@ export const ZoomSlider = forwardRef<
         size="icon"
         onClick={() => zoomOut({ duration: 300 })}
       >
-        <MinusIcon className="h-4 w-4" />
+        <Minus className="h-4 w-4" />
       </Button>
       <Slider
-        className="w-[140px]"
+        className="flex w-[100px]! shrink-0"
         value={[zoom]}
         min={minZoom}
         max={maxZoom}
         step={0.01}
-        onValueChange={(values) => zoomTo(values[0])}
+        onValueChange={(v) => zoomTo(Array.isArray(v) ? v[0] : v)}
       />
       <Button
         variant="ghost"
         size="icon"
         onClick={() => zoomIn({ duration: 300 })}
       >
-        <PlusIcon className="h-4 w-4" />
+        <Plus className="h-4 w-4" />
       </Button>
       <Button
-        className="min-w-20 tabular-nums"
+        className={cn('tabular-nums')}
         variant="ghost"
         onClick={() => zoomTo(1, { duration: 300 })}
       >
@@ -65,10 +63,8 @@ export const ZoomSlider = forwardRef<
         size="icon"
         onClick={() => fitView({ duration: 300 })}
       >
-        <MaximizeIcon className="h-4 w-4" />
+        <Maximize className="h-4 w-4" />
       </Button>
     </Panel>
   )
-})
-
-ZoomSlider.displayName = 'ZoomSlider'
+}

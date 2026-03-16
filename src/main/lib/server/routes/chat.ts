@@ -11,9 +11,7 @@ import type {
 import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import { v4 as uuidV4 } from 'uuid'
-import { getMcpTools } from '../../ai/mcp'
 import { deepResearchBootPrompt, systemPrompt } from '../../ai/prompts'
-import { getActiveSkillsContent } from '../../ai/skills/skills-manager'
 import {
   bindCallingTools,
   generateTitleFromUserMessage,
@@ -41,11 +39,6 @@ import {
 } from '../utils'
 
 const chat = new Hono<{ Variables: Variables }>()
-
-chat.get('/mcp', async (c) => {
-  const tools = await getMcpTools()
-  return successResponse(c, { tools })
-})
 
 chat.get('/search', async (c) => {
   const query = c.req.query('query') ?? ''
@@ -165,17 +158,11 @@ chat.post('/', async (c) => {
   // Save the user message to DB immediately
   await saveMessages({ messages: [toDbRow(userMessage, id)] })
 
-  const [skillsContent, mcpTools] = await Promise.all([
-    getActiveSkillsContent(),
-    getMcpTools()
-  ])
-
   const activeModel = isReasoningModel ? reasoningModel : chatModel
-  const tools = bindCallingTools({ advancedTools, setting, mcpTools })
-  const systemContent =
-    (advancedTools?.includes(AdvancedTools.DeepResearch)
-      ? deepResearchBootPrompt
-      : systemPrompt) + skillsContent
+  const tools = bindCallingTools({ advancedTools, setting })
+  const systemContent = advancedTools?.includes(AdvancedTools.DeepResearch)
+    ? deepResearchBootPrompt
+    : systemPrompt
 
   // Build SSE streaming response
   const stream = new ReadableStream({

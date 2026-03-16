@@ -6,6 +6,7 @@ import { cors } from 'hono/cors'
 // ARCHIVED: import { connectMcpServers } from '../ai/mcp'
 import { getSetting } from '../db/queries'
 import { errorHandler } from './middlewares'
+import agentXRouter from './routes/agent-x'
 import audioRouter from './routes/audio'
 import chatRouter from './routes/chat'
 import dbIoRouter from './routes/db-io'
@@ -16,7 +17,6 @@ import s3UploaderRouter from './routes/s3-uploader'
 import settingsRouter from './routes/setting'
 import skillsRouter from './routes/skills'
 import toolsRouter from './routes/tools'
-import workflowRouter from './routes/workflow'
 
 // Export server functions
 export async function connectHttpServer() {
@@ -52,7 +52,7 @@ export async function connectHttpServer() {
   app.route('/api/deep-research', deepResearchRouter)
   app.route('/api/tools', toolsRouter)
   app.route('/api/rag', ragRouter)
-  app.route('/api/workflow', workflowRouter)
+  app.route('/api/agent-x', agentXRouter)
   app.route('/api/s3', s3UploaderRouter)
   app.route('/api/skills', skillsRouter)
 

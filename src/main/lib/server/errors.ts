@@ -21,7 +21,7 @@ export type Surface =
   | 'deep_research'
   | 'audio'
   | 'setting'
-  | 'workflow'
+  | 'agent_x'
   | 'mcp'
   | 's3'
 
@@ -44,7 +44,7 @@ export const visibilityBySurface: Record<Surface, ErrorVisibility> = {
   deep_research: 'response',
   audio: 'response',
   setting: 'response',
-  workflow: 'response',
+  agent_x: 'response',
   mcp: 'response',
   s3: 'response'
 }
@@ -152,10 +152,10 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
     case 'forbidden:audio':
       return 'OpenAI configuration is missing. Please configure it in settings.'
 
-    case 'not_found:workflow':
-      return 'The requested workflow was not found.'
-    case 'bad_request:workflow':
-      return 'Invalid workflow configuration. Please check your input and try again.'
+    case 'not_found:agent_x':
+      return 'The requested agent or department was not found.'
+    case 'bad_request:agent_x':
+      return 'Invalid Agent X configuration. Please check your input and try again.'
 
     case 'bad_request:mcp':
       return 'Failed to connect to MCP server. Please check your MCP configuration.'

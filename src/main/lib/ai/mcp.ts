@@ -3,34 +3,29 @@ import { Type } from '@mariozechner/pi-ai'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
 import { McpTools } from '@shared/types/ai'
-import { getSetting } from '../db/queries'
+import { getAllMcpServers, getMcpServersByNames } from '../db/agent-x-queries'
+import type { McpServer } from '../db/schema'
 
-interface StdioConfig {
-  command: string
-  args?: string[]
-}
+// Lazy cache: MCP servers are connected on first use.
+// Cache keyed by server name for per-server invalidation.
+const mcpToolsCache = new Map<string, McpTools>()
 
-// Lazy cache: MCP servers are connected on first use, not at startup.
-// Cache is invalidated automatically when mcpServers config changes.
-let mcpToolsCache: McpTools[] | null = null
-let cachedMcpServersJson: string | null = null
+async function connectMcpServer(server: McpServer): Promise<McpTools> {
+  const cached = mcpToolsCache.get(server.name)
+  if (cached) return cached
 
-async function retrieveStdioMcpTools(
-  { command, args }: StdioConfig,
-  mcpServerName: string
-): Promise<McpTools> {
   const transport = new StdioClientTransport({
-    command,
-    args: args ?? []
+    command: server.command,
+    args: (server.args as string[]) ?? [],
+    env: (server.env as Record<string, string>) ?? undefined
   })
   const client = new Client({ name: 'exodus', version: '1.0.0' })
   await client.connect(transport)
-  console.log(`✅ The <${mcpServerName}> MCP has been registered.`)
+  console.log(`✅ The <${server.name}> MCP has been registered.`)
 
   const toolsResult = await client.listTools()
 
   const agentTools: AgentTool[] = toolsResult.tools.map((mcpTool) => {
-    // Convert JSON Schema to TypeBox using Type.Unsafe
     const schema = Type.Unsafe<Record<string, unknown>>(
       (mcpTool.inputSchema as Record<string, unknown>) ?? Type.Object({})
     )
@@ -82,32 +77,44 @@ async function retrieveStdioMcpTools(
     return agentTool
   })
 
-  return { mcpServerName, tools: agentTools }
+  const tools: McpTools = { mcpServerName: server.name, tools: agentTools }
+  mcpToolsCache.set(server.name, tools)
+  return tools
 }
 
+/**
+ * Get MCP tools for all active servers from the registry.
+ */
 export async function getMcpTools(): Promise<McpTools[]> {
-  const setting = await getSetting()
-  const mcpServersJson = setting.mcpServers ?? null
+  const servers = await getAllMcpServers()
+  const active = servers.filter((s) => s.isActive)
+  if (active.length === 0) return []
 
-  if (!mcpServersJson) return []
-
-  // Return cached tools if MCP config hasn't changed
-  if (mcpToolsCache !== null && cachedMcpServersJson === mcpServersJson) {
-    return mcpToolsCache
-  }
-
-  try {
-    const mcpServersObj: { mcpServers: { [index: string]: StdioConfig } } =
-      JSON.parse(mcpServersJson)
-    const tools = await Promise.all(
-      Object.keys(mcpServersObj.mcpServers).map((mcpName) =>
-        retrieveStdioMcpTools(mcpServersObj.mcpServers[mcpName], mcpName)
-      )
+  const results = await Promise.allSettled(
+    active.map((s) => connectMcpServer(s))
+  )
+  return results
+    .filter(
+      (r): r is PromiseFulfilledResult<McpTools> => r.status === 'fulfilled'
     )
-    mcpToolsCache = tools
-    cachedMcpServersJson = mcpServersJson
-    return tools
-  } catch {
-    return []
-  }
+    .map((r) => r.value)
+}
+
+/**
+ * Get MCP tools filtered by server names (for department-scoped execution).
+ */
+export async function getMcpToolsByNames(names: string[]): Promise<McpTools[]> {
+  if (names.length === 0) return []
+  const servers = await getMcpServersByNames(names)
+  const active = servers.filter((s) => s.isActive)
+  if (active.length === 0) return []
+
+  const results = await Promise.allSettled(
+    active.map((s) => connectMcpServer(s))
+  )
+  return results
+    .filter(
+      (r): r is PromiseFulfilledResult<McpTools> => r.status === 'fulfilled'
+    )
+    .map((r) => r.value)
 }

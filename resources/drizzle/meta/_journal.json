@@ -36,6 +36,13 @@
       "when": 1773775836000,
       "tag": "0004_add_details_column",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1773862236000,
+      "tag": "0005_agent_x_tables",
+      "breakpoints": true
     }
   ]
 }

@@ -5,7 +5,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem
 } from '@/components/ui/sidebar'
-import { SettingsIcon, SparklesIcon, WorkflowIcon } from 'lucide-react'
+import { BotIcon, SettingsIcon, SparklesIcon } from 'lucide-react'
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
@@ -30,10 +30,10 @@ export function NavFooter({
           </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
-              isActive={location.pathname.includes('workflow')}
-              onClick={() => navigate('/workflow')}
+              isActive={location.pathname.includes('agent-x')}
+              onClick={() => navigate('/agent-x')}
             >
-              <WorkflowIcon />
+              <BotIcon />
               Agent X
             </SidebarMenuButton>
           </SidebarMenuItem>

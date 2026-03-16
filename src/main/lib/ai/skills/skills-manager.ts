@@ -189,6 +189,28 @@ export async function installLocalSkill(
   return { slug, ...installed }
 }
 
+export async function getSkillsContentBySlugs(
+  slugs: string[]
+): Promise<string> {
+  const lock = await readLockfile()
+  const contents: string[] = []
+  for (const slug of slugs) {
+    const info = lock.skills[slug]
+    if (!info) continue
+    try {
+      const skillMd = join(info.installPath, 'SKILL.md')
+      const content = await readFile(skillMd, 'utf-8')
+      const body = content.replace(/^---[\s\S]*?---\n?/, '').trim()
+      if (body) contents.push(`<skill name="${slug}">\n${body}\n</skill>`)
+    } catch {
+      // skill file missing, skip
+    }
+  }
+  return contents.length > 0
+    ? `\n\n<active_skills>\n${contents.join('\n\n')}\n</active_skills>`
+    : ''
+}
+
 export async function getActiveSkillsContent(): Promise<string> {
   const lock = await readLockfile()
   const active = Object.entries(lock.skills).filter(([, info]) => info.isActive)
