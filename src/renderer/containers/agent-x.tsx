@@ -97,16 +97,19 @@ export function AgentXContainer() {
     []
   )
 
-  const handleDeleteDepartment = useCallback(async (id: string) => {
-    await deleteDepartment(id)
-    setDepartments((prev) => prev.filter((d) => d.id !== id))
-    // Agents that belonged to this dept become unassigned (backend sets null via ON DELETE SET NULL)
-    setAgents((prev) =>
-      prev.map((a) =>
-        a.departmentId === id ? { ...a, departmentId: null } : a
+  const handleDeleteDepartment = useCallback(
+    async (id: string) => {
+      await deleteDepartment(id)
+      setDepartments((prev) => prev.filter((d) => d.id !== id))
+      setAgents((prev) =>
+        prev.map((a) =>
+          a.departmentId === id ? { ...a, departmentId: null } : a
+        )
       )
-    )
-  }, [])
+      setSelectedNode((cur) => (cur?.id === id ? null : cur))
+    },
+    [setSelectedNode]
+  )
 
   // ─── Agent handlers ───────────────────────────────────────────────────────
 
@@ -128,10 +131,14 @@ export function AgentXContainer() {
     []
   )
 
-  const handleDeleteAgent = useCallback(async (id: string) => {
-    await deleteAgentApi(id)
-    setAgents((prev) => prev.filter((a) => a.id !== id))
-  }, [])
+  const handleDeleteAgent = useCallback(
+    async (id: string) => {
+      await deleteAgentApi(id)
+      setAgents((prev) => prev.filter((a) => a.id !== id))
+      setSelectedNode((cur) => (cur?.id === id ? null : cur))
+    },
+    [setSelectedNode]
+  )
 
   // ─── Membership handlers ──────────────────────────────────────────────────
 
@@ -262,19 +269,29 @@ export function AgentXContainer() {
                 onClose={() => setSelectedTaskId(null)}
               />
             ) : selectedNode?.type === 'department' ? (
-              <DepartmentConfigPanel
-                department={departments.find((d) => d.id === selectedNode.id)!}
-                onUpdate={handleUpdateDepartment}
-                onDelete={handleDeleteDepartment}
-                onClose={() => setSelectedNode(null)}
-              />
+              (() => {
+                const dept = departments.find((d) => d.id === selectedNode.id)
+                return dept ? (
+                  <DepartmentConfigPanel
+                    department={dept}
+                    onUpdate={handleUpdateDepartment}
+                    onDelete={handleDeleteDepartment}
+                    onClose={() => setSelectedNode(null)}
+                  />
+                ) : null
+              })()
             ) : selectedNode?.type === 'agent' ? (
-              <AgentConfigPanel
-                agent={agents.find((a) => a.id === selectedNode.id)!}
-                onUpdate={handleUpdateAgent}
-                onDelete={handleDeleteAgent}
-                onClose={() => setSelectedNode(null)}
-              />
+              (() => {
+                const agent = agents.find((a) => a.id === selectedNode.id)
+                return agent ? (
+                  <AgentConfigPanel
+                    agent={agent}
+                    onUpdate={handleUpdateAgent}
+                    onDelete={handleDeleteAgent}
+                    onClose={() => setSelectedNode(null)}
+                  />
+                ) : null
+              })()
             ) : null}
           </div>
         )}

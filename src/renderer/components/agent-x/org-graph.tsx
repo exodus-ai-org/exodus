@@ -8,6 +8,7 @@ import {
   Background,
   BackgroundVariant,
   type Connection,
+  ConnectionMode,
   type Edge,
   type EdgeChange,
   Handle,
@@ -375,6 +376,7 @@ export function OrgGraph({
         minZoom={0.1}
         maxZoom={2}
         deleteKeyCode="Delete"
+        connectionMode={ConnectionMode.Loose}
       >
         <ZoomSlider position="bottom-left" />
         <Background
