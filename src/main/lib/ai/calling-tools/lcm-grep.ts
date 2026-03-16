@@ -1,6 +1,6 @@
 import type { AgentTool } from '@mariozechner/pi-agent-core'
 import { Type } from '@mariozechner/pi-ai'
-import { searchSummaries } from '../context-management/queries'
+import { searchMessages, searchSummaries } from '../context-management/queries'
 
 const lcmGrepSchema = Type.Object({
   chatId: Type.String({ description: 'The chat session ID to search within.' }),
@@ -21,15 +21,18 @@ export const lcmGrep: AgentTool<typeof lcmGrepSchema> = {
   name: 'lcmGrep',
   label: 'LCM Search',
   description:
-    'Search through compressed conversation history (LCM summaries) for a specific pattern. ' +
+    'Search through conversation history (LCM summaries and raw messages) for a specific pattern. ' +
     'Use this as the first step when you need to recall something from earlier in a long conversation. ' +
-    'Returns snippets with summary IDs that can be passed to lcmDescribe for full content.',
+    'Returns snippets with summary IDs (for lcmDescribe) or message previews.',
   parameters: lcmGrepSchema,
   execute: async (_toolCallId, { chatId, pattern, limit = 10 }) => {
-    const results = await searchSummaries(chatId, pattern)
-    const limited = results.slice(0, limit)
+    const [summaryResults, messageResults] = await Promise.all([
+      searchSummaries(chatId, pattern),
+      searchMessages(chatId, pattern)
+    ])
 
-    const details = limited.map((r) => ({
+    const summaryHits = summaryResults.slice(0, limit).map((r) => ({
+      type: 'summary' as const,
       summaryId: r.summary.id,
       kind: r.summary.kind,
       depth: r.summary.depth,
@@ -38,6 +41,18 @@ export const lcmGrep: AgentTool<typeof lcmGrepSchema> = {
       tokenCount: r.summary.tokenCount,
       snippet: r.snippet
     }))
+
+    const messageHits = messageResults
+      .slice(0, Math.max(0, limit - summaryHits.length))
+      .map((r) => ({
+        type: 'message' as const,
+        messageId: r.messageId,
+        role: r.role,
+        createdAt: r.createdAt,
+        snippet: r.snippet
+      }))
+
+    const details = [...summaryHits, ...messageHits]
 
     return {
       content: [

@@ -84,14 +84,20 @@ export async function replaceContextRange(
       )
     )
 
-  // Re-fetch and renumber items after the deleted range
-  const remaining = await db
+  // Only fetch items that were AFTER the deleted range — items before fromOrdinal
+  // keep their original ordinals and must not be renumbered.
+  const after = await db
     .select()
     .from(lcmContextItems)
-    .where(eq(lcmContextItems.chatId, chatId))
+    .where(
+      and(
+        eq(lcmContextItems.chatId, chatId),
+        sql`${lcmContextItems.ordinal} > ${toOrdinal}`
+      )
+    )
     .orderBy(asc(lcmContextItems.ordinal))
 
-  // Insert summary at fromOrdinal, then re-insert remaining with new ordinals
+  // Insert summary at fromOrdinal
   await db.insert(lcmContextItems).values({
     chatId,
     ordinal: fromOrdinal,
@@ -100,14 +106,12 @@ export async function replaceContextRange(
     tokenCount
   })
 
-  // Update subsequent items' ordinals (shift by fromOrdinal + 1 - their previous count)
-  if (remaining.length > 0) {
-    for (let i = 0; i < remaining.length; i++) {
-      await db
-        .update(lcmContextItems)
-        .set({ ordinal: fromOrdinal + 1 + i })
-        .where(eq(lcmContextItems.id, remaining[i].id))
-    }
+  // Shift items that were after the deleted range to fill the gap
+  for (let i = 0; i < after.length; i++) {
+    await db
+      .update(lcmContextItems)
+      .set({ ordinal: fromOrdinal + 1 + i })
+      .where(eq(lcmContextItems.id, after[i].id))
   }
 }
 
@@ -208,6 +212,88 @@ export async function getMessagesByIds(ids: string[]) {
 export async function getMessageById(id: string) {
   const [row] = await db.select().from(message).where(eq(message.id, id))
   return row ?? null
+}
+
+/** Full-text + regex search across raw messages for a chat */
+export async function searchMessages(
+  chatId: string,
+  pattern: string
+): Promise<
+  Array<{ messageId: string; role: string; createdAt: Date; snippet: string }>
+> {
+  const messages = await db
+    .select()
+    .from(message)
+    .where(eq(message.chatId, chatId))
+    .orderBy(desc(message.createdAt))
+
+  const results: Array<{
+    messageId: string
+    role: string
+    createdAt: Date
+    snippet: string
+  }> = []
+  let regex: RegExp | null = null
+  try {
+    regex = new RegExp(pattern, 'gi')
+  } catch {
+    // Fall back to literal string search
+  }
+
+  for (const m of messages) {
+    // Extract text from content (array of content blocks or plain string)
+    let text = ''
+    if (Array.isArray(m.content)) {
+      text = (m.content as Array<{ type: string; text?: string }>)
+        .filter((c) => c.type === 'text' && typeof c.text === 'string')
+        .map((c) => (c as { text: string }).text)
+        .join(' ')
+    } else if (typeof m.content === 'string') {
+      text = m.content
+    }
+
+    let match = false
+    let snippet = ''
+
+    if (regex) {
+      regex.lastIndex = 0
+      const hit = regex.exec(text)
+      if (hit) {
+        match = true
+        const idx = hit.index
+        const start = Math.max(0, idx - 80)
+        const end = Math.min(text.length, idx + 160)
+        snippet =
+          (start > 0 ? '...' : '') +
+          text.slice(start, end) +
+          (end < text.length ? '...' : '')
+      }
+    } else {
+      const lower = text.toLowerCase()
+      const patternLower = pattern.toLowerCase()
+      const idx = lower.indexOf(patternLower)
+      if (idx !== -1) {
+        match = true
+        const start = Math.max(0, idx - 80)
+        const end = Math.min(text.length, idx + 160)
+        snippet =
+          (start > 0 ? '...' : '') +
+          text.slice(start, end) +
+          (end < text.length ? '...' : '')
+      }
+    }
+
+    if (match) {
+      results.push({
+        messageId: m.id,
+        role: m.role,
+        createdAt: m.createdAt,
+        snippet
+      })
+    }
+  }
+
+  return results
 }
 
 /** Full-text + regex search across summaries for a chat */

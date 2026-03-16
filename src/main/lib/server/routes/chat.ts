@@ -186,16 +186,6 @@ chat.post('/', async (c) => {
     const assembled = await lcm.assembleContext()
     // Use assembled context minus the last message (agentLoop receives userMessage separately)
     contextMessages = assembled.messages.slice(0, -1)
-
-    // ── POST-CHAT: compact + memory (fire & forget) ────────────────────────
-    // We attach to the stream's close event below
-    ;(async () => {
-      await new Promise<void>((resolve) => {
-        // Small delay to let stream complete
-        setTimeout(resolve, 500)
-      })
-      lcm.compactAfterTurn().catch(console.error)
-    })()
   } else {
     // Fallback: use messages passed from client directly
     contextMessages = allMessages.slice(0, -1).map(stripId)
@@ -365,38 +355,41 @@ chat.post('/', async (c) => {
         }
 
         // ── POST-CHAT: async memory operations (non-blocking) ──────────────
-        if (memoryAutoWrite && newMessages.length > 0) {
+        if (newMessages.length > 0) {
           const allSavedMessages = [...allMessages, ...newMessages]
           Promise.resolve().then(async () => {
-            const lcm = new LcmManager(id, chatModel, apiKey, {
-              freshTailSize: memoryConfig?.freshTailSize ?? 16,
-              contextWindowPercent: memoryConfig?.contextWindowPercent ?? 75
-            })
-            // Track new messages in LCM
-            await lcm.trackNewMessages(
-              newMessages.map((m) => ({ id: m.id, content: m.content }))
-            )
-            // Compact if needed
-            lcm.compactAfterTurn().catch(console.error)
-            // Memory write judge
-            runMemoryWriteJudge(
-              allSavedMessages.map((m) => ({
-                role: m.role,
-                content: m.content
-              })),
-              chatModel,
-              apiKey
-            ).catch(console.error)
-            // Session summary
-            saveSessionSummary(
-              id,
-              allSavedMessages.map((m) => ({
-                role: m.role,
-                content: m.content
-              })),
-              chatModel,
-              apiKey
-            ).catch(console.error)
+            // LCM: track new messages and compact — gated on lcmEnabled
+            if (lcmEnabled) {
+              const lcm = new LcmManager(id, chatModel, apiKey, {
+                freshTailSize: memoryConfig?.freshTailSize ?? 16,
+                contextWindowPercent: memoryConfig?.contextWindowPercent ?? 75
+              })
+              await lcm.trackNewMessages(
+                newMessages.map((m) => ({ id: m.id, content: m.content }))
+              )
+              lcm.compactAfterTurn().catch(console.error)
+            }
+
+            // Memory write judge + session summary — gated on memoryAutoWrite
+            if (memoryAutoWrite) {
+              runMemoryWriteJudge(
+                allSavedMessages.map((m) => ({
+                  role: m.role,
+                  content: m.content
+                })),
+                chatModel,
+                apiKey
+              ).catch(console.error)
+              saveSessionSummary(
+                id,
+                allSavedMessages.map((m) => ({
+                  role: m.role,
+                  content: m.content
+                })),
+                chatModel,
+                apiKey
+              ).catch(console.error)
+            }
           })
         }
       } catch (err) {
