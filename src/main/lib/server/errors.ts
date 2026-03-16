@@ -24,6 +24,7 @@ export type Surface =
   | 'agent_x'
   | 'mcp'
   | 's3'
+  | 'memory'
 
 export type ErrorCode = `${ErrorType}:${Surface}`
 
@@ -46,7 +47,8 @@ export const visibilityBySurface: Record<Surface, ErrorVisibility> = {
   setting: 'response',
   agent_x: 'response',
   mcp: 'response',
-  s3: 'response'
+  s3: 'response',
+  memory: 'response'
 }
 
 export class ChatSDKError extends Error {
@@ -143,7 +145,7 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
     case 'bad_request:deep_research':
       return 'Failed to start deep research. Please check your input and try again.'
     case 'forbidden:deep_research':
-      return 'Deep research requires Serper API key. Please configure it in settings.'
+      return 'Deep research requires a Perplexity API key. Please configure it in settings.'
 
     case 'not_found:audio':
       return 'Audio file not found or missing.'

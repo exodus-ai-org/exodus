@@ -14,6 +14,9 @@ import {
   googleMapsRouting,
   grep,
   imageGeneration,
+  lcmDescribe,
+  lcmExpand,
+  lcmGrep,
   listDirectory,
   rag,
   readFile,
@@ -126,12 +129,17 @@ export async function generateTitleFromUserMessage({
 export function bindCallingTools({
   advancedTools,
   setting,
+  chatModel,
+  apiKey,
   mcpTools = []
 }: {
   advancedTools: AdvancedTools[]
   setting: Setting
+  chatModel?: Model<string>
+  apiKey?: string
   mcpTools?: McpTools[]
-}): AgentTool[] {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+}): AgentTool<any>[] {
   if (advancedTools.includes(AdvancedTools.DeepResearch)) {
     return [deepResearch]
   }
@@ -141,7 +149,8 @@ export function bindCallingTools({
   const disabledTools = new Set(setting.tools?.disabledTools ?? [])
   const enabled = (key: string) => !disabledTools.has(key)
 
-  const tools: AgentTool[] = []
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const tools: AgentTool<any>[] = []
 
   if (enabled('rag')) tools.push(rag(setting))
   if (enabled('calculator')) tools.push(calculator)
@@ -157,10 +166,20 @@ export function bindCallingTools({
   if (enabled('listDirectory')) tools.push(listDirectory)
   if (enabled('findFiles')) tools.push(findFiles)
   if (enabled('grep')) tools.push(grep)
-  if (enabled('webFetch')) tools.push(webFetch)
+  if (enabled('webFetch')) tools.push(webFetch(setting))
 
   if (advancedTools.includes(AdvancedTools.WebSearch) && enabled('webSearch')) {
     tools.push(webSearch(setting))
+  }
+
+  // LCM recall tools: available when LCM is enabled
+  const lcmEnabled = setting.memoryLayer?.lcmEnabled !== false
+  if (lcmEnabled) {
+    tools.push(lcmGrep)
+    tools.push(lcmDescribe)
+    if (chatModel && apiKey) {
+      tools.push(lcmExpand(chatModel, apiKey))
+    }
   }
 
   return [...mcpToolsList, ...tools]

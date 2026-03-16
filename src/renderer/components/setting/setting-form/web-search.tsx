@@ -8,7 +8,12 @@ import {
   CommandItem,
   CommandList
 } from '@/components/ui/command'
-import { Field, FieldError, FieldLabel } from '@/components/ui/field'
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldLabel
+} from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import {
   Popover,
@@ -28,54 +33,45 @@ import { cn } from '@/lib/utils'
 import { countryCodes } from '@shared/constants/country-codes'
 import { languageCodes } from '@shared/constants/language-codes'
 import { UseFormReturnType } from '@shared/schemas/setting-schema'
-import {
-  AlertCircleIcon,
-  CheckIcon,
-  ChevronsUpDownIcon,
-  ExternalLinkIcon,
-  InfoIcon
-} from 'lucide-react'
+import { AlertCircleIcon, CheckIcon, ChevronsUpDownIcon } from 'lucide-react'
 import { Controller } from 'react-hook-form'
 
 const URL_TO_MARKDOWN_PROVIDERS = [
-  { value: 'default', label: 'Default (built-in)' },
-  { value: 'jina', label: 'Jina Reader' },
-  { value: 'cloudflare', label: 'Cloudflare Browser Rendering' }
+  { value: 'jina', label: 'Jina(default)' },
+  { value: 'builtin', label: 'Built-in' }
 ] as const
 
 export function WebSearch({ form }: { form: UseFormReturnType }) {
-  const provider = form.watch('webSearch.urlToMarkdownProvider')
-
   return (
     <>
       <Alert>
         <AlertCircleIcon className="h-4 w-4" />
         <AlertDescription className="inline">
-          Exodus supports built-in Web Search using{' '}
+          Exodus uses{' '}
           <a
-            href="https://brave.com/search/api/"
+            href="https://docs.perplexity.ai/docs/search/quickstart"
             target="_blank"
             rel="noopener noreferrer"
             className="font-semibold underline"
           >
-            Brave Search
+            Perplexity Search
           </a>{' '}
-          to retrieve search results. To utilize the feature, you must first
-          register for a <strong>Brave Search API Key</strong>.
+          for real-time web results with built-in content extraction. A{' '}
+          <strong>Perplexity API Key</strong> is required.
         </AlertDescription>
       </Alert>
 
       <div className="flex flex-col gap-3">
         <Controller
           control={form.control}
-          name="webSearch.braveApiKey"
+          name="webSearch.perplexityApiKey"
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel>Brave API Key</FieldLabel>
+              <FieldLabel>Perplexity API Key</FieldLabel>
               <Input
                 type="password"
                 autoComplete="current-password"
-                id="brave-search-api-key-input"
+                id="perplexity-api-key-input"
                 autoFocus
                 {...field}
                 value={field.value ?? ''}
@@ -242,13 +238,18 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
               <div className="flex items-center justify-between">
-                <FieldLabel>URL to Markdown</FieldLabel>
+                <div>
+                  <FieldLabel>URL to Markdown</FieldLabel>
+                  <FieldDescription>
+                    Used by the Web Fetch tool to convert pages to Markdown.
+                  </FieldDescription>
+                </div>
                 <Select
-                  value={field.value ?? 'default'}
+                  value={field.value ?? 'jina'}
                   onValueChange={(val) =>
                     form.setValue(
                       'webSearch.urlToMarkdownProvider',
-                      val as 'default' | 'jina' | 'cloudflare'
+                      val as 'jina' | 'builtin'
                     )
                   }
                 >
@@ -270,85 +271,6 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
             </Field>
           )}
         />
-
-        {provider === 'cloudflare' && (
-          <>
-            <Alert>
-              <InfoIcon className="h-4 w-4" />
-              <AlertDescription className="space-y-1">
-                <p>
-                  Cloudflare Browser Rendering requires enabling the service in
-                  your Cloudflare Dashboard and creating an API Token with the{' '}
-                  <strong>Browser Rendering</strong> permission.
-                </p>
-                <div className="flex flex-wrap gap-x-3 gap-y-1 pt-1">
-                  <a
-                    href="https://developers.cloudflare.com/browser-rendering/get-started/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 font-semibold underline"
-                  >
-                    Get started <ExternalLinkIcon className="h-3 w-3" />
-                  </a>
-                  <a
-                    href="https://developers.cloudflare.com/browser-rendering/rest-api/crawl-endpoint/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 font-semibold underline"
-                  >
-                    Crawl API docs <ExternalLinkIcon className="h-3 w-3" />
-                  </a>
-                  <a
-                    href="https://dash.cloudflare.com/profile/api-tokens"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 font-semibold underline"
-                  >
-                    Create API Token <ExternalLinkIcon className="h-3 w-3" />
-                  </a>
-                </div>
-              </AlertDescription>
-            </Alert>
-
-            <Controller
-              control={form.control}
-              name="webSearch.cloudflareAccountId"
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>Cloudflare Account ID</FieldLabel>
-                  <Input
-                    {...field}
-                    value={field.value ?? ''}
-                    placeholder="Your Cloudflare account ID"
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-
-            <Controller
-              control={form.control}
-              name="webSearch.cloudflareApiToken"
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel>Cloudflare API Token</FieldLabel>
-                  <Input
-                    type="password"
-                    autoComplete="current-password"
-                    {...field}
-                    value={field.value ?? ''}
-                    placeholder="Token with Browser Rendering permission"
-                  />
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-          </>
-        )}
       </div>
     </>
   )

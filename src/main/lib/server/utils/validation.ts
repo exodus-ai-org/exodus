@@ -45,15 +45,15 @@ export function validateOpenAIConfig(setting: Setting) {
 }
 
 /**
- * Validates that Brave Search API key exists
+ * Validates that Perplexity API key exists
  * @throws ChatSDKError if API key is missing
  */
-export function validateBraveApiKey(setting: Setting) {
-  if (!setting.webSearch?.braveApiKey) {
+export function validatePerplexityApiKey(setting: Setting) {
+  if (!setting.webSearch?.perplexityApiKey) {
     throw new ChatSDKError('forbidden:deep_research')
   }
 
-  return setting.webSearch.braveApiKey
+  return setting.webSearch.perplexityApiKey
 }
 
 /**

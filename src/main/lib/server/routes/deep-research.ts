@@ -21,7 +21,7 @@ import {
   getRequiredQuery,
   handleDatabaseOperation,
   successResponse,
-  validateBraveApiKey,
+  validatePerplexityApiKey,
   validateSchema
 } from '../utils'
 
@@ -99,7 +99,7 @@ deepResearch.post('/', async (c) => {
     )
   }
 
-  const braveApiKey = validateBraveApiKey(setting)
+  const perplexityApiKey = validatePerplexityApiKey(setting)
 
   const { reasoningModel, apiKey } = getModelFromProvider(setting)
 
@@ -113,7 +113,7 @@ deepResearch.post('/', async (c) => {
       depth: setting.deepResearch?.depth ?? 2
     },
     {
-      braveApiKey,
+      perplexityApiKey,
       model: reasoningModel,
       apiKey,
       notify: (data) => notifyClients(deepResearchId, data)

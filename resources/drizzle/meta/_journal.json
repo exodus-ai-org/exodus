@@ -5,43 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1772783877779,
-      "tag": "0000_calm_paper_doll",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1773395317337,
-      "tag": "0001_flawless_mauler",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1773504132506,
-      "tag": "0002_pale_vivisector",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1773590532506,
-      "tag": "0003_new_message_schema",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1773775836000,
-      "tag": "0004_add_details_column",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1773862236000,
-      "tag": "0005_agent_x_tables",
+      "when": 1773636762968,
+      "tag": "0000_absurd_tony_stark",
       "breakpoints": true
     }
   ]

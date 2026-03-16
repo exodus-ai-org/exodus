@@ -15,19 +15,16 @@ export const webSearch = (
   description: `Search the web for up-to-date information. Suffix a specific date to the query parameter based on user's input. Today is ${new Date().toISOString()}`,
   parameters: webSearchSchema,
   execute: async (_toolCallId, { query }) => {
-    if (!setting?.webSearch?.braveApiKey) {
+    if (!setting?.webSearch?.perplexityApiKey) {
       throw new Error(
-        'To use Web Search, make sure to fill in the `braveApiKey` in the setting.'
+        'To use Web Search, make sure to fill in the `perplexityApiKey` in the settings.'
       )
     }
     const details = await fetchAndProcessSearchResults({
       query,
-      braveApiKey: setting.webSearch.braveApiKey,
+      perplexityApiKey: setting.webSearch.perplexityApiKey,
       country: setting.webSearch.country,
-      language: setting.webSearch.language,
-      urlToMarkdownProvider: setting.webSearch.urlToMarkdownProvider,
-      cloudflareAccountId: setting.webSearch.cloudflareAccountId,
-      cloudflareApiToken: setting.webSearch.cloudflareApiToken
+      language: setting.webSearch.language
     })
     return {
       content: [{ type: 'text' as const, text: JSON.stringify(details) }],

@@ -47,16 +47,15 @@ export const GoogleCloudSchema = z.object({
   googleApiKey: z.string().nullish()
 })
 
-export const UrlToMarkdownProvider = z.enum(['default', 'jina', 'cloudflare'])
+// 'jina' = Jina Reader (default), 'builtin' = our cheerio+turndown
+export const UrlToMarkdownProvider = z.enum(['jina', 'builtin'])
 export type UrlToMarkdownProvider = z.infer<typeof UrlToMarkdownProvider>
 
 export const WebSearchSchema = z.object({
-  braveApiKey: z.string().nullish(),
+  perplexityApiKey: z.string().nullish(),
   country: z.string().nullish(),
   language: z.string().nullish(),
-  urlToMarkdownProvider: UrlToMarkdownProvider.nullish(),
-  cloudflareAccountId: z.string().nullish(),
-  cloudflareApiToken: z.string().nullish()
+  urlToMarkdownProvider: UrlToMarkdownProvider.default('jina').nullish()
 })
 
 export const ImageSchema = z.object({
@@ -111,6 +110,17 @@ export const ToolsSchema = z.object({
   disabledTools: z.array(z.string()).default([])
 })
 
+export const MemoryLayerSchema = z.object({
+  // User memory: auto-write memories after conversations
+  autoWrite: z.boolean().default(true),
+  // LCM: enable lossless context management for long conversations
+  lcmEnabled: z.boolean().default(true),
+  // LCM: trigger compaction when context exceeds this % of the context window (50-95)
+  contextWindowPercent: z.number().gte(50).lte(95).default(75),
+  // LCM: number of most recent messages protected from compaction (8-64)
+  freshTailSize: z.number().gte(8).lte(64).default(16)
+})
+
 export const SettingSchema = z.object({
   id: z.string(),
   providerConfig: ProviderConfigSchema.nullish(),
@@ -125,6 +135,7 @@ export const SettingSchema = z.object({
   deepResearch: DeepResearchSchema.nullish(),
   s3: S3Schema.nullish(),
   autoUpdate: z.boolean().nullish(),
+  memoryLayer: MemoryLayerSchema.nullish(),
   createdAt: z.any(),
   updatedAt: z.any()
 })

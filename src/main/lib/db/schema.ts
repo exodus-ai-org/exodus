@@ -4,6 +4,7 @@ import {
   DeepResearchSchema,
   GoogleCloudSchema,
   ImageSchema,
+  MemoryLayerSchema,
   ProviderConfigSchema,
   ProvidersSchema,
   S3Schema,
@@ -15,6 +16,7 @@ import { sql, type InferSelectModel } from 'drizzle-orm'
 import {
   boolean,
   index,
+  integer,
   json,
   jsonb,
   pgEnum,
@@ -29,7 +31,7 @@ import {
 } from 'drizzle-orm/pg-core'
 import z from 'zod'
 
-export const chat = pgTable('Chat', {
+export const chat = pgTable('chat', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   title: text('title').notNull(),
@@ -39,7 +41,7 @@ export const chat = pgTable('Chat', {
 export type Chat = InferSelectModel<typeof chat>
 
 export const message = pgTable(
-  'Message',
+  'message',
   {
     id: uuid('id').primaryKey().notNull().defaultRandom(),
     chatId: uuid('chatId')
@@ -73,7 +75,7 @@ export type DBMessage = InferSelectModel<typeof message>
 export type Message = DBMessage
 
 export const vote = pgTable(
-  'Vote',
+  'vote',
   {
     chatId: uuid('chatId')
       .notNull()
@@ -92,7 +94,7 @@ export const vote = pgTable(
 
 export type Vote = InferSelectModel<typeof vote>
 
-export const setting = pgTable('Setting', {
+export const setting = pgTable('setting', {
   id: text('id').primaryKey(),
   providerConfig:
     jsonb('providerConfig').$type<z.infer<typeof ProviderConfigSchema>>(),
@@ -108,6 +110,7 @@ export const setting = pgTable('Setting', {
     jsonb('deepResearch').$type<z.infer<typeof DeepResearchSchema>>(),
   s3: jsonb('s3').$type<z.infer<typeof S3Schema>>(),
   autoUpdate: boolean('autoUpdate').default(true),
+  memoryLayer: jsonb('memoryLayer').$type<z.infer<typeof MemoryLayerSchema>>(),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull()
 })
@@ -121,7 +124,7 @@ export const jobStatusEnum = pgEnum('jobStatus', [
   'terminated'
 ])
 
-export const deepResearch = pgTable('DeepResearch', {
+export const deepResearch = pgTable('deep_research', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   toolCallId: text('toolCallId').notNull(),
   title: text('title'),
@@ -134,7 +137,7 @@ export const deepResearch = pgTable('DeepResearch', {
 
 export type DeepResearch = InferSelectModel<typeof deepResearch>
 
-export const deepResearchMessage = pgTable('DeepResearchMessage', {
+export const deepResearchMessage = pgTable('deep_research_message', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   deepResearchId: uuid('deepResearchId')
     .notNull()
@@ -145,7 +148,7 @@ export const deepResearchMessage = pgTable('DeepResearchMessage', {
 
 export type DeepResearchMessage = InferSelectModel<typeof deepResearchMessage>
 
-export const resource = pgTable('Resource', {
+export const resource = pgTable('resource', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   content: text('content').notNull(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
@@ -155,7 +158,7 @@ export const resource = pgTable('Resource', {
 export type Resources = InferSelectModel<typeof resource>
 
 export const embedding = pgTable(
-  'Embedding',
+  'embedding',
   {
     id: uuid('id').primaryKey().notNull().defaultRandom(),
     resourceId: uuid('resourceId').references(() => resource.id, {
@@ -176,7 +179,7 @@ export type Embedding = InferSelectModel<typeof embedding>
 
 // ─── MCP Registry ───────────────────────────────────────────────────────────
 
-export const mcpServer = pgTable('McpServer', {
+export const mcpServer = pgTable('mcp_server', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   name: text('name').notNull(),
   description: text('description').default(''),
@@ -192,7 +195,7 @@ export type McpServer = InferSelectModel<typeof mcpServer>
 
 // ─── Agent X ────────────────────────────────────────────────────────────────
 
-export const department = pgTable('Department', {
+export const department = pgTable('department', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   name: text('name').notNull(),
   description: text('description').default(''),
@@ -206,7 +209,7 @@ export const department = pgTable('Department', {
 
 export type Department = InferSelectModel<typeof department>
 
-export const agent = pgTable('Agent', {
+export const agent = pgTable('agent', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   departmentId: uuid('departmentId')
     .notNull()
@@ -233,7 +236,7 @@ export const agentMemorySourceEnum = pgEnum('agent_memory_source', [
   'system'
 ])
 
-export const agentMemory = pgTable('AgentMemory', {
+export const agentMemory = pgTable('agent_memory', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   agentId: uuid('agentId')
     .notNull()
@@ -265,7 +268,7 @@ export const taskPriorityEnum = pgEnum('task_priority', [
   'urgent'
 ])
 
-export const task = pgTable('Task', {
+export const task = pgTable('task', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   parentTaskId: uuid('parentTaskId'),
   title: text('title').notNull(),
@@ -293,7 +296,7 @@ export const executionStatusEnum = pgEnum('execution_status', [
   'failed'
 ])
 
-export const taskExecution = pgTable('TaskExecution', {
+export const taskExecution = pgTable('task_execution', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   taskId: uuid('taskId')
     .notNull()
@@ -313,7 +316,7 @@ export const taskExecution = pgTable('TaskExecution', {
 
 export type TaskExecution = InferSelectModel<typeof taskExecution>
 
-export const taskExecutionEvent = pgTable('TaskExecutionEvent', {
+export const taskExecutionEvent = pgTable('task_execution_event', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   executionId: uuid('executionId')
     .notNull()
@@ -370,3 +373,69 @@ export const memoryUsageLog = pgTable('memory_usage_log', {
   reason: text('reason'),
   createdAt: timestamp('created_at').defaultNow()
 })
+
+// ─── LCM (Lossless Context Management) ──────────────────────────────────────
+
+// DAG nodes: leaf summaries (depth=0) and condensed summaries (depth>=1)
+export const lcmSummary = pgTable('lcm_summary', {
+  id: text('id').primaryKey(), // 'sum_' + 16 hex chars (SHA-256 of content+ts)
+  chatId: uuid('chat_id')
+    .notNull()
+    .references(() => chat.id, { onDelete: 'cascade' }),
+  kind: text('kind').notNull().$type<'leaf' | 'condensed'>(),
+  depth: integer('depth').notNull().default(0),
+  content: text('content').notNull(),
+  tokenCount: integer('token_count').notNull(),
+  descendantCount: integer('descendant_count').notNull().default(0),
+  earliestAt: timestamp('earliest_at').notNull(),
+  latestAt: timestamp('latest_at').notNull(),
+  createdAt: timestamp('created_at').notNull().defaultNow()
+})
+
+export type LcmSummary = InferSelectModel<typeof lcmSummary>
+
+// Leaf summary → source messages (many-to-many)
+export const lcmSummaryMessages = pgTable(
+  'lcm_summary_messages',
+  {
+    summaryId: text('summary_id')
+      .notNull()
+      .references(() => lcmSummary.id, { onDelete: 'cascade' }),
+    messageId: uuid('message_id')
+      .notNull()
+      .references(() => message.id, { onDelete: 'cascade' })
+  },
+  (t) => [primaryKey({ columns: [t.summaryId, t.messageId] })]
+)
+
+// Condensed summary → parent summaries (DAG edges)
+export const lcmSummaryParents = pgTable(
+  'lcm_summary_parents',
+  {
+    childId: text('child_id')
+      .notNull()
+      .references(() => lcmSummary.id, { onDelete: 'cascade' }),
+    parentId: text('parent_id')
+      .notNull()
+      .references(() => lcmSummary.id, { onDelete: 'cascade' })
+  },
+  (t) => [primaryKey({ columns: [t.childId, t.parentId] })]
+)
+
+// Ordered context sequence per chat session (messages + summaries interleaved)
+export const lcmContextItems = pgTable(
+  'lcm_context_items',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    chatId: uuid('chat_id')
+      .notNull()
+      .references(() => chat.id, { onDelete: 'cascade' }),
+    ordinal: integer('ordinal').notNull(),
+    kind: text('kind').notNull().$type<'message' | 'summary'>(),
+    refId: text('ref_id').notNull(), // message.id or lcmSummary.id
+    tokenCount: integer('token_count')
+  },
+  (t) => [index('lcm_context_chat_idx').on(t.chatId, t.ordinal)]
+)
+
+export type LcmContextItem = InferSelectModel<typeof lcmContextItems>

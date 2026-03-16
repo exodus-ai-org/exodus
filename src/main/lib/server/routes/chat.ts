@@ -11,11 +11,19 @@ import type {
 import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import { v4 as uuidV4 } from 'uuid'
+import { LcmManager } from '../../ai/context-management'
+import {
+  formatMemoriesForSystem,
+  loadRelevantMemories,
+  runMemoryWriteJudge,
+  saveSessionSummary
+} from '../../ai/memory/manager'
 import { deepResearchBootPrompt, systemPrompt } from '../../ai/prompts'
 import {
   bindCallingTools,
   generateTitleFromUserMessage,
-  getModelFromProvider
+  getModelFromProvider,
+  getTextFromMessage
 } from '../../ai/utils/chat-message-util'
 import {
   deleteChatById,
@@ -141,7 +149,6 @@ chat.post('/', async (c) => {
 
   // The last message is the new user message; everything before is context
   const userMessage = allMessages.at(-1)!
-  const contextMessages = allMessages.slice(0, -1)
 
   // Create chat record if new
   const existingChat = await getChatById({ id })
@@ -158,11 +165,59 @@ chat.post('/', async (c) => {
   // Save the user message to DB immediately
   await saveMessages({ messages: [toDbRow(userMessage, id)] })
 
+  const memoryConfig = setting.memoryLayer
+  const lcmEnabled = memoryConfig?.lcmEnabled !== false
+  const memoryAutoWrite = memoryConfig?.autoWrite !== false
+
+  // ── PRE-CHAT: assemble context via LCM (if enabled) ──────────────────────
+  let contextMessages: Message[]
+
+  if (lcmEnabled) {
+    const lcm = new LcmManager(id, chatModel, apiKey, {
+      freshTailSize: memoryConfig?.freshTailSize ?? 16,
+      contextWindowPercent: memoryConfig?.contextWindowPercent ?? 75
+    })
+
+    // Track the new user message
+    await lcm.trackNewMessages([
+      { id: userMessage.id, content: userMessage.content }
+    ])
+
+    const assembled = await lcm.assembleContext()
+    // Use assembled context minus the last message (agentLoop receives userMessage separately)
+    contextMessages = assembled.messages.slice(0, -1)
+
+    // ── POST-CHAT: compact + memory (fire & forget) ────────────────────────
+    // We attach to the stream's close event below
+    ;(async () => {
+      await new Promise<void>((resolve) => {
+        // Small delay to let stream complete
+        setTimeout(resolve, 500)
+      })
+      lcm.compactAfterTurn().catch(console.error)
+    })()
+  } else {
+    // Fallback: use messages passed from client directly
+    contextMessages = allMessages.slice(0, -1).map(stripId)
+  }
+
+  // ── PRE-CHAT: load relevant user memories ─────────────────────────────────
+  let memoriesSection = ''
+  if (memoryAutoWrite) {
+    const userText = getTextFromMessage(userMessage)
+    const relevantMemories = await loadRelevantMemories(
+      userText,
+      chatModel,
+      apiKey
+    )
+    memoriesSection = formatMemoriesForSystem(relevantMemories)
+  }
+
   const activeModel = isReasoningModel ? reasoningModel : chatModel
-  const tools = bindCallingTools({ advancedTools, setting })
+  const tools = bindCallingTools({ advancedTools, setting, chatModel, apiKey })
   const systemContent = advancedTools?.includes(AdvancedTools.DeepResearch)
     ? deepResearchBootPrompt
-    : systemPrompt
+    : systemPrompt + memoriesSection
 
   // Build SSE streaming response
   const stream = new ReadableStream({
@@ -182,7 +237,7 @@ chat.post('/', async (c) => {
           [stripId(userMessage) as AgentMessage],
           {
             systemPrompt: systemContent,
-            messages: contextMessages.map(stripId),
+            messages: contextMessages,
             tools
           },
           {
@@ -241,7 +296,6 @@ chat.post('/', async (c) => {
               })
             }
           } else if (event.type === 'tool_execution_end') {
-            // Extract the actual details from AgentToolResult wrapper
             const details =
               event.result &&
               typeof event.result === 'object' &&
@@ -281,16 +335,52 @@ chat.post('/', async (c) => {
           updateChatTitleById({ id, title })
         }
 
-        // Send done event with the complete conversation
+        // Send done event
         sendEvent({
           type: 'done',
           messages: [...allMessages, ...newMessages]
         })
 
-        // Persist new assistant/toolResult messages to DB
+        // Persist new messages to DB
         if (newMessages.length > 0) {
           await saveMessages({
             messages: newMessages.map((m) => toDbRow(m, id))
+          })
+        }
+
+        // ── POST-CHAT: async memory operations (non-blocking) ──────────────
+        if (memoryAutoWrite && newMessages.length > 0) {
+          const allSavedMessages = [...allMessages, ...newMessages]
+          Promise.resolve().then(async () => {
+            const lcm = new LcmManager(id, chatModel, apiKey, {
+              freshTailSize: memoryConfig?.freshTailSize ?? 16,
+              contextWindowPercent: memoryConfig?.contextWindowPercent ?? 75
+            })
+            // Track new messages in LCM
+            await lcm.trackNewMessages(
+              newMessages.map((m) => ({ id: m.id, content: m.content }))
+            )
+            // Compact if needed
+            lcm.compactAfterTurn().catch(console.error)
+            // Memory write judge
+            runMemoryWriteJudge(
+              allSavedMessages.map((m) => ({
+                role: m.role,
+                content: m.content
+              })),
+              chatModel,
+              apiKey
+            ).catch(console.error)
+            // Session summary
+            saveSessionSummary(
+              id,
+              allSavedMessages.map((m) => ({
+                role: m.role,
+                content: m.content
+              })),
+              chatModel,
+              apiKey
+            ).catch(console.error)
           })
         }
       } catch (err) {

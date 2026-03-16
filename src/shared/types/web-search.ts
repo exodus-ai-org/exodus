@@ -8,15 +8,15 @@ export interface WebSearchResult {
   snippet: string
 }
 
-export interface BraveWebResult {
+export interface PerplexitySearchResult {
   title: string
   url: string
-  description?: string
-  extra_snippets?: string[]
+  snippet: string
+  date?: string
+  last_updated?: string
 }
 
-export interface BraveSearchResponse {
-  web?: {
-    results: BraveWebResult[]
-  }
+export interface PerplexitySearchResponse {
+  results: PerplexitySearchResult[]
+  id: string
 }
