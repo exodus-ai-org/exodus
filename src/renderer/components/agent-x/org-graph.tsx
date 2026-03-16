@@ -18,6 +18,7 @@ import {
   type OnNodesChange,
   Position,
   ReactFlow,
+  SelectionMode,
   addEdge,
   applyEdgeChanges,
   applyNodeChanges,
@@ -459,6 +460,10 @@ export function OrgGraph({
         maxZoom={2}
         deleteKeyCode="Delete"
         connectionMode={ConnectionMode.Loose}
+        selectionOnDrag
+        panOnDrag={false}
+        panOnScroll
+        selectionMode={SelectionMode.Partial}
       >
         <ZoomSlider position="bottom-left" />
         <Background
