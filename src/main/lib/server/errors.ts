@@ -17,7 +17,6 @@ export type Surface =
   | 'document'
   | 'suggestions'
   | 'activate_gateway'
-  | 'rag'
   | 'deep_research'
   | 'audio'
   | 'setting'
@@ -41,7 +40,6 @@ export const visibilityBySurface: Record<Surface, ErrorVisibility> = {
   document: 'response',
   suggestions: 'response',
   activate_gateway: 'response',
-  rag: 'response',
   deep_research: 'response',
   audio: 'response',
   setting: 'response',
@@ -132,13 +130,6 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
       return 'Setting configuration not found. Please check your settings.'
     case 'bad_request:setting':
       return 'Invalid setting configuration. Please check your input and try again.'
-
-    case 'not_found:rag':
-      return 'The requested resource was not found in the knowledge base.'
-    case 'bad_request:rag':
-      return 'Failed to process the document. Please check the file format and try again.'
-    case 'forbidden:rag':
-      return 'The embedding model is not configured. Please configure it in settings.'
 
     case 'not_found:deep_research':
       return 'The requested research was not found. Please check the research ID and try again.'

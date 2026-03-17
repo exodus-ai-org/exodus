@@ -37,11 +37,11 @@ async function connectMcpServer(server: McpServer): Promise<McpTools> {
       parameters: schema,
       execute: async (
         _toolCallId: string,
-        params: Record<string, unknown>
+        params: unknown
       ): Promise<AgentToolResult<unknown>> => {
         const result = await client.callTool({
           name: mcpTool.name,
-          arguments: params
+          arguments: params as Record<string, unknown>
         })
 
         const content = result.content as Array<{

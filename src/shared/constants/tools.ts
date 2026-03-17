@@ -93,12 +93,6 @@ export const TOOL_REGISTRY: ToolMeta[] = [
 
   // AI & Data
   {
-    key: 'rag',
-    label: 'Knowledge Base',
-    description: 'Retrieve relevant content from uploaded documents',
-    group: 'AI & Data'
-  },
-  {
     key: 'imageGeneration',
     label: 'Image Generation',
     description: 'Generate images via DALL-E (requires OpenAI API key)',

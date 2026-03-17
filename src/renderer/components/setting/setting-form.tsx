@@ -19,7 +19,6 @@ import { GoogleGemini } from './setting-form/providers/google-gemini'
 import { Ollama } from './setting-form/providers/ollama'
 import { OpenAiGpt } from './setting-form/providers/openai-gpt'
 import { XaiGrok } from './setting-form/providers/xai-grok'
-import { Rag } from './setting-form/rag'
 import { S3 } from './setting-form/s3'
 import { SystemInfo } from './setting-form/system-info'
 import { Tools } from './setting-form/tools'
@@ -89,8 +88,6 @@ export function SettingsForm() {
       {activeTitle === SettingLabel.MemoryLayer && <MemoryLayer form={form} />}
 
       {activeTitle === SettingLabel.BuiltinTools && <Tools form={form} />}
-
-      {activeTitle === SettingLabel.Rag && <Rag />}
 
       {activeTitle === SettingLabel.ComputerUse && <UnderConstruction />}
 

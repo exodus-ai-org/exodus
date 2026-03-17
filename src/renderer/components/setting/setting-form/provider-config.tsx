@@ -1,5 +1,4 @@
 import { Field, FieldError, FieldLabel } from '@/components/ui/field'
-import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -9,17 +8,10 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from '@/components/ui/tooltip'
 
 import { models } from '@shared/constants/models'
 import { UseFormReturnType } from '@shared/schemas/setting-schema'
 import { AiProviders } from '@shared/types/ai'
-import { InfoIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import { Controller } from 'react-hook-form'
 
@@ -128,81 +120,6 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
                 </SelectGroup>
               </SelectContent>
             </Select>
-            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-          </Field>
-        )}
-      />
-      <Separator />
-      <Controller
-        control={form.control}
-        name="providerConfig.embeddingModel"
-        render={({ field, fieldState }) => (
-          <Field orientation="horizontal" data-invalid={fieldState.invalid}>
-            <FieldLabel>Embedding Model</FieldLabel>
-            <Select
-              disabled={!provider}
-              onValueChange={field.onChange}
-              value={field.value ?? ''}
-            >
-              <SelectTrigger className="hover:bg-accent w-fit border-none shadow-none">
-                <SelectValue
-                  placeholder={
-                    provider
-                      ? 'Select an embedding model'
-                      : 'Select a provider first'
-                  }
-                />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectGroup>
-                  {modelsOfProvider?.embeddingModel?.map((val) => (
-                    <SelectItem key={val} value={val}>
-                      {val}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-          </Field>
-        )}
-      />
-      <Separator />
-      <Controller
-        control={form.control}
-        name="providerConfig.maxSteps"
-        render={({ field, fieldState }) => (
-          <Field orientation="horizontal" data-invalid={fieldState.invalid}>
-            <FieldLabel>
-              Max Steps
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <InfoIcon className="text-ring h-4 w-4" />
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="max-w-60">
-                      Maximum number of sequential LLM calls (steps), e.g. when
-                      you use tool calls. A maximum number is required to
-                      prevent infinite loops in the case of misconfigured tools.
-                      By default, it is set to 1.
-                    </p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </FieldLabel>
-            <Input
-              type="number"
-              id="max-steps-input"
-              {...field}
-              value={field.value ?? 1}
-              onChange={(e) =>
-                field.onChange(
-                  e.target.value === '' ? null : e.target.valueAsNumber
-                )
-              }
-              className="w-fit"
-            />
             {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
           </Field>
         )}

@@ -26,8 +26,7 @@ import {
   text,
   timestamp,
   uuid,
-  varchar,
-  vector
+  varchar
 } from 'drizzle-orm/pg-core'
 import z from 'zod'
 
@@ -147,35 +146,6 @@ export const deepResearchMessage = pgTable('deep_research_message', {
 })
 
 export type DeepResearchMessage = InferSelectModel<typeof deepResearchMessage>
-
-export const resource = pgTable('resource', {
-  id: uuid('id').primaryKey().notNull().defaultRandom(),
-  content: text('content').notNull(),
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
-  updatedAt: timestamp('updatedAt').defaultNow().notNull()
-})
-
-export type Resources = InferSelectModel<typeof resource>
-
-export const embedding = pgTable(
-  'embedding',
-  {
-    id: uuid('id').primaryKey().notNull().defaultRandom(),
-    resourceId: uuid('resourceId').references(() => resource.id, {
-      onDelete: 'cascade'
-    }),
-    content: text('content').notNull(),
-    embedding: vector('embedding', { dimensions: 1536 }).notNull()
-  },
-  (table) => [
-    index('embeddingIndex').using(
-      'hnsw',
-      table.embedding.op('vector_cosine_ops')
-    )
-  ]
-)
-
-export type Embedding = InferSelectModel<typeof embedding>
 
 // ─── MCP Registry ───────────────────────────────────────────────────────────
 

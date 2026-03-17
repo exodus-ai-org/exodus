@@ -1,10 +1,4 @@
-import { and, asc, cosineDistance, desc, eq, gt, sql } from 'drizzle-orm'
-import { v4 as uuidV4 } from 'uuid'
-import {
-  EmbeddingConfig,
-  generateEmbedding,
-  generateEmbeddings
-} from '../ai/rag'
+import { and, asc, desc, eq, sql } from 'drizzle-orm'
 import { ChatSDKError } from '../server/errors'
 import { db, pglite } from './db'
 import {
@@ -12,9 +6,7 @@ import {
   DBMessage,
   deepResearch,
   deepResearchMessage,
-  embedding,
   message,
-  resource,
   setting,
   vote,
   type Chat,
@@ -204,28 +196,6 @@ export async function updateSetting(payload: Setting) {
     .where(eq(setting.id, payload.id))
 }
 
-export const findRelevantContent = async (
-  { userQuery }: { userQuery: string },
-  config: EmbeddingConfig
-) => {
-  const userQueryEmbedded = await generateEmbedding(
-    { value: userQuery },
-    config
-  )
-  const similarity = sql<number>`1 - (${cosineDistance(
-    embedding.embedding,
-    userQueryEmbedded
-  )})`
-  const similarGuides = await db
-    .select({ name: embedding.content, similarity })
-    .from(embedding)
-    .where(gt(similarity, 0.5))
-    .orderBy((t) => desc(t.similarity))
-    .limit(4)
-
-  return similarGuides
-}
-
 export async function importData(tableName: string, blob: Blob) {
   await pglite.query(`COPY "${tableName}" FROM '/dev/blob';`, [], {
     blob
@@ -293,62 +263,5 @@ export async function getDeepResearchMessagesById({ id }: { id: string }) {
   } catch (error) {
     console.error('Failed to get deep research message by id from database')
     throw error
-  }
-}
-
-function toPgVector(arr: number[]) {
-  return `[${arr.join(',')}]`
-}
-
-export const createResource = async (
-  { content, chunks }: { content: string; chunks: string[] },
-  config: EmbeddingConfig
-) => {
-  try {
-    const [currResource] = await db
-      .insert(resource)
-      .values({ content })
-      .returning()
-
-    const embeddings = await generateEmbeddings({ chunks }, config)
-    await db.insert(embedding).values(
-      embeddings.map(({ embedding, content }) => ({
-        id: uuidV4(),
-        resourceId: currResource.id,
-        content,
-        embedding: sql`${toPgVector(embedding)}::vector`
-      }))
-    )
-    return 'Resource successfully created and embedded.'
-  } catch (error) {
-    return error instanceof Error && error.message.length > 0
-      ? error.message
-      : 'Error, please try again.'
-  }
-}
-
-export async function getResourcePaginated(page: number, pageSize: number) {
-  const offset = (page - 1) * pageSize
-
-  const data = await db
-    .select()
-    .from(resource)
-    .orderBy(desc(resource.createdAt))
-    .limit(pageSize)
-    .offset(offset)
-
-  const [{ count: total }] = await db
-    .select({
-      count: sql<number>`count(*)`
-    })
-    .from(resource)
-
-  return {
-    data,
-    pagination: {
-      page,
-      pageSize,
-      total
-    }
   }
 }

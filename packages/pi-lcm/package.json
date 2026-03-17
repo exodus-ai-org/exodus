@@ -1,0 +1,44 @@
+{
+  "name": "pi-lcm",
+  "version": "0.1.0",
+  "description": "Lossless Context Management (LCM) + Memory layer for LLM applications. DAG-based hierarchical summarization, memory write/read with LLM judges, and agent tools.",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema.d.ts",
+      "import": "./dist/schema.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "peerDependencies": {
+    "@mariozechner/pi-agent-core": ">=0.1.0",
+    "@mariozechner/pi-ai": ">=0.1.0",
+    "drizzle-orm": ">=0.38.0",
+    "zod": ">=4.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@mariozechner/pi-agent-core": {
+      "optional": true
+    }
+  },
+  "dependencies": {
+    "@sinclair/typebox": "^0.34.48"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "license": "MIT"
+}

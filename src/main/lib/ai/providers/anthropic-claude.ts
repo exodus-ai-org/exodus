@@ -1,15 +1,15 @@
-import type { Api, Model } from '@mariozechner/pi-ai'
+import type { Api, KnownProvider, Model } from '@mariozechner/pi-ai'
 import { getModel } from '@mariozechner/pi-ai'
 import { Setting } from '@shared/types/db'
-import type { EmbeddingConfig } from './openai-gpt'
 
 function resolveModel(
-  provider: string,
+  provider: KnownProvider,
   id: string,
   baseUrl: string,
   api: Api
 ): Model<string> {
   try {
+    // @ts-expect-error — model ID is user-configured, may not be in registry; fallback below handles it
     const registered = getModel(provider, id)
     return baseUrl !== registered.baseUrl
       ? { ...registered, baseUrl }
@@ -33,7 +33,6 @@ function resolveModel(
 export function getAnthropicClaude(setting: Setting): {
   chatModel: Model<string>
   reasoningModel: Model<string>
-  embeddingConfig: EmbeddingConfig | null
 } {
   const baseUrl =
     setting.providers?.anthropicBaseUrl ?? 'https://api.anthropic.com'
@@ -53,7 +52,6 @@ export function getAnthropicClaude(setting: Setting): {
       reasoningModelId,
       baseUrl,
       'anthropic-messages'
-    ),
-    embeddingConfig: null
+    )
   }
 }

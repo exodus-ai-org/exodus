@@ -74,14 +74,18 @@ export async function fetcher<T>(
       // Remove Content-Type header if set, let browser handle it
       if (fetchHeaders['Content-Type']) delete fetchHeaders['Content-Type']
       if (fetchHeaders['content-type']) delete fetchHeaders['content-type']
-    } else if (isPlainObject(body)) {
+    } else if (
+      typeof body === 'object' &&
+      body !== null &&
+      isPlainObject(body as object)
+    ) {
       if (!fetchHeaders['Content-Type'] && !fetchHeaders['content-type']) {
         fetchHeaders['Content-Type'] = 'application/json;charset=UTF-8'
       }
       fetchOptions.body = JSON.stringify(body)
     } else {
-      // For other types (Blob, ArrayBuffer, etc.), send as is
-      fetchOptions.body = body
+      // For other types (Blob, ArrayBuffer, string, etc.), send as is
+      fetchOptions.body = body as BodyInit
       // Content-Type should be set by caller if needed
     }
   }

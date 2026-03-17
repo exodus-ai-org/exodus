@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSetting } from '@/hooks/use-setting'
+import { cn } from '@/lib/utils'
 import { protos } from '@googlemaps/places'
 import { GlobeIcon, MapPinIcon, PhoneIcon, StarIcon } from 'lucide-react'
 import Zoom from 'react-medium-image-zoom'
@@ -41,7 +42,7 @@ export function PlacesAccordion({
   return (
     <Card className="p-0">
       <CardContent className="p-0">
-        <Accordion type="single" collapsible className={`w-full ${className}`}>
+        <Accordion className={cn('w-full', className)}>
           {places
             .toSorted((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
             .map((place) => (

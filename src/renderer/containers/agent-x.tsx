@@ -39,11 +39,7 @@ interface AgentXContainerProps {
   onNavigate?: (page: AgentXPage) => void
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function AgentXContainer({
-  activePage,
-  onNavigate
-}: AgentXContainerProps) {
+export function AgentXContainer({ activePage }: AgentXContainerProps) {
   const [departments, setDepartments] = useState<DepartmentData[]>([])
   const [agents, setAgents] = useState<AgentData[]>([])
   const [tasks, setTasks] = useState<TaskData[]>([])

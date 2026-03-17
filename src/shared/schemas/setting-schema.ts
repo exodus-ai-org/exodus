@@ -17,9 +17,8 @@ const optionalUrl = z
 export const ProviderConfigSchema = z.object({
   provider: z.string().nullish(),
   chatModel: z.string().nullish(),
-  reasoningModel: z.string().nullish(),
-  embeddingModel: z.string().nullish(),
-  maxSteps: z.number().nonnegative().lte(100).nullish()
+  reasoningModel: z.string().nullish()
+  // TODO: RAG / embedding model — will be redesigned
 })
 
 export const ProvidersSchema = z.object({

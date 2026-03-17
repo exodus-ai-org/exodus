@@ -22,7 +22,6 @@ export enum SettingLabel {
   WebSearch = 'Web Search',
   GoogleMaps = 'Google Maps',
   DeepResearch = 'Deep Research',
-  Rag = 'RAG',
   BrowserUse = 'Browser Use',
   ComputerUse = 'Computer Use',
   DataControls = 'Data Controls',
@@ -57,8 +56,7 @@ export const menus = {
         { title: SettingLabel.GoogleMaps },
         { title: SettingLabel.ImageGeneration },
         { title: SettingLabel.DeepResearch },
-        { title: SettingLabel.AudioAndSpeech },
-        { title: SettingLabel.Rag }
+        { title: SettingLabel.AudioAndSpeech }
       ]
     },
     {

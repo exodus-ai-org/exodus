@@ -11,7 +11,6 @@ import { lcmDescribe } from './lcm-describe'
 import { lcmExpand } from './lcm-expand'
 import { lcmGrep } from './lcm-grep'
 import { listDirectory } from './list-directory'
-import { rag } from './rag'
 import { readFile } from './read-file'
 import { terminal } from './terminal'
 import { weather } from './weather'
@@ -33,7 +32,6 @@ export {
   lcmExpand,
   lcmGrep,
   listDirectory,
-  rag,
   readFile,
   terminal,
   weather,

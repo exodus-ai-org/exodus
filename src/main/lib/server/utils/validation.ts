@@ -57,18 +57,6 @@ export function validatePerplexityApiKey(setting: Setting) {
 }
 
 /**
- * Validates that embedding model is configured
- * @throws ChatSDKError if model is not configured
- */
-export function validateEmbeddingModel<T>(embeddingModel: T | null): T {
-  if (!embeddingModel) {
-    throw new ChatSDKError('forbidden:rag')
-  }
-
-  return embeddingModel
-}
-
-/**
  * Creates an S3 client from validated settings
  */
 export function createS3ClientFromSettings(setting: Setting): S3Client {

@@ -1,17 +1,14 @@
 import type { Model } from '@mariozechner/pi-ai'
 import { Setting } from '@shared/types/db'
-import type { EmbeddingConfig } from './openai-gpt'
 
 export function getOllama(setting: Setting): {
   chatModel: Model<string>
   reasoningModel: Model<string>
-  embeddingConfig: EmbeddingConfig | null
 } {
   const baseUrl =
     setting.providers?.ollamaBaseUrl ?? 'http://localhost:11434/v1'
   const chatModelId = setting.providerConfig?.chatModel ?? ''
   const reasoningModelId = setting.providerConfig?.reasoningModel ?? ''
-  const embeddingModelId = setting.providerConfig?.embeddingModel ?? ''
 
   const makeModel = (id: string): Model<string> => ({
     id,
@@ -28,9 +25,6 @@ export function getOllama(setting: Setting): {
 
   return {
     chatModel: makeModel(chatModelId),
-    reasoningModel: makeModel(reasoningModelId),
-    embeddingConfig: embeddingModelId
-      ? { apiKey: 'ollama', model: embeddingModelId, baseUrl }
-      : null
+    reasoningModel: makeModel(reasoningModelId)
   }
 }

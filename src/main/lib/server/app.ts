@@ -14,7 +14,6 @@ import dbIoRouter from './routes/db-io'
 import deepResearchRouter from './routes/deep-research'
 import historyRouter from './routes/history'
 import memoryRouter from './routes/memory'
-import ragRouter from './routes/rag'
 import s3UploaderRouter from './routes/s3-uploader'
 import settingsRouter from './routes/setting'
 import skillsRouter from './routes/skills'
@@ -53,7 +52,6 @@ export async function connectHttpServer() {
   app.route('/api/db-io', dbIoRouter)
   app.route('/api/deep-research', deepResearchRouter)
   app.route('/api/tools', toolsRouter)
-  app.route('/api/rag', ragRouter)
   app.route('/api/agent-x', agentXRouter)
   app.route('/api/s3', s3UploaderRouter)
   app.route('/api/skills', skillsRouter)

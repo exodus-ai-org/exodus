@@ -49,7 +49,6 @@ function CallingTools({ toolResult }: { toolResult: ChatToolResultMessage }) {
       {toolName === 'terminal' && <TerminalCard toolResult={output} />}
       {(toolName === 'imageGeneration' ||
         toolName === 'date' ||
-        toolName === 'rag' ||
         toolName === 'calculator' ||
         toolName === 'readFile' ||
         toolName === 'writeFile' ||

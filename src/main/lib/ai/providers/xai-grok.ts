@@ -1,15 +1,15 @@
-import type { Api, Model } from '@mariozechner/pi-ai'
+import type { Api, KnownProvider, Model } from '@mariozechner/pi-ai'
 import { getModel } from '@mariozechner/pi-ai'
 import { Setting } from '@shared/types/db'
-import type { EmbeddingConfig } from './openai-gpt'
 
 function resolveModel(
-  provider: string,
+  provider: KnownProvider,
   id: string,
   baseUrl: string,
   api: Api
 ): Model<string> {
   try {
+    // @ts-expect-error — model ID is user-configured, may not be in registry; fallback below handles it
     const registered = getModel(provider, id)
     return baseUrl !== registered.baseUrl
       ? { ...registered, baseUrl }
@@ -33,7 +33,6 @@ function resolveModel(
 export function getXaiGrok(setting: Setting): {
   chatModel: Model<string>
   reasoningModel: Model<string>
-  embeddingConfig: EmbeddingConfig | null
 } {
   const baseUrl = setting.providers?.xAiBaseUrl ?? 'https://api.x.ai/v1'
   const chatModelId = setting.providerConfig?.chatModel ?? 'grok-2'
@@ -46,7 +45,6 @@ export function getXaiGrok(setting: Setting): {
       reasoningModelId,
       baseUrl,
       'openai-completions'
-    ),
-    embeddingConfig: null
+    )
   }
 }

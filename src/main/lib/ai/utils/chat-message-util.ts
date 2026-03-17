@@ -18,7 +18,6 @@ import {
   lcmExpand,
   lcmGrep,
   listDirectory,
-  rag,
   readFile,
   terminal,
   weather,
@@ -27,8 +26,15 @@ import {
   writeFile
 } from '../calling-tools'
 import { titleGenerationPrompt } from '../prompts'
-import type { EmbeddingConfig } from '../providers'
 import { providers } from '../providers'
+
+/**
+ * Type-erased AgentTool for heterogeneous collections.
+ * AgentTool<T> is contravariant on T, so typed tools can't go into AgentTool[].
+ * This mirrors pi-agent-core's own default: AgentTool<TSchema, any>.
+ */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type ErasedTool = AgentTool<any>
 
 function getApiKeyFromSetting(setting: Setting): string {
   const provider = setting.providerConfig?.provider as AiProviders | undefined
@@ -56,7 +62,6 @@ export function getModelFromProvider(setting: Setting): {
   chatModel: Model<string>
   reasoningModel: Model<string>
   apiKey: string
-  embeddingConfig: EmbeddingConfig | null
 } {
   if (!('id' in setting)) {
     throw new Error('Failed to retrieve setting.')
@@ -73,8 +78,7 @@ export function getModelFromProvider(setting: Setting): {
   return {
     chatModel: models.chatModel,
     reasoningModel: models.reasoningModel,
-    apiKey,
-    embeddingConfig: models.embeddingConfig
+    apiKey
   }
 }
 
@@ -138,21 +142,18 @@ export function bindCallingTools({
   chatModel?: Model<string>
   apiKey?: string
   mcpTools?: McpTools[]
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-}): AgentTool<any>[] {
+}): ErasedTool[] {
   if (advancedTools.includes(AdvancedTools.DeepResearch)) {
     return [deepResearch]
   }
 
-  const mcpToolsList: AgentTool[] = mcpTools.flatMap((t) => t.tools)
+  const mcpToolsList: ErasedTool[] = mcpTools.flatMap((t) => t.tools)
 
   const disabledTools = new Set(setting.tools?.disabledTools ?? [])
   const enabled = (key: string) => !disabledTools.has(key)
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const tools: AgentTool<any>[] = []
+  const tools: ErasedTool[] = []
 
-  if (enabled('rag')) tools.push(rag(setting))
   if (enabled('calculator')) tools.push(calculator)
   if (enabled('date')) tools.push(date)
   if (enabled('weather')) tools.push(weather)
