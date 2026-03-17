@@ -14,22 +14,18 @@ import {
   batchUpdatePositions,
   createAgent,
   createDepartment,
-  createMcpServer,
   createTask,
   deleteAgent,
   deleteDepartment,
-  deleteMcpServer,
   getAgentById,
   getAllAgents,
   getAllDepartments,
-  getAllMcpServers,
   getAllTasks,
   getEventsByExecutionId,
   getExecutionsByTaskId,
   getTaskById,
   updateAgent,
   updateDepartment,
-  updateMcpServer,
   updateTask
 } from '../../db/agent-x-queries'
 import { ChatSDKError } from '../errors'
@@ -391,62 +387,7 @@ agentX.get('/available-skills', async (c) => {
   )
 })
 
-// ─── MCP Server Registry ────────────────────────────────────────────────────
-
-const mcpServerSchema = z.object({
-  name: z.string().min(1),
-  description: z.string().optional(),
-  command: z.string().min(1),
-  args: z.array(z.string()).optional(),
-  env: z.record(z.string(), z.string()).optional().nullable(),
-  isActive: z.boolean().optional()
-})
-
-agentX.get('/mcp-servers', async (c) => {
-  const servers = await handleDatabaseOperation(
-    () => getAllMcpServers(),
-    'Failed to get MCP servers'
-  )
-  return successResponse(c, servers)
-})
-
-agentX.post('/mcp-servers', async (c) => {
-  const data = validateSchema(
-    mcpServerSchema,
-    await c.req.json(),
-    'agent_x',
-    'Invalid MCP server data'
-  )
-  const result = await handleDatabaseOperation(
-    () => createMcpServer(data),
-    'Failed to create MCP server'
-  )
-  return successResponse(c, result, 201)
-})
-
-agentX.put('/mcp-servers/:id', async (c) => {
-  const id = getRequiredParam(c, 'id', 'agent_x')
-  const data = validateSchema(
-    mcpServerSchema.partial(),
-    await c.req.json(),
-    'agent_x',
-    'Invalid MCP server data'
-  )
-  const result = await handleDatabaseOperation(
-    () => updateMcpServer(id, data),
-    'Failed to update MCP server'
-  )
-  return successResponse(c, result)
-})
-
-agentX.delete('/mcp-servers/:id', async (c) => {
-  const id = getRequiredParam(c, 'id', 'agent_x')
-  await handleDatabaseOperation(
-    () => deleteMcpServer(id),
-    'Failed to delete MCP server'
-  )
-  return c.text('MCP server deleted successfully', 200)
-})
+// MCP Server routes moved to /api/mcp
 
 // ─── SSE Endpoints ──────────────────────────────────────────────────────────
 

@@ -1,5 +1,6 @@
 import { AiProviders } from '@shared/types/ai'
 import {
+  AudioLinesIcon,
   ChromeIcon,
   CogIcon,
   ComputerIcon,
@@ -7,6 +8,9 @@ import {
   HandCoinsIcon,
   InfoIcon,
   MemoryStickIcon,
+  NetworkIcon,
+  PlugIcon,
+  ShoppingBagIcon,
   WrenchIcon
 } from 'lucide-react'
 
@@ -15,6 +19,8 @@ export enum SettingLabel {
   AiProviders = 'AI Providers',
   AmazonS3 = 'AWS S3',
   McpServers = 'MCP Servers',
+  SkillsMarket = 'Skills Market',
+  GraphRag = 'GraphRAG',
   BuiltinTools = 'Built-in Tools',
   MemoryLayer = 'Memory Layer',
   AudioAndSpeech = 'Audio and Speech',
@@ -55,13 +61,28 @@ export const menus = {
         { title: SettingLabel.WebSearch },
         { title: SettingLabel.GoogleMaps },
         { title: SettingLabel.ImageGeneration },
-        { title: SettingLabel.DeepResearch },
-        { title: SettingLabel.AudioAndSpeech }
+        { title: SettingLabel.DeepResearch }
       ]
+    },
+    {
+      icon: AudioLinesIcon,
+      title: SettingLabel.AudioAndSpeech
     },
     {
       icon: MemoryStickIcon,
       title: SettingLabel.MemoryLayer
+    },
+    {
+      icon: ShoppingBagIcon,
+      title: SettingLabel.SkillsMarket
+    },
+    {
+      icon: PlugIcon,
+      title: SettingLabel.McpServers
+    },
+    {
+      icon: NetworkIcon,
+      title: SettingLabel.GraphRag
     },
     {
       icon: DatabaseIcon,

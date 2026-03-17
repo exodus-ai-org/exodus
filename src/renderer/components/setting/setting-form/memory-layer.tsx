@@ -396,6 +396,7 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
                   error={fieldState.error}
                 >
                   <Input
+                    placeholder="75"
                     type="number"
                     min={50}
                     max={95}
@@ -418,6 +419,7 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
                   error={fieldState.error}
                 >
                   <Input
+                    placeholder="16"
                     type="number"
                     min={8}
                     max={64}

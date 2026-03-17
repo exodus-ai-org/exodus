@@ -10,7 +10,9 @@ import { DataControls } from './setting-form/data-controls'
 import { DeepResearch } from './setting-form/deep-research'
 import { General } from './setting-form/generals'
 import { GoogleMaps } from './setting-form/google-maps'
+import { GraphRAG } from './setting-form/graph-rag'
 import { ImageGeneration } from './setting-form/image-generation'
+import { McpServers } from './setting-form/mcp-servers'
 import { MemoryLayer } from './setting-form/memory-layer'
 import { ProviderConfig } from './setting-form/provider-config'
 import { AnthropicClaude } from './setting-form/providers/anthropic-claude'
@@ -20,6 +22,7 @@ import { Ollama } from './setting-form/providers/ollama'
 import { OpenAiGpt } from './setting-form/providers/openai-gpt'
 import { XaiGrok } from './setting-form/providers/xai-grok'
 import { S3 } from './setting-form/s3'
+import { SkillsMarketSetting } from './setting-form/skills-market'
 import { SystemInfo } from './setting-form/system-info'
 import { Tools } from './setting-form/tools'
 import { WebSearch } from './setting-form/web-search'
@@ -88,6 +91,12 @@ export function SettingsForm() {
       {activeTitle === SettingLabel.MemoryLayer && <MemoryLayer form={form} />}
 
       {activeTitle === SettingLabel.BuiltinTools && <Tools form={form} />}
+
+      {activeTitle === SettingLabel.SkillsMarket && <SkillsMarketSetting />}
+
+      {activeTitle === SettingLabel.McpServers && <McpServers />}
+
+      {activeTitle === SettingLabel.GraphRag && <GraphRAG />}
 
       {activeTitle === SettingLabel.ComputerUse && <UnderConstruction />}
 

@@ -118,9 +118,9 @@ export const MemoryLayerSchema = z.object({
   // LCM: enable lossless context management for long conversations
   lcmEnabled: z.boolean().default(true),
   // LCM: trigger compaction when context exceeds this % of the context window (50-95)
-  contextWindowPercent: z.number().gte(50).lte(95).default(75),
+  contextWindowPercent: z.number().gte(50).lte(95).nullish(),
   // LCM: number of most recent messages protected from compaction (8-64)
-  freshTailSize: z.number().gte(8).lte(64).default(16)
+  freshTailSize: z.number().gte(8).lte(64).nullish()
 })
 
 export const SettingSchema = z.object({

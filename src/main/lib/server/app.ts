@@ -13,6 +13,7 @@ import chatRouter from './routes/chat'
 import dbIoRouter from './routes/db-io'
 import deepResearchRouter from './routes/deep-research'
 import historyRouter from './routes/history'
+import mcpRouter from './routes/mcp'
 import memoryRouter from './routes/memory'
 import s3UploaderRouter from './routes/s3-uploader'
 import settingsRouter from './routes/setting'
@@ -55,6 +56,7 @@ export async function connectHttpServer() {
   app.route('/api/agent-x', agentXRouter)
   app.route('/api/s3', s3UploaderRouter)
   app.route('/api/skills', skillsRouter)
+  app.route('/api/mcp', mcpRouter)
   app.route('/api/memory', memoryRouter)
 
   // Ping
