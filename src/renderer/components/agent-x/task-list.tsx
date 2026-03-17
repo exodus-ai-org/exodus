@@ -21,6 +21,7 @@ interface TaskListProps {
   agents: AgentData[]
   events: AgentXSseEvent[]
   onSelectTask: (taskId: string) => void
+  expanded?: boolean
 }
 
 const statusIcons: Record<string, React.ReactNode> = {
@@ -45,9 +46,11 @@ export function TaskList({
   tasks,
   agents,
   events,
-  onSelectTask
+  onSelectTask,
+  expanded: expandedProp
 }: TaskListProps) {
-  const [expanded, setExpanded] = useState(true)
+  const [expandedState, setExpanded] = useState(true)
+  const expanded = expandedProp ?? expandedState
   const [escalationResponse, setEscalationResponse] = useState('')
 
   const counts = useMemo(() => {

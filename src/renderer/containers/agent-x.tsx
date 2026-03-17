@@ -1,4 +1,6 @@
 import { AgentConfigPanel } from '@/components/agent-x/agent-config-panel'
+import { ChartAreaInteractive } from '@/components/agent-x/dashboard/chart-area-interactive'
+import { SectionCards } from '@/components/agent-x/dashboard/section-cards'
 import { DepartmentConfigPanel } from '@/components/agent-x/department-config-panel'
 import { ExecutionTimeline } from '@/components/agent-x/execution-timeline'
 import { McpManagerDialog } from '@/components/agent-x/mcp-manager-dialog'
@@ -6,6 +8,7 @@ import { OrgGraph } from '@/components/agent-x/org-graph'
 import { TaskDispatchDialog } from '@/components/agent-x/task-dispatch-dialog'
 import { TaskList } from '@/components/agent-x/task-list'
 import { Button } from '@/components/ui/button'
+import type { AgentXPage } from '@/layouts/agent-x-layout'
 import {
   createAgentApi,
   createDepartment,
@@ -28,10 +31,19 @@ import { BASE_URL } from '@shared/constants/systems'
 import type { AgentXSseEvent } from '@shared/types/agent-x'
 import { ReactFlowProvider } from '@xyflow/react'
 import { useAtom } from 'jotai'
-import { BotIcon, Building2Icon, PlugIcon, SendIcon } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { BotIcon, Building2Icon, SendIcon } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-export function AgentXContainer() {
+interface AgentXContainerProps {
+  activePage: AgentXPage
+  onNavigate?: (page: AgentXPage) => void
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function AgentXContainer({
+  activePage,
+  onNavigate
+}: AgentXContainerProps) {
   const [departments, setDepartments] = useState<DepartmentData[]>([])
   const [agents, setAgents] = useState<AgentData[]>([])
   const [tasks, setTasks] = useState<TaskData[]>([])
@@ -75,11 +87,33 @@ export function AgentXContainer() {
           getTasks().then(setTasks)
         }
       } catch {
-        // ignore parse errors
+        // ignore
       }
     }
     return () => es.close()
   }, [])
+
+  // Open MCP dialog when navigating to mcp page
+  useEffect(() => {
+    if (activePage === 'mcp') setMcpDialogOpen(true)
+  }, [activePage])
+
+  // ─── Metrics ─────────────────────────────────────────────────────────────
+
+  const metrics = useMemo(() => {
+    const completedTasks = tasks.filter((t) => t.status === 'completed').length
+    const failedTasks = tasks.filter((t) => t.status === 'failed').length
+    const runningTasks = tasks.filter((t) => t.status === 'running').length
+    const activeAgents = agents.filter((a) => a.isActive !== false).length
+    return {
+      totalTasks: tasks.length,
+      activeDepartments: departments.length,
+      activeAgents,
+      runningTasks,
+      completedTasks,
+      failedTasks
+    }
+  }, [tasks, agents, departments])
 
   // ─── Department handlers ──────────────────────────────────────────────────
 
@@ -118,7 +152,6 @@ export function AgentXContainer() {
 
   // ─── Agent handlers ───────────────────────────────────────────────────────
 
-  // Create a free-floating agent with no department
   const handleCreateAgent = useCallback(async () => {
     const ag = await createAgentApi({
       name: 'New Agent',
@@ -151,7 +184,6 @@ export function AgentXContainer() {
 
   const handleAssignDepartment = useCallback(
     async (agentId: string, departmentId: string) => {
-      // Optimistic update so the edge appears instantly
       setAgents((prev) =>
         prev.map((a) => (a.id === agentId ? { ...a, departmentId } : a))
       )
@@ -159,7 +191,6 @@ export function AgentXContainer() {
         const updated = await updateAgentApi(agentId, { departmentId })
         setAgents((prev) => prev.map((a) => (a.id === agentId ? updated : a)))
       } catch {
-        // Rollback
         setAgents((prev) =>
           prev.map((a) => (a.id === agentId ? { ...a, departmentId: null } : a))
         )
@@ -170,7 +201,6 @@ export function AgentXContainer() {
 
   const handleUnassignDepartment = useCallback(
     async (agentId: string) => {
-      // Optimistic update
       setAgents((prev) =>
         prev.map((a) => (a.id === agentId ? { ...a, departmentId: null } : a))
       )
@@ -178,13 +208,13 @@ export function AgentXContainer() {
         const updated = await updateAgentApi(agentId, { departmentId: null })
         setAgents((prev) => prev.map((a) => (a.id === agentId ? updated : a)))
       } catch {
-        loadData() // Can't easily rollback without prior value, just reload
+        loadData()
       }
     },
     [loadData]
   )
 
-  // ─── Collaboration handlers ───────────────────────────────────────────────
+  // ─── Collaboration handlers ─────────────────────────────────────────────
 
   const handleAddCollaboration = useCallback(
     async (agentAId: string, agentBId: string) => {
@@ -194,7 +224,6 @@ export function AgentXContainer() {
       const aCollabs = agentA.collaboratorIds ?? []
       if (aCollabs.includes(agentBId)) return
       const bCollabs = agentB.collaboratorIds ?? []
-      // Optimistic update
       setAgents((prev) =>
         prev.map((a) => {
           if (a.id === agentAId)
@@ -209,7 +238,9 @@ export function AgentXContainer() {
           updateAgentApi(agentAId, {
             collaboratorIds: [...aCollabs, agentBId]
           }),
-          updateAgentApi(agentBId, { collaboratorIds: [...bCollabs, agentAId] })
+          updateAgentApi(agentBId, {
+            collaboratorIds: [...bCollabs, agentAId]
+          })
         ])
         setAgents((prev) =>
           prev.map((a) => {
@@ -219,7 +250,6 @@ export function AgentXContainer() {
           })
         )
       } catch {
-        // Rollback
         setAgents((prev) =>
           prev.map((a) => {
             if (a.id === agentAId) return { ...a, collaboratorIds: aCollabs }
@@ -239,7 +269,6 @@ export function AgentXContainer() {
       if (!agentA || !agentB) return
       const aCollabs = agentA.collaboratorIds ?? []
       const bCollabs = agentB.collaboratorIds ?? []
-      // Optimistic update
       setAgents((prev) =>
         prev.map((a) => {
           if (a.id === agentAId)
@@ -272,7 +301,6 @@ export function AgentXContainer() {
           })
         )
       } catch {
-        // Rollback
         setAgents((prev) =>
           prev.map((a) => {
             if (a.id === agentAId) return { ...a, collaboratorIds: aCollabs }
@@ -291,103 +319,143 @@ export function AgentXContainer() {
 
   const showPanel = selectedNode !== null || selectedTaskId !== null
 
+  // ─── Page content ─────────────────────────────────────────────────────────
+
   return (
-    <div className="flex h-full w-full flex-col">
-      {/* Top toolbar */}
-      <div className="flex items-center gap-2 border-b px-4 py-2">
-        <Button variant="outline" size="sm" onClick={handleCreateDepartment}>
-          <Building2Icon className="mr-1 h-3.5 w-3.5" />
-          Department
-        </Button>
-        <Button variant="outline" size="sm" onClick={handleCreateAgent}>
-          <BotIcon className="mr-1 h-3.5 w-3.5" />
-          Agent
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setMcpDialogOpen(true)}
-        >
-          <PlugIcon className="mr-1 h-3.5 w-3.5" />
-          MCP
-        </Button>
-        <div className="flex-1" />
-        <Button size="sm" onClick={() => setDispatchOpen(true)}>
-          <SendIcon className="mr-1 h-3.5 w-3.5" />
-          Dispatch Task
-        </Button>
-      </div>
-
-      {/* Main area */}
-      <div className="flex min-h-0 flex-1">
-        <div className={showPanel ? 'flex-1' : 'w-full'}>
-          <ReactFlowProvider>
-            <OrgGraph
-              departments={departments}
-              agents={agents}
-              fitViewVersion={fitViewVersion}
-              onUpdateDepartment={handleUpdateDepartment}
-              onUpdateAgent={handleUpdateAgent}
-              onAssignDepartment={handleAssignDepartment}
-              onUnassignDepartment={handleUnassignDepartment}
-              onAddCollaboration={handleAddCollaboration}
-              onRemoveCollaboration={handleRemoveCollaboration}
-            />
-          </ReactFlowProvider>
-        </div>
-
-        {showPanel && (
-          <div className="w-[380px] shrink-0 overflow-y-auto border-l">
-            {selectedTaskId ? (
-              <ExecutionTimeline
-                taskId={selectedTaskId}
-                events={events.filter(
-                  (e) => 'taskId' in e && e.taskId === selectedTaskId
-                )}
-                onClose={() => setSelectedTaskId(null)}
-              />
-            ) : selectedNode?.type === 'department' ? (
-              (() => {
-                const dept = departments.find((d) => d.id === selectedNode.id)
-                return dept ? (
-                  <DepartmentConfigPanel
-                    department={dept}
-                    onUpdate={handleUpdateDepartment}
-                    onDelete={handleDeleteDepartment}
-                    onClose={() => setSelectedNode(null)}
-                  />
-                ) : null
-              })()
-            ) : selectedNode?.type === 'agent' ? (
-              (() => {
-                const agent = agents.find((a) => a.id === selectedNode.id)
-                return agent ? (
-                  <AgentConfigPanel
-                    agent={agent}
-                    onUpdate={handleUpdateAgent}
-                    onDelete={handleDeleteAgent}
-                    onClose={() => setSelectedNode(null)}
-                  />
-                ) : null
-              })()
-            ) : null}
+    <>
+      {activePage === 'dashboard' && (
+        <div className="flex flex-1 flex-col gap-4 py-4">
+          <SectionCards {...metrics} />
+          <div className="px-4 lg:px-6">
+            <ChartAreaInteractive tasks={tasks} />
           </div>
-        )}
-      </div>
+          <div className="px-4 lg:px-6">
+            <TaskList
+              tasks={tasks}
+              agents={agents}
+              events={events}
+              onSelectTask={setSelectedTaskId}
+            />
+          </div>
+        </div>
+      )}
 
-      <TaskList
-        tasks={tasks}
-        agents={agents}
-        events={events}
-        onSelectTask={setSelectedTaskId}
-      />
+      {activePage === 'org-editor' && (
+        <div className="flex min-h-0 flex-1 flex-col">
+          {/* Toolbar */}
+          <div className="flex items-center gap-2 border-b px-4 py-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCreateDepartment}
+            >
+              <Building2Icon className="mr-1 h-3.5 w-3.5" />
+              Department
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleCreateAgent}>
+              <BotIcon className="mr-1 h-3.5 w-3.5" />
+              Agent
+            </Button>
+            <div className="flex-1" />
+            <Button size="sm" onClick={() => setDispatchOpen(true)}>
+              <SendIcon className="mr-1 h-3.5 w-3.5" />
+              Dispatch Task
+            </Button>
+          </div>
 
+          {/* Graph + Panel */}
+          <div className="flex min-h-0 flex-1">
+            <div className={showPanel ? 'flex-1' : 'w-full'}>
+              <ReactFlowProvider>
+                <OrgGraph
+                  departments={departments}
+                  agents={agents}
+                  fitViewVersion={fitViewVersion}
+                  onUpdateDepartment={handleUpdateDepartment}
+                  onUpdateAgent={handleUpdateAgent}
+                  onAssignDepartment={handleAssignDepartment}
+                  onUnassignDepartment={handleUnassignDepartment}
+                  onAddCollaboration={handleAddCollaboration}
+                  onRemoveCollaboration={handleRemoveCollaboration}
+                />
+              </ReactFlowProvider>
+            </div>
+
+            {showPanel && (
+              <div className="w-[380px] shrink-0 overflow-y-auto border-l">
+                {selectedTaskId ? (
+                  <ExecutionTimeline
+                    taskId={selectedTaskId}
+                    events={events.filter(
+                      (e) => 'taskId' in e && e.taskId === selectedTaskId
+                    )}
+                    onClose={() => setSelectedTaskId(null)}
+                  />
+                ) : selectedNode?.type === 'department' ? (
+                  (() => {
+                    const dept = departments.find(
+                      (d) => d.id === selectedNode.id
+                    )
+                    return dept ? (
+                      <DepartmentConfigPanel
+                        department={dept}
+                        onUpdate={handleUpdateDepartment}
+                        onDelete={handleDeleteDepartment}
+                        onClose={() => setSelectedNode(null)}
+                      />
+                    ) : null
+                  })()
+                ) : selectedNode?.type === 'agent' ? (
+                  (() => {
+                    const agent = agents.find((a) => a.id === selectedNode.id)
+                    return agent ? (
+                      <AgentConfigPanel
+                        agent={agent}
+                        onUpdate={handleUpdateAgent}
+                        onDelete={handleDeleteAgent}
+                        onClose={() => setSelectedNode(null)}
+                      />
+                    ) : null
+                  })()
+                ) : null}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {activePage === 'tasks' && (
+        <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-semibold">All Tasks</h2>
+            <Button size="sm" onClick={() => setDispatchOpen(true)}>
+              <SendIcon className="mr-1 h-3.5 w-3.5" />
+              Dispatch Task
+            </Button>
+          </div>
+          <TaskList
+            tasks={tasks}
+            agents={agents}
+            events={events}
+            onSelectTask={setSelectedTaskId}
+            expanded
+          />
+        </div>
+      )}
+
+      {activePage === 'mcp' && (
+        <McpManagerDialog
+          open={mcpDialogOpen}
+          onOpenChange={setMcpDialogOpen}
+        />
+      )}
+
+      {/* Dialogs (always mounted) */}
       <TaskDispatchDialog
         departments={departments}
         agents={agents}
         onTaskCreated={handleTaskCreated}
       />
-      <McpManagerDialog open={mcpDialogOpen} onOpenChange={setMcpDialogOpen} />
-    </div>
+    </>
   )
 }
