@@ -1,63 +1,69 @@
-import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { UseFormReturnType } from '@shared/schemas/setting-schema'
 import { Controller } from 'react-hook-form'
+import { SettingRow, SettingSection } from '../../setting-row'
 
 export function AzureOpenAi({ form }: { form: UseFormReturnType }) {
   return (
-    <>
+    <SettingSection>
       <Controller
         control={form.control}
         name="providers.azureOpenaiApiKey"
         render={({ field, fieldState }) => (
-          <Field data-invalid={fieldState.invalid}>
-            <FieldLabel>API Key</FieldLabel>
+          <SettingRow
+            label="API Key"
+            description="Your Azure OpenAI API key"
+            error={fieldState.error}
+            layout="vertical"
+          >
             <Input
               type="password"
               autoComplete="current-password"
-              id="azure-openai-api-key-input"
               autoFocus
               {...field}
               value={field.value ?? ''}
             />
-            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-          </Field>
+          </SettingRow>
         )}
       />
       <Controller
         control={form.control}
         name="providers.azureOpenAiEndpoint"
         render={({ field, fieldState }) => (
-          <Field data-invalid={fieldState.invalid}>
-            <FieldLabel>Endpoint</FieldLabel>
+          <SettingRow
+            label="Endpoint"
+            description="Your Azure OpenAI resource endpoint URL"
+            error={fieldState.error}
+            layout="vertical"
+          >
             <Input
               type="text"
-              id="azure-openai-endpoint"
-              placeholder="https://{resourceName}.openai.azure.com/openai/deployments/{modelId}{path}"
+              placeholder="https://{resource}.openai.azure.com/openai/deployments/{model}"
               {...field}
               value={field.value ?? ''}
             />
-            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-          </Field>
+          </SettingRow>
         )}
       />
       <Controller
         control={form.control}
         name="providers.azureOpenAiApiVersion"
         render={({ field, fieldState }) => (
-          <Field data-invalid={fieldState.invalid}>
-            <FieldLabel>API Version</FieldLabel>
+          <SettingRow
+            label="API Version"
+            description="Azure OpenAI API version string"
+            error={fieldState.error}
+            layout="vertical"
+          >
             <Input
               type="text"
-              id="azure-openai-api-version"
               placeholder="2024-12-01-preview"
               {...field}
               value={field.value ?? ''}
             />
-            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-          </Field>
+          </SettingRow>
         )}
       />
-    </>
+    </SettingSection>
   )
 }

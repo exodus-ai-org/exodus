@@ -1,9 +1,8 @@
 import { WebPDFLoader } from '@langchain/community/document_loaders/web/pdf'
+import Perplexity from '@perplexity-ai/perplexity_ai'
+import type { SearchCreateParams } from '@perplexity-ai/perplexity_ai/resources/search'
 import { UrlToMarkdownProvider } from '@shared/schemas/setting-schema'
-import {
-  PerplexitySearchResponse,
-  WebSearchResult
-} from '@shared/types/web-search'
+import { WebSearchResult } from '@shared/types/web-search'
 import * as cheerio from 'cheerio'
 import TurndownService from 'turndown'
 
@@ -13,8 +12,6 @@ const TURNDOWN_OPTIONS = {
   headingStyle: 'atx',
   codeBlockStyle: 'fenced'
 } as const
-
-const PERPLEXITY_SEARCH_URL = 'https://api.perplexity.ai/search'
 
 /* ================= URL-to-Markdown (for webFetch) ================= */
 
@@ -123,44 +120,10 @@ export async function loadDocument(
   return loadDocumentWithJina(link)
 }
 
-/* ================= Perplexity Search ================= */
-
-async function searchByPerplexity(
-  query: string,
-  apiKey: string,
-  country?: string | null,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _language?: string | null
-): Promise<PerplexitySearchResponse | null> {
-  try {
-    const body: Record<string, unknown> = {
-      query,
-      max_results: 10,
-      max_tokens_per_page: 2000
-    }
-    if (country) body.country = country
-
-    const response = await fetch(PERPLEXITY_SEARCH_URL, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    })
-
-    if (!response.ok) return null
-
-    return (await response.json()) as PerplexitySearchResponse
-  } catch {
-    return null
-  }
-}
-
-/* ================= Main Export ================= */
+/* ================= Perplexity Search (SDK) ================= */
 
 /**
- * Search the web via Perplexity and return structured results.
+ * Search the web via Perplexity SDK and return structured results.
  * Perplexity returns snippets with extracted page content — no separate URL fetching needed.
  */
 export async function fetchAndProcessSearchResults({
@@ -168,22 +131,42 @@ export async function fetchAndProcessSearchResults({
   perplexityApiKey,
   webSources,
   country,
-  language
+  languages,
+  maxResults,
+  recencyFilter,
+  domainFilter
 }: {
   query: string
   perplexityApiKey: string
   webSources?: Map<string, WebSearchResult>
   country?: string | null
-  language?: string | null
+  languages?: string[] | null
+  maxResults?: number | null
+  recencyFilter?: string | null
+  domainFilter?: string[] | null
 }): Promise<WebSearchResult[] | null> {
   try {
-    const data = await searchByPerplexity(
+    const client = new Perplexity({ apiKey: perplexityApiKey })
+
+    const params: SearchCreateParams = {
       query,
-      perplexityApiKey,
-      country,
-      language
-    )
-    const results = data?.results
+      max_results: maxResults ?? 10,
+      max_tokens_per_page: 4096
+    }
+    if (country) params.country = country
+    if (languages && languages.length > 0) {
+      params.search_language_filter = languages
+    }
+    if (recencyFilter) {
+      params.search_recency_filter =
+        recencyFilter as SearchCreateParams['search_recency_filter']
+    }
+    if (domainFilter && domainFilter.length > 0) {
+      params.search_domain_filter = domainFilter
+    }
+
+    const search = await client.search.create(params)
+    const results = search.results
     if (!results?.length) return null
 
     const filtered = results.filter(

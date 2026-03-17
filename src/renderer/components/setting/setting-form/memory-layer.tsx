@@ -7,18 +7,8 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { Field, FieldDescription, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
@@ -42,6 +32,8 @@ import {
   type MemorySource,
   type MemoryType
 } from '../../../services/memory'
+import { SettingRow, SettingSection } from '../setting-row'
+import { SettingSelect } from '../setting-select'
 
 const MEMORY_TYPES: MemoryType[] = [
   'preference',
@@ -153,42 +145,27 @@ function MemoryDialog({ open, onClose, memory, onSaved }: MemoryDialogProps) {
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
               <Label>Type</Label>
-              <Select
+              <SettingSelect
                 value={type}
                 onValueChange={(v) => setType(v as MemoryType)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {MEMORY_TYPES.map((t) => (
-                      <SelectItem key={t} value={t}>
-                        {t.charAt(0).toUpperCase() + t.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+                options={MEMORY_TYPES.map((t) => ({
+                  value: t,
+                  label: t.charAt(0).toUpperCase() + t.slice(1)
+                }))}
+              />
             </div>
 
             <div className="flex flex-col gap-1.5">
               <Label>Source</Label>
-              <Select
+              <SettingSelect
                 value={source}
                 onValueChange={(v) => setSource(v as MemorySource)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="explicit">Explicit</SelectItem>
-                    <SelectItem value="implicit">Implicit</SelectItem>
-                    <SelectItem value="system">System</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+                options={[
+                  { value: 'explicit', label: 'Explicit' },
+                  { value: 'implicit', label: 'Implicit' },
+                  { value: 'system', label: 'System' }
+                ]}
+              />
             </div>
           </div>
 
@@ -212,7 +189,7 @@ function MemoryDialog({ open, onClose, memory, onSaved }: MemoryDialogProps) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label>Confidence (0–1)</Label>
+            <Label>Confidence (0-1)</Label>
             <Input
               type="number"
               step="0.1"
@@ -230,7 +207,7 @@ function MemoryDialog({ open, onClose, memory, onSaved }: MemoryDialogProps) {
             Cancel
           </Button>
           <Button onClick={handleSave} disabled={saving}>
-            {saving ? 'Saving…' : isEdit ? 'Save changes' : 'Add memory'}
+            {saving ? 'Saving...' : isEdit ? 'Save changes' : 'Add memory'}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -372,112 +349,88 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
 
   return (
     <>
-      <div className="flex flex-col gap-3">
+      <SettingSection>
         {/* ── Memory Auto-Write ── */}
-        <Field>
-          <div className="flex items-center justify-between">
-            <FieldLabel>Auto-write memories</FieldLabel>
-            <Controller
-              control={form.control}
-              name="memoryLayer.autoWrite"
-              render={({ field }) => (
-                <Switch
-                  checked={field.value ?? true}
-                  onCheckedChange={field.onChange}
-                />
-              )}
-            />
-          </div>
-          <FieldDescription>
-            After each conversation, automatically extract and save long-term
-            facts (preferences, goals, skills) into your memory.
-          </FieldDescription>
-        </Field>
-
-        <Separator />
+        <SettingRow
+          label="Auto-write memories"
+          description="After each conversation, automatically extract and save long-term facts (preferences, goals, skills) into your memory."
+        >
+          <Controller
+            control={form.control}
+            name="memoryLayer.autoWrite"
+            render={({ field }) => (
+              <Switch
+                checked={field.value ?? true}
+                onCheckedChange={field.onChange}
+              />
+            )}
+          />
+        </SettingRow>
 
         {/* ── LCM Settings ── */}
-        <Field>
-          <div className="flex items-center justify-between">
-            <FieldLabel>Lossless context management</FieldLabel>
-            <Controller
-              control={form.control}
-              name="memoryLayer.lcmEnabled"
-              render={({ field }) => (
-                <Switch
-                  checked={field.value ?? true}
-                  onCheckedChange={field.onChange}
-                />
-              )}
-            />
-          </div>
-          <FieldDescription>
-            Automatically compress long conversations into a hierarchical
-            summary DAG, so nothing is ever lost even when chats exceed the
-            context window.
-          </FieldDescription>
-        </Field>
+        <SettingRow
+          label="Lossless context management"
+          description="Automatically compress long conversations into a hierarchical summary DAG, so nothing is ever lost even when chats exceed the context window."
+        >
+          <Controller
+            control={form.control}
+            name="memoryLayer.lcmEnabled"
+            render={({ field }) => (
+              <Switch
+                checked={field.value ?? true}
+                onCheckedChange={field.onChange}
+              />
+            )}
+          />
+        </SettingRow>
 
         {lcmEnabled && (
           <>
-            <Separator />
-
             <Controller
               control={form.control}
               name="memoryLayer.contextWindowPercent"
               render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <div className="flex justify-between">
-                    <FieldLabel>Compaction threshold</FieldLabel>
-                    <Input
-                      type="number"
-                      min={50}
-                      max={95}
-                      className="w-20"
-                      {...field}
-                      value={field.value ?? 75}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                    />
-                  </div>
-                  <FieldDescription>
-                    Trigger context compaction when the conversation reaches
-                    this percentage of the model's context window (50–95%).
-                    Default: 75%.
-                  </FieldDescription>
-                </Field>
+                <SettingRow
+                  label="Compaction threshold"
+                  description="Trigger context compaction when the conversation reaches this percentage of the model's context window (50-95%). Default: 75%."
+                  error={fieldState.error}
+                >
+                  <Input
+                    type="number"
+                    min={50}
+                    max={95}
+                    className="w-20"
+                    {...field}
+                    value={field.value ?? ''}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
+                </SettingRow>
               )}
             />
-
-            <Separator />
 
             <Controller
               control={form.control}
               name="memoryLayer.freshTailSize"
               render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <div className="flex justify-between">
-                    <FieldLabel>Fresh tail size</FieldLabel>
-                    <Input
-                      type="number"
-                      min={8}
-                      max={64}
-                      className="w-20"
-                      {...field}
-                      value={field.value ?? 16}
-                      onChange={(e) => field.onChange(Number(e.target.value))}
-                    />
-                  </div>
-                  <FieldDescription>
-                    Number of recent messages protected from compaction (8–64).
-                    These are always sent to the model verbatim. Default: 16.
-                  </FieldDescription>
-                </Field>
+                <SettingRow
+                  label="Fresh tail size"
+                  description="Number of recent messages protected from compaction (8-64). These are always sent to the model verbatim. Default: 16."
+                  error={fieldState.error}
+                >
+                  <Input
+                    type="number"
+                    min={8}
+                    max={64}
+                    className="w-20"
+                    {...field}
+                    value={field.value ?? ''}
+                    onChange={(e) => field.onChange(Number(e.target.value))}
+                  />
+                </SettingRow>
               )}
             />
           </>
         )}
-
-        <Separator />
 
         {/* ── Memory Management ── */}
         <div className="flex items-center justify-between">
@@ -538,7 +491,7 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
             )}
           </div>
         )}
-      </div>
+      </SettingSection>
 
       <MemoryDialog
         open={dialogOpen}

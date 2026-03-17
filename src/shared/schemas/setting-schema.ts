@@ -53,8 +53,11 @@ export type UrlToMarkdownProvider = z.infer<typeof UrlToMarkdownProvider>
 export const WebSearchSchema = z.object({
   perplexityApiKey: z.string().nullish(),
   country: z.string().nullish(),
-  language: z.string().nullish(),
-  urlToMarkdownProvider: UrlToMarkdownProvider.default('jina').nullish()
+  languages: z.array(z.string()).nullish(),
+  urlToMarkdownProvider: UrlToMarkdownProvider.default('jina').nullish(),
+  maxResults: z.number().gte(1).lte(50).nullish(),
+  recencyFilter: z.enum(['hour', 'day', 'week', 'month', 'year']).nullish(),
+  domainFilter: z.string().nullish() // comma-separated domain list
 })
 
 export const ImageSchema = z.object({

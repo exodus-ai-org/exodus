@@ -1,9 +1,9 @@
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { UseFormReturnType } from '@shared/schemas/setting-schema'
 import { AlertCircleIcon } from 'lucide-react'
 import { Controller } from 'react-hook-form'
+import { SettingRow, SettingSection } from '../setting-row'
 
 export function GoogleMaps({ form }: { form: UseFormReturnType }) {
   return (
@@ -36,24 +36,29 @@ export function GoogleMaps({ form }: { form: UseFormReturnType }) {
           <strong>Google API Key</strong>.
         </AlertDescription>
       </Alert>
-      <Controller
-        control={form.control}
-        name="googleCloud.googleApiKey"
-        render={({ field, fieldState }) => (
-          <Field data-invalid={fieldState.invalid}>
-            <FieldLabel>Google API Key</FieldLabel>
-            <Input
-              type="password"
-              autoComplete="current-password"
-              id="google-search-api-key-input"
-              autoFocus
-              {...field}
-              value={field.value ?? ''}
-            />
-            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-          </Field>
-        )}
-      />
+      <SettingSection>
+        <Controller
+          control={form.control}
+          name="googleCloud.googleApiKey"
+          render={({ field, fieldState }) => (
+            <SettingRow
+              label="Google API Key"
+              description="Your Google Cloud API key for Maps Routing and Places services."
+              error={fieldState.error}
+              layout="vertical"
+            >
+              <Input
+                type="password"
+                autoComplete="current-password"
+                id="google-search-api-key-input"
+                autoFocus
+                {...field}
+                value={field.value ?? ''}
+              />
+            </SettingRow>
+          )}
+        />
+      </SettingSection>
     </>
   )
 }

@@ -1,9 +1,9 @@
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Field, FieldError, FieldLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import { UseFormReturnType } from '@shared/schemas/setting-schema'
 import { AlertCircleIcon } from 'lucide-react'
 import { Controller } from 'react-hook-form'
+import { SettingRow, SettingSection } from '../setting-row'
 
 export function S3({ form }: { form: UseFormReturnType }) {
   return (
@@ -47,72 +47,86 @@ export function S3({ form }: { form: UseFormReturnType }) {
           </ul>
         </AlertDescription>
       </Alert>
-      <Controller
-        control={form.control}
-        name="s3.region"
-        render={({ field, fieldState }) => (
-          <Field data-invalid={fieldState.invalid}>
-            <FieldLabel>Region</FieldLabel>
-            <Input
-              type="input"
-              id="s3-region-input"
-              placeholder="ap-northeast-1"
-              {...field}
-              value={field.value ?? ''}
-            />
-            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-          </Field>
-        )}
-      />
-      <Controller
-        control={form.control}
-        name="s3.bucket"
-        render={({ field, fieldState }) => (
-          <Field data-invalid={fieldState.invalid}>
-            <FieldLabel>Bucket</FieldLabel>
-            <Input
-              type="input"
-              id="s3-bucket-input"
-              placeholder="Your S3 bucket"
-              {...field}
-              value={field.value ?? ''}
-            />
-            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-          </Field>
-        )}
-      />
-      <Controller
-        control={form.control}
-        name="s3.accessKeyId"
-        render={({ field, fieldState }) => (
-          <Field data-invalid={fieldState.invalid}>
-            <FieldLabel>Access Key ID</FieldLabel>
-            <Input
-              type="input"
-              id="s3-accessKeyId-input"
-              {...field}
-              value={field.value ?? ''}
-            />
-            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-          </Field>
-        )}
-      />
-      <Controller
-        control={form.control}
-        name="s3.secretAccessKey"
-        render={({ field, fieldState }) => (
-          <Field data-invalid={fieldState.invalid}>
-            <FieldLabel>Secret Access Key</FieldLabel>
-            <Input
-              type="password"
-              id="s3-secretAccessKey-input"
-              {...field}
-              value={field.value ?? ''}
-            />
-            {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-          </Field>
-        )}
-      />
+      <SettingSection>
+        <Controller
+          control={form.control}
+          name="s3.region"
+          render={({ field, fieldState }) => (
+            <SettingRow
+              label="Region"
+              description="The AWS region where your S3 bucket is hosted."
+              error={fieldState.error}
+              layout="vertical"
+            >
+              <Input
+                type="input"
+                id="s3-region-input"
+                placeholder="ap-northeast-1"
+                {...field}
+                value={field.value ?? ''}
+              />
+            </SettingRow>
+          )}
+        />
+        <Controller
+          control={form.control}
+          name="s3.bucket"
+          render={({ field, fieldState }) => (
+            <SettingRow
+              label="Bucket"
+              description="The name of your S3 bucket for file uploads."
+              error={fieldState.error}
+              layout="vertical"
+            >
+              <Input
+                type="input"
+                id="s3-bucket-input"
+                placeholder="Your S3 bucket"
+                {...field}
+                value={field.value ?? ''}
+              />
+            </SettingRow>
+          )}
+        />
+        <Controller
+          control={form.control}
+          name="s3.accessKeyId"
+          render={({ field, fieldState }) => (
+            <SettingRow
+              label="Access Key ID"
+              description="The IAM access key ID with S3 write permissions."
+              error={fieldState.error}
+              layout="vertical"
+            >
+              <Input
+                type="input"
+                id="s3-accessKeyId-input"
+                {...field}
+                value={field.value ?? ''}
+              />
+            </SettingRow>
+          )}
+        />
+        <Controller
+          control={form.control}
+          name="s3.secretAccessKey"
+          render={({ field, fieldState }) => (
+            <SettingRow
+              label="Secret Access Key"
+              description="The IAM secret access key paired with the access key ID above."
+              error={fieldState.error}
+              layout="vertical"
+            >
+              <Input
+                type="password"
+                id="s3-secretAccessKey-input"
+                {...field}
+                value={field.value ?? ''}
+              />
+            </SettingRow>
+          )}
+        />
+      </SettingSection>
     </>
   )
 }

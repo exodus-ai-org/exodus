@@ -20,11 +20,20 @@ export const webSearch = (
         'To use Web Search, make sure to fill in the `perplexityApiKey` in the settings.'
       )
     }
+    const ws = setting.webSearch
     const details = await fetchAndProcessSearchResults({
       query,
-      perplexityApiKey: setting.webSearch.perplexityApiKey,
-      country: setting.webSearch.country,
-      language: setting.webSearch.language
+      perplexityApiKey: ws.perplexityApiKey!,
+      country: ws.country,
+      languages: ws.languages,
+      maxResults: ws.maxResults,
+      recencyFilter: ws.recencyFilter,
+      domainFilter: ws.domainFilter
+        ? ws.domainFilter
+            .split(',')
+            .map((d) => d.trim())
+            .filter(Boolean)
+        : null
     })
     return {
       content: [{ type: 'text' as const, text: JSON.stringify(details) }],

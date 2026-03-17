@@ -1,10 +1,4 @@
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import {
-  Field,
-  FieldDescription,
-  FieldError,
-  FieldLabel
-} from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -14,11 +8,12 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
 import { UseFormReturnType } from '@shared/schemas/setting-schema'
 import { AlertCircleIcon } from 'lucide-react'
 import { useEffect, useMemo } from 'react'
 import { Controller } from 'react-hook-form'
+import { SettingRow, SettingSection } from '../setting-row'
+import { SettingSelect } from '../setting-select'
 
 type ModelParamValues = {
   [index: string]: {
@@ -85,230 +80,170 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
         </AlertDescription>
       </Alert>
 
-      <div className="flex flex-col gap-3">
+      <SettingSection>
         <Controller
           control={form.control}
           name="image.model"
           render={({ field, fieldState }) => (
-            <Field orientation="horizontal" data-invalid={fieldState.invalid}>
-              <FieldLabel>Model</FieldLabel>
-              <Select onValueChange={field.onChange} value={field.value ?? ''}>
-                <SelectTrigger className="hover:bg-accent w-fit border-none shadow-none">
-                  <SelectValue placeholder="Select a model" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    <SelectItem value="gpt-image-1">gpt-image-1</SelectItem>
-                    <SelectItem value="dall-e-3">dall-e-3</SelectItem>
-                    <SelectItem value="dall-e-2">dall-e-2</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
-            </Field>
+            <SettingRow
+              label="Model"
+              description="Select the image generation model to use."
+              error={fieldState.error}
+            >
+              <SettingSelect
+                value={field.value ?? ''}
+                onValueChange={field.onChange}
+                placeholder="Select a model"
+                options={[
+                  { value: 'gpt-image-1', label: 'gpt-image-1' },
+                  { value: 'dall-e-3', label: 'dall-e-3' },
+                  { value: 'dall-e-2', label: 'dall-e-2' }
+                ]}
+              />
+            </SettingRow>
           )}
         />
 
         {paramsOfModel?.sizes ? (
-          <>
-            <Separator />
-            <Controller
-              control={form.control}
-              name="image.size"
-              render={({ field, fieldState }) => (
-                <Field
-                  orientation="horizontal"
-                  data-invalid={fieldState.invalid}
-                >
-                  <FieldLabel>Size</FieldLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value ?? ''}
-                  >
-                    <SelectTrigger className="hover:bg-accent w-fit border-none shadow-none">
-                      <SelectValue placeholder={paramsOfModel.sizes[0]} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {paramsOfModel.sizes.map((size) => (
-                          <SelectItem key={size} value={size}>
-                            {size}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-          </>
+          <Controller
+            control={form.control}
+            name="image.size"
+            render={({ field, fieldState }) => (
+              <SettingRow
+                label="Size"
+                description="The dimensions of the generated image."
+                error={fieldState.error}
+              >
+                <SettingSelect
+                  value={field.value ?? ''}
+                  onValueChange={field.onChange}
+                  placeholder={paramsOfModel.sizes[0]}
+                  options={paramsOfModel.sizes.map((size) => ({
+                    value: size,
+                    label: size
+                  }))}
+                />
+              </SettingRow>
+            )}
+          />
         ) : null}
 
         {paramsOfModel?.qualities ? (
-          <>
-            <Separator />
-            <Controller
-              control={form.control}
-              name="image.quality"
-              render={({ field, fieldState }) => (
-                <Field
-                  orientation="horizontal"
-                  data-invalid={fieldState.invalid}
-                >
-                  <FieldLabel>Quality</FieldLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value ?? ''}
-                  >
-                    <SelectTrigger className="hover:bg-accent w-fit border-none shadow-none">
-                      <SelectValue placeholder={paramsOfModel.qualities[0]} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {paramsOfModel.qualities.map((quality) => (
-                          <SelectItem key={quality} value={quality}>
-                            {quality}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-          </>
+          <Controller
+            control={form.control}
+            name="image.quality"
+            render={({ field, fieldState }) => (
+              <SettingRow
+                label="Quality"
+                description="The quality level of the generated image."
+                error={fieldState.error}
+              >
+                <SettingSelect
+                  value={field.value ?? ''}
+                  onValueChange={field.onChange}
+                  placeholder={paramsOfModel.qualities[0]}
+                  options={paramsOfModel.qualities.map((quality) => ({
+                    value: quality,
+                    label: quality
+                  }))}
+                />
+              </SettingRow>
+            )}
+          />
         ) : null}
 
         {paramsOfModel?.outputFormats ? (
-          <>
-            <Separator />
-            <Controller
-              control={form.control}
-              name="image.outputFormat"
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <div className="flex items-center justify-between">
-                    <FieldLabel>Output Format</FieldLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value ?? ''}
-                    >
-                      <SelectTrigger className="hover:bg-accent w-fit border-none shadow-none">
-                        <SelectValue
-                          placeholder={paramsOfModel?.outputFormats?.[0]}
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          {paramsOfModel?.outputFormats?.map((outputFormat) => (
-                            <SelectItem
-                              key={outputFormat}
-                              value={outputFormat}
-                              disabled={
-                                background === 'transparent' &&
-                                outputFormat === 'jpeg'
-                              }
-                            >
-                              {outputFormat}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <FieldDescription>
-                    If the background is transparent, the output format should
-                    be set to either png (default value) or webp.
-                  </FieldDescription>
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-          </>
+          <Controller
+            control={form.control}
+            name="image.outputFormat"
+            render={({ field, fieldState }) => (
+              <SettingRow
+                label="Output Format"
+                description="If the background is transparent, the output format should be set to either png (default) or webp."
+                error={fieldState.error}
+              >
+                <Select
+                  onValueChange={field.onChange}
+                  value={field.value ?? ''}
+                >
+                  <SelectTrigger className="hover:bg-accent w-fit border-none shadow-none">
+                    <SelectValue
+                      placeholder={paramsOfModel?.outputFormats?.[0]}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      {paramsOfModel?.outputFormats?.map((outputFormat) => (
+                        <SelectItem
+                          key={outputFormat}
+                          value={outputFormat}
+                          disabled={
+                            background === 'transparent' &&
+                            outputFormat === 'jpeg'
+                          }
+                        >
+                          {outputFormat}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+              </SettingRow>
+            )}
+          />
         ) : null}
 
         {paramsOfModel?.generatedCounts ? (
-          <>
-            <Separator />
-            <Controller
-              control={form.control}
-              name="image.generatedCounts"
-              render={({ field, fieldState }) => (
-                <Field data-invalid={fieldState.invalid}>
-                  <div className="flex items-center justify-between">
-                    <FieldLabel>Generated Counts</FieldLabel>
-                    <Input
-                      type="number"
-                      id="max-steps-input"
-                      autoFocus
-                      {...field}
-                      min={paramsOfModel?.generatedCounts.min}
-                      max={paramsOfModel?.generatedCounts.max}
-                      value={field.value ?? 1}
-                      className="w-fit"
-                    />
-                  </div>
-                  <FieldDescription>
-                    The number of images to generate. Must be between 1 and 10.
-                    For dall-e-3, only 1 is supported.
-                  </FieldDescription>
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-          </>
+          <Controller
+            control={form.control}
+            name="image.generatedCounts"
+            render={({ field, fieldState }) => (
+              <SettingRow
+                label="Generated Counts"
+                description="The number of images to generate. Must be between 1 and 10. For dall-e-3, only 1 is supported."
+                error={fieldState.error}
+              >
+                <Input
+                  type="number"
+                  id="max-steps-input"
+                  autoFocus
+                  {...field}
+                  min={paramsOfModel?.generatedCounts.min}
+                  max={paramsOfModel?.generatedCounts.max}
+                  value={field.value ?? ''}
+                  className="w-fit"
+                />
+              </SettingRow>
+            )}
+          />
         ) : null}
 
         {paramsOfModel?.backgrounds ? (
-          <>
-            <Separator />
-            <Controller
-              control={form.control}
-              name="image.background"
-              render={({ field, fieldState }) => (
-                <Field
-                  orientation="horizontal"
-                  data-invalid={fieldState.invalid}
-                >
-                  <FieldLabel>Background</FieldLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value ?? ''}
-                  >
-                    <SelectTrigger className="hover:bg-accent w-fit border-none shadow-none">
-                      <SelectValue
-                        placeholder={paramsOfModel?.backgrounds?.[0]}
-                      />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {paramsOfModel?.backgrounds?.map((background) => (
-                          <SelectItem key={background} value={background}>
-                            {background}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                  {fieldState.invalid && (
-                    <FieldError errors={[fieldState.error]} />
-                  )}
-                </Field>
-              )}
-            />
-          </>
+          <Controller
+            control={form.control}
+            name="image.background"
+            render={({ field, fieldState }) => (
+              <SettingRow
+                label="Background"
+                description="Set the background style for the generated image."
+                error={fieldState.error}
+              >
+                <SettingSelect
+                  value={field.value ?? ''}
+                  onValueChange={field.onChange}
+                  placeholder={paramsOfModel?.backgrounds?.[0]}
+                  options={
+                    paramsOfModel?.backgrounds?.map((bg) => ({
+                      value: bg,
+                      label: bg
+                    })) ?? []
+                  }
+                />
+              </SettingRow>
+            )}
+          />
         ) : null}
-      </div>
+      </SettingSection>
     </>
   )
 }

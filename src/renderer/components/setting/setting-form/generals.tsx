@@ -1,5 +1,4 @@
 import { Theme, useTheme } from '@/components/theme-provider'
-import { Field, FieldDescription, FieldLabel } from '@/components/ui/field'
 import {
   Select,
   SelectContent,
@@ -8,13 +7,13 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { useUpdater } from '@/hooks/use-updater'
 import { updaterSetAutoDownload } from '@/lib/ipc'
 import { UseFormReturnType } from '@shared/schemas/setting-schema'
 import { Moon, Sun, SunMoon } from 'lucide-react'
 import { useEffect } from 'react'
+import { SettingRow, SettingSection } from '../setting-row'
 import { AvatarUploader } from './avatar-uploader'
 import { UpdatePanel } from './update-panel'
 
@@ -28,15 +27,21 @@ export function General({ form }: { form: UseFormReturnType }) {
   }, [autoUpdate])
 
   return (
-    <div className="flex flex-col gap-3">
-      <Field orientation="horizontal">
-        <FieldLabel>Theme</FieldLabel>
+    <SettingSection>
+      <SettingRow
+        label="Theme"
+        description="Choose light, dark, or match your system preference"
+      >
         <Select
           value={theme}
           onValueChange={(value) => value && setTheme(value as Theme)}
         >
-          <SelectTrigger>
-            <SelectValue placeholder="Select a provider" />
+          <SelectTrigger className="hover:bg-accent w-fit border-none shadow-none">
+            <SelectValue placeholder="Select theme">
+              {(val: string) =>
+                ({ light: 'Light', dark: 'Dark', system: 'System' })[val] ?? val
+              }
+            </SelectValue>
           </SelectTrigger>
           <SelectContent className="no-draggable">
             <SelectGroup>
@@ -52,61 +57,39 @@ export function General({ form }: { form: UseFormReturnType }) {
             </SelectGroup>
           </SelectContent>
         </Select>
-      </Field>
+      </SettingRow>
 
-      <Separator />
+      <SettingRow
+        label="Run on startup"
+        description="Automatically start Exodus when you log in"
+      >
+        <Switch />
+      </SettingRow>
 
-      <Field>
-        <div className="my-2 flex items-center justify-between">
-          <FieldLabel>Run on startup</FieldLabel>
-          <Switch />
-        </div>
-        <FieldDescription>
-          Automatically start Exodus when you log in
-        </FieldDescription>
-      </Field>
+      <SettingRow label="Menu bar" description="Show Exodus in the menu bar">
+        <Switch />
+      </SettingRow>
 
-      <Separator />
-
-      <Field>
-        <div className="my-2 flex items-center justify-between">
-          <FieldLabel>Menu bar</FieldLabel>
-          <Switch />
-        </div>
-        <FieldDescription>Show Exodus in the menu bar</FieldDescription>
-      </Field>
-
-      <Separator />
-      <Field className="flex-row items-center justify-between">
-        <div className="my-2 flex flex-col gap-2">
-          <FieldLabel>Assistant Avatar</FieldLabel>
-          <FieldDescription>
-            Personalize your assistant with an avatar for a better user
-            experience.
-          </FieldDescription>
-        </div>
-
+      <SettingRow
+        label="Assistant Avatar"
+        description="Personalize your assistant with an avatar for a better user experience."
+      >
         <AvatarUploader
           props={{ control: form.control, name: 'assistantAvatar' }}
         />
-      </Field>
+      </SettingRow>
 
-      <Separator />
-
-      <Field>
-        <div className="my-2 flex items-center justify-between">
-          <FieldLabel>Auto Update</FieldLabel>
-          <Switch
-            checked={autoUpdate}
-            onCheckedChange={(checked) => form.setValue('autoUpdate', checked)}
-          />
-        </div>
-        <FieldDescription>
-          Automatically download and install updates when available
-        </FieldDescription>
-      </Field>
+      <SettingRow
+        label="Auto Update"
+        description="Automatically download and install updates when available"
+      >
+        <Switch
+          checked={autoUpdate}
+          onCheckedChange={(checked) => form.setValue('autoUpdate', checked)}
+        />
+      </SettingRow>
 
       <UpdatePanel payload={payload} autoUpdate={autoUpdate} />
-    </div>
+    </SettingSection>
   )
 }
