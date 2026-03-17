@@ -15,8 +15,7 @@ import {
   BotIcon,
   LayoutDashboardIcon,
   ListChecksIcon,
-  NetworkIcon,
-  PlugIcon
+  NetworkIcon
 } from 'lucide-react'
 import { useNavigate } from 'react-router'
 
@@ -35,11 +34,6 @@ const navMainItems = [
     title: 'Tasks',
     page: 'tasks',
     icon: <ListChecksIcon />
-  },
-  {
-    title: 'MCP Servers',
-    page: 'mcp',
-    icon: <PlugIcon />
   }
 ]
 

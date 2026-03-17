@@ -3,7 +3,6 @@ import { ChartAreaInteractive } from '@/components/agent-x/dashboard/chart-area-
 import { SectionCards } from '@/components/agent-x/dashboard/section-cards'
 import { DepartmentConfigPanel } from '@/components/agent-x/department-config-panel'
 import { ExecutionTimeline } from '@/components/agent-x/execution-timeline'
-import { McpManagerDialog } from '@/components/agent-x/mcp-manager-dialog'
 import { OrgGraph } from '@/components/agent-x/org-graph'
 import { TaskDispatchDialog } from '@/components/agent-x/task-dispatch-dialog'
 import { TaskList } from '@/components/agent-x/task-list'
@@ -47,7 +46,6 @@ export function AgentXContainer({ activePage }: AgentXContainerProps) {
   const [selectedNode, setSelectedNode] = useAtom(selectedNodeAtom)
   const [, setDispatchOpen] = useAtom(isTaskDispatchDialogOpenAtom)
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
-  const [mcpDialogOpen, setMcpDialogOpen] = useState(false)
   const [fitViewVersion, setFitViewVersion] = useState(0)
   const eventSourceRef = useRef<EventSource | null>(null)
 
@@ -88,11 +86,6 @@ export function AgentXContainer({ activePage }: AgentXContainerProps) {
     }
     return () => es.close()
   }, [])
-
-  // Open MCP dialog when navigating to mcp page
-  useEffect(() => {
-    if (activePage === 'mcp') setMcpDialogOpen(true)
-  }, [activePage])
 
   // ─── Metrics ─────────────────────────────────────────────────────────────
 
@@ -437,13 +430,6 @@ export function AgentXContainer({ activePage }: AgentXContainerProps) {
             expanded
           />
         </div>
-      )}
-
-      {activePage === 'mcp' && (
-        <McpManagerDialog
-          open={mcpDialogOpen}
-          onOpenChange={setMcpDialogOpen}
-        />
       )}
 
       {/* Dialogs (always mounted) */}

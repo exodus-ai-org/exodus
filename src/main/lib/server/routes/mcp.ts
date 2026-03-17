@@ -1,6 +1,7 @@
 import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import { z } from 'zod'
+import { getMcpTools } from '../../ai/mcp'
 import {
   createMcpServer,
   deleteMcpServer,
@@ -69,6 +70,24 @@ mcp.delete('/:id', async (c) => {
     'Failed to delete MCP server'
   )
   return c.text('MCP server deleted successfully', 200)
+})
+
+// List available tools from all active MCP servers
+mcp.get('/tools', async (c) => {
+  try {
+    const tools = await getMcpTools()
+    return successResponse(c, {
+      tools: tools.map((t) => ({
+        mcpServerName: t.mcpServerName,
+        tools: t.tools.map((tool) => ({
+          name: tool.name,
+          description: tool.description ?? ''
+        }))
+      }))
+    })
+  } catch {
+    return successResponse(c, { tools: [] })
+  }
 })
 
 export default mcp

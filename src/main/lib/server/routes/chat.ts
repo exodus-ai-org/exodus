@@ -12,6 +12,7 @@ import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import { v4 as uuidV4 } from 'uuid'
 import { LcmManager } from '../../ai/context-management'
+import { getMcpTools } from '../../ai/mcp'
 import {
   formatMemoriesForSystem,
   loadRelevantMemories,
@@ -204,7 +205,14 @@ chat.post('/', async (c) => {
   }
 
   const activeModel = isReasoningModel ? reasoningModel : chatModel
-  const tools = bindCallingTools({ advancedTools, setting, chatModel, apiKey })
+  const mcpTools = await getMcpTools()
+  const tools = bindCallingTools({
+    advancedTools,
+    setting,
+    chatModel,
+    apiKey,
+    mcpTools
+  })
   const systemContent = advancedTools?.includes(AdvancedTools.DeepResearch)
     ? deepResearchBootPrompt
     : systemPrompt + memoriesSection

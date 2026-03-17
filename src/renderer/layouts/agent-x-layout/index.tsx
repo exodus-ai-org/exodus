@@ -7,13 +7,12 @@ import { cn } from '@/lib/utils'
 import { ArrowLeftIcon } from 'lucide-react'
 import { useState } from 'react'
 
-export type AgentXPage = 'dashboard' | 'org-editor' | 'tasks' | 'mcp'
+export type AgentXPage = 'dashboard' | 'org-editor' | 'tasks'
 
 const pageTitles: Record<AgentXPage, string> = {
   dashboard: 'Dashboard',
   'org-editor': 'Org Editor',
-  tasks: 'Tasks',
-  mcp: 'MCP Servers'
+  tasks: 'Tasks'
 }
 
 export function AgentXLayout() {

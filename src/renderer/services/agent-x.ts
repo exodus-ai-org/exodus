@@ -80,49 +80,14 @@ export const respondToEscalation = (taskId: string, response: string) =>
     body: { response } as never
   })
 
-// ─── Available Skills & MCP ──────────────────────────────────────────────────
+// ─── Available Skills ────────────────────────────────────────────────────────
 
 export const getAvailableSkills = () =>
   fetcher<Array<{ slug: string; name: string; isActive: boolean }>>(
     `${BASE}/available-skills`
   )
 
-// ─── MCP Server Registry ────────────────────────────────────────────────────
-
-export interface McpServerData {
-  id: string
-  name: string
-  description: string | null
-  command: string
-  args: string[] | null
-  env: Record<string, string> | null
-  isActive: boolean | null
-  createdAt: string
-  updatedAt: string
-}
-
-export const getMcpServers = () =>
-  fetcher<McpServerData[]>(`${BASE}/mcp-servers`)
-
-export const createMcpServerApi = (
-  data: Omit<McpServerData, 'id' | 'createdAt' | 'updatedAt'>
-) =>
-  fetcher<McpServerData>(`${BASE}/mcp-servers`, {
-    method: 'POST',
-    body: data as never
-  })
-
-export const updateMcpServerApi = (id: string, data: Partial<McpServerData>) =>
-  fetcher<McpServerData>(`${BASE}/mcp-servers/${id}`, {
-    method: 'PUT',
-    body: data as never
-  })
-
-export const deleteMcpServerApi = (id: string) =>
-  fetcher<void>(`${BASE}/mcp-servers/${id}`, {
-    method: 'DELETE',
-    responseType: 'text'
-  })
+// MCP Server APIs moved to mcp-service.ts
 
 // ─── Auto-Route ─────────────────────────────────────────────────────────────
 

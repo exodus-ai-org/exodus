@@ -3,11 +3,8 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  getAvailableSkills,
-  getMcpServers,
-  type McpServerData
-} from '@/services/agent-x'
+import { getAvailableSkills } from '@/services/agent-x'
+import { getMcpServers, type McpServerItem } from '@/services/mcp-service'
 import type { DepartmentData } from '@/stores/agent-x'
 import { Trash2Icon, XIcon } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
@@ -38,7 +35,7 @@ export function DepartmentConfigPanel({
   const [availableSkills, setAvailableSkills] = useState<
     Array<{ slug: string; name: string }>
   >([])
-  const [availableMcp, setAvailableMcp] = useState<McpServerData[]>([])
+  const [availableMcp, setAvailableMcp] = useState<McpServerItem[]>([])
 
   useEffect(() => {
     getAvailableSkills().then(setAvailableSkills)

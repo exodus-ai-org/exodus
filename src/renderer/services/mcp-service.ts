@@ -17,7 +17,7 @@ export interface McpServerItem {
 export const getMcpServers = () => fetcher<McpServerItem[]>(BASE)
 
 export const createMcpServerApi = (
-  data: Omit<McpServerItem, 'id' | 'createdAt' | 'updatedAt' | 'isActive'>
+  data: Partial<McpServerItem> & { name: string; command: string }
 ) => fetcher<McpServerItem>(BASE, { method: 'POST', body: data as never })
 
 export const updateMcpServerApi = (id: string, data: Partial<McpServerItem>) =>
