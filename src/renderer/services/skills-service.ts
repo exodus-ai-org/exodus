@@ -46,4 +46,17 @@ export async function uploadLocalSkill(file: File): Promise<InstalledSkill> {
   return data.data
 }
 
+export async function installFromLocalPath(
+  path: string
+): Promise<InstalledSkill> {
+  const res = await fetch(`${base}/install-path`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ path })
+  })
+  const data = await res.json()
+  if (!data.ok) throw new Error(data.error ?? 'Install failed')
+  return data.data
+}
+
 export type { InstalledSkill, SearchResultItem, SkillItem }

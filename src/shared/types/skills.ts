@@ -1,7 +1,62 @@
+// ─── Convex API response types ──────────────────────────────────────────────
+
+export interface ConvexSkillOwner {
+  _id: string
+  displayName: string
+  handle: string
+  image: string
+  name: string
+}
+
+export interface ConvexSkillVersion {
+  _id: string
+  version: string
+  changelog?: string
+  changelogSource?: string
+  createdAt: number
+}
+
+export interface ConvexSkillEntry {
+  skill: {
+    _id: string
+    slug: string
+    displayName: string
+    summary?: string | null
+    stats?: {
+      downloads?: number
+      stars?: number
+      installsAllTime?: number
+      installsCurrent?: number
+      comments?: number
+      versions?: number
+    }
+    badges?: Record<string, unknown>
+    tags?: Record<string, string>
+    createdAt?: number
+    updatedAt?: number
+  }
+  owner: ConvexSkillOwner
+  ownerHandle: string
+  latestVersion: ConvexSkillVersion | null
+}
+
+export interface ConvexListResponse {
+  status: string
+  value: {
+    hasMore: boolean
+    nextCursor: string | null
+    page: ConvexSkillEntry[]
+  }
+}
+
+// ─── App-level types ────────────────────────────────────────────────────────
+
 export interface SkillItem {
   slug: string
   displayName: string
   summary?: string | null
+  ownerHandle?: string
+  ownerImage?: string
   tags?: Record<string, string>
   stats?: {
     downloads?: number

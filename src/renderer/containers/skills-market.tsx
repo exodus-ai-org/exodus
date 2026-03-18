@@ -6,11 +6,12 @@ import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { selectSkillPath } from '@/lib/ipc'
 import {
+  installFromLocalPath,
   installSkill,
   toggleSkill,
-  uninstallSkill,
-  uploadLocalSkill
+  uninstallSkill
 } from '@/services/skills-service'
 import type {
   InstalledSkill,
@@ -29,7 +30,7 @@ import {
   Trash2Icon,
   UploadIcon
 } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import useSWR from 'swr'
 
@@ -100,7 +101,14 @@ function RegistrySkillCard({
     <div className="bg-card hover:bg-accent/30 space-y-3 rounded-lg border p-4 transition-colors">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="mb-1 flex items-center gap-2">
+          <div className="mb-1.5 flex items-center gap-2">
+            {skill.ownerImage && (
+              <img
+                src={skill.ownerImage}
+                alt=""
+                className="h-5 w-5 shrink-0 rounded-full"
+              />
+            )}
             <h3 className="truncate text-sm leading-tight font-semibold">
               {skill.displayName}
             </h3>
@@ -108,6 +116,11 @@ function RegistrySkillCard({
               v{version}
             </Badge>
           </div>
+          {skill.ownerHandle && (
+            <p className="text-muted-foreground mb-1 text-xs">
+              @{skill.ownerHandle}
+            </p>
+          )}
           {skill.summary && (
             <p className="text-muted-foreground line-clamp-2 text-xs leading-relaxed">
               {skill.summary}
@@ -136,7 +149,7 @@ function RegistrySkillCard({
           )}
         </Button>
       </div>
-      <div className="text-muted-foreground flex items-center gap-3 text-xs">
+      <div className="text-muted-foreground flex flex-wrap items-center gap-3 text-xs">
         {skill.stats?.downloads != null && (
           <span className="flex items-center gap-1">
             <DownloadIcon className="h-3 w-3" />
@@ -147,6 +160,12 @@ function RegistrySkillCard({
           <span className="flex items-center gap-1">
             <StarIcon className="h-3 w-3" />
             {skill.stats.stars.toLocaleString()}
+          </span>
+        )}
+        {skill.stats?.installsAllTime != null && (
+          <span className="flex items-center gap-1">
+            <PackageCheckIcon className="h-3 w-3" />
+            {skill.stats.installsAllTime.toLocaleString()} installs
           </span>
         )}
       </div>
@@ -240,9 +259,16 @@ function InstalledSkillCard({
             <h3 className="truncate text-sm leading-tight font-semibold">
               {skill.displayName}
             </h3>
-            <Badge variant="outline" className="shrink-0 text-xs">
-              v{skill.version}
-            </Badge>
+            {skill.version && skill.version !== 'local' && (
+              <Badge variant="outline" className="shrink-0 text-xs">
+                v{skill.version}
+              </Badge>
+            )}
+            {skill.version === 'local' && (
+              <Badge variant="secondary" className="shrink-0 text-xs">
+                Local
+              </Badge>
+            )}
             {skill.isActive ? (
               <Badge variant="default" className="shrink-0 text-xs">
                 Active
@@ -294,7 +320,6 @@ export function SkillsMarket() {
   const [cursorHistory, setCursorHistory] = useState<(string | null)[]>([null])
   const [pendingSlug, setPendingSlug] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
-  const uploadInputRef = useRef<HTMLInputElement>(null)
 
   const debouncedSearch = useDebounce(search, 400)
   const isSearching = debouncedSearch.trim().length > 0
@@ -395,26 +420,21 @@ export function SkillsMarket() {
     [mutateInstalled]
   )
 
-  const handleUploadLocal = useCallback(
-    async (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0]
-      if (!file) return
-      // Reset input so the same file can be re-uploaded after uninstall
-      e.target.value = ''
-      setUploading(true)
-      try {
-        await uploadLocalSkill(file)
-        await mutateInstalled()
-        toast.success(`"${file.name}" installed successfully`)
-      } catch (err) {
-        const msg = err instanceof Error ? err.message : 'Upload failed'
-        toast.error(msg)
-      } finally {
-        setUploading(false)
-      }
-    },
-    [mutateInstalled]
-  )
+  const handleInstallLocal = useCallback(async () => {
+    const path = await selectSkillPath()
+    if (!path) return
+    setUploading(true)
+    try {
+      const installed = await installFromLocalPath(path)
+      await mutateInstalled()
+      toast.success(`"${installed.displayName}" installed successfully`)
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Install failed'
+      toast.error(msg)
+    } finally {
+      setUploading(false)
+    }
+  }, [mutateInstalled])
 
   const handleNextPage = useCallback(() => {
     const nextCursor = registryData?.data?.nextCursor ?? null
@@ -437,15 +457,30 @@ export function SkillsMarket() {
   return (
     <div className="flex h-full w-full flex-col">
       <div className="flex flex-1 flex-col gap-4 overflow-hidden px-6 py-4">
-        {/* Search bar */}
-        <div className="relative">
-          <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
-          <Input
-            placeholder="Search skills..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-9"
-          />
+        {/* Search bar + upload */}
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+            <Input
+              placeholder="Search skills..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={uploading}
+            onClick={handleInstallLocal}
+          >
+            {uploading ? (
+              <Loader2Icon className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <UploadIcon className="mr-1.5 h-3.5 w-3.5" />
+            )}
+            Install Local
+          </Button>
         </div>
 
         <Tabs
@@ -474,7 +509,7 @@ export function SkillsMarket() {
           {/* Browse tab */}
           <TabsContent value="browse" className="mt-3 flex-1 overflow-hidden">
             <ScrollArea className="h-full">
-              <div className="space-y-3 pr-3">
+              <div className="space-y-3">
                 {/* Search results */}
                 {isSearching && (
                   <>
@@ -584,30 +619,7 @@ export function SkillsMarket() {
             value="installed"
             className="mt-3 flex-1 overflow-hidden"
           >
-            {/* Hidden file input for local upload */}
-            <input
-              ref={uploadInputRef}
-              type="file"
-              accept=".zip"
-              className="hidden"
-              onChange={handleUploadLocal}
-            />
-            <div className="mb-3 flex justify-end">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={uploading}
-                onClick={() => uploadInputRef.current?.click()}
-              >
-                {uploading ? (
-                  <Loader2Icon className="mr-1.5 h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <UploadIcon className="mr-1.5 h-3.5 w-3.5" />
-                )}
-                Upload local skill
-              </Button>
-            </div>
-            <ScrollArea className="h-[calc(100%-44px)]">
+            <ScrollArea className="h-full">
               <div className="space-y-3 pr-3 pb-4">
                 {!installedData ? (
                   Array.from({ length: 3 }).map((_, i) => (

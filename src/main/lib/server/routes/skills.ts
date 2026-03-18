@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import {
+  installFromPath,
   installLocalSkill,
   installSkill,
   listInstalledSkills,
@@ -70,6 +71,21 @@ skillsRouter.post('/upload', async (c) => {
       Buffer.from(arrayBuffer),
       filename
     )
+    return c.json({ ok: true, data: installed })
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : 'Failed to install skill'
+    return c.json({ ok: false, error: msg }, 400)
+  }
+})
+
+// Install from a local path (zip file or folder) — called after native dialog
+skillsRouter.post('/install-path', async (c) => {
+  const { path } = await c.req.json()
+  if (!path || typeof path !== 'string') {
+    return c.json({ ok: false, error: 'No path provided' }, 400)
+  }
+  try {
+    const installed = await installFromPath(path)
     return c.json({ ok: true, data: installed })
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'Failed to install skill'

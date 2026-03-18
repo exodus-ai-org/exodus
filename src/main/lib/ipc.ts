@@ -1,4 +1,4 @@
-import { app, ipcMain, nativeTheme } from 'electron'
+import { app, dialog, ipcMain, nativeTheme } from 'electron'
 // ARCHIVED: import { connectHttpServer } from './server/app'
 // ARCHIVED: import { getServer, setServer } from './server/instance'
 import {
@@ -120,6 +120,20 @@ export function setupIPC() {
       nativeTheme.themeSource = source
     }
   )
+
+  // Skill upload: open native dialog for ZIP file or folder
+  ipcMain.handle('select-skill-path', async () => {
+    const win = getMainWindow()
+    if (!win) return null
+    const result = await dialog.showOpenDialog(win, {
+      title: 'Install Skill',
+      buttonLabel: 'Install',
+      properties: ['openFile', 'openDirectory'],
+      filters: [{ name: 'Skill Package', extensions: ['zip'] }]
+    })
+    if (result.canceled || result.filePaths.length === 0) return null
+    return result.filePaths[0]
+  })
 
   ipcMain.handle('updater-get-state', () => updaterGetState())
   ipcMain.handle('updater-check', () => updaterCheck())
