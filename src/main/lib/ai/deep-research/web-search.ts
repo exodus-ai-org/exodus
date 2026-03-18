@@ -1,5 +1,5 @@
 import { WebSearchResult } from '@shared/types/web-search'
-import { fetchAndProcessSearchResults } from '../utils/web-search-util'
+import { fetchWebSearch } from '../utils/web-search-util'
 
 export async function webSearch(
   {
@@ -15,5 +15,5 @@ export async function webSearch(
     perplexityApiKey: string
   }
 ) {
-  return fetchAndProcessSearchResults({ query, perplexityApiKey, webSources })
+  return fetchWebSearch({ query, perplexityApiKey, webSources })
 }

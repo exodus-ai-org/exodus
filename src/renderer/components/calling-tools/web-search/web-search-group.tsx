@@ -18,7 +18,7 @@ export function WebSearchGroup({
 
   return (
     <span className="*:ring-background flex -space-x-2 *:ring-3">
-      {webSearchResults.map((result, index) => {
+      {(webSearchResults ?? []).map((result, index) => {
         let origin = ''
         try {
           origin = new URL(result.link).origin

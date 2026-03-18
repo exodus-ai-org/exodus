@@ -89,6 +89,21 @@ export async function loadDocumentBuiltin(link: string) {
   }
 }
 
+/**
+ * Load a URL as markdown, used by the webFetch tool.
+ * Defaults to Jina Reader; falls back to built-in if provider is 'builtin'.
+ */
+export async function loadDocument(
+  link: string,
+  provider?: UrlToMarkdownProvider | null
+): Promise<{ ogImage: string; type: 'pdf' | 'html'; content: string } | null> {
+  if (provider === 'builtin') {
+    return loadDocumentBuiltin(link)
+  }
+  // Default: jina
+  return loadDocumentWithJina(link)
+}
+
 /** Jina Reader loader */
 export async function loadDocumentWithJina(link: string) {
   try {
@@ -105,28 +120,13 @@ export async function loadDocumentWithJina(link: string) {
   }
 }
 
-/**
- * Load a URL as markdown, used by the webFetch tool.
- * Defaults to Jina Reader; falls back to built-in if provider is 'builtin'.
- */
-export async function loadDocument(
-  link: string,
-  provider?: UrlToMarkdownProvider | null
-): Promise<{ ogImage: string; type: 'pdf' | 'html'; content: string } | null> {
-  if (provider === 'builtin') {
-    return loadDocumentBuiltin(link)
-  }
-  // Default: jina
-  return loadDocumentWithJina(link)
-}
-
 /* ================= Perplexity Search (SDK) ================= */
 
 /**
  * Search the web via Perplexity SDK and return structured results.
  * Perplexity returns snippets with extracted page content — no separate URL fetching needed.
  */
-export async function fetchAndProcessSearchResults({
+export async function fetchWebSearch({
   query,
   perplexityApiKey,
   webSources,
@@ -179,7 +179,6 @@ export async function fetchAndProcessSearchResults({
       title: r.title,
       snippet: r.snippet.slice(0, 300),
       content: r.snippet,
-      type: 'html' as const,
       ogImage: ''
     }))
   } catch {

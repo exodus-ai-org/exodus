@@ -47,7 +47,8 @@ function CitationChip({
   } catch {
     return null
   }
-  const favicon = `https://www.google.com/s2/favicons?domain=${origin}&sz=64`
+
+  const favicon = `https://www.google.com/s2/favicons?domain=${origin}&sz=128`
 
   return (
     <HoverCard>

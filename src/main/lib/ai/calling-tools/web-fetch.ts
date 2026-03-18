@@ -27,7 +27,6 @@ export const webFetch = (
 
     const details = {
       url,
-      type: result.type,
       length: result.content.length,
       content: result.content
     }

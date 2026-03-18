@@ -1,5 +1,7 @@
 import type { ChatToolResultMessage } from '@shared/types/chat'
-import { memo } from 'react'
+import { AlertCircleIcon } from 'lucide-react'
+import { memo, useEffect } from 'react'
+import { sileo } from 'sileo'
 import { DeepResearchCard } from './calling-tools/deep-research/deep-research-card'
 import { GoogleMapsPlacesCard } from './calling-tools/google-maps-places/places-card'
 import { GoogleMapsCard } from './calling-tools/google-maps-routing/routing-card'
@@ -9,6 +11,38 @@ import { WebSearchCard } from './calling-tools/web-search/web-search-card'
 
 function CallingTools({ toolResult }: { toolResult: ChatToolResultMessage }) {
   const toolName = toolResult.toolName
+
+  // Extract error message from content when isError is true
+  const errorMessage = toolResult.isError
+    ? (() => {
+        const textBlock = toolResult.content.find((c) => c.type === 'text')
+        const text =
+          textBlock && textBlock.type === 'text' ? textBlock.text : ''
+        return text && text !== '{}' ? text : `${toolName} failed`
+      })()
+    : null
+
+  useEffect(() => {
+    if (errorMessage) {
+      sileo.error({
+        title: `Tool failed: ${toolName}`,
+        description: errorMessage
+      })
+    }
+    // Only fire when this specific tool result first becomes an error
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [toolResult.toolCallId])
+
+  if (errorMessage) {
+    return (
+      <section className="mb-4">
+        <div className="text-destructive border-destructive/30 bg-destructive/10 flex items-start gap-2 rounded-lg border px-3 py-2 text-sm">
+          <AlertCircleIcon size={14} className="mt-0.5 shrink-0" />
+          <span>{errorMessage}</span>
+        </div>
+      </section>
+    )
+  }
 
   // details comes from DB directly; fallback to parsing content text for compatibility
   const output =
@@ -36,7 +70,7 @@ function CallingTools({ toolResult }: { toolResult: ChatToolResultMessage }) {
     })()
 
   return (
-    <section className="mb-4">
+    <section className="mb-4 w-full">
       {toolName === 'googleMapsRouting' && (
         <GoogleMapsCard toolResult={output} />
       )}

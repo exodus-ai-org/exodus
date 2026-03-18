@@ -9,6 +9,7 @@ import type {
   ChatToolResultMessage
 } from '@shared/types/chat'
 import { Variables } from '@shared/types/server'
+import fs from 'fs'
 import { Hono } from 'hono'
 import { v4 as uuidV4 } from 'uuid'
 import { LcmManager } from '../../ai/context-management'
@@ -272,6 +273,9 @@ chat.post('/', async (c) => {
         )
 
         for await (const event of agentStream) {
+          fs.writeFileSync('event.text', JSON.stringify(event) + '\n', {
+            flag: 'a'
+          })
           if (event.type === 'message_update') {
             const msg = event.message as Message
             if (msg.role !== 'assistant') continue
@@ -310,29 +314,61 @@ chat.post('/', async (c) => {
               currentAssistantMsg = null
             }
           } else if (event.type === 'tool_execution_end') {
+            // When a tool throws, event.result is the Error object.
+            // JSON.stringify(Error) → "{}", so we must extract the message first.
+            const errorMessage = event.isError
+              ? typeof event.result === 'string'
+                ? event.result
+                : event.result instanceof Error
+                  ? event.result.message
+                  : ((event.result as { message?: string })?.message ??
+                    'Tool execution failed')
+              : null
+
             const details =
+              !event.isError &&
               event.result &&
               typeof event.result === 'object' &&
               'details' in event.result
                 ? event.result.details
-                : event.result
+                : event.isError
+                  ? null
+                  : event.result
+
+            // Use the tool's own content if provided (allows tools to control
+            // exactly what text the LLM sees, e.g. formatted citations prompt).
+            // Fall back to JSON-serialising details for tools that don't set content.
+            const toolContent: Array<{ type: 'text'; text: string }> =
+              !event.isError &&
+              event.result &&
+              typeof event.result === 'object' &&
+              'content' in event.result &&
+              Array.isArray((event.result as { content: unknown }).content)
+                ? (
+                    event.result as {
+                      content: Array<{ type: 'text'; text: string }>
+                    }
+                  ).content
+                : errorMessage
+                  ? [{ type: 'text' as const, text: errorMessage }]
+                  : details
+                    ? [
+                        {
+                          type: 'text' as const,
+                          text:
+                            typeof details === 'string'
+                              ? details
+                              : JSON.stringify(details)
+                        }
+                      ]
+                    : []
 
             const toolResultMsg: ChatToolResultMessage = {
               id: uuidV4(),
               role: 'toolResult',
               toolCallId: event.toolCallId,
               toolName: event.toolName,
-              content: details
-                ? [
-                    {
-                      type: 'text' as const,
-                      text:
-                        typeof details === 'string'
-                          ? details
-                          : JSON.stringify(details)
-                    }
-                  ]
-                : [],
+              content: toolContent,
               details,
               isError: event.isError,
               timestamp: Date.now()

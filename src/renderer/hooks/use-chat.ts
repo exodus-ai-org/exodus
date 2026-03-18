@@ -56,7 +56,12 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
 
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages)
   const [status, setStatus] = useState<ChatStatus>('idle')
-  const [lastUsage, setLastUsage] = useState<Usage | null>(null)
+  const [lastUsage, setLastUsage] = useState<Usage | null>(() => {
+    const lastAssistant = [...initialMessages]
+      .reverse()
+      .find((m): m is ChatAssistantMessage => m.role === 'assistant')
+    return lastAssistant?.usage ?? null
+  })
   const abortControllerRef = useRef<AbortController | null>(null)
   // Store the last user message for regeneration
   const lastUserMsgRef = useRef<SendMessageOptions | null>(null)

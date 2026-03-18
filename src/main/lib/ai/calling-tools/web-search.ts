@@ -1,7 +1,7 @@
 import type { AgentTool } from '@mariozechner/pi-agent-core'
 import { Type } from '@mariozechner/pi-ai'
 import { Setting } from '@shared/types/db'
-import { fetchAndProcessSearchResults } from '../utils/web-search-util'
+import { fetchWebSearch } from '../utils/web-search-util'
 
 const webSearchSchema = Type.Object({
   query: Type.String({ description: 'The search query.' })
@@ -12,7 +12,7 @@ export const webSearch = (
 ): AgentTool<typeof webSearchSchema> => ({
   name: 'webSearch',
   label: 'Web Search',
-  description: `Search the web for up-to-date information. Suffix a specific date to the query parameter based on user's input. Today is ${new Date().toISOString()}`,
+  description: `Search the web for up-to-date information. Results are numbered [1],[2],… — you MUST cite every factual sentence in your reply using 【N†source】 markers. Suffix a specific date to the query if needed. Today is ${new Date().toISOString()}`,
   parameters: webSearchSchema,
   execute: async (_toolCallId, { query }) => {
     if (!setting?.webSearch?.perplexityApiKey) {
@@ -21,7 +21,7 @@ export const webSearch = (
       )
     }
     const ws = setting.webSearch
-    const details = await fetchAndProcessSearchResults({
+    const details = await fetchWebSearch({
       query,
       perplexityApiKey: ws.perplexityApiKey!,
       country: ws.country,
@@ -35,8 +35,24 @@ export const webSearch = (
             .filter(Boolean)
         : null
     })
+
+    if (!details?.length) {
+      return {
+        content: [{ type: 'text' as const, text: 'No search results found.' }],
+        details: []
+      }
+    }
+
+    // Format results as structured text so the LLM knows each source's citation index.
+    // IMPORTANT: you MUST cite every factual sentence using 【N†source】 where N is the source number below.
+    const formatted =
+      `IMPORTANT: cite every factual sentence with 【N†source】 where N is the source number.\n\n` +
+      details
+        .map((r) => `[${r.rank}] ${r.title}\nURL: ${r.link}\n${r.content}`)
+        .join('\n\n---\n\n')
+
     return {
-      content: [{ type: 'text' as const, text: JSON.stringify(details) }],
+      content: [{ type: 'text' as const, text: formatted }],
       details
     }
   }
