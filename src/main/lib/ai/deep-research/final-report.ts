@@ -20,17 +20,19 @@ export async function writeFinalReport(
   }
 ) {
   const learningsString = learnings
-    .map(
-      ({ learning, citations }) =>
-        `<learning>\n[Source: ${citations.join(', ')}] ${learning}\n</learning>`
-    )
+    .map(({ learning, citations, image }) => {
+      const imageMarkdown = image ? `\n![](${image})` : ''
+      return `<learning>\n【${citations.join(',')}†source】 ${learning}${imageMarkdown}\n</learning>`
+    })
     .join('\n')
 
   const userPrompt =
     'Given the following prompt from the user, write a final report on the topic using the learnings from research. ' +
-    "Every paragraph should include a citation in the format [Source: #], where # is the number of the search result you're referencing. for example: [Source: 2, 5] " +
-    'The learnings from your research may include images. Remember to insert them in appropriate places in your final report. ' +
-    'Make it as as detailed as possible, aim for 3 or more pages, include ALL the learnings from research: ' +
+    'Cite every factual claim using the format 【#†source】 (single) or 【#,#†source】 (multiple) — ' +
+    'place the citation immediately after the sentence it supports, not at the end of the paragraph. ' +
+    'Never write raw URLs. ' +
+    'When a learning includes an image URL, embed it in the report near the content it illustrates using markdown: ![description](url). ' +
+    'Make it as detailed as possible, aim for 3 or more pages, include ALL the learnings from research: ' +
     `\n<prompt>${prompt}</prompt>\n\nHere are all the learnings from previous research:\n\n<learnings>\n${learningsString}\n</learnings>` +
     `\n\nRespond with a JSON object: {"report": "<markdown report text>"}`
 

@@ -68,7 +68,7 @@ export function AvailableMcpTools() {
               <strong>Settings &gt; MCP Servers</strong>.
             </DialogDescription>
           </DialogHeader>
-          <div className="flex max-h-[500px] flex-col gap-4 overflow-y-auto">
+          <div className="flex max-h-125 flex-col gap-4 overflow-y-auto">
             {data?.tools?.map(({ mcpServerName, tools }) => (
               <div key={mcpServerName} className="flex flex-col gap-3">
                 <p className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">

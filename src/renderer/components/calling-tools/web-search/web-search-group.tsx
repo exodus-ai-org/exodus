@@ -1,100 +1,86 @@
-import { LazyLoadImage } from '@/components/lazy-load-image'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   HoverCard,
   HoverCardContent,
   HoverCardTrigger
 } from '@/components/ui/hover-card'
-import { cn } from '@/lib/utils'
 import { WebSearchResult } from '@shared/types/web-search'
 import { useState } from 'react'
 
 export function WebSearchGroup({
-  webSearchResults,
-  variant
+  webSearchResults
 }: {
   webSearchResults: WebSearchResult[]
-  variant: 'overlapping' | 'tiling'
+  /** @deprecated variant is no longer used */
+  variant?: string
 }) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
 
   return (
-    <span
-      className={cn(
-        {
-          ['*:ring-background flex -space-x-2 *:ring-3']:
-            variant === 'overlapping'
-        },
-        {
-          ['mx-2 inline-flex gap-2']: variant === 'tiling'
+    <span className="*:ring-background flex -space-x-2 *:ring-3">
+      {webSearchResults.map((result, index) => {
+        let origin = ''
+        try {
+          origin = new URL(result.link).origin
+        } catch {
+          return null
         }
-      )}
-    >
-      {webSearchResults.map((webSearchResult, index) => (
-        <HoverCard key={index}>
-          <HoverCardTrigger>
-            <a
-              href={webSearchResult.link}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Avatar
-                className={cn(
-                  'border transition-transform',
-                  {
-                    ['z-10 scale-110']:
-                      variant === 'overlapping' && activeIndex === index
-                  },
-                  {
-                    ['h-4 w-4']: variant === 'tiling'
-                  }
-                )}
-                onMouseEnter={() => {
-                  if (variant === 'overlapping') {
-                    setActiveIndex(index)
-                  }
-                }}
-                onMouseLeave={() => {
-                  if (variant === 'overlapping') {
-                    setActiveIndex(null)
-                  }
-                }}
+        const favicon = `https://www.google.com/s2/favicons?domain=${origin}&sz=128`
+
+        return (
+          <HoverCard key={index}>
+            <HoverCardTrigger>
+              <a
+                href={result.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                onMouseEnter={() => setActiveIndex(index)}
+                onMouseLeave={() => setActiveIndex(null)}
               >
-                <AvatarImage
-                  src={`https://www.google.com/s2/favicons?domain=${new URL(webSearchResult.link).origin}&sz=128`}
-                  alt={webSearchResult.title}
-                />
-                <AvatarFallback>
-                  {webSearchResult.title.charAt(0)}
-                </AvatarFallback>
-              </Avatar>
-            </a>
-          </HoverCardTrigger>
-          <HoverCardContent className="w-60 rounded-lg border-0 p-0">
-            <a
-              href={webSearchResult.link}
-              target="_blank"
-              rel="noopener noreferrer"
+                <Avatar
+                  className="border transition-transform"
+                  style={{
+                    transform:
+                      activeIndex === index ? 'scale(1.1)' : 'scale(1)',
+                    zIndex: activeIndex === index ? 10 : undefined
+                  }}
+                >
+                  <AvatarImage src={favicon} alt={result.title} />
+                  <AvatarFallback>{result.title.charAt(0)}</AvatarFallback>
+                </Avatar>
+              </a>
+            </HoverCardTrigger>
+            <HoverCardContent
+              align="start"
+              side="top"
+              className="w-72 overflow-hidden rounded-xl border p-0 shadow-lg"
             >
-              {webSearchResult.ogImage ? (
-                <LazyLoadImage
-                  src={webSearchResult.ogImage}
-                  alt={webSearchResult.title}
-                  className="h-32 w-full rounded-tl-lg rounded-tr-lg object-cover"
-                />
-              ) : null}
-              <div className="p-3">
-                <div className="mb-2 line-clamp-2 text-sm font-semibold">
-                  {webSearchResult.title}
+              <a href={result.link} target="_blank" rel="noopener noreferrer">
+                {result.ogImage && (
+                  <img
+                    src={result.ogImage}
+                    alt={result.title}
+                    loading="lazy"
+                    className="h-32 w-full object-cover"
+                  />
+                )}
+                <div className="space-y-1 p-3">
+                  <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
+                    <img src={favicon} className="size-3" alt="" />
+                    {new URL(result.link).hostname}
+                  </div>
+                  <div className="line-clamp-2 text-sm leading-snug font-semibold">
+                    {result.title}
+                  </div>
+                  <div className="text-muted-foreground line-clamp-3 text-xs leading-relaxed">
+                    {result.snippet}
+                  </div>
                 </div>
-                <div className="text-muted-foreground line-clamp-3 text-xs">
-                  {webSearchResult.snippet}
-                </div>
-              </div>
-            </a>
-          </HoverCardContent>
-        </HoverCard>
-      ))}
+              </a>
+            </HoverCardContent>
+          </HoverCard>
+        )
+      })}
     </span>
   )
 }

@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils'
 import { WebSearchResult } from '@shared/types/web-search'
 import 'katex/dist/katex.min.css'
 import { CheckIcon, CopyIcon } from 'lucide-react'
-import { memo, ReactNode, useMemo } from 'react'
+import { Fragment, memo, ReactNode, useMemo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import {
@@ -13,47 +13,123 @@ import {
 import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
-import { WebSearchGroup } from './calling-tools/web-search/web-search-group'
 import { useTheme } from './theme-provider'
+import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card'
 
 const themes = {
   light: { codeTheme: atomOneLight },
   dark: { codeTheme: atomOneDark }
 }
 
-const citationGlobalRegex = /\[Source:\s*([\d,\s]+)\]/g
+// Matches 【1†source】 or 【1,2†source】
+const citationGlobalRegex = /【([\d,\s]+)†source】/g
 
-// When using the web-search or deep-research features, the AI outputs markdown text with citation markers.
-// There are two formats:
-// 1. Pure text with appended citation markers.
-//    e.g. "The quick brown fox jumps over the lazy dog. [Source 1, 2, 3]"
-// 2. Mixed content with appended citation markers.
-//    e.g. "If `nums[k] + nums[l]` is less than the required sum. [Source 1, 2, 3]"
-//
-// For the first case, we can simply use `citationRegex` to extract the citation.
-//
-// For the second case, the content will be rendered as an array by React,
-// since it includes not only plain text but also HTML elements such as <code> or <strong>.
-// In this case, we should check whether the last element is a pure text node
-// to determine whether the citation can be extracted.
 // eslint-disable-next-line react-refresh/only-export-components
-export function parseCitations(children: ReactNode) {
-  if (Array.isArray(children)) {
-    const lastChild = children[children.length - 1]
-    if (typeof lastChild === 'string') {
-      children = lastChild as string
-    }
-  }
-  if (typeof children !== 'string') return null
-
-  const matches = [...children.matchAll(citationGlobalRegex)]
+export function parseCitations(text: string): number[] | null {
+  const matches = [...text.matchAll(citationGlobalRegex)]
   if (matches.length === 0) return null
-
-  const citations = matches
-    .map((match) => match[1].split(',').map((num) => parseInt(num.trim(), 10)))
-    .flat()
+  return matches
+    .flatMap((m) => m[1].split(',').map((n) => parseInt(n.trim(), 10)))
+    .filter((n) => !isNaN(n))
     .sort((a, b) => a - b)
-  return citations
+}
+
+function CitationChip({
+  num,
+  source
+}: {
+  num: number
+  source: WebSearchResult
+}) {
+  let origin = ''
+  try {
+    origin = new URL(source.link).origin
+  } catch {
+    return null
+  }
+  const favicon = `https://www.google.com/s2/favicons?domain=${origin}&sz=64`
+
+  return (
+    <HoverCard>
+      <HoverCardTrigger>
+        <a
+          href={source.link}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="bg-muted hover:bg-accent mx-0.5 inline-flex cursor-pointer items-center gap-1 rounded-full border px-1.5 py-0.5 align-middle text-xs font-medium no-underline transition-colors"
+        >
+          <img src={favicon} className="size-3 rounded-sm" alt="" />
+          <span className="text-muted-foreground">{num}</span>
+        </a>
+      </HoverCardTrigger>
+      <HoverCardContent
+        align="start"
+        side="top"
+        className="w-72 overflow-hidden rounded-xl border p-0 shadow-lg"
+      >
+        <a href={source.link} target="_blank" rel="noopener noreferrer">
+          {source.ogImage && (
+            <img
+              src={source.ogImage}
+              alt={source.title}
+              loading="lazy"
+              className="h-32 w-full object-cover"
+            />
+          )}
+          <div className="space-y-1 p-3">
+            <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
+              <img src={favicon} className="size-3" alt="" />
+              {new URL(source.link).hostname}
+            </div>
+            <div className="line-clamp-2 text-sm leading-snug font-semibold">
+              {source.title}
+            </div>
+            <div className="text-muted-foreground line-clamp-3 text-xs leading-relaxed">
+              {source.snippet}
+            </div>
+          </div>
+        </a>
+      </HoverCardContent>
+    </HoverCard>
+  )
+}
+
+// Splits a plain string by citation markers and interleaves CitationChip components inline.
+function inlineReplaceCitations(
+  text: string,
+  webSearchResults: WebSearchResult[]
+): ReactNode[] {
+  const nodes: ReactNode[] = []
+  let lastIndex = 0
+  const regex = /【([\d,\s]+)†source】/g
+
+  for (const match of text.matchAll(regex)) {
+    if (match.index! > lastIndex) {
+      nodes.push(text.slice(lastIndex, match.index))
+    }
+    const nums = match[1]
+      .split(',')
+      .map((n) => parseInt(n.trim(), 10))
+      .filter((n) => !isNaN(n))
+
+    nums.forEach((num) => {
+      const source = webSearchResults.find((r) => r.rank === num)
+      if (source) {
+        nodes.push(
+          <CitationChip
+            key={`${match.index}-${num}`}
+            num={num}
+            source={source}
+          />
+        )
+      }
+    })
+    lastIndex = match.index! + match[0].length
+  }
+  if (lastIndex < text.length) {
+    nodes.push(text.slice(lastIndex))
+  }
+  return nodes
 }
 
 function TextWithCitations({
@@ -63,36 +139,30 @@ function TextWithCitations({
   children: ReactNode
   webSearchResults: WebSearchResult[] | undefined
 }) {
-  if (!webSearchResults) return children
+  if (!webSearchResults) return <>{children}</>
 
-  const citations = parseCitations(children)
-  if (citations === null) return children
+  if (typeof children === 'string') {
+    if (!/【[\d,\s]+†source】/.test(children)) return <>{children}</>
+    return <>{inlineReplaceCitations(children, webSearchResults)}</>
+  }
 
-  const referredWebSearchResults = webSearchResults.filter((item) =>
-    citations.includes(item.rank)
-  )
+  if (Array.isArray(children)) {
+    const processed = children.map((child, i) => {
+      if (typeof child === 'string') {
+        const hasCitation = /【[\d,\s]+†source】/.test(child)
+        if (!hasCitation) return child
+        return (
+          <Fragment key={i}>
+            {inlineReplaceCitations(child, webSearchResults)}
+          </Fragment>
+        )
+      }
+      return child
+    })
+    return <>{processed}</>
+  }
 
-  return (
-    <>
-      {typeof children === 'string' &&
-        children.replaceAll(citationGlobalRegex, '')}
-      {Array.isArray(children) && (
-        <>
-          {children.map((item) => {
-            if (typeof item === 'string') {
-              return item.replaceAll(citationGlobalRegex, '')
-            } else {
-              return item
-            }
-          })}
-        </>
-      )}
-      <WebSearchGroup
-        webSearchResults={referredWebSearchResults}
-        variant="tiling"
-      />
-    </>
-  )
+  return <>{children}</>
 }
 
 export function Markdown({

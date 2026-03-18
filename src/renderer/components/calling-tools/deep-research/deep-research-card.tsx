@@ -11,14 +11,65 @@ import {
 import { downloadFile } from '@/lib/utils'
 import { markdownToPdf } from '@/services/tools'
 import { activeDeepResearchIdAtom } from '@/stores/chat'
-
 import { DeepResearch } from '@shared/types/db'
+import { WebSearchResult } from '@shared/types/web-search'
 import { differenceInMinutes } from 'date-fns'
 import { useAtom } from 'jotai'
 import { DownloadIcon, LoaderIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { sileo } from 'sileo'
 import useSWR from 'swr'
+
+/**
+ * Convert inline 【N†source】 markers to superscript [N] and append a
+ * numbered References section — suitable for PDF rendering.
+ */
+function prepareMarkdownForPdf(
+  markdown: string,
+  webSources: WebSearchResult[]
+): string {
+  const citationRegex = /【([\d,\s]+)†source】/g
+
+  // Collect citation ranks in order of first appearance (deduplicated)
+  const seenRanks = new Set<number>()
+  const orderedRanks: number[] = []
+  for (const match of markdown.matchAll(citationRegex)) {
+    for (const part of match[1].split(',')) {
+      const n = parseInt(part.trim(), 10)
+      if (!isNaN(n) && !seenRanks.has(n)) {
+        seenRanks.add(n)
+        orderedRanks.push(n)
+      }
+    }
+  }
+
+  // Replace markers with superscript HTML (MarkdownIt passes inline HTML through)
+  const processed = markdown.replace(citationRegex, (_, numsStr: string) => {
+    return numsStr
+      .split(',')
+      .map((p) => parseInt(p.trim(), 10))
+      .filter((n) => !isNaN(n))
+      .map((n) => `<sup>[${n}]</sup>`)
+      .join('')
+  })
+
+  if (orderedRanks.length === 0) return processed
+
+  // Build a numbered References list
+  const refLines = orderedRanks.map((rank) => {
+    const source = webSources.find((s) => s.rank === rank)
+    if (!source) return `[${rank}] Unknown source`
+    let hostname = ''
+    try {
+      hostname = new URL(source.link).hostname
+    } catch {
+      hostname = source.link
+    }
+    return `[${rank}] **${source.title}** (${hostname})  \n    <${source.link}>`
+  })
+
+  return `${processed}\n\n---\n\n## References\n\n${refLines.join('\n\n')}`
+}
 
 export function DeepResearchCard({
   toolResult
@@ -47,8 +98,12 @@ export function DeepResearchCard({
 
     try {
       setLoading(true)
+      const pdfMarkdown = prepareMarkdownForPdf(
+        deepResearchResult.finalReport,
+        deepResearchResult.webSources ?? []
+      )
       // TODO: generate a title to final report as the filename of PDF
-      const blob = await markdownToPdf(deepResearchResult.finalReport)
+      const blob = await markdownToPdf(pdfMarkdown)
       downloadFile(blob, `${deepResearchResult.id}.pdf`)
     } catch (e) {
       sileo.error({

@@ -19,7 +19,7 @@ import {
   runMemoryWriteJudge,
   saveSessionSummary
 } from '../../ai/memory/manager'
-import { deepResearchBootPrompt, systemPrompt } from '../../ai/prompts'
+import { deepResearchBootPrompt, getSystemPrompt } from '../../ai/prompts'
 import {
   bindCallingTools,
   generateTitleFromUserMessage,
@@ -215,7 +215,7 @@ chat.post('/', async (c) => {
   })
   const systemContent = advancedTools?.includes(AdvancedTools.DeepResearch)
     ? deepResearchBootPrompt
-    : systemPrompt + memoriesSection
+    : getSystemPrompt() + memoriesSection
 
   // Build SSE streaming response
   const stream = new ReadableStream({

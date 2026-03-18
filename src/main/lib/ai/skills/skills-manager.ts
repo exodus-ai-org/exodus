@@ -96,24 +96,12 @@ export async function listRegistrySkills(
 export async function searchRegistrySkills(
   q: string
 ): Promise<SearchResultItem[]> {
-  // Convex doesn't have a separate search endpoint — fetch a larger page
-  // and filter client-side by matching query against displayName/summary/slug
-  const { items } = await listRegistrySkills()
-  const lower = q.toLowerCase()
-  return items
-    .filter(
-      (item) =>
-        item.slug.toLowerCase().includes(lower) ||
-        item.displayName.toLowerCase().includes(lower) ||
-        (item.summary ?? '').toLowerCase().includes(lower)
-    )
-    .map((item, i) => ({
-      slug: item.slug,
-      displayName: item.displayName,
-      summary: item.summary,
-      version: item.latestVersion?.version ?? null,
-      score: 1 - i * 0.01
-    }))
+  const url = new URL('/api/v1/search', REGISTRY)
+  url.searchParams.set('q', q)
+  const res = await fetch(url.toString())
+  if (!res.ok) throw new Error(`Failed to search skills: ${res.status}`)
+  const data = (await res.json()) as { results: SearchResultItem[] }
+  return data.results ?? []
 }
 
 export async function installSkill(
