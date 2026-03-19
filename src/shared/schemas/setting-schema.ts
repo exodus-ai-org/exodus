@@ -39,7 +39,10 @@ export const ProvidersSchema = z.object({
 export const AudioSchema = z.object({
   speechToTextModel: z.string().nullish(),
   textToSpeechVoice: z.string().nullish(),
-  textToSpeechModel: z.string().nullish()
+  textToSpeechModel: z.string().nullish(),
+  textToSpeechSpeed: z.number().min(0.25).max(4.0).nullish(),
+  textToSpeechFormat: z.string().nullish(),
+  textToSpeechInstructions: z.string().nullish()
 })
 
 export const GoogleCloudSchema = z.object({
