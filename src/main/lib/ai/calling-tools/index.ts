@@ -1,5 +1,3 @@
-import { calculator } from './calculator'
-import { date } from './date'
 import { deepResearch } from './deep-research'
 import { editFile } from './edit-file'
 import { findFiles } from './find-files'
@@ -19,8 +17,6 @@ import { webSearch } from './web-search'
 import { writeFile } from './write-file'
 
 export {
-  calculator,
-  date,
   deepResearch,
   editFile,
   findFiles,
