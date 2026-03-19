@@ -10,14 +10,6 @@ export function subscribeQuickChatInput(
   window.electron.ipcRenderer.on('quick-chat-input', callback)
 }
 
-// ARCHIVED: MCP server restart IPC removed
-// export function restartServer() {
-//   return window.electron.ipcRenderer.invoke('restart-server')
-// }
-// export function subscribeSucceedToRestartServer(callback: () => void) {
-//   window.electron.ipcRenderer.on('succeed-to-restart-server', callback)
-// }
-
 export function checkFullScreen() {
   return window.electron.ipcRenderer.invoke('check-fullscreen')
 }
