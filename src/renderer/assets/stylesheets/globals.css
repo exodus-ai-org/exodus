@@ -148,7 +148,7 @@
     user-select: none;
   }
 
-  .no-draggable {
+  .no-drag {
     -webkit-app-region: no-drag;
     app-region: no-drag;
   }

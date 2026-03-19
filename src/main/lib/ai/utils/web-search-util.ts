@@ -151,7 +151,8 @@ export async function fetchWebSearch({
     const params: SearchCreateParams = {
       query,
       max_results: maxResults ?? 10,
-      max_tokens_per_page: 4096
+      max_tokens_per_page: 4096,
+      max_tokens: 40960
     }
     if (country) params.country = country
     if (languages && languages.length > 0) {

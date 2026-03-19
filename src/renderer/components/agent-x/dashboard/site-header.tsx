@@ -19,7 +19,7 @@ export function SiteHeader({ title }: SiteHeaderProps) {
       )}
     >
       <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
-        <SidebarTrigger className="no-draggable -ml-1" />
+        <SidebarTrigger className="no-drag -ml-1" />
         <Separator
           orientation="vertical"
           className="mx-2 h-4 data-vertical:self-auto"

@@ -82,8 +82,6 @@ function CallingTools({ toolResult }: { toolResult: ChatToolResultMessage }) {
       {toolName === 'deepResearch' && <DeepResearchCard toolResult={output} />}
       {toolName === 'terminal' && <TerminalCard toolResult={output} />}
       {(toolName === 'imageGeneration' ||
-        toolName === 'date' ||
-        toolName === 'calculator' ||
         toolName === 'readFile' ||
         toolName === 'writeFile' ||
         toolName === 'listDirectory' ||

@@ -26,8 +26,8 @@ function ContentHeader() {
         open ? 'pl-1' : isFullscreen ? 'pl-4' : 'pl-21'
       )}
     >
-      <SidebarTrigger className="no-draggable text-muted-foreground hover:text-foreground" />
-      <div className="no-draggable flex min-w-0 flex-1 self-stretch">
+      <SidebarTrigger className="no-drag text-muted-foreground hover:text-foreground" />
+      <div className="no-drag flex min-w-0 flex-1 self-stretch">
         <ChatTabs />
       </div>
     </header>

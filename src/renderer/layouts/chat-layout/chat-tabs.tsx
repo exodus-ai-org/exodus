@@ -27,7 +27,7 @@ export function ChatTabs() {
   }
 
   return (
-    <div className="no-draggable flex w-full items-stretch overflow-x-auto pl-2">
+    <div className="no-drag flex w-full items-stretch overflow-x-auto pl-2">
       {tabs.map((tab) => (
         <Link
           key={tab.id}

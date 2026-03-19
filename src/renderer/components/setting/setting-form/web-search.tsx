@@ -266,7 +266,7 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
           name="webSearch.urlToMarkdownProvider"
           render={({ field, fieldState }) => (
             <SettingRow
-              label="URL to Markdown"
+              label="Web Fetch"
               description="Used by the Web Fetch tool to convert pages to Markdown."
               error={fieldState.error}
             >
