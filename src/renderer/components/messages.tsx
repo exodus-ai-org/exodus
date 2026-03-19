@@ -8,7 +8,7 @@ import type {
   TextContent
 } from '@shared/types/chat'
 import type { WebSearchResult } from '@shared/types/web-search'
-import { ChevronDownIcon, WrenchIcon } from 'lucide-react'
+import { ChevronDownIcon } from 'lucide-react'
 import { Fragment, memo, useCallback, useEffect, useRef, useState } from 'react'
 import Zoom from 'react-medium-image-zoom'
 import Markdown from './markdown'
@@ -171,6 +171,10 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
                             <MessageAction
                               regenerate={regenerate}
                               content={block.text}
+                              webSearchResults={findWebSearchResults(
+                                messages,
+                                messageIdx
+                              )}
                             />
                           </section>
                         )
@@ -183,15 +187,16 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
                             className="mb-4"
                             text={`Calling tool: ${block.name}`}
                           />
-                        ) : (
-                          <p
-                            key={key}
-                            className="text-muted-foreground flex items-center gap-1.5 text-sm"
-                          >
-                            <WrenchIcon size={14} />
-                            Used tool: {block.name}
-                          </p>
-                        )
+                        ) : null
+                        //(
+                        //   <p
+                        //     key={key}
+                        //     className="text-muted-foreground flex items-center gap-1.5 text-sm"
+                        //   >
+                        //     <WrenchIcon size={14} />
+                        //     Used tool: {block.name}
+                        //   </p>
+                        // )
                       }
 
                       return <Fragment key={key} />

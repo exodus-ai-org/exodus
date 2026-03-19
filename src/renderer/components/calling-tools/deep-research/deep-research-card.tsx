@@ -21,14 +21,14 @@ import { sileo } from 'sileo'
 import useSWR from 'swr'
 
 /**
- * Convert inline 【N†source】 markers to superscript [N] and append a
+ * Convert inline 【N-source】 markers to superscript [N] and append a
  * numbered References section — suitable for PDF rendering.
  */
 function prepareMarkdownForPdf(
   markdown: string,
   webSources: WebSearchResult[]
 ): string {
-  const citationRegex = /【([\d,\s]+)†source】/g
+  const citationRegex = /【([\d,\s]+)-source】/g
 
   // Collect citation ranks in order of first appearance (deduplicated)
   const seenRanks = new Set<number>()
@@ -102,7 +102,6 @@ export function DeepResearchCard({
         deepResearchResult.finalReport,
         deepResearchResult.webSources ?? []
       )
-      // TODO: generate a title to final report as the filename of PDF
       const blob = await markdownToPdf(pdfMarkdown)
       downloadFile(blob, `${deepResearchResult.id}.pdf`)
     } catch (e) {

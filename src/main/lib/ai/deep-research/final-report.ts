@@ -22,13 +22,13 @@ export async function writeFinalReport(
   const learningsString = learnings
     .map(({ learning, citations, image }) => {
       const imageMarkdown = image ? `\n![](${image})` : ''
-      return `<learning>\n【${citations.join(',')}†source】 ${learning}${imageMarkdown}\n</learning>`
+      return `<learning>\n【${citations.join(',')}-source】 ${learning}${imageMarkdown}\n</learning>`
     })
     .join('\n')
 
   const userPrompt =
     'Given the following prompt from the user, write a final report on the topic using the learnings from research. ' +
-    'Cite every factual claim using the format 【#†source】 (single) or 【#,#†source】 (multiple) — ' +
+    'Cite every factual claim using the format 【#-source】 (single) or 【#,#-source】 (multiple) — ' +
     'place the citation immediately after the sentence it supports, not at the end of the paragraph. ' +
     'Never write raw URLs. ' +
     'When a learning includes an image URL, embed it in the report near the content it illustrates using markdown: ![description](url). ' +

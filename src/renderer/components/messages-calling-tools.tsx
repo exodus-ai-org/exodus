@@ -7,7 +7,6 @@ import { GoogleMapsPlacesCard } from './calling-tools/google-maps-places/places-
 import { GoogleMapsCard } from './calling-tools/google-maps-routing/routing-card'
 import { TerminalCard } from './calling-tools/terminal/terminal-card'
 import { WeatherCard } from './calling-tools/weather/weather-card'
-import { WebSearchCard } from './calling-tools/web-search/web-search-card'
 
 function CallingTools({ toolResult }: { toolResult: ChatToolResultMessage }) {
   const toolName = toolResult.toolName
@@ -78,10 +77,10 @@ function CallingTools({ toolResult }: { toolResult: ChatToolResultMessage }) {
         <GoogleMapsPlacesCard toolResult={output} />
       )}
       {toolName === 'weather' && <WeatherCard toolResult={output} />}
-      {toolName === 'webSearch' && <WebSearchCard toolResult={output} />}
       {toolName === 'deepResearch' && <DeepResearchCard toolResult={output} />}
       {toolName === 'terminal' && <TerminalCard toolResult={output} />}
-      {(toolName === 'imageGeneration' ||
+      {(toolName === 'webSearch' ||
+        toolName === 'imageGeneration' ||
         toolName === 'date' ||
         toolName === 'calculator' ||
         toolName === 'readFile' ||

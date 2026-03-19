@@ -14,6 +14,7 @@ import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 import { useTheme } from './theme-provider'
+import { Badge } from './ui/badge'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card'
 
 const themes = {
@@ -21,8 +22,8 @@ const themes = {
   dark: { codeTheme: atomOneDark }
 }
 
-// Matches 【1†source】 or 【1,2†source】
-const citationGlobalRegex = /【([\d,\s]+)†source】/g
+// Matches 【1-source】 or 【1,2-source】
+const citationGlobalRegex = /【([\d,\s]+)-source】/g
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function parseCitations(text: string): number[] | null {
@@ -34,13 +35,7 @@ export function parseCitations(text: string): number[] | null {
     .sort((a, b) => a - b)
 }
 
-function CitationChip({
-  num,
-  source
-}: {
-  num: number
-  source: WebSearchResult
-}) {
+function CitationChip({ source }: { num: number; source: WebSearchResult }) {
   let origin = ''
   try {
     origin = new URL(source.link).origin
@@ -53,15 +48,15 @@ function CitationChip({
   return (
     <HoverCard>
       <HoverCardTrigger>
-        <a
-          href={source.link}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="bg-muted hover:bg-accent mx-0.5 inline-flex cursor-pointer items-center gap-1 rounded-full border px-1.5 py-0.5 align-middle text-xs font-medium no-underline transition-colors"
+        <Badge
+          variant="secondary"
+          className="ml-1 max-w-22 cursor-pointer align-middle text-[10px] no-underline"
+          render={
+            <a href={source.link} target="_blank" rel="noopener noreferrer" />
+          }
         >
-          <img src={favicon} className="size-3 rounded-sm" alt="" />
-          <span className="text-muted-foreground">{num}</span>
-        </a>
+          <span className="truncate">{source.title}</span>
+        </Badge>
       </HoverCardTrigger>
       <HoverCardContent
         align="start"
@@ -102,7 +97,7 @@ function inlineReplaceCitations(
 ): ReactNode[] {
   const nodes: ReactNode[] = []
   let lastIndex = 0
-  const regex = /【([\d,\s]+)†source】/g
+  const regex = /【([\d,\s]+)-source】/g
 
   for (const match of text.matchAll(regex)) {
     if (match.index! > lastIndex) {
@@ -143,14 +138,14 @@ function TextWithCitations({
   if (!webSearchResults) return <>{children}</>
 
   if (typeof children === 'string') {
-    if (!/【[\d,\s]+†source】/.test(children)) return <>{children}</>
+    if (!/【[\d,\s]+-source】/.test(children)) return <>{children}</>
     return <>{inlineReplaceCitations(children, webSearchResults)}</>
   }
 
   if (Array.isArray(children)) {
     const processed = children.map((child, i) => {
       if (typeof child === 'string') {
-        const hasCitation = /【[\d,\s]+†source】/.test(child)
+        const hasCitation = /【[\d,\s]+-source】/.test(child)
         if (!hasCitation) return child
         return (
           <Fragment key={i}>

@@ -12,7 +12,7 @@ export const webSearch = (
 ): AgentTool<typeof webSearchSchema> => ({
   name: 'webSearch',
   label: 'Web Search',
-  description: `Search the web for up-to-date information. Results are numbered [1],[2],… — you MUST cite every factual sentence in your reply using 【N†source】 markers. Suffix a specific date to the query if needed. Today is ${new Date().toISOString()}`,
+  description: `Search the web for up-to-date information. Results are numbered [1],[2],… — you MUST cite every factual sentence in your reply using 【N-source】 markers. Suffix a specific date to the query if needed. Today is ${new Date().toISOString()}`,
   parameters: webSearchSchema,
   execute: async (_toolCallId, { query }) => {
     if (!setting?.webSearch?.perplexityApiKey) {
@@ -44,9 +44,9 @@ export const webSearch = (
     }
 
     // Format results as structured text so the LLM knows each source's citation index.
-    // IMPORTANT: you MUST cite every factual sentence using 【N†source】 where N is the source number below.
+    // IMPORTANT: you MUST cite every factual sentence using 【N-source】 where N is the source number below.
     const formatted =
-      `IMPORTANT: cite every factual sentence with 【N†source】 where N is the source number.\n\n` +
+      `IMPORTANT: cite every factual sentence with 【N-source】 where N is the source number.\n\n` +
       details
         .map((r) => `[${r.rank}] ${r.title}\nURL: ${r.link}\n${r.content}`)
         .join('\n\n---\n\n')
