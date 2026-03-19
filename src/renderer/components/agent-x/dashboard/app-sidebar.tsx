@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils'
 import {
   ArrowLeftIcon,
   BotIcon,
+  CoinsIcon,
   LayoutDashboardIcon,
   ListChecksIcon,
   NetworkIcon
@@ -31,9 +32,14 @@ const navMainItems = [
     icon: <NetworkIcon />
   },
   {
-    title: 'Tasks',
-    page: 'tasks',
+    title: 'Task Histories',
+    page: 'archive',
     icon: <ListChecksIcon />
+  },
+  {
+    title: 'Cost Analysis',
+    page: 'costs',
+    icon: <CoinsIcon />
   }
 ]
 

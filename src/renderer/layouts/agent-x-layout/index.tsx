@@ -7,12 +7,13 @@ import { cn } from '@/lib/utils'
 import { ArrowLeftIcon } from 'lucide-react'
 import { useState } from 'react'
 
-export type AgentXPage = 'dashboard' | 'org-editor' | 'tasks'
+export type AgentXPage = 'dashboard' | 'org-editor' | 'archive' | 'costs'
 
 const pageTitles: Record<AgentXPage, string> = {
   dashboard: 'Dashboard',
   'org-editor': 'Org Editor',
-  tasks: 'Tasks'
+  archive: 'Task Histories',
+  costs: 'Cost Analysis'
 }
 
 export function AgentXLayout() {
@@ -31,13 +32,13 @@ export function AgentXLayout() {
         >
           <button
             onClick={() => setActivePage('dashboard')}
-            className="no-draggable text-muted-foreground hover:text-foreground hover:bg-accent flex h-7 w-7 items-center justify-center rounded-md transition-colors"
+            className="no-drag text-muted-foreground hover:text-foreground hover:bg-accent flex h-7 w-7 items-center justify-center rounded-md transition-colors"
           >
             <ArrowLeftIcon className="h-4 w-4" />
           </button>
           <span className="text-sm font-medium">Org Editor</span>
         </header>
-        <main className="no-draggable bg-background flex min-h-0 flex-1 overflow-hidden">
+        <main className="no-drag bg-background flex min-h-0 flex-1 overflow-hidden">
           <AgentXContainer activePage={activePage} onNavigate={setActivePage} />
         </main>
       </div>
@@ -52,7 +53,7 @@ export function AgentXLayout() {
       />
       <SidebarInset>
         <SiteHeader title={pageTitles[activePage]} />
-        <div className="no-draggable @container/main flex min-h-0 flex-1 flex-col overflow-y-auto">
+        <div className="no-drag @container/main flex min-h-0 flex-1 flex-col overflow-y-auto">
           <AgentXContainer activePage={activePage} onNavigate={setActivePage} />
         </div>
       </SidebarInset>

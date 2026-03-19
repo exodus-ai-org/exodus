@@ -82,3 +82,12 @@ export interface AutoRouteResult {
   confidence: number
   reasoning: string
 }
+
+export interface AutoFillResult {
+  description: string
+  mode: 'once' | 'cron'
+  cronExpression: string | null
+  agentId: string | null
+  departmentId: string | null
+  priority: 'low' | 'medium' | 'high' | 'urgent'
+}

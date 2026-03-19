@@ -1,6 +1,6 @@
 {
-  "id": "abfa8c57-6639-4813-b10e-bf7e94734782",
-  "prevId": "a51f1e3b-6be8-41e7-b2a1-585f6244e300",
+  "id": "754f01c3-89a6-45de-87f1-7273bbeeec46",
+  "prevId": "abfa8c57-6639-4813-b10e-bf7e94734782",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -1298,6 +1298,18 @@
         "lastRunAt": {
           "name": "lastRunAt",
           "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "feedbackRating": {
+          "name": "feedbackRating",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "feedbackNote": {
+          "name": "feedbackNote",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },

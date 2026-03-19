@@ -63,7 +63,7 @@ function SheetContent({
             render={
               <Button
                 variant="ghost"
-                className="absolute top-3 right-3"
+                className="no-drag absolute top-3 right-3"
                 size="icon-sm"
               />
             }

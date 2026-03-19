@@ -1,10 +1,12 @@
 import { AgentConfigPanel } from '@/components/agent-x/agent-config-panel'
+import { CostAnalysis } from '@/components/agent-x/cost-analysis'
 import { ChartAreaInteractive } from '@/components/agent-x/dashboard/chart-area-interactive'
 import { SectionCards } from '@/components/agent-x/dashboard/section-cards'
 import { DepartmentConfigPanel } from '@/components/agent-x/department-config-panel'
 import { ExecutionTimeline } from '@/components/agent-x/execution-timeline'
 import { OrgGraph } from '@/components/agent-x/org-graph'
 import { TaskDispatchDialog } from '@/components/agent-x/task-dispatch-dialog'
+import { TaskKanban } from '@/components/agent-x/task-kanban'
 import { TaskList } from '@/components/agent-x/task-list'
 import { Button } from '@/components/ui/button'
 import type { AgentXPage } from '@/layouts/agent-x-layout'
@@ -30,7 +32,7 @@ import { BASE_URL } from '@shared/constants/systems'
 import type { AgentXSseEvent } from '@shared/types/agent-x'
 import { ReactFlowProvider } from '@xyflow/react'
 import { useAtom } from 'jotai'
-import { BotIcon, Building2Icon, SendIcon } from 'lucide-react'
+import { Plus, SendIcon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 interface AgentXContainerProps {
@@ -338,11 +340,11 @@ export function AgentXContainer({ activePage }: AgentXContainerProps) {
               size="sm"
               onClick={handleCreateDepartment}
             >
-              <Building2Icon className="mr-1 h-3.5 w-3.5" />
+              <Plus className="mr-1 h-3.5 w-3.5" />
               Department
             </Button>
             <Button variant="outline" size="sm" onClick={handleCreateAgent}>
-              <BotIcon className="mr-1 h-3.5 w-3.5" />
+              <Plus className="mr-1 h-3.5 w-3.5" />
               Agent
             </Button>
             <div className="flex-1" />
@@ -413,24 +415,22 @@ export function AgentXContainer({ activePage }: AgentXContainerProps) {
         </div>
       )}
 
-      {activePage === 'tasks' && (
-        <div className="flex flex-1 flex-col gap-4 p-4 lg:p-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">All Tasks</h2>
-            <Button size="sm" onClick={() => setDispatchOpen(true)}>
-              <SendIcon className="mr-1 h-3.5 w-3.5" />
-              Dispatch Task
-            </Button>
-          </div>
-          <TaskList
+      {activePage === 'archive' && (
+        <div className="flex min-h-0 flex-1 flex-col gap-4 p-4 lg:p-6">
+          <TaskKanban
             tasks={tasks}
             agents={agents}
-            events={events}
             onSelectTask={setSelectedTaskId}
-            expanded
+            onTaskUpdate={(updated) =>
+              setTasks((prev) =>
+                prev.map((t) => (t.id === updated.id ? updated : t))
+              )
+            }
           />
         </div>
       )}
+
+      {activePage === 'costs' && <CostAnalysis />}
 
       {/* Dialogs (always mounted) */}
       <TaskDispatchDialog

@@ -1,5 +1,5 @@
 import type { AgentData, DepartmentData, TaskData } from '@/stores/agent-x'
-import type { AutoRouteResult } from '@shared/types/agent-x'
+import type { AutoFillResult, AutoRouteResult } from '@shared/types/agent-x'
 import { fetcher } from '@shared/utils/http'
 
 const BASE = '/api/agent-x'
@@ -74,6 +74,18 @@ export const updateTaskApi = (id: string, data: Record<string, unknown>) =>
     body: data as never
   })
 
+export const submitTaskFeedback = (
+  id: string,
+  feedback: { rating: 'positive' | 'negative'; note?: string }
+) =>
+  fetcher<TaskData>(`${BASE}/tasks/${id}`, {
+    method: 'PUT',
+    body: {
+      feedbackRating: feedback.rating,
+      feedbackNote: feedback.note ?? null
+    } as never
+  })
+
 export const respondToEscalation = (taskId: string, response: string) =>
   fetcher<{ success: boolean }>(`${BASE}/tasks/${taskId}/respond`, {
     method: 'POST',
@@ -95,6 +107,12 @@ export const autoRoute = (description: string) =>
   fetcher<AutoRouteResult | null>(`${BASE}/auto-route`, {
     method: 'POST',
     body: { description } as never
+  })
+
+export const autoFill = (title: string) =>
+  fetcher<AutoFillResult | null>(`${BASE}/auto-fill`, {
+    method: 'POST',
+    body: { title } as never
   })
 
 // ─── Positions ──────────────────────────────────────────────────────────────
