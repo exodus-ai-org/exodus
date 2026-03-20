@@ -21,6 +21,12 @@ export const runMigrate = async () => {
             'drizzle'
           )
     })
+
+    // Idempotent column additions for columns that may have been missed by the migrator
+    await pglite.exec(
+      `ALTER TABLE "task" ADD COLUMN IF NOT EXISTS "lastRunStatus" varchar;`
+    )
+
     const end = performance.now()
     console.log('✅ Migrations completed in', end - start, 'ms')
   } catch (error) {

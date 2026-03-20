@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, isNotNull } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, isNotNull, isNull } from 'drizzle-orm'
 import { db } from './db'
 import {
   agent,
@@ -121,7 +121,20 @@ export async function createAgentMemory(data: typeof agentMemory.$inferInsert) {
 // ─── Task CRUD ──────────────────────────────────────────────────────────────
 
 export async function getAllTasks() {
-  return db.select().from(task).orderBy(desc(task.createdAt))
+  // Only return top-level tasks (no parentTaskId) — child tasks (cron instances, delegated sub-tasks) are excluded
+  return db
+    .select()
+    .from(task)
+    .where(isNull(task.parentTaskId))
+    .orderBy(desc(task.createdAt))
+}
+
+export async function getChildTasksByParentId(parentTaskId: string) {
+  return db
+    .select()
+    .from(task)
+    .where(eq(task.parentTaskId, parentTaskId))
+    .orderBy(desc(task.createdAt))
 }
 
 /** All cron (recurring) tasks that are not cancelled */
@@ -206,6 +219,14 @@ export async function getEventsByExecutionId(executionId: string) {
     .from(taskExecutionEvent)
     .where(eq(taskExecutionEvent.executionId, executionId))
     .orderBy(asc(taskExecutionEvent.createdAt))
+}
+
+/** One-time cleanup: tasks stuck in waiting_for_user → failed */
+export async function cleanupStaleWaitingTasks() {
+  await db
+    .update(task)
+    .set({ status: 'failed', updatedAt: new Date() })
+    .where(eq(task.status, 'waiting_for_user'))
 }
 
 // ─── Batch Position Updates ─────────────────────────────────────────────────

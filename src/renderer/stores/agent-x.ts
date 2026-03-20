@@ -46,6 +46,7 @@ export interface TaskData {
   output: Record<string, unknown> | null
   cronExpression: string | null
   lastRunAt: string | null
+  lastRunStatus: 'completed' | 'failed' | null
   feedbackRating: 'positive' | 'negative' | null
   feedbackNote: string | null
   createdAt: string

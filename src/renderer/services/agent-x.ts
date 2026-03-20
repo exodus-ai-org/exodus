@@ -57,6 +57,11 @@ export const getTasks = () => fetcher<TaskData[]>(`${BASE}/tasks`)
 export const getTask = (id: string) =>
   fetcher<TaskData & { executions: unknown[] }>(`${BASE}/tasks/${id}`)
 
+export const getChildTasks = (id: string) =>
+  fetcher<Array<TaskData & { executionCount: number; totalTokens: number }>>(
+    `${BASE}/tasks/${id}/children`
+  )
+
 export const createTaskApi = (data: {
   title: string
   description?: string
@@ -72,6 +77,28 @@ export const updateTaskApi = (id: string, data: Record<string, unknown>) =>
   fetcher<TaskData>(`${BASE}/tasks/${id}`, {
     method: 'PUT',
     body: data as never
+  })
+
+export const restoreTaskApi = (id: string) =>
+  fetcher<TaskData>(`${BASE}/tasks/${id}`, {
+    method: 'PUT',
+    body: { _action: 'restore' } as never
+  })
+
+export const editTaskApi = (
+  id: string,
+  data: {
+    title?: string
+    description?: string
+    priority?: string
+    assignedAgentId?: string | null
+    assignedDepartmentId?: string | null
+    cronExpression?: string | null
+  }
+) =>
+  fetcher<TaskData>(`${BASE}/tasks/${id}`, {
+    method: 'PUT',
+    body: { ...data, _action: 'edit' } as never
   })
 
 export const submitTaskFeedback = (

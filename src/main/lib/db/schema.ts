@@ -266,6 +266,7 @@ export const task = pgTable('task', {
   // Scheduled task support
   cronExpression: text('cronExpression'), // null = one-time; cron string = recurring template
   lastRunAt: timestamp('lastRunAt'),
+  lastRunStatus: varchar('lastRunStatus').$type<'completed' | 'failed'>(),
   // Post-completion feedback / review
   feedbackRating: varchar('feedbackRating').$type<
     'positive' | 'negative' | null

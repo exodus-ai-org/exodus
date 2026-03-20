@@ -43,6 +43,13 @@
       "when": 1773904478985,
       "tag": "0005_moaning_gressill",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1742428800000,
+      "tag": "0006_cron_last_run_status",
+      "breakpoints": true
     }
   ]
 }

@@ -71,6 +71,12 @@ export function scheduleTask(taskId: string, cronExpression: string): boolean {
         true, // isCronChild
         globalEmit
       )
+
+      // Update template's lastRunStatus based on how the child finished
+      const finishedChild = await getTaskById(childTask.id)
+      const lastRunStatus =
+        finishedChild?.status === 'completed' ? 'completed' : 'failed'
+      await updateTask(taskId, { lastRunStatus })
     } catch (err) {
       console.error(`[Scheduler] Cron task ${taskId} execution error:`, err)
     }

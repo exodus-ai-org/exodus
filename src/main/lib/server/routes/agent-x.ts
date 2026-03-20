@@ -4,10 +4,7 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 import { autoFillTask } from '../../ai/agent-x/auto-fill'
 import { autoRouteTask } from '../../ai/agent-x/auto-router'
-import {
-  executeTask,
-  resolveEscalation
-} from '../../ai/agent-x/execution-engine'
+import { executeTask } from '../../ai/agent-x/execution-engine'
 import { scheduleTask, unscheduleTask } from '../../ai/agent-x/scheduler'
 import { smartDispatch } from '../../ai/agent-x/smart-dispatch'
 import { listInstalledSkills } from '../../ai/skills/skills-manager'
@@ -22,6 +19,7 @@ import {
   getAllAgents,
   getAllDepartments,
   getAllTasks,
+  getChildTasksByParentId,
   getEventsByExecutionId,
   getExecutionsByTaskId,
   getTaskById,
@@ -244,6 +242,37 @@ agentX.get('/tasks/:id', async (c) => {
   })
 })
 
+agentX.get('/tasks/:id/children', async (c) => {
+  const id = getRequiredParam(c, 'id', 'agent_x')
+  const children = await getChildTasksByParentId(id)
+
+  const childrenWithExecutions = await Promise.all(
+    children.map(async (child) => {
+      const executions = await getExecutionsByTaskId(child.id)
+      const totalTokens = executions.reduce(
+        (sum, e) =>
+          sum +
+          ((
+            e.tokenUsage as {
+              inputTokens?: number
+              outputTokens?: number
+            } | null
+          )?.inputTokens ?? 0) +
+          ((
+            e.tokenUsage as {
+              inputTokens?: number
+              outputTokens?: number
+            } | null
+          )?.outputTokens ?? 0),
+        0
+      )
+      return { ...child, executionCount: executions.length, totalTokens }
+    })
+  )
+
+  return successResponse(c, childrenWithExecutions)
+})
+
 agentX.post('/tasks', async (c) => {
   const data = validateSchema(
     taskSchema,
@@ -309,6 +338,67 @@ agentX.put('/tasks/:id', async (c) => {
     return successResponse(c, result)
   }
 
+  // Handle restore (cancelled → pending, re-dispatch)
+  if (body._action === 'restore') {
+    const taskRecord = await handleDatabaseOperation(
+      () => getTaskById(id),
+      'Failed to get task'
+    )
+    if (!taskRecord)
+      throw new ChatSDKError('not_found:agent_x', 'Task not found')
+
+    const result = await handleDatabaseOperation(
+      () => updateTask(id, { status: 'pending', retryCount: 0 }),
+      'Failed to restore task'
+    )
+    emitToTask(id, {
+      type: 'task_status',
+      taskId: id,
+      status: 'pending' as never
+    })
+
+    if (taskRecord.cronExpression) {
+      // Cron task: re-register with scheduler and let it fire at next scheduled time
+      scheduleTask(id, taskRecord.cronExpression)
+    } else {
+      // One-time task: re-dispatch immediately
+      smartDispatch(
+        id,
+        taskRecord.title,
+        taskRecord.description ?? null,
+        taskRecord.priority,
+        taskRecord.assignedAgentId ?? null,
+        false,
+        (event) => emitToTask(id, event)
+      ).catch((err) => console.error('Restore dispatch error:', err))
+    }
+
+    return successResponse(c, result)
+  }
+
+  // Handle general edit (title, description, priority, cronExpression, agent/dept)
+  if (body._action === 'edit') {
+    const updateData: Record<string, unknown> = {}
+    if (body.title !== undefined) updateData.title = body.title
+    if (body.description !== undefined)
+      updateData.description = body.description
+    if (body.priority !== undefined) updateData.priority = body.priority
+    if ('assignedAgentId' in body)
+      updateData.assignedAgentId = body.assignedAgentId
+    if ('assignedDepartmentId' in body)
+      updateData.assignedDepartmentId = body.assignedDepartmentId
+    if ('cronExpression' in body) {
+      unscheduleTask(id)
+      updateData.cronExpression = body.cronExpression
+      if (body.cronExpression) scheduleTask(id, body.cronExpression)
+    }
+    const result = await handleDatabaseOperation(
+      () => updateTask(id, updateData as Parameters<typeof updateTask>[1]),
+      'Failed to update task'
+    )
+    return successResponse(c, result)
+  }
+
   // Handle reassign
   if (body.assignedAgentId) {
     const agentRecord = await getAgentById(body.assignedAgentId)
@@ -336,29 +426,6 @@ agentX.put('/tasks/:id', async (c) => {
   }
 
   return successResponse(c, { id })
-})
-
-// User responds to escalation
-agentX.post('/tasks/:id/respond', async (c) => {
-  const id = getRequiredParam(c, 'id', 'agent_x')
-  const { response } = (await c.req.json()) as { response: string }
-
-  if (!response) {
-    throw new ChatSDKError('bad_request:agent_x', 'Response is required')
-  }
-
-  // Resume the agent by resolving the escalation promise
-  resolveEscalation(id, response)
-
-  // Update task status back to running
-  await updateTask(id, { status: 'running' })
-  emitToTask(id, {
-    type: 'task_status',
-    taskId: id,
-    status: 'running' as never
-  })
-
-  return successResponse(c, { success: true })
 })
 
 // ─── Auto-Route ─────────────────────────────────────────────────────────────
