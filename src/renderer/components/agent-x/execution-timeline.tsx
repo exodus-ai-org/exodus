@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button'
 import { getTask } from '@/services/agent-x'
 import type { AgentXSseEvent } from '@shared/types/agent-x'
 import {
@@ -148,12 +149,9 @@ export function ExecutionTimeline({
             </p>
           )}
         </div>
-        <button
-          onClick={onClose}
-          className="text-muted-foreground hover:text-foreground"
-        >
+        <Button variant="ghost" size="icon-sm" onClick={onClose}>
           <XIcon className="h-4 w-4" />
-        </button>
+        </Button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4">

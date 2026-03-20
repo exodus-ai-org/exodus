@@ -126,18 +126,23 @@ function ServerCard({
           <Trash2Icon className="h-3.5 w-3.5" />
         </Button>
       </div>
-
+      {server.description && (
+        <p className="text-muted-foreground p-3 pt-0 text-xs">
+          {server.description}
+        </p>
+      )}
       {tools.length > 0 && (
         <>
-          <button
-            className="text-muted-foreground hover:bg-accent/50 flex w-full items-center gap-1 border-t px-3 py-1.5 text-xs transition-colors"
+          <Button
+            variant="ghost"
+            className="text-muted-foreground flex w-full items-center justify-start gap-1 rounded-none border-t px-3 py-1.5 text-xs"
             onClick={() => setExpanded(!expanded)}
           >
             <ChevronDownIcon
               className={`h-3 w-3 transition-transform ${expanded ? '' : '-rotate-90'}`}
             />
             {expanded ? 'Hide tools' : 'Show tools'}
-          </button>
+          </Button>
           {expanded && (
             <div className="flex flex-col gap-1 px-3 pb-2">
               {tools.map((tool) => (

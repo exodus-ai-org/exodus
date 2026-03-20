@@ -123,7 +123,7 @@ function SourcesSheet({
         'bg-background fixed top-0 right-0 z-50 flex h-svh w-100 flex-col border-l shadow-lg'
       )}
     >
-      <div className="flex h-14 shrink-0 items-center justify-between border-b px-4">
+      <div className="flex h-16 shrink-0 items-center justify-between border-b px-4">
         <h2 className="text-sm font-semibold">
           {webSearchResults.length} Sources
         </h2>
@@ -231,30 +231,30 @@ export function MessageAction({
 
   return (
     <>
-      <div className="flex items-center gap-0.5">
+      <div className="mt-2 flex items-center gap-1">
         <MessageActionItem tooltipContent="Copy">
           <IconWrapper onClick={() => handleCopy(content)}>
             {copied !== content ? (
-              <CopyIcon size={14} strokeWidth={2.5} />
+              <CopyIcon size={16} />
             ) : (
-              <CheckIcon size={14} strokeWidth={2.5} />
+              <CheckIcon size={16} />
             )}
           </IconWrapper>
         </MessageActionItem>
         <MessageActionItem tooltipContent="Good response">
           <IconWrapper onClick={() => {}}>
-            <ThumbsUpIcon size={14} strokeWidth={2.5} />
+            <ThumbsUpIcon size={16} />
           </IconWrapper>
         </MessageActionItem>
         <MessageActionItem tooltipContent="Bad response">
           <IconWrapper onClick={() => {}}>
-            <ThumbsDownIcon size={14} strokeWidth={2.5} />
+            <ThumbsDownIcon size={16} />
           </IconWrapper>
         </MessageActionItem>
         <AudioPlayer content={content} />
         <MessageActionItem tooltipContent="Switch model">
           <IconWrapper onClick={regenerate}>
-            <RefreshCcwIcon size={14} strokeWidth={2.5} />
+            <RefreshCcwIcon size={16} />
           </IconWrapper>
         </MessageActionItem>
         {webSearchResults && webSearchResults.length > 0 && (

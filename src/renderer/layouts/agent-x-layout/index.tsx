@@ -1,5 +1,6 @@
 import { AppSidebar } from '@/components/agent-x/dashboard/app-sidebar'
 import { SiteHeader } from '@/components/agent-x/dashboard/site-header'
+import { Button } from '@/components/ui/button'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { AgentXContainer } from '@/containers/agent-x'
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
@@ -30,12 +31,14 @@ export function AgentXLayout() {
             isFullscreen ? 'pl-4' : 'pl-21'
           )}
         >
-          <button
+          <Button
+            variant="ghost"
+            size="icon-sm"
             onClick={() => setActivePage('dashboard')}
-            className="no-drag text-muted-foreground hover:text-foreground hover:bg-accent flex h-7 w-7 items-center justify-center rounded-md transition-colors"
+            className="no-drag"
           >
             <ArrowLeftIcon className="h-4 w-4" />
-          </button>
+          </Button>
           <span className="text-sm font-medium">Org Editor</span>
         </header>
         <main className="no-drag bg-background flex min-h-0 flex-1 overflow-hidden">

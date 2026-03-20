@@ -17,7 +17,8 @@ import {
   SheetTitle
 } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
-import { autoFill, createTaskApi } from '@/services/agent-x'
+import { cn } from '@/lib/utils'
+import { autoFill, createTaskApi, editTaskApi } from '@/services/agent-x'
 import {
   type AgentData,
   type DepartmentData,
@@ -31,7 +32,7 @@ import {
   SparklesIcon,
   ZapIcon
 } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 
 // ─── Cron presets ────────────────────────────────────────────────────────────
 
@@ -48,12 +49,21 @@ interface TaskDispatchDialogProps {
   departments: DepartmentData[]
   agents: AgentData[]
   onTaskCreated: (task: TaskData) => void
+  // Edit mode
+  editTask?: TaskData | null
+  editOpen?: boolean
+  onEditClose?: () => void
+  onTaskUpdated?: (task: TaskData) => void
 }
 
 export function TaskDispatchDialog({
   departments,
   agents,
-  onTaskCreated
+  onTaskCreated,
+  editTask,
+  editOpen,
+  onEditClose,
+  onTaskUpdated
 }: TaskDispatchDialogProps) {
   const [open, setOpen] = useAtom(isTaskDispatchDialogOpenAtom)
   const [title, setTitle] = useState('')
@@ -68,12 +78,51 @@ export function TaskDispatchDialog({
   const [cronPreset, setCronPreset] = useState<string>('')
   const [cronCustom, setCronCustom] = useState('')
 
+  // ─── Populate fields when editing ────────────────────────────────────────
+  useEffect(() => {
+    if (!editTask || !editOpen) return
+    setTitle(editTask.title ?? '')
+    setDescription(editTask.description ?? '')
+    setSelectedAgentId(editTask.assignedAgentId ?? '')
+    setPriority(editTask.priority ?? 'medium')
+
+    if (editTask.cronExpression) {
+      setMode('cron')
+      const preset = CRON_PRESETS.find(
+        (p) => p.value === editTask.cronExpression
+      )
+      if (preset) {
+        setCronPreset(preset.value)
+        setCronCustom('')
+      } else {
+        setCronPreset('custom')
+        setCronCustom(editTask.cronExpression)
+      }
+    } else {
+      setMode('once')
+      setCronPreset('')
+      setCronCustom('')
+    }
+  }, [editTask, editOpen])
+
+  const isEditMode = !!editTask && !!editOpen
+
   const cronExpression =
     mode === 'cron'
       ? cronPreset === 'custom'
         ? cronCustom.trim()
         : cronPreset
       : null
+
+  const resetForm = useCallback(() => {
+    setTitle('')
+    setDescription('')
+    setSelectedAgentId('')
+    setPriority('medium')
+    setMode('once')
+    setCronPreset('')
+    setCronCustom('')
+  }, [])
 
   const handleAutoFill = useCallback(async () => {
     if (!title.trim()) return
@@ -108,26 +157,33 @@ export function TaskDispatchDialog({
     setSubmitting(true)
     try {
       const agentRecord = agents.find((a) => a.id === selectedAgentId)
-      const task = await createTaskApi({
-        title,
-        description,
-        priority,
-        assignedAgentId: selectedAgentId || null,
-        assignedDepartmentId: agentRecord?.departmentId ?? null,
-        cronExpression: cronExpression || null
-      })
-      onTaskCreated(task)
-      // Reset
-      setTitle('')
-      setDescription('')
-      setSelectedAgentId('')
-      setPriority('medium')
-      setMode('once')
-      setCronPreset('')
-      setCronCustom('')
-      setOpen(false)
+
+      if (isEditMode && editTask) {
+        const updated = await editTaskApi(editTask.id, {
+          title,
+          description,
+          priority,
+          assignedAgentId: selectedAgentId || null,
+          assignedDepartmentId: agentRecord?.departmentId ?? null,
+          cronExpression: cronExpression || null
+        })
+        onTaskUpdated?.(updated)
+        onEditClose?.()
+      } else {
+        const task = await createTaskApi({
+          title,
+          description,
+          priority,
+          assignedAgentId: selectedAgentId || null,
+          assignedDepartmentId: agentRecord?.departmentId ?? null,
+          cronExpression: cronExpression || null
+        })
+        onTaskCreated(task)
+        resetForm()
+        setOpen(false)
+      }
     } catch (err) {
-      console.error('Failed to create task:', err)
+      console.error('Failed to submit task:', err)
     } finally {
       setSubmitting(false)
     }
@@ -138,18 +194,36 @@ export function TaskDispatchDialog({
     selectedAgentId,
     cronExpression,
     agents,
+    isEditMode,
+    editTask,
     onTaskCreated,
+    onTaskUpdated,
+    onEditClose,
+    resetForm,
     setOpen
   ])
 
+  const handleOpenChange = useCallback(
+    (next: boolean) => {
+      if (isEditMode) {
+        if (!next) onEditClose?.()
+      } else {
+        setOpen(next)
+        if (!next) resetForm()
+      }
+    },
+    [isEditMode, onEditClose, setOpen, resetForm]
+  )
+
   const activeAgents = agents.filter((a) => a.isActive && !a.isShadow)
   const canSubmit = title.trim() && (mode === 'once' || !!cronExpression)
+  const sheetOpen = isEditMode ? editOpen : open
 
   return (
-    <Sheet open={open} onOpenChange={setOpen}>
+    <Sheet open={sheetOpen} onOpenChange={handleOpenChange}>
       <SheetContent side="right" className="sm:max-w-lg">
         <SheetHeader>
-          <SheetTitle>Dispatch Task</SheetTitle>
+          <SheetTitle>{isEditMode ? 'Edit Task' : 'Dispatch Task'}</SheetTitle>
         </SheetHeader>
 
         <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-4">
@@ -164,20 +238,22 @@ export function TaskDispatchDialog({
                 placeholder="Summarise today's Japan portfolio performance"
                 className="flex-1"
               />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleAutoFill}
-                disabled={filling || !title.trim()}
-                className="shrink-0"
-              >
-                {filling ? (
-                  <Loader2Icon className="mr-1 h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <SparklesIcon className="mr-1 h-3.5 w-3.5" />
-                )}
-                Smart Fill
-              </Button>
+              {!isEditMode && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAutoFill}
+                  disabled={filling || !title.trim()}
+                  className="shrink-0"
+                >
+                  {filling ? (
+                    <Loader2Icon className="mr-1 h-3.5 w-3.5 animate-spin" />
+                  ) : (
+                    <SparklesIcon className="mr-1 h-3.5 w-3.5" />
+                  )}
+                  Smart Fill
+                </Button>
+              )}
             </div>
           </div>
 
@@ -197,30 +273,34 @@ export function TaskDispatchDialog({
           <div className="flex flex-col gap-1.5">
             <Label>Schedule</Label>
             <div className="flex gap-2">
-              <button
-                type="button"
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setMode('once')}
-                className={`flex flex-1 items-center justify-center gap-1.5 rounded-md border px-3 py-2 text-xs transition-colors ${
+                className={cn(
+                  'flex-1 gap-1.5 text-xs',
                   mode === 'once'
                     ? 'border-primary bg-primary/10 text-primary font-medium'
-                    : 'text-muted-foreground hover:bg-accent/50'
-                }`}
+                    : 'text-muted-foreground'
+                )}
               >
                 <ZapIcon className="h-3.5 w-3.5" />
                 One-time
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setMode('cron')}
-                className={`flex flex-1 items-center justify-center gap-1.5 rounded-md border px-3 py-2 text-xs transition-colors ${
+                className={cn(
+                  'flex-1 gap-1.5 text-xs',
                   mode === 'cron'
                     ? 'border-primary bg-primary/10 text-primary font-medium'
-                    : 'text-muted-foreground hover:bg-accent/50'
-                }`}
+                    : 'text-muted-foreground'
+                )}
               >
                 <CalendarClockIcon className="h-3.5 w-3.5" />
                 Scheduled
-              </button>
+              </Button>
             </div>
 
             {/* Cron config */}
@@ -272,8 +352,24 @@ export function TaskDispatchDialog({
               value={selectedAgentId}
               onValueChange={(v) => setSelectedAgentId(v ?? '')}
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Leave blank for smart dispatch…" />
+              <SelectTrigger className="w-full">
+                {selectedAgentId ? (
+                  <span className="min-w-0 flex-1 truncate text-left text-sm">
+                    {(() => {
+                      const ag = activeAgents.find(
+                        (a) => a.id === selectedAgentId
+                      )
+                      const dept = ag
+                        ? departments.find((d) => d.id === ag.departmentId)
+                        : null
+                      return ag
+                        ? ag.name + (dept ? ` (${dept.name})` : '')
+                        : selectedAgentId
+                    })()}
+                  </span>
+                ) : (
+                  <SelectValue placeholder="Leave blank for smart dispatch..." />
+                )}
               </SelectTrigger>
               <SelectContent className="w-full">
                 <SelectGroup>
@@ -296,7 +392,7 @@ export function TaskDispatchDialog({
           {/* Priority */}
           <div className="flex flex-col gap-1.5">
             <Label>Priority</Label>
-            {mode === 'once' && (
+            {mode === 'once' && !isEditMode && (
               <span className="text-muted-foreground text-xs font-normal">
                 High/Urgent creates a shadow agent if the target is busy
               </span>
@@ -321,14 +417,15 @@ export function TaskDispatchDialog({
         </div>
 
         <SheetFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>
-            Cancel
-          </Button>
           <Button onClick={handleSubmit} disabled={!canSubmit || submitting}>
             {submitting && (
               <Loader2Icon className="mr-1 h-3.5 w-3.5 animate-spin" />
             )}
-            {mode === 'cron' ? 'Schedule' : 'Dispatch'}
+            {isEditMode
+              ? 'Save Changes'
+              : mode === 'cron'
+                ? 'Schedule'
+                : 'Dispatch'}
           </Button>
         </SheetFooter>
       </SheetContent>

@@ -1,3 +1,20 @@
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog'
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger
+} from '@/components/ui/context-menu'
 import { cn } from '@/lib/utils'
 import {
   type AgentData,
@@ -26,14 +43,14 @@ import {
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
 import { useSetAtom } from 'jotai'
-import { BotIcon, Building2Icon } from 'lucide-react'
-import { memo, useCallback, useEffect, useState } from 'react'
+import { BotIcon, Building2Icon, CopyIcon, Trash2Icon } from 'lucide-react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
+import { BaseNode, BaseNodeHeader, BaseNodeHeaderTitle } from './ui/base-node'
 import {
-  BaseNode,
-  BaseNodeContent,
-  BaseNodeHeader,
-  BaseNodeHeaderTitle
-} from './ui/base-node'
+  NodeTooltip,
+  NodeTooltipContent,
+  NodeTooltipTrigger
+} from './ui/node-tooltip'
 import { ZoomSlider } from './ui/zoom-slider'
 
 // ─── Edge Styles ─────────────────────────────────────────────────────────────
@@ -77,20 +94,20 @@ interface DepartmentNodeData {
 const DepartmentNodeComponent = memo(
   ({ data }: NodeProps<Node<DepartmentNodeData>>) => {
     return (
-      <>
-        <BaseNode className="min-w-52">
-          <BaseNodeHeader>
-            <Building2Icon className="text-primary h-4 w-4 shrink-0" />
-            <BaseNodeHeaderTitle>{data.label}</BaseNodeHeaderTitle>
-          </BaseNodeHeader>
-          {data.description && (
-            <BaseNodeContent>
-              <p className="text-muted-foreground text-xs">
-                {data.description}
-              </p>
-            </BaseNodeContent>
-          )}
-        </BaseNode>
+      <NodeTooltip>
+        <NodeTooltipTrigger>
+          <BaseNode className="min-w-52">
+            <BaseNodeHeader>
+              <Building2Icon className="text-primary h-4 w-4 shrink-0" />
+              <BaseNodeHeaderTitle>{data.label}</BaseNodeHeaderTitle>
+            </BaseNodeHeader>
+          </BaseNode>
+        </NodeTooltipTrigger>
+        {data.description && (
+          <NodeTooltipContent position={Position.Bottom}>
+            <p className="max-w-56 text-xs">{data.description}</p>
+          </NodeTooltipContent>
+        )}
         {/* Source handle on the bottom — drag to an Agent to assign it */}
         <Handle
           type="source"
@@ -101,7 +118,7 @@ const DepartmentNodeComponent = memo(
             '!border-muted-foreground !bg-background'
           )}
         />
-      </>
+      </NodeTooltip>
     )
   }
 )
@@ -120,24 +137,24 @@ interface AgentNodeData {
 
 const AgentNodeComponent = memo(({ data }: NodeProps<Node<AgentNodeData>>) => {
   return (
-    <>
-      <BaseNode
-        className={cn('group min-w-44', !data.isActive && 'opacity-50')}
-      >
-        <BaseNodeHeader>
-          <BotIcon className="text-primary h-4 w-4 shrink-0" />
-          <BaseNodeHeaderTitle className="text-sm">
-            {data.label}
-          </BaseNodeHeaderTitle>
-        </BaseNodeHeader>
-        {data.description && (
-          <BaseNodeContent>
-            <p className="text-muted-foreground text-xs">{data.description}</p>
-          </BaseNodeContent>
-        )}
-      </BaseNode>
-
-      {/* All handles rendered AFTER BaseNode so they sit on top (higher DOM order = higher z) */}
+    <NodeTooltip>
+      <NodeTooltipTrigger>
+        <BaseNode
+          className={cn('group min-w-44', !data.isActive && 'opacity-50')}
+        >
+          <BaseNodeHeader>
+            <BotIcon className="text-primary h-4 w-4 shrink-0" />
+            <BaseNodeHeaderTitle className="text-sm">
+              {data.label}
+            </BaseNodeHeaderTitle>
+          </BaseNodeHeader>
+        </BaseNode>
+      </NodeTooltipTrigger>
+      {data.description && (
+        <NodeTooltipContent position={Position.Bottom}>
+          <p className="max-w-56 text-xs">{data.description}</p>
+        </NodeTooltipContent>
+      )}
 
       {/* Top handle: receives dept membership edge */}
       <Handle
@@ -175,7 +192,7 @@ const AgentNodeComponent = memo(({ data }: NodeProps<Node<AgentNodeData>>) => {
           'opacity-0 transition-opacity group-hover:opacity-100'
         )}
       />
-    </>
+    </NodeTooltip>
   )
 })
 AgentNodeComponent.displayName = 'AgentNode'
@@ -199,6 +216,8 @@ interface OrgGraphProps {
   onUnassignDepartment: (agentId: string) => void
   onAddCollaboration: (agentAId: string, agentBId: string) => void
   onRemoveCollaboration: (agentAId: string, agentBId: string) => void
+  onBulkDelete: (deptIds: string[], agentIds: string[]) => void
+  onBulkDuplicate: (deptIds: string[], agentIds: string[]) => void
 }
 
 export function OrgGraph({
@@ -210,7 +229,9 @@ export function OrgGraph({
   onAssignDepartment,
   onUnassignDepartment,
   onAddCollaboration,
-  onRemoveCollaboration
+  onRemoveCollaboration,
+  onBulkDelete,
+  onBulkDuplicate
 }: OrgGraphProps) {
   const setSelectedNode = useSetAtom(selectedNodeAtom)
   const [nodes, setNodes] = useState<Node[]>([])
@@ -400,6 +421,51 @@ export function OrgGraph({
     [setEdges, onAssignDepartment, onAddCollaboration]
   )
 
+  // ─── Context menu helpers ──────────────────────────────────────────────────
+
+  // Use a ref so the right-clicked node is available synchronously when the
+  // context menu renders (state updates are async and would arrive too late)
+  const ctxNodeRef = useRef<Node | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState(false)
+
+  /** Resolve which nodes the context menu should act on. */
+  const getTargetIds = useCallback(() => {
+    const ctxNode = ctxNodeRef.current
+    const selected = nodes.filter((n) => n.selected)
+    // If right-clicked node is already selected → use full selection
+    // Otherwise act on just the right-clicked node
+    const targets =
+      ctxNode && !selected.some((n) => n.id === ctxNode.id)
+        ? [ctxNode]
+        : selected
+    const deptIds = targets
+      .filter((n) => n.id.startsWith('dept-'))
+      .map((n) => n.id.replace('dept-', ''))
+    const agentIds = targets
+      .filter((n) => n.id.startsWith('agent-'))
+      .map((n) => n.id.replace('agent-', ''))
+    return { deptIds, agentIds, count: targets.length }
+  }, [nodes])
+
+  const handleDuplicate = useCallback(() => {
+    const { deptIds, agentIds } = getTargetIds()
+    onBulkDuplicate(deptIds, agentIds)
+  }, [getTargetIds, onBulkDuplicate])
+
+  const handleDeleteConfirmed = useCallback(() => {
+    const { deptIds, agentIds } = getTargetIds()
+    onBulkDelete(deptIds, agentIds)
+    setConfirmDelete(false)
+  }, [getTargetIds, onBulkDelete])
+
+  const onNodeContextMenu = useCallback(
+    (_event: React.MouseEvent, node: Node) => {
+      // Synchronous ref update so the value is ready when ContextMenuContent renders
+      ctxNodeRef.current = node
+    },
+    []
+  )
+
   const onNodeClick = useCallback(
     (_: React.MouseEvent, node: Node) => {
       if (node.id.startsWith('dept-')) {
@@ -444,35 +510,92 @@ export function OrgGraph({
     setTimeout(() => fitView({ padding: 0.2, duration: 300 }), 50)
   }, [fitViewVersion, fitView])
 
+  const selectedCount = nodes.filter((n) => n.selected).length
+  // Context menu target count: if right-clicked an unselected node → 1, else selection count
+  const _ctxNode = ctxNodeRef.current
+  const ctxCount =
+    _ctxNode && !nodes.some((n) => n.id === _ctxNode.id && n.selected)
+      ? 1
+      : selectedCount
+
   return (
-    <div className="h-full w-full">
-      <ReactFlow
-        nodes={nodes}
-        edges={edges}
-        nodeTypes={nodeTypes}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
-        onConnect={onConnect}
-        onNodeClick={onNodeClick}
-        fitView
-        fitViewOptions={{ padding: 0.2 }}
-        minZoom={0.1}
-        maxZoom={2}
-        deleteKeyCode="Delete"
-        connectionMode={ConnectionMode.Loose}
-        selectionOnDrag
-        panOnDrag={false}
-        panOnScroll
-        selectionMode={SelectionMode.Partial}
-      >
-        <ZoomSlider position="bottom-left" />
-        <Background
-          className="no-drag"
-          variant={BackgroundVariant.Dots}
-          gap={20}
-          size={1}
-        />
-      </ReactFlow>
-    </div>
+    <>
+      <ContextMenu>
+        <ContextMenuTrigger className="h-full w-full">
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            nodeTypes={nodeTypes}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onConnect={onConnect}
+            onNodeClick={onNodeClick}
+            onNodeContextMenu={onNodeContextMenu}
+            fitView
+            fitViewOptions={{ padding: 0.2 }}
+            minZoom={0.1}
+            maxZoom={2}
+            deleteKeyCode="Delete"
+            connectionMode={ConnectionMode.Loose}
+            selectionOnDrag
+            panOnDrag={false}
+            panOnScroll
+            selectionMode={SelectionMode.Partial}
+          >
+            <ZoomSlider position="bottom-left" />
+            <Background
+              className="no-drag"
+              variant={BackgroundVariant.Dots}
+              gap={20}
+              size={1}
+            />
+          </ReactFlow>
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          {ctxCount === 0 ? (
+            <ContextMenuItem disabled>No nodes selected</ContextMenuItem>
+          ) : (
+            <>
+              <ContextMenuItem onClick={handleDuplicate}>
+                <CopyIcon />
+                Duplicate{ctxCount > 1 ? ` ${ctxCount} nodes` : ''}
+              </ContextMenuItem>
+              <ContextMenuSeparator />
+              <ContextMenuItem
+                variant="destructive"
+                onClick={() => setConfirmDelete(true)}
+              >
+                <Trash2Icon />
+                Delete{ctxCount > 1 ? ` ${ctxCount} nodes` : ''}
+              </ContextMenuItem>
+            </>
+          )}
+        </ContextMenuContent>
+      </ContextMenu>
+
+      {/* Delete confirmation */}
+      <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Delete {ctxCount} node{ctxCount > 1 ? 's' : ''}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. The selected departments and agents
+              will be permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={handleDeleteConfirmed}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   )
 }

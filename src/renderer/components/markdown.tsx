@@ -202,7 +202,7 @@ export function Markdown({
               <>
                 <section
                   className={cn(
-                    'text-ring flex items-center justify-between pb-0 text-xs'
+                    'text-ring flex items-center justify-between p-2 text-xs'
                   )}
                 >
                   <span>{match[1]}</span>
@@ -234,7 +234,12 @@ export function Markdown({
                   PreTag="div"
                   language={match[1]}
                   style={codeTheme}
-                  customStyle={{ padding: '0.75rem', paddingBottom: 0 }}
+                  customStyle={{
+                    padding: '0.75rem',
+                    paddingBottom: 0,
+                    fontSize: '0.8125rem',
+                    lineHeight: '1.5'
+                  }}
                 >
                   {String(children).replace(/\n$/, '')}
                 </SyntaxHighlighter>
@@ -295,11 +300,76 @@ export function Markdown({
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           table({ className, children, node, ...rest }) {
             return (
-              <div className="mb-4 w-full caption-bottom overflow-x-scroll rounded-md border text-sm md:max-w-180">
-                <table {...rest} className={cn(className, 'w-full')}>
+              <div className="not-prose mb-4 overflow-x-auto rounded-md border text-sm leading-normal">
+                <table
+                  {...rest}
+                  className={cn('min-w-full caption-bottom', className)}
+                >
                   {children}
                 </table>
               </div>
+            )
+          },
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          thead({ className, children, node, ...rest }) {
+            return (
+              <thead {...rest} className={cn('[&_tr]:border-b', className)}>
+                {children}
+              </thead>
+            )
+          },
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          tbody({ className, children, node, ...rest }) {
+            return (
+              <tbody
+                {...rest}
+                className={cn('[&_tr:last-child]:border-0', className)}
+              >
+                {children}
+              </tbody>
+            )
+          },
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          tr({ className, children, node, ...rest }) {
+            return (
+              <tr
+                {...rest}
+                className={cn(
+                  'hover:bg-muted/50 border-b transition-colors',
+                  className
+                )}
+              >
+                {children}
+              </tr>
+            )
+          },
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          th({ className, children, node, ...rest }) {
+            return (
+              <th
+                {...rest}
+                className={cn(
+                  'text-foreground px-3 py-2.5 text-left align-middle font-medium whitespace-nowrap',
+                  className
+                )}
+              >
+                {children}
+              </th>
+            )
+          },
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          td({ className, children, node, ...rest }) {
+            return (
+              <td
+                {...rest}
+                style={{ fontWeight: 400 }}
+                className={cn(
+                  'text-foreground px-3 py-2 align-middle whitespace-nowrap',
+                  className
+                )}
+              >
+                {children}
+              </td>
             )
           }
         }}

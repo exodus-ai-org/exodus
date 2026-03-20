@@ -8,6 +8,7 @@ import { OrgGraph } from '@/components/agent-x/org-graph'
 import { TaskDispatchDialog } from '@/components/agent-x/task-dispatch-dialog'
 import { TaskKanban } from '@/components/agent-x/task-kanban'
 import { TaskList } from '@/components/agent-x/task-list'
+import { TaskLogSheet } from '@/components/agent-x/task-log-sheet'
 import { Button } from '@/components/ui/button'
 import type { AgentXPage } from '@/layouts/agent-x-layout'
 import {
@@ -48,6 +49,7 @@ export function AgentXContainer({ activePage }: AgentXContainerProps) {
   const [selectedNode, setSelectedNode] = useAtom(selectedNodeAtom)
   const [, setDispatchOpen] = useAtom(isTaskDispatchDialogOpenAtom)
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null)
+  const [logTaskId, setLogTaskId] = useState<string | null>(null)
   const [fitViewVersion, setFitViewVersion] = useState(0)
   const eventSourceRef = useRef<EventSource | null>(null)
 
@@ -308,7 +310,124 @@ export function AgentXContainer({ activePage }: AgentXContainerProps) {
     setTasks((prev) => [task, ...prev])
   }, [])
 
-  const showPanel = selectedNode !== null || selectedTaskId !== null
+  // ─── Bulk handlers ───────────────────────────────────────────────────────
+
+  const handleBulkDelete = useCallback(
+    async (deptIds: string[], agentIds: string[]) => {
+      await Promise.all([
+        ...deptIds.map((id) => deleteDepartment(id)),
+        ...agentIds.map((id) => deleteAgentApi(id))
+      ])
+      setDepartments((prev) => prev.filter((d) => !deptIds.includes(d.id)))
+      setAgents((prev) => {
+        const remaining = prev.filter((a) => !agentIds.includes(a.id))
+        return remaining.map((a) =>
+          a.departmentId && deptIds.includes(a.departmentId)
+            ? { ...a, departmentId: null }
+            : a
+        )
+      })
+      setSelectedNode((cur) => {
+        if (!cur) return cur
+        if (deptIds.includes(cur.id) || agentIds.includes(cur.id)) return null
+        return cur
+      })
+      bumpFitView()
+    },
+    [setSelectedNode, bumpFitView]
+  )
+
+  const handleBulkDuplicate = useCallback(
+    async (deptIds: string[], agentIds: string[]) => {
+      const srcDepts = deptIds
+        .map((id) => departments.find((d) => d.id === id))
+        .filter(Boolean) as DepartmentData[]
+      const srcAgents = agentIds
+        .map((id) => agents.find((a) => a.id === id))
+        .filter(Boolean) as AgentData[]
+
+      // Compute shift so copies land to the right of all existing nodes
+      const allPositions = [...departments, ...agents].map(
+        (n) => n.position ?? { x: 0, y: 0 }
+      )
+      const maxExistingX =
+        allPositions.length > 0
+          ? Math.max(...allPositions.map((p) => p.x)) + 200
+          : 200
+      const srcPositions = [
+        ...srcDepts.map((d) => d.position ?? { x: 0, y: 0 }),
+        ...srcAgents.map((a) => a.position ?? { x: 0, y: 0 })
+      ]
+      const minSrcX =
+        srcPositions.length > 0 ? Math.min(...srcPositions.map((p) => p.x)) : 0
+      const shiftX = maxExistingX - minSrcX + 60
+      const shiftY = 60
+
+      // Create new departments first
+      const newDepts = await Promise.all(
+        srcDepts.map((src) =>
+          createDepartment({
+            name: `${src.name} (copy)`,
+            description: src.description,
+            position: {
+              x: (src.position?.x ?? 0) + shiftX,
+              y: (src.position?.y ?? 0) + shiftY
+            }
+          })
+        )
+      )
+
+      // Build old→new dept ID mapping so agents get remapped correctly
+      const deptIdMap = new Map<string, string>()
+      srcDepts.forEach((src, i) => {
+        const nd = newDepts[i]
+        if (nd) deptIdMap.set(src.id, nd.id)
+      })
+
+      // Create agents, remapping departmentId to new dept if it was also copied
+      const newAgents = await Promise.all(
+        srcAgents.map((src) => {
+          const newDeptId = src.departmentId
+            ? (deptIdMap.get(src.departmentId) ?? src.departmentId)
+            : src.departmentId
+          return createAgentApi({
+            name: `${src.name} (copy)`,
+            description: src.description,
+            systemPrompt: src.systemPrompt,
+            toolAllowList: src.toolAllowList,
+            isActive: src.isActive,
+            departmentId: newDeptId,
+            position: {
+              x: (src.position?.x ?? 0) + shiftX,
+              y: (src.position?.y ?? 0) + shiftY
+            }
+          })
+        })
+      )
+
+      setDepartments((prev) => [
+        ...prev,
+        ...(newDepts.filter(Boolean) as DepartmentData[])
+      ])
+      setAgents((prev) => [
+        ...prev,
+        ...(newAgents.filter(Boolean) as AgentData[])
+      ])
+      bumpFitView()
+    },
+    [departments, agents, bumpFitView]
+  )
+
+  const showTimeline = selectedTaskId !== null
+
+  const selectedDept =
+    selectedNode?.type === 'department'
+      ? (departments.find((d) => d.id === selectedNode.id) ?? null)
+      : null
+  const selectedAgent =
+    selectedNode?.type === 'agent'
+      ? (agents.find((a) => a.id === selectedNode.id) ?? null)
+      : null
 
   // ─── Page content ─────────────────────────────────────────────────────────
 
@@ -325,7 +444,7 @@ export function AgentXContainer({ activePage }: AgentXContainerProps) {
               tasks={tasks}
               agents={agents}
               events={events}
-              onSelectTask={setSelectedTaskId}
+              onSelectTask={setLogTaskId}
             />
           </div>
         </div>
@@ -354,9 +473,9 @@ export function AgentXContainer({ activePage }: AgentXContainerProps) {
             </Button>
           </div>
 
-          {/* Graph + Panel */}
+          {/* Graph + Timeline */}
           <div className="flex min-h-0 flex-1">
-            <div className={showPanel ? 'flex-1' : 'w-full'}>
+            <div className={showTimeline ? 'flex-1' : 'w-full'}>
               <ReactFlowProvider>
                 <OrgGraph
                   departments={departments}
@@ -368,47 +487,21 @@ export function AgentXContainer({ activePage }: AgentXContainerProps) {
                   onUnassignDepartment={handleUnassignDepartment}
                   onAddCollaboration={handleAddCollaboration}
                   onRemoveCollaboration={handleRemoveCollaboration}
+                  onBulkDelete={handleBulkDelete}
+                  onBulkDuplicate={handleBulkDuplicate}
                 />
               </ReactFlowProvider>
             </div>
 
-            {showPanel && (
+            {showTimeline && (
               <div className="w-[380px] shrink-0 overflow-y-auto border-l">
-                {selectedTaskId ? (
-                  <ExecutionTimeline
-                    taskId={selectedTaskId}
-                    events={events.filter(
-                      (e) => 'taskId' in e && e.taskId === selectedTaskId
-                    )}
-                    onClose={() => setSelectedTaskId(null)}
-                  />
-                ) : selectedNode?.type === 'department' ? (
-                  (() => {
-                    const dept = departments.find(
-                      (d) => d.id === selectedNode.id
-                    )
-                    return dept ? (
-                      <DepartmentConfigPanel
-                        department={dept}
-                        onUpdate={handleUpdateDepartment}
-                        onDelete={handleDeleteDepartment}
-                        onClose={() => setSelectedNode(null)}
-                      />
-                    ) : null
-                  })()
-                ) : selectedNode?.type === 'agent' ? (
-                  (() => {
-                    const agent = agents.find((a) => a.id === selectedNode.id)
-                    return agent ? (
-                      <AgentConfigPanel
-                        agent={agent}
-                        onUpdate={handleUpdateAgent}
-                        onDelete={handleDeleteAgent}
-                        onClose={() => setSelectedNode(null)}
-                      />
-                    ) : null
-                  })()
-                ) : null}
+                <ExecutionTimeline
+                  taskId={selectedTaskId}
+                  events={events.filter(
+                    (e) => 'taskId' in e && e.taskId === selectedTaskId
+                  )}
+                  onClose={() => setSelectedTaskId(null)}
+                />
               </div>
             )}
           </div>
@@ -420,7 +513,8 @@ export function AgentXContainer({ activePage }: AgentXContainerProps) {
           <TaskKanban
             tasks={tasks}
             agents={agents}
-            onSelectTask={setSelectedTaskId}
+            departments={departments}
+            onSelectTask={setLogTaskId}
             onTaskUpdate={(updated) =>
               setTasks((prev) =>
                 prev.map((t) => (t.id === updated.id ? updated : t))
@@ -432,11 +526,36 @@ export function AgentXContainer({ activePage }: AgentXContainerProps) {
 
       {activePage === 'costs' && <CostAnalysis />}
 
-      {/* Dialogs (always mounted) */}
+      {/* Task log sheet */}
+      <TaskLogSheet
+        taskId={logTaskId}
+        agents={agents}
+        onClose={() => setLogTaskId(null)}
+      />
+
+      {/* Sheets (always mounted) */}
       <TaskDispatchDialog
         departments={departments}
         agents={agents}
         onTaskCreated={handleTaskCreated}
+      />
+      <DepartmentConfigPanel
+        department={selectedDept}
+        open={selectedDept !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelectedNode(null)
+        }}
+        onUpdate={handleUpdateDepartment}
+        onDelete={handleDeleteDepartment}
+      />
+      <AgentConfigPanel
+        agent={selectedAgent}
+        open={selectedAgent !== null}
+        onOpenChange={(open) => {
+          if (!open) setSelectedNode(null)
+        }}
+        onUpdate={handleUpdateAgent}
+        onDelete={handleDeleteAgent}
       />
     </>
   )

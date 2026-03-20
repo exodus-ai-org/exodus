@@ -60,7 +60,7 @@ export function Layout() {
 
   return (
     <SidebarProvider>
-      <div className="w-full">
+      <div className="w-full overflow-x-hidden">
         <div className="flex h-screen">
           <AppSidebar />
           <InsertedSidebar />

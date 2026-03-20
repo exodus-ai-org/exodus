@@ -156,30 +156,30 @@ export function DeepResearchProcess() {
     >
       <div className="bg-background sticky top-0 z-10 flex h-14 items-center justify-center border-b">
         <div className="bg-border flex items-center rounded-full p-1 text-sm">
-          <button
+          <Button
+            variant="ghost"
             className={cn(
-              'bg-border min-w-20 rounded-full p-2 select-none hover:bg-transparent dark:bg-transparent dark:hover:bg-transparent',
-              {
-                ['bg-background hover:bg-background dark:bg-background-foreground hover:dark:bg-background-foreground font-semibold shadow-sm']:
-                  tab === Tab.Activity
-              }
+              'min-w-20 rounded-full p-2 select-none',
+              tab === Tab.Activity
+                ? 'bg-background hover:bg-background dark:bg-background-foreground hover:dark:bg-background-foreground font-semibold shadow-sm'
+                : 'bg-transparent'
             )}
             onClick={() => setTab(Tab.Activity)}
           >
             Activity
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
             className={cn(
-              'bg-border min-w-20 rounded-full p-2 select-none hover:bg-transparent dark:bg-transparent dark:hover:bg-transparent',
-              {
-                ['bg-background hover:bg-background dark:bg-background-foreground hover:dark:bg-background-foreground font-semibold shadow-sm']:
-                  tab === Tab.Source
-              }
+              'min-w-20 rounded-full p-2 select-none',
+              tab === Tab.Source
+                ? 'bg-background hover:bg-background dark:bg-background-foreground hover:dark:bg-background-foreground font-semibold shadow-sm'
+                : 'bg-transparent'
             )}
             onClick={() => setTab(Tab.Source)}
           >
             {allWebSearchResults.length} Sources
-          </button>
+          </Button>
         </div>
         <Button
           size="icon"

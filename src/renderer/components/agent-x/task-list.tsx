@@ -88,8 +88,9 @@ export function TaskList({
   return (
     <div className="border-t">
       {/* Header bar */}
-      <button
-        className="hover:bg-accent/50 flex w-full items-center gap-3 px-4 py-2 text-xs"
+      <Button
+        variant="ghost"
+        className="flex w-full items-center justify-start gap-3 px-4 py-2 text-xs"
         onClick={() => setExpanded(!expanded)}
       >
         <ChevronUpIcon
@@ -106,7 +107,7 @@ export function TaskList({
           </span>
           <span style={{ color: '#FF5F57' }}>Failed: {counts.failed}</span>
         </div>
-      </button>
+      </Button>
 
       {expanded && (
         <div className="max-h-48 overflow-y-auto">
@@ -175,9 +176,10 @@ export function TaskList({
               const agentName =
                 agents.find((a) => a.id === t.assignedAgentId)?.name ?? '—'
               return (
-                <button
+                <Button
                   key={t.id}
-                  className="hover:bg-accent/50 flex w-full items-center gap-3 px-4 py-1.5 text-xs"
+                  variant="ghost"
+                  className="flex h-auto w-full items-center justify-start gap-3 px-4 py-1.5 text-xs"
                   onClick={() => onSelectTask(t.id)}
                 >
                   {t.cronExpression ? (
@@ -202,7 +204,7 @@ export function TaskList({
                   <span className="text-muted-foreground capitalize">
                     {t.status}
                   </span>
-                </button>
+                </Button>
               )
             })
           )}

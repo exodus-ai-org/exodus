@@ -1,6 +1,7 @@
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { app, BrowserWindow, globalShortcut } from 'electron'
 import { setupAutoUpdater } from './lib/auto-updater'
+import { cleanupStaleWaitingTasks } from './lib/db/agent-x-queries'
 import { runMigrate } from './lib/db/migrate'
 import { getSetting } from './lib/db/queries'
 import { setupIPC } from './lib/ipc'
@@ -13,6 +14,7 @@ import { createWindow } from './lib/window'
 app.whenReady().then(async () => {
   // Migrate PGlite
   await runMigrate()
+  await cleanupStaleWaitingTasks()
 
   // Start Hono server
   const server = await connectHttpServer()

@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { openTabsAtom } from '@/stores/chat'
 import { useAtom } from 'jotai'
@@ -47,12 +48,14 @@ export function ChatTabs() {
           >
             {tab.title}
           </span>
-          <button
+          <Button
+            variant="ghost"
+            size="icon-xs"
             onClick={(e) => closeTab(e, tab.id)}
-            className="hover:text-foreground ml-0.5 rounded opacity-0 transition-opacity group-hover:opacity-100"
+            className="ml-0.5 opacity-0 transition-opacity group-hover:opacity-100"
           >
             <XIcon size={11} />
-          </button>
+          </Button>
         </Link>
       ))}
     </div>

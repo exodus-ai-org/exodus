@@ -1,3 +1,4 @@
+import { Button } from '@/components/ui/button'
 import type { ChatStatus } from '@/hooks/use-chat'
 import { useSetting } from '@/hooks/use-setting'
 import { cn } from '@/lib/utils'
@@ -255,13 +256,15 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
       </section>
 
       {showScrollButton && (
-        <button
+        <Button
+          variant="outline"
+          size="icon-sm"
           onClick={scrollToBottomSmooth}
-          className="bg-background border-border text-muted-foreground hover:text-foreground absolute bottom-4 left-1/2 -translate-x-1/2 cursor-pointer rounded-full border p-1.5 shadow-md transition-colors"
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full shadow-md"
           aria-label="Scroll to bottom"
         >
           <ChevronDownIcon size={16} />
-        </button>
+        </Button>
       )}
     </div>
   )

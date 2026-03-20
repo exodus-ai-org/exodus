@@ -24,18 +24,7 @@ import {
   bindCallingTools,
   getModelFromProvider
 } from '../utils/chat-message-util'
-import { createDelegateTaskTool, createEscalateToUserTool } from './agent-tools'
-
-// Pending escalation resolvers keyed by taskId
-const escalationResolvers = new Map<string, (response: string) => void>()
-
-export function resolveEscalation(taskId: string, response: string) {
-  const resolve = escalationResolvers.get(taskId)
-  if (resolve) {
-    resolve(response)
-    escalationResolvers.delete(taskId)
-  }
-}
+import { createDelegateTaskTool } from './agent-tools'
 
 export type SseEmitter = (event: AgentXSseEvent) => void
 
@@ -187,13 +176,6 @@ async function runAgentLoop(
     )
     agentTools = [...agentTools, delegateTool]
   }
-
-  const escalateTool = createEscalateToUserTool(
-    async ({ question, options }) => {
-      return handleEscalation(taskRecord.id, question, options, emit)
-    }
-  )
-  agentTools = [...agentTools, escalateTool]
 
   // Build system prompt with department-scoped skills
   const skillsContent =
@@ -370,32 +352,4 @@ async function handleDelegation(
   })
 
   return result
-}
-
-async function handleEscalation(
-  taskId: string,
-  question: string,
-  options: string[],
-  emit: SseEmitter
-): Promise<string> {
-  // Update task status
-  await updateTask(taskId, { status: 'waiting_for_user' })
-
-  emit({
-    type: 'task_status',
-    taskId,
-    status: 'waiting_for_user' as never
-  })
-
-  emit({
-    type: 'escalation',
-    taskId,
-    question,
-    options
-  })
-
-  // Wait for user response via promise
-  return new Promise<string>((resolve) => {
-    escalationResolvers.set(taskId, resolve)
-  })
 }

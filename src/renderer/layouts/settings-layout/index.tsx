@@ -2,6 +2,7 @@ import { SettingsForm } from '@/components/setting/setting-form'
 import { menus } from '@/components/setting/setting-menu'
 import { SettingsSidebar } from '@/components/setting/setting-sidebar'
 import { AppToaster } from '@/components/ui/app-toaster'
+import { Button } from '@/components/ui/button'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import { cn } from '@/lib/utils'
@@ -32,12 +33,14 @@ export function SettingsLayout() {
           isFullscreen ? 'pl-4' : 'pl-21'
         )}
       >
-        <button
+        <Button
+          variant="ghost"
+          size="icon-sm"
           onClick={() => navigate(-1)}
-          className="no-drag text-muted-foreground hover:text-foreground hover:bg-accent flex h-7 w-7 items-center justify-center rounded-md transition-colors"
+          className="no-drag"
         >
           <ArrowLeftIcon className="h-4 w-4" />
-        </button>
+        </Button>
         <span className="text-sm font-medium">Settings</span>
         {activeTitle && (
           <>
