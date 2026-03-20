@@ -31,7 +31,7 @@ export function IconWrapper({
 }) {
   return (
     <span
-      className="hover:bg-secondary text-muted-foreground flex h-6 w-6 items-center justify-center rounded-sm"
+      className="hover:bg-secondary text-muted-foreground flex size-6 items-center justify-center rounded-sm"
       onClick={onClick}
     >
       {children}
@@ -133,7 +133,7 @@ function SourcesSheet({
           className="rounded-full"
           onClick={onClose}
         >
-          <XIcon className="size-4" />
+          <XIcon data-icon className="size-4" />
         </Button>
       </div>
       <div className="flex-1 overflow-y-auto p-3">
@@ -205,7 +205,7 @@ function SourcesButton({
       onClick={onClick}
       className="text-muted-foreground h-6 gap-1.5 rounded-full px-2.5 text-xs"
     >
-      <span className="*:ring-background flex -space-x-1.5 *:ring-2">
+      <span className="*:ring-background flex gap-[-0.375rem] *:ring-2">
         {favicons.map((src, i) => (
           <img key={i} src={src} className="size-3.5 rounded-full" alt="" />
         ))}

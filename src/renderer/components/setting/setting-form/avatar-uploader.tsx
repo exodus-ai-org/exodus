@@ -37,34 +37,34 @@ export function AvatarUploader<T extends FieldValues>({
   }
 
   return (
-    <div className="relative flex h-16 w-16! shrink-0 items-center justify-center rounded-full border">
+    <div className="relative flex size-16! shrink-0 items-center justify-center rounded-full border">
       <input
         ref={ref}
         type="file"
         accept="image/*"
         id="assistant-avatar"
-        className="absolute top-0 left-0 z-10 h-16 w-16 opacity-0"
+        className="absolute top-0 left-0 z-10 size-16 opacity-0"
         onChange={handleEditorChange}
       />
       {field.value ? (
         <img
           src={field.value}
           alt="assistant-avatar"
-          className="h-16 w-16 rounded-full object-cover"
+          className="size-16 rounded-full object-cover"
         />
       ) : (
         <PlusIcon />
       )}
 
       {!!field.value && (
-        <span className="absolute -top-1 -right-1 z-100 rounded-full border-3 border-gray-50 bg-black p-0.75 dark:border-black dark:bg-white">
+        <span className="border-background bg-foreground absolute -top-1 -right-1 z-100 rounded-full border-3 p-0.75">
           <XIcon
             onClick={(e) => {
               e.stopPropagation()
               e.preventDefault()
               handleRemove()
             }}
-            className="h-2.5 w-2.5 text-white dark:text-black"
+            className="text-background size-2.5"
             strokeWidth={2.5}
           />
         </span>

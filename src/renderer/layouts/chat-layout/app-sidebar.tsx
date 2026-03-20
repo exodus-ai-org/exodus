@@ -23,7 +23,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar
       collapsible="offcanvas"
       className="border-none [--sidebar-accent-foreground:oklch(0.2_0_0)] [--sidebar-accent:oklch(0_0_0/_8%)] [--sidebar-border:transparent] [--sidebar-foreground:oklch(0.2_0_0)] dark:[--sidebar-accent-foreground:oklch(0.92_0_0)] dark:[--sidebar-accent:oklch(1_0_0/_12%)] dark:[--sidebar-foreground:oklch(0.92_0_0)]"
-      sidebarInnerClx="bg-transparent text-[oklch(0.2_0_0)] dark:text-[oklch(0.92_0_0)]"
+      sidebarInnerClx="bg-transparent text-foreground"
       {...props}
     >
       <SidebarHeader

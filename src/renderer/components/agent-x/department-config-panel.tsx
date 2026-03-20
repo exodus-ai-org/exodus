@@ -100,7 +100,7 @@ export function DepartmentConfigPanel({
         </SheetHeader>
 
         <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-4">
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="dept-name">Name</Label>
             <Input
               id="dept-name"
@@ -110,7 +110,7 @@ export function DepartmentConfigPanel({
             />
           </div>
 
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="dept-desc">Description</Label>
             <Textarea
               id="dept-desc"
@@ -122,14 +122,14 @@ export function DepartmentConfigPanel({
           </div>
 
           {/* Skills */}
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <Label>Skills</Label>
             {availableSkills.length === 0 ? (
               <p className="text-muted-foreground text-xs">
                 No skills installed. Install skills from the Skills Market.
               </p>
             ) : (
-              <div className="space-y-1.5">
+              <div className="flex flex-col gap-1.5">
                 {availableSkills.map((skill) => (
                   <label
                     key={skill.slug}
@@ -147,16 +147,16 @@ export function DepartmentConfigPanel({
           </div>
 
           {/* MCP Servers */}
-          <div className="space-y-2">
+          <div className="flex flex-col gap-2">
             <Label>MCP Servers</Label>
             {availableMcp.length === 0 ? (
               <p className="text-muted-foreground text-xs">
                 No MCP servers registered. Add them in Agent X.
               </p>
             ) : (
-              <div className="space-y-1.5">
+              <div className="flex flex-col gap-1.5">
                 {availableMcp.map((server) => (
-                  <div key={server.id} className="space-y-0.5">
+                  <div key={server.id} className="flex flex-col gap-0.5">
                     <label className="flex items-center gap-2 text-sm">
                       <Checkbox
                         checked={selectedMcp.includes(server.name)}
@@ -182,7 +182,7 @@ export function DepartmentConfigPanel({
             className="w-full"
             onClick={() => onDelete(displayDept.id)}
           >
-            <Trash2Icon className="mr-1 h-3.5 w-3.5" />
+            <Trash2Icon data-icon className="mr-1 size-3.5" />
             Delete Department
           </Button>
         </SheetFooter>

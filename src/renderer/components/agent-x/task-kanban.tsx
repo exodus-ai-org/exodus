@@ -40,35 +40,35 @@ const COLUMNS: ColumnDef[] = [
   {
     status: 'pending',
     label: 'Pending',
-    icon: <ClockIcon className="h-3.5 w-3.5" />,
+    icon: <ClockIcon className="size-3.5" />,
     color: 'text-yellow-600 dark:text-yellow-400',
     bg: 'bg-yellow-100 dark:bg-yellow-900/30'
   },
   {
     status: 'running',
     label: 'Running',
-    icon: <CircleDotIcon className="h-3.5 w-3.5 animate-pulse" />,
+    icon: <CircleDotIcon className="size-3.5 animate-pulse" />,
     color: 'text-blue-600 dark:text-blue-400',
     bg: 'bg-blue-100 dark:bg-blue-900/30'
   },
   {
     status: 'completed',
     label: 'Completed',
-    icon: <CheckCircle2Icon className="h-3.5 w-3.5" />,
+    icon: <CheckCircle2Icon className="size-3.5" />,
     color: 'text-green-600 dark:text-green-400',
     bg: 'bg-green-100 dark:bg-green-900/30'
   },
   {
     status: 'failed',
     label: 'Failed',
-    icon: <XCircleIcon className="h-3.5 w-3.5" />,
+    icon: <XCircleIcon className="size-3.5" />,
     color: 'text-red-600 dark:text-red-400',
     bg: 'bg-red-100 dark:bg-red-900/30'
   },
   {
     status: 'cancelled',
     label: 'Cancelled',
-    icon: <XCircleIcon className="h-3.5 w-3.5" />,
+    icon: <XCircleIcon className="size-3.5" />,
     color: 'text-gray-500 dark:text-gray-400',
     bg: 'bg-gray-100 dark:bg-gray-800/40'
   }
@@ -116,9 +116,9 @@ function FeedbackWidget({
     return (
       <div className="flex items-center gap-1.5 pt-1">
         {task.feedbackRating === 'positive' ? (
-          <ThumbsUpIcon className="h-3 w-3 text-green-500" />
+          <ThumbsUpIcon className="size-3 text-green-500" />
         ) : (
-          <ThumbsDownIcon className="h-3 w-3 text-red-500" />
+          <ThumbsDownIcon className="size-3 text-red-500" />
         )}
         {task.feedbackNote && (
           <span className="text-muted-foreground line-clamp-1 text-[10px]">
@@ -145,7 +145,7 @@ function FeedbackWidget({
           onClick={() => handleRate('positive')}
           className="text-muted-foreground hover:text-green-500"
         >
-          <ThumbsUpIcon className="h-3 w-3" />
+          <ThumbsUpIcon data-icon="thumbs-up" className="size-3" />
         </Button>
         <Button
           variant="ghost"
@@ -153,7 +153,7 @@ function FeedbackWidget({
           onClick={() => handleRate('negative')}
           className="text-muted-foreground hover:text-red-500"
         >
-          <ThumbsDownIcon className="h-3 w-3" />
+          <ThumbsDownIcon data-icon="thumbs-down" className="size-3" />
         </Button>
       </div>
       {expanded && (
@@ -231,7 +231,7 @@ function TaskCard({
       <div className="flex items-start gap-2">
         <span
           className={cn(
-            'mt-1 h-2 w-2 shrink-0 rounded-full',
+            'mt-1 size-2 shrink-0 rounded-full',
             PRIORITY_DOT[task.priority] ?? PRIORITY_DOT.medium
           )}
         />
@@ -250,10 +250,10 @@ function TaskCard({
               variant="ghost"
               size="icon-xs"
               onClick={() => onRestore(task.id)}
-              className="text-muted-foreground hover:text-foreground h-5 w-5 opacity-0 transition-opacity group-hover:opacity-100"
+              className="text-muted-foreground hover:text-foreground size-5 opacity-0 transition-opacity group-hover:opacity-100"
               title="Restore task"
             >
-              <RotateCcwIcon className="h-3 w-3" />
+              <RotateCcwIcon data-icon="rotate-ccw" className="size-3" />
             </Button>
           )}
 
@@ -263,10 +263,10 @@ function TaskCard({
               variant="ghost"
               size="icon-xs"
               onClick={() => onEdit(task)}
-              className="text-muted-foreground hover:text-foreground h-5 w-5 opacity-0 transition-opacity group-hover:opacity-100"
+              className="text-muted-foreground hover:text-foreground size-5 opacity-0 transition-opacity group-hover:opacity-100"
               title="Edit schedule"
             >
-              <PencilIcon className="h-3 w-3" />
+              <PencilIcon data-icon="pencil" className="size-3" />
             </Button>
           )}
 
@@ -276,10 +276,10 @@ function TaskCard({
               variant="ghost"
               size="icon-xs"
               onClick={() => setConfirmingCancel(true)}
-              className="text-muted-foreground hover:text-destructive h-5 w-5 opacity-0 transition-opacity group-hover:opacity-100"
+              className="text-muted-foreground hover:text-destructive size-5 opacity-0 transition-opacity group-hover:opacity-100"
               title="Cancel task"
             >
-              <XIcon className="h-3 w-3" />
+              <XIcon data-icon="x" className="size-3" />
             </Button>
           )}
           {canCancel && confirmingCancel && (
@@ -292,17 +292,17 @@ function TaskCard({
                   onCancel(task.id)
                   setConfirmingCancel(false)
                 }}
-                className="h-5 w-5 text-red-500 hover:text-red-600"
+                className="size-5 text-red-500 hover:text-red-600"
               >
-                <CheckCircle2Icon className="h-3 w-3" />
+                <CheckCircle2Icon data-icon="check-circle" className="size-3" />
               </Button>
               <Button
                 variant="ghost"
                 size="icon-xs"
                 onClick={() => setConfirmingCancel(false)}
-                className="text-muted-foreground hover:text-foreground h-5 w-5"
+                className="text-muted-foreground hover:text-foreground size-5"
               >
-                <XIcon className="h-3 w-3" />
+                <XIcon data-icon="x" className="size-3" />
               </Button>
             </div>
           )}
@@ -315,16 +315,16 @@ function TaskCard({
           <span className="text-muted-foreground flex min-w-0 items-center gap-1 text-[10px]">
             {dept && (
               <>
-                <Building2Icon className="h-2.5 w-2.5 shrink-0" />
+                <Building2Icon className="size-2.5 shrink-0" />
                 <span className="truncate">{dept.name}</span>
               </>
             )}
             {dept && agent && (
-              <ChevronRightIcon className="h-2.5 w-2.5 shrink-0 opacity-40" />
+              <ChevronRightIcon className="size-2.5 shrink-0 opacity-40" />
             )}
             {agent && (
               <>
-                <BotIcon className="h-2.5 w-2.5 shrink-0" />
+                <BotIcon className="size-2.5 shrink-0" />
                 <span className="truncate">{agent.name}</span>
               </>
             )}
@@ -338,7 +338,7 @@ function TaskCard({
         {/* Cron expression */}
         {task.cronExpression && (
           <span className="flex items-center gap-1 text-[10px] text-indigo-500 dark:text-indigo-400">
-            <CalendarClockIcon className="h-2.5 w-2.5 shrink-0" />
+            <CalendarClockIcon className="size-2.5 shrink-0" />
             <span className="truncate font-mono">{task.cronExpression}</span>
           </span>
         )}
@@ -347,9 +347,9 @@ function TaskCard({
         {isCronTemplate && task.lastRunAt && (
           <span className="text-muted-foreground flex items-center gap-1 text-[10px]">
             {task.lastRunStatus === 'completed' ? (
-              <CheckIcon className="h-2.5 w-2.5 shrink-0 text-green-500" />
+              <CheckIcon className="size-2.5 shrink-0 text-green-500" />
             ) : task.lastRunStatus === 'failed' ? (
-              <AlertCircleIcon className="h-2.5 w-2.5 shrink-0 text-red-500" />
+              <AlertCircleIcon className="size-2.5 shrink-0 text-red-500" />
             ) : null}
             <span>
               Last{' '}

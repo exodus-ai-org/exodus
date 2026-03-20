@@ -261,29 +261,29 @@ function MemoryListItem({
         <Button
           variant="ghost"
           size="icon"
-          className="h-7 w-7"
+          className="size-7"
           title={item.isActive === false ? 'Restore' : 'Disable'}
           onClick={() => onToggle(item)}
         >
-          <EyeOffIcon className="h-3.5 w-3.5" />
+          <EyeOffIcon className="size-3.5" data-icon />
         </Button>
         <Button
           variant="ghost"
           size="icon"
-          className="h-7 w-7"
+          className="size-7"
           title="Edit"
           onClick={() => onEdit(item)}
         >
-          <PencilIcon className="h-3.5 w-3.5" />
+          <PencilIcon className="size-3.5" data-icon />
         </Button>
         <Button
           variant="ghost"
           size="icon"
-          className="text-destructive hover:text-destructive h-7 w-7"
+          className="text-destructive hover:text-destructive size-7"
           title="Delete"
           onClick={() => onDelete(item)}
         >
-          <Trash2Icon className="h-3.5 w-3.5" />
+          <Trash2Icon className="size-3.5" data-icon />
         </Button>
       </div>
     </div>
@@ -437,7 +437,7 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
         {/* ── Memory Management ── */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <BrainIcon className="text-muted-foreground h-4 w-4" />
+            <BrainIcon className="text-muted-foreground size-4" />
             <span className="text-sm font-medium">
               Stored memories
               {activeMemories.length > 0 && (
@@ -448,7 +448,7 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
             </span>
           </div>
           <Button size="sm" variant="outline" onClick={handleAdd}>
-            <PlusIcon className="mr-1 h-3.5 w-3.5" />
+            <PlusIcon className="mr-1 size-3.5" data-icon />
             Add
           </Button>
         </div>

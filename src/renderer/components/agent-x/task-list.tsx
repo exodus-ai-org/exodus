@@ -25,20 +25,20 @@ interface TaskListProps {
 }
 
 const statusIcons: Record<string, React.ReactNode> = {
-  pending: <ClockIcon className="h-3.5 w-3.5" style={{ color: '#FEBC2E' }} />,
+  pending: <ClockIcon className="size-3.5" style={{ color: '#FEBC2E' }} />,
   running: (
     <CircleDotIcon
-      className="h-3.5 w-3.5 animate-pulse"
+      className="size-3.5 animate-pulse"
       style={{ color: '#FEBC2E' }}
     />
   ),
   completed: (
-    <CheckCircle2Icon className="h-3.5 w-3.5" style={{ color: '#28C840' }} />
+    <CheckCircle2Icon className="size-3.5" style={{ color: '#28C840' }} />
   ),
-  failed: <XCircleIcon className="h-3.5 w-3.5" style={{ color: '#FF5F57' }} />,
-  cancelled: <XCircleIcon className="h-3.5 w-3.5 text-gray-400" />,
+  failed: <XCircleIcon className="size-3.5" style={{ color: '#FF5F57' }} />,
+  cancelled: <XCircleIcon className="text-muted-foreground size-3.5" />,
   waiting_for_user: (
-    <MessageSquareIcon className="h-3.5 w-3.5" style={{ color: '#FEBC2E' }} />
+    <MessageSquareIcon className="size-3.5" style={{ color: '#FEBC2E' }} />
   )
 }
 
@@ -94,8 +94,9 @@ export function TaskList({
         onClick={() => setExpanded(!expanded)}
       >
         <ChevronUpIcon
+          data-icon
           className={cn(
-            'h-3.5 w-3.5 transition-transform',
+            'size-3.5 transition-transform',
             expanded ? '' : 'rotate-180'
           )}
         />
@@ -117,10 +118,10 @@ export function TaskList({
               esc && (
                 <div
                   key={`esc-${t.id}`}
-                  className="mx-4 mb-2 rounded-md border border-orange-200 bg-orange-50 p-3 dark:border-orange-800 dark:bg-orange-950"
+                  className="mx-4 mb-2 rounded-md border border-orange-200 bg-orange-50 p-3 dark:border-orange-800/50 dark:bg-orange-950/50"
                 >
                   <div className="mb-2 flex items-start gap-2">
-                    <AlertCircleIcon className="mt-0.5 h-4 w-4 shrink-0 text-orange-500" />
+                    <AlertCircleIcon className="mt-0.5 size-4 shrink-0 text-orange-500" />
                     <div>
                       <p className="text-sm font-medium">{t.title}</p>
                       <p className="text-muted-foreground text-xs">
@@ -184,7 +185,7 @@ export function TaskList({
                 >
                   {t.cronExpression ? (
                     <CalendarClockIcon
-                      className="h-3.5 w-3.5 shrink-0"
+                      className="size-3.5 shrink-0"
                       style={{ color: '#6366f1' }}
                     />
                   ) : (
@@ -194,7 +195,7 @@ export function TaskList({
                     {t.title}
                   </span>
                   {t.cronExpression && (
-                    <span className="shrink-0 rounded bg-indigo-100 px-1.5 py-0.5 font-mono text-[10px] text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300">
+                    <span className="shrink-0 rounded bg-indigo-100 px-1.5 py-0.5 font-mono text-[10px] text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300/80">
                       {t.cronExpression}
                     </span>
                   )}

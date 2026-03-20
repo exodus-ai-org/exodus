@@ -187,7 +187,7 @@ export function DeepResearchProcess() {
           className="absolute right-3 rounded-full"
           onClick={() => setActiveDeepResearchId('')}
         >
-          <XIcon />
+          <XIcon data-icon />
         </Button>
       </div>
       {activeDeepResearchId && (

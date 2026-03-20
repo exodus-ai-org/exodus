@@ -72,7 +72,7 @@ function CitationChip({ source }: { num: number; source: WebSearchResult }) {
               className="h-32 w-full object-cover"
             />
           )}
-          <div className="space-y-1 p-3">
+          <div className="flex flex-col gap-1 p-3">
             <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
               <img src={favicon} className="size-3" alt="" />
               {new URL(source.link).hostname}

@@ -9,8 +9,8 @@ export function S3({ form }: { form: UseFormReturnType }) {
   return (
     <>
       <Alert className="mb-4">
-        <AlertCircleIcon className="h-4 w-4" />
-        <AlertDescription className="space-y-2 text-sm">
+        <AlertCircleIcon className="size-4" data-icon />
+        <AlertDescription className="flex flex-col gap-2 text-sm">
           <p>
             By default, Exodus encodes attachments as <strong>base64</strong>{' '}
             inline in the prompt. For large files or vision-heavy workflows,
@@ -19,7 +19,7 @@ export function S3({ form }: { form: UseFormReturnType }) {
           <p>
             <strong>Requirements before configuring:</strong>
           </p>
-          <ul className="list-disc space-y-1 pl-4">
+          <ul className="flex list-disc flex-col gap-1 pl-4">
             <li>
               <strong>Public read access</strong> — AWS blocks public access by
               default. You must disable "Block all public access" on the bucket

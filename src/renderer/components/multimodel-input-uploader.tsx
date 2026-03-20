@@ -28,14 +28,14 @@ export function MultiModelInputUploader() {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger>
-          <Button variant="ghost" className="relative h-6 w-6 rounded-full">
-            <PaperclipIcon />
+          <Button variant="ghost" className="relative size-6 rounded-full">
+            <PaperclipIcon data-icon />
             <input
               ref={ref}
               type="file"
               accept="image/*"
               multiple
-              className="absolute top-0 left-0 z-100 h-6 w-6 opacity-0"
+              className="absolute top-0 left-0 z-100 size-6 opacity-0"
               onChange={handleUploadFile}
             />
           </Button>

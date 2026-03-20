@@ -83,7 +83,7 @@ export function AgentConfigPanel({
         </SheetHeader>
 
         <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-4">
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="agent-name">Name</Label>
             <Input
               id="agent-name"
@@ -93,7 +93,7 @@ export function AgentConfigPanel({
             />
           </div>
 
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="agent-desc">Description</Label>
             <Textarea
               id="agent-desc"
@@ -104,7 +104,7 @@ export function AgentConfigPanel({
             />
           </div>
 
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="agent-prompt">System Prompt</Label>
             <Textarea
               id="agent-prompt"
@@ -116,7 +116,7 @@ export function AgentConfigPanel({
             />
           </div>
 
-          <div className="space-y-1.5">
+          <div className="flex flex-col gap-1.5">
             <Label htmlFor="agent-tools">
               Tool Allow List{' '}
               <span className="text-muted-foreground font-normal">
@@ -151,7 +151,7 @@ export function AgentConfigPanel({
             className="w-full"
             onClick={() => onDelete(displayAgent.id)}
           >
-            <Trash2Icon className="mr-1 h-3.5 w-3.5" />
+            <Trash2Icon data-icon className="mr-1 size-3.5" />
             Delete Agent
           </Button>
         </SheetFooter>

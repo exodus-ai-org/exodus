@@ -63,9 +63,9 @@ function useDebounce<T>(value: T, delay: number): T {
 
 function SkillCardSkeleton() {
   return (
-    <div className="bg-card space-y-3 rounded-lg border p-4">
+    <div className="bg-card flex flex-col gap-3 rounded-lg border p-4">
       <div className="flex items-start justify-between gap-3">
-        <div className="flex-1 space-y-2">
+        <div className="flex flex-1 flex-col gap-2">
           <Skeleton className="h-4 w-32" />
           <Skeleton className="h-3 w-full" />
           <Skeleton className="h-3 w-3/4" />
@@ -98,7 +98,7 @@ function RegistrySkillCard({
   const version = skill.latestVersion?.version ?? skill.tags?.latest ?? 'latest'
 
   return (
-    <div className="bg-card hover:bg-accent/30 space-y-3 rounded-lg border p-4 transition-colors">
+    <div className="bg-card hover:bg-accent/30 flex flex-col gap-3 rounded-lg border p-4 transition-colors">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="mb-1.5 flex items-center gap-2">
@@ -106,7 +106,7 @@ function RegistrySkillCard({
               <img
                 src={skill.ownerImage}
                 alt=""
-                className="h-5 w-5 shrink-0 rounded-full"
+                className="size-5 shrink-0 rounded-full"
               />
             )}
             <h3 className="truncate text-sm leading-tight font-semibold">
@@ -135,15 +135,15 @@ function RegistrySkillCard({
           className="shrink-0"
         >
           {isLoading ? (
-            <Loader2Icon className="h-3.5 w-3.5 animate-spin" />
+            <Loader2Icon data-icon className="size-3.5 animate-spin" />
           ) : isInstalled ? (
             <>
-              <PackageCheckIcon className="mr-1 h-3.5 w-3.5" />
+              <PackageCheckIcon data-icon className="mr-1 size-3.5" />
               Installed
             </>
           ) : (
             <>
-              <DownloadIcon className="mr-1 h-3.5 w-3.5" />
+              <DownloadIcon data-icon className="mr-1 size-3.5" />
               Install
             </>
           )}
@@ -152,19 +152,19 @@ function RegistrySkillCard({
       <div className="text-muted-foreground flex flex-wrap items-center gap-3 text-xs">
         {skill.stats?.downloads != null && (
           <span className="flex items-center gap-1">
-            <DownloadIcon className="h-3 w-3" />
+            <DownloadIcon className="size-3" />
             {skill.stats.downloads.toLocaleString()}
           </span>
         )}
         {skill.stats?.stars != null && (
           <span className="flex items-center gap-1">
-            <StarIcon className="h-3 w-3" />
+            <StarIcon className="size-3" />
             {skill.stats.stars.toLocaleString()}
           </span>
         )}
         {skill.stats?.installsAllTime != null && (
           <span className="flex items-center gap-1">
-            <PackageCheckIcon className="h-3 w-3" />
+            <PackageCheckIcon className="size-3" />
             {skill.stats.installsAllTime.toLocaleString()} installs
           </span>
         )}
@@ -191,7 +191,7 @@ function SearchResultCard({
   const isLoading = pendingSlug === slug
 
   return (
-    <div className="bg-card hover:bg-accent/30 space-y-2 rounded-lg border p-4 transition-colors">
+    <div className="bg-card hover:bg-accent/30 flex flex-col gap-2 rounded-lg border p-4 transition-colors">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex items-center gap-2">
@@ -218,15 +218,15 @@ function SearchResultCard({
           className="shrink-0"
         >
           {isLoading ? (
-            <Loader2Icon className="h-3.5 w-3.5 animate-spin" />
+            <Loader2Icon data-icon className="size-3.5 animate-spin" />
           ) : isInstalled ? (
             <>
-              <PackageCheckIcon className="mr-1 h-3.5 w-3.5" />
+              <PackageCheckIcon data-icon className="mr-1 size-3.5" />
               Installed
             </>
           ) : (
             <>
-              <DownloadIcon className="mr-1 h-3.5 w-3.5" />
+              <DownloadIcon data-icon className="mr-1 size-3.5" />
               Install
             </>
           )}
@@ -252,7 +252,7 @@ function InstalledSkillCard({
   const isLoading = pendingSlug === skill.slug
 
   return (
-    <div className="bg-card hover:bg-accent/30 space-y-3 rounded-lg border p-4 transition-colors">
+    <div className="bg-card hover:bg-accent/30 flex flex-col gap-3 rounded-lg border p-4 transition-colors">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex items-center gap-2">
@@ -291,15 +291,15 @@ function InstalledSkillCard({
           className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
         >
           {isLoading ? (
-            <Loader2Icon className="h-3.5 w-3.5 animate-spin" />
+            <Loader2Icon data-icon className="size-3.5 animate-spin" />
           ) : (
-            <Trash2Icon className="h-3.5 w-3.5" />
+            <Trash2Icon data-icon className="size-3.5" />
           )}
         </Button>
       </div>
       <Separator />
       <div className="flex items-center justify-between">
-        <div className="space-y-0.5">
+        <div className="flex flex-col gap-0.5">
           <p className="text-xs font-medium">Inject into system prompt</p>
           <p className="text-muted-foreground text-xs">
             When active, this skill's instructions are sent to the AI
@@ -460,7 +460,7 @@ export function SkillsMarket() {
         {/* Search bar + upload */}
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
-            <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
+            <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
             <Input
               placeholder="Search skills..."
               value={search}
@@ -475,9 +475,9 @@ export function SkillsMarket() {
             onClick={handleInstallLocal}
           >
             {uploading ? (
-              <Loader2Icon className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              <Loader2Icon data-icon className="mr-1.5 size-3.5 animate-spin" />
             ) : (
-              <UploadIcon className="mr-1.5 h-3.5 w-3.5" />
+              <UploadIcon data-icon className="mr-1.5 size-3.5" />
             )}
             Install Local
           </Button>
@@ -489,11 +489,11 @@ export function SkillsMarket() {
         >
           <TabsList className="w-full">
             <TabsTrigger value="browse" className="flex-1">
-              <PackageIcon className="mr-1.5 h-3.5 w-3.5" />
+              <PackageIcon data-icon className="mr-1.5 size-3.5" />
               Browse
             </TabsTrigger>
             <TabsTrigger value="installed" className="flex-1">
-              <PackageCheckIcon className="mr-1.5 h-3.5 w-3.5" />
+              <PackageCheckIcon data-icon className="mr-1.5 size-3.5" />
               Installed
               {installedData?.data?.length ? (
                 <Badge
@@ -509,7 +509,7 @@ export function SkillsMarket() {
           {/* Browse tab */}
           <TabsContent value="browse" className="mt-3 flex-1 overflow-hidden">
             <ScrollArea className="h-full">
-              <div className="space-y-3">
+              <div className="flex flex-col gap-3">
                 {/* Search results */}
                 {isSearching && (
                   <>
@@ -519,7 +519,7 @@ export function SkillsMarket() {
                       ))
                     ) : searchData?.data?.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-16 text-center">
-                        <SearchIcon className="text-muted-foreground/40 mb-3 h-10 w-10" />
+                        <SearchIcon className="text-muted-foreground/40 mb-3 size-10" />
                         <p className="text-muted-foreground text-sm font-medium">
                           No results found
                         </p>
@@ -567,7 +567,7 @@ export function SkillsMarket() {
                       </div>
                     ) : registryData?.data?.items?.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-16 text-center">
-                        <PackageIcon className="text-muted-foreground/40 mb-3 h-10 w-10" />
+                        <PackageIcon className="text-muted-foreground/40 mb-3 size-10" />
                         <p className="text-muted-foreground text-sm font-medium">
                           No skills available
                         </p>
@@ -602,7 +602,10 @@ export function SkillsMarket() {
                               disabled={!hasNextPage || registryLoading}
                             >
                               Next
-                              <ChevronRightIcon className="ml-1 h-3.5 w-3.5" />
+                              <ChevronRightIcon
+                                data-icon
+                                className="ml-1 size-3.5"
+                              />
                             </Button>
                           </div>
                         )}
@@ -620,14 +623,14 @@ export function SkillsMarket() {
             className="mt-3 flex-1 overflow-hidden"
           >
             <ScrollArea className="h-full">
-              <div className="space-y-3 pr-3 pb-4">
+              <div className="flex flex-col gap-3 pr-3 pb-4">
                 {!installedData ? (
                   Array.from({ length: 3 }).map((_, i) => (
                     <SkillCardSkeleton key={i} />
                   ))
                 ) : installedData.data?.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 text-center">
-                    <PackageIcon className="text-muted-foreground/40 mb-3 h-10 w-10" />
+                    <PackageIcon className="text-muted-foreground/40 mb-3 size-10" />
                     <p className="text-muted-foreground text-sm font-medium">
                       No skills installed
                     </p>

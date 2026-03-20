@@ -53,7 +53,7 @@ export function PlacesAccordion({
               >
                 <AccordionTrigger className="px-4 py-3 hover:no-underline">
                   <div className="flex w-full items-center text-left">
-                    <div className="relative mr-4 h-16 w-16 shrink-0 overflow-hidden rounded-md">
+                    <div className="relative mr-4 size-16 shrink-0 overflow-hidden rounded-md">
                       <LazyLoadImage
                         src={parseImg(place.photos?.[0])}
                         alt={place.displayName?.text ?? ''}
@@ -65,7 +65,7 @@ export function PlacesAccordion({
                       </h3>
                       <div className="mt-1 flex items-center">
                         <div className="flex items-center">
-                          <StarIcon className="h-4 w-4 fill-yellow-500 text-yellow-500" />
+                          <StarIcon className="size-4 fill-yellow-500 text-yellow-500" />
                           <span className="ml-1 text-sm font-medium">
                             {typeof place.rating === 'number' &&
                             Number.isInteger(place.rating)
@@ -73,7 +73,7 @@ export function PlacesAccordion({
                               : place.rating}
                           </span>
                           {place.userRatingCount ? (
-                            <span className="ml-1 text-sm text-gray-500">
+                            <span className="text-muted-foreground ml-1 text-sm">
                               ({place.userRatingCount})
                             </span>
                           ) : null}
@@ -99,9 +99,9 @@ export function PlacesAccordion({
 
                 <AccordionContent className="px-0 pb-0">
                   <div className="border-t px-4 pt-4">
-                    <div className="mb-4 space-y-2 text-sm">
+                    <div className="mb-4 flex flex-col gap-2 text-sm">
                       <div className="flex items-start">
-                        <MapPinIcon className="mt-0.5 mr-2 h-4 w-4 shrink-0 text-gray-500" />
+                        <MapPinIcon className="text-muted-foreground mt-0.5 mr-2 size-4 shrink-0" />
 
                         <a
                           className="text-blue-500 hover:underline"
@@ -118,7 +118,7 @@ export function PlacesAccordion({
 
                       {place.websiteUri && (
                         <div className="flex items-center">
-                          <GlobeIcon className="mr-2 h-4 w-4 text-gray-500" />
+                          <GlobeIcon className="text-muted-foreground mr-2 size-4" />
                           <a
                             href={place.websiteUri}
                             target="_blank"
@@ -132,8 +132,8 @@ export function PlacesAccordion({
 
                       {place.internationalPhoneNumber && (
                         <div className="flex items-center">
-                          <PhoneIcon className="mr-2 h-4 w-4 text-gray-500" />
-                          <span className="text-gray-500">
+                          <PhoneIcon className="text-muted-foreground mr-2 size-4" />
+                          <span className="text-muted-foreground">
                             {place.internationalPhoneNumber}
                           </span>
                         </div>
@@ -165,14 +165,14 @@ export function PlacesAccordion({
                             ))}
                           </div>
                         ) : (
-                          <p className="col-span-3 py-4 text-center text-gray-500">
+                          <p className="text-muted-foreground col-span-3 py-4 text-center">
                             No photos yet
                           </p>
                         )}
                       </TabsContent>
 
                       <TabsContent value="reviews">
-                        <div className="mb-4 space-y-3">
+                        <div className="mb-4 flex flex-col gap-3">
                           {place.reviews && place.reviews.length > 0 ? (
                             place.reviews.map((review, index) => (
                               <div
@@ -180,7 +180,7 @@ export function PlacesAccordion({
                                 className="rounded-lg border p-3"
                               >
                                 <div className="mb-2 flex items-center gap-2">
-                                  <Avatar className="h-8 w-8">
+                                  <Avatar className="size-8">
                                     {review.authorAttribution?.photoUri && (
                                       <AvatarImage
                                         src={review.authorAttribution.photoUri}
@@ -204,22 +204,22 @@ export function PlacesAccordion({
                                       {Array.from({ length: 5 }).map((_, i) => (
                                         <StarIcon
                                           key={i}
-                                          className={`h-3 w-3 ${i < (review?.rating || 0) ? 'fill-yellow-500 text-yellow-500' : 'text-gray-300'}`}
+                                          className={`size-3 ${i < (review?.rating || 0) ? 'fill-yellow-500 text-yellow-500' : 'text-muted-foreground'}`}
                                         />
                                       ))}
-                                      <span className="ml-1 text-xs text-gray-500">
+                                      <span className="text-muted-foreground ml-1 text-xs">
                                         {review.relativePublishTimeDescription}
                                       </span>
                                     </div>
                                   </div>
                                 </div>
-                                <p className="text-sm text-gray-500">
+                                <p className="text-muted-foreground text-sm">
                                   {review.text?.text}
                                 </p>
                               </div>
                             ))
                           ) : (
-                            <p className="py-4 text-center text-gray-500">
+                            <p className="text-muted-foreground py-4 text-center">
                               No comments yet
                             </p>
                           )}
@@ -228,7 +228,7 @@ export function PlacesAccordion({
 
                       <TabsContent value="hours">
                         {place.regularOpeningHours?.weekdayDescriptions ? (
-                          <div className="mb-4 space-y-1 text-sm">
+                          <div className="mb-4 flex flex-col gap-1 text-sm">
                             {place.regularOpeningHours.weekdayDescriptions.map(
                               (description, index) => {
                                 const [day, timeInfo] = description.split(': ')
@@ -246,7 +246,7 @@ export function PlacesAccordion({
                             )}
                           </div>
                         ) : (
-                          <p className="mb-4 py-4 text-center text-gray-500">
+                          <p className="text-muted-foreground mb-4 py-4 text-center">
                             No opening hours yet
                           </p>
                         )}

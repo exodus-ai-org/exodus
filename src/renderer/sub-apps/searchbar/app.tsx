@@ -85,10 +85,10 @@ export function FindBar() {
             findPrevious(query.trim())
           }}
           title="Previous match"
-          className="h-7 w-7 rounded-full"
+          className="size-7 rounded-full"
           disabled={!searchResult || searchResult.matches === 0}
         >
-          <ChevronUpIcon />
+          <ChevronUpIcon data-icon />
         </Button>
         <Button
           variant="ghost"
@@ -96,10 +96,10 @@ export function FindBar() {
             findNext(query.trim())
           }}
           title="Next match"
-          className="h-7 w-7 rounded-full"
+          className="size-7 rounded-full"
           disabled={!searchResult || searchResult.matches === 0}
         >
-          <ChevronDownIcon />
+          <ChevronDownIcon data-icon />
         </Button>
 
         <Button
@@ -107,9 +107,9 @@ export function FindBar() {
           variant="ghost"
           onClick={handleClose}
           title="Close"
-          className="h-7 w-7 rounded-full"
+          className="size-7 rounded-full"
         >
-          <XIcon />
+          <XIcon data-icon />
         </Button>
       </div>
     </div>

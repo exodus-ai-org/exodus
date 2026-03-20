@@ -118,23 +118,23 @@ export function ExecutionTimeline({
   const getIcon = (type: string) => {
     switch (type) {
       case 'agent_start':
-        return <BotIcon className="h-3.5 w-3.5 text-blue-500" />
+        return <BotIcon className="size-3.5 text-blue-500" />
       case 'message_update':
-        return <MessageSquareIcon className="text-foreground h-3.5 w-3.5" />
+        return <MessageSquareIcon className="text-foreground size-3.5" />
       case 'tool_start':
-        return <WrenchIcon className="h-3.5 w-3.5 text-yellow-500" />
+        return <WrenchIcon className="size-3.5 text-yellow-500" />
       case 'tool_end':
-        return <CheckCircle2Icon className="h-3.5 w-3.5 text-green-500" />
+        return <CheckCircle2Icon className="size-3.5 text-green-500" />
       case 'task_completed':
-        return <CheckCircle2Icon className="h-3.5 w-3.5 text-green-500" />
+        return <CheckCircle2Icon className="size-3.5 text-green-500" />
       case 'task_failed':
-        return <XCircleIcon className="h-3.5 w-3.5 text-red-500" />
+        return <XCircleIcon className="size-3.5 text-red-500" />
       case 'delegation_start':
-        return <Loader2Icon className="h-3.5 w-3.5 text-purple-500" />
+        return <Loader2Icon className="size-3.5 text-purple-500" />
       case 'escalation':
-        return <MessageSquareIcon className="h-3.5 w-3.5 text-orange-500" />
+        return <MessageSquareIcon className="size-3.5 text-orange-500" />
       default:
-        return <div className="h-3.5 w-3.5" />
+        return <div className="size-3.5" />
     }
   }
 
@@ -150,7 +150,7 @@ export function ExecutionTimeline({
           )}
         </div>
         <Button variant="ghost" size="icon-sm" onClick={onClose}>
-          <XIcon className="h-4 w-4" />
+          <XIcon data-icon className="size-4" />
         </Button>
       </div>
 
@@ -160,7 +160,7 @@ export function ExecutionTimeline({
             No events yet.
           </p>
         ) : (
-          <div className="space-y-3">
+          <div className="flex flex-col gap-3">
             {allEvents.map((evt, i) => (
               <div key={i} className="flex items-start gap-2">
                 <div className="mt-0.5 shrink-0">{getIcon(evt.type)}</div>

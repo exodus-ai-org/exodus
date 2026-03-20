@@ -112,9 +112,9 @@ function ToolBubble({ name, result }: { name: string; result?: string }) {
     <div className="flex justify-start">
       <div className="border-border bg-muted/40 max-w-[85%] rounded-xl border px-3 py-2 text-xs">
         <div className="text-muted-foreground mb-1 flex items-center gap-1.5 font-medium">
-          <WrenchIcon className="h-3.5 w-3.5" />
+          <WrenchIcon className="size-3.5" />
           <span>{name}</span>
-          <CheckCircle2Icon className="h-3.5 w-3.5 text-green-600" />
+          <CheckCircle2Icon className="size-3.5 text-green-600" />
         </div>
         {result &&
           (isLong ? (
@@ -143,9 +143,9 @@ function ToolBubble({ name, result }: { name: string; result?: string }) {
 function ErrorBubble({ message }: { message: string }) {
   return (
     <div className="flex justify-start">
-      <div className="max-w-[85%] rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-300">
+      <div className="border-destructive bg-destructive/10 text-destructive max-w-[85%] rounded-xl border px-3 py-2 text-xs">
         <div className="mb-1 flex items-center gap-1.5 font-medium">
-          <XCircleIcon className="h-3.5 w-3.5" />
+          <XCircleIcon className="size-3.5" />
           Execution failed
         </div>
         <pre className="break-words whitespace-pre-wrap">{message}</pre>
@@ -171,7 +171,7 @@ function CronRunHistory({ taskId }: { taskId: string }) {
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center">
-        <Loader2Icon className="text-muted-foreground h-5 w-5 animate-spin" />
+        <Loader2Icon className="text-muted-foreground size-5 animate-spin" />
       </div>
     )
   }
@@ -189,11 +189,11 @@ function CronRunHistory({ taskId }: { taskId: string }) {
       {children.map((child) => (
         <div key={child.id} className="flex items-center gap-3 px-6 py-3">
           {child.status === 'completed' ? (
-            <CheckIcon className="h-4 w-4 shrink-0 text-green-500" />
+            <CheckIcon className="size-4 shrink-0 text-green-500" />
           ) : child.status === 'failed' ? (
-            <AlertCircleIcon className="h-4 w-4 shrink-0 text-red-500" />
+            <AlertCircleIcon className="size-4 shrink-0 text-red-500" />
           ) : (
-            <CheckCircle2Icon className="text-muted-foreground h-4 w-4 shrink-0" />
+            <CheckCircle2Icon className="text-muted-foreground size-4 shrink-0" />
           )}
           <div className="min-w-0 flex-1">
             <p className="text-xs font-medium">
@@ -274,12 +274,12 @@ export function TaskLogSheet({ taskId, agents, onClose }: TaskLogSheetProps) {
           </SheetTitle>
           {isCronTemplate ? (
             <p className="text-muted-foreground flex items-center gap-1 text-xs">
-              <CalendarClockIcon className="h-3 w-3" />
+              <CalendarClockIcon className="size-3" />
               <span className="font-mono">{detail?.cronExpression}</span>
             </p>
           ) : agentName ? (
             <p className="text-muted-foreground flex items-center gap-1 text-xs">
-              <BotIcon className="h-3 w-3" />
+              <BotIcon className="size-3" />
               {agentName}
             </p>
           ) : null}
@@ -289,7 +289,7 @@ export function TaskLogSheet({ taskId, agents, onClose }: TaskLogSheetProps) {
         <div className="flex-1 overflow-y-auto">
           {loading ? (
             <div className="flex h-full items-center justify-center">
-              <Loader2Icon className="text-muted-foreground h-5 w-5 animate-spin" />
+              <Loader2Icon className="text-muted-foreground size-5 animate-spin" />
             </div>
           ) : isCronTemplate && taskId ? (
             <CronRunHistory taskId={taskId} />
@@ -298,7 +298,7 @@ export function TaskLogSheet({ taskId, agents, onClose }: TaskLogSheetProps) {
               No execution logs yet.
             </div>
           ) : (
-            <div className="space-y-4 px-6 py-5">
+            <div className="flex flex-col gap-4 px-6 py-5">
               {items.map((item, i) => {
                 if (item.kind === 'user')
                   return <UserBubble key={i} text={item.text} />

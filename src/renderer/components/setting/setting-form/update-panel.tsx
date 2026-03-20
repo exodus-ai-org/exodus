@@ -25,7 +25,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
           Check for the latest version
         </span>
         <Button variant="outline" size="sm" onClick={() => updaterCheck()}>
-          <RefreshCwIcon className="mr-1.5 h-3.5 w-3.5" />
+          <RefreshCwIcon className="mr-1.5 size-3.5" data-icon />
           Check for Updates
         </Button>
       </div>
@@ -35,7 +35,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
   if (state === 'checking') {
     return (
       <div className="bg-muted/40 flex items-center gap-3 rounded-lg px-4 py-3">
-        <LoaderIcon className="text-muted-foreground h-4 w-4 animate-spin" />
+        <LoaderIcon className="text-muted-foreground size-4 animate-spin" />
         <span className="text-muted-foreground text-sm">
           Checking for updates…
         </span>
@@ -47,11 +47,11 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
     return (
       <div className="bg-muted/40 flex items-center justify-between rounded-lg px-4 py-3">
         <div className="flex items-center gap-3">
-          <CheckCircleIcon className="h-4 w-4 text-green-500" />
+          <CheckCircleIcon className="size-4 text-green-500" />
           <span className="text-sm">You're on the latest version</span>
         </div>
         <Button variant="ghost" size="sm" onClick={() => updaterCheck()}>
-          <RefreshCwIcon className="mr-1.5 h-3.5 w-3.5" />
+          <RefreshCwIcon className="mr-1.5 size-3.5" data-icon />
           Check again
         </Button>
       </div>
@@ -62,7 +62,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
     return (
       <div className="bg-muted/40 flex items-center justify-between rounded-lg px-4 py-3">
         <div className="flex items-center gap-3">
-          <ZapIcon className="h-4 w-4 text-blue-500" />
+          <ZapIcon className="size-4 text-blue-500" />
           <div className="flex flex-col">
             <span className="text-sm font-medium">Update available</span>
             {availableVersion && (
@@ -74,7 +74,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
         </div>
         {!autoUpdate && (
           <Button size="sm" onClick={() => updaterDownload()}>
-            <DownloadIcon className="mr-1.5 h-3.5 w-3.5" />
+            <DownloadIcon className="mr-1.5 size-3.5" data-icon />
             Download
           </Button>
         )}
@@ -87,7 +87,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
       <div className="bg-muted/40 flex flex-col gap-2 rounded-lg px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <DownloadIcon className="text-muted-foreground h-4 w-4" />
+            <DownloadIcon className="text-muted-foreground size-4" />
             <span className="text-sm">Downloading update…</span>
           </div>
           <span className="text-muted-foreground text-xs">
@@ -108,7 +108,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
     return (
       <div className="bg-muted/40 flex items-center justify-between rounded-lg px-4 py-3">
         <div className="flex items-center gap-3">
-          <CheckCircleIcon className="h-4 w-4 text-green-500" />
+          <CheckCircleIcon className="size-4 text-green-500" />
           <div className="flex flex-col">
             <span className="text-sm font-medium">Update ready to install</span>
             <span className="text-muted-foreground text-xs">
@@ -127,7 +127,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
     return (
       <div className="bg-muted/40 flex items-center justify-between rounded-lg px-4 py-3">
         <div className="flex items-center gap-3">
-          <AlertCircleIcon className="text-destructive h-4 w-4" />
+          <AlertCircleIcon className="text-destructive size-4" />
           <div className="flex flex-col">
             <span className="text-sm font-medium">Update failed</span>
             {errorMessage && (
@@ -138,7 +138,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
           </div>
         </div>
         <Button variant="outline" size="sm" onClick={() => updaterCheck()}>
-          <RefreshCwIcon className="mr-1.5 h-3.5 w-3.5" />
+          <RefreshCwIcon className="mr-1.5 size-3.5" data-icon />
           Retry
         </Button>
       </div>

@@ -45,7 +45,11 @@ export function MessageReasoning({
               setIsExpanded(!isExpanded)
             }}
           >
-            {isExpanded ? <ChevronUpIcon /> : <ChevronDownIcon />}
+            {isExpanded ? (
+              <ChevronUpIcon data-icon />
+            ) : (
+              <ChevronDownIcon data-icon />
+            )}
           </Button>
         </div>
       )}
@@ -61,7 +65,7 @@ export function MessageReasoning({
             variants={variants}
             transition={{ duration: 0.2, ease: 'easeInOut' }}
             style={{ overflow: 'hidden' }}
-            className="flex flex-col gap-4 border-l pl-4 text-zinc-600 dark:text-zinc-400"
+            className="text-muted-foreground flex flex-col gap-4 border-l pl-4"
           >
             <p className="text-sm whitespace-break-spaces">{reasoning}</p>
           </motion.div>

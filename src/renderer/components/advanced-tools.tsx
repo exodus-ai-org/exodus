@@ -16,17 +16,17 @@ import {
 const advancedToolsList = [
   {
     key: AdvancedToolsType.WebSearch,
-    icon: <GlobeIcon />,
+    icon: <GlobeIcon data-icon />,
     desc: AdvancedToolsType.WebSearch
   },
   {
     key: AdvancedToolsType.Reasoning,
-    icon: <LightbulbIcon />,
+    icon: <LightbulbIcon data-icon />,
     desc: AdvancedToolsType.Reasoning
   },
   {
     key: AdvancedToolsType.DeepResearch,
-    icon: <TelescopeIcon />,
+    icon: <TelescopeIcon data-icon />,
     desc: AdvancedToolsType.DeepResearch
   }
 ]
@@ -75,7 +75,7 @@ export function AdvancedTools() {
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  'text-ring hover:text-ring h-6 w-6 rounded-full bg-transparent',
+                  'text-ring hover:text-ring size-6 rounded-full bg-transparent',
                   {
                     ['text-[#0285ff] hover:text-[#0285ff] dark:text-[#48aaff] hover:dark:text-[#48aaff]']:
                       advancedTools.includes(key)

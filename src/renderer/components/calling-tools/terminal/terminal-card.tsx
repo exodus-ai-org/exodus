@@ -18,14 +18,14 @@ export function TerminalCard({ toolResult }: { toolResult: TerminalResult }) {
     <div className="overflow-hidden rounded-lg border font-mono text-xs">
       {/* Header */}
       <div className="bg-muted/60 flex items-center gap-2 border-b px-3 py-2">
-        <TerminalIcon className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
+        <TerminalIcon className="text-muted-foreground size-3.5 shrink-0" />
         <span className="text-foreground/80 flex-1 truncate">
           {toolResult.command}
         </span>
         {success ? (
-          <CheckCircle2Icon className="h-3.5 w-3.5 shrink-0 text-green-500" />
+          <CheckCircle2Icon className="size-3.5 shrink-0 text-green-500" />
         ) : (
-          <XCircleIcon className="text-destructive h-3.5 w-3.5 shrink-0" />
+          <XCircleIcon className="text-destructive size-3.5 shrink-0" />
         )}
         <span
           className={cn(

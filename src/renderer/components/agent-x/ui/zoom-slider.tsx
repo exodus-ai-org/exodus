@@ -34,7 +34,7 @@ export function ZoomSlider({
         size="icon"
         onClick={() => zoomOut({ duration: 300 })}
       >
-        <Minus className="h-4 w-4" />
+        <Minus data-icon className="size-4" />
       </Button>
       <Slider
         className="flex w-[100px]! shrink-0"
@@ -49,7 +49,7 @@ export function ZoomSlider({
         size="icon"
         onClick={() => zoomIn({ duration: 300 })}
       >
-        <Plus className="h-4 w-4" />
+        <Plus data-icon className="size-4" />
       </Button>
       <Button
         className={cn('tabular-nums')}
@@ -63,7 +63,7 @@ export function ZoomSlider({
         size="icon"
         onClick={() => fitView({ duration: 300 })}
       >
-        <Maximize className="h-4 w-4" />
+        <Maximize data-icon className="size-4" />
       </Button>
     </Panel>
   )
