@@ -2,6 +2,7 @@ import type { AgentXSseEvent } from '@shared/types/agent-x'
 import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import { z } from 'zod'
+import { autoFillTask } from '../../ai/agent-x/auto-fill'
 import { autoRouteTask } from '../../ai/agent-x/auto-router'
 import {
   executeTask,
@@ -370,6 +371,19 @@ agentX.post('/auto-route', async (c) => {
   }
 
   const result = await autoRouteTask(description)
+  return successResponse(c, result)
+})
+
+// ─── Auto-Fill ──────────────────────────────────────────────────────────────
+
+agentX.post('/auto-fill', async (c) => {
+  const { title } = (await c.req.json()) as { title: string }
+
+  if (!title) {
+    throw new ChatSDKError('bad_request:agent_x', 'Title is required')
+  }
+
+  const result = await autoFillTask(title)
   return successResponse(c, result)
 })
 

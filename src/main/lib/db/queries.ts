@@ -265,3 +265,23 @@ export async function getDeepResearchMessagesById({ id }: { id: string }) {
     throw error
   }
 }
+
+/**
+ * Aggregate token usage and costs from all assistant messages.
+ * Returns per-row data so the caller can group however they want.
+ */
+export async function getUsageRows() {
+  const rows = await db
+    .select({
+      model: message.model,
+      provider: message.provider,
+      usage: message.usage,
+      createdAt: message.createdAt
+    })
+    .from(message)
+    .where(
+      and(eq(message.role, 'assistant'), sql`${message.usage} is not null`)
+    )
+    .orderBy(desc(message.createdAt))
+  return rows
+}

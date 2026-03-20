@@ -25,14 +25,18 @@ type ModelParamValues = {
   }
 }
 
+const gptImageParams = {
+  sizes: ['1024x1024', '1536x1024', '1024x1536', 'auto'],
+  qualities: ['high', 'medium', 'low', 'auto'],
+  outputFormats: ['png', 'jpeg', 'webp'],
+  generatedCounts: { min: 1, max: 10 },
+  backgrounds: ['transparent', 'opaque', 'auto']
+}
+
 const modelParams: ModelParamValues = {
-  'gpt-image-1': {
-    sizes: ['1024x1024', '1536x1024', '1024x1536', 'auto'],
-    qualities: ['high', 'medium', 'low', 'auto'],
-    outputFormats: ['png', 'jpeg', 'webp'],
-    generatedCounts: { min: 1, max: 10 },
-    backgrounds: ['transparent', 'opaque', 'auto']
-  },
+  'gpt-image-1.5': gptImageParams,
+  'gpt-image-1': gptImageParams,
+  'gpt-image-1-mini': gptImageParams,
   'dall-e-3': {
     sizes: ['1024x1024', '1792x1024', '1024x1792'],
     qualities: ['hd', 'standard', 'auto'],
@@ -62,7 +66,7 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
   }, [form, model])
 
   useEffect(() => {
-    if (model === 'gpt-image-1') {
+    if (model?.startsWith('gpt-image-')) {
       if (background === 'transparent') {
         form.setValue('image.outputFormat', 'png')
       }
@@ -95,7 +99,9 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
                 onValueChange={field.onChange}
                 placeholder="Select a model"
                 options={[
+                  { value: 'gpt-image-1.5', label: 'gpt-image-1.5' },
                   { value: 'gpt-image-1', label: 'gpt-image-1' },
+                  { value: 'gpt-image-1-mini', label: 'gpt-image-1-mini' },
                   { value: 'dall-e-3', label: 'dall-e-3' },
                   { value: 'dall-e-2', label: 'dall-e-2' }
                 ]}
@@ -171,7 +177,7 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
                       placeholder={paramsOfModel?.outputFormats?.[0]}
                     />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="w-full">
                     <SelectGroup>
                       {paramsOfModel?.outputFormats?.map((outputFormat) => (
                         <SelectItem

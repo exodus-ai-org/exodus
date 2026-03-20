@@ -1,27 +1,74 @@
 import type { AgentTool, AgentToolResult } from '@mariozechner/pi-agent-core'
 import { Type } from '@mariozechner/pi-ai'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
+import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
+import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js'
 import { McpTools } from '@shared/types/ai'
 import { getAllMcpServers, getMcpServersByNames } from '../db/agent-x-queries'
 import type { McpServer } from '../db/schema'
 
-// Lazy cache: MCP servers are connected on first use.
-// Cache keyed by server name for per-server invalidation.
-const mcpToolsCache = new Map<string, McpTools>()
+// Cache stores both tools and the client so we can close connections on invalidation.
+interface CachedMcp {
+  tools: McpTools
+  client: Client
+}
+const mcpCache = new Map<string, CachedMcp>()
 
-async function connectMcpServer(server: McpServer): Promise<McpTools> {
-  const cached = mcpToolsCache.get(server.name)
-  if (cached) return cached
+/** Close and remove a single server from cache. */
+export async function invalidateMcpCache(serverName: string) {
+  const cached = mcpCache.get(serverName)
+  if (cached) {
+    cached.client.close().catch(() => {})
+    mcpCache.delete(serverName)
+  }
+}
 
-  const transport = new StdioClientTransport({
-    command: server.command,
+/** Close all connections and clear the entire cache. */
+export async function invalidateAllMcpCache() {
+  for (const [, cached] of mcpCache) {
+    cached.client.close().catch(() => {})
+  }
+  mcpCache.clear()
+}
+
+function createTransport(server: McpServer) {
+  const type = server.transportType ?? 'stdio'
+
+  if (type === 'streamable-http' && server.url) {
+    return new StreamableHTTPClientTransport(new URL(server.url), {
+      requestInit: server.headers
+        ? { headers: server.headers as Record<string, string> }
+        : undefined
+    })
+  }
+
+  if (type === 'sse' && server.url) {
+    return new SSEClientTransport(new URL(server.url), {
+      requestInit: server.headers
+        ? { headers: server.headers as Record<string, string> }
+        : undefined
+    })
+  }
+
+  // Default: stdio
+  return new StdioClientTransport({
+    command: server.command ?? '',
     args: (server.args as string[]) ?? [],
     env: (server.env as Record<string, string>) ?? undefined
   })
+}
+
+async function connectMcpServer(server: McpServer): Promise<McpTools> {
+  const cached = mcpCache.get(server.name)
+  if (cached) return cached.tools
+
+  const transport = createTransport(server)
   const client = new Client({ name: 'exodus', version: '1.0.0' })
   await client.connect(transport)
-  console.log(`✅ The <${server.name}> MCP has been registered.`)
+  console.log(
+    `✅ The <${server.name}> MCP has been registered (${server.transportType ?? 'stdio'}).`
+  )
 
   const toolsResult = await client.listTools()
 
@@ -78,7 +125,7 @@ async function connectMcpServer(server: McpServer): Promise<McpTools> {
   })
 
   const tools: McpTools = { mcpServerName: server.name, tools: agentTools }
-  mcpToolsCache.set(server.name, tools)
+  mcpCache.set(server.name, { tools, client })
   return tools
 }
 

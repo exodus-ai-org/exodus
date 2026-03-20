@@ -16,6 +16,7 @@ export function DeepResearch({ form }: { form: UseFormReturnType }) {
             error={fieldState.error}
           >
             <Input
+              placeholder="4"
               type="number"
               id="deep-research-breadth-input"
               autoFocus
@@ -36,6 +37,7 @@ export function DeepResearch({ form }: { form: UseFormReturnType }) {
             error={fieldState.error}
           >
             <Input
+              placeholder="2"
               type="number"
               id="deep-research-depth-input"
               {...field}

@@ -1,6 +1,6 @@
 {
-  "id": "754f01c3-89a6-45de-87f1-7273bbeeec46",
-  "prevId": "abfa8c57-6639-4813-b10e-bf7e94734782",
+  "id": "1a7dd588-28a7-496a-8931-05dd2ed29518",
+  "prevId": "754f01c3-89a6-45de-87f1-7273bbeeec46",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -742,11 +742,19 @@
           "notNull": false,
           "default": "''"
         },
+        "transportType": {
+          "name": "transportType",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'stdio'"
+        },
         "command": {
           "name": "command",
           "type": "text",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false,
+          "default": "''"
         },
         "args": {
           "name": "args",
@@ -757,6 +765,18 @@
         },
         "env": {
           "name": "env",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "url": {
+          "name": "url",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "headers": {
+          "name": "headers",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false

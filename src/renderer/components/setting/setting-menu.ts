@@ -85,17 +85,17 @@ export const menus = {
       title: SettingLabel.GraphRag
     },
     {
-      icon: DatabaseIcon,
-      title: SettingLabel.DataControls,
-      items: [{ title: SettingLabel.AmazonS3 }]
-    },
-    {
       icon: ChromeIcon,
       title: SettingLabel.BrowserUse
     },
     {
       icon: ComputerIcon,
       title: SettingLabel.ComputerUse
+    },
+    {
+      icon: DatabaseIcon,
+      title: SettingLabel.DataControls,
+      items: [{ title: SettingLabel.AmazonS3 }]
     },
     {
       icon: InfoIcon,

@@ -1,11 +1,4 @@
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -16,15 +9,21 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
+import {
+  Sheet,
+  SheetContent,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle
+} from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
-import { autoRoute, createTaskApi } from '@/services/agent-x'
+import { autoFill, createTaskApi } from '@/services/agent-x'
 import {
   type AgentData,
   type DepartmentData,
   type TaskData,
   isTaskDispatchDialogOpenAtom
 } from '@/stores/agent-x'
-import type { AutoRouteResult } from '@shared/types/agent-x'
 import { useAtom } from 'jotai'
 import {
   CalendarClockIcon,
@@ -61,8 +60,7 @@ export function TaskDispatchDialog({
   const [description, setDescription] = useState('')
   const [selectedAgentId, setSelectedAgentId] = useState<string>('')
   const [priority, setPriority] = useState('medium')
-  const [routing, setRouting] = useState(false)
-  const [routeResult, setRouteResult] = useState<AutoRouteResult | null>(null)
+  const [filling, setFilling] = useState(false)
   const [submitting, setSubmitting] = useState(false)
 
   // Schedule
@@ -77,19 +75,33 @@ export function TaskDispatchDialog({
         : cronPreset
       : null
 
-  const handleAutoRoute = useCallback(async () => {
-    if (!description && !title) return
-    setRouting(true)
+  const handleAutoFill = useCallback(async () => {
+    if (!title.trim()) return
+    setFilling(true)
     try {
-      const result = await autoRoute(description || title)
-      setRouteResult(result)
-      if (result?.agentId) setSelectedAgentId(result.agentId)
+      const result = await autoFill(title)
+      if (!result) return
+      setDescription(result.description)
+      setMode(result.mode)
+      if (result.mode === 'cron' && result.cronExpression) {
+        const preset = CRON_PRESETS.find(
+          (p) => p.value === result.cronExpression
+        )
+        if (preset) {
+          setCronPreset(preset.value)
+        } else {
+          setCronPreset('custom')
+          setCronCustom(result.cronExpression)
+        }
+      }
+      if (result.agentId) setSelectedAgentId(result.agentId)
+      setPriority(result.priority)
     } catch (err) {
-      console.error('Auto-route failed:', err)
+      console.error('Auto-fill failed:', err)
     } finally {
-      setRouting(false)
+      setFilling(false)
     }
-  }, [title, description])
+  }, [title])
 
   const handleSubmit = useCallback(async () => {
     if (!title.trim()) return
@@ -109,7 +121,7 @@ export function TaskDispatchDialog({
       setTitle('')
       setDescription('')
       setSelectedAgentId('')
-      setRouteResult(null)
+      setPriority('medium')
       setMode('once')
       setCronPreset('')
       setCronCustom('')
@@ -134,22 +146,39 @@ export function TaskDispatchDialog({
   const canSubmit = title.trim() && (mode === 'once' || !!cronExpression)
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader>
-          <DialogTitle>Dispatch Task</DialogTitle>
-        </DialogHeader>
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetContent side="right" className="sm:max-w-lg">
+        <SheetHeader>
+          <SheetTitle>Dispatch Task</SheetTitle>
+        </SheetHeader>
 
-        <div className="flex flex-col gap-4 py-2">
-          {/* Title */}
+        <div className="flex flex-1 flex-col gap-5 overflow-y-auto px-4">
+          {/* Title + Smart Fill */}
           <div className="flex flex-col gap-1.5">
             <Label htmlFor="task-title">Title</Label>
-            <Input
-              id="task-title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Summarise today's Japan portfolio performance"
-            />
+            <div className="flex gap-2">
+              <Input
+                id="task-title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Summarise today's Japan portfolio performance"
+                className="flex-1"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleAutoFill}
+                disabled={filling || !title.trim()}
+                className="shrink-0"
+              >
+                {filling ? (
+                  <Loader2Icon className="mr-1 h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <SparklesIcon className="mr-1 h-3.5 w-3.5" />
+                )}
+                Smart Fill
+              </Button>
+            </div>
           </div>
 
           {/* Description */}
@@ -159,111 +188,86 @@ export function TaskDispatchDialog({
               id="task-desc"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              rows={3}
+              rows={4}
               placeholder="Detailed instructions for the agent..."
             />
           </div>
 
           {/* Schedule mode toggle */}
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => setMode('once')}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-md border px-3 py-2 text-xs transition-colors ${
-                mode === 'once'
-                  ? 'border-primary bg-primary/10 text-primary font-medium'
-                  : 'text-muted-foreground hover:bg-accent/50'
-              }`}
-            >
-              <ZapIcon className="h-3.5 w-3.5" />
-              One-time
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode('cron')}
-              className={`flex flex-1 items-center justify-center gap-1.5 rounded-md border px-3 py-2 text-xs transition-colors ${
-                mode === 'cron'
-                  ? 'border-primary bg-primary/10 text-primary font-medium'
-                  : 'text-muted-foreground hover:bg-accent/50'
-              }`}
-            >
-              <CalendarClockIcon className="h-3.5 w-3.5" />
-              Scheduled
-            </button>
-          </div>
-
-          {/* Cron config */}
-          {mode === 'cron' && (
-            <div className="flex flex-col gap-2">
-              <Label>Schedule</Label>
-              <Select
-                value={cronPreset}
-                onValueChange={(v) => setCronPreset(v ?? '')}
+          <div className="flex flex-col gap-1.5">
+            <Label>Schedule</Label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => setMode('once')}
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-md border px-3 py-2 text-xs transition-colors ${
+                  mode === 'once'
+                    ? 'border-primary bg-primary/10 text-primary font-medium'
+                    : 'text-muted-foreground hover:bg-accent/50'
+                }`}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a schedule…" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {CRON_PRESETS.map((p) => (
-                      <SelectItem key={p.value} value={p.value}>
-                        {p.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              {cronPreset === 'custom' && (
-                <Input
-                  value={cronCustom}
-                  onChange={(e) => setCronCustom(e.target.value)}
-                  placeholder="e.g.  0 8 * * 1-5  (weekdays at 8 AM)"
-                  className="font-mono text-xs"
-                />
-              )}
-              {cronExpression && cronPreset !== 'custom' && (
-                <p className="text-muted-foreground font-mono text-xs">
-                  {cronExpression}
-                </p>
-              )}
+                <ZapIcon className="h-3.5 w-3.5" />
+                One-time
+              </button>
+              <button
+                type="button"
+                onClick={() => setMode('cron')}
+                className={`flex flex-1 items-center justify-center gap-1.5 rounded-md border px-3 py-2 text-xs transition-colors ${
+                  mode === 'cron'
+                    ? 'border-primary bg-primary/10 text-primary font-medium'
+                    : 'text-muted-foreground hover:bg-accent/50'
+                }`}
+              >
+                <CalendarClockIcon className="h-3.5 w-3.5" />
+                Scheduled
+              </button>
             </div>
-          )}
+
+            {/* Cron config */}
+            {mode === 'cron' && (
+              <div className="mt-1 flex flex-col gap-2">
+                <Select
+                  value={cronPreset}
+                  onValueChange={(v) => setCronPreset(v ?? '')}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a schedule…" />
+                  </SelectTrigger>
+                  <SelectContent className="w-full">
+                    <SelectGroup>
+                      {CRON_PRESETS.map((p) => (
+                        <SelectItem key={p.value} value={p.value}>
+                          {p.label}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                {cronPreset === 'custom' && (
+                  <Input
+                    value={cronCustom}
+                    onChange={(e) => setCronCustom(e.target.value)}
+                    placeholder="e.g.  0 8 * * 1-5  (weekdays at 8 AM)"
+                    className="font-mono text-xs"
+                  />
+                )}
+                {cronExpression && cronPreset !== 'custom' && (
+                  <p className="text-muted-foreground font-mono text-xs">
+                    {cronExpression}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
 
           {/* Agent assignment */}
           <div className="flex flex-col gap-1.5">
-            <div className="flex items-center justify-between">
-              <Label className="flex-col items-start">
-                Assign Agent{' '}
-                <span className="text-muted-foreground text-xs font-normal">
-                  (optional — auto-routed if empty)
-                </span>
-              </Label>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleAutoRoute}
-                disabled={routing || (!title && !description)}
-              >
-                {routing ? (
-                  <Loader2Icon className="mr-1 h-3.5 w-3.5 animate-spin" />
-                ) : (
-                  <SparklesIcon className="mr-1 h-3.5 w-3.5" />
-                )}
-                Auto-Route
-              </Button>
-            </div>
-
-            {routeResult && (
-              <div className="bg-muted rounded-md p-2 text-xs">
-                <span className="font-medium">
-                  {agents.find((a) => a.id === routeResult.agentId)?.name ??
-                    'Unknown'}
-                </span>{' '}
-                ({Math.round(routeResult.confidence * 100)}%) —{' '}
-                {routeResult.reasoning}
-              </div>
-            )}
-
+            <Label>
+              Assign Agent{' '}
+              <span className="text-muted-foreground text-xs font-normal">
+                (optional — auto-routed if empty)
+              </span>
+            </Label>
             <Select
               value={selectedAgentId}
               onValueChange={(v) => setSelectedAgentId(v ?? '')}
@@ -271,7 +275,7 @@ export function TaskDispatchDialog({
               <SelectTrigger>
                 <SelectValue placeholder="Leave blank for smart dispatch…" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="w-full">
                 <SelectGroup>
                   {activeAgents.map((ag) => {
                     const dept = departments.find(
@@ -291,14 +295,12 @@ export function TaskDispatchDialog({
 
           {/* Priority */}
           <div className="flex flex-col gap-1.5">
-            <Label className="flex-col items-start">
-              Priority
-              {mode === 'once' && (
-                <span className="text-muted-foreground text-xs font-normal">
-                  High/Urgent creates a shadow agent if the target is busy
-                </span>
-              )}
-            </Label>
+            <Label>Priority</Label>
+            {mode === 'once' && (
+              <span className="text-muted-foreground text-xs font-normal">
+                High/Urgent creates a shadow agent if the target is busy
+              </span>
+            )}
             <Select
               value={priority}
               onValueChange={(v) => setPriority(v ?? 'medium')}
@@ -306,7 +308,7 @@ export function TaskDispatchDialog({
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="w-full">
                 <SelectGroup>
                   <SelectItem value="low">Low</SelectItem>
                   <SelectItem value="medium">Medium</SelectItem>
@@ -318,7 +320,7 @@ export function TaskDispatchDialog({
           </div>
         </div>
 
-        <DialogFooter>
+        <SheetFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>
             Cancel
           </Button>
@@ -328,8 +330,8 @@ export function TaskDispatchDialog({
             )}
             {mode === 'cron' ? 'Schedule' : 'Dispatch'}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   )
 }

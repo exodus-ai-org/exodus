@@ -5,28 +5,9 @@ export interface ToolMeta {
   group: ToolGroup
 }
 
-export type ToolGroup =
-  | 'Productivity'
-  | 'Web'
-  | 'File System'
-  | 'AI & Data'
-  | 'Maps'
+export type ToolGroup = 'Web' | 'File System' | 'AI & Data' | 'Maps'
 
 export const TOOL_REGISTRY: ToolMeta[] = [
-  // Productivity
-  {
-    key: 'calculator',
-    label: 'Calculator',
-    description: 'Evaluate mathematical expressions',
-    group: 'Productivity'
-  },
-  {
-    key: 'date',
-    label: 'Date & Time',
-    description: 'Get current date, time, and timezone info',
-    group: 'Productivity'
-  },
-
   // Web
   {
     key: 'weather',
@@ -115,7 +96,6 @@ export const TOOL_REGISTRY: ToolMeta[] = [
 ]
 
 export const TOOL_GROUPS: ToolGroup[] = [
-  'Productivity',
   'Web',
   'File System',
   'AI & Data',

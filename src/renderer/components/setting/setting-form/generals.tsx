@@ -43,7 +43,7 @@ export function General({ form }: { form: UseFormReturnType }) {
               }
             </SelectValue>
           </SelectTrigger>
-          <SelectContent className="no-draggable">
+          <SelectContent className="no-drag w-full">
             <SelectGroup>
               <SelectItem value="light">
                 <Sun /> Light

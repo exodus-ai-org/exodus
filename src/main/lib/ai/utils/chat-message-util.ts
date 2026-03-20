@@ -5,8 +5,6 @@ import { AdvancedTools, AiProviders, McpTools } from '@shared/types/ai'
 import type { ChatMessage } from '@shared/types/chat'
 import { Setting } from '../../db/schema'
 import {
-  calculator,
-  date,
   deepResearch,
   editFile,
   findFiles,
@@ -154,8 +152,6 @@ export function bindCallingTools({
 
   const tools: ErasedTool[] = []
 
-  if (enabled('calculator')) tools.push(calculator)
-  if (enabled('date')) tools.push(date)
   if (enabled('weather')) tools.push(weather)
   if (enabled('googleMapsPlaces')) tools.push(googleMapsPlaces(setting))
   if (enabled('googleMapsRouting')) tools.push(googleMapsRouting(setting))

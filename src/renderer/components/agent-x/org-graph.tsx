@@ -467,7 +467,7 @@ export function OrgGraph({
       >
         <ZoomSlider position="bottom-left" />
         <Background
-          className="no-draggable"
+          className="no-drag"
           variant={BackgroundVariant.Dots}
           gap={20}
           size={1}

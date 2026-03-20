@@ -79,10 +79,7 @@ function CallingTools({ toolResult }: { toolResult: ChatToolResultMessage }) {
       {toolName === 'weather' && <WeatherCard toolResult={output} />}
       {toolName === 'deepResearch' && <DeepResearchCard toolResult={output} />}
       {toolName === 'terminal' && <TerminalCard toolResult={output} />}
-      {(toolName === 'webSearch' ||
-        toolName === 'imageGeneration' ||
-        toolName === 'date' ||
-        toolName === 'calculator' ||
+      {(toolName === 'imageGeneration' ||
         toolName === 'readFile' ||
         toolName === 'writeFile' ||
         toolName === 'listDirectory' ||

@@ -44,7 +44,7 @@ export function SettingSelect({
           {(val: string) => labelMap.get(val) || placeholder || val}
         </SelectValue>
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="w-full">
         <SelectGroup>
           {options.map((opt) => (
             <SelectItem key={opt.value} value={opt.value}>

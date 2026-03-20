@@ -29,7 +29,7 @@ export const imageGeneration = (
         apiKey: setting.providers.openaiApiKey
       })
       const response = await openai.images.generate({
-        model: setting.image?.model ?? 'gpt-image-1',
+        model: setting.image?.model ?? 'gpt-image-1.5',
         prompt,
         n: setting.image?.generatedCounts ?? 1,
         size: setting.image?.size as ImageGenerateParams['size'],

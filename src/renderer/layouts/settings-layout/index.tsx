@@ -34,7 +34,7 @@ export function SettingsLayout() {
       >
         <button
           onClick={() => navigate(-1)}
-          className="no-draggable text-muted-foreground hover:text-foreground hover:bg-accent flex h-7 w-7 items-center justify-center rounded-md transition-colors"
+          className="no-drag text-muted-foreground hover:text-foreground hover:bg-accent flex h-7 w-7 items-center justify-center rounded-md transition-colors"
         >
           <ArrowLeftIcon className="h-4 w-4" />
         </button>

@@ -21,16 +21,37 @@ audio.post('/speech', async (c) => {
   try {
     const openai = new OpenAI(openaiConfig)
 
-    const speech = await openai.audio.speech.create({
-      model: setting.audio?.textToSpeechModel ?? 'tts-1',
+    const model = setting.audio?.textToSpeechModel ?? 'gpt-4o-mini-tts'
+    const format = setting.audio?.textToSpeechFormat ?? 'mp3'
+    const params: OpenAI.Audio.SpeechCreateParams = {
+      model,
       input: text,
-      voice: setting.audio?.textToSpeechVoice ?? 'alloy'
-    })
+      voice: setting.audio?.textToSpeechVoice ?? 'alloy',
+      response_format:
+        format as OpenAI.Audio.SpeechCreateParams['response_format'],
+      speed: setting.audio?.textToSpeechSpeed ?? undefined
+    }
+    // instructions is only supported by gpt-4o-mini-tts
+    if (
+      model === 'gpt-4o-mini-tts' &&
+      setting.audio?.textToSpeechInstructions
+    ) {
+      params.instructions = setting.audio.textToSpeechInstructions
+    }
+    const speech = await openai.audio.speech.create(params)
 
+    const contentTypeMap: Record<string, string> = {
+      mp3: 'audio/mpeg',
+      opus: 'audio/opus',
+      aac: 'audio/aac',
+      flac: 'audio/flac',
+      wav: 'audio/wav',
+      pcm: 'audio/pcm'
+    }
     const buffer = Buffer.from(await speech.arrayBuffer())
     return new Response(buffer, {
       headers: {
-        'Content-Type': 'audio/mpeg'
+        'Content-Type': contentTypeMap[format] ?? 'audio/mpeg'
       }
     })
   } catch (error) {
@@ -57,7 +78,7 @@ audio.post('/transcriptions', async (c) => {
 
     const transcription = await openai.audio.transcriptions.create({
       file: audioFile,
-      model: setting.audio?.speechToTextModel ?? 'whisper-1'
+      model: setting.audio?.speechToTextModel ?? 'gpt-4o-mini-transcribe'
     })
 
     return successResponse(c, transcription)

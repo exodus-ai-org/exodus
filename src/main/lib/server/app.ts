@@ -19,6 +19,7 @@ import s3UploaderRouter from './routes/s3-uploader'
 import settingsRouter from './routes/setting'
 import skillsRouter from './routes/skills'
 import toolsRouter from './routes/tools'
+import usageRouter from './routes/usage'
 
 // Export server functions
 export async function connectHttpServer() {
@@ -58,6 +59,7 @@ export async function connectHttpServer() {
   app.route('/api/skills', skillsRouter)
   app.route('/api/mcp', mcpRouter)
   app.route('/api/memory', memoryRouter)
+  app.route('/api/usage', usageRouter)
 
   // Ping
   app.get('/', (c) => c.text('Exodus is running.'))

@@ -153,10 +153,16 @@ export const mcpServer = pgTable('mcp_server', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   name: text('name').notNull(),
   description: text('description').default(''),
-  command: text('command').notNull(),
+  // Transport type: stdio (local command), sse (legacy remote), streamable-http (recommended remote)
+  transportType: varchar('transportType').notNull().default('stdio'),
+  // stdio fields
+  command: text('command').default(''),
   args: jsonb('args').$type<string[]>().default([]),
   env: jsonb('env').$type<Record<string, string>>(),
-  isActive: boolean('isActive').default(true),
+  // Remote fields (sse / streamable-http)
+  url: text('url'),
+  headers: jsonb('headers').$type<Record<string, string>>(),
+  isActive: boolean('isActive').default(false),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull()
 })
@@ -260,6 +266,11 @@ export const task = pgTable('task', {
   // Scheduled task support
   cronExpression: text('cronExpression'), // null = one-time; cron string = recurring template
   lastRunAt: timestamp('lastRunAt'),
+  // Post-completion feedback / review
+  feedbackRating: varchar('feedbackRating').$type<
+    'positive' | 'negative' | null
+  >(),
+  feedbackNote: text('feedbackNote'),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull(),
   completedAt: timestamp('completedAt')

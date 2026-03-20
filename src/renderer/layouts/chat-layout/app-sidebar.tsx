@@ -33,7 +33,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       >
         <SidebarMenu className="gap-1">
           <SidebarMenuItem
-            className="no-draggable hover:bg-sidebar-accent flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm"
+            className="no-drag hover:bg-sidebar-accent flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm"
             onClick={() => (window.location.href = '/')}
           >
             <SquarePenIcon size={16} />
@@ -42,7 +42,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
         <SidebarMenu className="gap-1">
           <SidebarMenuItem
-            className="no-draggable hover:bg-sidebar-accent flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm"
+            className="no-drag hover:bg-sidebar-accent flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm"
             onClick={() => setIsFullTextSearchVisible(true)}
           >
             <SearchIcon size={16} />

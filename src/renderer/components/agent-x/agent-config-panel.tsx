@@ -116,7 +116,7 @@ export function AgentConfigPanel({
             value={toolAllowList}
             onChange={(e) => setToolAllowList(e.target.value)}
             onBlur={handleSave}
-            placeholder="webSearch, calculator, writeFile"
+            placeholder="webSearch, writeFile"
           />
         </div>
 

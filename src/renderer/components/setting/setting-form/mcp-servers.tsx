@@ -3,6 +3,14 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
@@ -10,17 +18,20 @@ import {
   deleteMcpServerApi,
   getMcpServers,
   type McpServerItem,
+  type McpTransportType,
   updateMcpServerApi
 } from '@/services/mcp-service'
 import {
   ChevronDownIcon,
+  CloudIcon,
   InfoIcon,
   Loader2Icon,
   PencilIcon,
   PlusIcon,
+  TerminalIcon,
   Trash2Icon
 } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
 import useSWR from 'swr'
 import { SettingRow, SettingSection } from '../setting-row'
@@ -37,42 +48,22 @@ interface McpToolsGroup {
   tools: McpToolInfo[]
 }
 
-// ─── JSON ↔ DB sync helpers ─────────────────────────────────────────────────
+// ─── JSON serialisation (read-only view) ────────────────────────────────────
 
 function serversToJson(servers: McpServerItem[]): string {
-  const obj: Record<
-    string,
-    { command: string; args?: string[]; env?: Record<string, string> }
-  > = {}
+  const obj: Record<string, Record<string, unknown>> = {}
   for (const s of servers) {
-    obj[s.name] = { command: s.command }
-    if (s.args?.length) obj[s.name].args = s.args
-    if (s.env && Object.keys(s.env).length > 0) obj[s.name].env = s.env
+    if (s.transportType === 'stdio') {
+      obj[s.name] = { command: s.command }
+      if (s.args?.length) obj[s.name].args = s.args
+      if (s.env && Object.keys(s.env).length > 0) obj[s.name].env = s.env
+    } else {
+      obj[s.name] = { transport: s.transportType, url: s.url }
+      if (s.headers && Object.keys(s.headers).length > 0)
+        obj[s.name].headers = s.headers
+    }
   }
   return JSON.stringify({ mcpServers: obj }, null, 2)
-}
-
-function jsonToServerList(json: string): Array<{
-  name: string
-  command: string
-  args: string[]
-  env: Record<string, string> | null
-}> {
-  const parsed = JSON.parse(json)
-  const map = parsed?.mcpServers ?? parsed ?? {}
-  return Object.entries(map).map(([name, cfg]) => {
-    const c = cfg as {
-      command?: string
-      args?: string[]
-      env?: Record<string, string>
-    }
-    return {
-      name,
-      command: c.command ?? '',
-      args: c.args ?? [],
-      env: c.env ?? null
-    }
-  })
 }
 
 // ─── Server Card with Tools Preview ─────────────────────────────────────────
@@ -92,12 +83,18 @@ function ServerCard({
 }) {
   const [expanded, setExpanded] = useState(false)
   const isActive = server.isActive ?? false
+  const isRemote = server.transportType !== 'stdio'
 
   return (
     <div className="rounded-lg border">
       <div className="flex items-center gap-3 p-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
+            {isRemote ? (
+              <CloudIcon className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
+            ) : (
+              <TerminalIcon className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
+            )}
             <p className="truncate text-sm font-medium">{server.name}</p>
             {tools.length > 0 && (
               <Badge variant="secondary" className="text-[10px]">
@@ -105,8 +102,10 @@ function ServerCard({
               </Badge>
             )}
           </div>
-          <p className="text-muted-foreground truncate font-mono text-xs">
-            {server.command} {(server.args ?? []).join(' ')}
+          <p className="text-muted-foreground truncate pl-5.5 font-mono text-xs">
+            {isRemote
+              ? server.url
+              : `${server.command} ${(server.args ?? []).join(' ')}`}
           </p>
         </div>
         <Switch checked={isActive} onCheckedChange={onToggle} />
@@ -128,7 +127,6 @@ function ServerCard({
         </Button>
       </div>
 
-      {/* Tools preview */}
       {tools.length > 0 && (
         <>
           <button
@@ -171,7 +169,6 @@ export function McpServers() {
     tools: McpToolsGroup[]
   }>('/api/mcp/tools')
 
-  // Build a map: serverName → tools[]
   const toolsByServer = new Map<string, McpToolInfo[]>()
   for (const group of toolsData?.tools ?? []) {
     toolsByServer.set(group.mcpServerName, group.tools)
@@ -181,26 +178,29 @@ export function McpServers() {
   const [editing, setEditing] = useState<McpServerItem | null>(null)
   const [isNew, setIsNew] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [transportType, setTransportType] = useState<McpTransportType>('stdio')
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  // stdio
   const [command, setCommand] = useState('')
   const [args, setArgs] = useState('')
+  // remote
+  const [url, setUrl] = useState('')
+  const [headersStr, setHeadersStr] = useState('')
 
-  // JSON state
-  const [jsonValue, setJsonValue] = useState('')
-  const [jsonSaving, setJsonSaving] = useState(false)
-
-  useEffect(() => {
-    if (servers) setJsonValue(serversToJson(servers))
-  }, [servers])
+  // JSON (read-only)
+  const jsonValue = servers ? serversToJson(servers) : '{}'
 
   const resetForm = useCallback(() => {
     setEditing(null)
     setIsNew(false)
+    setTransportType('stdio')
     setName('')
     setDescription('')
     setCommand('')
     setArgs('')
+    setUrl('')
+    setHeadersStr('')
   }, [])
 
   const startNew = useCallback(() => {
@@ -211,10 +211,13 @@ export function McpServers() {
   const startEdit = useCallback((server: McpServerItem) => {
     setEditing(server)
     setIsNew(false)
+    setTransportType(server.transportType ?? 'stdio')
     setName(server.name)
     setDescription(server.description ?? '')
-    setCommand(server.command)
+    setCommand(server.command ?? '')
     setArgs((server.args ?? []).join(' '))
+    setUrl(server.url ?? '')
+    setHeadersStr(server.headers ? JSON.stringify(server.headers, null, 2) : '')
   }, [])
 
   const refresh = useCallback(async () => {
@@ -223,22 +226,43 @@ export function McpServers() {
   }, [mutate, mutateTools])
 
   const handleSave = useCallback(async () => {
-    if (!name.trim() || !command.trim()) return
+    if (!name.trim()) return
+    if (transportType === 'stdio' && !command.trim()) return
+    if (transportType !== 'stdio' && !url.trim()) return
     setSaving(true)
     try {
-      const data = {
+      let parsedHeaders: Record<string, string> | null = null
+      if (headersStr.trim()) {
+        try {
+          parsedHeaders = JSON.parse(headersStr)
+        } catch {
+          toast.error('Invalid headers JSON')
+          setSaving(false)
+          return
+        }
+      }
+
+      const data: Partial<McpServerItem> & { name: string } = {
         name: name.trim(),
         description: description.trim() || null,
-        command: command.trim(),
-        args: args.trim().split(/\s+/).filter(Boolean),
-        env: null
+        transportType
       }
+
+      if (transportType === 'stdio') {
+        data.command = command.trim()
+        data.args = args.trim().split(/\s+/).filter(Boolean)
+        data.env = null
+      } else {
+        data.url = url.trim()
+        data.headers = parsedHeaders
+      }
+
       if (editing) {
         await updateMcpServerApi(editing.id, data)
-        toast.success(`"${data.name}" updated`)
+        toast.success(`"${data.name}" updated — reconnecting…`)
       } else {
         await createMcpServerApi(data)
-        toast.success(`"${data.name}" registered`)
+        toast.success(`"${data.name}" registered (disabled by default)`)
       }
       await refresh()
       resetForm()
@@ -247,13 +271,24 @@ export function McpServers() {
     } finally {
       setSaving(false)
     }
-  }, [name, description, command, args, editing, refresh, resetForm])
+  }, [
+    name,
+    description,
+    transportType,
+    command,
+    args,
+    url,
+    headersStr,
+    editing,
+    refresh,
+    resetForm
+  ])
 
   const handleDelete = useCallback(
     async (server: McpServerItem) => {
       try {
         await deleteMcpServerApi(server.id)
-        toast.success(`"${server.name}" removed`)
+        toast.success(`"${server.name}" removed — connection closed`)
         await refresh()
         if (editing?.id === server.id) resetForm()
       } catch {
@@ -265,47 +300,21 @@ export function McpServers() {
 
   const handleToggle = useCallback(
     async (server: McpServerItem) => {
+      const enabling = !server.isActive
       try {
-        await updateMcpServerApi(server.id, { isActive: !server.isActive })
-        toast.success(
-          server.isActive
-            ? `"${server.name}" disabled`
-            : `"${server.name}" enabled`
-        )
+        await updateMcpServerApi(server.id, { isActive: enabling })
         await refresh()
+        if (enabling) {
+          toast.success(`"${server.name}" enabled — reconnecting…`)
+        } else {
+          toast.success(`"${server.name}" disabled — connection closed`)
+        }
       } catch {
         toast.error('Failed to toggle server')
       }
     },
     [refresh]
   )
-
-  const handleJsonSave = useCallback(async () => {
-    setJsonSaving(true)
-    try {
-      const desired = jsonToServerList(jsonValue)
-      const existing = servers ?? []
-      for (const s of existing) {
-        if (!desired.find((d) => d.name === s.name)) {
-          await deleteMcpServerApi(s.id)
-        }
-      }
-      for (const d of desired) {
-        const match = existing.find((s) => s.name === d.name)
-        if (match) {
-          await updateMcpServerApi(match.id, d)
-        } else {
-          await createMcpServerApi(d)
-        }
-      }
-      await refresh()
-      toast.success('MCP configuration saved')
-    } catch {
-      toast.error('Invalid JSON or failed to save')
-    } finally {
-      setJsonSaving(false)
-    }
-  }, [jsonValue, servers, refresh])
 
   const showForm = isNew || editing !== null
   const list = servers ?? []
@@ -314,6 +323,9 @@ export function McpServers() {
     (acc, g) => acc + g.tools.length,
     0
   )
+
+  const canSave =
+    name.trim() && (transportType === 'stdio' ? command.trim() : url.trim())
 
   return (
     <div className="flex flex-col gap-4">
@@ -329,7 +341,8 @@ export function McpServers() {
           >
             MCP
           </a>{' '}
-          servers, then toggle the switch to enable their tools in chat.
+          servers (local or remote), then toggle the switch to enable their
+          tools in chat.
           {activeCount > 0 && (
             <span className="ml-1">
               Currently <strong>{totalToolCount} tools</strong> from{' '}
@@ -373,6 +386,42 @@ export function McpServers() {
             {showForm && (
               <div className="flex flex-col gap-3 rounded-lg border p-4">
                 <SettingRow
+                  label="Transport"
+                  description="How to connect to the MCP server"
+                  layout="vertical"
+                >
+                  <Select
+                    value={transportType}
+                    onValueChange={(v) =>
+                      setTransportType(v as McpTransportType)
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue>
+                        {(val: string) =>
+                          ({
+                            stdio: 'Stdio (Local Command)',
+                            'streamable-http': 'Streamable HTTP (Remote)',
+                            sse: 'SSE (Remote Legacy)'
+                          })[val] ?? val
+                        }
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent className="w-full">
+                      <SelectGroup>
+                        <SelectItem value="stdio">
+                          Stdio (Local Command)
+                        </SelectItem>
+                        <SelectItem value="streamable-http">
+                          Streamable HTTP (Remote)
+                        </SelectItem>
+                        <SelectItem value="sse">SSE (Remote Legacy)</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </SettingRow>
+
+                <SettingRow
                   label="Name"
                   description="A unique identifier for this server"
                   layout="vertical"
@@ -383,28 +432,60 @@ export function McpServers() {
                     placeholder="e.g. filesystem"
                   />
                 </SettingRow>
-                <SettingRow
-                  label="Command"
-                  description="The executable command to start the MCP server"
-                  layout="vertical"
-                >
-                  <Input
-                    value={command}
-                    onChange={(e) => setCommand(e.target.value)}
-                    placeholder="e.g. npx -y @modelcontextprotocol/server-filesystem"
-                  />
-                </SettingRow>
-                <SettingRow
-                  label="Args"
-                  description="Space-separated command arguments"
-                  layout="vertical"
-                >
-                  <Input
-                    value={args}
-                    onChange={(e) => setArgs(e.target.value)}
-                    placeholder="e.g. /Users/me/Documents"
-                  />
-                </SettingRow>
+
+                {transportType === 'stdio' ? (
+                  <>
+                    <SettingRow
+                      label="Command"
+                      description="The executable command to start the MCP server"
+                      layout="vertical"
+                    >
+                      <Input
+                        value={command}
+                        onChange={(e) => setCommand(e.target.value)}
+                        placeholder="e.g. npx -y @modelcontextprotocol/server-filesystem"
+                      />
+                    </SettingRow>
+                    <SettingRow
+                      label="Args"
+                      description="Space-separated command arguments"
+                      layout="vertical"
+                    >
+                      <Input
+                        value={args}
+                        onChange={(e) => setArgs(e.target.value)}
+                        placeholder="e.g. /Users/me/Documents"
+                      />
+                    </SettingRow>
+                  </>
+                ) : (
+                  <>
+                    <SettingRow
+                      label="URL"
+                      description={`The ${transportType === 'sse' ? 'SSE' : 'HTTP'} endpoint URL of the remote server`}
+                      layout="vertical"
+                    >
+                      <Input
+                        value={url}
+                        onChange={(e) => setUrl(e.target.value)}
+                        placeholder="e.g. https://mcp.example.com/sse"
+                      />
+                    </SettingRow>
+                    <SettingRow
+                      label="Headers"
+                      description='Optional auth/custom headers as JSON, e.g. {"Authorization":"Bearer ..."}'
+                      layout="vertical"
+                    >
+                      <Input
+                        value={headersStr}
+                        onChange={(e) => setHeadersStr(e.target.value)}
+                        placeholder='{"Authorization": "Bearer token"}'
+                        className="font-mono text-xs"
+                      />
+                    </SettingRow>
+                  </>
+                )}
+
                 <SettingRow
                   label="Description"
                   description="Optional notes about this server"
@@ -416,6 +497,7 @@ export function McpServers() {
                     placeholder="Optional"
                   />
                 </SettingRow>
+
                 <div className="flex gap-2 pt-1">
                   <Button
                     variant="outline"
@@ -429,7 +511,7 @@ export function McpServers() {
                     size="sm"
                     className="flex-1"
                     onClick={handleSave}
-                    disabled={!name.trim() || !command.trim() || saving}
+                    disabled={!canSave || saving}
                   >
                     {saving && (
                       <Loader2Icon className="mr-1 h-3.5 w-3.5 animate-spin" />
@@ -451,23 +533,19 @@ export function McpServers() {
           </SettingSection>
         </TabsContent>
 
-        {/* ── JSON Tab ─────────────────────────────────────────────────── */}
+        {/* ── JSON Tab (read-only) ───────────────────────────────────── */}
         <TabsContent value="json" className="mt-4">
-          <div className="flex flex-col gap-3">
+          <div className="flex flex-col gap-2">
+            <p className="text-muted-foreground text-xs">
+              Read-only view of current configuration. Use the Servers tab to
+              make changes.
+            </p>
             <div className="border-border overflow-hidden rounded-lg border">
               <CodeEditor
                 className="h-80"
                 value={jsonValue}
-                onChange={setJsonValue}
+                monacoEditorOption={{ readOnly: true }}
               />
-            </div>
-            <div className="flex justify-end">
-              <Button size="sm" onClick={handleJsonSave} disabled={jsonSaving}>
-                {jsonSaving && (
-                  <Loader2Icon className="mr-1 h-3.5 w-3.5 animate-spin" />
-                )}
-                Save Configuration
-              </Button>
             </div>
           </div>
         </TabsContent>
