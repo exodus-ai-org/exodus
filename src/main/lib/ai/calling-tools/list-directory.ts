@@ -1,7 +1,8 @@
-import type { AgentTool } from '@mariozechner/pi-agent-core'
-import { Type } from '@mariozechner/pi-ai'
 import { stat as fsStat, readdir } from 'fs/promises'
 import { join } from 'path'
+
+import type { AgentTool } from '@mariozechner/pi-agent-core'
+import { Type } from '@mariozechner/pi-ai'
 
 const listDirectorySchema = Type.Object({
   path: Type.String({ description: 'Directory path to list.' }),

@@ -1,3 +1,7 @@
+import { useSetAtom } from 'jotai'
+import { SearchIcon, SquarePenIcon } from 'lucide-react'
+import * as React from 'react'
+
 import {
   Sidebar,
   SidebarContent,
@@ -9,9 +13,7 @@ import {
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import { cn } from '@/lib/utils'
 import { isFullTextSearchVisibleAtom } from '@/stores/chat'
-import { useSetAtom } from 'jotai'
-import { SearchIcon, SquarePenIcon } from 'lucide-react'
-import * as React from 'react'
+
 import { NavFooter } from './nav-footer'
 import { NavHistories } from './nav-histories'
 

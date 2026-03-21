@@ -1,3 +1,15 @@
+import { UseFormReturnType } from '@shared/schemas/setting-schema'
+import {
+  BrainIcon,
+  EyeOffIcon,
+  PencilIcon,
+  PlusIcon,
+  Trash2Icon
+} from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { Controller } from 'react-hook-form'
+import { toast } from 'sonner'
+
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -12,17 +24,7 @@ import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import { UseFormReturnType } from '@shared/schemas/setting-schema'
-import {
-  BrainIcon,
-  EyeOffIcon,
-  PencilIcon,
-  PlusIcon,
-  Trash2Icon
-} from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
-import { Controller } from 'react-hook-form'
-import { toast } from 'sonner'
+
 import {
   createMemory,
   deleteMemory,

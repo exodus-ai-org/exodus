@@ -1,8 +1,10 @@
-import { app } from 'electron'
 import { existsSync, statSync } from 'fs'
 import { cp, mkdir, readFile, rm, writeFile } from 'fs/promises'
-import JSZip from 'jszip'
 import { join } from 'path'
+
+import { app } from 'electron'
+import JSZip from 'jszip'
+
 import type {
   ConvexListResponse,
   InstalledSkill,

@@ -1,7 +1,8 @@
-import { Skeleton } from '@/components/ui/skeleton'
-import { cn } from '@/lib/utils'
 import { ImageOffIcon } from 'lucide-react'
 import { useState } from 'react'
+
+import { Skeleton } from '@/components/ui/skeleton'
+import { cn } from '@/lib/utils'
 
 export function LazyLoadImage({
   src,

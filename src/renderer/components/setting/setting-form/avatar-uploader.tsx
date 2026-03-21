@@ -1,8 +1,9 @@
-import { useSetting } from '@/hooks/use-setting'
-import { convertFileToBase64 } from '@/lib/utils'
 import { PlusIcon, XIcon } from 'lucide-react'
 import { ChangeEvent, useRef } from 'react'
 import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
+
+import { useSetting } from '@/hooks/use-setting'
+import { convertFileToBase64 } from '@/lib/utils'
 
 export function AvatarUploader<T extends FieldValues>({
   props

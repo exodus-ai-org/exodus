@@ -1,5 +1,6 @@
 import type { AgentTool } from '@mariozechner/pi-agent-core'
 import { Type } from '@mariozechner/pi-ai'
+
 import { searchMessages, searchSummaries } from '../context-management/queries'
 
 const lcmGrepSchema = Type.Object({

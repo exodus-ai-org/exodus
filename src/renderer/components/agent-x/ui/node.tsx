@@ -1,7 +1,8 @@
+import { RocketIcon } from 'lucide-react'
 import { memo } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { RocketIcon } from 'lucide-react'
+
 import {
   BaseNode,
   BaseNodeContent,

@@ -1,8 +1,9 @@
-import type { AgentTool } from '@mariozechner/pi-agent-core'
-import { Type } from '@mariozechner/pi-ai'
 import { exec } from 'child_process'
 import { homedir } from 'os'
 import { promisify } from 'util'
+
+import type { AgentTool } from '@mariozechner/pi-agent-core'
+import { Type } from '@mariozechner/pi-ai'
 
 const execAsync = promisify(exec)
 

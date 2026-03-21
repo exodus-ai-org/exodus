@@ -1,4 +1,3 @@
-import { useSetting } from '@/hooks/use-setting'
 import { protos } from '@googlemaps/routing'
 import {
   AdvancedMarker,
@@ -8,6 +7,9 @@ import {
 } from '@vis.gl/react-google-maps'
 import { AlertTriangleIcon, ClockIcon, RouteIcon } from 'lucide-react'
 import { useMemo } from 'react'
+
+import { useSetting } from '@/hooks/use-setting'
+
 import { Polyline } from './polyline'
 
 function formatDistance(meters: number | null | undefined): string {

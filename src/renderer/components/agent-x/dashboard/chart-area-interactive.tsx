@@ -1,3 +1,6 @@
+import { useMemo } from 'react'
+import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts'
+
 import {
   Card,
   CardContent,
@@ -12,8 +15,6 @@ import {
   type ChartConfig
 } from '@/components/ui/chart'
 import type { TaskData } from '@/stores/agent-x'
-import { useMemo } from 'react'
-import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts'
 
 const chartConfig = {
   completed: {

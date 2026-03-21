@@ -1,6 +1,8 @@
-import { cn } from '@/lib/utils'
 import { AlertTriangleIcon, RotateCcwIcon } from 'lucide-react'
 import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router'
+
+import { cn } from '@/lib/utils'
+
 import { Button } from './ui/button'
 
 export function RouteErrorBoundary() {

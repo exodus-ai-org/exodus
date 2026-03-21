@@ -1,3 +1,7 @@
+import { BotIcon, SettingsIcon } from 'lucide-react'
+import React from 'react'
+import { useLocation, useNavigate } from 'react-router'
+
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -5,9 +9,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem
 } from '@/components/ui/sidebar'
-import { BotIcon, SettingsIcon } from 'lucide-react'
-import React from 'react'
-import { useLocation, useNavigate } from 'react-router'
 
 export function NavFooter({
   ...props

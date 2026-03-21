@@ -1,3 +1,7 @@
+import type { IpcRendererEvent, Result } from 'electron'
+import { ChevronDownIcon, ChevronUpIcon, XIcon } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Separator } from '@/components/ui/separator'
@@ -9,9 +13,6 @@ import {
   subscribeFindInPageResult
 } from '@/lib/ipc'
 import { cn } from '@/lib/utils'
-import type { IpcRendererEvent, Result } from 'electron'
-import { ChevronDownIcon, ChevronUpIcon, XIcon } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
 
 export function FindBar() {
   const ref = useRef<HTMLInputElement | null>(null)

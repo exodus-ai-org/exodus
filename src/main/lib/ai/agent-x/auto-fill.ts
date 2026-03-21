@@ -1,5 +1,6 @@
 import { completeSimple } from '@mariozechner/pi-ai'
 import type { AutoFillResult } from '@shared/types/agent-x'
+
 import { getAllAgents, getAllDepartments } from '../../db/agent-x-queries'
 import { getSetting } from '../../db/queries'
 import { getModelFromProvider } from '../utils/chat-message-util'

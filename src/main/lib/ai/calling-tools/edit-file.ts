@@ -1,6 +1,7 @@
+import { readFile, writeFile } from 'fs/promises'
+
 import type { AgentTool } from '@mariozechner/pi-agent-core'
 import { Type } from '@mariozechner/pi-ai'
-import { readFile, writeFile } from 'fs/promises'
 
 const editFileSchema = Type.Object({
   path: Type.String({ description: 'Absolute path to the file to edit.' }),

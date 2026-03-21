@@ -1,9 +1,10 @@
-import { Field, FieldDescription, FieldLabel } from '@/components/ui/field'
-import { Separator } from '@/components/ui/separator'
-import { Switch } from '@/components/ui/switch'
 import { TOOL_GROUPS, TOOL_REGISTRY, ToolGroup } from '@shared/constants/tools'
 import { UseFormReturnType } from '@shared/schemas/setting-schema'
 import { useWatch } from 'react-hook-form'
+
+import { Field, FieldDescription, FieldLabel } from '@/components/ui/field'
+import { Separator } from '@/components/ui/separator'
+import { Switch } from '@/components/ui/switch'
 
 export function Tools({ form }: { form: UseFormReturnType }) {
   const disabledTools: string[] =

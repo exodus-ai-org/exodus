@@ -1,7 +1,9 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Separator } from '@/components/ui/separator'
 import { WebSearchResult } from '@shared/types/web-search'
 import { useMemo } from 'react'
+
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Separator } from '@/components/ui/separator'
+
 import { parseCitations } from '../markdown'
 
 function SourceItemLink({ item }: { item: WebSearchResult }) {

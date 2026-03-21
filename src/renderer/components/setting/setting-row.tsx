@@ -1,6 +1,7 @@
-import { FieldDescription, FieldLabel } from '@/components/ui/field'
 import React from 'react'
 import type { FieldError as RHFFieldError } from 'react-hook-form'
+
+import { FieldDescription, FieldLabel } from '@/components/ui/field'
 
 // ─── SettingSection ──────────────────────────────────────────────────────────
 

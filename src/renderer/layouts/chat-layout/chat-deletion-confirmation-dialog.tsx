@@ -1,3 +1,6 @@
+import { useAtom } from 'jotai'
+import { useParams } from 'react-router'
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,8 +13,6 @@ import {
 } from '@/components/ui/alert-dialog'
 import { deleteChat } from '@/services/chat'
 import { toBeDeletedChatAtom } from '@/stores/chat'
-import { useAtom } from 'jotai'
-import { useParams } from 'react-router'
 
 export function ChatDeletionConfirmationDialog() {
   const { id } = useParams<{ id: string }>()

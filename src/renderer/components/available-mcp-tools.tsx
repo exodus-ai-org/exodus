@@ -1,3 +1,7 @@
+import { HammerIcon } from 'lucide-react'
+import { useMemo } from 'react'
+import useSWR from 'swr'
+
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -14,9 +18,6 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from '@/components/ui/tooltip'
-import { HammerIcon } from 'lucide-react'
-import { useMemo } from 'react'
-import useSWR from 'swr'
 
 interface McpToolInfo {
   name: string

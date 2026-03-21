@@ -1,3 +1,7 @@
+import { UseFormReturnType } from '@shared/schemas/setting-schema'
+import { Moon, Sun, SunMoon } from 'lucide-react'
+import { useEffect } from 'react'
+
 import { Theme, useTheme } from '@/components/theme-provider'
 import {
   Select,
@@ -10,9 +14,7 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { useUpdater } from '@/hooks/use-updater'
 import { updaterSetAutoDownload } from '@/lib/ipc'
-import { UseFormReturnType } from '@shared/schemas/setting-schema'
-import { Moon, Sun, SunMoon } from 'lucide-react'
-import { useEffect } from 'react'
+
 import { SettingRow, SettingSection } from '../setting-row'
 import { AvatarUploader } from './avatar-uploader'
 import { UpdatePanel } from './update-panel'

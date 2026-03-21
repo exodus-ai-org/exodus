@@ -1,4 +1,5 @@
 import type { Message, Model } from '@mariozechner/pi-ai'
+
 import { assembleContext } from './assembler'
 import { runFullCompaction } from './compaction'
 import { appendContextItem, getContextItems } from './queries'

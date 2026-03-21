@@ -1,6 +1,8 @@
+import { join } from 'path'
+
 import { is } from '@electron-toolkit/utils'
 import { BrowserWindow, WebContentsView, app, screen, shell } from 'electron'
-import { join } from 'path'
+
 import icon from '../../../resources/icon.png?asset'
 
 let mainWindow: BrowserWindow | null = null

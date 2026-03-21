@@ -1,5 +1,6 @@
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { app, BrowserWindow, globalShortcut } from 'electron'
+
 import { setupAutoUpdater } from './lib/auto-updater'
 import { cleanupStaleWaitingTasks } from './lib/db/agent-x-queries'
 import { runMigrate } from './lib/db/migrate'

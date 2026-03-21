@@ -1,6 +1,7 @@
 import type { AgentTool } from '@mariozechner/pi-agent-core'
 import { Type } from '@mariozechner/pi-ai'
 import { Setting } from '@shared/types/db'
+
 import { loadDocument } from '../utils/web-search-util'
 
 const webFetchSchema = Type.Object({

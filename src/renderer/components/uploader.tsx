@@ -1,7 +1,8 @@
-import { cn } from '@/lib/utils'
 import { LoaderIcon, UploadCloudIcon } from 'lucide-react'
 import { useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
+
+import { cn } from '@/lib/utils'
 
 export function Uploader({
   loading,

@@ -1,7 +1,8 @@
-import { downloadFile } from '@/lib/utils'
-import { exportData as exportDataService } from '@/services/db'
 import { useState } from 'react'
 import { sileo } from 'sileo'
+
+import { downloadFile } from '@/lib/utils'
+import { exportData as exportDataService } from '@/services/db'
 
 export function useDbIo() {
   const [loading, setLoading] = useState(false)

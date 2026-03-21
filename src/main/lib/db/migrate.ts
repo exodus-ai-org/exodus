@@ -1,8 +1,10 @@
+import { join } from 'path'
+import { cwd } from 'process'
+
 import { is } from '@electron-toolkit/utils'
 import { migrate } from 'drizzle-orm/pglite/migrator'
 import { Notification } from 'electron'
-import { join } from 'path'
-import { cwd } from 'process'
+
 import { db, pglite } from './db'
 
 export const runMigrate = async () => {

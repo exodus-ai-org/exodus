@@ -4,6 +4,7 @@ import {
   ReportProgressPayload
 } from '@shared/types/deep-research'
 import { BotIcon, CheckIcon, SearchIcon } from 'lucide-react'
+
 import { SourceItem } from './source-item'
 
 export function MessageItem({

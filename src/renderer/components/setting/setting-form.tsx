@@ -1,10 +1,12 @@
-import { useSetting } from '@/hooks/use-setting'
-import { settingLabelAtom } from '@/stores/setting'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Setting, SettingSchema } from '@shared/schemas/setting-schema'
 import { AiProviders } from '@shared/types/ai'
 import { useAtomValue } from 'jotai'
 import { useForm } from 'react-hook-form'
+
+import { useSetting } from '@/hooks/use-setting'
+import { settingLabelAtom } from '@/stores/setting'
+
 import { AudioSpeech } from './setting-form/audio-speech'
 import { DataControls } from './setting-form/data-controls'
 import { DeepResearch } from './setting-form/deep-research'

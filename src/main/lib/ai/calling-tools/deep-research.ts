@@ -3,6 +3,7 @@ import { Type } from '@mariozechner/pi-ai'
 import { DeepResearch } from '@shared/types/db'
 import { fetcher } from '@shared/utils/http'
 import { v4 as uuidV4 } from 'uuid'
+
 import { saveDeepResearch } from '../../db/queries'
 
 const deepResearchSchema = Type.Object({

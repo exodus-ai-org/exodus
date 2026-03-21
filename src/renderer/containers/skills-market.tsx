@@ -1,18 +1,3 @@
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Switch } from '@/components/ui/switch'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { selectSkillPath } from '@/lib/ipc'
-import {
-  installFromLocalPath,
-  installSkill,
-  toggleSkill,
-  uninstallSkill
-} from '@/services/skills-service'
 import type {
   InstalledSkill,
   SearchResultItem,
@@ -33,6 +18,22 @@ import {
 import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import useSWR from 'swr'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Switch } from '@/components/ui/switch'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { selectSkillPath } from '@/lib/ipc'
+import {
+  installFromLocalPath,
+  installSkill,
+  toggleSkill,
+  uninstallSkill
+} from '@/services/skills-service'
 
 interface RegistryResponse {
   ok: boolean

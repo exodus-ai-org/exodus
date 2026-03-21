@@ -2,6 +2,7 @@ import type { Model } from '@mariozechner/pi-ai'
 import { completeSimple } from '@mariozechner/pi-ai'
 import { ChatMessage } from '@shared/types/chat'
 import z from 'zod'
+
 import { extractConversationText } from '../utils/conversation-util'
 import {
   extractTextFromCompletion,

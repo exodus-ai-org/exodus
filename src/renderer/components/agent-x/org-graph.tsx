@@ -1,27 +1,4 @@
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle
-} from '@/components/ui/alert-dialog'
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuSeparator,
-  ContextMenuTrigger
-} from '@/components/ui/context-menu'
-import { cn } from '@/lib/utils'
-import {
-  type AgentData,
-  type DepartmentData,
-  selectedNodeAtom
-} from '@/stores/agent-x'
-import {
   Background,
   BackgroundVariant,
   type Connection,
@@ -41,10 +18,36 @@ import {
   applyNodeChanges,
   useReactFlow
 } from '@xyflow/react'
-import '@xyflow/react/dist/style.css'
 import { useSetAtom } from 'jotai'
 import { BotIcon, Building2Icon, CopyIcon, Trash2Icon } from 'lucide-react'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
+
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog'
+
+import '@xyflow/react/dist/style.css'
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger
+} from '@/components/ui/context-menu'
+import { cn } from '@/lib/utils'
+import {
+  type AgentData,
+  type DepartmentData,
+  selectedNodeAtom
+} from '@/stores/agent-x'
+
 import { BaseNode, BaseNodeHeader, BaseNodeHeaderTitle } from './ui/base-node'
 import {
   NodeTooltip,

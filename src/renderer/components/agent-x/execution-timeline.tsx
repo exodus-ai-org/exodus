@@ -1,5 +1,3 @@
-import { Button } from '@/components/ui/button'
-import { getTask } from '@/services/agent-x'
 import type { AgentXSseEvent } from '@shared/types/agent-x'
 import {
   BotIcon,
@@ -11,6 +9,9 @@ import {
   XIcon
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+
+import { Button } from '@/components/ui/button'
+import { getTask } from '@/services/agent-x'
 
 interface ExecutionTimelineProps {
   taskId: string

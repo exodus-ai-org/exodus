@@ -1,5 +1,3 @@
-import { Maximize, Minus, Plus } from 'lucide-react'
-
 import {
   Panel,
   useReactFlow,
@@ -7,6 +5,7 @@ import {
   useViewport,
   type PanelProps
 } from '@xyflow/react'
+import { Maximize, Minus, Plus } from 'lucide-react'
 
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'

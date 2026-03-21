@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { ChevronDownIcon, ChevronUpIcon, LoaderIcon } from 'lucide-react'
 import { useState } from 'react'
+
 import { Button } from './ui/button'
 
 interface MessageReasoningProps {

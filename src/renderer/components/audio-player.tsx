@@ -1,7 +1,9 @@
-import { useAudio } from '@/hooks/use-audio'
-import { cn } from '@/lib/utils'
 import { CircleStopIcon, LoaderIcon, Volume2Icon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+
+import { useAudio } from '@/hooks/use-audio'
+import { cn } from '@/lib/utils'
+
 import { IconWrapper, MessageActionItem } from './massage-action'
 
 export function AudioPlayer({ content }: { content: string }) {

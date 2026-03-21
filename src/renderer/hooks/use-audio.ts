@@ -1,10 +1,12 @@
+import OpenAI from 'openai'
+import { useMemo, useState } from 'react'
+import { sileo } from 'sileo'
+
 import {
   speechToText as speechToTextService,
   textToSpeech as textToSpeechService
 } from '@/services/audio'
-import OpenAI from 'openai'
-import { useMemo, useState } from 'react'
-import { sileo } from 'sileo'
+
 import { useSetting } from './use-setting'
 
 export function useAudio() {

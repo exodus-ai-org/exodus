@@ -1,10 +1,11 @@
-import { cn } from '@/lib/utils'
-import { advancedToolsAtom } from '@/stores/chat'
-
 import { AdvancedTools as AdvancedToolsType } from '@shared/types/ai'
 import { produce } from 'immer'
 import { useAtom } from 'jotai'
 import { GlobeIcon, LightbulbIcon, TelescopeIcon } from 'lucide-react'
+
+import { cn } from '@/lib/utils'
+import { advancedToolsAtom } from '@/stores/chat'
+
 import { Button } from './ui/button'
 import {
   Tooltip,

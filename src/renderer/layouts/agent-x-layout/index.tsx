@@ -1,3 +1,6 @@
+import { ArrowLeftIcon } from 'lucide-react'
+import { useState } from 'react'
+
 import { AppSidebar } from '@/components/agent-x/dashboard/app-sidebar'
 import { SiteHeader } from '@/components/agent-x/dashboard/site-header'
 import { Button } from '@/components/ui/button'
@@ -5,8 +8,6 @@ import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
 import { AgentXContainer } from '@/containers/agent-x'
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import { cn } from '@/lib/utils'
-import { ArrowLeftIcon } from 'lucide-react'
-import { useState } from 'react'
 
 export type AgentXPage = 'dashboard' | 'org-editor' | 'archive' | 'costs'
 

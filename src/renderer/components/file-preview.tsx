@@ -1,7 +1,8 @@
-import { attachmentAtom } from '@/stores/chat'
 import { produce } from 'immer'
 import { useAtom } from 'jotai'
 import { XIcon } from 'lucide-react'
+
+import { attachmentAtom } from '@/stores/chat'
 
 export function FilePreview() {
   const [attachments, setAttachments] = useAtom(attachmentAtom)

@@ -1,6 +1,7 @@
-import type { AgentData, DepartmentData, TaskData } from '@/stores/agent-x'
 import type { AutoFillResult, AutoRouteResult } from '@shared/types/agent-x'
 import { fetcher } from '@shared/utils/http'
+
+import type { AgentData, DepartmentData, TaskData } from '@/stores/agent-x'
 
 const BASE = '/api/agent-x'
 

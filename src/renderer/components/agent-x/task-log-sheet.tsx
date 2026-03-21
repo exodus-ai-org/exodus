@@ -1,12 +1,3 @@
-import { Markdown } from '@/components/markdown'
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle
-} from '@/components/ui/sheet'
-import { getChildTasks, getTask } from '@/services/agent-x'
-import type { AgentData, TaskData } from '@/stores/agent-x'
 import {
   AlertCircleIcon,
   BotIcon,
@@ -18,6 +9,16 @@ import {
   XCircleIcon
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+
+import { Markdown } from '@/components/markdown'
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle
+} from '@/components/ui/sheet'
+import { getChildTasks, getTask } from '@/services/agent-x'
+import type { AgentData, TaskData } from '@/stores/agent-x'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

@@ -1,4 +1,5 @@
 import type { ChatMessage } from '@shared/types/chat'
+
 import { getTextFromMessage } from './chat-message-util'
 
 /**

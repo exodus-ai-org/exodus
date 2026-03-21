@@ -1,3 +1,6 @@
+import { Trash2Icon } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -13,8 +16,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { getAvailableSkills } from '@/services/agent-x'
 import { getMcpServers, type McpServerItem } from '@/services/mcp-service'
 import type { DepartmentData } from '@/stores/agent-x'
-import { Trash2Icon } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
 
 interface DepartmentConfigPanelProps {
   department: DepartmentData | null

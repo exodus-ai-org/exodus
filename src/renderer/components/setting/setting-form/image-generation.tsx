@@ -1,3 +1,8 @@
+import { UseFormReturnType } from '@shared/schemas/setting-schema'
+import { AlertCircleIcon } from 'lucide-react'
+import { useEffect, useMemo } from 'react'
+import { Controller } from 'react-hook-form'
+
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import {
@@ -8,10 +13,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select'
-import { UseFormReturnType } from '@shared/schemas/setting-schema'
-import { AlertCircleIcon } from 'lucide-react'
-import { useEffect, useMemo } from 'react'
-import { Controller } from 'react-hook-form'
+
 import { SettingRow, SettingSection } from '../setting-row'
 import { SettingSelect } from '../setting-select'
 

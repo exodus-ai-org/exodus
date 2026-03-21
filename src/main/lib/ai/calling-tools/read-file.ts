@@ -1,6 +1,7 @@
+import { readFile as fsReadFile } from 'fs/promises'
+
 import type { AgentTool } from '@mariozechner/pi-agent-core'
 import { Type } from '@mariozechner/pi-ai'
-import { readFile as fsReadFile } from 'fs/promises'
 
 const readFileSchema = Type.Object({
   path: Type.String({

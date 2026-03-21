@@ -1,10 +1,3 @@
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { fetchDeepResearchMessages } from '@/services/deep-research'
-import {
-  activeDeepResearchIdAtom,
-  deepResearchMessagesAtom
-} from '@/stores/chat'
 import { BASE_URL } from '@shared/constants/systems'
 import { DeepResearch, DeepResearchMessage } from '@shared/types/db'
 import {
@@ -16,6 +9,15 @@ import { useAtom } from 'jotai'
 import { XIcon } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import useSWR from 'swr'
+
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import { fetchDeepResearchMessages } from '@/services/deep-research'
+import {
+  activeDeepResearchIdAtom,
+  deepResearchMessagesAtom
+} from '@/stores/chat'
+
 import { MessageItem } from './message-item'
 import { SourceItem } from './source-item'
 
@@ -81,7 +83,7 @@ export function DeepResearchProcess() {
           if (!deepResearchMessage) return
 
           const reportProgressPayload = (
-            deepResearchMessage?.message as Record<
+            deepResearchMessage.message as Record<
               string,
               Record<string, unknown>
             >

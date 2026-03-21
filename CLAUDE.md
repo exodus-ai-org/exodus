@@ -31,8 +31,10 @@ pnpm build:unpack     # Build without packaging (for testing)
 pnpm typecheck        # Run TypeScript checks for both node and web
 pnpm typecheck:node   # Check main process code only
 pnpm typecheck:web    # Check renderer process code only
-pnpm lint             # Run ESLint with caching
-pnpm format           # Format all files with Prettier
+pnpm lint             # Run oxlint (replaces ESLint, ~50-100x faster)
+pnpm lint:fix         # Run oxlint with auto-fix
+pnpm format           # Format all files with oxfmt (replaces Prettier, ~30x faster)
+pnpm format:check     # Check formatting without modifying files
 ```
 
 ### Testing

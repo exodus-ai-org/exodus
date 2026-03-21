@@ -1,3 +1,10 @@
+import { ChatMessage } from '@shared/types/chat'
+import { useAtom } from 'jotai'
+import { SearchIcon } from 'lucide-react'
+import { useState } from 'react'
+import { Link } from 'react-router'
+import useSWR from 'swr'
+
 import {
   Dialog,
   DialogContent,
@@ -7,12 +14,6 @@ import {
 } from '@/components/ui/dialog'
 import { useDebouncedValue } from '@/hooks/use-debounce'
 import { isFullTextSearchVisibleAtom } from '@/stores/chat'
-import { ChatMessage } from '@shared/types/chat'
-import { useAtom } from 'jotai'
-import { SearchIcon } from 'lucide-react'
-import { useState } from 'react'
-import { Link } from 'react-router'
-import useSWR from 'swr'
 
 export function SearchDialog() {
   const [isFullTextSearchVisible, setIsFullTextSearchVisible] = useAtom(

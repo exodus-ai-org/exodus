@@ -6,6 +6,7 @@ import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker'
 import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
 import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
 import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
+
 import { useTheme } from './theme-provider'
 
 self.MonacoEnvironment = {

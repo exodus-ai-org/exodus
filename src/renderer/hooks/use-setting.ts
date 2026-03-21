@@ -1,7 +1,8 @@
-import { updateSetting as updateSettingService } from '@/services/setting'
 import { sileo } from 'sileo'
 import type { Setting } from 'src/shared/schemas/setting-schema'
 import useSWR from 'swr'
+
+import { updateSetting as updateSettingService } from '@/services/setting'
 
 export function useSetting() {
   const { data, error, isLoading, mutate } = useSWR<Setting>('/api/setting')

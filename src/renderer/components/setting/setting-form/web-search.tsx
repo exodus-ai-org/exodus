@@ -1,3 +1,9 @@
+import { countryCodes } from '@shared/constants/country-codes'
+import { languageCodes } from '@shared/constants/language-codes'
+import { UseFormReturnType } from '@shared/schemas/setting-schema'
+import { AlertCircleIcon } from 'lucide-react'
+import { Controller } from 'react-hook-form'
+
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   Combobox,
@@ -12,11 +18,7 @@ import {
   useComboboxAnchor
 } from '@/components/ui/combobox'
 import { Input } from '@/components/ui/input'
-import { countryCodes } from '@shared/constants/country-codes'
-import { languageCodes } from '@shared/constants/language-codes'
-import { UseFormReturnType } from '@shared/schemas/setting-schema'
-import { AlertCircleIcon } from 'lucide-react'
-import { Controller } from 'react-hook-form'
+
 import { SettingRow, SettingSection } from '../setting-row'
 import { SettingSelect } from '../setting-select'
 

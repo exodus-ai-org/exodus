@@ -1,8 +1,3 @@
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { cn } from '@/lib/utils'
-import { respondToEscalation } from '@/services/agent-x'
-import type { AgentData, TaskData } from '@/stores/agent-x'
 import type { AgentXSseEvent } from '@shared/types/agent-x'
 import {
   AlertCircleIcon,
@@ -15,6 +10,12 @@ import {
   XCircleIcon
 } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
+
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { cn } from '@/lib/utils'
+import { respondToEscalation } from '@/services/agent-x'
+import type { AgentData, TaskData } from '@/stores/agent-x'
 
 interface TaskListProps {
   tasks: TaskData[]

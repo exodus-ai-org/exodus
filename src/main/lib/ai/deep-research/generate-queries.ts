@@ -2,6 +2,7 @@ import type { Model } from '@mariozechner/pi-ai'
 import { completeSimple } from '@mariozechner/pi-ai'
 import { Learning } from '@shared/types/deep-research'
 import { z } from 'zod'
+
 import { deepResearchSystemPrompt } from '../prompts'
 import {
   extractTextFromCompletion,

@@ -1,9 +1,10 @@
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { openTabsAtom } from '@/stores/chat'
 import { useAtom } from 'jotai'
 import { XIcon } from 'lucide-react'
 import { Link, useNavigate, useParams } from 'react-router'
+
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import { openTabsAtom } from '@/stores/chat'
 
 export function ChatTabs() {
   const [tabs, setTabs] = useAtom(openTabsAtom)

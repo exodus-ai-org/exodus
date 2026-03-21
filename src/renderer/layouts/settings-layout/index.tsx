@@ -1,3 +1,7 @@
+import { useAtomValue } from 'jotai'
+import { ArrowLeftIcon } from 'lucide-react'
+import { useNavigate } from 'react-router'
+
 import { SettingsForm } from '@/components/setting/setting-form'
 import { menus } from '@/components/setting/setting-menu'
 import { SettingsSidebar } from '@/components/setting/setting-sidebar'
@@ -7,9 +11,6 @@ import { SidebarProvider } from '@/components/ui/sidebar'
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import { cn } from '@/lib/utils'
 import { settingLabelAtom } from '@/stores/setting'
-import { useAtomValue } from 'jotai'
-import { ArrowLeftIcon } from 'lucide-react'
-import { useNavigate } from 'react-router'
 
 // Build a child → parent lookup from the menu tree
 const parentOf = new Map<string, string>()

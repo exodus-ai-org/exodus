@@ -1,5 +1,6 @@
 import type { Model } from '@mariozechner/pi-ai'
 import { Setting } from '@shared/types/db'
+
 import { resolveModel } from './resolve-model'
 
 export function getXaiGrok(setting: Setting): {

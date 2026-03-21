@@ -1,5 +1,3 @@
-import { useClipboard } from '@/hooks/use-clipboard'
-import { cn } from '@/lib/utils'
 import type { WebSearchResult } from '@shared/types/web-search'
 import {
   CheckIcon,
@@ -10,6 +8,10 @@ import {
   XIcon
 } from 'lucide-react'
 import { ReactNode, useMemo, useState } from 'react'
+
+import { useClipboard } from '@/hooks/use-clipboard'
+import { cn } from '@/lib/utils'
+
 import AudioPlayer from './audio-player'
 import { parseCitations } from './markdown'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'

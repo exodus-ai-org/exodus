@@ -1,3 +1,5 @@
+import fs from 'fs'
+
 import type { AgentMessage } from '@mariozechner/pi-agent-core'
 import { agentLoop } from '@mariozechner/pi-agent-core'
 import type { Message } from '@mariozechner/pi-ai'
@@ -9,9 +11,9 @@ import type {
   ChatToolResultMessage
 } from '@shared/types/chat'
 import { Variables } from '@shared/types/server'
-import fs from 'fs'
 import { Hono } from 'hono'
 import { v4 as uuidV4 } from 'uuid'
+
 import { LcmManager } from '../../ai/context-management'
 import { getMcpTools } from '../../ai/mcp'
 import {

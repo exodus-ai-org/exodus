@@ -3,6 +3,7 @@ import { completeSimple } from '@mariozechner/pi-ai'
 import { Learning } from '@shared/types/deep-research'
 import { WebSearchResult } from '@shared/types/web-search'
 import { z } from 'zod'
+
 import { deepResearchSystemPrompt } from '../prompts'
 import {
   extractTextFromCompletion,

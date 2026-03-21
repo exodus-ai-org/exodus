@@ -1,3 +1,12 @@
+import { DeepResearch } from '@shared/types/db'
+import { WebSearchResult } from '@shared/types/web-search'
+import { differenceInMinutes } from 'date-fns'
+import { useAtom } from 'jotai'
+import { DownloadIcon, LoaderIcon } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { sileo } from 'sileo'
+import useSWR from 'swr'
+
 import { Markdown } from '@/components/markdown'
 import { ShimmeringText } from '@/components/shimmering-text'
 import { Button } from '@/components/ui/button'
@@ -11,14 +20,6 @@ import {
 import { downloadFile } from '@/lib/utils'
 import { markdownToPdf } from '@/services/tools'
 import { activeDeepResearchIdAtom } from '@/stores/chat'
-import { DeepResearch } from '@shared/types/db'
-import { WebSearchResult } from '@shared/types/web-search'
-import { differenceInMinutes } from 'date-fns'
-import { useAtom } from 'jotai'
-import { DownloadIcon, LoaderIcon } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { sileo } from 'sileo'
-import useSWR from 'swr'
 
 /**
  * Convert inline 【N-source】 markers to superscript [N] and append a

@@ -1,7 +1,9 @@
-import { useAudio } from '@/hooks/use-audio'
 import { AudioLinesIcon, CircleStopIcon, LoaderIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { sileo } from 'sileo'
+
+import { useAudio } from '@/hooks/use-audio'
+
 import { Button } from './ui/button'
 
 export function AudioRecorder({

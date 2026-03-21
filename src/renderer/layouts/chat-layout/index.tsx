@@ -1,3 +1,6 @@
+import { useEffect } from 'react'
+import { Outlet } from 'react-router'
+
 import { DeepResearchProcess } from '@/components/deep-research'
 import { AppToaster } from '@/components/ui/app-toaster'
 import {
@@ -8,8 +11,7 @@ import {
 } from '@/components/ui/sidebar'
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import { cn } from '@/lib/utils'
-import { useEffect } from 'react'
-import { Outlet } from 'react-router'
+
 import { AppSidebar } from './app-sidebar'
 import { ChatDeletionConfirmationDialog } from './chat-deletion-confirmation-dialog'
 import { ChatTabs } from './chat-tabs'

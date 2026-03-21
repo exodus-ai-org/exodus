@@ -1,7 +1,8 @@
-import { Input } from '@/components/ui/input'
-import { closeQuickChat, transferQuickChat } from '@/lib/ipc'
 import { BotIcon } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
+
+import { Input } from '@/components/ui/input'
+import { closeQuickChat, transferQuickChat } from '@/lib/ipc'
 
 export function FindBar() {
   const ref = useRef<HTMLInputElement | null>(null)

@@ -1,5 +1,3 @@
-import { ChatStatus, UseChatHelpers } from '@/hooks/use-chat'
-import { useUpload } from '@/hooks/use-upload'
 import type { Attachment, ChatMessage, Usage } from '@shared/types/chat'
 import { CircleStopIcon, SendIcon } from 'lucide-react'
 import {
@@ -14,6 +12,10 @@ import {
   useState
 } from 'react'
 import { sileo } from 'sileo'
+
+import { ChatStatus, UseChatHelpers } from '@/hooks/use-chat'
+import { useUpload } from '@/hooks/use-upload'
+
 import { AdvancedTools } from './advanced-tools'
 import { AudioRecorder } from './audio-recoder'
 import { AvailableMcpTools } from './available-mcp-tools'

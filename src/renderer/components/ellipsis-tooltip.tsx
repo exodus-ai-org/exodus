@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from 'react'
+
 import {
   Tooltip,
   TooltipContent,
@@ -5,7 +7,6 @@ import {
   TooltipTrigger
 } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
-import { useEffect, useRef, useState } from 'react'
 
 export type EllipsisTooltipProps = {
   text: string

@@ -1,6 +1,3 @@
-import { useChat } from '@/hooks/use-chat'
-import { bringWindowToFront, subscribeQuickChatInput } from '@/lib/ipc'
-import { advancedToolsAtom } from '@/stores/chat'
 import { QUICK_CHAT_KEY } from '@shared/constants/misc'
 import { BASE_URL } from '@shared/constants/systems'
 import { Attachment, ChatMessage } from '@shared/types/chat'
@@ -10,6 +7,11 @@ import { useEffect, useRef, useState } from 'react'
 import { sileo } from 'sileo'
 import { mutate } from 'swr'
 import { v4 as uuidV4 } from 'uuid'
+
+import { useChat } from '@/hooks/use-chat'
+import { bringWindowToFront, subscribeQuickChatInput } from '@/lib/ipc'
+import { advancedToolsAtom } from '@/stores/chat'
+
 import Messages from './messages'
 import MultimodalInput from './multimodel-input'
 

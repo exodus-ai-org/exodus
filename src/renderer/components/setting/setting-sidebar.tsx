@@ -1,3 +1,6 @@
+import { useAtom } from 'jotai'
+import { ComponentProps } from 'react'
+
 import {
   Sidebar,
   SidebarContent,
@@ -10,8 +13,7 @@ import {
   SidebarMenuSubItem
 } from '@/components/ui/sidebar'
 import { settingLabelAtom } from '@/stores/setting'
-import { useAtom } from 'jotai'
-import { ComponentProps } from 'react'
+
 import { menus } from './setting-menu'
 
 export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {

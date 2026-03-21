@@ -6,6 +6,7 @@ import {
   ReportProgressPayload
 } from '@shared/types/deep-research'
 import { WebSearchResult } from '@shared/types/web-search'
+
 import { generateSerpQueries } from './generate-queries'
 import { processSerpResult } from './process-search-results'
 import { webSearch } from './web-search'

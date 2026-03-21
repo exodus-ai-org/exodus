@@ -1,6 +1,7 @@
+import { Toaster } from 'sileo'
+
 import { useTheme } from '@/components/theme-provider'
 import { cn } from '@/lib/utils'
-import { Toaster } from 'sileo'
 
 export function AppToaster() {
   const { actualTheme } = useTheme()

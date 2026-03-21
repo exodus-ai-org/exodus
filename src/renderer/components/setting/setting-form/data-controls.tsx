@@ -1,6 +1,8 @@
+import { Construction, Loader2 } from 'lucide-react'
+
 import { Button } from '@/components/ui/button'
 import { useDbIo } from '@/hooks/use-db-io'
-import { Construction, Loader2 } from 'lucide-react'
+
 import { SettingRow, SettingSection } from '../setting-row'
 
 export function DataControls() {

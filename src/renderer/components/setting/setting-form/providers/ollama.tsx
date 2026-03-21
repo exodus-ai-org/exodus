@@ -1,8 +1,10 @@
-import { Input } from '@/components/ui/input'
-import { useSetting } from '@/hooks/use-setting'
 import { UseFormReturnType } from '@shared/schemas/setting-schema'
 import { Controller } from 'react-hook-form'
 import useSWR from 'swr'
+
+import { Input } from '@/components/ui/input'
+import { useSetting } from '@/hooks/use-setting'
+
 import { SettingRow, SettingSection } from '../../setting-row'
 
 export function Ollama({ form }: { form: UseFormReturnType }) {

@@ -1,6 +1,7 @@
 import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import OpenAI from 'openai'
+
 import { ChatSDKError } from '../errors'
 import { speechSchema } from '../schemas/audio'
 import { successResponse, validateOpenAIConfig, validateSchema } from '../utils'

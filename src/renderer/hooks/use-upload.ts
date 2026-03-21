@@ -1,8 +1,9 @@
-import { convertFileToBase64 } from '@/lib/utils'
-import { attachmentAtom } from '@/stores/chat'
 import { useSetAtom } from 'jotai'
 import { useState } from 'react'
 import { sileo } from 'sileo'
+
+import { convertFileToBase64 } from '@/lib/utils'
+import { attachmentAtom } from '@/stores/chat'
 
 export function useUpload() {
   const [loading, setLoading] = useState(false)

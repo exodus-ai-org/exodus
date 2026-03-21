@@ -1,7 +1,8 @@
-import { useUpload } from '@/hooks/use-upload'
-
 import { PaperclipIcon } from 'lucide-react'
 import { ChangeEvent, useRef } from 'react'
+
+import { useUpload } from '@/hooks/use-upload'
+
 import { Button } from './ui/button'
 import {
   Tooltip,

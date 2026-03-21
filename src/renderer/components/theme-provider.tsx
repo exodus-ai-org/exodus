@@ -1,5 +1,6 @@
-import { setNativeTheme } from '@/lib/ipc'
 import { createContext, useContext, useEffect, useRef, useState } from 'react'
+
+import { setNativeTheme } from '@/lib/ipc'
 
 export type Theme = 'dark' | 'light' | 'system'
 

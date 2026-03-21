@@ -1,3 +1,7 @@
+import { protos } from '@googlemaps/places'
+import { GlobeIcon, MapPinIcon, PhoneIcon, StarIcon } from 'lucide-react'
+import Zoom from 'react-medium-image-zoom'
+
 import { LazyLoadImage } from '@/components/lazy-load-image'
 import {
   Accordion,
@@ -11,9 +15,6 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useSetting } from '@/hooks/use-setting'
 import { cn } from '@/lib/utils'
-import { protos } from '@googlemaps/places'
-import { GlobeIcon, MapPinIcon, PhoneIcon, StarIcon } from 'lucide-react'
-import Zoom from 'react-medium-image-zoom'
 
 interface RestaurantAccordionProps {
   places: protos.google.maps.places.v1.IPlace[]

@@ -1,6 +1,8 @@
-import { Input } from '@/components/ui/input'
 import { UseFormReturnType } from '@shared/schemas/setting-schema'
 import { Controller } from 'react-hook-form'
+
+import { Input } from '@/components/ui/input'
+
 import { SettingRow, SettingSection } from '../../setting-row'
 
 export function OpenAiGpt({ form }: { form: UseFormReturnType }) {

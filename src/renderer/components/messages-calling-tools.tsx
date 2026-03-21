@@ -2,6 +2,7 @@ import type { ChatToolResultMessage } from '@shared/types/chat'
 import { AlertCircleIcon } from 'lucide-react'
 import { memo, useEffect } from 'react'
 import { sileo } from 'sileo'
+
 import { DeepResearchCard } from './calling-tools/deep-research/deep-research-card'
 import { GoogleMapsPlacesCard } from './calling-tools/google-maps-places/places-card'
 import { GoogleMapsCard } from './calling-tools/google-maps-routing/routing-card'

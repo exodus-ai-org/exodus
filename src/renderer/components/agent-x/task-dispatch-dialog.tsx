@@ -1,3 +1,12 @@
+import { useAtom } from 'jotai'
+import {
+  CalendarClockIcon,
+  Loader2Icon,
+  SparklesIcon,
+  ZapIcon
+} from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -25,14 +34,6 @@ import {
   type TaskData,
   isTaskDispatchDialogOpenAtom
 } from '@/stores/agent-x'
-import { useAtom } from 'jotai'
-import {
-  CalendarClockIcon,
-  Loader2Icon,
-  SparklesIcon,
-  ZapIcon
-} from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
 
 // ─── Cron presets ────────────────────────────────────────────────────────────
 

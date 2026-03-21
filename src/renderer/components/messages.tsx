@@ -1,7 +1,3 @@
-import { Button } from '@/components/ui/button'
-import type { ChatStatus } from '@/hooks/use-chat'
-import { useSetting } from '@/hooks/use-setting'
-import { cn } from '@/lib/utils'
 import type {
   ChatMessage,
   ChatToolResultMessage,
@@ -12,6 +8,12 @@ import type { WebSearchResult } from '@shared/types/web-search'
 import { ChevronDownIcon } from 'lucide-react'
 import { Fragment, memo, useCallback, useEffect, useRef, useState } from 'react'
 import Zoom from 'react-medium-image-zoom'
+
+import { Button } from '@/components/ui/button'
+import type { ChatStatus } from '@/hooks/use-chat'
+import { useSetting } from '@/hooks/use-setting'
+import { cn } from '@/lib/utils'
+
 import Markdown from './markdown'
 import { MessageAction } from './massage-action'
 import { MessageReasoning } from './message-reasoning'

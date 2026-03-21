@@ -1,3 +1,13 @@
+import {
+  ArrowLeftIcon,
+  BotIcon,
+  CoinsIcon,
+  LayoutDashboardIcon,
+  ListChecksIcon,
+  NetworkIcon
+} from 'lucide-react'
+import { useNavigate } from 'react-router'
+
 import { NavMain } from '@/components/agent-x/dashboard/nav-main'
 import { NavSecondary } from '@/components/agent-x/dashboard/nav-secondary'
 import {
@@ -10,15 +20,6 @@ import {
 } from '@/components/ui/sidebar'
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import { cn } from '@/lib/utils'
-import {
-  ArrowLeftIcon,
-  BotIcon,
-  CoinsIcon,
-  LayoutDashboardIcon,
-  ListChecksIcon,
-  NetworkIcon
-} from 'lucide-react'
-import { useNavigate } from 'react-router'
 
 const navMainItems = [
   {

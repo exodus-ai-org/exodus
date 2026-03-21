@@ -1,9 +1,8 @@
-import { useClipboard } from '@/hooks/use-clipboard'
-import { cn } from '@/lib/utils'
 import { WebSearchResult } from '@shared/types/web-search'
-import 'katex/dist/katex.min.css'
 import { CheckIcon, CopyIcon } from 'lucide-react'
 import { Fragment, memo, ReactNode, useMemo } from 'react'
+
+import 'katex/dist/katex.min.css'
 import ReactMarkdown from 'react-markdown'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import {
@@ -13,6 +12,10 @@ import {
 import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
+
+import { useClipboard } from '@/hooks/use-clipboard'
+import { cn } from '@/lib/utils'
+
 import { useTheme } from './theme-provider'
 import { Badge } from './ui/badge'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card'

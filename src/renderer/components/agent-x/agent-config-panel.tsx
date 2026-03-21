@@ -1,3 +1,6 @@
+import { Trash2Icon } from 'lucide-react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,8 +14,6 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import type { AgentData } from '@/stores/agent-x'
-import { Trash2Icon } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
 
 interface AgentConfigPanelProps {
   agent: AgentData | null

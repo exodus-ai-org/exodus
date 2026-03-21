@@ -1,5 +1,6 @@
 import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
+
 import { updateSetting } from '../../db/queries'
 import { Setting as DBSetting } from '../../db/schema'
 import { updateSettingsSchema } from '../schemas/setting'

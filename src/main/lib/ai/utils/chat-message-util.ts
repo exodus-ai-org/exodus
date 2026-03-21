@@ -3,6 +3,7 @@ import type { Model, TextContent } from '@mariozechner/pi-ai'
 import { completeSimple } from '@mariozechner/pi-ai'
 import { AdvancedTools, AiProviders, McpTools } from '@shared/types/ai'
 import type { ChatMessage } from '@shared/types/chat'
+
 import { Setting } from '../../db/schema'
 import {
   deepResearch,

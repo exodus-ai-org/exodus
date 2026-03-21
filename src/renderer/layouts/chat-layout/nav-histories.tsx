@@ -1,3 +1,16 @@
+import type { Chat } from '@shared/types/db'
+import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns'
+import { useSetAtom } from 'jotai'
+import {
+  ChevronRightIcon,
+  Edit2Icon,
+  MoreHorizontalIcon,
+  StarIcon,
+  Trash2Icon
+} from 'lucide-react'
+import { Link, useParams } from 'react-router'
+import useSWR from 'swr'
+
 import {
   Collapsible,
   CollapsibleContent,
@@ -28,18 +41,6 @@ import {
   renamedChatTitleAtom,
   toBeDeletedChatAtom
 } from '@/stores/chat'
-import type { Chat } from '@shared/types/db'
-import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns'
-import { useSetAtom } from 'jotai'
-import {
-  ChevronRightIcon,
-  Edit2Icon,
-  MoreHorizontalIcon,
-  StarIcon,
-  Trash2Icon
-} from 'lucide-react'
-import { Link, useParams } from 'react-router'
-import useSWR from 'swr'
 
 function compactRelativeTime(date: Date): string {
   const diff = Date.now() - date.getTime()

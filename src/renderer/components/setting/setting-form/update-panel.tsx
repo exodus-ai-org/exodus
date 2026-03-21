@@ -1,6 +1,3 @@
-import { Button } from '@/components/ui/button'
-import { UpdaterPayload } from '@/hooks/use-updater'
-import { updaterCheck, updaterDownload, updaterInstall } from '@/lib/ipc'
 import {
   AlertCircleIcon,
   CheckCircleIcon,
@@ -9,6 +6,10 @@ import {
   RefreshCwIcon,
   ZapIcon
 } from 'lucide-react'
+
+import { Button } from '@/components/ui/button'
+import { UpdaterPayload } from '@/hooks/use-updater'
+import { updaterCheck, updaterDownload, updaterInstall } from '@/lib/ipc'
 
 interface UpdatePanelProps {
   payload: UpdaterPayload

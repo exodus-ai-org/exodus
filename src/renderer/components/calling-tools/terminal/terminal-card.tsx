@@ -1,5 +1,6 @@
-import { cn } from '@/lib/utils'
 import { CheckCircle2Icon, TerminalIcon, XCircleIcon } from 'lucide-react'
+
+import { cn } from '@/lib/utils'
 
 interface TerminalResult {
   command: string

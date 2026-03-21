@@ -1,11 +1,3 @@
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import {
-  restoreTaskApi,
-  submitTaskFeedback,
-  updateTaskApi
-} from '@/services/agent-x'
-import type { AgentData, DepartmentData, TaskData } from '@/stores/agent-x'
 import {
   AlertCircleIcon,
   BotIcon,
@@ -24,6 +16,16 @@ import {
   XIcon
 } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
+
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import {
+  restoreTaskApi,
+  submitTaskFeedback,
+  updateTaskApi
+} from '@/services/agent-x'
+import type { AgentData, DepartmentData, TaskData } from '@/stores/agent-x'
+
 import { TaskDispatchDialog } from './task-dispatch-dialog'
 
 // ─── Column definitions ──────────────────────────────────────────────────────

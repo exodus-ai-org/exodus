@@ -1,3 +1,6 @@
+import { IpcRendererEvent } from 'electron'
+import { useEffect, useState } from 'react'
+
 import {
   subscribeUpdaterStateChanged,
   unsubscribeUpdaterStateChanged,
@@ -7,8 +10,6 @@ import {
   updaterInstall,
   updaterSetAutoDownload
 } from '@/lib/ipc'
-import { IpcRendererEvent } from 'electron'
-import { useEffect, useState } from 'react'
 
 export type UpdaterState =
   | 'idle'

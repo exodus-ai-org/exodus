@@ -1,3 +1,17 @@
+import {
+  ChevronDownIcon,
+  CloudIcon,
+  InfoIcon,
+  Loader2Icon,
+  PencilIcon,
+  PlusIcon,
+  TerminalIcon,
+  Trash2Icon
+} from 'lucide-react'
+import { useCallback, useState } from 'react'
+import { toast } from 'sonner'
+import useSWR from 'swr'
+
 import CodeEditor from '@/components/code-editor'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
@@ -21,19 +35,7 @@ import {
   type McpTransportType,
   updateMcpServerApi
 } from '@/services/mcp-service'
-import {
-  ChevronDownIcon,
-  CloudIcon,
-  InfoIcon,
-  Loader2Icon,
-  PencilIcon,
-  PlusIcon,
-  TerminalIcon,
-  Trash2Icon
-} from 'lucide-react'
-import { useCallback, useState } from 'react'
-import { toast } from 'sonner'
-import useSWR from 'swr'
+
 import { SettingRow, SettingSection } from '../setting-row'
 
 // ─── Types ──────────────────────────────────────────────────────────────────

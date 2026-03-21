@@ -1,4 +1,5 @@
 import { WebSearchResult } from '@shared/types/web-search'
+
 import { fetchWebSearch } from '../utils/web-search-util'
 
 export async function webSearch(

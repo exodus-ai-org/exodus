@@ -1,4 +1,5 @@
 import { Tray } from 'electron'
+
 import icon from '../../../resources/iconTemplate.png?asset'
 import { registerQuickChat } from './window'
 

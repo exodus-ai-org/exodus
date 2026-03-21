@@ -1,3 +1,7 @@
+import { CoinsIcon, CpuIcon, HashIcon, TrendingUpIcon } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
+
 import { Badge } from '@/components/ui/badge'
 import {
   Card,
@@ -16,9 +20,6 @@ import {
 } from '@/components/ui/chart'
 import type { ModelCost, UsageSummary } from '@/services/usage'
 import { getUsageSummary } from '@/services/usage'
-import { CoinsIcon, CpuIcon, HashIcon, TrendingUpIcon } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
-import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

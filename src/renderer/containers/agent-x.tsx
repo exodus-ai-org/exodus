@@ -1,3 +1,10 @@
+import { BASE_URL } from '@shared/constants/systems'
+import type { AgentXSseEvent } from '@shared/types/agent-x'
+import { ReactFlowProvider } from '@xyflow/react'
+import { useAtom } from 'jotai'
+import { Plus, SendIcon } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+
 import { AgentConfigPanel } from '@/components/agent-x/agent-config-panel'
 import { CostAnalysis } from '@/components/agent-x/cost-analysis'
 import { ChartAreaInteractive } from '@/components/agent-x/dashboard/chart-area-interactive'
@@ -29,12 +36,6 @@ import {
   isTaskDispatchDialogOpenAtom,
   selectedNodeAtom
 } from '@/stores/agent-x'
-import { BASE_URL } from '@shared/constants/systems'
-import type { AgentXSseEvent } from '@shared/types/agent-x'
-import { ReactFlowProvider } from '@xyflow/react'
-import { useAtom } from 'jotai'
-import { Plus, SendIcon } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 interface AgentXContainerProps {
   activePage: AgentXPage

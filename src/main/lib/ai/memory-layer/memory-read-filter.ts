@@ -1,6 +1,7 @@
 import type { Model } from '@mariozechner/pi-ai'
 import { completeSimple } from '@mariozechner/pi-ai'
 import z from 'zod'
+
 import {
   extractTextFromCompletion,
   parseJsonFromLlmResponse
