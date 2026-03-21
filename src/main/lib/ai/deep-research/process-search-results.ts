@@ -4,6 +4,10 @@ import { Learning } from '@shared/types/deep-research'
 import { WebSearchResult } from '@shared/types/web-search'
 import { z } from 'zod'
 import { deepResearchSystemPrompt } from '../prompts'
+import {
+  extractTextFromCompletion,
+  parseJsonFromLlmResponse
+} from '../utils/llm-response-util'
 
 const processResultSchema = z.object({
   learnings: z
@@ -73,21 +77,13 @@ export async function processSerpResult(
     { apiKey }
   )
 
-  const text = result.content
-    .filter((c) => c.type === 'text')
-    .map((c) => (c as { type: 'text'; text: string }).text)
-    .join('')
-
-  try {
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) throw new Error('No JSON found')
-    const parsed = processResultSchema.parse(JSON.parse(jsonMatch[0]))
-    const responses: { learnings: Learning[]; followUpQuestions: string[] } = {
-      learnings: parsed.learnings,
-      followUpQuestions: parsed.followUpQuestions
-    }
-    return responses
-  } catch {
-    return { learnings: [], followUpQuestions: [] }
+  const text = extractTextFromCompletion(result.content)
+  const parsed = parseJsonFromLlmResponse(text, processResultSchema, {
+    learnings: [] as Learning[],
+    followUpQuestions: [] as string[]
+  })
+  return {
+    learnings: parsed.learnings,
+    followUpQuestions: parsed.followUpQuestions
   }
 }

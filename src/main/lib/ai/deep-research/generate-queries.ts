@@ -3,6 +3,10 @@ import { completeSimple } from '@mariozechner/pi-ai'
 import { Learning } from '@shared/types/deep-research'
 import { z } from 'zod'
 import { deepResearchSystemPrompt } from '../prompts'
+import {
+  extractTextFromCompletion,
+  parseJsonFromLlmResponse
+} from '../utils/llm-response-util'
 
 const queriesSchema = z.object({
   queries: z
@@ -61,19 +65,9 @@ export async function generateSerpQueries(
     { apiKey }
   )
 
-  const text = result.content
-    .filter((c) => c.type === 'text')
-    .map((c) => (c as { type: 'text'; text: string }).text)
-    .join('')
-
-  try {
-    // Extract JSON from the response
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) throw new Error('No JSON found')
-    const parsed = queriesSchema.parse(JSON.parse(jsonMatch[0]))
-    return parsed.queries
-  } catch {
-    // Fallback: return a single query with the original query
-    return [{ query, researchGoal: `Research about: ${query}` }]
-  }
+  const text = extractTextFromCompletion(result.content)
+  const parsed = parseJsonFromLlmResponse(text, queriesSchema, {
+    queries: [{ query, researchGoal: `Research about: ${query}` }]
+  })
+  return parsed.queries
 }

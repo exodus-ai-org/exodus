@@ -35,6 +35,14 @@ pnpm lint             # Run ESLint with caching
 pnpm format           # Format all files with Prettier
 ```
 
+### Testing
+
+```bash
+pnpm test             # Run all unit tests with Vitest
+pnpm test:watch       # Run tests in watch mode
+pnpm test:coverage    # Run tests with V8 coverage report
+```
+
 ### Database
 
 ```bash
@@ -348,8 +356,9 @@ Tracks user preferences, goals, and context across conversations:
 
 ### When Working with AI Providers
 
-- All provider implementations must return `chatModel`, `reasoningModel`, and `embeddingModel`
-- Use `createAzure()`, `createAnthropic()`, etc. from `@ai-sdk/*` packages
+- All provider implementations must return `chatModel` and `reasoningModel`
+- Use the shared `resolveModel()` from `src/main/lib/ai/providers/resolve-model.ts` — do NOT duplicate model resolution logic
+- Provider-specific fallback defaults (contextWindow, maxTokens) are centralized in `PROVIDER_DEFAULTS` within `resolve-model.ts`
 - Model names are retrieved from `setting` table
 - API keys stored in settings (never hardcode)
 
@@ -391,6 +400,36 @@ Tracks user preferences, goals, and context across conversations:
 - No external authentication (local-first application)
 - CORS allows localhost only in development
 - Sandbox disabled (required for native modules)
+
+## Testing
+
+### Framework
+
+Vitest v4 with the following configuration (`vitest.config.ts`):
+
+- Path aliases: `@shared` → `src/shared`, `@` → `src/renderer`
+- Test files: `src/**/*.test.ts`
+- Coverage: V8 provider targeting `src/shared/` and `src/main/lib/`
+
+### Writing Tests
+
+- Place test files next to the module they test: `foo.ts` → `foo.test.ts`
+- Tests for main-process code that transitively imports Electron/PGlite must mock those modules:
+
+```typescript
+vi.mock('../../db/db', () => ({ pglite: {} }))
+vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
+```
+
+- Use `await import('./module')` after mocks for dynamic import when needed
+
+### Shared Utilities
+
+Reusable AI utilities that should be used (and tested) instead of inline implementations:
+
+- `src/main/lib/ai/utils/llm-response-util.ts` — `extractTextFromCompletion()` and `parseJsonFromLlmResponse()` for parsing LLM outputs
+- `src/main/lib/ai/utils/conversation-util.ts` — `extractConversationText()` for converting messages to text
+- `src/main/lib/ai/providers/resolve-model.ts` — Shared `resolveModel()` with per-provider fallback defaults
 
 ## Testing Locally
 

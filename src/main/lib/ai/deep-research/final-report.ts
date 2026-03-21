@@ -2,6 +2,7 @@ import type { Model } from '@mariozechner/pi-ai'
 import { completeSimple } from '@mariozechner/pi-ai'
 import { Learning } from '@shared/types/deep-research'
 import { deepResearchSystemPrompt } from '../prompts'
+import { extractTextFromCompletion } from '../utils/llm-response-util'
 
 export async function writeFinalReport(
   {
@@ -51,10 +52,7 @@ export async function writeFinalReport(
     { apiKey }
   )
 
-  const text = result.content
-    .filter((c) => c.type === 'text')
-    .map((c) => (c as { type: 'text'; text: string }).text)
-    .join('')
+  const text = extractTextFromCompletion(result.content)
 
   try {
     const jsonMatch = text.match(/\{[\s\S]*\}/)
@@ -62,7 +60,6 @@ export async function writeFinalReport(
     const parsed = JSON.parse(jsonMatch[0]) as { report: string }
     return parsed.report
   } catch {
-    // Return raw text if JSON parsing fails
     return text
   }
 }

@@ -2,6 +2,11 @@ import type { Model } from '@mariozechner/pi-ai'
 import { completeSimple } from '@mariozechner/pi-ai'
 import { ChatMessage } from '@shared/types/chat'
 import { z } from 'zod'
+import { extractConversationText } from '../utils/conversation-util'
+import {
+  extractTextFromCompletion,
+  parseJsonFromLlmResponse
+} from '../utils/llm-response-util'
 
 export const MemoryWriteSchema = z.object({
   shouldWrite: z.boolean(),
@@ -30,27 +35,7 @@ export async function runMemoryWriteJudge({
   model: Model<string>
   apiKey: string
 }) {
-  const conversationText = messages
-    .map((m) => {
-      let text = ''
-      if (m.role === 'user') {
-        if (typeof m.content === 'string') {
-          text = m.content
-        } else {
-          text = m.content
-            .filter((c) => c.type === 'text')
-            .map((c) => (c as { type: 'text'; text: string }).text)
-            .join('')
-        }
-      } else if (m.role === 'assistant') {
-        text = m.content
-          .filter((c) => c.type === 'text')
-          .map((c) => (c as { type: 'text'; text: string }).text)
-          .join('')
-      }
-      return `${m.role}: ${text}`
-    })
-    .join('\n')
+  const conversationText = extractConversationText(messages)
 
   const prompt = `
 Conversation:
@@ -84,17 +69,9 @@ If any condition is not met, set shouldWrite = false.
     { apiKey }
   )
 
-  const text = result.content
-    .filter((c) => c.type === 'text')
-    .map((c) => (c as { type: 'text'; text: string }).text)
-    .join('')
-
-  try {
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) return { object: { shouldWrite: false } }
-    const parsed = MemoryWriteSchema.parse(JSON.parse(jsonMatch[0]))
-    return { object: parsed }
-  } catch {
-    return { object: { shouldWrite: false } }
-  }
+  const text = extractTextFromCompletion(result.content)
+  const parsed = parseJsonFromLlmResponse(text, MemoryWriteSchema, {
+    shouldWrite: false
+  })
+  return { object: parsed }
 }

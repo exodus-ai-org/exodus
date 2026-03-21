@@ -1,6 +1,10 @@
 import type { Model } from '@mariozechner/pi-ai'
 import { completeSimple } from '@mariozechner/pi-ai'
 import z from 'zod'
+import {
+  extractTextFromCompletion,
+  parseJsonFromLlmResponse
+} from '../utils/llm-response-util'
 
 export const MemoryReadFilterSchema = z.object({
   selectedMemoryIds: z.array(z.string())
@@ -60,17 +64,9 @@ Do not guess. Do not over-select.
     { apiKey }
   )
 
-  const text = result.content
-    .filter((c) => c.type === 'text')
-    .map((c) => (c as { type: 'text'; text: string }).text)
-    .join('')
-
-  try {
-    const jsonMatch = text.match(/\{[\s\S]*\}/)
-    if (!jsonMatch) return { text: '', object: { selectedMemoryIds: [] } }
-    const parsed = MemoryReadFilterSchema.parse(JSON.parse(jsonMatch[0]))
-    return { text, object: parsed }
-  } catch {
-    return { text, object: { selectedMemoryIds: [] } }
-  }
+  const text = extractTextFromCompletion(result.content)
+  const parsed = parseJsonFromLlmResponse(text, MemoryReadFilterSchema, {
+    selectedMemoryIds: []
+  })
+  return { text, object: parsed }
 }
