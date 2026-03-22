@@ -156,7 +156,7 @@ export function DeepResearchProcess() {
         }
       )}
     >
-      <div className="bg-background sticky top-0 z-10 flex h-14 items-center justify-center border-b">
+      <div className="bg-background sticky top-0 z-10 flex h-12 items-center justify-center border-b">
         <div className="bg-border flex items-center rounded-full p-1 text-sm">
           <Button
             variant="ghost"

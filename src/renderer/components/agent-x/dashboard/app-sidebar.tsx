@@ -68,7 +68,7 @@ export function AppSidebar({
   return (
     <Sidebar collapsible="offcanvas" {...props} className="border-none">
       <SidebarHeader
-        className={cn('transition-all', isFullscreen ? 'pt-2' : 'pt-13')}
+        className={cn('transition-all', isFullscreen ? 'pt-2' : 'pt-11')}
       >
         <SidebarMenu>
           <SidebarMenuItem>

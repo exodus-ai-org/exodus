@@ -30,7 +30,7 @@ export function SettingsLayout() {
       {/* Titlebar */}
       <header
         className={cn(
-          'draggable bg-background flex h-14 shrink-0 items-center gap-3 border-b',
+          'draggable bg-background flex h-12 shrink-0 items-center gap-3 border-b',
           isFullscreen ? 'pl-4' : 'pl-21'
         )}
       >

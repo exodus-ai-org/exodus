@@ -23,7 +23,7 @@ export function createWindow(): void {
     titleBarStyle: 'hidden',
     trafficLightPosition: {
       x: 20,
-      y: 20
+      y: 16
     },
     ...(process.platform === 'darwin'
       ? {
@@ -87,7 +87,7 @@ export function registerSearchMenu(mainWindow: BrowserWindow) {
 
   searchView.setBounds({
     x: (mainWindow?.getBounds().width ?? 0) - 418,
-    y: 56,
+    y: 48,
     width: 418,
     height: 86
   })

@@ -14,7 +14,7 @@ export function SiteHeader({ title }: SiteHeaderProps) {
   return (
     <header
       className={cn(
-        'draggable bg-background sticky top-0 flex h-14 shrink-0 items-center gap-2 border-b transition-[padding] duration-200 ease-linear',
+        'draggable bg-background sticky top-0 flex h-12 shrink-0 items-center gap-2 border-b transition-[padding] duration-200 ease-linear',
         !open && !isFullscreen && 'pl-18'
       )}
     >
