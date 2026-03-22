@@ -1,4 +1,5 @@
 import type {
+  ChatAssistantMessage,
   ChatMessage,
   ChatToolResultMessage,
   ImageContent,
@@ -6,7 +7,7 @@ import type {
 } from '@shared/types/chat'
 import type { WebSearchResult } from '@shared/types/web-search'
 import { ChevronDownIcon } from 'lucide-react'
-import { Fragment, memo, useCallback, useEffect, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Zoom from 'react-medium-image-zoom'
 
 import { Button } from '@/components/ui/button'
@@ -16,10 +17,10 @@ import { cn } from '@/lib/utils'
 
 import Markdown from './markdown'
 import { MessageAction } from './massage-action'
-import { MessageReasoning } from './message-reasoning'
 import { MessageSpinner } from './message-spinner'
 import { MessageCallingTools } from './messages-calling-tools'
 import { ShimmeringText } from './shimmering-text'
+import { ThinkingTimeline, TimelineStep } from './thinking-timeline'
 import { Avatar, AvatarImage } from './ui/avatar'
 
 type MessagesProps = {
@@ -30,26 +31,147 @@ type MessagesProps = {
 
 const AT_BOTTOM_THRESHOLD = 80
 
-// For a given message index, walk backwards to find the most recent webSearch
-// tool results within the same turn (stops at a user message boundary).
-function findWebSearchResults(
-  messages: ChatMessage[],
-  beforeIndex: number
-): WebSearchResult[] | undefined {
-  for (let i = beforeIndex - 1; i >= 0; i--) {
-    const msg = messages[i]
-    if (msg.role === 'user') break
-    if (
-      msg.role === 'toolResult' &&
-      (msg as ChatToolResultMessage).toolName === 'webSearch'
-    ) {
-      const details = (msg as ChatToolResultMessage).details
-      if (Array.isArray(details) && details.length > 0) {
-        return details as WebSearchResult[]
+/**
+ * A "turn" groups all assistant/toolResult messages between two user messages.
+ * This lets us render thinking+tools as a timeline above the final text.
+ */
+interface AssistantTurn {
+  /** All messages in this turn (assistant + toolResult) */
+  messages: ChatMessage[]
+  /** Timeline steps extracted from thinking blocks and tool interactions */
+  steps: TimelineStep[]
+  /** The final text blocks to render as the main answer */
+  finalTextBlocks: Array<{ text: string; messageId: string; blockIdx: number }>
+  /** Pending tool calls from the latest assistant message (for shimmer) */
+  pendingToolCalls: Array<{ name: string; id: string }>
+  /** Whether this turn has any content at all */
+  hasContent: boolean
+  /** All webSearch results collected in this turn */
+  webSearchResults: WebSearchResult[]
+}
+
+function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
+  const steps: TimelineStep[] = []
+  const finalTextBlocks: AssistantTurn['finalTextBlocks'] = []
+  const pendingToolCalls: AssistantTurn['pendingToolCalls'] = []
+  const webSearchResults: WebSearchResult[] = []
+
+  for (const msg of turnMessages) {
+    if (msg.role === 'assistant') {
+      const assistantMsg = msg as ChatAssistantMessage
+      for (const [idx, block] of assistantMsg.content.entries()) {
+        if (block.type === 'thinking' && block.thinking?.trim()) {
+          steps.push({ type: 'thinking', text: block.thinking })
+        } else if (block.type === 'toolCall') {
+          steps.push({
+            type: 'toolCall',
+            text: `${block.name}${block.arguments?.query ? `: ${block.arguments.query}` : ''}`,
+            toolName: block.name
+          })
+          pendingToolCalls.push({ name: block.name, id: block.id })
+        } else if (block.type === 'text' && block.text.trim()) {
+          finalTextBlocks.push({
+            text: block.text,
+            messageId: msg.id,
+            blockIdx: idx
+          })
+        }
+      }
+    } else if (msg.role === 'toolResult') {
+      const toolResult = msg as ChatToolResultMessage
+      // Remove the matching pending tool call
+      const pendingIdx = pendingToolCalls.findIndex(
+        (tc) => tc.id === toolResult.toolCallId
+      )
+      if (pendingIdx >= 0) pendingToolCalls.splice(pendingIdx, 1)
+
+      if (toolResult.isError) {
+        const errorText =
+          toolResult.content.find((c) => c.type === 'text')?.text ??
+          `${toolResult.toolName} failed`
+        steps.push({
+          type: 'toolResult',
+          text: errorText,
+          isError: true,
+          toolName: toolResult.toolName
+        })
+      }
+
+      // Collect webSearch results and add as timeline step
+      if (
+        toolResult.toolName === 'webSearch' &&
+        !toolResult.isError &&
+        Array.isArray(toolResult.details) &&
+        toolResult.details.length > 0
+      ) {
+        const results = toolResult.details as WebSearchResult[]
+        webSearchResults.push(...results)
+        steps.push({
+          type: 'toolResult',
+          text: `${results.length} results`,
+          toolName: 'webSearch',
+          webSearchResults: results
+        })
       }
     }
   }
-  return undefined
+
+  return {
+    messages: turnMessages,
+    steps,
+    finalTextBlocks,
+    pendingToolCalls,
+    hasContent:
+      steps.length > 0 ||
+      finalTextBlocks.length > 0 ||
+      pendingToolCalls.length > 0,
+    webSearchResults
+  }
+}
+
+/**
+ * Group messages into segments: each segment is either a user message
+ * or a contiguous run of assistant+toolResult messages (a "turn").
+ */
+type Segment =
+  | { type: 'user'; message: ChatMessage }
+  | { type: 'toolResult'; message: ChatToolResultMessage }
+  | { type: 'assistantTurn'; turn: AssistantTurn }
+
+function groupIntoSegments(messages: ChatMessage[]): Segment[] {
+  const segments: Segment[] = []
+  let turnBuffer: ChatMessage[] = []
+
+  const flushTurn = () => {
+    if (turnBuffer.length > 0) {
+      const turn = buildAssistantTurn(turnBuffer)
+      if (turn.hasContent) {
+        segments.push({ type: 'assistantTurn', turn })
+      }
+      // Also add non-webSearch, non-error toolResults for their tool cards
+      for (const msg of turnBuffer) {
+        if (msg.role === 'toolResult') {
+          const tr = msg as ChatToolResultMessage
+          if (tr.toolName !== 'webSearch' || tr.isError) {
+            segments.push({ type: 'toolResult', message: tr })
+          }
+        }
+      }
+      turnBuffer = []
+    }
+  }
+
+  for (const msg of messages) {
+    if (msg.role === 'user') {
+      flushTurn()
+      segments.push({ type: 'user', message: msg })
+    } else {
+      turnBuffer.push(msg)
+    }
+  }
+  flushTurn()
+
+  return segments
 }
 
 function Messages({ status, messages, regenerate }: MessagesProps) {
@@ -58,6 +180,8 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
   const chatBoxRef = useRef<HTMLDivElement>(null)
   const isAtBottom = useRef(true)
   const [showScrollButton, setShowScrollButton] = useState(false)
+
+  const segments = useMemo(() => groupIntoSegments(messages), [messages])
 
   const scrollToBottomSmooth = useCallback(() => {
     const $el = chatBoxRef.current
@@ -119,102 +243,14 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
         )}
 
         <div className="w-full md:max-w-4xl">
-          {messages.map((message, messageIdx) => (
-            <div
-              key={message.id}
-              className={cn('mb-8 flex flex-col last:mb-4', {
-                'items-start':
-                  message.role === 'assistant' || message.role === 'toolResult',
-                'items-end first:mt-0': message.role === 'user'
-              })}
-            >
-              {message.role === 'assistant' && (
-                <div className="flex w-full gap-4">
-                  {!!setting?.assistantAvatar && (
-                    <Avatar>
-                      <AvatarImage
-                        src={setting.assistantAvatar}
-                        className="object-cover"
-                      />
-                    </Avatar>
-                  )}
-                  <div className="w-full">
-                    {message.content.map((block, idx) => {
-                      const key = `message-${message.id}-part-${idx}`
-
-                      if (block.type === 'thinking') {
-                        const hasContent = block.thinking?.trim().length > 0
-                        const isStreaming =
-                          isLoading && idx === message.content.length - 1
-                        if (hasContent || isStreaming) {
-                          return (
-                            <MessageReasoning
-                              key={key}
-                              isLoading={isLoading || isStreaming}
-                              reasoning={block.thinking}
-                            />
-                          )
-                        }
-                      }
-
-                      if (block.type === 'text' && block.text.trim() !== '') {
-                        return (
-                          <section
-                            key={key}
-                            className="group relative mb-16 last:mb-0"
-                          >
-                            <Markdown
-                              src={block.text}
-                              parts={[]}
-                              webSearchResults={findWebSearchResults(
-                                messages,
-                                messageIdx
-                              )}
-                            />
-                            <MessageAction
-                              regenerate={regenerate}
-                              content={block.text}
-                              webSearchResults={findWebSearchResults(
-                                messages,
-                                messageIdx
-                              )}
-                            />
-                          </section>
-                        )
-                      }
-
-                      if (block.type === 'toolCall') {
-                        return isLoading ? (
-                          <ShimmeringText
-                            key={key}
-                            className="mb-4"
-                            text={`Calling tool: ${block.name}`}
-                          />
-                        ) : null
-                        //(
-                        //   <p
-                        //     key={key}
-                        //     className="text-muted-foreground flex items-center gap-1.5 text-sm"
-                        //   >
-                        //     <WrenchIcon size={14} />
-                        //     Used tool: {block.name}
-                        //   </p>
-                        // )
-                      }
-
-                      return <Fragment key={key} />
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {message.role === 'toolResult' && (
-                <MessageCallingTools toolResult={message} />
-              )}
-
-              {message.role === 'user' && (
-                <>
-                  {/* Images in user message */}
+          {segments.map((segment, segIdx) => {
+            if (segment.type === 'user') {
+              const message = segment.message
+              return (
+                <div
+                  key={message.id}
+                  className="mb-8 flex flex-col items-end first:mt-0 last:mb-4"
+                >
                   {Array.isArray(message.content) &&
                     message.content.some((c) => c.type === 'image') && (
                       <div className="mb-4 flex gap-4">
@@ -236,7 +272,6 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
                         })}
                       </div>
                     )}
-
                   <p className="bg-accent max-w-[60%] rounded-xl px-3 py-2 text-sm wrap-break-word whitespace-pre-wrap">
                     {typeof message.content === 'string'
                       ? message.content
@@ -245,10 +280,95 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
                           .map((c) => (c as TextContent).text)
                           .join('')}
                   </p>
-                </>
-              )}
-            </div>
-          ))}
+                </div>
+              )
+            }
+
+            if (segment.type === 'toolResult') {
+              return (
+                <div
+                  key={segment.message.id}
+                  className="mb-8 flex flex-col items-start last:mb-4"
+                >
+                  <MessageCallingTools toolResult={segment.message} />
+                </div>
+              )
+            }
+
+            // assistantTurn
+            const { turn } = segment
+            const isLastSegment = segIdx === segments.length - 1
+            const turnIsStreaming = isLoading && isLastSegment
+
+            return (
+              <div
+                key={`turn-${segIdx}`}
+                className="mb-8 flex flex-col items-start last:mb-4"
+              >
+                <div className="flex w-full gap-4">
+                  {!!setting?.assistantAvatar && (
+                    <Avatar>
+                      <AvatarImage
+                        src={setting.assistantAvatar}
+                        className="object-cover"
+                      />
+                    </Avatar>
+                  )}
+                  <div className="w-full">
+                    {/* Thinking timeline */}
+                    {(turn.steps.length > 0 || turnIsStreaming) && (
+                      <ThinkingTimeline
+                        steps={turn.steps}
+                        isStreaming={
+                          turnIsStreaming && turn.finalTextBlocks.length === 0
+                        }
+                      />
+                    )}
+
+                    {/* Pending tool calls (shimmer) */}
+                    {turnIsStreaming &&
+                      turn.pendingToolCalls.map((tc) => (
+                        <ShimmeringText
+                          key={tc.id}
+                          className="mb-4"
+                          text={`Calling tool: ${tc.name}`}
+                        />
+                      ))}
+
+                    {/* Final text blocks */}
+                    {turn.finalTextBlocks.map((block, i) => (
+                      <section
+                        key={`${block.messageId}-${block.blockIdx}`}
+                        className={cn(
+                          'group relative',
+                          i < turn.finalTextBlocks.length - 1 && 'mb-16'
+                        )}
+                      >
+                        <Markdown
+                          src={block.text}
+                          parts={[]}
+                          webSearchResults={
+                            turn.webSearchResults.length > 0
+                              ? turn.webSearchResults
+                              : undefined
+                          }
+                        />
+                        <MessageAction
+                          regenerate={regenerate}
+                          content={block.text}
+                          webSearchResults={
+                            turn.webSearchResults.length > 0
+                              ? turn.webSearchResults
+                              : undefined
+                          }
+                        />
+                      </section>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
 
           {(status === 'submitted' || status === 'streaming') &&
             messages[messages.length - 1]?.role !== 'assistant' && (

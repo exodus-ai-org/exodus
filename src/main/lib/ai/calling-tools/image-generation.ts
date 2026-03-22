@@ -20,7 +20,7 @@ export const imageGeneration = (
   execute: async (_toolCallId, { prompt }) => {
     if (!setting.providers?.openaiApiKey) {
       throw new Error(
-        'To use Image Generation, make sure to fill in the `openaiApiKey` in the setting.'
+        'Image Generation requires an OpenAI API Key. Please add it in Settings → Providers.'
       )
     }
     try {

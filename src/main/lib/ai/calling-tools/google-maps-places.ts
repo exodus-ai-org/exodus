@@ -21,7 +21,7 @@ export const googleMapsPlaces = (
   execute: async (_toolCallId, { query }) => {
     if (!setting.googleCloud?.googleApiKey) {
       throw new Error(
-        'To use Google Maps Places, make sure to fill in the `googleApiKey` in the setting.'
+        'Google Maps Places requires a Google API Key. Please add it in Settings → Google Cloud.'
       )
     }
     try {

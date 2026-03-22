@@ -12,6 +12,11 @@ import { WeatherCard } from './calling-tools/weather/weather-card'
 function CallingTools({ toolResult }: { toolResult: ChatToolResultMessage }) {
   const toolName = toolResult.toolName
 
+  // Successful webSearch results are rendered via Sources in MessageAction, not here
+  if (toolName === 'webSearch' && !toolResult.isError) {
+    return null
+  }
+
   // Extract error message from content when isError is true
   const errorMessage = toolResult.isError
     ? (() => {

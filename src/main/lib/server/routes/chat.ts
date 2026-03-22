@@ -136,6 +136,121 @@ function toDbRow(msg: ChatMessage, chatId: string) {
   }
 }
 
+/**
+ * Extract error message from a tool_execution_end result.
+ * The result can be:
+ * - AgentToolResult: { content: [{ type: 'text', text: '...' }], details: {} }
+ * - Error instance: { message: '...' }
+ * - Plain string
+ * - Unknown object with .message
+ */
+function extractToolErrorMessage(result: unknown): string {
+  if (typeof result === 'string') return result
+  if (result instanceof Error) return result.message
+
+  if (result && typeof result === 'object') {
+    // AgentToolResult shape: extract text from content array
+    const r = result as {
+      content?: Array<{ type: string; text?: string }>
+      message?: string
+    }
+    if (Array.isArray(r.content)) {
+      const text = r.content
+        .filter((c) => c.type === 'text' && c.text)
+        .map((c) => c.text)
+        .join('')
+      if (text) return text
+    }
+    // Duck-typed Error or plain object with message
+    if (typeof r.message === 'string' && r.message) return r.message
+  }
+
+  return 'Tool execution failed'
+}
+
+/**
+ * Translate raw LLM SDK / network errors into user-friendly messages.
+ * Keeps the original message as a fallback if no pattern matches.
+ */
+function toFriendlyChatError(raw: string): string {
+  const lower = raw.toLowerCase()
+
+  // API key issues (most providers return 401 or mention "api key")
+  if (
+    lower.includes('401') ||
+    lower.includes('unauthorized') ||
+    lower.includes('invalid api key') ||
+    lower.includes('invalid x-api-key') ||
+    lower.includes('incorrect api key') ||
+    lower.includes('authentication')
+  ) {
+    return 'Invalid API key. Please check your API key in Settings → Providers.'
+  }
+
+  // Forbidden / permission errors
+  if (lower.includes('403') || lower.includes('forbidden')) {
+    return 'Access denied. Your API key may lack the required permissions, or the selected model is not available on your plan.'
+  }
+
+  // Rate limit
+  if (
+    lower.includes('429') ||
+    lower.includes('rate limit') ||
+    lower.includes('rate_limit') ||
+    lower.includes('too many requests') ||
+    lower.includes('quota')
+  ) {
+    return 'Rate limit exceeded. Please wait a moment and try again, or check your API usage quota.'
+  }
+
+  // Model not found
+  if (
+    (lower.includes('404') && lower.includes('model')) ||
+    lower.includes('model not found') ||
+    lower.includes('does not exist')
+  ) {
+    return 'The selected model was not found. Please check the model name in Settings → Providers.'
+  }
+
+  // Network / connection errors
+  if (
+    lower.includes('econnrefused') ||
+    lower.includes('enotfound') ||
+    lower.includes('etimedout') ||
+    lower.includes('fetch failed') ||
+    lower.includes('network') ||
+    lower.includes('socket hang up')
+  ) {
+    return 'Unable to connect to the AI provider. Please check your network connection and API base URL.'
+  }
+
+  // Server errors from provider
+  if (lower.includes('500') || lower.includes('internal server error')) {
+    return 'The AI provider returned a server error. Please try again later.'
+  }
+  if (
+    lower.includes('502') ||
+    lower.includes('503') ||
+    lower.includes('overloaded') ||
+    lower.includes('service unavailable')
+  ) {
+    return 'The AI provider is temporarily unavailable. Please try again in a few moments.'
+  }
+
+  // Context length / token limit
+  if (
+    lower.includes('context length') ||
+    lower.includes('token') ||
+    lower.includes('too long') ||
+    lower.includes('maximum')
+  ) {
+    return 'The conversation is too long for the selected model. Try starting a new chat or switching to a model with a larger context window.'
+  }
+
+  // Fallback: return the original message
+  return raw
+}
+
 chat.post('/', async (c) => {
   const { id, messages, advancedTools } = validateSchema(
     postRequestBodySchema,
@@ -244,6 +359,7 @@ chat.post('/', async (c) => {
           {
             model: activeModel,
             apiKey,
+            reasoning: isReasoningModel ? 'high' : undefined,
             convertToLlm: (agentMessages: AgentMessage[]): Message[] => {
               return agentMessages
                 .filter(
@@ -316,15 +432,12 @@ chat.post('/', async (c) => {
               currentAssistantMsg = null
             }
           } else if (event.type === 'tool_execution_end') {
-            // When a tool throws, event.result is the Error object.
-            // JSON.stringify(Error) → "{}", so we must extract the message first.
+            // Extract error message from various possible shapes:
+            // 1. AgentToolResult: { content: [{ type: 'text', text: '...' }], details: {} }
+            // 2. Raw Error object: { message: '...' }
+            // 3. Plain string
             const errorMessage = event.isError
-              ? typeof event.result === 'string'
-                ? event.result
-                : event.result instanceof Error
-                  ? event.result.message
-                  : ((event.result as { message?: string })?.message ??
-                    'Tool execution failed')
+              ? extractToolErrorMessage(event.result)
               : null
 
             const details =
@@ -340,17 +453,18 @@ chat.post('/', async (c) => {
             // Use the tool's own content if provided (allows tools to control
             // exactly what text the LLM sees, e.g. formatted citations prompt).
             // Fall back to JSON-serialising details for tools that don't set content.
+            const resultObj = event.result as {
+              content?: Array<{ type: string; text?: string }>
+            } | null
+            const hasContentArray =
+              resultObj &&
+              typeof resultObj === 'object' &&
+              'content' in resultObj &&
+              Array.isArray(resultObj.content)
+
             const toolContent: Array<{ type: 'text'; text: string }> =
-              !event.isError &&
-              event.result &&
-              typeof event.result === 'object' &&
-              'content' in event.result &&
-              Array.isArray((event.result as { content: unknown }).content)
-                ? (
-                    event.result as {
-                      content: Array<{ type: 'text'; text: string }>
-                    }
-                  ).content
+              hasContentArray
+                ? (resultObj.content as Array<{ type: 'text'; text: string }>)
                 : errorMessage
                   ? [{ type: 'text' as const, text: errorMessage }]
                   : details
@@ -439,9 +553,9 @@ chat.post('/', async (c) => {
           })
         }
       } catch (err) {
-        const errMsg = err instanceof Error ? err.message : String(err)
-        console.error('Chat stream error:', errMsg)
-        sendEvent({ type: 'error', error: errMsg })
+        const rawMsg = err instanceof Error ? err.message : String(err)
+        console.error('Chat stream error:', rawMsg)
+        sendEvent({ type: 'error', error: toFriendlyChatError(rawMsg) })
       } finally {
         controller.close()
       }

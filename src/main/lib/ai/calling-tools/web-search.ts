@@ -18,7 +18,7 @@ export const webSearch = (
   execute: async (_toolCallId, { query }) => {
     if (!setting?.webSearch?.perplexityApiKey) {
       throw new Error(
-        'To use Web Search, make sure to fill in the `perplexityApiKey` in the settings.'
+        'Web Search requires a Perplexity API Key. Please add it in Settings → Web Search.'
       )
     }
     const ws = setting.webSearch

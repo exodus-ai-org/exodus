@@ -128,7 +128,7 @@ export const googleMapsRouting = (
   ) => {
     if (!setting.googleCloud?.googleApiKey) {
       throw new Error(
-        'To use Google Maps Routing, make sure to fill in the `googleApiKey` in the setting.'
+        'Google Maps Routing requires a Google API Key. Please add it in Settings → Google Cloud.'
       )
     }
 

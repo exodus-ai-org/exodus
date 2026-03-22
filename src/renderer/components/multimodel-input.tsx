@@ -75,8 +75,6 @@ function InputBox({
   }
 
   const handlePaste = (event: ClipboardEvent<HTMLTextAreaElement>) => {
-    // event.preventDefault()
-
     const items = event.clipboardData.items
 
     const files: File[] = []
@@ -112,69 +110,76 @@ function InputBox({
   }, [])
 
   return (
-    <div className="mx-auto mb-4 flex w-[calc(100%-8rem)] flex-col gap-2 rounded-xl border p-3 md:max-w-4xl">
-      <form>
-        <FilePreview />
-        <Textarea
-          ref={textareaRef}
-          placeholder="Send a message..."
-          value={input}
-          onChange={handleInput}
-          className="max-h-[75dvh] min-h-6 resize-none border-none bg-transparent! pb-6 shadow-none focus-visible:ring-0"
-          rows={2}
-          autoFocus
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' && !event.shiftKey) {
-              event.preventDefault()
+    <div className="mx-auto flex w-[calc(100%-8rem)] flex-col md:max-w-4xl">
+      <div className="flex flex-col gap-1 rounded-xl border p-2">
+        <form>
+          <FilePreview />
+          <Textarea
+            ref={textareaRef}
+            placeholder="Send a message..."
+            value={input}
+            onChange={handleInput}
+            className="max-h-[75dvh] min-h-6 resize-none border-none bg-transparent! py-1 shadow-none focus-visible:ring-0"
+            rows={1}
+            autoFocus
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault()
 
-              if (isTyping) {
-                return
-              }
+                if (isTyping) {
+                  return
+                }
 
-              if (status === 'streaming') {
-                sileo.warning({
-                  title: 'Please wait',
-                  description: 'The model is still generating a response.'
-                })
-              } else {
-                submitForm()
+                if (status === 'streaming') {
+                  sileo.warning({
+                    title: 'Please wait',
+                    description: 'The model is still generating a response.'
+                  })
+                } else {
+                  submitForm()
+                }
               }
-            }
-          }}
-          onCompositionStart={() => setIsTyping(true)}
-          onCompositionEnd={() => setIsTyping(false)}
-          onPaste={handlePaste}
-        />
-      </form>
-      <div className="mx-2 mb-2 flex items-center justify-between">
-        <div className="flex gap-2">
-          <MultiModelInputUploader />
-          <Separator orientation="vertical" className="h-6!" />
-          <AdvancedTools />
-          <AvailableMcpTools />
+            }}
+            onCompositionStart={() => setIsTyping(true)}
+            onCompositionEnd={() => setIsTyping(false)}
+            onPaste={handlePaste}
+          />
+        </form>
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-1.5">
+            <MultiModelInputUploader />
+            <Separator orientation="vertical" className="h-5!" />
+            <AdvancedTools />
+            <AvailableMcpTools />
+          </div>
+
+          {status === 'submitted' || status === 'streaming' ? (
+            <Button variant="secondary" size="icon-sm" onClick={stop}>
+              <CircleStopIcon size={16} />
+            </Button>
+          ) : (
+            <>
+              {input.trim() === '' ? (
+                <AudioRecorder input={input} setInput={setInput} />
+              ) : (
+                <Button
+                  type="submit"
+                  variant="secondary"
+                  size="icon-sm"
+                  onClick={submitForm}
+                >
+                  <SendIcon size={16} />
+                </Button>
+              )}
+            </>
+          )}
         </div>
-
-        {status === 'submitted' || status === 'streaming' ? (
-          <Button variant="secondary" onClick={stop}>
-            <CircleStopIcon />
-          </Button>
-        ) : (
-          <>
-            {input.trim() === '' ? (
-              <AudioRecorder input={input} setInput={setInput} />
-            ) : (
-              <Button type="submit" variant="secondary" onClick={submitForm}>
-                <SendIcon />
-              </Button>
-            )}
-          </>
-        )}
       </div>
       {lastUsage && (
-        <div className="text-muted-foreground mx-2 mb-1 flex gap-3 text-[11px]">
-          <span>↑ {lastUsage.input.toLocaleString()} in</span>
-          <span>↓ {lastUsage.output.toLocaleString()} out</span>
-          <span>∑ {lastUsage.totalTokens.toLocaleString()} total</span>
+        <div className="text-muted-foreground flex justify-end gap-2 px-1 py-1 text-[10px]">
+          <span>↑{lastUsage.input.toLocaleString()}</span>
+          <span>↓{lastUsage.output.toLocaleString()}</span>
+          <span>∑{lastUsage.totalTokens.toLocaleString()}</span>
           {lastUsage.cost.total > 0 && (
             <span>${lastUsage.cost.total.toFixed(4)}</span>
           )}

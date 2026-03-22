@@ -35,6 +35,15 @@ import { providers } from '../providers'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ErasedTool = AgentTool<any>
 
+const PROVIDER_API_KEY_LABELS: Record<AiProviders, string> = {
+  [AiProviders.OpenAiGpt]: 'OpenAI API Key',
+  [AiProviders.AnthropicClaude]: 'Anthropic API Key',
+  [AiProviders.GoogleGemini]: 'Google Gemini API Key',
+  [AiProviders.XaiGrok]: 'xAI API Key',
+  [AiProviders.AzureOpenAi]: 'Azure OpenAI API Key',
+  [AiProviders.Ollama]: 'Ollama'
+}
+
 function getApiKeyFromSetting(setting: Setting): string {
   const provider = setting.providerConfig?.provider as AiProviders | undefined
   if (!provider) return ''
@@ -70,9 +79,17 @@ export function getModelFromProvider(setting: Setting): {
     throw new Error('Failed to retrieve selected provider.')
   }
 
-  const provider = providers[setting.providerConfig.provider as AiProviders]
+  const providerEnum = setting.providerConfig.provider as AiProviders
+  const provider = providers[providerEnum]
   const models = provider(setting)
   const apiKey = getApiKeyFromSetting(setting)
+
+  if (!apiKey) {
+    const label = PROVIDER_API_KEY_LABELS[providerEnum] ?? providerEnum
+    throw new Error(
+      `${label} is not configured. Please add it in Settings → Providers before chatting.`
+    )
+  }
 
   return {
     chatModel: models.chatModel,

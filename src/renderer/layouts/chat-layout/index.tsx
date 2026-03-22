@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Outlet } from 'react-router'
 
 import { DeepResearchProcess } from '@/components/deep-research'
+import { SourcesPanel } from '@/components/sources-panel'
 import { AppToaster } from '@/components/ui/app-toaster'
 import {
   SidebarInset,
@@ -38,7 +39,7 @@ function ContentHeader() {
 
 function InsertedSidebar() {
   return (
-    <SidebarInset className="bg-card flex min-w-0 flex-col rounded-xl">
+    <SidebarInset className="bg-card flex min-w-0 flex-col rounded-tl-xl rounded-bl-xl">
       <ContentHeader />
       <Outlet />
       <AppToaster />
@@ -69,6 +70,7 @@ export function Layout() {
         </div>
       </div>
       <DeepResearchProcess />
+      <SourcesPanel />
     </SidebarProvider>
   )
 }

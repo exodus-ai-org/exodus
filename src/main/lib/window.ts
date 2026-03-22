@@ -12,10 +12,10 @@ let isQuitting = false
 
 export function createWindow(): void {
   mainWindow = new BrowserWindow({
-    width: 1080,
-    height: 768,
-    minWidth: 1080,
-    minHeight: 768,
+    width: 1200,
+    height: 800,
+    minWidth: 1200,
+    minHeight: 800,
     show: false,
     autoHideMenuBar: true,
     frame: false,

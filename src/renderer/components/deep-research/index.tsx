@@ -6,11 +6,11 @@ import {
 } from '@shared/types/deep-research'
 import { motion } from 'framer-motion'
 import { useAtom } from 'jotai'
-import { XIcon } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import useSWR from 'swr'
 
 import { Button } from '@/components/ui/button'
+import { SheetPanel } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 import { fetchDeepResearchMessages } from '@/services/deep-research'
 import {
@@ -147,16 +147,11 @@ export function DeepResearchProcess() {
   }, [deepResearchMessages])
 
   return (
-    <section
-      className={cn(
-        'invisible h-svh w-0 shrink-0 overflow-x-hidden border-l transition-[width] duration-200',
-        {
-          ['visible w-100 border-l transition-[width] duration-200']:
-            activeDeepResearchId !== ''
-        }
-      )}
+    <SheetPanel
+      open={activeDeepResearchId !== ''}
+      onClose={() => setActiveDeepResearchId('')}
     >
-      <div className="bg-background sticky top-0 z-10 flex h-12 items-center justify-center border-b">
+      <div className="bg-background sticky top-0 z-10 flex h-12 shrink-0 items-center justify-center border-b">
         <div className="bg-border flex items-center rounded-full p-1 text-sm">
           <Button
             variant="ghost"
@@ -183,15 +178,8 @@ export function DeepResearchProcess() {
             {allWebSearchResults.length} Sources
           </Button>
         </div>
-        <Button
-          size="icon"
-          variant="ghost"
-          className="absolute right-3 rounded-full"
-          onClick={() => setActiveDeepResearchId('')}
-        >
-          <XIcon data-icon />
-        </Button>
       </div>
+
       {activeDeepResearchId && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -213,6 +201,6 @@ export function DeepResearchProcess() {
           )}
         </motion.div>
       )}
-    </section>
+    </SheetPanel>
   )
 }
