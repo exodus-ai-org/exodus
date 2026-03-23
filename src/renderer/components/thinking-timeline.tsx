@@ -80,7 +80,7 @@ function TimelineNode({
     <div className="grid grid-cols-[14px_1fr] gap-x-2.5 pb-3 last:pb-0">
       {/* Left column: icon + connector line */}
       <div className="flex flex-col items-center">
-        <div className="flex size-[14px] shrink-0 items-center justify-center pt-[4px]">
+        <div className="mt-1.75 flex size-3.5 shrink-0 items-center justify-center">
           {icon}
         </div>
         {!isLast && <div className="border-border w-px flex-1 border-l" />}

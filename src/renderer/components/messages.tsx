@@ -44,6 +44,8 @@ interface AssistantTurn {
   finalTextBlocks: Array<{ text: string; messageId: string; blockIdx: number }>
   /** Pending tool calls from the latest assistant message (for shimmer) */
   pendingToolCalls: Array<{ name: string; id: string }>
+  /** Non-webSearch tool results that have visual cards (weather, maps, etc.) */
+  toolCards: ChatToolResultMessage[]
   /** Whether this turn has any content at all */
   hasContent: boolean
   /** All webSearch results collected in this turn */
@@ -54,6 +56,7 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
   const steps: TimelineStep[] = []
   const finalTextBlocks: AssistantTurn['finalTextBlocks'] = []
   const pendingToolCalls: AssistantTurn['pendingToolCalls'] = []
+  const toolCards: ChatToolResultMessage[] = []
   const webSearchResults: WebSearchResult[] = []
 
   for (const msg of turnMessages) {
@@ -97,13 +100,13 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
         })
       }
 
-      // Collect webSearch results and add as timeline step
       if (
         toolResult.toolName === 'webSearch' &&
         !toolResult.isError &&
         Array.isArray(toolResult.details) &&
         toolResult.details.length > 0
       ) {
+        // Collect webSearch results and add as timeline step
         const results = toolResult.details as WebSearchResult[]
         webSearchResults.push(...results)
         steps.push({
@@ -112,6 +115,9 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
           toolName: 'webSearch',
           webSearchResults: results
         })
+      } else if (!toolResult.isError) {
+        // Non-webSearch successful tool results → render as cards
+        toolCards.push(toolResult)
       }
     }
   }
@@ -121,10 +127,12 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
     steps,
     finalTextBlocks,
     pendingToolCalls,
+    toolCards,
     hasContent:
       steps.length > 0 ||
       finalTextBlocks.length > 0 ||
-      pendingToolCalls.length > 0,
+      pendingToolCalls.length > 0 ||
+      toolCards.length > 0,
     webSearchResults
   }
 }
@@ -135,7 +143,6 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
  */
 type Segment =
   | { type: 'user'; message: ChatMessage }
-  | { type: 'toolResult'; message: ChatToolResultMessage }
   | { type: 'assistantTurn'; turn: AssistantTurn }
 
 function groupIntoSegments(messages: ChatMessage[]): Segment[] {
@@ -147,15 +154,6 @@ function groupIntoSegments(messages: ChatMessage[]): Segment[] {
       const turn = buildAssistantTurn(turnBuffer)
       if (turn.hasContent) {
         segments.push({ type: 'assistantTurn', turn })
-      }
-      // Also add non-webSearch, non-error toolResults for their tool cards
-      for (const msg of turnBuffer) {
-        if (msg.role === 'toolResult') {
-          const tr = msg as ChatToolResultMessage
-          if (tr.toolName !== 'webSearch' || tr.isError) {
-            segments.push({ type: 'toolResult', message: tr })
-          }
-        }
       }
       turnBuffer = []
     }
@@ -284,17 +282,6 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
               )
             }
 
-            if (segment.type === 'toolResult') {
-              return (
-                <div
-                  key={segment.message.id}
-                  className="mb-8 flex flex-col items-start last:mb-4"
-                >
-                  <MessageCallingTools toolResult={segment.message} />
-                </div>
-              )
-            }
-
             // assistantTurn
             const { turn } = segment
             const isLastSegment = segIdx === segments.length - 1
@@ -334,6 +321,14 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
                           text={`Calling tool: ${tc.name}`}
                         />
                       ))}
+
+                    {/* Tool result cards (weather, maps, etc.) */}
+                    {turn.toolCards.map((toolResult) => (
+                      <MessageCallingTools
+                        key={toolResult.id}
+                        toolResult={toolResult}
+                      />
+                    ))}
 
                     {/* Final text blocks */}
                     {turn.finalTextBlocks.map((block, i) => (
