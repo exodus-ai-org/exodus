@@ -53,20 +53,57 @@ Alternatively, integrate into the existing `ThemeProvider` to avoid a second pro
 
 **UI**: In `generals.tsx`, add a `SettingRow` with label "Color Tone" below the Theme row. Display the 6 options as colored circle buttons (swatch picker style) — each circle filled with the preset's primary color. The active tone gets a ring indicator. On click, update the form field and the `data-tone` attribute.
 
-**CSS Variable Generation**: For each tone, compute all ~30 CSS variables by substituting the hue value. The chroma and lightness values stay the same as the current emerald theme; only the hue channel changes. For "Neutral", set chroma to 0 across all variables.
+**CSS Variable Generation**: For each tone, compute CSS variables by substituting the hue value. The chroma and lightness values stay the same as the current emerald theme; only the hue channel changes. For "Neutral", set chroma to 0 across all variables.
+
+**Exceptions — colors that do NOT shift with tone**:
+
+- `--destructive` / `--destructive-foreground` — always red (hue ~27), semantic meaning must be preserved
+- `--chart-1` through `--chart-5` — keep their independent hues (160, 265, 25, 80, 330) for data visualization readability. Only `--chart-1` shifts to match the primary tone.
 
 ### Color Values Per Tone
 
-Each tone replaces the hue in OKLCH. The current emerald values serve as the template:
+Each tone replaces the hue in OKLCH. The current emerald values serve as the template. All variables in `:root` and `.dark` that carry a hue are shifted, except destructive and chart-2..5:
 
-- **Primary (light)**: `oklch(0.52 0.17 H)` — strong accent
-- **Primary (dark)**: `oklch(0.72 0.19 H)` — bright accent
-- **Background (light)**: `oklch(0.985 0.004 H)` — subtle tint
-- **Background (dark)**: `oklch(0.13 0.02 H+5)` — deep tint
-- **Border (light)**: `oklch(0.905 0.012 H-5)` — muted edge
-- And so on for all variables...
+**Light mode variables shifted** (H = tone hue):
+
+- `--background: oklch(0.985 0.004 H)`
+- `--foreground: oklch(0.16 0.02 H)`
+- `--card: oklch(0.995 0.003 H-5)`
+- `--card-foreground: oklch(0.16 0.02 H)`
+- `--popover: oklch(0.995 0.003 H-5)`
+- `--popover-foreground: oklch(0.16 0.02 H)`
+- `--primary: oklch(0.52 0.17 H)`
+- `--primary-foreground: oklch(0.98 0 0)` (white, no hue)
+- `--secondary: oklch(0.955 0.01 H-5)`
+- `--secondary-foreground: oklch(0.2 0.02 H)`
+- `--muted: oklch(0.955 0.01 H-5)`
+- `--muted-foreground: oklch(0.5 0.015 H)`
+- `--accent: oklch(0.94 0.02 H-5)`
+- `--accent-foreground: oklch(0.2 0.02 H)`
+- `--border: oklch(0.905 0.012 H-5)`
+- `--input: oklch(0.905 0.012 H-5)`
+- `--ring: oklch(0.55 0.16 H)`
+- `--chart-1: oklch(0.55 0.17 H)`
+- `--sidebar: oklch(0.975 0.006 H-5)`
+- `--sidebar-foreground: oklch(0.16 0.02 H)`
+- `--sidebar-primary: oklch(0.52 0.17 H)`
+- `--sidebar-primary-foreground: oklch(0.98 0 0)`
+- `--sidebar-accent: oklch(0.94 0.02 H-5)`
+- `--sidebar-accent-foreground: oklch(0.2 0.02 H)`
+- `--sidebar-border: oklch(0.905 0.012 H-5)`
+- `--sidebar-ring: oklch(0.55 0.16 H)`
+
+**Dark mode** follows the same pattern with the current dark emerald lightness/chroma values, hue shifted to H/H+5.
 
 For Neutral: all chroma values become 0, hues become irrelevant.
+
+### Startup Flash Prevention (FOUC)
+
+The tone is persisted server-side in the settings table, but also cached in `localStorage` (key: `'exodus-color-tone'`). On page load, a synchronous inline script in `index.html` reads localStorage and sets `data-tone` on `<html>` before React mounts — identical to how the theme class is applied. When settings load from the server, the tone is reconciled and localStorage is updated.
+
+### Sub-App Support
+
+All three entry points (main app, searchbar, quick-chat) share the same `globals.css` and apply the `data-tone` attribute via the same inline script in their respective HTML files.
 
 ---
 
@@ -103,7 +140,7 @@ Rename all occurrences of singular "Setting" to plural "Settings" across the ful
 
 ### Migration Strategy
 
-Generate a Drizzle migration that renames the table. All internal references (column names, foreign keys) remain unchanged since `setting` has no foreign key dependents.
+Generate a Drizzle migration that renames the table. All internal references (column names, foreign keys) remain unchanged since `setting` has no foreign key dependents. The implementer must do a comprehensive search (grep for `/api/setting`, `useSetting`, `getSetting`, `'setting'` etc.) to catch all references — the list above covers the major ones but 27+ files may be affected.
 
 ---
 
@@ -116,7 +153,7 @@ Generate a Drizzle migration that renames the table. All internal references (co
 
 ### Columns to Rename
 
-**`settings` table** (after rename):
+**`setting` table** (renamed to `settings` in step 2, but column renames happen first while still called `setting`):
 
 - `created_at` → `createdAt`
 - `updated_at` → `updatedAt`
@@ -168,9 +205,11 @@ Generate a Drizzle migration that renames the table. All internal references (co
 
 ### Migration Strategy
 
-Generate a single Drizzle migration with `ALTER TABLE ... RENAME COLUMN` statements for all affected columns. Update the schema.ts file to use camelCase strings in the column definitions. Since Drizzle maps TS property names to DB column names via the string argument, we change the string from `'created_at'` to `'createdAt'`.
+Generate a single Drizzle migration with `ALTER TABLE ... RENAME COLUMN` statements for all affected columns. Use `ALTER TABLE IF EXISTS` to guard against tables that may not exist in older databases (e.g., `lcm_*` tables added recently). Update the schema.ts file to use camelCase strings in the column definitions.
 
 **Note**: The TypeScript property names in schema.ts already use camelCase (e.g., `createdAt: timestamp('created_at')`). After the rename, they become `createdAt: timestamp('createdAt')` — the string argument matches the property name, so some can be simplified to just `timestamp()` with no explicit name.
+
+**Raw SQL caveat**: camelCase column names in Postgres require double-quoting in raw SQL (e.g., `SELECT "createdAt" FROM chat`). Audit any raw SQL in the codebase (e.g., the GIN index in schema.ts) to ensure correct quoting. Drizzle handles this automatically for ORM queries.
 
 ---
 
