@@ -50,6 +50,13 @@
       "when": 1742428800000,
       "tag": "0006_cron_last_run_status",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1742860800000,
+      "tag": "0007_rename_columns_camelcase",
+      "breakpoints": true
     }
   ]
 }
