@@ -126,6 +126,16 @@ export const MemoryLayerSchema = z.object({
   freshTailSize: z.number().gte(8).lte(64).nullish()
 })
 
+export const ColorTone = z.enum([
+  'neutral',
+  'emerald',
+  'blue',
+  'violet',
+  'rose',
+  'orange'
+])
+export type ColorTone = z.infer<typeof ColorTone>
+
 export const SettingsSchema = z.object({
   id: z.string(),
   providerConfig: ProviderConfigSchema.nullish(),
@@ -141,6 +151,7 @@ export const SettingsSchema = z.object({
   s3: S3Schema.nullish(),
   autoUpdate: z.boolean().nullish(),
   memoryLayer: MemoryLayerSchema.nullish(),
+  colorTone: ColorTone.default('neutral').nullish(),
   createdAt: z.any(),
   updatedAt: z.any()
 })
