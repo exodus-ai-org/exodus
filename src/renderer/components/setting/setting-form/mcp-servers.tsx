@@ -273,8 +273,13 @@ export function McpServers() {
       }
       await refresh()
       resetForm()
-    } catch {
-      toast.error(editing ? 'Failed to update server' : 'Failed to register')
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Operation failed'
+      toast.error(
+        editing
+          ? `Failed to update server: ${msg}`
+          : `Failed to register: ${msg}`
+      )
     } finally {
       setSaving(false)
     }
@@ -298,8 +303,9 @@ export function McpServers() {
         toast.success(`"${server.name}" removed — connection closed`)
         await refresh()
         if (editing?.id === server.id) resetForm()
-      } catch {
-        toast.error('Failed to remove server')
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : 'Operation failed'
+        toast.error(`Failed to remove server: ${msg}`)
       }
     },
     [editing, refresh, resetForm]
@@ -316,8 +322,9 @@ export function McpServers() {
         } else {
           toast.success(`"${server.name}" disabled — connection closed`)
         }
-      } catch {
-        toast.error('Failed to toggle server')
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : 'Operation failed'
+        toast.error(`Failed to toggle server: ${msg}`)
       }
     },
     [refresh]

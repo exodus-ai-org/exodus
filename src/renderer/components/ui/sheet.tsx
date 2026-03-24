@@ -140,7 +140,7 @@ function SheetPanel({
       data-slot="sheet-panel"
       className={cn(
         'bg-background invisible relative flex h-svh w-0 shrink-0 flex-col overflow-hidden transition-[width] duration-200',
-        open && 'visible w-80 overflow-y-auto border-l',
+        open && 'visible w-88 overflow-y-auto border-l',
         className
       )}
       {...props}
