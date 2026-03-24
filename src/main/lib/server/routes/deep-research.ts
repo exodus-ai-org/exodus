@@ -68,7 +68,7 @@ deepResearch.post('/', async (c) => {
     'Invalid request body'
   )
 
-  const setting = c.get('setting')
+  const setting = c.get('settings')
 
   if (!setting || !('id' in setting)) {
     throw new ChatSDKError('not_found:setting', 'Failed to retrieve setting')

@@ -28,7 +28,7 @@ s3Uploader.post('/upload', async (c) => {
     'Invalid upload request'
   )
 
-  const setting = c.get('setting')
+  const setting = c.get('settings')
   const s3Config = validateS3Config(setting)
 
   try {
@@ -71,7 +71,7 @@ s3Uploader.post('/presigned-url', async (c) => {
     'Invalid request: key is required'
   )
 
-  const setting = c.get('setting')
+  const setting = c.get('settings')
   const s3Config = validateS3Config(setting)
 
   try {
@@ -104,7 +104,7 @@ s3Uploader.post('/presigned-url', async (c) => {
 s3Uploader.delete('/:key', async (c) => {
   const key = getRequiredParam(c, 'key', 's3')
 
-  const setting = c.get('setting')
+  const setting = c.get('settings')
   const s3Config = validateS3Config(setting)
 
   try {
@@ -139,7 +139,7 @@ s3Uploader.post('/direct-upload', async (c) => {
     throw new ChatSDKError('bad_request:s3', 'No file provided')
   }
 
-  const setting = c.get('setting')
+  const setting = c.get('settings')
   const s3Config = validateS3Config(setting)
 
   try {

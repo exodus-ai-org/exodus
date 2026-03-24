@@ -77,7 +77,7 @@ chat.post('/', async (c) => {
     'chat',
     'Invalid request body'
   )
-  const setting = c.get('setting')
+  const setting = c.get('settings')
   const { chatModel, reasoningModel, apiKey } = getModelFromProvider(setting)
   const isReasoningModel =
     advancedTools?.includes(AdvancedTools.Reasoning) ||

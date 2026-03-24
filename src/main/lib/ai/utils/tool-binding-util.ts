@@ -2,7 +2,7 @@ import type { AgentTool } from '@mariozechner/pi-agent-core'
 import type { Model } from '@mariozechner/pi-ai'
 import { AdvancedTools, McpTools } from '@shared/types/ai'
 
-import { Setting } from '../../db/schema'
+import { Settings } from '../../db/schema'
 import {
   deepResearch,
   editFile,
@@ -39,7 +39,7 @@ export function bindCallingTools({
   mcpTools = []
 }: {
   advancedTools: AdvancedTools[]
-  setting: Setting
+  setting: Settings
   chatModel?: Model<string>
   apiKey?: string
   mcpTools?: McpTools[]

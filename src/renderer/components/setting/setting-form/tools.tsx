@@ -1,5 +1,5 @@
 import { TOOL_GROUPS, TOOL_REGISTRY, ToolGroup } from '@shared/constants/tools'
-import { UseFormReturnType } from '@shared/schemas/setting-schema'
+import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { useWatch } from 'react-hook-form'
 
 import { Field, FieldDescription, FieldLabel } from '@/components/ui/field'

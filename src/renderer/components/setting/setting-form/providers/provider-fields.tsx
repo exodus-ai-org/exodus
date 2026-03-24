@@ -1,4 +1,7 @@
-import { SettingInput, UseFormReturnType } from '@shared/schemas/setting-schema'
+import {
+  SettingInput,
+  UseFormReturnType
+} from '@shared/schemas/settings-schema'
 import { Controller, FieldPath } from 'react-hook-form'
 
 import { Input } from '@/components/ui/input'

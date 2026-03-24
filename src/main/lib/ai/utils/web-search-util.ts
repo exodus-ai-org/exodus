@@ -1,7 +1,7 @@
 import { WebPDFLoader } from '@langchain/community/document_loaders/web/pdf'
 import Perplexity from '@perplexity-ai/perplexity_ai'
 import type { SearchCreateParams } from '@perplexity-ai/perplexity_ai/resources/search'
-import { UrlToMarkdownProvider } from '@shared/schemas/setting-schema'
+import { UrlToMarkdownProvider } from '@shared/schemas/settings-schema'
 import { WebSearchResult } from '@shared/types/web-search'
 import * as cheerio from 'cheerio'
 import TurndownService from 'turndown'

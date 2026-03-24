@@ -1,9 +1,9 @@
 import type { Model } from '@mariozechner/pi-ai'
-import { Setting } from '@shared/types/db'
+import { Settings } from '@shared/types/db'
 
 import { resolveModel } from './resolve-model'
 
-export function getAnthropicClaude(setting: Setting): {
+export function getAnthropicClaude(setting: Settings): {
   chatModel: Model<string>
   reasoningModel: Model<string>
 } {

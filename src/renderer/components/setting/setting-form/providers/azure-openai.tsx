@@ -1,4 +1,4 @@
-import { UseFormReturnType } from '@shared/schemas/setting-schema'
+import { UseFormReturnType } from '@shared/schemas/settings-schema'
 
 import { ProviderFields } from './provider-fields'
 

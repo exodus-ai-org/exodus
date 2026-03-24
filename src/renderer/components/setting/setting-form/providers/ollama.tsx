@@ -1,4 +1,4 @@
-import { UseFormReturnType } from '@shared/schemas/setting-schema'
+import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { Controller } from 'react-hook-form'
 import useSWR from 'swr'
 

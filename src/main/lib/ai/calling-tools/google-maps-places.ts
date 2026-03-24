@@ -1,7 +1,7 @@
 import { v1 } from '@googlemaps/places'
 import type { AgentTool } from '@mariozechner/pi-agent-core'
 import { Type } from '@mariozechner/pi-ai'
-import { Setting } from '@shared/types/db'
+import { Settings } from '@shared/types/db'
 
 const googleMapsPlacesSchema = Type.Object({
   query: Type.String({
@@ -11,7 +11,7 @@ const googleMapsPlacesSchema = Type.Object({
 })
 
 export const googleMapsPlaces = (
-  setting: Setting
+  setting: Settings
 ): AgentTool<typeof googleMapsPlacesSchema> => ({
   name: 'googleMapsPlaces',
   label: 'Google Maps Places',

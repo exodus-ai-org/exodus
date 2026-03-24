@@ -2,7 +2,7 @@ import { completeSimple } from '@mariozechner/pi-ai'
 import type { AutoRouteResult } from '@shared/types/agent-x'
 
 import { getAllAgents, getAllDepartments } from '../../db/agent-x-queries'
-import { getSetting } from '../../db/queries'
+import { getSettings } from '../../db/queries'
 import { getModelFromProvider } from '../utils/chat-message-util'
 
 const autoRoutePrompt = `You are a task router for a multi-agent system. Given a task description and a list of available departments and agents, suggest the best agent to handle the task.
@@ -20,7 +20,7 @@ export async function autoRouteTask(
   const [departments, agents, setting] = await Promise.all([
     getAllDepartments(),
     getAllAgents(),
-    getSetting()
+    getSettings()
   ])
 
   if (agents.length === 0) return null

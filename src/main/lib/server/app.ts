@@ -6,7 +6,7 @@ import { cors } from 'hono/cors'
 
 // ARCHIVED: import { connectMcpServers } from '../ai/mcp'
 import { initScheduler } from '../ai/agent-x/scheduler'
-import { getSetting } from '../db/queries'
+import { getSettings } from '../db/queries'
 import { errorHandler } from './middlewares'
 import agentXRouter from './routes/agent-x'
 import audioRouter from './routes/audio'
@@ -17,7 +17,7 @@ import historyRouter from './routes/history'
 import mcpRouter from './routes/mcp'
 import memoryRouter from './routes/memory'
 import s3UploaderRouter from './routes/s3-uploader'
-import settingsRouter from './routes/setting'
+import settingsRouter from './routes/settings'
 import skillsRouter from './routes/skills'
 import toolsRouter from './routes/tools'
 import usageRouter from './routes/usage'
@@ -35,9 +35,9 @@ export async function connectHttpServer() {
 
   // Add setting to context for all routes (except setting route to avoid circular dependency)
   app.use('/api/*', async (c, next) => {
-    // Get fresh setting on each request to ensure it's always up-to-date
-    const setting = await getSetting()
-    c.set('setting', setting)
+    // Get fresh settings on each request to ensure it's always up-to-date
+    const settings = await getSettings()
+    c.set('settings', settings)
     await next()
   })
 
@@ -50,7 +50,7 @@ export async function connectHttpServer() {
   // Routes
   app.route('/api/chat', chatRouter)
   app.route('/api/history', historyRouter)
-  app.route('/api/setting', settingsRouter)
+  app.route('/api/settings', settingsRouter)
   app.route('/api/audio', audioRouter)
   app.route('/api/db-io', dbIoRouter)
   app.route('/api/deep-research', deepResearchRouter)

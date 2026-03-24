@@ -1,7 +1,7 @@
 import type { Model } from '@mariozechner/pi-ai'
 import { AiProviders } from '@shared/types/ai'
 
-import { Setting } from '../../db/schema'
+import { Settings } from '../../db/schema'
 import { providers } from '../providers'
 
 export const PROVIDER_API_KEY_LABELS: Record<AiProviders, string> = {
@@ -13,7 +13,7 @@ export const PROVIDER_API_KEY_LABELS: Record<AiProviders, string> = {
   [AiProviders.Ollama]: 'Ollama'
 }
 
-export function getApiKeyFromSetting(setting: Setting): string {
+export function getApiKeyFromSetting(setting: Settings): string {
   const provider = setting.providerConfig?.provider as AiProviders | undefined
   if (!provider) return ''
 
@@ -35,7 +35,7 @@ export function getApiKeyFromSetting(setting: Setting): string {
   }
 }
 
-export function getModelFromProvider(setting: Setting): {
+export function getModelFromProvider(setting: Settings): {
   chatModel: Model<string>
   reasoningModel: Model<string>
   apiKey: string

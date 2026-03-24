@@ -1,7 +1,7 @@
 import type { Model } from '@mariozechner/pi-ai'
-import { Setting } from '@shared/types/db'
+import { Settings } from '@shared/types/db'
 
-export function getOllama(setting: Setting): {
+export function getOllama(setting: Settings): {
   chatModel: Model<string>
   reasoningModel: Model<string>
 } {

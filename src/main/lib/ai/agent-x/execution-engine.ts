@@ -14,7 +14,7 @@ import {
   updateTask,
   updateTaskExecution
 } from '../../db/agent-x-queries'
-import { getSetting } from '../../db/queries'
+import { getSettings } from '../../db/queries'
 import type { Agent, Task } from '../../db/schema'
 import { getMcpTools, getMcpToolsByNames } from '../mcp'
 import {
@@ -128,7 +128,7 @@ async function runAgentLoop(
   emit: SseEmitter,
   signal?: AbortSignal
 ): Promise<unknown> {
-  const setting = await getSetting()
+  const setting = await getSettings()
   const { chatModel, apiKey } = getModelFromProvider(setting)
 
   // Load department config for skill/MCP scoping (agent may be unassigned)

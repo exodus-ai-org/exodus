@@ -10,7 +10,7 @@ import {
   S3Schema,
   ToolsSchema,
   WebSearchSchema
-} from '@shared/schemas/setting-schema'
+} from '@shared/schemas/settings-schema'
 import { WebSearchResult } from '@shared/types/web-search'
 import { sql, type InferSelectModel } from 'drizzle-orm'
 import {
@@ -93,7 +93,7 @@ export const vote = pgTable(
 
 export type Vote = InferSelectModel<typeof vote>
 
-export const setting = pgTable('setting', {
+export const settings = pgTable('settings', {
   id: text('id').primaryKey(),
   providerConfig:
     jsonb('providerConfig').$type<z.infer<typeof ProviderConfigSchema>>(),
@@ -114,7 +114,7 @@ export const setting = pgTable('setting', {
   updatedAt: timestamp('updatedAt').defaultNow().notNull()
 })
 
-export type Setting = InferSelectModel<typeof setting>
+export type Settings = InferSelectModel<typeof settings>
 
 export const jobStatusEnum = pgEnum('jobStatus', [
   'streaming',

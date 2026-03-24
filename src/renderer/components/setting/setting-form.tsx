@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Setting, SettingSchema } from '@shared/schemas/setting-schema'
+import { Setting, SettingSchema } from '@shared/schemas/settings-schema'
 import { AiProviders } from '@shared/types/ai'
 import { useAtomValue } from 'jotai'
 import { useForm } from 'react-hook-form'

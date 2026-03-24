@@ -16,28 +16,28 @@ audio.post('/speech', async (c) => {
     'Invalid request body'
   )
 
-  const setting = c.get('setting')
-  const openaiConfig = validateOpenAIConfig(setting)
+  const settings = c.get('settings')
+  const openaiConfig = validateOpenAIConfig(settings)
 
   try {
     const openai = new OpenAI(openaiConfig)
 
-    const model = setting.audio?.textToSpeechModel ?? 'gpt-4o-mini-tts'
-    const format = setting.audio?.textToSpeechFormat ?? 'mp3'
+    const model = settings.audio?.textToSpeechModel ?? 'gpt-4o-mini-tts'
+    const format = settings.audio?.textToSpeechFormat ?? 'mp3'
     const params: OpenAI.Audio.SpeechCreateParams = {
       model,
       input: text,
-      voice: setting.audio?.textToSpeechVoice ?? 'alloy',
+      voice: settings.audio?.textToSpeechVoice ?? 'alloy',
       response_format:
         format as OpenAI.Audio.SpeechCreateParams['response_format'],
-      speed: setting.audio?.textToSpeechSpeed ?? undefined
+      speed: settings.audio?.textToSpeechSpeed ?? undefined
     }
     // instructions is only supported by gpt-4o-mini-tts
     if (
       model === 'gpt-4o-mini-tts' &&
-      setting.audio?.textToSpeechInstructions
+      settings.audio?.textToSpeechInstructions
     ) {
-      params.instructions = setting.audio.textToSpeechInstructions
+      params.instructions = settings.audio.textToSpeechInstructions
     }
     const speech = await openai.audio.speech.create(params)
 
@@ -71,15 +71,15 @@ audio.post('/transcriptions', async (c) => {
     throw new ChatSDKError('not_found:audio', 'Audio file is missing')
   }
 
-  const setting = c.get('setting')
-  const openaiConfig = validateOpenAIConfig(setting)
+  const settings = c.get('settings')
+  const openaiConfig = validateOpenAIConfig(settings)
 
   try {
     const openai = new OpenAI(openaiConfig)
 
     const transcription = await openai.audio.transcriptions.create({
       file: audioFile,
-      model: setting.audio?.speechToTextModel ?? 'gpt-4o-mini-transcribe'
+      model: settings.audio?.speechToTextModel ?? 'gpt-4o-mini-transcribe'
     })
 
     return successResponse(c, transcription)

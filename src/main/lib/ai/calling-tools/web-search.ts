@@ -1,6 +1,6 @@
 import type { AgentTool } from '@mariozechner/pi-agent-core'
 import { Type } from '@mariozechner/pi-ai'
-import { Setting } from '@shared/types/db'
+import { Settings } from '@shared/types/db'
 
 import { fetchWebSearch } from '../utils/web-search-util'
 
@@ -9,7 +9,7 @@ const webSearchSchema = Type.Object({
 })
 
 export const webSearch = (
-  setting: Setting
+  setting: Settings
 ): AgentTool<typeof webSearchSchema> => ({
   name: 'webSearch',
   label: 'Web Search',

@@ -126,7 +126,7 @@ export const MemoryLayerSchema = z.object({
   freshTailSize: z.number().gte(8).lte(64).nullish()
 })
 
-export const SettingSchema = z.object({
+export const SettingsSchema = z.object({
   id: z.string(),
   providerConfig: ProviderConfigSchema.nullish(),
   providers: ProvidersSchema.nullish(),
@@ -145,8 +145,16 @@ export const SettingSchema = z.object({
   updatedAt: z.any()
 })
 
-export type Setting = z.infer<typeof SettingSchema>
+export type Settings = z.infer<typeof SettingsSchema>
 
-export type SettingInput = z.input<typeof SettingSchema>
+export type SettingsInput = z.input<typeof SettingsSchema>
 
-export type UseFormReturnType = UseFormReturn<SettingInput>
+export type UseFormReturnType = UseFormReturn<SettingsInput>
+
+// Backward-compatible aliases — will be removed after frontend rename (Task 7-8)
+/** @deprecated Use SettingsSchema instead */
+export const SettingSchema = SettingsSchema
+/** @deprecated Use Settings instead */
+export type Setting = Settings
+/** @deprecated Use SettingsInput instead */
+export type SettingInput = SettingsInput

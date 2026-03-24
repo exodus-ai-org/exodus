@@ -1,7 +1,7 @@
 import { protos, v2 } from '@googlemaps/routing'
 import type { AgentTool } from '@mariozechner/pi-agent-core'
 import { Type } from '@mariozechner/pi-ai'
-import { Setting } from '@shared/types/db'
+import { Settings } from '@shared/types/db'
 
 const GRPC_STATUS = {
   INVALID_ARGUMENT: 3,
@@ -113,7 +113,7 @@ const googleMapsRoutingSchema = Type.Object({
 })
 
 export const googleMapsRouting = (
-  setting: Setting
+  setting: Settings
 ): AgentTool<typeof googleMapsRoutingSchema> => ({
   name: 'googleMapsRouting',
   label: 'Google Maps Routing',

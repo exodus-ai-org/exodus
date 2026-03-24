@@ -14,7 +14,7 @@ import { bufferToArrayBuffer } from '../utils/helpers'
 
 const dbIo = new Hono<{ Variables: Variables }>()
 
-const tableNames = ['Chat', 'Message', 'Vote', 'Setting']
+const tableNames = ['Chat', 'Message', 'Vote', 'Settings']
 
 async function createZipFromBlobs(
   files: { filename: string; arraybuffer: ArrayBuffer }[]

@@ -8,7 +8,7 @@ import {
   isAgentBusy,
   updateTask
 } from '../../db/agent-x-queries'
-import { getSetting } from '../../db/queries'
+import { getSettings } from '../../db/queries'
 import { getModelFromProvider } from '../utils/chat-message-util'
 import { autoRouteTask } from './auto-router'
 import { executeTask } from './execution-engine'
@@ -126,7 +126,7 @@ async function autoCreateAgent(
   taskDescription: string | null,
   departmentId: string | null
 ) {
-  const setting = await getSetting()
+  const setting = await getSettings()
   const { chatModel, apiKey } = getModelFromProvider(setting)
 
   const prompt = `Task: ${taskTitle}\n${taskDescription ? `Description: ${taskDescription}` : ''}`

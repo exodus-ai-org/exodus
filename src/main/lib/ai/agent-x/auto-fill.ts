@@ -2,7 +2,7 @@ import { completeSimple } from '@mariozechner/pi-ai'
 import type { AutoFillResult } from '@shared/types/agent-x'
 
 import { getAllAgents, getAllDepartments } from '../../db/agent-x-queries'
-import { getSetting } from '../../db/queries'
+import { getSettings } from '../../db/queries'
 import { getModelFromProvider } from '../utils/chat-message-util'
 
 const autoFillPrompt = `You are a task planner for a multi-agent system. Given a task title, generate the best configuration.
@@ -25,7 +25,7 @@ export async function autoFillTask(
   const [departments, agents, setting] = await Promise.all([
     getAllDepartments(),
     getAllAgents(),
-    getSetting()
+    getSettings()
   ])
 
   const { chatModel, apiKey } = getModelFromProvider(setting)

@@ -8,13 +8,13 @@ import {
   deepResearch,
   deepResearchMessage,
   message,
-  setting,
+  settings,
   vote,
   type Chat,
   type DeepResearch,
   type DeepResearchMessage,
   type Message,
-  type Setting
+  type Settings
 } from './schema'
 
 export async function saveChat({ title, id }: { id: string; title: string }) {
@@ -182,19 +182,19 @@ export async function getVotesByChatId({ id }: { id: string }) {
   return await db.select().from(vote).where(eq(vote.chatId, id))
 }
 
-export async function getSetting() {
-  await db.insert(setting).values({ id: 'global' }).onConflictDoNothing()
-  const [data] = await db.select().from(setting)
+export async function getSettings() {
+  await db.insert(settings).values({ id: 'global' }).onConflictDoNothing()
+  const [data] = await db.select().from(settings)
   return data!
 }
 
-export async function updateSetting(payload: Setting) {
+export async function updateSettings(payload: Settings) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { createdAt, updatedAt, ...rest } = payload
   return await db
-    .update(setting)
+    .update(settings)
     .set({ ...rest, updatedAt: new Date() })
-    .where(eq(setting.id, payload.id))
+    .where(eq(settings.id, payload.id))
 }
 
 export async function importData(tableName: string, blob: Blob) {

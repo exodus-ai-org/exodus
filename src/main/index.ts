@@ -4,7 +4,7 @@ import { app, BrowserWindow, globalShortcut } from 'electron'
 import { setupAutoUpdater } from './lib/auto-updater'
 import { cleanupStaleWaitingTasks } from './lib/db/agent-x-queries'
 import { runMigrate } from './lib/db/migrate'
-import { getSetting } from './lib/db/queries'
+import { getSettings } from './lib/db/queries'
 import { setupIPC } from './lib/ipc'
 import { setupMenu } from './lib/menu'
 import { connectHttpServer } from './lib/server/app'
@@ -43,8 +43,8 @@ app.whenReady().then(async () => {
 
   createWindow()
 
-  const dbSetting = await getSetting()
-  setupAutoUpdater(dbSetting.autoUpdate ?? true)
+  const dbSettings = await getSettings()
+  setupAutoUpdater(dbSettings.autoUpdate ?? true)
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the

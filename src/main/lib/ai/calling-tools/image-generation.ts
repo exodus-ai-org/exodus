@@ -1,6 +1,6 @@
 import type { AgentTool } from '@mariozechner/pi-agent-core'
 import { Type } from '@mariozechner/pi-ai'
-import { Setting } from '@shared/types/db'
+import { Settings } from '@shared/types/db'
 import OpenAI from 'openai'
 import { ImageGenerateParams } from 'openai/resources/images'
 
@@ -11,7 +11,7 @@ const imageGenerationSchema = Type.Object({
 })
 
 export const imageGeneration = (
-  setting: Setting
+  setting: Settings
 ): AgentTool<typeof imageGenerationSchema> => ({
   name: 'imageGeneration',
   label: 'Image Generation',
