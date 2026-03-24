@@ -1,5 +1,3 @@
-import fs from 'fs'
-
 import type { AgentMessage } from '@mariozechner/pi-agent-core'
 import { agentLoop } from '@mariozechner/pi-agent-core'
 import type { Message } from '@mariozechner/pi-ai'
@@ -391,9 +389,6 @@ chat.post('/', async (c) => {
         )
 
         for await (const event of agentStream) {
-          fs.writeFileSync('event.text', JSON.stringify(event) + '\n', {
-            flag: 'a'
-          })
           if (event.type === 'message_update') {
             const msg = event.message as Message
             if (msg.role !== 'assistant') continue
