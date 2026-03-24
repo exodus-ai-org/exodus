@@ -24,6 +24,7 @@ export type Surface =
   | 'mcp'
   | 's3'
   | 'memory'
+  | 'skills'
 
 export type ErrorCode = `${ErrorType}:${Surface}`
 
@@ -46,7 +47,8 @@ export const visibilityBySurface: Record<Surface, ErrorVisibility> = {
   agent_x: 'response',
   mcp: 'response',
   s3: 'response',
-  memory: 'response'
+  memory: 'response',
+  skills: 'response'
 }
 
 export class ChatSDKError extends Error {
@@ -159,6 +161,18 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
       return 'Failed to process S3 request. Please check your input and try again.'
     case 'not_found:s3':
       return 'The requested file was not found in S3 storage.'
+
+    case 'bad_request:skills':
+      return 'Failed to process skill operation. Please try again.'
+    case 'not_found:skills':
+      return 'The requested skill was not found.'
+    case 'rate_limit:skills':
+      return 'Too many requests to the skill registry. Please try again later.'
+
+    case 'bad_request:memory':
+      return 'Failed to process memory operation. Please check your input and try again.'
+    case 'not_found:memory':
+      return 'The requested memory was not found.'
 
     default:
       return 'Something went wrong. Please try again later.'

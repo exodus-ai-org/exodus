@@ -10,49 +10,104 @@ import {
   toggleSkillActive,
   uninstallSkill
 } from '../../ai/skills/skills-manager'
+import { ChatSDKError } from '../errors'
+import { successResponse } from '../utils'
 
 const skillsRouter = new Hono()
 
 // List registry skills (paginated)
 skillsRouter.get('/registry', async (c) => {
-  const cursor = c.req.query('cursor')
-  const data = await listRegistrySkills(cursor || undefined)
-  return c.json({ ok: true, data })
+  try {
+    const cursor = c.req.query('cursor')
+    const data = await listRegistrySkills(cursor || undefined)
+    return successResponse(c, {
+      items: data.items,
+      nextCursor: data.nextCursor
+    })
+  } catch (e) {
+    if (e instanceof ChatSDKError) throw e
+    throw new ChatSDKError(
+      'bad_request:skills',
+      e instanceof Error ? e.message : 'Failed to list skills'
+    )
+  }
 })
 
 // Search registry skills
 skillsRouter.get('/search', async (c) => {
-  const q = c.req.query('q') ?? ''
-  const results = await searchRegistrySkills(q)
-  return c.json({ ok: true, data: results })
+  try {
+    const q = c.req.query('q') ?? ''
+    const results = await searchRegistrySkills(q)
+    return successResponse(c, results)
+  } catch (e) {
+    if (e instanceof ChatSDKError) throw e
+    throw new ChatSDKError(
+      'bad_request:skills',
+      e instanceof Error ? e.message : 'Failed to search skills'
+    )
+  }
 })
 
 // List installed skills
 skillsRouter.get('/installed', async (c) => {
-  const installed = await listInstalledSkills()
-  return c.json({ ok: true, data: installed })
+  try {
+    const installed = await listInstalledSkills()
+    return successResponse(c, installed)
+  } catch (e) {
+    if (e instanceof ChatSDKError) throw e
+    throw new ChatSDKError(
+      'bad_request:skills',
+      e instanceof Error ? e.message : 'Failed to list installed skills'
+    )
+  }
 })
 
 // Install a skill
 skillsRouter.post('/install', async (c) => {
   const { slug, displayName, version } = await c.req.json()
-  const installed = await installSkill(slug, displayName, version)
-  return c.json({ ok: true, data: installed })
+  try {
+    const installed = await installSkill(slug, displayName, version)
+    return successResponse(c, installed)
+  } catch (e) {
+    if (e instanceof ChatSDKError) throw e
+    const message = e instanceof Error ? e.message : 'Failed to install skill'
+    // Detect rate limit from upstream
+    if (message.includes('429')) {
+      throw new ChatSDKError('rate_limit:skills', message)
+    }
+    throw new ChatSDKError('bad_request:skills', message)
+  }
 })
 
 // Uninstall a skill
 skillsRouter.delete('/:slug', async (c) => {
   const slug = c.req.param('slug')
-  await uninstallSkill(slug)
-  return c.json({ ok: true })
+  try {
+    await uninstallSkill(slug)
+    return c.json({ success: true })
+  } catch (e) {
+    if (e instanceof ChatSDKError) throw e
+    throw new ChatSDKError(
+      'bad_request:skills',
+      e instanceof Error ? e.message : 'Failed to uninstall skill'
+    )
+  }
 })
 
 // Toggle skill active/inactive
 skillsRouter.patch('/:slug/toggle', async (c) => {
   const slug = c.req.param('slug')
   const { isActive } = await c.req.json()
-  await toggleSkillActive(slug, isActive)
-  return c.json({ ok: true })
+  try {
+    await toggleSkillActive(slug, isActive)
+    return c.json({ success: true })
+  } catch (e) {
+    if (e instanceof ChatSDKError) throw e
+    throw new ChatSDKError(
+      'bad_request:skills',
+      e instanceof Error ? e.message : 'Failed to toggle skill'
+    )
+  }
 })
 
 // Upload a local skill ZIP
@@ -60,11 +115,11 @@ skillsRouter.post('/upload', async (c) => {
   const body = await c.req.parseBody()
   const file = body['file']
   if (!file || typeof file === 'string') {
-    return c.json({ ok: false, error: 'No file provided' }, 400)
+    throw new ChatSDKError('bad_request:skills', 'No file provided')
   }
   const filename = file.name
   if (!filename.endsWith('.zip')) {
-    return c.json({ ok: false, error: 'Only .zip files are accepted' }, 400)
+    throw new ChatSDKError('bad_request:skills', 'Only .zip files are accepted')
   }
   try {
     const arrayBuffer = await file.arrayBuffer()
@@ -72,10 +127,13 @@ skillsRouter.post('/upload', async (c) => {
       Buffer.from(arrayBuffer),
       filename
     )
-    return c.json({ ok: true, data: installed })
+    return successResponse(c, installed)
   } catch (e) {
-    const msg = e instanceof Error ? e.message : 'Failed to install skill'
-    return c.json({ ok: false, error: msg }, 400)
+    if (e instanceof ChatSDKError) throw e
+    throw new ChatSDKError(
+      'bad_request:skills',
+      e instanceof Error ? e.message : 'Failed to install skill'
+    )
   }
 })
 
@@ -83,14 +141,17 @@ skillsRouter.post('/upload', async (c) => {
 skillsRouter.post('/install-path', async (c) => {
   const { path } = await c.req.json()
   if (!path || typeof path !== 'string') {
-    return c.json({ ok: false, error: 'No path provided' }, 400)
+    throw new ChatSDKError('bad_request:skills', 'No path provided')
   }
   try {
     const installed = await installFromPath(path)
-    return c.json({ ok: true, data: installed })
+    return successResponse(c, installed)
   } catch (e) {
-    const msg = e instanceof Error ? e.message : 'Failed to install skill'
-    return c.json({ ok: false, error: msg }, 400)
+    if (e instanceof ChatSDKError) throw e
+    throw new ChatSDKError(
+      'bad_request:skills',
+      e instanceof Error ? e.message : 'Failed to install skill'
+    )
   }
 })
 

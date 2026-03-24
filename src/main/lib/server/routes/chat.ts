@@ -333,40 +333,59 @@ chat.post('/', async (c) => {
         // ── POST-CHAT: async memory operations (non-blocking) ──────────────
         if (newMessages.length > 0) {
           const allSavedMessages = [...allMessages, ...newMessages]
-          Promise.resolve().then(async () => {
-            // LCM: track new messages and compact — gated on lcmEnabled
-            if (lcmEnabled) {
-              const lcm = new LcmManager(id, chatModel, apiKey, {
-                freshTailSize: memoryConfig?.freshTailSize ?? 16,
-                contextWindowPercent: memoryConfig?.contextWindowPercent ?? 75
-              })
-              await lcm.trackNewMessages(
-                newMessages.map((m) => ({ id: m.id, content: m.content }))
-              )
-              lcm.compactAfterTurn().catch(console.error)
-            }
+          Promise.resolve()
+            .then(async () => {
+              // LCM: track new messages and compact — gated on lcmEnabled
+              if (lcmEnabled) {
+                const lcm = new LcmManager(id, chatModel, apiKey, {
+                  freshTailSize: memoryConfig?.freshTailSize ?? 16,
+                  contextWindowPercent: memoryConfig?.contextWindowPercent ?? 75
+                })
+                await lcm.trackNewMessages(
+                  newMessages.map((m) => ({ id: m.id, content: m.content }))
+                )
+                lcm.compactAfterTurn().catch((err) => {
+                  console.error('[chat] LCM compactAfterTurn failed:', err)
+                })
+              }
 
-            // Memory write judge + session summary — gated on memoryAutoWrite
-            if (memoryAutoWrite) {
-              runMemoryWriteJudge(
-                allSavedMessages.map((m) => ({
-                  role: m.role,
-                  content: m.content
-                })),
-                chatModel,
-                apiKey
-              ).catch(console.error)
-              saveSessionSummary(
-                id,
-                allSavedMessages.map((m) => ({
-                  role: m.role,
-                  content: m.content
-                })),
-                chatModel,
-                apiKey
-              ).catch(console.error)
-            }
-          })
+              // Memory write judge + session summary — gated on memoryAutoWrite
+              if (memoryAutoWrite) {
+                runMemoryWriteJudge(
+                  allSavedMessages.map((m) => ({
+                    role: m.role,
+                    content: m.content
+                  })),
+                  chatModel,
+                  apiKey
+                ).catch((err) => {
+                  console.error(
+                    '[chat] post-response memory operation failed:',
+                    err
+                  )
+                })
+                saveSessionSummary(
+                  id,
+                  allSavedMessages.map((m) => ({
+                    role: m.role,
+                    content: m.content
+                  })),
+                  chatModel,
+                  apiKey
+                ).catch((err) => {
+                  console.error(
+                    '[chat] post-response memory operation failed:',
+                    err
+                  )
+                })
+              }
+            })
+            .catch((err) => {
+              console.error(
+                '[chat] post-response memory operation failed:',
+                err
+              )
+            })
         }
       } catch (err) {
         const rawMsg = err instanceof Error ? err.message : String(err)

@@ -12,9 +12,11 @@ import {
   type MemorySource,
   type MemoryType
 } from '../../db/memory-queries'
+import { ChatSDKError } from '../errors'
 import {
   deletionSuccessResponse,
   getRequiredParam,
+  handleDatabaseOperation,
   successResponse,
   updateSuccessResponse
 } from '../utils'
@@ -24,7 +26,10 @@ const memoryRouter = new Hono<{ Variables: Variables }>()
 // GET /api/memory — list all memories (active + inactive)
 memoryRouter.get('/', async (c) => {
   const type = c.req.query('type') as MemoryType | undefined
-  const rows = await getAllMemories(LOCAL_USER_ID)
+  const rows = await handleDatabaseOperation(
+    () => getAllMemories(LOCAL_USER_ID),
+    'Failed to load memories'
+  )
   const filtered = type ? rows.filter((m) => m.type === type) : rows
   return successResponse(c, filtered)
 })
@@ -32,9 +37,12 @@ memoryRouter.get('/', async (c) => {
 // GET /api/memory/:id
 memoryRouter.get('/:id', async (c) => {
   const id = getRequiredParam(c, 'id', 'memory')
-  const row = await getMemoryById(id)
+  const row = await handleDatabaseOperation(
+    () => getMemoryById(id),
+    'Failed to load memory'
+  )
   if (!row) {
-    return c.json({ error: 'Memory not found' }, 404)
+    throw new ChatSDKError('not_found:memory', `Memory ${id} not found`)
   }
   return successResponse(c, row)
 })
@@ -50,18 +58,25 @@ memoryRouter.post('/', async (c) => {
   }>()
 
   if (!body.type || !body.key || !body.value) {
-    return c.json({ error: 'type, key, and value are required' }, 400)
+    throw new ChatSDKError(
+      'bad_request:memory',
+      'type, key, and value are required'
+    )
   }
 
-  const row = await createMemory({
-    userId: LOCAL_USER_ID,
-    type: body.type,
-    key: body.key,
-    value: body.value,
-    confidence: body.confidence,
-    source: body.source ?? 'system'
-  })
-  return c.json({ success: true, data: row }, 201)
+  const row = await handleDatabaseOperation(
+    () =>
+      createMemory({
+        userId: LOCAL_USER_ID,
+        type: body.type,
+        key: body.key,
+        value: body.value,
+        confidence: body.confidence,
+        source: body.source ?? 'system'
+      }),
+    'Failed to create memory'
+  )
+  return successResponse(c, row, 201)
 })
 
 // PATCH /api/memory/:id — update
@@ -76,9 +91,12 @@ memoryRouter.patch('/:id', async (c) => {
     isActive?: boolean
   }>()
 
-  const updated = await updateMemory(id, body)
+  const updated = await handleDatabaseOperation(
+    () => updateMemory(id, body),
+    'Failed to update memory'
+  )
   if (!updated) {
-    return c.json({ error: 'Memory not found' }, 404)
+    throw new ChatSDKError('not_found:memory', `Memory ${id} not found`)
   }
   return updateSuccessResponse(c, 'memory', id)
 })
@@ -87,11 +105,10 @@ memoryRouter.patch('/:id', async (c) => {
 memoryRouter.delete('/:id', async (c) => {
   const id = getRequiredParam(c, 'id', 'memory')
   const hard = c.req.query('hard') === 'true'
-  if (hard) {
-    await hardDeleteMemory(id)
-  } else {
-    await softDeleteMemory(id)
-  }
+  await handleDatabaseOperation(
+    () => (hard ? hardDeleteMemory(id) : softDeleteMemory(id)),
+    'Failed to delete memory'
+  )
   return deletionSuccessResponse(c, 'Memory')
 })
 
