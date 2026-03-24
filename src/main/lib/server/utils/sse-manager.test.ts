@@ -14,9 +14,9 @@ describe('SseManager', () => {
     const manager = new SseManager<string>()
     const controller = makeController()
     manager.register('task-1', controller)
-    expect(manager.getClients('task-1').size).toBe(1)
+    expect(manager.hasClients('task-1')).toBe(true)
     manager.unregister('task-1', controller)
-    expect(manager.getClients('task-1').size).toBe(0)
+    expect(manager.hasClients('task-1')).toBe(false)
   })
 
   it('emits to specific topic clients', () => {
@@ -41,7 +41,7 @@ describe('SseManager', () => {
     const abortController = new AbortController()
     manager.register('task-1', controller, abortController.signal)
     abortController.abort()
-    expect(manager.getClients('task-1').size).toBe(0)
+    expect(manager.hasClients('task-1')).toBe(false)
   })
 
   it('removes client on enqueue error', () => {
@@ -54,6 +54,24 @@ describe('SseManager', () => {
     } as unknown as ReadableStreamDefaultController
     manager.register('task-1', controller)
     manager.emit('task-1', { type: 'update', data: 'hello' })
-    expect(manager.getClients('task-1').size).toBe(0)
+    expect(manager.hasClients('task-1')).toBe(false)
+  })
+
+  it('encodes event and emits raw payload', () => {
+    const manager = new SseManager<string>()
+    const controller = makeController()
+    manager.register('task-1', controller)
+    const payload = manager.encodeEvent({ type: 'test', value: 42 })
+    manager.emitRaw('task-1', payload)
+    expect(controller.enqueue).toHaveBeenCalledWith(payload)
+  })
+
+  it('emits global raw payload', () => {
+    const manager = new SseManager<string>()
+    const controller = makeController()
+    manager.registerGlobal(controller)
+    const payload = manager.encodeEvent({ type: 'test' })
+    manager.emitGlobalRaw(payload)
+    expect(controller.enqueue).toHaveBeenCalledWith(payload)
   })
 })

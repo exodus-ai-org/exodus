@@ -359,10 +359,7 @@ chat.post('/', async (c) => {
                   chatModel,
                   apiKey
                 ).catch((err) => {
-                  console.error(
-                    '[chat] post-response memory operation failed:',
-                    err
-                  )
+                  console.error('[chat] memory-write-judge failed:', err)
                 })
                 saveSessionSummary(
                   id,
@@ -373,18 +370,12 @@ chat.post('/', async (c) => {
                   chatModel,
                   apiKey
                 ).catch((err) => {
-                  console.error(
-                    '[chat] post-response memory operation failed:',
-                    err
-                  )
+                  console.error('[chat] session-summary failed:', err)
                 })
               }
             })
             .catch((err) => {
-              console.error(
-                '[chat] post-response memory operation failed:',
-                err
-              )
+              console.error('[chat] post-response operation failed:', err)
             })
         }
       } catch (err) {

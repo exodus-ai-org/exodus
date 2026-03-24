@@ -11,7 +11,7 @@ import {
   SearchIcon,
   TriangleAlertIcon
 } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import useSWR from 'swr'
 
@@ -80,7 +80,10 @@ export function SkillsMarket() {
   const { data: installedData, mutate: mutateInstalled } =
     useSWR<InstalledResponse>('/api/skills/installed', fetcher)
 
-  const installedSlugs = new Set(installedData?.map((s) => s.slug) ?? [])
+  const installedSlugs = useMemo(
+    () => new Set(installedData?.map((s) => s.slug) ?? []),
+    [installedData]
+  )
 
   const handleInstallFromRegistry = useCallback(
     async (skill: SkillItem) => {

@@ -25,11 +25,10 @@ import {
   validatePerplexityApiKey,
   validateSchema
 } from '../utils'
-import { SseManager } from '../utils/sse-manager'
+import { SSE_HEADERS, SseManager } from '../utils/sse-manager'
 
 const deepResearch = new Hono<{ Variables: Variables }>()
 const sseManager = new SseManager<string>()
-const encoder = new TextEncoder()
 
 async function notifyClients(
   deepResearchId: string,
@@ -50,19 +49,12 @@ async function notifyClients(
 
   await saveDeepResearchMessage(deepResearchMessage)
 
-  const clients = sseManager.getClients(deepResearchId)
-  if (clients.size === 0) return
+  if (!sseManager.hasClients(deepResearchId)) return
 
-  const payload = encoder.encode(
-    `data: ${JSON.stringify(deepResearchMessage)}\n\n`
+  const payload = sseManager.encodeEvent(
+    deepResearchMessage as unknown as Record<string, unknown>
   )
-  for (const controller of clients) {
-    try {
-      controller.enqueue(payload)
-    } catch (err) {
-      console.error('SSE enqueue failed:', err)
-    }
-  }
+  sseManager.emitRaw(deepResearchId, payload)
 }
 
 deepResearch.post('/', async (c) => {
@@ -146,13 +138,7 @@ deepResearch.get('/sse', async (c) => {
     }
   })
 
-  return new Response(stream, {
-    headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      Connection: 'keep-alive'
-    }
-  })
+  return new Response(stream, { headers: SSE_HEADERS })
 })
 
 deepResearch.get('/messages/:id', async (c) => {

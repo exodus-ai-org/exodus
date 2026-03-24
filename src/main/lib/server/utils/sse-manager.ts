@@ -1,3 +1,9 @@
+export const SSE_HEADERS = {
+  'Content-Type': 'text/event-stream',
+  'Cache-Control': 'no-cache',
+  Connection: 'keep-alive'
+} as const
+
 export class SseManager<Topic extends string = string> {
   private topicClients = new Map<Topic, Set<ReadableStreamDefaultController>>()
   private globalClients = new Set<ReadableStreamDefaultController>()
@@ -40,30 +46,45 @@ export class SseManager<Topic extends string = string> {
     this.globalClients.delete(controller)
   }
 
-  getClients(topic: Topic): Set<ReadableStreamDefaultController> {
-    return this.topicClients.get(topic) ?? new Set()
+  hasClients(topic: Topic): boolean {
+    return (this.topicClients.get(topic)?.size ?? 0) > 0
   }
 
-  emit(topic: Topic, event: { type: string; data: unknown }): void {
-    const payload = this.encoder.encode(`data: ${JSON.stringify(event)}\n\n`)
+  encodeEvent(event: Record<string, unknown>): Uint8Array {
+    return this.encoder.encode(`data: ${JSON.stringify(event)}\n\n`)
+  }
+
+  emit(topic: Topic, event: Record<string, unknown>): void {
     const clients = this.topicClients.get(topic)
     if (!clients) return
+    const payload = this.encodeEvent(event)
+    this._enqueueAll(clients, payload)
+  }
+
+  emitGlobal(event: Record<string, unknown>): void {
+    const payload = this.encodeEvent(event)
+    this._enqueueAll(this.globalClients, payload)
+  }
+
+  emitRaw(topic: Topic, payload: Uint8Array): void {
+    const clients = this.topicClients.get(topic)
+    if (!clients) return
+    this._enqueueAll(clients, payload)
+  }
+
+  emitGlobalRaw(payload: Uint8Array): void {
+    this._enqueueAll(this.globalClients, payload)
+  }
+
+  private _enqueueAll(
+    clients: Set<ReadableStreamDefaultController>,
+    payload: Uint8Array
+  ): void {
     for (const controller of clients) {
       try {
         controller.enqueue(payload)
       } catch {
         clients.delete(controller)
-      }
-    }
-  }
-
-  emitGlobal(event: { type: string; data: unknown }): void {
-    const payload = this.encoder.encode(`data: ${JSON.stringify(event)}\n\n`)
-    for (const controller of this.globalClients) {
-      try {
-        controller.enqueue(payload)
-      } catch {
-        this.globalClients.delete(controller)
       }
     }
   }

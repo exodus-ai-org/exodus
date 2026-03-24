@@ -1,14 +1,12 @@
 import type { Message } from '@mariozechner/pi-ai'
 import type { ChatMessage } from '@shared/types/chat'
 
-// Strip `id` from ChatMessage to get a pi-ai Message
 export function stripId(msg: ChatMessage): Message {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { id, ...rest } = msg
   return rest as Message
 }
 
-// Convert a ChatMessage to a DB row for insertion
 export function toDbRow(msg: ChatMessage, chatId: string) {
   const ts = msg.timestamp ? new Date(msg.timestamp) : new Date()
   const base = {

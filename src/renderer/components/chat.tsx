@@ -3,7 +3,7 @@ import { BASE_URL } from '@shared/constants/systems'
 import { Attachment, ChatMessage } from '@shared/types/chat'
 import { IpcRendererEvent } from 'electron'
 import { useAtomValue, useSetAtom } from 'jotai'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { sileo } from 'sileo'
 import { mutate } from 'swr'
 import { v4 as uuidV4 } from 'uuid'
@@ -70,9 +70,13 @@ export function Chat({ id, initialMessages }: Props) {
     setChatStatus(status)
   }, [status, setChatStatus])
 
+  // Store stop in a ref to avoid re-renders from function identity changes
+  const stopRef = useRef(stop)
+  stopRef.current = stop
+  const stableStop = useCallback(() => stopRef.current(), [])
   useEffect(() => {
-    setChatStop(() => stop)
-  }, [stop, setChatStop])
+    setChatStop(() => stableStop)
+  }, [stableStop, setChatStop])
 
   useEffect(() => {
     if (quickChat) {
