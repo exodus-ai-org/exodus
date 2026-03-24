@@ -87,7 +87,7 @@ export function AppSidebar({
         />
         <NavSecondary
           items={navSecondaryItems}
-          className="mt-auto"
+          className="mt-auto mb-2"
           onItemClick={(url) => navigate(url)}
         />
       </SidebarContent>
