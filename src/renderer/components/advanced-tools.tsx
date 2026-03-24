@@ -76,7 +76,7 @@ export function AdvancedTools() {
                 variant="ghost"
                 size="icon"
                 className={cn(
-                  'text-ring hover:text-ring size-6 rounded-full bg-transparent',
+                  'text-muted-foreground hover:text-foreground size-6 rounded-full bg-transparent transition-colors',
                   {
                     ['text-[#0285ff] hover:text-[#0285ff] dark:text-[#48aaff] hover:dark:text-[#48aaff]']:
                       advancedTools.includes(key)
