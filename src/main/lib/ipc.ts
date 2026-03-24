@@ -1,4 +1,6 @@
-import { app, dialog, ipcMain, nativeTheme } from 'electron'
+import { join } from 'path'
+
+import { app, dialog, ipcMain, nativeTheme, shell } from 'electron'
 
 // ARCHIVED: import { connectHttpServer } from './server/app'
 // ARCHIVED: import { getServer, setServer } from './server/instance'
@@ -134,6 +136,11 @@ export function setupIPC() {
     })
     if (result.canceled || result.filePaths.length === 0) return null
     return result.filePaths[0]
+  })
+
+  ipcMain.handle('open-logs-dir', () => {
+    const dir = join(app.getPath('userData'), 'logs')
+    shell.openPath(dir)
   })
 
   ipcMain.handle('updater-get-state', () => updaterGetState())

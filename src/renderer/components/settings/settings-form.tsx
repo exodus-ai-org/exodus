@@ -14,6 +14,7 @@ import { General } from './settings-form/generals'
 import { GoogleMaps } from './settings-form/google-maps'
 import { GraphRAG } from './settings-form/graph-rag'
 import { ImageGeneration } from './settings-form/image-generation'
+import { Logger } from './settings-form/logger'
 import { McpServers } from './settings-form/mcp-servers'
 import { MemoryLayer } from './settings-form/memory-layer'
 import { ProviderConfig } from './settings-form/provider-config'
@@ -105,6 +106,8 @@ export function SettingsForm() {
       {activeTitle === SettingsLabel.BrowserUse && <UnderConstruction />}
 
       {activeTitle === SettingsLabel.DataControls && <DataControls />}
+
+      {activeTitle === SettingsLabel.Logger && <Logger />}
 
       {activeTitle === SettingsLabel.AboutExodus && <SystemInfo />}
     </form>

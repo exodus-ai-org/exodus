@@ -10,6 +10,7 @@ import {
   MemoryStickIcon,
   NetworkIcon,
   PlugIcon,
+  ScrollTextIcon,
   ShoppingBagIcon,
   WrenchIcon
 } from 'lucide-react'
@@ -31,6 +32,7 @@ export enum SettingsLabel {
   BrowserUse = 'Browser Use',
   ComputerUse = 'Computer Use',
   DataControls = 'Data Controls',
+  Logger = 'Logger',
   AboutExodus = 'About Exodus'
 }
 
@@ -96,6 +98,10 @@ export const menus = {
       icon: DatabaseIcon,
       title: SettingsLabel.DataControls,
       items: [{ title: SettingsLabel.AmazonS3 }]
+    },
+    {
+      icon: ScrollTextIcon,
+      title: SettingsLabel.Logger
     },
     {
       icon: InfoIcon,
