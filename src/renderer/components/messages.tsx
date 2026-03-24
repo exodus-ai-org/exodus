@@ -46,6 +46,8 @@ interface AssistantTurn {
   pendingToolCalls: Array<{ name: string; id: string }>
   /** Non-webSearch tool results that have visual cards (weather, maps, etc.) */
   toolCards: ChatToolResultMessage[]
+  /** Duration of the turn in milliseconds (first msg → last msg) */
+  durationMs: number
   /** Whether this turn has any content at all */
   hasContent: boolean
   /** All webSearch results collected in this turn */
@@ -122,12 +124,17 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
     }
   }
 
+  const firstTs = turnMessages[0]?.timestamp ?? 0
+  const lastTs = turnMessages[turnMessages.length - 1]?.timestamp ?? 0
+  const durationMs = firstTs && lastTs ? lastTs - firstTs : 0
+
   return {
     messages: turnMessages,
     steps,
     finalTextBlocks,
     pendingToolCalls,
     toolCards,
+    durationMs,
     hasContent:
       steps.length > 0 ||
       finalTextBlocks.length > 0 ||
@@ -306,6 +313,7 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
                     {(turn.steps.length > 0 || turnIsStreaming) && (
                       <ThinkingTimeline
                         steps={turn.steps}
+                        durationMs={turn.durationMs}
                         isStreaming={
                           turnIsStreaming && turn.finalTextBlocks.length === 0
                         }

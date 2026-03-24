@@ -9,11 +9,12 @@ import {
   LoaderIcon,
   XCircleIcon
 } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { cn } from '@/lib/utils'
 
 import { Markdown } from './markdown'
+import { ShimmeringText } from './shimmering-text'
 
 export interface TimelineStep {
   type: 'thinking' | 'toolCall' | 'toolResult'
@@ -25,6 +26,7 @@ export interface TimelineStep {
 
 interface ThinkingTimelineProps {
   steps: TimelineStep[]
+  durationMs: number
   isStreaming: boolean
 }
 
@@ -78,26 +80,55 @@ function TimelineNode({
 }) {
   return (
     <div className="grid grid-cols-[14px_1fr] gap-x-2.5 pb-3 last:pb-0">
-      {/* Left column: icon + connector line */}
       <div className="flex flex-col items-center">
         <div className="mt-1.75 flex size-3.5 shrink-0 items-center justify-center">
           {icon}
         </div>
         {!isLast && <div className="border-border w-px flex-1 border-l" />}
       </div>
-      {/* Right column: content */}
       <div className="min-w-0">{children}</div>
     </div>
   )
 }
 
+function formatDuration(ms: number): string {
+  const seconds = Math.round(ms / 1000)
+  if (seconds < 60) return `${seconds} seconds`
+  const minutes = Math.floor(seconds / 60)
+  const remaining = seconds % 60
+  return remaining > 0 ? `${minutes}m ${remaining}s` : `${minutes}m`
+}
+
+/** Extract a short title from a step for the collapsed preview */
+function getStepTitle(step: TimelineStep): string {
+  if (step.type === 'toolCall') return step.text
+  if (step.type === 'toolResult' && step.webSearchResults) {
+    return `${step.webSearchResults.length} search results`
+  }
+  if (step.type === 'toolResult' && step.isError) return step.text
+  // thinking: extract **bold** or first line
+  const boldMatch = step.text.match(/\*\*(.+?)\*\*/)
+  if (boldMatch) return boldMatch[1]
+  return step.text.split('\n').filter(Boolean)[0]?.slice(0, 60) ?? 'Thinking…'
+}
+
 export function ThinkingTimeline({
   steps,
+  durationMs,
   isStreaming
 }: ThinkingTimelineProps) {
   const [isExpanded, setIsExpanded] = useState(false)
 
+  const latestTitle = useMemo(() => {
+    if (steps.length === 0) return 'Thinking…'
+    return getStepTitle(steps[steps.length - 1])
+  }, [steps])
+
   if (steps.length === 0 && !isStreaming) return null
+
+  const headerText = isStreaming
+    ? latestTitle
+    : `Thought for ${formatDuration(durationMs)}`
 
   return (
     <div className="mb-3">
@@ -110,9 +141,15 @@ export function ThinkingTimeline({
         ) : (
           <CheckIcon size={14} className="shrink-0" />
         )}
-        <span className="font-medium">
-          {isStreaming ? 'Thinking…' : 'Thought for a few seconds'}
-        </span>
+        {isStreaming ? (
+          <ShimmeringText
+            key={headerText}
+            className="font-medium"
+            text={headerText}
+          />
+        ) : (
+          <span className="font-medium">{headerText}</span>
+        )}
         <ChevronDownIcon
           size={14}
           className={cn(
@@ -160,20 +197,22 @@ export function ThinkingTimeline({
                 </TimelineNode>
               ))}
 
-              {/* Done node */}
-              <TimelineNode
-                isLast
-                icon={
-                  <CircleCheckBigIcon
-                    size={14}
-                    className="text-muted-foreground shrink-0"
-                  />
-                }
-              >
-                <p className="text-muted-foreground text-sm leading-relaxed">
-                  Done
-                </p>
-              </TimelineNode>
+              {/* Done node — only when streaming is finished */}
+              {!isStreaming && (
+                <TimelineNode
+                  isLast
+                  icon={
+                    <CircleCheckBigIcon
+                      size={14}
+                      className="text-muted-foreground shrink-0"
+                    />
+                  }
+                >
+                  <p className="text-muted-foreground text-sm leading-relaxed">
+                    Done
+                  </p>
+                </TimelineNode>
+              )}
             </div>
           </motion.div>
         )}
