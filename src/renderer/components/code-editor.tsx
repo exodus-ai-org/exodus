@@ -132,4 +132,26 @@ function CodeEditor<T extends FieldValues>({
   )
 }
 
+/** Non-generic standalone editor for lazy loading */
+export function StandaloneCodeEditor({
+  className,
+  value,
+  onChange,
+  monacoEditorOption
+}: {
+  className?: string
+  value?: string
+  onChange?: (value: string) => void
+  monacoEditorOption?: monaco.editor.IStandaloneEditorConstructionOptions
+}) {
+  return (
+    <EditorCore
+      className={className}
+      value={value ?? ''}
+      onChange={(v) => onChange?.(v ?? '')}
+      options={monacoEditorOption}
+    />
+  )
+}
+
 export default CodeEditor

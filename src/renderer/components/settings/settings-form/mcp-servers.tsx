@@ -8,11 +8,15 @@ import {
   TerminalIcon,
   Trash2Icon
 } from 'lucide-react'
-import { useCallback, useState } from 'react'
+import { lazy, Suspense, useCallback, useState } from 'react'
 import { toast } from 'sonner'
 import useSWR from 'swr'
 
-import CodeEditor from '@/components/code-editor'
+const CodeEditor = lazy(() =>
+  import('@/components/code-editor.js').then((m) => ({
+    default: m.StandaloneCodeEditor
+  }))
+)
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -555,11 +559,19 @@ export function McpServers() {
               make changes.
             </p>
             <div className="border-border overflow-hidden rounded-lg border">
-              <CodeEditor
-                className="h-80"
-                value={jsonValue}
-                monacoEditorOption={{ readOnly: true }}
-              />
+              <Suspense
+                fallback={
+                  <div className="flex h-80 items-center justify-center">
+                    <Loader2Icon className="text-muted-foreground h-5 w-5 animate-spin" />
+                  </div>
+                }
+              >
+                <CodeEditor
+                  className="h-80"
+                  value={jsonValue}
+                  monacoEditorOption={{ readOnly: true }}
+                />
+              </Suspense>
             </div>
           </div>
         </TabsContent>
