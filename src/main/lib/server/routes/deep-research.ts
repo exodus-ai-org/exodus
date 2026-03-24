@@ -25,23 +25,11 @@ import {
   validatePerplexityApiKey,
   validateSchema
 } from '../utils'
+import { SseManager } from '../utils/sse-manager'
 
 const deepResearch = new Hono<{ Variables: Variables }>()
-const clients = new Map<string, ReadableStreamDefaultController>()
-
-function registerClient(
-  deepResearchId: string,
-  controller: ReadableStreamDefaultController
-) {
-  clients.set(deepResearchId, controller)
-}
-
-function unregisterClient(deepResearchId: string) {
-  const set = clients.get(deepResearchId)
-  if (set) {
-    clients.delete(deepResearchId)
-  }
-}
+const sseManager = new SseManager<string>()
+const encoder = new TextEncoder()
 
 async function notifyClients(
   deepResearchId: string,
@@ -62,17 +50,18 @@ async function notifyClients(
 
   await saveDeepResearchMessage(deepResearchMessage)
 
-  try {
-    const controller = clients.get(deepResearchId)
-    if (!controller) return
+  const clients = sseManager.getClients(deepResearchId)
+  if (clients.size === 0) return
 
-    controller.enqueue(
-      new TextEncoder().encode(
-        `data: ${JSON.stringify(deepResearchMessage)}\n\n`
-      )
-    )
-  } catch (err) {
-    console.error('SSE enqueue failed:', err)
+  const payload = encoder.encode(
+    `data: ${JSON.stringify(deepResearchMessage)}\n\n`
+  )
+  for (const controller of clients) {
+    try {
+      controller.enqueue(payload)
+    } catch (err) {
+      console.error('SSE enqueue failed:', err)
+    }
   }
 }
 
@@ -151,18 +140,13 @@ deepResearch.post('/', async (c) => {
 deepResearch.get('/sse', async (c) => {
   const deepResearchId = getRequiredQuery(c, 'deepResearchId', 'deep_research')
 
-  const controller = new ReadableStream({
+  const stream = new ReadableStream({
     start(controller) {
-      registerClient(deepResearchId as string, controller)
-
-      c.req.raw.signal.addEventListener('abort', () => {
-        unregisterClient(deepResearchId)
-        controller.close()
-      })
+      sseManager.register(deepResearchId, controller, c.req.raw.signal)
     }
   })
 
-  return new Response(controller, {
+  return new Response(stream, {
     headers: {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
