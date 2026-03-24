@@ -6,6 +6,7 @@ import { cleanupStaleWaitingTasks } from './lib/db/agent-x-queries'
 import { runMigrate } from './lib/db/migrate'
 import { getSettings } from './lib/db/queries'
 import { setupIPC } from './lib/ipc'
+import { cleanupOldLogs } from './lib/logger'
 import { setupMenu } from './lib/menu'
 import { connectHttpServer } from './lib/server/app'
 import { setServer } from './lib/server/instance'
@@ -15,6 +16,7 @@ import { createWindow } from './lib/window'
 app.whenReady().then(async () => {
   // Migrate PGlite
   await runMigrate()
+  cleanupOldLogs()
   await cleanupStaleWaitingTasks()
 
   // Start Hono server
