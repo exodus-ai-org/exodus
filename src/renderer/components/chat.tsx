@@ -2,7 +2,7 @@ import { QUICK_CHAT_KEY } from '@shared/constants/misc'
 import { BASE_URL } from '@shared/constants/systems'
 import { Attachment, ChatMessage } from '@shared/types/chat'
 import { IpcRendererEvent } from 'electron'
-import { useAtomValue } from 'jotai'
+import { useAtomValue, useSetAtom } from 'jotai'
 import { useEffect, useRef, useState } from 'react'
 import { sileo } from 'sileo'
 import { mutate } from 'swr'
@@ -11,6 +11,7 @@ import { v4 as uuidV4 } from 'uuid'
 import { useChat } from '@/hooks/use-chat'
 import { bringWindowToFront, subscribeQuickChatInput } from '@/lib/ipc'
 import { advancedToolsAtom } from '@/stores/chat'
+import { chatInputAtom, chatStatusAtom, chatStopFnAtom } from '@/stores/input'
 
 import Messages from './messages'
 import MultimodalInput from './multimodel-input'
@@ -26,7 +27,10 @@ export function Chat({ id, initialMessages }: Props) {
   const advancedToolsRef = useRef(advancedTools)
   advancedToolsRef.current = advancedTools
 
-  const [input, setInput] = useState(quickChat ?? '')
+  const setChatInput = useSetAtom(chatInputAtom)
+  const setChatStatus = useSetAtom(chatStatusAtom)
+  const setChatStop = useSetAtom(chatStopFnAtom)
+
   const [attachments, setAttachments] = useState<Attachment[]>([])
 
   const {
@@ -63,6 +67,20 @@ export function Chat({ id, initialMessages }: Props) {
   })
 
   useEffect(() => {
+    setChatStatus(status)
+  }, [status, setChatStatus])
+
+  useEffect(() => {
+    setChatStop(() => stop)
+  }, [stop, setChatStop])
+
+  useEffect(() => {
+    if (quickChat) {
+      setChatInput(quickChat)
+    }
+  }, [quickChat, setChatInput])
+
+  useEffect(() => {
     return () => {
       subscribeQuickChatInput(async (_: IpcRendererEvent, text: string) => {
         await bringWindowToFront()
@@ -76,20 +94,16 @@ export function Chat({ id, initialMessages }: Props) {
     if (quickChat) {
       window.history.replaceState({}, '', `/chat/${id}`)
       sendMessage({ text: quickChat })
-      setInput('')
+      setChatInput('')
       window.localStorage.removeItem(QUICK_CHAT_KEY)
     }
-  }, [id, quickChat, sendMessage])
+  }, [id, quickChat, sendMessage, setChatInput])
 
   return (
     <>
       <Messages status={status} messages={messages} regenerate={regenerate} />
       <MultimodalInput
         chatId={id}
-        input={input}
-        setInput={setInput}
-        status={status}
-        stop={stop}
         attachments={attachments}
         setAttachments={setAttachments}
         messages={messages}

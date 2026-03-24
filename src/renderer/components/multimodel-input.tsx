@@ -1,4 +1,5 @@
 import type { Attachment, ChatMessage, Usage } from '@shared/types/chat'
+import { useAtom, useAtomValue } from 'jotai'
 import { CircleStopIcon, SendIcon } from 'lucide-react'
 import {
   ChangeEvent,
@@ -11,10 +12,13 @@ import {
   useRef,
   useState
 } from 'react'
+import { useParams } from 'react-router'
 import { sileo } from 'sileo'
 
-import { ChatStatus, UseChatHelpers } from '@/hooks/use-chat'
+import { UseChatHelpers } from '@/hooks/use-chat'
 import { useUpload } from '@/hooks/use-upload'
+import { cn } from '@/lib/utils'
+import { chatInputAtom, chatStatusAtom, chatStopFnAtom } from '@/stores/input'
 
 import { AdvancedTools } from './advanced-tools'
 import { AudioRecorder } from './audio-recoder'
@@ -27,10 +31,6 @@ import { Textarea } from './ui/textarea'
 
 function InputBox({
   chatId,
-  input,
-  setInput,
-  status,
-  stop,
   attachments,
   setAttachments,
   // messages,
@@ -39,10 +39,6 @@ function InputBox({
   lastUsage
 }: {
   chatId: string
-  input: string
-  setInput: Dispatch<SetStateAction<string>>
-  status: ChatStatus
-  stop: () => void
   attachments: Attachment[]
   setAttachments: Dispatch<SetStateAction<Attachment[]>>
   messages: ChatMessage[]
@@ -50,6 +46,10 @@ function InputBox({
   sendMessage: UseChatHelpers['sendMessage']
   lastUsage?: Usage | null
 }) {
+  const [input, setInput] = useAtom(chatInputAtom)
+  const status = useAtomValue(chatStatusAtom)
+  const stop = useAtomValue(chatStopFnAtom)
+  const { id } = useParams()
   const { uploadFile } = useUpload()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [isTyping, setIsTyping] = useState(false)
@@ -110,7 +110,12 @@ function InputBox({
   }, [])
 
   return (
-    <div className="mx-auto flex w-[calc(100%-8rem)] flex-col md:max-w-4xl">
+    <div
+      className={cn(
+        'mx-auto flex w-[calc(100%-8rem)] flex-col md:max-w-4xl',
+        !id && 'mb-4'
+      )}
+    >
       <div className="flex flex-col gap-1 rounded-xl border p-2">
         <form>
           <FilePreview />
@@ -119,8 +124,8 @@ function InputBox({
             placeholder="Send a message..."
             value={input}
             onChange={handleInput}
-            className="max-h-[75dvh] min-h-6 resize-none border-none bg-transparent! py-1 shadow-none focus-visible:ring-0"
-            rows={1}
+            className="max-h-[75dvh] min-h-16 resize-none border-none bg-transparent! py-1 shadow-none focus-visible:ring-0"
+            rows={3}
             autoFocus
             onKeyDown={(event) => {
               if (event.key === 'Enter' && !event.shiftKey) {
@@ -154,7 +159,11 @@ function InputBox({
           </div>
 
           {status === 'submitted' || status === 'streaming' ? (
-            <Button variant="secondary" size="icon-sm" onClick={stop}>
+            <Button
+              variant="secondary"
+              size="icon-sm"
+              onClick={stop ?? undefined}
+            >
               <CircleStopIcon size={16} />
             </Button>
           ) : (
