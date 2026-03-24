@@ -12,25 +12,28 @@ Add a "Color Tone" picker to the General settings page. Six presets that shift t
 
 ### Presets
 
-| Name    | Hue | Description             |
-| ------- | --- | ----------------------- |
-| Emerald | 160 | Current default (green) |
-| Blue    | 230 | Classic blue            |
-| Violet  | 285 | Purple                  |
-| Rose    | 350 | Warm pink               |
-| Orange  | 55  | Warm amber              |
-| Neutral | —   | Pure gray, chroma → 0   |
+| Name    | Hue | Description                    |
+| ------- | --- | ------------------------------ |
+| Neutral | —   | Default, pure gray, chroma → 0 |
+| Emerald | 160 | Green                          |
+| Blue    | 230 | Classic blue                   |
+| Violet  | 285 | Purple                         |
+| Rose    | 350 | Warm pink                      |
+| Orange  | 55  | Warm amber                     |
 
 ### Implementation
 
-**Storage**: Add `colorTone` field to the `settings` table (text column, default `'emerald'`). Add corresponding field to `SettingsSchema` as `z.enum(['emerald', 'blue', 'violet', 'rose', 'orange', 'neutral']).default('emerald')`.
+**Storage**: Add `colorTone` field to the `settings` table (text column, default `'emerald'`). Add corresponding field to `SettingsSchema` as `z.enum(['neutral', 'emerald', 'blue', 'violet', 'rose', 'orange']).default('neutral')`.
 
 **CSS Strategy**: Use a data attribute on `<html>` (e.g., `data-tone="blue"`) to select the active tone. Define each tone as a CSS ruleset:
 
 ```css
 :root,
+[data-tone='neutral'] {
+  /* default: chroma → 0, pure gray */
+}
 [data-tone='emerald'] {
-  /* current values, hue ~160 */
+  /* hue ~160 (current green values) */
 }
 [data-tone='blue'] {
   /* hue ~230 */
