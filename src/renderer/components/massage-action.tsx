@@ -30,7 +30,7 @@ export function IconWrapper({
 }) {
   return (
     <span
-      className="hover:bg-secondary text-muted-foreground flex size-6 items-center justify-center rounded-sm"
+      className="hover:bg-secondary text-muted-foreground flex size-6 cursor-pointer items-center justify-center rounded-md transition-colors duration-150"
       onClick={onClick}
     >
       {children}
