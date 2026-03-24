@@ -7,7 +7,9 @@ import { fetcher } from '@shared/utils/http'
 import {
   ChevronRightIcon,
   DownloadIcon,
+  ExternalLinkIcon,
   Loader2Icon,
+  TriangleAlertIcon,
   PackageCheckIcon,
   PackageIcon,
   SearchIcon,
@@ -15,7 +17,7 @@ import {
   Trash2Icon,
   UploadIcon
 } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { toast } from 'sonner'
 import useSWR from 'swr'
 
@@ -27,6 +29,7 @@ import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { useDebouncedValue } from '@/hooks/use-debounce'
 import { selectSkillPath } from '@/lib/ipc'
 import {
   installFromLocalPath,
@@ -36,31 +39,13 @@ import {
 } from '@/services/skills-service'
 
 interface RegistryResponse {
-  ok: boolean
-  data: {
-    items: SkillItem[]
-    nextCursor: string | null
-  }
+  items: SkillItem[]
+  nextCursor: string | null
 }
 
-interface SearchResponse {
-  ok: boolean
-  data: SearchResultItem[]
-}
+type SearchResponse = SearchResultItem[]
 
-interface InstalledResponse {
-  ok: boolean
-  data: InstalledSkill[]
-}
-
-function useDebounce<T>(value: T, delay: number): T {
-  const [debounced, setDebounced] = useState(value)
-  useEffect(() => {
-    const t = setTimeout(() => setDebounced(value), delay)
-    return () => clearTimeout(t)
-  }, [value, delay])
-  return debounced
-}
+type InstalledResponse = InstalledSkill[]
 
 function SkillCardSkeleton() {
   return (
@@ -110,9 +95,15 @@ function RegistrySkillCard({
                 className="size-5 shrink-0 rounded-full"
               />
             )}
-            <h3 className="truncate text-sm leading-tight font-semibold">
+            <a
+              href={`https://clawhub.ai/${skill.ownerHandle ? `${skill.ownerHandle}/${skill.slug}` : skill.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 truncate text-sm leading-tight font-semibold hover:underline"
+            >
               {skill.displayName}
-            </h3>
+              <ExternalLinkIcon className="size-3 shrink-0 opacity-50" />
+            </a>
             <Badge variant="outline" className="shrink-0 text-xs">
               v{version}
             </Badge>
@@ -196,9 +187,15 @@ function SearchResultCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex items-center gap-2">
-            <h3 className="truncate text-sm leading-tight font-semibold">
+            <a
+              href={`https://clawhub.ai/${slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 truncate text-sm leading-tight font-semibold hover:underline"
+            >
               {result.displayName ?? slug}
-            </h3>
+              <ExternalLinkIcon className="size-3 shrink-0 opacity-50" />
+            </a>
             {result.version && (
               <Badge variant="outline" className="shrink-0 text-xs">
                 v{result.version}
@@ -257,9 +254,15 @@ function InstalledSkillCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex items-center gap-2">
-            <h3 className="truncate text-sm leading-tight font-semibold">
+            <a
+              href={`https://clawhub.ai/${skill.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-1 truncate text-sm leading-tight font-semibold hover:underline"
+            >
               {skill.displayName}
-            </h3>
+              <ExternalLinkIcon className="size-3 shrink-0 opacity-50" />
+            </a>
             {skill.version && skill.version !== 'local' && (
               <Badge variant="outline" className="shrink-0 text-xs">
                 v{skill.version}
@@ -322,7 +325,7 @@ export function SkillsMarket() {
   const [pendingSlug, setPendingSlug] = useState<string | null>(null)
   const [uploading, setUploading] = useState(false)
 
-  const debouncedSearch = useDebounce(search, 400)
+  const debouncedSearch = useDebouncedValue(search, 400)
   const isSearching = debouncedSearch.trim().length > 0
 
   // Registry list (paginated, only when not searching)
@@ -349,7 +352,7 @@ export function SkillsMarket() {
   const { data: installedData, mutate: mutateInstalled } =
     useSWR<InstalledResponse>('/api/skills/installed', fetcher)
 
-  const installedSlugs = new Set(installedData?.data?.map((s) => s.slug) ?? [])
+  const installedSlugs = new Set(installedData?.map((s) => s.slug) ?? [])
 
   const handleInstallFromRegistry = useCallback(
     async (skill: SkillItem) => {
@@ -361,7 +364,8 @@ export function SkillsMarket() {
         await mutateInstalled()
         toast.success(`"${skill.displayName}" installed successfully`)
       } catch (e) {
-        toast.error(`Failed to install "${skill.displayName}"`)
+        const msg = e instanceof Error ? e.message : 'Install failed'
+        toast.error(msg)
         console.error(e)
       } finally {
         setPendingSlug(null)
@@ -382,7 +386,8 @@ export function SkillsMarket() {
         await mutateInstalled()
         toast.success(`"${displayName}" installed successfully`)
       } catch (e) {
-        toast.error(`Failed to install "${displayName}"`)
+        const msg = e instanceof Error ? e.message : 'Install failed'
+        toast.error(msg)
         console.error(e)
       } finally {
         setPendingSlug(null)
@@ -399,7 +404,8 @@ export function SkillsMarket() {
         await mutateInstalled()
         toast.success('Skill uninstalled')
       } catch (e) {
-        toast.error('Failed to uninstall skill')
+        const msg = e instanceof Error ? e.message : 'Uninstall failed'
+        toast.error(msg)
         console.error(e)
       } finally {
         setPendingSlug(null)
@@ -414,7 +420,8 @@ export function SkillsMarket() {
         await toggleSkill(slug, isActive)
         await mutateInstalled()
       } catch (e) {
-        toast.error('Failed to update skill')
+        const msg = e instanceof Error ? e.message : 'Failed to update skill'
+        toast.error(msg)
         console.error(e)
       }
     },
@@ -438,7 +445,7 @@ export function SkillsMarket() {
   }, [mutateInstalled])
 
   const handleNextPage = useCallback(() => {
-    const nextCursor = registryData?.data?.nextCursor ?? null
+    const nextCursor = registryData?.nextCursor ?? null
     if (nextCursor) {
       setCursorHistory((prev) => [...prev, nextCursor])
       setCursor(nextCursor)
@@ -453,7 +460,7 @@ export function SkillsMarket() {
   }, [cursorHistory])
 
   const isFirstPage = cursorHistory.length <= 1
-  const hasNextPage = Boolean(registryData?.data?.nextCursor)
+  const hasNextPage = Boolean(registryData?.nextCursor)
 
   return (
     <div className="flex h-full w-full flex-col">
@@ -484,6 +491,23 @@ export function SkillsMarket() {
           </Button>
         </div>
 
+        <div className="bg-warning/10 text-warning-foreground flex items-start gap-2 rounded-lg border border-amber-500/20 px-3 py-2 text-xs">
+          <TriangleAlertIcon className="mt-0.5 size-3.5 shrink-0 text-amber-500" />
+          <p>
+            Skills data sourced from{' '}
+            <a
+              href="https://clawhub.ai/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium underline"
+            >
+              clawhub.ai
+            </a>
+            . Please review skills carefully before installing to avoid
+            potentially malicious programs.
+          </p>
+        </div>
+
         <Tabs
           defaultValue="browse"
           className="flex flex-1 flex-col overflow-hidden"
@@ -496,12 +520,12 @@ export function SkillsMarket() {
             <TabsTrigger value="installed" className="flex-1">
               <PackageCheckIcon data-icon className="mr-1.5 size-3.5" />
               Installed
-              {installedData?.data?.length ? (
+              {installedData?.length ? (
                 <Badge
                   variant="secondary"
                   className="ml-1.5 h-4 min-w-4 px-1 text-xs"
                 >
-                  {installedData.data.length}
+                  {installedData.length}
                 </Badge>
               ) : null}
             </TabsTrigger>
@@ -518,7 +542,7 @@ export function SkillsMarket() {
                       Array.from({ length: 4 }).map((_, i) => (
                         <SkillCardSkeleton key={i} />
                       ))
-                    ) : searchData?.data?.length === 0 ? (
+                    ) : searchData?.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-16 text-center">
                         <SearchIcon className="text-muted-foreground/40 mb-3 size-10" />
                         <p className="text-muted-foreground text-sm font-medium">
@@ -529,7 +553,7 @@ export function SkillsMarket() {
                         </p>
                       </div>
                     ) : (
-                      searchData?.data?.map((result) => (
+                      searchData?.map((result) => (
                         <SearchResultCard
                           key={result.slug ?? result.displayName}
                           result={result}
@@ -566,7 +590,7 @@ export function SkillsMarket() {
                           Retry
                         </Button>
                       </div>
-                    ) : registryData?.data?.items?.length === 0 ? (
+                    ) : registryData?.items?.length === 0 ? (
                       <div className="flex flex-col items-center justify-center py-16 text-center">
                         <PackageIcon className="text-muted-foreground/40 mb-3 size-10" />
                         <p className="text-muted-foreground text-sm font-medium">
@@ -575,7 +599,7 @@ export function SkillsMarket() {
                       </div>
                     ) : (
                       <>
-                        {registryData?.data?.items?.map((skill) => (
+                        {registryData?.items?.map((skill) => (
                           <RegistrySkillCard
                             key={skill.slug}
                             skill={skill}
@@ -629,7 +653,7 @@ export function SkillsMarket() {
                   Array.from({ length: 3 }).map((_, i) => (
                     <SkillCardSkeleton key={i} />
                   ))
-                ) : installedData.data?.length === 0 ? (
+                ) : installedData.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-16 text-center">
                     <PackageIcon className="text-muted-foreground/40 mb-3 size-10" />
                     <p className="text-muted-foreground text-sm font-medium">
@@ -640,7 +664,7 @@ export function SkillsMarket() {
                     </p>
                   </div>
                 ) : (
-                  installedData.data?.map((skill) => (
+                  installedData?.map((skill) => (
                     <InstalledSkillCard
                       key={skill.slug}
                       skill={skill}
