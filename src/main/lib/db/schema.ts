@@ -110,8 +110,8 @@ export const setting = pgTable('setting', {
   s3: jsonb('s3').$type<z.infer<typeof S3Schema>>(),
   autoUpdate: boolean('autoUpdate').default(true),
   memoryLayer: jsonb('memoryLayer').$type<z.infer<typeof MemoryLayerSchema>>(),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull()
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull()
 })
 
 export type Setting = InferSelectModel<typeof setting>
@@ -336,31 +336,31 @@ export const memorySourceEnum = pgEnum('memory_source', [
 
 export const memory = pgTable('memory', {
   id: uuid('id').defaultRandom().primaryKey(),
-  userId: uuid('user_id').notNull(),
+  userId: uuid('userId').notNull(),
   type: memoryTypeEnum('type').notNull(),
   key: text('key').notNull(),
   value: jsonb('value').notNull(),
   confidence: real('confidence').default(0.8),
   source: memorySourceEnum('source').notNull(),
-  createdAt: timestamp('created_at').defaultNow(),
-  updatedAt: timestamp('updated_at').defaultNow(),
-  lastUsedAt: timestamp('last_used_at'),
-  isActive: boolean('is_active').default(true)
+  createdAt: timestamp('createdAt').defaultNow(),
+  updatedAt: timestamp('updatedAt').defaultNow(),
+  lastUsedAt: timestamp('lastUsedAt'),
+  isActive: boolean('isActive').default(true)
 })
 
 export const sessionSummary = pgTable('session_summary', {
-  sessionId: uuid('session_id').primaryKey(),
-  userId: uuid('user_id').notNull(),
+  sessionId: uuid('sessionId').primaryKey(),
+  userId: uuid('userId').notNull(),
   summary: text('summary').notNull(),
-  updatedAt: timestamp('updated_at').defaultNow()
+  updatedAt: timestamp('updatedAt').defaultNow()
 })
 
 export const memoryUsageLog = pgTable('memory_usage_log', {
   id: uuid('id').defaultRandom().primaryKey(),
-  memoryId: uuid('memory_id'),
-  sessionId: uuid('session_id'),
+  memoryId: uuid('memoryId'),
+  sessionId: uuid('sessionId'),
   reason: text('reason'),
-  createdAt: timestamp('created_at').defaultNow()
+  createdAt: timestamp('createdAt').defaultNow()
 })
 
 // ─── LCM (Lossless Context Management) ──────────────────────────────────────
@@ -368,17 +368,17 @@ export const memoryUsageLog = pgTable('memory_usage_log', {
 // DAG nodes: leaf summaries (depth=0) and condensed summaries (depth>=1)
 export const lcmSummary = pgTable('lcm_summary', {
   id: text('id').primaryKey(), // 'sum_' + 16 hex chars (SHA-256 of content+ts)
-  chatId: uuid('chat_id')
+  chatId: uuid('chatId')
     .notNull()
     .references(() => chat.id, { onDelete: 'cascade' }),
   kind: text('kind').notNull().$type<'leaf' | 'condensed'>(),
   depth: integer('depth').notNull().default(0),
   content: text('content').notNull(),
-  tokenCount: integer('token_count').notNull(),
-  descendantCount: integer('descendant_count').notNull().default(0),
-  earliestAt: timestamp('earliest_at').notNull(),
-  latestAt: timestamp('latest_at').notNull(),
-  createdAt: timestamp('created_at').notNull().defaultNow()
+  tokenCount: integer('tokenCount').notNull(),
+  descendantCount: integer('descendantCount').notNull().default(0),
+  earliestAt: timestamp('earliestAt').notNull(),
+  latestAt: timestamp('latestAt').notNull(),
+  createdAt: timestamp('createdAt').notNull().defaultNow()
 })
 
 export type LcmSummary = InferSelectModel<typeof lcmSummary>
@@ -387,10 +387,10 @@ export type LcmSummary = InferSelectModel<typeof lcmSummary>
 export const lcmSummaryMessages = pgTable(
   'lcm_summary_messages',
   {
-    summaryId: text('summary_id')
+    summaryId: text('summaryId')
       .notNull()
       .references(() => lcmSummary.id, { onDelete: 'cascade' }),
-    messageId: uuid('message_id')
+    messageId: uuid('messageId')
       .notNull()
       .references(() => message.id, { onDelete: 'cascade' })
   },
@@ -401,10 +401,10 @@ export const lcmSummaryMessages = pgTable(
 export const lcmSummaryParents = pgTable(
   'lcm_summary_parents',
   {
-    childId: text('child_id')
+    childId: text('childId')
       .notNull()
       .references(() => lcmSummary.id, { onDelete: 'cascade' }),
-    parentId: text('parent_id')
+    parentId: text('parentId')
       .notNull()
       .references(() => lcmSummary.id, { onDelete: 'cascade' })
   },
@@ -416,13 +416,13 @@ export const lcmContextItems = pgTable(
   'lcm_context_items',
   {
     id: uuid('id').primaryKey().defaultRandom(),
-    chatId: uuid('chat_id')
+    chatId: uuid('chatId')
       .notNull()
       .references(() => chat.id, { onDelete: 'cascade' }),
     ordinal: integer('ordinal').notNull(),
     kind: text('kind').notNull().$type<'message' | 'summary'>(),
-    refId: text('ref_id').notNull(), // message.id or lcmSummary.id
-    tokenCount: integer('token_count')
+    refId: text('refId').notNull(), // message.id or lcmSummary.id
+    tokenCount: integer('tokenCount')
   },
   (t) => [index('lcm_context_chat_idx').on(t.chatId, t.ordinal)]
 )
