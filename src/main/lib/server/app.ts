@@ -14,6 +14,7 @@ import chatRouter from './routes/chat'
 import dbIoRouter from './routes/db-io'
 import deepResearchRouter from './routes/deep-research'
 import historyRouter from './routes/history'
+import logsRouter from './routes/logs'
 import mcpRouter from './routes/mcp'
 import memoryRouter from './routes/memory'
 import s3UploaderRouter from './routes/s3-uploader'
@@ -61,6 +62,7 @@ export async function connectHttpServer() {
   app.route('/api/mcp', mcpRouter)
   app.route('/api/memory', memoryRouter)
   app.route('/api/usage', usageRouter)
+  app.route('/api/logs', logsRouter)
 
   // Ping
   app.get('/', (c) => c.text('Exodus is running.'))
