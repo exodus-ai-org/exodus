@@ -14,8 +14,8 @@ import {
   SelectValue
 } from '@/components/ui/select'
 
-import { SettingRow, SettingSection } from '../setting-row'
-import { SettingSelect } from '../setting-select'
+import { SettingsRow, SettingsSection } from '../settings-row'
+import { SettingsSelect } from '../settings-select'
 
 type ModelParamValues = {
   [index: string]: {
@@ -86,17 +86,17 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
         </AlertDescription>
       </Alert>
 
-      <SettingSection>
+      <SettingsSection>
         <Controller
           control={form.control}
           name="image.model"
           render={({ field, fieldState }) => (
-            <SettingRow
+            <SettingsRow
               label="Model"
               description="Select the image generation model to use."
               error={fieldState.error}
             >
-              <SettingSelect
+              <SettingsSelect
                 value={field.value ?? ''}
                 onValueChange={field.onChange}
                 placeholder="Select a model"
@@ -108,7 +108,7 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
                   { value: 'dall-e-2', label: 'dall-e-2' }
                 ]}
               />
-            </SettingRow>
+            </SettingsRow>
           )}
         />
 
@@ -117,12 +117,12 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
             control={form.control}
             name="image.size"
             render={({ field, fieldState }) => (
-              <SettingRow
+              <SettingsRow
                 label="Size"
                 description="The dimensions of the generated image."
                 error={fieldState.error}
               >
-                <SettingSelect
+                <SettingsSelect
                   value={field.value ?? ''}
                   onValueChange={field.onChange}
                   placeholder={paramsOfModel.sizes[0]}
@@ -131,7 +131,7 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
                     label: size
                   }))}
                 />
-              </SettingRow>
+              </SettingsRow>
             )}
           />
         ) : null}
@@ -141,12 +141,12 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
             control={form.control}
             name="image.quality"
             render={({ field, fieldState }) => (
-              <SettingRow
+              <SettingsRow
                 label="Quality"
                 description="The quality level of the generated image."
                 error={fieldState.error}
               >
-                <SettingSelect
+                <SettingsSelect
                   value={field.value ?? ''}
                   onValueChange={field.onChange}
                   placeholder={paramsOfModel.qualities[0]}
@@ -155,7 +155,7 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
                     label: quality
                   }))}
                 />
-              </SettingRow>
+              </SettingsRow>
             )}
           />
         ) : null}
@@ -165,7 +165,7 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
             control={form.control}
             name="image.outputFormat"
             render={({ field, fieldState }) => (
-              <SettingRow
+              <SettingsRow
                 label="Output Format"
                 description="If the background is transparent, the output format should be set to either png (default) or webp."
                 error={fieldState.error}
@@ -196,7 +196,7 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
                     </SelectGroup>
                   </SelectContent>
                 </Select>
-              </SettingRow>
+              </SettingsRow>
             )}
           />
         ) : null}
@@ -206,7 +206,7 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
             control={form.control}
             name="image.generatedCounts"
             render={({ field, fieldState }) => (
-              <SettingRow
+              <SettingsRow
                 label="Generated Counts"
                 description="The number of images to generate. Must be between 1 and 10. For dall-e-3, only 1 is supported."
                 error={fieldState.error}
@@ -221,7 +221,7 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
                   value={field.value ?? ''}
                   className="w-fit"
                 />
-              </SettingRow>
+              </SettingsRow>
             )}
           />
         ) : null}
@@ -231,12 +231,12 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
             control={form.control}
             name="image.background"
             render={({ field, fieldState }) => (
-              <SettingRow
+              <SettingsRow
                 label="Background"
                 description="Set the background style for the generated image."
                 error={fieldState.error}
               >
-                <SettingSelect
+                <SettingsSelect
                   value={field.value ?? ''}
                   onValueChange={field.onChange}
                   placeholder={paramsOfModel?.backgrounds?.[0]}
@@ -247,11 +247,11 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
                     })) ?? []
                   }
                 />
-              </SettingRow>
+              </SettingsRow>
             )}
           />
         ) : null}
-      </SettingSection>
+      </SettingsSection>
     </>
   )
 }

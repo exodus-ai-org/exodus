@@ -3,27 +3,27 @@ import { Controller } from 'react-hook-form'
 import useSWR from 'swr'
 
 import { Input } from '@/components/ui/input'
-import { useSetting } from '@/hooks/use-setting'
+import { useSettings } from '@/hooks/use-settings'
 
-import { SettingRow, SettingSection } from '../../setting-row'
+import { SettingsRow, SettingsSection } from '../../settings-row'
 
 export function Ollama({ form }: { form: UseFormReturnType }) {
-  const { data: setting } = useSetting()
+  const { data: settings } = useSettings()
   const { error } = useSWR(
-    setting?.providers?.ollamaBaseUrl
-      ? `/api/tools/ping-ollama?url=${setting?.providers?.ollamaBaseUrl}`
+    settings?.providers?.ollamaBaseUrl
+      ? `/api/tools/ping-ollama?url=${settings?.providers?.ollamaBaseUrl}`
       : null
   )
 
-  const isRunning = !!setting?.providers?.ollamaBaseUrl && error === undefined
+  const isRunning = !!settings?.providers?.ollamaBaseUrl && error === undefined
 
   return (
-    <SettingSection>
+    <SettingsSection>
       <Controller
         control={form.control}
         name="providers.ollamaBaseUrl"
         render={({ field, fieldState }) => (
-          <SettingRow
+          <SettingsRow
             label="Base URL"
             description="Ollama server address for local model inference"
             error={fieldState.error}
@@ -36,10 +36,10 @@ export function Ollama({ form }: { form: UseFormReturnType }) {
               {...field}
               value={field.value ?? ''}
             />
-          </SettingRow>
+          </SettingsRow>
         )}
       />
-      <SettingRow
+      <SettingsRow
         label="Status"
         description="Connection status of the Ollama server"
       >
@@ -51,7 +51,7 @@ export function Ollama({ form }: { form: UseFormReturnType }) {
             {isRunning ? 'Ollama is running' : 'Not running'}
           </p>
         </div>
-      </SettingRow>
-    </SettingSection>
+      </SettingsRow>
+    </SettingsSection>
   )
 }

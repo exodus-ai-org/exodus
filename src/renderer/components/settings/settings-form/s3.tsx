@@ -5,7 +5,7 @@ import { Controller } from 'react-hook-form'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 
-import { SettingRow, SettingSection } from '../setting-row'
+import { SettingsRow, SettingsSection } from '../settings-row'
 
 export function S3({ form }: { form: UseFormReturnType }) {
   return (
@@ -49,12 +49,12 @@ export function S3({ form }: { form: UseFormReturnType }) {
           </ul>
         </AlertDescription>
       </Alert>
-      <SettingSection>
+      <SettingsSection>
         <Controller
           control={form.control}
           name="s3.region"
           render={({ field, fieldState }) => (
-            <SettingRow
+            <SettingsRow
               label="Region"
               description="The AWS region where your S3 bucket is hosted."
               error={fieldState.error}
@@ -67,14 +67,14 @@ export function S3({ form }: { form: UseFormReturnType }) {
                 {...field}
                 value={field.value ?? ''}
               />
-            </SettingRow>
+            </SettingsRow>
           )}
         />
         <Controller
           control={form.control}
           name="s3.bucket"
           render={({ field, fieldState }) => (
-            <SettingRow
+            <SettingsRow
               label="Bucket"
               description="The name of your S3 bucket for file uploads."
               error={fieldState.error}
@@ -87,14 +87,14 @@ export function S3({ form }: { form: UseFormReturnType }) {
                 {...field}
                 value={field.value ?? ''}
               />
-            </SettingRow>
+            </SettingsRow>
           )}
         />
         <Controller
           control={form.control}
           name="s3.accessKeyId"
           render={({ field, fieldState }) => (
-            <SettingRow
+            <SettingsRow
               label="Access Key ID"
               description="The IAM access key ID with S3 write permissions."
               error={fieldState.error}
@@ -106,14 +106,14 @@ export function S3({ form }: { form: UseFormReturnType }) {
                 {...field}
                 value={field.value ?? ''}
               />
-            </SettingRow>
+            </SettingsRow>
           )}
         />
         <Controller
           control={form.control}
           name="s3.secretAccessKey"
           render={({ field, fieldState }) => (
-            <SettingRow
+            <SettingsRow
               label="Secret Access Key"
               description="The IAM secret access key paired with the access key ID above."
               error={fieldState.error}
@@ -125,10 +125,10 @@ export function S3({ form }: { form: UseFormReturnType }) {
                 {...field}
                 value={field.value ?? ''}
               />
-            </SettingRow>
+            </SettingsRow>
           )}
         />
-      </SettingSection>
+      </SettingsSection>
     </>
   )
 }

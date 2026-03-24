@@ -4,8 +4,8 @@ import { AiProviders } from '@shared/types/ai'
 import { useMemo } from 'react'
 import { Controller } from 'react-hook-form'
 
-import { SettingRow, SettingSection } from '../setting-row'
-import { SettingSelect } from '../setting-select'
+import { SettingsRow, SettingsSection } from '../settings-row'
+import { SettingsSelect } from '../settings-select'
 
 const providerOptions = Object.values(AiProviders).map((val) => ({
   value: val,
@@ -37,17 +37,17 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
   )
 
   return (
-    <SettingSection>
+    <SettingsSection>
       <Controller
         control={form.control}
         name="providerConfig.provider"
         render={({ field, fieldState }) => (
-          <SettingRow
+          <SettingsRow
             label="Provider"
             description="The AI provider to use for chat and reasoning"
             error={fieldState.error}
           >
-            <SettingSelect
+            <SettingsSelect
               value={field.value ?? ''}
               onValueChange={(value) => {
                 field.onChange(value)
@@ -57,19 +57,19 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
               options={providerOptions}
               placeholder="Select a provider"
             />
-          </SettingRow>
+          </SettingsRow>
         )}
       />
       <Controller
         control={form.control}
         name="providerConfig.chatModel"
         render={({ field, fieldState }) => (
-          <SettingRow
+          <SettingsRow
             label="Chat Model"
             description="Model used for general conversations"
             error={fieldState.error}
           >
-            <SettingSelect
+            <SettingsSelect
               disabled={!provider}
               value={field.value ?? ''}
               onValueChange={field.onChange}
@@ -78,19 +78,19 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
                 provider ? 'Select a chat model' : 'Select a provider first'
               }
             />
-          </SettingRow>
+          </SettingsRow>
         )}
       />
       <Controller
         control={form.control}
         name="providerConfig.reasoningModel"
         render={({ field, fieldState }) => (
-          <SettingRow
+          <SettingsRow
             label="Reasoning Model"
             description="Model optimized for complex reasoning tasks"
             error={fieldState.error}
           >
-            <SettingSelect
+            <SettingsSelect
               disabled={!provider}
               value={field.value ?? ''}
               onValueChange={field.onChange}
@@ -101,9 +101,9 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
                   : 'Select a provider first'
               }
             />
-          </SettingRow>
+          </SettingsRow>
         )}
       />
-    </SettingSection>
+    </SettingsSection>
   )
 }

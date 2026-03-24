@@ -19,8 +19,8 @@ import {
 } from '@/components/ui/combobox'
 import { Input } from '@/components/ui/input'
 
-import { SettingRow, SettingSection } from '../setting-row'
-import { SettingSelect } from '../setting-select'
+import { SettingsRow, SettingsSection } from '../settings-row'
+import { SettingsSelect } from '../settings-select'
 
 const RECENCY_OPTIONS = [
   { value: 'none', label: 'No filter' },
@@ -70,13 +70,13 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
         </AlertDescription>
       </Alert>
 
-      <SettingSection>
+      <SettingsSection>
         {/* API Key */}
         <Controller
           control={form.control}
           name="webSearch.perplexityApiKey"
           render={({ field, fieldState }) => (
-            <SettingRow
+            <SettingsRow
               label="Perplexity API Key"
               description="Required for web search. Get yours at perplexity.ai"
               error={fieldState.error}
@@ -90,7 +90,7 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
                 {...field}
                 value={field.value ?? ''}
               />
-            </SettingRow>
+            </SettingsRow>
           )}
         />
 
@@ -99,7 +99,7 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
           control={form.control}
           name="webSearch.country"
           render={({ field, fieldState }) => (
-            <SettingRow
+            <SettingsRow
               label="Country"
               description="Bias results toward a specific region"
               error={fieldState.error}
@@ -133,7 +133,7 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
                   </ComboboxList>
                 </ComboboxContent>
               </Combobox>
-            </SettingRow>
+            </SettingsRow>
           )}
         />
 
@@ -148,7 +148,7 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
               )
               .filter(Boolean) as OptionItem[]
             return (
-              <SettingRow
+              <SettingsRow
                 label="Languages"
                 description="Filter search results by language"
                 error={fieldState.error}
@@ -183,7 +183,7 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
                     </ComboboxList>
                   </ComboboxContent>
                 </Combobox>
-              </SettingRow>
+              </SettingsRow>
             )
           }}
         />
@@ -193,7 +193,7 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
           control={form.control}
           name="webSearch.maxResults"
           render={({ field, fieldState }) => (
-            <SettingRow
+            <SettingsRow
               label="Max Results"
               description="Number of search results per query (1-50). Default: 10."
               error={fieldState.error}
@@ -211,7 +211,7 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
                   field.onChange(v === '' ? null : Number(v))
                 }}
               />
-            </SettingRow>
+            </SettingsRow>
           )}
         />
 
@@ -220,12 +220,12 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
           control={form.control}
           name="webSearch.recencyFilter"
           render={({ field, fieldState }) => (
-            <SettingRow
+            <SettingsRow
               label="Recency Filter"
               description="Only return results from a recent time period."
               error={fieldState.error}
             >
-              <SettingSelect
+              <SettingsSelect
                 value={field.value ?? 'none'}
                 onValueChange={(val) =>
                   form.setValue(
@@ -238,7 +238,7 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
                 options={RECENCY_OPTIONS}
                 placeholder="No filter"
               />
-            </SettingRow>
+            </SettingsRow>
           )}
         />
 
@@ -247,7 +247,7 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
           control={form.control}
           name="webSearch.domainFilter"
           render={({ field, fieldState }) => (
-            <SettingRow
+            <SettingsRow
               label="Domain Filter"
               description='Comma-separated. Prefix with - to exclude. e.g. "nature.com, .edu" or "-reddit.com"'
               error={fieldState.error}
@@ -258,7 +258,7 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
                 {...field}
                 value={field.value ?? ''}
               />
-            </SettingRow>
+            </SettingsRow>
           )}
         />
 
@@ -267,12 +267,12 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
           control={form.control}
           name="webSearch.urlToMarkdownProvider"
           render={({ field, fieldState }) => (
-            <SettingRow
+            <SettingsRow
               label="Web Fetch"
               description="Used by the Web Fetch tool to convert pages to Markdown."
               error={fieldState.error}
             >
-              <SettingSelect
+              <SettingsSelect
                 value={field.value ?? 'jina'}
                 onValueChange={(val) =>
                   form.setValue(
@@ -285,10 +285,10 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
                   label: p.label
                 }))}
               />
-            </SettingRow>
+            </SettingsRow>
           )}
         />
-      </SettingSection>
+      </SettingsSection>
     </>
   )
 }

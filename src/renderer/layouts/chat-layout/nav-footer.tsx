@@ -35,7 +35,7 @@ export function NavFooter({
               onClick={() => navigate('/settings')}
             >
               <SettingsIcon />
-              Setting
+              Settings
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

@@ -12,12 +12,12 @@ import {
   SidebarMenuSubButton,
   SidebarMenuSubItem
 } from '@/components/ui/sidebar'
-import { settingLabelAtom } from '@/stores/setting'
+import { settingsLabelAtom } from '@/stores/settings'
 
-import { menus } from './setting-menu'
+import { menus } from './settings-menu'
 
 export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
-  const [active, setActive] = useAtom(settingLabelAtom)
+  const [active, setActive] = useAtom(settingsLabelAtom)
 
   return (
     <Sidebar {...props} collapsible="none" className="select-none">

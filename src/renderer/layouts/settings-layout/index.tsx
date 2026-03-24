@@ -2,15 +2,15 @@ import { useAtomValue } from 'jotai'
 import { ArrowLeftIcon } from 'lucide-react'
 import { useNavigate } from 'react-router'
 
-import { SettingsForm } from '@/components/setting/setting-form'
-import { menus } from '@/components/setting/setting-menu'
-import { SettingsSidebar } from '@/components/setting/setting-sidebar'
+import { SettingsForm } from '@/components/settings/settings-form'
+import { menus } from '@/components/settings/settings-menu'
+import { SettingsSidebar } from '@/components/settings/settings-sidebar'
 import { AppToaster } from '@/components/ui/app-toaster'
 import { Button } from '@/components/ui/button'
 import { SidebarProvider } from '@/components/ui/sidebar'
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import { cn } from '@/lib/utils'
-import { settingLabelAtom } from '@/stores/setting'
+import { settingsLabelAtom } from '@/stores/settings'
 
 // Build a child → parent lookup from the menu tree
 const parentOf = new Map<string, string>()
@@ -22,7 +22,7 @@ for (const item of menus.navMain) {
 
 export function SettingsLayout() {
   const navigate = useNavigate()
-  const activeTitle = useAtomValue(settingLabelAtom)
+  const activeTitle = useAtomValue(settingsLabelAtom)
   const isFullscreen = useIsFullscreen()
 
   return (
@@ -30,7 +30,7 @@ export function SettingsLayout() {
       {/* Titlebar */}
       <header
         className={cn(
-          'draggable bg-background flex h-12 shrink-0 items-center gap-3 border-b',
+          'draggable bg-background/80 flex h-12 shrink-0 items-center gap-3 border-b backdrop-blur-sm',
           isFullscreen ? 'pl-4' : 'pl-21'
         )}
       >

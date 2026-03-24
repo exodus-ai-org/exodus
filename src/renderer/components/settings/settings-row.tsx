@@ -3,22 +3,22 @@ import type { FieldError as RHFFieldError } from 'react-hook-form'
 
 import { FieldDescription, FieldLabel } from '@/components/ui/field'
 
-// ─── SettingSection ──────────────────────────────────────────────────────────
+// ─── SettingsSection ──────────────────────────────────────────────────────────
 
-interface SettingSectionProps {
+interface SettingsSectionProps {
   children: React.ReactNode
 }
 
 /**
- * Container for a group of SettingRow items, auto-inserts separators between children.
+ * Container for a group of SettingsRow items, auto-inserts separators between children.
  */
-export function SettingSection({ children }: SettingSectionProps) {
+export function SettingsSection({ children }: SettingsSectionProps) {
   return <div className="flex flex-col gap-3">{children}</div>
 }
 
-// ─── SettingRow ──────────────────────────────────────────────────────────────
+// ─── SettingsRow ──────────────────────────────────────────────────────────────
 
-interface SettingRowProps {
+interface SettingsRowProps {
   label: string
   description?: string
   children: React.ReactNode
@@ -34,13 +34,13 @@ interface SettingRowProps {
 /**
  * Standardized setting row with consistent spacing.
  */
-export function SettingRow({
+export function SettingsRow({
   label,
   description,
   children,
   error,
   layout = 'horizontal'
-}: SettingRowProps) {
+}: SettingsRowProps) {
   if (layout === 'vertical') {
     return (
       <div

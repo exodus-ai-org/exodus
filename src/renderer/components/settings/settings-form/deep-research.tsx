@@ -3,16 +3,16 @@ import { Controller } from 'react-hook-form'
 
 import { Input } from '@/components/ui/input'
 
-import { SettingRow, SettingSection } from '../setting-row'
+import { SettingsRow, SettingsSection } from '../settings-row'
 
 export function DeepResearch({ form }: { form: UseFormReturnType }) {
   return (
-    <SettingSection>
+    <SettingsSection>
       <Controller
         control={form.control}
         name="deepResearch.breadth"
         render={({ field, fieldState }) => (
-          <SettingRow
+          <SettingsRow
             label="Breadth"
             description="Generate multiple search queries to explore different aspects of your topic at each level. Default: 4."
             error={fieldState.error}
@@ -26,14 +26,14 @@ export function DeepResearch({ form }: { form: UseFormReturnType }) {
               value={field.value ?? ''}
               className="w-fit"
             />
-          </SettingRow>
+          </SettingsRow>
         )}
       />
       <Controller
         control={form.control}
         name="deepResearch.depth"
         render={({ field, fieldState }) => (
-          <SettingRow
+          <SettingsRow
             label="Depth"
             description="Recursively dive deeper, following leads and uncovering connections for each branch. Default: 2."
             error={fieldState.error}
@@ -46,9 +46,9 @@ export function DeepResearch({ form }: { form: UseFormReturnType }) {
               value={field.value ?? ''}
               className="w-fit"
             />
-          </SettingRow>
+          </SettingsRow>
         )}
       />
-    </SettingSection>
+    </SettingsSection>
   )
 }

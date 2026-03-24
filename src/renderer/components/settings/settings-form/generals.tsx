@@ -15,7 +15,7 @@ import { Switch } from '@/components/ui/switch'
 import { useUpdater } from '@/hooks/use-updater'
 import { updaterSetAutoDownload } from '@/lib/ipc'
 
-import { SettingRow, SettingSection } from '../setting-row'
+import { SettingsRow, SettingsSection } from '../settings-row'
 import { AvatarUploader } from './avatar-uploader'
 import { UpdatePanel } from './update-panel'
 
@@ -29,8 +29,8 @@ export function General({ form }: { form: UseFormReturnType }) {
   }, [autoUpdate])
 
   return (
-    <SettingSection>
-      <SettingRow
+    <SettingsSection>
+      <SettingsRow
         label="Theme"
         description="Choose light, dark, or match your system preference"
       >
@@ -59,29 +59,29 @@ export function General({ form }: { form: UseFormReturnType }) {
             </SelectGroup>
           </SelectContent>
         </Select>
-      </SettingRow>
+      </SettingsRow>
 
-      <SettingRow
+      <SettingsRow
         label="Run on startup"
         description="Automatically start Exodus when you log in"
       >
         <Switch />
-      </SettingRow>
+      </SettingsRow>
 
-      <SettingRow label="Menu bar" description="Show Exodus in the menu bar">
+      <SettingsRow label="Menu bar" description="Show Exodus in the menu bar">
         <Switch />
-      </SettingRow>
+      </SettingsRow>
 
-      <SettingRow
+      <SettingsRow
         label="Assistant Avatar"
         description="Personalize your assistant with an avatar for a better user experience."
       >
         <AvatarUploader
           props={{ control: form.control, name: 'assistantAvatar' }}
         />
-      </SettingRow>
+      </SettingsRow>
 
-      <SettingRow
+      <SettingsRow
         label="Auto Update"
         description="Automatically download and install updates when available"
       >
@@ -89,9 +89,9 @@ export function General({ form }: { form: UseFormReturnType }) {
           checked={autoUpdate}
           onCheckedChange={(checked) => form.setValue('autoUpdate', checked)}
         />
-      </SettingRow>
+      </SettingsRow>
 
       <UpdatePanel payload={payload} autoUpdate={autoUpdate} />
-    </SettingSection>
+    </SettingsSection>
   )
 }

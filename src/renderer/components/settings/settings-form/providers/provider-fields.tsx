@@ -1,15 +1,15 @@
 import {
-  SettingInput,
+  SettingsInput,
   UseFormReturnType
 } from '@shared/schemas/settings-schema'
 import { Controller, FieldPath } from 'react-hook-form'
 
 import { Input } from '@/components/ui/input'
 
-import { SettingRow, SettingSection } from '../../setting-row'
+import { SettingsRow, SettingsSection } from '../../settings-row'
 
 interface ProviderField {
-  name: FieldPath<SettingInput>
+  name: FieldPath<SettingsInput>
   label: string
   description: string
   placeholder?: string
@@ -23,14 +23,14 @@ interface ProviderFieldsProps {
 
 export function ProviderFields({ form, fields }: ProviderFieldsProps) {
   return (
-    <SettingSection>
+    <SettingsSection>
       {fields.map((field, index) => (
         <Controller
           key={field.name}
           control={form.control}
           name={field.name}
           render={({ field: formField, fieldState }) => (
-            <SettingRow
+            <SettingsRow
               label={field.label}
               description={field.description}
               error={fieldState.error}
@@ -46,10 +46,10 @@ export function ProviderFields({ form, fields }: ProviderFieldsProps) {
                 {...formField}
                 value={formField.value ?? ''}
               />
-            </SettingRow>
+            </SettingsRow>
           )}
         />
       ))}
-    </SettingSection>
+    </SettingsSection>
   )
 }

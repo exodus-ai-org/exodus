@@ -7,15 +7,15 @@ import {
   SelectValue
 } from '@/components/ui/select'
 
-export interface SettingSelectOption {
+export interface SettingsSelectOption {
   value: string
   label: string
 }
 
-interface SettingSelectProps {
+interface SettingsSelectProps {
   value: string
   onValueChange: (value: string) => void
-  options: SettingSelectOption[]
+  options: SettingsSelectOption[]
   placeholder?: string
   disabled?: boolean
 }
@@ -24,13 +24,13 @@ interface SettingSelectProps {
  * Standardized Select for Settings pages.
  * Borderless trigger with hover accent, auto-width, and proper label display.
  */
-export function SettingSelect({
+export function SettingsSelect({
   value,
   onValueChange,
   options,
   placeholder,
   disabled
-}: SettingSelectProps) {
+}: SettingsSelectProps) {
   const labelMap = new Map(options.map((o) => [o.value, o.label]))
 
   return (

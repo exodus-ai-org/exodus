@@ -2,7 +2,7 @@ import { PlusIcon, XIcon } from 'lucide-react'
 import { ChangeEvent, useRef } from 'react'
 import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
 
-import { useSetting } from '@/hooks/use-setting'
+import { useSettings } from '@/hooks/use-settings'
 import { convertFileToBase64 } from '@/lib/utils'
 
 export function AvatarUploader<T extends FieldValues>({
@@ -13,16 +13,16 @@ export function AvatarUploader<T extends FieldValues>({
 }) {
   const ref = useRef<HTMLInputElement | null>(null)
   const { field } = useController(props)
-  const { data: setting, updateSetting } = useSetting()
+  const { data: settings, updateSettings } = useSettings()
 
   const handleEditorChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    if (!setting) return
+    if (!settings) return
 
     const file = e.target.files?.[0]
     if (file) {
       const base64 = await convertFileToBase64(file)
       field.onChange(base64)
-      updateSetting({ ...setting, assistantAvatar: base64 })
+      updateSettings({ ...settings, assistantAvatar: base64 })
     }
 
     if (ref.current) {
@@ -31,10 +31,10 @@ export function AvatarUploader<T extends FieldValues>({
   }
 
   const handleRemove = () => {
-    if (!setting) return
+    if (!settings) return
 
     field.onChange('')
-    updateSetting({ ...setting, assistantAvatar: '' })
+    updateSettings({ ...settings, assistantAvatar: '' })
   }
 
   return (

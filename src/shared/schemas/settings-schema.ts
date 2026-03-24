@@ -150,11 +150,3 @@ export type Settings = z.infer<typeof SettingsSchema>
 export type SettingsInput = z.input<typeof SettingsSchema>
 
 export type UseFormReturnType = UseFormReturn<SettingsInput>
-
-// Backward-compatible aliases — will be removed after frontend rename (Task 7-8)
-/** @deprecated Use SettingsSchema instead */
-export const SettingSchema = SettingsSchema
-/** @deprecated Use Settings instead */
-export type Setting = Settings
-/** @deprecated Use SettingsInput instead */
-export type SettingInput = SettingsInput

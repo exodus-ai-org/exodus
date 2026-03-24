@@ -14,7 +14,7 @@ import {
   WrenchIcon
 } from 'lucide-react'
 
-export enum SettingLabel {
+export enum SettingsLabel {
   General = 'General',
   AiProviders = 'AI Providers',
   AmazonS3 = 'AWS S3',
@@ -34,16 +34,16 @@ export enum SettingLabel {
   AboutExodus = 'About Exodus'
 }
 
-export type SettingPage = SettingLabel | AiProviders
+export type SettingsPage = SettingsLabel | AiProviders
 
 export const menus = {
   navMain: [
     {
-      title: SettingLabel.General,
+      title: SettingsLabel.General,
       icon: CogIcon
     },
     {
-      title: SettingLabel.AiProviders,
+      title: SettingsLabel.AiProviders,
       icon: HandCoinsIcon,
       items: [
         { title: AiProviders.OpenAiGpt },
@@ -56,50 +56,50 @@ export const menus = {
     },
     {
       icon: WrenchIcon,
-      title: SettingLabel.BuiltinTools,
+      title: SettingsLabel.BuiltinTools,
       items: [
-        { title: SettingLabel.WebSearch },
-        { title: SettingLabel.GoogleMaps },
-        { title: SettingLabel.ImageGeneration },
-        { title: SettingLabel.DeepResearch }
+        { title: SettingsLabel.WebSearch },
+        { title: SettingsLabel.GoogleMaps },
+        { title: SettingsLabel.ImageGeneration },
+        { title: SettingsLabel.DeepResearch }
       ]
     },
     {
       icon: AudioLinesIcon,
-      title: SettingLabel.AudioAndSpeech
+      title: SettingsLabel.AudioAndSpeech
     },
     {
       icon: MemoryStickIcon,
-      title: SettingLabel.MemoryLayer
+      title: SettingsLabel.MemoryLayer
     },
     {
       icon: ShoppingBagIcon,
-      title: SettingLabel.SkillsMarket
+      title: SettingsLabel.SkillsMarket
     },
     {
       icon: PlugIcon,
-      title: SettingLabel.McpServers
+      title: SettingsLabel.McpServers
     },
     {
       icon: NetworkIcon,
-      title: SettingLabel.GraphRag
+      title: SettingsLabel.GraphRag
     },
     {
       icon: ChromeIcon,
-      title: SettingLabel.BrowserUse
+      title: SettingsLabel.BrowserUse
     },
     {
       icon: ComputerIcon,
-      title: SettingLabel.ComputerUse
+      title: SettingsLabel.ComputerUse
     },
     {
       icon: DatabaseIcon,
-      title: SettingLabel.DataControls,
-      items: [{ title: SettingLabel.AmazonS3 }]
+      title: SettingsLabel.DataControls,
+      items: [{ title: SettingsLabel.AmazonS3 }]
     },
     {
       icon: InfoIcon,
-      title: SettingLabel.AboutExodus
+      title: SettingsLabel.AboutExodus
     }
   ]
 }

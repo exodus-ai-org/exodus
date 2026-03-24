@@ -36,7 +36,7 @@ import {
   updateMcpServerApi
 } from '@/services/mcp-service'
 
-import { SettingRow, SettingSection } from '../setting-row'
+import { SettingsRow, SettingsSection } from '../settings-row'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -378,7 +378,7 @@ export function McpServers() {
 
         {/* ── Form Tab ─────────────────────────────────────────────────── */}
         <TabsContent value="form" className="mt-4">
-          <SettingSection>
+          <SettingsSection>
             {list.length === 0 && !showForm && (
               <p className="text-muted-foreground py-8 text-center text-sm">
                 No MCP servers configured yet.
@@ -399,7 +399,7 @@ export function McpServers() {
 
             {showForm && (
               <div className="flex flex-col gap-3 rounded-lg border p-4">
-                <SettingRow
+                <SettingsRow
                   label="Transport"
                   description="How to connect to the MCP server"
                   layout="vertical"
@@ -433,9 +433,9 @@ export function McpServers() {
                       </SelectGroup>
                     </SelectContent>
                   </Select>
-                </SettingRow>
+                </SettingsRow>
 
-                <SettingRow
+                <SettingsRow
                   label="Name"
                   description="A unique identifier for this server"
                   layout="vertical"
@@ -445,11 +445,11 @@ export function McpServers() {
                     onChange={(e) => setName(e.target.value)}
                     placeholder="e.g. filesystem"
                   />
-                </SettingRow>
+                </SettingsRow>
 
                 {transportType === 'stdio' ? (
                   <>
-                    <SettingRow
+                    <SettingsRow
                       label="Command"
                       description="The executable command to start the MCP server"
                       layout="vertical"
@@ -459,8 +459,8 @@ export function McpServers() {
                         onChange={(e) => setCommand(e.target.value)}
                         placeholder="e.g. npx -y @modelcontextprotocol/server-filesystem"
                       />
-                    </SettingRow>
-                    <SettingRow
+                    </SettingsRow>
+                    <SettingsRow
                       label="Args"
                       description="Space-separated command arguments"
                       layout="vertical"
@@ -470,11 +470,11 @@ export function McpServers() {
                         onChange={(e) => setArgs(e.target.value)}
                         placeholder="e.g. /Users/me/Documents"
                       />
-                    </SettingRow>
+                    </SettingsRow>
                   </>
                 ) : (
                   <>
-                    <SettingRow
+                    <SettingsRow
                       label="URL"
                       description={`The ${transportType === 'sse' ? 'SSE' : 'HTTP'} endpoint URL of the remote server`}
                       layout="vertical"
@@ -484,8 +484,8 @@ export function McpServers() {
                         onChange={(e) => setUrl(e.target.value)}
                         placeholder="e.g. https://mcp.example.com/sse"
                       />
-                    </SettingRow>
-                    <SettingRow
+                    </SettingsRow>
+                    <SettingsRow
                       label="Headers"
                       description='Optional auth/custom headers as JSON, e.g. {"Authorization":"Bearer ..."}'
                       layout="vertical"
@@ -496,11 +496,11 @@ export function McpServers() {
                         placeholder='{"Authorization": "Bearer token"}'
                         className="font-mono text-xs"
                       />
-                    </SettingRow>
+                    </SettingsRow>
                   </>
                 )}
 
-                <SettingRow
+                <SettingsRow
                   label="Description"
                   description="Optional notes about this server"
                   layout="vertical"
@@ -510,7 +510,7 @@ export function McpServers() {
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Optional"
                   />
-                </SettingRow>
+                </SettingsRow>
 
                 <div className="flex gap-2 pt-1">
                   <Button
@@ -544,7 +544,7 @@ export function McpServers() {
                 </Button>
               </div>
             )}
-          </SettingSection>
+          </SettingsSection>
         </TabsContent>
 
         {/* ── JSON Tab (read-only) ───────────────────────────────────── */}

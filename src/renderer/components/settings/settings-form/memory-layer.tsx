@@ -35,8 +35,8 @@ import {
   type MemorySource,
   type MemoryType
 } from '../../../services/memory'
-import { SettingRow, SettingSection } from '../setting-row'
-import { SettingSelect } from '../setting-select'
+import { SettingsRow, SettingsSection } from '../settings-row'
+import { SettingsSelect } from '../settings-select'
 
 const MEMORY_TYPES: MemoryType[] = [
   'preference',
@@ -148,7 +148,7 @@ function MemoryDialog({ open, onClose, memory, onSaved }: MemoryDialogProps) {
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
               <Label>Type</Label>
-              <SettingSelect
+              <SettingsSelect
                 value={type}
                 onValueChange={(v) => setType(v as MemoryType)}
                 options={MEMORY_TYPES.map((t) => ({
@@ -160,7 +160,7 @@ function MemoryDialog({ open, onClose, memory, onSaved }: MemoryDialogProps) {
 
             <div className="flex flex-col gap-1.5">
               <Label>Source</Label>
-              <SettingSelect
+              <SettingsSelect
                 value={source}
                 onValueChange={(v) => setSource(v as MemorySource)}
                 options={[
@@ -352,9 +352,9 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
 
   return (
     <>
-      <SettingSection>
+      <SettingsSection>
         {/* ── Memory Auto-Write ── */}
-        <SettingRow
+        <SettingsRow
           label="Auto-write memories"
           description="After each conversation, automatically extract and save long-term facts (preferences, goals, skills) into your memory."
         >
@@ -368,10 +368,10 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
               />
             )}
           />
-        </SettingRow>
+        </SettingsRow>
 
         {/* ── LCM Settings ── */}
-        <SettingRow
+        <SettingsRow
           label="Lossless context management"
           description="Automatically compress long conversations into a hierarchical summary DAG, so nothing is ever lost even when chats exceed the context window."
         >
@@ -385,7 +385,7 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
               />
             )}
           />
-        </SettingRow>
+        </SettingsRow>
 
         {lcmEnabled && (
           <>
@@ -393,7 +393,7 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
               control={form.control}
               name="memoryLayer.contextWindowPercent"
               render={({ field, fieldState }) => (
-                <SettingRow
+                <SettingsRow
                   label="Compaction threshold"
                   description="Trigger context compaction when the conversation reaches this percentage of the model's context window (50-95%). Default: 75%."
                   error={fieldState.error}
@@ -408,7 +408,7 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
                     value={field.value ?? ''}
                     onChange={(e) => field.onChange(Number(e.target.value))}
                   />
-                </SettingRow>
+                </SettingsRow>
               )}
             />
 
@@ -416,7 +416,7 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
               control={form.control}
               name="memoryLayer.freshTailSize"
               render={({ field, fieldState }) => (
-                <SettingRow
+                <SettingsRow
                   label="Fresh tail size"
                   description="Number of recent messages protected from compaction (8-64). These are always sent to the model verbatim. Default: 16."
                   error={fieldState.error}
@@ -431,7 +431,7 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
                     value={field.value ?? ''}
                     onChange={(e) => field.onChange(Number(e.target.value))}
                   />
-                </SettingRow>
+                </SettingsRow>
               )}
             />
           </>
@@ -496,7 +496,7 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
             )}
           </div>
         )}
-      </SettingSection>
+      </SettingsSection>
 
       <MemoryDialog
         open={dialogOpen}

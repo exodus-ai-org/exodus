@@ -8,7 +8,7 @@ import {
 import { AlertTriangleIcon, ClockIcon, RouteIcon } from 'lucide-react'
 import { useMemo } from 'react'
 
-import { useSetting } from '@/hooks/use-setting'
+import { useSettings } from '@/hooks/use-settings'
 
 import { Polyline } from './polyline'
 
@@ -38,7 +38,7 @@ export function GoogleMapsCard({
     object | undefined
   ]
 }) {
-  const { data: setting } = useSetting()
+  const { data: settings } = useSettings()
   const route: protos.google.maps.routing.v2.IRoute | undefined = useMemo(
     () => toolResult?.[0]?.routes?.[0],
     [toolResult]
@@ -72,7 +72,7 @@ export function GoogleMapsCard({
   })
 
   if (
-    !setting?.googleCloud?.googleApiKey ||
+    !settings?.googleCloud?.googleApiKey ||
     !route ||
     !route.polyline?.encodedPolyline
   )
@@ -106,7 +106,7 @@ export function GoogleMapsCard({
       )}
 
       <APIProvider
-        apiKey={setting.googleCloud.googleApiKey}
+        apiKey={settings.googleCloud.googleApiKey}
         libraries={['geometry']}
       >
         <Map

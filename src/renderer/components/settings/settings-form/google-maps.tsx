@@ -5,7 +5,7 @@ import { Controller } from 'react-hook-form'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 
-import { SettingRow, SettingSection } from '../setting-row'
+import { SettingsRow, SettingsSection } from '../settings-row'
 
 export function GoogleMaps({ form }: { form: UseFormReturnType }) {
   return (
@@ -38,12 +38,12 @@ export function GoogleMaps({ form }: { form: UseFormReturnType }) {
           <strong>Google API Key</strong>.
         </AlertDescription>
       </Alert>
-      <SettingSection>
+      <SettingsSection>
         <Controller
           control={form.control}
           name="googleCloud.googleApiKey"
           render={({ field, fieldState }) => (
-            <SettingRow
+            <SettingsRow
               label="Google API Key"
               description="Your Google Cloud API key for Maps Routing and Places services."
               error={fieldState.error}
@@ -57,10 +57,10 @@ export function GoogleMaps({ form }: { form: UseFormReturnType }) {
                 {...field}
                 value={field.value ?? ''}
               />
-            </SettingRow>
+            </SettingsRow>
           )}
         />
-      </SettingSection>
+      </SettingsSection>
     </>
   )
 }

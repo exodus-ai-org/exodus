@@ -13,7 +13,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useSetting } from '@/hooks/use-setting'
+import { useSettings } from '@/hooks/use-settings'
 import { cn } from '@/lib/utils'
 
 interface RestaurantAccordionProps {
@@ -25,10 +25,10 @@ export function PlacesAccordion({
   places,
   className = ''
 }: RestaurantAccordionProps) {
-  const { data: setting } = useSetting()
+  const { data: settings } = useSettings()
 
   const parseImg = (photo?: protos.google.maps.places.v1.IPhoto) => {
-    if (!setting || !photo || !setting.googleCloud?.googleApiKey)
+    if (!settings || !photo || !settings.googleCloud?.googleApiKey)
       return 'https://maps.gstatic.com/tactile/pane/result-no-thumbnail-2x.png'
     const base = 'https://places.googleapis.com/v1/'
 
@@ -36,7 +36,7 @@ export function PlacesAccordion({
       base +
       photo.name +
       '/media' +
-      `?maxWidthPx=1600&key=${setting.googleCloud.googleApiKey}`
+      `?maxWidthPx=1600&key=${settings.googleCloud.googleApiKey}`
     )
   }
 

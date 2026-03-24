@@ -12,7 +12,7 @@ import Zoom from 'react-medium-image-zoom'
 
 import { Button } from '@/components/ui/button'
 import type { ChatStatus } from '@/hooks/use-chat'
-import { useSetting } from '@/hooks/use-setting'
+import { useSettings } from '@/hooks/use-settings'
 import { cn } from '@/lib/utils'
 
 import Markdown from './markdown'
@@ -181,7 +181,7 @@ function groupIntoSegments(messages: ChatMessage[]): Segment[] {
 
 function Messages({ status, messages, regenerate }: MessagesProps) {
   const isLoading = status === 'streaming' || status === 'submitted'
-  const { data: setting } = useSetting()
+  const { data: settings } = useSettings()
   const chatBoxRef = useRef<HTMLDivElement>(null)
   const isAtBottom = useRef(true)
   const [showScrollButton, setShowScrollButton] = useState(false)
@@ -237,12 +237,10 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
         onScroll={handleScroll}
       >
         {messages.length === 0 && (
-          <div className="mx-auto flex size-full max-w-4xl flex-col justify-center px-8 md:mt-20">
-            <p className="animate-bounce text-2xl font-semibold">
-              Hello there!
-            </p>
-            <p className="text-2xl text-zinc-500">
-              How can I assistant you today?
+          <div className="animate-fade-in-up mx-auto flex size-full max-w-4xl flex-col justify-center px-8 md:mt-20">
+            <p className="text-3xl font-bold tracking-tight">Hello there!</p>
+            <p className="text-muted-foreground mt-2 text-lg">
+              How can I assist you today?
             </p>
           </div>
         )}
@@ -277,7 +275,7 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
                         })}
                       </div>
                     )}
-                  <p className="bg-accent max-w-[60%] rounded-xl px-3 py-2 text-sm wrap-break-word whitespace-pre-wrap">
+                  <p className="bg-primary text-primary-foreground max-w-[60%] rounded-2xl rounded-br-sm px-4 py-2.5 text-sm wrap-break-word whitespace-pre-wrap shadow-sm">
                     {typeof message.content === 'string'
                       ? message.content
                       : (message.content as Array<TextContent | ImageContent>)
@@ -300,10 +298,10 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
                 className="mb-8 flex flex-col items-start last:mb-4"
               >
                 <div className="flex w-full gap-4">
-                  {!!setting?.assistantAvatar && (
+                  {!!settings?.assistantAvatar && (
                     <Avatar>
                       <AvatarImage
-                        src={setting.assistantAvatar}
+                        src={settings.assistantAvatar}
                         className="object-cover"
                       />
                     </Avatar>
