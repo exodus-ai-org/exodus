@@ -1,5 +1,6 @@
 import { and, asc, desc, eq, sql } from 'drizzle-orm'
 
+import { logger } from '../logger'
 import { ChatSDKError } from '../server/errors'
 import { db, pglite } from './db'
 import {
@@ -24,7 +25,7 @@ export async function saveChat({ title, id }: { id: string; title: string }) {
       title
     })
   } catch (error) {
-    console.error('Failed to save chat in database')
+    logger.error('database', 'Failed to save chat in database')
     throw error
   }
 }
@@ -33,7 +34,7 @@ export async function updateChat(payload: Omit<Chat, 'createdAt'>) {
   try {
     return await db.update(chat).set(payload).where(eq(chat.id, payload.id))
   } catch (error) {
-    console.error('Failed to save chat in database')
+    logger.error('database', 'Failed to save chat in database')
     throw error
   }
 }
@@ -42,7 +43,7 @@ export async function getAllChats() {
   try {
     return await db.select().from(chat).orderBy(desc(chat.createdAt))
   } catch (error) {
-    console.error('Failed to get chats by user from database')
+    logger.error('database', 'Failed to get chats by user from database')
     throw error
   }
 }
@@ -54,7 +55,7 @@ export async function deleteChatById({ id }: { id: string }) {
 
     return await db.delete(chat).where(eq(chat.id, id))
   } catch (error) {
-    console.error('Failed to delete chat by id from database')
+    logger.error('database', 'Failed to delete chat by id from database')
     throw error
   }
 }
@@ -64,7 +65,7 @@ export async function getChatById({ id }: { id: string }) {
     const [selectedChat] = await db.select().from(chat).where(eq(chat.id, id))
     return selectedChat
   } catch (error) {
-    console.error('Failed to get chat by id from database')
+    logger.error('database', 'Failed to get chat by id from database')
     throw error
   }
 }
@@ -73,7 +74,7 @@ export async function saveMessages({ messages }: { messages: Array<Message> }) {
   try {
     return await db.insert(message).values(messages)
   } catch (error) {
-    console.error('Failed to save messages in database')
+    logger.error('database', 'Failed to save messages in database')
     throw error
   }
 }
@@ -86,7 +87,7 @@ export async function getMessagesByChatId({ id }: { id: string }) {
       .where(eq(message.chatId, id))
       .orderBy(asc(message.createdAt))
   } catch (error) {
-    console.error('Failed to get messages by chat id from database', error)
+    logger.error('database', 'Failed to get messages by chat id from database')
     throw error
   }
 }
@@ -101,7 +102,7 @@ export async function updateChatTitleById({
   try {
     return await db.update(chat).set({ title }).where(eq(chat.id, id))
   } catch (error) {
-    console.warn('Failed to update title for chat', id, error)
+    logger.warn('database', 'Failed to update title for chat', { chatId: id })
     throw error
   }
 }
@@ -141,7 +142,10 @@ export async function fullTextSearchOnMessages(query: string) {
 
     return searchResults
   } catch (error) {
-    console.error('Failed to complete full-text search from database', error)
+    logger.error(
+      'database',
+      'Failed to complete full-text search from database'
+    )
     throw error
   }
 }
@@ -173,7 +177,7 @@ export async function voteMessage({
       isUpvoted: type === 'up'
     })
   } catch (error) {
-    console.error('Failed to upvote message in database', error)
+    logger.error('database', 'Failed to upvote message in database')
     throw error
   }
 }
@@ -214,7 +218,7 @@ export async function saveDeepResearch(payload: DeepResearch) {
   try {
     return await db.insert(deepResearch).values(payload)
   } catch (error) {
-    console.error('Failed to save deep research in database')
+    logger.error('database', 'Failed to save deep research in database')
     throw error
   }
 }
@@ -227,7 +231,7 @@ export async function getDeepResearchById({ id }: { id: string }) {
       .where(eq(deepResearch.id, id))
     return selectedDeepSearch
   } catch (error) {
-    console.error('Failed to get deep search by id from database')
+    logger.error('database', 'Failed to get deep search by id from database')
     throw error
   }
 }
@@ -239,7 +243,10 @@ export async function updateDeepResearch(payload: DeepResearch) {
       .set(payload)
       .where(eq(deepResearch.id, payload.id))
   } catch (error) {
-    console.error('Failed to update deep research result in database')
+    logger.error(
+      'database',
+      'Failed to update deep research result in database'
+    )
     throw error
   }
 }
@@ -248,7 +255,7 @@ export async function saveDeepResearchMessage(payload: DeepResearchMessage) {
   try {
     return await db.insert(deepResearchMessage).values(payload)
   } catch (error) {
-    console.error('Failed to save deep research message in database')
+    logger.error('database', 'Failed to save deep research message in database')
     throw error
   }
 }
@@ -262,7 +269,10 @@ export async function getDeepResearchMessagesById({ id }: { id: string }) {
       .orderBy(asc(deepResearchMessage.createdAt))
     return deepResearchMessages
   } catch (error) {
-    console.error('Failed to get deep research message by id from database')
+    logger.error(
+      'database',
+      'Failed to get deep research message by id from database'
+    )
     throw error
   }
 }

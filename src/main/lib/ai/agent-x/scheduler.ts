@@ -6,6 +6,7 @@ import {
   getTaskById,
   updateTask
 } from '../../db/agent-x-queries'
+import { logger } from '../../logger'
 import type { SseEmitter } from './smart-dispatch'
 import { smartDispatch } from './smart-dispatch'
 
@@ -24,9 +25,10 @@ export function setSchedulerEmitter(emit: SseEmitter) {
  */
 export function scheduleTask(taskId: string, cronExpression: string): boolean {
   if (!cron.validate(cronExpression)) {
-    console.error(
-      `[Scheduler] Invalid cron expression for task ${taskId}: "${cronExpression}"`
-    )
+    logger.error('scheduler', 'Invalid cron expression', {
+      taskId,
+      cronExpression
+    })
     return false
   }
 
@@ -79,14 +81,15 @@ export function scheduleTask(taskId: string, cronExpression: string): boolean {
         finishedChild?.status === 'completed' ? 'completed' : 'failed'
       await updateTask(taskId, { lastRunStatus })
     } catch (err) {
-      console.error(`[Scheduler] Cron task ${taskId} execution error:`, err)
+      logger.error('scheduler', 'Cron task execution error', {
+        taskId,
+        error: String(err)
+      })
     }
   })
 
   scheduledJobs.set(taskId, job)
-  console.log(
-    `[Scheduler] Scheduled task ${taskId} with expression "${cronExpression}"`
-  )
+  logger.info('scheduler', 'Scheduled task', { taskId, cronExpression })
   return true
 }
 
@@ -95,7 +98,7 @@ export function unscheduleTask(taskId: string) {
   if (job) {
     job.stop()
     scheduledJobs.delete(taskId)
-    console.log(`[Scheduler] Unscheduled task ${taskId}`)
+    logger.info('scheduler', 'Unscheduled task', { taskId })
   }
 }
 
@@ -117,5 +120,5 @@ export async function initScheduler(emit: SseEmitter): Promise<void> {
       count++
     }
   }
-  console.log(`[Scheduler] Initialized — ${count} cron task(s) active`)
+  logger.info('scheduler', 'Initialized', { activeTasks: count })
 }

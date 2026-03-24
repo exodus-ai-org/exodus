@@ -1,5 +1,6 @@
 import type { Message, Model } from '@mariozechner/pi-ai'
 
+import { logger } from '../../logger'
 import { runFullCompaction } from './compaction'
 import { assembleContext } from './context-assembler'
 import { appendContextItem, getContextItems } from './queries'
@@ -84,7 +85,7 @@ export class LcmManager {
    * Uses a per-chatId promise queue to prevent concurrent runs.
    *
    * Call this WITHOUT await to run in the background:
-   *   lcm.compactAfterTurn().catch(console.error)
+   *   lcm.compactAfterTurn().catch(err => logger.error('lcm', 'Compaction failed', { error: String(err) }))
    */
   async compactAfterTurn(): Promise<void> {
     const chatId = this.chatId
@@ -95,7 +96,7 @@ export class LcmManager {
       try {
         await this.runCompactionIfNeeded()
       } catch (err) {
-        console.error(`[LCM] Compaction failed for chat ${chatId}:`, err)
+        logger.error('lcm', 'Compaction failed', { chatId, error: String(err) })
       }
     })
 

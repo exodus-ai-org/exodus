@@ -3,6 +3,7 @@ import type { AutoRouteResult } from '@shared/types/agent-x'
 
 import { getAllAgents, getAllDepartments } from '../../db/agent-x-queries'
 import { getSettings } from '../../db/queries'
+import { logger } from '../../logger'
 import { getModelFromProvider } from '../utils/chat-message-util'
 
 const autoRoutePrompt = `You are a task router for a multi-agent system. Given a task description and a list of available departments and agents, suggest the best agent to handle the task.
@@ -66,7 +67,7 @@ export async function autoRouteTask(
     if (!jsonMatch) return null
     return JSON.parse(jsonMatch[0]) as AutoRouteResult
   } catch {
-    console.error('Failed to parse auto-route response:', text)
+    logger.error('agent_x', 'Failed to parse auto-route response', { text })
     return null
   }
 }

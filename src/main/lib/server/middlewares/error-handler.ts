@@ -1,5 +1,6 @@
 import { Context } from 'hono'
 
+import { logger } from '../../logger'
 import { ChatSDKError } from '../errors'
 
 /**
@@ -13,7 +14,10 @@ export async function errorHandler(err: Error, c: Context) {
   }
 
   // Handle other errors
-  console.error('Unhandled error:', err)
+  logger.error('server', 'Unhandled error', {
+    error: String(err),
+    stack: (err as Error)?.stack
+  })
   return c.json(
     {
       code: 'bad_request:api',

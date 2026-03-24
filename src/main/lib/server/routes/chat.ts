@@ -37,6 +37,7 @@ import {
   updateChat,
   updateChatTitleById
 } from '../../db/queries'
+import { logger } from '../../logger'
 import { ChatSDKError } from '../errors'
 import { postRequestBodySchema, updateChatSchema } from '../schemas/chat'
 import {
@@ -345,7 +346,9 @@ chat.post('/', async (c) => {
                   newMessages.map((m) => ({ id: m.id, content: m.content }))
                 )
                 lcm.compactAfterTurn().catch((err) => {
-                  console.error('[chat] LCM compactAfterTurn failed:', err)
+                  logger.error('chat', 'LCM compactAfterTurn failed', {
+                    error: String(err)
+                  })
                 })
               }
 
@@ -359,7 +362,9 @@ chat.post('/', async (c) => {
                   chatModel,
                   apiKey
                 ).catch((err) => {
-                  console.error('[chat] memory-write-judge failed:', err)
+                  logger.error('chat', 'Memory write judge failed', {
+                    error: String(err)
+                  })
                 })
                 saveSessionSummary(
                   id,
@@ -370,17 +375,21 @@ chat.post('/', async (c) => {
                   chatModel,
                   apiKey
                 ).catch((err) => {
-                  console.error('[chat] session-summary failed:', err)
+                  logger.error('chat', 'Session summary failed', {
+                    error: String(err)
+                  })
                 })
               }
             })
             .catch((err) => {
-              console.error('[chat] post-response operation failed:', err)
+              logger.error('chat', 'Post-response operation failed', {
+                error: String(err)
+              })
             })
         }
       } catch (err) {
         const rawMsg = err instanceof Error ? err.message : String(err)
-        console.error('Chat stream error:', rawMsg)
+        logger.error('chat', 'Chat stream error', { error: String(rawMsg) })
         sendEvent({ type: 'error', error: toFriendlyChatError(rawMsg) })
       } finally {
         controller.close()

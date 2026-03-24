@@ -3,6 +3,8 @@ import type { AgentTool } from '@mariozechner/pi-agent-core'
 import { Type } from '@mariozechner/pi-ai'
 import { Settings } from '@shared/types/db'
 
+import { logger } from '../../logger'
+
 const GRPC_STATUS = {
   INVALID_ARGUMENT: 3,
   NOT_FOUND: 5,
@@ -174,7 +176,7 @@ export const googleMapsRouting = (
         details: response
       }
     } catch (e) {
-      console.log(e)
+      logger.error('tools', 'Google Maps routing failed', { error: String(e) })
       throw new Error(toUserMessage(e))
     }
   }

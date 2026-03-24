@@ -11,6 +11,7 @@ import {
   updaterInstall,
   updaterSetAutoDownload
 } from './auto-updater'
+import { logger } from './logger'
 import {
   getMainWindow,
   getQuickChatView,
@@ -20,7 +21,7 @@ import {
 } from './window'
 
 export function setupIPC() {
-  ipcMain.on('ping', () => console.log('pong'))
+  ipcMain.on('ping', () => logger.debug('app', 'pong'))
 
   // ARCHIVED: MCP server restart IPC removed
   // ipcMain.handle('restart-server', async () => {

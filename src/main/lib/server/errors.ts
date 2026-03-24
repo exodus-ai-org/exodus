@@ -51,6 +51,8 @@ export const visibilityBySurface: Record<Surface, ErrorVisibility> = {
   skills: 'response'
 }
 
+import { logger, type LogSurface } from '../logger'
+
 export class ChatSDKError extends Error {
   type: ErrorType
   surface: Surface
@@ -75,10 +77,9 @@ export class ChatSDKError extends Error {
     const { message, cause, statusCode } = this
 
     if (visibility === 'log') {
-      console.error({
-        code,
-        message,
-        cause
+      logger.error(this.surface as LogSurface, message, {
+        code: code as string,
+        cause: cause as string
       })
 
       return Response.json(

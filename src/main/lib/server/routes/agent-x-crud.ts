@@ -27,6 +27,7 @@ import {
   updateDepartment,
   updateTask
 } from '../../db/agent-x-queries'
+import { logger } from '../../logger'
 import { ChatSDKError } from '../errors'
 import {
   getRequiredParam,
@@ -271,7 +272,9 @@ agentXCrud.post('/tasks', async (c) => {
       result.assignedAgentId ?? null,
       false,
       (event) => emitToTask(result.id, event)
-    ).catch((err) => console.error('Smart dispatch error:', err))
+    ).catch((err) =>
+      logger.error('agent_x', 'Smart dispatch error', { error: String(err) })
+    )
   }
 
   return successResponse(c, result, 201)
@@ -328,7 +331,11 @@ agentXCrud.put('/tasks/:id', async (c) => {
         taskRecord.assignedAgentId ?? null,
         false,
         (event) => emitToTask(id, event)
-      ).catch((err) => console.error('Restore dispatch error:', err))
+      ).catch((err) =>
+        logger.error('agent_x', 'Restore dispatch error', {
+          error: String(err)
+        })
+      )
     }
 
     return successResponse(c, result)
@@ -377,7 +384,7 @@ agentXCrud.put('/tasks/:id', async (c) => {
 
     // Start execution
     executeTask(id, (event) => emitToTask(id, event)).catch((err) =>
-      console.error('Task execution error:', err)
+      logger.error('agent_x', 'Task execution error', { error: String(err) })
     )
 
     return successResponse(c, result)

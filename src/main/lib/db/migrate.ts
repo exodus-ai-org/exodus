@@ -5,11 +5,12 @@ import { is } from '@electron-toolkit/utils'
 import { migrate } from 'drizzle-orm/pglite/migrator'
 import { Notification } from 'electron'
 
+import { logger } from '../logger'
 import { db, pglite } from './db'
 
 export const runMigrate = async () => {
   try {
-    console.log('⏳ Running migrations...')
+    logger.info('migration', 'Running migrations...')
     const start = performance.now()
     await pglite.waitReady
     await pglite.exec('CREATE EXTENSION IF NOT EXISTS vector;')
@@ -30,7 +31,9 @@ export const runMigrate = async () => {
     )
 
     const end = performance.now()
-    console.log('✅ Migrations completed in', end - start, 'ms')
+    logger.info('migration', 'Migrations completed', {
+      durationMs: end - start
+    })
   } catch (error) {
     new Notification({
       title: 'Exodus',

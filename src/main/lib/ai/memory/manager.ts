@@ -7,6 +7,7 @@ import {
   getActiveMemories,
   upsertSessionSummary
 } from '../../db/memory-queries'
+import { logger } from '../../logger'
 
 export const LOCAL_USER_ID = '00000000-0000-0000-0000-000000000001'
 
@@ -171,7 +172,7 @@ export async function runMemoryWriteJudge(
       source: source ?? 'implicit'
     })
   } catch (err) {
-    console.error('[Memory] Write judge failed:', err)
+    logger.error('memory', 'Write judge failed', { error: String(err) })
   }
 }
 
@@ -216,7 +217,7 @@ export async function loadRelevantMemories(
       .filter((m) => selectedIds.has(m.id))
       .map((m) => ({ id: m.id, type: m.type, key: m.key, value: m.value }))
   } catch (err) {
-    console.error('[Memory] Read filter failed:', err)
+    logger.error('memory', 'Read filter failed', { error: String(err) })
     return []
   }
 }
@@ -287,6 +288,6 @@ export async function saveSessionSummary(
       })
     }
   } catch (err) {
-    console.error('[Memory] Session summary failed:', err)
+    logger.error('memory', 'Session summary failed', { error: String(err) })
   }
 }

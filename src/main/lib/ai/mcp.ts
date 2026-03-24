@@ -8,6 +8,7 @@ import { McpTools } from '@shared/types/ai'
 
 import { getAllMcpServers, getMcpServersByNames } from '../db/agent-x-queries'
 import type { McpServer } from '../db/schema'
+import { logger } from '../logger'
 
 // Cache stores both tools and the client so we can close connections on invalidation.
 interface CachedMcp {
@@ -67,9 +68,10 @@ async function connectMcpServer(server: McpServer): Promise<McpTools> {
   const transport = createTransport(server)
   const client = new Client({ name: 'exodus', version: '1.0.0' })
   await client.connect(transport)
-  console.log(
-    `✅ The <${server.name}> MCP has been registered (${server.transportType ?? 'stdio'}).`
-  )
+  logger.info('mcp', 'MCP server registered', {
+    name: server.name,
+    transport: server.transportType ?? 'stdio'
+  })
 
   const toolsResult = await client.listTools()
 
