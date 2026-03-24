@@ -15,6 +15,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { toast } from 'sonner'
 import useSWR from 'swr'
 
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -213,22 +214,21 @@ export function SkillsMarket() {
           />
         </div>
 
-        <div className="bg-warning/10 text-warning-foreground flex items-start gap-2 rounded-lg border border-amber-500/20 px-3 py-2 text-xs">
-          <TriangleAlertIcon className="mt-0.5 size-3.5 shrink-0 text-amber-500" />
-          <p>
+        <Alert>
+          <TriangleAlertIcon />
+          <AlertDescription>
             Skills data sourced from{' '}
             <a
               href="https://clawhub.ai/"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium underline"
             >
               clawhub.ai
             </a>
             . Please review skills carefully before installing to avoid
             potentially malicious programs.
-          </p>
-        </div>
+          </AlertDescription>
+        </Alert>
 
         <Tabs
           defaultValue="browse"

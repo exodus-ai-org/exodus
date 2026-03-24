@@ -132,16 +132,13 @@ export function DepartmentConfigPanel({
             ) : (
               <div className="flex flex-col gap-1.5">
                 {availableSkills.map((skill) => (
-                  <label
-                    key={skill.slug}
-                    className="flex items-center gap-2 text-sm"
-                  >
+                  <Label key={skill.slug}>
                     <Checkbox
                       checked={selectedSkills.includes(skill.slug)}
                       onCheckedChange={() => toggleSkill(skill.slug)}
                     />
                     {skill.name}
-                  </label>
+                  </Label>
                 ))}
               </div>
             )}
@@ -158,13 +155,13 @@ export function DepartmentConfigPanel({
               <div className="flex flex-col gap-1.5">
                 {availableMcp.map((server) => (
                   <div key={server.id} className="flex flex-col gap-0.5">
-                    <label className="flex items-center gap-2 text-sm">
+                    <Label>
                       <Checkbox
                         checked={selectedMcp.includes(server.name)}
                         onCheckedChange={() => toggleMcp(server.name)}
                       />
                       {server.name}
-                    </label>
+                    </Label>
                     {server.description && (
                       <p className="text-muted-foreground pl-6 text-xs">
                         {server.description}

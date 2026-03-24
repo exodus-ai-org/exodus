@@ -39,10 +39,7 @@ export function EllipsisTooltip({
   const paragraph = (
     <p
       ref={pRef}
-      className={cn(
-        'cursor-help truncate overflow-hidden text-ellipsis whitespace-nowrap',
-        className
-      )}
+      className={cn('cursor-help truncate', className)}
       style={{ maxWidth: maxW }}
       title={isTruncated ? text : undefined}
     >

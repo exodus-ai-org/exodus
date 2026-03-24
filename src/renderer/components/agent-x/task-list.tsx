@@ -11,6 +11,8 @@ import {
 } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
@@ -117,19 +119,10 @@ export function TaskList({
           {escalations.map(
             ({ task: t, event: esc }) =>
               esc && (
-                <div
-                  key={`esc-${t.id}`}
-                  className="mx-4 mb-2 rounded-md border border-orange-200 bg-orange-50 p-3 dark:border-orange-800/50 dark:bg-orange-950/50"
-                >
-                  <div className="mb-2 flex items-start gap-2">
-                    <AlertCircleIcon className="mt-0.5 size-4 shrink-0 text-orange-500" />
-                    <div>
-                      <p className="text-sm font-medium">{t.title}</p>
-                      <p className="text-muted-foreground text-xs">
-                        {esc.question}
-                      </p>
-                    </div>
-                  </div>
+                <Alert key={`esc-${t.id}`} className="mx-4 mb-2">
+                  <AlertCircleIcon />
+                  <AlertTitle>{t.title}</AlertTitle>
+                  <AlertDescription>{esc.question}</AlertDescription>
                   {esc.options.length > 0 ? (
                     <div className="flex flex-wrap gap-1.5">
                       {esc.options.map((opt) => (
@@ -164,7 +157,7 @@ export function TaskList({
                       </Button>
                     </div>
                   )}
-                </div>
+                </Alert>
               )
           )}
 
@@ -196,9 +189,9 @@ export function TaskList({
                     {t.title}
                   </span>
                   {t.cronExpression && (
-                    <span className="shrink-0 rounded bg-indigo-100 px-1.5 py-0.5 font-mono text-[10px] text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300/80">
+                    <Badge variant="outline" className="font-mono text-[10px]">
                       {t.cronExpression}
-                    </span>
+                    </Badge>
                   )}
                   <span className="text-muted-foreground shrink-0">
                     {agentName}

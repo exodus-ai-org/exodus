@@ -24,6 +24,7 @@ import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 
 import {
   createMemory,
@@ -46,17 +47,16 @@ const MEMORY_TYPES: MemoryType[] = [
   'constraint'
 ]
 
-const TYPE_COLORS: Record<MemoryType, string> = {
-  preference:
-    'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
-  goal: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
-  environment:
-    'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
-  skill:
-    'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300',
-  project:
-    'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300',
-  constraint: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+const TYPE_VARIANTS: Record<
+  MemoryType,
+  'default' | 'secondary' | 'outline' | 'destructive'
+> = {
+  preference: 'default',
+  goal: 'secondary',
+  environment: 'outline',
+  skill: 'secondary',
+  project: 'outline',
+  constraint: 'destructive'
 }
 
 // ─── Memory Edit Dialog ───────────────────────────────────────────────────────
@@ -129,8 +129,9 @@ function MemoryDialog({ open, onClose, memory, onSaved }: MemoryDialogProps) {
       }
       onSaved()
       onClose()
-    } catch {
-      toast.error('Failed to save memory')
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Operation failed'
+      toast.error(`Failed to save memory: ${msg}`)
     } finally {
       setSaving(false)
     }
@@ -236,17 +237,14 @@ function MemoryListItem({
 
   return (
     <div
-      className={`flex items-start gap-3 rounded-md border p-3 transition-opacity ${
-        item.isActive === false ? 'opacity-50' : ''
-      }`}
+      className={cn(
+        'flex items-start gap-3 rounded-md border p-3 transition-opacity',
+        item.isActive === false && 'opacity-50'
+      )}
     >
       <div className="min-w-0 flex-1">
         <div className="mb-1 flex items-center gap-2">
-          <span
-            className={`inline-flex items-center rounded px-1.5 py-0.5 text-xs font-medium ${TYPE_COLORS[item.type]}`}
-          >
-            {item.type}
-          </span>
+          <Badge variant={TYPE_VARIANTS[item.type]}>{item.type}</Badge>
           <span className="truncate text-sm font-medium">{item.key}</span>
           {item.confidence != null && (
             <span className="text-muted-foreground ml-auto text-xs">
@@ -306,8 +304,9 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
     try {
       const data = await getMemories()
       setMemories(data)
-    } catch {
-      toast.error('Failed to load memories')
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Operation failed'
+      toast.error(`Failed to load memories: ${msg}`)
     } finally {
       setLoading(false)
     }
@@ -331,8 +330,9 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
     try {
       await updateMemory(item.id, { isActive: !item.isActive })
       await loadMemories()
-    } catch {
-      toast.error('Failed to update memory')
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Operation failed'
+      toast.error(`Failed to update memory: ${msg}`)
     }
   }
 
@@ -341,8 +341,9 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
       await deleteMemory(item.id)
       await loadMemories()
       toast.success('Memory deleted')
-    } catch {
-      toast.error('Failed to delete memory')
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Operation failed'
+      toast.error(`Failed to delete memory: ${msg}`)
     }
   }
 
