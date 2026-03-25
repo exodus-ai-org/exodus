@@ -110,6 +110,11 @@ export function NavItems({
         }
       >
         <span className="min-w-0 flex-1 truncate">{chat.title}</span>
+        {chat.projectId && (
+          <span className="bg-muted text-muted-foreground shrink-0 rounded px-1 text-[9px]">
+            P
+          </span>
+        )}
         <span className="text-muted-foreground shrink-0 text-[10px]">
           {compactRelativeTime(new Date(chat.createdAt))}
         </span>
