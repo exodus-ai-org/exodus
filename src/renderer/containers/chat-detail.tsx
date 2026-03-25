@@ -34,7 +34,16 @@ export function ChatDetail() {
     [messagesFromDb]
   )
 
+  const chatRecord = history?.find((c) => c.id === id)
+
   if (!id || isLoading || !messagesFromDb) return null
 
-  return <Chat key={id} id={id} initialMessages={initialMessages} />
+  return (
+    <Chat
+      key={id}
+      id={id}
+      initialMessages={initialMessages}
+      projectId={chatRecord?.projectId ?? undefined}
+    />
+  )
 }

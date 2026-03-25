@@ -19,13 +19,16 @@ import MultimodalInput from './multimodel-input'
 interface Props {
   id: string
   initialMessages: ChatMessage[]
+  projectId?: string
 }
 
-export function Chat({ id, initialMessages }: Props) {
+export function Chat({ id, initialMessages, projectId }: Props) {
   const quickChat = window.localStorage.getItem(QUICK_CHAT_KEY)
   const advancedTools = useAtomValue(advancedToolsAtom)
   const advancedToolsRef = useRef(advancedTools)
   advancedToolsRef.current = advancedTools
+  const projectIdRef = useRef(projectId)
+  projectIdRef.current = projectId
 
   const setChatInput = useSetAtom(chatInputAtom)
   const setChatStatus = useSetAtom(chatStatusAtom)
@@ -50,7 +53,8 @@ export function Chat({ id, initialMessages }: Props) {
       ...body,
       id,
       messages,
-      advancedTools: advancedToolsRef.current
+      advancedTools: advancedToolsRef.current,
+      projectId: projectIdRef.current
     }),
     onFinish: () => {
       mutate('/api/history')
