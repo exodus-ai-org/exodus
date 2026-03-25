@@ -24,7 +24,7 @@ export const getProject = (id: string) =>
 export const createProject = async (data: CreateProjectInput) => {
   const project = await fetcher<Project>('/api/project', {
     method: 'POST',
-    body: data
+    body: data as never
   })
 
   mutate('/api/project')
@@ -35,7 +35,7 @@ export const createProject = async (data: CreateProjectInput) => {
 export const updateProject = async (id: string, data: UpdateProjectInput) => {
   const project = await fetcher<Project>(`/api/project/${id}`, {
     method: 'PUT',
-    body: data
+    body: data as never
   })
 
   mutate('/api/project')
