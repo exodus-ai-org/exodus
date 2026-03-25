@@ -30,12 +30,39 @@ import {
 } from 'drizzle-orm/pg-core'
 import z from 'zod'
 
-export const chat = pgTable('chat', {
+// ─── Projects ──────────────────────────────────────────────────────────────
+
+export const project = pgTable('project', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
+  name: text('name').notNull(),
+  description: text('description').default(''),
+  instructions: text('instructions').default(''),
+  structuredInstructions: jsonb('structuredInstructions').$type<{
+    tone?: string
+    role?: string
+    responseFormat?: string
+    constraints?: string
+  }>(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
-  title: text('title').notNull(),
-  favorite: boolean().default(false)
+  updatedAt: timestamp('updatedAt').defaultNow().notNull()
 })
+
+export type Project = InferSelectModel<typeof project>
+
+export const chat = pgTable(
+  'chat',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    createdAt: timestamp('createdAt').defaultNow().notNull(),
+    title: text('title').notNull(),
+    favorite: boolean().default(false),
+    projectId: uuid('projectId').references(() => project.id, {
+      onDelete: 'set null'
+    }),
+    useProjectInstructions: boolean('useProjectInstructions').default(true)
+  },
+  (table) => [index('chat_project_idx').on(table.projectId)]
+)
 
 export type Chat = InferSelectModel<typeof chat>
 

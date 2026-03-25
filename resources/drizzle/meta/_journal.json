@@ -71,6 +71,13 @@
       "when": 1742860800002,
       "tag": "0009_add_color_tone",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1774432059376,
+      "tag": "0010_fancy_lockheed",
+      "breakpoints": true
     }
   ]
 }
