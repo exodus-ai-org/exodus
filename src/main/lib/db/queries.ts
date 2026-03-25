@@ -18,11 +18,20 @@ import {
   type Settings
 } from './schema'
 
-export async function saveChat({ title, id }: { id: string; title: string }) {
+export async function saveChat({
+  title,
+  id,
+  projectId
+}: {
+  id: string
+  title: string
+  projectId?: string
+}) {
   try {
     return await db.insert(chat).values({
       id,
-      title
+      title,
+      projectId
     })
   } catch (error) {
     logger.error('database', 'Failed to save chat in database')
@@ -39,8 +48,15 @@ export async function updateChat(payload: Omit<Chat, 'createdAt'>) {
   }
 }
 
-export async function getAllChats() {
+export async function getAllChats(projectId?: string) {
   try {
+    if (projectId) {
+      return await db
+        .select()
+        .from(chat)
+        .where(eq(chat.projectId, projectId))
+        .orderBy(desc(chat.createdAt))
+    }
     return await db.select().from(chat).orderBy(desc(chat.createdAt))
   } catch (error) {
     logger.error('database', 'Failed to get chats by user from database')
