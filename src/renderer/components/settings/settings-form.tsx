@@ -109,7 +109,7 @@ export function SettingsForm() {
 
       {activeTitle === SettingsLabel.Logger && <Logger />}
 
-      {activeTitle === SettingsLabel.AboutExodus && <SystemInfo />}
+      {activeTitle === SettingsLabel.AboutExodus && <SystemInfo form={form} />}
     </form>
   )
 }
