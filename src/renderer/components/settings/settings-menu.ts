@@ -12,11 +12,13 @@ import {
   PlugIcon,
   ScrollTextIcon,
   ShoppingBagIcon,
+  UserIcon,
   WrenchIcon
 } from 'lucide-react'
 
 export enum SettingsLabel {
   General = 'General',
+  Personality = 'Personality',
   AiProviders = 'AI Providers',
   AmazonS3 = 'AWS S3',
   McpServers = 'MCP Servers',
@@ -43,6 +45,10 @@ export const menus = {
     {
       title: SettingsLabel.General,
       icon: CogIcon
+    },
+    {
+      title: SettingsLabel.Personality,
+      icon: UserIcon
     },
     {
       title: SettingsLabel.AiProviders,

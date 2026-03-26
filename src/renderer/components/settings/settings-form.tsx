@@ -17,6 +17,7 @@ import { ImageGeneration } from './settings-form/image-generation'
 import { Logger } from './settings-form/logger'
 import { McpServers } from './settings-form/mcp-servers'
 import { MemoryLayer } from './settings-form/memory-layer'
+import { Personality } from './settings-form/personality'
 import { ProviderConfig } from './settings-form/provider-config'
 import { AnthropicClaude } from './settings-form/providers/anthropic-claude'
 import { AzureOpenAi } from './settings-form/providers/azure-openai'
@@ -54,6 +55,8 @@ export function SettingsForm() {
       onBlur={form.handleSubmit(onSubmit)}
     >
       {activeTitle === SettingsLabel.General && <General form={form} />}
+
+      {activeTitle === SettingsLabel.Personality && <Personality form={form} />}
 
       {activeTitle === SettingsLabel.AiProviders && (
         <ProviderConfig form={form} />
