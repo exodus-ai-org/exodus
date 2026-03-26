@@ -1,5 +1,6 @@
 import type { Project } from '@shared/types/db'
 import {
+  ChevronRightIcon,
   FolderIcon,
   FolderPlusIcon,
   MoreHorizontalIcon,
@@ -21,6 +22,11 @@ import {
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger
+} from '@/components/ui/collapsible'
 import {
   Dialog,
   DialogContent,
@@ -74,96 +80,67 @@ export function NavProjects() {
     setToBeDeletedProject(null)
   }
 
-  if (isLoading || !projects?.length) {
-    if (isLoading) return null
-
-    return (
-      <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-        <SidebarGroupLabel>Projects</SidebarGroupLabel>
-        <SidebarMenu className="gap-1">
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={() => setShowCreateDialog(true)}>
-              <FolderPlusIcon size={16} />
-              <span>New project</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-
-        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Create Project</DialogTitle>
-            </DialogHeader>
-            <Input
-              placeholder="Project name"
-              value={newProjectName}
-              onChange={(e) => setNewProjectName(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleCreateProject()}
-              autoFocus
-            />
-            <DialogFooter>
-              <Button
-                onClick={handleCreateProject}
-                disabled={!newProjectName.trim()}
-                size="sm"
-              >
-                Create
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </SidebarGroup>
-    )
-  }
+  if (isLoading) return null
 
   return (
     <>
       <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-        <SidebarGroupLabel>Projects</SidebarGroupLabel>
         <SidebarMenu className="gap-1">
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={() => setShowCreateDialog(true)}>
-              <FolderPlusIcon size={16} />
-              <span>New project</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
+          <Collapsible className="group/collapsible" defaultOpen>
+            <SidebarGroupLabel className="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mb-1 text-sm">
+              <CollapsibleTrigger className="flex w-full items-center justify-between pl-0!">
+                <SidebarGroupLabel>Projects</SidebarGroupLabel>
+                <ChevronRightIcon className="text-sidebar-foreground/50 [transition-property:rotate] duration-200 group-data-[state=open]/collapsible:rotate-90" />
+              </CollapsibleTrigger>
+            </SidebarGroupLabel>
+            <CollapsibleContent>
+              <SidebarMenuItem>
+                <SidebarMenuButton onClick={() => setShowCreateDialog(true)}>
+                  <FolderPlusIcon size={16} />
+                  <span>New project</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
 
-          {projects.map((project) => (
-            <SidebarMenuItem key={project.id}>
-              <SidebarMenuButton
-                isActive={currentId === project.id}
-                render={<Link to={`/project/${project.id}`} />}
-              >
-                <FolderIcon size={16} />
-                <span className="min-w-0 flex-1 truncate">{project.name}</span>
-              </SidebarMenuButton>
-              <DropdownMenu>
-                <DropdownMenuTrigger>
-                  <SidebarMenuAction showOnHover>
-                    <MoreHorizontalIcon />
-                  </SidebarMenuAction>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent
-                  className="w-48 rounded-lg"
-                  side="right"
-                  align="start"
-                >
-                  <DropdownMenuItem
-                    onClick={() => navigate(`/project/${project.id}`)}
+              {projects?.map((project) => (
+                <SidebarMenuItem key={project.id}>
+                  <SidebarMenuButton
+                    isActive={currentId === project.id}
+                    render={<Link to={`/project/${project.id}`} />}
                   >
-                    <SquarePenIcon className="text-muted-foreground" />
-                    <span>Edit project</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => setToBeDeletedProject(project)}
-                  >
-                    <Trash2Icon className="text-destructive" />
-                    <span className="text-destructive">Delete</span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </SidebarMenuItem>
-          ))}
+                    <FolderIcon size={16} />
+                    <span className="min-w-0 flex-1 truncate">
+                      {project.name}
+                    </span>
+                  </SidebarMenuButton>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger>
+                      <SidebarMenuAction showOnHover>
+                        <MoreHorizontalIcon />
+                      </SidebarMenuAction>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      className="w-48 rounded-lg"
+                      side="right"
+                      align="start"
+                    >
+                      <DropdownMenuItem
+                        onClick={() => navigate(`/project/${project.id}`)}
+                      >
+                        <SquarePenIcon className="text-muted-foreground" />
+                        <span>Edit project</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setToBeDeletedProject(project)}
+                      >
+                        <Trash2Icon className="text-destructive" />
+                        <span className="text-destructive">Delete</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </SidebarMenuItem>
+              ))}
+            </CollapsibleContent>
+          </Collapsible>
         </SidebarMenu>
       </SidebarGroup>
 
