@@ -1,11 +1,14 @@
 import { QUICK_CHAT_KEY } from '@shared/constants/misc'
 import { BASE_URL } from '@shared/constants/systems'
 import { Attachment, ChatMessage } from '@shared/types/chat'
+import type { Project } from '@shared/types/db'
 import { IpcRendererEvent } from 'electron'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router'
 import { sileo } from 'sileo'
 import { mutate } from 'swr'
+import useSWR from 'swr'
 import { v4 as uuidV4 } from 'uuid'
 
 import { useChat } from '@/hooks/use-chat'
@@ -16,16 +19,38 @@ import { chatInputAtom, chatStatusAtom, chatStopFnAtom } from '@/stores/input'
 import Messages from './messages'
 import MultimodalInput from './multimodel-input'
 
+function ProjectBreadcrumb({ projectId }: { projectId: string }) {
+  const { data: project } = useSWR<Project & { chatCount: number }>(
+    `/api/project/${projectId}`
+  )
+
+  if (!project) return null
+
+  return (
+    <div className="flex items-center px-4 pt-3 pb-1">
+      <Link
+        to={`/project/${projectId}`}
+        className="text-muted-foreground hover:text-foreground text-xs transition-colors"
+      >
+        {project.name} /
+      </Link>
+    </div>
+  )
+}
+
 interface Props {
   id: string
   initialMessages: ChatMessage[]
+  projectId?: string
 }
 
-export function Chat({ id, initialMessages }: Props) {
+export function Chat({ id, initialMessages, projectId }: Props) {
   const quickChat = window.localStorage.getItem(QUICK_CHAT_KEY)
   const advancedTools = useAtomValue(advancedToolsAtom)
   const advancedToolsRef = useRef(advancedTools)
   advancedToolsRef.current = advancedTools
+  const projectIdRef = useRef(projectId)
+  projectIdRef.current = projectId
 
   const setChatInput = useSetAtom(chatInputAtom)
   const setChatStatus = useSetAtom(chatStatusAtom)
@@ -50,7 +75,8 @@ export function Chat({ id, initialMessages }: Props) {
       ...body,
       id,
       messages,
-      advancedTools: advancedToolsRef.current
+      advancedTools: advancedToolsRef.current,
+      projectId: projectIdRef.current
     }),
     onFinish: () => {
       mutate('/api/history')
@@ -105,6 +131,7 @@ export function Chat({ id, initialMessages }: Props) {
 
   return (
     <>
+      {projectId && <ProjectBreadcrumb projectId={projectId} />}
       <Messages status={status} messages={messages} regenerate={regenerate} />
       <MultimodalInput
         chatId={id}

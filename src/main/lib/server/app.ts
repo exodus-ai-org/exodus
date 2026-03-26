@@ -18,6 +18,7 @@ import historyRouter from './routes/history'
 import logsRouter from './routes/logs'
 import mcpRouter from './routes/mcp'
 import memoryRouter from './routes/memory'
+import projectRouter from './routes/project'
 import s3UploaderRouter from './routes/s3-uploader'
 import settingsRouter from './routes/settings'
 import skillsRouter from './routes/skills'
@@ -52,6 +53,7 @@ export async function connectHttpServer() {
   // Routes
   app.route('/api/chat', chatRouter)
   app.route('/api/history', historyRouter)
+  app.route('/api/project', projectRouter)
   app.route('/api/settings', settingsRouter)
   app.route('/api/audio', audioRouter)
   app.route('/api/db-io', dbIoRouter)

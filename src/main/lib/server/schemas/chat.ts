@@ -43,7 +43,8 @@ export const postRequestBodySchema = z.object({
   // Either a single new message or all messages (for tool approvals)
   message: userMessageSchema.optional(),
   messages: z.array(messageSchema),
-  advancedTools: z.array(z.enum(AdvancedTools))
+  advancedTools: z.array(z.enum(AdvancedTools)),
+  projectId: z.string().uuid().optional()
 })
 
 export type PostRequestBody = z.infer<typeof postRequestBodySchema>

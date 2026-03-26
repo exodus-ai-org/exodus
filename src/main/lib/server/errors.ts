@@ -25,6 +25,7 @@ export type Surface =
   | 's3'
   | 'memory'
   | 'skills'
+  | 'project'
 
 export type ErrorCode = `${ErrorType}:${Surface}`
 
@@ -48,7 +49,8 @@ export const visibilityBySurface: Record<Surface, ErrorVisibility> = {
   mcp: 'response',
   s3: 'response',
   memory: 'response',
-  skills: 'response'
+  skills: 'response',
+  project: 'response'
 }
 
 import { logger, type LogSurface } from '../logger'
@@ -174,6 +176,11 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
       return 'Failed to process memory operation. Please check your input and try again.'
     case 'not_found:memory':
       return 'The requested memory was not found.'
+
+    case 'bad_request:project':
+      return 'Invalid project data. Please check your input and try again.'
+    case 'not_found:project':
+      return 'The requested project was not found.'
 
     default:
       return 'Something went wrong. Please try again later.'

@@ -16,6 +16,7 @@ import { isFullTextSearchVisibleAtom } from '@/stores/chat'
 
 import { NavFooter } from './nav-footer'
 import { NavHistories } from './nav-histories'
+import { NavProjects } from './nav-projects'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const isFullscreen = useIsFullscreen()
@@ -53,6 +54,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent className="no-scrollbar">
+        <NavProjects />
         <NavHistories />
       </SidebarContent>
       <SidebarFooter>
