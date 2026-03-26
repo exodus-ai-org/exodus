@@ -1,17 +1,10 @@
 import type { UseFormReturnType } from '@shared/schemas/settings-schema'
 
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 
 import { SettingsRow, SettingsSection } from '../settings-row'
+import { SettingsSelect } from '../settings-select'
 
 type BaseStyle =
   | 'default'
@@ -23,67 +16,21 @@ type BaseStyle =
   | 'cynical'
 type Level = 'default' | 'more' | 'less'
 
-const BASE_STYLES: { value: BaseStyle; label: string; description: string }[] =
-  [
-    {
-      value: 'default',
-      label: 'Default',
-      description: 'Preset style and tone'
-    },
-    {
-      value: 'professional',
-      label: 'Professional',
-      description: 'Polished and precise'
-    },
-    { value: 'friendly', label: 'Friendly', description: 'Warm and chatty' },
-    { value: 'candid', label: 'Candid', description: 'Direct and encouraging' },
-    {
-      value: 'quirky',
-      label: 'Quirky',
-      description: 'Playful and imaginative'
-    },
-    {
-      value: 'efficient',
-      label: 'Efficient',
-      description: 'Concise and plain'
-    },
-    {
-      value: 'cynical',
-      label: 'Cynical',
-      description: 'Critical and sarcastic'
-    }
-  ]
+const BASE_STYLES = [
+  { value: 'default', label: 'Default' },
+  { value: 'professional', label: 'Professional' },
+  { value: 'friendly', label: 'Friendly' },
+  { value: 'candid', label: 'Candid' },
+  { value: 'quirky', label: 'Quirky' },
+  { value: 'efficient', label: 'Efficient' },
+  { value: 'cynical', label: 'Cynical' }
+]
 
-const LEVELS: { value: Level; label: string }[] = [
+const LEVELS = [
   { value: 'default', label: 'Default' },
   { value: 'more', label: 'More' },
   { value: 'less', label: 'Less' }
 ]
-
-function CharacteristicSelect({
-  value,
-  onValueChange
-}: {
-  value: string
-  onValueChange: (v: string | null) => void
-}) {
-  return (
-    <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger className="hover:bg-accent w-fit border-none shadow-none">
-        <SelectValue />
-      </SelectTrigger>
-      <SelectContent>
-        <SelectGroup>
-          {LEVELS.map((level) => (
-            <SelectItem key={level.value} value={level.value}>
-              {level.label}
-            </SelectItem>
-          ))}
-        </SelectGroup>
-      </SelectContent>
-    </Select>
-  )
-}
 
 export function Personality({ form }: { form: UseFormReturnType }) {
   const baseStyle = form.watch('personality.baseStyle') ?? 'default'
@@ -99,65 +46,48 @@ export function Personality({ form }: { form: UseFormReturnType }) {
         label="Base style and tone"
         description="Set the style and tone of how Exodus responds to you"
       >
-        <Select
+        <SettingsSelect
           value={baseStyle}
-          onValueChange={(v) => {
-            if (v) form.setValue('personality.baseStyle', v as BaseStyle)
-          }}
-        >
-          <SelectTrigger className="hover:bg-accent w-fit border-none shadow-none">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {BASE_STYLES.map((style) => (
-                <SelectItem key={style.value} value={style.value}>
-                  <div>
-                    <div>{style.label}</div>
-                    <div className="text-muted-foreground text-xs">
-                      {style.description}
-                    </div>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+          onValueChange={(v) =>
+            form.setValue('personality.baseStyle', v as BaseStyle)
+          }
+          options={BASE_STYLES}
+        />
       </SettingsRow>
 
       <SettingsRow label="Warm">
-        <CharacteristicSelect
+        <SettingsSelect
           value={warm}
-          onValueChange={(v) => {
-            if (v) form.setValue('personality.warm', v as Level)
-          }}
+          onValueChange={(v) => form.setValue('personality.warm', v as Level)}
+          options={LEVELS}
         />
       </SettingsRow>
 
       <SettingsRow label="Enthusiastic">
-        <CharacteristicSelect
+        <SettingsSelect
           value={enthusiastic}
-          onValueChange={(v) => {
-            if (v) form.setValue('personality.enthusiastic', v as Level)
-          }}
+          onValueChange={(v) =>
+            form.setValue('personality.enthusiastic', v as Level)
+          }
+          options={LEVELS}
         />
       </SettingsRow>
 
       <SettingsRow label="Headers & Lists">
-        <CharacteristicSelect
+        <SettingsSelect
           value={headersAndLists}
-          onValueChange={(v) => {
-            if (v) form.setValue('personality.headersAndLists', v as Level)
-          }}
+          onValueChange={(v) =>
+            form.setValue('personality.headersAndLists', v as Level)
+          }
+          options={LEVELS}
         />
       </SettingsRow>
 
       <SettingsRow label="Emoji">
-        <CharacteristicSelect
+        <SettingsSelect
           value={emoji}
-          onValueChange={(v) => {
-            if (v) form.setValue('personality.emoji', v as Level)
-          }}
+          onValueChange={(v) => form.setValue('personality.emoji', v as Level)}
+          options={LEVELS}
         />
       </SettingsRow>
 
