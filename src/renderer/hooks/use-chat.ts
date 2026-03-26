@@ -128,7 +128,21 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
         })
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+          // Try to extract the user-friendly message from the JSON error body
+          let errorMessage = `HTTP ${response.status}: ${response.statusText}`
+          try {
+            const contentType = response.headers.get('content-type') || ''
+            if (contentType.includes('application/json')) {
+              const errorData = await response.json()
+              if (errorData.message) errorMessage = errorData.message
+            } else {
+              const text = await response.text()
+              if (text) errorMessage = text
+            }
+          } catch {
+            // Ignore parse errors, fall back to status text
+          }
+          throw new Error(errorMessage)
         }
 
         if (!response.body) {
