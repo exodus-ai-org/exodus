@@ -247,11 +247,11 @@ export function NavHistories() {
               {groupedChats.favorite.length > 0 && (
                 <SidebarGroup className="group-data-[collapsible=icon]:hidden">
                   <SidebarMenu className="gap-1">
-                    <Collapsible className="group/collapsible" defaultOpen>
-                      <SidebarGroupLabel className="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mb-1 text-sm">
-                        <CollapsibleTrigger className="flex w-full items-center justify-between pl-0!">
+                    <Collapsible defaultOpen>
+                      <SidebarGroupLabel className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mb-1 text-sm">
+                        <CollapsibleTrigger className="group/trigger flex w-full items-center justify-between pl-0!">
                           <SidebarGroupLabel>Favorite</SidebarGroupLabel>
-                          <ChevronRightIcon className="text-sidebar-foreground/50 [transition-property:rotate] duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                          <ChevronRightIcon className="text-sidebar-foreground/50 h-4 w-4 transition-transform duration-200 group-data-panel-open/trigger:rotate-90" />
                         </CollapsibleTrigger>
                       </SidebarGroupLabel>
                       <CollapsibleContent>
