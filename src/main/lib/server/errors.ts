@@ -90,7 +90,12 @@ export class ChatSDKError extends Error {
       )
     }
 
-    return Response.json({ code, message, cause }, { status: statusCode })
+    // Use cause as message when available — it's typically more specific
+    const userMessage = (cause as string) || message
+    return Response.json(
+      { code, message: userMessage, cause },
+      { status: statusCode }
+    )
   }
 }
 
@@ -132,9 +137,11 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
       return 'The request to create or update the document was invalid. Please check your input and try again.'
 
     case 'not_found:setting':
-      return 'Setting configuration not found. Please check your settings.'
+      return 'Settings not initialized. Please restart the app.'
     case 'bad_request:setting':
-      return 'Invalid setting configuration. Please check your input and try again.'
+      return 'No AI provider selected. Please choose a provider in Settings → AI Providers.'
+    case 'forbidden:setting':
+      return 'API key is not configured. Please add it in Settings → AI Providers before chatting.'
 
     case 'not_found:deep_research':
       return 'The requested research was not found. Please check the research ID and try again.'
