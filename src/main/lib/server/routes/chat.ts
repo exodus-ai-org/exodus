@@ -20,7 +20,11 @@ import {
   runMemoryWriteJudge,
   saveSessionSummary
 } from '../../ai/memory/manager'
-import { deepResearchBootPrompt, getSystemPrompt } from '../../ai/prompts'
+import {
+  buildPersonalityPrompt,
+  deepResearchBootPrompt,
+  getSystemPrompt
+} from '../../ai/prompts'
 import {
   bindCallingTools,
   generateTitleFromUserMessage,
@@ -181,9 +185,13 @@ chat.post('/', async (c) => {
     }
   }
 
+  const personalityPrompt = buildPersonalityPrompt(setting)
   const systemContent = advancedTools?.includes(AdvancedTools.DeepResearch)
     ? deepResearchBootPrompt
-    : getSystemPrompt() + projectInstructions + memoriesSection
+    : getSystemPrompt() +
+      personalityPrompt +
+      projectInstructions +
+      memoriesSection
 
   // Build SSE streaming response
   const stream = new ReadableStream({
