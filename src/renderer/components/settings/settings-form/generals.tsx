@@ -23,7 +23,8 @@ const TONE_PRESETS: { value: ColorTone; label: string; color: string }[] = [
   { value: 'blue', label: 'Blue', color: 'oklch(0.52 0.17 230)' },
   { value: 'violet', label: 'Violet', color: 'oklch(0.52 0.17 285)' },
   { value: 'rose', label: 'Rose', color: 'oklch(0.52 0.17 350)' },
-  { value: 'orange', label: 'Orange', color: 'oklch(0.52 0.17 55)' }
+  { value: 'orange', label: 'Orange', color: 'oklch(0.52 0.17 55)' },
+  { value: 'yellow', label: 'Yellow', color: 'oklch(0.52 0.17 85)' }
 ]
 
 export function General({ form }: { form: UseFormReturnType }) {

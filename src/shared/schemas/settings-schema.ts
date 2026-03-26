@@ -132,7 +132,8 @@ export const ColorTone = z.enum([
   'blue',
   'violet',
   'rose',
-  'orange'
+  'orange',
+  'yellow'
 ])
 export type ColorTone = z.infer<typeof ColorTone>
 
