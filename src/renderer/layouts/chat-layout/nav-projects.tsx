@@ -47,10 +47,7 @@ import {
   SidebarMenu,
   SidebarMenuAction,
   SidebarMenuButton,
-  SidebarMenuItem,
-  SidebarMenuSub,
-  SidebarMenuSubButton,
-  SidebarMenuSubItem
+  SidebarMenuItem
 } from '@/components/ui/sidebar'
 import { createProject, deleteProject } from '@/services/project'
 
@@ -88,76 +85,62 @@ export function NavProjects() {
   return (
     <>
       <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-        <SidebarGroupLabel>Projects</SidebarGroupLabel>
-        <SidebarMenu>
-          {/* New project button */}
-          <SidebarMenuItem>
-            <SidebarMenuButton onClick={() => setShowCreateDialog(true)}>
-              <FolderPlusIcon />
-              <span>New project</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-
-          {/* Each project as a collapsible item */}
-          {projects?.map((project) => (
-            <Collapsible key={project.id} className="group/collapsible">
+        <SidebarMenu className="gap-1">
+          <Collapsible className="group/collapsible" defaultOpen>
+            <SidebarGroupLabel className="group/label text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mb-1 text-sm">
+              <CollapsibleTrigger className="flex w-full items-center justify-between pl-0!">
+                <SidebarGroupLabel>Projects</SidebarGroupLabel>
+                <ChevronRightIcon className="text-sidebar-foreground/50 [transition-property:rotate] duration-200 group-data-[state=open]/collapsible:rotate-90" />
+              </CollapsibleTrigger>
+            </SidebarGroupLabel>
+            <CollapsibleContent>
               <SidebarMenuItem>
-                <CollapsibleTrigger className="w-full">
-                  <SidebarMenuButton tooltip={project.name}>
+                <SidebarMenuButton onClick={() => setShowCreateDialog(true)}>
+                  <FolderPlusIcon />
+                  <span>New project</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+
+              {projects?.map((project) => (
+                <SidebarMenuItem key={project.id}>
+                  <SidebarMenuButton
+                    isActive={currentId === project.id}
+                    render={<Link to={`/project/${project.id}`} />}
+                  >
                     <FolderIcon />
                     <span className="min-w-0 flex-1 truncate">
                       {project.name}
                     </span>
-                    <ChevronRightIcon className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                   </SidebarMenuButton>
-                </CollapsibleTrigger>
-                <DropdownMenu>
-                  <DropdownMenuTrigger>
-                    <SidebarMenuAction showOnHover>
-                      <MoreHorizontalIcon />
-                    </SidebarMenuAction>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    className="w-48 rounded-lg"
-                    side="right"
-                    align="start"
-                  >
-                    <DropdownMenuItem
-                      onClick={() => navigate(`/project/${project.id}`)}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger>
+                      <SidebarMenuAction showOnHover>
+                        <MoreHorizontalIcon />
+                      </SidebarMenuAction>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      className="w-48 rounded-lg"
+                      side="right"
+                      align="start"
                     >
-                      <SquarePenIcon className="text-muted-foreground" />
-                      <span>Edit project</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setToBeDeletedProject(project)}
-                    >
-                      <Trash2Icon className="text-destructive" />
-                      <span className="text-destructive">Delete</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-                <CollapsibleContent>
-                  <SidebarMenuSub>
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton
-                        isActive={currentId === project.id}
-                        render={<Link to={`/project/${project.id}`} />}
+                      <DropdownMenuItem
+                        onClick={() => navigate(`/project/${project.id}`)}
                       >
-                        <span>Project settings</span>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                    <SidebarMenuSubItem>
-                      <SidebarMenuSubButton
-                        render={<Link to={`/?projectId=${project.id}`} />}
+                        <SquarePenIcon className="text-muted-foreground" />
+                        <span>Edit project</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setToBeDeletedProject(project)}
                       >
-                        <span>New chat</span>
-                      </SidebarMenuSubButton>
-                    </SidebarMenuSubItem>
-                  </SidebarMenuSub>
-                </CollapsibleContent>
-              </SidebarMenuItem>
-            </Collapsible>
-          ))}
+                        <Trash2Icon className="text-destructive" />
+                        <span className="text-destructive">Delete</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </SidebarMenuItem>
+              ))}
+            </CollapsibleContent>
+          </Collapsible>
         </SidebarMenu>
       </SidebarGroup>
 
