@@ -78,6 +78,13 @@
       "when": 1774432059376,
       "tag": "0010_fancy_lockheed",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1774432100000,
+      "tag": "0011_add_personality",
+      "breakpoints": true
     }
   ]
 }

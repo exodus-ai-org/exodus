@@ -1,7 +1,6 @@
 import type { ColorTone } from '@shared/schemas/settings-schema'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { Moon, Sun, SunMoon } from 'lucide-react'
-import { useEffect } from 'react'
 
 import { Theme, useTheme } from '@/components/theme-provider'
 import {
@@ -14,12 +13,9 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { useTone } from '@/hooks/use-tone'
-import { useUpdater } from '@/hooks/use-updater'
-import { updaterSetAutoDownload } from '@/lib/ipc'
 
 import { SettingsRow, SettingsSection } from '../settings-row'
 import { AvatarUploader } from './avatar-uploader'
-import { UpdatePanel } from './update-panel'
 
 const TONE_PRESETS: { value: ColorTone; label: string; color: string }[] = [
   { value: 'neutral', label: 'Neutral', color: 'oklch(0.52 0 0)' },
@@ -33,12 +29,6 @@ const TONE_PRESETS: { value: ColorTone; label: string; color: string }[] = [
 export function General({ form }: { form: UseFormReturnType }) {
   const { theme, setTheme } = useTheme()
   const { tone, setTone } = useTone()
-  const { payload } = useUpdater()
-  const autoUpdate = form.watch('autoUpdate') ?? true
-
-  useEffect(() => {
-    updaterSetAutoDownload(autoUpdate)
-  }, [autoUpdate])
 
   return (
     <SettingsSection>
@@ -114,18 +104,6 @@ export function General({ form }: { form: UseFormReturnType }) {
           props={{ control: form.control, name: 'assistantAvatar' }}
         />
       </SettingsRow>
-
-      <SettingsRow
-        label="Auto Update"
-        description="Automatically download and install updates when available"
-      >
-        <Switch
-          checked={autoUpdate}
-          onCheckedChange={(checked) => form.setValue('autoUpdate', checked)}
-        />
-      </SettingsRow>
-
-      <UpdatePanel payload={payload} autoUpdate={autoUpdate} />
     </SettingsSection>
   )
 }

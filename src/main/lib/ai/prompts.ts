@@ -1,3 +1,63 @@
+import type { Settings } from '../db/schema'
+
+export function buildPersonalityPrompt(settings: Settings): string {
+  const p = settings.personality
+  if (!p) return ''
+
+  const parts: string[] = []
+
+  // About the user
+  const aboutParts: string[] = []
+  if (p.nickname) aboutParts.push(`The user's name is ${p.nickname}.`)
+  if (p.occupation) aboutParts.push(`They work as: ${p.occupation}.`)
+  if (p.aboutYou) aboutParts.push(`About them: ${p.aboutYou}`)
+  if (aboutParts.length > 0) {
+    parts.push(`<about_user>\n${aboutParts.join('\n')}\n</about_user>`)
+  }
+
+  // Style and tone
+  const styleParts: string[] = []
+  if (p.baseStyle && p.baseStyle !== 'default') {
+    const styleMap: Record<string, string> = {
+      professional: 'Be polished and precise in your responses.',
+      friendly: 'Be warm and chatty in your responses.',
+      candid: 'Be direct and encouraging in your responses.',
+      quirky: 'Be playful and imaginative in your responses.',
+      efficient: 'Be concise and plain in your responses.',
+      cynical: 'Be critical and sarcastic in your responses.'
+    }
+    if (styleMap[p.baseStyle]) styleParts.push(styleMap[p.baseStyle])
+  }
+
+  // Characteristics
+  if (p.warm === 'more') styleParts.push('Be warmer and more empathetic.')
+  if (p.warm === 'less') styleParts.push('Be less warm, more neutral.')
+  if (p.enthusiastic === 'more')
+    styleParts.push('Be more enthusiastic and energetic.')
+  if (p.enthusiastic === 'less')
+    styleParts.push('Be less enthusiastic, more measured.')
+  if (p.headersAndLists === 'more')
+    styleParts.push('Use more headers and lists to structure responses.')
+  if (p.headersAndLists === 'less')
+    styleParts.push('Minimize headers and lists, prefer flowing prose.')
+  if (p.emoji === 'more')
+    styleParts.push('Use emoji freely to add personality.')
+  if (p.emoji === 'less') styleParts.push('Avoid using emoji.')
+
+  if (styleParts.length > 0) {
+    parts.push(`<personality>\n${styleParts.join('\n')}\n</personality>`)
+  }
+
+  // Custom instructions
+  if (p.customInstructions) {
+    parts.push(
+      `<custom_instructions>\n${p.customInstructions}\n</custom_instructions>`
+    )
+  }
+
+  return parts.length > 0 ? '\n\n' + parts.join('\n\n') : ''
+}
+
 export function getSystemPrompt(): string {
   const currentDate = new Date().toLocaleDateString('en-US', {
     weekday: 'long',

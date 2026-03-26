@@ -136,6 +136,30 @@ export const ColorTone = z.enum([
 ])
 export type ColorTone = z.infer<typeof ColorTone>
 
+export const PersonalitySchema = z.object({
+  // About you
+  nickname: z.string().nullish(),
+  occupation: z.string().nullish(),
+  aboutYou: z.string().nullish(),
+  // Personalization
+  baseStyle: z
+    .enum([
+      'default',
+      'professional',
+      'friendly',
+      'candid',
+      'quirky',
+      'efficient',
+      'cynical'
+    ])
+    .default('default'),
+  warm: z.enum(['default', 'more', 'less']).default('default'),
+  enthusiastic: z.enum(['default', 'more', 'less']).default('default'),
+  headersAndLists: z.enum(['default', 'more', 'less']).default('default'),
+  emoji: z.enum(['default', 'more', 'less']).default('default'),
+  customInstructions: z.string().nullish()
+})
+
 export const SettingsSchema = z.object({
   id: z.string(),
   providerConfig: ProviderConfigSchema.nullish(),
@@ -151,6 +175,7 @@ export const SettingsSchema = z.object({
   s3: S3Schema.nullish(),
   autoUpdate: z.boolean().nullish(),
   memoryLayer: MemoryLayerSchema.nullish(),
+  personality: PersonalitySchema.nullish(),
   colorTone: ColorTone.default('neutral').nullish(),
   createdAt: z.any(),
   updatedAt: z.any()
