@@ -1,3 +1,4 @@
+import type { GroupedChats } from '@shared/types/chat'
 import type { Chat } from '@shared/types/db'
 import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns'
 import { useSetAtom } from 'jotai'
@@ -55,15 +56,6 @@ function compactRelativeTime(date: Date): string {
   if (weeks < 5) return `${weeks}w`
   const months = Math.floor(days / 30)
   return `${months}mo`
-}
-
-interface GroupedChats {
-  favorite: Chat[]
-  today: Chat[]
-  yesterday: Chat[]
-  lastWeek: Chat[]
-  lastMonth: Chat[]
-  older: Chat[]
 }
 
 export function NavHistorySkeleton() {

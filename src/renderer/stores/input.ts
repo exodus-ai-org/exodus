@@ -1,6 +1,5 @@
+import type { ChatStatus } from '@shared/types/chat'
 import { atom } from 'jotai'
-
-import type { ChatStatus } from '@/hooks/use-chat'
 
 export const chatInputAtom = atom('')
 export const chatStatusAtom = atom<ChatStatus>('idle')

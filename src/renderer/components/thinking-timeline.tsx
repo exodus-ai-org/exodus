@@ -1,3 +1,4 @@
+import type { TimelineStep } from '@shared/types/chat'
 import type { WebSearchResult } from '@shared/types/web-search'
 import { AnimatePresence, motion } from 'framer-motion'
 import {
@@ -16,13 +17,7 @@ import { cn } from '@/lib/utils'
 import { Markdown } from './markdown'
 import { ShimmeringText } from './shimmering-text'
 
-export interface TimelineStep {
-  type: 'thinking' | 'toolCall' | 'toolResult'
-  text: string
-  isError?: boolean
-  toolName?: string
-  webSearchResults?: WebSearchResult[]
-}
+export type { TimelineStep }
 
 interface ThinkingTimelineProps {
   steps: TimelineStep[]

@@ -1,9 +1,13 @@
 import type {
+  AssistantTurn,
   ChatAssistantMessage,
   ChatMessage,
+  ChatStatus,
   ChatToolResultMessage,
   ImageContent,
-  TextContent
+  Segment,
+  TextContent,
+  TimelineStep
 } from '@shared/types/chat'
 import type { WebSearchResult } from '@shared/types/web-search'
 import { ChevronDownIcon } from 'lucide-react'
@@ -11,7 +15,6 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Zoom from 'react-medium-image-zoom'
 
 import { Button } from '@/components/ui/button'
-import type { ChatStatus } from '@/hooks/use-chat'
 import { useSettings } from '@/hooks/use-settings'
 import { cn } from '@/lib/utils'
 
@@ -20,7 +23,7 @@ import { MessageAction } from './massage-action'
 import { MessageSpinner } from './message-spinner'
 import { MessageCallingTools } from './messages-calling-tools'
 import { ShimmeringText } from './shimmering-text'
-import { ThinkingTimeline, TimelineStep } from './thinking-timeline'
+import { ThinkingTimeline } from './thinking-timeline'
 import { Avatar, AvatarImage } from './ui/avatar'
 
 type MessagesProps = {
@@ -35,25 +38,6 @@ const AT_BOTTOM_THRESHOLD = 80
  * A "turn" groups all assistant/toolResult messages between two user messages.
  * This lets us render thinking+tools as a timeline above the final text.
  */
-interface AssistantTurn {
-  /** All messages in this turn (assistant + toolResult) */
-  messages: ChatMessage[]
-  /** Timeline steps extracted from thinking blocks and tool interactions */
-  steps: TimelineStep[]
-  /** The final text blocks to render as the main answer */
-  finalTextBlocks: Array<{ text: string; messageId: string; blockIdx: number }>
-  /** Pending tool calls from the latest assistant message (for shimmer) */
-  pendingToolCalls: Array<{ name: string; id: string }>
-  /** Non-webSearch tool results that have visual cards (weather, maps, etc.) */
-  toolCards: ChatToolResultMessage[]
-  /** Duration of the turn in milliseconds (first msg → last msg) */
-  durationMs: number
-  /** Whether this turn has any content at all */
-  hasContent: boolean
-  /** All webSearch results collected in this turn */
-  webSearchResults: WebSearchResult[]
-}
-
 function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
   const steps: TimelineStep[] = []
   const finalTextBlocks: AssistantTurn['finalTextBlocks'] = []
@@ -148,10 +132,6 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
  * Group messages into segments: each segment is either a user message
  * or a contiguous run of assistant+toolResult messages (a "turn").
  */
-type Segment =
-  | { type: 'user'; message: ChatMessage }
-  | { type: 'assistantTurn'; turn: AssistantTurn }
-
 function groupIntoSegments(messages: ChatMessage[]): Segment[] {
   const segments: Segment[] = []
   let turnBuffer: ChatMessage[] = []

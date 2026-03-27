@@ -1,19 +1,16 @@
 import type {
-  Attachment,
   ChatAssistantMessage,
   ChatMessage,
   ChatSseEvent,
+  ChatStatus,
+  SendMessageOptions,
   Usage
 } from '@shared/types/chat'
 import { useCallback, useRef, useState } from 'react'
 import { v4 as uuidV4 } from 'uuid'
 
-export type ChatStatus = 'idle' | 'submitted' | 'streaming' | 'error'
-
-export interface SendMessageOptions {
-  text?: string
-  attachments?: Attachment[]
-}
+export type { ChatStatus }
+export type { SendMessageOptions }
 
 export interface UseChatOptions {
   id: string

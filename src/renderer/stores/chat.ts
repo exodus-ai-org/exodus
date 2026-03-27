@@ -1,10 +1,10 @@
 import { AdvancedTools } from '@shared/types/ai'
-import { Attachment } from '@shared/types/chat'
+import { Attachment, ChatTab } from '@shared/types/chat'
 import { Chat, DeepResearchMessage } from '@shared/types/db'
 import { WebSearchResult } from '@shared/types/web-search'
 import { atom } from 'jotai'
 
-export type ChatTab = { id: string; title: string }
+export type { ChatTab }
 export const openTabsAtom = atom<ChatTab[]>([])
 
 export const isFullTextSearchVisibleAtom = atom(false)
