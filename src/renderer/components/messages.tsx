@@ -34,6 +34,116 @@ type MessagesProps = {
 
 const AT_BOTTOM_THRESHOLD = 80
 
+const UserSegment = memo(function UserSegment({
+  message
+}: {
+  message: ChatMessage
+}) {
+  return (
+    <div className="mb-8 flex flex-col items-end first:mt-0 last:mb-4">
+      {Array.isArray(message.content) &&
+        message.content.some((c) => c.type === 'image') && (
+          <div className="mb-4 flex gap-4">
+            {(message.content as Array<TextContent | ImageContent>).map(
+              (part, i) => {
+                if (part.type === 'image') {
+                  return (
+                    <Zoom key={i}>
+                      <img
+                        className="max-h-96 max-w-64 rounded-lg object-cover"
+                        src={part.data}
+                        alt="attachment"
+                      />
+                    </Zoom>
+                  )
+                }
+                return null
+              }
+            )}
+          </div>
+        )}
+      <p className="bg-primary text-primary-foreground max-w-[60%] rounded-2xl rounded-br-sm px-4 py-2.5 text-sm wrap-break-word whitespace-pre-wrap shadow-sm">
+        {typeof message.content === 'string'
+          ? message.content
+          : (message.content as Array<TextContent | ImageContent>)
+              .filter((c) => c.type === 'text')
+              .map((c) => (c as TextContent).text)
+              .join('')}
+      </p>
+    </div>
+  )
+})
+
+const AssistantTurnSegment = memo(function AssistantTurnSegment({
+  turn,
+  isStreaming,
+  assistantAvatar,
+  regenerate
+}: {
+  turn: AssistantTurn
+  isStreaming: boolean
+  assistantAvatar?: string
+  regenerate: () => void
+}) {
+  const webSearchResults =
+    turn.webSearchResults.length > 0 ? turn.webSearchResults : undefined
+
+  return (
+    <div className="mb-8 flex flex-col items-start last:mb-4">
+      <div className="flex w-full gap-4">
+        {!!assistantAvatar && (
+          <Avatar>
+            <AvatarImage src={assistantAvatar} className="object-cover" />
+          </Avatar>
+        )}
+        <div className="w-full">
+          {(turn.steps.length > 0 || isStreaming) && (
+            <ThinkingTimeline
+              steps={turn.steps}
+              durationMs={turn.durationMs}
+              isStreaming={isStreaming && turn.finalTextBlocks.length === 0}
+            />
+          )}
+
+          {isStreaming &&
+            turn.pendingToolCalls.map((tc) => (
+              <ShimmeringText
+                key={tc.id}
+                className="mb-4"
+                text={`Calling tool: ${tc.name}`}
+              />
+            ))}
+
+          {turn.toolCards.map((toolResult) => (
+            <MessageCallingTools key={toolResult.id} toolResult={toolResult} />
+          ))}
+
+          {turn.finalTextBlocks.map((block, i) => (
+            <section
+              key={`${block.messageId}-${block.blockIdx}`}
+              className={cn(
+                'group relative',
+                i < turn.finalTextBlocks.length - 1 && 'mb-16'
+              )}
+            >
+              <Markdown
+                src={block.text}
+                parts={[]}
+                webSearchResults={webSearchResults}
+              />
+              <MessageAction
+                regenerate={regenerate}
+                content={block.text}
+                webSearchResults={webSearchResults}
+              />
+            </section>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+})
+
 /**
  * A "turn" groups all assistant/toolResult messages between two user messages.
  * This lets us render thinking+tools as a timeline above the final text.
@@ -216,126 +326,25 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
         <div className="w-full md:max-w-4xl">
           {segments.map((segment, segIdx) => {
             if (segment.type === 'user') {
-              const message = segment.message
               return (
-                <div
-                  key={message.id}
-                  className="mb-8 flex flex-col items-end first:mt-0 last:mb-4"
-                >
-                  {Array.isArray(message.content) &&
-                    message.content.some((c) => c.type === 'image') && (
-                      <div className="mb-4 flex gap-4">
-                        {(
-                          message.content as Array<TextContent | ImageContent>
-                        ).map((part, i) => {
-                          if (part.type === 'image') {
-                            return (
-                              <Zoom key={i}>
-                                <img
-                                  className="max-h-96 max-w-64 rounded-lg object-cover"
-                                  src={part.data}
-                                  alt="attachment"
-                                />
-                              </Zoom>
-                            )
-                          }
-                          return null
-                        })}
-                      </div>
-                    )}
-                  <p className="bg-primary text-primary-foreground max-w-[60%] rounded-2xl rounded-br-sm px-4 py-2.5 text-sm wrap-break-word whitespace-pre-wrap shadow-sm">
-                    {typeof message.content === 'string'
-                      ? message.content
-                      : (message.content as Array<TextContent | ImageContent>)
-                          .filter((c) => c.type === 'text')
-                          .map((c) => (c as TextContent).text)
-                          .join('')}
-                  </p>
-                </div>
+                <UserSegment
+                  key={segment.message.id}
+                  message={segment.message}
+                />
               )
             }
 
-            // assistantTurn
-            const { turn } = segment
             const isLastSegment = segIdx === segments.length - 1
             const turnIsStreaming = isLoading && isLastSegment
 
             return (
-              <div
+              <AssistantTurnSegment
                 key={`turn-${segIdx}`}
-                className="mb-8 flex flex-col items-start last:mb-4"
-              >
-                <div className="flex w-full gap-4">
-                  {!!settings?.assistantAvatar && (
-                    <Avatar>
-                      <AvatarImage
-                        src={settings.assistantAvatar}
-                        className="object-cover"
-                      />
-                    </Avatar>
-                  )}
-                  <div className="w-full">
-                    {/* Thinking timeline */}
-                    {(turn.steps.length > 0 || turnIsStreaming) && (
-                      <ThinkingTimeline
-                        steps={turn.steps}
-                        durationMs={turn.durationMs}
-                        isStreaming={
-                          turnIsStreaming && turn.finalTextBlocks.length === 0
-                        }
-                      />
-                    )}
-
-                    {/* Pending tool calls (shimmer) */}
-                    {turnIsStreaming &&
-                      turn.pendingToolCalls.map((tc) => (
-                        <ShimmeringText
-                          key={tc.id}
-                          className="mb-4"
-                          text={`Calling tool: ${tc.name}`}
-                        />
-                      ))}
-
-                    {/* Tool result cards (weather, maps, etc.) */}
-                    {turn.toolCards.map((toolResult) => (
-                      <MessageCallingTools
-                        key={toolResult.id}
-                        toolResult={toolResult}
-                      />
-                    ))}
-
-                    {/* Final text blocks */}
-                    {turn.finalTextBlocks.map((block, i) => (
-                      <section
-                        key={`${block.messageId}-${block.blockIdx}`}
-                        className={cn(
-                          'group relative',
-                          i < turn.finalTextBlocks.length - 1 && 'mb-16'
-                        )}
-                      >
-                        <Markdown
-                          src={block.text}
-                          parts={[]}
-                          webSearchResults={
-                            turn.webSearchResults.length > 0
-                              ? turn.webSearchResults
-                              : undefined
-                          }
-                        />
-                        <MessageAction
-                          regenerate={regenerate}
-                          content={block.text}
-                          webSearchResults={
-                            turn.webSearchResults.length > 0
-                              ? turn.webSearchResults
-                              : undefined
-                          }
-                        />
-                      </section>
-                    ))}
-                  </div>
-                </div>
-              </div>
+                turn={segment.turn}
+                isStreaming={turnIsStreaming}
+                assistantAvatar={settings?.assistantAvatar ?? undefined}
+                regenerate={regenerate}
+              />
             )
           })}
 

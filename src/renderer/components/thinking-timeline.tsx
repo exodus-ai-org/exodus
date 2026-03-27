@@ -10,7 +10,7 @@ import {
   LoaderIcon,
   XCircleIcon
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { memo, useCallback, useMemo, useState } from 'react'
 
 import { cn } from '@/lib/utils'
 
@@ -37,7 +37,11 @@ function StepIcon({ step }: { step: TimelineStep }) {
   )
 }
 
-function SearchResultItem({ item }: { item: WebSearchResult }) {
+const SearchResultItem = memo(function SearchResultItem({
+  item
+}: {
+  item: WebSearchResult
+}) {
   let hostname = ''
   let favicon = ''
   try {
@@ -62,7 +66,7 @@ function SearchResultItem({ item }: { item: WebSearchResult }) {
       </span>
     </a>
   )
-}
+})
 
 function TimelineNode({
   icon,
@@ -123,6 +127,7 @@ export function ThinkingTimeline({
   isStreaming
 }: ThinkingTimelineProps) {
   const [isExpanded, setIsExpanded] = useState(false)
+  const toggleExpanded = useCallback(() => setIsExpanded((prev) => !prev), [])
 
   const latestTitle = useMemo(() => {
     if (steps.length === 0) return 'Thinking…'
@@ -139,7 +144,7 @@ export function ThinkingTimeline({
     <div className="mb-3">
       <button
         className="text-muted-foreground hover:text-foreground flex items-center gap-1.5 text-sm transition-colors"
-        onClick={() => setIsExpanded(!isExpanded)}
+        onClick={toggleExpanded}
       >
         {isStreaming ? (
           <LoaderIcon size={14} className="shrink-0 animate-spin" />

@@ -1,5 +1,6 @@
 import { useAtom } from 'jotai'
 import { XIcon } from 'lucide-react'
+import { useCallback } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 
 import { Button } from '@/components/ui/button'
@@ -11,22 +12,25 @@ export function ChatTabs() {
   const { id: activeId } = useParams<{ id: string }>()
   const navigate = useNavigate()
 
-  if (tabs.length === 0) return null
-
-  const closeTab = (e: React.MouseEvent, tabId: string) => {
-    e.preventDefault()
-    e.stopPropagation()
-    const tabIndex = tabs.findIndex((t) => t.id === tabId)
-    const newTabs = tabs.filter((t) => t.id !== tabId)
-    setTabs(newTabs)
-    if (tabId === activeId) {
-      if (newTabs.length > 0) {
-        navigate(`/chat/${newTabs[Math.max(0, tabIndex - 1)].id}`)
-      } else {
-        navigate('/')
+  const closeTab = useCallback(
+    (e: React.MouseEvent, tabId: string) => {
+      e.preventDefault()
+      e.stopPropagation()
+      const tabIndex = tabs.findIndex((t) => t.id === tabId)
+      const newTabs = tabs.filter((t) => t.id !== tabId)
+      setTabs(newTabs)
+      if (tabId === activeId) {
+        if (newTabs.length > 0) {
+          navigate(`/chat/${newTabs[Math.max(0, tabIndex - 1)].id}`)
+        } else {
+          navigate('/')
+        }
       }
-    }
-  }
+    },
+    [tabs, setTabs, activeId, navigate]
+  )
+
+  if (tabs.length === 0) return null
 
   return (
     <div className="no-drag flex w-full items-stretch overflow-x-auto pl-2">

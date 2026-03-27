@@ -164,9 +164,36 @@ function TextWithCitations({
   return <>{children}</>
 }
 
+// Stable plugin arrays hoisted outside component to avoid re-creation on every render.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const remarkPluginsStable: any[] = [
+  remarkGfm,
+  [
+    remarkMath,
+    {
+      // KaTeX supports both single dollar ($) and double dollar ($$) delimiters for math expressions.
+      // However, ordinary text containing single dollar signs, such as: "The daily salary ranges from $200 - $300," can be incorrectly interpreted as KaTeX.
+      // Therefore, ensure that the `singleDollarTextMath` parameter is set to `false` to prevent this.
+      // **IMPORTANT:** Instruct your LLM model to always use the double dollar ($$) format when writing mathematical formulas using KaTeX:
+      // e.g. "When writing mathematical formulas using KaTeX format, enclose them within **$$** symbols."
+      singleDollarTextMath: false
+    }
+  ]
+]
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const rehypePluginsStable: any[] = [rehypeKatex]
+
+const codeBlockStyle = {
+  padding: '0.75rem',
+  paddingBottom: 0,
+  fontSize: '0.8125rem',
+  lineHeight: '1.5'
+}
+
 export function Markdown({
   src,
-  webSearchResults: propWebSearchResults
+  webSearchResults
 }: {
   src: string
   parts?: unknown[]
@@ -175,207 +202,191 @@ export function Markdown({
   const { copied, handleCopy } = useClipboard()
   const { actualTheme } = useTheme()
   const { codeTheme } = useMemo(() => themes[actualTheme], [actualTheme])
-  const webSearchResults = useMemo(() => {
-    return propWebSearchResults
-  }, [propWebSearchResults])
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ReactMarkdown component overrides use broad prop types
+  const components: Record<string, any> = useMemo(
+    () => ({
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+      code({ className, children, node, ...rest }: any) {
+        const match = /language-(\w+)/.exec(className || 'javascript')
+        return match ? (
+          <>
+            <section
+              className={cn(
+                'text-ring flex items-center justify-between p-2 text-xs'
+              )}
+            >
+              <span>{match[1]}</span>
+              <div className="flex cursor-default items-center gap-6">
+                {copied !== children ? (
+                  <span
+                    className="hover:text-primary flex items-center gap-1.5"
+                    onClick={() => {
+                      if (typeof children === 'string') {
+                        handleCopy(children)
+                      }
+                    }}
+                  >
+                    <CopyIcon size={10} />
+                    Copy
+                  </span>
+                ) : (
+                  <span className="hover:text-primary flex items-center gap-1.5">
+                    <CheckIcon size={10} strokeWidth={2.5} />
+                    Copied
+                  </span>
+                )}
+              </div>
+            </section>
+
+            <SyntaxHighlighter
+              {...rest}
+              PreTag="div"
+              language={match[1]}
+              style={codeTheme}
+              customStyle={codeBlockStyle}
+            >
+              {String(children).replace(/\n$/, '')}
+            </SyntaxHighlighter>
+          </>
+        ) : (
+          <code {...rest} className={className}>
+            {children}
+          </code>
+        )
+      },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+      pre({ className, children, node, ...rest }: any) {
+        return (
+          <pre {...rest} className={className}>
+            {children}
+          </pre>
+        )
+      },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+      li({ className, node, children, ...rest }: any) {
+        return (
+          <li {...rest} className={className}>
+            <TextWithCitations webSearchResults={webSearchResults}>
+              {children}
+            </TextWithCitations>
+          </li>
+        )
+      },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+      p({ className, node, children, ...rest }: any) {
+        return (
+          <p {...rest} className={className}>
+            <TextWithCitations webSearchResults={webSearchResults}>
+              {children}
+            </TextWithCitations>
+          </p>
+        )
+      },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+      img({ className, node, ...rest }: any) {
+        return (
+          <img {...rest} loading="lazy" className={cn('mb-3', className)} />
+        )
+      },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+      a({ className, children, node, ...rest }: any) {
+        return (
+          <a
+            {...rest}
+            rel="noopener noreferrer"
+            target="_blank"
+            className={cn('font-bold wrap-break-word underline', className)}
+          >
+            {children}
+          </a>
+        )
+      },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+      table({ className, children, node, ...rest }: any) {
+        return (
+          <div className="not-prose mb-4 overflow-x-auto rounded-md border text-sm leading-normal">
+            <table
+              {...rest}
+              className={cn('min-w-full caption-bottom', className)}
+            >
+              {children}
+            </table>
+          </div>
+        )
+      },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+      thead({ className, children, node, ...rest }: any) {
+        return (
+          <thead {...rest} className={cn('[&_tr]:border-b', className)}>
+            {children}
+          </thead>
+        )
+      },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+      tbody({ className, children, node, ...rest }: any) {
+        return (
+          <tbody
+            {...rest}
+            className={cn('[&_tr:last-child]:border-0', className)}
+          >
+            {children}
+          </tbody>
+        )
+      },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+      tr({ className, children, node, ...rest }: any) {
+        return (
+          <tr
+            {...rest}
+            className={cn(
+              'hover:bg-muted/50 border-b transition-colors',
+              className
+            )}
+          >
+            {children}
+          </tr>
+        )
+      },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+      th({ className, children, node, ...rest }: any) {
+        return (
+          <th
+            {...rest}
+            className={cn(
+              'text-foreground px-3 py-2.5 text-left align-middle font-medium whitespace-nowrap',
+              className
+            )}
+          >
+            {children}
+          </th>
+        )
+      },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
+      td({ className, children, node, ...rest }: any) {
+        return (
+          <td
+            {...rest}
+            style={{ fontWeight: 400 }}
+            className={cn(
+              'text-foreground px-3 py-2 align-middle whitespace-nowrap',
+              className
+            )}
+          >
+            {children}
+          </td>
+        )
+      }
+    }),
+    [copied, handleCopy, codeTheme, webSearchResults]
+  )
 
   return (
     <section className="prose prose-sm dark:prose-invert max-w-none">
       <ReactMarkdown
-        remarkPlugins={[
-          remarkGfm,
-          [
-            remarkMath,
-            {
-              // KaTeX supports both single dollar ($) and double dollar ($$) delimiters for math expressions.
-              // However, ordinary text containing single dollar signs, such as: "The daily salary ranges from $200 - $300," can be incorrectly interpreted as KaTeX.
-              // Therefore, ensure that the `singleDollarTextMath` parameter is set to `false` to prevent this.
-              // **IMPORTANT:** Instruct your LLM model to always use the double dollar ($$) format when writing mathematical formulas using KaTeX:
-              // e.g. "When writing mathematical formulas using KaTeX format, enclose them within **$$** symbols."
-              singleDollarTextMath: false
-            }
-          ]
-        ]}
-        rehypePlugins={[rehypeKatex]}
-        components={{
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          code({ className, children, node, ...rest }) {
-            const match = /language-(\w+)/.exec(className || 'javascript')
-            return match ? (
-              <>
-                <section
-                  className={cn(
-                    'text-ring flex items-center justify-between p-2 text-xs'
-                  )}
-                >
-                  <span>{match[1]}</span>
-                  <div className="flex cursor-default items-center gap-6">
-                    {copied !== children ? (
-                      <span
-                        className="hover:text-primary flex items-center gap-1.5"
-                        onClick={() => {
-                          if (typeof children === 'string') {
-                            handleCopy(children)
-                          }
-                        }}
-                      >
-                        <CopyIcon size={10} />
-                        Copy
-                      </span>
-                    ) : (
-                      <span className="hover:text-primary flex items-center gap-1.5">
-                        <CheckIcon size={10} strokeWidth={2.5} />
-                        Copied
-                      </span>
-                    )}
-                  </div>
-                </section>
-
-                {/* @ts-expect-error I don't know why. 🤷 */}
-                <SyntaxHighlighter
-                  {...rest}
-                  PreTag="div"
-                  language={match[1]}
-                  style={codeTheme}
-                  customStyle={{
-                    padding: '0.75rem',
-                    paddingBottom: 0,
-                    fontSize: '0.8125rem',
-                    lineHeight: '1.5'
-                  }}
-                >
-                  {String(children).replace(/\n$/, '')}
-                </SyntaxHighlighter>
-              </>
-            ) : (
-              <code {...rest} className={className}>
-                {children}
-              </code>
-            )
-          },
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          pre({ className, children, node, ...rest }) {
-            return (
-              <pre {...rest} className={className}>
-                {children}
-              </pre>
-            )
-          },
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          li({ className, node, children, ...rest }) {
-            return (
-              <li {...rest} className={className}>
-                <TextWithCitations webSearchResults={webSearchResults}>
-                  {children}
-                </TextWithCitations>
-              </li>
-            )
-          },
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          p({ className, node, children, ...rest }) {
-            return (
-              <p {...rest} className={className}>
-                <TextWithCitations webSearchResults={webSearchResults}>
-                  {children}
-                </TextWithCitations>
-              </p>
-            )
-          },
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          img({ className, node, ...rest }) {
-            return (
-              <img {...rest} loading="lazy" className={cn('mb-3', className)} />
-            )
-          },
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          a({ className, children, node, ...rest }) {
-            return (
-              <a
-                {...rest}
-                rel="noopener noreferrer"
-                target="_blank"
-                className={cn('font-bold wrap-break-word underline', className)}
-              >
-                {children}
-              </a>
-            )
-          },
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          table({ className, children, node, ...rest }) {
-            return (
-              <div className="not-prose mb-4 overflow-x-auto rounded-md border text-sm leading-normal">
-                <table
-                  {...rest}
-                  className={cn('min-w-full caption-bottom', className)}
-                >
-                  {children}
-                </table>
-              </div>
-            )
-          },
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          thead({ className, children, node, ...rest }) {
-            return (
-              <thead {...rest} className={cn('[&_tr]:border-b', className)}>
-                {children}
-              </thead>
-            )
-          },
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          tbody({ className, children, node, ...rest }) {
-            return (
-              <tbody
-                {...rest}
-                className={cn('[&_tr:last-child]:border-0', className)}
-              >
-                {children}
-              </tbody>
-            )
-          },
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          tr({ className, children, node, ...rest }) {
-            return (
-              <tr
-                {...rest}
-                className={cn(
-                  'hover:bg-muted/50 border-b transition-colors',
-                  className
-                )}
-              >
-                {children}
-              </tr>
-            )
-          },
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          th({ className, children, node, ...rest }) {
-            return (
-              <th
-                {...rest}
-                className={cn(
-                  'text-foreground px-3 py-2.5 text-left align-middle font-medium whitespace-nowrap',
-                  className
-                )}
-              >
-                {children}
-              </th>
-            )
-          },
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          td({ className, children, node, ...rest }) {
-            return (
-              <td
-                {...rest}
-                style={{ fontWeight: 400 }}
-                className={cn(
-                  'text-foreground px-3 py-2 align-middle whitespace-nowrap',
-                  className
-                )}
-              >
-                {children}
-              </td>
-            )
-          }
-        }}
+        remarkPlugins={remarkPluginsStable}
+        rehypePlugins={rehypePluginsStable}
+        components={components}
       >
         {src}
       </ReactMarkdown>

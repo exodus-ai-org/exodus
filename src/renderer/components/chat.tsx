@@ -2,7 +2,6 @@ import { QUICK_CHAT_KEY } from '@shared/constants/misc'
 import { BASE_URL } from '@shared/constants/systems'
 import { Attachment, ChatMessage } from '@shared/types/chat'
 import type { Project } from '@shared/types/db'
-import { IpcRendererEvent } from 'electron'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router'
@@ -12,7 +11,6 @@ import useSWR from 'swr'
 import { v4 as uuidV4 } from 'uuid'
 
 import { useChat } from '@/hooks/use-chat'
-import { bringWindowToFront, subscribeQuickChatInput } from '@/lib/ipc'
 import { advancedToolsAtom } from '@/stores/chat'
 import { chatInputAtom, chatStatusAtom, chatStopFnAtom } from '@/stores/input'
 
@@ -104,24 +102,10 @@ export function Chat({ id, initialMessages, projectId }: Props) {
     setChatStop(() => stableStop)
   }, [stableStop, setChatStop])
 
+  // Quick-chat: if localStorage has a pending quick-chat message, send it immediately
   useEffect(() => {
     if (quickChat) {
       setChatInput(quickChat)
-    }
-  }, [quickChat, setChatInput])
-
-  useEffect(() => {
-    return () => {
-      subscribeQuickChatInput(async (_: IpcRendererEvent, text: string) => {
-        await bringWindowToFront()
-        window.localStorage.setItem(QUICK_CHAT_KEY, text)
-        window.location.href = '/'
-      })
-    }
-  }, [id])
-
-  useEffect(() => {
-    if (quickChat) {
       window.history.replaceState({}, '', `/chat/${id}`)
       sendMessage({ text: quickChat })
       setChatInput('')

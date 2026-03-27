@@ -1,5 +1,7 @@
-import { useEffect } from 'react'
-import { Outlet } from 'react-router'
+import { QUICK_CHAT_KEY } from '@shared/constants/misc'
+import { IpcRendererEvent } from 'electron'
+import { useCallback, useEffect } from 'react'
+import { Outlet, useNavigate } from 'react-router'
 
 import { DeepResearchProcess } from '@/components/deep-research'
 import { SourcesPanel } from '@/components/sources-panel'
@@ -11,6 +13,7 @@ import {
   useSidebar
 } from '@/components/ui/sidebar'
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
+import { subscribeQuickChatInput, unsubscribeQuickChatInput } from '@/lib/ipc'
 import { cn } from '@/lib/utils'
 
 import { AppSidebar } from './app-sidebar'
@@ -51,6 +54,22 @@ function InsertedSidebar() {
 }
 
 export function Layout() {
+  const navigate = useNavigate()
+
+  // Listen for quick-chat input at layout level so it works regardless of current route
+  const onQuickChatInput = useCallback(
+    (_: IpcRendererEvent, text: string) => {
+      window.localStorage.setItem(QUICK_CHAT_KEY, text)
+      navigate('/')
+    },
+    [navigate]
+  )
+
+  useEffect(() => {
+    subscribeQuickChatInput(onQuickChatInput)
+    return () => unsubscribeQuickChatInput(onQuickChatInput)
+  }, [onQuickChatInput])
+
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {

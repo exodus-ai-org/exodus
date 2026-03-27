@@ -7,7 +7,7 @@ import {
   ThumbsDownIcon,
   ThumbsUpIcon
 } from 'lucide-react'
-import { ReactNode, useMemo } from 'react'
+import { memo, ReactNode, useCallback, useMemo } from 'react'
 
 import { useClipboard } from '@/hooks/use-clipboard'
 import { sourcesPanelAtom } from '@/stores/chat'
@@ -46,14 +46,12 @@ export function MessageActionItem({
   tooltipContent: string
 }) {
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger>{children}</TooltipTrigger>
-        <TooltipContent>
-          <p>{tooltipContent}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip>
+      <TooltipTrigger>{children}</TooltipTrigger>
+      <TooltipContent>
+        <p>{tooltipContent}</p>
+      </TooltipContent>
+    </Tooltip>
   )
 }
 
@@ -104,7 +102,7 @@ function SourcesButton({
 
 // ─── MessageAction ──────────────────────────────────────────────────────────
 
-export function MessageAction({
+export const MessageAction = memo(function MessageAction({
   content,
   regenerate,
   webSearchResults
@@ -116,41 +114,51 @@ export function MessageAction({
   const { copied, handleCopy } = useClipboard()
   const setSourcesPanel = useSetAtom(sourcesPanelAtom)
 
-  return (
-    <div className="mt-2 flex items-center gap-1">
-      <MessageActionItem tooltipContent="Copy">
-        <IconWrapper onClick={() => handleCopy(content)}>
-          {copied !== content ? (
-            <CopyIcon size={16} />
-          ) : (
-            <CheckIcon size={16} />
-          )}
-        </IconWrapper>
-      </MessageActionItem>
-      <MessageActionItem tooltipContent="Good response">
-        <IconWrapper onClick={() => {}}>
-          <ThumbsUpIcon size={16} />
-        </IconWrapper>
-      </MessageActionItem>
-      <MessageActionItem tooltipContent="Bad response">
-        <IconWrapper onClick={() => {}}>
-          <ThumbsDownIcon size={16} />
-        </IconWrapper>
-      </MessageActionItem>
-      <AudioPlayer content={content} />
-      <MessageActionItem tooltipContent="Switch model">
-        <IconWrapper onClick={regenerate}>
-          <RefreshCcwIcon size={16} />
-        </IconWrapper>
-      </MessageActionItem>
-      {webSearchResults && webSearchResults.length > 0 && (
-        <SourcesButton
-          webSearchResults={webSearchResults}
-          onClick={() =>
-            setSourcesPanel({ webSearchResults, messageText: content })
-          }
-        />
-      )}
-    </div>
+  const onCopy = useCallback(() => handleCopy(content), [handleCopy, content])
+  const onSourcesClick = useCallback(
+    () =>
+      setSourcesPanel({
+        webSearchResults: webSearchResults!,
+        messageText: content
+      }),
+    [setSourcesPanel, webSearchResults, content]
   )
-}
+
+  return (
+    <TooltipProvider>
+      <div className="mt-2 flex items-center gap-1">
+        <MessageActionItem tooltipContent="Copy">
+          <IconWrapper onClick={onCopy}>
+            {copied !== content ? (
+              <CopyIcon size={16} />
+            ) : (
+              <CheckIcon size={16} />
+            )}
+          </IconWrapper>
+        </MessageActionItem>
+        <MessageActionItem tooltipContent="Good response">
+          <IconWrapper>
+            <ThumbsUpIcon size={16} />
+          </IconWrapper>
+        </MessageActionItem>
+        <MessageActionItem tooltipContent="Bad response">
+          <IconWrapper>
+            <ThumbsDownIcon size={16} />
+          </IconWrapper>
+        </MessageActionItem>
+        <AudioPlayer content={content} />
+        <MessageActionItem tooltipContent="Switch model">
+          <IconWrapper onClick={regenerate}>
+            <RefreshCcwIcon size={16} />
+          </IconWrapper>
+        </MessageActionItem>
+        {webSearchResults && webSearchResults.length > 0 && (
+          <SourcesButton
+            webSearchResults={webSearchResults}
+            onClick={onSourcesClick}
+          />
+        )}
+      </div>
+    </TooltipProvider>
+  )
+})

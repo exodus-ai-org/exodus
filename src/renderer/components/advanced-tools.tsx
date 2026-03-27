@@ -2,6 +2,7 @@ import { AdvancedTools as AdvancedToolsType } from '@shared/types/ai'
 import { produce } from 'immer'
 import { useAtom } from 'jotai'
 import { GlobeIcon, LightbulbIcon, TelescopeIcon } from 'lucide-react'
+import { useCallback } from 'react'
 
 import { cn } from '@/lib/utils'
 import { advancedToolsAtom } from '@/stores/chat'
@@ -35,64 +36,65 @@ const advancedToolsList = [
 export function AdvancedTools() {
   const [advancedTools, setAdvancedTools] = useAtom(advancedToolsAtom)
 
-  const handleAdvancedTools = (advancedToolName: AdvancedToolsType) => {
-    setAdvancedTools(
-      produce(advancedTools, (draft) => {
-        const idx = draft.indexOf(advancedToolName)
+  const handleAdvancedTools = useCallback(
+    (advancedToolName: AdvancedToolsType) => {
+      setAdvancedTools(
+        produce((draft) => {
+          const idx = draft.indexOf(advancedToolName)
 
-        if (idx === -1) {
-          draft.push(advancedToolName)
+          if (idx === -1) {
+            draft.push(advancedToolName)
 
-          if (advancedToolName === AdvancedToolsType.DeepResearch) {
-            const reasoningIdx = draft.indexOf(AdvancedToolsType.Reasoning)
-            if (reasoningIdx > -1) draft.splice(reasoningIdx, 1)
-            const webSearchIdx = draft.indexOf(AdvancedToolsType.WebSearch)
-            if (webSearchIdx > -1) draft.splice(webSearchIdx, 1)
+            if (advancedToolName === AdvancedToolsType.DeepResearch) {
+              const reasoningIdx = draft.indexOf(AdvancedToolsType.Reasoning)
+              if (reasoningIdx > -1) draft.splice(reasoningIdx, 1)
+              const webSearchIdx = draft.indexOf(AdvancedToolsType.WebSearch)
+              if (webSearchIdx > -1) draft.splice(webSearchIdx, 1)
+            }
+
+            if (
+              advancedToolName === AdvancedToolsType.Reasoning ||
+              advancedToolName === AdvancedToolsType.WebSearch
+            ) {
+              const deepResearchIdx = draft.indexOf(
+                AdvancedToolsType.DeepResearch
+              )
+              if (deepResearchIdx > -1) draft.splice(deepResearchIdx, 1)
+            }
+          } else {
+            draft.splice(idx, 1)
           }
-
-          if (
-            advancedToolName === AdvancedToolsType.Reasoning ||
-            advancedToolName === AdvancedToolsType.WebSearch
-          ) {
-            const deepResearchIdx = draft.indexOf(
-              AdvancedToolsType.DeepResearch
-            )
-            if (deepResearchIdx > -1) draft.splice(deepResearchIdx, 1)
-          }
-        } else {
-          draft.splice(idx, 1)
-        }
-      })
-    )
-  }
+        })
+      )
+    },
+    [setAdvancedTools]
+  )
 
   return (
-    <>
+    <TooltipProvider>
       {advancedToolsList.map(({ key, icon, desc }) => (
-        <TooltipProvider key={key}>
-          <Tooltip>
-            <TooltipTrigger>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  'text-muted-foreground hover:text-foreground size-6 rounded-full bg-transparent transition-colors',
-                  {
-                    ['text-[#0285ff] hover:text-[#0285ff] dark:text-[#48aaff] hover:dark:text-[#48aaff]']:
-                      advancedTools.includes(key)
-                  }
-                )}
-                onClick={() => handleAdvancedTools(key)}
-              >
-                {icon}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{desc}</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip key={key}>
+          <TooltipTrigger>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                'text-muted-foreground hover:text-foreground size-6 rounded-full bg-transparent transition-colors',
+                {
+                  ['text-[#0285ff] hover:text-[#0285ff] dark:text-[#48aaff] hover:dark:text-[#48aaff]']:
+                    advancedTools.includes(key)
+                }
+              )}
+              onClick={() => handleAdvancedTools(key)}
+            >
+              {icon}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{desc}</p>
+          </TooltipContent>
+        </Tooltip>
       ))}
-    </>
+    </TooltipProvider>
   )
 }

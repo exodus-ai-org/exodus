@@ -75,13 +75,30 @@ export function setupIPC() {
   ipcMain.handle('close-quick-chat', () => {
     const quickChatView = getQuickChatView()
     if (quickChatView) {
-      quickChatView.destroy()
+      quickChatView.hide()
       setQuickChatView(null)
+      quickChatView.destroy()
     }
   })
 
   ipcMain.handle('transfer-quick-chat', (_, input: string) => {
-    getMainWindow()?.webContents.send('quick-chat-input', input)
+    // Close quick-chat window first
+    const quickChatView = getQuickChatView()
+    if (quickChatView) {
+      quickChatView.hide()
+      setQuickChatView(null)
+      quickChatView.destroy()
+    }
+
+    // Bring main window to front and send input
+    const mainWindow = getMainWindow()
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore()
+      if (!mainWindow.isVisible()) mainWindow.show()
+      mainWindow.focus()
+      app.focus({ steal: true })
+      mainWindow.webContents.send('quick-chat-input', input)
+    }
   })
 
   ipcMain.handle('bring-window-to-front', () => {

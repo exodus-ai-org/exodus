@@ -136,8 +136,8 @@ export function registerQuickChat() {
     hasShadow: true,
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false,
-      transparent: true,
+      contextIsolation: true,
+      sandbox: false,
       preload: join(__dirname, '../preload/index.js')
     }
   })

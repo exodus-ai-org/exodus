@@ -4,14 +4,14 @@ import ReactDOM from 'react-dom/client'
 
 import { ThemeProvider } from '@/components/theme-provider'
 
-import { FindBar } from './app'
+import { QuickChat } from './app'
 
 ReactDOM.createRoot(
   document.getElementById('quick-chat-root') as HTMLElement
 ).render(
   <React.StrictMode>
     <ThemeProvider>
-      <FindBar />
+      <QuickChat />
     </ThemeProvider>
   </React.StrictMode>
 )

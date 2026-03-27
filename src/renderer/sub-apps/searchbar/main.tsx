@@ -4,14 +4,14 @@ import ReactDOM from 'react-dom/client'
 
 import { ThemeProvider } from '@/components/theme-provider'
 
-import { FindBar } from './app'
+import { SearchBar } from './app'
 
 ReactDOM.createRoot(
   document.getElementById('searchbar-root') as HTMLElement
 ).render(
   <React.StrictMode>
     <ThemeProvider>
-      <FindBar />
+      <SearchBar />
     </ThemeProvider>
   </React.StrictMode>
 )
