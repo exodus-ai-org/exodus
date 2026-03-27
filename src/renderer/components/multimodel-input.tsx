@@ -159,25 +159,16 @@ function InputBox({
           </div>
 
           {status === 'submitted' || status === 'streaming' ? (
-            <Button
-              variant="secondary"
-              size="icon-sm"
-              onClick={stop ?? undefined}
-            >
-              <CircleStopIcon size={16} />
+            <Button variant="secondary" onClick={stop ?? undefined}>
+              <CircleStopIcon />
             </Button>
           ) : (
             <>
               {input.trim() === '' ? (
                 <AudioRecorder input={input} setInput={setInput} />
               ) : (
-                <Button
-                  type="submit"
-                  variant="secondary"
-                  size="icon-sm"
-                  onClick={submitForm}
-                >
-                  <SendIcon size={16} />
+                <Button type="submit" variant="secondary" onClick={submitForm}>
+                  <SendIcon />
                 </Button>
               )}
             </>

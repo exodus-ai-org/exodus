@@ -67,8 +67,13 @@ export function SystemInfo({ form }: { form: UseFormReturnType }) {
         </ExternalLink>
       </SettingsRow>
       <SettingsRow label="X (Twitter)">
-        <ExternalLink href="https://x.com/ExodusAIOrg">
-          @ExodusAIOrg
+        <ExternalLink href="https://x.com/YanceyOfficial">
+          @YanceyOfficial
+        </ExternalLink>
+      </SettingsRow>
+      <SettingsRow label="Website">
+        <ExternalLink href="https://exodus.yancey.app">
+          exodus.yancey.app
         </ExternalLink>
       </SettingsRow>
       <SettingsRow label="License">

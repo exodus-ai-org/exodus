@@ -98,7 +98,7 @@ export function Personality({ form }: { form: UseFormReturnType }) {
       >
         <Textarea
           placeholder="Additional behavior, style, and tone preferences"
-          className="min-h-[80px]"
+          className="min-h-20"
           value={form.watch('personality.customInstructions') ?? ''}
           onChange={(e) =>
             form.setValue('personality.customInstructions', e.target.value)
