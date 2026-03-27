@@ -1,3 +1,79 @@
+# [1.11.0](https://github.com/exodus-ai-org/exodus/compare/v1.10.0...v1.11.0) (2026-03-27)
+
+
+### Bug Fixes
+
+* add @electron-toolkit/utils mock to tests for logger compatibility ([762b515](https://github.com/exodus-ai-org/exodus/commit/762b515abd28f5b73f3de8140a3143a03b0c50de))
+* add statement-breakpoint markers to migration 0007 ([dc449ce](https://github.com/exodus-ai-org/exodus/commit/dc449ce8753e3b93e0e34cc58dd1fd1f6afc8ede))
+* Agent X graph — dept→agent connection and delete crash ([c0e5830](https://github.com/exodus-ai-org/exodus/commit/c0e5830f5ec356395fbb654b11809b202b854f3d))
+* align DB schema with pi-ai types, fix persistence and cleanup ([55accc0](https://github.com/exodus-ai-org/exodus/commit/55accc06b331b64a5a71ac3cdf08e16f3958a645))
+* correct usage/cost tracking and event handling in chat stream ([48e94dc](https://github.com/exodus-ai-org/exodus/commit/48e94dcabc7725b5dcb3a9b4b68894c66a390e30))
+* exclude pi-mono ESM packages from externalization in electron-vite ([a3b4832](https://github.com/exodus-ai-org/exodus/commit/a3b4832c0c4746a66822cecb8da34c1ba3d5df31))
+* extract error message from response body in useChat ([7e34982](https://github.com/exodus-ai-org/exodus/commit/7e34982feb0b729b621f8a7a4510c304dcd84303))
+* improve error handling with user-friendly messages ([c3ae262](https://github.com/exodus-ai-org/exodus/commit/c3ae262cc4312980d9e18bf7d519b6470bf9dad7))
+* optimize React renderer perf and fix quick-chat/searchbar sub-apps ([ab3022a](https://github.com/exodus-ai-org/exodus/commit/ab3022af5947e94ccb792444fb96c8c40e15a063)), closes [hi#frequency](https://github.com/hi/issues/frequency)
+* remove debug fs.writeFileSync from chat streaming ([a60bfb5](https://github.com/exodus-ai-org/exodus/commit/a60bfb5eae26d98643e68688b120235c74e3d93d))
+* simplify scroll-to-bottom logic, stop auto-scroll during streaming ([85abdcf](https://github.com/exodus-ai-org/exodus/commit/85abdcfe637e33e93c32a24c1275711b24227451))
+* three LCM correctness bugs ([f3fdd6e](https://github.com/exodus-ai-org/exodus/commit/f3fdd6e908e971fa238961385fc721a5d44503d1))
+* use base-ui data-panel-open for collapsible chevron rotation ([c561664](https://github.com/exodus-ai-org/exodus/commit/c561664ac3c399e93421900ba85e9d728c90841d))
+
+
+### Features
+
+* add Agent X dashboard with sidebar navigation and metrics ([b3eda39](https://github.com/exodus-ai-org/exodus/commit/b3eda394dde3c7dc286d832aaa6addccc4205fae))
+* add color tone picker with persistence and flash-prevention ([4d1e88c](https://github.com/exodus-ai-org/exodus/commit/4d1e88ceaea3ad2ebf997753a0c5e4e247012707))
+* add colorTone field to settings schema and DB ([8372166](https://github.com/exodus-ai-org/exodus/commit/83721667aca040fe242bcf98158a138ae6c0486e))
+* add core logger module with JSONL file output and daily rotation ([27d07e8](https://github.com/exodus-ai-org/exodus/commit/27d07e896e9ed689c843369b55e6dc5463833494))
+* add CSS color tone rulesets for all 6 tones (light + dark) ([db06690](https://github.com/exodus-ai-org/exodus/commit/db06690fd3335bedc5d00d332fa20de29579ab43))
+* add keyboard shortcuts system and remove @tailwindcss/typography ([dab47d3](https://github.com/exodus-ai-org/exodus/commit/dab47d33849f275abb92513dcff4e66800d57cfd))
+* add log query API routes (list, filter, export, clear) ([af2562d](https://github.com/exodus-ai-org/exodus/commit/af2562ddf3f6b9b5f8693ff3dd5af382b3e2a3a3))
+* add Logger page to Settings with filtering and log viewer ([a595018](https://github.com/exodus-ai-org/exodus/commit/a5950185a826a55cfe6f19c34694c18def071324))
+* add remote MCP transport support (SSE & Streamable HTTP) ([d7268bf](https://github.com/exodus-ai-org/exodus/commit/d7268bf1e72932516e0699935c0a03a0acbcd498))
+* add shared SseManager to replace duplicated SSE patterns ([e067217](https://github.com/exodus-ai-org/exodus/commit/e06721729e7dcd82a42cd3ba483df62efafe6771))
+* Agent X — free-floating agents, link-to-assign dept membership ([37fb023](https://github.com/exodus-ai-org/exodus/commit/37fb0236f79ff515ecd94e53a1e9e46a5bbcd8a7))
+* Agent X — smart fill, task kanban, cost analysis, feedback ([db1d593](https://github.com/exodus-ai-org/exodus/commit/db1d5934393917cba16beb69bc86cb335fb00361))
+* Agent X graph multi-select and group drag ([82aafab](https://github.com/exodus-ai-org/exodus/commit/82aafab3986c26206b14b0191a4c83587d150b79))
+* Agent X graph UI — add agent button, collaboration edges ([343e4c7](https://github.com/exodus-ai-org/exodus/commit/343e4c71431f4529f48237744abddee998291931))
+* Agent X smart dispatch, cron scheduling, shadow agents, and graph UX improvements ([fe59963](https://github.com/exodus-ai-org/exodus/commit/fe5996365ac42d43866ab5a9f5e9bc1b855b213c)), closes [hi#priority](https://github.com/hi/issues/priority)
+* cron tasks as persistent templates with run history ([b34daaf](https://github.com/exodus-ai-org/exodus/commit/b34daaf527158ed3fa2d3f935b6988b7be0bab00))
+* **db:** add migration to rename snake_case columns to camelCase ([3fb379e](https://github.com/exodus-ai-org/exodus/commit/3fb379eebd75997b14c7fbc14716a8b372b63f86))
+* **db:** update schema.ts column definitions to camelCase ([9588efe](https://github.com/exodus-ai-org/exodus/commit/9588efecf31307d9d34a74ef892711fd7ee14116))
+* enforce web search citations and fix tool content routing ([db32a06](https://github.com/exodus-ai-org/exodus/commit/db32a0663327751f39a764d10708212932f8db7c))
+* implement Agent X multi-agent management system (Phase 1 MVP) ([a02ae45](https://github.com/exodus-ai-org/exodus/commit/a02ae455b0e2643ab89813285f337fa3828a3a63))
+* implement memory system, context management, and LCM tools ([02cc19c](https://github.com/exodus-ai-org/exodus/commit/02cc19cbd2af535dbeadf4c909bfb7848db966e5))
+* improve error handling, integrate thinking timeline, and add sources panel ([63ec605](https://github.com/exodus-ai-org/exodus/commit/63ec605e7f940287b787e2689fcb712ef5c4ba9c))
+* improve thinking timeline with duration, streaming preview, and conditional Done ([f4c9a6b](https://github.com/exodus-ai-org/exodus/commit/f4c9a6b0367a0049ca423fa6320161ab014be24f))
+* MCP tools integration with chat and settings-based server selection ([ddefb17](https://github.com/exodus-ai-org/exodus/commit/ddefb17a6c42f0b7fd357bc1f998dcb557102534))
+* migrate from Vercel AI SDK to pi-mono (pi-ai + pi-agent-core) ([a63d20e](https://github.com/exodus-ai-org/exodus/commit/a63d20e82fa8d59a4cc3f3d4af93b1ef4d2608e8))
+* migrate from Vercel AI SDK to pi-mono (pi-ai + pi-agent-core) ([555d044](https://github.com/exodus-ai-org/exodus/commit/555d04470143e2222e3ea3dec124d155540b228b))
+* misc UI improvements across Agent X, chat, and settings ([ff5dbde](https://github.com/exodus-ai-org/exodus/commit/ff5dbdef71a5d36eacda4f10899a1baf91a1d6b0))
+* **personality:** add personality schema, DB column, and system prompt injection ([079de6b](https://github.com/exodus-ai-org/exodus/commit/079de6b9e7c2dc913f353cdfd3c03b6b76740c85))
+* **personality:** add Personality settings page with style/tone/user info ([d655901](https://github.com/exodus-ai-org/exodus/commit/d655901253dcf2729ea7d3f06fd18d716b1449ed))
+* **projects:** add /api/project CRUD route ([7dda126](https://github.com/exodus-ai-org/exodus/commit/7dda1260793630a3b415d51f6171bdfcbaea5768))
+* **projects:** add frontend project service and Jotai store ([8e2500f](https://github.com/exodus-ai-org/exodus/commit/8e2500f20b870c6595ce7bef66c3dba301084006))
+* **projects:** add project breadcrumb in chat view ([2d17fe9](https://github.com/exodus-ai-org/exodus/commit/2d17fe9e5db53067f0ed9fe562da0c4679ef9b97))
+* **projects:** add project CRUD queries and modify chat queries ([15959c5](https://github.com/exodus-ai-org/exodus/commit/15959c514148e2b5ee18abb8736bbcea8b446099))
+* **projects:** add project table and chat.projectId column ([74b58d7](https://github.com/exodus-ai-org/exodus/commit/74b58d7f7bdf0e42f5e55b4cce5b64e0356d8643))
+* **projects:** add ProjectDetail page with instructions editor ([fb6f061](https://github.com/exodus-ai-org/exodus/commit/fb6f06106f40781adc5231afd10dc04c951bc2a0))
+* **projects:** add projectId filtering to history route ([43ef218](https://github.com/exodus-ai-org/exodus/commit/43ef218313646659e1733bcb01a4dc0cda6c77e1))
+* **projects:** add shared Zod schemas for project validation ([6cbd0e1](https://github.com/exodus-ai-org/exodus/commit/6cbd0e1d6bcdb92cc38bb080d96a3ecddbbd218b))
+* **projects:** add sidebar tab switching between Chats and Projects ([2e7482b](https://github.com/exodus-ai-org/exodus/commit/2e7482b7085131bcddd20058e5aa8c4503ee7aa9))
+* **projects:** forward projectId in chat API requests ([ce619ed](https://github.com/exodus-ai-org/exodus/commit/ce619ed89d59b92334b30b4c0ca1fa26688332ca))
+* **projects:** implement NavProjects sidebar component with CRUD ([7a6b00e](https://github.com/exodus-ai-org/exodus/commit/7a6b00e942f4825cf26af06d2b5b15fb5f2ceb85))
+* **projects:** inject project instructions into chat system prompt ([c1ab1ea](https://github.com/exodus-ai-org/exodus/commit/c1ab1eaaba596b2513fa6560c98410eb5ca9b977))
+* **projects:** support projectId in new chats and show project badge ([4a0cc3e](https://github.com/exodus-ai-org/exodus/commit/4a0cc3e97a77607330659dc4bf05a9b25b75091e))
+* redesign citations system and improve skills search ([251cb0b](https://github.com/exodus-ai-org/exodus/commit/251cb0bafc4400a60f26184b2dec816c65d61969))
+* redesign web search citations and sources UI ([cd17432](https://github.com/exodus-ai-org/exodus/commit/cd1743244970ebf8a232daeed5775fcdd6f1cb8d))
+* resolve conflict ([f15a750](https://github.com/exodus-ai-org/exodus/commit/f15a750afb09acaa619316f1d2fa27f304960f79))
+* some file style updating ([efeff09](https://github.com/exodus-ai-org/exodus/commit/efeff09f26c11cd68b58dcb85c88531cafce828e))
+* update skills ([8d7560c](https://github.com/exodus-ai-org/exodus/commit/8d7560c43df21a5e48e2654b1e1ace39f591b450))
+* upgrade image generation and audio models to latest ([c7560a8](https://github.com/exodus-ai-org/exodus/commit/c7560a8375861f6fd4c99371e379111e77223a2c))
+
+
+### Performance Improvements
+
+* lazy load Monaco Editor in MCP Servers settings ([dbfddfe](https://github.com/exodus-ai-org/exodus/commit/dbfddfe53d956aa156c2fcea82b15c05ccfe4e3f))
+
 # [1.10.0](https://github.com/exodus-ai-org/exodus/compare/v1.9.0...v1.10.0) (2026-03-15)
 
 
