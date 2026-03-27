@@ -188,37 +188,25 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
 
   const segments = useMemo(() => groupIntoSegments(messages), [messages])
 
-  const scrollToBottomSmooth = useCallback(() => {
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'instant') => {
     const $el = chatBoxRef.current
     if (!$el) return
-    $el.scrollTo({ top: $el.scrollHeight, behavior: 'smooth' })
+    $el.scrollTo({ top: $el.scrollHeight, behavior })
     isAtBottom.current = true
     setShowScrollButton(false)
   }, [])
 
-  // Mount: instant scroll to bottom
+  // Mount / route change: instant scroll to bottom
   useEffect(() => {
-    const $el = chatBoxRef.current
-    if ($el) $el.scrollTop = $el.scrollHeight
+    scrollToBottom('instant')
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Submit: always force-scroll regardless of user scroll position
+  // Submit: force-scroll to bottom so user sees their message + spinner
   useEffect(() => {
     if (status === 'submitted') {
-      isAtBottom.current = true
-      setShowScrollButton(false)
-      const $el = chatBoxRef.current
-      if ($el) $el.scrollTop = $el.scrollHeight
+      scrollToBottom('instant')
     }
-  }, [status])
-
-  // Streaming: instant auto-follow only if user is already at bottom
-  useEffect(() => {
-    if (status === 'streaming' && isAtBottom.current) {
-      const $el = chatBoxRef.current
-      if ($el) $el.scrollTop = $el.scrollHeight
-    }
-  }, [messages, status])
+  }, [status, scrollToBottom])
 
   const handleScroll = useCallback(() => {
     const $el = chatBoxRef.current
@@ -382,7 +370,7 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
         <Button
           variant="outline"
           size="icon-sm"
-          onClick={scrollToBottomSmooth}
+          onClick={() => scrollToBottom('smooth')}
           className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full shadow-md"
           aria-label="Scroll to bottom"
         >
