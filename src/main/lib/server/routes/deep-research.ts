@@ -1,4 +1,4 @@
-import { JSONRPCNotification } from '@ai-sdk/mcp'
+import type { JSONRPCNotification } from '@modelcontextprotocol/sdk/types.js'
 import {
   DeepResearchProgress,
   ReportProgressPayload
@@ -6,6 +6,7 @@ import {
 import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import { v4 as uuidV4 } from 'uuid'
+
 import { deepResearch as deepResearchAgent } from '../../ai/deep-research/deep-research'
 import { writeFinalReport } from '../../ai/deep-research/final-report'
 import { getModelFromProvider } from '../../ai/utils/chat-message-util'
@@ -21,26 +22,13 @@ import {
   getRequiredQuery,
   handleDatabaseOperation,
   successResponse,
-  validateBraveApiKey,
+  validatePerplexityApiKey,
   validateSchema
 } from '../utils'
+import { SSE_HEADERS, SseManager } from '../utils/sse-manager'
 
 const deepResearch = new Hono<{ Variables: Variables }>()
-const clients = new Map<string, ReadableStreamDefaultController>()
-
-function registerClient(
-  deepResearchId: string,
-  controller: ReadableStreamDefaultController
-) {
-  clients.set(deepResearchId, controller)
-}
-
-function unregisterClient(deepResearchId: string) {
-  const set = clients.get(deepResearchId)
-  if (set) {
-    clients.delete(deepResearchId)
-  }
-}
+const sseManager = new SseManager<string>()
 
 async function notifyClients(
   deepResearchId: string,
@@ -61,18 +49,12 @@ async function notifyClients(
 
   await saveDeepResearchMessage(deepResearchMessage)
 
-  try {
-    const controller = clients.get(deepResearchId)
-    if (!controller) return
+  if (!sseManager.hasClients(deepResearchId)) return
 
-    controller.enqueue(
-      new TextEncoder().encode(
-        `data: ${JSON.stringify(deepResearchMessage)}\n\n`
-      )
-    )
-  } catch (err) {
-    console.error('SSE enqueue failed:', err)
-  }
+  const payload = sseManager.encodeEvent(
+    deepResearchMessage as unknown as Record<string, unknown>
+  )
+  sseManager.emitRaw(deepResearchId, payload)
 }
 
 deepResearch.post('/', async (c) => {
@@ -86,7 +68,7 @@ deepResearch.post('/', async (c) => {
     'Invalid request body'
   )
 
-  const setting = c.get('setting')
+  const setting = c.get('settings')
 
   if (!setting || !('id' in setting)) {
     throw new ChatSDKError('not_found:setting', 'Failed to retrieve setting')
@@ -99,9 +81,9 @@ deepResearch.post('/', async (c) => {
     )
   }
 
-  const braveApiKey = validateBraveApiKey(setting)
+  const perplexityApiKey = validatePerplexityApiKey(setting)
 
-  const { reasoningModel } = getModelFromProvider(setting)
+  const { reasoningModel, apiKey } = getModelFromProvider(setting)
 
   await notifyClients(deepResearchId, {
     type: DeepResearchProgress.StartDeepResearch
@@ -113,8 +95,9 @@ deepResearch.post('/', async (c) => {
       depth: setting.deepResearch?.depth ?? 2
     },
     {
-      braveApiKey,
+      perplexityApiKey,
       model: reasoningModel,
+      apiKey,
       notify: (data) => notifyClients(deepResearchId, data)
     }
   )
@@ -127,7 +110,7 @@ deepResearch.post('/', async (c) => {
       prompt: query,
       learnings
     },
-    { model: reasoningModel }
+    { model: reasoningModel, apiKey }
   )
 
   const deepResearchById = await getDeepResearchById({ id: deepResearchId })
@@ -149,24 +132,13 @@ deepResearch.post('/', async (c) => {
 deepResearch.get('/sse', async (c) => {
   const deepResearchId = getRequiredQuery(c, 'deepResearchId', 'deep_research')
 
-  const controller = new ReadableStream({
+  const stream = new ReadableStream({
     start(controller) {
-      registerClient(deepResearchId as string, controller)
-
-      c.req.raw.signal.addEventListener('abort', () => {
-        unregisterClient(deepResearchId)
-        controller.close()
-      })
+      sseManager.register(deepResearchId, controller, c.req.raw.signal)
     }
   })
 
-  return new Response(controller, {
-    headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      Connection: 'keep-alive'
-    }
-  })
+  return new Response(stream, { headers: SSE_HEADERS })
 })
 
 deepResearch.get('/messages/:id', async (c) => {

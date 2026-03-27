@@ -1,7 +1,9 @@
-import { useAudio } from '@/hooks/use-audio'
-import { cn } from '@/lib/utils'
 import { CircleStopIcon, LoaderIcon, Volume2Icon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+
+import { useAudio } from '@/hooks/use-audio'
+import { cn } from '@/lib/utils'
+
 import { IconWrapper, MessageActionItem } from './massage-action'
 
 export function AudioPlayer({ content }: { content: string }) {
@@ -50,23 +52,19 @@ export function AudioPlayer({ content }: { content: string }) {
       <span>
         {!(loading || isPlaying) && (
           <IconWrapper onClick={fetchSpeech}>
-            <Volume2Icon size={14} strokeWidth={2.5} />
+            <Volume2Icon size={16} />
           </IconWrapper>
         )}
 
         {loading && (
           <IconWrapper>
-            <LoaderIcon
-              size={14}
-              strokeWidth={2.5}
-              className={cn('animate-spin')}
-            />
+            <LoaderIcon size={16} className={cn('animate-spin')} />
           </IconWrapper>
         )}
 
         {isPlaying && (
           <IconWrapper onClick={handleStop}>
-            <CircleStopIcon size={14} strokeWidth={2.5} />
+            <CircleStopIcon size={16} />
           </IconWrapper>
         )}
 

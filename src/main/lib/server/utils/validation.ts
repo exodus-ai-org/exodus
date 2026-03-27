@@ -1,12 +1,13 @@
 import { S3Client } from '@aws-sdk/client-s3'
-import { Setting } from '../../db/schema'
+
+import { Settings } from '../../db/schema'
 import { ChatSDKError } from '../errors'
 
 /**
  * Validates that S3 configuration is complete
  * @throws ChatSDKError if configuration is incomplete
  */
-export function validateS3Config(setting: Setting) {
+export function validateS3Config(setting: Settings) {
   const s3Config = setting.s3
 
   if (
@@ -33,7 +34,7 @@ export function validateS3Config(setting: Setting) {
  * Validates that OpenAI configuration exists
  * @throws ChatSDKError if configuration is missing
  */
-export function validateOpenAIConfig(setting: Setting) {
+export function validateOpenAIConfig(setting: Settings) {
   if (!setting?.providers?.openaiApiKey) {
     throw new ChatSDKError('forbidden:audio')
   }
@@ -45,33 +46,21 @@ export function validateOpenAIConfig(setting: Setting) {
 }
 
 /**
- * Validates that Brave Search API key exists
+ * Validates that Perplexity API key exists
  * @throws ChatSDKError if API key is missing
  */
-export function validateBraveApiKey(setting: Setting) {
-  if (!setting.webSearch?.braveApiKey) {
+export function validatePerplexityApiKey(setting: Settings) {
+  if (!setting.webSearch?.perplexityApiKey) {
     throw new ChatSDKError('forbidden:deep_research')
   }
 
-  return setting.webSearch.braveApiKey
-}
-
-/**
- * Validates that embedding model is configured
- * @throws ChatSDKError if model is not configured
- */
-export function validateEmbeddingModel<T>(embeddingModel: T | null): T {
-  if (!embeddingModel) {
-    throw new ChatSDKError('forbidden:rag')
-  }
-
-  return embeddingModel
+  return setting.webSearch.perplexityApiKey
 }
 
 /**
  * Creates an S3 client from validated settings
  */
-export function createS3ClientFromSettings(setting: Setting): S3Client {
+export function createS3ClientFromSettings(setting: Settings): S3Client {
   const s3Config = validateS3Config(setting)
 
   return new S3Client({

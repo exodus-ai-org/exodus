@@ -17,13 +17,15 @@ export type Surface =
   | 'document'
   | 'suggestions'
   | 'activate_gateway'
-  | 'rag'
   | 'deep_research'
   | 'audio'
   | 'setting'
-  | 'workflow'
+  | 'agent_x'
   | 'mcp'
   | 's3'
+  | 'memory'
+  | 'skills'
+  | 'project'
 
 export type ErrorCode = `${ErrorType}:${Surface}`
 
@@ -40,14 +42,18 @@ export const visibilityBySurface: Record<Surface, ErrorVisibility> = {
   document: 'response',
   suggestions: 'response',
   activate_gateway: 'response',
-  rag: 'response',
   deep_research: 'response',
   audio: 'response',
   setting: 'response',
-  workflow: 'response',
+  agent_x: 'response',
   mcp: 'response',
-  s3: 'response'
+  s3: 'response',
+  memory: 'response',
+  skills: 'response',
+  project: 'response'
 }
+
+import { logger, type LogSurface } from '../logger'
 
 export class ChatSDKError extends Error {
   type: ErrorType
@@ -73,10 +79,9 @@ export class ChatSDKError extends Error {
     const { message, cause, statusCode } = this
 
     if (visibility === 'log') {
-      console.error({
-        code,
-        message,
-        cause
+      logger.error(this.surface as LogSurface, message, {
+        code: code as string,
+        cause: cause as string
       })
 
       return Response.json(
@@ -85,7 +90,12 @@ export class ChatSDKError extends Error {
       )
     }
 
-    return Response.json({ code, message, cause }, { status: statusCode })
+    // Use cause as message when available — it's typically more specific
+    const userMessage = (cause as string) || message
+    return Response.json(
+      { code, message: userMessage, cause },
+      { status: statusCode }
+    )
   }
 }
 
@@ -127,23 +137,18 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
       return 'The request to create or update the document was invalid. Please check your input and try again.'
 
     case 'not_found:setting':
-      return 'Setting configuration not found. Please check your settings.'
+      return 'Settings not initialized. Please restart the app.'
     case 'bad_request:setting':
-      return 'Invalid setting configuration. Please check your input and try again.'
-
-    case 'not_found:rag':
-      return 'The requested resource was not found in the knowledge base.'
-    case 'bad_request:rag':
-      return 'Failed to process the document. Please check the file format and try again.'
-    case 'forbidden:rag':
-      return 'The embedding model is not configured. Please configure it in settings.'
+      return 'No AI provider selected. Please choose a provider in Settings → AI Providers.'
+    case 'forbidden:setting':
+      return 'API key is not configured. Please add it in Settings → AI Providers before chatting.'
 
     case 'not_found:deep_research':
       return 'The requested research was not found. Please check the research ID and try again.'
     case 'bad_request:deep_research':
       return 'Failed to start deep research. Please check your input and try again.'
     case 'forbidden:deep_research':
-      return 'Deep research requires Serper API key. Please configure it in settings.'
+      return 'Deep research requires a Perplexity API key. Please configure it in settings.'
 
     case 'not_found:audio':
       return 'Audio file not found or missing.'
@@ -152,10 +157,10 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
     case 'forbidden:audio':
       return 'OpenAI configuration is missing. Please configure it in settings.'
 
-    case 'not_found:workflow':
-      return 'The requested workflow was not found.'
-    case 'bad_request:workflow':
-      return 'Invalid workflow configuration. Please check your input and try again.'
+    case 'not_found:agent_x':
+      return 'The requested agent or department was not found.'
+    case 'bad_request:agent_x':
+      return 'Invalid Agent X configuration. Please check your input and try again.'
 
     case 'bad_request:mcp':
       return 'Failed to connect to MCP server. Please check your MCP configuration.'
@@ -166,6 +171,23 @@ export function getMessageByErrorCode(errorCode: ErrorCode): string {
       return 'Failed to process S3 request. Please check your input and try again.'
     case 'not_found:s3':
       return 'The requested file was not found in S3 storage.'
+
+    case 'bad_request:skills':
+      return 'Failed to process skill operation. Please try again.'
+    case 'not_found:skills':
+      return 'The requested skill was not found.'
+    case 'rate_limit:skills':
+      return 'Too many requests to the skill registry. Please try again later.'
+
+    case 'bad_request:memory':
+      return 'Failed to process memory operation. Please check your input and try again.'
+    case 'not_found:memory':
+      return 'The requested memory was not found.'
+
+    case 'bad_request:project':
+      return 'Invalid project data. Please check your input and try again.'
+    case 'not_found:project':
+      return 'The requested project was not found.'
 
     default:
       return 'Something went wrong. Please try again later.'

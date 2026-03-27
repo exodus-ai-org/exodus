@@ -1,13 +1,16 @@
+import { join } from 'path'
+import { cwd } from 'process'
+
 import { is } from '@electron-toolkit/utils'
 import { migrate } from 'drizzle-orm/pglite/migrator'
 import { Notification } from 'electron'
-import { join } from 'path'
-import { cwd } from 'process'
+
+import { logger } from '../logger'
 import { db, pglite } from './db'
 
 export const runMigrate = async () => {
   try {
-    console.log('⏳ Running migrations...')
+    logger.info('migration', 'Running migrations...')
     const start = performance.now()
     await pglite.waitReady
     await pglite.exec('CREATE EXTENSION IF NOT EXISTS vector;')
@@ -21,8 +24,16 @@ export const runMigrate = async () => {
             'drizzle'
           )
     })
+
+    // Idempotent column additions for columns that may have been missed by the migrator
+    await pglite.exec(
+      `ALTER TABLE "task" ADD COLUMN IF NOT EXISTS "lastRunStatus" varchar;`
+    )
+
     const end = performance.now()
-    console.log('✅ Migrations completed in', end - start, 'ms')
+    logger.info('migration', 'Migrations completed', {
+      durationMs: end - start
+    })
   } catch (error) {
     new Notification({
       title: 'Exodus',

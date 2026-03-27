@@ -1,10 +1,9 @@
+packages:
+  - 'packages/*'
+
 onlyBuiltDependencies:
-  - bufferutil
   - electron
   - electron-winstaller
-  - es5-ext
   - esbuild
   - msw
   - protobufjs
-  - sqlite3
-  - utf-8-validate

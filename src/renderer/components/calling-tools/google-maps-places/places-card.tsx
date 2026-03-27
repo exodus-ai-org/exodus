@@ -1,4 +1,5 @@
 import { protos } from '@googlemaps/places'
+
 import { PlacesAccordion } from './places-accordion'
 
 export function GoogleMapsPlacesCard({

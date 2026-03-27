@@ -1,24 +1,29 @@
-import { createOpenAI, OpenAIProvider } from '@ai-sdk/openai'
-import { Setting } from '@shared/types/db'
-import { EmbeddingModel, LanguageModel } from 'ai'
+import type { Model } from '@mariozechner/pi-ai'
+import { Settings } from '@shared/types/db'
 
-export function getOpenAi(setting: Setting): {
-  provider: OpenAIProvider
-  chatModel: LanguageModel
-  reasoningModel: LanguageModel
-  embeddingModel: EmbeddingModel | null
+import { resolveModel } from './resolve-model'
+
+export function getOpenAi(setting: Settings): {
+  chatModel: Model<string>
+  reasoningModel: Model<string>
 } {
-  const openai = createOpenAI({
-    apiKey: setting.providers?.openaiApiKey ?? '',
-    baseURL: setting.providers?.openaiBaseUrl || undefined
-  })
+  const baseUrl =
+    setting.providers?.openaiBaseUrl ?? 'https://api.openai.com/v1'
+  const chatModelId = setting.providerConfig?.chatModel ?? 'gpt-4o'
+  const reasoningModelId = setting.providerConfig?.reasoningModel ?? 'o1'
 
   return {
-    provider: openai,
-    chatModel: openai(setting.providerConfig?.chatModel ?? ''),
-    reasoningModel: openai(setting.providerConfig?.reasoningModel ?? ''),
-    embeddingModel: openai.embeddingModel(
-      setting.providerConfig?.embeddingModel ?? ''
+    chatModel: resolveModel(
+      'openai',
+      chatModelId,
+      baseUrl,
+      'openai-completions'
+    ),
+    reasoningModel: resolveModel(
+      'openai',
+      reasoningModelId,
+      baseUrl,
+      'openai-completions'
     )
   }
 }

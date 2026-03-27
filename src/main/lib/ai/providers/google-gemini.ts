@@ -1,27 +1,31 @@
-import {
-  createGoogleGenerativeAI,
-  GoogleGenerativeAIProvider
-} from '@ai-sdk/google'
-import { Setting } from '@shared/types/db'
-import { EmbeddingModel, LanguageModel } from 'ai'
+import type { Model } from '@mariozechner/pi-ai'
+import { Settings } from '@shared/types/db'
 
-export function getGoogleGemini(setting: Setting): {
-  provider: GoogleGenerativeAIProvider
-  chatModel: LanguageModel
-  reasoningModel: LanguageModel
-  embeddingModel: EmbeddingModel | null
+import { resolveModel } from './resolve-model'
+
+export function getGoogleGemini(setting: Settings): {
+  chatModel: Model<string>
+  reasoningModel: Model<string>
 } {
-  const google = createGoogleGenerativeAI({
-    apiKey: setting.providers?.googleGeminiApiKey ?? '',
-    baseURL: setting.providers?.googleGeminiBaseUrl || undefined
-  })
+  const baseUrl =
+    setting.providers?.googleGeminiBaseUrl ??
+    'https://generativelanguage.googleapis.com/v1beta'
+  const chatModelId = setting.providerConfig?.chatModel ?? 'gemini-2.0-flash'
+  const reasoningModelId =
+    setting.providerConfig?.reasoningModel ?? 'gemini-2.0-flash'
 
   return {
-    provider: google,
-    chatModel: google(setting.providerConfig?.chatModel ?? ''),
-    reasoningModel: google(setting.providerConfig?.reasoningModel ?? ''),
-    embeddingModel: google.embeddingModel(
-      setting.providerConfig?.embeddingModel ?? ''
+    chatModel: resolveModel(
+      'google',
+      chatModelId,
+      baseUrl,
+      'google-generative-ai'
+    ),
+    reasoningModel: resolveModel(
+      'google',
+      reasoningModelId,
+      baseUrl,
+      'google-generative-ai'
     )
   }
 }

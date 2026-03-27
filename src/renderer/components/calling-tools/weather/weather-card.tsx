@@ -1,6 +1,8 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { WeatherResult, WWO_CODE } from '@shared/types/weather'
 import { motion } from 'framer-motion'
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+
 import { WeatherForecast } from './weather-forecast'
 
 // ── per-weather-type config ───────────────────────────────────────────────────

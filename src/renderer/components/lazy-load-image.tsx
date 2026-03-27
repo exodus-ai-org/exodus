@@ -1,6 +1,8 @@
-import { cn } from '@/lib/utils'
 import { ImageOffIcon } from 'lucide-react'
 import { useState } from 'react'
+
+import { Skeleton } from '@/components/ui/skeleton'
+import { cn } from '@/lib/utils'
 
 export function LazyLoadImage({
   src,
@@ -19,14 +21,14 @@ export function LazyLoadImage({
   return (
     <div
       className={cn(
-        'relative flex h-full w-full items-center justify-center overflow-hidden',
+        'relative flex size-full items-center justify-center overflow-hidden',
         className
       )}
     >
       {!isLoaded && !hasError && (
-        <div
+        <Skeleton
           className={cn(
-            'bg-accent dark:bg-card absolute top-0 left-0 h-full w-full animate-pulse',
+            'absolute top-0 left-0 size-full rounded-none',
             skeletonClassName
           )}
         />
@@ -42,14 +44,14 @@ export function LazyLoadImage({
             setHasError(true)
             setIsLoaded(true)
           }}
-          className={`h-full w-full object-cover transition-opacity duration-700 ${
+          className={`size-full object-cover transition-opacity duration-700 ${
             isLoaded ? 'opacity-100' : 'opacity-0'
           }`}
         />
       )}
 
       {hasError && (
-        <div className="bg-accent dark:bg-card text-card dark:text-accent flex h-full w-full flex-col items-center justify-center">
+        <div className="bg-accent text-card flex size-full flex-col items-center justify-center">
           <ImageOffIcon size={48} />
         </div>
       )}

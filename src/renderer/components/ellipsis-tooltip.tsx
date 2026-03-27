@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from 'react'
+
 import {
   Tooltip,
   TooltipContent,
@@ -5,7 +7,6 @@ import {
   TooltipTrigger
 } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
-import { useEffect, useRef, useState } from 'react'
 
 export type EllipsisTooltipProps = {
   text: string
@@ -38,10 +39,7 @@ export function EllipsisTooltip({
   const paragraph = (
     <p
       ref={pRef}
-      className={cn(
-        'cursor-help truncate overflow-hidden text-ellipsis whitespace-nowrap',
-        className
-      )}
+      className={cn('cursor-help truncate', className)}
       style={{ maxWidth: maxW }}
       title={isTruncated ? text : undefined}
     >

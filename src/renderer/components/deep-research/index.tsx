@@ -1,10 +1,3 @@
-import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
-import { fetchDeepResearchMessages } from '@/services/deep-research'
-import {
-  activeDeepResearchIdAtom,
-  deepResearchMessagesAtom
-} from '@/stores/chat'
 import { BASE_URL } from '@shared/constants/systems'
 import { DeepResearch, DeepResearchMessage } from '@shared/types/db'
 import {
@@ -13,9 +6,18 @@ import {
 } from '@shared/types/deep-research'
 import { motion } from 'framer-motion'
 import { useAtom } from 'jotai'
-import { XIcon } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import useSWR from 'swr'
+
+import { Button } from '@/components/ui/button'
+import { SheetPanel } from '@/components/ui/sheet'
+import { cn } from '@/lib/utils'
+import { fetchDeepResearchMessages } from '@/services/deep-research'
+import {
+  activeDeepResearchIdAtom,
+  deepResearchMessagesAtom
+} from '@/stores/chat'
+
 import { MessageItem } from './message-item'
 import { SourceItem } from './source-item'
 
@@ -45,7 +47,9 @@ export function DeepResearchProcess() {
       deepResearchMessages
         ?.map(
           (item) =>
-            item.message.params?.data as unknown as ReportProgressPayload
+            (item.message as Record<string, Record<string, unknown>>)[
+              'params'
+            ]?.['data'] as unknown as ReportProgressPayload
         )
         .filter((item) => item.type === DeepResearchProgress.EmitSearchResults)
         ?.map((item) => item.webSearchResults)
@@ -78,8 +82,12 @@ export function DeepResearchProcess() {
 
           if (!deepResearchMessage) return
 
-          const reportProgressPayload = deepResearchMessage?.message.params
-            ?.data as unknown as ReportProgressPayload
+          const reportProgressPayload = (
+            deepResearchMessage.message as Record<
+              string,
+              Record<string, unknown>
+            >
+          )['params']?.['data'] as unknown as ReportProgressPayload
 
           if (
             reportProgressPayload.type ===
@@ -139,51 +147,39 @@ export function DeepResearchProcess() {
   }, [deepResearchMessages])
 
   return (
-    <section
-      className={cn(
-        'invisible h-svh w-0 shrink-0 overflow-x-hidden border-l transition-[width] duration-200',
-        {
-          ['visible w-100 border-l transition-[width] duration-200']:
-            activeDeepResearchId !== ''
-        }
-      )}
+    <SheetPanel
+      open={activeDeepResearchId !== ''}
+      onClose={() => setActiveDeepResearchId('')}
     >
-      <div className="bg-background sticky top-0 z-10 flex h-14 items-center justify-center border-b">
+      <div className="bg-background sticky top-0 z-10 flex h-12 shrink-0 items-center justify-center border-b">
         <div className="bg-border flex items-center rounded-full p-1 text-sm">
-          <button
+          <Button
+            variant="ghost"
             className={cn(
-              'bg-border min-w-20 rounded-full p-2 select-none hover:bg-transparent dark:bg-transparent dark:hover:bg-transparent',
-              {
-                ['bg-background hover:bg-background dark:bg-background-foreground hover:dark:bg-background-foreground font-semibold shadow-sm']:
-                  tab === Tab.Activity
-              }
+              'min-w-20 rounded-full p-2 select-none',
+              tab === Tab.Activity
+                ? 'bg-background hover:bg-background dark:bg-background-foreground hover:dark:bg-background-foreground font-semibold shadow-sm'
+                : 'bg-transparent'
             )}
             onClick={() => setTab(Tab.Activity)}
           >
             Activity
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
             className={cn(
-              'bg-border min-w-20 rounded-full p-2 select-none hover:bg-transparent dark:bg-transparent dark:hover:bg-transparent',
-              {
-                ['bg-background hover:bg-background dark:bg-background-foreground hover:dark:bg-background-foreground font-semibold shadow-sm']:
-                  tab === Tab.Source
-              }
+              'min-w-20 rounded-full p-2 select-none',
+              tab === Tab.Source
+                ? 'bg-background hover:bg-background dark:bg-background-foreground hover:dark:bg-background-foreground font-semibold shadow-sm'
+                : 'bg-transparent'
             )}
             onClick={() => setTab(Tab.Source)}
           >
             {allWebSearchResults.length} Sources
-          </button>
+          </Button>
         </div>
-        <Button
-          size="icon"
-          variant="ghost"
-          className="absolute right-3 rounded-full"
-          onClick={() => setActiveDeepResearchId('')}
-        >
-          <XIcon />
-        </Button>
       </div>
+
       {activeDeepResearchId && (
         <motion.div
           initial={{ opacity: 0 }}
@@ -205,6 +201,6 @@ export function DeepResearchProcess() {
           )}
         </motion.div>
       )}
-    </section>
+    </SheetPanel>
   )
 }

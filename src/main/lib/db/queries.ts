@@ -1,7 +1,6 @@
-import { EmbeddingModel } from 'ai'
-import { and, asc, cosineDistance, desc, eq, gt, sql } from 'drizzle-orm'
-import { v4 as uuidV4 } from 'uuid'
-import { generateEmbedding, generateEmbeddings } from '../ai/rag'
+import { and, asc, desc, eq, sql } from 'drizzle-orm'
+
+import { logger } from '../logger'
 import { ChatSDKError } from '../server/errors'
 import { db, pglite } from './db'
 import {
@@ -9,26 +8,33 @@ import {
   DBMessage,
   deepResearch,
   deepResearchMessage,
-  embedding,
   message,
-  resource,
-  setting,
+  settings,
   vote,
   type Chat,
   type DeepResearch,
   type DeepResearchMessage,
   type Message,
-  type Setting
+  type Settings
 } from './schema'
 
-export async function saveChat({ title, id }: { id: string; title: string }) {
+export async function saveChat({
+  title,
+  id,
+  projectId
+}: {
+  id: string
+  title: string
+  projectId?: string
+}) {
   try {
     return await db.insert(chat).values({
       id,
-      title
+      title,
+      projectId
     })
   } catch (error) {
-    console.error('Failed to save chat in database')
+    logger.error('database', 'Failed to save chat in database')
     throw error
   }
 }
@@ -37,16 +43,23 @@ export async function updateChat(payload: Omit<Chat, 'createdAt'>) {
   try {
     return await db.update(chat).set(payload).where(eq(chat.id, payload.id))
   } catch (error) {
-    console.error('Failed to save chat in database')
+    logger.error('database', 'Failed to save chat in database')
     throw error
   }
 }
 
-export async function getAllChats() {
+export async function getAllChats(projectId?: string) {
   try {
+    if (projectId) {
+      return await db
+        .select()
+        .from(chat)
+        .where(eq(chat.projectId, projectId))
+        .orderBy(desc(chat.createdAt))
+    }
     return await db.select().from(chat).orderBy(desc(chat.createdAt))
   } catch (error) {
-    console.error('Failed to get chats by user from database')
+    logger.error('database', 'Failed to get chats by user from database')
     throw error
   }
 }
@@ -58,7 +71,7 @@ export async function deleteChatById({ id }: { id: string }) {
 
     return await db.delete(chat).where(eq(chat.id, id))
   } catch (error) {
-    console.error('Failed to delete chat by id from database')
+    logger.error('database', 'Failed to delete chat by id from database')
     throw error
   }
 }
@@ -68,7 +81,7 @@ export async function getChatById({ id }: { id: string }) {
     const [selectedChat] = await db.select().from(chat).where(eq(chat.id, id))
     return selectedChat
   } catch (error) {
-    console.error('Failed to get chat by id from database')
+    logger.error('database', 'Failed to get chat by id from database')
     throw error
   }
 }
@@ -77,7 +90,7 @@ export async function saveMessages({ messages }: { messages: Array<Message> }) {
   try {
     return await db.insert(message).values(messages)
   } catch (error) {
-    console.error('Failed to save messages in database')
+    logger.error('database', 'Failed to save messages in database')
     throw error
   }
 }
@@ -90,7 +103,7 @@ export async function getMessagesByChatId({ id }: { id: string }) {
       .where(eq(message.chatId, id))
       .orderBy(asc(message.createdAt))
   } catch (error) {
-    console.error('Failed to get messages by chat id from database', error)
+    logger.error('database', 'Failed to get messages by chat id from database')
     throw error
   }
 }
@@ -105,20 +118,20 @@ export async function updateChatTitleById({
   try {
     return await db.update(chat).set({ title }).where(eq(chat.id, id))
   } catch (error) {
-    console.warn('Failed to update title for chat', id, error)
+    logger.warn('database', 'Failed to update title for chat', { chatId: id })
     throw error
   }
 }
 
 export async function updateMessage({
   id,
-  parts
+  content
 }: {
   id: string
-  parts: DBMessage['parts']
+  content: DBMessage['content']
 }) {
   try {
-    return await db.update(message).set({ parts }).where(eq(message.id, id))
+    return await db.update(message).set({ content }).where(eq(message.id, id))
   } catch {
     throw new ChatSDKError('bad_request:database', 'Failed to update message')
   }
@@ -130,7 +143,7 @@ export async function fullTextSearchOnMessages(query: string) {
       .select()
       .from(message)
       .where(
-        sql`to_tsvector('simple', ${message.parts}) @@ websearch_to_tsquery('simple', ${query})`
+        sql`to_tsvector('simple', ${message.content}) @@ websearch_to_tsquery('simple', ${query})`
       )
 
     const searchResults = await Promise.all(
@@ -145,7 +158,10 @@ export async function fullTextSearchOnMessages(query: string) {
 
     return searchResults
   } catch (error) {
-    console.error('Failed to complete full-text search from database', error)
+    logger.error(
+      'database',
+      'Failed to complete full-text search from database'
+    )
     throw error
   }
 }
@@ -177,7 +193,7 @@ export async function voteMessage({
       isUpvoted: type === 'up'
     })
   } catch (error) {
-    console.error('Failed to upvote message in database', error)
+    logger.error('database', 'Failed to upvote message in database')
     throw error
   }
 }
@@ -186,41 +202,19 @@ export async function getVotesByChatId({ id }: { id: string }) {
   return await db.select().from(vote).where(eq(vote.chatId, id))
 }
 
-export async function getSetting() {
-  await db.insert(setting).values({ id: 'global' }).onConflictDoNothing()
-  const [data] = await db.select().from(setting)
+export async function getSettings() {
+  await db.insert(settings).values({ id: 'global' }).onConflictDoNothing()
+  const [data] = await db.select().from(settings)
   return data!
 }
 
-export async function updateSetting(payload: Setting) {
+export async function updateSettings(payload: Settings) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { createdAt, updatedAt, ...rest } = payload
   return await db
-    .update(setting)
+    .update(settings)
     .set({ ...rest, updatedAt: new Date() })
-    .where(eq(setting.id, payload.id))
-}
-
-export const findRelevantContent = async (
-  { userQuery }: { userQuery: string },
-  { model }: { model: EmbeddingModel }
-) => {
-  const userQueryEmbedded = await generateEmbedding(
-    { value: userQuery },
-    { model }
-  )
-  const similarity = sql<number>`1 - (${cosineDistance(
-    embedding.embedding,
-    userQueryEmbedded
-  )})`
-  const similarGuides = await db
-    .select({ name: embedding.content, similarity })
-    .from(embedding)
-    .where(gt(similarity, 0.5))
-    .orderBy((t) => desc(t.similarity))
-    .limit(4)
-
-  return similarGuides
+    .where(eq(settings.id, payload.id))
 }
 
 export async function importData(tableName: string, blob: Blob) {
@@ -240,7 +234,7 @@ export async function saveDeepResearch(payload: DeepResearch) {
   try {
     return await db.insert(deepResearch).values(payload)
   } catch (error) {
-    console.error('Failed to save deep research in database')
+    logger.error('database', 'Failed to save deep research in database')
     throw error
   }
 }
@@ -253,7 +247,7 @@ export async function getDeepResearchById({ id }: { id: string }) {
       .where(eq(deepResearch.id, id))
     return selectedDeepSearch
   } catch (error) {
-    console.error('Failed to get deep search by id from database')
+    logger.error('database', 'Failed to get deep search by id from database')
     throw error
   }
 }
@@ -265,7 +259,10 @@ export async function updateDeepResearch(payload: DeepResearch) {
       .set(payload)
       .where(eq(deepResearch.id, payload.id))
   } catch (error) {
-    console.error('Failed to update deep research result in database')
+    logger.error(
+      'database',
+      'Failed to update deep research result in database'
+    )
     throw error
   }
 }
@@ -274,7 +271,7 @@ export async function saveDeepResearchMessage(payload: DeepResearchMessage) {
   try {
     return await db.insert(deepResearchMessage).values(payload)
   } catch (error) {
-    console.error('Failed to save deep research message in database')
+    logger.error('database', 'Failed to save deep research message in database')
     throw error
   }
 }
@@ -288,64 +285,30 @@ export async function getDeepResearchMessagesById({ id }: { id: string }) {
       .orderBy(asc(deepResearchMessage.createdAt))
     return deepResearchMessages
   } catch (error) {
-    console.error('Failed to get deep research message by id from database')
+    logger.error(
+      'database',
+      'Failed to get deep research message by id from database'
+    )
     throw error
   }
 }
 
-function toPgVector(arr: number[]) {
-  return `[${arr.join(',')}]`
-}
-
-export const createResource = async (
-  { content, chunks }: { content: string; chunks: string[] },
-  { model }: { model: EmbeddingModel }
-) => {
-  try {
-    const [currResource] = await db
-      .insert(resource)
-      .values({ content })
-      .returning()
-
-    const embeddings = await generateEmbeddings({ chunks }, { model })
-    await db.insert(embedding).values(
-      embeddings.map(({ embedding, content }) => ({
-        id: uuidV4(),
-        resourceId: currResource.id,
-        content,
-        embedding: sql`${toPgVector(embedding)}::vector`
-      }))
-    )
-    return 'Resource successfully created and embedded.'
-  } catch (error) {
-    return error instanceof Error && error.message.length > 0
-      ? error.message
-      : 'Error, please try again.'
-  }
-}
-
-export async function getResourcePaginated(page: number, pageSize: number) {
-  const offset = (page - 1) * pageSize
-
-  const data = await db
-    .select()
-    .from(resource)
-    .orderBy(desc(resource.createdAt))
-    .limit(pageSize)
-    .offset(offset)
-
-  const [{ count: total }] = await db
+/**
+ * Aggregate token usage and costs from all assistant messages.
+ * Returns per-row data so the caller can group however they want.
+ */
+export async function getUsageRows() {
+  const rows = await db
     .select({
-      count: sql<number>`count(*)`
+      model: message.model,
+      provider: message.provider,
+      usage: message.usage,
+      createdAt: message.createdAt
     })
-    .from(resource)
-
-  return {
-    data,
-    pagination: {
-      page,
-      pageSize,
-      total
-    }
-  }
+    .from(message)
+    .where(
+      and(eq(message.role, 'assistant'), sql`${message.usage} is not null`)
+    )
+    .orderBy(desc(message.createdAt))
+  return rows
 }

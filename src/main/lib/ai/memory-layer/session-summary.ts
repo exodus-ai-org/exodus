@@ -1,6 +1,13 @@
-import { openai } from '@ai-sdk/openai'
-import { UIMessage, generateObject } from 'ai'
+import type { Model } from '@mariozechner/pi-ai'
+import { completeSimple } from '@mariozechner/pi-ai'
+import { ChatMessage } from '@shared/types/chat'
 import z from 'zod'
+
+import { extractConversationText } from '../utils/conversation-util'
+import {
+  extractTextFromCompletion,
+  parseJsonFromLlmResponse
+} from '../utils/llm-response-util'
 
 export const SessionSummarySchema = z.object({
   userGoal: z.string().optional(),
@@ -9,22 +16,42 @@ export const SessionSummarySchema = z.object({
   importantPreferences: z.array(z.string())
 })
 
-export async function summarizeSession(messages: UIMessage[]) {
-  return generateObject({
-    model: openai('gpt-4.1-mini'),
-    schema: SessionSummarySchema,
-    system: `
+const FALLBACK = {
+  confirmedFacts: [] as string[],
+  openQuestions: [] as string[],
+  importantPreferences: [] as string[]
+}
+
+export async function summarizeSession(
+  messages: ChatMessage[],
+  model: Model<string>,
+  apiKey: string
+) {
+  const conversationText = extractConversationText(messages)
+
+  const prompt =
+    conversationText +
+    `\n\nRespond with JSON: {"userGoal": optional string, "confirmedFacts": [], "openQuestions": [], "importantPreferences": []}`
+
+  const result = await completeSimple(
+    model,
+    {
+      systemPrompt: `
 Summarize the conversation into structured session memory.
 Be concise and factual.
 `,
-    prompt: messages
-      .map((m) => {
-        const text = m.parts
-          .filter((p) => p.type === 'text')
-          .map((p) => (p as { type: 'text'; text: string }).text)
-          .join('')
-        return `${m.role}: ${text}`
-      })
-      .join('\n')
-  })
+      messages: [
+        {
+          role: 'user',
+          content: [{ type: 'text', text: prompt }],
+          timestamp: Date.now()
+        }
+      ]
+    },
+    { apiKey }
+  )
+
+  const text = extractTextFromCompletion(result.content)
+  const parsed = parseJsonFromLlmResponse(text, SessionSummarySchema, FALLBACK)
+  return { object: parsed }
 }

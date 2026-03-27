@@ -1,3 +1,5 @@
+import { useAtom, useSetAtom } from 'jotai'
+
 import {
   AlertDialog,
   AlertDialogAction,
@@ -11,7 +13,6 @@ import {
 import { Input } from '@/components/ui/input'
 import { updateChat } from '@/services/chat'
 import { openTabsAtom, renamedChatTitleAtom } from '@/stores/chat'
-import { useAtom, useSetAtom } from 'jotai'
 
 export function RenameChatDialog() {
   const [renamedChatTitle, setRenamedChatTitle] = useAtom(renamedChatTitleAtom)

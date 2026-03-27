@@ -1,3 +1,7 @@
+import { useSetAtom } from 'jotai'
+import { SearchIcon, SquarePenIcon } from 'lucide-react'
+import * as React from 'react'
+
 import {
   Sidebar,
   SidebarContent,
@@ -9,11 +13,10 @@ import {
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import { cn } from '@/lib/utils'
 import { isFullTextSearchVisibleAtom } from '@/stores/chat'
-import { useSetAtom } from 'jotai'
-import { SearchIcon, SquarePenIcon } from 'lucide-react'
-import * as React from 'react'
+
 import { NavFooter } from './nav-footer'
 import { NavHistories } from './nav-histories'
+import { NavProjects } from './nav-projects'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const isFullscreen = useIsFullscreen()
@@ -22,18 +25,18 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar
       collapsible="offcanvas"
-      className="border-none [--sidebar-accent-foreground:oklch(0.2_0_0)] [--sidebar-accent:oklch(0_0_0/_8%)] [--sidebar-border:transparent] [--sidebar-foreground:oklch(0.2_0_0)] dark:[--sidebar-accent-foreground:oklch(0.92_0_0)] dark:[--sidebar-accent:oklch(1_0_0/_12%)] dark:[--sidebar-foreground:oklch(0.92_0_0)]"
-      sidebarInnerClx="bg-transparent text-[oklch(0.2_0_0)] dark:text-[oklch(0.92_0_0)]"
+      className="border-none [--sidebar-border:transparent]"
+      sidebarInnerClx="bg-transparent text-foreground"
       {...props}
     >
       <SidebarHeader
-        className={cn('draggable gap-1 pt-13 transition-all', {
+        className={cn('draggable gap-1 pt-11 transition-all', {
           ['pt-2']: isFullscreen
         })}
       >
         <SidebarMenu className="gap-1">
           <SidebarMenuItem
-            className="no-draggable hover:bg-sidebar-accent flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm"
+            className="no-drag hover:bg-sidebar-accent flex cursor-default items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors duration-150"
             onClick={() => (window.location.href = '/')}
           >
             <SquarePenIcon size={16} />
@@ -42,7 +45,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
         <SidebarMenu className="gap-1">
           <SidebarMenuItem
-            className="no-draggable hover:bg-sidebar-accent flex cursor-default items-center gap-2 rounded-md px-2 py-1.5 text-sm"
+            className="no-drag hover:bg-sidebar-accent flex cursor-default items-center gap-2 rounded-lg px-2 py-1.5 text-sm transition-colors duration-150"
             onClick={() => setIsFullTextSearchVisible(true)}
           >
             <SearchIcon size={16} />
@@ -51,6 +54,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent className="no-scrollbar">
+        <NavProjects />
         <NavHistories />
       </SidebarContent>
       <SidebarFooter>

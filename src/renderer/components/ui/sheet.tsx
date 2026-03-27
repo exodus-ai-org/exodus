@@ -1,9 +1,9 @@
 import { Dialog as SheetPrimitive } from '@base-ui/react/dialog'
+import { XIcon } from 'lucide-react'
 import * as React from 'react'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { XIcon } from 'lucide-react'
 
 function Sheet({ ...props }: SheetPrimitive.Root.Props) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
@@ -26,7 +26,7 @@ function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {
     <SheetPrimitive.Backdrop
       data-slot="sheet-overlay"
       className={cn(
-        'fixed inset-0 z-50 bg-black/10 transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0 supports-backdrop-filter:backdrop-blur-xs',
+        'fixed inset-0 z-50 bg-black/30 transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0',
         className
       )}
       {...props}
@@ -63,7 +63,7 @@ function SheetContent({
             render={
               <Button
                 variant="ghost"
-                className="absolute top-3 right-3"
+                className="no-drag absolute top-3 right-3"
                 size="icon-sm"
               />
             }
@@ -120,6 +120,45 @@ function SheetDescription({
   )
 }
 
+/**
+ * Inline (non-portal) side panel that lives in the layout flow.
+ * Uses a width transition (w-0 → w-{size}) instead of a portal overlay.
+ * Pair with SheetHeader / SheetTitle inside for consistent styling.
+ */
+function SheetPanel({
+  open,
+  onClose,
+  className,
+  children,
+  ...props
+}: React.ComponentProps<'section'> & {
+  open: boolean
+  onClose: () => void
+}) {
+  return (
+    <section
+      data-slot="sheet-panel"
+      className={cn(
+        'bg-background invisible relative flex h-svh w-0 shrink-0 flex-col overflow-hidden transition-[width] duration-200',
+        open && 'visible w-88 overflow-y-auto border-l',
+        className
+      )}
+      {...props}
+    >
+      {children}
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        className="absolute top-2 right-3 z-20 rounded-full"
+        onClick={onClose}
+      >
+        <XIcon />
+        <span className="sr-only">Close</span>
+      </Button>
+    </section>
+  )
+}
+
 export {
   Sheet,
   SheetClose,
@@ -127,6 +166,7 @@ export {
   SheetDescription,
   SheetFooter,
   SheetHeader,
+  SheetPanel,
   SheetTitle,
   SheetTrigger
 }

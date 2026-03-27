@@ -1,6 +1,5 @@
-import { useClipboard } from '@/hooks/use-clipboard'
-import { UseChatHelpers } from '@ai-sdk/react'
-import { ChatMessage } from '@shared/types/chat'
+import type { WebSearchResult } from '@shared/types/web-search'
+import { useSetAtom } from 'jotai'
 import {
   CheckIcon,
   CopyIcon,
@@ -8,8 +7,13 @@ import {
   ThumbsDownIcon,
   ThumbsUpIcon
 } from 'lucide-react'
-import { ReactNode } from 'react'
+import { memo, ReactNode, useCallback, useMemo } from 'react'
+
+import { useClipboard } from '@/hooks/use-clipboard'
+import { sourcesPanelAtom } from '@/stores/chat'
+
 import AudioPlayer from './audio-player'
+import { Button } from './ui/button'
 import {
   Tooltip,
   TooltipContent,
@@ -26,7 +30,7 @@ export function IconWrapper({
 }) {
   return (
     <span
-      className="hover:bg-secondary text-muted-foreground flex h-6 w-6 items-center justify-center rounded-sm"
+      className="hover:bg-secondary text-muted-foreground flex size-6 cursor-pointer items-center justify-center rounded-md transition-colors duration-150"
       onClick={onClick}
     >
       {children}
@@ -42,53 +46,119 @@ export function MessageActionItem({
   tooltipContent: string
 }) {
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger>{children}</TooltipTrigger>
-        <TooltipContent>
-          <p>{tooltipContent}</p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip>
+      <TooltipTrigger>{children}</TooltipTrigger>
+      <TooltipContent>
+        <p>{tooltipContent}</p>
+      </TooltipContent>
+    </Tooltip>
   )
 }
 
-export function MessageAction({
-  content,
-  regenerate
+// ─── Stacked Favicons Button ────────────────────────────────────────────────
+
+function SourcesButton({
+  webSearchResults,
+  onClick
 }: {
-  content: string
-  regenerate: UseChatHelpers<ChatMessage>['regenerate']
+  webSearchResults: WebSearchResult[]
+  onClick: () => void
 }) {
-  const { copied, handleCopy } = useClipboard()
+  const favicons = useMemo(() => {
+    const seen = new Set<string>()
+    const result: string[] = []
+    for (const r of webSearchResults) {
+      try {
+        const origin = new URL(r.link).origin
+        if (seen.has(origin)) continue
+        seen.add(origin)
+        result.push(
+          `https://www.google.com/s2/favicons?domain=${origin}&sz=128`
+        )
+        if (result.length >= 3) break
+      } catch {
+        // skip
+      }
+    }
+    return result
+  }, [webSearchResults])
 
   return (
-    <div className="flex gap-0.5">
-      <MessageActionItem tooltipContent="Copy">
-        <IconWrapper onClick={() => handleCopy(content)}>
-          {copied !== content ? (
-            <CopyIcon size={14} strokeWidth={2.5} />
-          ) : (
-            <CheckIcon size={14} strokeWidth={2.5} />
-          )}
-        </IconWrapper>
-      </MessageActionItem>
-      <MessageActionItem tooltipContent="Good response">
-        <IconWrapper onClick={() => {}}>
-          <ThumbsUpIcon size={14} strokeWidth={2.5} />
-        </IconWrapper>
-      </MessageActionItem>
-      <MessageActionItem tooltipContent="Bad response">
-        <IconWrapper onClick={() => {}}>
-          <ThumbsDownIcon size={14} strokeWidth={2.5} />
-        </IconWrapper>
-      </MessageActionItem>
-      <AudioPlayer content={content} />
-      <MessageActionItem tooltipContent="Switch model">
-        <IconWrapper onClick={regenerate}>
-          <RefreshCcwIcon size={14} strokeWidth={2.5} />
-        </IconWrapper>
-      </MessageActionItem>
-    </div>
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={onClick}
+      className="text-muted-foreground h-6 gap-1.5 rounded-full px-2.5 text-xs"
+    >
+      <span className="*:ring-background flex gap-[-0.375rem] *:ring-2">
+        {favicons.map((src, i) => (
+          <img key={i} src={src} className="size-3.5 rounded-full" alt="" />
+        ))}
+      </span>
+      Sources
+    </Button>
   )
 }
+
+// ─── MessageAction ──────────────────────────────────────────────────────────
+
+export const MessageAction = memo(function MessageAction({
+  content,
+  regenerate,
+  webSearchResults
+}: {
+  content: string
+  regenerate: () => void
+  webSearchResults?: WebSearchResult[]
+}) {
+  const { copied, handleCopy } = useClipboard()
+  const setSourcesPanel = useSetAtom(sourcesPanelAtom)
+
+  const onCopy = useCallback(() => handleCopy(content), [handleCopy, content])
+  const onSourcesClick = useCallback(
+    () =>
+      setSourcesPanel({
+        webSearchResults: webSearchResults!,
+        messageText: content
+      }),
+    [setSourcesPanel, webSearchResults, content]
+  )
+
+  return (
+    <TooltipProvider>
+      <div className="mt-2 flex items-center gap-1">
+        <MessageActionItem tooltipContent="Copy">
+          <IconWrapper onClick={onCopy}>
+            {copied !== content ? (
+              <CopyIcon size={16} />
+            ) : (
+              <CheckIcon size={16} />
+            )}
+          </IconWrapper>
+        </MessageActionItem>
+        <MessageActionItem tooltipContent="Good response">
+          <IconWrapper>
+            <ThumbsUpIcon size={16} />
+          </IconWrapper>
+        </MessageActionItem>
+        <MessageActionItem tooltipContent="Bad response">
+          <IconWrapper>
+            <ThumbsDownIcon size={16} />
+          </IconWrapper>
+        </MessageActionItem>
+        <AudioPlayer content={content} />
+        <MessageActionItem tooltipContent="Switch model">
+          <IconWrapper onClick={regenerate}>
+            <RefreshCcwIcon size={16} />
+          </IconWrapper>
+        </MessageActionItem>
+        {webSearchResults && webSearchResults.length > 0 && (
+          <SourcesButton
+            webSearchResults={webSearchResults}
+            onClick={onSourcesClick}
+          />
+        )}
+      </div>
+    </TooltipProvider>
+  )
+})

@@ -1,9 +1,12 @@
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { app, BrowserWindow, globalShortcut } from 'electron'
+
 import { setupAutoUpdater } from './lib/auto-updater'
+import { cleanupStaleWaitingTasks } from './lib/db/agent-x-queries'
 import { runMigrate } from './lib/db/migrate'
-import { getSetting } from './lib/db/queries'
+import { getSettings } from './lib/db/queries'
 import { setupIPC } from './lib/ipc'
+import { cleanupOldLogs } from './lib/logger'
 import { setupMenu } from './lib/menu'
 import { connectHttpServer } from './lib/server/app'
 import { setServer } from './lib/server/instance'
@@ -13,6 +16,8 @@ import { createWindow } from './lib/window'
 app.whenReady().then(async () => {
   // Migrate PGlite
   await runMigrate()
+  cleanupOldLogs()
+  await cleanupStaleWaitingTasks()
 
   // Start Hono server
   const server = await connectHttpServer()
@@ -40,8 +45,8 @@ app.whenReady().then(async () => {
 
   createWindow()
 
-  const dbSetting = await getSetting()
-  setupAutoUpdater(dbSetting.autoUpdate ?? true)
+  const dbSettings = await getSettings()
+  setupAutoUpdater(dbSettings.autoUpdate ?? true)
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the

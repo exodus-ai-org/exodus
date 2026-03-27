@@ -1,5 +1,6 @@
 import { WebSearchResult } from '@shared/types/web-search'
-import { fetchAndProcessSearchResults } from '../utils/web-search-util'
+
+import { fetchWebSearch } from '../utils/web-search-util'
 
 export async function webSearch(
   {
@@ -10,10 +11,10 @@ export async function webSearch(
     webSources: Map<string, WebSearchResult>
   },
   {
-    braveApiKey
+    perplexityApiKey
   }: {
-    braveApiKey: string
+    perplexityApiKey: string
   }
 ) {
-  return fetchAndProcessSearchResults({ query, braveApiKey, webSources })
+  return fetchWebSearch({ query, perplexityApiKey, webSources })
 }

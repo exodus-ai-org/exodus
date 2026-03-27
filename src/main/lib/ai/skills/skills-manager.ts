@@ -1,15 +1,19 @@
-import { app } from 'electron'
-import { existsSync } from 'fs'
-import { mkdir, readFile, rm, writeFile } from 'fs/promises'
-import JSZip from 'jszip'
+import { existsSync, statSync } from 'fs'
+import { cp, mkdir, readFile, rm, writeFile } from 'fs/promises'
 import { join } from 'path'
+
+import { app } from 'electron'
+import JSZip from 'jszip'
+
 import type {
+  ConvexListResponse,
   InstalledSkill,
   SearchResultItem,
   SkillItem,
   SkillsLockfile
 } from '../../../../shared/types/skills'
 
+const CONVEX_URL = 'https://wry-manatee-359.convex.cloud/api/query'
 const REGISTRY = 'https://clawhub.ai'
 const LOCK_FILE = '.lock.json'
 
@@ -38,17 +42,57 @@ async function writeLockfile(lock: SkillsLockfile): Promise<void> {
 export async function listRegistrySkills(
   cursor?: string
 ): Promise<{ items: SkillItem[]; nextCursor: string | null }> {
-  const url = new URL('/api/v1/skills', REGISTRY)
-  url.searchParams.set('sort', 'downloads')
-  if (cursor) url.searchParams.set('cursor', cursor)
-  const res = await fetch(url.toString(), {
-    headers: { Accept: 'application/json' }
+  const args: Record<string, unknown> = {
+    dir: 'desc',
+    highlightedOnly: false,
+    nonSuspiciousOnly: true,
+    numItems: 25,
+    sort: 'downloads'
+  }
+  if (cursor) args.cursor = cursor
+
+  const res = await fetch(CONVEX_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      path: 'skills:listPublicPageV4',
+      format: 'convex_encoded_json',
+      args: [args]
+    })
   })
   if (!res.ok) throw new Error(`Failed to fetch skills: ${res.status}`)
-  return res.json() as Promise<{
-    items: SkillItem[]
-    nextCursor: string | null
-  }>
+
+  const data = (await res.json()) as ConvexListResponse
+  if (data.status !== 'success') throw new Error('Convex query failed')
+
+  const items: SkillItem[] = data.value.page.map((entry) => ({
+    slug: entry.skill.slug,
+    displayName: entry.skill.displayName,
+    summary: entry.skill.summary,
+    ownerHandle: entry.ownerHandle,
+    ownerImage: entry.owner?.image,
+    tags: entry.skill.tags,
+    stats: entry.skill.stats
+      ? {
+          downloads: entry.skill.stats.downloads,
+          stars: entry.skill.stats.stars,
+          installsAllTime: entry.skill.stats.installsAllTime
+        }
+      : undefined,
+    createdAt: entry.skill.createdAt,
+    updatedAt: entry.skill.updatedAt,
+    latestVersion: entry.latestVersion
+      ? {
+          version: entry.latestVersion.version,
+          changelog: entry.latestVersion.changelog
+        }
+      : null
+  }))
+
+  return {
+    items,
+    nextCursor: data.value.hasMore ? (data.value.nextCursor ?? null) : null
+  }
 }
 
 export async function searchRegistrySkills(
@@ -56,12 +100,10 @@ export async function searchRegistrySkills(
 ): Promise<SearchResultItem[]> {
   const url = new URL('/api/v1/search', REGISTRY)
   url.searchParams.set('q', q)
-  const res = await fetch(url.toString(), {
-    headers: { Accept: 'application/json' }
-  })
+  const res = await fetch(url.toString())
   if (!res.ok) throw new Error(`Failed to search skills: ${res.status}`)
   const data = (await res.json()) as { results: SearchResultItem[] }
-  return data.results
+  return data.results ?? []
 }
 
 export async function installSkill(
@@ -187,6 +229,93 @@ export async function installLocalSkill(
   await writeLockfile(lock)
 
   return { slug, ...installed }
+}
+
+/**
+ * Install a skill from a local path — either a .zip file or a folder.
+ */
+export async function installFromPath(
+  filePath: string
+): Promise<InstalledSkill> {
+  const stat = statSync(filePath)
+
+  if (stat.isDirectory()) {
+    return installLocalFolder(filePath)
+  }
+
+  if (filePath.endsWith('.zip')) {
+    const zipBuffer = await readFile(filePath)
+    const filename =
+      filePath.split('/').pop() ?? filePath.split('\\').pop() ?? 'skill.zip'
+    return installLocalSkill(Buffer.from(zipBuffer), filename)
+  }
+
+  throw new Error('Unsupported path: expected a .zip file or a folder')
+}
+
+async function installLocalFolder(folderPath: string): Promise<InstalledSkill> {
+  const dirName =
+    folderPath.split('/').pop() ?? folderPath.split('\\').pop() ?? 'skill'
+  const slug = dirName.toLowerCase().replace(/[^a-z0-9-]/g, '-')
+
+  const skillsDir = getSkillsDir()
+  const skillDir = join(skillsDir, slug)
+
+  const lock = await readLockfile()
+  if (lock.skills[slug]) {
+    throw new Error(
+      `A skill named "${slug}" is already installed. Uninstall it first.`
+    )
+  }
+
+  // Copy folder contents
+  await mkdir(skillDir, { recursive: true })
+  await cp(folderPath, skillDir, { recursive: true })
+
+  // Try to read display name from SKILL.md frontmatter
+  let displayName = slug
+  try {
+    const skillMd = join(skillDir, 'SKILL.md')
+    const content = await readFile(skillMd, 'utf-8')
+    const nameMatch = content.match(/^---[\s\S]*?name:\s*(.+)/m)
+    if (nameMatch) displayName = nameMatch[1].trim()
+  } catch {
+    // no SKILL.md, use slug
+  }
+
+  const installed: Omit<InstalledSkill, 'slug'> = {
+    displayName,
+    version: 'local',
+    isActive: true,
+    installPath: skillDir,
+    installedAt: Date.now()
+  }
+  lock.skills[slug] = installed
+  await writeLockfile(lock)
+
+  return { slug, ...installed }
+}
+
+export async function getSkillsContentBySlugs(
+  slugs: string[]
+): Promise<string> {
+  const lock = await readLockfile()
+  const contents: string[] = []
+  for (const slug of slugs) {
+    const info = lock.skills[slug]
+    if (!info) continue
+    try {
+      const skillMd = join(info.installPath, 'SKILL.md')
+      const content = await readFile(skillMd, 'utf-8')
+      const body = content.replace(/^---[\s\S]*?---\n?/, '').trim()
+      if (body) contents.push(`<skill name="${slug}">\n${body}\n</skill>`)
+    } catch {
+      // skill file missing, skip
+    }
+  }
+  return contents.length > 0
+    ? `\n\n<active_skills>\n${contents.join('\n\n')}\n</active_skills>`
+    : ''
 }
 
 export async function getActiveSkillsContent(): Promise<string> {

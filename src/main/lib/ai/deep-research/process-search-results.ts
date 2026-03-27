@@ -1,8 +1,36 @@
+import type { Model } from '@mariozechner/pi-ai'
+import { completeSimple } from '@mariozechner/pi-ai'
 import { Learning } from '@shared/types/deep-research'
 import { WebSearchResult } from '@shared/types/web-search'
-import { LanguageModel, generateObject } from 'ai'
 import { z } from 'zod'
+
 import { deepResearchSystemPrompt } from '../prompts'
+import {
+  extractTextFromCompletion,
+  parseJsonFromLlmResponse
+} from '../utils/llm-response-util'
+
+const processResultSchema = z.object({
+  learnings: z
+    .object({
+      learning: z.string().describe('The learning from the search results'),
+      citations: z
+        .number()
+        .array()
+        .describe('Record which sources are the learning referencing.'),
+      image: z
+        .string()
+        .nullable()
+        .describe(
+          "Extract the most representative image URL from the search results to enhance the vividness of your learning. If the search results didn't provide proper images, return `null`"
+        )
+    })
+    .array()
+    .describe(`List of learnings`),
+  followUpQuestions: z
+    .array(z.string())
+    .describe(`List of follow-up questions to research the topic further`)
+})
 
 export async function processSerpResult(
   {
@@ -16,49 +44,47 @@ export async function processSerpResult(
     numLearnings?: number
     numFollowUpQuestions?: number
   },
-  { model }: { model: LanguageModel }
+  { model, apiKey }: { model: Model<string>; apiKey: string }
 ) {
-  const response = await generateObject({
+  const prompt =
+    `Given the following contents from a SERP search for the query <query>${query}</query>,\n` +
+    `generate a list of learnings from the contents. Return a maximum of ${numLearnings} learnings,\n` +
+    `but feel free to return less if the contents are clear. Make sure each learning is unique and not similar to each other.\n` +
+    `The learnings should be concise and to the point, as detailed and information dense as possible.\n` +
+    `Make sure to include any entities like people, places, companies, products, things, etc in the learnings,\n` +
+    `as well as any exact metrics, numbers, or dates.\n` +
+    `The learnings will be used to research the topic further.\n` +
+    `Also return up to ${numFollowUpQuestions} follow-up questions.\n` +
+    searchResults
+      .map(
+        ({ content, rank, title }) =>
+          `<content>\n[Source: ${rank}]\n[Title: ${title}]\n${content}\n</content>`
+      )
+      .join('\n') +
+    `\n\nRespond with a JSON object: {"learnings": [{"learning": string, "citations": [number], "image": string|null}], "followUpQuestions": [string]}`
+
+  const result = await completeSimple(
     model,
-    schema: z.object({
-      learnings: z
-        .object({
-          learning: z.string().describe('The learning from the search results'),
-          citations: z
-            .number()
-            .array()
-            .describe('Record which sources are the learning referencing.'),
-          image: z
-            .string()
-            .nullable()
-            .describe(
-              "Extract the most representative image URL from the search results to enhance the vividness of your learning. If the search results didn't provide proper images, return `null`"
-            )
-        })
-        .array()
-        .describe(`List of learnings, max of ${numLearnings}`),
-      followUpQuestions: z
-        .array(z.string())
-        .describe(
-          `List of follow-up questions to research the topic further, max of ${numFollowUpQuestions}`
-        )
-    }),
-    system: deepResearchSystemPrompt,
-    prompt: `Given the following contents from a SERP search for the query <query>${query}</query>,
-generate a list of learnings from the contents. Return a maximum of ${numLearnings} learnings,
-but feel free to return less if the contents are clear. Make sure each learning is unique and not similar to each other.
-The learnings should be concise and to the point, as detailed and information dense as possible.
-Make sure to include any entities like people, places, companies, products, things, etc in the learnings,
-as well as any exact metrics, numbers, or dates.
-The learnings will be used to research the topic further.
-${searchResults.map(({ content, rank, title }) => `<content>\n[Source: ${rank}]\n[Title: ${title}]\n${content}\n</content>`).join('\n')}
-`
+    {
+      systemPrompt: deepResearchSystemPrompt,
+      messages: [
+        {
+          role: 'user',
+          content: [{ type: 'text', text: prompt }],
+          timestamp: Date.now()
+        }
+      ]
+    },
+    { apiKey }
+  )
+
+  const text = extractTextFromCompletion(result.content)
+  const parsed = parseJsonFromLlmResponse(text, processResultSchema, {
+    learnings: [] as Learning[],
+    followUpQuestions: [] as string[]
   })
-
-  const responses: { learnings: Learning[]; followUpQuestions: string[] } = {
-    learnings: response.object.learnings,
-    followUpQuestions: response.object.followUpQuestions
+  return {
+    learnings: parsed.learnings,
+    followUpQuestions: parsed.followUpQuestions
   }
-
-  return responses
 }

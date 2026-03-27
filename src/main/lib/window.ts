@@ -1,6 +1,8 @@
+import { join } from 'path'
+
 import { is } from '@electron-toolkit/utils'
 import { BrowserWindow, WebContentsView, app, screen, shell } from 'electron'
-import { join } from 'path'
+
 import icon from '../../../resources/icon.png?asset'
 
 let mainWindow: BrowserWindow | null = null
@@ -10,10 +12,10 @@ let isQuitting = false
 
 export function createWindow(): void {
   mainWindow = new BrowserWindow({
-    width: 1080,
-    height: 768,
-    minWidth: 1080,
-    minHeight: 768,
+    width: 1200,
+    height: 800,
+    minWidth: 1200,
+    minHeight: 800,
     show: false,
     autoHideMenuBar: true,
     frame: false,
@@ -21,7 +23,7 @@ export function createWindow(): void {
     titleBarStyle: 'hidden',
     trafficLightPosition: {
       x: 20,
-      y: 20
+      y: 16
     },
     ...(process.platform === 'darwin'
       ? {
@@ -65,7 +67,7 @@ export function createWindow(): void {
 
   if (is.dev && process.env.ELECTRON_RENDERER_URL) {
     mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL)
-    mainWindow.webContents.openDevTools({ mode: 'right' })
+    mainWindow.webContents.openDevTools({ mode: 'detach' })
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
@@ -85,7 +87,7 @@ export function registerSearchMenu(mainWindow: BrowserWindow) {
 
   searchView.setBounds({
     x: (mainWindow?.getBounds().width ?? 0) - 418,
-    y: 56,
+    y: 48,
     width: 418,
     height: 86
   })
@@ -134,8 +136,8 @@ export function registerQuickChat() {
     hasShadow: true,
     webPreferences: {
       nodeIntegration: true,
-      contextIsolation: false,
-      transparent: true,
+      contextIsolation: true,
+      sandbox: false,
       preload: join(__dirname, '../preload/index.js')
     }
   })

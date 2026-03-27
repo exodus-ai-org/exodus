@@ -5,18 +5,22 @@ export function bringWindowToFront() {
 }
 
 export function subscribeQuickChatInput(
-  callback: (_: IpcRendererEvent, input: string) => Promise<void>
+  callback: (_: IpcRendererEvent, input: string) => void
 ) {
   window.electron.ipcRenderer.on('quick-chat-input', callback)
 }
 
-// ARCHIVED: MCP server restart IPC removed
-// export function restartServer() {
-//   return window.electron.ipcRenderer.invoke('restart-server')
-// }
-// export function subscribeSucceedToRestartServer(callback: () => void) {
-//   window.electron.ipcRenderer.on('succeed-to-restart-server', callback)
-// }
+export function unsubscribeQuickChatInput(
+  callback: (_: IpcRendererEvent, input: string) => void
+) {
+  window.electron.ipcRenderer.removeListener('quick-chat-input', callback)
+}
+
+export function unsubscribeFindInPageResult(
+  callback: (_: IpcRendererEvent, result: Result) => void
+) {
+  window.electron.ipcRenderer.removeListener('find-in-page-result', callback)
+}
 
 export function checkFullScreen() {
   return window.electron.ipcRenderer.invoke('check-fullscreen')
@@ -86,6 +90,10 @@ export function updaterDownload() {
 
 export function updaterInstall() {
   return window.electron.ipcRenderer.invoke('updater-install')
+}
+
+export function selectSkillPath(): Promise<string | null> {
+  return window.electron.ipcRenderer.invoke('select-skill-path')
 }
 
 export function updaterSetAutoDownload(enable: boolean) {

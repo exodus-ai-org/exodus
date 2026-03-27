@@ -1,9 +1,9 @@
-import { mergeProps } from '@/components/ui/merge-props'
-import { useRender } from '@/components/ui/use-render'
+import { mergeProps } from '@base-ui/react/merge-props'
+import { useRender } from '@base-ui/react/use-render'
+import { ChevronRightIcon, MoreHorizontalIcon } from 'lucide-react'
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
-import { ChevronRightIcon, MoreHorizontalIcon } from 'lucide-react'
 
 function Breadcrumb({ className, ...props }: React.ComponentProps<'nav'>) {
   return (
@@ -48,7 +48,7 @@ function BreadcrumbLink({
     defaultTagName: 'a',
     props: mergeProps<'a'>(
       {
-        className: cn('transition-colors hover:text-foreground', className)
+        className: cn('hover:text-foreground transition-colors', className)
       },
       props
     ),
@@ -85,7 +85,7 @@ function BreadcrumbSeparator({
       className={cn('[&>svg]:size-3.5', className)}
       {...props}
     >
-      {children ?? <ChevronRightIcon />}
+      {children ?? <ChevronRightIcon className="cn-rtl-flip" />}
     </li>
   )
 }

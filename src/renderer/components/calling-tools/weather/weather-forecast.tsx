@@ -15,37 +15,37 @@ function getWeatherIcon(code: string) {
   const type = WWO_CODE[code as keyof typeof WWO_CODE] ?? 'Cloudy'
   switch (type) {
     case 'Sunny':
-      return <SunIcon className="h-4 w-4 text-yellow-400" />
+      return <SunIcon className="size-4 text-yellow-400" />
     case 'PartlyCloudy':
-      return <CloudSunIcon className="h-4 w-4 text-blue-400" />
+      return <CloudSunIcon className="size-4 text-blue-400" />
     case 'Cloudy':
-      return <CloudIcon className="h-4 w-4 text-slate-400" />
+      return <CloudIcon className="size-4 text-slate-400" />
     case 'VeryCloudy':
-      return <CloudIcon className="h-4 w-4 text-slate-600" />
+      return <CloudIcon className="size-4 text-slate-600" />
     case 'Fog':
-      return <CloudFogIcon className="h-4 w-4 text-slate-300" />
+      return <CloudFogIcon className="size-4 text-slate-300" />
     case 'LightShowers':
-      return <CloudDrizzleIcon className="h-4 w-4 text-blue-300" />
+      return <CloudDrizzleIcon className="size-4 text-blue-300" />
     case 'LightSleetShowers':
     case 'LightSleet':
-      return <CloudSnowIcon className="h-4 w-4 text-blue-200" />
+      return <CloudSnowIcon className="size-4 text-blue-200" />
     case 'LightSnow':
     case 'LightSnowShowers':
-      return <CloudSnowIcon className="h-4 w-4 text-slate-200" />
+      return <CloudSnowIcon className="size-4 text-slate-200" />
     case 'HeavySnow':
     case 'HeavySnowShowers':
-      return <CloudSnowIcon className="h-4 w-4 text-white" />
+      return <CloudSnowIcon className="size-4 text-white" />
     case 'ThunderyShowers':
     case 'ThunderyHeavyRain':
     case 'ThunderySnowShowers':
-      return <CloudLightningIcon className="h-4 w-4 text-yellow-500" />
+      return <CloudLightningIcon className="size-4 text-yellow-500" />
     case 'LightRain':
-      return <CloudRainIcon className="h-4 w-4 text-blue-400" />
+      return <CloudRainIcon className="size-4 text-blue-400" />
     case 'HeavyShowers':
     case 'HeavyRain':
-      return <CloudRainIcon className="h-4 w-4 text-blue-600" />
+      return <CloudRainIcon className="size-4 text-blue-600" />
     default:
-      return <CloudIcon className="h-4 w-4 text-slate-400" />
+      return <CloudIcon className="size-4 text-slate-400" />
   }
 }
 
@@ -64,7 +64,7 @@ export function WeatherForecast({
   forecast: WeatherForecastDay
 }) {
   return (
-    <div className="space-y-3 px-2 pt-3 pb-2">
+    <div className="flex flex-col gap-3 px-2 pt-3 pb-2">
       {/* ── min/max bar ── */}
       <div className="bg-muted/60 rounded-2xl px-3 py-2.5">
         <div className="text-muted-foreground mb-1.5 flex items-center justify-between text-xs">

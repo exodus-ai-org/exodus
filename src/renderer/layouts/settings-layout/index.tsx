@@ -1,14 +1,16 @@
-import { SettingsForm } from '@/components/setting/setting-form'
-import { menus } from '@/components/setting/setting-menu'
-import { SettingsSidebar } from '@/components/setting/setting-sidebar'
-import { AppToaster } from '@/components/ui/app-toaster'
-import { SidebarProvider } from '@/components/ui/sidebar'
-import { useIsFullscreen } from '@/hooks/use-is-full-screen'
-import { cn } from '@/lib/utils'
-import { settingLabelAtom } from '@/stores/setting'
 import { useAtomValue } from 'jotai'
 import { ArrowLeftIcon } from 'lucide-react'
 import { useNavigate } from 'react-router'
+
+import { AppToaster } from '@/components/app-toaster'
+import { SettingsForm } from '@/components/settings/settings-form'
+import { menus } from '@/components/settings/settings-menu'
+import { SettingsSidebar } from '@/components/settings/settings-sidebar'
+import { Button } from '@/components/ui/button'
+import { SidebarProvider } from '@/components/ui/sidebar'
+import { useIsFullscreen } from '@/hooks/use-is-full-screen'
+import { cn } from '@/lib/utils'
+import { settingsLabelAtom } from '@/stores/settings'
 
 // Build a child → parent lookup from the menu tree
 const parentOf = new Map<string, string>()
@@ -20,7 +22,7 @@ for (const item of menus.navMain) {
 
 export function SettingsLayout() {
   const navigate = useNavigate()
-  const activeTitle = useAtomValue(settingLabelAtom)
+  const activeTitle = useAtomValue(settingsLabelAtom)
   const isFullscreen = useIsFullscreen()
 
   return (
@@ -28,16 +30,18 @@ export function SettingsLayout() {
       {/* Titlebar */}
       <header
         className={cn(
-          'draggable bg-background flex h-14 shrink-0 items-center gap-3 border-b',
+          'draggable bg-background/80 flex h-12 shrink-0 items-center gap-3 border-b backdrop-blur-sm',
           isFullscreen ? 'pl-4' : 'pl-21'
         )}
       >
-        <button
+        <Button
+          variant="ghost"
+          size="icon-sm"
           onClick={() => navigate(-1)}
-          className="no-draggable text-muted-foreground hover:text-foreground hover:bg-accent flex h-7 w-7 items-center justify-center rounded-md transition-colors"
+          className="no-drag"
         >
           <ArrowLeftIcon className="h-4 w-4" />
-        </button>
+        </Button>
         <span className="text-sm font-medium">Settings</span>
         {activeTitle && (
           <>

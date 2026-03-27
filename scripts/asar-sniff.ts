@@ -1,6 +1,7 @@
-import { extractAll } from '@electron/asar'
 import path from 'path'
 import { cwd } from 'process'
+
+import { extractAll } from '@electron/asar'
 
 function extractAsarFile() {
   extractAll(

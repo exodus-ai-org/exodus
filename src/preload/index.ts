@@ -1,6 +1,7 @@
+import os from 'os'
+
 import { electronAPI } from '@electron-toolkit/preload'
 import { contextBridge } from 'electron'
-import os from 'os'
 
 // Custom APIs for renderer
 const api = {

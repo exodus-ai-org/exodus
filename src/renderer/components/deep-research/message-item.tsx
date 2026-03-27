@@ -4,6 +4,7 @@ import {
   ReportProgressPayload
 } from '@shared/types/deep-research'
 import { BotIcon, CheckIcon, SearchIcon } from 'lucide-react'
+
 import { SourceItem } from './source-item'
 
 export function MessageItem({
@@ -11,8 +12,9 @@ export function MessageItem({
 }: {
   deepResearchMessage: DeepResearchMessage
 }) {
-  const payload = deepResearchMessage.message.params
-    ?.data as unknown as ReportProgressPayload
+  const payload = (
+    deepResearchMessage.message as Record<string, Record<string, unknown>>
+  )['params']?.['data'] as unknown as ReportProgressPayload
 
   return (
     <>

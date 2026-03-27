@@ -1,96 +1,130 @@
-import { bringWindowToFront, subscribeQuickChatInput } from '@/lib/ipc'
-import { advancedToolsAtom } from '@/stores/chat'
-import { useChat } from '@ai-sdk/react'
 import { QUICK_CHAT_KEY } from '@shared/constants/misc'
 import { BASE_URL } from '@shared/constants/systems'
 import { Attachment, ChatMessage } from '@shared/types/chat'
-import { DefaultChatTransport, type UIMessage } from 'ai'
-import { IpcRendererEvent } from 'electron'
-import { useAtomValue } from 'jotai'
-import { useEffect, useRef, useState } from 'react'
+import type { Project } from '@shared/types/db'
+import { useAtomValue, useSetAtom } from 'jotai'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router'
 import { sileo } from 'sileo'
 import { mutate } from 'swr'
+import useSWR from 'swr'
 import { v4 as uuidV4 } from 'uuid'
+
+import { useChat } from '@/hooks/use-chat'
+import { advancedToolsAtom } from '@/stores/chat'
+import { chatInputAtom, chatStatusAtom, chatStopFnAtom } from '@/stores/input'
+
 import Messages from './messages'
 import MultimodalInput from './multimodel-input'
 
-interface Props {
-  id: string
-  initialMessages: UIMessage[]
+function ProjectBreadcrumb({ projectId }: { projectId: string }) {
+  const { data: project } = useSWR<Project & { chatCount: number }>(
+    `/api/project/${projectId}`
+  )
+
+  if (!project) return null
+
+  return (
+    <div className="flex items-center px-4 pt-3 pb-1">
+      <Link
+        to={`/project/${projectId}`}
+        className="text-muted-foreground hover:text-foreground text-xs transition-colors"
+      >
+        {project.name} /
+      </Link>
+    </div>
+  )
 }
 
-export function Chat({ id, initialMessages }: Props) {
+interface Props {
+  id: string
+  initialMessages: ChatMessage[]
+  projectId?: string
+}
+
+export function Chat({ id, initialMessages, projectId }: Props) {
   const quickChat = window.localStorage.getItem(QUICK_CHAT_KEY)
   const advancedTools = useAtomValue(advancedToolsAtom)
   const advancedToolsRef = useRef(advancedTools)
   advancedToolsRef.current = advancedTools
+  const projectIdRef = useRef(projectId)
+  projectIdRef.current = projectId
 
-  const [input, setInput] = useState(quickChat ?? '')
+  const setChatInput = useSetAtom(chatInputAtom)
+  const setChatStatus = useSetAtom(chatStatusAtom)
+  const setChatStop = useSetAtom(chatStopFnAtom)
+
   const [attachments, setAttachments] = useState<Attachment[]>([])
 
-  const { messages, setMessages, sendMessage, status, stop, regenerate } =
-    useChat<ChatMessage>({
-      transport: new DefaultChatTransport({
-        api: `${BASE_URL}/api/chat`,
-        prepareSendMessagesRequest: ({ id, messages, body }) => ({
-          body: {
-            ...body,
-            id,
-            messages,
-            advancedTools: advancedToolsRef.current
-          }
-        })
-      }),
+  const {
+    messages,
+    setMessages,
+    sendMessage,
+    status,
+    stop,
+    regenerate,
+    lastUsage
+  } = useChat({
+    id,
+    api: `${BASE_URL}/api/chat`,
+    messages: initialMessages,
+    generateId: uuidV4,
+    prepareBody: ({ id, messages, body }) => ({
+      ...body,
       id,
-      messages: initialMessages as ChatMessage[],
-      generateId: uuidV4,
-      onFinish: () => {
-        mutate('/api/history')
-      },
-      onError: (e) => {
-        sileo.error({
-          title: 'Something went wrong',
-          description:
-            e instanceof Error
-              ? e.message
-              : 'An error occurred, please try again!'
-        })
-      }
-    })
-
-  useEffect(() => {
-    return () => {
-      subscribeQuickChatInput(async (_: IpcRendererEvent, text: string) => {
-        await bringWindowToFront()
-        window.localStorage.setItem(QUICK_CHAT_KEY, text)
-        window.location.href = '/'
+      messages,
+      advancedTools: advancedToolsRef.current,
+      projectId: projectIdRef.current
+    }),
+    onFinish: () => {
+      mutate('/api/history')
+    },
+    onError: (e) => {
+      sileo.error({
+        title: 'Something went wrong',
+        description:
+          e instanceof Error
+            ? e.message
+            : 'An error occurred, please try again!'
       })
     }
-  }, [id])
+  })
 
   useEffect(() => {
+    setChatStatus(status)
+  }, [status, setChatStatus])
+
+  // Store stop in a ref to avoid re-renders from function identity changes
+  const stopRef = useRef(stop)
+  stopRef.current = stop
+  const stableStop = useCallback(() => stopRef.current(), [])
+  useEffect(() => {
+    setChatStop(() => stableStop)
+  }, [stableStop, setChatStop])
+
+  // Quick-chat: if localStorage has a pending quick-chat message, send it immediately
+  useEffect(() => {
     if (quickChat) {
+      setChatInput(quickChat)
       window.history.replaceState({}, '', `/chat/${id}`)
       sendMessage({ text: quickChat })
-      setInput('')
+      setChatInput('')
       window.localStorage.removeItem(QUICK_CHAT_KEY)
     }
-  }, [id, quickChat, sendMessage])
+  }, [id, quickChat, sendMessage, setChatInput])
 
   return (
     <>
+      {projectId && <ProjectBreadcrumb projectId={projectId} />}
       <Messages status={status} messages={messages} regenerate={regenerate} />
       <MultimodalInput
         chatId={id}
-        input={input}
-        setInput={setInput}
-        status={status}
-        stop={stop}
         attachments={attachments}
         setAttachments={setAttachments}
         messages={messages}
         setMessages={setMessages}
         sendMessage={sendMessage}
+        lastUsage={lastUsage}
       />
     </>
   )

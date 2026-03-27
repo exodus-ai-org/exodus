@@ -1,3 +1,7 @@
+import { BotIcon, SettingsIcon } from 'lucide-react'
+import React from 'react'
+import { useLocation, useNavigate } from 'react-router'
+
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -5,9 +9,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem
 } from '@/components/ui/sidebar'
-import { SettingsIcon, SparklesIcon, WorkflowIcon } from 'lucide-react'
-import React from 'react'
-import { useLocation, useNavigate } from 'react-router'
 
 export function NavFooter({
   ...props
@@ -21,19 +22,10 @@ export function NavFooter({
         <SidebarMenu className="gap-1">
           <SidebarMenuItem>
             <SidebarMenuButton
-              isActive={location.pathname.includes('skills-market')}
-              onClick={() => navigate('/skills-market')}
+              isActive={location.pathname.includes('agent-x')}
+              onClick={() => navigate('/agent-x')}
             >
-              <SparklesIcon />
-              Skills Market
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              isActive={location.pathname.includes('workflow')}
-              onClick={() => navigate('/workflow')}
-            >
-              <WorkflowIcon />
+              <BotIcon />
               Agent X
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -43,7 +35,7 @@ export function NavFooter({
               onClick={() => navigate('/settings')}
             >
               <SettingsIcon />
-              Setting
+              Settings
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

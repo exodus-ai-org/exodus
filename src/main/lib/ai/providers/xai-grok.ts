@@ -1,30 +1,23 @@
-import { createXai, XaiProvider } from '@ai-sdk/xai'
-import { Setting } from '@shared/types/db'
-import {
-  EmbeddingModel,
-  extractReasoningMiddleware,
-  LanguageModel,
-  wrapLanguageModel
-} from 'ai'
+import type { Model } from '@mariozechner/pi-ai'
+import { Settings } from '@shared/types/db'
 
-export function getXaiGrok(setting: Setting): {
-  provider: XaiProvider
-  chatModel: LanguageModel
-  reasoningModel: LanguageModel
-  embeddingModel: EmbeddingModel | null
+import { resolveModel } from './resolve-model'
+
+export function getXaiGrok(setting: Settings): {
+  chatModel: Model<string>
+  reasoningModel: Model<string>
 } {
-  const xai = createXai({
-    apiKey: setting.providers?.xAiApiKey ?? '',
-    baseURL: setting.providers?.xAiBaseUrl ?? undefined
-  })
+  const baseUrl = setting.providers?.xAiBaseUrl ?? 'https://api.x.ai/v1'
+  const chatModelId = setting.providerConfig?.chatModel ?? 'grok-2'
+  const reasoningModelId = setting.providerConfig?.reasoningModel ?? 'grok-2'
 
   return {
-    provider: xai,
-    chatModel: xai(setting.providerConfig?.chatModel ?? ''),
-    reasoningModel: wrapLanguageModel({
-      model: xai(setting.providerConfig?.reasoningModel ?? ''),
-      middleware: extractReasoningMiddleware({ tagName: 'think' })
-    }),
-    embeddingModel: null
+    chatModel: resolveModel('xai', chatModelId, baseUrl, 'openai-completions'),
+    reasoningModel: resolveModel(
+      'xai',
+      reasoningModelId,
+      baseUrl,
+      'openai-completions'
+    )
   }
 }

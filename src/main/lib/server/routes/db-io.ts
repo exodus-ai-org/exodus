@@ -1,6 +1,7 @@
 import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import JSZip from 'jszip'
+
 import { exportData, importData } from '../../db/queries'
 import { ChatSDKError } from '../errors'
 import { importDataSchema } from '../schemas/db-io'
@@ -13,7 +14,7 @@ import { bufferToArrayBuffer } from '../utils/helpers'
 
 const dbIo = new Hono<{ Variables: Variables }>()
 
-const tableNames = ['Chat', 'Message', 'Vote', 'Setting']
+const tableNames = ['Chat', 'Message', 'Vote', 'Settings']
 
 async function createZipFromBlobs(
   files: { filename: string; arraybuffer: ArrayBuffer }[]

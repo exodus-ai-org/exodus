@@ -1,7 +1,8 @@
-import { tool } from 'ai'
 import { readFile, readdir, stat } from 'fs/promises'
 import path from 'path'
-import { z } from 'zod'
+
+import type { AgentTool } from '@mariozechner/pi-agent-core'
+import { Type } from '@mariozechner/pi-ai'
 
 const MAX_RESULTS = 100
 const SKIP_DIRS = new Set([
@@ -13,6 +14,17 @@ const SKIP_DIRS = new Set([
   'out',
   '__pycache__'
 ])
+
+interface GrepMatch {
+  lineNumber: number
+  line: string
+  context: { before: string[]; after: string[] }
+}
+
+interface GrepResult {
+  file: string
+  matches: GrepMatch[]
+}
 
 async function grepDir(
   dir: string,
@@ -73,17 +85,6 @@ function matchGlob(filename: string, glob: string): boolean {
   return filename.includes(glob.replace('*', ''))
 }
 
-interface GrepMatch {
-  lineNumber: number
-  line: string
-  context: { before: string[]; after: string[] }
-}
-
-interface GrepResult {
-  file: string
-  matches: GrepMatch[]
-}
-
 async function grepFile(
   filePath: string,
   regex: RegExp,
@@ -122,42 +123,42 @@ async function grepFile(
   }
 }
 
-export const grep = tool({
+const grepSchema = Type.Object({
+  pattern: Type.String({
+    description: 'Regular expression pattern to search for.'
+  }),
+  path: Type.String({
+    description: 'File or directory path to search in. Use absolute path.'
+  }),
+  file_glob: Type.Optional(
+    Type.String({
+      description:
+        'Filter by filename pattern, e.g. "*.ts", "*.{ts,tsx}", "*.py". Only applies when searching a directory.'
+    })
+  ),
+  context_lines: Type.Optional(
+    Type.Number({
+      description:
+        'Number of lines to show before and after each match. Default: 2.'
+    })
+  ),
+  case_insensitive: Type.Optional(
+    Type.Boolean({ description: 'Case-insensitive search. Default: false.' })
+  )
+})
+
+export const grep: AgentTool<typeof grepSchema> = {
+  name: 'grep',
+  label: 'Grep',
   description:
     'Search for a regex pattern in files. Returns matching lines with optional context. ' +
     'Use this to find where a function is defined, where a variable is used, or locate specific code. ' +
     'Faster than reading entire files when searching for specific content.',
-  inputSchema: z.object({
-    pattern: z.string().describe('Regular expression pattern to search for.'),
-    path: z
-      .string()
-      .describe('File or directory path to search in. Use absolute path.'),
-    file_glob: z
-      .string()
-      .optional()
-      .describe(
-        'Filter by filename pattern, e.g. "*.ts", "*.{ts,tsx}", "*.py". Only applies when searching a directory.'
-      ),
-    context_lines: z
-      .number()
-      .optional()
-      .default(2)
-      .describe(
-        'Number of lines to show before and after each match. Default: 2.'
-      ),
-    case_insensitive: z
-      .boolean()
-      .optional()
-      .default(false)
-      .describe('Case-insensitive search. Default: false.')
-  }),
-  execute: async ({
-    pattern,
-    path: searchPath,
-    file_glob,
-    context_lines,
-    case_insensitive
-  }) => {
+  parameters: grepSchema,
+  execute: async (
+    _toolCallId,
+    { pattern, path: searchPath, file_glob, context_lines, case_insensitive }
+  ) => {
     let regex: RegExp
     try {
       regex = new RegExp(pattern, case_insensitive ? 'ig' : 'g')
@@ -191,7 +192,7 @@ export const grep = tool({
 
     const totalMatches = results.reduce((sum, r) => sum + r.matches.length, 0)
 
-    return {
+    const details = {
       pattern,
       path: searchPath,
       totalFiles: results.length,
@@ -199,5 +200,9 @@ export const grep = tool({
       truncated: totalMatches >= MAX_RESULTS,
       results
     }
+    return {
+      content: [{ type: 'text' as const, text: JSON.stringify(details) }],
+      details
+    }
   }
-})
+}

@@ -1,19 +1,24 @@
-import { tool } from 'ai'
 import { stat as fsStat, readdir } from 'fs/promises'
 import { join } from 'path'
-import { z } from 'zod'
 
-export const listDirectory = tool({
+import type { AgentTool } from '@mariozechner/pi-agent-core'
+import { Type } from '@mariozechner/pi-ai'
+
+const listDirectorySchema = Type.Object({
+  path: Type.String({ description: 'Directory path to list.' }),
+  recursive: Type.Optional(
+    Type.Boolean({
+      description: 'If true, list recursively up to 3 levels deep.'
+    })
+  )
+})
+
+export const listDirectory: AgentTool<typeof listDirectorySchema> = {
+  name: 'listDirectory',
+  label: 'List Directory',
   description: 'List files and directories at a given path.',
-  inputSchema: z.object({
-    path: z.string().describe('Directory path to list.'),
-    recursive: z
-      .boolean()
-      .optional()
-      .default(false)
-      .describe('If true, list recursively up to 3 levels deep.')
-  }),
-  execute: async ({ path, recursive }) => {
+  parameters: listDirectorySchema,
+  execute: async (_toolCallId, { path, recursive }) => {
     async function listDir(
       dir: string,
       depth: number
@@ -46,10 +51,14 @@ export const listDirectory = tool({
 
     try {
       const entries = await listDir(path, 1)
-      return { path, entries }
+      const details = { path, entries }
+      return {
+        content: [{ type: 'text' as const, text: JSON.stringify(details) }],
+        details
+      }
     } catch (err: unknown) {
       const e = err as { message?: string }
       throw new Error(`Failed to list directory "${path}": ${e.message}`)
     }
   }
-})
+}

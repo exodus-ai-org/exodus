@@ -1,6 +1,5 @@
-import { useUpload } from '@/hooks/use-upload'
-import { UIMessage, UseChatHelpers } from '@ai-sdk/react'
-import { Attachment, ChatMessage } from '@shared/types/chat'
+import type { Attachment, ChatMessage, Usage } from '@shared/types/chat'
+import { useAtom, useAtomValue } from 'jotai'
 import { CircleStopIcon, SendIcon } from 'lucide-react'
 import {
   ChangeEvent,
@@ -13,7 +12,14 @@ import {
   useRef,
   useState
 } from 'react'
+import { useParams } from 'react-router'
 import { sileo } from 'sileo'
+
+import { UseChatHelpers } from '@/hooks/use-chat'
+import { useUpload } from '@/hooks/use-upload'
+import { cn } from '@/lib/utils'
+import { chatInputAtom, chatStatusAtom, chatStopFnAtom } from '@/stores/input'
+
 import { AdvancedTools } from './advanced-tools'
 import { AudioRecorder } from './audio-recoder'
 import { AvailableMcpTools } from './available-mcp-tools'
@@ -25,27 +31,25 @@ import { Textarea } from './ui/textarea'
 
 function InputBox({
   chatId,
-  input,
-  setInput,
-  status,
-  stop,
   attachments,
   setAttachments,
   // messages,
   // setMessages,
-  sendMessage
+  sendMessage,
+  lastUsage
 }: {
   chatId: string
-  input: string
-  setInput: Dispatch<SetStateAction<string>>
-  status: UseChatHelpers<ChatMessage>['status']
-  stop: () => void
   attachments: Attachment[]
   setAttachments: Dispatch<SetStateAction<Attachment[]>>
-  messages: UIMessage[]
-  setMessages: UseChatHelpers<ChatMessage>['setMessages']
-  sendMessage: UseChatHelpers<ChatMessage>['sendMessage']
+  messages: ChatMessage[]
+  setMessages: UseChatHelpers['setMessages']
+  sendMessage: UseChatHelpers['sendMessage']
+  lastUsage?: Usage | null
 }) {
+  const [input, setInput] = useAtom(chatInputAtom)
+  const status = useAtomValue(chatStatusAtom)
+  const stop = useAtomValue(chatStopFnAtom)
+  const { id } = useParams()
   const { uploadFile } = useUpload()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [isTyping, setIsTyping] = useState(false)
@@ -71,8 +75,6 @@ function InputBox({
   }
 
   const handlePaste = (event: ClipboardEvent<HTMLTextAreaElement>) => {
-    // event.preventDefault()
-
     const items = event.clipboardData.items
 
     const files: File[] = []
@@ -92,19 +94,8 @@ function InputBox({
     window.history.replaceState({}, '', `/chat/${chatId}`)
 
     sendMessage({
-      role: 'user',
-      parts: [
-        ...attachments.map((attachment) => ({
-          type: 'file' as const,
-          url: attachment.url,
-          name: attachment.name,
-          mediaType: attachment.contentType
-        })),
-        {
-          type: 'text',
-          text: input
-        }
-      ]
+      text: input,
+      attachments
     })
 
     setAttachments([])
@@ -119,64 +110,81 @@ function InputBox({
   }, [])
 
   return (
-    <div className="mx-auto mb-4 flex w-[calc(100%-2rem)] flex-col gap-2 rounded-xl border p-3 md:max-w-4xl">
-      <form>
-        <FilePreview />
-        <Textarea
-          ref={textareaRef}
-          placeholder="Send a message..."
-          value={input}
-          onChange={handleInput}
-          className="max-h-[75dvh] min-h-6 resize-none border-none bg-transparent! pb-6 shadow-none focus-visible:ring-0"
-          rows={2}
-          autoFocus
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' && !event.shiftKey) {
-              event.preventDefault()
+    <div
+      className={cn(
+        'mx-auto flex w-[calc(100%-8rem)] flex-col md:max-w-4xl',
+        !id && 'mb-4'
+      )}
+    >
+      <div className="focus-within:ring-ring/30 flex flex-col gap-1 rounded-xl border p-2 shadow-sm transition-shadow duration-200 focus-within:shadow-md focus-within:ring-1">
+        <form>
+          <FilePreview />
+          <Textarea
+            ref={textareaRef}
+            placeholder="Send a message..."
+            value={input}
+            onChange={handleInput}
+            className="max-h-[75dvh] min-h-16 resize-none border-none bg-transparent! py-1 shadow-none focus-visible:ring-0"
+            rows={3}
+            autoFocus
+            onKeyDown={(event) => {
+              if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault()
 
-              if (isTyping) {
-                return
-              }
+                if (isTyping) {
+                  return
+                }
 
-              if (status === 'streaming') {
-                sileo.warning({
-                  title: 'Please wait',
-                  description: 'The model is still generating a response.'
-                })
-              } else {
-                submitForm()
+                if (status === 'streaming') {
+                  sileo.warning({
+                    title: 'Please wait',
+                    description: 'The model is still generating a response.'
+                  })
+                } else {
+                  submitForm()
+                }
               }
-            }
-          }}
-          onCompositionStart={() => setIsTyping(true)}
-          onCompositionEnd={() => setIsTyping(false)}
-          onPaste={handlePaste}
-        />
-      </form>
-      <div className="mx-2 mb-2 flex items-center justify-between">
-        <div className="flex gap-2">
-          <MultiModelInputUploader />
-          <Separator orientation="vertical" className="h-6!" />
-          <AdvancedTools />
-          <AvailableMcpTools />
+            }}
+            onCompositionStart={() => setIsTyping(true)}
+            onCompositionEnd={() => setIsTyping(false)}
+            onPaste={handlePaste}
+          />
+        </form>
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-1.5">
+            <MultiModelInputUploader />
+            <Separator orientation="vertical" className="h-5!" />
+            <AdvancedTools />
+            <AvailableMcpTools />
+          </div>
+
+          {status === 'submitted' || status === 'streaming' ? (
+            <Button variant="secondary" onClick={stop ?? undefined}>
+              <CircleStopIcon />
+            </Button>
+          ) : (
+            <>
+              {input.trim() === '' ? (
+                <AudioRecorder input={input} setInput={setInput} />
+              ) : (
+                <Button type="submit" variant="secondary" onClick={submitForm}>
+                  <SendIcon />
+                </Button>
+              )}
+            </>
+          )}
         </div>
-
-        {status === 'submitted' || status === 'streaming' ? (
-          <Button variant="secondary" onClick={stop}>
-            <CircleStopIcon />
-          </Button>
-        ) : (
-          <>
-            {input.trim() === '' ? (
-              <AudioRecorder input={input} setInput={setInput} />
-            ) : (
-              <Button type="submit" variant="secondary" onClick={submitForm}>
-                <SendIcon />
-              </Button>
-            )}
-          </>
-        )}
       </div>
+      {lastUsage && (
+        <div className="text-muted-foreground flex justify-end gap-2 px-1 py-1 text-[10px]">
+          <span>↑{lastUsage.input.toLocaleString()}</span>
+          <span>↓{lastUsage.output.toLocaleString()}</span>
+          <span>∑{lastUsage.totalTokens.toLocaleString()}</span>
+          {lastUsage.cost.total > 0 && (
+            <span>${lastUsage.cost.total.toFixed(4)}</span>
+          )}
+        </div>
+      )}
     </div>
   )
 }

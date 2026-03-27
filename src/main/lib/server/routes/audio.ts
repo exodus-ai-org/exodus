@@ -1,6 +1,7 @@
 import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import OpenAI from 'openai'
+
 import { ChatSDKError } from '../errors'
 import { speechSchema } from '../schemas/audio'
 import { successResponse, validateOpenAIConfig, validateSchema } from '../utils'
@@ -15,22 +16,43 @@ audio.post('/speech', async (c) => {
     'Invalid request body'
   )
 
-  const setting = c.get('setting')
-  const openaiConfig = validateOpenAIConfig(setting)
+  const settings = c.get('settings')
+  const openaiConfig = validateOpenAIConfig(settings)
 
   try {
     const openai = new OpenAI(openaiConfig)
 
-    const speech = await openai.audio.speech.create({
-      model: setting.audio?.textToSpeechModel ?? 'tts-1',
+    const model = settings.audio?.textToSpeechModel ?? 'gpt-4o-mini-tts'
+    const format = settings.audio?.textToSpeechFormat ?? 'mp3'
+    const params: OpenAI.Audio.SpeechCreateParams = {
+      model,
       input: text,
-      voice: setting.audio?.textToSpeechVoice ?? 'alloy'
-    })
+      voice: settings.audio?.textToSpeechVoice ?? 'alloy',
+      response_format:
+        format as OpenAI.Audio.SpeechCreateParams['response_format'],
+      speed: settings.audio?.textToSpeechSpeed ?? undefined
+    }
+    // instructions is only supported by gpt-4o-mini-tts
+    if (
+      model === 'gpt-4o-mini-tts' &&
+      settings.audio?.textToSpeechInstructions
+    ) {
+      params.instructions = settings.audio.textToSpeechInstructions
+    }
+    const speech = await openai.audio.speech.create(params)
 
+    const contentTypeMap: Record<string, string> = {
+      mp3: 'audio/mpeg',
+      opus: 'audio/opus',
+      aac: 'audio/aac',
+      flac: 'audio/flac',
+      wav: 'audio/wav',
+      pcm: 'audio/pcm'
+    }
     const buffer = Buffer.from(await speech.arrayBuffer())
     return new Response(buffer, {
       headers: {
-        'Content-Type': 'audio/mpeg'
+        'Content-Type': contentTypeMap[format] ?? 'audio/mpeg'
       }
     })
   } catch (error) {
@@ -49,15 +71,15 @@ audio.post('/transcriptions', async (c) => {
     throw new ChatSDKError('not_found:audio', 'Audio file is missing')
   }
 
-  const setting = c.get('setting')
-  const openaiConfig = validateOpenAIConfig(setting)
+  const settings = c.get('settings')
+  const openaiConfig = validateOpenAIConfig(settings)
 
   try {
     const openai = new OpenAI(openaiConfig)
 
     const transcription = await openai.audio.transcriptions.create({
       file: audioFile,
-      model: setting.audio?.speechToTextModel ?? 'whisper-1'
+      model: settings.audio?.speechToTextModel ?? 'gpt-4o-mini-transcribe'
     })
 
     return successResponse(c, transcription)

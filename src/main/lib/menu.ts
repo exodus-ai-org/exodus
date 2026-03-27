@@ -5,6 +5,7 @@ import {
   MenuItemConstructorOptions,
   shell
 } from 'electron'
+
 import { registerSearchMenu } from './window'
 
 const isMac = process.platform === 'darwin'

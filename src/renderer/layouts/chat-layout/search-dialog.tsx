@@ -1,3 +1,10 @@
+import { ChatMessage } from '@shared/types/chat'
+import { useAtom } from 'jotai'
+import { SearchIcon } from 'lucide-react'
+import { useState } from 'react'
+import { Link } from 'react-router'
+import useSWR from 'swr'
+
 import {
   Dialog,
   DialogContent,
@@ -7,12 +14,6 @@ import {
 } from '@/components/ui/dialog'
 import { useDebouncedValue } from '@/hooks/use-debounce'
 import { isFullTextSearchVisibleAtom } from '@/stores/chat'
-import { UIMessage } from 'ai'
-import { useAtom } from 'jotai'
-import { SearchIcon } from 'lucide-react'
-import { useState } from 'react'
-import { Link } from 'react-router'
-import useSWR from 'swr'
 
 export function SearchDialog() {
   const [isFullTextSearchVisible, setIsFullTextSearchVisible] = useAtom(
@@ -25,12 +26,11 @@ export function SearchDialog() {
     setQuery(value)
   }
 
-  const { data } = useSWR<Array<UIMessage & { title: string; chatId: string }>>(
-    query ? `/api/chat/search?query=${debouncedValue}` : null,
-    {
-      fallbackData: []
-    }
-  )
+  const { data } = useSWR<
+    Array<ChatMessage & { title: string; chatId: string }>
+  >(query ? `/api/chat/search?query=${debouncedValue}` : null, {
+    fallbackData: []
+  })
 
   return (
     <Dialog
@@ -76,11 +76,18 @@ export function SearchDialog() {
                       {item.title}
                     </p>
                     <p className="text-ring line-clamp-2 pt-1 text-xs">
-                      {
-                        item.parts
-                          .filter((item) => item.type === 'text')
-                          .find((item) => item.text !== '')?.text
-                      }
+                      {(() => {
+                        const content = item.content
+                        if (typeof content === 'string') return content
+                        if (Array.isArray(content)) {
+                          const textBlock = content.find(
+                            (c): c is { type: 'text'; text: string } =>
+                              c.type === 'text' && c.text !== ''
+                          )
+                          return textBlock ? textBlock.text : ''
+                        }
+                        return ''
+                      })()}
                     </p>
                   </div>
                 </Link>

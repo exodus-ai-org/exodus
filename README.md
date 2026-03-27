@@ -92,10 +92,20 @@ We have chosen [Electron](https://www.electronjs.org/) as our cross-platform fra
 
 ### Available Scripts
 
-- To start the development server, run `pnpm dev`.
-- To build the application for macOS, run `pnpm build:mac`.
-- To build the application for Linux, run `pnpm build:linux`.
-- To build the application for Windows, run `pnpm build:win`.
+| Command              | Description                                        |
+| -------------------- | -------------------------------------------------- |
+| `pnpm dev`           | Start development server with hot reload           |
+| `pnpm build:mac`     | Build for macOS                                    |
+| `pnpm build:linux`   | Build for Linux                                    |
+| `pnpm build:win`     | Build for Windows                                  |
+| `pnpm test`          | Run unit tests (Vitest)                            |
+| `pnpm test:watch`    | Run tests in watch mode                            |
+| `pnpm test:coverage` | Run tests with coverage report                     |
+| `pnpm typecheck`     | Run TypeScript type checking                       |
+| `pnpm lint`          | Run oxlint (fast Rust-based linter)                |
+| `pnpm lint:fix`      | Run oxlint with auto-fix                           |
+| `pnpm format`        | Format code with oxfmt (fast Rust-based formatter) |
+| `pnpm format:check`  | Check formatting without modifying files           |
 
 ## Contributing
 

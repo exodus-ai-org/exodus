@@ -1,20 +1,23 @@
-import react from '@vitejs/plugin-react'
-import { defineConfig, externalizeDepsPlugin } from 'electron-vite'
 import path, { resolve } from 'path'
+
+import react from '@vitejs/plugin-react'
+import { defineConfig } from 'electron-vite'
 // import { visualizer } from 'rollup-plugin-visualizer'
 
 export default defineConfig({
   main: {
-    plugins: [externalizeDepsPlugin()],
     resolve: {
       alias: {
         '@shared': resolve('src/shared')
       }
+    },
+    build: {
+      externalizeDeps: {
+        exclude: ['@mariozechner/pi-ai', '@mariozechner/pi-agent-core']
+      }
     }
   },
-  preload: {
-    plugins: [externalizeDepsPlugin()]
-  },
+  preload: {},
   renderer: {
     resolve: {
       alias: {

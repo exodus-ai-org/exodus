@@ -1,6 +1,13 @@
-import { openai } from '@ai-sdk/openai'
-import { generateObject, UIMessage } from 'ai'
+import type { Model } from '@mariozechner/pi-ai'
+import { completeSimple } from '@mariozechner/pi-ai'
+import { ChatMessage } from '@shared/types/chat'
 import { z } from 'zod'
+
+import { extractConversationText } from '../utils/conversation-util'
+import {
+  extractTextFromCompletion,
+  parseJsonFromLlmResponse
+} from '../utils/llm-response-util'
 
 export const MemoryWriteSchema = z.object({
   shouldWrite: z.boolean(),
@@ -21,14 +28,27 @@ export const MemoryWriteSchema = z.object({
 })
 
 export async function runMemoryWriteJudge({
-  messages
+  messages,
+  model,
+  apiKey
 }: {
-  messages: UIMessage[]
+  messages: ChatMessage[]
+  model: Model<string>
+  apiKey: string
 }) {
-  return generateObject({
-    model: openai('gpt-4.1-mini'),
-    schema: MemoryWriteSchema,
-    system: `
+  const conversationText = extractConversationText(messages)
+
+  const prompt = `
+Conversation:
+${conversationText}
+
+Respond with a JSON object: {"shouldWrite": boolean, "type": optional string, "key": optional string, "value": optional object, "confidence": optional number, "source": optional string}
+`
+
+  const result = await completeSimple(
+    model,
+    {
+      systemPrompt: `
 You are a memory writing judge for an AI assistant.
 
 Only allow writing a memory if ALL conditions are met:
@@ -39,17 +59,20 @@ Only allow writing a memory if ALL conditions are met:
 
 If any condition is not met, set shouldWrite = false.
 `,
-    prompt: `
-Conversation:
-${messages
-  .map((m) => {
-    const text = m.parts
-      .filter((p) => p.type === 'text')
-      .map((p) => (p as { type: 'text'; text: string }).text)
-      .join('')
-    return `${m.role}: ${text}`
+      messages: [
+        {
+          role: 'user',
+          content: [{ type: 'text', text: prompt }],
+          timestamp: Date.now()
+        }
+      ]
+    },
+    { apiKey }
+  )
+
+  const text = extractTextFromCompletion(result.content)
+  const parsed = parseJsonFromLlmResponse(text, MemoryWriteSchema, {
+    shouldWrite: false
   })
-  .join('\n')}
-`
-  })
+  return { object: parsed }
 }

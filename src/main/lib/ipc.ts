@@ -1,4 +1,7 @@
-import { app, ipcMain, nativeTheme } from 'electron'
+import { join } from 'path'
+
+import { app, dialog, ipcMain, nativeTheme, shell } from 'electron'
+
 // ARCHIVED: import { connectHttpServer } from './server/app'
 // ARCHIVED: import { getServer, setServer } from './server/instance'
 import {
@@ -8,6 +11,7 @@ import {
   updaterInstall,
   updaterSetAutoDownload
 } from './auto-updater'
+import { logger } from './logger'
 import {
   getMainWindow,
   getQuickChatView,
@@ -17,7 +21,7 @@ import {
 } from './window'
 
 export function setupIPC() {
-  ipcMain.on('ping', () => console.log('pong'))
+  ipcMain.on('ping', () => logger.debug('app', 'pong'))
 
   // ARCHIVED: MCP server restart IPC removed
   // ipcMain.handle('restart-server', async () => {
@@ -71,13 +75,30 @@ export function setupIPC() {
   ipcMain.handle('close-quick-chat', () => {
     const quickChatView = getQuickChatView()
     if (quickChatView) {
-      quickChatView.destroy()
+      quickChatView.hide()
       setQuickChatView(null)
+      quickChatView.destroy()
     }
   })
 
   ipcMain.handle('transfer-quick-chat', (_, input: string) => {
-    getMainWindow()?.webContents.send('quick-chat-input', input)
+    // Close quick-chat window first
+    const quickChatView = getQuickChatView()
+    if (quickChatView) {
+      quickChatView.hide()
+      setQuickChatView(null)
+      quickChatView.destroy()
+    }
+
+    // Bring main window to front and send input
+    const mainWindow = getMainWindow()
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore()
+      if (!mainWindow.isVisible()) mainWindow.show()
+      mainWindow.focus()
+      app.focus({ steal: true })
+      mainWindow.webContents.send('quick-chat-input', input)
+    }
   })
 
   ipcMain.handle('bring-window-to-front', () => {
@@ -120,6 +141,25 @@ export function setupIPC() {
       nativeTheme.themeSource = source
     }
   )
+
+  // Skill upload: open native dialog for ZIP file or folder
+  ipcMain.handle('select-skill-path', async () => {
+    const win = getMainWindow()
+    if (!win) return null
+    const result = await dialog.showOpenDialog(win, {
+      title: 'Install Skill',
+      buttonLabel: 'Install',
+      properties: ['openFile', 'openDirectory'],
+      filters: [{ name: 'Skill Package', extensions: ['zip'] }]
+    })
+    if (result.canceled || result.filePaths.length === 0) return null
+    return result.filePaths[0]
+  })
+
+  ipcMain.handle('open-logs-dir', () => {
+    const dir = join(app.getPath('userData'), 'logs')
+    shell.openPath(dir)
+  })
 
   ipcMain.handle('updater-get-state', () => updaterGetState())
   ipcMain.handle('updater-check', () => updaterCheck())

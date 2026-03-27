@@ -1,4 +1,5 @@
 import { Command as CommandPrimitive } from 'cmdk'
+import { CheckIcon, SearchIcon } from 'lucide-react'
 import * as React from 'react'
 
 import {
@@ -10,7 +11,6 @@ import {
 } from '@/components/ui/dialog'
 import { InputGroup, InputGroupAddon } from '@/components/ui/input-group'
 import { cn } from '@/lib/utils'
-import { CheckIcon, SearchIcon } from 'lucide-react'
 
 function Command({
   className,

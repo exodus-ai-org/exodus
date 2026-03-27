@@ -1,3 +1,4 @@
 {
-  "*.{js,jsx,ts,tsx,json}": ["pnpm run lint", "pnpm run format"]
+  "*.{js,jsx,ts,tsx}": ["oxlint", "oxfmt"],
+  "*.{json,md,css,html,yaml}": ["oxfmt"]
 }

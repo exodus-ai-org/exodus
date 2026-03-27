@@ -1,27 +1,32 @@
+import OpenAI from 'openai'
+import { useMemo, useState } from 'react'
+import { sileo } from 'sileo'
+
 import {
   speechToText as speechToTextService,
   textToSpeech as textToSpeechService
 } from '@/services/audio'
-import OpenAI from 'openai'
-import { useMemo, useState } from 'react'
-import { sileo } from 'sileo'
-import { useSetting } from './use-setting'
+
+import { useSettings } from './use-settings'
 
 export function useAudio() {
   const [data, setData] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const { data: setting } = useSetting()
+  const { data: settings } = useSettings()
 
   const openai = useMemo(() => {
-    if (setting?.providers?.openaiApiKey && setting?.providers?.openaiBaseUrl) {
+    if (
+      settings?.providers?.openaiApiKey &&
+      settings?.providers?.openaiBaseUrl
+    ) {
       return new OpenAI({
-        baseURL: setting.providers.openaiBaseUrl,
-        apiKey: setting.providers.openaiApiKey,
+        baseURL: settings.providers.openaiBaseUrl,
+        apiKey: settings.providers.openaiApiKey,
         dangerouslyAllowBrowser: true
       })
     }
     return null
-  }, [setting?.providers?.openaiApiKey, setting?.providers?.openaiBaseUrl])
+  }, [settings?.providers?.openaiApiKey, settings?.providers?.openaiBaseUrl])
 
   async function textToSpeech(text: string) {
     if (!openai) {

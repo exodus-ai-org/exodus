@@ -1,24 +1,30 @@
-import { AnthropicProvider, createAnthropic } from '@ai-sdk/anthropic'
-import { Setting } from '@shared/types/db'
-import { EmbeddingModel, LanguageModel } from 'ai'
+import type { Model } from '@mariozechner/pi-ai'
+import { Settings } from '@shared/types/db'
 
-export function getAnthropicClaude(setting: Setting): {
-  provider: AnthropicProvider
-  chatModel: LanguageModel
-  reasoningModel: LanguageModel
-  embeddingModel: EmbeddingModel | null
+import { resolveModel } from './resolve-model'
+
+export function getAnthropicClaude(setting: Settings): {
+  chatModel: Model<string>
+  reasoningModel: Model<string>
 } {
-  const anthropic = createAnthropic({
-    apiKey: setting.providers?.anthropicApiKey ?? '',
-    baseURL: setting.providers?.anthropicBaseUrl || undefined
-  })
+  const baseUrl =
+    setting.providers?.anthropicBaseUrl ?? 'https://api.anthropic.com'
+  const chatModelId = setting.providerConfig?.chatModel ?? 'claude-opus-4-5'
+  const reasoningModelId =
+    setting.providerConfig?.reasoningModel ?? 'claude-opus-4-5'
 
   return {
-    provider: anthropic,
-    chatModel: anthropic(setting.providerConfig?.chatModel ?? ''),
-    reasoningModel: anthropic(setting.providerConfig?.reasoningModel ?? ''),
-    embeddingModel: anthropic.embeddingModel(
-      setting.providerConfig?.embeddingModel ?? ''
+    chatModel: resolveModel(
+      'anthropic',
+      chatModelId,
+      baseUrl,
+      'anthropic-messages'
+    ),
+    reasoningModel: resolveModel(
+      'anthropic',
+      reasoningModelId,
+      baseUrl,
+      'anthropic-messages'
     )
   }
 }

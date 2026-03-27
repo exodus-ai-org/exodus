@@ -3,73 +3,49 @@ import { AiProviders } from '@shared/types/ai'
 export const models = {
   [AiProviders.OpenAiGpt]: {
     chatModel: [
-      'gpt-5',
-      'gpt-5-mini',
-      'gpt-5-nano',
-      'gpt-5-chat-latest',
-      'gpt-4.1',
-      'gpt-4.1-mini',
-      'gpt-4.1-nano',
-      'gpt-4o',
-      'gpt-4o-mini',
-      'chatgpt-4o-latest'
+      'gpt-5.4',
+      'gpt-5.4-pro',
+      'gpt-5.3-chat-latest',
+      'gpt-5.3-codex',
+      'gpt-5-mini'
     ],
-    reasoningModel: ['o4-mini', 'o3-mini'],
-    embeddingModel: [
-      'text-embedding-3-large',
-      'text-embedding-3-small',
-      'text-embedding-ada-002'
-    ]
+    reasoningModel: ['gpt-5.4', 'gpt-5.4-pro']
   },
   [AiProviders.AzureOpenAi]: {
     chatModel: [
-      'gpt-5',
-      'gpt-5-mini',
-      'gpt-5-nano',
-      'gpt-5-chat-latest',
-      'gpt-4.1',
-      'gpt-4.1-mini',
-      'gpt-4.1-nano',
-      'gpt-4o',
-      'gpt-4o-mini',
-      'chatgpt-4o-latest'
+      'gpt-5.4',
+      'gpt-5.4-pro',
+      'gpt-5.3-chat-latest',
+      'gpt-5.3-codex',
+      'gpt-5-mini'
     ],
-    reasoningModel: ['o4-mini', 'o3-mini', 'o3'],
-    embeddingModel: [
-      'text-embedding-3-large',
-      'text-embedding-3-small',
-      'text-embedding-ada-002'
-    ]
+    reasoningModel: ['gpt-5.4', 'gpt-5.4-pro']
   },
   [AiProviders.GoogleGemini]: {
     chatModel: [
+      'gemini-3.1-pro-preview',
+      'gemini-3-flash-preview',
+      'gemini-3.1-flash-lite-preview',
       'gemini-2.5-flash',
-      'gemini-2.5-flash-lite',
-      'gemini-2.0-flash'
+      'gemini-2.5-flash-lite'
     ],
-    reasoningModel: ['gemini-2.5-pro'],
-    embeddingModel: ['gemini-embedding-001']
+    reasoningModel: ['gemini-3.1-pro-preview', 'gemini-2.5-pro']
   },
   [AiProviders.XaiGrok]: {
-    chatModel: ['grok-3-beta', 'grok-3-fast-beta'],
-    reasoningModel: ['grok-3-mini-beta', 'grok-3-mini-fast-beta'],
-    embeddingModel: []
+    chatModel: [
+      'grok-4.20-beta',
+      'grok-4.1-fast',
+      'grok-4-fast',
+      'grok-code-fast-1'
+    ],
+    reasoningModel: ['grok-4.20-beta', 'grok-4-1-fast-reasoning', 'grok-4']
   },
   [AiProviders.AnthropicClaude]: {
-    chatModel: ['claude-opus-4-1-20250805', 'claude-opus-4-20250514'],
-    reasoningModel: ['claude-opus-4-1-20250805', 'claude-sonnet-4-20250514'],
-    embeddingModel: [
-      'voyage-3-large',
-      'voyage-3.5',
-      'voyage-3.5-lite',
-      'voyage-code-3',
-      'voyage-finance-2',
-      'voyage-law-2'
-    ]
+    chatModel: ['claude-opus-4-6', 'claude-sonnet-4-6', 'claude-haiku-4-5'],
+    reasoningModel: ['claude-opus-4-6', 'claude-sonnet-4-6']
   },
   [AiProviders.Ollama]: {
     chatModel: [],
-    reasoningModel: [],
-    embeddingModel: []
+    reasoningModel: []
   }
 }

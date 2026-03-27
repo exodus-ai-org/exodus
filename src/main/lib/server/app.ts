@@ -3,20 +3,27 @@ import { SERVER_PORT } from '@shared/constants/systems'
 import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+
 // ARCHIVED: import { connectMcpServers } from '../ai/mcp'
-import { getSetting } from '../db/queries'
+import { initScheduler } from '../ai/agent-x/scheduler'
+import { getSettings } from '../db/queries'
+import { logger } from '../logger'
 import { errorHandler } from './middlewares'
+import agentXRouter from './routes/agent-x'
 import audioRouter from './routes/audio'
 import chatRouter from './routes/chat'
 import dbIoRouter from './routes/db-io'
 import deepResearchRouter from './routes/deep-research'
 import historyRouter from './routes/history'
-import ragRouter from './routes/rag'
+import logsRouter from './routes/logs'
+import mcpRouter from './routes/mcp'
+import memoryRouter from './routes/memory'
+import projectRouter from './routes/project'
 import s3UploaderRouter from './routes/s3-uploader'
-import settingsRouter from './routes/setting'
+import settingsRouter from './routes/settings'
 import skillsRouter from './routes/skills'
 import toolsRouter from './routes/tools'
-import workflowRouter from './routes/workflow'
+import usageRouter from './routes/usage'
 
 // Export server functions
 export async function connectHttpServer() {
@@ -31,9 +38,9 @@ export async function connectHttpServer() {
 
   // Add setting to context for all routes (except setting route to avoid circular dependency)
   app.use('/api/*', async (c, next) => {
-    // Get fresh setting on each request to ensure it's always up-to-date
-    const setting = await getSetting()
-    c.set('setting', setting)
+    // Get fresh settings on each request to ensure it's always up-to-date
+    const settings = await getSettings()
+    c.set('settings', settings)
     await next()
   })
 
@@ -46,15 +53,19 @@ export async function connectHttpServer() {
   // Routes
   app.route('/api/chat', chatRouter)
   app.route('/api/history', historyRouter)
-  app.route('/api/setting', settingsRouter)
+  app.route('/api/project', projectRouter)
+  app.route('/api/settings', settingsRouter)
   app.route('/api/audio', audioRouter)
   app.route('/api/db-io', dbIoRouter)
   app.route('/api/deep-research', deepResearchRouter)
   app.route('/api/tools', toolsRouter)
-  app.route('/api/rag', ragRouter)
-  app.route('/api/workflow', workflowRouter)
+  app.route('/api/agent-x', agentXRouter)
   app.route('/api/s3', s3UploaderRouter)
   app.route('/api/skills', skillsRouter)
+  app.route('/api/mcp', mcpRouter)
+  app.route('/api/memory', memoryRouter)
+  app.route('/api/usage', usageRouter)
+  app.route('/api/logs', logsRouter)
 
   // Ping
   app.get('/', (c) => c.text('Exodus is running.'))
@@ -71,7 +82,14 @@ export async function connectHttpServer() {
         fetch: app.fetch,
         port: SERVER_PORT
       })
-      console.log('✅ Hono is running on', SERVER_PORT)
+      logger.info('server', 'Hono is running', { port: SERVER_PORT })
+
+      // Initialize cron scheduler after server is up
+      void import('./routes/agent-x.js').then(({ emitToAll }) =>
+        initScheduler(emitToAll).catch((err) =>
+          logger.error('scheduler', 'Init error', { error: String(err) })
+        )
+      )
     }
   }
 }
