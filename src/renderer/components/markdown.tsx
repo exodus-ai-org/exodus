@@ -305,7 +305,7 @@ export function Markdown({
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
       table({ className, children, node, ...rest }: any) {
         return (
-          <div className="not-prose mb-4 overflow-x-auto rounded-md border text-sm leading-normal">
+          <div className="mb-4 overflow-x-auto rounded-md border text-sm leading-normal">
             <table
               {...rest}
               className={cn('min-w-full caption-bottom', className)}
@@ -382,7 +382,7 @@ export function Markdown({
   )
 
   return (
-    <section className="prose prose-sm dark:prose-invert max-w-none">
+    <section className="markdown max-w-none">
       <ReactMarkdown
         remarkPlugins={remarkPluginsStable}
         rehypePlugins={rehypePluginsStable}

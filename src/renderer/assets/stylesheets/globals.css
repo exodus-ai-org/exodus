@@ -1,7 +1,6 @@
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
-@plugin '@tailwindcss/typography';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -503,30 +502,82 @@
     app-region: no-drag;
   }
 
-  /* ── Prose / Markdown ──────────────────────────────────────────── */
+  /* ── Markdown typography (replaces @tailwindcss/typography) ──── */
 
-  /* Map typography-plugin tokens to our design system */
-  .prose {
-    --tw-prose-body: var(--foreground);
-    --tw-prose-headings: var(--foreground);
-    --tw-prose-lead: var(--muted-foreground);
-    --tw-prose-links: var(--primary);
-    --tw-prose-bold: var(--foreground);
-    --tw-prose-counters: var(--muted-foreground);
-    --tw-prose-bullets: var(--muted-foreground);
-    --tw-prose-hr: var(--border);
-    --tw-prose-quotes: var(--muted-foreground);
-    --tw-prose-quote-borders: var(--border);
-    --tw-prose-captions: var(--muted-foreground);
-    --tw-prose-code: var(--foreground);
-    --tw-prose-pre-code: inherit;
-    --tw-prose-pre-bg: transparent;
-    --tw-prose-th-borders: var(--border);
-    --tw-prose-td-borders: var(--border);
+  .markdown {
+    color: var(--foreground);
+    line-height: 1.625;
+    font-size: 0.875rem;
   }
 
-  /* Inline code: chip style, no backtick quotes */
-  .prose :where(code):not(:where(pre *, [class~='not-prose'] *)) {
+  /* Headings */
+  .markdown :where(h1) {
+    font-size: 1.5em;
+    font-weight: 700;
+    margin-top: 1.25em;
+    margin-bottom: 0.5em;
+    line-height: 1.3;
+  }
+  .markdown :where(h2) {
+    font-size: 1.25em;
+    font-weight: 600;
+    margin-top: 1.25em;
+    margin-bottom: 0.5em;
+    line-height: 1.35;
+  }
+  .markdown :where(h3) {
+    font-size: 1.1em;
+    font-weight: 600;
+    margin-top: 1em;
+    margin-bottom: 0.4em;
+    line-height: 1.4;
+  }
+  .markdown :where(h4, h5, h6) {
+    font-weight: 600;
+    margin-top: 0.75em;
+    margin-bottom: 0.25em;
+  }
+
+  /* Lists */
+  .markdown :where(ul) {
+    list-style-type: disc;
+    padding-left: 1.5em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+  }
+  .markdown :where(ol) {
+    list-style-type: decimal;
+    padding-left: 1.5em;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+  }
+  .markdown :where(li) {
+    margin-top: 0.25em;
+    margin-bottom: 0.25em;
+  }
+  .markdown :where(li)::marker {
+    color: var(--muted-foreground);
+  }
+
+  /* Horizontal rule */
+  .markdown :where(hr) {
+    border-color: var(--border);
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+  }
+
+  /* Strong / bold */
+  .markdown :where(strong) {
+    font-weight: 600;
+  }
+
+  /* Links */
+  .markdown :where(a) {
+    color: var(--primary);
+  }
+
+  /* Inline code: chip style */
+  .markdown :where(code):not(:where(pre *)) {
     background: var(--accent);
     color: var(--primary);
     border-radius: 0.25rem;
@@ -534,13 +585,9 @@
     font-size: 0.8em;
     font-weight: 400;
   }
-  .prose :where(code):not(:where(pre *, [class~='not-prose'] *))::before,
-  .prose :where(code):not(:where(pre *, [class~='not-prose'] *))::after {
-    content: none;
-  }
 
   /* Code blocks: border + rounded wrapper; SyntaxHighlighter supplies the bg */
-  .prose :where(pre):not(:where([class~='not-prose'] *)) {
+  .markdown :where(pre) {
     background: transparent;
     padding: 0;
     color: inherit;
@@ -550,20 +597,20 @@
   }
 
   /* Paragraphs: pre-wrap so literal newlines render */
-  .prose :where(p):not(:where([class~='not-prose'] *)) {
+  .markdown :where(p) {
     white-space: pre-wrap;
     overflow-wrap: break-word;
     word-break: break-word;
   }
 
   /* Blockquote: gradient accent bar, no italic */
-  .prose :where(blockquote):not(:where([class~='not-prose'] *)) {
+  .markdown :where(blockquote) {
     font-style: normal;
     border-left: none;
     padding-left: 1rem;
     position: relative;
   }
-  .prose :where(blockquote):not(:where([class~='not-prose'] *))::before {
+  .markdown :where(blockquote)::before {
     content: '';
     position: absolute;
     inset-block: 0;
@@ -571,10 +618,6 @@
     width: 3px;
     background: linear-gradient(to bottom, var(--primary), var(--ring));
     border-radius: 2px;
-  }
-  .prose :where(blockquote p):not(:where([class~='not-prose'] *))::before,
-  .prose :where(blockquote p):not(:where([class~='not-prose'] *))::after {
-    content: none;
   }
 
   .tiptap {

@@ -7,6 +7,7 @@ import {
   DatabaseIcon,
   HandCoinsIcon,
   InfoIcon,
+  KeyboardIcon,
   MemoryStickIcon,
   NetworkIcon,
   PlugIcon,
@@ -35,6 +36,7 @@ export enum SettingsLabel {
   ComputerUse = 'Computer Use',
   DataControls = 'Data Controls',
   Logger = 'Logger',
+  KeyboardShortcuts = 'Keyboard Shortcuts',
   AboutExodus = 'About Exodus'
 }
 
@@ -108,6 +110,10 @@ export const menus = {
     {
       icon: ScrollTextIcon,
       title: SettingsLabel.Logger
+    },
+    {
+      icon: KeyboardIcon,
+      title: SettingsLabel.KeyboardShortcuts
     },
     {
       icon: InfoIcon,

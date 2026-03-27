@@ -183,7 +183,7 @@ export function ThinkingTimeline({
                 <TimelineNode key={i} icon={<StepIcon step={step} />}>
                   <div
                     className={cn(
-                      'text-muted-foreground prose-sm [&_h1]:text-sm [&_h2]:text-sm [&_h3]:text-sm [&_h4]:text-sm [&_ol]:my-0.5 [&_p]:my-0.5 [&_ul]:my-0.5',
+                      'text-muted-foreground text-sm [&_h1]:text-sm [&_h2]:text-sm [&_h3]:text-sm [&_h4]:text-sm [&_ol]:my-0.5 [&_p]:my-0.5 [&_ul]:my-0.5',
                       step.type === 'toolResult' &&
                         step.isError &&
                         'text-destructive'

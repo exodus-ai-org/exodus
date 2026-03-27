@@ -3,9 +3,9 @@ import { IpcRendererEvent } from 'electron'
 import { useCallback, useEffect } from 'react'
 import { Outlet, useNavigate } from 'react-router'
 
+import { AppToaster } from '@/components/app-toaster'
 import { DeepResearchProcess } from '@/components/deep-research'
 import { SourcesPanel } from '@/components/sources-panel'
-import { AppToaster } from '@/components/ui/app-toaster'
 import {
   SidebarInset,
   SidebarProvider,
@@ -13,6 +13,7 @@ import {
   useSidebar
 } from '@/components/ui/sidebar'
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
+import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { subscribeQuickChatInput, unsubscribeQuickChatInput } from '@/lib/ipc'
 import { cn } from '@/lib/utils'
 
@@ -70,15 +71,8 @@ export function Layout() {
     return () => unsubscribeQuickChatInput(onQuickChatInput)
   }, [onQuickChatInput])
 
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        window.electron.ipcRenderer.invoke('close-search-bar')
-      }
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [])
+  // Central keyboard shortcuts (Mod+N, Mod+W, Mod+,, Mod+Shift+F, Escape, etc.)
+  useKeyboardShortcuts()
 
   return (
     <SidebarProvider>

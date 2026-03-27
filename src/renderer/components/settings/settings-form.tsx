@@ -14,6 +14,7 @@ import { General } from './settings-form/generals'
 import { GoogleMaps } from './settings-form/google-maps'
 import { GraphRAG } from './settings-form/graph-rag'
 import { ImageGeneration } from './settings-form/image-generation'
+import { KeyboardShortcuts } from './settings-form/keyboard-shortcuts'
 import { Logger } from './settings-form/logger'
 import { McpServers } from './settings-form/mcp-servers'
 import { MemoryLayer } from './settings-form/memory-layer'
@@ -111,6 +112,8 @@ export function SettingsForm() {
       {activeTitle === SettingsLabel.DataControls && <DataControls />}
 
       {activeTitle === SettingsLabel.Logger && <Logger />}
+
+      {activeTitle === SettingsLabel.KeyboardShortcuts && <KeyboardShortcuts />}
 
       {activeTitle === SettingsLabel.AboutExodus && <SystemInfo form={form} />}
     </form>
