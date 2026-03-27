@@ -197,6 +197,22 @@ export function SkillsMarket() {
   return (
     <div className="flex h-full w-full flex-col">
       <div className="flex flex-1 flex-col gap-4 overflow-hidden px-6 py-4">
+        <Alert variant="destructive">
+          <TriangleAlertIcon />
+          <AlertDescription>
+            Skills data sourced from{' '}
+            <a
+              href="https://clawhub.ai/"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              clawhub.ai
+            </a>
+            . Please review skills carefully before installing to avoid
+            potentially malicious programs.
+          </AlertDescription>
+        </Alert>
+
         {/* Search bar + upload */}
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
@@ -213,22 +229,6 @@ export function SkillsMarket() {
             onClick={handleInstallLocal}
           />
         </div>
-
-        <Alert>
-          <TriangleAlertIcon />
-          <AlertDescription>
-            Skills data sourced from{' '}
-            <a
-              href="https://clawhub.ai/"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              clawhub.ai
-            </a>
-            . Please review skills carefully before installing to avoid
-            potentially malicious programs.
-          </AlertDescription>
-        </Alert>
 
         <Tabs
           defaultValue="browse"
