@@ -91,7 +91,10 @@ function InputBox({
   }
 
   const submitForm = useCallback(() => {
-    window.history.replaceState({}, '', `/chat/${chatId}`)
+    // URL update is handled by Chat's onFinish to avoid interrupting the stream
+    if (!id) {
+      window.history.replaceState({}, '', `/chat/${chatId}`)
+    }
 
     sendMessage({
       text: input,

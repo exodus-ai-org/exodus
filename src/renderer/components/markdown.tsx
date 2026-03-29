@@ -186,7 +186,6 @@ const rehypePluginsStable: any[] = [rehypeKatex]
 
 const codeBlockStyle = {
   padding: '0.75rem',
-  paddingBottom: 0,
   fontSize: '0.8125rem',
   lineHeight: '1.5'
 }
@@ -245,6 +244,7 @@ export function Markdown({
               language={match[1]}
               style={codeTheme}
               customStyle={codeBlockStyle}
+              showLineNumbers
             >
               {String(children).replace(/\n$/, '')}
             </SyntaxHighlighter>
@@ -377,6 +377,9 @@ export function Markdown({
           </td>
         )
       }
+      // br() {
+      //   return null
+      // }
     }),
     [copied, handleCopy, codeTheme, webSearchResults]
   )

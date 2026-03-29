@@ -75,7 +75,9 @@ export function SourcesPanel() {
         <div className="bg-background flex-1 overflow-y-auto p-3">
           {cited.length > 0 && (
             <>
-              <p className="mb-2 px-3 text-xs font-semibold">Citations</p>
+              <p className="mb-2 px-3 text-xs font-semibold">
+                Citations ({cited.length})
+              </p>
               <div className="flex flex-col gap-0.5">
                 {cited.map((item) => (
                   <SourceLink key={item.link} item={item} />

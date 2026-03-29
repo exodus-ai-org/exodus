@@ -594,6 +594,8 @@
     border: 1px solid var(--border);
     border-radius: 0.5rem;
     overflow: hidden;
+    margin-top: 0.75em;
+    margin-bottom: 0.75em;
   }
 
   /* Paragraphs: pre-wrap so literal newlines render */
@@ -601,6 +603,14 @@
     white-space: pre-wrap;
     overflow-wrap: break-word;
     word-break: break-word;
+    margin-top: 0.75em;
+    margin-bottom: 0.75em;
+  }
+  .markdown :where(p):first-child {
+    margin-top: 0;
+  }
+  .markdown :where(p):last-child {
+    margin-bottom: 0;
   }
 
   /* Blockquote: gradient accent bar, no italic */
@@ -609,6 +619,8 @@
     border-left: none;
     padding-left: 1rem;
     position: relative;
+    margin-top: 0.75em;
+    margin-bottom: 0.75em;
   }
   .markdown :where(blockquote)::before {
     content: '';

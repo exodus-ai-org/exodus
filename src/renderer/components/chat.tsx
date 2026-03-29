@@ -4,7 +4,7 @@ import { Attachment, ChatMessage } from '@shared/types/chat'
 import type { Project } from '@shared/types/db'
 import { useAtomValue, useSetAtom } from 'jotai'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import { sileo } from 'sileo'
 import { mutate } from 'swr'
 import useSWR from 'swr'
@@ -43,6 +43,8 @@ interface Props {
 }
 
 export function Chat({ id, initialMessages, projectId }: Props) {
+  const { id: routeId } = useParams()
+  const navigate = useNavigate()
   const quickChat = window.localStorage.getItem(QUICK_CHAT_KEY)
   const advancedTools = useAtomValue(advancedToolsAtom)
   const advancedToolsRef = useRef(advancedTools)
@@ -78,6 +80,13 @@ export function Chat({ id, initialMessages, projectId }: Props) {
     }),
     onFinish: () => {
       mutate('/api/history')
+      // After the first message completes on Home, do a proper React Router
+      // navigate so sidebar highlighting and header tabs update correctly.
+      // The replaceState in multimodel-input already updated the URL for the
+      // stream duration; this triggers React Router to re-render.
+      if (!routeId) {
+        navigate(`/chat/${id}`, { replace: true })
+      }
     },
     onError: (e) => {
       sileo.error({
@@ -106,6 +115,8 @@ export function Chat({ id, initialMessages, projectId }: Props) {
   useEffect(() => {
     if (quickChat) {
       setChatInput(quickChat)
+      // Use replaceState for immediate URL update; React Router navigate
+      // happens in onFinish after the stream completes.
       window.history.replaceState({}, '', `/chat/${id}`)
       sendMessage({ text: quickChat })
       setChatInput('')
