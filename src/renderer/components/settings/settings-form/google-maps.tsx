@@ -50,6 +50,7 @@ export function GoogleMaps({ form }: { form: UseFormReturnType }) {
               layout="vertical"
             >
               <Input
+                placeholder="Enter your Google API key"
                 type="password"
                 autoComplete="current-password"
                 id="google-search-api-key-input"
