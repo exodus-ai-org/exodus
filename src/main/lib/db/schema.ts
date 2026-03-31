@@ -137,6 +137,8 @@ export const settings = pgTable('settings', {
     jsonb('deepResearch').$type<z.infer<typeof DeepResearchSchema>>(),
   s3: jsonb('s3').$type<z.infer<typeof S3Schema>>(),
   autoUpdate: boolean('autoUpdate').default(true),
+  runOnStartup: boolean('runOnStartup').default(false),
+  menuBar: boolean('menuBar').default(true),
   memoryLayer: jsonb('memoryLayer').$type<z.infer<typeof MemoryLayerSchema>>(),
   personality: jsonb('personality').$type<z.infer<typeof PersonalitySchema>>(),
   colorTone: text('colorTone').default('neutral'),

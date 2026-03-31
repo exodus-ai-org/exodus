@@ -96,6 +96,14 @@ export function selectSkillPath(): Promise<string | null> {
   return window.electron.ipcRenderer.invoke('select-skill-path')
 }
 
+export function setLoginItem(enable: boolean) {
+  return window.electron.ipcRenderer.invoke('set-login-item', enable)
+}
+
+export function setMenuBar(enable: boolean) {
+  return window.electron.ipcRenderer.invoke('set-menu-bar', enable)
+}
+
 export function updaterSetAutoDownload(enable: boolean) {
   return window.electron.ipcRenderer.invoke('updater-set-auto-download', enable)
 }

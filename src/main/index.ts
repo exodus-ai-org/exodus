@@ -17,7 +17,7 @@ app.whenReady().then(async () => {
   // Migrate PGlite
   await runMigrate()
   cleanupOldLogs()
-  await cleanupStaleWaitingTasks()
+  await cleanupStaleWaitingTasks().catch(() => {})
 
   // Start Hono server
   const server = await connectHttpServer()
@@ -27,8 +27,7 @@ app.whenReady().then(async () => {
   // Setup menu
   setupMenu()
 
-  // Setup tray
-  setTray()
+  // Setup tray (will be conditionally created after settings are loaded)
 
   // Set app user model id for windows
   electronApp.setAppUserModelId('app.yancey.exodus')
@@ -47,6 +46,12 @@ app.whenReady().then(async () => {
 
   const dbSettings = await getSettings()
   setupAutoUpdater(dbSettings.autoUpdate ?? true)
+
+  // Apply startup and menu bar settings
+  app.setLoginItemSettings({ openAtLogin: dbSettings.runOnStartup ?? false })
+  if (dbSettings.menuBar !== false) {
+    setTray()
+  }
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the

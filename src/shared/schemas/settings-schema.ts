@@ -175,6 +175,8 @@ export const SettingsSchema = z.object({
   deepResearch: DeepResearchSchema.nullish(),
   s3: S3Schema.nullish(),
   autoUpdate: z.boolean().nullish(),
+  runOnStartup: z.boolean().nullish(),
+  menuBar: z.boolean().nullish(),
   memoryLayer: MemoryLayerSchema.nullish(),
   personality: PersonalitySchema.nullish(),
   colorTone: ColorTone.default('neutral').nullish(),

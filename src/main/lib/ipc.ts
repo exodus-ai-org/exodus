@@ -12,6 +12,7 @@ import {
   updaterSetAutoDownload
 } from './auto-updater'
 import { logger } from './logger'
+import { destroyTray, setTray } from './tray'
 import {
   getMainWindow,
   getQuickChatView,
@@ -159,6 +160,18 @@ export function setupIPC() {
   ipcMain.handle('open-logs-dir', () => {
     const dir = join(app.getPath('userData'), 'logs')
     shell.openPath(dir)
+  })
+
+  ipcMain.handle('set-login-item', (_, enable: boolean) => {
+    app.setLoginItemSettings({ openAtLogin: enable })
+  })
+
+  ipcMain.handle('set-menu-bar', (_, enable: boolean) => {
+    if (enable) {
+      setTray()
+    } else {
+      destroyTray()
+    }
   })
 
   ipcMain.handle('updater-get-state', () => updaterGetState())

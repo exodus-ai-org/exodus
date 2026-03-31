@@ -1,1 +1,0 @@
-ALTER TABLE "agent" ADD COLUMN "collaboratorIds" jsonb DEFAULT '[]'::jsonb;

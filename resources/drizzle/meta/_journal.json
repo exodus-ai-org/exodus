@@ -5,85 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1773636762968,
-      "tag": "0000_absurd_tony_stark",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1773645411624,
-      "tag": "0001_needy_electro",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1773646149644,
-      "tag": "0002_puzzling_fantastic_four",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1773728497492,
-      "tag": "0004_solid_devos",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1773901149546,
-      "tag": "0004_absent_morlocks",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1773904478985,
-      "tag": "0005_moaning_gressill",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1742428800000,
-      "tag": "0006_cron_last_run_status",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1742860800000,
-      "tag": "0007_rename_columns_camelcase",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1742860800001,
-      "tag": "0008_rename_setting_to_settings",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1742860800002,
-      "tag": "0009_add_color_tone",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "7",
-      "when": 1774432059376,
-      "tag": "0010_fancy_lockheed",
-      "breakpoints": true
-    },
-    {
-      "idx": 11,
-      "version": "7",
-      "when": 1774432100000,
-      "tag": "0011_add_personality",
+      "when": 1774924771982,
+      "tag": "0000_mysterious_thunderbolts",
       "breakpoints": true
     }
   ]
