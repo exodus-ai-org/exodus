@@ -7,5 +7,12 @@ export function Home() {
   const [searchParams] = useSearchParams()
   const projectId = searchParams.get('projectId') ?? undefined
 
-  return <Chat id={uuidV4()} initialMessages={[]} projectId={projectId} />
+  return (
+    <Chat
+      id={uuidV4()}
+      initialMessages={[]}
+      projectId={projectId}
+      chatTitle="New chat"
+    />
+  )
 }

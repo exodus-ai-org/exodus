@@ -40,9 +40,10 @@ interface Props {
   id: string
   initialMessages: ChatMessage[]
   projectId?: string
+  chatTitle: string
 }
 
-export function Chat({ id, initialMessages, projectId }: Props) {
+export function Chat({ id, initialMessages, projectId, chatTitle }: Props) {
   const { id: routeId } = useParams()
   const navigate = useNavigate()
   const quickChat = window.localStorage.getItem(QUICK_CHAT_KEY)
@@ -57,6 +58,7 @@ export function Chat({ id, initialMessages, projectId }: Props) {
   const setChatStop = useSetAtom(chatStopFnAtom)
 
   const [attachments, setAttachments] = useState<Attachment[]>([])
+  const [title, setTitle] = useState(chatTitle)
 
   const {
     messages,
@@ -68,6 +70,7 @@ export function Chat({ id, initialMessages, projectId }: Props) {
     lastUsage
   } = useChat({
     id,
+    chatTitle: title,
     api: `${BASE_URL}/api/chat`,
     messages: initialMessages,
     generateId: uuidV4,
@@ -80,10 +83,6 @@ export function Chat({ id, initialMessages, projectId }: Props) {
     }),
     onFinish: () => {
       mutate('/api/history')
-      // After the first message completes on Home, do a proper React Router
-      // navigate so sidebar highlighting and header tabs update correctly.
-      // The replaceState in multimodel-input already updated the URL for the
-      // stream duration; this triggers React Router to re-render.
       if (!routeId) {
         navigate(`/chat/${id}`, { replace: true })
       }
@@ -96,6 +95,10 @@ export function Chat({ id, initialMessages, projectId }: Props) {
             ? e.message
             : 'An error occurred, please try again!'
       })
+    },
+    onTitle: (newTitle) => {
+      setTitle(newTitle)
+      mutate('/api/history')
     }
   })
 
