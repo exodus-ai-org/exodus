@@ -1,9 +1,10 @@
+import { ErrorCode } from '@shared/constants/error-codes'
+import { DatabaseError } from '@shared/errors/app-error'
 import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import JSZip from 'jszip'
 
 import { exportData, importData } from '../../db/queries'
-import { ChatSDKError } from '../errors'
 import { importDataSchema } from '../schemas/db-io'
 import {
   handleDatabaseOperation,
@@ -28,8 +29,8 @@ async function createZipFromBlobs(
   try {
     return await zip.generateAsync({ type: 'nodebuffer' })
   } catch (error) {
-    throw new ChatSDKError(
-      'bad_request:database',
+    throw new DatabaseError(
+      ErrorCode.DB_QUERY_FAILED,
       error instanceof Error ? error.message : 'Failed to create zip file'
     )
   }
@@ -43,7 +44,6 @@ dbIo.post('/import', async (c) => {
       tableName: body['tableName'],
       file: body['file']
     },
-    'database',
     'Invalid request body'
   )
 

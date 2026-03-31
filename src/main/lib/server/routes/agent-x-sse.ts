@@ -22,7 +22,7 @@ export function emitToAll(event: AgentXSseEvent): void {
 const agentXSse = new Hono<{ Variables: Variables }>()
 
 agentXSse.get('/tasks/:id/sse', (c) => {
-  const id = getRequiredParam(c, 'id', 'agent_x')
+  const id = getRequiredParam(c, 'id')
 
   const stream = new ReadableStream({
     start(controller) {

@@ -21,7 +21,6 @@ settingsRouter.post('/', async (c) => {
   const payload = validateSchema(
     updateSettingsSchema,
     await c.req.json(),
-    'setting',
     'Invalid setting configuration'
   )
 

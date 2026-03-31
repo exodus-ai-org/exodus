@@ -1,9 +1,15 @@
+import { ErrorCode } from '@shared/constants/error-codes'
+import {
+  AppError,
+  DatabaseError,
+  isAppError,
+  ValidationError
+} from '@shared/errors/app-error'
 import z from 'zod'
 
-import { ChatSDKError, Surface } from '../errors'
-
 /**
- * Wraps database operations with error handling
+ * Wraps database operations with error handling.
+ * Re-throws AppErrors as-is; wraps unknown errors as DatabaseError.
  */
 export async function handleDatabaseOperation<T>(
   operation: () => Promise<T>,
@@ -12,28 +18,30 @@ export async function handleDatabaseOperation<T>(
   try {
     return await operation()
   } catch (error) {
-    throw new ChatSDKError(
-      'bad_request:database',
+    if (isAppError(error)) throw error
+    throw new DatabaseError(
+      ErrorCode.DB_QUERY_FAILED,
       error instanceof Error ? error.message : errorMessage
     )
   }
 }
 
 /**
- * Wraps route handler with consistent error handling
+ * Wraps route handler with consistent error handling.
+ * Re-throws AppErrors as-is; wraps unknown errors with the given code.
  */
 export function wrapRouteHandler<T>(
   handler: () => Promise<T>,
-  surface: Surface,
+  code: ErrorCode,
   errorMessage?: string
 ) {
   return async (): Promise<T> => {
     try {
       return await handler()
     } catch (error) {
-      if (error instanceof ChatSDKError) throw error
-      throw new ChatSDKError(
-        `bad_request:${surface}`,
+      if (isAppError(error)) throw error
+      throw new AppError(
+        code,
         error instanceof Error
           ? error.message
           : errorMessage || 'Operation failed'
@@ -43,17 +51,16 @@ export function wrapRouteHandler<T>(
 }
 
 /**
- * Validates Zod schema and throws ChatSDKError on failure
+ * Validates Zod schema and throws ValidationError on failure.
  */
 export function validateSchema<T>(
   schema: z.ZodType<T>,
   data: unknown,
-  surface: Surface,
   errorMessage = 'Invalid request body'
 ): T {
   const result = schema.safeParse(data)
   if (!result.success) {
-    throw new ChatSDKError(`bad_request:${surface}`, errorMessage)
+    throw new ValidationError(ErrorCode.VALIDATION_FAILED, errorMessage)
   }
   return result.data
 }

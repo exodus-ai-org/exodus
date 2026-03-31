@@ -6,18 +6,38 @@ import { cleanupStaleWaitingTasks } from './lib/db/agent-x-queries'
 import { runMigrate } from './lib/db/migrate'
 import { getSettings } from './lib/db/queries'
 import { setupIPC } from './lib/ipc'
-import { cleanupOldLogs } from './lib/logger'
+import { cleanupOldLogs, logger } from './lib/logger'
 import { setupMenu } from './lib/menu'
 import { connectHttpServer } from './lib/server/app'
 import { setServer } from './lib/server/instance'
 import { setTray } from './lib/tray'
 import { createWindow } from './lib/window'
 
+// Capture unhandled runtime errors into the log file
+process.on('uncaughtException', (error) => {
+  logger.error('app', 'Uncaught exception', {
+    error: String(error),
+    stack: error?.stack
+  })
+})
+
+process.on('unhandledRejection', (reason) => {
+  logger.error('app', 'Unhandled promise rejection', {
+    error: String(reason),
+    stack: reason instanceof Error ? reason.stack : undefined
+  })
+})
+
 app.whenReady().then(async () => {
   // Migrate PGlite
   await runMigrate()
   cleanupOldLogs()
-  await cleanupStaleWaitingTasks().catch(() => {})
+  await cleanupStaleWaitingTasks().catch((err) => {
+    logger.warn('app', 'Failed to cleanup stale waiting tasks', {
+      error: String(err),
+      stack: err instanceof Error ? err.stack : undefined
+    })
+  })
 
   // Start Hono server
   const server = await connectHttpServer()

@@ -4,6 +4,7 @@ import { is } from '@electron-toolkit/utils'
 import { BrowserWindow, WebContentsView, app, screen, shell } from 'electron'
 
 import icon from '../../../resources/icon.png?asset'
+import { logger } from './logger'
 
 let mainWindow: BrowserWindow | null = null
 let searchView: WebContentsView | null = null
@@ -66,10 +67,20 @@ export function createWindow(): void {
   })
 
   if (is.dev && process.env.ELECTRON_RENDERER_URL) {
-    mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL)
+    mainWindow.loadURL(process.env.ELECTRON_RENDERER_URL).catch((err) => {
+      logger.error('app', 'Failed to load main window URL', {
+        error: String(err)
+      })
+    })
     mainWindow.webContents.openDevTools({ mode: 'detach' })
   } else {
-    mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
+    mainWindow
+      .loadFile(join(__dirname, '../renderer/index.html'))
+      .catch((err) => {
+        logger.error('app', 'Failed to load main window file', {
+          error: String(err)
+        })
+      })
   }
 }
 
@@ -94,13 +105,23 @@ export function registerSearchMenu(mainWindow: BrowserWindow) {
   mainWindow?.contentView.addChildView(searchView)
 
   if (is.dev && process.env.ELECTRON_RENDERER_URL) {
-    searchView.webContents.loadURL(
-      process.env.ELECTRON_RENDERER_URL + '/sub-apps/searchbar/index.html'
-    )
+    searchView.webContents
+      .loadURL(
+        process.env.ELECTRON_RENDERER_URL + '/sub-apps/searchbar/index.html'
+      )
+      .catch((err) => {
+        logger.error('app', 'Failed to load searchbar URL', {
+          error: String(err)
+        })
+      })
   } else {
-    searchView.webContents.loadFile(
-      join(__dirname, '../renderer/sub-apps/searchbar/index.html')
-    )
+    searchView.webContents
+      .loadFile(join(__dirname, '../renderer/sub-apps/searchbar/index.html'))
+      .catch((err) => {
+        logger.error('app', 'Failed to load searchbar file', {
+          error: String(err)
+        })
+      })
   }
 
   mainWindow?.on('resize', () => {
@@ -152,13 +173,23 @@ export function registerQuickChat() {
   })
 
   if (is.dev && process.env.ELECTRON_RENDERER_URL) {
-    quickChatView.webContents.loadURL(
-      process.env.ELECTRON_RENDERER_URL + '/sub-apps/quick-chat/index.html'
-    )
+    quickChatView.webContents
+      .loadURL(
+        process.env.ELECTRON_RENDERER_URL + '/sub-apps/quick-chat/index.html'
+      )
+      .catch((err) => {
+        logger.error('app', 'Failed to load quick-chat URL', {
+          error: String(err)
+        })
+      })
   } else {
-    quickChatView.webContents.loadFile(
-      join(__dirname, '../renderer/sub-apps/quick-chat/index.html')
-    )
+    quickChatView.webContents
+      .loadFile(join(__dirname, '../renderer/sub-apps/quick-chat/index.html'))
+      .catch((err) => {
+        logger.error('app', 'Failed to load quick-chat file', {
+          error: String(err)
+        })
+      })
   }
 }
 

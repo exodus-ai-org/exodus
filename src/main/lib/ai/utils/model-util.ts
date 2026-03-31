@@ -1,8 +1,9 @@
 import type { Model } from '@mariozechner/pi-ai'
+import { ErrorCode } from '@shared/constants/error-codes'
+import { ConfigurationError, NotFoundError } from '@shared/errors/app-error'
 import { AiProviders } from '@shared/types/ai'
 
 import { Settings } from '../../db/schema'
-import { ChatSDKError } from '../../server/errors'
 import { providers } from '../providers'
 
 export const PROVIDER_API_KEY_LABELS: Record<AiProviders, string> = {
@@ -42,15 +43,15 @@ export function getModelFromProvider(setting: Settings): {
   apiKey: string
 } {
   if (!('id' in setting)) {
-    throw new ChatSDKError(
-      'not_found:setting',
+    throw new NotFoundError(
+      ErrorCode.SETTING_NOT_FOUND,
       'Settings not initialized. Please restart the app.'
     )
   }
 
   if (!setting.providerConfig?.provider) {
-    throw new ChatSDKError(
-      'bad_request:setting',
+    throw new ConfigurationError(
+      ErrorCode.CONFIG_MISSING_PROVIDER,
       'No AI provider selected. Please choose a provider in Settings → AI Providers.'
     )
   }
@@ -62,8 +63,8 @@ export function getModelFromProvider(setting: Settings): {
 
   if (!apiKey) {
     const label = PROVIDER_API_KEY_LABELS[providerEnum] ?? providerEnum
-    throw new ChatSDKError(
-      'forbidden:setting',
+    throw new ConfigurationError(
+      ErrorCode.CONFIG_INVALID,
       `${label} is not configured. Please add it in Settings → AI Providers before chatting.`
     )
   }

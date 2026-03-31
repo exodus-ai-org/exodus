@@ -21,15 +21,25 @@ const mcpCache = new Map<string, CachedMcp>()
 export async function invalidateMcpCache(serverName: string) {
   const cached = mcpCache.get(serverName)
   if (cached) {
-    cached.client.close().catch(() => {})
+    cached.client.close().catch((err) => {
+      logger.warn('mcp', 'Failed to close MCP client', {
+        server: serverName,
+        error: String(err)
+      })
+    })
     mcpCache.delete(serverName)
   }
 }
 
 /** Close all connections and clear the entire cache. */
 export async function invalidateAllMcpCache() {
-  for (const [, cached] of mcpCache) {
-    cached.client.close().catch(() => {})
+  for (const [name, cached] of mcpCache) {
+    cached.client.close().catch((err) => {
+      logger.warn('mcp', 'Failed to close MCP client', {
+        server: name,
+        error: String(err)
+      })
+    })
   }
   mcpCache.clear()
 }
@@ -143,6 +153,17 @@ export async function getMcpTools(): Promise<McpTools[]> {
   const results = await Promise.allSettled(
     active.map((s) => connectMcpServer(s))
   )
+
+  results.forEach((r, i) => {
+    if (r.status === 'rejected') {
+      logger.error('mcp', 'Failed to connect MCP server', {
+        server: active[i].name,
+        error: String(r.reason),
+        stack: r.reason instanceof Error ? r.reason.stack : undefined
+      })
+    }
+  })
+
   return results
     .filter(
       (r): r is PromiseFulfilledResult<McpTools> => r.status === 'fulfilled'
@@ -162,6 +183,17 @@ export async function getMcpToolsByNames(names: string[]): Promise<McpTools[]> {
   const results = await Promise.allSettled(
     active.map((s) => connectMcpServer(s))
   )
+
+  results.forEach((r, i) => {
+    if (r.status === 'rejected') {
+      logger.error('mcp', 'Failed to connect MCP server', {
+        server: active[i].name,
+        error: String(r.reason),
+        stack: r.reason instanceof Error ? r.reason.stack : undefined
+      })
+    }
+  })
+
   return results
     .filter(
       (r): r is PromiseFulfilledResult<McpTools> => r.status === 'fulfilled'

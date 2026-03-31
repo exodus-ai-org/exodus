@@ -1,9 +1,10 @@
+import { ErrorCode } from '@shared/constants/error-codes'
+import { AppError, ServiceError } from '@shared/errors/app-error'
 import { Variables } from '@shared/types/server'
 import { BrowserWindow } from 'electron'
 import { Hono } from 'hono'
 import MarkdownIt from 'markdown-it'
 
-import { ChatSDKError } from '../errors'
 import { markdownToPdfSchema } from '../schemas/tools'
 import { getRequiredQuery, successResponse, validateSchema } from '../utils'
 import { bufferToArrayBuffer } from '../utils/helpers'
@@ -31,8 +32,8 @@ async function markdownStringToPdfBuffer(markdownString: string) {
     })
     return buffer
   } catch (e) {
-    throw new ChatSDKError(
-      'bad_request:api',
+    throw new AppError(
+      ErrorCode.INTERNAL_ERROR,
       e instanceof Error ? e.message : 'Failed to generate PDF'
     )
   } finally {
@@ -44,7 +45,6 @@ tools.post('/md-to-pdf', async (c) => {
   const { markdown } = validateSchema(
     markdownToPdfSchema,
     await c.req.json(),
-    'api',
     'Invalid request body'
   )
 
@@ -58,7 +58,7 @@ tools.post('/md-to-pdf', async (c) => {
 })
 
 tools.get('/ping-ollama', async (c) => {
-  const url = getRequiredQuery(c, 'url', 'api')
+  const url = getRequiredQuery(c, 'url')
 
   try {
     await fetch(url)
@@ -66,7 +66,10 @@ tools.get('/ping-ollama', async (c) => {
       message: 'Ollama is running'
     })
   } catch {
-    throw new ChatSDKError('not_found:api', 'Ollama is not reachable')
+    throw new ServiceError(
+      ErrorCode.SERVICE_OLLAMA_UNREACHABLE,
+      'Ollama is not reachable'
+    )
   }
 })
 

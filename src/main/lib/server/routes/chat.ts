@@ -1,6 +1,8 @@
 import type { AgentMessage } from '@mariozechner/pi-agent-core'
 import { agentLoop } from '@mariozechner/pi-agent-core'
 import type { Message } from '@mariozechner/pi-ai'
+import { ErrorCode } from '@shared/constants/error-codes'
+import { NotFoundError } from '@shared/errors/app-error'
 import { AdvancedTools } from '@shared/types/ai'
 import type {
   ChatAssistantMessage,
@@ -43,7 +45,6 @@ import {
   updateChatTitleById
 } from '../../db/queries'
 import { logger } from '../../logger'
-import { ChatSDKError } from '../errors'
 import { postRequestBodySchema, updateChatSchema } from '../schemas/chat'
 import {
   deletionSuccessResponse,
@@ -68,7 +69,7 @@ chat.get('/search', async (c) => {
 })
 
 chat.get('/:id', async (c) => {
-  const id = getRequiredParam(c, 'id', 'chat')
+  const id = getRequiredParam(c, 'id')
   const messages = await handleDatabaseOperation(
     () => getMessagesByChatId({ id }),
     'Failed to get messages'
@@ -80,7 +81,6 @@ chat.post('/', async (c) => {
   const { id, messages, advancedTools, projectId } = validateSchema(
     postRequestBodySchema,
     await c.req.json(),
-    'chat',
     'Invalid request body'
   )
   const setting = c.get('settings')
@@ -100,7 +100,12 @@ chat.post('/', async (c) => {
   if (!existingChat) {
     await saveChat({ id, title: 'New chat', projectId })
     if (projectId) {
-      void bumpProjectUpdatedAt({ id: projectId })
+      bumpProjectUpdatedAt({ id: projectId }).catch((err) => {
+        logger.warn('chat', 'Failed to bump project updatedAt', {
+          projectId,
+          error: String(err)
+        })
+      })
     }
     titlePromise = generateTitleFromUserMessage({
       message: userMessage,
@@ -353,7 +358,12 @@ chat.post('/', async (c) => {
         if (titlePromise) {
           const title = await titlePromise
           sendEvent({ type: 'title', title })
-          updateChatTitleById({ id, title })
+          updateChatTitleById({ id, title }).catch((err) => {
+            logger.error('chat', 'Failed to persist chat title', {
+              chatId: id,
+              error: String(err)
+            })
+          })
         }
 
         // Send done event
@@ -445,7 +455,7 @@ chat.post('/', async (c) => {
 })
 
 chat.delete('/:id', async (c) => {
-  const id = getRequiredParam(c, 'id', 'chat')
+  const id = getRequiredParam(c, 'id')
 
   await handleDatabaseOperation(
     () => deleteChatById({ id }),
@@ -459,12 +469,11 @@ chat.put('/', async (c) => {
   const payload = validateSchema(
     updateChatSchema,
     await c.req.json(),
-    'chat',
     'Invalid request body'
   )
 
   if (!payload.id) {
-    throw new ChatSDKError('not_found:chat', 'Chat ID is required')
+    throw new NotFoundError(ErrorCode.CHAT_NOT_FOUND, 'Chat ID is required')
   }
 
   await handleDatabaseOperation(

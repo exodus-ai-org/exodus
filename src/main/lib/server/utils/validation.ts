@@ -1,11 +1,12 @@
 import { S3Client } from '@aws-sdk/client-s3'
+import { ErrorCode } from '@shared/constants/error-codes'
+import { ConfigurationError } from '@shared/errors/app-error'
 
 import { Settings } from '../../db/schema'
-import { ChatSDKError } from '../errors'
 
 /**
- * Validates that S3 configuration is complete
- * @throws ChatSDKError if configuration is incomplete
+ * Validates that S3 configuration is complete.
+ * @throws ConfigurationError if configuration is incomplete
  */
 export function validateS3Config(setting: Settings) {
   const s3Config = setting.s3
@@ -15,11 +16,14 @@ export function validateS3Config(setting: Settings) {
     !s3Config?.accessKeyId ||
     !s3Config?.secretAccessKey
   ) {
-    throw new ChatSDKError('forbidden:s3')
+    throw new ConfigurationError(ErrorCode.CONFIG_MISSING_S3)
   }
 
   if (!s3Config?.bucket) {
-    throw new ChatSDKError('forbidden:s3', 'S3 bucket is not configured')
+    throw new ConfigurationError(
+      ErrorCode.CONFIG_MISSING_S3,
+      'S3 bucket is not configured'
+    )
   }
 
   return {
@@ -31,12 +35,12 @@ export function validateS3Config(setting: Settings) {
 }
 
 /**
- * Validates that OpenAI configuration exists
- * @throws ChatSDKError if configuration is missing
+ * Validates that OpenAI configuration exists.
+ * @throws ConfigurationError if configuration is missing
  */
 export function validateOpenAIConfig(setting: Settings) {
   if (!setting?.providers?.openaiApiKey) {
-    throw new ChatSDKError('forbidden:audio')
+    throw new ConfigurationError(ErrorCode.CONFIG_MISSING_OPENAI)
   }
 
   return {
@@ -46,12 +50,12 @@ export function validateOpenAIConfig(setting: Settings) {
 }
 
 /**
- * Validates that Perplexity API key exists
- * @throws ChatSDKError if API key is missing
+ * Validates that Perplexity API key exists.
+ * @throws ConfigurationError if API key is missing
  */
 export function validatePerplexityApiKey(setting: Settings) {
   if (!setting.webSearch?.perplexityApiKey) {
-    throw new ChatSDKError('forbidden:deep_research')
+    throw new ConfigurationError(ErrorCode.CONFIG_MISSING_PERPLEXITY)
   }
 
   return setting.webSearch.perplexityApiKey

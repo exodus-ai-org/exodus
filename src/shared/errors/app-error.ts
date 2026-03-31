@@ -5,173 +5,122 @@ import {
 } from '../constants/error-codes'
 
 /**
- * Base application error class
- * All custom errors should extend from this class
+ * Base application error class.
+ *
+ * Follows Anthropic-style error response format:
+ * { type: "error", error: { code: "ERROR_CODE", message: "..." } }
  */
 export class AppError extends Error {
   public readonly code: ErrorCode
   public readonly statusCode: number
-  public readonly metadata?: Record<string, unknown>
   public readonly isOperational: boolean
 
-  constructor(
-    code: ErrorCode,
-    message?: string,
-    metadata?: Record<string, unknown>,
-    isOperational = true
-  ) {
+  constructor(code: ErrorCode, message?: string, isOperational = true) {
     super(message || ErrorMessages[code])
 
     this.name = this.constructor.name
     this.code = code
     this.statusCode = ErrorCodeToStatus[code]
-    this.metadata = metadata
     this.isOperational = isOperational
 
-    // Maintains proper stack trace for where error was thrown (only available on V8)
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, this.constructor)
     }
   }
 
   /**
-   * Serialize error for sending to client
+   * Serialize to Anthropic-style JSON for HTTP responses.
+   *
+   * ```json
+   * { "type": "error", "error": { "code": "CHAT_NOT_FOUND", "message": "Chat not found." } }
+   * ```
    */
   toJSON() {
     return {
+      type: 'error' as const,
       error: {
         code: this.code,
-        message: this.message,
-        statusCode: this.statusCode,
-        metadata: this.metadata
+        message: this.message
       }
     }
   }
 }
 
-/**
- * Configuration-related errors
- */
+// ── Typed subclasses ─────────────────────────────────────────────────────────
+
 export class ConfigurationError extends AppError {
-  constructor(
-    code: ErrorCode = ErrorCode.CONFIG_INVALID,
-    message?: string,
-    metadata?: Record<string, unknown>
-  ) {
-    super(code, message, metadata)
+  constructor(code: ErrorCode = ErrorCode.CONFIG_INVALID, message?: string) {
+    super(code, message)
   }
 }
 
-/**
- * Resource not found errors
- */
 export class NotFoundError extends AppError {
   constructor(
     code: ErrorCode = ErrorCode.RESOURCE_NOT_FOUND,
-    message?: string,
-    metadata?: Record<string, unknown>
+    message?: string
   ) {
-    super(code, message, metadata)
+    super(code, message)
   }
 }
 
-/**
- * Validation errors
- */
 export class ValidationError extends AppError {
-  constructor(
-    code: ErrorCode = ErrorCode.VALIDATION_FAILED,
-    message?: string,
-    metadata?: Record<string, unknown>
-  ) {
-    super(code, message, metadata)
+  constructor(code: ErrorCode = ErrorCode.VALIDATION_FAILED, message?: string) {
+    super(code, message)
   }
 }
 
-/**
- * External service errors
- */
+export class RateLimitError extends AppError {
+  constructor(code: ErrorCode = ErrorCode.RATE_LIMIT_CHAT, message?: string) {
+    super(code, message)
+  }
+}
+
 export class ServiceError extends AppError {
   constructor(
     code: ErrorCode = ErrorCode.SERVICE_UNAVAILABLE,
-    message?: string,
-    metadata?: Record<string, unknown>
+    message?: string
   ) {
-    super(code, message, metadata)
+    super(code, message)
   }
 }
 
-/**
- * Database errors
- */
 export class DatabaseError extends AppError {
-  constructor(
-    code: ErrorCode = ErrorCode.DB_QUERY_FAILED,
-    message?: string,
-    metadata?: Record<string, unknown>
-  ) {
-    super(code, message, metadata)
+  constructor(code: ErrorCode = ErrorCode.DB_QUERY_FAILED, message?: string) {
+    super(code, message)
   }
 }
 
-/**
- * File operation errors
- */
 export class FileError extends AppError {
-  constructor(
-    code: ErrorCode = ErrorCode.FILE_READ_FAILED,
-    message?: string,
-    metadata?: Record<string, unknown>
-  ) {
-    super(code, message, metadata)
+  constructor(code: ErrorCode = ErrorCode.FILE_READ_FAILED, message?: string) {
+    super(code, message)
   }
 }
 
-/**
- * AI/Model errors
- */
 export class AIError extends AppError {
   constructor(
     code: ErrorCode = ErrorCode.AI_GENERATION_FAILED,
-    message?: string,
-    metadata?: Record<string, unknown>
+    message?: string
   ) {
-    super(code, message, metadata)
+    super(code, message)
   }
 }
 
-/**
- * Internal server errors
- */
 export class InternalError extends AppError {
-  constructor(message?: string, metadata?: Record<string, unknown>) {
-    super(ErrorCode.INTERNAL_ERROR, message, metadata, false)
+  constructor(message?: string) {
+    super(ErrorCode.INTERNAL_ERROR, message, false)
   }
 }
 
-/**
- * Helper function to check if an error is an AppError
- */
+// ── Helpers ──────────────────────────────────────────────────────────────────
+
 export function isAppError(error: unknown): error is AppError {
   return error instanceof AppError
 }
 
-/**
- * Helper function to convert unknown error to AppError
- */
 export function toAppError(error: unknown): AppError {
-  if (isAppError(error)) {
-    return error
-  }
-
+  if (isAppError(error)) return error
   if (error instanceof Error) {
-    return new InternalError(error.message, {
-      originalError: error.name,
-      stack: error.stack
-    })
+    return new InternalError(error.message)
   }
-
-  return new InternalError('An unknown error occurred', {
-    error: String(error)
-  })
+  return new InternalError(String(error))
 }

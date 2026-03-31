@@ -1,3 +1,5 @@
+import { ErrorCode } from '@shared/constants/error-codes'
+import { NotFoundError, ValidationError } from '@shared/errors/app-error'
 import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 
@@ -12,7 +14,6 @@ import {
   type MemorySource,
   type MemoryType
 } from '../../db/memory-queries'
-import { ChatSDKError } from '../errors'
 import {
   deletionSuccessResponse,
   getRequiredParam,
@@ -36,13 +37,16 @@ memoryRouter.get('/', async (c) => {
 
 // GET /api/memory/:id
 memoryRouter.get('/:id', async (c) => {
-  const id = getRequiredParam(c, 'id', 'memory')
+  const id = getRequiredParam(c, 'id')
   const row = await handleDatabaseOperation(
     () => getMemoryById(id),
     'Failed to load memory'
   )
   if (!row) {
-    throw new ChatSDKError('not_found:memory', `Memory ${id} not found`)
+    throw new NotFoundError(
+      ErrorCode.MEMORY_NOT_FOUND,
+      `Memory ${id} not found`
+    )
   }
   return successResponse(c, row)
 })
@@ -58,8 +62,8 @@ memoryRouter.post('/', async (c) => {
   }>()
 
   if (!body.type || !body.key || !body.value) {
-    throw new ChatSDKError(
-      'bad_request:memory',
+    throw new ValidationError(
+      ErrorCode.VALIDATION_FAILED,
       'type, key, and value are required'
     )
   }
@@ -81,7 +85,7 @@ memoryRouter.post('/', async (c) => {
 
 // PATCH /api/memory/:id — update
 memoryRouter.patch('/:id', async (c) => {
-  const id = getRequiredParam(c, 'id', 'memory')
+  const id = getRequiredParam(c, 'id')
   const body = await c.req.json<{
     type?: MemoryType
     key?: string
@@ -96,14 +100,17 @@ memoryRouter.patch('/:id', async (c) => {
     'Failed to update memory'
   )
   if (!updated) {
-    throw new ChatSDKError('not_found:memory', `Memory ${id} not found`)
+    throw new NotFoundError(
+      ErrorCode.MEMORY_NOT_FOUND,
+      `Memory ${id} not found`
+    )
   }
   return updateSuccessResponse(c, 'memory', id)
 })
 
 // DELETE /api/memory/:id — soft delete (sets isActive=false)
 memoryRouter.delete('/:id', async (c) => {
-  const id = getRequiredParam(c, 'id', 'memory')
+  const id = getRequiredParam(c, 'id')
   const hard = c.req.query('hard') === 'true'
   await handleDatabaseOperation(
     () => (hard ? hardDeleteMemory(id) : softDeleteMemory(id)),

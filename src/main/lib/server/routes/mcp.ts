@@ -13,6 +13,7 @@ import {
   getAllMcpServers,
   updateMcpServer
 } from '../../db/mcp-queries'
+import { logger } from '../../logger'
 import {
   getRequiredParam,
   handleDatabaseOperation,
@@ -48,7 +49,6 @@ mcp.post('/', async (c) => {
   const data = validateSchema(
     mcpServerSchema,
     await c.req.json(),
-    'mcp',
     'Invalid MCP server data'
   )
   const result = await handleDatabaseOperation(
@@ -60,11 +60,10 @@ mcp.post('/', async (c) => {
 })
 
 mcp.put('/:id', async (c) => {
-  const id = getRequiredParam(c, 'id', 'mcp')
+  const id = getRequiredParam(c, 'id')
   const data = validateSchema(
     mcpServerSchema.partial(),
     await c.req.json(),
-    'mcp',
     'Invalid MCP server data'
   )
   // Invalidate old name before update (name might change)
@@ -81,7 +80,7 @@ mcp.put('/:id', async (c) => {
 })
 
 mcp.delete('/:id', async (c) => {
-  const id = getRequiredParam(c, 'id', 'mcp')
+  const id = getRequiredParam(c, 'id')
   const servers = await getAllMcpServers()
   const target = servers.find((s) => s.id === id)
 
@@ -106,7 +105,11 @@ mcp.get('/tools', async (c) => {
         }))
       }))
     })
-  } catch {
+  } catch (err) {
+    logger.error('mcp', 'Failed to load MCP tools', {
+      error: String(err),
+      stack: err instanceof Error ? err.stack : undefined
+    })
     return successResponse(c, { tools: [] })
   }
 })
