@@ -1,7 +1,6 @@
 import { AiProviders } from '@shared/types/ai'
 import {
   AudioLinesIcon,
-  ChromeIcon,
   CogIcon,
   ComputerIcon,
   DatabaseIcon,
@@ -14,6 +13,7 @@ import {
   ScrollTextIcon,
   ShoppingBagIcon,
   UserIcon,
+  GlobeIcon,
   WrenchIcon
 } from 'lucide-react'
 
@@ -95,7 +95,7 @@ export const menus = {
       title: SettingsLabel.GraphRag
     },
     {
-      icon: ChromeIcon,
+      icon: GlobeIcon,
       title: SettingsLabel.BrowserUse
     },
     {
