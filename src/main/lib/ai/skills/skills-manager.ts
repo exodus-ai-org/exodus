@@ -2,7 +2,6 @@ import { existsSync, statSync } from 'fs'
 import { cp, mkdir, readFile, rm, writeFile } from 'fs/promises'
 import { join } from 'path'
 
-import { app } from 'electron'
 import JSZip from 'jszip'
 
 import type {
@@ -12,14 +11,11 @@ import type {
   SkillItem,
   SkillsLockfile
 } from '../../../../shared/types/skills'
+import { getSkillsDir } from '../../paths'
 
 const CONVEX_URL = 'https://wry-manatee-359.convex.cloud/api/query'
 const REGISTRY = 'https://clawhub.ai'
 const LOCK_FILE = '.lock.json'
-
-function getSkillsDir(): string {
-  return join(app.getPath('userData'), 'skills')
-}
 
 function getLockfilePath(): string {
   return join(getSkillsDir(), LOCK_FILE)

@@ -1,5 +1,3 @@
-import { join } from 'path'
-
 import { app, dialog, ipcMain, nativeTheme, shell } from 'electron'
 
 import {
@@ -10,6 +8,7 @@ import {
   updaterSetAutoDownload
 } from './auto-updater'
 import { logger } from './logger'
+import { getLogsDir } from './paths'
 import { destroyTray, setTray } from './tray'
 import {
   getMainWindow,
@@ -157,8 +156,7 @@ export function setupIPC() {
   })
 
   safeHandle('open-logs-dir', () => {
-    const dir = join(app.getPath('userData'), 'logs')
-    shell.openPath(dir)
+    shell.openPath(getLogsDir())
   })
 
   safeHandle('set-login-item', (_, enable: unknown) => {

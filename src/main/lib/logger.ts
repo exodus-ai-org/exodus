@@ -1,9 +1,10 @@
-import { existsSync, mkdirSync, readdirSync, unlinkSync } from 'fs'
+import { readdirSync, unlinkSync } from 'fs'
 import { appendFile } from 'fs/promises'
 import { join } from 'path'
 
 import { is } from '@electron-toolkit/utils'
-import { app } from 'electron'
+
+import { getLogsDir } from './paths'
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error'
 export type LogSurface =
@@ -40,12 +41,6 @@ const LEVEL_PRIORITY: Record<LogLevel, number> = {
 
 const MIN_LEVEL: LogLevel = is.dev ? 'debug' : 'info'
 const RETENTION_DAYS = 7
-
-function getLogsDir(): string {
-  const dir = join(app.getPath('userData'), 'logs')
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
-  return dir
-}
 
 function todayFileName(): string {
   return new Date().toISOString().slice(0, 10) + '.jsonl'

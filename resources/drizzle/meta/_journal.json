@@ -8,6 +8,13 @@
       "when": 1774924771982,
       "tag": "0000_mysterious_thunderbolts",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1776359059758,
+      "tag": "0001_legal_pete_wisdom",
+      "breakpoints": true
     }
   ]
 }

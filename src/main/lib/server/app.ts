@@ -11,6 +11,7 @@ import { logger } from '../logger'
 import { errorHandler } from './middlewares'
 import agentXRouter from './routes/agent-x'
 import audioRouter from './routes/audio'
+import backupRouter from './routes/backup'
 import chatRouter from './routes/chat'
 import dbIoRouter from './routes/db-io'
 import deepResearchRouter from './routes/deep-research'
@@ -66,6 +67,7 @@ export async function connectHttpServer() {
   app.route('/api/memory', memoryRouter)
   app.route('/api/usage', usageRouter)
   app.route('/api/logs', logsRouter)
+  app.route('/api/backup', backupRouter)
 
   // Ping
   app.get('/', (c) => c.text('Exodus is running.'))

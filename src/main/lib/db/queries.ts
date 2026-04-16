@@ -225,6 +225,48 @@ export async function updateSettings(payload: Settings) {
     .where(eq(settings.id, payload.id))
 }
 
+export async function updateSettingField(
+  field: keyof Settings,
+  value: unknown
+) {
+  try {
+    return await db
+      .update(settings)
+      .set({ [field]: value, updatedAt: new Date() })
+      .where(eq(settings.id, 'global'))
+  } catch (error) {
+    logDbError(`Failed to update setting field: ${field}`, error)
+    throw error
+  }
+}
+
+export async function resetAllData() {
+  // Order matters for foreign key constraints — children before parents
+  const tables = [
+    'vote',
+    'deep_research_message',
+    'deep_research',
+    'task_execution_event',
+    'task_execution',
+    'task',
+    'lcm_context_items',
+    'lcm_summary_messages',
+    'lcm_summary_parents',
+    'lcm_summary',
+    'memory_usage_log',
+    'session_summary',
+    'memory',
+    'agent_memory',
+    'agent',
+    'message',
+    'chat'
+  ]
+
+  for (const table of tables) {
+    await pglite.query(`TRUNCATE "${table}" CASCADE`)
+  }
+}
+
 export async function importData(tableName: string, blob: Blob) {
   await pglite.query(`COPY "${tableName}" FROM '/dev/blob';`, [], {
     blob

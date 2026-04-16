@@ -4,7 +4,8 @@ import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import JSZip from 'jszip'
 
-import { exportData, importData } from '../../db/queries'
+import { createAutoBackup } from '../../backup'
+import { exportData, importData, resetAllData } from '../../db/queries'
 import { importDataSchema } from '../schemas/db-io'
 import {
   handleDatabaseOperation,
@@ -15,7 +16,16 @@ import { bufferToArrayBuffer } from '../utils/helpers'
 
 const dbIo = new Hono<{ Variables: Variables }>()
 
-const tableNames = ['Chat', 'Message', 'Vote', 'Settings']
+const tableNames = [
+  'chat',
+  'message',
+  'vote',
+  'settings',
+  'memory',
+  'session_summary',
+  'deep_research',
+  'deep_research_message'
+]
 
 async function createZipFromBlobs(
   files: { filename: string; arraybuffer: ArrayBuffer }[]
@@ -76,6 +86,41 @@ dbIo.post('/export', async () => {
       'Content-Type': 'application/zip'
     }
   })
+})
+
+// Full import: receives a ZIP, clears data, imports all CSVs
+dbIo.post('/import-all', async (c) => {
+  const body = await c.req.parseBody()
+  const file = body['file']
+  if (!(file instanceof File)) {
+    throw new DatabaseError(ErrorCode.DB_QUERY_FAILED, 'No file uploaded')
+  }
+
+  // Safety backup before import
+  await createAutoBackup()
+
+  const zip = await JSZip.loadAsync(await file.arrayBuffer())
+
+  // Clear existing data
+  await resetAllData()
+
+  // Import each CSV found in the ZIP
+  for (const [fileName, zipEntry] of Object.entries(zip.files)) {
+    if (!fileName.endsWith('.csv') || zipEntry.dir) continue
+    const tableName = fileName.replace('.csv', '')
+    if (tableName === 'settings') continue // Don't overwrite settings
+    const csvBlob = new Blob([await zipEntry.async('arraybuffer')])
+    await importData(tableName, csvBlob)
+  }
+
+  return successResponse(c, { success: true })
+})
+
+// Reset: delete all data except settings
+dbIo.delete('/reset', async (c) => {
+  await createAutoBackup()
+  await handleDatabaseOperation(() => resetAllData(), 'Failed to reset data')
+  return successResponse(c, { success: true })
 })
 
 export default dbIo

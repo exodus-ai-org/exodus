@@ -2,12 +2,14 @@ import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { app, BrowserWindow, globalShortcut } from 'electron'
 
 import { setupAutoUpdater } from './lib/auto-updater'
+import { startBackupScheduler } from './lib/backup'
 import { cleanupStaleWaitingTasks } from './lib/db/agent-x-queries'
 import { runMigrate } from './lib/db/migrate'
 import { getSettings } from './lib/db/queries'
 import { setupIPC } from './lib/ipc'
 import { cleanupOldLogs, logger } from './lib/logger'
 import { setupMenu } from './lib/menu'
+import { migrateFromLegacyLocation } from './lib/paths'
 import { connectHttpServer } from './lib/server/app'
 import { setServer } from './lib/server/instance'
 import { setTray } from './lib/tray'
@@ -29,6 +31,9 @@ process.on('unhandledRejection', (reason) => {
 })
 
 app.whenReady().then(async () => {
+  // Migrate data from legacy location to ~/.exodus (one-time, idempotent)
+  migrateFromLegacyLocation()
+
   // Migrate PGlite
   await runMigrate()
   cleanupOldLogs()
@@ -43,6 +48,9 @@ app.whenReady().then(async () => {
   const server = await connectHttpServer()
   server.start()
   setServer(server)
+
+  // Start backup scheduler (daily at 3:00 AM)
+  startBackupScheduler()
 
   // Setup menu
   setupMenu()

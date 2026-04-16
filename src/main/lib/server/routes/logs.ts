@@ -1,20 +1,16 @@
 import { existsSync, readdirSync, readFileSync, unlinkSync } from 'fs'
 import { join } from 'path'
 
-import { app } from 'electron'
 import { Hono } from 'hono'
 
 import type { LogEntry, LogLevel } from '../../logger'
+import { getLogsDir } from '../../paths'
 
 const LEVEL_PRIORITY: Record<LogLevel, number> = {
   debug: 0,
   info: 1,
   warn: 2,
   error: 3
-}
-
-function getLogsDir(): string {
-  return join(app.getPath('userData'), 'logs')
 }
 
 function parseLogFile(filePath: string): LogEntry[] {
