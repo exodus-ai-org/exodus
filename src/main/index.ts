@@ -10,6 +10,7 @@ import { setupIPC } from './lib/ipc'
 import { cleanupOldLogs, logger } from './lib/logger'
 import { setupMenu } from './lib/menu'
 import { migrateFromLegacyLocation } from './lib/paths'
+import { applyProxy } from './lib/proxy'
 import { connectHttpServer } from './lib/server/app'
 import { setServer } from './lib/server/instance'
 import { setTray } from './lib/tray'
@@ -73,6 +74,7 @@ app.whenReady().then(async () => {
   createWindow()
 
   const dbSettings = await getSettings()
+  await applyProxy(dbSettings.proxy)
   setupAutoUpdater(dbSettings.autoUpdate ?? true)
 
   // Apply startup and menu bar settings

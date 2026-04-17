@@ -177,6 +177,7 @@ export const SettingsSchema = z.object({
   autoUpdate: z.boolean().nullish(),
   runOnStartup: z.boolean().nullish(),
   menuBar: z.boolean().nullish(),
+  proxy: z.string().nullish(),
   autoBackup: z.boolean().nullish(),
   lastBackupAt: z.any().nullish(),
   memoryLayer: MemoryLayerSchema.nullish(),

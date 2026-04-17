@@ -4,6 +4,7 @@ import { Moon, Sun, SunMoon } from 'lucide-react'
 import { useEffect } from 'react'
 
 import { Theme, useTheme } from '@/components/theme-provider'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -112,6 +113,17 @@ export function General({ form }: { form: UseFormReturnType }) {
         <Switch
           checked={menuBarEnabled}
           onCheckedChange={(checked) => form.setValue('menuBar', checked)}
+        />
+      </SettingsRow>
+
+      <SettingsRow
+        label="Network Proxy"
+        description="Route all outgoing requests through a proxy. Example: http://127.0.0.1:7897 or socks5://127.0.0.1:7897"
+      >
+        <Input
+          className="w-64"
+          placeholder="http://127.0.0.1:7897"
+          {...form.register('proxy')}
         />
       </SettingsRow>
 

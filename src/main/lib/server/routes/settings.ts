@@ -3,6 +3,7 @@ import { Hono } from 'hono'
 
 import { updateSettings } from '../../db/queries'
 import { Settings as DBSettings } from '../../db/schema'
+import { applyProxy } from '../../proxy'
 import { updateSettingsSchema } from '../schemas/settings'
 import {
   handleDatabaseOperation,
@@ -28,6 +29,10 @@ settingsRouter.post('/', async (c) => {
     () => updateSettings(payload as unknown as DBSettings),
     'Failed to update settings'
   )
+
+  // Apply proxy change immediately
+  const settings = payload as unknown as DBSettings
+  await applyProxy(settings.proxy)
 
   return successResponse(c, updatedSettings)
 })
