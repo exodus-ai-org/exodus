@@ -20,8 +20,19 @@ export type {
   UserMessage
 }
 
+export interface CostBreakdown {
+  input: number
+  output: number
+  cacheRead: number
+  cacheWrite: number
+  total: number
+}
+
 export type ChatUserMessage = UserMessage & { id: string }
-export type ChatAssistantMessage = AssistantMessage & { id: string }
+export type ChatAssistantMessage = AssistantMessage & {
+  id: string
+  cost?: CostBreakdown
+}
 export type ChatToolResultMessage = ToolResultMessage & { id: string }
 export type ChatMessage =
   | ChatUserMessage
@@ -37,6 +48,13 @@ export type Attachment = {
 // SSE event types for streaming protocol
 export type ChatSseEvent =
   | { type: 'message_update'; message: ChatMessage }
+  | { type: 'tool_call_start'; toolCallId: string; toolName: string }
+  | {
+      type: 'tool_call_end'
+      toolCallId: string
+      toolName: string
+      isError: boolean
+    }
   | { type: 'done'; messages: ChatMessage[] }
   | { type: 'title'; title: string }
   | { type: 'error'; error: string }

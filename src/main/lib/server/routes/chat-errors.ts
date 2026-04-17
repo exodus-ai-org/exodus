@@ -30,12 +30,19 @@ export function extractToolErrorMessage(result: unknown): string {
   return 'Tool execution failed'
 }
 
+import { isOverflowError, OVERFLOW_MESSAGE } from '../../ai/utils/overflow'
+
 /**
  * Translate raw LLM SDK / network errors into user-friendly messages.
  * Keeps the original message as a fallback if no pattern matches.
  */
 export function toFriendlyChatError(raw: string): string {
   const lower = raw.toLowerCase()
+
+  // Context overflow (checked first via comprehensive regex set)
+  if (isOverflowError(raw)) {
+    return OVERFLOW_MESSAGE
+  }
 
   // API key issues (most providers return 401 or mention "api key")
   if (
@@ -97,16 +104,6 @@ export function toFriendlyChatError(raw: string): string {
     lower.includes('service unavailable')
   ) {
     return 'The AI provider is temporarily unavailable. Please try again in a few moments.'
-  }
-
-  // Context length / token limit
-  if (
-    lower.includes('context length') ||
-    lower.includes('token') ||
-    lower.includes('too long') ||
-    lower.includes('maximum')
-  ) {
-    return 'The conversation is too long for the selected model. Try starting a new chat or switching to a model with a larger context window.'
   }
 
   // Fallback: return the original message

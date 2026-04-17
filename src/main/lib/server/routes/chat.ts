@@ -33,6 +33,8 @@ import {
   getModelFromProvider,
   getTextFromMessage
 } from '../../ai/utils/chat-message-util'
+import { calculateCost } from '../../ai/utils/cost'
+import { transformMessages } from '../../ai/utils/transform-messages'
 import { getProjectById, bumpProjectUpdatedAt } from '../../db/project-queries'
 import {
   deleteChatById,
@@ -114,49 +116,59 @@ chat.post('/', async (c) => {
     })
   }
 
-  // Save the user message to DB immediately
-  await saveMessages({ messages: [toDbRow(userMessage, id)] })
-
   const memoryConfig = setting.memoryLayer
   const lcmEnabled = memoryConfig?.lcmEnabled !== false
   const memoryAutoWrite = memoryConfig?.autoWrite !== false
 
-  // ── PRE-CHAT: assemble context via LCM (if enabled) ──────────────────────
-  let contextMessages: Message[]
+  // ── PRE-CHAT: run independent tasks in parallel ─────────────────────────
+  // 1. Save user message (fire-and-forget — ID already generated)
+  // 2. Assemble LCM context (or fallback to client messages)
+  // 3. Load relevant memories (LLM call to filter)
+  // 4. Fetch MCP tools
+  // All four are independent and can run concurrently.
 
-  if (lcmEnabled) {
-    const lcm = new LcmManager(id, chatModel, apiKey, {
-      freshTailSize: memoryConfig?.freshTailSize ?? 16,
-      contextWindowPercent: memoryConfig?.contextWindowPercent ?? 75
-    })
+  // Single LcmManager instance — reused for post-chat compaction
+  const lcm = lcmEnabled
+    ? new LcmManager(id, chatModel, apiKey, {
+        freshTailSize: memoryConfig?.freshTailSize ?? 16,
+        contextWindowPercent: memoryConfig?.contextWindowPercent ?? 75
+      })
+    : null
 
-    // Track the new user message
-    await lcm.trackNewMessages([
-      { id: userMessage.id, content: userMessage.content }
-    ])
+  const saveUserMsgPromise = saveMessages({
+    messages: [toDbRow(userMessage, id)]
+  })
 
-    const assembled = await lcm.assembleContext()
-    // Use assembled context minus the last message (agentLoop receives userMessage separately)
-    contextMessages = assembled.messages.slice(0, -1)
-  } else {
-    // Fallback: use messages passed from client directly
-    contextMessages = allMessages.slice(0, -1).map(stripId)
-  }
+  const lcmPromise = lcm
+    ? lcm
+        .trackNewMessages([
+          { id: userMessage.id, content: userMessage.content }
+        ])
+        .then(() => lcm.assembleContext())
+        .then((assembled) => assembled.messages.slice(0, -1))
+    : Promise.resolve(allMessages.slice(0, -1).map(stripId))
 
-  // ── PRE-CHAT: load relevant user memories ─────────────────────────────────
-  let memoriesSection = ''
-  if (memoryAutoWrite) {
-    const userText = getTextFromMessage(userMessage)
-    const relevantMemories = await loadRelevantMemories(
-      userText,
-      chatModel,
-      apiKey
-    )
-    memoriesSection = formatMemoriesForSystem(relevantMemories)
-  }
+  const memoryPromise = memoryAutoWrite
+    ? loadRelevantMemories(getTextFromMessage(userMessage), chatModel, apiKey)
+        .then(formatMemoriesForSystem)
+        .catch((err) => {
+          logger.warn('chat', 'Memory loading failed, continuing without', {
+            error: String(err)
+          })
+          return ''
+        })
+    : Promise.resolve('')
+
+  const mcpPromise = getMcpTools()
+
+  const [contextMessages, memoriesSection, , mcpTools] = await Promise.all([
+    lcmPromise,
+    memoryPromise,
+    saveUserMsgPromise,
+    mcpPromise
+  ])
 
   const activeModel = isReasoningModel ? reasoningModel : chatModel
-  const mcpTools = await getMcpTools()
   const tools = bindCallingTools({
     advancedTools,
     setting,
@@ -224,30 +236,16 @@ chat.post('/', async (c) => {
             apiKey,
             reasoning: isReasoningModel ? 'high' : undefined,
             convertToLlm: (agentMessages: AgentMessage[]): Message[] => {
-              return agentMessages
-                .filter(
-                  (m): m is Message =>
-                    (m as Message).role === 'user' ||
-                    (m as Message).role === 'assistant' ||
-                    (m as Message).role === 'toolResult'
-                )
-                .map((m) => {
-                  if (m.role !== 'assistant') return m
-                  // Strip thinking blocks before sending history back to the LLM.
-                  // The OpenAI Responses API embeds rs_* IDs in thinkingSignature to
-                  // reference stored reasoning items, but store:false means those items
-                  // are never persisted — subsequent turns get a 404 when referenced.
-                  const assistantMsg = m as Message & {
-                    role: 'assistant'
-                    content: Array<{ type: string }>
-                  }
-                  return {
-                    ...assistantMsg,
-                    content: assistantMsg.content.filter(
-                      (b) => b.type !== 'thinking'
-                    )
-                  } as Message
-                })
+              const messages = agentMessages.filter(
+                (m): m is Message =>
+                  (m as Message).role === 'user' ||
+                  (m as Message).role === 'assistant' ||
+                  (m as Message).role === 'toolResult'
+              )
+              // Normalize messages for cross-provider compatibility:
+              // strips thinking blocks, normalizes tool call IDs,
+              // resolves orphaned tool calls, filters error/aborted messages.
+              return transformMessages(messages)
             }
           },
           c.req.raw.signal
@@ -276,11 +274,13 @@ chat.post('/', async (c) => {
               const assistantMsg = msg as Message & { role: 'assistant' }
               // Use streaming content from currentAssistantMsg but authoritative
               // usage/stopReason from event.message (message_update carries 0 usage)
+              const cost = calculateCost(assistantMsg.usage, activeModel)
               const finalMsg: ChatAssistantMessage = {
                 id: currentAssistantMsg?.id ?? assistantMsgId,
                 role: 'assistant',
                 content: currentAssistantMsg?.content ?? assistantMsg.content,
                 usage: assistantMsg.usage,
+                cost,
                 api: assistantMsg.api,
                 provider: assistantMsg.provider,
                 model: assistantMsg.model,
@@ -291,6 +291,12 @@ chat.post('/', async (c) => {
               assistantMsgId = uuidV4()
               currentAssistantMsg = null
             }
+          } else if (event.type === 'tool_execution_start') {
+            sendEvent({
+              type: 'tool_call_start',
+              toolCallId: event.toolCallId,
+              toolName: event.toolName
+            })
           } else if (event.type === 'tool_execution_end') {
             // Extract error message from various possible shapes:
             // 1. AgentToolResult: { content: [{ type: 'text', text: '...' }], details: {} }
@@ -351,6 +357,12 @@ chat.post('/', async (c) => {
             }
             newMessages.push(toolResultMsg)
             sendEvent({ type: 'message_update', message: toolResultMsg })
+            sendEvent({
+              type: 'tool_call_end',
+              toolCallId: event.toolCallId,
+              toolName: event.toolName,
+              isError: event.isError
+            })
           }
         }
 
@@ -384,12 +396,8 @@ chat.post('/', async (c) => {
           const allSavedMessages = [...allMessages, ...newMessages]
           Promise.resolve()
             .then(async () => {
-              // LCM: track new messages and compact — gated on lcmEnabled
-              if (lcmEnabled) {
-                const lcm = new LcmManager(id, chatModel, apiKey, {
-                  freshTailSize: memoryConfig?.freshTailSize ?? 16,
-                  contextWindowPercent: memoryConfig?.contextWindowPercent ?? 75
-                })
+              // LCM: track new messages and compact — reuse pre-chat instance
+              if (lcm) {
                 await lcm.trackNewMessages(
                   newMessages.map((m) => ({ id: m.id, content: m.content }))
                 )
