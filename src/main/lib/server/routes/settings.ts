@@ -32,7 +32,7 @@ settingsRouter.post('/', async (c) => {
 
   // Apply proxy change immediately
   const settings = payload as unknown as DBSettings
-  await applyProxy(settings.proxy)
+  applyProxy(settings.proxy)
 
   return successResponse(c, updatedSettings)
 })

@@ -1,32 +1,42 @@
-import { session } from 'electron'
+import {
+  ProxyAgent,
+  setGlobalDispatcher,
+  getGlobalDispatcher,
+  Agent
+} from 'undici'
 
 import { logger } from './logger'
 
+let originalDispatcher: InstanceType<typeof Agent> | null = null
+
 /**
- * Apply a proxy URL to the Electron session and process.env.
+ * Apply a proxy URL to Node.js fetch via undici's global dispatcher.
  *
- * Electron's session.setProxy routes ALL Chromium-level network requests
- * (fetch, net.request, etc.) through the proxy — this covers the main
- * process HTTP clients used by AI providers, MCP, web search, etc.
+ * In Electron's main process, `fetch()` uses Node.js's undici under the hood.
+ * `session.setProxy()` only covers the renderer (Chromium) network stack,
+ * NOT main-process fetch calls used by AI providers, MCP, web search, etc.
  *
- * We also set process.env vars as a fallback for any Node.js-native
- * HTTP clients (e.g. node:http used by some dependencies).
+ * Setting a ProxyAgent as the global dispatcher ensures ALL `fetch()` calls
+ * in the main process are routed through the proxy.
  *
- * Pass an empty string or nullish to clear the proxy.
+ * Proxy is controlled exclusively via Settings → General.
  */
-export async function applyProxy(
-  proxyUrl: string | null | undefined
-): Promise<void> {
+export function applyProxy(proxyUrl: string | null | undefined): void {
   const url = proxyUrl?.trim() || ''
 
   if (url) {
-    // Electron session proxy — covers all Chromium network stack
-    await session.defaultSession.setProxy({
-      proxyRules: url,
-      proxyBypassRules: 'localhost,127.0.0.1'
-    })
+    // Save original dispatcher so we can restore it later
+    if (!originalDispatcher) {
+      originalDispatcher = getGlobalDispatcher() as InstanceType<typeof Agent>
+    }
 
-    // process.env fallback for Node.js native HTTP clients
+    const agent = new ProxyAgent({
+      uri: url,
+      requestTls: { rejectUnauthorized: true }
+    })
+    setGlobalDispatcher(agent)
+
+    // Also set env vars for any child processes or native modules
     process.env.http_proxy = url
     process.env.HTTP_PROXY = url
     process.env.https_proxy = url
@@ -38,7 +48,11 @@ export async function applyProxy(
 
     logger.info('app', 'Proxy configured', { proxy: url })
   } else {
-    await session.defaultSession.setProxy({ proxyRules: '' })
+    // Restore original dispatcher
+    if (originalDispatcher) {
+      setGlobalDispatcher(originalDispatcher)
+      originalDispatcher = null
+    }
 
     delete process.env.http_proxy
     delete process.env.HTTP_PROXY

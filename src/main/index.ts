@@ -74,7 +74,7 @@ app.whenReady().then(async () => {
   createWindow()
 
   const dbSettings = await getSettings()
-  await applyProxy(dbSettings.proxy)
+  applyProxy(dbSettings.proxy)
   setupAutoUpdater(dbSettings.autoUpdate ?? true)
 
   // Apply startup and menu bar settings

@@ -118,7 +118,7 @@ export function General({ form }: { form: UseFormReturnType }) {
 
       <SettingsRow
         label="Network Proxy"
-        description="Route all outgoing requests through a proxy. Example: http://127.0.0.1:7897 or socks5://127.0.0.1:7897"
+        description="Route all outgoing requests through a proxy, e.g. http://127.0.0.1:7897 or socks5://127.0.0.1:7897"
       >
         <Input
           className="w-64"

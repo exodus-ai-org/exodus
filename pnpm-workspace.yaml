@@ -1,9 +1,6 @@
-packages:
-  - 'packages/*'
-
-onlyBuiltDependencies:
-  - electron
-  - electron-winstaller
-  - esbuild
-  - msw
-  - protobufjs
+allowBuilds:
+  electron: true
+  electron-winstaller: true
+  esbuild: true
+  msw: true
+  protobufjs: true
