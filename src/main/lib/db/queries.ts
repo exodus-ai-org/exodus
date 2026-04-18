@@ -218,10 +218,17 @@ export async function getSettings() {
 
 export async function updateSettings(payload: Settings) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { createdAt, updatedAt, ...rest } = payload
+  const { createdAt, updatedAt, lastBackupAt, ...rest } = payload
   return await db
     .update(settings)
-    .set({ ...rest, updatedAt: new Date() })
+    .set({
+      ...rest,
+      // lastBackupAt arrives as ISO string from frontend; convert to Date for DB
+      lastBackupAt: lastBackupAt
+        ? new Date(lastBackupAt as unknown as string)
+        : null,
+      updatedAt: new Date()
+    })
     .where(eq(settings.id, payload.id))
 }
 
