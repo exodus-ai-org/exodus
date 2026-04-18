@@ -63,6 +63,7 @@
     "node-cron": "^4.2.1",
     "openai": "^6.34.0",
     "pdf-parse": "^2.4.5",
+    "sucrase": "^3.35.1",
     "turndown": "^7.2.4",
     "undici": "^8.1.0",
     "uuid": "^13.0.0",

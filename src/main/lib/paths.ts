@@ -24,6 +24,10 @@ export function getSkillsDir(): string {
   return join(getExodusHome(), 'skills')
 }
 
+export function getArtifactsDir(): string {
+  return join(getExodusHome(), 'artifacts')
+}
+
 export function getBackupsDir(): string {
   return join(getExodusHome(), 'backups')
 }
@@ -46,6 +50,7 @@ export function ensureExodusDirs(): void {
     getDatabaseDir(),
     getLogsDir(),
     getSkillsDir(),
+    getArtifactsDir(),
     getAutoBackupsDir(),
     getManualBackupsDir()
   ]

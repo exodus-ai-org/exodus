@@ -1,3 +1,4 @@
+import { createArtifact } from './create-artifact'
 import { deepResearch } from './deep-research'
 import { editFile } from './edit-file'
 import { findFiles } from './find-files'
@@ -17,6 +18,7 @@ import { webSearch } from './web-search'
 import { writeFile } from './write-file'
 
 export {
+  createArtifact,
   deepResearch,
   editFile,
   findFiles,

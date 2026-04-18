@@ -4,6 +4,7 @@ import { AdvancedTools, McpTools } from '@shared/types/ai'
 
 import { Settings } from '../../db/schema'
 import {
+  createArtifact,
   deepResearch,
   editFile,
   findFiles,
@@ -67,10 +68,8 @@ export function bindCallingTools({
   if (enabled('findFiles')) tools.push(findFiles)
   if (enabled('grep')) tools.push(grep)
   if (enabled('webFetch')) tools.push(webFetch(setting))
-
-  if (advancedTools.includes(AdvancedTools.WebSearch) && enabled('webSearch')) {
-    tools.push(webSearch(setting))
-  }
+  if (enabled('createArtifact')) tools.push(createArtifact)
+  if (enabled('webSearch')) tools.push(webSearch(setting))
 
   // LCM recall tools: available when LCM is enabled
   const lcmEnabled = setting.memoryLayer?.lcmEnabled !== false
