@@ -20,12 +20,15 @@ Available imports:
 - @/ui/table (Table, TableBody, TableCell, TableHead, TableHeader, TableRow)
 - @/ui/tabs (Tabs, TabsContent, TabsList, TabsTrigger)
 
-Use Tailwind CSS for styling. Use CSS variables for chart colors: var(--chart-1) through var(--chart-5).
+Use standard Tailwind CSS classes for styling (p-4, text-sm, flex, grid, etc.).
+IMPORTANT: For dimensions/sizing, use inline style={{}} instead of Tailwind arbitrary values like h-[380px] — arbitrary values are NOT available in the sandbox CSS.
+Use CSS variables for chart colors: var(--chart-1) through var(--chart-5).
+For recharts, set width and height as numbers directly on the chart component — do NOT rely on ResponsiveContainer with percentage heights.
 Export default a React component via module.exports.
 
 Example:
 const React = require('react')
-const { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } = require('recharts')
+const { BarChart, Bar, XAxis, YAxis, Tooltip } = require('recharts')
 const { Card, CardHeader, CardTitle, CardContent } = require('@/ui/card')
 
 const data = [{ name: 'A', value: 40 }, { name: 'B', value: 70 }]
@@ -35,14 +38,12 @@ function Chart() {
     <Card>
       <CardHeader><CardTitle>My Chart</CardTitle></CardHeader>
       <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={data}>
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="value" fill="var(--chart-1)" />
-          </BarChart>
-        </ResponsiveContainer>
+        <BarChart width={600} height={300} data={data}>
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip />
+          <Bar dataKey="value" fill="var(--chart-1)" />
+        </BarChart>
       </CardContent>
     </Card>
   )
@@ -52,7 +53,9 @@ module.exports = { default: Chart }`
   })
 })
 
-export const createArtifact: AgentTool<typeof createArtifactSchema> = {
+export const createArtifact = (
+  chatId: string
+): AgentTool<typeof createArtifactSchema> => ({
   name: 'createArtifact',
   label: 'Create Artifact',
   description:
@@ -62,16 +65,17 @@ export const createArtifact: AgentTool<typeof createArtifactSchema> = {
     const artifactId = uuidV4()
 
     // Persist artifact to disk (fire-and-forget)
-    saveArtifact('shared', artifactId, title, code).catch(() => {})
+    saveArtifact(chatId, artifactId, title, code).catch(() => {})
 
     return {
       content: [{ type: 'text' as const, text: `Created artifact: ${title}` }],
       details: {
         type: 'artifact',
         artifactId,
+        chatId,
         title,
         code
       }
     }
   }
-}
+})

@@ -174,7 +174,8 @@ chat.post('/', async (c) => {
     setting,
     chatModel,
     apiKey,
-    mcpTools
+    mcpTools,
+    chatId: id
   })
   // Load project instructions if applicable
   let projectInstructions = ''

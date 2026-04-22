@@ -37,13 +37,15 @@ export function bindCallingTools({
   setting,
   chatModel,
   apiKey,
-  mcpTools = []
+  mcpTools = [],
+  chatId
 }: {
   advancedTools: AdvancedTools[]
   setting: Settings
   chatModel?: Model<string>
   apiKey?: string
   mcpTools?: McpTools[]
+  chatId: string
 }): ErasedTool[] {
   if (advancedTools.includes(AdvancedTools.DeepResearch)) {
     return [deepResearch]
@@ -68,7 +70,7 @@ export function bindCallingTools({
   if (enabled('findFiles')) tools.push(findFiles)
   if (enabled('grep')) tools.push(grep)
   if (enabled('webFetch')) tools.push(webFetch(setting))
-  if (enabled('createArtifact')) tools.push(createArtifact)
+  if (enabled('createArtifact')) tools.push(createArtifact(chatId))
   if (enabled('webSearch')) tools.push(webSearch(setting))
 
   // LCM recall tools: available when LCM is enabled
