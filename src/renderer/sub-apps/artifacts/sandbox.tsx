@@ -1,3 +1,4 @@
+import * as Motion from 'framer-motion'
 import * as LucideIcons from 'lucide-react'
 import React, { useCallback, useEffect, useState } from 'react'
 import * as Recharts from 'recharts'
@@ -20,6 +21,7 @@ const MODULE_REGISTRY: Record<string, unknown> = {
   react: React,
   recharts: Recharts,
   'lucide-react': LucideIcons,
+  'framer-motion': Motion,
   '@/ui/button': { Button },
   '@/ui/card': { Card, CardContent, CardHeader, CardTitle },
   '@/ui/badge': { Badge },
@@ -131,14 +133,15 @@ export function ArtifactSandbox() {
       const moduleExports: Record<string, unknown> = {}
       const moduleObj = { exports: moduleExports }
 
-      const factory = new Function(
-        'require',
-        'React',
-        'exports',
-        'module',
-        transformed
-      )
-      factory(artifactRequire, React, moduleExports, moduleObj)
+      // Wrap in IIFE so the LLM's `const React = require('react')` etc.
+      // live in their own scope and don't clash with our outer bindings.
+      const wrapped =
+        '(function(require, exports, module) {\n' +
+        transformed +
+        '\n})(require, exports, module);'
+
+      const factory = new Function('require', 'exports', 'module', wrapped)
+      factory(artifactRequire, moduleExports, moduleObj)
 
       const exported =
         (moduleObj.exports as Record<string, unknown>).default ||
