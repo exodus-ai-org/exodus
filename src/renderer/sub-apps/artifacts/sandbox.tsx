@@ -195,9 +195,7 @@ export function ArtifactSandbox() {
         </div>
       )}
     >
-      <div className="p-4">
-        <Component />
-      </div>
+      <Component />
     </ErrorBoundary>
   )
 }

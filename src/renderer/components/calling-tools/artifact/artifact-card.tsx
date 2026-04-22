@@ -11,7 +11,9 @@ interface ArtifactDetails {
   title: string
   code: string
   artifactId: string
-  chatId: string
+  // Optional: tool results persisted before the chatId fix (commit c15f4d0)
+  // lack this field; the reveal-file pill is disabled in that case.
+  chatId?: string
 }
 
 function getArtifactSandboxUrl(): string {
@@ -80,14 +82,14 @@ function UrlPill({
 }: {
   title: string
   artifactId: string
-  chatId: string
+  chatId?: string
   disabled?: boolean
 }) {
   const slug = artifactSlug(title)
   const shortId = artifactShortId(artifactId)
 
   const handleClick = () => {
-    if (disabled) return
+    if (disabled || !chatId) return
     revealArtifactFile(chatId, artifactId)
   }
 
@@ -124,7 +126,7 @@ function ChromeBar({
 }: {
   title: string
   artifactId: string
-  chatId: string
+  chatId?: string
   onCollapse: () => void
   onToggleCode: () => void
   onToggleFullscreen: () => void
@@ -155,7 +157,12 @@ function ChromeBar({
         </TrafficLight>
       </div>
       <div className="flex min-w-0 flex-1 justify-center">
-        <UrlPill title={title} artifactId={artifactId} chatId={chatId} />
+        <UrlPill
+          title={title}
+          artifactId={artifactId}
+          chatId={chatId}
+          disabled={!chatId}
+        />
       </div>
       <div className="w-[64px]" aria-hidden />
     </div>

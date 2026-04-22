@@ -1,5 +1,5 @@
 import { existsSync } from 'fs'
-import { join } from 'path'
+import { join, resolve, sep } from 'path'
 
 import { app, dialog, ipcMain, nativeTheme, shell } from 'electron'
 
@@ -167,7 +167,15 @@ export function setupIPC() {
       chatId: string
       artifactId: string
     }
-    const filePath = join(getArtifactsDir(), chatId, `${artifactId}.tsx`)
+    const artifactsBase = resolve(getArtifactsDir())
+    const filePath = resolve(join(artifactsBase, chatId, `${artifactId}.tsx`))
+    if (!filePath.startsWith(artifactsBase + sep)) {
+      logger.warn('app', 'reveal-artifact-file: path traversal rejected', {
+        chatId,
+        artifactId
+      })
+      return
+    }
     if (existsSync(filePath)) {
       shell.showItemInFolder(filePath)
     } else {
