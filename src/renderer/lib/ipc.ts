@@ -119,3 +119,10 @@ export function unsubscribeUpdaterStateChanged(
 ) {
   window.electron.ipcRenderer.removeListener('updater-state-changed', callback)
 }
+
+export function revealArtifactFile(chatId: string, artifactId: string) {
+  return window.electron.ipcRenderer.invoke('reveal-artifact-file', {
+    chatId,
+    artifactId
+  })
+}
