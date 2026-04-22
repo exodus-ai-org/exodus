@@ -25,16 +25,21 @@ export function ArtifactCard({ toolResult }: { toolResult: ArtifactDetails }) {
   const [iframeReady, setIframeReady] = useState(false)
 
   const sendCode = useCallback(() => {
-    if (iframeRef.current?.contentWindow && toolResult.code) {
-      iframeRef.current.contentWindow.postMessage(
-        {
-          type: 'render',
-          code: toolResult.code,
-          artifactId: toolResult.title
-        },
-        '*'
-      )
-    }
+    const win = iframeRef.current?.contentWindow
+    if (!win || !toolResult.code) return
+
+    // Send theme first so the sandbox can apply it before rendering
+    const theme = window.localStorage.getItem('vite-ui-theme') ?? 'system'
+    win.postMessage({ type: 'theme', theme }, '*')
+
+    win.postMessage(
+      {
+        type: 'render',
+        code: toolResult.code,
+        artifactId: toolResult.title
+      },
+      '*'
+    )
   }, [toolResult.code, toolResult.title])
 
   useEffect(() => {

@@ -104,6 +104,22 @@ export function ArtifactSandbox() {
 
   const handleMessage = useCallback((event: MessageEvent) => {
     const { data } = event
+
+    // Handle theme sync from parent
+    if (data?.type === 'theme' && typeof data.theme === 'string') {
+      const root = document.documentElement
+      root.classList.remove('light', 'dark')
+      if (data.theme === 'system') {
+        const sys = window.matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light'
+        root.classList.add(sys)
+      } else {
+        root.classList.add(data.theme)
+      }
+      return
+    }
+
     if (!isArtifactMessage(data)) return
 
     try {
