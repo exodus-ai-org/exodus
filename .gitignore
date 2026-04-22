@@ -15,3 +15,5 @@ out
 /playwright/.auth/
 
 .env.test
+
+.superpowers/
