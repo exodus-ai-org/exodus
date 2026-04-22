@@ -1,3 +1,6 @@
+import { existsSync } from 'fs'
+import { join } from 'path'
+
 import { app, dialog, ipcMain, nativeTheme, shell } from 'electron'
 
 import {
@@ -8,7 +11,7 @@ import {
   updaterSetAutoDownload
 } from './auto-updater'
 import { logger } from './logger'
-import { getLogsDir } from './paths'
+import { getArtifactsDir, getLogsDir } from './paths'
 import { destroyTray, setTray } from './tray'
 import {
   getMainWindow,
@@ -157,6 +160,23 @@ export function setupIPC() {
 
   safeHandle('open-logs-dir', () => {
     shell.openPath(getLogsDir())
+  })
+
+  safeHandle('reveal-artifact-file', (_, arg: unknown) => {
+    const { chatId, artifactId } = arg as {
+      chatId: string
+      artifactId: string
+    }
+    const filePath = join(getArtifactsDir(), chatId, `${artifactId}.tsx`)
+    if (existsSync(filePath)) {
+      shell.showItemInFolder(filePath)
+    } else {
+      logger.warn('app', 'reveal-artifact-file: file missing', {
+        chatId,
+        artifactId,
+        filePath
+      })
+    }
   })
 
   safeHandle('set-login-item', (_, enable: unknown) => {
