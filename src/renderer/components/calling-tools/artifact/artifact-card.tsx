@@ -2,6 +2,7 @@ import { artifactShortId, artifactSlug } from '@shared/utils/artifact-slug'
 import { MaximizeIcon, MinimizeIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { sileo } from 'sileo'
 
 import {
   checkFullScreen,
@@ -77,34 +78,41 @@ function DecorativeTrafficLights() {
 function UrlPill({
   title,
   artifactId,
-  chatId,
-  disabled
+  chatId
 }: {
   title: string
   artifactId: string
   chatId?: string
-  disabled?: boolean
 }) {
   const slug = artifactSlug(title)
   const shortId = artifactShortId(artifactId)
 
-  const handleClick = () => {
-    if (disabled || !chatId) return
-    revealArtifactFile(chatId, artifactId)
+  const handleClick = async () => {
+    const result = (await revealArtifactFile(chatId, artifactId)) as
+      | { ok: true; filePath: string }
+      | { ok: false; reason: string }
+      | undefined
+    if (result && !result.ok) {
+      sileo.error({
+        title: 'Cannot open artifact file',
+        description:
+          result.reason === 'not-found'
+            ? 'The saved .tsx file is missing — it may have been moved or deleted.'
+            : 'Missing artifact id.'
+      })
+    }
   }
 
   return (
     <button
       type="button"
       onClick={handleClick}
-      disabled={disabled}
       aria-label={`Reveal ${title} in file manager`}
-      title={disabled ? title : 'Reveal in file manager'}
+      title="Reveal in file manager"
       className={cn(
         'min-w-0 max-w-[640px] flex-1 rounded-md border px-2.5 py-1 text-left font-mono text-[11.5px] leading-none',
         'border-border/60 bg-background text-muted-foreground transition-colors',
-        !disabled && 'hover:bg-muted cursor-pointer',
-        disabled && 'opacity-60'
+        'hover:bg-muted cursor-pointer'
       )}
     >
       <span className="mr-1 opacity-60">🔒</span>
@@ -151,12 +159,7 @@ function InlineChromeBar({
     <div className="bg-muted/70 flex h-10 items-center gap-3 border-b px-3">
       <DecorativeTrafficLights />
       <div className="flex min-w-0 flex-1 justify-center">
-        <UrlPill
-          title={title}
-          artifactId={artifactId}
-          chatId={chatId}
-          disabled={!chatId}
-        />
+        <UrlPill title={title} artifactId={artifactId} chatId={chatId} />
       </div>
       <FullscreenButton isFullscreen={false} onClick={onEnterFullscreen} />
     </div>
@@ -188,12 +191,7 @@ function FullscreenChromeBar({
       style={{ paddingLeft: leftPadding }}
     >
       <div className="flex min-w-0 flex-1 justify-center">
-        <UrlPill
-          title={title}
-          artifactId={artifactId}
-          chatId={chatId}
-          disabled={!chatId}
-        />
+        <UrlPill title={title} artifactId={artifactId} chatId={chatId} />
       </div>
       <FullscreenButton isFullscreen={true} onClick={onExitFullscreen} />
     </div>

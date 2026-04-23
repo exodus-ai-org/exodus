@@ -164,27 +164,41 @@ export function setupIPC() {
 
   safeHandle('reveal-artifact-file', (_, arg: unknown) => {
     const { chatId, artifactId } = arg as {
-      chatId: string
-      artifactId: string
+      chatId?: string
+      artifactId?: string
     }
+    if (!artifactId) {
+      return { ok: false as const, reason: 'missing-artifact-id' }
+    }
+
     const artifactsBase = resolve(getArtifactsDir())
-    const filePath = resolve(join(artifactsBase, chatId, `${artifactId}.tsx`))
-    if (!filePath.startsWith(artifactsBase + sep)) {
-      logger.warn('app', 'reveal-artifact-file: path traversal rejected', {
-        chatId,
-        artifactId
-      })
-      return
+    const candidates: string[] = []
+    if (chatId) {
+      candidates.push(resolve(join(artifactsBase, chatId, `${artifactId}.tsx`)))
     }
-    if (existsSync(filePath)) {
-      shell.showItemInFolder(filePath)
-    } else {
-      logger.warn('app', 'reveal-artifact-file: file missing', {
-        chatId,
-        artifactId,
-        filePath
-      })
+    // Fall back to the legacy `shared/` layout used before commit c15f4d0.
+    candidates.push(resolve(join(artifactsBase, 'shared', `${artifactId}.tsx`)))
+
+    for (const filePath of candidates) {
+      if (!filePath.startsWith(artifactsBase + sep)) {
+        logger.warn('app', 'reveal-artifact-file: path traversal rejected', {
+          chatId,
+          artifactId
+        })
+        continue
+      }
+      if (existsSync(filePath)) {
+        shell.showItemInFolder(filePath)
+        return { ok: true as const, filePath }
+      }
     }
+
+    logger.warn('app', 'reveal-artifact-file: file missing', {
+      chatId,
+      artifactId,
+      tried: candidates
+    })
+    return { ok: false as const, reason: 'not-found' }
   })
 
   safeHandle('set-login-item', (_, enable: unknown) => {
