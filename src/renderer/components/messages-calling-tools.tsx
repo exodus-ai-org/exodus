@@ -10,7 +10,13 @@ import { GoogleMapsCard } from './calling-tools/google-maps-routing/routing-card
 import { TerminalCard } from './calling-tools/terminal/terminal-card'
 import { WeatherCard } from './calling-tools/weather/weather-card'
 
-function CallingTools({ toolResult }: { toolResult: ChatToolResultMessage }) {
+function CallingTools({
+  chatId,
+  toolResult
+}: {
+  chatId: string
+  toolResult: ChatToolResultMessage
+}) {
   const toolName = toolResult.toolName
 
   // Successful webSearch results are rendered via Sources in MessageAction, not here
@@ -87,7 +93,7 @@ function CallingTools({ toolResult }: { toolResult: ChatToolResultMessage }) {
       {toolName === 'deepResearch' && <DeepResearchCard toolResult={output} />}
       {toolName === 'terminal' && <TerminalCard toolResult={output} />}
       {toolName === 'createArtifact' && output?.type === 'artifact' && (
-        <ArtifactCard toolResult={output} />
+        <ArtifactCard chatId={chatId} toolResult={output} />
       )}
       {(toolName === 'imageGeneration' ||
         toolName === 'readFile' ||

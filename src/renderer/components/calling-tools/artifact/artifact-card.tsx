@@ -17,9 +17,6 @@ interface ArtifactDetails {
   title: string
   code: string
   artifactId: string
-  // Tool results persisted before the chatId fix (commit c15f4d0) lack this
-  // field; the reveal-file pill is disabled in that case.
-  chatId?: string
 }
 
 function getArtifactSandboxUrl(): string {
@@ -82,7 +79,7 @@ function UrlPill({
 }: {
   title: string
   artifactId: string
-  chatId?: string
+  chatId: string
 }) {
   const slug = artifactSlug(title)
   const shortId = artifactShortId(artifactId)
@@ -98,7 +95,7 @@ function UrlPill({
         description:
           result.reason === 'not-found'
             ? 'The saved .tsx file is missing — it may have been moved or deleted.'
-            : 'Missing artifact id.'
+            : 'Could not resolve the artifact path.'
       })
     }
   }
@@ -110,7 +107,7 @@ function UrlPill({
       aria-label={`Reveal ${title} in file manager`}
       title="Reveal in file manager"
       className={cn(
-        'min-w-0 max-w-[640px] flex-1 rounded-md border px-2.5 py-1 text-left font-mono text-[11.5px] leading-none',
+        'min-w-0 max-w-160 flex-1 rounded-md border px-2.5 py-1 text-left font-mono text-[11.5px] leading-none',
         'border-border/60 bg-background text-muted-foreground transition-colors',
         'hover:bg-muted cursor-pointer'
       )}
@@ -152,7 +149,7 @@ function InlineChromeBar({
 }: {
   title: string
   artifactId: string
-  chatId?: string
+  chatId: string
   onEnterFullscreen: () => void
 }) {
   return (
@@ -175,7 +172,7 @@ function FullscreenChromeBar({
 }: {
   title: string
   artifactId: string
-  chatId?: string
+  chatId: string
   isNativeFullscreen: boolean
   onExitFullscreen: () => void
 }) {
@@ -198,7 +195,13 @@ function FullscreenChromeBar({
   )
 }
 
-export function ArtifactCard({ toolResult }: { toolResult: ArtifactDetails }) {
+export function ArtifactCard({
+  chatId,
+  toolResult
+}: {
+  chatId: string
+  toolResult: ArtifactDetails
+}) {
   const inlineIframeRef = useRef<HTMLIFrameElement>(null)
   const fullscreenIframeRef = useRef<HTMLIFrameElement>(null)
   const inlineReady = useRef(false)
@@ -285,7 +288,7 @@ export function ArtifactCard({ toolResult }: { toolResult: ArtifactDetails }) {
         <InlineChromeBar
           title={toolResult.title}
           artifactId={toolResult.artifactId}
-          chatId={toolResult.chatId}
+          chatId={chatId}
           onEnterFullscreen={() => setExpanded(true)}
         />
         <iframe
@@ -304,7 +307,7 @@ export function ArtifactCard({ toolResult }: { toolResult: ArtifactDetails }) {
             <FullscreenChromeBar
               title={toolResult.title}
               artifactId={toolResult.artifactId}
-              chatId={toolResult.chatId}
+              chatId={chatId}
               isNativeFullscreen={isNativeFullscreen}
               onExitFullscreen={() => setExpanded(false)}
             />

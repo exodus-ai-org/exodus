@@ -27,6 +27,7 @@ import { ThinkingTimeline } from './thinking-timeline'
 import { Avatar, AvatarImage } from './ui/avatar'
 
 type MessagesProps = {
+  chatId: string
   status: ChatStatus
   messages: ChatMessage[]
   regenerate: () => void
@@ -75,11 +76,13 @@ const UserSegment = memo(function UserSegment({
 })
 
 const AssistantTurnSegment = memo(function AssistantTurnSegment({
+  chatId,
   turn,
   isStreaming,
   assistantAvatar,
   regenerate
 }: {
+  chatId: string
   turn: AssistantTurn
   isStreaming: boolean
   assistantAvatar?: string
@@ -115,7 +118,11 @@ const AssistantTurnSegment = memo(function AssistantTurnSegment({
             ))}
 
           {turn.toolCards.map((toolResult) => (
-            <MessageCallingTools key={toolResult.id} toolResult={toolResult} />
+            <MessageCallingTools
+              key={toolResult.id}
+              chatId={chatId}
+              toolResult={toolResult}
+            />
           ))}
 
           {turn.finalTextBlocks.map((block, i) => (
@@ -311,7 +318,7 @@ function groupIntoSegments(messages: ChatMessage[]): Segment[] {
   return segments
 }
 
-function Messages({ status, messages, regenerate }: MessagesProps) {
+function Messages({ chatId, status, messages, regenerate }: MessagesProps) {
   const isLoading = status === 'streaming' || status === 'submitted'
   const { data: settings } = useSettings()
   const chatBoxRef = useRef<HTMLDivElement>(null)
@@ -382,6 +389,7 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
             return (
               <AssistantTurnSegment
                 key={`turn-${segIdx}`}
+                chatId={chatId}
                 turn={segment.turn}
                 isStreaming={turnIsStreaming}
                 assistantAvatar={settings?.assistantAvatar ?? undefined}

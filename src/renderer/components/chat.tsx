@@ -130,7 +130,12 @@ export function Chat({ id, initialMessages, projectId, chatTitle }: Props) {
   return (
     <>
       {projectId && <ProjectBreadcrumb projectId={projectId} />}
-      <Messages status={status} messages={messages} regenerate={regenerate} />
+      <Messages
+        chatId={id}
+        status={status}
+        messages={messages}
+        regenerate={regenerate}
+      />
       <MultimodalInput
         chatId={id}
         attachments={attachments}
