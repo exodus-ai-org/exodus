@@ -183,12 +183,9 @@ export function ThinkingTimeline({
                       <>
                         <p>{step.text}</p>
                         {step.codeArgument && (
-                          <div className="mt-1 max-h-72 overflow-auto">
-                            <Markdown
-                              src={`~~~bash\n${step.codeArgument}\n~~~`}
-                              parts={[]}
-                            />
-                          </div>
+                          <pre className="bg-muted/50 border-border/60 mt-1 max-h-48 overflow-auto rounded-md border p-2 font-mono text-[11.5px] leading-relaxed break-words whitespace-pre-wrap">
+                            <code>{step.codeArgument}</code>
+                          </pre>
                         )}
                       </>
                     )}
