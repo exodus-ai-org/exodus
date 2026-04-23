@@ -45,7 +45,9 @@ export function bindCallingTools({
   chatModel?: Model<string>
   apiKey?: string
   mcpTools?: McpTools[]
-  chatId: string
+  // Optional: Agent X task execution has no owning chat, so the artifact
+  // tool is skipped there (artifacts are a chat-UI affordance).
+  chatId?: string
 }): ErasedTool[] {
   if (advancedTools.includes(AdvancedTools.DeepResearch)) {
     return [deepResearch]
@@ -70,7 +72,7 @@ export function bindCallingTools({
   if (enabled('findFiles')) tools.push(findFiles)
   if (enabled('grep')) tools.push(grep)
   if (enabled('webFetch')) tools.push(webFetch(setting))
-  if (enabled('createArtifact')) tools.push(createArtifact(chatId))
+  if (enabled('createArtifact') && chatId) tools.push(createArtifact(chatId))
   if (enabled('webSearch')) tools.push(webSearch(setting))
 
   // LCM recall tools: available when LCM is enabled
