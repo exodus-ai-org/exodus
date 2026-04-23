@@ -180,7 +180,14 @@ export function ThinkingTimeline({
                     {step.type === 'thinking' ? (
                       <Markdown src={step.text} parts={[]} />
                     ) : (
-                      <p>{step.text}</p>
+                      <>
+                        <p>{step.text}</p>
+                        {step.codeArgument && (
+                          <pre className="bg-muted/50 border-border/60 mt-1 max-h-48 overflow-auto rounded-md border p-2 font-mono text-[11.5px] leading-relaxed break-words whitespace-pre-wrap">
+                            <code>{step.codeArgument}</code>
+                          </pre>
+                        )}
+                      </>
                     )}
                   </div>
 

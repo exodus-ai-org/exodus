@@ -79,6 +79,10 @@ export interface TimelineStep {
   isError?: boolean
   toolName?: string
   webSearchResults?: WebSearchResult[]
+  // Longer, code-shaped argument (e.g. a shell command) rendered as a
+  // monospace block below `text` instead of inline — keeps the timeline row
+  // compact while still showing the full command.
+  codeArgument?: string
 }
 
 export interface AssistantTurn {

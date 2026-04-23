@@ -145,44 +145,43 @@ const AssistantTurnSegment = memo(function AssistantTurnSegment({
 })
 
 /**
- * Extract a short, human-readable summary of a tool call's most relevant
- * argument (query for webSearch, url for webFetch, command for terminal, etc.)
- * so the timeline shows what the model is actually doing.
+ * Build a timeline preview for a tool call. Most tools get an inline
+ * summary ("webSearch: <query>"); terminal commands get pulled out into a
+ * separate monospace block so heredocs, pipes, and multi-line scripts stay
+ * legible instead of collapsing into a single messy line.
  */
-function formatToolCallSummary(
+function getToolCallPreview(
   name: string,
   args: Record<string, unknown> | undefined
-): string {
-  if (!args) return ''
+): { text: string; codeArgument?: string } {
+  if (!args) return { text: name }
   const pick = (key: string): string =>
     typeof args[key] === 'string' ? (args[key] as string) : ''
 
-  let value = ''
   switch (name) {
+    case 'terminal': {
+      const cmd = pick('command')
+      return cmd ? { text: name, codeArgument: cmd } : { text: name }
+    }
     case 'webSearch':
-      value = pick('query')
-      break
+      return withInline(name, pick('query'))
     case 'webFetch':
-      value = pick('url')
-      break
-    case 'terminal':
-      value = pick('command')
-      break
+      return withInline(name, pick('url'))
     case 'readFile':
     case 'writeFile':
     case 'editFile':
-      value = pick('path') || pick('filePath')
-      break
+      return withInline(name, pick('path') || pick('filePath'))
     case 'weather':
-      value = pick('location')
-      break
+      return withInline(name, pick('location'))
     case 'googleMapsPlaces':
-      value = pick('query')
-      break
+      return withInline(name, pick('query'))
     default:
-      return ''
+      return { text: name }
   }
-  return value ? `: ${value}` : ''
+}
+
+function withInline(name: string, value: string): { text: string } {
+  return { text: value ? `${name}: ${value}` : name }
 }
 
 /**
@@ -203,10 +202,12 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
         if (block.type === 'thinking' && block.thinking?.trim()) {
           steps.push({ type: 'thinking', text: block.thinking })
         } else if (block.type === 'toolCall') {
+          const preview = getToolCallPreview(block.name, block.arguments)
           steps.push({
             type: 'toolCall',
-            text: `${block.name}${formatToolCallSummary(block.name, block.arguments)}`,
-            toolName: block.name
+            text: preview.text,
+            toolName: block.name,
+            codeArgument: preview.codeArgument
           })
           pendingToolCalls.push({ name: block.name, id: block.id })
         } else if (block.type === 'text' && block.text.trim()) {
