@@ -145,6 +145,47 @@ const AssistantTurnSegment = memo(function AssistantTurnSegment({
 })
 
 /**
+ * Extract a short, human-readable summary of a tool call's most relevant
+ * argument (query for webSearch, url for webFetch, command for terminal, etc.)
+ * so the timeline shows what the model is actually doing.
+ */
+function formatToolCallSummary(
+  name: string,
+  args: Record<string, unknown> | undefined
+): string {
+  if (!args) return ''
+  const pick = (key: string): string =>
+    typeof args[key] === 'string' ? (args[key] as string) : ''
+
+  let value = ''
+  switch (name) {
+    case 'webSearch':
+      value = pick('query')
+      break
+    case 'webFetch':
+      value = pick('url')
+      break
+    case 'terminal':
+      value = pick('command')
+      break
+    case 'readFile':
+    case 'writeFile':
+    case 'editFile':
+      value = pick('path') || pick('filePath')
+      break
+    case 'weather':
+      value = pick('location')
+      break
+    case 'googleMapsPlaces':
+      value = pick('query')
+      break
+    default:
+      return ''
+  }
+  return value ? `: ${value}` : ''
+}
+
+/**
  * A "turn" groups all assistant/toolResult messages between two user messages.
  * This lets us render thinking+tools as a timeline above the final text.
  */
@@ -164,7 +205,7 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
         } else if (block.type === 'toolCall') {
           steps.push({
             type: 'toolCall',
-            text: `${block.name}${block.arguments?.query ? `: ${block.arguments.query}` : ''}`,
+            text: `${block.name}${formatToolCallSummary(block.name, block.arguments)}`,
             toolName: block.name
           })
           pendingToolCalls.push({ name: block.name, id: block.id })
