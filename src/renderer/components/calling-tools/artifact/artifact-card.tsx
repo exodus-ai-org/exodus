@@ -1,9 +1,14 @@
 import { artifactShortId, artifactSlug } from '@shared/utils/artifact-slug'
-import { MinusIcon, MaximizeIcon, XIcon } from 'lucide-react'
+import { MaximizeIcon, MinimizeIcon } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
-import { revealArtifactFile } from '@/lib/ipc'
+import {
+  checkFullScreen,
+  revealArtifactFile,
+  subscribeFullScreenChanged,
+  unsubscribeFullScreenChanged
+} from '@/lib/ipc'
 import { cn } from '@/lib/utils'
 
 interface ArtifactDetails {
@@ -11,8 +16,8 @@ interface ArtifactDetails {
   title: string
   code: string
   artifactId: string
-  // Optional: tool results persisted before the chatId fix (commit c15f4d0)
-  // lack this field; the reveal-file pill is disabled in that case.
+  // Tool results persisted before the chatId fix (commit c15f4d0) lack this
+  // field; the reveal-file pill is disabled in that case.
   chatId?: string
 }
 
@@ -36,41 +41,36 @@ function sendToIframe(
   win.postMessage({ type: 'render', code, artifactId: title }, '*')
 }
 
-type LightVariant = 'red' | 'yellow' | 'green'
+/** Track whether the Electron window is in macOS native fullscreen. */
+function useIsNativeFullscreen() {
+  const [isFs, setIsFs] = useState(false)
 
-const LIGHT_COLORS: Record<LightVariant, string> = {
-  red: '#ff5f57',
-  yellow: '#febc2e',
-  green: '#28c840'
+  useEffect(() => {
+    checkFullScreen().then((v: boolean) => setIsFs(v))
+    const handler = (_: unknown, v: boolean) => setIsFs(v)
+    subscribeFullScreenChanged(handler)
+    return () => unsubscribeFullScreenChanged(handler)
+  }, [])
+
+  return isFs
 }
 
-function TrafficLight({
-  variant,
-  onClick,
-  ariaLabel,
-  children
-}: {
-  variant: LightVariant
-  onClick: () => void
-  ariaLabel: string
-  children: React.ReactNode
-}) {
+const TRAFFIC_LIGHT_COLORS = ['#ff5f57', '#febc2e', '#28c840']
+
+function DecorativeTrafficLights() {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      aria-label={ariaLabel}
-      title={ariaLabel}
-      className="group relative flex h-3 w-3 items-center justify-center rounded-full transition-opacity focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-transparent focus-visible:outline-none"
-      style={{
-        backgroundColor: LIGHT_COLORS[variant],
-        boxShadow: 'inset 0 0 0 0.5px rgba(0,0,0,0.12)'
-      }}
-    >
-      <span className="pointer-events-none flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-60">
-        {children}
-      </span>
-    </button>
+    <div className="flex items-center gap-2" aria-hidden="true">
+      {TRAFFIC_LIGHT_COLORS.map((color) => (
+        <span
+          key={color}
+          className="h-3 w-3 rounded-full"
+          style={{
+            backgroundColor: color,
+            boxShadow: 'inset 0 0 0 0.5px rgba(0,0,0,0.12)'
+          }}
+        />
+      ))}
+    </div>
   )
 }
 
@@ -99,7 +99,7 @@ function UrlPill({
       onClick={handleClick}
       disabled={disabled}
       aria-label={`Reveal ${title} in file manager`}
-      title={disabled ? title : `Reveal in file manager`}
+      title={disabled ? title : 'Reveal in file manager'}
       className={cn(
         'min-w-0 max-w-[640px] flex-1 rounded-md border px-2.5 py-1 text-left font-mono text-[11.5px] leading-none',
         'border-border/60 bg-background text-muted-foreground transition-colors',
@@ -116,46 +116,40 @@ function UrlPill({
   )
 }
 
-function ChromeBar({
+function FullscreenButton({
+  isFullscreen,
+  onClick
+}: {
+  isFullscreen: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
+      title={isFullscreen ? 'Exit fullscreen (Esc)' : 'Fullscreen'}
+      className="text-muted-foreground hover:bg-muted hover:text-foreground inline-flex h-7 w-7 items-center justify-center rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-none"
+    >
+      {isFullscreen ? <MinimizeIcon size={14} /> : <MaximizeIcon size={14} />}
+    </button>
+  )
+}
+
+function InlineChromeBar({
   title,
   artifactId,
   chatId,
-  onCollapse,
-  onToggleCode,
-  onToggleFullscreen
+  onEnterFullscreen
 }: {
   title: string
   artifactId: string
   chatId?: string
-  onCollapse: () => void
-  onToggleCode: () => void
-  onToggleFullscreen: () => void
+  onEnterFullscreen: () => void
 }) {
   return (
     <div className="bg-muted/70 flex h-10 items-center gap-3 border-b px-3">
-      <div className="flex items-center gap-2">
-        <TrafficLight
-          variant="red"
-          onClick={onCollapse}
-          ariaLabel="Collapse artifact"
-        >
-          <XIcon size={8} strokeWidth={3} />
-        </TrafficLight>
-        <TrafficLight
-          variant="yellow"
-          onClick={onToggleCode}
-          ariaLabel="Toggle code"
-        >
-          <MinusIcon size={8} strokeWidth={3} />
-        </TrafficLight>
-        <TrafficLight
-          variant="green"
-          onClick={onToggleFullscreen}
-          ariaLabel="Toggle fullscreen"
-        >
-          <MaximizeIcon size={7} strokeWidth={3} />
-        </TrafficLight>
-      </div>
+      <DecorativeTrafficLights />
       <div className="flex min-w-0 flex-1 justify-center">
         <UrlPill
           title={title}
@@ -164,7 +158,44 @@ function ChromeBar({
           disabled={!chatId}
         />
       </div>
-      <div className="w-[64px]" aria-hidden />
+      <FullscreenButton isFullscreen={false} onClick={onEnterFullscreen} />
+    </div>
+  )
+}
+
+function FullscreenChromeBar({
+  title,
+  artifactId,
+  chatId,
+  isNativeFullscreen,
+  onExitFullscreen
+}: {
+  title: string
+  artifactId: string
+  chatId?: string
+  isNativeFullscreen: boolean
+  onExitFullscreen: () => void
+}) {
+  // When Electron is NOT in macOS native fullscreen, the OS traffic lights sit
+  // at the top-left of our window — pad our chrome content to 88px to avoid
+  // collision. When native-fullscreen, the OS lights move into the menu bar so
+  // we can start at normal padding.
+  const leftPadding = isNativeFullscreen ? 16 : 88
+
+  return (
+    <div
+      className="bg-muted/70 flex h-10 items-center gap-3 border-b pr-3"
+      style={{ paddingLeft: leftPadding }}
+    >
+      <div className="flex min-w-0 flex-1 justify-center">
+        <UrlPill
+          title={title}
+          artifactId={artifactId}
+          chatId={chatId}
+          disabled={!chatId}
+        />
+      </div>
+      <FullscreenButton isFullscreen={true} onClick={onExitFullscreen} />
     </div>
   )
 }
@@ -175,8 +206,7 @@ export function ArtifactCard({ toolResult }: { toolResult: ArtifactDetails }) {
   const inlineReady = useRef(false)
   const fullscreenReady = useRef(false)
   const [expanded, setExpanded] = useState(false)
-  const [showCode, setShowCode] = useState(false)
-  const [collapsed, setCollapsed] = useState(false)
+  const isNativeFullscreen = useIsNativeFullscreen()
 
   const handleInlineLoad = useCallback(() => {
     inlineReady.current = true
@@ -189,10 +219,10 @@ export function ArtifactCard({ toolResult }: { toolResult: ArtifactDetails }) {
   }, [toolResult.code, toolResult.title])
 
   useEffect(() => {
-    if (inlineReady.current && !collapsed) {
+    if (inlineReady.current) {
       sendToIframe(inlineIframeRef.current, toolResult.code, toolResult.title)
     }
-  }, [toolResult.code, toolResult.title, collapsed])
+  }, [toolResult.code, toolResult.title])
 
   useEffect(() => {
     if (fullscreenReady.current && expanded) {
@@ -209,10 +239,6 @@ export function ArtifactCard({ toolResult }: { toolResult: ArtifactDetails }) {
   }, [expanded])
 
   useEffect(() => {
-    if (collapsed) inlineReady.current = false
-  }, [collapsed])
-
-  useEffect(() => {
     if (!expanded) return
     const handleKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setExpanded(false)
@@ -221,60 +247,39 @@ export function ArtifactCard({ toolResult }: { toolResult: ArtifactDetails }) {
     return () => window.removeEventListener('keydown', handleKey)
   }, [expanded])
 
-  const inlineChrome = (
-    <ChromeBar
-      title={toolResult.title}
-      artifactId={toolResult.artifactId}
-      chatId={toolResult.chatId}
-      onCollapse={() => setCollapsed((c) => !c)}
-      onToggleCode={() => setShowCode((s) => !s)}
-      onToggleFullscreen={() => setExpanded(true)}
-    />
-  )
-
-  const codePreview = showCode && !collapsed && (
-    <pre className="bg-muted/50 max-h-60 overflow-auto border-b p-3 text-xs">
-      <code>{toolResult.code}</code>
-    </pre>
-  )
-
   return (
     <>
       <div
         className="border-border/70 bg-card overflow-hidden rounded-lg border shadow-sm"
         style={expanded ? { display: 'none' } : undefined}
       >
-        {inlineChrome}
-        {codePreview}
-        {!collapsed && (
-          <iframe
-            ref={inlineIframeRef}
-            src={getArtifactSandboxUrl()}
-            onLoad={handleInlineLoad}
-            className="w-full border-0"
-            style={{ height: '400px' }}
-            sandbox="allow-scripts allow-same-origin"
-            title={toolResult.title}
-          />
-        )}
+        <InlineChromeBar
+          title={toolResult.title}
+          artifactId={toolResult.artifactId}
+          chatId={toolResult.chatId}
+          onEnterFullscreen={() => setExpanded(true)}
+        />
+        <iframe
+          ref={inlineIframeRef}
+          src={getArtifactSandboxUrl()}
+          onLoad={handleInlineLoad}
+          className="w-full border-0"
+          style={{ height: '400px' }}
+          sandbox="allow-scripts allow-same-origin"
+          title={toolResult.title}
+        />
       </div>
 
       {expanded &&
         createPortal(
           <div className="bg-background fixed inset-0 z-50 flex flex-col">
-            <ChromeBar
+            <FullscreenChromeBar
               title={toolResult.title}
               artifactId={toolResult.artifactId}
               chatId={toolResult.chatId}
-              onCollapse={() => setExpanded(false)}
-              onToggleCode={() => setShowCode((s) => !s)}
-              onToggleFullscreen={() => setExpanded(false)}
+              isNativeFullscreen={isNativeFullscreen}
+              onExitFullscreen={() => setExpanded(false)}
             />
-            {showCode && (
-              <pre className="bg-muted/50 max-h-60 overflow-auto border-b p-3 text-xs">
-                <code>{toolResult.code}</code>
-              </pre>
-            )}
             <iframe
               ref={fullscreenIframeRef}
               src={getArtifactSandboxUrl()}
