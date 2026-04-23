@@ -1,6 +1,6 @@
 import { artifactShortId, artifactSlug } from '@shared/utils/artifact-slug'
 import { MaximizeIcon, MinimizeIcon } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
 import {
@@ -205,19 +205,48 @@ export function ArtifactCard({ toolResult }: { toolResult: ArtifactDetails }) {
   const fullscreenIframeRef = useRef<HTMLIFrameElement>(null)
   const inlineReady = useRef(false)
   const fullscreenReady = useRef(false)
+  const codeRef = useRef(toolResult.code)
+  const titleRef = useRef(toolResult.title)
   const [expanded, setExpanded] = useState(false)
   const isNativeFullscreen = useIsNativeFullscreen()
 
-  const handleInlineLoad = useCallback(() => {
-    inlineReady.current = true
-    sendToIframe(inlineIframeRef.current, toolResult.code, toolResult.title)
+  // Keep refs current so the message listener (attached once) always reads
+  // the latest code/title when responding to a sandbox ready handshake.
+  useEffect(() => {
+    codeRef.current = toolResult.code
+    titleRef.current = toolResult.title
   }, [toolResult.code, toolResult.title])
 
-  const handleFullscreenLoad = useCallback(() => {
-    fullscreenReady.current = true
-    sendToIframe(fullscreenIframeRef.current, toolResult.code, toolResult.title)
-  }, [toolResult.code, toolResult.title])
+  // Listen for the sandbox ready handshake from each iframe and send the
+  // render message in response. Fixes a race where the parent's `onLoad`
+  // fired before the sandbox attached its message listener, dropping the
+  // initial render message and stranding the UI on "Waiting for artifact…".
+  useEffect(() => {
+    const onMessage = (event: MessageEvent) => {
+      if (
+        typeof event.data !== 'object' ||
+        event.data === null ||
+        (event.data as { type?: unknown }).type !== 'artifact-sandbox-ready'
+      ) {
+        return
+      }
+      if (event.source === inlineIframeRef.current?.contentWindow) {
+        inlineReady.current = true
+        sendToIframe(inlineIframeRef.current, codeRef.current, titleRef.current)
+      } else if (event.source === fullscreenIframeRef.current?.contentWindow) {
+        fullscreenReady.current = true
+        sendToIframe(
+          fullscreenIframeRef.current,
+          codeRef.current,
+          titleRef.current
+        )
+      }
+    }
+    window.addEventListener('message', onMessage)
+    return () => window.removeEventListener('message', onMessage)
+  }, [])
 
+  // Re-send on streaming code/title updates (iframes already mounted).
   useEffect(() => {
     if (inlineReady.current) {
       sendToIframe(inlineIframeRef.current, toolResult.code, toolResult.title)
@@ -234,6 +263,8 @@ export function ArtifactCard({ toolResult }: { toolResult: ArtifactDetails }) {
     }
   }, [toolResult.code, toolResult.title, expanded])
 
+  // Fullscreen iframe unmounts on exit — reset its ready flag so the next
+  // mount's handshake re-triggers a render.
   useEffect(() => {
     if (!expanded) fullscreenReady.current = false
   }, [expanded])
@@ -262,7 +293,6 @@ export function ArtifactCard({ toolResult }: { toolResult: ArtifactDetails }) {
         <iframe
           ref={inlineIframeRef}
           src={getArtifactSandboxUrl()}
-          onLoad={handleInlineLoad}
           className="w-full border-0"
           style={{ height: '400px' }}
           sandbox="allow-scripts allow-same-origin"
@@ -283,7 +313,6 @@ export function ArtifactCard({ toolResult }: { toolResult: ArtifactDetails }) {
             <iframe
               ref={fullscreenIframeRef}
               src={getArtifactSandboxUrl()}
-              onLoad={handleFullscreenLoad}
               className="w-full flex-1 border-0"
               sandbox="allow-scripts allow-same-origin"
               title={toolResult.title}

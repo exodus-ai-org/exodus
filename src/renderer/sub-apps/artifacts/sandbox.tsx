@@ -167,6 +167,12 @@ export function ArtifactSandbox() {
 
   useEffect(() => {
     window.addEventListener('message', handleMessage)
+    // Handshake: tell the parent we're ready to receive render messages.
+    // Without this, the parent's `onLoad` can fire before this listener is
+    // attached, dropping the initial render message and stranding the UI on
+    // "Waiting for artifact...". Worst seen on fullscreen, where a fresh
+    // iframe mounts every time.
+    window.parent?.postMessage({ type: 'artifact-sandbox-ready' }, '*')
     return () => window.removeEventListener('message', handleMessage)
   }, [handleMessage])
 
