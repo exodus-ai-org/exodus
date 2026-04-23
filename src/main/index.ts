@@ -1,6 +1,7 @@
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { app, BrowserWindow, globalShortcut } from 'electron'
 
+import { migrateSharedArtifacts } from './lib/ai/artifacts-migration'
 import { setupAutoUpdater } from './lib/auto-updater'
 import { startBackupScheduler } from './lib/backup'
 import { cleanupStaleWaitingTasks } from './lib/db/agent-x-queries'
@@ -37,6 +38,15 @@ app.whenReady().then(async () => {
 
   // Migrate PGlite
   await runMigrate()
+
+  // One-time migration of legacy `shared/` artifacts into per-chat folders
+  await migrateSharedArtifacts().catch((err) => {
+    logger.warn('app', 'Failed to migrate legacy artifacts', {
+      error: String(err),
+      stack: err instanceof Error ? err.stack : undefined
+    })
+  })
+
   cleanupOldLogs()
   await cleanupStaleWaitingTasks().catch((err) => {
     logger.warn('app', 'Failed to cleanup stale waiting tasks', {
