@@ -35,7 +35,7 @@ function filterThinkingBlocks(
     .map((block) => {
       if (block.type !== 'thinking') return block
       // Convert non-empty thinking to text to avoid provider-specific format issues
-      return { type: 'text', text: (block as { text: string }).text }
+      return { type: 'text', text: (block as unknown as { text: string }).text }
     })
 }
 
@@ -107,7 +107,7 @@ export function transformMessages(messages: Message[]): Message[] {
   for (const msg of messages) {
     // Skip messages with error/aborted stop reasons
     if (msg.role === 'assistant') {
-      const assistantMsg = msg as {
+      const assistantMsg = msg as unknown as {
         stopReason?: string
         content: Array<{ type: string; [k: string]: unknown }>
       }
@@ -124,19 +124,19 @@ export function transformMessages(messages: Message[]): Message[] {
       // Normalize tool call IDs
       content = content.map((block) => {
         if (block.type === 'toolCall' && (block as { id?: string }).id) {
-          const oldId = (block as { id: string }).id
+          const oldId = (block as unknown as { id: string }).id
           const newId = idMap.get(oldId) ?? oldId
           return { ...block, id: newId }
         }
         return block
       })
 
-      result.push({ ...msg, content } as Message)
+      result.push({ ...msg, content } as unknown as Message)
 
       // Add synthetic error results for orphaned tool calls
       for (const block of content) {
         if (block.type === 'toolCall') {
-          const toolCall = block as { id: string; name?: string }
+          const toolCall = block as unknown as { id: string; name?: string }
           if (
             orphaned.has(toolCall.id) ||
             orphaned.has(idMap.get(toolCall.id) ?? '')
@@ -152,7 +152,7 @@ export function transformMessages(messages: Message[]): Message[] {
                 }
               ],
               error: true
-            } as Message)
+            } as unknown as Message)
           }
         }
       }

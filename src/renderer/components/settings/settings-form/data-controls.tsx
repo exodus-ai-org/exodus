@@ -172,16 +172,18 @@ export function DataControls() {
         description="Restore from a previously exported ZIP archive. This will replace all existing data."
       >
         <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
-          <DialogTrigger asChild>
-            <Button variant="outline" disabled={importLoading}>
-              {importLoading ? (
-                <Loader2 className="animate-spin" />
-              ) : (
-                <HardDriveUpload />
-              )}
-              Import
-            </Button>
-          </DialogTrigger>
+          <DialogTrigger
+            render={
+              <Button variant="outline" disabled={importLoading}>
+                {importLoading ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <HardDriveUpload />
+                )}
+                Import
+              </Button>
+            }
+          />
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Import Data</DialogTitle>
@@ -222,16 +224,18 @@ export function DataControls() {
         description="Permanently erase all conversations, memories, and research data. Your settings will be preserved."
       >
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <DialogTrigger asChild>
-            <Button variant="destructive" disabled={deleteLoading}>
-              {deleteLoading ? (
-                <Loader2 className="animate-spin" />
-              ) : (
-                <Trash2 />
-              )}
-              Delete All Data
-            </Button>
-          </DialogTrigger>
+          <DialogTrigger
+            render={
+              <Button variant="destructive" disabled={deleteLoading}>
+                {deleteLoading ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  <Trash2 />
+                )}
+                Delete All Data
+              </Button>
+            }
+          />
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Delete All Data</DialogTitle>
