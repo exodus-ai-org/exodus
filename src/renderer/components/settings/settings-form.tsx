@@ -2,6 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { Settings, SettingsSchema } from '@shared/schemas/settings-schema'
 import { AiProviders } from '@shared/types/ai'
 import { useAtomValue } from 'jotai'
+import { useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { useSettings } from '@/hooks/use-settings'
@@ -41,20 +42,62 @@ export function SettingsForm() {
   const form = useForm({
     resolver: zodResolver(SettingsSchema),
     values: settings,
-    resetOptions: { keepDirtyValues: true },
-    mode: 'onBlur'
+    resetOptions: { keepDirtyValues: true }
   })
 
-  function onSubmit(values: Settings) {
-    if (!settings) return
-    updateSettings({ ...values, id: settings.id })
-  }
+  // Refs let the watch effect read latest closure without re-subscribing on
+  // every render of the parent. The watch subscription must outlive the
+  // section-tab swaps that re-render this component.
+  const settingsRef = useRef(settings)
+  settingsRef.current = settings
+  const updateSettingsRef = useRef(updateSettings)
+  updateSettingsRef.current = updateSettings
+
+  // Auto-save: subscribe to any user-initiated value change (typed input,
+  // Switch toggle, Select pick, programmatic setValue) and persist once the
+  // schema validates. Debounced so a burst of keystrokes coalesces into one
+  // write. Replaces the old `onBlur={handleSubmit(...)}` form handler, which
+  // missed Switch/Select changes and fired spurious saves on tab switches.
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null
+    const persist = (values: Settings) => {
+      const current = settingsRef.current
+      if (!current) return
+      updateSettingsRef.current({ ...values, id: current.id })
+    }
+    const flush = () => {
+      timeoutId = null
+      // handleSubmit runs the Zod resolver; persist only fires for valid values.
+      void form.handleSubmit(persist)()
+    }
+    const subscription = form.watch((values, { name }) => {
+      // RHF emits a watch event with `name` undefined when the `values: settings`
+      // prop hydrates the form on mount or when reset() is called — skip those
+      // so loading from the DB doesn't immediately echo-save.
+      if (!name) return
+      // Echo guard: after a save, the server bumps `updatedAt` and refetches
+      // through SWR. RHF then resets the form to the new values and emits a
+      // watch event for the changed timestamp field, which would otherwise
+      // trigger another save → infinite POST loop. Compare what we'd save
+      // against the persisted settings; equal means there's nothing new.
+      const current = settingsRef.current
+      if (current && JSON.stringify(values) === JSON.stringify(current)) return
+      if (timeoutId) clearTimeout(timeoutId)
+      timeoutId = setTimeout(flush, 300)
+    })
+    return () => {
+      subscription.unsubscribe()
+      if (timeoutId) {
+        clearTimeout(timeoutId)
+        // Flush any pending save when the component unmounts (navigating away
+        // from /settings) so the last edit isn't dropped.
+        flush()
+      }
+    }
+  }, [form])
 
   return (
-    <form
-      className="flex flex-1 flex-col gap-4"
-      onBlur={form.handleSubmit(onSubmit)}
-    >
+    <form className="flex flex-1 flex-col gap-4">
       {activeTitle === SettingsLabel.General && <General form={form} />}
 
       {activeTitle === SettingsLabel.Personality && <Personality form={form} />}

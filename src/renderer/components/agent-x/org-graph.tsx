@@ -492,12 +492,17 @@ export function OrgGraph({
   }, [])
 
   // fitView on window resize (covers maximize / restore / panel open-close)
+  // Read fitView through a ref so the resize listener and fitViewVersion
+  // effect don't re-bind on every render of the (possibly unstable) hook.
+  const fitViewRef = useRef(fitView)
+  fitViewRef.current = fitView
+
   useEffect(() => {
     let rafId: number
     const handleResize = () => {
       cancelAnimationFrame(rafId)
       rafId = requestAnimationFrame(() =>
-        fitView({ padding: 0.2, duration: 200 })
+        fitViewRef.current({ padding: 0.2, duration: 200 })
       )
     }
     window.addEventListener('resize', handleResize)
@@ -505,13 +510,16 @@ export function OrgGraph({
       window.removeEventListener('resize', handleResize)
       cancelAnimationFrame(rafId)
     }
-  }, [fitView])
+  }, [])
 
   // fitView when nodes are added/removed (version counter bumped by parent)
   useEffect(() => {
     if (fitViewVersion === undefined || fitViewVersion === 0) return
-    setTimeout(() => fitView({ padding: 0.2, duration: 300 }), 50)
-  }, [fitViewVersion, fitView])
+    const handle = requestAnimationFrame(() =>
+      fitViewRef.current({ padding: 0.2, duration: 300 })
+    )
+    return () => cancelAnimationFrame(handle)
+  }, [fitViewVersion])
 
   const selectedCount = nodes.filter((n) => n.selected).length
   // Context menu target count: if right-clicked an unselected node → 1, else selection count

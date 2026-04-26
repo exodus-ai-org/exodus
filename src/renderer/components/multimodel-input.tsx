@@ -119,7 +119,7 @@ function InputBox({
         !id && 'mb-4'
       )}
     >
-      <div className="focus-within:ring-ring/30 flex flex-col gap-1 rounded-xl border p-2 shadow-sm transition-shadow duration-200 focus-within:shadow-md focus-within:ring-1">
+      <div className="focus-within:ring-ring/30 z-1 flex flex-col gap-1 rounded-xl border p-2 shadow-sm transition-shadow duration-200 focus-within:shadow-md focus-within:ring-1">
         <form>
           <FilePreview />
           <Textarea

@@ -179,7 +179,7 @@ export function ThinkingTimeline({
                     )}
                   >
                     {step.type === 'thinking' ? (
-                      <Markdown src={step.text} parts={[]} />
+                      <Markdown src={step.text} />
                     ) : (
                       <>
                         <p>{step.text}</p>

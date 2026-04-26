@@ -2,7 +2,8 @@ import { QUICK_CHAT_KEY } from '@shared/constants/misc'
 import { BASE_URL } from '@shared/constants/systems'
 import { Attachment, ChatMessage } from '@shared/types/chat'
 import type { Project } from '@shared/types/db'
-import { useAtomValue, useSetAtom } from 'jotai'
+import { useSetAtom } from 'jotai'
+import { useAtomCallback } from 'jotai/utils'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router'
 import { sileo } from 'sileo'
@@ -46,10 +47,18 @@ interface Props {
 export function Chat({ id, initialMessages, projectId, chatTitle }: Props) {
   const { id: routeId } = useParams()
   const navigate = useNavigate()
-  const quickChat = window.localStorage.getItem(QUICK_CHAT_KEY)
-  const advancedTools = useAtomValue(advancedToolsAtom)
-  const advancedToolsRef = useRef(advancedTools)
-  advancedToolsRef.current = advancedTools
+  // Read once on mount — quick-chat hand-off only fires for the first render of a fresh chat.
+  const quickChatRef = useRef<string | null>(null)
+  if (quickChatRef.current === null) {
+    quickChatRef.current = window.localStorage.getItem(QUICK_CHAT_KEY)
+  }
+  // advancedTools is only read inside prepareBody (a callback fired on send),
+  // so we don't need to subscribe — useAtomCallback gets the latest value
+  // lazily without triggering a Chat re-render on every tool toggle, which
+  // would otherwise cascade through Messages/MultimodalInput.
+  const getAdvancedTools = useAtomCallback(
+    useCallback((get) => get(advancedToolsAtom), [])
+  )
   const projectIdRef = useRef(projectId)
   projectIdRef.current = projectId
 
@@ -78,7 +87,7 @@ export function Chat({ id, initialMessages, projectId, chatTitle }: Props) {
       ...body,
       id,
       messages,
-      advancedTools: advancedToolsRef.current,
+      advancedTools: getAdvancedTools(),
       projectId: projectIdRef.current
     }),
     onFinish: () => {
@@ -114,8 +123,9 @@ export function Chat({ id, initialMessages, projectId, chatTitle }: Props) {
     setChatStop(() => stableStop)
   }, [stableStop, setChatStop])
 
-  // Quick-chat: if localStorage has a pending quick-chat message, send it immediately
+  // Quick-chat: if localStorage had a pending quick-chat message at mount, send it immediately
   useEffect(() => {
+    const quickChat = quickChatRef.current
     if (quickChat) {
       setChatInput(quickChat)
       // Use replaceState for immediate URL update; React Router navigate
@@ -125,7 +135,7 @@ export function Chat({ id, initialMessages, projectId, chatTitle }: Props) {
       setChatInput('')
       window.localStorage.removeItem(QUICK_CHAT_KEY)
     }
-  }, [id, quickChat, sendMessage, setChatInput])
+  }, [id, sendMessage, setChatInput])
 
   return (
     <>

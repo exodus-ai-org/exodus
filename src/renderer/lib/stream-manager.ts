@@ -79,18 +79,20 @@ async function consumeStream(stream: ActiveStream, response: Response) {
           const updatedMsg = event.message
           const idx = stream.messages.findIndex((m) => m.id === updatedMsg.id)
           if (idx >= 0) {
-            stream.messages = [
-              ...stream.messages.slice(0, idx),
-              updatedMsg,
-              ...stream.messages.slice(idx + 1)
-            ]
+            // slice() + index assignment beats double-spread+slice for the
+            // hot per-token update path (single allocation vs. three).
+            const next = stream.messages.slice()
+            next[idx] = updatedMsg
+            stream.messages = next
           } else {
             stream.messages = [...stream.messages, updatedMsg]
           }
-          stream.subscriber?.onMessages([...stream.messages])
+          // The new array is already a fresh ref; skip the redundant copy
+          // that subscribers used to receive.
+          stream.subscriber?.onMessages(stream.messages)
         } else if (event.type === 'done') {
           stream.messages = event.messages
-          stream.subscriber?.onMessages([...stream.messages])
+          stream.subscriber?.onMessages(stream.messages)
         } else if (event.type === 'title') {
           stream.chatTitle = event.title
           stream.subscriber?.onTitle(event.title)

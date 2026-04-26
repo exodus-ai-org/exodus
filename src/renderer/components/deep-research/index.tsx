@@ -60,13 +60,32 @@ export function DeepResearchProcess() {
   useEffect(() => {
     if (!activeDeepResearchId) return
 
+    // Coalesce SSE events arriving in the same frame into a single setState +
+    // single sort, instead of one render and one toSorted per message.
+    const pending: DeepResearchMessage[] = []
+    let rafHandle = 0
+    const flush = () => {
+      rafHandle = 0
+      if (pending.length === 0) return
+      const drained = pending.splice(0)
+      setDeepResearchMessages((prev) => {
+        const next = prev ? [...prev, ...drained] : drained
+        return next.toSorted((a, b) => +a.createdAt - +b.createdAt)
+      })
+    }
+    const enqueue = (msg: DeepResearchMessage) => {
+      pending.push(msg)
+      if (!rafHandle) rafHandle = requestAnimationFrame(flush)
+    }
+
+    let source: EventSource | null = null
     const initial = async () => {
       const messages = await fetchDeepResearchMessages(activeDeepResearchId)
       setDeepResearchMessages(messages)
 
       if (deepResearchResult?.jobStatus !== 'streaming') return
 
-      const source = new EventSource(
+      source = new EventSource(
         `${BASE_URL}/api/deep-research/sse?deepResearchId=${activeDeepResearchId}`
       )
 
@@ -94,39 +113,29 @@ export function DeepResearchProcess() {
             DeepResearchProgress.CompleteDeepResearch
           ) {
             mutateResult()
-            source.close()
+            source?.close()
           } else {
-            setDeepResearchMessages((prev) =>
-              prev
-                ? [...prev, deepResearchMessage].toSorted(
-                    (a, b) => +a.createdAt - +b.createdAt
-                  )
-                : [deepResearchMessage]
-            )
+            enqueue(deepResearchMessage)
           }
         } catch (error) {
           console.error('Error parsing event data:', error)
-          source.close()
+          source?.close()
         }
       }
 
       source.onerror = (error) => {
         console.error('SSE error:', error)
-        if (source.readyState === EventSource.CLOSED) {
+        if (source?.readyState === EventSource.CLOSED) {
           console.log('SSE connection closed')
         }
-        source.close()
-      }
-
-      return () => {
-        console.log('SSE connection closed by component unmount')
-        source.close()
+        source?.close()
       }
     }
 
-    const cleanupPromise = initial()
+    initial()
     return () => {
-      cleanupPromise?.then((cleanup) => cleanup?.())
+      if (rafHandle) cancelAnimationFrame(rafHandle)
+      source?.close()
     }
   }, [
     activeDeepResearchId,

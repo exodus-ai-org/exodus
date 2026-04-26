@@ -3,23 +3,25 @@ import { AiProviders } from '@shared/types/ai'
 export const models = {
   [AiProviders.OpenAiGpt]: {
     chatModel: [
+      'gpt-5.5',
+      'gpt-5.5-pro',
       'gpt-5.4',
       'gpt-5.4-pro',
-      'gpt-5.3-chat-latest',
       'gpt-5.3-codex',
       'gpt-5-mini'
     ],
-    reasoningModel: ['gpt-5.4', 'gpt-5.4-pro']
+    reasoningModel: ['gpt-5.5-pro', 'gpt-5.4', 'gpt-5.4-pro']
   },
   [AiProviders.AzureOpenAi]: {
     chatModel: [
+      'gpt-5.5',
+      'gpt-5.5-pro',
       'gpt-5.4',
       'gpt-5.4-pro',
-      'gpt-5.3-chat-latest',
       'gpt-5.3-codex',
       'gpt-5-mini'
     ],
-    reasoningModel: ['gpt-5.4', 'gpt-5.4-pro']
+    reasoningModel: ['gpt-5.5-pro', 'gpt-5.4', 'gpt-5.4-pro']
   },
   [AiProviders.GoogleGemini]: {
     chatModel: [

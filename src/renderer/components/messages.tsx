@@ -75,81 +75,106 @@ const UserSegment = memo(function UserSegment({
   )
 })
 
-const AssistantTurnSegment = memo(function AssistantTurnSegment({
-  chatId,
-  turn,
-  isStreaming,
-  assistantAvatar,
-  regenerate
-}: {
+type AssistantTurnSegmentProps = {
   chatId: string
   turn: AssistantTurn
   isStreaming: boolean
   assistantAvatar?: string
   regenerate: () => void
-}) {
-  const webSearchResults =
-    turn.webSearchResults.length > 0 ? turn.webSearchResults : undefined
+}
 
-  return (
-    <div className="mb-8 flex flex-col items-start last:mb-4">
-      <div className="flex w-full gap-4">
-        {!!assistantAvatar && (
-          <Avatar>
-            <AvatarImage src={assistantAvatar} className="object-cover" />
-          </Avatar>
-        )}
-        <div className="w-full">
-          {(turn.steps.length > 0 || isStreaming) && (
-            <ThinkingTimeline
-              steps={turn.steps}
-              durationMs={turn.durationMs}
-              isStreaming={isStreaming && turn.finalTextBlocks.length === 0}
-            />
+const AssistantTurnSegment = memo(
+  function AssistantTurnSegment({
+    chatId,
+    turn,
+    isStreaming,
+    assistantAvatar,
+    regenerate
+  }: AssistantTurnSegmentProps) {
+    const webSearchResults =
+      turn.webSearchResults.length > 0 ? turn.webSearchResults : undefined
+
+    return (
+      <div className="mb-8 flex flex-col items-start last:mb-4">
+        <div className="flex w-full gap-4">
+          {!!assistantAvatar && (
+            <Avatar>
+              <AvatarImage src={assistantAvatar} className="object-cover" />
+            </Avatar>
           )}
+          <div className="w-full overflow-x-hidden">
+            {(turn.steps.length > 0 || isStreaming) && (
+              <ThinkingTimeline
+                steps={turn.steps}
+                durationMs={turn.durationMs}
+                isStreaming={isStreaming && turn.finalTextBlocks.length === 0}
+              />
+            )}
 
-          {isStreaming &&
-            turn.pendingToolCalls.map((tc) => (
-              <ShimmeringText
-                key={tc.id}
-                className="mb-4"
-                text={`Calling tool: ${tc.name}`}
+            {isStreaming &&
+              turn.pendingToolCalls.map((tc) => (
+                <ShimmeringText
+                  key={tc.id}
+                  className="mb-4"
+                  text={`Calling tool: ${tc.name}`}
+                />
+              ))}
+
+            {turn.toolCards.map((toolResult) => (
+              <MessageCallingTools
+                key={toolResult.id}
+                chatId={chatId}
+                toolResult={toolResult}
               />
             ))}
 
-          {turn.toolCards.map((toolResult) => (
-            <MessageCallingTools
-              key={toolResult.id}
-              chatId={chatId}
-              toolResult={toolResult}
-            />
-          ))}
-
-          {turn.finalTextBlocks.map((block, i) => (
-            <section
-              key={`${block.messageId}-${block.blockIdx}`}
-              className={cn(
-                'group relative',
-                i < turn.finalTextBlocks.length - 1 && 'mb-16'
-              )}
-            >
-              <Markdown
-                src={block.text}
-                parts={[]}
-                webSearchResults={webSearchResults}
-              />
-              <MessageAction
-                regenerate={regenerate}
-                content={block.text}
-                webSearchResults={webSearchResults}
-              />
-            </section>
-          ))}
+            {turn.finalTextBlocks.map((block, i) => (
+              <section
+                key={`${block.messageId}-${block.blockIdx}`}
+                className={cn(
+                  'group relative',
+                  i < turn.finalTextBlocks.length - 1 && 'mb-16'
+                )}
+              >
+                <Markdown
+                  src={block.text}
+                  webSearchResults={webSearchResults}
+                />
+                <MessageAction
+                  regenerate={regenerate}
+                  content={block.text}
+                  webSearchResults={webSearchResults}
+                />
+              </section>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
-  )
-})
+    )
+  },
+  // During streaming, only the active turn changes — older turns rebuild structurally
+  // equal `turn` objects each token. Skip them by checking message references.
+  function arePropsEqual(
+    prev: AssistantTurnSegmentProps,
+    next: AssistantTurnSegmentProps
+  ) {
+    if (
+      prev.chatId !== next.chatId ||
+      prev.isStreaming !== next.isStreaming ||
+      prev.assistantAvatar !== next.assistantAvatar ||
+      prev.regenerate !== next.regenerate
+    ) {
+      return false
+    }
+    const prevMsgs = prev.turn.messages
+    const nextMsgs = next.turn.messages
+    if (prevMsgs.length !== nextMsgs.length) return false
+    for (let i = 0; i < prevMsgs.length; i++) {
+      if (prevMsgs[i] !== nextMsgs[i]) return false
+    }
+    return true
+  }
+)
 
 /**
  * Build a timeline preview for a tool call. Most tools get an inline

@@ -1,7 +1,14 @@
 import { faviconUrl } from '@shared/constants/external-urls'
 import { WebSearchResult } from '@shared/types/web-search'
 import { CheckIcon, CopyIcon } from 'lucide-react'
-import { Fragment, memo, ReactNode, useMemo } from 'react'
+import {
+  createContext,
+  Fragment,
+  memo,
+  ReactNode,
+  useContext,
+  useMemo
+} from 'react'
 
 import 'katex/dist/katex.min.css'
 import ReactMarkdown from 'react-markdown'
@@ -28,6 +35,8 @@ const themes = {
 
 // Matches 【1-source】 or 【1,2-source】
 const citationGlobalRegex = /【([\d,\s]+)-source】/g
+// Non-global variant for cheap presence checks (avoids lastIndex state on shared regex).
+const citationDetectRegex = /【[\d,\s]+-source】/
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function parseCitations(text: string): number[] | null {
@@ -39,7 +48,19 @@ export function parseCitations(text: string): number[] | null {
     .sort((a, b) => a - b)
 }
 
-function CitationChip({ source }: { num: number; source: WebSearchResult }) {
+// Provides webSearchResults to TextWithCitations without dragging it through the
+// ReactMarkdown `components` prop, which would invalidate the components map (and
+// the entire markdown subtree's memoized code blocks) every time results stream in.
+const WebSearchRankMapContext = createContext<Map<
+  number,
+  WebSearchResult
+> | null>(null)
+
+const CitationChip = memo(function CitationChip({
+  source
+}: {
+  source: WebSearchResult
+}) {
   let origin = ''
   try {
     origin = new URL(source.link).origin
@@ -92,18 +113,17 @@ function CitationChip({ source }: { num: number; source: WebSearchResult }) {
       </HoverCardContent>
     </HoverCard>
   )
-}
+})
 
 // Splits a plain string by citation markers and interleaves CitationChip components inline.
 function inlineReplaceCitations(
   text: string,
-  webSearchResults: WebSearchResult[]
+  rankMap: Map<number, WebSearchResult>
 ): ReactNode[] {
   const nodes: ReactNode[] = []
   let lastIndex = 0
-  const regex = /【([\d,\s]+)-source】/g
 
-  for (const match of text.matchAll(regex)) {
+  for (const match of text.matchAll(citationGlobalRegex)) {
     if (match.index! > lastIndex) {
       nodes.push(text.slice(lastIndex, match.index))
     }
@@ -113,14 +133,10 @@ function inlineReplaceCitations(
       .filter((n) => !isNaN(n))
 
     nums.forEach((num) => {
-      const source = webSearchResults.find((r) => r.rank === num)
+      const source = rankMap.get(num)
       if (source) {
         nodes.push(
-          <CitationChip
-            key={`${match.index}-${num}`}
-            num={num}
-            source={source}
-          />
+          <CitationChip key={`${match.index}-${num}`} source={source} />
         )
       }
     })
@@ -132,37 +148,33 @@ function inlineReplaceCitations(
   return nodes
 }
 
-function TextWithCitations({
-  children,
-  webSearchResults
-}: {
-  children: ReactNode
-  webSearchResults: WebSearchResult[] | undefined
-}) {
-  if (!webSearchResults) return <>{children}</>
+function TextWithCitations({ children }: { children: ReactNode }) {
+  const rankMap = useContext(WebSearchRankMapContext)
 
-  if (typeof children === 'string') {
-    if (!/【[\d,\s]+-source】/.test(children)) return <>{children}</>
-    return <>{inlineReplaceCitations(children, webSearchResults)}</>
-  }
+  return useMemo<ReactNode>(() => {
+    if (!rankMap) return <>{children}</>
 
-  if (Array.isArray(children)) {
-    const processed = children.map((child, i) => {
-      if (typeof child === 'string') {
-        const hasCitation = /【[\d,\s]+-source】/.test(child)
-        if (!hasCitation) return child
-        return (
-          <Fragment key={i}>
-            {inlineReplaceCitations(child, webSearchResults)}
-          </Fragment>
-        )
-      }
-      return child
-    })
-    return <>{processed}</>
-  }
+    if (typeof children === 'string') {
+      if (!citationDetectRegex.test(children)) return <>{children}</>
+      return <>{inlineReplaceCitations(children, rankMap)}</>
+    }
 
-  return <>{children}</>
+    if (Array.isArray(children)) {
+      const processed = children.map((child, i) => {
+        if (typeof child === 'string' && citationDetectRegex.test(child)) {
+          return (
+            <Fragment key={i}>
+              {inlineReplaceCitations(child, rankMap)}
+            </Fragment>
+          )
+        }
+        return child
+      })
+      return <>{processed}</>
+    }
+
+    return <>{children}</>
+  }, [children, rankMap])
 }
 
 // Stable plugin arrays hoisted outside component to avoid re-creation on every render.
@@ -196,12 +208,16 @@ export function Markdown({
   webSearchResults
 }: {
   src: string
-  parts?: unknown[]
   webSearchResults?: WebSearchResult[]
 }) {
   const { copied, handleCopy } = useClipboard()
   const { actualTheme } = useTheme()
   const { codeTheme } = useMemo(() => themes[actualTheme], [actualTheme])
+
+  const rankMap = useMemo(() => {
+    if (!webSearchResults || webSearchResults.length === 0) return null
+    return new Map(webSearchResults.map((r) => [r.rank, r]))
+  }, [webSearchResults])
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ReactMarkdown component overrides use broad prop types
   const components: Record<string, any> = useMemo(
@@ -268,9 +284,7 @@ export function Markdown({
       li({ className, node, children, ...rest }: any) {
         return (
           <li {...rest} className={className}>
-            <TextWithCitations webSearchResults={webSearchResults}>
-              {children}
-            </TextWithCitations>
+            <TextWithCitations>{children}</TextWithCitations>
           </li>
         )
       },
@@ -278,9 +292,7 @@ export function Markdown({
       p({ className, node, children, ...rest }: any) {
         return (
           <p {...rest} className={className}>
-            <TextWithCitations webSearchResults={webSearchResults}>
-              {children}
-            </TextWithCitations>
+            <TextWithCitations>{children}</TextWithCitations>
           </p>
         )
       },
@@ -382,23 +394,27 @@ export function Markdown({
       //   return null
       // }
     }),
-    [copied, handleCopy, codeTheme, webSearchResults]
+    [copied, handleCopy, codeTheme]
   )
 
   return (
-    <section className="markdown max-w-none">
-      <ReactMarkdown
-        remarkPlugins={remarkPluginsStable}
-        rehypePlugins={rehypePluginsStable}
-        components={components}
-      >
-        {src}
-      </ReactMarkdown>
-    </section>
+    <WebSearchRankMapContext.Provider value={rankMap}>
+      <section className="markdown max-w-none">
+        <ReactMarkdown
+          remarkPlugins={remarkPluginsStable}
+          rehypePlugins={rehypePluginsStable}
+          components={components}
+        >
+          {src}
+        </ReactMarkdown>
+      </section>
+    </WebSearchRankMapContext.Provider>
   )
 }
 
 export default memo(
   Markdown,
-  (prevProps, nextProps) => prevProps.src === nextProps.src
+  (prevProps, nextProps) =>
+    prevProps.src === nextProps.src &&
+    prevProps.webSearchResults === nextProps.webSearchResults
 )

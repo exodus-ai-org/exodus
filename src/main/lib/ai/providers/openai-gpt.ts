@@ -9,8 +9,9 @@ export function getOpenAi(setting: Settings): {
 } {
   const baseUrl =
     setting.providers?.openaiBaseUrl ?? 'https://api.openai.com/v1'
-  const chatModelId = setting.providerConfig?.chatModel ?? 'gpt-4o'
-  const reasoningModelId = setting.providerConfig?.reasoningModel ?? 'o1'
+  const chatModelId = setting.providerConfig?.chatModel ?? 'gpt-5.5'
+  const reasoningModelId =
+    setting.providerConfig?.reasoningModel ?? 'gpt-5.5-pro'
 
   return {
     chatModel: resolveModel(
