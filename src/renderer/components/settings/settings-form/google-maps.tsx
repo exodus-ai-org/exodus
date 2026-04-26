@@ -1,3 +1,7 @@
+import {
+  GOOGLE_MAPS_PLACES_DOCS,
+  GOOGLE_MAPS_ROUTES_DOCS
+} from '@shared/constants/external-urls'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { AlertCircleIcon } from 'lucide-react'
 import { Controller } from 'react-hook-form'
@@ -16,7 +20,7 @@ export function GoogleMaps({ form }: { form: UseFormReturnType }) {
         <AlertDescription className="inline">
           Exodus offers two built-in calling tools powered by Google Maps:{' '}
           <a
-            href="https://developers.google.com/maps/documentation/routes/overview"
+            href={GOOGLE_MAPS_ROUTES_DOCS}
             target="_blank"
             rel="noopener noreferrer"
             className="font-semibold underline"
@@ -26,7 +30,7 @@ export function GoogleMaps({ form }: { form: UseFormReturnType }) {
           , which helps you find the best directions from point A to point B.
           And{' '}
           <a
-            href="https://developers.google.com/maps/documentation/places/web-service/overview"
+            href={GOOGLE_MAPS_PLACES_DOCS}
             target="_blank"
             rel="noopener noreferrer"
             className="font-semibold underline"

@@ -4,6 +4,7 @@ import { join } from 'path'
 
 import JSZip from 'jszip'
 
+import { CLAWHUB_HOMEPAGE } from '../../../../shared/constants/external-urls'
 import type {
   ConvexListResponse,
   InstalledSkill,
@@ -14,7 +15,6 @@ import type {
 import { getSkillsDir } from '../../paths'
 
 const CONVEX_URL = 'https://wry-manatee-359.convex.cloud/api/query'
-const REGISTRY = 'https://clawhub.ai'
 const LOCK_FILE = '.lock.json'
 
 function getLockfilePath(): string {
@@ -94,7 +94,7 @@ export async function listRegistrySkills(
 export async function searchRegistrySkills(
   q: string
 ): Promise<SearchResultItem[]> {
-  const url = new URL('/api/v1/search', REGISTRY)
+  const url = new URL('/api/v1/search', CLAWHUB_HOMEPAGE)
   url.searchParams.set('q', q)
   const res = await fetch(url.toString())
   if (!res.ok) throw new Error(`Failed to search skills: ${res.status}`)
@@ -111,7 +111,7 @@ export async function installSkill(
   const skillDir = join(skillsDir, slug)
 
   // Download ZIP
-  const url = new URL('/api/v1/download', REGISTRY)
+  const url = new URL('/api/v1/download', CLAWHUB_HOMEPAGE)
   url.searchParams.set('slug', slug)
   url.searchParams.set('version', version)
   const res = await fetch(url.toString())

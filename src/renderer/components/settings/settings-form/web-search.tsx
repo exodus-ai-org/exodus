@@ -1,4 +1,5 @@
 import { countryCodes } from '@shared/constants/country-codes'
+import { PERPLEXITY_SEARCH_DOCS } from '@shared/constants/external-urls'
 import { languageCodes } from '@shared/constants/language-codes'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { AlertCircleIcon } from 'lucide-react'
@@ -58,7 +59,7 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
         <AlertDescription className="inline">
           Exodus uses{' '}
           <a
-            href="https://docs.perplexity.ai/docs/search/quickstart"
+            href={PERPLEXITY_SEARCH_DOCS}
             target="_blank"
             rel="noopener noreferrer"
             className="font-semibold underline"

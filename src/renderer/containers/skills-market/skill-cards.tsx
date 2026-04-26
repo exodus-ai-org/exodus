@@ -1,3 +1,4 @@
+import { clawhubSkill } from '@shared/constants/external-urls'
 import type {
   InstalledSkill,
   SearchResultItem,
@@ -67,7 +68,11 @@ export function RegistrySkillCard({
               />
             )}
             <a
-              href={`https://clawhub.ai/${skill.ownerHandle ? `${skill.ownerHandle}/${skill.slug}` : skill.slug}`}
+              href={clawhubSkill(
+                skill.ownerHandle
+                  ? `${skill.ownerHandle}/${skill.slug}`
+                  : skill.slug
+              )}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 truncate text-sm leading-tight font-semibold hover:underline"
@@ -159,7 +164,7 @@ export function SearchResultCard({
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex items-center gap-2">
             <a
-              href={`https://clawhub.ai/${slug}`}
+              href={clawhubSkill(slug)}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 truncate text-sm leading-tight font-semibold hover:underline"
@@ -226,7 +231,7 @@ export function InstalledSkillCard({
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex items-center gap-2">
             <a
-              href={`https://clawhub.ai/${skill.slug}`}
+              href={clawhubSkill(skill.slug)}
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center gap-1 truncate text-sm leading-tight font-semibold hover:underline"

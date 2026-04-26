@@ -1,0 +1,65 @@
+/**
+ * Single source of truth for every third-party URL the app references.
+ * Define each one here so any future change (brand domain, doc URL move,
+ * region mirror, etc.) is a one-line edit.
+ *
+ * NOT included: user-editable settings placeholders such as provider API
+ * base URLs (Anthropic / OpenAI / xAI / Gemini) or the proxy/MCP example
+ * inputs — those are defaults shown in form fields, not links the app
+ * itself navigates to.
+ */
+
+// Exodus brand
+export const EXODUS_WEBSITE = 'https://exodus.yancey.app'
+export const EXODUS_REPO = 'https://github.com/exodus-ai-org/exodus'
+export const EXODUS_TWITTER = 'https://x.com/YanceyOfficial'
+
+// ClawHub (skills marketplace)
+export const CLAWHUB_HOMEPAGE = 'https://clawhub.ai'
+export function clawhubSkill(slug: string): string {
+  return `${CLAWHUB_HOMEPAGE}/${slug}`
+}
+
+// Documentation
+export const PERPLEXITY_SEARCH_DOCS =
+  'https://docs.perplexity.ai/docs/search/quickstart'
+export const GOOGLE_MAPS_ROUTES_DOCS =
+  'https://developers.google.com/maps/documentation/routes/overview'
+export const GOOGLE_MAPS_PLACES_DOCS =
+  'https://developers.google.com/maps/documentation/places/web-service/overview'
+export const MCP_HOMEPAGE = 'https://modelcontextprotocol.io'
+
+// Google services
+export const GOOGLE_FAVICON_API = 'https://www.google.com/s2/favicons'
+export const GOOGLE_MAPS_SEARCH = 'https://www.google.com/maps/search/'
+export const GOOGLE_PLACES_API_BASE = 'https://places.googleapis.com/v1/'
+export const GOOGLE_MAPS_NO_THUMBNAIL =
+  'https://maps.gstatic.com/tactile/pane/result-no-thumbnail-2x.png'
+
+// Embedded third-party assets
+export const TRADINGVIEW_SYMBOL_OVERVIEW_WIDGET =
+  'https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js'
+export const ELEVEN_PERLIN_NOISE_TEXTURE =
+  'https://storage.googleapis.com/eleven-public-cdn/images/perlin-noise.png'
+
+/**
+ * Build a Google favicon URL.
+ * Accepts either a full URL ("https://example.com/foo") or an origin
+ * ("https://example.com"); returns the Google s2 favicon endpoint.
+ */
+export function faviconUrl(urlOrOrigin: string, size = 128): string {
+  let domain = urlOrOrigin
+  try {
+    domain = new URL(urlOrOrigin).origin
+  } catch {
+    // already an origin string, or invalid — pass through
+  }
+  return `${GOOGLE_FAVICON_API}?domain=${domain}&sz=${size}`
+}
+
+/**
+ * Build a Google Maps search URL ("?api=1&query=…") for an address.
+ */
+export function googleMapsSearchUrl(query: string): string {
+  return `${GOOGLE_MAPS_SEARCH}?api=1&query=${encodeURIComponent(query)}`
+}

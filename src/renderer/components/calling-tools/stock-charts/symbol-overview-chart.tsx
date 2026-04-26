@@ -1,3 +1,4 @@
+import { TRADINGVIEW_SYMBOL_OVERVIEW_WIDGET } from '@shared/constants/external-urls'
 import { memo, useEffect, useRef } from 'react'
 
 function SymbolOverviewChart({ symbols }: { symbols: string[] }) {
@@ -5,8 +6,7 @@ function SymbolOverviewChart({ symbols }: { symbols: string[] }) {
 
   useEffect(() => {
     const script = document.createElement('script')
-    script.src =
-      'https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js'
+    script.src = TRADINGVIEW_SYMBOL_OVERVIEW_WIDGET
     script.type = 'text/javascript'
     script.async = true
     script.innerHTML = `

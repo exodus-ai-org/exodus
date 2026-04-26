@@ -1,3 +1,4 @@
+import { faviconUrl } from '@shared/constants/external-urls'
 import type { TimelineStep } from '@shared/types/chat'
 import type { WebSearchResult } from '@shared/types/web-search'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -47,7 +48,7 @@ const SearchResultItem = memo(function SearchResultItem({
   try {
     const url = new URL(item.link)
     hostname = url.hostname
-    favicon = `https://www.google.com/s2/favicons?domain=${url.origin}&sz=128`
+    favicon = faviconUrl(url.origin)
   } catch {
     hostname = item.link
   }
@@ -183,7 +184,7 @@ export function ThinkingTimeline({
                       <>
                         <p>{step.text}</p>
                         {step.codeArgument && (
-                          <pre className="bg-muted/50 border-border/60 mt-1 max-h-48 overflow-auto rounded-md border p-2 font-mono text-[11.5px] leading-relaxed break-words whitespace-pre-wrap">
+                          <pre className="bg-muted/50 border-border/60 mt-1 max-h-48 overflow-auto rounded-md border p-2 font-mono text-[11.5px] leading-relaxed wrap-break-word whitespace-pre-wrap">
                             <code>{step.codeArgument}</code>
                           </pre>
                         )}

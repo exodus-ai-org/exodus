@@ -1,3 +1,4 @@
+import { faviconUrl } from '@shared/constants/external-urls'
 import type { WebSearchResult } from '@shared/types/web-search'
 import { useAtom } from 'jotai'
 import { useMemo } from 'react'
@@ -15,7 +16,7 @@ function SourceLink({ item }: { item: WebSearchResult }) {
   try {
     const url = new URL(item.link)
     hostname = url.hostname
-    favicon = `https://www.google.com/s2/favicons?domain=${url.origin}&sz=128`
+    favicon = faviconUrl(url.origin)
   } catch {
     hostname = item.link
   }

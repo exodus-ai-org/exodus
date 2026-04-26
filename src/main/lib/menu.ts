@@ -1,3 +1,4 @@
+import { EXODUS_WEBSITE } from '@shared/constants/external-urls'
 import {
   app,
   BrowserWindow,
@@ -100,7 +101,7 @@ const menuTemplate: MenuItemConstructorOptions[] = [
       {
         label: 'Learn More',
         click: async () => {
-          await shell.openExternal('https://exodus.yancey.app')
+          await shell.openExternal(EXODUS_WEBSITE)
         }
       }
     ]

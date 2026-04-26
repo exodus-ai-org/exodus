@@ -1,3 +1,4 @@
+import { faviconUrl } from '@shared/constants/external-urls'
 import { WebSearchResult } from '@shared/types/web-search'
 import { CheckIcon, CopyIcon } from 'lucide-react'
 import { Fragment, memo, ReactNode, useMemo } from 'react'
@@ -46,14 +47,14 @@ function CitationChip({ source }: { num: number; source: WebSearchResult }) {
     return null
   }
 
-  const favicon = `https://www.google.com/s2/favicons?domain=${origin}&sz=128`
+  const favicon = faviconUrl(origin)
 
   return (
     <HoverCard>
       <HoverCardTrigger>
         <Badge
           variant="secondary"
-          className="ml-1 max-w-22 cursor-pointer align-middle text-[10px] no-underline"
+          className="ml-1 max-w-22 cursor-pointer align-middle text-[0.625rem] no-underline"
           render={
             <a href={source.link} target="_blank" rel="noopener noreferrer" />
           }

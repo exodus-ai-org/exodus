@@ -1,3 +1,4 @@
+import { CLAWHUB_HOMEPAGE } from '@shared/constants/external-urls'
 import type {
   InstalledSkill,
   SearchResultItem,
@@ -202,7 +203,7 @@ export function SkillsMarket() {
           <AlertDescription>
             Skills data sourced from{' '}
             <a
-              href="https://clawhub.ai/"
+              href={CLAWHUB_HOMEPAGE}
               target="_blank"
               rel="noopener noreferrer"
             >
