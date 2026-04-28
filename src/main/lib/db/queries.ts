@@ -148,6 +148,40 @@ export async function updateMessage({
   }
 }
 
+/** Rewrite an artifact toolResult message's `details.code` (used to re-sync
+ * a hand-edited .tsx on disk back into the DB row that the card actually
+ * renders from). Returns the number of rows updated. */
+export async function updateArtifactCodeByArtifactId({
+  artifactId,
+  code
+}: {
+  artifactId: string
+  code: string
+}): Promise<number> {
+  try {
+    const result = await db
+      .update(message)
+      .set({
+        details: sql`jsonb_set(${message.details}, '{code}', to_jsonb(${code}::text), false)`
+      })
+      .where(
+        and(
+          eq(message.role, 'toolResult'),
+          eq(message.toolName, 'createArtifact'),
+          sql`${message.details}->>'artifactId' = ${artifactId}`
+        )
+      )
+      .returning({ id: message.id })
+    return result.length
+  } catch (error) {
+    logDbError('Failed to update artifact code', error)
+    throw new DatabaseError(
+      ErrorCode.DB_QUERY_FAILED,
+      'Failed to update artifact code'
+    )
+  }
+}
+
 export async function fullTextSearchOnMessages(query: string) {
   try {
     const messages = await db

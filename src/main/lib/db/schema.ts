@@ -88,6 +88,11 @@ export const message = pgTable(
     toolName: varchar('toolName'),
     details: jsonb('details'),
     isError: boolean('isError'),
+    // Wall-clock time for the entire turn this message belongs to. Populated
+    // only on the LAST assistant message of a turn — gives ThinkingTimeline a
+    // precise duration even for single-message turns where message timestamps
+    // can't span the response (pi-ai sets timestamp at stream START).
+    durationMs: integer('durationMs'),
     createdAt: timestamp('createdAt').defaultNow().notNull()
   },
   (table) => [

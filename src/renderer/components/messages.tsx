@@ -22,7 +22,6 @@ import Markdown from './markdown'
 import { MessageAction } from './massage-action'
 import { MessageSpinner } from './message-spinner'
 import { MessageCallingTools } from './messages-calling-tools'
-import { ShimmeringText } from './shimmering-text'
 import { ThinkingTimeline } from './thinking-timeline'
 import { Avatar, AvatarImage } from './ui/avatar'
 
@@ -111,14 +110,14 @@ const AssistantTurnSegment = memo(
               />
             )}
 
-            {isStreaming &&
+            {/* {isStreaming &&
               turn.pendingToolCalls.map((tc) => (
                 <ShimmeringText
                   key={tc.id}
                   className="mb-4"
                   text={`Calling tool: ${tc.name}`}
                 />
-              ))}
+              ))} */}
 
             {turn.toolCards.map((toolResult) => (
               <MessageCallingTools
@@ -292,9 +291,26 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
     }
   }
 
-  const firstTs = turnMessages[0]?.timestamp ?? 0
-  const lastTs = turnMessages[turnMessages.length - 1]?.timestamp ?? 0
-  const durationMs = firstTs && lastTs ? lastTs - firstTs : 0
+  // Prefer the server-stamped turn duration on the last assistant message —
+  // it's wall-clock accurate and works for single-message turns. Fall back to
+  // the message-timestamp diff for legacy chats persisted before durationMs
+  // was added.
+  let durationMs = 0
+  for (let i = turnMessages.length - 1; i >= 0; i--) {
+    const m = turnMessages[i]
+    if (m.role === 'assistant') {
+      const stamped = (m as ChatAssistantMessage).durationMs
+      if (typeof stamped === 'number') {
+        durationMs = stamped
+        break
+      }
+    }
+  }
+  if (durationMs === 0) {
+    const firstTs = turnMessages[0]?.timestamp ?? 0
+    const lastTs = turnMessages[turnMessages.length - 1]?.timestamp ?? 0
+    durationMs = firstTs && lastTs ? lastTs - firstTs : 0
+  }
 
   return {
     messages: turnMessages,

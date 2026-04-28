@@ -89,7 +89,10 @@ function TimelineNode({
   )
 }
 
-function formatDuration(ms: number): string {
+function formatDuration(ms: number): string | null {
+  // Message timestamps mark stream START, not END (see pi-ai providers), so
+  // sub-second durations are unreliable — drop them rather than show "0 seconds".
+  if (!Number.isFinite(ms) || ms < 1000) return null
   const seconds = Math.round(ms / 1000)
   if (seconds < 60) return `${seconds} seconds`
   const minutes = Math.floor(seconds / 60)
@@ -118,16 +121,25 @@ export function ThinkingTimeline({
   const [isExpanded, setIsExpanded] = useState(false)
   const toggleExpanded = useCallback(() => setIsExpanded((prev) => !prev), [])
 
+  const hasThinking = useMemo(
+    () => steps.some((s) => s.type === 'thinking'),
+    [steps]
+  )
+
   const latestTitle = useMemo(() => {
-    if (steps.length === 0) return 'Thinking…'
+    if (steps.length === 0) return hasThinking ? 'Thinking…' : 'Working…'
     return getStepTitle(steps[steps.length - 1])
-  }, [steps])
+  }, [steps, hasThinking])
 
   if (steps.length === 0 && !isStreaming) return null
 
+  const verb = hasThinking ? 'Thought' : 'Worked'
+  const duration = formatDuration(durationMs)
   const headerText = isStreaming
     ? latestTitle
-    : `Thought for ${formatDuration(durationMs)}`
+    : duration
+      ? `${verb} for ${duration}`
+      : verb
 
   return (
     <div className="mb-3">

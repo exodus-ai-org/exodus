@@ -24,6 +24,13 @@ function applyTheme() {
 
 applyTheme()
 
+// globals.css sets `body { bg-transparent }` for the main app — but in a
+// sandboxed iframe with no explicit surface, that lets the browser's default
+// white show through, making dark-mode text unreadable when an LLM-authored
+// artifact omits its own background. Override here so the iframe's surface
+// always tracks the theme.
+document.body.classList.add('bg-background')
+
 // Listen for system theme changes
 window
   .matchMedia('(prefers-color-scheme: dark)')

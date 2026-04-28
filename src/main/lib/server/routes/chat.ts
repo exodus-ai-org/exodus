@@ -223,6 +223,9 @@ chat.post('/', async (c) => {
       let assistantMsgId = uuidV4()
       let currentAssistantMsg: ChatAssistantMessage | null = null
       const newMessages: ChatMessage[] = []
+      // Wall-clock turn start — used to stamp the last assistant message with
+      // an accurate durationMs that the UI can show as "Worked for X seconds".
+      const turnStartedAt = Date.now()
 
       try {
         const agentStream = agentLoop(
@@ -377,6 +380,19 @@ chat.post('/', async (c) => {
               error: String(err)
             })
           })
+        }
+
+        // Stamp turn duration on the last assistant message of this turn so
+        // the UI can show a precise "Worked for X seconds" — even for
+        // single-message turns where pi-ai's stream-START timestamp would
+        // otherwise leave us without a useful diff.
+        const turnDurationMs = Date.now() - turnStartedAt
+        for (let i = newMessages.length - 1; i >= 0; i--) {
+          if (newMessages[i].role === 'assistant') {
+            ;(newMessages[i] as ChatAssistantMessage).durationMs =
+              turnDurationMs
+            break
+          }
         }
 
         // Send done event

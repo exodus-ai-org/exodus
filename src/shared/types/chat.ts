@@ -32,6 +32,11 @@ export type ChatUserMessage = UserMessage & { id: string }
 export type ChatAssistantMessage = AssistantMessage & {
   id: string
   cost?: CostBreakdown
+  /** Wall-clock duration of the entire turn this message belongs to. Set only
+   * on the LAST assistant message of a turn by the server (chat route) so the
+   * UI can show an accurate "Worked for X seconds" without relying on message
+   * timestamps (which mark stream start, not end). */
+  durationMs?: number
 }
 export type ChatToolResultMessage = ToolResultMessage & { id: string }
 export type ChatMessage =
