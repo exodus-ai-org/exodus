@@ -12,6 +12,7 @@
     "moduleResolution": "nodenext",
     "composite": true,
     "types": ["electron-vite/node"],
+    "ignoreDeprecations": "6.0",
     "baseUrl": ".",
     "paths": {
       "@shared/*": ["src/shared/*"]

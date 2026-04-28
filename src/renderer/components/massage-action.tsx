@@ -1,3 +1,4 @@
+import { faviconUrl } from '@shared/constants/external-urls'
 import type { WebSearchResult } from '@shared/types/web-search'
 import { useSetAtom } from 'jotai'
 import {
@@ -72,9 +73,7 @@ function SourcesButton({
         const origin = new URL(r.link).origin
         if (seen.has(origin)) continue
         seen.add(origin)
-        result.push(
-          `https://www.google.com/s2/favicons?domain=${origin}&sz=128`
-        )
+        result.push(faviconUrl(origin))
         if (result.length >= 3) break
       } catch {
         // skip

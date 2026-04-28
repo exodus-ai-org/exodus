@@ -20,8 +20,24 @@ export type {
   UserMessage
 }
 
+export interface CostBreakdown {
+  input: number
+  output: number
+  cacheRead: number
+  cacheWrite: number
+  total: number
+}
+
 export type ChatUserMessage = UserMessage & { id: string }
-export type ChatAssistantMessage = AssistantMessage & { id: string }
+export type ChatAssistantMessage = AssistantMessage & {
+  id: string
+  cost?: CostBreakdown
+  /** Wall-clock duration of the entire turn this message belongs to. Set only
+   * on the LAST assistant message of a turn by the server (chat route) so the
+   * UI can show an accurate "Worked for X seconds" without relying on message
+   * timestamps (which mark stream start, not end). */
+  durationMs?: number
+}
 export type ChatToolResultMessage = ToolResultMessage & { id: string }
 export type ChatMessage =
   | ChatUserMessage
@@ -37,6 +53,13 @@ export type Attachment = {
 // SSE event types for streaming protocol
 export type ChatSseEvent =
   | { type: 'message_update'; message: ChatMessage }
+  | { type: 'tool_call_start'; toolCallId: string; toolName: string }
+  | {
+      type: 'tool_call_end'
+      toolCallId: string
+      toolName: string
+      isError: boolean
+    }
   | { type: 'done'; messages: ChatMessage[] }
   | { type: 'title'; title: string }
   | { type: 'error'; error: string }
@@ -61,6 +84,10 @@ export interface TimelineStep {
   isError?: boolean
   toolName?: string
   webSearchResults?: WebSearchResult[]
+  // Longer, code-shaped argument (e.g. a shell command) rendered as a
+  // monospace block below `text` instead of inline — keeps the timeline row
+  // compact while still showing the full command.
+  codeArgument?: string
 }
 
 export interface AssistantTurn {

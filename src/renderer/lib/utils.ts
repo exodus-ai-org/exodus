@@ -49,7 +49,8 @@ export function convertToUIMessages(
         model: dbMsg.model ?? '',
         stopReason: (dbMsg.stopReason ?? 'stop') as StopReason,
         errorMessage: dbMsg.errorMessage ?? undefined,
-        timestamp
+        timestamp,
+        durationMs: dbMsg.durationMs ?? undefined
       }
     }
     return {

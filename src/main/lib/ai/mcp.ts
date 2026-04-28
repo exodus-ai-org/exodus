@@ -9,27 +9,40 @@ import { McpTools } from '@shared/types/ai'
 import { getAllMcpServers, getMcpServersByNames } from '../db/agent-x-queries'
 import type { McpServer } from '../db/schema'
 import { logger } from '../logger'
+import { validateToolArgs } from './utils/tool-validation'
 
-// Cache stores both tools and the client so we can close connections on invalidation.
+// Cache stores tools, client, and a timestamp for TTL-based expiration.
 interface CachedMcp {
   tools: McpTools
   client: Client
+  cachedAt: number
 }
 const mcpCache = new Map<string, CachedMcp>()
+const CACHE_TTL_MS = 5 * 60 * 1000 // 5 minutes
 
 /** Close and remove a single server from cache. */
 export async function invalidateMcpCache(serverName: string) {
   const cached = mcpCache.get(serverName)
   if (cached) {
-    cached.client.close().catch(() => {})
+    cached.client.close().catch((err) => {
+      logger.warn('mcp', 'Failed to close MCP client', {
+        server: serverName,
+        error: String(err)
+      })
+    })
     mcpCache.delete(serverName)
   }
 }
 
 /** Close all connections and clear the entire cache. */
 export async function invalidateAllMcpCache() {
-  for (const [, cached] of mcpCache) {
-    cached.client.close().catch(() => {})
+  for (const [name, cached] of mcpCache) {
+    cached.client.close().catch((err) => {
+      logger.warn('mcp', 'Failed to close MCP client', {
+        server: name,
+        error: String(err)
+      })
+    })
   }
   mcpCache.clear()
 }
@@ -63,7 +76,14 @@ function createTransport(server: McpServer) {
 
 async function connectMcpServer(server: McpServer): Promise<McpTools> {
   const cached = mcpCache.get(server.name)
-  if (cached) return cached.tools
+  if (cached && Date.now() - cached.cachedAt < CACHE_TTL_MS) {
+    return cached.tools
+  }
+  // Expired entry — close stale connection before reconnecting
+  if (cached) {
+    cached.client.close().catch(() => {})
+    mcpCache.delete(server.name)
+  }
 
   const transport = createTransport(server)
   const client = new Client({ name: 'exodus', version: '1.0.0' })
@@ -89,9 +109,14 @@ async function connectMcpServer(server: McpServer): Promise<McpTools> {
         _toolCallId: string,
         params: unknown
       ): Promise<AgentToolResult<unknown>> => {
+        const validatedParams = validateToolArgs(
+          mcpTool.name,
+          params as Record<string, unknown>,
+          mcpTool.inputSchema as Record<string, unknown> | undefined
+        )
         const result = await client.callTool({
           name: mcpTool.name,
-          arguments: params as Record<string, unknown>
+          arguments: validatedParams
         })
 
         const content = result.content as Array<{
@@ -128,7 +153,7 @@ async function connectMcpServer(server: McpServer): Promise<McpTools> {
   })
 
   const tools: McpTools = { mcpServerName: server.name, tools: agentTools }
-  mcpCache.set(server.name, { tools, client })
+  mcpCache.set(server.name, { tools, client, cachedAt: Date.now() })
   return tools
 }
 
@@ -143,6 +168,17 @@ export async function getMcpTools(): Promise<McpTools[]> {
   const results = await Promise.allSettled(
     active.map((s) => connectMcpServer(s))
   )
+
+  results.forEach((r, i) => {
+    if (r.status === 'rejected') {
+      logger.error('mcp', 'Failed to connect MCP server', {
+        server: active[i].name,
+        error: String(r.reason),
+        stack: r.reason instanceof Error ? r.reason.stack : undefined
+      })
+    }
+  })
+
   return results
     .filter(
       (r): r is PromiseFulfilledResult<McpTools> => r.status === 'fulfilled'
@@ -162,6 +198,17 @@ export async function getMcpToolsByNames(names: string[]): Promise<McpTools[]> {
   const results = await Promise.allSettled(
     active.map((s) => connectMcpServer(s))
   )
+
+  results.forEach((r, i) => {
+    if (r.status === 'rejected') {
+      logger.error('mcp', 'Failed to connect MCP server', {
+        server: active[i].name,
+        error: String(r.reason),
+        stack: r.reason instanceof Error ? r.reason.stack : undefined
+      })
+    }
+  })
+
   return results
     .filter(
       (r): r is PromiseFulfilledResult<McpTools> => r.status === 'fulfilled'

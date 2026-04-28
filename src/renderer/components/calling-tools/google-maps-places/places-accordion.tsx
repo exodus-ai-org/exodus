@@ -1,4 +1,9 @@
 import { protos } from '@googlemaps/places'
+import {
+  GOOGLE_MAPS_NO_THUMBNAIL,
+  GOOGLE_PLACES_API_BASE,
+  googleMapsSearchUrl
+} from '@shared/constants/external-urls'
 import { GlobeIcon, MapPinIcon, PhoneIcon, StarIcon } from 'lucide-react'
 import Zoom from 'react-medium-image-zoom'
 
@@ -29,11 +34,10 @@ export function PlacesAccordion({
 
   const parseImg = (photo?: protos.google.maps.places.v1.IPhoto) => {
     if (!settings || !photo || !settings.googleCloud?.googleApiKey)
-      return 'https://maps.gstatic.com/tactile/pane/result-no-thumbnail-2x.png'
-    const base = 'https://places.googleapis.com/v1/'
+      return GOOGLE_MAPS_NO_THUMBNAIL
 
     return (
-      base +
+      GOOGLE_PLACES_API_BASE +
       photo.name +
       '/media' +
       `?maxWidthPx=1600&key=${settings.googleCloud.googleApiKey}`
@@ -108,7 +112,7 @@ export function PlacesAccordion({
                           className="text-blue-500 hover:underline"
                           href={
                             place.googleMapsUri ||
-                            `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.formattedAddress ?? '')}`
+                            googleMapsSearchUrl(place.formattedAddress ?? '')
                           }
                           target="_blank"
                           rel="noopener noreferrer"

@@ -4,10 +4,15 @@ import {
   PutObjectCommand
 } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
+import { ErrorCode } from '@shared/constants/error-codes'
+import {
+  isAppError,
+  ServiceError,
+  ValidationError
+} from '@shared/errors/app-error'
 import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 
-import { ChatSDKError } from '../errors'
 import { getPresignedUrlSchema, uploadToS3Schema } from '../schemas/s3-uploader'
 import {
   createS3ClientFromSettings,
@@ -24,7 +29,6 @@ s3Uploader.post('/upload', async (c) => {
   const { fileName, contentType } = validateSchema(
     uploadToS3Schema,
     await c.req.json(),
-    's3',
     'Invalid upload request'
   )
 
@@ -54,9 +58,9 @@ s3Uploader.post('/upload', async (c) => {
       region: s3Config.region
     })
   } catch (error) {
-    if (error instanceof ChatSDKError) throw error
-    throw new ChatSDKError(
-      'bad_request:s3',
+    if (isAppError(error)) throw error
+    throw new ServiceError(
+      ErrorCode.SERVICE_S3_FAILED,
       error instanceof Error ? error.message : 'Failed to generate upload URL'
     )
   }
@@ -67,7 +71,6 @@ s3Uploader.post('/presigned-url', async (c) => {
   const { key } = validateSchema<{ key: string }>(
     getPresignedUrlSchema,
     await c.req.json(),
-    's3',
     'Invalid request: key is required'
   )
 
@@ -92,9 +95,9 @@ s3Uploader.post('/presigned-url', async (c) => {
       key
     })
   } catch (error) {
-    if (error instanceof ChatSDKError) throw error
-    throw new ChatSDKError(
-      'bad_request:s3',
+    if (isAppError(error)) throw error
+    throw new ServiceError(
+      ErrorCode.SERVICE_S3_FAILED,
       error instanceof Error ? error.message : 'Failed to generate download URL'
     )
   }
@@ -102,7 +105,7 @@ s3Uploader.post('/presigned-url', async (c) => {
 
 // Delete file from S3
 s3Uploader.delete('/:key', async (c) => {
-  const key = getRequiredParam(c, 'key', 's3')
+  const key = getRequiredParam(c, 'key')
 
   const setting = c.get('settings')
   const s3Config = validateS3Config(setting)
@@ -122,9 +125,9 @@ s3Uploader.delete('/:key', async (c) => {
       message: 'File deleted successfully'
     })
   } catch (error) {
-    if (error instanceof ChatSDKError) throw error
-    throw new ChatSDKError(
-      'bad_request:s3',
+    if (isAppError(error)) throw error
+    throw new ServiceError(
+      ErrorCode.SERVICE_S3_FAILED,
       error instanceof Error ? error.message : 'Failed to delete file'
     )
   }
@@ -136,7 +139,7 @@ s3Uploader.post('/direct-upload', async (c) => {
   const file = formData.get('file') as File
 
   if (!file) {
-    throw new ChatSDKError('bad_request:s3', 'No file provided')
+    throw new ValidationError(ErrorCode.VALIDATION_FAILED, 'No file provided')
   }
 
   const setting = c.get('settings')
@@ -173,9 +176,9 @@ s3Uploader.post('/direct-upload', async (c) => {
       size: file.size
     })
   } catch (error) {
-    if (error instanceof ChatSDKError) throw error
-    throw new ChatSDKError(
-      'bad_request:s3',
+    if (isAppError(error)) throw error
+    throw new ServiceError(
+      ErrorCode.SERVICE_S3_FAILED,
       error instanceof Error ? error.message : 'Failed to upload file'
     )
   }

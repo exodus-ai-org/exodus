@@ -1,7 +1,7 @@
 import { AdvancedTools as AdvancedToolsType } from '@shared/types/ai'
 import { produce } from 'immer'
 import { useAtom } from 'jotai'
-import { GlobeIcon, LightbulbIcon, TelescopeIcon } from 'lucide-react'
+import { LightbulbIcon, TelescopeIcon } from 'lucide-react'
 import { useCallback } from 'react'
 
 import { cn } from '@/lib/utils'
@@ -16,11 +16,6 @@ import {
 } from './ui/tooltip'
 
 const advancedToolsList = [
-  {
-    key: AdvancedToolsType.WebSearch,
-    icon: <GlobeIcon data-icon />,
-    desc: AdvancedToolsType.WebSearch
-  },
   {
     key: AdvancedToolsType.Reasoning,
     icon: <LightbulbIcon data-icon />,
@@ -45,17 +40,13 @@ export function AdvancedTools() {
           if (idx === -1) {
             draft.push(advancedToolName)
 
+            // DeepResearch and Reasoning are mutually exclusive
             if (advancedToolName === AdvancedToolsType.DeepResearch) {
               const reasoningIdx = draft.indexOf(AdvancedToolsType.Reasoning)
               if (reasoningIdx > -1) draft.splice(reasoningIdx, 1)
-              const webSearchIdx = draft.indexOf(AdvancedToolsType.WebSearch)
-              if (webSearchIdx > -1) draft.splice(webSearchIdx, 1)
             }
 
-            if (
-              advancedToolName === AdvancedToolsType.Reasoning ||
-              advancedToolName === AdvancedToolsType.WebSearch
-            ) {
+            if (advancedToolName === AdvancedToolsType.Reasoning) {
               const deepResearchIdx = draft.indexOf(
                 AdvancedToolsType.DeepResearch
               )

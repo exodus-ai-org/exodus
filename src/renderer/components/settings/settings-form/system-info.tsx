@@ -1,3 +1,8 @@
+import {
+  EXODUS_REPO,
+  EXODUS_TWITTER,
+  EXODUS_WEBSITE
+} from '@shared/constants/external-urls'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { ExternalLinkIcon } from 'lucide-react'
 import { useEffect } from 'react'
@@ -62,19 +67,13 @@ export function SystemInfo({ form }: { form: UseFormReturnType }) {
       </SettingsRow>
 
       <SettingsRow label="GitHub">
-        <ExternalLink href="https://github.com/exodus-ai-org/exodus">
-          exodus-ai-org/exodus
-        </ExternalLink>
+        <ExternalLink href={EXODUS_REPO}>exodus-ai-org/exodus</ExternalLink>
       </SettingsRow>
       <SettingsRow label="X (Twitter)">
-        <ExternalLink href="https://x.com/YanceyOfficial">
-          @YanceyOfficial
-        </ExternalLink>
+        <ExternalLink href={EXODUS_TWITTER}>@YanceyOfficial</ExternalLink>
       </SettingsRow>
       <SettingsRow label="Website">
-        <ExternalLink href="https://exodus.yancey.app">
-          exodus.yancey.app
-        </ExternalLink>
+        <ExternalLink href={EXODUS_WEBSITE}>exodus.yancey.app</ExternalLink>
       </SettingsRow>
       <SettingsRow label="License">
         <span className="text-ring text-sm">MIT</span>

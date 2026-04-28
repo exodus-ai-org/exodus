@@ -96,6 +96,14 @@ export function selectSkillPath(): Promise<string | null> {
   return window.electron.ipcRenderer.invoke('select-skill-path')
 }
 
+export function setLoginItem(enable: boolean) {
+  return window.electron.ipcRenderer.invoke('set-login-item', enable)
+}
+
+export function setMenuBar(enable: boolean) {
+  return window.electron.ipcRenderer.invoke('set-menu-bar', enable)
+}
+
 export function updaterSetAutoDownload(enable: boolean) {
   return window.electron.ipcRenderer.invoke('updater-set-auto-download', enable)
 }
@@ -110,4 +118,11 @@ export function unsubscribeUpdaterStateChanged(
   callback: (_: IpcRendererEvent, payload: unknown) => void
 ) {
   window.electron.ipcRenderer.removeListener('updater-state-changed', callback)
+}
+
+export function revealArtifactFile(chatId: string, artifactId: string) {
+  return window.electron.ipcRenderer.invoke('reveal-artifact-file', {
+    chatId,
+    artifactId
+  })
 }

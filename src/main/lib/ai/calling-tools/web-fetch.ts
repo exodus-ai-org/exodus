@@ -1,6 +1,5 @@
 import type { AgentTool } from '@mariozechner/pi-agent-core'
 import { Type } from '@mariozechner/pi-ai'
-import { Settings } from '@shared/types/db'
 
 import { loadDocument } from '../utils/web-search-util'
 
@@ -8,9 +7,7 @@ const webFetchSchema = Type.Object({
   url: Type.String({ description: 'The URL to fetch.' })
 })
 
-export const webFetch = (
-  setting?: Settings
-): AgentTool<typeof webFetchSchema> => ({
+export const webFetch = (): AgentTool<typeof webFetchSchema> => ({
   name: 'webFetch',
   label: 'Web Fetch',
   description:
@@ -19,8 +16,7 @@ export const webFetch = (
     'Do not use this for web search — use webSearch instead.',
   parameters: webFetchSchema,
   execute: async (_toolCallId, { url }) => {
-    const provider = setting?.webSearch?.urlToMarkdownProvider ?? 'jina'
-    const result = await loadDocument(url, provider)
+    const result = await loadDocument(url)
 
     if (!result) {
       throw new Error(`Failed to fetch or parse URL: ${url}`)

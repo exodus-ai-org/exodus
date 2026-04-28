@@ -1,8 +1,9 @@
+import { ErrorCode } from '@shared/constants/error-codes'
+import { NotFoundError, ValidationError } from '@shared/errors/app-error'
 import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import OpenAI from 'openai'
 
-import { ChatSDKError } from '../errors'
 import { speechSchema } from '../schemas/audio'
 import { successResponse, validateOpenAIConfig, validateSchema } from '../utils'
 
@@ -12,7 +13,6 @@ audio.post('/speech', async (c) => {
   const { text } = validateSchema<{ text: string }>(
     speechSchema,
     await c.req.json(),
-    'audio',
     'Invalid request body'
   )
 
@@ -56,8 +56,8 @@ audio.post('/speech', async (c) => {
       }
     })
   } catch (error) {
-    throw new ChatSDKError(
-      'bad_request:audio',
+    throw new ValidationError(
+      ErrorCode.VALIDATION_FAILED,
       error instanceof Error ? error.message : 'Failed to generate speech'
     )
   }
@@ -68,7 +68,7 @@ audio.post('/transcriptions', async (c) => {
   const audioFile = body['audio']
 
   if (typeof audioFile === 'string') {
-    throw new ChatSDKError('not_found:audio', 'Audio file is missing')
+    throw new NotFoundError(ErrorCode.AUDIO_NOT_FOUND, 'Audio file is missing')
   }
 
   const settings = c.get('settings')
@@ -84,8 +84,8 @@ audio.post('/transcriptions', async (c) => {
 
     return successResponse(c, transcription)
   } catch (error) {
-    throw new ChatSDKError(
-      'bad_request:audio',
+    throw new ValidationError(
+      ErrorCode.VALIDATION_FAILED,
       error instanceof Error ? error.message : 'Failed to transcribe audio'
     )
   }

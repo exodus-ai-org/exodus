@@ -1,3 +1,4 @@
+import { MCP_HOMEPAGE } from '@shared/constants/external-urls'
 import {
   ChevronDownIcon,
   CloudIcon,
@@ -352,7 +353,7 @@ export function McpServers() {
         <AlertDescription>
           Register{' '}
           <a
-            href="https://modelcontextprotocol.io"
+            href={MCP_HOMEPAGE}
             target="_blank"
             rel="noopener noreferrer"
             className="font-semibold underline"

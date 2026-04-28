@@ -1,9 +1,8 @@
-import { join } from 'path'
+import { existsSync } from 'fs'
+import { join, resolve, sep } from 'path'
 
 import { app, dialog, ipcMain, nativeTheme, shell } from 'electron'
 
-// ARCHIVED: import { connectHttpServer } from './server/app'
-// ARCHIVED: import { getServer, setServer } from './server/instance'
 import {
   updaterCheck,
   updaterDownload,
@@ -12,6 +11,8 @@ import {
   updaterSetAutoDownload
 } from './auto-updater'
 import { logger } from './logger'
+import { getArtifactsDir, getLogsDir } from './paths'
+import { destroyTray, setTray } from './tray'
 import {
   getMainWindow,
   getQuickChatView,
@@ -20,50 +21,57 @@ import {
   setSearchView
 } from './window'
 
+/** Wrap an IPC handler so that any thrown error is logged instead of silently lost. */
+function safeHandle(
+  channel: string,
+  handler: (...args: unknown[]) => unknown | Promise<unknown>
+) {
+  ipcMain.handle(channel, async (...args) => {
+    try {
+      return await handler(...args)
+    } catch (err) {
+      logger.error('app', `IPC handler "${channel}" failed`, {
+        error: String(err),
+        stack: err instanceof Error ? err.stack : undefined
+      })
+      throw err
+    }
+  })
+}
+
 export function setupIPC() {
   ipcMain.on('ping', () => logger.debug('app', 'pong'))
 
-  // ARCHIVED: MCP server restart IPC removed
-  // ipcMain.handle('restart-server', async () => {
-  //   const oldServer = getServer()
-  //   if (oldServer) {
-  //     oldServer.close(async () => {
-  //       const newServer = await connectHttpServer()
-  //       newServer.start()
-  //       setServer(newServer)
-  //       getMainWindow()?.webContents.send('succeed-to-restart-server')
-  //     })
-  //   }
-  // })
-
-  ipcMain.handle('find-in-page', (_, keyword) => {
+  safeHandle('find-in-page', (_, keyword) => {
     if (keyword === '') {
       getMainWindow()?.webContents.stopFindInPage('clearSelection')
     } else {
-      getMainWindow()?.webContents.findInPage(keyword)
+      getMainWindow()?.webContents.findInPage(keyword as string)
     }
   })
 
-  ipcMain.handle('find-next', (_, keyword) => {
+  safeHandle('find-next', (_, keyword) => {
     if (keyword === '') {
       getMainWindow()?.webContents.stopFindInPage('clearSelection')
     } else {
-      getMainWindow()?.webContents.findInPage(keyword, { findNext: true })
+      getMainWindow()?.webContents.findInPage(keyword as string, {
+        findNext: true
+      })
     }
   })
 
-  ipcMain.handle('find-previous', (_, keyword) => {
+  safeHandle('find-previous', (_, keyword) => {
     if (keyword === '') {
       getMainWindow()?.webContents.stopFindInPage('clearSelection')
     } else {
-      getMainWindow()?.webContents.findInPage(keyword, {
+      getMainWindow()?.webContents.findInPage(keyword as string, {
         findNext: false,
         forward: false
       })
     }
   })
 
-  ipcMain.handle('close-search-bar', () => {
+  safeHandle('close-search-bar', () => {
     const searchView = getSearchView()
     if (searchView) {
       getMainWindow()?.contentView.removeChildView(searchView)
@@ -72,7 +80,7 @@ export function setupIPC() {
     }
   })
 
-  ipcMain.handle('close-quick-chat', () => {
+  safeHandle('close-quick-chat', () => {
     const quickChatView = getQuickChatView()
     if (quickChatView) {
       quickChatView.hide()
@@ -81,7 +89,7 @@ export function setupIPC() {
     }
   })
 
-  ipcMain.handle('transfer-quick-chat', (_, input: string) => {
+  safeHandle('transfer-quick-chat', (_, input: unknown) => {
     // Close quick-chat window first
     const quickChatView = getQuickChatView()
     if (quickChatView) {
@@ -101,7 +109,7 @@ export function setupIPC() {
     }
   })
 
-  ipcMain.handle('bring-window-to-front', () => {
+  safeHandle('bring-window-to-front', () => {
     const mainWindow = getMainWindow()
     if (!mainWindow) return
 
@@ -118,12 +126,9 @@ export function setupIPC() {
     app.focus({ steal: true })
   })
 
-  ipcMain.handle(
-    'check-fullscreen',
-    () => getMainWindow()?.isFullScreen() ?? false
-  )
+  safeHandle('check-fullscreen', () => getMainWindow()?.isFullScreen() ?? false)
 
-  ipcMain.handle('subscribe-fullscreen-change', () => {
+  safeHandle('subscribe-fullscreen-change', () => {
     const win = getMainWindow()
     if (!win) return
 
@@ -135,15 +140,12 @@ export function setupIPC() {
     win.on('leave-full-screen', () => send(false))
   })
 
-  ipcMain.handle(
-    'set-native-theme',
-    (_, source: 'dark' | 'light' | 'system') => {
-      nativeTheme.themeSource = source
-    }
-  )
+  safeHandle('set-native-theme', (_, source: unknown) => {
+    nativeTheme.themeSource = source as 'dark' | 'light' | 'system'
+  })
 
   // Skill upload: open native dialog for ZIP file or folder
-  ipcMain.handle('select-skill-path', async () => {
+  safeHandle('select-skill-path', async () => {
     const win = getMainWindow()
     if (!win) return null
     const result = await dialog.showOpenDialog(win, {
@@ -156,16 +158,62 @@ export function setupIPC() {
     return result.filePaths[0]
   })
 
-  ipcMain.handle('open-logs-dir', () => {
-    const dir = join(app.getPath('userData'), 'logs')
-    shell.openPath(dir)
+  safeHandle('open-logs-dir', () => {
+    shell.openPath(getLogsDir())
   })
 
-  ipcMain.handle('updater-get-state', () => updaterGetState())
-  ipcMain.handle('updater-check', () => updaterCheck())
-  ipcMain.handle('updater-download', () => updaterDownload())
-  ipcMain.handle('updater-install', () => updaterInstall())
-  ipcMain.handle('updater-set-auto-download', (_, enable: boolean) =>
-    updaterSetAutoDownload(enable)
+  safeHandle('reveal-artifact-file', (_, arg: unknown) => {
+    const { chatId, artifactId } = arg as {
+      chatId?: string
+      artifactId?: string
+    }
+    if (!artifactId || !chatId) {
+      return { ok: false as const, reason: 'missing-ids' }
+    }
+
+    const artifactsBase = resolve(getArtifactsDir())
+    const filePath = resolve(join(artifactsBase, chatId, `${artifactId}.tsx`))
+    if (!filePath.startsWith(artifactsBase + sep)) {
+      logger.warn('app', 'reveal-artifact-file: path traversal rejected', {
+        chatId,
+        artifactId
+      })
+      return { ok: false as const, reason: 'invalid-path' }
+    }
+    if (existsSync(filePath)) {
+      shell.showItemInFolder(filePath)
+      return { ok: true as const, filePath }
+    }
+
+    logger.warn('app', 'reveal-artifact-file: file missing', {
+      chatId,
+      artifactId,
+      filePath
+    })
+    return { ok: false as const, reason: 'not-found' }
+  })
+
+  safeHandle('set-login-item', (_, enable: unknown) => {
+    app.setLoginItemSettings({ openAtLogin: enable as boolean })
+  })
+
+  safeHandle('set-menu-bar', (_, enable: unknown) => {
+    if (enable) {
+      setTray()
+    } else {
+      destroyTray()
+    }
+  })
+
+  safeHandle('updater-get-state', () => updaterGetState())
+
+  safeHandle('updater-check', () => updaterCheck())
+
+  safeHandle('updater-download', () => updaterDownload())
+
+  safeHandle('updater-install', () => updaterInstall())
+
+  safeHandle('updater-set-auto-download', (_, enable: unknown) =>
+    updaterSetAutoDownload(enable as boolean)
   )
 }

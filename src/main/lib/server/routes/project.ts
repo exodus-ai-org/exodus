@@ -31,7 +31,7 @@ projectRouter.get('/', async (c) => {
 })
 
 projectRouter.get('/:id', async (c) => {
-  const id = getRequiredParam(c, 'id', 'project')
+  const id = getRequiredParam(c, 'id')
   const project = await handleDatabaseOperation(
     () => getProjectWithCounts({ id }),
     'Failed to get project'
@@ -43,7 +43,6 @@ projectRouter.post('/', async (c) => {
   const body = validateSchema(
     createProjectSchema,
     await c.req.json(),
-    'project',
     'Invalid project data'
   )
   const project = await handleDatabaseOperation(
@@ -54,11 +53,10 @@ projectRouter.post('/', async (c) => {
 })
 
 projectRouter.put('/:id', async (c) => {
-  const id = getRequiredParam(c, 'id', 'project')
+  const id = getRequiredParam(c, 'id')
   const body = validateSchema(
     updateProjectSchema,
     await c.req.json(),
-    'project',
     'Invalid project data'
   )
   const project = await handleDatabaseOperation(
@@ -69,7 +67,7 @@ projectRouter.put('/:id', async (c) => {
 })
 
 projectRouter.delete('/:id', async (c) => {
-  const id = getRequiredParam(c, 'id', 'project')
+  const id = getRequiredParam(c, 'id')
   await handleDatabaseOperation(
     () => deleteProject({ id }),
     'Failed to delete project'

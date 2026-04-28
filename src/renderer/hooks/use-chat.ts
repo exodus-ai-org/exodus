@@ -1,19 +1,27 @@
 import type {
   ChatAssistantMessage,
   ChatMessage,
-  ChatSseEvent,
   ChatStatus,
   SendMessageOptions,
   Usage
 } from '@shared/types/chat'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { v4 as uuidV4 } from 'uuid'
+
+import {
+  isStreaming as isStreamActive,
+  startStream,
+  stopStream,
+  subscribe,
+  unsubscribe
+} from '@/lib/stream-manager'
 
 export type { ChatStatus }
 export type { SendMessageOptions }
 
 export interface UseChatOptions {
   id: string
+  chatTitle: string
   api: string
   messages?: ChatMessage[]
   generateId?: () => string
@@ -42,6 +50,7 @@ export interface UseChatHelpers {
 export function useChat(options: UseChatOptions): UseChatHelpers {
   const {
     id,
+    chatTitle,
     api,
     messages: initialMessages = [],
     generateId = uuidV4,
@@ -52,29 +61,64 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
   } = options
 
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages)
-  const [status, setStatus] = useState<ChatStatus>('idle')
+  const [status, setStatus] = useState<ChatStatus>(() =>
+    isStreamActive(id) ? 'streaming' : 'idle'
+  )
   const [lastUsage, setLastUsage] = useState<Usage | null>(() => {
     const lastAssistant = [...initialMessages]
       .reverse()
       .find((m): m is ChatAssistantMessage => m.role === 'assistant')
     return lastAssistant?.usage ?? null
   })
-  const abortControllerRef = useRef<AbortController | null>(null)
-  // Store the last user message for regeneration
+
   const lastUserMsgRef = useRef<SendMessageOptions | null>(null)
   const extraBodyRef = useRef<Record<string, unknown>>({})
 
-  const stop = useCallback(() => {
-    abortControllerRef.current?.abort()
-    setStatus('idle')
+  // Keep callbacks in refs so the subscriber closure always sees the latest
+  const onFinishRef = useRef(onFinish)
+  onFinishRef.current = onFinish
+  const onErrorRef = useRef(onError)
+  onErrorRef.current = onError
+  const onTitleRef = useRef(onTitle)
+  onTitleRef.current = onTitle
+
+  // Helper to build a subscriber object (used both on mount and when sending)
+  const makeSubscriber = useCallback(() => {
+    return {
+      onMessages: (msgs: ChatMessage[]) => {
+        setMessages(msgs)
+        const last = [...msgs]
+          .reverse()
+          .find((m): m is ChatAssistantMessage => m.role === 'assistant')
+        if (last?.usage) setLastUsage(last.usage)
+      },
+      onStatus: setStatus,
+      onTitle: (t: string) => onTitleRef.current?.(t),
+      onError: (e: Error) => onErrorRef.current?.(e),
+      onFinish: (msgs: ChatMessage[]) => onFinishRef.current?.(msgs)
+    }
   }, [])
+
+  // Subscribe to an existing background stream on mount
+  useEffect(() => {
+    if (isStreamActive(id)) {
+      subscribe(id, makeSubscriber())
+    }
+    return () => {
+      unsubscribe(id)
+    }
+  }, [id, makeSubscriber])
+
+  const stop = useCallback(() => {
+    stopStream(id)
+    setStatus('idle')
+  }, [id])
 
   const sendMessage = useCallback(
     async (opts: SendMessageOptions) => {
       const { text = '', attachments = [] } = opts
       lastUserMsgRef.current = opts
 
-      // Build pi-ai user message content
       const content: Array<
         | { type: 'text'; text: string }
         | { type: 'image'; data: string; mimeType: string }
@@ -103,125 +147,29 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
 
       const newMessages = [...messages, userMsg]
       setMessages(newMessages)
-      setStatus('submitted')
 
-      const abortController = new AbortController()
-      abortControllerRef.current = abortController
+      const body = prepareBody
+        ? prepareBody({
+            id,
+            messages: newMessages,
+            body: extraBodyRef.current
+          })
+        : { id, messages: newMessages, ...extraBodyRef.current }
 
-      try {
-        const body = prepareBody
-          ? prepareBody({
-              id,
-              messages: newMessages,
-              body: extraBodyRef.current
-            })
-          : { id, messages: newMessages, ...extraBodyRef.current }
-
-        const response = await fetch(api, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body),
-          signal: abortController.signal
-        })
-
-        if (!response.ok) {
-          // Try to extract the user-friendly message from the JSON error body
-          let errorMessage = `HTTP ${response.status}: ${response.statusText}`
-          try {
-            const contentType = response.headers.get('content-type') || ''
-            if (contentType.includes('application/json')) {
-              const errorData = await response.json()
-              if (errorData.message) errorMessage = errorData.message
-            } else {
-              const text = await response.text()
-              if (text) errorMessage = text
-            }
-          } catch {
-            // Ignore parse errors, fall back to status text
-          }
-          throw new Error(errorMessage)
-        }
-
-        if (!response.body) {
-          throw new Error('No response body')
-        }
-
-        setStatus('streaming')
-
-        const reader = response.body.getReader()
-        const decoder = new TextDecoder()
-        let buffer = ''
-
-        let streamMessages = [...newMessages]
-
-        while (true) {
-          const { done, value } = await reader.read()
-          if (done) break
-
-          buffer += decoder.decode(value, { stream: true })
-          const lines = buffer.split('\n')
-          buffer = lines.pop() ?? ''
-
-          for (const line of lines) {
-            if (!line.startsWith('data: ')) continue
-            const jsonStr = line.slice(6).trim()
-            if (!jsonStr) continue
-
-            try {
-              const event = JSON.parse(jsonStr) as ChatSseEvent
-
-              if (event.type === 'message_update') {
-                const updatedMsg = event.message
-                const existingIdx = streamMessages.findIndex(
-                  (m) => m.id === updatedMsg.id
-                )
-                if (existingIdx >= 0) {
-                  streamMessages = [
-                    ...streamMessages.slice(0, existingIdx),
-                    updatedMsg,
-                    ...streamMessages.slice(existingIdx + 1)
-                  ]
-                } else {
-                  streamMessages = [...streamMessages, updatedMsg]
-                }
-                setMessages([...streamMessages])
-              } else if (event.type === 'done') {
-                streamMessages = event.messages
-                setMessages([...streamMessages])
-                const lastAssistant = [...streamMessages]
-                  .reverse()
-                  .find(
-                    (m): m is ChatAssistantMessage => m.role === 'assistant'
-                  )
-                if (lastAssistant?.usage) setLastUsage(lastAssistant.usage)
-              } else if (event.type === 'title') {
-                onTitle?.(event.title)
-              } else if (event.type === 'error') {
-                throw new Error(event.error)
-              }
-            } catch {
-              // Skip malformed events
-            }
-          }
-        }
-
-        setStatus('idle')
-        onFinish?.(streamMessages)
-      } catch (err) {
-        if ((err as Error).name === 'AbortError') {
-          setStatus('idle')
-          return
-        }
-        setStatus('error')
-        onError?.(err instanceof Error ? err : new Error(String(err)))
-      }
+      startStream({
+        chatId: id,
+        chatTitle,
+        api,
+        body,
+        initialMessages: newMessages,
+        subscriber: makeSubscriber()
+      })
     },
-    [messages, id, api, generateId, prepareBody, onFinish, onError, onTitle]
+    [messages, id, chatTitle, api, generateId, prepareBody, makeSubscriber]
   )
 
   const regenerate = useCallback(() => {
     if (lastUserMsgRef.current) {
-      // Remove the last assistant message then resend
       setMessages((prev) => {
         const lastAssistantIdx = [...prev]
           .reverse()

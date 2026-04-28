@@ -1,6 +1,8 @@
 import type { AgentMessage } from '@mariozechner/pi-agent-core'
 import { agentLoop } from '@mariozechner/pi-agent-core'
 import type { Message } from '@mariozechner/pi-ai'
+import { ErrorCode } from '@shared/constants/error-codes'
+import { NotFoundError } from '@shared/errors/app-error'
 import { AdvancedTools } from '@shared/types/ai'
 import type {
   ChatAssistantMessage,
@@ -31,6 +33,8 @@ import {
   getModelFromProvider,
   getTextFromMessage
 } from '../../ai/utils/chat-message-util'
+import { calculateCost } from '../../ai/utils/cost'
+import { transformMessages } from '../../ai/utils/transform-messages'
 import { getProjectById, bumpProjectUpdatedAt } from '../../db/project-queries'
 import {
   deleteChatById,
@@ -43,7 +47,6 @@ import {
   updateChatTitleById
 } from '../../db/queries'
 import { logger } from '../../logger'
-import { ChatSDKError } from '../errors'
 import { postRequestBodySchema, updateChatSchema } from '../schemas/chat'
 import {
   deletionSuccessResponse,
@@ -68,7 +71,7 @@ chat.get('/search', async (c) => {
 })
 
 chat.get('/:id', async (c) => {
-  const id = getRequiredParam(c, 'id', 'chat')
+  const id = getRequiredParam(c, 'id')
   const messages = await handleDatabaseOperation(
     () => getMessagesByChatId({ id }),
     'Failed to get messages'
@@ -80,7 +83,6 @@ chat.post('/', async (c) => {
   const { id, messages, advancedTools, projectId } = validateSchema(
     postRequestBodySchema,
     await c.req.json(),
-    'chat',
     'Invalid request body'
   )
   const setting = c.get('settings')
@@ -100,7 +102,12 @@ chat.post('/', async (c) => {
   if (!existingChat) {
     await saveChat({ id, title: 'New chat', projectId })
     if (projectId) {
-      void bumpProjectUpdatedAt({ id: projectId })
+      bumpProjectUpdatedAt({ id: projectId }).catch((err) => {
+        logger.warn('chat', 'Failed to bump project updatedAt', {
+          projectId,
+          error: String(err)
+        })
+      })
     }
     titlePromise = generateTitleFromUserMessage({
       message: userMessage,
@@ -109,55 +116,66 @@ chat.post('/', async (c) => {
     })
   }
 
-  // Save the user message to DB immediately
-  await saveMessages({ messages: [toDbRow(userMessage, id)] })
-
   const memoryConfig = setting.memoryLayer
   const lcmEnabled = memoryConfig?.lcmEnabled !== false
   const memoryAutoWrite = memoryConfig?.autoWrite !== false
 
-  // ── PRE-CHAT: assemble context via LCM (if enabled) ──────────────────────
-  let contextMessages: Message[]
+  // ── PRE-CHAT: run independent tasks in parallel ─────────────────────────
+  // 1. Save user message (fire-and-forget — ID already generated)
+  // 2. Assemble LCM context (or fallback to client messages)
+  // 3. Load relevant memories (LLM call to filter)
+  // 4. Fetch MCP tools
+  // All four are independent and can run concurrently.
 
-  if (lcmEnabled) {
-    const lcm = new LcmManager(id, chatModel, apiKey, {
-      freshTailSize: memoryConfig?.freshTailSize ?? 16,
-      contextWindowPercent: memoryConfig?.contextWindowPercent ?? 75
-    })
+  // Single LcmManager instance — reused for post-chat compaction
+  const lcm = lcmEnabled
+    ? new LcmManager(id, chatModel, apiKey, {
+        freshTailSize: memoryConfig?.freshTailSize ?? 16,
+        contextWindowPercent: memoryConfig?.contextWindowPercent ?? 75
+      })
+    : null
 
-    // Track the new user message
-    await lcm.trackNewMessages([
-      { id: userMessage.id, content: userMessage.content }
-    ])
+  const saveUserMsgPromise = saveMessages({
+    messages: [toDbRow(userMessage, id)]
+  })
 
-    const assembled = await lcm.assembleContext()
-    // Use assembled context minus the last message (agentLoop receives userMessage separately)
-    contextMessages = assembled.messages.slice(0, -1)
-  } else {
-    // Fallback: use messages passed from client directly
-    contextMessages = allMessages.slice(0, -1).map(stripId)
-  }
+  const lcmPromise = lcm
+    ? lcm
+        .trackNewMessages([
+          { id: userMessage.id, content: userMessage.content }
+        ])
+        .then(() => lcm.assembleContext())
+        .then((assembled) => assembled.messages.slice(0, -1))
+    : Promise.resolve(allMessages.slice(0, -1).map(stripId))
 
-  // ── PRE-CHAT: load relevant user memories ─────────────────────────────────
-  let memoriesSection = ''
-  if (memoryAutoWrite) {
-    const userText = getTextFromMessage(userMessage)
-    const relevantMemories = await loadRelevantMemories(
-      userText,
-      chatModel,
-      apiKey
-    )
-    memoriesSection = formatMemoriesForSystem(relevantMemories)
-  }
+  const memoryPromise = memoryAutoWrite
+    ? loadRelevantMemories(getTextFromMessage(userMessage), chatModel, apiKey)
+        .then(formatMemoriesForSystem)
+        .catch((err) => {
+          logger.warn('chat', 'Memory loading failed, continuing without', {
+            error: String(err)
+          })
+          return ''
+        })
+    : Promise.resolve('')
+
+  const mcpPromise = getMcpTools()
+
+  const [contextMessages, memoriesSection, , mcpTools] = await Promise.all([
+    lcmPromise,
+    memoryPromise,
+    saveUserMsgPromise,
+    mcpPromise
+  ])
 
   const activeModel = isReasoningModel ? reasoningModel : chatModel
-  const mcpTools = await getMcpTools()
   const tools = bindCallingTools({
     advancedTools,
     setting,
     chatModel,
     apiKey,
-    mcpTools
+    mcpTools,
+    chatId: id
   })
   // Load project instructions if applicable
   let projectInstructions = ''
@@ -205,6 +223,9 @@ chat.post('/', async (c) => {
       let assistantMsgId = uuidV4()
       let currentAssistantMsg: ChatAssistantMessage | null = null
       const newMessages: ChatMessage[] = []
+      // Wall-clock turn start — used to stamp the last assistant message with
+      // an accurate durationMs that the UI can show as "Worked for X seconds".
+      const turnStartedAt = Date.now()
 
       try {
         const agentStream = agentLoop(
@@ -219,30 +240,16 @@ chat.post('/', async (c) => {
             apiKey,
             reasoning: isReasoningModel ? 'high' : undefined,
             convertToLlm: (agentMessages: AgentMessage[]): Message[] => {
-              return agentMessages
-                .filter(
-                  (m): m is Message =>
-                    (m as Message).role === 'user' ||
-                    (m as Message).role === 'assistant' ||
-                    (m as Message).role === 'toolResult'
-                )
-                .map((m) => {
-                  if (m.role !== 'assistant') return m
-                  // Strip thinking blocks before sending history back to the LLM.
-                  // The OpenAI Responses API embeds rs_* IDs in thinkingSignature to
-                  // reference stored reasoning items, but store:false means those items
-                  // are never persisted — subsequent turns get a 404 when referenced.
-                  const assistantMsg = m as Message & {
-                    role: 'assistant'
-                    content: Array<{ type: string }>
-                  }
-                  return {
-                    ...assistantMsg,
-                    content: assistantMsg.content.filter(
-                      (b) => b.type !== 'thinking'
-                    )
-                  } as Message
-                })
+              const messages = agentMessages.filter(
+                (m): m is Message =>
+                  (m as Message).role === 'user' ||
+                  (m as Message).role === 'assistant' ||
+                  (m as Message).role === 'toolResult'
+              )
+              // Normalize messages for cross-provider compatibility:
+              // strips thinking blocks, normalizes tool call IDs,
+              // resolves orphaned tool calls, filters error/aborted messages.
+              return transformMessages(messages)
             }
           },
           c.req.raw.signal
@@ -271,11 +278,13 @@ chat.post('/', async (c) => {
               const assistantMsg = msg as Message & { role: 'assistant' }
               // Use streaming content from currentAssistantMsg but authoritative
               // usage/stopReason from event.message (message_update carries 0 usage)
+              const cost = calculateCost(assistantMsg.usage, activeModel)
               const finalMsg: ChatAssistantMessage = {
                 id: currentAssistantMsg?.id ?? assistantMsgId,
                 role: 'assistant',
                 content: currentAssistantMsg?.content ?? assistantMsg.content,
                 usage: assistantMsg.usage,
+                cost,
                 api: assistantMsg.api,
                 provider: assistantMsg.provider,
                 model: assistantMsg.model,
@@ -286,6 +295,12 @@ chat.post('/', async (c) => {
               assistantMsgId = uuidV4()
               currentAssistantMsg = null
             }
+          } else if (event.type === 'tool_execution_start') {
+            sendEvent({
+              type: 'tool_call_start',
+              toolCallId: event.toolCallId,
+              toolName: event.toolName
+            })
           } else if (event.type === 'tool_execution_end') {
             // Extract error message from various possible shapes:
             // 1. AgentToolResult: { content: [{ type: 'text', text: '...' }], details: {} }
@@ -346,6 +361,12 @@ chat.post('/', async (c) => {
             }
             newMessages.push(toolResultMsg)
             sendEvent({ type: 'message_update', message: toolResultMsg })
+            sendEvent({
+              type: 'tool_call_end',
+              toolCallId: event.toolCallId,
+              toolName: event.toolName,
+              isError: event.isError
+            })
           }
         }
 
@@ -353,7 +374,25 @@ chat.post('/', async (c) => {
         if (titlePromise) {
           const title = await titlePromise
           sendEvent({ type: 'title', title })
-          updateChatTitleById({ id, title })
+          updateChatTitleById({ id, title }).catch((err) => {
+            logger.error('chat', 'Failed to persist chat title', {
+              chatId: id,
+              error: String(err)
+            })
+          })
+        }
+
+        // Stamp turn duration on the last assistant message of this turn so
+        // the UI can show a precise "Worked for X seconds" — even for
+        // single-message turns where pi-ai's stream-START timestamp would
+        // otherwise leave us without a useful diff.
+        const turnDurationMs = Date.now() - turnStartedAt
+        for (let i = newMessages.length - 1; i >= 0; i--) {
+          if (newMessages[i].role === 'assistant') {
+            ;(newMessages[i] as ChatAssistantMessage).durationMs =
+              turnDurationMs
+            break
+          }
         }
 
         // Send done event
@@ -374,12 +413,8 @@ chat.post('/', async (c) => {
           const allSavedMessages = [...allMessages, ...newMessages]
           Promise.resolve()
             .then(async () => {
-              // LCM: track new messages and compact — gated on lcmEnabled
-              if (lcmEnabled) {
-                const lcm = new LcmManager(id, chatModel, apiKey, {
-                  freshTailSize: memoryConfig?.freshTailSize ?? 16,
-                  contextWindowPercent: memoryConfig?.contextWindowPercent ?? 75
-                })
+              // LCM: track new messages and compact — reuse pre-chat instance
+              if (lcm) {
                 await lcm.trackNewMessages(
                   newMessages.map((m) => ({ id: m.id, content: m.content }))
                 )
@@ -445,7 +480,7 @@ chat.post('/', async (c) => {
 })
 
 chat.delete('/:id', async (c) => {
-  const id = getRequiredParam(c, 'id', 'chat')
+  const id = getRequiredParam(c, 'id')
 
   await handleDatabaseOperation(
     () => deleteChatById({ id }),
@@ -459,12 +494,11 @@ chat.put('/', async (c) => {
   const payload = validateSchema(
     updateChatSchema,
     await c.req.json(),
-    'chat',
     'Invalid request body'
   )
 
   if (!payload.id) {
-    throw new ChatSDKError('not_found:chat', 'Chat ID is required')
+    throw new NotFoundError(ErrorCode.CHAT_NOT_FOUND, 'Chat ID is required')
   }
 
   await handleDatabaseOperation(

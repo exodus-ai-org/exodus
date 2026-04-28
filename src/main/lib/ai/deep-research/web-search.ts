@@ -11,10 +11,10 @@ export async function webSearch(
     webSources: Map<string, WebSearchResult>
   },
   {
-    perplexityApiKey
+    braveApiKey
   }: {
-    perplexityApiKey: string
+    braveApiKey: string
   }
 ) {
-  return fetchWebSearch({ query, perplexityApiKey, webSources })
+  return fetchWebSearch({ query, braveApiKey, webSources })
 }

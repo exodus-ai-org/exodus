@@ -4,6 +4,7 @@ import { AdvancedTools, McpTools } from '@shared/types/ai'
 
 import { Settings } from '../../db/schema'
 import {
+  createArtifact,
   deepResearch,
   editFile,
   findFiles,
@@ -36,13 +37,17 @@ export function bindCallingTools({
   setting,
   chatModel,
   apiKey,
-  mcpTools = []
+  mcpTools = [],
+  chatId
 }: {
   advancedTools: AdvancedTools[]
   setting: Settings
   chatModel?: Model<string>
   apiKey?: string
   mcpTools?: McpTools[]
+  // Optional: Agent X task execution has no owning chat, so the artifact
+  // tool is skipped there (artifacts are a chat-UI affordance).
+  chatId?: string
 }): ErasedTool[] {
   if (advancedTools.includes(AdvancedTools.DeepResearch)) {
     return [deepResearch]
@@ -66,11 +71,9 @@ export function bindCallingTools({
   if (enabled('listDirectory')) tools.push(listDirectory)
   if (enabled('findFiles')) tools.push(findFiles)
   if (enabled('grep')) tools.push(grep)
-  if (enabled('webFetch')) tools.push(webFetch(setting))
-
-  if (advancedTools.includes(AdvancedTools.WebSearch) && enabled('webSearch')) {
-    tools.push(webSearch(setting))
-  }
+  if (enabled('webFetch')) tools.push(webFetch())
+  if (enabled('createArtifact') && chatId) tools.push(createArtifact(chatId))
+  if (enabled('webSearch')) tools.push(webSearch(setting))
 
   // LCM recall tools: available when LCM is enabled
   const lcmEnabled = setting.memoryLayer?.lcmEnabled !== false

@@ -2,9 +2,10 @@ import { QUICK_CHAT_KEY } from '@shared/constants/misc'
 import { BASE_URL } from '@shared/constants/systems'
 import { Attachment, ChatMessage } from '@shared/types/chat'
 import type { Project } from '@shared/types/db'
-import { useAtomValue, useSetAtom } from 'jotai'
+import { useSetAtom } from 'jotai'
+import { useAtomCallback } from 'jotai/utils'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router'
+import { Link, useNavigate, useParams } from 'react-router'
 import { sileo } from 'sileo'
 import { mutate } from 'swr'
 import useSWR from 'swr'
@@ -40,13 +41,24 @@ interface Props {
   id: string
   initialMessages: ChatMessage[]
   projectId?: string
+  chatTitle: string
 }
 
-export function Chat({ id, initialMessages, projectId }: Props) {
-  const quickChat = window.localStorage.getItem(QUICK_CHAT_KEY)
-  const advancedTools = useAtomValue(advancedToolsAtom)
-  const advancedToolsRef = useRef(advancedTools)
-  advancedToolsRef.current = advancedTools
+export function Chat({ id, initialMessages, projectId, chatTitle }: Props) {
+  const { id: routeId } = useParams()
+  const navigate = useNavigate()
+  // Read once on mount — quick-chat hand-off only fires for the first render of a fresh chat.
+  const quickChatRef = useRef<string | null>(null)
+  if (quickChatRef.current === null) {
+    quickChatRef.current = window.localStorage.getItem(QUICK_CHAT_KEY)
+  }
+  // advancedTools is only read inside prepareBody (a callback fired on send),
+  // so we don't need to subscribe — useAtomCallback gets the latest value
+  // lazily without triggering a Chat re-render on every tool toggle, which
+  // would otherwise cascade through Messages/MultimodalInput.
+  const getAdvancedTools = useAtomCallback(
+    useCallback((get) => get(advancedToolsAtom), [])
+  )
   const projectIdRef = useRef(projectId)
   projectIdRef.current = projectId
 
@@ -55,6 +67,7 @@ export function Chat({ id, initialMessages, projectId }: Props) {
   const setChatStop = useSetAtom(chatStopFnAtom)
 
   const [attachments, setAttachments] = useState<Attachment[]>([])
+  const [title, setTitle] = useState(chatTitle)
 
   const {
     messages,
@@ -66,6 +79,7 @@ export function Chat({ id, initialMessages, projectId }: Props) {
     lastUsage
   } = useChat({
     id,
+    chatTitle: title,
     api: `${BASE_URL}/api/chat`,
     messages: initialMessages,
     generateId: uuidV4,
@@ -73,11 +87,14 @@ export function Chat({ id, initialMessages, projectId }: Props) {
       ...body,
       id,
       messages,
-      advancedTools: advancedToolsRef.current,
+      advancedTools: getAdvancedTools(),
       projectId: projectIdRef.current
     }),
     onFinish: () => {
       mutate('/api/history')
+      if (!routeId) {
+        navigate(`/chat/${id}`, { replace: true })
+      }
     },
     onError: (e) => {
       sileo.error({
@@ -87,6 +104,10 @@ export function Chat({ id, initialMessages, projectId }: Props) {
             ? e.message
             : 'An error occurred, please try again!'
       })
+    },
+    onTitle: (newTitle) => {
+      setTitle(newTitle)
+      mutate('/api/history')
     }
   })
 
@@ -102,21 +123,29 @@ export function Chat({ id, initialMessages, projectId }: Props) {
     setChatStop(() => stableStop)
   }, [stableStop, setChatStop])
 
-  // Quick-chat: if localStorage has a pending quick-chat message, send it immediately
+  // Quick-chat: if localStorage had a pending quick-chat message at mount, send it immediately
   useEffect(() => {
+    const quickChat = quickChatRef.current
     if (quickChat) {
       setChatInput(quickChat)
+      // Use replaceState for immediate URL update; React Router navigate
+      // happens in onFinish after the stream completes.
       window.history.replaceState({}, '', `/chat/${id}`)
       sendMessage({ text: quickChat })
       setChatInput('')
       window.localStorage.removeItem(QUICK_CHAT_KEY)
     }
-  }, [id, quickChat, sendMessage, setChatInput])
+  }, [id, sendMessage, setChatInput])
 
   return (
     <>
       {projectId && <ProjectBreadcrumb projectId={projectId} />}
-      <Messages status={status} messages={messages} regenerate={regenerate} />
+      <Messages
+        chatId={id}
+        status={status}
+        messages={messages}
+        regenerate={regenerate}
+      />
       <MultimodalInput
         chatId={id}
         attachments={attachments}

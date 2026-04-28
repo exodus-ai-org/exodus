@@ -1,3 +1,4 @@
+import { faviconUrl } from '@shared/constants/external-urls'
 import { WebSearchResult } from '@shared/types/web-search'
 import { useMemo } from 'react'
 
@@ -13,7 +14,7 @@ function SourceItemLink({ item }: { item: WebSearchResult }) {
   } catch {
     hostname = item.link
   }
-  const favicon = `https://www.google.com/s2/favicons?domain=${new URL(item.link).origin}&sz=128`
+  const favicon = faviconUrl(item.link)
 
   return (
     <a
@@ -27,7 +28,7 @@ function SourceItemLink({ item }: { item: WebSearchResult }) {
           src={item.ogImage}
           alt={item.title}
           loading="lazy"
-          className="mt-0.5 h-12 w-20 flex-shrink-0 rounded-md object-cover"
+          className="mt-0.5 h-12 w-20 shrink-0 rounded-md object-cover"
         />
       ) : null}
       <div className="min-w-0 flex-1">

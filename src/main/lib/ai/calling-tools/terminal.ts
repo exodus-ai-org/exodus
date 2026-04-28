@@ -20,8 +20,23 @@ const terminalSchema = Type.Object({
 export const terminal: AgentTool<typeof terminalSchema> = {
   name: 'terminal',
   label: 'Terminal',
-  description:
-    "Execute a shell command on the local machine and return its output. Use this to run CLI tools, scripts, or any shell command. Commands run in the user's home directory by default.",
+  description: `Execute a shell command on the local machine and return its output. Use this to run CLI tools, scripts, or any shell command. Commands run in the user's home directory by default.
+
+LANGUAGE PREFERENCE
+- Always PREFER Node.js inline (\`node -e "..."\`) for ad-hoc scripting. Node's built-ins cover most tasks: \`fetch\`, \`JSON\`, \`URL\`, \`Date\`, \`Math\`, \`crypto\`, \`fs\`, \`path\` — no install needed.
+- Use Python only when the task genuinely needs its scientific stack (pandas, numpy, scipy, yfinance, etc.).
+
+THIRD-PARTY NODE PACKAGES
+- Use \`npx --yes --package=<pkg1> --package=<pkg2> node -e "..."\` for ephemeral package usage. First run downloads (~5-10s); subsequent runs are cached by npm.
+
+MISSING DEPENDENCIES — DO NOT AUTO-INSTALL, ASK THE USER
+- If a required CLI or library is missing — \`python3\`, \`uv\`, \`brew\`, a specific Python package, a system tool, anything — DO NOT attempt to install it yourself. No \`pip install\`, no \`brew install\`, no \`npm install -g\`, no \`sudo\` of any kind.
+- Instead, stop the task immediately and tell the user in plain language:
+  - what is missing
+  - the exact install command they should run (e.g. "Please run \`brew install uv\` and then ask me to retry")
+- Wait for the user to confirm before retrying. Do not try alternative install paths or silent workarounds.
+
+Commands run with the user's full OS privileges. Avoid destructive operations.`,
   parameters: terminalSchema,
   execute: async (_toolCallId, { command, cwd }) => {
     const workDir = cwd ?? homedir()

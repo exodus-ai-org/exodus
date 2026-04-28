@@ -58,6 +58,14 @@ export default defineConfig({
             'sub-apps',
             'quick-chat',
             'index.html'
+          ),
+          artifacts: path.resolve(
+            __dirname,
+            'src',
+            'renderer',
+            'sub-apps',
+            'artifacts',
+            'index.html'
           )
         }
       }

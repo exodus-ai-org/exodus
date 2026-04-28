@@ -64,8 +64,10 @@ export function setupAutoUpdater(autoUpdate = true) {
     setState('error', { errorMessage: err.message ?? 'Unknown error' })
   })
 
-  autoUpdater.checkForUpdates().catch(() => {
-    // Silently ignore network errors on startup
+  autoUpdater.checkForUpdates().catch((err) => {
+    setState('error', {
+      errorMessage: err.message ?? 'Check failed on startup'
+    })
   })
 }
 

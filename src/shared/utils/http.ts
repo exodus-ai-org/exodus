@@ -27,6 +27,41 @@ function isPlainObject(value: object): value is Record<string, object> {
   )
 }
 
+/**
+ * Anthropic-style error response shape:
+ * { type: "error", error: { code: "ERROR_CODE", message: "..." } }
+ */
+interface ErrorResponseBody {
+  type: 'error'
+  error: {
+    code: string
+    message: string
+  }
+}
+
+function isErrorResponse(data: unknown): data is ErrorResponseBody {
+  return (
+    typeof data === 'object' &&
+    data !== null &&
+    'type' in data &&
+    (data as ErrorResponseBody).type === 'error' &&
+    'error' in data &&
+    typeof (data as ErrorResponseBody).error?.message === 'string'
+  )
+}
+
+export class HttpError extends Error {
+  public readonly statusCode: number
+  public readonly code: string
+
+  constructor(statusCode: number, code: string, message: string) {
+    super(message)
+    this.name = 'HttpError'
+    this.statusCode = statusCode
+    this.code = code
+  }
+}
+
 export async function fetcher<T>(
   url: string,
   options: HttpFetchOptions = {}
@@ -104,17 +139,33 @@ export async function fetcher<T>(
     if (timeoutId !== undefined) clearTimeout(timeoutId)
 
     if (!response.ok) {
-      let errorMessage = `HTTP error! status: ${response.status}`
       const contentType = response.headers.get('content-type') || ''
-      const isJson = contentType.includes('application/json')
-      if (isJson) {
-        const errorData = await response.json()
-        errorMessage = errorData.message || JSON.stringify(errorData)
-      } else {
-        const text = await response.text()
-        if (text) errorMessage = text
+
+      // Try to parse Anthropic-style error JSON
+      if (contentType.includes('application/json')) {
+        const data = await response.json()
+        if (isErrorResponse(data)) {
+          throw new HttpError(
+            response.status,
+            data.error.code,
+            data.error.message
+          )
+        }
+        // Fallback for non-standard JSON errors
+        throw new HttpError(
+          response.status,
+          'UNKNOWN_ERROR',
+          data.message || JSON.stringify(data)
+        )
       }
-      throw new Error(errorMessage)
+
+      // Plain text fallback
+      const text = await response.text()
+      throw new HttpError(
+        response.status,
+        'UNKNOWN_ERROR',
+        text || `HTTP error! status: ${response.status}`
+      )
     }
 
     switch (responseType) {
@@ -130,8 +181,9 @@ export async function fetcher<T>(
         return (await response.json()) as T
     }
   } catch (error) {
+    if (error instanceof HttpError) throw error
     if (error instanceof Error && error.name === 'AbortError') {
-      throw new Error('Request timed out')
+      throw new HttpError(408, 'TIMEOUT', 'Request timed out')
     }
     throw error
   }

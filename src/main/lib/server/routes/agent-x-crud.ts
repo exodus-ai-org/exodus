@@ -1,3 +1,5 @@
+import { ErrorCode } from '@shared/constants/error-codes'
+import { NotFoundError, ValidationError } from '@shared/errors/app-error'
 import type { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import { z } from 'zod'
@@ -28,7 +30,6 @@ import {
   updateTask
 } from '../../db/agent-x-queries'
 import { logger } from '../../logger'
-import { ChatSDKError } from '../errors'
 import {
   getRequiredParam,
   handleDatabaseOperation,
@@ -62,7 +63,6 @@ agentXCrud.post('/departments', async (c) => {
   const data = validateSchema(
     departmentSchema,
     await c.req.json(),
-    'agent_x',
     'Invalid department data'
   )
   const result = await handleDatabaseOperation(
@@ -73,11 +73,10 @@ agentXCrud.post('/departments', async (c) => {
 })
 
 agentXCrud.put('/departments/:id', async (c) => {
-  const id = getRequiredParam(c, 'id', 'agent_x')
+  const id = getRequiredParam(c, 'id')
   const data = validateSchema(
     departmentSchema.partial(),
     await c.req.json(),
-    'agent_x',
     'Invalid department data'
   )
   const result = await handleDatabaseOperation(
@@ -88,7 +87,7 @@ agentXCrud.put('/departments/:id', async (c) => {
 })
 
 agentXCrud.delete('/departments/:id', async (c) => {
-  const id = getRequiredParam(c, 'id', 'agent_x')
+  const id = getRequiredParam(c, 'id')
   await handleDatabaseOperation(
     () => deleteDepartment(id),
     'Failed to delete department'
@@ -125,7 +124,6 @@ agentXCrud.post('/agents', async (c) => {
   const data = validateSchema(
     agentSchema,
     await c.req.json(),
-    'agent_x',
     'Invalid agent data'
   )
   const result = await handleDatabaseOperation(
@@ -136,11 +134,10 @@ agentXCrud.post('/agents', async (c) => {
 })
 
 agentXCrud.put('/agents/:id', async (c) => {
-  const id = getRequiredParam(c, 'id', 'agent_x')
+  const id = getRequiredParam(c, 'id')
   const data = validateSchema(
     agentSchema.partial(),
     await c.req.json(),
-    'agent_x',
     'Invalid agent data'
   )
   const result = await handleDatabaseOperation(
@@ -151,7 +148,7 @@ agentXCrud.put('/agents/:id', async (c) => {
 })
 
 agentXCrud.delete('/agents/:id', async (c) => {
-  const id = getRequiredParam(c, 'id', 'agent_x')
+  const id = getRequiredParam(c, 'id')
   await handleDatabaseOperation(() => deleteAgent(id), 'Failed to delete agent')
   return c.text('Agent deleted successfully', 200)
 })
@@ -177,13 +174,13 @@ agentXCrud.get('/tasks', async (c) => {
 })
 
 agentXCrud.get('/tasks/:id', async (c) => {
-  const id = getRequiredParam(c, 'id', 'agent_x')
+  const id = getRequiredParam(c, 'id')
   const taskRecord = await handleDatabaseOperation(
     () => getTaskById(id),
     'Failed to get task'
   )
   if (!taskRecord) {
-    throw new ChatSDKError('not_found:agent_x', 'Task not found')
+    throw new NotFoundError(ErrorCode.TASK_NOT_FOUND, 'Task not found')
   }
 
   // Include executions and events
@@ -202,7 +199,7 @@ agentXCrud.get('/tasks/:id', async (c) => {
 })
 
 agentXCrud.get('/tasks/:id/children', async (c) => {
-  const id = getRequiredParam(c, 'id', 'agent_x')
+  const id = getRequiredParam(c, 'id')
   const children = await getChildTasksByParentId(id)
 
   const childrenWithExecutions = await Promise.all(
@@ -236,7 +233,6 @@ agentXCrud.post('/tasks', async (c) => {
   const data = validateSchema(
     taskSchema,
     await c.req.json(),
-    'agent_x',
     'Invalid task data'
   )
 
@@ -281,7 +277,7 @@ agentXCrud.post('/tasks', async (c) => {
 })
 
 agentXCrud.put('/tasks/:id', async (c) => {
-  const id = getRequiredParam(c, 'id', 'agent_x')
+  const id = getRequiredParam(c, 'id')
   const body = await c.req.json()
 
   // Handle cancel
@@ -306,7 +302,7 @@ agentXCrud.put('/tasks/:id', async (c) => {
       'Failed to get task'
     )
     if (!taskRecord)
-      throw new ChatSDKError('not_found:agent_x', 'Task not found')
+      throw new NotFoundError(ErrorCode.TASK_NOT_FOUND, 'Task not found')
 
     const result = await handleDatabaseOperation(
       () => updateTask(id, { status: 'pending', retryCount: 0 }),
@@ -368,7 +364,7 @@ agentXCrud.put('/tasks/:id', async (c) => {
   if (body.assignedAgentId) {
     const agentRecord = await getAgentById(body.assignedAgentId)
     if (!agentRecord) {
-      throw new ChatSDKError('not_found:agent_x', 'Agent not found')
+      throw new NotFoundError(ErrorCode.AGENT_NOT_FOUND, 'Agent not found')
     }
 
     const result = await handleDatabaseOperation(
@@ -399,7 +395,10 @@ agentXCrud.post('/auto-route', async (c) => {
   const { description } = (await c.req.json()) as { description: string }
 
   if (!description) {
-    throw new ChatSDKError('bad_request:agent_x', 'Description is required')
+    throw new ValidationError(
+      ErrorCode.VALIDATION_FAILED,
+      'Description is required'
+    )
   }
 
   const result = await autoRouteTask(description)
@@ -412,7 +411,7 @@ agentXCrud.post('/auto-fill', async (c) => {
   const { title } = (await c.req.json()) as { title: string }
 
   if (!title) {
-    throw new ChatSDKError('bad_request:agent_x', 'Title is required')
+    throw new ValidationError(ErrorCode.VALIDATION_FAILED, 'Title is required')
   }
 
   const result = await autoFillTask(title)
@@ -449,7 +448,6 @@ agentXCrud.patch('/positions', async (c) => {
   const { updates } = validateSchema(
     positionUpdateSchema,
     await c.req.json(),
-    'agent_x',
     'Invalid position data'
   )
 

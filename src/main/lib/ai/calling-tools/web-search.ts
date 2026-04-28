@@ -16,15 +16,15 @@ export const webSearch = (
   description: `Search the web for up-to-date information. Results are numbered [1],[2],… — you MUST cite every factual sentence in your reply using 【N-source】 markers. Suffix a specific date to the query if needed. Today is ${new Date().toISOString()}`,
   parameters: webSearchSchema,
   execute: async (_toolCallId, { query }) => {
-    if (!setting?.webSearch?.perplexityApiKey) {
+    if (!setting?.webSearch?.braveApiKey) {
       throw new Error(
-        'Web Search requires a Perplexity API Key. Please add it in Settings → Web Search.'
+        'Web Search requires a Brave Search API Key. Please add it in Settings → Web Search.'
       )
     }
     const ws = setting.webSearch
     const details = await fetchWebSearch({
       query,
-      perplexityApiKey: ws.perplexityApiKey!,
+      braveApiKey: ws.braveApiKey!,
       country: ws.country,
       languages: ws.languages,
       maxResults: ws.maxResults,

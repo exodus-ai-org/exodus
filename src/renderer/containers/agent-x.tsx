@@ -1,21 +1,45 @@
 import { BASE_URL } from '@shared/constants/systems'
 import type { AgentXSseEvent } from '@shared/types/agent-x'
-import { ReactFlowProvider } from '@xyflow/react'
 import { useAtom } from 'jotai'
 import { Plus, SendIcon } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from 'react'
 
 import { AgentConfigPanel } from '@/components/agent-x/agent-config-panel'
-import { CostAnalysis } from '@/components/agent-x/cost-analysis'
-import { ChartAreaInteractive } from '@/components/agent-x/dashboard/chart-area-interactive'
 import { SectionCards } from '@/components/agent-x/dashboard/section-cards'
 import { DepartmentConfigPanel } from '@/components/agent-x/department-config-panel'
 import { ExecutionTimeline } from '@/components/agent-x/execution-timeline'
-import { OrgGraph } from '@/components/agent-x/org-graph'
 import { TaskDispatchDialog } from '@/components/agent-x/task-dispatch-dialog'
-import { TaskKanban } from '@/components/agent-x/task-kanban'
 import { TaskList } from '@/components/agent-x/task-list'
 import { TaskLogSheet } from '@/components/agent-x/task-log-sheet'
+
+// Heavy, page-scoped renderers — split out so `@xyflow/react`, `recharts`, and
+// `@dnd-kit` only land in their own chunks instead of the initial bundle.
+const OrgEditorGraph = lazy(
+  () => import('@/components/agent-x/org-editor-graph')
+)
+const CostAnalysis = lazy(() =>
+  import('@/components/agent-x/cost-analysis').then((m) => ({
+    default: m.CostAnalysis
+  }))
+)
+const ChartAreaInteractive = lazy(() =>
+  import('@/components/agent-x/dashboard/chart-area-interactive').then((m) => ({
+    default: m.ChartAreaInteractive
+  }))
+)
+const TaskKanban = lazy(() =>
+  import('@/components/agent-x/task-kanban').then((m) => ({
+    default: m.TaskKanban
+  }))
+)
 import { Button } from '@/components/ui/button'
 import type { AgentXPage } from '@/layouts/agent-x-layout'
 import {
@@ -72,6 +96,18 @@ export function AgentXContainer({ activePage }: AgentXContainerProps) {
   }, [loadData])
 
   useEffect(() => {
+    // Coalesce bursts of task_* SSE events into one /tasks fetch per ~200ms
+    // so a stream of agent updates doesn't queue dozens of redundant requests
+    // (and the resulting state churn) on the renderer.
+    let pendingRefresh: ReturnType<typeof setTimeout> | null = null
+    const scheduleTaskRefresh = () => {
+      if (pendingRefresh) return
+      pendingRefresh = setTimeout(() => {
+        pendingRefresh = null
+        getTasks().then(setTasks)
+      }, 200)
+    }
+
     const es = new EventSource(`${BASE_URL}/api/agent-x/sse`)
     eventSourceRef.current = es
     es.onmessage = (e) => {
@@ -83,13 +119,16 @@ export function AgentXContainer({ activePage }: AgentXContainerProps) {
           event.type === 'task_completed' ||
           event.type === 'task_failed'
         ) {
-          getTasks().then(setTasks)
+          scheduleTaskRefresh()
         }
       } catch {
         // ignore
       }
     }
-    return () => es.close()
+    return () => {
+      if (pendingRefresh) clearTimeout(pendingRefresh)
+      es.close()
+    }
   }, [])
 
   // ─── Metrics ─────────────────────────────────────────────────────────────
@@ -438,7 +477,9 @@ export function AgentXContainer({ activePage }: AgentXContainerProps) {
         <div className="flex flex-1 flex-col gap-4 py-4">
           <SectionCards {...metrics} />
           <div className="px-4 lg:px-6">
-            <ChartAreaInteractive tasks={tasks} />
+            <Suspense fallback={null}>
+              <ChartAreaInteractive tasks={tasks} />
+            </Suspense>
           </div>
           <div className="px-4 lg:px-6">
             <TaskList
@@ -477,8 +518,8 @@ export function AgentXContainer({ activePage }: AgentXContainerProps) {
           {/* Graph + Timeline */}
           <div className="flex min-h-0 flex-1">
             <div className={showTimeline ? 'flex-1' : 'w-full'}>
-              <ReactFlowProvider>
-                <OrgGraph
+              <Suspense fallback={null}>
+                <OrgEditorGraph
                   departments={departments}
                   agents={agents}
                   fitViewVersion={fitViewVersion}
@@ -491,7 +532,7 @@ export function AgentXContainer({ activePage }: AgentXContainerProps) {
                   onBulkDelete={handleBulkDelete}
                   onBulkDuplicate={handleBulkDuplicate}
                 />
-              </ReactFlowProvider>
+              </Suspense>
             </div>
 
             {showTimeline && (
@@ -511,21 +552,27 @@ export function AgentXContainer({ activePage }: AgentXContainerProps) {
 
       {activePage === 'archive' && (
         <div className="flex min-h-0 flex-1 flex-col gap-4 p-4 lg:p-6">
-          <TaskKanban
-            tasks={tasks}
-            agents={agents}
-            departments={departments}
-            onSelectTask={setLogTaskId}
-            onTaskUpdate={(updated) =>
-              setTasks((prev) =>
-                prev.map((t) => (t.id === updated.id ? updated : t))
-              )
-            }
-          />
+          <Suspense fallback={null}>
+            <TaskKanban
+              tasks={tasks}
+              agents={agents}
+              departments={departments}
+              onSelectTask={setLogTaskId}
+              onTaskUpdate={(updated) =>
+                setTasks((prev) =>
+                  prev.map((t) => (t.id === updated.id ? updated : t))
+                )
+              }
+            />
+          </Suspense>
         </div>
       )}
 
-      {activePage === 'costs' && <CostAnalysis />}
+      {activePage === 'costs' && (
+        <Suspense fallback={null}>
+          <CostAnalysis />
+        </Suspense>
+      )}
 
       {/* Task log sheet */}
       <TaskLogSheet

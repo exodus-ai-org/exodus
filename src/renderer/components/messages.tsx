@@ -22,11 +22,11 @@ import Markdown from './markdown'
 import { MessageAction } from './massage-action'
 import { MessageSpinner } from './message-spinner'
 import { MessageCallingTools } from './messages-calling-tools'
-import { ShimmeringText } from './shimmering-text'
 import { ThinkingTimeline } from './thinking-timeline'
 import { Avatar, AvatarImage } from './ui/avatar'
 
 type MessagesProps = {
+  chatId: string
   status: ChatStatus
   messages: ChatMessage[]
   regenerate: () => void
@@ -62,7 +62,7 @@ const UserSegment = memo(function UserSegment({
             )}
           </div>
         )}
-      <p className="bg-primary text-primary-foreground max-w-[60%] rounded-2xl rounded-br-sm px-4 py-2.5 text-sm wrap-break-word whitespace-pre-wrap shadow-sm">
+      <p className="bg-primary text-primary-foreground max-w-[60%] rounded-2xl rounded-br-sm px-4 py-2.5 text-base leading-relaxed wrap-break-word whitespace-pre-wrap shadow-sm">
         {typeof message.content === 'string'
           ? message.content
           : (message.content as Array<TextContent | ImageContent>)
@@ -74,75 +74,146 @@ const UserSegment = memo(function UserSegment({
   )
 })
 
-const AssistantTurnSegment = memo(function AssistantTurnSegment({
-  turn,
-  isStreaming,
-  assistantAvatar,
-  regenerate
-}: {
+type AssistantTurnSegmentProps = {
+  chatId: string
   turn: AssistantTurn
   isStreaming: boolean
   assistantAvatar?: string
   regenerate: () => void
-}) {
-  const webSearchResults =
-    turn.webSearchResults.length > 0 ? turn.webSearchResults : undefined
+}
 
-  return (
-    <div className="mb-8 flex flex-col items-start last:mb-4">
-      <div className="flex w-full gap-4">
-        {!!assistantAvatar && (
-          <Avatar>
-            <AvatarImage src={assistantAvatar} className="object-cover" />
-          </Avatar>
-        )}
-        <div className="w-full">
-          {(turn.steps.length > 0 || isStreaming) && (
-            <ThinkingTimeline
-              steps={turn.steps}
-              durationMs={turn.durationMs}
-              isStreaming={isStreaming && turn.finalTextBlocks.length === 0}
-            />
+const AssistantTurnSegment = memo(
+  function AssistantTurnSegment({
+    chatId,
+    turn,
+    isStreaming,
+    assistantAvatar,
+    regenerate
+  }: AssistantTurnSegmentProps) {
+    const webSearchResults =
+      turn.webSearchResults.length > 0 ? turn.webSearchResults : undefined
+
+    return (
+      <div className="mb-8 flex flex-col items-start last:mb-4">
+        <div className="flex w-full gap-4">
+          {!!assistantAvatar && (
+            <Avatar>
+              <AvatarImage src={assistantAvatar} className="object-cover" />
+            </Avatar>
           )}
+          <div className="w-full overflow-x-hidden">
+            {(turn.steps.length > 0 || isStreaming) && (
+              <ThinkingTimeline
+                steps={turn.steps}
+                durationMs={turn.durationMs}
+                isStreaming={isStreaming && turn.finalTextBlocks.length === 0}
+              />
+            )}
 
-          {isStreaming &&
-            turn.pendingToolCalls.map((tc) => (
-              <ShimmeringText
-                key={tc.id}
-                className="mb-4"
-                text={`Calling tool: ${tc.name}`}
+            {/* {isStreaming &&
+              turn.pendingToolCalls.map((tc) => (
+                <ShimmeringText
+                  key={tc.id}
+                  className="mb-4"
+                  text={`Calling tool: ${tc.name}`}
+                />
+              ))} */}
+
+            {turn.toolCards.map((toolResult) => (
+              <MessageCallingTools
+                key={toolResult.id}
+                chatId={chatId}
+                toolResult={toolResult}
               />
             ))}
 
-          {turn.toolCards.map((toolResult) => (
-            <MessageCallingTools key={toolResult.id} toolResult={toolResult} />
-          ))}
-
-          {turn.finalTextBlocks.map((block, i) => (
-            <section
-              key={`${block.messageId}-${block.blockIdx}`}
-              className={cn(
-                'group relative',
-                i < turn.finalTextBlocks.length - 1 && 'mb-16'
-              )}
-            >
-              <Markdown
-                src={block.text}
-                parts={[]}
-                webSearchResults={webSearchResults}
-              />
-              <MessageAction
-                regenerate={regenerate}
-                content={block.text}
-                webSearchResults={webSearchResults}
-              />
-            </section>
-          ))}
+            {turn.finalTextBlocks.map((block, i) => (
+              <section
+                key={`${block.messageId}-${block.blockIdx}`}
+                className={cn(
+                  'group relative',
+                  i < turn.finalTextBlocks.length - 1 && 'mb-16'
+                )}
+              >
+                <Markdown
+                  src={block.text}
+                  webSearchResults={webSearchResults}
+                />
+                <MessageAction
+                  regenerate={regenerate}
+                  content={block.text}
+                  webSearchResults={webSearchResults}
+                />
+              </section>
+            ))}
+          </div>
         </div>
       </div>
-    </div>
-  )
-})
+    )
+  },
+  // During streaming, only the active turn changes — older turns rebuild structurally
+  // equal `turn` objects each token. Skip them by checking message references.
+  function arePropsEqual(
+    prev: AssistantTurnSegmentProps,
+    next: AssistantTurnSegmentProps
+  ) {
+    if (
+      prev.chatId !== next.chatId ||
+      prev.isStreaming !== next.isStreaming ||
+      prev.assistantAvatar !== next.assistantAvatar ||
+      prev.regenerate !== next.regenerate
+    ) {
+      return false
+    }
+    const prevMsgs = prev.turn.messages
+    const nextMsgs = next.turn.messages
+    if (prevMsgs.length !== nextMsgs.length) return false
+    for (let i = 0; i < prevMsgs.length; i++) {
+      if (prevMsgs[i] !== nextMsgs[i]) return false
+    }
+    return true
+  }
+)
+
+/**
+ * Build a timeline preview for a tool call. Most tools get an inline
+ * summary ("webSearch: <query>"); terminal commands get pulled out into a
+ * separate monospace block so heredocs, pipes, and multi-line scripts stay
+ * legible instead of collapsing into a single messy line.
+ */
+function getToolCallPreview(
+  name: string,
+  args: Record<string, unknown> | undefined
+): { text: string; codeArgument?: string } {
+  if (!args) return { text: name }
+  const pick = (key: string): string =>
+    typeof args[key] === 'string' ? (args[key] as string) : ''
+
+  switch (name) {
+    case 'terminal': {
+      const cmd = pick('command')
+      return cmd ? { text: name, codeArgument: cmd } : { text: name }
+    }
+    case 'webSearch':
+      return withInline(name, pick('query'))
+    case 'webFetch':
+      return withInline(name, pick('url'))
+    case 'readFile':
+    case 'writeFile':
+    case 'editFile':
+      return withInline(name, pick('path') || pick('filePath'))
+    case 'weather':
+      return withInline(name, pick('location'))
+    case 'googleMapsPlaces':
+      return withInline(name, pick('query'))
+    default:
+      return { text: name }
+  }
+}
+
+function withInline(name: string, value: string): { text: string } {
+  return { text: value ? `${name}: ${value}` : name }
+}
 
 /**
  * A "turn" groups all assistant/toolResult messages between two user messages.
@@ -162,10 +233,12 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
         if (block.type === 'thinking' && block.thinking?.trim()) {
           steps.push({ type: 'thinking', text: block.thinking })
         } else if (block.type === 'toolCall') {
+          const preview = getToolCallPreview(block.name, block.arguments)
           steps.push({
             type: 'toolCall',
-            text: `${block.name}${block.arguments?.query ? `: ${block.arguments.query}` : ''}`,
-            toolName: block.name
+            text: preview.text,
+            toolName: block.name,
+            codeArgument: preview.codeArgument
           })
           pendingToolCalls.push({ name: block.name, id: block.id })
         } else if (block.type === 'text' && block.text.trim()) {
@@ -218,9 +291,26 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
     }
   }
 
-  const firstTs = turnMessages[0]?.timestamp ?? 0
-  const lastTs = turnMessages[turnMessages.length - 1]?.timestamp ?? 0
-  const durationMs = firstTs && lastTs ? lastTs - firstTs : 0
+  // Prefer the server-stamped turn duration on the last assistant message —
+  // it's wall-clock accurate and works for single-message turns. Fall back to
+  // the message-timestamp diff for legacy chats persisted before durationMs
+  // was added.
+  let durationMs = 0
+  for (let i = turnMessages.length - 1; i >= 0; i--) {
+    const m = turnMessages[i]
+    if (m.role === 'assistant') {
+      const stamped = (m as ChatAssistantMessage).durationMs
+      if (typeof stamped === 'number') {
+        durationMs = stamped
+        break
+      }
+    }
+  }
+  if (durationMs === 0) {
+    const firstTs = turnMessages[0]?.timestamp ?? 0
+    const lastTs = turnMessages[turnMessages.length - 1]?.timestamp ?? 0
+    durationMs = firstTs && lastTs ? lastTs - firstTs : 0
+  }
 
   return {
     messages: turnMessages,
@@ -269,7 +359,7 @@ function groupIntoSegments(messages: ChatMessage[]): Segment[] {
   return segments
 }
 
-function Messages({ status, messages, regenerate }: MessagesProps) {
+function Messages({ chatId, status, messages, regenerate }: MessagesProps) {
   const isLoading = status === 'streaming' || status === 'submitted'
   const { data: settings } = useSettings()
   const chatBoxRef = useRef<HTMLDivElement>(null)
@@ -340,6 +430,7 @@ function Messages({ status, messages, regenerate }: MessagesProps) {
             return (
               <AssistantTurnSegment
                 key={`turn-${segIdx}`}
+                chatId={chatId}
                 turn={segment.turn}
                 isStreaming={turnIsStreaming}
                 assistantAvatar={settings?.assistantAvatar ?? undefined}

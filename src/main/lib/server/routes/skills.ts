@@ -1,3 +1,9 @@
+import { ErrorCode } from '@shared/constants/error-codes'
+import {
+  isAppError,
+  RateLimitError,
+  ValidationError
+} from '@shared/errors/app-error'
 import { Hono } from 'hono'
 
 import {
@@ -10,7 +16,6 @@ import {
   toggleSkillActive,
   uninstallSkill
 } from '../../ai/skills/skills-manager'
-import { ChatSDKError } from '../errors'
 import { successResponse } from '../utils'
 
 const skillsRouter = new Hono()
@@ -25,9 +30,9 @@ skillsRouter.get('/registry', async (c) => {
       nextCursor: data.nextCursor
     })
   } catch (e) {
-    if (e instanceof ChatSDKError) throw e
-    throw new ChatSDKError(
-      'bad_request:skills',
+    if (isAppError(e)) throw e
+    throw new ValidationError(
+      ErrorCode.VALIDATION_FAILED,
       e instanceof Error ? e.message : 'Failed to list skills'
     )
   }
@@ -40,9 +45,9 @@ skillsRouter.get('/search', async (c) => {
     const results = await searchRegistrySkills(q)
     return successResponse(c, results)
   } catch (e) {
-    if (e instanceof ChatSDKError) throw e
-    throw new ChatSDKError(
-      'bad_request:skills',
+    if (isAppError(e)) throw e
+    throw new ValidationError(
+      ErrorCode.VALIDATION_FAILED,
       e instanceof Error ? e.message : 'Failed to search skills'
     )
   }
@@ -54,9 +59,9 @@ skillsRouter.get('/installed', async (c) => {
     const installed = await listInstalledSkills()
     return successResponse(c, installed)
   } catch (e) {
-    if (e instanceof ChatSDKError) throw e
-    throw new ChatSDKError(
-      'bad_request:skills',
+    if (isAppError(e)) throw e
+    throw new ValidationError(
+      ErrorCode.VALIDATION_FAILED,
       e instanceof Error ? e.message : 'Failed to list installed skills'
     )
   }
@@ -69,13 +74,13 @@ skillsRouter.post('/install', async (c) => {
     const installed = await installSkill(slug, displayName, version)
     return successResponse(c, installed)
   } catch (e) {
-    if (e instanceof ChatSDKError) throw e
+    if (isAppError(e)) throw e
     const message = e instanceof Error ? e.message : 'Failed to install skill'
     // Detect rate limit from upstream
     if (message.includes('429')) {
-      throw new ChatSDKError('rate_limit:skills', message)
+      throw new RateLimitError(ErrorCode.RATE_LIMIT_SKILLS, message)
     }
-    throw new ChatSDKError('bad_request:skills', message)
+    throw new ValidationError(ErrorCode.VALIDATION_FAILED, message)
   }
 })
 
@@ -86,9 +91,9 @@ skillsRouter.delete('/:slug', async (c) => {
     await uninstallSkill(slug)
     return c.json({ success: true })
   } catch (e) {
-    if (e instanceof ChatSDKError) throw e
-    throw new ChatSDKError(
-      'bad_request:skills',
+    if (isAppError(e)) throw e
+    throw new ValidationError(
+      ErrorCode.VALIDATION_FAILED,
       e instanceof Error ? e.message : 'Failed to uninstall skill'
     )
   }
@@ -102,9 +107,9 @@ skillsRouter.patch('/:slug/toggle', async (c) => {
     await toggleSkillActive(slug, isActive)
     return c.json({ success: true })
   } catch (e) {
-    if (e instanceof ChatSDKError) throw e
-    throw new ChatSDKError(
-      'bad_request:skills',
+    if (isAppError(e)) throw e
+    throw new ValidationError(
+      ErrorCode.VALIDATION_FAILED,
       e instanceof Error ? e.message : 'Failed to toggle skill'
     )
   }
@@ -115,11 +120,14 @@ skillsRouter.post('/upload', async (c) => {
   const body = await c.req.parseBody()
   const file = body['file']
   if (!file || typeof file === 'string') {
-    throw new ChatSDKError('bad_request:skills', 'No file provided')
+    throw new ValidationError(ErrorCode.VALIDATION_FAILED, 'No file provided')
   }
   const filename = file.name
   if (!filename.endsWith('.zip')) {
-    throw new ChatSDKError('bad_request:skills', 'Only .zip files are accepted')
+    throw new ValidationError(
+      ErrorCode.VALIDATION_FAILED,
+      'Only .zip files are accepted'
+    )
   }
   try {
     const arrayBuffer = await file.arrayBuffer()
@@ -129,9 +137,9 @@ skillsRouter.post('/upload', async (c) => {
     )
     return successResponse(c, installed)
   } catch (e) {
-    if (e instanceof ChatSDKError) throw e
-    throw new ChatSDKError(
-      'bad_request:skills',
+    if (isAppError(e)) throw e
+    throw new ValidationError(
+      ErrorCode.VALIDATION_FAILED,
       e instanceof Error ? e.message : 'Failed to install skill'
     )
   }
@@ -141,15 +149,15 @@ skillsRouter.post('/upload', async (c) => {
 skillsRouter.post('/install-path', async (c) => {
   const { path } = await c.req.json()
   if (!path || typeof path !== 'string') {
-    throw new ChatSDKError('bad_request:skills', 'No path provided')
+    throw new ValidationError(ErrorCode.VALIDATION_FAILED, 'No path provided')
   }
   try {
     const installed = await installFromPath(path)
     return successResponse(c, installed)
   } catch (e) {
-    if (e instanceof ChatSDKError) throw e
-    throw new ChatSDKError(
-      'bad_request:skills',
+    if (isAppError(e)) throw e
+    throw new ValidationError(
+      ErrorCode.VALIDATION_FAILED,
       e instanceof Error ? e.message : 'Failed to install skill'
     )
   }

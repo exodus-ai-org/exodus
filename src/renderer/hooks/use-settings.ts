@@ -9,7 +9,16 @@ export function useSettings() {
 
   const updateSettings = async (payload: Settings) => {
     await updateSettingsService(payload)
-    mutate()
+    // Optimistically merge the just-saved payload into the local SWR cache
+    // without revalidating. A revalidation (`mutate()` with no args) would
+    // re-GET /api/settings and bring back a freshly-bumped `updatedAt`,
+    // which echoes through `useForm({ values: settings })` → RHF resets
+    // form → watch fires for the timestamp field → autosave fires again
+    // → infinite POST/GET loop.
+    await mutate(
+      (current) => ({ ...(current as Settings), ...payload }) as Settings,
+      { revalidate: false }
+    )
     sileo.success({ title: 'Auto saved' })
   }
 

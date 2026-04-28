@@ -1,3 +1,4 @@
+import { faviconUrl } from '@shared/constants/external-urls'
 import type { TimelineStep } from '@shared/types/chat'
 import type { WebSearchResult } from '@shared/types/web-search'
 import { AnimatePresence, motion } from 'framer-motion'
@@ -27,13 +28,13 @@ interface ThinkingTimelineProps {
 
 function StepIcon({ step }: { step: TimelineStep }) {
   if (step.type === 'toolResult' && step.isError) {
-    return <XCircleIcon size={14} className="text-destructive shrink-0" />
+    return <XCircleIcon size={16} className="text-destructive shrink-0" />
   }
   if (step.toolName === 'webSearch') {
-    return <GlobeIcon size={14} className="text-muted-foreground shrink-0" />
+    return <GlobeIcon size={16} className="text-muted-foreground shrink-0" />
   }
   return (
-    <ClockFadingIcon size={14} className="text-muted-foreground shrink-0" />
+    <ClockFadingIcon size={16} className="text-muted-foreground shrink-0" />
   )
 }
 
@@ -47,7 +48,7 @@ const SearchResultItem = memo(function SearchResultItem({
   try {
     const url = new URL(item.link)
     hostname = url.hostname
-    favicon = `https://www.google.com/s2/favicons?domain=${url.origin}&sz=128`
+    favicon = faviconUrl(url.origin)
   } catch {
     hostname = item.link
   }
@@ -78,29 +79,20 @@ function TimelineNode({
   children: React.ReactNode
 }) {
   return (
-    <div
-      className={cn(
-        'grid grid-cols-[14px_1fr] gap-x-2.5 pb-3 last:pb-0',
-        isLast && 'items-center'
-      )}
-    >
-      <div className="flex flex-col items-center">
-        <div
-          className={cn(
-            'mt-1.75 flex size-3.5 shrink-0 items-center justify-center',
-            isLast && 'mt-0'
-          )}
-        >
-          {icon}
-        </div>
+    <div className="flex gap-2.5 pb-3 last:pb-0">
+      <div className="mt-1 flex flex-col items-center">
+        <div className="flex shrink-0 items-center justify-center">{icon}</div>
         {!isLast && <div className="border-border w-px flex-1 border-l" />}
       </div>
-      <div className="min-w-0">{children}</div>
+      <div className="min-w-0 flex-1">{children}</div>
     </div>
   )
 }
 
-function formatDuration(ms: number): string {
+function formatDuration(ms: number): string | null {
+  // Message timestamps mark stream START, not END (see pi-ai providers), so
+  // sub-second durations are unreliable — drop them rather than show "0 seconds".
+  if (!Number.isFinite(ms) || ms < 1000) return null
   const seconds = Math.round(ms / 1000)
   if (seconds < 60) return `${seconds} seconds`
   const minutes = Math.floor(seconds / 60)
@@ -129,39 +121,48 @@ export function ThinkingTimeline({
   const [isExpanded, setIsExpanded] = useState(false)
   const toggleExpanded = useCallback(() => setIsExpanded((prev) => !prev), [])
 
+  const hasThinking = useMemo(
+    () => steps.some((s) => s.type === 'thinking'),
+    [steps]
+  )
+
   const latestTitle = useMemo(() => {
-    if (steps.length === 0) return 'Thinking…'
+    if (steps.length === 0) return hasThinking ? 'Thinking…' : 'Working…'
     return getStepTitle(steps[steps.length - 1])
-  }, [steps])
+  }, [steps, hasThinking])
 
   if (steps.length === 0 && !isStreaming) return null
 
+  const verb = hasThinking ? 'Thought' : 'Worked'
+  const duration = formatDuration(durationMs)
   const headerText = isStreaming
     ? latestTitle
-    : `Thought for ${formatDuration(durationMs)}`
+    : duration
+      ? `${verb} for ${duration}`
+      : verb
 
   return (
     <div className="mb-3">
       <button
-        className="text-muted-foreground hover:text-foreground flex items-center gap-1.5 text-sm transition-colors"
+        className="text-muted-foreground hover:text-foreground flex max-w-full items-center gap-1.5 overflow-hidden text-sm transition-colors"
         onClick={toggleExpanded}
       >
         {isStreaming ? (
-          <LoaderIcon size={14} className="shrink-0 animate-spin" />
+          <LoaderIcon size={16} className="shrink-0 animate-spin" />
         ) : (
-          <CheckIcon size={14} className="shrink-0" />
+          <CheckIcon size={16} className="shrink-0" />
         )}
         {isStreaming ? (
           <ShimmeringText
             key={headerText}
-            className="font-medium"
+            className="truncate font-medium"
             text={headerText}
           />
         ) : (
-          <span className="font-medium">{headerText}</span>
+          <span className="truncate font-medium">{headerText}</span>
         )}
         <ChevronDownIcon
-          size={14}
+          size={16}
           className={cn(
             'shrink-0 transition-transform duration-200',
             isExpanded && 'rotate-180'
@@ -183,16 +184,23 @@ export function ThinkingTimeline({
                 <TimelineNode key={i} icon={<StepIcon step={step} />}>
                   <div
                     className={cn(
-                      'text-muted-foreground text-sm [&_h1]:text-sm [&_h2]:text-sm [&_h3]:text-sm [&_h4]:text-sm [&_ol]:my-0.5 [&_p]:my-0.5 [&_ul]:my-0.5',
+                      'text-muted-foreground text-sm leading-relaxed [&_h1]:text-sm [&_h2]:text-sm [&_h3]:text-sm [&_h4]:text-sm [&_ol]:my-0.5 [&_ul]:my-0.5 [&_p:first-child]:mt-0 [&_p]:my-0.5',
                       step.type === 'toolResult' &&
                         step.isError &&
                         'text-destructive'
                     )}
                   >
                     {step.type === 'thinking' ? (
-                      <Markdown src={step.text} parts={[]} />
+                      <Markdown src={step.text} />
                     ) : (
-                      <p className="text-sm leading-relaxed">{step.text}</p>
+                      <>
+                        <p>{step.text}</p>
+                        {step.codeArgument && (
+                          <pre className="bg-muted/50 border-border/60 mt-1 max-h-48 overflow-auto rounded-md border p-2 font-mono text-[11.5px] leading-relaxed wrap-break-word whitespace-pre-wrap">
+                            <code>{step.codeArgument}</code>
+                          </pre>
+                        )}
+                      </>
                     )}
                   </div>
 
@@ -213,7 +221,7 @@ export function ThinkingTimeline({
                   isLast
                   icon={
                     <CircleCheckBigIcon
-                      size={14}
+                      size={16}
                       className="text-muted-foreground shrink-0"
                     />
                   }

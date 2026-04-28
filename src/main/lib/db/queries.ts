@@ -1,7 +1,15 @@
+import { ErrorCode } from '@shared/constants/error-codes'
+import { DatabaseError } from '@shared/errors/app-error'
 import { and, asc, desc, eq, sql } from 'drizzle-orm'
 
 import { logger } from '../logger'
-import { ChatSDKError } from '../server/errors'
+
+function logDbError(message: string, error: unknown) {
+  logger.error('database', message, {
+    error: String(error),
+    stack: error instanceof Error ? error.stack : undefined
+  })
+}
 import { db, pglite } from './db'
 import {
   chat,
@@ -34,7 +42,7 @@ export async function saveChat({
       projectId
     })
   } catch (error) {
-    logger.error('database', 'Failed to save chat in database')
+    logDbError('Failed to save chat', error)
     throw error
   }
 }
@@ -43,7 +51,7 @@ export async function updateChat(payload: Omit<Chat, 'createdAt'>) {
   try {
     return await db.update(chat).set(payload).where(eq(chat.id, payload.id))
   } catch (error) {
-    logger.error('database', 'Failed to save chat in database')
+    logDbError('Failed to update chat', error)
     throw error
   }
 }
@@ -59,7 +67,7 @@ export async function getAllChats(projectId?: string) {
     }
     return await db.select().from(chat).orderBy(desc(chat.createdAt))
   } catch (error) {
-    logger.error('database', 'Failed to get chats by user from database')
+    logDbError('Failed to get chats', error)
     throw error
   }
 }
@@ -71,7 +79,7 @@ export async function deleteChatById({ id }: { id: string }) {
 
     return await db.delete(chat).where(eq(chat.id, id))
   } catch (error) {
-    logger.error('database', 'Failed to delete chat by id from database')
+    logDbError('Failed to delete chat', error)
     throw error
   }
 }
@@ -81,7 +89,7 @@ export async function getChatById({ id }: { id: string }) {
     const [selectedChat] = await db.select().from(chat).where(eq(chat.id, id))
     return selectedChat
   } catch (error) {
-    logger.error('database', 'Failed to get chat by id from database')
+    logDbError('Failed to get chat by id', error)
     throw error
   }
 }
@@ -90,7 +98,7 @@ export async function saveMessages({ messages }: { messages: Array<Message> }) {
   try {
     return await db.insert(message).values(messages)
   } catch (error) {
-    logger.error('database', 'Failed to save messages in database')
+    logDbError('Failed to save messages', error)
     throw error
   }
 }
@@ -103,7 +111,7 @@ export async function getMessagesByChatId({ id }: { id: string }) {
       .where(eq(message.chatId, id))
       .orderBy(asc(message.createdAt))
   } catch (error) {
-    logger.error('database', 'Failed to get messages by chat id from database')
+    logDbError('Failed to get messages by chat id', error)
     throw error
   }
 }
@@ -118,7 +126,7 @@ export async function updateChatTitleById({
   try {
     return await db.update(chat).set({ title }).where(eq(chat.id, id))
   } catch (error) {
-    logger.warn('database', 'Failed to update title for chat', { chatId: id })
+    logDbError(`Failed to update title for chat ${id}`, error)
     throw error
   }
 }
@@ -133,7 +141,44 @@ export async function updateMessage({
   try {
     return await db.update(message).set({ content }).where(eq(message.id, id))
   } catch {
-    throw new ChatSDKError('bad_request:database', 'Failed to update message')
+    throw new DatabaseError(
+      ErrorCode.DB_QUERY_FAILED,
+      'Failed to update message'
+    )
+  }
+}
+
+/** Rewrite an artifact toolResult message's `details.code` (used to re-sync
+ * a hand-edited .tsx on disk back into the DB row that the card actually
+ * renders from). Returns the number of rows updated. */
+export async function updateArtifactCodeByArtifactId({
+  artifactId,
+  code
+}: {
+  artifactId: string
+  code: string
+}): Promise<number> {
+  try {
+    const result = await db
+      .update(message)
+      .set({
+        details: sql`jsonb_set(${message.details}, '{code}', to_jsonb(${code}::text), false)`
+      })
+      .where(
+        and(
+          eq(message.role, 'toolResult'),
+          eq(message.toolName, 'createArtifact'),
+          sql`${message.details}->>'artifactId' = ${artifactId}`
+        )
+      )
+      .returning({ id: message.id })
+    return result.length
+  } catch (error) {
+    logDbError('Failed to update artifact code', error)
+    throw new DatabaseError(
+      ErrorCode.DB_QUERY_FAILED,
+      'Failed to update artifact code'
+    )
   }
 }
 
@@ -158,10 +203,7 @@ export async function fullTextSearchOnMessages(query: string) {
 
     return searchResults
   } catch (error) {
-    logger.error(
-      'database',
-      'Failed to complete full-text search from database'
-    )
+    logDbError('Failed to complete full-text search', error)
     throw error
   }
 }
@@ -193,7 +235,7 @@ export async function voteMessage({
       isUpvoted: type === 'up'
     })
   } catch (error) {
-    logger.error('database', 'Failed to upvote message in database')
+    logDbError('Failed to vote on message', error)
     throw error
   }
 }
@@ -210,11 +252,60 @@ export async function getSettings() {
 
 export async function updateSettings(payload: Settings) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { createdAt, updatedAt, ...rest } = payload
+  const { createdAt, updatedAt, lastBackupAt, ...rest } = payload
   return await db
     .update(settings)
-    .set({ ...rest, updatedAt: new Date() })
+    .set({
+      ...rest,
+      // lastBackupAt arrives as ISO string from frontend; convert to Date for DB
+      lastBackupAt: lastBackupAt
+        ? new Date(lastBackupAt as unknown as string)
+        : null,
+      updatedAt: new Date()
+    })
     .where(eq(settings.id, payload.id))
+}
+
+export async function updateSettingField(
+  field: keyof Settings,
+  value: unknown
+) {
+  try {
+    return await db
+      .update(settings)
+      .set({ [field]: value, updatedAt: new Date() })
+      .where(eq(settings.id, 'global'))
+  } catch (error) {
+    logDbError(`Failed to update setting field: ${field}`, error)
+    throw error
+  }
+}
+
+export async function resetAllData() {
+  // Order matters for foreign key constraints — children before parents
+  const tables = [
+    'vote',
+    'deep_research_message',
+    'deep_research',
+    'task_execution_event',
+    'task_execution',
+    'task',
+    'lcm_context_items',
+    'lcm_summary_messages',
+    'lcm_summary_parents',
+    'lcm_summary',
+    'memory_usage_log',
+    'session_summary',
+    'memory',
+    'agent_memory',
+    'agent',
+    'message',
+    'chat'
+  ]
+
+  for (const table of tables) {
+    await pglite.query(`TRUNCATE "${table}" CASCADE`)
+  }
 }
 
 export async function importData(tableName: string, blob: Blob) {
@@ -234,7 +325,7 @@ export async function saveDeepResearch(payload: DeepResearch) {
   try {
     return await db.insert(deepResearch).values(payload)
   } catch (error) {
-    logger.error('database', 'Failed to save deep research in database')
+    logDbError('Failed to save deep research', error)
     throw error
   }
 }
@@ -247,7 +338,7 @@ export async function getDeepResearchById({ id }: { id: string }) {
       .where(eq(deepResearch.id, id))
     return selectedDeepSearch
   } catch (error) {
-    logger.error('database', 'Failed to get deep search by id from database')
+    logDbError('Failed to get deep research by id', error)
     throw error
   }
 }
@@ -259,10 +350,7 @@ export async function updateDeepResearch(payload: DeepResearch) {
       .set(payload)
       .where(eq(deepResearch.id, payload.id))
   } catch (error) {
-    logger.error(
-      'database',
-      'Failed to update deep research result in database'
-    )
+    logDbError('Failed to update deep research', error)
     throw error
   }
 }
@@ -271,7 +359,7 @@ export async function saveDeepResearchMessage(payload: DeepResearchMessage) {
   try {
     return await db.insert(deepResearchMessage).values(payload)
   } catch (error) {
-    logger.error('database', 'Failed to save deep research message in database')
+    logDbError('Failed to save deep research message', error)
     throw error
   }
 }
@@ -285,10 +373,7 @@ export async function getDeepResearchMessagesById({ id }: { id: string }) {
       .orderBy(asc(deepResearchMessage.createdAt))
     return deepResearchMessages
   } catch (error) {
-    logger.error(
-      'database',
-      'Failed to get deep research message by id from database'
-    )
+    logDbError('Failed to get deep research messages', error)
     throw error
   }
 }

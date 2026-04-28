@@ -9,8 +9,10 @@ import { initScheduler } from '../ai/agent-x/scheduler'
 import { getSettings } from '../db/queries'
 import { logger } from '../logger'
 import { errorHandler } from './middlewares'
-import agentXRouter from './routes/agent-x'
+import agentXRouter, { emitToAll } from './routes/agent-x'
+import artifactsRouter from './routes/artifacts'
 import audioRouter from './routes/audio'
+import backupRouter from './routes/backup'
 import chatRouter from './routes/chat'
 import dbIoRouter from './routes/db-io'
 import deepResearchRouter from './routes/deep-research'
@@ -66,6 +68,8 @@ export async function connectHttpServer() {
   app.route('/api/memory', memoryRouter)
   app.route('/api/usage', usageRouter)
   app.route('/api/logs', logsRouter)
+  app.route('/api/backup', backupRouter)
+  app.route('/api/artifacts', artifactsRouter)
 
   // Ping
   app.get('/', (c) => c.text('Exodus is running.'))
@@ -85,10 +89,8 @@ export async function connectHttpServer() {
       logger.info('server', 'Hono is running', { port: SERVER_PORT })
 
       // Initialize cron scheduler after server is up
-      void import('./routes/agent-x.js').then(({ emitToAll }) =>
-        initScheduler(emitToAll).catch((err) =>
-          logger.error('scheduler', 'Init error', { error: String(err) })
-        )
+      initScheduler(emitToAll).catch((err) =>
+        logger.error('scheduler', 'Init error', { error: String(err) })
       )
     }
   }

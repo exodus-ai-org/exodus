@@ -1,5 +1,6 @@
 import { useTexture } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
+import { ELEVEN_PERLIN_NOISE_TEXTURE } from '@shared/constants/external-urls'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 
@@ -96,9 +97,7 @@ function Scene({
   const targetColor1Ref = useRef(new THREE.Color(colors[0]))
   const targetColor2Ref = useRef(new THREE.Color(colors[1]))
   const animSpeedRef = useRef(0.1)
-  const perlinNoiseTexture = useTexture(
-    'https://storage.googleapis.com/eleven-public-cdn/images/perlin-noise.png'
-  )
+  const perlinNoiseTexture = useTexture(ELEVEN_PERLIN_NOISE_TEXTURE)
 
   const agentRef = useRef<AgentState>(agentState)
   const modeRef = useRef<'auto' | 'manual'>(volumeMode)

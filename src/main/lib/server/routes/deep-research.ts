@@ -1,4 +1,6 @@
 import type { JSONRPCNotification } from '@modelcontextprotocol/sdk/types.js'
+import { ErrorCode } from '@shared/constants/error-codes'
+import { ConfigurationError, NotFoundError } from '@shared/errors/app-error'
 import {
   DeepResearchProgress,
   ReportProgressPayload
@@ -16,13 +18,12 @@ import {
   saveDeepResearchMessage,
   updateDeepResearch
 } from '../../db/queries'
-import { ChatSDKError } from '../errors'
 import { createDeepResearchSchema } from '../schemas/deep-research'
 import {
   getRequiredQuery,
   handleDatabaseOperation,
   successResponse,
-  validatePerplexityApiKey,
+  validateBraveApiKey,
   validateSchema
 } from '../utils'
 import { SSE_HEADERS, SseManager } from '../utils/sse-manager'
@@ -61,27 +62,25 @@ deepResearch.post('/', async (c) => {
   const { deepResearchId, query } = validateSchema<{
     deepResearchId: string
     query: string
-  }>(
-    createDeepResearchSchema,
-    await c.req.json(),
-    'deep_research',
-    'Invalid request body'
-  )
+  }>(createDeepResearchSchema, await c.req.json(), 'Invalid request body')
 
   const setting = c.get('settings')
 
   if (!setting || !('id' in setting)) {
-    throw new ChatSDKError('not_found:setting', 'Failed to retrieve setting')
+    throw new NotFoundError(
+      ErrorCode.SETTING_NOT_FOUND,
+      'Failed to retrieve setting'
+    )
   }
 
   if (!setting.providerConfig?.reasoningModel) {
-    throw new ChatSDKError(
-      'bad_request:deep_research',
+    throw new ConfigurationError(
+      ErrorCode.CONFIG_MISSING_REASONING_MODEL,
       'Reasoning model is not configured'
     )
   }
 
-  const perplexityApiKey = validatePerplexityApiKey(setting)
+  const braveApiKey = validateBraveApiKey(setting)
 
   const { reasoningModel, apiKey } = getModelFromProvider(setting)
 
@@ -95,7 +94,7 @@ deepResearch.post('/', async (c) => {
       depth: setting.deepResearch?.depth ?? 2
     },
     {
-      perplexityApiKey,
+      braveApiKey,
       model: reasoningModel,
       apiKey,
       notify: (data) => notifyClients(deepResearchId, data)
@@ -130,7 +129,7 @@ deepResearch.post('/', async (c) => {
 })
 
 deepResearch.get('/sse', async (c) => {
-  const deepResearchId = getRequiredQuery(c, 'deepResearchId', 'deep_research')
+  const deepResearchId = getRequiredQuery(c, 'deepResearchId')
 
   const stream = new ReadableStream({
     start(controller) {
@@ -161,8 +160,8 @@ deepResearch.get('/result/:id', async (c) => {
   )
 
   if (!result) {
-    throw new ChatSDKError(
-      'not_found:deep_research',
+    throw new NotFoundError(
+      ErrorCode.DEEP_RESEARCH_NOT_FOUND,
       `Deep research with ID ${id} not found`
     )
   }

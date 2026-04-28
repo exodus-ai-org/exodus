@@ -3,10 +3,12 @@
   "include": ["src/renderer/**/*", "src/shared/**/*", "src/preload/*.d.ts"],
   "exclude": ["src/**/*.test.ts", "src/**/*.test.tsx"],
   "compilerOptions": {
-    "module": "NodeNext",
-    "moduleResolution": "NodeNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
     "composite": true,
     "jsx": "react-jsx",
+    "ignoreDeprecations": "6.0",
+    "types": ["google.maps"],
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/renderer/*"],

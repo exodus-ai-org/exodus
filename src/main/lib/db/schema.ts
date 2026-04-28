@@ -88,6 +88,11 @@ export const message = pgTable(
     toolName: varchar('toolName'),
     details: jsonb('details'),
     isError: boolean('isError'),
+    // Wall-clock time for the entire turn this message belongs to. Populated
+    // only on the LAST assistant message of a turn — gives ThinkingTimeline a
+    // precise duration even for single-message turns where message timestamps
+    // can't span the response (pi-ai sets timestamp at stream START).
+    durationMs: integer('durationMs'),
     createdAt: timestamp('createdAt').defaultNow().notNull()
   },
   (table) => [
@@ -137,6 +142,11 @@ export const settings = pgTable('settings', {
     jsonb('deepResearch').$type<z.infer<typeof DeepResearchSchema>>(),
   s3: jsonb('s3').$type<z.infer<typeof S3Schema>>(),
   autoUpdate: boolean('autoUpdate').default(true),
+  runOnStartup: boolean('runOnStartup').default(false),
+  menuBar: boolean('menuBar').default(true),
+  proxy: text('proxy').default(''),
+  autoBackup: boolean('autoBackup').default(true),
+  lastBackupAt: timestamp('lastBackupAt'),
   memoryLayer: jsonb('memoryLayer').$type<z.infer<typeof MemoryLayerSchema>>(),
   personality: jsonb('personality').$type<z.infer<typeof PersonalitySchema>>(),
   colorTone: text('colorTone').default('neutral'),

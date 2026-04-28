@@ -1,34 +1,72 @@
 import { electronApp, optimizer } from '@electron-toolkit/utils'
 import { app, BrowserWindow, globalShortcut } from 'electron'
 
+import { migrateSharedArtifacts } from './lib/ai/artifacts-migration'
 import { setupAutoUpdater } from './lib/auto-updater'
+import { startBackupScheduler } from './lib/backup'
 import { cleanupStaleWaitingTasks } from './lib/db/agent-x-queries'
 import { runMigrate } from './lib/db/migrate'
 import { getSettings } from './lib/db/queries'
 import { setupIPC } from './lib/ipc'
-import { cleanupOldLogs } from './lib/logger'
+import { cleanupOldLogs, logger } from './lib/logger'
 import { setupMenu } from './lib/menu'
+import { migrateFromLegacyLocation } from './lib/paths'
+import { applyProxy } from './lib/proxy'
 import { connectHttpServer } from './lib/server/app'
 import { setServer } from './lib/server/instance'
 import { setTray } from './lib/tray'
 import { createWindow } from './lib/window'
 
+// Capture unhandled runtime errors into the log file
+process.on('uncaughtException', (error) => {
+  logger.error('app', 'Uncaught exception', {
+    error: String(error),
+    stack: error?.stack
+  })
+})
+
+process.on('unhandledRejection', (reason) => {
+  logger.error('app', 'Unhandled promise rejection', {
+    error: String(reason),
+    stack: reason instanceof Error ? reason.stack : undefined
+  })
+})
+
 app.whenReady().then(async () => {
+  // Migrate data from legacy location to ~/.exodus (one-time, idempotent)
+  migrateFromLegacyLocation()
+
   // Migrate PGlite
   await runMigrate()
+
+  // One-time migration of legacy `shared/` artifacts into per-chat folders
+  await migrateSharedArtifacts().catch((err) => {
+    logger.warn('app', 'Failed to migrate legacy artifacts', {
+      error: String(err),
+      stack: err instanceof Error ? err.stack : undefined
+    })
+  })
+
   cleanupOldLogs()
-  await cleanupStaleWaitingTasks()
+  await cleanupStaleWaitingTasks().catch((err) => {
+    logger.warn('app', 'Failed to cleanup stale waiting tasks', {
+      error: String(err),
+      stack: err instanceof Error ? err.stack : undefined
+    })
+  })
 
   // Start Hono server
   const server = await connectHttpServer()
   server.start()
   setServer(server)
 
+  // Start backup scheduler (daily at 3:00 AM)
+  startBackupScheduler()
+
   // Setup menu
   setupMenu()
 
-  // Setup tray
-  setTray()
+  // Setup tray (will be conditionally created after settings are loaded)
 
   // Set app user model id for windows
   electronApp.setAppUserModelId('app.yancey.exodus')
@@ -46,7 +84,14 @@ app.whenReady().then(async () => {
   createWindow()
 
   const dbSettings = await getSettings()
+  applyProxy(dbSettings.proxy)
   setupAutoUpdater(dbSettings.autoUpdate ?? true)
+
+  // Apply startup and menu bar settings
+  app.setLoginItemSettings({ openAtLogin: dbSettings.runOnStartup ?? false })
+  if (dbSettings.menuBar !== false) {
+    setTray()
+  }
 
   app.on('activate', function () {
     // On macOS it's common to re-create a window in the app when the

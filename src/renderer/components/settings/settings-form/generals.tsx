@@ -1,8 +1,10 @@
 import type { ColorTone } from '@shared/schemas/settings-schema'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { Moon, Sun, SunMoon } from 'lucide-react'
+import { useEffect } from 'react'
 
 import { Theme, useTheme } from '@/components/theme-provider'
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -13,6 +15,7 @@ import {
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { useTone } from '@/hooks/use-tone'
+import { setLoginItem, setMenuBar } from '@/lib/ipc'
 
 import { SettingsRow, SettingsSection } from '../settings-row'
 import { AvatarUploader } from './avatar-uploader'
@@ -30,6 +33,16 @@ const TONE_PRESETS: { value: ColorTone; label: string; color: string }[] = [
 export function General({ form }: { form: UseFormReturnType }) {
   const { theme, setTheme } = useTheme()
   const { tone, setTone } = useTone()
+  const runOnStartup = form.watch('runOnStartup') ?? false
+  const menuBarEnabled = form.watch('menuBar') ?? true
+
+  useEffect(() => {
+    setLoginItem(runOnStartup)
+  }, [runOnStartup])
+
+  useEffect(() => {
+    setMenuBar(menuBarEnabled)
+  }, [menuBarEnabled])
 
   return (
     <SettingsSection>
@@ -90,11 +103,28 @@ export function General({ form }: { form: UseFormReturnType }) {
         label="Run on startup"
         description="Automatically start Exodus when you log in"
       >
-        <Switch />
+        <Switch
+          checked={runOnStartup}
+          onCheckedChange={(checked) => form.setValue('runOnStartup', checked)}
+        />
       </SettingsRow>
 
       <SettingsRow label="Menu bar" description="Show Exodus in the menu bar">
-        <Switch />
+        <Switch
+          checked={menuBarEnabled}
+          onCheckedChange={(checked) => form.setValue('menuBar', checked)}
+        />
+      </SettingsRow>
+
+      <SettingsRow
+        label="Network Proxy"
+        description="Route all outgoing requests through a proxy, e.g. http://127.0.0.1:7897 or socks5://127.0.0.1:7897"
+        layout="vertical"
+      >
+        <Input
+          placeholder="http://127.0.0.1:7897"
+          {...form.register('proxy')}
+        />
       </SettingsRow>
 
       <SettingsRow

@@ -29,7 +29,8 @@ export function toDbRow(msg: ChatMessage, chatId: string) {
       toolCallId: null,
       toolName: null,
       details: null,
-      isError: null
+      isError: null,
+      durationMs: msg.durationMs ?? null
     }
   }
 
@@ -45,7 +46,8 @@ export function toDbRow(msg: ChatMessage, chatId: string) {
       toolCallId: msg.toolCallId,
       toolName: msg.toolName,
       details: msg.details ?? null,
-      isError: msg.isError
+      isError: msg.isError,
+      durationMs: null
     }
   }
 
@@ -61,6 +63,7 @@ export function toDbRow(msg: ChatMessage, chatId: string) {
     toolCallId: null,
     toolName: null,
     details: null,
-    isError: null
+    isError: null,
+    durationMs: null
   }
 }

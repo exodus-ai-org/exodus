@@ -14,6 +14,22 @@ const optionalUrl = z
     { message: 'Invalid URL' }
   )
 
+// HTML <input type="number"> emits string values via onChange, so RHF stores
+// strings while the user is typing. Wrap numeric fields with this preprocess
+// to coerce on validation: '' → undefined, '1.5' → 1.5, anything non-numeric
+// passes through so ZodNumber can flag it. The cast keeps the inferred input
+// type as `number` (matching the inner schema) so RHF's field types stay
+// `number | null | undefined` for consumers like <Input value={...}>.
+const formNumber = <T extends z.ZodNumber>(inner: T): T =>
+  z.preprocess((v) => {
+    if (v === '' || v === null || v === undefined) return undefined
+    if (typeof v === 'string') {
+      const n = Number(v)
+      return Number.isNaN(n) ? v : n
+    }
+    return v
+  }, inner) as unknown as T
+
 export const ProviderConfigSchema = z.object({
   provider: z.string().nullish(),
   chatModel: z.string().nullish(),
@@ -40,7 +56,7 @@ export const AudioSchema = z.object({
   speechToTextModel: z.string().nullish(),
   textToSpeechVoice: z.string().nullish(),
   textToSpeechModel: z.string().nullish(),
-  textToSpeechSpeed: z.number().min(0.25).max(4.0).nullish(),
+  textToSpeechSpeed: formNumber(z.number().min(0.25).max(4.0)).nullish(),
   textToSpeechFormat: z.string().nullish(),
   textToSpeechInstructions: z.string().nullish()
 })
@@ -49,16 +65,11 @@ export const GoogleCloudSchema = z.object({
   googleApiKey: z.string().nullish()
 })
 
-// 'jina' = Jina Reader (default), 'builtin' = our cheerio+turndown
-export const UrlToMarkdownProvider = z.enum(['jina', 'builtin'])
-export type UrlToMarkdownProvider = z.infer<typeof UrlToMarkdownProvider>
-
 export const WebSearchSchema = z.object({
-  perplexityApiKey: z.string().nullish(),
+  braveApiKey: z.string().nullish(),
   country: z.string().nullish(),
   languages: z.array(z.string()).nullish(),
-  urlToMarkdownProvider: UrlToMarkdownProvider.default('jina').nullish(),
-  maxResults: z.number().gte(1).lte(50).nullish(),
+  maxResults: formNumber(z.number().gte(1).lte(50)).nullish(),
   recencyFilter: z.enum(['hour', 'day', 'week', 'month', 'year']).nullish(),
   domainFilter: z.string().nullish() // comma-separated domain list
 })
@@ -68,13 +79,13 @@ export const ImageSchema = z.object({
   size: z.string().nullish(),
   quality: z.string().nullish(),
   outputFormat: z.string().nullish(),
-  generatedCounts: z.number().nonnegative().lte(10).nullish(),
+  generatedCounts: formNumber(z.number().nonnegative().lte(10)).nullish(),
   background: z.string().nullish()
 })
 
 export const DeepResearchSchema = z.object({
-  breadth: z.number().gte(3).lte(10).nullish(),
-  depth: z.number().gte(1).lte(5).nullish()
+  breadth: formNumber(z.number().gte(3).lte(10)).nullish(),
+  depth: formNumber(z.number().gte(1).lte(5)).nullish()
 })
 
 export const S3Schema = z
@@ -121,9 +132,9 @@ export const MemoryLayerSchema = z.object({
   // LCM: enable lossless context management for long conversations
   lcmEnabled: z.boolean().default(true),
   // LCM: trigger compaction when context exceeds this % of the context window (50-95)
-  contextWindowPercent: z.number().gte(50).lte(95).nullish(),
+  contextWindowPercent: formNumber(z.number().gte(50).lte(95)).nullish(),
   // LCM: number of most recent messages protected from compaction (8-64)
-  freshTailSize: z.number().gte(8).lte(64).nullish()
+  freshTailSize: formNumber(z.number().gte(8).lte(64)).nullish()
 })
 
 export const ColorTone = z.enum([
@@ -175,6 +186,11 @@ export const SettingsSchema = z.object({
   deepResearch: DeepResearchSchema.nullish(),
   s3: S3Schema.nullish(),
   autoUpdate: z.boolean().nullish(),
+  runOnStartup: z.boolean().nullish(),
+  menuBar: z.boolean().nullish(),
+  proxy: z.string().nullish(),
+  autoBackup: z.boolean().nullish(),
+  lastBackupAt: z.any().nullish(),
   memoryLayer: MemoryLayerSchema.nullish(),
   personality: PersonalitySchema.nullish(),
   colorTone: ColorTone.default('neutral').nullish(),

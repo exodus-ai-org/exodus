@@ -36,19 +36,9 @@ const gptImageParams = {
 }
 
 const modelParams: ModelParamValues = {
+  'gpt-image-2': gptImageParams,
   'gpt-image-1.5': gptImageParams,
-  'gpt-image-1': gptImageParams,
-  'gpt-image-1-mini': gptImageParams,
-  'dall-e-3': {
-    sizes: ['1024x1024', '1792x1024', '1024x1792'],
-    qualities: ['hd', 'standard', 'auto'],
-    generatedCounts: { min: 1, max: 1 }
-  },
-  'dall-e-2': {
-    sizes: ['256x256', '512x512', '1024x1024', 'auto'],
-    qualities: ['standard', 'auto'],
-    generatedCounts: { min: 1, max: 10 }
-  }
+  'gpt-image-1-mini': gptImageParams
 }
 
 export function ImageGeneration({ form }: { form: UseFormReturnType }) {
@@ -101,11 +91,9 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
                 onValueChange={field.onChange}
                 placeholder="Select a model"
                 options={[
+                  { value: 'gpt-image-2', label: 'gpt-image-2' },
                   { value: 'gpt-image-1.5', label: 'gpt-image-1.5' },
-                  { value: 'gpt-image-1', label: 'gpt-image-1' },
-                  { value: 'gpt-image-1-mini', label: 'gpt-image-1-mini' },
-                  { value: 'dall-e-3', label: 'dall-e-3' },
-                  { value: 'dall-e-2', label: 'dall-e-2' }
+                  { value: 'gpt-image-1-mini', label: 'gpt-image-1-mini' }
                 ]}
               />
             </SettingsRow>
@@ -208,7 +196,7 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
             render={({ field, fieldState }) => (
               <SettingsRow
                 label="Generated Counts"
-                description="The number of images to generate. Must be between 1 and 10. For dall-e-3, only 1 is supported."
+                description="The number of images to generate. Must be between 1 and 10."
                 error={fieldState.error}
               >
                 <Input

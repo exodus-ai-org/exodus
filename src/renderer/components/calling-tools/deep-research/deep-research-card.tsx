@@ -180,16 +180,7 @@ export function DeepResearchCard({
         <Card className="mt-4 p-4">
           <Markdown
             src={deepResearchResult?.finalReport}
-            parts={[
-              {
-                type: 'tool-call' as const,
-                toolCallId: '',
-                toolName: 'webSearch',
-                args: {},
-                state: 'done' as const,
-                result: deepResearchResult.webSources
-              }
-            ]}
+            webSearchResults={deepResearchResult.webSources ?? undefined}
           />
         </Card>
       ) : null}

@@ -1,40 +1,34 @@
+import { ErrorCode } from '@shared/constants/error-codes'
+import { ValidationError } from '@shared/errors/app-error'
 import { Context } from 'hono'
 
-import { ChatSDKError, Surface } from '../errors'
-
 /**
- * Gets and validates a required path parameter
- * @throws ChatSDKError if parameter is missing
+ * Gets and validates a required path parameter.
+ * @throws ValidationError if parameter is missing
  */
-export function getRequiredParam(
-  c: Context,
-  paramName: string,
-  surface: Surface
-): string {
+export function getRequiredParam(c: Context, paramName: string): string {
   const value = c.req.param(paramName)
-
   if (!value) {
-    throw new ChatSDKError(`not_found:${surface}`, `${paramName} is required`)
+    throw new ValidationError(
+      ErrorCode.VALIDATION_MISSING_FIELD,
+      `${paramName} is required`
+    )
   }
-
   return value
 }
 
 /**
- * Gets and validates a required query parameter
- * @throws ChatSDKError if parameter is missing
+ * Gets and validates a required query parameter.
+ * @throws ValidationError if parameter is missing
  */
-export function getRequiredQuery(
-  c: Context,
-  queryName: string,
-  surface: Surface
-): string {
+export function getRequiredQuery(c: Context, queryName: string): string {
   const value = c.req.query(queryName)
-
   if (!value) {
-    throw new ChatSDKError(`bad_request:${surface}`, `${queryName} is required`)
+    throw new ValidationError(
+      ErrorCode.VALIDATION_MISSING_FIELD,
+      `${queryName} is required`
+    )
   }
-
   return value
 }
 
@@ -55,6 +49,5 @@ export function getOptionalQuery(
 export function getPaginationParams(c: Context) {
   const page = Number(c.req.query('page') ?? '1')
   const pageSize = Number(c.req.query('pageSize') ?? '10')
-
   return { page, pageSize }
 }
