@@ -19,7 +19,13 @@ test.describe('App Launch', () => {
     expect(isVisible).toBe(true)
   })
 
-  test('window has correct minimum dimensions', async ({ electronApp }) => {
+  test('window has correct minimum dimensions', async ({
+    electronApp,
+    mainWindow: _mainWindow
+  }) => {
+    // Depending on `mainWindow` ensures `firstWindow()` has resolved before we
+    // ask the main process for the BrowserWindow list — otherwise on a slow
+    // CI runner getAllWindows() can return [] and `size` lands undefined.
     const size = await electronApp.evaluate(({ BrowserWindow }) => {
       const win = BrowserWindow.getAllWindows()[0]
       return win?.getSize()

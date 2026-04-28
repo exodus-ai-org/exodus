@@ -10,12 +10,16 @@ test.describe('Chat Management E2E', () => {
   const api = new ApiClient()
   const testChatIds: string[] = []
 
-  test.beforeAll(async () => {
+  // See chat-e2e.spec.ts: beforeAll runs before fixtures, so the Hono server
+  // doesn't exist yet and the inject fetch errors out. beforeEach with
+  // `mainWindow` forces the Electron app up first, then idempotently
+  // re-injects the provider config.
+  test.beforeEach(async ({ mainWindow: _mw }) => {
     await injectOpenAiProvider(api)
   })
 
-  test.afterAll(async () => {
-    for (const id of testChatIds) {
+  test.afterEach(async () => {
+    for (const id of testChatIds.splice(0)) {
       await api.deleteChat(id).catch(() => {})
     }
   })

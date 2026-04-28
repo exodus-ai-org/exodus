@@ -14,7 +14,7 @@ export async function injectApiKeys(api: ApiClient) {
       googleGeminiApiKey: process.env.GOOGLE_CLOUD ?? null
     },
     webSearch: {
-      perplexityApiKey: process.env.PERPLEXITY_API_KEY ?? null
+      braveApiKey: process.env.BRAVE_API_KEY ?? null
     }
   })
 }

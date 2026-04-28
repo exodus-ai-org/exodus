@@ -43,7 +43,9 @@ test.describe('Settings E2E', () => {
 
       const res = await fetch('http://localhost:60223/api/settings')
       const json = await res.json()
-      return json.data.colorTone
+      // successResponse(c, settings) returns the settings object directly —
+      // no { data: ... } wrapper.
+      return json.colorTone
     })
 
     expect(response).toBe('violet')

@@ -95,7 +95,7 @@ test.describe('Settings API', () => {
   test('POST /api/settings updates web search config', async ({ api }) => {
     await api.updateSettings({
       webSearch: {
-        perplexityApiKey: process.env.PERPLEXITY_API_KEY,
+        braveApiKey: process.env.BRAVE_API_KEY,
         maxResults: 10,
         recencyFilter: 'week'
       }
@@ -103,7 +103,7 @@ test.describe('Settings API', () => {
 
     const { data } = await api.getSettings()
     const ws = data.webSearch as Record<string, unknown>
-    expect(ws.perplexityApiKey).toBe(process.env.PERPLEXITY_API_KEY)
+    expect(ws.braveApiKey).toBe(process.env.BRAVE_API_KEY)
     expect(ws.maxResults).toBe(10)
   })
 
