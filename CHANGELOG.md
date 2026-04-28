@@ -1,3 +1,43 @@
+# [1.12.0](https://github.com/exodus-ai-org/exodus/compare/v1.11.0...v1.12.0) (2026-04-28)
+
+
+### Bug Fixes
+
+* artifact sandbox crash — remove ThemeProvider IPC dependency ([15d102f](https://github.com/exodus-ai-org/exodus/commit/15d102ff40829459e025a4650fc33f391960bccf))
+* **artifact:** handshake so fullscreen stops stranding on "Waiting for artifact…" ([5a47f00](https://github.com/exodus-ai-org/exodus/commit/5a47f00601fedeaae226a980f2e024a9f86d4d43))
+* **artifact:** plumb chatId from chat route to the card via props, stop relying on details.chatId ([c47aac7](https://github.com/exodus-ai-org/exodus/commit/c47aac740e4b005f5a5e861697e404ddfc864e32))
+* **artifact:** post-review hardening — path traversal guard, remove double padding, disable URL pill for pre-chatId artifacts ([188d098](https://github.com/exodus-ai-org/exodus/commit/188d098fc6799ce172c59e05d08b547ca6640457))
+* **artifact:** reveal handler returns result, fall back to legacy shared/ path, toast on failure ([5db0d38](https://github.com/exodus-ai-org/exodus/commit/5db0d38f249315cc6e308da780f359285ad28f63))
+* **artifact:** thread real chatId into createArtifact tool ([c15f4d0](https://github.com/exodus-ai-org/exodus/commit/c15f4d0c9f3b5f6661fb48faf8a4ca7bcc1ac5ba))
+* **build:** unblock pnpm build by fixing long-masked type errors ([a440f4c](https://github.com/exodus-ai-org/exodus/commit/a440f4c3973cb8ef63f81be53c52f68d076b047a))
+* remove WebSearch from AdvancedTools toggle and fix settings save 500 ([360912a](https://github.com/exodus-ai-org/exodus/commit/360912a4ddb4e5dda8fc98d81c719dfbbddbb96d))
+* replace removed ChromeIcon with GlobeIcon for browser use setting ([e127784](https://github.com/exodus-ai-org/exodus/commit/e127784b6202e83a21e2a770e84f898f36e82a25))
+* **tools:** make chatId optional in bindCallingTools; skip createArtifact for Agent X ([31f321b](https://github.com/exodus-ai-org/exodus/commit/31f321be8de04c151be02a746685659eb896de7c))
+* UI improvements — markdown spacing, chat routing, spinner, timeline ([915230d](https://github.com/exodus-ai-org/exodus/commit/915230dfe769019e3e3b801859861ca39cdbd231))
+* use undici ProxyAgent for main-process proxy support ([5ea1e16](https://github.com/exodus-ai-org/exodus/commit/5ea1e1692c3cb32db25cd91a79d861e859771920))
+
+
+### Features
+
+* add Artifacts — live React component rendering in chat ([97f4522](https://github.com/exodus-ai-org/exodus/commit/97f4522af45d573d37933f68b1568331d03130c4))
+* add centralized paths module for ~/.exodus directory ([159e086](https://github.com/exodus-ai-org/exodus/commit/159e0863d40ee61e846625f5a26b4cd0d8b793cb))
+* add network proxy configuration in Settings → General ([26d667d](https://github.com/exodus-ai-org/exodus/commit/26d667d450ba1285c4dd12fbb5f0414d4c327f65))
+* add placeholder to settings ([100d358](https://github.com/exodus-ai-org/exodus/commit/100d358ba4ae3157be0f13a2057a3b64e9af7458))
+* **artifact:** add reveal-artifact-file IPC handler ([ec4340f](https://github.com/exodus-ai-org/exodus/commit/ec4340f10f009e9c164c9a0f44573468392dbcb1))
+* **artifact:** add revealArtifactFile renderer wrapper ([3a050be](https://github.com/exodus-ai-org/exodus/commit/3a050be7f74d7b80d3899fdfdd62ee512a17be99))
+* **artifact:** add slug and short-id helpers ([b13af32](https://github.com/exodus-ai-org/exodus/commit/b13af32de731cf96f03168c095cb28a618d789df))
+* **artifact:** decorative traffic lights, right-side fullscreen button, native-fullscreen padding ([eb29c2d](https://github.com/exodus-ai-org/exodus/commit/eb29c2d58a8ed278db6779f0eb47fc714a02f1d2))
+* **artifact:** expose framer-motion and steer prompt toward distinctive aesthetics ([1d0ae4f](https://github.com/exodus-ai-org/exodus/commit/1d0ae4f012b84a182efe867400990dfd5c5518b8))
+* **artifact:** migrate legacy shared/ layout on startup; drop the reveal fallback ([8fb1a27](https://github.com/exodus-ai-org/exodus/commit/8fb1a2736fd74afbc1f623aa9e9d836708ec19d4))
+* **artifact:** replace card header with browser-chrome traffic lights ([285f10e](https://github.com/exodus-ai-org/exodus/commit/285f10e7cfcc46046de5a78e264e274414735c5b))
+* background chat streaming with completion toast ([64a35c4](https://github.com/exodus-ai-org/exodus/commit/64a35c41236e00387f7b06e495ba162b59750ea0))
+* implement data controls with ~/.exodus migration, backup engine, and full UI ([518c7c1](https://github.com/exodus-ai-org/exodus/commit/518c7c1dc23fdd6db8763bf6610054c2ec6373a4))
+* implement Run on startup and Menu bar settings ([d9341f5](https://github.com/exodus-ai-org/exodus/commit/d9341f5db0089c5c886fbc5a53d010d14e751ef8))
+* optimize chat flow with overflow detection, parallelization, and cross-provider normalization ([430bdff](https://github.com/exodus-ai-org/exodus/commit/430bdffbe03141391833866ddb2d506bb6f19108))
+* **terminal:** steer toward Node + npx, halt on missing deps instead of auto-installing ([09af4b4](https://github.com/exodus-ai-org/exodus/commit/09af4b49038fa73569b8a6c7afa31a1dd260d833))
+* **timeline:** render terminal commands in a monospace code block ([f89e668](https://github.com/exodus-ai-org/exodus/commit/f89e66888e856e8e1826919d1b232b2303dcbb69))
+* **timeline:** show the key argument next to tool calls (url for webFetch, command for terminal, path for file ops, etc.) ([3520f0b](https://github.com/exodus-ai-org/exodus/commit/3520f0b05f75ff6496eda1df86dbba76e69622e5))
+
 # [1.11.0](https://github.com/exodus-ai-org/exodus/compare/v1.10.0...v1.11.0) (2026-03-27)
 
 
