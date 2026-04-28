@@ -36,7 +36,7 @@ describe('ErrorCodeToStatus', () => {
   })
 
   it('maps all status codes to valid HTTP codes', () => {
-    const validCodes = [400, 404, 500, 503]
+    const validCodes = [400, 404, 429, 500, 503]
     for (const code of Object.values(ErrorCode)) {
       expect(validCodes).toContain(ErrorCodeToStatus[code])
     }
