@@ -34,21 +34,14 @@ describe('AppError', () => {
     expect(err.statusCode).toBe(404)
   })
 
-  it('should include metadata', () => {
-    const metadata = { chatId: '123' }
-    const err = new AppError(ErrorCode.CHAT_NOT_FOUND, undefined, metadata)
-    expect(err.metadata).toEqual(metadata)
-  })
-
-  it('should serialize to JSON', () => {
+  it('serializes to Anthropic-style JSON', () => {
     const err = new AppError(ErrorCode.VALIDATION_FAILED, 'Bad input')
     const json = err.toJSON()
     expect(json).toEqual({
+      type: 'error',
       error: {
         code: ErrorCode.VALIDATION_FAILED,
-        message: 'Bad input',
-        statusCode: 400,
-        metadata: undefined
+        message: 'Bad input'
       }
     })
   })
@@ -130,10 +123,10 @@ describe('toAppError', () => {
     expect(err.message).toBe('oops')
   })
 
-  it('wraps unknown values as InternalError', () => {
+  it('wraps unknown values as InternalError, stringifying the input', () => {
     const err = toAppError('unexpected')
     expect(err).toBeInstanceOf(InternalError)
-    expect(err.message).toBe('An unknown error occurred')
+    expect(err.message).toBe('unexpected')
   })
 })
 
