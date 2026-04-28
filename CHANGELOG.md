@@ -1,3 +1,10 @@
+## [1.12.1](https://github.com/exodus-ai-org/exodus/compare/v1.12.0...v1.12.1) (2026-04-28)
+
+
+### Bug Fixes
+
+* **e2e:** unblock playwright suite on macos CI ([6c104cb](https://github.com/exodus-ai-org/exodus/commit/6c104cbf9a6e87f11e00bfaa981c99cd630f5a9b))
+
 # [1.12.0](https://github.com/exodus-ai-org/exodus/compare/v1.11.0...v1.12.0) (2026-04-28)
 
 
