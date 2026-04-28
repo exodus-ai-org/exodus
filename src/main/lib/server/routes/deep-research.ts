@@ -23,7 +23,7 @@ import {
   getRequiredQuery,
   handleDatabaseOperation,
   successResponse,
-  validatePerplexityApiKey,
+  validateBraveApiKey,
   validateSchema
 } from '../utils'
 import { SSE_HEADERS, SseManager } from '../utils/sse-manager'
@@ -80,7 +80,7 @@ deepResearch.post('/', async (c) => {
     )
   }
 
-  const perplexityApiKey = validatePerplexityApiKey(setting)
+  const braveApiKey = validateBraveApiKey(setting)
 
   const { reasoningModel, apiKey } = getModelFromProvider(setting)
 
@@ -94,7 +94,7 @@ deepResearch.post('/', async (c) => {
       depth: setting.deepResearch?.depth ?? 2
     },
     {
-      perplexityApiKey,
+      braveApiKey,
       model: reasoningModel,
       apiKey,
       notify: (data) => notifyClients(deepResearchId, data)

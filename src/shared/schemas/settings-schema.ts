@@ -65,15 +65,10 @@ export const GoogleCloudSchema = z.object({
   googleApiKey: z.string().nullish()
 })
 
-// 'jina' = Jina Reader (default), 'builtin' = our cheerio+turndown
-export const UrlToMarkdownProvider = z.enum(['jina', 'builtin'])
-export type UrlToMarkdownProvider = z.infer<typeof UrlToMarkdownProvider>
-
 export const WebSearchSchema = z.object({
-  perplexityApiKey: z.string().nullish(),
+  braveApiKey: z.string().nullish(),
   country: z.string().nullish(),
   languages: z.array(z.string()).nullish(),
-  urlToMarkdownProvider: UrlToMarkdownProvider.default('jina').nullish(),
   maxResults: formNumber(z.number().gte(1).lte(50)).nullish(),
   recencyFilter: z.enum(['hour', 'day', 'week', 'month', 'year']).nullish(),
   domainFilter: z.string().nullish() // comma-separated domain list

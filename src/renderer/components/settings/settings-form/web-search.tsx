@@ -1,5 +1,5 @@
 import { countryCodes } from '@shared/constants/country-codes'
-import { PERPLEXITY_SEARCH_DOCS } from '@shared/constants/external-urls'
+import { BRAVE_SEARCH_DOCS } from '@shared/constants/external-urls'
 import { languageCodes } from '@shared/constants/language-codes'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { AlertCircleIcon } from 'lucide-react'
@@ -32,11 +32,6 @@ const RECENCY_OPTIONS = [
   { value: 'year', label: 'Past year' }
 ]
 
-const URL_TO_MARKDOWN_PROVIDERS = [
-  { value: 'jina', label: 'Jina (default)' },
-  { value: 'builtin', label: 'Built-in' }
-] as const
-
 type OptionItem = { label: string; value: string }
 
 const countryItems: OptionItem[] = countryCodes.map((c) => ({
@@ -57,17 +52,19 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
       <Alert>
         <AlertCircleIcon className="h-4 w-4" />
         <AlertDescription className="inline">
-          Exodus uses{' '}
+          Exodus uses the{' '}
           <a
-            href={PERPLEXITY_SEARCH_DOCS}
+            href={BRAVE_SEARCH_DOCS}
             target="_blank"
             rel="noopener noreferrer"
             className="font-semibold underline"
           >
-            Perplexity Search
+            Brave Search API
           </a>{' '}
-          for real-time web results with built-in content extraction. A{' '}
-          <strong>Perplexity API Key</strong> is required.
+          for real-time web results, with publisher metadata and og:image
+          previews for citations. A <strong>Brave Search API Key</strong> is
+          required. Each query consumes two API calls (LLM Context + Web Search)
+          — keep that in mind for your subscription tier.
         </AlertDescription>
       </Alert>
 
@@ -75,18 +72,18 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
         {/* API Key */}
         <Controller
           control={form.control}
-          name="webSearch.perplexityApiKey"
+          name="webSearch.braveApiKey"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="Perplexity API Key"
-              description="Required for web search. Get yours at perplexity.ai"
+              label="Brave Search API Key"
+              description="Required for web search. Get yours at api-dashboard.search.brave.com"
               error={fieldState.error}
               layout="vertical"
             >
               <Input
                 type="password"
                 autoComplete="current-password"
-                placeholder="pplx-..."
+                placeholder="BSA..."
                 autoFocus
                 {...field}
                 value={field.value ?? ''}
@@ -258,33 +255,6 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
                 placeholder="e.g. nature.com, .edu, -reddit.com"
                 {...field}
                 value={field.value ?? ''}
-              />
-            </SettingsRow>
-          )}
-        />
-
-        {/* URL to Markdown Provider */}
-        <Controller
-          control={form.control}
-          name="webSearch.urlToMarkdownProvider"
-          render={({ field, fieldState }) => (
-            <SettingsRow
-              label="Web Fetch"
-              description="Used by the Web Fetch tool to convert pages to Markdown."
-              error={fieldState.error}
-            >
-              <SettingsSelect
-                value={field.value ?? 'jina'}
-                onValueChange={(val) =>
-                  form.setValue(
-                    'webSearch.urlToMarkdownProvider',
-                    val as 'jina' | 'builtin'
-                  )
-                }
-                options={URL_TO_MARKDOWN_PROVIDERS.map((p) => ({
-                  value: p.value,
-                  label: p.label
-                }))}
               />
             </SettingsRow>
           )}

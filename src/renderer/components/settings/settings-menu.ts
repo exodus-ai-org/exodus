@@ -29,7 +29,7 @@ export enum SettingsLabel {
   MemoryLayer = 'Memory Layer',
   AudioAndSpeech = 'Audio and Speech',
   ImageGeneration = 'Image Generation',
-  WebSearch = 'Web Search & Fetch',
+  WebSearch = 'Web Search',
   GoogleMaps = 'Google Maps',
   DeepResearch = 'Deep Research',
   BrowserUse = 'Browser Use',

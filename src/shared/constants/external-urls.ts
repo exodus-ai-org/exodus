@@ -21,8 +21,8 @@ export function clawhubSkill(slug: string): string {
 }
 
 // Documentation
-export const PERPLEXITY_SEARCH_DOCS =
-  'https://docs.perplexity.ai/docs/search/quickstart'
+export const BRAVE_SEARCH_DOCS =
+  'https://api-dashboard.search.brave.com/app/documentation/web-search/get-started'
 export const GOOGLE_MAPS_ROUTES_DOCS =
   'https://developers.google.com/maps/documentation/routes/overview'
 export const GOOGLE_MAPS_PLACES_DOCS =

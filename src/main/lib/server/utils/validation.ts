@@ -50,15 +50,15 @@ export function validateOpenAIConfig(setting: Settings) {
 }
 
 /**
- * Validates that Perplexity API key exists.
+ * Validates that the Brave Search API key exists.
  * @throws ConfigurationError if API key is missing
  */
-export function validatePerplexityApiKey(setting: Settings) {
-  if (!setting.webSearch?.perplexityApiKey) {
-    throw new ConfigurationError(ErrorCode.CONFIG_MISSING_PERPLEXITY)
+export function validateBraveApiKey(setting: Settings) {
+  if (!setting.webSearch?.braveApiKey) {
+    throw new ConfigurationError(ErrorCode.CONFIG_MISSING_BRAVE)
   }
 
-  return setting.webSearch.perplexityApiKey
+  return setting.webSearch.braveApiKey
 }
 
 /**

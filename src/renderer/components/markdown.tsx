@@ -68,7 +68,13 @@ const CitationChip = memo(function CitationChip({
     return null
   }
 
-  const favicon = faviconUrl(origin)
+  // Prefer Brave's served favicon (consistent rendering, cached by their CDN);
+  // fall back to a derived favicon URL for legacy results without one.
+  const favicon = source.favicon || faviconUrl(origin)
+  // Badge shows the human-readable publisher name (e.g. "The New York Times")
+  // instead of the article title, which used to read like a sentence and was
+  // both visually noisy and rarely uniquely identifying.
+  const badgeLabel = source.publisher || source.title
 
   return (
     <HoverCard>
@@ -80,7 +86,7 @@ const CitationChip = memo(function CitationChip({
             <a href={source.link} target="_blank" rel="noopener noreferrer" />
           }
         >
-          <span className="truncate">{source.title}</span>
+          <span className="truncate">{badgeLabel}</span>
         </Badge>
       </HoverCardTrigger>
       <HoverCardContent
@@ -362,7 +368,7 @@ export function Markdown({
         )
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
-      th({ className, children, node, ...rest }: any) {
+      th({ className, children, style, node, ...rest }: any) {
         return (
           <th
             {...rest}

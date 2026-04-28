@@ -71,7 +71,7 @@ export function bindCallingTools({
   if (enabled('listDirectory')) tools.push(listDirectory)
   if (enabled('findFiles')) tools.push(findFiles)
   if (enabled('grep')) tools.push(grep)
-  if (enabled('webFetch')) tools.push(webFetch(setting))
+  if (enabled('webFetch')) tools.push(webFetch())
   if (enabled('createArtifact') && chatId) tools.push(createArtifact(chatId))
   if (enabled('webSearch')) tools.push(webSearch(setting))
 

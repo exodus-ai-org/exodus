@@ -16,12 +16,12 @@ export async function deepResearch(
   {
     model,
     apiKey,
-    perplexityApiKey,
+    braveApiKey,
     notify
   }: {
     model: Model<string>
     apiKey: string
-    perplexityApiKey: string
+    braveApiKey: string
     notify: (payload: ReportProgressPayload) => Promise<void>
   }
 ) {
@@ -46,7 +46,7 @@ export async function deepResearch(
       },
       {
         notify,
-        perplexityApiKey,
+        braveApiKey,
         model,
         apiKey
       }
@@ -71,13 +71,13 @@ async function recursiveDeepResearch(
     webSources?: Map<string, WebSearchResult>
   },
   {
-    perplexityApiKey,
+    braveApiKey,
     model,
     apiKey,
     notify
   }: {
     notify: (payload: ReportProgressPayload) => Promise<void>
-    perplexityApiKey: string
+    braveApiKey: string
     model: Model<string>
     apiKey: string
   }
@@ -89,7 +89,7 @@ async function recursiveDeepResearch(
       query: serpQuery.query,
       webSources
     },
-    { perplexityApiKey }
+    { braveApiKey }
   )
   if (!searchResults) return
 
@@ -154,7 +154,7 @@ async function recursiveDeepResearch(
       },
       {
         notify,
-        perplexityApiKey,
+        braveApiKey,
         model,
         apiKey
       }

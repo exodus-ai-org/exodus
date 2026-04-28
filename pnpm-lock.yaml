@@ -62,9 +62,6 @@ importers:
       '@modelcontextprotocol/sdk':
         specifier: ^1.29.0
         version: 1.29.0(@cfworker/json-schema@4.1.1)(zod@4.3.6)
-      '@perplexity-ai/perplexity_ai':
-        specifier: ^0.27.0
-        version: 0.27.0
       cheerio:
         specifier: ^1.2.0
         version: 1.2.0
@@ -2318,9 +2315,6 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [x64]
     os: [win32]
-
-  '@perplexity-ai/perplexity_ai@0.27.0':
-    resolution: {integrity: sha512-iavFLkvSjuja81lSat6+Ewq1aDcxi5kierzhfcet9t2sKlsAXS208Nf+JcXzskquZlHkana3Impn69oMNYpg/w==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -9981,8 +9975,6 @@ snapshots:
 
   '@oxlint/binding-win32-x64-msvc@1.60.0':
     optional: true
-
-  '@perplexity-ai/perplexity_ai@0.27.0': {}
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
