@@ -29,14 +29,14 @@ jobs:
           DISPLAY: ':99'
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
-          PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
+          BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
           GOOGLE_CLOUD: ${{ secrets.GOOGLE_CLOUD }}
       - name: Run API tests
         run: pnpm test:e2e:api
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
-          PERPLEXITY_API_KEY: ${{ secrets.PERPLEXITY_API_KEY }}
+          BRAVE_API_KEY: ${{ secrets.BRAVE_API_KEY }}
           GOOGLE_CLOUD: ${{ secrets.GOOGLE_CLOUD }}
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}

@@ -7,8 +7,12 @@ import { electronTest as test, expect } from '../fixtures/electron'
 import { injectOpenAiProvider } from '../helpers/settings-inject'
 
 test.describe('Chat E2E', () => {
-  test.beforeAll(async () => {
-    // Inject settings via API before UI tests
+  // beforeEach (not beforeAll) so it runs AFTER the per-test electronApp /
+  // mainWindow fixtures — beforeAll runs before any test fixture is set up,
+  // so the Hono server on localhost:60223 doesn't exist yet and the inject
+  // fetch fails with "fetch failed". Pulling in `mainWindow` here forces the
+  // Electron app to be up before we hit its API.
+  test.beforeEach(async ({ mainWindow: _mw }) => {
     const api = new ApiClient()
     await injectOpenAiProvider(api)
   })
