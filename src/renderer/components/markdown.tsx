@@ -310,12 +310,15 @@ export function Markdown({
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
       a({ className, children, node, ...rest }: any) {
+        // Styling lives in globals.css `.markdown a` — primary color, no
+        // underline by default, underline on hover. The previous always-bold
+        // + always-underlined treatment made body text feel cluttered.
         return (
           <a
             {...rest}
             rel="noopener noreferrer"
             target="_blank"
-            className={cn('font-bold wrap-break-word underline', className)}
+            className={className}
           >
             {children}
           </a>
@@ -323,12 +326,12 @@ export function Markdown({
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
       table({ className, children, node, ...rest }: any) {
+        // No outer border / wrapper border — internal row dividers (handled
+        // on thead/tr below) carry the structure. Wider tables still scroll
+        // horizontally via overflow-x-auto without the boxed-in feel.
         return (
-          <div className="mb-4 overflow-x-auto rounded-md border text-sm leading-normal">
-            <table
-              {...rest}
-              className={cn('min-w-full caption-bottom', className)}
-            >
+          <div className="my-4 overflow-x-auto text-sm leading-normal">
+            <table {...rest} className={cn('w-full caption-bottom', className)}>
               {children}
             </table>
           </div>
@@ -337,7 +340,10 @@ export function Markdown({
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
       thead({ className, children, node, ...rest }: any) {
         return (
-          <thead {...rest} className={cn('[&_tr]:border-b', className)}>
+          <thead
+            {...rest}
+            className={cn('[&_tr]:border-border [&_tr]:border-b', className)}
+          >
             {children}
           </thead>
         )
@@ -356,13 +362,7 @@ export function Markdown({
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
       tr({ className, children, node, ...rest }: any) {
         return (
-          <tr
-            {...rest}
-            className={cn(
-              'hover:bg-muted/50 border-b transition-colors',
-              className
-            )}
-          >
+          <tr {...rest} className={cn('border-border border-b', className)}>
             {children}
           </tr>
         )
@@ -373,7 +373,7 @@ export function Markdown({
           <th
             {...rest}
             className={cn(
-              'text-foreground px-3 py-2.5 text-left align-middle font-medium whitespace-nowrap',
+              'text-foreground py-2.5 pr-6 text-left align-top font-medium last:pr-0',
               className
             )}
           >
@@ -386,9 +386,8 @@ export function Markdown({
         return (
           <td
             {...rest}
-            style={{ fontWeight: 400 }}
             className={cn(
-              'text-foreground px-3 py-2 align-middle whitespace-nowrap',
+              'text-foreground py-2.5 pr-6 align-top font-normal last:pr-0',
               className
             )}
           >

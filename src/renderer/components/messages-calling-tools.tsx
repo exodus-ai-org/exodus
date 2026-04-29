@@ -1,12 +1,12 @@
 import type { ChatToolResultMessage } from '@shared/types/chat'
+import { capitalCase } from 'change-case'
 import { AlertCircleIcon } from 'lucide-react'
 import { memo, useEffect } from 'react'
 import { sileo } from 'sileo'
 
 import { ArtifactCard } from './calling-tools/artifact/artifact-card'
 import { DeepResearchCard } from './calling-tools/deep-research/deep-research-card'
-import { GoogleMapsPlacesCard } from './calling-tools/google-maps-places/places-card'
-import { GoogleMapsCard } from './calling-tools/google-maps-routing/routing-card'
+import { MapItineraryCard } from './calling-tools/map-itinerary/itinerary-card'
 import { TerminalCard } from './calling-tools/terminal/terminal-card'
 import { WeatherCard } from './calling-tools/weather/weather-card'
 
@@ -18,6 +18,10 @@ function CallingTools({
   toolResult: ChatToolResultMessage
 }) {
   const toolName = toolResult.toolName
+  // toolName stays canonical (used for dispatch below); toolLabel is the
+  // user-facing form ('webSearch' → 'Web Search') and only flows into the
+  // toast title and the fallback error string.
+  const toolLabel = capitalCase(toolName)
 
   // Successful webSearch results are rendered via Sources in MessageAction, not here
   if (toolName === 'webSearch' && !toolResult.isError) {
@@ -30,14 +34,14 @@ function CallingTools({
         const textBlock = toolResult.content.find((c) => c.type === 'text')
         const text =
           textBlock && textBlock.type === 'text' ? textBlock.text : ''
-        return text && text !== '{}' ? text : `${toolName} failed`
+        return text && text !== '{}' ? text : `${toolLabel} failed`
       })()
     : null
 
   useEffect(() => {
     if (errorMessage) {
       sileo.error({
-        title: `Tool failed: ${toolName}`,
+        title: `Tool failed: ${toolLabel}`,
         description: errorMessage
       })
     }
@@ -83,11 +87,8 @@ function CallingTools({
 
   return (
     <section className="mb-4 w-full">
-      {toolName === 'googleMapsRouting' && (
-        <GoogleMapsCard toolResult={output} />
-      )}
-      {toolName === 'googleMapsPlaces' && (
-        <GoogleMapsPlacesCard toolResult={output} />
+      {toolName === 'mapItinerary' && output?.type === 'mapItinerary' && (
+        <MapItineraryCard toolResult={output} />
       )}
       {toolName === 'weather' && <WeatherCard toolResult={output} />}
       {toolName === 'deepResearch' && <DeepResearchCard toolResult={output} />}

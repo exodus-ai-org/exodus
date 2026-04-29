@@ -82,15 +82,10 @@ export const TOOL_REGISTRY: ToolMeta[] = [
 
   // Maps
   {
-    key: 'googleMapsPlaces',
-    label: 'Google Maps Places',
-    description: 'Search for places and points of interest',
-    group: 'Maps'
-  },
-  {
-    key: 'googleMapsRouting',
-    label: 'Google Maps Routing',
-    description: 'Get directions and route information',
+    key: 'mapItinerary',
+    label: 'Map Itinerary',
+    description:
+      'Render places, routes, and multi-day trips on a single interactive map card',
     group: 'Maps'
   }
 ]

@@ -142,7 +142,10 @@ export function ThinkingTimeline({
       : verb
 
   return (
-    <div className="mb-3">
+    // min-w-0 lets the timeline shrink inside flex parents instead of pushing
+    // them wider when a tool-call URL or path is long. max-w-full clamps it
+    // to the ancestor (e.g. md:max-w-4xl) regardless of intrinsic content.
+    <div className="mb-3 max-w-full min-w-0">
       <button
         className="text-muted-foreground hover:text-foreground flex max-w-full items-center gap-1.5 overflow-hidden text-sm transition-colors"
         onClick={toggleExpanded}
@@ -184,7 +187,10 @@ export function ThinkingTimeline({
                 <TimelineNode key={i} icon={<StepIcon step={step} />}>
                   <div
                     className={cn(
-                      'text-muted-foreground text-sm leading-relaxed [&_h1]:text-sm [&_h2]:text-sm [&_h3]:text-sm [&_h4]:text-sm [&_ol]:my-0.5 [&_ul]:my-0.5 [&_p:first-child]:mt-0 [&_p]:my-0.5',
+                      // min-w-0 break-words: tool-call previews like
+                      // "webFetch: https://…/long-url.pdf" must wrap mid-URL
+                      // instead of overflowing the timeline.
+                      'text-muted-foreground min-w-0 text-sm leading-relaxed wrap-break-word [&_h1]:text-sm [&_h2]:text-sm [&_h3]:text-sm [&_h4]:text-sm [&_ol]:my-0.5 [&_ul]:my-0.5 [&_p:first-child]:mt-0 [&_p]:my-0.5',
                       step.type === 'toolResult' &&
                         step.isError &&
                         'text-destructive'
@@ -194,7 +200,7 @@ export function ThinkingTimeline({
                       <Markdown src={step.text} />
                     ) : (
                       <>
-                        <p>{step.text}</p>
+                        <p className="wrap-break-word">{step.text}</p>
                         {step.codeArgument && (
                           <pre className="bg-muted/50 border-border/60 mt-1 max-h-48 overflow-auto rounded-md border p-2 font-mono text-[11.5px] leading-relaxed wrap-break-word whitespace-pre-wrap">
                             <code>{step.codeArgument}</code>

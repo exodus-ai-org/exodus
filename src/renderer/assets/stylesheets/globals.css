@@ -502,92 +502,116 @@
     app-region: no-drag;
   }
 
-  /* ── Markdown typography (replaces @tailwindcss/typography) ──── */
+  /* ── Markdown typography (replaces @tailwindcss/typography) ───────────────
+     Inspired by chatgpt.com's editorial rhythm: tight headings, asymmetric
+     paragraph spacing, bold list markers, airy borderless tables. */
 
   .markdown {
     color: var(--foreground);
-    line-height: 1.85;
-    font-size: 0.9375rem;
-    letter-spacing: 0.005em;
+    line-height: 1.65;
+    font-size: 1rem;
   }
 
-  /* Headings */
+  /* Headings — semibold, large top margin to break sections, small bottom
+     margin so the heading sits close to the paragraph it introduces.
+     :first-child reset prevents top whitespace at the start of a message. */
   .markdown :where(h1) {
-    font-size: 1.5em;
-    font-weight: 700;
-    margin-top: 1.25em;
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    margin-top: 1.5em;
     margin-bottom: 0.5em;
-    line-height: 1.3;
   }
   .markdown :where(h2) {
-    font-size: 1.25em;
+    font-size: 1.25rem;
     font-weight: 600;
-    margin-top: 1.25em;
-    margin-bottom: 0.5em;
-    line-height: 1.35;
+    line-height: 1.3;
+    margin-top: 1em;
+    margin-bottom: 0.25em;
   }
   .markdown :where(h3) {
-    font-size: 1.1em;
+    font-size: 1.125rem;
     font-weight: 600;
-    margin-top: 1em;
-    margin-bottom: 0.4em;
     line-height: 1.4;
+    margin-top: 1em;
+    margin-bottom: 0.25em;
   }
   .markdown :where(h4, h5, h6) {
     font-weight: 600;
     margin-top: 0.75em;
-    margin-bottom: 0.25em;
+    margin-bottom: 0;
+  }
+  /* h4-as-label: when an h4 sits directly above a paragraph, the paragraph
+     hugs it (no top margin) so the heading reads as the paragraph's caption */
+  .markdown :where(h4 + p, h5 + p, h6 + p) {
+    margin-top: 0;
+  }
+  .markdown :where(h1, h2, h3, h4, h5, h6):first-child {
+    margin-top: 0;
   }
 
-  /* Lists */
+  /* Lists — flush left margin, big bottom margin to separate from next block,
+     tight items, bold markers in the body color */
   .markdown :where(ul) {
     list-style-type: disc;
     padding-left: 1.5em;
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
+    margin: 0 0 1em;
   }
   .markdown :where(ol) {
     list-style-type: decimal;
     padding-left: 1.5em;
-    margin-top: 0.5em;
-    margin-bottom: 0.5em;
+    margin: 0 0 1em;
   }
   .markdown :where(li) {
-    margin-top: 0.25em;
-    margin-bottom: 0.25em;
+    margin: 0;
+    line-height: 2;
   }
   .markdown :where(li)::marker {
-    color: var(--muted-foreground);
+    font-weight: 700;
+    color: currentColor;
+  }
+  /* Paragraphs that immediately follow a list shouldn't double the gap */
+  .markdown :where(p + ul, p + ol) {
+    margin-top: 0;
   }
 
-  /* Horizontal rule */
+  /* Horizontal rule — generous breathing room so it reads as a section break */
   .markdown :where(hr) {
-    border-color: var(--border);
-    margin-top: 1.5em;
-    margin-bottom: 1.5em;
+    border: 0;
+    border-top: 1px solid var(--border);
+    margin: 1.75em 0;
   }
 
-  /* Strong / bold */
+  /* Strong / bold — semibold, not heavy */
   .markdown :where(strong) {
     font-weight: 600;
   }
 
-  /* Links */
+  /* Links — subtle by default, underline only on hover. The previous bold +
+     always-underline made body text feel cluttered with citations and
+     inline references. */
   .markdown :where(a) {
     color: var(--primary);
+    text-decoration: none;
+    overflow-wrap: break-word;
+  }
+  .markdown :where(a):hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
   }
 
-  /* Inline code: chip style */
+  /* Inline code — chip style, kept distinctive */
   .markdown :where(code):not(:where(pre *)) {
     background: var(--accent);
     color: var(--primary);
     border-radius: 0.25rem;
     padding: 0.15em 0.35em;
-    font-size: 0.8em;
-    font-weight: 400;
+    font-size: 0.85em;
+    font-weight: 500;
   }
 
-  /* Code blocks: border + rounded wrapper; SyntaxHighlighter supplies the bg */
+  /* Code blocks — bordered wrapper; SyntaxHighlighter supplies the bg */
   .markdown :where(pre) {
     background: transparent;
     padding: 0;
@@ -595,17 +619,20 @@
     border: 1px solid var(--border);
     border-radius: 0.5rem;
     overflow: hidden;
-    margin-top: 0.75em;
-    margin-bottom: 0.75em;
+    margin: 0.75em 0;
   }
 
-  /* Paragraphs: pre-wrap so literal newlines render */
+  /* Paragraphs — tight by default; consecutive paragraphs get a real gap so
+     paragraph-stack rhythm is visible. pre-wrap honors literal newlines from
+     LLM output. */
   .markdown :where(p) {
     white-space: pre-wrap;
     overflow-wrap: break-word;
     word-break: break-word;
+    margin: 0.25em 0;
+  }
+  .markdown :where(p + p) {
     margin-top: 1em;
-    margin-bottom: 1em;
   }
   .markdown :where(p):first-child {
     margin-top: 0;
@@ -614,23 +641,28 @@
     margin-bottom: 0;
   }
 
-  /* Blockquote: gradient accent bar, no italic */
+  /* Blockquote — a single gradient pill on the inside-start edge. The pill
+     is vertically inset so it doesn't run into adjacent block edges, and its
+     rounded ends give it a finished feel rather than a flat border-left. */
   .markdown :where(blockquote) {
     font-style: normal;
-    border-left: none;
-    padding-left: 1rem;
+    border: 0;
+    padding: 0.25em 0 0.25em 1.25em;
     position: relative;
-    margin-top: 0.75em;
-    margin-bottom: 0.75em;
+    margin: 0.5em 0;
   }
   .markdown :where(blockquote)::before {
     content: '';
     position: absolute;
-    inset-block: 0;
+    inset-block: 0.4em;
     left: 0;
     width: 3px;
     background: linear-gradient(to bottom, var(--primary), var(--ring));
-    border-radius: 2px;
+    border-radius: 999px;
+  }
+  .markdown :where(blockquote > p) {
+    margin: 0;
+    font-weight: 400;
   }
 
   .tiptap {

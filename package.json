@@ -94,6 +94,7 @@
     "@vis.gl/react-google-maps": "^1.8.3",
     "@vitejs/plugin-react": "^6.0.1",
     "@xyflow/react": "^12.10.2",
+    "change-case": "^5.4.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
