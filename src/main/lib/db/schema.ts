@@ -202,6 +202,8 @@ export const mcpServer = pgTable('mcp_server', {
   // Remote fields (sse / streamable-http)
   url: text('url'),
   headers: jsonb('headers').$type<Record<string, string>>(),
+  // Arbitrary extra fields merged into the JSON export (e.g. oauth, httpUrl)
+  extraConfig: jsonb('extraConfig').$type<Record<string, unknown>>(),
   isActive: boolean('isActive').default(false),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull()

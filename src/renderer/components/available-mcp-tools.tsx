@@ -2,6 +2,7 @@ import { HammerIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import useSWR from 'swr'
 
+import Markdown from '@/components/markdown'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -78,9 +79,13 @@ export function AvailableMcpTools() {
                 {tools.map((tool) => (
                   <div key={tool.name} className="flex flex-col gap-0.5">
                     <p className="text-sm font-medium">{tool.name}</p>
-                    <p className="text-muted-foreground text-xs">
-                      {tool.description || `No description for ${tool.name}.`}
-                    </p>
+                    <div className="[&_.markdown]:text-muted-foreground [&_.markdown]:text-xs [&_.markdown]:leading-snug [&_.markdown_li]:leading-normal [&_.markdown_ol]:mb-0.5 [&_.markdown_ul]:mb-0.5">
+                      <Markdown
+                        src={
+                          tool.description || `No description for ${tool.name}.`
+                        }
+                      />
+                    </div>
                   </div>
                 ))}
               </div>

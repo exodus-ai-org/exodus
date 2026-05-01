@@ -1,27 +1,15 @@
 import { APIProvider, Map } from '@vis.gl/react-google-maps'
 import { CheckIcon, CopyIcon, ExternalLinkIcon } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 
 import { useClipboard } from '@/hooks/use-clipboard'
 import { useSettings } from '@/hooks/use-settings'
 import { cn } from '@/lib/utils'
 
+import { useTheme } from '../../theme-provider'
 import { DayLayer } from './day-layer'
-import { type ItineraryPlace, PlaceItem } from './place-item'
-
-type ItineraryDay = {
-  label: string
-  title?: string
-  summary?: string
-  routeMode?: 'walking' | 'driving' | 'transit'
-  places: ItineraryPlace[]
-}
-
-type MapItineraryDetails = {
-  type: 'mapItinerary'
-  title?: string
-  days: ItineraryDay[]
-}
+import { PlaceDetail } from './place-detail'
+import type { ItineraryDay, MapItineraryDetails } from './types'
 
 const MODE_TO_GMAPS_PARAM: Record<
   NonNullable<ItineraryDay['routeMode']>,
@@ -32,9 +20,16 @@ const MODE_TO_GMAPS_PARAM: Record<
   transit: 'transit'
 }
 
+// Map static props hoisted to module scope so they don't allocate fresh
+// objects on every render — saves React from comparing identity-different
+// but value-equal objects, and makes it obvious these are inert.
+const MAP_DEFAULT_CENTER = { lat: 0, lng: 0 }
+const MAP_DEFAULT_ZOOM = 2
+const MAP_LIBRARIES: ['geometry'] = ['geometry']
+const MAP_ID = 'exodus-itinerary'
+
 /** Build a Google Maps deep-link that opens the day's route with all
- *  waypoints in order. Single-place days drop into search mode instead of
- *  routing mode (a route to yourself isn't useful). */
+ *  waypoints in order. */
 function buildGoogleMapsUrl(day: ItineraryDay): string | null {
   const places = day.places
   if (places.length === 0) return null
@@ -77,8 +72,11 @@ function buildDayMarkdown(day: ItineraryDay): string {
       if (p.timeLabel) meta.push(p.timeLabel)
       if (meta.length) lines.push(`   ${meta.join(' · ')}`)
       if (p.note) lines.push(`   ${p.note}`)
+      if (p.address) lines.push(`   ${p.address}`)
+      if (p.phone) lines.push(`   ${p.phone}`)
+      if (p.websiteUri) lines.push(`   ${p.websiteUri}`)
       lines.push(
-        `   https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`
+        `   ${p.googleMapsUri ?? `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`}`
       )
       return lines.join('\n')
     })
@@ -86,28 +84,106 @@ function buildDayMarkdown(day: ItineraryDay): string {
   return `${header}${summary}\n${places}`
 }
 
-export function MapItineraryCard({
+/** Inner Map subtree, isolated and memoized so interactive state in the
+ *  parent (focusedPlaceIdx, copy-button confirm flash) doesn't trigger a
+ *  Map re-render. The Map itself is the most expensive thing in this card
+ *  by far — keeping its prop set stable avoids any chance of remount. */
+const MapSurface = memo(function MapSurface({
+  apiKey,
+  colorScheme,
+  activeDayIdx,
+  places,
+  focusedIdx,
+  onMarkerClick
+}: {
+  apiKey: string
+  colorScheme: 'LIGHT' | 'DARK'
+  activeDayIdx: number
+  places: ItineraryDay['places']
+  focusedIdx: number | null
+  onMarkerClick: (idx: number) => void
+}) {
+  return (
+    <APIProvider apiKey={apiKey} libraries={MAP_LIBRARIES}>
+      <Map
+        defaultCenter={MAP_DEFAULT_CENTER}
+        defaultZoom={MAP_DEFAULT_ZOOM}
+        gestureHandling="greedy"
+        disableDefaultUI={true}
+        mapId={MAP_ID}
+        colorScheme={colorScheme}
+        className="h-full w-full"
+      >
+        <DayLayer
+          key={activeDayIdx}
+          places={places}
+          focusedIdx={focusedIdx}
+          onMarkerClick={onMarkerClick}
+        />
+      </Map>
+    </APIProvider>
+  )
+})
+
+function MapItineraryCardImpl({
   toolResult
 }: {
   toolResult: MapItineraryDetails
 }) {
   const { data: settings } = useSettings()
   const { copied, handleCopy } = useClipboard()
+  const { actualTheme } = useTheme()
 
   const [activeDayIdx, setActiveDayIdx] = useState(0)
-  const [focusedPlaceIdx, setFocusedPlaceIdx] = useState<number | null>(null)
+  // Default to the first place of the first day so the detail card is
+  // visible from initial render — matches the reference design.
+  const [focusedPlaceIdx, setFocusedPlaceIdx] = useState<number | null>(0)
 
   const activeDay = toolResult.days[activeDayIdx] ?? toolResult.days[0]
 
   const onSelectDay = useCallback((idx: number) => {
     setActiveDayIdx(idx)
-    setFocusedPlaceIdx(null)
+    // Reset to the first place of the new day (not null) so the detail
+    // card stays open as the user tabs through days.
+    setFocusedPlaceIdx(0)
   }, [])
+
+  const onPrev = useCallback(() => {
+    if (!activeDay) return
+    setFocusedPlaceIdx((prev) => {
+      const total = activeDay.places.length
+      if (total === 0) return null
+      const current = prev ?? 0
+      return (current - 1 + total) % total
+    })
+  }, [activeDay])
+
+  const onNext = useCallback(() => {
+    if (!activeDay) return
+    setFocusedPlaceIdx((prev) => {
+      const total = activeDay.places.length
+      if (total === 0) return null
+      const current = prev ?? -1
+      return (current + 1) % total
+    })
+  }, [activeDay])
+
+  // Esc dismisses the detail card.
+  useEffect(() => {
+    if (focusedPlaceIdx == null) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setFocusedPlaceIdx(null)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [focusedPlaceIdx])
 
   const onCopy = useCallback(() => {
     if (!activeDay) return
     handleCopy(buildDayMarkdown(activeDay))
-  }, [activeDay, activeDayIdx, handleCopy])
+  }, [activeDay, handleCopy])
+
+  const onMarkerClick = useCallback((i: number) => setFocusedPlaceIdx(i), [])
 
   const gmapsUrl = useMemo(
     () => (activeDay ? buildGoogleMapsUrl(activeDay) : null),
@@ -115,6 +191,7 @@ export function MapItineraryCard({
   )
 
   const apiKey = settings?.googleCloud?.googleApiKey
+  const colorScheme = actualTheme === 'dark' ? 'DARK' : 'LIGHT'
 
   if (!apiKey) {
     return (
@@ -126,131 +203,99 @@ export function MapItineraryCard({
 
   if (!activeDay) return null
 
+  const focusedPlace =
+    focusedPlaceIdx != null ? activeDay.places[focusedPlaceIdx] : null
+  const copyMarkdown = buildDayMarkdown(activeDay)
+
   return (
-    <div className="border-border bg-card overflow-hidden rounded-xl border shadow-sm">
-      {toolResult.title && (
-        <div className="border-border border-b px-4 py-2.5">
-          <h3 className="text-foreground text-sm font-semibold">
-            {toolResult.title}
-          </h3>
-        </div>
-      )}
+    <div className="border-border bg-card relative overflow-hidden rounded-2xl border shadow-sm">
+      <div className="relative h-120 w-full">
+        <MapSurface
+          apiKey={apiKey}
+          colorScheme={colorScheme}
+          activeDayIdx={activeDayIdx}
+          places={activeDay.places}
+          focusedIdx={focusedPlaceIdx}
+          onMarkerClick={onMarkerClick}
+        />
 
-      {/* Tab strip — only shown when there's more than one day */}
-      {toolResult.days.length > 1 && (
-        <div
-          role="tablist"
-          aria-label="Itinerary days"
-          className="border-border bg-muted/40 flex gap-1 overflow-x-auto border-b px-2 py-1.5"
-        >
-          {toolResult.days.map((day, i) => {
-            const active = i === activeDayIdx
-            return (
-              <button
-                key={i}
-                role="tab"
-                aria-selected={active}
-                type="button"
-                onClick={() => onSelectDay(i)}
-                className={cn(
-                  'shrink-0 rounded-md px-3 py-1 text-xs font-medium transition-colors',
-                  active
-                    ? 'bg-background text-foreground shadow-sm'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-background/60'
-                )}
-              >
-                {day.label}
-              </button>
-            )
-          })}
-        </div>
-      )}
-
-      {/* Body — map left, side panel right. h-[420px] gives the map enough
-          room without dwarfing the surrounding chat. */}
-      <div className="flex h-[420px] flex-col md:flex-row">
-        <div className="relative min-h-[240px] flex-1">
-          <APIProvider apiKey={apiKey} libraries={['geometry']}>
-            <Map
-              defaultCenter={{ lat: 0, lng: 0 }}
-              defaultZoom={2}
-              gestureHandling="greedy"
-              disableDefaultUI={true}
-              mapId="exodus-itinerary"
-              className="h-full w-full"
-            >
-              <DayLayer
-                key={activeDayIdx}
-                places={activeDay.places}
-                focusedIdx={focusedPlaceIdx}
-                onMarkerClick={(i) => setFocusedPlaceIdx(i)}
-              />
-            </Map>
-          </APIProvider>
-        </div>
-
-        <div className="border-border bg-card flex w-full shrink-0 flex-col border-t md:w-80 md:border-t-0 md:border-l">
-          <div className="border-border space-y-2 border-b px-4 py-3">
-            <div className="text-muted-foreground text-[10px] tracking-widest uppercase">
-              {activeDay.label}
-            </div>
-            {activeDay.title && (
-              <div className="text-foreground text-base leading-snug font-semibold">
-                {activeDay.title}
-              </div>
-            )}
-            {activeDay.summary && (
-              <p className="text-muted-foreground text-xs leading-relaxed">
-                {activeDay.summary}
-              </p>
-            )}
-            <div className="flex items-center gap-2 pt-1">
-              {gmapsUrl && (
-                <a
-                  href={gmapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="bg-primary text-primary-foreground hover:bg-primary/90 inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-colors"
+        {/* Floating tab strip — only rendered for >1 day. */}
+        {toolResult.days.length > 1 && (
+          <div
+            role="tablist"
+            aria-label="Itinerary days"
+            className="bg-background/85 absolute top-3 left-3 z-10 flex gap-1 overflow-x-auto rounded-full p-1 shadow-md backdrop-blur"
+          >
+            {toolResult.days.map((day, i) => {
+              const active = i === activeDayIdx
+              return (
+                <button
+                  key={i}
+                  role="tab"
+                  aria-selected={active}
+                  type="button"
+                  onClick={() => onSelectDay(i)}
+                  className={cn(
+                    'shrink-0 rounded-full px-3 py-1 text-xs font-medium transition-colors',
+                    active
+                      ? 'bg-foreground text-background'
+                      : 'text-muted-foreground hover:text-foreground'
+                  )}
                 >
-                  <ExternalLinkIcon size={12} />
-                  Open in Google Maps
-                </a>
-              )}
-              <button
-                type="button"
-                onClick={onCopy}
-                className="border-border text-muted-foreground hover:text-foreground hover:bg-muted/60 inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1 text-xs font-medium transition-colors"
-              >
-                {copied === buildDayMarkdown(activeDay) ? (
-                  <>
-                    <CheckIcon size={12} />
-                    Copied
-                  </>
-                ) : (
-                  <>
-                    <CopyIcon size={12} />
-                    Copy
-                  </>
-                )}
-              </button>
-            </div>
+                  {day.label}
+                </button>
+              )
+            })}
           </div>
+        )}
 
-          <div className="flex-1 overflow-y-auto p-2">
-            {activeDay.places.map((place, i) => (
-              <PlaceItem
-                key={`${place.lat}-${place.lng}-${i}`}
-                place={place}
-                index={i}
-                isFocused={focusedPlaceIdx === i}
-                onHover={() => setFocusedPlaceIdx(i)}
-                onLeave={() => setFocusedPlaceIdx(null)}
-                onClick={() => setFocusedPlaceIdx(i)}
-              />
-            ))}
+        {/* Per-day actions — only when no detail card is open. */}
+        {!focusedPlace && (
+          <div className="absolute top-3 right-3 z-10 flex items-center gap-1.5">
+            {gmapsUrl && (
+              <a
+                href={gmapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Open route in Google Maps"
+                className="bg-background/85 text-foreground hover:bg-background flex size-8 items-center justify-center rounded-full shadow-md backdrop-blur transition-colors"
+              >
+                <ExternalLinkIcon size={14} />
+              </a>
+            )}
+            <button
+              type="button"
+              onClick={onCopy}
+              title="Copy day as markdown"
+              className="bg-background/85 text-foreground hover:bg-background flex size-8 items-center justify-center rounded-full shadow-md backdrop-blur transition-colors"
+            >
+              {copied === copyMarkdown ? (
+                <CheckIcon size={14} />
+              ) : (
+                <CopyIcon size={14} />
+              )}
+            </button>
           </div>
-        </div>
+        )}
+
+        {focusedPlace && focusedPlaceIdx != null && (
+          <PlaceDetail
+            place={focusedPlace}
+            dayLabel={activeDay.label}
+            index={focusedPlaceIdx}
+            total={activeDay.places.length}
+            onPrev={onPrev}
+            onNext={onNext}
+            onClose={() => setFocusedPlaceIdx(null)}
+          />
+        )}
       </div>
     </div>
   )
 }
+
+// Memoize the whole card so any parent re-renders during streaming (the
+// chat surface re-renders on every token) don't reach into this subtree.
+// `toolResult` is a stable reference once the tool resolves, so default
+// shallow comparison is correct.
+export const MapItineraryCard = memo(MapItineraryCardImpl)
