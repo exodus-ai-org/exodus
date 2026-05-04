@@ -49,7 +49,7 @@
     "@langchain/core": "^1.1.40",
     "@langchain/textsplitters": "^1.0.1",
     "@mariozechner/pi-agent-core": "^0.67.3",
-    "@mariozechner/pi-ai": "^0.67.3",
+    "@mariozechner/pi-ai": "^0.72.1",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "cheerio": "^1.2.0",
     "date-fns": "^4.1.0",
