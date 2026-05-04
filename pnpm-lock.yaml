@@ -131,10 +131,10 @@ importers:
         version: 1.59.1
       '@react-three/drei':
         specifier: ^10.7.7
-        version: 10.7.7(@react-three/fiber@9.6.0(@types/react@19.2.14)(immer@11.1.4)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(three@0.183.2))(@types/react@19.2.14)(@types/three@0.183.1)(immer@11.1.4)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(three@0.183.2)
+        version: 10.7.7(@react-three/fiber@9.6.1(@types/react@19.2.14)(immer@11.1.4)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(three@0.183.2))(@types/react@19.2.14)(@types/three@0.183.1)(immer@11.1.4)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(three@0.183.2)
       '@react-three/fiber':
-        specifier: ^9.6.0
-        version: 9.6.0(@types/react@19.2.14)(immer@11.1.4)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(three@0.183.2)
+        specifier: ^9.6.1
+        version: 9.6.1(@types/react@19.2.14)(immer@11.1.4)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(three@0.183.2)
       '@semantic-release/changelog':
         specifier: ^6.0.3
         version: 6.0.3(semantic-release@25.0.3(typescript@6.0.2))
@@ -2550,8 +2550,8 @@ packages:
       react-dom:
         optional: true
 
-  '@react-three/fiber@9.6.0':
-    resolution: {integrity: sha512-90abYK2q5/qDM+GACs9zRvc5KhEEpEWqWlHSd64zTPNxg+9wCJvTfyD9x2so7hlQhjRYO1Fa6flR3BC/kpTFkA==}
+  '@react-three/fiber@9.6.1':
+    resolution: {integrity: sha512-zF0rsKcVYpcJwbFEnv2HkHX9cvOEgsfQo/X8lwmR2dn13S4qEQJXir9fxf5js2LQFoXqxOY7MDkOkYx2uZ4gSg==}
     peerDependencies:
       expo: '>=43.0'
       expo-asset: '>=8.4'
@@ -7668,6 +7668,7 @@ packages:
 
   uuid@10.0.0:
     resolution: {integrity: sha512-8XkAphELsDnEGrDxUOHB3RGvXz6TeuYSGEZBOjtTtPm2lwhGBjLgOzLHB63IUWfBpNucQjND6d3AOudO+H3RWQ==}
+    deprecated: uuid@10 and below is no longer supported.  For ESM codebases, update to uuid@latest.  For CommonJS codebases, use uuid@11 (but be aware this version will likely be deprecated in 2028).
     hasBin: true
 
   uuid@11.1.0:
@@ -10142,12 +10143,12 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.14
 
-  '@react-three/drei@10.7.7(@react-three/fiber@9.6.0(@types/react@19.2.14)(immer@11.1.4)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(three@0.183.2))(@types/react@19.2.14)(@types/three@0.183.1)(immer@11.1.4)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(three@0.183.2)':
+  '@react-three/drei@10.7.7(@react-three/fiber@9.6.1(@types/react@19.2.14)(immer@11.1.4)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(three@0.183.2))(@types/react@19.2.14)(@types/three@0.183.1)(immer@11.1.4)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(three@0.183.2)':
     dependencies:
       '@babel/runtime': 7.29.2
       '@mediapipe/tasks-vision': 0.10.17
       '@monogrid/gainmap-js': 3.4.0(three@0.183.2)
-      '@react-three/fiber': 9.6.0(@types/react@19.2.14)(immer@11.1.4)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(three@0.183.2)
+      '@react-three/fiber': 9.6.1(@types/react@19.2.14)(immer@11.1.4)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(three@0.183.2)
       '@use-gesture/react': 10.3.1(react@19.2.5)
       camera-controls: 3.1.2(three@0.183.2)
       cross-env: 7.0.3
@@ -10175,7 +10176,7 @@ snapshots:
       - '@types/three'
       - immer
 
-  '@react-three/fiber@9.6.0(@types/react@19.2.14)(immer@11.1.4)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(three@0.183.2)':
+  '@react-three/fiber@9.6.1(@types/react@19.2.14)(immer@11.1.4)(react-dom@19.2.5(react@19.2.5))(react@19.2.5)(three@0.183.2)':
     dependencies:
       '@babel/runtime': 7.29.2
       '@types/webxr': 0.5.24
