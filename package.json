@@ -43,7 +43,7 @@
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
     "@googlemaps/places": "^2.4.0",
-    "@googlemaps/routing": "^2.2.0",
+    "@googlemaps/routing": "^2.2.1",
     "@hono/node-server": "^1.19.14",
     "@langchain/community": "^1.1.27",
     "@langchain/core": "^1.1.40",
