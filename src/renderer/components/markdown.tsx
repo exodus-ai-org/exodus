@@ -61,32 +61,27 @@ const CitationChip = memo(function CitationChip({
 }: {
   source: WebSearchResult
 }) {
-  let origin = ''
+  let hostname = ''
+  let favicon = ''
   try {
-    origin = new URL(source.link).origin
+    const url = new URL(source.link)
+    hostname = url.hostname
+    favicon = faviconUrl(url.origin)
   } catch {
-    return null
+    hostname = source.link
   }
-
-  // Prefer Brave's served favicon (consistent rendering, cached by their CDN);
-  // fall back to a derived favicon URL for legacy results without one.
-  const favicon = source.favicon || faviconUrl(origin)
-  // Badge shows the human-readable publisher name (e.g. "The New York Times")
-  // instead of the article title, which used to read like a sentence and was
-  // both visually noisy and rarely uniquely identifying.
-  const badgeLabel = source.publisher || source.title
 
   return (
     <HoverCard>
       <HoverCardTrigger>
         <Badge
           variant="secondary"
-          className="ml-1 max-w-22 cursor-pointer align-middle text-[0.625rem] no-underline"
+          className="ml-1 cursor-pointer align-middle text-[0.625rem] no-underline"
           render={
             <a href={source.link} target="_blank" rel="noopener noreferrer" />
           }
         >
-          <span className="truncate">{badgeLabel}</span>
+          <span className="max-w-22 truncate">{source.title}</span>
         </Badge>
       </HoverCardTrigger>
       <HoverCardContent
@@ -95,25 +90,21 @@ const CitationChip = memo(function CitationChip({
         className="w-72 overflow-hidden rounded-xl border p-0 shadow-lg"
       >
         <a href={source.link} target="_blank" rel="noopener noreferrer">
-          {source.ogImage && (
-            <img
-              src={source.ogImage}
-              alt={source.title}
-              loading="lazy"
-              className="h-32 w-full object-cover"
-            />
-          )}
           <div className="flex flex-col gap-1 p-3">
-            <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
-              <img src={favicon} className="size-3" alt="" />
-              {new URL(source.link).hostname}
+            <div className="text-muted-foreground flex items-center gap-1.5 truncate text-xs">
+              {favicon && (
+                <img src={favicon} className="size-3 shrink-0" alt="" />
+              )}
+              {hostname}
             </div>
             <div className="line-clamp-2 text-sm leading-snug font-semibold">
               {source.title}
             </div>
-            <div className="text-muted-foreground line-clamp-3 text-xs leading-relaxed">
-              {source.snippet}
-            </div>
+            {source.snippet && (
+              <div className="text-muted-foreground line-clamp-3 text-xs leading-relaxed">
+                {source.snippet}
+              </div>
+            )}
           </div>
         </a>
       </HoverCardContent>

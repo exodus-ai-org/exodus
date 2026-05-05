@@ -60,7 +60,7 @@ export function bindCallingTools({
   const tools: ErasedTool[] = []
 
   if (enabled('weather')) tools.push(weather)
-  if (enabled('mapItinerary')) tools.push(mapItinerary)
+  if (enabled('mapItinerary')) tools.push(mapItinerary(setting))
   if (enabled('imageGeneration')) tools.push(imageGeneration(setting))
   if (enabled('terminal')) tools.push(terminal)
   if (enabled('readFile')) tools.push(readFile)

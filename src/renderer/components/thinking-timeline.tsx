@@ -60,7 +60,9 @@ const SearchResultItem = memo(function SearchResultItem({
       rel="noopener noreferrer"
       className="hover:bg-accent flex items-center gap-2 rounded-md px-2 py-1"
     >
-      <img src={favicon} alt="" className="size-3.5 shrink-0 rounded-full" />
+      {favicon && (
+        <img src={favicon} alt="" className="size-3.5 shrink-0 rounded-full" />
+      )}
       <span className="min-w-0 flex-1 truncate text-xs">{item.title}</span>
       <span className="text-muted-foreground shrink-0 text-[10px]">
         {hostname}

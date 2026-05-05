@@ -1,0 +1,26 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": [
+    "src/main/index.ts",
+    "src/preload/index.ts",
+    "src/renderer/main.tsx",
+    "src/renderer/sub-apps/artifacts/main.tsx",
+    "src/renderer/sub-apps/quick-chat/main.tsx",
+    "src/renderer/sub-apps/searchbar/main.tsx",
+    "tests/**/*.spec.ts",
+    "tests/**/*.test.ts",
+    "src/**/*.test.ts",
+    "electron.vite.config.ts",
+    "drizzle.config.ts",
+    "vitest.config.ts",
+    "playwright.config.ts"
+  ],
+  "project": ["src/**/*.{ts,tsx}", "tests/**/*.ts"],
+  "ignore": [
+    "src/renderer/components/ui/**",
+    "resources/drizzle/**",
+    "packages/**"
+  ],
+  "ignoreDependencies": ["dotenv"],
+  "ignoreBinaries": ["xvfb-run"]
+}

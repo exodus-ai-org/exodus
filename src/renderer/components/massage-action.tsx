@@ -56,7 +56,7 @@ export function MessageActionItem({
   )
 }
 
-// ─── Stacked Favicons Button ────────────────────────────────────────────────
+// ─── Sources Button ─────────────────────────────────────────────────────────
 
 function SourcesButton({
   webSearchResults,
