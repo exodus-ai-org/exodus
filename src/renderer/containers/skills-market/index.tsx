@@ -13,7 +13,7 @@ import {
   TriangleAlertIcon
 } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
-import { toast } from 'sonner'
+import { sileo } from 'sileo'
 import useSWR from 'swr'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -95,10 +95,10 @@ export function SkillsMarket() {
       try {
         await installSkill(skill.slug, skill.displayName, version)
         await mutateInstalled()
-        toast.success(`"${skill.displayName}" installed successfully`)
+        sileo.success({ title: `"${skill.displayName}" installed` })
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Install failed'
-        toast.error(msg)
+        sileo.error({ title: 'Install failed', description: msg })
         console.error(e)
       } finally {
         setPendingSlug(null)
@@ -117,10 +117,10 @@ export function SkillsMarket() {
       try {
         await installSkill(slug, displayName, version)
         await mutateInstalled()
-        toast.success(`"${displayName}" installed successfully`)
+        sileo.success({ title: `"${displayName}" installed` })
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Install failed'
-        toast.error(msg)
+        sileo.error({ title: 'Install failed', description: msg })
         console.error(e)
       } finally {
         setPendingSlug(null)
@@ -135,10 +135,10 @@ export function SkillsMarket() {
       try {
         await uninstallSkill(slug)
         await mutateInstalled()
-        toast.success('Skill uninstalled')
+        sileo.success({ title: 'Skill uninstalled' })
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Uninstall failed'
-        toast.error(msg)
+        sileo.error({ title: 'Uninstall failed', description: msg })
         console.error(e)
       } finally {
         setPendingSlug(null)
@@ -154,7 +154,7 @@ export function SkillsMarket() {
         await mutateInstalled()
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Failed to update skill'
-        toast.error(msg)
+        sileo.error({ title: 'Failed to update skill', description: msg })
         console.error(e)
       }
     },
@@ -168,10 +168,10 @@ export function SkillsMarket() {
     try {
       const installed = await installFromLocalPath(path)
       await mutateInstalled()
-      toast.success(`"${installed.displayName}" installed successfully`)
+      sileo.success({ title: `"${installed.displayName}" installed` })
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Install failed'
-      toast.error(msg)
+      sileo.error({ title: 'Install failed', description: msg })
     } finally {
       setUploading(false)
     }

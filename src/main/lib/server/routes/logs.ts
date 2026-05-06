@@ -3,7 +3,7 @@ import { join } from 'path'
 
 import { Hono } from 'hono'
 
-import type { LogEntry, LogLevel } from '../../logger'
+import { localDateStr, type LogEntry, type LogLevel } from '../../logger'
 import { getLogsDir } from '../../paths'
 
 const LEVEL_PRIORITY: Record<LogLevel, number> = {
@@ -32,7 +32,7 @@ const logsRouter = new Hono()
 
 // GET /api/logs — query log entries
 logsRouter.get('/', (c) => {
-  const date = c.req.query('date') || new Date().toISOString().slice(0, 10)
+  const date = c.req.query('date') || localDateStr()
   const level = c.req.query('level') as LogLevel | undefined
   const surface = c.req.query('surface')
   const keyword = c.req.query('keyword')?.toLowerCase()
@@ -87,7 +87,7 @@ logsRouter.get('/dates', (c) => {
 
 // GET /api/logs/export — download a day's log file
 logsRouter.get('/export', (c) => {
-  const date = c.req.query('date') || new Date().toISOString().slice(0, 10)
+  const date = c.req.query('date') || localDateStr()
   const filePath = join(getLogsDir(), `${date}.jsonl`)
 
   if (!existsSync(filePath)) {

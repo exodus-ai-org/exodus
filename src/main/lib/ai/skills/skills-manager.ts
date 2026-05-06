@@ -110,10 +110,28 @@ export async function installSkill(
   const skillsDir = getSkillsDir()
   const skillDir = join(skillsDir, slug)
 
+  // The download endpoint requires a concrete semver — `version=latest` 404s.
+  // Search results sometimes ship `version: null`, in which case the caller
+  // forwards the literal "latest" sentinel; resolve it via the detail endpoint
+  // before downloading.
+  let resolvedVersion = version
+  if (!resolvedVersion || resolvedVersion === 'latest') {
+    const detailUrl = new URL(`/api/v1/skills/${slug}`, CLAWHUB_HOMEPAGE)
+    const detailRes = await fetch(detailUrl.toString())
+    if (!detailRes.ok)
+      throw new Error(`Failed to resolve latest version for ${slug}`)
+    const detail = (await detailRes.json()) as {
+      latestVersion?: { version?: string }
+    }
+    if (!detail.latestVersion?.version)
+      throw new Error(`No published version found for ${slug}`)
+    resolvedVersion = detail.latestVersion.version
+  }
+
   // Download ZIP
   const url = new URL('/api/v1/download', CLAWHUB_HOMEPAGE)
   url.searchParams.set('slug', slug)
-  url.searchParams.set('version', version)
+  url.searchParams.set('version', resolvedVersion)
   const res = await fetch(url.toString())
   if (!res.ok)
     throw new Error(`Failed to download skill ${slug}: ${res.status}`)
@@ -134,7 +152,7 @@ export async function installSkill(
   const lock = await readLockfile()
   const installed: Omit<InstalledSkill, 'slug'> = {
     displayName,
-    version,
+    version: resolvedVersion,
     isActive: true,
     installPath: skillDir,
     installedAt: Date.now()
@@ -303,7 +321,10 @@ export async function getSkillsContentBySlugs(
     try {
       const skillMd = join(info.installPath, 'SKILL.md')
       const content = await readFile(skillMd, 'utf-8')
-      const body = content.replace(/^---[\s\S]*?---\n?/, '').trim()
+      const body = content
+        .replace(/^---[\s\S]*?---\n?/, '')
+        .replace(/\$\{SKILL_DIR\}|\$SKILL_DIR/g, info.installPath)
+        .trim()
       if (body) contents.push(`<skill name="${slug}">\n${body}\n</skill>`)
     } catch {
       // skill file missing, skip
@@ -322,8 +343,14 @@ export async function getActiveSkillsContent(): Promise<string> {
     try {
       const skillMd = join(info.installPath, 'SKILL.md')
       const content = await readFile(skillMd, 'utf-8')
-      // Strip frontmatter
-      const body = content.replace(/^---[\s\S]*?---\n?/, '').trim()
+      const body = content
+        .replace(/^---[\s\S]*?---\n?/, '')
+        // OpenClaw skills reference scripts via $SKILL_DIR / ${SKILL_DIR}, but
+        // our terminal tool runs raw shell with no such env var pre-set. Bake
+        // the install path into the example commands so the model sees
+        // ready-to-run absolute paths.
+        .replace(/\$\{SKILL_DIR\}|\$SKILL_DIR/g, info.installPath)
+        .trim()
       if (body) contents.push(`<skill name="${slug}">\n${body}\n</skill>`)
     } catch {
       // skill file missing, skip

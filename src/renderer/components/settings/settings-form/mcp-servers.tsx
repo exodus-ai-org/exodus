@@ -10,7 +10,7 @@ import {
   Trash2Icon
 } from 'lucide-react'
 import { lazy, Suspense, useCallback, useState } from 'react'
-import { toast } from 'sonner'
+import { sileo } from 'sileo'
 import useSWR from 'swr'
 
 import Markdown from '@/components/markdown'
@@ -261,7 +261,7 @@ export function McpServers() {
         try {
           parsedHeaders = JSON.parse(headersStr)
         } catch {
-          toast.error('Invalid headers JSON')
+          sileo.error({ title: 'Invalid headers JSON' })
           setSaving(false)
           return
         }
@@ -281,9 +281,11 @@ export function McpServers() {
           }
           parsedExtraConfig = parsed
         } catch (e) {
-          toast.error(
-            `Invalid Extra Config: ${e instanceof Error ? e.message : 'must be a JSON object'}`
-          )
+          sileo.error({
+            title: 'Invalid Extra Config',
+            description:
+              e instanceof Error ? e.message : 'must be a JSON object'
+          })
           setSaving(false)
           return
         }
@@ -307,20 +309,22 @@ export function McpServers() {
 
       if (editing) {
         await updateMcpServerApi(editing.id, data)
-        toast.success(`"${data.name}" updated — reconnecting…`)
+        sileo.success({ title: `"${data.name}" updated — reconnecting…` })
       } else {
         await createMcpServerApi(data)
-        toast.success(`"${data.name}" registered (disabled by default)`)
+        sileo.success({
+          title: `"${data.name}" registered`,
+          description: 'Disabled by default'
+        })
       }
       await refresh()
       resetForm()
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Operation failed'
-      toast.error(
-        editing
-          ? `Failed to update server: ${msg}`
-          : `Failed to register: ${msg}`
-      )
+      sileo.error({
+        title: editing ? 'Failed to update server' : 'Failed to register',
+        description: msg
+      })
     } finally {
       setSaving(false)
     }
@@ -342,12 +346,12 @@ export function McpServers() {
     async (server: McpServerItem) => {
       try {
         await deleteMcpServerApi(server.id)
-        toast.success(`"${server.name}" removed — connection closed`)
+        sileo.success({ title: `"${server.name}" removed — connection closed` })
         await refresh()
         if (editing?.id === server.id) resetForm()
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Operation failed'
-        toast.error(`Failed to remove server: ${msg}`)
+        sileo.error({ title: 'Failed to remove server', description: msg })
       }
     },
     [editing, refresh, resetForm]
@@ -360,13 +364,15 @@ export function McpServers() {
         await updateMcpServerApi(server.id, { isActive: enabling })
         await refresh()
         if (enabling) {
-          toast.success(`"${server.name}" enabled — reconnecting…`)
+          sileo.success({ title: `"${server.name}" enabled — reconnecting…` })
         } else {
-          toast.success(`"${server.name}" disabled — connection closed`)
+          sileo.success({
+            title: `"${server.name}" disabled — connection closed`
+          })
         }
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Operation failed'
-        toast.error(`Failed to toggle server: ${msg}`)
+        sileo.error({ title: 'Failed to toggle server', description: msg })
       }
     },
     [refresh]

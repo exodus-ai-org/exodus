@@ -27,6 +27,7 @@ import {
   deepResearchBootPrompt,
   getSystemPrompt
 } from '../../ai/prompts'
+import { getActiveSkillsContent } from '../../ai/skills/skills-manager'
 import {
   bindCallingTools,
   generateTitleFromUserMessage,
@@ -204,12 +205,18 @@ chat.post('/', async (c) => {
   }
 
   const personalityPrompt = buildPersonalityPrompt(setting)
+  const skillsSection = await getActiveSkillsContent()
+  logger.info('chat', 'skill injection', {
+    deepResearch: advancedTools?.includes(AdvancedTools.DeepResearch) ?? false,
+    skillsBytes: skillsSection.length
+  })
   const systemContent = advancedTools?.includes(AdvancedTools.DeepResearch)
     ? deepResearchBootPrompt
     : getSystemPrompt() +
       personalityPrompt +
       projectInstructions +
-      memoriesSection
+      memoriesSection +
+      skillsSection
 
   // Build SSE streaming response
   const stream = new ReadableStream({

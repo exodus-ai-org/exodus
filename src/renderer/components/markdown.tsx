@@ -73,14 +73,17 @@ const CitationChip = memo(function CitationChip({
 
   return (
     <HoverCard>
-      <HoverCardTrigger>
-        <Badge
-          variant="secondary"
-          className="ml-1 cursor-pointer align-middle text-[0.625rem] no-underline"
-          render={
-            <a href={source.link} target="_blank" rel="noopener noreferrer" />
-          }
-        >
+      <HoverCardTrigger
+        render={
+          <a
+            href={source.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="no-underline hover:no-underline"
+          />
+        }
+      >
+        <Badge variant="secondary" className="ml-1">
           <span className="max-w-22 truncate">{source.title}</span>
         </Badge>
       </HoverCardTrigger>

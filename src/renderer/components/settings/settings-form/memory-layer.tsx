@@ -8,7 +8,7 @@ import {
 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { Controller } from 'react-hook-form'
-import { toast } from 'sonner'
+import { sileo } from 'sileo'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -101,7 +101,7 @@ function MemoryDialog({ open, onClose, memory, onSaved }: MemoryDialogProps) {
 
   const handleSave = async () => {
     if (!key.trim() || !valueText.trim()) {
-      toast.error('Key and value are required')
+      sileo.error({ title: 'Key and value are required' })
       return
     }
     setSaving(true)
@@ -116,7 +116,7 @@ function MemoryDialog({ open, onClose, memory, onSaved }: MemoryDialogProps) {
           confidence: conf,
           source
         })
-        toast.success('Memory updated')
+        sileo.success({ title: 'Memory updated' })
       } else {
         await createMemory({
           type,
@@ -125,13 +125,13 @@ function MemoryDialog({ open, onClose, memory, onSaved }: MemoryDialogProps) {
           confidence: conf,
           source
         })
-        toast.success('Memory created')
+        sileo.success({ title: 'Memory created' })
       }
       onSaved()
       onClose()
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Operation failed'
-      toast.error(`Failed to save memory: ${msg}`)
+      sileo.error({ title: 'Failed to save memory', description: msg })
     } finally {
       setSaving(false)
     }
@@ -306,7 +306,7 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
       setMemories(data)
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Operation failed'
-      toast.error(`Failed to load memories: ${msg}`)
+      sileo.error({ title: 'Failed to load memories', description: msg })
     } finally {
       setLoading(false)
     }
@@ -332,7 +332,7 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
       await loadMemories()
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Operation failed'
-      toast.error(`Failed to update memory: ${msg}`)
+      sileo.error({ title: 'Failed to update memory', description: msg })
     }
   }
 
@@ -340,10 +340,10 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
     try {
       await deleteMemory(item.id)
       await loadMemories()
-      toast.success('Memory deleted')
+      sileo.success({ title: 'Memory deleted' })
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Operation failed'
-      toast.error(`Failed to delete memory: ${msg}`)
+      sileo.error({ title: 'Failed to delete memory', description: msg })
     }
   }
 

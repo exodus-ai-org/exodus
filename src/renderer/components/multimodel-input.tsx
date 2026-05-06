@@ -119,12 +119,12 @@ function InputBox({
         !id && 'mb-4'
       )}
     >
-      <div className="focus-within:ring-ring/30 z-1 flex flex-col gap-1 rounded-xl border p-2 shadow-sm transition-shadow duration-200 focus-within:shadow-md focus-within:ring-1">
+      <div className="z-1 flex flex-col gap-1 rounded-xl border p-2 shadow-xs">
         <form>
           <FilePreview />
           <Textarea
             ref={textareaRef}
-            placeholder="Send a message..."
+            placeholder="Ask anything"
             value={input}
             onChange={handleInput}
             className="max-h-[75dvh] min-h-16 resize-none border-none bg-transparent! py-1 shadow-none focus-visible:ring-0"
