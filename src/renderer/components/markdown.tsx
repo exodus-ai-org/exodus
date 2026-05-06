@@ -211,8 +211,12 @@ export function Markdown({
   webSearchResults?: WebSearchResult[]
 }) {
   const { copied, handleCopy } = useClipboard()
-  const { actualTheme } = useTheme()
-  const { codeTheme } = useMemo(() => themes[actualTheme], [actualTheme])
+  const { resolvedTheme } = useTheme()
+  // resolvedTheme is undefined on first paint until next-themes hydrates;
+  // fall back to the light theme so syntax highlighting renders something
+  // sensible instead of crashing.
+  const themeKey: 'light' | 'dark' = resolvedTheme === 'dark' ? 'dark' : 'light'
+  const { codeTheme } = useMemo(() => themes[themeKey], [themeKey])
 
   const rankMap = useMemo(() => {
     if (!webSearchResults || webSearchResults.length === 0) return null

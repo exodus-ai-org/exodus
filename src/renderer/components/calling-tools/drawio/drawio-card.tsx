@@ -59,8 +59,8 @@ export function DrawioCard({ output }: { output: DrawioToolOutput }) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [error, setError] = useState<string | null>(null)
   const source = pickSource(output)
-  const { actualTheme } = useTheme()
-  const isDark = actualTheme === 'dark'
+  const { resolvedTheme } = useTheme()
+  const isDark = resolvedTheme === 'dark'
 
   useEffect(() => {
     if (!source) return

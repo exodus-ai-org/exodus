@@ -63,11 +63,11 @@ function EditorCore({
   onChange: (v?: string) => void
   options?: monaco.editor.IStandaloneEditorConstructionOptions
 }) {
-  const { actualTheme } = useTheme()
+  const { resolvedTheme } = useTheme()
   return (
     <MonacoEditor
       className={className}
-      theme={actualTheme === 'dark' ? 'shadcn-dark' : 'shadcn-light'}
+      theme={resolvedTheme === 'dark' ? 'shadcn-dark' : 'shadcn-light'}
       defaultLanguage="json"
       value={value}
       onChange={onChange}

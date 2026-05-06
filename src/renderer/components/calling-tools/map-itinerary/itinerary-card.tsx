@@ -132,7 +132,7 @@ function MapItineraryCardImpl({
 }) {
   const { data: settings } = useSettings()
   const { copied, handleCopy } = useClipboard()
-  const { actualTheme } = useTheme()
+  const { resolvedTheme } = useTheme()
 
   const [activeDayIdx, setActiveDayIdx] = useState(0)
   // Default to the first place of the first day so the detail card is
@@ -191,7 +191,7 @@ function MapItineraryCardImpl({
   )
 
   const apiKey = settings?.googleCloud?.googleApiKey
-  const colorScheme = actualTheme === 'dark' ? 'DARK' : 'LIGHT'
+  const colorScheme = resolvedTheme === 'dark' ? 'DARK' : 'LIGHT'
 
   if (!apiKey) {
     return (
