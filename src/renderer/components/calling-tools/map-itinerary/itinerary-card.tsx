@@ -1,12 +1,12 @@
 import { APIProvider, Map } from '@vis.gl/react-google-maps'
 import { CheckIcon, CopyIcon, ExternalLinkIcon } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 
 import { useClipboard } from '@/hooks/use-clipboard'
 import { useSettings } from '@/hooks/use-settings'
 import { cn } from '@/lib/utils'
 
-import { useTheme } from '../../theme-provider'
 import { DayLayer } from './day-layer'
 import { PlaceDetail } from './place-detail'
 import type { ItineraryDay, MapItineraryDetails } from './types'

@@ -1,6 +1,7 @@
 import { faviconUrl } from '@shared/constants/external-urls'
 import { WebSearchResult } from '@shared/types/web-search'
 import { CheckIcon, CopyIcon } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import {
   createContext,
   Fragment,
@@ -24,7 +25,6 @@ import remarkMath from 'remark-math'
 import { useClipboard } from '@/hooks/use-clipboard'
 import { cn } from '@/lib/utils'
 
-import { useTheme } from './theme-provider'
 import { Badge } from './ui/badge'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card'
 

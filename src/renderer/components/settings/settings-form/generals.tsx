@@ -1,9 +1,10 @@
 import type { ColorTone } from '@shared/schemas/settings-schema'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { Moon, Sun, SunMoon } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import { useEffect } from 'react'
 
-import { Theme, useTheme } from '@/components/theme-provider'
+import { Theme } from '@/components/theme-provider'
 import { Input } from '@/components/ui/input'
 import {
   Select,

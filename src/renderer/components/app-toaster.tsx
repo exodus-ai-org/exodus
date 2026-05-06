@@ -1,6 +1,6 @@
+import { useTheme } from 'next-themes'
 import { Toaster } from 'sileo'
 
-import { useTheme } from '@/components/theme-provider'
 import { cn } from '@/lib/utils'
 
 export function AppToaster() {

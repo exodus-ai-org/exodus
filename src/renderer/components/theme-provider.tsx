@@ -1,4 +1,6 @@
 import { ThemeProvider as NextThemesProvider, useTheme } from 'next-themes'
+// Consumers should import `useTheme` from 'next-themes' directly — this file
+// only owns the ThemeProvider wrapper and the Theme type alias.
 import type { ComponentProps } from 'react'
 import { useEffect } from 'react'
 
@@ -47,5 +49,3 @@ export function ThemeProvider({
     </NextThemesProvider>
   )
 }
-
-export { useTheme }
