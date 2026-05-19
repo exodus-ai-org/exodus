@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="none">
+  <!--
+    Tray template icon — Path of Stars (Concept C).
+    Pure black on transparent so macOS can auto-invert under dark/light menu
+    bars. Designed at the native 16×16 grid; 2x/3x are simple uniform scales
+    so strokes stay crisp. Three stars of increasing size suggest a journey;
+    the curved path is implied by a thin arc behind them.
+  -->
+  <path
+    d="M2 13.7 Q 6 11.7 12.5 3.7"
+    stroke="black"
+    stroke-width="1.1"
+    stroke-linecap="round"
+    fill="none"
+  />
+  <circle cx="2" cy="13.7" r="1.3" fill="black" />
+  <circle cx="8" cy="8" r="2.1" fill="black" />
+  <circle cx="12.5" cy="3.7" r="2.9" fill="black" />
+</svg>

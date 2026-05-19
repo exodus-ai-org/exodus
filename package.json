@@ -7,6 +7,7 @@
   "main": "./out/main/index.js",
   "scripts": {
     "asar:sniff": "npx tsx scripts/asar-sniff.ts",
+    "icons": "node scripts/render-icons.mjs",
     "build": "npm run typecheck && electron-vite build",
     "build:linux": "electron-vite build && electron-builder --linux",
     "build:mac": "electron-vite build && electron-builder --mac",
