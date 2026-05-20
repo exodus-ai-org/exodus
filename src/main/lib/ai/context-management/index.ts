@@ -3,6 +3,7 @@ import type { Message, Model } from '@mariozechner/pi-ai'
 import { logger } from '../../logger'
 import { runFullCompaction } from './compaction'
 import { assembleContext } from './context-assembler'
+import { lcmStatusBus } from './lcm-status-bus'
 import { appendContextItem, getContextItems } from './queries'
 import { estimateMessageTokens } from './token-counter'
 
@@ -112,25 +113,62 @@ export class LcmManager {
   }
 
   private async runCompactionIfNeeded(): Promise<void> {
-    const items = await getContextItems(this.chatId)
-    const currentTokens = items.reduce((sum, i) => sum + (i.tokenCount ?? 0), 0)
+    const initialItems = await getContextItems(this.chatId)
+    const initialTokens = initialItems.reduce(
+      (sum, i) => sum + (i.tokenCount ?? 0),
+      0
+    )
     const threshold = this.contextWindow * (this.contextWindowPercent / 100)
 
-    if (currentTokens <= threshold) return
+    if (initialTokens <= threshold) return
 
-    // Budget-targeted compaction: up to 10 rounds
-    const targetTokens = Math.floor(this.contextWindow * 0.6)
-    for (let round = 0; round < 10; round++) {
-      const updated = await getContextItems(this.chatId)
-      const total = updated.reduce((sum, i) => sum + (i.tokenCount ?? 0), 0)
-      if (total <= targetTokens) break
+    const messagesBefore = initialItems.filter(
+      (i) => i.kind === 'message'
+    ).length
 
-      await runFullCompaction(
-        this.chatId,
-        this.model,
-        this.apiKey,
-        this.freshTailSize
+    const startedAt = Date.now()
+    lcmStatusBus.emit({ type: 'start', chatId: this.chatId, startedAt })
+
+    try {
+      // Budget-targeted compaction: up to 10 rounds (unchanged behavior)
+      const targetTokens = Math.floor(this.contextWindow * 0.6)
+      for (let round = 0; round < 10; round++) {
+        const updated = await getContextItems(this.chatId)
+        const total = updated.reduce((sum, i) => sum + (i.tokenCount ?? 0), 0)
+        if (total <= targetTokens) break
+
+        await runFullCompaction(
+          this.chatId,
+          this.model,
+          this.apiKey,
+          this.freshTailSize
+        )
+      }
+
+      const finalItems = await getContextItems(this.chatId)
+      const finalTokens = finalItems.reduce(
+        (sum, i) => sum + (i.tokenCount ?? 0),
+        0
       )
+      const messagesAfter = finalItems.filter(
+        (i) => i.kind === 'message'
+      ).length
+
+      lcmStatusBus.emit({
+        type: 'complete',
+        chatId: this.chatId,
+        durationMs: Date.now() - startedAt,
+        messagesBefore,
+        messagesAfter,
+        tokensSaved: Math.max(0, initialTokens - finalTokens)
+      })
+    } catch (err) {
+      lcmStatusBus.emit({
+        type: 'error',
+        chatId: this.chatId,
+        error: String(err instanceof Error ? err.message : err)
+      })
+      throw err
     }
   }
 }
