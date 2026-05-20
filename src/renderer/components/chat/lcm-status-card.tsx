@@ -15,7 +15,7 @@ export function LcmStatusCard({ chatId }: { chatId: string }) {
   if (state.kind === 'idle') return null
 
   const baseClass =
-    'mx-4 my-2 flex items-center gap-2 rounded-md px-3 py-2 text-xs'
+    'mx-auto my-2 w-[calc(100%-8rem)] flex items-center gap-2 rounded-md px-3 py-2 text-xs md:max-w-4xl'
 
   if (state.kind === 'running') {
     return (
