@@ -3,13 +3,13 @@ import { Hono } from 'hono'
 
 import { lcmStatusBus } from '../../ai/context-management/lcm-status-bus'
 import { logger } from '../../logger'
+import { getRequiredParam } from '../utils'
 import { SSE_HEADERS } from '../utils/sse-manager'
 
 const lcmStatus = new Hono<{ Variables: Variables }>()
 
 lcmStatus.get('/:chatId/status', (c) => {
-  const chatId = c.req.param('chatId')
-  if (!chatId) return c.text('chatId required', 400)
+  const chatId = getRequiredParam(c, 'chatId')
 
   const encoder = new TextEncoder()
 
