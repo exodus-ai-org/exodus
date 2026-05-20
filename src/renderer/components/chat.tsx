@@ -15,6 +15,7 @@ import { useChat } from '@/hooks/use-chat'
 import { advancedToolsAtom } from '@/stores/chat'
 import { chatInputAtom, chatStatusAtom, chatStopFnAtom } from '@/stores/input'
 
+import { LcmStatusCard } from './chat/lcm-status-card'
 import Messages from './messages'
 import MultimodalInput from './multimodel-input'
 
@@ -146,6 +147,7 @@ export function Chat({ id, initialMessages, projectId, chatTitle }: Props) {
         messages={messages}
         regenerate={regenerate}
       />
+      <LcmStatusCard chatId={id} />
       <MultimodalInput
         chatId={id}
         attachments={attachments}
