@@ -17,6 +17,7 @@ import chatRouter from './routes/chat'
 import dbIoRouter from './routes/db-io'
 import deepResearchRouter from './routes/deep-research'
 import historyRouter from './routes/history'
+import lcmStatusRouter from './routes/lcm-status'
 import logsRouter from './routes/logs'
 import mcpRouter from './routes/mcp'
 import memoryRouter from './routes/memory'
@@ -54,6 +55,7 @@ export async function connectHttpServer() {
 
   // Routes
   app.route('/api/chat', chatRouter)
+  app.route('/api/lcm', lcmStatusRouter)
   app.route('/api/history', historyRouter)
   app.route('/api/project', projectRouter)
   app.route('/api/settings', settingsRouter)
