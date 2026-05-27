@@ -16,6 +16,7 @@ export interface McpServerItem {
   // remote
   url: string | null
   headers: Record<string, string> | null
+  extraConfig: Record<string, unknown> | null
   isActive: boolean | null
   createdAt: string
   updatedAt: string

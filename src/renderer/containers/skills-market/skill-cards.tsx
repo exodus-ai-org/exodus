@@ -15,7 +15,6 @@ import {
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
 
@@ -226,70 +225,50 @@ export function InstalledSkillCard({
   const isLoading = pendingSlug === skill.slug
 
   return (
-    <div className="bg-card hover:bg-accent/30 flex flex-col gap-3 rounded-lg border p-4 transition-colors">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="mb-1 flex items-center gap-2">
-            <a
-              href={clawhubSkill(skill.slug)}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-1 truncate text-sm leading-tight font-semibold hover:underline"
-            >
-              {skill.displayName}
-              <ExternalLinkIcon className="size-3 shrink-0 opacity-50" />
-            </a>
-            {skill.version && skill.version !== 'local' && (
-              <Badge variant="outline" className="shrink-0 text-xs">
-                v{skill.version}
-              </Badge>
-            )}
-            {skill.version === 'local' && (
-              <Badge variant="secondary" className="shrink-0 text-xs">
-                Local
-              </Badge>
-            )}
-            {skill.isActive ? (
-              <Badge variant="default" className="shrink-0 text-xs">
-                Active
-              </Badge>
-            ) : (
-              <Badge variant="secondary" className="shrink-0 text-xs">
-                Inactive
-              </Badge>
-            )}
-          </div>
-          <p className="text-muted-foreground text-xs">
-            Installed {new Date(skill.installedAt).toLocaleDateString()}
-          </p>
-        </div>
-        <Button
-          size="sm"
-          variant="ghost"
-          disabled={isLoading}
-          onClick={() => onUninstall(skill.slug)}
-          className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
-        >
-          {isLoading ? (
-            <Loader2Icon data-icon className="size-3.5 animate-spin" />
-          ) : (
-            <Trash2Icon data-icon className="size-3.5" />
+    <div className="bg-card hover:bg-accent/30 flex items-center gap-3 rounded-lg border px-4 py-2.5 transition-colors">
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <a
+            href={clawhubSkill(skill.slug)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1 truncate text-sm leading-tight font-semibold hover:underline"
+          >
+            {skill.displayName}
+            <ExternalLinkIcon className="size-3 shrink-0 opacity-50" />
+          </a>
+          {skill.version && skill.version !== 'local' && (
+            <Badge variant="outline" className="shrink-0 text-xs">
+              v{skill.version}
+            </Badge>
           )}
-        </Button>
-      </div>
-      <Separator />
-      <div className="flex items-center justify-between">
-        <div className="flex flex-col gap-0.5">
-          <p className="text-xs font-medium">Inject into system prompt</p>
-          <p className="text-muted-foreground text-xs">
-            When active, this skill's instructions are sent to the AI
-          </p>
+          {skill.version === 'local' && (
+            <Badge variant="secondary" className="shrink-0 text-xs">
+              Local
+            </Badge>
+          )}
         </div>
-        <Switch
-          checked={skill.isActive}
-          onCheckedChange={(checked) => onToggle(skill.slug, checked)}
-        />
+        <p className="text-muted-foreground mt-0.5 text-xs">
+          Installed {new Date(skill.installedAt).toLocaleDateString()}
+        </p>
       </div>
+      <Switch
+        checked={skill.isActive}
+        onCheckedChange={(checked) => onToggle(skill.slug, checked)}
+      />
+      <Button
+        size="sm"
+        variant="ghost"
+        disabled={isLoading}
+        onClick={() => onUninstall(skill.slug)}
+        className="text-destructive hover:text-destructive hover:bg-destructive/10 size-8 shrink-0"
+      >
+        {isLoading ? (
+          <Loader2Icon data-icon className="size-3.5 animate-spin" />
+        ) : (
+          <Trash2Icon data-icon className="size-3.5" />
+        )}
+      </Button>
     </div>
   )
 }

@@ -129,12 +129,12 @@ function ToolBubble({ name, result }: { name: string; result?: string }) {
                   ▾ Hide
                 </span>
               </summary>
-              <pre className="mt-2 break-words whitespace-pre-wrap">
+              <pre className="mt-2 wrap-break-word whitespace-pre-wrap">
                 {result}
               </pre>
             </details>
           ) : (
-            <pre className="break-words whitespace-pre-wrap">{result}</pre>
+            <pre className="wrap-break-word whitespace-pre-wrap">{result}</pre>
           ))}
       </div>
     </div>
@@ -149,7 +149,7 @@ function ErrorBubble({ message }: { message: string }) {
           <XCircleIcon className="size-3.5" />
           Execution failed
         </div>
-        <pre className="break-words whitespace-pre-wrap">{message}</pre>
+        <pre className="wrap-break-word whitespace-pre-wrap">{message}</pre>
       </div>
     </div>
   )

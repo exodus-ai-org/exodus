@@ -169,7 +169,7 @@ export function ExecutionTimeline({
                   <p className="text-muted-foreground text-[10px] uppercase">
                     {evt.type.replace(/_/g, ' ')}
                   </p>
-                  <p className="text-xs break-words whitespace-pre-wrap">
+                  <p className="text-xs wrap-break-word whitespace-pre-wrap">
                     {evt.content.length > 500
                       ? evt.content.slice(0, 500) + '…'
                       : evt.content}

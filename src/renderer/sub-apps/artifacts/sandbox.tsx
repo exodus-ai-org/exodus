@@ -1,6 +1,8 @@
 import * as Motion from 'framer-motion'
 import * as LucideIcons from 'lucide-react'
 import React, { useCallback, useEffect, useState } from 'react'
+import * as ReactJsxDevRuntime from 'react/jsx-dev-runtime'
+import * as ReactJsxRuntime from 'react/jsx-runtime'
 import * as Recharts from 'recharts'
 import { transform } from 'sucrase'
 
@@ -19,6 +21,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 const MODULE_REGISTRY: Record<string, unknown> = {
   react: React,
+  // Required by the automatic JSX runtime: sucrase compiles JSX to
+  // `require("react/jsx-runtime").jsx(...)` (or the dev runtime in dev mode).
+  'react/jsx-runtime': ReactJsxRuntime,
+  'react/jsx-dev-runtime': ReactJsxDevRuntime,
   recharts: Recharts,
   'lucide-react': LucideIcons,
   'framer-motion': Motion,
@@ -125,9 +131,17 @@ export function ArtifactSandbox() {
     if (!isArtifactMessage(data)) return
 
     try {
+      // Use the automatic JSX runtime (`react/jsx-runtime`) instead of the
+      // classic transform. The classic transform emits
+      // `React.createElement(..., { __self, __source })`, which trips React 19's
+      // "outdated JSX transform" dev warning on every artifact render. The
+      // `imports` transform is required so sucrase emits the runtime as a CJS
+      // `require("react/jsx-runtime")` (resolved via MODULE_REGISTRY) rather
+      // than an ESM `import`, which the wrapper below cannot evaluate.
       const { code: transformed } = transform(data.code, {
-        transforms: ['typescript', 'jsx'],
-        jsxRuntime: 'classic'
+        transforms: ['typescript', 'jsx', 'imports'],
+        jsxRuntime: 'automatic',
+        production: import.meta.env.PROD
       })
 
       const moduleExports: Record<string, unknown> = {}

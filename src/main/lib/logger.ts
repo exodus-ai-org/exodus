@@ -42,8 +42,20 @@ const LEVEL_PRIORITY: Record<LogLevel, number> = {
 const MIN_LEVEL: LogLevel = is.dev ? 'debug' : 'info'
 const RETENTION_DAYS = 7
 
+// Use the user's local date for filenames (and cleanup cutoff). `toISOString`
+// returns UTC, which silently shifts the bucket boundary by the timezone offset
+// — at e.g. 05:10 CST the UTC date is still the previous day, and entries land
+// in yesterday's file. Renderer-side defaults already use local date, so the
+// server has to match.
+export function localDateStr(d: Date = new Date()): string {
+  const y = d.getFullYear()
+  const m = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+  return `${y}-${m}-${day}`
+}
+
 function todayFileName(): string {
-  return new Date().toISOString().slice(0, 10) + '.jsonl'
+  return localDateStr() + '.jsonl'
 }
 
 function shouldLog(level: LogLevel): boolean {
@@ -86,7 +98,7 @@ export function cleanupOldLogs() {
   const dir = getLogsDir()
   const cutoff = new Date()
   cutoff.setDate(cutoff.getDate() - RETENTION_DAYS)
-  const cutoffStr = cutoff.toISOString().slice(0, 10)
+  const cutoffStr = localDateStr(cutoff)
 
   for (const file of readdirSync(dir)) {
     if (file.endsWith('.jsonl') && file.slice(0, 10) < cutoffStr) {

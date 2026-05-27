@@ -9,12 +9,14 @@ import { parseCitations } from '../markdown'
 
 function SourceItemLink({ item }: { item: WebSearchResult }) {
   let hostname = ''
+  let favicon = ''
   try {
-    hostname = new URL(item.link).hostname
+    const url = new URL(item.link)
+    hostname = url.hostname
+    favicon = faviconUrl(url.origin)
   } catch {
     hostname = item.link
   }
-  const favicon = faviconUrl(item.link)
 
   return (
     <a
@@ -23,27 +25,21 @@ function SourceItemLink({ item }: { item: WebSearchResult }) {
       rel="noopener noreferrer"
       className="hover:bg-sidebar-accent flex gap-3 rounded-xl px-3 py-2"
     >
-      {item.ogImage ? (
-        <img
-          src={item.ogImage}
-          alt={item.title}
-          loading="lazy"
-          className="mt-0.5 h-12 w-20 shrink-0 rounded-md object-cover"
-        />
-      ) : null}
       <div className="min-w-0 flex-1">
         <div className="line-clamp-2 text-sm leading-snug font-semibold">
           {item.title}
         </div>
         <div className="text-muted-foreground mt-1 flex items-center gap-1.5 text-xs">
-          <Avatar className="size-3.5">
-            <AvatarImage
-              src={favicon}
-              alt={hostname}
-              className="object-cover"
-            />
-            <AvatarFallback>{item.title?.charAt(0)}</AvatarFallback>
-          </Avatar>
+          {favicon && (
+            <Avatar className="size-3.5">
+              <AvatarImage
+                src={favicon}
+                alt={hostname}
+                className="object-cover"
+              />
+              <AvatarFallback>{item.title?.charAt(0)}</AvatarFallback>
+            </Avatar>
+          )}
           <span className="truncate">{hostname}</span>
         </div>
         {item.snippet ? (

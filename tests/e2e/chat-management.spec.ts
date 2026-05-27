@@ -10,6 +10,14 @@ test.describe('Chat Management E2E', () => {
   const api = new ApiClient()
   const testChatIds: string[] = []
 
+  // Tests use api.sendChatMessage to seed a chat row; that path needs an LLM
+  // call to succeed because getModelFromProvider throws before saveChat
+  // when no key is configured. Skip when the secret isn't set in CI.
+  test.skip(
+    !process.env.OPENAI_API_KEY,
+    'requires OPENAI_API_KEY env var to seed chats via the LLM endpoint'
+  )
+
   // See chat-e2e.spec.ts: beforeAll runs before fixtures, so the Hono server
   // doesn't exist yet and the inject fetch errors out. beforeEach with
   // `mainWindow` forces the Electron app up first, then idempotently

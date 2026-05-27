@@ -5,9 +5,8 @@ import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker'
 import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker'
 import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
 import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
+import { useTheme } from 'next-themes'
 import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
-
-import { useTheme } from './theme-provider'
 
 self.MonacoEnvironment = {
   getWorker(_, label) {
@@ -63,11 +62,11 @@ function EditorCore({
   onChange: (v?: string) => void
   options?: monaco.editor.IStandaloneEditorConstructionOptions
 }) {
-  const { actualTheme } = useTheme()
+  const { resolvedTheme } = useTheme()
   return (
     <MonacoEditor
       className={className}
-      theme={actualTheme === 'dark' ? 'shadcn-dark' : 'shadcn-light'}
+      theme={resolvedTheme === 'dark' ? 'shadcn-dark' : 'shadcn-light'}
       defaultLanguage="json"
       value={value}
       onChange={onChange}

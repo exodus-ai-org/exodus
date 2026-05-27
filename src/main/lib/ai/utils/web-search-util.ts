@@ -1,5 +1,9 @@
 import { WebPDFLoader } from '@langchain/community/document_loaders/web/pdf'
-import { WebSearchResult } from '@shared/types/web-search'
+import type {
+  WebSearchMediaKind,
+  WebSearchMediaResult,
+  WebSearchResult
+} from '@shared/types/web-search'
 import * as cheerio from 'cheerio'
 import TurndownService from 'turndown'
 
@@ -127,26 +131,7 @@ export async function loadDocumentWithJina(link: string) {
   }
 }
 
-/* ================= Brave Search (LLM Context + Web Search) ================= */
-
-// Subset of the Brave Web Search response shape we care about — there are far
-// more fields (videos, FAQ, infobox, etc.) but we only consume metadata for
-// citation display, so we keep this narrow.
-type BraveWebMeta = {
-  url: string
-  title?: string
-  page_age?: string
-  meta_url?: { hostname?: string; favicon?: string }
-  profile?: { name?: string; long_name?: string }
-  thumbnail?: { src?: string; original?: string }
-  extra_snippets?: string[]
-  description?: string
-}
-
-type BraveWebSearchResponse = {
-  web?: { results?: BraveWebMeta[] }
-  news?: { results?: BraveWebMeta[] }
-}
+/* ================= Brave LLM Context Search ================= */
 
 // LLM Context returns a single Markdown summary plus the source list it used.
 // `grounding.generic` is the per-source array we can map to our citation format.
@@ -156,16 +141,9 @@ type BraveLlmContextSource = {
   snippets?: string[]
 }
 
-// With enable_source_metadata=1 the `sources` map carries publisher/favicon
-// info too — used as a fallback when the parallel Web Search call doesn't
-// return a particular URL.
 type BraveLlmContextSourceMeta = {
   title?: string
   hostname?: string
-  favicon?: string
-  name?: string
-  long_name?: string
-  age?: string | string[]
 }
 
 type BraveLlmContextResponse = {
@@ -173,6 +151,44 @@ type BraveLlmContextResponse = {
     generic?: BraveLlmContextSource[]
   }
   sources?: Record<string, BraveLlmContextSourceMeta>
+}
+
+type BraveMediaThumbnail = {
+  src?: string
+}
+
+type BraveImageResult = {
+  title?: string
+  url?: string
+  source?: string
+  thumbnail?: BraveMediaThumbnail
+  properties?: {
+    url?: string
+    placeholder?: string
+    width?: number
+    height?: number
+  }
+}
+
+type BraveImageSearchResponse = {
+  results?: BraveImageResult[]
+}
+
+type BraveVideoResult = {
+  title?: string
+  url?: string
+  description?: string
+  age?: string
+  duration?: string
+  source?: string
+  thumbnail?: BraveMediaThumbnail
+  meta_url?: {
+    hostname?: string
+  }
+}
+
+type BraveVideoSearchResponse = {
+  results?: BraveVideoResult[]
 }
 
 function buildCommonParams({
@@ -205,46 +221,6 @@ function buildCommonParams({
   return params
 }
 
-async function fetchBraveWebSearch({
-  query,
-  apiKey,
-  country,
-  languages,
-  recencyFilter,
-  maxResults
-}: {
-  query: string
-  apiKey: string
-  country?: string | null
-  languages?: string[] | null
-  recencyFilter?: string | null
-  maxResults?: number | null
-}): Promise<BraveWebSearchResponse | null> {
-  const params = buildCommonParams({
-    query,
-    country,
-    languages,
-    recencyFilter,
-    maxResults
-  })
-  // Limit to web + news result types — discussions/videos/FAQ rarely add value
-  // for general grounding and just dilute the citation list.
-  params.set('result_filter', 'web,news')
-  // Ask for the per-result extra_snippets — without this flag results only
-  // carry a single `description`, which is too thin to fall back on for
-  // sources that LLM Context didn't surface.
-  params.set('extra_snippets', '1')
-
-  const res = await fetch(`${BRAVE_API_BASE}/web/search?${params.toString()}`, {
-    headers: {
-      Accept: 'application/json',
-      'x-subscription-token': apiKey
-    }
-  })
-  if (!res.ok) return null
-  return (await res.json()) as BraveWebSearchResponse
-}
-
 async function fetchBraveLlmContext({
   query,
   apiKey,
@@ -267,10 +243,6 @@ async function fetchBraveLlmContext({
     recencyFilter,
     maxResults
   })
-  // Ask the LLM Context endpoint to populate favicon + publisher names in the
-  // `sources` map so we have a metadata fallback even if the parallel Web
-  // Search call fails or omits a URL.
-  params.set('enable_source_metadata', '1')
   // Brave caps per-URL tokens at 8192; raise from the 4096 default so each
   // grounding source carries deeper context for the model.
   params.set('maximum_number_of_tokens_per_url', '8192')
@@ -288,67 +260,163 @@ async function fetchBraveLlmContext({
   return (await res.json()) as BraveLlmContextResponse
 }
 
-type BraveCitationMeta = {
-  publisher: string
-  favicon: string
-  ogImage: string
-  age?: string
-  hostname: string
-  fallbackContent: string
+async function fetchBraveImages({
+  query,
+  apiKey,
+  country,
+  languages,
+  maxResults
+}: {
+  query: string
+  apiKey: string
+  country?: string | null
+  languages?: string[] | null
+  maxResults?: number | null
+}): Promise<BraveImageSearchResponse | null> {
+  const params = buildCommonParams({
+    query,
+    country,
+    languages,
+    maxResults: Math.min(maxResults ?? 6, 8)
+  })
+  params.set('safesearch', 'strict')
+
+  const res = await fetch(
+    `${BRAVE_API_BASE}/images/search?${params.toString()}`,
+    {
+      headers: {
+        Accept: 'application/json',
+        'x-subscription-token': apiKey
+      }
+    }
+  )
+  if (!res.ok) return null
+  return (await res.json()) as BraveImageSearchResponse
 }
 
-function publisherFromMeta(m: BraveWebMeta): string {
-  // Prefer the human-readable publisher name; fall back to hostname.
-  const long = m.profile?.long_name?.trim()
-  if (long) return long
-  const short = m.profile?.name?.trim()
-  if (short) return short
-  const host = m.meta_url?.hostname
-  return host ? host.replace(/^www\./, '') : ''
+async function fetchBraveVideos({
+  query,
+  apiKey,
+  country,
+  languages,
+  recencyFilter,
+  maxResults
+}: {
+  query: string
+  apiKey: string
+  country?: string | null
+  languages?: string[] | null
+  recencyFilter?: string | null
+  maxResults?: number | null
+}): Promise<BraveVideoSearchResponse | null> {
+  const params = buildCommonParams({
+    query,
+    country,
+    languages,
+    recencyFilter,
+    maxResults: Math.min(maxResults ?? 4, 6)
+  })
+  params.set('safesearch', 'moderate')
+
+  const res = await fetch(
+    `${BRAVE_API_BASE}/videos/search?${params.toString()}`,
+    {
+      headers: {
+        Accept: 'application/json',
+        'x-subscription-token': apiKey
+      }
+    }
+  )
+  if (!res.ok) return null
+  return (await res.json()) as BraveVideoSearchResponse
 }
 
-function indexBraveMeta(
-  resp: BraveWebSearchResponse | null
-): Map<string, BraveCitationMeta> {
-  const map = new Map<string, BraveCitationMeta>()
-  if (!resp) return map
-  const seen = [...(resp.web?.results ?? []), ...(resp.news?.results ?? [])]
-  for (const r of seen) {
-    if (!r.url || map.has(r.url)) continue
-    const hostname = r.meta_url?.hostname ?? ''
-    map.set(r.url, {
-      publisher: publisherFromMeta(r) || hostname,
-      favicon: r.meta_url?.favicon ?? '',
-      ogImage: r.thumbnail?.src ?? r.thumbnail?.original ?? '',
-      age: r.page_age,
-      hostname,
-      fallbackContent: [r.description ?? '', ...(r.extra_snippets ?? [])]
-        .filter(Boolean)
-        .join('\n\n')
+function normalizeMediaUrl(url: string | undefined): string {
+  if (!url) return ''
+  try {
+    return new URL(url).toString()
+  } catch {
+    return ''
+  }
+}
+
+function imageResultsToMedia(
+  resp: BraveImageSearchResponse | null,
+  passesDomainFilter: (url: string) => boolean
+): WebSearchMediaResult[] {
+  if (!resp?.results) return []
+  const media: WebSearchMediaResult[] = []
+  const seen = new Set<string>()
+
+  for (const r of resp.results) {
+    const imageUrl = normalizeMediaUrl(r.properties?.url || r.thumbnail?.src)
+    const sourceUrl = normalizeMediaUrl(r.url)
+    if (!imageUrl || !sourceUrl) continue
+    if (!passesDomainFilter(sourceUrl)) continue
+    if (seen.has(imageUrl)) continue
+    seen.add(imageUrl)
+
+    media.push({
+      kind: 'image',
+      title: r.title || r.source || sourceUrl,
+      url: imageUrl,
+      sourceUrl,
+      thumbnailUrl:
+        normalizeMediaUrl(r.thumbnail?.src) ||
+        normalizeMediaUrl(r.properties?.placeholder) ||
+        undefined,
+      source: r.source,
+      width: r.properties?.width,
+      height: r.properties?.height
     })
   }
-  return map
+
+  return media
+}
+
+function videoResultsToMedia(
+  resp: BraveVideoSearchResponse | null,
+  passesDomainFilter: (url: string) => boolean
+): WebSearchMediaResult[] {
+  if (!resp?.results) return []
+  const media: WebSearchMediaResult[] = []
+  const seen = new Set<string>()
+
+  for (const r of resp.results) {
+    const videoUrl = normalizeMediaUrl(r.url)
+    if (!videoUrl) continue
+    if (!passesDomainFilter(videoUrl)) continue
+    if (seen.has(videoUrl)) continue
+    seen.add(videoUrl)
+
+    media.push({
+      kind: 'video',
+      title: r.title || r.meta_url?.hostname || videoUrl,
+      url: videoUrl,
+      sourceUrl: videoUrl,
+      thumbnailUrl: normalizeMediaUrl(r.thumbnail?.src) || undefined,
+      source: r.source || r.meta_url?.hostname,
+      duration: r.duration,
+      age: r.age
+    })
+  }
+
+  return media
 }
 
 /**
  * Search the web via the Brave Search API and return structured results.
  *
- * Two endpoints are called in parallel:
- * - **LLM Context** (`/summarizer/llm_context`) — returns curated, multi-paragraph
- *   snippets per source. Used as the canonical content the LLM grounds on.
- * - **Web Search** (`/web/search`) — returns per-result metadata (publisher
- *   long-name, favicon, og:image thumbnail). Used to dress up citation chips
- *   and hover previews. Acts as a content fallback for sources LLM Context
- *   didn't surface.
- *
- * Both calls share the same query + filters, so latency is roughly that of a
- * single call. Neither endpoint requires us to fetch and parse HTML, so there
- * is no scraping risk or per-page cost.
+ * Uses Brave LLM Context as the canonical source list and content that the LLM
+ * grounds on. We intentionally avoid the parallel Web Search metadata call so
+ * citation numbering, stored source data, and UI rendering all come from one
+ * source of truth.
  */
 export async function fetchWebSearch({
   query,
   braveApiKey,
   webSources,
+  media = 'none',
   country,
   languages,
   maxResults,
@@ -358,6 +426,7 @@ export async function fetchWebSearch({
   query: string
   braveApiKey: string
   webSources?: Map<string, WebSearchResult>
+  media?: 'none' | WebSearchMediaKind | 'all'
   country?: string | null
   languages?: string[] | null
   maxResults?: number | null
@@ -365,7 +434,10 @@ export async function fetchWebSearch({
   domainFilter?: string[] | null
 }): Promise<WebSearchResult[] | null> {
   try {
-    const [llmCtx, webMeta] = await Promise.all([
+    const includeImages = media === 'image' || media === 'all'
+    const includeVideos = media === 'video' || media === 'all'
+
+    const [llmCtx, imageResp, videoResp] = await Promise.all([
       fetchBraveLlmContext({
         query,
         apiKey: braveApiKey,
@@ -374,17 +446,24 @@ export async function fetchWebSearch({
         recencyFilter,
         maxResults
       }),
-      fetchBraveWebSearch({
-        query,
-        apiKey: braveApiKey,
-        country,
-        languages,
-        recencyFilter,
-        maxResults
-      })
+      includeImages
+        ? fetchBraveImages({
+            query,
+            apiKey: braveApiKey,
+            country,
+            languages
+          })
+        : Promise.resolve(null),
+      includeVideos
+        ? fetchBraveVideos({
+            query,
+            apiKey: braveApiKey,
+            country,
+            languages,
+            recencyFilter
+          })
+        : Promise.resolve(null)
     ])
-
-    const metaByUrl = indexBraveMeta(webMeta)
 
     // Brave doesn't accept a domain include/exclude filter at the API level
     // (Goggles aside), so we apply the user's comma-separated list here.
@@ -416,21 +495,15 @@ export async function fetchWebSearch({
       return true
     }
 
-    // Build the canonical source list. Prefer LLM Context's order (curated for
-    // grounding); fall back to Web Search-only sources for any URL it missed.
-    const sources: BraveLlmContextSource[] = [
-      ...(llmCtx?.grounding?.generic ?? [])
+    const mediaResults = [
+      ...imageResultsToMedia(imageResp, passesDomainFilter),
+      ...videoResultsToMedia(videoResp, passesDomainFilter)
     ]
-    const llmUrlSet = new Set(sources.map((s) => s.url))
-    for (const [url, meta] of metaByUrl) {
-      if (!llmUrlSet.has(url) && meta.fallbackContent) {
-        sources.push({
-          url,
-          title: '',
-          snippets: [meta.fallbackContent]
-        })
-      }
-    }
+
+    const llmCtxOnly = llmCtx
+    const sources: BraveLlmContextSource[] = [
+      ...(llmCtxOnly?.grounding?.generic ?? [])
+    ]
 
     const baseRank = webSources ? webSources.size : 0
     const results: WebSearchResult[] = []
@@ -439,42 +512,37 @@ export async function fetchWebSearch({
       if (webSources && webSources.has(src.url)) continue
       if (!passesDomainFilter(src.url)) continue
 
-      const meta = metaByUrl.get(src.url)
-      const llmMeta = llmCtx?.sources?.[src.url]
+      const llmMeta = llmCtxOnly?.sources?.[src.url]
       const content = (src.snippets ?? []).filter(Boolean).join('\n\n')
       if (!content) continue
 
-      const title = src.title || llmMeta?.title || meta?.publisher || src.url
-      const hostname =
-        meta?.hostname ||
-        llmMeta?.hostname ||
-        (() => {
-          try {
-            return new URL(src.url).hostname.replace(/^www\./, '')
-          } catch {
-            return ''
-          }
-        })()
-      const llmAge = Array.isArray(llmMeta?.age)
-        ? llmMeta?.age[0]
-        : llmMeta?.age
+      const title = src.title || llmMeta?.title || llmMeta?.hostname || src.url
 
       results.push({
         rank: baseRank + results.length + 1,
         link: src.url,
         title,
         snippet: content.slice(0, 300),
-        content,
-        ogImage: meta?.ogImage ?? '',
-        publisher:
-          meta?.publisher ||
-          llmMeta?.long_name ||
-          llmMeta?.name ||
-          hostname ||
-          title,
-        favicon: meta?.favicon || llmMeta?.favicon || '',
-        age: meta?.age || llmAge
+        content
       })
+    }
+
+    if (mediaResults.length > 0) {
+      if (results.length > 0) {
+        results[0] = {
+          ...results[0],
+          media: mediaResults
+        }
+      } else {
+        results.push({
+          rank: baseRank + 1,
+          link: mediaResults[0].sourceUrl,
+          title: `Media results for ${query}`,
+          snippet: '',
+          content: '',
+          media: mediaResults
+        })
+      }
     }
 
     return results.length > 0 ? results : null

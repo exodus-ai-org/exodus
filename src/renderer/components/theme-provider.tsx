@@ -1,103 +1,51 @@
-import { createContext, useContext, useEffect, useRef, useState } from 'react'
+import { ThemeProvider as NextThemesProvider, useTheme } from 'next-themes'
+// Consumers should import `useTheme` from 'next-themes' directly — this file
+// only owns the ThemeProvider wrapper and the Theme type alias.
+import type { ComponentProps } from 'react'
+import { useEffect } from 'react'
 
 import { setNativeTheme } from '@/lib/ipc'
 
-export type Theme = 'dark' | 'light' | 'system'
+export type Theme = 'light' | 'dark' | 'system'
 
-type ThemeProviderProps = {
-  children: React.ReactNode
-  defaultTheme?: Theme
-  storageKey?: string
+/**
+ * Bridges next-themes selection back into Electron's `nativeTheme.themeSource`
+ * so OS chrome (titlebar, system menus, scrollbars) stays in sync with the
+ * in-app theme. Mounted as a side-effect-only component inside ThemeProvider.
+ */
+function NativeThemeBridge() {
+  const { theme } = useTheme()
+  useEffect(() => {
+    if (!theme) return
+    if (theme === 'light' || theme === 'dark' || theme === 'system') {
+      setNativeTheme(theme)
+    }
+  }, [theme])
+  return null
 }
 
-type ThemeProviderState = {
-  theme: Theme
-  actualTheme: Exclude<Theme, 'system'>
-  setTheme: (theme: Theme) => void
-}
-
-const initialState: ThemeProviderState = {
-  theme: 'system',
-  actualTheme: 'light',
-  setTheme: () => null
-}
-
-const ThemeProviderContext = createContext<ThemeProviderState>(initialState)
-
+/**
+ * Thin wrapper around next-themes' ThemeProvider with project-specific
+ * defaults: stores under the same `vite-ui-theme` key the legacy provider
+ * used (preserves existing user choice across the migration), uses the
+ * `class` attribute (matching `@custom-variant dark (&:is(.dark *))` in
+ * globals.css), and forwards selection to Electron via NativeThemeBridge.
+ */
 export function ThemeProvider({
   children,
-  defaultTheme = 'system',
-  storageKey = 'vite-ui-theme',
   ...props
-}: ThemeProviderProps) {
-  const [theme, setTheme] = useState<Theme>(
-    () => (window.localStorage.getItem(storageKey) as Theme) || defaultTheme
-  )
-  const [actualTheme, setActualTheme] =
-    useState<Exclude<Theme, 'system'>>('light')
-
-  // Keep a ref so the media-query handler always sees the latest theme value
-  // without needing to re-register (avoids stale closure).
-  const themeRef = useRef(theme)
-
-  useEffect(() => {
-    themeRef.current = theme
-    const root = window.document.documentElement
-    root.classList.remove('light', 'dark')
-
-    if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)')
-        .matches
-        ? 'dark'
-        : 'light'
-      root.classList.add(systemTheme)
-      setActualTheme(systemTheme)
-      setNativeTheme('system')
-      return
-    }
-
-    root.classList.add(theme)
-    setActualTheme(theme)
-    setNativeTheme(theme)
-  }, [theme])
-
-  useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    const handleChange = (e: MediaQueryListEvent) => {
-      // Only auto-update when user has chosen to follow the system
-      if (themeRef.current !== 'system') return
-      const root = window.document.documentElement
-      root.classList.remove('light', 'dark')
-      root.classList.add(e.matches ? 'dark' : 'light')
-      setActualTheme(e.matches ? 'dark' : 'light')
-    }
-
-    mediaQuery.addEventListener('change', handleChange)
-    return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [])
-
-  const value = {
-    theme,
-    actualTheme,
-    setTheme: (theme: Theme) => {
-      window.localStorage.setItem(storageKey, theme)
-      setTheme(theme)
-    }
-  }
-
+}: ComponentProps<typeof NextThemesProvider>) {
   return (
-    <ThemeProviderContext.Provider {...props} value={value}>
+    <NextThemesProvider
+      attribute="class"
+      defaultTheme="system"
+      enableSystem
+      storageKey="vite-ui-theme"
+      disableTransitionOnChange
+      {...props}
+    >
+      <NativeThemeBridge />
       {children}
-    </ThemeProviderContext.Provider>
+    </NextThemesProvider>
   )
-}
-
-// eslint-disable-next-line react-refresh/only-export-components
-export const useTheme = () => {
-  const context = useContext(ThemeProviderContext)
-
-  if (context === undefined)
-    throw new Error('useTheme must be used within a ThemeProvider')
-
-  return context
 }

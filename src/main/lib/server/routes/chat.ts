@@ -27,6 +27,7 @@ import {
   deepResearchBootPrompt,
   getSystemPrompt
 } from '../../ai/prompts'
+import { getActiveSkillsContent } from '../../ai/skills/skills-manager'
 import {
   bindCallingTools,
   generateTitleFromUserMessage,
@@ -204,12 +205,18 @@ chat.post('/', async (c) => {
   }
 
   const personalityPrompt = buildPersonalityPrompt(setting)
+  const skillsSection = await getActiveSkillsContent()
+  logger.info('chat', 'skill injection', {
+    deepResearch: advancedTools?.includes(AdvancedTools.DeepResearch) ?? false,
+    skillsBytes: skillsSection.length
+  })
   const systemContent = advancedTools?.includes(AdvancedTools.DeepResearch)
     ? deepResearchBootPrompt
     : getSystemPrompt() +
       personalityPrompt +
       projectInstructions +
-      memoriesSection
+      memoriesSection +
+      skillsSection
 
   // Build SSE streaming response
   const stream = new ReadableStream({
@@ -276,6 +283,18 @@ chat.post('/', async (c) => {
             const msg = event.message as Message
             if (msg.role === 'assistant') {
               const assistantMsg = msg as Message & { role: 'assistant' }
+              // pi-ai surfaces provider failures (e.g. an OpenAI 4xx on the
+              // request) as an assistant message with stopReason 'error' and the
+              // detail on `errorMessage` — it does NOT throw. Without this guard
+              // the turn was saved as an empty assistant message and the user
+              // saw "no response" with no explanation. Re-throw so the catch
+              // below logs the real error and streams it to the client.
+              if (assistantMsg.stopReason === 'error') {
+                throw new Error(
+                  assistantMsg.errorMessage ||
+                    'The model returned an error without details.'
+                )
+              }
               // Use streaming content from currentAssistantMsg but authoritative
               // usage/stopReason from event.message (message_update carries 0 usage)
               const cost = calculateCost(assistantMsg.usage, activeModel)

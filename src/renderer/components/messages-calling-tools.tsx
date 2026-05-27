@@ -1,14 +1,41 @@
 import type { ChatToolResultMessage } from '@shared/types/chat'
+import { capitalCase } from 'change-case'
 import { AlertCircleIcon } from 'lucide-react'
 import { memo, useEffect } from 'react'
 import { sileo } from 'sileo'
 
 import { ArtifactCard } from './calling-tools/artifact/artifact-card'
 import { DeepResearchCard } from './calling-tools/deep-research/deep-research-card'
-import { GoogleMapsPlacesCard } from './calling-tools/google-maps-places/places-card'
-import { GoogleMapsCard } from './calling-tools/google-maps-routing/routing-card'
+import { DrawioCard, isDrawioOutput } from './calling-tools/drawio/drawio-card'
+import { GenericToolCard } from './calling-tools/generic-tool-card'
+import { MapItineraryCard } from './calling-tools/map-itinerary/itinerary-card'
 import { TerminalCard } from './calling-tools/terminal/terminal-card'
 import { WeatherCard } from './calling-tools/weather/weather-card'
+
+// Built-in tools that have either a dedicated card above OR are intentionally
+// rendered as a no-op (their output surfaces elsewhere in the UI). Anything
+// outside this set — including every MCP tool — falls back to GenericToolCard
+// so the user at least sees that the tool ran.
+const BUILTIN_TOOL_NAMES = new Set([
+  'mapItinerary',
+  'weather',
+  'deepResearch',
+  'terminal',
+  'createArtifact',
+  'webSearch',
+  'imageGeneration',
+  'readFile',
+  'writeFile',
+  'editFile',
+  'listDirectory',
+  'findFiles',
+  'grep',
+  'webFetch',
+  'rag',
+  'lcmGrep',
+  'lcmDescribe',
+  'lcmExpand'
+])
 
 function CallingTools({
   chatId,
@@ -17,7 +44,13 @@ function CallingTools({
   chatId: string
   toolResult: ChatToolResultMessage
 }) {
-  const toolName = toolResult.toolName
+  const toolName = toolResult.toolName ?? ''
+  // toolName stays canonical (used for dispatch below); toolLabel is the
+  // user-facing form ('webSearch' → 'Web Search') and only flows into the
+  // toast title and the fallback error string. Older persisted tool results
+  // may be missing toolName entirely — capitalCase('') is safe, so guard once
+  // up front rather than scatter ?. throughout.
+  const toolLabel = toolName ? capitalCase(toolName) : 'Tool'
 
   // Successful webSearch results are rendered via Sources in MessageAction, not here
   if (toolName === 'webSearch' && !toolResult.isError) {
@@ -30,14 +63,14 @@ function CallingTools({
         const textBlock = toolResult.content.find((c) => c.type === 'text')
         const text =
           textBlock && textBlock.type === 'text' ? textBlock.text : ''
-        return text && text !== '{}' ? text : `${toolName} failed`
+        return text && text !== '{}' ? text : `${toolLabel} failed`
       })()
     : null
 
   useEffect(() => {
     if (errorMessage) {
       sileo.error({
-        title: `Tool failed: ${toolName}`,
+        title: `Tool failed: ${toolLabel}`,
         description: errorMessage
       })
     }
@@ -56,38 +89,57 @@ function CallingTools({
     )
   }
 
-  // details comes from DB directly; fallback to parsing content text for compatibility
-  const output =
-    toolResult.details ??
-    (() => {
-      const textBlock = toolResult.content.find((c) => c.type === 'text')
-      if (textBlock && textBlock.type === 'text') {
-        try {
-          const parsed = JSON.parse(textBlock.text)
-          // Unwrap legacy AgentToolResult wrapper if present
-          if (
-            parsed &&
-            typeof parsed === 'object' &&
-            'details' in parsed &&
-            'content' in parsed
-          ) {
-            return parsed.details
-          }
-          return parsed
-        } catch {
-          return textBlock.text
+  // Built-in tools store their structured payload directly under `details`.
+  // MCP tools follow the MCP content protocol and wrap it as
+  // `{ content: [{ type: 'text', text: '<json>' }] }` — same shape as
+  // toolResult.content. Detect either case so dispatchers see the actual
+  // payload (e.g. drawio's `{mermaid, _version}`) instead of the wrapper.
+  // Typed as `any` to match the previous implicit-any consumer pattern; the
+  // dispatch branches below narrow with type predicates / shape checks.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const output: any = (() => {
+    const tryParseTextBlocks = (
+      blocks: { type: string; text?: string }[] | undefined
+    ): unknown => {
+      const textBlock = blocks?.find((c) => c.type === 'text')
+      if (!textBlock || typeof textBlock.text !== 'string') return null
+      try {
+        const parsed = JSON.parse(textBlock.text)
+        // Unwrap legacy AgentToolResult `{details, content}` wrapper if present
+        if (
+          parsed &&
+          typeof parsed === 'object' &&
+          'details' in parsed &&
+          'content' in parsed
+        ) {
+          return parsed.details
         }
+        return parsed
+      } catch {
+        return textBlock.text
       }
-      return null
-    })()
+    }
+    const details = toolResult.details as
+      | { content?: { type: string; text?: string }[] }
+      | null
+      | undefined
+    if (
+      details &&
+      typeof details === 'object' &&
+      Array.isArray(details.content) &&
+      !('type' in details)
+    ) {
+      // MCP-style wrapper — payload is in details.content[].text
+      return tryParseTextBlocks(details.content)
+    }
+    if (details != null) return details
+    return tryParseTextBlocks(toolResult.content)
+  })()
 
   return (
     <section className="mb-4 w-full">
-      {toolName === 'googleMapsRouting' && (
-        <GoogleMapsCard toolResult={output} />
-      )}
-      {toolName === 'googleMapsPlaces' && (
-        <GoogleMapsPlacesCard toolResult={output} />
+      {toolName === 'mapItinerary' && output?.type === 'mapItinerary' && (
+        <MapItineraryCard toolResult={output} />
       )}
       {toolName === 'weather' && <WeatherCard toolResult={output} />}
       {toolName === 'deepResearch' && <DeepResearchCard toolResult={output} />}
@@ -100,6 +152,12 @@ function CallingTools({
         toolName === 'writeFile' ||
         toolName === 'listDirectory' ||
         toolName === 'findFiles') && <div className="-mb-4" />}
+      {!BUILTIN_TOOL_NAMES.has(toolName) &&
+        (isDrawioOutput(output) ? (
+          <DrawioCard output={output} />
+        ) : (
+          <GenericToolCard toolName={toolName} output={output} />
+        ))}
     </section>
   )
 }

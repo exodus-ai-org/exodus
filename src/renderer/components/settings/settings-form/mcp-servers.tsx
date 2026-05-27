@@ -10,8 +10,10 @@ import {
   Trash2Icon
 } from 'lucide-react'
 import { lazy, Suspense, useCallback, useState } from 'react'
-import { toast } from 'sonner'
+import { sileo } from 'sileo'
 import useSWR from 'swr'
+
+import Markdown from '@/components/markdown'
 
 const CodeEditor = lazy(() =>
   import('@/components/code-editor.js').then((m) => ({
@@ -69,6 +71,9 @@ function serversToJson(servers: McpServerItem[]): string {
       if (s.headers && Object.keys(s.headers).length > 0)
         obj[s.name].headers = s.headers
     }
+    // Merge extra config last so it can supplement or override standard fields
+    if (s.extraConfig && Object.keys(s.extraConfig).length > 0)
+      Object.assign(obj[s.name], s.extraConfig)
   }
   return JSON.stringify({ mcpServers: obj }, null, 2)
 }
@@ -156,9 +161,9 @@ function ServerCard({
                 <div key={tool.name} className="flex flex-col">
                   <p className="text-xs font-medium">{tool.name}</p>
                   {tool.description && (
-                    <p className="text-muted-foreground text-[11px]">
-                      {tool.description}
-                    </p>
+                    <div className="[&_.markdown]:text-muted-foreground [&_.markdown]:text-[11px] [&_.markdown]:leading-snug [&_.markdown_li]:leading-normal [&_.markdown_ol]:mb-0.5 [&_.markdown_ul]:mb-0.5">
+                      <Markdown src={tool.description} />
+                    </div>
                   )}
                 </div>
               ))}
@@ -199,6 +204,8 @@ export function McpServers() {
   // remote
   const [url, setUrl] = useState('')
   const [headersStr, setHeadersStr] = useState('')
+  // extra config (arbitrary JSON object)
+  const [extraConfigStr, setExtraConfigStr] = useState('{}')
 
   // JSON (read-only)
   const jsonValue = servers ? serversToJson(servers) : '{}'
@@ -213,6 +220,7 @@ export function McpServers() {
     setArgs('')
     setUrl('')
     setHeadersStr('')
+    setExtraConfigStr('{}')
   }, [])
 
   const startNew = useCallback(() => {
@@ -230,6 +238,11 @@ export function McpServers() {
     setArgs((server.args ?? []).join(' '))
     setUrl(server.url ?? '')
     setHeadersStr(server.headers ? JSON.stringify(server.headers, null, 2) : '')
+    setExtraConfigStr(
+      server.extraConfig && Object.keys(server.extraConfig).length > 0
+        ? JSON.stringify(server.extraConfig, null, 2)
+        : '{}'
+    )
   }, [])
 
   const refresh = useCallback(async () => {
@@ -248,7 +261,31 @@ export function McpServers() {
         try {
           parsedHeaders = JSON.parse(headersStr)
         } catch {
-          toast.error('Invalid headers JSON')
+          sileo.error({ title: 'Invalid headers JSON' })
+          setSaving(false)
+          return
+        }
+      }
+
+      let parsedExtraConfig: Record<string, unknown> | null = null
+      const trimmedExtra = extraConfigStr.trim()
+      if (trimmedExtra && trimmedExtra !== '{}') {
+        try {
+          const parsed = JSON.parse(trimmedExtra)
+          if (
+            typeof parsed !== 'object' ||
+            Array.isArray(parsed) ||
+            parsed === null
+          ) {
+            throw new Error('must be a JSON object')
+          }
+          parsedExtraConfig = parsed
+        } catch (e) {
+          sileo.error({
+            title: 'Invalid Extra Config',
+            description:
+              e instanceof Error ? e.message : 'must be a JSON object'
+          })
           setSaving(false)
           return
         }
@@ -257,7 +294,8 @@ export function McpServers() {
       const data: Partial<McpServerItem> & { name: string } = {
         name: name.trim(),
         description: description.trim() || null,
-        transportType
+        transportType,
+        extraConfig: parsedExtraConfig
       }
 
       if (transportType === 'stdio') {
@@ -271,20 +309,22 @@ export function McpServers() {
 
       if (editing) {
         await updateMcpServerApi(editing.id, data)
-        toast.success(`"${data.name}" updated — reconnecting…`)
+        sileo.success({ title: `"${data.name}" updated — reconnecting…` })
       } else {
         await createMcpServerApi(data)
-        toast.success(`"${data.name}" registered (disabled by default)`)
+        sileo.success({
+          title: `"${data.name}" registered`,
+          description: 'Disabled by default'
+        })
       }
       await refresh()
       resetForm()
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Operation failed'
-      toast.error(
-        editing
-          ? `Failed to update server: ${msg}`
-          : `Failed to register: ${msg}`
-      )
+      sileo.error({
+        title: editing ? 'Failed to update server' : 'Failed to register',
+        description: msg
+      })
     } finally {
       setSaving(false)
     }
@@ -296,6 +336,7 @@ export function McpServers() {
     args,
     url,
     headersStr,
+    extraConfigStr,
     editing,
     refresh,
     resetForm
@@ -305,12 +346,12 @@ export function McpServers() {
     async (server: McpServerItem) => {
       try {
         await deleteMcpServerApi(server.id)
-        toast.success(`"${server.name}" removed — connection closed`)
+        sileo.success({ title: `"${server.name}" removed — connection closed` })
         await refresh()
         if (editing?.id === server.id) resetForm()
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Operation failed'
-        toast.error(`Failed to remove server: ${msg}`)
+        sileo.error({ title: 'Failed to remove server', description: msg })
       }
     },
     [editing, refresh, resetForm]
@@ -323,13 +364,15 @@ export function McpServers() {
         await updateMcpServerApi(server.id, { isActive: enabling })
         await refresh()
         if (enabling) {
-          toast.success(`"${server.name}" enabled — reconnecting…`)
+          sileo.success({ title: `"${server.name}" enabled — reconnecting…` })
         } else {
-          toast.success(`"${server.name}" disabled — connection closed`)
+          sileo.success({
+            title: `"${server.name}" disabled — connection closed`
+          })
         }
       } catch (e) {
         const msg = e instanceof Error ? e.message : 'Operation failed'
-        toast.error(`Failed to toggle server: ${msg}`)
+        sileo.error({ title: 'Failed to toggle server', description: msg })
       }
     },
     [refresh]
@@ -515,6 +558,35 @@ export function McpServers() {
                     onChange={(e) => setDescription(e.target.value)}
                     placeholder="Optional"
                   />
+                </SettingsRow>
+
+                <SettingsRow
+                  label="Extra Config"
+                  description="Additional fields merged into the JSON export (e.g. oauth, custom auth). Must be a valid JSON object."
+                  layout="vertical"
+                >
+                  <div className="border-border overflow-hidden rounded-md border">
+                    <Suspense
+                      fallback={
+                        <div className="flex h-32 items-center justify-center">
+                          <Loader2Icon className="text-muted-foreground h-4 w-4 animate-spin" />
+                        </div>
+                      }
+                    >
+                      <CodeEditor
+                        className="h-32"
+                        value={extraConfigStr}
+                        onChange={setExtraConfigStr}
+                        monacoEditorOption={{
+                          language: 'json',
+                          lineNumbers: 'off',
+                          minimap: { enabled: false },
+                          scrollBeyondLastLine: false,
+                          folding: false
+                        }}
+                      />
+                    </Suspense>
+                  </div>
                 </SettingsRow>
 
                 <div className="flex gap-2 pt-1">

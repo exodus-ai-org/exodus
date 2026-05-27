@@ -146,6 +146,7 @@ export function AudioSpeech({ form }: { form: UseFormReturnType }) {
               error={fieldState.error}
             >
               <Input
+                placeholder="1.0"
                 type="number"
                 step={0.25}
                 min={0.25}

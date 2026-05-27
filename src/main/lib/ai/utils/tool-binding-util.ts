@@ -8,14 +8,13 @@ import {
   deepResearch,
   editFile,
   findFiles,
-  googleMapsPlaces,
-  googleMapsRouting,
   grep,
   imageGeneration,
   lcmDescribe,
   lcmExpand,
   lcmGrep,
   listDirectory,
+  mapItinerary,
   readFile,
   terminal,
   weather,
@@ -61,8 +60,7 @@ export function bindCallingTools({
   const tools: ErasedTool[] = []
 
   if (enabled('weather')) tools.push(weather)
-  if (enabled('googleMapsPlaces')) tools.push(googleMapsPlaces(setting))
-  if (enabled('googleMapsRouting')) tools.push(googleMapsRouting(setting))
+  if (enabled('mapItinerary')) tools.push(mapItinerary(setting))
   if (enabled('imageGeneration')) tools.push(imageGeneration(setting))
   if (enabled('terminal')) tools.push(terminal)
   if (enabled('readFile')) tools.push(readFile)

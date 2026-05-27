@@ -61,10 +61,8 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
           >
             Brave Search API
           </a>{' '}
-          for real-time web results, with publisher metadata and og:image
-          previews for citations. A <strong>Brave Search API Key</strong> is
-          required. Each query consumes two API calls (LLM Context + Web Search)
-          — keep that in mind for your subscription tier.
+          for real-time web results using the LLM Context endpoint. A{' '}
+          <strong>Brave Search API Key</strong> is required.
         </AlertDescription>
       </Alert>
 

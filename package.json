@@ -7,6 +7,7 @@
   "main": "./out/main/index.js",
   "scripts": {
     "asar:sniff": "npx tsx scripts/asar-sniff.ts",
+    "icons": "node scripts/render-icons.mjs",
     "build": "npm run typecheck && electron-vite build",
     "build:linux": "electron-vite build && electron-builder --linux",
     "build:mac": "electron-vite build && electron-builder --mac",
@@ -94,6 +95,7 @@
     "@vis.gl/react-google-maps": "^1.8.3",
     "@vitejs/plugin-react": "^6.0.1",
     "@xyflow/react": "^12.10.2",
+    "change-case": "^5.4.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",

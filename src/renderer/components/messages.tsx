@@ -10,6 +10,7 @@ import type {
   TimelineStep
 } from '@shared/types/chat'
 import type { WebSearchResult } from '@shared/types/web-search'
+import { capitalCase } from 'change-case'
 import { ChevronDownIcon } from 'lucide-react'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Zoom from 'react-medium-image-zoom'
@@ -101,7 +102,7 @@ const AssistantTurnSegment = memo(
               <AvatarImage src={assistantAvatar} className="object-cover" />
             </Avatar>
           )}
-          <div className="w-full overflow-x-hidden">
+          <div className="w-full min-w-0">
             {(turn.steps.length > 0 || isStreaming) && (
               <ThinkingTimeline
                 steps={turn.steps}
@@ -177,42 +178,58 @@ const AssistantTurnSegment = memo(
 
 /**
  * Build a timeline preview for a tool call. Most tools get an inline
- * summary ("webSearch: <query>"); terminal commands get pulled out into a
+ * summary ("Web Search: <query>"); terminal commands get pulled out into a
  * separate monospace block so heredocs, pipes, and multi-line scripts stay
  * legible instead of collapsing into a single messy line.
+ *
+ * The raw tool name is the canonical identifier (used as the SSE event
+ * key, the DB column, and the dispatch key in messages-calling-tools); we
+ * format it for display only here, at the rendering boundary, via
+ * capitalCase ('webSearch' → 'Web Search').
  */
 function getToolCallPreview(
   name: string,
   args: Record<string, unknown> | undefined
 ): { text: string; codeArgument?: string } {
-  if (!args) return { text: name }
+  const label = capitalCase(name)
+  if (!args) return { text: label }
   const pick = (key: string): string =>
     typeof args[key] === 'string' ? (args[key] as string) : ''
 
   switch (name) {
     case 'terminal': {
       const cmd = pick('command')
-      return cmd ? { text: name, codeArgument: cmd } : { text: name }
+      return cmd ? { text: label, codeArgument: cmd } : { text: label }
     }
     case 'webSearch':
-      return withInline(name, pick('query'))
+      return withInline(label, pick('query'))
     case 'webFetch':
-      return withInline(name, pick('url'))
+      return withInline(label, pick('url'))
     case 'readFile':
     case 'writeFile':
     case 'editFile':
-      return withInline(name, pick('path') || pick('filePath'))
+      return withInline(label, pick('path') || pick('filePath'))
     case 'weather':
-      return withInline(name, pick('location'))
-    case 'googleMapsPlaces':
-      return withInline(name, pick('query'))
+      return withInline(label, pick('location'))
+    case 'mapItinerary': {
+      // Show "Map Itinerary: 3 days, 12 stops" so the timeline conveys the
+      // scale of the itinerary the LLM just built.
+      const days = Array.isArray(args.days) ? (args.days as unknown[]) : []
+      const stops = days.reduce<number>((acc, d) => {
+        const places = (d as { places?: unknown[] } | null)?.places
+        return acc + (Array.isArray(places) ? places.length : 0)
+      }, 0)
+      const dayCount = days.length
+      const summary = `${dayCount} day${dayCount === 1 ? '' : 's'}, ${stops} stop${stops === 1 ? '' : 's'}`
+      return withInline(label, summary)
+    }
     default:
-      return { text: name }
+      return { text: label }
   }
 }
 
-function withInline(name: string, value: string): { text: string } {
-  return { text: value ? `${name}: ${value}` : name }
+function withInline(label: string, value: string): { text: string } {
+  return { text: value ? `${label}: ${value}` : label }
 }
 
 /**
@@ -260,7 +277,7 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
       if (toolResult.isError) {
         const errorText =
           toolResult.content.find((c) => c.type === 'text')?.text ??
-          `${toolResult.toolName} failed`
+          `${capitalCase(toolResult.toolName)} failed`
         steps.push({
           type: 'toolResult',
           text: errorText,

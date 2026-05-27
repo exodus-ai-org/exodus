@@ -34,6 +34,8 @@ const mcpServerSchema = z.object({
   // remote fields
   url: z.string().optional().nullable(),
   headers: z.record(z.string(), z.string()).optional().nullable(),
+  // arbitrary extra fields merged into JSON export (e.g. oauth, httpUrl)
+  extraConfig: z.record(z.string(), z.unknown()).optional().nullable(),
   isActive: z.boolean().optional()
 })
 

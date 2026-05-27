@@ -18,3 +18,5 @@ out
 
 .superpowers/
 *.tsbuildinfo
+
+.claude

@@ -1,6 +1,7 @@
 import { faviconUrl } from '@shared/constants/external-urls'
 import { WebSearchResult } from '@shared/types/web-search'
 import { CheckIcon, CopyIcon } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import {
   createContext,
   Fragment,
@@ -24,7 +25,6 @@ import remarkMath from 'remark-math'
 import { useClipboard } from '@/hooks/use-clipboard'
 import { cn } from '@/lib/utils'
 
-import { useTheme } from './theme-provider'
 import { Badge } from './ui/badge'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card'
 
@@ -61,32 +61,30 @@ const CitationChip = memo(function CitationChip({
 }: {
   source: WebSearchResult
 }) {
-  let origin = ''
+  let hostname = ''
+  let favicon = ''
   try {
-    origin = new URL(source.link).origin
+    const url = new URL(source.link)
+    hostname = url.hostname
+    favicon = faviconUrl(url.origin)
   } catch {
-    return null
+    hostname = source.link
   }
-
-  // Prefer Brave's served favicon (consistent rendering, cached by their CDN);
-  // fall back to a derived favicon URL for legacy results without one.
-  const favicon = source.favicon || faviconUrl(origin)
-  // Badge shows the human-readable publisher name (e.g. "The New York Times")
-  // instead of the article title, which used to read like a sentence and was
-  // both visually noisy and rarely uniquely identifying.
-  const badgeLabel = source.publisher || source.title
 
   return (
     <HoverCard>
-      <HoverCardTrigger>
-        <Badge
-          variant="secondary"
-          className="ml-1 max-w-22 cursor-pointer align-middle text-[0.625rem] no-underline"
-          render={
-            <a href={source.link} target="_blank" rel="noopener noreferrer" />
-          }
-        >
-          <span className="truncate">{badgeLabel}</span>
+      <HoverCardTrigger
+        render={
+          <a
+            href={source.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="no-underline hover:no-underline"
+          />
+        }
+      >
+        <Badge variant="secondary" className="ml-1">
+          <span className="max-w-22 truncate">{source.title}</span>
         </Badge>
       </HoverCardTrigger>
       <HoverCardContent
@@ -95,25 +93,21 @@ const CitationChip = memo(function CitationChip({
         className="w-72 overflow-hidden rounded-xl border p-0 shadow-lg"
       >
         <a href={source.link} target="_blank" rel="noopener noreferrer">
-          {source.ogImage && (
-            <img
-              src={source.ogImage}
-              alt={source.title}
-              loading="lazy"
-              className="h-32 w-full object-cover"
-            />
-          )}
           <div className="flex flex-col gap-1 p-3">
-            <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
-              <img src={favicon} className="size-3" alt="" />
-              {new URL(source.link).hostname}
+            <div className="text-muted-foreground flex items-center gap-1.5 truncate text-xs">
+              {favicon && (
+                <img src={favicon} className="size-3 shrink-0" alt="" />
+              )}
+              {hostname}
             </div>
             <div className="line-clamp-2 text-sm leading-snug font-semibold">
               {source.title}
             </div>
-            <div className="text-muted-foreground line-clamp-3 text-xs leading-relaxed">
-              {source.snippet}
-            </div>
+            {source.snippet && (
+              <div className="text-muted-foreground line-clamp-3 text-xs leading-relaxed">
+                {source.snippet}
+              </div>
+            )}
           </div>
         </a>
       </HoverCardContent>
@@ -217,8 +211,12 @@ export function Markdown({
   webSearchResults?: WebSearchResult[]
 }) {
   const { copied, handleCopy } = useClipboard()
-  const { actualTheme } = useTheme()
-  const { codeTheme } = useMemo(() => themes[actualTheme], [actualTheme])
+  const { resolvedTheme } = useTheme()
+  // resolvedTheme is undefined on first paint until next-themes hydrates;
+  // fall back to the light theme so syntax highlighting renders something
+  // sensible instead of crashing.
+  const themeKey: 'light' | 'dark' = resolvedTheme === 'dark' ? 'dark' : 'light'
+  const { codeTheme } = useMemo(() => themes[themeKey], [themeKey])
 
   const rankMap = useMemo(() => {
     if (!webSearchResults || webSearchResults.length === 0) return null
@@ -310,12 +308,15 @@ export function Markdown({
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
       a({ className, children, node, ...rest }: any) {
+        // Styling lives in globals.css `.markdown a` — primary color, no
+        // underline by default, underline on hover. The previous always-bold
+        // + always-underlined treatment made body text feel cluttered.
         return (
           <a
             {...rest}
             rel="noopener noreferrer"
             target="_blank"
-            className={cn('font-bold wrap-break-word underline', className)}
+            className={className}
           >
             {children}
           </a>
@@ -323,12 +324,12 @@ export function Markdown({
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
       table({ className, children, node, ...rest }: any) {
+        // No outer border / wrapper border — internal row dividers (handled
+        // on thead/tr below) carry the structure. Wider tables still scroll
+        // horizontally via overflow-x-auto without the boxed-in feel.
         return (
-          <div className="mb-4 overflow-x-auto rounded-md border text-sm leading-normal">
-            <table
-              {...rest}
-              className={cn('min-w-full caption-bottom', className)}
-            >
+          <div className="my-4 overflow-x-auto text-sm leading-normal">
+            <table {...rest} className={cn('w-full caption-bottom', className)}>
               {children}
             </table>
           </div>
@@ -337,7 +338,10 @@ export function Markdown({
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
       thead({ className, children, node, ...rest }: any) {
         return (
-          <thead {...rest} className={cn('[&_tr]:border-b', className)}>
+          <thead
+            {...rest}
+            className={cn('[&_tr]:border-border [&_tr]:border-b', className)}
+          >
             {children}
           </thead>
         )
@@ -356,13 +360,7 @@ export function Markdown({
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
       tr({ className, children, node, ...rest }: any) {
         return (
-          <tr
-            {...rest}
-            className={cn(
-              'hover:bg-muted/50 border-b transition-colors',
-              className
-            )}
-          >
+          <tr {...rest} className={cn('border-border border-b', className)}>
             {children}
           </tr>
         )
@@ -373,7 +371,7 @@ export function Markdown({
           <th
             {...rest}
             className={cn(
-              'text-foreground px-3 py-2.5 text-left align-middle font-medium whitespace-nowrap',
+              'text-foreground py-2.5 pr-6 text-left align-top font-medium last:pr-0',
               className
             )}
           >
@@ -386,9 +384,8 @@ export function Markdown({
         return (
           <td
             {...rest}
-            style={{ fontWeight: 400 }}
             className={cn(
-              'text-foreground px-3 py-2 align-middle whitespace-nowrap',
+              'text-foreground py-2.5 pr-6 align-top font-normal last:pr-0',
               className
             )}
           >

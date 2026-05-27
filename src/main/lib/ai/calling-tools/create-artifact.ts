@@ -46,6 +46,12 @@ AVAILABLE IMPORTS:
 - @/ui/table (Table, TableBody, TableCell, TableHead, TableHeader, TableRow)
 - @/ui/tabs (Tabs, TabsContent, TabsList, TabsTrigger)
 
+MEDIA:
+- You may use externally hosted image/video URLs returned by webSearch media results directly in <img>, <video>, or as links to source pages.
+- Prefer Brave thumbnail URLs for image display when available; link back to the original sourceUrl for attribution/inspection.
+- Never invent media URLs. If webSearch did not return media, make a strong visual artifact with icons, diagrams, tables, and layout instead of fake images.
+- Always include meaningful alt text for images. For videos, show the thumbnail and open the sourceUrl in a new tab unless you are sure the URL is directly embeddable.
+
 STYLING:
 - Tailwind utility classes. For dimensions, prefer inline style={{}} over arbitrary values like h-[380px] — arbitrary values are NOT available in the sandbox CSS.
 - For colors, follow the THEME ADAPTATION rules above — every surface/text/border goes through theme tokens.

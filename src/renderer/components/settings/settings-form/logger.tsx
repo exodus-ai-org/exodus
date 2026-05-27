@@ -8,7 +8,7 @@ import {
   Trash2Icon
 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { toast } from 'sonner'
+import { sileo } from 'sileo'
 import useSWR from 'swr'
 
 import { Badge } from '@/components/ui/badge'
@@ -186,9 +186,12 @@ export function Logger() {
       a.click()
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
-      toast.success('Logs exported')
+      sileo.success({ title: 'Logs exported' })
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Export failed')
+      sileo.error({
+        title: 'Export failed',
+        description: err instanceof Error ? err.message : undefined
+      })
     }
   }, [date])
 
@@ -197,10 +200,13 @@ export function Logger() {
       return
     try {
       await fetcher('/api/logs', { method: 'DELETE' })
-      toast.success('All logs cleared')
+      sileo.success({ title: 'All logs cleared' })
       mutate()
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Failed to clear logs')
+      sileo.error({
+        title: 'Failed to clear logs',
+        description: err instanceof Error ? err.message : undefined
+      })
     }
   }, [mutate])
 
