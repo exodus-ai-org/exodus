@@ -1,3 +1,29 @@
+# [1.13.0](https://github.com/exodus-ai-org/exodus/compare/v1.12.1...v1.13.0) (2026-05-27)
+
+
+### Bug Fixes
+
+* **artifacts:** use automatic JSX runtime in sandbox ([957532c](https://github.com/exodus-ai-org/exodus/commit/957532c525253bc3871fd92b436c7f2b59974af4))
+* **chat:** surface provider errors instead of saving empty assistant message ([36c80f1](https://github.com/exodus-ai-org/exodus/commit/36c80f1fc9a7e073284df34ca6febf2a685c5bc0))
+* **ci:** bring up electron under xvfb on ubuntu and healthcheck the server ([a567da6](https://github.com/exodus-ai-org/exodus/commit/a567da6738327d07703884e8354d2df5d0588903))
+* **e2e:** drop dev-only goto, fix sidebar locator, skip when no API key ([9b81d94](https://github.com/exodus-ai-org/exodus/commit/9b81d941ccee7a48fafa0c04e6dc1fb5b885050b))
+* **lcm:** align LcmStatusCard width with chat column ([0a10133](https://github.com/exodus-ai-org/exodus/commit/0a10133a5a6fc015a833cbeec9a53a9c341cf392))
+
+
+### Features
+
+* **lcm:** add /api/lcm/:chatId/status SSE endpoint ([5538fd0](https://github.com/exodus-ai-org/exodus/commit/5538fd024d22b5f986af0686dc3f29a4e3be9bb5))
+* **lcm:** add LcmStatusBus for compaction visibility events ([300a6ba](https://github.com/exodus-ai-org/exodus/commit/300a6badb19c34b189a9699f4bfe2b8928b453f0))
+* **lcm:** add LcmStatusCard component ([689aef1](https://github.com/exodus-ai-org/exodus/commit/689aef19840ffe5bdea446a9bee3316bba98922d))
+* **lcm:** add useLcmStatus hook for SSE subscription ([ce6d04e](https://github.com/exodus-ai-org/exodus/commit/ce6d04e677f0a60b7049269a627a97b33d78fcd0))
+* **lcm:** emit start/complete/error events from runCompactionIfNeeded ([9c31899](https://github.com/exodus-ai-org/exodus/commit/9c318995cbb38a3f48fd4754caffd4c10182d221))
+* **lcm:** mount LcmStatusCard between messages and composer ([72ed778](https://github.com/exodus-ai-org/exodus/commit/72ed77817903104959a991e94a71eac2e6529eac))
+* map bounds dynamic padding, MCP tool markdown, MCP extra config ([760be8d](https://github.com/exodus-ai-org/exodus/commit/760be8d3edf1593a6bc60b15cd008d0761d1b056))
+* skill injection, drawio inline render, toast/logger fixes ([961e8ee](https://github.com/exodus-ai-org/exodus/commit/961e8ee63e5bac13e20f74fb5850f496f182bf87))
+* SVG tray icon pipeline, tray context menu, speech rate placeholder ([6a3a702](https://github.com/exodus-ai-org/exodus/commit/6a3a7023780fa9d3f955696917de0bede08bbf54))
+* unified mapItinerary tool, refreshed markdown styling, sidebar history fix ([193e8b0](https://github.com/exodus-ai-org/exodus/commit/193e8b0515eab22bba35016a15dde30e2e244ef3))
+* webSearch images/videos, Places-enriched mapItinerary ([2e9310a](https://github.com/exodus-ai-org/exodus/commit/2e9310adcc926184104943d3b95780da0fe50cfc))
+
 ## [1.12.1](https://github.com/exodus-ai-org/exodus/compare/v1.12.0...v1.12.1) (2026-04-28)
 
 
