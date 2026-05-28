@@ -213,39 +213,20 @@ export type McpServer = InferSelectModel<typeof mcpServer>
 
 // ─── Agent X ────────────────────────────────────────────────────────────────
 
-export const department = pgTable('department', {
-  id: uuid('id').primaryKey().notNull().defaultRandom(),
-  name: text('name').notNull(),
-  description: text('description').default(''),
-  icon: text('icon').default('building-2'),
-  skillSlugs: jsonb('skillSlugs').$type<string[]>().default([]),
-  mcpServerNames: jsonb('mcpServerNames').$type<string[]>().default([]),
-  position: jsonb('position').$type<{ x: number; y: number }>(),
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
-  updatedAt: timestamp('updatedAt').defaultNow().notNull()
-})
-
-export type Department = InferSelectModel<typeof department>
-
 export const agent = pgTable('agent', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
-  departmentId: uuid('departmentId').references(() => department.id, {
-    onDelete: 'set null'
-  }),
   name: text('name').notNull(),
   description: text('description').default(''),
+  team: text('team'), // lightweight label, e.g. "数据组"; replaces department
+  avatarSeed: text('avatarSeed'),
+  avatarStyle: text('avatarStyle'),
   systemPrompt: text('systemPrompt').default(''),
   toolAllowList: jsonb('toolAllowList').$type<string[]>().default([]),
   skillSlugs: jsonb('skillSlugs').$type<string[]>().default([]),
   mcpServerNames: jsonb('mcpServerNames').$type<string[]>().default([]),
   model: text('model'),
   provider: text('provider'),
-  collaboratorIds: jsonb('collaboratorIds').$type<string[]>().default([]),
-  position: jsonb('position').$type<{ x: number; y: number }>(),
   isActive: boolean('isActive').default(true),
-  // Shadow agent support: temporary clone created for high-priority preemption
-  isShadow: boolean('isShadow').default(false),
-  shadowOfAgentId: uuid('shadowOfAgentId'),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull()
 })
@@ -274,6 +255,60 @@ export const agentMemory = pgTable('agent_memory', {
 
 export type AgentMemory = InferSelectModel<typeof agentMemory>
 
+// ─── Conversations (work groups) ──────────────────────────────────────────────
+
+export const conversation = pgTable(
+  'conversation',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    title: text('title').notNull(),
+    icon: text('icon'), // emoji
+    memberAgentIds: jsonb('memberAgentIds').$type<string[]>().default([]),
+    archived: boolean('archived').default(false),
+    createdAt: timestamp('createdAt').defaultNow().notNull(),
+    updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+    lastMessageAt: timestamp('lastMessageAt').defaultNow().notNull()
+  },
+  (table) => [index('conversation_last_message_idx').on(table.lastMessageAt)]
+)
+
+export type Conversation = InferSelectModel<typeof conversation>
+
+export const conversationMessageRoleEnum = pgEnum('conversation_message_role', [
+  'user',
+  'pm',
+  'employee',
+  'system'
+])
+
+export const conversationMessage = pgTable(
+  'conversation_message',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    conversationId: uuid('conversationId')
+      .notNull()
+      .references(() => conversation.id, { onDelete: 'cascade' }),
+    role: conversationMessageRoleEnum('role').notNull(),
+    agentId: uuid('agentId').references(() => agent.id, {
+      onDelete: 'set null'
+    }),
+    content: text('content').notNull().default(''),
+    parts: jsonb('parts').$type<Record<string, unknown>[]>(), // tool-call cards etc.
+    taskId: uuid('taskId'),
+    createdAt: timestamp('createdAt').defaultNow().notNull()
+  },
+  (table) => [
+    index('conversation_message_conv_idx').on(
+      table.conversationId,
+      table.createdAt
+    )
+  ]
+)
+
+export type ConversationMessage = InferSelectModel<typeof conversationMessage>
+
+// ─── Tasks ────────────────────────────────────────────────────────────────────
+
 export const taskStatusEnum = pgEnum('task_status', [
   'pending',
   'running',
@@ -293,23 +328,21 @@ export const taskPriorityEnum = pgEnum('task_priority', [
 export const task = pgTable('task', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   parentTaskId: uuid('parentTaskId'),
+  conversationId: uuid('conversationId').references(() => conversation.id, {
+    onDelete: 'cascade'
+  }),
   title: text('title').notNull(),
   description: text('description').default(''),
   status: taskStatusEnum('status').notNull().default('pending'),
   priority: taskPriorityEnum('priority').notNull().default('medium'),
-  assignedDepartmentId: uuid('assignedDepartmentId').references(
-    () => department.id
-  ),
   assignedAgentId: uuid('assignedAgentId').references(() => agent.id),
   input: jsonb('input').$type<Record<string, unknown>>(),
   output: jsonb('output').$type<Record<string, unknown>>(),
   maxRetries: real('maxRetries').default(1),
   retryCount: real('retryCount').default(0),
-  // Scheduled task support
-  cronExpression: text('cronExpression'), // null = one-time; cron string = recurring template
+  cronExpression: text('cronExpression'),
   lastRunAt: timestamp('lastRunAt'),
   lastRunStatus: varchar('lastRunStatus').$type<'completed' | 'failed'>(),
-  // Post-completion feedback / review
   feedbackRating: varchar('feedbackRating').$type<
     'positive' | 'negative' | null
   >(),
@@ -342,6 +375,7 @@ export const taskExecution = pgTable('task_execution', {
   tokenUsage: jsonb('tokenUsage').$type<{
     inputTokens: number
     outputTokens: number
+    cost?: number
   }>()
 })
 
@@ -358,6 +392,18 @@ export const taskExecutionEvent = pgTable('task_execution_event', {
 })
 
 export type TaskExecutionEvent = InferSelectModel<typeof taskExecutionEvent>
+
+// ─── Knowledge Base (RAG stub) ────────────────────────────────────────────────
+
+export const knowledgeDoc = pgTable('knowledge_doc', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull()
+})
+
+export type KnowledgeDoc = InferSelectModel<typeof knowledgeDoc>
 
 // ─── Memory & Personalization ───────────────────────────────────────────────
 
