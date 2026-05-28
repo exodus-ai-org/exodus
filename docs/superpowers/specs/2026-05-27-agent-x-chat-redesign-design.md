@@ -1,7 +1,7 @@
 # Agent X 聊天式改版设计
 
 > 日期：2026-05-27
-> 状态：设计已确认，待写实现计划
+> 状态：设计已确认；实现计划见 `docs/superpowers/plans/2026-05-28-agent-x-chat-redesign.md`
 
 ## 1. 背景与目标
 
