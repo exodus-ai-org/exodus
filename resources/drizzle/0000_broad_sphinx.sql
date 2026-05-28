@@ -1,4 +1,5 @@
 CREATE TYPE "public"."agent_memory_source" AS ENUM('conversation', 'task', 'system');--> statement-breakpoint
+CREATE TYPE "public"."conversation_message_role" AS ENUM('user', 'pm', 'employee', 'system');--> statement-breakpoint
 CREATE TYPE "public"."execution_status" AS ENUM('running', 'completed', 'failed');--> statement-breakpoint
 CREATE TYPE "public"."jobStatus" AS ENUM('streaming', 'archived', 'failed', 'terminated');--> statement-breakpoint
 CREATE TYPE "public"."memory_source" AS ENUM('explicit', 'implicit', 'system');--> statement-breakpoint
@@ -7,20 +8,18 @@ CREATE TYPE "public"."task_priority" AS ENUM('low', 'medium', 'high', 'urgent');
 CREATE TYPE "public"."task_status" AS ENUM('pending', 'running', 'completed', 'failed', 'cancelled', 'waiting_for_user');--> statement-breakpoint
 CREATE TABLE "agent" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"departmentId" uuid,
 	"name" text NOT NULL,
 	"description" text DEFAULT '',
+	"team" text,
+	"avatarSeed" text,
+	"avatarStyle" text,
 	"systemPrompt" text DEFAULT '',
 	"toolAllowList" jsonb DEFAULT '[]'::jsonb,
 	"skillSlugs" jsonb DEFAULT '[]'::jsonb,
 	"mcpServerNames" jsonb DEFAULT '[]'::jsonb,
 	"model" text,
 	"provider" text,
-	"collaboratorIds" jsonb DEFAULT '[]'::jsonb,
-	"position" jsonb,
 	"isActive" boolean DEFAULT true,
-	"isShadow" boolean DEFAULT false,
-	"shadowOfAgentId" uuid,
 	"createdAt" timestamp DEFAULT now() NOT NULL,
 	"updatedAt" timestamp DEFAULT now() NOT NULL
 );
@@ -46,6 +45,28 @@ CREATE TABLE "chat" (
 	"useProjectInstructions" boolean DEFAULT true
 );
 --> statement-breakpoint
+CREATE TABLE "conversation" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"title" text NOT NULL,
+	"icon" text,
+	"memberAgentIds" jsonb DEFAULT '[]'::jsonb,
+	"archived" boolean DEFAULT false,
+	"createdAt" timestamp DEFAULT now() NOT NULL,
+	"updatedAt" timestamp DEFAULT now() NOT NULL,
+	"lastMessageAt" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "conversation_message" (
+	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
+	"conversationId" uuid NOT NULL,
+	"role" "conversation_message_role" NOT NULL,
+	"agentId" uuid,
+	"content" text DEFAULT '' NOT NULL,
+	"parts" jsonb,
+	"taskId" uuid,
+	"createdAt" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
 CREATE TABLE "deep_research" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"toolCallId" text NOT NULL,
@@ -64,14 +85,10 @@ CREATE TABLE "deep_research_message" (
 	"createdAt" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-CREATE TABLE "department" (
+CREATE TABLE "knowledge_doc" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
-	"name" text NOT NULL,
-	"description" text DEFAULT '',
-	"icon" text DEFAULT 'building-2',
-	"skillSlugs" jsonb DEFAULT '[]'::jsonb,
-	"mcpServerNames" jsonb DEFAULT '[]'::jsonb,
-	"position" jsonb,
+	"title" text NOT NULL,
+	"content" text NOT NULL,
 	"createdAt" timestamp DEFAULT now() NOT NULL,
 	"updatedAt" timestamp DEFAULT now() NOT NULL
 );
@@ -120,6 +137,7 @@ CREATE TABLE "mcp_server" (
 	"env" jsonb,
 	"url" text,
 	"headers" jsonb,
+	"extraConfig" jsonb,
 	"isActive" boolean DEFAULT false,
 	"createdAt" timestamp DEFAULT now() NOT NULL,
 	"updatedAt" timestamp DEFAULT now() NOT NULL
@@ -162,6 +180,7 @@ CREATE TABLE "message" (
 	"toolName" varchar,
 	"details" jsonb,
 	"isError" boolean,
+	"durationMs" integer,
 	"createdAt" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
@@ -198,6 +217,9 @@ CREATE TABLE "settings" (
 	"autoUpdate" boolean DEFAULT true,
 	"runOnStartup" boolean DEFAULT false,
 	"menuBar" boolean DEFAULT true,
+	"proxy" text DEFAULT '',
+	"autoBackup" boolean DEFAULT true,
+	"lastBackupAt" timestamp,
 	"memoryLayer" jsonb,
 	"personality" jsonb,
 	"colorTone" text DEFAULT 'neutral',
@@ -208,11 +230,11 @@ CREATE TABLE "settings" (
 CREATE TABLE "task" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"parentTaskId" uuid,
+	"conversationId" uuid,
 	"title" text NOT NULL,
 	"description" text DEFAULT '',
 	"status" "task_status" DEFAULT 'pending' NOT NULL,
 	"priority" "task_priority" DEFAULT 'medium' NOT NULL,
-	"assignedDepartmentId" uuid,
 	"assignedAgentId" uuid,
 	"input" jsonb,
 	"output" jsonb,
@@ -254,9 +276,10 @@ CREATE TABLE "vote" (
 	CONSTRAINT "vote_chatId_messageId_pk" PRIMARY KEY("chatId","messageId")
 );
 --> statement-breakpoint
-ALTER TABLE "agent" ADD CONSTRAINT "agent_departmentId_department_id_fk" FOREIGN KEY ("departmentId") REFERENCES "public"."department"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "agent_memory" ADD CONSTRAINT "agent_memory_agentId_agent_id_fk" FOREIGN KEY ("agentId") REFERENCES "public"."agent"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "chat" ADD CONSTRAINT "chat_projectId_project_id_fk" FOREIGN KEY ("projectId") REFERENCES "public"."project"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "conversation_message" ADD CONSTRAINT "conversation_message_conversationId_conversation_id_fk" FOREIGN KEY ("conversationId") REFERENCES "public"."conversation"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "conversation_message" ADD CONSTRAINT "conversation_message_agentId_agent_id_fk" FOREIGN KEY ("agentId") REFERENCES "public"."agent"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "deep_research_message" ADD CONSTRAINT "deep_research_message_deepResearchId_deep_research_id_fk" FOREIGN KEY ("deepResearchId") REFERENCES "public"."deep_research"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "lcm_context_items" ADD CONSTRAINT "lcm_context_items_chatId_chat_id_fk" FOREIGN KEY ("chatId") REFERENCES "public"."chat"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "lcm_summary" ADD CONSTRAINT "lcm_summary_chatId_chat_id_fk" FOREIGN KEY ("chatId") REFERENCES "public"."chat"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -265,7 +288,7 @@ ALTER TABLE "lcm_summary_messages" ADD CONSTRAINT "lcm_summary_messages_messageI
 ALTER TABLE "lcm_summary_parents" ADD CONSTRAINT "lcm_summary_parents_childId_lcm_summary_id_fk" FOREIGN KEY ("childId") REFERENCES "public"."lcm_summary"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "lcm_summary_parents" ADD CONSTRAINT "lcm_summary_parents_parentId_lcm_summary_id_fk" FOREIGN KEY ("parentId") REFERENCES "public"."lcm_summary"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "message" ADD CONSTRAINT "message_chatId_chat_id_fk" FOREIGN KEY ("chatId") REFERENCES "public"."chat"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "task" ADD CONSTRAINT "task_assignedDepartmentId_department_id_fk" FOREIGN KEY ("assignedDepartmentId") REFERENCES "public"."department"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "task" ADD CONSTRAINT "task_conversationId_conversation_id_fk" FOREIGN KEY ("conversationId") REFERENCES "public"."conversation"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "task" ADD CONSTRAINT "task_assignedAgentId_agent_id_fk" FOREIGN KEY ("assignedAgentId") REFERENCES "public"."agent"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "task_execution" ADD CONSTRAINT "task_execution_taskId_task_id_fk" FOREIGN KEY ("taskId") REFERENCES "public"."task"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "task_execution" ADD CONSTRAINT "task_execution_agentId_agent_id_fk" FOREIGN KEY ("agentId") REFERENCES "public"."agent"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
@@ -273,5 +296,7 @@ ALTER TABLE "task_execution_event" ADD CONSTRAINT "task_execution_event_executio
 ALTER TABLE "vote" ADD CONSTRAINT "vote_chatId_chat_id_fk" FOREIGN KEY ("chatId") REFERENCES "public"."chat"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "vote" ADD CONSTRAINT "vote_messageId_message_id_fk" FOREIGN KEY ("messageId") REFERENCES "public"."message"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 CREATE INDEX "chat_project_idx" ON "chat" USING btree ("projectId");--> statement-breakpoint
+CREATE INDEX "conversation_last_message_idx" ON "conversation" USING btree ("lastMessageAt");--> statement-breakpoint
+CREATE INDEX "conversation_message_conv_idx" ON "conversation_message" USING btree ("conversationId","createdAt");--> statement-breakpoint
 CREATE INDEX "lcm_context_chat_idx" ON "lcm_context_items" USING btree ("chatId","ordinal");--> statement-breakpoint
 CREATE INDEX "message_search_index" ON "message" USING gin (to_tsvector('simple', "content"));

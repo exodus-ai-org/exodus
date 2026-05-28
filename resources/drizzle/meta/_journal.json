@@ -5,36 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1774924771982,
-      "tag": "0000_mysterious_thunderbolts",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1776359059758,
-      "tag": "0001_legal_pete_wisdom",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1776417158113,
-      "tag": "0002_zippy_the_hand",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1777296935026,
-      "tag": "0003_ambitious_frightful_four",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1777593355369,
-      "tag": "0004_faulty_falcon",
+      "when": 1779942682009,
+      "tag": "0000_broad_sphinx",
       "breakpoints": true
     }
   ]
