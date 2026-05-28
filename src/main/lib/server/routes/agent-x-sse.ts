@@ -19,6 +19,16 @@ export function emitToAll(event: AgentXSseEvent): void {
   sseManager.emitGlobal(event)
 }
 
+// Emit a conversation-scoped event to clients watching that conversation.
+export function emitToConversation(
+  conversationId: string,
+  event: AgentXSseEvent
+): void {
+  const payload = sseManager.encodeEvent(event)
+  sseManager.emitRaw(conversationId, payload)
+  sseManager.emitGlobalRaw(payload)
+}
+
 const agentXSse = new Hono<{ Variables: Variables }>()
 
 agentXSse.get('/tasks/:id/sse', (c) => {
@@ -40,6 +50,16 @@ agentXSse.get('/sse', (c) => {
     }
   })
 
+  return new Response(stream, { headers: SSE_HEADERS })
+})
+
+agentXSse.get('/conversations/:id/sse', (c) => {
+  const id = getRequiredParam(c, 'id')
+  const stream = new ReadableStream({
+    start(controller) {
+      sseManager.register(id, controller, c.req.raw.signal)
+    }
+  })
   return new Response(stream, { headers: SSE_HEADERS })
 })
 
