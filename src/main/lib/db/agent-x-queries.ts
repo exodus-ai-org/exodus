@@ -250,6 +250,19 @@ export async function batchUpdatePositions(
   )
 }
 
+/** All agent-x executions joined to their task's conversation, for Costs. */
+export async function getAgentXCostRows() {
+  return db
+    .select({
+      conversationId: task.conversationId,
+      agentId: taskExecution.agentId,
+      tokenUsage: taskExecution.tokenUsage,
+      startedAt: taskExecution.startedAt
+    })
+    .from(taskExecution)
+    .innerJoin(task, eq(taskExecution.taskId, task.id))
+}
+
 // MCP Server queries moved to mcp-queries.ts
 export {
   createMcpServer,
