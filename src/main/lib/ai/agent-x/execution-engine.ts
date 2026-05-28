@@ -2,7 +2,8 @@
 import {
   createTaskExecution,
   getAgentById,
-  updateTask
+  updateTask,
+  updateTaskExecution
 } from '../../db/agent-x-queries'
 import { runEmployeeLoop, type SseEmitter } from './employee-loop'
 
@@ -49,7 +50,6 @@ export async function runDelegatedTask(args: {
     return output
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
-    const { updateTaskExecution } = await import('../../db/agent-x-queries')
     await updateTaskExecution(execution.id, {
       status: 'failed',
       completedAt: new Date(),
