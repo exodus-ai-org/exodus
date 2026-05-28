@@ -1,63 +1,19 @@
-import { and, asc, desc, eq, inArray, isNotNull, isNull } from 'drizzle-orm'
+import { asc, desc, eq, inArray, isNotNull, isNull } from 'drizzle-orm'
 
 import { db } from './db'
 import {
   agent,
   agentMemory,
-  department,
   task,
   taskExecution,
   taskExecutionEvent,
   type Task
 } from './schema'
 
-// ─── Department CRUD ────────────────────────────────────────────────────────
-
-export async function getAllDepartments() {
-  return db.select().from(department).orderBy(asc(department.createdAt))
-}
-
-export async function getDepartmentById(id: string) {
-  const [result] = await db
-    .select()
-    .from(department)
-    .where(eq(department.id, id))
-  return result
-}
-
-export async function createDepartment(data: typeof department.$inferInsert) {
-  const [result] = await db.insert(department).values(data).returning()
-  return result
-}
-
-export async function updateDepartment(
-  id: string,
-  data: Partial<typeof department.$inferInsert>
-) {
-  const [result] = await db
-    .update(department)
-    .set({ ...data, updatedAt: new Date() })
-    .where(eq(department.id, id))
-    .returning()
-  return result
-}
-
-export async function deleteDepartment(id: string) {
-  return db.delete(department).where(eq(department.id, id))
-}
-
 // ─── Agent CRUD ─────────────────────────────────────────────────────────────
 
 export async function getAllAgents() {
   return db.select().from(agent).orderBy(asc(agent.createdAt))
-}
-
-export async function getAgentsByDepartmentId(departmentId: string) {
-  return db
-    .select()
-    .from(agent)
-    .where(eq(agent.departmentId, departmentId))
-    .orderBy(asc(agent.createdAt))
 }
 
 export async function getAgentById(id: string) {
@@ -90,18 +46,8 @@ export async function getActiveAgents() {
   return db
     .select()
     .from(agent)
-    .where(and(eq(agent.isActive, true), eq(agent.isShadow, false)))
+    .where(eq(agent.isActive, true))
     .orderBy(asc(agent.createdAt))
-}
-
-/** Returns true if the agent has any currently running tasks */
-export async function isAgentBusy(agentId: string): Promise<boolean> {
-  const running = await db
-    .select({ id: task.id })
-    .from(task)
-    .where(and(eq(task.assignedAgentId, agentId), eq(task.status, 'running')))
-    .limit(1)
-  return running.length > 0
 }
 
 // ─── Agent Memory ───────────────────────────────────────────────────────────
@@ -140,10 +86,7 @@ export async function getChildTasksByParentId(parentTaskId: string) {
 
 /** All cron (recurring) tasks that are not cancelled */
 export async function getCronTasks() {
-  return db
-    .select()
-    .from(task)
-    .where(and(isNotNull(task.cronExpression), eq(task.status, 'pending')))
+  return db.select().from(task).where(isNotNull(task.cronExpression))
 }
 
 export async function getTaskById(id: string) {
@@ -228,26 +171,6 @@ export async function cleanupStaleWaitingTasks() {
     .update(task)
     .set({ status: 'failed', updatedAt: new Date() })
     .where(eq(task.status, 'waiting_for_user'))
-}
-
-// ─── Batch Position Updates ─────────────────────────────────────────────────
-
-export async function batchUpdatePositions(
-  updates: Array<{
-    type: 'department' | 'agent'
-    id: string
-    position: { x: number; y: number }
-  }>
-) {
-  await Promise.all(
-    updates.map((u) => {
-      const table = u.type === 'department' ? department : agent
-      return db
-        .update(table)
-        .set({ position: u.position, updatedAt: new Date() })
-        .where(eq(table.id, u.id))
-    })
-  )
 }
 
 /** All agent-x executions joined to their task's conversation, for Costs. */
