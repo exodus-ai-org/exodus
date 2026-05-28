@@ -20,6 +20,15 @@ export enum ExecutionStatus {
   Failed = 'failed'
 }
 
+export const CONVERSATION_MESSAGE_ROLES = [
+  'user',
+  'pm',
+  'employee',
+  'system'
+] as const
+export type ConversationMessageRole =
+  (typeof CONVERSATION_MESSAGE_ROLES)[number]
+
 export type AgentXSseEvent =
   | { type: 'task_status'; taskId: string; status: TaskStatus }
   | { type: 'agent_start'; taskId: string; agentId: string; agentName: string }
@@ -75,6 +84,41 @@ export type AgentXSseEvent =
       taskId: string
       reason: 'agent_busy' | 'cron_no_shadow'
     }
+  | {
+      type: 'message_start'
+      conversationId: string
+      messageId: string
+      role: ConversationMessageRole
+      agentId?: string
+    }
+  | {
+      type: 'message_delta'
+      conversationId: string
+      messageId: string
+      delta: string
+    }
+  | {
+      type: 'message_end'
+      conversationId: string
+      messageId: string
+    }
+  | {
+      type: 'tool_card'
+      conversationId: string
+      messageId: string
+      toolName: string
+      phase: 'start' | 'end'
+      result?: unknown
+    }
+  | { type: 'member_joined'; conversationId: string; agentId: string }
+  | { type: 'round_start'; conversationId: string; label: string }
+  | {
+      type: 'ask_user'
+      conversationId: string
+      question: string
+      options: string[]
+    }
+  | { type: 'conversation_error'; conversationId: string; error: string }
 
 export interface AutoRouteResult {
   departmentId: string
