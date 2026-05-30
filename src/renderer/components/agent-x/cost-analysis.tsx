@@ -1,4 +1,4 @@
-import { CoinsIcon, CpuIcon, HashIcon, TrendingUpIcon } from 'lucide-react'
+import { CoinsIcon, CpuIcon, TrendingUpIcon, UsersIcon } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
@@ -18,8 +18,9 @@ import {
   ChartTooltipContent,
   type ChartConfig
 } from '@/components/ui/chart'
-import type { ModelCost, UsageSummary } from '@/services/usage'
-import { getUsageSummary } from '@/services/usage'
+import { getAgents } from '@/services/agent-x'
+import { getAgentXCosts, type AgentXCostSummary } from '@/services/agent-x-chat'
+import type { AgentData } from '@/stores/agent-x'
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -44,15 +45,21 @@ const chartConfig = {
   }
 } satisfies ChartConfig
 
-// ─── Model table ─────────────────────────────────────────────────────────────
+// ─── Agent cost table ─────────────────────────────────────────────────────────
 
-function ModelTable({ models }: { models: ModelCost[] }) {
+function AgentCostTable({
+  rows,
+  agentsById
+}: {
+  rows: AgentXCostSummary['byAgent']
+  agentsById: Record<string, AgentData>
+}) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Cost by Model</CardTitle>
+        <CardTitle>Cost by Employee</CardTitle>
         <CardDescription>
-          Breakdown of spending across all models
+          Breakdown of spending per virtual employee
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -60,44 +67,89 @@ function ModelTable({ models }: { models: ModelCost[] }) {
           <table className="w-full text-sm">
             <thead>
               <tr className="text-muted-foreground border-b text-left text-xs">
-                <th className="pb-2 font-medium">Model</th>
-                <th className="pb-2 font-medium">Provider</th>
-                <th className="pb-2 text-right font-medium">Requests</th>
-                <th className="pb-2 text-right font-medium">Input</th>
-                <th className="pb-2 text-right font-medium">Output</th>
-                <th className="pb-2 text-right font-medium">Cache</th>
+                <th className="pb-2 font-medium">Employee</th>
+                <th className="pb-2 text-right font-medium">Tokens</th>
                 <th className="pb-2 text-right font-medium">Cost</th>
               </tr>
             </thead>
             <tbody>
-              {models.map((m) => (
-                <tr key={m.model} className="border-b last:border-0">
-                  <td className="py-2 font-medium">{m.model}</td>
-                  <td className="text-muted-foreground py-2">{m.provider}</td>
-                  <td className="py-2 text-right tabular-nums">
-                    {m.requests.toLocaleString()}
+              {rows.map((r) => {
+                const agent = agentsById[r.agentId]
+                const label = agent ? agent.name : r.agentId.slice(0, 8) + '…'
+                return (
+                  <tr key={r.agentId} className="border-b last:border-0">
+                    <td className="py-2 font-medium">{label}</td>
+                    <td className="py-2 text-right tabular-nums">
+                      {formatTokens(r.tokens)}
+                    </td>
+                    <td className="py-2 text-right font-medium tabular-nums">
+                      {formatCost(r.cost)}
+                    </td>
+                  </tr>
+                )
+              })}
+              {rows.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={3}
+                    className="text-muted-foreground py-6 text-center"
+                  >
+                    No agent usage data yet
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
+// ─── Conversation cost table ──────────────────────────────────────────────────
+
+function ConversationCostTable({
+  rows
+}: {
+  rows: AgentXCostSummary['byConversation']
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Cost by Conversation</CardTitle>
+        <CardDescription>Breakdown of spending per work group</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-muted-foreground border-b text-left text-xs">
+                <th className="pb-2 font-medium">Conversation</th>
+                <th className="pb-2 text-right font-medium">Tokens</th>
+                <th className="pb-2 text-right font-medium">Cost</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.conversationId} className="border-b last:border-0">
+                  <td className="text-muted-foreground py-2 font-mono text-xs">
+                    {r.conversationId.slice(0, 8)}…
                   </td>
                   <td className="py-2 text-right tabular-nums">
-                    {formatTokens(m.inputTokens)}
-                  </td>
-                  <td className="py-2 text-right tabular-nums">
-                    {formatTokens(m.outputTokens)}
-                  </td>
-                  <td className="py-2 text-right tabular-nums">
-                    {formatTokens(m.cacheReadTokens)}
+                    {formatTokens(r.tokens)}
                   </td>
                   <td className="py-2 text-right font-medium tabular-nums">
-                    {formatCost(m.cost)}
+                    {formatCost(r.cost)}
                   </td>
                 </tr>
               ))}
-              {models.length === 0 && (
+              {rows.length === 0 && (
                 <tr>
                   <td
-                    colSpan={7}
+                    colSpan={3}
                     className="text-muted-foreground py-6 text-center"
                   >
-                    No usage data yet
+                    No conversation usage data yet
                   </td>
                 </tr>
               )}
@@ -112,11 +164,13 @@ function ModelTable({ models }: { models: ModelCost[] }) {
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 export function CostAnalysis() {
-  const [data, setData] = useState<UsageSummary | null>(null)
+  const [data, setData] = useState<AgentXCostSummary | null>(null)
+  const [agentsById, setAgentsById] = useState<Record<string, AgentData>>({})
 
   const load = useCallback(async () => {
-    const result = await getUsageSummary()
-    setData(result)
+    const [costs, agents] = await Promise.all([getAgentXCosts(), getAgents()])
+    setData(costs)
+    setAgentsById(Object.fromEntries(agents.map((a) => [a.id, a])))
   }, [])
 
   useEffect(() => {
@@ -131,8 +185,7 @@ export function CostAnalysis() {
     )
   }
 
-  const avgCostPerRequest =
-    data.totalRequests > 0 ? data.totalCost / data.totalRequests : 0
+  const agentCount = data.byAgent.length
 
   return (
     <div className="flex flex-1 flex-col gap-4 py-4">
@@ -153,11 +206,10 @@ export function CostAnalysis() {
           </CardHeader>
           <CardFooter className="flex-col items-start gap-1.5 text-sm">
             <div className="line-clamp-1 flex gap-2 font-medium">
-              Across {data.models.length} model
-              {data.models.length !== 1 ? 's' : ''}
+              Across {agentCount} employee{agentCount !== 1 ? 's' : ''}
             </div>
             <div className="text-muted-foreground">
-              Aggregated from all conversations
+              Aggregated from all work groups
             </div>
           </CardFooter>
         </Card>
@@ -177,56 +229,56 @@ export function CostAnalysis() {
           </CardHeader>
           <CardFooter className="flex-col items-start gap-1.5 text-sm">
             <div className="line-clamp-1 flex gap-2 font-medium">
-              Input + output + cache tokens
+              Across all agent executions
             </div>
             <div className="text-muted-foreground">
-              Across all assistant responses
+              PM coordinator + employees
             </div>
           </CardFooter>
         </Card>
 
         <Card className="@container/card">
           <CardHeader>
-            <CardDescription>Total Requests</CardDescription>
+            <CardDescription>Active Employees</CardDescription>
             <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-              {data.totalRequests.toLocaleString()}
+              {agentCount.toLocaleString()}
             </CardTitle>
             <CardAction>
               <Badge variant="outline">
-                <HashIcon className="h-3 w-3" />
-                Responses
+                <UsersIcon className="h-3 w-3" />
+                With spend
               </Badge>
             </CardAction>
           </CardHeader>
           <CardFooter className="flex-col items-start gap-1.5 text-sm">
             <div className="line-clamp-1 flex gap-2 font-medium">
-              Assistant message count
+              Employees with recorded usage
             </div>
             <div className="text-muted-foreground">
-              Each with recorded usage data
+              Each ran at least one task
             </div>
           </CardFooter>
         </Card>
 
         <Card className="@container/card">
           <CardHeader>
-            <CardDescription>Avg Cost / Request</CardDescription>
+            <CardDescription>Work Groups</CardDescription>
             <CardTitle className="text-2xl font-semibold tabular-nums @[250px]/card:text-3xl">
-              {formatCost(avgCostPerRequest)}
+              {data.byConversation.length.toLocaleString()}
             </CardTitle>
             <CardAction>
               <Badge variant="outline">
                 <TrendingUpIcon className="h-3 w-3" />
-                Per call
+                Conversations
               </Badge>
             </CardAction>
           </CardHeader>
           <CardFooter className="flex-col items-start gap-1.5 text-sm">
             <div className="line-clamp-1 flex gap-2 font-medium">
-              Average cost per LLM call
+              Conversations with agent activity
             </div>
             <div className="text-muted-foreground">
-              Helps track efficiency over time
+              Includes delegated tasks
             </div>
           </CardFooter>
         </Card>
@@ -298,9 +350,10 @@ export function CostAnalysis() {
         </div>
       )}
 
-      {/* Model breakdown table */}
-      <div className="px-4 lg:px-6">
-        <ModelTable models={data.models} />
+      {/* Breakdown tables */}
+      <div className="grid grid-cols-1 gap-4 px-4 lg:px-6 @2xl/main:grid-cols-2">
+        <AgentCostTable rows={data.byAgent} agentsById={agentsById} />
+        <ConversationCostTable rows={data.byConversation} />
       </div>
     </div>
   )
