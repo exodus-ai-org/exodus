@@ -63,6 +63,8 @@ export function useConversationStream(
               toolCards: []
             }
           ])
+          // PM resuming after an askUser response → clear the panel.
+          setAskUser(null)
           break
         case 'message_delta':
           setBubbles((prev) =>

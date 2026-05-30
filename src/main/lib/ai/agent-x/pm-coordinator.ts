@@ -41,30 +41,42 @@ function rosterText(
     .join('\n')
 }
 
-/** Rebuild PM context from prior conversation messages. */
-async function buildHistory(conversationId: string): Promise<Message[]> {
+/**
+ * Rebuild PM context from prior conversation messages. The route persists the
+ * current user message BEFORE calling us, so without `excludeMessageId` that
+ * message would appear in `history` AND be re-supplied as the prompt — making
+ * the LLM see the current turn twice on every request.
+ */
+async function buildHistory(
+  conversationId: string,
+  excludeMessageId?: string
+): Promise<Message[]> {
   const rows = await getMessagesByConversationId(conversationId)
-  return rows.map((r) => ({
-    role: r.role === 'user' ? 'user' : 'assistant',
-    content: [{ type: 'text', text: r.content }],
-    timestamp: new Date(r.createdAt).getTime()
-  })) as Message[]
+  return rows
+    .filter((r) => r.id !== excludeMessageId)
+    .map((r) => ({
+      role: r.role === 'user' ? 'user' : 'assistant',
+      content: [{ type: 'text', text: r.content }],
+      timestamp: new Date(r.createdAt).getTime()
+    })) as Message[]
 }
 
 export interface RunPmArgs {
   conversationId: string
   userText: string
+  /** ID of the just-persisted user message; excluded from history so the LLM doesn't see this turn twice. */
+  excludeMessageId?: string
   emit: SseEmitter
   signal?: AbortSignal
 }
 
 export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
-  const { conversationId, userText, emit, signal } = args
+  const { conversationId, userText, excludeMessageId, emit, signal } = args
   const setting = await getSettings()
   const { chatModel, apiKey } = getModelFromProvider(setting)
 
   const employees = await getActiveAgents()
-  const history = await buildHistory(conversationId)
+  const history = await buildHistory(conversationId, excludeMessageId)
 
   const tools: AgentTool[] = [
     createDelegateTaskTool(

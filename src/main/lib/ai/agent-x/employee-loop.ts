@@ -128,82 +128,89 @@ export async function runEmployeeLoop(
     signal
   )
 
-  for await (const event of stream) {
-    if (event.type === 'message_update') {
-      const msg = event.message as Message
-      if (msg.role !== 'assistant') continue
-      const text = msg.content
-        .filter((c): c is { type: 'text'; text: string } => c.type === 'text')
-        .map((c) => c.text)
-        .join('')
-      finalOutput = text
-      emit({ type: 'message_delta', conversationId, messageId, delta: text })
-    } else if (event.type === 'message_end') {
-      const msg = event.message as Message & { role: 'assistant' }
-      if (msg.role === 'assistant') {
-        if (msg.stopReason === 'error') {
-          throw new Error(
-            msg.errorMessage || 'The model returned an error without details.'
-          )
-        }
-        // Capture the authoritative final text from message_end content
-        const endText = msg.content
+  try {
+    for await (const event of stream) {
+      if (event.type === 'message_update') {
+        const msg = event.message as Message
+        if (msg.role !== 'assistant') continue
+        const text = msg.content
           .filter((c): c is { type: 'text'; text: string } => c.type === 'text')
           .map((c) => c.text)
           .join('')
-        if (endText) finalOutput = endText
-        if (msg.usage) {
-          lastUsage = msg.usage
-          totalInput += msg.usage.input ?? 0
-          totalOutput += msg.usage.output ?? 0
+        finalOutput = text
+        emit({ type: 'message_delta', conversationId, messageId, delta: text })
+      } else if (event.type === 'message_end') {
+        const msg = event.message as Message & { role: 'assistant' }
+        if (msg.role === 'assistant') {
+          if (msg.stopReason === 'error') {
+            throw new Error(
+              msg.errorMessage || 'The model returned an error without details.'
+            )
+          }
+          // Capture the authoritative final text from message_end content
+          const endText = msg.content
+            .filter(
+              (c): c is { type: 'text'; text: string } => c.type === 'text'
+            )
+            .map((c) => c.text)
+            .join('')
+          if (endText) finalOutput = endText
+          if (msg.usage) {
+            lastUsage = msg.usage
+            totalInput += msg.usage.input ?? 0
+            totalOutput += msg.usage.output ?? 0
+          }
         }
-      }
-    } else if (event.type === 'tool_execution_start') {
-      emit({
-        type: 'tool_card',
-        conversationId,
-        messageId,
-        toolName: event.toolName,
-        phase: 'start'
-      })
-      await createTaskExecutionEvent({
-        executionId,
-        eventType: 'tool_start',
-        payload: { toolName: event.toolName }
-      })
-    } else if (event.type === 'tool_execution_end') {
-      const result =
-        event.result &&
-        typeof event.result === 'object' &&
-        'details' in event.result
-          ? event.result.details
-          : event.result
-      emit({
-        type: 'tool_card',
-        conversationId,
-        messageId,
-        toolName: event.toolName,
-        phase: 'end',
-        result
-      })
-      await createTaskExecutionEvent({
-        executionId,
-        eventType: 'tool_end',
-        payload: {
+      } else if (event.type === 'tool_execution_start') {
+        emit({
+          type: 'tool_card',
+          conversationId,
+          messageId,
           toolName: event.toolName,
-          result: typeof result === 'string' ? result : JSON.stringify(result)
-        }
-      })
+          phase: 'start'
+        })
+        await createTaskExecutionEvent({
+          executionId,
+          eventType: 'tool_start',
+          payload: { toolName: event.toolName }
+        })
+      } else if (event.type === 'tool_execution_end') {
+        const result =
+          event.result &&
+          typeof event.result === 'object' &&
+          'details' in event.result
+            ? event.result.details
+            : event.result
+        emit({
+          type: 'tool_card',
+          conversationId,
+          messageId,
+          toolName: event.toolName,
+          phase: 'end',
+          result
+        })
+        await createTaskExecutionEvent({
+          executionId,
+          eventType: 'tool_end',
+          payload: {
+            toolName: event.toolName,
+            result: typeof result === 'string' ? result : JSON.stringify(result)
+          }
+        })
+      }
     }
+
+    const cost = calculateCost(lastUsage, chatModel).total
+    await updateTaskExecution(executionId, {
+      status: 'completed',
+      completedAt: new Date(),
+      tokenUsage: { inputTokens: totalInput, outputTokens: totalOutput, cost }
+    })
+
+    return finalOutput
+  } finally {
+    // Always close the live bubble — even on error — so the UI doesn't spin
+    // forever. execution-engine.ts marks the execution `failed` separately.
+    emit({ type: 'message_end', conversationId, messageId })
   }
-
-  const cost = calculateCost(lastUsage, chatModel).total
-  await updateTaskExecution(executionId, {
-    status: 'completed',
-    completedAt: new Date(),
-    tokenUsage: { inputTokens: totalInput, outputTokens: totalOutput, cost }
-  })
-
-  emit({ type: 'message_end', conversationId, messageId })
-  return finalOutput
 }

@@ -177,6 +177,7 @@ router.post('/conversations/:id/messages', async (c) => {
   runPmCoordinator({
     conversationId: id,
     userText: content,
+    excludeMessageId: userMsg.id,
     emit: (event) => emitToConversation(id, event)
   }).catch((err) =>
     logger.error('agent_x', 'PM loop error', { error: String(err) })
