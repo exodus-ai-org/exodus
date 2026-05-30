@@ -7,6 +7,7 @@ import { v4 as uuidV4 } from 'uuid'
 
 import {
   createTaskExecutionEvent,
+  getAgentMemories,
   updateTaskExecution
 } from '../../db/agent-x-queries'
 import { getSettings } from '../../db/queries'
@@ -79,7 +80,16 @@ export async function runEmployeeLoop(
     skillSlugs.length > 0
       ? await getSkillsContentBySlugs(skillSlugs)
       : await getActiveSkillsContent()
-  const systemPrompt = buildEmployeeSystemPrompt(agent) + skillsContent
+  const memories = await getAgentMemories(agent.id)
+  const memoryBlock = memories.length
+    ? '\n\nPast experience:\n' +
+      memories
+        .slice(0, 5)
+        .map((m) => `- ${JSON.stringify(m.value)}`)
+        .join('\n')
+    : ''
+  const systemPrompt =
+    buildEmployeeSystemPrompt(agent) + memoryBlock + skillsContent
 
   const userMessage: Message = {
     role: 'user',

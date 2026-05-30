@@ -24,7 +24,8 @@ vi.mock('../skills/skills-manager', () => ({
 const updateTaskExecution = vi.fn()
 vi.mock('../../db/agent-x-queries', () => ({
   updateTaskExecution,
-  createTaskExecutionEvent: vi.fn()
+  createTaskExecutionEvent: vi.fn(),
+  getAgentMemories: async () => []
 }))
 
 const { runEmployeeLoop } = await import('./employee-loop')

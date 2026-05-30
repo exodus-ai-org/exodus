@@ -5,6 +5,7 @@ import {
   updateTask,
   updateTaskExecution
 } from '../../db/agent-x-queries'
+import { rememberTaskOutcome } from './agent-memory'
 import { runEmployeeLoop, type SseEmitter } from './employee-loop'
 
 /**
@@ -47,6 +48,7 @@ export async function runDelegatedTask(args: {
       output: { result: output },
       completedAt: new Date()
     })
+    await rememberTaskOutcome(agentId, instructions, output)
     return output
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
