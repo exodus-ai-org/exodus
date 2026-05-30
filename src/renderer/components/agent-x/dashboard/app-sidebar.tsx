@@ -1,10 +1,11 @@
 import {
   ArrowLeftIcon,
+  BookOpenIcon,
   BotIcon,
   CoinsIcon,
   LayoutDashboardIcon,
-  ListChecksIcon,
-  NetworkIcon
+  MessageSquareIcon,
+  UsersIcon
 } from 'lucide-react'
 import { useNavigate } from 'react-router'
 
@@ -23,19 +24,24 @@ import { cn } from '@/lib/utils'
 
 const navMainItems = [
   {
+    title: '工作群',
+    page: 'chat',
+    icon: <MessageSquareIcon />
+  },
+  {
+    title: '员工',
+    page: 'employees',
+    icon: <UsersIcon />
+  },
+  {
+    title: '知识库',
+    page: 'knowledge',
+    icon: <BookOpenIcon />
+  },
+  {
     title: 'Dashboard',
     page: 'dashboard',
     icon: <LayoutDashboardIcon />
-  },
-  {
-    title: 'Org Editor',
-    page: 'org-editor',
-    icon: <NetworkIcon />
-  },
-  {
-    title: 'Task Histories',
-    page: 'archive',
-    icon: <ListChecksIcon />
   },
   {
     title: 'Cost Analysis',
