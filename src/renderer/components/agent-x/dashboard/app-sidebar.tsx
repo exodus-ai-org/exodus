@@ -24,17 +24,17 @@ import { cn } from '@/lib/utils'
 
 const navMainItems = [
   {
-    title: '工作群',
+    title: 'Groups',
     page: 'chat',
     icon: <MessageSquareIcon />
   },
   {
-    title: '员工',
+    title: 'Employees',
     page: 'employees',
     icon: <UsersIcon />
   },
   {
-    title: '知识库',
+    title: 'Knowledge Base',
     page: 'knowledge',
     icon: <BookOpenIcon />
   },

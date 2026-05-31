@@ -14,9 +14,9 @@ export type AgentXPage =
   | 'costs'
 
 const pageTitles: Record<AgentXPage, string> = {
-  chat: '工作群',
-  employees: '员工',
-  knowledge: '知识库',
+  chat: 'Groups',
+  employees: 'Employees',
+  knowledge: 'Knowledge Base',
   dashboard: 'Dashboard',
   costs: 'Cost Analysis'
 }

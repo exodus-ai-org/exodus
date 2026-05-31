@@ -36,10 +36,10 @@ export function EmployeesPage() {
   return (
     <div className="p-4">
       <div className="mb-4 flex items-center justify-between">
-        <h2 className="text-lg font-medium">员工</h2>
+        <h2 className="text-lg font-medium">Employees</h2>
         <Button onClick={create}>
           <Plus className="mr-1 h-4 w-4" />
-          新建
+          New
         </Button>
       </div>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-4">

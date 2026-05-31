@@ -28,7 +28,7 @@ export async function runScheduledRound(
     unscheduleTask(taskId)
     return
   }
-  const label = `[定时] ${template.title}`
+  const label = `[Scheduled] ${template.title}`
   await createConversationMessage({
     conversationId: template.conversationId,
     role: 'system',

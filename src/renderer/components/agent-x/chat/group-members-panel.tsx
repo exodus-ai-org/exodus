@@ -13,7 +13,7 @@ export function GroupMembersPanel({
   return (
     <div className="flex h-full flex-col">
       <div className="border-b p-3 text-sm font-medium">
-        群成员 ({members.length})
+        Members ({members.length})
       </div>
       <div className="flex-1 overflow-y-auto p-2">
         {members.map((m) => (
@@ -42,7 +42,7 @@ export function GroupMembersPanel({
         ))}
         {members.length === 0 && (
           <div className="text-muted-foreground p-4 text-center text-xs">
-            PM 会按需拉人入群
+            The PM will recruit teammates as needed
           </div>
         )}
       </div>

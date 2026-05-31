@@ -47,7 +47,7 @@ export function AgentXContainer({
   )
 
   const handleCreate = useCallback(async () => {
-    const conv = await createConversation({ title: '新工作群' })
+    const conv = await createConversation({ title: 'New group' })
     setConversations((p) => [conv, ...p])
     setActiveId(conv.id)
   }, [])
@@ -73,7 +73,7 @@ export function AgentXContainer({
             <GroupChat conversationId={activeId} agentsById={agentsById} />
           ) : (
             <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
-              新建一个工作群开始
+              Create a group to get started
             </div>
           )}
         </div>

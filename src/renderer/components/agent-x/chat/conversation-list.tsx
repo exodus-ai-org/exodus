@@ -19,7 +19,7 @@ export function ConversationList({
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center justify-between border-b p-3">
-        <span className="text-sm font-medium">工作群</span>
+        <span className="text-sm font-medium">Groups</span>
         <Button size="icon-sm" variant="ghost" onClick={onCreate}>
           <Plus className="h-4 w-4" />
         </Button>

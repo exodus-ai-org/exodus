@@ -217,7 +217,7 @@ export const agent = pgTable('agent', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   name: text('name').notNull(),
   description: text('description').default(''),
-  team: text('team'), // lightweight label, e.g. "数据组"; replaces department
+  team: text('team'), // lightweight label, e.g. "Data"; replaces department
   avatarSeed: text('avatarSeed'),
   avatarStyle: text('avatarStyle'),
   systemPrompt: text('systemPrompt').default(''),

@@ -54,24 +54,24 @@ export function KnowledgeBasePage() {
           </div>
         ))}
         {docs.length === 0 && (
-          <div className="text-muted-foreground text-sm">还没有文档</div>
+          <div className="text-muted-foreground text-sm">No documents yet</div>
         )}
       </div>
       <div className="space-y-2">
         <Input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="标题"
+          placeholder="Title"
         />
         <Textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="正文"
+          placeholder="Body"
           className="min-h-40"
         />
         <Button onClick={add} className="w-full">
           <Plus className="mr-1 h-4 w-4" />
-          添加文档
+          Add document
         </Button>
       </div>
     </div>

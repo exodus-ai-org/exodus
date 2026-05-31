@@ -30,7 +30,7 @@ export function Composer({
             submit()
           }
         }}
-        placeholder="给团队发个需求…"
+        placeholder="Message your team…"
         className="max-h-40 min-h-[44px] resize-none"
       />
       <Button onClick={submit} disabled={disabled} size="icon">

@@ -84,7 +84,7 @@ export function GroupChat({
               <Input
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
-                placeholder="回复 PM…"
+                placeholder="Reply to PM…"
               />
               <Button
                 onClick={async () => {
@@ -92,7 +92,7 @@ export function GroupChat({
                   setAnswer('')
                 }}
               >
-                发送
+                Send
               </Button>
             </div>
           </div>

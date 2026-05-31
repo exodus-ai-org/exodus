@@ -47,7 +47,7 @@ export function EmployeeEditor({
         onChange={(a) => setDraft({ ...draft, ...a })}
       />
       <div className="grid gap-1">
-        <Label>名字</Label>
+        <Label>Name</Label>
         <Input
           value={draft.name}
           onChange={(e) => setDraft({ ...draft, name: e.target.value })}
@@ -89,9 +89,9 @@ export function EmployeeEditor({
         </div>
       </div>
       <div className="grid gap-1">
-        <Label>记忆（只读）</Label>
+        <Label>Memory (read-only)</Label>
         <div className="text-muted-foreground space-y-1 text-xs">
-          {memories.length === 0 && <span>暂无累积记忆</span>}
+          {memories.length === 0 && <span>No accumulated memory yet</span>}
           {memories.map((m) => (
             <div key={m.id} className="bg-muted/50 rounded p-1">
               <b>{m.key}</b>: {JSON.stringify(m.value)}
@@ -101,9 +101,9 @@ export function EmployeeEditor({
       </div>
       <div className="flex justify-end gap-2">
         <Button variant="outline" onClick={onClose}>
-          取消
+          Cancel
         </Button>
-        <Button onClick={() => onSave(draft)}>保存</Button>
+        <Button onClick={() => onSave(draft)}>Save</Button>
       </div>
     </div>
   )
