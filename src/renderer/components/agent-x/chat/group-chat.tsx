@@ -1,4 +1,9 @@
 // src/renderer/components/agent-x/chat/group-chat.tsx
+import {
+  AlertTriangleIcon,
+  HelpCircleIcon,
+  MessageSquareIcon
+} from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -70,31 +75,52 @@ export function GroupChat({
 
   return (
     <div className="flex h-full flex-col">
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4">
-        {merged.map((b) => (
-          <GroupMessageBubble
-            key={b.messageId}
-            bubble={b}
-            agentsById={agentsById}
-            teamsById={teamsById}
-          />
-        ))}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-2">
+        {merged.length === 0 ? (
+          <div className="text-muted-foreground flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
+            <MessageSquareIcon className="h-10 w-10 opacity-30" />
+            <div className="text-foreground text-sm font-medium">
+              Hand something to your team
+            </div>
+            <div className="max-w-xs text-xs">
+              Describe what you need. The PM will analyze, recruit and delegate
+              to virtual employees, then report back here.
+            </div>
+          </div>
+        ) : (
+          <div className="mx-auto flex max-w-2xl flex-col gap-1">
+            {merged.map((b) => (
+              <GroupMessageBubble
+                key={b.messageId}
+                bubble={b}
+                agentsById={agentsById}
+                teamsById={teamsById}
+              />
+            ))}
+          </div>
+        )}
         {error && (
-          <div className="text-destructive py-2 text-center text-xs">
-            {error}
+          <div className="bg-destructive/10 text-destructive mx-auto mt-2 flex max-w-2xl items-center gap-2 rounded-lg px-3 py-2 text-xs">
+            <AlertTriangleIcon className="h-3.5 w-3.5 shrink-0" />
+            <span>{error}</span>
           </div>
         )}
         {askUser && (
-          <div className="bg-muted my-2 rounded-lg p-3">
-            <div className="mb-2 text-sm">{askUser.question}</div>
+          <div className="bg-card mx-auto my-3 max-w-2xl rounded-xl border p-3">
+            <div className="text-foreground mb-2 flex items-start gap-2 text-sm">
+              <HelpCircleIcon className="text-primary mt-0.5 h-4 w-4 shrink-0" />
+              <span>{askUser.question}</span>
+            </div>
             <div className="flex gap-2">
               <Input
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
                 placeholder="Reply to PM…"
+                autoFocus
               />
               <Button
                 onClick={async () => {
+                  if (!answer.trim()) return
                   await respondToConversation(conversationId, answer)
                   setAnswer('')
                 }}

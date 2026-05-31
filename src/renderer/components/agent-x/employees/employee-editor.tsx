@@ -12,7 +12,7 @@ import {
   SelectValue
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { cn } from '@/lib/utils'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import {
   getAgentMemories,
   getAvailableSkills,
@@ -51,12 +51,6 @@ export function EmployeeEditor({
     getTeams().then(setTeams)
     getAgentMemories(employee.id).then((m) => setMemories(m as never))
   }, [employee.id])
-
-  const toggle = (list: string[] | null, key: string) => {
-    const set = new Set(list ?? [])
-    set.has(key) ? set.delete(key) : set.add(key)
-    return [...set]
-  }
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto p-4">
@@ -109,69 +103,55 @@ export function EmployeeEditor({
       </div>
       <div className="grid gap-1">
         <Label>Skills</Label>
-        <div className="flex flex-wrap gap-1">
-          {skills.length === 0 && (
-            <span className="text-muted-foreground text-xs">
-              No skills installed yet.
-            </span>
-          )}
-          {skills.map((s) => {
-            const selected = draft.skillSlugs?.includes(s.slug) ?? false
-            return (
-              <button
-                key={s.slug}
-                type="button"
-                onClick={() =>
-                  setDraft({
-                    ...draft,
-                    skillSlugs: toggle(draft.skillSlugs, s.slug)
-                  })
-                }
-                className={cn(
-                  'rounded-full border px-2.5 py-0.5 text-xs transition-colors',
-                  selected
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-border hover:bg-accent/40'
-                )}
-              >
+        {skills.length === 0 ? (
+          <span className="text-muted-foreground text-xs">
+            No skills installed yet.
+          </span>
+        ) : (
+          <ToggleGroup
+            multiple
+            variant="outline"
+            size="sm"
+            spacing={4}
+            value={draft.skillSlugs ?? []}
+            onValueChange={(v) =>
+              setDraft({ ...draft, skillSlugs: v as string[] })
+            }
+            className="flex-wrap"
+          >
+            {skills.map((s) => (
+              <ToggleGroupItem key={s.slug} value={s.slug}>
                 {s.name}
-              </button>
-            )
-          })}
-        </div>
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        )}
       </div>
       <div className="grid gap-1">
         <Label>MCP Servers</Label>
-        <div className="flex flex-wrap gap-1">
-          {mcpServers.length === 0 && (
-            <span className="text-muted-foreground text-xs">
-              No MCP servers configured yet.
-            </span>
-          )}
-          {mcpServers.map((s) => {
-            const selected = draft.mcpServerNames?.includes(s.name) ?? false
-            return (
-              <button
-                key={s.id}
-                type="button"
-                onClick={() =>
-                  setDraft({
-                    ...draft,
-                    mcpServerNames: toggle(draft.mcpServerNames, s.name)
-                  })
-                }
-                className={cn(
-                  'rounded-full border px-2.5 py-0.5 text-xs transition-colors',
-                  selected
-                    ? 'border-primary bg-primary text-primary-foreground'
-                    : 'border-border hover:bg-accent/40'
-                )}
-              >
+        {mcpServers.length === 0 ? (
+          <span className="text-muted-foreground text-xs">
+            No MCP servers configured yet.
+          </span>
+        ) : (
+          <ToggleGroup
+            multiple
+            variant="outline"
+            size="sm"
+            spacing={4}
+            value={draft.mcpServerNames ?? []}
+            onValueChange={(v) =>
+              setDraft({ ...draft, mcpServerNames: v as string[] })
+            }
+            className="flex-wrap"
+          >
+            {mcpServers.map((s) => (
+              <ToggleGroupItem key={s.id} value={s.name}>
                 {s.name}
-              </button>
-            )
-          })}
-        </div>
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        )}
         <p className="text-muted-foreground text-xs">
           If none are selected, the employee can use all available servers.
         </p>

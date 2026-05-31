@@ -3,7 +3,7 @@ import { RefreshCwIcon } from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 
 import { EmployeeAvatar } from './employee-avatar'
 
@@ -28,7 +28,7 @@ export function AvatarPicker({
         <EmployeeAvatar seed={currentSeed} style={activeStyle} size={64} />
         <Button
           type="button"
-          variant="outline"
+          variant="secondary"
           size="sm"
           onClick={() =>
             onChange({
@@ -37,43 +37,32 @@ export function AvatarPicker({
             })
           }
         >
-          <RefreshCwIcon className="mr-1.5 h-3.5 w-3.5" />
+          <RefreshCwIcon className="h-3.5 w-3.5" />
           Reroll
         </Button>
       </div>
-      <div className="grid grid-cols-3 gap-2">
-        {AVATAR_STYLES.map((s) => {
-          const selected = s === activeStyle
-          return (
-            <button
-              key={s}
-              type="button"
-              onClick={() =>
-                onChange({ avatarSeed: currentSeed, avatarStyle: s })
-              }
-              className={cn(
-                'group bg-card flex flex-col items-center gap-1 rounded-lg border px-2 py-2 transition-colors',
-                'hover:bg-accent/40',
-                selected
-                  ? 'border-primary ring-primary/40 ring-2'
-                  : 'border-border'
-              )}
-            >
-              <EmployeeAvatar seed={currentSeed} style={s} size={48} />
-              <span
-                className={cn(
-                  'text-xs capitalize',
-                  selected
-                    ? 'text-foreground font-medium'
-                    : 'text-muted-foreground'
-                )}
-              >
-                {s}
-              </span>
-            </button>
-          )
-        })}
-      </div>
+      <ToggleGroup
+        value={[activeStyle]}
+        onValueChange={(v) => {
+          const next = v[0]
+          if (!next) return
+          onChange({ avatarSeed: currentSeed, avatarStyle: next })
+        }}
+        variant="outline"
+        spacing={8}
+        className="w-full"
+      >
+        {AVATAR_STYLES.map((s) => (
+          <ToggleGroupItem
+            key={s}
+            value={s}
+            className="h-auto flex-1 flex-col gap-1 px-2 py-2"
+          >
+            <EmployeeAvatar seed={currentSeed} style={s} size={48} />
+            <span className="text-xs capitalize">{s}</span>
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
     </div>
   )
 }

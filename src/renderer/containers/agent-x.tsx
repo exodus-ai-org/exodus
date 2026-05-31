@@ -1,3 +1,4 @@
+import { MessageSquarePlus } from 'lucide-react'
 import {
   lazy,
   Suspense,
@@ -13,6 +14,7 @@ import { GroupMembersPanel } from '@/components/agent-x/chat/group-members-panel
 import { EmployeesPage } from '@/components/agent-x/employees/employees-page'
 import { KnowledgeBasePage } from '@/components/agent-x/knowledge/knowledge-base-page'
 import { TeamsPage } from '@/components/agent-x/teams/teams-page'
+import { Button } from '@/components/ui/button'
 import type { AgentXPage } from '@/layouts/agent-x-layout'
 import { getAgents, getTeams } from '@/services/agent-x'
 import {
@@ -94,8 +96,18 @@ export function AgentXContainer({
               teamsById={teamsById}
             />
           ) : (
-            <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
-              Create a group to get started
+            <div className="text-muted-foreground flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
+              <MessageSquarePlus className="h-12 w-12 opacity-30" />
+              <div className="text-foreground text-sm font-medium">
+                No group selected
+              </div>
+              <div className="max-w-xs text-xs">
+                Pick a group from the left, or start a new one to message your
+                virtual team.
+              </div>
+              <Button size="sm" onClick={handleCreate}>
+                Create a group
+              </Button>
             </div>
           )}
         </div>
