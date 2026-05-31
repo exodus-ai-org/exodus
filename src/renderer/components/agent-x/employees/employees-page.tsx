@@ -28,22 +28,27 @@ import {
   createAgentApi,
   deleteAgentApi,
   getAgents,
+  getTeams,
   updateAgentApi
 } from '@/services/agent-x'
-import type { AgentData } from '@/stores/agent-x'
+import type { AgentData, TeamData } from '@/stores/agent-x'
 
 import { EmployeeAvatar } from './employee-avatar'
 import { EmployeeEditor } from './employee-editor'
 
 export function EmployeesPage() {
   const [employees, setEmployees] = useState<AgentData[]>([])
+  const [teams, setTeams] = useState<TeamData[]>([])
   const [editing, setEditing] = useState<AgentData | null>(null)
   const [confirming, setConfirming] = useState<AgentData | null>(null)
 
   const load = () => getAgents().then(setEmployees)
   useEffect(() => {
     load()
+    getTeams().then(setTeams)
   }, [])
+
+  const teamsById = new Map(teams.map((t) => [t.id, t]))
 
   const create = async () => {
     const emp = await createAgentApi({
@@ -79,11 +84,15 @@ export function EmployeesPage() {
                 />
                 <div className="min-w-0">
                   <div className="truncate text-sm font-medium">{e.name}</div>
-                  {e.team && (
-                    <div className="text-muted-foreground truncate text-xs">
-                      {e.team}
-                    </div>
-                  )}
+                  {(() => {
+                    const t = e.teamId ? teamsById.get(e.teamId) : null
+                    return t ? (
+                      <div className="text-muted-foreground truncate text-xs">
+                        {t.icon ? `${t.icon} ` : ''}
+                        {t.name}
+                      </div>
+                    ) : null
+                  })()}
                 </div>
               </button>
             </ContextMenuTrigger>

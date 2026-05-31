@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 export type AgentXPage =
   | 'chat'
   | 'employees'
+  | 'teams'
   | 'knowledge'
   | 'dashboard'
   | 'costs'
@@ -16,6 +17,7 @@ export type AgentXPage =
 const pageTitles: Record<AgentXPage, string> = {
   chat: 'Groups',
   employees: 'Employees',
+  teams: 'Teams',
   knowledge: 'Knowledge Base',
   dashboard: 'Dashboard',
   costs: 'Cost Analysis'

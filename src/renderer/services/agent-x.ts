@@ -1,10 +1,26 @@
 import { fetcher } from '@shared/utils/http'
 
-import type { AgentData } from '@/stores/agent-x'
+import type { AgentData, TeamData } from '@/stores/agent-x'
 
 const BASE = '/api/agent-x'
 
 export const getAgents = () => fetcher<AgentData[]>(`${BASE}/agents`)
+
+export const getTeams = () => fetcher<TeamData[]>(`${BASE}/teams`)
+export const createTeamApi = (
+  data: Partial<Omit<TeamData, 'id' | 'createdAt' | 'updatedAt'>>
+) => fetcher<TeamData>(`${BASE}/teams`, { method: 'POST', body: data as never })
+export const updateTeamApi = (id: string, data: Partial<TeamData>) =>
+  fetcher<TeamData>(`${BASE}/teams/${id}`, {
+    method: 'PUT',
+    body: data as never
+  })
+export const deleteTeamApi = (id: string) =>
+  fetcher<void>(`${BASE}/teams/${id}`, {
+    method: 'DELETE',
+    responseType: 'text'
+  })
+
 export const createAgentApi = (
   data: Partial<Omit<AgentData, 'id' | 'createdAt' | 'updatedAt'>>
 ) =>

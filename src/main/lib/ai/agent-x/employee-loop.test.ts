@@ -17,6 +17,7 @@ vi.mock('../mcp', () => ({
   getMcpTools: async () => [],
   getMcpToolsByNames: async () => []
 }))
+vi.mock('../../db/team-queries', () => ({ getTeamById: async () => null }))
 vi.mock('../skills/skills-manager', () => ({
   getActiveSkillsContent: async () => '',
   getSkillsContentBySlugs: async () => 'SKILL-X'

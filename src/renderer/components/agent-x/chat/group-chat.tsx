@@ -9,17 +9,23 @@ import {
   respondToConversation,
   sendConversationMessage
 } from '@/services/agent-x-chat'
-import type { AgentData, ConversationMessageData } from '@/stores/agent-x'
+import type {
+  AgentData,
+  ConversationMessageData,
+  TeamData
+} from '@/stores/agent-x'
 
 import { Composer } from './composer'
 import { GroupMessageBubble, type BubbleModel } from './group-message-bubble'
 
 export function GroupChat({
   conversationId,
-  agentsById
+  agentsById,
+  teamsById
 }: {
   conversationId: string
   agentsById: Record<string, AgentData>
+  teamsById: Record<string, TeamData>
 }) {
   const [history, setHistory] = useState<ConversationMessageData[]>([])
   const { bubbles, askUser, error, revision } =
@@ -70,6 +76,7 @@ export function GroupChat({
             key={b.messageId}
             bubble={b}
             agentsById={agentsById}
+            teamsById={teamsById}
           />
         ))}
         {error && (

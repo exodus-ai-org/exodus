@@ -43,6 +43,7 @@ const getActiveAgents = vi.fn(async () => [
 const createConversationMessage = vi.fn(async (d) => ({ id: 'm', ...d }))
 const getMessagesByConversationId = vi.fn(async () => [])
 vi.mock('../../db/agent-x-queries', () => ({ getActiveAgents }))
+vi.mock('../../db/team-queries', () => ({ getAllTeams: async () => [] }))
 vi.mock('../../db/conversation-queries', () => ({
   createConversationMessage,
   getMessagesByConversationId,

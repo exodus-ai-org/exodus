@@ -12,14 +12,15 @@ import { GroupChat } from '@/components/agent-x/chat/group-chat'
 import { GroupMembersPanel } from '@/components/agent-x/chat/group-members-panel'
 import { EmployeesPage } from '@/components/agent-x/employees/employees-page'
 import { KnowledgeBasePage } from '@/components/agent-x/knowledge/knowledge-base-page'
+import { TeamsPage } from '@/components/agent-x/teams/teams-page'
 import type { AgentXPage } from '@/layouts/agent-x-layout'
-import { getAgents } from '@/services/agent-x'
+import { getAgents, getTeams } from '@/services/agent-x'
 import {
   createConversation,
   deleteConversation,
   getConversations
 } from '@/services/agent-x-chat'
-import type { AgentData, ConversationData } from '@/stores/agent-x'
+import type { AgentData, ConversationData, TeamData } from '@/stores/agent-x'
 
 const CostAnalysis = lazy(() =>
   import('@/components/agent-x/cost-analysis').then((m) => ({
@@ -35,6 +36,7 @@ export function AgentXContainer({
 }) {
   const [conversations, setConversations] = useState<ConversationData[]>([])
   const [employees, setEmployees] = useState<AgentData[]>([])
+  const [teams, setTeams] = useState<TeamData[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
 
   useEffect(() => {
@@ -43,11 +45,16 @@ export function AgentXContainer({
       setActiveId((cur) => cur ?? cs[0]?.id ?? null)
     })
     getAgents().then(setEmployees)
+    getTeams().then(setTeams)
   }, [])
 
   const agentsById = useMemo(
     () => Object.fromEntries(employees.map((e) => [e.id, e])),
     [employees]
+  )
+  const teamsById = useMemo(
+    () => Object.fromEntries(teams.map((t) => [t.id, t])),
+    [teams]
   )
 
   const handleCreate = useCallback(async () => {
@@ -81,7 +88,11 @@ export function AgentXContainer({
         </div>
         <div className="min-w-0">
           {activeId ? (
-            <GroupChat conversationId={activeId} agentsById={agentsById} />
+            <GroupChat
+              conversationId={activeId}
+              agentsById={agentsById}
+              teamsById={teamsById}
+            />
           ) : (
             <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
               Create a group to get started
@@ -89,13 +100,18 @@ export function AgentXContainer({
           )}
         </div>
         <div className="border-l">
-          <GroupMembersPanel members={members} busyAgentIds={new Set()} />
+          <GroupMembersPanel
+            members={members}
+            teamsById={teamsById}
+            busyAgentIds={new Set()}
+          />
         </div>
       </div>
     )
   }
 
   if (activePage === 'employees') return <EmployeesPage />
+  if (activePage === 'teams') return <TeamsPage />
   if (activePage === 'knowledge') return <KnowledgeBasePage />
   if (activePage === 'costs')
     return (

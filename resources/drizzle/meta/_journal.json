@@ -8,6 +8,13 @@
       "when": 1779942682009,
       "tag": "0000_broad_sphinx",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1780225341632,
+      "tag": "0001_outgoing_red_hulk",
+      "breakpoints": true
     }
   ]
 }

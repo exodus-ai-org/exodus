@@ -4,7 +4,7 @@ export interface AgentData {
   id: string
   name: string
   description: string | null
-  team: string | null
+  teamId: string | null
   avatarSeed: string | null
   avatarStyle: string | null
   systemPrompt: string | null
@@ -14,6 +14,16 @@ export interface AgentData {
   model: string | null
   provider: string | null
   isActive: boolean | null
+  createdAt: string
+  updatedAt: string
+}
+
+export interface TeamData {
+  id: string
+  name: string
+  description: string | null
+  systemPrompt: string | null
+  icon: string | null
   createdAt: string
   updatedAt: string
 }

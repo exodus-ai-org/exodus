@@ -11,7 +11,8 @@ import {
   updateTaskExecution
 } from '../../db/agent-x-queries'
 import { getSettings } from '../../db/queries'
-import type { Agent } from '../../db/schema'
+import type { Agent, Team } from '../../db/schema'
+import { getTeamById } from '../../db/team-queries'
 import { getMcpTools, getMcpToolsByNames } from '../mcp'
 import {
   getActiveSkillsContent,
@@ -36,10 +37,12 @@ export interface RunEmployeeLoopArgs {
   signal?: AbortSignal
 }
 
-function buildEmployeeSystemPrompt(agent: Agent): string {
+function buildEmployeeSystemPrompt(agent: Agent, team: Team | null): string {
   const parts = [`You are "${agent.name}", a virtual employee on a team.`]
-  if (agent.team) parts.push(`Team: ${agent.team}`)
+  if (team) parts.push(`Team: ${team.name}`)
   if (agent.description) parts.push(`Role: ${agent.description}`)
+  // Team's systemPrompt applies to every member; the agent's own prompt layers on top.
+  if (team?.systemPrompt) parts.push(team.systemPrompt)
   if (agent.systemPrompt) parts.push(agent.systemPrompt)
   parts.push(
     '\nYou were given a task by the team PM. Use your tools to complete it.',
@@ -88,8 +91,9 @@ export async function runEmployeeLoop(
         .map((m) => `- ${JSON.stringify(m.value)}`)
         .join('\n')
     : ''
+  const team = agent.teamId ? ((await getTeamById(agent.teamId)) ?? null) : null
   const systemPrompt =
-    buildEmployeeSystemPrompt(agent) + memoryBlock + skillsContent
+    buildEmployeeSystemPrompt(agent, team) + memoryBlock + skillsContent
 
   const userMessage: Message = {
     role: 'user',

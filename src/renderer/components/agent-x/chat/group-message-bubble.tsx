@@ -1,7 +1,7 @@
 // src/renderer/components/agent-x/chat/group-message-bubble.tsx
 import { Markdown } from '@/components/markdown'
 import { cn } from '@/lib/utils'
-import type { AgentData } from '@/stores/agent-x'
+import type { AgentData, TeamData } from '@/stores/agent-x'
 
 import { EmployeeAvatar } from '../employees/employee-avatar'
 
@@ -19,14 +19,17 @@ export interface BubbleModel {
 
 export function GroupMessageBubble({
   bubble,
-  agentsById
+  agentsById,
+  teamsById
 }: {
   bubble: BubbleModel
   agentsById: Record<string, AgentData>
+  teamsById: Record<string, TeamData>
 }) {
   const isUser = bubble.role === 'user'
   const isSystem = bubble.role === 'system'
   const agent = bubble.agentId ? agentsById[bubble.agentId] : undefined
+  const team = agent?.teamId ? teamsById[agent.teamId] : undefined
   const name = isUser
     ? 'You'
     : bubble.role === 'pm'
@@ -62,8 +65,11 @@ export function GroupMessageBubble({
       >
         <div className="text-muted-foreground mb-0.5 flex items-center gap-1.5 text-xs">
           <span className="font-medium">{name}</span>
-          {agent?.team && (
-            <span className="bg-muted rounded px-1 py-px">{agent.team}</span>
+          {team && (
+            <span className="bg-muted rounded px-1 py-px">
+              {team.icon ? `${team.icon} ` : ''}
+              {team.name}
+            </span>
           )}
         </div>
         <div className="bg-muted/50 rounded-lg px-3 py-2 text-sm">

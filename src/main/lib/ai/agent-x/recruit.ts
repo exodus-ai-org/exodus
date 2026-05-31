@@ -19,7 +19,7 @@ export interface RecruitParams {
   role: string
   skills?: string[]
   name?: string
-  team?: string
+  teamId?: string
 }
 
 /** Create and persist a new employee. Reused by the PM `recruitEmployee` tool. */
@@ -74,7 +74,7 @@ export async function autoCreateEmployee(params: RecruitParams) {
     name,
     description,
     systemPrompt,
-    team: params.team ?? null,
+    teamId: params.teamId ?? null,
     avatarSeed: randomAvatarSeed(),
     avatarStyle: DEFAULT_AVATAR_STYLE,
     skillSlugs: params.skills ?? [],

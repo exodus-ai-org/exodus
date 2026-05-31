@@ -213,11 +213,24 @@ export type McpServer = InferSelectModel<typeof mcpServer>
 
 // ─── Agent X ────────────────────────────────────────────────────────────────
 
+// A team groups employees and contributes its own systemPrompt to every member.
+export const team = pgTable('team', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  name: text('name').notNull(),
+  description: text('description').default(''),
+  systemPrompt: text('systemPrompt').default(''),
+  icon: text('icon'), // optional emoji
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull()
+})
+
+export type Team = InferSelectModel<typeof team>
+
 export const agent = pgTable('agent', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   name: text('name').notNull(),
   description: text('description').default(''),
-  team: text('team'), // lightweight label, e.g. "Data"; replaces department
+  teamId: uuid('teamId').references(() => team.id, { onDelete: 'set null' }),
   avatarSeed: text('avatarSeed'),
   avatarStyle: text('avatarStyle'),
   systemPrompt: text('systemPrompt').default(''),

@@ -2,6 +2,7 @@ import {
   ArrowLeftIcon,
   BookOpenIcon,
   BotIcon,
+  Building2Icon,
   CoinsIcon,
   LayoutDashboardIcon,
   MessageSquareIcon,
@@ -32,6 +33,11 @@ const navMainItems = [
     title: 'Employees',
     page: 'employees',
     icon: <UsersIcon />
+  },
+  {
+    title: 'Teams',
+    page: 'teams',
+    icon: <Building2Icon />
   },
   {
     title: 'Knowledge Base',

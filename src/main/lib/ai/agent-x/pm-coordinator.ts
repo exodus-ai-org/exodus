@@ -11,6 +11,7 @@ import {
   getMessagesByConversationId
 } from '../../db/conversation-queries'
 import { getSettings } from '../../db/queries'
+import { getAllTeams } from '../../db/team-queries'
 import { getModelFromProvider } from '../utils/chat-message-util'
 import { createEscalateToUserTool } from './agent-tools'
 import { askUserRegistry } from './ask-user-registry'
@@ -30,14 +31,19 @@ Use searchKnowledgeBase for company-specific facts before asking the user. Use a
 Delegate to one employee at a time.`
 
 function rosterText(
-  agents: { name: string; team: string | null; description: string | null }[]
+  agents: {
+    name: string
+    teamId: string | null
+    description: string | null
+  }[],
+  teamNameById: Map<string, string>
 ): string {
   if (agents.length === 0) return '(no employees yet)'
   return agents
-    .map(
-      (a) =>
-        `- ${a.name}${a.team ? ` [${a.team}]` : ''}: ${a.description ?? 'no description'}`
-    )
+    .map((a) => {
+      const teamName = a.teamId ? teamNameById.get(a.teamId) : null
+      return `- ${a.name}${teamName ? ` [${teamName}]` : ''}: ${a.description ?? 'no description'}`
+    })
     .join('\n')
 }
 
@@ -75,7 +81,11 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
   const setting = await getSettings()
   const { chatModel, apiKey } = getModelFromProvider(setting)
 
-  const employees = await getActiveAgents()
+  const [employees, allTeams] = await Promise.all([
+    getActiveAgents(),
+    getAllTeams()
+  ])
+  const teamNameById = new Map(allTeams.map((t) => [t.id, t.name]))
   const history = await buildHistory(conversationId, excludeMessageId)
 
   const tools: AgentTool[] = [
@@ -145,7 +155,8 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
       [userMessage as AgentMessage],
       {
         systemPrompt:
-          PM_SYSTEM_PROMPT + `\n\nEmployees:\n${rosterText(employees)}`,
+          PM_SYSTEM_PROMPT +
+          `\n\nEmployees:\n${rosterText(employees, teamNameById)}`,
         messages: history as AgentMessage[],
         tools
       },

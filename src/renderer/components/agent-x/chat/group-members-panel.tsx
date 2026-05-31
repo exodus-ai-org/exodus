@@ -1,13 +1,15 @@
 // src/renderer/components/agent-x/chat/group-members-panel.tsx
-import type { AgentData } from '@/stores/agent-x'
+import type { AgentData, TeamData } from '@/stores/agent-x'
 
 import { EmployeeAvatar } from '../employees/employee-avatar'
 
 export function GroupMembersPanel({
   members,
+  teamsById,
   busyAgentIds
 }: {
   members: AgentData[]
+  teamsById: Record<string, TeamData>
   busyAgentIds: Set<string>
 }) {
   return (
@@ -25,11 +27,15 @@ export function GroupMembersPanel({
             />
             <div className="min-w-0 flex-1">
               <div className="truncate text-sm">{m.name}</div>
-              {m.team && (
-                <div className="text-muted-foreground truncate text-xs">
-                  {m.team}
-                </div>
-              )}
+              {(() => {
+                const t = m.teamId ? teamsById[m.teamId] : undefined
+                return t ? (
+                  <div className="text-muted-foreground truncate text-xs">
+                    {t.icon ? `${t.icon} ` : ''}
+                    {t.name}
+                  </div>
+                ) : null
+              })()}
             </div>
             <span
               className={
