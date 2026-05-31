@@ -50,6 +50,11 @@ export async function touchConversation(id: string) {
   return row
 }
 
+export async function deleteConversation(id: string) {
+  // conversation_message + task (and their executions/events) cascade via FK.
+  return db.delete(conversation).where(eq(conversation.id, id))
+}
+
 export async function addMemberToConversation(
   conversationId: string,
   agentId: string

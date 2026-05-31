@@ -23,6 +23,11 @@ export const updateConversation = (
     method: 'PUT',
     body: data as never
   })
+export const deleteConversation = (id: string) =>
+  fetcher<void>(`${BASE}/conversations/${id}`, {
+    method: 'DELETE',
+    responseType: 'text'
+  })
 export const getConversationMessages = (id: string) =>
   fetcher<ConversationMessageData[]>(`${BASE}/conversations/${id}/messages`)
 export const sendConversationMessage = (id: string, content: string) =>

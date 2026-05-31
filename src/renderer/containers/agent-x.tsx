@@ -14,7 +14,11 @@ import { EmployeesPage } from '@/components/agent-x/employees/employees-page'
 import { KnowledgeBasePage } from '@/components/agent-x/knowledge/knowledge-base-page'
 import type { AgentXPage } from '@/layouts/agent-x-layout'
 import { getAgents } from '@/services/agent-x'
-import { createConversation, getConversations } from '@/services/agent-x-chat'
+import {
+  createConversation,
+  deleteConversation,
+  getConversations
+} from '@/services/agent-x-chat'
 import type { AgentData, ConversationData } from '@/stores/agent-x'
 
 const CostAnalysis = lazy(() =>
@@ -52,6 +56,12 @@ export function AgentXContainer({
     setActiveId(conv.id)
   }, [])
 
+  const handleDelete = useCallback(async (id: string) => {
+    await deleteConversation(id)
+    setConversations((p) => p.filter((c) => c.id !== id))
+    setActiveId((cur) => (cur === id ? null : cur))
+  }, [])
+
   const activeConv = conversations.find((c) => c.id === activeId)
   const members = (activeConv?.memberAgentIds ?? [])
     .map((id) => agentsById[id])
@@ -66,6 +76,7 @@ export function AgentXContainer({
             activeId={activeId}
             onSelect={setActiveId}
             onCreate={handleCreate}
+            onDelete={handleDelete}
           />
         </div>
         <div className="min-w-0">

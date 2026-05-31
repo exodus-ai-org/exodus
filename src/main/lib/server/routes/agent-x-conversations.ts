@@ -9,6 +9,7 @@ import { getAgentXCostRows } from '../../db/agent-x-queries'
 import {
   createConversation,
   createConversationMessage,
+  deleteConversation,
   getAllConversations,
   getMessagesByConversationId,
   updateConversation
@@ -122,6 +123,15 @@ router.post('/conversations', async (c) => {
     'Failed to create conversation'
   )
   return successResponse(c, row, 201)
+})
+
+router.delete('/conversations/:id', async (c) => {
+  const id = getRequiredParam(c, 'id')
+  await handleDatabaseOperation(
+    () => deleteConversation(id),
+    'Failed to delete conversation'
+  )
+  return c.text('Conversation deleted', 200)
 })
 
 router.put('/conversations/:id', async (c) => {
