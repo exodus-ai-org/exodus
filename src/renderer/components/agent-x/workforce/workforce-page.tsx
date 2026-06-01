@@ -213,11 +213,52 @@ function TeamSection({
   )
 }
 
+function emptyEmployeeDraft(teamId: string): AgentData {
+  return {
+    id: '',
+    name: 'New Employee',
+    description: null,
+    teamId,
+    avatarSeed: randomAvatarSeed(),
+    avatarStyle: DEFAULT_AVATAR_STYLE,
+    systemPrompt: null,
+    toolAllowList: null,
+    skillSlugs: null,
+    mcpServerNames: null,
+    model: null,
+    provider: null,
+    isActive: true,
+    createdAt: '',
+    updatedAt: ''
+  }
+}
+
+function emptyTeamDraft(): TeamData {
+  return {
+    id: '',
+    name: 'New Team',
+    description: '',
+    systemPrompt: '',
+    icon: null,
+    createdAt: '',
+    updatedAt: ''
+  }
+}
+
 export function WorkforcePage() {
   const [employees, setEmployees] = useState<AgentData[]>([])
   const [teams, setTeams] = useState<TeamData[]>([])
-  const [editingEmployee, setEditingEmployee] = useState<AgentData | null>(null)
-  const [editingTeam, setEditingTeam] = useState<TeamData | null>(null)
+  // Editor states carry both the draft and an isNew flag so Save can dispatch
+  // to either createXxxApi or updateXxxApi without us tracking two pairs of
+  // booleans.
+  const [employeeEditor, setEmployeeEditor] = useState<{
+    draft: AgentData
+    isNew: boolean
+  } | null>(null)
+  const [teamEditor, setTeamEditor] = useState<{
+    draft: TeamData
+    isNew: boolean
+  } | null>(null)
   const [confirmingEmployee, setConfirmingEmployee] =
     useState<AgentData | null>(null)
   const [confirmingTeam, setConfirmingTeam] = useState<TeamData | null>(null)
@@ -242,42 +283,61 @@ export function WorkforcePage() {
   const toggle = (key: string) =>
     setCollapsed((p) => ({ ...p, [key]: !p[key] }))
 
-  const handleCreateEmployee = async (teamId: string | null = null) => {
-    const emp = await createAgentApi({
-      name: 'New Employee',
-      teamId,
-      avatarSeed: randomAvatarSeed(),
-      avatarStyle: DEFAULT_AVATAR_STYLE
-    })
-    setEmployees((p) => [...p, emp])
-    setEditingEmployee(emp)
+  // Open the editor sheet with an uncommitted draft. The actual API call
+  // happens on Save, not on click.
+  const openNewEmployee = (teamId?: string | null) => {
+    const target = teamId ?? teams[0]?.id
+    if (!target) return // guarded by disabled button, but defensive
+    setEmployeeEditor({ draft: emptyEmployeeDraft(target), isNew: true })
   }
 
-  const handleCreateTeam = async () => {
-    const t = await createTeamApi({
-      name: 'New Team',
-      description: '',
-      systemPrompt: ''
-    })
-    setTeams((p) => [...p, t])
-    setEditingTeam(t)
+  const openNewTeam = () => {
+    setTeamEditor({ draft: emptyTeamDraft(), isNew: true })
   }
 
   const handleSaveEmployee = async (data: Partial<AgentData>) => {
-    if (!editingEmployee) return
-    const updated = await updateAgentApi(editingEmployee.id, data)
-    setEmployees((p) => p.map((x) => (x.id === updated.id ? updated : x)))
-    setEditingEmployee(null)
+    if (!employeeEditor) return
+    if (!data.teamId) return // guarded by editor's disabled Save
+    try {
+      if (employeeEditor.isNew) {
+        const created = await createAgentApi(data)
+        setEmployees((p) => [...p, created])
+        sileo.success({ title: `"${created.name}" created` })
+      } else {
+        const updated = await updateAgentApi(employeeEditor.draft.id, data)
+        setEmployees((p) => p.map((x) => (x.id === updated.id ? updated : x)))
+      }
+      setEmployeeEditor(null)
+    } catch (err) {
+      sileo.error({
+        title: 'Could not save the employee',
+        description: err instanceof Error ? err.message : String(err)
+      })
+    }
   }
 
   const handleSaveTeam = async (data: Partial<TeamData>) => {
-    if (!editingTeam) return
-    const updated = await updateTeamApi(editingTeam.id, data)
-    setTeams((p) => p.map((x) => (x.id === updated.id ? updated : x)))
-    setEditingTeam(null)
+    if (!teamEditor) return
+    try {
+      if (teamEditor.isNew) {
+        const created = await createTeamApi(data)
+        setTeams((p) => [...p, created])
+        sileo.success({ title: `"${created.name}" created` })
+      } else {
+        const updated = await updateTeamApi(teamEditor.draft.id, data)
+        setTeams((p) => p.map((x) => (x.id === updated.id ? updated : x)))
+      }
+      setTeamEditor(null)
+    } catch (err) {
+      sileo.error({
+        title: 'Could not save the team',
+        description: err instanceof Error ? err.message : String(err)
+      })
+    }
   }
 
   const totalEmpty = employees.length === 0 && teams.length === 0
+  const noTeams = teams.length === 0
 
   return (
     <div className="flex flex-col gap-5 p-4 lg:p-6">
@@ -289,11 +349,16 @@ export function WorkforcePage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" onClick={() => handleCreateEmployee()}>
+          <Button
+            variant="outline"
+            onClick={() => openNewEmployee()}
+            disabled={noTeams}
+            title={noTeams ? 'Create a team first' : undefined}
+          >
             <UserPlus className="h-3.5 w-3.5" />
             New employee
           </Button>
-          <Button onClick={handleCreateTeam}>
+          <Button onClick={openNewTeam}>
             <Plus className="h-3.5 w-3.5" />
             New team
           </Button>
@@ -304,18 +369,15 @@ export function WorkforcePage() {
         <div className="text-muted-foreground flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed py-16 text-center">
           <UsersIcon className="h-10 w-10 opacity-30" />
           <div className="text-foreground text-sm font-medium">
-            Nothing here yet
+            Start with a team
           </div>
           <div className="max-w-sm text-xs">
-            Create a team to group your virtual employees by a shared system
-            prompt, then add employees that belong to it.
+            Every employee belongs to a team that contributes a shared system
+            prompt. Create a team first, then add the employees that belong to
+            it.
           </div>
           <div className="mt-2 flex gap-2">
-            <Button variant="outline" onClick={() => handleCreateEmployee()}>
-              <UserPlus className="h-3.5 w-3.5" />
-              New employee
-            </Button>
-            <Button onClick={handleCreateTeam}>
+            <Button onClick={openNewTeam}>
               <Plus className="h-3.5 w-3.5" />
               New team
             </Button>
@@ -330,35 +392,46 @@ export function WorkforcePage() {
               members={byTeam.map.get(t.id) ?? []}
               collapsed={collapsed[t.id] ?? false}
               onToggle={() => toggle(t.id)}
-              onEditEmployee={setEditingEmployee}
+              onEditEmployee={(e) =>
+                setEmployeeEditor({ draft: e, isNew: false })
+              }
               onAskDeleteEmployee={setConfirmingEmployee}
-              onEditTeam={setEditingTeam}
+              onEditTeam={(team) =>
+                setTeamEditor({ draft: team, isNew: false })
+              }
               onAskDeleteTeam={setConfirmingTeam}
-              onAddEmployeeToTeam={handleCreateEmployee}
+              onAddEmployeeToTeam={(teamId) => openNewEmployee(teamId)}
             />
           ))}
-          <TeamSection
-            team={null}
-            members={byTeam.unassigned}
-            collapsed={collapsed[UNASSIGNED_KEY] ?? false}
-            onToggle={() => toggle(UNASSIGNED_KEY)}
-            onEditEmployee={setEditingEmployee}
-            onAskDeleteEmployee={setConfirmingEmployee}
-            onAddEmployeeToTeam={handleCreateEmployee}
-          />
+          {byTeam.unassigned.length > 0 && (
+            <TeamSection
+              team={null}
+              members={byTeam.unassigned}
+              collapsed={collapsed[UNASSIGNED_KEY] ?? false}
+              onToggle={() => toggle(UNASSIGNED_KEY)}
+              onEditEmployee={(e) =>
+                setEmployeeEditor({ draft: e, isNew: false })
+              }
+              onAskDeleteEmployee={setConfirmingEmployee}
+              // Unassigned section is informational — no "Add an employee"
+              // affordance into it. Pass a no-op for the slot.
+              onAddEmployeeToTeam={() => {}}
+            />
+          )}
         </div>
       )}
 
       {/* Edit sheets */}
       <Sheet
-        open={editingEmployee !== null}
-        onOpenChange={(o) => !o && setEditingEmployee(null)}
+        open={employeeEditor !== null}
+        onOpenChange={(o) => !o && setEmployeeEditor(null)}
       >
         <SheetContent className="w-[480px] sm:max-w-none">
-          {editingEmployee && (
+          {employeeEditor && (
             <EmployeeEditor
-              employee={editingEmployee}
-              onClose={() => setEditingEmployee(null)}
+              employee={employeeEditor.draft}
+              isNew={employeeEditor.isNew}
+              onClose={() => setEmployeeEditor(null)}
               onSave={handleSaveEmployee}
             />
           )}
@@ -366,14 +439,15 @@ export function WorkforcePage() {
       </Sheet>
 
       <Sheet
-        open={editingTeam !== null}
-        onOpenChange={(o) => !o && setEditingTeam(null)}
+        open={teamEditor !== null}
+        onOpenChange={(o) => !o && setTeamEditor(null)}
       >
         <SheetContent className="w-[480px] sm:max-w-none">
-          {editingTeam && (
+          {teamEditor && (
             <TeamEditor
-              team={editingTeam}
-              onClose={() => setEditingTeam(null)}
+              team={teamEditor.draft}
+              isNew={teamEditor.isNew}
+              onClose={() => setTeamEditor(null)}
               onSave={handleSaveTeam}
             />
           )}
@@ -405,7 +479,9 @@ export function WorkforcePage() {
                 try {
                   await deleteAgentApi(id)
                   setEmployees((p) => p.filter((x) => x.id !== id))
-                  setEditingEmployee((cur) => (cur?.id === id ? null : cur))
+                  setEmployeeEditor((cur) =>
+                    cur?.draft.id === id ? null : cur
+                  )
                   sileo.success({ title: `"${name}" deleted` })
                 } catch (err) {
                   sileo.error({
@@ -450,7 +526,7 @@ export function WorkforcePage() {
                   setEmployees((p) =>
                     p.map((e) => (e.teamId === id ? { ...e, teamId: null } : e))
                   )
-                  setEditingTeam((cur) => (cur?.id === id ? null : cur))
+                  setTeamEditor((cur) => (cur?.draft.id === id ? null : cur))
                   sileo.success({ title: `"${name}" deleted` })
                 } catch (err) {
                   sileo.error({

@@ -23,14 +23,14 @@ import type { AgentData, TeamData } from '@/stores/agent-x'
 
 import { AvatarPicker } from './avatar-picker'
 
-const NO_TEAM = '__none__'
-
 export function EmployeeEditor({
   employee,
+  isNew = false,
   onSave,
   onClose
 }: {
   employee: AgentData
+  isNew?: boolean
   onSave: (data: Partial<AgentData>) => void
   onClose: () => void
 }) {
@@ -49,8 +49,13 @@ export function EmployeeEditor({
     getAvailableSkills().then(setSkills)
     getMcpServers().then(setMcpServers)
     getTeams().then(setTeams)
-    getAgentMemories(employee.id).then((m) => setMemories(m as never))
-  }, [employee.id])
+    // No memory rows for an employee that doesn't exist yet.
+    if (!isNew) {
+      getAgentMemories(employee.id).then((m) => setMemories(m as never))
+    }
+  }, [employee.id, isNew])
+
+  const canSave = draft.name.trim().length > 0 && Boolean(draft.teamId)
 
   return (
     <div className="flex h-full flex-col gap-4 overflow-y-auto p-4">
@@ -67,18 +72,17 @@ export function EmployeeEditor({
         />
       </div>
       <div className="grid gap-1">
-        <Label>Team</Label>
+        <Label>
+          Team <span className="text-destructive">*</span>
+        </Label>
         <Select
-          value={draft.teamId ?? NO_TEAM}
-          onValueChange={(v) =>
-            setDraft({ ...draft, teamId: v === NO_TEAM ? null : v })
-          }
+          value={draft.teamId ?? ''}
+          onValueChange={(v) => setDraft({ ...draft, teamId: v })}
         >
           <SelectTrigger>
-            <SelectValue placeholder="No team" />
+            <SelectValue placeholder="Select a team" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={NO_TEAM}>No team</SelectItem>
             {teams.map((t) => (
               <SelectItem key={t.id} value={t.id}>
                 {t.icon ? `${t.icon} ` : ''}
@@ -88,8 +92,8 @@ export function EmployeeEditor({
           </SelectContent>
         </Select>
         <p className="text-muted-foreground text-xs">
-          Manage teams from the Teams page. A team's system prompt applies to
-          every member.
+          Every employee belongs to a team — the team's system prompt is applied
+          to all its members.
         </p>
       </div>
       <div className="grid gap-1">
@@ -156,22 +160,26 @@ export function EmployeeEditor({
           If none are selected, the employee can use all available servers.
         </p>
       </div>
-      <div className="grid gap-1">
-        <Label>Memory (read-only)</Label>
-        <div className="text-muted-foreground space-y-1 text-xs">
-          {memories.length === 0 && <span>No accumulated memory yet</span>}
-          {memories.map((m) => (
-            <div key={m.id} className="bg-muted/50 rounded p-1">
-              <b>{m.key}</b>: {JSON.stringify(m.value)}
-            </div>
-          ))}
+      {!isNew && (
+        <div className="grid gap-1">
+          <Label>Memory (read-only)</Label>
+          <div className="text-muted-foreground space-y-1 text-xs">
+            {memories.length === 0 && <span>No accumulated memory yet</span>}
+            {memories.map((m) => (
+              <div key={m.id} className="bg-muted/50 rounded p-1">
+                <b>{m.key}</b>: {JSON.stringify(m.value)}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
       <div className="flex justify-end gap-2">
         <Button variant="outline" onClick={onClose}>
           Cancel
         </Button>
-        <Button onClick={() => onSave(draft)}>Save</Button>
+        <Button onClick={() => onSave(draft)} disabled={!canSave}>
+          {isNew ? 'Create' : 'Save'}
+        </Button>
       </div>
     </div>
   )
