@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { AppSidebar } from '@/components/agent-x/dashboard/app-sidebar'
 import { SiteHeader } from '@/components/agent-x/dashboard/site-header'
@@ -30,15 +30,29 @@ const pageTitles: Record<AgentXPage, string> = {
 
 /**
  * Lives inside the SidebarProvider so it can pull the imperative setter.
- * Every time the active page becomes Groups we collapse the left rail to
- * give the three-column chat the full width; other pages leave whatever
- * the user last chose untouched.
+ * Only fires when the active page TRANSITIONS into Groups — so a user
+ * clicking the expand button while already on Groups isn't immediately
+ * slammed shut again.
+ *
+ * Sidebar's `setOpen` is wrapped in a useCallback whose deps include the
+ * current `open` state, so its identity flips every toggle. If we put
+ * `setOpen` in the deps array of this effect, every expand would re-run
+ * the effect and force-close us — that's the bug. We hold setOpen in a
+ * ref instead and gate on the prev→curr page transition.
  */
 function CollapseSidebarOnChat({ activePage }: { activePage: AgentXPage }) {
   const { setOpen } = useSidebar()
+  const setOpenRef = useRef(setOpen)
+  setOpenRef.current = setOpen
+  const prevPageRef = useRef<AgentXPage | null>(null)
+
   useEffect(() => {
-    if (activePage === 'chat') setOpen(false)
-  }, [activePage, setOpen])
+    if (prevPageRef.current !== 'chat' && activePage === 'chat') {
+      setOpenRef.current(false)
+    }
+    prevPageRef.current = activePage
+  }, [activePage])
+
   return null
 }
 
