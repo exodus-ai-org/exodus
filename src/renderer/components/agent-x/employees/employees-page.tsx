@@ -100,7 +100,7 @@ export function EmployeesPage() {
             <ContextMenuContent>
               <ContextMenuItem
                 variant="destructive"
-                onSelect={() => setConfirming(e)}
+                onClick={() => setConfirming(e)}
               >
                 Delete
               </ContextMenuItem>

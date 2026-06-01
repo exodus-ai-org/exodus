@@ -141,7 +141,7 @@ export function TeamsPage() {
             <ContextMenuContent>
               <ContextMenuItem
                 variant="destructive"
-                onSelect={() => setConfirming(t)}
+                onClick={() => setConfirming(t)}
               >
                 <Trash2 className="mr-1.5 h-3.5 w-3.5" />
                 Delete

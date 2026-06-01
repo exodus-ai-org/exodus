@@ -182,7 +182,7 @@ export function ConversationList({
                     <ContextMenuContent>
                       <ContextMenuItem
                         variant="destructive"
-                        onSelect={() => setConfirming(c)}
+                        onClick={() => setConfirming(c)}
                       >
                         <Trash2 className="mr-1.5 h-3.5 w-3.5" />
                         Delete
