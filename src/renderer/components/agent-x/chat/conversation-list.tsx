@@ -5,7 +5,15 @@ import {
   isToday,
   isYesterday
 } from 'date-fns'
-import { MessageSquarePlus, PlusIcon, SearchIcon, Trash2 } from 'lucide-react'
+import {
+  BookOpenIcon,
+  LayoutDashboardIcon,
+  MessageSquarePlus,
+  PlusIcon,
+  SearchIcon,
+  Trash2,
+  UsersIcon
+} from 'lucide-react'
 import { useMemo, useState } from 'react'
 
 import {
@@ -26,8 +34,21 @@ import {
   ContextMenuTrigger
 } from '@/components/ui/context-menu'
 import { Input } from '@/components/ui/input'
+import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import { cn } from '@/lib/utils'
 import type { AgentData, ConversationData } from '@/stores/agent-x'
+
+export type ConfigPage = 'workforce' | 'knowledge' | 'dashboard'
+
+const CONFIG_NAV: Array<{
+  page: ConfigPage
+  label: string
+  icon: React.ComponentType<{ className?: string }>
+}> = [
+  { page: 'workforce', label: 'Workforce', icon: UsersIcon },
+  { page: 'knowledge', label: 'Knowledge Base', icon: BookOpenIcon },
+  { page: 'dashboard', label: 'Dashboard', icon: LayoutDashboardIcon }
+]
 
 /** Smart timestamp: HH:mm today, 'Yesterday', day name within the week, otherwise MM/dd. */
 function smartTime(iso: string): string {
@@ -65,19 +86,24 @@ export function ConversationList({
   conversations,
   agentsById,
   activeId,
+  activePage,
   onSelect,
   onCreate,
-  onDelete
+  onDelete,
+  onNavigateConfig
 }: {
   conversations: ConversationData[]
   agentsById: Record<string, AgentData>
   activeId: string | null
+  activePage: 'chat' | ConfigPage
   onSelect: (id: string) => void
   onCreate: () => void
   onDelete: (id: string) => void | Promise<void>
+  onNavigateConfig: (page: ConfigPage) => void
 }) {
   const [confirming, setConfirming] = useState<ConversationData | null>(null)
   const [query, setQuery] = useState('')
+  const isFullscreen = useIsFullscreen()
 
   const filtered = useMemo(() => {
     if (!query.trim()) return conversations
@@ -92,8 +118,13 @@ export function ConversationList({
 
   return (
     <div className="bg-sidebar/40 flex h-full flex-col">
-      <div className="flex items-center justify-between px-3 pt-3 pb-1">
-        <span className="text-foreground text-sm font-semibold tracking-tight">
+      <div
+        className={cn(
+          'draggable flex h-12 shrink-0 items-center justify-between gap-2 pr-2',
+          isFullscreen ? 'pl-3' : 'pl-21'
+        )}
+      >
+        <span className="text-foreground truncate text-sm font-semibold tracking-tight">
           Groups
         </span>
         <Button
@@ -101,6 +132,7 @@ export function ConversationList({
           variant="ghost"
           onClick={onCreate}
           aria-label="New group"
+          className="no-drag"
         >
           <PlusIcon className="h-4 w-4" />
         </Button>
@@ -134,7 +166,7 @@ export function ConversationList({
         ) : (
           <ul className="space-y-0.5">
             {filtered.map((c) => {
-              const isActive = c.id === activeId
+              const isActive = activePage === 'chat' && c.id === activeId
               const preview = previewLine(c.latestMessage, agentsById)
               return (
                 <li key={c.id}>
@@ -195,6 +227,32 @@ export function ConversationList({
           </ul>
         )}
       </div>
+
+      <nav className="border-border/60 shrink-0 border-t p-2">
+        <ul className="space-y-0.5">
+          {CONFIG_NAV.map((item) => {
+            const Icon = item.icon
+            const isActive = activePage === item.page
+            return (
+              <li key={item.page}>
+                <button
+                  type="button"
+                  onClick={() => onNavigateConfig(item.page)}
+                  className={cn(
+                    'flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm transition-colors',
+                    isActive
+                      ? 'bg-accent text-accent-foreground'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-accent/40'
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span className="truncate">{item.label}</span>
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      </nav>
 
       <AlertDialog
         open={confirming !== null}
