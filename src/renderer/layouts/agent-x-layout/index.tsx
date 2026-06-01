@@ -17,15 +17,13 @@ export type AgentXPage =
   | 'teams'
   | 'knowledge'
   | 'dashboard'
-  | 'costs'
 
 const pageTitles: Record<AgentXPage, string> = {
   chat: 'Groups',
   employees: 'Employees',
   teams: 'Teams',
   knowledge: 'Knowledge Base',
-  dashboard: 'Dashboard',
-  costs: 'Cost Analysis'
+  dashboard: 'Dashboard'
 }
 
 /**

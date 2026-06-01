@@ -2,7 +2,6 @@ import {
   ArrowLeftIcon,
   BookOpenIcon,
   BotIcon,
-  CoinsIcon,
   LayoutDashboardIcon,
   MessageSquareIcon,
   UsersIcon
@@ -45,11 +44,6 @@ const navMainItems = [
     title: 'Dashboard',
     page: 'dashboard',
     icon: <LayoutDashboardIcon />
-  },
-  {
-    title: 'Cost Analysis',
-    page: 'costs',
-    icon: <CoinsIcon />
   }
 ]
 

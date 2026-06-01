@@ -145,13 +145,11 @@ export function AgentXContainer({
   if (activePage === 'employees') return <EmployeesPage />
   if (activePage === 'teams') return <TeamsPage />
   if (activePage === 'knowledge') return <KnowledgeBasePage />
-  if (activePage === 'costs')
-    return (
-      <Suspense fallback={null}>
-        <CostAnalysis />
-      </Suspense>
-    )
 
-  // dashboard: simple placeholder for v1
-  return <div className="text-muted-foreground p-6 text-sm">Dashboard</div>
+  // dashboard now hosts the cost analysis surface
+  return (
+    <Suspense fallback={null}>
+      <CostAnalysis />
+    </Suspense>
+  )
 }
