@@ -29,11 +29,8 @@ const navMainItems = [
   },
   {
     title: 'Workforce',
-    icon: <UsersIcon />,
-    children: [
-      { title: 'Employees', page: 'employees' },
-      { title: 'Teams', page: 'teams' }
-    ]
+    page: 'workforce',
+    icon: <UsersIcon />
   },
   {
     title: 'Knowledge Base',

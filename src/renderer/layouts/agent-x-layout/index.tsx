@@ -11,17 +11,11 @@ import {
 import { AgentXContainer } from '@/containers/agent-x'
 import { cn } from '@/lib/utils'
 
-export type AgentXPage =
-  | 'chat'
-  | 'employees'
-  | 'teams'
-  | 'knowledge'
-  | 'dashboard'
+export type AgentXPage = 'chat' | 'workforce' | 'knowledge' | 'dashboard'
 
 const pageTitles: Record<AgentXPage, string> = {
   chat: 'Groups',
-  employees: 'Employees',
-  teams: 'Teams',
+  workforce: 'Workforce',
   knowledge: 'Knowledge Base',
   dashboard: 'Dashboard'
 }

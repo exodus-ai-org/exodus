@@ -12,9 +12,8 @@ import { sileo } from 'sileo'
 import { ConversationList } from '@/components/agent-x/chat/conversation-list'
 import { GroupChat } from '@/components/agent-x/chat/group-chat'
 import { GroupMembersPanel } from '@/components/agent-x/chat/group-members-panel'
-import { EmployeesPage } from '@/components/agent-x/employees/employees-page'
 import { KnowledgeBasePage } from '@/components/agent-x/knowledge/knowledge-base-page'
-import { TeamsPage } from '@/components/agent-x/teams/teams-page'
+import { WorkforcePage } from '@/components/agent-x/workforce/workforce-page'
 import { Button } from '@/components/ui/button'
 import type { AgentXPage } from '@/layouts/agent-x-layout'
 import { getAgents, getTeams } from '@/services/agent-x'
@@ -142,8 +141,7 @@ export function AgentXContainer({
     )
   }
 
-  if (activePage === 'employees') return <EmployeesPage />
-  if (activePage === 'teams') return <TeamsPage />
+  if (activePage === 'workforce') return <WorkforcePage />
   if (activePage === 'knowledge') return <KnowledgeBasePage />
 
   // dashboard now hosts the cost analysis surface
