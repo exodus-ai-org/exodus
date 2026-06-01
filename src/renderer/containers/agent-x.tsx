@@ -20,7 +20,8 @@ import { getAgents, getTeams } from '@/services/agent-x'
 import {
   createConversation,
   deleteConversation,
-  getConversations
+  getConversations,
+  updateConversation
 } from '@/services/agent-x-chat'
 import type { AgentData, ConversationData, TeamData } from '@/stores/agent-x'
 
@@ -73,6 +74,12 @@ export function AgentXContainer({
     setActiveId((cur) => (cur === id ? null : cur))
   }, [])
 
+  const handleRename = useCallback(async (id: string, title: string) => {
+    // Optimistic — flip the local title immediately, then sync.
+    setConversations((p) => p.map((c) => (c.id === id ? { ...c, title } : c)))
+    await updateConversation(id, { title })
+  }, [])
+
   const activeConv = conversations.find((c) => c.id === activeId)
   const members = (activeConv?.memberAgentIds ?? [])
     .map((id) => agentsById[id])
@@ -97,6 +104,7 @@ export function AgentXContainer({
               conversation={activeConv}
               agentsById={agentsById}
               teamsById={teamsById}
+              onRename={handleRename}
             />
           ) : (
             <div className="text-muted-foreground flex h-full flex-col items-center justify-center gap-3 px-6 text-center">

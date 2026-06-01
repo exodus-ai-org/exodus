@@ -37,18 +37,37 @@ function formatDayLabel(d: Date): string {
 export function GroupChat({
   conversation,
   agentsById,
-  teamsById
+  teamsById,
+  onRename
 }: {
   conversation: ConversationData
   agentsById: Record<string, AgentData>
   teamsById: Record<string, TeamData>
+  onRename: (id: string, title: string) => void | Promise<void>
 }) {
   const conversationId = conversation.id
   const [history, setHistory] = useState<ConversationMessageData[]>([])
   const { bubbles, askUser, error, revision } =
     useConversationStream(conversationId)
   const [answer, setAnswer] = useState('')
+  const [editingTitle, setEditingTitle] = useState(false)
+  const [draftTitle, setDraftTitle] = useState(conversation.title)
   const scrollRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    setDraftTitle(conversation.title)
+    setEditingTitle(false)
+  }, [conversation.id, conversation.title])
+
+  const commitTitle = () => {
+    const next = draftTitle.trim()
+    setEditingTitle(false)
+    if (!next || next === conversation.title) {
+      setDraftTitle(conversation.title)
+      return
+    }
+    onRename(conversation.id, next)
+  }
 
   const load = useCallback(() => {
     getConversationMessages(conversationId).then(setHistory)
@@ -95,9 +114,33 @@ export function GroupChat({
         <div className="flex min-w-0 items-center gap-2">
           <span className="text-base">{conversation.icon ?? '💬'}</span>
           <div className="min-w-0">
-            <h1 className="truncate text-sm font-semibold tracking-tight">
-              {conversation.title}
-            </h1>
+            {editingTitle ? (
+              <Input
+                value={draftTitle}
+                onChange={(e) => setDraftTitle(e.target.value)}
+                onBlur={commitTitle}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    commitTitle()
+                  } else if (e.key === 'Escape') {
+                    setDraftTitle(conversation.title)
+                    setEditingTitle(false)
+                  }
+                }}
+                autoFocus
+                className="h-7 text-sm font-semibold"
+              />
+            ) : (
+              <button
+                type="button"
+                onClick={() => setEditingTitle(true)}
+                title="Click to rename"
+                className="hover:text-foreground/80 truncate text-left text-sm font-semibold tracking-tight transition-colors"
+              >
+                {conversation.title}
+              </button>
+            )}
             <div className="text-muted-foreground flex items-center gap-1 text-[11px]">
               <UsersIcon className="h-3 w-3" />
               <span>

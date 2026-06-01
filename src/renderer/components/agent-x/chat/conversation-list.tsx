@@ -1,5 +1,10 @@
 // src/renderer/components/agent-x/chat/conversation-list.tsx
-import { formatDistanceToNowStrict } from 'date-fns'
+import {
+  differenceInCalendarDays,
+  format,
+  isToday,
+  isYesterday
+} from 'date-fns'
 import { MessageSquarePlus, PlusIcon, SearchIcon, Trash2 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 
@@ -24,9 +29,15 @@ import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 import type { AgentData, ConversationData } from '@/stores/agent-x'
 
-function relativeTime(iso: string): string {
+/** Smart timestamp: HH:mm today, 'Yesterday', day name within the week, otherwise MM/dd. */
+function smartTime(iso: string): string {
   try {
-    return formatDistanceToNowStrict(new Date(iso), { addSuffix: false })
+    const d = new Date(iso)
+    if (isToday(d)) return format(d, 'HH:mm')
+    if (isYesterday(d)) return 'Yesterday'
+    const diff = differenceInCalendarDays(new Date(), d)
+    if (diff < 7) return format(d, 'EEE')
+    return format(d, 'MM/dd')
   } catch {
     return ''
   }
@@ -152,7 +163,7 @@ export function ConversationList({
                               {c.title}
                             </span>
                             <span className="text-muted-foreground shrink-0 text-[10px] tabular-nums">
-                              {relativeTime(c.lastMessageAt)}
+                              {smartTime(c.lastMessageAt)}
                             </span>
                           </span>
                           <span
