@@ -6,6 +6,7 @@ import {
   isYesterday
 } from 'date-fns'
 import {
+  ArrowLeftIcon,
   BookOpenIcon,
   LayoutDashboardIcon,
   MessageSquarePlus,
@@ -15,6 +16,7 @@ import {
   UsersIcon
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router'
 
 import {
   AlertDialog,
@@ -104,6 +106,7 @@ export function ConversationList({
   const [confirming, setConfirming] = useState<ConversationData | null>(null)
   const [query, setQuery] = useState('')
   const isFullscreen = useIsFullscreen()
+  const navigate = useNavigate()
 
   const filtered = useMemo(() => {
     if (!query.trim()) return conversations
@@ -120,13 +123,10 @@ export function ConversationList({
     <div className="bg-sidebar/40 flex h-full flex-col">
       <div
         className={cn(
-          'draggable flex h-12 shrink-0 items-center justify-between gap-2 pr-2',
+          'draggable flex h-12 shrink-0 items-center justify-end gap-2 pr-2',
           isFullscreen ? 'pl-3' : 'pl-21'
         )}
       >
-        <span className="text-foreground truncate text-sm font-semibold tracking-tight">
-          Groups
-        </span>
         <Button
           size="icon-sm"
           variant="ghost"
@@ -253,6 +253,17 @@ export function ConversationList({
           })}
         </ul>
       </nav>
+
+      <div className="border-border/60 shrink-0 border-t p-2">
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="text-muted-foreground hover:text-foreground hover:bg-accent/40 flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm transition-colors"
+        >
+          <ArrowLeftIcon className="h-4 w-4" />
+          <span className="truncate">Back to chat</span>
+        </button>
+      </div>
 
       <AlertDialog
         open={confirming !== null}
