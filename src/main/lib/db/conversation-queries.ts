@@ -1,5 +1,5 @@
 // src/main/lib/db/conversation-queries.ts
-import { asc, desc, eq } from 'drizzle-orm'
+import { asc, desc, eq, sql } from 'drizzle-orm'
 
 import { db } from './db'
 import { conversation, conversationMessage, type Conversation } from './schema'
@@ -11,6 +11,36 @@ export async function getAllConversations() {
     .select()
     .from(conversation)
     .orderBy(desc(conversation.lastMessageAt))
+}
+
+export interface LatestMessage {
+  conversationId: string
+  role: 'user' | 'pm' | 'employee' | 'system'
+  content: string
+  agentId: string | null
+  createdAt: Date
+}
+
+/**
+ * One row per conversation: the most recent message. Used to render the
+ * Feishu-style preview line under each title in the conversation list.
+ */
+export async function getLatestMessagePerConversation(): Promise<
+  LatestMessage[]
+> {
+  const rows = await db.execute(sql`
+    SELECT DISTINCT ON ("conversationId")
+      "conversationId",
+      "role",
+      "content",
+      "agentId",
+      "createdAt"
+    FROM ${conversationMessage}
+    ORDER BY "conversationId", "createdAt" DESC
+  `)
+  // db.execute on pglite returns { rows }; normalize.
+  const list = (rows as unknown as { rows: unknown[] }).rows ?? rows
+  return list as LatestMessage[]
 }
 
 export async function getConversationById(id: string) {

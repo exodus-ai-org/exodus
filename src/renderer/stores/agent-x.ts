@@ -37,6 +37,12 @@ export interface ConversationData {
   createdAt: string
   updatedAt: string
   lastMessageAt: string
+  latestMessage: {
+    role: 'user' | 'pm' | 'employee' | 'system'
+    content: string
+    agentId: string | null
+    createdAt: string
+  } | null
 }
 
 export interface ConversationMessageData {

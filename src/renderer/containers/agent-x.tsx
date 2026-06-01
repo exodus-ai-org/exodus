@@ -61,7 +61,9 @@ export function AgentXContainer({
 
   const handleCreate = useCallback(async () => {
     const conv = await createConversation({ title: 'New group' })
-    setConversations((p) => [conv, ...p])
+    // POST /conversations returns the raw row without latestMessage; a fresh
+    // group has none anyway, so synthesize null here so types line up.
+    setConversations((p) => [{ ...conv, latestMessage: null }, ...p])
     setActiveId(conv.id)
   }, [])
 
@@ -82,6 +84,7 @@ export function AgentXContainer({
         <div className="border-r">
           <ConversationList
             conversations={conversations}
+            agentsById={agentsById}
             activeId={activeId}
             onSelect={setActiveId}
             onCreate={handleCreate}
@@ -89,9 +92,9 @@ export function AgentXContainer({
           />
         </div>
         <div className="min-w-0">
-          {activeId ? (
+          {activeConv ? (
             <GroupChat
-              conversationId={activeId}
+              conversation={activeConv}
               agentsById={agentsById}
               teamsById={teamsById}
             />

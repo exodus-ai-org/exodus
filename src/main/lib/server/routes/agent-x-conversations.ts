@@ -11,6 +11,7 @@ import {
   createConversationMessage,
   deleteConversation,
   getAllConversations,
+  getLatestMessagePerConversation,
   getMessagesByConversationId,
   updateConversation
 } from '../../db/conversation-queries'
@@ -102,15 +103,26 @@ const router = new Hono<{ Variables: Variables }>()
 
 // ─── Conversations ──────────────────────────────────────────────────────────
 
-router.get('/conversations', async (c) =>
-  successResponse(
-    c,
-    await handleDatabaseOperation(
+router.get('/conversations', async (c) => {
+  const [conversations, latest] = await Promise.all([
+    handleDatabaseOperation(
       () => getAllConversations(),
       'Failed to list conversations'
+    ),
+    handleDatabaseOperation(
+      () => getLatestMessagePerConversation(),
+      'Failed to list conversations'
     )
+  ])
+  const latestByConv = new Map(latest.map((m) => [m.conversationId, m]))
+  return successResponse(
+    c,
+    conversations.map((row) => ({
+      ...row,
+      latestMessage: latestByConv.get(row.id) ?? null
+    }))
   )
-)
+})
 
 router.post('/conversations', async (c) => {
   const data = validateSchema(
