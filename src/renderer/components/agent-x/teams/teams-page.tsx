@@ -1,6 +1,7 @@
 // src/renderer/components/agent-x/teams/teams-page.tsx
 import { Building2Icon, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { sileo } from 'sileo'
 
 import {
   AlertDialog,
@@ -196,9 +197,19 @@ export function TeamsPage() {
               onClick={async () => {
                 if (!confirming) return
                 const id = confirming.id
+                const name = confirming.name
                 setConfirming(null)
-                await deleteTeamApi(id)
-                setTeams((p) => p.filter((x) => x.id !== id))
+                try {
+                  await deleteTeamApi(id)
+                  setTeams((p) => p.filter((x) => x.id !== id))
+                  sileo.success({ title: `"${name}" deleted` })
+                } catch (err) {
+                  sileo.error({
+                    title: 'Could not delete the team',
+                    description:
+                      err instanceof Error ? err.message : String(err)
+                  })
+                }
               }}
             >
               Delete

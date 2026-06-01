@@ -15,6 +15,13 @@
       "when": 1780225341632,
       "tag": "0001_outgoing_red_hulk",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1780279846026,
+      "tag": "0002_handy_kid_colt",
+      "breakpoints": true
     }
   ]
 }

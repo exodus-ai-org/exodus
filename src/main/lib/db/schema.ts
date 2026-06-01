@@ -348,7 +348,9 @@ export const task = pgTable('task', {
   description: text('description').default(''),
   status: taskStatusEnum('status').notNull().default('pending'),
   priority: taskPriorityEnum('priority').notNull().default('medium'),
-  assignedAgentId: uuid('assignedAgentId').references(() => agent.id),
+  assignedAgentId: uuid('assignedAgentId').references(() => agent.id, {
+    onDelete: 'set null'
+  }),
   input: jsonb('input').$type<Record<string, unknown>>(),
   output: jsonb('output').$type<Record<string, unknown>>(),
   maxRetries: real('maxRetries').default(1),
@@ -380,7 +382,7 @@ export const taskExecution = pgTable('task_execution', {
     .references(() => task.id, { onDelete: 'cascade' }),
   agentId: uuid('agentId')
     .notNull()
-    .references(() => agent.id),
+    .references(() => agent.id, { onDelete: 'cascade' }),
   status: executionStatusEnum('status').notNull().default('running'),
   startedAt: timestamp('startedAt').defaultNow().notNull(),
   completedAt: timestamp('completedAt'),

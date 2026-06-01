@@ -7,6 +7,7 @@ import {
   useMemo,
   useState
 } from 'react'
+import { sileo } from 'sileo'
 
 import { ConversationList } from '@/components/agent-x/chat/conversation-list'
 import { GroupChat } from '@/components/agent-x/chat/group-chat'
@@ -69,9 +70,17 @@ export function AgentXContainer({
   }, [])
 
   const handleDelete = useCallback(async (id: string) => {
-    await deleteConversation(id)
-    setConversations((p) => p.filter((c) => c.id !== id))
-    setActiveId((cur) => (cur === id ? null : cur))
+    try {
+      await deleteConversation(id)
+      setConversations((p) => p.filter((c) => c.id !== id))
+      setActiveId((cur) => (cur === id ? null : cur))
+      sileo.success({ title: 'Group deleted' })
+    } catch (err) {
+      sileo.error({
+        title: 'Could not delete the group',
+        description: err instanceof Error ? err.message : String(err)
+      })
+    }
   }, [])
 
   const handleRename = useCallback(async (id: string, title: string) => {

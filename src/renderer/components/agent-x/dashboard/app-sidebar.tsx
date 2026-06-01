@@ -2,7 +2,6 @@ import {
   ArrowLeftIcon,
   BookOpenIcon,
   BotIcon,
-  Building2Icon,
   CoinsIcon,
   LayoutDashboardIcon,
   MessageSquareIcon,
@@ -30,14 +29,12 @@ const navMainItems = [
     icon: <MessageSquareIcon />
   },
   {
-    title: 'Employees',
-    page: 'employees',
-    icon: <UsersIcon />
-  },
-  {
-    title: 'Teams',
-    page: 'teams',
-    icon: <Building2Icon />
+    title: 'Workforce',
+    icon: <UsersIcon />,
+    children: [
+      { title: 'Employees', page: 'employees' },
+      { title: 'Teams', page: 'teams' }
+    ]
   },
   {
     title: 'Knowledge Base',

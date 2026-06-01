@@ -5,6 +5,7 @@ import {
 } from '@shared/constants/avatar'
 import { Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { sileo } from 'sileo'
 
 import {
   AlertDialog,
@@ -148,10 +149,20 @@ export function EmployeesPage() {
               onClick={async () => {
                 if (!confirming) return
                 const id = confirming.id
+                const name = confirming.name
                 setConfirming(null)
-                await deleteAgentApi(id)
-                setEmployees((p) => p.filter((x) => x.id !== id))
-                setEditing((cur) => (cur?.id === id ? null : cur))
+                try {
+                  await deleteAgentApi(id)
+                  setEmployees((p) => p.filter((x) => x.id !== id))
+                  setEditing((cur) => (cur?.id === id ? null : cur))
+                  sileo.success({ title: `"${name}" deleted` })
+                } catch (err) {
+                  sileo.error({
+                    title: 'Could not delete the employee',
+                    description:
+                      err instanceof Error ? err.message : String(err)
+                  })
+                }
               }}
             >
               Delete
