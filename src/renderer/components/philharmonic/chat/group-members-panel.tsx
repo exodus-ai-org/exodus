@@ -1,79 +1,241 @@
 // src/renderer/components/philharmonic/chat/group-members-panel.tsx
-import { UsersIcon } from 'lucide-react'
-
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import type { AgentData, TeamData } from '@/stores/philharmonic'
 
 import { EmployeeAvatar } from '../employees/employee-avatar'
+import { PhilharmonicEmptyState } from '../empty-state'
+
+interface Group {
+  key: string
+  label: string
+  icon: string | null
+  members: AgentData[]
+  isCoordinators?: boolean
+}
+
+function partition(
+  members: AgentData[],
+  teamsById: Record<string, TeamData>,
+  includePm: boolean
+): Group[] {
+  const byTeam = new Map<string, AgentData[]>()
+  const unassigned: AgentData[] = []
+  for (const m of members) {
+    if (m.teamId && teamsById[m.teamId]) {
+      const arr = byTeam.get(m.teamId) ?? []
+      arr.push(m)
+      byTeam.set(m.teamId, arr)
+    } else {
+      unassigned.push(m)
+    }
+  }
+  const teamGroups: Group[] = [...byTeam.entries()]
+    .sort(([a], [b]) => teamsById[a].name.localeCompare(teamsById[b].name))
+    .map(([id, ms]) => ({
+      key: id,
+      label: teamsById[id].name,
+      icon: teamsById[id].icon ?? null,
+      members: ms
+    }))
+  const groups: Group[] = []
+  if (includePm) {
+    groups.push({
+      key: '__coord__',
+      label: 'Coordinators',
+      icon: '🧭',
+      members: [],
+      isCoordinators: true
+    })
+  }
+  groups.push(...teamGroups)
+  if (unassigned.length) {
+    groups.push({
+      key: '__unassigned__',
+      label: 'Unassigned',
+      icon: '👤',
+      members: unassigned
+    })
+  }
+  return groups
+}
 
 export function GroupMembersPanel({
   members,
   teamsById,
-  busyAgentIds
+  busyAgentIds,
+  hasPm = true
 }: {
   members: AgentData[]
   teamsById: Record<string, TeamData>
   busyAgentIds: Set<string>
+  hasPm?: boolean
 }) {
+  const groups = partition(members, teamsById, hasPm)
+  const idleCount = members.filter((m) => !busyAgentIds.has(m.id)).length
+  const busyCount = members.length - idleCount
+  const pmBusy = busyAgentIds.has('__pm__')
+  const summaryIdle = idleCount + (hasPm && !pmBusy ? 1 : 0)
+  const summaryBusy = busyCount + (hasPm && pmBusy ? 1 : 0)
+
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center justify-between px-3 pt-3 pb-2">
-        <span className="text-foreground text-sm font-semibold tracking-tight">
+      <div className="flex h-13 shrink-0 items-center justify-between border-b border-[var(--ph-border)] px-3.5">
+        <div className="flex items-center gap-2 text-sm font-semibold text-[var(--ph-text)]">
           Members
-        </span>
-        <Badge variant="secondary" className="h-5 px-1.5">
-          {members.length}
-        </Badge>
+          <span
+            className="rounded-full px-2 py-0.5 text-[10px] font-normal"
+            style={{
+              background: 'var(--ph-canvas)',
+              color: 'var(--ph-text-muted)'
+            }}
+          >
+            {members.length + (hasPm ? 1 : 0)}
+          </span>
+        </div>
+        <div className="flex gap-3 text-[10.5px] text-[var(--ph-text-muted)]">
+          <span className="flex items-center gap-1">
+            <span
+              className="inline-block h-1.5 w-1.5 rounded-full"
+              style={{ background: 'var(--ph-success)' }}
+            />
+            {summaryIdle} idle
+          </span>
+          <span className="flex items-center gap-1">
+            <span
+              className="inline-block h-1.5 w-1.5 rounded-full"
+              style={{ background: 'var(--ph-warning)' }}
+            />
+            {summaryBusy} busy
+          </span>
+        </div>
       </div>
-      <div className="flex-1 overflow-y-auto px-2 pb-2">
-        {members.length === 0 ? (
-          <div className="text-muted-foreground flex h-full flex-col items-center justify-center gap-2 px-4 text-center">
-            <UsersIcon className="h-8 w-8 opacity-40" />
-            <div className="text-xs">
-              The PM will recruit teammates as needed.
-            </div>
-          </div>
+      <div className="flex-1 overflow-y-auto px-3 pb-3">
+        {members.length === 0 && !hasPm ? (
+          <PhilharmonicEmptyState
+            avatars={[{ hue: 'lilac' }, { hue: 'mint' }, { hue: 'peach' }]}
+            title="No teammates yet"
+            description="The PM will recruit teammates as needed."
+          />
         ) : (
-          <ul className="space-y-0.5">
-            {members.map((m) => {
-              const team = m.teamId ? teamsById[m.teamId] : undefined
-              const busy = busyAgentIds.has(m.id)
-              return (
-                <li
-                  key={m.id}
-                  className="hover:bg-accent/40 flex items-center gap-2.5 rounded-md px-2 py-1.5 transition-colors"
-                >
-                  <div className="relative">
-                    <EmployeeAvatar
-                      seed={m.avatarSeed}
-                      style={m.avatarStyle}
-                      size={32}
-                    />
-                    <span
-                      className={cn(
-                        'border-sidebar absolute right-0 bottom-0 h-2.5 w-2.5 rounded-full border-2',
-                        busy ? 'animate-pulse bg-amber-500' : 'bg-emerald-500'
-                      )}
-                      aria-label={busy ? 'busy' : 'idle'}
-                    />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="text-foreground truncate text-sm">
-                      {m.name}
-                    </div>
-                    {team && (
-                      <div className="text-muted-foreground truncate text-xs">
-                        {team.icon ? `${team.icon} ` : ''}
-                        {team.name}
-                      </div>
-                    )}
-                  </div>
-                </li>
-              )
-            })}
-          </ul>
+          groups.map((g) => (
+            <section key={g.key} className="pt-3">
+              <div className="mb-2 flex items-center gap-1.5 px-1 text-[10.5px] tracking-wider text-[var(--ph-text-muted)] uppercase">
+                {g.icon && <span>{g.icon}</span>}
+                <span>
+                  {g.label} · {g.isCoordinators ? 1 : g.members.length}
+                </span>
+              </div>
+              {g.isCoordinators ? (
+                <PmRow busy={pmBusy} />
+              ) : (
+                g.members.map((m) => (
+                  <MemberRow
+                    key={m.id}
+                    member={m}
+                    team={m.teamId ? teamsById[m.teamId] : undefined}
+                    busy={busyAgentIds.has(m.id)}
+                  />
+                ))
+              )}
+            </section>
+          ))
         )}
+      </div>
+    </div>
+  )
+}
+
+function MemberRow({
+  member,
+  team,
+  busy
+}: {
+  member: AgentData
+  team: TeamData | undefined
+  busy: boolean
+}) {
+  return (
+    <div
+      className={cn(
+        'flex items-center gap-2.5 rounded-[var(--ph-radius-md)] px-2 py-2'
+      )}
+      style={busy ? { background: 'var(--ph-surface-sunken)' } : undefined}
+    >
+      <div className="relative">
+        <EmployeeAvatar
+          seed={member.avatarSeed}
+          style={member.avatarStyle}
+          size={36}
+        />
+        <span
+          className={cn(
+            'absolute right-0 bottom-0 h-[11px] w-[11px] rounded-full',
+            busy && 'animate-pulse'
+          )}
+          style={{
+            background: busy ? 'var(--ph-warning)' : 'var(--ph-success)',
+            boxShadow: `0 0 0 2px ${busy ? 'var(--ph-surface-sunken)' : 'var(--ph-surface)'}`
+          }}
+        />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-medium text-[var(--ph-text)]">
+          {member.name}
+        </div>
+        <div
+          className="truncate text-xs"
+          style={{
+            color: busy ? 'var(--ph-warning)' : 'var(--ph-text-muted)'
+          }}
+        >
+          {busy ? 'working…' : `${team?.name ?? 'No team'} · idle`}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function PmRow({ busy }: { busy: boolean }) {
+  return (
+    <div
+      className={cn(
+        'flex items-center gap-2.5 rounded-[var(--ph-radius-md)] px-2 py-2'
+      )}
+      style={busy ? { background: 'var(--ph-surface-sunken)' } : undefined}
+    >
+      <div className="relative">
+        <div
+          className="flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-semibold text-white"
+          style={{
+            background: 'var(--ph-primary)',
+            boxShadow: 'inset 0 0 0 1.5px var(--ph-primary-soft)'
+          }}
+        >
+          PM
+        </div>
+        <span
+          className={cn(
+            'absolute right-0 bottom-0 h-[11px] w-[11px] rounded-full',
+            busy && 'animate-pulse'
+          )}
+          style={{
+            background: busy ? 'var(--ph-warning)' : 'var(--ph-success)',
+            boxShadow: `0 0 0 2px ${busy ? 'var(--ph-surface-sunken)' : 'var(--ph-surface)'}`
+          }}
+        />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-medium text-[var(--ph-text)]">
+          PM
+        </div>
+        <div
+          className="truncate text-xs"
+          style={{
+            color: busy ? 'var(--ph-warning)' : 'var(--ph-text-muted)'
+          }}
+        >
+          {busy ? 'orchestrating…' : 'Strategy · idle'}
+        </div>
       </div>
     </div>
   )
