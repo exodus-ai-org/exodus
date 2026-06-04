@@ -32,7 +32,7 @@ export function TeamEditor({
 
   return (
     <div className="flex h-full flex-col">
-      <header className="flex h-14 shrink-0 items-center justify-between border-b border-[var(--ph-border)] px-5">
+      <header className="flex h-14 shrink-0 items-center border-b border-[var(--ph-border)] pr-14 pl-5">
         <div className="min-w-0">
           <div className="text-[11px] tracking-wider text-[var(--ph-text-muted)] uppercase">
             Team
@@ -40,25 +40,6 @@ export function TeamEditor({
           <div className="truncate text-sm font-semibold text-[var(--ph-text)]">
             {draft.name || 'New team'}
           </div>
-        </div>
-        <div className="flex gap-1.5">
-          <button
-            type="button"
-            onClick={onClose}
-            className="h-8 rounded-[var(--ph-radius-md)] px-3.5 text-xs font-medium text-[var(--ph-text)]"
-            style={{ background: 'var(--ph-canvas)' }}
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={() => canSave && onSave(draft)}
-            disabled={!canSave}
-            className="h-8 rounded-[var(--ph-radius-md)] px-3.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-            style={{ background: 'var(--ph-primary)' }}
-          >
-            {isNew ? 'Create' : 'Save'}
-          </button>
         </div>
       </header>
 
@@ -105,6 +86,26 @@ export function TeamEditor({
           />
         </div>
       </div>
+
+      <footer className="flex h-14 shrink-0 items-center justify-end gap-1.5 border-t border-[var(--ph-border)] px-5">
+        <button
+          type="button"
+          onClick={onClose}
+          className="h-8 rounded-[var(--ph-radius-md)] px-3.5 text-xs font-medium text-[var(--ph-text)]"
+          style={{ background: 'var(--ph-canvas)' }}
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={() => canSave && onSave(draft)}
+          disabled={!canSave}
+          className="h-8 rounded-[var(--ph-radius-md)] px-3.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          style={{ background: 'var(--ph-primary)' }}
+        >
+          {isNew ? 'Create' : 'Save'}
+        </button>
+      </footer>
     </div>
   )
 }

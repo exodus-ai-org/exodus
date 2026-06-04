@@ -483,10 +483,7 @@ export function WorkforcePage() {
         open={employeeEditor !== null}
         onOpenChange={(o) => !o && setEmployeeEditor(null)}
       >
-        <SheetContent
-          showCloseButton={false}
-          className="w-[520px] rounded-l-[var(--ph-radius-2xl)] border-l-0 bg-[var(--ph-surface)] p-0 shadow-[var(--ph-shadow-drawer)] sm:max-w-none"
-        >
+        <SheetContent className="w-[520px] rounded-l-[var(--ph-radius-2xl)] border-l-0 bg-[var(--ph-surface)] p-0 shadow-[var(--ph-shadow-drawer)] sm:max-w-none">
           {employeeEditor && (
             <EmployeeEditor
               employee={employeeEditor.draft}
@@ -502,10 +499,7 @@ export function WorkforcePage() {
         open={teamEditor !== null}
         onOpenChange={(o) => !o && setTeamEditor(null)}
       >
-        <SheetContent
-          showCloseButton={false}
-          className="w-[520px] rounded-l-[var(--ph-radius-2xl)] border-l-0 bg-[var(--ph-surface)] p-0 shadow-[var(--ph-shadow-drawer)] sm:max-w-none"
-        >
+        <SheetContent className="w-[520px] rounded-l-[var(--ph-radius-2xl)] border-l-0 bg-[var(--ph-surface)] p-0 shadow-[var(--ph-shadow-drawer)] sm:max-w-none">
           {teamEditor && (
             <TeamEditor
               team={teamEditor.draft}

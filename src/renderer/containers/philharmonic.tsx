@@ -160,8 +160,8 @@ export function PhilharmonicContainer({
     <div
       className="grid h-full min-h-0 w-full bg-[var(--ph-canvas)]"
       style={{
-        padding: isFullscreen ? '12px' : '10px',
-        gap: '10px',
+        padding: isFullscreen ? '12px' : '8px',
+        gap: '8px',
         gridTemplateColumns: showMembers ? '260px 1fr 260px' : '260px 1fr',
         transition: 'grid-template-columns 180ms cubic-bezier(0.16, 1, 0.3, 1)'
       }}
