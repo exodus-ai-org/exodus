@@ -5,18 +5,24 @@ import { useMemo } from 'react'
 
 import { cn } from '@/lib/utils'
 
+import { hueStyle, pickHue, type HueName } from '../lib/hue'
+
 export function EmployeeAvatar({
   seed,
   style,
   size = 36,
+  hue,
+  ring = true,
   className
 }: {
   seed: string | null
   style: string | null
   size?: number
+  hue?: HueName
+  ring?: boolean
   className?: string
 }) {
-  const uri = useMemo(() => {
+  const dataUri = useMemo(() => {
     const styleKey = (style ?? DEFAULT_AVATAR_STYLE) as keyof typeof collection
     const factory =
       collection[styleKey] ??
@@ -26,13 +32,21 @@ export function EmployeeAvatar({
     }).toDataUri()
   }, [seed, style])
 
+  const resolvedHue = hue ?? pickHue(seed ?? 'default')
+  const wrapperStyle = ring ? hueStyle(resolvedHue) : undefined
+
   return (
-    <img
-      src={uri}
-      width={size}
-      height={size}
-      className={cn('bg-muted rounded-full', className)}
-      alt="avatar"
-    />
+    <div
+      className={cn('relative inline-flex shrink-0 rounded-full', className)}
+      style={{ width: size, height: size, ...wrapperStyle }}
+    >
+      <img
+        src={dataUri}
+        width={size}
+        height={size}
+        className="rounded-full"
+        alt="avatar"
+      />
+    </div>
   )
 }
