@@ -22,11 +22,11 @@ export function NavFooter({
         <SidebarMenu className="gap-1">
           <SidebarMenuItem>
             <SidebarMenuButton
-              isActive={location.pathname.includes('agent-x')}
-              onClick={() => navigate('/agent-x')}
+              isActive={location.pathname.includes('philharmonic')}
+              onClick={() => navigate('/philharmonic')}
             >
               <BotIcon />
-              Agent X
+              Philharmonic
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>

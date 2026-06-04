@@ -211,7 +211,7 @@ export const mcpServer = pgTable('mcp_server', {
 
 export type McpServer = InferSelectModel<typeof mcpServer>
 
-// ─── Agent X ────────────────────────────────────────────────────────────────
+// ─── Philharmonic ────────────────────────────────────────────────────────────────
 
 // A team groups employees and contributes its own systemPrompt to every member.
 export const team = pgTable('team', {

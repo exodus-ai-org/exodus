@@ -44,7 +44,7 @@ export function bindCallingTools({
   chatModel?: Model<string>
   apiKey?: string
   mcpTools?: McpTools[]
-  // Optional: Agent X task execution has no owning chat, so the artifact
+  // Optional: Philharmonic task execution has no owning chat, so the artifact
   // tool is skipped there (artifacts are a chat-UI affordance).
   chatId?: string
 }): ErasedTool[] {

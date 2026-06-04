@@ -1,5 +1,5 @@
 import { BASE_URL } from '@shared/constants/systems'
-import type { AgentXSseEvent } from '@shared/types/agent-x'
+import type { PhilharmonicSseEvent } from '@shared/types/philharmonic'
 import { useEffect, useState } from 'react'
 
 export interface LiveBubble {
@@ -38,12 +38,12 @@ export function useConversationStream(
     setError(null)
 
     const source = new EventSource(
-      `${BASE_URL}/api/agent-x/conversations/${conversationId}/sse`
+      `${BASE_URL}/api/philharmonic/conversations/${conversationId}/sse`
     )
     source.onmessage = (e) => {
-      let evt: AgentXSseEvent
+      let evt: PhilharmonicSseEvent
       try {
-        evt = JSON.parse(e.data) as AgentXSseEvent
+        evt = JSON.parse(e.data) as PhilharmonicSseEvent
       } catch {
         return
       }
