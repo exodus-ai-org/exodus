@@ -17,6 +17,8 @@ import { sileo } from 'sileo'
 
 import { EmployeeAvatar } from '@/components/philharmonic/employees/employee-avatar'
 import { EmployeeEditor } from '@/components/philharmonic/employees/employee-editor'
+import { PhilharmonicEmptyState } from '@/components/philharmonic/empty-state'
+import { hueStyle, pickHue } from '@/components/philharmonic/lib/hue'
 import { TeamEditor } from '@/components/philharmonic/teams/team-editor'
 import {
   AlertDialog,
@@ -28,8 +30,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import {
   ContextMenu,
   ContextMenuContent,
@@ -60,25 +60,60 @@ interface EmployeeCardProps {
 }
 
 function EmployeeCard({ employee, onEdit, onAskDelete }: EmployeeCardProps) {
+  const modelChip = employee.model
+  const tools = employee.toolAllowList ?? []
   return (
     <ContextMenu>
       <ContextMenuTrigger>
         <button
           onClick={() => onEdit(employee)}
-          className="hover:bg-accent/40 group bg-card flex w-full items-center gap-3 rounded-lg border px-3 py-2.5 text-left transition-colors"
+          className="group flex w-full items-start gap-3 rounded-[var(--ph-radius-lg)] px-3.5 py-3 text-left transition-shadow hover:shadow-[var(--ph-shadow-hover)]"
+          style={{ background: 'var(--ph-surface-sunken)' }}
         >
           <EmployeeAvatar
             seed={employee.avatarSeed}
             style={employee.avatarStyle}
-            size={36}
+            size={44}
           />
           <div className="min-w-0 flex-1">
-            <div className="text-foreground truncate text-sm font-medium">
+            <div className="truncate text-sm font-semibold text-[var(--ph-text)]">
               {employee.name}
             </div>
             {employee.description && (
-              <div className="text-muted-foreground truncate text-xs">
+              <div className="line-clamp-2 text-[11.5px] text-[var(--ph-text-muted)]">
                 {employee.description}
+              </div>
+            )}
+            {(modelChip || tools.length > 0) && (
+              <div className="mt-2 flex flex-wrap gap-1">
+                {modelChip && (
+                  <span
+                    className="rounded-[var(--ph-radius-sm)] px-1.5 py-0.5 text-[10px]"
+                    style={{
+                      background: 'var(--ph-primary-soft)',
+                      color: 'var(--ph-primary-ink)'
+                    }}
+                  >
+                    {modelChip}
+                  </span>
+                )}
+                {tools.slice(0, 2).map((t) => (
+                  <span
+                    key={t}
+                    className="rounded-[var(--ph-radius-sm)] px-1.5 py-0.5 text-[10px] text-[var(--ph-text-muted)]"
+                    style={{ background: 'var(--ph-canvas)' }}
+                  >
+                    {t}
+                  </span>
+                ))}
+                {tools.length > 2 && (
+                  <span
+                    className="rounded-[var(--ph-radius-sm)] px-1.5 py-0.5 text-[10px] text-[var(--ph-text-muted)]"
+                    style={{ background: 'var(--ph-canvas)' }}
+                  >
+                    +{tools.length - 2}
+                  </span>
+                )}
               </div>
             )}
           </div>
@@ -129,15 +164,21 @@ function TeamSection({
     <button
       type="button"
       onClick={onToggle}
-      className="group hover:bg-accent/30 flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left transition-colors"
+      className="flex w-full items-center gap-2 rounded-[var(--ph-radius-md)] px-1 py-1.5 text-left transition-colors hover:bg-[var(--ph-canvas)]"
     >
       <ChevronRight
         className={cn(
-          'text-muted-foreground h-4 w-4 transition-transform',
+          'h-4 w-4 transition-transform',
           !collapsed && 'rotate-90'
         )}
+        style={{ color: 'var(--ph-text-muted)' }}
       />
-      <span className="bg-muted flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-base">
+      <span
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--ph-radius-md)] text-base"
+        style={
+          team ? hueStyle(pickHue(team.id)) : { background: 'var(--ph-canvas)' }
+        }
+      >
         {team?.icon ??
           (team ? (
             <Building2Icon className="h-4 w-4 opacity-60" />
@@ -145,14 +186,20 @@ function TeamSection({
             <UsersIcon className="h-4 w-4 opacity-60" />
           ))}
       </span>
-      <span className="text-foreground text-sm font-semibold">
+      <span className="text-sm font-semibold text-[var(--ph-text)]">
         {team?.name ?? 'No team'}
       </span>
-      <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-[10px]">
+      <span
+        className="ml-1 rounded-full px-2 py-0.5 text-[10px]"
+        style={{
+          background: 'var(--ph-canvas)',
+          color: 'var(--ph-text-muted)'
+        }}
+      >
         {members.length}
-      </Badge>
+      </span>
       {team?.description && (
-        <span className="text-muted-foreground ml-2 truncate text-xs">
+        <span className="ml-2 truncate text-xs text-[var(--ph-text-muted)]">
           {team.description}
         </span>
       )}
@@ -189,7 +236,7 @@ function TeamSection({
         )}
       </div>
       {!collapsed && (
-        <div className="ml-6 grid grid-cols-1 gap-2 md:grid-cols-2 xl:grid-cols-3">
+        <div className="ml-10 grid grid-cols-1 gap-2.5 md:grid-cols-2 xl:grid-cols-3">
           {members.map((m) => (
             <EmployeeCard
               key={m.id}
@@ -198,13 +245,19 @@ function TeamSection({
               onAskDelete={onAskDeleteEmployee}
             />
           ))}
-          {members.length === 0 && (
+          {/* Always render an Add placeholder card unless this is the
+              read-only Unassigned bucket (signaled by team === null). */}
+          {team && (
             <button
-              onClick={() => onAddEmployeeToTeam(team?.id ?? null)}
-              className="text-muted-foreground hover:bg-accent/30 hover:text-foreground flex h-[60px] items-center justify-center gap-2 rounded-lg border border-dashed text-xs transition-colors"
+              onClick={() => onAddEmployeeToTeam(team.id)}
+              className="flex min-h-[88px] items-center justify-center gap-2 rounded-[var(--ph-radius-lg)] border-2 border-dashed text-xs transition-colors hover:text-[var(--ph-primary)]"
+              style={{
+                borderColor: 'var(--ph-border)',
+                color: 'var(--ph-text-muted)'
+              }}
             >
               <Plus className="h-3.5 w-3.5" />
-              Add an employee
+              Add employee
             </button>
           )}
         </div>
@@ -262,7 +315,9 @@ export function WorkforcePage() {
   const [confirmingEmployee, setConfirmingEmployee] =
     useState<AgentData | null>(null)
   const [confirmingTeam, setConfirmingTeam] = useState<TeamData | null>(null)
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({
+    [UNASSIGNED_KEY]: true
+  })
 
   useEffect(() => {
     getAgents().then(setEmployees)
@@ -340,93 +395,95 @@ export function WorkforcePage() {
   const noTeams = teams.length === 0
 
   return (
-    <div className="flex flex-col gap-5 p-4 lg:p-6">
-      <header className="flex items-center justify-between gap-3">
+    <div className="flex h-full flex-col overflow-hidden">
+      <header className="flex h-14 shrink-0 items-center justify-between border-b border-[var(--ph-border)] px-5">
         <div>
-          <h1 className="text-lg font-semibold tracking-tight">Workforce</h1>
-          <p className="text-muted-foreground text-xs">
-            Manage your virtual employees and the teams that group them.
+          <h1 className="text-sm font-semibold text-[var(--ph-text)]">
+            Workforce
+          </h1>
+          <p className="text-[11.5px] text-[var(--ph-text-muted)]">
+            {employees.length}{' '}
+            {employees.length === 1 ? 'employee' : 'employees'} · {teams.length}{' '}
+            {teams.length === 1 ? 'team' : 'teams'}
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
+        <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={openNewTeam}
+            className="flex h-8 items-center gap-1 rounded-[var(--ph-radius-md)] px-3 text-xs font-medium text-[var(--ph-text)]"
+            style={{ background: 'var(--ph-canvas)' }}
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Team
+          </button>
+          <button
+            type="button"
             onClick={() => openNewEmployee()}
             disabled={noTeams}
             title={noTeams ? 'Create a team first' : undefined}
+            className="flex h-8 items-center gap-1 rounded-[var(--ph-radius-md)] px-3 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+            style={{ background: 'var(--ph-primary)' }}
           >
             <UserPlus className="h-3.5 w-3.5" />
-            New employee
-          </Button>
-          <Button onClick={openNewTeam}>
-            <Plus className="h-3.5 w-3.5" />
-            New team
-          </Button>
+            Employee
+          </button>
         </div>
       </header>
 
-      {totalEmpty ? (
-        <div className="text-muted-foreground flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed py-16 text-center">
-          <UsersIcon className="h-10 w-10 opacity-30" />
-          <div className="text-foreground text-sm font-medium">
-            Start with a team
+      <div className="flex-1 overflow-y-auto px-5 py-5">
+        {totalEmpty ? (
+          <PhilharmonicEmptyState
+            avatars={[{ hue: 'lilac' }, { hue: 'mint' }, { hue: 'peach' }]}
+            title="Start with a team"
+            description="Every employee belongs to a team that contributes a shared system prompt. Create a team first, then add the employees that belong to it."
+            action={{ label: '+ New team', onClick: openNewTeam }}
+          />
+        ) : (
+          <div className="space-y-4">
+            {teams.map((t) => (
+              <TeamSection
+                key={t.id}
+                team={t}
+                members={byTeam.map.get(t.id) ?? []}
+                collapsed={collapsed[t.id] ?? false}
+                onToggle={() => toggle(t.id)}
+                onEditEmployee={(e) =>
+                  setEmployeeEditor({ draft: e, isNew: false })
+                }
+                onAskDeleteEmployee={setConfirmingEmployee}
+                onEditTeam={(team) =>
+                  setTeamEditor({ draft: team, isNew: false })
+                }
+                onAskDeleteTeam={setConfirmingTeam}
+                onAddEmployeeToTeam={(teamId) => openNewEmployee(teamId)}
+              />
+            ))}
+            {byTeam.unassigned.length > 0 && (
+              <TeamSection
+                team={null}
+                members={byTeam.unassigned}
+                collapsed={collapsed[UNASSIGNED_KEY] ?? true}
+                onToggle={() => toggle(UNASSIGNED_KEY)}
+                onEditEmployee={(e) =>
+                  setEmployeeEditor({ draft: e, isNew: false })
+                }
+                onAskDeleteEmployee={setConfirmingEmployee}
+                // Unassigned section is informational — no "Add an employee"
+                // affordance into it. Pass a no-op for the slot.
+                onAddEmployeeToTeam={() => {}}
+              />
+            )}
           </div>
-          <div className="max-w-sm text-xs">
-            Every employee belongs to a team that contributes a shared system
-            prompt. Create a team first, then add the employees that belong to
-            it.
-          </div>
-          <div className="mt-2 flex gap-2">
-            <Button onClick={openNewTeam}>
-              <Plus className="h-3.5 w-3.5" />
-              New team
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {teams.map((t) => (
-            <TeamSection
-              key={t.id}
-              team={t}
-              members={byTeam.map.get(t.id) ?? []}
-              collapsed={collapsed[t.id] ?? false}
-              onToggle={() => toggle(t.id)}
-              onEditEmployee={(e) =>
-                setEmployeeEditor({ draft: e, isNew: false })
-              }
-              onAskDeleteEmployee={setConfirmingEmployee}
-              onEditTeam={(team) =>
-                setTeamEditor({ draft: team, isNew: false })
-              }
-              onAskDeleteTeam={setConfirmingTeam}
-              onAddEmployeeToTeam={(teamId) => openNewEmployee(teamId)}
-            />
-          ))}
-          {byTeam.unassigned.length > 0 && (
-            <TeamSection
-              team={null}
-              members={byTeam.unassigned}
-              collapsed={collapsed[UNASSIGNED_KEY] ?? false}
-              onToggle={() => toggle(UNASSIGNED_KEY)}
-              onEditEmployee={(e) =>
-                setEmployeeEditor({ draft: e, isNew: false })
-              }
-              onAskDeleteEmployee={setConfirmingEmployee}
-              // Unassigned section is informational — no "Add an employee"
-              // affordance into it. Pass a no-op for the slot.
-              onAddEmployeeToTeam={() => {}}
-            />
-          )}
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Edit sheets */}
       <Sheet
         open={employeeEditor !== null}
         onOpenChange={(o) => !o && setEmployeeEditor(null)}
       >
-        <SheetContent className="w-[480px] sm:max-w-none">
+        <SheetContent className="w-[520px] rounded-l-[var(--ph-radius-2xl)] border-l-0 bg-[var(--ph-surface)] p-0 shadow-[var(--ph-shadow-drawer)] sm:max-w-none">
           {employeeEditor && (
             <EmployeeEditor
               employee={employeeEditor.draft}
@@ -442,7 +499,7 @@ export function WorkforcePage() {
         open={teamEditor !== null}
         onOpenChange={(o) => !o && setTeamEditor(null)}
       >
-        <SheetContent className="w-[480px] sm:max-w-none">
+        <SheetContent className="w-[520px] rounded-l-[var(--ph-radius-2xl)] border-l-0 bg-[var(--ph-surface)] p-0 shadow-[var(--ph-shadow-drawer)] sm:max-w-none">
           {teamEditor && (
             <TeamEditor
               team={teamEditor.draft}
@@ -459,18 +516,27 @@ export function WorkforcePage() {
         open={confirmingEmployee !== null}
         onOpenChange={(o) => !o && setConfirmingEmployee(null)}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-[var(--ph-radius-2xl)] border-[var(--ph-border)] bg-[var(--ph-surface)] shadow-[var(--ph-shadow-card)]">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this employee?</AlertDialogTitle>
             <AlertDialogDescription>
-              {confirmingEmployee
-                ? `"${confirmingEmployee.name}" will be permanently removed along with their accumulated memory.`
-                : ''}
+              {confirmingEmployee ? (
+                <>
+                  <span className="rounded-[var(--ph-radius-sm)] bg-[var(--ph-canvas)] px-1.5 py-0.5 font-mono text-xs">
+                    {confirmingEmployee.name}
+                  </span>{' '}
+                  will be permanently removed along with their accumulated
+                  memory.
+                </>
+              ) : (
+                ''
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
+              className="bg-[var(--ph-danger)] text-white hover:opacity-90"
               onClick={async () => {
                 if (!confirmingEmployee) return
                 const id = confirmingEmployee.id
@@ -502,18 +568,27 @@ export function WorkforcePage() {
         open={confirmingTeam !== null}
         onOpenChange={(o) => !o && setConfirmingTeam(null)}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-[var(--ph-radius-2xl)] border-[var(--ph-border)] bg-[var(--ph-surface)] shadow-[var(--ph-shadow-card)]">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this team?</AlertDialogTitle>
             <AlertDialogDescription>
-              {confirmingTeam
-                ? `"${confirmingTeam.name}" will be removed. Existing members keep their records but lose this team affiliation.`
-                : ''}
+              {confirmingTeam ? (
+                <>
+                  <span className="rounded-[var(--ph-radius-sm)] bg-[var(--ph-canvas)] px-1.5 py-0.5 font-mono text-xs">
+                    {confirmingTeam.name}
+                  </span>{' '}
+                  will be removed. Existing members keep their records but lose
+                  this team affiliation.
+                </>
+              ) : (
+                ''
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
+              className="bg-[var(--ph-danger)] text-white hover:opacity-90"
               onClick={async () => {
                 if (!confirmingTeam) return
                 const id = confirmingTeam.id
