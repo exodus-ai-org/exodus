@@ -25,13 +25,17 @@ vi.mock('./recruit', () => ({
 }))
 // Mock kb-tools to avoid transitive knowledge-queries imports
 vi.mock('./kb-tools', () => ({
-  createSearchKnowledgeBaseTool: vi.fn(() => ({
+  createSearchKnowledgeBaseTool: vi.fn((_allowedTeamIds: string[]) => ({
     name: 'searchKnowledgeBase',
     label: 'Search',
     description: 'Search',
     parameters: {},
     execute: vi.fn()
   }))
+}))
+// Mock team-scope so PM doesn't pull in conversation/agent queries during tests
+vi.mock('./team-scope', () => ({
+  computeAllowedTeamIds: vi.fn(async () => [])
 }))
 // Mock ask-user-registry
 vi.mock('./ask-user-registry', () => ({
@@ -42,7 +46,10 @@ const getActiveAgents = vi.fn(async () => [
 ])
 const createConversationMessage = vi.fn(async (d) => ({ id: 'm', ...d }))
 const getMessagesByConversationId = vi.fn(async () => [])
-vi.mock('../../db/philharmonic-queries', () => ({ getActiveAgents }))
+vi.mock('../../db/philharmonic-queries', () => ({
+  getActiveAgents,
+  createTask: vi.fn(async (d) => ({ id: 't1', ...d }))
+}))
 vi.mock('../../db/team-queries', () => ({ getAllTeams: async () => [] }))
 vi.mock('../../db/conversation-queries', () => ({
   createConversationMessage,

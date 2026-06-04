@@ -7,6 +7,8 @@ import {
 } from '../../db/philharmonic-queries'
 import { rememberTaskOutcome } from './agent-memory'
 import { runEmployeeLoop, type SseEmitter } from './employee-loop'
+import { createSearchKnowledgeBaseTool } from './kb-tools'
+import { computeAllowedTeamIds } from './team-scope'
 
 /**
  * Run one delegated employee task end-to-end: mark running, create the
@@ -35,13 +37,18 @@ export async function runDelegatedTask(args: {
   })
 
   try {
+    // Give the employee its own scoped KB tool — same scope the PM was using
+    // (every member team in the conversation + General docs). This lets the
+    // employee look things up without bouncing back to the PM.
+    const allowedTeamIds = await computeAllowedTeamIds(conversationId)
     const output = await runEmployeeLoop({
       agent,
       instructions,
       executionId: execution.id,
       conversationId,
       emit,
-      signal
+      signal,
+      extraTools: [createSearchKnowledgeBaseTool(allowedTeamIds)]
     })
     await updateTask(taskId, {
       status: 'completed',

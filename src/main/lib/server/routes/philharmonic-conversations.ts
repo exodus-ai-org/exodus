@@ -232,16 +232,29 @@ router.get('/knowledge', async (c) =>
 )
 router.post('/knowledge', async (c) => {
   const data = validateSchema(
-    z.object({ title: z.string().min(1), content: z.string().min(1) }),
+    z.object({
+      title: z.string().min(1),
+      content: z.string().min(1),
+      // Explicit null = "General" doc; omitted is treated the same.
+      teamId: z.string().uuid().nullable().optional()
+    }),
     await c.req.json(),
     'Invalid knowledge doc'
   )
-  return successResponse(c, await createKnowledgeDoc(data), 201)
+  return successResponse(
+    c,
+    await createKnowledgeDoc({ ...data, teamId: data.teamId ?? null }),
+    201
+  )
 })
 router.put('/knowledge/:id', async (c) => {
   const id = getRequiredParam(c, 'id')
   const data = validateSchema(
-    z.object({ title: z.string().optional(), content: z.string().optional() }),
+    z.object({
+      title: z.string().optional(),
+      content: z.string().optional(),
+      teamId: z.string().uuid().nullable().optional()
+    }),
     await c.req.json(),
     'Invalid knowledge doc'
   )

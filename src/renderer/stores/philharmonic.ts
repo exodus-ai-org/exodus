@@ -60,6 +60,8 @@ export interface KnowledgeDocData {
   id: string
   title: string
   content: string
+  // NULL means the doc is "General" — visible to every Group.
+  teamId: string | null
   createdAt: string
   updatedAt: string
 }

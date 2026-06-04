@@ -43,14 +43,19 @@ export const respondToConversation = (id: string, response: string) =>
 
 export const getKnowledgeDocs = () =>
   fetcher<KnowledgeDocData[]>(`${BASE}/knowledge`)
-export const createKnowledgeDoc = (data: { title: string; content: string }) =>
+export const createKnowledgeDoc = (data: {
+  title: string
+  content: string
+  // null = General doc (visible to every Group); omit to default to null
+  teamId?: string | null
+}) =>
   fetcher<KnowledgeDocData>(`${BASE}/knowledge`, {
     method: 'POST',
     body: data as never
   })
 export const updateKnowledgeDoc = (
   id: string,
-  data: { title?: string; content?: string }
+  data: { title?: string; content?: string; teamId?: string | null }
 ) =>
   fetcher<KnowledgeDocData>(`${BASE}/knowledge/${id}`, {
     method: 'PUT',

@@ -20,6 +20,7 @@ import { runDelegatedTask } from './execution-engine'
 import { createSearchKnowledgeBaseTool } from './kb-tools'
 import { createDelegateTaskTool, createRecruitEmployeeTool } from './pm-tools'
 import { autoCreateEmployee } from './recruit'
+import { computeAllowedTeamIds } from './team-scope'
 
 const PM_SYSTEM_PROMPT = `You are the PM (project manager) of a virtual team working in a group chat.
 Your job, every round:
@@ -87,6 +88,9 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
   ])
   const teamNameById = new Map(allTeams.map((t) => [t.id, t.name]))
   const history = await buildHistory(conversationId, excludeMessageId)
+  // KB is scoped to teams whose members are in this conversation. General docs
+  // (teamId IS NULL) ride along automatically inside the query.
+  const allowedTeamIds = await computeAllowedTeamIds(conversationId)
 
   const tools: AgentTool[] = [
     createDelegateTaskTool(
@@ -133,7 +137,7 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
       emit({ type: 'member_joined', conversationId, agentId: emp.id })
       return { id: emp.id, name: emp.name }
     }),
-    createSearchKnowledgeBaseTool(),
+    createSearchKnowledgeBaseTool(allowedTeamIds),
     createEscalateToUserTool(async ({ question, options }) => {
       emit({ type: 'ask_user', conversationId, question, options })
       return askUserRegistry.wait(conversationId)

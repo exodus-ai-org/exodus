@@ -158,7 +158,7 @@ export function PhilharmonicContainer({
 
   return (
     <div
-      className="grid h-full min-h-0 w-full bg-[var(--ph-canvas)]"
+      className="grid h-full min-h-0 w-full bg-(--ph-canvas)"
       style={{
         padding: isFullscreen ? '12px' : '8px',
         gap: '8px',
@@ -166,7 +166,7 @@ export function PhilharmonicContainer({
         transition: 'grid-template-columns 180ms cubic-bezier(0.16, 1, 0.3, 1)'
       }}
     >
-      <div className="min-h-0 min-w-0 overflow-hidden rounded-[var(--ph-radius-xl)] bg-[var(--ph-surface)] shadow-[var(--ph-shadow-card)]">
+      <div className="min-h-0 min-w-0 overflow-hidden rounded-(--ph-radius-xl) bg-(--ph-surface) shadow-(--ph-shadow-card)">
         <ConversationList
           conversations={conversations}
           agentsById={agentsById}
@@ -178,12 +178,12 @@ export function PhilharmonicContainer({
           onNavigateConfig={handleNavigateConfig}
         />
       </div>
-      <div className="min-h-0 min-w-0 overflow-hidden rounded-[var(--ph-radius-xl)] bg-[var(--ph-surface)] shadow-[var(--ph-shadow-card)]">
+      <div className="min-h-0 min-w-0 overflow-hidden rounded-(--ph-radius-xl) bg-(--ph-surface) shadow-(--ph-shadow-card)">
         {mainContent}
       </div>
       {showMembers && (
         <div
-          className="min-h-0 min-w-0 overflow-hidden rounded-[var(--ph-radius-xl)] bg-[var(--ph-surface)] shadow-[var(--ph-shadow-card)]"
+          className="min-h-0 min-w-0 overflow-hidden rounded-(--ph-radius-xl) bg-(--ph-surface) shadow-(--ph-shadow-card)"
           style={{ animation: 'ph-fade-in 180ms ease-out' }}
         >
           <GroupMembersPanel

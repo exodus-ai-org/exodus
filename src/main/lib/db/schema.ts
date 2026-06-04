@@ -414,6 +414,10 @@ export const knowledgeDoc = pgTable('knowledge_doc', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   title: text('title').notNull(),
   content: text('content').notNull(),
+  // Owning team. NULL = "General" — visible to every Philharmonic Group.
+  // ON DELETE SET NULL: deleting a Team demotes its docs to General rather
+  // than throwing them away, since the content may outlive the team.
+  teamId: uuid('teamId').references(() => team.id, { onDelete: 'set null' }),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull()
 })
