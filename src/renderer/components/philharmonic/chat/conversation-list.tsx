@@ -9,7 +9,6 @@ import {
   ArrowLeftIcon,
   BookOpenIcon,
   LayoutDashboardIcon,
-  MessageSquarePlus,
   PlusIcon,
   SearchIcon,
   Trash2,
@@ -18,6 +17,7 @@ import {
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
 
+import { PhilharmonicEmptyState } from '@/components/philharmonic/empty-state'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,7 +28,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
-import { Button } from '@/components/ui/button'
 import {
   ContextMenu,
   ContextMenuContent,
@@ -39,6 +38,8 @@ import { Input } from '@/components/ui/input'
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import { cn } from '@/lib/utils'
 import type { AgentData, ConversationData } from '@/stores/philharmonic'
+
+import { hueStyle, pickHue } from '../lib/hue'
 
 export type ConfigPage = 'workforce' | 'knowledge' | 'dashboard'
 
@@ -121,47 +122,55 @@ export function ConversationList({
 
   return (
     <div className="flex h-full flex-col">
+      {/* Header */}
       <div
         className={cn(
-          'draggable flex h-12 shrink-0 items-center justify-end gap-2 pr-2',
-          isFullscreen ? 'pl-3' : 'pl-21'
+          'draggable flex h-13 shrink-0 items-center justify-between gap-2 border-b border-[var(--ph-border)] pr-3',
+          isFullscreen ? 'pl-4' : 'pl-21'
         )}
       >
-        <Button
-          size="icon-sm"
-          variant="ghost"
+        <div className="flex items-center gap-2 text-sm font-semibold text-[var(--ph-text)]">
+          Groups
+          <span className="rounded-full bg-[var(--ph-canvas)] px-2 py-0.5 text-[10px] font-normal text-[var(--ph-text-muted)]">
+            {conversations.length}
+          </span>
+        </div>
+        <button
+          type="button"
           onClick={onCreate}
           aria-label="New group"
-          className="no-drag"
+          className="no-drag flex h-8 w-8 items-center justify-center rounded-[var(--ph-radius-md)] text-white transition-opacity hover:opacity-90"
+          style={{ background: 'var(--ph-primary)' }}
         >
           <PlusIcon className="h-4 w-4" />
-        </Button>
+        </button>
       </div>
 
-      <div className="px-3 pb-2">
+      {/* Search */}
+      <div className="px-3 pt-3 pb-2">
         <div className="relative">
-          <SearchIcon className="text-muted-foreground pointer-events-none absolute top-1/2 left-2 h-3.5 w-3.5 -translate-y-1/2" />
+          <SearchIcon className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-[var(--ph-text-muted)]" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search groups"
-            className="h-8 pl-7 text-sm"
+            className="h-9 rounded-[var(--ph-radius-md)] border-transparent bg-[var(--ph-canvas)] pl-8 text-sm shadow-none focus-visible:border-[var(--ph-primary)] focus-visible:bg-[var(--ph-surface)] focus-visible:ring-[3px] focus-visible:ring-[var(--ph-primary-soft)]"
           />
         </div>
       </div>
 
+      {/* List */}
       <div className="flex-1 overflow-y-auto px-2 pb-2">
         {conversations.length === 0 ? (
-          <div className="text-muted-foreground flex h-full flex-col items-center justify-center gap-2 px-6 text-center">
-            <MessageSquarePlus className="h-8 w-8 opacity-40" />
-            <div className="text-sm">No groups yet</div>
-            <div className="text-xs">
-              Create one and message your virtual team.
-            </div>
-          </div>
+          <PhilharmonicEmptyState
+            avatars={[{ hue: 'lilac' }, { hue: 'mint' }, { hue: 'peach' }]}
+            title="No groups yet"
+            description="Create one to message your virtual team."
+            action={{ label: '+ New group', onClick: onCreate }}
+          />
         ) : filtered.length === 0 ? (
-          <div className="text-muted-foreground flex h-full items-center justify-center px-4 text-center text-xs">
-            No groups match "{query}"
+          <div className="flex h-full items-center justify-center px-4 text-center text-xs text-[var(--ph-text-muted)]">
+            No groups match &ldquo;{query}&rdquo;
           </div>
         ) : (
           <ul className="space-y-0.5">
@@ -175,37 +184,41 @@ export function ConversationList({
                       <button
                         onClick={() => onSelect(c.id)}
                         className={cn(
-                          'group flex w-full items-start gap-2.5 rounded-md px-2 py-2 text-left transition-colors',
-                          isActive
-                            ? 'bg-accent text-accent-foreground'
-                            : 'hover:bg-accent/40'
+                          'group flex w-full items-start gap-2.5 rounded-[var(--ph-radius-md)] px-2 py-2 text-left transition-all'
                         )}
+                        style={
+                          isActive
+                            ? { background: 'var(--ph-primary-faint)' }
+                            : undefined
+                        }
+                        onMouseEnter={(e) => {
+                          if (!isActive) {
+                            e.currentTarget.style.background =
+                              'var(--ph-canvas)'
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isActive) {
+                            e.currentTarget.style.background = ''
+                          }
+                        }}
                       >
                         <span
-                          className={cn(
-                            'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-lg',
-                            isActive ? 'bg-background/60' : 'bg-muted'
-                          )}
+                          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-lg"
+                          style={hueStyle(pickHue(c.id))}
                         >
                           {c.icon ?? '💬'}
                         </span>
-                        <span className="flex min-w-0 flex-1 flex-col">
+                        <span className="flex min-w-0 flex-1 flex-col gap-0.5 pt-0.5">
                           <span className="flex items-baseline justify-between gap-2">
-                            <span className="truncate text-sm font-medium">
+                            <span className="truncate text-[13.5px] font-semibold text-[var(--ph-text)]">
                               {c.title}
                             </span>
-                            <span className="text-muted-foreground shrink-0 text-[10px] tabular-nums">
+                            <span className="shrink-0 text-[10px] text-[var(--ph-text-muted)] tabular-nums">
                               {smartTime(c.lastMessageAt)}
                             </span>
                           </span>
-                          <span
-                            className={cn(
-                              'truncate text-xs',
-                              isActive
-                                ? 'text-foreground/70'
-                                : 'text-muted-foreground'
-                            )}
-                          >
+                          <span className="truncate text-xs text-[var(--ph-text-muted)]">
                             {preview || 'New group · no messages yet'}
                           </span>
                         </span>
@@ -228,37 +241,45 @@ export function ConversationList({
         )}
       </div>
 
-      <nav className="border-border/60 shrink-0 border-t p-2">
-        <ul className="space-y-0.5">
+      {/* Segmented config nav */}
+      <nav className="shrink-0 border-t border-[var(--ph-border)] p-2">
+        <div className="flex gap-1">
           {CONFIG_NAV.map((item) => {
             const Icon = item.icon
             const isActive = activePage === item.page
             return (
-              <li key={item.page}>
-                <button
-                  type="button"
-                  onClick={() => onNavigateConfig(item.page)}
-                  className={cn(
-                    'flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm transition-colors',
-                    isActive
-                      ? 'bg-accent text-accent-foreground'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-accent/40'
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  <span className="truncate">{item.label}</span>
-                </button>
-              </li>
+              <button
+                key={item.page}
+                type="button"
+                onClick={() => onNavigateConfig(item.page)}
+                title={item.label}
+                aria-label={item.label}
+                className={cn(
+                  'flex h-9 items-center justify-center gap-1.5 rounded-[var(--ph-radius-md)] text-xs font-medium transition-all',
+                  isActive
+                    ? 'flex-1 px-2.5 text-[var(--ph-primary-ink)]'
+                    : 'w-9 text-[var(--ph-text-muted)] hover:bg-[var(--ph-canvas)]'
+                )}
+                style={
+                  isActive
+                    ? { background: 'var(--ph-primary-soft)' }
+                    : undefined
+                }
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                {isActive && <span className="truncate">{item.label}</span>}
+              </button>
             )
           })}
-        </ul>
+        </div>
       </nav>
 
-      <div className="border-border/60 shrink-0 border-t p-2">
+      {/* Back to chat */}
+      <div className="shrink-0 border-t border-[var(--ph-border)] p-2">
         <button
           type="button"
           onClick={() => navigate('/')}
-          className="text-muted-foreground hover:text-foreground hover:bg-accent/40 flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left text-sm transition-colors"
+          className="flex w-full items-center gap-2.5 rounded-[var(--ph-radius-md)] px-2 py-2 text-left text-sm text-[var(--ph-text-muted)] transition-colors hover:bg-[var(--ph-canvas)] hover:text-[var(--ph-text)]"
         >
           <ArrowLeftIcon className="h-4 w-4" />
           <span className="truncate">Back to chat</span>
@@ -269,13 +290,21 @@ export function ConversationList({
         open={confirming !== null}
         onOpenChange={(o) => !o && setConfirming(null)}
       >
-        <AlertDialogContent>
+        <AlertDialogContent className="rounded-[var(--ph-radius-2xl)] border-[var(--ph-border)] bg-[var(--ph-surface)] shadow-[var(--ph-shadow-card)]">
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this group?</AlertDialogTitle>
             <AlertDialogDescription>
-              {confirming
-                ? `"${confirming.title}" and all its messages, tasks, and executions will be permanently removed.`
-                : ''}
+              {confirming ? (
+                <>
+                  <span className="rounded-[var(--ph-radius-sm)] bg-[var(--ph-canvas)] px-1.5 py-0.5 font-mono text-xs">
+                    {confirming.title}
+                  </span>{' '}
+                  and all its messages, tasks, and executions will be
+                  permanently removed.
+                </>
+              ) : (
+                ''
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -287,6 +316,7 @@ export function ConversationList({
                 setConfirming(null)
                 await onDelete(id)
               }}
+              className="bg-[var(--ph-danger)] text-white hover:opacity-90"
             >
               Delete
             </AlertDialogAction>
