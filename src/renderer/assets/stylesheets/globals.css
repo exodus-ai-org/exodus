@@ -809,3 +809,110 @@
     animation: fade-in-up 0.3s cubic-bezier(0.25, 1, 0.5, 1) both;
   }
 }
+
+/* ── Philharmonic design tokens ───────────────────────────────────────────
+ * Scoped namespace (--ph-*) layered on top of the shadcn theme. Used inside
+ * src/renderer/components/philharmonic. Light values in :root; dark
+ * overrides in .dark so the existing dark-mode toggle drives them too. */
+:root {
+  --ph-canvas: #f5f3f0;
+  --ph-surface: #ffffff;
+  --ph-surface-sunken: #fbfaf7;
+  --ph-border: #f0eee9;
+  --ph-text: oklch(0.16 0.02 160);
+  --ph-text-muted: #888888;
+  --ph-primary: oklch(0.52 0.17 160);
+  --ph-primary-soft: oklch(0.92 0.04 160);
+  --ph-primary-faint: oklch(0.97 0.02 160);
+  --ph-primary-ink: oklch(0.32 0.1 160);
+  --ph-success: #10b981;
+  --ph-warning: #f59e0b;
+  --ph-danger: oklch(0.58 0.25 27);
+
+  --ph-hue-lilac-fill: #e8d5ff;
+  --ph-hue-lilac-ring: #c8a8ff;
+  --ph-hue-mint-fill: #c2f0e2;
+  --ph-hue-mint-ring: #6dccab;
+  --ph-hue-peach-fill: #ffd7c2;
+  --ph-hue-peach-ring: #ff9b6c;
+  --ph-hue-sky-fill: #cfe8f3;
+  --ph-hue-sky-ring: #6fc3dd;
+  --ph-hue-rose-fill: #ffd2dc;
+  --ph-hue-rose-ring: #ff8aa5;
+  --ph-hue-honey-fill: #ffe9b5;
+  --ph-hue-honey-ring: #e8b948;
+  --ph-hue-periwinkle-fill: #d7e4ff;
+  --ph-hue-periwinkle-ring: #8aa8ff;
+  --ph-hue-sage-fill: #d5f3d1;
+  --ph-hue-sage-ring: #6fc76f;
+
+  --ph-radius-sm: 8px;
+  --ph-radius-md: 10px;
+  --ph-radius-lg: 14px;
+  --ph-radius-xl: 16px;
+  --ph-radius-2xl: 20px;
+
+  --ph-shadow-card:
+    0 1px 2px rgba(20, 20, 30, 0.04), 0 6px 18px rgba(20, 20, 30, 0.05);
+  --ph-shadow-hover:
+    0 2px 4px rgba(0, 0, 0, 0.05), 0 10px 24px rgba(0, 0, 0, 0.07);
+  --ph-shadow-drawer:
+    0 0 0 1px rgba(0, 0, 0, 0.04), -16px 0 40px rgba(0, 0, 0, 0.08);
+}
+
+.dark {
+  --ph-canvas: #15171c;
+  --ph-surface: #1d2027;
+  --ph-surface-sunken: #23262e;
+  --ph-border: #2a2e37;
+  --ph-text: #e6e8ec;
+  --ph-text-muted: #7d838f;
+  --ph-primary: oklch(0.55 0.17 160);
+  --ph-primary-soft: oklch(0.3 0.08 160);
+  --ph-primary-faint: oklch(0.22 0.05 160);
+  --ph-primary-ink: oklch(0.85 0.08 160);
+  --ph-danger: oklch(0.62 0.25 27);
+
+  --ph-hue-lilac-fill: #3a2f5c;
+  --ph-hue-lilac-ring: #6b53b5;
+  --ph-hue-mint-fill: #1f4538;
+  --ph-hue-mint-ring: #3e8869;
+  --ph-hue-peach-fill: #4a2e22;
+  --ph-hue-peach-ring: #94583f;
+  --ph-hue-sky-fill: #1d3848;
+  --ph-hue-sky-ring: #3a6b89;
+  --ph-hue-rose-fill: #4a2832;
+  --ph-hue-rose-ring: #a24a63;
+  --ph-hue-honey-fill: #4a3d1a;
+  --ph-hue-honey-ring: #a88a2e;
+  --ph-hue-periwinkle-fill: #252e48;
+  --ph-hue-periwinkle-ring: #5a75b5;
+  --ph-hue-sage-fill: #1f3d1f;
+  --ph-hue-sage-ring: #3e783e;
+
+  --ph-shadow-card:
+    0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 18px rgba(0, 0, 0, 0.25);
+  --ph-shadow-drawer:
+    0 0 0 1px rgba(255, 255, 255, 0.04), -16px 0 40px rgba(0, 0, 0, 0.55);
+}
+
+@keyframes ph-fade-in {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
