@@ -120,7 +120,7 @@ export function ConversationList({
   }, [conversations, query])
 
   return (
-    <div className="bg-sidebar/40 flex h-full flex-col">
+    <div className="flex h-full flex-col">
       <div
         className={cn(
           'draggable flex h-12 shrink-0 items-center justify-end gap-2 pr-2',

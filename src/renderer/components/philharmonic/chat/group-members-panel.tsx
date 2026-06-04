@@ -17,7 +17,7 @@ export function GroupMembersPanel({
   busyAgentIds: Set<string>
 }) {
   return (
-    <div className="bg-sidebar/40 flex h-full flex-col">
+    <div className="flex h-full flex-col">
       <div className="flex items-center justify-between px-3 pt-3 pb-2">
         <span className="text-foreground text-sm font-semibold tracking-tight">
           Members

@@ -18,6 +18,7 @@ import { GroupMembersPanel } from '@/components/philharmonic/chat/group-members-
 import { KnowledgeBasePage } from '@/components/philharmonic/knowledge/knowledge-base-page'
 import { WorkforcePage } from '@/components/philharmonic/workforce/workforce-page'
 import { Button } from '@/components/ui/button'
+import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import type { PhilharmonicPage } from '@/layouts/philharmonic-layout'
 import { getAgents, getTeams } from '@/services/philharmonic'
 import {
@@ -49,6 +50,7 @@ export function PhilharmonicContainer({
   const [employees, setEmployees] = useState<AgentData[]>([])
   const [teams, setTeams] = useState<TeamData[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
+  const isFullscreen = useIsFullscreen()
 
   useEffect(() => {
     getConversations().then((cs) => {
@@ -155,12 +157,15 @@ export function PhilharmonicContainer({
 
   return (
     <div
-      className="grid h-full min-h-0 w-full"
+      className="grid h-full min-h-0 w-full bg-[var(--ph-canvas)]"
       style={{
-        gridTemplateColumns: showMembers ? '260px 1fr 260px' : '260px 1fr'
+        padding: isFullscreen ? '12px' : '10px',
+        gap: '10px',
+        gridTemplateColumns: showMembers ? '260px 1fr 260px' : '260px 1fr',
+        transition: 'grid-template-columns 180ms cubic-bezier(0.16, 1, 0.3, 1)'
       }}
     >
-      <div className="min-h-0 min-w-0 border-r">
+      <div className="min-h-0 min-w-0 overflow-hidden rounded-[var(--ph-radius-xl)] bg-[var(--ph-surface)] shadow-[var(--ph-shadow-card)]">
         <ConversationList
           conversations={conversations}
           agentsById={agentsById}
@@ -172,9 +177,14 @@ export function PhilharmonicContainer({
           onNavigateConfig={handleNavigateConfig}
         />
       </div>
-      <div className="min-h-0 min-w-0 overflow-hidden">{mainContent}</div>
+      <div className="min-h-0 min-w-0 overflow-hidden rounded-[var(--ph-radius-xl)] bg-[var(--ph-surface)] shadow-[var(--ph-shadow-card)]">
+        {mainContent}
+      </div>
       {showMembers && (
-        <div className="min-h-0 min-w-0 border-l">
+        <div
+          className="min-h-0 min-w-0 overflow-hidden rounded-[var(--ph-radius-xl)] bg-[var(--ph-surface)] shadow-[var(--ph-shadow-card)]"
+          style={{ animation: 'ph-fade-in 180ms ease-out' }}
+        >
           <GroupMembersPanel
             members={members}
             teamsById={teamsById}
