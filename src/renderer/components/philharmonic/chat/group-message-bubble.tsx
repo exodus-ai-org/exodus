@@ -1,8 +1,8 @@
 // src/renderer/components/philharmonic/chat/group-message-bubble.tsx
+import { format } from 'date-fns'
 import { CheckIcon, Loader2Icon, WrenchIcon } from 'lucide-react'
 
 import { Markdown } from '@/components/markdown'
-import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 import type { AgentData, TeamData } from '@/stores/philharmonic'
 
@@ -13,6 +13,7 @@ export interface BubbleModel {
   role: string // 'user' | 'pm' | 'employee' | 'system'
   agentId?: string | null
   text: string
+  createdAt?: string
   toolCards?: Array<{
     toolName: string
     phase: 'start' | 'end'
@@ -39,27 +40,69 @@ export function GroupMessageBubble({
   if (isSystem) {
     return (
       <div className="flex justify-center py-2">
-        <span className="text-muted-foreground bg-muted/40 rounded-full px-3 py-0.5 text-xs">
+        <span
+          className="rounded-full px-3 py-0.5 text-xs text-[var(--ph-text-muted)]"
+          style={{ background: 'var(--ph-canvas)' }}
+        >
           {bubble.text}
         </span>
       </div>
     )
   }
 
+  const time = bubble.createdAt
+    ? (() => {
+        try {
+          return format(new Date(bubble.createdAt), 'HH:mm')
+        } catch {
+          return ''
+        }
+      })()
+    : ''
+
+  const headerLine = (
+    <span className="flex items-baseline gap-1.5 px-0.5 text-[11px] text-[var(--ph-text-muted)]">
+      <span className="font-medium text-[var(--ph-text)]">{name}</span>
+      {team && (
+        <span className="text-[var(--ph-text-muted)]">
+          · {team.icon ? `${team.icon} ` : ''}
+          {team.name}
+        </span>
+      )}
+      {time && <span>· {time}</span>}
+    </span>
+  )
+
   return (
-    <div className={cn('flex gap-3 px-1 py-1.5', isUser && 'flex-row-reverse')}>
+    <div
+      className={cn('flex gap-2.5 px-1 py-1.5', isUser && 'flex-row-reverse')}
+    >
       {isPm ? (
-        <div className="bg-primary text-primary-foreground ring-background flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ring-2">
+        <div
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold text-white"
+          style={{
+            background: 'var(--ph-primary)',
+            boxShadow:
+              '0 0 0 2px var(--ph-surface), 0 0 0 3.5px var(--ph-primary-soft)'
+          }}
+        >
           PM
         </div>
       ) : isUser ? (
-        <div className="bg-secondary text-secondary-foreground flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-medium">
+        <div
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold"
+          style={{
+            background: 'var(--ph-primary-soft)',
+            color: 'var(--ph-primary-ink)'
+          }}
+        >
           You
         </div>
       ) : (
         <EmployeeAvatar
           seed={agent?.avatarSeed ?? null}
           style={agent?.avatarStyle ?? null}
+          size={36}
         />
       )}
       <div
@@ -68,39 +111,56 @@ export function GroupMessageBubble({
           isUser && 'items-end'
         )}
       >
-        <div className="text-muted-foreground flex items-center gap-1.5 px-0.5 text-xs">
-          <span className="text-foreground/80 font-medium">{name}</span>
-          {team && (
-            <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">
-              {team.icon ? `${team.icon} ` : ''}
-              {team.name}
-            </Badge>
-          )}
-        </div>
+        {headerLine}
         <div
           className={cn(
-            'rounded-2xl px-3.5 py-2 text-sm leading-relaxed',
-            isUser
-              ? 'bg-primary text-primary-foreground rounded-br-md'
-              : isPm
-                ? 'bg-card border-border/60 rounded-bl-md border'
-                : 'bg-muted/60 rounded-bl-md'
+            'px-3.5 py-2.5 text-sm leading-relaxed',
+            isUser ? 'text-white' : 'text-[var(--ph-text)]'
           )}
+          style={{
+            background: isUser ? 'var(--ph-primary)' : 'var(--ph-canvas)',
+            borderRadius: isUser
+              ? 'var(--ph-radius-xl) 6px var(--ph-radius-xl) var(--ph-radius-xl)'
+              : '6px var(--ph-radius-xl) var(--ph-radius-xl) var(--ph-radius-xl)'
+          }}
         >
           <Markdown src={bubble.text} />
         </div>
         {bubble.toolCards && bubble.toolCards.length > 0 && (
-          <div className="flex flex-wrap gap-1">
+          <div className="flex flex-col gap-1.5">
             {bubble.toolCards.map((card, i) => (
-              <Badge key={i} variant="outline" className="font-normal">
-                {card.phase === 'end' ? (
-                  <CheckIcon className="text-emerald-500" />
+              <div
+                key={i}
+                className="flex items-center gap-2.5 border border-[var(--ph-border)] bg-[var(--ph-surface)] px-3 py-2"
+                style={{
+                  borderRadius:
+                    '6px var(--ph-radius-lg) var(--ph-radius-lg) var(--ph-radius-lg)'
+                }}
+              >
+                <div
+                  className="flex h-6 w-6 items-center justify-center rounded-[var(--ph-radius-sm)]"
+                  style={{ background: 'var(--ph-primary-soft)' }}
+                >
+                  <WrenchIcon
+                    className="h-3.5 w-3.5"
+                    style={{ color: 'var(--ph-primary-ink)' }}
+                  />
+                </div>
+                <div className="min-w-0 flex-1 text-xs font-semibold text-[var(--ph-text)]">
+                  {card.toolName}
+                </div>
+                {card.phase === 'start' ? (
+                  <Loader2Icon
+                    className="h-3.5 w-3.5 animate-spin"
+                    style={{ color: 'var(--ph-primary)' }}
+                  />
                 ) : (
-                  <Loader2Icon className="animate-spin" />
+                  <CheckIcon
+                    className="h-3.5 w-3.5"
+                    style={{ color: 'var(--ph-primary)' }}
+                  />
                 )}
-                <WrenchIcon />
-                {card.toolName}
-              </Badge>
+              </div>
             ))}
           </div>
         )}

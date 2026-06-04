@@ -131,6 +131,7 @@ export function PhilharmonicContainer({
           conversation={activeConv}
           agentsById={agentsById}
           teamsById={teamsById}
+          members={members}
           onRename={handleRename}
         />
       )
