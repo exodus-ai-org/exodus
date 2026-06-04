@@ -5,7 +5,8 @@ import type {
   StepDto,
   StepPatch
 } from '@shared/types/philharmonic'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { sileo } from 'sileo'
 
 import { getActivePlan } from '@/services/philharmonic-chat'
 
@@ -22,6 +23,15 @@ export interface LiveBubble {
   }>
 }
 
+export interface RetryNotice {
+  /** monotonic id so callers can deduplicate */
+  id: number
+  taskId: string
+  attempt: number
+  delayMs: number
+  error: string
+}
+
 export interface ConversationStream {
   bubbles: LiveBubble[]
   askUser: { question: string; options: string[] } | null
@@ -30,6 +40,8 @@ export interface ConversationStream {
   revision: number
   /** Current execution plan, or null if none yet. Live-updated from SSE. */
   plan: PlanDto | null
+  /** Most recent retry notification (used for inline UI hints / logs). */
+  lastRetry: RetryNotice | null
 }
 
 function applyStepPatch(step: StepDto, patch: StepPatch): StepDto {
@@ -53,6 +65,8 @@ export function useConversationStream(
   const [error, setError] = useState<string | null>(null)
   const [revision, setRevision] = useState(0)
   const [plan, setPlan] = useState<PlanDto | null>(null)
+  const [lastRetry, setLastRetry] = useState<RetryNotice | null>(null)
+  const retryCounter = useRef(0)
 
   // Pull the current plan on mount / conversation switch so users coming back
   // to a Group after closing the panel see the latest state. SSE events
@@ -150,6 +164,23 @@ export function useConversationStream(
           break
         case 'conversation_error':
           setError(evt.error)
+          // Bubble to the app shell so users see it even when the panel is
+          // closed. The inline error block in GroupChat is still rendered.
+          sileo.error({
+            title: 'Group encountered an error',
+            description:
+              evt.error.length > 200 ? `${evt.error.slice(0, 197)}…` : evt.error
+          })
+          break
+        case 'delegation_retry':
+          retryCounter.current += 1
+          setLastRetry({
+            id: retryCounter.current,
+            taskId: evt.taskId,
+            attempt: evt.attempt,
+            delayMs: evt.delayMs,
+            error: evt.error
+          })
           break
         case 'plan_created':
           setPlan(evt.plan)
@@ -179,5 +210,5 @@ export function useConversationStream(
     return () => source.close()
   }, [conversationId])
 
-  return { bubbles, askUser, error, revision, plan }
+  return { bubbles, askUser, error, revision, plan, lastRetry }
 }

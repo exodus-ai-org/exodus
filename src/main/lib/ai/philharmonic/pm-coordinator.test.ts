@@ -37,6 +37,10 @@ vi.mock('./kb-tools', () => ({
 vi.mock('./team-scope', () => ({
   computeAllowedTeamIds: vi.fn(async () => [])
 }))
+// Notifications pull in Electron — short-circuit them.
+vi.mock('../../philharmonic-notifications', () => ({
+  notifyIfBackground: vi.fn()
+}))
 // Mock ask-user-registry
 vi.mock('./ask-user-registry', () => ({
   askUserRegistry: { wait: vi.fn(), has: vi.fn(), resolve: vi.fn() }
@@ -54,7 +58,8 @@ vi.mock('../../db/team-queries', () => ({ getAllTeams: async () => [] }))
 vi.mock('../../db/conversation-queries', () => ({
   createConversationMessage,
   getMessagesByConversationId,
-  addMemberToConversation: vi.fn(async () => ({ memberAgentIds: ['a1'] }))
+  addMemberToConversation: vi.fn(async () => ({ memberAgentIds: ['a1'] })),
+  getConversationById: vi.fn(async () => ({ id: 'c1', title: 'Group X' }))
 }))
 // Plan tables aren't touched by the smoke test (the LLM stream we feed in
 // doesn't call any plan tool); these stubs short-circuit DB access.

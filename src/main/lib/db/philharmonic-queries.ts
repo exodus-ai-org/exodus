@@ -1,4 +1,4 @@
-import { asc, desc, eq, inArray, isNotNull, isNull } from 'drizzle-orm'
+import { asc, desc, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm'
 
 import { db } from './db'
 import {
@@ -117,6 +117,20 @@ export async function updateTask(
     .where(eq(task.id, id))
     .returning()
   return result
+}
+
+/** Bump retryCount by 1 and return the new value. Used by execution-engine
+ * on each backoff before re-entering runEmployeeLoop. */
+export async function incrementTaskRetryCount(id: string): Promise<number> {
+  const [row] = await db
+    .update(task)
+    .set({
+      retryCount: sql`${task.retryCount} + 1`,
+      updatedAt: new Date()
+    })
+    .where(eq(task.id, id))
+    .returning({ retryCount: task.retryCount })
+  return row?.retryCount ?? 0
 }
 
 // ─── Task Execution ─────────────────────────────────────────────────────────

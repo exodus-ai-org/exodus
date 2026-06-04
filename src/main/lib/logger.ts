@@ -14,6 +14,7 @@ export type LogSurface =
   | 'chat'
   | 'database'
   | 'agent_x'
+  | 'philharmonic'
   | 'mcp'
   | 'audio'
   | 'memory'

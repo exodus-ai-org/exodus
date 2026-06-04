@@ -7,6 +7,7 @@ import { v4 as uuidV4 } from 'uuid'
 import {
   addMemberToConversation,
   createConversationMessage,
+  getConversationById,
   getMessagesByConversationId
 } from '../../db/conversation-queries'
 import { createTask, getActiveAgents } from '../../db/philharmonic-queries'
@@ -19,6 +20,7 @@ import {
 } from '../../db/plan-queries'
 import { getSettings } from '../../db/queries'
 import { getAllTeams } from '../../db/team-queries'
+import { notifyIfBackground } from '../../philharmonic-notifications'
 import { getModelFromProvider } from '../utils/chat-message-util'
 import { createEscalateToUserTool } from './agent-tools'
 import { askUserRegistry } from './ask-user-registry'
@@ -103,10 +105,12 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
   const setting = await getSettings()
   const { chatModel, apiKey } = getModelFromProvider(setting)
 
-  const [employees, allTeams] = await Promise.all([
+  const [employees, allTeams, conversationRow] = await Promise.all([
     getActiveAgents(),
-    getAllTeams()
+    getAllTeams(),
+    getConversationById(conversationId)
   ])
+  const conversationTitle = conversationRow?.title ?? 'Group'
   const teamNameById = new Map(allTeams.map((t) => [t.id, t.name]))
   const history = await buildHistory(conversationId, excludeMessageId)
   // KB is scoped to teams whose members are in this conversation. General docs
@@ -377,6 +381,10 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
       content: `⚠️ PM error: ${message}`
     })
     emit({ type: 'message_end', conversationId, messageId })
+    notifyIfBackground({
+      title: `Group "${conversationTitle}" hit an error`,
+      body: message.length > 140 ? `${message.slice(0, 137)}…` : message
+    })
     return
   }
 
@@ -404,6 +412,11 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
         status: 'completed'
       })
       await mirrorActivePlan()
+      const summary = final.plan.summary
+      notifyIfBackground({
+        title: `Group "${conversationTitle}" finished`,
+        body: summary.length > 140 ? `${summary.slice(0, 137)}…` : summary
+      })
     }
   }
 }

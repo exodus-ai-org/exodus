@@ -119,6 +119,15 @@ export type PhilharmonicSseEvent =
       options: string[]
     }
   | { type: 'conversation_error'; conversationId: string; error: string }
+  | {
+      type: 'delegation_retry'
+      conversationId: string
+      taskId: string
+      agentId: string
+      attempt: number
+      delayMs: number
+      error: string
+    }
   | { type: 'plan_created'; conversationId: string; plan: PlanDto }
   | {
       type: 'plan_step_updated'
