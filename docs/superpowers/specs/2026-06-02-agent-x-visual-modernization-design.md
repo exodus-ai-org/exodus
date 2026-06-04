@@ -1,42 +1,88 @@
-# AgentX Visual Modernization — Design Spec
+# Philharmonic (née AgentX) Visual Modernization — Design Spec
 
 **Date:** 2026-06-02
 **Status:** Approved, pending plan
-**Scope:** AgentX feature surface only (chat / workforce / knowledge / dashboard + drawers, dialogs, empty states). Rest of Exodus untouched.
+**Scope:** Philharmonic feature surface only (chat / workforce / knowledge / dashboard + drawers, dialogs, empty states). Rest of Exodus untouched.
+
+> **Brand rename:** As part of this work, the feature formerly named **AgentX** is renamed to **Philharmonic**. All folders, components, types, stores, services, routes, and user-facing strings move to the new name. See §0.
 
 ## Goal
 
-Bring AgentX's visual language to a modern desktop-app standard inspired by a TweetDeck/Perch-style layered card aesthetic, while keeping Exodus's existing brand identity (green primary) and AgentX's existing information architecture (page-switching, not user-configurable columns). The result should feel airy, colorful in the right places, and motion-aware — without re-skinning the rest of the application.
+Bring Philharmonic's visual language to a modern desktop-app standard inspired by a TweetDeck/Perch-style layered card aesthetic, while keeping Exodus's existing brand identity (green primary) and Philharmonic's existing information architecture (page-switching, not user-configurable columns). The result should feel airy, colorful in the right places, and motion-aware — without re-skinning the rest of the application.
 
 ## Non-goals
 
-- Restructuring AgentX's IA (no Perch-style configurable columns).
-- Re-skinning Exodus outside AgentX.
+- Restructuring Philharmonic's IA (no Perch-style configurable columns).
+- Re-skinning Exodus outside Philharmonic.
 - Replacing Dicebear avatars with letter-initial avatars.
 - Adding new product features. Visual + close-range interaction polish only.
 
 ---
 
+## 0. Rename: AgentX → Philharmonic
+
+The rename ships in the same PR as the visual modernization (they share the same blast radius and reviewers).
+
+### Naming map
+
+| Concept                    | Old                               | New                                                      |
+| -------------------------- | --------------------------------- | -------------------------------------------------------- |
+| Brand / product name       | AgentX                            | Philharmonic                                             |
+| Folder slug                | `agent-x`                         | `philharmonic`                                           |
+| Component prefix           | `AgentX*`                         | `Philharmonic*`                                          |
+| Type prefix                | `AgentX*`                         | `Philharmonic*`                                          |
+| Token CSS prefix           | `--ax-*` (planned, never shipped) | `--ph-*`                                                 |
+| Hook prefix (`useAgentX*`) | `useAgentX*`                      | `usePhilharmonic*`                                       |
+| Memory tag literals        | `'agent-x'`                       | `'philharmonic'` (only if any exist; verify during plan) |
+
+### Folder / file moves (renderer)
+
+- `src/renderer/components/agent-x/` → `src/renderer/components/philharmonic/`
+- `src/renderer/layouts/agent-x-layout/` → `src/renderer/layouts/philharmonic-layout/`
+- `src/renderer/containers/agent-x.tsx` → `src/renderer/containers/philharmonic.tsx`
+- `src/renderer/services/agent-x.ts` → `src/renderer/services/philharmonic.ts`
+- `src/renderer/services/agent-x-chat.ts` → `src/renderer/services/philharmonic-chat.ts`
+- `src/renderer/stores/agent-x.ts` → `src/renderer/stores/philharmonic.ts`
+- `src/renderer/stores/agent-x-chat.ts` → `src/renderer/stores/philharmonic-chat.ts`
+
+### Backend, DB, API
+
+- Backend API routes: scan for any `/api/agent-x*`. If any exist, they're renamed to `/api/philharmonic*`. If none exist (current `chat.ts` / `history.ts` are generic), nothing to do.
+- DB tables: this feature shares the generic `chat` / `message` / `agent_*` tables with the rest of Exodus. The `agent` table is _not_ AgentX-specific — it's general agent storage. **Do not rename DB tables.** Rename only renderer-side code and the user-facing brand.
+- The `getAgents` / `getTeams` service names stay as-is (they query the generic agent table). New service module file name uses `philharmonic` for namespace cohesion, but exports keep their existing names so call sites need only update the import path.
+
+### User-facing strings
+
+Every occurrence of "AgentX" / "Agent X" in `.tsx` / `.ts` strings becomes "Philharmonic". Check: page titles, empty-state text, toast messages, route titles, README mentions.
+
+### Out of scope for this rename
+
+- Git history rewriting (commits keep saying `agent-x`)
+- `CLAUDE.md` is updated to mention the new name in a separate small commit after the rename lands
+- Renaming Exodus product-level concepts outside the feature (e.g. the generic `agent` table)
+
+---
+
 ## 1. Design tokens
 
-A new AgentX-scoped token layer sits on top of the existing shadcn theme. Tokens are CSS custom properties under the `--ax-*` prefix, defined in `globals.css` inside the existing `:root` and `.dark` blocks. Components consume them via Tailwind arbitrary values (`bg-[var(--ax-surface)]`) so light/dark switches automatically with the existing `.dark` class.
+A new Philharmonic-scoped token layer sits on top of the existing shadcn theme. Tokens are CSS custom properties under the `--ph-*` prefix, defined in `globals.css` inside the existing `:root` and `.dark` blocks. Components consume them via Tailwind arbitrary values (`bg-[var(--ph-surface)]`) so light/dark switches automatically with the existing `.dark` class.
 
 ### Color tokens
 
 | Token                 | Light                  | Dark                       | Purpose                                                               |
 | --------------------- | ---------------------- | -------------------------- | --------------------------------------------------------------------- |
-| `--ax-canvas`         | `#F5F3F0` (warm grey)  | `#15171C` (cool deep grey) | Outer page background under the cards                                 |
-| `--ax-surface`        | `#FFFFFF`              | `#1D2027`                  | Card background (the three main columns and major content cards)      |
-| `--ax-surface-sunken` | `#FBFAF7`              | `#23262E`                  | Sub-cards inside a surface (employee cards, KPI cards, composer band) |
-| `--ax-border`         | `#F0EEE9`              | `#2A2E37`                  | Subtle dividers; never used as the primary edge — shadow does that    |
-| `--ax-text`           | `oklch(0.16 0.02 160)` | `#E6E8EC`                  | Primary text                                                          |
-| `--ax-text-muted`     | `#888888`              | `#7D838F`                  | Secondary text                                                        |
-| `--ax-primary`        | `oklch(0.52 0.17 160)` | `oklch(0.55 0.17 160)`     | Exodus green — actions, active state, send button, FAB-equivalents    |
-| `--ax-primary-soft`   | `oklch(0.92 0.04 160)` | `oklch(0.30 0.08 160)`     | Soft chips, active item background at ~12% saturation                 |
-| `--ax-primary-faint`  | `oklch(0.97 0.02 160)` | `oklch(0.22 0.05 160)`     | Subtlest tint (active conversation row 6%)                            |
-| `--ax-success`        | `#10B981`              | `#10B981`                  | Idle status dot                                                       |
-| `--ax-warning`        | `#F59E0B`              | `#F59E0B`                  | Busy status dot                                                       |
-| `--ax-danger`         | `oklch(0.58 0.25 27)`  | `oklch(0.62 0.25 27)`      | Destructive button                                                    |
+| `--ph-canvas`         | `#F5F3F0` (warm grey)  | `#15171C` (cool deep grey) | Outer page background under the cards                                 |
+| `--ph-surface`        | `#FFFFFF`              | `#1D2027`                  | Card background (the three main columns and major content cards)      |
+| `--ph-surface-sunken` | `#FBFAF7`              | `#23262E`                  | Sub-cards inside a surface (employee cards, KPI cards, composer band) |
+| `--ph-border`         | `#F0EEE9`              | `#2A2E37`                  | Subtle dividers; never used as the primary edge — shadow does that    |
+| `--ph-text`           | `oklch(0.16 0.02 160)` | `#E6E8EC`                  | Primary text                                                          |
+| `--ph-text-muted`     | `#888888`              | `#7D838F`                  | Secondary text                                                        |
+| `--ph-primary`        | `oklch(0.52 0.17 160)` | `oklch(0.55 0.17 160)`     | Exodus green — actions, active state, send button, FAB-equivalents    |
+| `--ph-primary-soft`   | `oklch(0.92 0.04 160)` | `oklch(0.30 0.08 160)`     | Soft chips, active item background at ~12% saturation                 |
+| `--ph-primary-faint`  | `oklch(0.97 0.02 160)` | `oklch(0.22 0.05 160)`     | Subtlest tint (active conversation row 6%)                            |
+| `--ph-success`        | `#10B981`              | `#10B981`                  | Idle status dot                                                       |
+| `--ph-warning`        | `#F59E0B`              | `#F59E0B`                  | Busy status dot                                                       |
+| `--ph-danger`         | `oklch(0.58 0.25 27)`  | `oklch(0.62 0.25 27)`      | Destructive button                                                    |
 
 ### Avatar hue palette (8 colors)
 
@@ -51,27 +97,27 @@ A new AgentX-scoped token layer sits on top of the existing shadcn theme. Tokens
 | Periwinkle | `#D7E4FF`  | `#8AA8FF`  | `#252E48` | `#5A75B5` |
 | Sage       | `#D5F3D1`  | `#6FC76F`  | `#1F3D1F` | `#3E783E` |
 
-A pure-function `pickHue(seed: string): HueName` derives the hue from the employee ID/seed via a stable hash. Token names: `--ax-hue-{name}-fill` and `--ax-hue-{name}-ring`. Components read the resolved token via inline `style` since Tailwind can't dynamically interpolate the name.
+A pure-function `pickHue(seed: string): HueName` derives the hue from the employee ID/seed via a stable hash. Token names: `--ph-hue-{name}-fill` and `--ph-hue-{name}-ring`. Components read the resolved token via inline `style` since Tailwind can't dynamically interpolate the name.
 
-### Radius scale (AgentX-scoped, not overriding the global shadcn `--radius`)
+### Radius scale (Philharmonic-scoped, not overriding the global shadcn `--radius`)
 
 | Token              | Value   | Use                                               |
 | ------------------ | ------- | ------------------------------------------------- |
-| `--ax-radius-sm`   | `8px`   | Inline pills, badges, small icon containers       |
-| `--ax-radius-md`   | `10px`  | Buttons, inputs, sub-card icon container          |
-| `--ax-radius-lg`   | `14px`  | Sub-cards (employee, KPI, doc)                    |
-| `--ax-radius-xl`   | `16px`  | Main column cards                                 |
-| `--ax-radius-2xl`  | `20px`  | Drawer left edge, dialogs                         |
-| `--ax-radius-full` | `999px` | Status dots, day separators, count chips, avatars |
+| `--ph-radius-sm`   | `8px`   | Inline pills, badges, small icon containers       |
+| `--ph-radius-md`   | `10px`  | Buttons, inputs, sub-card icon container          |
+| `--ph-radius-lg`   | `14px`  | Sub-cards (employee, KPI, doc)                    |
+| `--ph-radius-xl`   | `16px`  | Main column cards                                 |
+| `--ph-radius-2xl`  | `20px`  | Drawer left edge, dialogs                         |
+| `--ph-radius-full` | `999px` | Status dots, day separators, count chips, avatars |
 
 ### Shadow scale
 
 ```
---ax-shadow-card:  0 1px 2px rgba(20,20,30,.04), 0 6px 18px rgba(20,20,30,.05);  /* light */
---ax-shadow-card:  0 1px 2px rgba(0,0,0,.30),    0 6px 18px rgba(0,0,0,.25);     /* dark */
---ax-shadow-drawer: 0 0 0 1px rgba(0,0,0,.04), -16px 0 40px rgba(0,0,0,.08);     /* light */
---ax-shadow-drawer: 0 0 0 1px rgba(255,255,255,.04), -16px 0 40px rgba(0,0,0,.55); /* dark */
---ax-shadow-hover:  0 2px 4px rgba(0,0,0,.05),  0 10px 24px rgba(0,0,0,.07);     /* both: stronger but same shape */
+--ph-shadow-card:  0 1px 2px rgba(20,20,30,.04), 0 6px 18px rgba(20,20,30,.05);  /* light */
+--ph-shadow-card:  0 1px 2px rgba(0,0,0,.30),    0 6px 18px rgba(0,0,0,.25);     /* dark */
+--ph-shadow-drawer: 0 0 0 1px rgba(0,0,0,.04), -16px 0 40px rgba(0,0,0,.08);     /* light */
+--ph-shadow-drawer: 0 0 0 1px rgba(255,255,255,.04), -16px 0 40px rgba(0,0,0,.55); /* dark */
+--ph-shadow-hover:  0 2px 4px rgba(0,0,0,.05),  0 10px 24px rgba(0,0,0,.07);     /* both: stronger but same shape */
 ```
 
 No global border tokens for cards — the visual edge comes from shadow + canvas contrast. Borders are reserved for hover/focus rings and for low-prominence subdividers inside cards.
@@ -83,10 +129,10 @@ No global border tokens for cards — the visual edge comes from shadow + canvas
 Outer container changes from edge-to-edge grid with `border-r` / `border-l` dividers to a **floating-cards-on-canvas** layout:
 
 ```
-┌──────────────────────────────────────── ax-canvas ────────────────────────────────────────┐
+┌──────────────────────────────────────── ph-canvas ────────────────────────────────────────┐
 │  ┌──────────────┐  ┌────────────────────────────────┐  ┌──────────────┐                  │
 │  │              │  │                                │  │              │                  │
-│  │ Conversation │  │           Main page            │  │   Members    │   <- ax-surface  │
+│  │ Conversation │  │           Main page            │  │   Members    │   <- ph-surface  │
 │  │     list     │  │   (chat / workforce / kb /     │  │   (chat      │      cards       │
 │  │              │  │       dashboard)               │  │   only)      │                  │
 │  │              │  │                                │  │              │                  │
@@ -99,8 +145,8 @@ Outer container changes from edge-to-edge grid with `border-r` / `border-l` divi
 - Outer canvas padding: `10px` (windowed) / `12px` (macOS fullscreen — derive from `useIsFullscreen`)
 - Inter-column gap: `10px`
 - Column widths: `260px / 1fr / 260px` (unchanged)
-- Each card is `border-radius: var(--ax-radius-xl)` with `box-shadow: var(--ax-shadow-card)`
-- No borders on the cards. Hover/focus uses an inset 1px ring in `--ax-primary-soft`.
+- Each card is `border-radius: var(--ph-radius-xl)` with `box-shadow: var(--ph-shadow-card)`
+- No borders on the cards. Hover/focus uses an inset 1px ring in `--ph-primary-soft`.
 
 **Member column visibility** stays conditional on `activePage === 'chat' && activeConv != null`. Mount/unmount animates: width `0 → 260px` plus `opacity 0 → 1` over `180ms ease-out`.
 
@@ -114,29 +160,29 @@ Changes inside the single card; the IA from the recent refactor (config nav embe
 
 **Header** (52px sticky)
 
-- Left: title "Groups" + count chip (`--ax-primary-soft` background, `--ax-radius-full`)
-- Right: solid primary-filled `+` button, 30×30, `--ax-radius-md` — replaces the current ghost icon button to give the CTA real prominence
-- Bottom divider: 1px `--ax-border`
+- Left: title "Groups" + count chip (`--ph-primary-soft` background, `--ph-radius-full`)
+- Right: solid primary-filled `+` button, 30×30, `--ph-radius-md` — replaces the current ghost icon button to give the CTA real prominence
+- Bottom divider: 1px `--ph-border`
 
 **Search** (below header, padding `10px 14px`)
 
-- Input height 34, `--ax-radius-md`, background `--ax-canvas` when unfocused; on focus → `--ax-surface` background plus 3px ring in `--ax-primary-soft`
+- Input height 34, `--ph-radius-md`, background `--ph-canvas` when unfocused; on focus → `--ph-surface` background plus 3px ring in `--ph-primary-soft`
 - Inline search icon at left
 
 **List item**
 
-- Padding `10px`, gap `10px`, `--ax-radius-md` container
+- Padding `10px`, gap `10px`, `--ph-radius-md` container
 - Avatar 40×40 circular, filled with the conversation's stable hue (derived from conversation ID hash), inset 1.5px ring at the matching `-ring` color
 - Right of avatar: title row (`13.5px / 600`) + smart-time stamp (10px muted); preview row (12px) below
-- Active state: background `--ax-primary-faint` (~6% opacity primary), no border
-- Hover: subtle background shift (`--ax-canvas`)
+- Active state: background `--ph-primary-faint` (~6% opacity primary), no border
+- Hover: subtle background shift (`--ph-canvas`)
 - Right-click `ContextMenu` (Delete) preserved as-is, only the menu container picks up the new radius/padding
 
 **Config nav** (replaces the current vertical button stack)
 
 - Single row segmented pill at the bottom of the card, above the back-to-chat row
-- Active item: full-width-share of the pill, shows icon + label, background `--ax-primary-soft`
-- Inactive items: square icon-only buttons, 36×36, `--ax-radius-md`
+- Active item: full-width-share of the pill, shows icon + label, background `--ph-primary-soft`
+- Inactive items: square icon-only buttons, 36×36, `--ph-radius-md`
 - Clicking an inactive item promotes it (expands to icon+label, demotes the previous active to icon-only). Spring 200ms.
 - This recovers two rows of vertical space versus today's three vertically-stacked buttons.
 
@@ -154,10 +200,10 @@ Changes inside the single card; the IA from the recent refactor (config nav embe
 
 ### Chat header (56px sticky inside chat card)
 
-- Left cluster: **stacked avatars** (up to 3 actual member avatars, then a `+N` filled-grey chip), each with white `box-shadow: 0 0 0 2px var(--ax-surface)` to create the overlap-with-gap effect
+- Left cluster: **stacked avatars** (up to 3 actual member avatars, then a `+N` filled-grey chip), each with white `box-shadow: 0 0 0 2px var(--ph-surface)` to create the overlap-with-gap effect
 - Title (`15px / 600`) and a secondary line "5 members · Team Name" (`11.5px muted`)
-- Right: an overflow `⋯` button (`--ax-radius-md`, `--ax-canvas` background) that hosts secondary actions
-- Editable title behavior is preserved (click → inline input). The inline input adopts the new input styling (`--ax-surface-sunken` background, `--ax-radius-md`, primary-soft focus ring).
+- Right: an overflow `⋯` button (`--ph-radius-md`, `--ph-canvas` background) that hosts secondary actions
+- Editable title behavior is preserved (click → inline input). The inline input adopts the new input styling (`--ph-surface-sunken` background, `--ph-radius-md`, primary-soft focus ring).
 
 ### Messages area
 
@@ -165,7 +211,7 @@ Layout: vertical flow, 18px padding, 14px gap between bubbles. New message enter
 
 **Day separator**
 
-- Centered pill, 11px label, `--ax-canvas` background, `--ax-radius-full`. Text via `formatDayLabel` (existing).
+- Centered pill, 11px label, `--ph-canvas` background, `--ph-radius-full`. Text via `formatDayLabel` (existing).
 
 **System bubble**
 
@@ -175,41 +221,41 @@ Layout: vertical flow, 18px padding, 14px gap between bubbles. New message enter
 
 - Row layout: 36×36 avatar (Dicebear inside the hue ring) + body
 - Header line: name + middot + time, 11.5px muted
-- Body: rounded-corner asymmetric bubble — `border-radius: 6px var(--ax-radius-xl) var(--ax-radius-xl) var(--ax-radius-xl)` to indicate it grows out of the avatar side
-- Bubble background: `--ax-canvas`, padding `10px 14px`, text 14px line-height 1.55
+- Body: rounded-corner asymmetric bubble — `border-radius: 6px var(--ph-radius-xl) var(--ph-radius-xl) var(--ph-radius-xl)` to indicate it grows out of the avatar side
+- Bubble background: `--ph-canvas`, padding `10px 14px`, text 14px line-height 1.55
 - Markdown rendering inside is unchanged
 
 **PM bubble**
 
-- Same layout as employee, but the avatar is a 36×36 circle filled with `--ax-primary`, white "PM" text, with a double-ring: 2px `--ax-surface` outer + 1px `--ax-primary-soft` inside the outer
+- Same layout as employee, but the avatar is a 36×36 circle filled with `--ph-primary`, white "PM" text, with a double-ring: 2px `--ph-surface` outer + 1px `--ph-primary-soft` inside the outer
 - Bubble body same as employee
 
 **User bubble** (right side, `flex-row-reverse`)
 
-- Avatar 36×36, `--ax-primary-soft` background, primary-dark "You" text
-- Bubble background: `--ax-primary` filled, white text
-- Asymmetric radius reversed: `var(--ax-radius-xl) 6px var(--ax-radius-xl) var(--ax-radius-xl)`
+- Avatar 36×36, `--ph-primary-soft` background, primary-dark "You" text
+- Bubble background: `--ph-primary` filled, white text
+- Asymmetric radius reversed: `var(--ph-radius-xl) 6px var(--ph-radius-xl) var(--ph-radius-xl)`
 - Header line aligned right
 
 **Tool card** (replaces inline tool badge inside employee bubble)
 
 - Sits in the same slot as an employee bubble body
-- White `--ax-surface` background, 1px `--ax-border`, `--ax-radius-lg` asymmetric (same as employee bubble)
-- Left cluster: 24×24 icon container in `--ax-primary-soft`, primary-dark wrench/tool icon
+- White `--ph-surface` background, 1px `--ph-border`, `--ph-radius-lg` asymmetric (same as employee bubble)
+- Left cluster: 24×24 icon container in `--ph-primary-soft`, primary-dark wrench/tool icon
 - Center: tool name (12.5px / 600) + truncated input args (11px muted)
-- Right: phase indicator — `running` → 14×14 spinner with primary top stroke; `end` → check icon in `--ax-primary`
+- Right: phase indicator — `running` → 14×14 spinner with primary top stroke; `end` → check icon in `--ph-primary`
 - Phase transition uses motion crossfade (§8)
 
 ### Composer (bottom of chat card, not floating)
 
-- Wrapped in a band with `--ax-surface-sunken` background, top divider, padding `12px 16px 14px`
-- Inner input region: `--ax-surface` background, 1px `--ax-border`, `--ax-radius-xl`, padding `8px 8px 8px 14px`
+- Wrapped in a band with `--ph-surface-sunken` background, top divider, padding `12px 16px 14px`
+- Inner input region: `--ph-surface` background, 1px `--ph-border`, `--ph-radius-xl`, padding `8px 8px 8px 14px`
 - Textarea: `min-h 36, max-h 192`, no border, transparent background, font 14
-- Focus: input region's border becomes `--ax-primary`, plus 3px outer ring in `--ax-primary-soft`. Transition 140ms.
+- Focus: input region's border becomes `--ph-primary`, plus 3px outer ring in `--ph-primary-soft`. Transition 140ms.
 - Right-aligned action row inside the input region:
-  - Attachment button: 34×34, `--ax-radius-md`, `--ax-canvas` background, paperclip icon (placeholder for future attachment work — not wired now, ships as decorative button that opens a "Coming soon" toast, OR omitted entirely if we want to ship lean — see open question §11)
-  - Send button: 34×34, `--ax-radius-md`, `--ax-primary` filled, white send icon; disabled state: `--ax-canvas` background, muted icon, cursor not-allowed
-- Hint line under the input region: 10.5px muted with `Enter` / `Shift+Enter` kbd chips on `--ax-canvas` background
+  - Attachment button: 34×34, `--ph-radius-md`, `--ph-canvas` background, paperclip icon (placeholder for future attachment work — not wired now, ships as decorative button that opens a "Coming soon" toast, OR omitted entirely if we want to ship lean — see open question §11)
+  - Send button: 34×34, `--ph-radius-md`, `--ph-primary` filled, white send icon; disabled state: `--ph-canvas` background, muted icon, cursor not-allowed
+- Hint line under the input region: 10.5px muted with `Enter` / `Shift+Enter` kbd chips on `--ph-canvas` background
 
 ---
 
@@ -218,7 +264,7 @@ Layout: vertical flow, 18px padding, 14px gap between bubbles. New message enter
 ### Header (52px sticky)
 
 - Left: "Members" title + count chip
-- Right: a compact status summary — two dot-pills like `● 3 idle  ● 2 busy` in 10.5px muted text, dots in `--ax-success` / `--ax-warning`
+- Right: a compact status summary — two dot-pills like `● 3 idle  ● 2 busy` in 10.5px muted text, dots in `--ph-success` / `--ph-warning`
 
 ### Body — grouped by team
 
@@ -235,13 +281,13 @@ Each group:
 
 Member row:
 
-- Padding `8px`, gap `10px`, `--ax-radius-md`
-- Background: `--ax-surface-sunken` when the member is busy; transparent otherwise
+- Padding `8px`, gap `10px`, `--ph-radius-md`
+- Background: `--ph-surface-sunken` when the member is busy; transparent otherwise
 - Avatar 36×36 in its assigned hue ring (Dicebear inside). For PM: primary-filled circle with PM text and primary-darker inset ring
-- **Status dot** absolutely positioned at avatar bottom-right, 11×11, with a 2px ring matching the row's background (transparent → `--ax-surface`, busy → `--ax-surface-sunken`) so it looks embedded in the avatar regardless of busy state
+- **Status dot** absolutely positioned at avatar bottom-right, 11×11, with a 2px ring matching the row's background (transparent → `--ph-surface`, busy → `--ph-surface-sunken`) so it looks embedded in the avatar regardless of busy state
 - Right of avatar: name (13.5px) + secondary line
   - Idle: `{team name} · idle` (12.5px muted)
-  - Busy: current action text (e.g., `running web_search…`) in `--ax-warning` color
+  - Busy: current action text (e.g., `running web_search…`) in `--ph-warning` color
 - Busy dot animation: opacity `0.5 ↔ 1` loop 1.6s
 
 ### Empty state
@@ -256,40 +302,40 @@ Three stacked colorful avatar circles + "The PM will recruit teammates as needed
 
 - Title block: "Workforce" + summary line "{N} employees · {M} teams"
 - Right action cluster (right-aligned, 6px gap between buttons):
-  - `+ Team` — secondary button, `--ax-canvas` background, `--ax-radius-md`
-  - `+ Employee` — primary filled, `--ax-primary` background, white text
+  - `+ Team` — secondary button, `--ph-canvas` background, `--ph-radius-md`
+  - `+ Employee` — primary filled, `--ph-primary` background, white text
 - These two replace the current ambiguous mix of plus-icon affordances and provide a clear primary CTA. (A `Sort` control was considered but cut from this redesign — adding a new feature is out of scope.)
 
 ### Team section
 
-- Header: chevron (rotates 90° when expanded), team icon in a 32×32 `--ax-radius-md` container filled with the team's hue-soft color, team name (15px / 600), count chip, optional description (12px muted, truncated)
+- Header: chevron (rotates 90° when expanded), team icon in a 32×32 `--ph-radius-md` container filled with the team's hue-soft color, team name (15px / 600), count chip, optional description (12px muted, truncated)
 - Right-click `ContextMenu` preserved (Edit team / Add employee here / Delete team)
 
 ### Employee card
 
-- Card: `--ax-surface-sunken` background, `--ax-radius-lg`, padding `14px`, gap `12px`, flex row
+- Card: `--ph-surface-sunken` background, `--ph-radius-lg`, padding `14px`, gap `12px`, flex row
 - Avatar 44×44 in assigned hue ring (Dicebear inside)
 - Body:
   - Name (13.5px / 600)
   - Description (11.5px muted, two-line max)
-  - **Bottom chip row**: model name chip in `--ax-primary-soft` + up to two tool/skill chips in `--ax-canvas` background. Chips are `--ax-radius-sm`, 10px text, 2px 6px padding. Overflow becomes `+N more` chip.
-- Hover: shadow rises to `--ax-shadow-hover`, `translateY(-1px)`, 140ms
+  - **Bottom chip row**: model name chip in `--ph-primary-soft` + up to two tool/skill chips in `--ph-canvas` background. Chips are `--ph-radius-sm`, 10px text, 2px 6px padding. Overflow becomes `+N more` chip.
+- Hover: shadow rises to `--ph-shadow-hover`, `translateY(-1px)`, 140ms
 - Right-click `ContextMenu` preserved (Edit / Delete)
 
 ### Add-employee placeholder card
 
 Last item in each team's grid, sized like an employee card:
 
-- `--ax-radius-lg`, 1.5px dashed `--ax-border`
+- `--ph-radius-lg`, 1.5px dashed `--ph-border`
 - Centered "`+ Add employee`" text, muted
-- Hover: dashed border becomes solid `--ax-primary`, text becomes `--ax-primary`
+- Hover: dashed border becomes solid `--ph-primary`, text becomes `--ph-primary`
 - Click → calls `openNewEmployee(team.id)` exactly like the current Add button
 
 ### Unassigned section
 
 - Only visible if there's at least one unassigned employee
 - Defaults to collapsed
-- Header uses a neutral grey (`--ax-canvas`) icon container instead of a hue color, and the label is muted
+- Header uses a neutral grey (`--ph-canvas`) icon container instead of a hue color, and the label is muted
 
 ---
 
@@ -308,18 +354,18 @@ Last item in each team's grid, sized like an employee card:
 
 Each doc is a sub-card:
 
-- `--ax-surface-sunken` background, `--ax-radius-lg`, padding `14px`, gap `12px`
-- Left: file-type icon container 36×36, `--ax-radius-md`, hue-filled background based on file kind (Markdown=Lilac, PDF=Peach, Text=Sky, JSON=Honey, default=Sage)
+- `--ph-surface-sunken` background, `--ph-radius-lg`, padding `14px`, gap `12px`
+- Left: file-type icon container 36×36, `--ph-radius-md`, hue-filled background based on file kind (Markdown=Lilac, PDF=Peach, Text=Sky, JSON=Honey, default=Sage)
 - Right: title (13.5px / 600) + time stamp top-right (10.5px muted) + 2-line content preview (12px muted)
 - Hover: same as employee card
-- Trash button: hover-revealed `--ax-radius-sm` ghost button in the top right corner, replacing the current always-visible one
+- Trash button: hover-revealed `--ph-radius-sm` ghost button in the top right corner, replacing the current always-visible one
 
 ### New-document editor (right, 320px)
 
-- Sub-card with `--ax-surface-sunken` background
+- Sub-card with `--ph-surface-sunken` background
 - "NEW DOCUMENT" uppercase 11px label
-- Title input: `--ax-surface` background, `--ax-border`, `--ax-radius-md`, padding `8px 12px`
-- Body textarea: same surface treatment, `min-h 140`, `--ax-radius-md`
+- Title input: `--ph-surface` background, `--ph-border`, `--ph-radius-md`, padding `8px 12px`
+- Body textarea: same surface treatment, `min-h 140`, `--ph-radius-md`
 - Primary submit button full-width: "+ Add document", disabled when fields empty
 
 ---
@@ -330,8 +376,8 @@ Each doc is a sub-card:
 
 - Title "Dashboard" + secondary line "Last {period}"
 - Right: **segmented control** with three options (`7d / 30d / All`)
-  - `--ax-canvas` outer container, `--ax-radius-md`, padding 3px
-  - Active option: `--ax-surface` background + shadow `0 1px 2px rgba(0,0,0,.04)`, `--ax-radius-sm`
+  - `--ph-canvas` outer container, `--ph-radius-md`, padding 3px
+  - Active option: `--ph-surface` background + shadow `0 1px 2px rgba(0,0,0,.04)`, `--ph-radius-sm`
   - Inactive options: transparent, muted text
   - Selecting animates the active block sliding (spring 200ms)
 
@@ -339,24 +385,24 @@ Each doc is a sub-card:
 
 Each card:
 
-- `--ax-surface-sunken`, `--ax-radius-lg`, padding `14px`
+- `--ph-surface-sunken`, `--ph-radius-lg`, padding `14px`
 - Top row: small muted label (11.5px) + 28×28 icon container in a fixed hue (Primary / Lilac / Sky / Peach in order to create deliberate color rhythm)
 - Big number (22px / 700)
-- Tiny secondary line: either a trend indicator (`↗ 12.4%` in `--ax-success`, `↘ X%` in `--ax-danger`) or a breakdown (`6 active · 2 idle`)
+- Tiny secondary line: either a trend indicator (`↗ 12.4%` in `--ph-success`, `↘ X%` in `--ph-danger`) or a breakdown (`6 active · 2 idle`)
 
 ### Chart card
 
-- `--ax-surface-sunken`, `--ax-radius-lg`, padding `16px`
+- `--ph-surface-sunken`, `--ph-radius-lg`, padding `16px`
 - Header line: title + legend dots
 - Recharts:
-  - Single-series area: `stroke=var(--ax-primary)`, fill via a linearGradient from `var(--ax-primary)` at 0.4 opacity down to 0
+  - Single-series area: `stroke=var(--ph-primary)`, fill via a linearGradient from `var(--ph-primary)` at 0.4 opacity down to 0
   - Multi-series (per agent or per day): colors picked from the 8 hue ring colors in order, allowing wraparound. Implement via a `chartHueOrder` constant.
-  - Grid: very faint `--ax-border`
-  - Tooltip: `--ax-surface` card, `--ax-shadow-card`, `--ax-radius-md`, 12px text
+  - Grid: very faint `--ph-border`
+  - Tooltip: `--ph-surface` card, `--ph-shadow-card`, `--ph-radius-md`, 12px text
 
 ### "Cost by Employee" table
 
-- Rows are sub-cards with `--ax-surface-sunken` and `--ax-radius-lg`, separated by 4px gap rather than the current row-line table
+- Rows are sub-cards with `--ph-surface-sunken` and `--ph-radius-lg`, separated by 4px gap rather than the current row-line table
 - Each row: small hue-ringed avatar + name + right-aligned cost (`tabular-nums`)
 - Sort indicator preserved as today
 
@@ -368,17 +414,17 @@ Each card:
 
 - Width 520px
 - Slides in from right edge
-- Background: `--ax-surface`
-- Left edge corners rounded: `border-radius: var(--ax-radius-2xl) 0 0 var(--ax-radius-2xl)`
-- Shadow: `--ax-shadow-drawer`
+- Background: `--ph-surface`
+- Left edge corners rounded: `border-radius: var(--ph-radius-2xl) 0 0 var(--ph-radius-2xl)`
+- Shadow: `--ph-shadow-drawer`
 - Backdrop: a translucent overlay derived from canvas hue at 60% alpha in light, and a translucent `#000` at 60% in dark — softer than the current default dialog black
 
 ### Drawer header (58px, sticky)
 
 - Left: tiny uppercase context label ("EMPLOYEE" / "TEAM") + name (15px / 600)
 - Right: action cluster
-  - **Cancel** button (`--ax-canvas` background, `--ax-radius-md`)
-  - **Save** button (`--ax-primary` filled, white text). Disabled state: muted background, muted text.
+  - **Cancel** button (`--ph-canvas` background, `--ph-radius-md`)
+  - **Save** button (`--ph-primary` filled, white text). Disabled state: muted background, muted text.
 - These move from the bottom (where they live today on some sheets) into the header so they remain reachable when the body scrolls — long forms (system prompt, skills, MCP servers) need this.
 
 ### Drawer body
@@ -387,7 +433,7 @@ Each card:
 - Form fields use a consistent rhythm:
   - Uppercase muted 11px label
   - 4px gap
-  - Input: `--ax-surface-sunken` background, 1px `--ax-border`, `--ax-radius-md`, padding `9px 12px`, text 13.5px
+  - Input: `--ph-surface-sunken` background, 1px `--ph-border`, `--ph-radius-md`, padding `9px 12px`, text 13.5px
 - Avatar row at top: 64×64 avatar in its assigned hue ring (Dicebear inside) + a small 24×24 white floating button at bottom-right with a pencil icon, triggers the AvatarPicker popover
 - Two-up rows for `Team` + `Model` selects (grid-cols-2 gap-12px)
 - Long-form fields (system prompt) get `min-h 90` and `line-height 1.55`
@@ -397,7 +443,7 @@ Each card:
 - Popover anchored to the pencil button, opens upward when there's room
 - Two sections inside:
   1. **Hue** — 8 color circles in a single row, current one shown with a primary check mark
-  2. **Style** — grid of Dicebear style thumbnails (each rendered with a stable preview seed), current one boxed with `--ax-primary` ring
+  2. **Style** — grid of Dicebear style thumbnails (each rendered with a stable preview seed), current one boxed with `--ph-primary` ring
 - Footer: "Randomize" button (primary ghost) — fills both with random picks
 
 ---
@@ -406,7 +452,7 @@ Each card:
 
 ### Empty state component
 
-A single shared component `<AgentXEmptyState>` with props `{ avatars, title, description, action }`. Used everywhere a content area has nothing in it.
+A single shared component `<PhilharmonicEmptyState>` with props `{ avatars, title, description, action }`. Used everywhere a content area has nothing in it.
 
 - Card padding `48px 24px`, centered text
 - `avatars` is an array of `{ hue, content }` rendered as 3 overlapping circles with a slight rotation (`-8deg / 0 / +8deg`), the middle one slightly larger (56) than the outer two (48)
@@ -423,13 +469,13 @@ Usage:
 
 ### AlertDialog
 
-- Container: `--ax-surface`, `--ax-radius-2xl`, `--ax-shadow-card`
+- Container: `--ph-surface`, `--ph-radius-2xl`, `--ph-shadow-card`
 - Backdrop: translucent overlay derived from canvas at 60% alpha (not pure black)
 - Title 15px / 600, description 13px muted
-- The deleted object's name is rendered as a monospace chip with `--ax-canvas` background + `--ax-radius-sm` to prevent long titles from breaking the layout
+- The deleted object's name is rendered as a monospace chip with `--ph-canvas` background + `--ph-radius-sm` to prevent long titles from breaking the layout
 - Footer buttons:
-  - Cancel: `--ax-canvas`, `--ax-radius-md`
-  - Delete: `--ax-danger` filled, white text, `--ax-radius-md` — replacing the current red-text-on-outline destructive variant for a clearer destructive affordance
+  - Cancel: `--ph-canvas`, `--ph-radius-md`
+  - Delete: `--ph-danger` filled, white text, `--ph-radius-md` — replacing the current red-text-on-outline destructive variant for a clearer destructive affordance
 
 ---
 
@@ -480,7 +526,7 @@ The same components render correctly in dark by virtue of the token system. Spec
 
 | File                                                                | Change                                                                                       |
 | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `src/renderer/assets/stylesheets/globals.css`                       | Add `--ax-*` token block in `:root` and `.dark`                                              |
+| `src/renderer/assets/stylesheets/globals.css`                       | Add `--ph-*` token block in `:root` and `.dark`                                              |
 | `src/renderer/components/agent-x/lib/hue.ts` _(new)_                | `pickHue(seed)`, `ax.motion` tokens, hue→token helpers                                       |
 | `src/renderer/containers/agent-x.tsx`                               | Replace grid with canvas + 3 floating cards + members mount transition                       |
 | `src/renderer/components/agent-x/chat/conversation-list.tsx`        | New header / search / item / config segmented nav / back row                                 |
@@ -495,10 +541,10 @@ The same components render correctly in dark by virtue of the token system. Spec
 | `src/renderer/components/agent-x/employees/avatar-picker.tsx`       | Add hue row, restyle thumbnails                                                              |
 | `src/renderer/components/agent-x/knowledge/knowledge-base-page.tsx` | New header, doc cards with file-type hue, editor card                                        |
 | `src/renderer/components/agent-x/cost-analysis.tsx`                 | Segmented period control, KPI grid, chart palette using hue order                            |
-| `src/renderer/components/agent-x/empty-state.tsx` _(new)_           | Shared `<AgentXEmptyState>`                                                                  |
+| `src/renderer/components/philharmonic/empty-state.tsx` _(new)_      | Shared `<PhilharmonicEmptyState>`                                                            |
 | `src/renderer/components/agent-x/lib/motion.ts` _(new)_             | Motion tokens + reduced-motion helper                                                        |
 
-`AgentXLayout` (`src/renderer/layouts/agent-x-layout/index.tsx`) is unchanged — the canvas styling lives inside `AgentXContainer`.
+`PhilharmonicLayout` (`src/renderer/layouts/philharmonic-layout/index.tsx`, renamed from `agent-x-layout`) is structurally unchanged — the canvas styling lives inside `PhilharmonicContainer`. The rename touches only the file path and exported component name.
 
 ---
 
@@ -517,7 +563,7 @@ Default to **option 2 (omit)** to keep the design honest — we won't ship affor
 
 - Multi-column user-arranged dashboard (Perch-style)
 - Replacing Dicebear avatars
-- Restructuring AgentX information architecture
-- Modifying Exodus surfaces outside AgentX
+- Restructuring Philharmonic's information architecture
+- Modifying Exodus surfaces outside Philharmonic
 - New product capabilities
 - Attachment flow (see §14)
