@@ -56,6 +56,18 @@ vi.mock('../../db/conversation-queries', () => ({
   getMessagesByConversationId,
   addMemberToConversation: vi.fn(async () => ({ memberAgentIds: ['a1'] }))
 }))
+// Plan tables aren't touched by the smoke test (the LLM stream we feed in
+// doesn't call any plan tool); these stubs short-circuit DB access.
+vi.mock('../../db/plan-queries', () => ({
+  appendStepToPlan: vi.fn(),
+  createPlanWithSteps: vi.fn(),
+  getActivePlanByConversationId: vi.fn(async () => null),
+  updatePlanStatus: vi.fn(),
+  updateStep: vi.fn()
+}))
+vi.mock('./plan-mirror', () => ({
+  writePlanMirror: vi.fn(async () => '/tmp/plan.md')
+}))
 
 function fakeStream(events: unknown[]) {
   return {

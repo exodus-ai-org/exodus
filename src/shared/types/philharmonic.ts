@@ -119,6 +119,68 @@ export type PhilharmonicSseEvent =
       options: string[]
     }
   | { type: 'conversation_error'; conversationId: string; error: string }
+  | { type: 'plan_created'; conversationId: string; plan: PlanDto }
+  | {
+      type: 'plan_step_updated'
+      conversationId: string
+      stepId: string
+      patch: StepPatch
+    }
+  | { type: 'plan_step_appended'; conversationId: string; step: StepDto }
+  | { type: 'plan_status_changed'; conversationId: string; status: PlanStatus }
+
+export const PLAN_STATUSES = [
+  'drafting',
+  'active',
+  'completed',
+  'aborted'
+] as const
+export type PlanStatus = (typeof PLAN_STATUSES)[number]
+
+export const STEP_STATUSES = [
+  'pending',
+  'running',
+  'done',
+  'skipped',
+  'failed'
+] as const
+export type StepStatus = (typeof STEP_STATUSES)[number]
+
+export interface StepDto {
+  id: string
+  planId: string
+  ordinal: number
+  title: string
+  intent: string | null
+  assignedAgentId: string | null
+  status: StepStatus
+  output: string | null
+  note: string | null
+  taskId: string | null
+  startedAt: string | null
+  completedAt: string | null
+}
+
+export interface StepPatch {
+  status?: StepStatus
+  output?: string | null
+  note?: string | null
+  startedAt?: string | null
+  completedAt?: string | null
+  assignedAgentId?: string | null
+  title?: string
+  intent?: string | null
+}
+
+export interface PlanDto {
+  id: string
+  conversationId: string
+  summary: string
+  status: PlanStatus
+  createdAt: string
+  updatedAt: string
+  steps: StepDto[]
+}
 
 export interface AutoRouteResult {
   departmentId: string

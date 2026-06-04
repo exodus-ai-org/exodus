@@ -28,6 +28,17 @@ export function getArtifactsDir(): string {
   return join(getExodusHome(), 'artifacts')
 }
 
+/** Philharmonic Group workspace root, one directory per conversation. */
+export function getGroupsDir(): string {
+  return join(getExodusHome(), 'groups')
+}
+
+export function getGroupDir(conversationId: string): string {
+  const dir = join(getGroupsDir(), conversationId)
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
+  return dir
+}
+
 export function getBackupsDir(): string {
   return join(getExodusHome(), 'backups')
 }

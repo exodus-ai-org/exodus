@@ -1,6 +1,13 @@
 import { BASE_URL } from '@shared/constants/systems'
-import type { PhilharmonicSseEvent } from '@shared/types/philharmonic'
+import type {
+  PhilharmonicSseEvent,
+  PlanDto,
+  StepDto,
+  StepPatch
+} from '@shared/types/philharmonic'
 import { useEffect, useState } from 'react'
+
+import { getActivePlan } from '@/services/philharmonic-chat'
 
 export interface LiveBubble {
   messageId: string
@@ -21,6 +28,21 @@ export interface ConversationStream {
   error: string | null
   /** bumps whenever a message_end / member_joined arrives so the page can refetch */
   revision: number
+  /** Current execution plan, or null if none yet. Live-updated from SSE. */
+  plan: PlanDto | null
+}
+
+function applyStepPatch(step: StepDto, patch: StepPatch): StepDto {
+  return {
+    ...step,
+    ...patch,
+    output: patch.output !== undefined ? patch.output : step.output,
+    note: patch.note !== undefined ? patch.note : step.note,
+    assignedAgentId:
+      patch.assignedAgentId !== undefined
+        ? patch.assignedAgentId
+        : step.assignedAgentId
+  }
 }
 
 export function useConversationStream(
@@ -30,6 +52,26 @@ export function useConversationStream(
   const [askUser, setAskUser] = useState<ConversationStream['askUser']>(null)
   const [error, setError] = useState<string | null>(null)
   const [revision, setRevision] = useState(0)
+  const [plan, setPlan] = useState<PlanDto | null>(null)
+
+  // Pull the current plan on mount / conversation switch so users coming back
+  // to a Group after closing the panel see the latest state. SSE events
+  // continue to mutate `plan` from here on.
+  useEffect(() => {
+    if (!conversationId) {
+      setPlan(null)
+      return
+    }
+    let cancelled = false
+    getActivePlan(conversationId)
+      .then((p) => {
+        if (!cancelled) setPlan(p)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [conversationId])
 
   useEffect(() => {
     if (!conversationId) return
@@ -109,10 +151,33 @@ export function useConversationStream(
         case 'conversation_error':
           setError(evt.error)
           break
+        case 'plan_created':
+          setPlan(evt.plan)
+          break
+        case 'plan_step_updated':
+          setPlan((prev) =>
+            prev
+              ? {
+                  ...prev,
+                  steps: prev.steps.map((s) =>
+                    s.id === evt.stepId ? applyStepPatch(s, evt.patch) : s
+                  )
+                }
+              : prev
+          )
+          break
+        case 'plan_step_appended':
+          setPlan((prev) =>
+            prev ? { ...prev, steps: [...prev.steps, evt.step] } : prev
+          )
+          break
+        case 'plan_status_changed':
+          setPlan((prev) => (prev ? { ...prev, status: evt.status } : prev))
+          break
       }
     }
     return () => source.close()
   }, [conversationId])
 
-  return { bubbles, askUser, error, revision }
+  return { bubbles, askUser, error, revision, plan }
 }

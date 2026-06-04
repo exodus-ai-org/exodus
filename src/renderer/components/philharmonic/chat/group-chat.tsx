@@ -23,6 +23,7 @@ import { EmployeeAvatar } from '../employees/employee-avatar'
 import { PhilharmonicEmptyState } from '../empty-state'
 import { Composer } from './composer'
 import { GroupMessageBubble, type BubbleModel } from './group-message-bubble'
+import { PlanCard } from './plan-card'
 
 type BubbleWithDate = BubbleModel & { createdAt?: string }
 
@@ -47,7 +48,7 @@ export function GroupChat({
 }) {
   const conversationId = conversation.id
   const [history, setHistory] = useState<ConversationMessageData[]>([])
-  const { bubbles, askUser, error, revision } =
+  const { bubbles, askUser, error, revision, plan } =
     useConversationStream(conversationId)
   const [answer, setAnswer] = useState('')
   const [editingTitle, setEditingTitle] = useState(false)
@@ -115,7 +116,7 @@ export function GroupChat({
 
   return (
     <div className="flex h-full flex-col">
-      <header className="flex h-14 shrink-0 items-center justify-between border-b border-[var(--ph-border)] px-4">
+      <header className="flex h-13 shrink-0 items-center justify-between border-b border-[var(--ph-border)] px-4">
         <div className="flex min-w-0 items-center gap-3">
           {visibleMembers.length > 0 ? (
             <div className="flex">
@@ -182,6 +183,11 @@ export function GroupChat({
       </header>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3">
+        {plan && plan.steps.length > 0 && (
+          <div className="mx-auto max-w-2xl">
+            <PlanCard plan={plan} agentsById={agentsById} />
+          </div>
+        )}
         {merged.length === 0 ? (
           <PhilharmonicEmptyState
             avatars={[{ hue: 'lilac' }, { hue: 'mint' }, { hue: 'peach' }]}

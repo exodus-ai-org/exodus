@@ -10,6 +10,13 @@ import {
   getMessagesByConversationId
 } from '../../db/conversation-queries'
 import { createTask, getActiveAgents } from '../../db/philharmonic-queries'
+import {
+  appendStepToPlan,
+  createPlanWithSteps,
+  getActivePlanByConversationId,
+  updatePlanStatus,
+  updateStep
+} from '../../db/plan-queries'
 import { getSettings } from '../../db/queries'
 import { getAllTeams } from '../../db/team-queries'
 import { getModelFromProvider } from '../utils/chat-message-util'
@@ -18,16 +25,30 @@ import { askUserRegistry } from './ask-user-registry'
 import type { SseEmitter } from './employee-loop'
 import { runDelegatedTask } from './execution-engine'
 import { createSearchKnowledgeBaseTool } from './kb-tools'
+import { toPlanDto, toStepDto } from './plan-dto'
+import { writePlanMirror } from './plan-mirror'
+import {
+  createAppendPlanStepTool,
+  createCreatePlanTool,
+  createUpdatePlanStepTool
+} from './plan-tools'
 import { createDelegateTaskTool, createRecruitEmployeeTool } from './pm-tools'
 import { autoCreateEmployee } from './recruit'
 import { computeAllowedTeamIds } from './team-scope'
 
 const PM_SYSTEM_PROMPT = `You are the PM (project manager) of a virtual team working in a group chat.
-Your job, every round:
-1. Understand the user's request.
-2. Decide which employees are needed. If an existing employee fits, delegate to them with delegateTask. If nobody fits, recruitEmployee first, then delegate.
-3. After each employee returns, REVIEW their output against the goal. If it falls short, delegate again with specific corrections, or recruit/replace. This review-and-correct loop is mandatory — never pass along sub-par work.
-4. When everything meets the goal, write ONE final message to the user that summarizes the outcome. Do not call any tool in that final turn.
+
+Plan-first discipline (mandatory):
+1. The FIRST tool call on every new user request MUST be createPlan. Lay out the whole execution as ordered steps with clear titles and intent. Even a one-step plan is fine.
+2. Before each delegation, call updatePlanStep(stepId, status="running").
+3. After each delegation, call updatePlanStep(stepId, status="done", output=<one-paragraph summary>). On failure, use status="failed". If you decide a step is no longer needed, use status="skipped".
+4. If you discover work the original plan missed, call appendPlanStep — don't free-form delegate outside the plan.
+
+Execution loop:
+- Decide which employees are needed. If an existing one fits, delegate via delegateTask with stepId. If nobody fits, recruitEmployee first, then delegate.
+- After each employee returns, REVIEW their output against the step's goal. If it falls short, update the step to "failed" (or "pending" if you want to retry) and either delegate again with corrections, or recruit/replace. Never pass along sub-par work.
+- When every step is done, write ONE final message that summarizes the outcome. Do not call any tool in that final turn.
+
 Use searchKnowledgeBase for company-specific facts before asking the user. Use askUser only when truly blocked.
 Delegate to one employee at a time.`
 
@@ -92,14 +113,120 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
   // (teamId IS NULL) ride along automatically inside the query.
   const allowedTeamIds = await computeAllowedTeamIds(conversationId)
 
+  // Pick up an existing active plan if one is still in flight; PM mutates it
+  // instead of creating a new one. The createPlan tool starts a fresh plan
+  // when the previous one is completed/aborted.
+  let activePlan = await getActivePlanByConversationId(conversationId)
+  if (activePlan && activePlan.plan.status === 'completed') activePlan = null
+
+  // Rewrite the markdown mirror; safe to call after any mutation.
+  const mirrorActivePlan = async () => {
+    const cur = await getActivePlanByConversationId(conversationId)
+    if (cur) await writePlanMirror(conversationId, cur.plan, cur.steps)
+  }
+
   const tools: AgentTool[] = [
+    createCreatePlanTool(async ({ summary, steps }) => {
+      // If the LLM tries to create a plan while one is still active (shouldn't
+      // happen per prompt, but defend), close the old one first.
+      if (activePlan && activePlan.plan.status === 'active') {
+        await updatePlanStatus(activePlan.plan.id, 'aborted')
+        emit({
+          type: 'plan_status_changed',
+          conversationId,
+          status: 'aborted'
+        })
+      }
+      const created = await createPlanWithSteps({
+        conversationId,
+        summary,
+        steps: steps.map((s) => ({
+          title: s.title,
+          intent: s.intent,
+          assignedAgentId: s.assignedAgentId
+        }))
+      })
+      activePlan = created
+      emit({
+        type: 'plan_created',
+        conversationId,
+        plan: toPlanDto(created.plan, created.steps)
+      })
+      await writePlanMirror(conversationId, created.plan, created.steps)
+      return {
+        planId: created.plan.id,
+        steps: created.steps.map((s) => ({
+          id: s.id,
+          title: s.title,
+          ordinal: s.ordinal
+        }))
+      }
+    }),
+    createUpdatePlanStepTool(async ({ stepId, status, output, note }) => {
+      const updated = await updateStep(stepId, {
+        status,
+        output: output ?? undefined,
+        note: note ?? undefined
+      })
+      emit({
+        type: 'plan_step_updated',
+        conversationId,
+        stepId,
+        patch: {
+          status: updated.status,
+          output: updated.output,
+          note: updated.note,
+          startedAt: updated.startedAt ? updated.startedAt.toISOString() : null,
+          completedAt: updated.completedAt
+            ? updated.completedAt.toISOString()
+            : null
+        }
+      })
+      await mirrorActivePlan()
+      return { stepId: updated.id }
+    }),
+    createAppendPlanStepTool(async ({ title, intent, assignedAgentId }) => {
+      const planId = activePlan?.plan.id
+      if (!planId) {
+        throw new Error(
+          'Cannot append step: no active plan. Call createPlan first.'
+        )
+      }
+      const step = await appendStepToPlan(planId, {
+        title,
+        intent,
+        assignedAgentId
+      })
+      emit({
+        type: 'plan_step_appended',
+        conversationId,
+        step: toStepDto(step)
+      })
+      await mirrorActivePlan()
+      return { stepId: step.id, ordinal: step.ordinal }
+    }),
     createDelegateTaskTool(
       employees.map((e) => ({
         id: e.id,
         name: e.name,
         description: e.description
       })),
-      async ({ employeeId, instructions }) => {
+      async ({ employeeId, instructions, stepId }) => {
+        // Bind to a plan step if provided. Mark running before kicking off
+        // the employee loop, done/failed afterwards.
+        if (stepId) {
+          const ran = await updateStep(stepId, { status: 'running' })
+          emit({
+            type: 'plan_step_updated',
+            conversationId,
+            stepId,
+            patch: {
+              status: ran.status,
+              startedAt: ran.startedAt ? ran.startedAt.toISOString() : null
+            }
+          })
+          await mirrorActivePlan()
+        }
         const childTask = await createTask({
           conversationId,
           title: `Delegated: ${instructions.slice(0, 80)}`,
@@ -112,23 +239,52 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
           maxRetries: 1,
           retryCount: 0
         })
-        const output = await runDelegatedTask({
-          taskId: childTask.id,
-          agentId: employeeId,
-          conversationId,
-          instructions,
-          emit,
-          signal
-        })
-        // Persist the employee's final output as a chat bubble.
-        await createConversationMessage({
-          conversationId,
-          role: 'employee',
-          agentId: employeeId,
-          content: output,
-          taskId: childTask.id
-        })
-        return output
+        try {
+          const output = await runDelegatedTask({
+            taskId: childTask.id,
+            agentId: employeeId,
+            conversationId,
+            instructions,
+            emit,
+            signal
+          })
+          // Persist the employee's final output as a chat bubble.
+          await createConversationMessage({
+            conversationId,
+            role: 'employee',
+            agentId: employeeId,
+            content: output,
+            taskId: childTask.id
+          })
+          if (stepId) {
+            // Step status moves to "done" only when the PM later calls
+            // updatePlanStep — we don't auto-close, so the PM can choose
+            // "done"/"failed" based on its review. We just attach the taskId.
+            await updateStep(stepId, {
+              taskId: childTask.id,
+              output
+            })
+            await mirrorActivePlan()
+          }
+          return output
+        } catch (err) {
+          if (stepId) {
+            const failed = await updateStep(stepId, { status: 'failed' })
+            emit({
+              type: 'plan_step_updated',
+              conversationId,
+              stepId,
+              patch: {
+                status: failed.status,
+                completedAt: failed.completedAt
+                  ? failed.completedAt.toISOString()
+                  : null
+              }
+            })
+            await mirrorActivePlan()
+          }
+          throw err
+        }
       }
     ),
     createRecruitEmployeeTool(async ({ role, skills, name }) => {
@@ -230,4 +386,24 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
     content: finalText
   })
   emit({ type: 'message_end', conversationId, messageId })
+
+  // Auto-close the plan when every step has reached a terminal state. The PM
+  // doesn't need to ceremoniously declare the plan done — finishing the turn
+  // without follow-up tools implies it.
+  const final = await getActivePlanByConversationId(conversationId)
+  if (final && final.plan.status === 'active' && final.steps.length > 0) {
+    const allTerminal = final.steps.every(
+      (s) =>
+        s.status === 'done' || s.status === 'skipped' || s.status === 'failed'
+    )
+    if (allTerminal) {
+      await updatePlanStatus(final.plan.id, 'completed')
+      emit({
+        type: 'plan_status_changed',
+        conversationId,
+        status: 'completed'
+      })
+      await mirrorActivePlan()
+    }
+  }
 }

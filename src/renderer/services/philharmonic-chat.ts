@@ -1,3 +1,4 @@
+import type { PlanDto } from '@shared/types/philharmonic'
 import { fetcher } from '@shared/utils/http'
 
 import type {
@@ -40,6 +41,14 @@ export const respondToConversation = (id: string, response: string) =>
     method: 'POST',
     body: { response } as never
   })
+
+/**
+ * Pull the active execution plan for a Group. Returns `null` when no plan
+ * has been laid out yet. Renderer reads this on mount and on every SSE
+ * reconnect so the UI catches up with anything emitted while disconnected.
+ */
+export const getActivePlan = (conversationId: string) =>
+  fetcher<PlanDto | null>(`${BASE}/conversations/${conversationId}/plan`)
 
 export const getKnowledgeDocs = () =>
   fetcher<KnowledgeDocData[]>(`${BASE}/knowledge`)

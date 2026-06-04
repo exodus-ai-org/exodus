@@ -231,7 +231,7 @@ export function CostAnalysis() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <header className="flex h-14 shrink-0 items-center justify-between border-b border-[var(--ph-border)] px-5">
+      <header className="flex h-13 shrink-0 items-center justify-between border-b border-[var(--ph-border)] px-5">
         <div>
           <h1 className="text-sm font-semibold text-[var(--ph-text)]">
             Dashboard

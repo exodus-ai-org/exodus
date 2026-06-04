@@ -408,6 +408,66 @@ export const taskExecutionEvent = pgTable('task_execution_event', {
 
 export type TaskExecutionEvent = InferSelectModel<typeof taskExecutionEvent>
 
+// ─── Execution plan (P0-2) ────────────────────────────────────────────────────
+// Each Group keeps exactly one active conversation_plan. The PM lays out the
+// plan first, then delegates step-by-step; the UI mirrors progress live. The
+// DB is the source of truth and a markdown mirror is written to
+// ~/.exodus/groups/{conversationId}/plan.md on every change.
+
+export const planStatusEnum = pgEnum('plan_status', [
+  'drafting',
+  'active',
+  'completed',
+  'aborted'
+])
+
+export const stepStatusEnum = pgEnum('step_status', [
+  'pending',
+  'running',
+  'done',
+  'skipped',
+  'failed'
+])
+
+export const conversationPlan = pgTable('conversation_plan', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  conversationId: uuid('conversationId')
+    .notNull()
+    .references(() => conversation.id, { onDelete: 'cascade' }),
+  summary: text('summary').notNull(),
+  status: planStatusEnum('status').notNull().default('active'),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+  archivedAt: timestamp('archivedAt')
+})
+
+export type ConversationPlan = InferSelectModel<typeof conversationPlan>
+
+export const planStep = pgTable('plan_step', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  planId: uuid('planId')
+    .notNull()
+    .references(() => conversationPlan.id, { onDelete: 'cascade' }),
+  ordinal: integer('ordinal').notNull(),
+  title: text('title').notNull(),
+  intent: text('intent'),
+  // SET NULL on agent delete: a past step's record survives the agent being deleted.
+  assignedAgentId: uuid('assignedAgentId').references(() => agent.id, {
+    onDelete: 'set null'
+  }),
+  status: stepStatusEnum('status').notNull().default('pending'),
+  output: text('output'),
+  note: text('note'),
+  // Links to the execution trace (task table). SET NULL so step survives the task row going away.
+  taskId: uuid('taskId').references(() => task.id, { onDelete: 'set null' }),
+  startedAt: timestamp('startedAt'),
+  completedAt: timestamp('completedAt'),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull()
+})
+
+export type PlanStep = InferSelectModel<typeof planStep>
+
 // ─── Knowledge Base (RAG stub) ────────────────────────────────────────────────
 
 export const knowledgeDoc = pgTable('knowledge_doc', {

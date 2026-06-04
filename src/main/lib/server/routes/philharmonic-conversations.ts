@@ -4,6 +4,7 @@ import { Hono } from 'hono'
 import { z } from 'zod'
 
 import { askUserRegistry } from '../../ai/philharmonic/ask-user-registry'
+import { toPlanDto } from '../../ai/philharmonic/plan-dto'
 import { runPmCoordinator } from '../../ai/philharmonic/pm-coordinator'
 import {
   createConversation,
@@ -21,6 +22,7 @@ import {
   updateKnowledgeDoc
 } from '../../db/knowledge-queries'
 import { getPhilharmonicCostRows } from '../../db/philharmonic-queries'
+import { getActivePlanByConversationId } from '../../db/plan-queries'
 import { logger } from '../../logger'
 import {
   getRequiredParam,
@@ -223,6 +225,14 @@ router.post('/conversations/:id/respond', async (c) => {
   })
   askUserRegistry.resolve(id, response)
   return successResponse(c, { success: true })
+})
+
+// ─── Execution plan ──────────────────────────────────────────────────────────
+
+router.get('/conversations/:id/plan', async (c) => {
+  const id = getRequiredParam(c, 'id')
+  const plan = await getActivePlanByConversationId(id)
+  return successResponse(c, plan ? toPlanDto(plan.plan, plan.steps) : null)
 })
 
 // ─── Knowledge base ──────────────────────────────────────────────────────────
