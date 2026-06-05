@@ -468,6 +468,38 @@ export const planStep = pgTable('plan_step', {
 
 export type PlanStep = InferSelectModel<typeof planStep>
 
+// ─── Philharmonic LCM (P0-3) ─────────────────────────────────────────────────
+// Rolling single-paragraph summary per conversation. One row per group;
+// rewritten in place when the conversation grows past the configured budget.
+// Intentionally simpler than Chat's DAG-based LCM — see the P0-3 spec.
+
+export const philharmonicSessionSummary = pgTable(
+  'philharmonic_session_summary',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    conversationId: uuid('conversationId')
+      .notNull()
+      .references(() => conversation.id, { onDelete: 'cascade' })
+      .unique(),
+    content: text('content').notNull(),
+    // Boundary: everything up to (and including) this message ID is
+    // represented by the summary; messages after it are still raw.
+    coversThroughMessageId: uuid('coversThroughMessageId').references(
+      () => conversationMessage.id,
+      { onDelete: 'set null' }
+    ),
+    tokenCount: integer('tokenCount').notNull(),
+    messageCount: integer('messageCount').notNull(),
+    createdAt: timestamp('createdAt').defaultNow().notNull(),
+    updatedAt: timestamp('updatedAt').defaultNow().notNull()
+  },
+  (t) => [index('ph_session_summary_conv_idx').on(t.conversationId)]
+)
+
+export type PhilharmonicSessionSummary = InferSelectModel<
+  typeof philharmonicSessionSummary
+>
+
 // ─── Knowledge Base (RAG stub) ────────────────────────────────────────────────
 
 export const knowledgeDoc = pgTable('knowledge_doc', {

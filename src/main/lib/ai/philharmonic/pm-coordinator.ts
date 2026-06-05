@@ -8,8 +8,7 @@ import { v4 as uuidV4 } from 'uuid'
 import {
   addMemberToConversation,
   createConversationMessage,
-  getConversationById,
-  getMessagesByConversationId
+  getConversationById
 } from '../../db/conversation-queries'
 import { createTask, getActiveAgents } from '../../db/philharmonic-queries'
 import {
@@ -28,6 +27,7 @@ import { askUserRegistry } from './ask-user-registry'
 import type { SseEmitter } from './employee-loop'
 import { runDelegatedTask } from './execution-engine'
 import { createSearchKnowledgeBaseTool } from './kb-tools'
+import { PhilharmonicLcm } from './lcm'
 import { toPlanDto, toStepDto } from './plan-dto'
 import { writePlanMirror } from './plan-mirror'
 import {
@@ -72,33 +72,15 @@ function rosterText(
     .join('\n')
 }
 
-interface StoredAttachmentPart {
-  kind: 'attachment'
-  name: string
-  url: string
-  contentType: string
-}
-
-function isAttachmentPart(p: unknown): p is StoredAttachmentPart {
-  if (typeof p !== 'object' || p === null) return false
-  const o = p as Record<string, unknown>
-  return (
-    o.kind === 'attachment' &&
-    typeof o.name === 'string' &&
-    typeof o.url === 'string' &&
-    typeof o.contentType === 'string'
-  )
-}
-
 type UserContentPart =
   | { type: 'text'; text: string }
   | { type: 'image'; data: string; mimeType: string }
 
 /**
- * Build the multimodal content payload for a user message. pi-ai accepts a
- * URL or base64 string in `data` and the provider implementation picks the
- * right encoding for its API. Matches the shape Chat uses in use-chat.ts
- * so model behavior stays consistent.
+ * Build the multimodal content payload for the CURRENT user turn. Historical
+ * messages are rebuilt by PhilharmonicLcm.assembleContext which applies the
+ * same rules internally. Matches the shape Chat uses in use-chat.ts so model
+ * behavior stays consistent.
  */
 function buildUserContent(
   text: string,
@@ -113,50 +95,7 @@ function buildUserContent(
       }
     }
   }
-  // Empty user messages would break the model; fall back to a zero-text part.
   return parts.length > 0 ? parts : [{ type: 'text', text: '' }]
-}
-
-/**
- * Rebuild PM context from prior conversation messages. The route persists the
- * current user message BEFORE calling us, so without `excludeMessageId` that
- * message would appear in `history` AND be re-supplied as the prompt — making
- * the LLM see the current turn twice on every request.
- *
- * Stored attachment parts are restored as `image` content parts so the model
- * sees the same multimodal context on every replay.
- */
-async function buildHistory(
-  conversationId: string,
-  excludeMessageId?: string
-): Promise<Message[]> {
-  const rows = await getMessagesByConversationId(conversationId)
-  return rows
-    .filter((r) => r.id !== excludeMessageId)
-    .map((r) => {
-      if (r.role === 'user') {
-        const attachments: Attachment[] = []
-        for (const p of r.parts ?? []) {
-          if (isAttachmentPart(p)) {
-            attachments.push({
-              name: p.name,
-              url: p.url,
-              contentType: p.contentType
-            })
-          }
-        }
-        return {
-          role: 'user' as const,
-          content: buildUserContent(r.content, attachments),
-          timestamp: new Date(r.createdAt).getTime()
-        }
-      }
-      return {
-        role: 'assistant' as const,
-        content: [{ type: 'text' as const, text: r.content }],
-        timestamp: new Date(r.createdAt).getTime()
-      }
-    }) as Message[]
 }
 
 export interface RunPmArgs {
@@ -191,7 +130,17 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
   ])
   const conversationTitle = conversationRow?.title ?? 'Group'
   const teamNameById = new Map(allTeams.map((t) => [t.id, t.name]))
-  const history = await buildHistory(conversationId, excludeMessageId)
+
+  // PhilharmonicLcm hydrates the LLM history: when within budget it's a
+  // straight conversion of every persisted message; when over, it replaces
+  // the oldest turns with a rolling summary it maintains itself. Settings
+  // pulled from memoryLayer mirror what Chat's LCM uses.
+  const lcm = new PhilharmonicLcm(conversationId, chatModel, apiKey, {
+    enabled: setting.memoryLayer?.lcmEnabled ?? true,
+    contextWindowPercent: setting.memoryLayer?.contextWindowPercent ?? 75,
+    freshTailSize: setting.memoryLayer?.freshTailSize ?? 16
+  })
+  const history = await lcm.assembleContext(excludeMessageId)
   // KB is scoped to teams whose members are in this conversation. General docs
   // (teamId IS NULL) ride along automatically inside the query.
   const allowedTeamIds = await computeAllowedTeamIds(conversationId)
@@ -498,4 +447,9 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
       })
     }
   }
+
+  // Fire-and-forget LCM compaction. Errors are caught inside trackAndCompact
+  // so we don't crash the turn we just finished. Next turn's assembleContext
+  // will pick up the new summary if compaction lands first.
+  lcm.trackAndCompact().catch(() => {})
 }

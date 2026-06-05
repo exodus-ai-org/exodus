@@ -36,6 +36,13 @@
       "when": 1780570392989,
       "tag": "0004_parallel_dreadnoughts",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1780633261552,
+      "tag": "0005_thin_blade",
+      "breakpoints": true
     }
   ]
 }

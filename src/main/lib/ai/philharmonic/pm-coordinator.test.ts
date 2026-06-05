@@ -41,6 +41,19 @@ vi.mock('./team-scope', () => ({
 vi.mock('../../philharmonic-notifications', () => ({
   notifyIfBackground: vi.fn()
 }))
+// LCM module pulls in Drizzle through queries — short-circuit so this test
+// stays a unit test focused on the PM happy path.
+vi.mock('./lcm', () => ({
+  PhilharmonicLcm: class {
+    async assembleContext() {
+      return []
+    }
+    async trackAndCompact() {
+      // unit test stub
+      return
+    }
+  }
+}))
 // Mock ask-user-registry
 vi.mock('./ask-user-registry', () => ({
   askUserRegistry: { wait: vi.fn(), has: vi.fn(), resolve: vi.fn() }
