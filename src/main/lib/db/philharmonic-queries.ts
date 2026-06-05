@@ -1,4 +1,13 @@
-import { asc, desc, eq, inArray, isNotNull, isNull, sql } from 'drizzle-orm'
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  inArray,
+  isNotNull,
+  isNull,
+  sql
+} from 'drizzle-orm'
 
 import { db } from './db'
 import {
@@ -52,11 +61,29 @@ export async function getActiveAgents() {
 
 // ─── Agent Memory ───────────────────────────────────────────────────────────
 
-export async function getAgentMemories(agentId: string) {
+/**
+ * Read an agent's memories.
+ *
+ * - When `conversationId` is provided, returns ONLY rows from that Group.
+ *   This is the runtime path the employee loop uses, so memories from a
+ *   different Group never bleed into the current LLM call.
+ * - When omitted, returns every row across every Group — the inspection
+ *   path used by the Workforce → Employee editor.
+ */
+export async function getAgentMemories(
+  agentId: string,
+  conversationId?: string
+) {
+  const filter = conversationId
+    ? and(
+        eq(agentMemory.agentId, agentId),
+        eq(agentMemory.conversationId, conversationId)
+      )
+    : eq(agentMemory.agentId, agentId)
   return db
     .select()
     .from(agentMemory)
-    .where(eq(agentMemory.agentId, agentId))
+    .where(filter)
     .orderBy(desc(agentMemory.createdAt))
 }
 

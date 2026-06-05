@@ -83,7 +83,9 @@ export async function runEmployeeLoop(
     skillSlugs.length > 0
       ? await getSkillsContentBySlugs(skillSlugs)
       : await getActiveSkillsContent()
-  const memories = await getAgentMemories(agent.id)
+  // Memories are scoped per Group (P1-4): an employee's experience in one
+  // conversation never bleeds into another's prompt.
+  const memories = await getAgentMemories(agent.id, conversationId)
   const memoryBlock = memories.length
     ? '\n\nPast experience:\n' +
       memories

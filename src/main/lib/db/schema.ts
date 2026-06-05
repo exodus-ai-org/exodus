@@ -257,6 +257,12 @@ export const agentMemory = pgTable('agent_memory', {
   agentId: uuid('agentId')
     .notNull()
     .references(() => agent.id, { onDelete: 'cascade' }),
+  // P1-4: memory rows are scoped to the Group they were learned in. The
+  // employee LLM at runtime only sees rows for the current conversation;
+  // the Workforce admin view continues to read all rows (no filter).
+  conversationId: uuid('conversationId')
+    .notNull()
+    .references(() => conversation.id, { onDelete: 'cascade' }),
   key: text('key').notNull(),
   value: jsonb('value').notNull(),
   source: agentMemorySourceEnum('source').notNull().default('task'),

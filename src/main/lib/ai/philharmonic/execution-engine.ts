@@ -102,7 +102,7 @@ export async function runDelegatedTask(args: {
       output: { result: output },
       completedAt: new Date()
     })
-    await rememberTaskOutcome(agentId, instructions, output)
+    await rememberTaskOutcome(agentId, conversationId, instructions, output)
     return output
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)

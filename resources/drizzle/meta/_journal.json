@@ -43,6 +43,13 @@
       "when": 1780633261552,
       "tag": "0005_thin_blade",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1780650248797,
+      "tag": "0006_huge_puck",
+      "breakpoints": true
     }
   ]
 }
