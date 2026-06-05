@@ -18,6 +18,7 @@ import { GroupMembersPanel } from '@/components/philharmonic/chat/group-members-
 import { KnowledgeBasePage } from '@/components/philharmonic/knowledge/knowledge-base-page'
 import { WorkforcePage } from '@/components/philharmonic/workforce/workforce-page'
 import { Button } from '@/components/ui/button'
+import { useConversationStream } from '@/hooks/use-conversation-stream'
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import type { PhilharmonicPage } from '@/layouts/philharmonic-layout'
 import { getAgents, getTeams } from '@/services/philharmonic'
@@ -114,6 +115,10 @@ export function PhilharmonicContainer({
     .map((id) => agentsById[id])
     .filter(Boolean) as AgentData[]
 
+  // Single SSE subscription per Group, hoisted here so the Members panel and
+  // the chat both read from the same aggregated state.
+  const stream = useConversationStream(activeId)
+
   // Main column content varies by activePage; sidebar stays put on every page.
   const mainContent = (() => {
     if (activePage === 'workforce') return <WorkforcePage />
@@ -132,6 +137,7 @@ export function PhilharmonicContainer({
           agentsById={agentsById}
           teamsById={teamsById}
           members={members}
+          stream={stream}
           onRename={handleRename}
         />
       )
@@ -189,7 +195,7 @@ export function PhilharmonicContainer({
           <GroupMembersPanel
             members={members}
             teamsById={teamsById}
-            busyAgentIds={new Set()}
+            busyAgents={stream.busyAgents}
           />
         </div>
       )}

@@ -59,21 +59,28 @@ function partition(
   return groups
 }
 
+/** Sentinel key the PM occupies inside `busyAgents`. Mirrors busy-reducer's
+ * PM_KEY but kept local so we don't import a hook-side constant into a UI
+ * component. */
+const PM_KEY = '__pm__'
+
 export function GroupMembersPanel({
   members,
   teamsById,
-  busyAgentIds,
+  busyAgents,
   hasPm = true
 }: {
   members: AgentData[]
   teamsById: Record<string, TeamData>
-  busyAgentIds: Set<string>
+  /** actorId → activity label; presence means "busy". '__pm__' for the PM. */
+  busyAgents: ReadonlyMap<string, string>
   hasPm?: boolean
 }) {
   const groups = partition(members, teamsById, hasPm)
-  const idleCount = members.filter((m) => !busyAgentIds.has(m.id)).length
-  const busyCount = members.length - idleCount
-  const pmBusy = busyAgentIds.has('__pm__')
+  const busyCount = members.filter((m) => busyAgents.has(m.id)).length
+  const idleCount = members.length - busyCount
+  const pmActivity = busyAgents.get(PM_KEY)
+  const pmBusy = pmActivity !== undefined
   const summaryIdle = idleCount + (hasPm && !pmBusy ? 1 : 0)
   const summaryBusy = busyCount + (hasPm && pmBusy ? 1 : 0)
 
@@ -126,14 +133,14 @@ export function GroupMembersPanel({
                 </span>
               </div>
               {g.isCoordinators ? (
-                <PmRow busy={pmBusy} />
+                <PmRow activity={pmActivity} />
               ) : (
                 g.members.map((m) => (
                   <MemberRow
                     key={m.id}
                     member={m}
                     team={m.teamId ? teamsById[m.teamId] : undefined}
-                    busy={busyAgentIds.has(m.id)}
+                    activity={busyAgents.get(m.id)}
                   />
                 ))
               )}
@@ -148,12 +155,14 @@ export function GroupMembersPanel({
 function MemberRow({
   member,
   team,
-  busy
+  activity
 }: {
   member: AgentData
   team: TeamData | undefined
-  busy: boolean
+  /** Activity label when busy; undefined when idle. */
+  activity: string | undefined
 }) {
+  const busy = activity !== undefined
   return (
     <div
       className={cn(
@@ -188,14 +197,15 @@ function MemberRow({
             color: busy ? 'var(--ph-warning)' : 'var(--ph-text-muted)'
           }}
         >
-          {busy ? 'working…' : `${team?.name ?? 'No team'} · idle`}
+          {busy ? activity : `${team?.name ?? 'No team'} · idle`}
         </div>
       </div>
     </div>
   )
 }
 
-function PmRow({ busy }: { busy: boolean }) {
+function PmRow({ activity }: { activity: string | undefined }) {
+  const busy = activity !== undefined
   return (
     <div
       className={cn(
@@ -234,7 +244,7 @@ function PmRow({ busy }: { busy: boolean }) {
             color: busy ? 'var(--ph-warning)' : 'var(--ph-text-muted)'
           }}
         >
-          {busy ? 'orchestrating…' : 'Strategy · idle'}
+          {busy ? activity : 'Strategy · idle'}
         </div>
       </div>
     </div>

@@ -5,7 +5,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useConversationStream } from '@/hooks/use-conversation-stream'
 import { cn } from '@/lib/utils'
 import {
   getConversationMessages,
@@ -34,23 +33,28 @@ function formatDayLabel(d: Date): string {
   return format(d, 'PPP')
 }
 
+import type { ConversationStream } from '@/hooks/use-conversation-stream'
+
 export function GroupChat({
   conversation,
   agentsById,
   teamsById,
   members,
+  stream,
   onRename
 }: {
   conversation: ConversationData
   agentsById: Record<string, AgentData>
   teamsById: Record<string, TeamData>
   members: AgentData[]
+  /** Aggregated SSE stream, hoisted from the container so the Members panel
+   * sees the same busy state. */
+  stream: ConversationStream
   onRename: (id: string, title: string) => void | Promise<void>
 }) {
   const conversationId = conversation.id
   const [history, setHistory] = useState<ConversationMessageData[]>([])
-  const { bubbles, askUser, error, revision, plan, pmRunning } =
-    useConversationStream(conversationId)
+  const { bubbles, askUser, error, revision, plan, pmRunning } = stream
   const [answer, setAnswer] = useState('')
   const [editingTitle, setEditingTitle] = useState(false)
   const [draftTitle, setDraftTitle] = useState(conversation.title)

@@ -10,6 +10,8 @@ import { sileo } from 'sileo'
 
 import { getActivePlan } from '@/services/philharmonic-chat'
 
+import { emptyBusyState, reduceBusy, type BusyState } from './busy-reducer'
+
 export interface LiveBubble {
   messageId: string
   role: string
@@ -44,6 +46,8 @@ export interface ConversationStream {
   lastRetry: RetryNotice | null
   /** True while the PM is actively driving a turn — drives the Stop button. */
   pmRunning: boolean
+  /** actorId → activity label. Presence means "busy". '__pm__' for the PM. */
+  busyAgents: ReadonlyMap<string, string>
 }
 
 function applyStepPatch(step: StepDto, patch: StepPatch): StepDto {
@@ -70,6 +74,7 @@ export function useConversationStream(
   const [lastRetry, setLastRetry] = useState<RetryNotice | null>(null)
   const retryCounter = useRef(0)
   const [pmRunning, setPmRunning] = useState(false)
+  const [busy, setBusy] = useState<BusyState>(emptyBusyState)
 
   // Pull the current plan on mount / conversation switch so users coming back
   // to a Group after closing the panel see the latest state. SSE events
@@ -96,6 +101,7 @@ export function useConversationStream(
     setAskUser(null)
     setError(null)
     setPmRunning(false)
+    setBusy(emptyBusyState())
 
     const source = new EventSource(
       `${BASE_URL}/api/philharmonic/conversations/${conversationId}/sse`
@@ -109,6 +115,10 @@ export function useConversationStream(
       }
       if (!('conversationId' in evt) || evt.conversationId !== conversationId)
         return
+
+      // Aggregate every event through the busy reducer; it's a pure function
+      // so unrelated events just pass through unchanged.
+      setBusy((prev) => reduceBusy(prev, evt))
 
       switch (evt.type) {
         case 'message_start':
@@ -220,5 +230,14 @@ export function useConversationStream(
     return () => source.close()
   }, [conversationId])
 
-  return { bubbles, askUser, error, revision, plan, lastRetry, pmRunning }
+  return {
+    bubbles,
+    askUser,
+    error,
+    revision,
+    plan,
+    lastRetry,
+    pmRunning,
+    busyAgents: busy.busyAgents
+  }
 }
