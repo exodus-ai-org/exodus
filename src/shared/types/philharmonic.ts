@@ -119,6 +119,12 @@ export type PhilharmonicSseEvent =
       options: string[]
     }
   | { type: 'conversation_error'; conversationId: string; error: string }
+  | { type: 'pm_started'; conversationId: string }
+  | {
+      type: 'pm_ended'
+      conversationId: string
+      reason: 'done' | 'error' | 'aborted'
+    }
   | {
       type: 'delegation_retry'
       conversationId: string

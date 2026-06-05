@@ -52,6 +52,17 @@ export const respondToConversation = (id: string, response: string) =>
   })
 
 /**
+ * Abort the currently-running PM for a conversation. Idempotent — returns
+ * wasRunning=false if there was nothing to stop. Fired from the Composer's
+ * Stop button while the PM is busy.
+ */
+export const interruptConversation = (id: string) =>
+  fetcher<{ success: boolean; wasRunning: boolean }>(
+    `${BASE}/conversations/${id}/interrupt`,
+    { method: 'POST', body: {} as never }
+  )
+
+/**
  * Pull the active execution plan for a Group. Returns `null` when no plan
  * has been laid out yet. Renderer reads this on mount and on every SSE
  * reconnect so the UI catches up with anything emitted while disconnected.

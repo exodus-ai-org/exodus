@@ -6,6 +6,7 @@ import { z } from 'zod'
 import { askUserRegistry } from '../../ai/philharmonic/ask-user-registry'
 import { toPlanDto } from '../../ai/philharmonic/plan-dto'
 import { runPmCoordinator } from '../../ai/philharmonic/pm-coordinator'
+import { pmRunRegistry } from '../../ai/philharmonic/pm-run-registry'
 import {
   createConversation,
   createConversationMessage,
@@ -222,17 +223,35 @@ router.post('/conversations/:id/messages', async (c) => {
     messageId: userMsg.id
   })
 
+  // Per-conversation AbortController so the user can interrupt the run via
+  // POST /conversations/:id/interrupt. The registry slot is cleared in the
+  // finally below regardless of how the run ended.
+  const controller = new AbortController()
+  pmRunRegistry.set(id, controller)
   runPmCoordinator({
     conversationId: id,
     userText: body.content,
     attachments: body.attachments,
     excludeMessageId: userMsg.id,
-    emit: (event) => emitToConversation(id, event)
-  }).catch((err) =>
-    logger.error('philharmonic', 'PM loop error', { error: String(err) })
-  )
+    emit: (event) => emitToConversation(id, event),
+    signal: controller.signal
+  })
+    .catch((err) =>
+      logger.error('philharmonic', 'PM loop error', { error: String(err) })
+    )
+    .finally(() => {
+      pmRunRegistry.clear(id)
+    })
 
   return successResponse(c, userMsg, 201)
+})
+
+// Abort the currently-running PM for a conversation, if any. Idempotent —
+// returns wasRunning: false when there's nothing to abort.
+router.post('/conversations/:id/interrupt', async (c) => {
+  const id = getRequiredParam(c, 'id')
+  const wasRunning = pmRunRegistry.abort(id)
+  return successResponse(c, { success: true, wasRunning })
 })
 
 // Resolve a pending askUser.

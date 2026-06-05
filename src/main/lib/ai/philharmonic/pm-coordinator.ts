@@ -120,6 +120,11 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
     emit,
     signal
   } = args
+  // Tell the renderer the PM started so it can switch Send → Stop. Emitted
+  // up front (before any DB work) so even fast-failing turns still close the
+  // busy state via pm_ended below.
+  emit({ type: 'pm_started', conversationId })
+
   const setting = await getSettings()
   const { chatModel, apiKey } = getModelFromProvider(setting)
 
@@ -401,7 +406,54 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
       }
     }
   } catch (err) {
+    const isAbort =
+      (err instanceof Error && err.name === 'AbortError') ||
+      signal?.aborted === true
     const message = err instanceof Error ? err.message : String(err)
+
+    if (isAbort) {
+      // Mark every still-running step on the active plan as failed so the
+      // plan card reflects the interruption. We don't transition the plan
+      // status — the user may follow up with another message to continue.
+      const cur = await getActivePlanByConversationId(conversationId)
+      if (cur) {
+        for (const step of cur.steps) {
+          if (step.status === 'running') {
+            const updated = await updateStep(step.id, {
+              status: 'failed',
+              note: 'Interrupted by user'
+            })
+            emit({
+              type: 'plan_step_updated',
+              conversationId,
+              stepId: step.id,
+              patch: {
+                status: updated.status,
+                note: updated.note,
+                completedAt: updated.completedAt
+                  ? updated.completedAt.toISOString()
+                  : null
+              }
+            })
+          }
+        }
+        await mirrorActivePlan()
+      }
+      emit({
+        type: 'conversation_error',
+        conversationId,
+        error: 'PM run was interrupted by the user.'
+      })
+      await createConversationMessage({
+        conversationId,
+        role: 'system',
+        content: '⚠️ PM run was interrupted by the user.'
+      })
+      emit({ type: 'message_end', conversationId, messageId })
+      emit({ type: 'pm_ended', conversationId, reason: 'aborted' })
+      return
+    }
+
     emit({ type: 'conversation_error', conversationId, error: message })
     await createConversationMessage({
       conversationId,
@@ -413,6 +465,7 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
       title: `Group "${conversationTitle}" hit an error`,
       body: message.length > 140 ? `${message.slice(0, 137)}…` : message
     })
+    emit({ type: 'pm_ended', conversationId, reason: 'error' })
     return
   }
 
@@ -452,4 +505,6 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
   // so we don't crash the turn we just finished. Next turn's assembleContext
   // will pick up the new summary if compaction lands first.
   lcm.trackAndCompact().catch(() => {})
+
+  emit({ type: 'pm_ended', conversationId, reason: 'done' })
 }

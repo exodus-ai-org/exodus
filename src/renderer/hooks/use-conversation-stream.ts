@@ -42,6 +42,8 @@ export interface ConversationStream {
   plan: PlanDto | null
   /** Most recent retry notification (used for inline UI hints / logs). */
   lastRetry: RetryNotice | null
+  /** True while the PM is actively driving a turn — drives the Stop button. */
+  pmRunning: boolean
 }
 
 function applyStepPatch(step: StepDto, patch: StepPatch): StepDto {
@@ -67,6 +69,7 @@ export function useConversationStream(
   const [plan, setPlan] = useState<PlanDto | null>(null)
   const [lastRetry, setLastRetry] = useState<RetryNotice | null>(null)
   const retryCounter = useRef(0)
+  const [pmRunning, setPmRunning] = useState(false)
 
   // Pull the current plan on mount / conversation switch so users coming back
   // to a Group after closing the panel see the latest state. SSE events
@@ -92,6 +95,7 @@ export function useConversationStream(
     setBubbles([])
     setAskUser(null)
     setError(null)
+    setPmRunning(false)
 
     const source = new EventSource(
       `${BASE_URL}/api/philharmonic/conversations/${conversationId}/sse`
@@ -172,6 +176,12 @@ export function useConversationStream(
               evt.error.length > 200 ? `${evt.error.slice(0, 197)}…` : evt.error
           })
           break
+        case 'pm_started':
+          setPmRunning(true)
+          break
+        case 'pm_ended':
+          setPmRunning(false)
+          break
         case 'delegation_retry':
           retryCounter.current += 1
           setLastRetry({
@@ -210,5 +220,5 @@ export function useConversationStream(
     return () => source.close()
   }, [conversationId])
 
-  return { bubbles, askUser, error, revision, plan, lastRetry }
+  return { bubbles, askUser, error, revision, plan, lastRetry, pmRunning }
 }

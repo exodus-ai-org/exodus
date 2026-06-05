@@ -1,7 +1,7 @@
 // src/renderer/components/philharmonic/chat/composer.tsx
 import type { Attachment } from '@shared/types/chat'
 import { useAtom } from 'jotai'
-import { SendIcon } from 'lucide-react'
+import { SendIcon, SquareIcon } from 'lucide-react'
 import { type ClipboardEvent, useState } from 'react'
 
 import { Textarea } from '@/components/ui/textarea'
@@ -14,10 +14,15 @@ import { ComposerUploader } from './uploader'
 
 export function Composer({
   onSend,
-  disabled
+  disabled,
+  busy = false,
+  onStop
 }: {
   onSend: (text: string, attachments: Attachment[]) => void
   disabled?: boolean
+  /** PM is currently running — the Send button becomes a Stop button. */
+  busy?: boolean
+  onStop?: () => void
 }) {
   const [text, setText] = useState('')
   const [attachments, setAttachments] = useAtom(philharmonicAttachmentAtom)
@@ -79,23 +84,35 @@ export function Composer({
             className="max-h-48 min-h-[36px] resize-none border-0 bg-transparent p-1.5 shadow-none focus-visible:ring-0 dark:bg-transparent"
           />
           <ComposerUploader />
-          <button
-            type="button"
-            onClick={submit}
-            disabled={!canSend}
-            aria-label="Send"
-            className={cn(
-              'flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[var(--ph-radius-md)] transition-opacity',
-              canSend
-                ? 'text-white hover:opacity-90'
-                : 'cursor-not-allowed text-[var(--ph-text-muted)]'
-            )}
-            style={{
-              background: canSend ? 'var(--ph-primary)' : 'var(--ph-canvas)'
-            }}
-          >
-            <SendIcon className="h-3.5 w-3.5" />
-          </button>
+          {busy ? (
+            <button
+              type="button"
+              onClick={onStop}
+              aria-label="Stop"
+              className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[var(--ph-radius-md)] text-white transition-opacity hover:opacity-90"
+              style={{ background: 'var(--ph-danger)' }}
+            >
+              <SquareIcon className="h-3 w-3 fill-current" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={submit}
+              disabled={!canSend}
+              aria-label="Send"
+              className={cn(
+                'flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[var(--ph-radius-md)] transition-opacity',
+                canSend
+                  ? 'text-white hover:opacity-90'
+                  : 'cursor-not-allowed text-[var(--ph-text-muted)]'
+              )}
+              style={{
+                background: canSend ? 'var(--ph-primary)' : 'var(--ph-canvas)'
+              }}
+            >
+              <SendIcon className="h-3.5 w-3.5" />
+            </button>
+          )}
         </div>
       </div>
       <p className="mt-1.5 px-1 text-[10px] text-[var(--ph-text-muted)]">

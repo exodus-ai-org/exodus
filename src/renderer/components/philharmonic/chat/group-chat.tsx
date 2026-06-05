@@ -9,6 +9,7 @@ import { useConversationStream } from '@/hooks/use-conversation-stream'
 import { cn } from '@/lib/utils'
 import {
   getConversationMessages,
+  interruptConversation,
   respondToConversation,
   sendConversationMessage
 } from '@/services/philharmonic-chat'
@@ -48,7 +49,7 @@ export function GroupChat({
 }) {
   const conversationId = conversation.id
   const [history, setHistory] = useState<ConversationMessageData[]>([])
-  const { bubbles, askUser, error, revision, plan } =
+  const { bubbles, askUser, error, revision, plan, pmRunning } =
     useConversationStream(conversationId)
   const [answer, setAnswer] = useState('')
   const [editingTitle, setEditingTitle] = useState(false)
@@ -301,6 +302,10 @@ export function GroupChat({
         onSend={(text, attachments) =>
           sendConversationMessage(conversationId, text, attachments)
         }
+        busy={pmRunning}
+        onStop={() => {
+          interruptConversation(conversationId).catch(() => {})
+        }}
       />
     </div>
   )
