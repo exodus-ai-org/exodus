@@ -1,4 +1,14 @@
+import type { Attachment } from '@shared/types/chat'
 import type { ConversationMessageRole } from '@shared/types/philharmonic'
+import { atom } from 'jotai'
+
+/**
+ * Pending attachments for the next user message in the Group composer. Lives
+ * separately from Chat's `attachmentAtom` so the two surfaces never share
+ * state (data-isolation rule for Philharmonic). Cleared on send and on
+ * conversation switch by the composer.
+ */
+export const philharmonicAttachmentAtom = atom<Attachment[]>([])
 
 export interface AgentData {
   id: string

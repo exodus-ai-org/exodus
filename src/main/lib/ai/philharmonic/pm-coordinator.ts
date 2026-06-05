@@ -2,6 +2,7 @@
 import type { AgentMessage, AgentTool } from '@mariozechner/pi-agent-core'
 import { agentLoop } from '@mariozechner/pi-agent-core'
 import type { Message } from '@mariozechner/pi-ai'
+import type { Attachment } from '@shared/types/chat'
 import { v4 as uuidV4 } from 'uuid'
 
 import {
@@ -71,11 +72,59 @@ function rosterText(
     .join('\n')
 }
 
+interface StoredAttachmentPart {
+  kind: 'attachment'
+  name: string
+  url: string
+  contentType: string
+}
+
+function isAttachmentPart(p: unknown): p is StoredAttachmentPart {
+  if (typeof p !== 'object' || p === null) return false
+  const o = p as Record<string, unknown>
+  return (
+    o.kind === 'attachment' &&
+    typeof o.name === 'string' &&
+    typeof o.url === 'string' &&
+    typeof o.contentType === 'string'
+  )
+}
+
+type UserContentPart =
+  | { type: 'text'; text: string }
+  | { type: 'image'; data: string; mimeType: string }
+
+/**
+ * Build the multimodal content payload for a user message. pi-ai accepts a
+ * URL or base64 string in `data` and the provider implementation picks the
+ * right encoding for its API. Matches the shape Chat uses in use-chat.ts
+ * so model behavior stays consistent.
+ */
+function buildUserContent(
+  text: string,
+  attachments?: Attachment[]
+): UserContentPart[] {
+  const parts: UserContentPart[] = []
+  if (text.length > 0) parts.push({ type: 'text', text })
+  if (attachments) {
+    for (const a of attachments) {
+      if (a.contentType.startsWith('image/')) {
+        parts.push({ type: 'image', data: a.url, mimeType: a.contentType })
+      }
+    }
+  }
+  // Empty user messages would break the model; fall back to a zero-text part.
+  return parts.length > 0 ? parts : [{ type: 'text', text: '' }]
+}
+
 /**
  * Rebuild PM context from prior conversation messages. The route persists the
  * current user message BEFORE calling us, so without `excludeMessageId` that
  * message would appear in `history` AND be re-supplied as the prompt — making
  * the LLM see the current turn twice on every request.
+ *
+ * Stored attachment parts are restored as `image` content parts so the model
+ * sees the same multimodal context on every replay.
  */
 async function buildHistory(
   conversationId: string,
@@ -84,16 +133,39 @@ async function buildHistory(
   const rows = await getMessagesByConversationId(conversationId)
   return rows
     .filter((r) => r.id !== excludeMessageId)
-    .map((r) => ({
-      role: r.role === 'user' ? 'user' : 'assistant',
-      content: [{ type: 'text', text: r.content }],
-      timestamp: new Date(r.createdAt).getTime()
-    })) as Message[]
+    .map((r) => {
+      if (r.role === 'user') {
+        const attachments: Attachment[] = []
+        for (const p of r.parts ?? []) {
+          if (isAttachmentPart(p)) {
+            attachments.push({
+              name: p.name,
+              url: p.url,
+              contentType: p.contentType
+            })
+          }
+        }
+        return {
+          role: 'user' as const,
+          content: buildUserContent(r.content, attachments),
+          timestamp: new Date(r.createdAt).getTime()
+        }
+      }
+      return {
+        role: 'assistant' as const,
+        content: [{ type: 'text' as const, text: r.content }],
+        timestamp: new Date(r.createdAt).getTime()
+      }
+    }) as Message[]
 }
 
 export interface RunPmArgs {
   conversationId: string
   userText: string
+  /** Image attachments accompanying the current user turn. Persisted on the
+   * user message row; the PM sees them as `image` content parts. v1 does
+   * not pass them through to delegated employees. */
+  attachments?: Attachment[]
   /** ID of the just-persisted user message; excluded from history so the LLM doesn't see this turn twice. */
   excludeMessageId?: string
   emit: SseEmitter
@@ -101,7 +173,14 @@ export interface RunPmArgs {
 }
 
 export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
-  const { conversationId, userText, excludeMessageId, emit, signal } = args
+  const {
+    conversationId,
+    userText,
+    attachments,
+    excludeMessageId,
+    emit,
+    signal
+  } = args
   const setting = await getSettings()
   const { chatModel, apiKey } = getModelFromProvider(setting)
 
@@ -306,7 +385,7 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
 
   const userMessage: Message = {
     role: 'user',
-    content: [{ type: 'text', text: userText }],
+    content: buildUserContent(userText, attachments),
     timestamp: Date.now()
   }
 

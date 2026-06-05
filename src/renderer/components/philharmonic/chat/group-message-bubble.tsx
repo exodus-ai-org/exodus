@@ -19,6 +19,12 @@ export interface BubbleModel {
     phase: 'start' | 'end'
     result?: unknown
   }>
+  /** Image attachments displayed alongside the message body (user bubbles). */
+  attachments?: Array<{
+    name: string
+    url: string
+    contentType: string
+  }>
 }
 
 export function GroupMessageBubble({
@@ -112,20 +118,49 @@ export function GroupMessageBubble({
         )}
       >
         {headerLine}
-        <div
-          className={cn(
-            'px-3.5 py-2.5 text-sm leading-relaxed',
-            isUser ? 'text-white' : 'text-[var(--ph-text)]'
-          )}
-          style={{
-            background: isUser ? 'var(--ph-primary)' : 'var(--ph-canvas)',
-            borderRadius: isUser
-              ? 'var(--ph-radius-xl) 6px var(--ph-radius-xl) var(--ph-radius-xl)'
-              : '6px var(--ph-radius-xl) var(--ph-radius-xl) var(--ph-radius-xl)'
-          }}
-        >
-          <Markdown src={bubble.text} />
-        </div>
+        {bubble.attachments && bubble.attachments.length > 0 && (
+          <div
+            className={cn(
+              'flex flex-wrap gap-2',
+              isUser ? 'justify-end' : 'justify-start'
+            )}
+          >
+            {bubble.attachments
+              .filter((a) => a.contentType.startsWith('image/'))
+              .map((a, i) => (
+                <a
+                  key={`${a.url}-${i}`}
+                  href={a.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="block"
+                >
+                  <img
+                    src={a.url}
+                    alt={a.name}
+                    className="max-h-48 max-w-[12rem] rounded-[var(--ph-radius-md)] object-cover"
+                    style={{ background: 'var(--ph-canvas)' }}
+                  />
+                </a>
+              ))}
+          </div>
+        )}
+        {bubble.text.length > 0 && (
+          <div
+            className={cn(
+              'px-3.5 py-2.5 text-sm leading-relaxed',
+              isUser ? 'text-white' : 'text-[var(--ph-text)]'
+            )}
+            style={{
+              background: isUser ? 'var(--ph-primary)' : 'var(--ph-canvas)',
+              borderRadius: isUser
+                ? 'var(--ph-radius-xl) 6px var(--ph-radius-xl) var(--ph-radius-xl)'
+                : '6px var(--ph-radius-xl) var(--ph-radius-xl) var(--ph-radius-xl)'
+            }}
+          >
+            <Markdown src={bubble.text} />
+          </div>
+        )}
         {bubble.toolCards && bubble.toolCards.length > 0 && (
           <div className="flex flex-col gap-1.5">
             {bubble.toolCards.map((card, i) => (

@@ -1,3 +1,4 @@
+import type { Attachment } from '@shared/types/chat'
 import type { PlanDto } from '@shared/types/philharmonic'
 import { fetcher } from '@shared/utils/http'
 
@@ -31,10 +32,18 @@ export const deleteConversation = (id: string) =>
   })
 export const getConversationMessages = (id: string) =>
   fetcher<ConversationMessageData[]>(`${BASE}/conversations/${id}/messages`)
-export const sendConversationMessage = (id: string, content: string) =>
+export const sendConversationMessage = (
+  id: string,
+  content: string,
+  attachments?: Attachment[]
+) =>
   fetcher<ConversationMessageData>(`${BASE}/conversations/${id}/messages`, {
     method: 'POST',
-    body: { content } as never
+    body: {
+      content,
+      attachments:
+        attachments && attachments.length > 0 ? attachments : undefined
+    } as never
   })
 export const respondToConversation = (id: string, response: string) =>
   fetcher<{ success: boolean }>(`${BASE}/conversations/${id}/respond`, {

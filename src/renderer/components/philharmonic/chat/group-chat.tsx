@@ -83,13 +83,38 @@ export function GroupChat({
     [history]
   )
   const merged: BubbleWithDate[] = useMemo(() => {
-    const fromHistory: BubbleWithDate[] = history.map((h) => ({
-      messageId: h.id,
-      role: h.role,
-      agentId: h.agentId,
-      text: h.content,
-      createdAt: h.createdAt
-    }))
+    const fromHistory: BubbleWithDate[] = history.map((h) => {
+      // Pull image attachments out of parts so the bubble can render them
+      // without the rest of the component knowing about JSONB layouts.
+      const attachments =
+        h.parts
+          ?.filter(
+            (
+              p
+            ): p is {
+              kind: 'attachment'
+              name: string
+              url: string
+              contentType: string
+            } =>
+              typeof p === 'object' &&
+              p !== null &&
+              (p as { kind?: unknown }).kind === 'attachment'
+          )
+          .map((p) => ({
+            name: p.name,
+            url: p.url,
+            contentType: p.contentType
+          })) ?? []
+      return {
+        messageId: h.id,
+        role: h.role,
+        agentId: h.agentId,
+        text: h.content,
+        createdAt: h.createdAt,
+        attachments: attachments.length > 0 ? attachments : undefined
+      }
+    })
     const live: BubbleWithDate[] = bubbles
       .filter((b) => !persistedIds.has(b.messageId))
       .map((b) => ({
@@ -273,7 +298,9 @@ export function GroupChat({
         )}
       </div>
       <Composer
-        onSend={(text) => sendConversationMessage(conversationId, text)}
+        onSend={(text, attachments) =>
+          sendConversationMessage(conversationId, text, attachments)
+        }
       />
     </div>
   )

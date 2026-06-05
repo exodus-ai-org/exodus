@@ -176,15 +176,39 @@ router.get('/conversations/:id/messages', async (c) => {
 // Send a user message → persist → kick the PM loop (fire-and-forget).
 router.post('/conversations/:id/messages', async (c) => {
   const id = getRequiredParam(c, 'id')
-  const { content } = validateSchema(
-    z.object({ content: z.string().min(1) }),
+  const attachmentSchema = z.object({
+    name: z.string(),
+    url: z.string(),
+    contentType: z.string()
+  })
+  const body = validateSchema(
+    z
+      .object({
+        content: z.string(),
+        attachments: z.array(attachmentSchema).optional()
+      })
+      .refine(
+        (b) => b.content.trim().length > 0 || (b.attachments?.length ?? 0) > 0,
+        {
+          message: 'Message must include text or attachments'
+        }
+      ),
     await c.req.json(),
     'Invalid message'
   )
+  // Attachments live alongside other message parts so the JSONB column stays
+  // one source of truth. `kind` discriminator keeps them addressable.
+  const parts = body.attachments?.map((a) => ({
+    kind: 'attachment' as const,
+    name: a.name,
+    url: a.url,
+    contentType: a.contentType
+  }))
   const userMsg = await createConversationMessage({
     conversationId: id,
     role: 'user',
-    content
+    content: body.content,
+    parts: parts && parts.length > 0 ? parts : null
   })
   emitToConversation(id, {
     type: 'message_start',
@@ -200,11 +224,12 @@ router.post('/conversations/:id/messages', async (c) => {
 
   runPmCoordinator({
     conversationId: id,
-    userText: content,
+    userText: body.content,
+    attachments: body.attachments,
     excludeMessageId: userMsg.id,
     emit: (event) => emitToConversation(id, event)
   }).catch((err) =>
-    logger.error('agent_x', 'PM loop error', { error: String(err) })
+    logger.error('philharmonic', 'PM loop error', { error: String(err) })
   )
 
   return successResponse(c, userMsg, 201)
