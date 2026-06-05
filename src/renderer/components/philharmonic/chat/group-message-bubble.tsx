@@ -2,13 +2,21 @@
 import { format } from 'date-fns'
 import { CheckIcon, Loader2Icon, WrenchIcon } from 'lucide-react'
 
+import { ArtifactCard } from '@/components/calling-tools/artifact/artifact-card'
 import { Markdown } from '@/components/markdown'
 import { cn } from '@/lib/utils'
 import type { AgentData, TeamData } from '@/stores/philharmonic'
 
 import { EmployeeAvatar } from '../employees/employee-avatar'
 
+interface ArtifactPart {
+  artifactId: string
+  title: string
+  code: string
+}
+
 export interface BubbleModel {
+  conversationId?: string
   messageId: string
   role: string // 'user' | 'pm' | 'employee' | 'system'
   agentId?: string | null
@@ -25,6 +33,8 @@ export interface BubbleModel {
     url: string
     contentType: string
   }>
+  /** P1-7: rendered ArtifactCard(s) for the PM's final deliverable. */
+  artifacts?: ArtifactPart[]
 }
 
 export function GroupMessageBubble({
@@ -161,6 +171,24 @@ export function GroupMessageBubble({
             <Markdown src={bubble.text} />
           </div>
         )}
+        {bubble.artifacts &&
+          bubble.artifacts.length > 0 &&
+          bubble.conversationId && (
+            <div className="flex flex-col gap-2">
+              {bubble.artifacts.map((a) => (
+                <ArtifactCard
+                  key={a.artifactId}
+                  chatId={bubble.conversationId!}
+                  toolResult={{
+                    type: 'artifact',
+                    title: a.title,
+                    code: a.code,
+                    artifactId: a.artifactId
+                  }}
+                />
+              ))}
+            </div>
+          )}
         {bubble.toolCards && bubble.toolCards.length > 0 && (
           <div className="flex flex-col gap-1.5">
             {bubble.toolCards.map((card, i) => (

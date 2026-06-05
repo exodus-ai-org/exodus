@@ -89,49 +89,102 @@ export function GroupChat({
   )
   const merged: BubbleWithDate[] = useMemo(() => {
     const fromHistory: BubbleWithDate[] = history.map((h) => {
-      // Pull image attachments out of parts so the bubble can render them
-      // without the rest of the component knowing about JSONB layouts.
-      const attachments =
-        h.parts
-          ?.filter(
-            (
-              p
-            ): p is {
-              kind: 'attachment'
-              name: string
-              url: string
-              contentType: string
-            } =>
-              typeof p === 'object' &&
-              p !== null &&
-              (p as { kind?: unknown }).kind === 'attachment'
-          )
-          .map((p) => ({
-            name: p.name,
-            url: p.url,
-            contentType: p.contentType
-          })) ?? []
+      // Pull typed parts out of the JSONB column so the bubble doesn't need
+      // to know about storage layout. Two kinds today: 'attachment' (images
+      // from the user) and 'artifact' (PM final report from P1-7).
+      const parts = h.parts ?? []
+      const attachments = parts
+        .filter(
+          (
+            p
+          ): p is {
+            kind: 'attachment'
+            name: string
+            url: string
+            contentType: string
+          } =>
+            typeof p === 'object' &&
+            p !== null &&
+            (p as { kind?: unknown }).kind === 'attachment'
+        )
+        .map((p) => ({
+          name: p.name,
+          url: p.url,
+          contentType: p.contentType
+        }))
+      const artifacts = parts
+        .filter(
+          (
+            p
+          ): p is {
+            kind: 'artifact'
+            artifactId: string
+            title: string
+            code: string
+          } =>
+            typeof p === 'object' &&
+            p !== null &&
+            (p as { kind?: unknown }).kind === 'artifact'
+        )
+        .map((p) => ({
+          artifactId: p.artifactId,
+          title: p.title,
+          code: p.code
+        }))
       return {
+        conversationId,
         messageId: h.id,
         role: h.role,
         agentId: h.agentId,
         text: h.content,
         createdAt: h.createdAt,
-        attachments: attachments.length > 0 ? attachments : undefined
+        attachments: attachments.length > 0 ? attachments : undefined,
+        artifacts: artifacts.length > 0 ? artifacts : undefined
       }
     })
     const live: BubbleWithDate[] = bubbles
       .filter((b) => !persistedIds.has(b.messageId))
-      .map((b) => ({
-        messageId: b.messageId,
-        role: b.role,
-        agentId: b.agentId,
-        text: b.text,
-        toolCards: b.toolCards
-        // live bubbles have no persisted createdAt — they're "now"
-      }))
+      .map((b) => {
+        // Lift any artifact tool-card results into a live `artifacts` array
+        // so the ArtifactCard renders the moment createReport's tool_end
+        // arrives — no need to wait for the row to persist.
+        const liveArtifacts = (b.toolCards ?? [])
+          .filter(
+            (
+              c
+            ): c is {
+              toolName: string
+              phase: 'end'
+              result: {
+                type: 'artifact'
+                artifactId: string
+                title: string
+                code: string
+              }
+            } => {
+              if (c.phase !== 'end') return false
+              const r = c.result as { type?: unknown } | null
+              return r != null && r.type === 'artifact'
+            }
+          )
+          .map((c) => ({
+            artifactId: c.result.artifactId,
+            title: c.result.title,
+            code: c.result.code
+          }))
+        return {
+          conversationId,
+          messageId: b.messageId,
+          role: b.role,
+          agentId: b.agentId,
+          text: b.text,
+          toolCards: b.toolCards,
+          artifacts: liveArtifacts.length > 0 ? liveArtifacts : undefined
+          // live bubbles have no persisted createdAt — they're "now"
+        }
+      })
     return [...fromHistory, ...live]
-  }, [history, bubbles, persistedIds])
+  }, [history, bubbles, persistedIds, conversationId])
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight })

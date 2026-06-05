@@ -37,6 +37,7 @@ import {
 } from './plan-tools'
 import { createDelegateTaskTool, createRecruitEmployeeTool } from './pm-tools'
 import { autoCreateEmployee } from './recruit'
+import { createReportTool, type PendingArtifact } from './report-tools'
 import { computeAllowedTeamIds } from './team-scope'
 
 const PM_SYSTEM_PROMPT = `You are the PM (project manager) of a virtual team working in a group chat.
@@ -161,6 +162,10 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
     const cur = await getActivePlanByConversationId(conversationId)
     if (cur) await writePlanMirror(conversationId, cur.plan, cur.steps)
   }
+
+  // P1-7: createReport pushes here; attached as message parts at turn end so
+  // ArtifactCard can render on history reload, not just from the live stream.
+  const pendingArtifacts: PendingArtifact[] = []
 
   const tools: AgentTool[] = [
     createCreatePlanTool(async ({ summary, steps }) => {
@@ -331,6 +336,7 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
       return { id: emp.id, name: emp.name }
     }),
     createSearchKnowledgeBaseTool(allowedTeamIds),
+    createReportTool(conversationId, (a) => pendingArtifacts.push(a)),
     createEscalateToUserTool(async ({ question, options }) => {
       emit({ type: 'ask_user', conversationId, question, options })
       return askUserRegistry.wait(conversationId)
@@ -469,10 +475,24 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
     return
   }
 
+  // Attach every artifact createReport produced this turn so the PM's final
+  // bubble can render the ArtifactCard on history reload as well as the live
+  // stream. Stored as { kind: 'artifact', artifactId, title, code }; bubble
+  // renderer reads the same shape attachments use.
+  const artifactParts =
+    pendingArtifacts.length > 0
+      ? pendingArtifacts.map((a) => ({
+          kind: 'artifact' as const,
+          artifactId: a.artifactId,
+          title: a.title,
+          code: a.code
+        }))
+      : null
   await createConversationMessage({
     conversationId,
     role: 'pm',
-    content: finalText
+    content: finalText,
+    parts: artifactParts
   })
   emit({ type: 'message_end', conversationId, messageId })
 
