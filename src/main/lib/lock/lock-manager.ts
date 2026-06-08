@@ -49,6 +49,20 @@ export class LockManager extends EventEmitter {
     this.emit('state-changed')
   }
 
+  /** Record a failed PIN attempt; trips the lockout window after MAX_FREE_ATTEMPTS. */
+  private recordWrongAttempt(): void {
+    this.wrongAttempts++
+    if (this.wrongAttempts >= MAX_FREE_ATTEMPTS) {
+      this.lockedOutUntil = this.now() + LOCKOUT_MS
+      this.wrongAttempts = 0
+    }
+  }
+
+  private resetAttempts(): void {
+    this.wrongAttempts = 0
+    this.lockedOutUntil = 0
+  }
+
   unlock(pin: string): UnlockResult {
     if (!pinStore.hasPin())
       return { ok: false, reason: 'no-pin', retryAfterMs: 0 }
@@ -60,13 +74,11 @@ export class LockManager extends EventEmitter {
       }
     }
     if (!pinStore.verify(pin)) {
-      this.wrongAttempts++
-      if (this.wrongAttempts >= MAX_FREE_ATTEMPTS) {
-        this.lockedOutUntil = this.now() + LOCKOUT_MS
-        this.wrongAttempts = 0
-        return { ok: false, reason: 'locked-out', retryAfterMs: LOCKOUT_MS }
-      }
-      return { ok: false, reason: 'wrong-pin', retryAfterMs: 0 }
+      this.recordWrongAttempt()
+      const retry = this.retryAfterMs()
+      return retry > 0
+        ? { ok: false, reason: 'locked-out', retryAfterMs: retry }
+        : { ok: false, reason: 'wrong-pin', retryAfterMs: 0 }
     }
     this.completeUnlock()
     return { ok: true }
@@ -86,13 +98,23 @@ export class LockManager extends EventEmitter {
   }
 
   changePin(oldPin: string, newPin: string): boolean {
-    if (!pinStore.verify(oldPin)) return false
+    if (this.retryAfterMs() > 0) return false
+    if (!pinStore.verify(oldPin)) {
+      this.recordWrongAttempt()
+      return false
+    }
+    this.resetAttempts()
     pinStore.setPin(newPin)
     return true
   }
 
   disable(pin: string): boolean {
-    if (pinStore.hasPin() && !pinStore.verify(pin)) return false
+    if (this.retryAfterMs() > 0) return false
+    if (pinStore.hasPin() && !pinStore.verify(pin)) {
+      this.recordWrongAttempt()
+      return false
+    }
+    this.resetAttempts()
     pinStore.clear()
     this.locked = false
     this.emit('state-changed')

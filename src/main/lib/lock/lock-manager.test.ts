@@ -85,4 +85,30 @@ describe('LockManager', () => {
       retryAfterMs: 0
     })
   })
+
+  it('rate-limits disable() after lockout', async () => {
+    const now = vi.fn(() => 1_000_000)
+    const { LockManager } = await import('./lock-manager')
+    const m = new LockManager(now)
+    for (let i = 0; i < 5; i++) m.unlock('000000') // trip lockout
+    // disable must refuse while locked out, even with the correct pin
+    pinStore.verify.mockReturnValue(true)
+    expect(m.disable('123456')).toBe(false)
+    now.mockReturnValue(1_000_000 + 30001)
+    expect(m.disable('123456')).toBe(true)
+  })
+
+  it('changePin records wrong attempts toward lockout', async () => {
+    const { LockManager } = await import('./lock-manager')
+    const m = new LockManager()
+    pinStore.verify.mockReturnValue(false)
+    for (let i = 0; i < 5; i++) m.changePin('000000', '111111')
+    // now locked out: a correct unlock attempt is refused
+    pinStore.verify.mockReturnValue(true)
+    expect(m.unlock('123456')).toEqual({
+      ok: false,
+      reason: 'locked-out',
+      retryAfterMs: 30000
+    })
+  })
 })

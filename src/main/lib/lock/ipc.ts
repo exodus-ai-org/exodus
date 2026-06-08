@@ -5,6 +5,7 @@ import { ipcMain, safeStorage, systemPreferences } from 'electron'
 
 import { logger } from '../logger'
 import { getMainWindow } from '../window'
+import type { IdleWatcher } from './idle-watcher'
 import { getLockManager } from './lock-manager'
 import { getRecentNotifications } from './lock-notifications'
 
@@ -18,6 +19,9 @@ function touchIdAvailable(): boolean {
 
 export function setupLockIPC(): void {
   const manager = getLockManager()
+
+  manager.removeAllListeners('state-changed')
+  manager.removeAllListeners('config-changed')
 
   manager.on('state-changed', () => {
     getMainWindow()?.webContents.send(LOCK_CHANNELS.stateChanged)
@@ -84,7 +88,6 @@ export function setupLockIPC(): void {
   })
 }
 
-import type { IdleWatcher } from './idle-watcher'
 let idleWatcher: IdleWatcher | null = null
 export function setLockIdleWatcher(w: IdleWatcher): void {
   idleWatcher = w
