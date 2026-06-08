@@ -3,6 +3,14 @@ import { sileo } from 'sileo'
 
 import { PinInput } from '@/components/lock/pin-input'
 import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { useLock } from '@/hooks/use-lock'
 import { disableLock, setLockConfig, setLockPin } from '@/lib/lock-ipc'
@@ -128,19 +136,23 @@ export function LockPrivacy() {
           )}
 
           <SettingsRow label="Auto-lock when idle">
-            <select
-              className="bg-background border-border rounded-md border px-2 py-1 text-sm"
-              value={status.config.idleTimeoutMs}
-              onChange={(e) =>
-                update({ idleTimeoutMs: Number(e.target.value) })
-              }
+            <Select
+              value={String(status.config.idleTimeoutMs)}
+              onValueChange={(v) => v && update({ idleTimeoutMs: Number(v) })}
             >
-              {IDLE_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger className="hover:bg-accent w-fit border-none shadow-none">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="no-drag w-full">
+                <SelectGroup>
+                  {IDLE_OPTIONS.map((o) => (
+                    <SelectItem key={o.value} value={String(o.value)}>
+                      {o.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </SettingsRow>
 
           <SettingsRow label="Lock on app launch">
