@@ -18,6 +18,7 @@ const IDLE_OPTIONS = [
 
 export function LockPrivacy() {
   const { status, refresh } = useLock()
+  const [step, setStep] = useState<'enter' | 'confirm'>('enter')
   const [pin, setPin] = useState('')
   const [confirm, setConfirm] = useState('')
   const [removing, setRemoving] = useState(false)
@@ -25,13 +26,25 @@ export function LockPrivacy() {
 
   if (!status) return null
 
-  const enablePin = async () => {
-    if (!/^\d{6}$/.test(pin)) {
-      sileo.error({ title: 'PIN must be 6 digits' })
-      return
-    }
-    if (pin !== confirm) {
+  const resetEnroll = () => {
+    setStep('enter')
+    setPin('')
+    setConfirm('')
+  }
+
+  // Step 1: once 6 digits are entered, advance to the confirm step.
+  const handlePinChange = (value: string) => {
+    setPin(value)
+    if (value.length === 6) setStep('confirm')
+  }
+
+  // Step 2: on the 6th confirm digit, validate the match and enroll.
+  const handleConfirmChange = async (value: string) => {
+    setConfirm(value)
+    if (value.length !== 6) return
+    if (value !== pin) {
       sileo.error({ title: 'PINs do not match' })
+      resetEnroll()
       return
     }
     const { ok } = await setLockPin(pin)
@@ -40,10 +53,10 @@ export function LockPrivacy() {
         title: 'Could not set PIN',
         description: 'A PIN already exists.'
       })
+      resetEnroll()
       return
     }
-    setPin('')
-    setConfirm('')
+    resetEnroll()
     await refresh()
     sileo.success({ title: 'Lock enabled' })
   }
@@ -74,17 +87,34 @@ export function LockPrivacy() {
             Set a 6-digit PIN to lock Exodus. While locked, the UI and the local
             API are inaccessible, but background tasks keep running.
           </p>
-          <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium">PIN</span>
-            <PinInput value={pin} onChange={setPin} />
-          </div>
-          <div className="flex flex-col gap-2">
-            <span className="text-sm font-medium">Confirm PIN</span>
-            <PinInput value={confirm} onChange={setConfirm} />
-          </div>
-          <Button onClick={enablePin} className="self-start">
-            Enable lock
-          </Button>
+          {step === 'enter' ? (
+            <div className="flex flex-col gap-2">
+              <span className="text-sm font-medium">Enter a 6-digit PIN</span>
+              <PinInput
+                key="enter"
+                value={pin}
+                onChange={handlePinChange}
+                autoFocus
+              />
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <span className="text-sm font-medium">Confirm your PIN</span>
+              <PinInput
+                key="confirm"
+                value={confirm}
+                onChange={handleConfirmChange}
+                autoFocus
+              />
+              <button
+                type="button"
+                onClick={resetEnroll}
+                className="text-muted-foreground self-start text-xs hover:underline"
+              >
+                Start over
+              </button>
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex flex-col gap-2">
