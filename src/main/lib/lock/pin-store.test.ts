@@ -4,7 +4,7 @@ let tmpFile: string
 
 vi.mock('electron', () => ({
   safeStorage: {
-    isEncryptionAvailable: () => true,
+    isEncryptionAvailable: vi.fn(() => true),
     encryptString: (s: string) => Buffer.from(s, 'utf8'),
     decryptString: (b: Buffer) => b.toString('utf8')
   }
@@ -55,5 +55,22 @@ describe('pin-store', () => {
     const store2 = await import('./pin-store')
     expect(store2.hasPin()).toBe(true)
     expect(store2.verify('246810')).toBe(true)
+  })
+
+  it('works in degraded mode when safeStorage is unavailable', async () => {
+    const { safeStorage } = await import('electron')
+    ;(
+      safeStorage.isEncryptionAvailable as ReturnType<typeof vi.fn>
+    ).mockReturnValue(false)
+    const { logger } = await import('../logger')
+    const store = await import('./pin-store')
+    store.setPin('135790')
+    expect(store.hasPin()).toBe(true)
+    expect(store.verify('135790')).toBe(true)
+    expect(store.verify('999999')).toBe(false)
+    expect(logger.warn).toHaveBeenCalled()
+    ;(
+      safeStorage.isEncryptionAvailable as ReturnType<typeof vi.fn>
+    ).mockReturnValue(true)
   })
 })

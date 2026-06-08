@@ -1,5 +1,6 @@
 import { randomBytes, scryptSync, timingSafeEqual } from 'crypto'
-import { existsSync, readFileSync, rmSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs'
+import { dirname } from 'path'
 
 import { safeStorage } from 'electron'
 
@@ -27,6 +28,10 @@ function readRecord(): PinRecord | null {
     const raw = readFileSync(path)
     let json: string
     if (safeStorage.isEncryptionAvailable()) {
+      // Fallback for records written in "degraded mode" (no safeStorage at
+      // write time). Filesystem tampering is out of scope per the lock's
+      // threat model (filesystem access already bypasses the lock), so reading
+      // a plaintext record here is acceptable, not a downgrade.
       try {
         json = safeStorage.decryptString(raw)
       } catch {
@@ -44,6 +49,7 @@ function readRecord(): PinRecord | null {
 
 function writeRecord(record: PinRecord): void {
   const path = getLockSecretPath()
+  mkdirSync(dirname(path), { recursive: true })
   const json = JSON.stringify(record)
   if (safeStorage.isEncryptionAvailable()) {
     writeFileSync(path, safeStorage.encryptString(json))
