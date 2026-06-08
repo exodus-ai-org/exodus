@@ -20,6 +20,8 @@ export function LockPrivacy() {
   const { status, refresh } = useLock()
   const [pin, setPin] = useState('')
   const [confirm, setConfirm] = useState('')
+  const [removing, setRemoving] = useState(false)
+  const [removePinValue, setRemovePinValue] = useState('')
 
   if (!status) return null
 
@@ -40,13 +42,14 @@ export function LockPrivacy() {
   }
 
   const removePin = async () => {
-    const entered = window.prompt('Enter current PIN to remove the lock')
-    if (entered == null) return
-    const ok = await disableLock(entered)
+    const ok = await disableLock(removePinValue)
     if (!ok) {
       sileo.error({ title: 'Incorrect PIN' })
+      setRemovePinValue('')
       return
     }
+    setRemoving(false)
+    setRemovePinValue('')
     await refresh()
     sileo.success({ title: 'Lock removed' })
   }
@@ -65,6 +68,7 @@ export function LockPrivacy() {
             API are inaccessible, but background tasks keep running.
           </p>
           <Input
+            type="password"
             inputMode="numeric"
             maxLength={6}
             placeholder="6-digit PIN"
@@ -72,6 +76,7 @@ export function LockPrivacy() {
             onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
           />
           <Input
+            type="password"
             inputMode="numeric"
             maxLength={6}
             placeholder="Confirm PIN"
@@ -121,13 +126,42 @@ export function LockPrivacy() {
             />
           </SettingsRow>
 
-          <Button
-            variant="destructive"
-            onClick={removePin}
-            className="self-start"
-          >
-            Remove lock
-          </Button>
+          {removing ? (
+            <div className="flex flex-col gap-2">
+              <Input
+                type="password"
+                inputMode="numeric"
+                maxLength={6}
+                placeholder="Current PIN"
+                value={removePinValue}
+                onChange={(e) =>
+                  setRemovePinValue(e.target.value.replace(/\D/g, ''))
+                }
+              />
+              <div className="flex gap-2">
+                <Button variant="destructive" onClick={removePin}>
+                  Confirm remove
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setRemoving(false)
+                    setRemovePinValue('')
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button
+              variant="destructive"
+              onClick={() => setRemoving(true)}
+              className="self-start"
+            >
+              Remove lock
+            </Button>
+          )}
         </div>
       )}
     </SettingsSection>

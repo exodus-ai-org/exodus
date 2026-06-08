@@ -14,10 +14,8 @@ import { router } from '@/routes'
 function AppRoot() {
   const { status, refresh, locked } = useLock()
 
-  if (status && locked) {
-    return <LockScreen status={status} onUnlocked={refresh} />
-  }
-
+  if (status === null) return null
+  if (locked) return <LockScreen status={status} onUnlocked={refresh} />
   return <RouterProvider router={router} />
 }
 
