@@ -28,6 +28,14 @@ export function getArtifactsDir(): string {
   return join(getExodusHome(), 'artifacts')
 }
 
+export function getLockSecretPath(): string {
+  return join(getExodusHome(), 'lock.dat')
+}
+
+export function getLockConfigPath(): string {
+  return join(getExodusHome(), 'lock-config.json')
+}
+
 /** Philharmonic Group workspace root, one directory per conversation. */
 export function getGroupsDir(): string {
   return join(getExodusHome(), 'groups')
