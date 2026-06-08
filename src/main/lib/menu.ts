@@ -7,6 +7,7 @@ import {
   shell
 } from 'electron'
 
+import { getLockManager } from './lock/lock-manager'
 import { registerSearchMenu } from './window'
 
 const isMac = process.platform === 'darwin'
@@ -32,7 +33,15 @@ const menuTemplate: MenuItemConstructorOptions[] = [
     : []),
   {
     label: 'File',
-    submenu: [isMac ? { role: 'close' } : { role: 'quit' }]
+    submenu: [
+      {
+        label: 'Lock Now',
+        accelerator: 'CmdOrCtrl+L',
+        click: () => getLockManager().lock('manual')
+      },
+      { type: 'separator' },
+      isMac ? { role: 'close' } : { role: 'quit' }
+    ]
   },
   {
     label: 'Edit',
