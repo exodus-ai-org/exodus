@@ -141,7 +141,12 @@ export function LockPrivacy() {
               onValueChange={(v) => v && update({ idleTimeoutMs: Number(v) })}
             >
               <SelectTrigger className="hover:bg-accent w-fit border-none shadow-none">
-                <SelectValue />
+                <SelectValue>
+                  {(val: string) =>
+                    IDLE_OPTIONS.find((o) => String(o.value) === val)?.label ??
+                    val
+                  }
+                </SelectValue>
               </SelectTrigger>
               <SelectContent className="no-drag w-full">
                 <SelectGroup>
