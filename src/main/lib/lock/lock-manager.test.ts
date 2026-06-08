@@ -98,6 +98,16 @@ describe('LockManager', () => {
     expect(m.disable('123456')).toBe(true)
   })
 
+  it('setPin enrolls only when no pin exists and refuses otherwise', async () => {
+    const { LockManager } = await import('./lock-manager')
+    pinStore.hasPin.mockReturnValue(false)
+    const m = new LockManager()
+    expect(m.setPin('123456')).toBe(true)
+    // once a pin exists, setPin refuses (must use changePin)
+    pinStore.hasPin.mockReturnValue(true)
+    expect(m.setPin('999999')).toBe(false)
+  })
+
   it('changePin records wrong attempts toward lockout', async () => {
     const { LockManager } = await import('./lock-manager')
     const m = new LockManager()

@@ -34,7 +34,14 @@ export function LockPrivacy() {
       sileo.error({ title: 'PINs do not match' })
       return
     }
-    await setLockPin(pin)
+    const { ok } = await setLockPin(pin)
+    if (!ok) {
+      sileo.error({
+        title: 'Could not set PIN',
+        description: 'A PIN already exists.'
+      })
+      return
+    }
     setPin('')
     setConfirm('')
     await refresh()

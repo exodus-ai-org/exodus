@@ -92,9 +92,17 @@ export class LockManager extends EventEmitter {
     this.emit('state-changed')
   }
 
-  setPin(pin: string): void {
+  /**
+   * Enrollment only. Refuses if a PIN already exists (rotation must use
+   * changePin, which authenticates the old PIN) or if the app is locked.
+   * Returns true if the PIN was set.
+   */
+  setPin(pin: string): boolean {
+    if (pinStore.hasPin()) return false
+    if (this.locked) return false
     pinStore.setPin(pin)
     this.emit('state-changed')
+    return true
   }
 
   changePin(oldPin: string, newPin: string): boolean {

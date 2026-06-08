@@ -16,7 +16,9 @@ export const unlockWithPin = (pin: string): Promise<UnlockResult> =>
 export const unlockWithTouchId = (): Promise<{ ok: boolean }> =>
   ipc().invoke(LOCK_CHANNELS.unlockTouchId)
 export const lockNow = (): Promise<void> => ipc().invoke(LOCK_CHANNELS.lockNow)
-export const setLockPin = (pin: string): Promise<LockStatus> =>
+export const setLockPin = (
+  pin: string
+): Promise<{ ok: boolean; status: LockStatus }> =>
   ipc().invoke(LOCK_CHANNELS.setPin, pin)
 export const changeLockPin = (
   oldPin: string,

@@ -55,8 +55,8 @@ export function setupLockIPC(): void {
   })
 
   ipcMain.handle(LOCK_CHANNELS.setPin, (_e, pin: string) => {
-    manager.setPin(pin)
-    return manager.getStatus(touchIdAvailable())
+    const ok = manager.setPin(pin)
+    return { ok, status: manager.getStatus(touchIdAvailable()) }
   })
 
   ipcMain.handle(
