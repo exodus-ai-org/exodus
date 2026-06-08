@@ -1,0 +1,135 @@
+import { useState } from 'react'
+import { sileo } from 'sileo'
+
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
+import { useLock } from '@/hooks/use-lock'
+import { disableLock, setLockConfig, setLockPin } from '@/lib/lock-ipc'
+
+import { SettingsRow, SettingsSection } from '../settings-row'
+
+const IDLE_OPTIONS = [
+  { label: 'Off', value: 0 },
+  { label: '1 minute', value: 60_000 },
+  { label: '5 minutes', value: 300_000 },
+  { label: '15 minutes', value: 900_000 }
+]
+
+export function LockPrivacy() {
+  const { status, refresh } = useLock()
+  const [pin, setPin] = useState('')
+  const [confirm, setConfirm] = useState('')
+
+  if (!status) return null
+
+  const enablePin = async () => {
+    if (!/^\d{6}$/.test(pin)) {
+      sileo.error({ title: 'PIN must be 6 digits' })
+      return
+    }
+    if (pin !== confirm) {
+      sileo.error({ title: 'PINs do not match' })
+      return
+    }
+    await setLockPin(pin)
+    setPin('')
+    setConfirm('')
+    await refresh()
+    sileo.success({ title: 'Lock enabled' })
+  }
+
+  const removePin = async () => {
+    const entered = window.prompt('Enter current PIN to remove the lock')
+    if (entered == null) return
+    const ok = await disableLock(entered)
+    if (!ok) {
+      sileo.error({ title: 'Incorrect PIN' })
+      return
+    }
+    await refresh()
+    sileo.success({ title: 'Lock removed' })
+  }
+
+  const update = async (patch: Parameters<typeof setLockConfig>[0]) => {
+    await setLockConfig(patch)
+    await refresh()
+  }
+
+  return (
+    <SettingsSection>
+      {!status.hasPin ? (
+        <div className="flex flex-col gap-3">
+          <p className="text-muted-foreground text-sm">
+            Set a 6-digit PIN to lock Exodus. While locked, the UI and the local
+            API are inaccessible, but background tasks keep running.
+          </p>
+          <Input
+            inputMode="numeric"
+            maxLength={6}
+            placeholder="6-digit PIN"
+            value={pin}
+            onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
+          />
+          <Input
+            inputMode="numeric"
+            maxLength={6}
+            placeholder="Confirm PIN"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value.replace(/\D/g, ''))}
+          />
+          <Button onClick={enablePin}>Enable lock</Button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-2">
+          {status.touchIdAvailable && (
+            <SettingsRow label="Unlock with Touch ID">
+              <Switch
+                checked={status.config.touchIdEnabled}
+                onCheckedChange={(v) => update({ touchIdEnabled: v })}
+              />
+            </SettingsRow>
+          )}
+
+          <SettingsRow label="Auto-lock when idle">
+            <select
+              className="bg-background border-border rounded-md border px-2 py-1 text-sm"
+              value={status.config.idleTimeoutMs}
+              onChange={(e) =>
+                update({ idleTimeoutMs: Number(e.target.value) })
+              }
+            >
+              {IDLE_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
+          </SettingsRow>
+
+          <SettingsRow label="Lock on app launch">
+            <Switch
+              checked={status.config.lockOnLaunch}
+              onCheckedChange={(v) => update({ lockOnLaunch: v })}
+            />
+          </SettingsRow>
+
+          <SettingsRow label="Lock on system sleep">
+            <Switch
+              checked={status.config.lockOnSystemSleep}
+              onCheckedChange={(v) => update({ lockOnSystemSleep: v })}
+            />
+          </SettingsRow>
+
+          <Button
+            variant="destructive"
+            onClick={removePin}
+            className="self-start"
+          >
+            Remove lock
+          </Button>
+        </div>
+      )}
+    </SettingsSection>
+  )
+}

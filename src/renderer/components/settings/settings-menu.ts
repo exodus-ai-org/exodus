@@ -7,6 +7,7 @@ import {
   HandCoinsIcon,
   InfoIcon,
   KeyboardIcon,
+  LockIcon,
   MemoryStickIcon,
   NetworkIcon,
   PlugIcon,
@@ -34,6 +35,7 @@ export enum SettingsLabel {
   DeepResearch = 'Deep Research',
   BrowserUse = 'Browser Use',
   ComputerUse = 'Computer Use',
+  LockPrivacy = 'Lock & Privacy',
   DataControls = 'Data Controls',
   Logger = 'Logger',
   KeyboardShortcuts = 'Keyboard Shortcuts',
@@ -101,6 +103,10 @@ export const menus = {
     {
       icon: ComputerIcon,
       title: SettingsLabel.ComputerUse
+    },
+    {
+      icon: LockIcon,
+      title: SettingsLabel.LockPrivacy
     },
     {
       icon: DatabaseIcon,

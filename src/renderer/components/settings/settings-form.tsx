@@ -16,6 +16,7 @@ import { GoogleMaps } from './settings-form/google-maps'
 import { GraphRAG } from './settings-form/graph-rag'
 import { ImageGeneration } from './settings-form/image-generation'
 import { KeyboardShortcuts } from './settings-form/keyboard-shortcuts'
+import { LockPrivacy } from './settings-form/lock-privacy'
 import { Logger } from './settings-form/logger'
 import { McpServers } from './settings-form/mcp-servers'
 import { MemoryLayer } from './settings-form/memory-layer'
@@ -151,6 +152,8 @@ export function SettingsForm() {
       {activeTitle === SettingsLabel.ComputerUse && <UnderConstruction />}
 
       {activeTitle === SettingsLabel.BrowserUse && <UnderConstruction />}
+
+      {activeTitle === SettingsLabel.LockPrivacy && <LockPrivacy />}
 
       {activeTitle === SettingsLabel.DataControls && <DataControls />}
 
