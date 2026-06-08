@@ -9,7 +9,7 @@ import {
   unlockWithTouchId
 } from '@/lib/lock-ipc'
 
-import { PinPad } from './pin-pad'
+import { PinInput } from './pin-input'
 
 const PIN_LENGTH = 6
 
@@ -83,7 +83,13 @@ export function LockScreen({
         </div>
       </div>
 
-      <PinPad value={pin} onChange={setPin} shake={shake} />
+      <PinInput
+        value={pin}
+        onChange={setPin}
+        autoFocus
+        shake={shake}
+        slotClassName="size-12 text-lg"
+      />
 
       <div className="text-destructive h-5 text-sm">{error}</div>
 

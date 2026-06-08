@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { sileo } from 'sileo'
 
+import { PinInput } from '@/components/lock/pin-input'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { useLock } from '@/hooks/use-lock'
 import { disableLock, setLockConfig, setLockPin } from '@/lib/lock-ipc'
@@ -69,28 +69,22 @@ export function LockPrivacy() {
   return (
     <SettingsSection>
       {!status.hasPin ? (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           <p className="text-muted-foreground text-sm">
             Set a 6-digit PIN to lock Exodus. While locked, the UI and the local
             API are inaccessible, but background tasks keep running.
           </p>
-          <Input
-            type="password"
-            inputMode="numeric"
-            maxLength={6}
-            placeholder="6-digit PIN"
-            value={pin}
-            onChange={(e) => setPin(e.target.value.replace(/\D/g, ''))}
-          />
-          <Input
-            type="password"
-            inputMode="numeric"
-            maxLength={6}
-            placeholder="Confirm PIN"
-            value={confirm}
-            onChange={(e) => setConfirm(e.target.value.replace(/\D/g, ''))}
-          />
-          <Button onClick={enablePin}>Enable lock</Button>
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium">PIN</span>
+            <PinInput value={pin} onChange={setPin} />
+          </div>
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium">Confirm PIN</span>
+            <PinInput value={confirm} onChange={setConfirm} />
+          </div>
+          <Button onClick={enablePin} className="self-start">
+            Enable lock
+          </Button>
         </div>
       ) : (
         <div className="flex flex-col gap-2">
@@ -135,16 +129,8 @@ export function LockPrivacy() {
 
           {removing ? (
             <div className="flex flex-col gap-2">
-              <Input
-                type="password"
-                inputMode="numeric"
-                maxLength={6}
-                placeholder="Current PIN"
-                value={removePinValue}
-                onChange={(e) =>
-                  setRemovePinValue(e.target.value.replace(/\D/g, ''))
-                }
-              />
+              <span className="text-sm font-medium">Current PIN</span>
+              <PinInput value={removePinValue} onChange={setRemovePinValue} />
               <div className="flex gap-2">
                 <Button variant="destructive" onClick={removePin}>
                   Confirm remove
