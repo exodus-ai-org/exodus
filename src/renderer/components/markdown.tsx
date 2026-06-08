@@ -375,7 +375,7 @@ export function Markdown({
               className
             )}
           >
-            {children}
+            <TextWithCitations>{children}</TextWithCitations>
           </th>
         )
       },
@@ -389,7 +389,7 @@ export function Markdown({
               className
             )}
           >
-            {children}
+            <TextWithCitations>{children}</TextWithCitations>
           </td>
         )
       }
