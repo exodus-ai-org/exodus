@@ -8,7 +8,7 @@ import { cors } from 'hono/cors'
 import { initScheduler } from '../ai/philharmonic/scheduler'
 import { getSettings } from '../db/queries'
 import { logger } from '../logger'
-import { errorHandler } from './middlewares'
+import { errorHandler, lockGate } from './middlewares'
 import artifactsRouter from './routes/artifacts'
 import audioRouter from './routes/audio'
 import backupRouter from './routes/backup'
@@ -38,6 +38,9 @@ export async function connectHttpServer() {
 
   // Middleware
   app.use('*', cors())
+
+  // Lock gate: reject all API access while the app is locked (423).
+  app.use('/api/*', lockGate)
 
   // Add setting to context for all routes (except setting route to avoid circular dependency)
   app.use('/api/*', async (c, next) => {
