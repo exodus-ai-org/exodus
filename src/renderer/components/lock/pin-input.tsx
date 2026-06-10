@@ -31,6 +31,7 @@ export function PinInput({
   const slot = (index: number) => (
     <InputOTPSlot
       index={index}
+      mask
       className={cn('rounded-md border', slotClassName)}
     />
   )
