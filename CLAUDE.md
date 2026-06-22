@@ -467,3 +467,30 @@ Reusable AI utilities that should be used (and tested) instead of inline impleme
 3. Add provider enum to `src/shared/constants/`
 4. Update settings UI to include new provider
 5. Update schema validation in `src/shared/schemas/`
+
+### Test-ID Checkpoints (traceability)
+
+When adding or generating an interactive element that warrants test coverage:
+
+1. Add a semantic id to `src/shared/constants/test-ids.ts` (the value mirrors the
+   object path, camelCase → kebab-case), e.g. `TEST_IDS.lock.unlockButton` →
+   `'lock.unlock-button'`.
+2. Apply it on the element: `data-testid={TEST_IDS.lock.unlockButton}`. For the
+   `PinInput` (and similar wrapped components), pass the `testId` prop instead.
+3. Reference the same constant from a Playwright test in `tests/` via
+   `getByTestId(TEST_IDS.lock.unlockButton)`. (Playwright does not resolve the
+   `@shared` alias — import `TEST_IDS` via a relative path in specs.)
+
+Rules enforced by the Vitest linkage test `test-ids.linkage.test.ts` (runs in
+`pnpm test` and the pre-commit hook):
+
+- every registry id must be applied in `src/renderer` (no orphan ids),
+- every registry id must be referenced by at least one test (no uncovered ids),
+- never use a raw string `data-testid="..."` — always go through the registry.
+
+Ids are a durable contract: never rename or regenerate an existing id; only add
+new ones. Dangling references to non-existent ids are caught by TypeScript (the
+registry is typed). `data-testid` attributes are stripped from packaged release
+builds by a small Vite `transform` plugin in `electron.vite.config.ts` gated on
+`STRIP_TEST_IDS=1` (set in `build:mac`/`build:win`/`build:linux`); dev and E2E
+builds keep the markers.
