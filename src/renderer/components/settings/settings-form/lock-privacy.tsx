@@ -1,3 +1,4 @@
+import { TEST_IDS } from '@shared/constants/test-ids'
 import { useState } from 'react'
 import { sileo } from 'sileo'
 
@@ -103,6 +104,7 @@ export function LockPrivacy() {
                 value={pin}
                 onChange={handlePinChange}
                 autoFocus
+                testId={TEST_IDS.lock.enablePinInput}
               />
             </div>
           ) : (
@@ -113,6 +115,7 @@ export function LockPrivacy() {
                 value={confirm}
                 onChange={handleConfirmChange}
                 autoFocus
+                testId={TEST_IDS.lock.confirmPinInput}
               />
               <button
                 type="button"
@@ -140,7 +143,10 @@ export function LockPrivacy() {
               value={String(status.config.idleTimeoutMs)}
               onValueChange={(v) => v && update({ idleTimeoutMs: Number(v) })}
             >
-              <SelectTrigger className="hover:bg-accent w-fit border-none shadow-none">
+              <SelectTrigger
+                data-testid={TEST_IDS.lock.idleSelect}
+                className="hover:bg-accent w-fit border-none shadow-none"
+              >
                 <SelectValue>
                   {(val: string) =>
                     IDLE_OPTIONS.find((o) => String(o.value) === val)?.label ??
@@ -177,7 +183,11 @@ export function LockPrivacy() {
           {removing ? (
             <div className="flex flex-col gap-2">
               <span className="text-sm font-medium">Current PIN</span>
-              <PinInput value={removePinValue} onChange={setRemovePinValue} />
+              <PinInput
+                value={removePinValue}
+                onChange={setRemovePinValue}
+                testId={TEST_IDS.lock.removePinInput}
+              />
               <div className="flex gap-2">
                 <Button variant="destructive" onClick={removePin}>
                   Confirm remove
@@ -196,6 +206,7 @@ export function LockPrivacy() {
           ) : (
             <Button
               variant="destructive"
+              data-testid={TEST_IDS.lock.removeButton}
               onClick={() => setRemoving(true)}
               className="self-start"
             >

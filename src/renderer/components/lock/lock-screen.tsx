@@ -1,3 +1,4 @@
+import { TEST_IDS } from '@shared/constants/test-ids'
 import type { LockNotification, LockStatus } from '@shared/types/lock'
 import { FingerprintIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -89,6 +90,7 @@ export function LockScreen({
         autoFocus
         shake={shake}
         slotClassName="size-12 text-lg"
+        testId={TEST_IDS.lock.pinInput}
       />
 
       <div className="text-destructive h-5 text-sm">{error}</div>
@@ -96,6 +98,7 @@ export function LockScreen({
       {touchId && (
         <button
           type="button"
+          data-testid={TEST_IDS.lock.touchIdButton}
           onClick={tryTouchId}
           className="text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm"
         >

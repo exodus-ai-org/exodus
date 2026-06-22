@@ -16,7 +16,8 @@ export const TEST_IDS = {
     enablePinInput: 'lock.enable-pin-input',
     confirmPinInput: 'lock.confirm-pin-input',
     idleSelect: 'lock.idle-select',
-    removeButton: 'lock.remove-button'
+    removeButton: 'lock.remove-button',
+    removePinInput: 'lock.remove-pin-input'
   }
 } as const
 

@@ -20,13 +20,15 @@ export function PinInput({
   onChange,
   autoFocus,
   shake,
-  slotClassName
+  slotClassName,
+  testId
 }: {
   value: string
   onChange: (value: string) => void
   autoFocus?: boolean
   shake?: boolean
   slotClassName?: string
+  testId?: string
 }) {
   const slot = (index: number) => (
     <InputOTPSlot
@@ -39,6 +41,7 @@ export function PinInput({
   return (
     <div className={cn('w-fit', shake && 'animate-shake')}>
       <InputOTP
+        data-testid={testId}
         maxLength={PIN_LENGTH}
         value={value}
         onChange={onChange}
