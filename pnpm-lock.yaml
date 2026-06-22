@@ -192,9 +192,6 @@ importers:
       '@xyflow/react':
         specifier: ^12.10.2
         version: 12.10.2(@types/react@19.2.15)(immer@11.1.8)(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
-      babel-plugin-react-remove-properties:
-        specifier: ^0.3.1
-        version: 0.3.1
       change-case:
         specifier: ^5.4.4
         version: 5.4.4
@@ -3819,9 +3816,6 @@ packages:
 
   axios@1.15.0:
     resolution: {integrity: sha512-wWyJDlAatxk30ZJer+GeCWS209sA42X+N5jU2jy6oHTp7ufw8uzUTVFBX9+wTfAlhiJXGS0Bq7X6efruWjuK9Q==}
-
-  babel-plugin-react-remove-properties@0.3.1:
-    resolution: {integrity: sha512-JQ0oEgC4P6TZxSqEaoPZdbgE2L38Kz7RgTgGcOUUR24Z19OiGhnhdXkXkwwsYyx6LOr/bMY5ljDADhxDr/JQug==}
 
   bail@2.0.2:
     resolution: {integrity: sha512-0xO6mYd7JB2YesxDKplafRpsiOzPt9V02ddPCLbY1xYGPOX24NTyN50qnUxgCPcSoYMhKpAuBTjQoRZCAkUDRw==}
@@ -11938,8 +11932,6 @@ snapshots:
       proxy-from-env: 2.1.0
     transitivePeerDependencies:
       - debug
-
-  babel-plugin-react-remove-properties@0.3.1: {}
 
   bail@2.0.2: {}
 
