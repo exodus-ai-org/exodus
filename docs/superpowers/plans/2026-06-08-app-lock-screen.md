@@ -4,7 +4,7 @@
 
 **Goal:** Add an iPhone-style runtime lock — a 6-digit PIN (plus macOS Touch ID) that blocks the UI and the local HTTP API while background tasks keep running and notifications still surface.
 
-**Architecture:** Main-process-authoritative. A `LockManager` singleton owns lock state; a Hono middleware returns `423` for all `/api/*` while locked; unlock happens only over IPC (no HTTP unlock endpoint). The renderer renders *only* the lock screen (unmounting the app tree) while locked. No data-at-rest encryption.
+**Architecture:** Main-process-authoritative. A `LockManager` singleton owns lock state; a Hono middleware returns `423` for all `/api/*` while locked; unlock happens only over IPC (no HTTP unlock endpoint). The renderer renders _only_ the lock screen (unmounting the app tree) while locked. No data-at-rest encryption.
 
 **Tech Stack:** Electron (`safeStorage`, `systemPreferences.promptTouchID`, `powerMonitor`, `ipcMain`/`ipcRenderer`), Node `crypto` (scrypt, timingSafeEqual), Hono, React 19 + Jotai, Vitest.
 
@@ -15,6 +15,7 @@
 ## File Structure
 
 **Main process**
+
 - `src/main/lib/lock/pin-store.ts` (new) — secret PIN record: scrypt hash, `safeStorage`-wrapped, `~/.exodus/lock.dat`.
 - `src/main/lib/lock/lock-config.ts` (new) — non-secret toggles, plain JSON `~/.exodus/lock-config.json`.
 - `src/main/lib/lock/lock-manager.ts` (new) — authoritative state, transitions, attempt backoff, events.
@@ -29,6 +30,7 @@
 - `src/main/lib/paths.ts` (modify) — add `getLockSecretPath()` / `getLockConfigPath()`.
 
 **Renderer**
+
 - `src/renderer/lib/lock-ipc.ts` (new) — thin wrappers over `window.electron.ipcRenderer` for `lock:*`.
 - `src/renderer/stores/lock.ts` (new) — Jotai atom for lock status.
 - `src/renderer/hooks/use-lock.ts` (new) — sync status, unlock actions, activity pinger.
@@ -38,6 +40,7 @@
 - `src/renderer/components/settings/settings-form/lock-privacy.tsx` (new) + sidebar/switch (modify) — settings UI.
 
 **Shared**
+
 - `src/shared/types/lock.ts` (new) — `LockStatus`, `LockConfig`, `LockNotification`, IPC channel constants.
 
 ---
@@ -45,6 +48,7 @@
 ## Task 1: Shared lock types
 
 **Files:**
+
 - Create: `src/shared/types/lock.ts`
 
 - [ ] **Step 1: Create the shared types and channel constants**
@@ -91,7 +95,11 @@ export interface LockNotification {
 
 export type UnlockResult =
   | { ok: true }
-  | { ok: false; reason: 'wrong-pin' | 'locked-out' | 'no-pin'; retryAfterMs: number }
+  | {
+      ok: false
+      reason: 'wrong-pin' | 'locked-out' | 'no-pin'
+      retryAfterMs: number
+    }
 
 export const LOCK_CHANNELS = {
   getStatus: 'lock:get-status',
@@ -122,6 +130,7 @@ git commit -m "feat(lock): shared lock types and IPC channel constants"
 ## Task 2: Lock file paths
 
 **Files:**
+
 - Modify: `src/main/lib/paths.ts`
 
 - [ ] **Step 1: Add path helpers** (after `getArtifactsDir`, mirroring its style)
@@ -151,6 +160,7 @@ git commit -m "feat(lock): lock file path helpers"
 ## Task 3: PIN store (scrypt + safeStorage)
 
 **Files:**
+
 - Create: `src/main/lib/lock/pin-store.ts`
 - Test: `src/main/lib/lock/pin-store.test.ts`
 
@@ -230,11 +240,7 @@ Expected: FAIL — `Cannot find module './pin-store'`.
 ```ts
 // src/main/lib/lock/pin-store.ts
 import { existsSync, readFileSync, rmSync, writeFileSync } from 'fs'
-import {
-  randomBytes,
-  scryptSync,
-  timingSafeEqual
-} from 'crypto'
+import { randomBytes, scryptSync, timingSafeEqual } from 'crypto'
 
 import { safeStorage } from 'electron'
 
@@ -285,7 +291,10 @@ function writeRecord(record: PinRecord): void {
   if (safeStorage.isEncryptionAvailable()) {
     writeFileSync(path, safeStorage.encryptString(json))
   } else {
-    logger.warn('app', 'safeStorage unavailable — storing lock record unencrypted')
+    logger.warn(
+      'app',
+      'safeStorage unavailable — storing lock record unencrypted'
+    )
     writeFileSync(path, json, 'utf8')
   }
 }
@@ -336,6 +345,7 @@ git commit -m "feat(lock): PIN store with scrypt hashing and safeStorage"
 ## Task 4: Lock config store (toggles)
 
 **Files:**
+
 - Create: `src/main/lib/lock/lock-config.ts`
 - Test: `src/main/lib/lock/lock-config.test.ts`
 
@@ -393,10 +403,7 @@ Expected: FAIL — `Cannot find module './lock-config'`.
 // src/main/lib/lock/lock-config.ts
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 
-import {
-  DEFAULT_LOCK_CONFIG,
-  type LockConfig
-} from '@shared/types/lock'
+import { DEFAULT_LOCK_CONFIG, type LockConfig } from '@shared/types/lock'
 
 import { logger } from '../logger'
 import { getLockConfigPath } from '../paths'
@@ -439,6 +446,7 @@ git commit -m "feat(lock): non-secret lock config store"
 ## Task 5: LockManager (state, transitions, backoff)
 
 **Files:**
+
 - Create: `src/main/lib/lock/lock-manager.ts`
 - Test: `src/main/lib/lock/lock-manager.test.ts`
 
@@ -600,9 +608,14 @@ export class LockManager extends EventEmitter {
   }
 
   unlock(pin: string): UnlockResult {
-    if (!pinStore.hasPin()) return { ok: false, reason: 'no-pin', retryAfterMs: 0 }
+    if (!pinStore.hasPin())
+      return { ok: false, reason: 'no-pin', retryAfterMs: 0 }
     if (this.retryAfterMs() > 0) {
-      return { ok: false, reason: 'locked-out', retryAfterMs: this.retryAfterMs() }
+      return {
+        ok: false,
+        reason: 'locked-out',
+        retryAfterMs: this.retryAfterMs()
+      }
     }
     if (!pinStore.verify(pin)) {
       this.wrongAttempts++
@@ -676,6 +689,7 @@ git commit -m "feat(lock): LockManager state machine with attempt backoff"
 ## Task 6: Hono lock-gate middleware
 
 **Files:**
+
 - Create: `src/main/lib/server/middlewares/lock-gate.ts`
 - Modify: `src/main/lib/server/middlewares/index.ts`
 - Test: `src/main/lib/server/middlewares/lock-gate.test.ts`
@@ -765,10 +779,10 @@ import { errorHandler, lockGate } from './middlewares'
 Insert the gate as the FIRST `/api/*` middleware, immediately after `app.use('*', cors())`:
 
 ```ts
-  app.use('*', cors())
+app.use('*', cors())
 
-  // Lock gate: reject all API access while the app is locked (423).
-  app.use('/api/*', lockGate)
+// Lock gate: reject all API access while the app is locked (423).
+app.use('/api/*', lockGate)
 ```
 
 - [ ] **Step 6: Typecheck + commit**
@@ -786,6 +800,7 @@ git commit -m "feat(lock): 423 lock-gate middleware on all API routes"
 ## Task 7: Idle / sleep / launch watcher
 
 **Files:**
+
 - Create: `src/main/lib/lock/idle-watcher.ts`
 - Test: `src/main/lib/lock/idle-watcher.test.ts`
 
@@ -798,7 +813,9 @@ The watcher is a class given a `LockManager`, a `now()` clock, and an interval s
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const cfg = { idleTimeoutMs: 0 }
-vi.mock('./lock-config', () => ({ readConfig: () => ({ ...baseCfg(), ...cfg }) }))
+vi.mock('./lock-config', () => ({
+  readConfig: () => ({ ...baseCfg(), ...cfg })
+}))
 vi.mock('../logger', () => ({ logger: { info: vi.fn() } }))
 
 function baseCfg() {
@@ -928,6 +945,7 @@ git commit -m "feat(lock): idle watcher with activity-reset timeout"
 ## Task 8: Lock notifications ring buffer
 
 **Files:**
+
 - Create: `src/main/lib/lock/lock-notifications.ts`
 
 This buffers recent task events and pushes them to the renderer's lock-screen feed. It reuses the existing `notifyIfBackground` OS notification.
@@ -987,6 +1005,7 @@ git commit -m "feat(lock): lock-screen notification ring buffer"
 ## Task 9: Lock IPC handlers (main)
 
 **Files:**
+
 - Create: `src/main/lib/lock/ipc.ts`
 - Modify: `src/main/lib/ipc.ts` (call `setupLockIPC()` inside `setupIPC()`)
 
@@ -1063,7 +1082,8 @@ export function setupLockIPC(): void {
 
   ipcMain.handle(LOCK_CHANNELS.setConfig, (_e, patch: Partial<LockConfig>) => {
     // Touch ID can only be enabled where it's available.
-    if (patch.touchIdEnabled && !touchIdAvailable()) patch.touchIdEnabled = false
+    if (patch.touchIdEnabled && !touchIdAvailable())
+      patch.touchIdEnabled = false
     return manager.setConfig(patch)
   })
 
@@ -1105,7 +1125,7 @@ import { setupLockIPC } from './lock/ipc'
 Add as the first line inside `setupIPC()` (after the `ping` handler):
 
 ```ts
-  setupLockIPC()
+setupLockIPC()
 ```
 
 - [ ] **Step 3: Typecheck + commit**
@@ -1123,6 +1143,7 @@ git commit -m "feat(lock): main-process lock IPC handlers"
 ## Task 10: Startup wiring (launch-lock, idle watcher, powerMonitor)
 
 **Files:**
+
 - Modify: `src/main/index.ts`
 
 - [ ] **Step 1: Add the lock startup block**
@@ -1143,26 +1164,26 @@ import { hasPin as lockHasPin } from './lib/lock/pin-store'
 Inside `app.whenReady().then(async () => { ... })`, AFTER `setupIPC()` and `createWindow()`, add:
 
 ```ts
-  // ── Lock screen ─────────────────────────────────────────────
-  const lockManager = getLockManager()
-  const lockCfg = readLockConfig()
+// ── Lock screen ─────────────────────────────────────────────
+const lockManager = getLockManager()
+const lockCfg = readLockConfig()
 
-  // Lock on launch (only if a PIN exists and the setting is on).
-  if (lockCfg.lockOnLaunch && lockHasPin()) {
-    lockManager.lock('launch')
-  }
+// Lock on launch (only if a PIN exists and the setting is on).
+if (lockCfg.lockOnLaunch && lockHasPin()) {
+  lockManager.lock('launch')
+}
 
-  // Idle auto-lock watcher.
-  const idleWatcher = new IdleWatcher(lockManager)
-  setLockIdleWatcher(idleWatcher)
-  idleWatcher.start()
+// Idle auto-lock watcher.
+const idleWatcher = new IdleWatcher(lockManager)
+setLockIdleWatcher(idleWatcher)
+idleWatcher.start()
 
-  // Lock on system sleep / screen lock.
-  const lockOnSleep = () => {
-    if (readLockConfig().lockOnSystemSleep) lockManager.lock('system-sleep')
-  }
-  powerMonitor.on('suspend', lockOnSleep)
-  powerMonitor.on('lock-screen', lockOnSleep)
+// Lock on system sleep / screen lock.
+const lockOnSleep = () => {
+  if (readLockConfig().lockOnSystemSleep) lockManager.lock('system-sleep')
+}
+powerMonitor.on('suspend', lockOnSleep)
+powerMonitor.on('lock-screen', lockOnSleep)
 ```
 
 - [ ] **Step 2: Typecheck**
@@ -1182,6 +1203,7 @@ git commit -m "feat(lock): wire launch/idle/sleep lock triggers at startup"
 ## Task 11: Menu "Lock Now"
 
 **Files:**
+
 - Modify: `src/main/lib/menu.ts`
 
 - [ ] **Step 1: Add a Lock Now item to the File menu**
@@ -1224,6 +1246,7 @@ git commit -m "feat(lock): Lock Now menu item (CmdOrCtrl+L)"
 ## Task 12: Renderer lock IPC wrappers + store + hook
 
 **Files:**
+
 - Create: `src/renderer/lib/lock-ipc.ts`
 - Create: `src/renderer/stores/lock.ts`
 - Create: `src/renderer/hooks/use-lock.ts`
@@ -1253,12 +1276,15 @@ export const unlockWithTouchId = (): Promise<{ ok: boolean }> =>
 export const lockNow = (): Promise<void> => ipc().invoke(LOCK_CHANNELS.lockNow)
 export const setLockPin = (pin: string): Promise<LockStatus> =>
   ipc().invoke(LOCK_CHANNELS.setPin, pin)
-export const changeLockPin = (oldPin: string, newPin: string): Promise<boolean> =>
-  ipc().invoke(LOCK_CHANNELS.changePin, oldPin, newPin)
+export const changeLockPin = (
+  oldPin: string,
+  newPin: string
+): Promise<boolean> => ipc().invoke(LOCK_CHANNELS.changePin, oldPin, newPin)
 export const disableLock = (pin: string): Promise<boolean> =>
   ipc().invoke(LOCK_CHANNELS.disable, pin)
-export const setLockConfig = (patch: Partial<LockConfig>): Promise<LockConfig> =>
-  ipc().invoke(LOCK_CHANNELS.setConfig, patch)
+export const setLockConfig = (
+  patch: Partial<LockConfig>
+): Promise<LockConfig> => ipc().invoke(LOCK_CHANNELS.setConfig, patch)
 export const pingActivity = (): Promise<void> =>
   ipc().invoke(LOCK_CHANNELS.pingActivity)
 export const getRecentLockNotifications = (): Promise<LockNotification[]> =>
@@ -1297,11 +1323,7 @@ export const lockStatusAtom = atom<LockStatus | null>(null)
 import { useAtom } from 'jotai'
 import { useCallback, useEffect } from 'react'
 
-import {
-  getLockStatus,
-  onLockStateChanged,
-  pingActivity
-} from '@/lib/lock-ipc'
+import { getLockStatus, onLockStateChanged, pingActivity } from '@/lib/lock-ipc'
 import { lockStatusAtom } from '@/stores/lock'
 
 const ACTIVITY_THROTTLE_MS = 5000
@@ -1357,6 +1379,7 @@ git commit -m "feat(lock): renderer lock IPC, store, and hook"
 ## Task 13: Lock screen UI + root mount
 
 **Files:**
+
 - Create: `src/renderer/components/lock/pin-pad.tsx`
 - Create: `src/renderer/components/lock/lock-screen.tsx`
 - Modify: app root (the top-level component that renders the router; locate via `grep -rn "RouterProvider\|createHashRouter\|<App" src/renderer/main.tsx src/renderer/App.tsx`)
@@ -1425,11 +1448,22 @@ Add a shake keyframe to `src/renderer/globals.css` (or the project's tailwind CS
 
 ```css
 @keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  20%, 60% { transform: translateX(-8px); }
-  40%, 80% { transform: translateX(8px); }
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20%,
+  60% {
+    transform: translateX(-8px);
+  }
+  40%,
+  80% {
+    transform: translateX(8px);
+  }
 }
-.animate-shake { animation: shake 0.4s ease-in-out; }
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
 ```
 
 - [ ] **Step 2: Implement `lock-screen.tsx`**
@@ -1466,7 +1500,9 @@ export function LockScreen({
 
   useEffect(() => {
     getRecentLockNotifications().then(setFeed)
-    return onLockNotification((n) => setFeed((prev) => [n, ...prev].slice(0, 20)))
+    return onLockNotification((n) =>
+      setFeed((prev) => [n, ...prev].slice(0, 20))
+    )
   }, [])
 
   useEffect(() => {
@@ -1474,8 +1510,7 @@ export function LockScreen({
     return () => clearInterval(id)
   }, [])
 
-  const touchId =
-    status.touchIdAvailable && status.config.touchIdEnabled
+  const touchId = status.touchIdAvailable && status.config.touchIdEnabled
 
   // Auto-submit when 6 digits are entered.
   useEffect(() => {
@@ -1593,6 +1628,7 @@ git commit -m "feat(lock): lock screen UI with PIN pad, Touch ID, and feed"
 ## Task 14: Settings — "Lock & Privacy" section
 
 **Files:**
+
 - Create: `src/renderer/components/settings/settings-form/lock-privacy.tsx`
 - Modify: settings sidebar + form switch (find with `grep -rn "memory-layer\|MemoryLayer" src/renderer/components/settings`)
 
@@ -1606,11 +1642,7 @@ import { useState } from 'react'
 import { sileo } from 'sileo'
 
 import { useLock } from '@/hooks/use-lock'
-import {
-  disableLock,
-  setLockConfig,
-  setLockPin
-} from '@/lib/lock-ipc'
+import { disableLock, setLockConfig, setLockPin } from '@/lib/lock-ipc'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -1698,7 +1730,9 @@ export function LockPrivacy() {
             <select
               className="bg-background border-border rounded-md border px-2 py-1 text-sm"
               value={status.config.idleTimeoutMs}
-              onChange={(e) => update({ idleTimeoutMs: Number(e.target.value) })}
+              onChange={(e) =>
+                update({ idleTimeoutMs: Number(e.target.value) })
+              }
             >
               {IDLE_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
@@ -1722,7 +1756,11 @@ export function LockPrivacy() {
             />
           </Row>
 
-          <Button variant="destructive" onClick={removePin} className="self-start">
+          <Button
+            variant="destructive"
+            onClick={removePin}
+            className="self-start"
+          >
             Remove lock
           </Button>
         </div>
@@ -1731,7 +1769,13 @@ export function LockPrivacy() {
   )
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+function Row({
+  label,
+  children
+}: {
+  label: string
+  children: React.ReactNode
+}) {
   return (
     <div className="flex items-center justify-between">
       <span className="text-sm">{label}</span>

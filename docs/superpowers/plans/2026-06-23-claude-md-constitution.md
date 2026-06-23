@@ -25,6 +25,7 @@
 ## Task 1: Write the two guard tests (red, do NOT commit yet)
 
 **Files:**
+
 - Create: `src/shared/meta/claude-md-freshness.test.ts`
 - Create: `src/shared/meta/claude-md-staleness.test.ts`
 
@@ -95,9 +96,7 @@ import { describe, expect, it } from 'vitest'
 
 const ROOT = join(__dirname, '..', '..', '..')
 const claudeMd = readFileSync(join(ROOT, 'CLAUDE.md'), 'utf8')
-const pkg = JSON.parse(
-  readFileSync(join(ROOT, 'package.json'), 'utf8')
-) as {
+const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8')) as {
   dependencies?: Record<string, string>
   devDependencies?: Record<string, string>
 }
@@ -116,10 +115,13 @@ const FORBIDDEN: RegExp[] = [
 
 describe('CLAUDE.md staleness', () => {
   it('contains no retired tokens', () => {
-    const hits = FORBIDDEN.filter((re) => re.test(claudeMd)).map((re) => re.source)
-    expect(hits, `retired tokens present in CLAUDE.md: ${hits.join(', ')}`).toEqual(
-      []
+    const hits = FORBIDDEN.filter((re) => re.test(claudeMd)).map(
+      (re) => re.source
     )
+    expect(
+      hits,
+      `retired tokens present in CLAUDE.md: ${hits.join(', ')}`
+    ).toEqual([])
   })
 
   it('references the real AI dependency from package.json', () => {
@@ -142,6 +144,7 @@ Do not commit. Proceed to Task 2.
 ## Task 2: CLAUDE.md accuracy pass + Code Structure section (turn guards green, commit)
 
 **Files:**
+
 - Modify: `CLAUDE.md`
 - (commits the two test files from Task 1 together)
 
@@ -163,6 +166,7 @@ Edit CLAUDE.md so the following are correct (search the file for the old text; r
 - [ ] **Step 2: Add sections for undocumented features**
 
 Add concise subsections (verify paths exist):
+
 - **Philharmonic** (multi-agent "Groups"): `src/main/lib/ai/philharmonic/`, renderer `src/renderer/components/philharmonic/`, route `/api/philharmonic`, group workspaces under `~/.exodus/groups`.
 - **App Lock**: `src/main/lib/lock/` (`pin-manager`/`lock-manager`, `pin-store` scrypt+safeStorage, `idle-watcher`), the `423` lock-gate middleware, IPC-only unlock, secret at `~/.exodus/lock.dat`.
 - **LCM (lossless context management)**: `src/main/lib/ai/context-management/`, route `/api/lcm`.
@@ -177,6 +181,7 @@ Append this section (paths are concrete and checked by the freshness guard — v
 ## Code Structure
 
 Main process:
+
 - `src/main/index.ts` — app bootstrap, lifecycle, IPC + server startup
 - `src/main/lib/server/app.ts` — Hono server + route registration
 - `src/main/lib/server/routes/` — API route handlers
@@ -192,9 +197,11 @@ Main process:
 - `src/main/lib/paths.ts` — `~/.exodus` path helpers
 
 Preload:
+
 - `src/preload/index.ts` — context-isolated bridge
 
 Renderer:
+
 - `src/renderer/components/` — UI components
 - `src/renderer/components/ui/` — shadcn primitives (reuse these)
 - `src/renderer/components/lock/` — lock screen
@@ -208,12 +215,14 @@ Renderer:
 - `src/renderer/sub-apps/` — searchbar, quick-chat, artifacts entry points
 
 Shared:
+
 - `src/shared/types/` — cross-process types
 - `src/shared/constants/` — constants (`models.ts`, `test-ids.ts`, `systems.ts`)
 - `src/shared/schemas/` — Zod schemas
 - `src/shared/utils/` — shared utilities
 
 Tests & config:
+
 - `tests/api/` — API integration (Playwright)
 - `tests/e2e/` — Electron E2E
 - `tests/providers/` — provider compatibility
@@ -224,6 +233,7 @@ Tests & config:
 - `playwright.config.ts` — E2E config
 
 Docs:
+
 - `docs/superpowers/specs/` — design specs
 - `docs/superpowers/plans/` — implementation plans
 ```
@@ -242,6 +252,7 @@ Expected: clean.
 git add src/shared/meta/claude-md-freshness.test.ts src/shared/meta/claude-md-staleness.test.ts CLAUDE.md
 git commit -m "docs(claude-md): accuracy pass + code-structure map + guards"
 ```
+
 End the body with `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`. The pre-commit hook runs the full suite; it should be green now. The known flaky PGlite teardown in `context-management/index.test.ts` is the ONLY acceptable reason to `--no-verify`.
 
 ---
@@ -249,6 +260,7 @@ End the body with `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`. The
 ## Task 3: Add the "Project Constraints (read first)" section
 
 **Files:**
+
 - Modify: `CLAUDE.md`
 
 - [ ] **Step 1: Insert the constraints section near the top**
@@ -264,18 +276,18 @@ you must uphold.
 - **Tests + checkpoints with UI.** When adding a key interactive element, add a
   `TEST_IDS` entry (`src/shared/constants/test-ids.ts`) + `data-testid`, and
   reference it from a Playwright test. Test ids are a durable contract — never
-  rename or regenerate an existing id. *Enforced by `test-ids.linkage.test.ts`.*
+  rename or regenerate an existing id. _Enforced by `test-ids.linkage.test.ts`._
 - **Pre-commit gate.** Before committing, `pnpm format` → `pnpm lint` →
-  `pnpm typecheck` → `pnpm test` must pass. *Enforced by the husky pre-commit
-  hook.* Do not `--no-verify` except for the known flaky PGlite WASM teardown in
+  `pnpm typecheck` → `pnpm test` must pass. _Enforced by the husky pre-commit
+  hook._ Do not `--no-verify` except for the known flaky PGlite WASM teardown in
   `src/main/lib/ai/context-management/index.test.ts`.
 - **Reuse UI primitives.** Prefer existing `@/components/ui` (shadcn) components
   over hand-rolled equivalents (e.g. shadcn `Select`, `InputOTP`).
 - **Copy language.** New user-facing strings default to English.
 - **Keep this file current.** Any change to architecture, routes, or directory
-  structure updates CLAUDE.md in the same change. *Partly enforced by
+  structure updates CLAUDE.md in the same change. _Partly enforced by
   `claude-md-freshness.test.ts` (paths) and `claude-md-staleness.test.ts`
-  (retired claims).*
+  (retired claims)._
 - **Models & providers.** Use the shared `resolveModel()`
   (`src/main/lib/ai/providers/resolve-model.ts`); selectable model lists live in
   `src/shared/constants/models.ts`.
@@ -290,6 +302,7 @@ Expected: still PASS (adding constraints introduces no retired tokens and no new
 git add CLAUDE.md
 git commit -m "docs(claude-md): add Project Constraints (read first) section"
 ```
+
 (End body with the Co-Authored-By line; `--no-verify` only for the flaky PGlite teardown.)
 
 ---

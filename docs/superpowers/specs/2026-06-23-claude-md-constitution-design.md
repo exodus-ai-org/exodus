@@ -44,16 +44,16 @@ the implementer re-verifies each against the code):
   (`src/main/lib/server/routes/chat.ts`), not `streamText`.
 - **Routes:** replace the list with the real 17 routes registered in
   `src/main/lib/server/app.ts`: `chat, lcm, history, project, settings, audio,
-  db-io, deep-research, tools, philharmonic, s3, skills, mcp, memory, usage,
-  logs, backup, artifacts`. Remove non-existent `/api/setting`, `/api/workflow`,
+db-io, deep-research, tools, philharmonic, s3, skills, mcp, memory, usage,
+logs, backup, artifacts`. Remove non-existent `/api/setting`, `/api/workflow`,
   `/api/custom-uploader`.
 - **MCP:** "Connects to MCP servers on startup" → MCP connection is **archived**
   (see commented code in `app.ts`); there is an `/api/mcp` route + settings.
 - **Tools:** replace the invented list (`calculator.ts`, `date.ts`) with the
   real `src/main/lib/ai/calling-tools/` set: `create-artifact, deep-research,
-  edit-file, find-files, grep, image-generation, lcm-describe, lcm-expand,
-  lcm-grep, list-directory, map-itinerary, read-file, terminal, weather,
-  web-fetch, web-search, write-file`.
+edit-file, find-files, grep, image-generation, lcm-describe, lcm-expand,
+lcm-grep, list-directory, map-itinerary, read-file, terminal, weather,
+web-fetch, web-search, write-file`.
 - **Providers:** fix mislabeled list; real files in `src/main/lib/ai/providers/`:
   `openai-gpt, azure-openai, anthropic-claude, google-gemini, xai-grok, ollama`
   (+ shared `resolve-model.ts`). Model lists live in

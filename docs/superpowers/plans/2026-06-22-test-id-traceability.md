@@ -30,14 +30,17 @@
 ## Task 1: Add dependencies
 
 **Files:**
+
 - Modify: `package.json` (devDependencies)
 
 - [ ] **Step 1: Install the two off-the-shelf devDeps**
 
 Run:
+
 ```bash
 pnpm add -D babel-plugin-react-remove-properties cross-env
 ```
+
 Expected: both appear under `devDependencies` in `package.json`; `pnpm install` succeeds.
 
 - [ ] **Step 2: Commit**
@@ -46,6 +49,7 @@ Expected: both appear under `devDependencies` in `package.json`; `pnpm install` 
 git add package.json pnpm-lock.yaml
 git commit -m "build(testids): add react-remove-properties + cross-env"
 ```
+
 (Pre-commit hook runs the full Vitest suite, which has a KNOWN FLAKY unrelated PGlite WASM teardown error in `src/main/lib/ai/context-management/index.test.ts`. If a commit is blocked ONLY by that and your own checks pass, re-commit with `--no-verify`. End commit bodies with `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`.)
 
 ---
@@ -53,6 +57,7 @@ git commit -m "build(testids): add react-remove-properties + cross-env"
 ## Task 2: TEST_IDS registry + flatten helper
 
 **Files:**
+
 - Create: `src/shared/constants/test-ids.ts`
 - Test: `src/shared/constants/test-ids.test.ts`
 
@@ -166,6 +171,7 @@ git commit -m "feat(testids): typed TEST_IDS registry + flatten helper"
 ## Task 3: Apply ids to the lock UI
 
 **Files:**
+
 - Modify: `src/renderer/components/lock/pin-input.tsx`
 - Modify: `src/renderer/components/lock/lock-screen.tsx`
 - Modify: `src/renderer/components/settings/settings-form/lock-privacy.tsx`
@@ -209,21 +215,26 @@ export function PinInput({
 In `src/renderer/components/lock/lock-screen.tsx`, add the import and pass `testId`/add `data-testid` on the Touch ID button.
 
 Add import (with the other `@/` imports):
+
 ```tsx
 import { TEST_IDS } from '@shared/constants/test-ids'
 ```
+
 Change the `PinInput` usage to include `testId`:
+
 ```tsx
-      <PinInput
-        value={pin}
-        onChange={setPin}
-        autoFocus
-        shake={shake}
-        slotClassName="size-12 text-lg"
-        testId={TEST_IDS.lock.pinInput}
-      />
+<PinInput
+  value={pin}
+  onChange={setPin}
+  autoFocus
+  shake={shake}
+  slotClassName="size-12 text-lg"
+  testId={TEST_IDS.lock.pinInput}
+/>
 ```
+
 Add `data-testid` to the Touch ID button:
+
 ```tsx
         <button
           type="button"
@@ -236,58 +247,66 @@ Add `data-testid` to the Touch ID button:
 - [ ] **Step 3: Apply ids in Lock & Privacy settings**
 
 In `src/renderer/components/settings/settings-form/lock-privacy.tsx`, add the import:
+
 ```tsx
 import { TEST_IDS } from '@shared/constants/test-ids'
 ```
+
 Add `testId` to the three `PinInput`s and `data-testid` to the remove button + idle `Select` trigger:
 
 - enrollment "enter" step:
   ```tsx
-              <PinInput
-                key="enter"
-                value={pin}
-                onChange={handlePinChange}
-                autoFocus
-                testId={TEST_IDS.lock.enablePinInput}
-              />
+  <PinInput
+    key="enter"
+    value={pin}
+    onChange={handlePinChange}
+    autoFocus
+    testId={TEST_IDS.lock.enablePinInput}
+  />
   ```
 - enrollment "confirm" step:
   ```tsx
-              <PinInput
-                key="confirm"
-                value={confirm}
-                onChange={handleConfirmChange}
-                autoFocus
-                testId={TEST_IDS.lock.confirmPinInput}
-              />
+  <PinInput
+    key="confirm"
+    value={confirm}
+    onChange={handleConfirmChange}
+    autoFocus
+    testId={TEST_IDS.lock.confirmPinInput}
+  />
   ```
 - remove step input: uses its own id `removePinInput`, added to the registry in Step 3a below (do not reuse `pinInput`/`confirmPinInput`).
 
 - [ ] **Step 3a: Add the missing `removePinInput` id to the registry**
 
 In `src/shared/constants/test-ids.ts`, add to the `lock` group:
+
 ```ts
     removePinInput: 'lock.remove-pin-input',
 ```
+
 Then in `lock-privacy.tsx` the remove input uses:
+
 ```tsx
-              <PinInput
-                value={removePinValue}
-                onChange={setRemovePinValue}
-                testId={TEST_IDS.lock.removePinInput}
-              />
+<PinInput
+  value={removePinValue}
+  onChange={setRemovePinValue}
+  testId={TEST_IDS.lock.removePinInput}
+/>
 ```
+
 And the remove button + idle select:
+
 ```tsx
-            <Button
-              variant="destructive"
-              onClick={() => setRemoving(true)}
-              data-testid={TEST_IDS.lock.removeButton}
-              className="self-start"
-            >
-              Remove lock
-            </Button>
+<Button
+  variant="destructive"
+  onClick={() => setRemoving(true)}
+  data-testid={TEST_IDS.lock.removeButton}
+  className="self-start"
+>
+  Remove lock
+</Button>
 ```
+
 ```tsx
               <SelectTrigger
                 data-testid={TEST_IDS.lock.idleSelect}
@@ -312,6 +331,7 @@ git commit -m "feat(testids): apply lock checkpoints to lock UI"
 ## Task 4: Pilot E2E spec
 
 **Files:**
+
 - Create: `tests/e2e/lock-e2e.spec.ts`
 
 This drives the real loop against the built app. It cleans the lock files before/after so it never pollutes real state. It triggers lock via the renderer IPC bridge and checks the API gate via direct fetch.
@@ -352,7 +372,10 @@ test('set PIN → lock blocks API (423) → unlock restores (200)', async ({
   const setOk = await mainWindow.evaluate(
     async () =>
       (
-        (await window.electron.ipcRenderer.invoke('lock:set-pin', '135790')) as {
+        (await window.electron.ipcRenderer.invoke(
+          'lock:set-pin',
+          '135790'
+        )) as {
           ok: boolean
         }
       ).ok
@@ -374,19 +397,21 @@ test('set PIN → lock blocks API (423) → unlock restores (200)', async ({
 
   // App restored and API open again.
   await expect(mainWindow.getByTestId(TEST_IDS.lock.pinInput)).toBeHidden()
-  await expect.poll(async () => (await fetch(`${API}/api/settings`)).status).toBe(
-    200
-  )
+  await expect
+    .poll(async () => (await fetch(`${API}/api/settings`)).status)
+    .toBe(200)
 })
 ```
 
 - [ ] **Step 2: Build + run the spec locally**
 
 Run:
+
 ```bash
 pnpm build:unpack >/dev/null 2>&1 || electron-vite build
 pnpm test:e2e:electron
 ```
+
 Expected: the `lock-e2e` test passes. (E2E needs the built `out/` and a display; it is a local/CI-with-display check, not part of `pnpm test`.)
 
 > If `getByTestId` doesn't resolve to the OTP input (OTPInput not forwarding the attribute), fall back to putting `data-testid` on PinInput's wrapping `<div>` and selecting `.locator('input')` under it; update `PinInput` accordingly and re-run.
@@ -403,6 +428,7 @@ git commit -m "test(testids): lock pilot E2E (set-pin → 423 → unlock → 200
 ## Task 5: Linkage enforcement test
 
 **Files:**
+
 - Create: `src/shared/constants/test-ids.linkage.test.ts`
 
 Runs in `pnpm test` (and the pre-commit hook). Pure text scan via Node 22 `fs.readdirSync(recursive)` — no renderer/Electron imports, so it stays PGlite-free.
@@ -450,16 +476,17 @@ describe('test-id linkage', () => {
     const uncovered = flat
       .filter((e) => !testText.includes(e.accessor))
       .map((e) => e.accessor)
-    expect(
-      uncovered,
-      `uncovered ids (applied, no test): ${uncovered}`
-    ).toEqual([])
+    expect(uncovered, `uncovered ids (applied, no test): ${uncovered}`).toEqual(
+      []
+    )
   })
 
   it('no raw string data-testid bypasses the registry', () => {
     // Allow `data-testid={...}` (registry/prop), reject `data-testid="literal"`.
     const raw = [...srcText.matchAll(/data-testid\s*=\s*"/g)]
-    expect(raw.length, 'found raw string data-testid in renderer source').toBe(0)
+    expect(raw.length, 'found raw string data-testid in renderer source').toBe(
+      0
+    )
   })
 })
 ```
@@ -495,7 +522,10 @@ test('lock settings expose enrollment + config checkpoints', async ({
   mainWindow
 }) => {
   // Open Settings → General (where Lock & Privacy now lives).
-  await mainWindow.getByRole('button', { name: /settings/i }).first().click()
+  await mainWindow
+    .getByRole('button', { name: /settings/i })
+    .first()
+    .click()
   await mainWindow.getByText('General', { exact: true }).first().click()
 
   // Enrollment: enter then confirm.
@@ -511,14 +541,16 @@ test('lock settings expose enrollment + config checkpoints', async ({
   ).toBeVisible()
 })
 ```
+
 (`touchIdButton` is macOS-only at runtime, but the linkage test only needs the **constant referenced** in a test file — it appears here as an assertion comment reference if not asserted directly. Ensure it is referenced: add `// covers ${TEST_IDS.lock.touchIdButton}` is NOT enough since it's a string template — instead add a real reference.)
 
 To guarantee `touchIdButton` is referenced, add this assertion in the primary `lock-e2e.spec.ts` after locking (the button may be absent off-mac, so check count ≥ 0, which still references the constant):
+
 ```ts
-  // References TEST_IDS.lock.touchIdButton for linkage; presence is platform-dependent.
-  expect(
-    await mainWindow.getByTestId(TEST_IDS.lock.touchIdButton).count()
-  ).toBeGreaterThanOrEqual(0)
+// References TEST_IDS.lock.touchIdButton for linkage; presence is platform-dependent.
+expect(
+  await mainWindow.getByTestId(TEST_IDS.lock.touchIdButton).count()
+).toBeGreaterThanOrEqual(0)
 ```
 
 - [ ] **Step 4: Run the linkage test (green) + commit**
@@ -536,48 +568,58 @@ git commit -m "test(testids): enforce code↔test linkage for checkpoints"
 ## Task 6: Release-only strip
 
 **Files:**
+
 - Modify: `electron.vite.config.ts`
 - Modify: `package.json` (build scripts)
 
 - [ ] **Step 1: Gate the strip plugin on `STRIP_TEST_IDS`**
 
 In `electron.vite.config.ts`, add above `export default`:
+
 ```ts
 const stripTestIds = process.env.STRIP_TEST_IDS === '1'
 ```
+
 Change the renderer `react({})` call to:
+
 ```ts
-      react({
-        babel: {
-          plugins: stripTestIds
-            ? [['react-remove-properties', { properties: ['data-testid'] }]]
-            : []
-        }
-      })
+react({
+  babel: {
+    plugins: stripTestIds
+      ? [['react-remove-properties', { properties: ['data-testid'] }]]
+      : []
+  }
+})
 ```
 
 - [ ] **Step 2: Set the flag in release scripts only**
 
 In `package.json`, update the three packaged-build scripts to prefix `cross-env STRIP_TEST_IDS=1`:
+
 ```jsonc
 "build:linux": "cross-env STRIP_TEST_IDS=1 electron-vite build && electron-builder --linux",
 "build:mac": "cross-env STRIP_TEST_IDS=1 electron-vite build && electron-builder --mac",
 "build:win": "cross-env STRIP_TEST_IDS=1 electron-vite build && electron-builder --win"
 ```
+
 Leave `build`, `build:unpack`, and `dev` unchanged (they keep `data-testid`, so E2E against `out/` works).
 
 - [ ] **Step 3: Verify strip on, keep off**
 
 Run (strip ON):
+
 ```bash
 cross-env STRIP_TEST_IDS=1 electron-vite build >/dev/null 2>&1 && grep -rc "data-testid" out/renderer | tail -1
 ```
+
 Expected: `0` occurrences of `data-testid` in `out/renderer`.
 
 Run (strip OFF — restores the E2E build):
+
 ```bash
 electron-vite build >/dev/null 2>&1 && grep -rl "data-testid" out/renderer | head -1
 ```
+
 Expected: at least one file in `out/renderer` contains `data-testid`.
 
 - [ ] **Step 4: Typecheck + commit**
@@ -595,6 +637,7 @@ git commit -m "build(testids): strip data-testid from release builds only"
 ## Task 7: AI co-gen convention doc
 
 **Files:**
+
 - Modify: `CLAUDE.md`
 
 - [ ] **Step 1: Add a convention subsection**
