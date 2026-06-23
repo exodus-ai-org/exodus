@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Exodus is a cross-platform desktop AI chat application built with Electron, React, and Node.js. It features multi-provider LLM support, RAG (Retrieval-Augmented Generation), Deep Research, MCP (Model Context Protocol) integration, and a sophisticated memory/personalization layer.
+Exodus is a cross-platform desktop AI chat application built with Electron, React, and Node.js. It features multi-provider LLM support, a knowledge base (RAG), Deep Research, Philharmonic (multi-agent Groups), MCP (Model Context Protocol) routes, an app lock, lossless context management (LCM), and a memory/personalization layer.
 
 ## Development Commands
 
@@ -66,17 +66,17 @@ Exodus uses a three-process architecture:
 
 1. **Main Process** (`src/main/index.ts`):
    - Manages Electron app lifecycle, window creation, and IPC
-   - Runs Hono HTTP server on `localhost:3000`
+   - Runs Hono HTTP server on `localhost:60223` (constant `SERVER_PORT` in `src/shared/constants/systems.ts`)
    - Initializes PGlite database with pgvector extension
-   - Connects to MCP servers on startup
+   - MCP server connection is archived (commented out in `app.ts`); an `/api/mcp` route + settings remain
    - Handles auto-updates
 
 2. **Renderer Process** (`src/renderer/`):
    - React 19 application with React Router v7
-   - Communicates with main process via HTTP (localhost:3000)
+   - Communicates with main process via HTTP (localhost:60223)
    - Uses Jotai for global state management
    - SWR for server state fetching
-   - Contains three entry points: main app, searchbar, quick-chat
+   - Entry points: main app plus the sub-apps searchbar, quick-chat, artifacts
 
 3. **Preload Process** (`src/preload/`):
    - Provides secure bridge between renderer and Electron APIs
@@ -87,65 +87,50 @@ Exodus uses a three-process architecture:
 
 The main process runs a **Hono HTTP server** that handles all business logic:
 
-**Server Routes** (`src/main/lib/server/routes/`):
+**Server Routes** (`src/main/lib/server/routes/`, registered in `src/main/lib/server/app.ts`):
 
-- `/api/chat` - Chat streaming, message search, MCP tool listing
-- `/api/history` - Chat history CRUD operations
-- `/api/setting` - User settings management
-- `/api/audio` - Audio processing (TTS/STT)
-- `/api/rag` - RAG document upload, retrieval, pagination
-- `/api/deep-research` - Deep research execution with SSE progress updates
-- `/api/tools` - Available tools listing
-- `/api/db-io` - Database import/export
-- `/api/workflow` - Workflow execution
-- `/api/custom-uploader` - Custom file uploads
+`/api/chat`, `/api/lcm`, `/api/history`, `/api/project`, `/api/settings`, `/api/audio`, `/api/db-io`, `/api/deep-research`, `/api/tools`, `/api/philharmonic`, `/api/s3`, `/api/skills`, `/api/mcp`, `/api/memory`, `/api/usage`, `/api/logs`, `/api/backup`, `/api/artifacts`.
 
-**Middleware Pipeline**:
+**Middleware Pipeline** (order in `app.ts`):
 
-1. CORS middleware (allows all origins for localhost development)
-2. Tools middleware (injects MCP tools into context)
-3. Error handler (returns JSON errors)
+1. CORS middleware (`hono/cors`, allows all origins for localhost development)
+2. Lock gate (`lockGate`) — rejects all `/api/*` with `423` while the app is locked
+3. Settings injection — fresh `getSettings()` set on the Hono context per request
+4. Error handler (`app.onError`, returns JSON errors)
+
+The MCP-tools middleware (injecting MCP tools into context) is **archived** (commented out in `app.ts`).
 
 ### Database Layer
 
 **Database**: PGlite (embedded Postgres) with pgvector extension
 
-- Location: `~/.app/Database` (in userData directory)
+- Location: `~/.exodus/database` (`getDatabaseDir` in `src/main/lib/paths.ts`)
 - ORM: Drizzle ORM with Zod schemas
 - Schema: `src/main/lib/db/schema.ts`
 - Migrations: `resources/drizzle/`
 
 **Key Tables**:
 
-- `chat` - Chat sessions (id, title, favorite, timestamps)
-- `message` - Messages with parts/attachments (GIN indexed for full-text search)
-- `vote` - User votes on messages
-- `setting` - Global settings (models, API keys, preferences)
-- `resource` - Knowledge base documents
-- `embedding` - Vector embeddings for RAG (1536-dim, HNSW indexed)
-- `deep_research` - Deep research jobs and results
-- `deep_research_message` - Progress updates during research
-- `memory` - User memory (preferences, goals, skills, environment)
+- `settings` - Global settings (models, API keys, preferences)
+- `knowledge_doc` - Knowledge base documents + vector embeddings (RAG)
+- `deep_research` / `deep_research_message` - Deep research jobs and progress updates
+- `memory` / `memory_usage_log` - User memory and audit trail
 - `session_summary` - Summarized conversation context
-- `memory_usage_log` - Audit trail of memory usage
+- `project` - Projects
+- `mcp_server` - Configured MCP servers
+- `lcm_summary` - Lossless context-management summaries
+- Philharmonic: `agent`, `agent_memory`, `team`, `task`, `task_execution`, `task_execution_event`, `conversation_plan`, `plan_step`
+
+The full chat/message tables and indexes are defined in `src/main/lib/db/schema.ts`.
 
 ### AI/LLM Integration
 
-**Multi-Provider Support** (via Vercel AI SDK v6):
-All providers are in `src/main/lib/ai/providers/` and return:
+**Multi-Provider Support** (built on `@mariozechner/pi-ai` + `@mariozechner/pi-agent-core`):
+All providers are in `src/main/lib/ai/providers/`. Each provider file resolves a `Model` via the shared `resolveModel()` in `src/main/lib/ai/providers/resolve-model.ts` (do not duplicate model-resolution logic). Per-provider fallback defaults (contextWindow, cost) live in `resolve-model.ts`; model lists live in `src/shared/constants/models.ts`.
 
-```typescript
-{
-  provider: ProviderInstance
-  chatModel: LanguageModel // for conversations
-  reasoningModel: LanguageModel // for o1/claude reasoning models
-  embeddingModel: EmbeddingModel // for RAG
-}
-```
+Supported providers (files in `src/main/lib/ai/providers/`):
 
-Supported providers:
-
-- OpenAI GPT (`anthropic-claude.ts`)
+- OpenAI GPT (`openai-gpt.ts`)
 - Azure OpenAI (`azure-openai.ts`)
 - Anthropic Claude (`anthropic-claude.ts`)
 - Google Gemini (`google-gemini.ts`)
@@ -156,59 +141,21 @@ Supported providers:
 
 1. Retrieve user settings (model selection, API keys)
 2. Load chat history from database
-3. Bind tools (built-in + MCP) based on `AdvancedTools` selection
-4. Call `streamText()` from AI SDK with `maxSteps` for tool execution
+3. Bind built-in tools based on `AdvancedTools` selection
+4. Stream via `agentLoop` from `@mariozechner/pi-agent-core` for multi-step tool execution
 5. Stream response back to renderer
 6. On completion: save messages, evaluate memory write, generate session summary
 
 **Tool Architecture** (`src/main/lib/ai/calling-tools/`):
-Each tool is a Vercel AI SDK `tool()` with:
+Each tool has a description for LLM understanding, a Zod input schema, and an execute function.
 
-- Description for LLM understanding
-- Zod schema for input validation
-- Execute function
+Built-in tools (files in `src/main/lib/ai/calling-tools/`):
 
-Built-in tools:
+`create-artifact`, `deep-research`, `edit-file`, `find-files`, `grep`, `image-generation`, `lcm-describe`, `lcm-expand`, `lcm-grep`, `list-directory`, `map-itinerary`, `read-file`, `terminal`, `weather`, `web-fetch`, `web-search`, `write-file`.
 
-- `calculator.ts` - Mathematical expression evaluation
-- `date.ts` - Date/time operations
-- `weather.ts` - Weather lookup via Serper API
-- `google-maps-places.ts` - Place search
-- `google-maps-routing.ts` - Route calculation
-- `image-generation.ts` - DALL-E integration
-- `web-search.ts` - Web search via Serper API
-- `rag.ts` - Knowledge base retrieval
-- `deep-research.ts` - Trigger deep research
+### Knowledge Base (RAG)
 
-### RAG (Retrieval-Augmented Generation)
-
-**Implementation** (`src/main/lib/ai/rag/`):
-
-1. **Document Upload** (`loaders.ts`):
-   - Supports PDF, Markdown, plain text
-   - Uses LangChain loaders (PDFLoader, TextLoader)
-   - Extracts content from uploaded files
-
-2. **Text Chunking** (`splitters.ts`):
-   - `RecursiveCharacterTextSplitter` breaks content into chunks
-   - Configurable chunk size and overlap
-
-3. **Embedding Generation** (`embeddings.ts`):
-   - Converts chunks to 1536-dimensional vectors
-   - Uses configured embedding model from provider settings
-   - Stores vectors in `embedding` table with pgvector
-
-4. **Retrieval** (during chat):
-   - User question embedded via same model
-   - Cosine similarity search against stored embeddings (HNSW index)
-   - Top-4 relevant chunks returned
-   - Context injected into chat for LLM
-
-**API Endpoints**:
-
-- `POST /api/rag` - Upload document
-- `POST /api/rag/retrieve` - Search similar chunks
-- `GET /api/rag` - List uploaded documents with pagination
+A knowledge-base layer backs RAG. Documents are chunked and embedded into the `knowledge_doc` pgvector table; cosine-similarity retrieval surfaces relevant chunks. DB access goes through `src/main/lib/db/knowledge-queries.ts`. Philharmonic agents query the knowledge base via `kb-tools.ts` in `src/main/lib/ai/philharmonic/`.
 
 ### Deep Research
 
@@ -244,6 +191,8 @@ Multi-level recursive research with real-time progress streaming:
 
 **Integration** (`src/main/lib/ai/mcp.ts`):
 
+> Note: automatic MCP server connection at startup is **archived** (`connectMcpServers()` is commented out in `app.ts`). The `/api/mcp` route and MCP settings remain. The flow below describes the intended/legacy behavior.
+
 Allows external tools/servers to be integrated via MCP protocol:
 
 1. **Configuration**: Users define MCP servers in settings JSON:
@@ -274,9 +223,9 @@ Allows external tools/servers to be integrated via MCP protocol:
 
 ### Memory & Personalization Layer
 
-**Memory System** (`src/main/lib/ai/agents/memory/`):
+**Memory System** (`src/main/lib/ai/memory/manager.ts`):
 
-Tracks user preferences, goals, and context across conversations:
+Tracks user preferences, goals, and context across conversations. Key functions: `runMemoryWriteJudge()`, `loadRelevantMemories()`, `formatMemoriesForSystem()`, `saveSessionSummary()`.
 
 **Memory Types** (stored in `memory` table):
 
@@ -287,23 +236,52 @@ Tracks user preferences, goals, and context across conversations:
 - `project` - Current projects
 - `constraint` - Limitations or rules
 
-**Memory Operations**:
+**Memory Operations** (all in `src/main/lib/ai/memory/manager.ts`):
 
-1. **Memory Write Judge** (`memory-write-judge.ts`):
+1. **Memory Write Judge** (`runMemoryWriteJudge()`):
    - Runs after each conversation
-   - Uses gpt-4.1-mini to evaluate if memory should be written
+   - Uses an LLM to evaluate if memory should be written
    - Criteria: long-term stable (weeks+), multi-conversation useful, not sensitive
    - Output: shouldWrite boolean + memory metadata
 
-2. **Memory Read Filter** (`memory-read-filter.ts`):
+2. **Memory Read Filter** (`loadRelevantMemories()` / `formatMemoriesForSystem()`):
    - Before chat, filters relevant memories from database
-   - Uses LLM to select only directly applicable memories
-   - Prevents token waste and false positives
+   - Selects only directly applicable memories to avoid token waste
 
-3. **Session Summary** (`session-summary.ts`):
+3. **Session Summary** (`saveSessionSummary()`):
    - After conversation, summarizes key points
-   - Extracts: user goals, confirmed facts, open questions, preferences
    - Stored for future session context
+
+### Philharmonic (multi-agent Groups)
+
+Philharmonic runs multi-agent "Groups" (teams of agents collaborating on tasks).
+
+- Main process: `src/main/lib/ai/philharmonic/` (employee loop, execution engine, agent memory/tools, knowledge-base tools)
+- Renderer: `src/renderer/components/philharmonic/`
+- Route: `/api/philharmonic`
+- Each Group gets an isolated workspace under `~/.exodus/groups`
+
+### App Lock
+
+A local PIN lock protects the app and gates all API access.
+
+- Main process: `src/main/lib/lock/` (`lock-manager` state machine, `pin-store` using scrypt + Electron `safeStorage`, `idle-watcher`, `lock-config`, IPC handlers)
+- The `lockGate` middleware rejects every `/api/*` request with `423` while locked
+- Unlock happens only via IPC (the lock screen), never over HTTP
+- The encrypted PIN secret lives at `~/.exodus/lock.dat`
+- Renderer: `src/renderer/components/lock/`
+
+### LCM (lossless context management)
+
+Compacts long conversations without losing information, surfacing summaries the agent can expand or grep.
+
+- Main process: `src/main/lib/ai/context-management/` (compaction, context assembler, token counter, status bus)
+- Route: `/api/lcm`
+- Related built-in tools: `lcm-describe`, `lcm-expand`, `lcm-grep`
+
+### Sub-apps
+
+Separate renderer entry points under `src/renderer/sub-apps/`: `searchbar`, `quick-chat`, `artifacts`.
 
 ### Frontend Structure
 
@@ -331,8 +309,8 @@ Tracks user preferences, goals, and context across conversations:
 
 **API Communication**:
 
-- All API calls via `fetcher()` utility to `http://localhost:3000/api/*`
-- Streaming responses handled via `streamText()` SDK
+- All API calls via `fetcher()` utility to `http://localhost:60223/api/*`
+- Streaming responses are consumed from the server's `agentLoop`-driven SSE/stream
 - SWR for caching and revalidation
 
 ### Path Aliases
@@ -358,11 +336,10 @@ Tracks user preferences, goals, and context across conversations:
 
 ### When Working with AI Providers
 
-- All provider implementations must return `chatModel` and `reasoningModel`
-- Use the shared `resolveModel()` from `src/main/lib/ai/providers/resolve-model.ts` — do NOT duplicate model resolution logic
-- Provider-specific fallback defaults (contextWindow, maxTokens) are centralized in `PROVIDER_DEFAULTS` within `resolve-model.ts`
-- Model names are retrieved from `setting` table
-- API keys stored in settings (never hardcode)
+- Providers resolve a `Model` (from `@mariozechner/pi-ai`) via the shared `resolveModel()` in `src/main/lib/ai/providers/resolve-model.ts` — do NOT duplicate model resolution logic
+- Per-provider fallback defaults (contextWindow, cost) are centralized in `resolve-model.ts`
+- Model lists live in `src/shared/constants/models.ts`
+- Model names/API keys are retrieved from settings (never hardcode)
 
 ### When Working with Database
 
@@ -374,16 +351,15 @@ Tracks user preferences, goals, and context across conversations:
 ### When Working with Tools
 
 - Tool definitions go in `src/main/lib/ai/calling-tools/`
-- Tools are bound conditionally based on `AdvancedTools` enum
+- Tools are bound conditionally based on the `AdvancedTools` selection
 - Always validate inputs with Zod schemas
 - Tool descriptions are critical for LLM understanding
-- Return structured data that LLM can interpret
+- Return structured data that the LLM can interpret
 
 ### When Working with Chat
 
-- Chat route handles streaming via `streamText()` from AI SDK
-- Use `maxSteps` for multi-turn tool calling
-- `mergeIntoDataStream()` adds reasoning/sources to stream
+- Chat route streams via `agentLoop` from `@mariozechner/pi-agent-core`
+- `agentLoop` handles multi-turn tool calling internally
 - Always save messages to database after completion
 - Message parts stored as JSONB in `message.parts` column
 
@@ -447,9 +423,9 @@ Reusable AI utilities that should be used (and tested) instead of inline impleme
 
 1. Create tool file in `src/main/lib/ai/calling-tools/my-tool.ts`
 2. Define Zod schema for inputs
-3. Implement execute function
-4. Export as `tool()` from AI SDK
-5. Add to tool binding logic in `src/main/lib/ai/utils/chat-message-util.ts`
+3. Implement the execute function
+4. Register it in `src/main/lib/ai/calling-tools/index.ts`
+5. Wire it into the chat tool-binding logic
 6. Add UI toggle if needed in settings
 
 ### Adding a New Route
@@ -463,9 +439,9 @@ Reusable AI utilities that should be used (and tested) instead of inline impleme
 ### Adding a New Provider
 
 1. Create provider file in `src/main/lib/ai/providers/my-provider.ts`
-2. Return `{ provider, chatModel, reasoningModel, embeddingModel }`
-3. Add provider enum to `src/shared/constants/`
-4. Update settings UI to include new provider
+2. Resolve a `Model` via the shared `resolveModel()` (`src/main/lib/ai/providers/resolve-model.ts`)
+3. Add the provider's models to `src/shared/constants/models.ts`
+4. Update settings UI to include the new provider
 5. Update schema validation in `src/shared/schemas/`
 
 ### Test-ID Checkpoints (traceability)
@@ -494,3 +470,62 @@ registry is typed). `data-testid` attributes are stripped from packaged release
 builds by a small Vite `transform` plugin in `electron.vite.config.ts` gated on
 `STRIP_TEST_IDS=1` (set in `build:mac`/`build:win`/`build:linux`); dev and E2E
 builds keep the markers.
+
+## Code Structure
+
+Main process:
+
+- `src/main/index.ts` — app bootstrap, lifecycle, IPC + server startup
+- `src/main/lib/server/app.ts` — Hono server + route registration
+- `src/main/lib/server/routes/` — API route handlers
+- `src/main/lib/server/middlewares/` — CORS, lock gate, error handler
+- `src/main/lib/ai/providers/` — LLM provider resolution (`resolve-model.ts`)
+- `src/main/lib/ai/calling-tools/` — built-in agent tools
+- `src/main/lib/ai/philharmonic/` — multi-agent Groups
+- `src/main/lib/ai/context-management/` — LCM
+- `src/main/lib/ai/memory/` — memory + session summary
+- `src/main/lib/lock/` — app lock (PIN, gate, idle)
+- `src/main/lib/db/` — Drizzle schema + queries (PGlite)
+- `src/main/lib/ipc.ts` — main-process IPC handlers
+- `src/main/lib/paths.ts` — `~/.exodus` path helpers
+
+Preload:
+
+- `src/preload/index.ts` — context-isolated bridge
+
+Renderer:
+
+- `src/renderer/components/` — UI components
+- `src/renderer/components/ui/` — shadcn primitives (reuse these)
+- `src/renderer/components/lock/` — lock screen
+- `src/renderer/components/philharmonic/` — Philharmonic UI
+- `src/renderer/components/settings/` — settings
+- `src/renderer/containers/` — page-level components
+- `src/renderer/stores/` — Jotai atoms
+- `src/renderer/hooks/` — React hooks
+- `src/renderer/services/` — API call wrappers
+- `src/renderer/lib/` — renderer utilities (ipc, stream-manager)
+- `src/renderer/sub-apps/` — searchbar, quick-chat, artifacts entry points
+
+Shared:
+
+- `src/shared/types/` — cross-process types
+- `src/shared/constants/` — constants (`models.ts`, `test-ids.ts`, `systems.ts`)
+- `src/shared/schemas/` — Zod schemas
+- `src/shared/utils/` — shared utilities
+
+Tests & config:
+
+- `tests/api/` — API integration (Playwright)
+- `tests/e2e/` — Electron E2E
+- `tests/providers/` — provider compatibility
+- `tests/fixtures/` — Playwright fixtures (electron, api-client)
+- `tests/helpers/` — test helpers
+- `electron.vite.config.ts` — build config (incl. `data-testid` strip)
+- `vitest.config.ts` — unit test config
+- `playwright.config.ts` — E2E config
+
+Docs:
+
+- `docs/superpowers/specs/` — design specs
+- `docs/superpowers/plans/` — implementation plans
