@@ -6,6 +6,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Exodus is a cross-platform desktop AI chat application built with Electron, React, and Node.js. It features multi-provider LLM support, a knowledge base (RAG), Deep Research, Philharmonic (multi-agent Groups), MCP (Model Context Protocol) routes, an app lock, lossless context management (LCM), and a memory/personalization layer.
 
+## Project Constraints (read first)
+
+These rules are mandatory. Some are automated (noted); the rest are conventions
+you must uphold.
+
+- **Tests + checkpoints with UI.** When adding a key interactive element, add a
+  `TEST_IDS` entry (`src/shared/constants/test-ids.ts`) + `data-testid`, and
+  reference it from a Playwright test. Test ids are a durable contract — never
+  rename or regenerate an existing id. _Enforced by `test-ids.linkage.test.ts`._
+- **Pre-commit gate.** Before committing, `pnpm format` → `pnpm lint` →
+  `pnpm typecheck` → `pnpm test` must pass. _Enforced by the husky pre-commit
+  hook._ Do not `--no-verify` except for the known flaky PGlite WASM teardown in
+  `src/main/lib/ai/context-management/index.test.ts`.
+- **Reuse UI primitives.** Prefer existing `@/components/ui` (shadcn) components
+  over hand-rolled equivalents (e.g. shadcn `Select`, `InputOTP`).
+- **Copy language.** New user-facing strings default to English.
+- **Keep this file current.** Any change to architecture, routes, or directory
+  structure updates CLAUDE.md in the same change. _Partly enforced by
+  `claude-md-freshness.test.ts` (paths) and `claude-md-staleness.test.ts`
+  (retired claims)._
+- **Models & providers.** Use the shared `resolveModel()`
+  (`src/main/lib/ai/providers/resolve-model.ts`); selectable model lists live in
+  `src/shared/constants/models.ts`.
+
 ## Development Commands
 
 ### Running the Application
