@@ -1,4 +1,3 @@
-import { faviconUrl } from '@shared/constants/external-urls'
 import { WebSearchResult } from '@shared/types/web-search'
 import { CheckIcon, CopyIcon } from 'lucide-react'
 import { useTheme } from 'next-themes'
@@ -25,6 +24,8 @@ import remarkMath from 'remark-math'
 import { useClipboard } from '@/hooks/use-clipboard'
 import { cn } from '@/lib/utils'
 
+import { LazyLoadImage } from './lazy-load-image'
+import { SourceFavicon } from './source-favicon'
 import { Badge } from './ui/badge'
 import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card'
 
@@ -61,15 +62,15 @@ const CitationChip = memo(function CitationChip({
 }: {
   source: WebSearchResult
 }) {
-  let hostname = ''
-  let favicon = ''
-  try {
-    const url = new URL(source.link)
-    hostname = url.hostname
-    favicon = faviconUrl(url.origin)
-  } catch {
-    hostname = source.link
+  let hostname = source.hostname ?? ''
+  if (!hostname) {
+    try {
+      hostname = new URL(source.link).hostname
+    } catch {
+      hostname = source.link
+    }
   }
+  const label = source.siteName || hostname || source.title
 
   return (
     <HoverCard>
@@ -83,8 +84,13 @@ const CitationChip = memo(function CitationChip({
           />
         }
       >
-        <Badge variant="secondary" className="ml-1">
-          <span className="max-w-22 truncate">{source.title}</span>
+        <Badge variant="secondary" className="ml-1 gap-1">
+          <SourceFavicon
+            link={source.link}
+            favicon={source.favicon}
+            className="size-3.5"
+          />
+          <span className="max-w-28 truncate">{label}</span>
         </Badge>
       </HoverCardTrigger>
       <HoverCardContent
@@ -93,12 +99,22 @@ const CitationChip = memo(function CitationChip({
         className="w-72 overflow-hidden rounded-xl border p-0 shadow-lg"
       >
         <a href={source.link} target="_blank" rel="noopener noreferrer">
+          {source.thumbnail && (
+            <LazyLoadImage
+              src={source.thumbnail}
+              alt={source.title}
+              className="h-32 w-full"
+            />
+          )}
           <div className="flex flex-col gap-1 p-3">
-            <div className="text-muted-foreground flex items-center gap-1.5 truncate text-xs">
-              {favicon && (
-                <img src={favicon} className="size-3 shrink-0" alt="" />
-              )}
-              {hostname}
+            <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
+              <SourceFavicon
+                link={source.link}
+                favicon={source.favicon}
+                className="size-3"
+              />
+              <span className="truncate">{source.siteName || hostname}</span>
+              {source.age && <span className="shrink-0">· {source.age}</span>}
             </div>
             <div className="line-clamp-2 text-sm leading-snug font-semibold">
               {source.title}
