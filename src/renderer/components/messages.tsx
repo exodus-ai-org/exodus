@@ -25,6 +25,8 @@ import { MessageSpinner } from './message-spinner'
 import { MessageCallingTools } from './messages-calling-tools'
 import { ThinkingTimeline } from './thinking-timeline'
 import { Avatar, AvatarImage } from './ui/avatar'
+import { collectGalleryImages } from './web-search/collect-gallery-images'
+import { ImageGallery } from './web-search/image-gallery'
 
 type MessagesProps = {
   chatId: string
@@ -106,6 +108,10 @@ const AssistantTurnSegment = memo(
       citationSources && citationSources.length > 0
         ? citationSources
         : undefined
+    const galleryImages = useMemo(
+      () => collectGalleryImages(turn.webSearchResults),
+      [turn.webSearchResults]
+    )
 
     return (
       <div className="mb-8 flex flex-col items-start last:mb-4">
@@ -157,6 +163,9 @@ const AssistantTurnSegment = memo(
                 />
               </section>
             ))}
+            {galleryImages.length > 0 && (
+              <ImageGallery images={galleryImages} />
+            )}
           </div>
         </div>
       </div>

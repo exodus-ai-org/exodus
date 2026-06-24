@@ -18,6 +18,12 @@ export const TEST_IDS = {
     idleSelect: 'lock.idle-select',
     removeButton: 'lock.remove-button',
     removePinInput: 'lock.remove-pin-input'
+  },
+  gallery: {
+    thumbnail: 'gallery.thumbnail',
+    lightboxClose: 'gallery.lightbox-close',
+    lightboxPrev: 'gallery.lightbox-prev',
+    lightboxNext: 'gallery.lightbox-next'
   }
 } as const
 
