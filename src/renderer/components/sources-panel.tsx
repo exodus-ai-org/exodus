@@ -1,24 +1,23 @@
-import { faviconUrl } from '@shared/constants/external-urls'
 import type { WebSearchResult } from '@shared/types/web-search'
 import { useAtom } from 'jotai'
 import { useMemo } from 'react'
 
 import { sourcesPanelAtom } from '@/stores/chat'
 
+import { LazyLoadImage } from './lazy-load-image'
 import { parseCitations } from './markdown'
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
+import { SourceFavicon } from './source-favicon'
 import { Separator } from './ui/separator'
 import { SheetPanel } from './ui/sheet'
 
 function SourceLink({ item }: { item: WebSearchResult }) {
-  let hostname = ''
-  let favicon = ''
-  try {
-    const url = new URL(item.link)
-    hostname = url.hostname
-    favicon = faviconUrl(url.origin)
-  } catch {
-    hostname = item.link
+  let hostname = item.hostname ?? ''
+  if (!hostname) {
+    try {
+      hostname = new URL(item.link).hostname
+    } catch {
+      hostname = item.link
+    }
   }
 
   return (
@@ -28,18 +27,27 @@ function SourceLink({ item }: { item: WebSearchResult }) {
       rel="noopener noreferrer"
       className="hover:bg-accent flex gap-3 rounded-lg px-3 py-2"
     >
+      {item.thumbnail && (
+        <div className="h-12 w-16 shrink-0 overflow-hidden rounded-md">
+          <LazyLoadImage
+            src={item.thumbnail}
+            alt={item.title}
+            className="size-full"
+          />
+        </div>
+      )}
       <div className="min-w-0 flex-1">
         <div className="line-clamp-2 text-sm leading-snug font-semibold">
           {item.title}
         </div>
         <div className="text-muted-foreground mt-1 flex items-center gap-1.5 text-xs">
-          {favicon && (
-            <Avatar className="size-3.5">
-              <AvatarImage src={favicon} alt={hostname} />
-              <AvatarFallback>{item.title?.charAt(0)}</AvatarFallback>
-            </Avatar>
-          )}
-          <span className="truncate">{hostname}</span>
+          <SourceFavicon
+            link={item.link}
+            favicon={item.favicon}
+            className="size-3.5"
+          />
+          <span className="truncate">{item.siteName || hostname}</span>
+          {item.age && <span className="shrink-0">· {item.age}</span>}
         </div>
         {item.snippet && (
           <div className="text-muted-foreground mt-1 line-clamp-2 text-xs leading-snug">
