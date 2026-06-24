@@ -20,4 +20,13 @@ export interface WebSearchResult {
   content: string
   snippet: string
   media?: WebSearchMediaResult[]
+  /** Brave source metadata (enable_source_metadata). All optional. */
+  siteName?: string
+  hostname?: string
+  /** Brave-provided favicon URL (primary; Google API is the fallback). */
+  favicon?: string
+  /** Source thumbnail URL for the hover card / panel. */
+  thumbnail?: string
+  /** Human freshness label, e.g. "5 days ago". */
+  age?: string
 }
