@@ -10,6 +10,7 @@ import {
   updaterInstall,
   updaterSetAutoDownload
 } from './auto-updater'
+import { setupLockIPC } from './lock/ipc'
 import { logger } from './logger'
 import { getArtifactsDir, getLogsDir } from './paths'
 import { destroyTray, setTray } from './tray'
@@ -41,6 +42,7 @@ function safeHandle(
 
 export function setupIPC() {
   ipcMain.on('ping', () => logger.debug('app', 'pong'))
+  setupLockIPC()
 
   safeHandle('find-in-page', (_, keyword) => {
     if (keyword === '') {

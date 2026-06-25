@@ -211,41 +211,35 @@ export const mcpServer = pgTable('mcp_server', {
 
 export type McpServer = InferSelectModel<typeof mcpServer>
 
-// ─── Agent X ────────────────────────────────────────────────────────────────
+// ─── Philharmonic ────────────────────────────────────────────────────────────────
 
-export const department = pgTable('department', {
+// A team groups employees and contributes its own systemPrompt to every member.
+export const team = pgTable('team', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   name: text('name').notNull(),
   description: text('description').default(''),
-  icon: text('icon').default('building-2'),
-  skillSlugs: jsonb('skillSlugs').$type<string[]>().default([]),
-  mcpServerNames: jsonb('mcpServerNames').$type<string[]>().default([]),
-  position: jsonb('position').$type<{ x: number; y: number }>(),
+  systemPrompt: text('systemPrompt').default(''),
+  icon: text('icon'), // optional emoji
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull()
 })
 
-export type Department = InferSelectModel<typeof department>
+export type Team = InferSelectModel<typeof team>
 
 export const agent = pgTable('agent', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
-  departmentId: uuid('departmentId').references(() => department.id, {
-    onDelete: 'set null'
-  }),
   name: text('name').notNull(),
   description: text('description').default(''),
+  teamId: uuid('teamId').references(() => team.id, { onDelete: 'set null' }),
+  avatarSeed: text('avatarSeed'),
+  avatarStyle: text('avatarStyle'),
   systemPrompt: text('systemPrompt').default(''),
   toolAllowList: jsonb('toolAllowList').$type<string[]>().default([]),
   skillSlugs: jsonb('skillSlugs').$type<string[]>().default([]),
   mcpServerNames: jsonb('mcpServerNames').$type<string[]>().default([]),
   model: text('model'),
   provider: text('provider'),
-  collaboratorIds: jsonb('collaboratorIds').$type<string[]>().default([]),
-  position: jsonb('position').$type<{ x: number; y: number }>(),
   isActive: boolean('isActive').default(true),
-  // Shadow agent support: temporary clone created for high-priority preemption
-  isShadow: boolean('isShadow').default(false),
-  shadowOfAgentId: uuid('shadowOfAgentId'),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull()
 })
@@ -263,6 +257,12 @@ export const agentMemory = pgTable('agent_memory', {
   agentId: uuid('agentId')
     .notNull()
     .references(() => agent.id, { onDelete: 'cascade' }),
+  // P1-4: memory rows are scoped to the Group they were learned in. The
+  // employee LLM at runtime only sees rows for the current conversation;
+  // the Workforce admin view continues to read all rows (no filter).
+  conversationId: uuid('conversationId')
+    .notNull()
+    .references(() => conversation.id, { onDelete: 'cascade' }),
   key: text('key').notNull(),
   value: jsonb('value').notNull(),
   source: agentMemorySourceEnum('source').notNull().default('task'),
@@ -273,6 +273,60 @@ export const agentMemory = pgTable('agent_memory', {
 })
 
 export type AgentMemory = InferSelectModel<typeof agentMemory>
+
+// ─── Conversations (work groups) ──────────────────────────────────────────────
+
+export const conversation = pgTable(
+  'conversation',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    title: text('title').notNull(),
+    icon: text('icon'), // emoji
+    memberAgentIds: jsonb('memberAgentIds').$type<string[]>().default([]),
+    archived: boolean('archived').default(false),
+    createdAt: timestamp('createdAt').defaultNow().notNull(),
+    updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+    lastMessageAt: timestamp('lastMessageAt').defaultNow().notNull()
+  },
+  (table) => [index('conversation_last_message_idx').on(table.lastMessageAt)]
+)
+
+export type Conversation = InferSelectModel<typeof conversation>
+
+export const conversationMessageRoleEnum = pgEnum('conversation_message_role', [
+  'user',
+  'pm',
+  'employee',
+  'system'
+])
+
+export const conversationMessage = pgTable(
+  'conversation_message',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    conversationId: uuid('conversationId')
+      .notNull()
+      .references(() => conversation.id, { onDelete: 'cascade' }),
+    role: conversationMessageRoleEnum('role').notNull(),
+    agentId: uuid('agentId').references(() => agent.id, {
+      onDelete: 'set null'
+    }),
+    content: text('content').notNull().default(''),
+    parts: jsonb('parts').$type<Record<string, unknown>[]>(), // tool-call cards etc.
+    taskId: uuid('taskId'),
+    createdAt: timestamp('createdAt').defaultNow().notNull()
+  },
+  (table) => [
+    index('conversation_message_conv_idx').on(
+      table.conversationId,
+      table.createdAt
+    )
+  ]
+)
+
+export type ConversationMessage = InferSelectModel<typeof conversationMessage>
+
+// ─── Tasks ────────────────────────────────────────────────────────────────────
 
 export const taskStatusEnum = pgEnum('task_status', [
   'pending',
@@ -293,23 +347,23 @@ export const taskPriorityEnum = pgEnum('task_priority', [
 export const task = pgTable('task', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   parentTaskId: uuid('parentTaskId'),
+  conversationId: uuid('conversationId').references(() => conversation.id, {
+    onDelete: 'cascade'
+  }),
   title: text('title').notNull(),
   description: text('description').default(''),
   status: taskStatusEnum('status').notNull().default('pending'),
   priority: taskPriorityEnum('priority').notNull().default('medium'),
-  assignedDepartmentId: uuid('assignedDepartmentId').references(
-    () => department.id
-  ),
-  assignedAgentId: uuid('assignedAgentId').references(() => agent.id),
+  assignedAgentId: uuid('assignedAgentId').references(() => agent.id, {
+    onDelete: 'set null'
+  }),
   input: jsonb('input').$type<Record<string, unknown>>(),
   output: jsonb('output').$type<Record<string, unknown>>(),
   maxRetries: real('maxRetries').default(1),
   retryCount: real('retryCount').default(0),
-  // Scheduled task support
-  cronExpression: text('cronExpression'), // null = one-time; cron string = recurring template
+  cronExpression: text('cronExpression'),
   lastRunAt: timestamp('lastRunAt'),
   lastRunStatus: varchar('lastRunStatus').$type<'completed' | 'failed'>(),
-  // Post-completion feedback / review
   feedbackRating: varchar('feedbackRating').$type<
     'positive' | 'negative' | null
   >(),
@@ -334,7 +388,7 @@ export const taskExecution = pgTable('task_execution', {
     .references(() => task.id, { onDelete: 'cascade' }),
   agentId: uuid('agentId')
     .notNull()
-    .references(() => agent.id),
+    .references(() => agent.id, { onDelete: 'cascade' }),
   status: executionStatusEnum('status').notNull().default('running'),
   startedAt: timestamp('startedAt').defaultNow().notNull(),
   completedAt: timestamp('completedAt'),
@@ -342,6 +396,7 @@ export const taskExecution = pgTable('task_execution', {
   tokenUsage: jsonb('tokenUsage').$type<{
     inputTokens: number
     outputTokens: number
+    cost?: number
   }>()
 })
 
@@ -358,6 +413,114 @@ export const taskExecutionEvent = pgTable('task_execution_event', {
 })
 
 export type TaskExecutionEvent = InferSelectModel<typeof taskExecutionEvent>
+
+// ─── Execution plan (P0-2) ────────────────────────────────────────────────────
+// Each Group keeps exactly one active conversation_plan. The PM lays out the
+// plan first, then delegates step-by-step; the UI mirrors progress live. The
+// DB is the source of truth and a markdown mirror is written to
+// ~/.exodus/groups/{conversationId}/plan.md on every change.
+
+export const planStatusEnum = pgEnum('plan_status', [
+  'drafting',
+  'active',
+  'completed',
+  'aborted'
+])
+
+export const stepStatusEnum = pgEnum('step_status', [
+  'pending',
+  'running',
+  'done',
+  'skipped',
+  'failed'
+])
+
+export const conversationPlan = pgTable('conversation_plan', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  conversationId: uuid('conversationId')
+    .notNull()
+    .references(() => conversation.id, { onDelete: 'cascade' }),
+  summary: text('summary').notNull(),
+  status: planStatusEnum('status').notNull().default('active'),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull(),
+  archivedAt: timestamp('archivedAt')
+})
+
+export type ConversationPlan = InferSelectModel<typeof conversationPlan>
+
+export const planStep = pgTable('plan_step', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  planId: uuid('planId')
+    .notNull()
+    .references(() => conversationPlan.id, { onDelete: 'cascade' }),
+  ordinal: integer('ordinal').notNull(),
+  title: text('title').notNull(),
+  intent: text('intent'),
+  // SET NULL on agent delete: a past step's record survives the agent being deleted.
+  assignedAgentId: uuid('assignedAgentId').references(() => agent.id, {
+    onDelete: 'set null'
+  }),
+  status: stepStatusEnum('status').notNull().default('pending'),
+  output: text('output'),
+  note: text('note'),
+  // Links to the execution trace (task table). SET NULL so step survives the task row going away.
+  taskId: uuid('taskId').references(() => task.id, { onDelete: 'set null' }),
+  startedAt: timestamp('startedAt'),
+  completedAt: timestamp('completedAt'),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull()
+})
+
+export type PlanStep = InferSelectModel<typeof planStep>
+
+// ─── Philharmonic LCM (P0-3) ─────────────────────────────────────────────────
+// Rolling single-paragraph summary per conversation. One row per group;
+// rewritten in place when the conversation grows past the configured budget.
+// Intentionally simpler than Chat's DAG-based LCM — see the P0-3 spec.
+
+export const philharmonicSessionSummary = pgTable(
+  'philharmonic_session_summary',
+  {
+    id: uuid('id').primaryKey().notNull().defaultRandom(),
+    conversationId: uuid('conversationId')
+      .notNull()
+      .references(() => conversation.id, { onDelete: 'cascade' })
+      .unique(),
+    content: text('content').notNull(),
+    // Boundary: everything up to (and including) this message ID is
+    // represented by the summary; messages after it are still raw.
+    coversThroughMessageId: uuid('coversThroughMessageId').references(
+      () => conversationMessage.id,
+      { onDelete: 'set null' }
+    ),
+    tokenCount: integer('tokenCount').notNull(),
+    messageCount: integer('messageCount').notNull(),
+    createdAt: timestamp('createdAt').defaultNow().notNull(),
+    updatedAt: timestamp('updatedAt').defaultNow().notNull()
+  },
+  (t) => [index('ph_session_summary_conv_idx').on(t.conversationId)]
+)
+
+export type PhilharmonicSessionSummary = InferSelectModel<
+  typeof philharmonicSessionSummary
+>
+
+// ─── Knowledge Base (RAG stub) ────────────────────────────────────────────────
+
+export const knowledgeDoc = pgTable('knowledge_doc', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  title: text('title').notNull(),
+  content: text('content').notNull(),
+  // Owning team. NULL = "General" — visible to every Philharmonic Group.
+  // ON DELETE SET NULL: deleting a Team demotes its docs to General rather
+  // than throwing them away, since the content may outlive the team.
+  teamId: uuid('teamId').references(() => team.id, { onDelete: 'set null' }),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  updatedAt: timestamp('updatedAt').defaultNow().notNull()
+})
+
+export type KnowledgeDoc = InferSelectModel<typeof knowledgeDoc>
 
 // ─── Memory & Personalization ───────────────────────────────────────────────
 

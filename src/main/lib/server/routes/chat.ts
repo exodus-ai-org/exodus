@@ -57,7 +57,12 @@ import {
   updateSuccessResponse,
   validateSchema
 } from '../utils'
-import { extractToolErrorMessage, toFriendlyChatError } from './chat-errors'
+import {
+  EMPTY_TURN_MESSAGE,
+  extractToolErrorMessage,
+  isEmptyAssistantTurn,
+  toFriendlyChatError
+} from './chat-errors'
 import { stripId, toDbRow } from './chat-persistence'
 
 const chat = new Hono<{ Variables: Variables }>()
@@ -294,6 +299,14 @@ chat.post('/', async (c) => {
                   assistantMsg.errorMessage ||
                     'The model returned an error without details.'
                 )
+              }
+              // Background/async "pro" models (e.g. gpt-5.5-pro) can end the
+              // stream without a `response.completed` event — pi-ai then yields
+              // a normal 'stop' message with empty content and zero tokens.
+              // Accepting it silently drops the answer (and any artifact) and
+              // pins the cost readout at $0, with no error shown. Surface it.
+              if (isEmptyAssistantTurn(assistantMsg)) {
+                throw new Error(EMPTY_TURN_MESSAGE)
               }
               // Use streaming content from currentAssistantMsg but authoritative
               // usage/stopReason from event.message (message_update carries 0 usage)

@@ -144,6 +144,11 @@ type BraveLlmContextSource = {
 type BraveLlmContextSourceMeta = {
   title?: string
   hostname?: string
+  site_name?: string
+  favicon?: string
+  age?: string[]
+  thumbnail?: { src?: string; original?: string }
+  snippet?: string
 }
 
 type BraveLlmContextResponse = {
@@ -246,6 +251,8 @@ async function fetchBraveLlmContext({
   // Brave caps per-URL tokens at 8192; raise from the 4096 default so each
   // grounding source carries deeper context for the model.
   params.set('maximum_number_of_tokens_per_url', '8192')
+  // Enrich each source with site metadata (favicon, site_name, thumbnail, age).
+  params.set('enable_source_metadata', 'true')
 
   const res = await fetch(
     `${BRAVE_API_BASE}/llm/context?${params.toString()}`,
@@ -405,6 +412,20 @@ function videoResultsToMedia(
 }
 
 /**
+ * Pick a human freshness label from Brave's `age` array, e.g.
+ * `["Thursday, June 18, 2026", "2026-06-18", "5 days ago"]` → "5 days ago".
+ * Prefers a relative phrase; falls back to the ISO date; else the last/first
+ * entry; `undefined` when absent.
+ */
+export function pickAgeLabel(age?: string[]): string | undefined {
+  if (!age || age.length === 0) return undefined
+  const relative = age.find((a) => /\bago\b|^today$|^yesterday$/i.test(a))
+  if (relative) return relative
+  const iso = age.find((a) => /^\d{4}-\d{2}-\d{2}$/.test(a))
+  return iso ?? age[age.length - 1] ?? age[0]
+}
+
+/**
  * Search the web via the Brave Search API and return structured results.
  *
  * Uses Brave LLM Context as the canonical source list and content that the LLM
@@ -523,7 +544,12 @@ export async function fetchWebSearch({
         link: src.url,
         title,
         snippet: content.slice(0, 300),
-        content
+        content,
+        siteName: llmMeta?.site_name,
+        hostname: llmMeta?.hostname,
+        favicon: llmMeta?.favicon,
+        thumbnail: llmMeta?.thumbnail?.src ?? llmMeta?.thumbnail?.original,
+        age: pickAgeLabel(llmMeta?.age)
       })
     }
 

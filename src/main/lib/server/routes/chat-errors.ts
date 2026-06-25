@@ -32,6 +32,42 @@ export function extractToolErrorMessage(result: unknown): string {
 
 import { isOverflowError, OVERFLOW_MESSAGE } from '../../ai/utils/overflow'
 
+/** Minimal shape needed to judge whether an assistant turn produced anything. */
+type AssistantTurnLike = {
+  content?: Array<{ type: string; text?: string }>
+  usage?: { totalTokens?: number } | null
+}
+
+export const EMPTY_TURN_MESSAGE =
+  'The model returned an empty response (no output and zero tokens). This can happen with background/async "pro" models whose result is not delivered over the stream. Please retry, or switch to a non-pro model in Settings → Providers.'
+
+/**
+ * Detect a "dead" assistant turn: no usable output (no text, no tool call) AND
+ * zero tokens consumed.
+ *
+ * This is the signature of an OpenAI Responses *background/async* turn (e.g.
+ * gpt-5.5-pro) whose streamed response ends without a `response.completed`
+ * event. pi-ai then surfaces it as a normal `done` message with empty content,
+ * zero usage, and stopReason 'stop' (its `mapStopReason` even maps the
+ * in_progress/queued states to 'stop'). Left unguarded, the agent loop accepts
+ * it as success: the answer and any artifact silently vanish and the cost
+ * readout sticks at $0. Callers should treat this as an error instead.
+ *
+ * The zero-token condition keeps this precise — a real turn always consumes
+ * input tokens, so a refusal or thinking-only turn (tokens > 0) won't trip it.
+ */
+export function isEmptyAssistantTurn(message: AssistantTurnLike): boolean {
+  const hasUsableContent = (message.content ?? []).some(
+    (b) =>
+      (b.type === 'text' &&
+        typeof b.text === 'string' &&
+        b.text.trim() !== '') ||
+      b.type === 'toolCall'
+  )
+  if (hasUsableContent) return false
+  return (message.usage?.totalTokens ?? 0) === 0
+}
+
 /**
  * Translate raw LLM SDK / network errors into user-friendly messages.
  * Keeps the original message as a fallback if no pattern matches.

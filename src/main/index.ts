@@ -1,13 +1,18 @@
 import { electronApp, optimizer } from '@electron-toolkit/utils'
-import { app, BrowserWindow, globalShortcut } from 'electron'
+import { app, BrowserWindow, globalShortcut, powerMonitor } from 'electron'
 
 import { migrateSharedArtifacts } from './lib/ai/artifacts-migration'
 import { setupAutoUpdater } from './lib/auto-updater'
 import { startBackupScheduler } from './lib/backup'
-import { cleanupStaleWaitingTasks } from './lib/db/agent-x-queries'
 import { runMigrate } from './lib/db/migrate'
+import { cleanupStaleWaitingTasks } from './lib/db/philharmonic-queries'
 import { getSettings } from './lib/db/queries'
 import { setupIPC } from './lib/ipc'
+import { IdleWatcher } from './lib/lock/idle-watcher'
+import { setLockIdleWatcher } from './lib/lock/ipc'
+import { readConfig as readLockConfig } from './lib/lock/lock-config'
+import { getLockManager } from './lib/lock/lock-manager'
+import { hasPin as lockHasPin } from './lib/lock/pin-store'
 import { cleanupOldLogs, logger } from './lib/logger'
 import { setupMenu } from './lib/menu'
 import { migrateFromLegacyLocation } from './lib/paths'
@@ -82,6 +87,27 @@ app.whenReady().then(async () => {
   setupIPC()
 
   createWindow()
+
+  // ── Lock screen ─────────────────────────────────────────────
+  const lockManager = getLockManager()
+  const lockCfg = readLockConfig()
+
+  // Lock on launch (only if a PIN exists and the setting is on).
+  if (lockCfg.lockOnLaunch && lockHasPin()) {
+    lockManager.lock('launch')
+  }
+
+  // Idle auto-lock watcher.
+  const idleWatcher = new IdleWatcher(lockManager)
+  setLockIdleWatcher(idleWatcher)
+  idleWatcher.start()
+
+  // Lock on system sleep / screen lock.
+  const lockOnSleep = () => {
+    if (readLockConfig().lockOnSystemSleep) lockManager.lock('system-sleep')
+  }
+  powerMonitor.on('suspend', lockOnSleep)
+  powerMonitor.on('lock-screen', lockOnSleep)
 
   const dbSettings = await getSettings()
   applyProxy(dbSettings.proxy)

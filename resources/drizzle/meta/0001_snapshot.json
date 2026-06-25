@@ -1,6 +1,6 @@
 {
-  "id": "c9bcceaa-0f5f-4ba5-af75-bda419e93de3",
-  "prevId": "8ec76122-b74b-4e69-8748-cfb40c54beb3",
+  "id": "bc037c6f-7f54-49ef-9dd9-882de09feb0d",
+  "prevId": "aa4636b3-ba0f-4b08-a6d5-668337224ecf",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -15,12 +15,6 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "departmentId": {
-          "name": "departmentId",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
-        },
         "name": {
           "name": "name",
           "type": "text",
@@ -33,6 +27,24 @@
           "primaryKey": false,
           "notNull": false,
           "default": "''"
+        },
+        "teamId": {
+          "name": "teamId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "avatarSeed": {
+          "name": "avatarSeed",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "avatarStyle": {
+          "name": "avatarStyle",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
         },
         "systemPrompt": {
           "name": "systemPrompt",
@@ -74,38 +86,12 @@
           "primaryKey": false,
           "notNull": false
         },
-        "collaboratorIds": {
-          "name": "collaboratorIds",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'[]'::jsonb"
-        },
-        "position": {
-          "name": "position",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
-        },
         "isActive": {
           "name": "isActive",
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
           "default": true
-        },
-        "isShadow": {
-          "name": "isShadow",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": false,
-          "default": false
-        },
-        "shadowOfAgentId": {
-          "name": "shadowOfAgentId",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
         },
         "createdAt": {
           "name": "createdAt",
@@ -124,11 +110,11 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "agent_departmentId_department_id_fk": {
-          "name": "agent_departmentId_department_id_fk",
+        "agent_teamId_team_id_fk": {
+          "name": "agent_teamId_team_id_fk",
           "tableFrom": "agent",
-          "tableTo": "department",
-          "columnsFrom": ["departmentId"],
+          "tableTo": "team",
+          "columnsFrom": ["teamId"],
           "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
@@ -303,6 +289,195 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.conversation": {
+      "name": "conversation",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "icon": {
+          "name": "icon",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "memberAgentIds": {
+          "name": "memberAgentIds",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "'[]'::jsonb"
+        },
+        "archived": {
+          "name": "archived",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "lastMessageAt": {
+          "name": "lastMessageAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "conversation_last_message_idx": {
+          "name": "conversation_last_message_idx",
+          "columns": [
+            {
+              "expression": "lastMessageAt",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.conversation_message": {
+      "name": "conversation_message",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "conversationId": {
+          "name": "conversationId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "role": {
+          "name": "role",
+          "type": "conversation_message_role",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "agentId": {
+          "name": "agentId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "''"
+        },
+        "parts": {
+          "name": "parts",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "taskId": {
+          "name": "taskId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "conversation_message_conv_idx": {
+          "name": "conversation_message_conv_idx",
+          "columns": [
+            {
+              "expression": "conversationId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            },
+            {
+              "expression": "createdAt",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "conversation_message_conversationId_conversation_id_fk": {
+          "name": "conversation_message_conversationId_conversation_id_fk",
+          "tableFrom": "conversation_message",
+          "tableTo": "conversation",
+          "columnsFrom": ["conversationId"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "conversation_message_agentId_agent_id_fk": {
+          "name": "conversation_message_agentId_agent_id_fk",
+          "tableFrom": "conversation_message",
+          "tableTo": "agent",
+          "columnsFrom": ["agentId"],
+          "columnsTo": ["id"],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.deep_research": {
       "name": "deep_research",
       "schema": "",
@@ -417,8 +592,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.department": {
-      "name": "department",
+    "public.knowledge_doc": {
+      "name": "knowledge_doc",
       "schema": "",
       "columns": {
         "id": {
@@ -428,45 +603,17 @@
           "notNull": true,
           "default": "gen_random_uuid()"
         },
-        "name": {
-          "name": "name",
+        "title": {
+          "name": "title",
           "type": "text",
           "primaryKey": false,
           "notNull": true
         },
-        "description": {
-          "name": "description",
+        "content": {
+          "name": "content",
           "type": "text",
           "primaryKey": false,
-          "notNull": false,
-          "default": "''"
-        },
-        "icon": {
-          "name": "icon",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'building-2'"
-        },
-        "skillSlugs": {
-          "name": "skillSlugs",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'[]'::jsonb"
-        },
-        "mcpServerNames": {
-          "name": "mcpServerNames",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "'[]'::jsonb"
-        },
-        "position": {
-          "name": "position",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": false
+          "notNull": true
         },
         "createdAt": {
           "name": "createdAt",
@@ -820,6 +967,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "extraConfig": {
+          "name": "extraConfig",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
         "isActive": {
           "name": "isActive",
           "type": "boolean",
@@ -1070,6 +1223,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "durationMs": {
+          "name": "durationMs",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
         "createdAt": {
           "name": "createdAt",
           "type": "timestamp",
@@ -1309,6 +1468,13 @@
           "notNull": false,
           "default": true
         },
+        "proxy": {
+          "name": "proxy",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "''"
+        },
         "autoBackup": {
           "name": "autoBackup",
           "type": "boolean",
@@ -1381,6 +1547,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "conversationId": {
+          "name": "conversationId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "title": {
           "name": "title",
           "type": "text",
@@ -1409,12 +1581,6 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'medium'"
-        },
-        "assignedDepartmentId": {
-          "name": "assignedDepartmentId",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": false
         },
         "assignedAgentId": {
           "name": "assignedAgentId",
@@ -1501,13 +1667,13 @@
       },
       "indexes": {},
       "foreignKeys": {
-        "task_assignedDepartmentId_department_id_fk": {
-          "name": "task_assignedDepartmentId_department_id_fk",
+        "task_conversationId_conversation_id_fk": {
+          "name": "task_conversationId_conversation_id_fk",
           "tableFrom": "task",
-          "tableTo": "department",
-          "columnsFrom": ["assignedDepartmentId"],
+          "tableTo": "conversation",
+          "columnsFrom": ["conversationId"],
           "columnsTo": ["id"],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         },
         "task_assignedAgentId_agent_id_fk": {
@@ -1665,6 +1831,66 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.team": {
+      "name": "team",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "''"
+        },
+        "systemPrompt": {
+          "name": "systemPrompt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "''"
+        },
+        "icon": {
+          "name": "icon",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.vote": {
       "name": "vote",
       "schema": "",
@@ -1726,6 +1952,11 @@
       "name": "agent_memory_source",
       "schema": "public",
       "values": ["conversation", "task", "system"]
+    },
+    "public.conversation_message_role": {
+      "name": "conversation_message_role",
+      "schema": "public",
+      "values": ["user", "pm", "employee", "system"]
     },
     "public.execution_status": {
       "name": "execution_status",

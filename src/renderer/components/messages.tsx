@@ -25,6 +25,10 @@ import { MessageSpinner } from './message-spinner'
 import { MessageCallingTools } from './messages-calling-tools'
 import { ThinkingTimeline } from './thinking-timeline'
 import { Avatar, AvatarImage } from './ui/avatar'
+import { collectGalleryImages } from './web-search/collect-gallery-images'
+import { collectGalleryVideos } from './web-search/collect-gallery-videos'
+import { ImageGallery } from './web-search/image-gallery'
+import { VideoCards } from './web-search/video-cards'
 
 type MessagesProps = {
   chatId: string
@@ -78,6 +82,12 @@ const UserSegment = memo(function UserSegment({
 type AssistantTurnSegmentProps = {
   chatId: string
   turn: AssistantTurn
+  // All web-search sources seen in the chat up to and including this turn.
+  // Citations (【N-source】) can reference searches run in earlier turns, so
+  // badge resolution must use this cumulative set, not just the turn's own
+  // results. Built in chat order, so the rank map ends up last-wins for the
+  // rare case where a later turn re-runs a search with reset numbering.
+  citationSources?: WebSearchResult[]
   isStreaming: boolean
   assistantAvatar?: string
   regenerate: () => void
@@ -87,12 +97,27 @@ const AssistantTurnSegment = memo(
   function AssistantTurnSegment({
     chatId,
     turn,
+    citationSources,
     isStreaming,
     assistantAvatar,
     regenerate
   }: AssistantTurnSegmentProps) {
-    const webSearchResults =
+    // The turn's own searches drive the per-turn "Sources" panel; the
+    // cumulative set drives inline citation badges.
+    const ownSources =
       turn.webSearchResults.length > 0 ? turn.webSearchResults : undefined
+    const citationResults =
+      citationSources && citationSources.length > 0
+        ? citationSources
+        : undefined
+    const galleryImages = useMemo(
+      () => collectGalleryImages(turn.webSearchResults),
+      [turn.webSearchResults]
+    )
+    const galleryVideos = useMemo(
+      () => collectGalleryVideos(turn.webSearchResults),
+      [turn.webSearchResults]
+    )
 
     return (
       <div className="mb-8 flex flex-col items-start last:mb-4">
@@ -136,17 +161,18 @@ const AssistantTurnSegment = memo(
                   i < turn.finalTextBlocks.length - 1 && 'mb-16'
                 )}
               >
-                <Markdown
-                  src={block.text}
-                  webSearchResults={webSearchResults}
-                />
+                <Markdown src={block.text} webSearchResults={citationResults} />
                 <MessageAction
                   regenerate={regenerate}
                   content={block.text}
-                  webSearchResults={webSearchResults}
+                  webSearchResults={ownSources}
                 />
               </section>
             ))}
+            {galleryImages.length > 0 && (
+              <ImageGallery images={galleryImages} />
+            )}
+            {galleryVideos.length > 0 && <VideoCards videos={galleryVideos} />}
           </div>
         </div>
       </div>
@@ -385,6 +411,23 @@ function Messages({ chatId, status, messages, regenerate }: MessagesProps) {
 
   const segments = useMemo(() => groupIntoSegments(messages), [messages])
 
+  // Accumulate web-search sources across turns so a turn that cites a source
+  // found in an earlier turn can still resolve its 【N-source】 badges. Keyed by
+  // the segment object (same memoized refs used in render below); each value is
+  // a snapshot of every source seen through that turn, in chat order.
+  const citationSourcesByTurn = useMemo(() => {
+    const map = new Map<Segment, WebSearchResult[]>()
+    const acc: WebSearchResult[] = []
+    for (const segment of segments) {
+      if (segment.type !== 'assistantTurn') continue
+      if (segment.turn.webSearchResults.length > 0) {
+        acc.push(...segment.turn.webSearchResults)
+      }
+      map.set(segment, acc.slice())
+    }
+    return map
+  }, [segments])
+
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'instant') => {
     const $el = chatBoxRef.current
     if (!$el) return
@@ -449,6 +492,7 @@ function Messages({ chatId, status, messages, regenerate }: MessagesProps) {
                 key={`turn-${segIdx}`}
                 chatId={chatId}
                 turn={segment.turn}
+                citationSources={citationSourcesByTurn.get(segment)}
                 isStreaming={turnIsStreaming}
                 assistantAvatar={settings?.assistantAvatar ?? undefined}
                 regenerate={regenerate}

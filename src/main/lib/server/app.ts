@@ -5,11 +5,10 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 
 // ARCHIVED: import { connectMcpServers } from '../ai/mcp'
-import { initScheduler } from '../ai/agent-x/scheduler'
+import { initScheduler } from '../ai/philharmonic/scheduler'
 import { getSettings } from '../db/queries'
 import { logger } from '../logger'
-import { errorHandler } from './middlewares'
-import agentXRouter, { emitToAll } from './routes/agent-x'
+import { errorHandler, lockGate } from './middlewares'
 import artifactsRouter from './routes/artifacts'
 import audioRouter from './routes/audio'
 import backupRouter from './routes/backup'
@@ -21,6 +20,7 @@ import lcmStatusRouter from './routes/lcm-status'
 import logsRouter from './routes/logs'
 import mcpRouter from './routes/mcp'
 import memoryRouter from './routes/memory'
+import philharmonicRouter, { emitToAll } from './routes/philharmonic'
 import projectRouter from './routes/project'
 import s3UploaderRouter from './routes/s3-uploader'
 import settingsRouter from './routes/settings'
@@ -38,6 +38,9 @@ export async function connectHttpServer() {
 
   // Middleware
   app.use('*', cors())
+
+  // Lock gate: reject all API access while the app is locked (423).
+  app.use('/api/*', lockGate)
 
   // Add setting to context for all routes (except setting route to avoid circular dependency)
   app.use('/api/*', async (c, next) => {
@@ -63,7 +66,7 @@ export async function connectHttpServer() {
   app.route('/api/db-io', dbIoRouter)
   app.route('/api/deep-research', deepResearchRouter)
   app.route('/api/tools', toolsRouter)
-  app.route('/api/agent-x', agentXRouter)
+  app.route('/api/philharmonic', philharmonicRouter)
   app.route('/api/s3', s3UploaderRouter)
   app.route('/api/skills', skillsRouter)
   app.route('/api/mcp', mcpRouter)
