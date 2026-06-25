@@ -24,6 +24,9 @@ export const TEST_IDS = {
     lightboxClose: 'gallery.lightbox-close',
     lightboxPrev: 'gallery.lightbox-prev',
     lightboxNext: 'gallery.lightbox-next'
+  },
+  video: {
+    card: 'video.card'
   }
 } as const
 

@@ -26,7 +26,9 @@ import { MessageCallingTools } from './messages-calling-tools'
 import { ThinkingTimeline } from './thinking-timeline'
 import { Avatar, AvatarImage } from './ui/avatar'
 import { collectGalleryImages } from './web-search/collect-gallery-images'
+import { collectGalleryVideos } from './web-search/collect-gallery-videos'
 import { ImageGallery } from './web-search/image-gallery'
+import { VideoCards } from './web-search/video-cards'
 
 type MessagesProps = {
   chatId: string
@@ -112,6 +114,10 @@ const AssistantTurnSegment = memo(
       () => collectGalleryImages(turn.webSearchResults),
       [turn.webSearchResults]
     )
+    const galleryVideos = useMemo(
+      () => collectGalleryVideos(turn.webSearchResults),
+      [turn.webSearchResults]
+    )
 
     return (
       <div className="mb-8 flex flex-col items-start last:mb-4">
@@ -166,6 +172,7 @@ const AssistantTurnSegment = memo(
             {galleryImages.length > 0 && (
               <ImageGallery images={galleryImages} />
             )}
+            {galleryVideos.length > 0 && <VideoCards videos={galleryVideos} />}
           </div>
         </div>
       </div>
