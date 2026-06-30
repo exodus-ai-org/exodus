@@ -195,8 +195,11 @@ export function DeepResearchProcess() {
           ref={ref}
         >
           {tab === Tab.Activity &&
-            deepResearchMessages?.map((deepResearchMessage, i) => (
-              <MessageItem key={i} deepResearchMessage={deepResearchMessage} />
+            deepResearchMessages?.map((deepResearchMessage) => (
+              <MessageItem
+                key={deepResearchMessage.id}
+                deepResearchMessage={deepResearchMessage}
+              />
             ))}
 
           {tab === Tab.Source && (

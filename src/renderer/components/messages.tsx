@@ -50,10 +50,11 @@ const UserSegment = memo(function UserSegment({
         message.content.some((c) => c.type === 'image') && (
           <div className="mb-4 flex gap-4">
             {(message.content as Array<TextContent | ImageContent>).map(
-              (part, i) => {
+              (part) => {
                 if (part.type === 'image') {
                   return (
-                    <Zoom key={i}>
+                    // part.data is the base64 data URL, unique per image attachment
+                    <Zoom key={part.data}>
                       <img
                         className="max-h-96 max-w-64 rounded-lg object-cover"
                         src={part.data}

@@ -66,6 +66,7 @@ function EmployeeCard({ employee, onEdit, onAskDelete }: EmployeeCardProps) {
     <ContextMenu>
       <ContextMenuTrigger>
         <button
+          type="button"
           onClick={() => onEdit(employee)}
           className="group flex w-full items-start gap-3 rounded-[var(--ph-radius-lg)] px-3.5 py-3 text-left transition-shadow hover:shadow-[var(--ph-shadow-hover)]"
           style={{ background: 'var(--ph-surface-sunken)' }}
@@ -249,6 +250,7 @@ function TeamSection({
               read-only Unassigned bucket (signaled by team === null). */}
           {team && (
             <button
+              type="button"
               onClick={() => onAddEmployeeToTeam(team.id)}
               className="flex min-h-[88px] items-center justify-center gap-2 rounded-[var(--ph-radius-lg)] border-2 border-dashed text-xs transition-colors hover:text-[var(--ph-primary)]"
               style={{

@@ -32,7 +32,7 @@ export function PhilharmonicEmptyState({
           const offset = i === 0 ? 6 : i === 2 ? -6 : 0
           return (
             <div
-              key={i}
+              key={a.hue}
               className={i === 0 ? '' : '-ml-2'}
               style={{
                 width: size,

@@ -120,6 +120,9 @@ const SNOW_FLAKES = Array.from({ length: 18 }, (_, i) => ({
 function RainOverlay() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {/* react-doctor/no-array-index-as-key: suppressed — RAIN_DROPS is a
+          static module-level array of purely decorative particle specs with no
+          per-item identity. The list never reorders or filters. */}
       {RAIN_DROPS.map((d, i) => (
         <motion.div
           key={i}
@@ -141,6 +144,9 @@ function RainOverlay() {
 function SnowOverlay() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {/* react-doctor/no-array-index-as-key: suppressed — SNOW_FLAKES is a
+          static module-level array of purely decorative particle specs with no
+          per-item identity. The list never reorders or filters. */}
       {SNOW_FLAKES.map((f, i) => (
         <motion.div
           key={i}
@@ -278,7 +284,7 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
             const dayEmoji = (THEME[dayType] ?? DEFAULT_THEME).emoji
             return (
               <TabsTrigger
-                key={i}
+                key={day.date}
                 value={String(i)}
                 className="flex flex-col gap-1 py-1 text-xs"
               >
@@ -292,7 +298,7 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
         </TabsList>
 
         {forecast.slice(0, 3).map((day, i) => (
-          <TabsContent key={i} value={String(i)} className="p-0">
+          <TabsContent key={day.date} value={String(i)} className="p-0">
             <WeatherForecast forecast={day} />
           </TabsContent>
         ))}

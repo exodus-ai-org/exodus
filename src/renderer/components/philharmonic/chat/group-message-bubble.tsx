@@ -193,9 +193,9 @@ export function GroupMessageBubble({
           )}
         {bubble.toolCards && bubble.toolCards.length > 0 && (
           <div className="flex flex-col gap-1.5">
-            {bubble.toolCards.map((card, i) => (
+            {bubble.toolCards.map((card) => (
               <div
-                key={i}
+                key={`${card.toolName}-${card.phase}`}
                 className="flex items-center gap-2.5 border border-[var(--ph-border)] bg-[var(--ph-surface)] px-3 py-2"
                 style={{
                   borderRadius:

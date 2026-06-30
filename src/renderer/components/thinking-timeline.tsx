@@ -149,6 +149,7 @@ export function ThinkingTimeline({
     // to the ancestor (e.g. md:max-w-4xl) regardless of intrinsic content.
     <div className="mb-3 max-w-full min-w-0">
       <button
+        type="button"
         className="text-muted-foreground hover:text-foreground flex max-w-full items-center gap-1.5 overflow-hidden text-sm transition-colors"
         onClick={toggleExpanded}
       >
@@ -185,6 +186,9 @@ export function ThinkingTimeline({
             className="overflow-hidden"
           >
             <div className="mt-2">
+              {/* react-doctor/no-array-index-as-key: suppressed — TimelineStep has no
+                  stable id field. Steps are append-only during streaming (they never
+                  reorder or get removed while visible), so index keys are safe here. */}
               {steps.map((step, i) => (
                 <TimelineNode key={i} icon={<StepIcon step={step} />}>
                   <div
