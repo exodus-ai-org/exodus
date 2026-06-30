@@ -155,37 +155,38 @@ export function GroupChat({
         artifacts: artifacts.length > 0 ? artifacts : undefined
       }
     })
-    const live: BubbleWithDate[] = bubbles
-      .filter((b) => !persistedIds.has(b.messageId))
-      .map((b) => {
-        // Lift any artifact tool-card results into a live `artifacts` array
-        // so the ArtifactCard renders the moment createReport's tool_end
-        // arrives — no need to wait for the row to persist.
-        const liveArtifacts = (b.toolCards ?? [])
-          .filter(
-            (
-              c
-            ): c is {
-              toolName: string
-              phase: 'end'
-              result: {
-                type: 'artifact'
-                artifactId: string
-                title: string
-                code: string
-              }
-            } => {
-              if (c.phase !== 'end') return false
-              const r = c.result as { type?: unknown } | null
-              return r != null && r.type === 'artifact'
+    const live: BubbleWithDate[] = bubbles.flatMap((b) => {
+      if (persistedIds.has(b.messageId)) return []
+      // Lift any artifact tool-card results into a live `artifacts` array
+      // so the ArtifactCard renders the moment createReport's tool_end
+      // arrives — no need to wait for the row to persist.
+      const liveArtifacts = (b.toolCards ?? []).flatMap(
+        (
+          c
+        ): {
+          artifactId: string
+          title: string
+          code: string
+        }[] => {
+          if (c.phase !== 'end') return []
+          const r = c.result as { type?: unknown } | null
+          if (r == null || r.type !== 'artifact') return []
+          const result = c.result as {
+            artifactId: string
+            title: string
+            code: string
+          }
+          return [
+            {
+              artifactId: result.artifactId,
+              title: result.title,
+              code: result.code
             }
-          )
-          .map((c) => ({
-            artifactId: c.result.artifactId,
-            title: c.result.title,
-            code: c.result.code
-          }))
-        return {
+          ]
+        }
+      )
+      return [
+        {
           conversationId,
           messageId: b.messageId,
           role: b.role,
@@ -195,7 +196,8 @@ export function GroupChat({
           artifacts: liveArtifacts.length > 0 ? liveArtifacts : undefined
           // live bubbles have no persisted createdAt — they're "now"
         }
-      })
+      ]
+    })
     return [...fromHistory, ...live]
   }, [history, bubbles, persistedIds, conversationId])
 

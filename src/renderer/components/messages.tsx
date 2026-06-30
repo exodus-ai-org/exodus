@@ -71,8 +71,9 @@ const UserSegment = memo(function UserSegment({
         {typeof message.content === 'string'
           ? message.content
           : (message.content as Array<TextContent | ImageContent>)
-              .filter((c) => c.type === 'text')
-              .map((c) => (c as TextContent).text)
+              .flatMap((c) =>
+                c.type === 'text' ? [(c as TextContent).text] : []
+              )
               .join('')}
       </p>
     </div>
@@ -295,12 +296,16 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
     } else if (msg.role === 'toolResult') {
       const toolResult = msg as ChatToolResultMessage
       // Remove the matching pending tool call
+      // react-doctor/js-index-maps: false positive — pendingToolCalls mutates
+      // (splice) each iteration, so a pre-built Map would be stale mid-loop.
       const pendingIdx = pendingToolCalls.findIndex(
         (tc) => tc.id === toolResult.toolCallId
       )
       if (pendingIdx >= 0) pendingToolCalls.splice(pendingIdx, 1)
 
       if (toolResult.isError) {
+        // react-doctor/js-index-maps: false positive — one-shot lookup on a
+        // local array per iteration; overhead of building a Map exceeds benefit.
         const errorText =
           toolResult.content.find((c) => c.type === 'text')?.text ??
           `${capitalCase(toolResult.toolName)} failed`

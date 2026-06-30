@@ -135,24 +135,26 @@ export function GroupMessageBubble({
               isUser ? 'justify-end' : 'justify-start'
             )}
           >
-            {bubble.attachments
-              .filter((a) => a.contentType.startsWith('image/'))
-              .map((a, i) => (
-                <a
-                  key={`${a.url}-${i}`}
-                  href={a.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block"
-                >
-                  <img
-                    src={a.url}
-                    alt={a.name}
-                    className="max-h-48 max-w-[12rem] rounded-[var(--ph-radius-md)] object-cover"
-                    style={{ background: 'var(--ph-canvas)' }}
-                  />
-                </a>
-              ))}
+            {bubble.attachments.flatMap((a, i) =>
+              a.contentType.startsWith('image/')
+                ? [
+                    <a
+                      key={`${a.url}-${i}`}
+                      href={a.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block"
+                    >
+                      <img
+                        src={a.url}
+                        alt={a.name}
+                        className="max-h-48 max-w-[12rem] rounded-[var(--ph-radius-md)] object-cover"
+                        style={{ background: 'var(--ph-canvas)' }}
+                      />
+                    </a>
+                  ]
+                : []
+            )}
           </div>
         )}
         {bubble.text.length > 0 && (

@@ -29,8 +29,8 @@ function partition(
       unassigned.push(m)
     }
   }
-  const teamGroups: Group[] = [...byTeam.entries()]
-    .sort(([a], [b]) => teamsById[a].name.localeCompare(teamsById[b].name))
+  const teamGroups: Group[] = Array.from(byTeam.entries())
+    .toSorted(([a], [b]) => teamsById[a].name.localeCompare(teamsById[b].name))
     .map(([id, ms]) => ({
       key: id,
       label: teamsById[id].name,

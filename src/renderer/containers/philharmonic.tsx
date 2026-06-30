@@ -111,9 +111,10 @@ export function PhilharmonicContainer({
   )
 
   const activeConv = conversations.find((c) => c.id === activeId)
-  const members = (activeConv?.memberAgentIds ?? [])
-    .map((id) => agentsById[id])
-    .filter(Boolean) as AgentData[]
+  const members = (activeConv?.memberAgentIds ?? []).flatMap((id) => {
+    const agent = agentsById[id]
+    return agent ? [agent] : []
+  }) as AgentData[]
 
   // Single SSE subscription per Group, hoisted here so the Members panel and
   // the chat both read from the same aggregated state.

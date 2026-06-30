@@ -138,11 +138,12 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
           control={form.control}
           name="webSearch.languages"
           render={({ field, fieldState }) => {
-            const selectedItems = (field.value ?? [])
-              .map((code: string) =>
-                languageItems.find((l) => l.value === code)
-              )
-              .filter(Boolean) as OptionItem[]
+            const selectedItems = (field.value ?? []).flatMap(
+              (code: string) => {
+                const item = languageItems.find((l) => l.value === code)
+                return item ? [item] : []
+              }
+            ) as OptionItem[]
             return (
               <SettingsRow
                 label="Languages"

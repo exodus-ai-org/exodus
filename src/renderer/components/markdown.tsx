@@ -44,8 +44,12 @@ export function parseCitations(text: string): number[] | null {
   const matches = [...text.matchAll(citationGlobalRegex)]
   if (matches.length === 0) return null
   return matches
-    .flatMap((m) => m[1].split(',').map((n) => parseInt(n.trim(), 10)))
-    .filter((n) => !isNaN(n))
+    .flatMap((m) =>
+      m[1].split(',').flatMap((n) => {
+        const parsed = parseInt(n.trim(), 10)
+        return isNaN(parsed) ? [] : [parsed]
+      })
+    )
     .sort((a, b) => a - b)
 }
 

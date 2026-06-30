@@ -44,16 +44,13 @@ export function DeepResearchProcess() {
 
   const allWebSearchResults = useMemo(
     () =>
-      deepResearchMessages
-        ?.map(
-          (item) =>
-            (item.message as Record<string, Record<string, unknown>>)[
-              'params'
-            ]?.['data'] as unknown as ReportProgressPayload
-        )
-        .filter((item) => item.type === DeepResearchProgress.EmitSearchResults)
-        ?.map((item) => item.webSearchResults)
-        ?.flat() ?? [],
+      deepResearchMessages?.flatMap((item) => {
+        const payload = (
+          item.message as Record<string, Record<string, unknown>>
+        )['params']?.['data'] as unknown as ReportProgressPayload
+        if (payload?.type !== DeepResearchProgress.EmitSearchResults) return []
+        return payload.webSearchResults ?? []
+      }) ?? [],
     [deepResearchMessages]
   )
 

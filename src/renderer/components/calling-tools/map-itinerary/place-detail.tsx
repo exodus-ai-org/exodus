@@ -207,6 +207,7 @@ export function PlaceDetail({
           aria-label="Place sections"
           className="border-border flex shrink-0 border-b text-xs"
         >
+          {/* react-doctor/js-combine-iterations: false positive — literal 3-item array, extra pass is negligible */}
           {(
             [
               { id: 'overview', label: 'Overview', enabled: true },
