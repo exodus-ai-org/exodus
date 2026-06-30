@@ -441,9 +441,14 @@ function Messages({ chatId, status, messages, regenerate }: MessagesProps) {
     scrollToBottom('instant')
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Submit: force-scroll to bottom so user sees their message + spinner
+  // Submit: force-scroll to bottom so user sees their message + spinner.
   useEffect(() => {
     if (status === 'submitted') {
+      // False positive for react-doctor/no-adjust-state-on-prop-change:
+      // scrollToBottom() is an imperative DOM scroll — not a setState that copies
+      // a prop into state. The rule flags all calls inside prop-keyed effects but
+      // this side-effect on a status transition is intentional and correct.
+      // react-doctor-disable-next-line react-doctor/no-adjust-state-on-prop-change -- DOM scroll, not a prop copy
       scrollToBottom('instant')
     }
   }, [status, scrollToBottom])

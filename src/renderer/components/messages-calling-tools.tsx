@@ -52,12 +52,9 @@ function CallingTools({
   // up front rather than scatter ?. throughout.
   const toolLabel = toolName ? capitalCase(toolName) : 'Tool'
 
-  // Successful webSearch results are rendered via Sources in MessageAction, not here
-  if (toolName === 'webSearch' && !toolResult.isError) {
-    return null
-  }
-
-  // Extract error message from content when isError is true
+  // Extract error message from content when isError is true.
+  // Computed unconditionally (before any early returns) so the useEffect
+  // below is never called conditionally — satisfying the Rules of Hooks.
   const errorMessage = toolResult.isError
     ? (() => {
         const textBlock = toolResult.content.find((c) => c.type === 'text')
@@ -67,6 +64,9 @@ function CallingTools({
       })()
     : null
 
+  // Fire a toast the first time this tool result becomes an error.
+  // Keyed on toolCallId so it only fires once per tool invocation, not on
+  // every re-render. Must run unconditionally (above any early return).
   useEffect(() => {
     if (errorMessage) {
       sileo.error({
@@ -77,6 +77,11 @@ function CallingTools({
     // Only fire when this specific tool result first becomes an error
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toolResult.toolCallId])
+
+  // Successful webSearch results are rendered via Sources in MessageAction, not here
+  if (toolName === 'webSearch' && !toolResult.isError) {
+    return null
+  }
 
   if (errorMessage) {
     return (

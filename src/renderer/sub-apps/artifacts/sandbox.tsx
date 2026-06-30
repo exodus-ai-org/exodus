@@ -154,6 +154,13 @@ export function ArtifactSandbox() {
         transformed +
         '\n})(require, exports, module);'
 
+      // Intentional: this is the artifact sandbox execution engine. AI-generated
+      // artifact code must be dynamically evaluated so users can run components
+      // the LLM produces. Isolation is enforced at the iframe level (sandbox
+      // attribute + separate origin) with a strict CSP; this sub-app never runs
+      // in the main renderer process.
+      // eslint-disable-next-line no-new-func
+      // react-doctor-disable-next-line react-doctor/no-eval -- Deliberate sandbox execution engine; isolated in sandboxed artifacts iframe with CSP
       const factory = new Function('require', 'exports', 'module', wrapped)
       factory(artifactRequire, moduleExports, moduleObj)
 

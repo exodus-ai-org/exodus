@@ -79,6 +79,12 @@ export function useConversationStream(
   // Pull the current plan on mount / conversation switch so users coming back
   // to a Group after closing the panel see the latest state. SSE events
   // continue to mutate `plan` from here on.
+  //
+  // react-doctor-disable-next-line react-doctor/no-adjust-state-on-prop-change -- Intentional:
+  // setPlan(null) is not copying a prop into state — it clears ephemeral plan
+  // state when the conversation is deselected. Using `key` on the parent would
+  // force a full unmount/remount of the SSE EventSource, causing a reconnect
+  // storm. The effect runs once per conversationId change, which is correct.
   useEffect(() => {
     if (!conversationId) {
       setPlan(null)
@@ -95,6 +101,14 @@ export function useConversationStream(
     }
   }, [conversationId])
 
+  // react-doctor-disable-next-line react-doctor/no-adjust-state-on-prop-change -- Intentional:
+  // All five setState calls here reset ephemeral SSE-streaming state (live
+  // bubbles, ask-user prompt, error, PM-running flag, busy map) when switching
+  // to a different conversation. This is required — the old conversation's
+  // in-flight data must not bleed into the new one. The alternative (passing
+  // conversationId as `key`) would unmount/remount the EventSource on every
+  // switch, causing unnecessary reconnects. The current pattern is the correct
+  // approach for streaming-state-sensitive hooks.
   useEffect(() => {
     if (!conversationId) return
     setBubbles([])

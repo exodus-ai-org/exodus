@@ -58,12 +58,25 @@ export function GroupChat({
   const [answer, setAnswer] = useState('')
   const [editingTitle, setEditingTitle] = useState(false)
   const [draftTitle, setDraftTitle] = useState(conversation.title)
+  // Track the conversation id + title we last synced from so we can reset
+  // draftTitle/editingTitle during render when they change — the React-blessed
+  // "store previous prop" approach (avoids stale state on the first render that
+  // a useEffect-based reset would cause).
+  const [prevConversationId, setPrevConversationId] = useState(conversationId)
+  const [prevConversationTitle, setPrevConversationTitle] = useState(
+    conversation.title
+  )
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
+  if (
+    conversationId !== prevConversationId ||
+    conversation.title !== prevConversationTitle
+  ) {
+    setPrevConversationId(conversationId)
+    setPrevConversationTitle(conversation.title)
     setDraftTitle(conversation.title)
     setEditingTitle(false)
-  }, [conversation.id, conversation.title])
+  }
 
   const commitTitle = () => {
     const next = draftTitle.trim()
