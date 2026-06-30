@@ -31,7 +31,8 @@
     "test:e2e:providers": "playwright test --project=providers",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
-    "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false"
+    "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
+    "doctor": "npx react-doctor@latest"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1054.0",
@@ -125,6 +126,7 @@
     "postcss": "^8.5.15",
     "react": "^19.2.6",
     "react-day-picker": "10.0.1",
+    "react-doctor": "^0.5.8",
     "react-dom": "^19.2.6",
     "react-dropzone": "^15.0.0",
     "react-error-boundary": "^6.1.2",
