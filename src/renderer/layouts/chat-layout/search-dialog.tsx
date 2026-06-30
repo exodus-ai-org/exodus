@@ -47,6 +47,7 @@ export function SearchDialog() {
               <SearchIcon size={20} />
               <input
                 placeholder="Search Chat..."
+                aria-label="Search chat messages"
                 autoFocus
                 onChange={(e) => handleInputChange(e.target.value)}
                 className="placeholder:text-muted-foreground flex h-10 w-full rounded-md bg-transparent py-3 text-sm font-normal outline-none disabled:cursor-not-allowed disabled:opacity-50"

@@ -34,6 +34,7 @@ export function ComposerUploader() {
         multiple
         onChange={onChange}
         disabled={uploading}
+        tabIndex={-1}
         className="absolute inset-0 cursor-pointer opacity-0 disabled:cursor-not-allowed"
         aria-hidden="true"
       />

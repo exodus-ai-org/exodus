@@ -80,6 +80,7 @@ const CitationChip = memo(function CitationChip({
             href={source.link}
             target="_blank"
             rel="noopener noreferrer"
+            aria-label={label}
             className="no-underline hover:no-underline"
           />
         }
@@ -255,7 +256,8 @@ export function Markdown({
               <span>{match[1]}</span>
               <div className="flex cursor-default items-center gap-6">
                 {copied !== children ? (
-                  <span
+                  <button
+                    type="button"
                     className="hover:text-primary flex items-center gap-1.5"
                     onClick={() => {
                       if (typeof children === 'string') {
@@ -265,7 +267,7 @@ export function Markdown({
                   >
                     <CopyIcon size={10} />
                     Copy
-                  </span>
+                  </button>
                 ) : (
                   <span className="hover:text-primary flex items-center gap-1.5">
                     <CheckIcon size={10} strokeWidth={2.5} />
@@ -317,9 +319,14 @@ export function Markdown({
         )
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
-      img({ className, node, ...rest }: any) {
+      img({ className, node, alt, ...rest }: any) {
         return (
-          <img {...rest} loading="lazy" className={cn('mb-3', className)} />
+          <img
+            {...rest}
+            alt={alt ?? ''}
+            loading="lazy"
+            className={cn('mb-3', className)}
+          />
         )
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any

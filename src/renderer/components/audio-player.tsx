@@ -71,10 +71,14 @@ export function AudioPlayer({ content }: { content: string }) {
         {data && (
           <audio
             src={data}
+            aria-hidden="true"
+            tabIndex={-1}
             className="hidden"
             ref={audioRef}
             onEnded={handleEnded}
-          />
+          >
+            <track kind="captions" />
+          </audio>
         )}
       </span>
     </MessageActionItem>

@@ -30,12 +30,13 @@ export function IconWrapper({
   children: ReactNode
 }) {
   return (
-    <span
+    <button
+      type="button"
       className="hover:bg-secondary text-muted-foreground flex size-6 cursor-pointer items-center justify-center rounded-md transition-colors duration-150"
       onClick={onClick}
     >
       {children}
-    </span>
+    </button>
   )
 }
 
