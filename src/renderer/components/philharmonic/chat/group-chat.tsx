@@ -296,16 +296,15 @@ export function GroupChat({
           <div className="mx-auto flex max-w-2xl flex-col gap-1">
             {merged.map((b, i) => {
               const prev = i > 0 ? merged[i - 1] : null
-              const curDate = b.createdAt ? new Date(b.createdAt) : new Date()
-              const prevDate = prev?.createdAt
-                ? new Date(prev.createdAt)
-                : prev
-                  ? new Date()
-                  : null
-              const showDay = !prevDate || !isSameDay(curDate, prevDate)
+              // Use null when createdAt is absent (e.g. live streaming bubble) so
+              // the day divider is skipped rather than using an unstable new Date().
+              const curDate = b.createdAt ? new Date(b.createdAt) : null
+              const prevDate = prev?.createdAt ? new Date(prev.createdAt) : null
+              const showDay =
+                curDate !== null && (!prevDate || !isSameDay(curDate, prevDate))
               return (
                 <div key={b.messageId}>
-                  {showDay && (
+                  {showDay && curDate && (
                     <div className="my-3 flex items-center gap-3">
                       <div className="border-border/60 flex-1 border-t" />
                       <span className="text-muted-foreground text-[10px] tracking-wider uppercase">

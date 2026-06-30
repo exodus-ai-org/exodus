@@ -264,16 +264,14 @@ export function ArtifactCard({
     }
   }, [toolResult.code, toolResult.title, expanded])
 
-  // Fullscreen iframe unmounts on exit — reset its ready flag so the next
-  // mount's handshake re-triggers a render.
-  useEffect(() => {
-    if (!expanded) fullscreenReady.current = false
-  }, [expanded])
-
   useEffect(() => {
     if (!expanded) return
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setExpanded(false)
+      if (e.key === 'Escape') {
+        // Reset ready flag on exit so the next mount's handshake re-triggers a render.
+        fullscreenReady.current = false
+        setExpanded(false)
+      }
     }
     window.addEventListener('keydown', handleKey)
     return () => window.removeEventListener('keydown', handleKey)
@@ -309,7 +307,11 @@ export function ArtifactCard({
               artifactId={toolResult.artifactId}
               chatId={chatId}
               isNativeFullscreen={isNativeFullscreen}
-              onExitFullscreen={() => setExpanded(false)}
+              onExitFullscreen={() => {
+                // Reset ready flag so the next mount's handshake re-triggers a render.
+                fullscreenReady.current = false
+                setExpanded(false)
+              }}
             />
             <iframe
               ref={fullscreenIframeRef}

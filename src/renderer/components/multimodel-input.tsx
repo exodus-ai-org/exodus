@@ -63,12 +63,6 @@ function InputBox({
     }
   }
 
-  const resetHeight = () => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto'
-    }
-  }
-
   const handleInput = (event: ChangeEvent<HTMLTextAreaElement>) => {
     setInput(event.target.value)
     adjustHeight()
@@ -103,12 +97,17 @@ function InputBox({
 
     setAttachments([])
     setInput('')
-    resetHeight()
-  }, [attachments, chatId, input, sendMessage, setAttachments, setInput])
+    // Inline reset so we don't add a recreated-each-render function to deps.
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
+    }
+  }, [attachments, chatId, input, sendMessage, setAttachments, setInput, textareaRef])
 
   useEffect(() => {
-    if (textareaRef.current) {
-      adjustHeight()
+    const el = textareaRef.current
+    if (el) {
+      el.style.height = 'auto'
+      el.style.height = `${el.scrollHeight + 2}px`
     }
   }, [])
 
