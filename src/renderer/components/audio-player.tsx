@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useAudio } from '@/hooks/use-audio'
 import { cn } from '@/lib/utils'
 
-import { IconWrapper, MessageActionItem } from './massage-action'
+import { IconWrapper, MessageActionItem } from './message-action-primitives'
 
 export function AudioPlayer({ content }: { content: string }) {
   const [isPlaying, setIsPlaying] = useState(false)

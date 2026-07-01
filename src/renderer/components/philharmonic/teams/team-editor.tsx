@@ -1,5 +1,8 @@
 // src/renderer/components/philharmonic/teams/team-editor.tsx
-import { useEffect, useState } from 'react'
+// NOTE: useEffect to sync draft from team prop removed — key={team.id} at the
+// call site causes React to remount when the team changes, so the useState
+// initializer always receives the fresh value on mount.
+import { useState } from 'react'
 
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -27,7 +30,6 @@ export function TeamEditor({
   onSave
 }: TeamEditorProps) {
   const [draft, setDraft] = useState<TeamData>(team)
-  useEffect(() => setDraft(team), [team])
   const canSave = draft.name.trim().length > 0
 
   return (

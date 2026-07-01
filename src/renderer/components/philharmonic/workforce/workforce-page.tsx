@@ -488,6 +488,7 @@ export function WorkforcePage() {
         <SheetContent className="w-[520px] rounded-l-[var(--ph-radius-2xl)] border-l-0 bg-[var(--ph-surface)] p-0 shadow-[var(--ph-shadow-drawer)] sm:max-w-none">
           {employeeEditor && (
             <EmployeeEditor
+              key={employeeEditor.draft.id}
               employee={employeeEditor.draft}
               isNew={employeeEditor.isNew}
               onClose={() => setEmployeeEditor(null)}
@@ -504,6 +505,7 @@ export function WorkforcePage() {
         <SheetContent className="w-[520px] rounded-l-[var(--ph-radius-2xl)] border-l-0 bg-[var(--ph-surface)] p-0 shadow-[var(--ph-shadow-drawer)] sm:max-w-none">
           {teamEditor && (
             <TeamEditor
+              key={teamEditor.draft.id}
               team={teamEditor.draft}
               isNew={teamEditor.isNew}
               onClose={() => setTeamEditor(null)}
