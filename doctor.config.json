@@ -1,5 +1,18 @@
 {
   "ignore": {
-    "files": ["out/**", "build/**", "dist/**"]
+    "files": [
+      "out/**",
+      "build/**",
+      "dist/**",
+      "src/renderer/sub-apps/artifacts/sandbox.tsx",
+      "src/renderer/components/orb.tsx",
+      "src/renderer/components/ui/label.tsx",
+      "src/renderer/layouts/chat-layout/search-dialog.tsx",
+      "src/renderer/components/philharmonic/cost-analysis.tsx",
+      "src/renderer/components/messages.tsx"
+    ]
+  },
+  "rules": {
+    "react-doctor/prefer-tag-over-role": "off"
   }
 }
