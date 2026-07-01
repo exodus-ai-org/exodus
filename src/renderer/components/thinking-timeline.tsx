@@ -1,7 +1,7 @@
 import { faviconUrl } from '@shared/constants/external-urls'
 import type { TimelineStep } from '@shared/types/chat'
 import type { WebSearchResult } from '@shared/types/web-search'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, domAnimation, LazyMotion, m } from 'framer-motion'
 import {
   CheckIcon,
   ChevronDownIcon,
@@ -144,109 +144,111 @@ export function ThinkingTimeline({
       : verb
 
   return (
-    // min-w-0 lets the timeline shrink inside flex parents instead of pushing
-    // them wider when a tool-call URL or path is long. max-w-full clamps it
-    // to the ancestor (e.g. md:max-w-4xl) regardless of intrinsic content.
-    <div className="mb-3 max-w-full min-w-0">
-      <button
-        type="button"
-        className="text-muted-foreground hover:text-foreground flex max-w-full items-center gap-1.5 overflow-hidden text-sm transition-colors"
-        onClick={toggleExpanded}
-      >
-        {isStreaming ? (
-          <LoaderIcon size={16} className="shrink-0 animate-spin" />
-        ) : (
-          <CheckIcon size={16} className="shrink-0" />
-        )}
-        {isStreaming ? (
-          <ShimmeringText
-            key={headerText}
-            className="truncate font-medium"
-            text={headerText}
-          />
-        ) : (
-          <span className="truncate font-medium">{headerText}</span>
-        )}
-        <ChevronDownIcon
-          size={16}
-          className={cn(
-            'shrink-0 transition-transform duration-200',
-            isExpanded && 'rotate-180'
+    <LazyMotion features={domAnimation}>
+      {/* min-w-0 lets the timeline shrink inside flex parents instead of pushing
+        them wider when a tool-call URL or path is long. max-w-full clamps it
+        to the ancestor (e.g. md:max-w-4xl) regardless of intrinsic content. */}
+      <div className="mb-3 max-w-full min-w-0">
+        <button
+          type="button"
+          className="text-muted-foreground hover:text-foreground flex max-w-full items-center gap-1.5 overflow-hidden text-sm transition-colors"
+          onClick={toggleExpanded}
+        >
+          {isStreaming ? (
+            <LoaderIcon size={16} className="shrink-0 animate-spin" />
+          ) : (
+            <CheckIcon size={16} className="shrink-0" />
           )}
-        />
-      </button>
+          {isStreaming ? (
+            <ShimmeringText
+              key={headerText}
+              className="truncate font-medium"
+              text={headerText}
+            />
+          ) : (
+            <span className="truncate font-medium">{headerText}</span>
+          )}
+          <ChevronDownIcon
+            size={16}
+            className={cn(
+              'shrink-0 transition-transform duration-200',
+              isExpanded && 'rotate-180'
+            )}
+          />
+        </button>
 
-      <AnimatePresence initial={false}>
-        {isExpanded && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.2, ease: 'easeInOut' }}
-            className="overflow-hidden"
-          >
-            <div className="mt-2">
-              {/* react-doctor/no-array-index-as-key: suppressed — TimelineStep has no
+        <AnimatePresence initial={false}>
+          {isExpanded && (
+            <m.div
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              transition={{ duration: 0.2, ease: 'easeInOut' }}
+              className="overflow-hidden"
+            >
+              <div className="mt-2">
+                {/* react-doctor/no-array-index-as-key: suppressed — TimelineStep has no
                   stable id field. Steps are append-only during streaming (they never
                   reorder or get removed while visible), so index keys are safe here. */}
-              {steps.map((step, i) => (
-                <TimelineNode key={i} icon={<StepIcon step={step} />}>
-                  <div
-                    className={cn(
-                      // min-w-0 break-words: tool-call previews like
-                      // "webFetch: https://…/long-url.pdf" must wrap mid-URL
-                      // instead of overflowing the timeline.
-                      'text-muted-foreground min-w-0 text-sm leading-relaxed wrap-break-word [&_h1]:text-sm [&_h2]:text-sm [&_h3]:text-sm [&_h4]:text-sm [&_ol]:my-0.5 [&_ul]:my-0.5 [&_p:first-child]:mt-0 [&_p]:my-0.5',
-                      step.type === 'toolResult' &&
-                        step.isError &&
-                        'text-destructive'
-                    )}
+                {steps.map((step, i) => (
+                  <TimelineNode key={i} icon={<StepIcon step={step} />}>
+                    <div
+                      className={cn(
+                        // min-w-0 break-words: tool-call previews like
+                        // "webFetch: https://…/long-url.pdf" must wrap mid-URL
+                        // instead of overflowing the timeline.
+                        'text-muted-foreground min-w-0 text-sm leading-relaxed wrap-break-word [&_h1]:text-sm [&_h2]:text-sm [&_h3]:text-sm [&_h4]:text-sm [&_ol]:my-0.5 [&_ul]:my-0.5 [&_p:first-child]:mt-0 [&_p]:my-0.5',
+                        step.type === 'toolResult' &&
+                          step.isError &&
+                          'text-destructive'
+                      )}
+                    >
+                      {step.type === 'thinking' ? (
+                        <Markdown src={step.text} />
+                      ) : (
+                        <>
+                          <p className="wrap-break-word">{step.text}</p>
+                          {step.codeArgument && (
+                            <pre className="bg-muted/50 border-border/60 mt-1 max-h-48 overflow-auto rounded-md border p-2 font-mono text-[11.5px] leading-relaxed wrap-break-word whitespace-pre-wrap">
+                              <code>{step.codeArgument}</code>
+                            </pre>
+                          )}
+                        </>
+                      )}
+                    </div>
+
+                    {step.webSearchResults &&
+                      step.webSearchResults.length > 0 && (
+                        <div className="mt-1.5 flex max-h-30.5 flex-col gap-0.5 overflow-y-auto rounded-lg border p-1">
+                          {step.webSearchResults.map((result) => (
+                            <SearchResultItem key={result.link} item={result} />
+                          ))}
+                        </div>
+                      )}
+                  </TimelineNode>
+                ))}
+
+                {/* Done node — only when streaming is finished */}
+                {!isStreaming && (
+                  <TimelineNode
+                    isLast
+                    icon={
+                      <CircleCheckBigIcon
+                        size={16}
+                        className="text-muted-foreground shrink-0"
+                      />
+                    }
                   >
-                    {step.type === 'thinking' ? (
-                      <Markdown src={step.text} />
-                    ) : (
-                      <>
-                        <p className="wrap-break-word">{step.text}</p>
-                        {step.codeArgument && (
-                          <pre className="bg-muted/50 border-border/60 mt-1 max-h-48 overflow-auto rounded-md border p-2 font-mono text-[11.5px] leading-relaxed wrap-break-word whitespace-pre-wrap">
-                            <code>{step.codeArgument}</code>
-                          </pre>
-                        )}
-                      </>
-                    )}
-                  </div>
-
-                  {step.webSearchResults &&
-                    step.webSearchResults.length > 0 && (
-                      <div className="mt-1.5 flex max-h-30.5 flex-col gap-0.5 overflow-y-auto rounded-lg border p-1">
-                        {step.webSearchResults.map((result) => (
-                          <SearchResultItem key={result.link} item={result} />
-                        ))}
-                      </div>
-                    )}
-                </TimelineNode>
-              ))}
-
-              {/* Done node — only when streaming is finished */}
-              {!isStreaming && (
-                <TimelineNode
-                  isLast
-                  icon={
-                    <CircleCheckBigIcon
-                      size={16}
-                      className="text-muted-foreground shrink-0"
-                    />
-                  }
-                >
-                  <p className="text-muted-foreground text-sm leading-relaxed">
-                    Done
-                  </p>
-                </TimelineNode>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+                    <p className="text-muted-foreground text-sm leading-relaxed">
+                      Done
+                    </p>
+                  </TimelineNode>
+                )}
+              </div>
+            </m.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </LazyMotion>
   )
 }

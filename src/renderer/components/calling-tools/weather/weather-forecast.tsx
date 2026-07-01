@@ -1,5 +1,5 @@
 import { WeatherForecastDay, WWO_CODE } from '@shared/types/weather'
-import { motion } from 'framer-motion'
+import { domAnimation, LazyMotion, m } from 'framer-motion'
 import {
   CloudDrizzleIcon,
   CloudFogIcon,
@@ -64,87 +64,89 @@ export function WeatherForecast({
   forecast: WeatherForecastDay
 }) {
   return (
-    <div className="flex flex-col gap-3 px-2 pt-3 pb-2">
-      {/* ── min/max bar ── */}
-      <div className="bg-muted/60 rounded-2xl px-3 py-2.5">
-        <div className="text-muted-foreground mb-1.5 flex items-center justify-between text-xs">
-          <span>🌡️ Temperature range</span>
-          <span className="text-foreground font-semibold">
-            {forecast.minTempC}° – {forecast.maxTempC}°
-          </span>
-        </div>
-        <div className="bg-muted relative h-2 w-full overflow-hidden rounded-full">
-          <motion.div
-            className="absolute inset-y-0 rounded-full"
-            style={{
-              background: 'linear-gradient(90deg, #38bdf8, #fb923c)',
-              left: '0%',
-              right: '0%'
-            }}
-            initial={{ scaleX: 0, originX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-          />
-        </div>
-        <div className="text-muted-foreground mt-2 flex justify-between text-[10px]">
-          <span>❄️ Cold</span>
-          <span>🔥 Hot</span>
-        </div>
-      </div>
-
-      {/* ── sunrise / sunset ── */}
-      <div className="flex gap-2">
-        <div className="bg-muted/60 flex flex-1 items-center gap-2 rounded-2xl px-3 py-2">
-          <span className="text-lg leading-none">🌅</span>
-          <div>
-            <p className="text-muted-foreground text-[10px]">Sunrise</p>
-            <p className="text-xs font-semibold">{forecast.sunrise}</p>
+    <LazyMotion features={domAnimation}>
+      <div className="flex flex-col gap-3 px-2 pt-3 pb-2">
+        {/* ── min/max bar ── */}
+        <div className="bg-muted/60 rounded-2xl px-3 py-2.5">
+          <div className="text-muted-foreground mb-1.5 flex items-center justify-between text-xs">
+            <span>🌡️ Temperature range</span>
+            <span className="text-foreground font-semibold">
+              {forecast.minTempC}° – {forecast.maxTempC}°
+            </span>
+          </div>
+          <div className="bg-muted relative h-2 w-full overflow-hidden rounded-full">
+            <m.div
+              className="absolute inset-y-0 rounded-full"
+              style={{
+                background: 'linear-gradient(90deg, #38bdf8, #fb923c)',
+                left: '0%',
+                right: '0%'
+              }}
+              initial={{ scaleX: 0, originX: 0 }}
+              animate={{ scaleX: 1 }}
+              transition={{ duration: 0.6, ease: 'easeOut' }}
+            />
+          </div>
+          <div className="text-muted-foreground mt-2 flex justify-between text-[10px]">
+            <span>❄️ Cold</span>
+            <span>🔥 Hot</span>
           </div>
         </div>
-        <div className="bg-muted/60 flex flex-1 items-center gap-2 rounded-2xl px-3 py-2">
-          <span className="text-lg leading-none">🌇</span>
-          <div>
-            <p className="text-muted-foreground text-[10px]">Sunset</p>
-            <p className="text-xs font-semibold">{forecast.sunset}</p>
+
+        {/* ── sunrise / sunset ── */}
+        <div className="flex gap-2">
+          <div className="bg-muted/60 flex flex-1 items-center gap-2 rounded-2xl px-3 py-2">
+            <span className="text-lg leading-none">🌅</span>
+            <div>
+              <p className="text-muted-foreground text-[10px]">Sunrise</p>
+              <p className="text-xs font-semibold">{forecast.sunrise}</p>
+            </div>
+          </div>
+          <div className="bg-muted/60 flex flex-1 items-center gap-2 rounded-2xl px-3 py-2">
+            <span className="text-lg leading-none">🌇</span>
+            <div>
+              <p className="text-muted-foreground text-[10px]">Sunset</p>
+              <p className="text-xs font-semibold">{forecast.sunset}</p>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* ── hourly scroll ── */}
-      <div className="relative">
-        <div className="no-scrollbar flex gap-2 overflow-x-scroll pb-1">
-          {forecast.hourly.map((h, index) => {
-            const rainPct = Number(h.rainChance)
-            return (
-              <motion.div
-                key={h.time}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.04, duration: 0.3 }}
-                className="bg-muted/60 flex min-w-[52px] shrink-0 flex-col items-center gap-1 rounded-2xl px-2.5 py-2"
-              >
-                <span className="text-muted-foreground text-[10px] leading-none">
-                  {formatTime(h.time)}
-                </span>
-                <div className="my-0.5">{getWeatherIcon(h.weatherCode)}</div>
-                <span className="text-xs leading-none font-semibold">
-                  {h.tempC}°
-                </span>
-                {rainPct > 0 ? (
-                  <span className="text-[9px] leading-none font-medium text-blue-400">
-                    💧{rainPct}%
+        {/* ── hourly scroll ── */}
+        <div className="relative">
+          <div className="no-scrollbar flex gap-2 overflow-x-scroll pb-1">
+            {forecast.hourly.map((h, index) => {
+              const rainPct = Number(h.rainChance)
+              return (
+                <m.div
+                  key={h.time}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.04, duration: 0.3 }}
+                  className="bg-muted/60 flex min-w-[52px] shrink-0 flex-col items-center gap-1 rounded-2xl px-2.5 py-2"
+                >
+                  <span className="text-muted-foreground text-[10px] leading-none">
+                    {formatTime(h.time)}
                   </span>
-                ) : (
-                  <span className="text-muted-foreground/50 text-[9px] leading-none">
-                    —
+                  <div className="my-0.5">{getWeatherIcon(h.weatherCode)}</div>
+                  <span className="text-xs leading-none font-semibold">
+                    {h.tempC}°
                   </span>
-                )}
-              </motion.div>
-            )
-          })}
+                  {rainPct > 0 ? (
+                    <span className="text-[9px] leading-none font-medium text-blue-400">
+                      💧{rainPct}%
+                    </span>
+                  ) : (
+                    <span className="text-muted-foreground/50 text-[9px] leading-none">
+                      —
+                    </span>
+                  )}
+                </m.div>
+              )
+            })}
+          </div>
+          <div className="from-card pointer-events-none absolute top-0 right-0 h-full w-10 bg-linear-to-l to-transparent" />
         </div>
-        <div className="from-card pointer-events-none absolute top-0 right-0 h-full w-10 bg-linear-to-l to-transparent" />
       </div>
-    </div>
+    </LazyMotion>
   )
 }

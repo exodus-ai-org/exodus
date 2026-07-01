@@ -1,5 +1,5 @@
 import { WeatherResult, WWO_CODE } from '@shared/types/weather'
-import { motion } from 'framer-motion'
+import { domAnimation, LazyMotion, m } from 'framer-motion'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
@@ -124,7 +124,7 @@ function RainOverlay() {
           static module-level array of purely decorative particle specs with no
           per-item identity. The list never reorders or filters. */}
       {RAIN_DROPS.map((d, i) => (
-        <motion.div
+        <m.div
           key={i}
           className="absolute rounded-full bg-white/40"
           style={{ left: d.left, top: '-8%', width: 1.5, height: 14 }}
@@ -148,7 +148,7 @@ function SnowOverlay() {
           static module-level array of purely decorative particle specs with no
           per-item identity. The list never reorders or filters. */}
       {SNOW_FLAKES.map((f, i) => (
-        <motion.div
+        <m.div
           key={i}
           className="absolute rounded-full bg-white/70"
           style={{ left: f.left, top: '-5%', width: f.size, height: f.size }}
@@ -207,102 +207,108 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
   const theme = THEME[weatherType] ?? DEFAULT_THEME
 
   return (
-    <div className="w-full max-w-xs overflow-hidden rounded-3xl shadow-2xl">
-      {/* ── hero ── */}
-      <div className="relative" style={{ background: theme.gradient }}>
-        {theme.particles === 'rain' && <RainOverlay />}
-        {theme.particles === 'snow' && <SnowOverlay />}
+    <LazyMotion features={domAnimation}>
+      <div className="w-full max-w-xs overflow-hidden rounded-3xl shadow-2xl">
+        {/* ── hero ── */}
+        <div className="relative" style={{ background: theme.gradient }}>
+          {theme.particles === 'rain' && <RainOverlay />}
+          {theme.particles === 'snow' && <SnowOverlay />}
 
-        <div className="relative px-5 pt-5 pb-5 text-white">
-          {/* location */}
-          <p className="mb-4 flex items-center gap-1 text-xs font-medium text-white/70">
-            <span>📍</span>
-            {location}
-          </p>
+          <div className="relative px-5 pt-5 pb-5 text-white">
+            {/* location */}
+            <p className="mb-4 flex items-center gap-1 text-xs font-medium text-white/70">
+              <span>📍</span>
+              {location}
+            </p>
 
-          {/* temp + icon */}
-          <div className="flex items-end justify-between">
-            <motion.div
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <p className="text-7xl leading-none font-thin tracking-tighter">
-                {current.tempC}°
-              </p>
-              <p className="mt-2 text-base font-light text-white/90">
-                {current.condition}
-              </p>
-              <p className="mt-0.5 text-xs text-white/55">
-                Feels {current.feelsLikeC}° · {current.observedAt}
-              </p>
-            </motion.div>
+            {/* temp + icon */}
+            <div className="flex items-end justify-between">
+              <m.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                <p className="text-7xl leading-none font-thin tracking-tighter">
+                  {current.tempC}°
+                </p>
+                <p className="mt-2 text-base font-light text-white/90">
+                  {current.condition}
+                </p>
+                <p className="mt-0.5 text-xs text-white/55">
+                  Feels {current.feelsLikeC}° · {current.observedAt}
+                </p>
+              </m.div>
 
-            <motion.span
-              className="text-6xl leading-none select-none"
-              animate={{ y: [0, -6, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
-            >
-              {theme.emoji}
-            </motion.span>
-          </div>
+              <m.span
+                className="text-6xl leading-none select-none"
+                animate={{ y: [0, -6, 0] }}
+                transition={{
+                  duration: 4,
+                  repeat: Infinity,
+                  ease: 'easeInOut'
+                }}
+              >
+                {theme.emoji}
+              </m.span>
+            </div>
 
-          {/* stats grid */}
-          <div className="mt-5 grid grid-cols-3 gap-2">
-            <StatPill
-              emoji="💧"
-              value={`${current.humidity}%`}
-              label="Humidity"
-            />
-            <StatPill
-              emoji="💨"
-              value={`${current.windKmph} km/h`}
-              label={`${current.windDir}`}
-            />
-            <StatPill
-              emoji="☔"
-              value={`${current.precipMM}mm`}
-              label="Precip"
-            />
-            <StatPill
-              emoji="👁"
-              value={`${current.visibility} km`}
-              label="Visibility"
-            />
-            <StatPill emoji="🔆" value={current.uvIndex} label="UV Index" />
-            <StatPill emoji="📊" value={`${current.pressure}`} label="hPa" />
+            {/* stats grid */}
+            <div className="mt-5 grid grid-cols-3 gap-2">
+              <StatPill
+                emoji="💧"
+                value={`${current.humidity}%`}
+                label="Humidity"
+              />
+              <StatPill
+                emoji="💨"
+                value={`${current.windKmph} km/h`}
+                label={`${current.windDir}`}
+              />
+              <StatPill
+                emoji="☔"
+                value={`${current.precipMM}mm`}
+                label="Precip"
+              />
+              <StatPill
+                emoji="👁"
+                value={`${current.visibility} km`}
+                label="Visibility"
+              />
+              <StatPill emoji="🔆" value={current.uvIndex} label="UV Index" />
+              <StatPill emoji="📊" value={`${current.pressure}`} label="hPa" />
+            </div>
           </div>
         </div>
+
+        {/* ── forecast tabs ── */}
+        <Tabs defaultValue="0">
+          <TabsList className="mx-3 my-1 grid grid-cols-3 bg-transparent">
+            {forecast.slice(0, 3).map((day, i) => {
+              const dayType =
+                WWO_CODE[day.weatherCode as keyof typeof WWO_CODE] ?? 'Cloudy'
+              const dayEmoji = (THEME[dayType] ?? DEFAULT_THEME).emoji
+              return (
+                <TabsTrigger
+                  key={day.date}
+                  value={String(i)}
+                  className="flex flex-col gap-1 py-1 text-xs"
+                >
+                  <span className="text-base leading-none">{dayEmoji}</span>
+                  <span className="font-medium">
+                    {formatTabLabel(day.date, i)}
+                  </span>
+                </TabsTrigger>
+              )
+            })}
+          </TabsList>
+
+          {forecast.slice(0, 3).map((day, i) => (
+            <TabsContent key={day.date} value={String(i)} className="p-0">
+              <WeatherForecast forecast={day} />
+            </TabsContent>
+          ))}
+        </Tabs>
       </div>
-
-      {/* ── forecast tabs ── */}
-      <Tabs defaultValue="0">
-        <TabsList className="mx-3 my-1 grid grid-cols-3 bg-transparent">
-          {forecast.slice(0, 3).map((day, i) => {
-            const dayType =
-              WWO_CODE[day.weatherCode as keyof typeof WWO_CODE] ?? 'Cloudy'
-            const dayEmoji = (THEME[dayType] ?? DEFAULT_THEME).emoji
-            return (
-              <TabsTrigger
-                key={day.date}
-                value={String(i)}
-                className="flex flex-col gap-1 py-1 text-xs"
-              >
-                <span className="text-base leading-none">{dayEmoji}</span>
-                <span className="font-medium">
-                  {formatTabLabel(day.date, i)}
-                </span>
-              </TabsTrigger>
-            )
-          })}
-        </TabsList>
-
-        {forecast.slice(0, 3).map((day, i) => (
-          <TabsContent key={day.date} value={String(i)} className="p-0">
-            <WeatherForecast forecast={day} />
-          </TabsContent>
-        ))}
-      </Tabs>
-    </div>
+    </LazyMotion>
   )
 }

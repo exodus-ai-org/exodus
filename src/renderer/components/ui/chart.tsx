@@ -2,6 +2,7 @@
 // as context-read (not in the public prop shape), but this component reads
 // them at render time — which works fine at runtime.
 import * as React from 'react'
+import { memo } from 'react'
 import * as RechartsPrimitive from 'recharts'
 import type { LegendPayload } from 'recharts/types/component/DefaultLegendContent'
 import type { TooltipPayload } from 'recharts/types/state/tooltipSlice'
@@ -109,6 +110,54 @@ ${colorConfig
 
 const ChartTooltip = RechartsPrimitive.Tooltip
 
+type TooltipLabelProps = {
+  config: ChartConfig
+  payload: TooltipPayload
+  hideLabel: boolean
+  label: string | number | undefined
+  labelFormatter: React.ComponentProps<
+    typeof RechartsPrimitive.Tooltip
+  >['labelFormatter']
+  labelClassName: string | undefined
+  labelKey: string | undefined
+}
+
+const TooltipLabel = memo(function TooltipLabel({
+  config,
+  payload,
+  hideLabel,
+  label,
+  labelFormatter,
+  labelClassName,
+  labelKey
+}: TooltipLabelProps) {
+  if (hideLabel || !payload?.length) {
+    return null
+  }
+
+  const [item] = payload
+  const key = `${labelKey || item?.dataKey || item?.name || 'value'}`
+  const itemConfig = getPayloadConfigFromPayload(config, item, key)
+  const value =
+    !labelKey && typeof label === 'string'
+      ? config[label as keyof typeof config]?.label || label
+      : itemConfig?.label
+
+  if (labelFormatter) {
+    return (
+      <div className={cn('font-medium', labelClassName)}>
+        {labelFormatter(value, payload)}
+      </div>
+    )
+  }
+
+  if (!value) {
+    return null
+  }
+
+  return <div className={cn('font-medium', labelClassName)}>{value}</div>
+})
+
 function ChartTooltipContent({
   active,
   payload,
@@ -138,42 +187,6 @@ function ChartTooltipContent({
   }) {
   const { config } = useChart()
 
-  const tooltipLabel = React.useMemo(() => {
-    if (hideLabel || !payload?.length) {
-      return null
-    }
-
-    const [item] = payload
-    const key = `${labelKey || item?.dataKey || item?.name || 'value'}`
-    const itemConfig = getPayloadConfigFromPayload(config, item, key)
-    const value =
-      !labelKey && typeof label === 'string'
-        ? config[label as keyof typeof config]?.label || label
-        : itemConfig?.label
-
-    if (labelFormatter) {
-      return (
-        <div className={cn('font-medium', labelClassName)}>
-          {labelFormatter(value, payload)}
-        </div>
-      )
-    }
-
-    if (!value) {
-      return null
-    }
-
-    return <div className={cn('font-medium', labelClassName)}>{value}</div>
-  }, [
-    label,
-    labelFormatter,
-    payload,
-    hideLabel,
-    labelClassName,
-    config,
-    labelKey
-  ])
-
   if (!active || !payload?.length) {
     return null
   }
@@ -187,7 +200,17 @@ function ChartTooltipContent({
         className
       )}
     >
-      {!nestLabel ? tooltipLabel : null}
+      {!nestLabel ? (
+        <TooltipLabel
+          config={config}
+          payload={payload}
+          hideLabel={hideLabel}
+          label={label}
+          labelFormatter={labelFormatter}
+          labelClassName={labelClassName}
+          labelKey={labelKey}
+        />
+      ) : null}
       <div className="grid gap-1.5">
         {payload.flatMap((item, index) => {
           if (item.type === 'none') return []
@@ -238,7 +261,17 @@ function ChartTooltipContent({
                     )}
                   >
                     <div className="grid gap-1.5">
-                      {nestLabel ? tooltipLabel : null}
+                      {nestLabel ? (
+                        <TooltipLabel
+                          config={config}
+                          payload={payload}
+                          hideLabel={hideLabel}
+                          label={label}
+                          labelFormatter={labelFormatter}
+                          labelClassName={labelClassName}
+                          labelKey={labelKey}
+                        />
+                      ) : null}
                       <span className="text-muted-foreground">
                         {itemConfig?.label || item.name}
                       </span>

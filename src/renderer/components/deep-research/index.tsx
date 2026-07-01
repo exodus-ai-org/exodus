@@ -4,7 +4,7 @@ import {
   DeepResearchProgress,
   ReportProgressPayload
 } from '@shared/types/deep-research'
-import { motion } from 'framer-motion'
+import { domAnimation, LazyMotion, m } from 'framer-motion'
 import { useAtom } from 'jotai'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import useSWR from 'swr'
@@ -153,63 +153,65 @@ export function DeepResearchProcess() {
   }, [deepResearchMessages])
 
   return (
-    <SheetPanel
-      open={activeDeepResearchId !== ''}
-      onClose={() => setActiveDeepResearchId('')}
-    >
-      <div className="bg-background sticky top-0 z-10 flex h-12 shrink-0 items-center justify-center border-b">
-        <div className="bg-border flex items-center rounded-full p-1 text-sm">
-          <Button
-            variant="ghost"
-            className={cn(
-              'min-w-20 rounded-full p-2 select-none',
-              tab === Tab.Activity
-                ? 'bg-background hover:bg-background dark:bg-background-foreground hover:dark:bg-background-foreground font-semibold shadow-sm'
-                : 'bg-transparent'
-            )}
-            onClick={() => setTab(Tab.Activity)}
-          >
-            Activity
-          </Button>
-          <Button
-            variant="ghost"
-            className={cn(
-              'min-w-20 rounded-full p-2 select-none',
-              tab === Tab.Source
-                ? 'bg-background hover:bg-background dark:bg-background-foreground hover:dark:bg-background-foreground font-semibold shadow-sm'
-                : 'bg-transparent'
-            )}
-            onClick={() => setTab(Tab.Source)}
-          >
-            {allWebSearchResults.length} Sources
-          </Button>
+    <LazyMotion features={domAnimation}>
+      <SheetPanel
+        open={activeDeepResearchId !== ''}
+        onClose={() => setActiveDeepResearchId('')}
+      >
+        <div className="bg-background sticky top-0 z-10 flex h-12 shrink-0 items-center justify-center border-b">
+          <div className="bg-border flex items-center rounded-full p-1 text-sm">
+            <Button
+              variant="ghost"
+              className={cn(
+                'min-w-20 rounded-full p-2 select-none',
+                tab === Tab.Activity
+                  ? 'bg-background hover:bg-background dark:bg-background-foreground hover:dark:bg-background-foreground font-semibold shadow-sm'
+                  : 'bg-transparent'
+              )}
+              onClick={() => setTab(Tab.Activity)}
+            >
+              Activity
+            </Button>
+            <Button
+              variant="ghost"
+              className={cn(
+                'min-w-20 rounded-full p-2 select-none',
+                tab === Tab.Source
+                  ? 'bg-background hover:bg-background dark:bg-background-foreground hover:dark:bg-background-foreground font-semibold shadow-sm'
+                  : 'bg-transparent'
+              )}
+              onClick={() => setTab(Tab.Source)}
+            >
+              {allWebSearchResults.length} Sources
+            </Button>
+          </div>
         </div>
-      </div>
 
-      {activeDeepResearchId && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, ease: 'easeInOut' }}
-          className="markdown flex flex-col gap-4 overflow-y-scroll p-3"
-          ref={ref}
-        >
-          {tab === Tab.Activity &&
-            deepResearchMessages?.map((deepResearchMessage) => (
-              <MessageItem
-                key={deepResearchMessage.id}
-                deepResearchMessage={deepResearchMessage}
+        {activeDeepResearchId && (
+          <m.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.8, ease: 'easeInOut' }}
+            className="markdown flex flex-col gap-4 overflow-y-scroll p-3"
+            ref={ref}
+          >
+            {tab === Tab.Activity &&
+              deepResearchMessages?.map((deepResearchMessage) => (
+                <MessageItem
+                  key={deepResearchMessage.id}
+                  deepResearchMessage={deepResearchMessage}
+                />
+              ))}
+
+            {tab === Tab.Source && (
+              <SourceItem
+                webSearchResults={allWebSearchResults}
+                finalReport={deepResearchResult?.finalReport ?? ''}
               />
-            ))}
-
-          {tab === Tab.Source && (
-            <SourceItem
-              webSearchResults={allWebSearchResults}
-              finalReport={deepResearchResult?.finalReport ?? ''}
-            />
-          )}
-        </motion.div>
-      )}
-    </SheetPanel>
+            )}
+          </m.div>
+        )}
+      </SheetPanel>
+    </LazyMotion>
   )
 }
