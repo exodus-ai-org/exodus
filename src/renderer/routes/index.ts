@@ -6,7 +6,7 @@ import { Home } from '@/containers/home'
 import { ProjectDetail } from '@/containers/project-detail'
 import { Layout as ChatLayout } from '@/layouts/chat-layout'
 
-// Settings + Philharmonic are large feature surfaces (Monaco, recharts, @xyflow, dnd-kit)
+// Settings + Philharmonic are large feature surfaces (Monaco, recharts)
 // that the user may never open. Defer them via React Router's `lazy` so chat —
 // the default landing route — doesn't pay for their dependencies on cold start.
 // HydrateFallback is required when the user lands directly on one of these
