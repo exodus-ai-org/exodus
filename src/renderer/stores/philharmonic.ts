@@ -75,3 +75,24 @@ export interface KnowledgeDocData {
   createdAt: string
   updatedAt: string
 }
+
+export interface TaskData {
+  id: string
+  conversationId: string | null
+  title: string
+  description: string | null
+  status:
+    | 'pending'
+    | 'running'
+    | 'completed'
+    | 'failed'
+    | 'cancelled'
+    | 'waiting_for_user'
+  priority: 'low' | 'medium' | 'high' | 'urgent'
+  cronExpression: string | null
+  runAt: string | null
+  lastRunAt: string | null
+  lastRunStatus: 'completed' | 'failed' | null
+  createdAt: string
+  updatedAt: string
+}
