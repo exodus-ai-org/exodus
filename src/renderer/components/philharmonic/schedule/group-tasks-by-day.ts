@@ -1,4 +1,4 @@
-import { format } from 'date-fns'
+import { format, isSameDay } from 'date-fns'
 
 import type { TaskData } from '@/stores/philharmonic'
 
@@ -18,12 +18,7 @@ export function groupTasksByDay(tasks: TaskData[]): TaskDayGroup[] {
   for (const t of tasks) {
     if (!t.runAt) continue
     const day = new Date(t.runAt)
-    // Compare UTC dates by converting to ISO date string (YYYY-MM-DD)
-    const dayString = day.toISOString().split('T')[0]
-    const existing = groups.find((g) => {
-      const groupDayString = g.day.toISOString().split('T')[0]
-      return groupDayString === dayString
-    })
+    const existing = groups.find((g) => isSameDay(g.day, day))
     if (existing) {
       existing.tasks.push(t)
     } else {
