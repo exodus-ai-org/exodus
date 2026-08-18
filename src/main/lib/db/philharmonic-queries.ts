@@ -6,6 +6,7 @@ import {
   inArray,
   isNotNull,
   isNull,
+  lte,
   sql
 } from 'drizzle-orm'
 
@@ -114,6 +115,30 @@ export async function getChildTasksByParentId(parentTaskId: string) {
 /** All cron (recurring) tasks that are not cancelled */
 export async function getCronTasks() {
   return db.select().from(task).where(isNotNull(task.cronExpression))
+}
+
+/** Pending one-off tasks with a runAt set, soonest first — for the Upcoming list. */
+export async function getUpcomingOneOffTasks() {
+  return db
+    .select()
+    .from(task)
+    .where(and(eq(task.status, 'pending'), isNotNull(task.runAt)))
+    .orderBy(asc(task.runAt))
+}
+
+/** Pending one-off tasks whose runAt has passed and haven't fired yet. */
+export async function getDueOneOffTasks() {
+  return db
+    .select()
+    .from(task)
+    .where(
+      and(
+        eq(task.status, 'pending'),
+        isNull(task.cronExpression),
+        isNotNull(task.runAt),
+        lte(task.runAt, new Date())
+      )
+    )
 }
 
 export async function getTaskById(id: string) {
