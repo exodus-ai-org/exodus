@@ -362,6 +362,7 @@ export const task = pgTable('task', {
   maxRetries: real('maxRetries').default(1),
   retryCount: real('retryCount').default(0),
   cronExpression: text('cronExpression'),
+  runAt: timestamp('runAt'),
   lastRunAt: timestamp('lastRunAt'),
   lastRunStatus: varchar('lastRunStatus').$type<'completed' | 'failed'>(),
   feedbackRating: varchar('feedbackRating').$type<
