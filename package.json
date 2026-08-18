@@ -50,6 +50,7 @@
     "@mariozechner/pi-ai": "^0.73.1",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "cheerio": "^1.2.0",
+    "cron-parser": "^5.10.0",
     "date-fns": "^4.3.0",
     "drizzle-orm": "^0.45.2",
     "electron-updater": "^6.8.3",
