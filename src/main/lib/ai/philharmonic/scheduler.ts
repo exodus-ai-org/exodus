@@ -4,6 +4,7 @@ import cron, { type ScheduledTask } from 'node-cron'
 import { createConversationMessage } from '../../db/conversation-queries'
 import {
   getCronTasks,
+  getDueOneOffTasks,
   getTaskById,
   updateTask
 } from '../../db/philharmonic-queries'
@@ -84,6 +85,15 @@ export function getScheduledTaskIds(): string[] {
   return Array.from(scheduledJobs.keys())
 }
 
+/** Fire every due one-off task once, then mark it completed so it never re-fires. */
+export async function runDueOneOffTasks(emit: SseEmitter): Promise<void> {
+  const due = await getDueOneOffTasks()
+  for (const t of due) {
+    await runScheduledRound(t.id, emit)
+    await updateTask(t.id, { status: 'completed' })
+  }
+}
+
 export async function initScheduler(emit: SseEmitter): Promise<void> {
   setSchedulerEmitter(emit)
   const tasks = await getCronTasks()
@@ -91,5 +101,15 @@ export async function initScheduler(emit: SseEmitter): Promise<void> {
   for (const t of tasks) {
     if (t.cronExpression && scheduleTask(t.id, t.cronExpression)) count++
   }
+  cron.schedule('* * * * *', () => {
+    runDueOneOffTasks(globalEmit).catch((err) =>
+      logger.error('scheduler', 'One-off sweep error', { error: String(err) })
+    )
+  })
+  await runDueOneOffTasks(emit).catch((err) =>
+    logger.error('scheduler', 'Initial one-off sweep error', {
+      error: String(err)
+    })
+  )
   logger.info('scheduler', 'Initialized', { activeTasks: count })
 }
