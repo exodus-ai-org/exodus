@@ -85,12 +85,26 @@ export function getScheduledTaskIds(): string[] {
   return Array.from(scheduledJobs.keys())
 }
 
-/** Fire every due one-off task once, then mark it completed so it never re-fires. */
+/**
+ * Fire every due one-off task once. Each task is claimed (`status: 'running'`)
+ * before `runScheduledRound` starts so the 60s sweep can't pick it up again
+ * mid-run, and errors are isolated per task so one failure doesn't abort the
+ * rest of the sweep or leave the task stuck re-firing forever.
+ */
 export async function runDueOneOffTasks(emit: SseEmitter): Promise<void> {
   const due = await getDueOneOffTasks()
   for (const t of due) {
-    await runScheduledRound(t.id, emit)
-    await updateTask(t.id, { status: 'completed' })
+    await updateTask(t.id, { status: 'running' })
+    try {
+      await runScheduledRound(t.id, emit)
+      await updateTask(t.id, { status: 'completed' })
+    } catch (err) {
+      logger.error('scheduler', 'One-off task failed', {
+        taskId: t.id,
+        error: String(err)
+      })
+      await updateTask(t.id, { status: 'failed' })
+    }
   }
 }
 
