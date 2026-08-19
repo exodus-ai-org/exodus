@@ -28,8 +28,22 @@ export function ScheduleTab({
   const [cancellingId, setCancellingId] = useState<string | null>(null)
 
   useEffect(() => {
-    getUpcomingTasks().then(setUpcoming)
-    getRecurringTasks().then(setRecurring)
+    getUpcomingTasks()
+      .then(setUpcoming)
+      .catch((err) =>
+        sileo.error({
+          title: 'Could not load upcoming tasks',
+          description: err instanceof Error ? err.message : String(err)
+        })
+      )
+    getRecurringTasks()
+      .then(setRecurring)
+      .catch((err) =>
+        sileo.error({
+          title: 'Could not load recurring tasks',
+          description: err instanceof Error ? err.message : String(err)
+        })
+      )
   }, [])
 
   const conversationsById = useMemo(
@@ -38,8 +52,15 @@ export function ScheduleTab({
   )
 
   const handleCreated = useCallback((task: TaskData) => {
-    if (task.cronExpression) setRecurring((p) => [task, ...p])
-    else setUpcoming((p) => [...p, task])
+    if (task.cronExpression) {
+      setRecurring((p) => [task, ...p])
+    } else {
+      setUpcoming((p) => {
+        const next = [...p, task]
+        next.sort((a, b) => (a.runAt ?? '').localeCompare(b.runAt ?? ''))
+        return next
+      })
+    }
   }, [])
 
   const handleCancel = useCallback(async (id: string) => {

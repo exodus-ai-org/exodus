@@ -9,11 +9,14 @@ import { TaskCard } from './task-card'
 
 function describeSchedule(task: TaskData): string {
   if (!task.cronExpression) return ''
+  const lastRun = task.lastRunAt
+    ? `last ${format(new Date(task.lastRunAt), 'MMM d, HH:mm')} · `
+    : ''
   try {
     const next = CronExpressionParser.parse(task.cronExpression).next().toDate()
-    return `${task.cronExpression} · next ${format(next, 'MMM d, HH:mm')}`
+    return `${lastRun}${task.cronExpression} · next ${format(next, 'MMM d, HH:mm')}`
   } catch {
-    return task.cronExpression
+    return `${lastRun}${task.cronExpression}`
   }
 }
 
