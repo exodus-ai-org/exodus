@@ -184,6 +184,20 @@ export async function updateTask(
   return result
 }
 
+/**
+ * Conditionally claims a pending one-off task by flipping it to 'running' —
+ * only if it's still 'pending'. Returns the updated row on success, or
+ * undefined if another sweep already claimed it first (no row matched).
+ */
+export async function claimOneOffTask(id: string) {
+  const [result] = await db
+    .update(task)
+    .set({ status: 'running', updatedAt: new Date() })
+    .where(and(eq(task.id, id), eq(task.status, 'pending')))
+    .returning()
+  return result
+}
+
 /** Bump retryCount by 1 and return the new value. Used by execution-engine
  * on each backoff before re-entering runEmployeeLoop. */
 export async function incrementTaskRetryCount(id: string): Promise<number> {

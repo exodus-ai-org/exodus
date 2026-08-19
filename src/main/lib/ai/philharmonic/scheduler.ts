@@ -3,6 +3,7 @@ import cron, { type ScheduledTask } from 'node-cron'
 
 import { createConversationMessage } from '../../db/conversation-queries'
 import {
+  claimOneOffTask,
   getCronTasks,
   getDueOneOffTasks,
   getTaskById,
@@ -86,15 +87,29 @@ export function getScheduledTaskIds(): string[] {
 }
 
 /**
- * Fire every due one-off task once. Each task is claimed (`status: 'running'`)
- * before `runScheduledRound` starts so the 60s sweep can't pick it up again
- * mid-run, and errors are isolated per task so one failure doesn't abort the
- * rest of the sweep or leave the task stuck re-firing forever.
+ * Fire every due one-off task once. Each task is claimed via a
+ * compare-and-swap (`claimOneOffTask`, only flips `'pending'` -> `'running'`)
+ * before `runScheduledRound` starts, so a concurrent sweep tick that fetched
+ * its own stale `due` snapshot while this one was still mid-run can't
+ * re-claim and double-execute a task this sweep already finished. Errors —
+ * including a failed claim itself — are isolated per task so one failure
+ * doesn't abort the rest of the sweep or leave the task stuck re-firing
+ * forever.
  */
 export async function runDueOneOffTasks(emit: SseEmitter): Promise<void> {
   const due = await getDueOneOffTasks()
   for (const t of due) {
-    await updateTask(t.id, { status: 'running' })
+    let claimed
+    try {
+      claimed = await claimOneOffTask(t.id)
+    } catch (err) {
+      logger.error('scheduler', 'Failed to claim one-off task', {
+        taskId: t.id,
+        error: String(err)
+      })
+      continue
+    }
+    if (!claimed) continue // already claimed by a concurrent sweep tick
     try {
       await runScheduledRound(t.id, emit)
       await updateTask(t.id, { status: 'completed' })
