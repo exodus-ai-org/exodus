@@ -1,4 +1,5 @@
 // src/renderer/components/philharmonic/schedule/task-card.tsx
+import { TEST_IDS } from '@shared/constants/test-ids'
 import { Loader2Icon, XIcon } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
@@ -37,7 +38,10 @@ export function TaskCard({
 }) {
   const cancellable = task.status === 'pending'
   return (
-    <div className="flex items-start justify-between gap-3 rounded-(--ph-radius-lg) border border-(--ph-border) bg-(--ph-surface) p-3">
+    <div
+      data-testid={TEST_IDS.schedule.taskCard}
+      className="flex items-start justify-between gap-3 rounded-(--ph-radius-lg) border border-(--ph-border) bg-(--ph-surface) p-3"
+    >
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <span className="truncate text-sm font-semibold text-(--ph-text)">
@@ -59,6 +63,7 @@ export function TaskCard({
       </div>
       {cancellable && (
         <Button
+          data-testid={TEST_IDS.schedule.cancelButton}
           type="button"
           variant="ghost"
           size="icon"

@@ -284,6 +284,11 @@ Philharmonic runs multi-agent "Groups" (teams of agents collaborating on tasks).
 - Renderer: `src/renderer/components/philharmonic/`
 - Route: `/api/philharmonic`
 - Each Group gets an isolated workspace under `~/.exodus/groups`
+- Scheduled tasks (`task.cronExpression` for recurring, `task.runAt` for
+  one-off) run via `src/main/lib/ai/philharmonic/scheduler.ts`
+  (per-task `node-cron` jobs + a once-a-minute sweep for one-off tasks);
+  managed from the Schedule tab on the Dashboard page
+  (`components/philharmonic/schedule/`)
 
 ### App Lock
 
@@ -523,6 +528,7 @@ Renderer:
 - `src/renderer/components/ui/` — shadcn primitives (reuse these)
 - `src/renderer/components/lock/` — lock screen
 - `src/renderer/components/philharmonic/` — Philharmonic UI
+- `src/renderer/components/philharmonic/schedule/` — Schedule tab (agenda: upcoming one-off + recurring tasks)
 - `src/renderer/components/settings/` — settings
 - `src/renderer/containers/` — page-level components
 - `src/renderer/stores/` — Jotai atoms

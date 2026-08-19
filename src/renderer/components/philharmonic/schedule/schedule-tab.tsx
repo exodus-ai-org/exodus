@@ -1,4 +1,5 @@
 // src/renderer/components/philharmonic/schedule/schedule-tab.tsx
+import { TEST_IDS } from '@shared/constants/test-ids'
 import { PlusIcon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { sileo } from 'sileo'
@@ -62,7 +63,12 @@ export function ScheduleTab({
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex shrink-0 items-center justify-between border-b border-(--ph-border) px-4 py-3">
         <span className="text-sm font-semibold text-(--ph-text)">Schedule</span>
-        <Button type="button" size="sm" onClick={() => setFormOpen(true)}>
+        <Button
+          data-testid={TEST_IDS.schedule.createButton}
+          type="button"
+          size="sm"
+          onClick={() => setFormOpen(true)}
+        >
           <PlusIcon className="h-4 w-4" />
           Schedule task
         </Button>

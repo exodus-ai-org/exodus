@@ -1,3 +1,4 @@
+import { TEST_IDS } from '@shared/constants/test-ids'
 import { MessageSquarePlus } from 'lucide-react'
 import {
   lazy,
@@ -18,6 +19,7 @@ import { GroupMembersPanel } from '@/components/philharmonic/chat/group-members-
 import { KnowledgeBasePage } from '@/components/philharmonic/knowledge/knowledge-base-page'
 import { WorkforcePage } from '@/components/philharmonic/workforce/workforce-page'
 import { Button } from '@/components/ui/button'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useConversationStream } from '@/hooks/use-conversation-stream'
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import type { PhilharmonicPage } from '@/layouts/philharmonic-layout'
@@ -37,6 +39,12 @@ import type {
 const CostAnalysis = lazy(() =>
   import('@/components/philharmonic/cost-analysis').then((m) => ({
     default: m.CostAnalysis
+  }))
+)
+
+const ScheduleTab = lazy(() =>
+  import('@/components/philharmonic/schedule/schedule-tab').then((m) => ({
+    default: m.ScheduleTab
   }))
 )
 
@@ -126,9 +134,24 @@ export function PhilharmonicContainer({
     if (activePage === 'knowledge') return <KnowledgeBasePage />
     if (activePage === 'dashboard')
       return (
-        <Suspense fallback={null}>
-          <CostAnalysis />
-        </Suspense>
+        <Tabs defaultValue="costs" className="flex h-full min-h-0 flex-col">
+          <TabsList className="mx-4 mt-3 w-fit shrink-0">
+            <TabsTrigger value="costs">Costs</TabsTrigger>
+            <TabsTrigger value="schedule" data-testid={TEST_IDS.schedule.tab}>
+              Schedule
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="costs" className="min-h-0 flex-1">
+            <Suspense fallback={null}>
+              <CostAnalysis />
+            </Suspense>
+          </TabsContent>
+          <TabsContent value="schedule" className="min-h-0 flex-1">
+            <Suspense fallback={null}>
+              <ScheduleTab conversations={conversations} />
+            </Suspense>
+          </TabsContent>
+        </Tabs>
       )
     // chat
     if (activeConv) {
