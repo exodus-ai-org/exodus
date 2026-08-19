@@ -171,11 +171,13 @@ export function ScheduleTaskForm({
           {mode === 'once' ? (
             <div className="flex gap-2">
               <Popover>
-                <PopoverTrigger className="flex-1">
-                  <Button type="button" variant="outline" className="w-full">
-                    {runAtDate ? runAtDate.toDateString() : 'Pick a date'}
-                  </Button>
-                </PopoverTrigger>
+                <PopoverTrigger
+                  render={
+                    <Button type="button" variant="outline" className="flex-1">
+                      {runAtDate ? runAtDate.toDateString() : 'Pick a date'}
+                    </Button>
+                  }
+                />
                 <PopoverContent className="w-auto p-0">
                   <Calendar
                     mode="single"
