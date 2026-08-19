@@ -11,7 +11,7 @@ vi.mock('../utils', () => ({
 }))
 vi.mock('../../db/philharmonic-queries', () => ({
   createTask: vi.fn(),
-  getCronTasks: vi.fn(),
+  getActiveCronTasks: vi.fn(),
   getUpcomingOneOffTasks: vi.fn(),
   updateTask: vi.fn()
 }))

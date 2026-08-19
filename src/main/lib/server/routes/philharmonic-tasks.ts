@@ -9,7 +9,7 @@ import { z } from 'zod'
 import { scheduleTask, unscheduleTask } from '../../ai/philharmonic/scheduler'
 import {
   createTask,
-  getCronTasks,
+  getActiveCronTasks,
   getUpcomingOneOffTasks,
   updateTask
 } from '../../db/philharmonic-queries'
@@ -29,7 +29,7 @@ export const scheduleTaskSchema = z
     description: z.string().optional(),
     conversationId: z.string().uuid(),
     priority: z.enum(['low', 'medium', 'high', 'urgent']).optional(),
-    cronExpression: z.string().optional().nullable(),
+    cronExpression: z.string().min(1).optional().nullable(),
     runAt: z.string().datetime().optional().nullable()
   })
   .refine((d) => Boolean(d.cronExpression) !== Boolean(d.runAt), {
@@ -54,7 +54,7 @@ philharmonicTasks.get('/tasks/recurring', async (c) =>
   successResponse(
     c,
     await handleDatabaseOperation(
-      () => getCronTasks(),
+      () => getActiveCronTasks(),
       'Failed to list recurring tasks'
     )
   )

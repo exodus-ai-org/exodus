@@ -112,9 +112,22 @@ export async function getChildTasksByParentId(parentTaskId: string) {
     .orderBy(desc(task.createdAt))
 }
 
-/** All cron (recurring) tasks that are not cancelled */
+/**
+ * All cron (recurring) task rows, regardless of status. Used by
+ * `initScheduler()` to re-register jobs on process restart — do not add a
+ * status filter here, or cancelled/completed jobs won't get cleaned up and
+ * pending ones may be missed depending on filter choice.
+ */
 export async function getCronTasks() {
   return db.select().from(task).where(isNotNull(task.cronExpression))
+}
+
+/** Active (non-cancelled) recurring tasks, for the Recurring list UI. */
+export async function getActiveCronTasks() {
+  return db
+    .select()
+    .from(task)
+    .where(and(isNotNull(task.cronExpression), eq(task.status, 'pending')))
 }
 
 /** Pending one-off tasks with a runAt set, soonest first — for the Upcoming list. */
