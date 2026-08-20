@@ -6,7 +6,6 @@
     "src/preload/**/*",
     "src/shared/**/*"
   ],
-  "exclude": ["src/**/*.test.ts"],
   "compilerOptions": {
     "module": "nodenext",
     "moduleResolution": "nodenext",

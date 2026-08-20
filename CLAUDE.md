@@ -414,21 +414,22 @@ Separate renderer entry points under `src/renderer/sub-apps/`: `searchbar`, `qui
 
 Vitest v4 with the following configuration (`vitest.config.ts`):
 
-- Path aliases: `@shared` → `src/shared`, `@` → `src/renderer`
-- Test files: `src/**/*.test.ts`
+- Path aliases: `@shared` → `src/shared`, `@main` → `src/main`, `@` → `src/renderer`
+- Test files: `tests/unit/**/*.test.ts`
 - Coverage: V8 provider targeting `src/shared/` and `src/main/lib/`
 
 ### Writing Tests
 
-- Place test files next to the module they test: `foo.ts` → `foo.test.ts`
+- Tests live under `tests/unit/`, mirroring the source tree: `src/main/lib/paths.ts` → `tests/unit/main/lib/paths.test.ts`. Test files are never co-located with the module they test — this keeps `src/` free of test files. A dedicated `tsconfig.test.json` (referenced from the root `tsconfig.json`) covers `tests/unit/**/*` for editor support; it is intentionally not part of the `pnpm typecheck` gate.
+- Import the module under test via the matching alias (`@main/...`, `@/...`, or `@shared/...`), not a relative path — relative paths would need to reach back out of `tests/unit/` into `src/`.
 - Tests for main-process code that transitively imports Electron/PGlite must mock those modules:
 
 ```typescript
-vi.mock('../../db/db', () => ({ pglite: {} }))
+vi.mock('@main/lib/db/db', () => ({ pglite: {} }))
 vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
 ```
 
-- Use `await import('./module')` after mocks for dynamic import when needed
+- Use `await import('@main/lib/paths')` (alias, not a relative path) after mocks for dynamic import when needed
 
 ### Shared Utilities
 
@@ -546,11 +547,13 @@ Shared:
 
 Tests & config:
 
+- `tests/unit/` — Vitest unit tests, mirroring `src/` (`src/main/lib/paths.ts` → `tests/unit/main/lib/paths.test.ts`)
 - `tests/api/` — API integration (Playwright)
 - `tests/e2e/` — Electron E2E
 - `tests/providers/` — provider compatibility
 - `tests/fixtures/` — Playwright fixtures (electron, api-client)
 - `tests/helpers/` — test helpers
+- `tsconfig.test.json` — editor/type support for `tests/unit/**/*` (not part of the `pnpm typecheck` gate)
 - `electron.vite.config.ts` — build config (incl. `data-testid` strip)
 - `vitest.config.ts` — unit test config
 - `playwright.config.ts` — E2E config
