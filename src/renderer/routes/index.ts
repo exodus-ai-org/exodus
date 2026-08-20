@@ -17,6 +17,7 @@ export const router = createHashRouter([
   {
     path: '/settings',
     HydrateFallback: LazyRouteFallback,
+    ErrorBoundary: RouteErrorBoundary,
     lazy: () =>
       import('@/layouts/settings-layout').then((m) => ({
         Component: m.SettingsLayout
@@ -25,6 +26,7 @@ export const router = createHashRouter([
   {
     path: '/philharmonic',
     HydrateFallback: LazyRouteFallback,
+    ErrorBoundary: RouteErrorBoundary,
     lazy: () =>
       import('@/layouts/philharmonic-layout').then((m) => ({
         Component: m.PhilharmonicLayout
