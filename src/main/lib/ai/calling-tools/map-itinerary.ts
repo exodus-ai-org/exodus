@@ -243,7 +243,11 @@ export const mapItinerary = (
     'For a single place lookup, pass one day with one place. For a route, pass one day with two places (origin → destination). For a multi-day plan, pass one day per day. ' +
     'For each place provide name + lat/lng (your best estimate) + optional timeLabel + optional note. The server fetches real Google Places data (rating, reviews, photos, phone, website, opening hours) automatically — DO NOT include those fields yourself; you cannot fabricate them reliably.',
   parameters: mapItinerarySchema,
-  execute: async (_toolCallId, payload) => {
+  execute: async (_toolCallId, payload, signal) => {
+    if (signal?.aborted) throw new Error('Aborted')
+    // Note: @googlemaps/places' CallOptions (google-gax) has no `signal`
+    // field, so an in-flight Places lookup below can't be cancelled early —
+    // only this initial check is honored.
     const apiKey = setting.googleCloud?.googleApiKey
     if (!apiKey) {
       throw new Error(

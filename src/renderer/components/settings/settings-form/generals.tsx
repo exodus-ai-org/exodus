@@ -91,6 +91,7 @@ export function General({ form }: { form: UseFormReturnType }) {
                 key={preset.value}
                 type="button"
                 title={preset.label}
+                aria-label={preset.label}
                 className={`h-6 w-6 rounded-full transition-all ${
                   tone === preset.value
                     ? 'ring-ring ring-offset-background ring-2 ring-offset-2'

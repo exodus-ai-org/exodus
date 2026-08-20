@@ -1,5 +1,5 @@
 import { BotIcon, CornerDownLeftIcon } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 
 import { Input } from '@/components/ui/input'
 import { closeQuickChat, transferQuickChat } from '@/lib/ipc'
@@ -26,6 +26,11 @@ export function QuickChat() {
     // Window will be destroyed by main process after transfer; no need to call handleClose
   }, [value])
 
+  // Effect Events: always read the latest handler without being reactive deps,
+  // so the addEventListener effects don't re-subscribe on every value change.
+  const onClose = useEffectEvent(() => handleClose())
+  const onSubmit = useEffectEvent(() => handleSubmit())
+
   // Auto-focus on mount
   useEffect(() => {
     inputRef.current?.focus()
@@ -33,25 +38,25 @@ export function QuickChat() {
 
   // Close on window blur (e.g. clicking outside)
   useEffect(() => {
-    const onBlur = () => handleClose()
+    const onBlur = () => onClose()
     window.addEventListener('blur', onBlur)
     return () => window.removeEventListener('blur', onBlur)
-  }, [handleClose])
+  }, [])
 
   // Keyboard shortcuts
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        handleClose()
+        onClose()
       } else if (e.key === 'Enter' && !e.isComposing) {
         e.preventDefault()
-        handleSubmit()
+        onSubmit()
       }
     }
 
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [handleClose, handleSubmit])
+  }, [])
 
   return (
     <div className="bg-background flex w-[600px] items-center gap-2 rounded-2xl border p-2 shadow-lg">

@@ -7,7 +7,8 @@ import {
   PencilIcon,
   PlusIcon,
   TerminalIcon,
-  Trash2Icon
+  Trash2Icon,
+  XIcon
 } from 'lucide-react'
 import { lazy, Suspense, useCallback, useState } from 'react'
 import { sileo } from 'sileo'
@@ -200,7 +201,7 @@ export function McpServers() {
   const [description, setDescription] = useState('')
   // stdio
   const [command, setCommand] = useState('')
-  const [args, setArgs] = useState('')
+  const [args, setArgs] = useState<string[]>([])
   // remote
   const [url, setUrl] = useState('')
   const [headersStr, setHeadersStr] = useState('')
@@ -217,7 +218,7 @@ export function McpServers() {
     setName('')
     setDescription('')
     setCommand('')
-    setArgs('')
+    setArgs([])
     setUrl('')
     setHeadersStr('')
     setExtraConfigStr('{}')
@@ -235,7 +236,7 @@ export function McpServers() {
     setName(server.name)
     setDescription(server.description ?? '')
     setCommand(server.command ?? '')
-    setArgs((server.args ?? []).join(' '))
+    setArgs(server.args ?? [])
     setUrl(server.url ?? '')
     setHeadersStr(server.headers ? JSON.stringify(server.headers, null, 2) : '')
     setExtraConfigStr(
@@ -300,7 +301,7 @@ export function McpServers() {
 
       if (transportType === 'stdio') {
         data.command = command.trim()
-        data.args = args.trim().split(/\s+/).filter(Boolean)
+        data.args = args.map((a) => a.trim()).filter(Boolean)
         data.env = null
       } else {
         data.url = url.trim()
@@ -510,14 +511,52 @@ export function McpServers() {
                     </SettingsRow>
                     <SettingsRow
                       label="Args"
-                      description="Space-separated command arguments"
+                      description="Command arguments, one per row. Order matters."
                       layout="vertical"
                     >
-                      <Input
-                        value={args}
-                        onChange={(e) => setArgs(e.target.value)}
-                        placeholder="e.g. /Users/me/Documents"
-                      />
+                      <div className="flex flex-col gap-2">
+                        {args.map((arg, i) => (
+                          <div key={i} className="flex items-center gap-2">
+                            <Input
+                              value={arg}
+                              onChange={(e) =>
+                                setArgs((prev) =>
+                                  prev.map((a, j) =>
+                                    j === i ? e.target.value : a
+                                  )
+                                )
+                              }
+                              placeholder={
+                                i === 0
+                                  ? 'e.g. -y'
+                                  : 'e.g. @modelcontextprotocol/server-filesystem'
+                              }
+                            />
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-9 w-9 shrink-0"
+                              onClick={() =>
+                                setArgs((prev) =>
+                                  prev.filter((_, j) => j !== i)
+                                )
+                              }
+                              aria-label={`Remove argument ${i + 1}`}
+                            >
+                              <XIcon className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="self-start"
+                          onClick={() => setArgs((prev) => [...prev, ''])}
+                        >
+                          <PlusIcon className="h-3.5 w-3.5" />
+                          Add argument
+                        </Button>
+                      </div>
                     </SettingsRow>
                   </>
                 ) : (

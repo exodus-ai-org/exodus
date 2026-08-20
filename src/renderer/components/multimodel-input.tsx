@@ -9,8 +9,7 @@ import {
   SetStateAction,
   useCallback,
   useEffect,
-  useRef,
-  useState
+  useRef
 } from 'react'
 import { useParams } from 'react-router'
 import { sileo } from 'sileo'
@@ -52,7 +51,9 @@ function InputBox({
   const { id } = useParams()
   const { uploadFile } = useUpload()
   const textareaRef = useRef<HTMLTextAreaElement>(null)
-  const [isTyping, setIsTyping] = useState(false)
+  // isTyping tracks IME composition state; never shown on screen, so useRef
+  // avoids the unnecessary re-render that useState would cause on each keystroke.
+  const isTypingRef = useRef(false)
 
   const adjustHeight = () => {
     if (textareaRef.current) {
@@ -60,12 +61,6 @@ function InputBox({
       textareaRef.current.style.height = `${
         textareaRef.current.scrollHeight + 2
       }px`
-    }
-  }
-
-  const resetHeight = () => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto'
     }
   }
 
@@ -103,12 +98,25 @@ function InputBox({
 
     setAttachments([])
     setInput('')
-    resetHeight()
-  }, [attachments, chatId, input, sendMessage, setAttachments, setInput])
+    // Inline reset so we don't add a recreated-each-render function to deps.
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
+    }
+  }, [
+    attachments,
+    chatId,
+    input,
+    sendMessage,
+    setAttachments,
+    setInput,
+    textareaRef
+  ])
 
   useEffect(() => {
-    if (textareaRef.current) {
-      adjustHeight()
+    const el = textareaRef.current
+    if (el) {
+      el.style.height = 'auto'
+      el.style.height = `${el.scrollHeight + 2}px`
     }
   }, [])
 
@@ -134,7 +142,7 @@ function InputBox({
               if (event.key === 'Enter' && !event.shiftKey) {
                 event.preventDefault()
 
-                if (isTyping) {
+                if (isTypingRef.current) {
                   return
                 }
 
@@ -148,8 +156,12 @@ function InputBox({
                 }
               }
             }}
-            onCompositionStart={() => setIsTyping(true)}
-            onCompositionEnd={() => setIsTyping(false)}
+            onCompositionStart={() => {
+              isTypingRef.current = true
+            }}
+            onCompositionEnd={() => {
+              isTypingRef.current = false
+            }}
             onPaste={handlePaste}
           />
         </form>

@@ -42,6 +42,10 @@ function Slider({
             className="bg-primary select-none data-horizontal:h-full data-vertical:w-full"
           />
         </SliderPrimitive.Track>
+        {/* react-doctor/no-array-index-as-key: suppressed — these thumbs are
+            generated from Array.from({length}) with no per-thumb identity. The
+            count is stable within a render and thumbs are identified by ordinal
+            position (first/second thumb), so index keys are semantically correct. */}
         {Array.from({ length: _values.length }, (_, index) => (
           <SliderPrimitive.Thumb
             data-slot="slider-thumb"

@@ -26,7 +26,8 @@ export const lcmGrep: AgentTool<typeof lcmGrepSchema> = {
     'Use this as the first step when you need to recall something from earlier in a long conversation. ' +
     'Returns snippets with summary IDs (for lcmDescribe) or message previews.',
   parameters: lcmGrepSchema,
-  execute: async (_toolCallId, { chatId, pattern, limit = 10 }) => {
+  execute: async (_toolCallId, { chatId, pattern, limit = 10 }, signal) => {
+    if (signal?.aborted) throw new Error('Aborted')
     const [summaryResults, messageResults] = await Promise.all([
       searchSummaries(chatId, pattern),
       searchMessages(chatId, pattern)

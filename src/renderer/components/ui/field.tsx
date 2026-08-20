@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from 'class-variance-authority'
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 
 import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
@@ -171,14 +171,19 @@ function FieldSeparator({
   )
 }
 
-function FieldError({
-  className,
+type FieldErrorInnerProps = {
+  children?: React.ReactNode
+  errors?: Array<{ message?: string } | undefined>
+  className?: string
+  divProps: Omit<React.ComponentProps<'div'>, 'className' | 'children'>
+}
+
+const FieldErrorInner = memo(function FieldErrorInner({
   children,
   errors,
-  ...props
-}: React.ComponentProps<'div'> & {
-  errors?: Array<{ message?: string } | undefined>
-}) {
+  className,
+  divProps
+}: FieldErrorInnerProps) {
   const content = useMemo(() => {
     if (children) {
       return children
@@ -199,8 +204,9 @@ function FieldError({
     return (
       <ul className="ml-4 flex list-disc flex-col gap-1">
         {uniqueErrors.map(
-          (error, index) =>
-            error?.message && <li key={index}>{error.message}</li>
+          (error) =>
+            // errors are deduplicated by message above, so message is a stable key
+            error?.message && <li key={error.message}>{error.message}</li>
         )}
       </ul>
     )
@@ -215,10 +221,31 @@ function FieldError({
       role="alert"
       data-slot="field-error"
       className={cn('text-destructive text-sm font-normal', className)}
-      {...props}
+      {...divProps}
     >
       {content}
     </div>
+  )
+})
+
+function FieldError({
+  className,
+  children,
+  errors,
+  ...props
+}: React.ComponentProps<'div'> & {
+  errors?: Array<{ message?: string } | undefined>
+}) {
+  // Avoid building JSX before we know content is non-null.
+  // FieldErrorInner handles the early-return check after the memo.
+  if (!children && !errors?.length) {
+    return null
+  }
+
+  return (
+    <FieldErrorInner className={className} errors={errors} divProps={props}>
+      {children}
+    </FieldErrorInner>
   )
 }
 

@@ -230,7 +230,7 @@ function MapItineraryCardImpl({
               const active = i === activeDayIdx
               return (
                 <button
-                  key={i}
+                  key={day.label}
                   role="tab"
                   aria-selected={active}
                   type="button"

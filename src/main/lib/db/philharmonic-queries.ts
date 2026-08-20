@@ -6,6 +6,7 @@ import {
   inArray,
   isNotNull,
   isNull,
+  lte,
   sql
 } from 'drizzle-orm'
 
@@ -111,9 +112,46 @@ export async function getChildTasksByParentId(parentTaskId: string) {
     .orderBy(desc(task.createdAt))
 }
 
-/** All cron (recurring) tasks that are not cancelled */
+/**
+ * All cron (recurring) task rows, regardless of status. Used by
+ * `initScheduler()` to re-register jobs on process restart — do not add a
+ * status filter here, or cancelled/completed jobs won't get cleaned up and
+ * pending ones may be missed depending on filter choice.
+ */
 export async function getCronTasks() {
   return db.select().from(task).where(isNotNull(task.cronExpression))
+}
+
+/** Active (non-cancelled) recurring tasks, for the Recurring list UI. */
+export async function getActiveCronTasks() {
+  return db
+    .select()
+    .from(task)
+    .where(and(isNotNull(task.cronExpression), eq(task.status, 'pending')))
+}
+
+/** Pending one-off tasks with a runAt set, soonest first — for the Upcoming list. */
+export async function getUpcomingOneOffTasks() {
+  return db
+    .select()
+    .from(task)
+    .where(and(eq(task.status, 'pending'), isNotNull(task.runAt)))
+    .orderBy(asc(task.runAt))
+}
+
+/** Pending one-off tasks whose runAt has passed and haven't fired yet. */
+export async function getDueOneOffTasks() {
+  return db
+    .select()
+    .from(task)
+    .where(
+      and(
+        eq(task.status, 'pending'),
+        isNull(task.cronExpression),
+        isNotNull(task.runAt),
+        lte(task.runAt, new Date())
+      )
+    )
 }
 
 export async function getTaskById(id: string) {
@@ -142,6 +180,20 @@ export async function updateTask(
     .update(task)
     .set({ ...data, updatedAt: new Date() })
     .where(eq(task.id, id))
+    .returning()
+  return result
+}
+
+/**
+ * Conditionally claims a pending one-off task by flipping it to 'running' —
+ * only if it's still 'pending'. Returns the updated row on success, or
+ * undefined if another sweep already claimed it first (no row matched).
+ */
+export async function claimOneOffTask(id: string) {
+  const [result] = await db
+    .update(task)
+    .set({ status: 'running', updatedAt: new Date() })
+    .where(and(eq(task.id, id), eq(task.status, 'pending')))
     .returning()
   return result
 }

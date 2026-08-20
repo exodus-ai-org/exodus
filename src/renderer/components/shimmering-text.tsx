@@ -1,5 +1,5 @@
 import { motion, useInView, UseInViewOptions } from 'motion/react'
-import React, { useMemo, useRef } from 'react'
+import React, { useRef } from 'react'
 
 import { cn } from '@/lib/utils'
 
@@ -48,9 +48,7 @@ export function ShimmeringText({
   const isInView = useInView(ref, { once, margin: inViewMargin })
 
   // Calculate dynamic spread based on text length
-  const dynamicSpread = useMemo(() => {
-    return text.length * spread
-  }, [text, spread])
+  const dynamicSpread = text.length * spread
 
   // Determine if we should start animation
   const shouldAnimate = !startOnView || isInView

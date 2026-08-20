@@ -248,6 +248,10 @@ function Scene({
   }, [perlinNoiseTexture, offsets])
 
   return (
+    // react-doctor/no-unknown-property: false positive — <mesh>, <circleGeometry>,
+    // and <shaderMaterial> are React Three Fiber intrinsic elements (not DOM
+    // elements). R3F extends the JSX namespace so props like uniforms,
+    // fragmentShader, vertexShader, transparent, and args are all valid R3F props.
     <mesh ref={circleRef}>
       <circleGeometry args={[3.5, 64]} />
       <shaderMaterial

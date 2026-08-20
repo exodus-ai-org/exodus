@@ -328,8 +328,9 @@ export function Logger() {
           )}
           {entries.map((entry, idx) => (
             <div key={`${entry.ts}-${idx}`}>
-              <div
-                className="hover:bg-muted/30 flex cursor-pointer items-start gap-3 border-t px-3 py-1.5 text-xs transition-colors"
+              <button
+                type="button"
+                className="hover:bg-muted/30 flex w-full cursor-pointer items-start gap-3 border-t px-3 py-1.5 text-xs transition-colors"
                 onClick={() =>
                   setExpandedIndex(expandedIndex === idx ? null : idx)
                 }
@@ -351,7 +352,7 @@ export function Logger() {
                   </Badge>
                 </span>
                 <span className="flex-1 truncate">{entry.message}</span>
-              </div>
+              </button>
               {expandedIndex === idx && entry.detail && (
                 <div className="bg-muted/20 border-t px-3 py-2">
                   <pre className="text-muted-foreground max-h-[300px] overflow-auto text-xs whitespace-pre-wrap">

@@ -32,9 +32,10 @@ async function grepDir(
   fileGlob: string | undefined,
   contextLines: number,
   results: GrepResult[],
-  depth: number
+  depth: number,
+  signal: AbortSignal | undefined
 ): Promise<void> {
-  if (depth > 8 || results.length >= MAX_RESULTS) return
+  if (depth > 8 || results.length >= MAX_RESULTS || signal?.aborted) return
 
   let entries: string[]
   try {
@@ -44,7 +45,7 @@ async function grepDir(
   }
 
   for (const entry of entries) {
-    if (results.length >= MAX_RESULTS) break
+    if (results.length >= MAX_RESULTS || signal?.aborted) break
     const fullPath = path.join(dir, entry)
 
     let entryStat
@@ -62,12 +63,13 @@ async function grepDir(
           fileGlob,
           contextLines,
           results,
-          depth + 1
+          depth + 1,
+          signal
         )
       }
     } else if (entryStat.isFile()) {
       if (fileGlob && !matchGlob(entry, fileGlob)) continue
-      await grepFile(fullPath, regex, contextLines, results)
+      await grepFile(fullPath, regex, contextLines, results, signal)
     }
   }
 }
@@ -89,11 +91,12 @@ async function grepFile(
   filePath: string,
   regex: RegExp,
   contextLines: number,
-  results: GrepResult[]
+  results: GrepResult[],
+  signal: AbortSignal | undefined
 ): Promise<void> {
   let content: string
   try {
-    content = await readFile(filePath, 'utf-8')
+    content = await readFile(filePath, { encoding: 'utf-8', signal })
   } catch {
     return // binary or unreadable file
   }
@@ -157,8 +160,10 @@ export const grep: AgentTool<typeof grepSchema> = {
   parameters: grepSchema,
   execute: async (
     _toolCallId,
-    { pattern, path: searchPath, file_glob, context_lines, case_insensitive }
+    { pattern, path: searchPath, file_glob, context_lines, case_insensitive },
+    signal
   ) => {
+    if (signal?.aborted) throw new Error('Aborted')
     let regex: RegExp
     try {
       regex = new RegExp(pattern, case_insensitive ? 'ig' : 'g')
@@ -178,7 +183,7 @@ export const grep: AgentTool<typeof grepSchema> = {
     }
 
     if (pathStat.isFile()) {
-      await grepFile(searchPath, regex, context_lines ?? 2, results)
+      await grepFile(searchPath, regex, context_lines ?? 2, results, signal)
     } else if (pathStat.isDirectory()) {
       await grepDir(
         searchPath,
@@ -186,7 +191,8 @@ export const grep: AgentTool<typeof grepSchema> = {
         file_glob,
         context_lines ?? 2,
         results,
-        0
+        0,
+        signal
       )
     }
 

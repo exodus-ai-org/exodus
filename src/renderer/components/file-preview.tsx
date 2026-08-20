@@ -20,7 +20,7 @@ export function FilePreview() {
   return (
     <section className="m-2 mt-4 flex w-full flex-row gap-4 select-none">
       {attachments.map((attachment, idx) => (
-        <section className="group relative" key={idx}>
+        <section className="group relative" key={attachment.url}>
           <span className="border-background bg-foreground absolute -top-2 -right-2 rounded-full border-3 p-0.75">
             <XIcon
               data-icon="close"

@@ -143,7 +143,8 @@ export const createArtifact = (
   description:
     'Create a rich visual artifact (chart, table, dashboard, comparison, etc.) rendered as a live React component. Use this when data would be better presented visually rather than as plain text — for example after collecting research data, comparing options, or analyzing statistics. The component will be rendered in an interactive sandbox with Tailwind CSS styling.',
   parameters: createArtifactSchema,
-  execute: async (_toolCallId, { title, code }) => {
+  execute: async (_toolCallId, { title, code }, signal) => {
+    if (signal?.aborted) throw new Error('Aborted')
     const artifactId = uuidV4()
 
     // Persist artifact to disk (fire-and-forget)

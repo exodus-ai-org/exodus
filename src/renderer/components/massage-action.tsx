@@ -8,53 +8,18 @@ import {
   ThumbsDownIcon,
   ThumbsUpIcon
 } from 'lucide-react'
-import { memo, ReactNode, useCallback, useMemo } from 'react'
+import { memo, useCallback, useMemo } from 'react'
 
 import { useClipboard } from '@/hooks/use-clipboard'
 import { sourcesPanelAtom } from '@/stores/chat'
 
 import AudioPlayer from './audio-player'
+import { IconWrapper, MessageActionItem } from './message-action-primitives'
 import { Button } from './ui/button'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger
-} from './ui/tooltip'
+import { TooltipProvider } from './ui/tooltip'
 
-export function IconWrapper({
-  onClick,
-  children
-}: {
-  onClick?: () => void
-  children: ReactNode
-}) {
-  return (
-    <span
-      className="hover:bg-secondary text-muted-foreground flex size-6 cursor-pointer items-center justify-center rounded-md transition-colors duration-150"
-      onClick={onClick}
-    >
-      {children}
-    </span>
-  )
-}
-
-export function MessageActionItem({
-  children,
-  tooltipContent
-}: {
-  children: ReactNode
-  tooltipContent: string
-}) {
-  return (
-    <Tooltip>
-      <TooltipTrigger>{children}</TooltipTrigger>
-      <TooltipContent>
-        <p>{tooltipContent}</p>
-      </TooltipContent>
-    </Tooltip>
-  )
-}
+// Re-export so existing callers of massage-action keep working.
+export { IconWrapper, MessageActionItem }
 
 // ─── Sources Button ─────────────────────────────────────────────────────────
 

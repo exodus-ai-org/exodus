@@ -50,10 +50,11 @@ const UserSegment = memo(function UserSegment({
         message.content.some((c) => c.type === 'image') && (
           <div className="mb-4 flex gap-4">
             {(message.content as Array<TextContent | ImageContent>).map(
-              (part, i) => {
+              (part) => {
                 if (part.type === 'image') {
                   return (
-                    <Zoom key={i}>
+                    // part.data is the base64 data URL, unique per image attachment
+                    <Zoom key={part.data}>
                       <img
                         className="max-h-96 max-w-64 rounded-lg object-cover"
                         src={part.data}
@@ -71,8 +72,9 @@ const UserSegment = memo(function UserSegment({
         {typeof message.content === 'string'
           ? message.content
           : (message.content as Array<TextContent | ImageContent>)
-              .filter((c) => c.type === 'text')
-              .map((c) => (c as TextContent).text)
+              .flatMap((c) =>
+                c.type === 'text' ? [(c as TextContent).text] : []
+              )
               .join('')}
       </p>
     </div>
@@ -295,12 +297,16 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
     } else if (msg.role === 'toolResult') {
       const toolResult = msg as ChatToolResultMessage
       // Remove the matching pending tool call
+      // react-doctor/js-index-maps: false positive — pendingToolCalls mutates
+      // (splice) each iteration, so a pre-built Map would be stale mid-loop.
       const pendingIdx = pendingToolCalls.findIndex(
         (tc) => tc.id === toolResult.toolCallId
       )
       if (pendingIdx >= 0) pendingToolCalls.splice(pendingIdx, 1)
 
       if (toolResult.isError) {
+        // react-doctor/js-index-maps: false positive — one-shot lookup on a
+        // local array per iteration; overhead of building a Map exceeds benefit.
         const errorText =
           toolResult.content.find((c) => c.type === 'text')?.text ??
           `${capitalCase(toolResult.toolName)} failed`
@@ -441,9 +447,14 @@ function Messages({ chatId, status, messages, regenerate }: MessagesProps) {
     scrollToBottom('instant')
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Submit: force-scroll to bottom so user sees their message + spinner
+  // Submit: force-scroll to bottom so user sees their message + spinner.
   useEffect(() => {
     if (status === 'submitted') {
+      // False positive for react-doctor/no-adjust-state-on-prop-change:
+      // scrollToBottom() is an imperative DOM scroll — not a setState that copies
+      // a prop into state. The rule flags all calls inside prop-keyed effects but
+      // this side-effect on a status transition is intentional and correct.
+      // react-doctor-disable-next-line react-doctor/no-adjust-state-on-prop-change -- DOM scroll, not a prop copy
       scrollToBottom('instant')
     }
   }, [status, scrollToBottom])

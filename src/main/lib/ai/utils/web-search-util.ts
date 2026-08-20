@@ -75,9 +75,9 @@ function htmlToMarkdown(html: string) {
 }
 
 /** Built-in loader: cheerio + turndown (HTML) or LangChain (PDF) */
-export async function loadDocumentBuiltin(link: string) {
+export async function loadDocumentBuiltin(link: string, signal?: AbortSignal) {
   try {
-    const response = await fetch(link)
+    const response = await fetch(link, { signal })
     const contentType = response.headers.get('content-type') ?? ''
 
     if (contentType.includes('application/pdf')) {
@@ -110,16 +110,21 @@ export async function loadDocumentBuiltin(link: string) {
  * fetch — the user no longer picks between them.
  */
 export async function loadDocument(
-  link: string
+  link: string,
+  signal?: AbortSignal
 ): Promise<{ ogImage: string; type: 'pdf' | 'html'; content: string } | null> {
-  return (await loadDocumentWithJina(link)) ?? (await loadDocumentBuiltin(link))
+  return (
+    (await loadDocumentWithJina(link, signal)) ??
+    (await loadDocumentBuiltin(link, signal))
+  )
 }
 
 /** Jina Reader loader */
-export async function loadDocumentWithJina(link: string) {
+export async function loadDocumentWithJina(link: string, signal?: AbortSignal) {
   try {
     const response = await fetch(`https://r.jina.ai/${link}`, {
-      headers: { Accept: 'text/plain' }
+      headers: { Accept: 'text/plain' },
+      signal
     })
 
     if (!response.ok) return null
@@ -232,7 +237,8 @@ async function fetchBraveLlmContext({
   country,
   languages,
   recencyFilter,
-  maxResults
+  maxResults,
+  signal
 }: {
   query: string
   apiKey: string
@@ -240,6 +246,7 @@ async function fetchBraveLlmContext({
   languages?: string[] | null
   recencyFilter?: string | null
   maxResults?: number | null
+  signal?: AbortSignal
 }): Promise<BraveLlmContextResponse | null> {
   const params = buildCommonParams({
     query,
@@ -260,7 +267,8 @@ async function fetchBraveLlmContext({
       headers: {
         Accept: 'application/json',
         'x-subscription-token': apiKey
-      }
+      },
+      signal
     }
   )
   if (!res.ok) return null
@@ -272,13 +280,15 @@ async function fetchBraveImages({
   apiKey,
   country,
   languages,
-  maxResults
+  maxResults,
+  signal
 }: {
   query: string
   apiKey: string
   country?: string | null
   languages?: string[] | null
   maxResults?: number | null
+  signal?: AbortSignal
 }): Promise<BraveImageSearchResponse | null> {
   const params = buildCommonParams({
     query,
@@ -294,7 +304,8 @@ async function fetchBraveImages({
       headers: {
         Accept: 'application/json',
         'x-subscription-token': apiKey
-      }
+      },
+      signal
     }
   )
   if (!res.ok) return null
@@ -307,7 +318,8 @@ async function fetchBraveVideos({
   country,
   languages,
   recencyFilter,
-  maxResults
+  maxResults,
+  signal
 }: {
   query: string
   apiKey: string
@@ -315,6 +327,7 @@ async function fetchBraveVideos({
   languages?: string[] | null
   recencyFilter?: string | null
   maxResults?: number | null
+  signal?: AbortSignal
 }): Promise<BraveVideoSearchResponse | null> {
   const params = buildCommonParams({
     query,
@@ -331,7 +344,8 @@ async function fetchBraveVideos({
       headers: {
         Accept: 'application/json',
         'x-subscription-token': apiKey
-      }
+      },
+      signal
     }
   )
   if (!res.ok) return null
@@ -442,7 +456,8 @@ export async function fetchWebSearch({
   languages,
   maxResults,
   recencyFilter,
-  domainFilter
+  domainFilter,
+  signal
 }: {
   query: string
   braveApiKey: string
@@ -453,6 +468,7 @@ export async function fetchWebSearch({
   maxResults?: number | null
   recencyFilter?: string | null
   domainFilter?: string[] | null
+  signal?: AbortSignal
 }): Promise<WebSearchResult[] | null> {
   try {
     const includeImages = media === 'image' || media === 'all'
@@ -465,14 +481,16 @@ export async function fetchWebSearch({
         country,
         languages,
         recencyFilter,
-        maxResults
+        maxResults,
+        signal
       }),
       includeImages
         ? fetchBraveImages({
             query,
             apiKey: braveApiKey,
             country,
-            languages
+            languages,
+            signal
           })
         : Promise.resolve(null),
       includeVideos
@@ -481,7 +499,8 @@ export async function fetchWebSearch({
             apiKey: braveApiKey,
             country,
             languages,
-            recencyFilter
+            recencyFilter,
+            signal
           })
         : Promise.resolve(null)
     ])

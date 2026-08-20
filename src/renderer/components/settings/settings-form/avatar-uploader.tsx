@@ -44,6 +44,7 @@ export function AvatarUploader<T extends FieldValues>({
         type="file"
         accept="image/*"
         id="assistant-avatar"
+        aria-label="Upload assistant avatar"
         className="absolute top-0 left-0 z-10 size-16 opacity-0"
         onChange={handleEditorChange}
       />

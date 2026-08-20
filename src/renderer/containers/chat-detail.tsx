@@ -27,7 +27,7 @@ export function ChatDetail() {
         ? prev
         : [...prev, { id, title: chat.title }]
     )
-  }, [id, history])
+  }, [id, history, setOpenTabs])
 
   const initialMessages = useMemo(
     () => convertToUIMessages(messagesFromDb ?? []),

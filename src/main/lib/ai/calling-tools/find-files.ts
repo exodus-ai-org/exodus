@@ -43,13 +43,14 @@ export const findFiles: AgentTool<typeof findFilesSchema> = {
   description:
     'Find files matching a name pattern within a directory. Searches recursively up to 5 levels deep.',
   parameters: findFilesSchema,
-  execute: async (_toolCallId, { pattern, searchPath, maxResults }) => {
+  execute: async (_toolCallId, { pattern, searchPath, maxResults }, signal) => {
+    if (signal?.aborted) throw new Error('Aborted')
     const root = searchPath ?? homedir()
     const limit = maxResults ?? 50
     const results: string[] = []
 
     async function walk(dir: string, depth: number): Promise<void> {
-      if (results.length >= limit || depth > 5) return
+      if (results.length >= limit || depth > 5 || signal?.aborted) return
       let entries: string[]
       try {
         entries = await readdir(dir)

@@ -127,7 +127,12 @@ export function DrawioCard({ output }: { output: DrawioToolOutput }) {
           size="sm"
           className="h-6 px-2 text-xs"
           render={
-            <a href={openUrl} target="_blank" rel="noopener noreferrer" />
+            <a
+              href={openUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Open in draw.io"
+            />
           }
         >
           Open in draw.io

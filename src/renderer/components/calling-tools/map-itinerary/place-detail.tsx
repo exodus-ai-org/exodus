@@ -103,8 +103,8 @@ export function PlaceDetail({
             className="size-full"
           >
             <CarouselContent className="ml-0">
-              {photoUrls.map((url, i) => (
-                <CarouselItem key={i} className="pl-0">
+              {photoUrls.map((url) => (
+                <CarouselItem key={url} className="pl-0">
                   <img
                     src={url}
                     alt={place.name}
@@ -118,9 +118,9 @@ export function PlaceDetail({
               // Dot indicators — clickable, active dot widens to a pill.
               // Navigation: swipe / drag / arrow keys / clicking dots.
               <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 items-center gap-1 rounded-full bg-black/45 px-2 py-1 backdrop-blur-sm">
-                {photoUrls.map((_, i) => (
+                {photoUrls.map((url, i) => (
                   <button
-                    key={i}
+                    key={url}
                     type="button"
                     aria-label={`Go to photo ${i + 1}`}
                     aria-current={i === photoIdx ? 'true' : undefined}
@@ -207,6 +207,7 @@ export function PlaceDetail({
           aria-label="Place sections"
           className="border-border flex shrink-0 border-b text-xs"
         >
+          {/* react-doctor/js-combine-iterations: false positive — literal 3-item array, extra pass is negligible */}
           {(
             [
               { id: 'overview', label: 'Overview', enabled: true },
@@ -278,9 +279,9 @@ export function PlaceDetail({
 
         {tab === 'reviews' && hasReviews && (
           <div className="space-y-2.5">
-            {place.reviews!.map((r, i) => (
+            {place.reviews!.map((r) => (
               <article
-                key={i}
+                key={`${r.author ?? ''}-${r.relativeTime ?? ''}`}
                 className="border-border rounded-lg border p-2.5"
               >
                 <div className="mb-1 flex items-center gap-2">
@@ -332,13 +333,13 @@ export function PlaceDetail({
 
         {tab === 'hours' && hasHours && (
           <ul className="space-y-1 text-xs">
-            {place.openingHours!.map((line, i) => {
+            {place.openingHours!.map((line) => {
               const sep = line.indexOf(': ')
               const day = sep >= 0 ? line.slice(0, sep) : line
               const time = sep >= 0 ? line.slice(sep + 2) : ''
               return (
                 <li
-                  key={i}
+                  key={line}
                   className="flex items-center justify-between gap-2 py-0.5"
                 >
                   <span className="text-foreground font-medium">{day}</span>

@@ -27,6 +27,12 @@ export const TEST_IDS = {
   },
   video: {
     card: 'video.card'
+  },
+  schedule: {
+    tab: 'schedule.tab',
+    createButton: 'schedule.create-button',
+    taskCard: 'schedule.task-card',
+    cancelButton: 'schedule.cancel-button'
   }
 } as const
 

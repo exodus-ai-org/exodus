@@ -1,6 +1,6 @@
 import type { IpcRendererEvent, Result } from 'electron'
 import { ChevronDownIcon, ChevronUpIcon, XIcon } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -62,24 +62,30 @@ export function SearchBar() {
     return () => unsubscribeFindInPageResult(handler)
   }, [])
 
+  // Effect Events: always read the latest handlers without being reactive deps,
+  // so the addEventListener effect doesn't re-subscribe whenever query changes.
+  const onClose = useEffectEvent(() => handleClose())
+  const onPrevious = useEffectEvent(() => handlePrevious())
+  const onNext = useEffectEvent(() => handleNext())
+
   // Close on Escape
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        handleClose()
+        onClose()
       } else if (e.key === 'Enter') {
         e.preventDefault()
         if (e.shiftKey) {
-          handlePrevious()
+          onPrevious()
         } else {
-          handleNext()
+          onNext()
         }
       }
     }
 
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [handleClose, handleNext, handlePrevious])
+  }, [])
 
   const hasMatches = searchResult && searchResult.matches > 0
   const noMatches = searchResult && searchResult.matches === 0

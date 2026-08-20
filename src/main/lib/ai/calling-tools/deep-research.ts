@@ -16,7 +16,8 @@ export const deepResearch: AgentTool<typeof deepResearchSchema> = {
   description:
     'Given a research subject and ask some follow up questions to clarify the research direction',
   parameters: deepResearchSchema,
-  execute: async (toolCallId, { subject }) => {
+  execute: async (toolCallId, { subject }, signal) => {
+    if (signal?.aborted) throw new Error('Aborted')
     try {
       const newDeepResearch: DeepResearch = {
         id: uuidV4(),

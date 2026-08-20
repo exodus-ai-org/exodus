@@ -34,8 +34,9 @@ export const webSearch = (
     label: 'Web Search',
     description: `Search the web for up-to-date information. Results are numbered [1],[2],… — you MUST cite every factual sentence in your reply using 【N-source】 markers. Set media="images", "videos", or "all" when the user asks for a visual artifact, visual comparison, product/place explanation, tutorial, or any answer that would be better with media. Suffix a specific date to the query if needed. Today is ${new Date().toISOString()}`,
     parameters: webSearchSchema,
-    execute: async (_toolCallId, { query, media }) => {
+    execute: async (_toolCallId, { query, media }, signal) => {
       const search = async () => {
+        if (signal?.aborted) throw new Error('Aborted')
         if (!setting?.webSearch?.braveApiKey) {
           throw new Error(
             'Web Search requires a Brave Search API Key. Please add it in Settings → Web Search.'
@@ -57,7 +58,8 @@ export const webSearch = (
                 .split(',')
                 .map((d) => d.trim())
                 .filter(Boolean)
-            : null
+            : null,
+          signal
         })
 
         if (!details?.length) {

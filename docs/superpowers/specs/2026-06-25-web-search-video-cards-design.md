@@ -34,6 +34,7 @@ metadata) and **M2** (image gallery + lightbox) are done. M3 covers videos.
 ## Data model
 
 A view type for the cards:
+
 ```ts
 interface GalleryVideo {
   url: string // watch URL (opened in browser)
@@ -47,20 +48,25 @@ interface GalleryVideo {
 ## Components (`src/renderer/components/web-search/`)
 
 ### `collect-gallery-videos.ts`
+
 Pure helper, unit-tested — parallel to `collectGalleryImages`:
+
 ```ts
 collectGalleryVideos(results: WebSearchResult[]): GalleryVideo[]
 ```
+
 - flat-map each result's `media`, keep `kind === 'video'`,
 - drop entries without `url`, **dedup by `url`** (first wins),
 - `thumbnailUrl: m.thumbnailUrl || m.url`, carry `title/source/duration`,
 - preserve order.
 
 ### `video-cards.tsx`
+
 Props: `{ videos: GalleryVideo[] }`. Renders nothing if empty. A
 horizontally-scrollable row (`flex gap-3 overflow-x-auto`) of fixed-width cards
 (~`w-52`). Each card is an
 `<a href={video.url} target="_blank" rel="noopener noreferrer">`:
+
 - a 16:9 box (`aspect-video`, rounded, relative) with `LazyLoadImage`
   (`thumbnailUrl`), a centered play overlay (circle + lucide `PlayIcon` on a
   subtle scrim), and a duration badge bottom-right (`bg-black/70 text-white`)
@@ -71,6 +77,7 @@ horizontally-scrollable row (`flex gap-3 overflow-x-auto`) of fixed-width cards
 ## Data flow / placement
 
 `src/renderer/components/messages.tsx`, `AssistantTurnSegment`:
+
 - `const galleryVideos = useMemo(() => collectGalleryVideos(turn.webSearchResults), [turn.webSearchResults])`
 - Render `{galleryVideos.length > 0 && <VideoCards videos={galleryVideos} />}`
   **after** the `<ImageGallery>` block (text → images → videos), inside the same

@@ -182,6 +182,7 @@ export function ConversationList({
                   <ContextMenu>
                     <ContextMenuTrigger>
                       <button
+                        type="button"
                         onClick={() => onSelect(c.id)}
                         className={cn(
                           'group flex w-full items-start gap-2.5 rounded-[var(--ph-radius-md)] px-2 py-2 text-left transition-all'

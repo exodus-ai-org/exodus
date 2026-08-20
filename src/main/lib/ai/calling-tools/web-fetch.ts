@@ -15,8 +15,9 @@ export const webFetch = (): AgentTool<typeof webFetchSchema> => ({
     'Use this to read documentation pages, API references, GitHub files, or any web page. ' +
     'Do not use this for web search — use webSearch instead.',
   parameters: webFetchSchema,
-  execute: async (_toolCallId, { url }) => {
-    const result = await loadDocument(url)
+  execute: async (_toolCallId, { url }, signal) => {
+    if (signal?.aborted) throw new Error('Aborted')
+    const result = await loadDocument(url, signal)
 
     if (!result) {
       throw new Error(`Failed to fetch or parse URL: ${url}`)

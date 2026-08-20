@@ -1,6 +1,9 @@
 // src/renderer/components/philharmonic/employees/employee-editor.tsx
 import { Pencil } from 'lucide-react'
 import { useEffect, useState } from 'react'
+// NOTE: useEffect to sync draft from employee prop removed — key={employee.id}
+// at the call site causes React to remount when the employee changes, so the
+// useState initializer always receives the fresh value on mount.
 
 import { Input } from '@/components/ui/input'
 import {
@@ -58,7 +61,6 @@ export function EmployeeEditor({
     Array<{ id: string; key: string; value: unknown }>
   >([])
 
-  useEffect(() => setDraft(employee), [employee])
   useEffect(() => {
     getAvailableSkills().then(setSkills)
     getMcpServers().then(setMcpServers)

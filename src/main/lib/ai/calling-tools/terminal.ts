@@ -38,13 +38,15 @@ MISSING DEPENDENCIES — DO NOT AUTO-INSTALL, ASK THE USER
 
 Commands run with the user's full OS privileges. Avoid destructive operations.`,
   parameters: terminalSchema,
-  execute: async (_toolCallId, { command, cwd }) => {
+  execute: async (_toolCallId, { command, cwd }, signal) => {
+    if (signal?.aborted) throw new Error('Aborted')
     const workDir = cwd ?? homedir()
     try {
       const { stdout, stderr } = await execAsync(command, {
         cwd: workDir,
         timeout: 30_000,
-        maxBuffer: 1024 * 1024 * 10 // 10 MB
+        maxBuffer: 1024 * 1024 * 10, // 10 MB
+        signal
       })
       const details = {
         command,

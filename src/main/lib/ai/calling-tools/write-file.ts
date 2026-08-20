@@ -22,14 +22,17 @@ export const writeFile: AgentTool<typeof writeFileSchema> = {
   description:
     'Write content to a file at the given path. Creates parent directories if they do not exist. Overwrites existing files.',
   parameters: writeFileSchema,
-  execute: async (_toolCallId, { path, content, append }) => {
+  execute: async (_toolCallId, { path, content, append }, signal) => {
+    if (signal?.aborted) throw new Error('Aborted')
     try {
       await mkdir(dirname(path), { recursive: true })
       if (append) {
+        // fs/promises.appendFile's options type doesn't include `signal`
+        // (unlike readFile/writeFile), so append mode can't be cancelled.
         const { appendFile } = await import('fs/promises')
         await appendFile(path, content, 'utf-8')
       } else {
-        await fsWriteFile(path, content, 'utf-8')
+        await fsWriteFile(path, content, { encoding: 'utf-8', signal })
       }
       const details = {
         path,

@@ -58,12 +58,25 @@ export function GroupChat({
   const [answer, setAnswer] = useState('')
   const [editingTitle, setEditingTitle] = useState(false)
   const [draftTitle, setDraftTitle] = useState(conversation.title)
+  // Track the conversation id + title we last synced from so we can reset
+  // draftTitle/editingTitle during render when they change — the React-blessed
+  // "store previous prop" approach (avoids stale state on the first render that
+  // a useEffect-based reset would cause).
+  const [prevConversationId, setPrevConversationId] = useState(conversationId)
+  const [prevConversationTitle, setPrevConversationTitle] = useState(
+    conversation.title
+  )
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
+  if (
+    conversationId !== prevConversationId ||
+    conversation.title !== prevConversationTitle
+  ) {
+    setPrevConversationId(conversationId)
+    setPrevConversationTitle(conversation.title)
     setDraftTitle(conversation.title)
     setEditingTitle(false)
-  }, [conversation.id, conversation.title])
+  }
 
   const commitTitle = () => {
     const next = draftTitle.trim()
@@ -142,37 +155,38 @@ export function GroupChat({
         artifacts: artifacts.length > 0 ? artifacts : undefined
       }
     })
-    const live: BubbleWithDate[] = bubbles
-      .filter((b) => !persistedIds.has(b.messageId))
-      .map((b) => {
-        // Lift any artifact tool-card results into a live `artifacts` array
-        // so the ArtifactCard renders the moment createReport's tool_end
-        // arrives — no need to wait for the row to persist.
-        const liveArtifacts = (b.toolCards ?? [])
-          .filter(
-            (
-              c
-            ): c is {
-              toolName: string
-              phase: 'end'
-              result: {
-                type: 'artifact'
-                artifactId: string
-                title: string
-                code: string
-              }
-            } => {
-              if (c.phase !== 'end') return false
-              const r = c.result as { type?: unknown } | null
-              return r != null && r.type === 'artifact'
+    const live: BubbleWithDate[] = bubbles.flatMap((b) => {
+      if (persistedIds.has(b.messageId)) return []
+      // Lift any artifact tool-card results into a live `artifacts` array
+      // so the ArtifactCard renders the moment createReport's tool_end
+      // arrives — no need to wait for the row to persist.
+      const liveArtifacts = (b.toolCards ?? []).flatMap(
+        (
+          c
+        ): {
+          artifactId: string
+          title: string
+          code: string
+        }[] => {
+          if (c.phase !== 'end') return []
+          const r = c.result as { type?: unknown } | null
+          if (r == null || r.type !== 'artifact') return []
+          const result = c.result as {
+            artifactId: string
+            title: string
+            code: string
+          }
+          return [
+            {
+              artifactId: result.artifactId,
+              title: result.title,
+              code: result.code
             }
-          )
-          .map((c) => ({
-            artifactId: c.result.artifactId,
-            title: c.result.title,
-            code: c.result.code
-          }))
-        return {
+          ]
+        }
+      )
+      return [
+        {
           conversationId,
           messageId: b.messageId,
           role: b.role,
@@ -182,7 +196,8 @@ export function GroupChat({
           artifacts: liveArtifacts.length > 0 ? liveArtifacts : undefined
           // live bubbles have no persisted createdAt — they're "now"
         }
-      })
+      ]
+    })
     return [...fromHistory, ...live]
   }, [history, bubbles, persistedIds, conversationId])
 
@@ -281,16 +296,15 @@ export function GroupChat({
           <div className="mx-auto flex max-w-2xl flex-col gap-1">
             {merged.map((b, i) => {
               const prev = i > 0 ? merged[i - 1] : null
-              const curDate = b.createdAt ? new Date(b.createdAt) : new Date()
-              const prevDate = prev?.createdAt
-                ? new Date(prev.createdAt)
-                : prev
-                  ? new Date()
-                  : null
-              const showDay = !prevDate || !isSameDay(curDate, prevDate)
+              // Use null when createdAt is absent (e.g. live streaming bubble) so
+              // the day divider is skipped rather than using an unstable new Date().
+              const curDate = b.createdAt ? new Date(b.createdAt) : null
+              const prevDate = prev?.createdAt ? new Date(prev.createdAt) : null
+              const showDay =
+                curDate !== null && (!prevDate || !isSameDay(curDate, prevDate))
               return (
                 <div key={b.messageId}>
-                  {showDay && (
+                  {showDay && curDate && (
                     <div className="my-3 flex items-center gap-3">
                       <div className="border-border/60 flex-1 border-t" />
                       <span className="text-muted-foreground text-[10px] tracking-wider uppercase">

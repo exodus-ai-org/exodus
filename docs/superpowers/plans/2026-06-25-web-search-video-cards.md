@@ -26,6 +26,7 @@
 ## Task 1: `collectGalleryVideos` helper (TDD)
 
 **Files:**
+
 - Create: `src/renderer/components/web-search/collect-gallery-videos.ts`
 - Test: `src/renderer/components/web-search/collect-gallery-videos.test.ts`
 
@@ -147,6 +148,7 @@ Expected: clean.
 git add src/renderer/components/web-search/collect-gallery-videos.ts src/renderer/components/web-search/collect-gallery-videos.test.ts
 git commit -m "feat(websearch): collectGalleryVideos helper"
 ```
+
 (End commit bodies with `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`. Known FLAKY pre-commit failure: PGlite WASM teardown in `src/main/lib/ai/context-management/index.test.ts`; if blocked ONLY by that and your checks pass, re-commit `--no-verify`.)
 
 ---
@@ -157,6 +159,7 @@ The `video.card` id, its application, and the spec reference must land together
 (linkage enforces no-orphan + referenced-by-a-test atomically).
 
 **Files:**
+
 - Modify: `src/shared/constants/test-ids.ts`
 - Create: `src/renderer/components/web-search/video-cards.tsx`
 - Modify: `src/renderer/components/messages.tsx`
@@ -165,10 +168,11 @@ The `video.card` id, its application, and the spec reference must land together
 - [ ] **Step 1: Add the `video` group to the registry**
 
 In `src/shared/constants/test-ids.ts`, add a sibling group:
+
 ```ts
-  video: {
-    card: 'video.card'
-  }
+video: {
+  card: 'video.card'
+}
 ```
 
 - [ ] **Step 2: Create `video-cards.tsx`**
@@ -231,36 +235,45 @@ export function VideoCards({ videos }: { videos: GalleryVideo[] }) {
 - [ ] **Step 3: Wire into `messages.tsx`**
 
 Add imports (with the existing web-search imports):
+
 ```ts
 import { collectGalleryVideos } from './web-search/collect-gallery-videos'
 import { VideoCards } from './web-search/video-cards'
 ```
+
 Inside `AssistantTurnSegment`, next to `galleryImages`, add:
+
 ```ts
-    const galleryVideos = useMemo(
-      () => collectGalleryVideos(turn.webSearchResults),
-      [turn.webSearchResults]
-    )
+const galleryVideos = useMemo(
+  () => collectGalleryVideos(turn.webSearchResults),
+  [turn.webSearchResults]
+)
 ```
+
 Render the video row immediately AFTER the `<ImageGallery>` block:
+
 ```tsx
-            {galleryVideos.length > 0 && <VideoCards videos={galleryVideos} />}
+{
+  galleryVideos.length > 0 && <VideoCards videos={galleryVideos} />
+}
 ```
 
 - [ ] **Step 4: Extend the linkage spec `tests/e2e/web-search-gallery.spec.ts`**
 
 Add `TEST_IDS.video.card` to the existing id array so it's referenced by a test:
+
 ```ts
-  for (const id of [
-    TEST_IDS.gallery.thumbnail,
-    TEST_IDS.gallery.lightboxClose,
-    TEST_IDS.gallery.lightboxPrev,
-    TEST_IDS.gallery.lightboxNext,
-    TEST_IDS.video.card
-  ]) {
-    expect(await mainWindow.getByTestId(id).count()).toBeGreaterThanOrEqual(0)
-  }
+for (const id of [
+  TEST_IDS.gallery.thumbnail,
+  TEST_IDS.gallery.lightboxClose,
+  TEST_IDS.gallery.lightboxPrev,
+  TEST_IDS.gallery.lightboxNext,
+  TEST_IDS.video.card
+]) {
+  expect(await mainWindow.getByTestId(id).count()).toBeGreaterThanOrEqual(0)
+}
 ```
+
 (Update the existing loop in place; keep the rest of the spec unchanged.)
 
 - [ ] **Step 5: Verify green**
