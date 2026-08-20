@@ -18,7 +18,8 @@ export const listDirectory: AgentTool<typeof listDirectorySchema> = {
   label: 'List Directory',
   description: 'List files and directories at a given path.',
   parameters: listDirectorySchema,
-  execute: async (_toolCallId, { path, recursive }) => {
+  execute: async (_toolCallId, { path, recursive }, signal) => {
+    if (signal?.aborted) throw new Error('Aborted')
     async function listDir(
       dir: string,
       depth: number
@@ -30,6 +31,7 @@ export const listDirectory: AgentTool<typeof listDirectorySchema> = {
         children?: unknown[]
       }[]
     > {
+      if (signal?.aborted) return []
       const names = await readdir(dir)
       const result = await Promise.all(
         names.map(async (name) => {

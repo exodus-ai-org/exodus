@@ -56,9 +56,11 @@ export const weather: AgentTool<typeof weatherSchema> = {
   description:
     'Get current weather conditions and a short forecast for a location.',
   parameters: weatherSchema,
-  execute: async (_toolCallId, { location }) => {
+  execute: async (_toolCallId, { location }, signal) => {
+    if (signal?.aborted) throw new Error('Aborted')
     const response = await fetch(
-      `https://wttr.in/${encodeURIComponent(location)}?format=j1`
+      `https://wttr.in/${encodeURIComponent(location)}?format=j1`,
+      { signal }
     )
     if (!response.ok) {
       throw new Error(`Weather service returned ${response.status}`)

@@ -50,8 +50,10 @@ export const lcmExpand = (
   parameters: lcmExpandSchema,
   execute: async (
     _toolCallId,
-    { chatId, query, summaryIds: startIds, maxTokens = 2000 }
+    { chatId, query, summaryIds: startIds, maxTokens = 2000 },
+    signal
   ) => {
+    if (signal?.aborted) throw new Error('Aborted')
     // Step 1: Find relevant summaries
     let targetIds: string[] = startIds ?? []
     if (targetIds.length === 0) {
@@ -120,7 +122,7 @@ Be concise. Max ${maxTokens} tokens.`,
           }
         ]
       },
-      { apiKey }
+      { apiKey, signal }
     )
 
     const answer = result.content

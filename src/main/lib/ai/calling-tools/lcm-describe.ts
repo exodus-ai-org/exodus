@@ -24,7 +24,8 @@ export const lcmDescribe: AgentTool<typeof lcmDescribeSchema> = {
     'Use this after lcmGrep to read a full summary. ' +
     'The response includes parent/child summary IDs for DAG traversal.',
   parameters: lcmDescribeSchema,
-  execute: async (_toolCallId, { id }) => {
+  execute: async (_toolCallId, { id }, signal) => {
+    if (signal?.aborted) throw new Error('Aborted')
     const summary = await getSummaryById(id)
     if (!summary) {
       return {

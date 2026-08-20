@@ -19,10 +19,11 @@ export const readFile: AgentTool<typeof readFileSchema> = {
   label: 'Read File',
   description: 'Read the contents of a file at the given path.',
   parameters: readFileSchema,
-  execute: async (_toolCallId, { path, encoding }) => {
+  execute: async (_toolCallId, { path, encoding }, signal) => {
+    if (signal?.aborted) throw new Error('Aborted')
     try {
       const enc = (encoding ?? 'utf-8') as BufferEncoding
-      const content = await fsReadFile(path, enc)
+      const content = await fsReadFile(path, { encoding: enc, signal })
       const details = {
         path,
         content: content.toString(),

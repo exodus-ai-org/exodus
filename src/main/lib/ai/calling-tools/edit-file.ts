@@ -33,11 +33,13 @@ export const editFile: AgentTool<typeof editFileSchema> = {
   parameters: editFileSchema,
   execute: async (
     _toolCallId,
-    { path, old_string, new_string, replace_all }
+    { path, old_string, new_string, replace_all },
+    signal
   ) => {
+    if (signal?.aborted) throw new Error('Aborted')
     let fileContent: string
     try {
-      fileContent = await readFile(path, 'utf-8')
+      fileContent = await readFile(path, { encoding: 'utf-8', signal })
     } catch (e) {
       throw new Error(
         `Failed to read file: ${e instanceof Error ? e.message : String(e)}`
@@ -62,7 +64,7 @@ export const editFile: AgentTool<typeof editFileSchema> = {
       : fileContent.replace(old_string, new_string)
 
     try {
-      await writeFile(path, newContent, 'utf-8')
+      await writeFile(path, newContent, { encoding: 'utf-8', signal })
     } catch (e) {
       throw new Error(
         `Failed to write file: ${e instanceof Error ? e.message : String(e)}`

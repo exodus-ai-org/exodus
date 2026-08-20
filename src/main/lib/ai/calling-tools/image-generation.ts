@@ -17,7 +17,8 @@ export const imageGeneration = (
   label: 'Image Generation',
   description: 'Generate one or more images from a text prompt.',
   parameters: imageGenerationSchema,
-  execute: async (_toolCallId, { prompt }) => {
+  execute: async (_toolCallId, { prompt }, signal) => {
+    if (signal?.aborted) throw new Error('Aborted')
     if (!setting.providers?.openaiApiKey) {
       throw new Error(
         'Image Generation requires an OpenAI API Key. Please add it in Settings → Providers.'
@@ -28,16 +29,19 @@ export const imageGeneration = (
         baseURL: setting.providers?.openaiBaseUrl,
         apiKey: setting.providers.openaiApiKey
       })
-      const response = await openai.images.generate({
-        model: setting.image?.model ?? 'gpt-image-2',
-        prompt,
-        n: setting.image?.generatedCounts ?? 1,
-        size: setting.image?.size as ImageGenerateParams['size'],
-        quality: setting.image?.quality as ImageGenerateParams['quality'],
-        background:
-          (setting.image?.background as ImageGenerateParams['background']) ??
-          undefined
-      })
+      const response = await openai.images.generate(
+        {
+          model: setting.image?.model ?? 'gpt-image-2',
+          prompt,
+          n: setting.image?.generatedCounts ?? 1,
+          size: setting.image?.size as ImageGenerateParams['size'],
+          quality: setting.image?.quality as ImageGenerateParams['quality'],
+          background:
+            (setting.image?.background as ImageGenerateParams['background']) ??
+            undefined
+        },
+        { signal }
+      )
       const details = {
         images: (response.data ?? []).map((img) => ({
           url: img.url,
