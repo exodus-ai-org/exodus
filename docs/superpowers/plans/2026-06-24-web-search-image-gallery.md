@@ -27,6 +27,7 @@
 ## Task 1: `collectGalleryImages` helper (TDD)
 
 **Files:**
+
 - Create: `src/renderer/components/web-search/collect-gallery-images.ts`
 - Test: `src/renderer/components/web-search/collect-gallery-images.test.ts`
 
@@ -48,7 +49,13 @@ describe('collectGalleryImages', () => {
   it('keeps only images and dedups by url (first wins)', () => {
     const out = collectGalleryImages([
       res([
-        { kind: 'image', title: 'A', url: 'u1', sourceUrl: 's1', thumbnailUrl: 't1' },
+        {
+          kind: 'image',
+          title: 'A',
+          url: 'u1',
+          sourceUrl: 's1',
+          thumbnailUrl: 't1'
+        },
         { kind: 'video', title: 'V', url: 'v1', sourceUrl: 'sv' }
       ]),
       res([
@@ -137,6 +144,7 @@ Expected: clean.
 git add src/renderer/components/web-search/collect-gallery-images.ts src/renderer/components/web-search/collect-gallery-images.test.ts
 git commit -m "feat(websearch): collectGalleryImages helper"
 ```
+
 (End commit bodies with `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`. Known FLAKY pre-commit failure: PGlite WASM teardown in `src/main/lib/ai/context-management/index.test.ts`; if blocked ONLY by that and your checks pass, re-commit `--no-verify`.)
 
 ---
@@ -148,6 +156,7 @@ land together (the linkage test enforces no-orphan + referenced-by-a-test
 atomically). Build all of it, verify green, commit once.
 
 **Files:**
+
 - Modify: `src/shared/constants/test-ids.ts`
 - Create: `src/renderer/components/web-search/image-lightbox.tsx`
 - Create: `src/renderer/components/web-search/image-gallery.tsx`
@@ -157,6 +166,7 @@ atomically). Build all of it, verify green, commit once.
 - [ ] **Step 1: Add the `gallery` group to the registry**
 
 In `src/shared/constants/test-ids.ts`, add a sibling group to `lock`/`chat`:
+
 ```ts
   gallery: {
     thumbnail: 'gallery.thumbnail',
@@ -336,26 +346,31 @@ export function ImageGallery({ images }: { images: GalleryImage[] }) {
 - [ ] **Step 4: Wire into `messages.tsx`**
 
 Add imports (with the other component imports):
+
 ```ts
 import { collectGalleryImages } from './web-search/collect-gallery-images'
 import { ImageGallery } from './web-search/image-gallery'
 ```
+
 Inside `AssistantTurnSegment`, near the top of the component body (with the other
 `const` derivations like `ownSources`/`citationResults`), add:
+
 ```ts
-    const galleryImages = useMemo(
-      () => collectGalleryImages(turn.webSearchResults),
-      [turn.webSearchResults]
-    )
+const galleryImages = useMemo(
+  () => collectGalleryImages(turn.webSearchResults),
+  [turn.webSearchResults]
+)
 ```
+
 (`useMemo` is already imported in messages.tsx.)
 
 Then render the gallery after the `turn.finalTextBlocks.map(...)` block, still
 inside the `<div className="w-full min-w-0">`:
+
 ```tsx
-            {galleryImages.length > 0 && (
-              <ImageGallery images={galleryImages} />
-            )}
+{
+  galleryImages.length > 0 && <ImageGallery images={galleryImages} />
+}
 ```
 
 - [ ] **Step 5: Create the linkage-reference spec `tests/e2e/web-search-gallery.spec.ts`**

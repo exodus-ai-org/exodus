@@ -26,6 +26,7 @@
 ## Task 1: Add optional metadata fields to WebSearchResult
 
 **Files:**
+
 - Modify: `src/shared/types/web-search.ts`
 
 - [ ] **Step 1: Extend the interface**
@@ -61,6 +62,7 @@ Expected: clean (fields are optional; no consumer breaks).
 git add src/shared/types/web-search.ts
 git commit -m "feat(websearch): optional source-metadata fields on WebSearchResult"
 ```
+
 (End commit bodies with `Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>`. The pre-commit hook runs the full Vitest suite, which has a KNOWN FLAKY PGlite WASM teardown in `src/main/lib/ai/context-management/index.test.ts`; if a commit is blocked ONLY by that and your own checks pass, re-commit with `--no-verify`.)
 
 ---
@@ -68,6 +70,7 @@ git commit -m "feat(websearch): optional source-metadata fields on WebSearchResu
 ## Task 2: Backend — request metadata + map it (TDD on the age helper)
 
 **Files:**
+
 - Modify: `src/main/lib/ai/utils/web-search-util.ts`
 - Test: `src/main/lib/ai/utils/web-search-util.test.ts`
 
@@ -115,6 +118,7 @@ Expected: FAIL — `pickAgeLabel` not exported.
 In `src/main/lib/ai/utils/web-search-util.ts`:
 
 (a) Export the helper (near the other helpers):
+
 ```ts
 /**
  * Pick a human freshness label from Brave's `age` array, e.g.
@@ -132,6 +136,7 @@ export function pickAgeLabel(age?: string[]): string | undefined {
 ```
 
 (b) Extend the `BraveLlmContextSourceMeta` type:
+
 ```ts
 type BraveLlmContextSourceMeta = {
   title?: string
@@ -146,27 +151,30 @@ type BraveLlmContextSourceMeta = {
 
 (c) In `fetchBraveLlmContext`, after the existing
 `params.set('maximum_number_of_tokens_per_url', '8192')`, add:
+
 ```ts
-  // Enrich each source with site metadata (favicon, site_name, thumbnail, age).
-  params.set('enable_source_metadata', 'true')
+// Enrich each source with site metadata (favicon, site_name, thumbnail, age).
+params.set('enable_source_metadata', 'true')
 ```
 
 (d) In the result-building loop, replace the `results.push({ … })` for grounding
 sources with:
+
 ```ts
-      results.push({
-        rank: baseRank + results.length + 1,
-        link: src.url,
-        title,
-        snippet: content.slice(0, 300),
-        content,
-        siteName: llmMeta?.site_name,
-        hostname: llmMeta?.hostname,
-        favicon: llmMeta?.favicon,
-        thumbnail: llmMeta?.thumbnail?.src ?? llmMeta?.thumbnail?.original,
-        age: pickAgeLabel(llmMeta?.age)
-      })
+results.push({
+  rank: baseRank + results.length + 1,
+  link: src.url,
+  title,
+  snippet: content.slice(0, 300),
+  content,
+  siteName: llmMeta?.site_name,
+  hostname: llmMeta?.hostname,
+  favicon: llmMeta?.favicon,
+  thumbnail: llmMeta?.thumbnail?.src ?? llmMeta?.thumbnail?.original,
+  age: pickAgeLabel(llmMeta?.age)
+})
 ```
+
 (`llmMeta` is the existing `llmCtxOnly?.sources?.[src.url]` lookup already in the loop.)
 
 - [ ] **Step 4: Run the test — GREEN**
@@ -189,6 +197,7 @@ git commit -m "feat(websearch): request + map Brave source metadata"
 ## Task 3: Shared `SourceFavicon` component (Brave-first, Google-fallback)
 
 **Files:**
+
 - Create: `src/renderer/components/source-favicon.tsx`
 
 - [ ] **Step 1: Implement**
@@ -250,16 +259,19 @@ git commit -m "feat(websearch): SourceFavicon with Brave→Google fallback"
 ## Task 4: Citation badge + hover card (`CitationChip`)
 
 **Files:**
+
 - Modify: `src/renderer/components/markdown.tsx`
 
 - [ ] **Step 1: Update imports**
 
 In `src/renderer/components/markdown.tsx`: remove the `faviconUrl` import (now
 encapsulated in `SourceFavicon`) and add:
+
 ```ts
 import { LazyLoadImage } from './lazy-load-image'
 import { SourceFavicon } from './source-favicon'
 ```
+
 (Keep the existing `Badge`, `HoverCard*` imports.)
 
 - [ ] **Step 2: Replace the `CitationChip` component**
@@ -357,11 +369,13 @@ git commit -m "feat(websearch): favicon + site-name citation badge with thumbnai
 ## Task 5: Sources panel parity (`SourceLink`)
 
 **Files:**
+
 - Modify: `src/renderer/components/sources-panel.tsx`
 
 - [ ] **Step 1: Update imports**
 
 Remove the `faviconUrl` import and the `Avatar*` import (no longer used); add:
+
 ```ts
 import { LazyLoadImage } from './lazy-load-image'
 import { SourceFavicon } from './source-favicon'

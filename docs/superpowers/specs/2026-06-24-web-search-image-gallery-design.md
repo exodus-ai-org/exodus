@@ -41,6 +41,7 @@ page, `title`, `source` = site name. Media is attached to the first result of
 each web-search call by the backend; `turn.webSearchResults` accumulates them.
 
 A new view type used by the gallery:
+
 ```ts
 interface GalleryImage {
   url: string // full-size (lightbox)
@@ -54,10 +55,13 @@ interface GalleryImage {
 ## Components (new dir `src/renderer/components/web-search/`)
 
 ### `collect-gallery-images.ts`
+
 Pure helper, unit-tested:
+
 ```ts
 collectGalleryImages(results: WebSearchResult[]): GalleryImage[]
 ```
+
 - flat-map each result's `media`, keep `kind === 'image'`,
 - map to `GalleryImage` (`thumbnailUrl: m.thumbnailUrl || m.url`),
 - drop entries without a usable `url`,
@@ -65,6 +69,7 @@ collectGalleryImages(results: WebSearchResult[]): GalleryImage[]
 - preserve order.
 
 ### `image-gallery.tsx`
+
 Props: `{ images: GalleryImage[] }`. Renders nothing if empty. Otherwise a row of
 the first 3 thumbnails (fixed height, rounded, `object-cover` via
 `LazyLoadImage`). If `images.length > 3`, the third tile overlays a
@@ -73,8 +78,10 @@ tile opens the lightbox at that index (the "+N" tile opens at index 2). Holds
 `open` + `index` state; renders `<ImageLightbox>` when open.
 
 ### `image-lightbox.tsx`
+
 Props: `{ images, index, onIndexChange, onClose }`. `createPortal` to
 `document.body`:
+
 - `fixed inset-0 z-[100] bg-black/90 flex flex-col`,
 - top bar: ✕ close (left), centered counter `{index+1} / {images.length}`,
 - center: current image `object-contain max-h/max-w`, with prev/next `‹ ›`
@@ -87,6 +94,7 @@ Props: `{ images, index, onIndexChange, onClose }`. `createPortal` to
 ## Data flow / placement
 
 `src/renderer/components/messages.tsx`, `AssistantTurnSegment`:
+
 - `const galleryImages = useMemo(() => collectGalleryImages(turn.webSearchResults), [turn.webSearchResults])`
 - After the `turn.finalTextBlocks.map(...)` section (and before/above
   `MessageAction` is already inside each block — render the gallery after the
