@@ -870,8 +870,9 @@ git commit -m "feat(search): add Elasticsearch provider"
 
 - Create: `src/main/lib/search/resolve-search-provider.ts`
 - Create: `src/main/lib/search/index-messages-in-background.ts`
-- Modify: `src/main/lib/server/routes/chat.ts`
-- Modify: `src/main/lib/db/queries.ts` (`deleteChatById`)
+- Modify: `src/main/lib/server/routes/chat.ts` (`/search` route, the two
+  `saveMessages` call sites, and the chat-delete route — `deleteChatById`
+  itself in `queries.ts` stays unchanged; see Step 8)
 - Test: `tests/unit/main/lib/search/resolve-search-provider.test.ts`
 
 **Interfaces:**
@@ -1234,13 +1235,17 @@ git commit -m "feat(search): wire resolveSearchProvider into chat routes with fa
 **Files:**
 
 - Modify: `src/main/lib/server/routes/settings.ts`
+- Modify: `src/main/lib/db/queries.ts` (new `getAllSearchableMessages`)
+- Test: `tests/api/search-elasticsearch-reindex.spec.ts`, possibly
+  `tests/fixtures/api-client.ts` (see Step 4)
 
 **Interfaces:**
 
 - Consumes: `resolveSearchProvider` (Task 5), `getMessagesWithTitleByIds`
   is not needed here — instead a new `getAllSearchableMessages()` query.
 - Produces: `POST /api/settings/search/test-connection`,
-  `POST /api/settings/search/reindex` — consumed by Task 7's UI.
+  `POST /api/settings/search/reindex` — consumed by Task 7's UI and this
+  task's own reindex test.
 
 - [ ] **Step 1: Add `getAllSearchableMessages` to queries.ts**
 
@@ -1329,13 +1334,103 @@ settingsRouter.post('/search/reindex', async (c) => {
 Run: `pnpm typecheck`
 Expected: no errors.
 
-- [ ] **Step 4: Run the full test suite and commit**
+- [ ] **Step 4: Add an API test for the reindex route**
+
+Every other Elasticsearch-touching capability in this plan has a gated
+integration test (Task 1's settings round-trip, Task 5's search-via-ES
+test) — this closes the same gap for reindexing. Create
+`tests/api/search-elasticsearch-reindex.spec.ts`:
+
+```ts
+/**
+ * API integration test: reindexing existing chat history into Elasticsearch.
+ */
+import { ApiClient, apiTest as test, expect } from '../fixtures/api-client'
+import { TestCleanup } from '../helpers/cleanup'
+import { injectOpenAiProvider } from '../helpers/settings-inject'
+
+test.describe('Elasticsearch reindex', () => {
+  test.skip(
+    !process.env.ELASTIC_URL,
+    'requires ELASTIC_URL env var to test against a real Elasticsearch cluster'
+  )
+
+  let cleanup: TestCleanup
+
+  test.beforeAll(async () => {
+    const api = new ApiClient()
+    await injectOpenAiProvider(api)
+  })
+
+  test.afterAll(async () => {
+    const api = new ApiClient()
+    await api.updateSettings({ search: { elasticsearch: { url: '' } } })
+  })
+
+  test.beforeEach(async ({ api }) => {
+    cleanup = new TestCleanup(api)
+  })
+
+  test.afterEach(async () => {
+    await cleanup.run()
+  })
+
+  test('reindex picks up messages saved before Elasticsearch was configured', async ({
+    api
+  }) => {
+    // Elasticsearch is NOT configured yet — this message is only in PGlite.
+    const chatId = crypto.randomUUID()
+    cleanup.trackChat(chatId)
+    const uniqueKeyword = `reindexxyzzy${Date.now()}`
+    await api.sendChatMessage({
+      chatId,
+      text: `Remember this unique keyword: ${uniqueKeyword}`
+    })
+
+    // Now configure Elasticsearch and reindex.
+    await api.updateSettings({
+      search: {
+        elasticsearch: {
+          url: process.env.ELASTIC_URL,
+          username: process.env.ELASTIC_USERNAME,
+          password: process.env.ELASTIC_PASSWORD
+        }
+      }
+    })
+    const { status, data } = await api.post<{ count: number }>(
+      '/api/settings/search/reindex'
+    )
+    expect(status).toBe(200)
+    expect(data.count).toBeGreaterThanOrEqual(1)
+
+    await expect
+      .poll(
+        async () => {
+          const { data } = await api.searchMessages(uniqueKeyword)
+          return data.length
+        },
+        { timeout: 10_000 }
+      )
+      .toBeGreaterThanOrEqual(1)
+  })
+})
+```
+
+Check `tests/fixtures/api-client.ts` for a generic `post<T>(path, body?)`
+helper before using `api.post(...)` above — if only endpoint-specific
+methods exist (like `searchMessages`, `updateSettings`), add a small
+`post<T>(path: string, body?: unknown)` method there following the same
+pattern as the existing `get`/`post` helpers backing those methods, rather
+than introducing a one-off fetch call in the test.
+
+- [ ] **Step 5: Run the full test suite and commit**
 
 Run: `pnpm format && pnpm lint && pnpm typecheck && pnpm test`
-Expected: all pass.
+Expected: all pass, including the new reindex test (skipped unless
+`ELASTIC_URL` is set — it is, in this repo's gitignored `.env.test`).
 
 ```bash
-git add src/main/lib/db/queries.ts src/main/lib/server/routes/settings.ts
+git add src/main/lib/db/queries.ts src/main/lib/server/routes/settings.ts tests/api/search-elasticsearch-reindex.spec.ts tests/fixtures/api-client.ts
 git commit -m "feat(search): add Elasticsearch test-connection and reindex routes"
 ```
 
