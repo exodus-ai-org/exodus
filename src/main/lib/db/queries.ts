@@ -1,6 +1,6 @@
 import { ErrorCode } from '@shared/constants/error-codes'
 import { DatabaseError } from '@shared/errors/app-error'
-import { and, asc, desc, eq, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm'
 
 import { logger } from '../logger'
 import { extractSearchableText } from '../search/extract-searchable-text'
@@ -213,6 +213,28 @@ export async function fullTextSearchOnMessages(query: string) {
     return searchResults
   } catch (error) {
     logDbError('Failed to complete full-text search', error)
+    throw error
+  }
+}
+
+export async function getMessagesWithTitleByIds(
+  ids: string[]
+): Promise<Array<Message & { title: string }>> {
+  try {
+    if (ids.length === 0) return []
+    const messages = await db
+      .select()
+      .from(message)
+      .where(inArray(message.id, ids))
+
+    return await Promise.all(
+      messages.map(async (m) => {
+        const chat = await getChatById({ id: m.chatId })
+        return { ...m, title: chat.title }
+      })
+    )
+  } catch (error) {
+    logDbError('Failed to get messages by ids', error)
     throw error
   }
 }

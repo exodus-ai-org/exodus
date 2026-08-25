@@ -20,6 +20,9 @@ importers:
       '@dicebear/core':
         specifier: ^9.4.2
         version: 9.4.2
+      '@elastic/elasticsearch':
+        specifier: ^9.5.0
+        version: 9.5.0(supports-color@7.2.0)
       '@electric-sql/pglite':
         specifier: ^0.4.6
         version: 0.4.6
@@ -37,7 +40,7 @@ importers:
         version: 2.0.4(hono@4.12.23)
       '@langchain/community':
         specifier: ^1.1.28
-        version: 1.1.29(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-s3@3.1056.0)(@aws-sdk/credential-provider-node@3.972.46)(@browserbasehq/sdk@2.10.0(encoding@0.1.13))(@browserbasehq/stagehand@1.14.0(@playwright/test@1.60.0)(deepmerge@4.3.1)(dotenv@16.6.1)(encoding@0.1.13)(openai@6.39.1(ws@8.20.0)(zod@4.4.3))(zod@4.4.3))(@ibm-cloud/watsonx-ai@1.7.11(supports-color@7.2.0)(typescript@6.0.3))(@langchain/core@1.1.48(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(openai@6.39.1(ws@8.20.0)(zod@4.4.3))(ws@8.20.0))(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(@smithy/eventstream-codec@4.2.13)(@smithy/protocol-http@5.3.13)(@smithy/signature-v4@5.4.5)(@smithy/util-utf8@4.2.2)(cheerio@1.2.0)(fast-xml-parser@5.7.3)(google-auth-library@10.6.2(supports-color@7.2.0))(ibm-cloud-sdk-core@5.4.11(supports-color@7.2.0))(jsonwebtoken@9.0.3)(lodash@4.18.1)(openai@6.39.1(ws@8.20.0)(zod@4.4.3))(pdf-parse@2.4.5)(playwright@1.60.0)(ws@8.20.0)
+        version: 1.1.29(bcd575e7bd9f730f7cdac601327167be)
       '@langchain/core':
         specifier: ^1.1.48
         version: 1.1.48(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(openai@6.39.1(ws@8.20.0)(zod@4.4.3))(ws@8.20.0)
@@ -1037,6 +1040,19 @@ packages:
     engines: {bun: '>=1', deno: '>=2.7.10', node: '>=16'}
     peerDependencies:
       '@noble/ciphers': ^1.0.0
+
+  '@elastic/elasticsearch@9.5.0':
+    resolution: {integrity: sha512-6PApbQaAgVHpOvZJrAUSMrU+Nm2PznuIuTUoV29jCezL9Yze1keptiTvtsMqBsnw8v8wvfN6e4L1RTlwa5624A==}
+    engines: {node: '>=22'}
+    peerDependencies:
+      apache-arrow: 18.x - 21.x
+    peerDependenciesMeta:
+      apache-arrow:
+        optional: true
+
+  '@elastic/transport@9.4.0':
+    resolution: {integrity: sha512-/lE1rEPoXWjbQD1pAFyI/zZuMU1XdsxYgfZIAbQGgDabhinKYpZbQh6Qc/dYS6tEPxHOqlJ/WSQvSHZap4+I+w==}
+    engines: {node: '>=20'}
 
   '@electric-sql/pglite@0.4.6':
     resolution: {integrity: sha512-qmlmfN8UyKCee35qkV0r/MBp+Znl8FjBz7OpoglNvww3GJpw0/DLP0o1ZymvLNmcD5DTLOQdzKPtF8Hd3mdl1w==}
@@ -5994,6 +6010,10 @@ packages:
     resolution: {integrity: sha512-M422h7o/BR3rmCQ8UHi7cyyMqKltdP9Uo+J2fXK+RSAY+wTcKOIRyhTuKv4qn+DJf3g+PL890AzId5KZpX+CBg==}
     engines: {node: ^20.17.0 || >=22.9.0}
 
+  hpagent@1.2.0:
+    resolution: {integrity: sha512-A91dYTeIB6NoXG+PxTQpCCDDnfHsW9kc06Lvpu1TEe9gnd6ZFeiBoRO9JvzEv6xK7EX97/dUE8g/vBMTqTS3CA==}
+    engines: {node: '>=14'}
+
   html-url-attributes@3.0.1:
     resolution: {integrity: sha512-ol6UPyBWqsrO6EJySPz2O7ZSr856WDrEzM5zMqp+FJJLGMW35cLYmmZnl0vztAZxRUoNZJFTCohfjuIJ8I4QBQ==}
 
@@ -8093,6 +8113,9 @@ packages:
 
   scheduler@0.27.0:
     resolution: {integrity: sha512-eNv+WrVbKu1f3vbYJT/xtiF5syA5HPIMtf9IgY/nKg0sWqzAUEvqY/xm7OcZc/qafLx/iO9FgOmeSAp4v5ti/Q==}
+
+  secure-json-parse@4.1.0:
+    resolution: {integrity: sha512-l4KnYfEyqYJxDwlNVyRfO2E4NTHfMKAWdUuA8J0yve2Dz/E/PdBepY03RvyJpssIpRFwJoCD55wA+mEDs6ByWA==}
 
   semantic-release@25.0.3:
     resolution: {integrity: sha512-WRgl5GcypwramYX4HV+eQGzUbD7UUbljVmS+5G1uMwX/wLgYuJAxGeerXJDMO2xshng4+FXqCgyB5QfClV6WjA==}
@@ -10384,6 +10407,26 @@ snapshots:
     dependencies:
       '@noble/ciphers': 1.3.0
 
+  '@elastic/elasticsearch@9.5.0(supports-color@7.2.0)':
+    dependencies:
+      '@elastic/transport': 9.4.0(supports-color@7.2.0)
+      tslib: 2.8.1
+    transitivePeerDependencies:
+      - supports-color
+
+  '@elastic/transport@9.4.0(supports-color@7.2.0)':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/core': 2.8.0(@opentelemetry/api@1.9.1)
+      debug: 4.4.3(supports-color@7.2.0)
+      hpagent: 1.2.0
+      ms: 2.1.3
+      secure-json-parse: 4.1.0
+      tslib: 2.8.1
+      undici: 7.25.0
+    transitivePeerDependencies:
+      - supports-color
+
   '@electric-sql/pglite@0.4.6': {}
 
   '@electron-toolkit/preload@3.0.2(electron@42.3.0(supports-color@7.2.0))':
@@ -10984,7 +11027,7 @@ snapshots:
       - openai
       - ws
 
-  '@langchain/community@1.1.29(@aws-crypto/sha256-js@5.2.0)(@aws-sdk/client-s3@3.1056.0)(@aws-sdk/credential-provider-node@3.972.46)(@browserbasehq/sdk@2.10.0(encoding@0.1.13))(@browserbasehq/stagehand@1.14.0(@playwright/test@1.60.0)(deepmerge@4.3.1)(dotenv@16.6.1)(encoding@0.1.13)(openai@6.39.1(ws@8.20.0)(zod@4.4.3))(zod@4.4.3))(@ibm-cloud/watsonx-ai@1.7.11(supports-color@7.2.0)(typescript@6.0.3))(@langchain/core@1.1.48(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(openai@6.39.1(ws@8.20.0)(zod@4.4.3))(ws@8.20.0))(@opentelemetry/api@1.9.1)(@opentelemetry/sdk-trace-base@2.8.0(@opentelemetry/api@1.9.1))(@smithy/eventstream-codec@4.2.13)(@smithy/protocol-http@5.3.13)(@smithy/signature-v4@5.4.5)(@smithy/util-utf8@4.2.2)(cheerio@1.2.0)(fast-xml-parser@5.7.3)(google-auth-library@10.6.2(supports-color@7.2.0))(ibm-cloud-sdk-core@5.4.11(supports-color@7.2.0))(jsonwebtoken@9.0.3)(lodash@4.18.1)(openai@6.39.1(ws@8.20.0)(zod@4.4.3))(pdf-parse@2.4.5)(playwright@1.60.0)(ws@8.20.0)':
+  '@langchain/community@1.1.29(bcd575e7bd9f730f7cdac601327167be)':
     dependencies:
       '@browserbasehq/stagehand': 1.14.0(@playwright/test@1.60.0)(deepmerge@4.3.1)(dotenv@16.6.1)(encoding@0.1.13)(openai@6.39.1(ws@8.20.0)(zod@4.4.3))(zod@4.4.3)
       '@ibm-cloud/watsonx-ai': 1.7.11(supports-color@7.2.0)(typescript@6.0.3)
@@ -11005,6 +11048,7 @@ snapshots:
       '@aws-sdk/client-s3': 3.1056.0
       '@aws-sdk/credential-provider-node': 3.972.46
       '@browserbasehq/sdk': 2.10.0(encoding@0.1.13)
+      '@elastic/elasticsearch': 9.5.0(supports-color@7.2.0)
       '@smithy/eventstream-codec': 4.2.13
       '@smithy/protocol-http': 5.3.13
       '@smithy/signature-v4': 5.4.5
@@ -14909,6 +14953,8 @@ snapshots:
     dependencies:
       lru-cache: 11.3.5
 
+  hpagent@1.2.0: {}
+
   html-url-attributes@3.0.1: {}
 
   htmlparser2@10.1.0:
@@ -17241,6 +17287,8 @@ snapshots:
   sax@1.6.0: {}
 
   scheduler@0.27.0: {}
+
+  secure-json-parse@4.1.0: {}
 
   semantic-release@25.0.3(supports-color@7.2.0)(typescript@6.0.3):
     dependencies:

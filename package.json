@@ -39,6 +39,7 @@
     "@aws-sdk/s3-request-presigner": "^3.1054.0",
     "@dicebear/collection": "^9.4.2",
     "@dicebear/core": "^9.4.2",
+    "@elastic/elasticsearch": "^9.5.0",
     "@electric-sql/pglite": "^0.4.6",
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
