@@ -3,6 +3,7 @@ import { DatabaseError } from '@shared/errors/app-error'
 import { and, asc, desc, eq, sql } from 'drizzle-orm'
 
 import { logger } from '../logger'
+import { extractSearchableText } from '../search/extract-searchable-text'
 
 function logDbError(message: string, error: unknown) {
   logger.error('database', message, {
@@ -94,9 +95,17 @@ export async function getChatById({ id }: { id: string }) {
   }
 }
 
-export async function saveMessages({ messages }: { messages: Array<Message> }) {
+export async function saveMessages({
+  messages
+}: {
+  messages: Array<Omit<Message, 'searchText'>>
+}) {
   try {
-    return await db.insert(message).values(messages)
+    const rows = messages.map((m) => ({
+      ...m,
+      searchText: extractSearchableText(m)
+    }))
+    return await db.insert(message).values(rows)
   } catch (error) {
     logDbError('Failed to save messages', error)
     throw error
@@ -188,7 +197,7 @@ export async function fullTextSearchOnMessages(query: string) {
       .select()
       .from(message)
       .where(
-        sql`to_tsvector('simple', ${message.content}) @@ websearch_to_tsquery('simple', ${query})`
+        sql`to_tsvector('simple', ${message.searchText}) @@ websearch_to_tsquery('simple', ${query})`
       )
 
     const searchResults = await Promise.all(
