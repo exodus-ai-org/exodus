@@ -74,6 +74,17 @@ export const WebSearchSchema = z.object({
   domainFilter: z.string().nullish() // comma-separated domain list
 })
 
+export const ElasticsearchSchema = z.object({
+  url: optionalUrl,
+  username: z.string().nullish(),
+  password: z.string().nullish(),
+  indexName: z.string().nullish() // defaults to 'exodus-messages' if unset
+})
+
+export const SearchSchema = z.object({
+  elasticsearch: ElasticsearchSchema.nullish()
+})
+
 export const ImageSchema = z.object({
   model: z.string().nullish(),
   size: z.string().nullish(),
@@ -182,6 +193,7 @@ export const SettingsSchema = z.object({
   assistantAvatar: z.string().nullish(),
   googleCloud: GoogleCloudSchema.nullish(),
   webSearch: WebSearchSchema.nullish(),
+  search: SearchSchema.nullish(),
   image: ImageSchema.nullish(),
   deepResearch: DeepResearchSchema.nullish(),
   s3: S3Schema.nullish(),

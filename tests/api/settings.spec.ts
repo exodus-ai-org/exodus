@@ -107,6 +107,23 @@ test.describe('Settings API', () => {
     expect(ws.maxResults).toBe(10)
   })
 
+  test('POST /api/settings updates search config', async ({ api }) => {
+    await api.updateSettings({
+      search: {
+        elasticsearch: {
+          url: process.env.ELASTIC_URL,
+          username: process.env.ELASTIC_USERNAME,
+          password: process.env.ELASTIC_PASSWORD
+        }
+      }
+    })
+
+    const { data } = await api.getSettings()
+    const search = data.search as { elasticsearch: Record<string, string> }
+    expect(search.elasticsearch.url).toBe(process.env.ELASTIC_URL)
+    expect(search.elasticsearch.username).toBe(process.env.ELASTIC_USERNAME)
+  })
+
   test('POST /api/settings updates color tone', async ({ api }) => {
     await api.updateSettings({ colorTone: 'violet' })
     const { data } = await api.getSettings()
