@@ -77,6 +77,10 @@ export const message = pgTable(
       .references(() => chat.id),
     role: varchar('role').notNull(), // 'user' | 'assistant' | 'toolResult'
     content: jsonb('content').notNull(), // content array for the message
+    // Extracted, indexable text — only `text` blocks from user/assistant
+    // messages; excludes `thinking` blocks and toolResult rows entirely.
+    // Populated by extractSearchableText() in saveMessages().
+    searchText: text('searchText'),
     // assistant-specific fields
     usage: jsonb('usage').$type<Usage>(),
     api: varchar('api'),
@@ -99,7 +103,7 @@ export const message = pgTable(
   (table) => [
     index('message_search_index').using(
       'gin',
-      sql`to_tsvector('simple', ${table.content})`
+      sql`to_tsvector('simple', ${table.searchText})`
     )
   ]
 )

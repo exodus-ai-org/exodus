@@ -14,6 +14,8 @@ export function toDbRow(msg: ChatMessage, chatId: string) {
     chatId,
     role: msg.role,
     content: msg.content,
+    // TODO(Task 3): populate via extractSearchableText(msg).
+    searchText: null,
     createdAt: isNaN(ts.getTime()) ? new Date() : ts
   }
 
