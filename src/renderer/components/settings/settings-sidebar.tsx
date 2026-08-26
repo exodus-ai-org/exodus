@@ -22,10 +22,12 @@ export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
 
   return (
     <Sidebar {...props} collapsible="none" className="select-none">
-      <SidebarContent className="no-scrollbar">
+      <SidebarContent className="no-scrollbar gap-2">
         {menus.navMain.map((group) => (
-          <SidebarGroup key={group.label}>
-            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+          <SidebarGroup key={group.label} className="gap-1">
+            <SidebarGroupLabel className="text-[11px] font-semibold tracking-wider uppercase">
+              {group.label}
+            </SidebarGroupLabel>
             <SidebarMenu className="gap-1">
               {group.items.map((item) => (
                 <SidebarMenuItem key={item.title}>

@@ -50,8 +50,16 @@ export const menus = {
       label: 'General',
       items: [
         { title: SettingsLabel.General, icon: CogIcon },
-        { title: SettingsLabel.Personality, icon: UserIcon },
-        { title: SettingsLabel.AboutExodus, icon: InfoIcon }
+        {
+          title: SettingsLabel.BuiltinTools,
+          icon: WrenchIcon,
+          items: [
+            { title: SettingsLabel.WebSearch },
+            { title: SettingsLabel.GoogleMaps },
+            { title: SettingsLabel.ImageGeneration },
+            { title: SettingsLabel.DeepResearch }
+          ]
+        }
       ]
     },
     {
@@ -72,28 +80,24 @@ export const menus = {
       ]
     },
     {
-      label: 'Capabilities',
+      label: 'Personalization',
       items: [
-        {
-          icon: WrenchIcon,
-          title: SettingsLabel.BuiltinTools,
-          items: [
-            { title: SettingsLabel.WebSearch },
-            { title: SettingsLabel.GoogleMaps },
-            { title: SettingsLabel.ImageGeneration },
-            { title: SettingsLabel.DeepResearch }
-          ]
-        },
-        { icon: SearchIcon, title: SettingsLabel.Search },
-        { icon: NetworkIcon, title: SettingsLabel.GraphRag },
-        { icon: GlobeIcon, title: SettingsLabel.BrowserUse },
-        { icon: ComputerIcon, title: SettingsLabel.ComputerUse },
+        { title: SettingsLabel.Personality, icon: UserIcon },
         { icon: MemoryStickIcon, title: SettingsLabel.MemoryLayer }
       ]
     },
     {
-      label: 'Integrations',
+      // External, connection-backed capabilities — the home for anything
+      // that talks to an outside service or environment (search backend,
+      // GraphRAG, browser/computer-use sandboxes, MCP connectors, the
+      // skills marketplace). Future integrations (GitHub, Google
+      // Workspace, etc.) belong here too.
+      label: 'Plugin',
       items: [
+        { icon: SearchIcon, title: SettingsLabel.Search },
+        { icon: NetworkIcon, title: SettingsLabel.GraphRag },
+        { icon: GlobeIcon, title: SettingsLabel.BrowserUse },
+        { icon: ComputerIcon, title: SettingsLabel.ComputerUse },
         { icon: PlugIcon, title: SettingsLabel.McpServers },
         { icon: ShoppingBagIcon, title: SettingsLabel.SkillsMarket }
       ]
@@ -113,7 +117,8 @@ export const menus = {
       label: 'Preferences',
       items: [
         { icon: AudioLinesIcon, title: SettingsLabel.AudioAndSpeech },
-        { icon: KeyboardIcon, title: SettingsLabel.KeyboardShortcuts }
+        { icon: KeyboardIcon, title: SettingsLabel.KeyboardShortcuts },
+        { icon: InfoIcon, title: SettingsLabel.AboutExodus }
       ]
     }
   ]

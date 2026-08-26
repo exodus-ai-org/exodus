@@ -4,6 +4,7 @@ import {
   DeepResearchSchema,
   GoogleCloudSchema,
   ImageSchema,
+  KeyboardShortcutsSchema,
   MemoryLayerSchema,
   PersonalitySchema,
   ProviderConfigSchema,
@@ -155,6 +156,8 @@ export const settings = pgTable('settings', {
   lastBackupAt: timestamp('lastBackupAt'),
   memoryLayer: jsonb('memoryLayer').$type<z.infer<typeof MemoryLayerSchema>>(),
   personality: jsonb('personality').$type<z.infer<typeof PersonalitySchema>>(),
+  keyboardShortcuts:
+    jsonb('keyboardShortcuts').$type<z.infer<typeof KeyboardShortcutsSchema>>(),
   colorTone: text('colorTone').default('neutral'),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull()

@@ -1,29 +1,47 @@
 import { useMemo } from 'react'
 
-import { Kbd, KbdGroup } from '@/components/ui/kbd'
+import { Kbd } from '@/components/ui/kbd'
+import { Switch } from '@/components/ui/switch'
 import { SHORTCUT_MAP, ShortcutDef } from '@/hooks/use-keyboard-shortcuts'
+import { useSettings } from '@/hooks/use-settings'
 
 import { SettingsSection } from '../settings-row'
 
-function ShortcutRow({ shortcut }: { shortcut: ShortcutDef }) {
+function ShortcutRow({
+  shortcut,
+  disabled,
+  onToggle
+}: {
+  shortcut: ShortcutDef
+  disabled: boolean
+  onToggle: (id: string, enabled: boolean) => void
+}) {
   return (
     <div className="flex items-center justify-between py-2">
       <span className="text-sm">{shortcut.label}</span>
-      <KbdGroup>
-        {shortcut.keys.map((key) => (
-          <Kbd key={key}>{key}</Kbd>
-        ))}
-      </KbdGroup>
+      <div className="flex items-center gap-3">
+        <Kbd>{shortcut.keys.join(' + ')}</Kbd>
+        {shortcut.toggleable !== false && (
+          <Switch
+            checked={!disabled}
+            onCheckedChange={(checked) => onToggle(shortcut.id, checked)}
+          />
+        )}
+      </div>
     </div>
   )
 }
 
 function ShortcutGroup({
   title,
-  shortcuts
+  shortcuts,
+  disabledIds,
+  onToggle
 }: {
   title: string
   shortcuts: ShortcutDef[]
+  disabledIds: Set<string>
+  onToggle: (id: string, enabled: boolean) => void
 }) {
   return (
     <div className="flex flex-col gap-1">
@@ -32,7 +50,12 @@ function ShortcutGroup({
       </h3>
       <div className="divide-border divide-y">
         {shortcuts.map((s) => (
-          <ShortcutRow key={s.label} shortcut={s} />
+          <ShortcutRow
+            key={s.id}
+            shortcut={s}
+            disabled={disabledIds.has(s.id)}
+            onToggle={onToggle}
+          />
         ))}
       </div>
     </div>
@@ -40,6 +63,13 @@ function ShortcutGroup({
 }
 
 export function KeyboardShortcuts() {
+  const { data: settings, updateSettings } = useSettings()
+
+  const disabledIds = useMemo(
+    () => new Set(settings?.keyboardShortcuts?.disabled ?? []),
+    [settings?.keyboardShortcuts?.disabled]
+  )
+
   const grouped = useMemo(() => {
     const map = new Map<string, ShortcutDef[]>()
     for (const s of SHORTCUT_MAP) {
@@ -50,6 +80,20 @@ export function KeyboardShortcuts() {
     return map
   }, [])
 
+  const handleToggle = (id: string, enabled: boolean) => {
+    if (!settings) return
+    const next = new Set(disabledIds)
+    if (enabled) {
+      next.delete(id)
+    } else {
+      next.add(id)
+    }
+    updateSettings({
+      ...settings,
+      keyboardShortcuts: { disabled: Array.from(next) }
+    })
+  }
+
   return (
     <SettingsSection>
       <div className="flex flex-col gap-6">
@@ -58,6 +102,8 @@ export function KeyboardShortcuts() {
             key={category}
             title={category}
             shortcuts={shortcuts}
+            disabledIds={disabledIds}
+            onToggle={handleToggle}
           />
         ))}
       </div>

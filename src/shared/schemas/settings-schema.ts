@@ -193,6 +193,12 @@ export const PersonalitySchema = z.object({
   customInstructions: z.string().nullish()
 })
 
+export const KeyboardShortcutsSchema = z.object({
+  // Ids of toggleable shortcuts (ShortcutDef.id in use-keyboard-shortcuts.ts)
+  // the user has turned off. Absent/empty = everything enabled.
+  disabled: z.array(z.string()).nullish()
+})
+
 export const SettingsSchema = z.object({
   id: z.string(),
   providerConfig: ProviderConfigSchema.nullish(),
@@ -215,6 +221,7 @@ export const SettingsSchema = z.object({
   lastBackupAt: z.any().nullish(),
   memoryLayer: MemoryLayerSchema.nullish(),
   personality: PersonalitySchema.nullish(),
+  keyboardShortcuts: KeyboardShortcutsSchema.nullish(),
   colorTone: ColorTone.default('neutral').nullish(),
   createdAt: z.any(),
   updatedAt: z.any()
