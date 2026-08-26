@@ -25,7 +25,7 @@ export enum SettingsLabel {
   AmazonS3 = 'AWS S3',
   McpServers = 'MCP Servers',
   SkillsMarket = 'Skills Market',
-  Search = 'Search',
+  Search = 'Elasticsearch',
   GraphRag = 'GraphRAG',
   BuiltinTools = 'Built-in Tools',
   MemoryLayer = 'Memory Layer',

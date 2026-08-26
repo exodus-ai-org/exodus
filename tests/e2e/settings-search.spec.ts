@@ -31,7 +31,7 @@ test.describe('Settings — Search', () => {
     const modKey = process.platform === 'darwin' ? 'Meta' : 'Control'
     await mainWindow.keyboard.press(`${modKey}+,`)
     await mainWindow
-      .getByRole('button', { name: 'Search', exact: true })
+      .getByRole('button', { name: 'Elasticsearch', exact: true })
       .click()
 
     await mainWindow.getByTestId(TEST_IDS.search.testConnectionButton).click()
