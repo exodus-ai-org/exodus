@@ -7,6 +7,7 @@ import { cors } from 'hono/cors'
 // ARCHIVED: import { connectMcpServers } from '../ai/mcp'
 import { initScheduler } from '../ai/philharmonic/scheduler'
 import { getSettings } from '../db/queries'
+import { initJobQueue } from '../jobs/worker'
 import { logger } from '../logger'
 import { errorHandler, lockGate } from './middlewares'
 import artifactsRouter from './routes/artifacts'
@@ -97,6 +98,7 @@ export async function connectHttpServer() {
       initScheduler(emitToAll).catch((err) =>
         logger.error('scheduler', 'Init error', { error: String(err) })
       )
+      initJobQueue()
     }
   }
 }
