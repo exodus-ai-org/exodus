@@ -5,6 +5,7 @@ import { is } from '@electron-toolkit/utils'
 import { migrate } from 'drizzle-orm/pglite/migrator'
 import { Notification } from 'electron'
 
+import { QUEUE_NAMES } from '../jobs/types'
 import { logger } from '../logger'
 import { db, pglite } from './db'
 
@@ -14,6 +15,16 @@ export const runMigrate = async () => {
     const start = performance.now()
     await pglite.waitReady
     await pglite.exec('CREATE EXTENSION IF NOT EXISTS vector;')
+    await pglite.exec('CREATE EXTENSION IF NOT EXISTS pgmq;')
+    for (const queueName of QUEUE_NAMES) {
+      try {
+        await pglite.exec(`SELECT pgmq.create('${queueName}');`)
+      } catch {
+        // Queue already exists from a previous run — pgmq.create is not
+        // guaranteed idempotent across versions, so tolerate the error
+        // rather than checking existence first.
+      }
+    }
     await migrate(db, {
       migrationsFolder: is.dev
         ? join(cwd(), './resources/drizzle')

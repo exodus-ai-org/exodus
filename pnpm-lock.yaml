@@ -26,6 +26,9 @@ importers:
       '@electric-sql/pglite':
         specifier: ^0.4.6
         version: 0.4.6
+      '@electric-sql/pglite-pgmq':
+        specifier: ^0.0.5
+        version: 0.0.5(@electric-sql/pglite@0.4.6)
       '@electron-toolkit/preload':
         specifier: ^3.0.2
         version: 3.0.2(electron@42.3.0(supports-color@7.2.0))
@@ -1053,6 +1056,11 @@ packages:
   '@elastic/transport@9.4.0':
     resolution: {integrity: sha512-/lE1rEPoXWjbQD1pAFyI/zZuMU1XdsxYgfZIAbQGgDabhinKYpZbQh6Qc/dYS6tEPxHOqlJ/WSQvSHZap4+I+w==}
     engines: {node: '>=20'}
+
+  '@electric-sql/pglite-pgmq@0.0.5':
+    resolution: {integrity: sha512-G2kAFbLzml4OGVijaDAQTxi1uns6Y98H/9HeATLq47FTHli0Wy/UVmSH8OH0/Pae0RpcIbx5aslZILmj9FDlKQ==}
+    peerDependencies:
+      '@electric-sql/pglite': 0.5.7
 
   '@electric-sql/pglite@0.4.6':
     resolution: {integrity: sha512-qmlmfN8UyKCee35qkV0r/MBp+Znl8FjBz7OpoglNvww3GJpw0/DLP0o1ZymvLNmcD5DTLOQdzKPtF8Hd3mdl1w==}
@@ -10426,6 +10434,10 @@ snapshots:
       undici: 7.25.0
     transitivePeerDependencies:
       - supports-color
+
+  '@electric-sql/pglite-pgmq@0.0.5(@electric-sql/pglite@0.4.6)':
+    dependencies:
+      '@electric-sql/pglite': 0.4.6
 
   '@electric-sql/pglite@0.4.6': {}
 

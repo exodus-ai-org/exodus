@@ -41,6 +41,7 @@
     "@dicebear/core": "^9.4.2",
     "@elastic/elasticsearch": "^9.5.0",
     "@electric-sql/pglite": "^0.4.6",
+    "@electric-sql/pglite-pgmq": "^0.0.5",
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
     "@googlemaps/places": "^2.4.1",
