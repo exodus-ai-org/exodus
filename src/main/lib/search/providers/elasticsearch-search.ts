@@ -21,7 +21,14 @@ export function createElasticsearchProvider(
     auth:
       config.username && config.password
         ? { username: config.username, password: config.password }
-        : undefined
+        : undefined,
+    // The transport defaults to no request timeout and 3 retries, so a
+    // routable-but-unreachable host (firewalled, wrong port, VPN-only cluster)
+    // hangs forever instead of rejecting — which means the PGlite fallback in
+    // `GET /api/chat/search` never fires and the fire-and-forget indexing calls
+    // pile up as hung promises. Fail fast and let the fallback do its job.
+    requestTimeout: 5000,
+    maxRetries: 1
   })
   const indexName = config.indexName || DEFAULT_INDEX_NAME
 
@@ -40,9 +47,21 @@ export function createElasticsearchProvider(
     },
 
     async deleteByChatId(chatId: string) {
+      // `chatId.keyword`, not `chatId`: no explicit mapping is created for this
+      // index, so dynamic mapping types `chatId` as analyzed `text` — whose
+      // tokens are the UUID split on hyphens, which an (unanalyzed) `term`
+      // query can never match. The `.keyword` multi-field that dynamic mapping
+      // adds alongside every `text` field holds the whole value verbatim.
       await client.deleteByQuery({
         index: indexName,
-        query: { term: { chatId } }
+        query: { term: { 'chatId.keyword': chatId } }
+      })
+    },
+
+    async deleteAll() {
+      await client.deleteByQuery({
+        index: indexName,
+        query: { match_all: {} }
       })
     },
 

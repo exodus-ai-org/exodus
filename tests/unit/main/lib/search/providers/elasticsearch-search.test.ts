@@ -1,3 +1,4 @@
+import { Client } from '@elastic/elasticsearch'
 import type { Message } from '@main/lib/db/schema'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -84,16 +85,61 @@ describe('createElasticsearchProvider', () => {
     )
   })
 
-  it('deletes by chatId via a term query', async () => {
+  it('deletes by chatId via a term query on the .keyword subfield', async () => {
     const provider = createElasticsearchProvider({
       url: 'http://localhost:9200'
     })
     await provider.deleteByChatId('chat-1')
 
+    // Must target `chatId.keyword`, not `chatId` — the dynamically mapped
+    // `text` field is analyzed, so a `term` query on it never matches a UUID.
     expect(mockDeleteByQuery).toHaveBeenCalledWith({
       index: 'exodus-messages',
-      query: { term: { chatId: 'chat-1' } }
+      query: { term: { 'chatId.keyword': 'chat-1' } }
     })
+  })
+
+  it('clears the whole index via a match_all delete-by-query', async () => {
+    mockDeleteByQuery.mockClear()
+
+    const provider = createElasticsearchProvider({
+      url: 'http://localhost:9200'
+    })
+    await provider.deleteAll()
+
+    expect(mockDeleteByQuery).toHaveBeenCalledWith({
+      index: 'exodus-messages',
+      query: { match_all: {} }
+    })
+  })
+
+  it('clears a custom index name when configured', async () => {
+    mockDeleteByQuery.mockClear()
+
+    const provider = createElasticsearchProvider({
+      url: 'http://localhost:9200',
+      indexName: 'custom-index'
+    })
+    await provider.deleteAll()
+
+    expect(mockDeleteByQuery).toHaveBeenCalledWith(
+      expect.objectContaining({ index: 'custom-index' })
+    )
+  })
+
+  it('configures the client with a request timeout and limited retries', () => {
+    const ClientMock = vi.mocked(Client)
+    ClientMock.mockClear()
+
+    createElasticsearchProvider({ url: 'http://localhost:9200' })
+
+    expect(ClientMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        node: 'http://localhost:9200',
+        requestTimeout: 5000,
+        maxRetries: 1
+      })
+    )
   })
 
   it('searches and re-fetches full rows by returned ids', async () => {
