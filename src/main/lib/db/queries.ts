@@ -239,6 +239,18 @@ export async function getMessagesWithTitleByIds(
   }
 }
 
+export async function getAllSearchableMessages(): Promise<Message[]> {
+  try {
+    return await db
+      .select()
+      .from(message)
+      .where(sql`${message.searchText} IS NOT NULL`)
+  } catch (error) {
+    logDbError('Failed to get searchable messages', error)
+    throw error
+  }
+}
+
 export async function voteMessage({
   chatId,
   messageId,

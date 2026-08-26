@@ -25,7 +25,7 @@ export class ApiClient {
 
   async post<T = unknown>(
     path: string,
-    body: unknown
+    body?: unknown
   ): Promise<{ status: number; data: T }> {
     const res = await fetch(`${this.baseUrl}${path}`, {
       method: 'POST',
