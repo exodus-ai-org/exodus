@@ -28,6 +28,7 @@ import { Ollama } from './settings-form/providers/ollama'
 import { OpenAiGpt } from './settings-form/providers/openai-gpt'
 import { XaiGrok } from './settings-form/providers/xai-grok'
 import { S3 } from './settings-form/s3'
+import { Search } from './settings-form/search'
 import { SkillsMarketSetting } from './settings-form/skills-market'
 import { SystemInfo } from './settings-form/system-info'
 import { Tools } from './settings-form/tools'
@@ -145,6 +146,8 @@ export function SettingsForm() {
       {activeTitle === SettingsLabel.SkillsMarket && <SkillsMarketSetting />}
 
       {activeTitle === SettingsLabel.McpServers && <McpServers />}
+
+      {activeTitle === SettingsLabel.Search && <Search form={form} />}
 
       {activeTitle === SettingsLabel.GraphRag && <GraphRAG />}
 

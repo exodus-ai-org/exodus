@@ -11,6 +11,7 @@ import {
   NetworkIcon,
   PlugIcon,
   ScrollTextIcon,
+  SearchIcon,
   ShoppingBagIcon,
   UserIcon,
   GlobeIcon,
@@ -24,6 +25,7 @@ export enum SettingsLabel {
   AmazonS3 = 'AWS S3',
   McpServers = 'MCP Servers',
   SkillsMarket = 'Skills Market',
+  Search = 'Search',
   GraphRag = 'GraphRAG',
   BuiltinTools = 'Built-in Tools',
   MemoryLayer = 'Memory Layer',
@@ -89,6 +91,10 @@ export const menus = {
     {
       icon: PlugIcon,
       title: SettingsLabel.McpServers
+    },
+    {
+      icon: SearchIcon,
+      title: SettingsLabel.Search
     },
     {
       icon: NetworkIcon,

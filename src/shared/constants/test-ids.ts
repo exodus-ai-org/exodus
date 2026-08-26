@@ -33,6 +33,10 @@ export const TEST_IDS = {
     createButton: 'schedule.create-button',
     taskCard: 'schedule.task-card',
     cancelButton: 'schedule.cancel-button'
+  },
+  search: {
+    testConnectionButton: 'search.test-connection-button',
+    reindexButton: 'search.reindex-button'
   }
 } as const
 
