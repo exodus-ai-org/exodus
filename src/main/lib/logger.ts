@@ -24,6 +24,7 @@ export type LogSurface =
   | 'skills'
   | 'lcm'
   | 'tools'
+  | 'search'
 
 export interface LogEntry {
   ts: string

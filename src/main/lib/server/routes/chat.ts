@@ -39,7 +39,6 @@ import { transformMessages } from '../../ai/utils/transform-messages'
 import { getProjectById, bumpProjectUpdatedAt } from '../../db/project-queries'
 import {
   deleteChatById,
-  fullTextSearchOnMessages,
   getChatById,
   getMessagesByChatId,
   saveChat,
@@ -48,6 +47,8 @@ import {
   updateChatTitleById
 } from '../../db/queries'
 import { logger } from '../../logger'
+import { indexMessagesInBackground } from '../../search/index-messages-in-background'
+import { resolveSearchProvider } from '../../search/resolve-search-provider'
 import { postRequestBodySchema, updateChatSchema } from '../schemas/chat'
 import {
   deletionSuccessResponse,
@@ -69,8 +70,26 @@ const chat = new Hono<{ Variables: Variables }>()
 
 chat.get('/search', async (c) => {
   const query = c.req.query('query') ?? ''
+  const settings = c.get('settings')
+  const { elasticsearch, pglite } = resolveSearchProvider(settings)
+
+  if (elasticsearch) {
+    try {
+      const result = await elasticsearch.search(query)
+      return successResponse(c, result)
+    } catch (error) {
+      logger.error(
+        'search',
+        'Elasticsearch query failed, falling back to PGlite',
+        {
+          error: String(error)
+        }
+      )
+    }
+  }
+
   const result = await handleDatabaseOperation(
-    () => fullTextSearchOnMessages(query),
+    () => pglite.search(query),
     'Failed to search messages'
   )
   return successResponse(c, result)
@@ -144,6 +163,7 @@ chat.post('/', async (c) => {
   const saveUserMsgPromise = saveMessages({
     messages: [toDbRow(userMessage, id)]
   })
+  indexMessagesInBackground([toDbRow(userMessage, id)], c.get('settings'))
 
   const lcmPromise = lcm
     ? lcm
@@ -435,9 +455,9 @@ chat.post('/', async (c) => {
 
         // Persist new messages to DB
         if (newMessages.length > 0) {
-          await saveMessages({
-            messages: newMessages.map((m) => toDbRow(m, id))
-          })
+          const rows = newMessages.map((m) => toDbRow(m, id))
+          await saveMessages({ messages: rows })
+          indexMessagesInBackground(rows, c.get('settings'))
         }
 
         // ── POST-CHAT: async memory operations (non-blocking) ──────────────
@@ -518,6 +538,15 @@ chat.delete('/:id', async (c) => {
     () => deleteChatById({ id }),
     'Failed to delete chat'
   )
+
+  const { elasticsearch } = resolveSearchProvider(c.get('settings'))
+  if (elasticsearch) {
+    elasticsearch.deleteByChatId(id).catch((error) => {
+      logger.error('search', 'Failed to delete chat from Elasticsearch', {
+        error: String(error)
+      })
+    })
+  }
 
   return deletionSuccessResponse(c, 'Chat')
 })
