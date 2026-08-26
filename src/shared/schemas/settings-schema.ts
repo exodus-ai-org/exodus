@@ -14,6 +14,16 @@ const optionalUrl = z
     { message: 'Invalid URL' }
   )
 
+// Stricter variant of `optionalUrl` that also requires an explicit http(s)
+// scheme. `optionalUrl` accepts scheme-less values like `localhost:9200`, which
+// the Elasticsearch client rejects at construction time ("Invalid protocol") —
+// so that field has to be caught at save time instead. Deliberately NOT applied
+// to the other provider URL fields, whose looser behavior is relied upon.
+const optionalHttpUrl = optionalUrl.refine(
+  (val) => val == null || val === '' || /^https?:\/\//.test(val),
+  { message: 'Must start with http:// or https://' }
+)
+
 // HTML <input type="number"> emits string values via onChange, so RHF stores
 // strings while the user is typing. Wrap numeric fields with this preprocess
 // to coerce on validation: '' → undefined, '1.5' → 1.5, anything non-numeric
@@ -75,7 +85,7 @@ export const WebSearchSchema = z.object({
 })
 
 export const ElasticsearchSchema = z.object({
-  url: optionalUrl,
+  url: optionalHttpUrl,
   username: z.string().nullish(),
   password: z.string().nullish(),
   indexName: z.string().nullish() // defaults to 'exodus-messages' if unset

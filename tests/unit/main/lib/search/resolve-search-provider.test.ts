@@ -37,4 +37,26 @@ describe('resolveSearchProvider', () => {
     const { elasticsearch } = resolveSearchProvider(settings)
     expect(elasticsearch).not.toBeNull()
   })
+
+  // The Elasticsearch Client constructor throws synchronously on a malformed
+  // node URL. `resolveSearchProvider` runs on unguarded hot paths (notably
+  // `indexMessagesInBackground` inside `POST /api/chat`), so it must swallow
+  // that and degrade to PGlite rather than take the whole request down.
+  it.each([
+    ['a scheme-less host:port', 'localhost:9200'],
+    ['an unparseable url', 'not a url']
+  ])('falls back to PGlite for %s', (_label, url) => {
+    const settings = {
+      ...baseSettings,
+      search: { elasticsearch: { url } }
+    } as Settings
+
+    let resolved: ReturnType<typeof resolveSearchProvider> | undefined
+    expect(() => {
+      resolved = resolveSearchProvider(settings)
+    }).not.toThrow()
+
+    expect(resolved!.elasticsearch).toBeNull()
+    expect(resolved!.pglite).toBeDefined()
+  })
 })
