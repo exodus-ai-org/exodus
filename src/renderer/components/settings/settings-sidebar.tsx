@@ -5,6 +5,7 @@ import {
   Sidebar,
   SidebarContent,
   SidebarGroup,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -22,37 +23,40 @@ export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar {...props} collapsible="none" className="select-none">
       <SidebarContent className="no-scrollbar">
-        <SidebarGroup>
-          <SidebarMenu className="gap-1">
-            {menus.navMain.map((item) => (
-              <SidebarMenuItem key={item.title}>
-                <SidebarMenuButton
-                  isActive={item.title === active}
-                  onClick={() => {
-                    setActive(item.title)
-                  }}
-                >
-                  {item.icon && <item.icon />}
-                  {item.title}
-                </SidebarMenuButton>
-                {item.items?.length ? (
-                  <SidebarMenuSub>
-                    {item.items.map((item) => (
-                      <SidebarMenuSubItem key={item.title}>
-                        <SidebarMenuSubButton
-                          isActive={item.title === active}
-                          onClick={() => setActive(item.title)}
-                        >
-                          {item.title}
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    ))}
-                  </SidebarMenuSub>
-                ) : null}
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
-        </SidebarGroup>
+        {menus.navMain.map((group) => (
+          <SidebarGroup key={group.label}>
+            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+            <SidebarMenu className="gap-1">
+              {group.items.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    isActive={item.title === active}
+                    onClick={() => {
+                      setActive(item.title)
+                    }}
+                  >
+                    {item.icon && <item.icon />}
+                    {item.title}
+                  </SidebarMenuButton>
+                  {item.items?.length ? (
+                    <SidebarMenuSub>
+                      {item.items.map((item) => (
+                        <SidebarMenuSubItem key={item.title}>
+                          <SidebarMenuSubButton
+                            isActive={item.title === active}
+                            onClick={() => setActive(item.title)}
+                          >
+                            {item.title}
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  ) : null}
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroup>
+        ))}
       </SidebarContent>
     </Sidebar>
   )

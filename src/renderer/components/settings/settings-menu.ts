@@ -47,83 +47,74 @@ export type SettingsPage = SettingsLabel | AiProviders
 export const menus = {
   navMain: [
     {
-      title: SettingsLabel.General,
-      icon: CogIcon
-    },
-    {
-      title: SettingsLabel.Personality,
-      icon: UserIcon
-    },
-    {
-      title: SettingsLabel.AiProviders,
-      icon: HandCoinsIcon,
+      label: 'General',
       items: [
-        { title: AiProviders.OpenAiGpt },
-        { title: AiProviders.AzureOpenAi },
-        { title: AiProviders.AnthropicClaude },
-        { title: AiProviders.GoogleGemini },
-        { title: AiProviders.XaiGrok },
-        { title: AiProviders.Ollama }
+        { title: SettingsLabel.General, icon: CogIcon },
+        { title: SettingsLabel.Personality, icon: UserIcon },
+        { title: SettingsLabel.AboutExodus, icon: InfoIcon }
       ]
     },
     {
-      icon: WrenchIcon,
-      title: SettingsLabel.BuiltinTools,
+      label: 'AI & Providers',
       items: [
-        { title: SettingsLabel.WebSearch },
-        { title: SettingsLabel.GoogleMaps },
-        { title: SettingsLabel.ImageGeneration },
-        { title: SettingsLabel.DeepResearch }
+        {
+          title: SettingsLabel.AiProviders,
+          icon: HandCoinsIcon,
+          items: [
+            { title: AiProviders.OpenAiGpt },
+            { title: AiProviders.AzureOpenAi },
+            { title: AiProviders.AnthropicClaude },
+            { title: AiProviders.GoogleGemini },
+            { title: AiProviders.XaiGrok },
+            { title: AiProviders.Ollama }
+          ]
+        }
       ]
     },
     {
-      icon: AudioLinesIcon,
-      title: SettingsLabel.AudioAndSpeech
+      label: 'Capabilities',
+      items: [
+        {
+          icon: WrenchIcon,
+          title: SettingsLabel.BuiltinTools,
+          items: [
+            { title: SettingsLabel.WebSearch },
+            { title: SettingsLabel.GoogleMaps },
+            { title: SettingsLabel.ImageGeneration },
+            { title: SettingsLabel.DeepResearch }
+          ]
+        },
+        { icon: SearchIcon, title: SettingsLabel.Search },
+        { icon: NetworkIcon, title: SettingsLabel.GraphRag },
+        { icon: GlobeIcon, title: SettingsLabel.BrowserUse },
+        { icon: ComputerIcon, title: SettingsLabel.ComputerUse },
+        { icon: MemoryStickIcon, title: SettingsLabel.MemoryLayer }
+      ]
     },
     {
-      icon: MemoryStickIcon,
-      title: SettingsLabel.MemoryLayer
+      label: 'Integrations',
+      items: [
+        { icon: PlugIcon, title: SettingsLabel.McpServers },
+        { icon: ShoppingBagIcon, title: SettingsLabel.SkillsMarket }
+      ]
     },
     {
-      icon: ShoppingBagIcon,
-      title: SettingsLabel.SkillsMarket
+      label: 'Data & Privacy',
+      items: [
+        {
+          icon: DatabaseIcon,
+          title: SettingsLabel.DataControls,
+          items: [{ title: SettingsLabel.AmazonS3 }]
+        },
+        { icon: ScrollTextIcon, title: SettingsLabel.Logger }
+      ]
     },
     {
-      icon: PlugIcon,
-      title: SettingsLabel.McpServers
-    },
-    {
-      icon: SearchIcon,
-      title: SettingsLabel.Search
-    },
-    {
-      icon: NetworkIcon,
-      title: SettingsLabel.GraphRag
-    },
-    {
-      icon: GlobeIcon,
-      title: SettingsLabel.BrowserUse
-    },
-    {
-      icon: ComputerIcon,
-      title: SettingsLabel.ComputerUse
-    },
-    {
-      icon: DatabaseIcon,
-      title: SettingsLabel.DataControls,
-      items: [{ title: SettingsLabel.AmazonS3 }]
-    },
-    {
-      icon: ScrollTextIcon,
-      title: SettingsLabel.Logger
-    },
-    {
-      icon: KeyboardIcon,
-      title: SettingsLabel.KeyboardShortcuts
-    },
-    {
-      icon: InfoIcon,
-      title: SettingsLabel.AboutExodus
+      label: 'Preferences',
+      items: [
+        { icon: AudioLinesIcon, title: SettingsLabel.AudioAndSpeech },
+        { icon: KeyboardIcon, title: SettingsLabel.KeyboardShortcuts }
+      ]
     }
   ]
 }

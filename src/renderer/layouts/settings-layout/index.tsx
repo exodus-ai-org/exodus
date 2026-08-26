@@ -14,9 +14,11 @@ import { settingsLabelAtom } from '@/stores/settings'
 
 // Build a child → parent lookup from the menu tree
 const parentOf = new Map<string, string>()
-for (const item of menus.navMain) {
-  for (const sub of item.items ?? []) {
-    parentOf.set(sub.title, item.title)
+for (const group of menus.navMain) {
+  for (const item of group.items) {
+    for (const sub of item.items ?? []) {
+      parentOf.set(sub.title, item.title)
+    }
   }
 }
 
