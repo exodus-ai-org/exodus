@@ -17,10 +17,8 @@ function ShortcutRow({
   onToggle: (id: string, enabled: boolean) => void
 }) {
   return (
-    <div className="flex items-center justify-between py-2">
-      <span className="text-sm">{shortcut.label}</span>
-      <div className="flex items-center gap-3">
-        <Kbd>{shortcut.keys.join(' + ')}</Kbd>
+    <div className="flex items-center gap-3 py-2">
+      <div className="flex w-9 shrink-0">
         {shortcut.toggleable !== false && (
           <Switch
             checked={!disabled}
@@ -28,6 +26,8 @@ function ShortcutRow({
           />
         )}
       </div>
+      <span className="flex-1 text-sm">{shortcut.label}</span>
+      <Kbd>{shortcut.keys.join(' + ')}</Kbd>
     </div>
   )
 }
