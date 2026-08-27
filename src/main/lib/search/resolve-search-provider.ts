@@ -14,11 +14,12 @@ export interface ResolvedSearchProvider {
 /**
  * Never throws. The Elasticsearch `Client` constructor rejects malformed node
  * URLs synchronously (e.g. `localhost:9200` → "Invalid protocol"), and this
- * function is called from hot, unguarded paths — including
- * `indexMessagesInBackground()` inside `POST /api/chat`, where a throw would
- * take down chat entirely rather than just search. A bad configuration is
- * therefore treated exactly like "not configured": log it and fall back to the
- * always-available PGlite provider.
+ * function is called from hot, unguarded paths — including the
+ * `index-message` job handler (`../jobs/handlers.ts`) enqueued from
+ * `POST /api/chat`, where a throw would take down job processing entirely
+ * rather than just search. A bad configuration is therefore treated exactly
+ * like "not configured": log it and fall back to the always-available PGlite
+ * provider.
  */
 export function resolveSearchProvider(
   settings: Settings

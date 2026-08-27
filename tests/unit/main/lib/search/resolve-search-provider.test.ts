@@ -40,8 +40,9 @@ describe('resolveSearchProvider', () => {
 
   // The Elasticsearch Client constructor throws synchronously on a malformed
   // node URL. `resolveSearchProvider` runs on unguarded hot paths (notably
-  // `indexMessagesInBackground` inside `POST /api/chat`), so it must swallow
-  // that and degrade to PGlite rather than take the whole request down.
+  // the `index-message` job handler enqueued from `POST /api/chat`), so it
+  // must swallow that and degrade to PGlite rather than take the whole
+  // request down.
   it.each([
     ['a scheme-less host:port', 'localhost:9200'],
     ['an unparseable url', 'not a url']

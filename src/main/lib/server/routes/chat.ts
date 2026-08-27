@@ -18,9 +18,7 @@ import { LcmManager } from '../../ai/context-management'
 import { getMcpTools } from '../../ai/mcp'
 import {
   formatMemoriesForSystem,
-  loadRelevantMemories,
-  runMemoryWriteJudge,
-  saveSessionSummary
+  loadRelevantMemories
 } from '../../ai/memory/manager'
 import {
   buildPersonalityPrompt,
@@ -46,8 +44,8 @@ import {
   updateChat,
   updateChatTitleById
 } from '../../db/queries'
+import { enqueueAndProcess } from '../../jobs/worker'
 import { logger } from '../../logger'
-import { indexMessagesInBackground } from '../../search/index-messages-in-background'
 import { resolveSearchProvider } from '../../search/resolve-search-provider'
 import { postRequestBodySchema, updateChatSchema } from '../schemas/chat'
 import {
@@ -163,7 +161,13 @@ chat.post('/', async (c) => {
   const saveUserMsgPromise = saveMessages({
     messages: [toDbRow(userMessage, id)]
   })
-  indexMessagesInBackground([toDbRow(userMessage, id)], c.get('settings'))
+  enqueueAndProcess('index-message', toDbRow(userMessage, id)).catch(
+    (error) => {
+      logger.error('jobs', 'Failed to enqueue index-message job', {
+        error: String(error)
+      })
+    }
+  )
 
   const lcmPromise = lcm
     ? lcm
@@ -457,60 +461,62 @@ chat.post('/', async (c) => {
         if (newMessages.length > 0) {
           const rows = newMessages.map((m) => toDbRow(m, id))
           await saveMessages({ messages: rows })
-          indexMessagesInBackground(rows, c.get('settings'))
-        }
-
-        // ── POST-CHAT: async memory operations (non-blocking) ──────────────
-        if (newMessages.length > 0) {
-          const allSavedMessages = [...allMessages, ...newMessages]
-          Promise.resolve()
-            .then(async () => {
-              // LCM: track new messages and compact — reuse pre-chat instance
-              if (lcm) {
-                await lcm.trackNewMessages(
-                  newMessages.map((m) => ({ id: m.id, content: m.content }))
-                )
-                lcm.compactAfterTurn().catch((err) => {
-                  logger.error('chat', 'LCM compactAfterTurn failed', {
-                    error: String(err)
-                  })
-                })
-              }
-
-              // Memory write judge + session summary — gated on memoryAutoWrite
-              if (memoryAutoWrite) {
-                runMemoryWriteJudge(
-                  allSavedMessages.map((m) => ({
-                    role: m.role,
-                    content: m.content
-                  })),
-                  chatModel,
-                  apiKey
-                ).catch((err) => {
-                  logger.error('chat', 'Memory write judge failed', {
-                    error: String(err)
-                  })
-                })
-                saveSessionSummary(
-                  id,
-                  allSavedMessages.map((m) => ({
-                    role: m.role,
-                    content: m.content
-                  })),
-                  chatModel,
-                  apiKey
-                ).catch((err) => {
-                  logger.error('chat', 'Session summary failed', {
-                    error: String(err)
-                  })
-                })
-              }
-            })
-            .catch((err) => {
-              logger.error('chat', 'Post-response operation failed', {
-                error: String(err)
+          for (const row of rows) {
+            enqueueAndProcess('index-message', row).catch((error) => {
+              logger.error('jobs', 'Failed to enqueue index-message job', {
+                error: String(error)
               })
             })
+          }
+        }
+
+        // ── POST-CHAT: enqueue background jobs (non-blocking) ───────────────
+        if (newMessages.length > 0) {
+          const allSavedMessages = [...allMessages, ...newMessages]
+
+          if (lcm) {
+            enqueueAndProcess('lcm-post-turn', {
+              chatId: id,
+              chatModel,
+              apiKey,
+              freshTailSize: memoryConfig?.freshTailSize ?? 16,
+              contextWindowPercent: memoryConfig?.contextWindowPercent ?? 75,
+              newMessages: newMessages.map((m) => ({
+                id: m.id,
+                content: m.content
+              }))
+            }).catch((error) => {
+              logger.error('jobs', 'Failed to enqueue lcm-post-turn job', {
+                error: String(error)
+              })
+            })
+          }
+
+          if (memoryAutoWrite) {
+            const summaryMessages = allSavedMessages.map((m) => ({
+              role: m.role,
+              content: m.content
+            }))
+            enqueueAndProcess('memory-write-judge', {
+              messages: summaryMessages,
+              chatModel,
+              apiKey
+            }).catch((error) => {
+              logger.error('jobs', 'Failed to enqueue memory-write-judge job', {
+                error: String(error)
+              })
+            })
+            enqueueAndProcess('session-summary', {
+              chatId: id,
+              messages: summaryMessages,
+              chatModel,
+              apiKey
+            }).catch((error) => {
+              logger.error('jobs', 'Failed to enqueue session-summary job', {
+                error: String(error)
+              })
+            })
+          }
         }
       } catch (err) {
         const rawMsg = err instanceof Error ? err.message : String(err)
