@@ -168,7 +168,9 @@ Supported providers (files in `src/main/lib/ai/providers/`):
 3. Bind built-in tools based on `AdvancedTools` selection
 4. Stream via `agentLoop` from `@mariozechner/pi-agent-core` for multi-step tool execution
 5. Stream response back to renderer
-6. On completion: save messages, evaluate memory write, generate session summary
+6. On completion: save messages; enqueue background jobs (search indexing,
+   LCM compaction, memory-write judge, session summary) onto the pgmq-backed
+   job queue (`src/main/lib/jobs/`) rather than running them inline
 
 **Tool Architecture** (`src/main/lib/ai/calling-tools/`):
 Each tool has a description for LLM understanding, a Zod input schema, and an execute function.
@@ -516,6 +518,13 @@ Main process:
 - `src/main/lib/ai/memory/` — memory + session summary
 - `src/main/lib/lock/` — app lock (PIN, gate, idle)
 - `src/main/lib/db/` — Drizzle schema + queries (PGlite)
+- `src/main/lib/search/` — pluggable full-text search (PGlite default,
+  optional Elasticsearch — see `resolveSearchProvider()`)
+- `src/main/lib/jobs/` — durable job queue (pgmq-backed): `queries.ts`
+  (enqueue/read/archive), `handlers.ts` (per-queue job logic), `worker.ts`
+  (`enqueueAndProcess()` + periodic sweep); decouples chat.ts's post-turn
+  side effects (search indexing, LCM compaction, memory-write judge,
+  session summary) from the request/response cycle
 - `src/main/lib/ipc.ts` — main-process IPC handlers
 - `src/main/lib/paths.ts` — `~/.exodus` path helpers
 
