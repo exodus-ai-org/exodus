@@ -5,7 +5,16 @@ import { handlers } from './handlers'
 import { archiveMessage, enqueueJob, readBatch } from './queries'
 import { QUEUE_NAMES, type QueueName } from './types'
 
-const VISIBILITY_TIMEOUT_SECONDS = 30
+/**
+ * Deliberately generous: it must exceed the slowest realistic handler runtime,
+ * or the periodic sweep re-reads a message that is still being processed and
+ * runs its handler a second time concurrently (`lcm-post-turn`'s
+ * `compactAfterTurn` can run up to 10 rounds of LLM summarization and routinely
+ * outlives a 30-second window). It costs nothing in the happy path —
+ * `enqueueAndProcess`'s immediate kick already handles low-latency processing,
+ * so this value only governs crash-recovery timing.
+ */
+const VISIBILITY_TIMEOUT_SECONDS = 300
 const BATCH_SIZE = 5
 const MAX_READ_COUNT = 5
 
@@ -17,7 +26,7 @@ const MAX_READ_COUNT = 5
  * archived anyway so a permanently-broken payload doesn't retry forever.
  *
  * Known limitation — not every job type can actually trigger this
- * retry/give-up logic, because two of the four handlers in `./handlers`
+ * retry/give-up logic, because three of the four handlers in `./handlers`
  * wrap functions that catch and log their own errors internally and never
  * rethrow:
  *
@@ -65,7 +74,15 @@ export async function processQueue(queueName: QueueName): Promise<void> {
           `Giving up on ${queueName} job after ${msg.readCt} attempts`,
           { msgId: msg.msgId }
         )
-        await archiveMessage(queueName, msg.msgId)
+        // Guarded: an unhandled rejection here would propagate out of
+        // `processQueue` and skip every remaining message in the batch, not
+        // just this one.
+        await archiveMessage(queueName, msg.msgId).catch((archiveError) => {
+          logger.error('jobs', `Failed to archive gave-up ${queueName} job`, {
+            msgId: msg.msgId,
+            error: String(archiveError)
+          })
+        })
       }
     }
   }
@@ -86,6 +103,23 @@ export async function enqueueAndProcess(
     logger.error('jobs', `Immediate processing kick failed for ${queueName}`, {
       error: String(error)
     })
+  })
+}
+
+/**
+ * Shared `.catch` reporter for `enqueueAndProcess` call sites.
+ *
+ * Deliberately logs neither `error.message` nor the payload: a Drizzle
+ * `DrizzleQueryError`'s message embeds the failing query *and its bound
+ * parameters*, and job payloads carry `apiKey` (three of the four queues) and
+ * full message content (`index-message`) — all of which would otherwise land in
+ * plaintext in `~/.exodus/logs/*.jsonl`. `error.name` alone is safe and still
+ * distinguishes error types.
+ */
+export function logEnqueueFailure(queueName: QueueName, error: unknown): void {
+  logger.error('jobs', `Failed to enqueue ${queueName} job`, {
+    queueName,
+    errorName: error instanceof Error ? error.name : typeof error
   })
 }
 

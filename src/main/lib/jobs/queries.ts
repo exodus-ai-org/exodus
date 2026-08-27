@@ -34,9 +34,15 @@ export async function readBatch(
   }))
 }
 
+/**
+ * The `::bigint` cast is required, not cosmetic: pgmq overloads `archive` as
+ * both `archive(text, bigint)` and `archive(text, bigint[])`, and an untyped
+ * bound parameter matches neither ("function pgmq.archive(unknown, unknown) is
+ * not unique"). Covered by `queries.integration.test.ts`.
+ */
 export async function archiveMessage(
   queueName: QueueName,
   msgId: number
 ): Promise<void> {
-  await db.execute(sql`SELECT pgmq.archive(${queueName}, ${msgId})`)
+  await db.execute(sql`SELECT pgmq.archive(${queueName}, ${msgId}::bigint)`)
 }

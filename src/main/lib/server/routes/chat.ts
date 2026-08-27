@@ -44,7 +44,7 @@ import {
   updateChat,
   updateChatTitleById
 } from '../../db/queries'
-import { enqueueAndProcess } from '../../jobs/worker'
+import { enqueueAndProcess, logEnqueueFailure } from '../../jobs/worker'
 import { logger } from '../../logger'
 import { resolveSearchProvider } from '../../search/resolve-search-provider'
 import { postRequestBodySchema, updateChatSchema } from '../schemas/chat'
@@ -161,12 +161,8 @@ chat.post('/', async (c) => {
   const saveUserMsgPromise = saveMessages({
     messages: [toDbRow(userMessage, id)]
   })
-  enqueueAndProcess('index-message', toDbRow(userMessage, id)).catch(
-    (error) => {
-      logger.error('jobs', 'Failed to enqueue index-message job', {
-        error: String(error)
-      })
-    }
+  enqueueAndProcess('index-message', toDbRow(userMessage, id)).catch((error) =>
+    logEnqueueFailure('index-message', error)
   )
 
   const lcmPromise = lcm
@@ -462,11 +458,9 @@ chat.post('/', async (c) => {
           const rows = newMessages.map((m) => toDbRow(m, id))
           await saveMessages({ messages: rows })
           for (const row of rows) {
-            enqueueAndProcess('index-message', row).catch((error) => {
-              logger.error('jobs', 'Failed to enqueue index-message job', {
-                error: String(error)
-              })
-            })
+            enqueueAndProcess('index-message', row).catch((error) =>
+              logEnqueueFailure('index-message', error)
+            )
           }
         }
 
@@ -485,11 +479,7 @@ chat.post('/', async (c) => {
                 id: m.id,
                 content: m.content
               }))
-            }).catch((error) => {
-              logger.error('jobs', 'Failed to enqueue lcm-post-turn job', {
-                error: String(error)
-              })
-            })
+            }).catch((error) => logEnqueueFailure('lcm-post-turn', error))
           }
 
           if (memoryAutoWrite) {
@@ -501,21 +491,13 @@ chat.post('/', async (c) => {
               messages: summaryMessages,
               chatModel,
               apiKey
-            }).catch((error) => {
-              logger.error('jobs', 'Failed to enqueue memory-write-judge job', {
-                error: String(error)
-              })
-            })
+            }).catch((error) => logEnqueueFailure('memory-write-judge', error))
             enqueueAndProcess('session-summary', {
               chatId: id,
               messages: summaryMessages,
               chatModel,
               apiKey
-            }).catch((error) => {
-              logger.error('jobs', 'Failed to enqueue session-summary job', {
-                error: String(error)
-              })
-            })
+            }).catch((error) => logEnqueueFailure('session-summary', error))
           }
         }
       } catch (err) {

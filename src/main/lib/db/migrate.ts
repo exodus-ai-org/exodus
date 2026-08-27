@@ -15,16 +15,6 @@ export const runMigrate = async () => {
     const start = performance.now()
     await pglite.waitReady
     await pglite.exec('CREATE EXTENSION IF NOT EXISTS vector;')
-    await pglite.exec('CREATE EXTENSION IF NOT EXISTS pgmq;')
-    for (const queueName of QUEUE_NAMES) {
-      try {
-        await pglite.exec(`SELECT pgmq.create('${queueName}');`)
-      } catch {
-        // Queue already exists from a previous run — pgmq.create is not
-        // guaranteed idempotent across versions, so tolerate the error
-        // rather than checking existence first.
-      }
-    }
     await migrate(db, {
       migrationsFolder: is.dev
         ? join(cwd(), './resources/drizzle')
@@ -40,6 +30,26 @@ export const runMigrate = async () => {
     await pglite.exec(
       `ALTER TABLE "task" ADD COLUMN IF NOT EXISTS "lastRunStatus" varchar;`
     )
+
+    // Job-queue setup runs AFTER the Drizzle migrations on purpose. No
+    // migration in resources/drizzle references pgmq, and `@electric-sql/
+    // pglite-pgmq`'s peer range does not cover this project's pinned PGlite
+    // version — so if the extension ever fails to install, that must not take
+    // the core schema migrations down with it (the outer catch below only
+    // notifies; it does not rethrow).
+    await pglite.exec('CREATE EXTENSION IF NOT EXISTS pgmq;')
+    for (const queueName of QUEUE_NAMES) {
+      try {
+        await pglite.exec(`SELECT pgmq.create('${queueName}');`)
+      } catch (error) {
+        // Usually just "queue already exists from a previous run" — pgmq.create
+        // is not guaranteed idempotent across versions, so tolerate it rather
+        // than checking existence first. Logged so a genuine failure is visible.
+        logger.error('jobs', `Failed to create queue ${queueName}`, {
+          error: String(error)
+        })
+      }
+    }
 
     const end = performance.now()
     logger.info('migration', 'Migrations completed', {

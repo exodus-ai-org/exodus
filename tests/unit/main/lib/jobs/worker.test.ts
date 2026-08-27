@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockReadBatch = vi.fn()
 const mockArchiveMessage = vi.fn()
@@ -23,8 +23,16 @@ vi.mock('@main/lib/logger', () => ({
   logger: { error: vi.fn(), info: vi.fn() }
 }))
 
-const { processQueue, enqueueAndProcess } =
+const { logger } = await import('@main/lib/logger')
+const { processQueue, enqueueAndProcess, logEnqueueFailure } =
   await import('@main/lib/jobs/worker')
+
+beforeEach(() => {
+  vi.clearAllMocks()
+  // Faithful to the real signature: `archiveMessage` returns a promise, and
+  // `processQueue` attaches a `.catch` to it on the give-up path.
+  mockArchiveMessage.mockResolvedValue(undefined)
+})
 
 describe('processQueue', () => {
   it('archives a message after its handler succeeds', async () => {
@@ -44,7 +52,17 @@ describe('processQueue', () => {
       { msgId: 2, readCt: 1, message: { id: 'msg-2' } }
     ])
     mockIndexMessageHandler.mockRejectedValueOnce(new Error('boom'))
-    mockArchiveMessage.mockClear()
+
+    await processQueue('index-message')
+
+    expect(mockArchiveMessage).not.toHaveBeenCalled()
+  })
+
+  it('leaves a failed message alone on the last attempt below the cap', async () => {
+    mockReadBatch.mockResolvedValueOnce([
+      { msgId: 4, readCt: 4, message: { id: 'msg-4' } }
+    ])
+    mockIndexMessageHandler.mockRejectedValueOnce(new Error('boom'))
 
     await processQueue('index-message')
 
@@ -56,11 +74,26 @@ describe('processQueue', () => {
       { msgId: 3, readCt: 5, message: { id: 'msg-3' } }
     ])
     mockIndexMessageHandler.mockRejectedValueOnce(new Error('boom'))
-    mockArchiveMessage.mockClear()
 
     await processQueue('index-message')
 
     expect(mockArchiveMessage).toHaveBeenCalledWith('index-message', 3)
+  })
+
+  it('keeps processing the batch when the give-up archive itself fails', async () => {
+    mockReadBatch.mockResolvedValueOnce([
+      { msgId: 10, readCt: 5, message: { id: 'msg-10' } },
+      { msgId: 11, readCt: 0, message: { id: 'msg-11' } }
+    ])
+    mockIndexMessageHandler.mockRejectedValueOnce(new Error('boom'))
+    mockIndexMessageHandler.mockResolvedValue(undefined)
+    mockArchiveMessage.mockRejectedValueOnce(new Error('archive exploded'))
+
+    await expect(processQueue('index-message')).resolves.toBeUndefined()
+
+    // The second message still got handled and archived.
+    expect(mockIndexMessageHandler).toHaveBeenCalledWith({ id: 'msg-11' })
+    expect(mockArchiveMessage).toHaveBeenCalledWith('index-message', 11)
   })
 
   it('processes an empty batch without error', async () => {
@@ -81,5 +114,37 @@ describe('enqueueAndProcess', () => {
     expect(mockEnqueueJob).toHaveBeenCalledWith('index-message', {
       id: 'msg-1'
     })
+  })
+})
+
+describe('logEnqueueFailure', () => {
+  it('logs the queue name and error name but never the message or payload', () => {
+    // A DrizzleQueryError's message embeds the query text *and* its bound
+    // parameters, which for these queues include API keys and message content.
+    const error = new Error(
+      'Failed query: SELECT * FROM pgmq.send($1, $2::jsonb) params: session-summary,{"apiKey":"sk-super-secret"}'
+    )
+    error.name = 'DrizzleQueryError'
+
+    logEnqueueFailure('session-summary', error)
+
+    expect(logger.error).toHaveBeenCalledWith(
+      'jobs',
+      'Failed to enqueue session-summary job',
+      { queueName: 'session-summary', errorName: 'DrizzleQueryError' }
+    )
+    expect(JSON.stringify(vi.mocked(logger.error).mock.calls)).not.toContain(
+      'sk-super-secret'
+    )
+  })
+
+  it('falls back to typeof for non-Error rejections', () => {
+    logEnqueueFailure('index-message', 'plain string rejection')
+
+    expect(logger.error).toHaveBeenCalledWith(
+      'jobs',
+      'Failed to enqueue index-message job',
+      { queueName: 'index-message', errorName: 'string' }
+    )
   })
 })
