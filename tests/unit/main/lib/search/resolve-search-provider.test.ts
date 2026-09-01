@@ -60,4 +60,30 @@ describe('resolveSearchProvider', () => {
     expect(resolved!.elasticsearch).toBeNull()
     expect(resolved!.pglite).toBeDefined()
   })
+
+  // Cache tests use their own unique URLs so module-level cache state from
+  // other tests in this file can't leak in and produce a false pass.
+  it('reuses the same provider instance for an unchanged config', () => {
+    const settings = {
+      ...baseSettings,
+      search: { elasticsearch: { url: 'http://cache-test-1:9200' } }
+    } as Settings
+    const first = resolveSearchProvider(settings).elasticsearch
+    const second = resolveSearchProvider(settings).elasticsearch
+    expect(first).toBe(second)
+  })
+
+  it('creates a new provider instance when the config changes', () => {
+    const settingsA = {
+      ...baseSettings,
+      search: { elasticsearch: { url: 'http://cache-test-2a:9200' } }
+    } as Settings
+    const settingsB = {
+      ...baseSettings,
+      search: { elasticsearch: { url: 'http://cache-test-2b:9200' } }
+    } as Settings
+    const a = resolveSearchProvider(settingsA).elasticsearch
+    const b = resolveSearchProvider(settingsB).elasticsearch
+    expect(a).not.toBe(b)
+  })
 })

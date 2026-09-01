@@ -1,6 +1,9 @@
 import type { Settings } from '../db/schema'
 import { logger } from '../logger'
-import { createElasticsearchProvider } from './providers/elasticsearch-search'
+import {
+  createElasticsearchProvider,
+  type ElasticsearchProviderConfig
+} from './providers/elasticsearch-search'
 import { pgliteSearchProvider } from './providers/pglite-search'
 import type { SearchProvider } from './types'
 
@@ -9,6 +12,23 @@ export interface ResolvedSearchProvider {
   elasticsearch: SearchProvider | null
   /** Always available — the unconditional baseline. */
   pglite: SearchProvider
+}
+
+// resolveSearchProvider() runs on every chat turn (job enqueue, search,
+// delete) — cache the ES provider (and its underlying Client/connection
+// pool) keyed by config so we don't open a fresh client on every call.
+// Invalidated automatically: a config change produces a different key, so
+// the old entry is simply never reused (and gets garbage collected).
+let cachedKey: string | null = null
+let cachedProvider: SearchProvider | null = null
+
+function configKey(config: ElasticsearchProviderConfig): string {
+  return JSON.stringify([
+    config.url,
+    config.username ?? '',
+    config.password ?? '',
+    config.indexName ?? ''
+  ])
 }
 
 /**
@@ -28,18 +48,25 @@ export function resolveSearchProvider(
   let elasticsearch: SearchProvider | null = null
 
   if (config?.url && config.url !== '') {
-    try {
-      elasticsearch = createElasticsearchProvider({
-        ...config,
-        url: config.url
-      })
-    } catch (error) {
-      logger.error(
-        'search',
-        'Invalid Elasticsearch configuration, falling back to PGlite',
-        { error: String(error) }
-      )
-      elasticsearch = null
+    const key = configKey({ ...config, url: config.url })
+    if (cachedProvider && cachedKey === key) {
+      elasticsearch = cachedProvider
+    } else {
+      try {
+        elasticsearch = createElasticsearchProvider({
+          ...config,
+          url: config.url
+        })
+        cachedKey = key
+        cachedProvider = elasticsearch
+      } catch (error) {
+        logger.error(
+          'search',
+          'Invalid Elasticsearch configuration, falling back to PGlite',
+          { error: String(error) }
+        )
+        elasticsearch = null
+      }
     }
   }
 

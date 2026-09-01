@@ -140,6 +140,10 @@ export async function updateChatTitleById({
   }
 }
 
+// Currently unused (zero call sites) — kept for a future message-edit
+// feature. NOTE: if wired up, this must also recompute `searchText` via
+// `extractSearchableText()`, the same way `saveMessages()` does — otherwise
+// an edited message's old text stays searchable and its new text doesn't.
 export async function updateMessage({
   id,
   content
@@ -217,6 +221,21 @@ export async function fullTextSearchOnMessages(query: string) {
   }
 }
 
+/**
+ * Reorders `rows` to match `ids`'s order. `inArray()`'s WHERE clause gives
+ * no ordering guarantee, so without this an external ranking (e.g.
+ * Elasticsearch relevance order, which is exactly what `ids` carries when
+ * called from `elasticsearch-search.ts`'s `search()`) is lost by the time
+ * results reach the caller.
+ */
+export function orderByIds<T extends { id: string }>(
+  rows: T[],
+  ids: string[]
+): T[] {
+  const rank = new Map(ids.map((id, i) => [id, i]))
+  return [...rows].sort((a, b) => (rank.get(a.id) ?? 0) - (rank.get(b.id) ?? 0))
+}
+
 export async function getMessagesWithTitleByIds(
   ids: string[]
 ): Promise<Array<Message & { title: string }>> {
@@ -227,12 +246,14 @@ export async function getMessagesWithTitleByIds(
       .from(message)
       .where(inArray(message.id, ids))
 
-    return await Promise.all(
+    const withTitles = await Promise.all(
       messages.map(async (m) => {
         const chat = await getChatById({ id: m.chatId })
         return { ...m, title: chat.title }
       })
     )
+
+    return orderByIds(withTitles, ids)
   } catch (error) {
     logDbError('Failed to get messages by ids', error)
     throw error
