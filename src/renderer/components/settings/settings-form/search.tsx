@@ -55,7 +55,11 @@ export function Search({ form }: { form: UseFormReturnType }) {
           can't segment Chinese, Japanese, or Korean text. Configure a
           self-hosted or cloud Elasticsearch cluster below to enable full-text
           search across all languages. This is optional; leave the URL empty to
-          keep using the built-in search.
+          keep using the built-in search. Exodus only reads and writes documents
+          to your cluster's index — for the best CJK relevance, configure a
+          language-aware analyzer (e.g. <code>ik</code>, <code>smartcn</code>,
+          or the built-in <code>cjk</code>) on your cluster before pointing
+          Exodus at it.
         </AlertDescription>
       </Alert>
 
