@@ -400,7 +400,10 @@ Separate renderer entry points under `src/renderer/sub-apps/`: `searchbar`, `qui
 - SWR hooks for server data fetching with automatic revalidation
 - Always use path alias `@` for renderer imports
 - Tailwind + Radix UI for consistent styling
-- Toast notifications via `sonner` library
+- Toast notifications via `sileo` (mounted once as `<AppToaster />` per
+  layout — chat/settings/philharmonic); `sonner`'s `Toaster` is a leftover
+  shadcn primitive (`components/ui/sonner.tsx`) that is never mounted, so
+  `sonner`'s `toast()` calls render nothing — use `sileo` instead
 
 ### Security Considerations
 

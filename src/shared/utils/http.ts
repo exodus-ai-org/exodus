@@ -62,6 +62,13 @@ export class HttpError extends Error {
   }
 }
 
+// Backend validation/server errors arrive as HttpError with a specific
+// message (e.g. a Zod 400); anything else (network drop, etc.) has no
+// message worth surfacing to the user.
+export function getHttpErrorMessage(err: unknown): string | undefined {
+  return err instanceof HttpError ? err.message : undefined
+}
+
 export async function fetcher<T>(
   url: string,
   options: HttpFetchOptions = {}

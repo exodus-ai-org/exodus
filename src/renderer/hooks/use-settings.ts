@@ -1,16 +1,9 @@
-import { HttpError } from '@shared/utils/http'
+import { getHttpErrorMessage } from '@shared/utils/http'
 import { sileo } from 'sileo'
 import type { Settings } from 'src/shared/schemas/settings-schema'
 import useSWR from 'swr'
 
 import { updateSettings as updateSettingsService } from '@/services/settings'
-
-// Backend validation/server errors arrive as HttpError with a specific
-// message (e.g. a Zod 400); anything else (network drop, etc.) has no
-// message worth surfacing, so the toast falls back to a generic title.
-export function resolveSettingsErrorMessage(err: unknown): string | undefined {
-  return err instanceof HttpError ? err.message : undefined
-}
 
 export function useSettings() {
   const { data, error, isLoading, mutate } = useSWR<Settings>('/api/settings')
@@ -21,7 +14,7 @@ export function useSettings() {
     } catch (err) {
       sileo.error({
         title: 'Failed to save settings',
-        description: resolveSettingsErrorMessage(err)
+        description: getHttpErrorMessage(err)
       })
       return
     }

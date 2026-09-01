@@ -1,10 +1,10 @@
 import { TEST_IDS } from '@shared/constants/test-ids'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
-import { fetcher } from '@shared/utils/http'
+import { fetcher, getHttpErrorMessage } from '@shared/utils/http'
 import { AlertCircleIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Controller } from 'react-hook-form'
-import { toast } from 'sonner'
+import { sileo } from 'sileo'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -22,9 +22,12 @@ export function Search({ form }: { form: UseFormReturnType }) {
       await fetcher('/api/settings/search/test-connection', {
         method: 'POST'
       })
-      toast.success('Connected to Elasticsearch')
-    } catch {
-      toast.error('Failed to connect to Elasticsearch')
+      sileo.success({ title: 'Connected to Elasticsearch' })
+    } catch (err) {
+      sileo.error({
+        title: 'Failed to connect to Elasticsearch',
+        description: getHttpErrorMessage(err)
+      })
     } finally {
       setIsTesting(false)
     }
@@ -37,9 +40,12 @@ export function Search({ form }: { form: UseFormReturnType }) {
         '/api/settings/search/reindex',
         { method: 'POST' }
       )
-      toast.success(`Reindexed ${result.count} messages`)
-    } catch {
-      toast.error('Failed to reindex messages')
+      sileo.success({ title: `Reindexed ${result.count} messages` })
+    } catch (err) {
+      sileo.error({
+        title: 'Failed to reindex messages',
+        description: getHttpErrorMessage(err)
+      })
     } finally {
       setIsReindexing(false)
     }
