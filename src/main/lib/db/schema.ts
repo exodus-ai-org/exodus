@@ -102,9 +102,12 @@ export const message = pgTable(
     createdAt: timestamp('createdAt').defaultNow().notNull()
   },
   (table) => [
+    // gin_trgm_ops (pg_trgm) — not to_tsvector — so ILIKE substring matching
+    // works uniformly across languages, including CJK text that Postgres's
+    // built-in text-search parser doesn't segment into words at all.
     index('message_search_index').using(
       'gin',
-      sql`to_tsvector('simple', ${table.searchText})`
+      sql`${table.searchText} gin_trgm_ops`
     )
   ]
 )

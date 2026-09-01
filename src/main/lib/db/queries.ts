@@ -1,6 +1,6 @@
 import { ErrorCode } from '@shared/constants/error-codes'
 import { DatabaseError } from '@shared/errors/app-error'
-import { and, asc, desc, eq, inArray, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, ilike, inArray, sql } from 'drizzle-orm'
 
 import { logger } from '../logger'
 import { extractSearchableText } from '../search/extract-searchable-text'
@@ -195,14 +195,39 @@ export async function updateArtifactCodeByArtifactId({
   }
 }
 
+/**
+ * Escapes LIKE/ILIKE's three special characters (`%`, `_`, and the escape
+ * character itself, `\`) so a literal search term containing them is matched
+ * literally instead of as a wildcard. Postgres's default LIKE escape
+ * character is `\`, so no explicit `ESCAPE` clause is needed at the call
+ * site as long as this is applied first.
+ */
+export function escapeLikePattern(term: string): string {
+  return term.replace(/\\/g, '\\\\').replace(/%/g, '\\%').replace(/_/g, '\\_')
+}
+
+/**
+ * Strict substring matching via `pg_trgm` (not Postgres's built-in text
+ * search), so CJK text — which the built-in parser doesn't segment into
+ * words at all — is matched the same way as any other language: literal
+ * character sequences, not "word" boundaries. A multi-word query requires
+ * every word to appear somewhere in the message (AND), not necessarily
+ * adjacent or in order — e.g. "北京 烤鸭" matches a message containing both
+ * "北京" and "烤鸭" anywhere, matching how most search boxes behave.
+ */
 export async function fullTextSearchOnMessages(query: string) {
   try {
+    const words = query.trim().split(/\s+/).filter(Boolean)
+    if (words.length === 0) return []
+
+    const conditions = words.map((word) =>
+      ilike(message.searchText, `%${escapeLikePattern(word)}%`)
+    )
+
     const messages = await db
       .select()
       .from(message)
-      .where(
-        sql`to_tsvector('simple', ${message.searchText}) @@ websearch_to_tsquery('simple', ${query})`
-      )
+      .where(and(...conditions))
 
     const searchResults = await Promise.all(
       messages.map(async (message) => {

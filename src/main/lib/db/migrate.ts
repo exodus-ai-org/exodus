@@ -15,6 +15,9 @@ export const runMigrate = async () => {
     const start = performance.now()
     await pglite.waitReady
     await pglite.exec('CREATE EXTENSION IF NOT EXISTS vector;')
+    // pg_trgm backs the message search index (gin_trgm_ops) — must exist
+    // before the migration that creates that index runs.
+    await pglite.exec('CREATE EXTENSION IF NOT EXISTS pg_trgm;')
     await migrate(db, {
       migrationsFolder: is.dev
         ? join(cwd(), './resources/drizzle')
