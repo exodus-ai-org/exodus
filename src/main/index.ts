@@ -6,7 +6,10 @@ import { setupAutoUpdater } from './lib/auto-updater'
 import { startBackupScheduler } from './lib/backup'
 import { pglite } from './lib/db/db'
 import { runMigrate } from './lib/db/migrate'
-import { cleanupStaleWaitingTasks } from './lib/db/philharmonic-queries'
+import {
+  cleanupStaleRunningTasks,
+  cleanupStaleWaitingTasks
+} from './lib/db/philharmonic-queries'
 import { getSettings } from './lib/db/queries'
 import { setupIPC } from './lib/ipc'
 import { IdleWatcher } from './lib/lock/idle-watcher'
@@ -56,6 +59,12 @@ app.whenReady().then(async () => {
   cleanupOldLogs()
   await cleanupStaleWaitingTasks().catch((err) => {
     logger.warn('app', 'Failed to cleanup stale waiting tasks', {
+      error: String(err),
+      stack: err instanceof Error ? err.stack : undefined
+    })
+  })
+  await cleanupStaleRunningTasks().catch((err) => {
+    logger.warn('app', 'Failed to cleanup stale running tasks', {
       error: String(err),
       stack: err instanceof Error ? err.stack : undefined
     })
