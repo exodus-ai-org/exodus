@@ -571,3 +571,7 @@ Docs:
 
 - `docs/superpowers/specs/` — design specs
 - `docs/superpowers/plans/` — implementation plans
+- `docs/elasticsearch-setup.md` — end-user guide for configuring a
+  self-hosted/cloud Elasticsearch cluster for Exodus's optional search
+  upgrade (Exodus is consumer-only — never creates the index/mapping
+  itself, see `src/main/lib/search/`)
