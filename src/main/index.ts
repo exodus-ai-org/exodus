@@ -4,6 +4,7 @@ import { app, BrowserWindow, globalShortcut, powerMonitor } from 'electron'
 import { migrateSharedArtifacts } from './lib/ai/artifacts-migration'
 import { setupAutoUpdater } from './lib/auto-updater'
 import { startBackupScheduler } from './lib/backup'
+import { pglite } from './lib/db/db'
 import { runMigrate } from './lib/db/migrate'
 import { cleanupStaleWaitingTasks } from './lib/db/philharmonic-queries'
 import { getSettings } from './lib/db/queries'
@@ -137,6 +138,27 @@ app.on('window-all-closed', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
-app.on('will-quit', () => {
+let hasClosedPglite = false
+app.on('will-quit', (event) => {
   globalShortcut.unregisterAll()
+
+  // Ensure a clean Postgres shutdown (which always performs a shutdown
+  // checkpoint) before the process exits, so the on-disk data directory is
+  // left in a consistent, restorable state regardless of the periodic
+  // auto-checkpoint interval. will-quit fires once; guard against
+  // re-entering after we re-trigger app.quit() below.
+  if (hasClosedPglite || pglite.closed) return
+  event.preventDefault()
+  pglite
+    .close()
+    .catch((err) => {
+      logger.error('app', 'Failed to close PGlite cleanly on quit', {
+        error: String(err),
+        stack: err instanceof Error ? err.stack : undefined
+      })
+    })
+    .finally(() => {
+      hasClosedPglite = true
+      app.quit()
+    })
 })

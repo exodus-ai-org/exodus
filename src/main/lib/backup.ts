@@ -23,6 +23,12 @@ export async function createAutoBackup(): Promise<string> {
 
   logger.info('app', 'Creating auto backup', { filePath })
 
+  // Force a checkpoint before dumping so pg_control's redo LSN is current.
+  // Without this, a WAL segment can wrap past the last real checkpoint
+  // between backups, making the dump unrestorable
+  // (`PANIC: could not locate a valid checkpoint record`) even though the
+  // dump itself succeeded.
+  await pglite.exec('CHECKPOINT')
   const blob = await pglite.dumpDataDir('gzip')
   const buffer = Buffer.from(await blob.arrayBuffer())
   await writeFile(filePath, buffer)
