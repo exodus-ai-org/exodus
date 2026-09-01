@@ -46,7 +46,10 @@ import {
 } from '../../db/queries'
 import { enqueueAndProcess, logEnqueueFailure } from '../../jobs/worker'
 import { logger } from '../../logger'
-import { resolveSearchProvider } from '../../search/resolve-search-provider'
+import {
+  resolveSearchProvider,
+  searchWithFallback
+} from '../../search/resolve-search-provider'
 import { postRequestBodySchema, updateChatSchema } from '../schemas/chat'
 import {
   deletionSuccessResponse,
@@ -69,25 +72,8 @@ const chat = new Hono<{ Variables: Variables }>()
 chat.get('/search', async (c) => {
   const query = c.req.query('query') ?? ''
   const settings = c.get('settings')
-  const { elasticsearch, pglite } = resolveSearchProvider(settings)
-
-  if (elasticsearch) {
-    try {
-      const result = await elasticsearch.search(query)
-      return successResponse(c, result)
-    } catch (error) {
-      logger.error(
-        'search',
-        'Elasticsearch query failed, falling back to PGlite',
-        {
-          error: String(error)
-        }
-      )
-    }
-  }
-
   const result = await handleDatabaseOperation(
-    () => pglite.search(query),
+    () => searchWithFallback(settings, query),
     'Failed to search messages'
   )
   return successResponse(c, result)

@@ -5,7 +5,7 @@ import {
   type ElasticsearchProviderConfig
 } from './providers/elasticsearch-search'
 import { pgliteSearchProvider } from './providers/pglite-search'
-import type { SearchProvider } from './types'
+import type { SearchHit, SearchProvider } from './types'
 
 export interface ResolvedSearchProvider {
   /** null when Elasticsearch isn't configured. */
@@ -71,4 +71,31 @@ export function resolveSearchProvider(
   }
 
   return { elasticsearch, pglite: pgliteSearchProvider }
+}
+
+/**
+ * Searches via Elasticsearch when configured, falling back to PGlite on any
+ * query-time failure (unreachable cluster, auth error, timeout) so search
+ * never goes fully dark because a self-hosted cluster isn't running. When
+ * Elasticsearch isn't configured at all, queries PGlite directly.
+ */
+export async function searchWithFallback(
+  settings: Settings,
+  query: string
+): Promise<SearchHit[]> {
+  const { elasticsearch, pglite } = resolveSearchProvider(settings)
+
+  if (elasticsearch) {
+    try {
+      return await elasticsearch.search(query)
+    } catch (error) {
+      logger.error(
+        'search',
+        'Elasticsearch query failed, falling back to PGlite',
+        { error: String(error) }
+      )
+    }
+  }
+
+  return pglite.search(query)
 }
