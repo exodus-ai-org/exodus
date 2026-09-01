@@ -81,9 +81,7 @@ settingsRouter.post('/search/reindex', async (c) => {
     'Failed to load messages for reindexing'
   )
 
-  for (const row of rows) {
-    await elasticsearch.indexMessage(row)
-  }
+  await elasticsearch.bulkIndexMessages(rows)
 
   return successResponse(c, { count: rows.length })
 })

@@ -2,10 +2,15 @@ import { Client } from '@elastic/elasticsearch'
 import type { Message } from '@main/lib/db/schema'
 import { describe, expect, it, vi } from 'vitest'
 
+// logger.ts transitively imports Electron for its log-directory resolution.
+vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
+vi.mock('@electron-toolkit/utils', () => ({ is: { dev: true } }))
+
 const mockIndex = vi.fn()
 const mockSearch = vi.fn()
 const mockDeleteByQuery = vi.fn()
 const mockInfo = vi.fn()
+const mockBulk = vi.fn()
 const mockGetMessagesWithTitleByIds = vi.fn()
 
 vi.mock('@elastic/elasticsearch', () => ({
@@ -14,7 +19,8 @@ vi.mock('@elastic/elasticsearch', () => ({
       index: mockIndex,
       search: mockSearch,
       deleteByQuery: mockDeleteByQuery,
-      info: mockInfo
+      info: mockInfo,
+      helpers: { bulk: mockBulk }
     }
   })
 }))
@@ -205,5 +211,36 @@ describe('createElasticsearchProvider', () => {
     })
 
     await expect(provider.ping()).rejects.toThrow('connection refused')
+  })
+
+  it('bulk-indexes only messages with a non-null searchText', async () => {
+    mockBulk.mockClear()
+    mockBulk.mockResolvedValue({ total: 1, failed: 0, successful: 1 })
+
+    const provider = createElasticsearchProvider({
+      url: 'http://localhost:9200'
+    })
+    await provider.bulkIndexMessages([
+      baseMessage,
+      { ...baseMessage, id: 'msg-2', searchText: null }
+    ])
+
+    expect(mockBulk).toHaveBeenCalledTimes(1)
+    const options = mockBulk.mock.calls[0][0]
+    expect(options.datasource).toEqual([baseMessage])
+    expect(options.onDocument(baseMessage)).toEqual({
+      index: { _index: 'exodus-messages', _id: 'msg-1' }
+    })
+  })
+
+  it('skips the bulk call entirely when there is nothing to index', async () => {
+    mockBulk.mockClear()
+
+    const provider = createElasticsearchProvider({
+      url: 'http://localhost:9200'
+    })
+    await provider.bulkIndexMessages([{ ...baseMessage, searchText: null }])
+
+    expect(mockBulk).not.toHaveBeenCalled()
   })
 })

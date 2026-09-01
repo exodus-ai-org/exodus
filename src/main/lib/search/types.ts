@@ -4,6 +4,8 @@ export type SearchHit = Message & { title: string }
 
 export interface SearchProvider {
   indexMessage(message: Message): Promise<void>
+  /** Batched form of `indexMessage`, for reindexing existing history. */
+  bulkIndexMessages(messages: Message[]): Promise<void>
   deleteByChatId(chatId: string): Promise<void>
   /** Clears the whole index — mirrors a full `resetAllData()` on the DB side. */
   deleteAll(): Promise<void>

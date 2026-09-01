@@ -2,6 +2,7 @@ import { Client } from '@elastic/elasticsearch'
 
 import { getMessagesWithTitleByIds } from '../../db/queries'
 import type { Message } from '../../db/schema'
+import { logger } from '../../logger'
 import type { SearchProvider } from '../types'
 
 export interface ElasticsearchProviderConfig {
@@ -44,6 +45,36 @@ export function createElasticsearchProvider(
           createdAt: message.createdAt
         }
       })
+    },
+
+    async bulkIndexMessages(messages: Message[]) {
+      const documents = messages.filter(
+        (m): m is Message & { searchText: string } => !!m.searchText
+      )
+      if (documents.length === 0) return
+      const stats = await client.helpers.bulk({
+        datasource: documents,
+        onDocument(doc) {
+          return { index: { _index: indexName, _id: doc.id } }
+        },
+        // client.helpers.bulk() already continues past a dropped document on
+        // its own (its internal retry loop calls this synchronously, so it
+        // must never throw) — log-and-continue makes drops visible instead
+        // of silent, without disrupting the helper's own bookkeeping.
+        onDrop(dropped) {
+          logger.error('search', 'Bulk index dropped a document', {
+            id: dropped.document?.id,
+            error: dropped.error
+          })
+        }
+      })
+      if (stats.failed > 0) {
+        logger.error('search', 'Bulk index completed with failures', {
+          failed: stats.failed,
+          successful: stats.successful,
+          total: stats.total
+        })
+      }
     },
 
     async deleteByChatId(chatId: string) {

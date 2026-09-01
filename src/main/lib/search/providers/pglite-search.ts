@@ -11,6 +11,7 @@ import type { SearchProvider } from '../types'
  */
 export const pgliteSearchProvider: SearchProvider = {
   indexMessage: async () => {},
+  bulkIndexMessages: async () => {},
   deleteByChatId: async () => {},
   deleteAll: async () => {},
   async search(query) {
