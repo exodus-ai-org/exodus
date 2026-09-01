@@ -8,4 +8,10 @@ export interface SearchProvider {
   /** Clears the whole index — mirrors a full `resetAllData()` on the DB side. */
   deleteAll(): Promise<void>
   search(query: string): Promise<SearchHit[]>
+  /**
+   * Pure connectivity/health check — must not depend on the index existing
+   * (so it works against a freshly-configured cluster before anything has
+   * been indexed) or on any data being present.
+   */
+  ping(): Promise<void>
 }

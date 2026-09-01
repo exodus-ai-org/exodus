@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 const mockIndex = vi.fn()
 const mockSearch = vi.fn()
 const mockDeleteByQuery = vi.fn()
+const mockInfo = vi.fn()
 const mockGetMessagesWithTitleByIds = vi.fn()
 
 vi.mock('@elastic/elasticsearch', () => ({
@@ -12,7 +13,8 @@ vi.mock('@elastic/elasticsearch', () => ({
     return {
       index: mockIndex,
       search: mockSearch,
-      deleteByQuery: mockDeleteByQuery
+      deleteByQuery: mockDeleteByQuery,
+      info: mockInfo
     }
   })
 }))
@@ -177,5 +179,31 @@ describe('createElasticsearchProvider', () => {
 
     expect(results).toEqual([])
     expect(mockGetMessagesWithTitleByIds).not.toHaveBeenCalled()
+  })
+
+  it('pings via client.info() rather than a query against the index', async () => {
+    mockInfo.mockResolvedValue({ cluster_name: 'test' })
+    mockSearch.mockClear()
+
+    const provider = createElasticsearchProvider({
+      url: 'http://localhost:9200'
+    })
+    await provider.ping()
+
+    // Must not go through search()/deleteByQuery() — those depend on the
+    // index existing, so a freshly-configured cluster would otherwise
+    // report itself as unreachable.
+    expect(mockInfo).toHaveBeenCalledTimes(1)
+    expect(mockSearch).not.toHaveBeenCalled()
+  })
+
+  it('propagates a ping failure so callers can distinguish reachable from not', async () => {
+    mockInfo.mockRejectedValueOnce(new Error('connection refused'))
+
+    const provider = createElasticsearchProvider({
+      url: 'http://localhost:9200'
+    })
+
+    await expect(provider.ping()).rejects.toThrow('connection refused')
   })
 })

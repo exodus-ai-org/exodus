@@ -75,6 +75,14 @@ export function createElasticsearchProvider(
         .filter((id): id is string => typeof id === 'string')
       if (ids.length === 0) return []
       return getMessagesWithTitleByIds(ids)
+    },
+
+    async ping() {
+      // `client.info()` is a pure cluster-info read — unlike `search()`, it
+      // doesn't require `indexName` to exist yet, so it correctly reports a
+      // freshly-configured cluster as reachable instead of failing with
+      // `index_not_found_exception` before anything has been indexed.
+      await client.info()
     }
   }
 }

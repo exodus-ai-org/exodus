@@ -15,5 +15,7 @@ export const pgliteSearchProvider: SearchProvider = {
   deleteAll: async () => {},
   async search(query) {
     return fullTextSearchOnMessages(query)
-  }
+  },
+  // Always reachable — it's the local, unconditional baseline.
+  ping: async () => {}
 }

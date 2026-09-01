@@ -51,10 +51,10 @@ settingsRouter.post('/search/test-connection', async (c) => {
   }
 
   try {
-    // A no-op search doubles as a connectivity check without requiring a
-    // separate client handle — any hits array (even empty) means the
-    // cluster answered.
-    await elasticsearch.search('')
+    // ping() (not search()) so a freshly-configured cluster — with no index
+    // created yet — reports as reachable instead of failing with
+    // index_not_found_exception before anything has ever been indexed.
+    await elasticsearch.ping()
     return successResponse(c, { ok: true })
   } catch (error) {
     throw new ValidationError(
