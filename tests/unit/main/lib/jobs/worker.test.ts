@@ -14,8 +14,7 @@ vi.mock('@main/lib/jobs/handlers', () => ({
   handlers: {
     'index-message': mockIndexMessageHandler,
     'lcm-post-turn': vi.fn(),
-    'memory-write-judge': vi.fn(),
-    'session-summary': vi.fn()
+    'memory-consolidate': vi.fn()
   }
 }))
 
@@ -122,16 +121,16 @@ describe('logEnqueueFailure', () => {
     // A DrizzleQueryError's message embeds the query text *and* its bound
     // parameters, which for these queues include API keys and message content.
     const error = new Error(
-      'Failed query: SELECT * FROM pgmq.send($1, $2::jsonb) params: session-summary,{"apiKey":"sk-super-secret"}'
+      'Failed query: SELECT * FROM pgmq.send($1, $2::jsonb) params: memory-consolidate,{"apiKey":"sk-super-secret"}'
     )
     error.name = 'DrizzleQueryError'
 
-    logEnqueueFailure('session-summary', error)
+    logEnqueueFailure('memory-consolidate', error)
 
     expect(logger.error).toHaveBeenCalledWith(
       'jobs',
-      'Failed to enqueue session-summary job',
-      { queueName: 'session-summary', errorName: 'DrizzleQueryError' }
+      'Failed to enqueue memory-consolidate job',
+      { queueName: 'memory-consolidate', errorName: 'DrizzleQueryError' }
     )
     expect(JSON.stringify(vi.mocked(logger.error).mock.calls)).not.toContain(
       'sk-super-secret'

@@ -95,7 +95,7 @@ export function KeyboardShortcuts() {
   }
 
   return (
-    <SettingsSection>
+    <SettingsSection plain>
       <div className="flex flex-col gap-6">
         {Array.from(grouped.entries()).map(([category, shortcuts]) => (
           <ShortcutGroup

@@ -7,7 +7,7 @@ import {
   ChartTooltipContent,
   type ChartConfig
 } from '@/components/ui/chart'
-import { cn } from '@/lib/utils'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { getAgents } from '@/services/philharmonic'
 import {
   getPhilharmonicCosts,
@@ -36,7 +36,7 @@ function formatTokens(n: number) {
 const chartConfig = {
   cost: {
     label: 'Cost',
-    color: 'var(--ph-primary)'
+    color: 'var(--primary)'
   }
 } satisfies ChartConfig
 
@@ -58,28 +58,21 @@ function KpiCard({
   hint?: string
 }) {
   return (
-    <div
-      className="rounded-[var(--ph-radius-lg)] p-3.5"
-      style={{ background: 'var(--ph-surface-sunken)' }}
-    >
+    <div className="bg-muted rounded-xl p-3.5">
       <div className="mb-2 flex items-start justify-between">
-        <span className="text-[11.5px] text-[var(--ph-text-muted)]">
-          {label}
-        </span>
+        <span className="text-muted-foreground text-[11.5px]">{label}</span>
         <span
-          className="flex h-7 w-7 items-center justify-center rounded-[var(--ph-radius-md)] text-sm"
+          className="flex h-7 w-7 items-center justify-center rounded-lg text-sm"
           style={{ background: iconBg, color: iconColor }}
         >
           {icon}
         </span>
       </div>
-      <div className="text-[22px] font-bold text-[var(--ph-text)] tabular-nums">
+      <div className="text-foreground text-[22px] font-bold tabular-nums">
         {value}
       </div>
       {hint && (
-        <div className="mt-0.5 text-[11px] text-[var(--ph-text-muted)]">
-          {hint}
-        </div>
+        <div className="text-muted-foreground mt-0.5 text-[11px]">{hint}</div>
       )}
     </div>
   )
@@ -95,15 +88,12 @@ function AgentCostList({
   agentsById: Record<string, AgentData>
 }) {
   return (
-    <div
-      className="rounded-[var(--ph-radius-lg)] p-3.5"
-      style={{ background: 'var(--ph-surface-sunken)' }}
-    >
-      <div className="mb-2 text-[12.5px] font-semibold text-[var(--ph-text)]">
+    <div className="bg-muted rounded-xl p-3.5">
+      <div className="text-foreground mb-2 text-[12.5px] font-semibold">
         Cost by employee
       </div>
       {rows.length === 0 ? (
-        <div className="py-6 text-center text-xs text-[var(--ph-text-muted)]">
+        <div className="text-muted-foreground py-6 text-center text-xs">
           No employee usage data yet
         </div>
       ) : (
@@ -114,8 +104,7 @@ function AgentCostList({
             return (
               <div
                 key={r.agentId}
-                className="flex items-center gap-2.5 rounded-[var(--ph-radius-md)] px-2 py-2"
-                style={{ background: 'var(--ph-surface)' }}
+                className="bg-card flex items-center gap-2.5 rounded-lg px-2 py-2"
               >
                 {agent ? (
                   <EmployeeAvatar
@@ -124,20 +113,17 @@ function AgentCostList({
                     size={30}
                   />
                 ) : (
-                  <div
-                    className="h-[30px] w-[30px] rounded-full"
-                    style={{ background: 'var(--ph-canvas)' }}
-                  />
+                  <div className="bg-background h-[30px] w-[30px] rounded-full" />
                 )}
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-xs font-semibold text-[var(--ph-text)]">
+                  <div className="text-foreground truncate text-xs font-semibold">
                     {label}
                   </div>
-                  <div className="text-[10.5px] text-[var(--ph-text-muted)]">
+                  <div className="text-muted-foreground text-[10.5px]">
                     {formatTokens(r.tokens)} tokens
                   </div>
                 </div>
-                <div className="text-xs font-semibold text-[var(--ph-text)] tabular-nums">
+                <div className="text-foreground text-xs font-semibold tabular-nums">
                   {formatCost(r.cost)}
                 </div>
               </div>
@@ -155,15 +141,12 @@ function ConversationCostList({
   rows: PhilharmonicCostSummary['byConversation']
 }) {
   return (
-    <div
-      className="rounded-[var(--ph-radius-lg)] p-3.5"
-      style={{ background: 'var(--ph-surface-sunken)' }}
-    >
-      <div className="mb-2 text-[12.5px] font-semibold text-[var(--ph-text)]">
+    <div className="bg-muted rounded-xl p-3.5">
+      <div className="text-foreground mb-2 text-[12.5px] font-semibold">
         Cost by conversation
       </div>
       {rows.length === 0 ? (
-        <div className="py-6 text-center text-xs text-[var(--ph-text-muted)]">
+        <div className="text-muted-foreground py-6 text-center text-xs">
           No conversation usage data yet
         </div>
       ) : (
@@ -171,16 +154,15 @@ function ConversationCostList({
           {rows.map((r) => (
             <div
               key={r.conversationId}
-              className="flex items-center gap-2.5 rounded-[var(--ph-radius-md)] px-2 py-2"
-              style={{ background: 'var(--ph-surface)' }}
+              className="bg-card flex items-center gap-2.5 rounded-lg px-2 py-2"
             >
-              <div className="min-w-0 flex-1 truncate font-mono text-[10.5px] text-[var(--ph-text-muted)]">
+              <div className="text-muted-foreground min-w-0 flex-1 truncate font-mono text-[10.5px]">
                 {r.conversationId.slice(0, 12)}…
               </div>
-              <div className="text-[10.5px] text-[var(--ph-text-muted)] tabular-nums">
+              <div className="text-muted-foreground text-[10.5px] tabular-nums">
                 {formatTokens(r.tokens)}
               </div>
-              <div className="text-xs font-semibold text-[var(--ph-text)] tabular-nums">
+              <div className="text-foreground text-xs font-semibold tabular-nums">
                 {formatCost(r.cost)}
               </div>
             </div>
@@ -215,7 +197,7 @@ export function CostAnalysis() {
 
   if (!data) {
     return (
-      <div className="flex h-full items-center justify-center text-sm text-[var(--ph-text-muted)]">
+      <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
         Loading usage data…
       </div>
     )
@@ -231,41 +213,24 @@ export function CostAnalysis() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <header className="flex h-13 shrink-0 items-center justify-between border-b border-[var(--ph-border)] px-5">
+      <header className="border-border flex h-13 shrink-0 items-center justify-between border-b px-5">
         <div>
-          <h1 className="text-sm font-semibold text-[var(--ph-text)]">
-            Dashboard
-          </h1>
-          <p className="text-[11.5px] text-[var(--ph-text-muted)]">
-            {periodLabel}
-          </p>
+          <h1 className="text-foreground text-sm font-semibold">Dashboard</h1>
+          <p className="text-muted-foreground text-[11.5px]">{periodLabel}</p>
         </div>
-        <div
-          className="flex rounded-[var(--ph-radius-md)] p-0.5"
-          style={{ background: 'var(--ph-canvas)' }}
+        <ToggleGroup
+          value={[period]}
+          onValueChange={(v) => {
+            const next = (v as string[])[0]
+            if (next) setPeriod(next as Period)
+          }}
+          variant="outline"
+          size="sm"
         >
-          {(['7d', '30d', 'all'] as const).map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => setPeriod(p)}
-              className={cn(
-                'rounded-[var(--ph-radius-sm)] px-3 py-1 text-xs font-medium transition-all'
-              )}
-              style={
-                period === p
-                  ? {
-                      background: 'var(--ph-surface)',
-                      boxShadow: '0 1px 2px rgba(0,0,0,0.04)',
-                      color: 'var(--ph-text)'
-                    }
-                  : { color: 'var(--ph-text-muted)' }
-              }
-            >
-              {p === 'all' ? 'All' : p}
-            </button>
-          ))}
-        </div>
+          <ToggleGroupItem value="7d">7d</ToggleGroupItem>
+          <ToggleGroupItem value="30d">30d</ToggleGroupItem>
+          <ToggleGroupItem value="all">All</ToggleGroupItem>
+        </ToggleGroup>
       </header>
 
       <div className="flex-1 overflow-y-auto p-5">
@@ -275,8 +240,8 @@ export function CostAnalysis() {
             label="Total cost"
             value={formatCost(data.totalCost)}
             icon="$"
-            iconBg="var(--ph-primary-soft)"
-            iconColor="var(--ph-primary-ink)"
+            iconBg="var(--accent)"
+            iconColor="var(--accent-foreground)"
             hint={`Across ${agentCount} employee${agentCount === 1 ? '' : 's'}`}
           />
           <KpiCard
@@ -307,19 +272,13 @@ export function CostAnalysis() {
 
         {/* Daily chart */}
         {data.daily.length > 1 && (
-          <div
-            className="mb-4 rounded-[var(--ph-radius-lg)] p-4"
-            style={{ background: 'var(--ph-surface-sunken)' }}
-          >
+          <div className="bg-muted mb-4 rounded-xl p-4">
             <div className="mb-3 flex items-center justify-between">
-              <div className="text-[12.5px] font-semibold text-[var(--ph-text)]">
+              <div className="text-foreground text-[12.5px] font-semibold">
                 Cost over time
               </div>
-              <div className="flex items-center gap-1 text-[11px] text-[var(--ph-text-muted)]">
-                <span
-                  className="inline-block h-2 w-2 rounded-full"
-                  style={{ background: 'var(--ph-primary)' }}
-                />
+              <div className="text-muted-foreground flex items-center gap-1 text-[11px]">
+                <span className="bg-primary inline-block h-2 w-2 rounded-full" />
                 Cost
               </div>
             </div>
@@ -332,17 +291,17 @@ export function CostAnalysis() {
                   <linearGradient id="ph-cost-fill" x1="0" y1="0" x2="0" y2="1">
                     <stop
                       offset="0%"
-                      stopColor="var(--ph-primary)"
+                      stopColor="var(--primary)"
                       stopOpacity={0.4}
                     />
                     <stop
                       offset="100%"
-                      stopColor="var(--ph-primary)"
+                      stopColor="var(--primary)"
                       stopOpacity={0}
                     />
                   </linearGradient>
                 </defs>
-                <CartesianGrid vertical={false} stroke="var(--ph-border)" />
+                <CartesianGrid vertical={false} stroke="var(--border)" />
                 <XAxis
                   dataKey="date"
                   tickLine={false}
@@ -372,7 +331,7 @@ export function CostAnalysis() {
                   dataKey="cost"
                   type="natural"
                   fill="url(#ph-cost-fill)"
-                  stroke="var(--ph-primary)"
+                  stroke="var(--primary)"
                   strokeWidth={2}
                 />
               </AreaChart>

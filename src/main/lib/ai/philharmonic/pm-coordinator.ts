@@ -140,11 +140,11 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
   // PhilharmonicLcm hydrates the LLM history: when within budget it's a
   // straight conversion of every persisted message; when over, it replaces
   // the oldest turns with a rolling summary it maintains itself. Settings
-  // pulled from memoryLayer mirror what Chat's LCM uses.
+  // pulled from the memory settings mirror what Chat's LCM uses.
   const lcm = new PhilharmonicLcm(conversationId, chatModel, apiKey, {
-    enabled: setting.memoryLayer?.lcmEnabled ?? true,
-    contextWindowPercent: setting.memoryLayer?.contextWindowPercent ?? 75,
-    freshTailSize: setting.memoryLayer?.freshTailSize ?? 16
+    enabled: setting.memory?.lcmEnabled ?? true,
+    contextWindowPercent: setting.memory?.contextWindowPercent ?? 75,
+    freshTailSize: setting.memory?.freshTailSize ?? 16
   })
   const history = await lcm.assembleContext(excludeMessageId)
   // KB is scoped to teams whose members are in this conversation. General docs

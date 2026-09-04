@@ -2,6 +2,7 @@
 import { Plus, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   Select,
@@ -103,12 +104,12 @@ export function KnowledgeBasePage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <header className="flex h-13 shrink-0 items-center justify-between border-b border-[var(--ph-border)] px-5">
+      <header className="border-border flex h-13 shrink-0 items-center justify-between border-b px-5">
         <div>
-          <h1 className="text-sm font-semibold text-[var(--ph-text)]">
+          <h1 className="text-foreground text-sm font-semibold">
             Knowledge Base
           </h1>
-          <p className="text-[11.5px] text-[var(--ph-text-muted)]">
+          <p className="text-muted-foreground text-[11.5px]">
             {docs.length} {docs.length === 1 ? 'document' : 'documents'} ·{' '}
             {totalChars.toLocaleString()} characters · {teamLabel}
           </p>
@@ -128,30 +129,20 @@ export function KnowledgeBasePage() {
               <section key={b.key}>
                 <div className="mb-2 flex items-center gap-2 px-1">
                   <span
-                    className="flex h-7 w-7 items-center justify-center rounded-[var(--ph-radius-md)] text-sm"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg text-sm"
                     style={hueStyle(pickHue(b.key))}
                   >
                     {b.icon ?? '📁'}
                   </span>
-                  <div className="text-[12.5px] font-semibold text-[var(--ph-text)]">
+                  <div className="text-foreground text-[12.5px] font-semibold">
                     {b.label}
                   </div>
-                  <span
-                    className="rounded-full px-2 py-0.5 text-[10px]"
-                    style={{
-                      background: 'var(--ph-canvas)',
-                      color: 'var(--ph-text-muted)'
-                    }}
-                  >
+                  <span className="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-[10px]">
                     {b.docs.length}
                   </span>
                   {b.teamId === null && (
                     <span
-                      className="rounded-[var(--ph-radius-sm)] px-1.5 py-0.5 text-[10px]"
-                      style={{
-                        background: 'var(--ph-primary-soft)',
-                        color: 'var(--ph-primary-ink)'
-                      }}
+                      className="bg-accent text-accent-foreground rounded-md px-1.5 py-0.5 text-[10px]"
                       title="Visible to every Group"
                     >
                       shared
@@ -163,20 +154,19 @@ export function KnowledgeBasePage() {
                   {b.docs.map((d) => (
                     <div
                       key={d.id}
-                      className="group flex items-start gap-3 rounded-[var(--ph-radius-lg)] px-3.5 py-3 transition-shadow hover:shadow-[var(--ph-shadow-hover)]"
-                      style={{ background: 'var(--ph-surface-sunken)' }}
+                      className="group bg-muted hover:bg-accent flex items-start gap-3 rounded-xl px-3.5 py-3 transition-colors"
                     >
                       <div
-                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[var(--ph-radius-md)] text-base"
+                        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-base"
                         style={hueStyle(pickHue(d.id))}
                       >
                         📄
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h3 className="truncate text-sm font-semibold text-[var(--ph-text)]">
+                        <h3 className="text-foreground truncate text-sm font-semibold">
                           {d.title}
                         </h3>
-                        <p className="line-clamp-2 text-xs text-[var(--ph-text-muted)]">
+                        <p className="text-muted-foreground line-clamp-2 text-xs">
                           {d.content}
                         </p>
                       </div>
@@ -187,7 +177,7 @@ export function KnowledgeBasePage() {
                           setDocs((p) => p.filter((x) => x.id !== d.id))
                         }}
                         aria-label="Delete document"
-                        className="rounded-[var(--ph-radius-sm)] p-1 text-[var(--ph-text-muted)] opacity-0 transition-opacity group-hover:opacity-100 hover:bg-[var(--ph-canvas)]"
+                        className="text-muted-foreground hover:bg-background rounded-md p-1 opacity-0 transition-opacity group-hover:opacity-100"
                       >
                         <Trash2 className="h-3.5 w-3.5" />
                       </button>
@@ -199,24 +189,21 @@ export function KnowledgeBasePage() {
           )}
         </div>
 
-        <div
-          className="flex flex-col gap-2 rounded-[var(--ph-radius-lg)] p-3.5"
-          style={{ background: 'var(--ph-surface-sunken)' }}
-        >
-          <div className="text-[11px] tracking-wider text-[var(--ph-text-muted)] uppercase">
+        <div className="bg-muted flex flex-col gap-2 rounded-xl p-3.5">
+          <div className="text-muted-foreground text-[11px] tracking-wider uppercase">
             New document
           </div>
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Title"
-            className="rounded-[var(--ph-radius-md)] border-[var(--ph-border)] bg-[var(--ph-surface)]"
+            className="border-border bg-card rounded-lg"
           />
           <Select
             value={draftTeamKey}
             onValueChange={(v) => v && setDraftTeamKey(v)}
           >
-            <SelectTrigger className="rounded-[var(--ph-radius-md)] border-[var(--ph-border)] bg-[var(--ph-surface)]">
+            <SelectTrigger className="border-border bg-card rounded-lg">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -233,19 +220,19 @@ export function KnowledgeBasePage() {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             placeholder="Body"
-            className="min-h-40 rounded-[var(--ph-radius-md)] border-[var(--ph-border)] bg-[var(--ph-surface)]"
+            className="border-border bg-card min-h-40 rounded-lg"
           />
-          <button
+          <Button
             type="button"
+            size="sm"
             onClick={add}
             disabled={!canAdd}
-            className="flex w-full items-center justify-center gap-1 rounded-[var(--ph-radius-md)] py-2 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-            style={{ background: 'var(--ph-primary)' }}
+            className="w-full"
           >
             <Plus className="h-3.5 w-3.5" />
             Add document
-          </button>
-          <p className="px-1 text-[10.5px] text-[var(--ph-text-muted)]">
+          </Button>
+          <p className="text-muted-foreground px-1 text-[10.5px]">
             General docs are visible to every Group. Team docs only appear when
             a member of that team is in the Group.
           </p>

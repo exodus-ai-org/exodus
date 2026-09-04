@@ -1,6 +1,6 @@
 import type { Attachment, ChatMessage, Usage } from '@shared/types/chat'
 import { useAtom, useAtomValue } from 'jotai'
-import { CircleStopIcon, SendIcon } from 'lucide-react'
+import { ArrowUpIcon, CircleStopIcon } from 'lucide-react'
 import {
   ChangeEvent,
   ClipboardEvent,
@@ -19,13 +19,10 @@ import { useUpload } from '@/hooks/use-upload'
 import { cn } from '@/lib/utils'
 import { chatInputAtom, chatStatusAtom, chatStopFnAtom } from '@/stores/input'
 
-import { AdvancedTools } from './advanced-tools'
 import { AudioRecorder } from './audio-recoder'
-import { AvailableMcpTools } from './available-mcp-tools'
+import { ActiveToolPills, ComposerToolsButton } from './composer-tools'
 import { FilePreview } from './file-preview'
-import { MultiModelInputUploader } from './multimodel-input-uploader'
 import { Button } from './ui/button'
-import { Separator } from './ui/separator'
 import { Textarea } from './ui/textarea'
 
 function InputBox({
@@ -123,20 +120,22 @@ function InputBox({
   return (
     <div
       className={cn(
-        'mx-auto flex w-[calc(100%-8rem)] flex-col md:max-w-4xl',
+        'mx-auto flex w-[calc(100%-8rem)] flex-col md:max-w-3xl',
         !id && 'mb-4'
       )}
     >
-      <div className="z-1 flex flex-col gap-1 rounded-xl border p-2 shadow-xs">
-        <form>
-          <FilePreview />
+      <div className="border-border/60 bg-card focus-within:border-border/90 z-1 flex flex-col gap-1.5 rounded-[28px] border px-2.5 py-2 shadow-[0_2px_6px_rgb(0_0_0/0.04),0_10px_28px_rgb(0_0_0/0.06)] transition-colors">
+        <FilePreview />
+        <ActiveToolPills />
+        <div className="flex items-end gap-1">
+          <ComposerToolsButton />
           <Textarea
             ref={textareaRef}
             placeholder="Ask anything"
             value={input}
             onChange={handleInput}
-            className="max-h-[75dvh] min-h-16 resize-none border-none bg-transparent! py-1 shadow-none focus-visible:ring-0"
-            rows={3}
+            className="max-h-[45dvh] min-h-8 flex-1 resize-none border-none bg-transparent! px-1 py-1.5 shadow-none focus-visible:ring-0"
+            rows={1}
             autoFocus
             onKeyDown={(event) => {
               if (event.key === 'Enter' && !event.shiftKey) {
@@ -164,34 +163,31 @@ function InputBox({
             }}
             onPaste={handlePaste}
           />
-        </form>
-        <div className="flex items-center justify-between px-1">
-          <div className="flex items-center gap-1.5">
-            <MultiModelInputUploader />
-            <Separator orientation="vertical" className="h-5!" />
-            <AdvancedTools />
-            <AvailableMcpTools />
-          </div>
 
           {status === 'submitted' || status === 'streaming' ? (
-            <Button variant="secondary" onClick={stop ?? undefined}>
+            <Button
+              aria-label="Stop"
+              onClick={stop ?? undefined}
+              className="bg-foreground text-background hover:bg-foreground/85 size-8 shrink-0 rounded-full [&_svg]:size-[18px]"
+            >
               <CircleStopIcon />
             </Button>
+          ) : input.trim() === '' ? (
+            <AudioRecorder input={input} setInput={setInput} />
           ) : (
-            <>
-              {input.trim() === '' ? (
-                <AudioRecorder input={input} setInput={setInput} />
-              ) : (
-                <Button type="submit" variant="secondary" onClick={submitForm}>
-                  <SendIcon />
-                </Button>
-              )}
-            </>
+            <Button
+              type="button"
+              aria-label="Send"
+              onClick={submitForm}
+              className="bg-foreground text-background hover:bg-foreground/85 size-8 shrink-0 rounded-full [&_svg]:size-[18px]"
+            >
+              <ArrowUpIcon />
+            </Button>
           )}
         </div>
       </div>
       {lastUsage && (
-        <div className="text-muted-foreground flex justify-end gap-2 px-1 py-1 text-[10px]">
+        <div className="text-muted-foreground/70 flex justify-end gap-2 px-1 py-1 text-[10px]">
           <span>↑{lastUsage.input.toLocaleString()}</span>
           <span>↓{lastUsage.output.toLocaleString()}</span>
           <span>∑{lastUsage.totalTokens.toLocaleString()}</span>

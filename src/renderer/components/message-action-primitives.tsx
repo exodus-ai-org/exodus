@@ -5,6 +5,7 @@
  */
 import { ReactNode } from 'react'
 
+import { Button } from './ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
 
 export function IconWrapper({
@@ -15,13 +16,14 @@ export function IconWrapper({
   children: ReactNode
 }) {
   return (
-    <button
-      type="button"
-      className="hover:bg-secondary text-muted-foreground flex size-6 cursor-pointer items-center justify-center rounded-md transition-colors duration-150"
+    <Button
+      variant="ghost"
+      size="icon-xs"
+      className="text-muted-foreground hover:bg-secondary"
       onClick={onClick}
     >
       {children}
-    </button>
+    </Button>
   )
 }
 

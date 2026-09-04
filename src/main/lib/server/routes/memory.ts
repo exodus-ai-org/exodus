@@ -11,8 +11,8 @@ import {
   hardDeleteMemory,
   softDeleteMemory,
   updateMemory,
-  type MemorySource,
-  type MemoryType
+  type MemorySection,
+  type MemorySource
 } from '../../db/memory-queries'
 import {
   deletionSuccessResponse,
@@ -26,12 +26,12 @@ const memoryRouter = new Hono<{ Variables: Variables }>()
 
 // GET /api/memory — list all memories (active + inactive)
 memoryRouter.get('/', async (c) => {
-  const type = c.req.query('type') as MemoryType | undefined
+  const section = c.req.query('section') as MemorySection | undefined
   const rows = await handleDatabaseOperation(
     () => getAllMemories(LOCAL_USER_ID),
     'Failed to load memories'
   )
-  const filtered = type ? rows.filter((m) => m.type === type) : rows
+  const filtered = section ? rows.filter((m) => m.section === section) : rows
   return successResponse(c, filtered)
 })
 
@@ -54,17 +54,18 @@ memoryRouter.get('/:id', async (c) => {
 // POST /api/memory — create
 memoryRouter.post('/', async (c) => {
   const body = await c.req.json<{
-    type: MemoryType
+    section: MemorySection
     key: string
-    value: Record<string, unknown>
+    summary: string
+    details?: string[]
     confidence?: number
     source?: MemorySource
   }>()
 
-  if (!body.type || !body.key || !body.value) {
+  if (!body.section || !body.key || !body.summary) {
     throw new ValidationError(
       ErrorCode.VALIDATION_FAILED,
-      'type, key, and value are required'
+      'section, key, and summary are required'
     )
   }
 
@@ -72,9 +73,10 @@ memoryRouter.post('/', async (c) => {
     () =>
       createMemory({
         userId: LOCAL_USER_ID,
-        type: body.type,
+        section: body.section,
         key: body.key,
-        value: body.value,
+        summary: body.summary,
+        details: body.details,
         confidence: body.confidence,
         source: body.source ?? 'system'
       }),
@@ -87,9 +89,10 @@ memoryRouter.post('/', async (c) => {
 memoryRouter.patch('/:id', async (c) => {
   const id = getRequiredParam(c, 'id')
   const body = await c.req.json<{
-    type?: MemoryType
+    section?: MemorySection
     key?: string
-    value?: Record<string, unknown>
+    summary?: string
+    details?: string[]
     confidence?: number
     source?: MemorySource
     isActive?: boolean

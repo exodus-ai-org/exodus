@@ -37,16 +37,14 @@ const MAX_READ_COUNT = 5
  *   propagate (full retry-on-failure for that half), but `compactAfterTurn`
  *   swallows its own errors internally (best-effort only for that half) —
  *   see `LcmManager.compactAfterTurn` in `../ai/context-management`.
- * - `memory-write-judge` — best-effort only. `runMemoryWriteJudge` catches
+ * - `memory-consolidate` — best-effort only. `runMemoryConsolidation` catches
  *   and logs its own errors and never rethrows, so this handler always
- *   resolves regardless of whether the judge actually ran successfully.
- * - `session-summary` — best-effort only, same reasoning: `saveSessionSummary`
- *   never rethrows.
+ *   resolves regardless of whether consolidation actually ran successfully.
  *
  * This is a deliberate, accepted tradeoff (ruled on during the job-queue
  * decoupling plan's review), not an oversight: the old fire-and-forget code
  * had identical silent-failure behavior for these job types, and changing
- * `runMemoryWriteJudge`/`saveSessionSummary`/`compactAfterTurn`'s error
+ * `runMemoryConsolidation`/`compactAfterTurn`'s error
  * handling is explicitly out of scope for that plan. The queue still adds
  * real value for these jobs via durability across process restarts — it's
  * only the retry-on-logged-failure behavior that doesn't apply to them.

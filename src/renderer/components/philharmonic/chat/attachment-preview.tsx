@@ -16,8 +16,7 @@ export function AttachmentPreview() {
           <img
             src={a.url}
             alt={a.name}
-            className="h-12 w-12 rounded-[var(--ph-radius-md)] object-cover"
-            style={{ background: 'var(--ph-canvas)' }}
+            className="bg-background h-12 w-12 rounded-lg object-cover"
           />
           <button
             type="button"
@@ -25,11 +24,7 @@ export function AttachmentPreview() {
             onClick={() =>
               setAttachments((p) => p.filter((_, idx) => idx !== i))
             }
-            className="absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full text-white"
-            style={{
-              background: 'var(--ph-text)',
-              boxShadow: '0 0 0 2px var(--ph-surface)'
-            }}
+            className="bg-foreground text-background ring-card absolute -top-1.5 -right-1.5 flex h-4 w-4 items-center justify-center rounded-full ring-2"
           >
             <XIcon className="h-2.5 w-2.5" strokeWidth={2.5} />
           </button>

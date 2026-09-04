@@ -1,7 +1,7 @@
 import type { Model } from '@mariozechner/pi-ai'
 
 import { LcmManager } from '../ai/context-management'
-import { runMemoryWriteJudge, saveSessionSummary } from '../ai/memory/manager'
+import { runMemoryConsolidation } from '../ai/memory/manager'
 import { getSettings } from '../db/queries'
 import type { Message } from '../db/schema'
 import { extractSearchableText } from '../search/extract-searchable-text'
@@ -25,14 +25,7 @@ interface LcmPostTurnPayload {
   newMessages: Array<{ id: string; content: unknown }>
 }
 
-interface MemoryWriteJudgePayload {
-  messages: Array<{ role: string; content: unknown }>
-  chatModel: Model<string>
-  apiKey: string
-}
-
-interface SessionSummaryPayload {
-  chatId: string
+interface MemoryConsolidatePayload {
   messages: Array<{ role: string; content: unknown }>
   chatModel: Model<string>
   apiKey: string
@@ -62,13 +55,8 @@ export const handlers: Record<QueueName, (payload: unknown) => Promise<void>> =
       await lcm.compactAfterTurn()
     },
 
-    'memory-write-judge': async (payload) => {
-      const p = payload as MemoryWriteJudgePayload
-      await runMemoryWriteJudge(p.messages, p.chatModel, p.apiKey)
-    },
-
-    'session-summary': async (payload) => {
-      const p = payload as SessionSummaryPayload
-      await saveSessionSummary(p.chatId, p.messages, p.chatModel, p.apiKey)
+    'memory-consolidate': async (payload) => {
+      const p = payload as MemoryConsolidatePayload
+      await runMemoryConsolidation(p.messages, p.chatModel, p.apiKey)
     }
   }

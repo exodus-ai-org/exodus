@@ -125,9 +125,11 @@ chat.post('/', async (c) => {
     })
   }
 
-  const memoryConfig = setting.memoryLayer
+  const memoryConfig = setting.memory
   const lcmEnabled = memoryConfig?.lcmEnabled !== false
-  const memoryAutoWrite = memoryConfig?.autoWrite !== false
+  // Two independent switches: capture new memories vs. surface them into chats.
+  const memoryCapture = memoryConfig?.autoCapture !== false
+  const memoryUseInChat = memoryConfig?.useInChat !== false
 
   // ── PRE-CHAT: run independent tasks in parallel ─────────────────────────
   // 1. Save user message (fire-and-forget — ID already generated)
@@ -160,8 +162,13 @@ chat.post('/', async (c) => {
         .then((assembled) => assembled.messages.slice(0, -1))
     : Promise.resolve(allMessages.slice(0, -1).map(stripId))
 
-  const memoryPromise = memoryAutoWrite
-    ? loadRelevantMemories(getTextFromMessage(userMessage), chatModel, apiKey)
+  const memoryPromise = memoryUseInChat
+    ? loadRelevantMemories(
+        getTextFromMessage(userMessage),
+        chatModel,
+        apiKey,
+        id
+      )
         .then(formatMemoriesForSystem)
         .catch((err) => {
           logger.warn('chat', 'Memory loading failed, continuing without', {
@@ -468,22 +475,15 @@ chat.post('/', async (c) => {
             }).catch((error) => logEnqueueFailure('lcm-post-turn', error))
           }
 
-          if (memoryAutoWrite) {
-            const summaryMessages = allSavedMessages.map((m) => ({
-              role: m.role,
-              content: m.content
-            }))
-            enqueueAndProcess('memory-write-judge', {
-              messages: summaryMessages,
+          if (memoryCapture) {
+            enqueueAndProcess('memory-consolidate', {
+              messages: allSavedMessages.map((m) => ({
+                role: m.role,
+                content: m.content
+              })),
               chatModel,
               apiKey
-            }).catch((error) => logEnqueueFailure('memory-write-judge', error))
-            enqueueAndProcess('session-summary', {
-              chatId: id,
-              messages: summaryMessages,
-              chatModel,
-              apiKey
-            }).catch((error) => logEnqueueFailure('session-summary', error))
+            }).catch((error) => logEnqueueFailure('memory-consolidate', error))
           }
         }
       } catch (err) {

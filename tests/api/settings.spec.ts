@@ -71,10 +71,11 @@ test.describe('Settings API', () => {
     expect(dr.depth).toBe(2)
   })
 
-  test('POST /api/settings updates memory layer config', async ({ api }) => {
+  test('POST /api/settings updates memory config', async ({ api }) => {
     await api.updateSettings({
-      memoryLayer: {
-        autoWrite: false,
+      memory: {
+        autoCapture: false,
+        useInChat: false,
         lcmEnabled: true,
         contextWindowPercent: 80,
         freshTailSize: 32
@@ -82,13 +83,14 @@ test.describe('Settings API', () => {
     })
 
     const { data } = await api.getSettings()
-    const ml = data.memoryLayer as Record<string, unknown>
-    expect(ml.autoWrite).toBe(false)
+    const ml = data.memory as Record<string, unknown>
+    expect(ml.autoCapture).toBe(false)
+    expect(ml.useInChat).toBe(false)
     expect(ml.contextWindowPercent).toBe(80)
 
     // Restore default
     await api.updateSettings({
-      memoryLayer: { autoWrite: true, lcmEnabled: true }
+      memory: { autoCapture: true, useInChat: true, lcmEnabled: true }
     })
   })
 
@@ -122,14 +124,5 @@ test.describe('Settings API', () => {
     const search = data.search as { elasticsearch: Record<string, string> }
     expect(search.elasticsearch.url).toBe(process.env.ELASTIC_URL)
     expect(search.elasticsearch.username).toBe(process.env.ELASTIC_USERNAME)
-  })
-
-  test('POST /api/settings updates color tone', async ({ api }) => {
-    await api.updateSettings({ colorTone: 'violet' })
-    const { data } = await api.getSettings()
-    expect(data.colorTone).toBe('violet')
-
-    // Restore
-    await api.updateSettings({ colorTone: 'neutral' })
   })
 })

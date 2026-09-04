@@ -25,14 +25,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
@@ -45,6 +37,7 @@ import {
 } from '@/services/mcp-service'
 
 import { SettingsRow, SettingsSection } from '../settings-row'
+import { SettingsSelect } from '../settings-select'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -427,7 +420,7 @@ export function McpServers() {
 
         {/* ── Form Tab ─────────────────────────────────────────────────── */}
         <TabsContent value="form" className="mt-4">
-          <SettingsSection>
+          <SettingsSection plain>
             {list.length === 0 && !showForm && (
               <p className="text-muted-foreground py-8 text-center text-sm">
                 No MCP servers configured yet.
@@ -453,35 +446,20 @@ export function McpServers() {
                   description="How to connect to the MCP server"
                   layout="vertical"
                 >
-                  <Select
+                  <SettingsSelect
                     value={transportType}
                     onValueChange={(v) =>
                       setTransportType(v as McpTransportType)
                     }
-                  >
-                    <SelectTrigger>
-                      <SelectValue>
-                        {(val: string) =>
-                          ({
-                            stdio: 'Stdio (Local Command)',
-                            'streamable-http': 'Streamable HTTP (Remote)',
-                            sse: 'SSE (Remote Legacy)'
-                          })[val] ?? val
-                        }
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent className="w-full">
-                      <SelectGroup>
-                        <SelectItem value="stdio">
-                          Stdio (Local Command)
-                        </SelectItem>
-                        <SelectItem value="streamable-http">
-                          Streamable HTTP (Remote)
-                        </SelectItem>
-                        <SelectItem value="sse">SSE (Remote Legacy)</SelectItem>
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
+                    options={[
+                      { value: 'stdio', label: 'Stdio (Local Command)' },
+                      {
+                        value: 'streamable-http',
+                        label: 'Streamable HTTP (Remote)'
+                      },
+                      { value: 'sse', label: 'SSE (Remote Legacy)' }
+                    ]}
+                  />
                 </SettingsRow>
 
                 <SettingsRow

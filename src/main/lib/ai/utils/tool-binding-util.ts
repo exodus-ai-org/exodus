@@ -74,7 +74,7 @@ export function bindCallingTools({
   if (enabled('webSearch')) tools.push(webSearch(setting))
 
   // LCM recall tools: available when LCM is enabled
-  const lcmEnabled = setting.memoryLayer?.lcmEnabled !== false
+  const lcmEnabled = setting.memory?.lcmEnabled !== false
   if (lcmEnabled) {
     tools.push(lcmGrep)
     tools.push(lcmDescribe)

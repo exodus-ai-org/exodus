@@ -1,14 +1,47 @@
-import { REGEXP_ONLY_DIGITS } from 'input-otp'
+import { OTPInputContext, REGEXP_ONLY_DIGITS } from 'input-otp'
+import { useContext } from 'react'
 
 import {
   InputOTP,
   InputOTPGroup,
-  InputOTPSeparator,
-  InputOTPSlot
+  InputOTPSeparator
 } from '@/components/ui/input-otp'
 import { cn } from '@/lib/utils'
 
 const PIN_LENGTH = 6
+
+/**
+ * Masked OTP slot — renders a dot instead of the typed digit. Local to
+ * pin-input so it survives regeneration of `components/ui/input-otp`.
+ */
+function MaskedSlot({
+  index,
+  className
+}: {
+  index: number
+  className?: string
+}) {
+  const ctx = useContext(OTPInputContext)
+  const { char, hasFakeCaret, isActive } = ctx?.slots[index] ?? {}
+
+  return (
+    <div
+      data-slot="input-otp-slot"
+      data-active={isActive}
+      className={cn(
+        'border-input bg-input/50 data-[active=true]:border-ring data-[active=true]:ring-ring/30 relative flex size-8 items-center justify-center border-y border-r text-sm transition-[color,box-shadow] duration-200 outline-none first:rounded-l-2xl first:border-l last:rounded-r-2xl data-[active=true]:z-10 data-[active=true]:ring-3',
+        className
+      )}
+    >
+      {char ? <span className="bg-foreground size-2.5 rounded-full" /> : null}
+      {hasFakeCaret && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div className="animate-caret-blink bg-foreground h-4 w-px duration-1000" />
+        </div>
+      )}
+    </div>
+  )
+}
 
 /**
  * Shared 6-digit PIN entry rendered as two groups of three OTP slots split by a
@@ -31,11 +64,7 @@ export function PinInput({
   testId?: string
 }) {
   const slot = (index: number) => (
-    <InputOTPSlot
-      index={index}
-      mask
-      className={cn('rounded-md border', slotClassName)}
-    />
+    <MaskedSlot index={index} className={slotClassName} />
   )
 
   return (
@@ -49,13 +78,13 @@ export function PinInput({
         autoFocus={autoFocus}
         containerClassName="gap-3"
       >
-        <InputOTPGroup className="gap-2">
+        <InputOTPGroup>
           {slot(0)}
           {slot(1)}
           {slot(2)}
         </InputOTPGroup>
         <InputOTPSeparator />
-        <InputOTPGroup className="gap-2">
+        <InputOTPGroup>
           {slot(3)}
           {slot(4)}
           {slot(5)}

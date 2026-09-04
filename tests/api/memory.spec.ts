@@ -1,6 +1,7 @@
 /**
  * API integration tests: Memory CRUD.
- * Note: memory `value` must be Record<string, unknown>, not a plain string.
+ * A memory entry has a `section` ('profile' | 'topic' | 'person'), a `key`
+ * (title), a one-line `summary`, and an array of `details` bullets.
  */
 import { apiTest as test, expect } from '../fixtures/api-client'
 import { TestCleanup } from '../helpers/cleanup'
@@ -17,11 +18,11 @@ test.describe('Memory API', () => {
   })
 
   test('CRUD lifecycle: create, read, delete', async ({ api }) => {
-    // Create — value must be an object
     const { status, data: memory } = await api.createMemory({
-      type: 'preference',
-      key: 'test-pref',
-      value: { text: 'I prefer dark mode' },
+      section: 'profile',
+      key: 'Interface preferences',
+      summary: 'Prefers a dark, minimal UI',
+      details: ['Uses dark mode everywhere'],
       confidence: 0.9,
       source: 'explicit'
     })
@@ -29,17 +30,15 @@ test.describe('Memory API', () => {
     const memoryId = memory.id as string
     cleanup.trackMemory(memoryId)
 
-    // Read all
     const { data: memories } = await api.getMemories()
     const found = memories.find((m) => m.id === memoryId)
     expect(found).toBeTruthy()
-    expect(found!.key).toBe('test-pref')
+    expect(found!.key).toBe('Interface preferences')
+    expect(found!.summary).toBe('Prefers a dark, minimal UI')
 
-    // Read filtered by type
-    const { data: prefs } = await api.getMemories('preference')
-    expect(prefs.find((m) => m.id === memoryId)).toBeTruthy()
+    const { data: profiles } = await api.getMemories('profile')
+    expect(profiles.find((m) => m.id === memoryId)).toBeTruthy()
 
-    // Delete (hard)
     const { status: delStatus } = await api.deleteMemory(memoryId, true)
     expect(delStatus).toBe(200)
 
@@ -47,22 +46,20 @@ test.describe('Memory API', () => {
     expect(afterDelete.find((m) => m.id === memoryId)).toBeFalsy()
   })
 
-  test('soft delete marks memory as deleted but keeps record', async ({
+  test('soft delete marks memory as inactive but keeps the record', async ({
     api
   }) => {
     const { data: memory } = await api.createMemory({
-      type: 'goal',
-      key: 'test-goal',
-      value: { text: 'Learn TypeScript' },
+      section: 'topic',
+      key: 'Learning TypeScript',
+      summary: 'Working through TypeScript fundamentals',
       source: 'explicit'
     })
     const memoryId = memory.id as string
     cleanup.trackMemory(memoryId)
 
-    // Soft delete
     await api.deleteMemory(memoryId, false)
 
-    // The memory should be marked as inactive
     const { data: memories } = await api.getMemories()
     const found = memories.find((m) => m.id === memoryId)
     if (found) {
@@ -70,15 +67,15 @@ test.describe('Memory API', () => {
     }
   })
 
-  test('multiple memory types can coexist', async ({ api }) => {
-    const types = ['preference', 'goal', 'skill', 'environment'] as const
+  test('all sections can coexist and are filterable', async ({ api }) => {
+    const sections = ['profile', 'topic', 'person'] as const
     const ids: string[] = []
 
-    for (const type of types) {
+    for (const section of sections) {
       const { data } = await api.createMemory({
-        type,
-        key: `test-${type}`,
-        value: { text: `Value for ${type}` },
+        section,
+        key: `test-${section}`,
+        summary: `Summary for ${section}`,
         source: 'explicit'
       })
       const id = data.id as string
@@ -86,9 +83,8 @@ test.describe('Memory API', () => {
       cleanup.trackMemory(id)
     }
 
-    // Each type should be filterable
-    for (let i = 0; i < types.length; i++) {
-      const { data } = await api.getMemories(types[i])
+    for (let i = 0; i < sections.length; i++) {
+      const { data } = await api.getMemories(sections[i])
       expect(data.find((m) => m.id === ids[i])).toBeTruthy()
     }
   })

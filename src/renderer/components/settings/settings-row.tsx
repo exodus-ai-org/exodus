@@ -1,19 +1,50 @@
 import React from 'react'
 import type { FieldError as RHFFieldError } from 'react-hook-form'
 
+import { Card } from '@/components/ui/card'
 import { FieldDescription, FieldLabel } from '@/components/ui/field'
+import { cn } from '@/lib/utils'
 
 // ─── SettingsSection ──────────────────────────────────────────────────────────
 
 interface SettingsSectionProps {
+  /** Optional heading rendered above the card. */
+  title?: string
+  /**
+   * Render children in a bare stack instead of a bordered card — for sections
+   * that hold custom panels (filter bars, lists, wizards) rather than
+   * SettingsRow items.
+   */
+  plain?: boolean
   children: React.ReactNode
 }
 
 /**
- * Container for a group of SettingsRow items, auto-inserts separators between children.
+ * Groups SettingsRow items into a bordered card with hairline dividers between
+ * rows, ChatGPT-settings style. The card owns the row padding; pass `title` for
+ * the section heading above it, or `plain` to opt out of the card entirely.
  */
-export function SettingsSection({ children }: SettingsSectionProps) {
-  return <div className="flex flex-col gap-3">{children}</div>
+export function SettingsSection({
+  title,
+  plain,
+  children
+}: SettingsSectionProps) {
+  return (
+    <section className="flex flex-col gap-2">
+      {title && (
+        <h2 className="text-muted-foreground px-1 text-xs font-medium tracking-wide uppercase">
+          {title}
+        </h2>
+      )}
+      {plain ? (
+        <div className="flex flex-col gap-4">{children}</div>
+      ) : (
+        <Card className="divide-border gap-0 divide-y px-3 py-0 [&>*]:px-2.5 [&>*]:py-4">
+          {children}
+        </Card>
+      )}
+    </section>
+  )
 }
 
 // ─── SettingsRow ──────────────────────────────────────────────────────────────
@@ -32,7 +63,8 @@ interface SettingsRowProps {
 }
 
 /**
- * Standardized setting row with consistent spacing.
+ * Standardized setting row. Sits inside a SettingsSection card, which supplies
+ * the padding and dividers.
  */
 export function SettingsRow({
   label,
@@ -41,31 +73,35 @@ export function SettingsRow({
   error,
   layout = 'horizontal'
 }: SettingsRowProps) {
-  if (layout === 'vertical') {
-    return (
-      <div
-        className="my-2 flex flex-col gap-1.5"
-        data-invalid={!!error || undefined}
-      >
-        <FieldLabel>{label}</FieldLabel>
-        {description && <FieldDescription>{description}</FieldDescription>}
-        {children}
-        {error && <p className="text-destructive text-xs">{error.message}</p>}
-      </div>
-    )
-  }
-
   return (
     <div
-      className="my-2 flex items-center justify-between gap-4"
+      className={cn(
+        'flex gap-4',
+        layout === 'vertical'
+          ? 'flex-col gap-1.5'
+          : 'items-center justify-between'
+      )}
       data-invalid={!!error || undefined}
     >
-      <div className="flex max-w-[80%] flex-col gap-1">
-        <FieldLabel>{label}</FieldLabel>
-        {description && <FieldDescription>{description}</FieldDescription>}
-        {error && <p className="text-destructive text-xs">{error.message}</p>}
-      </div>
-      <div className="shrink-0">{children}</div>
+      {layout === 'vertical' ? (
+        <>
+          <FieldLabel>{label}</FieldLabel>
+          {description && <FieldDescription>{description}</FieldDescription>}
+          {children}
+          {error && <p className="text-destructive text-xs">{error.message}</p>}
+        </>
+      ) : (
+        <>
+          <div className="flex max-w-[80%] flex-col gap-1">
+            <FieldLabel>{label}</FieldLabel>
+            {description && <FieldDescription>{description}</FieldDescription>}
+            {error && (
+              <p className="text-destructive text-xs">{error.message}</p>
+            )}
+          </div>
+          <div className="shrink-0">{children}</div>
+        </>
+      )}
     </div>
   )
 }

@@ -48,8 +48,8 @@ const TTS_FORMATS = [
   { value: 'pcm', label: 'PCM' }
 ]
 
-export function AudioSpeech({ form }: { form: UseFormReturnType }) {
-  const ttsModel = form.watch('audio.textToSpeechModel')
+export function Voice({ form }: { form: UseFormReturnType }) {
+  const ttsModel = form.watch('voice.textToSpeechModel')
 
   return (
     <>
@@ -66,7 +66,7 @@ export function AudioSpeech({ form }: { form: UseFormReturnType }) {
       <SettingsSection>
         <Controller
           control={form.control}
-          name="audio.speechToTextModel"
+          name="voice.speechToTextModel"
           render={({ field, fieldState }) => (
             <SettingsRow
               label="Speech to Text Model"
@@ -84,7 +84,7 @@ export function AudioSpeech({ form }: { form: UseFormReturnType }) {
         />
         <Controller
           control={form.control}
-          name="audio.textToSpeechModel"
+          name="voice.textToSpeechModel"
           render={({ field, fieldState }) => (
             <SettingsRow
               label="Text to Speech Model"
@@ -102,7 +102,7 @@ export function AudioSpeech({ form }: { form: UseFormReturnType }) {
         />
         <Controller
           control={form.control}
-          name="audio.textToSpeechVoice"
+          name="voice.textToSpeechVoice"
           render={({ field, fieldState }) => (
             <SettingsRow
               label="Text to Speech Voice"
@@ -120,7 +120,7 @@ export function AudioSpeech({ form }: { form: UseFormReturnType }) {
         />
         <Controller
           control={form.control}
-          name="audio.textToSpeechFormat"
+          name="voice.textToSpeechFormat"
           render={({ field, fieldState }) => (
             <SettingsRow
               label="Output Format"
@@ -138,7 +138,7 @@ export function AudioSpeech({ form }: { form: UseFormReturnType }) {
         />
         <Controller
           control={form.control}
-          name="audio.textToSpeechSpeed"
+          name="voice.textToSpeechSpeed"
           render={({ field, fieldState }) => (
             <SettingsRow
               label="Speed"
@@ -161,7 +161,7 @@ export function AudioSpeech({ form }: { form: UseFormReturnType }) {
         {ttsModel === 'gpt-4o-mini-tts' && (
           <Controller
             control={form.control}
-            name="audio.textToSpeechInstructions"
+            name="voice.textToSpeechInstructions"
             render={({ field, fieldState }) => (
               <SettingsRow
                 label="Voice Instructions"

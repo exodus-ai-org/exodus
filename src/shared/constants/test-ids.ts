@@ -37,6 +37,17 @@ export const TEST_IDS = {
   search: {
     testConnectionButton: 'search.test-connection-button',
     reindexButton: 'search.reindex-button'
+  },
+  settings: {
+    themeMode: 'settings.theme-mode'
+  },
+  chatLayout: {
+    workspaceSwitcher: 'chat-layout.workspace-switcher',
+    searchButton: 'chat-layout.search-button'
+  },
+  philharmonic: {
+    newGroup: 'philharmonic.new-group',
+    membersToggle: 'philharmonic.members-toggle'
   }
 } as const
 

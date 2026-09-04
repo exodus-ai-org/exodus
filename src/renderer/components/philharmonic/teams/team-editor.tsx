@@ -4,6 +4,7 @@
 // initializer always receives the fresh value on mount.
 import { useState } from 'react'
 
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import type { TeamData } from '@/stores/philharmonic'
@@ -17,7 +18,7 @@ export interface TeamEditorProps {
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mb-1 text-[11px] tracking-wider text-[var(--ph-text-muted)] uppercase">
+    <div className="text-muted-foreground mb-1 text-[11px] tracking-wider uppercase">
       {children}
     </div>
   )
@@ -34,12 +35,12 @@ export function TeamEditor({
 
   return (
     <div className="flex h-full flex-col">
-      <header className="flex h-14 shrink-0 items-center border-b border-[var(--ph-border)] pr-14 pl-5">
+      <header className="border-border flex h-14 shrink-0 items-center border-b pr-14 pl-5">
         <div className="min-w-0">
-          <div className="text-[11px] tracking-wider text-[var(--ph-text-muted)] uppercase">
+          <div className="text-muted-foreground text-[11px] tracking-wider uppercase">
             Team
           </div>
-          <div className="truncate text-sm font-semibold text-[var(--ph-text)]">
+          <div className="text-foreground truncate text-sm font-semibold">
             {draft.name || 'New team'}
           </div>
         </div>
@@ -48,12 +49,12 @@ export function TeamEditor({
       <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5">
         <div>
           <FieldLabel>
-            Name <span style={{ color: 'var(--ph-danger)' }}>*</span>
+            Name <span className="text-destructive">*</span>
           </FieldLabel>
           <Input
             value={draft.name}
             onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-            className="rounded-[var(--ph-radius-md)] border-[var(--ph-border)] bg-[var(--ph-surface-sunken)]"
+            className="border-border bg-muted rounded-lg"
           />
         </div>
         <div>
@@ -62,7 +63,7 @@ export function TeamEditor({
             value={draft.icon ?? ''}
             onChange={(e) => setDraft({ ...draft, icon: e.target.value })}
             maxLength={4}
-            className="rounded-[var(--ph-radius-md)] border-[var(--ph-border)] bg-[var(--ph-surface-sunken)]"
+            className="border-border bg-muted rounded-lg"
           />
         </div>
         <div>
@@ -72,7 +73,7 @@ export function TeamEditor({
             onChange={(e) =>
               setDraft({ ...draft, description: e.target.value })
             }
-            className="min-h-20 rounded-[var(--ph-radius-md)] border-[var(--ph-border)] bg-[var(--ph-surface-sunken)]"
+            className="border-border bg-muted min-h-20 rounded-lg"
             placeholder="Short summary of what this team does."
           />
         </div>
@@ -83,30 +84,23 @@ export function TeamEditor({
             onChange={(e) =>
               setDraft({ ...draft, systemPrompt: e.target.value })
             }
-            className="min-h-40 rounded-[var(--ph-radius-md)] border-[var(--ph-border)] bg-[var(--ph-surface-sunken)]"
+            className="border-border bg-muted min-h-40 rounded-lg"
             placeholder="Shared instructions added to every member of this team's prompt."
           />
         </div>
       </div>
 
-      <footer className="flex h-14 shrink-0 items-center justify-end gap-1.5 border-t border-[var(--ph-border)] px-5">
-        <button
-          type="button"
-          onClick={onClose}
-          className="h-8 rounded-[var(--ph-radius-md)] px-3.5 text-xs font-medium text-[var(--ph-text)]"
-          style={{ background: 'var(--ph-canvas)' }}
-        >
+      <footer className="border-border flex h-14 shrink-0 items-center justify-end gap-1.5 border-t px-5">
+        <Button variant="ghost" size="sm" onClick={onClose}>
           Cancel
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          size="sm"
           onClick={() => canSave && onSave(draft)}
           disabled={!canSave}
-          className="h-8 rounded-[var(--ph-radius-md)] px-3.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-          style={{ background: 'var(--ph-primary)' }}
         >
           {isNew ? 'Create' : 'Save'}
-        </button>
+        </Button>
       </footer>
     </div>
   )

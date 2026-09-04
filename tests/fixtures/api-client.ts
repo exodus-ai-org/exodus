@@ -194,8 +194,8 @@ export class ApiClient {
 
   // ── Memory ─────────────────────────────────────────────────────────────
 
-  async getMemories(type?: string) {
-    const qs = type ? `?type=${type}` : ''
+  async getMemories(section?: string) {
+    const qs = section ? `?section=${section}` : ''
     return this.get<Array<Record<string, unknown>>>(`/api/memory${qs}`)
   }
 

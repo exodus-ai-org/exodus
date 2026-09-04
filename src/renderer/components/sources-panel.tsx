@@ -6,9 +6,9 @@ import { sourcesPanelAtom } from '@/stores/chat'
 
 import { LazyLoadImage } from './lazy-load-image'
 import { parseCitations } from './markdown'
+import { SheetPanel } from './sheet-panel'
 import { SourceFavicon } from './source-favicon'
 import { Separator } from './ui/separator'
-import { SheetPanel } from './ui/sheet'
 
 function SourceLink({ item }: { item: WebSearchResult }) {
   let hostname = item.hostname ?? ''

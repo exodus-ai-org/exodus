@@ -384,7 +384,6 @@ export async function resetAllData() {
     'lcm_summary_parents',
     'lcm_summary',
     'memory_usage_log',
-    'session_summary',
     'memory',
     'agent_memory',
     'agent',

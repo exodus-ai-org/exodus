@@ -1,14 +1,9 @@
-export type QueueName =
-  | 'index-message'
-  | 'lcm-post-turn'
-  | 'memory-write-judge'
-  | 'session-summary'
+export type QueueName = 'index-message' | 'lcm-post-turn' | 'memory-consolidate'
 
 export const QUEUE_NAMES: QueueName[] = [
   'index-message',
   'lcm-post-turn',
-  'memory-write-judge',
-  'session-summary'
+  'memory-consolidate'
 ]
 
 export interface JobMessage {

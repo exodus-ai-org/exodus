@@ -9,8 +9,8 @@ import { useAtom } from 'jotai'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import useSWR from 'swr'
 
+import { SheetPanel } from '@/components/sheet-panel'
 import { Button } from '@/components/ui/button'
-import { SheetPanel } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
 import { fetchDeepResearchMessages } from '@/services/deep-research'
 import {

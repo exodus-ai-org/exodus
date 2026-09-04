@@ -25,7 +25,6 @@ const tableNames = [
   'vote',
   'settings',
   'memory',
-  'session_summary',
   'deep_research',
   'deep_research_message'
 ]

@@ -1,5 +1,5 @@
 {
-  "id": "aa4636b3-ba0f-4b08-a6d5-668337224ecf",
+  "id": "6501d458-f82f-4d71-b4f5-8c0ca040f818",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -28,9 +28,9 @@
           "notNull": false,
           "default": "''"
         },
-        "team": {
-          "name": "team",
-          "type": "text",
+        "teamId": {
+          "name": "teamId",
+          "type": "uuid",
           "primaryKey": false,
           "notNull": false
         },
@@ -109,7 +109,17 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "agent_teamId_team_id_fk": {
+          "name": "agent_teamId_team_id_fk",
+          "tableFrom": "agent",
+          "tableTo": "team",
+          "columnsFrom": ["teamId"],
+          "columnsTo": ["id"],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -129,6 +139,12 @@
         },
         "agentId": {
           "name": "agentId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "conversationId": {
+          "name": "conversationId",
           "type": "uuid",
           "primaryKey": false,
           "notNull": true
@@ -189,6 +205,15 @@
           "tableFrom": "agent_memory",
           "tableTo": "agent",
           "columnsFrom": ["agentId"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "agent_memory_conversationId_conversation_id_fk": {
+          "name": "agent_memory_conversationId_conversation_id_fk",
+          "tableFrom": "agent_memory",
+          "tableTo": "conversation",
+          "columnsFrom": ["conversationId"],
           "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
@@ -468,6 +493,76 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
+    "public.conversation_plan": {
+      "name": "conversation_plan",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "conversationId": {
+          "name": "conversationId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "summary": {
+          "name": "summary",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "plan_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'active'"
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "archivedAt": {
+          "name": "archivedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "conversation_plan_conversationId_conversation_id_fk": {
+          "name": "conversation_plan_conversationId_conversation_id_fk",
+          "tableFrom": "conversation_plan",
+          "tableTo": "conversation",
+          "columnsFrom": ["conversationId"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
     "public.deep_research": {
       "name": "deep_research",
       "schema": "",
@@ -605,6 +700,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "teamId": {
+          "name": "teamId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
         "createdAt": {
           "name": "createdAt",
           "type": "timestamp",
@@ -621,7 +722,17 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "knowledge_doc_teamId_team_id_fk": {
+          "name": "knowledge_doc_teamId_team_id_fk",
+          "tableFrom": "knowledge_doc",
+          "tableTo": "team",
+          "columnsFrom": ["teamId"],
+          "columnsTo": ["id"],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -1010,12 +1121,13 @@
           "primaryKey": false,
           "notNull": true
         },
-        "type": {
-          "name": "type",
-          "type": "memory_type",
+        "section": {
+          "name": "section",
+          "type": "memory_section",
           "typeSchema": "public",
           "primaryKey": false,
-          "notNull": true
+          "notNull": true,
+          "default": "'topic'"
         },
         "key": {
           "name": "key",
@@ -1023,11 +1135,18 @@
           "primaryKey": false,
           "notNull": true
         },
-        "value": {
-          "name": "value",
-          "type": "jsonb",
+        "summary": {
+          "name": "summary",
+          "type": "text",
           "primaryKey": false,
           "notNull": true
+        },
+        "details": {
+          "name": "details",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
         },
         "confidence": {
           "name": "confidence",
@@ -1153,6 +1272,12 @@
           "primaryKey": false,
           "notNull": true
         },
+        "searchText": {
+          "name": "searchText",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
         "usage": {
           "name": "usage",
           "type": "jsonb",
@@ -1232,7 +1357,7 @@
           "name": "message_search_index",
           "columns": [
             {
-              "expression": "to_tsvector('simple', \"content\")",
+              "expression": "\"searchText\" gin_trgm_ops",
               "asc": true,
               "isExpression": true,
               "nulls": "last"
@@ -1252,6 +1377,241 @@
           "columnsFrom": ["chatId"],
           "columnsTo": ["id"],
           "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.philharmonic_session_summary": {
+      "name": "philharmonic_session_summary",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "conversationId": {
+          "name": "conversationId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "content": {
+          "name": "content",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "coversThroughMessageId": {
+          "name": "coversThroughMessageId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "tokenCount": {
+          "name": "tokenCount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "messageCount": {
+          "name": "messageCount",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {
+        "ph_session_summary_conv_idx": {
+          "name": "ph_session_summary_conv_idx",
+          "columns": [
+            {
+              "expression": "conversationId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "philharmonic_session_summary_conversationId_conversation_id_fk": {
+          "name": "philharmonic_session_summary_conversationId_conversation_id_fk",
+          "tableFrom": "philharmonic_session_summary",
+          "tableTo": "conversation",
+          "columnsFrom": ["conversationId"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "philharmonic_session_summary_coversThroughMessageId_conversation_message_id_fk": {
+          "name": "philharmonic_session_summary_coversThroughMessageId_conversation_message_id_fk",
+          "tableFrom": "philharmonic_session_summary",
+          "tableTo": "conversation_message",
+          "columnsFrom": ["coversThroughMessageId"],
+          "columnsTo": ["id"],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "philharmonic_session_summary_conversationId_unique": {
+          "name": "philharmonic_session_summary_conversationId_unique",
+          "nullsNotDistinct": false,
+          "columns": ["conversationId"]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.plan_step": {
+      "name": "plan_step",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "planId": {
+          "name": "planId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "ordinal": {
+          "name": "ordinal",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "title": {
+          "name": "title",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "intent": {
+          "name": "intent",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "assignedAgentId": {
+          "name": "assignedAgentId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "step_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "output": {
+          "name": "output",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "note": {
+          "name": "note",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "taskId": {
+          "name": "taskId",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "startedAt": {
+          "name": "startedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "completedAt": {
+          "name": "completedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "plan_step_planId_conversation_plan_id_fk": {
+          "name": "plan_step_planId_conversation_plan_id_fk",
+          "tableFrom": "plan_step",
+          "tableTo": "conversation_plan",
+          "columnsFrom": ["planId"],
+          "columnsTo": ["id"],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "plan_step_assignedAgentId_agent_id_fk": {
+          "name": "plan_step_assignedAgentId_agent_id_fk",
+          "tableFrom": "plan_step",
+          "tableTo": "agent",
+          "columnsFrom": ["assignedAgentId"],
+          "columnsTo": ["id"],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        },
+        "plan_step_taskId_task_id_fk": {
+          "name": "plan_step_taskId_task_id_fk",
+          "tableFrom": "plan_step",
+          "tableTo": "task",
+          "columnsFrom": ["taskId"],
+          "columnsTo": ["id"],
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
@@ -1321,44 +1681,6 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.session_summary": {
-      "name": "session_summary",
-      "schema": "",
-      "columns": {
-        "sessionId": {
-          "name": "sessionId",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "userId": {
-          "name": "userId",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "summary": {
-          "name": "summary",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "timestamp",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "now()"
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
     "public.settings": {
       "name": "settings",
       "schema": "",
@@ -1394,8 +1716,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "audio": {
-          "name": "audio",
+        "voice": {
+          "name": "voice",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false
@@ -1415,6 +1737,12 @@
         },
         "webSearch": {
           "name": "webSearch",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "search": {
+          "name": "search",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false
@@ -1458,13 +1786,6 @@
           "notNull": false,
           "default": true
         },
-        "proxy": {
-          "name": "proxy",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false,
-          "default": "''"
-        },
         "autoBackup": {
           "name": "autoBackup",
           "type": "boolean",
@@ -1478,8 +1799,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "memoryLayer": {
-          "name": "memoryLayer",
+        "memory": {
+          "name": "memory",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false
@@ -1490,12 +1811,11 @@
           "primaryKey": false,
           "notNull": false
         },
-        "colorTone": {
-          "name": "colorTone",
-          "type": "text",
+        "keyboardShortcuts": {
+          "name": "keyboardShortcuts",
+          "type": "jsonb",
           "primaryKey": false,
-          "notNull": false,
-          "default": "'neutral'"
+          "notNull": false
         },
         "createdAt": {
           "name": "createdAt",
@@ -1610,6 +1930,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "runAt": {
+          "name": "runAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
         "lastRunAt": {
           "name": "lastRunAt",
           "type": "timestamp",
@@ -1672,7 +1998,7 @@
           "tableTo": "agent",
           "columnsFrom": ["assignedAgentId"],
           "columnsTo": ["id"],
-          "onDelete": "no action",
+          "onDelete": "set null",
           "onUpdate": "no action"
         }
       },
@@ -1756,7 +2082,7 @@
           "tableTo": "agent",
           "columnsFrom": ["agentId"],
           "columnsTo": ["id"],
-          "onDelete": "no action",
+          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -1815,6 +2141,66 @@
           "onUpdate": "no action"
         }
       },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.team": {
+      "name": "team",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true,
+          "default": "gen_random_uuid()"
+        },
+        "name": {
+          "name": "name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "description": {
+          "name": "description",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "''"
+        },
+        "systemPrompt": {
+          "name": "systemPrompt",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "default": "''"
+        },
+        "icon": {
+          "name": "icon",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "createdAt": {
+          "name": "createdAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "updatedAt": {
+          "name": "updatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -1898,22 +2284,25 @@
       "schema": "public",
       "values": ["streaming", "archived", "failed", "terminated"]
     },
+    "public.memory_section": {
+      "name": "memory_section",
+      "schema": "public",
+      "values": ["profile", "topic", "person"]
+    },
     "public.memory_source": {
       "name": "memory_source",
       "schema": "public",
       "values": ["explicit", "implicit", "system"]
     },
-    "public.memory_type": {
-      "name": "memory_type",
+    "public.plan_status": {
+      "name": "plan_status",
       "schema": "public",
-      "values": [
-        "preference",
-        "goal",
-        "environment",
-        "skill",
-        "project",
-        "constraint"
-      ]
+      "values": ["drafting", "active", "completed", "aborted"]
+    },
+    "public.step_status": {
+      "name": "step_status",
+      "schema": "public",
+      "values": ["pending", "running", "done", "skipped", "failed"]
     },
     "public.task_priority": {
       "name": "task_priority",

@@ -1,40 +1,38 @@
-import { AiProviders } from '@shared/types/ai'
 import {
-  AudioLinesIcon,
+  CloudIcon,
   CogIcon,
-  ComputerIcon,
   DatabaseIcon,
+  HammerIcon,
   HandCoinsIcon,
   InfoIcon,
   KeyboardIcon,
   MemoryStickIcon,
   NetworkIcon,
-  PlugIcon,
   ScrollTextIcon,
-  SearchIcon,
+  TextSearch,
   ShoppingBagIcon,
+  TelescopeIcon,
   UserIcon,
-  GlobeIcon,
-  WrenchIcon
+  WrenchIcon,
+  MousePointer2Icon,
+  CircleUserRoundIcon,
+  MicIcon
 } from 'lucide-react'
 
 export enum SettingsLabel {
+  Profile = 'Profile',
   General = 'General',
   Personality = 'Personality',
   AiProviders = 'AI Providers',
   AmazonS3 = 'AWS S3',
   McpServers = 'MCP Servers',
   SkillsMarket = 'Skills Market',
-  Search = 'Elasticsearch',
+  Search = 'Search',
   GraphRag = 'GraphRAG',
   BuiltinTools = 'Built-in Tools',
-  MemoryLayer = 'Memory Layer',
-  AudioAndSpeech = 'Audio and Speech',
-  ImageGeneration = 'Image Generation',
-  WebSearch = 'Web Search',
-  GoogleMaps = 'Google Maps',
+  Memory = 'Memory',
+  Voice = 'Voice',
   DeepResearch = 'Deep Research',
-  BrowserUse = 'Browser Use',
   ComputerUse = 'Computer Use',
   DataControls = 'Data Controls',
   Logger = 'Logger',
@@ -42,84 +40,59 @@ export enum SettingsLabel {
   AboutExodus = 'About Exodus'
 }
 
-export type SettingsPage = SettingsLabel | AiProviders
+export type SettingsPage = SettingsLabel
 
+// Flat menu — every entry is a top-level page. The content-side Cards provide
+// the visual grouping, so the sidebar has no expandable second level. The final
+// group has no label — it holds "About Exodus", pinned to the bottom.
 export const menus = {
   navMain: [
     {
-      label: 'General',
+      label: 'Personal',
       items: [
         { title: SettingsLabel.General, icon: CogIcon },
-        {
-          title: SettingsLabel.BuiltinTools,
-          icon: WrenchIcon,
-          items: [
-            { title: SettingsLabel.WebSearch },
-            { title: SettingsLabel.GoogleMaps },
-            { title: SettingsLabel.ImageGeneration },
-            { title: SettingsLabel.DeepResearch }
-          ]
-        }
-      ]
-    },
-    {
-      label: 'AI & Providers',
-      items: [
-        {
-          title: SettingsLabel.AiProviders,
-          icon: HandCoinsIcon,
-          items: [
-            { title: AiProviders.OpenAiGpt },
-            { title: AiProviders.AzureOpenAi },
-            { title: AiProviders.AnthropicClaude },
-            { title: AiProviders.GoogleGemini },
-            { title: AiProviders.XaiGrok },
-            { title: AiProviders.Ollama }
-          ]
-        }
-      ]
-    },
-    {
-      label: 'Personalization',
-      items: [
+        { title: SettingsLabel.Profile, icon: CircleUserRoundIcon },
         { title: SettingsLabel.Personality, icon: UserIcon },
-        { icon: MemoryStickIcon, title: SettingsLabel.MemoryLayer }
+        { title: SettingsLabel.Memory, icon: MemoryStickIcon },
+        { title: SettingsLabel.Voice, icon: MicIcon },
+        { title: SettingsLabel.KeyboardShortcuts, icon: KeyboardIcon }
       ]
     },
     {
-      // External, connection-backed capabilities — the home for anything
-      // that talks to an outside service or environment (search backend,
-      // GraphRAG, browser/computer-use sandboxes, MCP connectors, the
-      // skills marketplace). Future integrations (GitHub, Google
-      // Workspace, etc.) belong here too.
-      label: 'Plugin',
+      label: 'AI & Tools',
       items: [
-        { icon: SearchIcon, title: SettingsLabel.Search },
-        { icon: NetworkIcon, title: SettingsLabel.GraphRag },
-        { icon: GlobeIcon, title: SettingsLabel.BrowserUse },
-        { icon: ComputerIcon, title: SettingsLabel.ComputerUse },
-        { icon: PlugIcon, title: SettingsLabel.McpServers },
-        { icon: ShoppingBagIcon, title: SettingsLabel.SkillsMarket }
+        { title: SettingsLabel.AiProviders, icon: HandCoinsIcon },
+        { title: SettingsLabel.BuiltinTools, icon: WrenchIcon },
+        { title: SettingsLabel.DeepResearch, icon: TelescopeIcon }
       ]
     },
     {
-      label: 'Data & Privacy',
+      // External, connection-backed capabilities: search backends, GraphRAG,
+      // the computer-use sandbox, MCP connectors, the skills marketplace.
+      label: 'Integrations',
       items: [
-        {
-          icon: DatabaseIcon,
-          title: SettingsLabel.DataControls,
-          items: [{ title: SettingsLabel.AmazonS3 }]
-        },
-        { icon: ScrollTextIcon, title: SettingsLabel.Logger }
+        { title: SettingsLabel.Search, icon: TextSearch },
+        { title: SettingsLabel.GraphRag, icon: NetworkIcon },
+        { title: SettingsLabel.ComputerUse, icon: MousePointer2Icon },
+        { title: SettingsLabel.McpServers, icon: HammerIcon },
+        { title: SettingsLabel.SkillsMarket, icon: ShoppingBagIcon }
       ]
     },
     {
-      label: 'Preferences',
+      // Where the user's data lives and how it moves in and out.
+      label: 'Storage',
       items: [
-        { icon: AudioLinesIcon, title: SettingsLabel.AudioAndSpeech },
-        { icon: KeyboardIcon, title: SettingsLabel.KeyboardShortcuts },
-        { icon: InfoIcon, title: SettingsLabel.AboutExodus }
+        { title: SettingsLabel.DataControls, icon: DatabaseIcon },
+        { title: SettingsLabel.AmazonS3, icon: CloudIcon }
       ]
+    },
+    {
+      label: 'Developer',
+      items: [{ title: SettingsLabel.Logger, icon: ScrollTextIcon }]
+    },
+    {
+      label: '',
+      items: [{ title: SettingsLabel.AboutExodus, icon: InfoIcon }]
     }
   ]
 }

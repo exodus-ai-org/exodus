@@ -86,32 +86,20 @@ export function GroupMembersPanel({
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex h-13 shrink-0 items-center justify-between border-b border-[var(--ph-border)] px-3.5">
-        <div className="flex items-center gap-2 text-sm font-semibold text-[var(--ph-text)]">
+      <div className="border-border flex h-13 shrink-0 items-center justify-between border-b px-3.5">
+        <div className="text-foreground flex items-center gap-2 text-sm font-semibold">
           Members
-          <span
-            className="rounded-full px-2 py-0.5 text-[10px] font-normal"
-            style={{
-              background: 'var(--ph-canvas)',
-              color: 'var(--ph-text-muted)'
-            }}
-          >
+          <span className="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-[10px] font-normal">
             {members.length + (hasPm ? 1 : 0)}
           </span>
         </div>
-        <div className="flex gap-3 text-[10.5px] text-[var(--ph-text-muted)]">
+        <div className="text-muted-foreground flex gap-3 text-[10.5px]">
           <span className="flex items-center gap-1">
-            <span
-              className="inline-block h-1.5 w-1.5 rounded-full"
-              style={{ background: 'var(--ph-success)' }}
-            />
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
             {summaryIdle} idle
           </span>
           <span className="flex items-center gap-1">
-            <span
-              className="inline-block h-1.5 w-1.5 rounded-full"
-              style={{ background: 'var(--ph-warning)' }}
-            />
+            <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-500" />
             {summaryBusy} busy
           </span>
         </div>
@@ -126,7 +114,7 @@ export function GroupMembersPanel({
         ) : (
           groups.map((g) => (
             <section key={g.key} className="pt-3">
-              <div className="mb-2 flex items-center gap-1.5 px-1 text-[10.5px] tracking-wider text-[var(--ph-text-muted)] uppercase">
+              <div className="text-muted-foreground mb-2 flex items-center gap-1.5 px-1 text-[10.5px] tracking-wider uppercase">
                 {g.icon && <span>{g.icon}</span>}
                 <span>
                   {g.label} · {g.isCoordinators ? 1 : g.members.length}
@@ -166,9 +154,9 @@ function MemberRow({
   return (
     <div
       className={cn(
-        'flex items-center gap-2.5 rounded-[var(--ph-radius-md)] px-2 py-2'
+        'flex items-center gap-2.5 rounded-lg px-2 py-2',
+        busy && 'bg-muted'
       )}
-      style={busy ? { background: 'var(--ph-surface-sunken)' } : undefined}
     >
       <div className="relative">
         <EmployeeAvatar
@@ -178,24 +166,22 @@ function MemberRow({
         />
         <span
           className={cn(
-            'absolute right-0 bottom-0 h-[11px] w-[11px] rounded-full',
-            busy && 'animate-pulse'
+            'absolute right-0 bottom-0 h-[11px] w-[11px] rounded-full ring-2',
+            busy
+              ? 'ring-muted animate-pulse bg-amber-500'
+              : 'ring-card bg-emerald-500'
           )}
-          style={{
-            background: busy ? 'var(--ph-warning)' : 'var(--ph-success)',
-            boxShadow: `0 0 0 2px ${busy ? 'var(--ph-surface-sunken)' : 'var(--ph-surface)'}`
-          }}
         />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-medium text-[var(--ph-text)]">
+        <div className="text-foreground truncate text-sm font-medium">
           {member.name}
         </div>
         <div
-          className="truncate text-xs"
-          style={{
-            color: busy ? 'var(--ph-warning)' : 'var(--ph-text-muted)'
-          }}
+          className={cn(
+            'truncate text-xs',
+            busy ? 'text-amber-500' : 'text-muted-foreground'
+          )}
         >
           {busy ? activity : `${team?.name ?? 'No team'} · idle`}
         </div>
@@ -209,40 +195,30 @@ function PmRow({ activity }: { activity: string | undefined }) {
   return (
     <div
       className={cn(
-        'flex items-center gap-2.5 rounded-[var(--ph-radius-md)] px-2 py-2'
+        'flex items-center gap-2.5 rounded-lg px-2 py-2',
+        busy && 'bg-muted'
       )}
-      style={busy ? { background: 'var(--ph-surface-sunken)' } : undefined}
     >
       <div className="relative">
-        <div
-          className="flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-semibold text-white"
-          style={{
-            background: 'var(--ph-primary)',
-            boxShadow: 'inset 0 0 0 1.5px var(--ph-primary-soft)'
-          }}
-        >
+        <div className="bg-primary text-primary-foreground flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-semibold">
           PM
         </div>
         <span
           className={cn(
-            'absolute right-0 bottom-0 h-[11px] w-[11px] rounded-full',
-            busy && 'animate-pulse'
+            'absolute right-0 bottom-0 h-[11px] w-[11px] rounded-full ring-2',
+            busy
+              ? 'ring-muted animate-pulse bg-amber-500'
+              : 'ring-card bg-emerald-500'
           )}
-          style={{
-            background: busy ? 'var(--ph-warning)' : 'var(--ph-success)',
-            boxShadow: `0 0 0 2px ${busy ? 'var(--ph-surface-sunken)' : 'var(--ph-surface)'}`
-          }}
         />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-sm font-medium text-[var(--ph-text)]">
-          PM
-        </div>
+        <div className="text-foreground truncate text-sm font-medium">PM</div>
         <div
-          className="truncate text-xs"
-          style={{
-            color: busy ? 'var(--ph-warning)' : 'var(--ph-text-muted)'
-          }}
+          className={cn(
+            'truncate text-xs',
+            busy ? 'text-amber-500' : 'text-muted-foreground'
+          )}
         >
           {busy ? activity : 'Strategy · idle'}
         </div>

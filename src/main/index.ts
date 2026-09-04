@@ -20,7 +20,6 @@ import { hasPin as lockHasPin } from './lib/lock/pin-store'
 import { cleanupOldLogs, logger } from './lib/logger'
 import { setupMenu } from './lib/menu'
 import { migrateFromLegacyLocation } from './lib/paths'
-import { applyProxy } from './lib/proxy'
 import { connectHttpServer } from './lib/server/app'
 import { setServer } from './lib/server/instance'
 import { setTray } from './lib/tray'
@@ -120,7 +119,6 @@ app.whenReady().then(async () => {
   powerMonitor.on('lock-screen', lockOnSleep)
 
   const dbSettings = await getSettings()
-  applyProxy(dbSettings.proxy)
   setupAutoUpdater(dbSettings.autoUpdate ?? true)
 
   // Apply startup and menu bar settings

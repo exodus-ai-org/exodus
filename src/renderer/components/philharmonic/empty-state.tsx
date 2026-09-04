@@ -1,5 +1,7 @@
 import { type ReactNode } from 'react'
 
+import { Button } from '@/components/ui/button'
+
 import type { HueName } from './lib/hue'
 
 interface AvatarSpec {
@@ -39,7 +41,7 @@ export function PhilharmonicEmptyState({
                 height: size,
                 borderRadius: '50%',
                 background: `var(--ph-hue-${a.hue}-fill)`,
-                boxShadow: `inset 0 0 0 1.5px var(--ph-hue-${a.hue}-ring), 0 0 0 3px var(--ph-surface)`,
+                boxShadow: `inset 0 0 0 1.5px var(--ph-hue-${a.hue}-ring), 0 0 0 3px var(--card)`,
                 transform:
                   i === 0
                     ? `rotate(-8deg) translateX(${offset}px)`
@@ -58,21 +60,16 @@ export function PhilharmonicEmptyState({
           )
         })}
       </div>
-      <div className="text-sm font-semibold text-[var(--ph-text)]">{title}</div>
+      <div className="text-foreground text-sm font-semibold">{title}</div>
       {description && (
-        <div className="mt-1 max-w-[280px] text-[12.5px] text-[var(--ph-text-muted)]">
+        <div className="text-muted-foreground mt-1 max-w-[280px] text-[12.5px]">
           {description}
         </div>
       )}
       {action && (
-        <button
-          type="button"
-          onClick={action.onClick}
-          className="mt-4 h-9 rounded-[var(--ph-radius-md)] px-3.5 text-xs font-medium text-white transition-opacity hover:opacity-90"
-          style={{ background: 'var(--ph-primary)' }}
-        >
+        <Button size="sm" onClick={action.onClick} className="mt-4">
           {action.label}
-        </button>
+        </Button>
       )}
     </div>
   )

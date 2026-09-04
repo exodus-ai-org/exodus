@@ -5,7 +5,6 @@ import { Hono } from 'hono'
 
 import { getAllSearchableMessages, updateSettings } from '../../db/queries'
 import { Settings as DBSettings } from '../../db/schema'
-import { applyProxy } from '../../proxy'
 import { resolveSearchProvider } from '../../search/resolve-search-provider'
 import { updateSettingsSchema } from '../schemas/settings'
 import {
@@ -32,10 +31,6 @@ settingsRouter.post('/', async (c) => {
     () => updateSettings(payload as unknown as DBSettings),
     'Failed to update settings'
   )
-
-  // Apply proxy change immediately
-  const settings = payload as unknown as DBSettings
-  applyProxy(settings.proxy)
 
   return successResponse(c, updatedSettings)
 })

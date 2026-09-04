@@ -62,7 +62,7 @@ export const ProvidersSchema = z.object({
   ollamaBaseUrl: z.string().nullish()
 })
 
-export const AudioSchema = z.object({
+export const VoiceSchema = z.object({
   speechToTextModel: z.string().nullish(),
   textToSpeechVoice: z.string().nullish(),
   textToSpeechModel: z.string().nullish(),
@@ -147,9 +147,11 @@ export const ToolsSchema = z.object({
   disabledTools: z.array(z.string()).default([])
 })
 
-export const MemoryLayerSchema = z.object({
-  // User memory: auto-write memories after conversations
-  autoWrite: z.boolean().default(true),
+export const MemorySchema = z.object({
+  // User memory: consolidate durable facts into memory after conversations
+  autoCapture: z.boolean().default(true),
+  // User memory: surface relevant memory into the system prompt of new chats
+  useInChat: z.boolean().default(true),
   // LCM: enable lossless context management for long conversations
   lcmEnabled: z.boolean().default(true),
   // LCM: trigger compaction when context exceeds this % of the context window (50-95)
@@ -157,17 +159,6 @@ export const MemoryLayerSchema = z.object({
   // LCM: number of most recent messages protected from compaction (8-64)
   freshTailSize: formNumber(z.number().gte(8).lte(64)).nullish()
 })
-
-export const ColorTone = z.enum([
-  'neutral',
-  'emerald',
-  'blue',
-  'violet',
-  'rose',
-  'orange',
-  'yellow'
-])
-export type ColorTone = z.infer<typeof ColorTone>
 
 export const PersonalitySchema = z.object({
   // About you
@@ -205,7 +196,7 @@ export const SettingsSchema = z.object({
   providers: ProvidersSchema.nullish(),
   mcpServers: z.string().nullish(),
   tools: ToolsSchema.nullish(),
-  audio: AudioSchema.nullish(),
+  voice: VoiceSchema.nullish(),
   assistantAvatar: z.string().nullish(),
   googleCloud: GoogleCloudSchema.nullish(),
   webSearch: WebSearchSchema.nullish(),
@@ -216,13 +207,11 @@ export const SettingsSchema = z.object({
   autoUpdate: z.boolean().nullish(),
   runOnStartup: z.boolean().nullish(),
   menuBar: z.boolean().nullish(),
-  proxy: z.string().nullish(),
   autoBackup: z.boolean().nullish(),
   lastBackupAt: z.any().nullish(),
-  memoryLayer: MemoryLayerSchema.nullish(),
+  memory: MemorySchema.nullish(),
   personality: PersonalitySchema.nullish(),
   keyboardShortcuts: KeyboardShortcutsSchema.nullish(),
-  colorTone: ColorTone.default('neutral').nullish(),
   createdAt: z.any(),
   updatedAt: z.any()
 })

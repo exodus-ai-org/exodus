@@ -10,6 +10,7 @@ import {
 export interface SettingsSelectOption {
   value: string
   label: string
+  disabled?: boolean
 }
 
 interface SettingsSelectProps {
@@ -18,18 +19,25 @@ interface SettingsSelectProps {
   options: SettingsSelectOption[]
   placeholder?: string
   disabled?: boolean
+  /** Applied to the trigger — e.g. a fixed width for filter bars. */
+  className?: string
+  /** `data-testid` for the trigger. */
+  testId?: string
 }
 
 /**
- * Standardized Select for Settings pages.
- * Borderless trigger with hover accent, auto-width, and proper label display.
+ * Standardized Select for Settings pages: auto-width trigger, label lookup for
+ * the trigger value, and `w-full` content. Use this instead of composing raw
+ * `Select*` primitives so every settings dropdown looks and behaves the same.
  */
 export function SettingsSelect({
   value,
   onValueChange,
   options,
   placeholder,
-  disabled
+  disabled,
+  className,
+  testId
 }: SettingsSelectProps) {
   const labelMap = new Map(options.map((o) => [o.value, o.label]))
 
@@ -39,7 +47,7 @@ export function SettingsSelect({
       onValueChange={(val) => val && onValueChange(val)}
       disabled={disabled}
     >
-      <SelectTrigger className="hover:bg-accent w-fit border-none shadow-none">
+      <SelectTrigger data-testid={testId} className={className}>
         <SelectValue placeholder={placeholder}>
           {(val: string) => labelMap.get(val) || placeholder || val}
         </SelectValue>
@@ -47,7 +55,11 @@ export function SettingsSelect({
       <SelectContent className="w-full">
         <SelectGroup>
           {options.map((opt) => (
-            <SelectItem key={opt.value} value={opt.value}>
+            <SelectItem
+              key={opt.value}
+              value={opt.value}
+              disabled={opt.disabled}
+            >
               {opt.label}
             </SelectItem>
           ))}

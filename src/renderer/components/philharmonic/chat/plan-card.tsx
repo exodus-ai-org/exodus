@@ -22,11 +22,11 @@ const STATUS_GLYPH: Record<StepStatus, string> = {
 }
 
 const STATUS_COLOR: Record<StepStatus, string> = {
-  pending: 'var(--ph-text-muted)',
-  running: 'var(--ph-warning)',
-  done: 'var(--ph-primary)',
-  skipped: 'var(--ph-text-muted)',
-  failed: 'var(--ph-danger)'
+  pending: 'var(--muted-foreground)',
+  running: '#f59e0b',
+  done: '#10b981',
+  skipped: 'var(--muted-foreground)',
+  failed: 'var(--destructive)'
 }
 
 function elapsedLabel(plan: PlanDto): string {
@@ -63,30 +63,27 @@ export function PlanCard({ plan, agentsById }: Props) {
   const total = plan.steps.length
 
   return (
-    <div
-      className="mb-4 overflow-hidden rounded-[var(--ph-radius-lg)]"
-      style={{ background: 'var(--ph-surface-sunken)' }}
-    >
+    <div className="bg-muted mb-4 overflow-hidden rounded-xl">
       <button
         type="button"
         onClick={() => setCollapsed((c) => !c)}
-        className="flex w-full items-center gap-2 px-4 py-2.5 text-left transition-colors hover:bg-[var(--ph-canvas)]"
+        className="hover:bg-background flex w-full items-center gap-2 px-4 py-2.5 text-left transition-colors"
       >
         {collapsed ? (
-          <ChevronRight className="h-4 w-4 text-[var(--ph-text-muted)]" />
+          <ChevronRight className="text-muted-foreground h-4 w-4" />
         ) : (
-          <ChevronDown className="h-4 w-4 text-[var(--ph-text-muted)]" />
+          <ChevronDown className="text-muted-foreground h-4 w-4" />
         )}
-        <span className="flex-1 truncate text-[12.5px] font-semibold text-[var(--ph-text)]">
+        <span className="text-foreground flex-1 truncate text-[12.5px] font-semibold">
           {plan.summary}
         </span>
-        <span className="text-[11px] text-[var(--ph-text-muted)]">
+        <span className="text-muted-foreground text-[11px]">
           {done}/{total} · {elapsedLabel(plan)}
         </span>
         <StatusPill status={plan.status} />
       </button>
       {!collapsed && (
-        <div className="border-t border-[var(--ph-border)]">
+        <div className="border-border border-t">
           {plan.steps.map((s) => {
             const agent = s.assignedAgentId
               ? agentsById[s.assignedAgentId]
@@ -96,7 +93,7 @@ export function PlanCard({ plan, agentsById }: Props) {
                 key={s.id}
                 className={cn(
                   'flex items-start gap-3 px-4 py-2.5',
-                  s.status === 'running' && 'bg-[var(--ph-canvas)]'
+                  s.status === 'running' && 'bg-background'
                 )}
               >
                 <span
@@ -117,29 +114,27 @@ export function PlanCard({ plan, agentsById }: Props) {
                     className={cn(
                       'text-[13px] font-medium',
                       s.status === 'done' &&
-                        'text-[var(--ph-text-muted)] line-through',
-                      s.status === 'skipped' && 'text-[var(--ph-text-muted)]'
+                        'text-muted-foreground line-through',
+                      s.status === 'skipped' && 'text-muted-foreground',
+                      s.status !== 'done' &&
+                        s.status !== 'skipped' &&
+                        'text-foreground'
                     )}
-                    style={
-                      s.status !== 'done' && s.status !== 'skipped'
-                        ? { color: 'var(--ph-text)' }
-                        : undefined
-                    }
                   >
                     {s.ordinal + 1}. {s.title}
                   </div>
                   {s.intent && (
-                    <div className="text-[11.5px] text-[var(--ph-text-muted)]">
+                    <div className="text-muted-foreground text-[11.5px]">
                       {s.intent}
                     </div>
                   )}
                   {s.output && s.status === 'done' && (
-                    <div className="mt-1 line-clamp-2 text-[11.5px] text-[var(--ph-text-muted)]">
+                    <div className="text-muted-foreground mt-1 line-clamp-2 text-[11.5px]">
                       → {s.output}
                     </div>
                   )}
                   {s.note && (
-                    <div className="mt-1 text-[11.5px] text-[var(--ph-warning)]">
+                    <div className="mt-1 text-[11.5px] text-amber-500">
                       {s.note}
                     </div>
                   )}
@@ -169,19 +164,16 @@ function StatusPill({ status }: { status: PlanDto['status'] }) {
         : status === 'aborted'
           ? 'aborted'
           : 'draft'
-  const color =
-    status === 'completed'
-      ? 'var(--ph-primary)'
-      : status === 'aborted'
-        ? 'var(--ph-danger)'
-        : 'var(--ph-warning)'
   return (
     <span
-      className="rounded-full px-2 py-0.5 text-[10px] font-medium"
-      style={{
-        background: 'var(--ph-canvas)',
-        color
-      }}
+      className={cn(
+        'bg-muted rounded-full px-2 py-0.5 text-[10px] font-medium',
+        status === 'completed'
+          ? 'text-emerald-500'
+          : status === 'aborted'
+            ? 'text-destructive'
+            : 'text-amber-500'
+      )}
     >
       {label}
     </span>

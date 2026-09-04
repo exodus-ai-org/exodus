@@ -3,20 +3,23 @@ import { useState } from 'react'
 import { sileo } from 'sileo'
 
 import { PinInput } from '@/components/lock/pin-input'
-import { Button } from '@/components/ui/button'
 import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { Switch } from '@/components/ui/switch'
 import { useLock } from '@/hooks/use-lock'
 import { disableLock, setLockConfig, setLockPin } from '@/lib/lock-ipc'
 
 import { SettingsRow, SettingsSection } from '../settings-row'
+import { SettingsSelect } from '../settings-select'
 
 const IDLE_OPTIONS = [
   { label: 'Off', value: 0 },
@@ -24,6 +27,21 @@ const IDLE_OPTIONS = [
   { label: '5 minutes', value: 300_000 },
   { label: '15 minutes', value: 900_000 }
 ]
+
+function PinBlock({
+  label,
+  children
+}: {
+  label: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-sm font-medium">{label}</span>
+      {children}
+    </div>
+  )
+}
 
 export function LockPrivacy() {
   const { status, refresh } = useLock()
@@ -41,13 +59,11 @@ export function LockPrivacy() {
     setConfirm('')
   }
 
-  // Step 1: once 6 digits are entered, advance to the confirm step.
   const handlePinChange = (value: string) => {
     setPin(value)
     if (value.length === 6) setStep('confirm')
   }
 
-  // Step 2: on the 6th confirm digit, validate the match and enroll.
   const handleConfirmChange = async (value: string) => {
     setConfirm(value)
     if (value.length !== 6) return
@@ -89,16 +105,15 @@ export function LockPrivacy() {
   }
 
   return (
-    <SettingsSection>
+    <SettingsSection title="Lock & Privacy" plain>
       {!status.hasPin ? (
-        <div className="flex flex-col gap-4">
+        <Card className="gap-4 p-5">
           <p className="text-muted-foreground text-sm">
             Set a 6-digit PIN to lock Exodus. While locked, the UI and the local
             API are inaccessible, but background tasks keep running.
           </p>
           {step === 'enter' ? (
-            <div className="flex flex-col gap-2">
-              <span className="text-sm font-medium">Enter a 6-digit PIN</span>
+            <PinBlock label="Enter a 6-digit PIN">
               <PinInput
                 key="enter"
                 value={pin}
@@ -106,10 +121,9 @@ export function LockPrivacy() {
                 autoFocus
                 testId={TEST_IDS.lock.enablePinInput}
               />
-            </div>
+            </PinBlock>
           ) : (
-            <div className="flex flex-col gap-2">
-              <span className="text-sm font-medium">Confirm your PIN</span>
+            <PinBlock label="Confirm your PIN">
               <PinInput
                 key="confirm"
                 value={confirm}
@@ -117,103 +131,108 @@ export function LockPrivacy() {
                 autoFocus
                 testId={TEST_IDS.lock.confirmPinInput}
               />
-              <button
-                type="button"
+              <Button
+                variant="link"
+                size="xs"
                 onClick={resetEnroll}
-                className="text-muted-foreground self-start text-xs hover:underline"
+                className="text-muted-foreground h-auto self-start p-0"
               >
                 Start over
-              </button>
-            </div>
+              </Button>
+            </PinBlock>
           )}
-        </div>
+        </Card>
       ) : (
-        <div className="flex flex-col gap-2">
-          {status.touchIdAvailable && (
-            <SettingsRow label="Unlock with Touch ID">
-              <Switch
-                checked={status.config.touchIdEnabled}
-                onCheckedChange={(v) => update({ touchIdEnabled: v })}
+        <>
+          <SettingsSection>
+            {status.touchIdAvailable && (
+              <SettingsRow label="Unlock with Touch ID">
+                <Switch
+                  checked={status.config.touchIdEnabled}
+                  onCheckedChange={(v) => update({ touchIdEnabled: v })}
+                />
+              </SettingsRow>
+            )}
+
+            <SettingsRow label="Auto-lock when idle">
+              <SettingsSelect
+                testId={TEST_IDS.lock.idleSelect}
+                value={String(status.config.idleTimeoutMs)}
+                onValueChange={(v) => update({ idleTimeoutMs: Number(v) })}
+                options={IDLE_OPTIONS.map((o) => ({
+                  value: String(o.value),
+                  label: o.label
+                }))}
               />
             </SettingsRow>
-          )}
 
-          <SettingsRow label="Auto-lock when idle">
-            <Select
-              value={String(status.config.idleTimeoutMs)}
-              onValueChange={(v) => v && update({ idleTimeoutMs: Number(v) })}
-            >
-              <SelectTrigger
-                data-testid={TEST_IDS.lock.idleSelect}
-                className="hover:bg-accent w-fit border-none shadow-none"
-              >
-                <SelectValue>
-                  {(val: string) =>
-                    IDLE_OPTIONS.find((o) => String(o.value) === val)?.label ??
-                    val
-                  }
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent className="no-drag w-full">
-                <SelectGroup>
-                  {IDLE_OPTIONS.map((o) => (
-                    <SelectItem key={o.value} value={String(o.value)}>
-                      {o.label}
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
-          </SettingsRow>
-
-          <SettingsRow label="Lock on app launch">
-            <Switch
-              checked={status.config.lockOnLaunch}
-              onCheckedChange={(v) => update({ lockOnLaunch: v })}
-            />
-          </SettingsRow>
-
-          <SettingsRow label="Lock on system sleep">
-            <Switch
-              checked={status.config.lockOnSystemSleep}
-              onCheckedChange={(v) => update({ lockOnSystemSleep: v })}
-            />
-          </SettingsRow>
-
-          {removing ? (
-            <div className="flex flex-col gap-2">
-              <span className="text-sm font-medium">Current PIN</span>
-              <PinInput
-                value={removePinValue}
-                onChange={setRemovePinValue}
-                testId={TEST_IDS.lock.removePinInput}
+            <SettingsRow label="Lock on app launch">
+              <Switch
+                checked={status.config.lockOnLaunch}
+                onCheckedChange={(v) => update({ lockOnLaunch: v })}
               />
-              <div className="flex gap-2">
-                <Button variant="destructive" onClick={removePin}>
-                  Confirm remove
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setRemoving(false)
-                    setRemovePinValue('')
-                  }}
-                >
-                  Cancel
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <Button
-              variant="destructive"
-              data-testid={TEST_IDS.lock.removeButton}
-              onClick={() => setRemoving(true)}
-              className="self-start"
+            </SettingsRow>
+
+            <SettingsRow label="Lock on system sleep">
+              <Switch
+                checked={status.config.lockOnSystemSleep}
+                onCheckedChange={(v) => update({ lockOnSystemSleep: v })}
+              />
+            </SettingsRow>
+
+            <SettingsRow
+              label="Remove lock"
+              description="Turn off the app lock. Requires your current PIN."
             >
-              Remove lock
-            </Button>
-          )}
-        </div>
+              <Button
+                variant="destructive"
+                size="sm"
+                data-testid={TEST_IDS.lock.removeButton}
+                onClick={() => setRemoving(true)}
+              >
+                Remove
+              </Button>
+            </SettingsRow>
+          </SettingsSection>
+
+          <AlertDialog
+            open={removing}
+            onOpenChange={(open) => {
+              if (!open) {
+                setRemoving(false)
+                setRemovePinValue('')
+              }
+            }}
+          >
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Remove lock?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Enter your current PIN to confirm. Exodus will no longer
+                  require a PIN to open.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <div className="flex justify-center py-1">
+                <PinInput
+                  value={removePinValue}
+                  onChange={setRemovePinValue}
+                  autoFocus
+                  testId={TEST_IDS.lock.removePinInput}
+                />
+              </div>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <Button
+                  variant="destructive"
+                  disabled={removePinValue.length !== 6}
+                  onClick={removePin}
+                >
+                  Remove lock
+                </Button>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </>
       )}
     </SettingsSection>
   )

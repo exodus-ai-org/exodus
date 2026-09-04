@@ -40,11 +40,11 @@ export function TaskCard({
   return (
     <div
       data-testid={TEST_IDS.schedule.taskCard}
-      className="flex items-start justify-between gap-3 rounded-(--ph-radius-lg) border border-(--ph-border) bg-(--ph-surface) p-3"
+      className="border-border bg-card flex items-start justify-between gap-3 rounded-xl border p-3"
     >
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
-          <span className="truncate text-sm font-semibold text-(--ph-text)">
+          <span className="text-foreground truncate text-sm font-semibold">
             {task.title}
           </span>
           <Badge variant="outline" className="shrink-0 text-[10px]">
@@ -57,7 +57,7 @@ export function TaskCard({
             {STATUS_LABEL[task.status]}
           </Badge>
         </div>
-        <div className="mt-1 truncate text-xs text-(--ph-text-muted)">
+        <div className="text-muted-foreground mt-1 truncate text-xs">
           {groupTitle} · {subtitle}
         </div>
       </div>
@@ -67,7 +67,7 @@ export function TaskCard({
           type="button"
           variant="ghost"
           size="icon"
-          className="h-7 w-7 shrink-0 text-(--ph-text-muted) hover:text-(--ph-danger)"
+          className="text-muted-foreground hover:text-destructive h-7 w-7 shrink-0"
           disabled={cancelling}
           onClick={() => onCancel(task.id)}
           aria-label="Cancel scheduled task"

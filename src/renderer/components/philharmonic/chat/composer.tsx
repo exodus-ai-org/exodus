@@ -4,9 +4,9 @@ import { useAtom } from 'jotai'
 import { SendIcon, SquareIcon } from 'lucide-react'
 import { type ClipboardEvent, useState } from 'react'
 
+import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { usePhilharmonicUpload } from '@/hooks/use-philharmonic-upload'
-import { cn } from '@/lib/utils'
 import { philharmonicAttachmentAtom } from '@/stores/philharmonic'
 
 import { AttachmentPreview } from './attachment-preview'
@@ -54,20 +54,8 @@ export function Composer({
   }
 
   return (
-    <div
-      className="px-4 pt-3 pb-4"
-      style={{
-        background: 'var(--ph-surface-sunken)',
-        borderTop: '1px solid var(--ph-border)'
-      }}
-    >
-      <div
-        className={cn(
-          'flex flex-col gap-1 rounded-[var(--ph-radius-xl)] border bg-[var(--ph-surface)] p-2 pl-3.5 transition-shadow',
-          'focus-within:border-[var(--ph-primary)] focus-within:ring-[3px] focus-within:ring-[var(--ph-primary-soft)]'
-        )}
-        style={{ borderColor: 'var(--ph-border)' }}
-      >
+    <div className="bg-muted border-border border-t px-4 pt-3 pb-4">
+      <div className="border-border bg-card focus-within:border-primary focus-within:ring-accent flex flex-col gap-1 rounded-xl border p-2 pl-3.5 transition-shadow focus-within:ring-[3px]">
         <AttachmentPreview />
         <div className="flex items-end gap-2">
           <Textarea
@@ -85,49 +73,32 @@ export function Composer({
           />
           <ComposerUploader />
           {busy ? (
-            <button
-              type="button"
+            <Button
+              size="icon-sm"
+              variant="destructive"
               onClick={onStop}
               aria-label="Stop"
-              className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[var(--ph-radius-md)] text-white transition-opacity hover:opacity-90"
-              style={{ background: 'var(--ph-danger)' }}
+              className="shrink-0 rounded-lg"
             >
               <SquareIcon className="h-3 w-3 fill-current" />
-            </button>
+            </Button>
           ) : (
-            <button
-              type="button"
+            <Button
+              size="icon-sm"
               onClick={submit}
               disabled={!canSend}
               aria-label="Send"
-              className={cn(
-                'flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[var(--ph-radius-md)] transition-opacity',
-                canSend
-                  ? 'text-white hover:opacity-90'
-                  : 'cursor-not-allowed text-[var(--ph-text-muted)]'
-              )}
-              style={{
-                background: canSend ? 'var(--ph-primary)' : 'var(--ph-canvas)'
-              }}
+              className="shrink-0 rounded-lg"
             >
               <SendIcon className="h-3.5 w-3.5" />
-            </button>
+            </Button>
           )}
         </div>
       </div>
-      <p className="mt-1.5 px-1 text-[10px] text-[var(--ph-text-muted)]">
-        Press{' '}
-        <kbd
-          className="rounded px-1 py-px"
-          style={{ background: 'var(--ph-canvas)' }}
-        >
-          Enter
-        </kbd>{' '}
-        to send,{' '}
-        <kbd
-          className="ml-1 rounded px-1 py-px"
-          style={{ background: 'var(--ph-canvas)' }}
-        >
+      <p className="text-muted-foreground mt-1.5 px-1 text-[10px]">
+        Press <kbd className="bg-background rounded px-1 py-px">Enter</kbd> to
+        send,{' '}
+        <kbd className="bg-background ml-1 rounded px-1 py-px">
           Shift + Enter
         </kbd>{' '}
         for a new line. Paste or attach images.

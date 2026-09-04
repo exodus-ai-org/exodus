@@ -5,85 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1779942682009,
-      "tag": "0000_broad_sphinx",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1780225341632,
-      "tag": "0001_outgoing_red_hulk",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1780279846026,
-      "tag": "0002_handy_kid_colt",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1780569733163,
-      "tag": "0003_tiresome_menace",
-      "breakpoints": true
-    },
-    {
-      "idx": 4,
-      "version": "7",
-      "when": 1780570392989,
-      "tag": "0004_parallel_dreadnoughts",
-      "breakpoints": true
-    },
-    {
-      "idx": 5,
-      "version": "7",
-      "when": 1780633261552,
-      "tag": "0005_thin_blade",
-      "breakpoints": true
-    },
-    {
-      "idx": 6,
-      "version": "7",
-      "when": 1780650248797,
-      "tag": "0006_huge_puck",
-      "breakpoints": true
-    },
-    {
-      "idx": 7,
-      "version": "7",
-      "when": 1787059453759,
-      "tag": "0007_awesome_molten_man",
-      "breakpoints": true
-    },
-    {
-      "idx": 8,
-      "version": "7",
-      "when": 1787630365673,
-      "tag": "0008_flaky_jigsaw",
-      "breakpoints": true
-    },
-    {
-      "idx": 9,
-      "version": "7",
-      "when": 1787644144916,
-      "tag": "0009_dry_thor_girl",
-      "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "7",
-      "when": 1787746927605,
-      "tag": "0010_plain_falcon",
-      "breakpoints": true
-    },
-    {
-      "idx": 11,
-      "version": "7",
-      "when": 1788281283655,
-      "tag": "0011_eminent_lethal_legion",
+      "when": 1788480353196,
+      "tag": "0000_freezing_hercules",
       "breakpoints": true
     }
   ]

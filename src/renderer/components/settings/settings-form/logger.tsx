@@ -14,16 +14,9 @@ import useSWR from 'swr'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
 
 import { SettingsSection } from '../settings-row'
+import { SettingsSelect } from '../settings-select'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -211,77 +204,47 @@ export function Logger() {
   }, [mutate])
 
   return (
-    <SettingsSection>
+    <SettingsSection plain>
       {/* Filter bar */}
       <div className="flex flex-wrap items-center gap-2">
         {/* Date select */}
-        <Select
+        <SettingsSelect
+          className="w-[140px]"
           value={date}
+          placeholder="Date"
           onValueChange={(v) => {
-            if (v) setDate(v)
+            setDate(v)
             setPage(1)
             setExpandedIndex(null)
           }}
-        >
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Date" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {dateOptions.map((d) => (
-                <SelectItem key={d} value={d}>
-                  {d}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+          options={dateOptions.map((d) => ({ value: d, label: d }))}
+        />
 
         {/* Level select */}
-        <Select
+        <SettingsSelect
+          className="w-[100px]"
           value={level}
+          placeholder="Level"
           onValueChange={(v) => {
-            if (v) setLevel(v)
+            setLevel(v)
             setPage(1)
             setExpandedIndex(null)
           }}
-        >
-          <SelectTrigger className="w-[100px]">
-            <SelectValue placeholder="Level" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {LEVELS.map((l) => (
-                <SelectItem key={l} value={l}>
-                  {l}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+          options={LEVELS.map((l) => ({ value: l, label: l }))}
+        />
 
         {/* Surface select */}
-        <Select
+        <SettingsSelect
+          className="w-[150px]"
           value={surface}
+          placeholder="Surface"
           onValueChange={(v) => {
-            if (v) setSurface(v)
+            setSurface(v)
             setPage(1)
             setExpandedIndex(null)
           }}
-        >
-          <SelectTrigger className="w-[150px]">
-            <SelectValue placeholder="Surface" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {SURFACES.map((s) => (
-                <SelectItem key={s} value={s}>
-                  {s}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
+          options={SURFACES.map((s) => ({ value: s, label: s }))}
+        />
 
         {/* Keyword search */}
         <Input

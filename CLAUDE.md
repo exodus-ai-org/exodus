@@ -251,32 +251,28 @@ Allows external tools/servers to be integrated via MCP protocol:
 
 **Memory System** (`src/main/lib/ai/memory/manager.ts`):
 
-Tracks user preferences, goals, and context across conversations. Key functions: `runMemoryWriteJudge()`, `loadRelevantMemories()`, `formatMemoriesForSystem()`, `saveSessionSummary()`.
+A durable, topic-consolidated memory of the user. Key functions:
+`runMemoryConsolidation()`, `loadRelevantMemories()`, `formatMemoriesForSystem()`.
 
-**Memory Types** (stored in `memory` table):
+**Memory entries** (one row per topic/person in the `memory` table):
 
-- `preference` - UI/interaction preferences
-- `goal` - User objectives
-- `environment` - Job, location, setup context
-- `skill` - Expertise areas
-- `project` - Current projects
-- `constraint` - Limitations or rules
+- `section` - `profile` (durable identity / setup / hard constraints / stable
+  preferences) | `topic` (an interest, project, recurring subject) | `person`
+- `key` - short stable title (e.g. "Classical Music")
+- `summary` - one sentence; `details` - `string[]` of bullets
 
 **Memory Operations** (all in `src/main/lib/ai/memory/manager.ts`):
 
-1. **Memory Write Judge** (`runMemoryWriteJudge()`):
-   - Runs after each conversation
-   - Uses an LLM to evaluate if memory should be written
-   - Criteria: long-term stable (weeks+), multi-conversation useful, not sensitive
-   - Output: shouldWrite boolean + memory metadata
+1. **Consolidation** (`runMemoryConsolidation()`) — `memory-consolidate` job
+   after each turn when `memory.autoCapture`. One LLM call sees the
+   conversation + the existing memory index and returns `create`/`update`
+   operations. Prefers updating an existing entry (returning its full revised
+   summary + details) over inserting a duplicate.
 
-2. **Memory Read Filter** (`loadRelevantMemories()` / `formatMemoriesForSystem()`):
-   - Before chat, filters relevant memories from database
-   - Selects only directly applicable memories to avoid token waste
-
-3. **Session Summary** (`saveSessionSummary()`):
-   - After conversation, summarizes key points
-   - Stored for future session context
+2. **Read filter** (`loadRelevantMemories()` / `formatMemoriesForSystem()`) —
+   pre-turn when `memory.useInChat`. One LLM call picks the relevant
+   entries; selected entries are recorded in `memory_usage_log` and get
+   `lastUsedAt` bumped, then rendered into a `<user_memory>` system block.
 
 ### Philharmonic (multi-agent Groups)
 

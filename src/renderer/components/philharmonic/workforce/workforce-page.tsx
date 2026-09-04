@@ -30,6 +30,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
 import {
   ContextMenu,
   ContextMenuContent,
@@ -68,8 +69,7 @@ function EmployeeCard({ employee, onEdit, onAskDelete }: EmployeeCardProps) {
         <button
           type="button"
           onClick={() => onEdit(employee)}
-          className="group flex w-full items-start gap-3 rounded-[var(--ph-radius-lg)] px-3.5 py-3 text-left transition-shadow hover:shadow-[var(--ph-shadow-hover)]"
-          style={{ background: 'var(--ph-surface-sunken)' }}
+          className="group bg-muted hover:bg-accent flex w-full items-start gap-3 rounded-xl px-3.5 py-3 text-left transition-colors"
         >
           <EmployeeAvatar
             seed={employee.avatarSeed}
@@ -77,41 +77,31 @@ function EmployeeCard({ employee, onEdit, onAskDelete }: EmployeeCardProps) {
             size={44}
           />
           <div className="min-w-0 flex-1">
-            <div className="truncate text-sm font-semibold text-[var(--ph-text)]">
+            <div className="text-foreground truncate text-sm font-semibold">
               {employee.name}
             </div>
             {employee.description && (
-              <div className="line-clamp-2 text-[11.5px] text-[var(--ph-text-muted)]">
+              <div className="text-muted-foreground line-clamp-2 text-[11.5px]">
                 {employee.description}
               </div>
             )}
             {(modelChip || tools.length > 0) && (
               <div className="mt-2 flex flex-wrap gap-1">
                 {modelChip && (
-                  <span
-                    className="rounded-[var(--ph-radius-sm)] px-1.5 py-0.5 text-[10px]"
-                    style={{
-                      background: 'var(--ph-primary-soft)',
-                      color: 'var(--ph-primary-ink)'
-                    }}
-                  >
+                  <span className="bg-accent text-accent-foreground rounded-md px-1.5 py-0.5 text-[10px]">
                     {modelChip}
                   </span>
                 )}
                 {tools.slice(0, 2).map((t) => (
                   <span
                     key={t}
-                    className="rounded-[var(--ph-radius-sm)] px-1.5 py-0.5 text-[10px] text-[var(--ph-text-muted)]"
-                    style={{ background: 'var(--ph-canvas)' }}
+                    className="bg-background text-muted-foreground rounded-md px-1.5 py-0.5 text-[10px]"
                   >
                     {t}
                   </span>
                 ))}
                 {tools.length > 2 && (
-                  <span
-                    className="rounded-[var(--ph-radius-sm)] px-1.5 py-0.5 text-[10px] text-[var(--ph-text-muted)]"
-                    style={{ background: 'var(--ph-canvas)' }}
-                  >
+                  <span className="bg-background text-muted-foreground rounded-md px-1.5 py-0.5 text-[10px]">
                     +{tools.length - 2}
                   </span>
                 )}
@@ -165,20 +155,20 @@ function TeamSection({
     <button
       type="button"
       onClick={onToggle}
-      className="flex w-full items-center gap-2 rounded-[var(--ph-radius-md)] px-1 py-1.5 text-left transition-colors hover:bg-[var(--ph-canvas)]"
+      className="hover:bg-background flex w-full items-center gap-2 rounded-lg px-1 py-1.5 text-left transition-colors"
     >
       <ChevronRight
         className={cn(
-          'h-4 w-4 transition-transform',
+          'text-muted-foreground h-4 w-4 transition-transform',
           !collapsed && 'rotate-90'
         )}
-        style={{ color: 'var(--ph-text-muted)' }}
       />
       <span
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[var(--ph-radius-md)] text-base"
-        style={
-          team ? hueStyle(pickHue(team.id)) : { background: 'var(--ph-canvas)' }
-        }
+        className={cn(
+          'flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-base',
+          !team && 'bg-background'
+        )}
+        style={team ? hueStyle(pickHue(team.id)) : undefined}
       >
         {team?.icon ??
           (team ? (
@@ -187,20 +177,14 @@ function TeamSection({
             <UsersIcon className="h-4 w-4 opacity-60" />
           ))}
       </span>
-      <span className="text-sm font-semibold text-[var(--ph-text)]">
+      <span className="text-foreground text-sm font-semibold">
         {team?.name ?? 'No team'}
       </span>
-      <span
-        className="ml-1 rounded-full px-2 py-0.5 text-[10px]"
-        style={{
-          background: 'var(--ph-canvas)',
-          color: 'var(--ph-text-muted)'
-        }}
-      >
+      <span className="bg-background text-muted-foreground ml-1 rounded-full px-2 py-0.5 text-[10px]">
         {members.length}
       </span>
       {team?.description && (
-        <span className="ml-2 truncate text-xs text-[var(--ph-text-muted)]">
+        <span className="text-muted-foreground ml-2 truncate text-xs">
           {team.description}
         </span>
       )}
@@ -252,11 +236,7 @@ function TeamSection({
             <button
               type="button"
               onClick={() => onAddEmployeeToTeam(team.id)}
-              className="flex min-h-[88px] items-center justify-center gap-2 rounded-[var(--ph-radius-lg)] border-2 border-dashed text-xs transition-colors hover:text-[var(--ph-primary)]"
-              style={{
-                borderColor: 'var(--ph-border)',
-                color: 'var(--ph-text-muted)'
-              }}
+              className="border-border text-muted-foreground hover:text-primary flex min-h-[88px] items-center justify-center gap-2 rounded-xl border-2 border-dashed text-xs transition-colors"
             >
               <Plus className="h-3.5 w-3.5" />
               Add employee
@@ -398,38 +378,29 @@ export function WorkforcePage() {
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      <header className="flex h-13 shrink-0 items-center justify-between border-b border-[var(--ph-border)] px-5">
+      <header className="border-border flex h-13 shrink-0 items-center justify-between border-b px-5">
         <div>
-          <h1 className="text-sm font-semibold text-[var(--ph-text)]">
-            Workforce
-          </h1>
-          <p className="text-[11.5px] text-[var(--ph-text-muted)]">
+          <h1 className="text-foreground text-sm font-semibold">Workforce</h1>
+          <p className="text-muted-foreground text-[11.5px]">
             {employees.length}{' '}
             {employees.length === 1 ? 'employee' : 'employees'} · {teams.length}{' '}
             {teams.length === 1 ? 'team' : 'teams'}
           </p>
         </div>
         <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={openNewTeam}
-            className="flex h-8 items-center gap-1 rounded-[var(--ph-radius-md)] px-3 text-xs font-medium text-[var(--ph-text)]"
-            style={{ background: 'var(--ph-canvas)' }}
-          >
+          <Button variant="ghost" size="sm" onClick={openNewTeam}>
             <Plus className="h-3.5 w-3.5" />
             Team
-          </button>
-          <button
-            type="button"
+          </Button>
+          <Button
+            size="sm"
             onClick={() => openNewEmployee()}
             disabled={noTeams}
             title={noTeams ? 'Create a team first' : undefined}
-            className="flex h-8 items-center gap-1 rounded-[var(--ph-radius-md)] px-3 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-            style={{ background: 'var(--ph-primary)' }}
           >
             <UserPlus className="h-3.5 w-3.5" />
             Employee
-          </button>
+          </Button>
         </div>
       </header>
 
@@ -485,7 +456,7 @@ export function WorkforcePage() {
         open={employeeEditor !== null}
         onOpenChange={(o) => !o && setEmployeeEditor(null)}
       >
-        <SheetContent className="w-[520px] rounded-l-[var(--ph-radius-2xl)] border-l-0 bg-[var(--ph-surface)] p-0 shadow-[var(--ph-shadow-drawer)] sm:max-w-none">
+        <SheetContent className="w-[520px] p-0 sm:max-w-none">
           {employeeEditor && (
             <EmployeeEditor
               key={employeeEditor.draft.id}
@@ -502,7 +473,7 @@ export function WorkforcePage() {
         open={teamEditor !== null}
         onOpenChange={(o) => !o && setTeamEditor(null)}
       >
-        <SheetContent className="w-[520px] rounded-l-[var(--ph-radius-2xl)] border-l-0 bg-[var(--ph-surface)] p-0 shadow-[var(--ph-shadow-drawer)] sm:max-w-none">
+        <SheetContent className="w-[520px] p-0 sm:max-w-none">
           {teamEditor && (
             <TeamEditor
               key={teamEditor.draft.id}
@@ -520,13 +491,13 @@ export function WorkforcePage() {
         open={confirmingEmployee !== null}
         onOpenChange={(o) => !o && setConfirmingEmployee(null)}
       >
-        <AlertDialogContent className="rounded-[var(--ph-radius-2xl)] border-[var(--ph-border)] bg-[var(--ph-surface)] shadow-[var(--ph-shadow-card)]">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this employee?</AlertDialogTitle>
             <AlertDialogDescription>
               {confirmingEmployee ? (
                 <>
-                  <span className="rounded-[var(--ph-radius-sm)] bg-[var(--ph-canvas)] px-1.5 py-0.5 font-mono text-xs">
+                  <span className="bg-background rounded-md px-1.5 py-0.5 font-mono text-xs">
                     {confirmingEmployee.name}
                   </span>{' '}
                   will be permanently removed along with their accumulated
@@ -540,7 +511,7 @@ export function WorkforcePage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-[var(--ph-danger)] text-white hover:opacity-90"
+              variant="destructive"
               onClick={async () => {
                 if (!confirmingEmployee) return
                 const id = confirmingEmployee.id
@@ -572,13 +543,13 @@ export function WorkforcePage() {
         open={confirmingTeam !== null}
         onOpenChange={(o) => !o && setConfirmingTeam(null)}
       >
-        <AlertDialogContent className="rounded-[var(--ph-radius-2xl)] border-[var(--ph-border)] bg-[var(--ph-surface)] shadow-[var(--ph-shadow-card)]">
+        <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this team?</AlertDialogTitle>
             <AlertDialogDescription>
               {confirmingTeam ? (
                 <>
-                  <span className="rounded-[var(--ph-radius-sm)] bg-[var(--ph-canvas)] px-1.5 py-0.5 font-mono text-xs">
+                  <span className="bg-background rounded-md px-1.5 py-0.5 font-mono text-xs">
                     {confirmingTeam.name}
                   </span>{' '}
                   will be removed. Existing members keep their records but lose
@@ -592,7 +563,7 @@ export function WorkforcePage() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-[var(--ph-danger)] text-white hover:opacity-90"
+              variant="destructive"
               onClick={async () => {
                 if (!confirmingTeam) return
                 const id = confirmingTeam.id

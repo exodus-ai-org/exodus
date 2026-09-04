@@ -1,4 +1,4 @@
-import { BotIcon, SettingsIcon } from 'lucide-react'
+import { SettingsIcon } from 'lucide-react'
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
@@ -20,15 +20,6 @@ export function NavFooter({
     <SidebarGroup {...props}>
       <SidebarGroupContent>
         <SidebarMenu className="gap-1">
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              isActive={location.pathname.includes('philharmonic')}
-              onClick={() => navigate('/philharmonic')}
-            >
-              <BotIcon />
-              Philharmonic
-            </SidebarMenuButton>
-          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
               isActive={location.pathname.includes('settings')}

@@ -1,11 +1,11 @@
 import type { Usage } from '@mariozechner/pi-ai'
 import {
-  AudioSchema,
+  VoiceSchema,
   DeepResearchSchema,
   GoogleCloudSchema,
   ImageSchema,
   KeyboardShortcutsSchema,
-  MemoryLayerSchema,
+  MemorySchema,
   PersonalitySchema,
   ProviderConfigSchema,
   ProvidersSchema,
@@ -142,7 +142,7 @@ export const settings = pgTable('settings', {
   providers: jsonb('providers').$type<z.infer<typeof ProvidersSchema>>(),
   mcpServers: text('mcpServers').default(''),
   tools: jsonb('tools').$type<z.infer<typeof ToolsSchema>>(),
-  audio: jsonb('audio').$type<z.infer<typeof AudioSchema>>(),
+  voice: jsonb('voice').$type<z.infer<typeof VoiceSchema>>(),
   assistantAvatar: text('assistantAvatar').default(''),
   googleCloud: jsonb('googleCloud').$type<z.infer<typeof GoogleCloudSchema>>(),
   webSearch: jsonb('webSearch').$type<z.infer<typeof WebSearchSchema>>(),
@@ -154,14 +154,12 @@ export const settings = pgTable('settings', {
   autoUpdate: boolean('autoUpdate').default(true),
   runOnStartup: boolean('runOnStartup').default(false),
   menuBar: boolean('menuBar').default(true),
-  proxy: text('proxy').default(''),
   autoBackup: boolean('autoBackup').default(true),
   lastBackupAt: timestamp('lastBackupAt'),
-  memoryLayer: jsonb('memoryLayer').$type<z.infer<typeof MemoryLayerSchema>>(),
+  memory: jsonb('memory').$type<z.infer<typeof MemorySchema>>(),
   personality: jsonb('personality').$type<z.infer<typeof PersonalitySchema>>(),
   keyboardShortcuts:
     jsonb('keyboardShortcuts').$type<z.infer<typeof KeyboardShortcutsSchema>>(),
-  colorTone: text('colorTone').default('neutral'),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull()
 })
@@ -537,13 +535,12 @@ export type KnowledgeDoc = InferSelectModel<typeof knowledgeDoc>
 
 // ─── Memory & Personalization ───────────────────────────────────────────────
 
-export const memoryTypeEnum = pgEnum('memory_type', [
-  'preference',
-  'goal',
-  'environment',
-  'skill',
-  'project',
-  'constraint'
+// Coarse sections, mirroring how a durable user memory is naturally organized.
+// The LLM classifies far more consistently into 3 buckets than into 6.
+export const memorySectionEnum = pgEnum('memory_section', [
+  'profile', // durable identity, environment, hard constraints, preferences
+  'topic', // an interest / project / recurring subject
+  'person' // someone in the user's life
 ])
 
 export const memorySourceEnum = pgEnum('memory_source', [
@@ -552,12 +549,18 @@ export const memorySourceEnum = pgEnum('memory_source', [
   'system'
 ])
 
+// One row per topic/person, not per fact. `summary` is the one-liner; `details`
+// accumulates bullet points that the consolidation judge revises over time.
 export const memory = pgTable('memory', {
   id: uuid('id').defaultRandom().primaryKey(),
   userId: uuid('userId').notNull(),
-  type: memoryTypeEnum('type').notNull(),
+  section: memorySectionEnum('section').notNull().default('topic'),
   key: text('key').notNull(),
-  value: jsonb('value').notNull(),
+  summary: text('summary').notNull(),
+  details: jsonb('details')
+    .$type<string[]>()
+    .notNull()
+    .default(sql`'[]'::jsonb`),
   confidence: real('confidence').default(0.8),
   source: memorySourceEnum('source').notNull(),
   createdAt: timestamp('createdAt').defaultNow(),
@@ -566,13 +569,8 @@ export const memory = pgTable('memory', {
   isActive: boolean('isActive').default(true)
 })
 
-export const sessionSummary = pgTable('session_summary', {
-  sessionId: uuid('sessionId').primaryKey(),
-  userId: uuid('userId').notNull(),
-  summary: text('summary').notNull(),
-  updatedAt: timestamp('updatedAt').defaultNow()
-})
-
+// Written whenever a memory is surfaced into a chat — powers "why did it say
+// that" traces and an age-out policy.
 export const memoryUsageLog = pgTable('memory_usage_log', {
   id: uuid('id').defaultRandom().primaryKey(),
   memoryId: uuid('memoryId'),

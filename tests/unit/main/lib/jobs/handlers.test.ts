@@ -25,11 +25,9 @@ vi.mock('@main/lib/ai/context-management', () => ({
   })
 }))
 
-const mockRunMemoryWriteJudge = vi.fn()
-const mockSaveSessionSummary = vi.fn()
+const mockRunMemoryConsolidation = vi.fn()
 vi.mock('@main/lib/ai/memory/manager', () => ({
-  runMemoryWriteJudge: mockRunMemoryWriteJudge,
-  saveSessionSummary: mockSaveSessionSummary
+  runMemoryConsolidation: mockRunMemoryConsolidation
 }))
 
 const { handlers } = await import('@main/lib/jobs/handlers')
@@ -98,37 +96,17 @@ describe('handlers.lcm-post-turn', () => {
   })
 })
 
-describe('handlers.memory-write-judge', () => {
-  it('calls runMemoryWriteJudge with the payload fields', async () => {
-    mockRunMemoryWriteJudge.mockResolvedValue(undefined)
+describe('handlers.memory-consolidate', () => {
+  it('calls runMemoryConsolidation with the payload fields', async () => {
+    mockRunMemoryConsolidation.mockResolvedValue(undefined)
 
-    await handlers['memory-write-judge']({
+    await handlers['memory-consolidate']({
       messages: [{ role: 'user', content: 'hi' }],
       chatModel: fakeModel,
       apiKey: 'key'
     })
 
-    expect(mockRunMemoryWriteJudge).toHaveBeenCalledWith(
-      [{ role: 'user', content: 'hi' }],
-      fakeModel,
-      'key'
-    )
-  })
-})
-
-describe('handlers.session-summary', () => {
-  it('calls saveSessionSummary with the payload fields', async () => {
-    mockSaveSessionSummary.mockResolvedValue(undefined)
-
-    await handlers['session-summary']({
-      chatId: 'chat-1',
-      messages: [{ role: 'user', content: 'hi' }],
-      chatModel: fakeModel,
-      apiKey: 'key'
-    })
-
-    expect(mockSaveSessionSummary).toHaveBeenCalledWith(
-      'chat-1',
+    expect(mockRunMemoryConsolidation).toHaveBeenCalledWith(
       [{ role: 'user', content: 'hi' }],
       fakeModel,
       'key'

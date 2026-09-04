@@ -32,31 +32,21 @@ import {
   getMemories,
   updateMemory,
   type MemoryItem,
-  type MemorySource,
-  type MemoryType
+  type MemorySection,
+  type MemorySource
 } from '../../../services/memory'
 import { SettingsRow, SettingsSection } from '../settings-row'
 import { SettingsSelect } from '../settings-select'
 
-const MEMORY_TYPES: MemoryType[] = [
-  'preference',
-  'goal',
-  'environment',
-  'skill',
-  'project',
-  'constraint'
-]
+const MEMORY_SECTIONS: MemorySection[] = ['profile', 'topic', 'person']
 
-const TYPE_VARIANTS: Record<
-  MemoryType,
-  'default' | 'secondary' | 'outline' | 'destructive'
+const SECTION_VARIANTS: Record<
+  MemorySection,
+  'default' | 'secondary' | 'outline'
 > = {
-  preference: 'default',
-  goal: 'secondary',
-  environment: 'outline',
-  skill: 'secondary',
-  project: 'outline',
-  constraint: 'destructive'
+  profile: 'default',
+  topic: 'secondary',
+  person: 'outline'
 }
 
 // ─── Memory Edit Dialog ───────────────────────────────────────────────────────
@@ -70,61 +60,48 @@ interface MemoryDialogProps {
 
 function MemoryDialog({ open, onClose, memory, onSaved }: MemoryDialogProps) {
   const isEdit = !!memory
-  const [type, setType] = useState<MemoryType>(memory?.type ?? 'preference')
-  const [key, setKey] = useState(memory?.key ?? '')
-  const [valueText, setValueText] = useState(
-    memory?.value?.text ? String(memory.value.text) : ''
-  )
-  const [confidence, setConfidence] = useState(
-    memory?.confidence != null ? String(memory.confidence) : '0.8'
-  )
-  const [source, setSource] = useState<MemorySource>(memory?.source ?? 'system')
+  const [section, setSection] = useState<MemorySection>('topic')
+  const [key, setKey] = useState('')
+  const [summary, setSummary] = useState('')
+  const [detailsText, setDetailsText] = useState('')
+  const [confidence, setConfidence] = useState('0.8')
+  const [source, setSource] = useState<MemorySource>('system')
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
-    if (memory) {
-      setType(memory.type)
-      setKey(memory.key)
-      setValueText(memory.value?.text ? String(memory.value.text) : '')
-      setConfidence(
-        memory.confidence != null ? String(memory.confidence) : '0.8'
-      )
-      setSource(memory.source)
-    } else {
-      setType('preference')
-      setKey('')
-      setValueText('')
-      setConfidence('0.8')
-      setSource('system')
-    }
+    setSection(memory?.section ?? 'topic')
+    setKey(memory?.key ?? '')
+    setSummary(memory?.summary ?? '')
+    setDetailsText((memory?.details ?? []).join('\n'))
+    setConfidence(
+      memory?.confidence != null ? String(memory.confidence) : '0.8'
+    )
+    setSource(memory?.source ?? 'system')
   }, [memory, open])
 
   const handleSave = async () => {
-    if (!key.trim() || !valueText.trim()) {
-      sileo.error({ title: 'Key and value are required' })
+    if (!key.trim() || !summary.trim()) {
+      sileo.error({ title: 'Key and summary are required' })
       return
     }
     setSaving(true)
     try {
-      const conf = parseFloat(confidence)
-      const value = { text: valueText.trim() }
+      const details = detailsText
+        .split('\n')
+        .map((d) => d.replace(/^[-*]\s*/, '').trim())
+        .filter(Boolean)
+      const fields = {
+        section,
+        key: key.trim(),
+        summary: summary.trim(),
+        details,
+        confidence: parseFloat(confidence)
+      }
       if (isEdit && memory) {
-        await updateMemory(memory.id, {
-          type,
-          key: key.trim(),
-          value,
-          confidence: conf,
-          source
-        })
+        await updateMemory(memory.id, { ...fields, source })
         sileo.success({ title: 'Memory updated' })
       } else {
-        await createMemory({
-          type,
-          key: key.trim(),
-          value,
-          confidence: conf,
-          source
-        })
+        await createMemory({ ...fields, source })
         sileo.success({ title: 'Memory created' })
       }
       onSaved()
@@ -141,23 +118,22 @@ function MemoryDialog({ open, onClose, memory, onSaved }: MemoryDialogProps) {
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{isEdit ? 'Edit Memory' : 'Add Memory'}</DialogTitle>
+          <DialogTitle>{isEdit ? 'Edit memory' : 'Add memory'}</DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="flex flex-col gap-1.5">
-              <Label>Type</Label>
+              <Label>Section</Label>
               <SettingsSelect
-                value={type}
-                onValueChange={(v) => setType(v as MemoryType)}
-                options={MEMORY_TYPES.map((t) => ({
-                  value: t,
-                  label: t.charAt(0).toUpperCase() + t.slice(1)
+                value={section}
+                onValueChange={(v) => setSection(v as MemorySection)}
+                options={MEMORY_SECTIONS.map((s) => ({
+                  value: s,
+                  label: s.charAt(0).toUpperCase() + s.slice(1)
                 }))}
               />
             </div>
-
             <div className="flex flex-col gap-1.5">
               <Label>Source</Label>
               <SettingsSelect
@@ -173,21 +149,30 @@ function MemoryDialog({ open, onClose, memory, onSaved }: MemoryDialogProps) {
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label>Key</Label>
+            <Label>Title</Label>
             <Input
-              placeholder="e.g. preferred_language"
+              placeholder="e.g. Classical Music"
               value={key}
               onChange={(e) => setKey(e.target.value)}
             />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <Label>Value</Label>
+            <Label>Summary</Label>
+            <Input
+              placeholder="One sentence"
+              value={summary}
+              onChange={(e) => setSummary(e.target.value)}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <Label>Details</Label>
             <Textarea
-              placeholder="The memory content..."
-              rows={3}
-              value={valueText}
-              onChange={(e) => setValueText(e.target.value)}
+              placeholder={'One bullet per line'}
+              rows={4}
+              value={detailsText}
+              onChange={(e) => setDetailsText(e.target.value)}
             />
           </div>
 
@@ -231,10 +216,6 @@ function MemoryListItem({
   onToggle: (item: MemoryItem) => void
   onDelete: (item: MemoryItem) => void
 }) {
-  const valueText = item.value?.text
-    ? String(item.value.text)
-    : JSON.stringify(item.value)
-
   return (
     <div
       className={cn(
@@ -244,7 +225,7 @@ function MemoryListItem({
     >
       <div className="min-w-0 flex-1">
         <div className="mb-1 flex items-center gap-2">
-          <Badge variant={TYPE_VARIANTS[item.type]}>{item.type}</Badge>
+          <Badge variant={SECTION_VARIANTS[item.section]}>{item.section}</Badge>
           <span className="truncate text-sm font-medium">{item.key}</span>
           {item.confidence != null && (
             <span className="text-muted-foreground ml-auto text-xs">
@@ -252,9 +233,16 @@ function MemoryListItem({
             </span>
           )}
         </div>
-        <p className="text-muted-foreground line-clamp-2 text-xs">
-          {valueText}
-        </p>
+        <p className="text-muted-foreground text-xs">{item.summary}</p>
+        {item.details.length > 0 && (
+          <ul className="text-muted-foreground mt-1 list-disc pl-4 text-xs">
+            {item.details.slice(0, 5).map((d, i) => (
+              <li key={i} className="truncate">
+                {d}
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
 
       <div className="flex shrink-0 gap-1">
@@ -292,13 +280,13 @@ function MemoryListItem({
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export function MemoryLayer({ form }: { form: UseFormReturnType }) {
+export function MemorySettings({ form }: { form: UseFormReturnType }) {
   const [memories, setMemories] = useState<MemoryItem[]>([])
   const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<MemoryItem | null>(null)
 
-  const lcmEnabled = form.watch('memoryLayer.lcmEnabled') ?? true
+  const lcmEnabled = form.watch('memory.lcmEnabled') ?? true
 
   const loadMemories = useCallback(async () => {
     try {
@@ -353,14 +341,13 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
   return (
     <>
       <SettingsSection>
-        {/* ── Memory Auto-Write ── */}
         <SettingsRow
-          label="Auto-write memories"
-          description="After each conversation, automatically extract and save long-term facts (preferences, goals, skills) into your memory."
+          label="Capture memories"
+          description="After each conversation, consolidate durable facts about you (interests, setup, people) into memory — updating existing entries rather than duplicating them."
         >
           <Controller
             control={form.control}
-            name="memoryLayer.autoWrite"
+            name="memory.autoCapture"
             render={({ field }) => (
               <Switch
                 checked={field.value ?? true}
@@ -370,14 +357,29 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
           />
         </SettingsRow>
 
-        {/* ── LCM Settings ── */}
+        <SettingsRow
+          label="Use memory in chats"
+          description="Surface the memory entries relevant to your message into the assistant's context at the start of a reply."
+        >
+          <Controller
+            control={form.control}
+            name="memory.useInChat"
+            render={({ field }) => (
+              <Switch
+                checked={field.value ?? true}
+                onCheckedChange={field.onChange}
+              />
+            )}
+          />
+        </SettingsRow>
+
         <SettingsRow
           label="Lossless context management"
           description="Automatically compress long conversations into a hierarchical summary DAG, so nothing is ever lost even when chats exceed the context window."
         >
           <Controller
             control={form.control}
-            name="memoryLayer.lcmEnabled"
+            name="memory.lcmEnabled"
             render={({ field }) => (
               <Switch
                 checked={field.value ?? true}
@@ -391,7 +393,7 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
           <>
             <Controller
               control={form.control}
-              name="memoryLayer.contextWindowPercent"
+              name="memory.contextWindowPercent"
               render={({ field, fieldState }) => (
                 <SettingsRow
                   label="Compaction threshold"
@@ -414,7 +416,7 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
 
             <Controller
               control={form.control}
-              name="memoryLayer.freshTailSize"
+              name="memory.freshTailSize"
               render={({ field, fieldState }) => (
                 <SettingsRow
                   label="Fresh tail size"
@@ -436,13 +438,14 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
             />
           </>
         )}
+      </SettingsSection>
 
-        {/* ── Memory Management ── */}
+      <SettingsSection title="Stored memories" plain>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <BrainIcon className="text-muted-foreground size-4" />
             <span className="text-sm font-medium">
-              Stored memories
+              Memories
               {activeMemories.length > 0 && (
                 <Badge variant="secondary" className="ml-2 text-xs">
                   {activeMemories.length}
@@ -463,8 +466,8 @@ export function MemoryLayer({ form }: { form: UseFormReturnType }) {
           </div>
         ) : memories.length === 0 ? (
           <div className="text-muted-foreground rounded-md border border-dashed py-8 text-center text-sm">
-            No memories yet. They'll be added automatically after conversations,
-            or you can add them manually.
+            No memories yet. They&apos;ll be added automatically after
+            conversations, or you can add them manually.
           </div>
         ) : (
           <div className="flex flex-col gap-2">
