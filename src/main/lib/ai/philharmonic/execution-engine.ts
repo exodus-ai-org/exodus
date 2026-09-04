@@ -10,9 +10,7 @@ import {
 import { logger } from '../../logger'
 import { rememberTaskOutcome } from './agent-memory'
 import { runEmployeeLoop, type SseEmitter } from './employee-loop'
-import { createSearchKnowledgeBaseTool } from './kb-tools'
 import { DEFAULT_POLICY, withRetry } from './retry'
-import { computeAllowedTeamIds } from './team-scope'
 
 /**
  * Run one delegated employee task end-to-end: mark running, create the
@@ -55,21 +53,16 @@ export async function runDelegatedTask(args: {
   })
 
   try {
-    // KB tool is rebuilt each attempt so a freshly recruited employee's
-    // team scope is reflected on the retry.
     const output = await withRetry(
-      async () => {
-        const allowedTeamIds = await computeAllowedTeamIds(conversationId)
-        return runEmployeeLoop({
+      () =>
+        runEmployeeLoop({
           agent,
           instructions,
           executionId: execution.id,
           conversationId,
           emit,
-          signal,
-          extraTools: [createSearchKnowledgeBaseTool(allowedTeamIds)]
-        })
-      },
+          signal
+        }),
       {
         policy,
         signal,
