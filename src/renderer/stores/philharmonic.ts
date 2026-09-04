@@ -66,16 +66,6 @@ export interface ConversationMessageData {
   createdAt: string
 }
 
-export interface KnowledgeDocData {
-  id: string
-  title: string
-  content: string
-  // NULL means the doc is "General" — visible to every Group.
-  teamId: string | null
-  createdAt: string
-  updatedAt: string
-}
-
 export interface TaskData {
   id: string
   conversationId: string | null
