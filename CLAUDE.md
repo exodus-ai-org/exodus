@@ -136,7 +136,7 @@ The MCP-tools middleware (injecting MCP tools into context) is **archived** (com
 **Key Tables**:
 
 - `settings` - Global settings (models, API keys, preferences)
-- `knowledge_doc` - Knowledge base documents + vector embeddings (RAG)
+- `knowledge_doc` - Knowledge base source documents + per-doc LightRAG sync status
 - `deep_research` / `deep_research_message` - Deep research jobs and progress updates
 - `memory` / `memory_usage_log` - User memory and audit trail
 - `session_summary` - Summarized conversation context
@@ -177,11 +177,11 @@ Each tool has a description for LLM understanding, a Zod input schema, and an ex
 
 Built-in tools (files in `src/main/lib/ai/calling-tools/`):
 
-`create-artifact`, `deep-research`, `edit-file`, `find-files`, `grep`, `image-generation`, `lcm-describe`, `lcm-expand`, `lcm-grep`, `list-directory`, `map-itinerary`, `read-file`, `terminal`, `weather`, `web-fetch`, `web-search`, `write-file`.
+`create-artifact`, `deep-research`, `edit-file`, `find-files`, `grep`, `image-generation`, `lcm-describe`, `lcm-expand`, `lcm-grep`, `list-directory`, `map-itinerary`, `read-file`, `search-knowledge-base`, `terminal`, `weather`, `web-fetch`, `web-search`, `write-file`.
 
-### Knowledge Base (RAG)
+### Knowledge Base (LightRAG)
 
-A knowledge-base layer backs RAG. Documents are chunked and embedded into the `knowledge_doc` pgvector table; cosine-similarity retrieval surfaces relevant chunks. DB access goes through `src/main/lib/db/knowledge-queries.ts`. Philharmonic agents query the knowledge base via `kb-tools.ts` in `src/main/lib/ai/philharmonic/`.
+The knowledge base is backed by an **optional, self-hosted LightRAG server** the user runs (Exodus is a client only — see `docs/lightrag-setup.md`). `knowledge_doc` rows are the editable source-of-truth (Settings → Knowledge Base); the `kb-sync` job (`src/main/lib/jobs/handlers.ts`) pushes them into LightRAG via `src/main/lib/knowledge-base/lightrag-client.ts` (delete + re-insert on edit), and `reconcile.ts` on the jobs cron settles each row's `indexStatus` via LightRAG's `track_status`. `resolveKnowledgeBase(settings)` (never throws) gates the `searchKnowledgeBase` tool, bound by `bindCallingTools` for the main chat and every Philharmonic employee loop. Retrieval is context-only (`only_need_context: true`) — Exodus's own model writes the answer. No scoping: one shared KB.
 
 ### Deep Research
 
@@ -519,11 +519,14 @@ Main process:
 - `src/main/lib/db/` — Drizzle schema + queries (PGlite)
 - `src/main/lib/search/` — pluggable full-text search (PGlite default,
   optional Elasticsearch — see `resolveSearchProvider()`)
+- `src/main/lib/knowledge-base/` — optional LightRAG knowledge base: HTTP
+  client, `resolveKnowledgeBase()` (never-throws), and the `kb-sync`
+  index-status `reconcile.ts`
 - `src/main/lib/jobs/` — durable job queue (pgmq-backed): `queries.ts`
   (enqueue/read/archive), `handlers.ts` (per-queue job logic), `worker.ts`
   (`enqueueAndProcess()` + periodic sweep); decouples chat.ts's post-turn
-  side effects (search indexing, LCM compaction, memory consolidation)
-  from the request/response cycle
+  side effects (search indexing, LCM compaction, memory consolidation,
+  `kb-sync`) from the request/response cycle
 - `src/main/lib/ipc.ts` — main-process IPC handlers
 - `src/main/lib/paths.ts` — `~/.exodus` path helpers
 
@@ -574,3 +577,6 @@ Docs:
   self-hosted/cloud Elasticsearch cluster for Exodus's optional search
   upgrade (Exodus is consumer-only — never creates the index/mapping
   itself, see `src/main/lib/search/`)
+- `docs/lightrag-setup.md` — end-user guide for running the self-hosted
+  LightRAG server that backs the optional knowledge base (Exodus is a
+  client only, see `src/main/lib/knowledge-base/`)

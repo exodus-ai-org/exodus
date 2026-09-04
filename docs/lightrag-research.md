@@ -1,6 +1,9 @@
 # GraphRAG via LightRAG — Integration Research
 
-_Date: 2026-09-04 · Status: research, no code yet_
+_Date: 2026-09-04 · Status: superseded by the design spec + plan below_
+
+> Design spec: [`docs/superpowers/specs/2026-09-04-knowledge-base-lightrag-design.md`](superpowers/specs/2026-09-04-knowledge-base-lightrag-design.md)
+> Implementation plan: [`docs/superpowers/plans/2026-09-04-knowledge-base-lightrag.md`](superpowers/plans/2026-09-04-knowledge-base-lightrag.md)
 
 ## 0. TL;DR
 
