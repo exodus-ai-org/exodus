@@ -11,8 +11,8 @@ import { DataControls } from './settings-form/data-controls'
 import { DeepResearch } from './settings-form/deep-research'
 import { FullTextSearch } from './settings-form/full-text-search'
 import { General } from './settings-form/generals'
-import { GraphRAG } from './settings-form/graph-rag'
 import { KeyboardShortcuts } from './settings-form/keyboard-shortcuts'
+import { KnowledgeBase } from './settings-form/knowledge-base'
 import { Logger } from './settings-form/logger'
 import { McpServers } from './settings-form/mcp-servers'
 import { MemorySettings } from './settings-form/memory'
@@ -122,7 +122,9 @@ export function SettingsForm() {
         <FullTextSearch form={form} />
       )}
 
-      {activeTitle === SettingsLabel.GraphRag && <GraphRAG />}
+      {activeTitle === SettingsLabel.KnowledgeBase && (
+        <KnowledgeBase form={form} />
+      )}
 
       {activeTitle === SettingsLabel.ComputerUse && <UnderConstruction />}
 

@@ -28,7 +28,7 @@ export enum SettingsLabel {
   McpServers = 'MCP Servers',
   SkillsMarket = 'Skills Market',
   FullTextSearch = 'Full Text Search',
-  GraphRag = 'GraphRAG',
+  KnowledgeBase = 'Knowledge Base',
   BuiltinTools = 'Built-in Tools',
   Memory = 'Memory',
   Voice = 'Voice',
@@ -67,12 +67,13 @@ export const menus = {
       ]
     },
     {
-      // External, connection-backed capabilities: search backends, GraphRAG,
-      // the computer-use sandbox, MCP connectors, the skills marketplace.
+      // External, connection-backed capabilities: search backends, the
+      // knowledge base, the computer-use sandbox, MCP connectors, the skills
+      // marketplace.
       label: 'Integrations',
       items: [
         { title: SettingsLabel.FullTextSearch, icon: TextSearch },
-        { title: SettingsLabel.GraphRag, icon: NetworkIcon },
+        { title: SettingsLabel.KnowledgeBase, icon: NetworkIcon },
         { title: SettingsLabel.ComputerUse, icon: MousePointer2Icon },
         { title: SettingsLabel.McpServers, icon: HammerIcon },
         { title: SettingsLabel.SkillsMarket, icon: ShoppingBagIcon }

@@ -175,9 +175,7 @@ export class LightRagClient {
   health(): Promise<LightRagHealth> // GET /health
   insertText(text: string, fileSource: string): Promise<{ trackId: string }> // POST /documents/text
   deleteDoc(lightragDocId: string): Promise<void> // DELETE /documents/{id}
-  trackStatus(
-    trackId: string
-  ): Promise<{
+  trackStatus(trackId: string): Promise<{
     status: 'pending' | 'processing' | 'processed' | 'failed'
     docId?: string
     error?: string
@@ -266,7 +264,7 @@ IS NOT NULL`;
   `lightragDocId`) / `failed` (+ `indexError`);
 - if a row has been `processing` longer than ~10 min with no terminal status,
   sets `stale` (something is wrong on the LightRAG side; user can `Reindex
-  all`).
+all`).
   This is the only status-settlement path — it covers the normal case (badge
   flips within one cron interval), the bounded-wait-would-have-timed-out case,
   and the process-restart-mid-ingest case with one mechanism.

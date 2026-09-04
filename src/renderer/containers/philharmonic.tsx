@@ -16,7 +16,6 @@ import {
 } from '@/components/philharmonic/chat/conversation-list'
 import { GroupChat } from '@/components/philharmonic/chat/group-chat'
 import { GroupMembersPanel } from '@/components/philharmonic/chat/group-members-panel'
-import { KnowledgeBasePage } from '@/components/philharmonic/knowledge/knowledge-base-page'
 import { WorkforcePage } from '@/components/philharmonic/workforce/workforce-page'
 import { SheetPanel } from '@/components/sheet-panel'
 import { Button } from '@/components/ui/button'
@@ -134,7 +133,6 @@ export function PhilharmonicContainer({
   // Main column content varies by activePage; sidebar stays put on every page.
   const mainContent = (() => {
     if (activePage === 'workforce') return <WorkforcePage />
-    if (activePage === 'knowledge') return <KnowledgeBasePage />
     if (activePage === 'dashboard')
       return (
         <Tabs defaultValue="costs" className="flex h-full min-h-0 flex-col">

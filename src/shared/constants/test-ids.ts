@@ -38,6 +38,15 @@ export const TEST_IDS = {
     testConnectionButton: 'full-text-search.test-connection-button',
     reindexButton: 'full-text-search.reindex-button'
   },
+  knowledgeBase: {
+    testConnectionButton: 'knowledge-base.test-connection-button',
+    reindexButton: 'knowledge-base.reindex-button',
+    addButton: 'knowledge-base.add-button',
+    docDialog: 'knowledge-base.doc-dialog',
+    docTitleInput: 'knowledge-base.doc-title-input',
+    docContentInput: 'knowledge-base.doc-content-input',
+    docSaveButton: 'knowledge-base.doc-save-button'
+  },
   settings: {
     themeMode: 'settings.theme-mode'
   },

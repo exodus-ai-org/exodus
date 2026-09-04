@@ -7,7 +7,6 @@ import {
   isYesterday
 } from 'date-fns'
 import {
-  BookOpenIcon,
   LayoutDashboardIcon,
   SearchIcon,
   SquarePenIcon,
@@ -54,7 +53,7 @@ import type { AgentData, ConversationData } from '@/stores/philharmonic'
 
 import { hueStyle, pickHue } from '../lib/hue'
 
-export type ConfigPage = 'workforce' | 'knowledge' | 'dashboard'
+export type ConfigPage = 'workforce' | 'dashboard'
 
 const CONFIG_NAV: Array<{
   page: ConfigPage
@@ -62,7 +61,6 @@ const CONFIG_NAV: Array<{
   icon: React.ComponentType<{ className?: string }>
 }> = [
   { page: 'workforce', label: 'Workforce', icon: UsersIcon },
-  { page: 'knowledge', label: 'Knowledge Base', icon: BookOpenIcon },
   { page: 'dashboard', label: 'Dashboard', icon: LayoutDashboardIcon }
 ]
 
