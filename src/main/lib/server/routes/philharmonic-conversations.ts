@@ -16,12 +16,6 @@ import {
   getMessagesByConversationId,
   updateConversation
 } from '../../db/conversation-queries'
-import {
-  createKnowledgeDoc,
-  deleteKnowledgeDoc,
-  getAllKnowledgeDocs,
-  updateKnowledgeDoc
-} from '../../db/knowledge-queries'
 import { getPhilharmonicCostRows } from '../../db/philharmonic-queries'
 import { getActivePlanByConversationId } from '../../db/plan-queries'
 import { logger } from '../../logger'
@@ -279,45 +273,9 @@ router.get('/conversations/:id/plan', async (c) => {
   return successResponse(c, plan ? toPlanDto(plan.plan, plan.steps) : null)
 })
 
-// ─── Knowledge base ──────────────────────────────────────────────────────────
-
-router.get('/knowledge', async (c) =>
-  successResponse(c, await getAllKnowledgeDocs())
-)
-router.post('/knowledge', async (c) => {
-  const data = validateSchema(
-    z.object({
-      title: z.string().min(1),
-      content: z.string().min(1),
-      // Explicit null = "General" doc; omitted is treated the same.
-      teamId: z.string().uuid().nullable().optional()
-    }),
-    await c.req.json(),
-    'Invalid knowledge doc'
-  )
-  return successResponse(
-    c,
-    await createKnowledgeDoc({ ...data, teamId: data.teamId ?? null }),
-    201
-  )
-})
-router.put('/knowledge/:id', async (c) => {
-  const id = getRequiredParam(c, 'id')
-  const data = validateSchema(
-    z.object({
-      title: z.string().optional(),
-      content: z.string().optional(),
-      teamId: z.string().uuid().nullable().optional()
-    }),
-    await c.req.json(),
-    'Invalid knowledge doc'
-  )
-  return successResponse(c, await updateKnowledgeDoc(id, data))
-})
-router.delete('/knowledge/:id', async (c) => {
-  await deleteKnowledgeDoc(getRequiredParam(c, 'id'))
-  return c.text('deleted', 200)
-})
+// Knowledge base management moved to /api/knowledge-base (Settings → Knowledge
+// Base). Retrieval is bound as the `searchKnowledgeBase` tool for every
+// employee loop via `bindCallingTools`.
 
 // ─── Costs (philharmonic only) ──────────────────────────────────────────────────────
 

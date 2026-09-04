@@ -13,7 +13,6 @@ vi.mock('@main/lib/db/philharmonic-queries', () => ({
 }))
 const getPhilharmonicCostRows = vi.fn()
 vi.mock('@main/lib/db/conversation-queries', () => ({}))
-vi.mock('@main/lib/db/knowledge-queries', () => ({}))
 vi.mock('@main/lib/ai/philharmonic/pm-coordinator', () => ({
   runPmCoordinator: vi.fn()
 }))
