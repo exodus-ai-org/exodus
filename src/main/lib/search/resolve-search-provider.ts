@@ -44,7 +44,7 @@ function configKey(config: ElasticsearchProviderConfig): string {
 export function resolveSearchProvider(
   settings: Settings
 ): ResolvedSearchProvider {
-  const config = settings.search?.elasticsearch
+  const config = settings.fullTextSearch?.elasticsearch
   let elasticsearch: SearchProvider | null = null
 
   if (config?.url && config.url !== '') {

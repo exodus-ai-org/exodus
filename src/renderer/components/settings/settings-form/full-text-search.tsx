@@ -12,14 +12,14 @@ import { Input } from '@/components/ui/input'
 
 import { SettingsRow, SettingsSection } from '../settings-row'
 
-export function Search({ form }: { form: UseFormReturnType }) {
+export function FullTextSearch({ form }: { form: UseFormReturnType }) {
   const [isTesting, setIsTesting] = useState(false)
   const [isReindexing, setIsReindexing] = useState(false)
 
   const handleTestConnection = async () => {
     setIsTesting(true)
     try {
-      await fetcher('/api/settings/search/test-connection', {
+      await fetcher('/api/settings/full-text-search/test-connection', {
         method: 'POST'
       })
       sileo.success({ title: 'Connected to Elasticsearch' })
@@ -37,7 +37,7 @@ export function Search({ form }: { form: UseFormReturnType }) {
     setIsReindexing(true)
     try {
       const result = await fetcher<{ count: number }>(
-        '/api/settings/search/reindex',
+        '/api/settings/full-text-search/reindex',
         { method: 'POST' }
       )
       sileo.success({ title: `Reindexed ${result.count} messages` })
@@ -74,7 +74,7 @@ export function Search({ form }: { form: UseFormReturnType }) {
       <SettingsSection>
         <Controller
           control={form.control}
-          name="search.elasticsearch.url"
+          name="fullTextSearch.elasticsearch.url"
           render={({ field, fieldState }) => (
             <SettingsRow
               label="Elasticsearch URL"
@@ -93,7 +93,7 @@ export function Search({ form }: { form: UseFormReturnType }) {
 
         <Controller
           control={form.control}
-          name="search.elasticsearch.username"
+          name="fullTextSearch.elasticsearch.username"
           render={({ field, fieldState }) => (
             <SettingsRow
               label="Username"
@@ -108,7 +108,7 @@ export function Search({ form }: { form: UseFormReturnType }) {
 
         <Controller
           control={form.control}
-          name="search.elasticsearch.password"
+          name="fullTextSearch.elasticsearch.password"
           render={({ field, fieldState }) => (
             <SettingsRow
               label="Password"
@@ -128,7 +128,7 @@ export function Search({ form }: { form: UseFormReturnType }) {
 
         <Controller
           control={form.control}
-          name="search.elasticsearch.indexName"
+          name="fullTextSearch.elasticsearch.indexName"
           render={({ field, fieldState }) => (
             <SettingsRow
               label="Index Name"
@@ -156,7 +156,7 @@ export function Search({ form }: { form: UseFormReturnType }) {
               variant="outline"
               disabled={isTesting}
               onClick={handleTestConnection}
-              data-testid={TEST_IDS.search.testConnectionButton}
+              data-testid={TEST_IDS.fullTextSearch.testConnectionButton}
             >
               {isTesting ? 'Testing...' : 'Test Connection'}
             </Button>
@@ -165,7 +165,7 @@ export function Search({ form }: { form: UseFormReturnType }) {
               variant="outline"
               disabled={isReindexing}
               onClick={handleReindex}
-              data-testid={TEST_IDS.search.reindexButton}
+              data-testid={TEST_IDS.fullTextSearch.reindexButton}
             >
               {isReindexing ? 'Reindexing...' : 'Reindex History'}
             </Button>

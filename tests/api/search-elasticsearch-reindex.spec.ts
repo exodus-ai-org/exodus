@@ -20,7 +20,7 @@ test.describe('Elasticsearch reindex', () => {
 
   test.afterAll(async () => {
     const api = new ApiClient()
-    await api.updateSettings({ search: { elasticsearch: { url: '' } } })
+    await api.updateSettings({ fullTextSearch: { elasticsearch: { url: '' } } })
   })
 
   test.beforeEach(async ({ api }) => {
@@ -45,7 +45,7 @@ test.describe('Elasticsearch reindex', () => {
 
     // Now configure Elasticsearch and reindex.
     await api.updateSettings({
-      search: {
+      fullTextSearch: {
         elasticsearch: {
           url: process.env.ELASTIC_URL,
           username: process.env.ELASTIC_USERNAME,
@@ -54,7 +54,7 @@ test.describe('Elasticsearch reindex', () => {
       }
     })
     const { status, data } = await api.post<{ count: number }>(
-      '/api/settings/search/reindex'
+      '/api/settings/full-text-search/reindex'
     )
     expect(status).toBe(200)
     expect(data.count).toBeGreaterThanOrEqual(1)

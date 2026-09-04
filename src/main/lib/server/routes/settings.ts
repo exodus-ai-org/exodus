@@ -35,7 +35,7 @@ settingsRouter.post('/', async (c) => {
   return successResponse(c, updatedSettings)
 })
 
-settingsRouter.post('/search/test-connection', async (c) => {
+settingsRouter.post('/full-text-search/test-connection', async (c) => {
   const settings = c.get('settings')
   const { elasticsearch } = resolveSearchProvider(settings)
   if (!elasticsearch) {
@@ -61,7 +61,7 @@ settingsRouter.post('/search/test-connection', async (c) => {
   }
 })
 
-settingsRouter.post('/search/reindex', async (c) => {
+settingsRouter.post('/full-text-search/reindex', async (c) => {
   const settings = c.get('settings')
   const { elasticsearch } = resolveSearchProvider(settings)
   if (!elasticsearch) {

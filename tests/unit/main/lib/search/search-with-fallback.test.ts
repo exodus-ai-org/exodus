@@ -31,7 +31,7 @@ const { searchWithFallback } =
 
 const configuredSettings = {
   id: 'global',
-  search: { elasticsearch: { url: 'http://search-fallback-test:9200' } }
+  fullTextSearch: { elasticsearch: { url: 'http://search-fallback-test:9200' } }
 } as Settings
 
 const unconfiguredSettings = { id: 'global' } as Settings

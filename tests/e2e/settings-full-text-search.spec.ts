@@ -1,7 +1,7 @@
 import { TEST_IDS } from '../../src/shared/constants/test-ids'
 import { electronTest as test, expect } from '../fixtures/electron'
 
-test.describe('Settings — Search', () => {
+test.describe('Settings — Full Text Search', () => {
   test.skip(
     !process.env.ELASTIC_URL,
     'requires ELASTIC_URL env var to test a real Elasticsearch connection'
@@ -17,7 +17,7 @@ test.describe('Settings — Search', () => {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             id: 'global',
-            search: { elasticsearch: { url, username, password } }
+            fullTextSearch: { elasticsearch: { url, username, password } }
           })
         })
       },
@@ -31,15 +31,17 @@ test.describe('Settings — Search', () => {
     const modKey = process.platform === 'darwin' ? 'Meta' : 'Control'
     await mainWindow.keyboard.press(`${modKey}+,`)
     await mainWindow
-      .getByRole('button', { name: 'Search', exact: true })
+      .getByRole('button', { name: 'Full Text Search', exact: true })
       .click()
 
-    await mainWindow.getByTestId(TEST_IDS.search.testConnectionButton).click()
+    await mainWindow
+      .getByTestId(TEST_IDS.fullTextSearch.testConnectionButton)
+      .click()
     await expect(
       mainWindow.getByText('Connected to Elasticsearch')
     ).toBeVisible({ timeout: 10_000 })
 
-    await mainWindow.getByTestId(TEST_IDS.search.reindexButton).click()
+    await mainWindow.getByTestId(TEST_IDS.fullTextSearch.reindexButton).click()
     await expect(mainWindow.getByText(/Reindexed \d+ messages/)).toBeVisible({
       timeout: 10_000
     })
@@ -51,7 +53,7 @@ test.describe('Settings — Search', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           id: 'global',
-          search: { elasticsearch: { url: '' } }
+          fullTextSearch: { elasticsearch: { url: '' } }
         })
       })
     })

@@ -27,7 +27,7 @@ export enum SettingsLabel {
   AmazonS3 = 'AWS S3',
   McpServers = 'MCP Servers',
   SkillsMarket = 'Skills Market',
-  Search = 'Search',
+  FullTextSearch = 'Full Text Search',
   GraphRag = 'GraphRAG',
   BuiltinTools = 'Built-in Tools',
   Memory = 'Memory',
@@ -71,7 +71,7 @@ export const menus = {
       // the computer-use sandbox, MCP connectors, the skills marketplace.
       label: 'Integrations',
       items: [
-        { title: SettingsLabel.Search, icon: TextSearch },
+        { title: SettingsLabel.FullTextSearch, icon: TextSearch },
         { title: SettingsLabel.GraphRag, icon: NetworkIcon },
         { title: SettingsLabel.ComputerUse, icon: MousePointer2Icon },
         { title: SettingsLabel.McpServers, icon: HammerIcon },

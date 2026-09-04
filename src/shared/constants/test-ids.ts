@@ -34,9 +34,9 @@ export const TEST_IDS = {
     taskCard: 'schedule.task-card',
     cancelButton: 'schedule.cancel-button'
   },
-  search: {
-    testConnectionButton: 'search.test-connection-button',
-    reindexButton: 'search.reindex-button'
+  fullTextSearch: {
+    testConnectionButton: 'full-text-search.test-connection-button',
+    reindexButton: 'full-text-search.reindex-button'
   },
   settings: {
     themeMode: 'settings.theme-mode'

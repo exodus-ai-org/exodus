@@ -55,7 +55,7 @@ matter for search quality. `searchText` is the field to get right.
 
 Pick one of the two options below, then run the equivalent of this against
 your cluster (via `curl`, Kibana Dev Tools, or any Elasticsearch client) —
-**before** configuring the URL in Exodus's Search settings:
+**before** configuring the URL in Exodus's Full Text Search settings:
 
 ### Option A — zero-dependency baseline (`cjk` analyzer)
 
@@ -122,7 +122,7 @@ regardless of language mix.
 
 ## Step 2: Point Exodus at your cluster
 
-In Exodus, open **Settings → Search**, and fill in:
+In Exodus, open **Settings → Full Text Search**, and fill in:
 
 - **Elasticsearch URL** — e.g. `https://your-cluster:9200`
 - **Username** / **Password** — only if your cluster has security enabled
@@ -155,4 +155,4 @@ for your specific version.
 Elasticsearch is entirely optional. If it's ever unreachable, misconfigured,
 or you decide you don't need it, Exodus automatically falls back to the
 built-in PGlite search for that request — nothing breaks. To disable
-Elasticsearch entirely, clear the URL field in Settings → Search.
+Elasticsearch entirely, clear the URL field in Settings → Full Text Search.

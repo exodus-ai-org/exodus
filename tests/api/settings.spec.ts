@@ -109,9 +109,11 @@ test.describe('Settings API', () => {
     expect(ws.maxResults).toBe(10)
   })
 
-  test('POST /api/settings updates search config', async ({ api }) => {
+  test('POST /api/settings updates full text search config', async ({
+    api
+  }) => {
     await api.updateSettings({
-      search: {
+      fullTextSearch: {
         elasticsearch: {
           url: process.env.ELASTIC_URL,
           username: process.env.ELASTIC_USERNAME,
@@ -121,8 +123,12 @@ test.describe('Settings API', () => {
     })
 
     const { data } = await api.getSettings()
-    const search = data.search as { elasticsearch: Record<string, string> }
-    expect(search.elasticsearch.url).toBe(process.env.ELASTIC_URL)
-    expect(search.elasticsearch.username).toBe(process.env.ELASTIC_USERNAME)
+    const fullTextSearch = data.fullTextSearch as {
+      elasticsearch: Record<string, string>
+    }
+    expect(fullTextSearch.elasticsearch.url).toBe(process.env.ELASTIC_URL)
+    expect(fullTextSearch.elasticsearch.username).toBe(
+      process.env.ELASTIC_USERNAME
+    )
   })
 })

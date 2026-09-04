@@ -1,5 +1,5 @@
 {
-  "id": "6501d458-f82f-4d71-b4f5-8c0ca040f818",
+  "id": "075c522b-1452-4fdf-9320-1891ccafdac3",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1741,8 +1741,8 @@
           "primaryKey": false,
           "notNull": false
         },
-        "search": {
-          "name": "search",
+        "fullTextSearch": {
+          "name": "fullTextSearch",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false

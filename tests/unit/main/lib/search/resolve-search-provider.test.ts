@@ -23,7 +23,7 @@ describe('resolveSearchProvider', () => {
   it('returns no elasticsearch provider when url is empty', () => {
     const settings = {
       ...baseSettings,
-      search: { elasticsearch: { url: '' } }
+      fullTextSearch: { elasticsearch: { url: '' } }
     } as Settings
     const { elasticsearch } = resolveSearchProvider(settings)
     expect(elasticsearch).toBeNull()
@@ -32,7 +32,7 @@ describe('resolveSearchProvider', () => {
   it('returns an elasticsearch provider when url is set', () => {
     const settings = {
       ...baseSettings,
-      search: { elasticsearch: { url: 'http://localhost:9200' } }
+      fullTextSearch: { elasticsearch: { url: 'http://localhost:9200' } }
     } as Settings
     const { elasticsearch } = resolveSearchProvider(settings)
     expect(elasticsearch).not.toBeNull()
@@ -49,7 +49,7 @@ describe('resolveSearchProvider', () => {
   ])('falls back to PGlite for %s', (_label, url) => {
     const settings = {
       ...baseSettings,
-      search: { elasticsearch: { url } }
+      fullTextSearch: { elasticsearch: { url } }
     } as Settings
 
     let resolved: ReturnType<typeof resolveSearchProvider> | undefined
@@ -66,7 +66,7 @@ describe('resolveSearchProvider', () => {
   it('reuses the same provider instance for an unchanged config', () => {
     const settings = {
       ...baseSettings,
-      search: { elasticsearch: { url: 'http://cache-test-1:9200' } }
+      fullTextSearch: { elasticsearch: { url: 'http://cache-test-1:9200' } }
     } as Settings
     const first = resolveSearchProvider(settings).elasticsearch
     const second = resolveSearchProvider(settings).elasticsearch
@@ -76,11 +76,11 @@ describe('resolveSearchProvider', () => {
   it('creates a new provider instance when the config changes', () => {
     const settingsA = {
       ...baseSettings,
-      search: { elasticsearch: { url: 'http://cache-test-2a:9200' } }
+      fullTextSearch: { elasticsearch: { url: 'http://cache-test-2a:9200' } }
     } as Settings
     const settingsB = {
       ...baseSettings,
-      search: { elasticsearch: { url: 'http://cache-test-2b:9200' } }
+      fullTextSearch: { elasticsearch: { url: 'http://cache-test-2b:9200' } }
     } as Settings
     const a = resolveSearchProvider(settingsA).elasticsearch
     const b = resolveSearchProvider(settingsB).elasticsearch

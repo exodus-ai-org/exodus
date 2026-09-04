@@ -249,7 +249,7 @@ CREATE TABLE "settings" (
 	"assistantAvatar" text DEFAULT '',
 	"googleCloud" jsonb,
 	"webSearch" jsonb,
-	"search" jsonb,
+	"fullTextSearch" jsonb,
 	"image" jsonb,
 	"deepResearch" jsonb,
 	"s3" jsonb,

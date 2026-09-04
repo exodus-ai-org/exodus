@@ -169,7 +169,7 @@ Supported providers (files in `src/main/lib/ai/providers/`):
 4. Stream via `agentLoop` from `@mariozechner/pi-agent-core` for multi-step tool execution
 5. Stream response back to renderer
 6. On completion: save messages; enqueue background jobs (search indexing,
-   LCM compaction, memory-write judge, session summary) onto the pgmq-backed
+   LCM compaction, memory consolidation) onto the pgmq-backed
    job queue (`src/main/lib/jobs/`) rather than running them inline
 
 **Tool Architecture** (`src/main/lib/ai/calling-tools/`):
@@ -514,7 +514,7 @@ Main process:
 - `src/main/lib/ai/calling-tools/` — built-in agent tools
 - `src/main/lib/ai/philharmonic/` — multi-agent Groups
 - `src/main/lib/ai/context-management/` — LCM
-- `src/main/lib/ai/memory/` — memory + session summary
+- `src/main/lib/ai/memory/` — personalization memory (consolidation + recall)
 - `src/main/lib/lock/` — app lock (PIN, gate, idle)
 - `src/main/lib/db/` — Drizzle schema + queries (PGlite)
 - `src/main/lib/search/` — pluggable full-text search (PGlite default,
@@ -522,8 +522,8 @@ Main process:
 - `src/main/lib/jobs/` — durable job queue (pgmq-backed): `queries.ts`
   (enqueue/read/archive), `handlers.ts` (per-queue job logic), `worker.ts`
   (`enqueueAndProcess()` + periodic sweep); decouples chat.ts's post-turn
-  side effects (search indexing, LCM compaction, memory-write judge,
-  session summary) from the request/response cycle
+  side effects (search indexing, LCM compaction, memory consolidation)
+  from the request/response cycle
 - `src/main/lib/ipc.ts` — main-process IPC handlers
 - `src/main/lib/paths.ts` — `~/.exodus` path helpers
 

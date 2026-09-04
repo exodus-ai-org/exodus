@@ -9,6 +9,7 @@ import { settingsLabelAtom } from '@/stores/settings'
 
 import { DataControls } from './settings-form/data-controls'
 import { DeepResearch } from './settings-form/deep-research'
+import { FullTextSearch } from './settings-form/full-text-search'
 import { General } from './settings-form/generals'
 import { GraphRAG } from './settings-form/graph-rag'
 import { KeyboardShortcuts } from './settings-form/keyboard-shortcuts'
@@ -19,7 +20,6 @@ import { Personality } from './settings-form/personality'
 import { Profile } from './settings-form/profile'
 import { ProvidersTabs } from './settings-form/providers-tabs'
 import { S3 } from './settings-form/s3'
-import { Search } from './settings-form/search'
 import { SkillsMarketSetting } from './settings-form/skills-market'
 import { SystemInfo } from './settings-form/system-info'
 import { Tools } from './settings-form/tools'
@@ -118,7 +118,9 @@ export function SettingsForm() {
 
       {activeTitle === SettingsLabel.McpServers && <McpServers />}
 
-      {activeTitle === SettingsLabel.Search && <Search form={form} />}
+      {activeTitle === SettingsLabel.FullTextSearch && (
+        <FullTextSearch form={form} />
+      )}
 
       {activeTitle === SettingsLabel.GraphRag && <GraphRAG />}
 

@@ -10,7 +10,7 @@ import {
   ProviderConfigSchema,
   ProvidersSchema,
   S3Schema,
-  SearchSchema,
+  FullTextSearchSchema,
   ToolsSchema,
   WebSearchSchema
 } from '@shared/schemas/settings-schema'
@@ -146,7 +146,8 @@ export const settings = pgTable('settings', {
   assistantAvatar: text('assistantAvatar').default(''),
   googleCloud: jsonb('googleCloud').$type<z.infer<typeof GoogleCloudSchema>>(),
   webSearch: jsonb('webSearch').$type<z.infer<typeof WebSearchSchema>>(),
-  search: jsonb('search').$type<z.infer<typeof SearchSchema>>(),
+  fullTextSearch:
+    jsonb('fullTextSearch').$type<z.infer<typeof FullTextSearchSchema>>(),
   image: jsonb('image').$type<z.infer<typeof ImageSchema>>(),
   deepResearch:
     jsonb('deepResearch').$type<z.infer<typeof DeepResearchSchema>>(),
