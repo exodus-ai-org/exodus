@@ -10,6 +10,7 @@ import { lcmGrep } from './lcm-grep'
 import { listDirectory } from './list-directory'
 import { mapItinerary } from './map-itinerary'
 import { readFile } from './read-file'
+import { searchKnowledgeBase } from './search-knowledge-base'
 import { terminal } from './terminal'
 import { weather } from './weather'
 import { webFetch } from './web-fetch'
@@ -29,6 +30,7 @@ export {
   listDirectory,
   mapItinerary,
   readFile,
+  searchKnowledgeBase,
   terminal,
   weather,
   webFetch,

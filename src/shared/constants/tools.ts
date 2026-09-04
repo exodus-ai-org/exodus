@@ -79,6 +79,13 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     description: 'Generate images via DALL-E (requires OpenAI API key)',
     group: 'AI & Data'
   },
+  {
+    key: 'searchKnowledgeBase',
+    label: 'Knowledge Base',
+    description:
+      'Retrieve context from your knowledge base (requires a configured LightRAG URL)',
+    group: 'AI & Data'
+  },
 
   // Maps
   {
