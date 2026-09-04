@@ -7,11 +7,18 @@ import type {
 } from '@shared/types/knowledge-base'
 import { getHttpErrorMessage } from '@shared/utils/http'
 import { formatDistanceToNow } from 'date-fns'
-import { BookOpenIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react'
+import {
+  AlertCircleIcon,
+  BookOpenIcon,
+  PencilIcon,
+  PlusIcon,
+  Trash2Icon
+} from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Controller } from 'react-hook-form'
 import { sileo } from 'sileo'
 
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -331,6 +338,22 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
 
   return (
     <>
+      <Alert className="mb-4">
+        <AlertCircleIcon className="h-4 w-4" />
+        <AlertDescription className="inline">
+          Exodus's knowledge base is optional and powered by a{' '}
+          <strong>self-hosted LightRAG server that you run</strong> — Exodus
+          only connects to it, pushing your documents and asking for relevant
+          context; it never runs, upgrades, or manages LightRAG itself. Leave
+          the URL empty to keep the knowledge base disabled. Retrieval is
+          context-only: LightRAG finds relevant passages, but your configured
+          chat model always writes the answer. The embedding model is{' '}
+          <strong>locked once you ingest a document</strong> — changing it later
+          requires wiping LightRAG's storage and re-adding every document, so
+          pick one you'll keep.
+        </AlertDescription>
+      </Alert>
+
       <SettingsSection>
         <Controller
           control={form.control}
@@ -442,7 +465,7 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
 
         <SettingsRow
           label="Connection"
-          description="Changing the embedding model in LightRAG requires re-ingesting every document."
+          description="Verify Exodus can reach your LightRAG server."
           layout="vertical"
         >
           <Button
