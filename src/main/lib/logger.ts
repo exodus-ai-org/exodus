@@ -26,6 +26,7 @@ export type LogSurface =
   | 'tools'
   | 'search'
   | 'jobs'
+  | 'knowledge-base'
 
 export interface LogEntry {
   ts: string
