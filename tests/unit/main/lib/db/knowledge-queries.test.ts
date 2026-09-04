@@ -1,26 +1,47 @@
-// src/main/lib/db/knowledge-queries.test.ts
 import { describe, expect, it, vi } from 'vitest'
 
-const rows = [
-  { id: 'd1', title: 'Onboarding', content: 'How to set up the laptop' },
-  { id: 'd2', title: 'Security', content: 'Use the VPN for laptop access' }
-]
+const calls: Record<string, unknown[]> = { set: [], where: [] }
 
 vi.mock('@main/lib/db/db', () => ({
   db: {
-    select: () => ({ from: () => ({ orderBy: async () => rows }) })
+    select: () => ({
+      from: () => ({
+        where: (w: unknown) => {
+          calls.where.push(w)
+          return {
+            orderBy: async () => [{ id: 'p1', indexStatus: 'processing' }]
+          }
+        },
+        orderBy: async () => [{ id: 'd1' }]
+      })
+    }),
+    update: () => ({
+      set: (s: unknown) => {
+        calls.set.push(s)
+        return { where: async () => undefined }
+      }
+    })
   }
 }))
 
-const { searchKnowledgeDocs } = await import('@main/lib/db/knowledge-queries')
+const q = await import('@main/lib/db/knowledge-queries')
 
-describe('searchKnowledgeDocs', () => {
-  it('matches on title or content, case-insensitive', async () => {
-    const hits = await searchKnowledgeDocs('LAPTOP')
-    expect(hits.map((h) => h.id).sort()).toEqual(['d1', 'd2'])
+describe('knowledge-queries', () => {
+  it('does not export the substring stub anymore', () => {
+    expect('searchKnowledgeDocs' in q).toBe(false)
   })
 
-  it('returns empty array on no match', async () => {
-    expect(await searchKnowledgeDocs('nonexistent')).toEqual([])
+  it('setIndexStatus writes the patch', async () => {
+    calls.set.length = 0
+    await q.setIndexStatus('d1', { indexStatus: 'failed', indexError: 'boom' })
+    expect(calls.set[0]).toMatchObject({
+      indexStatus: 'failed',
+      indexError: 'boom'
+    })
+  })
+
+  it('getProcessingDocs filters by indexStatus', async () => {
+    const rows = await q.getProcessingDocs()
+    expect(rows[0].indexStatus).toBe('processing')
   })
 })
