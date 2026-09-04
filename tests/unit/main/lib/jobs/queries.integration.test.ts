@@ -33,7 +33,8 @@ vi.mock('@main/lib/jobs/handlers', () => ({
   handlers: {
     'index-message': mockHandler,
     'lcm-post-turn': vi.fn(),
-    'memory-consolidate': vi.fn()
+    'memory-consolidate': vi.fn(),
+    'kb-sync': vi.fn()
   }
 }))
 vi.mock('@main/lib/logger', () => ({

@@ -1,5 +1,6 @@
 import cron from 'node-cron'
 
+import { reconcileKnowledgeIndexStatus } from '../knowledge-base/reconcile'
 import { logger } from '../logger'
 import { handlers } from './handlers'
 import { archiveMessage, enqueueJob, readBatch } from './queries'
@@ -136,5 +137,15 @@ export function initJobQueue(): void {
         })
       })
     }
+  })
+
+  // Settle knowledge_doc rows stuck in `processing` by polling LightRAG's
+  // track_status — the only status-settlement path (see reconcile.ts).
+  cron.schedule('*/30 * * * * *', () => {
+    reconcileKnowledgeIndexStatus().catch((error) => {
+      logger.error('knowledge-base', 'index-status reconcile sweep failed', {
+        error: String(error)
+      })
+    })
   })
 }

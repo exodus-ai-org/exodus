@@ -1,5 +1,5 @@
 import type { Model } from '@mariozechner/pi-ai'
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
 vi.mock('@electron-toolkit/utils', () => ({ is: { dev: true } }))
@@ -29,6 +29,23 @@ const mockRunMemoryConsolidation = vi.fn()
 vi.mock('@main/lib/ai/memory/manager', () => ({
   runMemoryConsolidation: mockRunMemoryConsolidation
 }))
+
+const mockGetKnowledgeDocById = vi.fn()
+const mockSetIndexStatus = vi.fn()
+vi.mock('@main/lib/db/knowledge-queries', () => ({
+  getKnowledgeDocById: mockGetKnowledgeDocById,
+  setIndexStatus: mockSetIndexStatus
+}))
+
+const mockKbInsertText = vi.fn()
+const mockKbDeleteDoc = vi.fn()
+vi.mock('@main/lib/knowledge-base/resolve-knowledge-base', () => ({
+  resolveKnowledgeBase: () => ({
+    insertText: mockKbInsertText,
+    deleteDoc: mockKbDeleteDoc
+  })
+}))
+// contentHash (from knowledge-base/reconcile) is pure — use the real module.
 
 const { handlers } = await import('@main/lib/jobs/handlers')
 
@@ -111,5 +128,97 @@ describe('handlers.memory-consolidate', () => {
       fakeModel,
       'key'
     )
+  })
+})
+
+describe('handlers.kb-sync', () => {
+  beforeEach(() => {
+    mockGetSettings.mockResolvedValue({ id: 'global' })
+    mockGetKnowledgeDocById.mockReset()
+    mockSetIndexStatus.mockReset()
+    mockKbInsertText.mockReset()
+    mockKbDeleteDoc.mockReset()
+  })
+
+  it('inserts a new doc and marks it processing', async () => {
+    mockGetKnowledgeDocById.mockResolvedValue({
+      id: 'd1',
+      title: 'T',
+      content: 'body',
+      syncedHash: null,
+      indexStatus: 'pending',
+      lightragDocId: null
+    })
+    mockKbInsertText.mockResolvedValue({ trackId: 'txt_9' })
+
+    await handlers['kb-sync']({ op: 'upsert', docId: 'd1' })
+
+    expect(mockKbInsertText).toHaveBeenCalledWith('# T\n\nbody', 'd1')
+    expect(mockSetIndexStatus).toHaveBeenCalledWith(
+      'd1',
+      expect.objectContaining({
+        indexStatus: 'processing',
+        lightragTrackId: 'txt_9'
+      })
+    )
+  })
+
+  it('deletes the old LightRAG doc before reinserting on content change', async () => {
+    mockGetKnowledgeDocById.mockResolvedValue({
+      id: 'd1',
+      title: 'T',
+      content: 'new body',
+      syncedHash: 'old-hash',
+      indexStatus: 'processed',
+      lightragDocId: 'ldoc-1'
+    })
+    mockKbInsertText.mockResolvedValue({ trackId: 'txt_10' })
+
+    await handlers['kb-sync']({ op: 'upsert', docId: 'd1' })
+
+    expect(mockKbDeleteDoc).toHaveBeenCalledWith('ldoc-1')
+    expect(mockKbInsertText).toHaveBeenCalled()
+  })
+
+  it('is a no-op when the hash is unchanged and already processed', async () => {
+    const { contentHash } = await import('@main/lib/knowledge-base/reconcile')
+    mockGetKnowledgeDocById.mockResolvedValue({
+      id: 'd1',
+      title: 'T',
+      content: 'body',
+      syncedHash: contentHash('T', 'body'),
+      indexStatus: 'processed',
+      lightragDocId: 'ldoc-1'
+    })
+
+    await handlers['kb-sync']({ op: 'upsert', docId: 'd1' })
+    expect(mockKbInsertText).not.toHaveBeenCalled()
+  })
+
+  it('marks failed and rethrows when insertText throws', async () => {
+    mockGetKnowledgeDocById.mockResolvedValue({
+      id: 'd1',
+      title: 'T',
+      content: 'body',
+      syncedHash: null,
+      indexStatus: 'pending',
+      lightragDocId: null
+    })
+    mockKbInsertText.mockRejectedValue(new Error('down'))
+
+    await expect(
+      handlers['kb-sync']({ op: 'upsert', docId: 'd1' })
+    ).rejects.toThrow('down')
+    expect(mockSetIndexStatus).toHaveBeenCalledWith(
+      'd1',
+      expect.objectContaining({ indexStatus: 'failed' })
+    )
+  })
+
+  it('delete op calls deleteDoc and swallows errors', async () => {
+    mockKbDeleteDoc.mockRejectedValue(new Error('404'))
+    await expect(
+      handlers['kb-sync']({ op: 'delete', lightragDocId: 'ldoc-x' })
+    ).resolves.toBeUndefined()
   })
 })

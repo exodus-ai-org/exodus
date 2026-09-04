@@ -1,9 +1,14 @@
-export type QueueName = 'index-message' | 'lcm-post-turn' | 'memory-consolidate'
+export type QueueName =
+  | 'index-message'
+  | 'lcm-post-turn'
+  | 'memory-consolidate'
+  | 'kb-sync'
 
 export const QUEUE_NAMES: QueueName[] = [
   'index-message',
   'lcm-post-turn',
-  'memory-consolidate'
+  'memory-consolidate',
+  'kb-sync'
 ]
 
 export interface JobMessage {
@@ -11,3 +16,7 @@ export interface JobMessage {
   readCt: number
   message: unknown
 }
+
+export type KbSyncPayload =
+  | { op: 'upsert'; docId: string }
+  | { op: 'delete'; lightragDocId: string }
