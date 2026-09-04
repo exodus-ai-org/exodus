@@ -95,6 +95,14 @@ export const FullTextSearchSchema = z.object({
   elasticsearch: ElasticsearchSchema.nullish()
 })
 
+export const KnowledgeBaseSchema = z.object({
+  url: optionalHttpUrl, // self-hosted LightRAG server, e.g. http://localhost:9621
+  apiKey: z.string().nullish(), // sent as the X-API-Key header
+  queryMode: z.enum(['naive', 'local', 'global', 'hybrid', 'mix']).nullish(), // default 'mix'
+  topK: formNumber(z.number().gte(1).lte(200)).nullish(), // default 60
+  chunkTopK: formNumber(z.number().gte(1).lte(100)).nullish() // default 10
+})
+
 export const ImageSchema = z.object({
   model: z.string().nullish(),
   size: z.string().nullish(),
@@ -201,6 +209,7 @@ export const SettingsSchema = z.object({
   googleCloud: GoogleCloudSchema.nullish(),
   webSearch: WebSearchSchema.nullish(),
   fullTextSearch: FullTextSearchSchema.nullish(),
+  knowledgeBase: KnowledgeBaseSchema.nullish(),
   image: ImageSchema.nullish(),
   deepResearch: DeepResearchSchema.nullish(),
   s3: S3Schema.nullish(),

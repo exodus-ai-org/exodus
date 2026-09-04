@@ -1,5 +1,5 @@
 {
-  "id": "075c522b-1452-4fdf-9320-1891ccafdac3",
+  "id": "b0a1b61a-8b33-4d6e-806e-ad463fced159",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -700,9 +700,35 @@
           "primaryKey": false,
           "notNull": true
         },
-        "teamId": {
-          "name": "teamId",
-          "type": "uuid",
+        "lightragDocId": {
+          "name": "lightragDocId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "lightragTrackId": {
+          "name": "lightragTrackId",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "indexStatus": {
+          "name": "indexStatus",
+          "type": "knowledge_index_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'pending'"
+        },
+        "indexError": {
+          "name": "indexError",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "syncedHash": {
+          "name": "syncedHash",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -722,17 +748,7 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {
-        "knowledge_doc_teamId_team_id_fk": {
-          "name": "knowledge_doc_teamId_team_id_fk",
-          "tableFrom": "knowledge_doc",
-          "tableTo": "team",
-          "columnsFrom": ["teamId"],
-          "columnsTo": ["id"],
-          "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -1747,6 +1763,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "knowledgeBase": {
+          "name": "knowledgeBase",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
         "image": {
           "name": "image",
           "type": "jsonb",
@@ -2283,6 +2305,11 @@
       "name": "jobStatus",
       "schema": "public",
       "values": ["streaming", "archived", "failed", "terminated"]
+    },
+    "public.knowledge_index_status": {
+      "name": "knowledge_index_status",
+      "schema": "public",
+      "values": ["pending", "processing", "processed", "failed", "stale"]
     },
     "public.memory_section": {
       "name": "memory_section",

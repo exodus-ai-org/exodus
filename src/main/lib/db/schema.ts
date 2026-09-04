@@ -5,6 +5,7 @@ import {
   GoogleCloudSchema,
   ImageSchema,
   KeyboardShortcutsSchema,
+  KnowledgeBaseSchema,
   MemorySchema,
   PersonalitySchema,
   ProviderConfigSchema,
@@ -148,6 +149,8 @@ export const settings = pgTable('settings', {
   webSearch: jsonb('webSearch').$type<z.infer<typeof WebSearchSchema>>(),
   fullTextSearch:
     jsonb('fullTextSearch').$type<z.infer<typeof FullTextSearchSchema>>(),
+  knowledgeBase:
+    jsonb('knowledgeBase').$type<z.infer<typeof KnowledgeBaseSchema>>(),
   image: jsonb('image').$type<z.infer<typeof ImageSchema>>(),
   deepResearch:
     jsonb('deepResearch').$type<z.infer<typeof DeepResearchSchema>>(),
@@ -518,16 +521,30 @@ export type PhilharmonicSessionSummary = InferSelectModel<
   typeof philharmonicSessionSummary
 >
 
-// ─── Knowledge Base (RAG stub) ────────────────────────────────────────────────
+// ─── Knowledge Base ──────────────────────────────────────────────────────────
+// Source-of-truth documents, authored in Settings → Knowledge Base and synced
+// into a self-hosted LightRAG server (the retrieval index) by the `kb-sync`
+// job. Per-doc sync state lives here; LightRAG owns the graph + vectors.
+
+export const knowledgeIndexStatusEnum = pgEnum('knowledge_index_status', [
+  'pending', // never synced, or content changed and a kb-sync job is queued
+  'processing', // submitted to LightRAG; track_id outstanding
+  'processed', // LightRAG reports the doc indexed
+  'failed', // submit or processing failed; see indexError
+  'stale' // hash != syncedHash but no sync running (needs Reindex all)
+])
 
 export const knowledgeDoc = pgTable('knowledge_doc', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   title: text('title').notNull(),
   content: text('content').notNull(),
-  // Owning team. NULL = "General" — visible to every Philharmonic Group.
-  // ON DELETE SET NULL: deleting a Team demotes its docs to General rather
-  // than throwing them away, since the content may outlive the team.
-  teamId: uuid('teamId').references(() => team.id, { onDelete: 'set null' }),
+  lightragDocId: text('lightragDocId'),
+  lightragTrackId: text('lightragTrackId'),
+  indexStatus: knowledgeIndexStatusEnum('indexStatus')
+    .notNull()
+    .default('pending'),
+  indexError: text('indexError'),
+  syncedHash: text('syncedHash'),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull()
 })

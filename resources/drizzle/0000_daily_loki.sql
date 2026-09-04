@@ -2,6 +2,7 @@ CREATE TYPE "public"."agent_memory_source" AS ENUM('conversation', 'task', 'syst
 CREATE TYPE "public"."conversation_message_role" AS ENUM('user', 'pm', 'employee', 'system');--> statement-breakpoint
 CREATE TYPE "public"."execution_status" AS ENUM('running', 'completed', 'failed');--> statement-breakpoint
 CREATE TYPE "public"."jobStatus" AS ENUM('streaming', 'archived', 'failed', 'terminated');--> statement-breakpoint
+CREATE TYPE "public"."knowledge_index_status" AS ENUM('pending', 'processing', 'processed', 'failed', 'stale');--> statement-breakpoint
 CREATE TYPE "public"."memory_section" AS ENUM('profile', 'topic', 'person');--> statement-breakpoint
 CREATE TYPE "public"."memory_source" AS ENUM('explicit', 'implicit', 'system');--> statement-breakpoint
 CREATE TYPE "public"."plan_status" AS ENUM('drafting', 'active', 'completed', 'aborted');--> statement-breakpoint
@@ -102,7 +103,11 @@ CREATE TABLE "knowledge_doc" (
 	"id" uuid PRIMARY KEY DEFAULT gen_random_uuid() NOT NULL,
 	"title" text NOT NULL,
 	"content" text NOT NULL,
-	"teamId" uuid,
+	"lightragDocId" text,
+	"lightragTrackId" text,
+	"indexStatus" "knowledge_index_status" DEFAULT 'pending' NOT NULL,
+	"indexError" text,
+	"syncedHash" text,
 	"createdAt" timestamp DEFAULT now() NOT NULL,
 	"updatedAt" timestamp DEFAULT now() NOT NULL
 );
@@ -250,6 +255,7 @@ CREATE TABLE "settings" (
 	"googleCloud" jsonb,
 	"webSearch" jsonb,
 	"fullTextSearch" jsonb,
+	"knowledgeBase" jsonb,
 	"image" jsonb,
 	"deepResearch" jsonb,
 	"s3" jsonb,
@@ -333,7 +339,6 @@ ALTER TABLE "conversation_message" ADD CONSTRAINT "conversation_message_conversa
 ALTER TABLE "conversation_message" ADD CONSTRAINT "conversation_message_agentId_agent_id_fk" FOREIGN KEY ("agentId") REFERENCES "public"."agent"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "conversation_plan" ADD CONSTRAINT "conversation_plan_conversationId_conversation_id_fk" FOREIGN KEY ("conversationId") REFERENCES "public"."conversation"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "deep_research_message" ADD CONSTRAINT "deep_research_message_deepResearchId_deep_research_id_fk" FOREIGN KEY ("deepResearchId") REFERENCES "public"."deep_research"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "knowledge_doc" ADD CONSTRAINT "knowledge_doc_teamId_team_id_fk" FOREIGN KEY ("teamId") REFERENCES "public"."team"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "lcm_context_items" ADD CONSTRAINT "lcm_context_items_chatId_chat_id_fk" FOREIGN KEY ("chatId") REFERENCES "public"."chat"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "lcm_summary" ADD CONSTRAINT "lcm_summary_chatId_chat_id_fk" FOREIGN KEY ("chatId") REFERENCES "public"."chat"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "lcm_summary_messages" ADD CONSTRAINT "lcm_summary_messages_summaryId_lcm_summary_id_fk" FOREIGN KEY ("summaryId") REFERENCES "public"."lcm_summary"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
