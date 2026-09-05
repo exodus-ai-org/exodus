@@ -423,6 +423,12 @@ function Messages({
   const isAtBottom = useRef(true)
   const [showScrollButton, setShowScrollButton] = useState(false)
 
+  // Discover only reshapes the landing screen when it's the true home route
+  // AND the user has opted in. Gating on `showDiscover` alone would top-align
+  // every existing user's greeting even though Discover defaults off.
+  const discoverActive =
+    (showDiscover ?? false) && (settings?.discover?.enabled ?? false)
+
   const segments = useMemo(() => groupIntoSegments(messages), [messages])
 
   // Accumulate web-search sources across turns so a turn that cites a source
@@ -487,7 +493,7 @@ function Messages({
           <div
             className={cn(
               'animate-fade-in-up mx-auto flex size-full max-w-4xl flex-col px-8',
-              showDiscover
+              discoverActive
                 ? 'justify-start pt-12 md:pt-16'
                 : 'justify-center md:mt-20'
             )}
@@ -496,7 +502,7 @@ function Messages({
             <p className="text-muted-foreground mt-2 text-lg">
               How can I assist you today?
             </p>
-            {showDiscover && <DiscoverFeed />}
+            {discoverActive && <DiscoverFeed />}
           </div>
         )}
 

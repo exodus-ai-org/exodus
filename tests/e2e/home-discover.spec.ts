@@ -9,5 +9,9 @@ test.describe('Home — Discover', () => {
     await expect(
       mainWindow.getByTestId(TEST_IDS.discover.section)
     ).not.toBeAttached()
+    // Dark-by-default: the greeting stays vertically centered, not top-aligned.
+    await expect(
+      mainWindow.getByText('Hello there!').locator('..')
+    ).toHaveClass(/justify-center/)
   })
 })
