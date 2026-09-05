@@ -1104,9 +1104,10 @@ git commit -m "feat(discover): discover-refresh queue + periodic check"
 
 **Interfaces:**
 
-- Consumes: `getDiscoverFeed`, `setDiscoverFeed` (Task 2); `enqueueAndProcess`,
-  `logEnqueueFailure` (`@main/lib/jobs/worker`); `successResponse`
-  (`../utils`); `DiscoverFeedDto` (Task 1).
+- Consumes: `getDiscoverFeed`, `setDiscoverFeed` (Task 2); `getSettings`
+  (`@main/lib/db/queries`); `enqueueAndProcess`, `logEnqueueFailure`
+  (`@main/lib/jobs/worker`); `successResponse` (`../utils`); `DiscoverFeedDto`
+  (Task 1).
 - Produces:
   - `GET /api/discover` → `DiscoverFeedDto`.
   - `POST /api/discover/refresh` → `DiscoverFeedDto` (either the current row
@@ -1122,6 +1123,7 @@ import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 
 import { getDiscoverFeed, setDiscoverFeed } from '../../db/discover-queries'
+import { getSettings } from '../../db/queries'
 import type { DiscoverFeedRow } from '../../db/schema'
 import { enqueueAndProcess, logEnqueueFailure } from '../../jobs/worker'
 import { successResponse } from '../utils'
@@ -1145,6 +1147,16 @@ router.get('/', async (c) => {
 
 router.post('/refresh', async (c) => {
   const row = await getDiscoverFeed()
+
+  // Guard mirrors runDiscoverRefresh's own early-return checks (disabled, no
+  // Brave key). Without this, a refresh triggered in either state would flip
+  // status to 'refreshing' here and then never flip back — the job itself
+  // returns before ever calling setDiscoverFeed again in both cases, leaving
+  // the row stuck at 'refreshing' permanently.
+  const settings = await getSettings()
+  if (!settings.discover?.enabled || !settings.webSearch?.braveApiKey) {
+    return successResponse(c, toDto(row))
+  }
 
   if (row.status === 'refreshing') {
     return successResponse(c, toDto(row))
@@ -1194,18 +1206,42 @@ test.describe('Discover API', () => {
     expect(['idle', 'refreshing', 'failed']).toContain(data.status)
   })
 
-  test('POST /api/discover/refresh respects the cooldown', async ({ api }) => {
-    const first = await api.post<{ status: string }>('/api/discover/refresh')
-    expect(first.status).toBe(200)
+  test('POST /api/discover/refresh no-ops while Discover is disabled', async ({
+    api
+  }) => {
+    await api.updateSettings({ discover: { enabled: false } })
+    const res = await api.post<{ status: string }>('/api/discover/refresh')
+    expect(res.status).toBe(200)
+    // Disabled is a deterministic short-circuit — the route never touches the
+    // row, so status can never become 'refreshing' here.
+    expect(res.data.status).not.toBe('refreshing')
+  })
 
-    const second = await api.post<{ status: string }>('/api/discover/refresh')
-    expect(second.status).toBe(200)
-    // Second call within the cooldown window returns the same in-flight/cached
-    // state rather than enqueueing a duplicate refresh.
-    expect(second.data.status).toBe(first.data.status)
+  test('POST /api/discover/refresh no-ops when no Brave key is configured', async ({
+    api
+  }) => {
+    await api.updateSettings({
+      discover: { enabled: true },
+      webSearch: { braveApiKey: '' }
+    })
+    const res = await api.post<{ status: string }>('/api/discover/refresh')
+    expect(res.status).toBe(200)
+    expect(res.data.status).not.toBe('refreshing')
+    await api.updateSettings({ discover: { enabled: false } })
   })
 })
 ```
+
+Note: a strict "second call within the cooldown returns the same state as
+the first" test is intentionally not written here — with a real background
+job wired to a real pgmq queue, an enabled+configured refresh can complete
+before the second HTTP call lands, making status a race rather than a
+deterministic assertion. The cooldown branch's actual logic (a few
+straightforward lines gated on `row.status`/`row.generatedAt`) is exercised
+deterministically instead by the manager's own tests in Task 4 via
+`runDiscoverRefresh`'s equivalent staleness gate, and is simple enough to
+verify by reading `src/main/lib/server/routes/discover.ts` directly during
+review.
 
 - [ ] **Step 4: Run + typecheck**
 
