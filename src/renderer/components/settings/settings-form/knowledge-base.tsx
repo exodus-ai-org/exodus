@@ -59,7 +59,13 @@ import {
 import { SettingsRow, SettingsSection } from '../settings-row'
 import { SettingsSelect } from '../settings-select'
 
-const QUERY_MODES = ['naive', 'local', 'global', 'hybrid', 'mix'] as const
+const QUERY_MODES = [
+  { label: 'Native', value: 'naive' },
+  { label: 'Local', value: 'local' },
+  { label: 'Global', value: 'global' },
+  { label: 'Hybrid', value: 'hybrid' },
+  { label: 'Mix', value: 'mix' }
+] as const
 
 const STATUS_BADGE: Record<
   KnowledgeIndexStatus,
@@ -405,7 +411,10 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
               <SettingsSelect
                 value={field.value ?? 'mix'}
                 onValueChange={field.onChange}
-                options={QUERY_MODES.map((m) => ({ value: m, label: m }))}
+                options={QUERY_MODES.map(({ label, value }) => ({
+                  value,
+                  label
+                }))}
               />
             </SettingsRow>
           )}
