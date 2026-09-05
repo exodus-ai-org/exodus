@@ -1,37 +1,16 @@
 import { TEST_IDS } from '@shared/constants/test-ids'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
-import { getHttpErrorMessage } from '@shared/utils/http'
 import { AlertCircleIcon } from 'lucide-react'
-import { useState } from 'react'
 import { Controller } from 'react-hook-form'
-import { sileo } from 'sileo'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 
-import { refreshDiscoverFeed } from '../../../services/discover'
 import { SettingsRow, SettingsSection } from '../settings-row'
 
 export function Discover({ form }: { form: UseFormReturnType }) {
-  const [refreshing, setRefreshing] = useState(false)
   const hasBraveKey = !!form.watch('webSearch.braveApiKey')
-
-  const handleRefresh = async () => {
-    setRefreshing(true)
-    try {
-      await refreshDiscoverFeed()
-      sileo.success({ title: 'Refresh queued' })
-    } catch (e) {
-      sileo.error({
-        title: 'Failed to refresh',
-        description: getHttpErrorMessage(e)
-      })
-    } finally {
-      setRefreshing(false)
-    }
-  }
 
   return (
     <>
@@ -39,7 +18,8 @@ export function Discover({ form }: { form: UseFormReturnType }) {
         <AlertCircleIcon className="h-4 w-4" />
         <AlertDescription className="inline">
           Discover turns your saved Memory into a personalized news feed on the
-          home page — enabling it sends memory-derived search terms to Brave
+          home page — enabling it sends your memory topics to your AI provider
+          (to turn them into search queries) and the resulting queries to Brave
           (the same provider used for Web Search) roughly once a day. Off by
           default; nothing leaves your machine until you turn it on.
         </AlertDescription>
@@ -114,21 +94,6 @@ export function Discover({ form }: { form: UseFormReturnType }) {
             </SettingsRow>
           )}
         />
-
-        <SettingsRow
-          label="Refresh"
-          description="Manually refresh the feed now."
-          layout="vertical"
-        >
-          <Button
-            type="button"
-            variant="outline"
-            disabled={refreshing}
-            onClick={handleRefresh}
-          >
-            {refreshing ? 'Refreshing…' : 'Refresh now'}
-          </Button>
-        </SettingsRow>
       </SettingsSection>
     </>
   )

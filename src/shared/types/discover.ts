@@ -19,4 +19,5 @@ export interface DiscoverFeedDto {
   groups: DiscoverGroup[]
   generatedAt: string | null
   status: 'idle' | 'refreshing' | 'failed'
+  error: string | null
 }

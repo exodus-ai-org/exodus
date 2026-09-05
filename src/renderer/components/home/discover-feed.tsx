@@ -1,7 +1,9 @@
 import { TEST_IDS } from '@shared/constants/test-ids'
 import type { DiscoverFeedDto } from '@shared/types/discover'
+import { getHttpErrorMessage } from '@shared/utils/http'
 import { RefreshCwIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { sileo } from 'sileo'
 
 import { LazyLoadImage } from '@/components/lazy-load-image'
 import { SourceFavicon } from '@/components/source-favicon'
@@ -47,22 +49,17 @@ export function DiscoverFeed() {
     setRefreshing(true)
     try {
       setFeed(await refreshDiscoverFeed())
+    } catch (e) {
+      sileo.error({
+        title: 'Failed to refresh',
+        description: getHttpErrorMessage(e)
+      })
     } finally {
       setRefreshing(false)
     }
   }
 
   const isBusy = refreshing || feed.status === 'refreshing'
-
-  if (feed.groups.length === 0) {
-    return (
-      <p className="text-muted-foreground mt-10 text-center text-sm">
-        {feed.generatedAt
-          ? 'No recommendations right now.'
-          : 'Discover is warming up…'}
-      </p>
-    )
-  }
 
   return (
     <div
@@ -84,45 +81,63 @@ export function DiscoverFeed() {
         </Button>
       </div>
 
-      {feed.groups.map((group) => (
-        <div key={group.memoryId}>
-          <p className="text-muted-foreground mb-2 text-sm font-medium">
-            {group.topic}
-          </p>
-          <div className="flex gap-3 overflow-x-auto pb-1">
-            {group.articles.map((article) => (
-              <a
-                key={article.url}
-                href={article.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-52 shrink-0"
-              >
-                {article.thumbnail && (
-                  <div className="relative aspect-video overflow-hidden rounded-xl">
-                    <LazyLoadImage
-                      src={article.thumbnail}
-                      alt={article.title}
-                      className="size-full"
-                    />
+      {feed.groups.length > 0 ? (
+        feed.groups.map((group) => (
+          <div key={group.memoryId}>
+            <p className="text-muted-foreground mb-2 text-sm font-medium">
+              {group.topic}
+            </p>
+            <div className="flex gap-3 overflow-x-auto pb-1">
+              {group.articles.map((article) => (
+                <a
+                  key={article.url}
+                  href={article.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-52 shrink-0"
+                >
+                  {article.thumbnail && (
+                    <div className="relative aspect-video overflow-hidden rounded-xl">
+                      <LazyLoadImage
+                        src={article.thumbnail}
+                        alt={article.title}
+                        className="size-full"
+                      />
+                    </div>
+                  )}
+                  <div className="mt-1.5 line-clamp-2 text-sm font-medium">
+                    {article.title}
                   </div>
-                )}
-                <div className="mt-1.5 line-clamp-2 text-sm font-medium">
-                  {article.title}
-                </div>
-                <div className="text-muted-foreground mt-1 flex items-center gap-1.5 text-xs">
-                  <SourceFavicon
-                    link={article.url}
-                    favicon={article.favicon}
-                    className="size-3.5"
-                  />
-                  <span className="truncate">{article.source}</span>
-                </div>
-              </a>
-            ))}
+                  <div className="text-muted-foreground mt-1 flex items-center gap-1.5 text-xs">
+                    <SourceFavicon
+                      link={article.url}
+                      favicon={article.favicon}
+                      className="size-3.5"
+                    />
+                    <span className="truncate">{article.source}</span>
+                    {article.age && (
+                      <span className="shrink-0">· {article.age}</span>
+                    )}
+                  </div>
+                </a>
+              ))}
+            </div>
           </div>
-        </div>
-      ))}
+        ))
+      ) : feed.status === 'failed' ? (
+        <p
+          className="text-muted-foreground text-sm"
+          title={feed.error ?? undefined}
+        >
+          Couldn't refresh Discover.
+        </p>
+      ) : !feed.generatedAt ? (
+        <p className="text-muted-foreground text-sm">Discover is warming up…</p>
+      ) : (
+        <p className="text-muted-foreground text-sm">
+          No recommendations right now.
+        </p>
+      )}
     </div>
   )
 }

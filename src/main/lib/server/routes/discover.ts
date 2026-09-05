@@ -16,7 +16,8 @@ function toDto(row: DiscoverFeedRow): DiscoverFeedDto {
   return {
     groups: row.groups,
     generatedAt: row.generatedAt ? row.generatedAt.toISOString() : null,
-    status: row.status
+    status: row.status,
+    error: row.error
   }
 }
 
