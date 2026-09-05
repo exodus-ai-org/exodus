@@ -9,7 +9,7 @@ import { initScheduler } from '../ai/philharmonic/scheduler'
 import { getSettings } from '../db/queries'
 import { initJobQueue } from '../jobs/worker'
 import { logger } from '../logger'
-import { errorHandler, lockGate } from './middlewares'
+import { errorHandler, lockGate, traceMiddleware } from './middlewares'
 import artifactsRouter from './routes/artifacts'
 import audioRouter from './routes/audio'
 import backupRouter from './routes/backup'
@@ -44,6 +44,10 @@ export async function connectHttpServer() {
 
   // Lock gate: reject all API access while the app is locked (423).
   app.use('/api/*', lockGate)
+
+  // Trace gate: wrap each request in an AsyncLocalStorage trace so every
+  // logger.* call while handling it shares one traceId; echo it as x-trace-id.
+  app.use('/api/*', traceMiddleware)
 
   // Add setting to context for all routes (except setting route to avoid circular dependency)
   app.use('/api/*', async (c, next) => {
