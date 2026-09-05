@@ -13,6 +13,7 @@ export function Home() {
       initialMessages={[]}
       projectId={projectId}
       chatTitle="New chat"
+      showDiscover={projectId == null}
     />
   )
 }

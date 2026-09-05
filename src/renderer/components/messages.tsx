@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button'
 import { useSettings } from '@/hooks/use-settings'
 import { cn } from '@/lib/utils'
 
+import { DiscoverFeed } from './home/discover-feed'
 import Markdown from './markdown'
 import { MessageAction } from './massage-action'
 import { MessageSpinner } from './message-spinner'
@@ -35,6 +36,7 @@ type MessagesProps = {
   status: ChatStatus
   messages: ChatMessage[]
   regenerate: () => void
+  showDiscover?: boolean
 }
 
 const AT_BOTTOM_THRESHOLD = 80
@@ -408,7 +410,13 @@ function groupIntoSegments(messages: ChatMessage[]): Segment[] {
   return segments
 }
 
-function Messages({ chatId, status, messages, regenerate }: MessagesProps) {
+function Messages({
+  chatId,
+  status,
+  messages,
+  regenerate,
+  showDiscover
+}: MessagesProps) {
   const isLoading = status === 'streaming' || status === 'submitted'
   const { data: settings } = useSettings()
   const chatBoxRef = useRef<HTMLDivElement>(null)
@@ -476,11 +484,19 @@ function Messages({ chatId, status, messages, regenerate }: MessagesProps) {
         onScroll={handleScroll}
       >
         {messages.length === 0 && (
-          <div className="animate-fade-in-up mx-auto flex size-full max-w-4xl flex-col justify-center px-8 md:mt-20">
+          <div
+            className={cn(
+              'animate-fade-in-up mx-auto flex size-full max-w-4xl flex-col px-8',
+              showDiscover
+                ? 'justify-start pt-12 md:pt-16'
+                : 'justify-center md:mt-20'
+            )}
+          >
             <p className="text-3xl font-bold tracking-tight">Hello there!</p>
             <p className="text-muted-foreground mt-2 text-lg">
               How can I assist you today?
             </p>
+            {showDiscover && <DiscoverFeed />}
           </div>
         )}
 
