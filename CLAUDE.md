@@ -522,11 +522,13 @@ Main process:
 - `src/main/lib/knowledge-base/` — optional LightRAG knowledge base: HTTP
   client, `resolveKnowledgeBase()` (never-throws), and the `kb-sync`
   index-status `reconcile.ts`
+- `src/main/lib/discover/` — Home Discover feed: Brave News client, memory-driven
+  query generation, `runDiscoverRefresh` (see docs/superpowers/specs/2026-09-05-home-discover-feed-design.md)
 - `src/main/lib/jobs/` — durable job queue (pgmq-backed): `queries.ts`
   (enqueue/read/archive), `handlers.ts` (per-queue job logic), `worker.ts`
   (`enqueueAndProcess()` + periodic sweep); decouples chat.ts's post-turn
   side effects (search indexing, LCM compaction, memory consolidation,
-  `kb-sync`) from the request/response cycle
+  `kb-sync`, `discover-refresh`) from the request/response cycle
 - `src/main/lib/ipc.ts` — main-process IPC handlers
 - `src/main/lib/paths.ts` — `~/.exodus` path helpers
 
