@@ -18,8 +18,10 @@ import Zoom from 'react-medium-image-zoom'
 import { Button } from '@/components/ui/button'
 import { useDiscoverFeed } from '@/hooks/use-discover-feed'
 import { useSettings } from '@/hooks/use-settings'
+import { userMessageText } from '@/lib/user-message-text'
 import { cn } from '@/lib/utils'
 
+import { ChatToc } from './chat-toc'
 import { DiscoverFeed } from './home/discover-feed'
 import Markdown from './markdown'
 import { MessageAction } from './massage-action'
@@ -48,7 +50,10 @@ const UserSegment = memo(function UserSegment({
   message: ChatMessage
 }) {
   return (
-    <div className="mb-8 flex flex-col items-end first:mt-0 last:mb-4">
+    <div
+      data-user-msg-id={message.id}
+      className="mb-8 flex flex-col items-end first:mt-0 last:mb-4"
+    >
       {Array.isArray(message.content) &&
         message.content.some((c) => c.type === 'image') && (
           <div className="mb-4 flex gap-4">
@@ -72,13 +77,7 @@ const UserSegment = memo(function UserSegment({
           </div>
         )}
       <p className="bg-primary text-primary-foreground max-w-[60%] rounded-2xl rounded-br-sm px-4 py-2.5 text-base leading-relaxed wrap-break-word whitespace-pre-wrap shadow-sm">
-        {typeof message.content === 'string'
-          ? message.content
-          : (message.content as Array<TextContent | ImageContent>)
-              .flatMap((c) =>
-                c.type === 'text' ? [(c as TextContent).text] : []
-              )
-              .join('')}
+        {userMessageText(message)}
       </p>
     </div>
   )
@@ -547,6 +546,8 @@ function Messages({
             )}
         </div>
       </section>
+
+      <ChatToc scrollContainerRef={chatBoxRef} messages={messages} />
 
       {showScrollButton && (
         <Button

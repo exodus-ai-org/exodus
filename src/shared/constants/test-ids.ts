@@ -56,6 +56,10 @@ export const TEST_IDS = {
     traceBadge: 'logger.trace-badge',
     traceFilterChip: 'logger.trace-filter-chip'
   },
+  chatToc: {
+    rail: 'chat-toc.rail',
+    entry: 'chat-toc.entry'
+  },
   settings: {
     themeMode: 'settings.theme-mode'
   },
