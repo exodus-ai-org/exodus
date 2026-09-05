@@ -16,6 +16,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Zoom from 'react-medium-image-zoom'
 
 import { Button } from '@/components/ui/button'
+import { useDiscoverFeed } from '@/hooks/use-discover-feed'
 import { useSettings } from '@/hooks/use-settings'
 import { cn } from '@/lib/utils'
 
@@ -429,6 +430,13 @@ function Messages({
   const discoverActive =
     (showDiscover ?? false) && (settings?.discover?.enabled ?? false)
 
+  // The greeting only gives up its centered position once the feed actually
+  // has recommendations to show. Enabled-but-empty (first opt-in, a warming
+  // feed, a failed refresh) keeps the original, uncluttered welcome page.
+  const { feed: discoverFeed } = useDiscoverFeed(discoverActive)
+  const discoverHasContent =
+    discoverActive && (discoverFeed?.groups.length ?? 0) > 0
+
   const segments = useMemo(() => groupIntoSegments(messages), [messages])
 
   // Accumulate web-search sources across turns so a turn that cites a source
@@ -493,7 +501,7 @@ function Messages({
           <div
             className={cn(
               'animate-fade-in-up mx-auto flex size-full max-w-4xl flex-col px-8',
-              discoverActive
+              discoverHasContent
                 ? 'justify-start pt-12 md:pt-16'
                 : 'justify-center md:mt-20'
             )}

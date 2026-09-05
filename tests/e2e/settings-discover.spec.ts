@@ -15,9 +15,10 @@ test.describe('Settings — Discover', () => {
       mainWindow.getByTestId(TEST_IDS.discover.enableToggle)
     ).toBeVisible()
     await expect(
-      mainWindow.getByText(
-        'Add a Brave Search API key under Web Search to use Discover.'
-      )
+      mainWindow.getByText('Discover needs a Brave Search API key.')
+    ).toBeVisible()
+    await expect(
+      mainWindow.getByRole('button', { name: 'Add one under Built-in Tools' })
     ).toBeVisible()
   })
 })
