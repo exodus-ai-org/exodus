@@ -8,7 +8,6 @@ import {
   KeyboardIcon,
   MemoryStickIcon,
   NetworkIcon,
-  NewspaperIcon,
   ScrollTextIcon,
   TextSearch,
   ShoppingBagIcon,
@@ -17,7 +16,8 @@ import {
   WrenchIcon,
   MousePointer2Icon,
   CircleUserRoundIcon,
-  MicIcon
+  MicIcon,
+  CompassIcon
 } from 'lucide-react'
 
 export enum SettingsLabel {
@@ -56,7 +56,7 @@ export const menus = {
         { title: SettingsLabel.Profile, icon: CircleUserRoundIcon },
         { title: SettingsLabel.Personality, icon: UserIcon },
         { title: SettingsLabel.Memory, icon: MemoryStickIcon },
-        { title: SettingsLabel.Discover, icon: NewspaperIcon },
+        { title: SettingsLabel.Discover, icon: CompassIcon },
         { title: SettingsLabel.Voice, icon: MicIcon },
         { title: SettingsLabel.KeyboardShortcuts, icon: KeyboardIcon }
       ]
