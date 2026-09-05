@@ -9,6 +9,7 @@ import { settingsLabelAtom } from '@/stores/settings'
 
 import { DataControls } from './settings-form/data-controls'
 import { DeepResearch } from './settings-form/deep-research'
+import { Discover } from './settings-form/discover'
 import { FullTextSearch } from './settings-form/full-text-search'
 import { General } from './settings-form/generals'
 import { KeyboardShortcuts } from './settings-form/keyboard-shortcuts'
@@ -111,6 +112,8 @@ export function SettingsForm() {
       )}
 
       {activeTitle === SettingsLabel.Memory && <MemorySettings form={form} />}
+
+      {activeTitle === SettingsLabel.Discover && <Discover form={form} />}
 
       {activeTitle === SettingsLabel.BuiltinTools && <Tools form={form} />}
 

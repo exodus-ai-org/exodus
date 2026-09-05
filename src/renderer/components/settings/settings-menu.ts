@@ -8,6 +8,7 @@ import {
   KeyboardIcon,
   MemoryStickIcon,
   NetworkIcon,
+  NewspaperIcon,
   ScrollTextIcon,
   TextSearch,
   ShoppingBagIcon,
@@ -31,6 +32,7 @@ export enum SettingsLabel {
   KnowledgeBase = 'Knowledge Base',
   BuiltinTools = 'Built-in Tools',
   Memory = 'Memory',
+  Discover = 'Discover',
   Voice = 'Voice',
   DeepResearch = 'Deep Research',
   ComputerUse = 'Computer Use',
@@ -54,6 +56,7 @@ export const menus = {
         { title: SettingsLabel.Profile, icon: CircleUserRoundIcon },
         { title: SettingsLabel.Personality, icon: UserIcon },
         { title: SettingsLabel.Memory, icon: MemoryStickIcon },
+        { title: SettingsLabel.Discover, icon: NewspaperIcon },
         { title: SettingsLabel.Voice, icon: MicIcon },
         { title: SettingsLabel.KeyboardShortcuts, icon: KeyboardIcon }
       ]

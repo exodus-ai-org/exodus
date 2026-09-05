@@ -47,6 +47,9 @@ export const TEST_IDS = {
     docContentInput: 'knowledge-base.doc-content-input',
     docSaveButton: 'knowledge-base.doc-save-button'
   },
+  discover: {
+    enableToggle: 'discover.enable-toggle'
+  },
   settings: {
     themeMode: 'settings.theme-mode'
   },
