@@ -51,6 +51,11 @@ export const TEST_IDS = {
     enableToggle: 'discover.enable-toggle',
     section: 'discover.section'
   },
+  logger: {
+    scopeSelect: 'logger.scope-select',
+    traceBadge: 'logger.trace-badge',
+    traceFilterChip: 'logger.trace-filter-chip'
+  },
   settings: {
     themeMode: 'settings.theme-mode'
   },

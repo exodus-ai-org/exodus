@@ -1,11 +1,13 @@
 import { BASE_URL } from '@shared/constants/systems'
+import { TEST_IDS } from '@shared/constants/test-ids'
 import { fetcher } from '@shared/utils/http'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
   DownloadIcon,
   FolderOpenIcon,
-  Trash2Icon
+  Trash2Icon,
+  XIcon
 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { sileo } from 'sileo'
@@ -20,16 +22,20 @@ import { SettingsSelect } from '../settings-select'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-interface LogEntry {
-  ts: string
-  level: string
-  surface: string
-  message: string
-  detail?: object
+interface LogRecord {
+  timestamp: string
+  severityNumber: number
+  severityText: string
+  body: string
+  scope: { name: string }
+  attributes?: Record<string, unknown>
+  resource?: Record<string, unknown>
+  traceId?: string
+  originTraceId?: string
 }
 
 interface LogsResponse {
-  entries: LogEntry[]
+  entries: LogRecord[]
   total: number
   page: number
 }
@@ -38,28 +44,13 @@ interface DatesResponse {
   dates: string[]
 }
 
+interface ScopesResponse {
+  scopes: string[]
+}
+
 // ─── Constants ───────────────────────────────────────────────────────────────
 
 const LEVELS = ['All', 'debug', 'info', 'warn', 'error'] as const
-
-const SURFACES = [
-  'All',
-  'chat',
-  'database',
-  'agent_x',
-  'mcp',
-  'audio',
-  'memory',
-  'deep_research',
-  'scheduler',
-  's3',
-  'skills',
-  'lcm',
-  'tools',
-  'app',
-  'server',
-  'migration'
-] as const
 
 const PAGE_SIZE = 100
 
@@ -78,26 +69,26 @@ function formatTime(ts: string): string {
   }
 }
 
-function levelColor(level: string) {
-  switch (level) {
-    case 'debug':
+function levelColor(severityText: string) {
+  switch (severityText) {
+    case 'DEBUG':
       return 'secondary'
-    case 'info':
+    case 'INFO':
       return 'default'
-    case 'warn':
+    case 'WARN':
       return 'outline'
-    case 'error':
+    case 'ERROR':
       return 'destructive'
     default:
       return 'secondary'
   }
 }
 
-function levelClassName(level: string) {
-  switch (level) {
-    case 'info':
+function levelClassName(severityText: string) {
+  switch (severityText) {
+    case 'INFO':
       return 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/20'
-    case 'warn':
+    case 'WARN':
       return 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 border-yellow-500/20'
     default:
       return ''
@@ -117,9 +108,10 @@ function todayStr(): string {
 export function Logger() {
   const [date, setDate] = useState(todayStr)
   const [level, setLevel] = useState('All')
-  const [surface, setSurface] = useState('All')
+  const [scope, setScope] = useState('All')
   const [keyword, setKeyword] = useState('')
   const [debouncedKeyword, setDebouncedKeyword] = useState('')
+  const [traceId, setTraceId] = useState<string | null>(null)
   const [page, setPage] = useState(1)
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
 
@@ -143,13 +135,19 @@ export function Logger() {
     pageSize: String(PAGE_SIZE)
   })
   if (level !== 'All') params.set('level', level)
-  if (surface !== 'All') params.set('surface', surface)
+  if (scope !== 'All') params.set('surface', scope)
   if (debouncedKeyword) params.set('keyword', debouncedKeyword)
+  if (traceId) params.set('traceId', traceId)
 
   const logsKey = `/api/logs?${params.toString()}`
 
   const { data: logsData, mutate } = useSWR<LogsResponse>(logsKey)
   const { data: datesData } = useSWR<DatesResponse>('/api/logs/dates')
+  const { data: scopesData } = useSWR<ScopesResponse>(
+    `/api/logs/scopes?date=${date}`
+  )
+
+  const scopeOptions = ['All', ...(scopesData?.scopes ?? [])]
 
   const entries = logsData?.entries ?? []
   const total = logsData?.total ?? 0
@@ -233,17 +231,18 @@ export function Logger() {
           options={LEVELS.map((l) => ({ value: l, label: l }))}
         />
 
-        {/* Surface select */}
+        {/* Scope select */}
         <SettingsSelect
           className="w-[150px]"
-          value={surface}
-          placeholder="Surface"
+          value={scope}
+          placeholder="Scope"
+          testId={TEST_IDS.logger.scopeSelect}
           onValueChange={(v) => {
-            setSurface(v)
+            setScope(v)
             setPage(1)
             setExpandedIndex(null)
           }}
-          options={SURFACES.map((s) => ({ value: s, label: s }))}
+          options={scopeOptions.map((s) => ({ value: s, label: s }))}
         />
 
         {/* Keyword search */}
@@ -253,6 +252,23 @@ export function Logger() {
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
         />
+
+        {/* Active trace filter */}
+        {traceId && (
+          <button
+            type="button"
+            data-testid={TEST_IDS.logger.traceFilterChip}
+            className="border-border bg-muted/50 hover:bg-muted flex items-center gap-1 rounded-md border px-2 py-1 font-mono text-xs"
+            onClick={() => {
+              setTraceId(null)
+              setPage(1)
+              setExpandedIndex(null)
+            }}
+          >
+            trace {traceId.slice(0, 8)}
+            <XIcon className="h-3 w-3" />
+          </button>
+        )}
 
         {/* Spacer */}
         <div className="flex-1" />
@@ -278,8 +294,9 @@ export function Logger() {
         <div className="bg-muted/50 flex items-center gap-3 px-3 py-2 text-xs font-medium">
           <span className="w-[90px] shrink-0">Time</span>
           <span className="w-[60px] shrink-0">Level</span>
-          <span className="w-[120px] shrink-0">Surface</span>
+          <span className="w-[120px] shrink-0">Scope</span>
           <span className="flex-1">Message</span>
+          <span className="w-[150px] shrink-0">Trace</span>
         </div>
 
         {/* Rows */}
@@ -290,7 +307,7 @@ export function Logger() {
             </div>
           )}
           {entries.map((entry, idx) => (
-            <div key={`${entry.ts}-${idx}`}>
+            <div key={`${entry.timestamp}-${idx}`}>
               <button
                 type="button"
                 className="hover:bg-muted/30 flex w-full cursor-pointer items-start gap-3 border-t px-3 py-1.5 text-xs transition-colors"
@@ -299,28 +316,75 @@ export function Logger() {
                 }
               >
                 <span className="text-muted-foreground w-[90px] shrink-0 font-mono">
-                  {formatTime(entry.ts)}
+                  {formatTime(entry.timestamp)}
                 </span>
                 <span className="w-[60px] shrink-0">
                   <Badge
-                    variant={levelColor(entry.level)}
-                    className={`text-[10px] ${levelClassName(entry.level)}`}
+                    variant={levelColor(entry.severityText)}
+                    className={`text-[10px] ${levelClassName(entry.severityText)}`}
                   >
-                    {entry.level}
+                    {entry.severityText}
                   </Badge>
                 </span>
                 <span className="w-[120px] shrink-0">
                   <Badge variant="outline" className="text-[10px]">
-                    {entry.surface}
+                    {entry.scope.name}
                   </Badge>
                 </span>
-                <span className="flex-1 truncate">{entry.message}</span>
+                <span className="flex-1 truncate text-left">{entry.body}</span>
+                <span className="flex w-[150px] shrink-0 items-center gap-1">
+                  {entry.traceId && (
+                    <Badge
+                      variant="secondary"
+                      data-testid={TEST_IDS.logger.traceBadge}
+                      className="cursor-pointer font-mono text-[10px]"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setTraceId(entry.traceId!)
+                        setPage(1)
+                        setExpandedIndex(null)
+                      }}
+                    >
+                      {entry.traceId.slice(0, 8)}
+                    </Badge>
+                  )}
+                  {entry.originTraceId && (
+                    <Badge
+                      variant="outline"
+                      className="cursor-pointer font-mono text-[10px]"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setTraceId(entry.originTraceId!)
+                        setPage(1)
+                        setExpandedIndex(null)
+                      }}
+                    >
+                      ↖ {entry.originTraceId.slice(0, 8)}
+                    </Badge>
+                  )}
+                </span>
               </button>
-              {expandedIndex === idx && entry.detail && (
-                <div className="bg-muted/20 border-t px-3 py-2">
-                  <pre className="text-muted-foreground max-h-[300px] overflow-auto text-xs whitespace-pre-wrap">
-                    {JSON.stringify(entry.detail, null, 2)}
-                  </pre>
+              {expandedIndex === idx && (
+                <div className="bg-muted/20 space-y-2 border-t px-3 py-2">
+                  {entry.attributes &&
+                    Object.keys(entry.attributes).length > 0 && (
+                      <pre className="text-muted-foreground max-h-[240px] overflow-auto text-xs whitespace-pre-wrap">
+                        {JSON.stringify(entry.attributes, null, 2)}
+                      </pre>
+                    )}
+                  {(entry.traceId || entry.originTraceId) && (
+                    <div className="text-muted-foreground font-mono text-[11px]">
+                      {entry.traceId && <div>traceId: {entry.traceId}</div>}
+                      {entry.originTraceId && (
+                        <div>originTraceId: {entry.originTraceId}</div>
+                      )}
+                    </div>
+                  )}
+                  {entry.resource && (
+                    <pre className="text-muted-foreground/70 overflow-auto text-[11px] whitespace-pre-wrap">
+                      {JSON.stringify(entry.resource, null, 2)}
+                    </pre>
+                  )}
                 </div>
               )}
             </div>
