@@ -1,5 +1,6 @@
 import cron from 'node-cron'
 
+import { resetStuckDiscoverRefresh } from '../discover/manager'
 import { reconcileKnowledgeIndexStatus } from '../knowledge-base/reconcile'
 import { logger } from '../logger'
 import { handlers } from './handlers'
@@ -129,6 +130,18 @@ export function logEnqueueFailure(queueName: QueueName, error: unknown): void {
  * others.
  */
 export function initJobQueue(): void {
+  // A refresh can't outlive the process — clear any row stuck at 'refreshing'
+  // from a crash or a rejected enqueue so it isn't blocked for up to ~20h.
+  resetStuckDiscoverRefresh().catch((error) => {
+    logger.error(
+      'discover',
+      'failed to reset stuck refresh status on startup',
+      {
+        error: String(error)
+      }
+    )
+  })
+
   cron.schedule('*/15 * * * * *', () => {
     for (const queueName of QUEUE_NAMES) {
       processQueue(queueName).catch((error) => {

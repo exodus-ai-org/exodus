@@ -3,7 +3,21 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
 vi.mock('@electron-toolkit/utils', () => ({ is: { dev: true } }))
-vi.mock('@main/lib/db/db', () => ({ db: {}, pglite: {} }))
+
+const mockDbWhere = vi.fn()
+const mockDbSet = vi.fn(() => ({ where: mockDbWhere }))
+const mockDbUpdate = vi.fn(() => ({ set: mockDbSet }))
+vi.mock('@main/lib/db/db', () => ({
+  db: { update: mockDbUpdate },
+  pglite: {}
+}))
+
+const mockEq = vi.fn((col: unknown, value: unknown) => ({ col, value }))
+vi.mock('drizzle-orm', async (importActual) => ({
+  ...(await importActual<typeof import('drizzle-orm')>()),
+  eq: mockEq
+}))
+
 vi.mock('@main/lib/logger', () => ({
   logger: { warn: vi.fn(), error: vi.fn(), info: vi.fn() }
 }))
@@ -38,7 +52,8 @@ vi.mock('@main/lib/discover/brave-news-client', () => ({
   searchBraveNews: (...args: unknown[]) => mockSearchBraveNews(...args)
 }))
 
-const { runDiscoverRefresh } = await import('@main/lib/discover/manager')
+const { runDiscoverRefresh, resetStuckDiscoverRefresh } =
+  await import('@main/lib/discover/manager')
 
 const model = { id: 'm' } as unknown as Model<string>
 
@@ -213,6 +228,54 @@ describe('runDiscoverRefresh', () => {
     expect(written.groups[0].memoryId).toBe('mem-2')
   })
 
+  it('keeps valid groups when one LLM item is malformed (lenient per-item parse)', async () => {
+    mockGetActiveMemories.mockResolvedValue([
+      memoryRow({ id: 'mem-1', key: 'SoftBank' }),
+      memoryRow({ id: 'mem-2', key: 'Argentina' })
+    ])
+    llmReturns({
+      items: [
+        { memoryId: 'mem-1', topic: 'SoftBank', query: 'SoftBank 9984 news' },
+        // Malformed: a numeric query. Previously this threw inside the schema
+        // parse and collapsed the whole response to { items: [] }.
+        { memoryId: 'mem-2', topic: 'Argentina', query: 123 }
+      ]
+    })
+    mockSearchBraveNews.mockResolvedValue([
+      { title: 'A', url: 'https://x/a', description: '', source: 'x' }
+    ])
+
+    await runDiscoverRefresh()
+
+    // Only the valid item drove a Brave query.
+    expect(mockSearchBraveNews).toHaveBeenCalledTimes(1)
+    expect(mockSearchBraveNews).toHaveBeenCalledWith(
+      'brave-key',
+      'SoftBank 9984 news',
+      expect.anything()
+    )
+
+    const idleWrites = mockSetDiscoverFeed.mock.calls
+      .map((c) => c[0])
+      .filter((p) => p.status === 'idle')
+    // The success-path write keeps the good group…
+    const written = idleWrites.find((p) => p.groups)
+    expect(written.groups).toEqual([
+      {
+        memoryId: 'mem-1',
+        topic: 'SoftBank',
+        query: 'SoftBank 9984 news',
+        articles: [
+          { title: 'A', url: 'https://x/a', description: '', source: 'x' }
+        ]
+      }
+    ])
+    // …and never blanks the feed with an empty groups array.
+    expect(
+      idleWrites.some((p) => Array.isArray(p.groups) && p.groups.length === 0)
+    ).toBe(false)
+  })
+
   it('on an LLM failure, marks status failed, leaves groups/generatedAt untouched, and rethrows', async () => {
     mockGetActiveMemories.mockResolvedValue([memoryRow()])
     mockCompleteSimple.mockRejectedValue(new Error('provider down'))
@@ -230,5 +293,17 @@ describe('runDiscoverRefresh', () => {
     )?.[0]
     expect(failedCall.groups).toBeUndefined()
     expect(failedCall.generatedAt).toBeUndefined()
+  })
+})
+
+describe('resetStuckDiscoverRefresh', () => {
+  it("resets rows stuck at 'refreshing' back to 'idle'", async () => {
+    await resetStuckDiscoverRefresh()
+
+    expect(mockDbUpdate).toHaveBeenCalledTimes(1)
+    expect(mockDbSet).toHaveBeenCalledWith({ status: 'idle' })
+    expect(mockDbWhere).toHaveBeenCalledTimes(1)
+    // The WHERE clause targets the stuck status specifically.
+    expect(mockEq).toHaveBeenCalledWith(expect.anything(), 'refreshing')
   })
 })

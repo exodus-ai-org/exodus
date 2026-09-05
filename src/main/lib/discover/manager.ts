@@ -1,5 +1,6 @@
 import { completeSimple } from '@mariozechner/pi-ai'
 import type { DiscoverGroup } from '@shared/types/discover'
+import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 
 import { LOCAL_USER_ID } from '../ai/memory/manager'
@@ -8,9 +9,11 @@ import {
   parseJsonFromLlmResponse
 } from '../ai/utils/llm-response-util'
 import { getModelFromProvider } from '../ai/utils/model-util'
+import { db } from '../db/db'
 import { getDiscoverFeed, setDiscoverFeed } from '../db/discover-queries'
 import { getActiveMemories, type MemoryRow } from '../db/memory-queries'
 import { getSettings } from '../db/queries'
+import { discoverFeed } from '../db/schema'
 import { logger } from '../logger'
 import { searchBraveNews } from './brave-news-client'
 
@@ -25,18 +28,22 @@ For each memory given, decide:
 Return ONLY JSON matching this shape, one entry per memory given, in the same order:
 {"items":[{"memoryId":"<id>","topic":"<short label>","query":"<search query>"},{"memoryId":"<id>","topic":"<short label>","query":null}]}`
 
-const discoverQuerySchema = z.object({
-  items: z.array(
-    z.object({
-      memoryId: z.string(),
-      topic: z.string().min(1),
-      query: z.string().min(1).nullable().optional()
-    })
-  )
+const discoverItemSchema = z.object({
+  memoryId: z.string(),
+  topic: z.string().min(1),
+  query: z.string().min(1).nullable().optional()
 })
 
+// The top level only guarantees an `items` array — each element is validated
+// individually below so one malformed entry can't reject the whole response.
+const discoverEnvelopeSchema = z.object({ items: z.array(z.unknown()) })
+
 function formatMemoryForPrompt(m: MemoryRow): string {
-  return `- id: ${m.id}\n  key: ${m.key}\n  summary: ${m.summary}`
+  const details = (m.details ?? [])
+    .slice(0, 2)
+    .map((d) => `\n  - ${d}`)
+    .join('')
+  return `- id: ${m.id}\n  key: ${m.key}\n  summary: ${m.summary}${details}`
 }
 
 function recencyMs(m: MemoryRow): number {
@@ -94,11 +101,23 @@ export async function runDiscoverRefresh(
       { apiKey }
     )
     const text = extractTextFromCompletion(result.content)
-    const parsed = parseJsonFromLlmResponse(text, discoverQuerySchema, {
+    const envelope = parseJsonFromLlmResponse(text, discoverEnvelopeSchema, {
       items: []
     })
 
-    const kept = parsed.items
+    // Validate items one by one and keep the good ones. A single bad item
+    // (e.g. `query: ""`, a numeric `topic`) used to throw inside the schema
+    // parse, collapse the whole response to `{ items: [] }`, and overwrite a
+    // working feed with an empty one for ~20h.
+    const parsedItems = envelope.items
+      .map((raw) => discoverItemSchema.safeParse(raw))
+      .filter(
+        (r): r is { success: true; data: z.infer<typeof discoverItemSchema> } =>
+          r.success
+      )
+      .map((r) => r.data)
+
+    const kept = parsedItems
       .filter(
         (i): i is { memoryId: string; topic: string; query: string } =>
           typeof i.query === 'string' && i.query.trim().length > 0
@@ -144,4 +163,20 @@ export async function runDiscoverRefresh(
     await setDiscoverFeed({ status: 'failed', error: String(error) })
     throw error
   }
+}
+
+/**
+ * Clears an orphaned `status:'refreshing'` on startup. If `POST /refresh` flips
+ * the row to `refreshing` and the enqueue then rejects, or the process is
+ * killed mid-refresh, the row can stay stuck for up to ~20h (the periodic cron
+ * enqueues a non-forced job that early-returns on the staleness gate without
+ * touching status, and manual refresh is blocked while `status === 'refreshing'`).
+ * An in-process refresh can never legitimately survive a restart, so any row
+ * still marked `refreshing` at boot is stuck and safe to reset.
+ */
+export async function resetStuckDiscoverRefresh(): Promise<void> {
+  await db
+    .update(discoverFeed)
+    .set({ status: 'idle' })
+    .where(eq(discoverFeed.status, 'refreshing'))
 }
