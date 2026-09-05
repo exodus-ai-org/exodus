@@ -1,16 +1,20 @@
 import { TEST_IDS } from '@shared/constants/test-ids'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
+import { useSetAtom } from 'jotai'
 import { AlertCircleIcon } from 'lucide-react'
 import { Controller } from 'react-hook-form'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
+import { settingsLabelAtom } from '@/stores/settings'
 
+import { SettingsLabel } from '../settings-menu'
 import { SettingsRow, SettingsSection } from '../settings-row'
 
 export function Discover({ form }: { form: UseFormReturnType }) {
   const hasBraveKey = !!form.watch('webSearch.braveApiKey')
+  const setActiveSection = useSetAtom(settingsLabelAtom)
 
   return (
     <>
@@ -45,7 +49,15 @@ export function Discover({ form }: { form: UseFormReturnType }) {
 
         {!hasBraveKey && (
           <p className="text-muted-foreground -mt-1 text-xs">
-            Add a Brave Search API key under Web Search to use Discover.
+            Discover needs a Brave Search API key.{' '}
+            <button
+              type="button"
+              className="text-primary underline underline-offset-2"
+              onClick={() => setActiveSection(SettingsLabel.BuiltinTools)}
+            >
+              Add one under Built-in Tools
+            </button>
+            .
           </p>
         )}
 
