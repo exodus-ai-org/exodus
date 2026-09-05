@@ -1,5 +1,6 @@
 CREATE TYPE "public"."agent_memory_source" AS ENUM('conversation', 'task', 'system');--> statement-breakpoint
 CREATE TYPE "public"."conversation_message_role" AS ENUM('user', 'pm', 'employee', 'system');--> statement-breakpoint
+CREATE TYPE "public"."discover_feed_status" AS ENUM('idle', 'refreshing', 'failed');--> statement-breakpoint
 CREATE TYPE "public"."execution_status" AS ENUM('running', 'completed', 'failed');--> statement-breakpoint
 CREATE TYPE "public"."jobStatus" AS ENUM('streaming', 'archived', 'failed', 'terminated');--> statement-breakpoint
 CREATE TYPE "public"."knowledge_index_status" AS ENUM('pending', 'processing', 'processed', 'failed', 'stale');--> statement-breakpoint
@@ -97,6 +98,14 @@ CREATE TABLE "deep_research_message" (
 	"deepResearchId" uuid NOT NULL,
 	"message" json NOT NULL,
 	"createdAt" timestamp DEFAULT now() NOT NULL
+);
+--> statement-breakpoint
+CREATE TABLE "discover_feed" (
+	"id" text PRIMARY KEY NOT NULL,
+	"groups" jsonb DEFAULT '[]'::jsonb NOT NULL,
+	"generatedAt" timestamp,
+	"status" "discover_feed_status" DEFAULT 'idle' NOT NULL,
+	"error" text
 );
 --> statement-breakpoint
 CREATE TABLE "knowledge_doc" (
@@ -256,6 +265,7 @@ CREATE TABLE "settings" (
 	"webSearch" jsonb,
 	"fullTextSearch" jsonb,
 	"knowledgeBase" jsonb,
+	"discover" jsonb,
 	"image" jsonb,
 	"deepResearch" jsonb,
 	"s3" jsonb,

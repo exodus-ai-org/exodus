@@ -2,6 +2,7 @@ import type { Usage } from '@mariozechner/pi-ai'
 import {
   VoiceSchema,
   DeepResearchSchema,
+  DiscoverSchema,
   GoogleCloudSchema,
   ImageSchema,
   KeyboardShortcutsSchema,
@@ -15,6 +16,7 @@ import {
   ToolsSchema,
   WebSearchSchema
 } from '@shared/schemas/settings-schema'
+import type { DiscoverGroup } from '@shared/types/discover'
 import { WebSearchResult } from '@shared/types/web-search'
 import { sql, type InferSelectModel } from 'drizzle-orm'
 import {
@@ -151,6 +153,7 @@ export const settings = pgTable('settings', {
     jsonb('fullTextSearch').$type<z.infer<typeof FullTextSearchSchema>>(),
   knowledgeBase:
     jsonb('knowledgeBase').$type<z.infer<typeof KnowledgeBaseSchema>>(),
+  discover: jsonb('discover').$type<z.infer<typeof DiscoverSchema>>(),
   image: jsonb('image').$type<z.infer<typeof ImageSchema>>(),
   deepResearch:
     jsonb('deepResearch').$type<z.infer<typeof DeepResearchSchema>>(),
@@ -550,6 +553,31 @@ export const knowledgeDoc = pgTable('knowledge_doc', {
 })
 
 export type KnowledgeDoc = InferSelectModel<typeof knowledgeDoc>
+
+// ─── Discover ────────────────────────────────────────────────────────────────
+// A single cached feed, regenerated wholesale by the discover-refresh job.
+// No relational columns / no FK to `memory` — the whole cache is replaced
+// atomically on every refresh, so a stale memoryId inside old JSON is
+// harmless and never queried against the memory table.
+
+export const discoverFeedStatusEnum = pgEnum('discover_feed_status', [
+  'idle',
+  'refreshing',
+  'failed'
+])
+
+export const discoverFeed = pgTable('discover_feed', {
+  id: text('id').primaryKey(), // always 'global'
+  groups: jsonb('groups')
+    .$type<DiscoverGroup[]>()
+    .notNull()
+    .default(sql`'[]'::jsonb`),
+  generatedAt: timestamp('generatedAt'),
+  status: discoverFeedStatusEnum('status').notNull().default('idle'),
+  error: text('error')
+})
+
+export type DiscoverFeedRow = InferSelectModel<typeof discoverFeed>
 
 // ─── Memory & Personalization ───────────────────────────────────────────────
 

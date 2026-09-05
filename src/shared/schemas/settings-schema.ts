@@ -103,6 +103,12 @@ export const KnowledgeBaseSchema = z.object({
   chunkTopK: formNumber(z.number().gte(1).lte(100)).nullish() // default 10
 })
 
+export const DiscoverSchema = z.object({
+  enabled: z.boolean().default(false),
+  topicCount: formNumber(z.number().gte(1).lte(8)).nullish(), // default 4
+  articlesPerTopic: formNumber(z.number().gte(1).lte(5)).nullish() // default 3
+})
+
 export const ImageSchema = z.object({
   model: z.string().nullish(),
   size: z.string().nullish(),
@@ -210,6 +216,7 @@ export const SettingsSchema = z.object({
   webSearch: WebSearchSchema.nullish(),
   fullTextSearch: FullTextSearchSchema.nullish(),
   knowledgeBase: KnowledgeBaseSchema.nullish(),
+  discover: DiscoverSchema.nullish(),
   image: ImageSchema.nullish(),
   deepResearch: DeepResearchSchema.nullish(),
   s3: S3Schema.nullish(),

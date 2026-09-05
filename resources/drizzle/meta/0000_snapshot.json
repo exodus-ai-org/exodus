@@ -1,5 +1,5 @@
 {
-  "id": "b0a1b61a-8b33-4d6e-806e-ad463fced159",
+  "id": "20b83cdf-f2cf-49e4-b98b-75bdbec9b24c",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -671,6 +671,52 @@
           "onUpdate": "no action"
         }
       },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.discover_feed": {
+      "name": "discover_feed",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "groups": {
+          "name": "groups",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'[]'::jsonb"
+        },
+        "generatedAt": {
+          "name": "generatedAt",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "status": {
+          "name": "status",
+          "type": "discover_feed_status",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'idle'"
+        },
+        "error": {
+          "name": "error",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},
@@ -1769,6 +1815,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "discover": {
+          "name": "discover",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
         "image": {
           "name": "image",
           "type": "jsonb",
@@ -2295,6 +2347,11 @@
       "name": "conversation_message_role",
       "schema": "public",
       "values": ["user", "pm", "employee", "system"]
+    },
+    "public.discover_feed_status": {
+      "name": "discover_feed_status",
+      "schema": "public",
+      "values": ["idle", "refreshing", "failed"]
     },
     "public.execution_status": {
       "name": "execution_status",
