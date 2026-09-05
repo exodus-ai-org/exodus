@@ -113,7 +113,7 @@ The main process runs a **Hono HTTP server** that handles all business logic:
 
 **Server Routes** (`src/main/lib/server/routes/`, registered in `src/main/lib/server/app.ts`):
 
-`/api/chat`, `/api/lcm`, `/api/history`, `/api/project`, `/api/settings`, `/api/audio`, `/api/db-io`, `/api/deep-research`, `/api/tools`, `/api/philharmonic`, `/api/s3`, `/api/skills`, `/api/mcp`, `/api/memory`, `/api/usage`, `/api/logs`, `/api/backup`, `/api/artifacts`.
+`/api/chat`, `/api/lcm`, `/api/history`, `/api/knowledge-base`, `/api/project`, `/api/settings`, `/api/audio`, `/api/db-io`, `/api/deep-research`, `/api/discover`, `/api/tools`, `/api/philharmonic`, `/api/s3`, `/api/skills`, `/api/mcp`, `/api/memory`, `/api/usage`, `/api/logs`, `/api/backup`, `/api/artifacts`.
 
 **Middleware Pipeline** (order in `app.ts`):
 
