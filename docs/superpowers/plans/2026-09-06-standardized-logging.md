@@ -21,7 +21,7 @@
 - **Severity:** debug→`{severityNumber:5, severityText:"DEBUG"}`, info→`9/"INFO"`, warn→`13/"WARN"`, error→`17/"ERROR"`. Min-level gate: `is.dev ? 5 : 9`.
 - **Trace/span ids:** `traceId` = 32 lowercase hex (`randomBytes(16).toString("hex")`). `session.id` = 16 lowercase hex (`randomBytes(8)`). `spanId` is a reserved field, never populated this iteration.
 - **Test-ids are a durable contract.** New ids only; never rename. Every new id gets `data-testid` in source AND a Playwright reference (`test-ids.linkage.test.ts` enforces both).
-- **Pre-commit gate:** `pnpm format && pnpm lint && pnpm typecheck && pnpm test`. `--no-verify` is allowed ONLY for the CLAUDE.md-documented flaky PGlite WASM teardown (`RuntimeError: Aborted()` unhandled rejection from a DB-touching test file) — and only when all test *cases* pass (`Tests N passed`, `Errors 1` is the teardown).
+- **Pre-commit gate:** `pnpm format && pnpm lint && pnpm typecheck && pnpm test`. `--no-verify` is allowed ONLY for the CLAUDE.md-documented flaky PGlite WASM teardown (`RuntimeError: Aborted()` unhandled rejection from a DB-touching test file) — and only when all test _cases_ pass (`Tests N passed`, `Errors 1` is the teardown).
 - Tests live under `tests/unit/` mirroring `src/`, import via `@main/...` alias, and mock `electron` (`vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))`) when the module under test transitively imports it.
 - Commit on branch `dev`. Do not merge to `master`, do not push.
 
@@ -31,19 +31,19 @@
 
 **New:**
 
-| File | Responsibility |
-| --- | --- |
-| `src/main/lib/logger/resource.ts` | `Resource` type + `getResource()` frozen lazy singleton (service/process/os identity + per-launch `session.id`). Imports `electron` for the version. |
-| `src/main/lib/logger/record.ts` | `LogRecord` type; `LOG_LEVELS`/severity maps; `toAttributes(detail)` (exception-convention expansion); `normalizeToLogRecord(raw)` (accepts new- or old-shape lines, returns `null` for garbage). Pure — type-only import of `Resource`. |
-| `src/main/lib/logger/trace-context.ts` | `AsyncLocalStorage<TraceContext>`; `newTraceId()`, `withTrace(fn, opts?)`, `currentTrace()`, `bindTraceAttributes(attrs)`. Pure — `node:async_hooks` + `node:crypto` only. |
-| `src/main/lib/logger/index.ts` | The `logger` object, `write()`, level gate, console echo, `cleanupOldLogs()`, `localDateStr()`, `KnownLogSurface`/`LogSurface`, re-exports. (Replaces `src/main/lib/logger.ts`.) |
-| `src/main/lib/server/middlewares/trace.ts` | `traceMiddleware` — wraps every `/api/*` request in `withTrace`, sets `x-trace-id` response header. |
-| `tests/unit/main/lib/logger/resource.test.ts` | |
-| `tests/unit/main/lib/logger/record.test.ts` | |
-| `tests/unit/main/lib/logger/trace-context.test.ts` | |
-| `tests/unit/main/lib/logger/index.test.ts` | |
-| `tests/unit/main/lib/server/middlewares/trace.test.ts` | |
-| `tests/e2e/settings-logger.spec.ts` | |
+| File                                                   | Responsibility                                                                                                                                                                                                                           |
+| ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/main/lib/logger/resource.ts`                      | `Resource` type + `getResource()` frozen lazy singleton (service/process/os identity + per-launch `session.id`). Imports `electron` for the version.                                                                                     |
+| `src/main/lib/logger/record.ts`                        | `LogRecord` type; `LOG_LEVELS`/severity maps; `toAttributes(detail)` (exception-convention expansion); `normalizeToLogRecord(raw)` (accepts new- or old-shape lines, returns `null` for garbage). Pure — type-only import of `Resource`. |
+| `src/main/lib/logger/trace-context.ts`                 | `AsyncLocalStorage<TraceContext>`; `newTraceId()`, `withTrace(fn, opts?)`, `currentTrace()`, `bindTraceAttributes(attrs)`. Pure — `node:async_hooks` + `node:crypto` only.                                                               |
+| `src/main/lib/logger/index.ts`                         | The `logger` object, `write()`, level gate, console echo, `cleanupOldLogs()`, `localDateStr()`, `KnownLogSurface`/`LogSurface`, re-exports. (Replaces `src/main/lib/logger.ts`.)                                                         |
+| `src/main/lib/server/middlewares/trace.ts`             | `traceMiddleware` — wraps every `/api/*` request in `withTrace`, sets `x-trace-id` response header.                                                                                                                                      |
+| `tests/unit/main/lib/logger/resource.test.ts`          |                                                                                                                                                                                                                                          |
+| `tests/unit/main/lib/logger/record.test.ts`            |                                                                                                                                                                                                                                          |
+| `tests/unit/main/lib/logger/trace-context.test.ts`     |                                                                                                                                                                                                                                          |
+| `tests/unit/main/lib/logger/index.test.ts`             |                                                                                                                                                                                                                                          |
+| `tests/unit/main/lib/server/middlewares/trace.test.ts` |                                                                                                                                                                                                                                          |
+| `tests/e2e/settings-logger.spec.ts`                    |                                                                                                                                                                                                                                          |
 
 **Modified:** `src/main/lib/logger.ts` (deleted), `src/main/lib/server/middlewares/index.ts`, `src/main/lib/server/app.ts`, `src/main/lib/server/routes/logs.ts`, `src/main/lib/jobs/queries.ts`, `src/main/lib/jobs/worker.ts`, `src/main/lib/ai/philharmonic/scheduler.ts`, `src/renderer/components/settings/settings-form/logger.tsx`, `src/shared/constants/test-ids.ts`, `CLAUDE.md`. Optionally (Task 9): `src/main/lib/server/routes/chat.ts`, `src/main/lib/server/routes/deep-research.ts`.
 
@@ -52,10 +52,12 @@
 ## Task 1: Resource module
 
 **Files:**
+
 - Create: `src/main/lib/logger/resource.ts`
 - Test: `tests/unit/main/lib/logger/resource.test.ts`
 
 **Interfaces:**
+
 - Consumes: nothing (first task).
 - Produces:
   - `interface Resource { 'service.name': 'exodus'; 'service.version': string; 'process.pid': number; 'process.runtime.name': 'electron'; 'os.type': string; 'os.version': string; 'session.id': string }`
@@ -170,10 +172,12 @@ git commit -m "feat(logger): OTel Resource module"
 ## Task 2: Record module
 
 **Files:**
+
 - Create: `src/main/lib/logger/record.ts`
 - Test: `tests/unit/main/lib/logger/record.test.ts`
 
 **Interfaces:**
+
 - Consumes: `import type { Resource } from './resource'`.
 - Produces:
   - `type LogLevel = 'debug' | 'info' | 'warn' | 'error'`
@@ -198,10 +202,22 @@ import {
 
 describe('severityOf', () => {
   it('maps levels to OTel bands', () => {
-    expect(severityOf('debug')).toEqual({ severityNumber: 5, severityText: 'DEBUG' })
-    expect(severityOf('info')).toEqual({ severityNumber: 9, severityText: 'INFO' })
-    expect(severityOf('warn')).toEqual({ severityNumber: 13, severityText: 'WARN' })
-    expect(severityOf('error')).toEqual({ severityNumber: 17, severityText: 'ERROR' })
+    expect(severityOf('debug')).toEqual({
+      severityNumber: 5,
+      severityText: 'DEBUG'
+    })
+    expect(severityOf('info')).toEqual({
+      severityNumber: 9,
+      severityText: 'INFO'
+    })
+    expect(severityOf('warn')).toEqual({
+      severityNumber: 13,
+      severityText: 'WARN'
+    })
+    expect(severityOf('error')).toEqual({
+      severityNumber: 17,
+      severityText: 'ERROR'
+    })
   })
 })
 
@@ -212,7 +228,10 @@ describe('toAttributes', () => {
   })
 
   it('passes non-error keys through untouched', () => {
-    expect(toAttributes({ chatId: 'c1', count: 3 })).toEqual({ chatId: 'c1', count: 3 })
+    expect(toAttributes({ chatId: 'c1', count: 3 })).toEqual({
+      chatId: 'c1',
+      count: 3
+    })
   })
 
   it('expands an Error into exception.* conventions', () => {
@@ -300,7 +319,10 @@ export interface LogRecord {
   spanId?: string // reserved — never populated this iteration
 }
 
-const SEVERITY: Record<LogLevel, { severityNumber: number; severityText: string }> = {
+const SEVERITY: Record<
+  LogLevel,
+  { severityNumber: number; severityText: string }
+> = {
   debug: { severityNumber: 5, severityText: 'DEBUG' },
   info: { severityNumber: 9, severityText: 'INFO' },
   warn: { severityNumber: 13, severityText: 'WARN' },
@@ -393,10 +415,12 @@ git commit -m "feat(logger): LogRecord shape + severity/exception/legacy mapping
 ## Task 3: Trace-context module
 
 **Files:**
+
 - Create: `src/main/lib/logger/trace-context.ts`
 - Test: `tests/unit/main/lib/logger/trace-context.test.ts`
 
 **Interfaces:**
+
 - Consumes: `node:async_hooks`, `node:crypto` only. **No import of `./index` or `./record`** (keeps it dependency-free and its test electron-mock-free).
 - Produces:
   - `interface TraceContext { traceId: string; originTraceId?: string; attributes: Record<string, unknown> }`
@@ -541,12 +565,14 @@ git commit -m "feat(logger): AsyncLocalStorage trace context"
 This is the integration task. `src/main/lib/logger.ts` → `src/main/lib/logger/index.ts` in one commit. All ~40 `import { logger } from '.../logger'` sites keep resolving (now to the folder). `LogSurface` widens.
 
 **Files:**
+
 - Create: `src/main/lib/logger/index.ts`
 - Delete: `src/main/lib/logger.ts`
 - Create: `tests/unit/main/lib/logger/index.test.ts`
 - Reference only (do not edit): every file that imports `logger`.
 
 **Interfaces:**
+
 - Consumes: `./resource` (`getResource`), `./record` (`LogRecord`, `LogLevel`, `severityOf`, `toAttributes`, `normalizeToLogRecord`, `MIN_SEVERITY_DEV`, `MIN_SEVERITY_PROD`), `./trace-context` (`currentTrace`), `./paths` → wait, it is `../paths` (`getLogsDir`), `@electron-toolkit/utils` (`is`).
 - Produces (public API — unchanged names where they already exist):
   - `type KnownLogSurface` (the current 20 literals) and `type LogSurface = KnownLogSurface | (string & {})`
@@ -563,12 +589,18 @@ This is the integration task. `src/main/lib/logger.ts` → `src/main/lib/logger/
 ```ts
 import { describe, expect, it, vi, beforeEach } from 'vitest'
 
-vi.mock('electron', () => ({ app: { getVersion: () => '1.2.3', getPath: () => '/tmp' } }))
+vi.mock('electron', () => ({
+  app: { getVersion: () => '1.2.3', getPath: () => '/tmp' }
+}))
 vi.mock('@electron-toolkit/utils', () => ({ is: { dev: true } }))
 
 const appendMock = vi.fn().mockResolvedValue(undefined)
-vi.mock('node:fs/promises', () => ({ appendFile: (...a: unknown[]) => appendMock(...a) }))
-vi.mock('fs/promises', () => ({ appendFile: (...a: unknown[]) => appendMock(...a) }))
+vi.mock('node:fs/promises', () => ({
+  appendFile: (...a: unknown[]) => appendMock(...a)
+}))
+vi.mock('fs/promises', () => ({
+  appendFile: (...a: unknown[]) => appendMock(...a)
+}))
 
 const { logger } = await import('@main/lib/logger')
 const { withTrace } = await import('@main/lib/logger/trace-context')
@@ -602,9 +634,12 @@ describe('logger.write', () => {
   })
 
   it('merges ambient trace attributes under the call detail', () => {
-    withTrace(() => {
-      logger.info('chat', 'a', { chatId: 'call-wins' })
-    }, { attributes: { chatId: 'ambient', region: 'eu' } })
+    withTrace(
+      () => {
+        logger.info('chat', 'a', { chatId: 'call-wins' })
+      },
+      { attributes: { chatId: 'ambient', region: 'eu' } }
+    )
     const r = lastRecord()
     expect(r.attributes.chatId).toBe('call-wins')
     expect(r.attributes.region).toBe('eu')
@@ -725,7 +760,11 @@ function write(
   appendFile(join(getLogsDir(), todayFileName()), line, 'utf-8').catch(() => {})
 
   const consoleFn =
-    level === 'error' ? console.error : level === 'warn' ? console.warn : console.log
+    level === 'error'
+      ? console.error
+      : level === 'warn'
+        ? console.warn
+        : console.log
   consoleFn(`[${severityText}] [${surface}] ${message}`, detail ?? '')
 }
 
@@ -743,18 +782,30 @@ export function cleanupOldLogs() {
 }
 
 export const logger = {
-  debug: (surface: LogSurface, message: string, detail?: Record<string, unknown> | null) =>
-    write('debug', surface, message, detail),
-  info: (surface: LogSurface, message: string, detail?: Record<string, unknown> | null) =>
-    write('info', surface, message, detail),
-  warn: (surface: LogSurface, message: string, detail?: Record<string, unknown> | null) =>
-    write('warn', surface, message, detail),
-  error: (surface: LogSurface, message: string, detail?: Record<string, unknown> | null) =>
-    write('error', surface, message, detail)
+  debug: (
+    surface: LogSurface,
+    message: string,
+    detail?: Record<string, unknown> | null
+  ) => write('debug', surface, message, detail),
+  info: (
+    surface: LogSurface,
+    message: string,
+    detail?: Record<string, unknown> | null
+  ) => write('info', surface, message, detail),
+  warn: (
+    surface: LogSurface,
+    message: string,
+    detail?: Record<string, unknown> | null
+  ) => write('warn', surface, message, detail),
+  error: (
+    surface: LogSurface,
+    message: string,
+    detail?: Record<string, unknown> | null
+  ) => write('error', surface, message, detail)
 }
 ```
 
-Note: `toAttributes` is applied to the merged `{...ambient, ...detail}` so an `error` key in *either* is expanded, and explicit `detail` keys win over ambient on collision.
+Note: `toAttributes` is applied to the merged `{...ambient, ...detail}` so an `error` key in _either_ is expanded, and explicit `detail` keys win over ambient on collision.
 
 - [ ] **Step 4: Delete the old file + fix the one now-broken import**
 
@@ -773,7 +824,7 @@ Then inside `logs.ts`, replace the local `LEVEL_PRIORITY: Record<LogLevel, numbe
 - [ ] **Step 5: Run the full unit suite** (import graph changed for ~40 files)
 
 Run: `pnpm test`
-Expected: `Test Files` all pass, `Tests N passed` with the pre-existing count + the new logger tests. Investigate any *new* failure. `Errors 1` (PGlite teardown) is acceptable.
+Expected: `Test Files` all pass, `Tests N passed` with the pre-existing count + the new logger tests. Investigate any _new_ failure. `Errors 1` (PGlite teardown) is acceptable.
 
 - [ ] **Step 6: Typecheck both projects**
 
@@ -792,12 +843,14 @@ git commit -m "feat(logger): OTel-shaped records + trace ids; logger.ts -> logge
 ## Task 5: HTTP request trace middleware
 
 **Files:**
+
 - Create: `src/main/lib/server/middlewares/trace.ts`
 - Modify: `src/main/lib/server/middlewares/index.ts` (add `export * from './trace'`)
 - Modify: `src/main/lib/server/app.ts` (register before the settings middleware)
 - Test: `tests/unit/main/lib/server/middlewares/trace.test.ts`
 
 **Interfaces:**
+
 - Consumes: `withTrace`, `currentTrace` from `@main/lib/logger/trace-context`; `hono` types.
 - Produces: `function traceMiddleware(c: Context, next: Next): Promise<void>`.
 
@@ -896,12 +949,14 @@ git commit -m "feat(logger): trace every /api request"
 ## Task 6: Trace the job worker + scheduler; thread origin trace id
 
 **Files:**
+
 - Modify: `src/main/lib/jobs/queries.ts` (`enqueueJob`)
 - Modify: `src/main/lib/jobs/worker.ts` (`processQueue` + new `extractOriginTraceId`)
 - Modify: `src/main/lib/ai/philharmonic/scheduler.ts` (`runScheduledRound`, one-off task body)
 - Test: extend `tests/unit/main/lib/jobs/worker.test.ts`; add cases to a queries test (create `tests/unit/main/lib/jobs/queries.test.ts` if absent — check first).
 
 **Interfaces:**
+
 - Consumes: `withTrace`, `currentTrace` from `@main/lib/logger/trace-context`.
 - Produces: `function extractOriginTraceId(payload: unknown): string | undefined` (exported from `worker.ts` for testing).
 
@@ -970,7 +1025,11 @@ export async function enqueueJob(queueName: QueueName, payload: unknown) {
 import { withTrace } from '../logger/trace-context'
 
 export function extractOriginTraceId(payload: unknown): string | undefined {
-  if (payload !== null && typeof payload === 'object' && '__originTraceId' in payload) {
+  if (
+    payload !== null &&
+    typeof payload === 'object' &&
+    '__originTraceId' in payload
+  ) {
     return String((payload as Record<string, unknown>).__originTraceId)
   }
   return undefined
@@ -1026,10 +1085,12 @@ git commit -m "feat(logger): trace jobs + scheduler; thread origin trace id thro
 ## Task 7: `/api/logs` route — new filters + `/scopes`
 
 **Files:**
+
 - Modify: `src/main/lib/server/routes/logs.ts`
 - Test: create `tests/unit/main/lib/server/routes/logs.test.ts` (unit-test the pure filter/parse helpers — extract them if needed) OR extend `tests/api/logs.spec.ts` if it exists (check).
 
 **Interfaces:**
+
 - Consumes: `normalizeToLogRecord`, `type LogRecord` from `@main/lib/logger`.
 - Produces: unchanged route surface + `GET /api/logs/scopes`.
 
@@ -1040,7 +1101,10 @@ Extract the filtering into a pure helper `filterRecords(records: LogRecord[], op
 ```ts
 import { describe, expect, it } from 'vitest'
 
-import { filterRecords, minSeverityFromLevel } from '@main/lib/server/routes/logs-filter'
+import {
+  filterRecords,
+  minSeverityFromLevel
+} from '@main/lib/server/routes/logs-filter'
 
 const rec = (over: Partial<any> = {}) => ({
   timestamp: '2026-09-06T00:00:00.000Z',
@@ -1055,25 +1119,35 @@ const rec = (over: Partial<any> = {}) => ({
 
 describe('filterRecords', () => {
   it('filters by minimum severity', () => {
-    const out = filterRecords([rec({ severityNumber: 9 }), rec({ severityNumber: 17 })], {
-      minSeverity: minSeverityFromLevel('warn')
-    })
+    const out = filterRecords(
+      [rec({ severityNumber: 9 }), rec({ severityNumber: 17 })],
+      {
+        minSeverity: minSeverityFromLevel('warn')
+      }
+    )
     expect(out).toHaveLength(1)
     expect(out[0].severityNumber).toBe(17)
   })
   it('filters by scope name', () => {
     expect(
-      filterRecords([rec({ scope: { name: 'chat' } }), rec({ scope: { name: 'jobs' } })], {
-        scope: 'jobs'
-      })
+      filterRecords(
+        [rec({ scope: { name: 'chat' } }), rec({ scope: { name: 'jobs' } })],
+        {
+          scope: 'jobs'
+        }
+      )
     ).toHaveLength(1)
   })
   it('filters by body keyword (case-insensitive)', () => {
-    expect(filterRecords([rec({ body: 'Hello World' })], { keyword: 'world' })).toHaveLength(1)
+    expect(
+      filterRecords([rec({ body: 'Hello World' })], { keyword: 'world' })
+    ).toHaveLength(1)
   })
   it('filters by exact traceId', () => {
     expect(
-      filterRecords([rec({ traceId: 'aaaa' }), rec({ traceId: 'bbbb' })], { traceId: 'bbbb' })
+      filterRecords([rec({ traceId: 'aaaa' }), rec({ traceId: 'bbbb' })], {
+        traceId: 'bbbb'
+      })
     ).toHaveLength(1)
   })
 })
@@ -1086,6 +1160,7 @@ describe('filterRecords', () => {
 Create `src/main/lib/server/routes/logs-filter.ts` with `minSeverityFromLevel(level: string): number` (`{debug:5,info:9,warn:13,error:17}[level] ?? 0`) and `filterRecords(...)`.
 
 Rewrite `logs.ts`:
+
 - `parseLogFile` → returns `LogRecord[]` by mapping each non-empty line: `JSON.parse` in try/catch → `normalizeToLogRecord(parsed)` → keep non-null.
 - `GET /` — read query params (`level`, `surface`, `keyword`, `traceId`, `page`, `pageSize`), call `filterRecords`, reverse (newest first), paginate. Response `{ entries: LogRecord[], total, page }`.
 - `GET /scopes` — `const date = c.req.query('date') || localDateStr()`; parse that file; `[...new Set(records.map((r) => r.scope.name))].sort()`; return `{ scopes }`.
@@ -1107,11 +1182,13 @@ git commit -m "feat(logger): /api/logs severity+scope+traceId filters and /scope
 ## Task 8: Logger settings tab
 
 **Files:**
+
 - Modify: `src/renderer/components/settings/settings-form/logger.tsx`
 - Modify: `src/shared/constants/test-ids.ts` (add `logger` group)
 - Create: `tests/e2e/settings-logger.spec.ts`
 
 **Interfaces:**
+
 - Consumes: `GET /api/logs` (now returns `LogRecord[]`), `GET /api/logs/scopes`.
 
 - [ ] **Step 1: Add test-ids**
@@ -1140,18 +1217,28 @@ test.describe('Settings — Logger', () => {
   }) => {
     const modKey = process.platform === 'darwin' ? 'Meta' : 'Control'
     await mainWindow.keyboard.press(`${modKey}+,`)
-    await mainWindow.getByRole('button', { name: 'Logger', exact: true }).click()
+    await mainWindow
+      .getByRole('button', { name: 'Logger', exact: true })
+      .click()
 
     // The app logs 'server: Hono is running' at startup → at least one row.
     await expect(mainWindow.getByText('Hello there!')).toHaveCount(0) // sanity: we're in settings
-    await expect(mainWindow.getByTestId(TEST_IDS.logger.scopeSelect)).toBeVisible()
+    await expect(
+      mainWindow.getByTestId(TEST_IDS.logger.scopeSelect)
+    ).toBeVisible()
 
-    const firstTrace = mainWindow.getByTestId(TEST_IDS.logger.traceBadge).first()
+    const firstTrace = mainWindow
+      .getByTestId(TEST_IDS.logger.traceBadge)
+      .first()
     if (await firstTrace.count()) {
       await firstTrace.click()
-      await expect(mainWindow.getByTestId(TEST_IDS.logger.traceFilterChip)).toBeVisible()
+      await expect(
+        mainWindow.getByTestId(TEST_IDS.logger.traceFilterChip)
+      ).toBeVisible()
       await mainWindow.getByTestId(TEST_IDS.logger.traceFilterChip).click()
-      await expect(mainWindow.getByTestId(TEST_IDS.logger.traceFilterChip)).toHaveCount(0)
+      await expect(
+        mainWindow.getByTestId(TEST_IDS.logger.traceFilterChip)
+      ).toHaveCount(0)
     }
   })
 })
@@ -1180,11 +1267,17 @@ interface LogRecord {
   traceId?: string
   originTraceId?: string
 }
-interface LogsResponse { entries: LogRecord[]; total: number; page: number }
-interface ScopesResponse { scopes: string[] }
+interface LogsResponse {
+  entries: LogRecord[]
+  total: number
+  page: number
+}
+interface ScopesResponse {
+  scopes: string[]
+}
 ```
 
-- Remove the static `SURFACES` array. Add `const { data: scopesData } = useSWR<ScopesResponse>(\`/api/logs/scopes?date=${date}\`)` and build options `['All', ...(scopesData?.scopes ?? [])]`.
+- Remove the static `SURFACES` array. Add `const { data: scopesData } = useSWR<ScopesResponse>(\`/api/logs/scopes?date=${date}\`)`and build options`['All', ...(scopesData?.scopes ?? [])]`.
 - Rename the "Surface" `<SettingsSelect>` to "Scope", `value={scope}`, `data-testid={TEST_IDS.logger.scopeSelect}`, param key `surface` in the URL unchanged.
 - Add `const [traceId, setTraceId] = useState<string | null>(null)`; include `traceId` in the `params` when set; render a dismissable chip (`data-testid={TEST_IDS.logger.traceFilterChip}`) in the filter bar when `traceId` is set, `onClick={() => setTraceId(null)}`.
 - Table: rename the "Surface" column header to "Scope"; render `entry.scope.name`. Level badge reads `entry.severityText` (map DEBUG/INFO/WARN/ERROR → the existing color helpers; adjust `levelColor`/`levelClassName` to take `severityText`).
@@ -1208,6 +1301,7 @@ git commit -m "feat(logger): standardized log table + scope filter + trace pivot
 ## Task 9: CLAUDE.md + `bindTraceAttributes` adoption
 
 **Files:**
+
 - Modify: `CLAUDE.md`
 - Modify: `src/main/lib/server/routes/chat.ts`, `src/main/lib/server/routes/deep-research.ts`, `src/main/lib/jobs/worker.ts`
 
@@ -1265,23 +1359,23 @@ git commit -m "feat(logger): bind chatId/researchId/queueName to their traces; d
 
 **Spec coverage:**
 
-| Spec section | Task |
-| --- | --- |
-| §1 LogRecord shape, severity, exception convention, legacy fallback | Task 2 (+ consumed by 4) |
-| §2 Resource | Task 1 |
-| §3 trace-context module | Task 3 |
-| §3 logger integration (traceId/originTraceId stamping, ambient attrs) | Task 4 |
-| §3 entry point 1 (HTTP middleware, `x-trace-id`) | Task 5 |
-| §3 entry point 2 (job worker) + origin threading | Task 6 |
-| §3 entry point 3 (scheduler) | Task 6 |
-| §4 `/api/logs` filters + `/scopes` | Task 7 |
-| §5 Logger tab | Task 8 |
-| §6 `LogSurface` widening | Task 4 |
-| §7 `bindTraceAttributes` adoption (stretch) | Task 9 |
-| §8 file structure (`logger.ts` deleted same commit) | Task 4 |
-| §10 error handling (logger never throws, `withTrace` transparent) | Tasks 3, 4 (covered by design of the code shown) |
-| §11 testing | every task's tests |
-| §8 CLAUDE.md update | Task 9 |
+| Spec section                                                          | Task                                             |
+| --------------------------------------------------------------------- | ------------------------------------------------ |
+| §1 LogRecord shape, severity, exception convention, legacy fallback   | Task 2 (+ consumed by 4)                         |
+| §2 Resource                                                           | Task 1                                           |
+| §3 trace-context module                                               | Task 3                                           |
+| §3 logger integration (traceId/originTraceId stamping, ambient attrs) | Task 4                                           |
+| §3 entry point 1 (HTTP middleware, `x-trace-id`)                      | Task 5                                           |
+| §3 entry point 2 (job worker) + origin threading                      | Task 6                                           |
+| §3 entry point 3 (scheduler)                                          | Task 6                                           |
+| §4 `/api/logs` filters + `/scopes`                                    | Task 7                                           |
+| §5 Logger tab                                                         | Task 8                                           |
+| §6 `LogSurface` widening                                              | Task 4                                           |
+| §7 `bindTraceAttributes` adoption (stretch)                           | Task 9                                           |
+| §8 file structure (`logger.ts` deleted same commit)                   | Task 4                                           |
+| §10 error handling (logger never throws, `withTrace` transparent)     | Tasks 3, 4 (covered by design of the code shown) |
+| §11 testing                                                           | every task's tests                               |
+| §8 CLAUDE.md update                                                   | Task 9                                           |
 
 No gaps.
 
