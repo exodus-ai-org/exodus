@@ -3,7 +3,9 @@ import cron from 'node-cron'
 import { resetStuckDiscoverRefresh } from '../discover/manager'
 import { reconcileKnowledgeIndexStatus } from '../knowledge-base/reconcile'
 import { logger } from '../logger'
+import { withTrace } from '../logger/trace-context'
 import { handlers } from './handlers'
+import { extractOriginTraceId } from './origin-trace'
 import { archiveMessage, enqueueJob, readBatch } from './queries'
 import { QUEUE_NAMES, type QueueName } from './types'
 
@@ -60,7 +62,16 @@ export async function processQueue(queueName: QueueName): Promise<void> {
 
   for (const msg of messages) {
     try {
-      await handlers[queueName](msg.message)
+      await withTrace(
+        async () => {
+          logger.debug('jobs', 'processing', {
+            queueName,
+            msgId: msg.msgId
+          })
+          await handlers[queueName](msg.message)
+        },
+        { originTraceId: extractOriginTraceId(msg.message) }
+      )
       await archiveMessage(queueName, msg.msgId)
     } catch (error) {
       logger.error('jobs', `Job handler failed for ${queueName}`, {

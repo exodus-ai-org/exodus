@@ -21,7 +21,7 @@ vi.mock('@main/lib/jobs/handlers', () => ({
 }))
 
 vi.mock('@main/lib/logger', () => ({
-  logger: { error: vi.fn(), info: vi.fn() }
+  logger: { error: vi.fn(), info: vi.fn(), debug: vi.fn() }
 }))
 
 const { logger } = await import('@main/lib/logger')

@@ -10,6 +10,7 @@ import {
   updateTask
 } from '../../db/philharmonic-queries'
 import { logger } from '../../logger'
+import { withTrace } from '../../logger/trace-context'
 import type { SseEmitter } from './employee-loop'
 import { runPmCoordinator } from './pm-coordinator'
 
@@ -25,30 +26,38 @@ export async function runScheduledRound(
   taskId: string,
   emit: SseEmitter
 ): Promise<void> {
-  const template = await getTaskById(taskId)
-  if (
-    !template ||
-    template.status === 'cancelled' ||
-    !template.conversationId
-  ) {
-    unscheduleTask(taskId)
-    return
-  }
-  const label = `[Scheduled] ${template.title}`
-  await createConversationMessage({
-    conversationId: template.conversationId,
-    role: 'system',
-    content: label
-  })
-  emit({ type: 'round_start', conversationId: template.conversationId, label })
-  await updateTask(taskId, { lastRunAt: new Date() })
+  // Each firing is its own unit of work — trace it so every logger.* call the
+  // PM loop makes shares one traceId.
+  return withTrace(async () => {
+    const template = await getTaskById(taskId)
+    if (
+      !template ||
+      template.status === 'cancelled' ||
+      !template.conversationId
+    ) {
+      unscheduleTask(taskId)
+      return
+    }
+    const label = `[Scheduled] ${template.title}`
+    await createConversationMessage({
+      conversationId: template.conversationId,
+      role: 'system',
+      content: label
+    })
+    emit({
+      type: 'round_start',
+      conversationId: template.conversationId,
+      label
+    })
+    await updateTask(taskId, { lastRunAt: new Date() })
 
-  await runPmCoordinator({
-    conversationId: template.conversationId,
-    userText: `${template.title}\n\n${template.description ?? ''}`.trim(),
-    emit
+    await runPmCoordinator({
+      conversationId: template.conversationId,
+      userText: `${template.title}\n\n${template.description ?? ''}`.trim(),
+      emit
+    })
+    await updateTask(taskId, { lastRunStatus: 'completed' })
   })
-  await updateTask(taskId, { lastRunStatus: 'completed' })
 }
 
 export function scheduleTask(taskId: string, cronExpression: string): boolean {

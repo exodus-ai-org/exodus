@@ -1,14 +1,16 @@
 import { sql } from 'drizzle-orm'
 
 import { db } from '../db/db'
+import { applyOriginTraceId } from './origin-trace'
 import type { JobMessage, QueueName } from './types'
 
 export async function enqueueJob(
   queueName: QueueName,
   payload: unknown
 ): Promise<void> {
+  const withOrigin = applyOriginTraceId(payload)
   await db.execute(
-    sql`SELECT * FROM pgmq.send(${queueName}, ${JSON.stringify(payload)}::jsonb)`
+    sql`SELECT * FROM pgmq.send(${queueName}, ${JSON.stringify(withOrigin)}::jsonb)`
   )
 }
 
