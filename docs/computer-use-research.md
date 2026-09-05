@@ -4,9 +4,9 @@
 **Status:** research / exploration. No implementation decision yet.
 
 Inputs: the user's blog post *"AI's Ultimate Form"*
-(`yanceyleo.com/post/1b27acf6…`) and the state of the field as of early
-September 2026. The user's full ChatGPT thread on this is not yet in hand;
-this doc will be revised when it is.
+(`yanceyleo.com/post/1b27acf6…`), the full user↔ChatGPT thread
+(pasted 2026-09-06 — the "Computer Runtime" architecture in §4), and the
+state of the field as of early September 2026.
 
 ---
 
@@ -112,57 +112,124 @@ The blog wants raw motor primitives. Two 2026 papers push toward
 
 ---
 
-## 4. What Exodus can realistically be
+## 4. The converged architecture (user + ChatGPT thread, 2026-09-06)
 
-**Exodus cannot out-model OpenAI/Anthropic/Google/ByteDance.** Billions of
-dollars are already pointed at the brain. Exodus's leverage is the
-**harness** — the operator environment around whatever brain you plug in:
+The full ChatGPT thread lands on a specific, and good, structural idea:
+**a `Computer Runtime` module, owned by Exodus and independent of the
+Agent.** Whichever lab's computer-use model wins (Astra, Claude, Gemini),
+you swap the Agent layer and the Runtime is untouched — that is the moat.
 
-- captures the screen (frames now; a rolling video buffer later),
-- runs and paces the perceive→act loop,
-- owns the workspace / sandbox / permissions,
-- **logs and traces every episode** (the trace infra just landed on
-  `master` is directly reusable — one computer-use episode = one
-  `traceId`, every step a log line),
-- lets the user swap the model: cloud (Astra / Claude) **or** homelab
-  (UI-TARS over Tailscale).
+```
+Exodus
+ ├── Agent            (swappable: GPT-6 Astra / Claude / Gemini / local)
+ ├── Tools            (GraphRAG, Browser, Code, Computer)
+ └── Computer Runtime
+      ├── Capture          screen frames, cursor, target window/VM
+      ├── Perception       "three-eye": DOM  +  Accessibility tree  +  Screenshot
+      ├── Temporal Engine  frame diff → change list → keyframes ("visual git")
+      ├── World State       compact JSON, not images
+      └── Controller        deterministic low-level loop: observe→move→correct→click
+```
 
-This is the "PID pipeline" idea from the ChatGPT thread — Exodus is the
-loop and the plumbing, not the policy.
+**Core principles from the thread (all sound):**
 
-### Staged path
+1. **The LLM is the brain, never the camera or the mouse driver.** It
+   receives `World State`, emits *goals*; the Controller runs the
+   millisecond loop. Same split as a car: perception/planning/control are
+   separate stages, not one model.
+2. **Never feed raw video to the LLM.** Even when models allow it, it's
+   waste. Compress the stream to a `World State` first.
+3. **Don't start at 60 FPS.** V0 = ~2 FPS screenshot agent · V1 = ~10 FPS
+   + temporal diff · V2 = 30–60 FPS realtime. The thing to *validate*
+   first is "how much does temporal state help the agent", not "can I
+   process 60 FPS".
+4. **`observe()` returns a `ComputerState`, not a screenshot** — viewport,
+   cursor, scene, `changes[]`, `history[]`, `objects[]`, `trajectory`.
+5. **Keyframe + diff.** A cheap local detector decides "did anything
+   meaningful change?" — 60 FPS in, ~4 FPS to the VLM, ~0.1 FPS for a
+   static page, ~15 FPS for a game. One order of magnitude saved for free.
+6. **Region-of-interest, not full-frame Vision.** Find *where* to look
+   with cheap signals, then send only that crop to the expensive model.
+7. **For web, skip Vision — use DOM + Accessibility tree.** Exodus's
+   biggest cheat: `{role:"button", name:"Create repository", bounds:[…]}`
+   is smaller, faster, and more accurate than a screenshot description.
+8. **Three-tier model economy.** L0 pure code (DOM/a11y/OCR/pixel-diff,
+   ≈ $0) · L1 local small model (UI/object detection, temporal embedding)
+   · L2 frontier model (planning, ambiguity, failure recovery) — L2 called
+   0.1–2×/s, not 60.
+9. **The Controller owns its own closed loop.** LLM says "find Settings";
+   the Controller scrolls + observes + stops + reports back. The LLM is
+   *not* re-invoked after every micro-action. This is what kills the
+   latency problem.
+10. **GraphRAG analogy.** GraphRAG = long-term world *knowledge* ("what did
+    I know before"); Temporal World State = short-term continuous GUI
+    *state* ("what just happened"). Both keep the "AI decides when to look"
+    philosophy — but note the integration differs: GraphRAG is *pull* (a
+    tool the agent calls), World State is *push* (ambient context refreshed
+    each loop).
 
-- **Stage 0 — a `computer-use` tool (buildable now, ~1–2 wk).**
-  Screenshot → VLM → coordinate actions via a native driver
-  (`nut.js` / `@nut-tree` or Electron's `robotjs` successor). Bounded to a
-  target window; every action gated by the existing permission model;
-  each episode is one trace. Model-agnostic: Claude computer-use format,
-  GPT-6 Astra, or local UI-TARS. This matches Anthropic's reference
-  implementation and is immediately useful for real automation.
-- **Stage 1 — collocated inference + memory.** UI-TARS-7B (or its
-  successor) on the homelab, reached over Tailscale. Measure loop latency
-  honestly. Add persistent action history / implicit-state memory so the
-  agent isn't re-deriving context every frame (the "not frame-by-frame"
-  point).
-- **Stage 2 — streaming perception experiments.** For a *specific* task
-  class (drag-resize, a browser game, scrubbing a video), feed a short
-  rolling clip instead of one screenshot and compare success/latency.
-  Research, not product.
-- **Stage 3 — VLA-shaped action space.** Design the primitive set for
-  eventual embodied transfer. Speculative; revisit when Stage 1–2 have
-  data.
+## 5. Assessment — where I agree, and where to be careful
 
----
+**Agree, no reservation:** the brain/controller split, no-raw-video,
+staged V0→V2, DOM-first for web, three-tier economy, and above all the
+model-agnostic Runtime as the durable asset. This matches where the 2026
+literature is heading (hierarchical agents, step-level optimization,
+hybrid action spaces).
 
-## 5. Open questions for the user
+**Push back / add nuance:**
 
-1. **Which end of the telescope first** — a genuinely useful Stage 0 tool
-   (screenshot loop, existing models), or a research probe straight at the
-   streaming-perception thesis (Stage 2)?
-2. **Model stance** — is the homelab-over-Tailscale inference path
-   (Stage 1) the real target, or is a cloud model fine for now and the
-   "collocated" idea is a someday-thing?
-3. **Scope of control** — a single sandboxed window, the whole desktop, or
-   a dedicated VM?
-4. Anything in the ChatGPT thread that changes the above — still waiting
-   on that export.
+- **The Temporal Engine / "visual git" / World Model is the actual
+  research problem** — a reliable semantic diff for *arbitrary* GUIs is
+  what the streaming-GUI papers are still fighting. Do **not** build it
+  early. V0–V1 get ~80% of the temporal benefit for near-zero cost by
+  passing *the previous screenshot* + *a text log of "actions taken since
+  last observe"*. Earn the World Model with data.
+- **`observe()` output is app-dependent.** Web → rich (DOM/a11y). Native
+  macOS apps → often just a screenshot + thin a11y. Design `ComputerState`
+  as "best available signal", not a schema that assumes DOM.
+- **"Local small model on a Mac Mini"** — UI-TARS-7B wants a real GPU for
+  low latency. Mac-Mini-viable L1 is more like OmniParser / a small
+  UI-detector / OCR, not a 7B VLM. Your homelab GPU box (over Tailscale)
+  is where an L1 VLM realistically lives.
+- **Host-control is a security surface.** Exodus is Electron; driving the
+  real mouse/keyboard needs native modules (`nut.js`) **and** OS
+  accessibility grants (macOS TCC). Letting a model drive your actual
+  desktop while you work is not a V0 default — V0 targets a **single
+  window** or a **disposable VM**. Every action stays behind the existing
+  permission model, and each episode is one `traceId` in the logging
+  system just shipped.
+
+## 6. What I would build first
+
+**Phase 1 — a `computer-use` tool, screenshot loop, ~1–2 weeks.** Scaffold
+the *whole* `Computer Runtime` folder on day one, but with each layer
+stubbed to its simplest form:
+
+| Layer | Phase 1 form |
+|---|---|
+| Capture | Electron `desktopCapturer` on one target window (or a VM), ~2 FPS on demand |
+| Perception | screenshot only (add DOM/a11y in Phase 3) |
+| Temporal Engine | just `{ previousScreenshot, actionsSinceLastObserve: string[] }` |
+| World State | `{ screenshot, viewport, cursor, actionLog }` |
+| Controller | execute one action (`nut.js`), no inner loop yet |
+| Agent | Claude / GPT-6 Astra computer-use format; UI-TARS as the local option |
+
+Deliverable: the agent can complete a short OSWorld-style task in a
+sandboxed window, and the whole episode is one trace you can replay.
+
+Then Phase 2 (temporal diff → "what changed"), Phase 3 (three-eye
+perception), Phase 4 (local keyframe engine), Phase 5 (Controller inner
+loop — "go to Settings" not `move(1241,83)`), Phase 6 (the real World
+Model). The blog's video-native thesis is Phase 4+; don't touch it before
+Phase 2 has shown temporal state pays off.
+
+## 7. Open questions for the user
+
+1. **Phase 1 scope of control** — a single app window, or a disposable VM
+   (heavier, but safe enough to let it run unattended)?
+2. **First Agent** — Claude computer-use (best-documented reference), GPT-6
+   Astra (newest, SOTA, pricey), or UI-TARS local (open, self-host, weaker)?
+3. **Is homelab-over-Tailscale inference a real Phase-4 target**, or is
+   cloud fine and "collocated" stays a someday-thing?
+4. Ready to take this into `brainstorming` for a Phase 1 spec, or keep it
+   as research a while longer?
