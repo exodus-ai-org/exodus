@@ -16,6 +16,7 @@ import backupRouter from './routes/backup'
 import chatRouter from './routes/chat'
 import dbIoRouter from './routes/db-io'
 import deepResearchRouter from './routes/deep-research'
+import discoverRouter from './routes/discover'
 import historyRouter from './routes/history'
 import knowledgeBaseRouter from './routes/knowledge-base'
 import lcmStatusRouter from './routes/lcm-status'
@@ -68,6 +69,7 @@ export async function connectHttpServer() {
   app.route('/api/audio', audioRouter)
   app.route('/api/db-io', dbIoRouter)
   app.route('/api/deep-research', deepResearchRouter)
+  app.route('/api/discover', discoverRouter)
   app.route('/api/tools', toolsRouter)
   app.route('/api/philharmonic', philharmonicRouter)
   app.route('/api/s3', s3UploaderRouter)
