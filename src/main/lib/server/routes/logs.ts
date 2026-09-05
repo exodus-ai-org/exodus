@@ -3,24 +3,29 @@ import { join } from 'path'
 
 import { Hono } from 'hono'
 
-import { localDateStr, type LogEntry, type LogLevel } from '../../logger'
+import {
+  localDateStr,
+  type LogRecord,
+  normalizeToLogRecord
+} from '../../logger'
 import { getLogsDir } from '../../paths'
 
-const LEVEL_PRIORITY: Record<LogLevel, number> = {
+const LEVEL_PRIORITY: Record<string, number> = {
   debug: 0,
   info: 1,
   warn: 2,
   error: 3
 }
 
-function parseLogFile(filePath: string): LogEntry[] {
+function parseLogFile(filePath: string): LogRecord[] {
   if (!existsSync(filePath)) return []
   const content = readFileSync(filePath, 'utf-8')
-  const entries: LogEntry[] = []
+  const entries: LogRecord[] = []
   for (const line of content.split('\n')) {
     if (!line.trim()) continue
     try {
-      entries.push(JSON.parse(line))
+      const record = normalizeToLogRecord(JSON.parse(line))
+      if (record) entries.push(record)
     } catch {
       // skip malformed lines
     }
@@ -33,7 +38,7 @@ const logsRouter = new Hono()
 // GET /api/logs — query log entries
 logsRouter.get('/', (c) => {
   const date = c.req.query('date') || localDateStr()
-  const level = c.req.query('level') as LogLevel | undefined
+  const level = c.req.query('level')
   const surface = c.req.query('surface')
   const keyword = c.req.query('keyword')?.toLowerCase()
   const page = Math.max(1, Number(c.req.query('page')) || 1)
@@ -48,17 +53,19 @@ logsRouter.get('/', (c) => {
   // Filter by minimum level
   if (level) {
     const minPriority = LEVEL_PRIORITY[level] ?? 0
-    entries = entries.filter((e) => LEVEL_PRIORITY[e.level] >= minPriority)
+    entries = entries.filter(
+      (e) => (LEVEL_PRIORITY[e.severityText.toLowerCase()] ?? 0) >= minPriority
+    )
   }
 
-  // Filter by surface
+  // Filter by surface (OTel scope name)
   if (surface) {
-    entries = entries.filter((e) => e.surface === surface)
+    entries = entries.filter((e) => e.scope.name === surface)
   }
 
   // Filter by keyword
   if (keyword) {
-    entries = entries.filter((e) => e.message.toLowerCase().includes(keyword))
+    entries = entries.filter((e) => e.body.toLowerCase().includes(keyword))
   }
 
   // Newest first
