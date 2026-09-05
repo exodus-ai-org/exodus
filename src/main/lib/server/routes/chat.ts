@@ -46,6 +46,7 @@ import {
 } from '../../db/queries'
 import { enqueueAndProcess, logEnqueueFailure } from '../../jobs/worker'
 import { logger } from '../../logger'
+import { bindTraceAttributes } from '../../logger/trace-context'
 import {
   resolveSearchProvider,
   searchWithFallback
@@ -94,6 +95,7 @@ chat.post('/', async (c) => {
     await c.req.json(),
     'Invalid request body'
   )
+  bindTraceAttributes({ chatId: id })
   const setting = c.get('settings')
   const { chatModel, reasoningModel, apiKey } = getModelFromProvider(setting)
   const isReasoningModel =

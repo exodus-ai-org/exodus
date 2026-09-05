@@ -119,8 +119,9 @@ The main process runs a **Hono HTTP server** that handles all business logic:
 
 1. CORS middleware (`hono/cors`, allows all origins for localhost development)
 2. Lock gate (`lockGate`) — rejects all `/api/*` with `423` while the app is locked
-3. Settings injection — fresh `getSettings()` set on the Hono context per request
-4. Error handler (`app.onError`, returns JSON errors)
+3. Trace gate (`traceMiddleware`) — wraps each `/api/*` request in an `AsyncLocalStorage` trace (see `src/main/lib/logger/`), sets the `x-trace-id` response header
+4. Settings injection — fresh `getSettings()` set on the Hono context per request
+5. Error handler (`app.onError`, returns JSON errors)
 
 The MCP-tools middleware (injecting MCP tools into context) is **archived** (commented out in `app.ts`).
 
@@ -528,7 +529,20 @@ Main process:
   (enqueue/read/archive), `handlers.ts` (per-queue job logic), `worker.ts`
   (`enqueueAndProcess()` + periodic sweep); decouples chat.ts's post-turn
   side effects (search indexing, LCM compaction, memory consolidation,
-  `kb-sync`, `discover-refresh`) from the request/response cycle
+  `kb-sync`, `discover-refresh`) from the request/response cycle.
+  `queries.ts`'s `enqueueJob` stamps the ambient `traceId` onto the payload
+  (`__originTraceId`); `worker.ts` runs each handler in a `withTrace` linked
+  to it
+- `src/main/lib/logger/` — OpenTelemetry-shaped structured logging (no
+  `@opentelemetry/*` dep): `record.ts` (LogRecord shape + severity/exception/
+  legacy mapping), `resource.ts` (service/process identity), `trace-context.ts`
+  (`AsyncLocalStorage` per-unit-of-work trace ids — `withTrace` /
+  `currentTrace` / `bindTraceAttributes`), `index.ts` (the `logger` API,
+  call signature unchanged). `withTrace` wraps the `/api/*` middleware, the
+  job worker, and the scheduler. JSONL at `~/.exodus/logs/`; read via
+  `/api/logs` (filters incl. `traceId`) + `/api/logs/scopes` and the
+  Settings → Logger tab. See
+  `docs/superpowers/specs/2026-09-06-standardized-logging-design.md`
 - `src/main/lib/ipc.ts` — main-process IPC handlers
 - `src/main/lib/paths.ts` — `~/.exodus` path helpers
 

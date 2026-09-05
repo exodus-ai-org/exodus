@@ -3,7 +3,7 @@ import cron from 'node-cron'
 import { resetStuckDiscoverRefresh } from '../discover/manager'
 import { reconcileKnowledgeIndexStatus } from '../knowledge-base/reconcile'
 import { logger } from '../logger'
-import { withTrace } from '../logger/trace-context'
+import { bindTraceAttributes, withTrace } from '../logger/trace-context'
 import { handlers } from './handlers'
 import { extractOriginTraceId } from './origin-trace'
 import { archiveMessage, enqueueJob, readBatch } from './queries'
@@ -64,10 +64,10 @@ export async function processQueue(queueName: QueueName): Promise<void> {
     try {
       await withTrace(
         async () => {
-          logger.debug('jobs', 'processing', {
-            queueName,
-            msgId: msg.msgId
-          })
+          // Ride every log line the handler emits, so a failure deep in a
+          // handler is still attributable to this queue + message.
+          bindTraceAttributes({ queueName, msgId: msg.msgId })
+          logger.debug('jobs', 'processing')
           await handlers[queueName](msg.message)
         },
         { originTraceId: extractOriginTraceId(msg.message) }
