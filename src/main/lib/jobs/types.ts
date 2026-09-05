@@ -3,12 +3,14 @@ export type QueueName =
   | 'lcm-post-turn'
   | 'memory-consolidate'
   | 'kb-sync'
+  | 'discover-refresh'
 
 export const QUEUE_NAMES: QueueName[] = [
   'index-message',
   'lcm-post-turn',
   'memory-consolidate',
-  'kb-sync'
+  'kb-sync',
+  'discover-refresh'
 ]
 
 export interface JobMessage {

@@ -15,7 +15,8 @@ vi.mock('@main/lib/jobs/handlers', () => ({
     'index-message': mockIndexMessageHandler,
     'lcm-post-turn': vi.fn(),
     'memory-consolidate': vi.fn(),
-    'kb-sync': vi.fn()
+    'kb-sync': vi.fn(),
+    'discover-refresh': vi.fn()
   }
 }))
 

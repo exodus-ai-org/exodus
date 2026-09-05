@@ -148,4 +148,16 @@ export function initJobQueue(): void {
       })
     })
   })
+
+  // Discover's own staleness gate lives inside runDiscoverRefresh — this just
+  // gives it a chance to run periodically while the app is open. In practice
+  // this produces roughly one real refresh a day, whenever the app happens to
+  // be running, with no dependency on a specific wall-clock hour.
+  cron.schedule('*/30 * * * *', () => {
+    enqueueAndProcess('discover-refresh', {}).catch((error) => {
+      logger.error('discover', 'periodic refresh enqueue failed', {
+        error: String(error)
+      })
+    })
+  })
 }

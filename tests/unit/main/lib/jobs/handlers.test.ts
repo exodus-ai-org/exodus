@@ -30,6 +30,11 @@ vi.mock('@main/lib/ai/memory/manager', () => ({
   runMemoryConsolidation: mockRunMemoryConsolidation
 }))
 
+const mockRunDiscoverRefresh = vi.fn()
+vi.mock('@main/lib/discover/manager', () => ({
+  runDiscoverRefresh: mockRunDiscoverRefresh
+}))
+
 const mockGetKnowledgeDocById = vi.fn()
 const mockSetIndexStatus = vi.fn()
 vi.mock('@main/lib/db/knowledge-queries', () => ({
@@ -220,5 +225,19 @@ describe('handlers.kb-sync', () => {
     await expect(
       handlers['kb-sync']({ op: 'delete', lightragDocId: 'ldoc-x' })
     ).resolves.toBeUndefined()
+  })
+})
+
+describe('handlers.discover-refresh', () => {
+  it('forwards the force flag to runDiscoverRefresh', async () => {
+    mockRunDiscoverRefresh.mockResolvedValue(undefined)
+    await handlers['discover-refresh']({ force: true })
+    expect(mockRunDiscoverRefresh).toHaveBeenCalledWith({ force: true })
+  })
+
+  it('treats an empty payload as force: undefined', async () => {
+    mockRunDiscoverRefresh.mockResolvedValue(undefined)
+    await handlers['discover-refresh']({})
+    expect(mockRunDiscoverRefresh).toHaveBeenCalledWith({ force: undefined })
   })
 })

@@ -5,6 +5,7 @@ import { runMemoryConsolidation } from '../ai/memory/manager'
 import { getKnowledgeDocById, setIndexStatus } from '../db/knowledge-queries'
 import { getSettings } from '../db/queries'
 import type { Message } from '../db/schema'
+import { runDiscoverRefresh } from '../discover/manager'
 import { contentHash } from '../knowledge-base/reconcile'
 import { resolveKnowledgeBase } from '../knowledge-base/resolve-knowledge-base'
 import { extractSearchableText } from '../search/extract-searchable-text'
@@ -103,5 +104,10 @@ export const handlers: Record<QueueName, (payload: unknown) => Promise<void>> =
         })
         throw error // let pgmq retry the transient case
       }
+    },
+
+    'discover-refresh': async (payload) => {
+      const p = payload as { force?: boolean }
+      await runDiscoverRefresh({ force: p?.force })
     }
   }
