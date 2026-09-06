@@ -55,6 +55,13 @@ export interface ComputerState {
    * of the usual `step N · cursor` line.
    */
   humanNote?: string
+  /**
+   * A runtime notice for the model — its last action was rejected/skipped (an
+   * out-of-bounds coordinate, or a forbidden key chord). Set on the one state
+   * that follows the skipped step; rendered as an `isError` tool result so the
+   * model sees it went wrong instead of silently repeating it.
+   */
+  systemNote?: string
 }
 
 export type SessionOutcome =

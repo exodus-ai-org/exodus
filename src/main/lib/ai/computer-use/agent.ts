@@ -103,20 +103,17 @@ export class ClaudeComputerAgent implements ComputerAgent {
       }
       this.messages.push(first)
     } else if (this.pendingCall) {
+      const noteText = state.humanNote
+        ? `Human: ${state.humanNote}`
+        : state.systemNote
+          ? state.systemNote
+          : `step ${state.step} · cursor ${state.cursor[0]},${state.cursor[1]}`
       const result: ToolResultMessage = {
         role: 'toolResult',
         toolCallId: this.pendingCall.id,
         toolName: this.pendingCall.name,
-        content: [
-          {
-            type: 'text',
-            text: state.humanNote
-              ? `Human: ${state.humanNote}`
-              : `step ${state.step} · cursor ${state.cursor[0]},${state.cursor[1]}`
-          },
-          screenshot
-        ],
-        isError: false,
+        content: [{ type: 'text', text: noteText }, screenshot],
+        isError: state.systemNote != null,
         timestamp: Date.now()
       }
       this.messages.push(result)

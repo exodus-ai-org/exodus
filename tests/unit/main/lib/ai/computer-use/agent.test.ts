@@ -259,4 +259,56 @@ describe('ClaudeComputerAgent — humanNote wiring', () => {
     // 3rd call: back to the normal step/cursor line
     expect(lastResultText(2)).toBe('step 3 · cursor 400,300')
   })
+
+  it('renders a systemNote verbatim as an isError tool result', async () => {
+    const completeMock = vi.mocked(complete)
+    completeMock.mockReset()
+    completeMock.mockImplementation(
+      async () =>
+        ({
+          role: 'assistant',
+          content: [
+            { type: 'toolCall', id: 'c1', name: 'wait', arguments: { ms: 1 } }
+          ]
+        }) as unknown as Awaited<ReturnType<typeof complete>>
+    )
+
+    const agent = new ClaudeComputerAgent({
+      task: 'play',
+      model: {} as unknown as Model<string>,
+      apiKey: 'k'
+    })
+
+    const note =
+      'Your last action was off the 800×600 screenshot and was skipped.'
+    await agent.nextAction({ ...baseState, step: 1 })
+    await agent.nextAction({ ...baseState, step: 2, systemNote: note })
+    // humanNote still wins over systemNote for the rendered text
+    await agent.nextAction({
+      ...baseState,
+      step: 3,
+      systemNote: note,
+      humanNote: 'go on'
+    })
+    await agent.nextAction({ ...baseState, step: 4 })
+
+    const lastResult = (call: number) => {
+      const context = completeMock.mock.calls[call][1] as {
+        messages: Array<{
+          content: Array<{ type: string; text?: string }>
+          isError?: boolean
+        }>
+      }
+      return context.messages[context.messages.length - 1]
+    }
+
+    // 2nd call: the note verbatim, flagged as an error result
+    expect(lastResult(1).content[0].text).toBe(note)
+    expect(lastResult(1).isError).toBe(true)
+    // 3rd call: humanNote wins the text even when a systemNote is also present
+    expect(lastResult(2).content[0].text).toBe('Human: go on')
+    // 4th call: no note — back to the normal step/cursor line, not an error
+    expect(lastResult(3).content[0].text).toBe('step 4 · cursor 400,300')
+    expect(lastResult(3).isError).toBe(false)
+  })
 })

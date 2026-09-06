@@ -16,9 +16,8 @@
 
 import { globalShortcut } from 'electron'
 
-import type { Guard } from './guard'
-
-type AbortReason = 'hotkey' | 'user' | 'system'
+import { logger } from '../logger'
+import type { AbortReason, Guard } from './guard'
 
 const HOTKEY = 'Alt+Shift+Escape'
 
@@ -26,7 +25,19 @@ const guards = new Map<string, Guard>()
 
 function registerHotkey(): void {
   try {
-    globalShortcut.register(HOTKEY, () => liveness.abortAll('hotkey'))
+    const ok = globalShortcut.register(HOTKEY, () =>
+      liveness.abortAll('hotkey')
+    )
+    if (!ok) {
+      // `register` returns false (it does not throw) when another app already
+      // owns the accelerator — the settings page promises ⌥⇧⎋ works, so make
+      // the failure visible.
+      logger.warn(
+        'computer',
+        `global kill-switch hotkey ${HOTKEY} was refused (already taken) — ` +
+          'the in-session Guard signal and the Stop button still work'
+      )
+    }
   } catch {
     // globalShortcut is unavailable outside a running Electron app (tests, a
     // headless environment). The in-session Guard signal and the Stop button

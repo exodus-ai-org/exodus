@@ -16,7 +16,7 @@ import { logger } from '../logger'
 import { bindTraceAttributes, withTrace } from '../logger/trace-context'
 import { computerAskRegistry } from './ask-registry'
 import { hashPng, screenshotWindow } from './capture'
-import { AbortedByUser, Guard, OutOfBounds } from './guard'
+import { AbortedByUser, ForbiddenChord, Guard, OutOfBounds } from './guard'
 import * as hands from './hands'
 import { getHelper } from './helper'
 import { refreshBounds, resolveTarget } from './target'
@@ -59,6 +59,13 @@ export interface RunComputerSessionOptions {
   task: string
   /** App name / bundle-id query resolved to the target window (spec §2.2). */
   target: string
+  /**
+   * If set and non-empty, the *resolved* window's `app` / `bundleId` must
+   * exactly (case-insensitively) match an entry or the session fails — the
+   * outer tool only gates the query string, and `resolveTarget` matches on
+   * substring (spec §2.2 / final-review I4).
+   */
+  allowlist?: string[]
   agent: ComputerAgent
   helper?: InputHelper
   guard?: Guard
@@ -201,11 +208,30 @@ export async function runComputerSession(
       // TargetNotFound (or a timeout) — nothing to drive.
       return finish('failed', errText(err))
     }
+
+    // Re-check the RESOLVED window against the allowlist. The outer tool matches
+    // the model's `target` string; `resolveTarget` then picks a window by
+    // substring, so an allowlisted "Chess" could otherwise resolve a look-alike.
+    if (opts.allowlist && opts.allowlist.length > 0) {
+      const norm = (s: string): string => s.trim().toLowerCase()
+      const wanted = opts.allowlist.map(norm)
+      const ok = [target.app, target.bundleId].some((id) =>
+        wanted.includes(norm(id))
+      )
+      if (!ok) {
+        return finish(
+          'failed',
+          `resolved window "${target.app}" (${target.bundleId}) is not on the allowlist`
+        )
+      }
+    }
+
     bindTraceAttributes({ targetApp: target.app })
 
     let cursor: [number, number] | undefined
     let lastActionKind: Action['kind'] | undefined
     let nextHumanNote: string | undefined
+    let nextSystemNote: string | undefined
     let stuckStreak = 0
 
     // The askHuman handshake — shared by the model-emitted `askHuman` action and
@@ -296,9 +322,11 @@ export async function runComputerSession(
           viewport: { width: target.bounds[2], height: target.bounds[3] },
           cursor,
           screenshot: shot,
-          ...(nextHumanNote ? { humanNote: nextHumanNote } : {})
+          ...(nextHumanNote ? { humanNote: nextHumanNote } : {}),
+          ...(nextSystemNote ? { systemNote: nextSystemNote } : {})
         }
         nextHumanNote = undefined
+        nextSystemNote = undefined
 
         let action: Action
         try {
@@ -353,9 +381,9 @@ export async function runComputerSession(
         }
 
         // --- act ------------------------------------------------------
-        // Clamp/reject against SCREENSHOT-space dims (what the model emits in),
-        // not `state.viewport` (real window px, ~2x larger on a retina Mac
-        // after `capture` downscales).
+        // Clamp/reject in SCREENSHOT-pixel space — the space the model's
+        // coordinates are in. `state.viewport` is the window size in points, a
+        // different space.
         let clamped: Action
         try {
           clamped = guard.check(action, {
@@ -365,13 +393,22 @@ export async function runComputerSession(
         } catch (err) {
           if (err instanceof AbortedByUser)
             return finish('aborted', err.message)
-          if (err instanceof OutOfBounds) {
-            // One wild coordinate is a model slip, not a session-ender — it gets
-            // a fresh screenshot next step and can retry.
-            logger.warn('computer', 'action out of bounds — skipped', {
+          if (err instanceof OutOfBounds || err instanceof ForbiddenChord) {
+            // A model slip, not a session-ender — skip this step, feed a note
+            // back so the model knows it was dropped, and let the next fresh
+            // screenshot give it a retry.
+            logger.warn('computer', 'action rejected — skipped', {
               step,
-              action: action.kind
+              action: action.kind,
+              reason: err.name
             })
+            nextSystemNote =
+              err instanceof ForbiddenChord
+                ? `That key chord is blocked because it would switch or quit ` +
+                  `apps and leave this window. Stay inside the window.`
+                : `Your last action's coordinate was off the ${shot.width}×` +
+                  `${shot.height} screenshot and was skipped. Keep x within ` +
+                  `[0, ${shot.width}] and y within [0, ${shot.height}].`
             continue
           }
           throw err
@@ -399,7 +436,7 @@ export async function runComputerSession(
       return finish('failed', 'reached the step limit without finishing')
     } catch (err) {
       if (err instanceof AbortedByUser) return finish('aborted', err.message)
-      return finish('failed', String(err))
+      return finish('failed', errText(err))
     }
   })
 }

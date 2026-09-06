@@ -66,7 +66,7 @@ export function ComputerUse({ form }: { form: UseFormReturnType }) {
 
         <SettingsRow
           label="Allowlisted windows"
-          description="Computer Use only touches windows whose title matches an entry here."
+          description="Computer Use only touches windows whose app name or bundle id matches an entry here (exact, case-insensitive)."
           layout="vertical"
         >
           {allowlist.length > 0 && (
@@ -91,7 +91,7 @@ export function ComputerUse({ form }: { form: UseFormReturnType }) {
           )}
           <div className="flex gap-2">
             <Input
-              placeholder="Window title"
+              placeholder="App name or bundle id"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               onKeyDown={(e) => {
@@ -130,7 +130,11 @@ export function ComputerUse({ form }: { form: UseFormReturnType }) {
                 placeholder="25"
                 {...field}
                 value={field.value ?? ''}
-                onChange={(e) => field.onChange(Number(e.target.value))}
+                onChange={(e) =>
+                  field.onChange(
+                    e.target.value === '' ? null : Number(e.target.value)
+                  )
+                }
               />
             </SettingsRow>
           )}
@@ -153,7 +157,11 @@ export function ComputerUse({ form }: { form: UseFormReturnType }) {
                 placeholder="800"
                 {...field}
                 value={field.value ?? ''}
-                onChange={(e) => field.onChange(Number(e.target.value))}
+                onChange={(e) =>
+                  field.onChange(
+                    e.target.value === '' ? null : Number(e.target.value)
+                  )
+                }
               />
             </SettingsRow>
           )}

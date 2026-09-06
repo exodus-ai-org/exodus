@@ -1,4 +1,9 @@
-import { AbortedByUser, Guard, OutOfBounds } from '@main/lib/computer/guard'
+import {
+  AbortedByUser,
+  ForbiddenChord,
+  Guard,
+  OutOfBounds
+} from '@main/lib/computer/guard'
 import { describe, expect, it } from 'vitest'
 
 const vp = { width: 800, height: 600 }
@@ -73,6 +78,34 @@ describe('Guard.check', () => {
     const action = { kind: 'click', to: [810, 600] as [number, number] }
     g.check(action, vp)
     expect(action.to).toEqual([810, 600])
+  })
+})
+
+describe('Guard.check — forbidden chords', () => {
+  it('rejects a chord that switches or quits apps', () => {
+    const g = new Guard()
+    expect(() => g.check({ kind: 'hotkey', combo: 'cmd+tab' }, vp)).toThrow(
+      ForbiddenChord
+    )
+  })
+
+  it('rejects an aliased, mixed-case spelling of the same chord', () => {
+    const g = new Guard()
+    expect(() => g.check({ kind: 'hotkey', combo: 'Command+Tab' }, vp)).toThrow(
+      ForbiddenChord
+    )
+  })
+
+  it('lets an ordinary chord through unchanged', () => {
+    const g = new Guard()
+    expect(g.check({ kind: 'hotkey', combo: 'cmd+c' }, vp)).toEqual({
+      kind: 'hotkey',
+      combo: 'cmd+c'
+    })
+    expect(g.check({ kind: 'hotkey', combo: 'cmd+shift+t' }, vp)).toEqual({
+      kind: 'hotkey',
+      combo: 'cmd+shift+t'
+    })
   })
 })
 

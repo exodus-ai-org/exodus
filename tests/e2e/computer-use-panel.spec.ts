@@ -22,7 +22,7 @@ import { TEST_IDS } from '../../src/shared/constants/test-ids'
  *     that POSTs /api/computer-use/answer with the session id carried on the
  *     streamed frame.
  *  6. On completion the card shows the one-line summary, the outcome, and a
- *     "trace: <sessionId>" line.
+ *     "session: <sessionId>" line.
  */
 import { electronTest as test, expect } from '../fixtures/electron'
 

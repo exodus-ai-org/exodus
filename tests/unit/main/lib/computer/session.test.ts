@@ -397,15 +397,19 @@ describe('runComputerSession — resilience', () => {
     expect(res.summary).toBe('recovered')
     expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
       'computer',
-      expect.stringContaining('out of bounds'),
-      expect.objectContaining({ step: 1 })
+      'action rejected — skipped',
+      expect.objectContaining({ step: 1, reason: 'OutOfBounds' })
     )
     // nothing was sent to the helper for the bad click
     expect(mockHelper.sent).toHaveLength(0)
+    // the model is told its action was dropped on the next turn
+    expect(agent.seen[1].systemNote).toContain('off the')
+    expect(agent.seen[1].systemNote).toContain('screenshot')
   })
 
-  it('clamps against screenshot space, not window space (retina downscale)', async () => {
-    // 2800x1750 window downscaled to a 1400x875 screenshot (scaleFactor 0.5).
+  it('clamps against screenshot space, not window space (downscaled capture)', async () => {
+    // A 2800-pt-wide window whose 2800 px capture is downscaled to a 1400 px
+    // screenshot → scaleFactor 1400/2800 = 0.5 (screenshot px per window point).
     mockHelper.__setWindows([{ ...chess, bounds: [0, 0, 2800, 1750] }])
     vi.mocked(screenshotWindow).mockImplementation(async () => ({
       shot: { data: 'AAAA', mimeType: 'image/png', width: 1400, height: 875 },
@@ -438,8 +442,8 @@ describe('runComputerSession — resilience', () => {
     expect(mockHelper.sent).toHaveLength(1)
     expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
       'computer',
-      expect.stringContaining('out of bounds'),
-      expect.objectContaining({ step: 2 })
+      'action rejected — skipped',
+      expect.objectContaining({ step: 2, reason: 'OutOfBounds' })
     )
   })
 
@@ -456,6 +460,84 @@ describe('runComputerSession — resilience', () => {
 
     expect(res.outcome).toBe('failed')
     expect(res.summary).toMatch(/timed out/i)
+  })
+})
+
+describe('runComputerSession — forbidden chords', () => {
+  it('skips a chord that would leave the window and continues', async () => {
+    const agent = new ScriptedAgent([
+      { kind: 'hotkey', combo: 'cmd+q' },
+      { kind: 'done', success: true, summary: 'ok' }
+    ])
+
+    const res = await runComputerSession({
+      sessionId: 's-chord',
+      task: 't',
+      target: 'Chess',
+      agent,
+      helper: mockHelper,
+      settleMs: 0
+    })
+
+    expect(res.outcome).toBe('success')
+    // the chord never reached the helper
+    expect(mockHelper.sent).toHaveLength(0)
+    expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+      'computer',
+      'action rejected — skipped',
+      expect.objectContaining({ reason: 'ForbiddenChord' })
+    )
+    // the model is told why on the next turn
+    expect(agent.seen[1].systemNote).toMatch(/switch or quit/)
+  })
+})
+
+describe('runComputerSession — allowlist', () => {
+  it('fails when the resolved window is not on the allowlist', async () => {
+    mockHelper.__setWindows([
+      {
+        cgWindowId: 9,
+        app: 'Chess Trainer',
+        bundleId: 'com.evil.chesstrainer',
+        title: 'Chess Trainer',
+        bounds: [0, 0, 800, 600]
+      }
+    ])
+
+    const res = await runComputerSession({
+      sessionId: 's-allow-miss',
+      task: 't',
+      target: 'Chess',
+      allowlist: ['Chess'],
+      agent: looping({ kind: 'wait', ms: 1 }),
+      helper: mockHelper,
+      settleMs: 0
+    })
+
+    expect(res.outcome).toBe('failed')
+    expect(res.summary).toContain('not on the allowlist')
+    expect(mockHelper.sent).toHaveLength(0)
+  })
+
+  it('proceeds when the resolved window is on the allowlist', async () => {
+    // `chess` (app "Chess") is set by beforeEach
+    const agent = new ScriptedAgent([
+      { kind: 'done', success: true, summary: 'ok' }
+    ])
+
+    const res = await runComputerSession({
+      sessionId: 's-allow-hit',
+      task: 't',
+      target: 'Chess',
+      allowlist: ['Chess'],
+      agent,
+      helper: mockHelper,
+      settleMs: 0
+    })
+
+    expect(res.outcome).toBe('success')
+    expect(agent.seen).toHaveLength(1)
+    expect(vi.mocked(screenshotWindow)).toHaveBeenCalled()
   })
 })
 

@@ -26,7 +26,7 @@ Your actions:
 - \`drag(x1, y1, x2, y2)\` — press at the first point, move to the second, release.
 - \`scroll(dx, dy)\` — scroll the wheel at the cursor; positive dy scrolls down.
 - \`type(text)\` — type literal text at the current keyboard focus.
-- \`key(combo)\` — press a key or chord, e.g. "return", "escape", "cmd+c", "cmd+shift+t".
+- \`key(combo)\` — press a key or chord, e.g. "return", "escape", "cmd+c", "cmd+shift+t". Stay inside this window — chords that switch or quit applications (\`cmd+tab\`, \`cmd+q\`, \`cmd+space\`, \`cmd+\`\`) are blocked and will be skipped.
 - \`wait(ms)\` — do nothing for a while, then take a fresh screenshot.
 - \`askHuman(question)\` — hand control back to the human (see below).
 - \`done(success, summary)\` — end the session (see below).

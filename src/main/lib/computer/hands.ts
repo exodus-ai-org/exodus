@@ -1,8 +1,8 @@
 // Computer Runtime — the hands.
 //
 // Turns a high-level `Action` into the primitive-level `HelperCommand[]` the
-// Swift `exodus-input` binary executes, mapping the Agent's window-relative,
-// *downscaled* coordinates back to real screen pixels along the way.
+// Swift `exodus-input` binary executes, mapping the Agent's screenshot-space
+// coordinates back to the window's screen points along the way.
 //
 // Spec §2.4. `decompose` is pure (no I/O); `execute` is the thin async wrapper
 // the session calls — it sleeps for `wait`, rejects the control actions the
@@ -189,9 +189,12 @@ function decomposeHotkey(combo: string): HelperCommand[] {
 }
 
 /**
- * Map a window-relative point in *downscaled* screenshot space to a real screen
- * pixel: undo the capture downscale (`x / scaleFactor`, a value in `(0, 1]`, so
- * dividing scales up), then add the window's screen-space top-left `origin`.
+ * Map a point in *screenshot-pixel space* to a *screen point*:
+ * `origin + round(coord / scaleFactor)`, where `scaleFactor` is screenshot
+ * pixels per window point (from `capture`). On a Retina display with a small
+ * window `scaleFactor > 1` (the divide shrinks); for a downscaled large window
+ * `scaleFactor < 1` (the divide grows). `origin` is the window's top-left in
+ * screen points.
  */
 function toScreen(
   [x, y]: [number, number],
@@ -206,9 +209,9 @@ function toScreen(
 
 /**
  * Decompose one `Action` into the primitive `HelperCommand[]` `exodus-input`
- * executes. Pure. `scaleFactor` is Task 5's `downscaledLongEdge /
- * originalLongEdge` (in `(0, 1]`); `origin` is the target window's `[x, y]`
- * top-left in screen coordinates (`target.bounds` sliced to two).
+ * executes. Pure. `scaleFactor` is screenshot pixels per window point (see
+ * `capture.screenshotWindow`); `origin` is the target window's `[x, y]`
+ * top-left in screen points (`target.bounds` sliced to two).
  *
  * `moveMouse` collapses to its single terminal `move` here — any eased
  * multi-point path is an `execute`-time concern. `wait` / `askHuman` / `done`
@@ -267,7 +270,7 @@ export function decompose(
 
 export interface ExecuteContext {
   target: TargetWindow
-  /** Task 5's capture downscale ratio, `downscaledLongEdge / originalLongEdge`. */
+  /** Screenshot pixels per window point (see `capture.screenshotWindow`). */
   scaleFactor: number
   helper: InputHelper
 }

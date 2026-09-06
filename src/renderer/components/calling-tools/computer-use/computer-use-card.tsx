@@ -171,7 +171,7 @@ export function ComputerUseCard({
             )}
             {details.sessionId && (
               <p className="text-muted-foreground/60 font-mono text-[10px]">
-                trace: {details.sessionId}
+                session: {details.sessionId}
               </p>
             )}
           </>

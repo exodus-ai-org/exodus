@@ -1,9 +1,10 @@
 // Computer Runtime — capture + downscale.
 //
 // Screenshots the target window through the `exodus-input` helper and shrinks
-// the PNG so the model's per-frame token cost stays bounded. The downscale ratio
-// (`scaleFactor`) travels alongside the image so `hands.decompose` can map the
-// model's downscaled clicks back to real screen pixels.
+// the PNG so the model's per-frame token cost stays bounded. Alongside the image
+// travels `scaleFactor` — screenshot pixels per window POINT — which
+// `hands.decompose` uses to map the model's screenshot-space coordinates back to
+// the window's screen points.
 //
 // `computeScale` and `hashPng` are pure and unit-tested directly;
 // `screenshotWindow` is the thin `nativeImage` glue.
@@ -19,32 +20,27 @@ import type { ComputerState, InputHelper, TargetWindow } from './types'
 export const MAX_EDGE = 1400
 
 /**
- * Given an original window size, return the dimensions the screenshot should be
- * resized to plus the `scaleFactor` that maps downscaled coordinates back to the
- * original.
- *
- * `scaleFactor = resizedLongEdge / originalLongEdge` — a value in `(0, 1]`. A
- * 2800px-wide window resized to 1400px → `0.5`; a window already within
- * `MAX_EDGE` is not resized → `1`. `hands.decompose` inverts this as
- * `screen = origin + Math.round(downscaledCoord / scaleFactor)`.
+ * Given an original capture size (backing pixels), return the dimensions the
+ * screenshot should be resized to so its longer edge is at most `MAX_EDGE`.
  *
  * When a resize is needed the LONGER side becomes exactly `MAX_EDGE` and the
- * shorter side scales proportionally (rounded to a whole pixel).
+ * shorter side scales proportionally (rounded to a whole pixel); a capture
+ * already within `MAX_EDGE` is returned unchanged. The screenshot→screen
+ * coordinate mapping lives in `screenshotWindow`'s `scaleFactor`, not here.
  */
 export function computeScale(
   width: number,
   height: number
-): { width: number; height: number; scaleFactor: number } {
+): { width: number; height: number } {
   const longEdge = Math.max(width, height)
   if (longEdge <= MAX_EDGE) {
-    return { width, height, scaleFactor: 1 }
+    return { width, height }
   }
 
-  const scaleFactor = MAX_EDGE / longEdge
+  const ratio = MAX_EDGE / longEdge
   return {
-    width: width === longEdge ? MAX_EDGE : Math.round(width * scaleFactor),
-    height: height === longEdge ? MAX_EDGE : Math.round(height * scaleFactor),
-    scaleFactor
+    width: width === longEdge ? MAX_EDGE : Math.round(width * ratio),
+    height: height === longEdge ? MAX_EDGE : Math.round(height * ratio)
   }
 }
 
@@ -64,8 +60,14 @@ export function hashPng(base64: string): string {
 
 /**
  * Capture the target window and downscale it to fit `MAX_EDGE`. Returns the
- * screenshot in `ComputerState['screenshot']` shape plus the `scaleFactor` the
- * runtime threads into `hands.decompose`.
+ * screenshot in `ComputerState['screenshot']` shape plus `scaleFactor` —
+ * screenshot pixels per window point — which the runtime threads into
+ * `hands.decompose` / `hands.execute`.
+ *
+ * `scaleFactor > 1` on a Retina display with a small window (the 2× backing
+ * capture outweighs any downscale); `< 1` for a large window downscaled well
+ * below its point size; `== 1` when the screenshot pixel grid happens to line
+ * up with the window's point grid.
  */
 export async function screenshotWindow(
   t: TargetWindow,
@@ -74,9 +76,16 @@ export async function screenshotWindow(
   const buf = await helper.screenshot(t.cgWindowId)
   const img = nativeImage.createFromBuffer(buf)
   const size = img.getSize()
-  const { width, height, scaleFactor } = computeScale(size.width, size.height)
-  const png =
-    scaleFactor === 1 ? img.toPNG() : img.resize({ width, height }).toPNG()
+  const { width, height } = computeScale(size.width, size.height)
+  const resized = width !== size.width || height !== size.height
+  const png = resized ? img.resize({ width, height }).toPNG() : img.toPNG()
+
+  // scaleFactor = screenshot pixels per window POINT. `bounds` is in points
+  // (CGWindow global space, the space CGEvent mouse posts consume); the capture
+  // is backing pixels (2× on a Retina display) then downscaled to MAX_EDGE.
+  // hands.toScreen maps a model coordinate back with
+  //   origin + round(coord / scaleFactor)   (origin and result are points)
+  const scaleFactor = t.bounds[2] > 0 ? width / t.bounds[2] : 1
 
   return {
     shot: {

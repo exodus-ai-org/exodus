@@ -77,14 +77,22 @@ export const computerUse: AgentTool<typeof schema> = {
           maxSteps: s.computerUse.maxSteps ?? 25,
           settleMs: s.computerUse.settleMs ?? 800,
           askHumanTimeoutMs: s.computerUse.askHumanTimeoutMs ?? 300_000,
+          // Re-checked against the *resolved* window inside the session — the
+          // exact match above only gates the model's `target` string.
+          allowlist,
           signal,
           // Stamp `sessionId` onto every frame — `SessionUpdate` itself omits
           // it, and the chat panel needs it to POST an `askHuman` answer while
           // the session is still running (before the final result arrives).
           onUpdate: (u) => {
             const frame = { ...u, sessionId }
+            // The card reads `thumbnail` from `details`; keeping it in the text
+            // block too doubled the SSE payload on every acting step.
+            const text = JSON.stringify(
+              frame.thumbnail ? { ...frame, thumbnail: undefined } : frame
+            )
             onUpdate?.({
-              content: [{ type: 'text' as const, text: JSON.stringify(frame) }],
+              content: [{ type: 'text' as const, text }],
               details: frame
             })
           }
@@ -114,14 +122,15 @@ export const computerUse: AgentTool<typeof schema> = {
         liveness.end(sessionId)
       }
     } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
       return {
         content: [
           {
             type: 'text' as const,
-            text: 'Computer session failed: ' + String(e)
+            text: `Computer session failed: ${msg}`
           }
         ],
-        details: { error: String(e) }
+        details: { error: msg }
       }
     }
   }

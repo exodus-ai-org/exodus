@@ -10,7 +10,7 @@ export const CLAMP_SLACK = 16
 /** `noteFrame` reports `'stuck'` once this many consecutive hashes match. */
 export const STUCK_LIMIT = 4
 
-type AbortReason = 'hotkey' | 'user' | 'system'
+export type AbortReason = 'hotkey' | 'user' | 'system'
 type Point = [number, number]
 type Viewport = { width: number; height: number }
 
@@ -34,6 +34,46 @@ export class OutOfBounds extends Error {
     )
     this.name = 'OutOfBounds'
   }
+}
+
+/** Thrown by `Guard.check` for a key chord that would leave the target window. */
+export class ForbiddenChord extends Error {
+  constructor(combo: string) {
+    super(`Key chord "${combo}" is blocked — it switches or quits apps`)
+    this.name = 'ForbiddenChord'
+  }
+}
+
+const MOD_ALIASES: Record<string, string> = {
+  command: 'cmd',
+  meta: 'cmd',
+  super: 'cmd',
+  option: 'alt',
+  opt: 'alt',
+  control: 'ctrl'
+}
+
+// normalized as "<sorted-mods>+<key>", all lowercase
+const FORBIDDEN_CHORDS = new Set([
+  'cmd+tab',
+  'cmd+shift+tab',
+  'cmd+q',
+  'cmd+space',
+  'cmd+`'
+])
+
+function normalizeCombo(combo: string): string {
+  const toks = combo
+    .split('+')
+    .map((t) => t.trim().toLowerCase())
+    .filter(Boolean)
+  if (toks.length === 0) return ''
+  const key = toks[toks.length - 1]
+  const mods = toks
+    .slice(0, -1)
+    .map((m) => MOD_ALIASES[m] ?? m)
+    .sort()
+  return [...mods, key].join('+')
 }
 
 /**
@@ -77,13 +117,21 @@ export class Guard {
   /**
    * Validate an action against the current viewport. Returns the action with
    * every point clamped to `[0, 0, width, height]`. Throws `AbortedByUser` if
-   * the session was aborted, or `OutOfBounds` if an original point was more
-   * than `CLAMP_SLACK` px outside the viewport on either axis.
+   * the session was aborted, `ForbiddenChord` for a key chord that would switch
+   * or quit apps (`cmd+tab`, `cmd+q`, …), or `OutOfBounds` if an original point
+   * was more than `CLAMP_SLACK` px outside the viewport on either axis.
    *
    * Non-point action kinds are returned unchanged (after the abort check).
    */
   check(action: Action, viewport: Viewport): Action {
     if (this.aborted) throw new AbortedByUser(this.abortReason ?? 'user')
+
+    if (
+      action.kind === 'hotkey' &&
+      FORBIDDEN_CHORDS.has(normalizeCombo(action.combo))
+    ) {
+      throw new ForbiddenChord(action.combo)
+    }
 
     switch (action.kind) {
       case 'moveMouse':

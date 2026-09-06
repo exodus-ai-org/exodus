@@ -40,7 +40,7 @@ function recordingHelper(): {
 }
 
 describe('decompose — atoms', () => {
-  it('click at scaleFactor 1 adds the window origin and emits move,down,up', () => {
+  it('click at scaleFactor 1 (screenshot pixels line up with window points) adds the window origin and emits move,down,up', () => {
     expect(decompose({ kind: 'click', to: [100, 50] }, 1, [0, 38])).toEqual([
       { op: 'move', x: 100, y: 88 },
       { op: 'down', button: 'left' },
@@ -48,7 +48,7 @@ describe('decompose — atoms', () => {
     ])
   })
 
-  it('click at scaleFactor 0.5 scales the downscaled coordinate back up', () => {
+  it('click at scaleFactor 0.5 (a downscaled large window — coordinate grows) scales it back up', () => {
     expect(decompose({ kind: 'click', to: [100, 50] }, 0.5, [0, 0])).toEqual([
       { op: 'move', x: 200, y: 100 },
       { op: 'down', button: 'left' },
@@ -57,7 +57,7 @@ describe('decompose — atoms', () => {
   })
 
   it('click combines a fractional scaleFactor with a non-zero origin (rounded)', () => {
-    // 100 / 0.6 = 166.66… → 167 ; 50 / 0.6 = 83.33… → 83
+    // coord / scaleFactor, then + origin: 100 / 0.6 = 166.66… → 167 ; 50 / 0.6 = 83.33… → 83
     expect(decompose({ kind: 'click', to: [100, 50] }, 0.6, [10, 20])).toEqual([
       { op: 'move', x: 177, y: 103 },
       { op: 'down', button: 'left' },

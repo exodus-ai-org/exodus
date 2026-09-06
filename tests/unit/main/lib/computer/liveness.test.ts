@@ -4,12 +4,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // `liveness` reaches for Electron's `globalShortcut` on the 0→1 / 1→0 session
 // transitions. In tests there is no Electron runtime — mock it and assert the
-// register/unregister calls directly.
+// register/unregister calls directly. `register` returns truthy by default
+// (the OS accepted the accelerator); a test overrides it to `false` to exercise
+// the "hotkey refused" warning. `logger` is mocked (it transitively pulls
+// Electron via `paths.ts`).
 vi.mock('electron', () => ({
-  globalShortcut: { register: vi.fn(), unregister: vi.fn() }
+  globalShortcut: { register: vi.fn(() => true), unregister: vi.fn() }
+}))
+vi.mock('@main/lib/logger', () => ({
+  logger: { warn: vi.fn(), info: vi.fn(), error: vi.fn(), debug: vi.fn() }
 }))
 
 const { liveness } = await import('@main/lib/computer/liveness')
+const { logger } = await import('@main/lib/logger')
 
 const HOTKEY = 'Alt+Shift+Escape'
 const register = vi.mocked(globalShortcut.register)
@@ -21,7 +28,9 @@ function fakeGuard() {
 
 beforeEach(() => {
   register.mockClear()
+  register.mockReturnValue(true)
   unregister.mockClear()
+  vi.mocked(logger.warn).mockClear()
 })
 
 // `liveness` is a module singleton — leave no started session behind.
@@ -106,5 +115,22 @@ describe('liveness', () => {
 
     expect(liveness.count).toBe(1)
     expect(register).toHaveBeenCalledTimes(1)
+  })
+
+  it('warns when the OS refuses the hotkey (register returns false)', () => {
+    register.mockReturnValueOnce(false)
+
+    liveness.start('a', fakeGuard())
+
+    expect(logger.warn).toHaveBeenCalledWith(
+      'computer',
+      expect.stringContaining('refused')
+    )
+  })
+
+  it('does not warn when the hotkey registers cleanly', () => {
+    liveness.start('a', fakeGuard())
+
+    expect(logger.warn).not.toHaveBeenCalled()
   })
 })

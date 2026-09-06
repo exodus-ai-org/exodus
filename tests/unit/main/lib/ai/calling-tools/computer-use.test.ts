@@ -200,4 +200,31 @@ describe('computerUse tool', () => {
       JSON.stringify({ step: 1, action: 'click', sessionId })
     )
   })
+
+  it('keeps the frame thumbnail in details but strips it from the text block', async () => {
+    getSettings.mockResolvedValue({
+      computerUse: { enabled: true, targetAllowlist: ['Chess'] }
+    })
+    runComputerSession.mockImplementation(
+      async (opts: { onUpdate?: (u: unknown) => void }) => {
+        opts.onUpdate?.({ step: 2, action: 'click', thumbnail: 'BIGBASE64' })
+        return { outcome: 'success', summary: 'done', steps: 1 }
+      }
+    )
+    const onUpdate = vi.fn()
+
+    await computerUse.execute(
+      'call-1',
+      { task: 'go', target: 'Chess' },
+      undefined,
+      onUpdate
+    )
+
+    const arg = onUpdate.mock.calls[0][0]
+    const parsed = JSON.parse(arg.content[0].text)
+    expect('thumbnail' in parsed).toBe(false)
+    expect(parsed).toMatchObject({ step: 2, action: 'click' })
+    // details still carries the full frame for the card
+    expect(arg.details.thumbnail).toBe('BIGBASE64')
+  })
 })

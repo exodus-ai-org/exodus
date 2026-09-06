@@ -18,35 +18,22 @@ const { computeScale, hashPng, screenshotWindow, MAX_EDGE } =
   await import('@main/lib/computer/capture')
 
 describe('computeScale', () => {
-  it('halves a 2800x1750 window so the long edge hits MAX_EDGE', () => {
-    expect(computeScale(2800, 1750)).toEqual({
-      width: 1400,
-      height: 875,
-      scaleFactor: 0.5
-    })
+  it('halves a 2800x1750 capture so the long edge hits MAX_EDGE', () => {
+    expect(computeScale(2800, 1750)).toEqual({ width: 1400, height: 875 })
   })
 
-  it('leaves a window smaller than MAX_EDGE untouched (scaleFactor 1)', () => {
-    expect(computeScale(1000, 800)).toEqual({
-      width: 1000,
-      height: 800,
-      scaleFactor: 1
-    })
+  it('leaves a capture smaller than MAX_EDGE untouched', () => {
+    expect(computeScale(1000, 800)).toEqual({ width: 1000, height: 800 })
   })
 
   it('does not resize when the long edge is exactly MAX_EDGE (boundary)', () => {
-    expect(computeScale(1400, 900)).toEqual({
-      width: 1400,
-      height: 900,
-      scaleFactor: 1
-    })
+    expect(computeScale(1400, 900)).toEqual({ width: 1400, height: 900 })
   })
 
-  it('scales by the longer edge for a portrait window', () => {
+  it('scales by the longer edge for a portrait capture', () => {
     const r = computeScale(900, 2100)
     expect(r.height).toBe(1400)
     expect(r.width).toBe(600)
-    expect(r.scaleFactor).toBeCloseTo(2 / 3, 6)
   })
 
   it('exposes MAX_EDGE as 1400', () => {
@@ -69,27 +56,43 @@ describe('hashPng', () => {
 })
 
 describe('screenshotWindow', () => {
-  const target: TargetWindow = {
+  // The mock always captures 2800x1750 and resizes to 1400x875; only
+  // `target.bounds` (window points) varies, so `scaleFactor` = 1400 / bounds.w.
+  const base: Omit<TargetWindow, 'bounds'> = {
     cgWindowId: 7,
     app: 'Chess',
     bundleId: 'com.apple.Chess',
-    title: 'Chess',
-    bounds: [0, 0, 2800, 1750]
+    title: 'Chess'
   }
   const fakeHelper: InputHelper = {
     listWindows: async () => [],
     screenshot: async () => Buffer.from('raw-png-bytes'),
     send: async () => {}
   }
+  const resizedShot = {
+    data: Buffer.from('RESIZED-PNG').toString('base64'),
+    mimeType: 'image/png' as const,
+    width: 1400,
+    height: 875
+  }
 
-  it('downscales a 2800px capture and reports scaleFactor 0.5', async () => {
-    const { shot, scaleFactor } = await screenshotWindow(target, fakeHelper)
+  it('reports scaleFactor 1 when the screenshot pixels line up with window points', async () => {
+    // 1400-pt window on a 2x display → 2800 px capture → 1400 px screenshot
+    const { shot, scaleFactor } = await screenshotWindow(
+      { ...base, bounds: [0, 0, 1400, 875] },
+      fakeHelper
+    )
+    expect(scaleFactor).toBe(1)
+    expect(shot).toEqual(resizedShot)
+  })
+
+  it('reports scaleFactor 0.5 for a downscaled large window on a 1x display', async () => {
+    // 2800-pt window on a 1x display → 2800 px capture → 1400 px screenshot
+    const { shot, scaleFactor } = await screenshotWindow(
+      { ...base, bounds: [0, 0, 2800, 1750] },
+      fakeHelper
+    )
     expect(scaleFactor).toBe(0.5)
-    expect(shot).toEqual({
-      data: Buffer.from('RESIZED-PNG').toString('base64'),
-      mimeType: 'image/png',
-      width: 1400,
-      height: 875
-    })
+    expect(shot).toEqual(resizedShot)
   })
 })
