@@ -54,7 +54,9 @@ export const TEST_IDS = {
   computerUse: {
     enableToggle: 'computer-use.enable-toggle',
     allowlistInput: 'computer-use.allowlist-input',
-    addTargetButton: 'computer-use.add-target-button'
+    addTargetButton: 'computer-use.add-target-button',
+    stopButton: 'computer-use.stop-button',
+    continueButton: 'computer-use.continue-button'
   },
   logger: {
     scopeSelect: 'logger.scope-select',

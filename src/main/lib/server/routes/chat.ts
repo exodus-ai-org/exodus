@@ -250,6 +250,13 @@ chat.post('/', async (c) => {
       let assistantMsgId = uuidV4()
       let currentAssistantMsg: ChatAssistantMessage | null = null
       const newMessages: ChatMessage[] = []
+      // Stable message id per in-flight tool call, assigned at
+      // `tool_execution_start`. Streaming `tool_execution_update` frames (used by
+      // `computerUse` to drive its live chat panel) and the final
+      // `tool_execution_end` message all reuse it, so the renderer upserts one
+      // card in place instead of flashing a new one per frame. Must be a UUID —
+      // the id lands in the `message.id` uuid column on save.
+      const toolMsgIds = new Map<string, string>()
       // Wall-clock turn start — used to stamp the last assistant message with
       // an accurate durationMs that the UI can show as "Worked for X seconds".
       const turnStartedAt = Date.now()
@@ -343,10 +350,34 @@ chat.post('/', async (c) => {
               currentAssistantMsg = null
             }
           } else if (event.type === 'tool_execution_start') {
+            toolMsgIds.set(event.toolCallId, uuidV4())
             sendEvent({
               type: 'tool_call_start',
               toolCallId: event.toolCallId,
               toolName: event.toolName
+            })
+          } else if (event.type === 'tool_execution_update') {
+            // Relay a tool's mid-execution progress (`onUpdate`) to the renderer
+            // as a live tool-result message. Only `computerUse` streams these
+            // today; its `ComputerUseCard` reads the evolving `details`. Not
+            // pushed to `newMessages` — the authoritative row is written at
+            // `tool_execution_end`.
+            const partial = event.partialResult as {
+              content?: Array<{ type: 'text'; text: string }>
+              details?: unknown
+            } | null
+            sendEvent({
+              type: 'message_update',
+              message: {
+                id: toolMsgIds.get(event.toolCallId) ?? uuidV4(),
+                role: 'toolResult',
+                toolCallId: event.toolCallId,
+                toolName: event.toolName,
+                content: Array.isArray(partial?.content) ? partial.content : [],
+                details: partial?.details ?? null,
+                isError: false,
+                timestamp: Date.now()
+              }
             })
           } else if (event.type === 'tool_execution_end') {
             // Extract error message from various possible shapes:
@@ -397,7 +428,7 @@ chat.post('/', async (c) => {
                     : []
 
             const toolResultMsg: ChatToolResultMessage = {
-              id: uuidV4(),
+              id: toolMsgIds.get(event.toolCallId) ?? uuidV4(),
               role: 'toolResult',
               toolCallId: event.toolCallId,
               toolName: event.toolName,
@@ -406,6 +437,7 @@ chat.post('/', async (c) => {
               isError: event.isError,
               timestamp: Date.now()
             }
+            toolMsgIds.delete(event.toolCallId)
             newMessages.push(toolResultMsg)
             sendEvent({ type: 'message_update', message: toolResultMsg })
             sendEvent({

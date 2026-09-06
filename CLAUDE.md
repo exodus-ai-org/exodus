@@ -113,7 +113,7 @@ The main process runs a **Hono HTTP server** that handles all business logic:
 
 **Server Routes** (`src/main/lib/server/routes/`, registered in `src/main/lib/server/app.ts`):
 
-`/api/chat`, `/api/lcm`, `/api/history`, `/api/knowledge-base`, `/api/project`, `/api/settings`, `/api/audio`, `/api/db-io`, `/api/deep-research`, `/api/discover`, `/api/tools`, `/api/philharmonic`, `/api/s3`, `/api/skills`, `/api/mcp`, `/api/memory`, `/api/usage`, `/api/logs`, `/api/backup`, `/api/artifacts`.
+`/api/chat`, `/api/lcm`, `/api/history`, `/api/knowledge-base`, `/api/project`, `/api/settings`, `/api/audio`, `/api/db-io`, `/api/deep-research`, `/api/discover`, `/api/tools`, `/api/philharmonic`, `/api/s3`, `/api/skills`, `/api/mcp`, `/api/memory`, `/api/usage`, `/api/logs`, `/api/backup`, `/api/artifacts`, `/api/computer-use`.
 
 **Middleware Pipeline** (order in `app.ts`):
 
@@ -178,7 +178,7 @@ Each tool has a description for LLM understanding, a Zod input schema, and an ex
 
 Built-in tools (files in `src/main/lib/ai/calling-tools/`):
 
-`create-artifact`, `deep-research`, `edit-file`, `find-files`, `grep`, `image-generation`, `lcm-describe`, `lcm-expand`, `lcm-grep`, `list-directory`, `map-itinerary`, `read-file`, `search-knowledge-base`, `terminal`, `weather`, `web-fetch`, `web-search`, `write-file`.
+`computer-use`, `create-artifact`, `deep-research`, `edit-file`, `find-files`, `grep`, `image-generation`, `lcm-describe`, `lcm-expand`, `lcm-grep`, `list-directory`, `map-itinerary`, `read-file`, `search-knowledge-base`, `terminal`, `weather`, `web-fetch`, `web-search`, `write-file`.
 
 ### Knowledge Base (LightRAG)
 
@@ -543,6 +543,13 @@ Main process:
   `/api/logs` (filters incl. `traceId`) + `/api/logs/scopes` and the
   Settings → Logger tab. See
   `docs/superpowers/specs/2026-09-06-standardized-logging-design.md`
+- `src/main/lib/computer/` — window-scoped screenshot-loop Computer Use V0: the
+  `exodus-input` Swift helper (list-windows / screenshot / CGEvent input),
+  `capture`/`target`/`hands`/`guard`, `runComputerSession` (the perceive→act
+  loop), `liveness` (the ⌥⇧⎋ kill switch); the inner-loop agent is
+  `src/main/lib/ai/computer-use/`. Bound as the `computerUse` calling-tool,
+  gated on `settings.computerUse.enabled`. See
+  `docs/superpowers/specs/2026-09-06-computer-use-v0-design.md`
 - `src/main/lib/ipc.ts` — main-process IPC handlers
 - `src/main/lib/paths.ts` — `~/.exodus` path helpers
 

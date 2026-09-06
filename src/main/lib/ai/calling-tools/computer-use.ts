@@ -78,11 +78,16 @@ export const computerUse: AgentTool<typeof schema> = {
           settleMs: s.computerUse.settleMs ?? 800,
           askHumanTimeoutMs: s.computerUse.askHumanTimeoutMs ?? 300_000,
           signal,
-          onUpdate: (u) =>
+          // Stamp `sessionId` onto every frame — `SessionUpdate` itself omits
+          // it, and the chat panel needs it to POST an `askHuman` answer while
+          // the session is still running (before the final result arrives).
+          onUpdate: (u) => {
+            const frame = { ...u, sessionId }
             onUpdate?.({
-              content: [{ type: 'text' as const, text: JSON.stringify(u) }],
-              details: u
+              content: [{ type: 'text' as const, text: JSON.stringify(frame) }],
+              details: frame
             })
+          }
         })
 
         return {
@@ -101,7 +106,8 @@ export const computerUse: AgentTool<typeof schema> = {
           details: {
             sessionId,
             outcome: result.outcome,
-            steps: result.steps
+            steps: result.steps,
+            summary: result.summary
           }
         }
       } finally {

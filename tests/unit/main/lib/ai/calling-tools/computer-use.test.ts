@@ -119,6 +119,7 @@ describe('computerUse tool', () => {
     expect(res.content[0]).toMatchObject({ type: 'text', text: 'done' })
     expect(res.details.outcome).toBe('success')
     expect(res.details.steps).toBe(2)
+    expect(res.details.summary).toBe('done')
     expect(livenessStart).toHaveBeenCalledTimes(1)
     expect(livenessEnd).toHaveBeenCalledTimes(1)
   })
@@ -168,12 +169,14 @@ describe('computerUse tool', () => {
     expect(livenessEnd).toHaveBeenCalledTimes(1)
   })
 
-  it('streams session updates through onUpdate', async () => {
+  it('streams session updates through onUpdate, stamped with the sessionId', async () => {
     getSettings.mockResolvedValue({
       computerUse: { enabled: true, targetAllowlist: ['Chess'] }
     })
+    let sessionId = ''
     runComputerSession.mockImplementation(
-      async (opts: { onUpdate?: (u: unknown) => void }) => {
+      async (opts: { sessionId: string; onUpdate?: (u: unknown) => void }) => {
+        sessionId = opts.sessionId
         opts.onUpdate?.({ step: 1, action: 'click' })
         return { outcome: 'success', summary: 'done', steps: 1 }
       }
@@ -189,9 +192,12 @@ describe('computerUse tool', () => {
 
     expect(onUpdate).toHaveBeenCalledTimes(1)
     const arg = onUpdate.mock.calls[0][0]
-    expect(arg.details).toEqual({ step: 1, action: 'click' })
+    // The panel needs the sessionId on every frame to answer an askHuman
+    // prompt before the terminal result lands — SessionUpdate itself omits it.
+    expect(sessionId).toBeTruthy()
+    expect(arg.details).toEqual({ step: 1, action: 'click', sessionId })
     expect(arg.content[0].text).toBe(
-      JSON.stringify({ step: 1, action: 'click' })
+      JSON.stringify({ step: 1, action: 'click', sessionId })
     )
   })
 })
