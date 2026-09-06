@@ -51,6 +51,11 @@ export const TEST_IDS = {
     enableToggle: 'discover.enable-toggle',
     section: 'discover.section'
   },
+  computerUse: {
+    enableToggle: 'computer-use.enable-toggle',
+    allowlistInput: 'computer-use.allowlist-input',
+    addTargetButton: 'computer-use.add-target-button'
+  },
   logger: {
     scopeSelect: 'logger.scope-select',
     traceBadge: 'logger.trace-badge',

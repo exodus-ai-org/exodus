@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form'
 import { useSettings } from '@/hooks/use-settings'
 import { settingsLabelAtom } from '@/stores/settings'
 
+import { ComputerUse } from './settings-form/computer-use'
 import { DataControls } from './settings-form/data-controls'
 import { DeepResearch } from './settings-form/deep-research'
 import { Discover } from './settings-form/discover'
@@ -26,7 +27,6 @@ import { SystemInfo } from './settings-form/system-info'
 import { Tools } from './settings-form/tools'
 import { Voice } from './settings-form/voice'
 import { SettingsLabel } from './settings-menu'
-import { UnderConstruction } from './under-construction'
 
 export function SettingsForm() {
   const { data: settings, updateSettings } = useSettings()
@@ -129,7 +129,7 @@ export function SettingsForm() {
         <KnowledgeBase form={form} />
       )}
 
-      {activeTitle === SettingsLabel.ComputerUse && <UnderConstruction />}
+      {activeTitle === SettingsLabel.ComputerUse && <ComputerUse form={form} />}
 
       {activeTitle === SettingsLabel.DataControls && <DataControls />}
 
