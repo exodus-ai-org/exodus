@@ -14,6 +14,7 @@ import artifactsRouter from './routes/artifacts'
 import audioRouter from './routes/audio'
 import backupRouter from './routes/backup'
 import chatRouter from './routes/chat'
+import computerUseRouter from './routes/computer-use'
 import dbIoRouter from './routes/db-io'
 import deepResearchRouter from './routes/deep-research'
 import discoverRouter from './routes/discover'
@@ -74,6 +75,7 @@ export async function connectHttpServer() {
   app.route('/api/db-io', dbIoRouter)
   app.route('/api/deep-research', deepResearchRouter)
   app.route('/api/discover', discoverRouter)
+  app.route('/api/computer-use', computerUseRouter)
   app.route('/api/tools', toolsRouter)
   app.route('/api/philharmonic', philharmonicRouter)
   app.route('/api/s3', s3UploaderRouter)
