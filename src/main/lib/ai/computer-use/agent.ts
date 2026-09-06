@@ -110,7 +110,9 @@ export class ClaudeComputerAgent implements ComputerAgent {
         content: [
           {
             type: 'text',
-            text: `step ${state.step} · cursor ${state.cursor[0]},${state.cursor[1]}`
+            text: state.humanNote
+              ? `Human: ${state.humanNote}`
+              : `step ${state.step} · cursor ${state.cursor[0]},${state.cursor[1]}`
           },
           screenshot
         ],

@@ -1,3 +1,4 @@
+import type { Model } from '@mariozechner/pi-ai'
 import { describe, expect, it, vi } from 'vitest'
 
 // `agent.ts` imports `complete` from `@mariozechner/pi-ai` and `action-tools.ts`
@@ -17,9 +18,11 @@ vi.mock('@mariozechner/pi-ai', () => ({
   complete: vi.fn()
 }))
 
-const { trimImages } = await import('@main/lib/ai/computer-use/agent')
+const { trimImages, ClaudeComputerAgent } =
+  await import('@main/lib/ai/computer-use/agent')
 const { toolCallToAction, ACTION_TOOLS } =
   await import('@main/lib/ai/computer-use/action-tools')
+const { complete } = await import('@mariozechner/pi-ai')
 
 describe('toolCallToAction', () => {
   // One row per inner action kind — plus the optional-field variants — so a
@@ -226,5 +229,56 @@ describe('trimImages', () => {
       data: 'img3',
       mimeType: 'image/png'
     })
+  })
+})
+
+describe('ClaudeComputerAgent — humanNote wiring', () => {
+  const baseState = {
+    target: { app: 'Chess', title: 'Chess' },
+    viewport: { width: 800, height: 600 },
+    cursor: [400, 300] as [number, number],
+    screenshot: {
+      data: 'PNG',
+      mimeType: 'image/png' as const,
+      width: 800,
+      height: 600
+    }
+  }
+
+  it('puts the human answer in the next tool result instead of the cursor line', async () => {
+    const completeMock = vi.mocked(complete)
+    completeMock.mockReset()
+    completeMock.mockImplementation(
+      async () =>
+        ({
+          role: 'assistant',
+          content: [
+            { type: 'toolCall', id: 'c1', name: 'wait', arguments: { ms: 1 } }
+          ]
+        }) as unknown as Awaited<ReturnType<typeof complete>>
+    )
+
+    const agent = new ClaudeComputerAgent({
+      task: 'play',
+      model: {} as unknown as Model<string>,
+      apiKey: 'k'
+    })
+
+    await agent.nextAction({ ...baseState, step: 1 })
+    await agent.nextAction({ ...baseState, step: 2, humanNote: '123456' })
+    await agent.nextAction({ ...baseState, step: 3 })
+
+    const lastResultText = (call: number): string | undefined => {
+      const context = completeMock.mock.calls[call][1] as {
+        messages: Array<{ content: Array<{ type: string; text?: string }> }>
+      }
+      const msgs = context.messages
+      return msgs[msgs.length - 1].content[0].text
+    }
+
+    // 2nd call: the tool result carries "Human: <answer>"
+    expect(lastResultText(1)).toBe('Human: 123456')
+    // 3rd call: back to the normal step/cursor line
+    expect(lastResultText(2)).toBe('step 3 · cursor 400,300')
   })
 })

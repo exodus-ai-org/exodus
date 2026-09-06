@@ -41,13 +41,20 @@ export interface ComputerState {
   step: number
   target: Pick<TargetWindow, 'app' | 'title'>
   viewport: { width: number; height: number } // window size
-  cursor: [number, number] // window-relative
+  cursor: [number, number] // screenshot-space (matches what the model sees and emits)
   screenshot: {
     data: string
     mimeType: 'image/png'
     width: number
     height: number
   }
+  /**
+   * The human's answer to the previous step's `askHuman` (model-emitted or the
+   * synthetic "stuck" prompt). Set on the one state that immediately follows an
+   * answered pause; the agent renders it into that turn's tool result instead
+   * of the usual `step N · cursor` line.
+   */
+  humanNote?: string
 }
 
 export type SessionOutcome =
