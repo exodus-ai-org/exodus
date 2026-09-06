@@ -1,4 +1,5 @@
 import type { ComputerAgent } from '@main/lib/ai/computer-use/agent'
+import type { SessionUpdate } from '@main/lib/computer/session'
 import type {
   Action,
   ComputerState,
@@ -123,6 +124,23 @@ describe('runComputerSession — happy path', () => {
     // second frame: wherever the (clamped) click landed
     expect(agent.seen[1].cursor).toEqual([123, 45])
   })
+
+  it('maps done{success:false} to outcome:failed with the summary', async () => {
+    const res = await runComputerSession({
+      sessionId: 's-give-up',
+      task: 't',
+      target: 'Chess',
+      agent: new ScriptedAgent([
+        { kind: 'done', success: false, summary: 'could not find the button' }
+      ]),
+      helper: mockHelper,
+      settleMs: 0
+    })
+
+    expect(res.outcome).toBe('failed')
+    expect(res.summary).toBe('could not find the button')
+    expect(res.steps).toBe(1)
+  })
 })
 
 describe('runComputerSession — step cap', () => {
@@ -180,6 +198,58 @@ describe('runComputerSession — abort', () => {
     })
 
     expect(res.outcome).toBe('aborted')
+  })
+
+  it('observes a guard abort while parked in askHuman (no signal needed)', async () => {
+    const guard = new Guard()
+
+    const promise = runComputerSession({
+      sessionId: 's-park-ask',
+      task: 't',
+      target: 'Chess',
+      agent: new ScriptedAgent([{ kind: 'askHuman', question: 'code?' }]),
+      helper: mockHelper,
+      guard,
+      settleMs: 0,
+      askHumanTimeoutMs: 60_000
+    })
+    setTimeout(() => guard.abort('hotkey'), 10)
+
+    expect((await promise).outcome).toBe('aborted')
+  })
+
+  it('observes a guard abort while parked in a long wait sleep', async () => {
+    const guard = new Guard()
+
+    const promise = runComputerSession({
+      sessionId: 's-park-wait',
+      task: 't',
+      target: 'Chess',
+      agent: looping({ kind: 'wait', ms: 5000 }),
+      helper: mockHelper,
+      guard,
+      settleMs: 0
+    })
+    setTimeout(() => guard.abort('user'), 10)
+
+    expect((await promise).outcome).toBe('aborted')
+  })
+
+  it('links the run AbortSignal into the guard (parked-session abort)', async () => {
+    const controller = new AbortController()
+
+    const promise = runComputerSession({
+      sessionId: 's-park-signal',
+      task: 't',
+      target: 'Chess',
+      agent: looping({ kind: 'wait', ms: 5000 }),
+      helper: mockHelper,
+      signal: controller.signal,
+      settleMs: 0
+    })
+    setTimeout(() => controller.abort(), 10)
+
+    expect((await promise).outcome).toBe('aborted')
   })
 })
 
@@ -255,6 +325,8 @@ describe('runComputerSession — stuck', () => {
   })
 
   it('never trips stuck while the agent is legitimately waiting', async () => {
+    const updates: SessionUpdate[] = []
+
     const res = await runComputerSession({
       sessionId: 's-wait',
       task: 't',
@@ -263,12 +335,11 @@ describe('runComputerSession — stuck', () => {
       helper: mockHelper,
       maxSteps: 8,
       settleMs: 0,
-      onUpdate: (u) => {
-        if (u.awaitingHuman) throw new Error('should not ask on a wait streak')
-      }
+      onUpdate: (u) => updates.push(u)
     })
 
     expect(res.outcome).toBe('failed')
+    expect(updates.filter((u) => u.awaitingHuman)).toHaveLength(0)
   })
 })
 
@@ -331,6 +402,45 @@ describe('runComputerSession — resilience', () => {
     )
     // nothing was sent to the helper for the bad click
     expect(mockHelper.sent).toHaveLength(0)
+  })
+
+  it('clamps against screenshot space, not window space (retina downscale)', async () => {
+    // 2800x1750 window downscaled to a 1400x875 screenshot (scaleFactor 0.5).
+    mockHelper.__setWindows([{ ...chess, bounds: [0, 0, 2800, 1750] }])
+    vi.mocked(screenshotWindow).mockImplementation(async () => ({
+      shot: { data: 'AAAA', mimeType: 'image/png', width: 1400, height: 875 },
+      scaleFactor: 0.5
+    }))
+
+    const agent = new ScriptedAgent([
+      { kind: 'click', to: [1300, 400] }, // inside the 1400-wide screenshot
+      { kind: 'click', to: [2000, 400] }, // inside the 2800 window, off the screenshot
+      { kind: 'done', success: true, summary: 'ok' }
+    ])
+
+    const res = await runComputerSession({
+      sessionId: 's-retina',
+      task: 't',
+      target: 'Chess',
+      agent,
+      helper: mockHelper,
+      settleMs: 0
+    })
+
+    expect(res.outcome).toBe('success')
+    // the in-frame click executed — mapped back through scaleFactor 0.5
+    expect(mockHelper.sent.flat()).toContainEqual({
+      op: 'move',
+      x: 2600,
+      y: 800
+    })
+    // the off-screenshot click was rejected as OOB and skipped, not executed
+    expect(mockHelper.sent).toHaveLength(1)
+    expect(vi.mocked(logger.warn)).toHaveBeenCalledWith(
+      'computer',
+      expect.stringContaining('out of bounds'),
+      expect.objectContaining({ step: 2 })
+    )
   })
 
   it('fails when a step exceeds the step timeout', async () => {

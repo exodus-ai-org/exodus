@@ -85,6 +85,31 @@ describe('Guard.aborted', () => {
   })
 })
 
+describe('Guard.signal', () => {
+  it('fires once when abort() is called', () => {
+    const g = new Guard()
+    expect(g.signal.aborted).toBe(false)
+
+    let fired = 0
+    g.signal.addEventListener('abort', () => {
+      fired += 1
+    })
+
+    g.abort('user')
+    expect(g.signal.aborted).toBe(true)
+    expect(fired).toBe(1)
+
+    // idempotent — a second abort() neither re-fires nor changes the reason
+    g.abort('system')
+    expect(fired).toBe(1)
+  })
+
+  it('is the same signal instance across reads', () => {
+    const g = new Guard()
+    expect(g.signal).toBe(g.signal)
+  })
+})
+
 describe('Guard.noteFrame', () => {
   it('reports stuck after 4 identical frames', () => {
     const g = new Guard()

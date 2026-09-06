@@ -132,7 +132,7 @@ export async function runComputerSession(
 ): Promise<SessionResult> {
   const helper = opts.helper ?? getHelper()
   const guard = opts.guard ?? new Guard()
-  const { agent, signal, sessionId } = opts
+  const { agent, sessionId } = opts
   const maxSteps = opts.maxSteps ?? DEFAULT_MAX_STEPS
   const settleMs = opts.settleMs ?? DEFAULT_SETTLE_MS
   const askHumanTimeoutMs =
@@ -140,8 +140,25 @@ export async function runComputerSession(
   const stepTimeoutMs = opts.stepTimeoutMs ?? DEFAULT_STEP_TIMEOUT_MS
   const opTimeoutMs = opts.opTimeoutMs ?? DEFAULT_OP_TIMEOUT_MS
 
+  // The Guard is the single abort authority — link the run's AbortSignal into
+  // it so a chat Stop / client disconnect trips the same flag the global hotkey
+  // and `POST /api/computer-use/abort` use. Every `race()` below then watches
+  // `guard.signal`, so a session parked in a `wait` sleep or in `askHuman`
+  // still unwinds at once.
+  if (opts.signal) {
+    if (opts.signal.aborted) guard.abort('user')
+    else
+      opts.signal.addEventListener('abort', () => guard.abort('user'), {
+        once: true
+      })
+  }
+
   return withTrace(async () => {
-    bindTraceAttributes({ computerSession: sessionId, target: opts.target })
+    bindTraceAttributes({
+      computerSession: sessionId,
+      target: opts.target,
+      task: opts.task
+    })
 
     let step = 0
     let lastShot: ComputerState['screenshot'] | undefined
@@ -175,7 +192,7 @@ export async function runComputerSession(
     try {
       target = await race(
         resolveTarget(opts.target, helper),
-        signal,
+        guard.signal,
         opTimeoutMs,
         'resolveTarget'
       )
@@ -202,7 +219,7 @@ export async function runComputerSession(
       try {
         const answer = await race(
           computerAskRegistry.wait(sessionId),
-          signal,
+          guard.signal,
           askHumanTimeoutMs,
           'askHuman'
         )
@@ -220,7 +237,7 @@ export async function runComputerSession(
       for (let s = 1; s <= maxSteps; s++) {
         step = s
 
-        if (signal?.aborted || guard.aborted) {
+        if (guard.aborted) {
           return finish('aborted', 'the session was stopped')
         }
 
@@ -228,7 +245,7 @@ export async function runComputerSession(
         try {
           target = await race(
             refreshBounds(target, helper),
-            signal,
+            guard.signal,
             opTimeoutMs,
             'refreshBounds'
           )
@@ -242,7 +259,7 @@ export async function runComputerSession(
 
         const { shot, scaleFactor } = await race(
           screenshotWindow(target, helper),
-          signal,
+          guard.signal,
           opTimeoutMs,
           'screenshotWindow'
         )
@@ -287,7 +304,7 @@ export async function runComputerSession(
         try {
           action = await race(
             agent.nextAction(state),
-            signal,
+            guard.signal,
             stepTimeoutMs,
             'nextAction'
           )
@@ -297,6 +314,10 @@ export async function runComputerSession(
           // A timeout, or an agent that threw — either way this episode is done.
           return finish('failed', errText(err))
         }
+
+        // An abort that landed *during* a slow `nextAction` — before we act on
+        // whatever the model returned (a stale `done` included).
+        if (guard.aborted) return finish('aborted', 'the session was stopped')
 
         logger.info('computer', 'step', { step, action: action.kind })
 
@@ -312,16 +333,35 @@ export async function runComputerSession(
         }
 
         if (action.kind === 'wait') {
-          await sleep(action.ms)
+          // Cap a model-chosen wait (unclamped, sometimes minutes) and race it
+          // against the guard so an abort mid-sleep is observed immediately.
+          try {
+            await race(
+              sleep(Math.min(action.ms, 30_000)),
+              guard.signal,
+              31_000,
+              'wait'
+            )
+          } catch (err) {
+            if (err instanceof AbortedByUser)
+              return finish('aborted', err.message)
+            throw err
+          }
           lastActionKind = 'wait'
           emit({ step, action: 'wait', thumbnail: shot.data })
           continue
         }
 
         // --- act ------------------------------------------------------
+        // Clamp/reject against SCREENSHOT-space dims (what the model emits in),
+        // not `state.viewport` (real window px, ~2x larger on a retina Mac
+        // after `capture` downscales).
         let clamped: Action
         try {
-          clamped = guard.check(action, state.viewport)
+          clamped = guard.check(action, {
+            width: shot.width,
+            height: shot.height
+          })
         } catch (err) {
           if (err instanceof AbortedByUser)
             return finish('aborted', err.message)
@@ -339,7 +379,7 @@ export async function runComputerSession(
 
         await race(
           hands.execute(clamped, { target, scaleFactor, helper }),
-          signal,
+          guard.signal,
           opTimeoutMs,
           'execute'
         )

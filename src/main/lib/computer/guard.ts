@@ -42,20 +42,36 @@ export class OutOfBounds extends Error {
  * wired to the global hotkey and the Stop button; `noteFrame(hash)` detects a
  * loop that has stopped making progress (screen not changing).
  *
+ * The Guard is the session's single abort authority: `abort()` sets the flag
+ * *and* fires `signal`, so a session parked in a `wait` sleep or blocked in
+ * `askHuman` — neither of which the caller's `AbortSignal` reaches on its own —
+ * still unwinds promptly. The session links the run's `AbortSignal` into here.
+ *
  * Spec §2.5. Pure — no Electron, no I/O.
  */
 export class Guard {
   private abortReason: AbortReason | null = null
   private frames: string[] = []
+  private readonly controller = new AbortController()
 
   /** Whether the session has been aborted. */
   get aborted(): boolean {
     return this.abortReason !== null
   }
 
+  /**
+   * Fires the moment `abort()` is called. Every awaited op in the session is
+   * raced against this, so an abort is observed even mid-sleep / mid-wait.
+   */
+  get signal(): AbortSignal {
+    return this.controller.signal
+  }
+
   /** Mark the session aborted. Idempotent; the first reason wins. */
   abort(reason: AbortReason): void {
-    this.abortReason ??= reason
+    if (this.abortReason !== null) return
+    this.abortReason = reason
+    this.controller.abort()
   }
 
   /**
