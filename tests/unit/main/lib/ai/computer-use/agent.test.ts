@@ -25,57 +25,42 @@ const { toolCallToAction, ACTION_TOOLS } =
 const { complete } = await import('@mariozechner/pi-ai')
 
 describe('toolCallToAction', () => {
-  // One row per inner action kind — plus the optional-field variants — so a
-  // `kind` typo or a `dx`/`dy` (or `from`/`to`) swap is caught.
+  // One row per model-facing verb. Coordinates are asymmetric (x ≠ y, from ≠ to,
+  // dx ≠ dy) so a coordinate swap or a `kind`/`button`/`count` mistake is caught.
   const cases: Array<{
     name: string
     args: Record<string, unknown>
     expected: unknown
   }> = [
     {
-      name: 'moveMouse',
-      args: { to: [10, 20] },
+      name: 'moveTo',
+      args: { x: 10, y: 20 },
       expected: { kind: 'moveMouse', to: [10, 20] }
     },
     {
-      name: 'moveMouse',
-      args: { to: [10, 20], durationMs: 250 },
-      expected: { kind: 'moveMouse', to: [10, 20], durationMs: 250 }
+      name: 'leftClick',
+      args: { x: 3, y: 4 },
+      expected: { kind: 'click', to: [3, 4], button: 'left' }
     },
     {
-      name: 'mouseDown',
-      args: { button: 'left' },
-      expected: { kind: 'mouseDown', button: 'left' }
+      name: 'doubleClick',
+      args: { x: 5, y: 6 },
+      expected: { kind: 'click', to: [5, 6], button: 'left', count: 2 }
     },
     {
-      name: 'mouseUp',
-      args: { button: 'right' },
-      expected: { kind: 'mouseUp', button: 'right' }
+      name: 'rightClick',
+      args: { x: 7, y: 8 },
+      expected: { kind: 'click', to: [7, 8], button: 'right' }
     },
     {
-      name: 'wheel',
+      name: 'drag',
+      args: { x1: 1, y1: 2, x2: 8, y2: 9 },
+      expected: { kind: 'drag', from: [1, 2], to: [8, 9] }
+    },
+    {
+      name: 'scroll',
       args: { dx: 3, dy: -7 },
       expected: { kind: 'wheel', dx: 3, dy: -7 }
-    },
-    {
-      name: 'keyDown',
-      args: { key: 'shift' },
-      expected: { kind: 'keyDown', key: 'shift' }
-    },
-    {
-      name: 'keyUp',
-      args: { key: 'cmd' },
-      expected: { kind: 'keyUp', key: 'cmd' }
-    },
-    {
-      name: 'click',
-      args: { to: [1, 2] },
-      expected: { kind: 'click', to: [1, 2] }
-    },
-    {
-      name: 'click',
-      args: { to: [1, 2], button: 'middle', count: 2 },
-      expected: { kind: 'click', to: [1, 2], button: 'middle', count: 2 }
     },
     {
       name: 'type',
@@ -83,12 +68,7 @@ describe('toolCallToAction', () => {
       expected: { kind: 'type', text: 'hello world' }
     },
     {
-      name: 'drag',
-      args: { from: [0, 1], to: [8, 9] },
-      expected: { kind: 'drag', from: [0, 1], to: [8, 9] }
-    },
-    {
-      name: 'hotkey',
+      name: 'key',
       args: { combo: 'cmd+c' },
       expected: { kind: 'hotkey', combo: 'cmd+c' }
     },
@@ -109,7 +89,7 @@ describe('toolCallToAction', () => {
     expect(toolCallToAction(name, args)).toEqual(expected)
   })
 
-  it('covers every kind in ACTION_TOOLS', () => {
+  it('covers every verb in ACTION_TOOLS', () => {
     const covered = new Set(cases.map((c) => c.name))
     for (const tool of ACTION_TOOLS) {
       expect(covered.has(tool.name)).toBe(true)
@@ -120,22 +100,20 @@ describe('toolCallToAction', () => {
     expect(() => toolCallToAction('bogus', {})).toThrow(/unknown action/)
   })
 
-  it('exposes one tool per inner action kind', () => {
+  it('exposes exactly the 11 model-facing verbs', () => {
     expect(ACTION_TOOLS.map((t) => t.name).sort()).toEqual(
       [
         'askHuman',
-        'click',
         'done',
+        'doubleClick',
         'drag',
-        'hotkey',
-        'keyDown',
-        'keyUp',
-        'mouseDown',
-        'mouseUp',
-        'moveMouse',
+        'key',
+        'leftClick',
+        'moveTo',
+        'rightClick',
+        'scroll',
         'type',
-        'wait',
-        'wheel'
+        'wait'
       ].sort()
     )
   })

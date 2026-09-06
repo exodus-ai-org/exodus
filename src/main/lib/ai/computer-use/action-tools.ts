@@ -1,112 +1,91 @@
 // Computer Use — the inner agent's tool set.
 //
-// Spec §3.2. The inner model is given exactly these tools, one call per turn:
-// the six input primitives, the four atoms, and the three control actions.
-// No `bash`, no `text_editor`, no filesystem. `ACTION_TOOLS` are the TypeBox
-// tool schemas handed to `complete()`; `toolCallToAction` turns the model's
-// tool call back into the typed `Action` the runtime executes.
+// Spec §3.2. The inner model is given a small set of *human verbs* — the ~11
+// actions a person actually performs with a mouse and keyboard — not the raw
+// motor primitives (`mouseDown`/`mouseUp`/`keyDown`/`keyUp`/…). Those primitives
+// stay internal to the Controller's `hands.ts` decomposition and are never
+// model-facing, matching how the frontier computer-use models were trained.
+// `ACTION_TOOLS` are the TypeBox tool schemas handed to `complete()`;
+// `toolCallToAction` turns the model's one tool call per turn into the typed
+// `Action` the runtime executes.
 
 import { Type } from '@mariozechner/pi-ai'
 import type { Tool } from '@mariozechner/pi-ai'
 
-import type { Action, MouseButton } from '../../computer/types'
+import type { Action } from '../../computer/types'
 
-const point = (description: string) =>
-  Type.Array(Type.Number(), { minItems: 2, maxItems: 2, description })
-
-const button = Type.Union(
-  [Type.Literal('left'), Type.Literal('right'), Type.Literal('middle')],
-  { description: 'mouse button' }
-)
+const coord = (name: string) =>
+  Type.Number({ description: `${name}, a pixel in the screenshot` })
 
 export const ACTION_TOOLS: Tool[] = [
   {
-    name: 'moveMouse',
+    name: 'moveTo',
     description:
-      'Move the cursor to a window-relative point without pressing anything. Do this first when the cursor is far from where you intend to click.',
+      "Move the cursor to (x, y) without pressing anything. Coordinates are in the screenshot's pixel space.",
+    parameters: Type.Object({ x: coord('x'), y: coord('y') })
+  },
+  {
+    name: 'leftClick',
+    description:
+      "Click the left mouse button at (x, y). Coordinates are in the screenshot's pixel space.",
+    parameters: Type.Object({ x: coord('x'), y: coord('y') })
+  },
+  {
+    name: 'doubleClick',
+    description:
+      "Double-click the left mouse button at (x, y). Coordinates are in the screenshot's pixel space.",
+    parameters: Type.Object({ x: coord('x'), y: coord('y') })
+  },
+  {
+    name: 'rightClick',
+    description:
+      "Click the right mouse button at (x, y) to open a context menu. Coordinates are in the screenshot's pixel space.",
+    parameters: Type.Object({ x: coord('x'), y: coord('y') })
+  },
+  {
+    name: 'drag',
+    description:
+      'Press at (x1, y1), move to (x2, y2), and release — to select text, move an item, or drag a slider.',
     parameters: Type.Object({
-      to: point('[x, y] window-relative pixel to move the cursor to'),
-      durationMs: Type.Optional(
-        Type.Number({ description: 'optional glide time in milliseconds' })
-      )
+      x1: coord('x1, where the drag starts'),
+      y1: coord('y1, where the drag starts'),
+      x2: coord('x2, where the drag ends'),
+      y2: coord('y2, where the drag ends')
     })
   },
   {
-    name: 'mouseDown',
+    name: 'scroll',
     description:
-      'Press and hold a mouse button at the current cursor position. Pair with mouseUp; for a normal click use `click` instead.',
-    parameters: Type.Object({ button })
-  },
-  {
-    name: 'mouseUp',
-    description: 'Release a mouse button that mouseDown is holding.',
-    parameters: Type.Object({ button })
-  },
-  {
-    name: 'wheel',
-    description:
-      'Scroll the wheel by a delta from the current cursor position. Positive dy scrolls down, positive dx scrolls right.',
+      'Scroll the wheel by (dx, dy) at the current cursor position — positive dy scrolls down. Move the cursor over the target area first if needed.',
     parameters: Type.Object({
       dx: Type.Number({ description: 'horizontal scroll delta' }),
-      dy: Type.Number({ description: 'vertical scroll delta' })
-    })
-  },
-  {
-    name: 'keyDown',
-    description:
-      'Press and hold a single key (e.g. "shift", "a", "enter", "cmd"). Pair with keyUp.',
-    parameters: Type.Object({
-      key: Type.String({ description: 'key name' })
-    })
-  },
-  {
-    name: 'keyUp',
-    description: 'Release a key that keyDown is holding.',
-    parameters: Type.Object({
-      key: Type.String({ description: 'key name' })
-    })
-  },
-  {
-    name: 'click',
-    description:
-      'Move to a window-relative point and click. `count` 2 is a double-click; `button` defaults to left.',
-    parameters: Type.Object({
-      to: point('[x, y] window-relative pixel to click'),
-      button: Type.Optional(button),
-      count: Type.Optional(
-        Type.Number({ description: 'number of clicks, default 1' })
-      )
+      dy: Type.Number({
+        description: 'vertical scroll delta, positive is down'
+      })
     })
   },
   {
     name: 'type',
     description:
-      'Type a short run of literal text at the current keyboard focus. Never type passwords or one-time codes.',
+      'Type a run of literal text at the current keyboard focus. Never type passwords or one-time codes.',
     parameters: Type.Object({
       text: Type.String({ description: 'text to type' })
     })
   },
   {
-    name: 'drag',
+    name: 'key',
     description:
-      'Press at one window-relative point, move to a second point, and release.',
+      'Press a key or key combination, e.g. "return", "escape", "cmd+c", "cmd+shift+t".',
     parameters: Type.Object({
-      from: point('[x, y] window-relative pixel to start the drag'),
-      to: point('[x, y] window-relative pixel to end the drag')
-    })
-  },
-  {
-    name: 'hotkey',
-    description:
-      'Press a chord of keys together, e.g. "cmd+c", "shift+tab", "cmd+shift+t".',
-    parameters: Type.Object({
-      combo: Type.String({ description: 'the key chord, "+"-separated' })
+      combo: Type.String({
+        description: 'the key or "+"-separated chord'
+      })
     })
   },
   {
     name: 'wait',
     description:
-      'Do nothing for a while, then take a fresh screenshot. Use this to let the UI load or settle before acting again.',
+      'Do nothing for the given number of milliseconds, then take a fresh screenshot. Use this to let the UI load or settle before acting again.',
     parameters: Type.Object({
       ms: Type.Number({ description: 'milliseconds to wait' })
     })
@@ -124,7 +103,7 @@ export const ACTION_TOOLS: Tool[] = [
   {
     name: 'done',
     description:
-      'End the session — because the task is complete, or because you have tried what you reasonably can and are clearly stuck.',
+      'Call when the task is complete, or when you are clearly stuck and cannot proceed.',
     parameters: Type.Object({
       success: Type.Boolean({
         description: 'true if the task was accomplished'
@@ -136,60 +115,61 @@ export const ACTION_TOOLS: Tool[] = [
 
 /**
  * Maps a model tool call (name + arguments) to the typed `Action` the runtime
- * executes. Coerces the loosely-typed `arguments` and drops absent optionals so
- * the result compares cleanly. Throws on any name outside `ACTION_TOOLS`.
+ * executes. The model speaks in human verbs; several of them collapse onto the
+ * same internal `click` atom with a fixed `button`/`count`. Coerces the
+ * loosely-typed `arguments` so the result compares cleanly. Throws on any name
+ * outside `ACTION_TOOLS`.
  */
 export function toolCallToAction(
   name: string,
   args: Record<string, unknown>
 ): Action {
   switch (name) {
-    case 'moveMouse':
+    case 'moveTo':
       return {
         kind: 'moveMouse',
-        to: args.to as [number, number],
-        ...(args.durationMs === undefined
-          ? {}
-          : { durationMs: args.durationMs as number })
+        to: [Number(args.x), Number(args.y)]
       }
-    case 'mouseDown':
-      return { kind: 'mouseDown', button: args.button as MouseButton }
-    case 'mouseUp':
-      return { kind: 'mouseUp', button: args.button as MouseButton }
-    case 'wheel':
-      return { kind: 'wheel', dx: args.dx as number, dy: args.dy as number }
-    case 'keyDown':
-      return { kind: 'keyDown', key: args.key as string }
-    case 'keyUp':
-      return { kind: 'keyUp', key: args.key as string }
-    case 'click':
+    case 'leftClick':
       return {
         kind: 'click',
-        to: args.to as [number, number],
-        ...(args.button === undefined
-          ? {}
-          : { button: args.button as MouseButton }),
-        ...(args.count === undefined ? {} : { count: args.count as number })
+        to: [Number(args.x), Number(args.y)],
+        button: 'left'
       }
-    case 'type':
-      return { kind: 'type', text: args.text as string }
+    case 'doubleClick':
+      return {
+        kind: 'click',
+        to: [Number(args.x), Number(args.y)],
+        button: 'left',
+        count: 2
+      }
+    case 'rightClick':
+      return {
+        kind: 'click',
+        to: [Number(args.x), Number(args.y)],
+        button: 'right'
+      }
     case 'drag':
       return {
         kind: 'drag',
-        from: args.from as [number, number],
-        to: args.to as [number, number]
+        from: [Number(args.x1), Number(args.y1)],
+        to: [Number(args.x2), Number(args.y2)]
       }
-    case 'hotkey':
-      return { kind: 'hotkey', combo: args.combo as string }
+    case 'scroll':
+      return { kind: 'wheel', dx: Number(args.dx), dy: Number(args.dy) }
+    case 'type':
+      return { kind: 'type', text: String(args.text) }
+    case 'key':
+      return { kind: 'hotkey', combo: String(args.combo) }
     case 'wait':
-      return { kind: 'wait', ms: args.ms as number }
+      return { kind: 'wait', ms: Number(args.ms) }
     case 'askHuman':
-      return { kind: 'askHuman', question: args.question as string }
+      return { kind: 'askHuman', question: String(args.question) }
     case 'done':
       return {
         kind: 'done',
-        success: args.success as boolean,
-        summary: args.summary as string
+        success: Boolean(args.success),
+        summary: String(args.summary)
       }
     default:
       throw new Error(`unknown action: ${name}`)
