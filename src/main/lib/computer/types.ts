@@ -1,0 +1,91 @@
+// Computer Runtime — shared types.
+//
+// The block below is spec §2.1 ("The Runtime → Types") copied verbatim, with
+// `export` added so the rest of the module can import it. `HelperCommand` and
+// `InputHelper` (the `exodus-input` client contract) follow at the bottom.
+
+export type MouseButton = 'left' | 'right' | 'middle'
+
+export type Action =
+  // primitives
+  | { kind: 'moveMouse'; to: [number, number]; durationMs?: number }
+  | { kind: 'mouseDown'; button: MouseButton }
+  | { kind: 'mouseUp'; button: MouseButton }
+  | { kind: 'wheel'; dx: number; dy: number }
+  | { kind: 'keyDown'; key: string }
+  | { kind: 'keyUp'; key: string }
+  // atoms (decompose to primitives in hands.ts)
+  | {
+      kind: 'click'
+      to: [number, number]
+      button?: MouseButton
+      count?: number
+    }
+  | { kind: 'type'; text: string }
+  | { kind: 'drag'; from: [number, number]; to: [number, number] }
+  | { kind: 'hotkey'; combo: string } // "cmd+c", "shift+tab"
+  // control
+  | { kind: 'wait'; ms: number }
+  | { kind: 'askHuman'; question: string }
+  | { kind: 'done'; success: boolean; summary: string }
+
+export interface TargetWindow {
+  cgWindowId: number
+  app: string
+  bundleId: string
+  title: string
+  bounds: [number, number, number, number] // x, y, w, h in screen coords
+}
+
+export interface ComputerState {
+  step: number
+  target: Pick<TargetWindow, 'app' | 'title'>
+  viewport: { width: number; height: number } // window size
+  cursor: [number, number] // window-relative
+  screenshot: {
+    data: string
+    mimeType: 'image/png'
+    width: number
+    height: number
+  }
+}
+
+export type SessionOutcome =
+  | 'success'
+  | 'failed'
+  | 'aborted'
+  | 'abandoned'
+  | 'stuck'
+
+export interface SessionResult {
+  outcome: SessionOutcome
+  summary: string
+  steps: number
+  finalScreenshot?: ComputerState['screenshot']
+}
+
+// --- exodus-input client contract -----------------------------------------
+
+/**
+ * The primitive-level JSON `exodus-input input` reads from stdin, one object
+ * per line. `hands.ts` produces these; `helper.ts` serialises + sends them.
+ */
+export type HelperCommand =
+  | { op: 'move'; x: number; y: number }
+  | { op: 'down' | 'up'; button: MouseButton }
+  | { op: 'wheel'; dx: number; dy: number }
+  | { op: 'key'; code: number; down: boolean }
+
+export interface InputHelper {
+  listWindows(): Promise<TargetWindow[]>
+  /** PNG bytes of the window crop. */
+  screenshot(cgWindowId: number): Promise<Buffer>
+  /**
+   * Execute a batch of primitive commands. `clamp` (x, y, w, h screen rect) is
+   * passed through as `--clamp` so the helper keeps mouse points in-window.
+   */
+  send(
+    commands: HelperCommand[],
+    clamp?: [number, number, number, number]
+  ): Promise<void>
+}
