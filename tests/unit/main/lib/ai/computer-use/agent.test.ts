@@ -1,0 +1,230 @@
+import { describe, expect, it, vi } from 'vitest'
+
+// `agent.ts` imports `complete` from `@mariozechner/pi-ai` and `action-tools.ts`
+// imports `Type` from it. Neither `trimImages` nor `toolCallToAction` touches
+// the network — mock the module so the pure functions import cheaply.
+vi.mock('@mariozechner/pi-ai', () => ({
+  Type: {
+    Object: (o: unknown) => o,
+    Array: (_t: unknown, o?: unknown) => o ?? {},
+    Number: (o?: unknown) => o ?? {},
+    String: (o?: unknown) => o ?? {},
+    Boolean: (o?: unknown) => o ?? {},
+    Optional: (t: unknown) => t,
+    Union: (_t: unknown, o?: unknown) => o ?? {},
+    Literal: (v: unknown) => ({ const: v })
+  },
+  complete: vi.fn()
+}))
+
+const { trimImages } = await import('@main/lib/ai/computer-use/agent')
+const { toolCallToAction, ACTION_TOOLS } =
+  await import('@main/lib/ai/computer-use/action-tools')
+
+describe('toolCallToAction', () => {
+  // One row per inner action kind — plus the optional-field variants — so a
+  // `kind` typo or a `dx`/`dy` (or `from`/`to`) swap is caught.
+  const cases: Array<{
+    name: string
+    args: Record<string, unknown>
+    expected: unknown
+  }> = [
+    {
+      name: 'moveMouse',
+      args: { to: [10, 20] },
+      expected: { kind: 'moveMouse', to: [10, 20] }
+    },
+    {
+      name: 'moveMouse',
+      args: { to: [10, 20], durationMs: 250 },
+      expected: { kind: 'moveMouse', to: [10, 20], durationMs: 250 }
+    },
+    {
+      name: 'mouseDown',
+      args: { button: 'left' },
+      expected: { kind: 'mouseDown', button: 'left' }
+    },
+    {
+      name: 'mouseUp',
+      args: { button: 'right' },
+      expected: { kind: 'mouseUp', button: 'right' }
+    },
+    {
+      name: 'wheel',
+      args: { dx: 3, dy: -7 },
+      expected: { kind: 'wheel', dx: 3, dy: -7 }
+    },
+    {
+      name: 'keyDown',
+      args: { key: 'shift' },
+      expected: { kind: 'keyDown', key: 'shift' }
+    },
+    {
+      name: 'keyUp',
+      args: { key: 'cmd' },
+      expected: { kind: 'keyUp', key: 'cmd' }
+    },
+    {
+      name: 'click',
+      args: { to: [1, 2] },
+      expected: { kind: 'click', to: [1, 2] }
+    },
+    {
+      name: 'click',
+      args: { to: [1, 2], button: 'middle', count: 2 },
+      expected: { kind: 'click', to: [1, 2], button: 'middle', count: 2 }
+    },
+    {
+      name: 'type',
+      args: { text: 'hello world' },
+      expected: { kind: 'type', text: 'hello world' }
+    },
+    {
+      name: 'drag',
+      args: { from: [0, 1], to: [8, 9] },
+      expected: { kind: 'drag', from: [0, 1], to: [8, 9] }
+    },
+    {
+      name: 'hotkey',
+      args: { combo: 'cmd+c' },
+      expected: { kind: 'hotkey', combo: 'cmd+c' }
+    },
+    { name: 'wait', args: { ms: 800 }, expected: { kind: 'wait', ms: 800 } },
+    {
+      name: 'askHuman',
+      args: { question: 'enter the code' },
+      expected: { kind: 'askHuman', question: 'enter the code' }
+    },
+    {
+      name: 'done',
+      args: { success: true, summary: 'x' },
+      expected: { kind: 'done', success: true, summary: 'x' }
+    }
+  ]
+
+  it.each(cases)('maps $name (#$#)', ({ name, args, expected }) => {
+    expect(toolCallToAction(name, args)).toEqual(expected)
+  })
+
+  it('covers every kind in ACTION_TOOLS', () => {
+    const covered = new Set(cases.map((c) => c.name))
+    for (const tool of ACTION_TOOLS) {
+      expect(covered.has(tool.name)).toBe(true)
+    }
+  })
+
+  it('throws on an unknown tool name', () => {
+    expect(() => toolCallToAction('bogus', {})).toThrow(/unknown action/)
+  })
+
+  it('exposes one tool per inner action kind', () => {
+    expect(ACTION_TOOLS.map((t) => t.name).sort()).toEqual(
+      [
+        'askHuman',
+        'click',
+        'done',
+        'drag',
+        'hotkey',
+        'keyDown',
+        'keyUp',
+        'mouseDown',
+        'mouseUp',
+        'moveMouse',
+        'type',
+        'wait',
+        'wheel'
+      ].sort()
+    )
+  })
+})
+
+describe('trimImages', () => {
+  const msg = (step: number) => ({
+    role: 'toolResult' as const,
+    toolCallId: `tc${step}`,
+    toolName: 'click',
+    content: [
+      { type: 'text' as const, text: `step ${step} · cursor 0,0` },
+      { type: 'image' as const, data: `img${step}`, mimeType: 'image/png' }
+    ],
+    isError: false,
+    timestamp: 0
+  })
+
+  it('keeps images only on the last 3 image-bearing messages', () => {
+    const input = [msg(1), msg(2), msg(3), msg(4), msg(5), msg(6)]
+
+    const out = trimImages(input as never, 3)
+
+    for (const i of [0, 1, 2]) {
+      expect(out[i].content).toEqual([
+        { type: 'text', text: `step ${i + 1} · cursor 0,0` },
+        { type: 'text', text: '[screenshot omitted]' }
+      ])
+    }
+
+    for (const i of [3, 4, 5]) {
+      expect(out[i].content).toEqual([
+        { type: 'text', text: `step ${i + 1} · cursor 0,0` },
+        { type: 'image', data: `img${i + 1}`, mimeType: 'image/png' }
+      ])
+    }
+  })
+
+  it('returns a new array and does not mutate the input', () => {
+    const input = [msg(1), msg(2), msg(3), msg(4)]
+    const snapshot = JSON.stringify(input)
+
+    const out = trimImages(input as never, 3)
+
+    expect(out).not.toBe(input)
+    expect(JSON.stringify(input)).toBe(snapshot)
+    // message 0 is the only one trimmed; its object is a fresh copy
+    expect(out[0]).not.toBe(input[0])
+    expect(out[1]).toBe(input[1])
+  })
+
+  it('is a no-op when there are 3 or fewer image-bearing messages', () => {
+    const input = [msg(1), msg(2), msg(3)]
+    const out = trimImages(input as never, 3)
+    expect(out).toEqual(input)
+  })
+
+  it('passes image-free messages through and does not count them toward keep', () => {
+    const textOnly = (text: string) => ({
+      role: 'assistant' as const,
+      content: [{ type: 'text' as const, text }],
+      timestamp: 0
+    })
+    // image-bearing messages sit at indices 0, 2, 4; text-only at 1, 3
+    const input = [
+      msg(1),
+      textOnly('thinking a'),
+      msg(2),
+      textOnly('thinking b'),
+      msg(3)
+    ]
+
+    const out = trimImages(input as never, 2)
+
+    // only the oldest of the 3 image-bearing messages is trimmed
+    expect(out[0].content).toEqual([
+      { type: 'text', text: 'step 1 · cursor 0,0' },
+      { type: 'text', text: '[screenshot omitted]' }
+    ])
+    // image-free messages are returned by reference, untouched
+    expect(out[1]).toBe(input[1])
+    expect(out[3]).toBe(input[3])
+    // the last 2 image-bearing messages keep their image
+    expect(out[2].content[1]).toEqual({
+      type: 'image',
+      data: 'img2',
+      mimeType: 'image/png'
+    })
+    expect(out[4].content[1]).toEqual({
+      type: 'image',
+      data: 'img3',
+      mimeType: 'image/png'
+    })
+  })
+})
