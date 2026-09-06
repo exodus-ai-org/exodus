@@ -1,5 +1,5 @@
 {
-  "id": "69e4e4c4-2f5b-4529-a2fc-8ec19a884dba",
+  "id": "b37ed4cd-ca4f-453f-b888-a5f4d7a188bb",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1811,6 +1811,12 @@
         },
         "knowledgeBase": {
           "name": "knowledgeBase",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "computerUse": {
+          "name": "computerUse",
           "type": "jsonb",
           "primaryKey": false,
           "notNull": false

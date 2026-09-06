@@ -265,6 +265,7 @@ CREATE TABLE "settings" (
 	"webSearch" jsonb,
 	"fullTextSearch" jsonb,
 	"knowledgeBase" jsonb,
+	"computerUse" jsonb,
 	"discover" jsonb,
 	"image" jsonb,
 	"deepResearch" jsonb,

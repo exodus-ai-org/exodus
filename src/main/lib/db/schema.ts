@@ -3,6 +3,7 @@ import {
   VoiceSchema,
   DeepResearchSchema,
   DiscoverSchema,
+  ComputerUseSchema,
   GoogleCloudSchema,
   ImageSchema,
   KeyboardShortcutsSchema,
@@ -153,6 +154,7 @@ export const settings = pgTable('settings', {
     jsonb('fullTextSearch').$type<z.infer<typeof FullTextSearchSchema>>(),
   knowledgeBase:
     jsonb('knowledgeBase').$type<z.infer<typeof KnowledgeBaseSchema>>(),
+  computerUse: jsonb('computerUse').$type<z.infer<typeof ComputerUseSchema>>(),
   discover: jsonb('discover').$type<z.infer<typeof DiscoverSchema>>(),
   image: jsonb('image').$type<z.infer<typeof ImageSchema>>(),
   deepResearch:

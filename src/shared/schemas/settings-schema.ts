@@ -103,6 +103,15 @@ export const KnowledgeBaseSchema = z.object({
   chunkTopK: formNumber(z.number().gte(1).lte(100)).nullish() // default 10
 })
 
+export const ComputerUseSchema = z.object({
+  enabled: z.boolean().default(false),
+  targetAllowlist: z.array(z.string()).default([]),
+  model: z.enum(['claude']).default('claude'),
+  maxSteps: formNumber(z.number().gte(1).lte(100)).nullish(),
+  settleMs: formNumber(z.number().gte(100).lte(5000)).nullish(),
+  askHumanTimeoutMs: formNumber(z.number().gte(10_000).lte(1_800_000)).nullish()
+})
+
 export const DiscoverSchema = z.object({
   enabled: z.boolean().default(false),
   topicCount: formNumber(z.number().gte(1).lte(8)).nullish(), // default 4
@@ -216,6 +225,7 @@ export const SettingsSchema = z.object({
   webSearch: WebSearchSchema.nullish(),
   fullTextSearch: FullTextSearchSchema.nullish(),
   knowledgeBase: KnowledgeBaseSchema.nullish(),
+  computerUse: ComputerUseSchema.nullish(),
   discover: DiscoverSchema.nullish(),
   image: ImageSchema.nullish(),
   deepResearch: DeepResearchSchema.nullish(),

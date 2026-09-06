@@ -41,6 +41,7 @@ type KnownLogSurface =
   | 'jobs'
   | 'knowledge-base'
   | 'discover'
+  | 'computer'
 
 // Open union: known surfaces keep editor autocomplete, any string still
 // type-checks — new subsystems no longer have to edit this list.
