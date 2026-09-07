@@ -3,6 +3,8 @@ import path, { resolve } from 'path'
 import react from '@vitejs/plugin-react'
 import { defineConfig } from 'electron-vite'
 import type { Plugin } from 'vite'
+
+import { stripDataTestId } from './src/shared/utils/strip-test-id'
 // import { visualizer } from 'rollup-plugin-visualizer'
 
 const stripTestIds = process.env.STRIP_TEST_IDS === '1'
@@ -15,7 +17,9 @@ const stripTestIds = process.env.STRIP_TEST_IDS === '1'
  * Note: @vitejs/plugin-react v6 uses OXC (not Babel), so babel.plugins is
  * ignored — this source-level transform hook is necessary.
  * No renderChunk hook: third-party libs carrying their own data-testid are
- * out of scope and left untouched.
+ * out of scope and left untouched. The strip itself lives in
+ * `stripDataTestId` (unit-tested — a dynamic `data-testid={`…${x}…`}` broke
+ * the old inline regex and only surfaced in a release build).
  */
 function stripTestIdPlugin(): Plugin {
   return {
@@ -23,10 +27,7 @@ function stripTestIdPlugin(): Plugin {
     enforce: 'pre',
     transform(code, id) {
       if (!/\.[tj]sx$/.test(id) || /node_modules/.test(id)) return
-      const stripped = code
-        .replace(/\s+data-testid=\{[^}]*\}/g, '')
-        .replace(/\s+data-testid="[^"]*"/g, '')
-        .replace(/\s+data-testid='[^']*'/g, '')
+      const stripped = stripDataTestId(code)
       if (stripped === code) return
       return { code: stripped, map: null }
     }
