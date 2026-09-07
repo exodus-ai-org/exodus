@@ -102,7 +102,7 @@ We always keep the developer tools (e.g., <kbd>Command</kbd> + <kbd>Option</kbd>
 
 Since Exodus is not available on the App Store, you may encounter the following issue when you open it for the first time. Please follow the steps below to resolve it:
 
-![cant-be-open-in-macos](./screenshots/cant-be-open-in-macos.png)
+![cant-be-open-in-macos](./screenshots/cannot-be-open-in-macos.png)
 
 1. Move `Exodus.app` to the `/Applications` directory.
 2. Open your terminal app and execute the command `chmod +x /Applications/Exodus.app/Contents/MacOS/Exodus`.
