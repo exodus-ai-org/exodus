@@ -223,8 +223,7 @@ Payloads (`src/main/lib/jobs/types.ts`):
 
 ```ts
 export type KbSyncPayload =
-  | { op: 'upsert'; docId: string }
-  | { op: 'delete'; lightragDocId: string }
+  { op: 'upsert'; docId: string } | { op: 'delete'; lightragDocId: string }
 ```
 
 `src/main/lib/jobs/handlers.ts` — `'kb-sync'` handler. First step for both ops:

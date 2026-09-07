@@ -1,6 +1,6 @@
+import type { Settings } from '@shared/schemas/settings-schema'
 import { getHttpErrorMessage } from '@shared/utils/http'
 import { sileo } from 'sileo'
-import type { Settings } from 'src/shared/schemas/settings-schema'
 import useSWR from 'swr'
 
 import { updateSettings as updateSettingsService } from '@/services/settings'

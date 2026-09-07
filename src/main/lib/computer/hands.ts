@@ -177,9 +177,11 @@ function decomposeHotkey(combo: string): HelperCommand[] {
   const key = tokens[tokens.length - 1]
   const modifiers = tokens.slice(0, -1)
   return [
-    ...modifiers.map(
-      (m): HelperCommand => ({ op: 'key', code: keycode(m), down: true })
-    ),
+    ...modifiers.map((m): HelperCommand => ({
+      op: 'key',
+      code: keycode(m),
+      down: true
+    })),
     { op: 'key', code: keycode(key), down: true },
     { op: 'key', code: keycode(key), down: false },
     ...[...modifiers]

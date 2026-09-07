@@ -573,8 +573,7 @@ export class LightRagClient {
       status: String(body.status ?? 'unknown'),
       llmModel: (cfg.llm_model ?? body.llm_model) as string | undefined,
       embeddingModel: (cfg.embedding_model ?? body.embedding_model) as
-        | string
-        | undefined,
+        string | undefined,
       embeddingDim:
         Number(cfg.embedding_dim ?? body.embedding_dim) || undefined,
       documentCount:
@@ -818,10 +817,7 @@ git commit -m "feat(kb): resolveKnowledgeBase (cached, never-throws)"
 
 ```ts
 export type QueueName =
-  | 'index-message'
-  | 'lcm-post-turn'
-  | 'memory-consolidate'
-  | 'kb-sync'
+  'index-message' | 'lcm-post-turn' | 'memory-consolidate' | 'kb-sync'
 
 export const QUEUE_NAMES: QueueName[] = [
   'index-message',
@@ -833,8 +829,7 @@ export const QUEUE_NAMES: QueueName[] = [
 // ...existing JobMessage interface unchanged...
 
 export type KbSyncPayload =
-  | { op: 'upsert'; docId: string }
-  | { op: 'delete'; lightragDocId: string }
+  { op: 'upsert'; docId: string } | { op: 'delete'; lightragDocId: string }
 ```
 
 - [ ] **Step 2: Write `reconcile.ts` (with `contentHash`)**
@@ -1455,11 +1450,7 @@ git commit -m "feat(kb): /api/knowledge-base router, drop philharmonic /knowledg
   - `src/shared/types/knowledge-base.ts`:
     ```ts
     export type KnowledgeIndexStatus =
-      | 'pending'
-      | 'processing'
-      | 'processed'
-      | 'failed'
-      | 'stale'
+      'pending' | 'processing' | 'processed' | 'failed' | 'stale'
     export interface KnowledgeDocData {
       id: string
       title: string

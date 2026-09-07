@@ -116,10 +116,7 @@ wrapper around the existing, otherwise-unmodified function:
 
 ```ts
 type QueueName =
-  | 'index-message'
-  | 'lcm-post-turn'
-  | 'memory-write-judge'
-  | 'session-summary'
+  'index-message' | 'lcm-post-turn' | 'memory-write-judge' | 'session-summary'
 
 export const handlers: Record<QueueName, (payload: unknown) => Promise<void>> =
   {

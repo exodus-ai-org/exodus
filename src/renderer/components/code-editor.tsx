@@ -1,10 +1,13 @@
 import MonacoEditor, { loader } from '@monaco-editor/react'
 import * as monaco from 'monaco-editor'
-import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
-import cssWorker from 'monaco-editor/esm/vs/language/css/css.worker?worker'
-import htmlWorker from 'monaco-editor/esm/vs/language/html/html.worker?worker'
-import jsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
-import tsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
+// monaco-editor 0.56 added an `exports` map (`"./*": "./esm/vs/*.js"`), so the
+// worker subpaths lost their `esm/vs/` prefix — the old specifier now resolves
+// to a doubled path and fails in both dev and the rolldown build.
+import editorWorker from 'monaco-editor/editor/editor.worker?worker'
+import cssWorker from 'monaco-editor/language/css/css.worker?worker'
+import htmlWorker from 'monaco-editor/language/html/html.worker?worker'
+import jsonWorker from 'monaco-editor/language/json/json.worker?worker'
+import tsWorker from 'monaco-editor/language/typescript/ts.worker?worker'
 import { useTheme } from 'next-themes'
 import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
 
