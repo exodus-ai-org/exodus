@@ -34,6 +34,7 @@ export enum ErrorCode {
   VALIDATION_NO_USER_MESSAGE = 'VALIDATION_NO_USER_MESSAGE',
   VALIDATION_INVALID_INPUT = 'VALIDATION_INVALID_INPUT',
   VALIDATION_MISSING_FIELD = 'VALIDATION_MISSING_FIELD',
+  KNOWLEDGE_BASE_NOT_CONFIGURED = 'KNOWLEDGE_BASE_NOT_CONFIGURED',
 
   // ── Rate Limit Errors (429) ────────────────────────────────────────────────
   RATE_LIMIT_CHAT = 'RATE_LIMIT_CHAT',
@@ -104,6 +105,7 @@ export const ErrorCodeToStatus: Record<ErrorCode, number> = {
   [ErrorCode.VALIDATION_NO_USER_MESSAGE]: 400,
   [ErrorCode.VALIDATION_INVALID_INPUT]: 400,
   [ErrorCode.VALIDATION_MISSING_FIELD]: 400,
+  [ErrorCode.KNOWLEDGE_BASE_NOT_CONFIGURED]: 400,
 
   // Rate Limit Errors
   [ErrorCode.RATE_LIMIT_CHAT]: 429,
@@ -183,6 +185,8 @@ export const ErrorMessages: Record<ErrorCode, string> = {
     'No user message found in the request.',
   [ErrorCode.VALIDATION_INVALID_INPUT]: 'Invalid input provided.',
   [ErrorCode.VALIDATION_MISSING_FIELD]: 'Required field is missing.',
+  [ErrorCode.KNOWLEDGE_BASE_NOT_CONFIGURED]:
+    'The knowledge base is not configured.',
 
   // Rate Limit Errors
   [ErrorCode.RATE_LIMIT_CHAT]:

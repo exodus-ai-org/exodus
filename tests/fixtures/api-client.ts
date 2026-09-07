@@ -25,7 +25,7 @@ export class ApiClient {
 
   async post<T = unknown>(
     path: string,
-    body: unknown
+    body?: unknown
   ): Promise<{ status: number; data: T }> {
     const res = await fetch(`${this.baseUrl}${path}`, {
       method: 'POST',
@@ -194,8 +194,8 @@ export class ApiClient {
 
   // ── Memory ─────────────────────────────────────────────────────────────
 
-  async getMemories(type?: string) {
-    const qs = type ? `?type=${type}` : ''
+  async getMemories(section?: string) {
+    const qs = section ? `?section=${section}` : ''
     return this.get<Array<Record<string, unknown>>>(`/api/memory${qs}`)
   }
 

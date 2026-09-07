@@ -4,8 +4,7 @@ import { fetcher } from '@shared/utils/http'
 
 import type {
   ConversationData,
-  ConversationMessageData,
-  KnowledgeDocData
+  ConversationMessageData
 } from '@/stores/philharmonic'
 
 const BASE = '/api/philharmonic'
@@ -69,32 +68,6 @@ export const interruptConversation = (id: string) =>
  */
 export const getActivePlan = (conversationId: string) =>
   fetcher<PlanDto | null>(`${BASE}/conversations/${conversationId}/plan`)
-
-export const getKnowledgeDocs = () =>
-  fetcher<KnowledgeDocData[]>(`${BASE}/knowledge`)
-export const createKnowledgeDoc = (data: {
-  title: string
-  content: string
-  // null = General doc (visible to every Group); omit to default to null
-  teamId?: string | null
-}) =>
-  fetcher<KnowledgeDocData>(`${BASE}/knowledge`, {
-    method: 'POST',
-    body: data as never
-  })
-export const updateKnowledgeDoc = (
-  id: string,
-  data: { title?: string; content?: string; teamId?: string | null }
-) =>
-  fetcher<KnowledgeDocData>(`${BASE}/knowledge/${id}`, {
-    method: 'PUT',
-    body: data as never
-  })
-export const deleteKnowledgeDoc = (id: string) =>
-  fetcher<void>(`${BASE}/knowledge/${id}`, {
-    method: 'DELETE',
-    responseType: 'text'
-  })
 
 export interface PhilharmonicCostSummary {
   totalCost: number

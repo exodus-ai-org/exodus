@@ -6,6 +6,9 @@ import JSZip from 'jszip'
 
 import { createAutoBackup } from '../../backup'
 import { exportData, importData, resetAllData } from '../../db/queries'
+import type { Settings } from '../../db/schema'
+import { logger } from '../../logger'
+import { resolveSearchProvider } from '../../search/resolve-search-provider'
 import { importDataSchema } from '../schemas/db-io'
 import {
   handleDatabaseOperation,
@@ -22,10 +25,25 @@ const tableNames = [
   'vote',
   'settings',
   'memory',
-  'session_summary',
   'deep_research',
   'deep_research_message'
 ]
+
+/**
+ * Fire-and-forget: `resetAllData()` TRUNCATEs the `message` table, so the
+ * Elasticsearch index has to be cleared wholesale to match. Never awaited — a
+ * search-side failure must not fail the reset, which already succeeded.
+ */
+function clearSearchIndexInBackground(settings: Settings): void {
+  const { elasticsearch } = resolveSearchProvider(settings)
+  if (!elasticsearch) return
+
+  elasticsearch.deleteAll().catch((error) => {
+    logger.error('search', 'Failed to clear the Elasticsearch index', {
+      error: String(error)
+    })
+  })
+}
 
 async function createZipFromBlobs(
   files: { filename: string; arraybuffer: ArrayBuffer }[]
@@ -103,6 +121,7 @@ dbIo.post('/import-all', async (c) => {
 
   // Clear existing data
   await resetAllData()
+  clearSearchIndexInBackground(c.get('settings'))
 
   // Import each CSV found in the ZIP
   for (const [fileName, zipEntry] of Object.entries(zip.files)) {
@@ -120,6 +139,7 @@ dbIo.post('/import-all', async (c) => {
 dbIo.delete('/reset', async (c) => {
   await createAutoBackup()
   await handleDatabaseOperation(() => resetAllData(), 'Failed to reset data')
+  clearSearchIndexInBackground(c.get('settings'))
   return successResponse(c, { success: true })
 })
 

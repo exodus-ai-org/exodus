@@ -21,7 +21,7 @@ export function UpcomingList({
 
   if (groups.length === 0) {
     return (
-      <div className="flex h-full items-center justify-center px-6 text-center text-sm text-(--ph-text-muted)">
+      <div className="text-muted-foreground flex h-full items-center justify-center px-6 text-center text-sm">
         No upcoming one-off tasks. Schedule one to see it here.
       </div>
     )
@@ -32,7 +32,7 @@ export function UpcomingList({
       <div className="space-y-4 p-3">
         {groups.map((group) => (
           <div key={group.day.toISOString()}>
-            <div className="sticky top-0 z-10 mb-2 bg-(--ph-surface) py-1 text-xs font-semibold text-(--ph-text-muted)">
+            <div className="bg-card text-muted-foreground sticky top-0 z-10 mb-2 py-1 text-xs font-semibold">
               {group.label}
             </div>
             <div className="space-y-2">

@@ -266,6 +266,24 @@ export async function cleanupStaleWaitingTasks() {
     .where(eq(task.status, 'waiting_for_user'))
 }
 
+/**
+ * One-time cleanup: one-off tasks stuck in `running` → `failed`.
+ *
+ * `running` is only ever set by `claimOneOffTask()`'s compare-and-swap and
+ * cleared by `runDueOneOffTasks()` once execution finishes (to `completed`
+ * or `failed`). A task still `running` at startup means the previous
+ * process died mid-execution — reconciled to `failed` (not reset to
+ * `pending`) since a crash mid-run may have left partial side effects, and
+ * silently auto-retrying risks duplicating work. Matches
+ * `cleanupStaleWaitingTasks()`'s precedent.
+ */
+export async function cleanupStaleRunningTasks() {
+  await db
+    .update(task)
+    .set({ status: 'failed', updatedAt: new Date() })
+    .where(eq(task.status, 'running'))
+}
+
 /** All philharmonic executions joined to their task's conversation, for Costs. */
 export async function getPhilharmonicCostRows() {
   return db

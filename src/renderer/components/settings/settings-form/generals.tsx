@@ -1,40 +1,58 @@
-import type { ColorTone } from '@shared/schemas/settings-schema'
+import { TEST_IDS } from '@shared/constants/test-ids'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { Moon, Sun, SunMoon } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useEffect } from 'react'
 
 import { Theme } from '@/components/theme-provider'
-import { Input } from '@/components/ui/input'
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { useTone } from '@/hooks/use-tone'
 import { setLoginItem, setMenuBar } from '@/lib/ipc'
 
 import { SettingsRow, SettingsSection } from '../settings-row'
 import { AvatarUploader } from './avatar-uploader'
 import { LockPrivacy } from './lock-privacy'
 
-const TONE_PRESETS: { value: ColorTone; label: string; color: string }[] = [
-  { value: 'neutral', label: 'Neutral', color: 'oklch(0.52 0 0)' },
-  { value: 'emerald', label: 'Emerald', color: 'oklch(0.52 0.17 160)' },
-  { value: 'blue', label: 'Blue', color: 'oklch(0.52 0.17 230)' },
-  { value: 'violet', label: 'Violet', color: 'oklch(0.52 0.17 285)' },
-  { value: 'rose', label: 'Rose', color: 'oklch(0.52 0.17 350)' },
-  { value: 'orange', label: 'Orange', color: 'oklch(0.52 0.17 55)' },
-  { value: 'yellow', label: 'Yellow', color: 'oklch(0.52 0.17 85)' }
+const APPEARANCE_MODES: {
+  value: Theme
+  label: string
+  icon: typeof Sun
+}[] = [
+  { value: 'system', label: 'System', icon: SunMoon },
+  { value: 'light', label: 'Light', icon: Sun },
+  { value: 'dark', label: 'Dark', icon: Moon }
 ]
 
-export function General({ form }: { form: UseFormReturnType }) {
+function AppearanceSwitcher() {
   const { theme, setTheme } = useTheme()
-  const { tone, setTone } = useTone()
+
+  return (
+    <div className="bg-muted inline-flex w-fit gap-0.5 rounded-full p-0.5">
+      {APPEARANCE_MODES.map(({ value, label, icon: Icon }) => (
+        <span key={value}>
+          <input
+            className="peer sr-only"
+            type="radio"
+            id={`appearance-mode-${value}`}
+            name="appearance-mode"
+            value={value}
+            checked={theme === value}
+            onChange={(event) => setTheme(event.target.value)}
+          />
+          <label
+            htmlFor={`appearance-mode-${value}`}
+            data-testid={`${TEST_IDS.settings.themeMode}-${value}`}
+            aria-label={label}
+            className="text-muted-foreground peer-checked:bg-background peer-checked:text-foreground flex size-7 cursor-pointer items-center justify-center rounded-full transition-colors peer-checked:shadow-sm"
+          >
+            <Icon className="size-4" />
+          </label>
+        </span>
+      ))}
+    </div>
+  )
+}
+
+export function General({ form }: { form: UseFormReturnType }) {
   const runOnStartup = form.watch('runOnStartup') ?? false
   const menuBarEnabled = form.watch('menuBar') ?? true
 
@@ -53,55 +71,7 @@ export function General({ form }: { form: UseFormReturnType }) {
           label="Theme"
           description="Choose light, dark, or match your system preference"
         >
-          <Select
-            value={theme}
-            onValueChange={(value) => value && setTheme(value as Theme)}
-          >
-            <SelectTrigger className="hover:bg-accent w-fit border-none shadow-none">
-              <SelectValue placeholder="Select theme">
-                {(val: string) =>
-                  ({ light: 'Light', dark: 'Dark', system: 'System' })[val] ??
-                  val
-                }
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent className="no-drag w-full">
-              <SelectGroup>
-                <SelectItem value="light">
-                  <Sun /> Light
-                </SelectItem>
-                <SelectItem value="dark">
-                  <Moon /> Dark
-                </SelectItem>
-                <SelectItem value="system">
-                  <SunMoon /> System
-                </SelectItem>
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </SettingsRow>
-
-        <SettingsRow
-          label="Color Tone"
-          description="Choose a color accent for the interface"
-        >
-          <div className="flex items-center gap-2">
-            {TONE_PRESETS.map((preset) => (
-              <button
-                key={preset.value}
-                type="button"
-                title={preset.label}
-                aria-label={preset.label}
-                className={`h-6 w-6 rounded-full transition-all ${
-                  tone === preset.value
-                    ? 'ring-ring ring-offset-background ring-2 ring-offset-2'
-                    : 'hover:scale-110'
-                }`}
-                style={{ backgroundColor: preset.color }}
-                onClick={() => setTone(preset.value)}
-              />
-            ))}
-          </div>
+          <AppearanceSwitcher />
         </SettingsRow>
 
         <SettingsRow
@@ -124,17 +94,6 @@ export function General({ form }: { form: UseFormReturnType }) {
         </SettingsRow>
 
         <SettingsRow
-          label="Network Proxy"
-          description="Route all outgoing requests through a proxy, e.g. http://127.0.0.1:7897 or socks5://127.0.0.1:7897"
-          layout="vertical"
-        >
-          <Input
-            placeholder="http://127.0.0.1:7897"
-            {...form.register('proxy')}
-          />
-        </SettingsRow>
-
-        <SettingsRow
           label="Assistant Avatar"
           description="Personalize your assistant with an avatar for a better user experience."
         >
@@ -144,10 +103,7 @@ export function General({ form }: { form: UseFormReturnType }) {
         </SettingsRow>
       </SettingsSection>
 
-      <div className="mt-8 flex flex-col gap-3">
-        <h3 className="text-sm font-medium">Lock &amp; Privacy</h3>
-        <LockPrivacy />
-      </div>
+      <LockPrivacy />
     </>
   )
 }

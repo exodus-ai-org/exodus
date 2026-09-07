@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 // at the call site causes React to remount when the employee changes, so the
 // useState initializer always receives the fresh value on mount.
 
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
   Popover,
@@ -20,7 +21,6 @@ import {
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
-import { cn } from '@/lib/utils'
 import { getMcpServers, type McpServerItem } from '@/services/mcp-service'
 import {
   getAgentMemories,
@@ -34,7 +34,7 @@ import { EmployeeAvatar } from './employee-avatar'
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mb-1 text-[11px] tracking-wider text-[var(--ph-text-muted)] uppercase">
+    <div className="text-muted-foreground mb-1 text-[11px] tracking-wider uppercase">
       {children}
     </div>
   )
@@ -74,12 +74,12 @@ export function EmployeeEditor({
 
   return (
     <div className="flex h-full flex-col">
-      <header className="flex h-14 shrink-0 items-center border-b border-[var(--ph-border)] pr-14 pl-5">
+      <header className="border-border flex h-14 shrink-0 items-center border-b pr-14 pl-5">
         <div className="min-w-0">
-          <div className="text-[11px] tracking-wider text-[var(--ph-text-muted)] uppercase">
+          <div className="text-muted-foreground text-[11px] tracking-wider uppercase">
             Employee
           </div>
-          <div className="truncate text-sm font-semibold text-[var(--ph-text)]">
+          <div className="text-foreground truncate text-sm font-semibold">
             {draft.name || 'New employee'}
           </div>
         </div>
@@ -99,16 +99,13 @@ export function EmployeeEditor({
                 size={64}
               />
               <span
-                className="absolute right-0 bottom-0 flex h-6 w-6 items-center justify-center rounded-full bg-[var(--ph-surface)]"
+                className="bg-card absolute right-0 bottom-0 flex h-6 w-6 items-center justify-center rounded-full"
                 style={{ boxShadow: '0 1px 4px rgba(0,0,0,0.12)' }}
               >
-                <Pencil className="h-3 w-3 text-[var(--ph-text-muted)]" />
+                <Pencil className="text-muted-foreground h-3 w-3" />
               </span>
             </PopoverTrigger>
-            <PopoverContent
-              align="start"
-              className="w-80 rounded-[var(--ph-radius-lg)] border-[var(--ph-border)] bg-[var(--ph-surface)] shadow-[var(--ph-shadow-card)]"
-            >
+            <PopoverContent align="start" className="w-80">
               <AvatarPicker
                 seed={draft.avatarSeed}
                 style={draft.avatarStyle}
@@ -121,7 +118,7 @@ export function EmployeeEditor({
             <Input
               value={draft.name}
               onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-              className="rounded-[var(--ph-radius-md)] border-[var(--ph-border)] bg-[var(--ph-surface-sunken)]"
+              className="border-border bg-muted rounded-lg"
             />
           </div>
         </div>
@@ -129,13 +126,13 @@ export function EmployeeEditor({
         {/* Team + Description */}
         <div>
           <FieldLabel>
-            Team <span style={{ color: 'var(--ph-danger)' }}>*</span>
+            Team <span className="text-destructive">*</span>
           </FieldLabel>
           <Select
             value={draft.teamId ?? ''}
             onValueChange={(v) => setDraft({ ...draft, teamId: v })}
           >
-            <SelectTrigger className="rounded-[var(--ph-radius-md)] border-[var(--ph-border)] bg-[var(--ph-surface-sunken)]">
+            <SelectTrigger className="border-border bg-muted rounded-lg">
               <SelectValue placeholder="Select a team" />
             </SelectTrigger>
             <SelectContent>
@@ -147,7 +144,7 @@ export function EmployeeEditor({
               ))}
             </SelectContent>
           </Select>
-          <p className="mt-1 text-xs text-[var(--ph-text-muted)]">
+          <p className="text-muted-foreground mt-1 text-xs">
             Every employee belongs to a team — the team's system prompt is
             applied to all its members.
           </p>
@@ -160,7 +157,7 @@ export function EmployeeEditor({
             onChange={(e) =>
               setDraft({ ...draft, description: e.target.value })
             }
-            className="rounded-[var(--ph-radius-md)] border-[var(--ph-border)] bg-[var(--ph-surface-sunken)]"
+            className="border-border bg-muted rounded-lg"
             placeholder="One line about what this employee does."
           />
         </div>
@@ -172,7 +169,7 @@ export function EmployeeEditor({
             onChange={(e) =>
               setDraft({ ...draft, systemPrompt: e.target.value })
             }
-            className="min-h-24 rounded-[var(--ph-radius-md)] border-[var(--ph-border)] bg-[var(--ph-surface-sunken)]"
+            className="border-border bg-muted min-h-24 rounded-lg"
             placeholder="Layered on top of the team's prompt."
           />
         </div>
@@ -180,7 +177,7 @@ export function EmployeeEditor({
         <div>
           <FieldLabel>Skills</FieldLabel>
           {skills.length === 0 ? (
-            <span className="text-xs text-[var(--ph-text-muted)]">
+            <span className="text-muted-foreground text-xs">
               No skills installed yet.
             </span>
           ) : (
@@ -207,7 +204,7 @@ export function EmployeeEditor({
         <div>
           <FieldLabel>MCP servers</FieldLabel>
           {mcpServers.length === 0 ? (
-            <span className="text-xs text-[var(--ph-text-muted)]">
+            <span className="text-muted-foreground text-xs">
               No MCP servers configured yet.
             </span>
           ) : (
@@ -229,7 +226,7 @@ export function EmployeeEditor({
               ))}
             </ToggleGroup>
           )}
-          <p className="mt-1 text-xs text-[var(--ph-text-muted)]">
+          <p className="text-muted-foreground mt-1 text-xs">
             If none are selected, the employee can use all available servers.
           </p>
         </div>
@@ -237,15 +234,11 @@ export function EmployeeEditor({
         {!isNew && (
           <div>
             <FieldLabel>Memory (read-only)</FieldLabel>
-            <div className="space-y-1 text-xs text-[var(--ph-text-muted)]">
+            <div className="text-muted-foreground space-y-1 text-xs">
               {memories.length === 0 && <span>No accumulated memory yet</span>}
               {memories.map((m) => (
-                <div
-                  key={m.id}
-                  className={cn('rounded-[var(--ph-radius-sm)] p-1.5')}
-                  style={{ background: 'var(--ph-surface-sunken)' }}
-                >
-                  <b className="text-[var(--ph-text)]">{m.key}</b>:{' '}
+                <div key={m.id} className="bg-muted rounded-md p-1.5">
+                  <b className="text-foreground">{m.key}</b>:{' '}
                   {JSON.stringify(m.value)}
                 </div>
               ))}
@@ -254,24 +247,17 @@ export function EmployeeEditor({
         )}
       </div>
 
-      <footer className="flex h-14 shrink-0 items-center justify-end gap-1.5 border-t border-[var(--ph-border)] px-5">
-        <button
-          type="button"
-          onClick={onClose}
-          className="h-8 rounded-[var(--ph-radius-md)] px-3.5 text-xs font-medium text-[var(--ph-text)]"
-          style={{ background: 'var(--ph-canvas)' }}
-        >
+      <footer className="border-border flex h-14 shrink-0 items-center justify-end gap-1.5 border-t px-5">
+        <Button variant="ghost" size="sm" onClick={onClose}>
           Cancel
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
+          size="sm"
           onClick={() => canSave && onSave(draft)}
           disabled={!canSave}
-          className="h-8 rounded-[var(--ph-radius-md)] px-3.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-          style={{ background: 'var(--ph-primary)' }}
         >
           {isNew ? 'Create' : 'Save'}
-        </button>
+        </Button>
       </footer>
     </div>
   )

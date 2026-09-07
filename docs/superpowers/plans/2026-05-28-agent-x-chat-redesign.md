@@ -4088,11 +4088,7 @@ In `agent-x-layout/index.tsx`, change the page union and titles; make `chat` the
 
 ```typescript
 export type AgentXPage =
-  | 'chat'
-  | 'employees'
-  | 'knowledge'
-  | 'dashboard'
-  | 'costs'
+  'chat' | 'employees' | 'knowledge' | 'dashboard' | 'costs'
 
 const pageTitles: Record<AgentXPage, string> = {
   chat: '工作群',

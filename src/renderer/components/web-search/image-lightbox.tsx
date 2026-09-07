@@ -5,6 +5,7 @@ import { useEffect } from 'react'
 import { createPortal } from 'react-dom'
 
 import { SourceFavicon } from '@/components/source-favicon'
+import { Button } from '@/components/ui/button'
 
 import type { GalleryImage } from './collect-gallery-images'
 
@@ -39,15 +40,16 @@ export function ImageLightbox({
   return createPortal(
     <div className="bg-background/95 fixed inset-0 z-[100] flex flex-col">
       <div className="flex h-12 shrink-0 items-center px-3">
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="icon-sm"
           onClick={onClose}
           data-testid={TEST_IDS.gallery.lightboxClose}
           aria-label="Close"
-          className="text-muted-foreground hover:text-foreground inline-flex size-8 items-center justify-center rounded-md"
+          className="text-muted-foreground"
         >
           <XIcon size={18} />
-        </button>
+        </Button>
         <div className="text-muted-foreground flex-1 text-center text-sm tabular-nums">
           {index + 1} / {images.length}
         </div>
@@ -55,16 +57,17 @@ export function ImageLightbox({
       </div>
 
       <div className="relative flex min-h-0 flex-1 items-center justify-center px-16 pb-4">
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="icon-lg"
           onClick={() => !atStart && onIndexChange(index - 1)}
           disabled={atStart}
           data-testid={TEST_IDS.gallery.lightboxPrev}
           aria-label="Previous"
-          className="text-muted-foreground hover:text-foreground absolute left-3 inline-flex size-10 items-center justify-center rounded-full disabled:opacity-30"
+          className="text-muted-foreground absolute left-3 rounded-full disabled:opacity-30"
         >
           <ChevronLeftIcon size={24} />
-        </button>
+        </Button>
 
         <img
           src={current.url}
@@ -72,16 +75,17 @@ export function ImageLightbox({
           className="max-h-full max-w-full object-contain"
         />
 
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="icon-lg"
           onClick={() => !atEnd && onIndexChange(index + 1)}
           disabled={atEnd}
           data-testid={TEST_IDS.gallery.lightboxNext}
           aria-label="Next"
-          className="text-muted-foreground hover:text-foreground absolute right-3 inline-flex size-10 items-center justify-center rounded-full disabled:opacity-30"
+          className="text-muted-foreground absolute right-3 rounded-full disabled:opacity-30"
         >
           <ChevronRightIcon size={24} />
-        </button>
+        </Button>
       </div>
 
       <a

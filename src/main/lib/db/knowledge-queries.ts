@@ -1,24 +1,35 @@
 // src/main/lib/db/knowledge-queries.ts
-import { desc, eq, isNull, or, inArray } from 'drizzle-orm'
+import { and, desc, eq, isNotNull } from 'drizzle-orm'
 
 import { db } from './db'
-import { knowledgeDoc } from './schema'
+import { knowledgeDoc, type KnowledgeDoc } from './schema'
 
-export async function getAllKnowledgeDocs() {
+export async function getAllKnowledgeDocs(): Promise<KnowledgeDoc[]> {
   return db.select().from(knowledgeDoc).orderBy(desc(knowledgeDoc.updatedAt))
 }
 
-export async function createKnowledgeDoc(
-  data: typeof knowledgeDoc.$inferInsert
-) {
+export async function getKnowledgeDocById(
+  id: string
+): Promise<KnowledgeDoc | undefined> {
+  const [row] = await db
+    .select()
+    .from(knowledgeDoc)
+    .where(eq(knowledgeDoc.id, id))
+  return row
+}
+
+export async function createKnowledgeDoc(data: {
+  title: string
+  content: string
+}): Promise<KnowledgeDoc> {
   const [row] = await db.insert(knowledgeDoc).values(data).returning()
   return row
 }
 
 export async function updateKnowledgeDoc(
   id: string,
-  data: Partial<typeof knowledgeDoc.$inferInsert>
-) {
+  data: Partial<{ title: string; content: string }>
+): Promise<KnowledgeDoc> {
   const [row] = await db
     .update(knowledgeDoc)
     .set({ ...data, updatedAt: new Date() })
@@ -27,49 +38,37 @@ export async function updateKnowledgeDoc(
   return row
 }
 
-export async function deleteKnowledgeDoc(id: string) {
-  return db.delete(knowledgeDoc).where(eq(knowledgeDoc.id, id))
+export async function deleteKnowledgeDoc(id: string): Promise<void> {
+  await db.delete(knowledgeDoc).where(eq(knowledgeDoc.id, id))
 }
 
-/**
- * STUB retrieval — naive case-insensitive substring match over title/content.
- * Signature & return shape mirror a future embedding search so callers won't
- * change when real RAG replaces this.
- *
- * @param allowedTeamIds Scope of the search.
- *   - `null`  → no scope filter (global; used by UI lists)
- *   - array   → only docs whose `teamId` is in the array, plus General docs
- *               (`teamId IS NULL`). An empty array still admits General docs.
- */
-export async function searchKnowledgeDocs(
-  query: string,
-  allowedTeamIds: string[] | null = null
-): Promise<Array<{ id: string; title: string; snippet: string }>> {
-  const q = query.trim().toLowerCase()
-  if (!q) return []
-  // Pull the scoped slice first so we never load unrelated team docs into memory.
-  const rows = await (allowedTeamIds === null
-    ? getAllKnowledgeDocs()
-    : db
-        .select()
-        .from(knowledgeDoc)
-        .where(
-          allowedTeamIds.length === 0
-            ? isNull(knowledgeDoc.teamId)
-            : or(
-                isNull(knowledgeDoc.teamId),
-                inArray(knowledgeDoc.teamId, allowedTeamIds)
-              )
-        )
-        .orderBy(desc(knowledgeDoc.updatedAt)))
-  return rows
-    .filter(
-      (d) =>
-        d.title.toLowerCase().includes(q) || d.content.toLowerCase().includes(q)
+type IndexStatusPatch = Partial<
+  Pick<
+    KnowledgeDoc,
+    | 'indexStatus'
+    | 'indexError'
+    | 'lightragDocId'
+    | 'lightragTrackId'
+    | 'syncedHash'
+  >
+>
+
+export async function setIndexStatus(
+  id: string,
+  patch: IndexStatusPatch
+): Promise<void> {
+  await db.update(knowledgeDoc).set(patch).where(eq(knowledgeDoc.id, id))
+}
+
+export async function getProcessingDocs(): Promise<KnowledgeDoc[]> {
+  return db
+    .select()
+    .from(knowledgeDoc)
+    .where(
+      and(
+        eq(knowledgeDoc.indexStatus, 'processing'),
+        isNotNull(knowledgeDoc.lightragTrackId)
+      )
     )
-    .map((d) => ({
-      id: d.id,
-      title: d.title,
-      snippet: d.content.slice(0, 280)
-    }))
+    .orderBy(desc(knowledgeDoc.updatedAt))
 }

@@ -1,10 +1,13 @@
 // src/renderer/components/philharmonic/chat/group-chat.tsx
+import { TEST_IDS } from '@shared/constants/test-ids'
 import { isSameDay, isToday, isYesterday, format } from 'date-fns'
-import { AlertTriangleIcon, HelpCircleIcon } from 'lucide-react'
+import { AlertTriangleIcon, HelpCircleIcon, UsersIcon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
+import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import { cn } from '@/lib/utils'
 import {
   getConversationMessages,
@@ -41,7 +44,9 @@ export function GroupChat({
   teamsById,
   members,
   stream,
-  onRename
+  onRename,
+  membersOpen,
+  onToggleMembers
 }: {
   conversation: ConversationData
   agentsById: Record<string, AgentData>
@@ -51,8 +56,12 @@ export function GroupChat({
    * sees the same busy state. */
   stream: ConversationStream
   onRename: (id: string, title: string) => void | Promise<void>
+  membersOpen: boolean
+  onToggleMembers: () => void
 }) {
   const conversationId = conversation.id
+  const { open: sidebarOpen } = useSidebar()
+  const isFullscreen = useIsFullscreen()
   const [history, setHistory] = useState<ConversationMessageData[]>([])
   const { bubbles, askUser, error, revision, plan, pmRunning } = stream
   const [answer, setAnswer] = useState('')
@@ -214,8 +223,14 @@ export function GroupChat({
 
   return (
     <div className="flex h-full flex-col">
-      <header className="flex h-13 shrink-0 items-center justify-between border-b border-[var(--ph-border)] px-4">
-        <div className="flex min-w-0 items-center gap-3">
+      <header
+        className={cn(
+          'draggable border-border bg-card/80 flex h-12 shrink-0 items-center gap-2 border-b pr-3 backdrop-blur-sm transition-[padding] duration-200 ease-linear',
+          sidebarOpen ? 'pl-2' : isFullscreen ? 'pl-4' : 'pl-21'
+        )}
+      >
+        <SidebarTrigger className="no-drag text-muted-foreground hover:text-foreground shrink-0" />
+        <div className="no-drag flex min-w-0 flex-1 items-center gap-3">
           {visibleMembers.length > 0 ? (
             <div className="flex">
               {visibleMembers.map((m, i) => (
@@ -224,19 +239,11 @@ export function GroupChat({
                   seed={m.avatarSeed}
                   style={m.avatarStyle}
                   size={30}
-                  className={cn(
-                    i > 0 && '-ml-2 ring-2 ring-[var(--ph-surface)]'
-                  )}
+                  className={cn(i > 0 && '-ml-2 ring-2 ring-card')}
                 />
               ))}
               {overflow > 0 && (
-                <span
-                  className="-ml-2 flex h-[30px] w-[30px] items-center justify-center rounded-full text-[10px] font-semibold ring-2 ring-[var(--ph-surface)]"
-                  style={{
-                    background: 'var(--ph-canvas)',
-                    color: 'var(--ph-text-muted)'
-                  }}
-                >
+                <span className="bg-muted text-muted-foreground ring-card -ml-2 flex h-[30px] w-[30px] items-center justify-center rounded-full text-[10px] font-semibold ring-2">
                   +{overflow}
                 </span>
               )}
@@ -260,24 +267,37 @@ export function GroupChat({
                   }
                 }}
                 autoFocus
-                className="h-7 rounded-[var(--ph-radius-md)] border-[var(--ph-border)] bg-[var(--ph-surface-sunken)] text-sm font-semibold"
+                className="border-border bg-muted h-7 rounded-lg text-sm font-semibold"
               />
             ) : (
               <button
                 type="button"
                 onClick={() => setEditingTitle(true)}
                 title="Click to rename"
-                className="truncate text-left text-sm font-semibold tracking-tight text-[var(--ph-text)] transition-colors hover:underline"
+                className="text-foreground truncate text-left text-sm font-semibold tracking-tight transition-colors hover:underline"
               >
                 {conversation.title}
               </button>
             )}
-            <div className="text-[11px] text-[var(--ph-text-muted)]">
+            <div className="text-muted-foreground text-[11px]">
               {memberCount} {memberCount === 1 ? 'member' : 'members'}
               {primaryTeam ? ` · ${primaryTeam}` : ''}
             </div>
           </div>
         </div>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          aria-label="Toggle members"
+          data-testid={TEST_IDS.philharmonic.membersToggle}
+          onClick={onToggleMembers}
+          className={cn(
+            'no-drag text-muted-foreground hover:text-foreground shrink-0 rounded-full',
+            membersOpen && 'bg-accent text-foreground'
+          )}
+        >
+          <UsersIcon />
+        </Button>
       </header>
 
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3">
@@ -324,27 +344,15 @@ export function GroupChat({
           </div>
         )}
         {error && (
-          <div
-            className="mx-auto mt-2 flex max-w-2xl items-center gap-2 rounded-[var(--ph-radius-md)] px-3 py-2 text-xs"
-            style={{
-              background: 'oklch(0.95 0.06 27 / 0.6)',
-              color: 'var(--ph-danger)'
-            }}
-          >
+          <div className="text-destructive bg-destructive/10 mx-auto mt-2 flex max-w-2xl items-center gap-2 rounded-lg px-3 py-2 text-xs">
             <AlertTriangleIcon className="h-3.5 w-3.5 shrink-0" />
             <span>{error}</span>
           </div>
         )}
         {askUser && (
-          <div
-            className="mx-auto my-3 max-w-2xl rounded-[var(--ph-radius-lg)] border border-[var(--ph-border)] p-3"
-            style={{ background: 'var(--ph-surface-sunken)' }}
-          >
-            <div className="mb-2 flex items-start gap-2 text-sm text-[var(--ph-text)]">
-              <HelpCircleIcon
-                className="mt-0.5 h-4 w-4 shrink-0"
-                style={{ color: 'var(--ph-primary)' }}
-              />
+          <div className="border-border bg-muted mx-auto my-3 max-w-2xl rounded-xl border p-3">
+            <div className="text-foreground mb-2 flex items-start gap-2 text-sm">
+              <HelpCircleIcon className="text-primary mt-0.5 h-4 w-4 shrink-0" />
               <span>{askUser.question}</span>
             </div>
             <div className="flex gap-2">
@@ -353,7 +361,7 @@ export function GroupChat({
                 onChange={(e) => setAnswer(e.target.value)}
                 placeholder="Reply to PM…"
                 autoFocus
-                className="rounded-[var(--ph-radius-md)] border-[var(--ph-border)] bg-[var(--ph-surface)]"
+                className="border-border bg-card rounded-lg"
               />
               <Button
                 onClick={async () => {
@@ -361,7 +369,6 @@ export function GroupChat({
                   await respondToConversation(conversationId, answer)
                   setAnswer('')
                 }}
-                style={{ background: 'var(--ph-primary)' }}
               >
                 Send
               </Button>

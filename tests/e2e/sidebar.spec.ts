@@ -1,6 +1,7 @@
 /**
  * E2E: Sidebar navigation and interaction.
  */
+import { TEST_IDS } from '../../src/shared/constants/test-ids'
 import { electronTest as test, expect } from '../fixtures/electron'
 
 test.describe('Sidebar', () => {
@@ -28,5 +29,70 @@ test.describe('Sidebar', () => {
       bodyText?.includes('Project')
 
     expect(hasNavigation).toBe(true)
+  })
+
+  test('resizable handle resizes the sidebar', async ({ mainWindow }) => {
+    const handle = mainWindow.locator('[data-slot="resizable-handle"]')
+    await handle.waitFor({ state: 'visible', timeout: 10_000 })
+
+    const sidebarPanel = mainWindow.locator('#chat-sidebar')
+    const widthBefore = (await sidebarPanel.boundingBox())?.width ?? 0
+    expect(widthBefore).toBeGreaterThan(0)
+
+    const box = await handle.boundingBox()
+    if (!box) throw new Error('resize handle has no bounding box')
+
+    // Drag the handle 120px to the right.
+    await mainWindow.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+    await mainWindow.mouse.down()
+    await mainWindow.mouse.move(box.x + 120, box.y + box.height / 2, {
+      steps: 12
+    })
+    await mainWindow.mouse.up()
+
+    const widthAfter = (await sidebarPanel.boundingBox())?.width ?? 0
+    expect(widthAfter).toBeGreaterThan(widthBefore + 60)
+  })
+
+  test('header search button opens the chat search dialog', async ({
+    mainWindow
+  }) => {
+    const searchButton = mainWindow.getByTestId(
+      TEST_IDS.chatLayout.searchButton
+    )
+    await searchButton.waitFor({ state: 'visible', timeout: 10_000 })
+    await searchButton.click()
+
+    await expect(mainWindow.getByPlaceholder('Search Chat...')).toBeVisible({
+      timeout: 5_000
+    })
+  })
+
+  test('workspace switcher navigates to Philharmonic', async ({
+    mainWindow
+  }) => {
+    const switcher = mainWindow.getByTestId(
+      TEST_IDS.chatLayout.workspaceSwitcher
+    )
+    await switcher.waitFor({ state: 'visible', timeout: 10_000 })
+    await expect(switcher).toContainText('Chat')
+
+    await switcher.click()
+    await mainWindow.getByRole('menuitem', { name: 'Philharmonic' }).click()
+
+    await expect
+      .poll(() => mainWindow.evaluate(() => window.location.hash), {
+        timeout: 10_000
+      })
+      .toContain('philharmonic')
+
+    // Philharmonic now shares the chat shell: the "New group" affordance is
+    // sidebar chrome and the Members toggle appears alongside a group chat.
+    await expect(
+      mainWindow.getByTestId(TEST_IDS.philharmonic.newGroup)
+    ).toBeVisible({ timeout: 10_000 })
+    expect(
+      await mainWindow.getByTestId(TEST_IDS.philharmonic.membersToggle).count()
+    ).toBeGreaterThanOrEqual(0)
   })
 })

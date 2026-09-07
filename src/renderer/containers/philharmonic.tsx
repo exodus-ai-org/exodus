@@ -16,13 +16,15 @@ import {
 } from '@/components/philharmonic/chat/conversation-list'
 import { GroupChat } from '@/components/philharmonic/chat/group-chat'
 import { GroupMembersPanel } from '@/components/philharmonic/chat/group-members-panel'
-import { KnowledgeBasePage } from '@/components/philharmonic/knowledge/knowledge-base-page'
 import { WorkforcePage } from '@/components/philharmonic/workforce/workforce-page'
+import { SheetPanel } from '@/components/sheet-panel'
 import { Button } from '@/components/ui/button'
+import { SidebarInset } from '@/components/ui/sidebar'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useConversationStream } from '@/hooks/use-conversation-stream'
-import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import type { PhilharmonicPage } from '@/layouts/philharmonic-layout'
+import { PhilharmonicContentHeader } from '@/layouts/philharmonic-layout/philharmonic-content-header'
+import { PhilharmonicWorkspace } from '@/layouts/philharmonic-layout/philharmonic-workspace'
 import { getAgents, getTeams } from '@/services/philharmonic'
 import {
   createConversation,
@@ -59,7 +61,7 @@ export function PhilharmonicContainer({
   const [employees, setEmployees] = useState<AgentData[]>([])
   const [teams, setTeams] = useState<TeamData[]>([])
   const [activeId, setActiveId] = useState<string | null>(null)
-  const isFullscreen = useIsFullscreen()
+  const [membersOpen, setMembersOpen] = useState(false)
 
   useEffect(() => {
     getConversations().then((cs) => {
@@ -131,7 +133,6 @@ export function PhilharmonicContainer({
   // Main column content varies by activePage; sidebar stays put on every page.
   const mainContent = (() => {
     if (activePage === 'workforce') return <WorkforcePage />
-    if (activePage === 'knowledge') return <KnowledgeBasePage />
     if (activePage === 'dashboard')
       return (
         <Tabs defaultValue="costs" className="flex h-full min-h-0 flex-col">
@@ -163,6 +164,8 @@ export function PhilharmonicContainer({
           members={members}
           stream={stream}
           onRename={handleRename}
+          membersOpen={membersOpen}
+          onToggleMembers={() => setMembersOpen((v) => !v)}
         />
       )
     }
@@ -185,44 +188,45 @@ export function PhilharmonicContainer({
 
   // Members panel only appears alongside an active chat conversation.
   const showMembers = activePage === 'chat' && activeConv != null
+  // On a group chat GroupChat renders its own chrome header (sidebar toggle +
+  // conversation info + members toggle); everywhere else the layout supplies a
+  // plain header bar.
+  const groupChatOwnsHeader = showMembers
 
   return (
-    <div
-      className="grid h-full min-h-0 w-full bg-(--ph-canvas)"
-      style={{
-        padding: isFullscreen ? '12px' : '8px',
-        gap: '8px',
-        gridTemplateColumns: showMembers ? '260px 1fr 260px' : '260px 1fr',
-        transition: 'grid-template-columns 180ms cubic-bezier(0.16, 1, 0.3, 1)'
-      }}
-    >
-      <div className="min-h-0 min-w-0 overflow-hidden rounded-(--ph-radius-xl) bg-(--ph-surface) shadow-(--ph-shadow-card)">
-        <ConversationList
-          conversations={conversations}
-          agentsById={agentsById}
-          activeId={activeId}
-          activePage={activePage}
-          onSelect={handleSelect}
-          onCreate={handleCreate}
-          onDelete={handleDelete}
-          onNavigateConfig={handleNavigateConfig}
-        />
-      </div>
-      <div className="min-h-0 min-w-0 overflow-hidden rounded-(--ph-radius-xl) bg-(--ph-surface) shadow-(--ph-shadow-card)">
-        {mainContent}
-      </div>
-      {showMembers && (
-        <div
-          className="min-h-0 min-w-0 overflow-hidden rounded-(--ph-radius-xl) bg-(--ph-surface) shadow-(--ph-shadow-card)"
-          style={{ animation: 'ph-fade-in 180ms ease-out' }}
-        >
+    <>
+      <PhilharmonicWorkspace
+        sidebar={
+          <ConversationList
+            conversations={conversations}
+            agentsById={agentsById}
+            activeId={activeId}
+            activePage={activePage}
+            onSelect={handleSelect}
+            onCreate={handleCreate}
+            onDelete={handleDelete}
+            onNavigateConfig={handleNavigateConfig}
+          />
+        }
+      >
+        <SidebarInset className="bg-card flex h-full min-w-0 flex-col overflow-hidden">
+          {!groupChatOwnsHeader && <PhilharmonicContentHeader />}
+          <div className="min-h-0 flex-1 overflow-hidden">{mainContent}</div>
+        </SidebarInset>
+      </PhilharmonicWorkspace>
+
+      <SheetPanel
+        open={showMembers && membersOpen}
+        onClose={() => setMembersOpen(false)}
+      >
+        {showMembers && (
           <GroupMembersPanel
             members={members}
             teamsById={teamsById}
             busyAgents={stream.busyAgents}
           />
-        </div>
-      )}
-    </div>
+        )}
+      </SheetPanel>
+    </>
   )
 }

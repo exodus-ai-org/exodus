@@ -1,6 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Settings, SettingsSchema } from '@shared/schemas/settings-schema'
-import { AiProviders } from '@shared/types/ai'
 import { useAtomValue } from 'jotai'
 import { useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
@@ -8,32 +7,26 @@ import { useForm } from 'react-hook-form'
 import { useSettings } from '@/hooks/use-settings'
 import { settingsLabelAtom } from '@/stores/settings'
 
-import { AudioSpeech } from './settings-form/audio-speech'
+import { ComputerUse } from './settings-form/computer-use'
 import { DataControls } from './settings-form/data-controls'
 import { DeepResearch } from './settings-form/deep-research'
+import { Discover } from './settings-form/discover'
+import { FullTextSearch } from './settings-form/full-text-search'
 import { General } from './settings-form/generals'
-import { GoogleMaps } from './settings-form/google-maps'
-import { GraphRAG } from './settings-form/graph-rag'
-import { ImageGeneration } from './settings-form/image-generation'
 import { KeyboardShortcuts } from './settings-form/keyboard-shortcuts'
+import { KnowledgeBase } from './settings-form/knowledge-base'
 import { Logger } from './settings-form/logger'
 import { McpServers } from './settings-form/mcp-servers'
-import { MemoryLayer } from './settings-form/memory-layer'
+import { MemorySettings } from './settings-form/memory'
 import { Personality } from './settings-form/personality'
-import { ProviderConfig } from './settings-form/provider-config'
-import { AnthropicClaude } from './settings-form/providers/anthropic-claude'
-import { AzureOpenAi } from './settings-form/providers/azure-openai'
-import { GoogleGemini } from './settings-form/providers/google-gemini'
-import { Ollama } from './settings-form/providers/ollama'
-import { OpenAiGpt } from './settings-form/providers/openai-gpt'
-import { XaiGrok } from './settings-form/providers/xai-grok'
+import { Profile } from './settings-form/profile'
+import { ProvidersTabs } from './settings-form/providers-tabs'
 import { S3 } from './settings-form/s3'
 import { SkillsMarketSetting } from './settings-form/skills-market'
 import { SystemInfo } from './settings-form/system-info'
 import { Tools } from './settings-form/tools'
-import { WebSearch } from './settings-form/web-search'
+import { Voice } from './settings-form/voice'
 import { SettingsLabel } from './settings-menu'
-import { UnderConstruction } from './under-construction'
 
 export function SettingsForm() {
   const { data: settings, updateSettings } = useSettings()
@@ -97,48 +90,30 @@ export function SettingsForm() {
   }, [form])
 
   return (
-    <form className="flex flex-1 flex-col gap-4">
+    <form className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8">
+      <h1 className="text-xl">{activeTitle}</h1>
+
+      {activeTitle === SettingsLabel.Profile && <Profile />}
+
       {activeTitle === SettingsLabel.General && <General form={form} />}
 
       {activeTitle === SettingsLabel.Personality && <Personality form={form} />}
 
       {activeTitle === SettingsLabel.AiProviders && (
-        <ProviderConfig form={form} />
+        <ProvidersTabs form={form} />
       )}
-
-      {activeTitle === AiProviders.OpenAiGpt && <OpenAiGpt form={form} />}
-
-      {activeTitle === AiProviders.AzureOpenAi && <AzureOpenAi form={form} />}
-
-      {activeTitle === AiProviders.AnthropicClaude && (
-        <AnthropicClaude form={form} />
-      )}
-
-      {activeTitle === AiProviders.GoogleGemini && <GoogleGemini form={form} />}
-
-      {activeTitle === AiProviders.XaiGrok && <XaiGrok form={form} />}
-
-      {activeTitle === AiProviders.Ollama && <Ollama form={form} />}
 
       {activeTitle === SettingsLabel.AmazonS3 && <S3 form={form} />}
 
-      {activeTitle === SettingsLabel.AudioAndSpeech && (
-        <AudioSpeech form={form} />
-      )}
-
-      {activeTitle === SettingsLabel.ImageGeneration && (
-        <ImageGeneration form={form} />
-      )}
-
-      {activeTitle === SettingsLabel.GoogleMaps && <GoogleMaps form={form} />}
-
-      {activeTitle === SettingsLabel.WebSearch && <WebSearch form={form} />}
+      {activeTitle === SettingsLabel.Voice && <Voice form={form} />}
 
       {activeTitle === SettingsLabel.DeepResearch && (
         <DeepResearch form={form} />
       )}
 
-      {activeTitle === SettingsLabel.MemoryLayer && <MemoryLayer form={form} />}
+      {activeTitle === SettingsLabel.Memory && <MemorySettings form={form} />}
+
+      {activeTitle === SettingsLabel.Discover && <Discover form={form} />}
 
       {activeTitle === SettingsLabel.BuiltinTools && <Tools form={form} />}
 
@@ -146,11 +121,15 @@ export function SettingsForm() {
 
       {activeTitle === SettingsLabel.McpServers && <McpServers />}
 
-      {activeTitle === SettingsLabel.GraphRag && <GraphRAG />}
+      {activeTitle === SettingsLabel.FullTextSearch && (
+        <FullTextSearch form={form} />
+      )}
 
-      {activeTitle === SettingsLabel.ComputerUse && <UnderConstruction />}
+      {activeTitle === SettingsLabel.KnowledgeBase && (
+        <KnowledgeBase form={form} />
+      )}
 
-      {activeTitle === SettingsLabel.BrowserUse && <UnderConstruction />}
+      {activeTitle === SettingsLabel.ComputerUse && <ComputerUse form={form} />}
 
       {activeTitle === SettingsLabel.DataControls && <DataControls />}
 

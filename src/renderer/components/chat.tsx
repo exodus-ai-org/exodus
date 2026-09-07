@@ -43,9 +43,16 @@ interface Props {
   initialMessages: ChatMessage[]
   projectId?: string
   chatTitle: string
+  showDiscover?: boolean
 }
 
-export function Chat({ id, initialMessages, projectId, chatTitle }: Props) {
+export function Chat({
+  id,
+  initialMessages,
+  projectId,
+  chatTitle,
+  showDiscover
+}: Props) {
   const { id: routeId } = useParams()
   const navigate = useNavigate()
   // Read once on mount — quick-chat hand-off only fires for the first render of a fresh chat.
@@ -146,6 +153,7 @@ export function Chat({ id, initialMessages, projectId, chatTitle }: Props) {
         status={status}
         messages={messages}
         regenerate={regenerate}
+        showDiscover={showDiscover}
       />
       <LcmStatusCard chatId={id} />
       <MultimodalInput

@@ -3,7 +3,9 @@ import type { Model } from '@mariozechner/pi-ai'
 import { AdvancedTools, McpTools } from '@shared/types/ai'
 
 import { Settings } from '../../db/schema'
+import { resolveKnowledgeBase } from '../../knowledge-base/resolve-knowledge-base'
 import {
+  computerUse,
   createArtifact,
   deepResearch,
   editFile,
@@ -16,6 +18,7 @@ import {
   listDirectory,
   mapItinerary,
   readFile,
+  searchKnowledgeBase,
   terminal,
   weather,
   webFetch,
@@ -72,9 +75,16 @@ export function bindCallingTools({
   if (enabled('webFetch')) tools.push(webFetch())
   if (enabled('createArtifact') && chatId) tools.push(createArtifact(chatId))
   if (enabled('webSearch')) tools.push(webSearch(setting))
+  if (setting.computerUse?.enabled && enabled('computerUse'))
+    tools.push(computerUse)
+
+  const kb = resolveKnowledgeBase(setting)
+  if (kb && enabled('searchKnowledgeBase')) {
+    tools.push(searchKnowledgeBase(kb, setting.knowledgeBase))
+  }
 
   // LCM recall tools: available when LCM is enabled
-  const lcmEnabled = setting.memoryLayer?.lcmEnabled !== false
+  const lcmEnabled = setting.memory?.lcmEnabled !== false
   if (lcmEnabled) {
     tools.push(lcmGrep)
     tools.push(lcmDescribe)

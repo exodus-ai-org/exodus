@@ -15,7 +15,7 @@ import {
   TaskExecution,
   TaskExecutionEvent,
   Vote
-} from 'src/main/lib/db/schema'
+} from '../../main/lib/db/schema'
 
 export interface Pagination {
   page: number

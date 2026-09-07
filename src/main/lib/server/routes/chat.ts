@@ -18,9 +18,7 @@ import { LcmManager } from '../../ai/context-management'
 import { getMcpTools } from '../../ai/mcp'
 import {
   formatMemoriesForSystem,
-  loadRelevantMemories,
-  runMemoryWriteJudge,
-  saveSessionSummary
+  loadRelevantMemories
 } from '../../ai/memory/manager'
 import {
   buildPersonalityPrompt,
@@ -39,7 +37,6 @@ import { transformMessages } from '../../ai/utils/transform-messages'
 import { getProjectById, bumpProjectUpdatedAt } from '../../db/project-queries'
 import {
   deleteChatById,
-  fullTextSearchOnMessages,
   getChatById,
   getMessagesByChatId,
   saveChat,
@@ -47,7 +44,13 @@ import {
   updateChat,
   updateChatTitleById
 } from '../../db/queries'
+import { enqueueAndProcess, logEnqueueFailure } from '../../jobs/worker'
 import { logger } from '../../logger'
+import { bindTraceAttributes } from '../../logger/trace-context'
+import {
+  resolveSearchProvider,
+  searchWithFallback
+} from '../../search/resolve-search-provider'
 import { postRequestBodySchema, updateChatSchema } from '../schemas/chat'
 import {
   deletionSuccessResponse,
@@ -69,8 +72,9 @@ const chat = new Hono<{ Variables: Variables }>()
 
 chat.get('/search', async (c) => {
   const query = c.req.query('query') ?? ''
+  const settings = c.get('settings')
   const result = await handleDatabaseOperation(
-    () => fullTextSearchOnMessages(query),
+    () => searchWithFallback(settings, query),
     'Failed to search messages'
   )
   return successResponse(c, result)
@@ -91,6 +95,7 @@ chat.post('/', async (c) => {
     await c.req.json(),
     'Invalid request body'
   )
+  bindTraceAttributes({ chatId: id })
   const setting = c.get('settings')
   const { chatModel, reasoningModel, apiKey } = getModelFromProvider(setting)
   const isReasoningModel =
@@ -122,9 +127,11 @@ chat.post('/', async (c) => {
     })
   }
 
-  const memoryConfig = setting.memoryLayer
+  const memoryConfig = setting.memory
   const lcmEnabled = memoryConfig?.lcmEnabled !== false
-  const memoryAutoWrite = memoryConfig?.autoWrite !== false
+  // Two independent switches: capture new memories vs. surface them into chats.
+  const memoryCapture = memoryConfig?.autoCapture !== false
+  const memoryUseInChat = memoryConfig?.useInChat !== false
 
   // ── PRE-CHAT: run independent tasks in parallel ─────────────────────────
   // 1. Save user message (fire-and-forget — ID already generated)
@@ -144,6 +151,9 @@ chat.post('/', async (c) => {
   const saveUserMsgPromise = saveMessages({
     messages: [toDbRow(userMessage, id)]
   })
+  enqueueAndProcess('index-message', toDbRow(userMessage, id)).catch((error) =>
+    logEnqueueFailure('index-message', error)
+  )
 
   const lcmPromise = lcm
     ? lcm
@@ -154,8 +164,13 @@ chat.post('/', async (c) => {
         .then((assembled) => assembled.messages.slice(0, -1))
     : Promise.resolve(allMessages.slice(0, -1).map(stripId))
 
-  const memoryPromise = memoryAutoWrite
-    ? loadRelevantMemories(getTextFromMessage(userMessage), chatModel, apiKey)
+  const memoryPromise = memoryUseInChat
+    ? loadRelevantMemories(
+        getTextFromMessage(userMessage),
+        chatModel,
+        apiKey,
+        id
+      )
         .then(formatMemoriesForSystem)
         .catch((err) => {
           logger.warn('chat', 'Memory loading failed, continuing without', {
@@ -235,6 +250,13 @@ chat.post('/', async (c) => {
       let assistantMsgId = uuidV4()
       let currentAssistantMsg: ChatAssistantMessage | null = null
       const newMessages: ChatMessage[] = []
+      // Stable message id per in-flight tool call, assigned at
+      // `tool_execution_start`. Streaming `tool_execution_update` frames (used by
+      // `computerUse` to drive its live chat panel) and the final
+      // `tool_execution_end` message all reuse it, so the renderer upserts one
+      // card in place instead of flashing a new one per frame. Must be a UUID —
+      // the id lands in the `message.id` uuid column on save.
+      const toolMsgIds = new Map<string, string>()
       // Wall-clock turn start — used to stamp the last assistant message with
       // an accurate durationMs that the UI can show as "Worked for X seconds".
       const turnStartedAt = Date.now()
@@ -328,10 +350,34 @@ chat.post('/', async (c) => {
               currentAssistantMsg = null
             }
           } else if (event.type === 'tool_execution_start') {
+            toolMsgIds.set(event.toolCallId, uuidV4())
             sendEvent({
               type: 'tool_call_start',
               toolCallId: event.toolCallId,
               toolName: event.toolName
+            })
+          } else if (event.type === 'tool_execution_update') {
+            // Relay a tool's mid-execution progress (`onUpdate`) to the renderer
+            // as a live tool-result message. Only `computerUse` streams these
+            // today; its `ComputerUseCard` reads the evolving `details`. Not
+            // pushed to `newMessages` — the authoritative row is written at
+            // `tool_execution_end`.
+            const partial = event.partialResult as {
+              content?: Array<{ type: 'text'; text: string }>
+              details?: unknown
+            } | null
+            sendEvent({
+              type: 'message_update',
+              message: {
+                id: toolMsgIds.get(event.toolCallId) ?? uuidV4(),
+                role: 'toolResult',
+                toolCallId: event.toolCallId,
+                toolName: event.toolName,
+                content: Array.isArray(partial?.content) ? partial.content : [],
+                details: partial?.details ?? null,
+                isError: false,
+                timestamp: Date.now()
+              }
             })
           } else if (event.type === 'tool_execution_end') {
             // Extract error message from various possible shapes:
@@ -382,7 +428,7 @@ chat.post('/', async (c) => {
                     : []
 
             const toolResultMsg: ChatToolResultMessage = {
-              id: uuidV4(),
+              id: toolMsgIds.get(event.toolCallId) ?? uuidV4(),
               role: 'toolResult',
               toolCallId: event.toolCallId,
               toolName: event.toolName,
@@ -391,6 +437,7 @@ chat.post('/', async (c) => {
               isError: event.isError,
               timestamp: Date.now()
             }
+            toolMsgIds.delete(event.toolCallId)
             newMessages.push(toolResultMsg)
             sendEvent({ type: 'message_update', message: toolResultMsg })
             sendEvent({
@@ -435,62 +482,43 @@ chat.post('/', async (c) => {
 
         // Persist new messages to DB
         if (newMessages.length > 0) {
-          await saveMessages({
-            messages: newMessages.map((m) => toDbRow(m, id))
-          })
+          const rows = newMessages.map((m) => toDbRow(m, id))
+          await saveMessages({ messages: rows })
+          for (const row of rows) {
+            enqueueAndProcess('index-message', row).catch((error) =>
+              logEnqueueFailure('index-message', error)
+            )
+          }
         }
 
-        // ── POST-CHAT: async memory operations (non-blocking) ──────────────
+        // ── POST-CHAT: enqueue background jobs (non-blocking) ───────────────
         if (newMessages.length > 0) {
           const allSavedMessages = [...allMessages, ...newMessages]
-          Promise.resolve()
-            .then(async () => {
-              // LCM: track new messages and compact — reuse pre-chat instance
-              if (lcm) {
-                await lcm.trackNewMessages(
-                  newMessages.map((m) => ({ id: m.id, content: m.content }))
-                )
-                lcm.compactAfterTurn().catch((err) => {
-                  logger.error('chat', 'LCM compactAfterTurn failed', {
-                    error: String(err)
-                  })
-                })
-              }
 
-              // Memory write judge + session summary — gated on memoryAutoWrite
-              if (memoryAutoWrite) {
-                runMemoryWriteJudge(
-                  allSavedMessages.map((m) => ({
-                    role: m.role,
-                    content: m.content
-                  })),
-                  chatModel,
-                  apiKey
-                ).catch((err) => {
-                  logger.error('chat', 'Memory write judge failed', {
-                    error: String(err)
-                  })
-                })
-                saveSessionSummary(
-                  id,
-                  allSavedMessages.map((m) => ({
-                    role: m.role,
-                    content: m.content
-                  })),
-                  chatModel,
-                  apiKey
-                ).catch((err) => {
-                  logger.error('chat', 'Session summary failed', {
-                    error: String(err)
-                  })
-                })
-              }
-            })
-            .catch((err) => {
-              logger.error('chat', 'Post-response operation failed', {
-                error: String(err)
-              })
-            })
+          if (lcm) {
+            enqueueAndProcess('lcm-post-turn', {
+              chatId: id,
+              chatModel,
+              apiKey,
+              freshTailSize: memoryConfig?.freshTailSize ?? 16,
+              contextWindowPercent: memoryConfig?.contextWindowPercent ?? 75,
+              newMessages: newMessages.map((m) => ({
+                id: m.id,
+                content: m.content
+              }))
+            }).catch((error) => logEnqueueFailure('lcm-post-turn', error))
+          }
+
+          if (memoryCapture) {
+            enqueueAndProcess('memory-consolidate', {
+              messages: allSavedMessages.map((m) => ({
+                role: m.role,
+                content: m.content
+              })),
+              chatModel,
+              apiKey
+            }).catch((error) => logEnqueueFailure('memory-consolidate', error))
+          }
         }
       } catch (err) {
         const rawMsg = err instanceof Error ? err.message : String(err)
@@ -518,6 +546,15 @@ chat.delete('/:id', async (c) => {
     () => deleteChatById({ id }),
     'Failed to delete chat'
   )
+
+  const { elasticsearch } = resolveSearchProvider(c.get('settings'))
+  if (elasticsearch) {
+    elasticsearch.deleteByChatId(id).catch((error) => {
+      logger.error('search', 'Failed to delete chat from Elasticsearch', {
+        error: String(error)
+      })
+    })
+  }
 
   return deletionSuccessResponse(c, 'Chat')
 })

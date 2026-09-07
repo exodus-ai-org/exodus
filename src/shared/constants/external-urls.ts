@@ -4,9 +4,9 @@
  * region mirror, etc.) is a one-line edit.
  *
  * NOT included: user-editable settings placeholders such as provider API
- * base URLs (Anthropic / OpenAI / xAI / Gemini) or the proxy/MCP example
- * inputs — those are defaults shown in form fields, not links the app
- * itself navigates to.
+ * base URLs (Anthropic / OpenAI / xAI / Gemini) or the MCP example inputs —
+ * those are defaults shown in form fields, not links the app itself
+ * navigates to.
  */
 
 // Exodus brand

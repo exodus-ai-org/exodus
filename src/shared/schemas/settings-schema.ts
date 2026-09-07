@@ -14,6 +14,16 @@ const optionalUrl = z
     { message: 'Invalid URL' }
   )
 
+// Stricter variant of `optionalUrl` that also requires an explicit http(s)
+// scheme. `optionalUrl` accepts scheme-less values like `localhost:9200`, which
+// the Elasticsearch client rejects at construction time ("Invalid protocol") —
+// so that field has to be caught at save time instead. Deliberately NOT applied
+// to the other provider URL fields, whose looser behavior is relied upon.
+const optionalHttpUrl = optionalUrl.refine(
+  (val) => val == null || val === '' || /^https?:\/\//.test(val),
+  { message: 'Must start with http:// or https://' }
+)
+
 // HTML <input type="number"> emits string values via onChange, so RHF stores
 // strings while the user is typing. Wrap numeric fields with this preprocess
 // to coerce on validation: '' → undefined, '1.5' → 1.5, anything non-numeric
@@ -52,7 +62,7 @@ export const ProvidersSchema = z.object({
   ollamaBaseUrl: z.string().nullish()
 })
 
-export const AudioSchema = z.object({
+export const VoiceSchema = z.object({
   speechToTextModel: z.string().nullish(),
   textToSpeechVoice: z.string().nullish(),
   textToSpeechModel: z.string().nullish(),
@@ -72,6 +82,40 @@ export const WebSearchSchema = z.object({
   maxResults: formNumber(z.number().gte(1).lte(50)).nullish(),
   recencyFilter: z.enum(['hour', 'day', 'week', 'month', 'year']).nullish(),
   domainFilter: z.string().nullish() // comma-separated domain list
+})
+
+export const ElasticsearchSchema = z.object({
+  url: optionalHttpUrl,
+  username: z.string().nullish(),
+  password: z.string().nullish(),
+  indexName: z.string().nullish() // defaults to 'exodus-messages' if unset
+})
+
+export const FullTextSearchSchema = z.object({
+  elasticsearch: ElasticsearchSchema.nullish()
+})
+
+export const KnowledgeBaseSchema = z.object({
+  url: optionalHttpUrl, // self-hosted LightRAG server, e.g. http://localhost:9621
+  apiKey: z.string().nullish(), // sent as the X-API-Key header
+  queryMode: z.enum(['naive', 'local', 'global', 'hybrid', 'mix']).nullish(), // default 'mix'
+  topK: formNumber(z.number().gte(1).lte(200)).nullish(), // default 60
+  chunkTopK: formNumber(z.number().gte(1).lte(100)).nullish() // default 10
+})
+
+export const ComputerUseSchema = z.object({
+  enabled: z.boolean().default(false),
+  targetAllowlist: z.array(z.string()).default([]),
+  model: z.enum(['claude']).default('claude'),
+  maxSteps: formNumber(z.number().gte(1).lte(100)).nullish(),
+  settleMs: formNumber(z.number().gte(100).lte(5000)).nullish(),
+  askHumanTimeoutMs: formNumber(z.number().gte(10_000).lte(1_800_000)).nullish()
+})
+
+export const DiscoverSchema = z.object({
+  enabled: z.boolean().default(false),
+  topicCount: formNumber(z.number().gte(1).lte(8)).nullish(), // default 4
+  articlesPerTopic: formNumber(z.number().gte(1).lte(5)).nullish() // default 3
 })
 
 export const ImageSchema = z.object({
@@ -126,9 +170,11 @@ export const ToolsSchema = z.object({
   disabledTools: z.array(z.string()).default([])
 })
 
-export const MemoryLayerSchema = z.object({
-  // User memory: auto-write memories after conversations
-  autoWrite: z.boolean().default(true),
+export const MemorySchema = z.object({
+  // User memory: consolidate durable facts into memory after conversations
+  autoCapture: z.boolean().default(true),
+  // User memory: surface relevant memory into the system prompt of new chats
+  useInChat: z.boolean().default(true),
   // LCM: enable lossless context management for long conversations
   lcmEnabled: z.boolean().default(true),
   // LCM: trigger compaction when context exceeds this % of the context window (50-95)
@@ -136,17 +182,6 @@ export const MemoryLayerSchema = z.object({
   // LCM: number of most recent messages protected from compaction (8-64)
   freshTailSize: formNumber(z.number().gte(8).lte(64)).nullish()
 })
-
-export const ColorTone = z.enum([
-  'neutral',
-  'emerald',
-  'blue',
-  'violet',
-  'rose',
-  'orange',
-  'yellow'
-])
-export type ColorTone = z.infer<typeof ColorTone>
 
 export const PersonalitySchema = z.object({
   // About you
@@ -172,28 +207,37 @@ export const PersonalitySchema = z.object({
   customInstructions: z.string().nullish()
 })
 
+export const KeyboardShortcutsSchema = z.object({
+  // Ids of toggleable shortcuts (ShortcutDef.id in use-keyboard-shortcuts.ts)
+  // the user has turned off. Absent/empty = everything enabled.
+  disabled: z.array(z.string()).nullish()
+})
+
 export const SettingsSchema = z.object({
   id: z.string(),
   providerConfig: ProviderConfigSchema.nullish(),
   providers: ProvidersSchema.nullish(),
   mcpServers: z.string().nullish(),
   tools: ToolsSchema.nullish(),
-  audio: AudioSchema.nullish(),
+  voice: VoiceSchema.nullish(),
   assistantAvatar: z.string().nullish(),
   googleCloud: GoogleCloudSchema.nullish(),
   webSearch: WebSearchSchema.nullish(),
+  fullTextSearch: FullTextSearchSchema.nullish(),
+  knowledgeBase: KnowledgeBaseSchema.nullish(),
+  computerUse: ComputerUseSchema.nullish(),
+  discover: DiscoverSchema.nullish(),
   image: ImageSchema.nullish(),
   deepResearch: DeepResearchSchema.nullish(),
   s3: S3Schema.nullish(),
   autoUpdate: z.boolean().nullish(),
   runOnStartup: z.boolean().nullish(),
   menuBar: z.boolean().nullish(),
-  proxy: z.string().nullish(),
   autoBackup: z.boolean().nullish(),
   lastBackupAt: z.any().nullish(),
-  memoryLayer: MemoryLayerSchema.nullish(),
+  memory: MemorySchema.nullish(),
   personality: PersonalitySchema.nullish(),
-  colorTone: ColorTone.default('neutral').nullish(),
+  keyboardShortcuts: KeyboardShortcutsSchema.nullish(),
   createdAt: z.any(),
   updatedAt: z.any()
 })

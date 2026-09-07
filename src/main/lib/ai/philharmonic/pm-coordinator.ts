@@ -20,13 +20,14 @@ import {
 } from '../../db/plan-queries'
 import { getSettings } from '../../db/queries'
 import { getAllTeams } from '../../db/team-queries'
+import { resolveKnowledgeBase } from '../../knowledge-base/resolve-knowledge-base'
 import { notifyIfBackground } from '../../philharmonic-notifications'
+import { searchKnowledgeBase } from '../calling-tools/search-knowledge-base'
 import { getModelFromProvider } from '../utils/chat-message-util'
 import { createEscalateToUserTool } from './agent-tools'
 import { askUserRegistry } from './ask-user-registry'
 import type { SseEmitter } from './employee-loop'
 import { runDelegatedTask } from './execution-engine'
-import { createSearchKnowledgeBaseTool } from './kb-tools'
 import { PhilharmonicLcm } from './lcm'
 import { toPlanDto, toStepDto } from './plan-dto'
 import { writePlanMirror } from './plan-mirror'
@@ -38,7 +39,6 @@ import {
 import { createDelegateTaskTool, createRecruitEmployeeTool } from './pm-tools'
 import { autoCreateEmployee } from './recruit'
 import { createReportTool, type PendingArtifact } from './report-tools'
-import { computeAllowedTeamIds } from './team-scope'
 
 const PM_SYSTEM_PROMPT = `You are the PM (project manager) of a virtual team working in a group chat.
 
@@ -140,16 +140,14 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
   // PhilharmonicLcm hydrates the LLM history: when within budget it's a
   // straight conversion of every persisted message; when over, it replaces
   // the oldest turns with a rolling summary it maintains itself. Settings
-  // pulled from memoryLayer mirror what Chat's LCM uses.
+  // pulled from the memory settings mirror what Chat's LCM uses.
   const lcm = new PhilharmonicLcm(conversationId, chatModel, apiKey, {
-    enabled: setting.memoryLayer?.lcmEnabled ?? true,
-    contextWindowPercent: setting.memoryLayer?.contextWindowPercent ?? 75,
-    freshTailSize: setting.memoryLayer?.freshTailSize ?? 16
+    enabled: setting.memory?.lcmEnabled ?? true,
+    contextWindowPercent: setting.memory?.contextWindowPercent ?? 75,
+    freshTailSize: setting.memory?.freshTailSize ?? 16
   })
   const history = await lcm.assembleContext(excludeMessageId)
-  // KB is scoped to teams whose members are in this conversation. General docs
-  // (teamId IS NULL) ride along automatically inside the query.
-  const allowedTeamIds = await computeAllowedTeamIds(conversationId)
+  const kb = resolveKnowledgeBase(setting)
 
   // Pick up an existing active plan if one is still in flight; PM mutates it
   // instead of creating a new one. The createPlan tool starts a fresh plan
@@ -335,7 +333,7 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
       emit({ type: 'member_joined', conversationId, agentId: emp.id })
       return { id: emp.id, name: emp.name }
     }),
-    createSearchKnowledgeBaseTool(allowedTeamIds),
+    ...(kb ? [searchKnowledgeBase(kb, setting.knowledgeBase)] : []),
     createReportTool(conversationId, (a) => pendingArtifacts.push(a)),
     createEscalateToUserTool(async ({ question, options }) => {
       emit({ type: 'ask_user', conversationId, question, options })

@@ -34,8 +34,8 @@ const lcmExpandSchema = Type.Object({
  * Deep recall: walks the LCM DAG to answer a specific question.
  * This is the most expensive LCM operation; prefer lcmGrep → lcmDescribe first.
  *
- * The tool is designed for Agent use. It can be registered in agent tool lists
- * but should NOT be included in the standard Chat tool set.
+ * Bound into the chat tool set whenever LCM is enabled (see
+ * `tool-binding-util.ts`), alongside `lcmGrep` and `lcmDescribe`.
  */
 export const lcmExpand = (
   model: Model<string>,

@@ -1,11 +1,8 @@
 import { countryCodes } from '@shared/constants/country-codes'
-import { BRAVE_SEARCH_DOCS } from '@shared/constants/external-urls'
 import { languageCodes } from '@shared/constants/language-codes'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
-import { AlertCircleIcon } from 'lucide-react'
 import { Controller } from 'react-hook-form'
 
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   Combobox,
   ComboboxChip,
@@ -48,78 +45,107 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
   const languageChipsAnchor = useComboboxAnchor()
 
   return (
-    <>
-      <Alert>
-        <AlertCircleIcon className="h-4 w-4" />
-        <AlertDescription className="inline">
-          Exodus uses the{' '}
-          <a
-            href={BRAVE_SEARCH_DOCS}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-semibold underline"
+    <SettingsSection plain>
+      {/* API Key */}
+      <Controller
+        control={form.control}
+        name="webSearch.braveApiKey"
+        render={({ field, fieldState }) => (
+          <SettingsRow
+            label="Brave Search API Key"
+            description="Required for web search. Get yours at api-dashboard.search.brave.com"
+            error={fieldState.error}
+            layout="vertical"
           >
-            Brave Search API
-          </a>{' '}
-          for real-time web results using the LLM Context endpoint. A{' '}
-          <strong>Brave Search API Key</strong> is required.
-        </AlertDescription>
-      </Alert>
+            <Input
+              type="password"
+              autoComplete="current-password"
+              placeholder="BSA..."
+              {...field}
+              value={field.value ?? ''}
+            />
+          </SettingsRow>
+        )}
+      />
 
-      <SettingsSection>
-        {/* API Key */}
-        <Controller
-          control={form.control}
-          name="webSearch.braveApiKey"
-          render={({ field, fieldState }) => (
+      {/* Country */}
+      <Controller
+        control={form.control}
+        name="webSearch.country"
+        render={({ field, fieldState }) => (
+          <SettingsRow
+            label="Country"
+            description="Bias results toward a specific region"
+            error={fieldState.error}
+          >
+            <Combobox
+              items={countryItems}
+              itemToStringValue={(item) => item.label}
+              value={
+                field.value
+                  ? (countryItems.find((c) => c.value === field.value) ?? null)
+                  : null
+              }
+              onValueChange={(item) =>
+                form.setValue('webSearch.country', item?.value ?? null)
+              }
+            >
+              <ComboboxInput
+                placeholder="Select country..."
+                showClear
+                className="w-52"
+              />
+              <ComboboxContent>
+                <ComboboxEmpty>No country found.</ComboboxEmpty>
+                <ComboboxList>
+                  {(item) => (
+                    <ComboboxItem key={item.value} value={item}>
+                      {item.label}
+                    </ComboboxItem>
+                  )}
+                </ComboboxList>
+              </ComboboxContent>
+            </Combobox>
+          </SettingsRow>
+        )}
+      />
+
+      {/* Languages (multi-select with chips) */}
+      <Controller
+        control={form.control}
+        name="webSearch.languages"
+        render={({ field, fieldState }) => {
+          const selectedItems = (field.value ?? []).flatMap((code: string) => {
+            const item = languageItems.find((l) => l.value === code)
+            return item ? [item] : []
+          }) as OptionItem[]
+          return (
             <SettingsRow
-              label="Brave Search API Key"
-              description="Required for web search. Get yours at api-dashboard.search.brave.com"
+              label="Languages"
+              description="Filter search results by language"
               error={fieldState.error}
               layout="vertical"
             >
-              <Input
-                type="password"
-                autoComplete="current-password"
-                placeholder="BSA..."
-                autoFocus
-                {...field}
-                value={field.value ?? ''}
-              />
-            </SettingsRow>
-          )}
-        />
-
-        {/* Country */}
-        <Controller
-          control={form.control}
-          name="webSearch.country"
-          render={({ field, fieldState }) => (
-            <SettingsRow
-              label="Country"
-              description="Bias results toward a specific region"
-              error={fieldState.error}
-            >
               <Combobox
-                items={countryItems}
+                multiple
+                value={selectedItems}
+                onValueChange={(items) =>
+                  form.setValue(
+                    'webSearch.languages',
+                    items.length > 0 ? items.map((i) => i.value) : null
+                  )
+                }
+                items={languageItems}
                 itemToStringValue={(item) => item.label}
-                value={
-                  field.value
-                    ? (countryItems.find((c) => c.value === field.value) ??
-                      null)
-                    : null
-                }
-                onValueChange={(item) =>
-                  form.setValue('webSearch.country', item?.value ?? null)
-                }
               >
-                <ComboboxInput
-                  placeholder="Select country..."
-                  showClear
-                  className="w-52"
-                />
-                <ComboboxContent>
-                  <ComboboxEmpty>No country found.</ComboboxEmpty>
+                <ComboboxChips ref={languageChipsAnchor}>
+                  {selectedItems.map((item) => (
+                    <ComboboxChip key={item.value}>{item.label}</ComboboxChip>
+                  ))}
+                  <ComboboxChipsInput placeholder="Search languages..." />
+                </ComboboxChips>
+                <ComboboxContent anchor={languageChipsAnchor}>
+                  <ComboboxEmpty>No language found.</ComboboxEmpty>
                   <ComboboxList>
                     {(item) => (
                       <ComboboxItem key={item.value} value={item}>
@@ -130,135 +156,83 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
                 </ComboboxContent>
               </Combobox>
             </SettingsRow>
-          )}
-        />
+          )
+        }}
+      />
 
-        {/* Languages (multi-select with chips) */}
-        <Controller
-          control={form.control}
-          name="webSearch.languages"
-          render={({ field, fieldState }) => {
-            const selectedItems = (field.value ?? []).flatMap(
-              (code: string) => {
-                const item = languageItems.find((l) => l.value === code)
-                return item ? [item] : []
+      {/* Max Results */}
+      <Controller
+        control={form.control}
+        name="webSearch.maxResults"
+        render={({ field, fieldState }) => (
+          <SettingsRow
+            label="Max Results"
+            description="Number of search results per query (1-50). Default: 10."
+            error={fieldState.error}
+          >
+            <Input
+              type="number"
+              min={1}
+              max={50}
+              className="w-20"
+              placeholder="10"
+              {...field}
+              value={field.value ?? ''}
+              onChange={(e) => {
+                const v = e.target.value
+                field.onChange(v === '' ? null : Number(v))
+              }}
+            />
+          </SettingsRow>
+        )}
+      />
+
+      {/* Recency Filter */}
+      <Controller
+        control={form.control}
+        name="webSearch.recencyFilter"
+        render={({ field, fieldState }) => (
+          <SettingsRow
+            label="Recency Filter"
+            description="Only return results from a recent time period."
+            error={fieldState.error}
+          >
+            <SettingsSelect
+              value={field.value ?? 'none'}
+              onValueChange={(val) =>
+                form.setValue(
+                  'webSearch.recencyFilter',
+                  val === 'none'
+                    ? null
+                    : (val as 'hour' | 'day' | 'week' | 'month' | 'year')
+                )
               }
-            ) as OptionItem[]
-            return (
-              <SettingsRow
-                label="Languages"
-                description="Filter search results by language"
-                error={fieldState.error}
-                layout="vertical"
-              >
-                <Combobox
-                  multiple
-                  value={selectedItems}
-                  onValueChange={(items) =>
-                    form.setValue(
-                      'webSearch.languages',
-                      items.length > 0 ? items.map((i) => i.value) : null
-                    )
-                  }
-                  items={languageItems}
-                  itemToStringValue={(item) => item.label}
-                >
-                  <ComboboxChips ref={languageChipsAnchor}>
-                    {selectedItems.map((item) => (
-                      <ComboboxChip key={item.value}>{item.label}</ComboboxChip>
-                    ))}
-                    <ComboboxChipsInput placeholder="Search languages..." />
-                  </ComboboxChips>
-                  <ComboboxContent anchor={languageChipsAnchor}>
-                    <ComboboxEmpty>No language found.</ComboboxEmpty>
-                    <ComboboxList>
-                      {(item) => (
-                        <ComboboxItem key={item.value} value={item}>
-                          {item.label}
-                        </ComboboxItem>
-                      )}
-                    </ComboboxList>
-                  </ComboboxContent>
-                </Combobox>
-              </SettingsRow>
-            )
-          }}
-        />
+              options={RECENCY_OPTIONS}
+              placeholder="No filter"
+            />
+          </SettingsRow>
+        )}
+      />
 
-        {/* Max Results */}
-        <Controller
-          control={form.control}
-          name="webSearch.maxResults"
-          render={({ field, fieldState }) => (
-            <SettingsRow
-              label="Max Results"
-              description="Number of search results per query (1-50). Default: 10."
-              error={fieldState.error}
-            >
-              <Input
-                type="number"
-                min={1}
-                max={50}
-                className="w-20"
-                placeholder="10"
-                {...field}
-                value={field.value ?? ''}
-                onChange={(e) => {
-                  const v = e.target.value
-                  field.onChange(v === '' ? null : Number(v))
-                }}
-              />
-            </SettingsRow>
-          )}
-        />
-
-        {/* Recency Filter */}
-        <Controller
-          control={form.control}
-          name="webSearch.recencyFilter"
-          render={({ field, fieldState }) => (
-            <SettingsRow
-              label="Recency Filter"
-              description="Only return results from a recent time period."
-              error={fieldState.error}
-            >
-              <SettingsSelect
-                value={field.value ?? 'none'}
-                onValueChange={(val) =>
-                  form.setValue(
-                    'webSearch.recencyFilter',
-                    val === 'none'
-                      ? null
-                      : (val as 'hour' | 'day' | 'week' | 'month' | 'year')
-                  )
-                }
-                options={RECENCY_OPTIONS}
-                placeholder="No filter"
-              />
-            </SettingsRow>
-          )}
-        />
-
-        {/* Domain Filter */}
-        <Controller
-          control={form.control}
-          name="webSearch.domainFilter"
-          render={({ field, fieldState }) => (
-            <SettingsRow
-              label="Domain Filter"
-              description='Comma-separated. Prefix with - to exclude. e.g. "nature.com, .edu" or "-reddit.com"'
-              error={fieldState.error}
-              layout="vertical"
-            >
-              <Input
-                placeholder="e.g. nature.com, .edu, -reddit.com"
-                {...field}
-                value={field.value ?? ''}
-              />
-            </SettingsRow>
-          )}
-        />
-      </SettingsSection>
-    </>
+      {/* Domain Filter */}
+      <Controller
+        control={form.control}
+        name="webSearch.domainFilter"
+        render={({ field, fieldState }) => (
+          <SettingsRow
+            label="Domain Filter"
+            description='Comma-separated. Prefix with - to exclude. e.g. "nature.com, .edu" or "-reddit.com"'
+            error={fieldState.error}
+            layout="vertical"
+          >
+            <Input
+              placeholder="e.g. nature.com, .edu, -reddit.com"
+              {...field}
+              value={field.value ?? ''}
+            />
+          </SettingsRow>
+        )}
+      />
+    </SettingsSection>
   )
 }

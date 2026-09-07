@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 
+vi.mock('@electron-toolkit/utils', () => ({ is: { dev: true } }))
+vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
+
 const agentLoopMock = vi.fn()
 vi.mock('@mariozechner/pi-agent-core', () => ({
   agentLoop: (...a: unknown[]) => agentLoopMock(...a)
@@ -25,19 +28,9 @@ vi.mock('@main/lib/ai/philharmonic/execution-engine', () => ({
 vi.mock('@main/lib/ai/philharmonic/recruit', () => ({
   autoCreateEmployee: vi.fn(async () => ({ id: 'a2', name: 'Quinn' }))
 }))
-// Mock kb-tools to avoid transitive knowledge-queries imports
-vi.mock('@main/lib/ai/philharmonic/kb-tools', () => ({
-  createSearchKnowledgeBaseTool: vi.fn((_allowedTeamIds: string[]) => ({
-    name: 'searchKnowledgeBase',
-    label: 'Search',
-    description: 'Search',
-    parameters: {},
-    execute: vi.fn()
-  }))
-}))
-// Mock team-scope so PM doesn't pull in conversation/agent queries during tests
-vi.mock('@main/lib/ai/philharmonic/team-scope', () => ({
-  computeAllowedTeamIds: vi.fn(async () => [])
+// No knowledge base configured in tests → the PM tool list stays KB-free.
+vi.mock('@main/lib/knowledge-base/resolve-knowledge-base', () => ({
+  resolveKnowledgeBase: vi.fn(() => null)
 }))
 // Notifications pull in Electron — short-circuit them.
 vi.mock('@main/lib/philharmonic-notifications', () => ({

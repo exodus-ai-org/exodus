@@ -1,17 +1,23 @@
 import type { Usage } from '@mariozechner/pi-ai'
 import {
-  AudioSchema,
+  VoiceSchema,
   DeepResearchSchema,
+  DiscoverSchema,
+  ComputerUseSchema,
   GoogleCloudSchema,
   ImageSchema,
-  MemoryLayerSchema,
+  KeyboardShortcutsSchema,
+  KnowledgeBaseSchema,
+  MemorySchema,
   PersonalitySchema,
   ProviderConfigSchema,
   ProvidersSchema,
   S3Schema,
+  FullTextSearchSchema,
   ToolsSchema,
   WebSearchSchema
 } from '@shared/schemas/settings-schema'
+import type { DiscoverGroup } from '@shared/types/discover'
 import { WebSearchResult } from '@shared/types/web-search'
 import { sql, type InferSelectModel } from 'drizzle-orm'
 import {
@@ -76,6 +82,10 @@ export const message = pgTable(
       .references(() => chat.id),
     role: varchar('role').notNull(), // 'user' | 'assistant' | 'toolResult'
     content: jsonb('content').notNull(), // content array for the message
+    // Extracted, indexable text — only `text` blocks from user/assistant
+    // messages; excludes `thinking` blocks and toolResult rows entirely.
+    // Populated by extractSearchableText() in saveMessages().
+    searchText: text('searchText'),
     // assistant-specific fields
     usage: jsonb('usage').$type<Usage>(),
     api: varchar('api'),
@@ -96,9 +106,12 @@ export const message = pgTable(
     createdAt: timestamp('createdAt').defaultNow().notNull()
   },
   (table) => [
+    // gin_trgm_ops (pg_trgm) — not to_tsvector — so ILIKE substring matching
+    // works uniformly across languages, including CJK text that Postgres's
+    // built-in text-search parser doesn't segment into words at all.
     index('message_search_index').using(
       'gin',
-      sql`to_tsvector('simple', ${table.content})`
+      sql`${table.searchText} gin_trgm_ops`
     )
   ]
 )
@@ -133,10 +146,16 @@ export const settings = pgTable('settings', {
   providers: jsonb('providers').$type<z.infer<typeof ProvidersSchema>>(),
   mcpServers: text('mcpServers').default(''),
   tools: jsonb('tools').$type<z.infer<typeof ToolsSchema>>(),
-  audio: jsonb('audio').$type<z.infer<typeof AudioSchema>>(),
+  voice: jsonb('voice').$type<z.infer<typeof VoiceSchema>>(),
   assistantAvatar: text('assistantAvatar').default(''),
   googleCloud: jsonb('googleCloud').$type<z.infer<typeof GoogleCloudSchema>>(),
   webSearch: jsonb('webSearch').$type<z.infer<typeof WebSearchSchema>>(),
+  fullTextSearch:
+    jsonb('fullTextSearch').$type<z.infer<typeof FullTextSearchSchema>>(),
+  knowledgeBase:
+    jsonb('knowledgeBase').$type<z.infer<typeof KnowledgeBaseSchema>>(),
+  computerUse: jsonb('computerUse').$type<z.infer<typeof ComputerUseSchema>>(),
+  discover: jsonb('discover').$type<z.infer<typeof DiscoverSchema>>(),
   image: jsonb('image').$type<z.infer<typeof ImageSchema>>(),
   deepResearch:
     jsonb('deepResearch').$type<z.infer<typeof DeepResearchSchema>>(),
@@ -144,12 +163,12 @@ export const settings = pgTable('settings', {
   autoUpdate: boolean('autoUpdate').default(true),
   runOnStartup: boolean('runOnStartup').default(false),
   menuBar: boolean('menuBar').default(true),
-  proxy: text('proxy').default(''),
   autoBackup: boolean('autoBackup').default(true),
   lastBackupAt: timestamp('lastBackupAt'),
-  memoryLayer: jsonb('memoryLayer').$type<z.infer<typeof MemoryLayerSchema>>(),
+  memory: jsonb('memory').$type<z.infer<typeof MemorySchema>>(),
   personality: jsonb('personality').$type<z.infer<typeof PersonalitySchema>>(),
-  colorTone: text('colorTone').default('neutral'),
+  keyboardShortcuts:
+    jsonb('keyboardShortcuts').$type<z.infer<typeof KeyboardShortcutsSchema>>(),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull()
 })
@@ -507,31 +526,69 @@ export type PhilharmonicSessionSummary = InferSelectModel<
   typeof philharmonicSessionSummary
 >
 
-// ─── Knowledge Base (RAG stub) ────────────────────────────────────────────────
+// ─── Knowledge Base ──────────────────────────────────────────────────────────
+// Source-of-truth documents, authored in Settings → Knowledge Base and synced
+// into a self-hosted LightRAG server (the retrieval index) by the `kb-sync`
+// job. Per-doc sync state lives here; LightRAG owns the graph + vectors.
+
+export const knowledgeIndexStatusEnum = pgEnum('knowledge_index_status', [
+  'pending', // never synced, or content changed and a kb-sync job is queued
+  'processing', // submitted to LightRAG; track_id outstanding
+  'processed', // LightRAG reports the doc indexed
+  'failed', // submit or processing failed; see indexError
+  'stale' // hash != syncedHash but no sync running (needs Reindex all)
+])
 
 export const knowledgeDoc = pgTable('knowledge_doc', {
   id: uuid('id').primaryKey().notNull().defaultRandom(),
   title: text('title').notNull(),
   content: text('content').notNull(),
-  // Owning team. NULL = "General" — visible to every Philharmonic Group.
-  // ON DELETE SET NULL: deleting a Team demotes its docs to General rather
-  // than throwing them away, since the content may outlive the team.
-  teamId: uuid('teamId').references(() => team.id, { onDelete: 'set null' }),
+  lightragDocId: text('lightragDocId'),
+  lightragTrackId: text('lightragTrackId'),
+  indexStatus: knowledgeIndexStatusEnum('indexStatus')
+    .notNull()
+    .default('pending'),
+  indexError: text('indexError'),
+  syncedHash: text('syncedHash'),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull()
 })
 
 export type KnowledgeDoc = InferSelectModel<typeof knowledgeDoc>
 
+// ─── Discover ────────────────────────────────────────────────────────────────
+// A single cached feed, regenerated wholesale by the discover-refresh job.
+// No relational columns / no FK to `memory` — the whole cache is replaced
+// atomically on every refresh, so a stale memoryId inside old JSON is
+// harmless and never queried against the memory table.
+
+export const discoverFeedStatusEnum = pgEnum('discover_feed_status', [
+  'idle',
+  'refreshing',
+  'failed'
+])
+
+export const discoverFeed = pgTable('discover_feed', {
+  id: text('id').primaryKey(), // always 'global'
+  groups: jsonb('groups')
+    .$type<DiscoverGroup[]>()
+    .notNull()
+    .default(sql`'[]'::jsonb`),
+  generatedAt: timestamp('generatedAt'),
+  status: discoverFeedStatusEnum('status').notNull().default('idle'),
+  error: text('error')
+})
+
+export type DiscoverFeedRow = InferSelectModel<typeof discoverFeed>
+
 // ─── Memory & Personalization ───────────────────────────────────────────────
 
-export const memoryTypeEnum = pgEnum('memory_type', [
-  'preference',
-  'goal',
-  'environment',
-  'skill',
-  'project',
-  'constraint'
+// Coarse sections, mirroring how a durable user memory is naturally organized.
+// The LLM classifies far more consistently into 3 buckets than into 6.
+export const memorySectionEnum = pgEnum('memory_section', [
+  'profile', // durable identity, environment, hard constraints, preferences
+  'topic', // an interest / project / recurring subject
+  'person' // someone in the user's life
 ])
 
 export const memorySourceEnum = pgEnum('memory_source', [
@@ -540,12 +597,18 @@ export const memorySourceEnum = pgEnum('memory_source', [
   'system'
 ])
 
+// One row per topic/person, not per fact. `summary` is the one-liner; `details`
+// accumulates bullet points that the consolidation judge revises over time.
 export const memory = pgTable('memory', {
   id: uuid('id').defaultRandom().primaryKey(),
   userId: uuid('userId').notNull(),
-  type: memoryTypeEnum('type').notNull(),
+  section: memorySectionEnum('section').notNull().default('topic'),
   key: text('key').notNull(),
-  value: jsonb('value').notNull(),
+  summary: text('summary').notNull(),
+  details: jsonb('details')
+    .$type<string[]>()
+    .notNull()
+    .default(sql`'[]'::jsonb`),
   confidence: real('confidence').default(0.8),
   source: memorySourceEnum('source').notNull(),
   createdAt: timestamp('createdAt').defaultNow(),
@@ -554,13 +617,8 @@ export const memory = pgTable('memory', {
   isActive: boolean('isActive').default(true)
 })
 
-export const sessionSummary = pgTable('session_summary', {
-  sessionId: uuid('sessionId').primaryKey(),
-  userId: uuid('userId').notNull(),
-  summary: text('summary').notNull(),
-  updatedAt: timestamp('updatedAt').defaultNow()
-})
-
+// Written whenever a memory is surfaced into a chat — powers "why did it say
+// that" traces and an age-out policy.
 export const memoryUsageLog = pgTable('memory_usage_log', {
   id: uuid('id').defaultRandom().primaryKey(),
   memoryId: uuid('memoryId'),

@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { sileo } from 'sileo'
 
 import { useAudio } from '@/hooks/use-audio'
+import { cn } from '@/lib/utils'
 
 import { Button } from './ui/button'
 
@@ -63,9 +64,14 @@ export function AudioRecorder({
 
   return (
     <Button
-      type="submit"
-      variant="secondary"
+      type="button"
+      variant="ghost"
+      aria-label={isRecording ? 'Stop recording' : 'Dictate'}
       onClick={isRecording ? stopRecording : startRecording}
+      className={cn(
+        'text-muted-foreground hover:bg-muted hover:text-foreground size-8 rounded-full [&_svg]:size-[18px]',
+        isRecording && 'text-destructive hover:text-destructive'
+      )}
     >
       {loading ? (
         <LoaderIcon className="animate-spin" />

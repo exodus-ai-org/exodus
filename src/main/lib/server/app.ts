@@ -7,15 +7,19 @@ import { cors } from 'hono/cors'
 // ARCHIVED: import { connectMcpServers } from '../ai/mcp'
 import { initScheduler } from '../ai/philharmonic/scheduler'
 import { getSettings } from '../db/queries'
+import { initJobQueue } from '../jobs/worker'
 import { logger } from '../logger'
-import { errorHandler, lockGate } from './middlewares'
+import { errorHandler, lockGate, traceMiddleware } from './middlewares'
 import artifactsRouter from './routes/artifacts'
 import audioRouter from './routes/audio'
 import backupRouter from './routes/backup'
 import chatRouter from './routes/chat'
+import computerUseRouter from './routes/computer-use'
 import dbIoRouter from './routes/db-io'
 import deepResearchRouter from './routes/deep-research'
+import discoverRouter from './routes/discover'
 import historyRouter from './routes/history'
+import knowledgeBaseRouter from './routes/knowledge-base'
 import lcmStatusRouter from './routes/lcm-status'
 import logsRouter from './routes/logs'
 import mcpRouter from './routes/mcp'
@@ -42,6 +46,10 @@ export async function connectHttpServer() {
   // Lock gate: reject all API access while the app is locked (423).
   app.use('/api/*', lockGate)
 
+  // Trace gate: wrap each request in an AsyncLocalStorage trace so every
+  // logger.* call while handling it shares one traceId; echo it as x-trace-id.
+  app.use('/api/*', traceMiddleware)
+
   // Add setting to context for all routes (except setting route to avoid circular dependency)
   app.use('/api/*', async (c, next) => {
     // Get fresh settings on each request to ensure it's always up-to-date
@@ -60,11 +68,14 @@ export async function connectHttpServer() {
   app.route('/api/chat', chatRouter)
   app.route('/api/lcm', lcmStatusRouter)
   app.route('/api/history', historyRouter)
+  app.route('/api/knowledge-base', knowledgeBaseRouter)
   app.route('/api/project', projectRouter)
   app.route('/api/settings', settingsRouter)
   app.route('/api/audio', audioRouter)
   app.route('/api/db-io', dbIoRouter)
   app.route('/api/deep-research', deepResearchRouter)
+  app.route('/api/discover', discoverRouter)
+  app.route('/api/computer-use', computerUseRouter)
   app.route('/api/tools', toolsRouter)
   app.route('/api/philharmonic', philharmonicRouter)
   app.route('/api/s3', s3UploaderRouter)
@@ -97,6 +108,7 @@ export async function connectHttpServer() {
       initScheduler(emitToAll).catch((err) =>
         logger.error('scheduler', 'Init error', { error: String(err) })
       )
+      initJobQueue()
     }
   }
 }

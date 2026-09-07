@@ -12,6 +12,9 @@ files:
   - '!**/*.map'
 asarUnpack:
   - resources/**
+extraResources:
+  - from: resources/bin
+    to: bin
 win:
   executableName: Exodus
 nsis:

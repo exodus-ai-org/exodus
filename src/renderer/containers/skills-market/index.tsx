@@ -276,9 +276,12 @@ export function SkillsMarket() {
                         </p>
                       </div>
                     ) : (
-                      searchData?.map((result) => (
+                      searchData?.map((result, i) => (
                         <SearchResultCard
-                          key={result.slug ?? result.displayName}
+                          key={
+                            result.slug ??
+                            `${result.displayName ?? 'result'}-${i}`
+                          }
                           result={result}
                           installedSlugs={installedSlugs}
                           pendingSlug={pendingSlug}

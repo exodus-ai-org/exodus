@@ -48,7 +48,7 @@ function Carousel({
   className,
   children,
   ...props
-}: React.ComponentProps<'section'> & CarouselProps) {
+}: React.ComponentProps<'div'> & CarouselProps) {
   const [carouselRef, api] = useEmblaCarousel(
     {
       ...opts,
@@ -102,41 +102,30 @@ function Carousel({
     }
   }, [api, onSelect])
 
-  const contextValue = React.useMemo(
-    () => ({
-      carouselRef,
-      api: api,
-      opts,
-      orientation:
-        orientation || (opts?.axis === 'y' ? 'vertical' : 'horizontal'),
-      scrollPrev,
-      scrollNext,
-      canScrollPrev,
-      canScrollNext
-    }),
-    [
-      carouselRef,
-      api,
-      opts,
-      orientation,
-      scrollPrev,
-      scrollNext,
-      canScrollPrev,
-      canScrollNext
-    ]
-  )
-
   return (
-    <CarouselContext.Provider value={contextValue}>
-      <section
+    <CarouselContext.Provider
+      value={{
+        carouselRef,
+        api: api,
+        opts,
+        orientation:
+          orientation || (opts?.axis === 'y' ? 'vertical' : 'horizontal'),
+        scrollPrev,
+        scrollNext,
+        canScrollPrev,
+        canScrollNext
+      }}
+    >
+      <div
         onKeyDownCapture={handleKeyDown}
         className={cn('relative', className)}
+        role="region"
         aria-roledescription="carousel"
         data-slot="carousel"
         {...props}
       >
         {children}
-      </section>
+      </div>
     </CarouselContext.Provider>
   )
 }
@@ -194,9 +183,9 @@ function CarouselPrevious({
       variant={variant}
       size={size}
       className={cn(
-        'absolute touch-manipulation rounded-full',
+        'absolute touch-manipulation rounded-2xl',
         orientation === 'horizontal'
-          ? 'top-1/2 -left-12 -translate-y-1/2'
+          ? 'inset-y-0 -left-12 my-auto'
           : '-top-12 left-1/2 -translate-x-1/2 rotate-90',
         className
       )}
@@ -224,9 +213,9 @@ function CarouselNext({
       variant={variant}
       size={size}
       className={cn(
-        'absolute touch-manipulation rounded-full',
+        'absolute touch-manipulation rounded-2xl',
         orientation === 'horizontal'
-          ? 'top-1/2 -right-12 -translate-y-1/2'
+          ? 'inset-y-0 -right-12 my-auto'
           : '-bottom-12 left-1/2 -translate-x-1/2 rotate-90',
         className
       )}
@@ -241,11 +230,11 @@ function CarouselNext({
 }
 
 export {
+  type CarouselApi,
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
   CarouselPrevious,
-  useCarousel,
-  type CarouselApi
+  CarouselNext,
+  useCarousel
 }

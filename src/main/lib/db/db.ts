@@ -1,5 +1,7 @@
 import { PGlite } from '@electric-sql/pglite'
-import { vector } from '@electric-sql/pglite/vector'
+import { pgmq } from '@electric-sql/pglite-pgmq'
+import { vector } from '@electric-sql/pglite-pgvector'
+import { pg_trgm } from '@electric-sql/pglite/contrib/pg_trgm'
 import { drizzle } from 'drizzle-orm/pglite'
 
 import { getDatabaseDir } from '../paths'
@@ -7,7 +9,7 @@ import { getDatabaseDir } from '../paths'
 const dbPath = getDatabaseDir()
 export const pglite = new PGlite({
   dataDir: dbPath,
-  extensions: { vector }
+  extensions: { vector, pgmq, pg_trgm }
 })
 
 export const db = drizzle(pglite)

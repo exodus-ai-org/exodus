@@ -5,6 +5,7 @@ import { memo, useEffect } from 'react'
 import { sileo } from 'sileo'
 
 import { ArtifactCard } from './calling-tools/artifact/artifact-card'
+import { ComputerUseCard } from './calling-tools/computer-use/computer-use-card'
 import { DeepResearchCard } from './calling-tools/deep-research/deep-research-card'
 import { DrawioCard, isDrawioOutput } from './calling-tools/drawio/drawio-card'
 import { GenericToolCard } from './calling-tools/generic-tool-card'
@@ -20,6 +21,7 @@ const BUILTIN_TOOL_NAMES = new Set([
   'mapItinerary',
   'weather',
   'deepResearch',
+  'computerUse',
   'terminal',
   'createArtifact',
   'webSearch',
@@ -148,6 +150,7 @@ function CallingTools({
       )}
       {toolName === 'weather' && <WeatherCard toolResult={output} />}
       {toolName === 'deepResearch' && <DeepResearchCard toolResult={output} />}
+      {toolName === 'computerUse' && <ComputerUseCard toolResult={output} />}
       {toolName === 'terminal' && <TerminalCard toolResult={output} />}
       {toolName === 'createArtifact' && output?.type === 'artifact' && (
         <ArtifactCard chatId={chatId} toolResult={output} />
@@ -170,9 +173,14 @@ function CallingTools({
 export const MessageCallingTools = memo(
   CallingTools,
   (prevProps, nextProps) => {
+    // Re-render whenever the tool-result message is replaced. The stream
+    // manager swaps only the changed index, so an unchanged card keeps its
+    // object identity and still skips — while a `computerUse` card whose
+    // streamed `details` advanced gets a fresh object and re-renders. (Old
+    // turns are already gated upstream by AssistantTurnSegment's memo.)
     return (
-      prevProps.toolResult.toolCallId === nextProps.toolResult.toolCallId &&
-      prevProps.toolResult.isError === nextProps.toolResult.isError
+      prevProps.chatId === nextProps.chatId &&
+      prevProps.toolResult === nextProps.toolResult
     )
   }
 )

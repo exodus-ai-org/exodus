@@ -18,6 +18,7 @@ import {
   saveDeepResearchMessage,
   updateDeepResearch
 } from '../../db/queries'
+import { bindTraceAttributes } from '../../logger/trace-context'
 import { createDeepResearchSchema } from '../schemas/deep-research'
 import {
   getRequiredQuery,
@@ -63,6 +64,7 @@ deepResearch.post('/', async (c) => {
     deepResearchId: string
     query: string
   }>(createDeepResearchSchema, await c.req.json(), 'Invalid request body')
+  bindTraceAttributes({ researchId: deepResearchId })
 
   const setting = c.get('settings')
 

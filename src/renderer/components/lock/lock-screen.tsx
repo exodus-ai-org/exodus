@@ -3,6 +3,7 @@ import type { LockNotification, LockStatus } from '@shared/types/lock'
 import { FingerprintIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
+import { Button } from '@/components/ui/button'
 import {
   getRecentLockNotifications,
   onLockNotification,
@@ -96,14 +97,15 @@ export function LockScreen({
       <div className="text-destructive h-5 text-sm">{error}</div>
 
       {touchId && (
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="sm"
           data-testid={TEST_IDS.lock.touchIdButton}
           onClick={tryTouchId}
-          className="text-muted-foreground hover:text-foreground flex items-center gap-2 text-sm"
+          className="text-muted-foreground"
         >
           <FingerprintIcon size={18} /> Unlock with Touch ID
-        </button>
+        </Button>
       )}
 
       {feed.length > 0 && (

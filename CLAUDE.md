@@ -113,14 +113,15 @@ The main process runs a **Hono HTTP server** that handles all business logic:
 
 **Server Routes** (`src/main/lib/server/routes/`, registered in `src/main/lib/server/app.ts`):
 
-`/api/chat`, `/api/lcm`, `/api/history`, `/api/project`, `/api/settings`, `/api/audio`, `/api/db-io`, `/api/deep-research`, `/api/tools`, `/api/philharmonic`, `/api/s3`, `/api/skills`, `/api/mcp`, `/api/memory`, `/api/usage`, `/api/logs`, `/api/backup`, `/api/artifacts`.
+`/api/chat`, `/api/lcm`, `/api/history`, `/api/knowledge-base`, `/api/project`, `/api/settings`, `/api/audio`, `/api/db-io`, `/api/deep-research`, `/api/discover`, `/api/tools`, `/api/philharmonic`, `/api/s3`, `/api/skills`, `/api/mcp`, `/api/memory`, `/api/usage`, `/api/logs`, `/api/backup`, `/api/artifacts`, `/api/computer-use`.
 
 **Middleware Pipeline** (order in `app.ts`):
 
 1. CORS middleware (`hono/cors`, allows all origins for localhost development)
 2. Lock gate (`lockGate`) — rejects all `/api/*` with `423` while the app is locked
-3. Settings injection — fresh `getSettings()` set on the Hono context per request
-4. Error handler (`app.onError`, returns JSON errors)
+3. Trace gate (`traceMiddleware`) — wraps each `/api/*` request in an `AsyncLocalStorage` trace (see `src/main/lib/logger/`), sets the `x-trace-id` response header
+4. Settings injection — fresh `getSettings()` set on the Hono context per request
+5. Error handler (`app.onError`, returns JSON errors)
 
 The MCP-tools middleware (injecting MCP tools into context) is **archived** (commented out in `app.ts`).
 
@@ -136,7 +137,7 @@ The MCP-tools middleware (injecting MCP tools into context) is **archived** (com
 **Key Tables**:
 
 - `settings` - Global settings (models, API keys, preferences)
-- `knowledge_doc` - Knowledge base documents + vector embeddings (RAG)
+- `knowledge_doc` - Knowledge base source documents + per-doc LightRAG sync status
 - `deep_research` / `deep_research_message` - Deep research jobs and progress updates
 - `memory` / `memory_usage_log` - User memory and audit trail
 - `session_summary` - Summarized conversation context
@@ -168,18 +169,20 @@ Supported providers (files in `src/main/lib/ai/providers/`):
 3. Bind built-in tools based on `AdvancedTools` selection
 4. Stream via `agentLoop` from `@mariozechner/pi-agent-core` for multi-step tool execution
 5. Stream response back to renderer
-6. On completion: save messages, evaluate memory write, generate session summary
+6. On completion: save messages; enqueue background jobs (search indexing,
+   LCM compaction, memory consolidation) onto the pgmq-backed
+   job queue (`src/main/lib/jobs/`) rather than running them inline
 
 **Tool Architecture** (`src/main/lib/ai/calling-tools/`):
 Each tool has a description for LLM understanding, a Zod input schema, and an execute function.
 
 Built-in tools (files in `src/main/lib/ai/calling-tools/`):
 
-`create-artifact`, `deep-research`, `edit-file`, `find-files`, `grep`, `image-generation`, `lcm-describe`, `lcm-expand`, `lcm-grep`, `list-directory`, `map-itinerary`, `read-file`, `terminal`, `weather`, `web-fetch`, `web-search`, `write-file`.
+`computer-use`, `create-artifact`, `deep-research`, `edit-file`, `find-files`, `grep`, `image-generation`, `lcm-describe`, `lcm-expand`, `lcm-grep`, `list-directory`, `map-itinerary`, `read-file`, `search-knowledge-base`, `terminal`, `weather`, `web-fetch`, `web-search`, `write-file`.
 
-### Knowledge Base (RAG)
+### Knowledge Base (LightRAG)
 
-A knowledge-base layer backs RAG. Documents are chunked and embedded into the `knowledge_doc` pgvector table; cosine-similarity retrieval surfaces relevant chunks. DB access goes through `src/main/lib/db/knowledge-queries.ts`. Philharmonic agents query the knowledge base via `kb-tools.ts` in `src/main/lib/ai/philharmonic/`.
+The knowledge base is backed by an **optional, self-hosted LightRAG server** the user runs (Exodus is a client only — see `docs/lightrag-setup.md`). `knowledge_doc` rows are the editable source-of-truth (Settings → Knowledge Base); the `kb-sync` job (`src/main/lib/jobs/handlers.ts`) pushes them into LightRAG via `src/main/lib/knowledge-base/lightrag-client.ts` (delete + re-insert on edit), and `reconcile.ts` on the jobs cron settles each row's `indexStatus` via LightRAG's `track_status`. `resolveKnowledgeBase(settings)` (never throws) gates the `searchKnowledgeBase` tool, bound by `bindCallingTools` for the main chat and every Philharmonic employee loop. Retrieval is context-only (`only_need_context: true`) — Exodus's own model writes the answer. No scoping: one shared KB.
 
 ### Deep Research
 
@@ -249,32 +252,28 @@ Allows external tools/servers to be integrated via MCP protocol:
 
 **Memory System** (`src/main/lib/ai/memory/manager.ts`):
 
-Tracks user preferences, goals, and context across conversations. Key functions: `runMemoryWriteJudge()`, `loadRelevantMemories()`, `formatMemoriesForSystem()`, `saveSessionSummary()`.
+A durable, topic-consolidated memory of the user. Key functions:
+`runMemoryConsolidation()`, `loadRelevantMemories()`, `formatMemoriesForSystem()`.
 
-**Memory Types** (stored in `memory` table):
+**Memory entries** (one row per topic/person in the `memory` table):
 
-- `preference` - UI/interaction preferences
-- `goal` - User objectives
-- `environment` - Job, location, setup context
-- `skill` - Expertise areas
-- `project` - Current projects
-- `constraint` - Limitations or rules
+- `section` - `profile` (durable identity / setup / hard constraints / stable
+  preferences) | `topic` (an interest, project, recurring subject) | `person`
+- `key` - short stable title (e.g. "Classical Music")
+- `summary` - one sentence; `details` - `string[]` of bullets
 
 **Memory Operations** (all in `src/main/lib/ai/memory/manager.ts`):
 
-1. **Memory Write Judge** (`runMemoryWriteJudge()`):
-   - Runs after each conversation
-   - Uses an LLM to evaluate if memory should be written
-   - Criteria: long-term stable (weeks+), multi-conversation useful, not sensitive
-   - Output: shouldWrite boolean + memory metadata
+1. **Consolidation** (`runMemoryConsolidation()`) — `memory-consolidate` job
+   after each turn when `memory.autoCapture`. One LLM call sees the
+   conversation + the existing memory index and returns `create`/`update`
+   operations. Prefers updating an existing entry (returning its full revised
+   summary + details) over inserting a duplicate.
 
-2. **Memory Read Filter** (`loadRelevantMemories()` / `formatMemoriesForSystem()`):
-   - Before chat, filters relevant memories from database
-   - Selects only directly applicable memories to avoid token waste
-
-3. **Session Summary** (`saveSessionSummary()`):
-   - After conversation, summarizes key points
-   - Stored for future session context
+2. **Read filter** (`loadRelevantMemories()` / `formatMemoriesForSystem()`) —
+   pre-turn when `memory.useInChat`. One LLM call picks the relevant
+   entries; selected entries are recorded in `memory_usage_log` and get
+   `lastUsedAt` bumped, then rendered into a `<user_memory>` system block.
 
 ### Philharmonic (multi-agent Groups)
 
@@ -398,7 +397,10 @@ Separate renderer entry points under `src/renderer/sub-apps/`: `searchbar`, `qui
 - SWR hooks for server data fetching with automatic revalidation
 - Always use path alias `@` for renderer imports
 - Tailwind + Radix UI for consistent styling
-- Toast notifications via `sonner` library
+- Toast notifications via `sileo` (mounted once as `<AppToaster />` per
+  layout — chat/settings/philharmonic); `sonner`'s `Toaster` is a leftover
+  shadcn primitive (`components/ui/sonner.tsx`) that is never mounted, so
+  `sonner`'s `toast()` calls render nothing — use `sileo` instead
 
 ### Security Considerations
 
@@ -513,9 +515,43 @@ Main process:
 - `src/main/lib/ai/calling-tools/` — built-in agent tools
 - `src/main/lib/ai/philharmonic/` — multi-agent Groups
 - `src/main/lib/ai/context-management/` — LCM
-- `src/main/lib/ai/memory/` — memory + session summary
+- `src/main/lib/ai/memory/` — personalization memory (consolidation + recall)
 - `src/main/lib/lock/` — app lock (PIN, gate, idle)
 - `src/main/lib/db/` — Drizzle schema + queries (PGlite)
+- `src/main/lib/search/` — pluggable full-text search (PGlite default,
+  optional Elasticsearch — see `resolveSearchProvider()`)
+- `src/main/lib/knowledge-base/` — optional LightRAG knowledge base: HTTP
+  client, `resolveKnowledgeBase()` (never-throws), and the `kb-sync`
+  index-status `reconcile.ts`
+- `src/main/lib/discover/` — Home Discover feed: Brave News client, memory-driven
+  query generation, `runDiscoverRefresh` (see docs/superpowers/specs/2026-09-05-home-discover-feed-design.md)
+- `src/main/lib/jobs/` — durable job queue (pgmq-backed): `queries.ts`
+  (enqueue/read/archive), `handlers.ts` (per-queue job logic), `worker.ts`
+  (`enqueueAndProcess()` + periodic sweep); decouples chat.ts's post-turn
+  side effects (search indexing, LCM compaction, memory consolidation,
+  `kb-sync`, `discover-refresh`) from the request/response cycle.
+  `queries.ts`'s `enqueueJob` stamps the ambient `traceId` onto the payload
+  (`__originTraceId`); `worker.ts` runs each handler in a `withTrace` linked
+  to it
+- `src/main/lib/logger/` — OpenTelemetry-shaped structured logging (no
+  `@opentelemetry/*` dep): `record.ts` (LogRecord shape + severity/exception/
+  legacy mapping), `resource.ts` (service/process identity), `trace-context.ts`
+  (`AsyncLocalStorage` per-unit-of-work trace ids — `withTrace` /
+  `currentTrace` / `bindTraceAttributes`), `index.ts` (the `logger` API,
+  call signature unchanged). `withTrace` wraps the `/api/*` middleware, the
+  job worker, and the scheduler. JSONL at `~/.exodus/logs/`; read via
+  `/api/logs` (filters incl. `traceId`) + `/api/logs/scopes` and the
+  Settings → Logger tab. See
+  `docs/superpowers/specs/2026-09-06-standardized-logging-design.md`
+- `src/main/lib/computer/` — window-scoped screenshot-loop Computer Use V0: the
+  `exodus-input` Swift helper (list-windows / list-apps / screenshot / activate /
+  CGEvent input), `capture`/`target`/`hands`/`guard`, `runComputerSession` (the
+  perceive→act loop), `liveness` (the ⌥⇧⎋ kill switch); `target.resolveOrLaunch`
+  opens an allowlisted app that isn't running. The inner-loop agent is
+  `src/main/lib/ai/computer-use/`. Bound as the `computerUse` calling-tool,
+  gated on `settings.computerUse.enabled`. `GET /api/computer-use/apps` feeds the
+  Settings allowlist picker. See
+  `docs/superpowers/specs/2026-09-06-computer-use-v0-design.md`
 - `src/main/lib/ipc.ts` — main-process IPC handlers
 - `src/main/lib/paths.ts` — `~/.exodus` path helpers
 
@@ -562,3 +598,10 @@ Docs:
 
 - `docs/superpowers/specs/` — design specs
 - `docs/superpowers/plans/` — implementation plans
+- `docs/elasticsearch-setup.md` — end-user guide for configuring a
+  self-hosted/cloud Elasticsearch cluster for Exodus's optional search
+  upgrade (Exodus is consumer-only — never creates the index/mapping
+  itself, see `src/main/lib/search/`)
+- `docs/lightrag-setup.md` — end-user guide for running the self-hosted
+  LightRAG server that backs the optional knowledge base (Exodus is a
+  client only, see `src/main/lib/knowledge-base/`)

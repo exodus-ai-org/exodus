@@ -33,7 +33,7 @@ export function RecurringList({
 }) {
   if (tasks.length === 0) {
     return (
-      <div className="flex h-full items-center justify-center px-6 text-center text-sm text-(--ph-text-muted)">
+      <div className="text-muted-foreground flex h-full items-center justify-center px-6 text-center text-sm">
         No recurring tasks yet.
       </div>
     )

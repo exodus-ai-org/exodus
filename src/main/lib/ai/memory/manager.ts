@@ -5,7 +5,11 @@ import z from 'zod'
 import {
   createMemory,
   getActiveMemories,
-  upsertSessionSummary
+  logMemoryUsage,
+  touchMemories,
+  updateMemory,
+  type MemoryRow,
+  type MemorySection
 } from '../../db/memory-queries'
 import { logger } from '../../logger'
 
@@ -13,41 +17,24 @@ export const LOCAL_USER_ID = '00000000-0000-0000-0000-000000000001'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-export type MemoryType =
-  | 'preference'
-  | 'goal'
-  | 'environment'
-  | 'skill'
-  | 'project'
-  | 'constraint'
+const SectionEnum = z.enum(['profile', 'topic', 'person'])
 
-const MemoryWriteResultSchema = z.object({
-  shouldWrite: z.boolean(),
-  type: z
-    .enum([
-      'preference',
-      'goal',
-      'environment',
-      'skill',
-      'project',
-      'constraint'
-    ])
-    .optional(),
-  key: z.string().optional(),
-  value: z.record(z.string(), z.unknown()).optional(),
-  confidence: z.number().min(0).max(1).optional(),
-  source: z.enum(['explicit', 'implicit']).optional()
+const ConsolidationSchema = z.object({
+  operations: z.array(
+    z.object({
+      op: z.enum(['create', 'update']),
+      id: z.string().optional(),
+      section: SectionEnum,
+      key: z.string().min(1),
+      summary: z.string().min(1),
+      details: z.array(z.string()).default([]),
+      confidence: z.number().min(0).max(1).optional()
+    })
+  )
 })
 
 const MemoryFilterResultSchema = z.object({
   selectedMemoryIds: z.array(z.string())
-})
-
-const SessionSummaryResultSchema = z.object({
-  userGoal: z.string().optional(),
-  confirmedFacts: z.array(z.string()),
-  openQuestions: z.array(z.string()),
-  importantPreferences: z.array(z.string())
 })
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -74,7 +61,6 @@ function formatMessages(
 }
 
 function parseJsonFromResponse(text: string): unknown {
-  // Extract JSON from markdown code blocks or raw
   const jsonMatch =
     text.match(/```(?:json)?\s*([\s\S]*?)```/) ?? text.match(/(\{[\s\S]*\})/)
   if (jsonMatch) {
@@ -118,176 +104,166 @@ async function callLlm(
     .trim()
 }
 
-// ─── Memory Write Judge ────────────────────────────────────────────────────────
+/** One line per entry for feeding an existing memory index to the LLM. */
+function memoryIndexLine(m: MemoryRow): string {
+  return `- [${m.id}] (${m.section}) ${m.key}: ${m.summary}`
+}
 
-const WRITE_JUDGE_SYSTEM = `You analyze a conversation and decide whether any information should be saved as a long-term memory.
+// ─── Consolidation (write) ────────────────────────────────────────────────────
 
-Only save if ALL criteria are met:
-1. Long-term stable: will still be true in weeks or months
-2. Cross-conversation value: useful in future unrelated conversations
-3. Not sensitive: no passwords, tokens, or private data
-4. Clearly stated: explicitly mentioned or strongly implied
+const CONSOLIDATE_SYSTEM = `You maintain a durable, long-term memory of the user across conversations.
 
-Memory types: preference, goal, environment, skill, project, constraint
+You are given the latest conversation and the current memory index. Decide what — if anything — to change.
+
+A memory entry is ONE topic / person / profile-area:
+- section: "profile" (durable identity, environment/setup, hard constraints, stable preferences) | "topic" (an interest, project, or recurring subject) | "person" (someone in the user's life)
+- key: a short, stable title — e.g. "Classical Music", "Homelab", "Investing"
+- summary: a single sentence
+- details: 3–6 bullet points. Keep the list tight: merge, rewrite, or drop stale bullets instead of letting it grow past ~6.
+
+Only record information that is:
+1. Long-term stable — still true in weeks or months
+2. Cross-conversation useful — helps in future, unrelated chats
+3. Not sensitive — no secrets, credentials, precise health/financial data, or private third-party info
+4. Clearly stated or strongly implied
+
+Prefer UPDATE over CREATE. If the conversation adds to an existing entry, update that entry and return its FULL revised summary + details (not just the new part). Only CREATE when no existing entry fits.
 
 Respond ONLY with a JSON object:
 {
-  "shouldWrite": boolean,
-  "type": "preference" | "goal" | "environment" | "skill" | "project" | "constraint",
-  "key": "short descriptive key",
-  "value": { "text": "the memory content" },
-  "confidence": 0.0-1.0,
-  "source": "explicit" | "implicit"
+  "operations": [
+    { "op": "create", "section": "topic", "key": "Classical Music", "summary": "...", "details": ["...", "..."] },
+    { "op": "update", "id": "<existing entry id>", "section": "topic", "key": "Classical Music", "summary": "...", "details": ["...", "..."] }
+  ]
 }
 
-If shouldWrite is false, only include that field.`
+Return { "operations": [] } when nothing durable was learned. Never invent an id — only use ids from the index.`
 
-export async function runMemoryWriteJudge(
+export async function runMemoryConsolidation(
   messages: Array<{ role: string; content: unknown }>,
   model: Model<string>,
   apiKey: string
 ): Promise<void> {
   try {
-    const conversationText = formatMessages(messages)
+    const existing = await getActiveMemories(LOCAL_USER_ID)
+    const index =
+      existing.length > 0 ? existing.map(memoryIndexLine).join('\n') : '(empty)'
+
     const responseText = await callLlm(
       model,
       apiKey,
-      WRITE_JUDGE_SYSTEM,
-      `Conversation to analyze:\n\n${conversationText}`
+      CONSOLIDATE_SYSTEM,
+      `Current memory index:\n${index}\n\nConversation to analyze:\n\n${formatMessages(
+        messages
+      )}`
     )
 
-    const parsed = parseJsonFromResponse(responseText)
-    const result = MemoryWriteResultSchema.safeParse(parsed)
-    if (!result.success || !result.data.shouldWrite) return
+    const parsed = ConsolidationSchema.safeParse(
+      parseJsonFromResponse(responseText)
+    )
+    if (!parsed.success) return
 
-    const { type, key, value, confidence, source } = result.data
-    if (!type || !key || !value) return
+    const validIds = new Set(existing.map((m) => m.id))
 
-    await createMemory({
-      userId: LOCAL_USER_ID,
-      type,
-      key,
-      value,
-      confidence: confidence ?? 0.8,
-      source: source ?? 'implicit'
-    })
+    for (const op of parsed.data.operations) {
+      const fields = {
+        section: op.section as MemorySection,
+        key: op.key.trim(),
+        summary: op.summary.trim(),
+        details: op.details
+          .map((d) => d.trim())
+          .filter(Boolean)
+          .slice(0, 8)
+      }
+      if (op.op === 'update' && op.id && validIds.has(op.id)) {
+        await updateMemory(op.id, {
+          ...fields,
+          confidence: op.confidence
+        })
+      } else {
+        await createMemory({
+          userId: LOCAL_USER_ID,
+          source: 'implicit',
+          confidence: op.confidence ?? 0.8,
+          ...fields
+        })
+      }
+    }
   } catch (err) {
-    logger.error('memory', 'Write judge failed', { error: String(err) })
+    logger.error('memory', 'Consolidation failed', { error: String(err) })
   }
 }
 
-// ─── Memory Read Filter ────────────────────────────────────────────────────────
+// ─── Read filter ──────────────────────────────────────────────────────────────
 
-const READ_FILTER_SYSTEM = `You select which memories are directly relevant to a user's question.
-Be conservative: only select memories that would NOTICEABLY improve the response.
-Respond ONLY with a JSON object: { "selectedMemoryIds": ["id1", "id2"] }
-If nothing is relevant, return: { "selectedMemoryIds": [] }`
+const READ_FILTER_SYSTEM = `You select which memory entries are directly relevant to a user's message.
+Be conservative: only pick entries that would NOTICEABLY improve the reply.
+Respond ONLY with JSON: { "selectedMemoryIds": ["id1", "id2"] }
+If nothing is relevant: { "selectedMemoryIds": [] }`
 
+/**
+ * Picks the memory entries worth injecting for this message, records the usage,
+ * and returns the selected rows (already fetched — no extra query needed).
+ */
 export async function loadRelevantMemories(
   question: string,
   model: Model<string>,
-  apiKey: string
-): Promise<Array<{ id: string; type: string; key: string; value: unknown }>> {
+  apiKey: string,
+  sessionId: string
+): Promise<MemoryRow[]> {
   try {
-    const allMemories = await getActiveMemories(LOCAL_USER_ID)
-    if (allMemories.length === 0) return []
+    const all = await getActiveMemories(LOCAL_USER_ID)
+    if (all.length === 0) return []
 
-    const memorySummaries = allMemories.map((m) => ({
-      id: m.id,
-      type: m.type,
-      content: `[${m.type}] ${m.key}: ${JSON.stringify(m.value)}`
-    }))
-
-    const memoriesText = memorySummaries
-      .map((m) => `${m.id}: ${m.content}`)
+    const listText = all
+      .map(
+        (m) =>
+          `${m.id}: [${m.section}] ${m.key} — ${m.summary}` +
+          (m.details.length ? `\n    ${m.details.join('; ')}` : '')
+      )
       .join('\n')
+
     const responseText = await callLlm(
       model,
       apiKey,
       READ_FILTER_SYSTEM,
-      `User question: ${question}\n\nAvailable memories:\n${memoriesText}`
+      `User message: ${question}\n\nMemory entries:\n${listText}`
     )
 
-    const parsed = parseJsonFromResponse(responseText)
-    const result = MemoryFilterResultSchema.safeParse(parsed)
-    if (!result.success) return []
+    const parsed = MemoryFilterResultSchema.safeParse(
+      parseJsonFromResponse(responseText)
+    )
+    if (!parsed.success) return []
 
-    const selectedIds = new Set(result.data.selectedMemoryIds)
-    return allMemories
-      .filter((m) => selectedIds.has(m.id))
-      .map((m) => ({ id: m.id, type: m.type, key: m.key, value: m.value }))
+    const selectedIds = new Set(parsed.data.selectedMemoryIds)
+    const selected = all.filter((m) => selectedIds.has(m.id))
+
+    if (selected.length > 0) {
+      const ids = selected.map((m) => m.id)
+      await touchMemories(ids)
+      await Promise.all(
+        selected.map((m) =>
+          logMemoryUsage({
+            memoryId: m.id,
+            sessionId,
+            reason: 'read-filter'
+          }).catch(() => {})
+        )
+      )
+    }
+
+    return selected
   } catch (err) {
     logger.error('memory', 'Read filter failed', { error: String(err) })
     return []
   }
 }
 
-export function formatMemoriesForSystem(
-  memories: Array<{ type: string; key: string; value: unknown }>
-): string {
+export function formatMemoriesForSystem(memories: MemoryRow[]): string {
   if (memories.length === 0) return ''
-  const lines = memories.map(
-    (m) =>
-      `- [${m.type}] ${m.key}: ${typeof m.value === 'object' ? JSON.stringify(m.value) : m.value}`
-  )
-  return `\n\n<user_memory>\nRelevant facts about the user:\n${lines.join('\n')}\n</user_memory>`
-}
-
-// ─── Session Summary ───────────────────────────────────────────────────────────
-
-const SESSION_SUMMARY_SYSTEM = `Summarize the key outcomes of this conversation.
-Respond ONLY with a JSON object:
-{
-  "userGoal": "the main thing the user was trying to achieve (optional)",
-  "confirmedFacts": ["fact 1", "fact 2"],
-  "openQuestions": ["unresolved question 1"],
-  "importantPreferences": ["preference stated by user"]
-}`
-
-export async function saveSessionSummary(
-  chatId: string,
-  messages: Array<{ role: string; content: unknown }>,
-  model: Model<string>,
-  apiKey: string
-): Promise<void> {
-  try {
-    const conversationText = formatMessages(messages)
-    const responseText = await callLlm(
-      model,
-      apiKey,
-      SESSION_SUMMARY_SYSTEM,
-      `Conversation:\n\n${conversationText}`
-    )
-
-    const parsed = parseJsonFromResponse(responseText)
-    const result = SessionSummaryResultSchema.safeParse(parsed)
-    if (!result.success) return
-
-    const { userGoal, confirmedFacts, openQuestions, importantPreferences } =
-      result.data
-    const summaryText = [
-      userGoal ? `Goal: ${userGoal}` : '',
-      confirmedFacts.length
-        ? `Facts:\n${confirmedFacts.map((f) => `- ${f}`).join('\n')}`
-        : '',
-      openQuestions.length
-        ? `Open:\n${openQuestions.map((q) => `- ${q}`).join('\n')}`
-        : '',
-      importantPreferences.length
-        ? `Preferences:\n${importantPreferences.map((p) => `- ${p}`).join('\n')}`
-        : ''
-    ]
-      .filter(Boolean)
-      .join('\n\n')
-
-    if (summaryText) {
-      await upsertSessionSummary({
-        sessionId: chatId,
-        userId: LOCAL_USER_ID,
-        summary: summaryText
-      })
-    }
-  } catch (err) {
-    logger.error('memory', 'Session summary failed', { error: String(err) })
-  }
+  const blocks = memories.map((m) => {
+    const bullets = m.details.map((d) => `- ${d}`).join('\n')
+    return `## ${m.key} (${m.section})\n${m.summary}${bullets ? `\n${bullets}` : ''}`
+  })
+  return `\n\n<user_memory>\nThe user's saved memory:\n\n${blocks.join('\n\n')}\n</user_memory>`
 }

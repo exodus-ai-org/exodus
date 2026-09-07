@@ -82,8 +82,8 @@ export function ScheduleTab({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex shrink-0 items-center justify-between border-b border-(--ph-border) px-4 py-3">
-        <span className="text-sm font-semibold text-(--ph-text)">Schedule</span>
+      <div className="border-border flex shrink-0 items-center justify-between border-b px-4 py-3">
+        <span className="text-foreground text-sm font-semibold">Schedule</span>
         <Button
           data-testid={TEST_IDS.schedule.createButton}
           type="button"

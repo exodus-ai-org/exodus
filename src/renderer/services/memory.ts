@@ -1,20 +1,15 @@
 import { fetcher } from '@shared/utils/http'
 
-export type MemoryType =
-  | 'preference'
-  | 'goal'
-  | 'environment'
-  | 'skill'
-  | 'project'
-  | 'constraint'
+export type MemorySection = 'profile' | 'topic' | 'person'
 export type MemorySource = 'explicit' | 'implicit' | 'system'
 
 export interface MemoryItem {
   id: string
   userId: string
-  type: MemoryType
+  section: MemorySection
   key: string
-  value: Record<string, unknown>
+  summary: string
+  details: string[]
   confidence: number | null
   source: MemorySource
   createdAt: string | null
@@ -23,15 +18,16 @@ export interface MemoryItem {
   isActive: boolean | null
 }
 
-export const getMemories = (type?: MemoryType) => {
-  const query = type ? `?type=${type}` : ''
+export const getMemories = (section?: MemorySection) => {
+  const query = section ? `?section=${section}` : ''
   return fetcher<MemoryItem[]>(`/api/memory${query}`)
 }
 
 export const createMemory = (data: {
-  type: MemoryType
+  section: MemorySection
   key: string
-  value: Record<string, unknown>
+  summary: string
+  details?: string[]
   confidence?: number
   source?: MemorySource
 }) => fetcher<MemoryItem>('/api/memory', { method: 'POST', body: data })
@@ -39,9 +35,10 @@ export const createMemory = (data: {
 export const updateMemory = (
   id: string,
   data: Partial<{
-    type: MemoryType
+    section: MemorySection
     key: string
-    value: Record<string, unknown>
+    summary: string
+    details: string[]
     confidence: number
     source: MemorySource
     isActive: boolean

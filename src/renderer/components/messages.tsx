@@ -16,9 +16,13 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import Zoom from 'react-medium-image-zoom'
 
 import { Button } from '@/components/ui/button'
+import { useDiscoverFeed } from '@/hooks/use-discover-feed'
 import { useSettings } from '@/hooks/use-settings'
+import { userMessageText } from '@/lib/user-message-text'
 import { cn } from '@/lib/utils'
 
+import { ChatToc } from './chat-toc'
+import { DiscoverFeed } from './home/discover-feed'
 import Markdown from './markdown'
 import { MessageAction } from './massage-action'
 import { MessageSpinner } from './message-spinner'
@@ -35,6 +39,7 @@ type MessagesProps = {
   status: ChatStatus
   messages: ChatMessage[]
   regenerate: () => void
+  showDiscover?: boolean
 }
 
 const AT_BOTTOM_THRESHOLD = 80
@@ -45,7 +50,10 @@ const UserSegment = memo(function UserSegment({
   message: ChatMessage
 }) {
   return (
-    <div className="mb-8 flex flex-col items-end first:mt-0 last:mb-4">
+    <div
+      data-user-msg-id={message.id}
+      className="mb-8 flex flex-col items-end first:mt-0 last:mb-4"
+    >
       {Array.isArray(message.content) &&
         message.content.some((c) => c.type === 'image') && (
           <div className="mb-4 flex gap-4">
@@ -69,13 +77,7 @@ const UserSegment = memo(function UserSegment({
           </div>
         )}
       <p className="bg-primary text-primary-foreground max-w-[60%] rounded-2xl rounded-br-sm px-4 py-2.5 text-base leading-relaxed wrap-break-word whitespace-pre-wrap shadow-sm">
-        {typeof message.content === 'string'
-          ? message.content
-          : (message.content as Array<TextContent | ImageContent>)
-              .flatMap((c) =>
-                c.type === 'text' ? [(c as TextContent).text] : []
-              )
-              .join('')}
+        {userMessageText(message)}
       </p>
     </div>
   )
@@ -408,12 +410,31 @@ function groupIntoSegments(messages: ChatMessage[]): Segment[] {
   return segments
 }
 
-function Messages({ chatId, status, messages, regenerate }: MessagesProps) {
+function Messages({
+  chatId,
+  status,
+  messages,
+  regenerate,
+  showDiscover
+}: MessagesProps) {
   const isLoading = status === 'streaming' || status === 'submitted'
   const { data: settings } = useSettings()
   const chatBoxRef = useRef<HTMLDivElement>(null)
   const isAtBottom = useRef(true)
   const [showScrollButton, setShowScrollButton] = useState(false)
+
+  // Discover only reshapes the landing screen when it's the true home route
+  // AND the user has opted in. Gating on `showDiscover` alone would top-align
+  // every existing user's greeting even though Discover defaults off.
+  const discoverActive =
+    (showDiscover ?? false) && (settings?.discover?.enabled ?? false)
+
+  // The greeting only gives up its centered position once the feed actually
+  // has recommendations to show. Enabled-but-empty (first opt-in, a warming
+  // feed, a failed refresh) keeps the original, uncluttered welcome page.
+  const { feed: discoverFeed } = useDiscoverFeed(discoverActive)
+  const discoverHasContent =
+    discoverActive && (discoverFeed?.groups.length ?? 0) > 0
 
   const segments = useMemo(() => groupIntoSegments(messages), [messages])
 
@@ -476,11 +497,19 @@ function Messages({ chatId, status, messages, regenerate }: MessagesProps) {
         onScroll={handleScroll}
       >
         {messages.length === 0 && (
-          <div className="animate-fade-in-up mx-auto flex size-full max-w-4xl flex-col justify-center px-8 md:mt-20">
+          <div
+            className={cn(
+              'animate-fade-in-up mx-auto flex size-full max-w-4xl flex-col px-8',
+              discoverHasContent
+                ? 'justify-start pt-12 md:pt-16'
+                : 'justify-center md:mt-20'
+            )}
+          >
             <p className="text-3xl font-bold tracking-tight">Hello there!</p>
             <p className="text-muted-foreground mt-2 text-lg">
               How can I assist you today?
             </p>
+            {discoverActive && <DiscoverFeed />}
           </div>
         )}
 
@@ -517,6 +546,8 @@ function Messages({ chatId, status, messages, regenerate }: MessagesProps) {
             )}
         </div>
       </section>
+
+      <ChatToc scrollContainerRef={chatBoxRef} messages={messages} />
 
       {showScrollButton && (
         <Button

@@ -33,6 +33,49 @@ export const TEST_IDS = {
     createButton: 'schedule.create-button',
     taskCard: 'schedule.task-card',
     cancelButton: 'schedule.cancel-button'
+  },
+  fullTextSearch: {
+    testConnectionButton: 'full-text-search.test-connection-button',
+    reindexButton: 'full-text-search.reindex-button'
+  },
+  knowledgeBase: {
+    testConnectionButton: 'knowledge-base.test-connection-button',
+    reindexButton: 'knowledge-base.reindex-button',
+    addButton: 'knowledge-base.add-button',
+    docDialog: 'knowledge-base.doc-dialog',
+    docTitleInput: 'knowledge-base.doc-title-input',
+    docContentInput: 'knowledge-base.doc-content-input',
+    docSaveButton: 'knowledge-base.doc-save-button'
+  },
+  discover: {
+    enableToggle: 'discover.enable-toggle',
+    section: 'discover.section'
+  },
+  computerUse: {
+    enableToggle: 'computer-use.enable-toggle',
+    allowlistInput: 'computer-use.allowlist-input',
+    stopButton: 'computer-use.stop-button',
+    continueButton: 'computer-use.continue-button'
+  },
+  logger: {
+    scopeSelect: 'logger.scope-select',
+    traceBadge: 'logger.trace-badge',
+    traceFilterChip: 'logger.trace-filter-chip'
+  },
+  chatToc: {
+    rail: 'chat-toc.rail',
+    entry: 'chat-toc.entry'
+  },
+  settings: {
+    themeMode: 'settings.theme-mode'
+  },
+  chatLayout: {
+    workspaceSwitcher: 'chat-layout.workspace-switcher',
+    searchButton: 'chat-layout.search-button'
+  },
+  philharmonic: {
+    newGroup: 'philharmonic.new-group',
+    membersToggle: 'philharmonic.members-toggle'
   }
 } as const
 

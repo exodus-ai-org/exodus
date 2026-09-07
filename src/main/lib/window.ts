@@ -29,8 +29,8 @@ export function createWindow(): void {
     ...(process.platform === 'darwin'
       ? {
           vibrancy: 'sidebar' as const,
-          visualEffectState: 'active' as const,
-          backgroundColor: '#00000000'
+          visualEffectState: 'active' as const
+          // backgroundColor: '#00000000'
         }
       : {}),
     ...(process.platform === 'linux' ? { icon } : {}),

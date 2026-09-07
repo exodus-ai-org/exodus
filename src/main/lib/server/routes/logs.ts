@@ -3,24 +3,23 @@ import { join } from 'path'
 
 import { Hono } from 'hono'
 
-import { localDateStr, type LogEntry, type LogLevel } from '../../logger'
+import {
+  localDateStr,
+  type LogRecord,
+  normalizeToLogRecord
+} from '../../logger'
 import { getLogsDir } from '../../paths'
+import { filterRecords, minSeverityFromLevel } from './logs-filter'
 
-const LEVEL_PRIORITY: Record<LogLevel, number> = {
-  debug: 0,
-  info: 1,
-  warn: 2,
-  error: 3
-}
-
-function parseLogFile(filePath: string): LogEntry[] {
+function parseLogFile(filePath: string): LogRecord[] {
   if (!existsSync(filePath)) return []
   const content = readFileSync(filePath, 'utf-8')
-  const entries: LogEntry[] = []
+  const entries: LogRecord[] = []
   for (const line of content.split('\n')) {
     if (!line.trim()) continue
     try {
-      entries.push(JSON.parse(line))
+      const record = normalizeToLogRecord(JSON.parse(line))
+      if (record) entries.push(record)
     } catch {
       // skip malformed lines
     }
@@ -33,33 +32,22 @@ const logsRouter = new Hono()
 // GET /api/logs — query log entries
 logsRouter.get('/', (c) => {
   const date = c.req.query('date') || localDateStr()
-  const level = c.req.query('level') as LogLevel | undefined
-  const surface = c.req.query('surface')
-  const keyword = c.req.query('keyword')?.toLowerCase()
   const page = Math.max(1, Number(c.req.query('page')) || 1)
   const pageSize = Math.min(
     500,
     Math.max(1, Number(c.req.query('pageSize')) || 100)
   )
 
-  const filePath = join(getLogsDir(), `${date}.jsonl`)
-  let entries = parseLogFile(filePath)
-
-  // Filter by minimum level
-  if (level) {
-    const minPriority = LEVEL_PRIORITY[level] ?? 0
-    entries = entries.filter((e) => LEVEL_PRIORITY[e.level] >= minPriority)
-  }
-
-  // Filter by surface
-  if (surface) {
-    entries = entries.filter((e) => e.surface === surface)
-  }
-
-  // Filter by keyword
-  if (keyword) {
-    entries = entries.filter((e) => e.message.toLowerCase().includes(keyword))
-  }
+  const entries = filterRecords(
+    parseLogFile(join(getLogsDir(), `${date}.jsonl`)),
+    {
+      minSeverity: minSeverityFromLevel(c.req.query('level')),
+      // Query param stays `surface` for URL stability; it matches scope.name.
+      scope: c.req.query('surface'),
+      keyword: c.req.query('keyword'),
+      traceId: c.req.query('traceId')
+    }
+  )
 
   // Newest first
   entries.reverse()
@@ -69,6 +57,14 @@ logsRouter.get('/', (c) => {
   const paged = entries.slice(start, start + pageSize)
 
   return c.json({ entries: paged, total, page })
+})
+
+// GET /api/logs/scopes — distinct scope names present in a day's file
+logsRouter.get('/scopes', (c) => {
+  const date = c.req.query('date') || localDateStr()
+  const records = parseLogFile(join(getLogsDir(), `${date}.jsonl`))
+  const scopes = [...new Set(records.map((r) => r.scope.name))].sort()
+  return c.json({ scopes })
 })
 
 // GET /api/logs/dates — list available log dates

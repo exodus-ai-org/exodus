@@ -5,12 +5,13 @@ import {
 } from 'lucide-react'
 import * as React from 'react'
 
-import { buttonVariants } from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 function Pagination({ className, ...props }: React.ComponentProps<'nav'>) {
   return (
     <nav
+      role="navigation"
       aria-label="pagination"
       data-slot="pagination"
       className={cn('mx-auto flex w-full justify-center', className)}
@@ -26,7 +27,7 @@ function PaginationContent({
   return (
     <ul
       data-slot="pagination-content"
-      className={cn('flex items-center gap-0.5', className)}
+      className={cn('flex items-center gap-1', className)}
       {...props}
     />
   )
@@ -38,37 +39,30 @@ function PaginationItem({ ...props }: React.ComponentProps<'li'>) {
 
 type PaginationLinkProps = {
   isActive?: boolean
-  size?:
-    | 'default'
-    | 'xs'
-    | 'sm'
-    | 'lg'
-    | 'icon'
-    | 'icon-xs'
-    | 'icon-sm'
-    | 'icon-lg'
-} & React.ComponentProps<'a'>
+} & Pick<React.ComponentProps<typeof Button>, 'size'> &
+  React.ComponentProps<'a'>
 
 function PaginationLink({
   className,
   isActive,
   size = 'icon',
-  children,
   ...props
 }: PaginationLinkProps) {
   return (
-    <a
-      aria-current={isActive ? 'page' : undefined}
-      data-slot="pagination-link"
-      data-active={isActive}
-      className={cn(
-        buttonVariants({ variant: isActive ? 'outline' : 'ghost', size }),
-        className
-      )}
-      {...props}
-    >
-      {children}
-    </a>
+    <Button
+      variant={isActive ? 'outline' : 'ghost'}
+      size={size}
+      className={cn(className)}
+      nativeButton={false}
+      render={
+        <a
+          aria-current={isActive ? 'page' : undefined}
+          data-slot="pagination-link"
+          data-active={isActive}
+          {...props}
+        />
+      }
+    />
   )
 }
 

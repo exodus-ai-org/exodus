@@ -22,22 +22,22 @@ audio.post('/speech', async (c) => {
   try {
     const openai = new OpenAI(openaiConfig)
 
-    const model = settings.audio?.textToSpeechModel ?? 'gpt-4o-mini-tts'
-    const format = settings.audio?.textToSpeechFormat ?? 'mp3'
+    const model = settings.voice?.textToSpeechModel ?? 'gpt-4o-mini-tts'
+    const format = settings.voice?.textToSpeechFormat ?? 'mp3'
     const params: OpenAI.Audio.SpeechCreateParams = {
       model,
       input: text,
-      voice: settings.audio?.textToSpeechVoice ?? 'alloy',
+      voice: settings.voice?.textToSpeechVoice ?? 'alloy',
       response_format:
         format as OpenAI.Audio.SpeechCreateParams['response_format'],
-      speed: settings.audio?.textToSpeechSpeed ?? undefined
+      speed: settings.voice?.textToSpeechSpeed ?? undefined
     }
     // instructions is only supported by gpt-4o-mini-tts
     if (
       model === 'gpt-4o-mini-tts' &&
-      settings.audio?.textToSpeechInstructions
+      settings.voice?.textToSpeechInstructions
     ) {
-      params.instructions = settings.audio.textToSpeechInstructions
+      params.instructions = settings.voice.textToSpeechInstructions
     }
     const speech = await openai.audio.speech.create(params)
 
@@ -79,7 +79,7 @@ audio.post('/transcriptions', async (c) => {
 
     const transcription = await openai.audio.transcriptions.create({
       file: audioFile,
-      model: settings.audio?.speechToTextModel ?? 'gpt-4o-mini-transcribe'
+      model: settings.voice?.speechToTextModel ?? 'gpt-4o-mini-transcribe'
     })
 
     return successResponse(c, transcription)

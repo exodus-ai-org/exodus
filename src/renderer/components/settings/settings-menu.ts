@@ -1,38 +1,40 @@
-import { AiProviders } from '@shared/types/ai'
 import {
-  AudioLinesIcon,
+  CloudIcon,
   CogIcon,
-  ComputerIcon,
   DatabaseIcon,
+  HammerIcon,
   HandCoinsIcon,
   InfoIcon,
   KeyboardIcon,
   MemoryStickIcon,
   NetworkIcon,
-  PlugIcon,
   ScrollTextIcon,
+  TextSearch,
   ShoppingBagIcon,
+  TelescopeIcon,
   UserIcon,
-  GlobeIcon,
-  WrenchIcon
+  WrenchIcon,
+  MousePointer2Icon,
+  CircleUserRoundIcon,
+  MicIcon,
+  CompassIcon
 } from 'lucide-react'
 
 export enum SettingsLabel {
+  Profile = 'Profile',
   General = 'General',
   Personality = 'Personality',
   AiProviders = 'AI Providers',
   AmazonS3 = 'AWS S3',
   McpServers = 'MCP Servers',
   SkillsMarket = 'Skills Market',
-  GraphRag = 'GraphRAG',
+  FullTextSearch = 'Full Text Search',
+  KnowledgeBase = 'Knowledge Base',
   BuiltinTools = 'Built-in Tools',
-  MemoryLayer = 'Memory Layer',
-  AudioAndSpeech = 'Audio and Speech',
-  ImageGeneration = 'Image Generation',
-  WebSearch = 'Web Search',
-  GoogleMaps = 'Google Maps',
+  Memory = 'Memory',
+  Discover = 'Discover',
+  Voice = 'Voice',
   DeepResearch = 'Deep Research',
-  BrowserUse = 'Browser Use',
   ComputerUse = 'Computer Use',
   DataControls = 'Data Controls',
   Logger = 'Logger',
@@ -40,84 +42,61 @@ export enum SettingsLabel {
   AboutExodus = 'About Exodus'
 }
 
-export type SettingsPage = SettingsLabel | AiProviders
+export type SettingsPage = SettingsLabel
 
+// Flat menu — every entry is a top-level page. The content-side Cards provide
+// the visual grouping, so the sidebar has no expandable second level. The final
+// group has no label — it holds "About Exodus", pinned to the bottom.
 export const menus = {
   navMain: [
     {
-      title: SettingsLabel.General,
-      icon: CogIcon
-    },
-    {
-      title: SettingsLabel.Personality,
-      icon: UserIcon
-    },
-    {
-      title: SettingsLabel.AiProviders,
-      icon: HandCoinsIcon,
+      label: 'Personal',
       items: [
-        { title: AiProviders.OpenAiGpt },
-        { title: AiProviders.AzureOpenAi },
-        { title: AiProviders.AnthropicClaude },
-        { title: AiProviders.GoogleGemini },
-        { title: AiProviders.XaiGrok },
-        { title: AiProviders.Ollama }
+        { title: SettingsLabel.General, icon: CogIcon },
+        { title: SettingsLabel.Profile, icon: CircleUserRoundIcon },
+        { title: SettingsLabel.Personality, icon: UserIcon },
+        { title: SettingsLabel.Memory, icon: MemoryStickIcon },
+        { title: SettingsLabel.Discover, icon: CompassIcon },
+        { title: SettingsLabel.Voice, icon: MicIcon },
+        { title: SettingsLabel.KeyboardShortcuts, icon: KeyboardIcon }
       ]
     },
     {
-      icon: WrenchIcon,
-      title: SettingsLabel.BuiltinTools,
+      label: 'AI & Tools',
       items: [
-        { title: SettingsLabel.WebSearch },
-        { title: SettingsLabel.GoogleMaps },
-        { title: SettingsLabel.ImageGeneration },
-        { title: SettingsLabel.DeepResearch }
+        { title: SettingsLabel.AiProviders, icon: HandCoinsIcon },
+        { title: SettingsLabel.BuiltinTools, icon: WrenchIcon },
+        { title: SettingsLabel.DeepResearch, icon: TelescopeIcon }
       ]
     },
     {
-      icon: AudioLinesIcon,
-      title: SettingsLabel.AudioAndSpeech
+      // External, connection-backed capabilities: search backends, the
+      // knowledge base, the computer-use sandbox, MCP connectors, the skills
+      // marketplace.
+      label: 'Integrations',
+      items: [
+        { title: SettingsLabel.FullTextSearch, icon: TextSearch },
+        { title: SettingsLabel.KnowledgeBase, icon: NetworkIcon },
+        { title: SettingsLabel.ComputerUse, icon: MousePointer2Icon },
+        { title: SettingsLabel.McpServers, icon: HammerIcon },
+        { title: SettingsLabel.SkillsMarket, icon: ShoppingBagIcon }
+      ]
     },
     {
-      icon: MemoryStickIcon,
-      title: SettingsLabel.MemoryLayer
+      // Where the user's data lives and how it moves in and out.
+      label: 'Storage',
+      items: [
+        { title: SettingsLabel.DataControls, icon: DatabaseIcon },
+        { title: SettingsLabel.AmazonS3, icon: CloudIcon }
+      ]
     },
     {
-      icon: ShoppingBagIcon,
-      title: SettingsLabel.SkillsMarket
+      label: 'Developer',
+      items: [{ title: SettingsLabel.Logger, icon: ScrollTextIcon }]
     },
     {
-      icon: PlugIcon,
-      title: SettingsLabel.McpServers
-    },
-    {
-      icon: NetworkIcon,
-      title: SettingsLabel.GraphRag
-    },
-    {
-      icon: GlobeIcon,
-      title: SettingsLabel.BrowserUse
-    },
-    {
-      icon: ComputerIcon,
-      title: SettingsLabel.ComputerUse
-    },
-    {
-      icon: DatabaseIcon,
-      title: SettingsLabel.DataControls,
-      items: [{ title: SettingsLabel.AmazonS3 }]
-    },
-    {
-      icon: ScrollTextIcon,
-      title: SettingsLabel.Logger
-    },
-    {
-      icon: KeyboardIcon,
-      title: SettingsLabel.KeyboardShortcuts
-    },
-    {
-      icon: InfoIcon,
-      title: SettingsLabel.AboutExodus
+      label: '',
+      items: [{ title: SettingsLabel.AboutExodus, icon: InfoIcon }]
     }
   ]
 }

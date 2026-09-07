@@ -1,3 +1,4 @@
+import { computerUse } from './computer-use'
 import { createArtifact } from './create-artifact'
 import { deepResearch } from './deep-research'
 import { editFile } from './edit-file'
@@ -10,6 +11,7 @@ import { lcmGrep } from './lcm-grep'
 import { listDirectory } from './list-directory'
 import { mapItinerary } from './map-itinerary'
 import { readFile } from './read-file'
+import { searchKnowledgeBase } from './search-knowledge-base'
 import { terminal } from './terminal'
 import { weather } from './weather'
 import { webFetch } from './web-fetch'
@@ -17,6 +19,7 @@ import { webSearch } from './web-search'
 import { writeFile } from './write-file'
 
 export {
+  computerUse,
   createArtifact,
   deepResearch,
   editFile,
@@ -29,6 +32,7 @@ export {
   listDirectory,
   mapItinerary,
   readFile,
+  searchKnowledgeBase,
   terminal,
   weather,
   webFetch,

@@ -1,11 +1,17 @@
 import { QUICK_CHAT_KEY } from '@shared/constants/misc'
 import { IpcRendererEvent } from 'electron'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
+import type { PanelImperativeHandle } from 'react-resizable-panels'
 import { Outlet, useNavigate } from 'react-router'
 
 import { AppToaster } from '@/components/app-toaster'
 import { DeepResearchProcess } from '@/components/deep-research'
 import { SourcesPanel } from '@/components/sources-panel'
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup
+} from '@/components/ui/resizable'
 import {
   SidebarInset,
   SidebarProvider,
@@ -22,6 +28,11 @@ import { ChatDeletionConfirmationDialog } from './chat-deletion-confirmation-dia
 import { ChatTabs } from './chat-tabs'
 import { RenameChatDialog } from './rename-chat-dialog'
 import { SearchDialog } from './search-dialog'
+
+// Chat sidebar sizing — matches SIDEBAR_WIDTH in components/ui/sidebar.tsx.
+const SIDEBAR_DEFAULT = '15rem'
+const SIDEBAR_MIN = '15rem'
+const SIDEBAR_MAX = '30rem'
 
 function ContentHeader() {
   const { open } = useSidebar()
@@ -43,7 +54,7 @@ function ContentHeader() {
 
 function InsertedSidebar() {
   return (
-    <SidebarInset className="bg-card flex min-w-0 flex-col rounded-tl-xl rounded-bl-xl">
+    <SidebarInset className="bg-card flex h-full min-w-0 flex-col overflow-hidden">
       <ContentHeader />
       <Outlet />
       <AppToaster />
@@ -51,6 +62,56 @@ function InsertedSidebar() {
       <RenameChatDialog />
       <ChatDeletionConfirmationDialog />
     </SidebarInset>
+  )
+}
+
+/**
+ * Chat surface: a resizable sidebar panel + the content panel, driven by
+ * `react-resizable-panels`. The sidebar's collapsed state is mirrored onto the
+ * `SidebarProvider` context so Cmd+B and `SidebarTrigger` keep working — Cmd+B
+ * flips `open`, the effect collapses/expands the panel; a drag past the min
+ * width collapses the panel, `onResize` flips `open` back.
+ */
+function ChatWorkspace() {
+  const { open, setOpen } = useSidebar()
+  const sidebarPanel = useRef<PanelImperativeHandle>(null)
+  const wasCollapsed = useRef(false)
+
+  useEffect(() => {
+    const panel = sidebarPanel.current
+    if (!panel) return
+    if (open && panel.isCollapsed()) panel.expand()
+    else if (!open && !panel.isCollapsed()) panel.collapse()
+  }, [open])
+
+  return (
+    <div className="w-full overflow-x-hidden">
+      <ResizablePanelGroup orientation="horizontal">
+        <ResizablePanel
+          id="chat-sidebar"
+          panelRef={sidebarPanel}
+          collapsible
+          collapsedSize={0}
+          defaultSize={SIDEBAR_DEFAULT}
+          minSize={SIDEBAR_MIN}
+          maxSize={SIDEBAR_MAX}
+          groupResizeBehavior="preserve-pixel-size"
+          onResize={(size) => {
+            // Mirror a drag-collapse / drag-open onto the sidebar context.
+            const collapsed = size.asPercentage === 0
+            if (collapsed === wasCollapsed.current) return
+            wasCollapsed.current = collapsed
+            setOpen(!collapsed)
+          }}
+        >
+          <AppSidebar />
+        </ResizablePanel>
+        <ResizableHandle />
+        <ResizablePanel id="chat-content">
+          <InsertedSidebar />
+        </ResizablePanel>
+      </ResizablePanelGroup>
+    </div>
   )
 }
 
@@ -76,12 +137,7 @@ export function Layout() {
 
   return (
     <SidebarProvider>
-      <div className="w-full overflow-x-hidden">
-        <div className="flex h-screen">
-          <AppSidebar />
-          <InsertedSidebar />
-        </div>
-      </div>
+      <ChatWorkspace />
       <DeepResearchProcess />
       <SourcesPanel />
     </SidebarProvider>

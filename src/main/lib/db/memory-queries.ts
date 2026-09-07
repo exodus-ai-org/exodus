@@ -1,24 +1,19 @@
-import { and, desc, eq } from 'drizzle-orm'
+import { and, desc, eq, inArray } from 'drizzle-orm'
 import { v4 as uuidV4 } from 'uuid'
 
 import { db } from './db'
-import { memory, memoryUsageLog, sessionSummary } from './schema'
+import { memory, memoryUsageLog } from './schema'
 
-export type MemoryType =
-  | 'preference'
-  | 'goal'
-  | 'environment'
-  | 'skill'
-  | 'project'
-  | 'constraint'
+export type MemorySection = 'profile' | 'topic' | 'person'
 export type MemorySource = 'explicit' | 'implicit' | 'system'
 
 export interface MemoryRow {
   id: string
   userId: string
-  type: MemoryType
+  section: MemorySection
   key: string
-  value: Record<string, unknown>
+  summary: string
+  details: string[]
   confidence: number | null
   source: MemorySource
   createdAt: Date | null
@@ -31,9 +26,10 @@ export interface MemoryRow {
 
 export async function createMemory(data: {
   userId: string
-  type: MemoryType
+  section: MemorySection
   key: string
-  value: Record<string, unknown>
+  summary: string
+  details?: string[]
   confidence?: number
   source: MemorySource
 }): Promise<MemoryRow> {
@@ -42,9 +38,10 @@ export async function createMemory(data: {
     .values({
       id: uuidV4(),
       userId: data.userId,
-      type: data.type,
+      section: data.section,
       key: data.key,
-      value: data.value,
+      summary: data.summary,
+      details: data.details ?? [],
       confidence: data.confidence ?? 0.8,
       source: data.source
     })
@@ -78,9 +75,10 @@ export async function getMemoryById(id: string): Promise<MemoryRow | null> {
 export async function updateMemory(
   id: string,
   data: Partial<{
-    type: MemoryType
+    section: MemorySection
     key: string
-    value: Record<string, unknown>
+    summary: string
+    details: string[]
     confidence: number
     source: MemorySource
     isActive: boolean
@@ -105,32 +103,13 @@ export async function hardDeleteMemory(id: string): Promise<void> {
   await db.delete(memory).where(eq(memory.id, id))
 }
 
-// ─── Session Summary ──────────────────────────────────────────────────────────
-
-export async function upsertSessionSummary(data: {
-  sessionId: string
-  userId: string
-  summary: string
-}): Promise<void> {
+/** Bump `lastUsedAt` for memories that were surfaced into a chat. */
+export async function touchMemories(ids: string[]): Promise<void> {
+  if (ids.length === 0) return
   await db
-    .insert(sessionSummary)
-    .values({
-      sessionId: data.sessionId,
-      userId: data.userId,
-      summary: data.summary
-    })
-    .onConflictDoUpdate({
-      target: sessionSummary.sessionId,
-      set: { summary: data.summary, updatedAt: new Date() }
-    })
-}
-
-export async function getSessionSummary(sessionId: string) {
-  const [row] = await db
-    .select()
-    .from(sessionSummary)
-    .where(eq(sessionSummary.sessionId, sessionId))
-  return row ?? null
+    .update(memory)
+    .set({ lastUsedAt: new Date() })
+    .where(inArray(memory.id, ids))
 }
 
 // ─── Usage Log ────────────────────────────────────────────────────────────────

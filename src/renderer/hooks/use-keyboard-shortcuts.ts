@@ -1,7 +1,8 @@
 import { useSetAtom } from 'jotai'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router'
 
+import { useSettings } from '@/hooks/use-settings'
 import { isFullTextSearchVisibleAtom, openTabsAtom } from '@/stores/chat'
 
 const isMac = navigator.platform.toUpperCase().includes('MAC')
@@ -10,34 +11,92 @@ const isMac = navigator.platform.toUpperCase().includes('MAC')
 export const MOD_KEY = isMac ? '⌘' : 'Ctrl'
 
 export type ShortcutDef = {
+  id: string
   keys: string[]
   label: string
   category: 'General' | 'Chat' | 'Search'
+  /**
+   * Defaults to true. Explicitly false for shortcuts that either have no
+   * safe fallback if disabled (Enter to send, Shift+Enter for a new line)
+   * or whose keybinding lives outside this hook — Toggle sidebar is wired
+   * directly into the shadcn Sidebar primitive
+   * (`components/ui/sidebar.tsx`), and Find in page is a native Electron
+   * menu accelerator (`main/lib/menu.ts`) — so there's nothing here to gate.
+   */
+  toggleable?: boolean
 }
 
 /**
  * Static shortcut map consumed by both the hook and the Settings page.
- * `keys` uses a normalized format: modifier symbols + key name.
+ * `keys` uses a normalized format: modifier symbols + key name. `id` is a
+ * stable key for persisting per-shortcut enabled/disabled state — never
+ * rename an existing id, it's stored in settings.
  */
 export const SHORTCUT_MAP: ShortcutDef[] = [
-  { keys: [MOD_KEY, 'N'], label: 'New chat', category: 'General' },
-  { keys: [MOD_KEY, ','], label: 'Open settings', category: 'General' },
-  { keys: [MOD_KEY, 'B'], label: 'Toggle sidebar', category: 'General' },
-  { keys: [MOD_KEY, 'F'], label: 'Find in page', category: 'Search' },
   {
+    id: 'new-chat',
+    keys: [MOD_KEY, 'N'],
+    label: 'New chat',
+    category: 'General'
+  },
+  {
+    id: 'open-settings',
+    keys: [MOD_KEY, ','],
+    label: 'Open settings',
+    category: 'General'
+  },
+  {
+    id: 'toggle-sidebar',
+    keys: [MOD_KEY, 'B'],
+    label: 'Toggle sidebar',
+    category: 'General',
+    toggleable: false
+  },
+  {
+    id: 'find-in-page',
+    keys: [MOD_KEY, 'F'],
+    label: 'Find in page',
+    category: 'Search',
+    toggleable: false
+  },
+  {
+    id: 'search-chat-history',
     keys: [MOD_KEY, '⇧', 'F'],
     label: 'Search chat history',
     category: 'Search'
   },
-  { keys: ['Esc'], label: 'Close find bar', category: 'Search' },
-  { keys: [MOD_KEY, 'W'], label: 'Close current tab', category: 'Chat' },
   {
+    id: 'close-find-bar',
+    keys: ['Esc'],
+    label: 'Close find bar',
+    category: 'Search'
+  },
+  {
+    id: 'close-tab',
+    keys: [MOD_KEY, 'W'],
+    label: 'Close current tab',
+    category: 'Chat'
+  },
+  {
+    id: 'focus-chat-input',
     keys: [MOD_KEY, '⇧', 'E'],
     label: 'Focus chat input',
     category: 'Chat'
   },
-  { keys: ['Enter'], label: 'Send message', category: 'Chat' },
-  { keys: ['⇧', 'Enter'], label: 'New line', category: 'Chat' }
+  {
+    id: 'send-message',
+    keys: ['Enter'],
+    label: 'Send message',
+    category: 'Chat',
+    toggleable: false
+  },
+  {
+    id: 'new-line',
+    keys: ['⇧', 'Enter'],
+    label: 'New line',
+    category: 'Chat',
+    toggleable: false
+  }
 ]
 
 function isModKey(e: KeyboardEvent) {
@@ -51,6 +110,11 @@ export function useKeyboardShortcuts() {
   const navigate = useNavigate()
   const setSearchVisible = useSetAtom(isFullTextSearchVisibleAtom)
   const setOpenTabs = useSetAtom(openTabsAtom)
+  const { data: settings } = useSettings()
+  const disabled = useMemo(
+    () => new Set(settings?.keyboardShortcuts?.disabled ?? []),
+    [settings?.keyboardShortcuts?.disabled]
+  )
 
   const handler = useCallback(
     (e: KeyboardEvent) => {
@@ -60,6 +124,7 @@ export function useKeyboardShortcuts() {
 
       // --- Escape: always works ---
       if (e.key === 'Escape') {
+        if (disabled.has('close-find-bar')) return
         window.electron.ipcRenderer.invoke('close-search-bar')
         return
       }
@@ -72,11 +137,13 @@ export function useKeyboardShortcuts() {
       // Mod+Shift combos
       if (e.shiftKey) {
         if (key === 'f') {
+          if (disabled.has('search-chat-history')) return
           e.preventDefault()
           setSearchVisible(true)
           return
         }
         if (key === 'e') {
+          if (disabled.has('focus-chat-input')) return
           e.preventDefault()
           const textarea = document.querySelector<HTMLTextAreaElement>(
             'textarea[placeholder="Send a message..."]'
@@ -89,6 +156,7 @@ export function useKeyboardShortcuts() {
 
       // Mod-only combos (skip if typing in inputs, except Mod+W which always works)
       if (key === 'w') {
+        if (disabled.has('close-tab')) return
         e.preventDefault()
         // Extract active tab id from URL hash: #/chat/:id
         const match = window.location.hash.match(/^#\/chat\/(.+)$/)
@@ -113,18 +181,20 @@ export function useKeyboardShortcuts() {
       if (isInput) return
 
       if (key === 'n') {
+        if (disabled.has('new-chat')) return
         e.preventDefault()
         window.location.href = '/'
         return
       }
 
       if (key === ',') {
+        if (disabled.has('open-settings')) return
         e.preventDefault()
         navigate('/settings')
         return
       }
     },
-    [navigate, setSearchVisible, setOpenTabs]
+    [navigate, setSearchVisible, setOpenTabs, disabled]
   )
 
   useEffect(() => {

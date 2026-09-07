@@ -12,6 +12,9 @@ import {
   getProjectWithCounts,
   updateProject
 } from '../../db/project-queries'
+import { getAllChats } from '../../db/queries'
+import { logger } from '../../logger'
+import { resolveSearchProvider } from '../../search/resolve-search-provider'
 import {
   deletionSuccessResponse,
   getRequiredParam,
@@ -68,10 +71,35 @@ projectRouter.put('/:id', async (c) => {
 
 projectRouter.delete('/:id', async (c) => {
   const id = getRequiredParam(c, 'id')
+
+  // `deleteProject()` also deletes every child chat's messages, so the
+  // Elasticsearch index has to be cascaded the same way `DELETE /api/chat/:id`
+  // does. Collect the chat ids first — after the delete they're gone.
+  const { elasticsearch } = resolveSearchProvider(c.get('settings'))
+  const projectChatIds = elasticsearch
+    ? (
+        await handleDatabaseOperation(
+          () => getAllChats(id),
+          'Failed to get project chats'
+        )
+      ).map((chat) => chat.id)
+    : []
+
   await handleDatabaseOperation(
     () => deleteProject({ id }),
     'Failed to delete project'
   )
+
+  if (elasticsearch) {
+    for (const chatId of projectChatIds) {
+      elasticsearch.deleteByChatId(chatId).catch((error) => {
+        logger.error('search', 'Failed to delete chat from Elasticsearch', {
+          error: String(error)
+        })
+      })
+    }
+  }
+
   return deletionSuccessResponse(c, 'project')
 })
 
