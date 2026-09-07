@@ -99,7 +99,7 @@
     "cross-env": "^10.1.0",
     "drizzle-kit": "^0.31.10",
     "electron": "^42.3.0",
-    "electron-builder": "^26.8.1",
+    "electron-builder": "^26.15.3",
     "electron-vite": "^5.0.0",
     "embla-carousel-react": "^8.6.0",
     "framer-motion": "^12.40.0",

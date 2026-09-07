@@ -1,3 +1,11 @@
+# electron-builder's dependency collector does not fully resolve nested
+# transitive deps under pnpm's default isolated (symlinked) layout — a release
+# build silently dropped @protobufjs/*, long, yargs, lodash.camelcase (the
+# @googlemaps/places → google-gax → gRPC → protobufjs chain) and the packaged
+# app crashed with "Cannot find module 'lodash.camelcase'". A flat node_modules
+# is the documented workaround. Run `pnpm install` after changing this.
+nodeLinker: hoisted
+
 allowBuilds:
   '@google/genai': true
   electron-winstaller: true
