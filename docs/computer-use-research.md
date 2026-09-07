@@ -3,13 +3,13 @@
 **Date:** 2026-09-06 · **Status:** research / literature survey. No
 implementation commitment.
 
-**Inputs:** the user's blog *"AI's Ultimate Form"*
+**Inputs:** the user's blog _"AI's Ultimate Form"_
 (`yanceyleo.com/post/1b27acf6…`); the full user↔ChatGPT thread
 (pasted 2026-09-06); and the published state of the field as of early
 September 2026.
 
 **Thesis under examination.** The blog argues that the endgame for AI
-operating a computer is *not* `screenshot → VLM → mouse-API`, but a
+operating a computer is _not_ `screenshot → VLM → mouse-API`, but a
 closed-loop control system on the model of Tesla FSD: the screen is a
 sensor, the model maintains a continuously-updated world state, a
 high-level agent sets goals, and a low-level controller drives
@@ -17,13 +17,12 @@ mouse/keyboard from continuous visual feedback. This document checks that
 thesis against the literature and derives what Exodus can actually build.
 
 **Bottom line up front.** The blog was ~12–18 months early and the field
-has now converged on most of it — *video-native perception*,
-*observation control*, *GUI world models*, *brain/controller hierarchy*,
-and *the latency problem* are all named, active research directions in
-2026. **Nobody has shipped the full loop.** The hard parts (a reliable
+has now converged on most of it — _video-native perception_,
+_observation control_, _GUI world models_, _brain/controller hierarchy_,
+and _the latency problem_ are all named, active research directions in 2026. **Nobody has shipped the full loop.** The hard parts (a reliable
 GUI world model; real-time streaming control) are exactly where research
 is currently stuck. Exodus cannot close those gaps — but it is unusually
-well-placed to be the *harness*: a shipping, multi-model, fully-traced
+well-placed to be the _harness_: a shipping, multi-model, fully-traced
 operator environment. That is a systems-and-measurement contribution, and
 it is enough for a paper.
 
@@ -34,11 +33,11 @@ it is enough for a paper.
 Five claims:
 
 1. **Perceive video, not screenshots** — discrete frames lose the
-   *trajectory*; a single screenshot is a *state*, not a *process*.
+   _trajectory_; a single screenshot is a _state_, not a _process_.
 2. **The screenshot→infer→parse→act loop is too slow** — ~minute-scale
    per decision vs. human millisecond reflexes.
 3. **Tesla FSD is the existence proof** — cameras stream, the model runs
-   real-time and *collocated*, and it is "not frame-by-frame independent"
+   real-time and _collocated_, and it is "not frame-by-frame independent"
    (it carries temporal / world state).
 4. **Deploy inference at neighbourhood scale** — AI "substations", not
    pure cloud or pure local.
@@ -66,17 +65,17 @@ Exodus
 
 ### 2.1 Models and products
 
-| System | Notes | OSWorld (short) | OSWorld 2.0 (binary) |
-|---|---|---|---|
-| **GPT-6 Astra** (OpenAI, 3 Sep 2026) | "computer operator" model; "Linear Attention V2", 1.05M ctx; async Responses API; `reasoning.effort` low→max. Internal arch undisclosed. ([OpenAI](https://openai.com/index/gpt-6-astra/), [Fortune](https://fortune.com/2026/09/03/openai-debuts-gpt-6-astra-computer-use-greg-brockman-says-start-of-agi/)) | SOTA-class | leads leaderboard; ~27% binary / ~63% partial |
-| **Claude Opus 5** (24 Jul 2026) / **Sonnet 5** (30 Jun 2026) | Sonnet 5 is "the most agentic Sonnet" — plans, drives browsers/terminals autonomously. Sonnet 5 ≈ 81.2 OSWorld-Verified. ([Anthropic](https://www.anthropic.com/news/claude-sonnet-4-6), [morphllm](https://www.morphllm.com/claude-benchmarks)) | ~81–83 | Opus 5 ≈ 31% binary / 68% partial (leads binary) |
-| **Gemini 2.5 Computer Use** (Oct 2025) | browser + Android focus; "lower latency" per Browserbase. **Project Mariner retired as a standalone product 4 May 2026**, folded into the Gemini API / Agent / AI Mode. ([blog.google](https://blog.google/innovation-and-ai/models-and-research/google-deepmind/gemini-computer-use-model/), [Wikipedia](https://en.wikipedia.org/wiki/Project_Mariner)) | — | — |
-| **UI-TARS-2** (ByteDance, [arXiv 2509.02544](https://arxiv.org/abs/2509.02544)) | fully open; pixels→coords, *no* a11y tree; multi-turn RL + a **data flywheel** (model and corpus co-evolve); hybrid GUI env (FS + terminal). | **47.5** | — |
-| **Qwen2.5-VL** (7–72B) | best *open* GUI-grounding family on ScreenSpot/OSWorld as of Apr 2026; the realistic self-host choice. | — | — |
+| System                                                                          | Notes                                                                                                                                                                                                                                                                                                                                                     | OSWorld (short) | OSWorld 2.0 (binary)                             |
+| ------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------- | ------------------------------------------------ |
+| **GPT-6 Astra** (OpenAI, 3 Sep 2026)                                            | "computer operator" model; "Linear Attention V2", 1.05M ctx; async Responses API; `reasoning.effort` low→max. Internal arch undisclosed. ([OpenAI](https://openai.com/index/gpt-6-astra/), [Fortune](https://fortune.com/2026/09/03/openai-debuts-gpt-6-astra-computer-use-greg-brockman-says-start-of-agi/))                                             | SOTA-class      | leads leaderboard; ~27% binary / ~63% partial    |
+| **Claude Opus 5** (24 Jul 2026) / **Sonnet 5** (30 Jun 2026)                    | Sonnet 5 is "the most agentic Sonnet" — plans, drives browsers/terminals autonomously. Sonnet 5 ≈ 81.2 OSWorld-Verified. ([Anthropic](https://www.anthropic.com/news/claude-sonnet-4-6), [morphllm](https://www.morphllm.com/claude-benchmarks))                                                                                                          | ~81–83          | Opus 5 ≈ 31% binary / 68% partial (leads binary) |
+| **Gemini 2.5 Computer Use** (Oct 2025)                                          | browser + Android focus; "lower latency" per Browserbase. **Project Mariner retired as a standalone product 4 May 2026**, folded into the Gemini API / Agent / AI Mode. ([blog.google](https://blog.google/innovation-and-ai/models-and-research/google-deepmind/gemini-computer-use-model/), [Wikipedia](https://en.wikipedia.org/wiki/Project_Mariner)) | —               | —                                                |
+| **UI-TARS-2** (ByteDance, [arXiv 2509.02544](https://arxiv.org/abs/2509.02544)) | fully open; pixels→coords, _no_ a11y tree; multi-turn RL + a **data flywheel** (model and corpus co-evolve); hybrid GUI env (FS + terminal).                                                                                                                                                                                                              | **47.5**        | —                                                |
+| **Qwen2.5-VL** (7–72B)                                                          | best _open_ GUI-grounding family on ScreenSpot/OSWorld as of Apr 2026; the realistic self-host choice.                                                                                                                                                                                                                                                    | —               | —                                                |
 
 **Read:** the open/self-host gap on full computer use is ~34 OSWorld
-points (UI-TARS-2 47.5 vs Claude 81). Open models are close on *grounding*
-(where to click) and *mobile*, far on *long-horizon desktop reasoning*.
+points (UI-TARS-2 47.5 vs Claude 81). Open models are close on _grounding_
+(where to click) and _mobile_, far on _long-horizon desktop reasoning_.
 
 ### 2.2 Benchmarks — the shape of the gap
 
@@ -84,17 +83,17 @@ points (UI-TARS-2 47.5 vs Claude 81). Open models are close on *grounding*
   (mid-2026). Short computer-use tasks are near-solved.
 - **OSWorld 2.0** ([arXiv 2606.29537](https://arxiv.org/abs/2606.29537)):
   108 tasks, **median human time 1.6 h**, binary completion. Explicit
-  challenge categories: *dynamic environments, streaming interaction,
+  challenge categories: _dynamic environments, streaming interaction,
   proactive interaction, cross-source reasoning, implicit-state
-  inference*. Best system ≈ **31% binary completion**. This is the honest
+  inference_. Best system ≈ **31% binary completion**. This is the honest
   "did it finish the whole job" number.
 - **AndroidWorld**: ~95% pass@1 (AskUI) — mobile narrow tasks solved.
 - **WindowsAgentArena**: UI-TARS-2 50.6.
 - **OSWorld-Human** ([arXiv 2506.16042](https://arxiv.org/abs/2506.16042)),
   **OS-Marathon** (long-horizon repetitive), **MMBench-GUI**,
   **MCPWorld**, **GUI-360°**, **LivingScreen** (see §2.6): the benchmark
-  frontier has moved decisively to *long-horizon*, *efficiency*, and
-  *dynamic/streaming* — i.e. onto the blog's turf.
+  frontier has moved decisively to _long-horizon_, _efficiency_, and
+  _dynamic/streaming_ — i.e. onto the blog's turf.
 - **Efficiency**: best agents take **2.7–4.3× more steps** than necessary;
   end-to-end latency "tens of minutes" for tasks humans do in minutes —
   "practically unusable" for time-sensitive work.
@@ -103,12 +102,12 @@ points (UI-TARS-2 47.5 vs Claude 81). Open models are close on *grounding*
 
 Four modalities, and the field has largely settled the trade-offs:
 
-| Modality | Pros | Cons |
-|---|---|---|
-| **Screenshot** | universal, no API, captures layout/style | HiRes → huge visual-token cost; quadratic history blowup |
-| **Accessibility tree** | text, compact, exact coords | "inconsistency, volatility, limited scalability"; missing on many native apps |
-| **Set-of-Marks** (numbered boxes on the screenshot, coords from a11y) | aligns text and pixels; low labeling overhead; efficient hybrid | needs a11y for the coords |
-| **DOM** (web only) | structured, cheap, exact | web only |
+| Modality                                                              | Pros                                                            | Cons                                                                          |
+| --------------------------------------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| **Screenshot**                                                        | universal, no API, captures layout/style                        | HiRes → huge visual-token cost; quadratic history blowup                      |
+| **Accessibility tree**                                                | text, compact, exact coords                                     | "inconsistency, volatility, limited scalability"; missing on many native apps |
+| **Set-of-Marks** (numbered boxes on the screenshot, coords from a11y) | aligns text and pixels; low labeling overhead; efficient hybrid | needs a11y for the coords                                                     |
+| **DOM** (web only)                                                    | structured, cheap, exact                                        | web only                                                                      |
 
 Deployment-realistic benchmarks increasingly give agents **screenshot +
 task only** — no a11y, no SoM — to mirror the real world.
@@ -119,16 +118,16 @@ OmniParser (MLLM parses screenshot → structured elements). 2026 pushes
 toward **coordinate-free** grounding — **GUI-Actor** uses attention over
 visual patches instead of emitting `(x,y)` — and toward efficiency:
 **InnerZoom** ("one forward beats two"), test-time RL via region
-consistency, **WinDOM** (self-family distillation for *small*-model
+consistency, **WinDOM** (self-family distillation for _small_-model
 grounding).
 
 ### 2.4 Action space: the imperative → declarative shift
 
-The blog wants *more, lower-level* actions (raw motor primitives). The
-field is moving the *opposite* way for the Agent↔environment interface:
+The blog wants _more, lower-level_ actions (raw motor primitives). The
+field is moving the _opposite_ way for the Agent↔environment interface:
 
 - **DMI** (Declarative Model Interface, [arXiv 2510.04607](https://arxiv.org/html/2510.04607v2)):
-  collapse a GUI into 3 primitives — *access, state, observation*. "GUIs
+  collapse a GUI into 3 primitives — _access, state, observation_. "GUIs
   force LLMs to decompose high-level goals into lengthy, error-prone
   sequences of fine-grained actions → low success, excessive LLM calls."
 - **Hybrid / MCP action spaces** — MCPWorld
@@ -138,32 +137,32 @@ field is moving the *opposite* way for the Agent↔environment interface:
   fallback. Measured: **agents that can call APIs take 33% fewer total
   actions.**
 - **CoAct-1** ([arXiv 2508.03923](https://arxiv.org/abs/2508.03923)):
-  write and run *code* instead of clicking, when possible.
+  write and run _code_ instead of clicking, when possible.
 - **UltraCUA** ([arXiv 2510.17790](https://arxiv.org/abs/2510.17790)):
-  a foundation model with a *native* hybrid action space.
+  a foundation model with a _native_ hybrid action space.
 
 **Reconciliation:** these are not in conflict — they live at different
-layers. The *Agent→Controller* interface should be declarative ("go to
-Settings", "find the refund button"). The *Controller's own* vocabulary
+layers. The _Agent→Controller_ interface should be declarative ("go to
+Settings", "find the refund button"). The _Controller's own_ vocabulary
 is the motor primitives (`move`, `click`, `type`, `scroll`, `drag`).
 Exactly the brain/controller split the thread proposes.
 
 ### 2.5 Temporal state, memory, and GUI world models
 
-The blog's sharpest point — *a screenshot is a state, not a trajectory* —
+The blog's sharpest point — _a screenshot is a state, not a trajectory_ —
 is now a research consensus:
 
 - **Memory graphs with transition edges.** "A button press triggering a
-  state change is captured as an *edge* in a memory graph; new tasks
-  query the graph." This *is* the thread's "visual git" idea — already
+  state change is captured as an _edge_ in a memory graph; new tasks
+  query the graph." This _is_ the thread's "visual git" idea — already
   published. See Mem-W ([arXiv 2605.09317](https://arxiv.org/html/2605.09317v1)),
   MementoGUI ([2605.18652](https://arxiv.org/pdf/2605.18652)), "Executable
   Agentic Memory for GUI Agent" ([2605.12294](https://arxiv.org/html/2605.12294)),
   "Naive Visual Memory is Not Enough" ([2606.14106](https://arxiv.org/pdf/2606.14106)).
-- **GUI world models** — simulate an action's effect *before* taking it:
+- **GUI world models** — simulate an action's effect _before_ taking it:
   MobileDreamer (image → task sketch → structured state prediction),
-  **ViMo** (predicts the next observation as an *image*), **gWorld**
-  (predicts the next state as *renderable web code*). Survey: "Agentic
+  **ViMo** (predicts the next observation as an _image_), **gWorld**
+  (predicts the next state as _renderable web code_). Survey: "Agentic
   World Modeling" ([arXiv 2604.22748](https://arxiv.org/pdf/2604.22748)).
 - **Architecture shift**: finite context window → structured state →
   **state-space models** (Mamba-style backbones) for the memory stream.
@@ -172,7 +171,7 @@ is now a research consensus:
 - **History compression** (the "don't reprocess 5 identical frames"
   problem): **VERA** (visual-evidence-retaining, training-free, cuts
   cumulative non-cache tokens **31.5–63.1%**), **AgentOCR** (render
-  history as an image and compress *optically*), **HiconAgent** (anchor-
+  history as an image and compress _optically_), **HiconAgent** (anchor-
   guided history compression), consistency-guided token-dropping at
   chosen LLM layers. Typical practical envelope: ≤15 images + 64K context
   covers a full 1080p trajectory.
@@ -190,19 +189,19 @@ This is the blog restated by 2026 papers, sometimes almost verbatim:
   kinematic cursor traces + reasoning annotations; 55 h / 6M frames).
   Also **CUA-Suite** ([arXiv 2603.24440](https://arxiv.org/html/2603.24440)).
 - **LivingScreen** ([arXiv 2606.04701](https://arxiv.org/abs/2606.04701)):
-  first benchmark for *living-screen-native* GUI agents — "operates on a
+  first benchmark for _living-screen-native_ GUI agents — "operates on a
   screen evolving in continuous time and **actively decides which visual
   slice to observe** — information acquisition is an endogenous,
   cost-bearing decision, not a fixed data feed." Frontier models fail
   here; dominant failure = **over- and under-observation**. The paper
   names **"observation control" as a missing capability axis.**
 - **StreamingVLM** ([arXiv 2510.09608](https://arxiv.org/abs/2510.09608),
-  ICLR 2026, MIT HAN Lab): real-time understanding of *infinite* video
+  ICLR 2026, MIT HAN Lab): real-time understanding of _infinite_ video
   streams via a compact KV cache (attention sinks + short vision window +
   long text window). **~8 FPS on a single H100.** This is the closest
   thing to "video → model in real time" that actually runs.
 - **Event-VStream** ([arXiv 2601.15655](https://arxiv.org/pdf/2601.15655)):
-  *event-driven* processing — compute only when something changes. The
+  _event-driven_ processing — compute only when something changes. The
   thread's "cheap local change detector → keyframes" idea.
 - Action-side: **action chunking** lets VLA policies run real-time, but
   "naive chunked execution exhibits discontinuities at chunk boundaries"
@@ -218,7 +217,7 @@ This is the blog restated by 2026 papers, sometimes almost verbatim:
   thread's architecture, already built and RL-trained.
 - **Agent S2 / S3** ([arXiv 2504.00906](https://arxiv.org/abs/2504.00906)):
   Manager + Worker with **proactive hierarchical planning** — replan
-  after *every subgoal*, not just on failure. SOTA on OSWorld 15- and
+  after _every subgoal_, not just on failure. SOTA on OSWorld 15- and
   50-step at release.
 - "Beyond Global Replanning: Hierarchical Recovery" and PEAR (a
   planner-executor robustness benchmark) round out the pattern.
@@ -229,7 +228,7 @@ This is the blog restated by 2026 papers, sometimes almost verbatim:
   −18.6% latency (sequential) / **−44.9% (real-world)** by committing
   predicted action macros and verifying in parallel.
 - **SpecBox** ([arXiv 2607.23933](https://arxiv.org/html/2607.23933)):
-  start sandbox/environment preparation *before* LLM inference finishes —
+  start sandbox/environment preparation _before_ LLM inference finishes —
   today it's serialized on the critical path.
 - **Agent JIT Compilation** ([arXiv 2605.21470](https://arxiv.org/html/2605.21470)),
   "Act While Thinking" (pattern-aware speculative tool exec), Dynamic
@@ -243,8 +242,8 @@ This is the blog restated by 2026 papers, sometimes almost verbatim:
 ### 2.9 Training: environments are the bottleneck, not model size
 
 - **CUA-Gym** ([arXiv 2605.25624](https://arxiv.org/abs/2605.25624)):
-  co-generates *task + environment state + reward function*; ships
-  CUA-GYM-HUB (94 mock web apps grounded in O*NET + the Anthropic
+  co-generates _task + environment state + reward function_; ships
+  CUA-GYM-HUB (94 mock web apps grounded in O\*NET + the Anthropic
   Economic Index). Scales with data volume without saturating.
 - **OpenComputer** ("verifiable software worlds"), **DreamGym**
   (synthetic RL experiences, [arXiv 2511.03773](https://arxiv.org/pdf/2511.03773)),
@@ -252,7 +251,7 @@ This is the blog restated by 2026 papers, sometimes almost verbatim:
   PhoneBuddy, NeMo Gym.
 - The lesson (also the UI-TARS data-flywheel lesson): **verifiable
   environments + synthetic data** is how the open models are closing the
-  gap. A shipping harness that *records real user sessions* is a data
+  gap. A shipping harness that _records real user sessions_ is a data
   asset.
 
 ### 2.10 Security — the reason V0 runs in a box
@@ -263,10 +262,10 @@ This is the blog restated by 2026 papers, sometimes almost verbatim:
   exfiltration stole `claude.ai` conversation history.
 - **Visual / environmental prompt injection**: malicious instructions
   hidden in page HTML, metadata, alt-text, document bodies — the agent
-  *reads its environment* and is steered by it.
+  _reads its environment_ and is steered by it.
 - Defenses: sandboxed execution (**ceLLMate**, [arXiv 2512.12594](https://arxiv.org/pdf/2512.12594)),
   untrusted-content masking with guarantees
-  ([arXiv 2607.05277](https://arxiv.org/pdf/2607.05277)), the *guardian*
+  ([arXiv 2607.05277](https://arxiv.org/pdf/2607.05277)), the _guardian_
   pattern, human confirmation for high-impact actions,
   architecture-lifecycle frameworks
   ([arXiv 2605.07110](https://arxiv.org/pdf/2605.07110)). Survey: "JARVIS
@@ -312,13 +311,14 @@ successors:
   autoregressive transformer), 4D occupancy forecasting, World4Drive,
   ExploreVLA.
 
-**What "end-to-end" actually means here:** *not* one monolithic net.
+**What "end-to-end" actually means here:** _not_ one monolithic net.
 UniAD keeps perception / prediction / planning as **distinct modules with
 explicit intermediate representations** (a tracked-object list, an
 occupancy grid, a map) — trained jointly. The temporal / world state is a
-*named module*, not an emergent property.
+_named module_, not an emergent property.
 
 **Where the analogy holds for computer use:**
+
 - A dedicated **world-state module** carrying temporal information
   (tracked UI objects, their motion, recent state transitions) — yes,
   this is where GUI world models (§2.5) are heading.
@@ -326,20 +326,21 @@ occupancy grid, a map) — trained jointly. The temporal / world state is a
 - **Collocation** — inference near the sensor — yes, for latency (§2.11).
 
 **Where it breaks:**
+
 - **Action space.** FSD: {steer, accelerate, brake} — 3 continuous
   dimensions. Computer use: unbounded, per-application, discrete +
   continuous.
-- **Data.** FSD: billions of *homogeneous* fleet miles. Computer use:
+- **Data.** FSD: billions of _homogeneous_ fleet miles. Computer use:
   the whole point of CUA-Gym / VideoCUA is that this data barely exists
   yet.
-- **Why FSD is real-time at all.** Safety-criticality *forces* the
-  millisecond loop and *pays for* the dedicated silicon. Most computer
+- **Why FSD is real-time at all.** Safety-criticality _forces_ the
+  millisecond loop and _pays for_ the dedicated silicon. Most computer
   tasks are not reflex-time; the economic case for 60 FPS control is
-  weak *except* for the minority class (games, drag, video scrubbing,
+  weak _except_ for the minority class (games, drag, video scrubbing,
   reacting to animation) the blog correctly identifies.
 
-**Net:** FSD is a good *intuition pump* for "temporal world state +
-hierarchy + collocation", and a *bad literal template* because computer
+**Net:** FSD is a good _intuition pump_ for "temporal world state +
+hierarchy + collocation", and a _bad literal template_ because computer
 use has neither a bounded action space nor fleet-scale data nor a
 safety mandate.
 
@@ -349,16 +350,16 @@ safety mandate.
 
 - **OpenVLA** (7B, 970k Open-X episodes): robot actions as **discrete
   tokens** — each action dimension binned into vocab tokens the LLM
-  predicts. Structurally *identical* to how a GUI agent emits
+  predicts. Structurally _identical_ to how a GUI agent emits
   `click(x,y)` / `type(...)` tokens.
 - **π0 / π0-FAST** (Physical Intelligence): PaliGemma VLM + a 300M
   diffusion "action expert", continuous actions via flow matching.
 - Two paradigms — discrete-token vs continuous-diffusion — and 2026 work
   (Unified Diffusion VLA, Residual RL for VLAs) is merging them.
 
-**Assessment:** "GUI agent is structurally a VLA" is *true* — same
+**Assessment:** "GUI agent is structurally a VLA" is _true_ — same
 vision→language→action shape, same discrete-token action option. The
-*robot transfer* claim (train on GUIs, deploy on a robot arm) has **no
+_robot transfer_ claim (train on GUIs, deploy on a robot arm) has **no
 published demonstration** and faces the embodiment gap (a mouse cursor is
 not a 7-DoF arm). But **"the action space is the portable interface"** is
 a sound design principle regardless: design the Controller's primitives
@@ -369,16 +370,16 @@ model-agnostic boundary today.
 
 ## 5. The vision vs. the field — verdict per pillar
 
-| # | Blog claim | 2026 verdict |
-|---|---|---|
-| 1 | Video, not screenshots | **Vindicated as a research direction.** VideoCUA/CUA-Suite build the data; LivingScreen benchmarks it; "continuous video is the missing ingredient" is a stated consensus. *Still* no shipped video-native GUI operator. Screenshot loops dominate production. |
-| 2 | The loop is too slow | **Correct and central.** 2.7–4.3× step overhead, tens-of-minutes latency, "practically unusable" — the field's own words. Active fixes: speculative execution (−45%), pre-warmed sandboxes, trace→code caching, small grounding models, hierarchy. |
-| 3 | FSD is the proof | **Good intuition, bad literal template** (see §3). Adopt: world-state module, hierarchy, collocation. Reject: monolithic end-to-end, 60 FPS everywhere. |
-| 4 | Neighbourhood-scale inference | **Right idea (edge/collocation), wrong scale for a desktop app.** Realistic form: INT4 VLM on the homelab over Tailscale. Affordable today (§2.11). |
-| 5 | Motor primitives → robots | **Half true.** GUI-agent-as-VLA is structurally real (discrete action tokens); robot transfer is undemonstrated. "Action space as portable interface" is worth designing for anyway. |
+| #   | Blog claim                    | 2026 verdict                                                                                                                                                                                                                                                   |
+| --- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Video, not screenshots        | **Vindicated as a research direction.** VideoCUA/CUA-Suite build the data; LivingScreen benchmarks it; "continuous video is the missing ingredient" is a stated consensus. _Still_ no shipped video-native GUI operator. Screenshot loops dominate production. |
+| 2   | The loop is too slow          | **Correct and central.** 2.7–4.3× step overhead, tens-of-minutes latency, "practically unusable" — the field's own words. Active fixes: speculative execution (−45%), pre-warmed sandboxes, trace→code caching, small grounding models, hierarchy.             |
+| 3   | FSD is the proof              | **Good intuition, bad literal template** (see §3). Adopt: world-state module, hierarchy, collocation. Reject: monolithic end-to-end, 60 FPS everywhere.                                                                                                        |
+| 4   | Neighbourhood-scale inference | **Right idea (edge/collocation), wrong scale for a desktop app.** Realistic form: INT4 VLM on the homelab over Tailscale. Affordable today (§2.11).                                                                                                            |
+| 5   | Motor primitives → robots     | **Half true.** GUI-agent-as-VLA is structurally real (discrete action tokens); robot transfer is undemonstrated. "Action space as portable interface" is worth designing for anyway.                                                                           |
 
-Plus one the blog *implied* and the field has since named explicitly:
-**observation control** — the agent deciding *when and where to look* is a
+Plus one the blog _implied_ and the field has since named explicitly:
+**observation control** — the agent deciding _when and where to look_ is a
 first-class capability, and current frontier models are bad at it
 (over/under-observation is the dominant LivingScreen failure).
 
@@ -386,28 +387,29 @@ first-class capability, and current frontier models are bad at it
 
 ## 6. What Exodus should build
 
-**Exodus will not out-model the frontier labs.** It *can* be the best
+**Exodus will not out-model the frontier labs.** It _can_ be the best
 open **operator harness**: model-agnostic, fully sandboxed, and — uniquely
 — **fully traced** (every episode is one `traceId` in the logging system
 shipped this week; every step a structured log line). When the next
 model ships a better computer-use API, you swap the Agent and the Runtime
 is untouched. That is the moat, and it matches the field's own lesson
-that *environments and data*, not model weights, are the bottleneck.
+that _environments and data_, not model weights, are the bottleneck.
 
 ### The `Computer Runtime` module, staged
 
-| Phase | Capture | Perception | Temporal | Controller | Agent |
-|---|---|---|---|---|---|
-| **1** (~1–2 wk) | `desktopCapturer`, one window **or a VM**, ~2 FPS on demand | screenshot only | `{prevScreenshot, actionLog[]}` | execute one action (`nut.js`), no inner loop | Claude computer-use format (best-documented); UI-TARS as local option |
-| **2** | +change flag | +cheap pixel/OCR diff → "what changed" text | rolling change list, N-back | still one-shot | + Astra / model switch |
-| **3** | — | **three-eye**: DOM (web) + a11y + screenshot; SoM for coords | UI-object tracking (id, bounds, state) | ROI cropping before VLM | — |
-| **4** | 15–30 FPS ring buffer | local keyframe engine (Event-VStream-style) | **World State** JSON: objects, changes, trajectory, history | inner loop: "go to Settings" not `move(1241,83)` | L2 called 0.1–2×/s |
-| **5** (research) | — | streaming VLM on the homelab for a *specific* task class | learned temporal model (SSM) | continuous cursor control, action chunking | — |
+| Phase            | Capture                                                     | Perception                                                   | Temporal                                                    | Controller                                       | Agent                                                                 |
+| ---------------- | ----------------------------------------------------------- | ------------------------------------------------------------ | ----------------------------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------- |
+| **1** (~1–2 wk)  | `desktopCapturer`, one window **or a VM**, ~2 FPS on demand | screenshot only                                              | `{prevScreenshot, actionLog[]}`                             | execute one action (`nut.js`), no inner loop     | Claude computer-use format (best-documented); UI-TARS as local option |
+| **2**            | +change flag                                                | +cheap pixel/OCR diff → "what changed" text                  | rolling change list, N-back                                 | still one-shot                                   | + Astra / model switch                                                |
+| **3**            | —                                                           | **three-eye**: DOM (web) + a11y + screenshot; SoM for coords | UI-object tracking (id, bounds, state)                      | ROI cropping before VLM                          | —                                                                     |
+| **4**            | 15–30 FPS ring buffer                                       | local keyframe engine (Event-VStream-style)                  | **World State** JSON: objects, changes, trajectory, history | inner loop: "go to Settings" not `move(1241,83)` | L2 called 0.1–2×/s                                                    |
+| **5** (research) | —                                                           | streaming VLM on the homelab for a _specific_ task class     | learned temporal model (SSM)                                | continuous cursor control, action chunking       | —                                                                     |
 
 **Design rules pulled from the survey:**
+
 - Agent↔Controller interface is **declarative** (§2.4); motor primitives
-  live *inside* the Controller.
-- `observe()` returns *best-available signal*, not a fixed rich schema —
+  live _inside_ the Controller.
+- `observe()` returns _best-available signal_, not a fixed rich schema —
   web gets DOM, native macOS often just a screenshot.
 - Don't build the World Model / "visual git" before Phase 3 has shown a
   plain `{prev screenshot + action log}` isn't enough. Earn it with data.
@@ -430,7 +432,7 @@ model:
    declarative Agent↔Controller boundary, and the trace schema that makes
    every episode replayable.
 2. **An honest latency/efficiency breakdown** of the loop across models
-   (Astra vs Claude vs local UI-TARS) on the *same* harness — step
+   (Astra vs Claude vs local UI-TARS) on the _same_ harness — step
    count, wall-clock, token cost, per phase. The field keeps reporting
    these in isolation; a controlled cross-model comparison on one harness
    is publishable.
@@ -438,7 +440,7 @@ model:
    model from cloud to a Tailscale-local INT4 VLM actually change the
    loop's usability? Measured, with numbers.
 4. **Observation-control as a Runtime concern** — a keyframe/diff engine
-   that decides *when to invoke the expensive model*, evaluated on
+   that decides _when to invoke the expensive model_, evaluated on
    over/under-observation (LivingScreen-style) and on cost.
 
 None of these need frontier compute. All of them need exactly what Exodus

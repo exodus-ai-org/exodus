@@ -19,7 +19,7 @@
 - **Inner loop gets motor tools only** — no `bash`, no `text_editor`, no filesystem.
 - **`macOS only`.** The Swift helper and all coordinate/capture logic assume macOS. No Windows/Linux input path.
 - **New dependency budget: zero npm deps.** Downscaling uses Electron `nativeImage`. The Swift helper is a build artifact, not an npm package.
-- **No `--no-verify`** except the CLAUDE.md-documented flaky PGlite WASM teardown (all test *cases* passing).
+- **No `--no-verify`** except the CLAUDE.md-documented flaky PGlite WASM teardown (all test _cases_ passing).
 - **DB migration**: single squashed `0000` regenerated on schema change (delete SQL + snapshot, reset `_journal.json` to `{"version":"7","dialect":"postgresql","entries":[]}`, `pnpm db:generate`).
 - **Test-ids** are a durable contract — new ids only, `data-testid` in source + a Playwright reference (`test-ids.linkage.test.ts`).
 - Commit on `dev`. No push, no `master` merge.
@@ -51,12 +51,14 @@
 ## Task 1: The Swift input helper
 
 **Files:**
+
 - Create: `helper-src/exodus-input/main.swift`
 - Create: `resources/bin/exodus-input` (built artifact, committed)
 - Modify: `package.json` (add `build:helper` script; call it from `build:mac`)
 - Test: manual — `resources/bin/exodus-input list-windows`
 
 **Interfaces:**
+
 - Produces (CLI contract consumed by `helper.ts` in Task 2):
   - `exodus-input list-windows` → stdout JSON `[{ "id": number, "app": string, "bundleId": string, "title": string, "bounds": [x,y,w,h] }]` (on-screen windows, window layer 0, excluding Exodus itself)
   - `exodus-input screenshot --window <id>` → PNG bytes on stdout, exit 1 + stderr message if the window is gone
@@ -77,9 +79,11 @@ chmod +x resources/bin/exodus-input
 ```
 
 Add to `package.json`:
+
 ```json
 "build:helper": "swiftc -O -o resources/bin/exodus-input helper-src/exodus-input/main.swift"
 ```
+
 and prepend `pnpm build:helper && ` to `build:mac`.
 
 - [ ] **Step 3: Smoke test**
@@ -99,10 +103,12 @@ git commit -m "feat(computer): exodus-input Swift helper (list-windows, screensh
 ## Task 2: Runtime types + helper client
 
 **Files:**
+
 - Create: `src/main/lib/computer/types.ts`, `src/main/lib/computer/helper.ts`
 - Test: `tests/unit/main/lib/computer/helper.test.ts`
 
 **Interfaces:**
+
 - Consumes: the CLI contract from Task 1.
 - Produces:
   - all types from spec §2.1 verbatim: `MouseButton`, `Action`, `TargetWindow`, `ComputerState`, `SessionOutcome`, `SessionResult`
@@ -123,10 +129,12 @@ git commit -m "feat(computer): exodus-input Swift helper (list-windows, screensh
 ## Task 3: The guard
 
 **Files:**
+
 - Create: `src/main/lib/computer/guard.ts`
 - Test: `tests/unit/main/lib/computer/guard.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Action` (Task 2).
 - Produces: `class Guard` per spec §2.5 —
   - `abort(reason: 'hotkey' | 'user' | 'system'): void`
@@ -151,7 +159,9 @@ describe('Guard.check', () => {
   })
   it('rejects a wildly-out point', () => {
     const g = new Guard()
-    expect(() => g.check({ kind: 'click', to: [2000, 50] }, vp)).toThrow(OutOfBounds)
+    expect(() => g.check({ kind: 'click', to: [2000, 50] }, vp)).toThrow(
+      OutOfBounds
+    )
   })
   it('throws once aborted', () => {
     const g = new Guard()
@@ -185,10 +195,12 @@ describe('Guard.noteFrame', () => {
 ## Task 4: The hands
 
 **Files:**
+
 - Create: `src/main/lib/computer/hands.ts`
 - Test: `tests/unit/main/lib/computer/hands.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Action`, `HelperCommand`, `InputHelper`, `TargetWindow` (Task 2); `Guard` (Task 3).
 - Produces: `async function execute(action: Action, ctx: { target: TargetWindow; scaleFactor: number; helper: InputHelper }): Promise<void>` — decomposes per spec §2.4, maps window-relative → screen coords (`screenX = target.bounds[0] + x / scaleFactor`), sends `HelperCommand[]` in one `helper.send(cmds, clamp)` call where `clamp = target.bounds`. `wait` sleeps. `askHuman` / `done` throw `Error('not an executable action')` (the session handles them).
 - Also export the pure `function decompose(action: Action, scaleFactor: number, origin: [number, number]): HelperCommand[]` for the test.
@@ -208,10 +220,12 @@ describe('Guard.noteFrame', () => {
 ## Task 5: Capture + downscale
 
 **Files:**
+
 - Create: `src/main/lib/computer/capture.ts`
 - Test: `tests/unit/main/lib/computer/capture.test.ts`
 
 **Interfaces:**
+
 - Consumes: `InputHelper`, `TargetWindow` (Task 2).
 - Produces:
   - `async function screenshotWindow(t: TargetWindow, helper: InputHelper): Promise<{ shot: ComputerState['screenshot']; scaleFactor: number }>` — `helper.screenshot(t.cgWindowId)` → `nativeImage.createFromBuffer(buf)`; if longer side > `MAX_EDGE` (1400) resize to fit, `scaleFactor = resizedLongEdge / originalLongEdge`; else `scaleFactor = 1`. `shot = { data: img.toPNG().toString('base64'), mimeType: 'image/png', width, height }`.
@@ -226,10 +240,12 @@ describe('Guard.noteFrame', () => {
 ## Task 6: Target-window resolution
 
 **Files:**
+
 - Create: `src/main/lib/computer/target.ts`
 - Test: `tests/unit/main/lib/computer/target.test.ts`
 
 **Interfaces:**
+
 - Consumes: `InputHelper`, `TargetWindow` (Task 2).
 - Produces:
   - `async function resolveTarget(appQuery: string, helper: InputHelper): Promise<TargetWindow>` — `helper.listWindows()`, pick the first whose `app` or `bundleId` `includes(appQuery)` case-insensitively; among ties prefer a non-empty `title` and larger area. Throws `TargetNotFound(appQuery)`.
@@ -244,10 +260,12 @@ describe('Guard.noteFrame', () => {
 ## Task 7: Ask-registry + the inner agent
 
 **Files:**
+
 - Create: `src/main/lib/computer/ask-registry.ts`, `src/main/lib/ai/computer-use/action-tools.ts`, `src/main/lib/ai/computer-use/system-prompt.ts`, `src/main/lib/ai/computer-use/agent.ts`
 - Test: `tests/unit/main/lib/computer/ask-registry.test.ts`, `tests/unit/main/lib/ai/computer-use/agent.test.ts`
 
 **Interfaces:**
+
 - Consumes: `Action`, `ComputerState` (Task 2); `complete` + `Type` from `@mariozechner/pi-ai`; `resolveModel` / the provider config.
 - Produces:
   - `ask-registry.ts`: `computerAskRegistry` with `wait(sessionId): Promise<string>`, `has(sessionId): boolean`, `resolve(sessionId, answer): void` — copy `src/main/lib/ai/philharmonic/ask-user-registry.ts` shape, keyed by session id.
@@ -276,10 +294,12 @@ describe('Guard.noteFrame', () => {
 ## Task 8: The session loop
 
 **Files:**
+
 - Create: `src/main/lib/computer/session.ts`
 - Test: `tests/unit/main/lib/computer/session.test.ts`
 
 **Interfaces:**
+
 - Consumes: everything above; `withTrace` / `bindTraceAttributes` from `@main/lib/logger/trace-context`; `logger`.
 - Produces:
   - `async function runComputerSession(opts: { sessionId: string; task: string; target: string; agent: ComputerAgent; helper?: InputHelper; guard?: Guard; maxSteps?: number; settleMs?: number; askHumanTimeoutMs?: number; signal?: AbortSignal; onUpdate?: (u: SessionUpdate) => void }): Promise<SessionResult>`
@@ -301,11 +321,13 @@ describe('Guard.noteFrame', () => {
 ## Task 9: The `computerUse` calling-tool
 
 **Files:**
+
 - Create: `src/main/lib/ai/calling-tools/computer-use.ts`
 - Modify: `src/main/lib/ai/calling-tools/index.ts`, `src/main/lib/ai/utils/tool-binding-util.ts`
 - Test: `tests/unit/main/lib/ai/calling-tools/computer-use.test.ts`
 
 **Interfaces:**
+
 - Consumes: `runComputerSession` (Task 8); `getSettings`; `getModelFromProvider`; `AgentTool` / `Type`.
 - Produces: `export const computerUse: AgentTool<typeof schema>` —
   - `schema = Type.Object({ task: Type.String({description:'What to accomplish in the target window'}), target: Type.String({description:'App name or bundle id of the window to control'}) })`
@@ -327,11 +349,13 @@ describe('Guard.noteFrame', () => {
 ## Task 10: Route + global abort shortcut + liveness
 
 **Files:**
+
 - Create: `src/main/lib/computer/liveness.ts`, `src/main/lib/server/routes/computer-use.ts`
 - Modify: `src/main/lib/server/app.ts`
 - Test: `tests/unit/main/lib/computer/liveness.test.ts`
 
 **Interfaces:**
+
 - Produces:
   - `liveness.ts`: `const liveness = { start(sessionId, guard): void; end(sessionId): void; abortAll(reason): void; get count(): number }`. On `start` when `count` goes 0→1: `globalShortcut.register('Alt+Shift+Escape', () => liveness.abortAll('hotkey'))`. On `end` when `count` goes 1→0: `globalShortcut.unregister('Alt+Shift+Escape')`. `abortAll` calls `guard.abort(reason)` on every registered guard. Guard against `globalShortcut` being unavailable in tests (`try/catch`, or mock `electron`).
   - `routes/computer-use.ts`:
@@ -349,11 +373,14 @@ describe('Guard.noteFrame', () => {
 ## Task 11: Settings schema + DB column + logger surface
 
 **Files:**
+
 - Modify: `src/shared/schemas/settings-schema.ts`, `src/main/lib/db/schema.ts`, `src/main/lib/logger/index.ts` (or wherever `KnownLogSurface` lives — `record.ts` per the logging spec; check), `resources/drizzle/*` (regen)
 - Test: `tests/unit/main/lib/db/schema-computer-use.test.ts`
 
 **Interfaces:**
+
 - `settings-schema.ts`: add (near `KnowledgeBaseSchema`):
+
 ```ts
 export const ComputerUseSchema = z.object({
   enabled: z.boolean().default(false),
@@ -364,7 +391,9 @@ export const ComputerUseSchema = z.object({
   askHumanTimeoutMs: formNumber(z.number().gte(10_000).lte(1_800_000)).nullish()
 })
 ```
+
 and `SettingsSchema` gains `computerUse: ComputerUseSchema.nullish()`.
+
 - `db/schema.ts`: `computerUse: jsonb('computerUse').$type<z.infer<typeof ComputerUseSchema>>()` on the `settings` table.
 - `KnownLogSurface`: add `'computer'`.
 
@@ -378,13 +407,15 @@ and `SettingsSchema` gains `computerUse: ComputerUseSchema.nullish()`.
 ## Task 12: Settings → Computer Use page
 
 **Files:**
+
 - Create: `src/renderer/components/settings/settings-form/computer-use.tsx`, `src/renderer/services/computer-use.ts`
 - Modify: `src/renderer/components/settings/settings-form.tsx` (replace `<UnderConstruction />`), `src/shared/constants/test-ids.ts`
 - Test: `tests/e2e/settings-computer-use.spec.ts`
 
 **Interfaces:**
+
 - `test-ids.ts`: `computerUse: { enableToggle: 'computer-use.enable-toggle', allowlistInput: 'computer-use.allowlist-input', addTargetButton: 'computer-use.add-target-button' }`
-- `computer-use.tsx`: `export function ComputerUse({ form }: { form: UseFormReturnType })` — an `Alert` (copy: *"Computer Use lets the AI operate one window on your Mac with a virtual mouse and keyboard — it sees a screenshot each step and acts like a person. It only touches windows you add below, you can stop it any time with ⌥⇧⎋, and every session is logged. Off by default."*), the enable `Switch` (`discover.enabled`-style `Controller`), a target-allowlist editor (list of removable chips + an `Input` + Add button that appends to `form` value `computerUse.targetAllowlist`), and `maxSteps` / `settleMs` number `Controller`s. Follow `knowledge-base.tsx` / `discover.tsx` layout.
+- `computer-use.tsx`: `export function ComputerUse({ form }: { form: UseFormReturnType })` — an `Alert` (copy: _"Computer Use lets the AI operate one window on your Mac with a virtual mouse and keyboard — it sees a screenshot each step and acts like a person. It only touches windows you add below, you can stop it any time with ⌥⇧⎋, and every session is logged. Off by default."_), the enable `Switch` (`discover.enabled`-style `Controller`), a target-allowlist editor (list of removable chips + an `Input` + Add button that appends to `form` value `computerUse.targetAllowlist`), and `maxSteps` / `settleMs` number `Controller`s. Follow `knowledge-base.tsx` / `discover.tsx` layout.
 - `services/computer-use.ts`: `export const abortComputerUse = () => fetcher('/api/computer-use/abort', { method: 'POST' })`; `export const answerComputerUse = (sessionId, answer) => fetcher('/api/computer-use/answer', { method: 'POST', body: { sessionId, answer } })`.
 - `settings-form.tsx:132`: `{activeTitle === SettingsLabel.ComputerUse && <ComputerUse form={form} />}`.
 
@@ -399,10 +430,12 @@ and `SettingsSchema` gains `computerUse: ComputerUseSchema.nullish()`.
 ## Task 13: Chat panel + docs
 
 **Files:**
+
 - Modify: `src/renderer/components/messages-calling-tools.tsx` (+ a `ComputerUseCard` — inline or a new file `web-search`-sibling), `src/shared/constants/test-ids.ts` (if the Stop button needs one), `CLAUDE.md`
 - Test: extend `settings-computer-use.spec.ts` or a new `tests/e2e/computer-use-panel.spec.ts` only if a test-id is added
 
 **Interfaces:**
+
 - `messages-calling-tools.tsx`: add `'computerUse'` to `BUILTIN_TOOL_NAMES`; render `{toolName === 'computerUse' && <ComputerUseCard toolResult={output} />}`.
 - `ComputerUseCard`: reads `details` (the last `SessionUpdate` streamed, or the final `{sessionId, outcome, steps}`). Renders: a header (`Computer Use · {outcome ?? 'running'}`), the current/last step + action, an optional thumbnail (`details.thumbnail` base64), and — while `!outcome` — a **Stop** button calling `abortComputerUse()`. On `details.awaitingHuman`: an inline question + text input + "Done — continue" button calling `answerComputerUse(sessionId, value || '(done)')`. On completion: a "View episode" link to `#` (V0: just show `traceId` text; wiring the Logger deep-link is optional polish).
 - `CLAUDE.md`: under "Built-in tools" add `computer-use`; add a `src/main/lib/computer/` bullet to Code Structure ("window-scoped screenshot-loop computer-use Runtime: `exodus-input` Swift helper, capture/target/hands/guard, the `runComputerSession` loop; see docs/superpowers/specs/2026-09-06-computer-use-v0-design.md"); add `/api/computer-use` to the route list.
@@ -418,29 +451,29 @@ and `SettingsSchema` gains `computerUse: ComputerUseSchema.nullish()`.
 
 **Spec coverage:**
 
-| Spec § | Task |
-| --- | --- |
-| §1 shape, blocking tool | 8, 9 |
-| §2.1 types | 2 |
-| §2.2 target | 6 |
-| §2.3 capture + scaling | 5 |
-| §2.4 hands | 4 |
-| §2.5 guard | 3 |
-| §2.6 helper | 1, 2 |
-| §3.1 ComputerAgent | 7 |
-| §3.2 action tools | 7 |
-| §3.3 screenshot trim | 7 |
-| §3.4 system prompt | 7 |
-| §3.5 loop controls, askHuman, stuck | 8 |
-| §3.6 trace | 8 |
-| §4.1 ask registry | 7 |
-| §4.2 safety (window scope, abort, allowlist, motor-only) | 3, 8, 9, 10 |
-| §5.1 settings schema | 11 |
-| §5.2 settings page | 12 |
-| §5.3 chat surface | 13 |
-| §6 Swift helper | 1 |
-| §8 testing | every task |
-| §9 non-goals | respected (no DOM/AX, no video, no local model, no bash) |
+| Spec §                                                   | Task                                                     |
+| -------------------------------------------------------- | -------------------------------------------------------- |
+| §1 shape, blocking tool                                  | 8, 9                                                     |
+| §2.1 types                                               | 2                                                        |
+| §2.2 target                                              | 6                                                        |
+| §2.3 capture + scaling                                   | 5                                                        |
+| §2.4 hands                                               | 4                                                        |
+| §2.5 guard                                               | 3                                                        |
+| §2.6 helper                                              | 1, 2                                                     |
+| §3.1 ComputerAgent                                       | 7                                                        |
+| §3.2 action tools                                        | 7                                                        |
+| §3.3 screenshot trim                                     | 7                                                        |
+| §3.4 system prompt                                       | 7                                                        |
+| §3.5 loop controls, askHuman, stuck                      | 8                                                        |
+| §3.6 trace                                               | 8                                                        |
+| §4.1 ask registry                                        | 7                                                        |
+| §4.2 safety (window scope, abort, allowlist, motor-only) | 3, 8, 9, 10                                              |
+| §5.1 settings schema                                     | 11                                                       |
+| §5.2 settings page                                       | 12                                                       |
+| §5.3 chat surface                                        | 13                                                       |
+| §6 Swift helper                                          | 1                                                        |
+| §8 testing                                               | every task                                               |
+| §9 non-goals                                             | respected (no DOM/AX, no video, no local model, no bash) |
 
 No gaps.
 
