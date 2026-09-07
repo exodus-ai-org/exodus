@@ -102,6 +102,12 @@ jobs:
   release:
     needs: build
     runs-on: ubuntu-latest
+    # semantic-release's @semantic-release/git plugin makes the version-bump
+    # commit; without this, the husky pre-commit hook re-runs lint-staged +
+    # `pnpm test` and a flaky PGlite WASM teardown can fail the commit even
+    # when every test passes. The gate already ran on the PR.
+    env:
+      HUSKY: 0
     steps:
       - uses: actions/checkout@v4
         with:
