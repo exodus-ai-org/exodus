@@ -5,7 +5,12 @@ import { cwd } from 'process'
 
 import { is } from '@electron-toolkit/utils'
 
-import type { HelperCommand, InputHelper, TargetWindow } from './types'
+import type {
+  HelperCommand,
+  InputHelper,
+  InstalledApp,
+  TargetWindow
+} from './types'
 
 const BINARY_NAME = 'exodus-input'
 
@@ -117,6 +122,16 @@ export const realHelper: InputHelper = {
     const args = ['input']
     if (clamp) args.push('--clamp', clamp.join(','))
     await run(args, { stdin: serialize(commands) })
+  },
+
+  async activate(query) {
+    const out = await run(['activate', '--app', query])
+    return JSON.parse(out.toString('utf8')) as { bundleId: string; pid: number }
+  },
+
+  async listApps() {
+    const out = await run(['list-apps'])
+    return JSON.parse(out.toString('utf8')) as InstalledApp[]
   }
 }
 
@@ -130,18 +145,26 @@ export interface MockHelper extends InputHelper {
   sent: HelperCommand[][]
   /** The `clamp` arg of each `send()` call, index-aligned with `sent`. */
   sentClamps: Array<[number, number, number, number] | undefined>
+  /** One entry per `activate()` call, in order. */
+  activated: string[]
   __setWindows(windows: TargetWindow[]): void
   __setScreenshot(buffer: Buffer): void
+  __setApps(apps: InstalledApp[]): void
+  /** Runs inside the next `activate()` call — e.g. to make a window appear. */
+  __onActivate(fn: () => void): void
   /** Clear recorded calls and canned values. */
   __reset(): void
 }
 
 let cannedWindows: TargetWindow[] = []
 let cannedScreenshot: Buffer = Buffer.alloc(0)
+let cannedApps: InstalledApp[] = []
+let onActivate: (() => void) | undefined
 
 export const mockHelper: MockHelper = {
   sent: [],
   sentClamps: [],
+  activated: [],
 
   async listWindows() {
     return cannedWindows
@@ -156,6 +179,16 @@ export const mockHelper: MockHelper = {
     mockHelper.sentClamps.push(clamp)
   },
 
+  async activate(query) {
+    mockHelper.activated.push(query)
+    onActivate?.()
+    return { bundleId: query, pid: 1 }
+  },
+
+  async listApps() {
+    return cannedApps
+  },
+
   __setWindows(windows) {
     cannedWindows = windows
   },
@@ -164,11 +197,22 @@ export const mockHelper: MockHelper = {
     cannedScreenshot = buffer
   },
 
+  __setApps(apps) {
+    cannedApps = apps
+  },
+
+  __onActivate(fn) {
+    onActivate = fn
+  },
+
   __reset() {
     mockHelper.sent = []
     mockHelper.sentClamps = []
+    mockHelper.activated = []
     cannedWindows = []
     cannedScreenshot = Buffer.alloc(0)
+    cannedApps = []
+    onActivate = undefined
   }
 }
 

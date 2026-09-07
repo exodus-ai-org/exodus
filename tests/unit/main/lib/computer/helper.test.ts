@@ -88,6 +88,31 @@ describe('mockHelper', () => {
     expect(await mockHelper.screenshot(1)).toBe(buf)
   })
 
+  it('records activate() calls, runs __onActivate, and returns the query as identity', async () => {
+    mockHelper.__onActivate(() =>
+      mockHelper.__setWindows([
+        {
+          cgWindowId: 9,
+          app: 'Chess',
+          bundleId: 'com.apple.Chess',
+          title: 'Chess',
+          bounds: [0, 0, 1, 1]
+        }
+      ])
+    )
+    const res = await mockHelper.activate('Chess')
+
+    expect(res).toEqual({ bundleId: 'Chess', pid: 1 })
+    expect(mockHelper.activated).toEqual(['Chess'])
+    expect(await mockHelper.listWindows()).toHaveLength(1)
+  })
+
+  it('returns canned apps set via __setApps', async () => {
+    const apps = [{ name: 'Chess', bundleId: 'com.apple.Chess', path: '/x' }]
+    mockHelper.__setApps(apps)
+    expect(await mockHelper.listApps()).toEqual(apps)
+  })
+
   it('__reset clears recorded calls and canned values', async () => {
     mockHelper.__setWindows([
       {
@@ -103,8 +128,10 @@ describe('mockHelper', () => {
 
     expect(mockHelper.sent).toEqual([])
     expect(mockHelper.sentClamps).toEqual([])
+    expect(mockHelper.activated).toEqual([])
     expect(await mockHelper.listWindows()).toEqual([])
     expect((await mockHelper.screenshot(1)).length).toBe(0)
+    expect(await mockHelper.listApps()).toEqual([])
   })
 })
 

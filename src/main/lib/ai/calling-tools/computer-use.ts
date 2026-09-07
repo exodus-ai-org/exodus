@@ -14,7 +14,9 @@ const schema = Type.Object({
     description: 'What to accomplish in the target window'
   }),
   target: Type.String({
-    description: 'App name or bundle id of the window to control'
+    description:
+      'App name or bundle id of the window to control. If the app is on the ' +
+      "user's allowlist it will be opened automatically when it isn't running."
   })
 })
 

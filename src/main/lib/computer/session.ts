@@ -19,7 +19,7 @@ import { hashPng, screenshotWindow } from './capture'
 import { AbortedByUser, ForbiddenChord, Guard, OutOfBounds } from './guard'
 import * as hands from './hands'
 import { getHelper } from './helper'
-import { refreshBounds, resolveTarget } from './target'
+import { refreshBounds, resolveOrLaunch } from './target'
 import type {
   Action,
   ComputerState,
@@ -195,10 +195,21 @@ export async function runComputerSession(
     }
 
     // --- resolve the target window -----------------------------------------
+    // Launch/raise the app only when `opts.target` is itself an exact allowlist
+    // entry — the resolved window is still re-checked against the allowlist
+    // below before any action runs.
+    const norm = (s: string): string => s.trim().toLowerCase()
+    const allowedNames = (opts.allowlist ?? []).map(norm)
+    const mayLaunch =
+      allowedNames.length > 0 && allowedNames.includes(norm(opts.target))
+
     let target: TargetWindow
     try {
       target = await race(
-        resolveTarget(opts.target, helper),
+        resolveOrLaunch(opts.target, helper, {
+          launch: mayLaunch,
+          retryDelayMs: settleMs
+        }),
         guard.signal,
         opTimeoutMs,
         'resolveTarget'
@@ -212,11 +223,9 @@ export async function runComputerSession(
     // Re-check the RESOLVED window against the allowlist. The outer tool matches
     // the model's `target` string; `resolveTarget` then picks a window by
     // substring, so an allowlisted "Chess" could otherwise resolve a look-alike.
-    if (opts.allowlist && opts.allowlist.length > 0) {
-      const norm = (s: string): string => s.trim().toLowerCase()
-      const wanted = opts.allowlist.map(norm)
+    if (allowedNames.length > 0) {
       const ok = [target.app, target.bundleId].some((id) =>
-        wanted.includes(norm(id))
+        allowedNames.includes(norm(id))
       )
       if (!ok) {
         return finish(

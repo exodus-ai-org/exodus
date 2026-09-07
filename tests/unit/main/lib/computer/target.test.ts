@@ -1,5 +1,6 @@
 import {
   refreshBounds,
+  resolveOrLaunch,
   resolveTarget,
   TargetNotFound,
   WindowGone
@@ -7,13 +8,27 @@ import {
 import type { InputHelper, TargetWindow } from '@main/lib/computer/types'
 import { describe, expect, it } from 'vitest'
 
-// target.ts only needs `listWindows()`; the other `InputHelper` members are
-// stubbed so the object type-checks without pulling in `helper.ts` (electron).
-function makeHelper(windows: TargetWindow[]): InputHelper {
+// target.ts only needs `listWindows()` / `activate()`; the other `InputHelper`
+// members are stubbed so the object type-checks without pulling in `helper.ts`
+// (electron). `onActivate` runs inside `activate()` and returns the window list
+// to expose from then on — used to simulate an app's window appearing.
+function makeHelper(
+  windows: TargetWindow[],
+  opts: { onActivate?: () => TargetWindow[] } = {}
+): InputHelper & { activated: string[] } {
+  let current = windows
+  const activated: string[] = []
   return {
-    listWindows: async () => windows,
+    activated,
+    listWindows: async () => current,
     screenshot: async () => Buffer.alloc(0),
-    send: async () => {}
+    send: async () => {},
+    activate: async (query: string) => {
+      activated.push(query)
+      if (opts.onActivate) current = opts.onActivate()
+      return { bundleId: query, pid: 1 }
+    },
+    listApps: async () => []
   }
 }
 
@@ -95,6 +110,58 @@ describe('resolveTarget', () => {
     expect(err).toBeInstanceOf(TargetNotFound)
     expect(err.name).toBe('TargetNotFound')
     expect(err.message).toContain('zzz')
+  })
+})
+
+describe('resolveOrLaunch', () => {
+  const fast = { retries: 3, retryDelayMs: 0 }
+
+  it('returns an already-open window without calling activate', async () => {
+    const helper = makeHelper([chess])
+    const t = await resolveOrLaunch('chess', helper, { launch: true, ...fast })
+    expect(t.cgWindowId).toBe(1)
+    expect(helper.activated).toEqual([])
+  })
+
+  it('does not launch when launch is false — rethrows TargetNotFound', async () => {
+    const helper = makeHelper([])
+    await expect(
+      resolveOrLaunch('chess', helper, { launch: false, ...fast })
+    ).rejects.toThrow(TargetNotFound)
+    expect(helper.activated).toEqual([])
+  })
+
+  it('activates then resolves once the window appears', async () => {
+    const helper = makeHelper([], { onActivate: () => [chess] })
+    const t = await resolveOrLaunch('Chess', helper, { launch: true, ...fast })
+    expect(t.cgWindowId).toBe(1)
+    expect(helper.activated).toEqual(['Chess'])
+  })
+
+  it('activates, polls, resolves once the window appears a few retries later', async () => {
+    let polls = 0
+    const helper = makeHelper([], {
+      onActivate: () => []
+    })
+    // override listWindows to reveal the window on the 3rd call
+    helper.listWindows = async () => (++polls >= 3 ? [chess] : [])
+    const t = await resolveOrLaunch('Chess', helper, {
+      launch: true,
+      retries: 5,
+      retryDelayMs: 0
+    })
+    expect(t.cgWindowId).toBe(1)
+  })
+
+  it('fails with a clear message when the window never appears', async () => {
+    const helper = makeHelper([], { onActivate: () => [] })
+    const err = await resolveOrLaunch('Chess', helper, {
+      launch: true,
+      ...fast
+    }).catch((e) => e as Error)
+    expect(err).toBeInstanceOf(TargetNotFound)
+    expect(err.message).toMatch(/did not appear/)
+    expect(helper.activated).toEqual(['Chess'])
   })
 })
 

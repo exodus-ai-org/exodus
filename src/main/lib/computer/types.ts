@@ -4,6 +4,10 @@
 // `export` added so the rest of the module can import it. `HelperCommand` and
 // `InputHelper` (the `exodus-input` client contract) follow at the bottom.
 
+import type { InstalledApp } from '@shared/types/computer-use'
+
+export type { InstalledApp }
+
 export type MouseButton = 'left' | 'right' | 'middle'
 
 export type Action =
@@ -102,4 +106,11 @@ export interface InputHelper {
     commands: HelperCommand[],
     clamp?: [number, number, number, number]
   ): Promise<void>
+  /**
+   * Launch `query` (an app name or bundle id) if it isn't running, or raise it
+   * to the front if it is. Resolves to the running app's identity.
+   */
+  activate(query: string): Promise<{ bundleId: string; pid: number }>
+  /** Every installed application, for the Settings allowlist picker. */
+  listApps(): Promise<InstalledApp[]>
 }

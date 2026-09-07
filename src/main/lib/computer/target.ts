@@ -11,8 +11,8 @@ import type { InputHelper, TargetWindow } from './types'
 
 /** Thrown by `resolveTarget` when no open window matches the query. */
 export class TargetNotFound extends Error {
-  constructor(query: string) {
-    super(`No window found for "${query}"`)
+  constructor(query: string, message?: string) {
+    super(message ?? `No window found for "${query}"`)
     this.name = 'TargetNotFound'
   }
 }
@@ -52,6 +52,48 @@ export async function resolveTarget(
     return area(b) - area(a)
   })
   return candidates[0]
+}
+
+/**
+ * `resolveTarget`, but when nothing matches and `launch` is set, ask the helper
+ * to open (`activate`) the app, then poll for its window to appear.
+ *
+ * `launch` MUST only be true for an app the caller is authorised to drive — the
+ * session passes `true` only when `appQuery` exactly matches an allowlist entry.
+ * The window that eventually resolves is still re-checked against the allowlist
+ * by the session before any action runs.
+ */
+export async function resolveOrLaunch(
+  appQuery: string,
+  helper: InputHelper,
+  opts: { launch: boolean; retries?: number; retryDelayMs?: number }
+): Promise<TargetWindow> {
+  try {
+    return await resolveTarget(appQuery, helper)
+  } catch (err) {
+    if (!(err instanceof TargetNotFound) || !opts.launch) throw err
+  }
+
+  await helper.activate(appQuery)
+
+  const retries = opts.retries ?? 5
+  const delayMs = opts.retryDelayMs ?? 1000
+  for (let i = 0; i < retries; i++) {
+    await sleep(delayMs)
+    try {
+      return await resolveTarget(appQuery, helper)
+    } catch (err) {
+      if (!(err instanceof TargetNotFound)) throw err
+    }
+  }
+  throw new TargetNotFound(
+    appQuery,
+    `Opened "${appQuery}" but its window did not appear`
+  )
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 /**

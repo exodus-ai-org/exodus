@@ -539,6 +539,43 @@ describe('runComputerSession — allowlist', () => {
     expect(agent.seen).toHaveLength(1)
     expect(vi.mocked(screenshotWindow)).toHaveBeenCalled()
   })
+
+  it('launches an allowlisted app that is not open, then drives it', async () => {
+    mockHelper.__setWindows([])
+    mockHelper.__onActivate(() => mockHelper.__setWindows([chess]))
+
+    const res = await runComputerSession({
+      sessionId: 's-launch',
+      task: 't',
+      target: 'Chess',
+      allowlist: ['Chess'],
+      agent: new ScriptedAgent([
+        { kind: 'done', success: true, summary: 'ok' }
+      ]),
+      helper: mockHelper,
+      settleMs: 0
+    })
+
+    expect(res.outcome).toBe('success')
+    expect(mockHelper.activated).toEqual(['Chess'])
+  })
+
+  it('does not launch a target that is not an exact allowlist entry', async () => {
+    mockHelper.__setWindows([])
+
+    const res = await runComputerSession({
+      sessionId: 's-nolaunch',
+      task: 't',
+      target: 'Chess',
+      allowlist: ['Safari'],
+      agent: looping({ kind: 'wait', ms: 1 }),
+      helper: mockHelper,
+      settleMs: 0
+    })
+
+    expect(res.outcome).toBe('failed')
+    expect(mockHelper.activated).toEqual([])
+  })
 })
 
 describe('runComputerSession — updates', () => {

@@ -15,10 +15,12 @@ test.describe('Settings — Computer Use', () => {
       mainWindow.getByTestId(TEST_IDS.computerUse.enableToggle)
     ).toBeVisible()
 
-    await mainWindow
-      .getByTestId(TEST_IDS.computerUse.allowlistInput)
-      .fill('Chess')
-    await mainWindow.getByTestId(TEST_IDS.computerUse.addTargetButton).click()
+    // The allowlist is a combobox of installed apps — type to filter, then
+    // pick "Chess" from the dropdown (it's a stock macOS app, always present).
+    const input = mainWindow.getByTestId(TEST_IDS.computerUse.allowlistInput)
+    await input.click()
+    await input.fill('Chess')
+    await mainWindow.getByRole('option', { name: 'Chess' }).first().click()
 
     await expect(mainWindow.getByText('Chess')).toBeVisible()
   })

@@ -171,12 +171,22 @@ async function resolveTarget(appQuery: string): Promise<TargetWindow>
 // exodus-input list-windows → pick the frontmost window whose app or
 // bundleId case-insensitively matches appQuery. Throws TargetNotFound.
 
+async function resolveOrLaunch(
+  appQuery, helper, { launch, retries?, retryDelayMs? }
+): Promise<TargetWindow>
+// resolveTarget, but on TargetNotFound when `launch` is set: exodus-input
+// activate --app appQuery (NSWorkspace.openApplication — launch if off, raise
+// if backgrounded), then poll resolveTarget. The session passes launch:true
+// only when appQuery is an exact allowlist entry.
+
 async function refreshBounds(t: TargetWindow): Promise<TargetWindow>
 // re-read bounds by cgWindowId each step; throws WindowGone if it vanished.
 ```
 
 The outer tool checks `appQuery` against `settings.computerUse.targetAllowlist`
-_before_ calling `resolveTarget`.
+_before_ calling the session; the session then re-checks the _resolved_
+window's app / bundleId against the allowlist before any action runs (a
+substring `resolveTarget` match or a launch can't reach a non-allowlisted app).
 
 ### 2.3 `capture.ts`
 
@@ -372,12 +382,13 @@ type.
 
 ### 4.4 Preconditions the operator must uphold
 
-- **The target window is unoccluded and on the current Space.** V0 does
-  not raise or focus the target before acting — `exodus-input` posts
-  `CGEvent`s at screen points, so another window covering the target's
-  rectangle receives the clicks. Keep the target visible and frontmost
-  for the session. (Phase 2: `exodus-input activate --pid` at session
-  start.)
+- **The target window is unoccluded and on the current Space.** The
+  session opens / raises the target app once at start (`resolveOrLaunch`
+  → `exodus-input activate`), but does not re-focus it per step —
+  `exodus-input` posts `CGEvent`s at screen points, so another window
+  that moves in front of the target's rectangle mid-session receives the
+  clicks. Keep the target visible for the session. (Phase 2: per-step
+  re-activation.)
 - **Keyboard containment is partial.** `--clamp` restrains only mouse
   `move`. `Guard.check` blocks the app-switch / quit chords
   (`cmd+tab`, `cmd+shift+tab`, `cmd+q`, `cmd+space`, `` cmd+` ``); other
@@ -421,9 +432,17 @@ export const ComputerUseSchema = z.object({
 
 `src/renderer/components/settings/settings-form/computer-use.tsx` +
 `SettingsLabel.ComputerUse` in the Personal/Tools group. An explanatory
-`Alert` (matching Full Text Search / KB / Discover), the enable toggle,
-an allowlist editor (add/remove app names, `TEST_IDS.computerUse.allowlistInput`),
-`maxSteps` / `settleMs` number inputs. `TEST_IDS.computerUse.enableToggle`.
+`Alert` (matching Full Text Search / KB / Discover), the enable toggle
+(`TEST_IDS.computerUse.enableToggle`), the allowlist editor, and the
+`maxSteps` / `settleMs` number inputs.
+
+The allowlist editor is a multi-select `Combobox` of the machine's
+installed apps (`GET /api/computer-use/apps` → `useInstalledApps` →
+`exodus-input list-apps`, server-cached 60 s), each row with its icon.
+Selected apps show as removable chips. `targetAllowlist` stays
+`string[]` — the stored value is each app's display name, which is what
+`resolveTarget` / the allowlist re-check already match on. Input:
+`TEST_IDS.computerUse.allowlistInput` on the chips input.
 
 ### 5.3 Chat surface
 
@@ -442,11 +461,13 @@ thumbnail optional.
 `helper-src/exodus-input/` — a ~200-line Swift CLI, built to a universal
 binary at `resources/bin/exodus-input`.
 
-| Subcommand                 | I/O                                                                                                                                                                                 |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `list-windows`             | → JSON `[{id, app, bundleId, title, bounds:[x,y,w,h]}]` (via `CGWindowListCopyWindowInfo`, on-screen, layer 0)                                                                      |
-| `screenshot --window <id>` | → PNG on stdout (`CGWindowListCreateImage` / `SCScreenshotManager`)                                                                                                                 |
-| `input [--clamp x,y,w,h]`  | reads newline-delimited JSON commands on stdin; posts `CGEvent`s (`CGEvent(mouseEventSource:…)`, `CGEvent(keyboardEventSource:…)`, `.scrollWheel`); clamps mouse points to the rect |
+| Subcommand                        | I/O                                                                                                                                                                                 |
+| --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `list-windows`                    | → JSON `[{id, app, bundleId, title, bounds:[x,y,w,h]}]` (via `CGWindowListCopyWindowInfo`, on-screen, layer 0)                                                                      |
+| `list-apps`                       | → JSON `[{name, bundleId, path, icon?}]` — scan `/Applications`, `/System/Applications` (+ `Utilities`), `~/Applications`; `icon` is a 40 px PNG data URI. No TCC permission.       |
+| `screenshot --window <id>`        | → PNG on stdout (`CGWindowListCreateImage` / `SCScreenshotManager`)                                                                                                                 |
+| `activate --app <name-or-bundle>` | → JSON `{bundleId, pid}` — `NSWorkspace.openApplication` (launch if off, raise if backgrounded). No TCC permission.                                                                 |
+| `input [--clamp x,y,w,h]`         | reads newline-delimited JSON commands on stdin; posts `CGEvent`s (`CGEvent(mouseEventSource:…)`, `CGEvent(keyboardEventSource:…)`, `.scrollWheel`); clamps mouse points to the rect |
 
 Triggers the macOS TCC prompts (Screen Recording for `screenshot`,
 Accessibility for `input`) on first use. No runtime deps, no `brew`.
@@ -549,21 +570,22 @@ hand once after the branch lands.
    Security, then restart the app.
 3. Wipe the DB for the new migration tag: quit Exodus,
    `rm -rf ~/.exodus/database`, relaunch.
-4. Settings → Computer Use → enable; add `Chess` to the allowlist.
+4. Settings → Computer Use → enable; the allowlist is a picker of
+   installed apps — add **Chess** (icon should show).
 
 **Smoke test — run on a Retina (2×) display _and_ a 1× display if one is
 available** (the coordinate mapping is scale-dependent; the original bug
 only showed on 2×).
 
-1. Open Chess.app, start a new game.
-2. In chat (vision-capable model, Computer Use enabled): ask it to play a
-   few opening moves in the Chess app.
-3. Watch the panel: the step counter advances, thumbnails update, and
+1. With **Chess not running**, in chat (vision-capable model, Computer
+   Use enabled): ask it to play a few opening moves in the Chess app.
+   The session should open Chess itself, then proceed.
+2. Watch the panel: the step counter advances, thumbnails update, and
    each click lands on the intended square (a scale bug puts every click
    ~2× off-origin).
-4. Kill switch: press `⌥⇧⎋` mid-session → `outcome: aborted` within ~1
+3. Kill switch: press `⌥⇧⎋` mid-session → `outcome: aborted` within ~1
    step. Repeat with the in-chat **Stop** button.
-5. `askHuman`: give it a task needing input (e.g. a login) → the panel
+4. `askHuman`: give it a task needing input (e.g. a login) → the panel
    shows the question + a reply box; answering resumes the session.
-6. Forbidden chord: confirm a task that would benefit from `cmd+tab` is
+5. Forbidden chord: confirm a task that would benefit from `cmd+tab` is
    skipped with a note rather than switching apps.

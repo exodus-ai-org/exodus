@@ -1,37 +1,56 @@
 import { TEST_IDS } from '@shared/constants/test-ids'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
-import { AlertCircleIcon, XIcon } from 'lucide-react'
-import { useState } from 'react'
+import type { InstalledApp } from '@shared/types/computer-use'
+import { AlertCircleIcon } from 'lucide-react'
 import { Controller } from 'react-hook-form'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Button } from '@/components/ui/button'
+import {
+  Combobox,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxItem,
+  ComboboxList,
+  useComboboxAnchor
+} from '@/components/ui/combobox'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
+import { useInstalledApps } from '@/hooks/use-installed-apps'
 
 import { SettingsRow, SettingsSection } from '../settings-row'
 
+function AppIcon({
+  app,
+  className
+}: {
+  app: InstalledApp
+  className?: string
+}) {
+  if (!app.icon) return null
+  return <img src={app.icon} alt="" className={className} />
+}
+
 export function ComputerUse({ form }: { form: UseFormReturnType }) {
-  const [draft, setDraft] = useState('')
-  const allowlist = form.watch('computerUse.targetAllowlist') ?? []
+  const allowlist: string[] = form.watch('computerUse.targetAllowlist') ?? []
+  const { apps, isLoading } = useInstalledApps(true)
 
-  const addTarget = () => {
-    const trimmed = draft.trim()
-    if (trimmed && !allowlist.includes(trimmed)) {
-      form.setValue('computerUse.targetAllowlist', [...allowlist, trimmed], {
-        shouldDirty: true
-      })
-    }
-    setDraft('')
-  }
-
-  const removeTarget = (name: string) => {
-    form.setValue(
-      'computerUse.targetAllowlist',
-      allowlist.filter((x) => x !== name),
-      { shouldDirty: true }
-    )
-  }
+  // The dropdown options are the installed apps, plus a stand-in for any
+  // allowlisted name that isn't installed (renamed / removed since it was added).
+  const byName = new Map(apps.map((a) => [a.name, a]))
+  const options: InstalledApp[] = [
+    ...apps,
+    ...allowlist
+      .filter((name) => !byName.has(name))
+      .map((name) => ({ name, bundleId: '', path: '' }))
+  ]
+  const selected = allowlist.flatMap((name) => {
+    const found = options.find((a) => a.name === name)
+    return found ? [found] : []
+  })
+  const chipsAnchor = useComboboxAnchor()
 
   return (
     <>
@@ -40,9 +59,10 @@ export function ComputerUse({ form }: { form: UseFormReturnType }) {
         <AlertDescription className="inline">
           Computer Use lets the AI operate one window on your Mac with a virtual
           mouse and keyboard — it sees a screenshot each step and acts like a
-          person. It needs a vision-capable AI model. It only touches windows
-          you add to the allowlist below, you can stop it any time with ⌥⇧⎋, and
-          every session is logged. Off by default.
+          person. It needs a vision-capable AI model. It only touches apps you
+          add to the allowlist below (and will open one that isn&apos;t already
+          running), you can stop it any time with ⌥⇧⎋, and every session is
+          logged. Off by default.
         </AlertDescription>
       </Alert>
 
@@ -65,52 +85,51 @@ export function ComputerUse({ form }: { form: UseFormReturnType }) {
         </SettingsRow>
 
         <SettingsRow
-          label="Allowlisted windows"
-          description="Computer Use only touches windows whose app name or bundle id matches an entry here (exact, case-insensitive)."
+          label="Allowlisted apps"
+          description="Computer Use only touches these apps. Pick from the ones installed on this Mac."
           layout="vertical"
         >
-          {allowlist.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {allowlist.map((name) => (
-                <span
-                  key={name}
-                  className="border-border bg-muted/50 flex items-center gap-1 rounded-md border px-2 py-1 text-xs"
-                >
-                  {name}
-                  <button
-                    type="button"
-                    className="text-muted-foreground hover:text-foreground"
-                    aria-label={`Remove ${name}`}
-                    onClick={() => removeTarget(name)}
-                  >
-                    <XIcon className="h-3 w-3" />
-                  </button>
-                </span>
+          <Combobox
+            multiple
+            value={selected}
+            onValueChange={(items: InstalledApp[]) =>
+              form.setValue(
+                'computerUse.targetAllowlist',
+                items.map((i) => i.name),
+                { shouldDirty: true }
+              )
+            }
+            items={options}
+            itemToStringValue={(item: InstalledApp) => item.name}
+          >
+            <ComboboxChips ref={chipsAnchor}>
+              {selected.map((app) => (
+                <ComboboxChip key={app.bundleId || app.name} className="gap-1">
+                  <AppIcon app={app} className="size-3.5 rounded-[3px]" />
+                  {app.name}
+                </ComboboxChip>
               ))}
-            </div>
-          )}
-          <div className="flex gap-2">
-            <Input
-              placeholder="App name or bundle id"
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  addTarget()
+              <ComboboxChipsInput
+                placeholder={
+                  selected.length === 0 ? 'Search installed apps…' : ''
                 }
-              }}
-              data-testid={TEST_IDS.computerUse.allowlistInput}
-            />
-            <Button
-              type="button"
-              variant="outline"
-              onClick={addTarget}
-              data-testid={TEST_IDS.computerUse.addTargetButton}
-            >
-              Add
-            </Button>
-          </div>
+                data-testid={TEST_IDS.computerUse.allowlistInput}
+              />
+            </ComboboxChips>
+            <ComboboxContent anchor={chipsAnchor}>
+              <ComboboxEmpty>
+                {isLoading ? 'Loading apps…' : 'No app found.'}
+              </ComboboxEmpty>
+              <ComboboxList>
+                {(app: InstalledApp) => (
+                  <ComboboxItem key={app.bundleId || app.name} value={app}>
+                    <AppIcon app={app} className="size-4 rounded-[4px]" />
+                    <span className="truncate">{app.name}</span>
+                  </ComboboxItem>
+                )}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
         </SettingsRow>
 
         <Controller

@@ -544,11 +544,13 @@ Main process:
   Settings → Logger tab. See
   `docs/superpowers/specs/2026-09-06-standardized-logging-design.md`
 - `src/main/lib/computer/` — window-scoped screenshot-loop Computer Use V0: the
-  `exodus-input` Swift helper (list-windows / screenshot / CGEvent input),
-  `capture`/`target`/`hands`/`guard`, `runComputerSession` (the perceive→act
-  loop), `liveness` (the ⌥⇧⎋ kill switch); the inner-loop agent is
+  `exodus-input` Swift helper (list-windows / list-apps / screenshot / activate /
+  CGEvent input), `capture`/`target`/`hands`/`guard`, `runComputerSession` (the
+  perceive→act loop), `liveness` (the ⌥⇧⎋ kill switch); `target.resolveOrLaunch`
+  opens an allowlisted app that isn't running. The inner-loop agent is
   `src/main/lib/ai/computer-use/`. Bound as the `computerUse` calling-tool,
-  gated on `settings.computerUse.enabled`. See
+  gated on `settings.computerUse.enabled`. `GET /api/computer-use/apps` feeds the
+  Settings allowlist picker. See
   `docs/superpowers/specs/2026-09-06-computer-use-v0-design.md`
 - `src/main/lib/ipc.ts` — main-process IPC handlers
 - `src/main/lib/paths.ts` — `~/.exodus` path helpers
