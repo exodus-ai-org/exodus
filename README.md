@@ -6,68 +6,91 @@
 [![CodeQL](https://github.com/HyperChatBot/exodus/actions/workflows/github-code-scanning/codeql/badge.svg?branch=master)](https://github.com/HyperChatBot/exodus/actions/workflows/github-code-scanning/codeql)
 [![Release](https://github.com/exodus-ai-org/exodus/actions/workflows/release.yml/badge.svg)](https://github.com/exodus-ai-org/exodus/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Code Style](https://img.shields.io/badge/Code%20Style-prettier-blue)](https://prettier.io/)
+[![Code Style](https://img.shields.io/badge/Code%20Style-oxfmt-blue)](https://oxc.rs/)
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/HyperChatBot/exodus/pulls)
-[![Node](https://img.shields.io/badge/Node.js-%3E%3D20.18.0-brightgreen.svg)](https://nodejs.org/en/)
+[![Node](https://img.shields.io/badge/Node.js-%3E%3D22-brightgreen.svg)](https://nodejs.org/en/)
 [![Chat](https://img.shields.io/badge/Chat-Discord-blue?style=flat&logo=discord)](https://twitter/YanceyOfficial)
 
 ## Introduction
 
-Exodus is a high-performance, cross-platform AI chat application for desktop that is compatible with a variety of model providers.
+Exodus is a high-performance, cross-platform AI chat application for desktop that is compatible with a variety of model providers. It runs a full local backend — an embedded Postgres database (PGlite + pgvector), a Hono HTTP server, and a durable job queue — so features like retrieval, memory consolidation, and multi-agent runs happen on your machine.
 
 ## LLM Providers
 
 > [!NOTE]
-> Exodus updates its model provider list as the providers are updated. The following table lists the currently supported chat and reasoning models.
+> Exodus tracks provider model lists as they change; the table below reflects the current defaults. Any provider's model list can also be extended in settings.
 
-| Provider         | Chat Models                                                                 | Reasoning Models                        |
-| ---------------- | --------------------------------------------------------------------------- | --------------------------------------- |
-| OpenAI GPT       | gpt-4.1, gpt-4.1-mini, gpt-4.1-nano, gpt-4o, gpt-4o-mini, chatgpt-4o-latest | o4-mini, o3-mini, o3, o1, o1-pro        |
-| Azure OpenAI     | gpt-4.1, gpt-4.1-mini, gpt-4.1-nano, gpt-4o, gpt-4o-mini, chatgpt-4o-latest | o4-mini, o3-mini, o3, o1, o1-pro        |
-| Google Gemini    | gemini-2.5-flash-preview-05-20                                              | gemini-2.5-pro-preview-05-06            |
-| Xai Grok         | grok-3-beta, grok-3-fast-beta                                               | grok-3-mini-beta, grok-3-mini-fast-beta |
-| Anthropic Claude | claude-3-5-haiku-latest, claude-3-5-sonnet-latest                           | claude-3-7-sonnet-latest                |
-| Ollama           | Based on your own Ollama service                                            | Based on your own Ollama service        |
+| Provider         | Chat Models                                                                   | Reasoning Models                   |
+| ---------------- | ----------------------------------------------------------------------------- | ---------------------------------- |
+| OpenAI GPT       | gpt-5.5, gpt-5.5-pro, gpt-5.4, gpt-5.4-pro/mini/nano                          | gpt-5.5-pro, gpt-5.5, gpt-5.4-pro  |
+| Azure OpenAI     | gpt-5.5, gpt-5.5-pro, gpt-5.4, gpt-5.4-pro/mini/nano                          | gpt-5.5-pro, gpt-5.5, gpt-5.4-pro  |
+| Google Gemini    | gemini-3.1-pro, gemini-3-flash, gemini-3.1-flash-lite, gemini-2.5-flash/-lite | gemini-3.1-pro, gemini-2.5-pro     |
+| xAI Grok         | grok-4.3, grok-4.1-fast, grok-4, grok-code-fast-1                             | grok-4.3, grok-4                   |
+| Anthropic Claude | claude-opus-4-8, claude-opus-4-7, claude-sonnet-4-6, claude-haiku-4-5         | claude-opus-4-8, claude-sonnet-4-6 |
+| Ollama           | Based on your own Ollama service                                              | Based on your own Ollama service   |
 
 ## Core Features
 
 ### Daily Chat
 
-Exodus offers a seamless chat experience, allowing users to engage in natural conversations with the AI. The chat interface is intuitive and user-friendly, making it easy to ask questions and receive informative responses.
+A natural, multi-turn chat experience across every supported provider, with multi-step tool use, streaming responses, and Artifacts (a live side panel for generated code, documents, and web pages).
 
 ### Deep Research
 
-This system analyzes the user’s query and research parameters (breadth and depth) and generates follow-up questions to refine the research intent. It then conducts a deep research process by issuing multiple search queries, extracting key insights, and identifying new research directions. If deeper exploration is required, it recursively continues based on previous findings while maintaining context. Finally, it compiles all results into a structured, source-cited Markdown report that presents the information clearly and comprehensively.
+Analyzes your query and research parameters (breadth and depth), generates follow-up questions to refine intent, then runs a recursive search process — issuing multiple queries, extracting insights, and identifying new directions while keeping context. It compiles everything into a structured, source-cited Markdown report.
+
+### Knowledge Base (RAG)
+
+An optional retrieval layer backed by a self-hosted [LightRAG](https://github.com/HKUDS/LightRAG) server (Exodus is a client only — see `docs/lightrag-setup.md`). Documents you add in settings are indexed into LightRAG; retrieval is context-only, and Exodus's own model writes the answer.
+
+### Philharmonic — multi-agent Groups
+
+Teams of agents that collaborate on a task. Each Group runs in an isolated workspace, has per-agent memory and tools, and supports scheduled (recurring or one-off) runs managed from the dashboard.
+
+### Memory & Personalization
+
+A durable, topic-consolidated memory of you. After each turn a single model call reconciles the conversation against the existing memory index; pre-turn, relevant entries are selected and rendered into the system prompt.
+
+### Computer Use (macOS)
+
+The AI operates a single application window with a virtual mouse and keyboard — it sees a screenshot each step and acts like a person (move, click, drag, scroll, type, key chords). Window-scoped and gated by an allowlist of apps you choose; it opens an allowlisted app that isn't running, and you can stop it any time with `⌥⇧⎋`. Every session is fully traced. Requires macOS Screen Recording + Accessibility permissions.
+
+### App Lock
+
+A local PIN lock that gates the whole app and every API call. The encrypted secret uses scrypt + Electron `safeStorage`; unlock happens only on the lock screen, never over HTTP.
+
+### Lossless Context Management
+
+Compacts long conversations without losing information — the agent gets summaries it can expand or grep on demand, so nothing is silently dropped.
+
+### Home Discover
+
+An optional home-screen feed of topics drawn from your memory, refreshed from [Brave News](https://brave.com/search/api/). Off by default; renders nothing until you opt in.
 
 ### Built-in Calling Tools
 
-#### Web Search
-
-Exodus supports built-in web search using [Serper](https://serper.dev/) to retrieve Google Search results. To use this feature, you must first register for a Serper API key and add it in the settings.
-
-#### Weather
-
-Exodus supports built-in weather search using [Serper](https://serper.dev/) to retrieve weather information. To use this feature, you must first register for a Serper API key and add it in the settings.
-
-#### Google Maps Routing
-
-Exodus supports built-in Google Maps routing using [Serper](https://serper.dev/) to retrieve directions and location information. To use this feature, you must first register for a Serper API key and add it in the settings.
-
-#### Google Maps Place
-
-Exodus supports built-in Google Maps Place using [Serper](https://serper.dev/) to retrieve place information. To use this feature, you must first register for a Serper API key and add it in the settings.
-
-#### Image Generation
-
-The image generation service only supports OpenAI. Please make sure you have configured the OpenAI API settings correctly before using this feature.
+| Tool                                                | Notes                                                                        |
+| --------------------------------------------------- | ---------------------------------------------------------------------------- |
+| Web Search / Weather / Google Maps routing & places | via [Serper](https://serper.dev/) — needs a Serper API key in settings       |
+| Web Fetch                                           | fetch and read a URL as clean text                                           |
+| Knowledge Base search                               | queries the LightRAG index (see above)                                       |
+| File tools                                          | read / write / edit / grep / find / list-directory within a scoped workspace |
+| Terminal                                            | run a shell command                                                          |
+| Computer Use                                        | drive an allowlisted macOS app window (see above)                            |
+| Image Generation                                    | OpenAI only                                                                  |
+| Create Artifact                                     | render code / a document / a web page into the side panel                    |
 
 ### Audio and Speech
 
-The text-to-speech and speech-to-text services only support OpenAI. Please make sure you have configured the OpenAI API settings correctly before using these features.
+Text-to-speech and speech-to-text (OpenAI only). Configure the OpenAI API settings before using these.
 
 ### MCP
 
-- **Cross-Platform**: Exodus is built using Electron, ensuring a consistent experience across macOS, Windows, and Linux.
+Model Context Protocol servers can be configured in settings to expose external tools to the agent (automatic startup connection is currently archived).
+
+### Cross-Platform
+
+Built on Electron for a consistent experience across macOS, Windows, and Linux. Computer Use is macOS-only.
 
 ## Getting Started with Exodus
 
@@ -79,7 +102,7 @@ We always keep the developer tools (e.g., <kbd>Command</kbd> + <kbd>Option</kbd>
 
 Since Exodus is not available on the App Store, you may encounter the following issue when you open it for the first time. Please follow the steps below to resolve it:
 
-![cant-be-open-in-macos](./screenshots/cant-be-open-in-macos.png)
+![cant-be-open-in-macos](./screenshots/cannot-be-open-in-macos.png)
 
 1. Move `Exodus.app` to the `/Applications` directory.
 2. Open your terminal app and execute the command `chmod +x /Applications/Exodus.app/Contents/MacOS/Exodus`.
@@ -95,9 +118,10 @@ We have chosen [Electron](https://www.electronjs.org/) as our cross-platform fra
 | Command              | Description                                        |
 | -------------------- | -------------------------------------------------- |
 | `pnpm dev`           | Start development server with hot reload           |
-| `pnpm build:mac`     | Build for macOS                                    |
+| `pnpm build:mac`     | Build for macOS (also builds the Swift helper)     |
 | `pnpm build:linux`   | Build for Linux                                    |
 | `pnpm build:win`     | Build for Windows                                  |
+| `pnpm build:helper`  | Build the `exodus-input` helper for Computer Use   |
 | `pnpm test`          | Run unit tests (Vitest)                            |
 | `pnpm test:watch`    | Run tests in watch mode                            |
 | `pnpm test:coverage` | Run tests with coverage report                     |
