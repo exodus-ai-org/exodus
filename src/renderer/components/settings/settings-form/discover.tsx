@@ -1,20 +1,19 @@
 import { TEST_IDS } from '@shared/constants/test-ids'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
-import { useSetAtom } from 'jotai'
 import { AlertCircleIcon } from 'lucide-react'
 import { Controller } from 'react-hook-form'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
-import { settingsLabelAtom } from '@/stores/settings'
+import { useSettingsTab } from '@/hooks/use-settings-tab'
 
 import { SettingsLabel } from '../settings-menu'
 import { SettingsRow, SettingsSection } from '../settings-row'
 
 export function Discover({ form }: { form: UseFormReturnType }) {
   const hasBraveKey = !!form.watch('webSearch.braveApiKey')
-  const setActiveSection = useSetAtom(settingsLabelAtom)
+  const [, setActiveSection] = useSettingsTab()
 
   return (
     <>

@@ -1,4 +1,3 @@
-import { useAtom } from 'jotai'
 import { ArrowLeftIcon, Search } from 'lucide-react'
 import { ComponentProps, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router'
@@ -15,14 +14,14 @@ import {
   SidebarMenuItem
 } from '@/components/ui/sidebar'
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
+import { useSettingsTab } from '@/hooks/use-settings-tab'
 import { cn } from '@/lib/utils'
-import { settingsLabelAtom } from '@/stores/settings'
 
 import { InputGroup, InputGroupInput, InputGroupAddon } from '../ui/input-group'
 import { menus } from './settings-menu'
 
 export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
-  const [active, setActive] = useAtom(settingsLabelAtom)
+  const [active, setActive] = useSettingsTab()
   const [query, setQuery] = useState('')
   const navigate = useNavigate()
   const isFullscreen = useIsFullscreen()

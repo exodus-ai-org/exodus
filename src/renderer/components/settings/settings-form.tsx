@@ -1,11 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { SettingsSchema } from '@shared/schemas/settings-schema'
-import { useAtomValue } from 'jotai'
 import { useForm } from 'react-hook-form'
 
 import { useSettings } from '@/hooks/use-settings'
 import { useSettingsAutosave } from '@/hooks/use-settings-autosave'
-import { settingsLabelAtom } from '@/stores/settings'
+import { useSettingsTab } from '@/hooks/use-settings-tab'
 
 import { ComputerUse } from './settings-form/computer-use'
 import { DataControls } from './settings-form/data-controls'
@@ -30,7 +29,7 @@ import { SettingsLabel } from './settings-menu'
 
 export function SettingsForm() {
   const { data: settings } = useSettings()
-  const activeTitle = useAtomValue(settingsLabelAtom)
+  const [activeTitle] = useSettingsTab()
 
   const form = useForm({
     resolver: zodResolver(SettingsSchema),
