@@ -59,22 +59,31 @@ async function consumeStream(stream: ActiveStream, response: Response) {
   const decoder = new TextDecoder()
   let buffer = ''
 
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
 
-    buffer += decoder.decode(value, { stream: true })
-    const lines = buffer.split('\n')
-    buffer = lines.pop() ?? ''
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() ?? ''
 
-    for (const line of lines) {
-      if (!line.startsWith('data: ')) continue
-      const jsonStr = line.slice(6).trim()
-      if (!jsonStr) continue
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue
+        const jsonStr = line.slice(6).trim()
+        if (!jsonStr) continue
 
-      try {
-        const event = JSON.parse(jsonStr) as ChatSseEvent
+        let event: ChatSseEvent
+        try {
+          event = JSON.parse(jsonStr) as ChatSseEvent
+        } catch {
+          // Skip malformed SSE frames
+          continue
+        }
 
+        // Event handling lives outside the parse try/catch: an `error` frame
+        // must propagate to `startStream`'s catch (→ toast / onError), not be
+        // mistaken for a malformed frame and swallowed.
         if (event.type === 'message_update') {
           const updatedMsg = event.message
           const idx = stream.messages.findIndex((m) => m.id === updatedMsg.id)
@@ -99,10 +108,12 @@ async function consumeStream(stream: ActiveStream, response: Response) {
         } else if (event.type === 'error') {
           throw new Error(event.error)
         }
-      } catch {
-        // Skip malformed SSE frames
       }
     }
+  } finally {
+    // Release the connection whether we finished cleanly or bailed out on an
+    // `error` frame.
+    reader.cancel().catch(() => {})
   }
 }
 
