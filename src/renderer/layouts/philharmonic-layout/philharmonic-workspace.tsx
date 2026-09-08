@@ -40,7 +40,7 @@ export function PhilharmonicWorkspace({
   }, [open])
 
   return (
-    <div className="w-full overflow-x-hidden">
+    <div className="h-full w-full overflow-hidden">
       <ResizablePanelGroup orientation="horizontal">
         <ResizablePanel
           id="ph-sidebar"

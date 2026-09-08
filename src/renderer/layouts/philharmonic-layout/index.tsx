@@ -9,7 +9,7 @@ export type PhilharmonicPage = 'chat' | 'workforce' | 'dashboard'
 export function PhilharmonicLayout() {
   const [activePage, setActivePage] = useState<PhilharmonicPage>('chat')
   return (
-    <SidebarProvider>
+    <SidebarProvider className="h-screen overflow-hidden">
       <PhilharmonicContainer
         activePage={activePage}
         onNavigate={setActivePage}

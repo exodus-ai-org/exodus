@@ -85,7 +85,7 @@ function ChatWorkspace() {
   }, [open])
 
   return (
-    <div className="w-full overflow-x-hidden">
+    <div className="h-full w-full overflow-hidden">
       <ResizablePanelGroup orientation="horizontal">
         <ResizablePanel
           id="chat-sidebar"
@@ -136,7 +136,7 @@ export function Layout() {
   useKeyboardShortcuts()
 
   return (
-    <SidebarProvider>
+    <SidebarProvider className="h-screen overflow-hidden">
       <ChatWorkspace />
       <DeepResearchProcess />
       <SourcesPanel />

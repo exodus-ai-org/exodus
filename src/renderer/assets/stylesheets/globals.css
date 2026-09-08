@@ -119,6 +119,14 @@
   * {
     @apply border-border outline-ring/50 font-light;
   }
+  /* Pin the app shell to the viewport so route layouts can rely on `h-full`
+     cascading down — without this a tall page (a long chat) grows the
+     document and the whole window scrolls instead of just the message list. */
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
   body {
     @apply text-foreground bg-transparent;
   }
