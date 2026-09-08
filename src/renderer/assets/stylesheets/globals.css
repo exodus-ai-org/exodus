@@ -264,14 +264,19 @@
     font-weight: 500;
   }
 
-  /* Code blocks — bordered wrapper; SyntaxHighlighter supplies the bg */
+  /* Code blocks — bordered wrapper; SyntaxHighlighter supplies the bg.
+     Scroll long lines / tall dumps instead of clipping them or letting the
+     block blow out the message column (e.g. a pasted draw.io / mermaid
+     source with very long node labels). */
   .markdown :where(pre) {
     background: transparent;
     padding: 0;
     color: inherit;
     border: 1px solid var(--border);
     border-radius: 0.5rem;
-    overflow: hidden;
+    max-width: 100%;
+    max-height: 32rem;
+    overflow: auto;
     margin: 0.75em 0;
   }
 

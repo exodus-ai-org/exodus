@@ -1,6 +1,6 @@
 import { QUICK_CHAT_KEY } from '@shared/constants/misc'
 import { BASE_URL } from '@shared/constants/systems'
-import { Attachment, ChatMessage } from '@shared/types/chat'
+import { ChatMessage } from '@shared/types/chat'
 import type { Project } from '@shared/types/db'
 import { useSetAtom } from 'jotai'
 import { useAtomCallback } from 'jotai/utils'
@@ -74,7 +74,6 @@ export function Chat({
   const setChatStatus = useSetAtom(chatStatusAtom)
   const setChatStop = useSetAtom(chatStopFnAtom)
 
-  const [attachments, setAttachments] = useState<Attachment[]>([])
   const [title, setTitle] = useState(chatTitle)
 
   const {
@@ -158,8 +157,6 @@ export function Chat({
       <LcmStatusCard chatId={id} />
       <MultimodalInput
         chatId={id}
-        attachments={attachments}
-        setAttachments={setAttachments}
         messages={messages}
         setMessages={setMessages}
         sendMessage={sendMessage}

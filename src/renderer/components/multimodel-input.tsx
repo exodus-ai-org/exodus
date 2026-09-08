@@ -1,12 +1,10 @@
-import type { Attachment, ChatMessage, Usage } from '@shared/types/chat'
+import type { ChatMessage, Usage } from '@shared/types/chat'
 import { useAtom, useAtomValue } from 'jotai'
 import { ArrowUpIcon, CircleStopIcon } from 'lucide-react'
 import {
   ChangeEvent,
   ClipboardEvent,
-  Dispatch,
   memo,
-  SetStateAction,
   useCallback,
   useEffect,
   useRef
@@ -17,6 +15,7 @@ import { sileo } from 'sileo'
 import { UseChatHelpers } from '@/hooks/use-chat'
 import { useUpload } from '@/hooks/use-upload'
 import { cn } from '@/lib/utils'
+import { attachmentAtom } from '@/stores/chat'
 import { chatInputAtom, chatStatusAtom, chatStopFnAtom } from '@/stores/input'
 
 import { AudioRecorder } from './audio-recoder'
@@ -27,22 +26,24 @@ import { Textarea } from './ui/textarea'
 
 function InputBox({
   chatId,
-  attachments,
-  setAttachments,
   // messages,
   // setMessages,
   sendMessage,
   lastUsage
 }: {
   chatId: string
-  attachments: Attachment[]
-  setAttachments: Dispatch<SetStateAction<Attachment[]>>
   messages: ChatMessage[]
   setMessages: UseChatHelpers['setMessages']
   sendMessage: UseChatHelpers['sendMessage']
   lastUsage?: Usage | null
 }) {
   const [input, setInput] = useAtom(chatInputAtom)
+  // Staged attachments live in `attachmentAtom` — the single source of truth
+  // shared with `<FilePreview>` and `useUpload`. (This component used to take
+  // its own `attachments` prop from `<Chat>`, which was never wired to the
+  // atom: picked images showed in the preview but weren't sent and weren't
+  // cleared on submit.)
+  const [attachments, setAttachments] = useAtom(attachmentAtom)
   const status = useAtomValue(chatStatusAtom)
   const stop = useAtomValue(chatStopFnAtom)
   const { id } = useParams()
@@ -90,10 +91,10 @@ function InputBox({
 
     sendMessage({
       text: input,
-      attachments
+      attachments: attachments ?? []
     })
 
-    setAttachments([])
+    setAttachments(undefined)
     setInput('')
     // Inline reset so we don't add a recreated-each-render function to deps.
     if (textareaRef.current) {

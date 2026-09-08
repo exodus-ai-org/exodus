@@ -221,7 +221,12 @@ const rehypePluginsStable: any[] = [rehypeKatex]
 const codeBlockStyle = {
   padding: '0.75rem',
   fontSize: '0.8125rem',
-  lineHeight: '1.5'
+  lineHeight: '1.5',
+  margin: 0,
+  // The outer `.markdown pre` already scrolls/caps height; keep this inner
+  // element from establishing its own competing scroll or clipping.
+  maxHeight: 'none',
+  overflow: 'visible'
 }
 
 export function Markdown({
