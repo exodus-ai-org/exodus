@@ -285,18 +285,7 @@ export function PlaceDetail({
                 className="border-border rounded-lg border p-2.5"
               >
                 <div className="mb-1 flex items-center gap-2">
-                  {r.authorPhotoUrl ? (
-                    <img
-                      src={r.authorPhotoUrl}
-                      alt=""
-                      loading="lazy"
-                      className="bg-muted size-6 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="bg-muted text-muted-foreground flex size-6 items-center justify-center rounded-full text-[10px] font-medium">
-                      {r.author?.charAt(0)?.toUpperCase() ?? '·'}
-                    </div>
-                  )}
+                  <ReviewAvatar src={r.authorPhotoUrl} name={r.author} />
                   <div className="min-w-0 flex-1">
                     <div className="text-foreground truncate text-xs font-medium">
                       {r.author ?? 'Anonymous'}
@@ -386,6 +375,33 @@ export function PlaceDetail({
         </button>
       </div>
     </div>
+  )
+}
+
+/** Reviewer avatar. Google serves author photos from `lh3.googleusercontent.com`,
+ *  which rejects a chunk of requests (403 / 429) when they carry a `Referer` it
+ *  doesn't expect — so from the Electron renderer's origin many "crack" even
+ *  though the same URL opens fine pasted into a browser tab.
+ *  `referrerPolicy="no-referrer"` makes Google serve them; a genuinely dead URL
+ *  still falls back to the initial. */
+function ReviewAvatar({ src, name }: { src?: string; name?: string }) {
+  const [failed, setFailed] = useState(false)
+  if (!src || failed) {
+    return (
+      <div className="bg-muted text-muted-foreground flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-medium">
+        {name?.charAt(0)?.toUpperCase() ?? '·'}
+      </div>
+    )
+  }
+  return (
+    <img
+      src={src}
+      alt=""
+      loading="lazy"
+      referrerPolicy="no-referrer"
+      onError={() => setFailed(true)}
+      className="bg-muted size-6 shrink-0 rounded-full object-cover"
+    />
   )
 }
 
