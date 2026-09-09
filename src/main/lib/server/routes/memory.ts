@@ -3,7 +3,8 @@ import { NotFoundError, ValidationError } from '@shared/errors/app-error'
 import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 
-import { LOCAL_USER_ID } from '../../ai/memory/manager'
+import { LOCAL_USER_ID, runMemoryInstruction } from '../../ai/memory/manager'
+import { getModelFromProvider } from '../../ai/utils/model-util'
 import {
   createMemory,
   getAllMemories,
@@ -51,6 +52,33 @@ memoryRouter.get('/:id', async (c) => {
   return successResponse(c, row)
 })
 
+// POST /api/memory/instruct — apply a free-text instruction via the LLM
+memoryRouter.post('/instruct', async (c) => {
+  const body = await c.req.json<{
+    instruction?: string
+    scopeMemoryId?: string
+  }>()
+  if (!body.instruction?.trim()) {
+    throw new ValidationError(
+      ErrorCode.VALIDATION_FAILED,
+      'instruction is required'
+    )
+  }
+
+  const { chatModel, apiKey } = getModelFromProvider(c.get('settings'))
+  const result = await handleDatabaseOperation(
+    () =>
+      runMemoryInstruction(
+        body.instruction!,
+        body.scopeMemoryId ?? null,
+        chatModel,
+        apiKey
+      ),
+    'Failed to apply the instruction'
+  )
+  return successResponse(c, result)
+})
+
 // POST /api/memory — create
 memoryRouter.post('/', async (c) => {
   const body = await c.req.json<{
@@ -62,10 +90,10 @@ memoryRouter.post('/', async (c) => {
     source?: MemorySource
   }>()
 
-  if (!body.section || !body.key || !body.summary) {
+  if (!body.section || !body.key) {
     throw new ValidationError(
       ErrorCode.VALIDATION_FAILED,
-      'section, key, and summary are required'
+      'section and key are required'
     )
   }
 
@@ -75,7 +103,7 @@ memoryRouter.post('/', async (c) => {
         userId: LOCAL_USER_ID,
         section: body.section,
         key: body.key,
-        summary: body.summary,
+        summary: body.summary ?? '',
         details: body.details,
         confidence: body.confidence,
         source: body.source ?? 'system'
