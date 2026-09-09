@@ -77,7 +77,7 @@ function MemoryRow({
           onOpen()
         }
       }}
-      className="group border-border/40 hover:bg-muted/40 focus-visible:bg-muted/40 flex cursor-pointer items-center gap-4 rounded-md border-b px-2 py-2.5 outline-none last:border-b-0"
+      className="group border-border/40 hover:bg-muted/40 focus-visible:bg-muted/40 flex h-11 cursor-pointer items-center gap-4 rounded-md border-b px-2 outline-none last:border-b-0"
     >
       <span
         className={cn(
@@ -90,40 +90,45 @@ function MemoryRow({
       <span className="text-muted-foreground min-w-0 flex-1 truncate text-sm">
         {item.summary || <span className="italic">No summary yet</span>}
       </span>
-      <span className="text-muted-foreground/60 shrink-0 text-xs tabular-nums group-hover:hidden">
-        {updatedLabel(item)}
-      </span>
-      <div className="hidden shrink-0 items-center gap-0.5 group-hover:flex">
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="text-muted-foreground hover:text-foreground size-7"
-          title={disabled ? 'Restore' : 'Disable'}
-          onClick={(e) => {
-            e.stopPropagation()
-            onToggle()
-          }}
-        >
-          {disabled ? (
-            <EyeIcon className="size-3.5" data-icon />
-          ) : (
-            <EyeOffIcon className="size-3.5" data-icon />
-          )}
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="text-muted-foreground hover:text-destructive size-7"
-          title="Delete"
-          onClick={(e) => {
-            e.stopPropagation()
-            onDelete()
-          }}
-        >
-          <Trash2Icon className="size-3.5" data-icon />
-        </Button>
+
+      {/* Fixed-size slot so the date → actions swap is a pure crossfade and
+          never changes the row's height (which read as a flicker). */}
+      <div className="relative flex h-7 w-24 shrink-0 items-center justify-end">
+        <span className="text-muted-foreground/60 text-xs tabular-nums transition-opacity group-hover:opacity-0">
+          {updatedLabel(item)}
+        </span>
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:text-foreground size-7"
+            title={disabled ? 'Restore' : 'Disable'}
+            onClick={(e) => {
+              e.stopPropagation()
+              onToggle()
+            }}
+          >
+            {disabled ? (
+              <EyeIcon className="size-3.5" data-icon />
+            ) : (
+              <EyeOffIcon className="size-3.5" data-icon />
+            )}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:text-destructive size-7"
+            title="Delete"
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete()
+            }}
+          >
+            <Trash2Icon className="size-3.5" data-icon />
+          </Button>
+        </div>
       </div>
     </div>
   )
@@ -312,7 +317,7 @@ function MemoryComposer({
   }
 
   return (
-    <div className="border-border focus-within:border-ring mt-4 flex items-end gap-2 rounded-2xl border px-3 py-2 transition-colors">
+    <div className="border-border focus-within:border-ring flex items-end gap-2 rounded-2xl border px-3 py-2 transition-colors">
       <textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
@@ -426,7 +431,7 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
   // ── Detail view ──
   if (selected) {
     return (
-      <div className="flex flex-col">
+      <div className="flex flex-col gap-6">
         <MemoryDetail
           item={selected}
           onBack={() => setSelectedId(null)}
@@ -446,7 +451,7 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
   const inactive = memories.filter((m) => m.isActive === false)
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col gap-8">
       <SettingsSection>
         <SettingsRow
           label="Capture memories"
@@ -547,37 +552,63 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
         )}
       </SettingsSection>
 
-      <SettingsSection title="Stored memories" plain>
-        <div className="flex items-center justify-between">
-          <span className="text-muted-foreground text-sm">
-            {memories.length} {memories.length === 1 ? 'memory' : 'memories'}
-          </span>
-          <Button type="button" size="sm" variant="outline" onClick={handleNew}>
-            <PlusIcon className="mr-1 size-3.5" data-icon />
-            New
-          </Button>
-        </div>
+      <div className="flex flex-col gap-4">
+        <SettingsSection title="Stored memories" plain>
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground text-sm">
+              {memories.length} {memories.length === 1 ? 'memory' : 'memories'}
+            </span>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={handleNew}
+            >
+              <PlusIcon className="mr-1 size-3.5" data-icon />
+              New
+            </Button>
+          </div>
 
-        {loading ? (
-          <div className="flex flex-col gap-2">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-        ) : memories.length === 0 ? (
-          <div className="text-muted-foreground rounded-lg border border-dashed py-10 text-center text-sm">
-            No memories yet — they're added automatically after conversations,
-            or tell the assistant to remember something below.
-          </div>
-        ) : (
-          <div>
-            {SECTION_GROUPS.map((g) => {
-              const rows = active.filter((m) => m.section === g.section)
-              if (rows.length === 0) return null
-              return (
-                <div key={g.section} className="mt-6 first:mt-2">
-                  <p className="mb-1.5 px-2 text-sm font-semibold">{g.label}</p>
-                  {rows.map((m) => (
+          {loading ? (
+            <div className="flex flex-col gap-2">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          ) : memories.length === 0 ? (
+            <div className="text-muted-foreground rounded-lg border border-dashed py-10 text-center text-sm">
+              No memories yet — they're added automatically after conversations,
+              or tell the assistant to remember something below.
+            </div>
+          ) : (
+            <div>
+              {SECTION_GROUPS.map((g) => {
+                const rows = active.filter((m) => m.section === g.section)
+                if (rows.length === 0) return null
+                return (
+                  <div key={g.section} className="mt-6 first:mt-2">
+                    <p className="mb-1.5 px-2 text-sm font-semibold">
+                      {g.label}
+                    </p>
+                    {rows.map((m) => (
+                      <MemoryRow
+                        key={m.id}
+                        item={m}
+                        onOpen={() => setSelectedId(m.id)}
+                        onToggle={() => handleToggle(m)}
+                        onDelete={() => handleDelete(m)}
+                      />
+                    ))}
+                  </div>
+                )
+              })}
+
+              {inactive.length > 0 && (
+                <div className="mt-6">
+                  <p className="text-muted-foreground/70 mb-1 px-2 text-[11px] font-medium tracking-wide uppercase">
+                    Disabled · {inactive.length}
+                  </p>
+                  {inactive.map((m) => (
                     <MemoryRow
                       key={m.id}
                       item={m}
@@ -587,30 +618,13 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
                     />
                   ))}
                 </div>
-              )
-            })}
+              )}
+            </div>
+          )}
+        </SettingsSection>
 
-            {inactive.length > 0 && (
-              <div className="mt-6">
-                <p className="text-muted-foreground/70 mb-1 px-2 text-[11px] font-medium tracking-wide uppercase">
-                  Disabled · {inactive.length}
-                </p>
-                {inactive.map((m) => (
-                  <MemoryRow
-                    key={m.id}
-                    item={m}
-                    onOpen={() => setSelectedId(m.id)}
-                    onToggle={() => handleToggle(m)}
-                    onDelete={() => handleDelete(m)}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-      </SettingsSection>
-
-      <MemoryComposer onApplied={load} />
+        <MemoryComposer onApplied={load} />
+      </div>
     </div>
   )
 }
