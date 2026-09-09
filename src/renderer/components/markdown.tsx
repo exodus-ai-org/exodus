@@ -356,15 +356,16 @@ export function Markdown({
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
       table({ className, children, node, ...rest }: any) {
-        // No outer border — row dividers carry the structure. Cells size to
-        // their content between a `min-w`/`max-w` band (see th/td): a small
-        // table stays compact, a column of prose wraps at ~24rem instead of
-        // running on, and a genuinely wide table grows past the message
-        // column so the `max-w-full` wrapper scrolls it horizontally rather
-        // than crushing every column into a sliver.
+        // No outer border — row dividers carry the structure. `w-max` lets
+        // the table lay out at its natural content width instead of being
+        // squeezed into the message column: short columns get one line, a
+        // column of prose wraps at the `max-w-[24rem]` cap (see th/td), and
+        // anything past the column width scrolls horizontally in this
+        // `overflow-x-auto` wrapper rather than every cell crushing to a
+        // sliver.
         return (
           <div className="mb-[var(--md-gap)] max-w-full overflow-x-auto text-[0.9375rem] leading-normal last:mb-0">
-            <table {...rest} className={cn('caption-bottom', className)}>
+            <table {...rest} className={cn('w-max caption-bottom', className)}>
               {children}
             </table>
           </div>
@@ -406,7 +407,7 @@ export function Markdown({
           <th
             {...rest}
             className={cn(
-              'text-foreground max-w-[24rem] min-w-[6rem] py-2.5 pr-6 text-left align-top font-medium break-words last:pr-0',
+              'text-foreground max-w-[24rem] py-2.5 pr-6 text-left align-top font-medium break-words last:pr-0',
               className
             )}
           >
@@ -420,7 +421,7 @@ export function Markdown({
           <td
             {...rest}
             className={cn(
-              'text-foreground max-w-[24rem] min-w-[6rem] py-2.5 pr-6 align-top font-normal break-words last:pr-0',
+              'text-foreground max-w-[24rem] py-2.5 pr-6 align-top font-normal break-words last:pr-0',
               className
             )}
           >
