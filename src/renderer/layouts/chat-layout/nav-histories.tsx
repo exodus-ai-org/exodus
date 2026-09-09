@@ -131,12 +131,14 @@ export const NavItems = memo(function NavItems({
         </span>
       </SidebarMenuButton>
       <DropdownMenu>
-        <DropdownMenuTrigger>
-          <SidebarMenuAction showOnHover>
-            <MoreHorizontalIcon />
-            <span className="sr-only">More</span>
-          </SidebarMenuAction>
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger
+          render={
+            <SidebarMenuAction showOnHover>
+              <MoreHorizontalIcon />
+              <span className="sr-only">More</span>
+            </SidebarMenuAction>
+          }
+        />
         <DropdownMenuContent
           className="w-56 rounded-lg"
           side={isMobile ? 'bottom' : 'right'}

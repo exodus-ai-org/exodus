@@ -113,11 +113,13 @@ export function NavProjects() {
                     </span>
                   </SidebarMenuButton>
                   <DropdownMenu>
-                    <DropdownMenuTrigger>
-                      <SidebarMenuAction showOnHover>
-                        <MoreHorizontalIcon />
-                      </SidebarMenuAction>
-                    </DropdownMenuTrigger>
+                    <DropdownMenuTrigger
+                      render={
+                        <SidebarMenuAction showOnHover>
+                          <MoreHorizontalIcon />
+                        </SidebarMenuAction>
+                      }
+                    />
                     <DropdownMenuContent
                       className="w-48 rounded-lg"
                       side="right"
