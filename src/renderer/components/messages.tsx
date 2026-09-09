@@ -25,7 +25,7 @@ import { ChatToc } from './chat-toc'
 import { DiscoverFeed } from './home/discover-feed'
 import Markdown from './markdown'
 import { MessageAction } from './massage-action'
-import { MessageSpinner } from './message-spinner'
+import { MessageSpinner, shouldShowMessageSpinner } from './message-spinner'
 import { MessageCallingTools } from './messages-calling-tools'
 import { ThinkingTimeline } from './thinking-timeline'
 import { Avatar, AvatarImage } from './ui/avatar'
@@ -541,10 +541,7 @@ function Messages({
             )
           })}
 
-          {(status === 'submitted' || status === 'streaming') &&
-            messages[messages.length - 1]?.role !== 'assistant' && (
-              <MessageSpinner />
-            )}
+          {shouldShowMessageSpinner(segments, isLoading) && <MessageSpinner />}
         </div>
       </section>
 
