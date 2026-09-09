@@ -499,7 +499,7 @@ function Messages({
   return (
     <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
       <section
-        className="no-scrollbar flex flex-1 flex-col items-center gap-8 overflow-y-scroll px-16 pt-4 pb-28 transition-all"
+        className="no-scrollbar flex flex-1 flex-col items-center gap-8 overflow-y-scroll px-16 pt-4 pb-36 transition-all"
         ref={chatBoxRef}
         onScroll={handleScroll}
       >
@@ -558,7 +558,7 @@ function Messages({
           variant="outline"
           size="icon-sm"
           onClick={() => scrollToBottom('smooth')}
-          className="bg-card absolute bottom-28 left-1/2 z-30 -translate-x-1/2 rounded-full shadow-md"
+          className="bg-card absolute bottom-36 left-1/2 z-30 -translate-x-1/2 rounded-full shadow-md"
           aria-label="Scroll to bottom"
         >
           <ChevronDownIcon size={16} />

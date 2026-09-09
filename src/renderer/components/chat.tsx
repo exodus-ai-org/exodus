@@ -157,12 +157,15 @@ export function Chat({
         />
 
         {/* Composer floats over the message list — the list scrolls its full
-            height behind it, with a short gradient fading the content out
-            just above the input (ChatGPT-style). */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20">
-          <div className="from-card h-12 bg-gradient-to-t to-transparent" />
-          <div className="bg-card pointer-events-auto pb-3">
-            <LcmStatusCard chatId={id} />
+            height behind it, fading out into a scrim just above the input
+            (ChatGPT-style). The dock is a single tall gradient (opaque card
+            at the bottom, transparent up top) with no hard-edged bar, so
+            content stays visible right up to the pill before it dissolves.
+            Only the pill itself catches pointer events; wheeling over the
+            scrim still scrolls the list. */}
+        <div className="from-card pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-40% to-transparent pt-16 pb-3">
+          <LcmStatusCard chatId={id} />
+          <div className="pointer-events-auto">
             <MultimodalInput
               chatId={id}
               messages={messages}
