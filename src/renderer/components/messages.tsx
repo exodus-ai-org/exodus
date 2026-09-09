@@ -383,7 +383,8 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
  * Group messages into segments: each segment is either a user message
  * or a contiguous run of assistant+toolResult messages (a "turn").
  */
-function groupIntoSegments(messages: ChatMessage[]): Segment[] {
+// eslint-disable-next-line react-refresh/only-export-components -- pure helper, exported for tests
+export function groupIntoSegments(messages: ChatMessage[]): Segment[] {
   const segments: Segment[] = []
   let turnBuffer: ChatMessage[] = []
 
