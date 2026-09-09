@@ -102,7 +102,10 @@ chat.post('/', async (c) => {
     advancedTools?.includes(AdvancedTools.Reasoning) ||
     advancedTools?.includes(AdvancedTools.DeepResearch)
 
-  const allMessages = messages as ChatMessage[]
+  // `messages` is validated by a loose schema (unknown keys pass through so
+  // prior turns keep their toolResult `details` etc.); its inferred shape has
+  // an index signature that no longer narrows to ChatMessage directly.
+  const allMessages = messages as unknown as ChatMessage[]
 
   // The last message is the new user message; everything before is context
   const userMessage = allMessages.at(-1)!
