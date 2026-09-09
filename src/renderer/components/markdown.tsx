@@ -405,7 +405,7 @@ export function Markdown({
           <th
             {...rest}
             className={cn(
-              'text-foreground py-2.5 pr-6 text-left align-top font-medium whitespace-nowrap last:pr-0',
+              'text-foreground max-w-[15rem] py-2.5 pr-6 text-left align-top font-medium [overflow-wrap:anywhere] last:pr-0',
               className
             )}
           >
@@ -419,7 +419,7 @@ export function Markdown({
           <td
             {...rest}
             className={cn(
-              'text-foreground py-2.5 pr-6 align-top font-normal whitespace-nowrap last:pr-0',
+              'text-foreground max-w-[15rem] py-2.5 pr-6 align-top font-normal [overflow-wrap:anywhere] last:pr-0',
               className
             )}
           >
