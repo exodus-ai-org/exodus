@@ -76,7 +76,7 @@ const UserSegment = memo(function UserSegment({
             )}
           </div>
         )}
-      <p className="bg-primary text-primary-foreground max-w-[60%] rounded-2xl rounded-br-sm px-4 py-2.5 text-base leading-relaxed wrap-break-word whitespace-pre-wrap shadow-sm">
+      <p className="bg-secondary text-foreground max-w-[75%] rounded-2xl rounded-br-sm px-4 py-2.5 text-base leading-relaxed wrap-break-word whitespace-pre-wrap">
         {userMessageText(message)}
       </p>
     </div>
