@@ -144,6 +144,19 @@ export function Chat({
     }
   }, [id, sendMessage, setChatInput])
 
+  const composer = (
+    <>
+      <LcmStatusCard chatId={id} />
+      <MultimodalInput
+        chatId={id}
+        messages={messages}
+        setMessages={setMessages}
+        sendMessage={sendMessage}
+        lastUsage={lastUsage}
+      />
+    </>
+  )
+
   return (
     <>
       {projectId && <ProjectBreadcrumb projectId={projectId} />}
@@ -156,25 +169,21 @@ export function Chat({
           showDiscover={showDiscover}
         />
 
-        {/* Composer floats over the message list — the list scrolls its full
-            height behind it, fading out into a scrim just above the input
-            (ChatGPT-style). The dock is a single tall gradient (opaque card
-            at the bottom, transparent up top) with no hard-edged bar, so
-            content stays visible right up to the pill before it dissolves.
-            Only the pill itself catches pointer events; wheeling over the
-            scrim still scrolls the list. */}
-        <div className="from-card pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-40% to-transparent pt-16 pb-3">
-          <LcmStatusCard chatId={id} />
-          <div className="pointer-events-auto">
-            <MultimodalInput
-              chatId={id}
-              messages={messages}
-              setMessages={setMessages}
-              sendMessage={sendMessage}
-              lastUsage={lastUsage}
-            />
+        {messages.length === 0 ? (
+          // Landing screen: the composer stays in normal flow so the greeting
+          // and the Discover feed above it stay fully visible and clickable —
+          // an overlay here would cover the bottom feed row.
+          <div className="shrink-0 pb-6">{composer}</div>
+        ) : (
+          // Conversation: the composer floats over the message list, which
+          // scrolls its full height behind it and dissolves into a scrim just
+          // above the input (ChatGPT-style). `pointer-events-none` on the dock
+          // lets a wheel over the scrim still scroll the list; its children
+          // opt back in so the pill and status card stay interactive.
+          <div className="from-card pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-linear-to-t to-transparent pb-6 [&>*]:pointer-events-auto">
+            {composer}
           </div>
-        </div>
+        )}
       </div>
     </>
   )
