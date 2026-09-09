@@ -130,12 +130,18 @@ function InputBox({
         <ActiveToolPills />
         <div className="flex items-end gap-1">
           <ComposerToolsButton />
+          {/*
+            Pin to 16px (matching the message body). The base Textarea is
+            `text-base md:text-sm`, an iOS-zoom guard that's meaningless in
+            Electron — it only made the composer text + line-height jump
+            16↔14px / 24↔20px as the window crossed the `md` breakpoint.
+          */}
           <Textarea
             ref={textareaRef}
             placeholder="Ask anything"
             value={input}
             onChange={handleInput}
-            className="max-h-[45dvh] min-h-8 flex-1 resize-none border-none bg-transparent! px-1 py-1.5 shadow-none focus-visible:ring-0"
+            className="max-h-[45dvh] min-h-8 flex-1 resize-none border-none bg-transparent! px-1 py-1.5 text-base shadow-none focus-visible:ring-0 md:text-base"
             rows={1}
             autoFocus
             onKeyDown={(event) => {
