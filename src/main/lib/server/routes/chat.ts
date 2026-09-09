@@ -8,7 +8,8 @@ import type {
   ChatAssistantMessage,
   ChatMessage,
   ChatSseEvent,
-  ChatToolResultMessage
+  ChatToolResultMessage,
+  ToolNotice
 } from '@shared/types/chat'
 import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
@@ -443,6 +444,27 @@ chat.post('/', async (c) => {
             toolMsgIds.delete(event.toolCallId)
             newMessages.push(toolResultMsg)
             sendEvent({ type: 'message_update', message: toolResultMsg })
+
+            // Relay a non-fatal tool notice (e.g. an expired API key that only
+            // degraded enrichment — the tool still succeeded) so the renderer
+            // can toast it. Tools opt in by putting `notice` on their details.
+            const notice =
+              details && typeof details === 'object' && 'notice' in details
+                ? (details as { notice?: unknown }).notice
+                : null
+            if (
+              notice &&
+              typeof notice === 'object' &&
+              typeof (notice as ToolNotice).message === 'string'
+            ) {
+              const n = notice as ToolNotice
+              sendEvent({
+                type: 'notice',
+                level: n.level === 'info' ? 'info' : 'warning',
+                message: n.message
+              })
+            }
+
             sendEvent({
               type: 'tool_call_end',
               toolCallId: event.toolCallId,

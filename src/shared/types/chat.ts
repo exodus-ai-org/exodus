@@ -50,6 +50,19 @@ export type Attachment = {
   contentType: string
 }
 
+/**
+ * A non-fatal condition a tool wants the user to know about — e.g. an expired
+ * API key that only degraded enrichment, so the tool still returned a result.
+ * A tool opts in by putting one on its `details` (`{ ..., notice }`); the chat
+ * route relays it as a `notice` SSE event and specific tool cards may also
+ * render it inline.
+ */
+export type ToolNoticeLevel = 'warning' | 'info'
+export interface ToolNotice {
+  level: ToolNoticeLevel
+  message: string
+}
+
 // SSE event types for streaming protocol
 export type ChatSseEvent =
   | { type: 'message_update'; message: ChatMessage }
@@ -63,6 +76,7 @@ export type ChatSseEvent =
   | { type: 'done'; messages: ChatMessage[] }
   | { type: 'title'; title: string }
   | { type: 'error'; error: string }
+  | { type: 'notice'; level: ToolNoticeLevel; message: string }
 
 // ─── Chat UI Types ─────────────────────────────────────────────────────────
 

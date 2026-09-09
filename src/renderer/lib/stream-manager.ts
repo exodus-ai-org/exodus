@@ -1,4 +1,9 @@
-import type { ChatMessage, ChatSseEvent, ChatStatus } from '@shared/types/chat'
+import type {
+  ChatMessage,
+  ChatSseEvent,
+  ChatStatus,
+  ToolNoticeLevel
+} from '@shared/types/chat'
 import { sileo } from 'sileo'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -18,6 +23,9 @@ interface ActiveStream {
   status: ChatStatus
   messages: ChatMessage[]
   subscriber: StreamSubscriber | null
+  // Tool notices already toasted this turn — a 12-stop itinerary hitting the
+  // same expired key toasts once, not per place.
+  seenNotices: Set<string>
 }
 
 // ── Singleton state ──────────────────────────────────────────────────────────
@@ -50,6 +58,21 @@ function notifyError(chatId: string, title: string, error: Error) {
       }
     }
   })
+}
+
+function notifyNotice(
+  stream: ActiveStream,
+  level: ToolNoticeLevel,
+  message: string
+) {
+  const key = `${level}:${message}`
+  if (stream.seenNotices.has(key)) return
+  stream.seenNotices.add(key)
+  if (level === 'info') {
+    sileo.info({ title: 'Heads up', description: message })
+  } else {
+    sileo.warning({ title: 'Heads up', description: message })
+  }
 }
 
 // ── SSE parsing ──────────────────────────────────────────────────────────────
@@ -105,6 +128,8 @@ async function consumeStream(stream: ActiveStream, response: Response) {
         } else if (event.type === 'title') {
           stream.chatTitle = event.title
           stream.subscriber?.onTitle(event.title)
+        } else if (event.type === 'notice') {
+          notifyNotice(stream, event.level, event.message)
         } else if (event.type === 'error') {
           throw new Error(event.error)
         }
@@ -137,7 +162,8 @@ export function startStream(opts: {
     abortController,
     status: 'submitted',
     messages: opts.initialMessages,
-    subscriber: opts.subscriber
+    subscriber: opts.subscriber,
+    seenNotices: new Set()
   }
   streams.set(opts.chatId, stream)
   opts.subscriber.onStatus('submitted')

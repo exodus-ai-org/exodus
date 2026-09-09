@@ -1,5 +1,12 @@
+import type { ToolNotice } from '@shared/types/chat'
 import { APIProvider, Map } from '@vis.gl/react-google-maps'
-import { CheckIcon, CopyIcon, ExternalLinkIcon } from 'lucide-react'
+import {
+  CheckIcon,
+  CopyIcon,
+  ExternalLinkIcon,
+  InfoIcon,
+  TriangleAlertIcon
+} from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 
@@ -125,6 +132,26 @@ const MapSurface = memo(function MapSurface({
   )
 })
 
+/** Non-fatal degradation banner — e.g. Places enrichment couldn't run, so the
+ *  map renders from the LLM's coordinates but ratings/photos/hours are missing. */
+function ItineraryNotice({ notice }: { notice: ToolNotice }) {
+  const isInfo = notice.level === 'info'
+  const Icon = isInfo ? InfoIcon : TriangleAlertIcon
+  return (
+    <div
+      className={cn(
+        'flex items-start gap-2 border-b px-3 py-2 text-xs',
+        isInfo
+          ? 'border-border/60 bg-muted/40 text-muted-foreground'
+          : 'border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-400'
+      )}
+    >
+      <Icon className="mt-px size-3.5 shrink-0" />
+      <span>{notice.message}</span>
+    </div>
+  )
+}
+
 function MapItineraryCardImpl({
   toolResult
 }: {
@@ -209,6 +236,7 @@ function MapItineraryCardImpl({
 
   return (
     <div className="border-border bg-card relative overflow-hidden rounded-2xl border shadow-sm">
+      {toolResult.notice && <ItineraryNotice notice={toolResult.notice} />}
       <div className="relative h-120 w-full">
         <MapSurface
           apiKey={apiKey}
