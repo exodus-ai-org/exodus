@@ -16,6 +16,7 @@ import {
 import { enqueueAndProcess, logEnqueueFailure } from '../../jobs/worker'
 import { resolveKnowledgeBase } from '../../knowledge-base/resolve-knowledge-base'
 import {
+  deletionSuccessResponse,
   getRequiredParam,
   handleDatabaseOperation,
   successResponse,
@@ -107,7 +108,7 @@ router.delete('/documents/:id', async (c) => {
       lightragDocId: row.lightragDocId
     }).catch((e) => logEnqueueFailure('kb-sync', e))
   }
-  return successResponse(c, { ok: true })
+  return deletionSuccessResponse(c, 'Document')
 })
 
 router.post('/documents/reindex-all', async (c) => {

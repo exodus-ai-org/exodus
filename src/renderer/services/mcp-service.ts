@@ -35,4 +35,4 @@ export const updateMcpServerApi = (id: string, data: Partial<McpServerItem>) =>
   })
 
 export const deleteMcpServerApi = (id: string) =>
-  fetcher<string>(`${BASE}/${id}`, { method: 'DELETE' })
+  fetcher<void>(`${BASE}/${id}`, { method: 'DELETE' })

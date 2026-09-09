@@ -80,10 +80,10 @@ function compactRelativeTime(date: Date): string {
 export function NavHistorySkeleton() {
   return (
     <section className="flex flex-col gap-3 p-2">
-      <Skeleton className="m-2 h-4 w-20" />
+      <Skeleton className="bg-border m-2 h-4 w-20" />
       {new Array(10).fill(0).map((_, idx) => (
         <div key={idx} className="flex px-2">
-          <Skeleton className="h-5 w-full" />
+          <Skeleton className="bg-border h-5 w-full" />
         </div>
       ))}
     </section>

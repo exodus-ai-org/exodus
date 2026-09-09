@@ -18,6 +18,7 @@ import {
   updateTeam
 } from '../../db/team-queries'
 import {
+  deletionSuccessResponse,
   getRequiredParam,
   handleDatabaseOperation,
   successResponse,
@@ -90,7 +91,7 @@ philharmonicCrud.delete('/agents/:id', async (c) => {
     () => deleteAgent(getRequiredParam(c, 'id')),
     'Failed to delete employee'
   )
-  return c.text('Employee deleted', 200)
+  return deletionSuccessResponse(c, 'Employee')
 })
 
 philharmonicCrud.get('/agents/:id/memories', async (c) =>
@@ -150,7 +151,7 @@ philharmonicCrud.delete('/teams/:id', async (c) => {
     () => deleteTeam(getRequiredParam(c, 'id')),
     'Failed to delete team'
   )
-  return c.text('Team deleted', 200)
+  return deletionSuccessResponse(c, 'Team')
 })
 
 // ─── Available skills ───────────────────────────────────────────────────────

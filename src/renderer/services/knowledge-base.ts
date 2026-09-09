@@ -22,10 +22,7 @@ export const updateKnowledgeDoc = (
   })
 
 export const deleteKnowledgeDoc = (id: string) =>
-  fetcher<void>(`${BASE}/documents/${id}`, {
-    method: 'DELETE',
-    responseType: 'text'
-  })
+  fetcher<void>(`${BASE}/documents/${id}`, { method: 'DELETE' })
 
 export const reindexAll = () =>
   fetcher<{ count: number }>(`${BASE}/documents/reindex-all`, {

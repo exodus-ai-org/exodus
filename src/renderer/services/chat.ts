@@ -4,10 +4,9 @@ import { sileo } from 'sileo'
 import { mutate } from 'swr'
 
 export const updateChat = async (payload: Partial<Chat>) => {
-  await fetcher<string>('/api/chat', {
+  await fetcher<void>('/api/chat', {
     method: 'PUT',
-    body: payload,
-    responseType: 'text'
+    body: payload
   })
 
   mutate('/api/history')
@@ -15,9 +14,8 @@ export const updateChat = async (payload: Partial<Chat>) => {
 }
 
 export const deleteChat = async (chat: Chat, currentId?: string) => {
-  await fetcher<string>(`/api/chat/${chat.id}`, {
-    method: 'DELETE',
-    responseType: 'text'
+  await fetcher<void>(`/api/chat/${chat.id}`, {
+    method: 'DELETE'
   })
 
   mutate('/api/history')

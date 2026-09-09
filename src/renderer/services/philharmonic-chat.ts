@@ -25,10 +25,7 @@ export const updateConversation = (
     body: data as never
   })
 export const deleteConversation = (id: string) =>
-  fetcher<void>(`${BASE}/conversations/${id}`, {
-    method: 'DELETE',
-    responseType: 'text'
-  })
+  fetcher<void>(`${BASE}/conversations/${id}`, { method: 'DELETE' })
 export const getConversationMessages = (id: string) =>
   fetcher<ConversationMessageData[]>(`${BASE}/conversations/${id}/messages`)
 export const sendConversationMessage = (

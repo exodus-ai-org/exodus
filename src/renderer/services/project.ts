@@ -45,9 +45,8 @@ export const updateProject = async (id: string, data: UpdateProjectInput) => {
 }
 
 export const deleteProject = async (project: Project) => {
-  await fetcher<string>(`/api/project/${project.id}`, {
-    method: 'DELETE',
-    responseType: 'text'
+  await fetcher<void>(`/api/project/${project.id}`, {
+    method: 'DELETE'
   })
 
   mutate('/api/project')

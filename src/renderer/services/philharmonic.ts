@@ -16,10 +16,7 @@ export const updateTeamApi = (id: string, data: Partial<TeamData>) =>
     body: data as never
   })
 export const deleteTeamApi = (id: string) =>
-  fetcher<void>(`${BASE}/teams/${id}`, {
-    method: 'DELETE',
-    responseType: 'text'
-  })
+  fetcher<void>(`${BASE}/teams/${id}`, { method: 'DELETE' })
 
 export const createAgentApi = (
   data: Partial<Omit<AgentData, 'id' | 'createdAt' | 'updatedAt'>>
@@ -31,10 +28,7 @@ export const updateAgentApi = (id: string, data: Partial<AgentData>) =>
     body: data as never
   })
 export const deleteAgentApi = (id: string) =>
-  fetcher<void>(`${BASE}/agents/${id}`, {
-    method: 'DELETE',
-    responseType: 'text'
-  })
+  fetcher<void>(`${BASE}/agents/${id}`, { method: 'DELETE' })
 export const getAgentMemories = (id: string) =>
   fetcher<
     Array<{ id: string; key: string; value: unknown; createdAt: string }>

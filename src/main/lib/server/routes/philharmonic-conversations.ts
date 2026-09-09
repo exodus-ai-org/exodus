@@ -20,6 +20,7 @@ import { getPhilharmonicCostRows } from '../../db/philharmonic-queries'
 import { getActivePlanByConversationId } from '../../db/plan-queries'
 import { logger } from '../../logger'
 import {
+  deletionSuccessResponse,
   getRequiredParam,
   handleDatabaseOperation,
   successResponse,
@@ -140,7 +141,7 @@ router.delete('/conversations/:id', async (c) => {
     () => deleteConversation(id),
     'Failed to delete conversation'
   )
-  return c.text('Conversation deleted', 200)
+  return deletionSuccessResponse(c, 'Conversation')
 })
 
 router.put('/conversations/:id', async (c) => {
