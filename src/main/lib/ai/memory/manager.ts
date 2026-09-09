@@ -132,28 +132,32 @@ function memoryIndexLine(m: MemoryRow): string {
 const MEMORY_MODEL = `A memory entry is ONE topic / person / profile-area:
 - section: "profile" (identity, environment/setup, hard constraints, enduring personal preferences like diet, tools, working style) | "topic" (a lasting interest or ongoing project) | "person" (someone in the user's life)
 - key: a short, stable title — e.g. "Classical Music", "Homelab", "Investing"
-- summary: a compact noun phrase naming what the entry covers — NOT a sentence. e.g. "Japanese equities trading, thesis, and analytical frameworks"
-- details: 3–6 bullets, each ONE concrete, self-contained fact about the user — what they do, own, use, track, have analyzed, or have decided. Lead with the specifics: names, tickers, tools, frameworks, numbers, places. Drop hedges ("interested in", "finds useful", "wants", "prefers to see"). Merge and prune aggressively; never past ~6.`
+- summary: a compact noun phrase naming what the entry covers — NOT a sentence, no "User is…". e.g. "Japanese equities trading, thesis, and analytical frameworks"
+- details: 2–5 bullets, each ONE durable, self-contained fact about the user, stated at a level that stays true for months — what they do, own, use, track, or have decided. Lead with specifics: names, tickers, tools, frameworks, places. Never a single purchase or one-time event, a backstory anecdote, a wish ("would like to see…"), or how they want answers formatted. Drop hedges ("interested in", "finds useful", "wants"). Merge and prune aggressively; never past 5.`
 
 const CONSOLIDATE_SYSTEM = `You maintain a durable, long-term memory of the user across conversations.
 
-You are given the latest conversation and the current memory index. Decide what — if anything — to change. The default is to change NOTHING: most conversations teach nothing worth keeping.
+You are given the latest conversation and the current memory index. Decide what — if anything — to change. The default is to change NOTHING: almost every conversation teaches nothing worth keeping. The running context of THIS conversation is handled elsewhere — your only job is the handful of facts that will still change how you help this person in unrelated chats months from now.
 
 ${MEMORY_MODEL}
 
-RECORD only information that is ALL of:
-1. Durable — still true and relevant in months, not tied to one task or thread
-2. About the user themselves — their identity, work, holdings, skills, relationships, sustained interests
-3. Cross-conversation useful — changes how you'd help in a future, unrelated chat
-4. Non-sensitive — no secrets, credentials, precise health data, exact balances/salary, private third-party info
-5. Clearly stated or strongly implied by the user (not inferred by you from one exchange)
+Record something only if it passes EVERY test:
+1. Lasting influence — knowing it would change how you help across future, unrelated conversations.
+2. Commitment, not a mention — the conversation shows the user actually does this repeatedly, has invested in it, identifies with it, or is running it as an ongoing project. Naming something once — a game they played, a movie they saw, a place they went, a tool used for this one task — is NOT enough; wait for it to recur or for an explicit signal ("I've done X for years", "I always…", "my job is…").
+3. About the user — their identity, work, expertise, holdings, skills, relationships, or a sustained interest. Not about the world.
+4. Non-sensitive — no secrets, credentials, precise health data, exact balances/salary, private third-party info.
+5. Stated or clearly implied by the user — not inferred by you from one exchange.
 
 NEVER record:
-- How the user wants you to respond — output format, verbosity, tone, diagram or table style, "wants comprehensive coverage", "likes mermaid diagrams". That is not memory.
-- One-off task parameters — the scope of the current request or deliverable
-- Transient state — today's question, a file just opened, what they're doing right now
+- How the user wants answers shaped — format, length, tone, "wants comprehensive coverage", "likes diagrams", "prefers tables", "standardize the tickers". Style is not memory.
+- A single transaction or event — "preordered X", "bought Y", "watched Z", "aware a sequel is coming". Gone in weeks.
+- Backstory or anecdotes with no forward use — how they first discovered something, a one-time story.
+- Wishes or speculation — "would like a remake", "hopes X ships".
+- Transient state — today's question, a file just opened, what they're doing right now.
 
-Prefer UPDATE over CREATE. If the conversation adds to an existing entry, update it and return its FULL revised summary + details (not just the new part). Only CREATE when no existing entry fits and the subject is clearly a lasting one.
+Example: the user says they watched a film last night and loved it → { "operations": [] }. One film is a one-off. Only a sustained pattern (they review films, they're writing a screenplay) is memory.
+
+Prefer UPDATE over CREATE. If the conversation genuinely adds to an existing entry, update it and return its FULL revised summary + details (not just the new part). If your new fact belongs in an entry that already exists, update that one — don't create a near-duplicate. Only CREATE when no existing entry fits and the subject clearly clears all five tests.
 
 Respond ONLY with a JSON object:
 {
