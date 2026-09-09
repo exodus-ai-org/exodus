@@ -14,7 +14,7 @@ import { useClipboard } from '@/hooks/use-clipboard'
 import { useSettings } from '@/hooks/use-settings'
 import { cn } from '@/lib/utils'
 
-import { DayLayer } from './day-layer'
+import { DayLayer, FocusedPlaceContext } from './day-layer'
 import { PlaceDetail } from './place-detail'
 import type { ItineraryDay, MapItineraryDetails } from './types'
 
@@ -91,23 +91,22 @@ function buildDayMarkdown(day: ItineraryDay): string {
   return `${header}${summary}\n${places}`
 }
 
-/** Inner Map subtree, isolated and memoized so interactive state in the
- *  parent (focusedPlaceIdx, copy-button confirm flash) doesn't trigger a
- *  Map re-render. The Map itself is the most expensive thing in this card
- *  by far — keeping its prop set stable avoids any chance of remount. */
+/** Inner Map subtree, isolated and memoized so interactive parent state
+ *  (focused pin, copy-button confirm flash, SWR settings revalidation) never
+ *  reaches the map. Its whole prop set is stable for the life of the card:
+ *  `apiKey`/`colorScheme` are primitives, `places` is a slice of the frozen
+ *  tool result, `onMarkerClick` is a `useCallback([])`. Focus flows to
+ *  `DayLayer` through `FocusedPlaceContext` (see day-layer.tsx), so a pin
+ *  click re-renders only that layer, not `<APIProvider>` / `<Map>`. */
 const MapSurface = memo(function MapSurface({
   apiKey,
   colorScheme,
-  activeDayIdx,
   places,
-  focusedIdx,
   onMarkerClick
 }: {
   apiKey: string
   colorScheme: 'LIGHT' | 'DARK'
-  activeDayIdx: number
   places: ItineraryDay['places']
-  focusedIdx: number | null
   onMarkerClick: (idx: number) => void
 }) {
   return (
@@ -121,12 +120,10 @@ const MapSurface = memo(function MapSurface({
         colorScheme={colorScheme}
         className="h-full w-full"
       >
-        <DayLayer
-          key={activeDayIdx}
-          places={places}
-          focusedIdx={focusedIdx}
-          onMarkerClick={onMarkerClick}
-        />
+        {/* No `key` — a day switch changes `places`, and DayLayer's effects
+            already refit bounds and rebuild the polyline on that dep; keying
+            forced a full teardown/rebuild of every marker instead. */}
+        <DayLayer places={places} onMarkerClick={onMarkerClick} />
       </Map>
     </APIProvider>
   )
@@ -238,14 +235,14 @@ function MapItineraryCardImpl({
     <div className="border-border bg-card relative overflow-hidden rounded-2xl border shadow-sm">
       {toolResult.notice && <ItineraryNotice notice={toolResult.notice} />}
       <div className="relative h-120 w-full">
-        <MapSurface
-          apiKey={apiKey}
-          colorScheme={colorScheme}
-          activeDayIdx={activeDayIdx}
-          places={activeDay.places}
-          focusedIdx={focusedPlaceIdx}
-          onMarkerClick={onMarkerClick}
-        />
+        <FocusedPlaceContext.Provider value={focusedPlaceIdx}>
+          <MapSurface
+            apiKey={apiKey}
+            colorScheme={colorScheme}
+            places={activeDay.places}
+            onMarkerClick={onMarkerClick}
+          />
+        </FocusedPlaceContext.Provider>
 
         {/* Floating tab strip — only rendered for >1 day. */}
         {toolResult.days.length > 1 && (
@@ -322,8 +319,13 @@ function MapItineraryCardImpl({
   )
 }
 
-// Memoize the whole card so any parent re-renders during streaming (the
-// chat surface re-renders on every token) don't reach into this subtree.
-// `toolResult` is a stable reference once the tool resolves, so default
-// shallow comparison is correct.
-export const MapItineraryCard = memo(MapItineraryCardImpl)
+// Memoize the whole card so parent re-renders during streaming (the chat
+// surface re-renders on every token) don't reach this subtree. Identity is
+// NOT enough: the `done` frame and every history reload hand back a fresh,
+// value-equal copy of the tool message (SSE is JSON), which would otherwise
+// re-initialise the map once per turn end. Fall back to a value check — it
+// only runs on the rare identity miss, and an itinerary payload is small.
+export const MapItineraryCard = memo(MapItineraryCardImpl, (a, b) => {
+  if (a.toolResult === b.toolResult) return true
+  return JSON.stringify(a.toolResult) === JSON.stringify(b.toolResult)
+})
