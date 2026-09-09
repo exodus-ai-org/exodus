@@ -170,9 +170,9 @@ const AssistantTurnSegment = memo(
                   regenerate={regenerate}
                   content={block.text}
                   webSearchResults={ownSources}
-                  durationMs={
+                  timestamp={
                     i === turn.finalTextBlocks.length - 1
-                      ? turn.durationMs
+                      ? block.timestamp
                       : undefined
                   }
                 />
@@ -297,7 +297,8 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
           finalTextBlocks.push({
             text: block.text,
             messageId: msg.id,
-            blockIdx: idx
+            blockIdx: idx,
+            timestamp: assistantMsg.timestamp
           })
         }
       }

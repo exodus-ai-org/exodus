@@ -5,6 +5,7 @@ import { CheckIcon, CopyIcon, RefreshCwIcon } from 'lucide-react'
 import { memo, useCallback, useMemo } from 'react'
 
 import { useClipboard } from '@/hooks/use-clipboard'
+import { compactRelativeTime } from '@/lib/relative-time'
 import { sourcesPanelAtom } from '@/stores/chat'
 
 import AudioPlayer from './audio-player'
@@ -14,18 +15,6 @@ import { TooltipProvider } from './ui/tooltip'
 
 // Re-export so existing callers of massage-action keep working.
 export { IconWrapper, MessageActionItem }
-
-/** Wall-clock a turn took, compact. Sub-second is dropped — message
- *  timestamps mark stream START, so short durations are unreliable
- *  (same rule as the thinking timeline). */
-function formatGenTime(ms?: number): string | null {
-  if (!ms || !Number.isFinite(ms) || ms < 1000) return null
-  const s = Math.round(ms / 1000)
-  if (s < 60) return `${s}s`
-  const m = Math.floor(s / 60)
-  const rem = s % 60
-  return rem ? `${m}m ${rem}s` : `${m}m`
-}
 
 // ─── Sources Button ─────────────────────────────────────────────────────────
 
@@ -76,12 +65,14 @@ export const MessageAction = memo(function MessageAction({
   content,
   regenerate,
   webSearchResults,
-  durationMs
+  timestamp
 }: {
   content: string
   regenerate: () => void
   webSearchResults?: WebSearchResult[]
-  durationMs?: number
+  /** When the reply was generated (epoch ms). Shown as a compact relative
+   *  time, matching the sidebar. */
+  timestamp?: number
 }) {
   const { copied, handleCopy } = useClipboard()
   const setSourcesPanel = useSetAtom(sourcesPanelAtom)
@@ -96,7 +87,7 @@ export const MessageAction = memo(function MessageAction({
     [setSourcesPanel, webSearchResults, content]
   )
 
-  const genTime = formatGenTime(durationMs)
+  const relTime = timestamp ? compactRelativeTime(new Date(timestamp)) : null
   const hasSources = !!webSearchResults && webSearchResults.length > 0
 
   return (
@@ -123,9 +114,9 @@ export const MessageAction = memo(function MessageAction({
           />
         )}
 
-        {genTime && (
+        {relTime && (
           <span className="text-muted-foreground/50 ml-1.5 shrink-0 text-xs tabular-nums">
-            {genTime}
+            {relTime}
           </span>
         )}
       </div>

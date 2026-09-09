@@ -107,7 +107,13 @@ export interface TimelineStep {
 export interface AssistantTurn {
   messages: ChatMessage[]
   steps: TimelineStep[]
-  finalTextBlocks: Array<{ text: string; messageId: string; blockIdx: number }>
+  finalTextBlocks: Array<{
+    text: string
+    messageId: string
+    blockIdx: number
+    /** Timestamp of the assistant message this block came from (stream start). */
+    timestamp: number
+  }>
   pendingToolCalls: Array<{ name: string; id: string }>
   toolCards: ChatToolResultMessage[]
   durationMs: number
