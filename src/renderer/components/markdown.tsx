@@ -356,12 +356,14 @@ export function Markdown({
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
       table({ className, children, node, ...rest }: any) {
-        // No outer border / wrapper border — internal row dividers (handled
-        // on thead/tr below) carry the structure. Wider tables still scroll
-        // horizontally via overflow-x-auto without the boxed-in feel.
+        // No outer border — row dividers carry the structure. The table sizes
+        // to its content (cells are nowrap, below): a small table stays
+        // compact instead of being stretched edge-to-edge; a wide one grows
+        // past the message column and the `max-w-full` wrapper scrolls it
+        // horizontally rather than cramming every column into a sliver.
         return (
-          <div className="mb-[var(--md-gap)] overflow-x-auto text-[0.9375rem] leading-normal last:mb-0">
-            <table {...rest} className={cn('w-full caption-bottom', className)}>
+          <div className="mb-[var(--md-gap)] max-w-full overflow-x-auto text-[0.9375rem] leading-normal last:mb-0">
+            <table {...rest} className={cn('caption-bottom', className)}>
               {children}
             </table>
           </div>
@@ -403,7 +405,7 @@ export function Markdown({
           <th
             {...rest}
             className={cn(
-              'text-foreground py-2.5 pr-6 text-left align-top font-medium last:pr-0',
+              'text-foreground py-2.5 pr-6 text-left align-top font-medium whitespace-nowrap last:pr-0',
               className
             )}
           >
@@ -417,7 +419,7 @@ export function Markdown({
           <td
             {...rest}
             className={cn(
-              'text-foreground py-2.5 pr-6 align-top font-normal last:pr-0',
+              'text-foreground py-2.5 pr-6 align-top font-normal whitespace-nowrap last:pr-0',
               className
             )}
           >
