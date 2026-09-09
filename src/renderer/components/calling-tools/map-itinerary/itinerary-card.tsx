@@ -116,6 +116,10 @@ const MapSurface = memo(function MapSurface({
         defaultZoom={MAP_DEFAULT_ZOOM}
         gestureHandling="greedy"
         disableDefaultUI={true}
+        // `disableDefaultUI` doesn't cover the keyboard-shortcuts pill — that's
+        // a separate option. (The "Terms" / "Report a map error" / Google
+        // attribution is required by the Maps Platform ToS and has no hide flag.)
+        keyboardShortcuts={false}
         mapId={MAP_ID}
         colorScheme={colorScheme}
         className="h-full w-full"
