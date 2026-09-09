@@ -162,7 +162,7 @@ export function ThinkingTimeline({
   return (
     // min-w-0 lets the timeline shrink inside flex parents instead of pushing
     // them wider when a tool-call URL or path is long. max-w-full clamps it
-    // to the ancestor (e.g. md:max-w-4xl) regardless of intrinsic content.
+    // to the ancestor (e.g. md:max-w-3xl) regardless of intrinsic content.
     <div className="mb-3 max-w-full min-w-0">
       <button
         type="button"

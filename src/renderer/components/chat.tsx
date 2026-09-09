@@ -147,21 +147,32 @@ export function Chat({
   return (
     <>
       {projectId && <ProjectBreadcrumb projectId={projectId} />}
-      <Messages
-        chatId={id}
-        status={status}
-        messages={messages}
-        regenerate={regenerate}
-        showDiscover={showDiscover}
-      />
-      <LcmStatusCard chatId={id} />
-      <MultimodalInput
-        chatId={id}
-        messages={messages}
-        setMessages={setMessages}
-        sendMessage={sendMessage}
-        lastUsage={lastUsage}
-      />
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        <Messages
+          chatId={id}
+          status={status}
+          messages={messages}
+          regenerate={regenerate}
+          showDiscover={showDiscover}
+        />
+
+        {/* Composer floats over the message list — the list scrolls its full
+            height behind it, with a short gradient fading the content out
+            just above the input (ChatGPT-style). */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20">
+          <div className="from-card h-12 bg-gradient-to-t to-transparent" />
+          <div className="bg-card pointer-events-auto pb-3">
+            <LcmStatusCard chatId={id} />
+            <MultimodalInput
+              chatId={id}
+              messages={messages}
+              setMessages={setMessages}
+              sendMessage={sendMessage}
+              lastUsage={lastUsage}
+            />
+          </div>
+        </div>
+      </div>
     </>
   )
 }

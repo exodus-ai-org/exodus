@@ -499,14 +499,14 @@ function Messages({
   return (
     <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
       <section
-        className="no-scrollbar flex flex-1 flex-col items-center gap-8 overflow-y-scroll px-16 py-4 transition-all"
+        className="no-scrollbar flex flex-1 flex-col items-center gap-8 overflow-y-scroll px-16 pt-4 pb-28 transition-all"
         ref={chatBoxRef}
         onScroll={handleScroll}
       >
         {messages.length === 0 && (
           <div
             className={cn(
-              'animate-fade-in-up mx-auto flex size-full max-w-4xl flex-col px-8',
+              'animate-fade-in-up mx-auto flex size-full max-w-3xl flex-col px-8',
               discoverHasContent
                 ? 'justify-start pt-12 md:pt-16'
                 : 'justify-center md:mt-20'
@@ -520,7 +520,7 @@ function Messages({
           </div>
         )}
 
-        <div className="w-full md:max-w-4xl">
+        <div className="w-full md:max-w-3xl">
           {segments.map((segment, segIdx) => {
             if (segment.type === 'user') {
               return (
@@ -558,7 +558,7 @@ function Messages({
           variant="outline"
           size="icon-sm"
           onClick={() => scrollToBottom('smooth')}
-          className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full shadow-md"
+          className="bg-card absolute bottom-28 left-1/2 z-30 -translate-x-1/2 rounded-full shadow-md"
           aria-label="Scroll to bottom"
         >
           <ChevronDownIcon size={16} />
