@@ -170,6 +170,11 @@ const AssistantTurnSegment = memo(
                   regenerate={regenerate}
                   content={block.text}
                   webSearchResults={ownSources}
+                  durationMs={
+                    i === turn.finalTextBlocks.length - 1
+                      ? turn.durationMs
+                      : undefined
+                  }
                 />
               </section>
             ))}

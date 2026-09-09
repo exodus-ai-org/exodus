@@ -1,13 +1,7 @@
 import { faviconUrl } from '@shared/constants/external-urls'
 import type { WebSearchResult } from '@shared/types/web-search'
 import { useSetAtom } from 'jotai'
-import {
-  CheckIcon,
-  CopyIcon,
-  RefreshCcwIcon,
-  ThumbsDownIcon,
-  ThumbsUpIcon
-} from 'lucide-react'
+import { CheckIcon, CopyIcon, RefreshCwIcon } from 'lucide-react'
 import { memo, useCallback, useMemo } from 'react'
 
 import { useClipboard } from '@/hooks/use-clipboard'
@@ -20,6 +14,18 @@ import { TooltipProvider } from './ui/tooltip'
 
 // Re-export so existing callers of massage-action keep working.
 export { IconWrapper, MessageActionItem }
+
+/** Wall-clock a turn took, compact. Sub-second is dropped — message
+ *  timestamps mark stream START, so short durations are unreliable
+ *  (same rule as the thinking timeline). */
+function formatGenTime(ms?: number): string | null {
+  if (!ms || !Number.isFinite(ms) || ms < 1000) return null
+  const s = Math.round(ms / 1000)
+  if (s < 60) return `${s}s`
+  const m = Math.floor(s / 60)
+  const rem = s % 60
+  return rem ? `${m}m ${rem}s` : `${m}m`
+}
 
 // ─── Sources Button ─────────────────────────────────────────────────────────
 
@@ -52,7 +58,7 @@ function SourcesButton({
       variant="ghost"
       size="sm"
       onClick={onClick}
-      className="text-muted-foreground h-6 gap-1.5 rounded-full px-2.5 text-xs"
+      className="text-muted-foreground hover:text-foreground h-7 gap-1.5 rounded-lg px-2 text-xs"
     >
       <span className="*:ring-background flex gap-[-0.375rem] *:ring-2">
         {favicons.map((src, i) => (
@@ -69,11 +75,13 @@ function SourcesButton({
 export const MessageAction = memo(function MessageAction({
   content,
   regenerate,
-  webSearchResults
+  webSearchResults,
+  durationMs
 }: {
   content: string
   regenerate: () => void
   webSearchResults?: WebSearchResult[]
+  durationMs?: number
 }) {
   const { copied, handleCopy } = useClipboard()
   const setSourcesPanel = useSetAtom(sourcesPanelAtom)
@@ -88,39 +96,37 @@ export const MessageAction = memo(function MessageAction({
     [setSourcesPanel, webSearchResults, content]
   )
 
+  const genTime = formatGenTime(durationMs)
+  const hasSources = !!webSearchResults && webSearchResults.length > 0
+
   return (
     <TooltipProvider>
-      <div className="mt-2 flex items-center gap-1">
+      <div className="text-muted-foreground mt-1.5 flex items-center gap-0.5">
         <MessageActionItem tooltipContent="Copy">
           <IconWrapper onClick={onCopy}>
-            {copied !== content ? (
-              <CopyIcon size={16} />
-            ) : (
-              <CheckIcon size={16} />
-            )}
+            {copied !== content ? <CopyIcon /> : <CheckIcon />}
           </IconWrapper>
         </MessageActionItem>
-        <MessageActionItem tooltipContent="Good response">
-          <IconWrapper>
-            <ThumbsUpIcon size={16} />
-          </IconWrapper>
-        </MessageActionItem>
-        <MessageActionItem tooltipContent="Bad response">
-          <IconWrapper>
-            <ThumbsDownIcon size={16} />
-          </IconWrapper>
-        </MessageActionItem>
+
         <AudioPlayer content={content} />
-        <MessageActionItem tooltipContent="Switch model">
+
+        <MessageActionItem tooltipContent="Regenerate">
           <IconWrapper onClick={regenerate}>
-            <RefreshCcwIcon size={16} />
+            <RefreshCwIcon />
           </IconWrapper>
         </MessageActionItem>
-        {webSearchResults && webSearchResults.length > 0 && (
+
+        {hasSources && (
           <SourcesButton
-            webSearchResults={webSearchResults}
+            webSearchResults={webSearchResults!}
             onClick={onSourcesClick}
           />
+        )}
+
+        {genTime && (
+          <span className="text-muted-foreground/50 ml-1.5 shrink-0 text-xs tabular-nums">
+            {genTime}
+          </span>
         )}
       </div>
     </TooltipProvider>
