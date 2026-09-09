@@ -4,6 +4,7 @@ import {
   EyeOffIcon,
   PencilIcon,
   PlusIcon,
+  RotateCcwIcon,
   Trash2Icon
 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
@@ -39,15 +40,6 @@ import { SettingsRow, SettingsSection } from '../settings-row'
 import { SettingsSelect } from '../settings-select'
 
 const MEMORY_SECTIONS: MemorySection[] = ['profile', 'topic', 'person']
-
-const SECTION_VARIANTS: Record<
-  MemorySection,
-  'default' | 'secondary' | 'outline'
-> = {
-  profile: 'default',
-  topic: 'secondary',
-  person: 'outline'
-}
 
 // ─── Memory Edit Dialog ───────────────────────────────────────────────────────
 
@@ -216,49 +208,72 @@ function MemoryListItem({
   onToggle: (item: MemoryItem) => void
   onDelete: (item: MemoryItem) => void
 }) {
+  const disabled = item.isActive === false
+  const extra = item.details.length - 4
+
   return (
     <div
       className={cn(
-        'flex items-start gap-3 rounded-md border p-3 transition-opacity',
-        item.isActive === false && 'opacity-50'
+        'group border-border/60 hover:border-border relative rounded-lg border px-3.5 py-3 transition-colors',
+        disabled ? 'bg-muted/30' : 'hover:bg-muted/20'
       )}
     >
-      <div className="min-w-0 flex-1">
-        <div className="mb-1 flex items-center gap-2">
-          <Badge variant={SECTION_VARIANTS[item.section]}>{item.section}</Badge>
-          <span className="truncate text-sm font-medium">{item.key}</span>
+      <div className="flex min-w-0 flex-col pr-20">
+        <div className="flex items-center gap-2">
+          <span className="bg-muted text-muted-foreground rounded px-1.5 py-px text-[10px] font-medium tracking-wide uppercase">
+            {item.section}
+          </span>
+          <span className="text-foreground truncate text-sm font-medium">
+            {item.key}
+          </span>
           {item.confidence != null && (
-            <span className="text-muted-foreground ml-auto text-xs">
+            <span className="text-muted-foreground/60 shrink-0 text-[11px] tabular-nums">
               {Math.round(item.confidence * 100)}%
             </span>
           )}
         </div>
-        <p className="text-muted-foreground text-xs">{item.summary}</p>
+
+        <p
+          className={cn(
+            'mt-1.5 text-sm leading-relaxed',
+            disabled ? 'text-muted-foreground' : 'text-foreground/90'
+          )}
+        >
+          {item.summary}
+        </p>
+
         {item.details.length > 0 && (
-          <ul className="text-muted-foreground mt-1 list-disc pl-4 text-xs">
-            {item.details.slice(0, 5).map((d, i) => (
-              <li key={i} className="truncate">
-                {d}
-              </li>
+          <ul className="text-muted-foreground marker:text-muted-foreground/40 mt-2 list-disc space-y-0.5 pl-4 text-[13px] leading-relaxed">
+            {item.details.slice(0, 4).map((d, i) => (
+              <li key={i}>{d}</li>
             ))}
+            {extra > 0 && (
+              <li className="text-muted-foreground/60 list-none">
+                +{extra} more
+              </li>
+            )}
           </ul>
         )}
       </div>
 
-      <div className="flex shrink-0 gap-1">
+      <div className="absolute top-2.5 right-2.5 flex items-center gap-0.5 opacity-60 transition-opacity group-hover:opacity-100">
         <Button
           variant="ghost"
           size="icon"
-          className="size-7"
-          title={item.isActive === false ? 'Restore' : 'Disable'}
+          className="text-muted-foreground hover:text-foreground size-7"
+          title={disabled ? 'Restore' : 'Disable'}
           onClick={() => onToggle(item)}
         >
-          <EyeOffIcon className="size-3.5" data-icon />
+          {disabled ? (
+            <RotateCcwIcon className="size-3.5" data-icon />
+          ) : (
+            <EyeOffIcon className="size-3.5" data-icon />
+          )}
         </Button>
         <Button
           variant="ghost"
           size="icon"
-          className="size-7"
+          className="text-muted-foreground hover:text-foreground size-7"
           title="Edit"
           onClick={() => onEdit(item)}
         >
@@ -267,7 +282,7 @@ function MemoryListItem({
         <Button
           variant="ghost"
           size="icon"
-          className="text-destructive hover:text-destructive size-7"
+          className="text-muted-foreground hover:text-destructive size-7"
           title="Delete"
           onClick={() => onDelete(item)}
         >
@@ -483,8 +498,8 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
 
             {inactiveMemories.length > 0 && (
               <>
-                <p className="text-muted-foreground mt-1 text-xs">
-                  Disabled ({inactiveMemories.length})
+                <p className="text-muted-foreground/70 mt-3 mb-0.5 text-[11px] font-medium tracking-wide uppercase">
+                  Disabled · {inactiveMemories.length}
                 </p>
                 {inactiveMemories.map((item) => (
                   <MemoryListItem
