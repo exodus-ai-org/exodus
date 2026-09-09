@@ -356,16 +356,12 @@ export function Markdown({
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
       table({ className, children, node, ...rest }: any) {
-        // No outer border — row dividers carry the structure. `w-max` lets
-        // the table lay out at its natural content width instead of being
-        // squeezed into the message column: short columns get one line, a
-        // column of prose wraps at the `max-w-[24rem]` cap (see th/td), and
-        // anything past the column width scrolls horizontally in this
-        // `overflow-x-auto` wrapper rather than every cell crushing to a
-        // sliver.
+        // No outer border / wrapper border — internal row dividers (handled
+        // on thead/tr below) carry the structure. Wider tables still scroll
+        // horizontally via overflow-x-auto without the boxed-in feel.
         return (
-          <div className="mb-[var(--md-gap)] max-w-full overflow-x-auto text-[0.9375rem] leading-normal last:mb-0">
-            <table {...rest} className={cn('w-max caption-bottom', className)}>
+          <div className="mb-[var(--md-gap)] overflow-x-auto text-[0.9375rem] leading-normal last:mb-0">
+            <table {...rest} className={cn('w-full caption-bottom', className)}>
               {children}
             </table>
           </div>
@@ -407,7 +403,7 @@ export function Markdown({
           <th
             {...rest}
             className={cn(
-              'text-foreground max-w-[24rem] py-2.5 pr-6 text-left align-top font-medium break-words last:pr-0',
+              'text-foreground py-2.5 pr-6 text-left align-top font-medium last:pr-0',
               className
             )}
           >
@@ -421,7 +417,7 @@ export function Markdown({
           <td
             {...rest}
             className={cn(
-              'text-foreground max-w-[24rem] py-2.5 pr-6 align-top font-normal break-words last:pr-0',
+              'text-foreground py-2.5 pr-6 align-top font-normal last:pr-0',
               className
             )}
           >
