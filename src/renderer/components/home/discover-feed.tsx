@@ -1,10 +1,10 @@
 import { TEST_IDS } from '@shared/constants/test-ids'
+import type { DiscoverArticle } from '@shared/types/discover'
 import { getHttpErrorMessage } from '@shared/utils/http'
 import { RefreshCwIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { sileo } from 'sileo'
 
-import { LazyLoadImage } from '@/components/lazy-load-image'
 import { SourceFavicon } from '@/components/source-favicon'
 import { Button } from '@/components/ui/button'
 import { useDiscoverFeed } from '@/hooks/use-discover-feed'
@@ -12,6 +12,39 @@ import { useSettings } from '@/hooks/use-settings'
 import { cn } from '@/lib/utils'
 
 import { refreshDiscoverFeed } from '../../services/discover'
+
+/**
+ * Article thumbnail. News-site images regularly 404, hotlink-block, or reject
+ * the app's `Referer` — the slot always renders (so cards stay a uniform
+ * height) and falls back to the source favicon on a muted tile.
+ */
+function DiscoverThumb({ article }: { article: DiscoverArticle }) {
+  const [failed, setFailed] = useState(false)
+  const showImg = !!article.thumbnail && !failed
+
+  return (
+    <div className="bg-muted relative aspect-video overflow-hidden rounded-xl">
+      {showImg ? (
+        <img
+          src={article.thumbnail}
+          alt={article.title}
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          onError={() => setFailed(true)}
+          className="size-full object-cover"
+        />
+      ) : (
+        <div className="flex size-full items-center justify-center">
+          <SourceFavicon
+            link={article.url}
+            favicon={article.favicon}
+            className="size-7 opacity-40 grayscale"
+          />
+        </div>
+      )}
+    </div>
+  )
+}
 
 export function DiscoverFeed() {
   const { data: settings } = useSettings()
@@ -86,18 +119,10 @@ export function DiscoverFeed() {
                 href={article.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-52 shrink-0"
+                className="group w-52 shrink-0 self-start"
               >
-                {article.thumbnail && (
-                  <div className="relative aspect-video overflow-hidden rounded-xl">
-                    <LazyLoadImage
-                      src={article.thumbnail}
-                      alt={article.title}
-                      className="size-full"
-                    />
-                  </div>
-                )}
-                <div className="mt-1.5 line-clamp-2 text-sm font-medium">
+                <DiscoverThumb article={article} />
+                <div className="group-hover:text-foreground/80 mt-1.5 line-clamp-2 text-sm font-medium transition-colors">
                   {article.title}
                 </div>
                 <div className="text-muted-foreground mt-1 flex items-center gap-1.5 text-xs">
