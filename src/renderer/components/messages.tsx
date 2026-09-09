@@ -558,7 +558,7 @@ function Messages({
 
       <ChatToc scrollContainerRef={chatBoxRef} messages={messages} />
 
-      {showScrollButton && (
+      {showScrollButton && messages.length > 0 && (
         <Button
           variant="outline"
           size="icon-sm"
