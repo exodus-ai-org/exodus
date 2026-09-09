@@ -23,7 +23,8 @@ export const TEST_IDS = {
     thumbnail: 'gallery.thumbnail',
     lightboxClose: 'gallery.lightbox-close',
     lightboxPrev: 'gallery.lightbox-prev',
-    lightboxNext: 'gallery.lightbox-next'
+    lightboxNext: 'gallery.lightbox-next',
+    lightboxDot: 'gallery.lightbox-dot'
   },
   video: {
     card: 'video.card'
