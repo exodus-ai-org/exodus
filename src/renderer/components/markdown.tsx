@@ -360,7 +360,7 @@ export function Markdown({
         // on thead/tr below) carry the structure. Wider tables still scroll
         // horizontally via overflow-x-auto without the boxed-in feel.
         return (
-          <div className="my-4 overflow-x-auto text-sm leading-normal">
+          <div className="mb-[var(--md-gap)] overflow-x-auto text-[0.9375rem] leading-normal last:mb-0">
             <table {...rest} className={cn('w-full caption-bottom', className)}>
               {children}
             </table>
