@@ -11,6 +11,12 @@ export interface WebSearchMediaResult {
   height?: number
   duration?: string
   age?: string
+  /** Video only — channel / uploader name. */
+  creator?: string
+  /** Video only — view count. */
+  views?: number
+  /** Video only — hosting platform, e.g. "YouTube". */
+  publisher?: string
 }
 
 export interface WebSearchResult {

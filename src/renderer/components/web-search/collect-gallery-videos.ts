@@ -10,6 +10,10 @@ export interface GalleryVideo {
   source?: string
   /** e.g. "12:34". */
   duration?: string
+  /** Channel / uploader name (preferred over `source` on the card). */
+  creator?: string
+  /** View count. */
+  views?: number
 }
 
 /** Collect video media across a turn's results: videos only, deduped by url. */
@@ -29,7 +33,9 @@ export function collectGalleryVideos(
         thumbnailUrl: m.thumbnailUrl || url,
         title: m.title,
         source: m.source,
-        duration: m.duration
+        duration: m.duration,
+        creator: m.creator,
+        views: m.views
       })
     }
   }

@@ -22,6 +22,8 @@ interface BraveNewsRawResult {
   page_age?: string
   thumbnail?: { src?: string }
   meta_url?: { hostname?: string; favicon?: string }
+  /** Publisher identity — the readable outlet name ("ESPN", "The Guardian"). */
+  profile?: { name?: string; long_name?: string }
 }
 
 function safeHostname(url: string): string {
@@ -82,7 +84,7 @@ export async function searchBraveNews(
   opts: { count: number; country?: string | null; language?: string | null }
 ): Promise<BraveNewsArticle[]> {
   const want = Math.max(opts.count, 1)
-  const poolSize = Math.min(Math.max(want * 5, 12), 20)
+  const poolSize = Math.min(Math.max(want * 5, 12), 30)
 
   const params = new URLSearchParams()
   params.set('q', query)
@@ -108,7 +110,12 @@ export async function searchBraveNews(
     title: r.title!,
     url: r.url!,
     description: r.description ?? '',
-    source: r.source ?? r.meta_url?.hostname ?? safeHostname(r.url!),
+    source:
+      r.profile?.name ??
+      r.profile?.long_name ??
+      r.source ??
+      r.meta_url?.hostname ??
+      safeHostname(r.url!),
     favicon: r.meta_url?.favicon,
     thumbnail: r.thumbnail?.src,
     age: r.age,

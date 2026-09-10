@@ -87,6 +87,8 @@ export const webSearch = (
                 const attrs = [
                   m.thumbnailUrl ? `thumbnail: ${m.thumbnailUrl}` : '',
                   m.source ? `source: ${m.source}` : '',
+                  m.creator ? `creator: ${m.creator}` : '',
+                  m.views ? `views: ${m.views}` : '',
                   m.duration ? `duration: ${m.duration}` : '',
                   m.width && m.height ? `size: ${m.width}x${m.height}` : ''
                 ]

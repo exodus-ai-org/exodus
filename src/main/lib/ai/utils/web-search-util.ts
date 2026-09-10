@@ -195,6 +195,14 @@ type BraveVideoResult = {
   meta_url?: {
     hostname?: string
   }
+  // Nested metadata Brave attaches to video results — the flat `duration`
+  // above is legacy; `video.*` is where creator / views / publisher live.
+  video?: {
+    duration?: string
+    views?: number
+    creator?: string
+    publisher?: string
+  }
 }
 
 type BraveVideoSearchResponse = {
@@ -255,17 +263,28 @@ async function fetchBraveLlmContext({
     recencyFilter,
     maxResults
   })
-  // Brave caps per-URL tokens at 8192; raise from the 4096 default so each
-  // grounding source carries deeper context for the model.
+  // Consider a wide candidate pool (llm/context allows up to 50, vs the shared
+  // helper's 20 default) so the relevance ranker has more to draw from.
+  const urls = Math.min(Math.max(maxResults ?? 20, 20), 50)
+  params.set('count', String(urls))
+  params.set('maximum_number_of_urls', String(urls))
+  // Total token budget defaults to 8192 — with per-URL also at 8192 the first
+  // source can eat the whole budget and the rest come back empty. Raise the
+  // total so several sources carry real depth.
+  params.set('maximum_number_of_tokens', '16384')
   params.set('maximum_number_of_tokens_per_url', '8192')
   // Enrich each source with site metadata (favicon, site_name, thumbnail, age).
   params.set('enable_source_metadata', 'true')
+  // Our queries are model-authored with correct spelling; Brave's spellchecker
+  // otherwise mangles identifiers ("reqwest" -> "request", "axum" -> "album").
+  params.set('spellcheck', 'false')
 
   const res = await fetch(
     `${BRAVE_API_BASE}/llm/context?${params.toString()}`,
     {
       headers: {
         Accept: 'application/json',
+        'Accept-Encoding': 'gzip',
         'x-subscription-token': apiKey
       },
       signal
@@ -417,8 +436,11 @@ function videoResultsToMedia(
       sourceUrl: videoUrl,
       thumbnailUrl: normalizeMediaUrl(r.thumbnail?.src) || undefined,
       source: r.source || r.meta_url?.hostname,
-      duration: r.duration,
-      age: r.age
+      duration: r.video?.duration || r.duration,
+      age: r.age,
+      creator: r.video?.creator,
+      views: r.video?.views,
+      publisher: r.video?.publisher
     })
   }
 

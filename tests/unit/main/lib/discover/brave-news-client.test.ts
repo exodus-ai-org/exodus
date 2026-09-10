@@ -93,6 +93,24 @@ describe('searchBraveNews', () => {
     ])
   })
 
+  it('prefers profile.name (the readable outlet) over source and hostname', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({
+        results: [
+          {
+            title: 'C',
+            url: 'https://www.espn.com/soccer/story',
+            source: 'espn.com',
+            profile: { name: 'ESPN' },
+            meta_url: { hostname: 'www.espn.com' }
+          }
+        ]
+      })
+    )
+    const res = await searchBraveNews('k', 'q', { count: 3 })
+    expect(res[0].source).toBe('ESPN')
+  })
+
   it('falls back to meta_url.hostname when source is missing', async () => {
     fetchMock.mockResolvedValue(
       jsonResponse({

@@ -6,6 +6,13 @@ import { SourceFavicon } from '@/components/source-favicon'
 
 import type { GalleryVideo } from './collect-gallery-videos'
 
+/** Compact view count: 1234 → "1.2K", 4_500_000 → "4.5M". */
+function formatViews(n: number): string {
+  if (n < 1000) return `${n}`
+  if (n < 1_000_000) return `${(n / 1000).toFixed(n < 10_000 ? 1 : 0)}K`
+  return `${(n / 1_000_000).toFixed(n < 10_000_000 ? 1 : 0)}M`
+}
+
 export function VideoCards({ videos }: { videos: GalleryVideo[] }) {
   if (videos.length === 0) return null
 
@@ -42,7 +49,14 @@ export function VideoCards({ videos }: { videos: GalleryVideo[] }) {
           </div>
           <div className="text-muted-foreground mt-1 flex items-center gap-1.5 text-xs">
             <SourceFavicon link={video.url} className="size-3.5" />
-            {video.source && <span className="truncate">{video.source}</span>}
+            {(video.creator || video.source) && (
+              <span className="truncate">{video.creator || video.source}</span>
+            )}
+            {video.views != null && video.views > 0 && (
+              <span className="shrink-0">
+                · {formatViews(video.views)} views
+              </span>
+            )}
           </div>
         </a>
       ))}
