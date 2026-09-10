@@ -3,6 +3,7 @@ import { format } from 'date-fns'
 import {
   ArrowLeftIcon,
   ArrowUpIcon,
+  ChevronRightIcon,
   EyeIcon,
   EyeOffIcon,
   LoaderIcon,
@@ -77,26 +78,27 @@ function MemoryRow({
           onOpen()
         }
       }}
-      className="group border-border/40 hover:bg-muted/40 focus-visible:bg-muted/40 flex h-11 cursor-pointer items-center gap-4 rounded-md border-b px-2 outline-none last:border-b-0"
+      className="group hover:bg-muted/55 focus-visible:bg-muted/55 relative flex h-10 cursor-pointer items-center gap-3.5 px-3 outline-none"
     >
       <span
         className={cn(
-          'w-44 shrink-0 truncate text-sm font-medium',
+          'max-w-[60%] shrink-0 truncate text-sm font-medium',
           disabled && 'text-muted-foreground'
         )}
       >
         {item.key}
       </span>
-      <span className="text-muted-foreground min-w-0 flex-1 truncate text-sm">
+      <span className="text-muted-foreground min-w-0 flex-1 truncate text-[13px]">
         {item.summary || <span className="italic">No summary yet</span>}
       </span>
 
-      {/* Fixed-size slot so the date → actions swap is a pure crossfade and
-          never changes the row's height (which read as a flicker). */}
-      <div className="relative flex h-7 w-24 shrink-0 items-center justify-end">
-        <span className="text-muted-foreground/60 text-xs tabular-nums transition-opacity group-hover:opacity-0">
-          {updatedLabel(item)}
-        </span>
+      {/* Fixed slot: a chevron at rest, the eye/trash actions on hover — the
+          slot keeps its width both ways so the swap never nudges the row. */}
+      <div className="relative flex h-7 w-16 shrink-0 items-center justify-end">
+        <ChevronRightIcon
+          className="text-muted-foreground/40 size-4 transition-opacity group-hover:opacity-0"
+          data-icon
+        />
         <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
           <Button
             type="button"
@@ -242,6 +244,12 @@ function MemoryDetail({
         placeholder="Title"
         className="placeholder:text-muted-foreground/50 -my-1 border-0 bg-transparent p-0 text-lg font-semibold outline-none"
       />
+
+      {updatedLabel(item) && (
+        <p className="text-muted-foreground/70 -mt-3 text-xs">
+          {updatedLabel(item)}
+        </p>
+      )}
 
       <div className="flex flex-col gap-1.5">
         <FieldLabel>Summary</FieldLabel>
@@ -449,6 +457,10 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
   // ── List view ──
   const active = memories.filter((m) => m.isActive !== false)
   const inactive = memories.filter((m) => m.isActive === false)
+  const activeGroups = SECTION_GROUPS.map((g) => ({
+    ...g,
+    rows: active.filter((m) => m.section === g.section)
+  })).filter((g) => g.rows.length > 0)
 
   return (
     <div className="flex flex-col gap-8">
@@ -552,76 +564,68 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
         )}
       </SettingsSection>
 
-      <div className="flex flex-col gap-4">
-        <SettingsSection title="Stored memories" plain>
-          <div className="flex items-center justify-between">
-            <span className="text-muted-foreground text-sm">
-              {memories.length} {memories.length === 1 ? 'memory' : 'memories'}
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-sm font-semibold">
+            Stored memories
+            <span className="text-muted-foreground ml-1.5 text-xs font-normal tabular-nums">
+              {memories.length}
             </span>
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              onClick={handleNew}
-            >
-              <PlusIcon className="mr-1 size-3.5" data-icon />
-              New
-            </Button>
+          </h2>
+          <Button type="button" size="sm" variant="outline" onClick={handleNew}>
+            <PlusIcon className="mr-1 size-3.5" data-icon />
+            New
+          </Button>
+        </div>
+
+        {loading ? (
+          <div className="flex flex-col gap-2">
+            <Skeleton className="h-10 w-full rounded-lg" />
+            <Skeleton className="h-10 w-full rounded-lg" />
+            <Skeleton className="h-10 w-full rounded-lg" />
           </div>
+        ) : memories.length === 0 ? (
+          <div className="text-muted-foreground rounded-xl border border-dashed py-10 text-center text-sm">
+            No memories yet — they're added automatically after conversations,
+            or tell the assistant to remember something below.
+          </div>
+        ) : (
+          <div className="border-border divide-border divide-y overflow-hidden rounded-xl border">
+            {activeGroups.map((g) => (
+              <div key={g.section}>
+                <p className="text-muted-foreground px-3 pt-3 pb-1.5 text-[11px] font-semibold tracking-wide uppercase">
+                  {g.label}
+                </p>
+                {g.rows.map((m) => (
+                  <MemoryRow
+                    key={m.id}
+                    item={m}
+                    onOpen={() => setSelectedId(m.id)}
+                    onToggle={() => handleToggle(m)}
+                    onDelete={() => handleDelete(m)}
+                  />
+                ))}
+              </div>
+            ))}
 
-          {loading ? (
-            <div className="flex flex-col gap-2">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
-            </div>
-          ) : memories.length === 0 ? (
-            <div className="text-muted-foreground rounded-lg border border-dashed py-10 text-center text-sm">
-              No memories yet — they're added automatically after conversations,
-              or tell the assistant to remember something below.
-            </div>
-          ) : (
-            <div>
-              {SECTION_GROUPS.map((g) => {
-                const rows = active.filter((m) => m.section === g.section)
-                if (rows.length === 0) return null
-                return (
-                  <div key={g.section} className="mt-6 first:mt-2">
-                    <p className="mb-1.5 px-2 text-sm font-semibold">
-                      {g.label}
-                    </p>
-                    {rows.map((m) => (
-                      <MemoryRow
-                        key={m.id}
-                        item={m}
-                        onOpen={() => setSelectedId(m.id)}
-                        onToggle={() => handleToggle(m)}
-                        onDelete={() => handleDelete(m)}
-                      />
-                    ))}
-                  </div>
-                )
-              })}
-
-              {inactive.length > 0 && (
-                <div className="mt-6">
-                  <p className="text-muted-foreground/70 mb-1 px-2 text-[11px] font-medium tracking-wide uppercase">
-                    Disabled · {inactive.length}
-                  </p>
-                  {inactive.map((m) => (
-                    <MemoryRow
-                      key={m.id}
-                      item={m}
-                      onOpen={() => setSelectedId(m.id)}
-                      onToggle={() => handleToggle(m)}
-                      onDelete={() => handleDelete(m)}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </SettingsSection>
+            {inactive.length > 0 && (
+              <div>
+                <p className="text-muted-foreground/70 px-3 pt-3 pb-1.5 text-[11px] font-semibold tracking-wide uppercase">
+                  Disabled · {inactive.length}
+                </p>
+                {inactive.map((m) => (
+                  <MemoryRow
+                    key={m.id}
+                    item={m}
+                    onOpen={() => setSelectedId(m.id)}
+                    onToggle={() => handleToggle(m)}
+                    onDelete={() => handleDelete(m)}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <MemoryComposer onApplied={load} />
       </div>
