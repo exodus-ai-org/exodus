@@ -348,6 +348,7 @@ function MemoryComposer({
       <Button
         type="button"
         size="icon"
+        aria-label="Add to memory"
         className="size-7 shrink-0 rounded-full"
         disabled={!text.trim() || busy}
         onClick={submit}

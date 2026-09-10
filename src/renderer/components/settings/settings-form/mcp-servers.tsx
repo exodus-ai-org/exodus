@@ -119,6 +119,7 @@ function ServerCard({
           variant="ghost"
           size="icon"
           className="h-7 w-7"
+          aria-label="Edit server"
           onClick={onEdit}
         >
           <PencilIcon className="h-3.5 w-3.5" />
@@ -127,6 +128,7 @@ function ServerCard({
           variant="ghost"
           size="icon"
           className="text-destructive h-7 w-7"
+          aria-label="Delete server"
           onClick={onDelete}
         >
           <Trash2Icon className="h-3.5 w-3.5" />

@@ -156,7 +156,12 @@ export function DeepResearchCard({
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
-                <Button size="icon" variant="ghost" onClick={exportPdf}>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  aria-label="Export as PDF"
+                  onClick={exportPdf}
+                >
                   {loading ? (
                     <LoaderIcon
                       size={14}
