@@ -78,6 +78,9 @@ function htmlToMarkdown(html: string) {
 export async function loadDocumentBuiltin(link: string, signal?: AbortSignal) {
   try {
     const response = await fetch(link, { signal })
+    // A 4xx/5xx body is an error page, not the document — turning it into
+    // markdown would hand the agent "404 Not Found" as if it were content.
+    if (!response.ok) return null
     const contentType = response.headers.get('content-type') ?? ''
 
     if (contentType.includes('application/pdf')) {
