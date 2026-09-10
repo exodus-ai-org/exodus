@@ -56,9 +56,7 @@ function InputBox({
   const adjustHeight = () => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto'
-      textareaRef.current.style.height = `${
-        textareaRef.current.scrollHeight + 2
-      }px`
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
     }
   }
 
@@ -114,7 +112,7 @@ function InputBox({
     const el = textareaRef.current
     if (el) {
       el.style.height = 'auto'
-      el.style.height = `${el.scrollHeight + 2}px`
+      el.style.height = `${el.scrollHeight}px`
     }
   }, [])
 
@@ -141,7 +139,7 @@ function InputBox({
             placeholder="Ask anything"
             value={input}
             onChange={handleInput}
-            className="max-h-[45dvh] min-h-8 flex-1 resize-none border-none bg-transparent! px-1 py-1.5 text-base shadow-none focus-visible:ring-0 md:text-base"
+            className="max-h-[45dvh] min-h-8 flex-1 resize-none border-none bg-transparent! px-1 py-1 text-base leading-6 shadow-none focus-visible:ring-0 md:text-base"
             rows={1}
             autoFocus
             onKeyDown={(event) => {
