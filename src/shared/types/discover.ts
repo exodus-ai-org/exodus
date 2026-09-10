@@ -5,7 +5,10 @@ export interface DiscoverArticle {
   source: string
   favicon?: string
   thumbnail?: string
+  /** Human freshness label from Brave at generation time, e.g. "10 hours ago". */
   age?: string
+  /** ISO timestamp — render a live relative time from this when present. */
+  publishedAt?: string
 }
 
 export interface DiscoverGroup {

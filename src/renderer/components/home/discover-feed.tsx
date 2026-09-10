@@ -1,6 +1,7 @@
 import { TEST_IDS } from '@shared/constants/test-ids'
 import type { DiscoverArticle } from '@shared/types/discover'
 import { getHttpErrorMessage } from '@shared/utils/http'
+import { formatDistanceToNow } from 'date-fns'
 import { RefreshCwIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { sileo } from 'sileo'
@@ -12,6 +13,20 @@ import { useSettings } from '@/hooks/use-settings'
 import { cn } from '@/lib/utils'
 
 import { refreshDiscoverFeed } from '../../services/discover'
+
+/**
+ * `publishedAt` (ISO) gets a live relative label so a card cached for ~20h
+ * doesn't keep saying "2 hours ago". Falls back to Brave's `age` string.
+ */
+function articleAge(article: DiscoverArticle): string | null {
+  if (article.publishedAt) {
+    const d = new Date(article.publishedAt)
+    if (!Number.isNaN(d.getTime())) {
+      return formatDistanceToNow(d, { addSuffix: true })
+    }
+  }
+  return article.age ?? null
+}
 
 /**
  * Article thumbnail. News-site images regularly 404, hotlink-block, or reject
@@ -132,8 +147,8 @@ export function DiscoverFeed() {
                     className="size-3.5"
                   />
                   <span className="truncate">{article.source}</span>
-                  {article.age && (
-                    <span className="shrink-0">· {article.age}</span>
+                  {articleAge(article) && (
+                    <span className="shrink-0">· {articleAge(article)}</span>
                   )}
                 </div>
               </a>
