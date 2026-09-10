@@ -16,6 +16,7 @@ import {
   useComboboxAnchor
 } from '@/components/ui/combobox'
 import { Input } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
 
 import { SettingsRow, SettingsSection } from '../settings-row'
 import { SettingsSelect } from '../settings-select'
@@ -182,6 +183,23 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
                 const v = e.target.value
                 field.onChange(v === '' ? null : Number(v))
               }}
+            />
+          </SettingsRow>
+        )}
+      />
+
+      {/* Deep Recall */}
+      <Controller
+        control={form.control}
+        name="webSearch.deepRecall"
+        render={({ field }) => (
+          <SettingsRow
+            label="Deep recall"
+            description="Run a second, broader web search alongside the grounding call and merge in the extra results — forums, news, and pages the grounding filter drops. Higher recall, ~2× Brave API usage per search."
+          >
+            <Switch
+              checked={field.value ?? true}
+              onCheckedChange={field.onChange}
             />
           </SettingsRow>
         )}

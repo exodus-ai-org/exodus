@@ -136,6 +136,38 @@ export async function loadDocumentWithJina(link: string, signal?: AbortSignal) {
   }
 }
 
+/* ================= Brave Search ================= */
+
+/**
+ * `fetch` for the Brave API: always asks for gzip, and retries once on a 429
+ * after a short pause (the free tier is 1 req/s, so a fan of parallel calls
+ * trips it easily). Returns `null` on any non-2xx so callers degrade rather
+ * than throw.
+ */
+async function braveFetch(
+  url: string,
+  apiKey: string,
+  signal?: AbortSignal
+): Promise<Response | null> {
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const res = await fetch(url, {
+      headers: {
+        Accept: 'application/json',
+        'Accept-Encoding': 'gzip',
+        'x-subscription-token': apiKey
+      },
+      signal
+    })
+    if (res.ok) return res
+    if (res.status === 429 && attempt === 0) {
+      await new Promise((r) => setTimeout(r, 1200))
+      continue
+    }
+    return null
+  }
+  return null
+}
+
 /* ================= Brave LLM Context Search ================= */
 
 // LLM Context returns a single Markdown summary plus the source list it used.
@@ -246,6 +278,7 @@ async function fetchBraveLlmContext({
   languages,
   recencyFilter,
   maxResults,
+  threshold,
   signal
 }: {
   query: string
@@ -254,6 +287,7 @@ async function fetchBraveLlmContext({
   languages?: string[] | null
   recencyFilter?: string | null
   maxResults?: number | null
+  threshold?: 'broad' | 'strict'
   signal?: AbortSignal
 }): Promise<BraveLlmContextResponse | null> {
   const params = buildCommonParams({
@@ -278,20 +312,144 @@ async function fetchBraveLlmContext({
   // Our queries are model-authored with correct spelling; Brave's spellchecker
   // otherwise mangles identifiers ("reqwest" -> "request", "axum" -> "album").
   params.set('spellcheck', 'false')
+  // Default (unset) resolves to `lenient` — max recall. `strict` is for a
+  // deliberate precision follow-up when the first pass was too noisy.
+  if (threshold === 'strict') params.set('context_threshold_mode', 'strict')
 
-  const res = await fetch(
+  const res = await braveFetch(
     `${BRAVE_API_BASE}/llm/context?${params.toString()}`,
-    {
-      headers: {
-        Accept: 'application/json',
-        'Accept-Encoding': 'gzip',
-        'x-subscription-token': apiKey
-      },
-      signal
-    }
+    apiKey,
+    signal
   )
-  if (!res.ok) return null
+  if (!res) return null
   return (await res.json()) as BraveLlmContextResponse
+}
+
+type BraveWebPageResult = {
+  title?: string
+  url?: string
+  description?: string
+  age?: string
+  extra_snippets?: string[]
+  profile?: { name?: string; long_name?: string }
+  meta_url?: { hostname?: string; favicon?: string }
+  thumbnail?: { src?: string; original?: string }
+}
+
+type BraveDiscussionResult = {
+  title?: string
+  url?: string
+  description?: string
+  age?: string
+  data?: {
+    forum_name?: string
+    num_answers?: number
+    question?: string
+    top_comment?: string
+  }
+}
+
+type BraveWebSearchResponse = {
+  web?: { results?: BraveWebPageResult[] }
+  news?: { results?: BraveWebPageResult[] }
+  discussions?: { results?: BraveDiscussionResult[] }
+}
+
+/**
+ * The breadth pass: `web/search` returns a wider, differently-ranked result
+ * set — plus forum threads and news clusters — that the grounding endpoint's
+ * relevance threshold drops. Snippet-depth only; the agent `webFetch`es any
+ * of these it wants in full.
+ */
+async function fetchBraveWebSearch({
+  query,
+  apiKey,
+  country,
+  languages,
+  recencyFilter,
+  signal
+}: {
+  query: string
+  apiKey: string
+  country?: string | null
+  languages?: string[] | null
+  recencyFilter?: string | null
+  signal?: AbortSignal
+}): Promise<BraveWebSearchResponse | null> {
+  const params = buildCommonParams({
+    query,
+    country,
+    languages,
+    recencyFilter,
+    maxResults: 20
+  })
+  params.set('result_filter', 'web,news,discussions')
+  params.set('extra_snippets', 'true')
+  params.set('spellcheck', 'false')
+
+  const res = await braveFetch(
+    `${BRAVE_API_BASE}/web/search?${params.toString()}`,
+    apiKey,
+    signal
+  )
+  if (!res) return null
+  return (await res.json()) as BraveWebSearchResponse
+}
+
+type FlatWebSource = {
+  url: string
+  title: string
+  content: string
+  age?: string
+  siteName?: string
+  hostname?: string
+  favicon?: string
+  thumbnail?: string
+}
+
+/** Flatten web + news + discussion clusters into a single deduped list. */
+export function webResultsToSources(
+  resp: BraveWebSearchResponse | null
+): FlatWebSource[] {
+  if (!resp) return []
+  const out: FlatWebSource[] = []
+  const seen = new Set<string>()
+
+  const pushPage = (r: BraveWebPageResult) => {
+    if (!r.url || !r.title || seen.has(r.url)) return
+    const content = [r.description, ...(r.extra_snippets ?? [])]
+      .filter(Boolean)
+      .join('\n\n')
+    if (!content) return
+    seen.add(r.url)
+    out.push({
+      url: r.url,
+      title: r.title,
+      content,
+      age: r.age,
+      siteName: r.profile?.name ?? r.profile?.long_name,
+      hostname: r.meta_url?.hostname,
+      favicon: r.meta_url?.favicon,
+      thumbnail: r.thumbnail?.src ?? r.thumbnail?.original
+    })
+  }
+
+  for (const r of resp.web?.results ?? []) pushPage(r)
+  for (const r of resp.news?.results ?? []) pushPage(r)
+  for (const r of resp.discussions?.results ?? []) {
+    if (!r.url || !r.title || seen.has(r.url)) continue
+    const d = r.data
+    const head = d?.forum_name
+      ? `[Forum: ${d.forum_name}${d.num_answers ? `, ${d.num_answers} answers` : ''}]`
+      : '[Discussion]'
+    const content = [head, d?.question, d?.top_comment, r.description]
+      .filter(Boolean)
+      .join('\n\n')
+    seen.add(r.url)
+    out.push({ url: r.url, title: r.title, content, age: r.age })
+  }
+
+  return out
 }
 
 async function fetchBraveImages({
@@ -317,17 +475,12 @@ async function fetchBraveImages({
   })
   params.set('safesearch', 'strict')
 
-  const res = await fetch(
+  const res = await braveFetch(
     `${BRAVE_API_BASE}/images/search?${params.toString()}`,
-    {
-      headers: {
-        Accept: 'application/json',
-        'x-subscription-token': apiKey
-      },
-      signal
-    }
+    apiKey,
+    signal
   )
-  if (!res.ok) return null
+  if (!res) return null
   return (await res.json()) as BraveImageSearchResponse
 }
 
@@ -357,17 +510,12 @@ async function fetchBraveVideos({
   })
   params.set('safesearch', 'moderate')
 
-  const res = await fetch(
+  const res = await braveFetch(
     `${BRAVE_API_BASE}/videos/search?${params.toString()}`,
-    {
-      headers: {
-        Accept: 'application/json',
-        'x-subscription-token': apiKey
-      },
-      signal
-    }
+    apiKey,
+    signal
   )
-  if (!res.ok) return null
+  if (!res) return null
   return (await res.json()) as BraveVideoSearchResponse
 }
 
@@ -464,10 +612,10 @@ export function pickAgeLabel(age?: string[]): string | undefined {
 /**
  * Search the web via the Brave Search API and return structured results.
  *
- * Uses Brave LLM Context as the canonical source list and content that the LLM
- * grounds on. We intentionally avoid the parallel Web Search metadata call so
- * citation numbering, stored source data, and UI rendering all come from one
- * source of truth.
+ * `llm/context` is the primary layer — the source list and the extracted
+ * content the model grounds on. With `deep`, a parallel `web/search` breadth
+ * pass is merged in behind it (forums, news clusters, URLs the grounding
+ * threshold dropped) as snippet-only secondary sources.
  */
 export async function fetchWebSearch({
   query,
@@ -479,6 +627,8 @@ export async function fetchWebSearch({
   maxResults,
   recencyFilter,
   domainFilter,
+  deep = false,
+  threshold,
   signal
 }: {
   query: string
@@ -490,13 +640,15 @@ export async function fetchWebSearch({
   maxResults?: number | null
   recencyFilter?: string | null
   domainFilter?: string[] | null
+  deep?: boolean
+  threshold?: 'broad' | 'strict'
   signal?: AbortSignal
 }): Promise<WebSearchResult[] | null> {
   try {
     const includeImages = media === 'image' || media === 'all'
     const includeVideos = media === 'video' || media === 'all'
 
-    const [llmCtx, imageResp, videoResp] = await Promise.all([
+    const [llmCtx, webResp, imageResp, videoResp] = await Promise.all([
       fetchBraveLlmContext({
         query,
         apiKey: braveApiKey,
@@ -504,8 +656,19 @@ export async function fetchWebSearch({
         languages,
         recencyFilter,
         maxResults,
+        threshold,
         signal
       }),
+      deep
+        ? fetchBraveWebSearch({
+            query,
+            apiKey: braveApiKey,
+            country,
+            languages,
+            recencyFilter,
+            signal
+          })
+        : Promise.resolve(null),
       includeImages
         ? fetchBraveImages({
             query,
@@ -592,6 +755,32 @@ export async function fetchWebSearch({
         thumbnail: llmMeta?.thumbnail?.src ?? llmMeta?.thumbnail?.original,
         age: pickAgeLabel(llmMeta?.age)
       })
+    }
+
+    // Breadth pass: append web/search URLs the grounding layer didn't cover,
+    // as snippet-only sources ranked after the grounded ones.
+    if (webResp) {
+      const seen = new Set<string>([
+        ...results.map((r) => r.link),
+        ...(webSources ? [...webSources.keys()] : [])
+      ])
+      const extras = webResultsToSources(webResp)
+        .filter((s) => !seen.has(s.url) && passesDomainFilter(s.url))
+        .slice(0, 15)
+      for (const s of extras) {
+        results.push({
+          rank: baseRank + results.length + 1,
+          link: s.url,
+          title: s.title,
+          snippet: s.content.slice(0, 300),
+          content: s.content,
+          siteName: s.siteName,
+          hostname: s.hostname,
+          favicon: s.favicon,
+          thumbnail: s.thumbnail,
+          age: s.age
+        })
+      }
     }
 
     if (mediaResults.length > 0) {

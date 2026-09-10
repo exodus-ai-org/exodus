@@ -81,7 +81,11 @@ export const WebSearchSchema = z.object({
   languages: z.array(z.string()).nullish(),
   maxResults: formNumber(z.number().gte(1).lte(50)).nullish(),
   recencyFilter: z.enum(['hour', 'day', 'week', 'month', 'year']).nullish(),
-  domainFilter: z.string().nullish() // comma-separated domain list
+  domainFilter: z.string().nullish(), // comma-separated domain list
+  // Run the grounding call AND a parallel web/search breadth pass, merging the
+  // results — broader recall (forums, news clusters, URLs the grounding
+  // threshold drops) at ~2x Brave API usage per search. Default on.
+  deepRecall: z.boolean().nullish()
 })
 
 export const ElasticsearchSchema = z.object({
