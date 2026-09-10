@@ -159,7 +159,7 @@ function MemoryDetail({
 }) {
   const [key, setKey] = useState(item.key)
   const [summary, setSummary] = useState(item.summary)
-  const [detailsText, setDetailsText] = useState(item.details.join('\n'))
+  const [detailsText, setDetailsText] = useState(() => item.details.join('\n'))
   const disabled = item.isActive === false
 
   type MemoryPatch = Partial<Pick<MemoryItem, 'key' | 'summary'>> & {
@@ -242,6 +242,7 @@ function MemoryDetail({
           else setKey(item.key)
         }}
         placeholder="Title"
+        aria-label="Title"
         className="placeholder:text-muted-foreground/50 -my-1 border-0 bg-transparent p-0 text-lg font-semibold outline-none"
       />
 
