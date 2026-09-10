@@ -35,9 +35,11 @@ const webSearchSchema = Type.Object({
 })
 
 export const webSearch = (
-  setting: Settings
+  setting: Settings,
+  // Shared rank registry — webFetch writes into the same map so citation
+  // numbers ([N]) stay coherent across both tools.
+  webSources: Map<string, WebSearchResult> = new Map()
 ): AgentTool<typeof webSearchSchema> => {
-  const webSources = new Map<string, WebSearchResult>()
   let searchQueue = Promise.resolve()
 
   return {

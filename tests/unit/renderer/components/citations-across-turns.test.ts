@@ -107,6 +107,39 @@ describe('citations survive a follow-up turn', () => {
     expect(rankMap.get(2)?.siteName).toBe('Example B')
   })
 
+  it('collects a webFetch page as a citeable source', () => {
+    const messages: ChatMessage[] = [
+      { id: 'u', role: 'user', content: 'analyze this', timestamp: 1 },
+      {
+        id: 'tf',
+        role: 'toolResult',
+        toolCallId: 'call_f',
+        toolName: 'webFetch',
+        content: [
+          { type: 'text', text: '[1] BLS PPI\nURL: https://bls.gov/x' }
+        ],
+        details: {
+          rank: 1,
+          link: 'https://bls.gov/x',
+          title: 'BLS PPI',
+          content: 'preview',
+          snippet: 'preview'
+        },
+        isError: false,
+        timestamp: 2
+      } as ChatMessage,
+      {
+        id: 'af',
+        role: 'assistant',
+        content: [{ type: 'text', text: 'PPI rose 0.4% 【1-source】.' }],
+        timestamp: 3
+      } as ChatMessage
+    ]
+    const sources = sourcesForFirstTurn(messages)
+    expect(sources.map((s) => s.link)).toEqual(['https://bls.gov/x'])
+    expect(parseCitations('PPI rose 0.4% 【1-source】.')).toEqual([1])
+  })
+
   it('confirms the pre-fix strip is what broke it (contrast)', () => {
     // Simulate the old strict-object behaviour: keep only id/role/content.
     const stripped = [...turn1, turn2User].map((m) => ({

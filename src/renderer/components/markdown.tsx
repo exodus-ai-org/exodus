@@ -169,25 +169,29 @@ function inlineReplaceCitations(
   return nodes
 }
 
+// Strip citation markers we can't resolve to a source — a bare "【1-source】"
+// in the prose reads as a rendering bug. Happens when the model cites but no
+// tool registered source N (cited from memory, an un-instrumented tool, or a
+// hallucinated index).
+const stripCitations = (s: string) =>
+  s.replace(citationGlobalRegex, '').replace(/ {2,}/g, ' ')
+
 function TextWithCitations({ children }: { children: ReactNode }) {
   const rankMap = useContext(WebSearchRankMapContext)
 
   return useMemo<ReactNode>(() => {
-    if (!rankMap) return <>{children}</>
+    const render = (text: string): ReactNode =>
+      rankMap ? inlineReplaceCitations(text, rankMap) : stripCitations(text)
 
     if (typeof children === 'string') {
       if (!citationDetectRegex.test(children)) return <>{children}</>
-      return <>{inlineReplaceCitations(children, rankMap)}</>
+      return <>{render(children)}</>
     }
 
     if (Array.isArray(children)) {
       const processed = children.map((child, i) => {
         if (typeof child === 'string' && citationDetectRegex.test(child)) {
-          return (
-            <Fragment key={i}>
-              {inlineReplaceCitations(child, rankMap)}
-            </Fragment>
-          )
+          return <Fragment key={i}>{render(child)}</Fragment>
         }
         return child
       })

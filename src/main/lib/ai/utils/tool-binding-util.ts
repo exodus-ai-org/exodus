@@ -1,6 +1,7 @@
 import type { AgentTool } from '@mariozechner/pi-agent-core'
 import type { Model } from '@mariozechner/pi-ai'
 import { AdvancedTools, McpTools } from '@shared/types/ai'
+import type { WebSearchResult } from '@shared/types/web-search'
 
 import { Settings } from '../../db/schema'
 import { resolveKnowledgeBase } from '../../knowledge-base/resolve-knowledge-base'
@@ -72,9 +73,12 @@ export function bindCallingTools({
   if (enabled('listDirectory')) tools.push(listDirectory)
   if (enabled('findFiles')) tools.push(findFiles)
   if (enabled('grep')) tools.push(grep)
-  if (enabled('webFetch')) tools.push(webFetch())
+  // webSearch + webFetch share one rank registry so 【N-source】 citations
+  // resolve regardless of which tool produced source N.
+  const webSources = new Map<string, WebSearchResult>()
+  if (enabled('webFetch')) tools.push(webFetch(webSources))
   if (enabled('createArtifact') && chatId) tools.push(createArtifact(chatId))
-  if (enabled('webSearch')) tools.push(webSearch(setting))
+  if (enabled('webSearch')) tools.push(webSearch(setting, webSources))
   if (setting.computerUse?.enabled && enabled('computerUse'))
     tools.push(computerUse)
 

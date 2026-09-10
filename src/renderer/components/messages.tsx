@@ -341,6 +341,19 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
           toolName: 'webSearch',
           webSearchResults: results
         })
+      } else if (
+        toolResult.toolName === 'webFetch' &&
+        !toolResult.isError &&
+        toolResult.details &&
+        typeof toolResult.details === 'object' &&
+        !Array.isArray(toolResult.details) &&
+        typeof (toolResult.details as { link?: unknown }).link === 'string' &&
+        typeof (toolResult.details as { rank?: unknown }).rank === 'number'
+      ) {
+        // A fetched page is a citeable source too — register it so the
+        // model's 【N-source】 markers resolve, and still show the card.
+        webSearchResults.push(toolResult.details as WebSearchResult)
+        toolCards.push(toolResult)
       } else if (!toolResult.isError) {
         // Non-webSearch successful tool results → render as cards
         toolCards.push(toolResult)
