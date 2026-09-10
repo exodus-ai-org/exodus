@@ -1,9 +1,9 @@
 import { TEST_IDS } from '@shared/constants/test-ids'
-import type { DiscoverArticle } from '@shared/types/discover'
+import type { DiscoverArticle, DiscoverGroup } from '@shared/types/discover'
 import { getHttpErrorMessage } from '@shared/utils/http'
 import { formatDistanceToNow } from 'date-fns'
 import { RefreshCwIcon } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { memo, useEffect, useRef, useState } from 'react'
 import { sileo } from 'sileo'
 
 import { SourceFavicon } from '@/components/source-favicon'
@@ -60,6 +60,62 @@ function DiscoverThumb({ article }: { article: DiscoverArticle }) {
     </div>
   )
 }
+
+/**
+ * One article link. Memoised so a state change on `<DiscoverFeed>` (the refresh
+ * spinner toggling) doesn't re-render every row — `article` refs are stable
+ * across a refresh until the new feed resolves.
+ */
+const ArticleRow = memo(function ArticleRow({
+  article
+}: {
+  article: DiscoverArticle
+}) {
+  const age = articleAge(article)
+  return (
+    <a
+      href={article.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group hover:bg-muted/40 -mx-2 flex gap-3.5 rounded-lg px-2 py-3 transition-colors"
+    >
+      <DiscoverThumb article={article} />
+      <div className="min-w-0 flex-1">
+        <div className="group-hover:text-foreground/80 line-clamp-2 text-[15px] leading-snug font-medium transition-colors">
+          {article.title}
+        </div>
+        <div className="text-muted-foreground mt-1.5 flex items-center gap-1.5 text-xs">
+          <SourceFavicon
+            link={article.url}
+            favicon={article.favicon}
+            className="size-3.5"
+          />
+          <span className="truncate">{article.source}</span>
+          {age && <span className="shrink-0">· {age}</span>}
+        </div>
+      </div>
+    </a>
+  )
+})
+
+const TopicSection = memo(function TopicSection({
+  group
+}: {
+  group: DiscoverGroup
+}) {
+  return (
+    <section className="mt-5 first:mt-2">
+      <p className="text-muted-foreground mb-1 text-[11px] font-semibold tracking-wide uppercase">
+        {group.topic}
+      </p>
+      <div className="flex flex-col">
+        {group.articles.map((article) => (
+          <ArticleRow key={article.url} article={article} />
+        ))}
+      </div>
+    </section>
+  )
+})
 
 export function DiscoverFeed() {
   const { data: settings } = useSettings()
@@ -129,40 +185,7 @@ export function DiscoverFeed() {
       </div>
 
       {feed.groups.map((group) => (
-        <section key={group.memoryId} className="mt-5 first:mt-2">
-          <p className="text-muted-foreground mb-1 text-[11px] font-semibold tracking-wide uppercase">
-            {group.topic}
-          </p>
-          <div className="flex flex-col">
-            {group.articles.map((article) => (
-              <a
-                key={article.url}
-                href={article.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group hover:bg-muted/40 -mx-2 flex gap-3.5 rounded-lg px-2 py-3 transition-colors"
-              >
-                <DiscoverThumb article={article} />
-                <div className="min-w-0 flex-1">
-                  <div className="group-hover:text-foreground/80 line-clamp-2 text-[15px] leading-snug font-medium transition-colors">
-                    {article.title}
-                  </div>
-                  <div className="text-muted-foreground mt-1.5 flex items-center gap-1.5 text-xs">
-                    <SourceFavicon
-                      link={article.url}
-                      favicon={article.favicon}
-                      className="size-3.5"
-                    />
-                    <span className="truncate">{article.source}</span>
-                    {articleAge(article) && (
-                      <span className="shrink-0">· {articleAge(article)}</span>
-                    )}
-                  </div>
-                </div>
-              </a>
-            ))}
-          </div>
-        </section>
+        <TopicSection key={group.memoryId} group={group} />
       ))}
     </div>
   )
