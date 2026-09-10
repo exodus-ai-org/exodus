@@ -24,7 +24,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useConversationStream } from '@/hooks/use-conversation-stream'
 import type { PhilharmonicPage } from '@/layouts/philharmonic-layout'
 import { PhilharmonicContentHeader } from '@/layouts/philharmonic-layout/philharmonic-content-header'
-import { PhilharmonicWorkspace } from '@/layouts/philharmonic-layout/philharmonic-workspace'
+import { ResizableSidebarShell } from '@/layouts/shared/resizable-sidebar'
 import { getAgents, getTeams } from '@/services/philharmonic'
 import {
   createConversation,
@@ -195,7 +195,8 @@ export function PhilharmonicContainer({
 
   return (
     <>
-      <PhilharmonicWorkspace
+      <ResizableSidebarShell
+        id="ph"
         sidebar={
           <ConversationList
             conversations={conversations}
@@ -213,7 +214,7 @@ export function PhilharmonicContainer({
           {!groupChatOwnsHeader && <PhilharmonicContentHeader />}
           <div className="min-h-0 flex-1 overflow-hidden">{mainContent}</div>
         </SidebarInset>
-      </PhilharmonicWorkspace>
+      </ResizableSidebarShell>
 
       <SheetPanel
         open={showMembers && membersOpen}
