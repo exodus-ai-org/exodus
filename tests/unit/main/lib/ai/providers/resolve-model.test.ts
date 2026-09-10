@@ -43,7 +43,7 @@ describe('resolveModel', () => {
     expect(model.cost.input).toBeGreaterThan(0)
   })
 
-  it('falls back to zero cost for an unknown model with no override', () => {
+  it('falls back to zero cost + the provider default context for an unknown model', () => {
     const model = resolveModel(
       'openai',
       'totally-made-up-model-xyz',
@@ -51,6 +51,19 @@ describe('resolveModel', () => {
       'openai-completions'
     )
     expect(model.cost.input).toBe(0)
-    expect(model.contextWindow).toBe(128000)
+    // No override → PROVIDER_DEFAULTS['openai'] context window.
+    expect(model.contextWindow).toBe(1_050_000)
+  })
+
+  it('uses the smaller ollama default context for an unknown local model', () => {
+    const model = resolveModel(
+      'ollama',
+      'some-local-model',
+      'http://localhost:11434',
+      'openai-completions'
+    )
+    expect(model.cost.input).toBe(0)
+    expect(model.contextWindow).toBe(128_000)
+    expect(model.maxTokens).toBe(8192)
   })
 })

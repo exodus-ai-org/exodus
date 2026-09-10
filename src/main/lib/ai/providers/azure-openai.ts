@@ -8,9 +8,9 @@ export function getAzureOpenAi(setting: Settings): {
   reasoningModel: Model<string>
 } {
   const baseUrl = setting.providers?.azureOpenAiEndpoint ?? ''
-  const chatModelId = setting.providerConfig?.chatModel ?? 'gpt-5.5'
+  const chatModelId = setting.providerConfig?.chatModel ?? 'gpt-5.6'
   const reasoningModelId =
-    setting.providerConfig?.reasoningModel ?? 'gpt-5.5-pro'
+    setting.providerConfig?.reasoningModel ?? 'gpt-6-astra'
 
   return {
     chatModel: resolveModel(

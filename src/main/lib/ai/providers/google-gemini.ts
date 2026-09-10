@@ -10,9 +10,10 @@ export function getGoogleGemini(setting: Settings): {
   const baseUrl =
     setting.providers?.googleGeminiBaseUrl ??
     'https://generativelanguage.googleapis.com/v1beta'
-  const chatModelId = setting.providerConfig?.chatModel ?? 'gemini-2.0-flash'
+  const chatModelId =
+    setting.providerConfig?.chatModel ?? 'gemini-3.1-pro-preview'
   const reasoningModelId =
-    setting.providerConfig?.reasoningModel ?? 'gemini-2.0-flash'
+    setting.providerConfig?.reasoningModel ?? 'gemini-3.1-pro-preview'
 
   return {
     chatModel: resolveModel(

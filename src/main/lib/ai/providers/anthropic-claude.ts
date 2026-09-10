@@ -9,9 +9,9 @@ export function getAnthropicClaude(setting: Settings): {
 } {
   const baseUrl =
     setting.providers?.anthropicBaseUrl ?? 'https://api.anthropic.com'
-  const chatModelId = setting.providerConfig?.chatModel ?? 'claude-opus-4-5'
+  const chatModelId = setting.providerConfig?.chatModel ?? 'claude-opus-5'
   const reasoningModelId =
-    setting.providerConfig?.reasoningModel ?? 'claude-opus-4-5'
+    setting.providerConfig?.reasoningModel ?? 'claude-opus-5'
 
   return {
     chatModel: resolveModel(

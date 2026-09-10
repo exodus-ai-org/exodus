@@ -8,8 +8,8 @@ export function getXaiGrok(setting: Settings): {
   reasoningModel: Model<string>
 } {
   const baseUrl = setting.providers?.xAiBaseUrl ?? 'https://api.x.ai/v1'
-  const chatModelId = setting.providerConfig?.chatModel ?? 'grok-2'
-  const reasoningModelId = setting.providerConfig?.reasoningModel ?? 'grok-2'
+  const chatModelId = setting.providerConfig?.chatModel ?? 'grok-4.6'
+  const reasoningModelId = setting.providerConfig?.reasoningModel ?? 'grok-4.6'
 
   return {
     chatModel: resolveModel('xai', chatModelId, baseUrl, 'openai-completions'),
