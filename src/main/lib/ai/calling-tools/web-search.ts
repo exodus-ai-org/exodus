@@ -3,6 +3,8 @@ import { Type } from '@mariozechner/pi-ai'
 import { Settings } from '@shared/types/db'
 import type { WebSearchResult } from '@shared/types/web-search'
 
+import { getModelFromProvider } from '../utils/model-util'
+import { expandQuery } from '../utils/query-expansion'
 import { fetchWebSearch } from '../utils/web-search-util'
 
 const webSearchSchema = Type.Object({
@@ -52,10 +54,31 @@ export const webSearch = (
           )
         }
         const ws = setting.webSearch
+        const deep = ws.deepRecall !== false
+
+        // Fan-out: expand the query into complementary phrasings so recall
+        // isn't bounded by one wording. Best-effort — a resolution or LLM
+        // failure just searches the original query alone.
+        let expandedQueries: string[] = []
+        if (deep) {
+          try {
+            const { chatModel, apiKey } = getModelFromProvider(setting)
+            expandedQueries = await expandQuery(
+              query,
+              chatModel,
+              apiKey,
+              signal
+            )
+          } catch {
+            expandedQueries = []
+          }
+        }
+
         const details = await fetchWebSearch({
           query,
           braveApiKey: ws.braveApiKey!,
           webSources,
+          expandedQueries,
           media:
             media === 'images' ? 'image' : media === 'videos' ? 'video' : media,
           country: ws.country,
@@ -70,7 +93,7 @@ export const webSearch = (
             : null,
           // Deep recall (grounding + web/search breadth pass) is on unless the
           // user turned it off to conserve Brave API quota.
-          deep: ws.deepRecall !== false,
+          deep,
           threshold: precision,
           signal
         })

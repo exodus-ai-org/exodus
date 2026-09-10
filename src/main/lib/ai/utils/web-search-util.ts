@@ -168,6 +168,26 @@ async function braveFetch(
   return null
 }
 
+/** Run `fn` over `items` with at most `limit` in flight; preserves order. */
+async function runLimited<T, R>(
+  items: T[],
+  limit: number,
+  fn: (item: T) => Promise<R>
+): Promise<R[]> {
+  const results = new Array<R>(items.length)
+  let next = 0
+  const worker = async () => {
+    while (next < items.length) {
+      const i = next++
+      results[i] = await fn(items[i])
+    }
+  }
+  await Promise.all(
+    Array.from({ length: Math.min(limit, items.length) }, worker)
+  )
+  return results
+}
+
 /* ================= Brave LLM Context Search ================= */
 
 // LLM Context returns a single Markdown summary plus the source list it used.
@@ -629,6 +649,7 @@ export async function fetchWebSearch({
   domainFilter,
   deep = false,
   threshold,
+  expandedQueries,
   signal
 }: {
   query: string
@@ -642,33 +663,44 @@ export async function fetchWebSearch({
   domainFilter?: string[] | null
   deep?: boolean
   threshold?: 'broad' | 'strict'
+  /** Fan-out reformulations searched alongside `query` and merged. */
+  expandedQueries?: string[] | null
   signal?: AbortSignal
 }): Promise<WebSearchResult[] | null> {
   try {
     const includeImages = media === 'image' || media === 'all'
     const includeVideos = media === 'video' || media === 'all'
+    const queries = [query, ...(expandedQueries ?? [])].slice(0, 3)
 
-    const [llmCtx, webResp, imageResp, videoResp] = await Promise.all([
-      fetchBraveLlmContext({
-        query,
-        apiKey: braveApiKey,
-        country,
-        languages,
-        recencyFilter,
-        maxResults,
-        threshold,
-        signal
-      }),
-      deep
-        ? fetchBraveWebSearch({
-            query,
+    // Text search fans out across the query variants; media only ever runs on
+    // the primary query. Cap 3 concurrent Brave calls (free tier is 1 req/s;
+    // braveFetch retries the 429s).
+    const [perQuery, imageResp, videoResp] = await Promise.all([
+      runLimited(queries, 3, async (q) => {
+        const [ctx, web] = await Promise.all([
+          fetchBraveLlmContext({
+            query: q,
             apiKey: braveApiKey,
             country,
             languages,
             recencyFilter,
+            maxResults,
+            threshold,
             signal
-          })
-        : Promise.resolve(null),
+          }),
+          deep
+            ? fetchBraveWebSearch({
+                query: q,
+                apiKey: braveApiKey,
+                country,
+                languages,
+                recencyFilter,
+                signal
+              })
+            : Promise.resolve(null)
+        ])
+        return { ctx, web }
+      }),
       includeImages
         ? fetchBraveImages({
             query,
@@ -725,62 +757,92 @@ export async function fetchWebSearch({
       ...videoResultsToMedia(videoResp, passesDomainFilter)
     ]
 
-    const llmCtxOnly = llmCtx
-    const sources: BraveLlmContextSource[] = [
-      ...(llmCtxOnly?.grounding?.generic ?? [])
-    ]
-
     const baseRank = webSources ? webSources.size : 0
+    const alreadyHave = (url: string) =>
+      (webSources && webSources.has(url)) || !passesDomainFilter(url)
+
+    // Merge grounded sources across every query variant. A URL surfaced by
+    // more than one variant ranks higher; ties keep first-seen order.
+    type Grounded = {
+      title?: string
+      snippets: string[]
+      meta?: BraveLlmContextSourceMeta
+      hits: number
+      order: number
+    }
+    const grounded = new Map<string, Grounded>()
+    let order = 0
+    for (const { ctx } of perQuery) {
+      for (const g of ctx?.grounding?.generic ?? []) {
+        if (!g.url || alreadyHave(g.url)) continue
+        const fresh = (g.snippets ?? []).filter(Boolean)
+        const cur = grounded.get(g.url)
+        if (cur) {
+          cur.hits++
+          for (const s of fresh)
+            if (!cur.snippets.includes(s)) cur.snippets.push(s)
+        } else {
+          grounded.set(g.url, {
+            title: g.title,
+            snippets: [...fresh],
+            meta: ctx?.sources?.[g.url],
+            hits: 1,
+            order: order++
+          })
+        }
+      }
+    }
+
     const results: WebSearchResult[] = []
-    for (const src of sources) {
-      if (!src.url) continue
-      if (webSources && webSources.has(src.url)) continue
-      if (!passesDomainFilter(src.url)) continue
-
-      const llmMeta = llmCtxOnly?.sources?.[src.url]
-      const content = (src.snippets ?? []).filter(Boolean).join('\n\n')
+    const ranked = [...grounded.entries()].sort(
+      (a, b) => b[1].hits - a[1].hits || a[1].order - b[1].order
+    )
+    for (const [url, g] of ranked) {
+      const content = g.snippets.join('\n\n')
       if (!content) continue
-
-      const title = src.title || llmMeta?.title || llmMeta?.hostname || src.url
-
       results.push({
         rank: baseRank + results.length + 1,
-        link: src.url,
-        title,
+        link: url,
+        title: g.title || g.meta?.title || g.meta?.hostname || url,
         snippet: content.slice(0, 300),
         content,
-        siteName: llmMeta?.site_name,
-        hostname: llmMeta?.hostname,
-        favicon: llmMeta?.favicon,
-        thumbnail: llmMeta?.thumbnail?.src ?? llmMeta?.thumbnail?.original,
-        age: pickAgeLabel(llmMeta?.age)
+        siteName: g.meta?.site_name,
+        hostname: g.meta?.hostname,
+        favicon: g.meta?.favicon,
+        thumbnail: g.meta?.thumbnail?.src ?? g.meta?.thumbnail?.original,
+        age: pickAgeLabel(g.meta?.age)
       })
     }
 
-    // Breadth pass: append web/search URLs the grounding layer didn't cover,
-    // as snippet-only sources ranked after the grounded ones.
-    if (webResp) {
-      const seen = new Set<string>([
-        ...results.map((r) => r.link),
-        ...(webSources ? [...webSources.keys()] : [])
-      ])
-      const extras = webResultsToSources(webResp)
-        .filter((s) => !seen.has(s.url) && passesDomainFilter(s.url))
-        .slice(0, 15)
-      for (const s of extras) {
-        results.push({
-          rank: baseRank + results.length + 1,
-          link: s.url,
-          title: s.title,
-          snippet: s.content.slice(0, 300),
-          content: s.content,
-          siteName: s.siteName,
-          hostname: s.hostname,
-          favicon: s.favicon,
-          thumbnail: s.thumbnail,
-          age: s.age
-        })
+    // Breadth pass: web/search URLs (across all variants) the grounding layer
+    // didn't cover, appended as snippet-only sources.
+    const seen = new Set<string>([
+      ...results.map((r) => r.link),
+      ...(webSources ? [...webSources.keys()] : [])
+    ])
+    const extras: FlatWebSource[] = []
+    for (const { web } of perQuery) {
+      for (const s of webResultsToSources(web)) {
+        if (seen.has(s.url) || !passesDomainFilter(s.url)) continue
+        seen.add(s.url)
+        extras.push(s)
+        if (extras.length >= 15) break
       }
+      if (extras.length >= 15) break
+    }
+    for (const s of extras) {
+      results.push({
+        rank: baseRank + results.length + 1,
+        link: s.url,
+        title: s.title,
+        snippet: s.content.slice(0, 300),
+        content: s.content,
+        siteName: s.siteName,
+        hostname: s.hostname,
+        favicon: s.favicon,
+        thumbnail: s.thumbnail,
+        age: s.age
+      })
     }
 
     if (mediaResults.length > 0) {
