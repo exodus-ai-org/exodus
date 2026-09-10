@@ -38,7 +38,7 @@ function DiscoverThumb({ article }: { article: DiscoverArticle }) {
   const showImg = !!article.thumbnail && !failed
 
   return (
-    <div className="bg-muted relative aspect-video overflow-hidden rounded-xl">
+    <div className="bg-muted relative h-[4.5rem] w-28 shrink-0 overflow-hidden rounded-lg">
       {showImg ? (
         <img
           src={article.thumbnail}
@@ -53,7 +53,7 @@ function DiscoverThumb({ article }: { article: DiscoverArticle }) {
           <SourceFavicon
             link={article.url}
             favicon={article.favicon}
-            className="size-7 opacity-40 grayscale"
+            className="size-5 opacity-40 grayscale"
           />
         </div>
       )}
@@ -101,16 +101,22 @@ export function DiscoverFeed() {
   }
 
   const isBusy = refreshing || feed.status === 'refreshing'
+  const updatedAgo =
+    feed.generatedAt && !Number.isNaN(new Date(feed.generatedAt).getTime())
+      ? formatDistanceToNow(new Date(feed.generatedAt), { addSuffix: true })
+      : null
 
   return (
-    <div
-      className="mt-10 flex flex-col gap-6"
-      data-testid={TEST_IDS.discover.section}
-    >
-      <div className="flex items-center justify-between">
-        <span className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
-          Discover
-        </span>
+    <div className="mt-6" data-testid={TEST_IDS.discover.section}>
+      <div className="flex items-baseline justify-between">
+        <div className="flex items-baseline gap-2">
+          <h2 className="text-sm font-semibold">Discover</h2>
+          {updatedAgo && (
+            <span className="text-muted-foreground text-xs">
+              updated {updatedAgo}
+            </span>
+          )}
+        </div>
         <Button
           variant="ghost"
           size="icon-sm"
@@ -123,38 +129,40 @@ export function DiscoverFeed() {
       </div>
 
       {feed.groups.map((group) => (
-        <div key={group.memoryId}>
-          <p className="text-muted-foreground mb-2 text-sm font-medium">
+        <section key={group.memoryId} className="mt-4">
+          <p className="text-muted-foreground mb-1 text-[11px] font-semibold tracking-wide uppercase">
             {group.topic}
           </p>
-          <div className="flex gap-3 overflow-x-auto pb-1">
+          <div className="flex flex-col">
             {group.articles.map((article) => (
               <a
                 key={article.url}
                 href={article.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group w-52 shrink-0 self-start"
+                className="group hover:bg-muted/40 -mx-2 flex gap-3.5 rounded-lg px-2 py-3 transition-colors"
               >
                 <DiscoverThumb article={article} />
-                <div className="group-hover:text-foreground/80 mt-1.5 line-clamp-2 text-sm font-medium transition-colors">
-                  {article.title}
-                </div>
-                <div className="text-muted-foreground mt-1 flex items-center gap-1.5 text-xs">
-                  <SourceFavicon
-                    link={article.url}
-                    favicon={article.favicon}
-                    className="size-3.5"
-                  />
-                  <span className="truncate">{article.source}</span>
-                  {articleAge(article) && (
-                    <span className="shrink-0">· {articleAge(article)}</span>
-                  )}
+                <div className="min-w-0 flex-1">
+                  <div className="group-hover:text-foreground/80 line-clamp-2 text-[15px] leading-snug font-medium transition-colors">
+                    {article.title}
+                  </div>
+                  <div className="text-muted-foreground mt-1.5 flex items-center gap-1.5 text-xs">
+                    <SourceFavicon
+                      link={article.url}
+                      favicon={article.favicon}
+                      className="size-3.5"
+                    />
+                    <span className="truncate">{article.source}</span>
+                    {articleAge(article) && (
+                      <span className="shrink-0">· {articleAge(article)}</span>
+                    )}
+                  </div>
                 </div>
               </a>
             ))}
           </div>
-        </div>
+        </section>
       ))}
     </div>
   )

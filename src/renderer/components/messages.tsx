@@ -513,14 +513,22 @@ function Messages({
             className={cn(
               'animate-fade-in-up mx-auto flex size-full max-w-3xl flex-col px-8',
               discoverHasContent
-                ? 'justify-start pt-12 md:pt-16'
+                ? 'justify-start pt-4'
                 : 'justify-center md:mt-20'
             )}
           >
-            <p className="text-3xl font-bold tracking-tight">Hello there!</p>
-            <p className="text-muted-foreground mt-2 text-lg">
-              How can I assist you today?
-            </p>
+            {/* The generic greeting is filler once a personalized feed fills
+                the screen — drop it and let Discover be the landing content. */}
+            {!discoverHasContent && (
+              <>
+                <p className="text-3xl font-bold tracking-tight">
+                  Hello there!
+                </p>
+                <p className="text-muted-foreground mt-2 text-lg">
+                  How can I assist you today?
+                </p>
+              </>
+            )}
             {discoverActive && <DiscoverFeed />}
           </div>
         )}
