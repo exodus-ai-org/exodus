@@ -72,7 +72,9 @@ export const TEST_IDS = {
   },
   chatLayout: {
     workspaceSwitcher: 'chat-layout.workspace-switcher',
-    searchButton: 'chat-layout.search-button'
+    searchButton: 'chat-layout.search-button',
+    newChat: 'chat-layout.new-chat',
+    account: 'chat-layout.account'
   },
   philharmonic: {
     newGroup: 'philharmonic.new-group',

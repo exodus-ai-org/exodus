@@ -1,9 +1,9 @@
 import type { Project } from '@shared/types/db'
 import {
-  ChevronRightIcon,
   FolderIcon,
   FolderPlusIcon,
   MoreHorizontalIcon,
+  PlusIcon,
   SquarePenIcon,
   Trash2Icon
 } from 'lucide-react'
@@ -23,11 +23,6 @@ import {
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger
-} from '@/components/ui/collapsible'
-import {
   Dialog,
   DialogContent,
   DialogFooter,
@@ -43,6 +38,8 @@ import {
 import { Input } from '@/components/ui/input'
 import {
   SidebarGroup,
+  SidebarGroupAction,
+  SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuAction,
@@ -82,26 +79,22 @@ export function NavProjects() {
 
   if (isLoading) return null
 
+  const hasProjects = !!projects && projects.length > 0
+
   return (
     <>
       <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-        <SidebarMenu className="gap-1">
-          <Collapsible defaultOpen>
-            <SidebarGroupLabel className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mb-1 text-sm">
-              <CollapsibleTrigger className="group/trigger flex w-full items-center justify-between pl-0!">
-                <SidebarGroupLabel className="p-0">Projects</SidebarGroupLabel>
-                <ChevronRightIcon className="text-sidebar-foreground/50 h-4 w-4 transition-transform duration-200 group-data-panel-open/trigger:rotate-90" />
-              </CollapsibleTrigger>
-            </SidebarGroupLabel>
-            <CollapsibleContent>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => setShowCreateDialog(true)}>
-                  <FolderPlusIcon />
-                  <span>New project</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              {projects?.map((project) => (
+        <SidebarGroupLabel>Projects</SidebarGroupLabel>
+        <SidebarGroupAction
+          aria-label="New project"
+          onClick={() => setShowCreateDialog(true)}
+        >
+          <PlusIcon />
+        </SidebarGroupAction>
+        <SidebarGroupContent>
+          <SidebarMenu className="gap-1">
+            {hasProjects ? (
+              projects.map((project) => (
                 <SidebarMenuItem key={project.id}>
                   <SidebarMenuButton
                     isActive={currentId === project.id}
@@ -140,10 +133,20 @@ export function NavProjects() {
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </SidebarMenuItem>
-              ))}
-            </CollapsibleContent>
-          </Collapsible>
-        </SidebarMenu>
+              ))
+            ) : (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  className="text-muted-foreground"
+                  onClick={() => setShowCreateDialog(true)}
+                >
+                  <FolderPlusIcon />
+                  <span>New project</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+          </SidebarMenu>
+        </SidebarGroupContent>
       </SidebarGroup>
 
       {/* Create Project Dialog */}

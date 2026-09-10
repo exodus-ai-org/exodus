@@ -68,6 +68,30 @@ test.describe('Sidebar', () => {
     })
   })
 
+  test('new chat button returns to a fresh chat', async ({ mainWindow }) => {
+    const newChat = mainWindow.getByTestId(TEST_IDS.chatLayout.newChat)
+    await newChat.waitFor({ state: 'visible', timeout: 10_000 })
+    await newChat.click()
+
+    await expect
+      .poll(() => mainWindow.evaluate(() => window.location.hash), {
+        timeout: 10_000
+      })
+      .not.toContain('/chat/')
+  })
+
+  test('account row opens settings', async ({ mainWindow }) => {
+    const account = mainWindow.getByTestId(TEST_IDS.chatLayout.account)
+    await account.waitFor({ state: 'visible', timeout: 10_000 })
+    await account.click()
+
+    await expect
+      .poll(() => mainWindow.evaluate(() => window.location.hash), {
+        timeout: 10_000
+      })
+      .toContain('settings')
+  })
+
   test('workspace switcher navigates to Philharmonic', async ({
     mainWindow
   }) => {
