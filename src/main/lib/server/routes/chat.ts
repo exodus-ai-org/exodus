@@ -31,6 +31,7 @@ import {
   bindCallingTools,
   generateTitleFromUserMessage,
   getModelFromProvider,
+  getStaleModelSelections,
   getTextFromMessage
 } from '../../ai/utils/chat-message-util'
 import { calculateCost } from '../../ai/utils/cost'
@@ -71,6 +72,14 @@ import { stripId, toDbRow } from './chat-persistence'
 
 const chat = new Hono<{ Variables: Variables }>()
 
+/**
+ * Stale-model ids already surfaced to the user this main-process lifetime.
+ * The chat runs with whatever id is saved regardless; this dedupe just keeps
+ * the "your model was dropped from the lineup" notice to roughly once per app
+ * launch (which covers the post-update case) instead of firing every turn.
+ */
+const noticedStaleModelKeys = new Set<string>()
+
 chat.get('/search', async (c) => {
   const query = c.req.query('query') ?? ''
   const settings = c.get('settings')
@@ -99,6 +108,7 @@ chat.post('/', async (c) => {
   bindTraceAttributes({ chatId: id })
   const setting = c.get('settings')
   const { chatModel, reasoningModel, apiKey } = getModelFromProvider(setting)
+  const staleModelSelections = getStaleModelSelections(setting)
   const isReasoningModel =
     advancedTools?.includes(AdvancedTools.Reasoning) ||
     advancedTools?.includes(AdvancedTools.DeepResearch)
@@ -249,6 +259,20 @@ chat.post('/', async (c) => {
 
       function sendEvent(event: ChatSseEvent) {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`))
+      }
+
+      // Tell the user once (per app launch) if a saved model dropped off the
+      // provider's current lineup — it still runs, but may stop working.
+      for (const stale of staleModelSelections) {
+        const key = `${setting.providerConfig?.provider}:${stale.role}:${stale.id}`
+        if (noticedStaleModelKeys.has(key)) continue
+        noticedStaleModelKeys.add(key)
+        const kind = stale.role === 'reasoningModel' ? 'reasoning' : 'chat'
+        sendEvent({
+          type: 'notice',
+          level: 'warning',
+          message: `Your ${kind} model "${stale.id}" is no longer in Exodus's model list and may stop working — choose a current model in Settings → AI Providers.`
+        })
       }
 
       let assistantMsgId = uuidV4()

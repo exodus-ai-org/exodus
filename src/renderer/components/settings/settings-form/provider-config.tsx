@@ -1,4 +1,8 @@
-import { models } from '@shared/constants/models'
+import {
+  isCurrentModel,
+  models,
+  type ModelRole
+} from '@shared/constants/models'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { AiProviders } from '@shared/types/ai'
 import { useMemo } from 'react'
@@ -11,6 +15,17 @@ const providerOptions = Object.values(AiProviders).map((val) => ({
   value: val,
   label: val
 }))
+
+/** Red hint when a saved model id has since dropped off the provider lineup. */
+function staleModelWarning(
+  provider: string | null | undefined,
+  role: ModelRole,
+  id: string | null | undefined
+): string | undefined {
+  if (!provider || !id) return undefined
+  if (isCurrentModel(provider as AiProviders, role, id)) return undefined
+  return `"${id}" is no longer offered by this provider — pick a current model.`
+}
 
 export function ProviderConfig({ form }: { form: UseFormReturnType }) {
   const provider = form.watch('providerConfig.provider')
@@ -68,6 +83,7 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
             label="Chat Model"
             description="Model used for general conversations"
             error={fieldState.error}
+            warning={staleModelWarning(provider, 'chatModel', field.value)}
           >
             <SettingsSelect
               disabled={!provider}
@@ -89,6 +105,7 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
             label="Reasoning Model"
             description="Model optimized for complex reasoning tasks"
             error={fieldState.error}
+            warning={staleModelWarning(provider, 'reasoningModel', field.value)}
           >
             <SettingsSelect
               disabled={!provider}

@@ -1,8 +1,13 @@
 import { AiProviders } from '@shared/types/ai'
 
+interface ProviderModels {
+  chatModel: string[]
+  reasoningModel: string[]
+}
+
 // Refreshed against the providers' docs on 2026-09-10. First entry in each
 // `chatModel` list is the sensible default.
-const OPENAI_MODELS = {
+const OPENAI_MODELS: ProviderModels = {
   chatModel: [
     'gpt-5.6',
     'gpt-6-astra',
@@ -14,7 +19,7 @@ const OPENAI_MODELS = {
   reasoningModel: ['gpt-6-astra', 'gpt-5.6', 'gpt-5.6-terra']
 }
 
-export const models = {
+export const models: Record<AiProviders, ProviderModels> = {
   [AiProviders.OpenAiGpt]: OPENAI_MODELS,
   [AiProviders.AzureOpenAi]: OPENAI_MODELS,
   [AiProviders.GoogleGemini]: {
@@ -48,4 +53,27 @@ export const models = {
     chatModel: [],
     reasoningModel: []
   }
+}
+
+export type ModelRole = 'chatModel' | 'reasoningModel'
+
+/**
+ * Whether `id` is still one of the models we offer for this provider/role.
+ *
+ * The lists above track each provider's current lineup and legacy ids get
+ * dropped without ceremony, so a model a user picked long ago can quietly
+ * fall off the list after an app update — losing its cost readout / context
+ * window and eventually 404-ing at the provider. Callers use this to warn.
+ *
+ * An empty list (Ollama) means "free-form" — any id is accepted.
+ */
+export function isCurrentModel(
+  provider: AiProviders,
+  role: ModelRole,
+  id: string | null | undefined
+): boolean {
+  if (!id) return true
+  const list = models[provider][role]
+  if (list.length === 0) return true
+  return list.includes(id)
 }

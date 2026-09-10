@@ -8,6 +8,7 @@ import { titleGenerationPrompt } from '../prompts'
 export {
   getApiKeyFromSetting,
   getModelFromProvider,
+  getStaleModelSelections,
   PROVIDER_API_KEY_LABELS
 } from './model-util'
 export { bindCallingTools } from './tool-binding-util'
