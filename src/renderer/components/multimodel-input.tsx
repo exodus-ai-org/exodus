@@ -1,6 +1,6 @@
 import type { ChatMessage, Usage } from '@shared/types/chat'
 import { useAtom, useAtomValue } from 'jotai'
-import { ArrowUpIcon, CircleStopIcon } from 'lucide-react'
+import { ArrowUpIcon, SquareIcon } from 'lucide-react'
 import {
   ChangeEvent,
   ClipboardEvent,
@@ -171,20 +171,22 @@ function InputBox({
 
           {status === 'submitted' || status === 'streaming' ? (
             <Button
+              size="icon"
+              className="rounded-full"
               aria-label="Stop"
               onClick={stop ?? undefined}
-              className="bg-foreground text-background hover:bg-foreground/85 size-8 shrink-0 rounded-full [&_svg]:size-[18px]"
             >
-              <CircleStopIcon />
+              <SquareIcon className="size-3 fill-current" />
             </Button>
           ) : input.trim() === '' ? (
             <AudioRecorder input={input} setInput={setInput} />
           ) : (
             <Button
+              size="icon"
+              className="rounded-full"
               type="button"
               aria-label="Send"
               onClick={submitForm}
-              className="bg-foreground text-background hover:bg-foreground/85 size-8 shrink-0 rounded-full [&_svg]:size-[18px]"
             >
               <ArrowUpIcon />
             </Button>

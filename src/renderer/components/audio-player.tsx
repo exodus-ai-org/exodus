@@ -1,4 +1,4 @@
-import { CircleStopIcon, LoaderIcon, Volume2Icon } from 'lucide-react'
+import { LoaderIcon, SquareIcon, Volume2Icon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 import { useAudio } from '@/hooks/use-audio'
@@ -64,7 +64,7 @@ export function AudioPlayer({ content }: { content: string }) {
 
         {isPlaying && (
           <IconWrapper onClick={handleStop}>
-            <CircleStopIcon size={16} />
+            <SquareIcon size={11} className="fill-current" />
           </IconWrapper>
         )}
 

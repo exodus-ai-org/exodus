@@ -1,5 +1,4 @@
-import OpenAI from 'openai'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { sileo } from 'sileo'
 
 import {
@@ -7,32 +6,11 @@ import {
   textToSpeech as textToSpeechService
 } from '@/services/audio'
 
-import { useSettings } from './use-settings'
-
 export function useAudio() {
   const [data, setData] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const { data: settings } = useSettings()
-
-  const openai = useMemo(() => {
-    if (
-      settings?.providers?.openaiApiKey &&
-      settings?.providers?.openaiBaseUrl
-    ) {
-      return new OpenAI({
-        baseURL: settings.providers.openaiBaseUrl,
-        apiKey: settings.providers.openaiApiKey,
-        dangerouslyAllowBrowser: true
-      })
-    }
-    return null
-  }, [settings?.providers?.openaiApiKey, settings?.providers?.openaiBaseUrl])
 
   async function textToSpeech(text: string) {
-    if (!openai) {
-      throw new Error('OpenAI configuration is missing')
-    }
-
     setLoading(true)
     try {
       const audioBlob = await textToSpeechService(text)
@@ -52,10 +30,6 @@ export function useAudio() {
   }
 
   async function speechToText(file: File) {
-    if (!openai) {
-      throw new Error('OpenAI configuration is missing')
-    }
-
     setLoading(true)
     try {
       const formData = new FormData()
@@ -64,7 +38,7 @@ export function useAudio() {
       setData(transcription.text)
     } catch (e) {
       sileo.error({
-        title: 'Audio error',
+        title: 'Transcription failed',
         description:
           e instanceof Error
             ? e.message

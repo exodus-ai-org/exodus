@@ -1,11 +1,30 @@
-import { AudioLinesIcon, CircleStopIcon, LoaderIcon } from 'lucide-react'
+import { AudioLinesIcon, LoaderIcon, SquareIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { sileo } from 'sileo'
 
 import { useAudio } from '@/hooks/use-audio'
-import { cn } from '@/lib/utils'
 
 import { Button } from './ui/button'
+
+// Chromium (Electron) records WebM/Opus; the others are fallbacks. A real
+// filename + extension matters — the transcription API sniffs the container.
+const PREFERRED_MIME_TYPES = [
+  'audio/webm;codecs=opus',
+  'audio/webm',
+  'audio/mp4',
+  'audio/ogg;codecs=opus'
+]
+
+function pickMimeType(): string | undefined {
+  if (typeof MediaRecorder === 'undefined') return undefined
+  return PREFERRED_MIME_TYPES.find((t) => MediaRecorder.isTypeSupported(t))
+}
+
+function extForMime(mime: string): string {
+  if (mime.includes('mp4')) return 'm4a'
+  if (mime.includes('ogg')) return 'ogg'
+  return 'webm'
+}
 
 export function AudioRecorder({
   input,
@@ -15,38 +34,46 @@ export function AudioRecorder({
   setInput: (input: string) => void
 }) {
   const [isRecording, setIsRecording] = useState(false)
-  // const [audioUrl, setAudioUrl] = useState('')
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
+  const lastAppliedRef = useRef<string | null>(null)
   const { data, loading, speechToText } = useAudio()
 
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      mediaRecorderRef.current = new MediaRecorder(stream)
-      mediaRecorderRef.current.start()
-      setIsRecording(true)
+      const mimeType = pickMimeType()
+      const recorder = new MediaRecorder(
+        stream,
+        mimeType ? { mimeType } : undefined
+      )
+      mediaRecorderRef.current = recorder
+      audioChunksRef.current = []
 
-      mediaRecorderRef.current.ondataavailable = (event) => {
-        audioChunksRef.current.push(event.data)
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) audioChunksRef.current.push(event.data)
       }
-      mediaRecorderRef.current.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, {
-          type: 'audio/wav'
-        })
-        speechToText(audioBlob as File)
-
-        // const audioUrl = URL.createObjectURL(audioBlob)
-        // setAudioUrl(audioUrl)
+      recorder.onstop = async () => {
+        // Release the mic so the OS recording indicator turns off.
+        stream.getTracks().forEach((t) => t.stop())
+        const type = recorder.mimeType || 'audio/webm'
+        const blob = new Blob(audioChunksRef.current, { type })
         audioChunksRef.current = []
+        if (blob.size === 0) return
+        await speechToText(
+          new File([blob], `speech.${extForMime(type)}`, { type })
+        )
       }
+
+      recorder.start()
+      setIsRecording(true)
     } catch (error) {
       sileo.error({
         title: 'Microphone error',
         description:
           error instanceof Error
             ? error.message
-            : 'An error occurred, please try again!'
+            : 'Could not access the microphone.'
       })
     }
   }
@@ -56,40 +83,30 @@ export function AudioRecorder({
     setIsRecording(false)
   }
 
+  // Append each new transcription once. `input` is in the deps so the append
+  // uses the current value, and the ref guard stops the re-render from
+  // re-appending the same text.
   useEffect(() => {
-    if (data) {
+    if (data && data !== lastAppliedRef.current) {
+      lastAppliedRef.current = data
       setInput(input + data)
     }
   }, [data, input, setInput])
 
   return (
     <Button
-      type="button"
-      variant="ghost"
+      size="icon"
+      className="rounded-full"
       aria-label={isRecording ? 'Stop recording' : 'Dictate'}
       onClick={isRecording ? stopRecording : startRecording}
-      className={cn(
-        'text-muted-foreground hover:bg-muted hover:text-foreground size-8 rounded-full [&_svg]:size-[18px]',
-        isRecording && 'text-destructive hover:text-destructive'
-      )}
     >
       {loading ? (
         <LoaderIcon className="animate-spin" />
       ) : isRecording ? (
-        <CircleStopIcon />
+        <SquareIcon className="size-3 fill-current" />
       ) : (
         <AudioLinesIcon />
       )}
-
-      {/* {
-        // The audio element is just for test.
-        audioUrl && (
-          <audio controls>
-            <source src={audioUrl} type="audio/mp3" />
-            Your browser does not support the audio element.
-          </audio>
-        )
-      } */}
     </Button>
   )
 }
