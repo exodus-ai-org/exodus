@@ -108,9 +108,9 @@ export function DiscoverFeed() {
 
   return (
     <div className="mt-6" data-testid={TEST_IDS.discover.section}>
-      <div className="flex items-baseline justify-between">
-        <div className="flex items-baseline gap-2">
-          <h2 className="text-sm font-semibold">Discover</h2>
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-baseline gap-2.5">
+          <h2 className="text-2xl font-bold tracking-tight">Discover</h2>
           {updatedAgo && (
             <span className="text-muted-foreground text-xs">
               updated {updatedAgo}
@@ -119,7 +119,7 @@ export function DiscoverFeed() {
         </div>
         <Button
           variant="ghost"
-          size="icon-sm"
+          size="icon"
           disabled={isBusy}
           onClick={handleRefresh}
           title="Refresh"
@@ -129,7 +129,7 @@ export function DiscoverFeed() {
       </div>
 
       {feed.groups.map((group) => (
-        <section key={group.memoryId} className="mt-4">
+        <section key={group.memoryId} className="mt-5 first:mt-2">
           <p className="text-muted-foreground mb-1 text-[11px] font-semibold tracking-wide uppercase">
             {group.topic}
           </p>
