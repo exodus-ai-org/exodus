@@ -80,7 +80,6 @@ export type ChatSseEvent =
 
 // ─── Chat UI Types ─────────────────────────────────────────────────────────
 
-import type { Chat } from './db'
 import type { WebSearchResult } from './web-search'
 
 export type ChatStatus = 'idle' | 'submitted' | 'streaming' | 'error'
@@ -124,12 +123,3 @@ export interface AssistantTurn {
 export type Segment =
   | { type: 'user'; message: ChatMessage }
   | { type: 'assistantTurn'; turn: AssistantTurn }
-
-export interface GroupedChats {
-  favorite: Chat[]
-  today: Chat[]
-  yesterday: Chat[]
-  lastWeek: Chat[]
-  lastMonth: Chat[]
-  older: Chat[]
-}

@@ -1,6 +1,4 @@
-import type { GroupedChats } from '@shared/types/chat'
 import type { Chat } from '@shared/types/db'
-import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns'
 import { useSetAtom } from 'jotai'
 import {
   ChevronRightIcon,
@@ -172,48 +170,16 @@ export function NavHistories() {
     fallbackData: []
   })
 
-  const groupedChats = useMemo(() => {
-    if (!history || history.length === 0) return null
-
-    const now = new Date()
-    const oneWeekAgo = subWeeks(now, 1)
-    const oneMonthAgo = subMonths(now, 1)
-
-    const favorite = history.filter((chat) => chat.favorite)
-    const unfavorite = history.filter((chat) => !chat.favorite)
-
-    const histories = unfavorite.reduce(
-      (groups, chat) => {
-        const chatDate = parseLocalishCreatedAt(chat.createdAt)
-
-        if (isToday(chatDate)) {
-          groups.today.push(chat)
-        } else if (isYesterday(chatDate)) {
-          groups.yesterday.push(chat)
-        } else if (chatDate > oneWeekAgo) {
-          groups.lastWeek.push(chat)
-        } else if (chatDate > oneMonthAgo) {
-          groups.lastMonth.push(chat)
-        } else {
-          groups.older.push(chat)
-        }
-
-        return groups
-      },
-      {
-        favorite: [],
-        today: [],
-        yesterday: [],
-        lastWeek: [],
-        lastMonth: [],
-        older: []
-      } as GroupedChats
-    )
-
-    return {
-      ...histories,
-      favorite
+  // Each row shows its own relative age ("1d", "1w"…), so the sidebar no
+  // longer buckets by date — just favourites, then everything else in the
+  // API's newest-first order.
+  const { favorite, chats } = useMemo(() => {
+    const favorite: Chat[] = []
+    const chats: Chat[] = []
+    for (const chat of history ?? []) {
+      ;(chat.favorite ? favorite : chats).push(chat)
     }
+    return { favorite, chats }
   }, [history])
 
   if (isLoading) {
@@ -239,89 +205,41 @@ export function NavHistories() {
 
   return (
     <section>
-      {groupedChats && (
-        <>
-          {groupedChats.favorite.length > 0 && (
-            <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-              <SidebarMenu className="gap-1">
-                <Collapsible defaultOpen>
-                  <SidebarGroupLabel className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mb-1 text-sm">
-                    <CollapsibleTrigger className="group/trigger flex w-full items-center justify-between pl-0!">
-                      <SidebarGroupLabel className="p-0">
-                        Favorite
-                      </SidebarGroupLabel>
-                      <ChevronRightIcon className="text-sidebar-foreground/50 h-4 w-4 transition-transform duration-200 group-data-panel-open/trigger:rotate-90" />
-                    </CollapsibleTrigger>
+      {favorite.length > 0 && (
+        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+          <SidebarMenu className="gap-1">
+            <Collapsible defaultOpen>
+              <SidebarGroupLabel className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mb-1 text-sm">
+                <CollapsibleTrigger className="group/trigger flex w-full items-center justify-between pl-0!">
+                  <SidebarGroupLabel className="p-0">
+                    Favorite
                   </SidebarGroupLabel>
-                  <CollapsibleContent>
-                    {groupedChats.favorite.map((chat) => (
-                      <NavItems
-                        chat={chat}
-                        key={chat.id}
-                        className="mb-1 last:mb-0"
-                      />
-                    ))}
-                  </CollapsibleContent>
-                </Collapsible>
-              </SidebarMenu>
-            </SidebarGroup>
-          )}
-
-          {groupedChats.today.length > 0 && (
-            <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-              <SidebarGroupLabel>Today</SidebarGroupLabel>
-              <SidebarMenu className="gap-1">
-                {groupedChats.today.map((chat) => (
-                  <NavItems chat={chat} key={chat.id} />
+                  <ChevronRightIcon className="text-sidebar-foreground/50 h-4 w-4 transition-transform duration-200 group-data-panel-open/trigger:rotate-90" />
+                </CollapsibleTrigger>
+              </SidebarGroupLabel>
+              <CollapsibleContent>
+                {favorite.map((chat) => (
+                  <NavItems
+                    chat={chat}
+                    key={chat.id}
+                    className="mb-1 last:mb-0"
+                  />
                 ))}
-              </SidebarMenu>
-            </SidebarGroup>
-          )}
+              </CollapsibleContent>
+            </Collapsible>
+          </SidebarMenu>
+        </SidebarGroup>
+      )}
 
-          {groupedChats.yesterday.length > 0 && (
-            <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-              <SidebarGroupLabel>Yesterday</SidebarGroupLabel>
-              <SidebarMenu className="gap-1">
-                {groupedChats.yesterday.map((chat) => (
-                  <NavItems chat={chat} key={chat.id} />
-                ))}
-              </SidebarMenu>
-            </SidebarGroup>
-          )}
-
-          {groupedChats.lastWeek.length > 0 && (
-            <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-              <SidebarGroupLabel>Last Week</SidebarGroupLabel>
-              <SidebarMenu className="gap-1">
-                {groupedChats.lastWeek.map((chat) => (
-                  <NavItems chat={chat} key={chat.id} />
-                ))}
-              </SidebarMenu>
-            </SidebarGroup>
-          )}
-
-          {groupedChats.lastMonth.length > 0 && (
-            <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-              <SidebarGroupLabel>Last Month</SidebarGroupLabel>
-              <SidebarMenu className="gap-1">
-                {groupedChats.lastMonth.map((chat) => (
-                  <NavItems chat={chat} key={chat.id} />
-                ))}
-              </SidebarMenu>
-            </SidebarGroup>
-          )}
-
-          {groupedChats.older.length > 0 && (
-            <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-              <SidebarGroupLabel>Older</SidebarGroupLabel>
-              <SidebarMenu className="gap-1">
-                {groupedChats.older.map((chat) => (
-                  <NavItems chat={chat} key={chat.id} />
-                ))}
-              </SidebarMenu>
-            </SidebarGroup>
-          )}
-        </>
+      {chats.length > 0 && (
+        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+          <SidebarGroupLabel>Chats</SidebarGroupLabel>
+          <SidebarMenu className="gap-1">
+            {chats.map((chat) => (
+              <NavItems chat={chat} key={chat.id} />
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
       )}
     </section>
   )
