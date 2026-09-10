@@ -28,7 +28,6 @@ import { MessageAction } from './massage-action'
 import { MessageSpinner, shouldShowMessageSpinner } from './message-spinner'
 import { MessageCallingTools } from './messages-calling-tools'
 import { ThinkingTimeline } from './thinking-timeline'
-import { Avatar, AvatarImage } from './ui/avatar'
 import { collectGalleryImages } from './web-search/collect-gallery-images'
 import { collectGalleryVideos } from './web-search/collect-gallery-videos'
 import { ImageGallery } from './web-search/image-gallery'
@@ -93,7 +92,6 @@ type AssistantTurnSegmentProps = {
   // rare case where a later turn re-runs a search with reset numbering.
   citationSources?: WebSearchResult[]
   isStreaming: boolean
-  assistantAvatar?: string
   regenerate: () => void
 }
 
@@ -103,7 +101,6 @@ const AssistantTurnSegment = memo(
     turn,
     citationSources,
     isStreaming,
-    assistantAvatar,
     regenerate
   }: AssistantTurnSegmentProps) {
     // The turn's own searches drive the per-turn "Sources" panel; the
@@ -125,22 +122,16 @@ const AssistantTurnSegment = memo(
 
     return (
       <div className="mb-8 flex flex-col items-start last:mb-4">
-        <div className="flex w-full gap-4">
-          {!!assistantAvatar && (
-            <Avatar>
-              <AvatarImage src={assistantAvatar} className="object-cover" />
-            </Avatar>
+        <div className="w-full min-w-0">
+          {(turn.steps.length > 0 || isStreaming) && (
+            <ThinkingTimeline
+              steps={turn.steps}
+              durationMs={turn.durationMs}
+              isStreaming={isStreaming && turn.finalTextBlocks.length === 0}
+            />
           )}
-          <div className="w-full min-w-0">
-            {(turn.steps.length > 0 || isStreaming) && (
-              <ThinkingTimeline
-                steps={turn.steps}
-                durationMs={turn.durationMs}
-                isStreaming={isStreaming && turn.finalTextBlocks.length === 0}
-              />
-            )}
 
-            {/* {isStreaming &&
+          {/* {isStreaming &&
               turn.pendingToolCalls.map((tc) => (
                 <ShimmeringText
                   key={tc.id}
@@ -149,40 +140,37 @@ const AssistantTurnSegment = memo(
                 />
               ))} */}
 
-            {turn.toolCards.map((toolResult) => (
-              <MessageCallingTools
-                key={toolResult.id}
-                chatId={chatId}
-                toolResult={toolResult}
-              />
-            ))}
+          {turn.toolCards.map((toolResult) => (
+            <MessageCallingTools
+              key={toolResult.id}
+              chatId={chatId}
+              toolResult={toolResult}
+            />
+          ))}
 
-            {turn.finalTextBlocks.map((block, i) => (
-              <section
-                key={`${block.messageId}-${block.blockIdx}`}
-                className={cn(
-                  'group relative',
-                  i < turn.finalTextBlocks.length - 1 && 'mb-16'
-                )}
-              >
-                <Markdown src={block.text} webSearchResults={citationResults} />
-                <MessageAction
-                  regenerate={regenerate}
-                  content={block.text}
-                  webSearchResults={ownSources}
-                  timestamp={
-                    i === turn.finalTextBlocks.length - 1
-                      ? block.timestamp
-                      : undefined
-                  }
-                />
-              </section>
-            ))}
-            {galleryImages.length > 0 && (
-              <ImageGallery images={galleryImages} />
-            )}
-            {galleryVideos.length > 0 && <VideoCards videos={galleryVideos} />}
-          </div>
+          {turn.finalTextBlocks.map((block, i) => (
+            <section
+              key={`${block.messageId}-${block.blockIdx}`}
+              className={cn(
+                'group relative',
+                i < turn.finalTextBlocks.length - 1 && 'mb-16'
+              )}
+            >
+              <Markdown src={block.text} webSearchResults={citationResults} />
+              <MessageAction
+                regenerate={regenerate}
+                content={block.text}
+                webSearchResults={ownSources}
+                timestamp={
+                  i === turn.finalTextBlocks.length - 1
+                    ? block.timestamp
+                    : undefined
+                }
+              />
+            </section>
+          ))}
+          {galleryImages.length > 0 && <ImageGallery images={galleryImages} />}
+          {galleryVideos.length > 0 && <VideoCards videos={galleryVideos} />}
         </div>
       </div>
     )
@@ -196,7 +184,6 @@ const AssistantTurnSegment = memo(
     if (
       prev.chatId !== next.chatId ||
       prev.isStreaming !== next.isStreaming ||
-      prev.assistantAvatar !== next.assistantAvatar ||
       prev.regenerate !== next.regenerate
     ) {
       return false
@@ -567,7 +554,6 @@ function Messages({
                 turn={segment.turn}
                 citationSources={citationSourcesByTurn.get(segment)}
                 isStreaming={turnIsStreaming}
-                assistantAvatar={settings?.assistantAvatar ?? undefined}
                 regenerate={regenerate}
               />
             )

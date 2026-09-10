@@ -1,3 +1,4 @@
+import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import {
   addDays,
   differenceInCalendarDays,
@@ -9,7 +10,6 @@ import {
 import { useMemo, useState } from 'react'
 import useSWR from 'swr'
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { useSettings } from '@/hooks/use-settings'
@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils'
 import type { UsageSummary } from '@/services/usage'
 
 import { SettingsSection } from '../settings-row'
+import { AvatarUploader } from './avatar-uploader'
 
 const WEEKS = 52
 
@@ -83,7 +84,7 @@ const HEAT = [
 const CELL_PX = 10 // cell width/height
 const CELL_GAP_PX = 4 // gap between cells (and between columns)
 
-export function Profile() {
+export function Profile({ form }: { form: UseFormReturnType }) {
   const { data: settings } = useSettings()
   const { data: usage } = useSWR<UsageSummary>('/api/usage')
   const { data: chats } = useSWR<{ id: string }[]>('/api/history')
@@ -149,12 +150,11 @@ export function Profile() {
     <div className="flex flex-col gap-8">
       {/* Header */}
       <div className="flex flex-col items-center gap-3 pt-2">
-        <Avatar className="size-20">
-          <AvatarImage src={settings?.assistantAvatar ?? undefined} />
-          <AvatarFallback className="text-xl">
-            {(nickname ?? 'You').slice(0, 1).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+        <AvatarUploader
+          props={{ control: form.control, name: 'userAvatar' }}
+          className="size-20"
+          fallback={(nickname ?? 'You').slice(0, 1).toUpperCase()}
+        />
         <div className="flex flex-col items-center gap-1">
           <h2 className="text-lg font-semibold">{nickname ?? 'You'}</h2>
           <Badge variant="secondary" className="text-xs font-normal">

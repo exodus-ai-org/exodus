@@ -3,7 +3,7 @@ import { MoreHorizontalIcon, SettingsIcon } from 'lucide-react'
 import React from 'react'
 import { useLocation, useNavigate } from 'react-router'
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -41,6 +41,7 @@ export function NavFooter({
               onClick={() => navigate('/settings')}
             >
               <Avatar size="sm">
+                <AvatarImage src={settings?.userAvatar ?? undefined} />
                 <AvatarFallback className="bg-foreground/10 text-foreground text-[10px] font-medium">
                   {nickname.slice(0, 1).toUpperCase()}
                 </AvatarFallback>

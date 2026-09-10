@@ -9,7 +9,6 @@ import { Switch } from '@/components/ui/switch'
 import { setLoginItem, setMenuBar } from '@/lib/ipc'
 
 import { SettingsRow, SettingsSection } from '../settings-row'
-import { AvatarUploader } from './avatar-uploader'
 import { LockPrivacy } from './lock-privacy'
 
 const APPEARANCE_MODES: {
@@ -90,15 +89,6 @@ export function General({ form }: { form: UseFormReturnType }) {
           <Switch
             checked={menuBarEnabled}
             onCheckedChange={(checked) => form.setValue('menuBar', checked)}
-          />
-        </SettingsRow>
-
-        <SettingsRow
-          label="Assistant Avatar"
-          description="Personalize your assistant with an avatar for a better user experience."
-        >
-          <AvatarUploader
-            props={{ control: form.control, name: 'assistantAvatar' }}
           />
         </SettingsRow>
       </SettingsSection>

@@ -224,7 +224,7 @@ export const SettingsSchema = z.object({
   mcpServers: z.string().nullish(),
   tools: ToolsSchema.nullish(),
   voice: VoiceSchema.nullish(),
-  assistantAvatar: z.string().nullish(),
+  userAvatar: z.string().nullish(),
   googleCloud: GoogleCloudSchema.nullish(),
   webSearch: WebSearchSchema.nullish(),
   fullTextSearch: FullTextSearchSchema.nullish(),

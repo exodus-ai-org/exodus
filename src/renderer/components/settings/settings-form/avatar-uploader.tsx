@@ -3,13 +3,17 @@ import { ChangeEvent, useRef } from 'react'
 import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
 
 import { useSettings } from '@/hooks/use-settings'
-import { convertFileToBase64 } from '@/lib/utils'
+import { cn, convertFileToBase64 } from '@/lib/utils'
 
 export function AvatarUploader<T extends FieldValues>({
-  props
+  props,
+  className,
+  fallback
 }: {
   props: UseControllerProps<T>
   className?: string
+  /** Shown when no image is set — e.g. the user's initial. */
+  fallback?: string
 }) {
   const ref = useRef<HTMLInputElement | null>(null)
   const { field } = useController(props)
@@ -22,7 +26,7 @@ export function AvatarUploader<T extends FieldValues>({
     if (file) {
       const base64 = await convertFileToBase64(file)
       field.onChange(base64)
-      updateSettings({ ...settings, assistantAvatar: base64 })
+      updateSettings({ ...settings, userAvatar: base64 })
     }
 
     if (ref.current) {
@@ -34,26 +38,35 @@ export function AvatarUploader<T extends FieldValues>({
     if (!settings) return
 
     field.onChange('')
-    updateSettings({ ...settings, assistantAvatar: '' })
+    updateSettings({ ...settings, userAvatar: '' })
   }
 
   return (
-    <div className="relative flex size-16! shrink-0 items-center justify-center rounded-full border">
+    <div
+      className={cn(
+        'relative flex size-16 shrink-0 items-center justify-center rounded-full border',
+        className
+      )}
+    >
       <input
         ref={ref}
         type="file"
         accept="image/*"
-        id="assistant-avatar"
-        aria-label="Upload assistant avatar"
-        className="absolute top-0 left-0 z-10 size-16 opacity-0"
+        id="user-avatar"
+        aria-label="Upload your avatar"
+        className="absolute inset-0 z-10 size-full cursor-pointer opacity-0"
         onChange={handleEditorChange}
       />
       {field.value ? (
         <img
           src={field.value}
-          alt="assistant-avatar"
-          className="size-16 rounded-full object-cover"
+          alt="Your avatar"
+          className="size-full rounded-full object-cover"
         />
+      ) : fallback ? (
+        <span className="text-muted-foreground text-lg font-medium">
+          {fallback}
+        </span>
       ) : (
         <PlusIcon />
       )}

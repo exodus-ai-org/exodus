@@ -58,7 +58,7 @@ export function SettingsForm() {
     >
       <h1 className="text-xl">{activeTitle}</h1>
 
-      {activeTitle === SettingsLabel.Profile && <Profile />}
+      {activeTitle === SettingsLabel.Profile && <Profile form={form} />}
 
       {activeTitle === SettingsLabel.General && <General form={form} />}
 

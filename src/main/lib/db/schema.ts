@@ -147,7 +147,10 @@ export const settings = pgTable('settings', {
   mcpServers: text('mcpServers').default(''),
   tools: jsonb('tools').$type<z.infer<typeof ToolsSchema>>(),
   voice: jsonb('voice').$type<z.infer<typeof VoiceSchema>>(),
-  assistantAvatar: text('assistantAvatar').default(''),
+  // The user's avatar (Sidebar footer + Settings → Profile). The physical
+  // column is still named `assistantAvatar` — it used to be the AI's avatar —
+  // so existing rows carry over without a migration.
+  userAvatar: text('assistantAvatar').default(''),
   googleCloud: jsonb('googleCloud').$type<z.infer<typeof GoogleCloudSchema>>(),
   webSearch: jsonb('webSearch').$type<z.infer<typeof WebSearchSchema>>(),
   fullTextSearch:
