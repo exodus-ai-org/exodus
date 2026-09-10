@@ -151,16 +151,16 @@ The full chat/message tables and indexes are defined in `src/main/lib/db/schema.
 ### AI/LLM Integration
 
 **Multi-Provider Support** (built on `@mariozechner/pi-ai` + `@mariozechner/pi-agent-core`):
-All providers are in `src/main/lib/ai/providers/`. Each provider file resolves a `Model` via the shared `resolveModel()` in `src/main/lib/ai/providers/resolve-model.ts` (do not duplicate model-resolution logic). Per-provider fallback defaults (contextWindow, cost) live in `resolve-model.ts`; model lists live in `src/shared/constants/models.ts`.
-
-Supported providers (files in `src/main/lib/ai/providers/`):
-
-- OpenAI GPT (`openai-gpt.ts`)
-- Azure OpenAI (`azure-openai.ts`)
-- Anthropic Claude (`anthropic-claude.ts`)
-- Google Gemini (`google-gemini.ts`)
-- xAI Grok (`xai-grok.ts`)
-- Ollama (`ollama.ts` - local models)
+All model resolution lives in `src/main/lib/ai/providers/`. The registry-backed
+providers (OpenAI GPT, Azure OpenAI, Anthropic Claude, Google Gemini, xAI Grok)
+are one `SPECS` table + a `fromSpec` factory in `index.ts` — a row only supplies
+the base-URL setting, its fallback, the default model ids, and the pi-ai
+`provider` / `api` strings. Ollama (`ollama.ts`) is the exception: a hand-built
+`Model` with nothing in the registry. Every path resolves through the shared
+`resolveModel()` in `resolve-model.ts` (do not duplicate model-resolution
+logic); its per-provider fallback defaults (contextWindow, cost) and
+newer-than-registry `MODEL_OVERRIDES` live there. Selectable model lists live in
+`src/shared/constants/models.ts`.
 
 **Chat Flow** (`src/main/lib/server/routes/chat.ts`):
 
@@ -470,11 +470,14 @@ Reusable AI utilities that should be used (and tested) instead of inline impleme
 
 ### Adding a New Provider
 
-1. Create provider file in `src/main/lib/ai/providers/my-provider.ts`
-2. Resolve a `Model` via the shared `resolveModel()` (`src/main/lib/ai/providers/resolve-model.ts`)
-3. Add the provider's models to `src/shared/constants/models.ts`
-4. Update settings UI to include the new provider
-5. Update schema validation in `src/shared/schemas/`
+1. Add the `AiProviders` enum member in `src/shared/types/ai.ts`
+2. Add a `SPECS` row in `src/main/lib/ai/providers/index.ts` (base-URL
+   getter + fallback, default model ids, pi-ai `provider` / `api`). A provider
+   that can't go through `resolveModel()` (like Ollama) gets its own module +
+   a hand-written `ProviderFn` instead
+3. Add any newer-than-registry models to `MODEL_OVERRIDES` in `resolve-model.ts`
+4. Add the provider's selectable models to `src/shared/constants/models.ts`
+5. Add its key/base-URL fields to `ProvidersSchema` in `src/shared/schemas/settings-schema.ts` and a tab in `settings-form/providers-tabs.tsx`
 
 ### Test-ID Checkpoints (traceability)
 
