@@ -140,7 +140,7 @@ export function ChatToc({
             >
               <span
                 className={cn(
-                  'h-0.5 rounded-full transition-all',
+                  'h-0.5 rounded-full transition-[width,background-color]',
                   entry.id === activeId
                     ? 'bg-foreground/70 w-6'
                     : 'bg-muted-foreground/30 group-hover:bg-muted-foreground/60 w-4'

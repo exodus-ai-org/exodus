@@ -209,7 +209,7 @@ export function ImageLightbox({
                   aria-label={`Go to image ${i + 1}`}
                   aria-current={i === index || undefined}
                   className={cn(
-                    'h-1.5 rounded-full transition-all',
+                    'h-1.5 rounded-full transition-[width,background-color]',
                     i === index
                       ? 'bg-foreground w-5'
                       : 'bg-foreground/25 hover:bg-foreground/50 w-1.5'

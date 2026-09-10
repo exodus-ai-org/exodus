@@ -97,7 +97,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
         </div>
         <div className="bg-muted h-1.5 w-full overflow-hidden rounded-full">
           <div
-            className="bg-primary h-full rounded-full transition-all duration-300"
+            className="bg-primary h-full rounded-full transition-[width] duration-300"
             style={{ width: `${downloadProgress}%` }}
           />
         </div>

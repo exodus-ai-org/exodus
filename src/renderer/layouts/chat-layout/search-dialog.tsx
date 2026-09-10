@@ -72,7 +72,7 @@ export function SearchDialog() {
                     setQuery('')
                   }}
                 >
-                  <div className="hover:bg-accent relative flex flex-col rounded-lg px-4 py-3 transition-all duration-300 hover:transition-all hover:duration-300">
+                  <div className="hover:bg-accent relative flex flex-col rounded-lg px-4 py-3 transition-colors">
                     <p className="text-primary truncate text-sm">
                       {item.title}
                     </p>

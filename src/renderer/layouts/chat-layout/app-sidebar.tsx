@@ -36,7 +36,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {...props}
     >
       <SidebarHeader
-        className={cn('draggable gap-2 pt-11 transition-all', {
+        className={cn('draggable gap-2 pt-11 transition-[padding]', {
           ['pt-2']: isFullscreen
         })}
       >

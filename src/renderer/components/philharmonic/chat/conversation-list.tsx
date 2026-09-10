@@ -139,7 +139,7 @@ export function ConversationList({
       )}
     >
       <SidebarHeader
-        className={cn('draggable gap-1 pt-11 transition-all', {
+        className={cn('draggable gap-1 pt-11 transition-[padding]', {
           ['pt-2']: isFullscreen
         })}
       >

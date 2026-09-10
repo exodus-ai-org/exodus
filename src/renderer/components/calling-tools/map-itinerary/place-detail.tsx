@@ -126,7 +126,7 @@ export function PlaceDetail({
                     aria-current={i === photoIdx ? 'true' : undefined}
                     onClick={() => carouselApi?.scrollTo(i)}
                     className={cn(
-                      'h-1.5 rounded-full bg-white transition-all',
+                      'h-1.5 rounded-full bg-white transition-[width,opacity]',
                       i === photoIdx
                         ? 'w-4 opacity-100'
                         : 'w-1.5 opacity-50 hover:opacity-80'
