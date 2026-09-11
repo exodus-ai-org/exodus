@@ -1,3 +1,5 @@
+import { ErrorCode } from '@shared/constants/error-codes'
+import { NotFoundError } from '@shared/errors/app-error'
 import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 
@@ -16,7 +18,8 @@ artifactsRouter.get('/:chatId/:artifactId', async (c) => {
   const chatId = c.req.param('chatId')
   const artifactId = c.req.param('artifactId')
   const result = getArtifact(chatId, artifactId)
-  if (!result) return c.json({ error: 'Artifact not found' }, 404)
+  if (!result)
+    throw new NotFoundError(ErrorCode.RESOURCE_NOT_FOUND, 'Artifact not found')
   return successResponse(c, result)
 })
 
@@ -27,13 +30,20 @@ artifactsRouter.post('/:chatId/:artifactId/resync', async (c) => {
   const chatId = c.req.param('chatId')
   const artifactId = c.req.param('artifactId')
   const onDisk = getArtifact(chatId, artifactId)
-  if (!onDisk) return c.json({ error: 'Artifact file not found' }, 404)
+  if (!onDisk)
+    throw new NotFoundError(
+      ErrorCode.RESOURCE_NOT_FOUND,
+      'Artifact file not found'
+    )
   const updated = await updateArtifactCodeByArtifactId({
     artifactId,
     code: onDisk.code
   })
   if (updated === 0) {
-    return c.json({ error: 'No matching artifact message in DB' }, 404)
+    throw new NotFoundError(
+      ErrorCode.RESOURCE_NOT_FOUND,
+      'No matching artifact message in DB'
+    )
   }
   return successResponse(c, { updated, bytes: onDisk.code.length })
 })

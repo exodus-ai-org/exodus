@@ -1,6 +1,8 @@
 import { existsSync, readdirSync, readFileSync, unlinkSync } from 'fs'
 import { join } from 'path'
 
+import { ErrorCode } from '@shared/constants/error-codes'
+import { NotFoundError } from '@shared/errors/app-error'
 import { Hono } from 'hono'
 
 import {
@@ -87,7 +89,7 @@ logsRouter.get('/export', (c) => {
   const filePath = join(getLogsDir(), `${date}.jsonl`)
 
   if (!existsSync(filePath)) {
-    return c.json({ error: 'Log file not found' }, 404)
+    throw new NotFoundError(ErrorCode.RESOURCE_NOT_FOUND, 'Log file not found')
   }
 
   const content = readFileSync(filePath, 'utf-8')

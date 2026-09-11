@@ -1,13 +1,12 @@
+import { ErrorCode } from '@shared/constants/error-codes'
+import { AppError } from '@shared/errors/app-error'
 import type { Context, Next } from 'hono'
 
 import { getLockManager } from '../../lock/lock-manager'
 
-export async function lockGate(c: Context, next: Next) {
+export async function lockGate(_c: Context, next: Next) {
   if (getLockManager().isLocked()) {
-    return c.json(
-      { error: { code: 'LOCKED', message: 'Application is locked' } },
-      423
-    )
+    throw new AppError(ErrorCode.APP_LOCKED, 'Application is locked')
   }
   return next()
 }
