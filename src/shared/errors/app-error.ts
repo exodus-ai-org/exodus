@@ -14,14 +14,23 @@ export class AppError extends Error {
   public readonly code: ErrorCode
   public readonly statusCode: number
   public readonly isOperational: boolean
+  public readonly params?: Record<string, string | number>
+  public readonly hasCustomMessage: boolean
 
-  constructor(code: ErrorCode, message?: string, isOperational = true) {
+  constructor(
+    code: ErrorCode,
+    message?: string,
+    isOperational = true,
+    params?: Record<string, string | number>
+  ) {
     super(message || ErrorMessages[code])
 
     this.name = this.constructor.name
     this.code = code
     this.statusCode = ErrorCodeToStatus[code]
     this.isOperational = isOperational
+    this.params = params
+    this.hasCustomMessage = message !== undefined
 
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, this.constructor)
@@ -32,15 +41,21 @@ export class AppError extends Error {
    * Serialize to Anthropic-style JSON for HTTP responses.
    *
    * ```json
-   * { "type": "error", "error": { "code": "CHAT_NOT_FOUND", "message": "Chat not found." } }
+   * { "type": "error", "error": { "code": "CHAT_NOT_FOUND", "message": "Chat not found.", "hasCustomMessage": true } }
    * ```
+   *
+   * `params` is present only when the constructor received one; the
+   * renderer's `getHttpErrorMessage` uses `hasCustomMessage` to decide
+   * whether to show `message` verbatim or translate `code` + `params`.
    */
   toJSON() {
     return {
       type: 'error' as const,
       error: {
         code: this.code,
-        message: this.message
+        message: this.message,
+        ...(this.params !== undefined ? { params: this.params } : {}),
+        hasCustomMessage: this.hasCustomMessage
       }
     }
   }
@@ -49,59 +64,82 @@ export class AppError extends Error {
 // ── Typed subclasses ─────────────────────────────────────────────────────────
 
 export class ConfigurationError extends AppError {
-  constructor(code: ErrorCode = ErrorCode.CONFIG_INVALID, message?: string) {
-    super(code, message)
+  constructor(
+    code: ErrorCode = ErrorCode.CONFIG_INVALID,
+    message?: string,
+    params?: Record<string, string | number>
+  ) {
+    super(code, message, true, params)
   }
 }
 
 export class NotFoundError extends AppError {
   constructor(
     code: ErrorCode = ErrorCode.RESOURCE_NOT_FOUND,
-    message?: string
+    message?: string,
+    params?: Record<string, string | number>
   ) {
-    super(code, message)
+    super(code, message, true, params)
   }
 }
 
 export class ValidationError extends AppError {
-  constructor(code: ErrorCode = ErrorCode.VALIDATION_FAILED, message?: string) {
-    super(code, message)
+  constructor(
+    code: ErrorCode = ErrorCode.VALIDATION_FAILED,
+    message?: string,
+    params?: Record<string, string | number>
+  ) {
+    super(code, message, true, params)
   }
 }
 
 export class RateLimitError extends AppError {
-  constructor(code: ErrorCode = ErrorCode.RATE_LIMIT_CHAT, message?: string) {
-    super(code, message)
+  constructor(
+    code: ErrorCode = ErrorCode.RATE_LIMIT_CHAT,
+    message?: string,
+    params?: Record<string, string | number>
+  ) {
+    super(code, message, true, params)
   }
 }
 
 export class ServiceError extends AppError {
   constructor(
     code: ErrorCode = ErrorCode.SERVICE_UNAVAILABLE,
-    message?: string
+    message?: string,
+    params?: Record<string, string | number>
   ) {
-    super(code, message)
+    super(code, message, true, params)
   }
 }
 
 export class DatabaseError extends AppError {
-  constructor(code: ErrorCode = ErrorCode.DB_QUERY_FAILED, message?: string) {
-    super(code, message)
+  constructor(
+    code: ErrorCode = ErrorCode.DB_QUERY_FAILED,
+    message?: string,
+    params?: Record<string, string | number>
+  ) {
+    super(code, message, true, params)
   }
 }
 
 export class FileError extends AppError {
-  constructor(code: ErrorCode = ErrorCode.FILE_READ_FAILED, message?: string) {
-    super(code, message)
+  constructor(
+    code: ErrorCode = ErrorCode.FILE_READ_FAILED,
+    message?: string,
+    params?: Record<string, string | number>
+  ) {
+    super(code, message, true, params)
   }
 }
 
 export class AIError extends AppError {
   constructor(
     code: ErrorCode = ErrorCode.AI_GENERATION_FAILED,
-    message?: string
+    message?: string,
+    params?: Record<string, string | number>
   ) {
-    super(code, message)
+    super(code, message, true, params)
   }
 }
 

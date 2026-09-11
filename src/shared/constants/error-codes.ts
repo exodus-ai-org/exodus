@@ -15,6 +15,7 @@ export enum ErrorCode {
   CONFIG_MISSING_BRAVE = 'CONFIG_MISSING_BRAVE',
   CONFIG_MISSING_S3 = 'CONFIG_MISSING_S3',
   CONFIG_INVALID = 'CONFIG_INVALID',
+  CONFIG_MISSING_S3_BUCKET = 'CONFIG_MISSING_S3_BUCKET',
 
   // ── Not Found Errors (404) ─────────────────────────────────────────────────
   CHAT_NOT_FOUND = 'CHAT_NOT_FOUND',
@@ -70,7 +71,10 @@ export enum ErrorCode {
 
   // ── Generic Errors ─────────────────────────────────────────────────────────
   INTERNAL_ERROR = 'INTERNAL_ERROR',
-  UNKNOWN_ERROR = 'UNKNOWN_ERROR'
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
+
+  // ── Application State Errors ────────────────────────────────────────────────
+  APP_LOCKED = 'APP_LOCKED'
 }
 
 /**
@@ -86,6 +90,7 @@ export const ErrorCodeToStatus: Record<ErrorCode, number> = {
   [ErrorCode.CONFIG_MISSING_BRAVE]: 400,
   [ErrorCode.CONFIG_MISSING_S3]: 400,
   [ErrorCode.CONFIG_INVALID]: 400,
+  [ErrorCode.CONFIG_MISSING_S3_BUCKET]: 400,
 
   // Not Found Errors
   [ErrorCode.CHAT_NOT_FOUND]: 404,
@@ -141,7 +146,10 @@ export const ErrorCodeToStatus: Record<ErrorCode, number> = {
 
   // Generic Errors
   [ErrorCode.INTERNAL_ERROR]: 500,
-  [ErrorCode.UNKNOWN_ERROR]: 500
+  [ErrorCode.UNKNOWN_ERROR]: 500,
+
+  // Application State Errors
+  [ErrorCode.APP_LOCKED]: 423
 }
 
 /**
@@ -165,6 +173,8 @@ export const ErrorMessages: Record<ErrorCode, string> = {
     'S3 configuration is incomplete. Please configure AWS credentials in settings.',
   [ErrorCode.CONFIG_INVALID]:
     'Configuration is invalid. Please check your settings.',
+  [ErrorCode.CONFIG_MISSING_S3_BUCKET]:
+    'S3 bucket is not configured. Please check your settings.',
 
   // Not Found Errors
   [ErrorCode.CHAT_NOT_FOUND]: 'Chat not found.',
@@ -230,5 +240,8 @@ export const ErrorMessages: Record<ErrorCode, string> = {
 
   // Generic Errors
   [ErrorCode.INTERNAL_ERROR]: 'Internal server error occurred.',
-  [ErrorCode.UNKNOWN_ERROR]: 'An unknown error occurred.'
+  [ErrorCode.UNKNOWN_ERROR]: 'An unknown error occurred.',
+
+  // Application State Errors
+  [ErrorCode.APP_LOCKED]: 'Application is locked.'
 }

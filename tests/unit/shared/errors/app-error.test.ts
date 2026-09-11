@@ -33,14 +33,36 @@ describe('AppError', () => {
     expect(err.statusCode).toBe(404)
   })
 
-  it('serializes to Anthropic-style JSON', () => {
+  it('serializes to Anthropic-style JSON with hasCustomMessage true for an explicit message', () => {
     const err = new AppError(ErrorCode.VALIDATION_FAILED, 'Bad input')
     const json = err.toJSON()
     expect(json).toEqual({
       type: 'error',
       error: {
         code: ErrorCode.VALIDATION_FAILED,
-        message: 'Bad input'
+        message: 'Bad input',
+        hasCustomMessage: true
+      }
+    })
+  })
+
+  it('serializes with hasCustomMessage false and includes params when code-driven', () => {
+    const err = new AppError(
+      ErrorCode.VALIDATION_MISSING_FIELD,
+      undefined,
+      true,
+      {
+        field: 'chatId'
+      }
+    )
+    const json = err.toJSON()
+    expect(json).toEqual({
+      type: 'error',
+      error: {
+        code: ErrorCode.VALIDATION_MISSING_FIELD,
+        message: ErrorMessages[ErrorCode.VALIDATION_MISSING_FIELD],
+        params: { field: 'chatId' },
+        hasCustomMessage: false
       }
     })
   })
@@ -94,6 +116,14 @@ describe('Error subclasses', () => {
     const err = new InternalError('Something broke')
     expect(err.code).toBe(ErrorCode.INTERNAL_ERROR)
     expect(err.isOperational).toBe(false)
+  })
+
+  it('typed subclasses forward params to the base class', () => {
+    const err = new NotFoundError(ErrorCode.MEMORY_NOT_FOUND, undefined, {
+      id: 'mem-1'
+    })
+    expect(err.params).toEqual({ id: 'mem-1' })
+    expect(err.hasCustomMessage).toBe(false)
   })
 })
 
