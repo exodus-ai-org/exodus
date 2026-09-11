@@ -76,6 +76,10 @@ export function setNativeTheme(source: 'dark' | 'light' | 'system') {
   return window.electron.ipcRenderer.invoke('set-native-theme', source)
 }
 
+export function setAppLocale(locale: string) {
+  return window.electron.ipcRenderer.invoke('set-app-locale', locale)
+}
+
 export function updaterGetState() {
   return window.electron.ipcRenderer.invoke('updater-get-state')
 }

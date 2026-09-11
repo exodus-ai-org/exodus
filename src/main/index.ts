@@ -11,6 +11,7 @@ import {
   cleanupStaleWaitingTasks
 } from './lib/db/philharmonic-queries'
 import { getSettings } from './lib/db/queries'
+import { initMainI18n } from './lib/i18n'
 import { setupIPC } from './lib/ipc'
 import { IdleWatcher } from './lib/lock/idle-watcher'
 import { setLockIdleWatcher } from './lib/lock/ipc'
@@ -46,6 +47,11 @@ app.whenReady().then(async () => {
 
   // Migrate PGlite
   await runMigrate()
+
+  // Initialise the main-process i18n instance (resolves the effective locale
+  // from settings + OS, registers get/set-app-locale IPC). Must run before
+  // setupMenu() and createWindow().
+  await initMainI18n()
 
   // One-time migration of legacy `shared/` artifacts into per-chat folders
   await migrateSharedArtifacts().catch((err) => {
