@@ -496,6 +496,13 @@ Reusable AI utilities that should be used (and tested) instead of inline impleme
    interpolating translated fragments.
 5. Non-English catalogs are filled by the machine-translation pass — do not
    hand-edit them.
+6. `src/renderer/components/ui/**` (shadcn primitives) is permanently out of
+   scope for extraction — the generator (`pnpm shadcn:generate`) overwrites
+   these files and drops any `t()` calls added by hand.
+7. Before extracting a string into an existing function scope, check whether
+   that scope already binds a local `t` (a loop variable, a destructured
+   field, anything) — a shadowed `t` compiles fine today but breaks the next
+   namespace pass that adds a real `t()` call in the same scope.
 
 ### Test-ID Checkpoints (traceability)
 
