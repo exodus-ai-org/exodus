@@ -6,6 +6,7 @@ import {
   Trash2
 } from 'lucide-react'
 import { useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 import useSWR from 'swr'
 
@@ -42,6 +43,7 @@ function formatDate(iso: string): string {
 }
 
 export function DataControls() {
+  const { t } = useTranslation('common')
   const { data: settings, updateSettings } = useSettings()
   const { data: backupStatus, mutate: mutateStatus } =
     useSWR<BackupStatus>('/api/backup/status')
@@ -204,7 +206,7 @@ export function DataControls() {
                 variant="outline"
                 onClick={() => setImportDialogOpen(false)}
               >
-                Cancel
+                {t('action.cancel')}
               </Button>
               <Button
                 disabled={!selectedFile || importLoading}
@@ -264,7 +266,7 @@ export function DataControls() {
                   setDeleteConfirmText('')
                 }}
               >
-                Cancel
+                {t('action.cancel')}
               </Button>
               <Button
                 variant="destructive"

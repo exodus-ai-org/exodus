@@ -8,6 +8,7 @@ import {
   subWeeks
 } from 'date-fns'
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 
 import { Badge } from '@/components/ui/badge'
@@ -85,6 +86,7 @@ const CELL_PX = 10 // cell width/height
 const CELL_GAP_PX = 4 // gap between cells (and between columns)
 
 export function Profile({ form }: { form: UseFormReturnType }) {
+  const { t } = useTranslation('common')
   const { data: settings } = useSettings()
   const { data: usage } = useSWR<UsageSummary>('/api/usage')
   const { data: chats } = useSWR<{ id: string }[]>('/api/history')
@@ -158,7 +160,7 @@ export function Profile({ form }: { form: UseFormReturnType }) {
         <div className="flex flex-col items-center gap-1">
           <h2 className="text-lg font-semibold">{nickname ?? 'You'}</h2>
           <Badge variant="secondary" className="text-xs font-normal">
-            Local
+            {t('state.local')}
           </Badge>
         </div>
       </div>

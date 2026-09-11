@@ -11,6 +11,7 @@ import {
   XIcon
 } from 'lucide-react'
 import { lazy, Suspense, useCallback, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 import useSWR from 'swr'
 
@@ -174,6 +175,7 @@ function ServerCard({
 // ─── Main Component ─────────────────────────────────────────────────────────
 
 export function McpServers() {
+  const { t } = useTranslation('common')
   const { data: servers, mutate } = useSWR<McpServerItem[]>(
     '/api/mcp',
     getMcpServers
@@ -615,7 +617,7 @@ export function McpServers() {
                     className="flex-1"
                     onClick={resetForm}
                   >
-                    Cancel
+                    {t('action.cancel')}
                   </Button>
                   <Button
                     size="sm"

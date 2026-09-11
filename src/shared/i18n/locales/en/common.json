@@ -2,6 +2,7 @@
   "appName": "Exodus",
   "action": {
     "save": "Save",
+    "saving": "Saving…",
     "cancel": "Cancel",
     "delete": "Delete",
     "close": "Close",

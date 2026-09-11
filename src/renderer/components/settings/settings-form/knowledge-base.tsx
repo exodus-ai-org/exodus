@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Controller } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -96,6 +97,7 @@ interface DocDialogProps {
 }
 
 function DocDialog({ open, doc, onClose, onSaved }: DocDialogProps) {
+  const { t } = useTranslation('common')
   const isEdit = !!doc
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -165,14 +167,14 @@ function DocDialog({ open, doc, onClose, onSaved }: DocDialogProps) {
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {t('action.cancel')}
           </Button>
           <Button
             disabled={saving || !title.trim() || !content.trim()}
             onClick={handleSave}
             data-testid={TEST_IDS.knowledgeBase.docSaveButton}
           >
-            {saving ? 'Saving…' : 'Save'}
+            {saving ? t('action.saving') : t('action.save')}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -191,6 +193,7 @@ function DocListItem({
   onEdit: (d: KnowledgeDocData) => void
   onDelete: (d: KnowledgeDocData) => void
 }) {
+  const { t } = useTranslation('common')
   const badge = STATUS_BADGE[doc.indexStatus]
   return (
     <div className="flex items-start gap-3 rounded-md border p-3">
@@ -219,7 +222,7 @@ function DocListItem({
           variant="ghost"
           size="icon"
           className="size-7"
-          title="Edit"
+          title={t('action.edit')}
           onClick={() => onEdit(doc)}
         >
           <PencilIcon className="size-3.5" data-icon />
@@ -228,7 +231,7 @@ function DocListItem({
           variant="ghost"
           size="icon"
           className="text-destructive hover:text-destructive size-7"
-          title="Delete"
+          title={t('action.delete')}
           onClick={() => onDelete(doc)}
         >
           <Trash2Icon className="size-3.5" data-icon />
@@ -241,6 +244,7 @@ function DocListItem({
 // ─── Main component ──────────────────────────────────────────────────────────
 
 export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
+  const { t } = useTranslation('common')
   const [testing, setTesting] = useState(false)
   const [docs, setDocs] = useState<KnowledgeDocData[]>([])
   const [loading, setLoading] = useState(true)
@@ -572,9 +576,9 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('action.cancel')}</AlertDialogCancel>
             <AlertDialogAction variant="destructive" onClick={confirmDelete}>
-              Delete
+              {t('action.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

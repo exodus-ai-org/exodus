@@ -6,6 +6,7 @@ import {
   RefreshCwIcon,
   ZapIcon
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { UpdaterPayload } from '@/hooks/use-updater'
@@ -17,6 +18,7 @@ interface UpdatePanelProps {
 }
 
 export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
+  const { t } = useTranslation('common')
   const { state, availableVersion, downloadProgress, errorMessage } = payload
 
   if (state === 'idle') {
@@ -140,7 +142,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
         </div>
         <Button variant="outline" size="sm" onClick={() => updaterCheck()}>
           <RefreshCwIcon className="mr-1.5 size-3.5" data-icon />
-          Retry
+          {t('action.retry')}
         </Button>
       </div>
     )

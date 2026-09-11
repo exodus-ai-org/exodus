@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Controller } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import { Button } from '@/components/ui/button'
@@ -66,6 +67,7 @@ function MemoryRow({
   onToggle: () => void
   onDelete: () => void
 }) {
+  const { t } = useTranslation('common')
   const disabled = item.isActive === false
   return (
     <div
@@ -122,7 +124,7 @@ function MemoryRow({
             variant="ghost"
             size="icon"
             className="text-muted-foreground hover:text-destructive size-7"
-            title="Delete"
+            title={t('action.delete')}
             onClick={(e) => {
               e.stopPropagation()
               onDelete()
@@ -157,6 +159,7 @@ function MemoryDetail({
   onPatched: (next: MemoryItem) => void
   onDeleted: () => void
 }) {
+  const { t } = useTranslation('common')
   const [key, setKey] = useState(item.key)
   const [summary, setSummary] = useState(item.summary)
   const [detailsText, setDetailsText] = useState(() => item.details.join('\n'))
@@ -228,7 +231,7 @@ function MemoryDetail({
             className="text-muted-foreground hover:text-destructive"
             onClick={handleDelete}
           >
-            Delete
+            {t('action.delete')}
           </Button>
         </div>
       </div>

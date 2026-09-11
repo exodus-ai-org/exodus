@@ -1,5 +1,6 @@
 import { TEST_IDS } from '@shared/constants/test-ids'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import { PinInput } from '@/components/lock/pin-input'
@@ -44,6 +45,7 @@ function PinBlock({
 }
 
 export function LockPrivacy() {
+  const { t } = useTranslation('common')
   const { status, refresh } = useLock()
   const [step, setStep] = useState<'enter' | 'confirm'>('enter')
   const [pin, setPin] = useState('')
@@ -221,7 +223,7 @@ export function LockPrivacy() {
                 />
               </div>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t('action.cancel')}</AlertDialogCancel>
                 <Button
                   variant="destructive"
                   disabled={removePinValue.length !== 6}
