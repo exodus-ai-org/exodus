@@ -18,3 +18,82 @@ describe('getHttpErrorMessage', () => {
     expect(getHttpErrorMessage(undefined)).toBe(undefined)
   })
 })
+
+describe('getHttpErrorMessage with an i18n instance', () => {
+  const fakeI18n = {
+    exists: (key: string) =>
+      [
+        'errors.MEMORY_NOT_FOUND',
+        'errors.http.404',
+        'errors.http.unknown'
+      ].includes(key),
+    t: (key: string, params?: Record<string, string | number>) => {
+      if (key === 'errors.MEMORY_NOT_FOUND')
+        return `Memory ${params?.id} not found (translated).`
+      if (key === 'errors.http.404') return 'Not found (translated).'
+      if (key === 'errors.http.unknown') return 'Unknown failure (translated).'
+      return key
+    }
+  }
+
+  it('shows the raw message verbatim when hasCustomMessage is true, even with i18n available', () => {
+    const err = new HttpError(
+      404,
+      'RESOURCE_NOT_FOUND',
+      'Artifact not found',
+      undefined,
+      true
+    )
+    expect(getHttpErrorMessage(err, fakeI18n)).toBe('Artifact not found')
+  })
+
+  it('translates via code + params when hasCustomMessage is false and the code key exists', () => {
+    const err = new HttpError(
+      404,
+      'MEMORY_NOT_FOUND',
+      'Memory mem-1 not found.',
+      { id: 'mem-1' },
+      false
+    )
+    expect(getHttpErrorMessage(err, fakeI18n)).toBe(
+      'Memory mem-1 not found (translated).'
+    )
+  })
+
+  it('falls back to errors.http.<status> when the code key does not exist', () => {
+    const err = new HttpError(
+      404,
+      'SOME_UNKNOWN_CODE',
+      'fallback text',
+      undefined,
+      false
+    )
+    expect(getHttpErrorMessage(err, fakeI18n)).toBe('Not found (translated).')
+  })
+
+  it('falls back to errors.http.unknown when neither the code nor the status key exists', () => {
+    const err = new HttpError(
+      599,
+      'SOME_UNKNOWN_CODE',
+      'fallback text',
+      undefined,
+      false
+    )
+    expect(getHttpErrorMessage(err, fakeI18n)).toBe(
+      'Unknown failure (translated).'
+    )
+  })
+
+  it("ignores the i18n argument entirely when hasCustomMessage is true (today's common case)", () => {
+    const err = new HttpError(
+      500,
+      'DB_QUERY_FAILED',
+      'duplicate key value violates unique constraint',
+      undefined,
+      true
+    )
+    expect(getHttpErrorMessage(err, fakeI18n)).toBe(
+      'duplicate key value violates unique constraint'
+    )
+  })
+})

@@ -28,14 +28,17 @@ function isPlainObject(value: object): value is Record<string, object> {
 }
 
 /**
- * Anthropic-style error response shape:
- * { type: "error", error: { code: "ERROR_CODE", message: "..." } }
+ * Anthropic-style error response shape, extended with the i18n payload
+ * `AppError.toJSON()` now emits:
+ * { type: "error", error: { code, message, params?, hasCustomMessage } }
  */
 interface ErrorResponseBody {
   type: 'error'
   error: {
     code: string
     message: string
+    params?: Record<string, string | number>
+    hasCustomMessage?: boolean
   }
 }
 
@@ -53,20 +56,60 @@ function isErrorResponse(data: unknown): data is ErrorResponseBody {
 export class HttpError extends Error {
   public readonly statusCode: number
   public readonly code: string
+  public readonly params?: Record<string, string | number>
+  public readonly hasCustomMessage: boolean
 
-  constructor(statusCode: number, code: string, message: string) {
+  constructor(
+    statusCode: number,
+    code: string,
+    message: string,
+    params?: Record<string, string | number>,
+    hasCustomMessage = true
+  ) {
     super(message)
     this.name = 'HttpError'
     this.statusCode = statusCode
     this.code = code
+    this.params = params
+    this.hasCustomMessage = hasCustomMessage
   }
 }
 
-// Backend validation/server errors arrive as HttpError with a specific
-// message (e.g. a Zod 400); anything else (network drop, etc.) has no
-// message worth surfacing to the user.
-export function getHttpErrorMessage(err: unknown): string | undefined {
-  return err instanceof HttpError ? err.message : undefined
+interface ErrorI18n {
+  t: (key: string, params?: Record<string, string | number>) => string
+  exists: (key: string) => boolean
+}
+
+/**
+ * Resolves a user-facing message for a failed HTTP request.
+ *
+ * Priority, once an `i18n` instance is passed:
+ * 1. `err.hasCustomMessage` — a caller (server-side `AppError` override, or
+ *    a genuinely dynamic client-side failure like a timeout's raw text)
+ *    provided real, specific text. Show it verbatim, untranslated — this
+ *    is deliberately not templated, since it's arbitrary exception text.
+ * 2. Otherwise the error is purely code-driven: translate `errors.<code>`
+ *    with `err.params`.
+ * 3. If that key doesn't exist, fall back to `errors.http.<statusCode>`,
+ *    then `errors.http.unknown`.
+ *
+ * When `i18n` is omitted, behavior is unchanged from before this pass:
+ * always return `err.message` for any `HttpError`.
+ */
+export function getHttpErrorMessage(
+  err: unknown,
+  i18n?: ErrorI18n
+): string | undefined {
+  if (!(err instanceof HttpError)) return undefined
+  if (err.hasCustomMessage || !i18n) return err.message
+
+  const codeKey = `errors.${err.code}`
+  if (i18n.exists(codeKey)) return i18n.t(codeKey, err.params)
+
+  const statusKey = `errors.http.${err.statusCode}`
+  return i18n.exists(statusKey)
+    ? i18n.t(statusKey)
+    : i18n.t('errors.http.unknown')
 }
 
 export async function fetcher<T>(
@@ -155,23 +198,31 @@ export async function fetcher<T>(
           throw new HttpError(
             response.status,
             data.error.code,
-            data.error.message
+            data.error.message,
+            data.error.params,
+            data.error.hasCustomMessage ?? true
           )
         }
-        // Fallback for non-standard JSON errors
+        // Fallback for non-standard JSON errors — no ErrorCode drove this,
+        // so route it through the UNKNOWN_ERROR code-driven translation
+        // instead of showing the raw JSON.stringify'd body.
         throw new HttpError(
           response.status,
           'UNKNOWN_ERROR',
-          data.message || JSON.stringify(data)
+          data.message || JSON.stringify(data),
+          undefined,
+          false
         )
       }
 
-      // Plain text fallback
+      // Plain text fallback — same reasoning as above.
       const text = await response.text()
       throw new HttpError(
         response.status,
         'UNKNOWN_ERROR',
-        text || `HTTP error! status: ${response.status}`
+        text || `HTTP error! status: ${response.status}`,
+        undefined,
+        false
       )
     }
 
@@ -190,7 +241,7 @@ export async function fetcher<T>(
   } catch (error) {
     if (error instanceof HttpError) throw error
     if (error instanceof Error && error.name === 'AbortError') {
-      throw new HttpError(408, 'TIMEOUT', 'Request timed out')
+      throw new HttpError(408, 'TIMEOUT', 'Request timed out', undefined, false)
     }
     throw error
   }
