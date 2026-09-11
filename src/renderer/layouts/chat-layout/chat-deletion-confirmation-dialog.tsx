@@ -1,4 +1,5 @@
 import { useAtom } from 'jotai'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
 
 import {
@@ -15,6 +16,7 @@ import { deleteChat } from '@/services/chat'
 import { toBeDeletedChatAtom } from '@/stores/chat'
 
 export function ChatDeletionConfirmationDialog() {
+  const { t } = useTranslation('common')
   const { id } = useParams<{ id: string }>()
   const [toBeDeletedChat, setToBeDeletedChat] = useAtom(toBeDeletedChatAtom)
 
@@ -33,7 +35,7 @@ export function ChatDeletionConfirmationDialog() {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{t('action.cancel')}</AlertDialogCancel>
           <AlertDialogAction
             className="bg-destructive hover:bg-destructive/90"
             onClick={async () => {
@@ -42,7 +44,7 @@ export function ChatDeletionConfirmationDialog() {
               setToBeDeletedChat(undefined)
             }}
           >
-            Delete
+            {t('action.delete')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

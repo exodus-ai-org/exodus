@@ -1,6 +1,7 @@
 import { TEST_IDS } from '@shared/constants/test-ids'
 import { MoreHorizontalIcon, SettingsIcon } from 'lucide-react'
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -23,6 +24,7 @@ import { useSettings } from '@/hooks/use-settings'
 export function NavFooter({
   ...props
 }: React.ComponentPropsWithoutRef<typeof SidebarGroup>) {
+  const { t } = useTranslation('common')
   const navigate = useNavigate()
   const location = useLocation()
   const { data: settings } = useSettings()
@@ -47,7 +49,9 @@ export function NavFooter({
                 </AvatarFallback>
               </Avatar>
               <span className="flex-1 truncate">{nickname}</span>
-              <span className="text-muted-foreground text-xs">Local</span>
+              <span className="text-muted-foreground text-xs">
+                {t('state.local')}
+              </span>
             </SidebarMenuButton>
             <DropdownMenu>
               <DropdownMenuTrigger

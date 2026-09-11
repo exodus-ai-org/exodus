@@ -8,6 +8,7 @@ import {
   Trash2Icon
 } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router'
 import useSWR from 'swr'
 
@@ -49,6 +50,7 @@ import {
 import { createProject, deleteProject } from '@/services/project'
 
 export function NavProjects() {
+  const { t } = useTranslation('common')
   const { data: projects, isLoading } = useSWR<Project[]>('/api/project', {
     fallbackData: []
   })
@@ -128,7 +130,9 @@ export function NavProjects() {
                         onClick={() => setToBeDeletedProject(project)}
                       >
                         <Trash2Icon className="text-destructive" />
-                        <span className="text-destructive">Delete</span>
+                        <span className="text-destructive">
+                          {t('action.delete')}
+                        </span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -168,7 +172,7 @@ export function NavProjects() {
               disabled={!newProjectName.trim()}
               size="sm"
             >
-              Create
+              {t('action.create')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -188,9 +192,9 @@ export function NavProjects() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('action.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteProject}>
-              Delete
+              {t('action.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

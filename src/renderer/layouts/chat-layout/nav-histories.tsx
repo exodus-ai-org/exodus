@@ -8,6 +8,7 @@ import {
   Trash2Icon
 } from 'lucide-react'
 import { memo, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import useSWR from 'swr'
 
@@ -81,6 +82,7 @@ export const NavItems = memo(function NavItems({
   chat: Chat
   className?: string
 }) {
+  const { t } = useTranslation('common')
   const { id } = useParams<{ id: string }>()
   const { isMobile } = useSidebar()
   const setRenamedChatTitle = useSetAtom(renamedChatTitleAtom)
@@ -156,7 +158,7 @@ export const NavItems = memo(function NavItems({
           <DropdownMenuItem onClick={() => setToBeDeletedChat(chat)}>
             <Trash2Icon className="text-destructive" />
             <span className="text-destructive hover:text-destructive">
-              Delete
+              {t('action.delete')}
             </span>
           </DropdownMenuItem>
         </DropdownMenuContent>
