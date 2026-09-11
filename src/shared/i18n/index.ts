@@ -22,8 +22,8 @@ export function createI18n(
 
   const ready = configured.init({
     lng,
-    fallbackLng: FALLBACK_LNG as unknown as Record<string, string[]>,
-    ns: (isRenderer ? NAMESPACES : MAIN_NAMESPACES) as unknown as string[],
+    fallbackLng: FALLBACK_LNG,
+    ns: isRenderer ? NAMESPACES : MAIN_NAMESPACES,
     defaultNS: 'common',
     interpolation: { escapeValue: false },
     returnNull: false,

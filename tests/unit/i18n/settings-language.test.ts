@@ -1,16 +1,17 @@
+import { LOCALE_IDS } from '@shared/i18n/locales'
 import { SettingsSchema } from '@shared/schemas/settings-schema'
 import { describe, expect, it } from 'vitest'
 
 const base = { id: 'global', createdAt: new Date(), updatedAt: new Date() }
 
 describe('SettingsSchema.language', () => {
-  it("accepts 'auto' and every locale id", () => {
+  it("accepts 'auto'", () => {
     expect(SettingsSchema.parse({ ...base, language: 'auto' }).language).toBe(
       'auto'
     )
-    expect(
-      SettingsSchema.parse({ ...base, language: 'zh-Hant-HK' }).language
-    ).toBe('zh-Hant-HK')
+  })
+  it.each(LOCALE_IDS)("accepts locale id '%s'", (id) => {
+    expect(SettingsSchema.parse({ ...base, language: id }).language).toBe(id)
   })
   it('accepts null/undefined (pre-migration rows)', () => {
     expect(SettingsSchema.parse({ ...base }).language).toBeUndefined()

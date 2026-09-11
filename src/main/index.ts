@@ -51,7 +51,15 @@ app.whenReady().then(async () => {
   // Initialise the main-process i18n instance (resolves the effective locale
   // from settings + OS, registers get/set-app-locale IPC). Must run before
   // setupMenu() and createWindow().
-  await initMainI18n()
+  await initMainI18n().catch((err) => {
+    logger.error(
+      'i18n',
+      'Failed to initialize main-process i18n; continuing with English defaults',
+      {
+        error: String(err)
+      }
+    )
+  })
 
   // One-time migration of legacy `shared/` artifacts into per-chat folders
   await migrateSharedArtifacts().catch((err) => {

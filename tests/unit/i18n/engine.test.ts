@@ -16,10 +16,15 @@ describe('createI18n', () => {
     expect(i18n.t('common:action.cancel')).toBe('Cancel')
   })
 
-  it('resolves zh-Hant-HK through zh-Hant-TW then en', async () => {
+  it('resolves zh-Hant-HK through zh-Hant-TW before falling to en', async () => {
     const { i18n, ready } = createI18n('zh-Hant-HK', { isRenderer: false })
     await ready
-    expect(i18n.t('common:action.save')).toBe('Save') // en, since both zh files are {}
+    // Inject a TW-only value absent from en and zh-Hant-HK — if the fallback
+    // chain skips TW and goes straight to en, this assertion fails.
+    i18n.addResourceBundle('zh-Hant-TW', 'common', {
+      action: { save: '儲存' }
+    })
+    expect(i18n.t('common:action.save')).toBe('儲存')
   })
 
   it('renderer mode initialises without throwing', async () => {

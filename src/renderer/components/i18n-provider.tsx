@@ -1,4 +1,4 @@
-import { isLocaleId, type LanguageSetting } from '@shared/i18n/locales'
+import { isLocaleId } from '@shared/i18n/locales'
 import { useEffect, type ReactNode } from 'react'
 import { I18nextProvider } from 'react-i18next'
 
@@ -16,7 +16,7 @@ import { setAppLocale } from '@/lib/ipc'
  */
 function LocaleBridge() {
   const { data: settings } = useSettings()
-  const setting = settings?.language as LanguageSetting | null | undefined
+  const setting = settings?.language
 
   useEffect(() => {
     const next =
@@ -28,7 +28,14 @@ function LocaleBridge() {
     void i18n.changeLanguage(next)
     document.documentElement.lang = next
     document.documentElement.dir = 'ltr'
-    void setAppLocale(next)
+    if (typeof window !== 'undefined' && window.electron) {
+      setAppLocale(next).catch((err) => {
+        console.error(
+          '[i18n] failed to notify main process of locale change',
+          err
+        )
+      })
+    }
   }, [setting])
 
   return null

@@ -45,10 +45,17 @@ export async function initMainI18n(): Promise<void> {
   ipcMain.handle('set-app-locale', async (_event, locale: unknown) => {
     const next = isLocaleId(locale) ? locale : 'en'
     if (next === effective) return
-    effective = next
-    await mainI18n.changeLanguage(next)
-    logger.info('i18n', 'main locale changed', { locale: next })
-    // Menu/tray rebuild on locale change lands with the `menu` namespace
-    // extraction (Phase 2 / Phase 4) — not this phase.
+    try {
+      await mainI18n.changeLanguage(next)
+      effective = next
+      logger.info('i18n', 'main locale changed', { locale: next })
+      // Menu/tray rebuild on locale change lands with the `menu` namespace
+      // extraction (Phase 2 / Phase 4) — not this phase.
+    } catch (err) {
+      logger.error('i18n', 'Failed to change main-process locale', {
+        locale: next,
+        error: String(err)
+      })
+    }
   })
 }
