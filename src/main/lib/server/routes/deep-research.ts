@@ -162,10 +162,9 @@ deepResearch.get('/result/:id', async (c) => {
   )
 
   if (!result) {
-    throw new NotFoundError(
-      ErrorCode.DEEP_RESEARCH_NOT_FOUND,
-      `Deep research with ID ${id} not found`
-    )
+    throw new NotFoundError(ErrorCode.DEEP_RESEARCH_NOT_FOUND, undefined, {
+      id
+    })
   }
 
   return successResponse(c, result)

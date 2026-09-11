@@ -20,10 +20,7 @@ export function validateS3Config(setting: Settings) {
   }
 
   if (!s3Config?.bucket) {
-    throw new ConfigurationError(
-      ErrorCode.CONFIG_MISSING_S3,
-      'S3 bucket is not configured'
-    )
+    throw new ConfigurationError(ErrorCode.CONFIG_MISSING_S3_BUCKET)
   }
 
   return {

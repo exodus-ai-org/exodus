@@ -9,10 +9,9 @@ import { Context } from 'hono'
 export function getRequiredParam(c: Context, paramName: string): string {
   const value = c.req.param(paramName)
   if (!value) {
-    throw new ValidationError(
-      ErrorCode.VALIDATION_MISSING_FIELD,
-      `${paramName} is required`
-    )
+    throw new ValidationError(ErrorCode.VALIDATION_MISSING_FIELD, undefined, {
+      field: paramName
+    })
   }
   return value
 }
@@ -24,10 +23,9 @@ export function getRequiredParam(c: Context, paramName: string): string {
 export function getRequiredQuery(c: Context, queryName: string): string {
   const value = c.req.query(queryName)
   if (!value) {
-    throw new ValidationError(
-      ErrorCode.VALIDATION_MISSING_FIELD,
-      `${queryName} is required`
-    )
+    throw new ValidationError(ErrorCode.VALIDATION_MISSING_FIELD, undefined, {
+      field: queryName
+    })
   }
   return value
 }

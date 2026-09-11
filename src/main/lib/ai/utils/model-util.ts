@@ -51,10 +51,7 @@ export function getModelFromProvider(setting: Settings): {
   }
 
   if (!setting.providerConfig?.provider) {
-    throw new ConfigurationError(
-      ErrorCode.CONFIG_MISSING_PROVIDER,
-      'No AI provider selected. Please choose a provider in Settings → AI Providers.'
-    )
+    throw new ConfigurationError(ErrorCode.CONFIG_MISSING_PROVIDER)
   }
 
   const providerEnum = setting.providerConfig.provider as AiProviders
@@ -64,10 +61,9 @@ export function getModelFromProvider(setting: Settings): {
 
   if (!apiKey) {
     const label = PROVIDER_API_KEY_LABELS[providerEnum] ?? providerEnum
-    throw new ConfigurationError(
-      ErrorCode.CONFIG_INVALID,
-      `${label} is not configured. Please add it in Settings → AI Providers before chatting.`
-    )
+    throw new ConfigurationError(ErrorCode.CONFIG_INVALID, undefined, {
+      label
+    })
   }
 
   return {

@@ -44,10 +44,7 @@ memoryRouter.get('/:id', async (c) => {
     'Failed to load memory'
   )
   if (!row) {
-    throw new NotFoundError(
-      ErrorCode.MEMORY_NOT_FOUND,
-      `Memory ${id} not found`
-    )
+    throw new NotFoundError(ErrorCode.MEMORY_NOT_FOUND, undefined, { id })
   }
   return successResponse(c, row)
 })
@@ -131,10 +128,7 @@ memoryRouter.patch('/:id', async (c) => {
     'Failed to update memory'
   )
   if (!updated) {
-    throw new NotFoundError(
-      ErrorCode.MEMORY_NOT_FOUND,
-      `Memory ${id} not found`
-    )
+    throw new NotFoundError(ErrorCode.MEMORY_NOT_FOUND, undefined, { id })
   }
   return updateSuccessResponse(c, 'memory', id)
 })
