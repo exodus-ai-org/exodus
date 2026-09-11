@@ -6,9 +6,11 @@ import { RouterProvider } from 'react-router'
 import { SWRConfig } from 'swr'
 
 import 'react-medium-image-zoom/dist/styles.css'
+import { I18nProvider } from '@/components/i18n-provider'
 import { LockScreen } from '@/components/lock/lock-screen'
 import { ThemeProvider } from '@/components/theme-provider'
 import { useLock } from '@/hooks/use-lock'
+import { i18nReady } from '@/lib/i18n'
 import { router } from '@/routes'
 
 function AppRoot() {
@@ -19,12 +21,16 @@ function AppRoot() {
   return <RouterProvider router={router} />
 }
 
-ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-  <SWRConfig value={{ fetcher }}>
-    <Provider>
-      <ThemeProvider>
-        <AppRoot />
-      </ThemeProvider>
-    </Provider>
-  </SWRConfig>
-)
+void i18nReady.finally(() => {
+  ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+    <SWRConfig value={{ fetcher }}>
+      <Provider>
+        <ThemeProvider>
+          <I18nProvider>
+            <AppRoot />
+          </I18nProvider>
+        </ThemeProvider>
+      </Provider>
+    </SWRConfig>
+  )
+})
