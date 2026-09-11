@@ -61,7 +61,7 @@ export function getModelFromProvider(setting: Settings): {
 
   if (!apiKey) {
     const label = PROVIDER_API_KEY_LABELS[providerEnum] ?? providerEnum
-    throw new ConfigurationError(ErrorCode.CONFIG_INVALID, undefined, {
+    throw new ConfigurationError(ErrorCode.CONFIG_MISSING_API_KEY, undefined, {
       label
     })
   }

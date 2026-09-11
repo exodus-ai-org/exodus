@@ -60,7 +60,7 @@ describe('AppError', () => {
       type: 'error',
       error: {
         code: ErrorCode.VALIDATION_MISSING_FIELD,
-        message: ErrorMessages[ErrorCode.VALIDATION_MISSING_FIELD],
+        message: 'chatId is required.',
         params: { field: 'chatId' },
         hasCustomMessage: false
       }
@@ -124,6 +124,13 @@ describe('Error subclasses', () => {
     })
     expect(err.params).toEqual({ id: 'mem-1' })
     expect(err.hasCustomMessage).toBe(false)
+  })
+
+  it('interpolates {{param}} placeholders into the default ErrorMessages template', () => {
+    const err = new NotFoundError(ErrorCode.MEMORY_NOT_FOUND, undefined, {
+      id: 'mem-1'
+    })
+    expect(err.message).toBe('Memory mem-1 not found.')
   })
 })
 

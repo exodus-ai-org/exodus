@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs'
 import { join } from 'path'
 
-import { ErrorCode } from '@shared/constants/error-codes'
+import { ErrorCode, ErrorMessages } from '@shared/constants/error-codes'
 import { describe, expect, it } from 'vitest'
 
 const errors = JSON.parse(
@@ -51,9 +51,15 @@ describe('errors namespace (en)', () => {
   })
 
   it('interpolates params for the four templated codes', () => {
-    expect(errors[ErrorCode.CONFIG_INVALID]).toContain('{{label}}')
+    expect(errors[ErrorCode.CONFIG_MISSING_API_KEY]).toContain('{{label}}')
     expect(errors[ErrorCode.VALIDATION_MISSING_FIELD]).toContain('{{field}}')
     expect(errors[ErrorCode.DEEP_RESEARCH_NOT_FOUND]).toContain('{{id}}')
     expect(errors[ErrorCode.MEMORY_NOT_FOUND]).toContain('{{id}}')
+  })
+
+  it('matches ErrorMessages verbatim for every ErrorCode (single source of truth)', () => {
+    for (const code of Object.values(ErrorCode)) {
+      expect(errors[code]).toBe(ErrorMessages[code])
+    }
   })
 })

@@ -1,4 +1,5 @@
 import { BASE_URL } from '@shared/constants/systems'
+import type { i18n as I18nInstance } from 'i18next'
 
 type HttpMethod =
   | 'GET'
@@ -81,6 +82,20 @@ interface ErrorI18n {
 }
 
 /**
+ * Adapts a real i18next instance to the `ErrorI18n` shape `getHttpErrorMessage`
+ * expects. i18next's own `t()`/`exists()` types are keyed against the
+ * project's declared resource shape (`CustomTypeOptions`), which rejects a
+ * runtime-computed key like `errors:${code}` at the type level — the casts
+ * here are the one place that's intentionally suppressed.
+ */
+export function toErrorI18n(instance: I18nInstance): ErrorI18n {
+  return {
+    t: (key, params) => instance.t(key as never, params),
+    exists: (key) => instance.exists(key as never)
+  }
+}
+
+/**
  * Resolves a user-facing message for a failed HTTP request.
  *
  * Priority, once an `i18n` instance is passed:
@@ -88,10 +103,10 @@ interface ErrorI18n {
  *    a genuinely dynamic client-side failure like a timeout's raw text)
  *    provided real, specific text. Show it verbatim, untranslated — this
  *    is deliberately not templated, since it's arbitrary exception text.
- * 2. Otherwise the error is purely code-driven: translate `errors.<code>`
+ * 2. Otherwise the error is purely code-driven: translate `errors:<code>`
  *    with `err.params`.
- * 3. If that key doesn't exist, fall back to `errors.http.<statusCode>`,
- *    then `errors.http.unknown`.
+ * 3. If that key doesn't exist, fall back to `errors:http.<statusCode>`,
+ *    then `errors:http.unknown`.
  *
  * When `i18n` is omitted, behavior is unchanged from before this pass:
  * always return `err.message` for any `HttpError`.
@@ -103,13 +118,13 @@ export function getHttpErrorMessage(
   if (!(err instanceof HttpError)) return undefined
   if (err.hasCustomMessage || !i18n) return err.message
 
-  const codeKey = `errors.${err.code}`
+  const codeKey = `errors:${err.code}`
   if (i18n.exists(codeKey)) return i18n.t(codeKey, err.params)
 
-  const statusKey = `errors.http.${err.statusCode}`
+  const statusKey = `errors:http.${err.statusCode}`
   return i18n.exists(statusKey)
     ? i18n.t(statusKey)
-    : i18n.t('errors.http.unknown')
+    : i18n.t('errors:http.unknown')
 }
 
 export async function fetcher<T>(

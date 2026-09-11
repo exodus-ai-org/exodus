@@ -23,7 +23,7 @@ export class AppError extends Error {
     isOperational = true,
     params?: Record<string, string | number>
   ) {
-    super(message || ErrorMessages[code])
+    super(message || AppError.interpolate(ErrorMessages[code], params))
 
     this.name = this.constructor.name
     this.code = code
@@ -35,6 +35,22 @@ export class AppError extends Error {
     if (Error.captureStackTrace) {
       Error.captureStackTrace(this, this.constructor)
     }
+  }
+
+  /**
+   * Substitutes `{{key}}` placeholders in a default `ErrorMessages[code]`
+   * template using `params` — plain string interpolation of already-known
+   * English text, NOT an i18n lookup (translation happens only on the
+   * display side, in `getHttpErrorMessage`).
+   */
+  private static interpolate(
+    template: string,
+    params?: Record<string, string | number>
+  ): string {
+    if (!params) return template
+    return template.replace(/\{\{(\w+)\}\}/g, (match, key: string) =>
+      key in params ? String(params[key]) : match
+    )
   }
 
   /**
@@ -155,6 +171,14 @@ export function isAppError(error: unknown): error is AppError {
   return error instanceof AppError
 }
 
+// Note: hasCustomMessage only signals "a message argument was passed to
+// this constructor" — it is not a guarantee the text is meaningful to
+// show untranslated to every user. toAppError() below wraps any
+// unrecognized thrown value as InternalError(rawMessage), which sets
+// hasCustomMessage: true and therefore displays that raw text verbatim
+// (unchanged from pre-i18n behavior) — including raw driver/exception
+// text a future pass may want to route through a generic translated
+// fallback instead.
 export function toAppError(error: unknown): AppError {
   if (isAppError(error)) return error
   if (error instanceof Error) {

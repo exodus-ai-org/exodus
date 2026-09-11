@@ -16,6 +16,7 @@ export enum ErrorCode {
   CONFIG_MISSING_S3 = 'CONFIG_MISSING_S3',
   CONFIG_INVALID = 'CONFIG_INVALID',
   CONFIG_MISSING_S3_BUCKET = 'CONFIG_MISSING_S3_BUCKET',
+  CONFIG_MISSING_API_KEY = 'CONFIG_MISSING_API_KEY',
 
   // ── Not Found Errors (404) ─────────────────────────────────────────────────
   CHAT_NOT_FOUND = 'CHAT_NOT_FOUND',
@@ -91,6 +92,7 @@ export const ErrorCodeToStatus: Record<ErrorCode, number> = {
   [ErrorCode.CONFIG_MISSING_S3]: 400,
   [ErrorCode.CONFIG_INVALID]: 400,
   [ErrorCode.CONFIG_MISSING_S3_BUCKET]: 400,
+  [ErrorCode.CONFIG_MISSING_API_KEY]: 400,
 
   // Not Found Errors
   [ErrorCode.CHAT_NOT_FOUND]: 404,
@@ -175,16 +177,19 @@ export const ErrorMessages: Record<ErrorCode, string> = {
     'Configuration is invalid. Please check your settings.',
   [ErrorCode.CONFIG_MISSING_S3_BUCKET]:
     'S3 bucket is not configured. Please check your settings.',
+  [ErrorCode.CONFIG_MISSING_API_KEY]:
+    '{{label}} is not configured. Please add it in Settings → AI Providers before chatting.',
 
   // Not Found Errors
   [ErrorCode.CHAT_NOT_FOUND]: 'Chat not found.',
   [ErrorCode.MESSAGE_NOT_FOUND]: 'Message not found.',
   [ErrorCode.RESOURCE_NOT_FOUND]: 'Resource not found.',
   [ErrorCode.SETTING_NOT_FOUND]: 'Settings not found. Please restart the app.',
-  [ErrorCode.DEEP_RESEARCH_NOT_FOUND]: 'Deep research not found.',
+  [ErrorCode.DEEP_RESEARCH_NOT_FOUND]:
+    'Deep research with ID {{id}} not found.',
   [ErrorCode.AGENT_NOT_FOUND]: 'Agent or department not found.',
   [ErrorCode.TASK_NOT_FOUND]: 'Task not found.',
-  [ErrorCode.MEMORY_NOT_FOUND]: 'Memory not found.',
+  [ErrorCode.MEMORY_NOT_FOUND]: 'Memory {{id}} not found.',
   [ErrorCode.PROJECT_NOT_FOUND]: 'Project not found.',
   [ErrorCode.SKILL_NOT_FOUND]: 'Skill not found.',
   [ErrorCode.AUDIO_NOT_FOUND]: 'Audio file not found.',
@@ -194,7 +199,7 @@ export const ErrorMessages: Record<ErrorCode, string> = {
   [ErrorCode.VALIDATION_NO_USER_MESSAGE]:
     'No user message found in the request.',
   [ErrorCode.VALIDATION_INVALID_INPUT]: 'Invalid input provided.',
-  [ErrorCode.VALIDATION_MISSING_FIELD]: 'Required field is missing.',
+  [ErrorCode.VALIDATION_MISSING_FIELD]: '{{field}} is required.',
   [ErrorCode.KNOWLEDGE_BASE_NOT_CONFIGURED]:
     'The knowledge base is not configured.',
 

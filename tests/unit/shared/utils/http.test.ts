@@ -1,4 +1,5 @@
-import { getHttpErrorMessage, HttpError } from '@shared/utils/http'
+import { createI18n } from '@shared/i18n'
+import { getHttpErrorMessage, HttpError, toErrorI18n } from '@shared/utils/http'
 import { describe, expect, it } from 'vitest'
 
 describe('getHttpErrorMessage', () => {
@@ -23,15 +24,15 @@ describe('getHttpErrorMessage with an i18n instance', () => {
   const fakeI18n = {
     exists: (key: string) =>
       [
-        'errors.MEMORY_NOT_FOUND',
-        'errors.http.404',
-        'errors.http.unknown'
+        'errors:MEMORY_NOT_FOUND',
+        'errors:http.404',
+        'errors:http.unknown'
       ].includes(key),
     t: (key: string, params?: Record<string, string | number>) => {
-      if (key === 'errors.MEMORY_NOT_FOUND')
+      if (key === 'errors:MEMORY_NOT_FOUND')
         return `Memory ${params?.id} not found (translated).`
-      if (key === 'errors.http.404') return 'Not found (translated).'
-      if (key === 'errors.http.unknown') return 'Unknown failure (translated).'
+      if (key === 'errors:http.404') return 'Not found (translated).'
+      if (key === 'errors:http.unknown') return 'Unknown failure (translated).'
       return key
     }
   }
@@ -94,6 +95,38 @@ describe('getHttpErrorMessage with an i18n instance', () => {
     )
     expect(getHttpErrorMessage(err, fakeI18n)).toBe(
       'duplicate key value violates unique constraint'
+    )
+  })
+})
+
+describe('getHttpErrorMessage against a real i18n instance', () => {
+  it('resolves a real translated, interpolated message end-to-end', async () => {
+    const { i18n, ready } = createI18n('en', { isRenderer: false })
+    await ready
+    const err = new HttpError(
+      404,
+      'MEMORY_NOT_FOUND',
+      'Memory mem-1 not found.',
+      { id: 'mem-1' },
+      false
+    )
+    expect(getHttpErrorMessage(err, toErrorI18n(i18n))).toBe(
+      'Memory mem-1 not found.'
+    )
+  })
+
+  it('falls back to errors:http.<status> for an unrecognized code', async () => {
+    const { i18n, ready } = createI18n('en', { isRenderer: false })
+    await ready
+    const err = new HttpError(
+      404,
+      'SOME_UNKNOWN_CODE',
+      'fallback',
+      undefined,
+      false
+    )
+    expect(getHttpErrorMessage(err, toErrorI18n(i18n))).toBe(
+      'The requested resource could not be found.'
     )
   })
 })
