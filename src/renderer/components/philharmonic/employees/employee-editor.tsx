@@ -138,10 +138,10 @@ export function EmployeeEditor({
               <SelectValue placeholder="Select a team" />
             </SelectTrigger>
             <SelectContent>
-              {teams.map((t) => (
-                <SelectItem key={t.id} value={t.id}>
-                  {t.icon ? `${t.icon} ` : ''}
-                  {t.name}
+              {teams.map((team) => (
+                <SelectItem key={team.id} value={team.id}>
+                  {team.icon ? `${team.icon} ` : ''}
+                  {team.name}
                 </SelectItem>
               ))}
             </SelectContent>

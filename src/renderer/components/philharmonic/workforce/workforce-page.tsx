@@ -94,12 +94,12 @@ function EmployeeCard({ employee, onEdit, onAskDelete }: EmployeeCardProps) {
                     {modelChip}
                   </span>
                 )}
-                {tools.slice(0, 2).map((t) => (
+                {tools.slice(0, 2).map((tool) => (
                   <span
-                    key={t}
+                    key={tool}
                     className="bg-background text-muted-foreground rounded-md px-1.5 py-0.5 text-[10px]"
                   >
-                    {t}
+                    {tool}
                   </span>
                 ))}
                 {tools.length > 2 && (
@@ -311,7 +311,7 @@ export function WorkforcePage() {
 
   const byTeam = useMemo(() => {
     const map = new Map<string, AgentData[]>()
-    for (const t of teams) map.set(t.id, [])
+    for (const team of teams) map.set(team.id, [])
     const unassigned: AgentData[] = []
     for (const e of employees) {
       if (e.teamId && map.has(e.teamId)) map.get(e.teamId)!.push(e)
@@ -417,19 +417,19 @@ export function WorkforcePage() {
           />
         ) : (
           <div className="space-y-4">
-            {teams.map((t) => (
+            {teams.map((team) => (
               <TeamSection
-                key={t.id}
-                team={t}
-                members={byTeam.map.get(t.id) ?? []}
-                collapsed={collapsed[t.id] ?? false}
-                onToggle={() => toggle(t.id)}
+                key={team.id}
+                team={team}
+                members={byTeam.map.get(team.id) ?? []}
+                collapsed={collapsed[team.id] ?? false}
+                onToggle={() => toggle(team.id)}
                 onEditEmployee={(e) =>
                   setEmployeeEditor({ draft: e, isNew: false })
                 }
                 onAskDeleteEmployee={setConfirmingEmployee}
-                onEditTeam={(team) =>
-                  setTeamEditor({ draft: team, isNew: false })
+                onEditTeam={(teamData) =>
+                  setTeamEditor({ draft: teamData, isNew: false })
                 }
                 onAskDeleteTeam={setConfirmingTeam}
                 onAddEmployeeToTeam={(teamId) => openNewEmployee(teamId)}

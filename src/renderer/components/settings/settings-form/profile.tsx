@@ -110,12 +110,12 @@ export function Profile({ form }: { form: UseFormReturnType }) {
       const d = addDays(start, i)
       if (d > end) break
       const key = format(d, 'yyyy-MM-dd')
-      const t = byDay.get(key) ?? 0
-      running += t
-      days.push({ date: key, tokens: mode === 'cumulative' ? running : t })
+      const count = byDay.get(key) ?? 0
+      running += count
+      days.push({ date: key, tokens: mode === 'cumulative' ? running : count })
     }
     const activeDays = new Set(
-      [...byDay.entries()].filter(([, t]) => t > 0).map(([k]) => k)
+      [...byDay.entries()].filter(([, count]) => count > 0).map(([k]) => k)
     )
     const dailyPeak = Math.max(0, ...[...byDay.values()])
     const scaleMax = Math.max(1, ...days.map((x) => x.tokens))

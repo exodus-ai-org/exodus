@@ -55,7 +55,7 @@ export function RenameChatDialog() {
               const { id, title } = renamedChatTitle
               updateChat({ id, title })
               setOpenTabs((prev) =>
-                prev.map((t) => (t.id === id ? { ...t, title } : t))
+                prev.map((tab) => (tab.id === id ? { ...tab, title } : tab))
               )
               reset()
             }}

@@ -98,7 +98,7 @@ export const NavItems = memo(function NavItems({
             to={`/chat/${chat.id}`}
             onClick={() =>
               setOpenTabs((prev) =>
-                prev.find((t) => t.id === chat.id)
+                prev.find((tab) => tab.id === chat.id)
                   ? prev
                   : [...prev, { id: chat.id, title: chat.title }]
               )

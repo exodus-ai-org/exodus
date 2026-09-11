@@ -32,7 +32,8 @@ describe('common.json (Phase 2 additions)', () => {
       confirm: 'Confirm',
       edit: 'Edit',
       add: 'Add',
-      create: 'Create'
+      create: 'Create',
+      saving: 'Saving…'
     })
   })
   it('still has the state keys from Phase 1', () => {
