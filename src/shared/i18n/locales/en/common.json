@@ -6,7 +6,10 @@
     "delete": "Delete",
     "close": "Close",
     "retry": "Retry",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "edit": "Edit",
+    "add": "Add",
+    "create": "Create"
   },
   "state": {
     "loading": "Loading…",
