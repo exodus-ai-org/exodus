@@ -33,6 +33,9 @@ export const runMigrate = async () => {
     await pglite.exec(
       `ALTER TABLE "task" ADD COLUMN IF NOT EXISTS "lastRunStatus" varchar;`
     )
+    await pglite.exec(
+      `ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "language" text DEFAULT 'auto';`
+    )
 
     // Job-queue setup runs AFTER the Drizzle migrations on purpose. No
     // migration in resources/drizzle references pgmq, and `@electric-sql/

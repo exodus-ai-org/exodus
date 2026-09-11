@@ -8,6 +8,13 @@
       "when": 1788663752338,
       "tag": "0000_magical_mad_thinker",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1789087733121,
+      "tag": "0001_futuristic_mastermind",
+      "breakpoints": true
     }
   ]
 }

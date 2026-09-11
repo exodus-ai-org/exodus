@@ -1,3 +1,4 @@
+import { LOCALE_IDS } from '@shared/i18n/locales'
 import { UseFormReturn } from 'react-hook-form'
 import { z } from 'zod'
 
@@ -237,6 +238,7 @@ export const SettingsSchema = z.object({
   autoUpdate: z.boolean().nullish(),
   runOnStartup: z.boolean().nullish(),
   menuBar: z.boolean().nullish(),
+  language: z.union([z.enum(LOCALE_IDS), z.literal('auto')]).nullish(),
   autoBackup: z.boolean().nullish(),
   lastBackupAt: z.any().nullish(),
   memory: MemorySchema.nullish(),

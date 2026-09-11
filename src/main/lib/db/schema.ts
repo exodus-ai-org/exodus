@@ -166,6 +166,7 @@ export const settings = pgTable('settings', {
   autoUpdate: boolean('autoUpdate').default(true),
   runOnStartup: boolean('runOnStartup').default(false),
   menuBar: boolean('menuBar').default(true),
+  language: text('language').default('auto'),
   autoBackup: boolean('autoBackup').default(true),
   lastBackupAt: timestamp('lastBackupAt'),
   memory: jsonb('memory').$type<z.infer<typeof MemorySchema>>(),
