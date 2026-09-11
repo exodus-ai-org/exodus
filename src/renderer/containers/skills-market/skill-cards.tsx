@@ -12,6 +12,7 @@ import {
   StarIcon,
   Trash2Icon
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -222,6 +223,7 @@ export function InstalledSkillCard({
   onUninstall,
   onToggle
 }: InstalledSkillCardProps) {
+  const { t } = useTranslation('common')
   const isLoading = pendingSlug === skill.slug
 
   return (
@@ -244,7 +246,7 @@ export function InstalledSkillCard({
           )}
           {skill.version === 'local' && (
             <Badge variant="secondary" className="shrink-0 text-xs">
-              Local
+              {t('state.local')}
             </Badge>
           )}
         </div>

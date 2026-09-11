@@ -10,6 +10,7 @@ import {
   XIcon
 } from 'lucide-react'
 import { ChangeEvent, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 
 import Markdown from '@/components/markdown'
@@ -77,6 +78,7 @@ function useAdvancedToolToggle() {
 
 /** The composer's `+` button: attachments, reasoning/deep-research, MCP tools. */
 export function ComposerToolsButton() {
+  const { t } = useTranslation('common')
   const { uploadFile } = useUpload()
   const fileRef = useRef<HTMLInputElement>(null)
   const { advancedTools, toggle } = useAdvancedToolToggle()
@@ -110,9 +112,9 @@ export function ComposerToolsButton() {
       />
       <DropdownMenu>
         <DropdownMenuTrigger
-          aria-label="Add"
+          aria-label={t('action.add')}
           className={cn(
-            'text-muted-foreground hover:bg-muted hover:text-foreground data-[popup-open]:bg-muted flex size-8 shrink-0 items-center justify-center rounded-full transition-colors [&_svg]:size-[18px]',
+            'text-muted-foreground hover:bg-muted hover:text-foreground data-popup-open:bg-muted flex size-8 shrink-0 items-center justify-center rounded-full transition-colors [&_svg]:size-[18px]',
             advancedTools.length > 0 && 'text-[#0285ff] dark:text-[#48aaff]'
           )}
         >

@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useTranslation } from 'react-i18next'
 
 import { SourceFavicon } from '@/components/source-favicon'
 import { cn } from '@/lib/utils'
@@ -123,6 +124,7 @@ export function ImageLightbox({
   onIndexChange: (next: number) => void
   onClose: () => void
 }) {
+  const { t } = useTranslation('common')
   const atStart = index <= 0
   const atEnd = index >= images.length - 1
 
@@ -166,7 +168,7 @@ export function ImageLightbox({
           type="button"
           onClick={onClose}
           data-testid={TEST_IDS.gallery.lightboxClose}
-          aria-label="Close"
+          aria-label={t('action.close')}
           className="text-muted-foreground hover:bg-foreground/10 hover:text-foreground flex size-8 items-center justify-center rounded-full transition"
         >
           <XIcon size={18} />

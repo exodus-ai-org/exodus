@@ -13,6 +13,7 @@ import {
   TriangleAlertIcon
 } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 import useSWR from 'swr'
 
@@ -49,6 +50,7 @@ type SearchResponse = SearchResultItem[]
 type InstalledResponse = InstalledSkill[]
 
 export function SkillsMarket() {
+  const { t } = useTranslation('common')
   const [search, setSearch] = useState('')
   const [cursor, setCursor] = useState<string | null>(null)
   const [cursorHistory, setCursorHistory] = useState<(string | null)[]>([null])
@@ -313,7 +315,7 @@ export function SkillsMarket() {
                           className="mt-4"
                           onClick={() => mutateRegistry()}
                         >
-                          Retry
+                          {t('action.retry')}
                         </Button>
                       </div>
                     ) : registryData?.items?.length === 0 ? (
