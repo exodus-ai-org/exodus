@@ -1,0 +1,15 @@
+{
+  "appName": "Exodus",
+  "action": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "close": "Close",
+    "retry": "Retry",
+    "confirm": "Confirm"
+  },
+  "state": {
+    "loading": "Loading…",
+    "local": "Local"
+  }
+}

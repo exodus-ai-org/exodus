@@ -1,0 +1,9 @@
+{
+  "general": {
+    "language": {
+      "label": "Language",
+      "description": "The language Exodus's interface is shown in.",
+      "auto": "Auto (detect from system)"
+    }
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "somethingWentWrong": "Something went wrong. Please try again.",
+  "http": {
+    "unknown": "Request failed.",
+    "500": "The server ran into a problem.",
+    "503": "The service is temporarily unavailable."
+  }
+}
