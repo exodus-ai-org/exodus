@@ -1,6 +1,7 @@
 // src/renderer/components/philharmonic/employees/employee-editor.tsx
 import { Pencil } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 // NOTE: useEffect to sync draft from employee prop removed — key={employee.id}
 // at the call site causes React to remount when the employee changes, so the
 // useState initializer always receives the fresh value on mount.
@@ -51,6 +52,7 @@ export function EmployeeEditor({
   onSave: (data: Partial<AgentData>) => void
   onClose: () => void
 }) {
+  const { t } = useTranslation('common')
   const [draft, setDraft] = useState<AgentData>(employee)
   const [skills, setSkills] = useState<Array<{ slug: string; name: string }>>(
     []
@@ -249,14 +251,14 @@ export function EmployeeEditor({
 
       <footer className="border-border flex h-14 shrink-0 items-center justify-end gap-1.5 border-t px-5">
         <Button variant="ghost" size="sm" onClick={onClose}>
-          Cancel
+          {t('action.cancel')}
         </Button>
         <Button
           size="sm"
           onClick={() => canSave && onSave(draft)}
           disabled={!canSave}
         >
-          {isNew ? 'Create' : 'Save'}
+          {isNew ? t('action.create') : t('action.save')}
         </Button>
       </footer>
     </div>

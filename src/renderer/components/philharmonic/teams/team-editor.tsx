@@ -3,6 +3,7 @@
 // call site causes React to remount when the team changes, so the useState
 // initializer always receives the fresh value on mount.
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,6 +31,7 @@ export function TeamEditor({
   onClose,
   onSave
 }: TeamEditorProps) {
+  const { t } = useTranslation('common')
   const [draft, setDraft] = useState<TeamData>(team)
   const canSave = draft.name.trim().length > 0
 
@@ -92,14 +94,14 @@ export function TeamEditor({
 
       <footer className="border-border flex h-14 shrink-0 items-center justify-end gap-1.5 border-t px-5">
         <Button variant="ghost" size="sm" onClick={onClose}>
-          Cancel
+          {t('action.cancel')}
         </Button>
         <Button
           size="sm"
           onClick={() => canSave && onSave(draft)}
           disabled={!canSave}
         >
-          {isNew ? 'Create' : 'Save'}
+          {isNew ? t('action.create') : t('action.save')}
         </Button>
       </footer>
     </div>

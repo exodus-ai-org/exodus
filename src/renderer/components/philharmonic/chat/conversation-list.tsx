@@ -14,6 +14,7 @@ import {
   UsersIcon
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { PhilharmonicEmptyState } from '@/components/philharmonic/empty-state'
 import {
@@ -115,6 +116,7 @@ export function ConversationList({
   onDelete: (id: string) => void | Promise<void>
   onNavigateConfig: (page: ConfigPage) => void
 }) {
+  const { t } = useTranslation('common')
   const [confirming, setConfirming] = useState<ConversationData | null>(null)
   const [query, setQuery] = useState('')
   const isFullscreen = useIsFullscreen()
@@ -230,7 +232,7 @@ export function ConversationList({
                         onClick={() => setConfirming(c)}
                       >
                         <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-                        Delete
+                        {t('action.delete')}
                       </ContextMenuItem>
                     </ContextMenuContent>
                   </ContextMenu>
@@ -282,7 +284,7 @@ export function ConversationList({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('action.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
               onClick={async () => {
@@ -292,7 +294,7 @@ export function ConversationList({
                 await onDelete(id)
               }}
             >
-              Delete
+              {t('action.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -13,6 +13,7 @@ import {
   UsersIcon
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import { EmployeeAvatar } from '@/components/philharmonic/employees/employee-avatar'
@@ -61,6 +62,7 @@ interface EmployeeCardProps {
 }
 
 function EmployeeCard({ employee, onEdit, onAskDelete }: EmployeeCardProps) {
+  const { t } = useTranslation('common')
   const modelChip = employee.model
   const tools = employee.toolAllowList ?? []
   return (
@@ -113,7 +115,7 @@ function EmployeeCard({ employee, onEdit, onAskDelete }: EmployeeCardProps) {
       <ContextMenuContent>
         <ContextMenuItem onClick={() => onEdit(employee)}>
           <Pencil className="mr-1.5 h-3.5 w-3.5" />
-          Edit
+          {t('action.edit')}
         </ContextMenuItem>
         <ContextMenuSeparator />
         <ContextMenuItem
@@ -121,7 +123,7 @@ function EmployeeCard({ employee, onEdit, onAskDelete }: EmployeeCardProps) {
           onClick={() => onAskDelete(employee)}
         >
           <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-          Delete
+          {t('action.delete')}
         </ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
@@ -281,6 +283,7 @@ function emptyTeamDraft(): TeamData {
 }
 
 export function WorkforcePage() {
+  const { t } = useTranslation('common')
   const [employees, setEmployees] = useState<AgentData[]>([])
   const [teams, setTeams] = useState<TeamData[]>([])
   // Editor states carry both the draft and an isNew flag so Save can dispatch
@@ -509,7 +512,7 @@ export function WorkforcePage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('action.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
               onClick={async () => {
@@ -533,7 +536,7 @@ export function WorkforcePage() {
                 }
               }}
             >
-              Delete
+              {t('action.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -561,7 +564,7 @@ export function WorkforcePage() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('action.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
               onClick={async () => {
@@ -587,7 +590,7 @@ export function WorkforcePage() {
                 }
               }}
             >
-              Delete
+              {t('action.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
