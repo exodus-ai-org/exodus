@@ -3,6 +3,6 @@ import { ElectronAPI } from '@electron-toolkit/preload'
 declare global {
   interface Window {
     electron: ElectronAPI
-    api: { os: string }
+    api: { os: string; locale: string }
   }
 }
