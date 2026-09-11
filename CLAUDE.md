@@ -21,7 +21,10 @@ you must uphold.
   `src/main/lib/ai/context-management/index.test.ts`.
 - **Reuse UI primitives.** Prefer existing `@/components/ui` (shadcn) components
   over hand-rolled equivalents (e.g. shadcn `Select`, `InputOTP`).
-- **Copy language.** New user-facing strings default to English.
+- **Copy language.** New user-facing strings are keys in
+  `src/shared/i18n/locales/en/<namespace>.json`, rendered via `t()` /
+  `<Trans>` (renderer) or `mainI18n.t()` (main) — never hardcoded literals.
+  English is the source catalog. `pnpm i18n:check` gates catalog parity.
 - **Keep this file current.** Any change to architecture, routes, or directory
   structure updates CLAUDE.md in the same change. _Partly enforced by
   `claude-md-freshness.test.ts` (paths) and `claude-md-staleness.test.ts`
@@ -479,6 +482,18 @@ Reusable AI utilities that should be used (and tested) instead of inline impleme
 4. Add the provider's selectable models to `src/shared/constants/models.ts`
 5. Add its key/base-URL fields to `ProvidersSchema` in `src/shared/schemas/settings-schema.ts` and a tab in `settings-form/providers-tabs.tsx`
 
+### Adding a User-Facing String
+
+1. Add the key to the right namespace in `src/shared/i18n/locales/en/<ns>.json`
+   (dot-nested, component-scoped: `chat.composer.placeholder`).
+2. Renderer: `const { t } = useTranslation('<ns>')` → `t('composer.placeholder')`;
+   rich text (embedded link/bold) → `<Trans ns="<ns>" i18nKey="…">`.
+3. Main process: `mainI18n.t('<ns>:key')`.
+4. Dates/numbers: `useFormat()` (renderer). Never build sentences by
+   interpolating translated fragments.
+5. Non-English catalogs are filled by the machine-translation pass — do not
+   hand-edit them.
+
 ### Test-ID Checkpoints (traceability)
 
 When adding or generating an interactive element that warrants test coverage:
@@ -555,6 +570,8 @@ Main process:
   gated on `settings.computerUse.enabled`. `GET /api/computer-use/apps` feeds the
   Settings allowlist picker. See
   `docs/superpowers/specs/2026-09-06-computer-use-v0-design.md`
+- `src/main/lib/i18n.ts` — the main-process i18next instance (`mainI18n`),
+  `resolveEffectiveLocale`, and the `get-app-locale` / `set-app-locale` IPC
 - `src/main/lib/ipc.ts` — main-process IPC handlers
 - `src/main/lib/paths.ts` — `~/.exodus` path helpers
 
@@ -583,6 +600,11 @@ Shared:
 - `src/shared/constants/` — constants (`models.ts`, `test-ids.ts`, `systems.ts`)
 - `src/shared/schemas/` — Zod schemas
 - `src/shared/utils/` — shared utilities
+- `src/shared/i18n/` — application i18n: `locales.ts` (the 11 locale IDs +
+  `resolveLocale`), `namespaces.ts`, `index.ts` (`createI18n` — one i18next
+  config for both processes, JSON catalogs lazy-loaded per locale),
+  `catalog-audit.ts`, `types.d.ts` (typed `t()` keys), `locales/<id>/<ns>.json`.
+  See `docs/superpowers/specs/2026-09-11-i18n-design.md`.
 
 Tests & config:
 
