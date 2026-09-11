@@ -77,11 +77,14 @@ export function resolveLocale(prefs: string[]): LocaleId {
     if ((LOCALE_IDS as readonly string[]).includes(tag)) return tag as LocaleId
 
     if (lang === 'zh') {
+      if (rest.includes('Hans')) {
+        continue // zh-Hans* must fall through to en
+      }
       const region = rest.find((p) => p.length === 2)
       if (rest.includes('Hant') || region === 'TW' || region === 'HK') {
         return region === 'HK' ? 'zh-Hant-HK' : 'zh-Hant-TW'
       }
-      continue // zh, zh-CN, zh-Hans* -> fall through to en
+      continue // zh, zh-CN -> fall through to en
     }
 
     if (lang === 'pt') return 'pt-BR'
