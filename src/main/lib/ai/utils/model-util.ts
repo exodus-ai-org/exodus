@@ -1,6 +1,5 @@
 import type { Model } from '@mariozechner/pi-ai'
 import { ErrorCode } from '@shared/constants/error-codes'
-import { isCurrentModel, type ModelRole } from '@shared/constants/models'
 import { ConfigurationError, NotFoundError } from '@shared/errors/app-error'
 import { AiProviders } from '@shared/types/ai'
 
@@ -39,8 +38,7 @@ export function getApiKeyFromSetting(setting: Settings): string {
 }
 
 export function getModelFromProvider(setting: Settings): {
-  chatModel: Model<string>
-  reasoningModel: Model<string>
+  model: Model<string>
   apiKey: string
 } {
   if (!('id' in setting)) {
@@ -55,8 +53,7 @@ export function getModelFromProvider(setting: Settings): {
   }
 
   const providerEnum = setting.providerConfig.provider as AiProviders
-  const provider = providers[providerEnum]
-  const models = provider(setting)
+  const model = providers[providerEnum](setting)
   const apiKey = getApiKeyFromSetting(setting)
 
   if (!apiKey) {
@@ -66,36 +63,5 @@ export function getModelFromProvider(setting: Settings): {
     })
   }
 
-  return {
-    chatModel: models.chatModel,
-    reasoningModel: models.reasoningModel,
-    apiKey
-  }
-}
-
-export interface StaleModelSelection {
-  role: ModelRole
-  id: string
-}
-
-/**
- * Saved model ids (chat / reasoning) that are no longer in the selected
- * provider's current lineup — see `isCurrentModel`. The chat still runs with
- * whatever id is saved; this just lets the caller warn the user. Empty when
- * nothing is stale or no provider is selected.
- */
-export function getStaleModelSelections(
-  setting: Settings
-): StaleModelSelection[] {
-  const provider = setting.providerConfig?.provider as AiProviders | undefined
-  if (!provider) return []
-
-  const selections: { role: ModelRole; id: string | null | undefined }[] = [
-    { role: 'chatModel', id: setting.providerConfig?.chatModel },
-    { role: 'reasoningModel', id: setting.providerConfig?.reasoningModel }
-  ]
-
-  return selections.flatMap(({ role, id }) =>
-    id && !isCurrentModel(provider, role, id) ? [{ role, id }] : []
-  )
+  return { model, apiKey }
 }
