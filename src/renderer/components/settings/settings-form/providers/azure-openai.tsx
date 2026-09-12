@@ -25,6 +25,12 @@ export function AzureOpenAi({ form }: { form: UseFormReturnType }) {
           label: 'API Version',
           description: 'Azure OpenAI API version string',
           placeholder: '2024-12-01-preview'
+        },
+        {
+          name: 'providerConfig.model',
+          label: 'Model',
+          description: 'The Azure deployment name to use',
+          placeholder: 'gpt-5.6'
         }
       ]}
     />
