@@ -5,7 +5,7 @@ import type {
   KnowledgeIndexStatus,
   LightRagHealthDto
 } from '@shared/types/knowledge-base'
-import { getHttpErrorMessage } from '@shared/utils/http'
+import { getHttpErrorMessage, toErrorI18n } from '@shared/utils/http'
 import { formatDistanceToNow } from 'date-fns'
 import {
   AlertCircleIcon,
@@ -97,7 +97,7 @@ interface DocDialogProps {
 }
 
 function DocDialog({ open, doc, onClose, onSaved }: DocDialogProps) {
-  const { t } = useTranslation('common')
+  const { t, i18n } = useTranslation('common')
   const isEdit = !!doc
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -128,7 +128,7 @@ function DocDialog({ open, doc, onClose, onSaved }: DocDialogProps) {
     } catch (e) {
       sileo.error({
         title: 'Failed to save document',
-        description: getHttpErrorMessage(e)
+        description: getHttpErrorMessage(e, toErrorI18n(i18n))
       })
     } finally {
       setSaving(false)
@@ -244,7 +244,7 @@ function DocListItem({
 // ─── Main component ──────────────────────────────────────────────────────────
 
 export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
-  const { t } = useTranslation('common')
+  const { t, i18n } = useTranslation('common')
   const [testing, setTesting] = useState(false)
   const [docs, setDocs] = useState<KnowledgeDocData[]>([])
   const [loading, setLoading] = useState(true)
@@ -263,12 +263,12 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
     } catch (e) {
       sileo.error({
         title: 'Failed to load documents',
-        description: getHttpErrorMessage(e)
+        description: getHttpErrorMessage(e, toErrorI18n(i18n))
       })
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [i18n])
 
   useEffect(() => {
     if (url) loadDocs()
@@ -302,7 +302,7 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
     } catch (e) {
       sileo.error({
         title: 'Failed to connect',
-        description: getHttpErrorMessage(e)
+        description: getHttpErrorMessage(e, toErrorI18n(i18n))
       })
     } finally {
       setTesting(false)
@@ -317,7 +317,7 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
     } catch (e) {
       sileo.error({
         title: 'Failed to reindex',
-        description: getHttpErrorMessage(e)
+        description: getHttpErrorMessage(e, toErrorI18n(i18n))
       })
     }
   }
@@ -339,7 +339,7 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
     } catch (e) {
       sileo.error({
         title: 'Failed to delete document',
-        description: getHttpErrorMessage(e)
+        description: getHttpErrorMessage(e, toErrorI18n(i18n))
       })
     } finally {
       setDeleteTarget(null)
