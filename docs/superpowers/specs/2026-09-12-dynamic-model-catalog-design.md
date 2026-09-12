@@ -219,4 +219,11 @@ null, reasoningLevels: [], cost: null }`. Dropdown still allows free-text
 - No attempt to source pricing from OpenAI or Google's APIs — both omit it;
   `MODEL_METADATA_FALLBACK` remains the only source for those two.
 - Azure's exact fetch mechanism is a design assumption pending verification
-  during implementation, not a settled fact of this spec.
+  during implementation, not a settled fact of this spec. **Verification
+  outcome (SDD execution, 2026-09-12): no Azure OpenAI resource or
+  credentials were available in the execution environment, so
+  `listAzureModels` was not implemented in this pass.** Azure's Settings tab
+  keeps a free-text model `Input` (no live dropdown) per the plan's own
+  documented fallback. Implementing the live handler is follow-up work for
+  whoever has a real Azure resource to verify the `{endpoint}/openai/models`
+  assumption against.
