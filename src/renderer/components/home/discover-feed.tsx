@@ -1,9 +1,10 @@
 import { TEST_IDS } from '@shared/constants/test-ids'
 import type { DiscoverArticle, DiscoverGroup } from '@shared/types/discover'
-import { getHttpErrorMessage } from '@shared/utils/http'
+import { getHttpErrorMessage, toErrorI18n } from '@shared/utils/http'
 import { formatDistanceToNow } from 'date-fns'
 import { RefreshCwIcon } from 'lucide-react'
 import { memo, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import { SourceFavicon } from '@/components/source-favicon'
@@ -118,6 +119,7 @@ const TopicSection = memo(function TopicSection({
 })
 
 export function DiscoverFeed() {
+  const { i18n } = useTranslation('errors')
   const { data: settings } = useSettings()
   const enabled = settings?.discover?.enabled ?? false
   const { feed, mutate } = useDiscoverFeed(enabled)
@@ -149,7 +151,7 @@ export function DiscoverFeed() {
     } catch (e) {
       sileo.error({
         title: 'Failed to refresh',
-        description: getHttpErrorMessage(e)
+        description: getHttpErrorMessage(e, toErrorI18n(i18n))
       })
     } finally {
       setRefreshing(false)

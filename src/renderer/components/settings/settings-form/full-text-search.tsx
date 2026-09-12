@@ -1,9 +1,10 @@
 import { TEST_IDS } from '@shared/constants/test-ids'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
-import { fetcher, getHttpErrorMessage } from '@shared/utils/http'
+import { fetcher, getHttpErrorMessage, toErrorI18n } from '@shared/utils/http'
 import { AlertCircleIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Controller } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -13,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { SettingsRow, SettingsSection } from '../settings-row'
 
 export function FullTextSearch({ form }: { form: UseFormReturnType }) {
+  const { i18n } = useTranslation('errors')
   const [isTesting, setIsTesting] = useState(false)
   const [isReindexing, setIsReindexing] = useState(false)
 
@@ -26,7 +28,7 @@ export function FullTextSearch({ form }: { form: UseFormReturnType }) {
     } catch (err) {
       sileo.error({
         title: 'Failed to connect to Elasticsearch',
-        description: getHttpErrorMessage(err)
+        description: getHttpErrorMessage(err, toErrorI18n(i18n))
       })
     } finally {
       setIsTesting(false)
@@ -44,7 +46,7 @@ export function FullTextSearch({ form }: { form: UseFormReturnType }) {
     } catch (err) {
       sileo.error({
         title: 'Failed to reindex messages',
-        description: getHttpErrorMessage(err)
+        description: getHttpErrorMessage(err, toErrorI18n(i18n))
       })
     } finally {
       setIsReindexing(false)

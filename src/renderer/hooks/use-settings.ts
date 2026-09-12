@@ -1,11 +1,13 @@
 import type { Settings } from '@shared/schemas/settings-schema'
-import { getHttpErrorMessage } from '@shared/utils/http'
+import { getHttpErrorMessage, toErrorI18n } from '@shared/utils/http'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 import useSWR from 'swr'
 
 import { updateSettings as updateSettingsService } from '@/services/settings'
 
 export function useSettings() {
+  const { i18n } = useTranslation('errors')
   const { data, error, isLoading, mutate } = useSWR<Settings>('/api/settings')
 
   const updateSettings = async (payload: Settings) => {
@@ -14,7 +16,7 @@ export function useSettings() {
     } catch (err) {
       sileo.error({
         title: 'Failed to save settings',
-        description: getHttpErrorMessage(err)
+        description: getHttpErrorMessage(err, toErrorI18n(i18n))
       })
       return
     }
