@@ -41,10 +41,28 @@ const formNumber = <T extends z.ZodNumber>(inner: T): T =>
     return v
   }, inner) as unknown as T
 
+export const EffortLevelSchema = z.enum([
+  'off',
+  'low',
+  'medium',
+  'high',
+  'xhigh',
+  'max'
+])
+export type EffortLevel = z.infer<typeof EffortLevelSchema>
+
+export const ModelSnapshotSchema = z.object({
+  contextWindow: z.number().nullish(),
+  maxOutputTokens: z.number().nullish(),
+  reasoningLevels: z.array(EffortLevelSchema).default([]),
+  cost: z.object({ input: z.number(), output: z.number() }).nullish()
+})
+export type ModelSnapshot = z.infer<typeof ModelSnapshotSchema>
+
 export const ProviderConfigSchema = z.object({
   provider: z.string().nullish(),
-  chatModel: z.string().nullish(),
-  reasoningModel: z.string().nullish()
+  model: z.string().nullish(),
+  modelSnapshot: ModelSnapshotSchema.nullish()
   // TODO: RAG / embedding model — will be redesigned
 })
 
