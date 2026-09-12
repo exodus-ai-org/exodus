@@ -117,12 +117,16 @@ export function toFriendlyChatError(raw: string): string {
     return 'The selected model was not found. Please check the model name in Settings → Providers.'
   }
 
-  // Network / connection errors
+  // Network / connection errors. "Connection error." is the OpenAI/Anthropic
+  // SDKs' own generic message for a transport-level fetch() failure (DNS/TLS/
+  // refused) — it carries no status code or provider-specific substring, so
+  // it needs its own explicit match or it falls through to the raw fallback.
   if (
     lower.includes('econnrefused') ||
     lower.includes('enotfound') ||
     lower.includes('etimedout') ||
     lower.includes('fetch failed') ||
+    lower.includes('connection error') ||
     lower.includes('network') ||
     lower.includes('socket hang up')
   ) {

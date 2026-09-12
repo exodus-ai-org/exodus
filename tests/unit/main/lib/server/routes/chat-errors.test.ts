@@ -1,4 +1,7 @@
-import { isEmptyAssistantTurn } from '@main/lib/server/routes/chat-errors'
+import {
+  isEmptyAssistantTurn,
+  toFriendlyChatError
+} from '@main/lib/server/routes/chat-errors'
 import { describe, expect, it } from 'vitest'
 
 describe('isEmptyAssistantTurn', () => {
@@ -54,5 +57,22 @@ describe('isEmptyAssistantTurn', () => {
 
   it('handles missing usage/content defensively', () => {
     expect(isEmptyAssistantTurn({})).toBe(true)
+  })
+})
+
+describe('toFriendlyChatError', () => {
+  it('maps the OpenAI/Anthropic SDKs generic transport failure to a network hint', () => {
+    // openai-node and @anthropic-ai/sdk both throw this exact message (no
+    // status code, no provider-specific substring) when fetch() itself fails
+    // (DNS/TLS/refused) — it must not fall through to the raw fallback.
+    expect(toFriendlyChatError('Connection error.')).toBe(
+      'Unable to connect to the AI provider. Please check your network connection and API base URL.'
+    )
+  })
+
+  it('still falls back to the raw message for unrecognized errors', () => {
+    expect(toFriendlyChatError('Something unexpected happened')).toBe(
+      'Something unexpected happened'
+    )
   })
 })
