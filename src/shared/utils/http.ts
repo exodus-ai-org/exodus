@@ -118,7 +118,7 @@ export function getHttpErrorMessage(
   if (!(err instanceof HttpError)) return undefined
   if (err.hasCustomMessage || !i18n) return err.message
 
-  const codeKey = `errors:${err.code}`
+  const codeKey = `errors:code.${err.code}`
   if (i18n.exists(codeKey)) return i18n.t(codeKey, err.params)
 
   const statusKey = `errors:http.${err.statusCode}`

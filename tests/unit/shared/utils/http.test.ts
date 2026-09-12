@@ -24,12 +24,12 @@ describe('getHttpErrorMessage with an i18n instance', () => {
   const fakeI18n = {
     exists: (key: string) =>
       [
-        'errors:MEMORY_NOT_FOUND',
+        'errors:code.MEMORY_NOT_FOUND',
         'errors:http.404',
         'errors:http.unknown'
       ].includes(key),
     t: (key: string, params?: Record<string, string | number>) => {
-      if (key === 'errors:MEMORY_NOT_FOUND')
+      if (key === 'errors:code.MEMORY_NOT_FOUND')
         return `Memory ${params?.id} not found (translated).`
       if (key === 'errors:http.404') return 'Not found (translated).'
       if (key === 'errors:http.unknown') return 'Unknown failure (translated).'

@@ -23,14 +23,14 @@ const errors = JSON.parse(
 )
 
 describe('errors namespace (en)', () => {
-  it('has one non-empty key for every ErrorCode member', () => {
+  it('has one non-empty key under `code` for every ErrorCode member', () => {
     for (const code of Object.values(ErrorCode)) {
-      expect(typeof errors[code]).toBe('string')
-      expect(errors[code].length).toBeGreaterThan(0)
+      expect(typeof errors.code[code]).toBe('string')
+      expect(errors.code[code].length).toBeGreaterThan(0)
     }
   })
 
-  it('keeps the Phase 1 scaffold keys', () => {
+  it('keeps the Phase 1 scaffold keys at the top level (not nested under code)', () => {
     expect(errors.somethingWentWrong).toBe(
       'Something went wrong. Please try again.'
     )
@@ -46,20 +46,22 @@ describe('errors namespace (en)', () => {
     expect(errors.http['503']).toBe('The service is temporarily unavailable.')
   })
 
-  it('has a flat TIMEOUT key for the client-only fetch-abort case', () => {
-    expect(errors.TIMEOUT).toBe('Request timed out.')
+  it('has a TIMEOUT key under `code` for the client-only fetch-abort case', () => {
+    expect(errors.code.TIMEOUT).toBe('Request timed out.')
   })
 
   it('interpolates params for the four templated codes', () => {
-    expect(errors[ErrorCode.CONFIG_MISSING_API_KEY]).toContain('{{label}}')
-    expect(errors[ErrorCode.VALIDATION_MISSING_FIELD]).toContain('{{field}}')
-    expect(errors[ErrorCode.DEEP_RESEARCH_NOT_FOUND]).toContain('{{id}}')
-    expect(errors[ErrorCode.MEMORY_NOT_FOUND]).toContain('{{id}}')
+    expect(errors.code[ErrorCode.CONFIG_MISSING_API_KEY]).toContain('{{label}}')
+    expect(errors.code[ErrorCode.VALIDATION_MISSING_FIELD]).toContain(
+      '{{field}}'
+    )
+    expect(errors.code[ErrorCode.DEEP_RESEARCH_NOT_FOUND]).toContain('{{id}}')
+    expect(errors.code[ErrorCode.MEMORY_NOT_FOUND]).toContain('{{id}}')
   })
 
   it('matches ErrorMessages verbatim for every ErrorCode (single source of truth)', () => {
     for (const code of Object.values(ErrorCode)) {
-      expect(errors[code]).toBe(ErrorMessages[code])
+      expect(errors.code[code]).toBe(ErrorMessages[code])
     }
   })
 })
