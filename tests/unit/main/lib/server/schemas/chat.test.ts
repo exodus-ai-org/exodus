@@ -64,3 +64,37 @@ describe('postRequestBodySchema — message passthrough', () => {
     ).toThrow()
   })
 })
+
+describe('postRequestBodySchema — reasoningEffort', () => {
+  it('accepts a request with no reasoningEffort', () => {
+    const parsed = postRequestBodySchema.parse({
+      id: CHAT_ID,
+      advancedTools: [],
+      messages: []
+    })
+    expect(parsed.reasoningEffort).toBeUndefined()
+  })
+
+  it('accepts every valid effort level', () => {
+    for (const level of ['off', 'low', 'medium', 'high', 'xhigh', 'max']) {
+      const parsed = postRequestBodySchema.parse({
+        id: CHAT_ID,
+        advancedTools: [],
+        messages: [],
+        reasoningEffort: level
+      })
+      expect(parsed.reasoningEffort, level).toBe(level)
+    }
+  })
+
+  it('rejects an invalid effort level', () => {
+    expect(() =>
+      postRequestBodySchema.parse({
+        id: CHAT_ID,
+        advancedTools: [],
+        messages: [],
+        reasoningEffort: 'ultra'
+      })
+    ).toThrow()
+  })
+})

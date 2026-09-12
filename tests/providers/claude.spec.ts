@@ -88,7 +88,8 @@ test.describe('Provider: Claude', () => {
     const events = await api.sendChatMessage({
       chatId,
       text: 'What is 50 factorial divided by 49 factorial? Think step by step.',
-      advancedTools: ['Reasoning']
+      advancedTools: [],
+      reasoningEffort: 'high'
     })
     expect(getError(events)).toBeNull()
     expect(extractAssistantText(getLastAssistantUpdate(events))).toContain('50')

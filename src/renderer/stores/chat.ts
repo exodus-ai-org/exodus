@@ -1,3 +1,4 @@
+import type { EffortLevel } from '@shared/schemas/settings-schema'
 import { AdvancedTools } from '@shared/types/ai'
 import { Attachment, ChatTab } from '@shared/types/chat'
 import { Chat, DeepResearchMessage } from '@shared/types/db'
@@ -26,6 +27,8 @@ export const renamedChatTitleAtom = atom({
 export const attachmentAtom = atom<Attachment[] | undefined>(undefined)
 
 export const advancedToolsAtom = atom<AdvancedTools[]>([])
+
+export const reasoningEffortAtom = atom<EffortLevel>('off')
 
 export const sourcesPanelAtom = atom<{
   webSearchResults: WebSearchResult[]

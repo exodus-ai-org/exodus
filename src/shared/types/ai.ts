@@ -10,7 +10,6 @@ export enum AiProviders {
 }
 
 export enum AdvancedTools {
-  Reasoning = 'Reasoning',
   DeepResearch = 'Deep Research'
 }
 

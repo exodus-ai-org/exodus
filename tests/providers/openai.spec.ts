@@ -86,7 +86,8 @@ test.describe('Provider: OpenAI', () => {
     const events = await api.sendChatMessage({
       chatId,
       text: 'What is 100 factorial divided by 99 factorial? Think carefully.',
-      advancedTools: ['Reasoning']
+      advancedTools: [],
+      reasoningEffort: 'high'
     })
     expect(getError(events)).toBeNull()
 

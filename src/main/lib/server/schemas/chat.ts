@@ -1,3 +1,4 @@
+import { EffortLevelSchema } from '@shared/schemas/settings-schema'
 import { AdvancedTools } from '@shared/types/ai'
 import { Chat } from '@shared/types/db'
 import { z } from 'zod'
@@ -49,6 +50,7 @@ export const postRequestBodySchema = z.object({
   message: userMessageSchema.optional(),
   messages: z.array(messageSchema),
   advancedTools: z.array(z.enum(AdvancedTools)),
+  reasoningEffort: EffortLevelSchema.optional(),
   projectId: z.string().uuid().optional()
 })
 
