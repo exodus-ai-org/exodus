@@ -85,7 +85,7 @@ interface ErrorI18n {
  * Adapts a real i18next instance to the `ErrorI18n` shape `getHttpErrorMessage`
  * expects. i18next's own `t()`/`exists()` types are keyed against the
  * project's declared resource shape (`CustomTypeOptions`), which rejects a
- * runtime-computed key like `errors:${code}` at the type level — the casts
+ * runtime-computed key like `errors:code.${code}` at the type level — the casts
  * here are the one place that's intentionally suppressed.
  */
 export function toErrorI18n(instance: I18nInstance): ErrorI18n {
@@ -103,7 +103,7 @@ export function toErrorI18n(instance: I18nInstance): ErrorI18n {
  *    a genuinely dynamic client-side failure like a timeout's raw text)
  *    provided real, specific text. Show it verbatim, untranslated — this
  *    is deliberately not templated, since it's arbitrary exception text.
- * 2. Otherwise the error is purely code-driven: translate `errors:<code>`
+ * 2. Otherwise the error is purely code-driven: translate `errors:code.<code>`
  *    with `err.params`.
  * 3. If that key doesn't exist, fall back to `errors:http.<statusCode>`,
  *    then `errors:http.unknown`.
@@ -256,7 +256,13 @@ export async function fetcher<T>(
   } catch (error) {
     if (error instanceof HttpError) throw error
     if (error instanceof Error && error.name === 'AbortError') {
-      throw new HttpError(408, 'TIMEOUT', 'Request timed out', undefined, false)
+      throw new HttpError(
+        408,
+        'TIMEOUT',
+        'Request timed out.',
+        undefined,
+        false
+      )
     }
     throw error
   }
