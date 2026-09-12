@@ -104,7 +104,7 @@ describe('handlers.lcm-post-turn', () => {
 
     await handlers['lcm-post-turn']({
       chatId: 'chat-1',
-      chatModel: fakeModel,
+      model: fakeModel,
       apiKey: 'key',
       freshTailSize: 16,
       contextWindowPercent: 75,
@@ -124,7 +124,7 @@ describe('handlers.memory-consolidate', () => {
 
     await handlers['memory-consolidate']({
       messages: [{ role: 'user', content: 'hi' }],
-      chatModel: fakeModel,
+      model: fakeModel,
       apiKey: 'key'
     })
 
