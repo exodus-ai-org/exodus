@@ -1,9 +1,11 @@
+import { TEST_IDS } from '@shared/constants/test-ids'
+import type { EffortLevel } from '@shared/schemas/settings-schema'
 import { AdvancedTools as AdvancedToolsType } from '@shared/types/ai'
 import { produce } from 'immer'
 import { useAtom } from 'jotai'
 import {
+  BrainIcon,
   HammerIcon,
-  LightbulbIcon,
   PaperclipIcon,
   PlusIcon,
   TelescopeIcon,
@@ -26,12 +28,18 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
+import { useSettings } from '@/hooks/use-settings'
 import { useUpload } from '@/hooks/use-upload'
 import { cn } from '@/lib/utils'
-import { advancedToolsAtom } from '@/stores/chat'
+import { advancedToolsAtom, reasoningEffortAtom } from '@/stores/chat'
 
 interface McpToolInfo {
   name: string
@@ -43,7 +51,6 @@ interface McpToolsGroup {
 }
 
 const TOGGLES = [
-  { key: AdvancedToolsType.Reasoning, label: 'Reasoning', icon: LightbulbIcon },
   {
     key: AdvancedToolsType.DeepResearch,
     label: 'Deep research',
@@ -51,8 +58,18 @@ const TOGGLES = [
   }
 ] as const
 
+const EFFORT_LEVELS: { value: EffortLevel; label: string }[] = [
+  { value: 'off', label: 'Off' },
+  { value: 'low', label: 'Low' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'high', label: 'High' },
+  { value: 'xhigh', label: 'Extra high' },
+  { value: 'max', label: 'Max' }
+]
+
 function useAdvancedToolToggle() {
   const [advancedTools, setAdvancedTools] = useAtom(advancedToolsAtom)
+  const [reasoningEffort, setReasoningEffort] = useAtom(reasoningEffortAtom)
 
   const toggle = (name: AdvancedToolsType) =>
     setAdvancedTools(
@@ -63,25 +80,49 @@ function useAdvancedToolToggle() {
           return
         }
         draft.push(name)
-        // Reasoning and Deep Research are mutually exclusive.
-        const other =
-          name === AdvancedToolsType.DeepResearch
-            ? AdvancedToolsType.Reasoning
-            : AdvancedToolsType.DeepResearch
-        const oi = draft.indexOf(other)
-        if (oi > -1) draft.splice(oi, 1)
+        // Deep Research and reasoning effort are mutually exclusive.
+        if (name === AdvancedToolsType.DeepResearch) setReasoningEffort('off')
       })
     )
 
-  return { advancedTools, toggle }
+  const setEffort = (level: EffortLevel) => {
+    setReasoningEffort(level)
+    // Picking a non-off effort turns off Deep Research, same mutual exclusion
+    // as before, just from the other direction.
+    if (level !== 'off') {
+      setAdvancedTools(
+        produce((draft) => {
+          const idx = draft.indexOf(AdvancedToolsType.DeepResearch)
+          if (idx > -1) draft.splice(idx, 1)
+        })
+      )
+    }
+  }
+
+  return { advancedTools, toggle, reasoningEffort, setEffort }
 }
 
-/** The composer's `+` button: attachments, reasoning/deep-research, MCP tools. */
+/** Levels the currently-selected model actually supports, off first. */
+function useAvailableEffortLevels(): typeof EFFORT_LEVELS {
+  const { data: settings } = useSettings()
+  const supported = settings?.providerConfig?.modelSnapshot?.reasoningLevels
+  return useMemo(
+    () =>
+      supported && supported.length > 0
+        ? EFFORT_LEVELS.filter((l) => supported.includes(l.value))
+        : [],
+    [supported]
+  )
+}
+
+/** The composer's `+` button: attachments, reasoning effort/deep-research, MCP tools. */
 export function ComposerToolsButton() {
   const { t } = useTranslation('common')
   const { uploadFile } = useUpload()
   const fileRef = useRef<HTMLInputElement>(null)
-  const { advancedTools, toggle } = useAdvancedToolToggle()
+  const { advancedTools, toggle, reasoningEffort, setEffort } =
+    useAdvancedToolToggle()
+  const availableEffortLevels = useAvailableEffortLevels()
   const [mcpOpen, setMcpOpen] = useState(false)
 
   const { data } = useSWR<{ tools: McpToolsGroup[] }>('/api/mcp/tools')
@@ -97,6 +138,8 @@ export function ComposerToolsButton() {
       if (fileRef.current) fileRef.current.value = ''
     })
   }
+
+  const hasActiveTool = advancedTools.length > 0 || reasoningEffort !== 'off'
 
   return (
     <>
@@ -115,7 +158,7 @@ export function ComposerToolsButton() {
           aria-label={t('action.add')}
           className={cn(
             'text-muted-foreground hover:bg-muted hover:text-foreground data-popup-open:bg-muted flex size-8 shrink-0 items-center justify-center rounded-full transition-colors [&_svg]:size-[18px]',
-            advancedTools.length > 0 && 'text-[#0285ff] dark:text-[#48aaff]'
+            hasActiveTool && 'text-[#0285ff] dark:text-[#48aaff]'
           )}
         >
           <PlusIcon />
@@ -132,6 +175,40 @@ export function ComposerToolsButton() {
             Attach files
           </DropdownMenuItem>
           <DropdownMenuSeparator />
+          {availableEffortLevels.length > 0 && (
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger
+                data-testid={TEST_IDS.composer.reasoningEffortItem}
+              >
+                <BrainIcon />
+                Reasoning
+                {reasoningEffort !== 'off' && (
+                  <span className="text-muted-foreground ml-auto text-xs">
+                    {
+                      EFFORT_LEVELS.find((l) => l.value === reasoningEffort)
+                        ?.label
+                    }
+                  </span>
+                )}
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuRadioGroup
+                  value={reasoningEffort}
+                  onValueChange={(v) => setEffort(v as EffortLevel)}
+                >
+                  {availableEffortLevels.map((level) => (
+                    <DropdownMenuRadioItem
+                      key={level.value}
+                      value={level.value}
+                      data-testid={`${TEST_IDS.composer.reasoningEffortLevel}-${level.value}`}
+                    >
+                      {level.label}
+                    </DropdownMenuRadioItem>
+                  ))}
+                </DropdownMenuRadioGroup>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+          )}
           {TOGGLES.map(({ key, label, icon: Icon }) => (
             <DropdownMenuCheckboxItem
               key={key}
@@ -195,12 +272,29 @@ export function ComposerToolsButton() {
 
 /** Removable pills shown above the textarea for each active advanced tool. */
 export function ActiveToolPills() {
-  const { advancedTools, toggle } = useAdvancedToolToggle()
+  const { advancedTools, toggle, reasoningEffort, setEffort } =
+    useAdvancedToolToggle()
   const active = TOGGLES.filter((t) => advancedTools.includes(t.key))
-  if (active.length === 0) return null
+  const effortLabel =
+    reasoningEffort !== 'off'
+      ? EFFORT_LEVELS.find((l) => l.value === reasoningEffort)?.label
+      : null
+
+  if (active.length === 0 && !effortLabel) return null
 
   return (
     <div className="flex flex-wrap gap-1 px-1">
+      {effortLabel && (
+        <button
+          type="button"
+          onClick={() => setEffort('off')}
+          className="flex items-center gap-1 rounded-full bg-[#0285ff]/10 px-2 py-0.5 text-xs font-medium text-[#0285ff] transition-colors hover:bg-[#0285ff]/16 dark:text-[#48aaff] [&_svg]:size-3.5"
+        >
+          <BrainIcon />
+          Reasoning: {effortLabel}
+          <XIcon className="opacity-60" />
+        </button>
+      )}
       {active.map(({ key, label, icon: Icon }) => (
         <button
           key={key}

@@ -83,6 +83,10 @@ export const TEST_IDS = {
   providerModels: {
     refreshButton: 'provider-models.refresh-button',
     modelSelect: 'provider-models.model-select'
+  },
+  composer: {
+    reasoningEffortItem: 'composer.reasoning-effort-item',
+    reasoningEffortLevel: 'composer.reasoning-effort-level'
   }
 } as const
 

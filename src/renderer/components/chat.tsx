@@ -11,7 +11,7 @@ import useSWR, { mutate } from 'swr'
 import { v4 as uuidV4 } from 'uuid'
 
 import { useChat } from '@/hooks/use-chat'
-import { advancedToolsAtom } from '@/stores/chat'
+import { advancedToolsAtom, reasoningEffortAtom } from '@/stores/chat'
 import { chatInputAtom, chatStatusAtom, chatStopFnAtom } from '@/stores/input'
 
 import { LcmStatusCard } from './chat/lcm-status-card'
@@ -66,6 +66,9 @@ export function Chat({
   const getAdvancedTools = useAtomCallback(
     useCallback((get) => get(advancedToolsAtom), [])
   )
+  const getReasoningEffort = useAtomCallback(
+    useCallback((get) => get(reasoningEffortAtom), [])
+  )
   const projectIdRef = useRef(projectId)
   projectIdRef.current = projectId
 
@@ -94,6 +97,7 @@ export function Chat({
       id,
       messages,
       advancedTools: getAdvancedTools(),
+      reasoningEffort: getReasoningEffort(),
       projectId: projectIdRef.current
     }),
     onFinish: () => {
