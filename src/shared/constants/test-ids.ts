@@ -79,6 +79,10 @@ export const TEST_IDS = {
   philharmonic: {
     newGroup: 'philharmonic.new-group',
     membersToggle: 'philharmonic.members-toggle'
+  },
+  providerModels: {
+    refreshButton: 'provider-models.refresh-button',
+    modelSelect: 'provider-models.model-select'
   }
 } as const
 
