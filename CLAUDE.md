@@ -30,8 +30,8 @@ you must uphold.
   `claude-md-freshness.test.ts` (paths) and `claude-md-staleness.test.ts`
   (retired claims)._
 - **Models & providers.** Use the shared `resolveModel()`
-  (`src/main/lib/ai/providers/resolve-model.ts`); selectable model lists live in
-  `src/shared/constants/models.ts`.
+  (`src/main/lib/ai/providers/resolve-model.ts`); model selection is now
+  live-fetched per provider from Settings.
 
 ## Development Commands
 
@@ -121,6 +121,8 @@ The main process runs a **Hono HTTP server** that handles all business logic:
 
 `/api/chat`, `/api/lcm`, `/api/history`, `/api/knowledge-base`, `/api/project`, `/api/settings`, `/api/audio`, `/api/db-io`, `/api/deep-research`, `/api/discover`, `/api/tools`, `/api/philharmonic`, `/api/s3`, `/api/skills`, `/api/mcp`, `/api/memory`, `/api/usage`, `/api/logs`, `/api/backup`, `/api/artifacts`, `/api/computer-use`.
 
+The `/api/settings` route includes `POST /api/settings/models` — dispatches to the appropriate list-models handler based on the provider in the request body, reading the API key from the request (not from saved settings) to fetch live model catalogs.
+
 **Middleware Pipeline** (order in `app.ts`):
 
 1. CORS middleware (`hono/cors`, allows all origins for localhost development)
@@ -164,9 +166,11 @@ the base-URL setting, its fallback, the default model ids, and the pi-ai
 `provider` / `api` strings. Ollama (`ollama.ts`) is the exception: a hand-built
 `Model` with nothing in the registry. Every path resolves through the shared
 `resolveModel()` in `resolve-model.ts` (do not duplicate model-resolution
-logic); its per-provider fallback defaults (contextWindow, cost) and
-newer-than-registry `MODEL_OVERRIDES` live there. Selectable model lists live in
-`src/shared/constants/models.ts`.
+logic); it accepts an optional live-fetched `snapshot` parameter (from
+`POST /api/settings/models`) to override the pi-ai registry. Per-provider
+fallback defaults (contextWindow, cost) and `MODEL_METADATA_FALLBACK` (narrower
+scope: only what a provider's own list API omits) live there. Live model lists
+are fetched per-provider from `src/main/lib/ai/providers/list-models/`.
 
 **Chat Flow** (`src/main/lib/server/routes/chat.ts`):
 
@@ -371,8 +375,9 @@ Separate renderer entry points under `src/renderer/sub-apps/`: `searchbar`, `qui
 ### When Working with AI Providers
 
 - Providers resolve a `Model` (from `@mariozechner/pi-ai`) via the shared `resolveModel()` in `src/main/lib/ai/providers/resolve-model.ts` — do NOT duplicate model resolution logic
-- Per-provider fallback defaults (contextWindow, cost) are centralized in `resolve-model.ts`
-- Model lists live in `src/shared/constants/models.ts`
+- `resolveModel()` accepts an optional `snapshot` parameter (live-fetched from `POST /api/settings/models`) to override the pi-ai registry
+- Per-provider fallback defaults (contextWindow, cost) and `MODEL_METADATA_FALLBACK` are centralized in `resolve-model.ts`
+- Model lists are now live-fetched per provider from Settings via `src/main/lib/ai/providers/list-models/`
 - Model names/API keys are retrieved from settings (never hardcode)
 
 ### When Working with Database
@@ -481,9 +486,10 @@ Reusable AI utilities that should be used (and tested) instead of inline impleme
    getter + fallback, default model ids, pi-ai `provider` / `api`). A provider
    that can't go through `resolveModel()` (like Ollama) gets its own module +
    a hand-written `ProviderFn` instead
-3. Add any newer-than-registry models to `MODEL_OVERRIDES` in `resolve-model.ts`
-4. Add the provider's selectable models to `src/shared/constants/models.ts`
-5. Add its key/base-URL fields to `ProvidersSchema` in `src/shared/schemas/settings-schema.ts` and a tab in `settings-form/providers-tabs.tsx`
+3. Add a list-models handler in `src/main/lib/ai/providers/list-models/` (e.g., `my-provider.ts`) that normalizes the provider's API response
+4. Register the handler in `src/main/lib/ai/providers/list-models/index.ts`
+5. Add any per-provider fallback defaults to `MODEL_METADATA_FALLBACK` in `resolve-model.ts` (only what the provider's list API omits)
+6. Add its key/base-URL fields to `ProvidersSchema` in `src/shared/schemas/settings-schema.ts` and a tab in `settings-form/providers-tabs.tsx`
 
 ### Adding a User-Facing String
 
@@ -540,6 +546,7 @@ Main process:
 - `src/main/lib/server/routes/` — API route handlers
 - `src/main/lib/server/middlewares/` — CORS, lock gate, error handler
 - `src/main/lib/ai/providers/` — LLM provider resolution (`resolve-model.ts`)
+- `src/main/lib/ai/providers/list-models/` — Live model catalog handlers per provider (`anthropic.ts`, `openai.ts`, `google.ts`, `xai.ts`, `ollama.ts`); each normalizes that provider's list-models API response into `{ id, displayName, snapshot: ModelSnapshot }`, dispatched by `index.ts` and called from `POST /api/settings/models`
 - `src/main/lib/ai/calling-tools/` — built-in agent tools
 - `src/main/lib/ai/philharmonic/` — multi-agent Groups
 - `src/main/lib/ai/context-management/` — LCM
@@ -607,7 +614,7 @@ Renderer:
 Shared:
 
 - `src/shared/types/` — cross-process types
-- `src/shared/constants/` — constants (`models.ts`, `test-ids.ts`, `systems.ts`)
+- `src/shared/constants/` — constants (`test-ids.ts`, `systems.ts`)
 - `src/shared/schemas/` — Zod schemas
 - `src/shared/utils/` — shared utilities
 - `src/shared/i18n/` — application i18n: `locales.ts` (the 11 locale IDs +
