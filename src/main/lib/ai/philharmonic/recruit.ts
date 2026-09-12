@@ -25,14 +25,14 @@ export interface RecruitParams {
 /** Create and persist a new employee. Reused by the PM `recruitEmployee` tool. */
 export async function autoCreateEmployee(params: RecruitParams) {
   const setting = await getSettings()
-  const { chatModel, apiKey } = getModelFromProvider(setting)
+  const { model, apiKey } = getModelFromProvider(setting)
 
   let description = `Virtual employee for: ${params.role}`
   let systemPrompt = `You are a virtual employee. Your role: ${params.role}.`
 
   try {
     const result = await completeSimple(
-      chatModel,
+      model,
       {
         systemPrompt: SPEC_PROMPT,
         messages: [

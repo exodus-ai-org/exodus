@@ -89,10 +89,10 @@ export async function runDiscoverRefresh(
       return
     }
 
-    const { chatModel, apiKey } = getModelFromProvider(settings)
+    const { model, apiKey } = getModelFromProvider(settings)
     const prompt = `Memories:\n${candidates.map(formatMemoryForPrompt).join('\n')}`
     const result = await completeSimple(
-      chatModel,
+      model,
       {
         systemPrompt: DISCOVER_QUERY_SYSTEM,
         messages: [

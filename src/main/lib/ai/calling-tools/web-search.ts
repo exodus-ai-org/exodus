@@ -64,13 +64,8 @@ export const webSearch = (
         let expandedQueries: string[] = []
         if (deep) {
           try {
-            const { chatModel, apiKey } = getModelFromProvider(setting)
-            expandedQueries = await expandQuery(
-              query,
-              chatModel,
-              apiKey,
-              signal
-            )
+            const { model, apiKey } = getModelFromProvider(setting)
+            expandedQueries = await expandQuery(query, model, apiKey, signal)
           } catch {
             expandedQueries = []
           }

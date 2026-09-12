@@ -75,7 +75,7 @@ deepResearch.post('/', async (c) => {
     )
   }
 
-  if (!setting.providerConfig?.reasoningModel) {
+  if (!setting.providerConfig?.model) {
     throw new ConfigurationError(
       ErrorCode.CONFIG_MISSING_REASONING_MODEL,
       'Reasoning model is not configured'
@@ -84,7 +84,7 @@ deepResearch.post('/', async (c) => {
 
   const braveApiKey = validateBraveApiKey(setting)
 
-  const { reasoningModel, apiKey } = getModelFromProvider(setting)
+  const { model, apiKey } = getModelFromProvider(setting)
 
   await notifyClients(deepResearchId, {
     type: DeepResearchProgress.StartDeepResearch
@@ -97,7 +97,7 @@ deepResearch.post('/', async (c) => {
     },
     {
       braveApiKey,
-      model: reasoningModel,
+      model,
       apiKey,
       notify: (data) => notifyClients(deepResearchId, data)
     }
@@ -111,7 +111,7 @@ deepResearch.post('/', async (c) => {
       prompt: query,
       learnings
     },
-    { model: reasoningModel, apiKey }
+    { model, apiKey }
   )
 
   const deepResearchById = await getDeepResearchById({ id: deepResearchId })

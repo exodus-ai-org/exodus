@@ -62,13 +62,13 @@ memoryRouter.post('/instruct', async (c) => {
     )
   }
 
-  const { chatModel, apiKey } = getModelFromProvider(c.get('settings'))
+  const { model, apiKey } = getModelFromProvider(c.get('settings'))
   const result = await handleDatabaseOperation(
     () =>
       runMemoryInstruction(
         body.instruction!,
         body.scopeMemoryId ?? null,
-        chatModel,
+        model,
         apiKey
       ),
     'Failed to apply the instruction'

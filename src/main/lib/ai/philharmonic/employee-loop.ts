@@ -62,7 +62,7 @@ export async function runEmployeeLoop(
   const { agent, instructions, executionId, conversationId, emit, signal } =
     args
   const setting = await getSettings()
-  const { chatModel, apiKey } = getModelFromProvider(setting)
+  const { model, apiKey } = getModelFromProvider(setting)
 
   const mcpNames = (agent.mcpServerNames as string[] | null) ?? []
   const mcpTools =
@@ -121,7 +121,7 @@ export async function runEmployeeLoop(
     [userMessage as AgentMessage],
     { systemPrompt, messages: [], tools },
     {
-      model: chatModel,
+      model,
       apiKey,
       convertToLlm: (msgs: AgentMessage[]): Message[] =>
         msgs.filter(
@@ -206,7 +206,7 @@ export async function runEmployeeLoop(
       }
     }
 
-    const cost = calculateCost(lastUsage, chatModel).total
+    const cost = calculateCost(lastUsage, model).total
     await updateTaskExecution(executionId, {
       status: 'completed',
       completedAt: new Date(),

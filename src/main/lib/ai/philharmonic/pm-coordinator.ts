@@ -127,7 +127,7 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
   emit({ type: 'pm_started', conversationId })
 
   const setting = await getSettings()
-  const { chatModel, apiKey } = getModelFromProvider(setting)
+  const { model, apiKey } = getModelFromProvider(setting)
 
   const [employees, allTeams, conversationRow] = await Promise.all([
     getActiveAgents(),
@@ -141,7 +141,7 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
   // straight conversion of every persisted message; when over, it replaces
   // the oldest turns with a rolling summary it maintains itself. Settings
   // pulled from the memory settings mirror what Chat's LCM uses.
-  const lcm = new PhilharmonicLcm(conversationId, chatModel, apiKey, {
+  const lcm = new PhilharmonicLcm(conversationId, model, apiKey, {
     enabled: setting.memory?.lcmEnabled ?? true,
     contextWindowPercent: setting.memory?.contextWindowPercent ?? 75,
     freshTailSize: setting.memory?.freshTailSize ?? 16
@@ -362,7 +362,7 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
         tools
       },
       {
-        model: chatModel,
+        model,
         apiKey,
         convertToLlm: (msgs: AgentMessage[]): Message[] =>
           msgs.filter(
