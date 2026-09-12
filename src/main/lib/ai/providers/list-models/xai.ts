@@ -1,8 +1,9 @@
 import { MODEL_METADATA_FALLBACK } from '../resolve-model'
 import type { ListModelsFn, NormalizedModel } from './types'
 
-// Confirmed against a live response during Task 8, Step 1 — adjust here if
-// xAI's field turns out to be scaled differently than dollars-per-token.
+// UNVERIFIED — assumed dollars-per-token per the Task 8 brief's fallback; no
+// live XAI_API_KEY was available to confirm (see task-8-report.md). Adjust
+// here if xAI's field turns out to be scaled differently.
 const PER_TOKEN_TO_PER_MILLION = 1_000_000
 
 interface XaiModel {
