@@ -16,6 +16,29 @@ let effective: LocaleId = 'en'
 export const getEffectiveLocale = (): LocaleId => effective
 
 /**
+ * Safely translates a main-process string, tolerating `mainI18n` being
+ * unassigned — `initMainI18n()` can fail during boot (see its `.catch()` in
+ * `index.ts`), and boot continues in English rather than crashing. `fallback`
+ * must be the exact same English text as the catalog's value for `key`, so
+ * the two paths render identically. When `mainI18n` isn't ready, a
+ * lightweight `{{param}}` substitution (the same pattern `AppError.interpolate`
+ * uses for the `errors` namespace) keeps interpolated content correct even
+ * without i18next.
+ */
+export function mainT(
+  key: string,
+  fallback: string,
+  params?: Record<string, string | number>
+): string {
+  if (mainI18n)
+    return params ? mainI18n.t(key as never, params) : mainI18n.t(key as never)
+  if (!params) return fallback
+  return fallback.replace(/\{\{(\w+)\}\}/g, (match, k: string) =>
+    k in params ? String(params[k]) : match
+  )
+}
+
+/**
  * Resolve the locale the app should actually run in.
  * A concrete locale id in settings wins; `'auto'` / null / anything else
  * defers to the OS's preferred languages.
