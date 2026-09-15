@@ -94,6 +94,16 @@ export function ModelPicker({
 
   const handleSelect = (id: string) => {
     const model = fetched?.find((m) => m.id === id)
+    // All six provider tabs stay navigable regardless of which provider is
+    // currently active, but this component only ever shows options for its
+    // own `provider` prop. Without this, picking a model from a
+    // non-active tab would silently overwrite providerConfig.model with an
+    // id that belongs to the wrong provider (the dropdown looks blank
+    // because its displayed value is gated on activeProvider === provider,
+    // but the write still landed). Selecting a model here always makes this
+    // tab's provider the active one, matching provider-config.tsx's own
+    // provider-switch handler.
+    form.setValue('providerConfig.provider', provider, { shouldDirty: true })
     form.setValue('providerConfig.model', id, { shouldDirty: true })
     form.setValue('providerConfig.modelSnapshot', model?.snapshot ?? null, {
       shouldDirty: true

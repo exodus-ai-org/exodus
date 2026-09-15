@@ -1,38 +1,84 @@
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
+import { AiProviders } from '@shared/types/ai'
+import { Controller } from 'react-hook-form'
 
+import { Input } from '@/components/ui/input'
+
+import { SettingsRow, SettingsSection } from '../../settings-row'
 import { ProviderFields } from './provider-fields'
 
 export function AzureOpenAi({ form }: { form: UseFormReturnType }) {
   return (
-    <ProviderFields
-      form={form}
-      fields={[
-        {
-          name: 'providers.azureOpenaiApiKey',
-          label: 'API Key',
-          description: 'Your Azure OpenAI API key',
-          type: 'password'
-        },
-        {
-          name: 'providers.azureOpenAiEndpoint',
-          label: 'Endpoint',
-          description: 'Your Azure OpenAI resource endpoint URL',
-          placeholder:
-            'https://{resource}.openai.azure.com/openai/deployments/{model}'
-        },
-        {
-          name: 'providers.azureOpenAiApiVersion',
-          label: 'API Version',
-          description: 'Azure OpenAI API version string',
-          placeholder: '2024-12-01-preview'
-        },
-        {
-          name: 'providerConfig.model',
-          label: 'Model',
-          description: 'The Azure deployment name to use',
-          placeholder: 'gpt-5.6'
-        }
-      ]}
-    />
+    <>
+      <ProviderFields
+        form={form}
+        fields={[
+          {
+            name: 'providers.azureOpenaiApiKey',
+            label: 'API Key',
+            description: 'Your Azure OpenAI API key',
+            type: 'password'
+          },
+          {
+            name: 'providers.azureOpenAiEndpoint',
+            label: 'Endpoint',
+            description: 'Your Azure OpenAI resource endpoint URL',
+            placeholder:
+              'https://{resource}.openai.azure.com/openai/deployments/{model}'
+          },
+          {
+            name: 'providers.azureOpenAiApiVersion',
+            label: 'API Version',
+            description: 'Azure OpenAI API version string',
+            placeholder: '2024-12-01-preview'
+          }
+        ]}
+      />
+      {/* Azure has no live model-list fetch (see list-models/ — unverified
+          against a real Azure resource), so this stays a plain text input
+          instead of ModelPicker's dropdown. Pulled out of the ProviderFields
+          array above (unlike its siblings) because it needs its own
+          onChange side effect below. */}
+      <SettingsSection>
+        <Controller
+          control={form.control}
+          name="providerConfig.model"
+          render={({ field, fieldState }) => (
+            <SettingsRow
+              label="Model"
+              description="The Azure deployment name to use"
+              error={fieldState.error}
+              layout="vertical"
+            >
+              <Input
+                type="text"
+                placeholder="gpt-5.6"
+                {...field}
+                value={field.value ?? ''}
+                onChange={(e) => {
+                  field.onChange(e)
+                  // Same rule as ModelPicker's handleSelect for the other,
+                  // live-fetch providers: setting a model here always makes
+                  // Azure the active provider, so this free-text field can't
+                  // silently corrupt providerConfig.model while a different
+                  // provider tab is active. modelSnapshot is cleared too —
+                  // Azure has no live-snapshot concept, and leaving a stale
+                  // snapshot from a previously-active provider around would
+                  // confuse resolveModel().
+                  form.setValue(
+                    'providerConfig.provider',
+                    AiProviders.AzureOpenAi,
+                    { shouldDirty: true }
+                  )
+                  form.setValue('providerConfig.modelSnapshot', null, {
+                    shouldDirty: true
+                  })
+                }}
+              />
+            </SettingsRow>
+          )}
+        />
+      </SettingsSection>
+    </>
   )
 }
