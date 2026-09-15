@@ -1,5 +1,7 @@
 import { Menu, Tray } from 'electron'
 
+import { mainT } from './i18n'
+
 // Tray needs a raster image — Electron's nativeImage.createFromPath rejects
 // SVGs on macOS. The SVG source lives in resources/iconTemplate.svg and is
 // rasterized to iconStarsTemplate{,@2x,@3x}.png by `pnpm icons`. Import the
@@ -57,12 +59,14 @@ function buildContextMenu(): Menu {
   const visible = !!win && win.isVisible() && !win.isMinimized()
   return Menu.buildFromTemplate([
     {
-      label: visible ? 'Hide App' : 'Show App',
+      label: visible
+        ? mainT('menu:tray.hideApp', 'Hide App')
+        : mainT('menu:tray.showApp', 'Show App'),
       click: toggleMainWindow,
       enabled: !!win
     },
     { type: 'separator' },
-    { role: 'quit', label: 'Quit Exodus' }
+    { role: 'quit', label: mainT('menu:tray.quitExodus', 'Quit Exodus') }
   ])
 }
 
