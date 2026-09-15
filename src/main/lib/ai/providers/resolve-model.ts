@@ -78,6 +78,24 @@ export function resolveModel(
   // below rather than letting contextWindow/maxTokens/cost end up undefined,
   // which would silently break LCM's context-budget math downstream.
   if (snapshot) {
+    const hasReasoning = snapshot.reasoningLevels.some((l) => l !== 'off')
+
+    // pi-ai's clampThinkingLevel() silently clamps a requested 'xhigh' down to
+    // 'high' whenever a model has no thinkingLevelMap entry for 'xhigh' (see
+    // getSupportedThinkingLevels in @mariozechner/pi-ai/dist/models.js — a
+    // missing map entry means the level isn't "supported"). Our app-level
+    // EffortLevel 'max' already collapses to pi-ai's 'xhigh' before it gets
+    // here (see chat.ts), so a model whose snapshot reports 'max' or 'xhigh'
+    // support needs an explicit thinkingLevelMap.xhigh entry or those top two
+    // composer tiers silently do nothing.
+    const thinkingLevelMap = hasReasoning
+      ? snapshot.reasoningLevels.includes('max')
+        ? { xhigh: 'max' }
+        : snapshot.reasoningLevels.includes('xhigh')
+          ? { xhigh: 'xhigh' }
+          : undefined
+      : undefined
+
     return {
       id,
       name: id,
@@ -85,13 +103,21 @@ export function resolveModel(
       api,
       baseUrl,
       input: ['text', 'image'],
-      reasoning: snapshot.reasoningLevels.some((l) => l !== 'off'),
+      reasoning: hasReasoning,
+      thinkingLevelMap,
       contextWindow: snapshot.contextWindow ?? defaults.contextWindow,
       maxTokens: snapshot.maxOutputTokens ?? defaults.maxTokens,
+      // ModelSnapshotSchema (src/shared/schemas/settings-schema.ts) has no
+      // field for cache pricing — none of the list-models handlers this
+      // snapshot came from report cache read/write rates, so cost estimates
+      // under-report for any model that gets a real cache discount. This is
+      // a known gap in the schema, not fixed here (too large/risky for a
+      // one-shot fix) — revisit if ModelSnapshotSchema ever gains cache-rate
+      // fields.
       cost: snapshot.cost
         ? { ...snapshot.cost, cacheRead: 0, cacheWrite: 0 }
         : { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }
-    } as Model<string>
+    }
   }
 
   try {

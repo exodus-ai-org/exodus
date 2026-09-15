@@ -117,4 +117,52 @@ describe('resolveModel', () => {
     expect(model.cost.input).toBe(0)
     expect(model.reasoning).toBe(false)
   })
+
+  it('maps thinkingLevelMap.xhigh to "max" when reasoningLevels includes max', () => {
+    const model = resolveModel(
+      'anthropic',
+      'claude-opus-5',
+      'https://api.anthropic.com',
+      'anthropic-messages',
+      {
+        contextWindow: 1_000_000,
+        maxOutputTokens: 128_000,
+        reasoningLevels: ['off', 'low', 'medium', 'high', 'xhigh', 'max'],
+        cost: { input: 5, output: 25 }
+      }
+    )
+    expect(model.thinkingLevelMap).toEqual({ xhigh: 'max' })
+  })
+
+  it('maps thinkingLevelMap.xhigh to "xhigh" when reasoningLevels includes xhigh but not max', () => {
+    const model = resolveModel(
+      'anthropic',
+      'claude-opus-5',
+      'https://api.anthropic.com',
+      'anthropic-messages',
+      {
+        contextWindow: 1_000_000,
+        maxOutputTokens: 128_000,
+        reasoningLevels: ['off', 'high', 'xhigh'],
+        cost: { input: 5, output: 25 }
+      }
+    )
+    expect(model.thinkingLevelMap).toEqual({ xhigh: 'xhigh' })
+  })
+
+  it('leaves thinkingLevelMap undefined when reasoningLevels is empty', () => {
+    const model = resolveModel(
+      'anthropic',
+      'claude-haiku-4-5',
+      'https://api.anthropic.com',
+      'anthropic-messages',
+      {
+        contextWindow: 200_000,
+        maxOutputTokens: 64_000,
+        reasoningLevels: [],
+        cost: { input: 1, output: 5 }
+      }
+    )
+    expect(model.thinkingLevelMap).toBeUndefined()
+  })
 })
