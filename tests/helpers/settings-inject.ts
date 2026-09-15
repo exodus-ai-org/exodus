@@ -24,8 +24,17 @@ export async function injectOpenAiProvider(api: ApiClient) {
   await api.updateSettings({
     providerConfig: {
       provider: 'OpenAI GPT',
-      chatModel: 'gpt-4.1-mini',
-      reasoningModel: 'o4-mini'
+      // The old chatModel/reasoningModel pair diverged on purpose here
+      // (chatModel 'gpt-4.1-mini' vs reasoningModel 'o4-mini') because
+      // openai.spec.ts's "reasoning mode (o4-mini)" test needs a model that
+      // genuinely supports reasoning on OpenAI's real API — gpt-4.1-mini
+      // doesn't. There's only one `model` field now, so it wins for the
+      // whole provider config; the modelSnapshot below keeps our own
+      // resolveModel() from clamping the requested reasoning effort away.
+      model: 'o4-mini',
+      modelSnapshot: {
+        reasoningLevels: ['off', 'low', 'medium', 'high']
+      }
     }
   })
 }
@@ -35,8 +44,7 @@ export async function injectClaudeProvider(api: ApiClient) {
   await api.updateSettings({
     providerConfig: {
       provider: 'Anthropic Claude',
-      chatModel: 'claude-sonnet-4-20250514',
-      reasoningModel: 'claude-sonnet-4-20250514'
+      model: 'claude-sonnet-4-20250514'
     }
   })
 }
@@ -46,8 +54,7 @@ export async function injectGeminiProvider(api: ApiClient) {
   await api.updateSettings({
     providerConfig: {
       provider: 'Google Gemini',
-      chatModel: 'gemini-2.5-flash',
-      reasoningModel: 'gemini-2.5-flash'
+      model: 'gemini-2.5-flash'
     }
   })
 }
