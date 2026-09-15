@@ -15,5 +15,17 @@
   "state": {
     "loading": "Loading…",
     "local": "Local"
+  },
+  "composer": {
+    "reasoning": "Reasoning",
+    "reasoningPill": "Reasoning: {{label}}",
+    "reasoningLevel": {
+      "off": "Off",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "xhigh": "Extra high",
+      "max": "Max"
+    }
   }
 }

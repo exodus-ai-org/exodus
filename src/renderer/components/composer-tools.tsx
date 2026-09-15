@@ -58,13 +58,15 @@ const TOGGLES = [
   }
 ] as const
 
-const EFFORT_LEVELS: { value: EffortLevel; label: string }[] = [
-  { value: 'off', label: 'Off' },
-  { value: 'low', label: 'Low' },
-  { value: 'medium', label: 'Medium' },
-  { value: 'high', label: 'High' },
-  { value: 'xhigh', label: 'Extra high' },
-  { value: 'max', label: 'Max' }
+type ReasoningLevelKey = `composer.reasoningLevel.${EffortLevel}`
+
+const EFFORT_LEVELS: { value: EffortLevel; labelKey: ReasoningLevelKey }[] = [
+  { value: 'off', labelKey: 'composer.reasoningLevel.off' },
+  { value: 'low', labelKey: 'composer.reasoningLevel.low' },
+  { value: 'medium', labelKey: 'composer.reasoningLevel.medium' },
+  { value: 'high', labelKey: 'composer.reasoningLevel.high' },
+  { value: 'xhigh', labelKey: 'composer.reasoningLevel.xhigh' },
+  { value: 'max', labelKey: 'composer.reasoningLevel.max' }
 ]
 
 function useAdvancedToolToggle() {
@@ -181,13 +183,13 @@ export function ComposerToolsButton() {
                 data-testid={TEST_IDS.composer.reasoningEffortItem}
               >
                 <BrainIcon />
-                Reasoning
+                {t('composer.reasoning')}
                 {reasoningEffort !== 'off' && (
                   <span className="text-muted-foreground ml-auto text-xs">
-                    {
+                    {t(
                       EFFORT_LEVELS.find((l) => l.value === reasoningEffort)
-                        ?.label
-                    }
+                        ?.labelKey ?? 'composer.reasoningLevel.off'
+                    )}
                   </span>
                 )}
               </DropdownMenuSubTrigger>
@@ -202,7 +204,7 @@ export function ComposerToolsButton() {
                       value={level.value}
                       data-testid={`${TEST_IDS.composer.reasoningEffortLevel}-${level.value}`}
                     >
-                      {level.label}
+                      {t(level.labelKey)}
                     </DropdownMenuRadioItem>
                   ))}
                 </DropdownMenuRadioGroup>
@@ -272,26 +274,32 @@ export function ComposerToolsButton() {
 
 /** Removable pills shown above the textarea for each active advanced tool. */
 export function ActiveToolPills() {
+  const { t } = useTranslation('common')
   const { advancedTools, toggle, reasoningEffort, setEffort } =
     useAdvancedToolToggle()
-  const active = TOGGLES.filter((t) => advancedTools.includes(t.key))
-  const effortLabel =
+  // Renamed from `t` to `tool` — this scope now also calls the real
+  // translation function above, and a filter callback named `t` would
+  // shadow it silently (see CLAUDE.md's i18n "Adding a User-Facing String"
+  // step 7).
+  const active = TOGGLES.filter((tool) => advancedTools.includes(tool.key))
+  const effortLabelKey =
     reasoningEffort !== 'off'
-      ? EFFORT_LEVELS.find((l) => l.value === reasoningEffort)?.label
+      ? (EFFORT_LEVELS.find((l) => l.value === reasoningEffort)?.labelKey ??
+        null)
       : null
 
-  if (active.length === 0 && !effortLabel) return null
+  if (active.length === 0 && !effortLabelKey) return null
 
   return (
     <div className="flex flex-wrap gap-1 px-1">
-      {effortLabel && (
+      {effortLabelKey && (
         <button
           type="button"
           onClick={() => setEffort('off')}
           className="flex items-center gap-1 rounded-full bg-[#0285ff]/10 px-2 py-0.5 text-xs font-medium text-[#0285ff] transition-colors hover:bg-[#0285ff]/16 dark:text-[#48aaff] [&_svg]:size-3.5"
         >
           <BrainIcon />
-          Reasoning: {effortLabel}
+          {t('composer.reasoningPill', { label: t(effortLabelKey) })}
           <XIcon className="opacity-60" />
         </button>
       )}
