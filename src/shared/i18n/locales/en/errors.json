@@ -14,7 +14,6 @@
     "CONFIG_MISSING_OPENAI": "OpenAI configuration is missing. Please configure OpenAI API key in settings.",
     "CONFIG_MISSING_EMBEDDING_MODEL": "Embedding model is missing. Please check your settings.",
     "CONFIG_MISSING_CHAT_MODEL": "Chat model is missing. Please configure a chat model in settings.",
-    "CONFIG_MISSING_REASONING_MODEL": "Reasoning model is missing. Please configure a reasoning model in settings.",
     "CONFIG_MISSING_PROVIDER": "No AI provider selected. Please choose a provider in Settings → AI Providers.",
     "CONFIG_MISSING_BRAVE": "Web search requires a Brave Search API key. Please configure it in Settings → Web Search.",
     "CONFIG_MISSING_S3": "S3 configuration is incomplete. Please configure AWS credentials in settings.",

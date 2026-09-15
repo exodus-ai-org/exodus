@@ -10,7 +10,6 @@ export enum ErrorCode {
   CONFIG_MISSING_OPENAI = 'CONFIG_MISSING_OPENAI',
   CONFIG_MISSING_EMBEDDING_MODEL = 'CONFIG_MISSING_EMBEDDING_MODEL',
   CONFIG_MISSING_CHAT_MODEL = 'CONFIG_MISSING_CHAT_MODEL',
-  CONFIG_MISSING_REASONING_MODEL = 'CONFIG_MISSING_REASONING_MODEL',
   CONFIG_MISSING_PROVIDER = 'CONFIG_MISSING_PROVIDER',
   CONFIG_MISSING_BRAVE = 'CONFIG_MISSING_BRAVE',
   CONFIG_MISSING_S3 = 'CONFIG_MISSING_S3',
@@ -86,7 +85,6 @@ export const ErrorCodeToStatus: Record<ErrorCode, number> = {
   [ErrorCode.CONFIG_MISSING_OPENAI]: 400,
   [ErrorCode.CONFIG_MISSING_EMBEDDING_MODEL]: 400,
   [ErrorCode.CONFIG_MISSING_CHAT_MODEL]: 400,
-  [ErrorCode.CONFIG_MISSING_REASONING_MODEL]: 400,
   [ErrorCode.CONFIG_MISSING_PROVIDER]: 400,
   [ErrorCode.CONFIG_MISSING_BRAVE]: 400,
   [ErrorCode.CONFIG_MISSING_S3]: 400,
@@ -165,8 +163,6 @@ export const ErrorMessages: Record<ErrorCode, string> = {
     'Embedding model is missing. Please check your settings.',
   [ErrorCode.CONFIG_MISSING_CHAT_MODEL]:
     'Chat model is missing. Please configure a chat model in settings.',
-  [ErrorCode.CONFIG_MISSING_REASONING_MODEL]:
-    'Reasoning model is missing. Please configure a reasoning model in settings.',
   [ErrorCode.CONFIG_MISSING_PROVIDER]:
     'No AI provider selected. Please choose a provider in Settings → AI Providers.',
   [ErrorCode.CONFIG_MISSING_BRAVE]:

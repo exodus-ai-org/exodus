@@ -1,6 +1,6 @@
 import type { JSONRPCNotification } from '@modelcontextprotocol/sdk/types.js'
 import { ErrorCode } from '@shared/constants/error-codes'
-import { ConfigurationError, NotFoundError } from '@shared/errors/app-error'
+import { NotFoundError } from '@shared/errors/app-error'
 import {
   DeepResearchProgress,
   ReportProgressPayload
@@ -72,13 +72,6 @@ deepResearch.post('/', async (c) => {
     throw new NotFoundError(
       ErrorCode.SETTING_NOT_FOUND,
       'Failed to retrieve setting'
-    )
-  }
-
-  if (!setting.providerConfig?.model) {
-    throw new ConfigurationError(
-      ErrorCode.CONFIG_MISSING_REASONING_MODEL,
-      'Reasoning model is not configured'
     )
   }
 
