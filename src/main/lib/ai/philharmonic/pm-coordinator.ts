@@ -20,6 +20,7 @@ import {
 } from '../../db/plan-queries'
 import { getSettings } from '../../db/queries'
 import { getAllTeams } from '../../db/team-queries'
+import { mainT } from '../../i18n'
 import { resolveKnowledgeBase } from '../../knowledge-base/resolve-knowledge-base'
 import { notifyIfBackground } from '../../philharmonic-notifications'
 import { searchKnowledgeBase } from '../calling-tools/search-knowledge-base'
@@ -466,7 +467,11 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
     })
     emit({ type: 'message_end', conversationId, messageId })
     notifyIfBackground({
-      title: `Group "${conversationTitle}" hit an error`,
+      title: mainT(
+        'menu:notification.philharmonicGroupError',
+        'Group "{{title}}" hit an error',
+        { title: conversationTitle }
+      ),
       body: message.length > 140 ? `${message.slice(0, 137)}…` : message
     })
     emit({ type: 'pm_ended', conversationId, reason: 'error' })
@@ -513,7 +518,11 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
       await mirrorActivePlan()
       const summary = final.plan.summary
       notifyIfBackground({
-        title: `Group "${conversationTitle}" finished`,
+        title: mainT(
+          'menu:notification.philharmonicGroupFinished',
+          'Group "{{title}}" finished',
+          { title: conversationTitle }
+        ),
         body: summary.length > 140 ? `${summary.slice(0, 137)}…` : summary
       })
     }
