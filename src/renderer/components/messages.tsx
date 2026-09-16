@@ -16,7 +16,6 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import Zoom from 'react-medium-image-zoom'
 
-import { ImageGeneration } from '@/components/image-generation'
 import { Button } from '@/components/ui/button'
 import { useDiscoverFeed } from '@/hooks/use-discover-feed'
 import { useSettings } from '@/hooks/use-settings'
@@ -135,21 +134,14 @@ const AssistantTurnSegment = memo(
             />
           )}
 
-          {isStreaming &&
-            turn.pendingToolCalls
-              .filter((tc) => tc.name === 'imageGeneration')
-              .map((tc) => (
-                <div key={tc.id} className="mb-4">
-                  <ImageGeneration
-                    status="generating"
-                    prompt={
-                      typeof tc.arguments?.prompt === 'string'
-                        ? tc.arguments.prompt
-                        : undefined
-                    }
-                  />
-                </div>
-              ))}
+          {/* {isStreaming &&
+              turn.pendingToolCalls.map((tc) => (
+                <ShimmeringText
+                  key={tc.id}
+                  className="mb-4"
+                  text={`Calling tool: ${tc.name}`}
+                />
+              ))} */}
 
           {turn.toolCards.map((toolResult) => (
             <MessageCallingTools
@@ -308,11 +300,7 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
             toolName: block.name,
             codeArgument: preview.codeArgument
           })
-          pendingToolCalls.push({
-            name: block.name,
-            id: block.id,
-            arguments: block.arguments
-          })
+          pendingToolCalls.push({ name: block.name, id: block.id })
         } else if (block.type === 'text' && block.text.trim()) {
           finalTextBlocks.push({
             text: block.text,
@@ -481,7 +469,7 @@ function Messages({
   const discoverHasContent =
     discoverActive && (discoverFeed?.groups.length ?? 0) > 0
 
-  const segments = useMemo(() => groupIntoSegments(messages), [messages])
+  const segments = useMemo(() => groupIntoSegments(messages), [messages, t])
 
   // Accumulate web-search sources across turns so a turn that cites a source
   // found in an earlier turn can still resolve its 【N-source】 badges. Keyed by

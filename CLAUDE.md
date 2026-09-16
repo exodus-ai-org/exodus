@@ -19,13 +19,12 @@ you must uphold.
   `pnpm typecheck` → `pnpm i18n:check` → `pnpm test` must pass. _Enforced by
   the husky pre-commit hook._ Do not `--no-verify` except for two known,
   standing causes: (1) the flaky PGlite WASM teardown in
-  `src/main/lib/ai/context-management/index.test.ts`; (2) an orphan
-  `TEST_IDS` entry sitting in someone else's concurrently-in-progress,
-  uncommitted work (declared in `test-ids.ts`, not yet applied in
-  `src/renderer` — verify the exact cause yourself each time via
-  `test-ids.linkage.test.ts`'s failure output and `git status`/`grep`
-  before invoking this exception; it is not a blanket license to bypass
-  any test-id failure).
+  `src/main/lib/ai/context-management/index.test.ts`; (2) a standing,
+  already-committed orphan-id gap in `TEST_IDS.providerModels.modelSelect`
+  (declared in `test-ids.ts`, never applied under `src/renderer` — verify
+  the exact cause yourself each time via `test-ids.linkage.test.ts`'s
+  failure output and `git status`/`grep` before invoking this exception;
+  it is not a blanket license to bypass any test-id failure).
 - **Reuse UI primitives.** Prefer existing `@/components/ui` (shadcn) components
   over hand-rolled equivalents (e.g. shadcn `Select`, `InputOTP`).
 - **Copy language.** New user-facing strings are keys in

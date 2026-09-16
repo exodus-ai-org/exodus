@@ -119,7 +119,7 @@ preserved verbatim; everything else is new):
     "mcpTools": "MCP tools",
     "mcpDialog": {
       "title": "Available MCP Tools",
-      "description": "Tools provided by active MCP servers. Manage servers in <1>Settings > MCP Servers</1>.",
+      "description": "Tools provided by active MCP servers. Manage servers in <strong>Settings > MCP Servers</strong>.",
       "noDescription": "No description for {{name}}."
     }
   },
@@ -279,7 +279,7 @@ describe('chat namespace (en)', () => {
     expect(chat.composerTools.mcpTools).toBe('MCP tools')
     expect(chat.composerTools.mcpDialog.title).toBe('Available MCP Tools')
     expect(chat.composerTools.mcpDialog.description).toBe(
-      'Tools provided by active MCP servers. Manage servers in <1>Settings > MCP Servers</1>.'
+      'Tools provided by active MCP servers. Manage servers in <strong>Settings > MCP Servers</strong>.'
     )
     expect(chat.composerTools.mcpDialog.noDescription).toBe(
       'No description for {{name}}.'

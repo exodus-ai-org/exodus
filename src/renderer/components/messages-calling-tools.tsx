@@ -10,7 +10,6 @@ import { ComputerUseCard } from './calling-tools/computer-use/computer-use-card'
 import { DeepResearchCard } from './calling-tools/deep-research/deep-research-card'
 import { DrawioCard, isDrawioOutput } from './calling-tools/drawio/drawio-card'
 import { GenericToolCard } from './calling-tools/generic-tool-card'
-import { ImageGenerationCard } from './calling-tools/image-generation/image-generation-card'
 import { MapItineraryCard } from './calling-tools/map-itinerary/itinerary-card'
 import { TerminalCard } from './calling-tools/terminal/terminal-card'
 import { WeatherCard } from './calling-tools/weather/weather-card'
@@ -160,10 +159,8 @@ function CallingTools({
       {toolName === 'createArtifact' && output?.type === 'artifact' && (
         <ArtifactCard chatId={chatId} toolResult={output} />
       )}
-      {toolName === 'imageGeneration' && output?.images && (
-        <ImageGenerationCard toolResult={output} />
-      )}
-      {(toolName === 'readFile' ||
+      {(toolName === 'imageGeneration' ||
+        toolName === 'readFile' ||
         toolName === 'writeFile' ||
         toolName === 'listDirectory' ||
         toolName === 'findFiles') && <div className="-mb-4" />}
