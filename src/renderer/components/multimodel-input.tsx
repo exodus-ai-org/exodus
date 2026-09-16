@@ -9,6 +9,7 @@ import {
   useEffect,
   useRef
 } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
 import { sileo } from 'sileo'
 
@@ -37,6 +38,7 @@ function InputBox({
   sendMessage: UseChatHelpers['sendMessage']
   lastUsage?: Usage | null
 }) {
+  const { t } = useTranslation('chat')
   const [input, setInput] = useAtom(chatInputAtom)
   // Staged attachments live in `attachmentAtom` — the single source of truth
   // shared with `<FilePreview>` and `useUpload`. (This component used to take
@@ -136,7 +138,7 @@ function InputBox({
           */}
           <Textarea
             ref={textareaRef}
-            placeholder="Ask anything"
+            placeholder={t('composer.placeholder')}
             value={input}
             onChange={handleInput}
             className="max-h-[45dvh] min-h-8 flex-1 resize-none rounded-none border-none bg-transparent! px-1 py-1 text-base leading-6 shadow-none focus-visible:ring-0 md:text-base"
@@ -152,8 +154,8 @@ function InputBox({
 
                 if (status === 'streaming') {
                   sileo.warning({
-                    title: 'Please wait',
-                    description: 'The model is still generating a response.'
+                    title: t('composer.pleaseWaitTitle'),
+                    description: t('composer.pleaseWaitDescription')
                   })
                 } else {
                   submitForm()
@@ -173,7 +175,7 @@ function InputBox({
             <Button
               size="icon"
               className="rounded-full"
-              aria-label="Stop"
+              aria-label={t('composer.stop')}
               onClick={stop ?? undefined}
             >
               <SquareIcon className="size-3 fill-current" />
@@ -185,7 +187,7 @@ function InputBox({
               size="icon"
               className="rounded-full"
               type="button"
-              aria-label="Send"
+              aria-label={t('composer.send')}
               onClick={submitForm}
             >
               <ArrowUpIcon />
