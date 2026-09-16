@@ -12,7 +12,7 @@ import {
   XIcon
 } from 'lucide-react'
 import { ChangeEvent, useMemo, useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 
 import Markdown from '@/components/markdown'
@@ -53,7 +53,7 @@ interface McpToolsGroup {
 const TOGGLES = [
   {
     key: AdvancedToolsType.DeepResearch,
-    label: 'Deep research',
+    labelKey: 'chat:advancedTools.deepResearch',
     icon: TelescopeIcon
   }
 ] as const
@@ -119,7 +119,7 @@ function useAvailableEffortLevels(): typeof EFFORT_LEVELS {
 
 /** The composer's `+` button: attachments, reasoning effort/deep-research, MCP tools. */
 export function ComposerToolsButton() {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation(['common', 'chat'])
   const { uploadFile } = useUpload()
   const fileRef = useRef<HTMLInputElement>(null)
   const { advancedTools, toggle, reasoningEffort, setEffort } =
@@ -174,7 +174,7 @@ export function ComposerToolsButton() {
             onClick={() => setTimeout(() => fileRef.current?.click(), 0)}
           >
             <PaperclipIcon />
-            Attach files
+            {t('chat:composerTools.attachFiles')}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           {availableEffortLevels.length > 0 && (
@@ -211,14 +211,14 @@ export function ComposerToolsButton() {
               </DropdownMenuSubContent>
             </DropdownMenuSub>
           )}
-          {TOGGLES.map(({ key, label, icon: Icon }) => (
+          {TOGGLES.map(({ key, labelKey, icon: Icon }) => (
             <DropdownMenuCheckboxItem
               key={key}
               checked={advancedTools.includes(key)}
               onCheckedChange={() => toggle(key)}
             >
               <Icon />
-              {label}
+              {t(labelKey)}
             </DropdownMenuCheckboxItem>
           ))}
           {mcpCount > 0 && (
@@ -226,7 +226,7 @@ export function ComposerToolsButton() {
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setMcpOpen(true)}>
                 <HammerIcon />
-                MCP tools
+                {t('chat:composerTools.mcpTools')}
                 <span className="text-muted-foreground ml-auto text-xs">
                   {mcpCount}
                 </span>
@@ -239,10 +239,12 @@ export function ComposerToolsButton() {
       <Dialog open={mcpOpen} onOpenChange={setMcpOpen}>
         <DialogContent className="sm:max-w-xl">
           <DialogHeader>
-            <DialogTitle>Available MCP Tools</DialogTitle>
+            <DialogTitle>{t('chat:composerTools.mcpDialog.title')}</DialogTitle>
             <DialogDescription>
-              Tools provided by active MCP servers. Manage servers in{' '}
-              <strong>Settings &gt; MCP Servers</strong>.
+              <Trans ns="chat" i18nKey="composerTools.mcpDialog.description">
+                Tools provided by active MCP servers. Manage servers in{' '}
+                <strong>Settings &gt; MCP Servers</strong>.
+              </Trans>
             </DialogDescription>
           </DialogHeader>
           <div className="flex max-h-125 flex-col gap-4 overflow-y-auto">
@@ -257,7 +259,10 @@ export function ComposerToolsButton() {
                     <div className="[&_.markdown]:text-muted-foreground [&_.markdown]:text-xs [&_.markdown]:leading-snug [&_.markdown_li]:leading-normal [&_.markdown_ol]:mb-0.5 [&_.markdown_ul]:mb-0.5">
                       <Markdown
                         src={
-                          tool.description || `No description for ${tool.name}.`
+                          tool.description ||
+                          t('chat:composerTools.mcpDialog.noDescription', {
+                            name: tool.name
+                          })
                         }
                       />
                     </div>
@@ -274,13 +279,13 @@ export function ComposerToolsButton() {
 
 /** Removable pills shown above the textarea for each active advanced tool. */
 export function ActiveToolPills() {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation(['common', 'chat'])
   const { advancedTools, toggle, reasoningEffort, setEffort } =
     useAdvancedToolToggle()
   // Renamed from `t` to `tool` — this scope now also calls the real
   // translation function above, and a filter callback named `t` would
   // shadow it silently (see CLAUDE.md's i18n "Adding a User-Facing String"
-  // step 7).
+  // step 8).
   const active = TOGGLES.filter((tool) => advancedTools.includes(tool.key))
   const effortLabelKey =
     reasoningEffort !== 'off'
@@ -303,7 +308,7 @@ export function ActiveToolPills() {
           <XIcon className="opacity-60" />
         </button>
       )}
-      {active.map(({ key, label, icon: Icon }) => (
+      {active.map(({ key, labelKey, icon: Icon }) => (
         <button
           key={key}
           type="button"
@@ -311,7 +316,7 @@ export function ActiveToolPills() {
           className="flex items-center gap-1 rounded-full bg-[#0285ff]/10 px-2 py-0.5 text-xs font-medium text-[#0285ff] transition-colors hover:bg-[#0285ff]/16 dark:text-[#48aaff] [&_svg]:size-3.5"
         >
           <Icon />
-          {label}
+          {t(labelKey)}
           <XIcon className="opacity-60" />
         </button>
       ))}
