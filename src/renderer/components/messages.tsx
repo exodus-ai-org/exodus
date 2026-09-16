@@ -11,13 +11,16 @@ import type {
 } from '@shared/types/chat'
 import type { WebSearchResult } from '@shared/types/web-search'
 import { capitalCase } from 'change-case'
-import { ChevronDownIcon } from 'lucide-react'
+import { ArrowDownIcon } from 'lucide-react'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import Zoom from 'react-medium-image-zoom'
 
+import { ImageGeneration } from '@/components/image-generation'
 import { Button } from '@/components/ui/button'
 import { useDiscoverFeed } from '@/hooks/use-discover-feed'
 import { useSettings } from '@/hooks/use-settings'
+import { i18n } from '@/lib/i18n'
 import { userMessageText } from '@/lib/user-message-text'
 import { cn } from '@/lib/utils'
 
@@ -48,6 +51,7 @@ const UserSegment = memo(function UserSegment({
 }: {
   message: ChatMessage
 }) {
+  const { t } = useTranslation('chat')
   return (
     <div
       data-user-msg-id={message.id}
@@ -65,7 +69,7 @@ const UserSegment = memo(function UserSegment({
                       <img
                         className="max-h-96 max-w-64 rounded-lg object-cover"
                         src={part.data}
-                        alt="attachment"
+                        alt={t('messageList.attachmentAlt')}
                       />
                     </Zoom>
                   )
@@ -131,14 +135,21 @@ const AssistantTurnSegment = memo(
             />
           )}
 
-          {/* {isStreaming &&
-              turn.pendingToolCalls.map((tc) => (
-                <ShimmeringText
-                  key={tc.id}
-                  className="mb-4"
-                  text={`Calling tool: ${tc.name}`}
-                />
-              ))} */}
+          {isStreaming &&
+            turn.pendingToolCalls
+              .filter((tc) => tc.name === 'imageGeneration')
+              .map((tc) => (
+                <div key={tc.id} className="mb-4">
+                  <ImageGeneration
+                    status="generating"
+                    prompt={
+                      typeof tc.arguments?.prompt === 'string'
+                        ? tc.arguments.prompt
+                        : undefined
+                    }
+                  />
+                </div>
+              ))}
 
           {turn.toolCards.map((toolResult) => (
             <MessageCallingTools
@@ -148,29 +159,32 @@ const AssistantTurnSegment = memo(
             />
           ))}
 
-          {turn.finalTextBlocks.map((block, i) => (
-            <section
-              key={`${block.messageId}-${block.blockIdx}`}
-              className={cn(
-                'group relative',
-                i < turn.finalTextBlocks.length - 1 && 'mb-16'
-              )}
-            >
-              <Markdown src={block.text} webSearchResults={citationResults} />
-              <MessageAction
-                regenerate={regenerate}
-                content={block.text}
-                webSearchResults={ownSources}
-                timestamp={
-                  i === turn.finalTextBlocks.length - 1
-                    ? block.timestamp
-                    : undefined
-                }
-              />
-            </section>
-          ))}
-          {galleryImages.length > 0 && <ImageGallery images={galleryImages} />}
-          {galleryVideos.length > 0 && <VideoCards videos={galleryVideos} />}
+          {turn.finalTextBlocks.map((block, i) => {
+            const isLastBlock = i === turn.finalTextBlocks.length - 1
+            return (
+              <section
+                key={`${block.messageId}-${block.blockIdx}`}
+                className={cn(
+                  'group relative',
+                  i < turn.finalTextBlocks.length - 1 && 'mb-16'
+                )}
+              >
+                <Markdown src={block.text} webSearchResults={citationResults} />
+                {isLastBlock && galleryImages.length > 0 && (
+                  <ImageGallery images={galleryImages} />
+                )}
+                {isLastBlock && galleryVideos.length > 0 && (
+                  <VideoCards videos={galleryVideos} />
+                )}
+                <MessageAction
+                  regenerate={regenerate}
+                  content={block.text}
+                  webSearchResults={ownSources}
+                  timestamp={isLastBlock ? block.timestamp : undefined}
+                />
+              </section>
+            )
+          })}
         </div>
       </div>
     )
@@ -241,8 +255,23 @@ function getToolCallPreview(
         const places = (d as { places?: unknown[] } | null)?.places
         return acc + (Array.isArray(places) ? places.length : 0)
       }, 0)
+      // Days and stops pluralize independently, so each gets its own
+      // CLDR-keyed lookup; the outer "{{days}}, {{stops}}" template composes
+      // the two already-translated fragments (same technique
+      // common.composer.reasoningPill already uses for its {{label}} param).
+      // This is a plain helper (not a component or hook), so translated text
+      // uses the shared `i18n` singleton directly rather than useTranslation().
       const dayCount = days.length
-      const summary = `${dayCount} day${dayCount === 1 ? '' : 's'}, ${stops} stop${stops === 1 ? '' : 's'}`
+      const daysText = i18n.t('chat:toolPreview.mapItineraryDayCount', {
+        count: dayCount
+      })
+      const stopsText = i18n.t('chat:toolPreview.mapItineraryStopCount', {
+        count: stops
+      })
+      const summary = i18n.t('chat:toolPreview.mapItinerarySummary', {
+        days: daysText,
+        stops: stopsText
+      })
       return withInline(label, summary)
     }
     default:
@@ -279,7 +308,11 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
             toolName: block.name,
             codeArgument: preview.codeArgument
           })
-          pendingToolCalls.push({ name: block.name, id: block.id })
+          pendingToolCalls.push({
+            name: block.name,
+            id: block.id,
+            arguments: block.arguments
+          })
         } else if (block.type === 'text' && block.text.trim()) {
           finalTextBlocks.push({
             text: block.text,
@@ -304,7 +337,9 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
         // local array per iteration; overhead of building a Map exceeds benefit.
         const errorText =
           toolResult.content.find((c) => c.type === 'text')?.text ??
-          `${capitalCase(toolResult.toolName)} failed`
+          i18n.t('chat:toolPreview.toolFailed', {
+            tool: capitalCase(toolResult.toolName)
+          })
         steps.push({
           type: 'toolResult',
           text: errorText,
@@ -324,7 +359,9 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
         webSearchResults.push(...results)
         steps.push({
           type: 'toolResult',
-          text: `${results.length} results`,
+          text: i18n.t('chat:toolPreview.webSearchResultCount', {
+            count: results.length
+          }),
           toolName: 'webSearch',
           webSearchResults: results
         })
@@ -424,6 +461,7 @@ function Messages({
   regenerate,
   showDiscover
 }: MessagesProps) {
+  const { t } = useTranslation('chat')
   const isLoading = status === 'streaming' || status === 'submitted'
   const { data: settings } = useSettings()
   const chatBoxRef = useRef<HTMLDivElement>(null)
@@ -522,10 +560,10 @@ function Messages({
             {!discoverHasContent && (
               <>
                 <p className="text-3xl font-bold tracking-tight">
-                  Hello there!
+                  {t('messageList.greetingTitle')}
                 </p>
                 <p className="text-muted-foreground mt-2 text-lg">
-                  How can I assist you today?
+                  {t('messageList.greetingSubtitle')}
                 </p>
               </>
             )}
@@ -567,13 +605,13 @@ function Messages({
 
       {showScrollButton && messages.length > 0 && (
         <Button
-          variant="outline"
-          size="icon-sm"
+          variant="secondary"
+          size="icon-lg"
           onClick={() => scrollToBottom('smooth')}
-          className="bg-card absolute bottom-36 left-1/2 z-30 -translate-x-1/2 rounded-full shadow-md"
-          aria-label="Scroll to bottom"
+          className="absolute bottom-24 left-1/2 z-30 -translate-x-1/2 rounded-full border shadow-md"
+          aria-label={t('messageList.scrollToBottom')}
         >
-          <ChevronDownIcon size={16} />
+          <ArrowDownIcon />
         </Button>
       )}
     </div>
