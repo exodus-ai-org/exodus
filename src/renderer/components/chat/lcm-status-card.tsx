@@ -1,4 +1,5 @@
 import { CheckIcon, TriangleAlertIcon } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { Spinner } from '@/components/ui/spinner'
 import { useLcmStatus } from '@/hooks/use-lcm-status'
@@ -10,6 +11,7 @@ function formatTokens(n: number): string {
 }
 
 export function LcmStatusCard({ chatId }: { chatId: string }) {
+  const { t } = useTranslation('chat')
   const state = useLcmStatus(chatId)
 
   if (state.kind === 'idle') return null
@@ -21,7 +23,7 @@ export function LcmStatusCard({ chatId }: { chatId: string }) {
     return (
       <div className={cn(baseClass, 'bg-muted/60 text-muted-foreground')}>
         <Spinner className="size-3.5" />
-        <span>Compacting conversation history…</span>
+        <span>{t('lcm.compacting')}</span>
       </div>
     )
   }
@@ -33,8 +35,10 @@ export function LcmStatusCard({ chatId }: { chatId: string }) {
       <div className={cn(baseClass, 'bg-muted/60 text-muted-foreground')}>
         <CheckIcon className="size-3.5" />
         <span>
-          Compacted {compacted} message{compacted === 1 ? '' : 's'} · saved ~
-          {formatTokens(tokensSaved)} tokens
+          {t('lcm.compactedSummary', {
+            count: compacted,
+            tokens: formatTokens(tokensSaved)
+          })}
         </span>
       </div>
     )
@@ -49,7 +53,7 @@ export function LcmStatusCard({ chatId }: { chatId: string }) {
       )}
     >
       <TriangleAlertIcon className="size-3.5" />
-      <span>Compaction failed (will retry next turn)</span>
+      <span>{t('lcm.compactionFailed')}</span>
     </div>
   )
 }

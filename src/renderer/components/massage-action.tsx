@@ -3,6 +3,7 @@ import type { WebSearchResult } from '@shared/types/web-search'
 import { useSetAtom } from 'jotai'
 import { CheckIcon, CopyIcon, RefreshCwIcon } from 'lucide-react'
 import { memo, useCallback, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { useClipboard } from '@/hooks/use-clipboard'
 import { compactRelativeTime } from '@/lib/relative-time'
@@ -25,6 +26,7 @@ function SourcesButton({
   webSearchResults: WebSearchResult[]
   onClick: () => void
 }) {
+  const { t } = useTranslation('chat')
   const favicons = useMemo(() => {
     const seen = new Set<string>()
     const result: string[] = []
@@ -54,7 +56,7 @@ function SourcesButton({
           <img key={i} src={src} className="size-3.5 rounded-full" alt="" />
         ))}
       </span>
-      Sources
+      {t('messageAction.sources')}
     </Button>
   )
 }
@@ -74,6 +76,7 @@ export const MessageAction = memo(function MessageAction({
    *  time, matching the sidebar. */
   timestamp?: number
 }) {
+  const { t } = useTranslation('chat')
   const { copied, handleCopy } = useClipboard()
   const setSourcesPanel = useSetAtom(sourcesPanelAtom)
 
@@ -93,7 +96,7 @@ export const MessageAction = memo(function MessageAction({
   return (
     <TooltipProvider>
       <div className="text-muted-foreground mt-1.5 flex items-center gap-0.5">
-        <MessageActionItem tooltipContent="Copy">
+        <MessageActionItem tooltipContent={t('messageAction.copy')}>
           <IconWrapper onClick={onCopy}>
             {copied !== content ? <CopyIcon /> : <CheckIcon />}
           </IconWrapper>
@@ -101,7 +104,7 @@ export const MessageAction = memo(function MessageAction({
 
         <AudioPlayer content={content} />
 
-        <MessageActionItem tooltipContent="Regenerate">
+        <MessageActionItem tooltipContent={t('messageAction.regenerate')}>
           <IconWrapper onClick={regenerate}>
             <RefreshCwIcon />
           </IconWrapper>

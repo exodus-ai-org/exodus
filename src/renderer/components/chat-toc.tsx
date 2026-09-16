@@ -1,6 +1,7 @@
 import { TEST_IDS } from '@shared/constants/test-ids'
 import type { ChatMessage } from '@shared/types/chat'
 import { type RefObject, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { userMessageText } from '@/lib/user-message-text'
 import { cn } from '@/lib/utils'
@@ -28,9 +29,13 @@ export function ChatToc({
   scrollContainerRef: RefObject<HTMLDivElement | null>
   messages: ChatMessage[]
 }) {
+  const { t } = useTranslation('chat')
   const entries: TocEntry[] = messages
     .filter((m) => m.role === 'user')
-    .map((m) => ({ id: m.id, text: userMessageText(m) || 'Message' }))
+    .map((m) => ({
+      id: m.id,
+      text: userMessageText(m) || t('toc.fallbackLabel')
+    }))
 
   const [activeId, setActiveId] = useState<string | null>(null)
   const [expanded, setExpanded] = useState(false)

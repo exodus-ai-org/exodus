@@ -2,6 +2,7 @@ import type { ChatToolResultMessage } from '@shared/types/chat'
 import { capitalCase } from 'change-case'
 import { AlertCircleIcon } from 'lucide-react'
 import { memo, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import { ArtifactCard } from './calling-tools/artifact/artifact-card'
@@ -9,6 +10,7 @@ import { ComputerUseCard } from './calling-tools/computer-use/computer-use-card'
 import { DeepResearchCard } from './calling-tools/deep-research/deep-research-card'
 import { DrawioCard, isDrawioOutput } from './calling-tools/drawio/drawio-card'
 import { GenericToolCard } from './calling-tools/generic-tool-card'
+import { ImageGenerationCard } from './calling-tools/image-generation/image-generation-card'
 import { MapItineraryCard } from './calling-tools/map-itinerary/itinerary-card'
 import { TerminalCard } from './calling-tools/terminal/terminal-card'
 import { WeatherCard } from './calling-tools/weather/weather-card'
@@ -46,6 +48,7 @@ function CallingTools({
   chatId: string
   toolResult: ChatToolResultMessage
 }) {
+  const { t } = useTranslation('chat')
   const toolName = toolResult.toolName ?? ''
   // toolName stays canonical (used for dispatch below); toolLabel is the
   // user-facing form ('webSearch' → 'Web Search') and only flows into the
@@ -62,7 +65,9 @@ function CallingTools({
         const textBlock = toolResult.content.find((c) => c.type === 'text')
         const text =
           textBlock && textBlock.type === 'text' ? textBlock.text : ''
-        return text && text !== '{}' ? text : `${toolLabel} failed`
+        return text && text !== '{}'
+          ? text
+          : t('toolPreview.toolFailed', { tool: toolLabel })
       })()
     : null
 
@@ -72,7 +77,7 @@ function CallingTools({
   useEffect(() => {
     if (errorMessage) {
       sileo.error({
-        title: `Tool failed: ${toolLabel}`,
+        title: t('toolFailedToast.title', { tool: toolLabel }),
         description: errorMessage
       })
     }
@@ -155,8 +160,10 @@ function CallingTools({
       {toolName === 'createArtifact' && output?.type === 'artifact' && (
         <ArtifactCard chatId={chatId} toolResult={output} />
       )}
-      {(toolName === 'imageGeneration' ||
-        toolName === 'readFile' ||
+      {toolName === 'imageGeneration' && output?.images && (
+        <ImageGenerationCard toolResult={output} />
+      )}
+      {(toolName === 'readFile' ||
         toolName === 'writeFile' ||
         toolName === 'listDirectory' ||
         toolName === 'findFiles') && <div className="-mb-4" />}

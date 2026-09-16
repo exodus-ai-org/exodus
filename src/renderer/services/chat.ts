@@ -3,6 +3,8 @@ import { fetcher } from '@shared/utils/http'
 import { sileo } from 'sileo'
 import { mutate } from 'swr'
 
+import { i18n } from '@/lib/i18n'
+
 export const updateChat = async (payload: Partial<Chat>) => {
   await fetcher<void>('/api/chat', {
     method: 'PUT',
@@ -10,7 +12,7 @@ export const updateChat = async (payload: Partial<Chat>) => {
   })
 
   mutate('/api/history')
-  sileo.success({ title: 'Chat updated' })
+  sileo.success({ title: i18n.t('chat:toast.chatUpdated') })
 }
 
 export const deleteChat = async (chat: Chat, currentId?: string) => {
@@ -20,8 +22,13 @@ export const deleteChat = async (chat: Chat, currentId?: string) => {
 
   mutate('/api/history')
   if (chat.id === currentId) {
-    window.location.href = '/'
+    // Hash-only navigation — an absolute `href = '/'` resolves against the
+    // packaged app's `file://` origin as the filesystem root, not index.html.
+    window.location.hash = '/'
   }
 
-  sileo.success({ title: 'Chat deleted', description: chat.title })
+  sileo.success({
+    title: i18n.t('chat:toast.chatDeleted'),
+    description: chat.title
+  })
 }
