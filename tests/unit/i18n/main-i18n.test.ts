@@ -34,22 +34,33 @@ describe('resolveEffectiveLocale', () => {
 
 describe('mainT', () => {
   it('falls back to the given English text when mainI18n is unset', () => {
-    expect(mainT('menu:file', 'File')).toBe('File')
+    expect(mainT('menu:file', 'SENTINEL_ONLY_FROM_FALLBACK')).toBe(
+      'SENTINEL_ONLY_FROM_FALLBACK'
+    )
   })
 
   it('interpolates {{param}} into the fallback when mainI18n is unset', () => {
     expect(
       mainT(
         'menu:notification.philharmonicGroupError',
-        'Group "{{title}}" hit an error',
+        'SENTINEL "{{title}}" FALLBACK',
         { title: 'Research' }
       )
-    ).toBe('Group "Research" hit an error')
+    ).toBe('SENTINEL "Research" FALLBACK')
   })
 
   it('resolves a real translated value once mainI18n is initialized', async () => {
     vi.mocked(getSettings).mockResolvedValue({ language: 'en' } as never)
     await initMainI18n()
     expect(mainT('menu:file', 'WRONG_FALLBACK_SHOULD_NOT_APPEAR')).toBe('File')
+  })
+
+  it('falls back to English when mainI18n is initialized but the key does not exist in the catalog', () => {
+    expect(
+      mainT(
+        'menu:totallyMadeUpKeyThatDoesNotExist' as never,
+        'FALLBACK_FOR_MISSING_KEY'
+      )
+    ).toBe('FALLBACK_FOR_MISSING_KEY')
   })
 })

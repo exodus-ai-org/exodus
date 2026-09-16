@@ -1,7 +1,5 @@
 import { Menu, Tray } from 'electron'
 
-import { mainT } from './i18n'
-
 // Tray needs a raster image — Electron's nativeImage.createFromPath rejects
 // SVGs on macOS. The SVG source lives in resources/iconTemplate.svg and is
 // rasterized to iconStarsTemplate{,@2x,@3x}.png by `pnpm icons`. Import the
@@ -9,6 +7,7 @@ import { mainT } from './i18n'
 // directly makes Electron treat 66px as logical points and the menu bar
 // down-scales it. The `Template` suffix tells macOS to auto-invert.
 import icon from '../../../resources/iconStarsTemplate@2x.png?asset'
+import { mainT } from './i18n'
 import { logger } from './logger'
 import {
   getMainWindow,
