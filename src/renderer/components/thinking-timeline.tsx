@@ -12,7 +12,9 @@ import {
   XCircleIcon
 } from 'lucide-react'
 import { memo, useCallback, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
+import { i18n } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 import { Markdown } from './markdown'
@@ -107,28 +109,45 @@ function TimelineNode({
   )
 }
 
+/**
+ * A plain helper (not a component or hook) — translated text goes through
+ * the shared `i18n` singleton directly, matching `getToolCallPreview` in
+ * `messages.tsx`.
+ */
 function formatDuration(ms: number): string | null {
   // Message timestamps mark stream START, not END (see pi-ai providers), so
   // sub-second durations are unreliable — drop them rather than show "0 seconds".
   if (!Number.isFinite(ms) || ms < 1000) return null
   const seconds = Math.round(ms / 1000)
-  if (seconds < 60) return `${seconds} seconds`
+  if (seconds < 60) {
+    return i18n.t('chat:thinkingTimeline.durationSeconds', { count: seconds })
+  }
   const minutes = Math.floor(seconds / 60)
   const remaining = seconds % 60
-  return remaining > 0 ? `${minutes}m ${remaining}s` : `${minutes}m`
+  return remaining > 0
+    ? i18n.t('chat:thinkingTimeline.durationMinutesSeconds', {
+        minutes,
+        seconds: remaining
+      })
+    : i18n.t('chat:thinkingTimeline.durationMinutes', { minutes })
 }
 
 /** Extract a short title from a step for the collapsed preview */
 function getStepTitle(step: TimelineStep): string {
   if (step.type === 'toolCall') return step.text
   if (step.type === 'toolResult' && step.webSearchResults) {
-    return `${step.webSearchResults.length} search results`
+    return i18n.t('chat:thinkingTimeline.searchResultCount', {
+      count: step.webSearchResults.length
+    })
   }
   if (step.type === 'toolResult' && step.isError) return step.text
   // thinking: extract **bold** or first line
   const boldMatch = step.text.match(/\*\*(.+?)\*\*/)
   if (boldMatch) return boldMatch[1]
-  return step.text.split('\n').filter(Boolean)[0]?.slice(0, 60) ?? 'Thinking…'
+  return (
+    step.text.split('\n').filter(Boolean)[0]?.slice(0, 60) ??
+    i18n.t('chat:thinkingTimeline.thinking')
+  )
 }
 
 export function ThinkingTimeline({
@@ -136,6 +155,7 @@ export function ThinkingTimeline({
   durationMs,
   isStreaming
 }: ThinkingTimelineProps) {
+  const { t } = useTranslation('chat')
   const [isExpanded, setIsExpanded] = useState(false)
   const toggleExpanded = useCallback(() => setIsExpanded((prev) => !prev), [])
 
@@ -145,18 +165,23 @@ export function ThinkingTimeline({
   )
 
   const latestTitle = useMemo(() => {
-    if (steps.length === 0) return hasThinking ? 'Thinking…' : 'Working…'
+    if (steps.length === 0)
+      return hasThinking
+        ? t('thinkingTimeline.thinking')
+        : t('thinkingTimeline.working')
     return getStepTitle(steps[steps.length - 1])
-  }, [steps, hasThinking])
+  }, [steps, hasThinking, t])
 
   if (steps.length === 0 && !isStreaming) return null
 
-  const verb = hasThinking ? 'Thought' : 'Worked'
+  const verb = hasThinking
+    ? t('thinkingTimeline.thought')
+    : t('thinkingTimeline.worked')
   const duration = formatDuration(durationMs)
   const headerText = isStreaming
     ? latestTitle
     : duration
-      ? `${verb} for ${duration}`
+      ? t('thinkingTimeline.thoughtFor', { verb, duration })
       : verb
 
   return (
@@ -272,7 +297,7 @@ export function ThinkingTimeline({
                 }
               >
                 <p className="text-muted-foreground text-sm leading-relaxed">
-                  Done
+                  {t('thinkingTimeline.done')}
                 </p>
               </TimelineNode>
             )}
