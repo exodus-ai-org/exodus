@@ -65,4 +65,43 @@ describe('listGoogleModels', () => {
     const models = await listGoogleModels({ apiKey: 'goog-key' })
     expect(models[0].snapshot.reasoningLevels).toEqual([])
   })
+
+  it('sorts alphabetically by id — Google reports no chronological signal', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            models: [
+              {
+                name: 'models/gemini-3.8-flash',
+                displayName: 'Gemini 3.8 Flash',
+                inputTokenLimit: 1,
+                outputTokenLimit: 1
+              },
+              {
+                name: 'models/gemini-2.5-flash',
+                displayName: 'Gemini 2.5 Flash',
+                inputTokenLimit: 1,
+                outputTokenLimit: 1
+              },
+              {
+                name: 'models/gemini-3.1-pro-preview',
+                displayName: 'Gemini 3.1 Pro Preview',
+                inputTokenLimit: 1,
+                outputTokenLimit: 1
+              }
+            ]
+          }),
+          { status: 200 }
+        )
+      )
+    )
+    const models = await listGoogleModels({ apiKey: 'goog-key' })
+    expect(models.map((m) => m.id)).toEqual([
+      'gemini-2.5-flash',
+      'gemini-3.1-pro-preview',
+      'gemini-3.8-flash'
+    ])
+  })
 })

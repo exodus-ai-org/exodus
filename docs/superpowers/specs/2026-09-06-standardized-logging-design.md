@@ -324,7 +324,6 @@ type KnownLogSurface =
   | 'migration'
   | 'chat'
   | 'database'
-  | 'agent_x'
   | 'philharmonic'
   | 'mcp'
   | 'audio'

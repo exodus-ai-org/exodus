@@ -25,7 +25,7 @@ export function withTrace<T>(
   const ctx: TraceContext = {
     traceId: newTraceId(),
     originTraceId: opts?.originTraceId,
-    attributes: { ...(opts?.attributes ?? {}) }
+    attributes: { ...opts?.attributes }
   }
   return als.run(ctx, fn)
 }

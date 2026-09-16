@@ -146,10 +146,6 @@
     scrollbar-width: none;
   }
 
-  .lucide {
-    stroke-width: 1.5px;
-  }
-
   .draggable {
     -webkit-app-region: drag;
     app-region: drag;

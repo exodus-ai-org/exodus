@@ -26,7 +26,6 @@ type KnownLogSurface =
   | 'migration'
   | 'chat'
   | 'database'
-  | 'agent_x'
   | 'philharmonic'
   | 'mcp'
   | 'audio'
@@ -83,7 +82,7 @@ function write(
     const ctx = currentTrace()
     traceId = ctx?.traceId
     originTraceId = ctx?.originTraceId
-    attributes = toAttributes({ ...(ctx?.attributes ?? {}), ...(detail ?? {}) })
+    attributes = toAttributes({ ...ctx?.attributes, ...detail })
     resource = getResource()
   } catch {
     // The logger must never throw into a caller — degrade the record instead.

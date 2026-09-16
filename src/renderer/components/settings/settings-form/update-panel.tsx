@@ -23,7 +23,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
 
   if (state === 'idle') {
     return (
-      <div className="bg-muted/40 flex items-center justify-between rounded-lg px-4 py-3">
+      <div className="flex items-center justify-between rounded-lg px-4 py-3">
         <span className="text-muted-foreground text-sm">
           Check for the latest version
         </span>
@@ -37,7 +37,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
 
   if (state === 'checking') {
     return (
-      <div className="bg-muted/40 flex items-center gap-3 rounded-lg px-4 py-3">
+      <div className="flex items-center gap-3 rounded-lg px-4 py-3">
         <LoaderIcon className="text-muted-foreground size-4 animate-spin" />
         <span className="text-muted-foreground text-sm">
           Checking for updates…
@@ -48,7 +48,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
 
   if (state === 'up-to-date') {
     return (
-      <div className="bg-muted/40 flex items-center justify-between rounded-lg px-4 py-3">
+      <div className="flex items-center justify-between rounded-lg px-4 py-3">
         <div className="flex items-center gap-3">
           <CheckCircleIcon className="size-4 text-green-500" />
           <span className="text-sm">You're on the latest version</span>
@@ -63,7 +63,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
 
   if (state === 'available') {
     return (
-      <div className="bg-muted/40 flex items-center justify-between rounded-lg px-4 py-3">
+      <div className="flex items-center justify-between rounded-lg px-4 py-3">
         <div className="flex items-center gap-3">
           <ZapIcon className="size-4 text-blue-500" />
           <div className="flex flex-col">
@@ -87,7 +87,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
 
   if (state === 'downloading') {
     return (
-      <div className="bg-muted/40 flex flex-col gap-2 rounded-lg px-4 py-3">
+      <div className="flex flex-col gap-2 rounded-lg px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <DownloadIcon className="text-muted-foreground size-4" />
@@ -109,7 +109,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
 
   if (state === 'ready') {
     return (
-      <div className="bg-muted/40 flex items-center justify-between rounded-lg px-4 py-3">
+      <div className="flex items-center justify-between rounded-lg px-4 py-3">
         <div className="flex items-center gap-3">
           <CheckCircleIcon className="size-4 text-green-500" />
           <div className="flex flex-col">
@@ -128,7 +128,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
 
   if (state === 'error') {
     return (
-      <div className="bg-muted/40 flex items-center justify-between rounded-lg px-4 py-3">
+      <div className="flex items-center justify-between rounded-lg px-4 py-3">
         <div className="flex items-center gap-3">
           <AlertCircleIcon className="text-destructive size-4" />
           <div className="flex flex-col">

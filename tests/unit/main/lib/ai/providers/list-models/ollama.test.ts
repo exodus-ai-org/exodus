@@ -45,6 +45,33 @@ describe('listOllamaModels', () => {
     expect(fetchMock).toHaveBeenCalledWith('http://localhost:11434/api/tags')
   })
 
+  it('sorts by modified_at descending — most recently pulled first', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          models: [
+            { name: 'old-pull', modified_at: '2026-01-01T00:00:00Z' },
+            { name: 'newest-pull', modified_at: '2026-06-01T00:00:00Z' },
+            { name: 'mid-pull', modified_at: '2026-03-01T00:00:00Z' }
+          ]
+        }),
+        { status: 200 }
+      )
+    )
+    vi.stubGlobal('fetch', fetchMock)
+
+    const models = await listOllamaModels({
+      apiKey: '',
+      baseUrl: 'http://localhost:11434'
+    })
+
+    expect(models.map((m) => m.id)).toEqual([
+      'newest-pull',
+      'mid-pull',
+      'old-pull'
+    ])
+  })
+
   it("strips a trailing /v1 (chat's baseUrl convention) before requesting /api/tags", async () => {
     const fetchMock = vi
       .fn()

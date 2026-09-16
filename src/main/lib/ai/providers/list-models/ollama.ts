@@ -17,9 +17,18 @@ export const listOllamaModels: ListModelsFn = async ({ baseUrl }) => {
     throw new Error(`Ollama list-models failed (${response.status}): ${body}`)
   }
 
-  const { models } = (await response.json()) as { models: { name: string }[] }
+  const { models } = (await response.json()) as {
+    models: { name: string; modified_at?: string }[]
+  }
 
-  return models.map((m): NormalizedModel => ({
+  // Ollama's list has no notion of a model's real release date — `modified_at`
+  // (when it was last pulled/updated locally) is the closest available proxy
+  // for "recent," so most-recently-pulled sorts first.
+  const sorted = [...models].sort(
+    (a, b) => Date.parse(b.modified_at ?? '') - Date.parse(a.modified_at ?? '')
+  )
+
+  return sorted.map((m): NormalizedModel => ({
     id: m.name,
     displayName: m.name,
     snapshot: {

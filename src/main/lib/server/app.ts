@@ -4,7 +4,6 @@ import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 
-// ARCHIVED: import { connectMcpServers } from '../ai/mcp'
 import { initScheduler } from '../ai/philharmonic/scheduler'
 import { getSettings } from '../db/queries'
 import { initJobQueue } from '../jobs/worker'
@@ -34,9 +33,6 @@ import usageRouter from './routes/usage'
 
 // Export server functions
 export async function connectHttpServer() {
-  // ARCHIVED: MCP server connection removed
-  // const tools = await connectMcpServers()
-
   let server: ServerType | null = null
   const app = new Hono<{ Variables: Variables }>()
 
@@ -57,12 +53,6 @@ export async function connectHttpServer() {
     c.set('settings', settings)
     await next()
   })
-
-  // ARCHIVED: MCP tools middleware removed
-  // app.use('/api/chat/*', async (c, next) => {
-  //   if (tools !== null) { c.set('tools', tools) }
-  //   await next()
-  // })
 
   // Routes
   app.route('/api/chat', chatRouter)

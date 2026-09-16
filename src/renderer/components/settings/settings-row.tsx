@@ -39,7 +39,7 @@ export function SettingsSection({
       {plain ? (
         <div className="flex flex-col gap-4">{children}</div>
       ) : (
-        <Card className="divide-border gap-0 divide-y px-3 py-0 [&>*]:px-2.5 [&>*]:py-4">
+        <Card className="divide-border gap-0 divide-y px-3 py-0 *:px-2.5 *:py-4">
           {children}
         </Card>
       )}

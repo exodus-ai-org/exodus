@@ -22,7 +22,7 @@ import { cleanupOldLogs, logger } from './lib/logger'
 import { setupMenu } from './lib/menu'
 import { migrateFromLegacyLocation } from './lib/paths'
 import { connectHttpServer } from './lib/server/app'
-import { setServer } from './lib/server/instance'
+import { getServer, setServer } from './lib/server/instance'
 import { setTray } from './lib/tray'
 import { createWindow } from './lib/window'
 
@@ -160,6 +160,7 @@ app.on('window-all-closed', () => {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and require them here.
 let hasClosedPglite = false
+const PGLITE_CLOSE_TIMEOUT_MS = 5000
 app.on('will-quit', (event) => {
   globalShortcut.unregisterAll()
 
@@ -167,19 +168,53 @@ app.on('will-quit', (event) => {
   // checkpoint) before the process exits, so the on-disk data directory is
   // left in a consistent, restorable state regardless of the periodic
   // auto-checkpoint interval. will-quit fires once; guard against
-  // re-entering after we re-trigger app.quit() below.
+  // re-entering below.
   if (hasClosedPglite || pglite.closed) return
   event.preventDefault()
-  pglite
-    .close()
-    .catch((err) => {
+
+  // `pnpm dev`'s restart-on-edit (electron-vite kills this process and
+  // spawns a new one immediately, with no wait — see electron-vite's
+  // watchHook) needs port SERVER_PORT free right away, or the new instance
+  // crashes on startup with EADDRINUSE while this one is still shutting
+  // down. Release it up front instead of waiting for the OS to reclaim it.
+  getServer()?.close()
+
+  // PGlite's WASM teardown can hang (known flaky area, see CLAUDE.md), and
+  // this process also has cron jobs (initJobQueue, the Philharmonic
+  // scheduler, the backup scheduler) and the idle-watcher's setInterval that
+  // are never stopped — any one of those can keep Node's event loop alive
+  // indefinitely. `app.quit()` only asks Electron to run its normal quit
+  // lifecycle; it does not force the OS process to exit if something is
+  // still keeping the event loop alive, so a hang here previously meant the
+  // process never died and `pnpm dev` piled up zombie instances on every
+  // main-process edit. Race the close against a timeout, then force-exit
+  // unconditionally so the process is *guaranteed* to terminate.
+  let timedOut = false
+  const timeout = new Promise<void>((resolve) => {
+    setTimeout(() => {
+      timedOut = true
+      resolve()
+    }, PGLITE_CLOSE_TIMEOUT_MS)
+  })
+  Promise.race([
+    pglite.close().catch((err) => {
       logger.error('app', 'Failed to close PGlite cleanly on quit', {
         error: String(err),
         stack: err instanceof Error ? err.stack : undefined
       })
+    }),
+    timeout
+  ])
+    .then(() => {
+      if (timedOut) {
+        logger.error(
+          'app',
+          `PGlite did not close within ${PGLITE_CLOSE_TIMEOUT_MS}ms on quit; forcing exit anyway`
+        )
+      }
     })
     .finally(() => {
       hasClosedPglite = true
-      app.quit()
+      app.exit()
     })
 })

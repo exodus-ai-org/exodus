@@ -66,6 +66,22 @@ export const ProviderConfigSchema = z.object({
   // TODO: RAG / embedding model — will be redesigned
 })
 
+export const CachedModelEntrySchema = z.object({
+  id: z.string(),
+  displayName: z.string(),
+  snapshot: ModelSnapshotSchema
+})
+export type CachedModelEntry = z.infer<typeof CachedModelEntrySchema>
+
+// Keyed by the `AiProviders` enum value (e.g. "OpenAI GPT") — a live-fetched
+// catalog, persisted so it survives closing Settings, switching tabs, and
+// app restarts; only a manual Refresh click ever overwrites an entry.
+export const ModelCatalogSchema = z.record(
+  z.string(),
+  z.array(CachedModelEntrySchema)
+)
+export type ModelCatalog = z.infer<typeof ModelCatalogSchema>
+
 export const ProvidersSchema = z.object({
   openaiApiKey: z.string().nullish(),
   openaiBaseUrl: optionalUrl,
@@ -240,6 +256,7 @@ export const SettingsSchema = z.object({
   id: z.string(),
   providerConfig: ProviderConfigSchema.nullish(),
   providers: ProvidersSchema.nullish(),
+  modelCatalog: ModelCatalogSchema.nullish(),
   mcpServers: z.string().nullish(),
   tools: ToolsSchema.nullish(),
   voice: VoiceSchema.nullish(),

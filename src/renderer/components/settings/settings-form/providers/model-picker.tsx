@@ -1,25 +1,33 @@
 import { TEST_IDS } from '@shared/constants/test-ids'
 import {
-  ModelSnapshot,
+  CachedModelEntry,
   SettingsInput,
   UseFormReturnType
 } from '@shared/schemas/settings-schema'
 import { AiProviders } from '@shared/types/ai'
 import { fetcher, getHttpErrorMessage, toErrorI18n } from '@shared/utils/http'
-import { useState } from 'react'
+import { AstroidIcon } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { FieldPath } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import { Button } from '@/components/ui/button'
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList
+} from '@/components/ui/combobox'
+import { InputGroupAddon } from '@/components/ui/input-group'
 
 import { SettingsRow, SettingsSection } from '../../settings-row'
-import { SettingsSelect } from '../../settings-select'
 
-interface FetchedModel {
-  id: string
-  displayName: string
-  snapshot: ModelSnapshot
+interface ModelOption {
+  value: string
+  label: string
 }
 
 interface ModelPickerProps {
@@ -33,7 +41,7 @@ interface ModelPickerProps {
 
 /** Warning shown when the saved model isn't in the freshest fetched list. */
 function staleWarning(
-  fetched: FetchedModel[] | null,
+  fetched: CachedModelEntry[] | null,
   savedId: string | null | undefined
 ): string | undefined {
   if (!fetched || !savedId) return undefined
@@ -49,7 +57,6 @@ export function ModelPicker({
   apiVersionField
 }: ModelPickerProps) {
   const { i18n } = useTranslation('errors')
-  const [fetched, setFetched] = useState<FetchedModel[] | null>(null)
   const [loading, setLoading] = useState(false)
 
   const apiKey = form.watch(apiKeyField) as string | undefined
@@ -59,27 +66,53 @@ export function ModelPicker({
   const apiVersion = apiVersionField
     ? (form.watch(apiVersionField) as string | undefined)
     : undefined
+
+  // Persisted to settings (not just kept in memory) so the catalog survives
+  // closing Settings, switching tabs, and even restarting the app — a
+  // second visit no longer loses a list the user already fetched, and only
+  // an explicit Refresh click ever overwrites this entry. `provider`'s enum
+  // values (e.g. "OpenAI GPT") contain spaces but no `.`/`[`/quote
+  // characters, so they round-trip safely through react-hook-form's and
+  // lodash's dotted-path parsers (both split only on `.[]'"`) as a single
+  // path segment.
+  const modelCatalogField =
+    `modelCatalog.${provider}` as FieldPath<SettingsInput>
+  const fetched =
+    (form.watch(modelCatalogField) as CachedModelEntry[] | null | undefined) ??
+    null
+
   const activeProvider = form.watch('providerConfig.provider')
   const savedModel =
     activeProvider === provider
       ? (form.watch('providerConfig.model') as string | undefined)
       : undefined
 
-  const options =
+  const options: ModelOption[] =
     fetched?.map((m) => ({ value: m.id, label: m.displayName })) ??
     (savedModel ? [{ value: savedModel, label: savedModel }] : [])
+
+  // The saved model may be stale (no longer in the freshest fetched list) —
+  // fall back to a synthetic option so the combobox still displays it rather
+  // than showing blank.
+  const selectedValue: ModelOption | null =
+    activeProvider === provider && savedModel
+      ? (options.find((o) => o.value === savedModel) ?? {
+          value: savedModel,
+          label: savedModel
+        })
+      : null
 
   const handleRefresh = async () => {
     setLoading(true)
     try {
-      const { models } = await fetcher<{ models: FetchedModel[] }>(
+      const result = await fetcher<{ models: CachedModelEntry[] }>(
         '/api/settings/models',
         {
           method: 'POST',
           body: { provider, apiKey, baseUrl, apiVersion }
         }
       )
-      setFetched(models)
+      form.setValue(modelCatalogField, result.models, { shouldDirty: true })
     } catch (error) {
       sileo.error({
         title: 'Could not fetch model list',
@@ -110,24 +143,37 @@ export function ModelPicker({
     })
   }
 
+  const isEmpty = useMemo(() => options.length === 0, [options])
+
   return (
     <SettingsSection>
       <SettingsRow label="Model" description="The model used for this provider">
         <div className="flex items-center gap-2">
-          <SettingsSelect
-            testId={TEST_IDS.providerModels.modelSelect}
-            disabled={options.length === 0}
-            value={activeProvider === provider ? (savedModel ?? '') : ''}
-            onValueChange={handleSelect}
-            options={options}
-            placeholder={
-              fetched
-                ? 'Select a model'
-                : savedModel
-                  ? undefined
-                  : 'Click refresh to load models'
-            }
-          />
+          <Combobox
+            items={options}
+            itemToStringValue={(item) => item.label}
+            value={selectedValue}
+            onValueChange={(item) => {
+              if (item) handleSelect(item.value)
+            }}
+            disabled={isEmpty}
+          >
+            <ComboboxInput placeholder="Search models…" disabled={isEmpty}>
+              <InputGroupAddon>
+                <AstroidIcon />
+              </InputGroupAddon>
+            </ComboboxInput>
+            <ComboboxContent>
+              <ComboboxEmpty>No models found.</ComboboxEmpty>
+              <ComboboxList>
+                {(item) => (
+                  <ComboboxItem key={item.value} value={item}>
+                    {item.label}
+                  </ComboboxItem>
+                )}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
           <Button
             type="button"
             variant="outline"
@@ -135,7 +181,13 @@ export function ModelPicker({
             disabled={!apiKey || loading}
             onClick={handleRefresh}
           >
-            {loading ? 'Refreshing…' : 'Refresh model list'}
+            {loading
+              ? isEmpty
+                ? 'Retrieving…'
+                : 'Refreshing…'
+              : isEmpty
+                ? 'Retrieve model list'
+                : 'Refresh model list'}
           </Button>
         </div>
         {!fetched && savedModel && (

@@ -28,8 +28,8 @@ function InputBox({
   chatId,
   // messages,
   // setMessages,
-  sendMessage,
-  lastUsage
+  sendMessage
+  // lastUsage
 }: {
   chatId: string
   messages: ChatMessage[]
@@ -139,7 +139,7 @@ function InputBox({
             placeholder="Ask anything"
             value={input}
             onChange={handleInput}
-            className="max-h-[45dvh] min-h-8 flex-1 resize-none border-none bg-transparent! px-1 py-1 text-base leading-6 shadow-none focus-visible:ring-0 md:text-base"
+            className="max-h-[45dvh] min-h-8 flex-1 resize-none rounded-none border-none bg-transparent! px-1 py-1 text-base leading-6 shadow-none focus-visible:ring-0 md:text-base"
             rows={1}
             autoFocus
             onKeyDown={(event) => {
@@ -193,7 +193,7 @@ function InputBox({
           )}
         </div>
       </div>
-      {lastUsage && (
+      {/* {lastUsage && (
         <div className="text-muted-foreground/70 flex justify-end gap-2 px-1 py-1 text-[10px]">
           <span>↑{lastUsage.input.toLocaleString()}</span>
           <span>↓{lastUsage.output.toLocaleString()}</span>
@@ -202,7 +202,7 @@ function InputBox({
             <span>${lastUsage.cost.total.toFixed(4)}</span>
           )}
         </div>
-      )}
+      )} */}
     </div>
   )
 }

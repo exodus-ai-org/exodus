@@ -49,9 +49,17 @@ gaps each provider's own API leaves.
 2. All 6 providers in scope, including Azure OpenAI and Ollama.
 3. Fetch is **manual**: a "Refresh model list" button next to each provider's
    API key field. No auto-fetch on blur/keystroke.
-4. The fetched _list_ is never persisted — only the _selected_ model's
-   capability snapshot is, written into `providerConfig` at selection time, no
-   TTL. No separate cache table.
+4. ~~The fetched _list_ is never persisted~~ — **superseded 2026-09-15**: the
+   user asked for it to survive closing Settings / app restarts, not just the
+   session. The fetched catalog is now persisted too, in a new
+   `settings.modelCatalog` jsonb column (`ModelCatalogSchema`, keyed by the
+   `AiProviders` enum value), written via the same per-field settings
+   autosave as everything else — `ModelPicker` sets
+   `modelCatalog.<provider>` on a successful Refresh. Still no TTL, still no
+   separate cache table (it lives on the existing `settings` row); Refresh
+   remains the only thing that overwrites an entry. The _selected_ model's
+   capability snapshot is unchanged, written into `providerConfig` at
+   selection time.
 5. No backward-compat shim for existing `providerConfig.{chatModel,
 reasoningModel}` rows — the field is renamed to `model` and old rows simply
    read as unset; the user re-picks once after updating.

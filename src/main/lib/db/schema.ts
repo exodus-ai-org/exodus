@@ -9,6 +9,7 @@ import {
   KeyboardShortcutsSchema,
   KnowledgeBaseSchema,
   MemorySchema,
+  ModelCatalogSchema,
   PersonalitySchema,
   ProviderConfigSchema,
   ProvidersSchema,
@@ -144,6 +145,8 @@ export const settings = pgTable('settings', {
   providerConfig:
     jsonb('providerConfig').$type<z.infer<typeof ProviderConfigSchema>>(),
   providers: jsonb('providers').$type<z.infer<typeof ProvidersSchema>>(),
+  modelCatalog:
+    jsonb('modelCatalog').$type<z.infer<typeof ModelCatalogSchema>>(),
   mcpServers: text('mcpServers').default(''),
   tools: jsonb('tools').$type<z.infer<typeof ToolsSchema>>(),
   voice: jsonb('voice').$type<z.infer<typeof VoiceSchema>>(),

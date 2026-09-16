@@ -91,11 +91,7 @@ export function Personality({ form }: { form: UseFormReturnType }) {
         />
       </SettingsRow>
 
-      <SettingsRow
-        label="Custom instructions"
-        description="Additional behavior, style, and tone preferences"
-        layout="vertical"
-      >
+      <SettingsRow label="Custom instructions" layout="vertical">
         <Textarea
           placeholder="Additional behavior, style, and tone preferences"
           className="min-h-20"

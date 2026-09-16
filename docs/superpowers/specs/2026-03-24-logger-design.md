@@ -36,13 +36,13 @@ Add a lightweight, built-in logging system to Exodus. Logs are written as JSONL 
 }
 ```
 
-| Field     | Type                                           | Required | Description                                                                                                                                            |
-| --------- | ---------------------------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `ts`      | string (ISO 8601)                              | yes      | Timestamp                                                                                                                                              |
-| `level`   | `"debug"` \| `"info"` \| `"warn"` \| `"error"` | yes      | Severity                                                                                                                                               |
-| `surface` | string                                         | yes      | Subsystem (reuses existing `Surface` type from `errors.ts`: chat, database, agent_x, mcp, audio, etc.) Plus new surfaces: `app`, `server`, `migration` |
-| `message` | string                                         | yes      | Human-readable description                                                                                                                             |
-| `detail`  | object \| null                                 | no       | Structured metadata (error stack, request params, timing, etc.)                                                                                        |
+| Field     | Type                                           | Required | Description                                                                                                                                   |
+| --------- | ---------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ts`      | string (ISO 8601)                              | yes      | Timestamp                                                                                                                                     |
+| `level`   | `"debug"` \| `"info"` \| `"warn"` \| `"error"` | yes      | Severity                                                                                                                                      |
+| `surface` | string                                         | yes      | Subsystem (reuses existing `Surface` type from `errors.ts`: chat, database, mcp, audio, etc.) Plus new surfaces: `app`, `server`, `migration` |
+| `message` | string                                         | yes      | Human-readable description                                                                                                                    |
+| `detail`  | object \| null                                 | no       | Structured metadata (error stack, request params, timing, etc.)                                                                               |
 
 ### Level Policy (fixed, not user-configurable)
 
@@ -138,7 +138,7 @@ In `settings-menu.ts`, add between Data Controls and About Exodus:
 
 - Date picker — select from available dates (populated from `GET /api/logs/dates`)
 - Level dropdown — All / Debug / Info / Warn / Error (filters entries >= selected level)
-- Surface dropdown — All / chat / database / agent_x / ... (populated from entries)
+- Surface dropdown — All / chat / database / ... (populated from entries)
 - Keyword search — text input with debounce, matches against `message` field
 
 **Action buttons** (top right):

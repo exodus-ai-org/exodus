@@ -9,6 +9,7 @@ const PER_TOKEN_TO_PER_MILLION = 1_000_000
 interface XaiModel {
   id: string
   context_length: number | null
+  created?: number
   prompt_text_token_price?: number
   completion_text_token_price?: number
 }
@@ -25,7 +26,12 @@ export const listXaiModels: ListModelsFn = async ({ apiKey, baseUrl }) => {
 
   const { data } = (await response.json()) as { data: XaiModel[] }
 
-  return data.map((m): NormalizedModel => {
+  // Newest-first by `created`; an entry missing it (shouldn't happen, but the
+  // field isn't documented as required) sorts after everything that has one
+  // rather than floating to the top via `undefined` comparing as NaN.
+  const sorted = [...data].sort((a, b) => (b.created ?? -1) - (a.created ?? -1))
+
+  return sorted.map((m): NormalizedModel => {
     const fallback = MODEL_METADATA_FALLBACK[m.id]
     const cost =
       m.prompt_text_token_price !== undefined &&

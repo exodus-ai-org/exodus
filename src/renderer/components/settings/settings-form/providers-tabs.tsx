@@ -70,7 +70,11 @@ export function ProvidersTabs({ form }: { form: UseFormReturnType }) {
             ))}
           </TabsList>
           {PROVIDER_TABS.map(({ value, Component }) => (
-            <TabsContent key={value} value={value}>
+            <TabsContent
+              key={value}
+              value={value}
+              className="flex flex-col gap-5"
+            >
               <Component form={form} />
             </TabsContent>
           ))}

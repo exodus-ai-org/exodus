@@ -117,7 +117,7 @@ export function Profile({ form }: { form: UseFormReturnType }) {
     const activeDays = new Set(
       [...byDay.entries()].filter(([, count]) => count > 0).map(([k]) => k)
     )
-    const dailyPeak = Math.max(0, ...[...byDay.values()])
+    const dailyPeak = Math.max(0, ...byDay.values())
     const scaleMax = Math.max(1, ...days.map((x) => x.tokens))
     const grid = days.map((x) => ({
       ...x,

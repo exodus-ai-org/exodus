@@ -37,4 +37,47 @@ describe('listXaiModels', () => {
       }
     ])
   })
+
+  it('sorts by created descending', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            data: [
+              { id: 'grok-old', context_length: 100_000, created: 100 },
+              { id: 'grok-newest', context_length: 100_000, created: 300 },
+              { id: 'grok-mid', context_length: 100_000, created: 200 }
+            ]
+          }),
+          { status: 200 }
+        )
+      )
+    )
+    const models = await listXaiModels({ apiKey: 'xai-key' })
+    expect(models.map((m) => m.id)).toEqual([
+      'grok-newest',
+      'grok-mid',
+      'grok-old'
+    ])
+  })
+
+  it('sorts entries missing created after the ones that have it', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            data: [
+              { id: 'no-created', context_length: 100_000 },
+              { id: 'has-created', context_length: 100_000, created: 100 }
+            ]
+          }),
+          { status: 200 }
+        )
+      )
+    )
+    const models = await listXaiModels({ apiKey: 'xai-key' })
+    expect(models.map((m) => m.id)).toEqual(['has-created', 'no-created'])
+  })
 })
