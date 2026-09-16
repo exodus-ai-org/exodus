@@ -42,7 +42,7 @@ describe('chat namespace (en)', () => {
     expect(chat.composerTools.mcpTools).toBe('MCP tools')
     expect(chat.composerTools.mcpDialog.title).toBe('Available MCP Tools')
     expect(chat.composerTools.mcpDialog.description).toBe(
-      'Tools provided by active MCP servers. Manage servers in <1>Settings > MCP Servers</1>.'
+      'Tools provided by active MCP servers. Manage servers in <strong>Settings > MCP Servers</strong>.'
     )
     expect(chat.composerTools.mcpDialog.noDescription).toBe(
       'No description for {{name}}.'
@@ -158,5 +158,44 @@ describe('chat namespace CLDR plurals resolve via the real i18next instance', ()
     expect(
       i18n.t('chat:lcm.compactedSummary', { count: 4, tokens: '2.3k' })
     ).toBe('Compacted 4 messages · saved ~2.3k tokens')
+  })
+})
+
+describe('chat namespace composerTools.mcpDialog.description renders correctly via Trans', () => {
+  it('keeps "Settings > MCP Servers" and its <strong> styling in the real rendered HTML', async () => {
+    const { createElement } = await import('react')
+    const { renderToStaticMarkup } = await import('react-dom/server')
+    const { I18nextProvider, Trans } = await import('react-i18next')
+    const i18next = (await import('i18next')).default
+
+    const instance = i18next.createInstance()
+    await instance.init({
+      lng: 'en',
+      resources: { en: { chat } },
+      ns: ['chat'],
+      defaultNS: 'chat',
+      interpolation: { escapeValue: false }
+    })
+
+    // Mirrors composer-tools.tsx's real JSX exactly, including {' '} as its
+    // own child — that's the detail that shifts numbered-placeholder
+    // resolution and is why a real render (not just a JSON string check)
+    // is the only thing that actually catches this failure class.
+    const transEl = createElement(
+      Trans,
+      { ns: 'chat', i18nKey: 'composerTools.mcpDialog.description' },
+      'Tools provided by active MCP servers. Manage servers in',
+      ' ',
+      createElement('strong', null, 'Settings > MCP Servers'),
+      '.'
+    )
+    const html = renderToStaticMarkup(
+      createElement(I18nextProvider, { i18n: instance }, transEl)
+    )
+
+    expect(html).toContain('<strong>Settings &gt; MCP Servers</strong>')
+    expect(html).toBe(
+      'Tools provided by active MCP servers. Manage servers in <strong>Settings &gt; MCP Servers</strong>.'
+    )
   })
 })

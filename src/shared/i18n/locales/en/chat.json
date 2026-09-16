@@ -22,7 +22,7 @@
     "mcpTools": "MCP tools",
     "mcpDialog": {
       "title": "Available MCP Tools",
-      "description": "Tools provided by active MCP servers. Manage servers in <1>Settings > MCP Servers</1>.",
+      "description": "Tools provided by active MCP servers. Manage servers in <strong>Settings > MCP Servers</strong>.",
       "noDescription": "No description for {{name}}."
     }
   },

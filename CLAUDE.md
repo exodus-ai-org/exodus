@@ -497,7 +497,18 @@ Reusable AI utilities that should be used (and tested) instead of inline impleme
    (dot-nested, component-scoped: `chat.composer.placeholder`).
 2. Renderer, inside a component or hook:
    `const { t } = useTranslation('<ns>')` → `t('composer.placeholder')`;
-   rich text (embedded link/bold) → `<Trans ns="<ns>" i18nKey="…">`. If the
+   rich text (embedded link/bold) → `<Trans ns="<ns>" i18nKey="…">`. In the
+   catalog key, a `<strong>`/`<b>`/`<i>`/`<p>`/`<br>` child MUST be written
+   as that literal tag (`<strong>text</strong>`), never a numbered
+   placeholder (`<1>text</1>`) — react-i18next's default
+   `transKeepBasicHtmlNodesFor` renders exactly those 5 tags literally, and
+   a numbered placeholder for one of them silently drops the child's
+   content at render time. Numbered placeholders (`<1>`, `<2>`, …) are only
+   correct for elements outside that allowlist (a custom component, `<a>`,
+   `<span>`, etc.). `pnpm i18n:check`/typecheck/lint do not catch a wrong
+   choice here — a real render test does (see
+   `tests/unit/i18n/chat-namespace.test.ts`'s
+   `composerTools.mcpDialog.description` test for the pattern). If the
    file already has `useTranslation('<otherNs>')`, switch to the array form
    `useTranslation(['<otherNs>', '<ns>'])` — keep the existing namespace
    first so already-written bare `t('key')` calls keep resolving unchanged —
