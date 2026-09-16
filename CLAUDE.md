@@ -495,17 +495,31 @@ Reusable AI utilities that should be used (and tested) instead of inline impleme
 
 1. Add the key to the right namespace in `src/shared/i18n/locales/en/<ns>.json`
    (dot-nested, component-scoped: `chat.composer.placeholder`).
-2. Renderer: `const { t } = useTranslation('<ns>')` → `t('composer.placeholder')`;
-   rich text (embedded link/bold) → `<Trans ns="<ns>" i18nKey="…">`.
-3. Main process: `mainI18n.t('<ns>:key')`.
-4. Dates/numbers: `useFormat()` (renderer). Never build sentences by
-   interpolating translated fragments.
-5. Non-English catalogs are filled by the machine-translation pass — do not
+2. Renderer, inside a component or hook:
+   `const { t } = useTranslation('<ns>')` → `t('composer.placeholder')`;
+   rich text (embedded link/bold) → `<Trans ns="<ns>" i18nKey="…">`. If the
+   file already has `useTranslation('<otherNs>')`, switch to the array form
+   `useTranslation(['<otherNs>', '<ns>'])` — keep the existing namespace
+   first so already-written bare `t('key')` calls keep resolving unchanged —
+   and prefix every new lookup with `<ns>:`.
+3. Renderer, outside a component/hook (a plain exported function, a
+   module-level helper, a `src/renderer/services/*.ts` function) —
+   `useTranslation()` isn't callable there. Import the shared instance
+   directly: `import { i18n } from '@/lib/i18n'` → `i18n.t('<ns>:key')`
+   (always the explicit `ns:key` form — the raw instance has no namespace
+   bound beyond the global `defaultNS: 'common'`).
+4. Main process: `mainI18n.t('<ns>:key')` (or the `mainT()` helper in
+   `src/main/lib/i18n.ts`, which additionally tolerates `mainI18n` being
+   unassigned during a failed boot).
+5. Dates/numbers: `useFormat()` (renderer). Never build a sentence by
+   splicing a hand-formatted date/number into raw English word order — pass
+   it as an interpolation param to a translated key instead.
+6. Non-English catalogs are filled by the machine-translation pass — do not
    hand-edit them.
-6. `src/renderer/components/ui/**` (shadcn primitives) is permanently out of
+7. `src/renderer/components/ui/**` (shadcn primitives) is permanently out of
    scope for extraction — the generator (`pnpm shadcn:generate`) overwrites
    these files and drops any `t()` calls added by hand.
-7. Before extracting a string into an existing function scope, check whether
+8. Before extracting a string into an existing function scope, check whether
    that scope already binds a local `t` (a loop variable, a destructured
    field, anything) — a shadowed `t` compiles fine today but breaks the next
    namespace pass that adds a real `t()` call in the same scope.

@@ -1,1 +1,87 @@
-{}
+{
+  "imageGeneration": {
+    "status": {
+      "queued": "Waiting to generate",
+      "generating": "Generating image",
+      "refining": "Refining details",
+      "complete": "Image ready",
+      "error": "Generation failed"
+    },
+    "retry": "Try again",
+    "generatedImageAlt": "Generated image"
+  },
+  "composer": {
+    "placeholder": "Ask anything",
+    "pleaseWaitTitle": "Please wait",
+    "pleaseWaitDescription": "The model is still generating a response.",
+    "stop": "Stop",
+    "send": "Send"
+  },
+  "composerTools": {
+    "attachFiles": "Attach files",
+    "mcpTools": "MCP tools",
+    "mcpDialog": {
+      "title": "Available MCP Tools",
+      "description": "Tools provided by active MCP servers. Manage servers in <1>Settings > MCP Servers</1>.",
+      "noDescription": "No description for {{name}}."
+    }
+  },
+  "advancedTools": {
+    "deepResearch": "Deep research"
+  },
+  "messageList": {
+    "greetingTitle": "Hello there!",
+    "greetingSubtitle": "How can I assist you today?",
+    "attachmentAlt": "attachment",
+    "scrollToBottom": "Scroll to bottom"
+  },
+  "toolPreview": {
+    "mapItineraryDayCount_one": "{{count}} day",
+    "mapItineraryDayCount_other": "{{count}} days",
+    "mapItineraryStopCount_one": "{{count}} stop",
+    "mapItineraryStopCount_other": "{{count}} stops",
+    "mapItinerarySummary": "{{days}}, {{stops}}",
+    "toolFailed": "{{tool}} failed",
+    "webSearchResultCount_one": "{{count}} result",
+    "webSearchResultCount_other": "{{count}} results"
+  },
+  "toolFailedToast": {
+    "title": "Tool failed: {{tool}}"
+  },
+  "messageAction": {
+    "copy": "Copy",
+    "regenerate": "Regenerate",
+    "sources": "Sources"
+  },
+  "thinkingTimeline": {
+    "thinking": "Thinking…",
+    "working": "Working…",
+    "thought": "Thought",
+    "worked": "Worked",
+    "done": "Done",
+    "thoughtFor": "{{verb}} for {{duration}}",
+    "durationSeconds_one": "{{count}} second",
+    "durationSeconds_other": "{{count}} seconds",
+    "durationMinutes": "{{minutes}}m",
+    "durationMinutesSeconds": "{{minutes}}m {{seconds}}s",
+    "searchResultCount_one": "{{count}} search result",
+    "searchResultCount_other": "{{count}} search results"
+  },
+  "toc": {
+    "fallbackLabel": "Message"
+  },
+  "toast": {
+    "chatUpdated": "Chat updated",
+    "chatDeleted": "Chat deleted"
+  },
+  "lcm": {
+    "compacting": "Compacting conversation history…",
+    "compactedSummary_one": "Compacted {{count}} message · saved ~{{tokens}} tokens",
+    "compactedSummary_other": "Compacted {{count}} messages · saved ~{{tokens}} tokens",
+    "compactionFailed": "Compaction failed (will retry next turn)"
+  },
+  "upload": {
+    "failedTitle": "Upload failed",
+    "failedDescription": "Failed to upload files."
+  }
+}
