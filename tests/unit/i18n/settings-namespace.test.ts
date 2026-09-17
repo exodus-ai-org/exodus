@@ -114,9 +114,9 @@ describe('settings namespace (en)', () => {
     expect(settings.keyboardShortcuts.shortcuts['close-tab'].label).toBe(
       'Close current tab'
     )
-    expect(
-      settings.keyboardShortcuts.shortcuts['focus-chat-input'].label
-    ).toBe('Focus chat input')
+    expect(settings.keyboardShortcuts.shortcuts['focus-chat-input'].label).toBe(
+      'Focus chat input'
+    )
     expect(settings.keyboardShortcuts.shortcuts['send-message'].label).toBe(
       'Send message'
     )
@@ -283,5 +283,30 @@ describe('settings namespace (en)', () => {
       running: 'Ollama is running',
       notRunning: 'Not running'
     })
+  })
+
+  it('has the ModelPicker keys', () => {
+    expect(settings.providers.model.label).toBe('Model')
+    expect(settings.providers.model.description).toBe(
+      'The model used for this provider'
+    )
+    expect(settings.providers.model.searchPlaceholder).toBe('Search models…')
+    expect(settings.providers.model.noModelsFound).toBe('No models found.')
+    expect(settings.providers.model.refreshHint).toBe(
+      'Refresh to see all available models.'
+    )
+    expect(settings.providers.model.staleWarning).toBe(
+      '"{{model}}" is no longer offered by this provider — pick a current model.'
+    )
+    expect(settings.providers.model.retrieving).toBe('Retrieving…')
+    expect(settings.providers.model.refreshing).toBe('Refreshing…')
+    expect(settings.providers.model.retrieve).toBe('Retrieve model list')
+    expect(settings.providers.model.refresh).toBe('Refresh model list')
+    expect(settings.providers.model.fetchErrorTitle).toBe(
+      'Could not fetch model list'
+    )
+    expect(settings.providers.model.fetchErrorFallback).toBe(
+      'Failed to fetch model list'
+    )
   })
 })

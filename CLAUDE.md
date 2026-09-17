@@ -17,14 +17,13 @@ you must uphold.
   rename or regenerate an existing id. _Enforced by `test-ids.linkage.test.ts`._
 - **Pre-commit gate.** Before committing, `pnpm format` → `pnpm lint` →
   `pnpm typecheck` → `pnpm i18n:check` → `pnpm test` must pass. _Enforced by
-  the husky pre-commit hook._ Do not `--no-verify` except for two known,
-  standing causes: (1) the flaky PGlite WASM teardown in
-  `src/main/lib/ai/context-management/index.test.ts`; (2) a standing,
-  already-committed orphan-id gap in `TEST_IDS.providerModels.modelSelect`
-  (declared in `test-ids.ts`, never applied under `src/renderer` — verify
-  the exact cause yourself each time via `test-ids.linkage.test.ts`'s
-  failure output and `git status`/`grep` before invoking this exception;
-  it is not a blanket license to bypass any test-id failure).
+  the husky pre-commit hook._ Do not `--no-verify` except for one known,
+  standing cause: the flaky PGlite WASM teardown in
+  `src/main/lib/ai/context-management/index.test.ts`. (A second, long-
+  standing exception — an orphan `TEST_IDS.providerModels.modelSelect` id
+  — was resolved 2026-09-18 when `model-picker.tsx`'s i18n pass applied
+  the id to its `ComboboxInput`, satisfying the linkage test the
+  Playwright spec had been waiting on since before this id existed.)
 - **Reuse UI primitives.** Prefer existing `@/components/ui` (shadcn) components
   over hand-rolled equivalents (e.g. shadcn `Select`, `InputOTP`).
 - **Copy language.** New user-facing strings are keys in

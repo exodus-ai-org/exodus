@@ -39,16 +39,6 @@ interface ModelPickerProps {
   apiVersionField?: FieldPath<SettingsInput>
 }
 
-/** Warning shown when the saved model isn't in the freshest fetched list. */
-function staleWarning(
-  fetched: CachedModelEntry[] | null,
-  savedId: string | null | undefined
-): string | undefined {
-  if (!fetched || !savedId) return undefined
-  if (fetched.some((m) => m.id === savedId)) return undefined
-  return `"${savedId}" is no longer offered by this provider — pick a current model.`
-}
-
 export function ModelPicker({
   provider,
   form,
@@ -56,7 +46,7 @@ export function ModelPicker({
   baseUrlField,
   apiVersionField
 }: ModelPickerProps) {
-  const { i18n } = useTranslation('errors')
+  const { t, i18n } = useTranslation(['errors', 'settings'])
   const [loading, setLoading] = useState(false)
 
   const apiKey = form.watch(apiKeyField) as string | undefined
@@ -102,6 +92,12 @@ export function ModelPicker({
         })
       : null
 
+  // Warning shown when the saved model isn't in the freshest fetched list.
+  const staleWarning: string | undefined =
+    fetched && savedModel && !fetched.some((m) => m.id === savedModel)
+      ? t('settings:providers.model.staleWarning', { model: savedModel })
+      : undefined
+
   const handleRefresh = async () => {
     setLoading(true)
     try {
@@ -115,10 +111,10 @@ export function ModelPicker({
       form.setValue(modelCatalogField, result.models, { shouldDirty: true })
     } catch (error) {
       sileo.error({
-        title: 'Could not fetch model list',
+        title: t('settings:providers.model.fetchErrorTitle'),
         description:
           getHttpErrorMessage(error, toErrorI18n(i18n)) ??
-          'Failed to fetch model list'
+          t('settings:providers.model.fetchErrorFallback')
       })
     } finally {
       setLoading(false)
@@ -147,7 +143,10 @@ export function ModelPicker({
 
   return (
     <SettingsSection>
-      <SettingsRow label="Model" description="The model used for this provider">
+      <SettingsRow
+        label={t('settings:providers.model.label')}
+        description={t('settings:providers.model.description')}
+      >
         <div className="flex items-center gap-2">
           <Combobox
             items={options}
@@ -158,13 +157,19 @@ export function ModelPicker({
             }}
             disabled={isEmpty}
           >
-            <ComboboxInput placeholder="Search models…" disabled={isEmpty}>
+            <ComboboxInput
+              placeholder={t('settings:providers.model.searchPlaceholder')}
+              disabled={isEmpty}
+              data-testid={TEST_IDS.providerModels.modelSelect}
+            >
               <InputGroupAddon>
                 <AstroidIcon />
               </InputGroupAddon>
             </ComboboxInput>
             <ComboboxContent>
-              <ComboboxEmpty>No models found.</ComboboxEmpty>
+              <ComboboxEmpty>
+                {t('settings:providers.model.noModelsFound')}
+              </ComboboxEmpty>
               <ComboboxList>
                 {(item) => (
                   <ComboboxItem key={item.value} value={item}>
@@ -183,22 +188,20 @@ export function ModelPicker({
           >
             {loading
               ? isEmpty
-                ? 'Retrieving…'
-                : 'Refreshing…'
+                ? t('settings:providers.model.retrieving')
+                : t('settings:providers.model.refreshing')
               : isEmpty
-                ? 'Retrieve model list'
-                : 'Refresh model list'}
+                ? t('settings:providers.model.retrieve')
+                : t('settings:providers.model.refresh')}
           </Button>
         </div>
         {!fetched && savedModel && (
           <p className="text-muted-foreground text-xs">
-            Refresh to see all available models.
+            {t('settings:providers.model.refreshHint')}
           </p>
         )}
-        {staleWarning(fetched, savedModel) && (
-          <p className="text-destructive text-xs">
-            {staleWarning(fetched, savedModel)}
-          </p>
+        {staleWarning && (
+          <p className="text-destructive text-xs">{staleWarning}</p>
         )}
       </SettingsRow>
     </SettingsSection>

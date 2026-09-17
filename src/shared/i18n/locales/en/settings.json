@@ -220,6 +220,20 @@
         "running": "Ollama is running",
         "notRunning": "Not running"
       }
+    },
+    "model": {
+      "label": "Model",
+      "description": "The model used for this provider",
+      "searchPlaceholder": "Search models…",
+      "noModelsFound": "No models found.",
+      "refreshHint": "Refresh to see all available models.",
+      "staleWarning": "\"{{model}}\" is no longer offered by this provider — pick a current model.",
+      "retrieving": "Retrieving…",
+      "refreshing": "Refreshing…",
+      "retrieve": "Retrieve model list",
+      "refresh": "Refresh model list",
+      "fetchErrorTitle": "Could not fetch model list",
+      "fetchErrorFallback": "Failed to fetch model list"
     }
   }
 }
