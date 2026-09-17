@@ -372,4 +372,13 @@ describe('settings namespace (en)', () => {
         'Render places, routes, and multi-day trips on a single interactive map card'
     })
   })
+
+  it('has the Google Maps tool-config panel keys', () => {
+    expect(settings.tools.googleMaps.apiKey).toMatchObject({
+      label: 'Google API Key',
+      description:
+        'Powers Maps Routing (point-to-point directions) and Places (location lookup). Get one from the Google Cloud console.',
+      placeholder: 'Enter your Google API key'
+    })
+  })
 })
