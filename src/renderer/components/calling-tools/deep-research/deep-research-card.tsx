@@ -4,6 +4,7 @@ import { differenceInMinutes } from 'date-fns'
 import { useAtom } from 'jotai'
 import { DownloadIcon, LoaderIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 import useSWR from 'swr'
 
@@ -17,13 +18,16 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from '@/components/ui/tooltip'
+import { i18n } from '@/lib/i18n'
 import { downloadFile } from '@/lib/utils'
 import { markdownToPdf } from '@/services/tools'
 import { activeDeepResearchIdAtom } from '@/stores/chat'
 
 /**
  * Convert inline 【N-source】 markers to superscript [N] and append a
- * numbered References section — suitable for PDF rendering.
+ * numbered References section — suitable for PDF rendering. This is a
+ * plain helper (not a component or hook), so translated text uses the
+ * shared `i18n` singleton directly rather than `useTranslation()`.
  */
 function prepareMarkdownForPdf(
   markdown: string,
@@ -59,7 +63,7 @@ function prepareMarkdownForPdf(
   // Build a numbered References list
   const refLines = orderedRanks.map((rank) => {
     const source = webSources.find((s) => s.rank === rank)
-    if (!source) return `[${rank}] Unknown source`
+    if (!source) return i18n.t('chat:deepResearchCard.unknownSource', { rank })
     let hostname = ''
     try {
       hostname = new URL(source.link).hostname
@@ -77,6 +81,7 @@ export function DeepResearchCard({
 }: {
   toolResult: Pick<DeepResearch, 'id' | 'toolCallId'>
 }) {
+  const { t } = useTranslation('chat')
   const [loading, setLoading] = useState(false)
   const [activeDeepResearchId, setActiveDeepResearchId] = useAtom(
     activeDeepResearchIdAtom
@@ -107,9 +112,11 @@ export function DeepResearchCard({
       downloadFile(blob, `${deepResearchResult.id}.pdf`)
     } catch (e) {
       sileo.error({
-        title: 'Export failed',
+        title: t('deepResearchCard.exportFailedTitle'),
         description:
-          e instanceof Error ? e.message : 'Failed to generate PDF report.'
+          e instanceof Error
+            ? e.message
+            : t('deepResearchCard.exportFailedDescription')
       })
     } finally {
       setLoading(false)
@@ -142,12 +149,18 @@ export function DeepResearchCard({
           onClick={handleActiveDeepResearchSseId}
         >
           {deepResearchResult?.jobStatus === 'streaming' && (
-            <ShimmeringText text="Deep Researching..." />
+            <ShimmeringText text={t('deepResearchCard.researching')} />
           )}
           {deepResearchResult?.jobStatus === 'archived' &&
             deepResearchResult?.endTime && (
               <div>
-                {`Research completed in ${differenceInMinutes(deepResearchResult?.endTime, deepResearchResult?.startTime)}m · ${deepResearchResult?.webSources?.length ?? 0} sources`}
+                {t('deepResearchCard.completedSummary', {
+                  minutes: differenceInMinutes(
+                    deepResearchResult?.endTime,
+                    deepResearchResult?.startTime
+                  ),
+                  count: deepResearchResult?.webSources?.length ?? 0
+                })}
               </div>
             )}
         </Button>
@@ -159,7 +172,7 @@ export function DeepResearchCard({
                 <Button
                   size="icon"
                   variant="ghost"
-                  aria-label="Export as PDF"
+                  aria-label={t('deepResearchCard.exportAriaLabel')}
                   onClick={exportPdf}
                 >
                   {loading ? (
@@ -174,7 +187,9 @@ export function DeepResearchCard({
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p className="max-w-60">Download PDF</p>
+                <p className="max-w-60">
+                  {t('deepResearchCard.downloadPdfTooltip')}
+                </p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
