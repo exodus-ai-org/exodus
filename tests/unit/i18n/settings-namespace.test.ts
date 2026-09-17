@@ -456,4 +456,74 @@ describe('settings namespace (en)', () => {
         'Comma-separated. Prefix with - to exclude. e.g. "nature.com, .edu" or "-reddit.com"'
     })
   })
+
+  it('has the Voice tab keys', () => {
+    expect(settings.tools.voice.alert).toBe(
+      'The Text-to-Speech and Speech-to-Text services <strong>only support OpenAI</strong>. Please make sure you have configured the OpenAI API setting correctly before using these features.'
+    )
+    expect(settings.tools.voice.speechToTextModel).toMatchObject({
+      label: 'Speech to Text Model',
+      description: 'Transcribes audio input into text'
+    })
+    expect(settings.tools.voice.textToSpeechModel).toMatchObject({
+      label: 'Text to Speech Model',
+      description:
+        'Generates spoken audio from text responses. gpt-4o-mini-tts supports tone/style instructions.'
+    })
+    expect(settings.tools.voice.textToSpeechVoice).toMatchObject({
+      label: 'Text to Speech Voice',
+      description: 'Voice persona for generated speech'
+    })
+    expect(settings.tools.voice.outputFormat).toMatchObject({
+      label: 'Output Format',
+      description: 'Audio format for generated speech'
+    })
+    expect(settings.tools.voice.speed).toMatchObject({
+      label: 'Speed',
+      description: 'Playback speed (0.25 – 4.0, default 1.0)'
+    })
+    expect(settings.tools.voice.instructions).toMatchObject({
+      label: 'Voice Instructions',
+      description:
+        'Natural-language instructions to control tone, emotion and style (gpt-4o-mini-tts only)',
+      placeholder:
+        'e.g. Speak in a warm, friendly tone with a slight British accent'
+    })
+  })
+})
+
+describe('settings namespace tools.voice.alert renders correctly via Trans', () => {
+  it('keeps <strong>only support OpenAI</strong> literal, not a numbered placeholder', async () => {
+    const { createElement } = await import('react')
+    const { renderToStaticMarkup } = await import('react-dom/server')
+    const { I18nextProvider, Trans, initReactI18next } =
+      await import('react-i18next')
+    const i18next = (await import('i18next')).default
+
+    const i18n = i18next.createInstance()
+    await i18n.use(initReactI18next).init({
+      lng: 'en',
+      resources: { en: { settings } },
+      ns: ['settings'],
+      defaultNS: 'settings',
+      interpolation: { escapeValue: false }
+    })
+
+    const element = createElement(
+      I18nextProvider,
+      { i18n },
+      createElement(
+        Trans,
+        { ns: 'settings', i18nKey: 'tools.voice.alert' },
+        'The Text-to-Speech and Speech-to-Text services ',
+        createElement('strong', null, 'only support OpenAI'),
+        '. Please make sure you have configured the OpenAI API setting correctly before using these features.'
+      )
+    )
+
+    const html = renderToStaticMarkup(element)
+    expect(html).toBe(
+      'The Text-to-Speech and Speech-to-Text services <strong>only support OpenAI</strong>. Please make sure you have configured the OpenAI API setting correctly before using these features.'
+    )
+  })
 })

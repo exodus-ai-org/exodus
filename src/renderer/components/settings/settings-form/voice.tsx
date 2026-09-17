@@ -1,6 +1,7 @@
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { AlertCircleIcon } from 'lucide-react'
 import { Controller } from 'react-hook-form'
+import { Trans, useTranslation } from 'react-i18next'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
@@ -49,6 +50,7 @@ const TTS_FORMATS = [
 ]
 
 export function Voice({ form }: { form: UseFormReturnType }) {
+  const { t } = useTranslation('settings')
   const ttsModel = form.watch('voice.textToSpeechModel')
 
   return (
@@ -56,10 +58,12 @@ export function Voice({ form }: { form: UseFormReturnType }) {
       <Alert className="mb-4">
         <AlertCircleIcon className="h-4 w-4" />
         <AlertDescription className="inline">
-          The Text-to-Speech and Speech-to-Text services{' '}
-          <strong>only support OpenAI</strong>. Please make sure you have
-          configured the OpenAI API setting correctly before using these
-          features.
+          <Trans ns="settings" i18nKey="tools.voice.alert">
+            The Text-to-Speech and Speech-to-Text services{' '}
+            <strong>only support OpenAI</strong>. Please make sure you have
+            configured the OpenAI API setting correctly before using these
+            features.
+          </Trans>
         </AlertDescription>
       </Alert>
 
@@ -69,8 +73,8 @@ export function Voice({ form }: { form: UseFormReturnType }) {
           name="voice.speechToTextModel"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="Speech to Text Model"
-              description="Transcribes audio input into text"
+              label={t('tools.voice.speechToTextModel.label')}
+              description={t('tools.voice.speechToTextModel.description')}
               error={fieldState.error}
             >
               <SettingsSelect
@@ -87,8 +91,8 @@ export function Voice({ form }: { form: UseFormReturnType }) {
           name="voice.textToSpeechModel"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="Text to Speech Model"
-              description="Generates spoken audio from text responses. gpt-4o-mini-tts supports tone/style instructions."
+              label={t('tools.voice.textToSpeechModel.label')}
+              description={t('tools.voice.textToSpeechModel.description')}
               error={fieldState.error}
             >
               <SettingsSelect
@@ -105,8 +109,8 @@ export function Voice({ form }: { form: UseFormReturnType }) {
           name="voice.textToSpeechVoice"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="Text to Speech Voice"
-              description="Voice persona for generated speech"
+              label={t('tools.voice.textToSpeechVoice.label')}
+              description={t('tools.voice.textToSpeechVoice.description')}
               error={fieldState.error}
             >
               <SettingsSelect
@@ -123,8 +127,8 @@ export function Voice({ form }: { form: UseFormReturnType }) {
           name="voice.textToSpeechFormat"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="Output Format"
-              description="Audio format for generated speech"
+              label={t('tools.voice.outputFormat.label')}
+              description={t('tools.voice.outputFormat.description')}
               error={fieldState.error}
             >
               <SettingsSelect
@@ -141,8 +145,8 @@ export function Voice({ form }: { form: UseFormReturnType }) {
           name="voice.textToSpeechSpeed"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="Speed"
-              description="Playback speed (0.25 – 4.0, default 1.0)"
+              label={t('tools.voice.speed.label')}
+              description={t('tools.voice.speed.description')}
               error={fieldState.error}
             >
               <Input
@@ -164,14 +168,14 @@ export function Voice({ form }: { form: UseFormReturnType }) {
             name="voice.textToSpeechInstructions"
             render={({ field, fieldState }) => (
               <SettingsRow
-                label="Voice Instructions"
-                description="Natural-language instructions to control tone, emotion and style (gpt-4o-mini-tts only)"
+                label={t('tools.voice.instructions.label')}
+                description={t('tools.voice.instructions.description')}
                 error={fieldState.error}
               >
                 <Textarea
                   {...field}
                   value={field.value ?? ''}
-                  placeholder="e.g. Speak in a warm, friendly tone with a slight British accent"
+                  placeholder={t('tools.voice.instructions.placeholder')}
                   className="min-h-16 resize-y"
                 />
               </SettingsRow>
