@@ -199,7 +199,7 @@ export function Profile({ form }: { form: UseFormReturnType }) {
                 type="button"
                 onClick={() => setMode(m)}
                 className={cn(
-                  'capitalize transition-colors hover:text-foreground',
+                  'transition-colors hover:text-foreground',
                   mode === m && 'text-foreground font-medium'
                 )}
               >
@@ -237,7 +237,7 @@ export function Profile({ form }: { form: UseFormReturnType }) {
                   key={cell.date}
                   title={t('settings:profile.activity.cellTooltip', {
                     date: cell.date,
-                    count: compact(cell.tokens)
+                    tokens: compact(cell.tokens)
                   })}
                   className={cn('rounded-xs', HEAT[cell.level])}
                   style={{ width: CELL_PX, height: CELL_PX }}

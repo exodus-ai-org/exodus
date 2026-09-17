@@ -218,7 +218,7 @@ describe('settings namespace (en)', () => {
       cumulative: 'Cumulative'
     })
     expect(settings.profile.activity.cellTooltip).toBe(
-      '{{date}} · {{count}} tokens'
+      '{{date}} · {{tokens}} tokens'
     )
     expect(settings.profile.insights).toMatchObject({
       sectionTitle: 'Activity insights',

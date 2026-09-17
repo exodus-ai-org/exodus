@@ -158,7 +158,7 @@
         "daily": "Daily",
         "cumulative": "Cumulative"
       },
-      "cellTooltip": "{{date}} · {{count}} tokens"
+      "cellTooltip": "{{date}} · {{tokens}} tokens"
     },
     "insights": {
       "sectionTitle": "Activity insights",
