@@ -1,6 +1,7 @@
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { AiProviders } from '@shared/types/ai'
 import { Controller } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 
 import { Input } from '@/components/ui/input'
 
@@ -8,6 +9,8 @@ import { SettingsRow, SettingsSection } from '../../settings-row'
 import { ProviderFields } from './provider-fields'
 
 export function AzureOpenAi({ form }: { form: UseFormReturnType }) {
+  const { t } = useTranslation('settings')
+
   return (
     <>
       <ProviderFields
@@ -15,21 +18,23 @@ export function AzureOpenAi({ form }: { form: UseFormReturnType }) {
         fields={[
           {
             name: 'providers.azureOpenaiApiKey',
-            label: 'API Key',
-            description: 'Your Azure OpenAI API key',
+            label: t('providers.fields.apiKey.label'),
+            description: t('providers.fields.apiKey.description', {
+              provider: AiProviders.AzureOpenAi
+            }),
             type: 'password'
           },
           {
             name: 'providers.azureOpenAiEndpoint',
-            label: 'Endpoint',
-            description: 'Your Azure OpenAI resource endpoint URL',
+            label: t('providers.azure.endpoint.label'),
+            description: t('providers.azure.endpoint.description'),
             placeholder:
               'https://{resource}.openai.azure.com/openai/deployments/{model}'
           },
           {
             name: 'providers.azureOpenAiApiVersion',
-            label: 'API Version',
-            description: 'Azure OpenAI API version string',
+            label: t('providers.azure.apiVersion.label'),
+            description: t('providers.azure.apiVersion.description'),
             placeholder: '2024-12-01-preview'
           }
         ]}
@@ -45,8 +50,8 @@ export function AzureOpenAi({ form }: { form: UseFormReturnType }) {
           name="providerConfig.model"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="Model"
-              description="The Azure deployment name to use"
+              label={t('providers.azure.model.label')}
+              description={t('providers.azure.model.description')}
               error={fieldState.error}
               layout="vertical"
             >

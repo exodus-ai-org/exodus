@@ -256,4 +256,19 @@ describe('settings namespace (en)', () => {
       description: 'Custom API endpoint. Leave empty for default'
     })
   })
+
+  it('has the Azure-specific provider field keys', () => {
+    expect(settings.providers.azure.endpoint).toMatchObject({
+      label: 'Endpoint',
+      description: 'Your Azure OpenAI resource endpoint URL'
+    })
+    expect(settings.providers.azure.apiVersion).toMatchObject({
+      label: 'API Version',
+      description: 'Azure OpenAI API version string'
+    })
+    expect(settings.providers.azure.model).toMatchObject({
+      label: 'Model',
+      description: 'The Azure deployment name to use'
+    })
+  })
 })

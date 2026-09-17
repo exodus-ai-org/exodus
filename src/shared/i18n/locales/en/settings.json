@@ -194,6 +194,20 @@
         "label": "Base URL",
         "description": "Custom API endpoint. Leave empty for default"
       }
+    },
+    "azure": {
+      "endpoint": {
+        "label": "Endpoint",
+        "description": "Your Azure OpenAI resource endpoint URL"
+      },
+      "apiVersion": {
+        "label": "API Version",
+        "description": "Azure OpenAI API version string"
+      },
+      "model": {
+        "label": "Model",
+        "description": "The Azure deployment name to use"
+      }
     }
   }
 }
