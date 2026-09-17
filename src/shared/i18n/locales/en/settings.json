@@ -144,5 +144,36 @@
       "label": "More about you",
       "placeholder": "Interests, values, or preferences to keep in mind"
     }
+  },
+  "profile": {
+    "stats": {
+      "lifetimeTokens": "Lifetime tokens",
+      "peakDay": "Peak day",
+      "currentStreak": "Current streak",
+      "longestStreak": "Longest streak"
+    },
+    "activity": {
+      "heading": "Token activity",
+      "mode": {
+        "daily": "Daily",
+        "cumulative": "Cumulative"
+      },
+      "cellTooltip": "{{date}} · {{count}} tokens"
+    },
+    "insights": {
+      "sectionTitle": "Activity insights",
+      "totalChats": "Total chats",
+      "modelRequests": "Model requests",
+      "installedSkills": "Installed skills",
+      "activeSkills": "Active skills"
+    },
+    "topModels": {
+      "sectionTitle": "Top models",
+      "empty": "No model usage yet"
+    },
+    "avatar": {
+      "uploadLabel": "Upload your avatar",
+      "alt": "Your avatar"
+    }
   }
 }

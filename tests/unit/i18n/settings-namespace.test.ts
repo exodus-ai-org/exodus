@@ -204,4 +204,36 @@ describe('settings namespace (en)', () => {
       'Interests, values, or preferences to keep in mind'
     )
   })
+
+  it('has the Profile tab keys', () => {
+    expect(settings.profile.stats).toMatchObject({
+      lifetimeTokens: 'Lifetime tokens',
+      peakDay: 'Peak day',
+      currentStreak: 'Current streak',
+      longestStreak: 'Longest streak'
+    })
+    expect(settings.profile.activity.heading).toBe('Token activity')
+    expect(settings.profile.activity.mode).toMatchObject({
+      daily: 'Daily',
+      cumulative: 'Cumulative'
+    })
+    expect(settings.profile.activity.cellTooltip).toBe(
+      '{{date}} · {{count}} tokens'
+    )
+    expect(settings.profile.insights).toMatchObject({
+      sectionTitle: 'Activity insights',
+      totalChats: 'Total chats',
+      modelRequests: 'Model requests',
+      installedSkills: 'Installed skills',
+      activeSkills: 'Active skills'
+    })
+    expect(settings.profile.topModels).toMatchObject({
+      sectionTitle: 'Top models',
+      empty: 'No model usage yet'
+    })
+    expect(settings.profile.avatar).toMatchObject({
+      uploadLabel: 'Upload your avatar',
+      alt: 'Your avatar'
+    })
+  })
 })

@@ -1,6 +1,11 @@
 import { PlusIcon, XIcon } from 'lucide-react'
 import { ChangeEvent, useRef } from 'react'
-import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
+import {
+  FieldValues,
+  useController,
+  UseControllerProps
+} from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 
 import { useSettings } from '@/hooks/use-settings'
 import { cn, convertFileToBase64 } from '@/lib/utils'
@@ -15,6 +20,7 @@ export function AvatarUploader<T extends FieldValues>({
   /** Shown when no image is set — e.g. the user's initial. */
   fallback?: string
 }) {
+  const { t } = useTranslation('settings')
   const ref = useRef<HTMLInputElement | null>(null)
   const { field } = useController(props)
   const { data: settings, updateSettings } = useSettings()
@@ -53,14 +59,14 @@ export function AvatarUploader<T extends FieldValues>({
         type="file"
         accept="image/*"
         id="user-avatar"
-        aria-label="Upload your avatar"
+        aria-label={t('profile.avatar.uploadLabel')}
         className="absolute inset-0 z-10 size-full cursor-pointer opacity-0"
         onChange={handleEditorChange}
       />
       {field.value ? (
         <img
           src={field.value}
-          alt="Your avatar"
+          alt={t('profile.avatar.alt')}
           className="size-full rounded-full object-cover"
         />
       ) : fallback ? (

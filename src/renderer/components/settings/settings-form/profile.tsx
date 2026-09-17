@@ -86,7 +86,7 @@ const CELL_PX = 10 // cell width/height
 const CELL_GAP_PX = 4 // gap between cells (and between columns)
 
 export function Profile({ form }: { form: UseFormReturnType }) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation(['common', 'settings'])
   const { data: settings } = useSettings()
   const { data: usage } = useSWR<UsageSummary>('/api/usage')
   const { data: chats } = useSWR<{ id: string }[]>('/api/history')
@@ -147,6 +147,7 @@ export function Profile({ form }: { form: UseFormReturnType }) {
   }, [byDay, mode])
 
   const nickname = settings?.personality?.nickname?.trim()
+  const you = t('state.you')
 
   return (
     <div className="flex flex-col gap-8">
@@ -155,10 +156,10 @@ export function Profile({ form }: { form: UseFormReturnType }) {
         <AvatarUploader
           props={{ control: form.control, name: 'userAvatar' }}
           className="size-20"
-          fallback={(nickname ?? 'You').slice(0, 1).toUpperCase()}
+          fallback={(nickname ?? you).slice(0, 1).toUpperCase()}
         />
         <div className="flex flex-col items-center gap-1">
-          <h2 className="text-lg font-semibold">{nickname ?? 'You'}</h2>
+          <h2 className="text-lg font-semibold">{nickname ?? you}</h2>
           <Badge variant="secondary" className="text-xs font-normal">
             {t('state.runOnLocal')}
           </Badge>
@@ -169,17 +170,28 @@ export function Profile({ form }: { form: UseFormReturnType }) {
       <Card className="[&>*:not(:last-child)]:border-border grid grid-cols-2 gap-0 py-0 sm:grid-cols-4 [&>*:not(:last-child)]:border-r">
         <Stat
           value={compact(usage?.totalTokens ?? 0)}
-          label="Lifetime tokens"
+          label={t('settings:profile.stats.lifetimeTokens')}
         />
-        <Stat value={compact(peak)} label="Peak day" />
-        <Stat value={`${streaks.current}d`} label="Current streak" />
-        <Stat value={`${streaks.longest}d`} label="Longest streak" />
+        <Stat
+          value={compact(peak)}
+          label={t('settings:profile.stats.peakDay')}
+        />
+        <Stat
+          value={`${streaks.current}d`}
+          label={t('settings:profile.stats.currentStreak')}
+        />
+        <Stat
+          value={`${streaks.longest}d`}
+          label={t('settings:profile.stats.longestStreak')}
+        />
       </Card>
 
       {/* Token activity heatmap */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-medium">Token activity</h2>
+          <h2 className="text-sm font-medium">
+            {t('settings:profile.activity.heading')}
+          </h2>
           <div className="text-muted-foreground flex gap-3 text-xs">
             {(['daily', 'cumulative'] as const).map((m) => (
               <button
@@ -191,7 +203,9 @@ export function Profile({ form }: { form: UseFormReturnType }) {
                   mode === m && 'text-foreground font-medium'
                 )}
               >
-                {m}
+                {m === 'daily'
+                  ? t('settings:profile.activity.mode.daily')
+                  : t('settings:profile.activity.mode.cumulative')}
               </button>
             ))}
           </div>
@@ -221,7 +235,10 @@ export function Profile({ form }: { form: UseFormReturnType }) {
               {grid.map((cell) => (
                 <div
                   key={cell.date}
-                  title={`${cell.date} · ${compact(cell.tokens)} tokens`}
+                  title={t('settings:profile.activity.cellTooltip', {
+                    date: cell.date,
+                    count: compact(cell.tokens)
+                  })}
                   className={cn('rounded-xs', HEAT[cell.level])}
                   style={{ width: CELL_PX, height: CELL_PX }}
                 />
@@ -233,23 +250,26 @@ export function Profile({ form }: { form: UseFormReturnType }) {
 
       {/* Insights */}
       <div className="grid gap-6 sm:grid-cols-2">
-        <SettingsSection title="Activity insights">
-          <InsightRow label="Total chats" value={String(chats?.length ?? 0)} />
+        <SettingsSection title={t('settings:profile.insights.sectionTitle')}>
           <InsightRow
-            label="Model requests"
+            label={t('settings:profile.insights.totalChats')}
+            value={String(chats?.length ?? 0)}
+          />
+          <InsightRow
+            label={t('settings:profile.insights.modelRequests')}
             value={compact(usage?.totalRequests ?? 0)}
           />
           <InsightRow
-            label="Installed skills"
+            label={t('settings:profile.insights.installedSkills')}
             value={String(skills?.length ?? 0)}
           />
           <InsightRow
-            label="Active skills"
+            label={t('settings:profile.insights.activeSkills')}
             value={String(skills?.filter((s) => s.isActive).length ?? 0)}
           />
         </SettingsSection>
 
-        <SettingsSection title="Top models">
+        <SettingsSection title={t('settings:profile.topModels.sectionTitle')}>
           {usage?.models?.length ? (
             usage.models
               .slice(0, 5)
@@ -262,7 +282,7 @@ export function Profile({ form }: { form: UseFormReturnType }) {
               ))
           ) : (
             <p className="text-muted-foreground px-4 py-6 text-center text-sm">
-              No model usage yet
+              {t('settings:profile.topModels.empty')}
             </p>
           )}
         </SettingsSection>

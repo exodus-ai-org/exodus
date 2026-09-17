@@ -15,7 +15,8 @@
   "state": {
     "loading": "Loading…",
     "local": "Local",
-    "runOnLocal": "Run on local"
+    "runOnLocal": "Run on local",
+    "you": "You"
   },
   "nav": {
     "settings": "Settings"

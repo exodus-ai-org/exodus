@@ -39,4 +39,13 @@ describe('common.json (Phase 2 additions)', () => {
   it('still has the state keys from Phase 1', () => {
     expect(common.state).toMatchObject({ loading: 'Loading…', local: 'Local' })
   })
+  it('has the state.runOnLocal / state.you keys (added alongside NavFooter/Profile fixes)', () => {
+    expect(common.state).toMatchObject({
+      runOnLocal: 'Run on local',
+      you: 'You'
+    })
+  })
+  it('has the nav.settings key (added alongside the NavFooter dropdown redesign)', () => {
+    expect(common.nav).toMatchObject({ settings: 'Settings' })
+  })
 })
