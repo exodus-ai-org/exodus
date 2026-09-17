@@ -1515,6 +1515,19 @@ git commit -m "feat(i18n): translate the Web Search tool-config panel"
 
 ## Task 5: Voice tab
 
+> **SUPERSEDED — structural detail only, the catalog/indices below are
+> correct.** This task's alert has only one child (`<strong>`, allowlisted,
+> matched by tag name, position-independent), so it was never at risk of
+> the numbered-placeholder bug Task 6 hit — but per Task 6's own fix and
+> its re-reviewer's explicit recommendation, this alert was ALSO later
+> extracted into its own exported component (`OpenAiOnlyNotice`, not
+> inlined into `Voice`'s JSX as Step 1 below shows) in a follow-up commit
+> (`035e2440`), and Step 3's test was updated to import and render it
+> directly instead of hand-copying its children into `createElement()`
+> calls. See Task 6's own superseded-note for the full story. Read the
+> current `voice.tsx`/test file directly rather than transcribing Steps
+> 1/3 below if you need the exact current shape.
+
 **Files:**
 
 - Modify: `src/renderer/components/settings/settings-form/voice.tsx` (full rewrite — clean file)
@@ -1903,6 +1916,42 @@ git commit -m "feat(i18n): translate the Voice settings tab"
 ---
 
 ## Task 6: Amazon S3 tab
+
+> **SUPERSEDED — do not transcribe this task's Step 1/2/3 code verbatim.**
+> This plan's own pre-verification of the S3 alert's `<Trans>` blocks was
+> wrong: the empirically-checked catalog indices below (`<2>`/`<4>` for
+> `cors`, `iamCredentials`, and `objectAcl`) matched the JSX as drafted
+> during planning, but the pre-commit hook's `oxfmt` reflowed the actual
+> committed `s3.tsx`, inserting/repositioning `{' '}` whitespace
+> expressions that shifted `<Trans>`'s positional numbering — and this
+> task's own Step 3 tests (a hand-copied children array) didn't catch it,
+> because they verified the copy, not the real source. The bug shipped in
+> commit `1fc47009` with a fully green test suite and was caught only by
+> a post-commit manual render check, then fixed in `7867ef4f`.
+>
+> The ACTUAL correct, shipped state (verify against the real files, not
+> this document, if the two ever disagree again):
+>
+> - `cors`: `<2>PUT</2>` / `<5>*</5>` (not `<4>`)
+> - `iamCredentials`: `<2>s3:PutObject</2>` / `<5>s3:PutObjectAcl</5>` (not `<4>`)
+> - `objectAcl`: `<3>public-read</3>` / `<6>...</6>` (not `<2>`/`<4>`)
+> - `publicReadAccess`'s `<2>`/`<4>` below happened to already be correct.
+> - Each `<Trans>` block is a separate EXPORTED component in `s3.tsx`
+>   (`EncodingNotice`, `RequirementsHeading`, `PublicReadAccessNotice`,
+>   `CorsNotice`, `IamCredentialsNotice`, `ObjectAclNotice`), not inlined
+>   into `S3`'s JSX as Step 1 below shows — this is what actually let the
+>   fix's tests catch the bug: they import and render the real component
+>   (`await import('@/components/settings/settings-form/s3')`) instead of
+>   hand-copying its children array into `createElement()` calls the way
+>   Step 3 below does.
+>
+> If you ever need to redo work like this task's, don't transcribe Steps
+> 1-3 below — read the current `s3.tsx`/`settings.json`/test file
+> directly, and follow the exported-component-plus-real-render-test
+> pattern from the start. The general indexing rule in this plan's
+> Architecture section above (children arrays are indexed by full
+> position including text nodes and explicit `{' '}`) is correct; only
+> this task's own concrete transcription of it was wrong.
 
 **Files:**
 
