@@ -19,6 +19,7 @@ import {
   MicIcon,
   CompassIcon
 } from 'lucide-react'
+import type { ParseKeys } from 'i18next'
 
 export enum SettingsLabel {
   Profile = 'Profile',
@@ -44,13 +45,51 @@ export enum SettingsLabel {
 
 export type SettingsPage = SettingsLabel
 
+/**
+ * i18n key for each tab's display title, keyed by the same stable
+ * `SettingsLabel` identifier already used for comparisons and deep-link
+ * slugs (`SETTINGS_TAB_SLUGS` in `use-settings-tab.ts`). `SettingsLabel`'s
+ * own string VALUES stay English display text used only as internal
+ * comparison identifiers (`activeTitle === SettingsLabel.Profile` etc,
+ * throughout the settings tree) — they are never rendered directly;
+ * `settings-form.tsx` and `settings-sidebar.tsx` render
+ * `t(NAV_TITLE_KEYS[label])` instead. `as const satisfies Record<...>`
+ * keeps every value's exact literal key type (so
+ * `t(NAV_TITLE_KEYS[x])` type-checks with no cast) while still forcing a
+ * compile error if a member is missing or a key doesn't exist in the
+ * catalog.
+ */
+export const NAV_TITLE_KEYS = {
+  [SettingsLabel.Profile]: 'nav.profile.title',
+  [SettingsLabel.General]: 'nav.general.title',
+  [SettingsLabel.Personality]: 'nav.personality.title',
+  [SettingsLabel.AiProviders]: 'nav.aiProviders.title',
+  [SettingsLabel.AmazonS3]: 'nav.amazonS3.title',
+  [SettingsLabel.McpServers]: 'nav.mcpServers.title',
+  [SettingsLabel.SkillsMarket]: 'nav.skillsMarket.title',
+  [SettingsLabel.FullTextSearch]: 'nav.fullTextSearch.title',
+  [SettingsLabel.KnowledgeBase]: 'nav.knowledgeBase.title',
+  [SettingsLabel.BuiltinTools]: 'nav.builtinTools.title',
+  [SettingsLabel.Memory]: 'nav.memory.title',
+  [SettingsLabel.Discover]: 'nav.discover.title',
+  [SettingsLabel.Voice]: 'nav.voice.title',
+  [SettingsLabel.DeepResearch]: 'nav.deepResearch.title',
+  [SettingsLabel.ComputerUse]: 'nav.computerUse.title',
+  [SettingsLabel.DataControls]: 'nav.dataControls.title',
+  [SettingsLabel.Logger]: 'nav.logger.title',
+  [SettingsLabel.KeyboardShortcuts]: 'nav.keyboardShortcuts.title',
+  [SettingsLabel.AboutExodus]: 'nav.about.title'
+} as const satisfies Record<SettingsLabel, ParseKeys<'settings'>>
+
 // Flat menu — every entry is a top-level page. The content-side Cards provide
 // the visual grouping, so the sidebar has no expandable second level. The final
 // group has no label — it holds "About Exodus", pinned to the bottom.
+// `label` holds a settings.json key path (empty string for the unlabeled
+// group), not display text — settings-sidebar.tsx renders `t(group.label)`.
 export const menus = {
   navMain: [
     {
-      label: 'Personal',
+      label: 'nav.group.personal',
       items: [
         { title: SettingsLabel.General, icon: CogIcon },
         { title: SettingsLabel.Profile, icon: CircleUserRoundIcon },
@@ -62,7 +101,7 @@ export const menus = {
       ]
     },
     {
-      label: 'AI & Tools',
+      label: 'nav.group.aiTools',
       items: [
         { title: SettingsLabel.AiProviders, icon: HandCoinsIcon },
         { title: SettingsLabel.BuiltinTools, icon: WrenchIcon },
@@ -73,7 +112,7 @@ export const menus = {
       // External, connection-backed capabilities: search backends, the
       // knowledge base, the computer-use sandbox, MCP connectors, the skills
       // marketplace.
-      label: 'Integrations',
+      label: 'nav.group.integrations',
       items: [
         { title: SettingsLabel.FullTextSearch, icon: TextSearch },
         { title: SettingsLabel.KnowledgeBase, icon: NetworkIcon },
@@ -84,14 +123,14 @@ export const menus = {
     },
     {
       // Where the user's data lives and how it moves in and out.
-      label: 'Storage',
+      label: 'nav.group.storage',
       items: [
         { title: SettingsLabel.DataControls, icon: DatabaseIcon },
         { title: SettingsLabel.AmazonS3, icon: CloudIcon }
       ]
     },
     {
-      label: 'Developer',
+      label: 'nav.group.developer',
       items: [{ title: SettingsLabel.Logger, icon: ScrollTextIcon }]
     },
     {
@@ -99,4 +138,4 @@ export const menus = {
       items: [{ title: SettingsLabel.AboutExodus, icon: InfoIcon }]
     }
   ]
-}
+} as const

@@ -5,5 +5,33 @@
       "description": "The language Exodus's interface is shown in.",
       "auto": "Auto (detect from system)"
     }
+  },
+  "nav": {
+    "profile": { "title": "Profile" },
+    "general": { "title": "General" },
+    "personality": { "title": "Personality" },
+    "aiProviders": { "title": "AI Providers" },
+    "amazonS3": { "title": "AWS S3" },
+    "mcpServers": { "title": "MCP Servers" },
+    "skillsMarket": { "title": "Skills Market" },
+    "fullTextSearch": { "title": "Full Text Search" },
+    "knowledgeBase": { "title": "Knowledge Base" },
+    "builtinTools": { "title": "Built-in Tools" },
+    "memory": { "title": "Memory" },
+    "discover": { "title": "Discover" },
+    "voice": { "title": "Voice" },
+    "deepResearch": { "title": "Deep Research" },
+    "computerUse": { "title": "Computer Use" },
+    "dataControls": { "title": "Data Controls" },
+    "logger": { "title": "Logger" },
+    "keyboardShortcuts": { "title": "Keyboard Shortcuts" },
+    "about": { "title": "About Exodus" },
+    "group": {
+      "personal": "Personal",
+      "aiTools": "AI & Tools",
+      "integrations": "Integrations",
+      "storage": "Storage",
+      "developer": "Developer"
+    }
   }
 }
