@@ -141,4 +141,24 @@ describe('settings namespace (en)', () => {
       'Automatically download and install updates when available'
     )
   })
+
+  it('has the updater panel keys for every state', () => {
+    expect(settings.about.update.checkPrompt).toBe(
+      'Check for the latest version'
+    )
+    expect(settings.about.update.checkButton).toBe('Check for Updates')
+    expect(settings.about.update.checking).toBe('Checking for updates…')
+    expect(settings.about.update.upToDate).toBe("You're on the latest version")
+    expect(settings.about.update.checkAgain).toBe('Check again')
+    expect(settings.about.update.available).toBe('Update available')
+    expect(settings.about.update.availableVersion).toBe('Version {{version}}')
+    expect(settings.about.update.download).toBe('Download')
+    expect(settings.about.update.downloading).toBe('Downloading update…')
+    expect(settings.about.update.ready).toBe('Update ready to install')
+    expect(settings.about.update.readyDescription).toBe(
+      'Restart to apply the update'
+    )
+    expect(settings.about.update.restartAndInstall).toBe('Restart & Install')
+    expect(settings.about.update.failed).toBe('Update failed')
+  })
 })

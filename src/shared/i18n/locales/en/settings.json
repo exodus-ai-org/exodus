@@ -88,6 +88,21 @@
     "autoUpdate": {
       "label": "Auto Update",
       "description": "Automatically download and install updates when available"
+    },
+    "update": {
+      "checkPrompt": "Check for the latest version",
+      "checkButton": "Check for Updates",
+      "checking": "Checking for updates…",
+      "upToDate": "You're on the latest version",
+      "checkAgain": "Check again",
+      "available": "Update available",
+      "availableVersion": "Version {{version}}",
+      "download": "Download",
+      "downloading": "Downloading update…",
+      "ready": "Update ready to install",
+      "readyDescription": "Restart to apply the update",
+      "restartAndInstall": "Restart & Install",
+      "failed": "Update failed"
     }
   }
 }
