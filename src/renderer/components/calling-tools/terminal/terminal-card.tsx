@@ -1,4 +1,5 @@
 import { CheckCircle2Icon, TerminalIcon, XCircleIcon } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { cn } from '@/lib/utils'
 
@@ -11,6 +12,7 @@ interface TerminalResult {
 }
 
 export function TerminalCard({ toolResult }: { toolResult: TerminalResult }) {
+  const { t } = useTranslation('chat')
   const success = toolResult.exitCode === 0
   const hasOutput = toolResult.stdout.length > 0
   const hasError = toolResult.stderr.length > 0
@@ -34,7 +36,7 @@ export function TerminalCard({ toolResult }: { toolResult: TerminalResult }) {
             success ? 'text-green-500' : 'text-destructive'
           )}
         >
-          exit {toolResult.exitCode}
+          {t('terminalCard.exitCode', { code: toolResult.exitCode })}
         </span>
       </div>
 
@@ -62,7 +64,9 @@ export function TerminalCard({ toolResult }: { toolResult: TerminalResult }) {
 
       {/* empty output */}
       {!hasOutput && !hasError && (
-        <div className="text-muted-foreground px-3 py-2 italic">No output</div>
+        <div className="text-muted-foreground px-3 py-2 italic">
+          {t('terminalCard.noOutput')}
+        </div>
       )}
 
       {/* cwd hint */}
