@@ -235,5 +235,67 @@
       "fetchErrorTitle": "Could not fetch model list",
       "fetchErrorFallback": "Failed to fetch model list"
     }
+  },
+  "tools": {
+    "groups": {
+      "web": "Web",
+      "fileSystem": "File System",
+      "aiData": "AI & Data",
+      "maps": "Maps"
+    },
+    "registry": {
+      "weather": {
+        "label": "Weather",
+        "description": "Look up current weather and forecasts by location"
+      },
+      "webSearch": {
+        "label": "Web Search",
+        "description": "Search the web via Brave Search API (requires API key)"
+      },
+      "webFetch": {
+        "label": "Web Fetch",
+        "description": "Fetch the content of a URL (docs, APIs, GitHub files)"
+      },
+      "terminal": {
+        "label": "Terminal",
+        "description": "Execute shell commands on your machine"
+      },
+      "readFile": {
+        "label": "Read File",
+        "description": "Read file contents by path"
+      },
+      "writeFile": {
+        "label": "Write File",
+        "description": "Create or overwrite files"
+      },
+      "editFile": {
+        "label": "Edit File",
+        "description": "Targeted string replacement in existing files"
+      },
+      "listDirectory": {
+        "label": "List Directory",
+        "description": "List files and folders in a directory"
+      },
+      "findFiles": {
+        "label": "Find Files",
+        "description": "Search for files by glob pattern"
+      },
+      "grep": {
+        "label": "Grep",
+        "description": "Search file contents by regex pattern"
+      },
+      "imageGeneration": {
+        "label": "Image Generation",
+        "description": "Generate images via DALL-E (requires OpenAI API key)"
+      },
+      "searchKnowledgeBase": {
+        "label": "Knowledge Base",
+        "description": "Retrieve context from your knowledge base (requires a configured LightRAG URL)"
+      },
+      "mapItinerary": {
+        "label": "Map Itinerary",
+        "description": "Render places, routes, and multi-day trips on a single interactive map card"
+      }
+    }
   }
 }

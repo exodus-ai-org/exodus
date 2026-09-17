@@ -309,4 +309,67 @@ describe('settings namespace (en)', () => {
       'Failed to fetch model list'
     )
   })
+
+  it('has the tools registry and group-title keys', () => {
+    expect(settings.tools.groups).toMatchObject({
+      web: 'Web',
+      fileSystem: 'File System',
+      aiData: 'AI & Data',
+      maps: 'Maps'
+    })
+    expect(settings.tools.registry.weather).toMatchObject({
+      label: 'Weather',
+      description: 'Look up current weather and forecasts by location'
+    })
+    expect(settings.tools.registry.webSearch).toMatchObject({
+      label: 'Web Search',
+      description: 'Search the web via Brave Search API (requires API key)'
+    })
+    expect(settings.tools.registry.webFetch).toMatchObject({
+      label: 'Web Fetch',
+      description: 'Fetch the content of a URL (docs, APIs, GitHub files)'
+    })
+    expect(settings.tools.registry.terminal).toMatchObject({
+      label: 'Terminal',
+      description: 'Execute shell commands on your machine'
+    })
+    expect(settings.tools.registry.readFile).toMatchObject({
+      label: 'Read File',
+      description: 'Read file contents by path'
+    })
+    expect(settings.tools.registry.writeFile).toMatchObject({
+      label: 'Write File',
+      description: 'Create or overwrite files'
+    })
+    expect(settings.tools.registry.editFile).toMatchObject({
+      label: 'Edit File',
+      description: 'Targeted string replacement in existing files'
+    })
+    expect(settings.tools.registry.listDirectory).toMatchObject({
+      label: 'List Directory',
+      description: 'List files and folders in a directory'
+    })
+    expect(settings.tools.registry.findFiles).toMatchObject({
+      label: 'Find Files',
+      description: 'Search for files by glob pattern'
+    })
+    expect(settings.tools.registry.grep).toMatchObject({
+      label: 'Grep',
+      description: 'Search file contents by regex pattern'
+    })
+    expect(settings.tools.registry.imageGeneration).toMatchObject({
+      label: 'Image Generation',
+      description: 'Generate images via DALL-E (requires OpenAI API key)'
+    })
+    expect(settings.tools.registry.searchKnowledgeBase).toMatchObject({
+      label: 'Knowledge Base',
+      description:
+        'Retrieve context from your knowledge base (requires a configured LightRAG URL)'
+    })
+    expect(settings.tools.registry.mapItinerary).toMatchObject({
+      label: 'Map Itinerary',
+      description:
+        'Render places, routes, and multi-day trips on a single interactive map card'
+    })
+  })
 })

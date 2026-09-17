@@ -1,7 +1,14 @@
-import { TOOL_GROUPS, TOOL_REGISTRY, ToolGroup } from '@shared/constants/tools'
+import {
+  GROUP_TITLE_KEYS,
+  TOOL_GROUPS,
+  TOOL_REGISTRY,
+  ToolGroup
+} from '@shared/constants/tools'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
+import type { ParseKeys } from 'i18next'
 import { ChevronRightIcon } from 'lucide-react'
 import { useWatch } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 
 import {
   Collapsible,
@@ -27,27 +34,30 @@ const TOOL_CONFIG: Record<
 
 function ToolRow({
   toolKey,
-  label,
-  description,
+  labelKey,
+  descriptionKey,
   enabled,
   onToggle,
   form
 }: {
   toolKey: string
-  label: string
-  description: string
+  labelKey: ParseKeys<'settings'>
+  descriptionKey: ParseKeys<'settings'>
   enabled: boolean
   onToggle: (enabled: boolean) => void
   form: UseFormReturnType
 }) {
+  const { t } = useTranslation('settings')
   const Config = TOOL_CONFIG[toolKey]
 
   if (!Config) {
     return (
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <div className="text-sm font-medium">{label}</div>
-          <p className="text-muted-foreground mt-0.5 text-sm">{description}</p>
+          <div className="text-sm font-medium">{t(labelKey)}</div>
+          <p className="text-muted-foreground mt-0.5 text-sm">
+            {t(descriptionKey)}
+          </p>
         </div>
         <Switch
           checked={enabled}
@@ -64,10 +74,10 @@ function ToolRow({
         <div className="min-w-0">
           <CollapsibleTrigger className="group/ct -ml-1 flex items-center gap-1 rounded text-left">
             <ChevronRightIcon className="text-muted-foreground size-3.5 shrink-0 transition-transform duration-200 group-data-panel-open/ct:rotate-90" />
-            <span className="text-sm font-medium">{label}</span>
+            <span className="text-sm font-medium">{t(labelKey)}</span>
           </CollapsibleTrigger>
           <p className="text-muted-foreground mt-0.5 pl-[18px] text-sm">
-            {description}
+            {t(descriptionKey)}
           </p>
         </div>
         <Switch
@@ -86,6 +96,7 @@ function ToolRow({
 }
 
 export function Tools({ form }: { form: UseFormReturnType }) {
+  const { t } = useTranslation('settings')
   const disabledTools: string[] =
     useWatch({ control: form.control, name: 'tools.disabledTools' }) ?? []
 
@@ -106,13 +117,13 @@ export function Tools({ form }: { form: UseFormReturnType }) {
   return (
     <div className="flex flex-col gap-6">
       {grouped.map(({ group, tools }) => (
-        <SettingsSection key={group} title={group}>
+        <SettingsSection key={group} title={t(GROUP_TITLE_KEYS[group])}>
           {tools.map((tool) => (
             <ToolRow
               key={tool.key}
               toolKey={tool.key}
-              label={tool.label}
-              description={tool.description}
+              labelKey={tool.labelKey}
+              descriptionKey={tool.descriptionKey}
               enabled={!disabledTools.includes(tool.key)}
               onToggle={(checked) => toggle(tool.key, checked)}
               form={form}

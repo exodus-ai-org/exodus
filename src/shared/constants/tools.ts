@@ -1,7 +1,9 @@
+import type { ParseKeys } from 'i18next'
+
 export interface ToolMeta {
   key: string
-  label: string
-  description: string
+  labelKey: ParseKeys<'settings'>
+  descriptionKey: ParseKeys<'settings'>
   group: ToolGroup
 }
 
@@ -11,88 +13,86 @@ export const TOOL_REGISTRY: ToolMeta[] = [
   // Web
   {
     key: 'weather',
-    label: 'Weather',
-    description: 'Look up current weather and forecasts by location',
+    labelKey: 'tools.registry.weather.label',
+    descriptionKey: 'tools.registry.weather.description',
     group: 'Web'
   },
   {
     key: 'webSearch',
-    label: 'Web Search',
-    description: 'Search the web via Brave Search API (requires API key)',
+    labelKey: 'tools.registry.webSearch.label',
+    descriptionKey: 'tools.registry.webSearch.description',
     group: 'Web'
   },
   {
     key: 'webFetch',
-    label: 'Web Fetch',
-    description: 'Fetch the content of a URL (docs, APIs, GitHub files)',
+    labelKey: 'tools.registry.webFetch.label',
+    descriptionKey: 'tools.registry.webFetch.description',
     group: 'Web'
   },
 
   // File System
   {
     key: 'terminal',
-    label: 'Terminal',
-    description: 'Execute shell commands on your machine',
+    labelKey: 'tools.registry.terminal.label',
+    descriptionKey: 'tools.registry.terminal.description',
     group: 'File System'
   },
   {
     key: 'readFile',
-    label: 'Read File',
-    description: 'Read file contents by path',
+    labelKey: 'tools.registry.readFile.label',
+    descriptionKey: 'tools.registry.readFile.description',
     group: 'File System'
   },
   {
     key: 'writeFile',
-    label: 'Write File',
-    description: 'Create or overwrite files',
+    labelKey: 'tools.registry.writeFile.label',
+    descriptionKey: 'tools.registry.writeFile.description',
     group: 'File System'
   },
   {
     key: 'editFile',
-    label: 'Edit File',
-    description: 'Targeted string replacement in existing files',
+    labelKey: 'tools.registry.editFile.label',
+    descriptionKey: 'tools.registry.editFile.description',
     group: 'File System'
   },
   {
     key: 'listDirectory',
-    label: 'List Directory',
-    description: 'List files and folders in a directory',
+    labelKey: 'tools.registry.listDirectory.label',
+    descriptionKey: 'tools.registry.listDirectory.description',
     group: 'File System'
   },
   {
     key: 'findFiles',
-    label: 'Find Files',
-    description: 'Search for files by glob pattern',
+    labelKey: 'tools.registry.findFiles.label',
+    descriptionKey: 'tools.registry.findFiles.description',
     group: 'File System'
   },
   {
     key: 'grep',
-    label: 'Grep',
-    description: 'Search file contents by regex pattern',
+    labelKey: 'tools.registry.grep.label',
+    descriptionKey: 'tools.registry.grep.description',
     group: 'File System'
   },
 
   // AI & Data
   {
     key: 'imageGeneration',
-    label: 'Image Generation',
-    description: 'Generate images via DALL-E (requires OpenAI API key)',
+    labelKey: 'tools.registry.imageGeneration.label',
+    descriptionKey: 'tools.registry.imageGeneration.description',
     group: 'AI & Data'
   },
   {
     key: 'searchKnowledgeBase',
-    label: 'Knowledge Base',
-    description:
-      'Retrieve context from your knowledge base (requires a configured LightRAG URL)',
+    labelKey: 'tools.registry.searchKnowledgeBase.label',
+    descriptionKey: 'tools.registry.searchKnowledgeBase.description',
     group: 'AI & Data'
   },
 
   // Maps
   {
     key: 'mapItinerary',
-    label: 'Map Itinerary',
-    description:
-      'Render places, routes, and multi-day trips on a single interactive map card',
+    labelKey: 'tools.registry.mapItinerary.label',
+    descriptionKey: 'tools.registry.mapItinerary.description',
     group: 'Maps'
   }
 ]
@@ -103,3 +103,16 @@ export const TOOL_GROUPS: ToolGroup[] = [
   'AI & Data',
   'Maps'
 ]
+
+/**
+ * i18n key for each group's section title, keyed by `ToolGroup` the same
+ * way `settings-menu.ts`'s `NAV_TITLE_KEYS` keys off `SettingsLabel` —
+ * `as const satisfies Record<...>` keeps each value's exact literal key
+ * type so `t(GROUP_TITLE_KEYS[group])` type-checks with no cast.
+ */
+export const GROUP_TITLE_KEYS = {
+  Web: 'tools.groups.web',
+  'File System': 'tools.groups.fileSystem',
+  'AI & Data': 'tools.groups.aiData',
+  Maps: 'tools.groups.maps'
+} as const satisfies Record<ToolGroup, ParseKeys<'settings'>>
