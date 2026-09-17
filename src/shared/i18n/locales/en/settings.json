@@ -104,5 +104,45 @@
       "restartAndInstall": "Restart & Install",
       "failed": "Update failed"
     }
+  },
+  "personality": {
+    "baseStyle": {
+      "label": "Base style and tone",
+      "description": "Set the style and tone of how Exodus responds to you",
+      "options": {
+        "default": "Default",
+        "professional": "Professional",
+        "friendly": "Friendly",
+        "candid": "Candid",
+        "quirky": "Quirky",
+        "efficient": "Efficient",
+        "cynical": "Cynical"
+      }
+    },
+    "level": {
+      "default": "Default",
+      "more": "More",
+      "less": "Less"
+    },
+    "warm": "Warm",
+    "enthusiastic": "Enthusiastic",
+    "headersAndLists": "Headers & Lists",
+    "emoji": "Emoji",
+    "customInstructions": {
+      "label": "Custom instructions",
+      "placeholder": "Additional behavior, style, and tone preferences"
+    },
+    "nickname": {
+      "label": "Nickname",
+      "placeholder": "What should Exodus call you?"
+    },
+    "occupation": {
+      "label": "Occupation",
+      "placeholder": "e.g., Software engineer, Designer"
+    },
+    "aboutYou": {
+      "label": "More about you",
+      "placeholder": "Interests, values, or preferences to keep in mind"
+    }
   }
 }

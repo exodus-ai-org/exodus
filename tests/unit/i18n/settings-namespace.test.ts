@@ -161,4 +161,47 @@ describe('settings namespace (en)', () => {
     expect(settings.about.update.restartAndInstall).toBe('Restart & Install')
     expect(settings.about.update.failed).toBe('Update failed')
   })
+
+  it('has the Personality tab keys', () => {
+    expect(settings.personality.baseStyle.label).toBe('Base style and tone')
+    expect(settings.personality.baseStyle.description).toBe(
+      'Set the style and tone of how Exodus responds to you'
+    )
+    expect(settings.personality.baseStyle.options).toMatchObject({
+      default: 'Default',
+      professional: 'Professional',
+      friendly: 'Friendly',
+      candid: 'Candid',
+      quirky: 'Quirky',
+      efficient: 'Efficient',
+      cynical: 'Cynical'
+    })
+    expect(settings.personality.level).toMatchObject({
+      default: 'Default',
+      more: 'More',
+      less: 'Less'
+    })
+    expect(settings.personality.warm).toBe('Warm')
+    expect(settings.personality.enthusiastic).toBe('Enthusiastic')
+    expect(settings.personality.headersAndLists).toBe('Headers & Lists')
+    expect(settings.personality.emoji).toBe('Emoji')
+    expect(settings.personality.customInstructions.label).toBe(
+      'Custom instructions'
+    )
+    expect(settings.personality.customInstructions.placeholder).toBe(
+      'Additional behavior, style, and tone preferences'
+    )
+    expect(settings.personality.nickname.label).toBe('Nickname')
+    expect(settings.personality.nickname.placeholder).toBe(
+      'What should Exodus call you?'
+    )
+    expect(settings.personality.occupation.label).toBe('Occupation')
+    expect(settings.personality.occupation.placeholder).toBe(
+      'e.g., Software engineer, Designer'
+    )
+    expect(settings.personality.aboutYou.label).toBe('More about you')
+    expect(settings.personality.aboutYou.placeholder).toBe(
+      'Interests, values, or preferences to keep in mind'
+    )
+  })
 })
