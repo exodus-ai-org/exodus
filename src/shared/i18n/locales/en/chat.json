@@ -83,5 +83,102 @@
   "upload": {
     "failedTitle": "Upload failed",
     "failedDescription": "Failed to upload files."
+  },
+  "artifactCard": {
+    "cannotOpenTitle": "Cannot open artifact file",
+    "missingFileDescription": "The saved .tsx file is missing — it may have been moved or deleted.",
+    "resolveFailedDescription": "Could not resolve the artifact path.",
+    "revealAriaLabel": "Reveal {{title}} in file manager",
+    "revealTitle": "Reveal in file manager",
+    "exitFullscreen": "Exit fullscreen",
+    "enterFullscreen": "Enter fullscreen",
+    "exitFullscreenEsc": "Exit fullscreen (Esc)",
+    "fullscreen": "Fullscreen"
+  },
+  "computerUseCard": {
+    "title": "Computer Use",
+    "stopFailedTitle": "Could not stop the session",
+    "stopFailedDescription": "The stop request failed — try again.",
+    "answerFailedTitle": "Could not send your answer",
+    "answerFailedDescription": "The request failed — try again.",
+    "error": "error",
+    "running": "running…",
+    "outcome": {
+      "success": "success",
+      "failed": "failed",
+      "aborted": "aborted",
+      "abandoned": "abandoned",
+      "stuck": "stuck"
+    },
+    "stepBadge": "step {{step}}",
+    "stepWithAction": "Step {{step}}: {{action}}",
+    "stepNoAction": "Step {{step}}: …",
+    "targetWindowAlt": "Target window at step {{step}}",
+    "replyPlaceholder": "Type a reply, or leave blank when done",
+    "doneContinue": "Done — continue",
+    "waitingForReply": "Waiting for the session to accept a reply…",
+    "stop": "Stop",
+    "session": "session: {{sessionId}}"
+  },
+  "deepResearchCard": {
+    "researching": "Deep Researching...",
+    "completedSummary_one": "Research completed in {{minutes}}m · {{count}} source",
+    "completedSummary_other": "Research completed in {{minutes}}m · {{count}} sources",
+    "exportAriaLabel": "Export as PDF",
+    "downloadPdfTooltip": "Download PDF",
+    "exportFailedTitle": "Export failed",
+    "exportFailedDescription": "Failed to generate PDF report.",
+    "unknownSource": "[{{rank}}] Unknown source"
+  },
+  "drawioCard": {
+    "noSource": "Draw.io tool returned no diagram source.",
+    "iframeTitle": "draw.io diagram",
+    "openInDrawio": "Open in draw.io",
+    "loadFailed": "Failed to load draw.io editor"
+  },
+  "genericToolCard": {
+    "fallbackLabel": "Tool",
+    "badge": "tool"
+  },
+  "mapItineraryCard": {
+    "missingApiKey": "Add a Google API Key in Settings → Google Cloud to render the trip map.",
+    "tabsAriaLabel": "Itinerary days",
+    "openRouteTitle": "Open route in Google Maps",
+    "copyMarkdownTitle": "Copy day as markdown"
+  },
+  "placeDetail": {
+    "goToPhotoAriaLabel": "Go to photo {{index}}",
+    "closeAriaLabel": "Close detail panel",
+    "open": "Open",
+    "closed": "Closed",
+    "tabsAriaLabel": "Place sections",
+    "tabOverview": "Overview",
+    "tabReviews": "Reviews",
+    "tabHours": "Hours",
+    "notes": "Notes",
+    "anonymousReviewer": "Anonymous",
+    "previousAriaLabel": "Previous place",
+    "nextAriaLabel": "Next place",
+    "pagination": "{{index}} of {{total}}"
+  },
+  "terminalCard": {
+    "exitCode": "exit {{code}}",
+    "noOutput": "No output"
+  },
+  "weatherCard": {
+    "today": "Today",
+    "tomorrow": "Tmr",
+    "feels": "Feels {{temp}}° · {{observedAt}}",
+    "humidity": "Humidity",
+    "precip": "Precip",
+    "visibility": "Visibility",
+    "uvIndex": "UV Index"
+  },
+  "weatherForecast": {
+    "temperatureRange": "🌡️ Temperature range",
+    "cold": "❄️ Cold",
+    "hot": "🔥 Hot",
+    "sunrise": "Sunrise",
+    "sunset": "Sunset"
   }
 }

@@ -199,3 +199,165 @@ describe('chat namespace composerTools.mcpDialog.description renders correctly v
     )
   })
 })
+
+describe('chat namespace (en) — tool-card additions', () => {
+  it('has the artifactCard keys', () => {
+    expect(chat.artifactCard.cannotOpenTitle).toBe('Cannot open artifact file')
+    expect(chat.artifactCard.missingFileDescription).toBe(
+      'The saved .tsx file is missing — it may have been moved or deleted.'
+    )
+    expect(chat.artifactCard.resolveFailedDescription).toBe(
+      'Could not resolve the artifact path.'
+    )
+    expect(chat.artifactCard.revealAriaLabel).toBe(
+      'Reveal {{title}} in file manager'
+    )
+    expect(chat.artifactCard.revealTitle).toBe('Reveal in file manager')
+    expect(chat.artifactCard.exitFullscreen).toBe('Exit fullscreen')
+    expect(chat.artifactCard.enterFullscreen).toBe('Enter fullscreen')
+    expect(chat.artifactCard.exitFullscreenEsc).toBe('Exit fullscreen (Esc)')
+    expect(chat.artifactCard.fullscreen).toBe('Fullscreen')
+  })
+
+  it('has the computerUseCard keys, including the outcome enum', () => {
+    expect(chat.computerUseCard.title).toBe('Computer Use')
+    expect(chat.computerUseCard.stopFailedTitle).toBe(
+      'Could not stop the session'
+    )
+    expect(chat.computerUseCard.stopFailedDescription).toBe(
+      'The stop request failed — try again.'
+    )
+    expect(chat.computerUseCard.answerFailedTitle).toBe(
+      'Could not send your answer'
+    )
+    expect(chat.computerUseCard.answerFailedDescription).toBe(
+      'The request failed — try again.'
+    )
+    expect(chat.computerUseCard.error).toBe('error')
+    expect(chat.computerUseCard.running).toBe('running…')
+    expect(chat.computerUseCard.outcome.success).toBe('success')
+    expect(chat.computerUseCard.outcome.failed).toBe('failed')
+    expect(chat.computerUseCard.outcome.aborted).toBe('aborted')
+    expect(chat.computerUseCard.outcome.abandoned).toBe('abandoned')
+    expect(chat.computerUseCard.outcome.stuck).toBe('stuck')
+    expect(chat.computerUseCard.stepBadge).toBe('step {{step}}')
+    expect(chat.computerUseCard.stepWithAction).toBe(
+      'Step {{step}}: {{action}}'
+    )
+    expect(chat.computerUseCard.stepNoAction).toBe('Step {{step}}: …')
+    expect(chat.computerUseCard.targetWindowAlt).toBe(
+      'Target window at step {{step}}'
+    )
+    expect(chat.computerUseCard.replyPlaceholder).toBe(
+      'Type a reply, or leave blank when done'
+    )
+    expect(chat.computerUseCard.doneContinue).toBe('Done — continue')
+    expect(chat.computerUseCard.waitingForReply).toBe(
+      'Waiting for the session to accept a reply…'
+    )
+    expect(chat.computerUseCard.stop).toBe('Stop')
+    expect(chat.computerUseCard.session).toBe('session: {{sessionId}}')
+  })
+
+  it('has the deepResearchCard keys, including a CLDR plural pair', () => {
+    expect(chat.deepResearchCard.researching).toBe('Deep Researching...')
+    expect(chat.deepResearchCard.completedSummary_one).toBe(
+      'Research completed in {{minutes}}m · {{count}} source'
+    )
+    expect(chat.deepResearchCard.completedSummary_other).toBe(
+      'Research completed in {{minutes}}m · {{count}} sources'
+    )
+    expect(chat.deepResearchCard.exportAriaLabel).toBe('Export as PDF')
+    expect(chat.deepResearchCard.downloadPdfTooltip).toBe('Download PDF')
+    expect(chat.deepResearchCard.exportFailedTitle).toBe('Export failed')
+    expect(chat.deepResearchCard.exportFailedDescription).toBe(
+      'Failed to generate PDF report.'
+    )
+    expect(chat.deepResearchCard.unknownSource).toBe(
+      '[{{rank}}] Unknown source'
+    )
+  })
+
+  it('has the drawioCard keys', () => {
+    expect(chat.drawioCard.noSource).toBe(
+      'Draw.io tool returned no diagram source.'
+    )
+    expect(chat.drawioCard.iframeTitle).toBe('draw.io diagram')
+    expect(chat.drawioCard.openInDrawio).toBe('Open in draw.io')
+    expect(chat.drawioCard.loadFailed).toBe('Failed to load draw.io editor')
+  })
+
+  it('has the genericToolCard keys', () => {
+    expect(chat.genericToolCard.fallbackLabel).toBe('Tool')
+    expect(chat.genericToolCard.badge).toBe('tool')
+  })
+
+  it('has the mapItineraryCard keys', () => {
+    expect(chat.mapItineraryCard.missingApiKey).toBe(
+      'Add a Google API Key in Settings → Google Cloud to render the trip map.'
+    )
+    expect(chat.mapItineraryCard.tabsAriaLabel).toBe('Itinerary days')
+    expect(chat.mapItineraryCard.openRouteTitle).toBe(
+      'Open route in Google Maps'
+    )
+    expect(chat.mapItineraryCard.copyMarkdownTitle).toBe('Copy day as markdown')
+  })
+
+  it('has the placeDetail keys', () => {
+    expect(chat.placeDetail.goToPhotoAriaLabel).toBe('Go to photo {{index}}')
+    expect(chat.placeDetail.closeAriaLabel).toBe('Close detail panel')
+    expect(chat.placeDetail.open).toBe('Open')
+    expect(chat.placeDetail.closed).toBe('Closed')
+    expect(chat.placeDetail.tabsAriaLabel).toBe('Place sections')
+    expect(chat.placeDetail.tabOverview).toBe('Overview')
+    expect(chat.placeDetail.tabReviews).toBe('Reviews')
+    expect(chat.placeDetail.tabHours).toBe('Hours')
+    expect(chat.placeDetail.notes).toBe('Notes')
+    expect(chat.placeDetail.anonymousReviewer).toBe('Anonymous')
+    expect(chat.placeDetail.previousAriaLabel).toBe('Previous place')
+    expect(chat.placeDetail.nextAriaLabel).toBe('Next place')
+    expect(chat.placeDetail.pagination).toBe('{{index}} of {{total}}')
+  })
+
+  it('has the terminalCard keys', () => {
+    expect(chat.terminalCard.exitCode).toBe('exit {{code}}')
+    expect(chat.terminalCard.noOutput).toBe('No output')
+  })
+
+  it('has the weatherCard keys', () => {
+    expect(chat.weatherCard.today).toBe('Today')
+    expect(chat.weatherCard.tomorrow).toBe('Tmr')
+    expect(chat.weatherCard.feels).toBe('Feels {{temp}}° · {{observedAt}}')
+    expect(chat.weatherCard.humidity).toBe('Humidity')
+    expect(chat.weatherCard.precip).toBe('Precip')
+    expect(chat.weatherCard.visibility).toBe('Visibility')
+    expect(chat.weatherCard.uvIndex).toBe('UV Index')
+  })
+
+  it('has the weatherForecast keys', () => {
+    expect(chat.weatherForecast.temperatureRange).toBe('🌡️ Temperature range')
+    expect(chat.weatherForecast.cold).toBe('❄️ Cold')
+    expect(chat.weatherForecast.hot).toBe('🔥 Hot')
+    expect(chat.weatherForecast.sunrise).toBe('Sunrise')
+    expect(chat.weatherForecast.sunset).toBe('Sunset')
+  })
+})
+
+describe('chat namespace tool-card CLDR plural resolves via the real i18next instance', () => {
+  it('picks the singular/plural form for deepResearchCard.completedSummary', async () => {
+    const { i18n, i18nReady } = await import('@/lib/i18n')
+    await i18nReady
+    expect(
+      i18n.t('chat:deepResearchCard.completedSummary', {
+        minutes: 4,
+        count: 1
+      })
+    ).toBe('Research completed in 4m · 1 source')
+    expect(
+      i18n.t('chat:deepResearchCard.completedSummary', {
+        minutes: 4,
+        count: 7
+      })
+    ).toBe('Research completed in 4m · 7 sources')
+  })
+})
