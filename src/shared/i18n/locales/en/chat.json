@@ -128,7 +128,8 @@
     "downloadPdfTooltip": "Download PDF",
     "exportFailedTitle": "Export failed",
     "exportFailedDescription": "Failed to generate PDF report.",
-    "unknownSource": "[{{rank}}] Unknown source"
+    "unknownSource": "[{{rank}}] Unknown source",
+    "referencesHeading": "References"
   },
   "drawioCard": {
     "noSource": "Draw.io tool returned no diagram source.",

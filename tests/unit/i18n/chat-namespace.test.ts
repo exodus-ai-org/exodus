@@ -276,6 +276,7 @@ describe('chat namespace (en) — tool-card additions', () => {
     expect(chat.deepResearchCard.unknownSource).toBe(
       '[{{rank}}] Unknown source'
     )
+    expect(chat.deepResearchCard.referencesHeading).toBe('References')
   })
 
   it('has the drawioCard keys', () => {

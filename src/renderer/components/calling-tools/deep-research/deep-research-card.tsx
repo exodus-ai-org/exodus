@@ -73,7 +73,7 @@ function prepareMarkdownForPdf(
     return `[${rank}] **${source.title}** (${hostname})  \n    <${source.link}>`
   })
 
-  return `${processed}\n\n---\n\n## References\n\n${refLines.join('\n\n')}`
+  return `${processed}\n\n---\n\n## ${i18n.t('chat:deepResearchCard.referencesHeading')}\n\n${refLines.join('\n\n')}`
 }
 
 export function DeepResearchCard({
