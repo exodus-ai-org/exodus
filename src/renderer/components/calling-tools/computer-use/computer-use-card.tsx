@@ -1,6 +1,7 @@
 import { TEST_IDS } from '@shared/constants/test-ids'
 import { MonitorIcon, OctagonXIcon } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import { Button } from '@/components/ui/button'
@@ -40,6 +41,7 @@ export function ComputerUseCard({
 }: {
   toolResult: ComputerUseDetails | null | undefined
 }) {
+  const { t } = useTranslation('chat')
   const details = toolResult ?? {}
   const [answer, setAnswer] = useState('')
   const running = !details.outcome && !details.error
@@ -47,8 +49,8 @@ export function ComputerUseCard({
   const stop = () => {
     abortComputerUse().catch(() => {
       sileo.error({
-        title: 'Could not stop the session',
-        description: 'The stop request failed — try again.'
+        title: t('computerUseCard.stopFailedTitle'),
+        description: t('computerUseCard.stopFailedDescription')
       })
     })
   }
@@ -58,8 +60,8 @@ export function ComputerUseCard({
     answerComputerUse(details.sessionId, answer.trim() || '(done)').catch(
       () => {
         sileo.error({
-          title: 'Could not send your answer',
-          description: 'The request failed — try again.'
+          title: t('computerUseCard.answerFailedTitle'),
+          description: t('computerUseCard.answerFailedDescription')
         })
       }
     )
@@ -67,9 +69,12 @@ export function ComputerUseCard({
   }
 
   const headerRight = details.error
-    ? 'error'
-    : (details.outcome ??
-      (typeof details.step === 'number' ? `step ${details.step}` : 'running…'))
+    ? t('computerUseCard.error')
+    : details.outcome
+      ? t(`computerUseCard.outcome.${details.outcome}`)
+      : typeof details.step === 'number'
+        ? t('computerUseCard.stepBadge', { step: details.step })
+        : t('computerUseCard.running')
 
   return (
     <div className="overflow-hidden rounded-lg border text-xs">
@@ -77,7 +82,7 @@ export function ComputerUseCard({
       <div className="bg-muted/60 flex items-center gap-2 border-b px-3 py-2">
         <MonitorIcon className="text-muted-foreground size-3.5 shrink-0" />
         <span className="text-foreground/80 flex-1 truncate font-medium">
-          Computer Use
+          {t('computerUseCard.title')}
         </span>
         <span
           className={cn(
@@ -95,8 +100,12 @@ export function ComputerUseCard({
         {/* Current / last step + action */}
         {typeof details.step === 'number' && (
           <div className="text-foreground/90">
-            Step {details.step}
-            {details.action ? `: ${details.action}` : ': …'}
+            {details.action
+              ? t('computerUseCard.stepWithAction', {
+                  step: details.step,
+                  action: details.action
+                })
+              : t('computerUseCard.stepNoAction', { step: details.step })}
           </div>
         )}
 
@@ -105,7 +114,9 @@ export function ComputerUseCard({
           <div className="bg-muted/40 max-h-40 w-fit overflow-hidden rounded border">
             <img
               src={`data:image/png;base64,${details.thumbnail}`}
-              alt={`Target window at step ${details.step ?? '?'}`}
+              alt={t('computerUseCard.targetWindowAlt', {
+                step: details.step ?? '?'
+              })}
               className="max-h-40 w-auto object-contain"
             />
           </div>
@@ -125,7 +136,7 @@ export function ComputerUseCard({
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') sendAnswer()
                   }}
-                  placeholder="Type a reply, or leave blank when done"
+                  placeholder={t('computerUseCard.replyPlaceholder')}
                   className="h-7 flex-1 text-xs"
                 />
                 <Button
@@ -134,12 +145,12 @@ export function ComputerUseCard({
                   data-testid={TEST_IDS.computerUse.continueButton}
                   onClick={sendAnswer}
                 >
-                  Done — continue
+                  {t('computerUseCard.doneContinue')}
                 </Button>
               </div>
             ) : (
               <p className="text-muted-foreground">
-                Waiting for the session to accept a reply…
+                {t('computerUseCard.waitingForReply')}
               </p>
             )}
           </div>
@@ -155,7 +166,7 @@ export function ComputerUseCard({
               onClick={stop}
             >
               <OctagonXIcon />
-              Stop
+              {t('computerUseCard.stop')}
             </Button>
           </div>
         )}
@@ -171,7 +182,9 @@ export function ComputerUseCard({
             )}
             {details.sessionId && (
               <p className="text-muted-foreground/60 font-mono text-[10px]">
-                session: {details.sessionId}
+                {t('computerUseCard.session', {
+                  sessionId: details.sessionId
+                })}
               </p>
             )}
           </>
