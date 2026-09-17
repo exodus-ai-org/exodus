@@ -1,6 +1,7 @@
 import { ExternalLinkIcon } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 
@@ -70,6 +71,7 @@ function buildEmbedUrl(dark: boolean): string {
 }
 
 export function DrawioCard({ output }: { output: DrawioToolOutput }) {
+  const { t } = useTranslation('chat')
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [error, setError] = useState<string | null>(null)
   const source = pickSource(output)
@@ -112,7 +114,7 @@ export function DrawioCard({ output }: { output: DrawioToolOutput }) {
   if (!source) {
     return (
       <div className="text-muted-foreground rounded-lg border p-3 text-xs">
-        Draw.io tool returned no diagram source.
+        {t('drawioCard.noSource')}
       </div>
     )
   }
@@ -145,11 +147,11 @@ export function DrawioCard({ output }: { output: DrawioToolOutput }) {
               href={openUrl}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Open in draw.io"
+              aria-label={t('drawioCard.openInDrawio')}
             />
           }
         >
-          Open in draw.io
+          {t('drawioCard.openInDrawio')}
           <ExternalLinkIcon className="ml-1 size-3" />
         </Button>
       </div>
@@ -159,8 +161,8 @@ export function DrawioCard({ output }: { output: DrawioToolOutput }) {
         key={isDark ? 'dark' : 'light'}
         ref={iframeRef}
         src={buildEmbedUrl(isDark)}
-        title="draw.io diagram"
-        onError={() => setError('Failed to load draw.io editor')}
+        title={t('drawioCard.iframeTitle')}
+        onError={() => setError(t('drawioCard.loadFailed'))}
         className="block h-[420px] w-full"
         sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
       />
