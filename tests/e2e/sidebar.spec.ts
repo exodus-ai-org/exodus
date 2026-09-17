@@ -81,9 +81,17 @@ test.describe('Sidebar', () => {
   })
 
   test('account row opens settings', async ({ mainWindow }) => {
+    // The account row opens a dropdown menu (profile info + actions);
+    // Settings is one of its items, not a direct navigate-on-click target.
     const account = mainWindow.getByTestId(TEST_IDS.chatLayout.account)
     await account.waitFor({ state: 'visible', timeout: 10_000 })
     await account.click()
+
+    const settingsItem = mainWindow.getByTestId(
+      TEST_IDS.chatLayout.accountSettings
+    )
+    await settingsItem.waitFor({ state: 'visible', timeout: 10_000 })
+    await settingsItem.click()
 
     await expect
       .poll(() => mainWindow.evaluate(() => window.location.hash), {

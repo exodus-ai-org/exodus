@@ -160,7 +160,7 @@ export function Profile({ form }: { form: UseFormReturnType }) {
         <div className="flex flex-col items-center gap-1">
           <h2 className="text-lg font-semibold">{nickname ?? 'You'}</h2>
           <Badge variant="secondary" className="text-xs font-normal">
-            {t('state.local')}
+            {t('state.runOnLocal')}
           </Badge>
         </div>
       </div>

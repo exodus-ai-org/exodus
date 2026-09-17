@@ -14,7 +14,11 @@
   },
   "state": {
     "loading": "Loading…",
-    "local": "Local"
+    "local": "Local",
+    "runOnLocal": "Run on local"
+  },
+  "nav": {
+    "settings": "Settings"
   },
   "composer": {
     "reasoning": "Reasoning",

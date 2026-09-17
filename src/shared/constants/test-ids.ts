@@ -74,7 +74,8 @@ export const TEST_IDS = {
     workspaceSwitcher: 'chat-layout.workspace-switcher',
     searchButton: 'chat-layout.search-button',
     newChat: 'chat-layout.new-chat',
-    account: 'chat-layout.account'
+    account: 'chat-layout.account',
+    accountSettings: 'chat-layout.account-settings'
   },
   philharmonic: {
     newGroup: 'philharmonic.new-group',
