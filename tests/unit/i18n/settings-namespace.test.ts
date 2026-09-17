@@ -381,4 +381,33 @@ describe('settings namespace (en)', () => {
       placeholder: 'Enter your Google API key'
     })
   })
+
+  it('has the Image Generation tool-config panel keys', () => {
+    expect(settings.tools.imageGeneration.model).toMatchObject({
+      label: 'Model',
+      description: 'OpenAI only — uses your configured OpenAI API key.',
+      placeholder: 'Select a model'
+    })
+    expect(settings.tools.imageGeneration.size).toMatchObject({
+      label: 'Size',
+      description: 'The dimensions of the generated image.'
+    })
+    expect(settings.tools.imageGeneration.quality).toMatchObject({
+      label: 'Quality',
+      description: 'The quality level of the generated image.'
+    })
+    expect(settings.tools.imageGeneration.outputFormat).toMatchObject({
+      label: 'Output Format',
+      description:
+        'If the background is transparent, the output format should be set to either png (default) or webp.'
+    })
+    expect(settings.tools.imageGeneration.generatedCounts).toMatchObject({
+      label: 'Generated Counts',
+      description: 'The number of images to generate. Must be between 1 and 10.'
+    })
+    expect(settings.tools.imageGeneration.background).toMatchObject({
+      label: 'Background',
+      description: 'Set the background style for the generated image.'
+    })
+  })
 })

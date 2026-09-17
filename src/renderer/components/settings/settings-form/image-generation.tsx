@@ -1,6 +1,7 @@
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { useEffect, useMemo } from 'react'
 import { Controller } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 
 import { Input } from '@/components/ui/input'
 
@@ -32,6 +33,7 @@ const modelParams: ModelParamValues = {
 }
 
 export function ImageGeneration({ form }: { form: UseFormReturnType }) {
+  const { t } = useTranslation('settings')
   const background = form.watch('image.background')
   const model = form.watch('image.model')
   const paramsOfModel = useMemo(
@@ -62,14 +64,14 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
         name="image.model"
         render={({ field, fieldState }) => (
           <SettingsRow
-            label="Model"
-            description="OpenAI only — uses your configured OpenAI API key."
+            label={t('tools.imageGeneration.model.label')}
+            description={t('tools.imageGeneration.model.description')}
             error={fieldState.error}
           >
             <SettingsSelect
               value={field.value ?? ''}
               onValueChange={field.onChange}
-              placeholder="Select a model"
+              placeholder={t('tools.imageGeneration.model.placeholder')}
               options={[
                 { value: 'gpt-image-2', label: 'gpt-image-2' },
                 { value: 'gpt-image-1.5', label: 'gpt-image-1.5' },
@@ -86,8 +88,8 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
           name="image.size"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="Size"
-              description="The dimensions of the generated image."
+              label={t('tools.imageGeneration.size.label')}
+              description={t('tools.imageGeneration.size.description')}
               error={fieldState.error}
             >
               <SettingsSelect
@@ -110,8 +112,8 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
           name="image.quality"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="Quality"
-              description="The quality level of the generated image."
+              label={t('tools.imageGeneration.quality.label')}
+              description={t('tools.imageGeneration.quality.description')}
               error={fieldState.error}
             >
               <SettingsSelect
@@ -134,8 +136,8 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
           name="image.outputFormat"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="Output Format"
-              description="If the background is transparent, the output format should be set to either png (default) or webp."
+              label={t('tools.imageGeneration.outputFormat.label')}
+              description={t('tools.imageGeneration.outputFormat.description')}
               error={fieldState.error}
             >
               <SettingsSelect
@@ -159,8 +161,10 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
           name="image.generatedCounts"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="Generated Counts"
-              description="The number of images to generate. Must be between 1 and 10."
+              label={t('tools.imageGeneration.generatedCounts.label')}
+              description={t(
+                'tools.imageGeneration.generatedCounts.description'
+              )}
               error={fieldState.error}
             >
               <Input
@@ -183,8 +187,8 @@ export function ImageGeneration({ form }: { form: UseFormReturnType }) {
           name="image.background"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="Background"
-              description="Set the background style for the generated image."
+              label={t('tools.imageGeneration.background.label')}
+              description={t('tools.imageGeneration.background.description')}
               error={fieldState.error}
             >
               <SettingsSelect

@@ -303,6 +303,33 @@
         "description": "Powers Maps Routing (point-to-point directions) and Places (location lookup). Get one from the Google Cloud console.",
         "placeholder": "Enter your Google API key"
       }
+    },
+    "imageGeneration": {
+      "model": {
+        "label": "Model",
+        "description": "OpenAI only — uses your configured OpenAI API key.",
+        "placeholder": "Select a model"
+      },
+      "size": {
+        "label": "Size",
+        "description": "The dimensions of the generated image."
+      },
+      "quality": {
+        "label": "Quality",
+        "description": "The quality level of the generated image."
+      },
+      "outputFormat": {
+        "label": "Output Format",
+        "description": "If the background is transparent, the output format should be set to either png (default) or webp."
+      },
+      "generatedCounts": {
+        "label": "Generated Counts",
+        "description": "The number of images to generate. Must be between 1 and 10."
+      },
+      "background": {
+        "label": "Background",
+        "description": "Set the background style for the generated image."
+      }
     }
   }
 }
