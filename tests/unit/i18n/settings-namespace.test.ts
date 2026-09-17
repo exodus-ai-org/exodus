@@ -82,4 +82,46 @@ describe('settings namespace (en)', () => {
     expect(settings.common.searchPlaceholder).toBe('Search settings…')
     expect(settings.common.backToApp).toBe('Back to app')
   })
+
+  it('has a keyboard shortcut label for every SHORTCUT_MAP entry', () => {
+    expect(settings.keyboardShortcuts.category.general).toBe('General')
+    expect(settings.keyboardShortcuts.category.chat).toBe('Chat')
+    expect(settings.keyboardShortcuts.category.search).toBe('Search')
+    expect(settings.keyboardShortcuts.shortcuts['new-chat'].label).toBe(
+      'New chat'
+    )
+    expect(settings.keyboardShortcuts.shortcuts['open-settings'].label).toBe(
+      'Open settings'
+    )
+    expect(settings.keyboardShortcuts.shortcuts['toggle-sidebar'].label).toBe(
+      'Toggle sidebar'
+    )
+    expect(
+      settings.keyboardShortcuts.shortcuts['toggle-developer-tools'].label
+    ).toBe('Toggle developer tools')
+    expect(
+      settings.keyboardShortcuts.shortcuts['force-refresh-page'].label
+    ).toBe('Force refresh page')
+    expect(settings.keyboardShortcuts.shortcuts['find-in-page'].label).toBe(
+      'Find in page'
+    )
+    expect(
+      settings.keyboardShortcuts.shortcuts['search-chat-history'].label
+    ).toBe('Search chat history')
+    expect(settings.keyboardShortcuts.shortcuts['close-find-bar'].label).toBe(
+      'Close find bar'
+    )
+    expect(settings.keyboardShortcuts.shortcuts['close-tab'].label).toBe(
+      'Close current tab'
+    )
+    expect(
+      settings.keyboardShortcuts.shortcuts['focus-chat-input'].label
+    ).toBe('Focus chat input')
+    expect(settings.keyboardShortcuts.shortcuts['send-message'].label).toBe(
+      'Send message'
+    )
+    expect(settings.keyboardShortcuts.shortcuts['new-line'].label).toBe(
+      'New line'
+    )
+  })
 })

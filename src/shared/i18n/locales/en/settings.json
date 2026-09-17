@@ -52,5 +52,26 @@
   "common": {
     "searchPlaceholder": "Search settings…",
     "backToApp": "Back to app"
+  },
+  "keyboardShortcuts": {
+    "category": {
+      "general": "General",
+      "chat": "Chat",
+      "search": "Search"
+    },
+    "shortcuts": {
+      "new-chat": { "label": "New chat" },
+      "open-settings": { "label": "Open settings" },
+      "toggle-sidebar": { "label": "Toggle sidebar" },
+      "toggle-developer-tools": { "label": "Toggle developer tools" },
+      "force-refresh-page": { "label": "Force refresh page" },
+      "find-in-page": { "label": "Find in page" },
+      "search-chat-history": { "label": "Search chat history" },
+      "close-find-bar": { "label": "Close find bar" },
+      "close-tab": { "label": "Close current tab" },
+      "focus-chat-input": { "label": "Focus chat input" },
+      "send-message": { "label": "Send message" },
+      "new-line": { "label": "New line" }
+    }
   }
 }
