@@ -400,6 +400,33 @@
         "description": "Natural-language instructions to control tone, emotion and style (gpt-4o-mini-tts only)",
         "placeholder": "e.g. Speak in a warm, friendly tone with a slight British accent"
       }
+    },
+    "s3": {
+      "alert": {
+        "encoding": "By default, Exodus encodes attachments as <strong>base64</strong> inline in the prompt. For large files or vision-heavy workflows, uploading to S3 and passing a URL is more efficient and reliable.",
+        "requirementsHeading": "<strong>Requirements before configuring:</strong>",
+        "publicReadAccess": "<strong>Public read access</strong> — AWS blocks public access by default. You must disable \"Block all public access\" on the bucket and attach a bucket policy granting <2>s3:GetObject</2> to <4>*</4>, so the AI provider can fetch the URL without credentials.",
+        "cors": "<strong>CORS</strong> — Add a CORS rule allowing <2>PUT</2> from <4>*</4> (or your app origin) so Exodus can upload directly from the desktop.",
+        "iamCredentials": "<strong>IAM credentials</strong> — The Access Key ID / Secret Access Key must belong to an IAM user or role with at least <2>s3:PutObject</2> and <4>s3:PutObjectAcl</4> permissions on the configured bucket.",
+        "objectAcl": "<strong>Object ACL</strong> — Each uploaded object is set to <2>public-read</2>. Your bucket must not have ACLs disabled (i.e., Object Ownership must be set to <4>ACLs enabled / Bucket owner preferred</4>)."
+      },
+      "region": {
+        "label": "Region",
+        "description": "The AWS region where your S3 bucket is hosted."
+      },
+      "bucket": {
+        "label": "Bucket",
+        "description": "The name of your S3 bucket for file uploads.",
+        "placeholder": "Your S3 bucket"
+      },
+      "accessKeyId": {
+        "label": "Access Key ID",
+        "description": "The IAM access key ID with S3 write permissions."
+      },
+      "secretAccessKey": {
+        "label": "Secret Access Key",
+        "description": "The IAM secret access key paired with the access key ID above."
+      }
     }
   }
 }

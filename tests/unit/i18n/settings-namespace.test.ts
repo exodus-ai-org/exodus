@@ -490,6 +490,27 @@ describe('settings namespace (en)', () => {
         'e.g. Speak in a warm, friendly tone with a slight British accent'
     })
   })
+
+  it('has the S3 tab keys', () => {
+    expect(settings.tools.s3.region).toMatchObject({
+      label: 'Region',
+      description: 'The AWS region where your S3 bucket is hosted.'
+    })
+    expect(settings.tools.s3.bucket).toMatchObject({
+      label: 'Bucket',
+      description: 'The name of your S3 bucket for file uploads.',
+      placeholder: 'Your S3 bucket'
+    })
+    expect(settings.tools.s3.accessKeyId).toMatchObject({
+      label: 'Access Key ID',
+      description: 'The IAM access key ID with S3 write permissions.'
+    })
+    expect(settings.tools.s3.secretAccessKey).toMatchObject({
+      label: 'Secret Access Key',
+      description:
+        'The IAM secret access key paired with the access key ID above.'
+    })
+  })
 })
 
 describe('settings namespace tools.voice.alert renders correctly via Trans', () => {
@@ -524,6 +545,116 @@ describe('settings namespace tools.voice.alert renders correctly via Trans', () 
     const html = renderToStaticMarkup(element)
     expect(html).toBe(
       'The Text-to-Speech and Speech-to-Text services <strong>only support OpenAI</strong>. Please make sure you have configured the OpenAI API setting correctly before using these features.'
+    )
+  })
+})
+
+describe('settings namespace tools.s3.alert.* renders correctly via Trans', () => {
+  async function renderTrans(
+    i18nKey: string,
+    children: Parameters<typeof import('react').createElement>[2][]
+  ) {
+    const { createElement } = await import('react')
+    const { renderToStaticMarkup } = await import('react-dom/server')
+    const { I18nextProvider, Trans, initReactI18next } =
+      await import('react-i18next')
+    const i18next = (await import('i18next')).default
+
+    const i18n = i18next.createInstance()
+    await i18n.use(initReactI18next).init({
+      lng: 'en',
+      resources: { en: { settings } },
+      ns: ['settings'],
+      defaultNS: 'settings',
+      interpolation: { escapeValue: false }
+    })
+
+    return renderToStaticMarkup(
+      createElement(
+        I18nextProvider,
+        { i18n },
+        createElement(Trans, { ns: 'settings', i18nKey }, ...children)
+      )
+    )
+  }
+
+  it('encoding — one literal <strong>, no numbered placeholders', async () => {
+    const { createElement } = await import('react')
+    const html = await renderTrans('tools.s3.alert.encoding', [
+      'By default, Exodus encodes attachments as ',
+      createElement('strong', null, 'base64'),
+      ' inline in the prompt. For large files or vision-heavy workflows, uploading to S3 and passing a URL is more efficient and reliable.'
+    ])
+    expect(html).toBe(
+      'By default, Exodus encodes attachments as <strong>base64</strong> inline in the prompt. For large files or vision-heavy workflows, uploading to S3 and passing a URL is more efficient and reliable.'
+    )
+  })
+
+  it('requirementsHeading — whole text wrapped in one literal <strong>', async () => {
+    const { createElement } = await import('react')
+    const html = await renderTrans('tools.s3.alert.requirementsHeading', [
+      createElement('strong', null, 'Requirements before configuring:')
+    ])
+    expect(html).toBe('<strong>Requirements before configuring:</strong>')
+  })
+
+  it('publicReadAccess — <strong> plus two <code> at positions 2 and 4', async () => {
+    const { createElement } = await import('react')
+    const html = await renderTrans('tools.s3.alert.publicReadAccess', [
+      createElement('strong', null, 'Public read access'),
+      ' — AWS blocks public access by default. You must disable "Block all public access" on the bucket and attach a bucket policy granting ',
+      createElement('code', null, 's3:GetObject'),
+      ' to ',
+      createElement('code', null, '*'),
+      ', so the AI provider can fetch the URL without credentials.'
+    ])
+    expect(html).toBe(
+      '<strong>Public read access</strong> — AWS blocks public access by default. You must disable &quot;Block all public access&quot; on the bucket and attach a bucket policy granting <code>s3:GetObject</code> to <code>*</code>, so the AI provider can fetch the URL without credentials.'
+    )
+  })
+
+  it('cors — <strong> plus two <code> at positions 2 and 4', async () => {
+    const { createElement } = await import('react')
+    const html = await renderTrans('tools.s3.alert.cors', [
+      createElement('strong', null, 'CORS'),
+      ' — Add a CORS rule allowing ',
+      createElement('code', null, 'PUT'),
+      ' from ',
+      createElement('code', null, '*'),
+      ' (or your app origin) so Exodus can upload directly from the desktop.'
+    ])
+    expect(html).toBe(
+      '<strong>CORS</strong> — Add a CORS rule allowing <code>PUT</code> from <code>*</code> (or your app origin) so Exodus can upload directly from the desktop.'
+    )
+  })
+
+  it('iamCredentials — <strong> plus two <code> at positions 2 and 4', async () => {
+    const { createElement } = await import('react')
+    const html = await renderTrans('tools.s3.alert.iamCredentials', [
+      createElement('strong', null, 'IAM credentials'),
+      ' — The Access Key ID / Secret Access Key must belong to an IAM user or role with at least ',
+      createElement('code', null, 's3:PutObject'),
+      ' and ',
+      createElement('code', null, 's3:PutObjectAcl'),
+      ' permissions on the configured bucket.'
+    ])
+    expect(html).toBe(
+      '<strong>IAM credentials</strong> — The Access Key ID / Secret Access Key must belong to an IAM user or role with at least <code>s3:PutObject</code> and <code>s3:PutObjectAcl</code> permissions on the configured bucket.'
+    )
+  })
+
+  it('objectAcl — <strong>, one <code> at position 2, one <em> at position 4', async () => {
+    const { createElement } = await import('react')
+    const html = await renderTrans('tools.s3.alert.objectAcl', [
+      createElement('strong', null, 'Object ACL'),
+      ' — Each uploaded object is set to ',
+      createElement('code', null, 'public-read'),
+      '. Your bucket must not have ACLs disabled (i.e., Object Ownership must be set to ',
+      createElement('em', null, 'ACLs enabled / Bucket owner preferred'),
+      ').'
+    ])
+    expect(html).toBe(
+      '<strong>Object ACL</strong> — Each uploaded object is set to <code>public-read</code>. Your bucket must not have ACLs disabled (i.e., Object Ownership must be set to <em>ACLs enabled / Bucket owner preferred</em>).'
     )
   })
 })
