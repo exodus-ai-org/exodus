@@ -54,7 +54,9 @@ function CallingTools({
   // toast title and the fallback error string. Older persisted tool results
   // may be missing toolName entirely — capitalCase('') is safe, so guard once
   // up front rather than scatter ?. throughout.
-  const toolLabel = toolName ? capitalCase(toolName) : 'Tool'
+  const toolLabel = toolName
+    ? capitalCase(toolName)
+    : t('genericToolCard.fallbackLabel')
 
   // Extract error message from content when isError is true.
   // Computed unconditionally (before any early returns) so the useEffect

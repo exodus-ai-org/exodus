@@ -1,6 +1,7 @@
 import { capitalCase } from 'change-case'
 import { ChevronRightIcon, WrenchIcon } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
@@ -19,8 +20,11 @@ export function GenericToolCard({
   toolName: string
   output: unknown
 }) {
+  const { t } = useTranslation('chat')
   const [open, setOpen] = useState(false)
-  const label = toolName ? capitalCase(toolName) : 'Tool'
+  const label = toolName
+    ? capitalCase(toolName)
+    : t('genericToolCard.fallbackLabel')
 
   const pretty =
     typeof output === 'string'
@@ -45,7 +49,7 @@ export function GenericToolCard({
         <WrenchIcon className="text-muted-foreground size-3.5 shrink-0" />
         <span className="font-medium">{label}</span>
         <Badge variant="secondary" className="text-[10px]">
-          tool
+          {t('genericToolCard.badge')}
         </Badge>
         <ChevronRightIcon
           className={cn(
