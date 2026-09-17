@@ -33,5 +33,9 @@
       "storage": "Storage",
       "developer": "Developer"
     }
+  },
+  "common": {
+    "searchPlaceholder": "Search settings…",
+    "backToApp": "Back to app"
   }
 }

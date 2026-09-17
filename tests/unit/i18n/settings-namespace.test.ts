@@ -59,4 +59,9 @@ describe('settings namespace (en)', () => {
     expect(settings.nav.group.storage).toBe('Storage')
     expect(settings.nav.group.developer).toBe('Developer')
   })
+
+  it('has the sidebar chrome keys', () => {
+    expect(settings.common.searchPlaceholder).toBe('Search settings…')
+    expect(settings.common.backToApp).toBe('Back to app')
+  })
 })
