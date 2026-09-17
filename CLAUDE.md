@@ -520,6 +520,31 @@ Reusable AI utilities that should be used (and tested) instead of inline impleme
    `useTranslation(['<otherNs>', '<ns>'])` — keep the existing namespace
    first so already-written bare `t('key')` calls keep resolving unchanged —
    and prefix every new lookup with `<ns>:`.
+
+   A numbered placeholder's `<N>` is the child's raw 0-indexed position in
+   the FULL `<Trans>` children array — text nodes and an explicit `{' '}`
+   each occupy their own index too, not just element children. A block
+   with two `<code>` children separated by plain text (`[text, <code>,
+text, <code>, text]`) numbers them `<1>` and `<3>`; adding a `{' '}`
+   anywhere before the second one shifts it to `<4>`. This makes such a
+   block fragile against `pnpm format`/oxfmt reflowing the JSX (a
+   line-wrap can insert or remove an explicit `{' '}` with no visible
+   change to non-`<Trans>` rendering, but it renumbers everything after
+   it) — a real incident shipped with a fully green test suite because
+   the test hand-copied the children into a `createElement()` call
+   instead of rendering the real component, so the reflow-induced
+   renumbering had nothing to fail against. For any `<Trans>` block with
+   two or more non-allowlisted (numbered) children, extract it into its
+   own exported component and have the test `await
+import('@/path/to/the/file')` and render that component directly —
+   never hand-copy its children into the test (see `s3.tsx`'s
+   `PublicReadAccessNotice` and its render test in
+   `tests/unit/i18n/settings-namespace.test.ts` for the pattern). Don't
+   trust a manual count of the children either — dump the actual
+   compiled array (`React.Children.forEach` over the component's own
+   `props.children`, or an `esbuild --jsx=transform` compile) before
+   writing the catalog's placeholder numbers.
+
 3. Renderer, outside a component/hook (a plain exported function, a
    module-level helper, a `src/renderer/services/*.ts` function) —
    `useTranslation()` isn't callable there. Import the shared instance
