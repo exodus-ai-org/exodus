@@ -1,6 +1,7 @@
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { AiProviders } from '@shared/types/ai'
 import { Controller } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 
 import { Input } from '@/components/ui/input'
@@ -10,6 +11,7 @@ import { SettingsRow, SettingsSection } from '../../settings-row'
 import { ModelPicker } from './model-picker'
 
 export function Ollama({ form }: { form: UseFormReturnType }) {
+  const { t } = useTranslation('settings')
   const { data: settings } = useSettings()
   const { error } = useSWR(
     settings?.providers?.ollamaBaseUrl
@@ -27,8 +29,8 @@ export function Ollama({ form }: { form: UseFormReturnType }) {
           name="providers.ollamaBaseUrl"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="Base URL"
-              description="Ollama server address for local model inference"
+              label={t('providers.ollama.baseUrl.label')}
+              description={t('providers.ollama.baseUrl.description')}
               error={fieldState.error}
               layout="vertical"
             >
@@ -43,15 +45,17 @@ export function Ollama({ form }: { form: UseFormReturnType }) {
           )}
         />
         <SettingsRow
-          label="Status"
-          description="Connection status of the Ollama server"
+          label={t('providers.ollama.status.label')}
+          description={t('providers.ollama.status.description')}
         >
           <div className="flex items-center gap-2">
             <div
               className={`h-3 w-3 rounded-full ${isRunning ? 'bg-green-400' : 'bg-red-400'}`}
             />
             <p className="text-sm">
-              {isRunning ? 'Ollama is running' : 'Not running'}
+              {isRunning
+                ? t('providers.ollama.status.running')
+                : t('providers.ollama.status.notRunning')}
             </p>
           </div>
         </SettingsRow>

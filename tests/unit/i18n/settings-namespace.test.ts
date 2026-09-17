@@ -271,4 +271,17 @@ describe('settings namespace (en)', () => {
       description: 'The Azure deployment name to use'
     })
   })
+
+  it('has the Ollama-specific provider field keys', () => {
+    expect(settings.providers.ollama.baseUrl).toMatchObject({
+      label: 'Base URL',
+      description: 'Ollama server address for local model inference'
+    })
+    expect(settings.providers.ollama.status).toMatchObject({
+      label: 'Status',
+      description: 'Connection status of the Ollama server',
+      running: 'Ollama is running',
+      notRunning: 'Not running'
+    })
+  })
 })
