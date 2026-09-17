@@ -236,4 +236,13 @@ describe('settings namespace (en)', () => {
       alt: 'Your avatar'
     })
   })
+
+  it('has the provider dropdown and tab-chrome keys', () => {
+    expect(settings.providers.config).toMatchObject({
+      label: 'Provider',
+      description: 'The AI provider to use for chat',
+      placeholder: 'Select a provider'
+    })
+    expect(settings.providers.keys.sectionTitle).toBe('Provider keys')
+  })
 })

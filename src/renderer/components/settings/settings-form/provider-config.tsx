@@ -1,6 +1,7 @@
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { AiProviders } from '@shared/types/ai'
 import { Controller } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 
 import { SettingsRow, SettingsSection } from '../settings-row'
 import { SettingsSelect } from '../settings-select'
@@ -11,6 +12,8 @@ const providerOptions = Object.values(AiProviders).map((val) => ({
 }))
 
 export function ProviderConfig({ form }: { form: UseFormReturnType }) {
+  const { t } = useTranslation('settings')
+
   return (
     <SettingsSection>
       <Controller
@@ -18,8 +21,8 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
         name="providerConfig.provider"
         render={({ field, fieldState }) => (
           <SettingsRow
-            label="Provider"
-            description="The AI provider to use for chat"
+            label={t('providers.config.label')}
+            description={t('providers.config.description')}
             error={fieldState.error}
           >
             <SettingsSelect
@@ -30,7 +33,7 @@ export function ProviderConfig({ form }: { form: UseFormReturnType }) {
                 form.setValue('providerConfig.modelSnapshot', null)
               }}
               options={providerOptions}
-              placeholder="Select a provider"
+              placeholder={t('providers.config.placeholder')}
             />
           </SettingsRow>
         )}

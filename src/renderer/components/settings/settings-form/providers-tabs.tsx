@@ -1,6 +1,7 @@
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { AiProviders } from '@shared/types/ai'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
@@ -39,6 +40,7 @@ const PROVIDER_TO_TAB: Record<AiProviders, ProviderTab> = {
 }
 
 export function ProvidersTabs({ form }: { form: UseFormReturnType }) {
+  const { t } = useTranslation('settings')
   const provider = form.watch('providerConfig.provider')
   const [tab, setTab] = useState<ProviderTab>(
     () => PROVIDER_TO_TAB[provider as AiProviders] ?? 'openai'
@@ -56,7 +58,7 @@ export function ProvidersTabs({ form }: { form: UseFormReturnType }) {
     <div className="flex flex-col gap-8">
       <ProviderConfig form={form} />
 
-      <SettingsSection title="Provider keys" plain>
+      <SettingsSection title={t('providers.keys.sectionTitle')} plain>
         <Tabs
           value={tab}
           onValueChange={(value) => setTab(value as ProviderTab)}

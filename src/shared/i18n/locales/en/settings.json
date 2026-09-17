@@ -175,5 +175,15 @@
       "uploadLabel": "Upload your avatar",
       "alt": "Your avatar"
     }
+  },
+  "providers": {
+    "config": {
+      "label": "Provider",
+      "description": "The AI provider to use for chat",
+      "placeholder": "Select a provider"
+    },
+    "keys": {
+      "sectionTitle": "Provider keys"
+    }
   }
 }
