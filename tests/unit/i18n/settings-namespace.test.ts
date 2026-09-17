@@ -30,6 +30,24 @@ describe('settings namespace (en)', () => {
     expect(settings.general.language.auto).toBe('Auto (detect from system)')
   })
 
+  it('has the general.theme / runOnStartup / menuBar keys', () => {
+    expect(settings.general.theme.label).toBe('Theme')
+    expect(settings.general.theme.description).toBe(
+      'Choose light, dark, or match your system preference'
+    )
+    expect(settings.general.theme.system).toBe('System')
+    expect(settings.general.theme.light).toBe('Light')
+    expect(settings.general.theme.dark).toBe('Dark')
+    expect(settings.general.runOnStartup.label).toBe('Run on startup')
+    expect(settings.general.runOnStartup.description).toBe(
+      'Automatically start Exodus when you log in'
+    )
+    expect(settings.general.menuBar.label).toBe('Menu bar')
+    expect(settings.general.menuBar.description).toBe(
+      'Show Exodus in the menu bar'
+    )
+  })
+
   it('has a nav title key for every SettingsLabel tab', () => {
     expect(settings.nav.profile.title).toBe('Profile')
     expect(settings.nav.general.title).toBe('General')

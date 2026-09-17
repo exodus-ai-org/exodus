@@ -4,6 +4,21 @@
       "label": "Language",
       "description": "The language Exodus's interface is shown in.",
       "auto": "Auto (detect from system)"
+    },
+    "theme": {
+      "label": "Theme",
+      "description": "Choose light, dark, or match your system preference",
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "runOnStartup": {
+      "label": "Run on startup",
+      "description": "Automatically start Exodus when you log in"
+    },
+    "menuBar": {
+      "label": "Menu bar",
+      "description": "Show Exodus in the menu bar"
     }
   },
   "nav": {

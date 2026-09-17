@@ -1,8 +1,10 @@
 import { TEST_IDS } from '@shared/constants/test-ids'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
+import type { ParseKeys } from 'i18next'
 import { Moon, Sun, SunMoon } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Theme } from '@/components/theme-provider'
 import { Switch } from '@/components/ui/switch'
@@ -13,20 +15,21 @@ import { LockPrivacy } from './lock-privacy'
 
 const APPEARANCE_MODES: {
   value: Theme
-  label: string
+  labelKey: ParseKeys<'settings'>
   icon: typeof Sun
 }[] = [
-  { value: 'system', label: 'System', icon: SunMoon },
-  { value: 'light', label: 'Light', icon: Sun },
-  { value: 'dark', label: 'Dark', icon: Moon }
+  { value: 'system', labelKey: 'general.theme.system', icon: SunMoon },
+  { value: 'light', labelKey: 'general.theme.light', icon: Sun },
+  { value: 'dark', labelKey: 'general.theme.dark', icon: Moon }
 ]
 
 function AppearanceSwitcher() {
+  const { t } = useTranslation('settings')
   const { theme, setTheme } = useTheme()
 
   return (
     <div className="bg-muted inline-flex w-fit gap-0.5 rounded-full p-0.5">
-      {APPEARANCE_MODES.map(({ value, label, icon: Icon }) => (
+      {APPEARANCE_MODES.map(({ value, labelKey, icon: Icon }) => (
         <span key={value}>
           <input
             className="peer sr-only"
@@ -40,7 +43,7 @@ function AppearanceSwitcher() {
           <label
             htmlFor={`appearance-mode-${value}`}
             data-testid={`${TEST_IDS.settings.themeMode}-${value}`}
-            aria-label={label}
+            aria-label={t(labelKey)}
             className="text-muted-foreground peer-checked:bg-background peer-checked:text-foreground flex size-7 cursor-pointer items-center justify-center rounded-full transition-colors peer-checked:shadow-sm"
           >
             <Icon className="size-4" />
@@ -52,6 +55,7 @@ function AppearanceSwitcher() {
 }
 
 export function General({ form }: { form: UseFormReturnType }) {
+  const { t } = useTranslation('settings')
   const runOnStartup = form.watch('runOnStartup') ?? false
   const menuBarEnabled = form.watch('menuBar') ?? true
 
@@ -67,15 +71,15 @@ export function General({ form }: { form: UseFormReturnType }) {
     <>
       <SettingsSection>
         <SettingsRow
-          label="Theme"
-          description="Choose light, dark, or match your system preference"
+          label={t('general.theme.label')}
+          description={t('general.theme.description')}
         >
           <AppearanceSwitcher />
         </SettingsRow>
 
         <SettingsRow
-          label="Run on startup"
-          description="Automatically start Exodus when you log in"
+          label={t('general.runOnStartup.label')}
+          description={t('general.runOnStartup.description')}
         >
           <Switch
             checked={runOnStartup}
@@ -85,7 +89,10 @@ export function General({ form }: { form: UseFormReturnType }) {
           />
         </SettingsRow>
 
-        <SettingsRow label="Menu bar" description="Show Exodus in the menu bar">
+        <SettingsRow
+          label={t('general.menuBar.label')}
+          description={t('general.menuBar.description')}
+        >
           <Switch
             checked={menuBarEnabled}
             onCheckedChange={(checked) => form.setValue('menuBar', checked)}
