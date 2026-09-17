@@ -184,6 +184,16 @@
     },
     "keys": {
       "sectionTitle": "Provider keys"
+    },
+    "fields": {
+      "apiKey": {
+        "label": "API Key",
+        "description": "Your {{provider}} API key"
+      },
+      "baseUrl": {
+        "label": "Base URL",
+        "description": "Custom API endpoint. Leave empty for default"
+      }
     }
   }
 }

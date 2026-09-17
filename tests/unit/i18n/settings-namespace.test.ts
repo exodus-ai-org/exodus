@@ -245,4 +245,15 @@ describe('settings namespace (en)', () => {
     })
     expect(settings.providers.keys.sectionTitle).toBe('Provider keys')
   })
+
+  it('has the shared provider field keys', () => {
+    expect(settings.providers.fields.apiKey).toMatchObject({
+      label: 'API Key',
+      description: 'Your {{provider}} API key'
+    })
+    expect(settings.providers.fields.baseUrl).toMatchObject({
+      label: 'Base URL',
+      description: 'Custom API endpoint. Leave empty for default'
+    })
+  })
 })
