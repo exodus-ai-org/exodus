@@ -410,4 +410,50 @@ describe('settings namespace (en)', () => {
       description: 'Set the background style for the generated image.'
     })
   })
+
+  it('has the Web Search tool-config panel keys', () => {
+    expect(settings.tools.webSearch.apiKey).toMatchObject({
+      label: 'Brave Search API Key',
+      description:
+        'Required for web search. Get yours at api-dashboard.search.brave.com'
+    })
+    expect(settings.tools.webSearch.country).toMatchObject({
+      label: 'Country',
+      description: 'Bias results toward a specific region',
+      placeholder: 'Select country...',
+      empty: 'No country found.'
+    })
+    expect(settings.tools.webSearch.languages).toMatchObject({
+      label: 'Languages',
+      description: 'Filter search results by language',
+      placeholder: 'Search languages...',
+      empty: 'No language found.'
+    })
+    expect(settings.tools.webSearch.maxResults).toMatchObject({
+      label: 'Max Results',
+      description: 'Number of search results per query (1-50). Default: 10.'
+    })
+    expect(settings.tools.webSearch.deepRecall).toMatchObject({
+      label: 'Deep recall',
+      description:
+        'Run a second, broader web search alongside the grounding call and merge in the extra results — forums, news, and pages the grounding filter drops. Higher recall, ~2× Brave API usage per search.'
+    })
+    expect(settings.tools.webSearch.recency.label).toBe('Recency Filter')
+    expect(settings.tools.webSearch.recency.description).toBe(
+      'Only return results from a recent time period.'
+    )
+    expect(settings.tools.webSearch.recency.options).toMatchObject({
+      none: 'No filter',
+      hour: 'Past hour',
+      day: 'Past 24 hours',
+      week: 'Past week',
+      month: 'Past month',
+      year: 'Past year'
+    })
+    expect(settings.tools.webSearch.domainFilter).toMatchObject({
+      label: 'Domain Filter',
+      description:
+        'Comma-separated. Prefix with - to exclude. e.g. "nature.com, .edu" or "-reddit.com"'
+    })
+  })
 })

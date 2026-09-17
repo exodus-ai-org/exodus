@@ -1,7 +1,9 @@
 import { countryCodes } from '@shared/constants/country-codes'
 import { languageCodes } from '@shared/constants/language-codes'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
+import { useMemo } from 'react'
 import { Controller } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 
 import {
   Combobox,
@@ -21,15 +23,6 @@ import { Switch } from '@/components/ui/switch'
 import { SettingsRow, SettingsSection } from '../settings-row'
 import { SettingsSelect } from '../settings-select'
 
-const RECENCY_OPTIONS = [
-  { value: 'none', label: 'No filter' },
-  { value: 'hour', label: 'Past hour' },
-  { value: 'day', label: 'Past 24 hours' },
-  { value: 'week', label: 'Past week' },
-  { value: 'month', label: 'Past month' },
-  { value: 'year', label: 'Past year' }
-]
-
 type OptionItem = { label: string; value: string }
 
 const countryItems: OptionItem[] = countryCodes.map((c) => ({
@@ -43,7 +36,20 @@ const languageItems: OptionItem[] = languageCodes.map((l) => ({
 }))
 
 export function WebSearch({ form }: { form: UseFormReturnType }) {
+  const { t } = useTranslation('settings')
   const languageChipsAnchor = useComboboxAnchor()
+
+  const recencyOptions = useMemo(
+    () => [
+      { value: 'none', label: t('tools.webSearch.recency.options.none') },
+      { value: 'hour', label: t('tools.webSearch.recency.options.hour') },
+      { value: 'day', label: t('tools.webSearch.recency.options.day') },
+      { value: 'week', label: t('tools.webSearch.recency.options.week') },
+      { value: 'month', label: t('tools.webSearch.recency.options.month') },
+      { value: 'year', label: t('tools.webSearch.recency.options.year') }
+    ],
+    [t]
+  )
 
   return (
     <SettingsSection plain>
@@ -53,8 +59,8 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
         name="webSearch.braveApiKey"
         render={({ field, fieldState }) => (
           <SettingsRow
-            label="Brave Search API Key"
-            description="Required for web search. Get yours at api-dashboard.search.brave.com"
+            label={t('tools.webSearch.apiKey.label')}
+            description={t('tools.webSearch.apiKey.description')}
             error={fieldState.error}
             layout="vertical"
           >
@@ -75,8 +81,8 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
         name="webSearch.country"
         render={({ field, fieldState }) => (
           <SettingsRow
-            label="Country"
-            description="Bias results toward a specific region"
+            label={t('tools.webSearch.country.label')}
+            description={t('tools.webSearch.country.description')}
             error={fieldState.error}
           >
             <Combobox
@@ -92,12 +98,14 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
               }
             >
               <ComboboxInput
-                placeholder="Select country..."
+                placeholder={t('tools.webSearch.country.placeholder')}
                 showClear
                 className="w-52"
               />
               <ComboboxContent>
-                <ComboboxEmpty>No country found.</ComboboxEmpty>
+                <ComboboxEmpty>
+                  {t('tools.webSearch.country.empty')}
+                </ComboboxEmpty>
                 <ComboboxList>
                   {(item) => (
                     <ComboboxItem key={item.value} value={item}>
@@ -122,8 +130,8 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
           }) as OptionItem[]
           return (
             <SettingsRow
-              label="Languages"
-              description="Filter search results by language"
+              label={t('tools.webSearch.languages.label')}
+              description={t('tools.webSearch.languages.description')}
               error={fieldState.error}
               layout="vertical"
             >
@@ -143,10 +151,14 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
                   {selectedItems.map((item) => (
                     <ComboboxChip key={item.value}>{item.label}</ComboboxChip>
                   ))}
-                  <ComboboxChipsInput placeholder="Search languages..." />
+                  <ComboboxChipsInput
+                    placeholder={t('tools.webSearch.languages.placeholder')}
+                  />
                 </ComboboxChips>
                 <ComboboxContent anchor={languageChipsAnchor}>
-                  <ComboboxEmpty>No language found.</ComboboxEmpty>
+                  <ComboboxEmpty>
+                    {t('tools.webSearch.languages.empty')}
+                  </ComboboxEmpty>
                   <ComboboxList>
                     {(item) => (
                       <ComboboxItem key={item.value} value={item}>
@@ -167,8 +179,8 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
         name="webSearch.maxResults"
         render={({ field, fieldState }) => (
           <SettingsRow
-            label="Max Results"
-            description="Number of search results per query (1-50). Default: 10."
+            label={t('tools.webSearch.maxResults.label')}
+            description={t('tools.webSearch.maxResults.description')}
             error={fieldState.error}
           >
             <Input
@@ -194,8 +206,8 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
         name="webSearch.deepRecall"
         render={({ field }) => (
           <SettingsRow
-            label="Deep recall"
-            description="Run a second, broader web search alongside the grounding call and merge in the extra results — forums, news, and pages the grounding filter drops. Higher recall, ~2× Brave API usage per search."
+            label={t('tools.webSearch.deepRecall.label')}
+            description={t('tools.webSearch.deepRecall.description')}
           >
             <Switch
               checked={field.value ?? true}
@@ -211,8 +223,8 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
         name="webSearch.recencyFilter"
         render={({ field, fieldState }) => (
           <SettingsRow
-            label="Recency Filter"
-            description="Only return results from a recent time period."
+            label={t('tools.webSearch.recency.label')}
+            description={t('tools.webSearch.recency.description')}
             error={fieldState.error}
           >
             <SettingsSelect
@@ -225,8 +237,8 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
                     : (val as 'hour' | 'day' | 'week' | 'month' | 'year')
                 )
               }
-              options={RECENCY_OPTIONS}
-              placeholder="No filter"
+              options={recencyOptions}
+              placeholder={t('tools.webSearch.recency.options.none')}
             />
           </SettingsRow>
         )}
@@ -238,8 +250,8 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
         name="webSearch.domainFilter"
         render={({ field, fieldState }) => (
           <SettingsRow
-            label="Domain Filter"
-            description='Comma-separated. Prefix with - to exclude. e.g. "nature.com, .edu" or "-reddit.com"'
+            label={t('tools.webSearch.domainFilter.label')}
+            description={t('tools.webSearch.domainFilter.description')}
             error={fieldState.error}
             layout="vertical"
           >
