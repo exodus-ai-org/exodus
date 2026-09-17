@@ -9,6 +9,7 @@ import {
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { memo, useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { useClipboard } from '@/hooks/use-clipboard'
 import { useSettings } from '@/hooks/use-settings'
@@ -158,6 +159,7 @@ function MapItineraryCardImpl({
 }: {
   toolResult: MapItineraryDetails
 }) {
+  const { t } = useTranslation('chat')
   const { data: settings } = useSettings()
   const { copied, handleCopy } = useClipboard()
   const { resolvedTheme } = useTheme()
@@ -224,7 +226,7 @@ function MapItineraryCardImpl({
   if (!apiKey) {
     return (
       <div className="border-border bg-muted/30 text-muted-foreground rounded-lg border p-4 text-sm">
-        Add a Google API Key in Settings → Google Cloud to render the trip map.
+        {t('mapItineraryCard.missingApiKey')}
       </div>
     )
   }
@@ -252,7 +254,7 @@ function MapItineraryCardImpl({
         {toolResult.days.length > 1 && (
           <div
             role="tablist"
-            aria-label="Itinerary days"
+            aria-label={t('mapItineraryCard.tabsAriaLabel')}
             className="bg-background/85 absolute top-3 left-3 z-10 flex gap-1 overflow-x-auto rounded-full p-1 shadow-md backdrop-blur"
           >
             {toolResult.days.map((day, i) => {
@@ -286,7 +288,7 @@ function MapItineraryCardImpl({
                 href={gmapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                title="Open route in Google Maps"
+                title={t('mapItineraryCard.openRouteTitle')}
                 className="bg-background/85 text-foreground hover:bg-background flex size-8 items-center justify-center rounded-full shadow-md backdrop-blur transition-colors"
               >
                 <ExternalLinkIcon size={14} />
@@ -295,7 +297,7 @@ function MapItineraryCardImpl({
             <button
               type="button"
               onClick={onCopy}
-              title="Copy day as markdown"
+              title={t('mapItineraryCard.copyMarkdownTitle')}
               className="bg-background/85 text-foreground hover:bg-background flex size-8 items-center justify-center rounded-full shadow-md backdrop-blur transition-colors"
             >
               {copied === copyMarkdown ? (

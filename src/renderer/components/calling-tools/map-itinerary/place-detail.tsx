@@ -9,6 +9,7 @@ import {
   XIcon
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import {
   Carousel,
@@ -51,6 +52,7 @@ export function PlaceDetail({
   onNext,
   onClose
 }: PlaceDetailProps) {
+  const { t } = useTranslation('chat')
   const { data: settings } = useSettings()
   const apiKey = settings?.googleCloud?.googleApiKey
   const [tab, setTab] = useState<Tab>('overview')
@@ -122,7 +124,9 @@ export function PlaceDetail({
                   <button
                     key={url}
                     type="button"
-                    aria-label={`Go to photo ${i + 1}`}
+                    aria-label={t('placeDetail.goToPhotoAriaLabel', {
+                      index: i + 1
+                    })}
                     aria-current={i === photoIdx ? 'true' : undefined}
                     onClick={() => carouselApi?.scrollTo(i)}
                     className={cn(
@@ -142,7 +146,7 @@ export function PlaceDetail({
         <button
           type="button"
           onClick={onClose}
-          aria-label="Close detail panel"
+          aria-label={t('placeDetail.closeAriaLabel')}
           className="bg-background/80 text-foreground hover:bg-background absolute top-2 right-2 z-10 flex size-7 items-center justify-center rounded-full shadow-sm backdrop-blur transition-colors"
         >
           <XIcon size={14} />
@@ -170,7 +174,9 @@ export function PlaceDetail({
                     : 'text-muted-foreground'
                 )}
               >
-                {place.openNow ? 'Open' : 'Closed'}
+                {place.openNow
+                  ? t('placeDetail.open')
+                  : t('placeDetail.closed')}
               </span>
             </>
           )}
@@ -204,33 +210,45 @@ export function PlaceDetail({
       {(hasReviews || hasHours) && (
         <div
           role="tablist"
-          aria-label="Place sections"
+          aria-label={t('placeDetail.tabsAriaLabel')}
           className="border-border flex shrink-0 border-b text-xs"
         >
           {/* react-doctor/js-combine-iterations: false positive — literal 3-item array, extra pass is negligible */}
           {(
             [
-              { id: 'overview', label: 'Overview', enabled: true },
-              { id: 'reviews', label: 'Reviews', enabled: hasReviews },
-              { id: 'hours', label: 'Hours', enabled: hasHours }
+              {
+                id: 'overview',
+                label: t('placeDetail.tabOverview'),
+                enabled: true
+              },
+              {
+                id: 'reviews',
+                label: t('placeDetail.tabReviews'),
+                enabled: hasReviews
+              },
+              {
+                id: 'hours',
+                label: t('placeDetail.tabHours'),
+                enabled: hasHours
+              }
             ] as const
           )
-            .filter((t) => t.enabled)
-            .map((t) => (
+            .filter((tabDef) => tabDef.enabled)
+            .map((tabDef) => (
               <button
-                key={t.id}
+                key={tabDef.id}
                 role="tab"
-                aria-selected={tab === t.id}
+                aria-selected={tab === tabDef.id}
                 type="button"
-                onClick={() => setTab(t.id)}
+                onClick={() => setTab(tabDef.id)}
                 className={cn(
                   'flex-1 px-3 py-2 font-medium transition-colors',
-                  tab === t.id
+                  tab === tabDef.id
                     ? 'text-foreground border-foreground border-b-2'
                     : 'text-muted-foreground hover:text-foreground'
                 )}
               >
-                {t.label}
+                {tabDef.label}
               </button>
             ))}
         </div>
@@ -243,7 +261,7 @@ export function PlaceDetail({
             {place.note && (
               <div className="bg-muted/40 rounded-lg p-2.5">
                 <div className="text-muted-foreground mb-1 text-[10px] tracking-widest uppercase">
-                  Notes
+                  {t('placeDetail.notes')}
                 </div>
                 <p className="text-foreground text-xs leading-relaxed">
                   {place.note}
@@ -288,7 +306,7 @@ export function PlaceDetail({
                   <ReviewAvatar src={r.authorPhotoUrl} name={r.author} />
                   <div className="min-w-0 flex-1">
                     <div className="text-foreground truncate text-xs font-medium">
-                      {r.author ?? 'Anonymous'}
+                      {r.author ?? t('placeDetail.anonymousReviewer')}
                     </div>
                     <div className="text-muted-foreground flex items-center gap-1 text-[10px]">
                       {r.rating !== undefined && (
@@ -349,7 +367,7 @@ export function PlaceDetail({
         <button
           type="button"
           onClick={onPrev}
-          aria-label="Previous place"
+          aria-label={t('placeDetail.previousAriaLabel')}
           className={cn(
             'hover:bg-muted text-muted-foreground hover:text-foreground flex size-7 items-center justify-center rounded-md transition-colors',
             total <= 1 && 'pointer-events-none opacity-30'
@@ -359,12 +377,12 @@ export function PlaceDetail({
           <ChevronLeftIcon size={14} />
         </button>
         <span className="text-muted-foreground text-[11px]">
-          {index + 1} of {total}
+          {t('placeDetail.pagination', { index: index + 1, total })}
         </span>
         <button
           type="button"
           onClick={onNext}
-          aria-label="Next place"
+          aria-label={t('placeDetail.nextAriaLabel')}
           className={cn(
             'hover:bg-muted text-muted-foreground hover:text-foreground flex size-7 items-center justify-center rounded-md transition-colors',
             total <= 1 && 'pointer-events-none opacity-30'
