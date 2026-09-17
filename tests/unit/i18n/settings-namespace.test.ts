@@ -550,14 +550,15 @@ describe('settings namespace tools.voice.alert renders correctly via Trans', () 
 })
 
 describe('settings namespace tools.s3.alert.* renders correctly via Trans', () => {
-  async function renderTrans(
-    i18nKey: string,
-    children: Parameters<typeof import('react').createElement>[2][]
-  ) {
+  // Render the REAL exported components from s3.tsx (not a hand-copied
+  // children array) — a formatter reflow of that file can insert/remove
+  // `{' '}` around wrapped JSX text, which shifts these numbered
+  // placeholders' positions. A hand-copied array wouldn't notice that
+  // drift; rendering the actual source will.
+  async function renderReal(Component: () => React.JSX.Element) {
     const { createElement } = await import('react')
     const { renderToStaticMarkup } = await import('react-dom/server')
-    const { I18nextProvider, Trans, initReactI18next } =
-      await import('react-i18next')
+    const { I18nextProvider, initReactI18next } = await import('react-i18next')
     const i18next = (await import('i18next')).default
 
     const i18n = i18next.createInstance()
@@ -570,89 +571,57 @@ describe('settings namespace tools.s3.alert.* renders correctly via Trans', () =
     })
 
     return renderToStaticMarkup(
-      createElement(
-        I18nextProvider,
-        { i18n },
-        createElement(Trans, { ns: 'settings', i18nKey }, ...children)
-      )
+      createElement(I18nextProvider, { i18n }, createElement(Component))
     )
   }
 
   it('encoding — one literal <strong>, no numbered placeholders', async () => {
-    const { createElement } = await import('react')
-    const html = await renderTrans('tools.s3.alert.encoding', [
-      'By default, Exodus encodes attachments as ',
-      createElement('strong', null, 'base64'),
-      ' inline in the prompt. For large files or vision-heavy workflows, uploading to S3 and passing a URL is more efficient and reliable.'
-    ])
+    const { EncodingNotice } =
+      await import('@/components/settings/settings-form/s3')
+    const html = await renderReal(EncodingNotice)
     expect(html).toBe(
       'By default, Exodus encodes attachments as <strong>base64</strong> inline in the prompt. For large files or vision-heavy workflows, uploading to S3 and passing a URL is more efficient and reliable.'
     )
   })
 
   it('requirementsHeading — whole text wrapped in one literal <strong>', async () => {
-    const { createElement } = await import('react')
-    const html = await renderTrans('tools.s3.alert.requirementsHeading', [
-      createElement('strong', null, 'Requirements before configuring:')
-    ])
+    const { RequirementsHeading } =
+      await import('@/components/settings/settings-form/s3')
+    const html = await renderReal(RequirementsHeading)
     expect(html).toBe('<strong>Requirements before configuring:</strong>')
   })
 
-  it('publicReadAccess — <strong> plus two <code> at positions 2 and 4', async () => {
-    const { createElement } = await import('react')
-    const html = await renderTrans('tools.s3.alert.publicReadAccess', [
-      createElement('strong', null, 'Public read access'),
-      ' — AWS blocks public access by default. You must disable "Block all public access" on the bucket and attach a bucket policy granting ',
-      createElement('code', null, 's3:GetObject'),
-      ' to ',
-      createElement('code', null, '*'),
-      ', so the AI provider can fetch the URL without credentials.'
-    ])
+  it('publicReadAccess — <strong> plus two <code>, correct positions', async () => {
+    const { PublicReadAccessNotice } =
+      await import('@/components/settings/settings-form/s3')
+    const html = await renderReal(PublicReadAccessNotice)
     expect(html).toBe(
       '<strong>Public read access</strong> — AWS blocks public access by default. You must disable &quot;Block all public access&quot; on the bucket and attach a bucket policy granting <code>s3:GetObject</code> to <code>*</code>, so the AI provider can fetch the URL without credentials.'
     )
   })
 
-  it('cors — <strong> plus two <code> at positions 2 and 4', async () => {
-    const { createElement } = await import('react')
-    const html = await renderTrans('tools.s3.alert.cors', [
-      createElement('strong', null, 'CORS'),
-      ' — Add a CORS rule allowing ',
-      createElement('code', null, 'PUT'),
-      ' from ',
-      createElement('code', null, '*'),
-      ' (or your app origin) so Exodus can upload directly from the desktop.'
-    ])
+  it('cors — <strong> plus two <code>, correct positions', async () => {
+    const { CorsNotice } =
+      await import('@/components/settings/settings-form/s3')
+    const html = await renderReal(CorsNotice)
     expect(html).toBe(
       '<strong>CORS</strong> — Add a CORS rule allowing <code>PUT</code> from <code>*</code> (or your app origin) so Exodus can upload directly from the desktop.'
     )
   })
 
-  it('iamCredentials — <strong> plus two <code> at positions 2 and 4', async () => {
-    const { createElement } = await import('react')
-    const html = await renderTrans('tools.s3.alert.iamCredentials', [
-      createElement('strong', null, 'IAM credentials'),
-      ' — The Access Key ID / Secret Access Key must belong to an IAM user or role with at least ',
-      createElement('code', null, 's3:PutObject'),
-      ' and ',
-      createElement('code', null, 's3:PutObjectAcl'),
-      ' permissions on the configured bucket.'
-    ])
+  it('iamCredentials — <strong> plus two <code>, correct positions', async () => {
+    const { IamCredentialsNotice } =
+      await import('@/components/settings/settings-form/s3')
+    const html = await renderReal(IamCredentialsNotice)
     expect(html).toBe(
       '<strong>IAM credentials</strong> — The Access Key ID / Secret Access Key must belong to an IAM user or role with at least <code>s3:PutObject</code> and <code>s3:PutObjectAcl</code> permissions on the configured bucket.'
     )
   })
 
-  it('objectAcl — <strong>, one <code> at position 2, one <em> at position 4', async () => {
-    const { createElement } = await import('react')
-    const html = await renderTrans('tools.s3.alert.objectAcl', [
-      createElement('strong', null, 'Object ACL'),
-      ' — Each uploaded object is set to ',
-      createElement('code', null, 'public-read'),
-      '. Your bucket must not have ACLs disabled (i.e., Object Ownership must be set to ',
-      createElement('em', null, 'ACLs enabled / Bucket owner preferred'),
-      ').'
-    ])
+  it('objectAcl — <strong>, one <code>, one <em>, correct positions', async () => {
+    const { ObjectAclNotice } =
+      await import('@/components/settings/settings-form/s3')
+    const html = await renderReal(ObjectAclNotice)
     expect(html).toBe(
       '<strong>Object ACL</strong> — Each uploaded object is set to <code>public-read</code>. Your bucket must not have ACLs disabled (i.e., Object Ownership must be set to <em>ACLs enabled / Bucket owner preferred</em>).'
     )

@@ -406,9 +406,9 @@
         "encoding": "By default, Exodus encodes attachments as <strong>base64</strong> inline in the prompt. For large files or vision-heavy workflows, uploading to S3 and passing a URL is more efficient and reliable.",
         "requirementsHeading": "<strong>Requirements before configuring:</strong>",
         "publicReadAccess": "<strong>Public read access</strong> — AWS blocks public access by default. You must disable \"Block all public access\" on the bucket and attach a bucket policy granting <2>s3:GetObject</2> to <4>*</4>, so the AI provider can fetch the URL without credentials.",
-        "cors": "<strong>CORS</strong> — Add a CORS rule allowing <2>PUT</2> from <4>*</4> (or your app origin) so Exodus can upload directly from the desktop.",
-        "iamCredentials": "<strong>IAM credentials</strong> — The Access Key ID / Secret Access Key must belong to an IAM user or role with at least <2>s3:PutObject</2> and <4>s3:PutObjectAcl</4> permissions on the configured bucket.",
-        "objectAcl": "<strong>Object ACL</strong> — Each uploaded object is set to <2>public-read</2>. Your bucket must not have ACLs disabled (i.e., Object Ownership must be set to <4>ACLs enabled / Bucket owner preferred</4>)."
+        "cors": "<strong>CORS</strong> — Add a CORS rule allowing <2>PUT</2> from <5>*</5> (or your app origin) so Exodus can upload directly from the desktop.",
+        "iamCredentials": "<strong>IAM credentials</strong> — The Access Key ID / Secret Access Key must belong to an IAM user or role with at least <2>s3:PutObject</2> and <5>s3:PutObjectAcl</5> permissions on the configured bucket.",
+        "objectAcl": "<strong>Object ACL</strong> — Each uploaded object is set to <3>public-read</3>. Your bucket must not have ACLs disabled (i.e., Object Ownership must be set to <6>ACLs enabled / Bucket owner preferred</6>)."
       },
       "region": {
         "label": "Region",
