@@ -2,6 +2,7 @@ import { artifactShortId, artifactSlug } from '@shared/utils/artifact-slug'
 import { MaximizeIcon, MinimizeIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import {
@@ -81,6 +82,7 @@ function UrlPill({
   artifactId: string
   chatId: string
 }) {
+  const { t } = useTranslation('chat')
   const slug = artifactSlug(title)
   const shortId = artifactShortId(artifactId)
 
@@ -91,11 +93,11 @@ function UrlPill({
       | undefined
     if (result && !result.ok) {
       sileo.error({
-        title: 'Cannot open artifact file',
+        title: t('artifactCard.cannotOpenTitle'),
         description:
           result.reason === 'not-found'
-            ? 'The saved .tsx file is missing — it may have been moved or deleted.'
-            : 'Could not resolve the artifact path.'
+            ? t('artifactCard.missingFileDescription')
+            : t('artifactCard.resolveFailedDescription')
       })
     }
   }
@@ -104,8 +106,8 @@ function UrlPill({
     <button
       type="button"
       onClick={handleClick}
-      aria-label={`Reveal ${title} in file manager`}
-      title="Reveal in file manager"
+      aria-label={t('artifactCard.revealAriaLabel', { title })}
+      title={t('artifactCard.revealTitle')}
       className={cn(
         'min-w-0 max-w-160 flex-1 rounded-md border px-2.5 py-1 text-left font-mono text-[11.5px] leading-none',
         'border-border/60 bg-background text-muted-foreground transition-colors',
@@ -128,12 +130,21 @@ function FullscreenButton({
   isFullscreen: boolean
   onClick: () => void
 }) {
+  const { t } = useTranslation('chat')
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={isFullscreen ? 'Exit fullscreen' : 'Enter fullscreen'}
-      title={isFullscreen ? 'Exit fullscreen (Esc)' : 'Fullscreen'}
+      aria-label={t(
+        isFullscreen
+          ? 'artifactCard.exitFullscreen'
+          : 'artifactCard.enterFullscreen'
+      )}
+      title={t(
+        isFullscreen
+          ? 'artifactCard.exitFullscreenEsc'
+          : 'artifactCard.fullscreen'
+      )}
       className="text-muted-foreground hover:bg-muted hover:text-foreground inline-flex h-7 w-7 items-center justify-center rounded-md transition-colors focus-visible:ring-2 focus-visible:outline-none"
     >
       {isFullscreen ? <MinimizeIcon size={14} /> : <MaximizeIcon size={14} />}
