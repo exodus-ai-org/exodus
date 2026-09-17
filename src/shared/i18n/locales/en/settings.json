@@ -73,5 +73,21 @@
       "send-message": { "label": "Send message" },
       "new-line": { "label": "New line" }
     }
+  },
+  "about": {
+    "version": "Version",
+    "electron": "Electron",
+    "chromium": "Chromium",
+    "node": "Node.js",
+    "v8": "V8",
+    "os": "OS",
+    "github": "GitHub",
+    "twitter": "X (Twitter)",
+    "website": "Website",
+    "license": "License",
+    "autoUpdate": {
+      "label": "Auto Update",
+      "description": "Automatically download and install updates when available"
+    }
   }
 }

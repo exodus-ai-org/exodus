@@ -124,4 +124,21 @@ describe('settings namespace (en)', () => {
       'New line'
     )
   })
+
+  it('has the About tab labels', () => {
+    expect(settings.about.version).toBe('Version')
+    expect(settings.about.electron).toBe('Electron')
+    expect(settings.about.chromium).toBe('Chromium')
+    expect(settings.about.node).toBe('Node.js')
+    expect(settings.about.v8).toBe('V8')
+    expect(settings.about.os).toBe('OS')
+    expect(settings.about.github).toBe('GitHub')
+    expect(settings.about.twitter).toBe('X (Twitter)')
+    expect(settings.about.website).toBe('Website')
+    expect(settings.about.license).toBe('License')
+    expect(settings.about.autoUpdate.label).toBe('Auto Update')
+    expect(settings.about.autoUpdate.description).toBe(
+      'Automatically download and install updates when available'
+    )
+  })
 })
