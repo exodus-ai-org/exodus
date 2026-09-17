@@ -1,6 +1,7 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { SettingsSchema } from '@shared/schemas/settings-schema'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 
 import { useSettings } from '@/hooks/use-settings'
 import { useSettingsAutosave } from '@/hooks/use-settings-autosave'
@@ -25,9 +26,10 @@ import { SkillsMarketSetting } from './settings-form/skills-market'
 import { SystemInfo } from './settings-form/system-info'
 import { Tools } from './settings-form/tools'
 import { Voice } from './settings-form/voice'
-import { SettingsLabel } from './settings-menu'
+import { NAV_TITLE_KEYS, SettingsLabel } from './settings-menu'
 
 export function SettingsForm() {
+  const { t } = useTranslation('settings')
   const { data: settings } = useSettings()
   const [activeTitle] = useSettingsTab()
 
@@ -56,7 +58,7 @@ export function SettingsForm() {
         }
       }}
     >
-      <h1 className="text-xl">{activeTitle}</h1>
+      <h1 className="text-xl">{t(NAV_TITLE_KEYS[activeTitle])}</h1>
 
       {activeTitle === SettingsLabel.Profile && <Profile form={form} />}
 
