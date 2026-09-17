@@ -515,11 +515,14 @@ describe('settings namespace (en)', () => {
 
 describe('settings namespace tools.voice.alert renders correctly via Trans', () => {
   it('keeps <strong>only support OpenAI</strong> literal, not a numbered placeholder', async () => {
+    // Render the REAL exported component from voice.tsx (not a hand-copied
+    // children array) — same rationale as s3.tsx's Trans render tests.
     const { createElement } = await import('react')
     const { renderToStaticMarkup } = await import('react-dom/server')
-    const { I18nextProvider, Trans, initReactI18next } =
-      await import('react-i18next')
+    const { I18nextProvider, initReactI18next } = await import('react-i18next')
     const i18next = (await import('i18next')).default
+    const { OpenAiOnlyNotice } =
+      await import('@/components/settings/settings-form/voice')
 
     const i18n = i18next.createInstance()
     await i18n.use(initReactI18next).init({
@@ -530,19 +533,9 @@ describe('settings namespace tools.voice.alert renders correctly via Trans', () 
       interpolation: { escapeValue: false }
     })
 
-    const element = createElement(
-      I18nextProvider,
-      { i18n },
-      createElement(
-        Trans,
-        { ns: 'settings', i18nKey: 'tools.voice.alert' },
-        'The Text-to-Speech and Speech-to-Text services ',
-        createElement('strong', null, 'only support OpenAI'),
-        '. Please make sure you have configured the OpenAI API setting correctly before using these features.'
-      )
+    const html = renderToStaticMarkup(
+      createElement(I18nextProvider, { i18n }, createElement(OpenAiOnlyNotice))
     )
-
-    const html = renderToStaticMarkup(element)
     expect(html).toBe(
       'The Text-to-Speech and Speech-to-Text services <strong>only support OpenAI</strong>. Please make sure you have configured the OpenAI API setting correctly before using these features.'
     )

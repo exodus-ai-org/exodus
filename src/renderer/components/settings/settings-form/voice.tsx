@@ -49,6 +49,22 @@ const TTS_FORMATS = [
   { value: 'pcm', label: 'PCM' }
 ]
 
+// Exported (not inlined into `Voice`'s JSX) specifically so
+// `tests/unit/i18n/settings-namespace.test.ts` can import and render the
+// REAL component rather than a hand-copied children array — see s3.tsx's
+// identical pattern and the commit that introduced it for why this
+// matters (a formatter reflow can shift `<Trans>`'s positional numbering
+// without changing what a hand-copied test array asserts).
+export function OpenAiOnlyNotice() {
+  return (
+    <Trans ns="settings" i18nKey="tools.voice.alert">
+      The Text-to-Speech and Speech-to-Text services{' '}
+      <strong>only support OpenAI</strong>. Please make sure you have configured
+      the OpenAI API setting correctly before using these features.
+    </Trans>
+  )
+}
+
 export function Voice({ form }: { form: UseFormReturnType }) {
   const { t } = useTranslation('settings')
   const ttsModel = form.watch('voice.textToSpeechModel')
@@ -58,12 +74,7 @@ export function Voice({ form }: { form: UseFormReturnType }) {
       <Alert className="mb-4">
         <AlertCircleIcon className="h-4 w-4" />
         <AlertDescription className="inline">
-          <Trans ns="settings" i18nKey="tools.voice.alert">
-            The Text-to-Speech and Speech-to-Text services{' '}
-            <strong>only support OpenAI</strong>. Please make sure you have
-            configured the OpenAI API setting correctly before using these
-            features.
-          </Trans>
+          <OpenAiOnlyNotice />
         </AlertDescription>
       </Alert>
 
