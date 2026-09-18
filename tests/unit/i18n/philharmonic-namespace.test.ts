@@ -239,6 +239,95 @@ describe('philharmonic namespace (en)', () => {
       empty: 'No conversation usage data yet'
     })
   })
+
+  it('has the workforce header, empty state, and team section keys', () => {
+    expect(philharmonic.workforce.header).toMatchObject({
+      title: 'Workforce',
+      employeeCount_one: '{{count}} employee',
+      employeeCount_other: '{{count}} employees',
+      teamCount_one: '{{count}} team',
+      teamCount_other: '{{count}} teams'
+    })
+    expect(philharmonic.workforce.emptyState).toMatchObject({
+      title: 'Start with a team',
+      createButton: '+ New team'
+    })
+    expect(philharmonic.workforce.teamSection.unassignedFallback).toBe(
+      'No team'
+    )
+  })
+
+  it('has distinct default-name and toast keys', () => {
+    expect(philharmonic.workforce.newEmployeeDefaultName).toBe('New Employee')
+    expect(philharmonic.workforce.newTeamDefaultName).toBe('New Team')
+    // Shared generic templates, reused by both employee and team flows.
+    expect(philharmonic.workforce.toast.created).toBe('"{{name}}" created')
+    expect(philharmonic.workforce.toast.deleted).toBe('"{{name}}" deleted')
+    // Entity-specific failure toasts stay separate.
+    expect(philharmonic.workforce.toast.saveEmployeeFailed).not.toBe(
+      philharmonic.workforce.toast.saveTeamFailed
+    )
+  })
+})
+
+describe('philharmonic namespace workforce delete-dialog descriptions render correctly via Trans', () => {
+  it('employee description — dynamic name in a styled <span> at index 0', async () => {
+    const { createElement } = await import('react')
+    const { renderToStaticMarkup } = await import('react-dom/server')
+    const { I18nextProvider, initReactI18next } = await import('react-i18next')
+    const i18next = (await import('i18next')).default
+    const { DeleteEmployeeDescription } =
+      await import('@/components/philharmonic/workforce/workforce-page')
+
+    const i18n = i18next.createInstance()
+    await i18n.use(initReactI18next).init({
+      lng: 'en',
+      resources: { en: { philharmonic } },
+      ns: ['philharmonic'],
+      defaultNS: 'philharmonic',
+      interpolation: { escapeValue: false }
+    })
+
+    const html = renderToStaticMarkup(
+      createElement(
+        I18nextProvider,
+        { i18n },
+        createElement(DeleteEmployeeDescription, { name: 'Ada' })
+      )
+    )
+    expect(html).toBe(
+      '<span class="bg-background rounded-md px-1.5 py-0.5 font-mono text-xs">Ada</span> will be permanently removed along with their accumulated memory.'
+    )
+  })
+
+  it('team description — dynamic name in a styled <span> at index 0', async () => {
+    const { createElement } = await import('react')
+    const { renderToStaticMarkup } = await import('react-dom/server')
+    const { I18nextProvider, initReactI18next } = await import('react-i18next')
+    const i18next = (await import('i18next')).default
+    const { DeleteTeamDescription } =
+      await import('@/components/philharmonic/workforce/workforce-page')
+
+    const i18n = i18next.createInstance()
+    await i18n.use(initReactI18next).init({
+      lng: 'en',
+      resources: { en: { philharmonic } },
+      ns: ['philharmonic'],
+      defaultNS: 'philharmonic',
+      interpolation: { escapeValue: false }
+    })
+
+    const html = renderToStaticMarkup(
+      createElement(
+        I18nextProvider,
+        { i18n },
+        createElement(DeleteTeamDescription, { name: 'Marketing' })
+      )
+    )
+    expect(html).toBe(
+      '<span class="bg-background rounded-md px-1.5 py-0.5 font-mono text-xs">Marketing</span> will be removed. Existing members keep their records but lose this team affiliation.'
+    )
+  })
 })
 
 describe('philharmonic namespace chat.composer.hint renders correctly via Trans', () => {

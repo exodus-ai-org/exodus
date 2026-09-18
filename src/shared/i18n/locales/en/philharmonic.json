@@ -250,5 +250,47 @@
       "title": "Cost by conversation",
       "empty": "No conversation usage data yet"
     }
+  },
+  "workforce": {
+    "header": {
+      "title": "Workforce",
+      "employeeCount_one": "{{count}} employee",
+      "employeeCount_other": "{{count}} employees",
+      "teamCount_one": "{{count}} team",
+      "teamCount_other": "{{count}} teams",
+      "addTeamButton": "Team",
+      "addEmployeeButton": "Employee",
+      "createTeamFirstTitle": "Create a team first"
+    },
+    "emptyState": {
+      "title": "Start with a team",
+      "description": "Every employee belongs to a team that contributes a shared system prompt. Create a team first, then add the employees that belong to it.",
+      "createButton": "+ New team"
+    },
+    "teamSection": {
+      "editTeam": "Edit team",
+      "addEmployeeHere": "Add employee here",
+      "deleteTeam": "Delete team",
+      "unassignedFallback": "No team",
+      "addEmployeeButton": "Add employee"
+    },
+    "newEmployeeDefaultName": "New Employee",
+    "newTeamDefaultName": "New Team",
+    "deleteEmployeeDialog": {
+      "title": "Delete this employee?",
+      "description": "<0>{{name}}</0> will be permanently removed along with their accumulated memory."
+    },
+    "deleteTeamDialog": {
+      "title": "Delete this team?",
+      "description": "<0>{{name}}</0> will be removed. Existing members keep their records but lose this team affiliation."
+    },
+    "toast": {
+      "created": "\"{{name}}\" created",
+      "deleted": "\"{{name}}\" deleted",
+      "saveEmployeeFailed": "Could not save the employee",
+      "deleteEmployeeFailed": "Could not delete the employee",
+      "saveTeamFailed": "Could not save the team",
+      "deleteTeamFailed": "Could not delete the team"
+    }
   }
 }

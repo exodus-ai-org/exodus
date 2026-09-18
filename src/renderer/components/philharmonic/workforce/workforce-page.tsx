@@ -13,7 +13,7 @@ import {
   UsersIcon
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import { EmployeeAvatar } from '@/components/philharmonic/employees/employee-avatar'
@@ -40,6 +40,7 @@ import {
   ContextMenuTrigger
 } from '@/components/ui/context-menu'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
+import { i18n } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import {
   createAgentApi,
@@ -153,6 +154,7 @@ function TeamSection({
   onAskDeleteTeam,
   onAddEmployeeToTeam
 }: TeamSectionProps) {
+  const { t } = useTranslation('philharmonic')
   const headerContent = (
     <button
       type="button"
@@ -180,7 +182,7 @@ function TeamSection({
           ))}
       </span>
       <span className="text-foreground text-sm font-semibold">
-        {team?.name ?? 'No team'}
+        {team?.name ?? t('workforce.teamSection.unassignedFallback')}
       </span>
       <span className="bg-background text-muted-foreground ml-1 rounded-full px-2 py-0.5 text-[10px]">
         {members.length}
@@ -202,11 +204,11 @@ function TeamSection({
             <ContextMenuContent>
               <ContextMenuItem onClick={() => onEditTeam?.(team)}>
                 <Pencil className="mr-1.5 h-3.5 w-3.5" />
-                Edit team
+                {t('workforce.teamSection.editTeam')}
               </ContextMenuItem>
               <ContextMenuItem onClick={() => onAddEmployeeToTeam(team.id)}>
                 <UserPlus className="mr-1.5 h-3.5 w-3.5" />
-                Add employee here
+                {t('workforce.teamSection.addEmployeeHere')}
               </ContextMenuItem>
               <ContextMenuSeparator />
               <ContextMenuItem
@@ -214,7 +216,7 @@ function TeamSection({
                 onClick={() => onAskDeleteTeam?.(team)}
               >
                 <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-                Delete team
+                {t('workforce.teamSection.deleteTeam')}
               </ContextMenuItem>
             </ContextMenuContent>
           </ContextMenu>
@@ -241,7 +243,7 @@ function TeamSection({
               className="border-border text-muted-foreground hover:text-primary flex min-h-[88px] items-center justify-center gap-2 rounded-xl border-2 border-dashed text-xs transition-colors"
             >
               <Plus className="h-3.5 w-3.5" />
-              Add employee
+              {t('workforce.teamSection.addEmployeeButton')}
             </button>
           )}
         </div>
@@ -250,10 +252,41 @@ function TeamSection({
   )
 }
 
+export function DeleteEmployeeDescription({ name }: { name: string }) {
+  return (
+    <Trans
+      ns="philharmonic"
+      i18nKey="workforce.deleteEmployeeDialog.description"
+      values={{ name }}
+    >
+      <span className="bg-background rounded-md px-1.5 py-0.5 font-mono text-xs">
+        {name}
+      </span>{' '}
+      will be permanently removed along with their accumulated memory.
+    </Trans>
+  )
+}
+
+export function DeleteTeamDescription({ name }: { name: string }) {
+  return (
+    <Trans
+      ns="philharmonic"
+      i18nKey="workforce.deleteTeamDialog.description"
+      values={{ name }}
+    >
+      <span className="bg-background rounded-md px-1.5 py-0.5 font-mono text-xs">
+        {name}
+      </span>{' '}
+      will be removed. Existing members keep their records but lose this team
+      affiliation.
+    </Trans>
+  )
+}
+
 function emptyEmployeeDraft(teamId: string): AgentData {
   return {
     id: '',
-    name: 'New Employee',
+    name: i18n.t('philharmonic:workforce.newEmployeeDefaultName'),
     description: null,
     teamId,
     avatarSeed: randomAvatarSeed(),
@@ -273,7 +306,7 @@ function emptyEmployeeDraft(teamId: string): AgentData {
 function emptyTeamDraft(): TeamData {
   return {
     id: '',
-    name: 'New Team',
+    name: i18n.t('philharmonic:workforce.newTeamDefaultName'),
     description: '',
     systemPrompt: '',
     icon: null,
@@ -283,7 +316,7 @@ function emptyTeamDraft(): TeamData {
 }
 
 export function WorkforcePage() {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation(['common', 'philharmonic'])
   const [employees, setEmployees] = useState<AgentData[]>([])
   const [teams, setTeams] = useState<TeamData[]>([])
   // Editor states carry both the draft and an isNew flag so Save can dispatch
@@ -342,7 +375,11 @@ export function WorkforcePage() {
       if (employeeEditor.isNew) {
         const created = await createAgentApi(data)
         setEmployees((p) => [...p, created])
-        sileo.success({ title: `"${created.name}" created` })
+        sileo.success({
+          title: t('philharmonic:workforce.toast.created', {
+            name: created.name
+          })
+        })
       } else {
         const updated = await updateAgentApi(employeeEditor.draft.id, data)
         setEmployees((p) => p.map((x) => (x.id === updated.id ? updated : x)))
@@ -350,7 +387,7 @@ export function WorkforcePage() {
       setEmployeeEditor(null)
     } catch (err) {
       sileo.error({
-        title: 'Could not save the employee',
+        title: t('philharmonic:workforce.toast.saveEmployeeFailed'),
         description: err instanceof Error ? err.message : String(err)
       })
     }
@@ -362,7 +399,11 @@ export function WorkforcePage() {
       if (teamEditor.isNew) {
         const created = await createTeamApi(data)
         setTeams((p) => [...p, created])
-        sileo.success({ title: `"${created.name}" created` })
+        sileo.success({
+          title: t('philharmonic:workforce.toast.created', {
+            name: created.name
+          })
+        })
       } else {
         const updated = await updateTeamApi(teamEditor.draft.id, data)
         setTeams((p) => p.map((x) => (x.id === updated.id ? updated : x)))
@@ -370,7 +411,7 @@ export function WorkforcePage() {
       setTeamEditor(null)
     } catch (err) {
       sileo.error({
-        title: 'Could not save the team',
+        title: t('philharmonic:workforce.toast.saveTeamFailed'),
         description: err instanceof Error ? err.message : String(err)
       })
     }
@@ -383,26 +424,36 @@ export function WorkforcePage() {
     <div className="flex h-full flex-col overflow-hidden">
       <header className="border-border flex h-13 shrink-0 items-center justify-between border-b px-5">
         <div>
-          <h1 className="text-foreground text-sm font-semibold">Workforce</h1>
+          <h1 className="text-foreground text-sm font-semibold">
+            {t('philharmonic:workforce.header.title')}
+          </h1>
           <p className="text-muted-foreground text-[11.5px]">
-            {employees.length}{' '}
-            {employees.length === 1 ? 'employee' : 'employees'} · {teams.length}{' '}
-            {teams.length === 1 ? 'team' : 'teams'}
+            {t('philharmonic:workforce.header.employeeCount', {
+              count: employees.length
+            })}{' '}
+            ·{' '}
+            {t('philharmonic:workforce.header.teamCount', {
+              count: teams.length
+            })}
           </p>
         </div>
         <div className="flex items-center gap-1.5">
           <Button variant="ghost" size="sm" onClick={openNewTeam}>
             <Plus className="h-3.5 w-3.5" />
-            Team
+            {t('philharmonic:workforce.header.addTeamButton')}
           </Button>
           <Button
             size="sm"
             onClick={() => openNewEmployee()}
             disabled={noTeams}
-            title={noTeams ? 'Create a team first' : undefined}
+            title={
+              noTeams
+                ? t('philharmonic:workforce.header.createTeamFirstTitle')
+                : undefined
+            }
           >
             <UserPlus className="h-3.5 w-3.5" />
-            Employee
+            {t('philharmonic:workforce.header.addEmployeeButton')}
           </Button>
         </div>
       </header>
@@ -411,9 +462,12 @@ export function WorkforcePage() {
         {totalEmpty ? (
           <PhilharmonicEmptyState
             avatars={[{ hue: 'lilac' }, { hue: 'mint' }, { hue: 'peach' }]}
-            title="Start with a team"
-            description="Every employee belongs to a team that contributes a shared system prompt. Create a team first, then add the employees that belong to it."
-            action={{ label: '+ New team', onClick: openNewTeam }}
+            title={t('philharmonic:workforce.emptyState.title')}
+            description={t('philharmonic:workforce.emptyState.description')}
+            action={{
+              label: t('philharmonic:workforce.emptyState.createButton'),
+              onClick: openNewTeam
+            }}
           />
         ) : (
           <div className="space-y-4">
@@ -496,16 +550,12 @@ export function WorkforcePage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this employee?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t('philharmonic:workforce.deleteEmployeeDialog.title')}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {confirmingEmployee ? (
-                <>
-                  <span className="bg-background rounded-md px-1.5 py-0.5 font-mono text-xs">
-                    {confirmingEmployee.name}
-                  </span>{' '}
-                  will be permanently removed along with their accumulated
-                  memory.
-                </>
+                <DeleteEmployeeDescription name={confirmingEmployee.name} />
               ) : (
                 ''
               )}
@@ -526,10 +576,14 @@ export function WorkforcePage() {
                   setEmployeeEditor((cur) =>
                     cur?.draft.id === id ? null : cur
                   )
-                  sileo.success({ title: `"${name}" deleted` })
+                  sileo.success({
+                    title: t('philharmonic:workforce.toast.deleted', { name })
+                  })
                 } catch (err) {
                   sileo.error({
-                    title: 'Could not delete the employee',
+                    title: t(
+                      'philharmonic:workforce.toast.deleteEmployeeFailed'
+                    ),
                     description:
                       err instanceof Error ? err.message : String(err)
                   })
@@ -548,16 +602,12 @@ export function WorkforcePage() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this team?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t('philharmonic:workforce.deleteTeamDialog.title')}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {confirmingTeam ? (
-                <>
-                  <span className="bg-background rounded-md px-1.5 py-0.5 font-mono text-xs">
-                    {confirmingTeam.name}
-                  </span>{' '}
-                  will be removed. Existing members keep their records but lose
-                  this team affiliation.
-                </>
+                <DeleteTeamDescription name={confirmingTeam.name} />
               ) : (
                 ''
               )}
@@ -580,10 +630,12 @@ export function WorkforcePage() {
                     p.map((e) => (e.teamId === id ? { ...e, teamId: null } : e))
                   )
                   setTeamEditor((cur) => (cur?.draft.id === id ? null : cur))
-                  sileo.success({ title: `"${name}" deleted` })
+                  sileo.success({
+                    title: t('philharmonic:workforce.toast.deleted', { name })
+                  })
                 } catch (err) {
                   sileo.error({
-                    title: 'Could not delete the team',
+                    title: t('philharmonic:workforce.toast.deleteTeamFailed'),
                     description:
                       err instanceof Error ? err.message : String(err)
                   })
