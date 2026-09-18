@@ -1,6 +1,7 @@
 import { AVATAR_STYLES, randomAvatarSeed } from '@shared/constants/avatar'
 import { RefreshCwIcon } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
@@ -16,6 +17,7 @@ export function AvatarPicker({
   style: string | null
   onChange: (next: { avatarSeed: string; avatarStyle: string }) => void
 }) {
+  const { t } = useTranslation('philharmonic')
   // Stabilize a fallback seed across renders. Without this, `seed ?? randomAvatarSeed()`
   // re-generates every render when the parent's seed is null, scrambling every tile.
   const [fallbackSeed] = useState(() => randomAvatarSeed())
@@ -38,7 +40,7 @@ export function AvatarPicker({
           }
         >
           <RefreshCwIcon className="h-3.5 w-3.5" />
-          Reroll
+          {t('employees.picker.reroll')}
         </Button>
       </div>
       <ToggleGroup

@@ -162,5 +162,53 @@
         "sendButton": "Send"
       }
     }
+  },
+  "employees": {
+    "avatar": {
+      "alt": "avatar"
+    },
+    "picker": {
+      "reroll": "Reroll"
+    },
+    "editor": {
+      "header": {
+        "label": "Employee",
+        "newFallback": "New employee"
+      },
+      "avatarAria": "Edit avatar",
+      "fields": {
+        "name": "Name",
+        "team": "Team",
+        "teamPlaceholder": "Select a team",
+        "teamHelp": "Every employee belongs to a team — the team's system prompt is applied to all its members.",
+        "description": "Description",
+        "descriptionPlaceholder": "One line about what this employee does.",
+        "systemPrompt": "System prompt",
+        "systemPromptPlaceholder": "Layered on top of the team's prompt.",
+        "skills": "Skills",
+        "noSkills": "No skills installed yet.",
+        "mcpServers": "MCP servers",
+        "noMcpServers": "No MCP servers configured yet.",
+        "mcpServersHelp": "If none are selected, the employee can use all available servers.",
+        "memory": "Memory (read-only)",
+        "noMemory": "No accumulated memory yet"
+      }
+    }
+  },
+  "teams": {
+    "editor": {
+      "header": {
+        "label": "Team",
+        "newFallback": "New team"
+      },
+      "fields": {
+        "name": "Name",
+        "icon": "Icon (emoji, optional)",
+        "description": "Description",
+        "descriptionPlaceholder": "Short summary of what this team does.",
+        "systemPrompt": "System prompt",
+        "systemPromptPlaceholder": "Shared instructions added to every member of this team's prompt."
+      }
+    }
   }
 }

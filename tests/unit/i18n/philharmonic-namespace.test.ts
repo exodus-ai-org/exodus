@@ -164,6 +164,47 @@ describe('philharmonic namespace (en)', () => {
       memberCount_other: '{{count}} members'
     })
   })
+
+  it('has the employees avatar and picker keys', () => {
+    expect(philharmonic.employees.avatar.alt).toBe('avatar')
+    expect(philharmonic.employees.picker.reroll).toBe('Reroll')
+  })
+
+  it('has the employee editor keys', () => {
+    expect(philharmonic.employees.editor.header).toMatchObject({
+      label: 'Employee',
+      newFallback: 'New employee'
+    })
+    expect(philharmonic.employees.editor.fields).toMatchObject({
+      name: 'Name',
+      team: 'Team',
+      teamPlaceholder: 'Select a team',
+      description: 'Description',
+      systemPrompt: 'System prompt',
+      skills: 'Skills',
+      mcpServers: 'MCP servers',
+      memory: 'Memory (read-only)'
+    })
+  })
+
+  it('has the team editor keys, self-contained from employees.editor', () => {
+    expect(philharmonic.teams.editor.header).toMatchObject({
+      label: 'Team',
+      newFallback: 'New team'
+    })
+    expect(philharmonic.teams.editor.fields).toMatchObject({
+      name: 'Name',
+      icon: 'Icon (emoji, optional)',
+      description: 'Description',
+      systemPrompt: 'System prompt'
+    })
+    // Same English text as employees.editor.fields.* by coincidence, but a
+    // deliberately separate key per section (see Global Constraints) — not
+    // the same catalog value reference.
+    expect(philharmonic.teams.editor.fields.name).toBe(
+      philharmonic.employees.editor.fields.name
+    )
+  })
 })
 
 describe('philharmonic namespace chat.composer.hint renders correctly via Trans', () => {

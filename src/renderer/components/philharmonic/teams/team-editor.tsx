@@ -31,7 +31,7 @@ export function TeamEditor({
   onClose,
   onSave
 }: TeamEditorProps) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation(['common', 'philharmonic'])
   const [draft, setDraft] = useState<TeamData>(team)
   const canSave = draft.name.trim().length > 0
 
@@ -40,10 +40,10 @@ export function TeamEditor({
       <header className="border-border flex h-14 shrink-0 items-center border-b pr-14 pl-5">
         <div className="min-w-0">
           <div className="text-muted-foreground text-[11px] tracking-wider uppercase">
-            Team
+            {t('philharmonic:teams.editor.header.label')}
           </div>
           <div className="text-foreground truncate text-sm font-semibold">
-            {draft.name || 'New team'}
+            {draft.name || t('philharmonic:teams.editor.header.newFallback')}
           </div>
         </div>
       </header>
@@ -51,7 +51,8 @@ export function TeamEditor({
       <div className="flex-1 space-y-5 overflow-y-auto px-5 py-5">
         <div>
           <FieldLabel>
-            Name <span className="text-destructive">*</span>
+            {t('philharmonic:teams.editor.fields.name')}{' '}
+            <span className="text-destructive">*</span>
           </FieldLabel>
           <Input
             value={draft.name}
@@ -60,7 +61,7 @@ export function TeamEditor({
           />
         </div>
         <div>
-          <FieldLabel>Icon (emoji, optional)</FieldLabel>
+          <FieldLabel>{t('philharmonic:teams.editor.fields.icon')}</FieldLabel>
           <Input
             value={draft.icon ?? ''}
             onChange={(e) => setDraft({ ...draft, icon: e.target.value })}
@@ -69,25 +70,33 @@ export function TeamEditor({
           />
         </div>
         <div>
-          <FieldLabel>Description</FieldLabel>
+          <FieldLabel>
+            {t('philharmonic:teams.editor.fields.description')}
+          </FieldLabel>
           <Textarea
             value={draft.description ?? ''}
             onChange={(e) =>
               setDraft({ ...draft, description: e.target.value })
             }
             className="border-border bg-muted min-h-20 rounded-lg"
-            placeholder="Short summary of what this team does."
+            placeholder={t(
+              'philharmonic:teams.editor.fields.descriptionPlaceholder'
+            )}
           />
         </div>
         <div>
-          <FieldLabel>System prompt</FieldLabel>
+          <FieldLabel>
+            {t('philharmonic:teams.editor.fields.systemPrompt')}
+          </FieldLabel>
           <Textarea
             value={draft.systemPrompt ?? ''}
             onChange={(e) =>
               setDraft({ ...draft, systemPrompt: e.target.value })
             }
             className="border-border bg-muted min-h-40 rounded-lg"
-            placeholder="Shared instructions added to every member of this team's prompt."
+            placeholder={t(
+              'philharmonic:teams.editor.fields.systemPromptPlaceholder'
+            )}
           />
         </div>
       </div>
