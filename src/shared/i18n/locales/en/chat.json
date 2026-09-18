@@ -72,7 +72,9 @@
   },
   "toast": {
     "chatUpdated": "Chat updated",
-    "chatDeleted": "Chat deleted"
+    "chatDeleted": "Chat deleted",
+    "sendFailedTitle": "Something went wrong",
+    "sendFailedDescription": "An error occurred, please try again!"
   },
   "lcm": {
     "compacting": "Compacting conversation history…",
@@ -181,5 +183,72 @@
     "hot": "🔥 Hot",
     "sunrise": "Sunrise",
     "sunset": "Sunset"
+  },
+  "sourcesPanel": {
+    "title_one": "{{count}} Source",
+    "title_other": "{{count}} Sources",
+    "citations": "Citations ({{count}})",
+    "more": "More"
+  },
+  "sidebar": {
+    "newChat": "New chat",
+    "searchChats": "Search chats",
+    "history": {
+      "empty": "Your conversations will appear here once you start chatting!",
+      "favorite": "Favorite",
+      "unfavorite": "Unfavorite",
+      "chats": "Chats",
+      "more": "More",
+      "rename": "Rename"
+    },
+    "projects": {
+      "title": "Projects",
+      "newProject": "New project",
+      "editProject": "Edit project",
+      "createTitle": "Create Project",
+      "namePlaceholder": "Project name",
+      "deleteTitle": "Delete project?",
+      "deleteDescription": "This will permanently delete \"{{name}}\" and all its chats. This action cannot be undone."
+    },
+    "renameDialog": {
+      "title": "Rename Chat",
+      "submit": "Submit"
+    },
+    "deleteDialog": {
+      "title": "Delete chat?",
+      "description": "This will delete <strong>{{title}}</strong>."
+    },
+    "search": {
+      "placeholder": "Search Chat...",
+      "ariaLabel": "Search chat messages",
+      "noContents": "No contents"
+    }
+  },
+  "projectDetail": {
+    "namePlaceholder": "Project name",
+    "descriptionPlaceholder": "Add a description...",
+    "saveChanges": "Save changes",
+    "tabs": {
+      "chats": "Chats ({{count}})",
+      "instructions": "Instructions",
+      "knowledgeComingSoon": "Knowledge (Phase 2)"
+    },
+    "newChatButton": "New Chat in Project",
+    "emptyChats": "No chats in this project yet. Start a new chat to get going.",
+    "customInstructionsLabel": "Custom Instructions",
+    "instructionsPlaceholder": "Tell the AI how to behave in this project...",
+    "useStructuredLabel": "Use structured instructions",
+    "structuredFields": {
+      "role": "Role",
+      "tone": "Tone",
+      "responseFormat": "Response Format",
+      "constraints": "Constraints"
+    },
+    "structuredPlaceholders": {
+      "role": "e.g., Senior engineer, Writing tutor",
+      "tone": "e.g., Formal, Casual, Technical",
+      "responseFormat": "e.g., Bullet points, Detailed paragraphs",
+      "constraints": "e.g., Keep responses under 200 words"
+    }
   }
 }

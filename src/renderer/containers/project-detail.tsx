@@ -1,6 +1,7 @@
 import type { StructuredInstructions } from '@shared/schemas/project-schema'
 import type { Chat, Project } from '@shared/types/db'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router'
 import useSWR from 'swr'
 
@@ -13,6 +14,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { updateProject } from '@/services/project'
 
 export function ProjectDetail() {
+  const { t } = useTranslation('chat')
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: project, mutate: mutateProject } = useSWR<
@@ -70,7 +72,7 @@ export function ProjectDetail() {
             setIsDirty(true)
           }}
           className="border-none bg-transparent text-2xl font-bold shadow-none focus-visible:ring-0"
-          placeholder="Project name"
+          placeholder={t('projectDetail.namePlaceholder')}
         />
         <Input
           value={description}
@@ -79,36 +81,40 @@ export function ProjectDetail() {
             setIsDirty(true)
           }}
           className="text-muted-foreground border-none bg-transparent shadow-none focus-visible:ring-0"
-          placeholder="Add a description..."
+          placeholder={t('projectDetail.descriptionPlaceholder')}
         />
       </div>
 
       {isDirty && (
         <div className="mb-4 flex justify-end">
           <Button onClick={handleSave} size="sm">
-            Save changes
+            {t('projectDetail.saveChanges')}
           </Button>
         </div>
       )}
 
       <Tabs defaultValue="chats">
         <TabsList>
-          <TabsTrigger value="chats">Chats ({chats?.length ?? 0})</TabsTrigger>
-          <TabsTrigger value="instructions">Instructions</TabsTrigger>
+          <TabsTrigger value="chats">
+            {t('projectDetail.tabs.chats', { count: chats?.length ?? 0 })}
+          </TabsTrigger>
+          <TabsTrigger value="instructions">
+            {t('projectDetail.tabs.instructions')}
+          </TabsTrigger>
           <TabsTrigger value="knowledge" disabled>
-            Knowledge (Phase 2)
+            {t('projectDetail.tabs.knowledgeComingSoon')}
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="chats" className="mt-4">
           <div className="mb-4">
             <Button onClick={handleNewChat} variant="outline" size="sm">
-              New Chat in Project
+              {t('projectDetail.newChatButton')}
             </Button>
           </div>
           {chats?.length === 0 ? (
             <p className="text-muted-foreground text-sm">
-              No chats in this project yet. Start a new chat to get going.
+              {t('projectDetail.emptyChats')}
             </p>
           ) : (
             <div className="space-y-1">
@@ -131,7 +137,7 @@ export function ProjectDetail() {
         <TabsContent value="instructions" className="mt-4 space-y-6">
           <div>
             <Label className="mb-2 block text-sm font-medium">
-              Custom Instructions
+              {t('projectDetail.customInstructionsLabel')}
             </Label>
             <Textarea
               value={instructions}
@@ -139,7 +145,7 @@ export function ProjectDetail() {
                 setInstructions(e.target.value)
                 setIsDirty(true)
               }}
-              placeholder="Tell the AI how to behave in this project..."
+              placeholder={t('projectDetail.instructionsPlaceholder')}
               className="min-h-[120px]"
             />
           </div>
@@ -152,7 +158,9 @@ export function ProjectDetail() {
                 setIsDirty(true)
               }}
             />
-            <Label className="text-sm">Use structured instructions</Label>
+            <Label className="text-sm">
+              {t('projectDetail.useStructuredLabel')}
+            </Label>
           </div>
 
           {useStructured && (
@@ -160,8 +168,8 @@ export function ProjectDetail() {
               {(['role', 'tone', 'responseFormat', 'constraints'] as const).map(
                 (field) => (
                   <div key={field}>
-                    <Label className="mb-1 block text-sm font-medium capitalize">
-                      {field === 'responseFormat' ? 'Response Format' : field}
+                    <Label className="mb-1 block text-sm font-medium">
+                      {t(`projectDetail.structuredFields.${field}`)}
                     </Label>
                     <Input
                       value={structured[field] ?? ''}
@@ -172,15 +180,9 @@ export function ProjectDetail() {
                         }))
                         setIsDirty(true)
                       }}
-                      placeholder={
-                        field === 'role'
-                          ? 'e.g., Senior engineer, Writing tutor'
-                          : field === 'tone'
-                            ? 'e.g., Formal, Casual, Technical'
-                            : field === 'responseFormat'
-                              ? 'e.g., Bullet points, Detailed paragraphs'
-                              : 'e.g., Keep responses under 200 words'
-                      }
+                      placeholder={t(
+                        `projectDetail.structuredPlaceholders.${field}`
+                      )}
                     />
                   </div>
                 )

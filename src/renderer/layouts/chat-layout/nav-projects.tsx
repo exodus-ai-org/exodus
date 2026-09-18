@@ -50,7 +50,7 @@ import {
 import { createProject, deleteProject } from '@/services/project'
 
 export function NavProjects() {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation(['common', 'chat'])
   const { data: projects, isLoading } = useSWR<Project[]>('/api/project', {
     fallbackData: []
   })
@@ -86,9 +86,11 @@ export function NavProjects() {
   return (
     <>
       <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-        <SidebarGroupLabel>Projects</SidebarGroupLabel>
+        <SidebarGroupLabel>
+          {t('chat:sidebar.projects.title')}
+        </SidebarGroupLabel>
         <SidebarGroupAction
-          aria-label="New project"
+          aria-label={t('chat:sidebar.projects.newProject')}
           onClick={() => setShowCreateDialog(true)}
         >
           <PlusIcon />
@@ -124,7 +126,7 @@ export function NavProjects() {
                         onClick={() => navigate(`/project/${project.id}`)}
                       >
                         <SquarePenIcon className="text-muted-foreground" />
-                        <span>Edit project</span>
+                        <span>{t('chat:sidebar.projects.editProject')}</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => setToBeDeletedProject(project)}
@@ -145,7 +147,7 @@ export function NavProjects() {
                   onClick={() => setShowCreateDialog(true)}
                 >
                   <FolderPlusIcon />
-                  <span>New project</span>
+                  <span>{t('chat:sidebar.projects.newProject')}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             )}
@@ -157,10 +159,10 @@ export function NavProjects() {
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create Project</DialogTitle>
+            <DialogTitle>{t('chat:sidebar.projects.createTitle')}</DialogTitle>
           </DialogHeader>
           <Input
-            placeholder="Project name"
+            placeholder={t('chat:sidebar.projects.namePlaceholder')}
             value={newProjectName}
             onChange={(e) => setNewProjectName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleCreateProject()}
@@ -185,10 +187,13 @@ export function NavProjects() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete project?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t('chat:sidebar.projects.deleteTitle')}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete &quot;{toBeDeletedProject?.name}
-              &quot; and all its chats. This action cannot be undone.
+              {t('chat:sidebar.projects.deleteDescription', {
+                name: toBeDeletedProject?.name
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

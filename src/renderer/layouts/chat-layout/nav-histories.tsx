@@ -84,7 +84,7 @@ export const NavItems = memo(function NavItems({
   chat: Chat
   className?: string
 }) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation(['common', 'chat'])
   const { id } = useParams<{ id: string }>()
   const { isMobile } = useSidebar()
   const setRenamedChatTitle = useSetAtom(renamedChatTitleAtom)
@@ -123,7 +123,7 @@ export const NavItems = memo(function NavItems({
           render={
             <SidebarMenuAction showOnHover>
               <MoreHorizontalIcon />
-              <span className="sr-only">More</span>
+              <span className="sr-only">{t('chat:sidebar.history.more')}</span>
             </SidebarMenuAction>
           }
         />
@@ -142,7 +142,11 @@ export const NavItems = memo(function NavItems({
                 ['fill-yellow-500 text-yellow-500']: chat.favorite
               })}
             />
-            <span>{chat.favorite ? 'Unfavorite' : 'Favorite'}</span>
+            <span>
+              {chat.favorite
+                ? t('chat:sidebar.history.unfavorite')
+                : t('chat:sidebar.history.favorite')}
+            </span>
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => {
@@ -154,7 +158,7 @@ export const NavItems = memo(function NavItems({
             }}
           >
             <Edit2Icon className="text-muted-foreground" />
-            <span>Rename</span>
+            <span>{t('chat:sidebar.history.rename')}</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setToBeDeletedChat(chat)}>
@@ -170,6 +174,7 @@ export const NavItems = memo(function NavItems({
 })
 
 export function NavHistories() {
+  const { t } = useTranslation('chat')
   const { data: history, isLoading } = useSWR<Chat[]>('/api/history', {
     fallbackData: []
   })
@@ -200,7 +205,7 @@ export function NavHistories() {
       <SidebarGroup>
         <SidebarGroupContent>
           <div className="text-muted-foreground flex w-full flex-row items-center justify-center gap-2 px-2 text-sm">
-            Your conversations will appear here once you start chatting!
+            {t('sidebar.history.empty')}
           </div>
         </SidebarGroupContent>
       </SidebarGroup>
@@ -216,7 +221,7 @@ export function NavHistories() {
               <SidebarGroupLabel className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mb-1 text-sm">
                 <CollapsibleTrigger className="group/trigger flex w-full items-center justify-between pl-0!">
                   <SidebarGroupLabel className="p-0">
-                    Favorite
+                    {t('sidebar.history.favorite')}
                   </SidebarGroupLabel>
                   <ChevronRightIcon className="text-sidebar-foreground/50 h-4 w-4 transition-transform duration-200 group-data-panel-open/trigger:rotate-90" />
                 </CollapsibleTrigger>
@@ -237,7 +242,7 @@ export function NavHistories() {
 
       {chats.length > 0 && (
         <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-          <SidebarGroupLabel>Chats</SidebarGroupLabel>
+          <SidebarGroupLabel>{t('sidebar.history.chats')}</SidebarGroupLabel>
           <SidebarMenu className="gap-1">
             {chats.map((chat) => (
               <NavItems chat={chat} key={chat.id} />

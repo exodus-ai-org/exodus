@@ -2,6 +2,8 @@ import { TEST_IDS } from '@shared/constants/test-ids'
 import { useSetAtom } from 'jotai'
 import { SearchIcon, SquarePenIcon } from 'lucide-react'
 import * as React from 'react'
+import { useTranslation } from 'react-i18next'
+import { useNavigate } from 'react-router'
 
 import {
   Sidebar,
@@ -23,7 +25,9 @@ import { NavHistories } from './nav-histories'
 import { NavProjects } from './nav-projects'
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { t } = useTranslation('chat')
   const isFullscreen = useIsFullscreen()
+  const navigate = useNavigate()
   const setIsFullTextSearchVisible = useSetAtom(isFullTextSearchVisibleAtom)
 
   return (
@@ -47,10 +51,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <SidebarMenuItem>
             <SidebarMenuButton
               data-testid={TEST_IDS.chatLayout.newChat}
-              onClick={() => (window.location.href = '/')}
+              onClick={() => navigate('/')}
             >
               <SquarePenIcon />
-              <span>New chat</span>
+              <span>{t('sidebar.newChat')}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
@@ -59,7 +63,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               onClick={() => setIsFullTextSearchVisible(true)}
             >
               <SearchIcon />
-              <span className="flex-1">Search chats</span>
+              <span className="flex-1">{t('sidebar.searchChats')}</span>
               <span className="text-muted-foreground text-xs tracking-wide">
                 {MOD_KEY}⇧F
               </span>

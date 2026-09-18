@@ -575,6 +575,18 @@ import('@/path/to/the/file')` and render that component directly —
    that scope already binds a local `t` (a loop variable, a destructured
    field, anything) — a shadowed `t` compiles fine today but breaks the next
    namespace pass that adds a real `t()` call in the same scope.
+9. **This is enforced, not just convention.** `tests/unit/i18n/no-hardcoded-strings.test.ts`
+   (part of `pnpm test`, so gated on every commit) scans every
+   `src/renderer/**/*.tsx` (excluding `components/ui/**` and
+   `sub-apps/artifacts/sandbox.tsx`) for JSX text nodes, `sileo.*({ title
+| description })` values (including template literals and ternaries),
+   and `label:` properties in `src/main/lib/menu.ts`/`tray.ts` that aren't
+   routed through `t()`/`<Trans>`/`mainT()`. A new hardcoded string fails
+   the suite immediately — add a catalog key instead. The only escape
+   hatch is `tests/unit/i18n/allowlist.ts`, reserved for genuine proper
+   nouns/brand names/technical identifiers (a GitHub org slug, a license
+   name, a URI scheme prefix) — never for deferred i18n debt; every entry
+   needs a real reason.
 
 ### Test-ID Checkpoints (traceability)
 
@@ -683,7 +695,7 @@ Shared:
 - `src/shared/constants/` — constants (`test-ids.ts`, `systems.ts`)
 - `src/shared/schemas/` — Zod schemas
 - `src/shared/utils/` — shared utilities
-- `src/shared/i18n/` — application i18n: `locales.ts` (the 11 locale IDs +
+- `src/shared/i18n/` — application i18n: `locales.ts` (the 10 locale IDs +
   `resolveLocale`), `namespaces.ts`, `index.ts` (`createI18n` — one i18next
   config for both processes, JSON catalogs lazy-loaded per locale),
   `catalog-audit.ts`, `types.d.ts` (typed `t()` keys), `locales/<id>/<ns>.json`.

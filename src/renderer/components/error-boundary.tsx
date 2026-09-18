@@ -1,4 +1,5 @@
 import { AlertTriangleIcon, RotateCcwIcon } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router'
 
 import { cn } from '@/lib/utils'
@@ -6,15 +7,17 @@ import { cn } from '@/lib/utils'
 import { Button } from './ui/button'
 
 export function RouteErrorBoundary() {
+  const { t } = useTranslation('errors')
   const error = useRouteError()
   const navigate = useNavigate()
 
-  let title = 'Something went wrong'
-  let description = 'An unexpected error occurred.'
+  let title = t('routeBoundary.title')
+  let description = t('routeBoundary.description')
 
   if (isRouteErrorResponse(error)) {
     title = `${error.status} ${error.statusText}`
-    description = error.data?.toString() ?? 'The page could not be loaded.'
+    description =
+      error.data?.toString() ?? t('routeBoundary.fallbackDescription')
   } else if (error instanceof Error) {
     description = error.message
   }
@@ -42,11 +45,11 @@ export function RouteErrorBoundary() {
 
       <div className="flex gap-3">
         <Button variant="outline" onClick={() => navigate('/')}>
-          Back to Home
+          {t('routeBoundary.backToHome')}
         </Button>
         <Button onClick={() => window.location.reload()}>
           <RotateCcwIcon className="mr-1.5" />
-          Reload
+          {t('routeBoundary.reload')}
         </Button>
       </div>
     </div>

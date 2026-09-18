@@ -2,6 +2,7 @@ import { ChatMessage } from '@shared/types/chat'
 import { useAtom } from 'jotai'
 import { SearchIcon } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
 import useSWR from 'swr'
 
@@ -16,6 +17,7 @@ import { useDebouncedValue } from '@/hooks/use-debounce'
 import { isFullTextSearchVisibleAtom } from '@/stores/chat'
 
 export function SearchDialog() {
+  const { t } = useTranslation('chat')
   const [isFullTextSearchVisible, setIsFullTextSearchVisible] = useAtom(
     isFullTextSearchVisibleAtom
   )
@@ -46,8 +48,8 @@ export function SearchDialog() {
             <div className="flex items-center gap-2 border-b px-3 py-1">
               <SearchIcon size={20} />
               <input
-                placeholder="Search Chat..."
-                aria-label="Search chat messages"
+                placeholder={t('sidebar.search.placeholder')}
+                aria-label={t('sidebar.search.ariaLabel')}
                 autoFocus
                 onChange={(e) => handleInputChange(e.target.value)}
                 className="placeholder:text-muted-foreground flex h-10 w-full rounded-md bg-transparent py-3 text-sm font-normal outline-none disabled:cursor-not-allowed disabled:opacity-50"
@@ -60,7 +62,7 @@ export function SearchDialog() {
         <ol className="flex flex-col gap-2 p-2 pt-0">
           {!data || data.length === 0 ? (
             <div className="text-ring flex h-40 items-center justify-center">
-              No contents
+              {t('sidebar.search.noContents')}
             </div>
           ) : (
             data.map((item) => (

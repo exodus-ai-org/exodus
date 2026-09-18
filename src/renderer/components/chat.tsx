@@ -5,6 +5,7 @@ import type { Project } from '@shared/types/db'
 import { useSetAtom } from 'jotai'
 import { useAtomCallback } from 'jotai/utils'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router'
 import { sileo } from 'sileo'
 import useSWR, { mutate } from 'swr'
@@ -52,6 +53,7 @@ export function Chat({
   chatTitle,
   showDiscover
 }: Props) {
+  const { t } = useTranslation('chat')
   const { id: routeId } = useParams()
   const navigate = useNavigate()
   // Read once on mount — quick-chat hand-off only fires for the first render of a fresh chat.
@@ -108,11 +110,9 @@ export function Chat({
     },
     onError: (e) => {
       sileo.error({
-        title: 'Something went wrong',
+        title: t('toast.sendFailedTitle'),
         description:
-          e instanceof Error
-            ? e.message
-            : 'An error occurred, please try again!'
+          e instanceof Error ? e.message : t('toast.sendFailedDescription')
       })
     },
     onTitle: (newTitle) => {

@@ -61,5 +61,12 @@
     "INTERNAL_ERROR": "Internal server error occurred.",
     "UNKNOWN_ERROR": "An unknown error occurred.",
     "APP_LOCKED": "Application is locked."
+  },
+  "routeBoundary": {
+    "title": "Something went wrong",
+    "description": "An unexpected error occurred.",
+    "fallbackDescription": "The page could not be loaded.",
+    "backToHome": "Back to Home",
+    "reload": "Reload"
   }
 }

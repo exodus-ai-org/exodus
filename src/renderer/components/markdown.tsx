@@ -9,6 +9,7 @@ import {
   useContext,
   useMemo
 } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import 'katex/dist/katex.min.css'
 import ReactMarkdown from 'react-markdown'
@@ -89,13 +90,13 @@ const CitationChip = memo(function CitationChip({
           />
         }
       >
-        <Badge variant="secondary" className="ml-1 gap-1">
+        <Badge variant="secondary" className="ml-1 h-4 gap-1 px-1">
           <SourceFavicon
             link={source.link}
             favicon={source.favicon}
-            className="size-3.5"
+            className="size-3"
           />
-          <span className="max-w-28 truncate">{label}</span>
+          <span className="max-w-28 truncate text-[9px]">{label}</span>
         </Badge>
       </HoverCardTrigger>
       <HoverCardContent
@@ -240,6 +241,7 @@ export function Markdown({
   src: string
   webSearchResults?: WebSearchResult[]
 }) {
+  const { t } = useTranslation('common')
   const { copied, handleCopy } = useClipboard()
   const { resolvedTheme } = useTheme()
   // resolvedTheme is undefined on first paint until next-themes hydrates;
@@ -279,12 +281,12 @@ export function Markdown({
                     }}
                   >
                     <CopyIcon size={10} />
-                    Copy
+                    {t('action.copy')}
                   </button>
                 ) : (
                   <span className="hover:text-primary flex items-center gap-1.5">
                     <CheckIcon size={10} strokeWidth={2.5} />
-                    Copied
+                    {t('state.copied')}
                   </span>
                 )}
               </div>
@@ -433,7 +435,7 @@ export function Markdown({
       //   return null
       // }
     }),
-    [copied, handleCopy, codeTheme]
+    [copied, handleCopy, codeTheme, t]
   )
 
   return (

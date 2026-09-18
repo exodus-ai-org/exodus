@@ -16,7 +16,7 @@ import { updateChat } from '@/services/chat'
 import { openTabsAtom, renamedChatTitleAtom } from '@/stores/chat'
 
 export function RenameChatDialog() {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation(['common', 'chat'])
   const [renamedChatTitle, setRenamedChatTitle] = useAtom(renamedChatTitleAtom)
   const setOpenTabs = useSetAtom(openTabsAtom)
   const reset = () => setRenamedChatTitle({ id: '', title: '', open: false })
@@ -32,7 +32,9 @@ export function RenameChatDialog() {
     >
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Rename Chat</AlertDialogTitle>
+          <AlertDialogTitle>
+            {t('chat:sidebar.renameDialog.title')}
+          </AlertDialogTitle>
           <AlertDialogDescription className="w-full">
             <Input
               className="text-foreground mt-2"
@@ -60,7 +62,7 @@ export function RenameChatDialog() {
               reset()
             }}
           >
-            Submit
+            {t('chat:sidebar.renameDialog.submit')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

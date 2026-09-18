@@ -79,6 +79,8 @@
     "zod": "^4.5.4"
   },
   "devDependencies": {
+    "@babel/parser": "^7.29.8",
+    "@babel/traverse": "^7.29.8",
     "@base-ui/react": "^1.8.0",
     "@electron-toolkit/tsconfig": "^2.0.0",
     "@electron/asar": "^4.3.0",

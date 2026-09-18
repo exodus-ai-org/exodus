@@ -689,5 +689,41 @@
         "createFailedTitle": "Failed to create"
       }
     }
+  },
+  "skillsMarket": {
+    "sourceNotice": "Skills data sourced from <2>clawhub.ai</2>. Please review skills carefully before installing to avoid potentially malicious programs.",
+    "searchPlaceholder": "Search skills...",
+    "installLocal": "Install Local",
+    "tabs": {
+      "browse": "Browse",
+      "installed": "Installed"
+    },
+    "browse": {
+      "noResults": "No results found",
+      "noResultsHint": "Try a different search term",
+      "loadFailed": "Failed to load skills",
+      "loadFailedHint": "Check your internet connection and try again",
+      "empty": "No skills available",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "installedTab": {
+      "empty": "No skills installed",
+      "emptyHint": "Browse the marketplace to find skills",
+      "installedAt": "Installed {{date}}"
+    },
+    "card": {
+      "installed": "Installed",
+      "install": "Install",
+      "installsCount_one": "{{formatted}} install",
+      "installsCount_other": "{{formatted}} installs"
+    },
+    "toast": {
+      "installedTitle": "\"{{name}}\" installed",
+      "installFailed": "Install failed",
+      "uninstalledTitle": "Skill uninstalled",
+      "uninstallFailed": "Uninstall failed",
+      "updateFailed": "Failed to update skill"
+    }
   }
 }

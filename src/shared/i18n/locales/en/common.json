@@ -10,13 +10,15 @@
     "confirm": "Confirm",
     "edit": "Edit",
     "add": "Add",
-    "create": "Create"
+    "create": "Create",
+    "copy": "Copy"
   },
   "state": {
     "loading": "Loading…",
     "local": "Local",
     "runOnLocal": "Run on local",
-    "you": "You"
+    "you": "You",
+    "copied": "Copied"
   },
   "nav": {
     "settings": "Settings"
@@ -32,5 +34,9 @@
       "xhigh": "Extra high",
       "max": "Max"
     }
+  },
+  "uploader": {
+    "dragDrop": "Drag & drop files here",
+    "hint": "Or click to browse (max 2 files, up to 5MB each)"
   }
 }

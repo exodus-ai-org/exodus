@@ -13,7 +13,7 @@ import {
   TriangleAlertIcon
 } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 import useSWR from 'swr'
 
@@ -49,8 +49,27 @@ type SearchResponse = SearchResultItem[]
 
 type InstalledResponse = InstalledSkill[]
 
+// Its own named component (rather than JSX inlined directly into
+// `SkillsMarket`) so `tests/unit/i18n/settings-namespace.test.ts` can import
+// and render the REAL component — a formatter reflow of this file can
+// insert/remove `{' '}` around wrapped JSX text, which shifts `<Trans>`'s
+// positional numbering for the `<a>` child. "clawhub.ai" is the site's own
+// brand name and stays untranslated inside the localized sentence.
+export function SkillsDataSourceNotice() {
+  return (
+    <Trans ns="settings" i18nKey="skillsMarket.sourceNotice">
+      Skills data sourced from{' '}
+      <a href={CLAWHUB_HOMEPAGE} target="_blank" rel="noopener noreferrer">
+        clawhub.ai
+      </a>
+      . Please review skills carefully before installing to avoid potentially
+      malicious programs.
+    </Trans>
+  )
+}
+
 export function SkillsMarket() {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation(['common', 'settings'])
   const [search, setSearch] = useState('')
   const [cursor, setCursor] = useState<string | null>(null)
   const [cursorHistory, setCursorHistory] = useState<(string | null)[]>([null])
@@ -97,16 +116,26 @@ export function SkillsMarket() {
       try {
         await installSkill(skill.slug, skill.displayName, version)
         await mutateInstalled()
-        sileo.success({ title: `"${skill.displayName}" installed` })
+        sileo.success({
+          title: t('settings:skillsMarket.toast.installedTitle', {
+            name: skill.displayName
+          })
+        })
       } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Install failed'
-        sileo.error({ title: 'Install failed', description: msg })
+        const msg =
+          e instanceof Error
+            ? e.message
+            : t('settings:skillsMarket.toast.installFailed')
+        sileo.error({
+          title: t('settings:skillsMarket.toast.installFailed'),
+          description: msg
+        })
         console.error(e)
       } finally {
         setPendingSlug(null)
       }
     },
-    [mutateInstalled]
+    [mutateInstalled, t]
   )
 
   const handleInstallFromSearch = useCallback(
@@ -119,16 +148,26 @@ export function SkillsMarket() {
       try {
         await installSkill(slug, displayName, version)
         await mutateInstalled()
-        sileo.success({ title: `"${displayName}" installed` })
+        sileo.success({
+          title: t('settings:skillsMarket.toast.installedTitle', {
+            name: displayName
+          })
+        })
       } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Install failed'
-        sileo.error({ title: 'Install failed', description: msg })
+        const msg =
+          e instanceof Error
+            ? e.message
+            : t('settings:skillsMarket.toast.installFailed')
+        sileo.error({
+          title: t('settings:skillsMarket.toast.installFailed'),
+          description: msg
+        })
         console.error(e)
       } finally {
         setPendingSlug(null)
       }
     },
-    [mutateInstalled]
+    [mutateInstalled, t]
   )
 
   const handleUninstall = useCallback(
@@ -137,16 +176,24 @@ export function SkillsMarket() {
       try {
         await uninstallSkill(slug)
         await mutateInstalled()
-        sileo.success({ title: 'Skill uninstalled' })
+        sileo.success({
+          title: t('settings:skillsMarket.toast.uninstalledTitle')
+        })
       } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Uninstall failed'
-        sileo.error({ title: 'Uninstall failed', description: msg })
+        const msg =
+          e instanceof Error
+            ? e.message
+            : t('settings:skillsMarket.toast.uninstallFailed')
+        sileo.error({
+          title: t('settings:skillsMarket.toast.uninstallFailed'),
+          description: msg
+        })
         console.error(e)
       } finally {
         setPendingSlug(null)
       }
     },
-    [mutateInstalled]
+    [mutateInstalled, t]
   )
 
   const handleToggle = useCallback(
@@ -155,12 +202,18 @@ export function SkillsMarket() {
         await toggleSkill(slug, isActive)
         await mutateInstalled()
       } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Failed to update skill'
-        sileo.error({ title: 'Failed to update skill', description: msg })
+        const msg =
+          e instanceof Error
+            ? e.message
+            : t('settings:skillsMarket.toast.updateFailed')
+        sileo.error({
+          title: t('settings:skillsMarket.toast.updateFailed'),
+          description: msg
+        })
         console.error(e)
       }
     },
-    [mutateInstalled]
+    [mutateInstalled, t]
   )
 
   const handleInstallLocal = useCallback(async () => {
@@ -170,14 +223,24 @@ export function SkillsMarket() {
     try {
       const installed = await installFromLocalPath(path)
       await mutateInstalled()
-      sileo.success({ title: `"${installed.displayName}" installed` })
+      sileo.success({
+        title: t('settings:skillsMarket.toast.installedTitle', {
+          name: installed.displayName
+        })
+      })
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Install failed'
-      sileo.error({ title: 'Install failed', description: msg })
+      const msg =
+        err instanceof Error
+          ? err.message
+          : t('settings:skillsMarket.toast.installFailed')
+      sileo.error({
+        title: t('settings:skillsMarket.toast.installFailed'),
+        description: msg
+      })
     } finally {
       setUploading(false)
     }
-  }, [mutateInstalled])
+  }, [mutateInstalled, t])
 
   const handleNextPage = useCallback(() => {
     const nextCursor = registryData?.nextCursor ?? null
@@ -203,16 +266,7 @@ export function SkillsMarket() {
         <Alert variant="destructive">
           <TriangleAlertIcon />
           <AlertDescription>
-            Skills data sourced from{' '}
-            <a
-              href={CLAWHUB_HOMEPAGE}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              clawhub.ai
-            </a>
-            . Please review skills carefully before installing to avoid
-            potentially malicious programs.
+            <SkillsDataSourceNotice />
           </AlertDescription>
         </Alert>
 
@@ -221,7 +275,7 @@ export function SkillsMarket() {
           <div className="relative flex-1">
             <SearchIcon className="text-muted-foreground absolute top-1/2 left-3 size-4 -translate-y-1/2" />
             <Input
-              placeholder="Search skills..."
+              placeholder={t('settings:skillsMarket.searchPlaceholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
@@ -240,11 +294,11 @@ export function SkillsMarket() {
           <TabsList className="w-full">
             <TabsTrigger value="browse" className="flex-1">
               <PackageIcon data-icon className="mr-1.5 size-3.5" />
-              Browse
+              {t('settings:skillsMarket.tabs.browse')}
             </TabsTrigger>
             <TabsTrigger value="installed" className="flex-1">
               <PackageCheckIcon data-icon className="mr-1.5 size-3.5" />
-              Installed
+              {t('settings:skillsMarket.tabs.installed')}
               {installedData?.length ? (
                 <Badge
                   variant="secondary"
@@ -271,10 +325,10 @@ export function SkillsMarket() {
                       <div className="flex flex-col items-center justify-center py-16 text-center">
                         <SearchIcon className="text-muted-foreground/40 mb-3 size-10" />
                         <p className="text-muted-foreground text-sm font-medium">
-                          No results found
+                          {t('settings:skillsMarket.browse.noResults')}
                         </p>
                         <p className="text-muted-foreground/70 mt-1 text-xs">
-                          Try a different search term
+                          {t('settings:skillsMarket.browse.noResultsHint')}
                         </p>
                       </div>
                     ) : (
@@ -304,10 +358,10 @@ export function SkillsMarket() {
                     ) : registryError ? (
                       <div className="flex flex-col items-center justify-center py-16 text-center">
                         <p className="text-muted-foreground text-sm font-medium">
-                          Failed to load skills
+                          {t('settings:skillsMarket.browse.loadFailed')}
                         </p>
                         <p className="text-muted-foreground/70 mt-1 text-xs">
-                          Check your internet connection and try again
+                          {t('settings:skillsMarket.browse.loadFailedHint')}
                         </p>
                         <Button
                           variant="outline"
@@ -322,7 +376,7 @@ export function SkillsMarket() {
                       <div className="flex flex-col items-center justify-center py-16 text-center">
                         <PackageIcon className="text-muted-foreground/40 mb-3 size-10" />
                         <p className="text-muted-foreground text-sm font-medium">
-                          No skills available
+                          {t('settings:skillsMarket.browse.empty')}
                         </p>
                       </div>
                     ) : (
@@ -346,7 +400,7 @@ export function SkillsMarket() {
                               onClick={handlePrevPage}
                               disabled={isFirstPage || registryLoading}
                             >
-                              Previous
+                              {t('settings:skillsMarket.browse.previous')}
                             </Button>
                             <Button
                               variant="outline"
@@ -354,7 +408,7 @@ export function SkillsMarket() {
                               onClick={handleNextPage}
                               disabled={!hasNextPage || registryLoading}
                             >
-                              Next
+                              {t('settings:skillsMarket.browse.next')}
                               <ChevronRightIcon
                                 data-icon
                                 className="ml-1 size-3.5"
@@ -385,10 +439,10 @@ export function SkillsMarket() {
                   <div className="flex flex-col items-center justify-center py-16 text-center">
                     <PackageIcon className="text-muted-foreground/40 mb-3 size-10" />
                     <p className="text-muted-foreground text-sm font-medium">
-                      No skills installed
+                      {t('settings:skillsMarket.installedTab.empty')}
                     </p>
                     <p className="text-muted-foreground/70 mt-1 text-xs">
-                      Browse the marketplace to find skills
+                      {t('settings:skillsMarket.installedTab.emptyHint')}
                     </p>
                   </div>
                 ) : (

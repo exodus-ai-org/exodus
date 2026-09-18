@@ -51,6 +51,7 @@ export function RegistrySkillCard({
   pendingSlug,
   onInstall
 }: RegistrySkillCardProps) {
+  const { t } = useTranslation('settings')
   const isInstalled = installedSlugs.has(skill.slug)
   const isLoading = pendingSlug === skill.slug
   const version = skill.latestVersion?.version ?? skill.tags?.latest ?? 'latest'
@@ -107,12 +108,12 @@ export function RegistrySkillCard({
           ) : isInstalled ? (
             <>
               <PackageCheckIcon data-icon className="mr-1 size-3.5" />
-              Installed
+              {t('skillsMarket.card.installed')}
             </>
           ) : (
             <>
               <DownloadIcon data-icon className="mr-1 size-3.5" />
-              Install
+              {t('skillsMarket.card.install')}
             </>
           )}
         </Button>
@@ -133,7 +134,10 @@ export function RegistrySkillCard({
         {skill.stats?.installsAllTime != null && (
           <span className="flex items-center gap-1">
             <PackageCheckIcon className="size-3" />
-            {skill.stats.installsAllTime.toLocaleString()} installs
+            {t('skillsMarket.card.installsCount', {
+              count: skill.stats.installsAllTime,
+              formatted: skill.stats.installsAllTime.toLocaleString()
+            })}
           </span>
         )}
       </div>
@@ -154,6 +158,7 @@ export function SearchResultCard({
   pendingSlug,
   onInstall
 }: SearchResultCardProps) {
+  const { t } = useTranslation('settings')
   const slug = result.slug ?? ''
   const isInstalled = installedSlugs.has(slug)
   const isLoading = pendingSlug === slug
@@ -196,12 +201,12 @@ export function SearchResultCard({
           ) : isInstalled ? (
             <>
               <PackageCheckIcon data-icon className="mr-1 size-3.5" />
-              Installed
+              {t('skillsMarket.card.installed')}
             </>
           ) : (
             <>
               <DownloadIcon data-icon className="mr-1 size-3.5" />
-              Install
+              {t('skillsMarket.card.install')}
             </>
           )}
         </Button>
@@ -223,7 +228,7 @@ export function InstalledSkillCard({
   onUninstall,
   onToggle
 }: InstalledSkillCardProps) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation(['common', 'settings'])
   const isLoading = pendingSlug === skill.slug
 
   return (
@@ -251,7 +256,9 @@ export function InstalledSkillCard({
           )}
         </div>
         <p className="text-muted-foreground mt-0.5 text-xs">
-          Installed {new Date(skill.installedAt).toLocaleDateString()}
+          {t('settings:skillsMarket.installedTab.installedAt', {
+            date: new Date(skill.installedAt).toLocaleDateString()
+          })}
         </p>
       </div>
       <Switch
