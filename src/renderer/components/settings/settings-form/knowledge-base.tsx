@@ -14,9 +14,9 @@ import {
   PlusIcon,
   Trash2Icon
 } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Controller } from 'react-hook-form'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -60,28 +60,6 @@ import {
 import { SettingsRow, SettingsSection } from '../settings-row'
 import { SettingsSelect } from '../settings-select'
 
-const QUERY_MODES = [
-  { label: 'Native', value: 'naive' },
-  { label: 'Local', value: 'local' },
-  { label: 'Global', value: 'global' },
-  { label: 'Hybrid', value: 'hybrid' },
-  { label: 'Mix', value: 'mix' }
-] as const
-
-const STATUS_BADGE: Record<
-  KnowledgeIndexStatus,
-  {
-    label: string
-    variant: 'default' | 'secondary' | 'destructive' | 'outline'
-  }
-> = {
-  pending: { label: 'Pending', variant: 'secondary' },
-  processing: { label: 'Indexing…', variant: 'secondary' },
-  processed: { label: 'Indexed', variant: 'default' },
-  failed: { label: 'Failed', variant: 'destructive' },
-  stale: { label: 'Needs reindex', variant: 'outline' }
-}
-
 const isBusy = (docs: KnowledgeDocData[]) =>
   docs.some(
     (d) => d.indexStatus === 'pending' || d.indexStatus === 'processing'
@@ -97,7 +75,7 @@ interface DocDialogProps {
 }
 
 function DocDialog({ open, doc, onClose, onSaved }: DocDialogProps) {
-  const { t, i18n } = useTranslation('common')
+  const { t, i18n } = useTranslation(['common', 'knowledgeBase'])
   const isEdit = !!doc
   const [title, setTitle] = useState('')
   const [content, setContent] = useState('')
@@ -127,7 +105,7 @@ function DocDialog({ open, doc, onClose, onSaved }: DocDialogProps) {
       onClose()
     } catch (e) {
       sileo.error({
-        title: 'Failed to save document',
+        title: t('knowledgeBase:toast.saveFailed'),
         description: getHttpErrorMessage(e, toErrorI18n(i18n))
       })
     } finally {
@@ -142,12 +120,16 @@ function DocDialog({ open, doc, onClose, onSaved }: DocDialogProps) {
         data-testid={TEST_IDS.knowledgeBase.docDialog}
       >
         <DialogHeader>
-          <DialogTitle>{isEdit ? 'Edit document' : 'Add document'}</DialogTitle>
+          <DialogTitle>
+            {isEdit
+              ? t('knowledgeBase:docDialog.editTitle')
+              : t('knowledgeBase:docDialog.addTitle')}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <Label>Title</Label>
+            <Label>{t('knowledgeBase:docDialog.titleLabel')}</Label>
             <Input
               value={title}
               onChange={(e) => setTitle(e.target.value)}
@@ -155,7 +137,7 @@ function DocDialog({ open, doc, onClose, onSaved }: DocDialogProps) {
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Content</Label>
+            <Label>{t('knowledgeBase:docDialog.contentLabel')}</Label>
             <Textarea
               rows={10}
               value={content}
@@ -193,8 +175,39 @@ function DocListItem({
   onEdit: (d: KnowledgeDocData) => void
   onDelete: (d: KnowledgeDocData) => void
 }) {
-  const { t } = useTranslation('common')
-  const badge = STATUS_BADGE[doc.indexStatus]
+  const { t } = useTranslation(['common', 'knowledgeBase'])
+  const statusBadge: Record<
+    KnowledgeIndexStatus,
+    {
+      label: string
+      variant: 'default' | 'secondary' | 'destructive' | 'outline'
+    }
+  > = useMemo(
+    () => ({
+      pending: {
+        label: t('knowledgeBase:docList.status.pending'),
+        variant: 'secondary'
+      },
+      processing: {
+        label: t('knowledgeBase:docList.status.processing'),
+        variant: 'secondary'
+      },
+      processed: {
+        label: t('knowledgeBase:docList.status.processed'),
+        variant: 'default'
+      },
+      failed: {
+        label: t('knowledgeBase:docList.status.failed'),
+        variant: 'destructive'
+      },
+      stale: {
+        label: t('knowledgeBase:docList.status.stale'),
+        variant: 'outline'
+      }
+    }),
+    [t]
+  )
+  const badge = statusBadge[doc.indexStatus]
   return (
     <div className="flex items-start gap-3 rounded-md border p-3">
       <button
@@ -213,7 +226,9 @@ function DocListItem({
           </Badge>
         </div>
         <p className="text-muted-foreground text-xs">
-          Updated {formatDistanceToNow(new Date(doc.updatedAt))} ago
+          {t('knowledgeBase:docList.updatedAgo', {
+            distance: formatDistanceToNow(new Date(doc.updatedAt))
+          })}
         </p>
       </button>
 
@@ -244,7 +259,24 @@ function DocListItem({
 // ─── Main component ──────────────────────────────────────────────────────────
 
 export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
-  const { t, i18n } = useTranslation('common')
+  const { t, i18n } = useTranslation(['common', 'knowledgeBase'])
+  const queryModes = useMemo(
+    () =>
+      [
+        { label: t('knowledgeBase:queryMode.options.naive'), value: 'naive' },
+        { label: t('knowledgeBase:queryMode.options.local'), value: 'local' },
+        {
+          label: t('knowledgeBase:queryMode.options.global'),
+          value: 'global'
+        },
+        {
+          label: t('knowledgeBase:queryMode.options.hybrid'),
+          value: 'hybrid'
+        },
+        { label: t('knowledgeBase:queryMode.options.mix'), value: 'mix' }
+      ] as const,
+    [t]
+  )
   const [testing, setTesting] = useState(false)
   const [docs, setDocs] = useState<KnowledgeDocData[]>([])
   const [loading, setLoading] = useState(true)
@@ -262,13 +294,13 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
       setDocs(await getKnowledgeDocs())
     } catch (e) {
       sileo.error({
-        title: 'Failed to load documents',
+        title: t('knowledgeBase:toast.loadFailed'),
         description: getHttpErrorMessage(e, toErrorI18n(i18n))
       })
     } finally {
       setLoading(false)
     }
-  }, [i18n])
+  }, [i18n, t])
 
   useEffect(() => {
     if (url) loadDocs()
@@ -295,13 +327,18 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
       const h: LightRagHealthDto = await testKnowledgeBaseConnection()
       const parts = [
         `LLM: ${h.llmModel ?? '?'}`,
-        `Embedding: ${h.embeddingModel ?? '?'}${h.embeddingDim ? ` (${h.embeddingDim}d)` : ''}`,
-        h.documentCount != null ? `${h.documentCount} docs` : null
+        `${t('knowledgeBase:toast.embeddingLabel')}: ${h.embeddingModel ?? '?'}${h.embeddingDim ? ` (${h.embeddingDim}d)` : ''}`,
+        h.documentCount != null
+          ? t('knowledgeBase:toast.docsCount', { count: h.documentCount })
+          : null
       ].filter(Boolean)
-      sileo.success({ title: 'Connected', description: parts.join(' · ') })
+      sileo.success({
+        title: t('knowledgeBase:toast.connected'),
+        description: parts.join(' · ')
+      })
     } catch (e) {
       sileo.error({
-        title: 'Failed to connect',
+        title: t('knowledgeBase:toast.connectFailed'),
         description: getHttpErrorMessage(e, toErrorI18n(i18n))
       })
     } finally {
@@ -312,11 +349,13 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
   const handleReindex = async () => {
     try {
       const { count } = await reindexAll()
-      sileo.success({ title: `Queued ${count} document(s) for reindexing` })
+      sileo.success({
+        title: t('knowledgeBase:toast.reindexQueued', { count })
+      })
       await loadDocs()
     } catch (e) {
       sileo.error({
-        title: 'Failed to reindex',
+        title: t('knowledgeBase:toast.reindexFailed'),
         description: getHttpErrorMessage(e, toErrorI18n(i18n))
       })
     }
@@ -338,7 +377,7 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
       setDocs((p) => p.filter((d) => d.id !== deleteTarget.id))
     } catch (e) {
       sileo.error({
-        title: 'Failed to delete document',
+        title: t('knowledgeBase:toast.deleteFailed'),
         description: getHttpErrorMessage(e, toErrorI18n(i18n))
       })
     } finally {
@@ -351,16 +390,18 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
       <Alert className="mb-4">
         <AlertCircleIcon className="h-4 w-4" />
         <AlertDescription className="inline">
-          Exodus's knowledge base is optional and powered by a{' '}
-          <strong>self-hosted LightRAG server that you run</strong> — Exodus
-          only connects to it, pushing your documents and asking for relevant
-          context; it never runs, upgrades, or manages LightRAG itself. Leave
-          the URL empty to keep the knowledge base disabled. Retrieval is
-          context-only: LightRAG finds relevant passages, but your configured
-          chat model always writes the answer. The embedding model is{' '}
-          <strong>locked once you ingest a document</strong> — changing it later
-          requires wiping LightRAG's storage and re-adding every document, so
-          pick one you'll keep.
+          <Trans ns="knowledgeBase" i18nKey="alert">
+            Exodus's knowledge base is optional and powered by a{' '}
+            <strong>self-hosted LightRAG server that you run</strong> — Exodus
+            only connects to it, pushing your documents and asking for relevant
+            context; it never runs, upgrades, or manages LightRAG itself. Leave
+            the URL empty to keep the knowledge base disabled. Retrieval is
+            context-only: LightRAG finds relevant passages, but your configured
+            chat model always writes the answer. The embedding model is{' '}
+            <strong>locked once you ingest a document</strong> — changing it
+            later requires wiping LightRAG's storage and re-adding every
+            document, so pick one you'll keep.
+          </Trans>
         </AlertDescription>
       </Alert>
 
@@ -370,8 +411,8 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
           name="knowledgeBase.url"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="Server URL"
-              description="Your self-hosted LightRAG server. Leave empty to disable the knowledge base."
+              label={t('knowledgeBase:serverUrl.label')}
+              description={t('knowledgeBase:serverUrl.description')}
               error={fieldState.error}
               layout="vertical"
             >
@@ -389,8 +430,8 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
           name="knowledgeBase.apiKey"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="API Key"
-              description="Sent as the X-API-Key header (your LIGHTRAG_API_KEY)."
+              label={t('knowledgeBase:apiKey.label')}
+              description={t('knowledgeBase:apiKey.description')}
               error={fieldState.error}
               layout="vertical"
             >
@@ -409,13 +450,13 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
           name="knowledgeBase.queryMode"
           render={({ field }) => (
             <SettingsRow
-              label="Query mode"
-              description="mix blends the knowledge graph and vector search — best quality, slightly slower."
+              label={t('knowledgeBase:queryMode.label')}
+              description={t('knowledgeBase:queryMode.description')}
             >
               <SettingsSelect
                 value={field.value ?? 'mix'}
                 onValueChange={field.onChange}
-                options={QUERY_MODES.map(({ label, value }) => ({
+                options={queryModes.map(({ label, value }) => ({
                   value,
                   label
                 }))}
@@ -426,7 +467,7 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
 
         <Collapsible>
           <CollapsibleTrigger className="text-muted-foreground hover:text-foreground text-xs font-medium">
-            Advanced
+            {t('knowledgeBase:advancedToggle')}
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-3 flex flex-col gap-4">
             <Controller
@@ -434,8 +475,8 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
               name="knowledgeBase.topK"
               render={({ field, fieldState }) => (
                 <SettingsRow
-                  label="Top K"
-                  description="Knowledge-graph entities / relations to retrieve. Default 60."
+                  label={t('knowledgeBase:topK.label')}
+                  description={t('knowledgeBase:topK.description')}
                   error={fieldState.error}
                 >
                   <Input
@@ -456,8 +497,8 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
               name="knowledgeBase.chunkTopK"
               render={({ field, fieldState }) => (
                 <SettingsRow
-                  label="Chunk Top K"
-                  description="Text chunks kept after reranking. Default 10."
+                  label={t('knowledgeBase:chunkTopK.label')}
+                  description={t('knowledgeBase:chunkTopK.description')}
                   error={fieldState.error}
                 >
                   <Input
@@ -477,8 +518,8 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
         </Collapsible>
 
         <SettingsRow
-          label="Connection"
-          description="Verify Exodus can reach your LightRAG server."
+          label={t('knowledgeBase:connection.label')}
+          description={t('knowledgeBase:connection.description')}
           layout="vertical"
         >
           <Button
@@ -488,18 +529,20 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
             onClick={handleTest}
             data-testid={TEST_IDS.knowledgeBase.testConnectionButton}
           >
-            {testing ? 'Testing…' : 'Test Connection'}
+            {testing
+              ? t('knowledgeBase:connection.testingLabel')
+              : t('knowledgeBase:connection.testButton')}
           </Button>
         </SettingsRow>
       </SettingsSection>
 
       {url ? (
-        <SettingsSection title="Documents" plain>
+        <SettingsSection title={t('knowledgeBase:documents.title')} plain>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <BookOpenIcon className="text-muted-foreground size-4" />
               <span className="text-sm font-medium">
-                Documents
+                {t('knowledgeBase:documents.title')}
                 {docs.length > 0 && (
                   <Badge variant="secondary" className="ml-2 text-xs">
                     {docs.length}
@@ -514,7 +557,7 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
                 onClick={handleReindex}
                 data-testid={TEST_IDS.knowledgeBase.reindexButton}
               >
-                Reindex all
+                {t('knowledgeBase:documents.reindexAllButton')}
               </Button>
               <Button
                 size="sm"
@@ -523,7 +566,7 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
                 data-testid={TEST_IDS.knowledgeBase.addButton}
               >
                 <PlusIcon className="mr-1 size-3.5" data-icon />
-                Add document
+                {t('knowledgeBase:docDialog.addTitle')}
               </Button>
             </div>
           </div>
@@ -535,7 +578,7 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
             </div>
           ) : docs.length === 0 ? (
             <div className="text-muted-foreground rounded-md border border-dashed py-8 text-center text-sm">
-              No documents yet.
+              {t('knowledgeBase:documents.empty')}
             </div>
           ) : (
             <div className="flex flex-col gap-2">
@@ -552,7 +595,7 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
         </SettingsSection>
       ) : (
         <p className="text-muted-foreground px-1 text-xs">
-          Add a server URL above to manage documents.
+          {t('knowledgeBase:documents.needsUrlHint')}
         </p>
       )}
 
@@ -569,10 +612,13 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete document?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t('knowledgeBase:deleteDialog.title')}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              &quot;{deleteTarget?.title ?? ''}&quot; will be removed from the
-              knowledge base.
+              {t('knowledgeBase:deleteDialog.description', {
+                title: deleteTarget?.title ?? ''
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
