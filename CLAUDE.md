@@ -18,12 +18,21 @@ you must uphold.
 - **Pre-commit gate.** Before committing, `pnpm format` → `pnpm lint` →
   `pnpm typecheck` → `pnpm i18n:check` → `pnpm test` must pass. _Enforced by
   the husky pre-commit hook._ Do not `--no-verify` except for one known,
-  standing cause: the flaky PGlite WASM teardown in
-  `src/main/lib/ai/context-management/index.test.ts`. (A second, long-
-  standing exception — an orphan `TEST_IDS.providerModels.modelSelect` id
-  — was resolved 2026-09-18 when `model-picker.tsx`'s i18n pass applied
-  the id to its `ComboboxInput`, satisfying the linkage test the
-  Playwright spec had been waiting on since before this id existed.)
+  standing cause: a flaky PGlite WASM teardown (`RuntimeError: Aborted()`
+  during an `invoke_viiiiii`/wasm abort in `@electric-sql/pglite`) under
+  the parallel-worker test isolation — a race in PGlite's WASM teardown,
+  not a bug in one specific test file. It has surfaced attributed to
+  `src/main/lib/ai/context-management/index.test.ts` and to
+  `src/main/lib/jobs/worker.test.ts` on different runs of an unrelated,
+  passing (785/785) suite — before invoking `--no-verify` for this,
+  confirm all tests actually passed and the only failure is this
+  unhandled-rejection-during-teardown pattern, then retry `pnpm test`
+  once (it's intermittent and often passes clean on a second run) before
+  reaching for `--no-verify`. (A second, long-standing exception — an
+  orphan `TEST_IDS.providerModels.modelSelect` id — was resolved
+  2026-09-18 when `model-picker.tsx`'s i18n pass applied the id to its
+  `ComboboxInput`, satisfying the linkage test the Playwright spec had
+  been waiting on since before this id existed.)
 - **Reuse UI primitives.** Prefer existing `@/components/ui` (shadcn) components
   over hand-rolled equivalents (e.g. shadcn `Select`, `InputOTP`).
 - **Copy language.** New user-facing strings are keys in
