@@ -1,1 +1,22 @@
-{}
+{
+  "alert": "探索功能會將你已儲存的記憶轉換成個人化的首頁新聞動態——啟用後，會將你的記憶主題傳送給你的 AI 供應商（用來產生搜尋查詢），並將產生的查詢傳送給 Brave（與網路搜尋所使用的供應商相同），大約每天一次。預設為關閉；在你開啟之前不會有任何資料離開你的電腦。",
+  "enable": {
+    "label": "啟用探索",
+    "description": "在首頁顯示個人化的新聞動態。"
+  },
+  "braveKeyHint": "探索功能需要 Brave Search API 金鑰。<2>請至內建工具中新增一個</2>。",
+  "topicCount": {
+    "label": "主題",
+    "description": "要顯示多少個由記憶推導出的主題。預設為 4。"
+  },
+  "articlesPerTopic": {
+    "label": "每個主題的文章數",
+    "description": "每個主題列要顯示多少篇文章。預設為 3。"
+  },
+  "heading": "探索",
+  "updatedAgo": "更新於 {{time}}",
+  "refreshButton": "重新整理",
+  "toast": {
+    "refreshFailed": "重新整理失敗"
+  }
+}

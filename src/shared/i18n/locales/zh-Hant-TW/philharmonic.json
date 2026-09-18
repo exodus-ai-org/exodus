@@ -1,1 +1,292 @@
-{}
+{
+  "container": {
+    "toast": {
+      "groupDeleted": "群組已刪除",
+      "deleteGroupFailed": "無法刪除此群組"
+    },
+    "tabs": {
+      "costs": "花費",
+      "schedule": "排程"
+    },
+    "noGroupSelected": {
+      "title": "尚未選擇群組",
+      "description": "從左側選擇一個群組，或建立新群組來與你的虛擬團隊溝通。",
+      "createButton": "建立群組"
+    },
+    "newGroupDefaultTitle": "新群組"
+  },
+  "schedule": {
+    "tab": {
+      "heading": "排程",
+      "upcomingTrigger": "即將執行",
+      "recurringTrigger": "定期執行"
+    },
+    "unknownGroup": "未知群組",
+    "scheduleTaskButton": "排程任務",
+    "upcomingList": {
+      "empty": "目前沒有即將執行的一次性任務。排程一個即可在此看到。"
+    },
+    "recurringList": {
+      "empty": "尚無定期任務。",
+      "lastRun": "上次 {{time}}",
+      "nextRun": "下次 {{time}}"
+    },
+    "taskCard": {
+      "status": {
+        "pending": "待處理",
+        "running": "執行中",
+        "completed": "已完成",
+        "failed": "失敗",
+        "cancelled": "已取消",
+        "waiting_for_user": "等待中"
+      },
+      "priority": {
+        "low": "低",
+        "medium": "中",
+        "high": "高",
+        "urgent": "緊急"
+      },
+      "cancelAria": "取消排程任務"
+    },
+    "toast": {
+      "loadUpcomingFailed": "無法載入即將執行的任務",
+      "loadRecurringFailed": "無法載入定期任務",
+      "taskCancelled": "任務已取消",
+      "cancelTaskFailed": "無法取消任務",
+      "taskScheduled": "任務已排程",
+      "scheduleTaskFailed": "無法排程任務"
+    },
+    "form": {
+      "title": "排程任務",
+      "description": "在現有群組中執行，可以是一次性或定期排程。",
+      "titleLabel": "標題",
+      "descriptionLabel": "說明",
+      "groupLabel": "群組",
+      "groupPlaceholder": "選擇一個群組",
+      "onceButton": "一次性",
+      "recurringButton": "定期",
+      "pickDateButton": "選擇日期",
+      "submitting": "排程中…",
+      "cronPresets": {
+        "dailyNine": "每天上午 9:00",
+        "mondayNine": "每週一上午 9:00",
+        "custom": "自訂"
+      }
+    }
+  },
+  "chat": {
+    "attachmentPreview": {
+      "removeAria": "移除 {{name}}"
+    },
+    "uploader": {
+      "attachAria": "附加圖片"
+    },
+    "composer": {
+      "placeholder": "傳訊息給你的團隊…",
+      "stopAria": "停止",
+      "sendAria": "傳送",
+      "hint": "按 <1>Enter</1> 傳送，<4>Shift + Enter</4> 換行。可貼上或附加圖片。"
+    },
+    "planCard": {
+      "elapsed": {
+        "lessThanMin": "少於 1 分鐘",
+        "minutes": "{{count}} 分鐘",
+        "hoursMinutes": "{{hours}} 小時 {{minutes}} 分鐘"
+      },
+      "status": {
+        "active": "進行中",
+        "done": "已完成",
+        "aborted": "已中止",
+        "draft": "草稿"
+      },
+      "stepStatusAria": {
+        "pending": "待處理",
+        "running": "執行中",
+        "done": "已完成",
+        "skipped": "已略過",
+        "failed": "失敗"
+      }
+    },
+    "roles": {
+      "pm": "專案經理",
+      "employeeFallback": "員工"
+    },
+    "membersPanel": {
+      "heading": "成員",
+      "coordinatorsLabel": "協調人員",
+      "unassignedLabel": "未分配",
+      "idleCount": "{{count}} 位閒置",
+      "busyCount": "{{count}} 位忙碌中",
+      "idle": "閒置",
+      "noTeam": "無團隊",
+      "pmIdleActivity": "策略規劃 · 閒置",
+      "emptyState": {
+        "title": "尚無隊友",
+        "description": "專案經理將視需要招募隊友。"
+      }
+    },
+    "conversationList": {
+      "configNav": {
+        "workforce": "人力",
+        "dashboard": "儀表板"
+      },
+      "searchPlaceholder": "搜尋群組",
+      "newGroupMenuItem": "新群組",
+      "emptyState": {
+        "title": "尚無群組",
+        "description": "建立一個群組以與你的虛擬團隊溝通。",
+        "createButton": "+ 新群組"
+      },
+      "searchNoMatch": "沒有符合「{{query}}」的群組",
+      "noMessagesYetPreview": "新群組 · 尚無訊息",
+      "deleteDialog": {
+        "title": "刪除此群組？",
+        "description": "<0>{{title}}</0> 及其所有訊息、任務與執行紀錄都將被永久移除。"
+      }
+    },
+    "dateLabels": {
+      "today": "今天",
+      "yesterday": "昨天"
+    },
+    "groupChat": {
+      "renameTitle": "點擊以重新命名",
+      "memberCount_other": "{{count}} 位成員",
+      "toggleMembersAria": "切換成員面板",
+      "emptyState": {
+        "title": "交付任務給你的團隊",
+        "description": "描述你的需求，專案經理將進行分析、招募並指派給虛擬員工，完成後會在此回報。"
+      },
+      "askUser": {
+        "replyPlaceholder": "回覆專案經理…",
+        "sendButton": "傳送"
+      }
+    }
+  },
+  "employees": {
+    "avatar": {
+      "alt": "頭像"
+    },
+    "picker": {
+      "reroll": "重新產生"
+    },
+    "editor": {
+      "header": {
+        "label": "員工",
+        "newFallback": "新員工"
+      },
+      "avatarAria": "編輯頭像",
+      "fields": {
+        "name": "名稱",
+        "team": "團隊",
+        "teamPlaceholder": "選擇一個團隊",
+        "teamHelp": "每位員工都隸屬於一個團隊——該團隊的系統提示詞會套用至所有成員。",
+        "description": "說明",
+        "descriptionPlaceholder": "一句話說明這位員工的職責。",
+        "systemPrompt": "系統提示詞",
+        "systemPromptPlaceholder": "疊加於團隊提示詞之上。",
+        "skills": "技能",
+        "noSkills": "尚未安裝任何技能。",
+        "mcpServers": "MCP 伺服器",
+        "noMcpServers": "尚未設定任何 MCP 伺服器。",
+        "mcpServersHelp": "若未選擇任何伺服器，該員工可使用所有可用的伺服器。",
+        "memory": "記憶（唯讀）",
+        "noMemory": "尚無累積的記憶"
+      }
+    }
+  },
+  "teams": {
+    "editor": {
+      "header": {
+        "label": "團隊",
+        "newFallback": "新團隊"
+      },
+      "fields": {
+        "name": "名稱",
+        "icon": "圖示（表情符號，選填）",
+        "description": "說明",
+        "descriptionPlaceholder": "簡短說明這個團隊的職責。",
+        "systemPrompt": "系統提示詞",
+        "systemPromptPlaceholder": "會加入此團隊每位成員提示詞中的共用指示。"
+      }
+    }
+  },
+  "costAnalysis": {
+    "header": {
+      "title": "儀表板"
+    },
+    "period": {
+      "last7Days": "過去 7 天",
+      "last30Days": "過去 30 天",
+      "allTime": "所有時間"
+    },
+    "periodToggle": {
+      "sevenDays": "7 天",
+      "thirtyDays": "30 天",
+      "all": "全部"
+    },
+    "loading": "正在載入使用量資料…",
+    "kpi": {
+      "totalCost": "總花費",
+      "totalCostHint_other": "橫跨 {{count}} 位員工",
+      "tokens": "Token 數",
+      "tokensHint": "已處理總量",
+      "employees": "員工",
+      "employeesHint": "有使用紀錄",
+      "conversations": "對話",
+      "conversationsHint": "有活動紀錄"
+    },
+    "chart": {
+      "costLabel": "花費",
+      "sectionTitle": "花費趨勢"
+    },
+    "agentCostList": {
+      "title": "各員工花費",
+      "empty": "尚無員工使用量資料",
+      "tokens": "{{tokens}} 個 token"
+    },
+    "conversationCostList": {
+      "title": "各對話花費",
+      "empty": "尚無對話使用量資料"
+    }
+  },
+  "workforce": {
+    "header": {
+      "title": "人力",
+      "employeeCount_other": "{{count}} 位員工",
+      "teamCount_other": "{{count}} 個團隊",
+      "addTeamButton": "團隊",
+      "addEmployeeButton": "員工",
+      "createTeamFirstTitle": "請先建立團隊"
+    },
+    "emptyState": {
+      "title": "從建立團隊開始",
+      "description": "每位員工都隸屬於一個提供共用系統提示詞的團隊。請先建立團隊，再新增所屬員工。",
+      "createButton": "+ 新團隊"
+    },
+    "teamSection": {
+      "editTeam": "編輯團隊",
+      "addEmployeeHere": "在此新增員工",
+      "deleteTeam": "刪除團隊",
+      "unassignedFallback": "無團隊",
+      "addEmployeeButton": "新增員工"
+    },
+    "newEmployeeDefaultName": "新員工",
+    "newTeamDefaultName": "新團隊",
+    "deleteEmployeeDialog": {
+      "title": "刪除此員工？",
+      "description": "<0>{{name}}</0> 及其累積的記憶都將被永久移除。"
+    },
+    "deleteTeamDialog": {
+      "title": "刪除此團隊？",
+      "description": "<0>{{name}}</0> 將被移除。現有成員仍會保留其紀錄，但會失去此團隊的隸屬關係。"
+    },
+    "toast": {
+      "created": "「{{name}}」已建立",
+      "deleted": "「{{name}}」已刪除",
+      "saveEmployeeFailed": "無法儲存此員工",
+      "deleteEmployeeFailed": "無法刪除此員工",
+      "saveTeamFailed": "無法儲存此團隊",
+      "deleteTeamFailed": "無法刪除此團隊"
+    }
+  }
+}

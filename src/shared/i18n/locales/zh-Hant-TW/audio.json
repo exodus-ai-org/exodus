@@ -1,1 +1,21 @@
-{}
+{
+  "player": {
+    "stop": "停止",
+    "readAloud": "朗讀"
+  },
+  "recorder": {
+    "stopRecording": "停止錄音",
+    "dictate": "語音輸入",
+    "toast": {
+      "micErrorTitle": "麥克風錯誤",
+      "micErrorFallback": "無法存取麥克風。"
+    }
+  },
+  "hook": {
+    "toast": {
+      "audioErrorTitle": "音訊錯誤",
+      "transcriptionFailedTitle": "轉錄失敗",
+      "genericErrorFallback": "發生錯誤，請再試一次！"
+    }
+  }
+}

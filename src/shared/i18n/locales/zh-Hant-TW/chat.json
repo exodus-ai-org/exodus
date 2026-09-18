@@ -1,1 +1,178 @@
-{}
+{
+  "imageGeneration": {
+    "status": {
+      "queued": "等待生成中",
+      "generating": "圖片生成中",
+      "refining": "細節調整中",
+      "complete": "圖片已完成",
+      "error": "生成失敗"
+    },
+    "retry": "重試",
+    "generatedImageAlt": "生成的圖片"
+  },
+  "composer": {
+    "placeholder": "有什麼想問的？",
+    "pleaseWaitTitle": "請稍候",
+    "pleaseWaitDescription": "模型仍在生成回覆中。",
+    "stop": "停止",
+    "send": "傳送"
+  },
+  "composerTools": {
+    "attachFiles": "附加檔案",
+    "mcpTools": "MCP 工具",
+    "mcpDialog": {
+      "title": "可用的 MCP 工具",
+      "description": "由目前啟用的 MCP 伺服器提供的工具。可在<strong>設定 > MCP 伺服器</strong>中管理伺服器。",
+      "noDescription": "{{name}} 沒有說明。"
+    }
+  },
+  "advancedTools": {
+    "deepResearch": "深度研究"
+  },
+  "messageList": {
+    "greetingTitle": "你好！",
+    "greetingSubtitle": "有什麼我可以幫忙的嗎？",
+    "attachmentAlt": "附件",
+    "scrollToBottom": "捲動至底部"
+  },
+  "toolPreview": {
+    "mapItineraryDayCount_other": "{{count}} 天",
+    "mapItineraryStopCount_other": "{{count}} 個停留點",
+    "mapItinerarySummary": "{{days}}，{{stops}}",
+    "toolFailed": "{{tool}} 失敗",
+    "webSearchResultCount_other": "{{count}} 筆結果"
+  },
+  "toolFailedToast": {
+    "title": "工具失敗：{{tool}}"
+  },
+  "messageAction": {
+    "copy": "複製",
+    "regenerate": "重新生成",
+    "sources": "來源"
+  },
+  "thinkingTimeline": {
+    "thinking": "思考中…",
+    "working": "處理中…",
+    "thought": "已思考",
+    "worked": "已處理",
+    "done": "完成",
+    "thoughtFor": "{{verb}}了 {{duration}}",
+    "durationSeconds_other": "{{count}} 秒",
+    "durationMinutes": "{{minutes}} 分鐘",
+    "durationMinutesSeconds": "{{minutes}} 分 {{seconds}} 秒",
+    "searchResultCount_other": "{{count}} 筆搜尋結果"
+  },
+  "toc": {
+    "fallbackLabel": "訊息"
+  },
+  "toast": {
+    "chatUpdated": "聊天已更新",
+    "chatDeleted": "聊天已刪除"
+  },
+  "lcm": {
+    "compacting": "正在壓縮對話紀錄…",
+    "compactedSummary_other": "已壓縮 {{count}} 則訊息 · 節省約 {{tokens}} 個 token",
+    "compactionFailed": "壓縮失敗（將於下一輪重試）"
+  },
+  "upload": {
+    "failedTitle": "上傳失敗",
+    "failedDescription": "檔案上傳失敗。"
+  },
+  "artifactCard": {
+    "cannotOpenTitle": "無法開啟成品檔案",
+    "missingFileDescription": "已儲存的 .tsx 檔案遺失——可能已被移動或刪除。",
+    "resolveFailedDescription": "無法解析成品路徑。",
+    "revealAriaLabel": "在檔案管理員中顯示 {{title}}",
+    "revealTitle": "在檔案管理員中顯示",
+    "exitFullscreen": "結束全螢幕",
+    "enterFullscreen": "進入全螢幕",
+    "exitFullscreenEsc": "結束全螢幕（Esc）",
+    "fullscreen": "全螢幕"
+  },
+  "computerUseCard": {
+    "title": "電腦操作",
+    "stopFailedTitle": "無法停止此工作階段",
+    "stopFailedDescription": "停止請求失敗——請再試一次。",
+    "answerFailedTitle": "無法送出你的回覆",
+    "answerFailedDescription": "請求失敗——請再試一次。",
+    "error": "錯誤",
+    "running": "執行中…",
+    "outcome": {
+      "success": "成功",
+      "failed": "失敗",
+      "aborted": "已中止",
+      "abandoned": "已放棄",
+      "stuck": "卡住"
+    },
+    "stepBadge": "步驟 {{step}}",
+    "stepWithAction": "步驟 {{step}}：{{action}}",
+    "stepNoAction": "步驟 {{step}}：…",
+    "targetWindowAlt": "步驟 {{step}} 的目標視窗",
+    "replyPlaceholder": "輸入回覆，或留空以表示完成",
+    "doneContinue": "完成——繼續",
+    "waitingForReply": "正在等待工作階段接受回覆…",
+    "stop": "停止",
+    "session": "工作階段：{{sessionId}}"
+  },
+  "deepResearchCard": {
+    "researching": "深度研究中...",
+    "completedSummary_other": "研究於 {{minutes}} 分鐘內完成 · {{count}} 個來源",
+    "exportAriaLabel": "匯出為 PDF",
+    "downloadPdfTooltip": "下載 PDF",
+    "exportFailedTitle": "匯出失敗",
+    "exportFailedDescription": "產生 PDF 報告失敗。",
+    "unknownSource": "[{{rank}}] 未知來源",
+    "referencesHeading": "參考資料"
+  },
+  "drawioCard": {
+    "noSource": "Draw.io 工具未回傳任何圖表原始資料。",
+    "iframeTitle": "draw.io 圖表",
+    "openInDrawio": "在 draw.io 中開啟",
+    "loadFailed": "載入 draw.io 編輯器失敗"
+  },
+  "genericToolCard": {
+    "fallbackLabel": "工具",
+    "badge": "工具"
+  },
+  "mapItineraryCard": {
+    "missingApiKey": "請在「設定 → Google Cloud」中新增 Google API 金鑰，才能顯示行程地圖。",
+    "tabsAriaLabel": "行程天數",
+    "openRouteTitle": "在 Google 地圖中開啟路線",
+    "copyMarkdownTitle": "複製當天行程為 Markdown"
+  },
+  "placeDetail": {
+    "goToPhotoAriaLabel": "前往照片 {{index}}",
+    "closeAriaLabel": "關閉詳細資訊面板",
+    "open": "營業中",
+    "closed": "已打烊",
+    "tabsAriaLabel": "地點分頁",
+    "tabOverview": "總覽",
+    "tabReviews": "評論",
+    "tabHours": "營業時間",
+    "notes": "備註",
+    "anonymousReviewer": "匿名",
+    "previousAriaLabel": "上一個地點",
+    "nextAriaLabel": "下一個地點",
+    "pagination": "第 {{index}} 筆，共 {{total}} 筆"
+  },
+  "terminalCard": {
+    "exitCode": "結束代碼 {{code}}",
+    "noOutput": "無輸出內容"
+  },
+  "weatherCard": {
+    "today": "今天",
+    "tomorrow": "明天",
+    "feels": "體感 {{temp}}° · {{observedAt}}",
+    "humidity": "濕度",
+    "precip": "降雨機率",
+    "visibility": "能見度",
+    "uvIndex": "紫外線指數"
+  },
+  "weatherForecast": {
+    "temperatureRange": "🌡️ 溫度範圍",
+    "cold": "❄️ 較冷",
+    "hot": "🔥 較熱",
+    "sunrise": "日出",
+    "sunset": "日落"
+  }
+}
