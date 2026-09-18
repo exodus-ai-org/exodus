@@ -205,6 +205,40 @@ describe('philharmonic namespace (en)', () => {
       philharmonic.employees.editor.fields.name
     )
   })
+
+  it('has the cost analysis header, period, and kpi keys', () => {
+    expect(philharmonic.costAnalysis.header.title).toBe('Dashboard')
+    expect(philharmonic.costAnalysis.period).toMatchObject({
+      last7Days: 'Last 7 days',
+      last30Days: 'Last 30 days',
+      allTime: 'All time'
+    })
+    expect(philharmonic.costAnalysis.periodToggle).toMatchObject({
+      sevenDays: '7d',
+      thirtyDays: '30d',
+      all: 'All'
+    })
+    expect(philharmonic.costAnalysis.kpi).toMatchObject({
+      totalCostHint_one: 'Across {{count}} employee',
+      totalCostHint_other: 'Across {{count}} employees'
+    })
+  })
+
+  it('has the cost analysis chart and list keys', () => {
+    expect(philharmonic.costAnalysis.chart).toMatchObject({
+      costLabel: 'Cost',
+      sectionTitle: 'Cost over time'
+    })
+    expect(philharmonic.costAnalysis.agentCostList).toMatchObject({
+      title: 'Cost by employee',
+      empty: 'No employee usage data yet',
+      tokens: '{{tokens}} tokens'
+    })
+    expect(philharmonic.costAnalysis.conversationCostList).toMatchObject({
+      title: 'Cost by conversation',
+      empty: 'No conversation usage data yet'
+    })
+  })
 })
 
 describe('philharmonic namespace chat.composer.hint renders correctly via Trans', () => {

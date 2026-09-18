@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from 'recharts'
 
 import {
@@ -30,15 +31,6 @@ function formatTokens(n: number) {
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`
   return n.toLocaleString()
 }
-
-// ─── Chart config ────────────────────────────────────────────────────────────
-
-const chartConfig = {
-  cost: {
-    label: 'Cost',
-    color: 'var(--primary)'
-  }
-} satisfies ChartConfig
 
 // ─── KPI card ────────────────────────────────────────────────────────────────
 
@@ -87,14 +79,15 @@ function AgentCostList({
   rows: PhilharmonicCostSummary['byAgent']
   agentsById: Record<string, AgentData>
 }) {
+  const { t } = useTranslation('philharmonic')
   return (
     <div className="bg-muted rounded-xl p-3.5">
       <div className="text-foreground mb-2 text-[12.5px] font-semibold">
-        Cost by employee
+        {t('costAnalysis.agentCostList.title')}
       </div>
       {rows.length === 0 ? (
         <div className="text-muted-foreground py-6 text-center text-xs">
-          No employee usage data yet
+          {t('costAnalysis.agentCostList.empty')}
         </div>
       ) : (
         <div className="flex flex-col gap-1.5">
@@ -120,7 +113,9 @@ function AgentCostList({
                     {label}
                   </div>
                   <div className="text-muted-foreground text-[10.5px]">
-                    {formatTokens(r.tokens)} tokens
+                    {t('costAnalysis.agentCostList.tokens', {
+                      tokens: formatTokens(r.tokens)
+                    })}
                   </div>
                 </div>
                 <div className="text-foreground text-xs font-semibold tabular-nums">
@@ -140,14 +135,15 @@ function ConversationCostList({
 }: {
   rows: PhilharmonicCostSummary['byConversation']
 }) {
+  const { t } = useTranslation('philharmonic')
   return (
     <div className="bg-muted rounded-xl p-3.5">
       <div className="text-foreground mb-2 text-[12.5px] font-semibold">
-        Cost by conversation
+        {t('costAnalysis.conversationCostList.title')}
       </div>
       {rows.length === 0 ? (
         <div className="text-muted-foreground py-6 text-center text-xs">
-          No conversation usage data yet
+          {t('costAnalysis.conversationCostList.empty')}
         </div>
       ) : (
         <div className="flex flex-col gap-1.5">
@@ -178,9 +174,21 @@ function ConversationCostList({
 type Period = '7d' | '30d' | 'all'
 
 export function CostAnalysis() {
+  const { t } = useTranslation('philharmonic')
   const [data, setData] = useState<PhilharmonicCostSummary | null>(null)
   const [agentsById, setAgentsById] = useState<Record<string, AgentData>>({})
   const [period, setPeriod] = useState<Period>('all')
+
+  const chartConfig = useMemo(
+    () =>
+      ({
+        cost: {
+          label: t('costAnalysis.chart.costLabel'),
+          color: 'var(--primary)'
+        }
+      }) satisfies ChartConfig,
+    [t]
+  )
 
   const load = useCallback(async () => {
     const [costs, agents] = await Promise.all([
@@ -198,7 +206,7 @@ export function CostAnalysis() {
   if (!data) {
     return (
       <div className="text-muted-foreground flex h-full items-center justify-center text-sm">
-        Loading usage data…
+        {t('costAnalysis.loading')}
       </div>
     )
   }
@@ -206,16 +214,18 @@ export function CostAnalysis() {
   const agentCount = data.byAgent.length
   const periodLabel =
     period === '7d'
-      ? 'Last 7 days'
+      ? t('costAnalysis.period.last7Days')
       : period === '30d'
-        ? 'Last 30 days'
-        : 'All time'
+        ? t('costAnalysis.period.last30Days')
+        : t('costAnalysis.period.allTime')
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <header className="border-border flex h-13 shrink-0 items-center justify-between border-b px-5">
         <div>
-          <h1 className="text-foreground text-sm font-semibold">Dashboard</h1>
+          <h1 className="text-foreground text-sm font-semibold">
+            {t('costAnalysis.header.title')}
+          </h1>
           <p className="text-muted-foreground text-[11.5px]">{periodLabel}</p>
         </div>
         <ToggleGroup
@@ -227,9 +237,15 @@ export function CostAnalysis() {
           variant="outline"
           size="sm"
         >
-          <ToggleGroupItem value="7d">7d</ToggleGroupItem>
-          <ToggleGroupItem value="30d">30d</ToggleGroupItem>
-          <ToggleGroupItem value="all">All</ToggleGroupItem>
+          <ToggleGroupItem value="7d">
+            {t('costAnalysis.periodToggle.sevenDays')}
+          </ToggleGroupItem>
+          <ToggleGroupItem value="30d">
+            {t('costAnalysis.periodToggle.thirtyDays')}
+          </ToggleGroupItem>
+          <ToggleGroupItem value="all">
+            {t('costAnalysis.periodToggle.all')}
+          </ToggleGroupItem>
         </ToggleGroup>
       </header>
 
@@ -237,36 +253,36 @@ export function CostAnalysis() {
         {/* KPI grid */}
         <div className="mb-4 grid grid-cols-2 gap-2.5 lg:grid-cols-4">
           <KpiCard
-            label="Total cost"
+            label={t('costAnalysis.kpi.totalCost')}
             value={formatCost(data.totalCost)}
             icon="$"
             iconBg="var(--accent)"
             iconColor="var(--accent-foreground)"
-            hint={`Across ${agentCount} employee${agentCount === 1 ? '' : 's'}`}
+            hint={t('costAnalysis.kpi.totalCostHint', { count: agentCount })}
           />
           <KpiCard
-            label="Tokens"
+            label={t('costAnalysis.kpi.tokens')}
             value={formatTokens(data.totalTokens)}
             icon="⚡"
             iconBg="var(--ph-hue-lilac-fill)"
             iconColor="var(--ph-hue-lilac-ring)"
-            hint="Total processed"
+            hint={t('costAnalysis.kpi.tokensHint')}
           />
           <KpiCard
-            label="Employees"
+            label={t('costAnalysis.kpi.employees')}
             value={agentCount.toLocaleString()}
             icon="👥"
             iconBg="var(--ph-hue-sky-fill)"
             iconColor="var(--ph-hue-sky-ring)"
-            hint="With recorded usage"
+            hint={t('costAnalysis.kpi.employeesHint')}
           />
           <KpiCard
-            label="Conversations"
+            label={t('costAnalysis.kpi.conversations')}
             value={data.byConversation.length.toLocaleString()}
             icon="💬"
             iconBg="var(--ph-hue-peach-fill)"
             iconColor="var(--ph-hue-peach-ring)"
-            hint="With activity"
+            hint={t('costAnalysis.kpi.conversationsHint')}
           />
         </div>
 
@@ -275,11 +291,11 @@ export function CostAnalysis() {
           <div className="bg-muted mb-4 rounded-xl p-4">
             <div className="mb-3 flex items-center justify-between">
               <div className="text-foreground text-[12.5px] font-semibold">
-                Cost over time
+                {t('costAnalysis.chart.sectionTitle')}
               </div>
               <div className="text-muted-foreground flex items-center gap-1 text-[11px]">
                 <span className="bg-primary inline-block h-2 w-2 rounded-full" />
-                Cost
+                {t('costAnalysis.chart.costLabel')}
               </div>
             </div>
             <ChartContainer

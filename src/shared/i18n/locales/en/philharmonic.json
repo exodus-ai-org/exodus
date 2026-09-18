@@ -210,5 +210,45 @@
         "systemPromptPlaceholder": "Shared instructions added to every member of this team's prompt."
       }
     }
+  },
+  "costAnalysis": {
+    "header": {
+      "title": "Dashboard"
+    },
+    "period": {
+      "last7Days": "Last 7 days",
+      "last30Days": "Last 30 days",
+      "allTime": "All time"
+    },
+    "periodToggle": {
+      "sevenDays": "7d",
+      "thirtyDays": "30d",
+      "all": "All"
+    },
+    "loading": "Loading usage data…",
+    "kpi": {
+      "totalCost": "Total cost",
+      "totalCostHint_one": "Across {{count}} employee",
+      "totalCostHint_other": "Across {{count}} employees",
+      "tokens": "Tokens",
+      "tokensHint": "Total processed",
+      "employees": "Employees",
+      "employeesHint": "With recorded usage",
+      "conversations": "Conversations",
+      "conversationsHint": "With activity"
+    },
+    "chart": {
+      "costLabel": "Cost",
+      "sectionTitle": "Cost over time"
+    },
+    "agentCostList": {
+      "title": "Cost by employee",
+      "empty": "No employee usage data yet",
+      "tokens": "{{tokens}} tokens"
+    },
+    "conversationCostList": {
+      "title": "Cost by conversation",
+      "empty": "No conversation usage data yet"
+    }
   }
 }
