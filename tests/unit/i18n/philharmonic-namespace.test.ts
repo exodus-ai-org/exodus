@@ -48,4 +48,47 @@ describe('philharmonic namespace (en)', () => {
   it('has the new-group default title', () => {
     expect(philharmonic.container.newGroupDefaultTitle).toBe('New group')
   })
+
+  it('has the schedule tab and shared keys', () => {
+    expect(philharmonic.schedule.tab).toMatchObject({
+      heading: 'Schedule',
+      scheduleTaskButton: 'Schedule task',
+      upcomingTrigger: 'Upcoming',
+      recurringTrigger: 'Recurring'
+    })
+    expect(philharmonic.schedule.unknownGroup).toBe('Unknown group')
+  })
+
+  it('has the task card status and priority labels', () => {
+    expect(philharmonic.schedule.taskCard.status).toMatchObject({
+      pending: 'Pending',
+      running: 'Running',
+      completed: 'Completed',
+      failed: 'Failed',
+      cancelled: 'Cancelled',
+      waiting_for_user: 'Waiting'
+    })
+    expect(philharmonic.schedule.taskCard.priority).toMatchObject({
+      low: 'Low',
+      medium: 'Medium',
+      high: 'High',
+      urgent: 'Urgent'
+    })
+  })
+
+  it('has the recurring-list schedule-description interpolation keys', () => {
+    expect(philharmonic.schedule.recurringList).toMatchObject({
+      lastRun: 'last {{time}}',
+      nextRun: 'next {{time}}'
+    })
+  })
+
+  it('has the schedule form keys', () => {
+    expect(philharmonic.schedule.form.title).toBe('Schedule a task')
+    expect(philharmonic.schedule.form.cronPresets).toMatchObject({
+      dailyNine: 'Every day at 9:00 AM',
+      mondayNine: 'Every Monday at 9:00 AM',
+      custom: 'Custom'
+    })
+  })
 })

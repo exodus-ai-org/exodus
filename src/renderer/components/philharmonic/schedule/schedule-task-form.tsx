@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import { Button } from '@/components/ui/button'
@@ -29,12 +30,6 @@ import { Textarea } from '@/components/ui/textarea'
 import { createScheduledTask } from '@/services/philharmonic-tasks'
 import type { ConversationData, TaskData } from '@/stores/philharmonic'
 
-const CRON_PRESETS = [
-  { label: 'Every day at 9:00 AM', value: '0 9 * * *' },
-  { label: 'Every Monday at 9:00 AM', value: '0 9 * * 1' },
-  { label: 'Custom', value: 'custom' }
-]
-
 export function ScheduleTaskForm({
   open,
   onOpenChange,
@@ -46,13 +41,28 @@ export function ScheduleTaskForm({
   conversations: ConversationData[]
   onCreated: (task: TaskData) => void
 }) {
+  const { t } = useTranslation('philharmonic')
+  const cronPresets = useMemo(
+    () => [
+      {
+        label: t('schedule.form.cronPresets.dailyNine'),
+        value: '0 9 * * *'
+      },
+      {
+        label: t('schedule.form.cronPresets.mondayNine'),
+        value: '0 9 * * 1'
+      },
+      { label: t('schedule.form.cronPresets.custom'), value: 'custom' }
+    ],
+    [t]
+  )
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [conversationId, setConversationId] = useState('')
   const [mode, setMode] = useState<'once' | 'recurring'>('once')
   const [runAtDate, setRunAtDate] = useState<Date | undefined>(undefined)
   const [runAtTime, setRunAtTime] = useState('09:00')
-  const [cronPreset, setCronPreset] = useState(CRON_PRESETS[0].value)
+  const [cronPreset, setCronPreset] = useState(cronPresets[0].value)
   const [customCron, setCustomCron] = useState('')
   const [submitting, setSubmitting] = useState(false)
 
@@ -63,7 +73,7 @@ export function ScheduleTaskForm({
     setMode('once')
     setRunAtDate(undefined)
     setRunAtTime('09:00')
-    setCronPreset(CRON_PRESETS[0].value)
+    setCronPreset(cronPresets[0].value)
     setCustomCron('')
   }
 
@@ -93,10 +103,10 @@ export function ScheduleTaskForm({
       onCreated(task)
       reset()
       onOpenChange(false)
-      sileo.success({ title: 'Task scheduled' })
+      sileo.success({ title: t('schedule.toast.taskScheduled') })
     } catch (err) {
       sileo.error({
-        title: 'Could not schedule task',
+        title: t('schedule.toast.scheduleTaskFailed'),
         description: err instanceof Error ? err.message : String(err)
       })
     } finally {
@@ -108,14 +118,14 @@ export function ScheduleTaskForm({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent>
         <SheetHeader>
-          <SheetTitle>Schedule a task</SheetTitle>
-          <SheetDescription>
-            Runs inside an existing Group, once or on a recurring schedule.
-          </SheetDescription>
+          <SheetTitle>{t('schedule.form.title')}</SheetTitle>
+          <SheetDescription>{t('schedule.form.description')}</SheetDescription>
         </SheetHeader>
         <div className="flex flex-col gap-4 px-4">
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="schedule-title">Title</Label>
+            <Label htmlFor="schedule-title">
+              {t('schedule.form.titleLabel')}
+            </Label>
             <Input
               id="schedule-title"
               value={title}
@@ -124,7 +134,9 @@ export function ScheduleTaskForm({
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label htmlFor="schedule-description">Description</Label>
+            <Label htmlFor="schedule-description">
+              {t('schedule.form.descriptionLabel')}
+            </Label>
             <Textarea
               id="schedule-description"
               value={description}
@@ -133,13 +145,15 @@ export function ScheduleTaskForm({
             />
           </div>
           <div className="flex flex-col gap-1.5">
-            <Label>Group</Label>
+            <Label>{t('schedule.form.groupLabel')}</Label>
             <Select
               value={conversationId}
               onValueChange={(v) => v && setConversationId(v)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Choose a group" />
+                <SelectValue
+                  placeholder={t('schedule.form.groupPlaceholder')}
+                />
               </SelectTrigger>
               <SelectContent>
                 {conversations.map((c) => (
@@ -157,7 +171,7 @@ export function ScheduleTaskForm({
               size="sm"
               onClick={() => setMode('once')}
             >
-              One-off
+              {t('schedule.form.onceButton')}
             </Button>
             <Button
               type="button"
@@ -165,7 +179,7 @@ export function ScheduleTaskForm({
               size="sm"
               onClick={() => setMode('recurring')}
             >
-              Recurring
+              {t('schedule.form.recurringButton')}
             </Button>
           </div>
           {mode === 'once' ? (
@@ -174,7 +188,9 @@ export function ScheduleTaskForm({
                 <PopoverTrigger
                   render={
                     <Button type="button" variant="outline" className="flex-1">
-                      {runAtDate ? runAtDate.toDateString() : 'Pick a date'}
+                      {runAtDate
+                        ? runAtDate.toDateString()
+                        : t('schedule.form.pickDateButton')}
                     </Button>
                   }
                 />
@@ -203,7 +219,7 @@ export function ScheduleTaskForm({
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {CRON_PRESETS.map((p) => (
+                  {cronPresets.map((p) => (
                     <SelectItem key={p.value} value={p.value}>
                       {p.label}
                     </SelectItem>
@@ -226,7 +242,9 @@ export function ScheduleTaskForm({
             disabled={submitting || !title.trim() || !conversationId}
             onClick={handleSubmit}
           >
-            {submitting ? 'Scheduling…' : 'Schedule task'}
+            {submitting
+              ? t('schedule.form.submitting')
+              : t('schedule.tab.scheduleTaskButton')}
           </Button>
         </SheetFooter>
       </SheetContent>

@@ -14,5 +14,64 @@
       "createButton": "Create a group"
     },
     "newGroupDefaultTitle": "New group"
+  },
+  "schedule": {
+    "tab": {
+      "heading": "Schedule",
+      "scheduleTaskButton": "Schedule task",
+      "upcomingTrigger": "Upcoming",
+      "recurringTrigger": "Recurring"
+    },
+    "unknownGroup": "Unknown group",
+    "upcomingList": {
+      "empty": "No upcoming one-off tasks. Schedule one to see it here."
+    },
+    "recurringList": {
+      "empty": "No recurring tasks yet.",
+      "lastRun": "last {{time}}",
+      "nextRun": "next {{time}}"
+    },
+    "taskCard": {
+      "status": {
+        "pending": "Pending",
+        "running": "Running",
+        "completed": "Completed",
+        "failed": "Failed",
+        "cancelled": "Cancelled",
+        "waiting_for_user": "Waiting"
+      },
+      "priority": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "urgent": "Urgent"
+      },
+      "cancelAria": "Cancel scheduled task"
+    },
+    "toast": {
+      "loadUpcomingFailed": "Could not load upcoming tasks",
+      "loadRecurringFailed": "Could not load recurring tasks",
+      "taskCancelled": "Task cancelled",
+      "cancelTaskFailed": "Could not cancel task",
+      "taskScheduled": "Task scheduled",
+      "scheduleTaskFailed": "Could not schedule task"
+    },
+    "form": {
+      "title": "Schedule a task",
+      "description": "Runs inside an existing Group, once or on a recurring schedule.",
+      "titleLabel": "Title",
+      "descriptionLabel": "Description",
+      "groupLabel": "Group",
+      "groupPlaceholder": "Choose a group",
+      "onceButton": "One-off",
+      "recurringButton": "Recurring",
+      "pickDateButton": "Pick a date",
+      "submitting": "Scheduling…",
+      "cronPresets": {
+        "dailyNine": "Every day at 9:00 AM",
+        "mondayNine": "Every Monday at 9:00 AM",
+        "custom": "Custom"
+      }
+    }
   }
 }

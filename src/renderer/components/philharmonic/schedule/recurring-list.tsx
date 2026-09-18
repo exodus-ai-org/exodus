@@ -1,8 +1,10 @@
 // src/renderer/components/philharmonic/schedule/recurring-list.tsx
 import { CronExpressionParser } from 'cron-parser'
 import { format } from 'date-fns'
+import { useTranslation } from 'react-i18next'
 
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { i18n } from '@/lib/i18n'
 import type { ConversationData, TaskData } from '@/stores/philharmonic'
 
 import { TaskCard } from './task-card'
@@ -10,11 +12,16 @@ import { TaskCard } from './task-card'
 function describeSchedule(task: TaskData): string {
   if (!task.cronExpression) return ''
   const lastRun = task.lastRunAt
-    ? `last ${format(new Date(task.lastRunAt), 'MMM d, HH:mm')} · `
+    ? i18n.t('philharmonic:schedule.recurringList.lastRun', {
+        time: format(new Date(task.lastRunAt), 'MMM d, HH:mm')
+      }) + ' · '
     : ''
   try {
     const next = CronExpressionParser.parse(task.cronExpression).next().toDate()
-    return `${lastRun}${task.cronExpression} · next ${format(next, 'MMM d, HH:mm')}`
+    return `${lastRun}${task.cronExpression} · ${i18n.t(
+      'philharmonic:schedule.recurringList.nextRun',
+      { time: format(next, 'MMM d, HH:mm') }
+    )}`
   } catch {
     return `${lastRun}${task.cronExpression}`
   }
@@ -31,10 +38,11 @@ export function RecurringList({
   cancellingId: string | null
   onCancel: (id: string) => void
 }) {
+  const { t } = useTranslation('philharmonic')
   if (tasks.length === 0) {
     return (
       <div className="text-muted-foreground flex h-full items-center justify-center px-6 text-center text-sm">
-        No recurring tasks yet.
+        {t('schedule.recurringList.empty')}
       </div>
     )
   }
@@ -48,7 +56,7 @@ export function RecurringList({
             task={task}
             groupTitle={
               conversationsById[task.conversationId ?? '']?.title ??
-              'Unknown group'
+              t('schedule.unknownGroup')
             }
             subtitle={describeSchedule(task)}
             onCancel={onCancel}
