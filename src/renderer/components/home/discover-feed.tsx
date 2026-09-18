@@ -119,7 +119,7 @@ const TopicSection = memo(function TopicSection({
 })
 
 export function DiscoverFeed() {
-  const { i18n } = useTranslation('errors')
+  const { t, i18n } = useTranslation(['errors', 'discover'])
   const { data: settings } = useSettings()
   const enabled = settings?.discover?.enabled ?? false
   const { feed, mutate } = useDiscoverFeed(enabled)
@@ -150,7 +150,7 @@ export function DiscoverFeed() {
       await mutate(refreshDiscoverFeed(), { revalidate: false })
     } catch (e) {
       sileo.error({
-        title: 'Failed to refresh',
+        title: t('discover:toast.refreshFailed'),
         description: getHttpErrorMessage(e, toErrorI18n(i18n))
       })
     } finally {
@@ -168,10 +168,12 @@ export function DiscoverFeed() {
     <div className="mt-6" data-testid={TEST_IDS.discover.section}>
       <div className="mb-3 flex items-center justify-between">
         <div className="flex items-baseline gap-2.5">
-          <h2 className="text-2xl font-bold tracking-tight">Discover</h2>
+          <h2 className="text-2xl font-bold tracking-tight">
+            {t('discover:heading')}
+          </h2>
           {updatedAgo && (
             <span className="text-muted-foreground text-xs">
-              updated {updatedAgo}
+              {t('discover:updatedAgo', { time: updatedAgo })}
             </span>
           )}
         </div>
@@ -180,7 +182,7 @@ export function DiscoverFeed() {
           size="icon"
           disabled={isBusy}
           onClick={handleRefresh}
-          title="Refresh"
+          title={t('discover:refreshButton')}
         >
           <RefreshCwIcon className={cn('size-4', isBusy && 'animate-spin')} />
         </Button>
