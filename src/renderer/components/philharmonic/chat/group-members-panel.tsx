@@ -1,4 +1,6 @@
 // src/renderer/components/philharmonic/chat/group-members-panel.tsx
+import { useTranslation } from 'react-i18next'
+
 import { cn } from '@/lib/utils'
 import type { AgentData, TeamData } from '@/stores/philharmonic'
 
@@ -16,7 +18,9 @@ interface Group {
 function partition(
   members: AgentData[],
   teamsById: Record<string, TeamData>,
-  includePm: boolean
+  includePm: boolean,
+  coordinatorsLabel: string,
+  unassignedLabel: string
 ): Group[] {
   const byTeam = new Map<string, AgentData[]>()
   const unassigned: AgentData[] = []
@@ -41,7 +45,7 @@ function partition(
   if (includePm) {
     groups.push({
       key: '__coord__',
-      label: 'Coordinators',
+      label: coordinatorsLabel,
       icon: '🧭',
       members: [],
       isCoordinators: true
@@ -51,7 +55,7 @@ function partition(
   if (unassigned.length) {
     groups.push({
       key: '__unassigned__',
-      label: 'Unassigned',
+      label: unassignedLabel,
       icon: '👤',
       members: unassigned
     })
@@ -76,7 +80,14 @@ export function GroupMembersPanel({
   busyAgents: ReadonlyMap<string, string>
   hasPm?: boolean
 }) {
-  const groups = partition(members, teamsById, hasPm)
+  const { t } = useTranslation('philharmonic')
+  const groups = partition(
+    members,
+    teamsById,
+    hasPm,
+    t('chat.membersPanel.coordinatorsLabel'),
+    t('chat.membersPanel.unassignedLabel')
+  )
   const busyCount = members.filter((m) => busyAgents.has(m.id)).length
   const idleCount = members.length - busyCount
   const pmActivity = busyAgents.get(PM_KEY)
@@ -88,7 +99,7 @@ export function GroupMembersPanel({
     <div className="flex h-full flex-col">
       <div className="border-border flex h-13 shrink-0 items-center justify-between border-b px-3.5">
         <div className="text-foreground flex items-center gap-2 text-sm font-semibold">
-          Members
+          {t('chat.membersPanel.heading')}
           <span className="bg-muted text-muted-foreground rounded-full px-2 py-0.5 text-[10px] font-normal">
             {members.length + (hasPm ? 1 : 0)}
           </span>
@@ -96,11 +107,11 @@ export function GroupMembersPanel({
         <div className="text-muted-foreground flex gap-3 text-[10.5px]">
           <span className="flex items-center gap-1">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
-            {summaryIdle} idle
+            {t('chat.membersPanel.idleCount', { count: summaryIdle })}
           </span>
           <span className="flex items-center gap-1">
             <span className="inline-block h-1.5 w-1.5 rounded-full bg-amber-500" />
-            {summaryBusy} busy
+            {t('chat.membersPanel.busyCount', { count: summaryBusy })}
           </span>
         </div>
       </div>
@@ -108,8 +119,8 @@ export function GroupMembersPanel({
         {members.length === 0 && !hasPm ? (
           <PhilharmonicEmptyState
             avatars={[{ hue: 'lilac' }, { hue: 'mint' }, { hue: 'peach' }]}
-            title="No teammates yet"
-            description="The PM will recruit teammates as needed."
+            title={t('chat.membersPanel.emptyState.title')}
+            description={t('chat.membersPanel.emptyState.description')}
           />
         ) : (
           groups.map((g) => (
@@ -150,6 +161,7 @@ function MemberRow({
   /** Activity label when busy; undefined when idle. */
   activity: string | undefined
 }) {
+  const { t } = useTranslation('philharmonic')
   const busy = activity !== undefined
   return (
     <div
@@ -183,7 +195,9 @@ function MemberRow({
             busy ? 'text-amber-500' : 'text-muted-foreground'
           )}
         >
-          {busy ? activity : `${team?.name ?? 'No team'} · idle`}
+          {busy
+            ? activity
+            : `${team?.name ?? t('chat.membersPanel.noTeam')} · ${t('chat.membersPanel.idle')}`}
         </div>
       </div>
     </div>
@@ -191,6 +205,7 @@ function MemberRow({
 }
 
 function PmRow({ activity }: { activity: string | undefined }) {
+  const { t } = useTranslation('philharmonic')
   const busy = activity !== undefined
   return (
     <div
@@ -201,7 +216,7 @@ function PmRow({ activity }: { activity: string | undefined }) {
     >
       <div className="relative">
         <div className="bg-primary text-primary-foreground flex h-9 w-9 items-center justify-center rounded-full text-[11px] font-semibold">
-          PM
+          {t('chat.roles.pm')}
         </div>
         <span
           className={cn(
@@ -213,14 +228,16 @@ function PmRow({ activity }: { activity: string | undefined }) {
         />
       </div>
       <div className="min-w-0 flex-1">
-        <div className="text-foreground truncate text-sm font-medium">PM</div>
+        <div className="text-foreground truncate text-sm font-medium">
+          {t('chat.roles.pm')}
+        </div>
         <div
           className={cn(
             'truncate text-xs',
             busy ? 'text-amber-500' : 'text-muted-foreground'
           )}
         >
-          {busy ? activity : 'Strategy · idle'}
+          {busy ? activity : t('chat.membersPanel.pmIdleActivity')}
         </div>
       </div>
     </div>

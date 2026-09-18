@@ -110,6 +110,57 @@
     "roles": {
       "pm": "PM",
       "employeeFallback": "Employee"
+    },
+    "membersPanel": {
+      "heading": "Members",
+      "coordinatorsLabel": "Coordinators",
+      "unassignedLabel": "Unassigned",
+      "idleCount": "{{count}} idle",
+      "busyCount": "{{count}} busy",
+      "idle": "idle",
+      "noTeam": "No team",
+      "pmIdleActivity": "Strategy · idle",
+      "emptyState": {
+        "title": "No teammates yet",
+        "description": "The PM will recruit teammates as needed."
+      }
+    },
+    "conversationList": {
+      "configNav": {
+        "workforce": "Workforce",
+        "dashboard": "Dashboard"
+      },
+      "searchPlaceholder": "Search groups",
+      "newGroupMenuItem": "New group",
+      "emptyState": {
+        "title": "No groups yet",
+        "description": "Create one to message your virtual team.",
+        "createButton": "+ New group"
+      },
+      "searchNoMatch": "No groups match “{{query}}”",
+      "noMessagesYetPreview": "New group · no messages yet",
+      "deleteDialog": {
+        "title": "Delete this group?",
+        "description": "<0>{{title}}</0> and all its messages, tasks, and executions will be permanently removed."
+      }
+    },
+    "dateLabels": {
+      "today": "Today",
+      "yesterday": "Yesterday"
+    },
+    "groupChat": {
+      "renameTitle": "Click to rename",
+      "memberCount_one": "{{count}} member",
+      "memberCount_other": "{{count}} members",
+      "toggleMembersAria": "Toggle members",
+      "emptyState": {
+        "title": "Hand something to your team",
+        "description": "Describe what you need. The PM will analyze, recruit and delegate to virtual employees, then report back here."
+      },
+      "askUser": {
+        "replyPlaceholder": "Reply to PM…",
+        "sendButton": "Send"
+      }
     }
   }
 }

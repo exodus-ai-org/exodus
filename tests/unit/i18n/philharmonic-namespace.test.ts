@@ -127,6 +127,43 @@ describe('philharmonic namespace (en)', () => {
       employeeFallback: 'Employee'
     })
   })
+
+  it('has the members panel keys', () => {
+    expect(philharmonic.chat.membersPanel).toMatchObject({
+      heading: 'Members',
+      coordinatorsLabel: 'Coordinators',
+      unassignedLabel: 'Unassigned',
+      idleCount: '{{count}} idle',
+      busyCount: '{{count}} busy'
+    })
+  })
+
+  it('has the conversation list keys, three distinct "New group" copies', () => {
+    expect(philharmonic.chat.conversationList.newGroupMenuItem).toBe(
+      'New group'
+    )
+    expect(philharmonic.chat.conversationList.emptyState.createButton).toBe(
+      '+ New group'
+    )
+    expect(philharmonic.chat.conversationList.noMessagesYetPreview).toBe(
+      'New group · no messages yet'
+    )
+    expect(philharmonic.container.newGroupDefaultTitle).toBe('New group')
+  })
+
+  it('has the shared date labels', () => {
+    expect(philharmonic.chat.dateLabels).toMatchObject({
+      today: 'Today',
+      yesterday: 'Yesterday'
+    })
+  })
+
+  it('has real pluralization for the group chat member count', () => {
+    expect(philharmonic.chat.groupChat).toMatchObject({
+      memberCount_one: '{{count}} member',
+      memberCount_other: '{{count}} members'
+    })
+  })
 })
 
 describe('philharmonic namespace chat.composer.hint renders correctly via Trans', () => {
@@ -152,6 +189,37 @@ describe('philharmonic namespace chat.composer.hint renders correctly via Trans'
     )
     expect(html).toBe(
       '<p class="text-muted-foreground mt-1.5 px-1 text-[10px]">Press <kbd class="bg-background rounded px-1 py-px">Enter</kbd> to send, <kbd class="bg-background ml-1 rounded px-1 py-px">Shift + Enter</kbd> for a new line. Paste or attach images.</p>'
+    )
+  })
+})
+
+describe('philharmonic namespace chat.conversationList.deleteDialog.description renders correctly via Trans', () => {
+  it('description — dynamic title in a styled <span> at index 0', async () => {
+    const { createElement } = await import('react')
+    const { renderToStaticMarkup } = await import('react-dom/server')
+    const { I18nextProvider, initReactI18next } = await import('react-i18next')
+    const i18next = (await import('i18next')).default
+    const { DeleteGroupDescription } =
+      await import('@/components/philharmonic/chat/conversation-list')
+
+    const i18n = i18next.createInstance()
+    await i18n.use(initReactI18next).init({
+      lng: 'en',
+      resources: { en: { philharmonic } },
+      ns: ['philharmonic'],
+      defaultNS: 'philharmonic',
+      interpolation: { escapeValue: false }
+    })
+
+    const html = renderToStaticMarkup(
+      createElement(
+        I18nextProvider,
+        { i18n },
+        createElement(DeleteGroupDescription, { title: 'Marketing Team' })
+      )
+    )
+    expect(html).toBe(
+      '<span class="bg-muted rounded-sm px-1.5 py-0.5 font-mono text-xs">Marketing Team</span> and all its messages, tasks, and executions will be permanently removed.'
     )
   })
 })
