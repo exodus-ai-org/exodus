@@ -56,6 +56,10 @@ export function resolveEffectiveLocale(
   return resolveLocale(app.getPreferredSystemLanguages())
 }
 
+function isLanguageSetting(v: unknown): v is LanguageSetting {
+  return v === 'auto' || isLocaleId(v)
+}
+
 export async function initMainI18n(): Promise<void> {
   const settings = await getSettings()
   effective = resolveEffectiveLocale(
@@ -72,20 +76,20 @@ export async function initMainI18n(): Promise<void> {
   })
 
   ipcMain.handle('set-app-locale', async (_event, locale: unknown) => {
-    const next = isLocaleId(locale) ? locale : 'en'
+    const next = resolveEffectiveLocale(
+      isLanguageSetting(locale) ? locale : null
+    )
     if (next === effective) return
     try {
       await mainI18n.changeLanguage(next)
       effective = next
       logger.info('i18n', 'main locale changed', { locale: next })
-      // Rebuilding the menu bar + tray on a live locale change is the
-      // live-switch phase's job (not yet built) — the `menu` namespace
-      // pass (this file's mainT()) deliberately stopped short of it.
-      // buildContextMenu() (tray.ts) already re-reads mainT() on every
-      // right-click, so the tray will pick up a runtime language change
-      // once this lands; the menu bar (built once at boot via setupMenu())
-      // will additionally need an explicit Menu.setApplicationMenu(buildMenu())
-      // call added here.
+      // Rebuild the menu bar so its labels reflect the new language. A lazy
+      // import avoids a circular dependency — menu.ts imports mainT from
+      // this file. The tray needs no equivalent call: buildContextMenu()
+      // (tray.ts) already re-reads mainT() fresh on every right-click.
+      const { setupMenu } = await import('./menu.js')
+      setupMenu()
     } catch (err) {
       logger.error('i18n', 'Failed to change main-process locale', {
         locale: next,

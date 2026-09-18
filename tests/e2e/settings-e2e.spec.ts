@@ -55,4 +55,20 @@ test.describe('Settings E2E', () => {
       .poll(() => mainWindow.evaluate(() => document.documentElement.className))
       .not.toContain('dark')
   })
+
+  test('language selector switches the app language live', async ({
+    mainWindow
+  }) => {
+    await openSettings(mainWindow)
+
+    const select = mainWindow.getByTestId(TEST_IDS.settings.languageSelect)
+    await select.waitFor({ state: 'visible', timeout: 10_000 })
+
+    await select.click()
+    await mainWindow.getByRole('option', { name: 'Deutsch' }).click()
+
+    await expect
+      .poll(() => mainWindow.evaluate(() => document.documentElement.lang))
+      .toBe('de')
+  })
 })

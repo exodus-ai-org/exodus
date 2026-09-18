@@ -11,8 +11,14 @@ vi.mock('@main/lib/db/queries', () => ({ getSettings: vi.fn() }))
 vi.mock('@main/lib/logger', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() }
 }))
+// `set-app-locale`'s handler rebuilds the menu bar via a dynamic import —
+// stub it rather than pulling in menu.ts's own electron (Menu/BrowserWindow/
+// shell) and lock-manager dependencies, none of which this file mocks.
+vi.mock('@main/lib/menu', () => ({ setupMenu: vi.fn() }))
 
 import { getSettings } from '@main/lib/db/queries'
+import { setupMenu } from '@main/lib/menu'
+import { ipcMain } from 'electron'
 
 const { resolveEffectiveLocale, mainT, initMainI18n } =
   await import('@main/lib/i18n')
@@ -62,5 +68,57 @@ describe('mainT', () => {
         'FALLBACK_FOR_MISSING_KEY'
       )
     ).toBe('FALLBACK_FOR_MISSING_KEY')
+  })
+})
+
+describe('set-app-locale IPC handler', () => {
+  function latestHandler() {
+    const call = vi
+      .mocked(ipcMain.handle)
+      .mock.calls.findLast(([channel]) => channel === 'set-app-locale')
+    if (!call) throw new Error('set-app-locale handler was never registered')
+    return call[1] as (event: unknown, locale: unknown) => Promise<void>
+  }
+
+  it("resolves 'auto' through the OS languages rather than forcing English", async () => {
+    vi.mocked(getSettings).mockResolvedValue({ language: 'en' } as never)
+    await initMainI18n()
+    const handler = latestHandler()
+
+    await handler(undefined, 'auto')
+
+    expect(mainT('menu:file', 'WRONG_FALLBACK')).toBe('Fichier')
+  })
+
+  it('resolves an invalid/garbage value the same way as auto, not to en', async () => {
+    vi.mocked(getSettings).mockResolvedValue({ language: 'en' } as never)
+    await initMainI18n()
+    const handler = latestHandler()
+
+    await handler(undefined, 'not-a-real-locale')
+
+    expect(mainT('menu:file', 'WRONG_FALLBACK')).toBe('Fichier')
+  })
+
+  it('rebuilds the menu bar after a successful locale change', async () => {
+    vi.mocked(getSettings).mockResolvedValue({ language: 'en' } as never)
+    await initMainI18n()
+    const handler = latestHandler()
+    vi.mocked(setupMenu).mockClear()
+
+    await handler(undefined, 'de')
+
+    expect(setupMenu).toHaveBeenCalledTimes(1)
+  })
+
+  it('is a no-op (does not rebuild the menu) when the locale is unchanged', async () => {
+    vi.mocked(getSettings).mockResolvedValue({ language: 'ja' } as never)
+    await initMainI18n()
+    const handler = latestHandler()
+    vi.mocked(setupMenu).mockClear()
+
+    await handler(undefined, 'ja')
+
+    expect(setupMenu).not.toHaveBeenCalled()
   })
 })

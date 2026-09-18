@@ -1,9 +1,10 @@
 import { TEST_IDS } from '@shared/constants/test-ids'
+import { LOCALE_IDS, LOCALES, type LanguageSetting } from '@shared/i18n/locales'
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import type { ParseKeys } from 'i18next'
 import { Moon, Sun, SunMoon } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Theme } from '@/components/theme-provider'
@@ -11,7 +12,19 @@ import { Switch } from '@/components/ui/switch'
 import { setLoginItem, setMenuBar } from '@/lib/ipc'
 
 import { SettingsRow, SettingsSection } from '../settings-row'
+import { SettingsSelect } from '../settings-select'
 import { LockPrivacy } from './lock-privacy'
+
+/** `auto` first (native name resolved from `t()` at render time), then every
+ * concrete locale in its own native name — never translated, since a locale
+ * name is that language's own name for itself, not app UI copy. */
+const LANGUAGE_OPTIONS: {
+  value: LanguageSetting
+  nativeName: string | null
+}[] = [
+  { value: 'auto', nativeName: null },
+  ...LOCALE_IDS.map((id) => ({ value: id, nativeName: LOCALES[id].nativeName }))
+]
 
 const APPEARANCE_MODES: {
   value: Theme
@@ -58,6 +71,16 @@ export function General({ form }: { form: UseFormReturnType }) {
   const { t } = useTranslation('settings')
   const runOnStartup = form.watch('runOnStartup') ?? false
   const menuBarEnabled = form.watch('menuBar') ?? true
+  const language: LanguageSetting = form.watch('language') ?? 'auto'
+
+  const languageOptions = useMemo(
+    () =>
+      LANGUAGE_OPTIONS.map((o) => ({
+        value: o.value,
+        label: o.nativeName ?? t('general.language.auto')
+      })),
+    [t]
+  )
 
   useEffect(() => {
     setLoginItem(runOnStartup)
@@ -75,6 +98,20 @@ export function General({ form }: { form: UseFormReturnType }) {
           description={t('general.theme.description')}
         >
           <AppearanceSwitcher />
+        </SettingsRow>
+
+        <SettingsRow
+          label={t('general.language.label')}
+          description={t('general.language.description')}
+        >
+          <SettingsSelect
+            testId={TEST_IDS.settings.languageSelect}
+            value={language}
+            onValueChange={(v) =>
+              form.setValue('language', v as LanguageSetting)
+            }
+            options={languageOptions}
+          />
         </SettingsRow>
 
         <SettingsRow

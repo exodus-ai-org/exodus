@@ -68,7 +68,8 @@ export const TEST_IDS = {
     entry: 'chat-toc.entry'
   },
   settings: {
-    themeMode: 'settings.theme-mode'
+    themeMode: 'settings.theme-mode',
+    languageSelect: 'settings.language-select'
   },
   chatLayout: {
     workspaceSwitcher: 'chat-layout.workspace-switcher',
