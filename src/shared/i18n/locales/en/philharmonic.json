@@ -1,1 +1,18 @@
-{}
+{
+  "container": {
+    "toast": {
+      "groupDeleted": "Group deleted",
+      "deleteGroupFailed": "Could not delete the group"
+    },
+    "tabs": {
+      "costs": "Costs",
+      "schedule": "Schedule"
+    },
+    "noGroupSelected": {
+      "title": "No group selected",
+      "description": "Pick a group from the left, or start a new one to message your virtual team.",
+      "createButton": "Create a group"
+    },
+    "newGroupDefaultTitle": "New group"
+  }
+}
