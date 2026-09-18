@@ -1,1 +1,22 @@
-{}
+{
+  "alert": "Computer Use lets the AI operate one window on your Mac with a virtual mouse and keyboard — it sees a screenshot each step and acts like a person. It needs a vision-capable AI model. It only touches apps you add to the allowlist below (and will open one that isn't already running), you can stop it any time with ⌥⇧⎋, and every session is logged. Off by default.",
+  "enable": {
+    "label": "Enable Computer Use",
+    "description": "Let the AI drive an allowlisted window."
+  },
+  "allowlist": {
+    "label": "Allowlisted apps",
+    "description": "Computer Use only touches these apps. Pick from the ones installed on this Mac.",
+    "searchPlaceholder": "Search installed apps…",
+    "loading": "Loading apps…",
+    "noAppFound": "No app found."
+  },
+  "maxSteps": {
+    "label": "Max steps",
+    "description": "Stop a session after this many actions. Default 25."
+  },
+  "settleDelay": {
+    "label": "Settle delay (ms)",
+    "description": "Wait this long after each action before the next screenshot. Default 800."
+  }
+}
