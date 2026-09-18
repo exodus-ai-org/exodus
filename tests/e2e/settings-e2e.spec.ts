@@ -71,4 +71,33 @@ test.describe('Settings E2E', () => {
       .poll(() => mainWindow.evaluate(() => document.documentElement.lang))
       .toBe('de')
   })
+
+  test('switching back to Auto Detect re-resolves the OS language, not the previous explicit choice', async ({
+    mainWindow
+  }) => {
+    // Regression: switching to an explicit locale, then back to "Auto
+    // Detect" in the same session used to silently stay on the explicit
+    // locale — LocaleBridge was reading a boot-time snapshot
+    // (`window.api.locale`) instead of asking the main process to
+    // re-resolve `'auto'` against the OS's current preferred languages.
+    // CI runs with an English OS locale, so a correct re-resolution lands
+    // back on `en`; a regression would stay on `de`.
+    await openSettings(mainWindow)
+
+    const select = mainWindow.getByTestId(TEST_IDS.settings.languageSelect)
+    await select.waitFor({ state: 'visible', timeout: 10_000 })
+
+    await select.click()
+    await mainWindow.getByRole('option', { name: 'Deutsch' }).click()
+    await expect
+      .poll(() => mainWindow.evaluate(() => document.documentElement.lang))
+      .toBe('de')
+
+    await select.click()
+    await mainWindow.getByRole('option', { name: /Auto/i }).click()
+
+    await expect
+      .poll(() => mainWindow.evaluate(() => document.documentElement.lang))
+      .toBe('en')
+  })
 })

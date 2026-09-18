@@ -20,7 +20,7 @@ import { getSettings } from '@main/lib/db/queries'
 import { setupMenu } from '@main/lib/menu'
 import { ipcMain } from 'electron'
 
-const { resolveEffectiveLocale, mainT, initMainI18n } =
+const { resolveEffectiveLocale, mainT, initMainI18n, getEffectiveLocale } =
   await import('@main/lib/i18n')
 
 describe('resolveEffectiveLocale', () => {
@@ -77,7 +77,7 @@ describe('set-app-locale IPC handler', () => {
       .mocked(ipcMain.handle)
       .mock.calls.findLast(([channel]) => channel === 'set-app-locale')
     if (!call) throw new Error('set-app-locale handler was never registered')
-    return call[1] as (event: unknown, locale: unknown) => Promise<void>
+    return call[1] as (event: unknown, locale: unknown) => Promise<string>
   }
 
   it("resolves 'auto' through the OS languages rather than forcing English", async () => {
@@ -120,5 +120,28 @@ describe('set-app-locale IPC handler', () => {
     await handler(undefined, 'ja')
 
     expect(setupMenu).not.toHaveBeenCalled()
+  })
+
+  it('returns the resolved locale (regression: LocaleBridge awaits this to apply auto correctly)', async () => {
+    vi.mocked(getSettings).mockResolvedValue({ language: 'en' } as never)
+    await initMainI18n()
+    const handler = latestHandler()
+
+    await expect(handler(undefined, 'de')).resolves.toBe('de')
+  })
+
+  it('re-resolves auto fresh against the OS languages even right after switching away from it — never the stale prior explicit locale', async () => {
+    // This is the exact regression a user hit: switch to an explicit
+    // locale, then switch back to "Auto Detect" in the same session
+    // (no app restart) — it must resolve fresh from the OS languages
+    // ('fr', per this file's mocked getPreferredSystemLanguages), not
+    // silently stick on the explicit locale that was set moments ago.
+    vi.mocked(getSettings).mockResolvedValue({ language: 'en' } as never)
+    await initMainI18n()
+    const handler = latestHandler()
+
+    await handler(undefined, 'ja')
+    await expect(handler(undefined, 'auto')).resolves.toBe('fr')
+    expect(getEffectiveLocale()).toBe('fr')
   })
 })

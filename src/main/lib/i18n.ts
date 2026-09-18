@@ -79,7 +79,15 @@ export async function initMainI18n(): Promise<void> {
     const next = resolveEffectiveLocale(
       isLanguageSetting(locale) ? locale : null
     )
-    if (next === effective) return
+    // Always report the actual effective locale back to the caller — this is
+    // the ONLY place `'auto'` gets resolved against the OS's current
+    // preferred languages (`app.getPreferredSystemLanguages()`, only visible
+    // main-process-side). The renderer's `LocaleBridge` awaits this return
+    // value to apply `'auto'` correctly instead of reusing a stale
+    // `window.api.locale` snapshot from whenever it last booted — without
+    // this, switching to an explicit locale and back to `'auto'` in the same
+    // session silently stuck on the explicit locale.
+    if (next === effective) return effective
     try {
       await mainI18n.changeLanguage(next)
       effective = next
@@ -96,5 +104,6 @@ export async function initMainI18n(): Promise<void> {
         error: String(err)
       })
     }
+    return effective
   })
 }

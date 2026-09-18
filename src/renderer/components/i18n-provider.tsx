@@ -11,32 +11,65 @@ import { setAppLocale } from '@/lib/ipc'
  * process in sync. Side-effect only, mounted inside `<I18nProvider>` — mirrors
  * `NativeThemeBridge` in `theme-provider.tsx`.
  *
- * For `"auto"` the effective id was already resolved by the main process and
- * handed over as `window.api.locale`; the renderer never re-runs the matcher.
+ * A concrete locale id is applied immediately (no OS lookup needed) and the
+ * main process notified fire-and-forget. `"auto"` is different: only the
+ * main process can see the OS's current preferred languages
+ * (`app.getPreferredSystemLanguages()`), so it's resolved by AWAITING
+ * `setAppLocale('auto')`'s return value fresh every time, never by reading
+ * `window.api.locale` — that's just a snapshot from whenever this renderer
+ * process last booted, and goes stale the moment the setting is switched
+ * away from `"auto"` (to an explicit locale) and back without an app
+ * restart: switching to 日本語 then back to "Auto Detect" used to silently
+ * stay in Japanese, because `window.api.locale` still held the last
+ * EXPLICIT locale, not the OS's actual current preference.
  */
 function LocaleBridge() {
   const { data: settings } = useSettings()
   const setting = settings?.language
+  const settingsLoaded = settings !== undefined
+  const hasElectronBridge = typeof window !== 'undefined' && !!window.electron
 
   useEffect(() => {
-    const next =
-      setting && setting !== 'auto' && isLocaleId(setting)
-        ? setting
-        : (window.api?.locale ?? 'en')
-    if (next === i18n.resolvedLanguage || next === i18n.language) return
-
-    void i18n.changeLanguage(next)
-    document.documentElement.lang = next
-    document.documentElement.dir = 'ltr'
-    if (typeof window !== 'undefined' && window.electron) {
-      setAppLocale(next).catch((err) => {
-        console.error(
-          '[i18n] failed to notify main process of locale change',
-          err
-        )
-      })
+    if (setting && setting !== 'auto' && isLocaleId(setting)) {
+      const next = setting
+      if (next !== i18n.resolvedLanguage && next !== i18n.language) {
+        void i18n.changeLanguage(next)
+        document.documentElement.lang = next
+        document.documentElement.dir = 'ltr'
+      }
+      if (hasElectronBridge) {
+        setAppLocale(next).catch((err) => {
+          console.error(
+            '[i18n] failed to notify main process of locale change',
+            err
+          )
+        })
+      }
+      return
     }
-  }, [setting])
+
+    // 'auto', or settings haven't loaded yet — wait for the real setting
+    // rather than guessing, and skip the round trip entirely without an
+    // Electron bridge (falls back to whatever `getBootLocale()` already
+    // applied at renderer boot).
+    if (!settingsLoaded || !hasElectronBridge) return
+
+    let cancelled = false
+    setAppLocale('auto')
+      .then((next: string) => {
+        if (cancelled || !next) return
+        if (next === i18n.resolvedLanguage || next === i18n.language) return
+        void i18n.changeLanguage(next)
+        document.documentElement.lang = next
+        document.documentElement.dir = 'ltr'
+      })
+      .catch((err) => {
+        console.error('[i18n] failed to resolve the auto locale', err)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [setting, settingsLoaded, hasElectronBridge])
 
   return null
 }
