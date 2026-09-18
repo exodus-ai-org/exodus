@@ -9,7 +9,6 @@ import {
   ja,
   ko,
   ptBR,
-  ru,
   zhHK,
   zhTW,
   type Locale
@@ -27,7 +26,6 @@ const DATE_FNS: Record<LocaleId, Locale> = {
   de,
   es,
   'pt-BR': ptBR,
-  ru,
   it
 }
 

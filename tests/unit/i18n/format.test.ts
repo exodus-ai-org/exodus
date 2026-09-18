@@ -36,7 +36,7 @@ describe('makeFormatters', () => {
   it('relativeTime returns a localized string', () => {
     const past = new Date(Date.now() - 3 * 3600_000)
     expect(makeFormatters('en').relativeTime(past)).toMatch(/hours? ago/)
-    expect(makeFormatters('ru').relativeTime(past)).toMatch(/назад/)
+    expect(makeFormatters('de').relativeTime(past)).toMatch(/vor /)
   })
 
   it('falls back to en for an unknown locale id', () => {

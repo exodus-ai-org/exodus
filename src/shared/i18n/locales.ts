@@ -8,7 +8,6 @@ export const LOCALE_IDS = [
   'de',
   'es',
   'pt-BR',
-  'ru',
   'it'
 ] as const
 export type LocaleId = (typeof LOCALE_IDS)[number]
@@ -41,7 +40,6 @@ export const LOCALES: Record<
     nativeName: 'Português (Brasil)',
     englishName: 'Portuguese (Brazil)'
   },
-  ru: { id: 'ru', nativeName: 'Русский', englishName: 'Russian' },
   it: { id: 'it', nativeName: 'Italiano', englishName: 'Italian' }
 }
 
