@@ -1,1 +1,5 @@
-{}
+{
+  "videoCard": {
+    "views": "{{count}} views"
+  }
+}

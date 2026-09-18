@@ -1,5 +1,6 @@
 import { TEST_IDS } from '@shared/constants/test-ids'
 import { PlayIcon } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { LazyLoadImage } from '@/components/lazy-load-image'
 import { SourceFavicon } from '@/components/source-favicon'
@@ -14,6 +15,7 @@ function formatViews(n: number): string {
 }
 
 export function VideoCards({ videos }: { videos: GalleryVideo[] }) {
+  const { t } = useTranslation('webSearch')
   if (videos.length === 0) return null
 
   return (
@@ -54,7 +56,7 @@ export function VideoCards({ videos }: { videos: GalleryVideo[] }) {
             )}
             {video.views != null && video.views > 0 && (
               <span className="shrink-0">
-                · {formatViews(video.views)} views
+                · {t('videoCard.views', { count: formatViews(video.views) })}
               </span>
             )}
           </div>
