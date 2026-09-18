@@ -12,7 +12,7 @@
     "label": "Query mode",
     "description": "mix blends the knowledge graph and vector search — best quality, slightly slower.",
     "options": {
-      "naive": "Native",
+      "naive": "Naive",
       "local": "Local",
       "global": "Global",
       "hybrid": "Hybrid",

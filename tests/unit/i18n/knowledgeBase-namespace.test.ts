@@ -33,7 +33,7 @@ describe('knowledgeBase namespace (en)', () => {
 
   it('has the query mode option keys', () => {
     expect(knowledgeBase.queryMode.options).toMatchObject({
-      naive: 'Native',
+      naive: 'Naive',
       local: 'Local',
       global: 'Global',
       hybrid: 'Hybrid',
