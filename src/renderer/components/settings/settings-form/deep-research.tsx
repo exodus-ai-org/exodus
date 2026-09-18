@@ -1,11 +1,13 @@
 import { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { Controller } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 
 import { Input } from '@/components/ui/input'
 
 import { SettingsRow, SettingsSection } from '../settings-row'
 
 export function DeepResearch({ form }: { form: UseFormReturnType }) {
+  const { t } = useTranslation('deepResearch')
   return (
     <SettingsSection>
       <Controller
@@ -13,8 +15,8 @@ export function DeepResearch({ form }: { form: UseFormReturnType }) {
         name="deepResearch.breadth"
         render={({ field, fieldState }) => (
           <SettingsRow
-            label="Breadth"
-            description="Generate multiple search queries to explore different aspects of your topic at each level. Default: 4."
+            label={t('form.breadth.label')}
+            description={t('form.breadth.description')}
             error={fieldState.error}
           >
             <Input
@@ -34,8 +36,8 @@ export function DeepResearch({ form }: { form: UseFormReturnType }) {
         name="deepResearch.depth"
         render={({ field, fieldState }) => (
           <SettingsRow
-            label="Depth"
-            description="Recursively dive deeper, following leads and uncovering connections for each branch. Default: 2."
+            label={t('form.depth.label')}
+            description={t('form.depth.description')}
             error={fieldState.error}
           >
             <Input

@@ -1,6 +1,7 @@
 import { faviconUrl } from '@shared/constants/external-urls'
 import { WebSearchResult } from '@shared/types/web-search'
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
@@ -59,6 +60,7 @@ export function SourceItem({
   finalReport?: string
   webSearchResults: WebSearchResult[]
 }) {
+  const { t } = useTranslation('deepResearch')
   const citedRanks = useMemo(() => {
     if (!finalReport) return new Set<number>()
     return new Set(parseCitations(finalReport) ?? [])
@@ -79,14 +81,14 @@ export function SourceItem({
 
   return (
     <div className="flex flex-col gap-1">
-      <p className="mb-0! ml-3 font-bold">Citations</p>
+      <p className="mb-0! ml-3 font-bold">{t('sources.citations')}</p>
       {cited.map((item) => (
         <SourceItemLink key={item.link} item={item} />
       ))}
       {more.length > 0 && (
         <>
           <Separator className="mt-3" />
-          <p className="mt-3 mb-0! ml-3 font-bold">More</p>
+          <p className="mt-3 mb-0! ml-3 font-bold">{t('sources.more')}</p>
           {more.map((item) => (
             <SourceItemLink key={item.link} item={item} />
           ))}

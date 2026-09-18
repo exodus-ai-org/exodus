@@ -7,6 +7,7 @@ import {
 import { domAnimation, LazyMotion, m } from 'framer-motion'
 import { useAtom } from 'jotai'
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 
 import { SheetPanel } from '@/components/sheet-panel'
@@ -27,6 +28,7 @@ enum Tab {
 }
 
 export function DeepResearchProcess() {
+  const { t } = useTranslation('deepResearch')
   const ref = useRef<HTMLDivElement | null>(null)
   const [tab, setTab] = useState(Tab.Activity)
   const [activeDeepResearchId, setActiveDeepResearchId] = useAtom(
@@ -170,7 +172,7 @@ export function DeepResearchProcess() {
               )}
               onClick={() => setTab(Tab.Activity)}
             >
-              Activity
+              {t('tabs.activity')}
             </Button>
             <Button
               variant="ghost"
@@ -182,7 +184,7 @@ export function DeepResearchProcess() {
               )}
               onClick={() => setTab(Tab.Source)}
             >
-              {allWebSearchResults.length} Sources
+              {t('tabs.sources', { count: allWebSearchResults.length })}
             </Button>
           </div>
         </div>
