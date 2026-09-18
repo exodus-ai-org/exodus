@@ -1,1 +1,76 @@
-{}
+{
+  "alert": "La base de connaissances d'Exodus est optionnelle et fonctionne grâce à un <strong>serveur LightRAG auto-hébergé que vous gérez</strong> — Exodus se contente de s'y connecter, en envoyant vos documents et en demandant le contexte pertinent ; il ne fait jamais fonctionner, ne met à jour et ne gère LightRAG lui-même. Laissez l'URL vide pour garder la base de connaissances désactivée. La récupération se limite au contexte : LightRAG trouve les passages pertinents, mais c'est toujours votre modèle de conversation configuré qui rédige la réponse. Le modèle d'embedding est <strong>verrouillé dès qu'un document est ingéré</strong> — le changer par la suite nécessite d'effacer le stockage de LightRAG et de réajouter chaque document, alors choisissez-en un que vous conserverez.",
+  "serverUrl": {
+    "label": "URL du serveur",
+    "description": "Votre serveur LightRAG auto-hébergé. Laissez vide pour désactiver la base de connaissances."
+  },
+  "apiKey": {
+    "label": "Clé API",
+    "description": "Envoyée dans l'en-tête X-API-Key (votre LIGHTRAG_API_KEY)."
+  },
+  "queryMode": {
+    "label": "Mode de requête",
+    "description": "mix combine le graphe de connaissances et la recherche vectorielle — meilleure qualité, légèrement plus lent.",
+    "options": {
+      "naive": "Naïf",
+      "local": "Local",
+      "global": "Global",
+      "hybrid": "Hybride",
+      "mix": "Mixte"
+    }
+  },
+  "advancedToggle": "Avancé",
+  "topK": {
+    "label": "Top K",
+    "description": "Entités/relations du graphe de connaissances à récupérer. Par défaut 60."
+  },
+  "chunkTopK": {
+    "label": "Top K des segments",
+    "description": "Segments de texte conservés après reclassement. Par défaut 10."
+  },
+  "connection": {
+    "label": "Connexion",
+    "description": "Vérifiez qu'Exodus peut atteindre votre serveur LightRAG.",
+    "testingLabel": "Test en cours…",
+    "testButton": "Tester la connexion"
+  },
+  "documents": {
+    "title": "Documents",
+    "reindexAllButton": "Tout réindexer",
+    "empty": "Aucun document pour le moment.",
+    "needsUrlHint": "Ajoutez une URL de serveur ci-dessus pour gérer les documents."
+  },
+  "docList": {
+    "updatedAgo": "Mis à jour il y a {{distance}}",
+    "status": {
+      "pending": "En attente",
+      "processing": "Indexation…",
+      "processed": "Indexé",
+      "failed": "Échoué",
+      "stale": "Réindexation nécessaire"
+    }
+  },
+  "docDialog": {
+    "editTitle": "Modifier le document",
+    "addTitle": "Ajouter un document",
+    "titleLabel": "Titre",
+    "contentLabel": "Contenu"
+  },
+  "deleteDialog": {
+    "title": "Supprimer le document ?",
+    "description": "« {{title}} » sera retiré de la base de connaissances."
+  },
+  "toast": {
+    "saveFailed": "Échec de l'enregistrement du document",
+    "loadFailed": "Échec du chargement des documents",
+    "connected": "Connecté",
+    "embeddingLabel": "Embedding",
+    "docsCount_one": "{{count}} document",
+    "docsCount_other": "{{count}} documents",
+    "connectFailed": "Échec de la connexion",
+    "reindexQueued_one": "{{count}} document mis en file d'attente pour réindexation",
+    "reindexQueued_other": "{{count}} documents mis en file d'attente pour réindexation",
+    "reindexFailed": "Échec de la réindexation",
+    "deleteFailed": "Échec de la suppression du document"
+  }
+}

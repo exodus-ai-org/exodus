@@ -1,1 +1,22 @@
-{}
+{
+  "alert": "Découvrir transforme votre mémoire enregistrée en un fil d'actualités personnalisé sur la page d'accueil — l'activer envoie vos sujets de mémoire à votre fournisseur d'IA (pour les transformer en requêtes de recherche), puis les requêtes obtenues à Brave (le même fournisseur utilisé pour la recherche web) environ une fois par jour. Désactivé par défaut ; rien ne quitte votre machine tant que vous ne l'activez pas.",
+  "enable": {
+    "label": "Activer Découvrir",
+    "description": "Afficher un fil d'actualités personnalisé sur la page d'accueil."
+  },
+  "braveKeyHint": "Découvrir nécessite une clé API Brave Search. <2>Ajoutez-en une dans Outils intégrés</2>.",
+  "topicCount": {
+    "label": "Sujets",
+    "description": "Le nombre de sujets dérivés de la mémoire à afficher. Par défaut 4."
+  },
+  "articlesPerTopic": {
+    "label": "Articles par sujet",
+    "description": "Le nombre d'articles par ligne de sujet. Par défaut 3."
+  },
+  "heading": "Découvrir",
+  "updatedAgo": "mis à jour {{time}}",
+  "refreshButton": "Actualiser",
+  "toast": {
+    "refreshFailed": "Échec de l'actualisation"
+  }
+}

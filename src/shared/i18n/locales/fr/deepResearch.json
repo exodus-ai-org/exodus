@@ -1,1 +1,42 @@
-{}
+{
+  "form": {
+    "breadth": {
+      "label": "Étendue",
+      "description": "Génère plusieurs requêtes de recherche pour explorer différents aspects de votre sujet à chaque niveau. Par défaut : 4."
+    },
+    "depth": {
+      "label": "Profondeur",
+      "description": "Approfondit récursivement, en suivant les pistes et en découvrant des connexions pour chaque branche. Par défaut : 2."
+    }
+  },
+  "tabs": {
+    "activity": "Activité",
+    "sources_one": "{{count}} Source",
+    "sources_other": "{{count}} Sources"
+  },
+  "messages": {
+    "start": {
+      "title": "Début de la recherche approfondie...",
+      "description": "Le processus de recherche approfondie peut prendre du temps. N'hésitez pas à discuter avec Exodus dans d'autres conversations. Exodus vous préviendra dès que le rapport final sera prêt."
+    },
+    "learnings_one": "{{count}} élément analysé en profondeur à partir des ressources web précédentes",
+    "learnings_other": "{{count}} éléments analysés en profondeur à partir des ressources web précédentes",
+    "queriesDeeper_one": "{{count}} requête de recherche générée pour les recherches précédentes",
+    "queriesDeeper_other": "{{count}} requêtes de recherche générées pour les recherches précédentes",
+    "queriesForTopic_one": "{{count}} requête de recherche générée pour « {{query}} »",
+    "queriesForTopic_other": "{{count}} requêtes de recherche générées pour « {{query}} »",
+    "searchedFor": "Recherche effectuée pour « {{query}} »",
+    "writingReport": {
+      "title": "Début de la rédaction du rapport final...",
+      "description": "La phase de recherche approfondie est terminée. Votre rapport final est en cours de génération et sera présenté sous peu."
+    },
+    "complete": {
+      "title": "Recherche approfondie terminée",
+      "description": "Le rapport détaillé pour « {{query}} » a été entièrement généré. En espérant qu'il vous soit utile !"
+    }
+  },
+  "sources": {
+    "citations": "Citations",
+    "more": "Plus"
+  }
+}

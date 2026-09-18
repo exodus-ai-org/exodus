@@ -1,1 +1,19 @@
-{}
+{
+  "file": "Fichier",
+  "lockNow": "Verrouiller maintenant",
+  "edit": "Édition",
+  "find": "Rechercher",
+  "speech": "Synthèse vocale",
+  "view": "Affichage",
+  "window": "Fenêtre",
+  "learnMore": "En savoir plus",
+  "tray": {
+    "showApp": "Afficher l'application",
+    "hideApp": "Masquer l'application",
+    "quitExodus": "Quitter Exodus"
+  },
+  "notification": {
+    "philharmonicGroupError": "Le groupe « {{title}} » a rencontré une erreur",
+    "philharmonicGroupFinished": "Le groupe « {{title}} » a terminé"
+  }
+}
