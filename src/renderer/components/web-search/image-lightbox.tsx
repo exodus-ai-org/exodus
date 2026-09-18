@@ -27,6 +27,7 @@ const MAX_DOTS = 8
  * remounts with fresh state.
  */
 function LightboxImage({ image }: { image: GalleryImage }) {
+  const { t } = useTranslation('webSearch')
   const [loaded, setLoaded] = useState(false)
   const [fullError, setFullError] = useState(false)
   const [thumbError, setThumbError] = useState(false)
@@ -36,7 +37,7 @@ function LightboxImage({ image }: { image: GalleryImage }) {
     return (
       <div className="text-muted-foreground flex min-h-0 flex-1 flex-col items-center justify-center gap-2">
         <ImageOffIcon size={44} />
-        <span className="text-sm">Image unavailable</span>
+        <span className="text-sm">{t('imageLightbox.imageUnavailable')}</span>
       </div>
     )
   }
@@ -70,7 +71,7 @@ function LightboxImage({ image }: { image: GalleryImage }) {
       )}
 
       {!loaded && !fullError && (
-        <div className="bg-background/70 absolute right-3 bottom-3 rounded-full p-2 backdrop-blur">
+        <div className="bg-background/70 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full p-2 backdrop-blur">
           <LoaderIcon
             size={16}
             className="text-muted-foreground animate-spin"
@@ -80,7 +81,7 @@ function LightboxImage({ image }: { image: GalleryImage }) {
 
       {fullError && hasThumb && (
         <div className="bg-background/70 text-muted-foreground absolute bottom-3 rounded-full px-3 py-1 text-xs backdrop-blur">
-          Showing preview — full image unavailable
+          {t('imageLightbox.previewOnly')}
         </div>
       )}
     </div>
@@ -96,13 +97,18 @@ function NavButton({
   onClick: () => void
   testId: string
 }) {
+  const { t } = useTranslation('webSearch')
   const Icon = direction === 'prev' ? ChevronLeftIcon : ChevronRightIcon
   return (
     <button
       type="button"
       onClick={onClick}
       data-testid={testId}
-      aria-label={direction === 'prev' ? 'Previous image' : 'Next image'}
+      aria-label={
+        direction === 'prev'
+          ? t('imageLightbox.previousImage')
+          : t('imageLightbox.nextImage')
+      }
       className={cn(
         'bg-background/70 text-foreground ring-border hover:bg-background absolute top-1/2 flex size-11 -translate-y-1/2 items-center justify-center rounded-full shadow-md ring-1 backdrop-blur transition',
         direction === 'prev' ? 'left-4' : 'right-4'
@@ -124,7 +130,7 @@ export function ImageLightbox({
   onIndexChange: (next: number) => void
   onClose: () => void
 }) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation(['common', 'webSearch'])
   const atStart = index <= 0
   const atEnd = index >= images.length - 1
 
@@ -208,7 +214,9 @@ export function ImageLightbox({
                   type="button"
                   onClick={() => onIndexChange(i)}
                   data-testid={TEST_IDS.gallery.lightboxDot}
-                  aria-label={`Go to image ${i + 1}`}
+                  aria-label={t('webSearch:imageLightbox.goToImage', {
+                    index: i + 1
+                  })}
                   aria-current={i === index || undefined}
                   className={cn(
                     'h-1.5 rounded-full transition-[width,background-color]',
