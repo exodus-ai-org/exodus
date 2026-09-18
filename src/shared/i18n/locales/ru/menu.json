@@ -1,1 +1,19 @@
-{}
+{
+  "file": "Файл",
+  "lockNow": "Заблокировать сейчас",
+  "edit": "Правка",
+  "find": "Найти",
+  "speech": "Речь",
+  "view": "Вид",
+  "window": "Окно",
+  "learnMore": "Подробнее",
+  "tray": {
+    "showApp": "Показать приложение",
+    "hideApp": "Скрыть приложение",
+    "quitExodus": "Закрыть Exodus"
+  },
+  "notification": {
+    "philharmonicGroupError": "В группе «{{title}}» произошла ошибка",
+    "philharmonicGroupFinished": "Группа «{{title}}» завершила работу"
+  }
+}

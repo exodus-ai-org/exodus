@@ -1,1 +1,304 @@
-{}
+{
+  "container": {
+    "toast": {
+      "groupDeleted": "Группа удалена",
+      "deleteGroupFailed": "Не удалось удалить группу"
+    },
+    "tabs": {
+      "costs": "Расходы",
+      "schedule": "Расписание"
+    },
+    "noGroupSelected": {
+      "title": "Группа не выбрана",
+      "description": "Выберите группу слева или создайте новую, чтобы написать своей виртуальной команде.",
+      "createButton": "Создать группу"
+    },
+    "newGroupDefaultTitle": "Новая группа"
+  },
+  "schedule": {
+    "tab": {
+      "heading": "Расписание",
+      "upcomingTrigger": "Предстоящие",
+      "recurringTrigger": "Повторяющиеся"
+    },
+    "unknownGroup": "Неизвестная группа",
+    "scheduleTaskButton": "Запланировать задачу",
+    "upcomingList": {
+      "empty": "Нет предстоящих разовых задач. Запланируйте одну, чтобы увидеть её здесь."
+    },
+    "recurringList": {
+      "empty": "Повторяющихся задач пока нет.",
+      "lastRun": "последний раз {{time}}",
+      "nextRun": "следующий раз {{time}}"
+    },
+    "taskCard": {
+      "status": {
+        "pending": "Ожидание",
+        "running": "Выполняется",
+        "completed": "Завершено",
+        "failed": "Ошибка",
+        "cancelled": "Отменено",
+        "waiting_for_user": "Ожидание пользователя"
+      },
+      "priority": {
+        "low": "Низкий",
+        "medium": "Средний",
+        "high": "Высокий",
+        "urgent": "Срочный"
+      },
+      "cancelAria": "Отменить запланированную задачу"
+    },
+    "toast": {
+      "loadUpcomingFailed": "Не удалось загрузить предстоящие задачи",
+      "loadRecurringFailed": "Не удалось загрузить повторяющиеся задачи",
+      "taskCancelled": "Задача отменена",
+      "cancelTaskFailed": "Не удалось отменить задачу",
+      "taskScheduled": "Задача запланирована",
+      "scheduleTaskFailed": "Не удалось запланировать задачу"
+    },
+    "form": {
+      "title": "Запланировать задачу",
+      "description": "Выполняется внутри существующей группы — один раз или по повторяющемуся расписанию.",
+      "titleLabel": "Название",
+      "descriptionLabel": "Описание",
+      "groupLabel": "Группа",
+      "groupPlaceholder": "Выберите группу",
+      "onceButton": "Разовая",
+      "recurringButton": "Повторяющаяся",
+      "pickDateButton": "Выбрать дату",
+      "submitting": "Планирование…",
+      "cronPresets": {
+        "dailyNine": "Каждый день в 9:00",
+        "mondayNine": "Каждый понедельник в 9:00",
+        "custom": "Настроить"
+      }
+    }
+  },
+  "chat": {
+    "attachmentPreview": {
+      "removeAria": "Удалить {{name}}"
+    },
+    "uploader": {
+      "attachAria": "Прикрепить изображения"
+    },
+    "composer": {
+      "placeholder": "Напишите своей команде…",
+      "stopAria": "Остановить",
+      "sendAria": "Отправить",
+      "hint": "Нажмите <1>Enter</1>, чтобы отправить, <4>Shift + Enter</4> — для новой строки. Вставляйте или прикрепляйте изображения."
+    },
+    "planCard": {
+      "elapsed": {
+        "lessThanMin": "<1 мин",
+        "minutes": "{{count}} мин",
+        "hoursMinutes": "{{hours}} ч {{minutes}} мин"
+      },
+      "status": {
+        "active": "активно",
+        "done": "готово",
+        "aborted": "прервано",
+        "draft": "черновик"
+      },
+      "stepStatusAria": {
+        "pending": "Ожидание",
+        "running": "Выполняется",
+        "done": "Готово",
+        "skipped": "Пропущено",
+        "failed": "Ошибка"
+      }
+    },
+    "roles": {
+      "pm": "PM",
+      "employeeFallback": "Сотрудник"
+    },
+    "membersPanel": {
+      "heading": "Участники",
+      "coordinatorsLabel": "Координаторы",
+      "unassignedLabel": "Без назначения",
+      "idleCount": "{{count}} свободно",
+      "busyCount": "{{count}} занято",
+      "idle": "свободен",
+      "noTeam": "Нет команды",
+      "pmIdleActivity": "Стратегия · свободен",
+      "emptyState": {
+        "title": "Пока нет участников",
+        "description": "PM наберёт участников команды по мере необходимости."
+      }
+    },
+    "conversationList": {
+      "configNav": {
+        "workforce": "Персонал",
+        "dashboard": "Дашборд"
+      },
+      "searchPlaceholder": "Поиск групп",
+      "newGroupMenuItem": "Новая группа",
+      "emptyState": {
+        "title": "Групп пока нет",
+        "description": "Создайте группу, чтобы написать своей виртуальной команде.",
+        "createButton": "+ Новая группа"
+      },
+      "searchNoMatch": "Нет групп, соответствующих «{{query}}»",
+      "noMessagesYetPreview": "Новая группа · сообщений пока нет",
+      "deleteDialog": {
+        "title": "Удалить эту группу?",
+        "description": "<0>{{title}}</0> и все её сообщения, задачи и выполнения будут безвозвратно удалены."
+      }
+    },
+    "dateLabels": {
+      "today": "Сегодня",
+      "yesterday": "Вчера"
+    },
+    "groupChat": {
+      "renameTitle": "Нажмите, чтобы переименовать",
+      "memberCount_one": "{{count}} участник",
+      "memberCount_few": "{{count}} участника",
+      "memberCount_many": "{{count}} участников",
+      "memberCount_other": "{{count}} участников",
+      "toggleMembersAria": "Показать/скрыть участников",
+      "emptyState": {
+        "title": "Поручите что-нибудь своей команде",
+        "description": "Опишите, что вам нужно. PM проанализирует задачу, наберёт и распределит её между виртуальными сотрудниками, а затем отчитается здесь."
+      },
+      "askUser": {
+        "replyPlaceholder": "Ответить PM…",
+        "sendButton": "Отправить"
+      }
+    }
+  },
+  "employees": {
+    "avatar": {
+      "alt": "аватар"
+    },
+    "picker": {
+      "reroll": "Перегенерировать"
+    },
+    "editor": {
+      "header": {
+        "label": "Сотрудник",
+        "newFallback": "Новый сотрудник"
+      },
+      "avatarAria": "Изменить аватар",
+      "fields": {
+        "name": "Имя",
+        "team": "Команда",
+        "teamPlaceholder": "Выберите команду",
+        "teamHelp": "Каждый сотрудник принадлежит команде — системный промпт команды применяется ко всем её участникам.",
+        "description": "Описание",
+        "descriptionPlaceholder": "Одна строка о том, чем занимается этот сотрудник.",
+        "systemPrompt": "Системный промпт",
+        "systemPromptPlaceholder": "Добавляется поверх промпта команды.",
+        "skills": "Навыки",
+        "noSkills": "Навыки ещё не установлены.",
+        "mcpServers": "Серверы MCP",
+        "noMcpServers": "Серверы MCP ещё не настроены.",
+        "mcpServersHelp": "Если ни один не выбран, сотрудник может использовать все доступные серверы.",
+        "memory": "Память (только для чтения)",
+        "noMemory": "Накопленной памяти пока нет"
+      }
+    }
+  },
+  "teams": {
+    "editor": {
+      "header": {
+        "label": "Команда",
+        "newFallback": "Новая команда"
+      },
+      "fields": {
+        "name": "Название",
+        "icon": "Иконка (эмодзи, необязательно)",
+        "description": "Описание",
+        "descriptionPlaceholder": "Краткое описание того, чем занимается эта команда.",
+        "systemPrompt": "Системный промпт",
+        "systemPromptPlaceholder": "Общие инструкции, добавляемые к промпту каждого участника этой команды."
+      }
+    }
+  },
+  "costAnalysis": {
+    "header": {
+      "title": "Дашборд"
+    },
+    "period": {
+      "last7Days": "Последние 7 дней",
+      "last30Days": "Последние 30 дней",
+      "allTime": "За всё время"
+    },
+    "periodToggle": {
+      "sevenDays": "7д",
+      "thirtyDays": "30д",
+      "all": "Всё"
+    },
+    "loading": "Загрузка данных об использовании…",
+    "kpi": {
+      "totalCost": "Общая стоимость",
+      "totalCostHint_one": "По {{count}} сотруднику",
+      "totalCostHint_few": "По {{count}} сотрудникам",
+      "totalCostHint_many": "По {{count}} сотрудникам",
+      "totalCostHint_other": "По {{count}} сотрудникам",
+      "tokens": "Токены",
+      "tokensHint": "Всего обработано",
+      "employees": "Сотрудники",
+      "employeesHint": "С зафиксированным использованием",
+      "conversations": "Разговоры",
+      "conversationsHint": "С активностью"
+    },
+    "chart": {
+      "costLabel": "Стоимость",
+      "sectionTitle": "Стоимость по времени"
+    },
+    "agentCostList": {
+      "title": "Расходы по сотрудникам",
+      "empty": "Данных об использовании сотрудниками пока нет",
+      "tokens": "{{tokens}} токенов"
+    },
+    "conversationCostList": {
+      "title": "Расходы по разговорам",
+      "empty": "Данных об использовании по разговорам пока нет"
+    }
+  },
+  "workforce": {
+    "header": {
+      "title": "Персонал",
+      "employeeCount_one": "{{count}} сотрудник",
+      "employeeCount_few": "{{count}} сотрудника",
+      "employeeCount_many": "{{count}} сотрудников",
+      "employeeCount_other": "{{count}} сотрудников",
+      "teamCount_one": "{{count}} команда",
+      "teamCount_few": "{{count}} команды",
+      "teamCount_many": "{{count}} команд",
+      "teamCount_other": "{{count}} команд",
+      "addTeamButton": "Команда",
+      "addEmployeeButton": "Сотрудник",
+      "createTeamFirstTitle": "Сначала создайте команду"
+    },
+    "emptyState": {
+      "title": "Начните с команды",
+      "description": "Каждый сотрудник принадлежит команде, которая предоставляет общий системный промпт. Сначала создайте команду, а затем добавьте сотрудников, которые будут в неё входить.",
+      "createButton": "+ Новая команда"
+    },
+    "teamSection": {
+      "editTeam": "Изменить команду",
+      "addEmployeeHere": "Добавить сотрудника сюда",
+      "deleteTeam": "Удалить команду",
+      "unassignedFallback": "Нет команды",
+      "addEmployeeButton": "Добавить сотрудника"
+    },
+    "newEmployeeDefaultName": "Новый сотрудник",
+    "newTeamDefaultName": "Новая команда",
+    "deleteEmployeeDialog": {
+      "title": "Удалить этого сотрудника?",
+      "description": "<0>{{name}}</0> будет безвозвратно удалён вместе с накопленной памятью."
+    },
+    "deleteTeamDialog": {
+      "title": "Удалить эту команду?",
+      "description": "<0>{{name}}</0> будет удалена. Текущие участники сохранят свои записи, но потеряют принадлежность к этой команде."
+    },
+    "toast": {
+      "created": "Создано: «{{name}}»",
+      "deleted": "Удалено: «{{name}}»",
+      "saveEmployeeFailed": "Не удалось сохранить сотрудника",
+      "deleteEmployeeFailed": "Не удалось удалить сотрудника",
+      "saveTeamFailed": "Не удалось сохранить команду",
+      "deleteTeamFailed": "Не удалось удалить команду"
+    }
+  }
+}

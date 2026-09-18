@@ -1,1 +1,44 @@
-{}
+{
+  "incorrectPin": "Неверный PIN",
+  "screen": {
+    "unlockWithTouchId": "Разблокировать с помощью Touch ID",
+    "tooManyAttempts": "Слишком много попыток. Повторите через {{seconds}} с."
+  },
+  "privacy": {
+    "title": "Блокировка и конфиденциальность",
+    "enroll": {
+      "description": "Задайте 6-значный PIN-код для блокировки Exodus. Пока приложение заблокировано, интерфейс и локальный API недоступны, но фоновые задачи продолжают выполняться.",
+      "enterLabel": "Введите 6-значный PIN-код",
+      "confirmLabel": "Подтвердите PIN-код",
+      "startOver": "Начать заново"
+    },
+    "idleOptions": {
+      "off": "Выкл.",
+      "oneMinute": "1 минута",
+      "fiveMinutes": "5 минут",
+      "fifteenMinutes": "15 минут",
+      "thirtyMinutes": "30 минут"
+    },
+    "touchIdToggleLabel": "Разблокировать с помощью Touch ID",
+    "autoLockIdle": "Автоблокировка при бездействии",
+    "lockOnLaunch": "Блокировать при запуске приложения",
+    "lockOnSystemSleep": "Блокировать при переходе системы в спящий режим",
+    "removeLock": {
+      "label": "Убрать блокировку",
+      "description": "Отключить блокировку приложения. Требуется текущий PIN-код.",
+      "button": "Убрать",
+      "dialogTitle": "Убрать блокировку?",
+      "dialogDescription": "Введите текущий PIN-код для подтверждения. Exodus больше не будет требовать PIN-код при запуске.",
+      "confirmButton": "Убрать блокировку"
+    },
+    "toast": {
+      "pinsDoNotMatch": "PIN-коды не совпадают",
+      "setPinFailed": {
+        "title": "Не удалось задать PIN-код",
+        "description": "PIN-код уже существует."
+      },
+      "lockEnabled": "Блокировка включена",
+      "lockRemoved": "Блокировка снята"
+    }
+  }
+}
