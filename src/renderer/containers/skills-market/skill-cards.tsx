@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
+import { useFormat } from '@/lib/format'
 
 export function SkillCardSkeleton() {
   return (
@@ -52,6 +53,7 @@ export function RegistrySkillCard({
   onInstall
 }: RegistrySkillCardProps) {
   const { t } = useTranslation('settings')
+  const { number } = useFormat()
   const isInstalled = installedSlugs.has(skill.slug)
   const isLoading = pendingSlug === skill.slug
   const version = skill.latestVersion?.version ?? skill.tags?.latest ?? 'latest'
@@ -122,13 +124,13 @@ export function RegistrySkillCard({
         {skill.stats?.downloads != null && (
           <span className="flex items-center gap-1">
             <DownloadIcon className="size-3" />
-            {skill.stats.downloads.toLocaleString()}
+            {number(skill.stats.downloads)}
           </span>
         )}
         {skill.stats?.stars != null && (
           <span className="flex items-center gap-1">
             <StarIcon className="size-3" />
-            {skill.stats.stars.toLocaleString()}
+            {number(skill.stats.stars)}
           </span>
         )}
         {skill.stats?.installsAllTime != null && (
@@ -136,7 +138,7 @@ export function RegistrySkillCard({
             <PackageCheckIcon className="size-3" />
             {t('skillsMarket.card.installsCount', {
               count: skill.stats.installsAllTime,
-              formatted: skill.stats.installsAllTime.toLocaleString()
+              formatted: number(skill.stats.installsAllTime)
             })}
           </span>
         )}
@@ -229,6 +231,7 @@ export function InstalledSkillCard({
   onToggle
 }: InstalledSkillCardProps) {
   const { t } = useTranslation(['common', 'settings'])
+  const { dateTime } = useFormat()
   const isLoading = pendingSlug === skill.slug
 
   return (
@@ -257,7 +260,11 @@ export function InstalledSkillCard({
         </div>
         <p className="text-muted-foreground mt-0.5 text-xs">
           {t('settings:skillsMarket.installedTab.installedAt', {
-            date: new Date(skill.installedAt).toLocaleDateString()
+            date: dateTime(new Date(skill.installedAt), {
+              year: 'numeric',
+              month: 'short',
+              day: 'numeric'
+            })
           })}
         </p>
       </div>

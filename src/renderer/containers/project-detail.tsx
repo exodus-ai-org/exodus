@@ -11,10 +11,12 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
+import { useFormat } from '@/lib/format'
 import { updateProject } from '@/services/project'
 
 export function ProjectDetail() {
   const { t } = useTranslation('chat')
+  const { dateTime } = useFormat()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { data: project, mutate: mutateProject } = useSWR<
@@ -126,7 +128,11 @@ export function ProjectDetail() {
                 >
                   <span className="truncate">{chat.title}</span>
                   <span className="text-muted-foreground text-xs">
-                    {new Date(chat.createdAt).toLocaleDateString()}
+                    {dateTime(new Date(chat.createdAt), {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric'
+                    })}
                   </span>
                 </Link>
               ))}
