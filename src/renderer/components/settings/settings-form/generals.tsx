@@ -15,15 +15,21 @@ import { SettingsRow, SettingsSection } from '../settings-row'
 import { SettingsSelect } from '../settings-select'
 import { LockPrivacy } from './lock-privacy'
 
-/** `auto` first (native name resolved from `t()` at render time), then every
- * concrete locale in its own native name — never translated, since a locale
- * name is that language's own name for itself, not app UI copy. */
+/** `auto` first (native name resolved from `t()` at render time, paired with
+ * a globe rather than any one country's flag), then every concrete locale in
+ * its own native name and flag — never translated, since a locale name is
+ * that language's own name for itself, not app UI copy. */
 const LANGUAGE_OPTIONS: {
   value: LanguageSetting
   nativeName: string | null
+  flag: string
 }[] = [
-  { value: 'auto', nativeName: null },
-  ...LOCALE_IDS.map((id) => ({ value: id, nativeName: LOCALES[id].nativeName }))
+  { value: 'auto', nativeName: null, flag: '🌐' },
+  ...LOCALE_IDS.map((id) => ({
+    value: id,
+    nativeName: LOCALES[id].nativeName,
+    flag: LOCALES[id].flag
+  }))
 ]
 
 const APPEARANCE_MODES: {
@@ -77,7 +83,7 @@ export function General({ form }: { form: UseFormReturnType }) {
     () =>
       LANGUAGE_OPTIONS.map((o) => ({
         value: o.value,
-        label: o.nativeName ?? t('general.language.auto')
+        label: `${o.flag} ${o.nativeName ?? t('general.language.auto')}`
       })),
     [t]
   )

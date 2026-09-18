@@ -17,30 +17,53 @@ export const DEFAULT_LANGUAGE_SETTING: LanguageSetting = 'auto'
 
 export const LOCALES: Record<
   LocaleId,
-  { id: LocaleId; nativeName: string; englishName: string }
+  { id: LocaleId; nativeName: string; englishName: string; flag: string }
 > = {
-  en: { id: 'en', nativeName: 'English', englishName: 'English' },
+  en: {
+    id: 'en',
+    nativeName: 'English',
+    englishName: 'English',
+    flag: '🇺🇸'
+  },
   'zh-Hant-TW': {
     id: 'zh-Hant-TW',
     nativeName: '繁體中文（台灣）',
-    englishName: 'Chinese (Traditional, Taiwan)'
+    englishName: 'Chinese (Traditional, Taiwan)',
+    flag: '🇹🇼'
   },
   'zh-Hant-HK': {
     id: 'zh-Hant-HK',
     nativeName: '繁體中文（香港）',
-    englishName: 'Chinese (Traditional, Hong Kong)'
+    englishName: 'Chinese (Traditional, Hong Kong)',
+    flag: '🇭🇰'
   },
-  ja: { id: 'ja', nativeName: '日本語', englishName: 'Japanese' },
-  ko: { id: 'ko', nativeName: '한국어', englishName: 'Korean' },
-  fr: { id: 'fr', nativeName: 'Français', englishName: 'French' },
-  de: { id: 'de', nativeName: 'Deutsch', englishName: 'German' },
-  es: { id: 'es', nativeName: 'Español', englishName: 'Spanish' },
+  ja: { id: 'ja', nativeName: '日本語', englishName: 'Japanese', flag: '🇯🇵' },
+  ko: { id: 'ko', nativeName: '한국어', englishName: 'Korean', flag: '🇰🇷' },
+  fr: {
+    id: 'fr',
+    nativeName: 'Français',
+    englishName: 'French',
+    flag: '🇫🇷'
+  },
+  de: { id: 'de', nativeName: 'Deutsch', englishName: 'German', flag: '🇩🇪' },
+  es: {
+    id: 'es',
+    nativeName: 'Español',
+    englishName: 'Spanish',
+    flag: '🇪🇸'
+  },
   'pt-BR': {
     id: 'pt-BR',
     nativeName: 'Português (Brasil)',
-    englishName: 'Portuguese (Brazil)'
+    englishName: 'Portuguese (Brazil)',
+    flag: '🇧🇷'
   },
-  it: { id: 'it', nativeName: 'Italiano', englishName: 'Italian' }
+  it: {
+    id: 'it',
+    nativeName: 'Italiano',
+    englishName: 'Italian',
+    flag: '🇮🇹'
+  }
 }
 
 export const FALLBACK_LNG = {
