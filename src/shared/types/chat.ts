@@ -113,7 +113,11 @@ export interface AssistantTurn {
     /** Timestamp of the assistant message this block came from (stream start). */
     timestamp: number
   }>
-  pendingToolCalls: Array<{ name: string; id: string }>
+  pendingToolCalls: Array<{
+    name: string
+    id: string
+    arguments?: Record<string, unknown>
+  }>
   toolCards: ChatToolResultMessage[]
   durationMs: number
   hasContent: boolean

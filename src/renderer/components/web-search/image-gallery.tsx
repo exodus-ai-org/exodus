@@ -1,6 +1,6 @@
 // src/renderer/components/web-search/image-gallery.tsx
 import { TEST_IDS } from '@shared/constants/test-ids'
-import { ImagesIcon } from 'lucide-react'
+import { PlusIcon } from 'lucide-react'
 import { useState } from 'react'
 
 import { LazyLoadImage } from '@/components/lazy-load-image'
@@ -36,8 +36,8 @@ export function ImageGallery({ images }: { images: GalleryImage[] }) {
                 className="size-full"
               />
               {isLastWithMore && (
-                <div className="absolute inset-0 flex items-center justify-center gap-1 bg-black/50 text-sm font-medium text-white">
-                  <ImagesIcon size={16} /> {images.length}
+                <div className="absolute inset-0 flex items-center justify-center gap-0.5 bg-black/50 text-sm font-medium text-white">
+                  <PlusIcon size={16} /> {images.length}
                 </div>
               )}
             </button>

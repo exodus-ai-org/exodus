@@ -51,9 +51,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
       <div className="flex items-center justify-between rounded-lg px-4 py-3">
         <div className="flex items-center gap-3">
           <CheckCircleIcon className="size-4 text-green-500" />
-          <span className="text-sm">
-            {t('settings:about.update.upToDate')}
-          </span>
+          <span className="text-sm">{t('settings:about.update.upToDate')}</span>
         </div>
         <Button variant="ghost" size="sm" onClick={() => updaterCheck()}>
           <RefreshCwIcon className="mr-1.5 size-3.5" data-icon />

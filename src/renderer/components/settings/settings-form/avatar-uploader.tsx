@@ -1,10 +1,6 @@
 import { PlusIcon, XIcon } from 'lucide-react'
 import { ChangeEvent, useRef } from 'react'
-import {
-  FieldValues,
-  useController,
-  UseControllerProps
-} from 'react-hook-form'
+import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { useSettings } from '@/hooks/use-settings'

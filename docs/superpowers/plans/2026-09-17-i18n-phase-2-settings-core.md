@@ -49,8 +49,8 @@ in `computer-use-card.tsx`).
   `update-panel.tsx` is the one file in this plan that already has
   `useTranslation('common')` and needs this treatment.
 - Dynamic/table-driven key lookups (a value keyed by an enum/union, looked
-  up at render time) are typed `ParseKeys<'settings'>` on the *field
-  itself* (imported `import type { ParseKeys } from 'i18next'`) — not
+  up at render time) are typed `ParseKeys<'settings'>` on the _field
+  itself_ (imported `import type { ParseKeys } from 'i18next'`) — not
   `string` — so `t(someObject[key])` type-checks against the real catalog
   with **no cast**, and a typo or missing key is a compile error. Follow
   the `NAV_TITLE_KEYS` / `CATEGORY_TITLE_KEYS` pattern in Task 1 exactly
@@ -63,7 +63,7 @@ in `computer-use-card.tsx`).
   rewrite. If any anchor in Task 5's brief doesn't match byte-for-byte
   when the implementer opens the file, that's NEEDS_CONTEXT — stop and
   report, don't guess or paper over it. Re-run `git status --porcelain --
-  src/renderer/hooks/use-keyboard-shortcuts.ts` immediately before
+src/renderer/hooks/use-keyboard-shortcuts.ts` immediately before
   dispatching Task 5 to catch any further drift.
 - Never `git commit --amend`. Every task is its own commit(s) scoped to
   its own file list (`git add <exact files>`, never `-A`/`.`).
@@ -88,11 +88,13 @@ in `computer-use-card.tsx`).
 ## Task 1: `settings-menu.ts` architecture fix + `nav.*` catalog + test scaffold
 
 **Files:**
+
 - Modify: `src/renderer/components/settings/settings-menu.ts` (full rewrite — file is currently clean, not under concurrent editing)
 - Modify: `src/shared/i18n/locales/en/settings.json` (full rewrite — currently 9 lines)
 - Create: `tests/unit/i18n/settings-namespace.test.ts`
 
 **Interfaces:**
+
 - Produces: `NAV_TITLE_KEYS: Record<SettingsLabel, ParseKeys<'settings'>>`
   (exported from `settings-menu.ts`) — Tasks 2 and 3 consume this.
   `menus.navMain[].label` is now a `settings.json` key path (or `''` for
@@ -384,15 +386,18 @@ git commit -m "feat(i18n): decouple SettingsLabel display text via NAV_TITLE_KEY
 ## Task 2: `settings-form.tsx` — wire the `<h1>` tab title
 
 **Files:**
+
 - Modify: `src/renderer/components/settings/settings-form.tsx`
 - Modify: `tests/unit/i18n/settings-namespace.test.ts` (no new keys — no change needed unless Task 1's assertions don't already cover this; they do, skip)
 
 **Interfaces:**
+
 - Consumes: `NAV_TITLE_KEYS` from Task 1 (`./settings-menu`).
 
 - [ ] **Step 1: Anchored edit — add the `useTranslation` import**
 
 Find:
+
 ```
 import { useForm } from 'react-hook-form'
 
@@ -400,6 +405,7 @@ import { useSettings } from '@/hooks/use-settings'
 ```
 
 Replace with:
+
 ```
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -410,11 +416,13 @@ import { useSettings } from '@/hooks/use-settings'
 - [ ] **Step 2: Anchored edit — import `NAV_TITLE_KEYS`**
 
 Find:
+
 ```
 import { SettingsLabel } from './settings-menu'
 ```
 
 Replace with:
+
 ```
 import { NAV_TITLE_KEYS, SettingsLabel } from './settings-menu'
 ```
@@ -422,12 +430,14 @@ import { NAV_TITLE_KEYS, SettingsLabel } from './settings-menu'
 - [ ] **Step 3: Anchored edit — get `t` in the component**
 
 Find:
+
 ```
 export function SettingsForm() {
   const { data: settings } = useSettings()
 ```
 
 Replace with:
+
 ```
 export function SettingsForm() {
   const { t } = useTranslation('settings')
@@ -437,11 +447,13 @@ export function SettingsForm() {
 - [ ] **Step 4: Anchored edit — the `<h1>` itself**
 
 Find:
+
 ```
       <h1 className="text-xl">{activeTitle}</h1>
 ```
 
 Replace with:
+
 ```
       <h1 className="text-xl">{t(NAV_TITLE_KEYS[activeTitle])}</h1>
 ```
@@ -464,16 +476,19 @@ git commit -m "feat(i18n): translate the settings tab heading"
 ## Task 3: `settings-sidebar.tsx` — nav labels, search filter, chrome text
 
 **Files:**
+
 - Modify: `src/renderer/components/settings/settings-sidebar.tsx`
 - Modify: `src/shared/i18n/locales/en/settings.json` (add `common.*`)
 - Modify: `tests/unit/i18n/settings-namespace.test.ts` (add a `common` block assertion)
 
 **Interfaces:**
+
 - Consumes: `NAV_TITLE_KEYS`, `menus` from Task 1.
 
 - [ ] **Step 1: Anchored edit — add the `useTranslation` import**
 
 Find:
+
 ```
 import { ArrowLeftIcon, Search } from 'lucide-react'
 import { ComponentProps, useMemo, useState } from 'react'
@@ -481,6 +496,7 @@ import { useNavigate } from 'react-router'
 ```
 
 Replace with:
+
 ```
 import { ArrowLeftIcon, Search } from 'lucide-react'
 import { ComponentProps, useMemo, useState } from 'react'
@@ -491,11 +507,13 @@ import { useNavigate } from 'react-router'
 - [ ] **Step 2: Anchored edit — import `NAV_TITLE_KEYS`**
 
 Find:
+
 ```
 import { menus } from './settings-menu'
 ```
 
 Replace with:
+
 ```
 import { menus, NAV_TITLE_KEYS } from './settings-menu'
 ```
@@ -503,6 +521,7 @@ import { menus, NAV_TITLE_KEYS } from './settings-menu'
 - [ ] **Step 3: Anchored edit — `t`, and fix the search filter to match translated text**
 
 Find:
+
 ```
 export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
   const [active, setActive] = useSettingsTab()
@@ -526,6 +545,7 @@ export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
 ```
 
 Replace with:
+
 ```
 export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
   const { t } = useTranslation('settings')
@@ -556,6 +576,7 @@ should re-run this filter once Phase 4 wires up live switching.)
 - [ ] **Step 4: Anchored edit — "Back to app"**
 
 Find:
+
 ```
           <ArrowLeftIcon />
           Back to app
@@ -563,6 +584,7 @@ Find:
 ```
 
 Replace with:
+
 ```
           <ArrowLeftIcon />
           {t('common.backToApp')}
@@ -572,11 +594,13 @@ Replace with:
 - [ ] **Step 5: Anchored edit — search placeholder**
 
 Find:
+
 ```
             placeholder="Search settings…"
 ```
 
 Replace with:
+
 ```
             placeholder={t('common.searchPlaceholder')}
 ```
@@ -584,6 +608,7 @@ Replace with:
 - [ ] **Step 6: Anchored edit — group label + item title render**
 
 Find:
+
 ```
             {group.label && (
               <SidebarGroupLabel className="text-muted-foreground/70 px-2 text-[11px] font-medium tracking-wider uppercase">
@@ -606,6 +631,7 @@ Find:
 ```
 
 Replace with:
+
 ```
             {group.label && (
               <SidebarGroupLabel className="text-muted-foreground/70 px-2 text-[11px] font-medium tracking-wider uppercase">
@@ -636,6 +662,7 @@ against the 5 real `nav.group.*` keys with no cast.)
 - [ ] **Step 7: Add `common.*` to `settings.json`**
 
 Find (the `nav` object's closing, right after the `group` sub-object):
+
 ```
     "group": {
       "personal": "Personal",
@@ -649,6 +676,7 @@ Find (the `nav` object's closing, right after the `group` sub-object):
 ```
 
 Replace with:
+
 ```
     "group": {
       "personal": "Personal",
@@ -670,12 +698,14 @@ Replace with:
 Find (in `tests/unit/i18n/settings-namespace.test.ts`, the end of the
 `'has the nav group heading keys'` test body, just before its closing
 `})`):
+
 ```
     expect(settings.nav.group.developer).toBe('Developer')
   })
 ```
 
 Replace with:
+
 ```
     expect(settings.nav.group.developer).toBe('Developer')
   })
@@ -706,11 +736,13 @@ git commit -m "feat(i18n): translate the settings sidebar and fix its search fil
 ## Task 4: `generals.tsx` — Theme, Run on startup, Menu bar
 
 **Files:**
+
 - Modify: `src/renderer/components/settings/settings-form/generals.tsx` (full rewrite — file is clean)
 - Modify: `src/shared/i18n/locales/en/settings.json` (add `general.theme` / `general.runOnStartup` / `general.menuBar`)
 - Modify: `tests/unit/i18n/settings-namespace.test.ts`
 
 **Interfaces:**
+
 - Produces: nothing new consumed by later tasks.
 - Consumes: nothing from earlier tasks besides the catalog file shape.
 
@@ -828,6 +860,7 @@ export function General({ form }: { form: UseFormReturnType }) {
 - [ ] **Step 2: Add keys to `settings.json`**
 
 Find:
+
 ```
   "general": {
     "language": {
@@ -839,6 +872,7 @@ Find:
 ```
 
 Replace with:
+
 ```
   "general": {
     "language": {
@@ -867,12 +901,14 @@ Replace with:
 - [ ] **Step 3: Add a test**
 
 Find (end of the `'keeps the pre-existing general.language keys untouched'` test body):
+
 ```
     expect(settings.general.language.auto).toBe('Auto (detect from system)')
   })
 ```
 
 Replace with:
+
 ```
     expect(settings.general.language.auto).toBe('Auto (detect from system)')
   })
@@ -916,15 +952,17 @@ git commit -m "feat(i18n): translate the General settings tab"
 ## Task 5: Keyboard Shortcuts — `use-keyboard-shortcuts.ts` + `keyboard-shortcuts.tsx`
 
 **Files:**
+
 - Modify: `src/renderer/hooks/use-keyboard-shortcuts.ts` (**small anchored edits only** — this file has a real uncommitted concurrent diff; see Global Constraints)
 - Modify: `src/renderer/components/settings/settings-form/keyboard-shortcuts.tsx` (full rewrite — clean file)
 - Modify: `src/shared/i18n/locales/en/settings.json` (add `keyboardShortcuts.*`)
 - Modify: `tests/unit/i18n/settings-namespace.test.ts`
 
 **Interfaces:**
+
 - Produces: `CATEGORY_TITLE_KEYS: Record<ShortcutDef['category'], ParseKeys<'settings'>>`
   and `ShortcutDef.labelKey: ParseKeys<'settings'>` (replaces `label:
-  string`) — consumed by `keyboard-shortcuts.tsx` only, nothing later in
+string`) — consumed by `keyboard-shortcuts.tsx` only, nothing later in
   this plan.
 
 **Before starting:** run
@@ -938,6 +976,7 @@ shape.
 - [ ] **Step 1: Anchored edit — add the `ParseKeys` import**
 
 Find:
+
 ```
 import { useSetAtom } from 'jotai'
 import { useCallback, useEffect, useMemo } from 'react'
@@ -945,6 +984,7 @@ import { useNavigate } from 'react-router'
 ```
 
 Replace with:
+
 ```
 import type { ParseKeys } from 'i18next'
 import { useSetAtom } from 'jotai'
@@ -955,6 +995,7 @@ import { useNavigate } from 'react-router'
 - [ ] **Step 2: Anchored edit — `ShortcutDef.label` → `labelKey`**
 
 Find:
+
 ```
 export type ShortcutDef = {
   id: string
@@ -964,6 +1005,7 @@ export type ShortcutDef = {
 ```
 
 Replace with:
+
 ```
 export type ShortcutDef = {
   id: string
@@ -977,20 +1019,20 @@ export type ShortcutDef = {
 Each of these 12 is a small, independent find/replace on a unique line.
 Apply all 12 (order doesn't matter, they don't overlap):
 
-| Find | Replace |
-|---|---|
-| `    label: 'New chat',` | `    labelKey: 'keyboardShortcuts.shortcuts.new-chat.label',` |
-| `    label: 'Open settings',` | `    labelKey: 'keyboardShortcuts.shortcuts.open-settings.label',` |
-| `    label: 'Toggle sidebar',` | `    labelKey: 'keyboardShortcuts.shortcuts.toggle-sidebar.label',` |
+| Find                                   | Replace                                                                     |
+| -------------------------------------- | --------------------------------------------------------------------------- |
+| `    label: 'New chat',`               | `    labelKey: 'keyboardShortcuts.shortcuts.new-chat.label',`               |
+| `    label: 'Open settings',`          | `    labelKey: 'keyboardShortcuts.shortcuts.open-settings.label',`          |
+| `    label: 'Toggle sidebar',`         | `    labelKey: 'keyboardShortcuts.shortcuts.toggle-sidebar.label',`         |
 | `    label: 'Toggle developer tools',` | `    labelKey: 'keyboardShortcuts.shortcuts.toggle-developer-tools.label',` |
-| `    label: 'Force refresh page',` | `    labelKey: 'keyboardShortcuts.shortcuts.force-refresh-page.label',` |
-| `    label: 'Find in page',` | `    labelKey: 'keyboardShortcuts.shortcuts.find-in-page.label',` |
-| `    label: 'Search chat history',` | `    labelKey: 'keyboardShortcuts.shortcuts.search-chat-history.label',` |
-| `    label: 'Close find bar',` | `    labelKey: 'keyboardShortcuts.shortcuts.close-find-bar.label',` |
-| `    label: 'Close current tab',` | `    labelKey: 'keyboardShortcuts.shortcuts.close-tab.label',` |
-| `    label: 'Focus chat input',` | `    labelKey: 'keyboardShortcuts.shortcuts.focus-chat-input.label',` |
-| `    label: 'Send message',` | `    labelKey: 'keyboardShortcuts.shortcuts.send-message.label',` |
-| `    label: 'New line',` | `    labelKey: 'keyboardShortcuts.shortcuts.new-line.label',` |
+| `    label: 'Force refresh page',`     | `    labelKey: 'keyboardShortcuts.shortcuts.force-refresh-page.label',`     |
+| `    label: 'Find in page',`           | `    labelKey: 'keyboardShortcuts.shortcuts.find-in-page.label',`           |
+| `    label: 'Search chat history',`    | `    labelKey: 'keyboardShortcuts.shortcuts.search-chat-history.label',`    |
+| `    label: 'Close find bar',`         | `    labelKey: 'keyboardShortcuts.shortcuts.close-find-bar.label',`         |
+| `    label: 'Close current tab',`      | `    labelKey: 'keyboardShortcuts.shortcuts.close-tab.label',`              |
+| `    label: 'Focus chat input',`       | `    labelKey: 'keyboardShortcuts.shortcuts.focus-chat-input.label',`       |
+| `    label: 'Send message',`           | `    labelKey: 'keyboardShortcuts.shortcuts.send-message.label',`           |
+| `    label: 'New line',`               | `    labelKey: 'keyboardShortcuts.shortcuts.new-line.label',`               |
 
 If a 13th `SHORTCUT_MAP` entry has appeared (someone else's concurrent
 addition) with its own `label: '...'` line, leave it as `label` and note
@@ -1003,6 +1045,7 @@ not block this one.
 Find (the `SHORTCUT_MAP` array's closing bracket, immediately followed by
 the `isModKey` helper — this exact two-line adjacency is unique in the
 file):
+
 ```
 ]
 
@@ -1010,6 +1053,7 @@ function isModKey(e: KeyboardEvent) {
 ```
 
 Replace with:
+
 ```
 ]
 
@@ -1157,6 +1201,7 @@ export function KeyboardShortcuts() {
 - [ ] **Step 6: Add `keyboardShortcuts.*` to `settings.json`**
 
 Find (the top-level `common` object added in Task 3, closing the file):
+
 ```
   "common": {
     "searchPlaceholder": "Search settings…",
@@ -1166,6 +1211,7 @@ Find (the top-level `common` object added in Task 3, closing the file):
 ```
 
 Replace with:
+
 ```
   "common": {
     "searchPlaceholder": "Search settings…",
@@ -1202,12 +1248,14 @@ existing `label` text.
 - [ ] **Step 7: Add a test**
 
 Find (end of the `'has the sidebar chrome keys'` test body):
+
 ```
     expect(settings.common.backToApp).toBe('Back to app')
   })
 ```
 
 Replace with:
+
 ```
     expect(settings.common.backToApp).toBe('Back to app')
   })
@@ -1291,11 +1339,13 @@ those neighboring lines yourself.
 ## Task 6: `system-info.tsx` — About tab labels
 
 **Files:**
+
 - Modify: `src/renderer/components/settings/settings-form/system-info.tsx` (full rewrite — clean file)
 - Modify: `src/shared/i18n/locales/en/settings.json` (add `about.*`, excluding `about.update.*`)
 - Modify: `tests/unit/i18n/settings-namespace.test.ts`
 
 **Interfaces:**
+
 - Produces: `settings.json`'s `about` object exists after this task, with
   `update` added by Task 7 as a sibling key inside it — Task 7's anchor
   targets the `about` object's closing brace this task creates.
@@ -1409,6 +1459,7 @@ a hostname, an SPDX license id), not language-dependent text.
 - [ ] **Step 2: Add `about.*` to `settings.json`**
 
 Find (the `keyboardShortcuts` object Task 5 added, closing the file):
+
 ```
     "shortcuts": {
       "new-chat": { "label": "New chat" },
@@ -1429,6 +1480,7 @@ Find (the `keyboardShortcuts` object Task 5 added, closing the file):
 ```
 
 Replace with:
+
 ```
     "shortcuts": {
       "new-chat": { "label": "New chat" },
@@ -1467,6 +1519,7 @@ Replace with:
 - [ ] **Step 3: Add a test**
 
 Find (end of the `'has a keyboard shortcut label for every SHORTCUT_MAP entry'` test body):
+
 ```
     expect(settings.keyboardShortcuts.shortcuts['new-line'].label).toBe(
       'New line'
@@ -1475,6 +1528,7 @@ Find (end of the `'has a keyboard shortcut label for every SHORTCUT_MAP entry'` 
 ```
 
 Replace with:
+
 ```
     expect(settings.keyboardShortcuts.shortcuts['new-line'].label).toBe(
       'New line'
@@ -1519,11 +1573,13 @@ git commit -m "feat(i18n): translate the About settings tab"
 ## Task 7: `update-panel.tsx` — updater states
 
 **Files:**
+
 - Modify: `src/renderer/components/settings/settings-form/update-panel.tsx` (full rewrite — clean file)
 - Modify: `src/shared/i18n/locales/en/settings.json` (add `about.update.*`)
 - Modify: `tests/unit/i18n/settings-namespace.test.ts`
 
 **Interfaces:**
+
 - Consumes: `about` object created by Task 6 (this task adds `update` as
   a nested sibling of `about.autoUpdate`).
 
@@ -1583,9 +1639,7 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
       <div className="flex items-center justify-between rounded-lg px-4 py-3">
         <div className="flex items-center gap-3">
           <CheckCircleIcon className="size-4 text-green-500" />
-          <span className="text-sm">
-            {t('settings:about.update.upToDate')}
-          </span>
+          <span className="text-sm">{t('settings:about.update.upToDate')}</span>
         </div>
         <Button variant="ghost" size="sm" onClick={() => updaterCheck()}>
           <RefreshCwIcon className="mr-1.5 size-3.5" data-icon />
@@ -1705,6 +1759,7 @@ dynamic text the updater itself supplies (not a catalog string).
 - [ ] **Step 2: Add `about.update.*` to `settings.json`**
 
 Find (the `about` object Task 6 added, closing the file):
+
 ```
     "autoUpdate": {
       "label": "Auto Update",
@@ -1715,6 +1770,7 @@ Find (the `about` object Task 6 added, closing the file):
 ```
 
 Replace with:
+
 ```
     "autoUpdate": {
       "label": "Auto Update",
@@ -1742,6 +1798,7 @@ Replace with:
 - [ ] **Step 3: Add a test**
 
 Find (end of the `'has the About tab labels'` test body):
+
 ```
     expect(settings.about.autoUpdate.description).toBe(
       'Automatically download and install updates when available'
@@ -1750,6 +1807,7 @@ Find (end of the `'has the About tab labels'` test body):
 ```
 
 Replace with:
+
 ```
     expect(settings.about.autoUpdate.description).toBe(
       'Automatically download and install updates when available'
@@ -1839,6 +1897,7 @@ final review.
 Dispatch a final whole-branch code review on the most capable available
 model, covering every commit this plan produced
 (`git log --oneline <task-1-base>..HEAD`). Point it at:
+
 - This plan document, as the spec of record.
 - The same failure classes that bit earlier i18n sub-plans: wrong
   `ns:key` separator or missing namespace prefix, catalog/key desync

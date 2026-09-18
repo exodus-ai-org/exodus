@@ -60,7 +60,7 @@ instead of inventing their own).
   earlier sub-plans before becoming a standing step).
 - Run the isolated committed-tree check (`git archive HEAD | tar -x` into
   a scratch dir, symlink `node_modules`, then run `./node_modules/.bin/tsc
-  --noEmit -p tsconfig.web.json --composite false` and the `tsconfig.node.json`
+--noEmit -p tsconfig.web.json --composite false` and the `tsconfig.node.json`
   equivalent directly — going through `pnpm exec tsc` from outside the real
   project root fails pnpm's own workspace-root sanity check, use the binary
   directly) before requesting final review.
@@ -70,6 +70,7 @@ instead of inventing their own).
 ## Task 1: Personality tab
 
 **Files:**
+
 - Modify: `src/renderer/components/settings/settings-form/personality.tsx` (full rewrite — file is clean, not under concurrent editing)
 - Modify: `src/shared/i18n/locales/en/settings.json` (add `personality.*`)
 - Modify: `tests/unit/i18n/settings-namespace.test.ts` (add a `personality` test block)
@@ -243,6 +244,7 @@ export function Personality({ form }: { form: UseFormReturnType }) {
 - [ ] **Step 2: Add `personality.*` to `settings.json`**
 
 Find (the `about` object's `update` block closing, currently the end of the file):
+
 ```
       "restartAndInstall": "Restart & Install",
       "failed": "Update failed"
@@ -252,6 +254,7 @@ Find (the `about` object's `update` block closing, currently the end of the file
 ```
 
 Replace with:
+
 ```
       "restartAndInstall": "Restart & Install",
       "failed": "Update failed"
@@ -303,6 +306,7 @@ Replace with:
 - [ ] **Step 3: Add a test**
 
 Find (the end of the `'has the updater panel keys for every state'` test body):
+
 ```
     expect(settings.about.update.failed).toBe('Update failed')
   })
@@ -310,6 +314,7 @@ Find (the end of the `'has the updater panel keys for every state'` test body):
 ```
 
 Replace with:
+
 ```
     expect(settings.about.update.failed).toBe('Update failed')
   })
@@ -379,6 +384,7 @@ git commit -m "feat(i18n): translate the Personality settings tab"
 ## Task 2: Profile tab + AvatarUploader
 
 **Files:**
+
 - Modify: `src/renderer/components/settings/settings-form/profile.tsx` (full rewrite — clean file)
 - Modify: `src/renderer/components/settings/settings-form/avatar-uploader.tsx` (full rewrite — clean file)
 - Modify: `src/shared/i18n/locales/en/settings.json` (add `profile.*`)
@@ -393,11 +399,7 @@ git commit -m "feat(i18n): translate the Personality settings tab"
 ```tsx
 import { PlusIcon, XIcon } from 'lucide-react'
 import { ChangeEvent, useRef } from 'react'
-import {
-  FieldValues,
-  useController,
-  UseControllerProps
-} from 'react-hook-form'
+import { FieldValues, useController, UseControllerProps } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 import { useSettings } from '@/hooks/use-settings'
@@ -788,6 +790,7 @@ export function Profile({ form }: { form: UseFormReturnType }) {
 - [ ] **Step 3: Add `profile.*` to `settings.json`**
 
 Find (the end of the file, `personality.aboutYou`'s closing — this is the block Task 1 added, so this task runs after Task 1 has landed):
+
 ```
     "aboutYou": {
       "label": "More about you",
@@ -798,6 +801,7 @@ Find (the end of the file, `personality.aboutYou`'s closing — this is the bloc
 ```
 
 Replace with:
+
 ```
     "aboutYou": {
       "label": "More about you",
@@ -841,6 +845,7 @@ Replace with:
 - [ ] **Step 4: Add `state.you` to `common.json`**
 
 Find:
+
 ```
   "state": {
     "loading": "Loading…",
@@ -850,6 +855,7 @@ Find:
 ```
 
 Replace with:
+
 ```
   "state": {
     "loading": "Loading…",
@@ -862,6 +868,7 @@ Replace with:
 - [ ] **Step 5: Add a settings-namespace test**
 
 Find (the end of the `'has the Personality tab keys'` test body, added by Task 1):
+
 ```
     expect(settings.personality.aboutYou.placeholder).toBe(
       'Interests, values, or preferences to keep in mind'
@@ -871,6 +878,7 @@ Find (the end of the `'has the Personality tab keys'` test body, added by Task 1
 ```
 
 Replace with:
+
 ```
     expect(settings.personality.aboutYou.placeholder).toBe(
       'Interests, values, or preferences to keep in mind'
@@ -914,6 +922,7 @@ Replace with:
 - [ ] **Step 6: Extend the common-namespace test**
 
 Find:
+
 ```
   it('still has the state keys from Phase 1', () => {
     expect(common.state).toMatchObject({ loading: 'Loading…', local: 'Local' })
@@ -922,6 +931,7 @@ Find:
 ```
 
 Replace with:
+
 ```
   it('still has the state keys from Phase 1', () => {
     expect(common.state).toMatchObject({ loading: 'Loading…', local: 'Local' })
@@ -1001,6 +1011,7 @@ binary directly, as above.)
 
 Dispatch a final whole-branch code review on the most capable available
 model, covering every commit this plan produced. Point it at:
+
 - This plan document, as the spec of record.
 - The same failure classes that have bitten prior i18n sub-plans: wrong
   `ns:key` separator or missing namespace prefix (`profile.tsx`'s

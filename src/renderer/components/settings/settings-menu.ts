@@ -1,3 +1,4 @@
+import type { ParseKeys } from 'i18next'
 import {
   CloudIcon,
   CogIcon,
@@ -19,7 +20,6 @@ import {
   MicIcon,
   CompassIcon
 } from 'lucide-react'
-import type { ParseKeys } from 'i18next'
 
 export enum SettingsLabel {
   Profile = 'Profile',

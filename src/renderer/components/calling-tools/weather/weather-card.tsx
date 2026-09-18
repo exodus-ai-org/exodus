@@ -218,7 +218,7 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
 
   return (
     <LazyMotion features={domAnimation}>
-      <div className="w-full max-w-xs overflow-hidden rounded-3xl shadow-2xl">
+      <div className="light:shadow-2xl w-full max-w-xs overflow-hidden rounded-3xl dark:border">
         {/* ── hero ── */}
         <div className="relative" style={{ background: theme.gradient }}>
           {theme.particles === 'rain' && <RainOverlay />}

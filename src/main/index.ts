@@ -1,4 +1,4 @@
-import { electronApp, optimizer } from '@electron-toolkit/utils'
+import { electronApp } from '@electron-toolkit/utils'
 import { app, BrowserWindow, globalShortcut, powerMonitor } from 'electron'
 
 import { migrateSharedArtifacts } from './lib/ai/artifacts-migration'
@@ -99,11 +99,34 @@ app.whenReady().then(async () => {
   // Set app user model id for windows
   electronApp.setAppUserModelId('app.yancey.exodus')
 
-  // Default open or close DevTools by F12 in development
-  // and ignore CommandOrControl + R in production.
-  // see https://github.com/alex8088/electron-toolkit/tree/master/packages/utils
+  // F12 opens/closes DevTools, and reload (CmdOrCtrl+R) / force reload
+  // (CmdOrCtrl+Shift+R) / toggle DevTools (the menu's own accelerator) stay
+  // enabled in packaged builds too — needed to debug a production-only
+  // issue in the field. @electron-toolkit/utils's watchWindowShortcuts
+  // blocks exactly those via event.preventDefault() once app.isPackaged, so
+  // we roll our own instead of calling it. Cmd/Ctrl+- and Cmd/Ctrl+Shift+=
+  // (zoom) stay blocked, matching watchWindowShortcuts' previous default.
   app.on('browser-window-created', (_, window) => {
-    optimizer.watchWindowShortcuts(window)
+    window.webContents.on('before-input-event', (event, input) => {
+      if (input.type !== 'keyDown') return
+      if (input.code === 'F12') {
+        if (window.webContents.isDevToolsOpened()) {
+          window.webContents.closeDevTools()
+        } else {
+          window.webContents.openDevTools({ mode: 'undocked' })
+        }
+      }
+      if (input.code === 'Minus' && (input.control || input.meta)) {
+        event.preventDefault()
+      }
+      if (
+        input.code === 'Equal' &&
+        input.shift &&
+        (input.control || input.meta)
+      ) {
+        event.preventDefault()
+      }
+    })
   })
 
   // Register IPCs
