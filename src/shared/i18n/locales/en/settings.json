@@ -619,5 +619,75 @@
       "toggleFailed": "Failed to toggle server",
       "operationFailed": "Operation failed"
     }
+  },
+  "memory": {
+    "sectionGroups": {
+      "profile": "You",
+      "topic": "Topics",
+      "person": "People"
+    },
+    "updatedLabel": "Updated {{date}}",
+    "genericRetryHint": "Try again",
+    "restoreLabel": "Restore",
+    "disableLabel": "Disable",
+    "row": {
+      "noSummaryYet": "No summary yet"
+    },
+    "detail": {
+      "backButton": "Memory",
+      "titlePlaceholder": "Title",
+      "summaryLabel": "Summary",
+      "summaryPlaceholder": "A compact phrase — what this entry covers",
+      "detailsLabel": "Details",
+      "detailsPlaceholder": "One fact per line",
+      "toast": {
+        "notSavedTitle": "Not saved",
+        "deleteFailedTitle": "Failed to delete"
+      }
+    },
+    "composer": {
+      "placeholderScoped": "Tell the assistant what to change or remove…",
+      "placeholderGeneral": "Tell the assistant what to remember…",
+      "submitAria": "Add to memory",
+      "toast": {
+        "updatedTitle": "Memory updated",
+        "updatedDescription_one": "{{count}} change applied",
+        "updatedDescription_other": "{{count}} changes applied",
+        "noChangeTitle": "No change",
+        "noChangeDescription": "That didn't call for a memory update.",
+        "applyFailedTitle": "Couldn't apply that"
+      }
+    },
+    "settings": {
+      "autoCapture": {
+        "label": "Capture memories",
+        "description": "After each conversation, consolidate durable facts about you (interests, setup, people) into memory — updating existing entries rather than duplicating them."
+      },
+      "useInChat": {
+        "label": "Use memory in chats",
+        "description": "Surface the memory entries relevant to your message into the assistant's context at the start of a reply."
+      },
+      "lcmEnabled": {
+        "label": "Lossless context management",
+        "description": "Automatically compress long conversations into a hierarchical summary DAG, so nothing is ever lost even when chats exceed the context window."
+      },
+      "contextWindowPercent": {
+        "label": "Compaction threshold",
+        "description": "Trigger context compaction when the conversation reaches this percentage of the model's context window (50-95%). Default: 75%."
+      },
+      "freshTailSize": {
+        "label": "Fresh tail size",
+        "description": "Number of recent messages protected from compaction (8-64). These are always sent to the model verbatim. Default: 16."
+      },
+      "newMemoryDefaultKey": "New memory",
+      "storedMemoriesHeading": "Stored memories",
+      "newButton": "New",
+      "emptyState": "No memories yet — they're added automatically after conversations, or tell the assistant to remember something below.",
+      "disabledHeading": "Disabled · {{count}}",
+      "toast": {
+        "loadFailedTitle": "Failed to load memories",
+        "createFailedTitle": "Failed to create"
+      }
+    }
   }
 }

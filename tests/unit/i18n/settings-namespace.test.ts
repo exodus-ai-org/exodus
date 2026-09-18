@@ -556,6 +556,42 @@ describe('settings namespace (en)', () => {
       operationFailed: 'Operation failed'
     })
   })
+
+  it('has the memory section-group and shared keys', () => {
+    expect(settings.memory.sectionGroups).toMatchObject({
+      profile: 'You',
+      topic: 'Topics',
+      person: 'People'
+    })
+    expect(settings.memory.genericRetryHint).toBe('Try again')
+    expect(settings.memory.restoreLabel).toBe('Restore')
+    expect(settings.memory.disableLabel).toBe('Disable')
+  })
+
+  it('has the memory row and detail keys', () => {
+    expect(settings.memory.row.noSummaryYet).toBe('No summary yet')
+    expect(settings.memory.detail).toMatchObject({
+      backButton: 'Memory',
+      titlePlaceholder: 'Title',
+      summaryLabel: 'Summary',
+      detailsLabel: 'Details'
+    })
+  })
+
+  it('has the memory composer keys with real pluralization', () => {
+    expect(settings.memory.composer.toast).toMatchObject({
+      updatedDescription_one: '{{count}} change applied',
+      updatedDescription_other: '{{count}} changes applied'
+    })
+  })
+
+  it('has the memory settings tab keys', () => {
+    expect(settings.memory.settings.autoCapture.label).toBe('Capture memories')
+    expect(settings.memory.settings.newMemoryDefaultKey).toBe('New memory')
+    expect(settings.memory.settings.disabledHeading).toBe(
+      'Disabled · {{count}}'
+    )
+  })
 })
 
 describe('settings namespace tools.voice.alert renders correctly via Trans', () => {

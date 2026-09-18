@@ -10,16 +10,22 @@ import {
   PlusIcon,
   Trash2Icon
 } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Controller } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  InputGroup,
+  InputGroupInput,
+  InputGroupAddon
+} from '@/components/ui/input-group'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { i18n } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 import {
@@ -33,18 +39,14 @@ import {
 } from '../../../services/memory'
 import { SettingsRow, SettingsSection } from '../settings-row'
 
-const SECTION_GROUPS: { section: MemorySection; label: string }[] = [
-  { section: 'profile', label: 'You' },
-  { section: 'topic', label: 'Topics' },
-  { section: 'person', label: 'People' }
-]
-
 /** DB serializes local wall-clock with a trailing `Z`; strip it so the day is right. */
 function updatedLabel(m: MemoryItem): string {
   const raw = m.updatedAt ?? m.createdAt
   if (!raw) return ''
   const d = new Date(raw.replace(/Z$/, ''))
-  return Number.isNaN(d.getTime()) ? '' : `Updated ${format(d, 'MMM d')}`
+  return Number.isNaN(d.getTime())
+    ? ''
+    : i18n.t('settings:memory.updatedLabel', { date: format(d, 'MMM d') })
 }
 
 function detailsFromText(text: string): string[] {
@@ -67,7 +69,7 @@ function MemoryRow({
   onToggle: () => void
   onDelete: () => void
 }) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation(['common', 'settings'])
   const disabled = item.isActive === false
   return (
     <div
@@ -91,7 +93,11 @@ function MemoryRow({
         {item.key}
       </span>
       <span className="text-muted-foreground min-w-0 flex-1 truncate text-[13px]">
-        {item.summary || <span className="italic">No summary yet</span>}
+        {item.summary || (
+          <span className="italic">
+            {t('settings:memory.row.noSummaryYet')}
+          </span>
+        )}
       </span>
 
       {/* Fixed slot: a chevron at rest, the eye/trash actions on hover — the
@@ -107,7 +113,11 @@ function MemoryRow({
             variant="ghost"
             size="icon"
             className="text-muted-foreground hover:text-foreground size-7"
-            title={disabled ? 'Restore' : 'Disable'}
+            title={
+              disabled
+                ? t('settings:memory.restoreLabel')
+                : t('settings:memory.disableLabel')
+            }
             onClick={(e) => {
               e.stopPropagation()
               onToggle()
@@ -159,23 +169,48 @@ function MemoryDetail({
   onPatched: (next: MemoryItem) => void
   onDeleted: () => void
 }) {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation(['common', 'settings'])
   const [key, setKey] = useState(item.key)
   const [summary, setSummary] = useState(item.summary)
   const [detailsText, setDetailsText] = useState(() => item.details.join('\n'))
   const disabled = item.isActive === false
+  // The item snapshot each field was last synced from — lets the effect
+  // below tell "user hasn't touched this field since" apart from "user is
+  // mid-edit," per field.
+  const lastSyncedRef = useRef(item)
 
   type MemoryPatch = Partial<Pick<MemoryItem, 'key' | 'summary'>> & {
     details?: string[]
     isActive?: boolean
   }
 
-  // Re-sync when a different entry is opened.
+  // Re-sync when a different entry is opened — always wins over any
+  // in-progress, unblurred edit in the previous entry's fields.
   useEffect(() => {
     setKey(item.key)
     setSummary(item.summary)
     setDetailsText(item.details.join('\n'))
-  }, [item.id]) // eslint-disable-line react-hooks/exhaustive-deps
+    lastSyncedRef.current = item
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.id])
+
+  // The same entry can also change underneath us without a different `item.id`
+  // — e.g. the natural-language composer below patches it via `instructMemory`,
+  // which reloads the list but leaves this view open. Pull in the new value
+  // per field, but only for a field the user hasn't started typing into since
+  // the last sync, so an in-progress edit in one field survives an unrelated
+  // instruction that only touched another field.
+  useEffect(() => {
+    const prev = lastSyncedRef.current
+    if (item.id !== prev.id) return
+    const prevDetailsText = prev.details.join('\n')
+    setKey((cur) => (cur === prev.key ? item.key : cur))
+    setSummary((cur) => (cur === prev.summary ? item.summary : cur))
+    setDetailsText((cur) =>
+      cur === prevDetailsText ? item.details.join('\n') : cur
+    )
+    lastSyncedRef.current = item
+  }, [item])
 
   const save = useCallback(
     async (patch: MemoryPatch) => {
@@ -184,12 +219,15 @@ function MemoryDetail({
         onPatched({ ...item, ...patch })
       } catch (e) {
         sileo.error({
-          title: 'Not saved',
-          description: e instanceof Error ? e.message : 'Try again'
+          title: t('settings:memory.detail.toast.notSavedTitle'),
+          description:
+            e instanceof Error
+              ? e.message
+              : t('settings:memory.genericRetryHint')
         })
       }
     },
-    [item, onPatched]
+    [item, onPatched, t]
   )
 
   const handleDelete = async () => {
@@ -198,8 +236,9 @@ function MemoryDetail({
       onDeleted()
     } catch (e) {
       sileo.error({
-        title: 'Failed to delete',
-        description: e instanceof Error ? e.message : 'Try again'
+        title: t('settings:memory.detail.toast.deleteFailedTitle'),
+        description:
+          e instanceof Error ? e.message : t('settings:memory.genericRetryHint')
       })
     }
   }
@@ -213,7 +252,7 @@ function MemoryDetail({
           className="text-muted-foreground hover:text-foreground -ml-1 flex items-center gap-1.5 text-sm"
         >
           <ArrowLeftIcon className="size-4" data-icon />
-          Memory
+          {t('settings:memory.detail.backButton')}
         </button>
         <div className="flex items-center gap-1">
           <Button
@@ -222,7 +261,9 @@ function MemoryDetail({
             size="sm"
             onClick={() => save({ isActive: disabled })}
           >
-            {disabled ? 'Restore' : 'Disable'}
+            {disabled
+              ? t('settings:memory.restoreLabel')
+              : t('settings:memory.disableLabel')}
           </Button>
           <Button
             type="button"
@@ -244,8 +285,8 @@ function MemoryDetail({
           if (v && v !== item.key) save({ key: v })
           else setKey(item.key)
         }}
-        placeholder="Title"
-        aria-label="Title"
+        placeholder={t('settings:memory.detail.titlePlaceholder')}
+        aria-label={t('settings:memory.detail.titlePlaceholder')}
         className="placeholder:text-muted-foreground/50 -my-1 border-0 bg-transparent p-0 text-lg font-semibold outline-none"
       />
 
@@ -256,7 +297,7 @@ function MemoryDetail({
       )}
 
       <div className="flex flex-col gap-1.5">
-        <FieldLabel>Summary</FieldLabel>
+        <FieldLabel>{t('settings:memory.detail.summaryLabel')}</FieldLabel>
         <Input
           value={summary}
           onChange={(e) => setSummary(e.target.value)}
@@ -264,12 +305,12 @@ function MemoryDetail({
             const v = summary.trim()
             if (v !== item.summary) save({ summary: v })
           }}
-          placeholder="A compact phrase — what this entry covers"
+          placeholder={t('settings:memory.detail.summaryPlaceholder')}
         />
       </div>
 
       <div className="flex flex-col gap-1.5">
-        <FieldLabel>Details</FieldLabel>
+        <FieldLabel>{t('settings:memory.detail.detailsLabel')}</FieldLabel>
         <Textarea
           rows={6}
           value={detailsText}
@@ -280,7 +321,7 @@ function MemoryDetail({
               save({ details: next })
             }
           }}
-          placeholder="One fact per line"
+          placeholder={t('settings:memory.detail.detailsPlaceholder')}
         />
       </div>
     </div>
@@ -296,32 +337,36 @@ function MemoryComposer({
   scopeMemoryId?: string
   onApplied: () => void
 }) {
+  const { t } = useTranslation('settings')
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
 
   const submit = async () => {
-    const t = text.trim()
-    if (!t || busy) return
+    const t2 = text.trim()
+    if (!t2 || busy) return
     setBusy(true)
     try {
-      const { applied } = await instructMemory(t, scopeMemoryId)
+      const { applied } = await instructMemory(t2, scopeMemoryId)
       setText('')
       if (applied > 0) {
         sileo.success({
-          title: 'Memory updated',
-          description: `${applied} change${applied === 1 ? '' : 's'} applied`
+          title: t('memory.composer.toast.updatedTitle'),
+          description: t('memory.composer.toast.updatedDescription', {
+            count: applied
+          })
         })
         onApplied()
       } else {
         sileo.info({
-          title: 'No change',
-          description: "That didn't call for a memory update."
+          title: t('memory.composer.toast.noChangeTitle'),
+          description: t('memory.composer.toast.noChangeDescription')
         })
       }
     } catch (e) {
       sileo.error({
-        title: "Couldn't apply that",
-        description: e instanceof Error ? e.message : 'Try again'
+        title: t('memory.composer.toast.applyFailedTitle'),
+        description:
+          e instanceof Error ? e.message : t('memory.genericRetryHint')
       })
     } finally {
       setBusy(false)
@@ -343,15 +388,15 @@ function MemoryComposer({
         disabled={busy}
         placeholder={
           scopeMemoryId
-            ? 'Tell the assistant what to change or remove…'
-            : 'Tell the assistant what to remember…'
+            ? t('memory.composer.placeholderScoped')
+            : t('memory.composer.placeholderGeneral')
         }
         className="placeholder:text-muted-foreground max-h-32 min-h-6 flex-1 resize-none bg-transparent py-1 text-sm outline-none"
       />
       <Button
         type="button"
         size="icon"
-        aria-label="Add to memory"
+        aria-label={t('memory.composer.submitAria')}
         className="size-7 shrink-0 rounded-full"
         disabled={!text.trim() || busy}
         onClick={submit}
@@ -369,9 +414,19 @@ function MemoryComposer({
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export function MemorySettings({ form }: { form: UseFormReturnType }) {
+  const { t } = useTranslation('settings')
   const [memories, setMemories] = useState<MemoryItem[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+
+  const sectionGroups: { section: MemorySection; label: string }[] = useMemo(
+    () => [
+      { section: 'profile', label: t('memory.sectionGroups.profile') },
+      { section: 'topic', label: t('memory.sectionGroups.topic') },
+      { section: 'person', label: t('memory.sectionGroups.person') }
+    ],
+    [t]
+  )
 
   const lcmEnabled = form.watch('memory.lcmEnabled') ?? true
 
@@ -380,13 +435,14 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
       setMemories(await getMemories())
     } catch (e) {
       sileo.error({
-        title: 'Failed to load memories',
-        description: e instanceof Error ? e.message : 'Try again'
+        title: t('memory.settings.toast.loadFailedTitle'),
+        description:
+          e instanceof Error ? e.message : t('memory.genericRetryHint')
       })
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     load()
@@ -408,7 +464,7 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
     try {
       const row = await createMemory({
         section: 'topic',
-        key: 'New memory',
+        key: t('memory.settings.newMemoryDefaultKey'),
         summary: '',
         details: [],
         source: 'explicit'
@@ -417,8 +473,9 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
       setSelectedId(row.id)
     } catch (e) {
       sileo.error({
-        title: 'Failed to create',
-        description: e instanceof Error ? e.message : 'Try again'
+        title: t('memory.settings.toast.createFailedTitle'),
+        description:
+          e instanceof Error ? e.message : t('memory.genericRetryHint')
       })
     }
   }
@@ -462,17 +519,19 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
   // ── List view ──
   const active = memories.filter((m) => m.isActive !== false)
   const inactive = memories.filter((m) => m.isActive === false)
-  const activeGroups = SECTION_GROUPS.map((g) => ({
-    ...g,
-    rows: active.filter((m) => m.section === g.section)
-  })).filter((g) => g.rows.length > 0)
+  const activeGroups = sectionGroups
+    .map((g) => ({
+      ...g,
+      rows: active.filter((m) => m.section === g.section)
+    }))
+    .filter((g) => g.rows.length > 0)
 
   return (
     <div className="flex flex-col gap-8">
       <SettingsSection>
         <SettingsRow
-          label="Capture memories"
-          description="After each conversation, consolidate durable facts about you (interests, setup, people) into memory — updating existing entries rather than duplicating them."
+          label={t('memory.settings.autoCapture.label')}
+          description={t('memory.settings.autoCapture.description')}
         >
           <Controller
             control={form.control}
@@ -487,8 +546,8 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
         </SettingsRow>
 
         <SettingsRow
-          label="Use memory in chats"
-          description="Surface the memory entries relevant to your message into the assistant's context at the start of a reply."
+          label={t('memory.settings.useInChat.label')}
+          description={t('memory.settings.useInChat.description')}
         >
           <Controller
             control={form.control}
@@ -503,8 +562,8 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
         </SettingsRow>
 
         <SettingsRow
-          label="Lossless context management"
-          description="Automatically compress long conversations into a hierarchical summary DAG, so nothing is ever lost even when chats exceed the context window."
+          label={t('memory.settings.lcmEnabled.label')}
+          description={t('memory.settings.lcmEnabled.description')}
         >
           <Controller
             control={form.control}
@@ -525,20 +584,25 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
               name="memory.contextWindowPercent"
               render={({ field, fieldState }) => (
                 <SettingsRow
-                  label="Compaction threshold"
-                  description="Trigger context compaction when the conversation reaches this percentage of the model's context window (50-95%). Default: 75%."
+                  label={t('memory.settings.contextWindowPercent.label')}
+                  description={t(
+                    'memory.settings.contextWindowPercent.description'
+                  )}
                   error={fieldState.error}
                 >
-                  <Input
-                    placeholder="75"
-                    type="number"
-                    min={50}
-                    max={95}
-                    className="w-20"
-                    {...field}
-                    value={field.value ?? ''}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
+                  <InputGroup>
+                    <InputGroupInput
+                      placeholder="75"
+                      type="number"
+                      min={50}
+                      max={95}
+                      className="w-14"
+                      {...field}
+                      value={field.value ?? ''}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
+                    <InputGroupAddon align="inline-end">%</InputGroupAddon>
+                  </InputGroup>
                 </SettingsRow>
               )}
             />
@@ -548,8 +612,8 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
               name="memory.freshTailSize"
               render={({ field, fieldState }) => (
                 <SettingsRow
-                  label="Fresh tail size"
-                  description="Number of recent messages protected from compaction (8-64). These are always sent to the model verbatim. Default: 16."
+                  label={t('memory.settings.freshTailSize.label')}
+                  description={t('memory.settings.freshTailSize.description')}
                   error={fieldState.error}
                 >
                   <Input
@@ -572,14 +636,14 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between px-1">
           <h2 className="text-sm font-semibold">
-            Stored memories
+            {t('memory.settings.storedMemoriesHeading')}
             <span className="text-muted-foreground ml-1.5 text-xs font-normal tabular-nums">
               {memories.length}
             </span>
           </h2>
           <Button type="button" size="sm" variant="outline" onClick={handleNew}>
             <PlusIcon className="mr-1 size-3.5" data-icon />
-            New
+            {t('memory.settings.newButton')}
           </Button>
         </div>
 
@@ -591,8 +655,7 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
           </div>
         ) : memories.length === 0 ? (
           <div className="text-muted-foreground rounded-xl border border-dashed py-10 text-center text-sm">
-            No memories yet — they're added automatically after conversations,
-            or tell the assistant to remember something below.
+            {t('memory.settings.emptyState')}
           </div>
         ) : (
           <div className="border-border divide-border divide-y overflow-hidden rounded-xl border">
@@ -616,7 +679,9 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
             {inactive.length > 0 && (
               <div>
                 <p className="text-muted-foreground/70 px-3 pt-3 pb-1.5 text-[11px] font-semibold tracking-wide uppercase">
-                  Disabled · {inactive.length}
+                  {t('memory.settings.disabledHeading', {
+                    count: inactive.length
+                  })}
                 </p>
                 {inactive.map((m) => (
                   <MemoryRow
