@@ -6,7 +6,7 @@ import {
   Trash2
 } from 'lucide-react'
 import { useRef, useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 import useSWR from 'swr'
 
@@ -43,7 +43,7 @@ function formatDate(iso: string): string {
 }
 
 export function DataControls() {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation(['common', 'settings'])
   const { data: settings, updateSettings } = useSettings()
   const { data: backupStatus, mutate: mutateStatus } =
     useSWR<BackupStatus>('/api/backup/status')
@@ -72,9 +72,11 @@ export function DataControls() {
       await createBackupNow()
       mutateStatus()
       mutateBackups()
-      sileo.success({ title: 'Backup created' })
+      sileo.success({
+        title: t('settings:dataControls.backupNow.successToast')
+      })
     } catch {
-      sileo.error({ title: 'Backup failed' })
+      sileo.error({ title: t('settings:dataControls.backupNow.errorToast') })
     } finally {
       setBackupLoading(false)
     }
@@ -103,8 +105,8 @@ export function DataControls() {
     <SettingsSection>
       {/* Automatic Backups */}
       <SettingsRow
-        label="Automatic Backups"
-        description="Back up your data daily at 3:00 AM. Backups are stored locally in ~/.exodus/backups/."
+        label={t('settings:dataControls.autoBackup.label')}
+        description={t('settings:dataControls.autoBackup.description')}
       >
         <Switch
           checked={backupStatus?.autoBackup ?? true}
@@ -113,11 +115,11 @@ export function DataControls() {
       </SettingsRow>
 
       <SettingsRow
-        label="Last Backup"
+        label={t('settings:dataControls.lastBackup.label')}
         description={
           backupStatus?.lastBackupAt
             ? formatDate(backupStatus.lastBackupAt)
-            : 'No backups yet'
+            : t('settings:dataControls.lastBackup.none')
         }
       >
         <Button
@@ -131,15 +133,17 @@ export function DataControls() {
           ) : (
             <ShieldCheck />
           )}
-          Back Up Now
+          {t('settings:dataControls.backupNow.button')}
         </Button>
       </SettingsRow>
 
       {/* Show recent backups */}
       {backups && backups.length > 0 && (
         <SettingsRow
-          label="Recent Backups"
-          description={`${backups.length} backup(s) stored`}
+          label={t('settings:dataControls.recentBackups.label')}
+          description={t('settings:dataControls.recentBackups.description', {
+            count: backups.length
+          })}
           layout="vertical"
         >
           <div className="text-muted-foreground flex flex-col gap-1 text-xs">
@@ -155,8 +159,8 @@ export function DataControls() {
 
       {/* Export */}
       <SettingsRow
-        label="Export Data"
-        description="Download a portable copy of your conversations, settings, and other data as a ZIP archive."
+        label={t('settings:dataControls.export.label')}
+        description={t('settings:dataControls.export.description')}
       >
         <Button variant="outline" disabled={exportLoading} onClick={exportData}>
           {exportLoading ? (
@@ -164,14 +168,14 @@ export function DataControls() {
           ) : (
             <HardDriveDownload />
           )}
-          Export
+          {t('settings:dataControls.export.button')}
         </Button>
       </SettingsRow>
 
       {/* Import */}
       <SettingsRow
-        label="Import Data"
-        description="Restore from a previously exported ZIP archive. This will replace all existing data."
+        label={t('settings:dataControls.import.label')}
+        description={t('settings:dataControls.import.description')}
       >
         <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
           <DialogTrigger
@@ -182,17 +186,17 @@ export function DataControls() {
                 ) : (
                   <HardDriveUpload />
                 )}
-                Import
+                {t('settings:dataControls.import.button')}
               </Button>
             }
           />
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Import Data</DialogTitle>
+              <DialogTitle>
+                {t('settings:dataControls.import.label')}
+              </DialogTitle>
               <DialogDescription>
-                Select a previously exported ZIP file. This will replace all
-                existing conversations and data. A backup will be created
-                automatically before import.
+                {t('settings:dataControls.import.dialogDescription')}
               </DialogDescription>
             </DialogHeader>
             <Input
@@ -213,7 +217,7 @@ export function DataControls() {
                 onClick={handleImportConfirm}
               >
                 {importLoading && <Loader2 className="animate-spin" />}
-                Replace & Import
+                {t('settings:dataControls.import.confirmButton')}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -222,8 +226,8 @@ export function DataControls() {
 
       {/* Delete */}
       <SettingsRow
-        label="Delete All Data"
-        description="Permanently erase all conversations, memories, and research data. Your settings will be preserved."
+        label={t('settings:dataControls.delete.label')}
+        description={t('settings:dataControls.delete.description')}
       >
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
           <DialogTrigger
@@ -234,23 +238,27 @@ export function DataControls() {
                 ) : (
                   <Trash2 />
                 )}
-                Delete All Data
+                {t('settings:dataControls.delete.label')}
               </Button>
             }
           />
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Delete All Data</DialogTitle>
+              <DialogTitle>
+                {t('settings:dataControls.delete.label')}
+              </DialogTitle>
               <DialogDescription>
-                This will permanently delete all your conversations, memories,
-                research data, and uploaded documents. Your settings and API
-                keys will be preserved. A backup will be created before
-                deletion.
+                {t('settings:dataControls.delete.dialogDescription')}
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col gap-2">
               <p className="text-sm">
-                Type <strong>DELETE</strong> to confirm:
+                <Trans
+                  ns="settings"
+                  i18nKey="dataControls.delete.confirmPrompt"
+                >
+                  Type <strong>DELETE</strong> to confirm:
+                </Trans>
               </p>
               <Input
                 value={deleteConfirmText}
@@ -274,7 +282,7 @@ export function DataControls() {
                 onClick={handleDeleteConfirm}
               >
                 {deleteLoading && <Loader2 className="animate-spin" />}
-                Delete Everything
+                {t('settings:dataControls.delete.confirmButton')}
               </Button>
             </DialogFooter>
           </DialogContent>

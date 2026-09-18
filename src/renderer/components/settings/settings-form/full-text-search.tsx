@@ -4,7 +4,7 @@ import { fetcher, getHttpErrorMessage, toErrorI18n } from '@shared/utils/http'
 import { AlertCircleIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Controller } from 'react-hook-form'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -13,8 +13,26 @@ import { Input } from '@/components/ui/input'
 
 import { SettingsRow, SettingsSection } from '../settings-row'
 
+export function SearchQualityNotice() {
+  return (
+    <Trans ns="settings" i18nKey="fullTextSearch.alert">
+      Exodus's built-in search works across all languages, including Chinese,
+      Japanese, and Korean —{' '}
+      <strong>it matches exact text, not "smart" results</strong>: no relevance
+      ranking, no typo tolerance, no stemming (searching "run" won't find
+      "running"). Configure a self-hosted or cloud Elasticsearch cluster below
+      for better relevance ranking and real word segmentation. This is optional;
+      leave the URL empty to keep using the built-in search. Exodus only reads
+      and writes documents to your cluster's index — for real word-level Chinese
+      segmentation (rather than character-level), configure a language-aware
+      analyzer (e.g. <code>ik</code>, <code>smartcn</code>, or the built-in{' '}
+      <code>cjk</code>) on your cluster before pointing Exodus at it.
+    </Trans>
+  )
+}
+
 export function FullTextSearch({ form }: { form: UseFormReturnType }) {
-  const { i18n } = useTranslation('errors')
+  const { i18n, t } = useTranslation(['errors', 'settings'])
   const [isTesting, setIsTesting] = useState(false)
   const [isReindexing, setIsReindexing] = useState(false)
 
@@ -24,10 +42,10 @@ export function FullTextSearch({ form }: { form: UseFormReturnType }) {
       await fetcher('/api/settings/full-text-search/test-connection', {
         method: 'POST'
       })
-      sileo.success({ title: 'Connected to Elasticsearch' })
+      sileo.success({ title: t('settings:fullTextSearch.toast.connected') })
     } catch (err) {
       sileo.error({
-        title: 'Failed to connect to Elasticsearch',
+        title: t('settings:fullTextSearch.toast.connectFailed'),
         description: getHttpErrorMessage(err, toErrorI18n(i18n))
       })
     } finally {
@@ -42,10 +60,14 @@ export function FullTextSearch({ form }: { form: UseFormReturnType }) {
         '/api/settings/full-text-search/reindex',
         { method: 'POST' }
       )
-      sileo.success({ title: `Reindexed ${result.count} messages` })
+      sileo.success({
+        title: t('settings:fullTextSearch.toast.reindexed', {
+          count: result.count
+        })
+      })
     } catch (err) {
       sileo.error({
-        title: 'Failed to reindex messages',
+        title: t('settings:fullTextSearch.toast.reindexFailed'),
         description: getHttpErrorMessage(err, toErrorI18n(i18n))
       })
     } finally {
@@ -58,18 +80,7 @@ export function FullTextSearch({ form }: { form: UseFormReturnType }) {
       <Alert className="mb-4">
         <AlertCircleIcon className="h-4 w-4" />
         <AlertDescription className="inline">
-          Exodus's built-in search works across all languages, including
-          Chinese, Japanese, and Korean —{' '}
-          <strong>it matches exact text, not "smart" results</strong>: no
-          relevance ranking, no typo tolerance, no stemming (searching "run"
-          won't find "running"). Configure a self-hosted or cloud Elasticsearch
-          cluster below for better relevance ranking and real word segmentation.
-          This is optional; leave the URL empty to keep using the built-in
-          search. Exodus only reads and writes documents to your cluster's index
-          — for real word-level Chinese segmentation (rather than
-          character-level), configure a language-aware analyzer (e.g.{' '}
-          <code>ik</code>, <code>smartcn</code>, or the built-in{' '}
-          <code>cjk</code>) on your cluster before pointing Exodus at it.
+          <SearchQualityNotice />
         </AlertDescription>
       </Alert>
 
@@ -79,8 +90,8 @@ export function FullTextSearch({ form }: { form: UseFormReturnType }) {
           name="fullTextSearch.elasticsearch.url"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="Elasticsearch URL"
-              description="Leave empty to use the built-in PGlite full-text search."
+              label={t('settings:fullTextSearch.url.label')}
+              description={t('settings:fullTextSearch.url.description')}
               error={fieldState.error}
               layout="vertical"
             >
@@ -98,8 +109,8 @@ export function FullTextSearch({ form }: { form: UseFormReturnType }) {
           name="fullTextSearch.elasticsearch.username"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="Username"
-              description="Optional — required only if your cluster has security enabled."
+              label={t('settings:fullTextSearch.username.label')}
+              description={t('settings:fullTextSearch.optionalSecurityHint')}
               error={fieldState.error}
               layout="vertical"
             >
@@ -113,8 +124,8 @@ export function FullTextSearch({ form }: { form: UseFormReturnType }) {
           name="fullTextSearch.elasticsearch.password"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="Password"
-              description="Optional — required only if your cluster has security enabled."
+              label={t('settings:fullTextSearch.password.label')}
+              description={t('settings:fullTextSearch.optionalSecurityHint')}
               error={fieldState.error}
               layout="vertical"
             >
@@ -133,8 +144,8 @@ export function FullTextSearch({ form }: { form: UseFormReturnType }) {
           name="fullTextSearch.elasticsearch.indexName"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="Index Name"
-              description='Defaults to "exodus-messages" if left empty.'
+              label={t('settings:fullTextSearch.indexName.label')}
+              description={t('settings:fullTextSearch.indexName.description')}
               error={fieldState.error}
               layout="vertical"
             >
@@ -148,8 +159,8 @@ export function FullTextSearch({ form }: { form: UseFormReturnType }) {
         />
 
         <SettingsRow
-          label="Connection"
-          description="Test connectivity, or reindex all existing chat history into Elasticsearch."
+          label={t('settings:fullTextSearch.connection.label')}
+          description={t('settings:fullTextSearch.connection.description')}
           layout="vertical"
         >
           <div className="flex gap-2">
@@ -160,7 +171,9 @@ export function FullTextSearch({ form }: { form: UseFormReturnType }) {
               onClick={handleTestConnection}
               data-testid={TEST_IDS.fullTextSearch.testConnectionButton}
             >
-              {isTesting ? 'Testing...' : 'Test Connection'}
+              {isTesting
+                ? t('settings:fullTextSearch.connection.testingLabel')
+                : t('settings:fullTextSearch.connection.testButton')}
             </Button>
             <Button
               type="button"
@@ -169,7 +182,9 @@ export function FullTextSearch({ form }: { form: UseFormReturnType }) {
               onClick={handleReindex}
               data-testid={TEST_IDS.fullTextSearch.reindexButton}
             >
-              {isReindexing ? 'Reindexing...' : 'Reindex History'}
+              {isReindexing
+                ? t('settings:fullTextSearch.connection.reindexingLabel')
+                : t('settings:fullTextSearch.connection.reindexButton')}
             </Button>
           </div>
         </SettingsRow>

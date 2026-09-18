@@ -9,7 +9,8 @@ import {
   Trash2Icon,
   XIcon
 } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 import useSWR from 'swr'
 
@@ -106,6 +107,7 @@ function todayStr(): string {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function Logger() {
+  const { t } = useTranslation('settings')
   const [date, setDate] = useState(todayStr)
   const [level, setLevel] = useState('All')
   const [scope, setScope] = useState('All')
@@ -114,6 +116,15 @@ export function Logger() {
   const [traceId, setTraceId] = useState<string | null>(null)
   const [page, setPage] = useState(1)
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
+
+  const levelOptions = useMemo(
+    () =>
+      LEVELS.map((l) => ({
+        value: l,
+        label: l === 'All' ? t('logger.filters.allLevels') : l
+      })),
+    [t]
+  )
 
   // Debounce keyword
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -167,7 +178,7 @@ export function Logger() {
   const handleExport = useCallback(async () => {
     try {
       const res = await fetch(`${BASE_URL}/api/logs/export?date=${date}`)
-      if (!res.ok) throw new Error('Export failed')
+      if (!res.ok) throw new Error(t('logger.toast.exportFailed'))
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -177,29 +188,28 @@ export function Logger() {
       a.click()
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
-      sileo.success({ title: 'Logs exported' })
+      sileo.success({ title: t('logger.toast.exported') })
     } catch (err) {
       sileo.error({
-        title: 'Export failed',
+        title: t('logger.toast.exportFailed'),
         description: err instanceof Error ? err.message : undefined
       })
     }
-  }, [date])
+  }, [date, t])
 
   const handleClearAll = useCallback(async () => {
-    if (!window.confirm('Are you sure you want to delete all log files?'))
-      return
+    if (!window.confirm(t('logger.actions.clearAllConfirm'))) return
     try {
       await fetcher('/api/logs', { method: 'DELETE' })
-      sileo.success({ title: 'All logs cleared' })
+      sileo.success({ title: t('logger.toast.cleared') })
       mutate()
     } catch (err) {
       sileo.error({
-        title: 'Failed to clear logs',
+        title: t('logger.toast.clearFailed'),
         description: err instanceof Error ? err.message : undefined
       })
     }
-  }, [mutate])
+  }, [mutate, t])
 
   return (
     <SettingsSection plain>
@@ -209,7 +219,7 @@ export function Logger() {
         <SettingsSelect
           className="w-[140px]"
           value={date}
-          placeholder="Date"
+          placeholder={t('logger.filters.datePlaceholder')}
           onValueChange={(v) => {
             setDate(v)
             setPage(1)
@@ -222,33 +232,36 @@ export function Logger() {
         <SettingsSelect
           className="w-[100px]"
           value={level}
-          placeholder="Level"
+          placeholder={t('logger.filters.levelPlaceholder')}
           onValueChange={(v) => {
             setLevel(v)
             setPage(1)
             setExpandedIndex(null)
           }}
-          options={LEVELS.map((l) => ({ value: l, label: l }))}
+          options={levelOptions}
         />
 
         {/* Scope select */}
         <SettingsSelect
           className="w-[150px]"
           value={scope}
-          placeholder="Scope"
+          placeholder={t('logger.filters.scopePlaceholder')}
           testId={TEST_IDS.logger.scopeSelect}
           onValueChange={(v) => {
             setScope(v)
             setPage(1)
             setExpandedIndex(null)
           }}
-          options={scopeOptions.map((s) => ({ value: s, label: s }))}
+          options={scopeOptions.map((s) => ({
+            value: s,
+            label: s === 'All' ? t('logger.filters.allLevels') : s
+          }))}
         />
 
         {/* Keyword search */}
         <Input
           className="w-[180px]"
-          placeholder="Search keyword..."
+          placeholder={t('logger.filters.keywordPlaceholder')}
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
         />
@@ -265,7 +278,7 @@ export function Logger() {
               setExpandedIndex(null)
             }}
           >
-            trace {traceId.slice(0, 8)}
+            {t('logger.filters.traceChip', { id: traceId.slice(0, 8) })}
             <XIcon className="h-3 w-3" />
           </button>
         )}
@@ -276,15 +289,15 @@ export function Logger() {
         {/* Action buttons */}
         <Button variant="outline" size="sm" onClick={handleOpenDir}>
           <FolderOpenIcon className="mr-1.5 h-3.5 w-3.5" />
-          Open Directory
+          {t('logger.actions.openDirectory')}
         </Button>
         <Button variant="outline" size="sm" onClick={handleExport}>
           <DownloadIcon className="mr-1.5 h-3.5 w-3.5" />
-          Export
+          {t('logger.actions.export')}
         </Button>
         <Button variant="outline" size="sm" onClick={handleClearAll}>
           <Trash2Icon className="mr-1.5 h-3.5 w-3.5" />
-          Clear All
+          {t('logger.actions.clearAll')}
         </Button>
       </div>
 
@@ -292,18 +305,18 @@ export function Logger() {
       <div className="border-border overflow-hidden rounded-md border">
         {/* Header */}
         <div className="bg-muted/50 flex items-center gap-3 px-3 py-2 text-xs font-medium">
-          <span className="w-[90px] shrink-0">Time</span>
-          <span className="w-[60px] shrink-0">Level</span>
-          <span className="w-[120px] shrink-0">Scope</span>
-          <span className="flex-1">Message</span>
-          <span className="w-[150px] shrink-0">Trace</span>
+          <span className="w-[90px] shrink-0">{t('logger.table.time')}</span>
+          <span className="w-[60px] shrink-0">{t('logger.table.level')}</span>
+          <span className="w-[120px] shrink-0">{t('logger.table.scope')}</span>
+          <span className="flex-1">{t('logger.table.message')}</span>
+          <span className="w-[150px] shrink-0">{t('logger.table.trace')}</span>
         </div>
 
         {/* Rows */}
         <div className="max-h-[480px] overflow-y-auto">
           {entries.length === 0 && (
             <div className="text-muted-foreground py-8 text-center text-sm">
-              No log entries found.
+              {t('logger.table.empty')}
             </div>
           )}
           {entries.map((entry, idx) => (
@@ -395,7 +408,7 @@ export function Logger() {
       {/* Pagination */}
       <div className="flex items-center justify-between text-sm">
         <span className="text-muted-foreground">
-          {total} {total === 1 ? 'entry' : 'entries'} total
+          {t('logger.pagination.total', { count: total })}
         </span>
         <div className="flex items-center gap-2">
           <Button
@@ -408,10 +421,10 @@ export function Logger() {
             }}
           >
             <ChevronLeftIcon className="h-3.5 w-3.5" />
-            Prev
+            {t('logger.pagination.prev')}
           </Button>
           <span className="text-muted-foreground text-xs">
-            Page {page} of {totalPages}
+            {t('logger.pagination.pageOf', { page, totalPages })}
           </span>
           <Button
             variant="outline"
@@ -422,7 +435,7 @@ export function Logger() {
               setExpandedIndex(null)
             }}
           >
-            Next
+            {t('logger.pagination.next')}
             <ChevronRightIcon className="h-3.5 w-3.5" />
           </Button>
         </div>

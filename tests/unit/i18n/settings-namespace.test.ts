@@ -511,6 +511,39 @@ describe('settings namespace (en)', () => {
         'The IAM secret access key paired with the access key ID above.'
     })
   })
+
+  it('has the Data Controls tab keys', () => {
+    expect(settings.dataControls.autoBackup).toMatchObject({
+      label: 'Automatic Backups'
+    })
+    expect(settings.dataControls.recentBackups).toMatchObject({
+      description_one: '{{count}} backup stored',
+      description_other: '{{count}} backups stored'
+    })
+    expect(settings.dataControls.delete).toMatchObject({
+      confirmPrompt: 'Type <strong>DELETE</strong> to confirm:',
+      confirmButton: 'Delete Everything'
+    })
+  })
+
+  it('has the Full-Text Search tab keys', () => {
+    expect(settings.fullTextSearch.url).toMatchObject({
+      label: 'Elasticsearch URL'
+    })
+    expect(settings.fullTextSearch.toast).toMatchObject({
+      reindexed_one: 'Reindexed {{count}} message',
+      reindexed_other: 'Reindexed {{count}} messages'
+    })
+  })
+
+  it('has the Logger tab keys', () => {
+    expect(settings.logger.filters.allLevels).toBe('All')
+    expect(settings.logger.pagination).toMatchObject({
+      total_one: '{{count}} entry total',
+      total_other: '{{count}} entries total',
+      pageOf: 'Page {{page}} of {{totalPages}}'
+    })
+  })
 })
 
 describe('settings namespace tools.voice.alert renders correctly via Trans', () => {
@@ -617,6 +650,44 @@ describe('settings namespace tools.s3.alert.* renders correctly via Trans', () =
     const html = await renderReal(ObjectAclNotice)
     expect(html).toBe(
       '<strong>Object ACL</strong> — Each uploaded object is set to <code>public-read</code>. Your bucket must not have ACLs disabled (i.e., Object Ownership must be set to <em>ACLs enabled / Bucket owner preferred</em>).'
+    )
+  })
+})
+
+describe('settings namespace fullTextSearch.alert renders correctly via Trans', () => {
+  // Render the REAL exported component from full-text-search.tsx (not a
+  // hand-copied children array) — same rationale as the s3.tsx block above:
+  // a formatter reflow can insert/remove `{' '}` around wrapped JSX text,
+  // which shifts these numbered placeholders' positions.
+  it('alert — <strong> plus three <code>, correct positions', async () => {
+    const { createElement } = await import('react')
+    const { renderToStaticMarkup } = await import('react-dom/server')
+    const { I18nextProvider, initReactI18next } = await import('react-i18next')
+    const i18next = (await import('i18next')).default
+    const { SearchQualityNotice } =
+      await import('@/components/settings/settings-form/full-text-search')
+
+    const i18n = i18next.createInstance()
+    await i18n.use(initReactI18next).init({
+      lng: 'en',
+      resources: { en: { settings } },
+      ns: ['settings'],
+      defaultNS: 'settings',
+      interpolation: { escapeValue: false }
+    })
+
+    const html = renderToStaticMarkup(
+      createElement(
+        I18nextProvider,
+        { i18n },
+        createElement(SearchQualityNotice)
+      )
+    )
+    expect(html).toContain('<code>ik</code>')
+    expect(html).toContain('<code>smartcn</code>')
+    expect(html).toContain('<code>cjk</code>')
+    expect(html).toContain(
+      '<strong>it matches exact text, not &quot;smart&quot; results</strong>'
     )
   })
 })
