@@ -1,5 +1,5 @@
 import { TEST_IDS } from '@shared/constants/test-ids'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
@@ -22,13 +22,6 @@ import { disableLock, setLockConfig, setLockPin } from '@/lib/lock-ipc'
 import { SettingsRow, SettingsSection } from '../settings-row'
 import { SettingsSelect } from '../settings-select'
 
-const IDLE_OPTIONS = [
-  { label: 'Off', value: 0 },
-  { label: '1 minute', value: 60_000 },
-  { label: '5 minutes', value: 300_000 },
-  { label: '15 minutes', value: 900_000 }
-]
-
 function PinBlock({
   label,
   children
@@ -45,13 +38,24 @@ function PinBlock({
 }
 
 export function LockPrivacy() {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation(['common', 'lock'])
   const { status, refresh } = useLock()
   const [step, setStep] = useState<'enter' | 'confirm'>('enter')
   const [pin, setPin] = useState('')
   const [confirm, setConfirm] = useState('')
   const [removing, setRemoving] = useState(false)
   const [removePinValue, setRemovePinValue] = useState('')
+
+  const idleOptions = useMemo(
+    () => [
+      { label: t('lock:privacy.idleOptions.off'), value: 0 },
+      { label: t('lock:privacy.idleOptions.oneMinute'), value: 60_000 },
+      { label: t('lock:privacy.idleOptions.fiveMinutes'), value: 300_000 },
+      { label: t('lock:privacy.idleOptions.fifteenMinutes'), value: 900_000 },
+      { label: t('lock:privacy.idleOptions.thirtyMinutes'), value: 1800_000 }
+    ],
+    [t]
+  )
 
   if (!status) return null
 
@@ -70,35 +74,35 @@ export function LockPrivacy() {
     setConfirm(value)
     if (value.length !== 6) return
     if (value !== pin) {
-      sileo.error({ title: 'PINs do not match' })
+      sileo.error({ title: t('lock:privacy.toast.pinsDoNotMatch') })
       resetEnroll()
       return
     }
     const { ok } = await setLockPin(pin)
     if (!ok) {
       sileo.error({
-        title: 'Could not set PIN',
-        description: 'A PIN already exists.'
+        title: t('lock:privacy.toast.setPinFailed.title'),
+        description: t('lock:privacy.toast.setPinFailed.description')
       })
       resetEnroll()
       return
     }
     resetEnroll()
     await refresh()
-    sileo.success({ title: 'Lock enabled' })
+    sileo.success({ title: t('lock:privacy.toast.lockEnabled') })
   }
 
   const removePin = async () => {
     const ok = await disableLock(removePinValue)
     if (!ok) {
-      sileo.error({ title: 'Incorrect PIN' })
+      sileo.error({ title: t('lock:incorrectPin') })
       setRemovePinValue('')
       return
     }
     setRemoving(false)
     setRemovePinValue('')
     await refresh()
-    sileo.success({ title: 'Lock removed' })
+    sileo.success({ title: t('lock:privacy.toast.lockRemoved') })
   }
 
   const update = async (patch: Parameters<typeof setLockConfig>[0]) => {
@@ -107,15 +111,14 @@ export function LockPrivacy() {
   }
 
   return (
-    <SettingsSection title="Lock & Privacy" plain>
+    <SettingsSection title={t('lock:privacy.title')} plain>
       {!status.hasPin ? (
         <Card className="gap-4 p-5">
           <p className="text-muted-foreground text-sm">
-            Set a 6-digit PIN to lock Exodus. While locked, the UI and the local
-            API are inaccessible, but background tasks keep running.
+            {t('lock:privacy.enroll.description')}
           </p>
           {step === 'enter' ? (
-            <PinBlock label="Enter a 6-digit PIN">
+            <PinBlock label={t('lock:privacy.enroll.enterLabel')}>
               <PinInput
                 key="enter"
                 value={pin}
@@ -125,7 +128,7 @@ export function LockPrivacy() {
               />
             </PinBlock>
           ) : (
-            <PinBlock label="Confirm your PIN">
+            <PinBlock label={t('lock:privacy.enroll.confirmLabel')}>
               <PinInput
                 key="confirm"
                 value={confirm}
@@ -139,7 +142,7 @@ export function LockPrivacy() {
                 onClick={resetEnroll}
                 className="text-muted-foreground h-auto self-start p-0"
               >
-                Start over
+                {t('lock:privacy.enroll.startOver')}
               </Button>
             </PinBlock>
           )}
@@ -148,7 +151,7 @@ export function LockPrivacy() {
         <>
           <SettingsSection>
             {status.touchIdAvailable && (
-              <SettingsRow label="Unlock with Touch ID">
+              <SettingsRow label={t('lock:privacy.touchIdToggleLabel')}>
                 <Switch
                   checked={status.config.touchIdEnabled}
                   onCheckedChange={(v) => update({ touchIdEnabled: v })}
@@ -156,26 +159,26 @@ export function LockPrivacy() {
               </SettingsRow>
             )}
 
-            <SettingsRow label="Auto-lock when idle">
+            <SettingsRow label={t('lock:privacy.autoLockIdle')}>
               <SettingsSelect
                 testId={TEST_IDS.lock.idleSelect}
                 value={String(status.config.idleTimeoutMs)}
                 onValueChange={(v) => update({ idleTimeoutMs: Number(v) })}
-                options={IDLE_OPTIONS.map((o) => ({
+                options={idleOptions.map((o) => ({
                   value: String(o.value),
                   label: o.label
                 }))}
               />
             </SettingsRow>
 
-            <SettingsRow label="Lock on app launch">
+            <SettingsRow label={t('lock:privacy.lockOnLaunch')}>
               <Switch
                 checked={status.config.lockOnLaunch}
                 onCheckedChange={(v) => update({ lockOnLaunch: v })}
               />
             </SettingsRow>
 
-            <SettingsRow label="Lock on system sleep">
+            <SettingsRow label={t('lock:privacy.lockOnSystemSleep')}>
               <Switch
                 checked={status.config.lockOnSystemSleep}
                 onCheckedChange={(v) => update({ lockOnSystemSleep: v })}
@@ -183,8 +186,8 @@ export function LockPrivacy() {
             </SettingsRow>
 
             <SettingsRow
-              label="Remove lock"
-              description="Turn off the app lock. Requires your current PIN."
+              label={t('lock:privacy.removeLock.label')}
+              description={t('lock:privacy.removeLock.description')}
             >
               <Button
                 variant="destructive"
@@ -192,7 +195,7 @@ export function LockPrivacy() {
                 data-testid={TEST_IDS.lock.removeButton}
                 onClick={() => setRemoving(true)}
               >
-                Remove
+                {t('lock:privacy.removeLock.button')}
               </Button>
             </SettingsRow>
           </SettingsSection>
@@ -208,10 +211,11 @@ export function LockPrivacy() {
           >
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Remove lock?</AlertDialogTitle>
+                <AlertDialogTitle>
+                  {t('lock:privacy.removeLock.dialogTitle')}
+                </AlertDialogTitle>
                 <AlertDialogDescription>
-                  Enter your current PIN to confirm. Exodus will no longer
-                  require a PIN to open.
+                  {t('lock:privacy.removeLock.dialogDescription')}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <div className="flex justify-center py-1">
@@ -229,7 +233,7 @@ export function LockPrivacy() {
                   disabled={removePinValue.length !== 6}
                   onClick={removePin}
                 >
-                  Remove lock
+                  {t('lock:privacy.removeLock.confirmButton')}
                 </Button>
               </AlertDialogFooter>
             </AlertDialogContent>

@@ -1,1 +1,44 @@
-{}
+{
+  "incorrectPin": "Incorrect PIN",
+  "screen": {
+    "unlockWithTouchId": "Unlock with Touch ID",
+    "tooManyAttempts": "Too many attempts. Try again in {{seconds}}s."
+  },
+  "privacy": {
+    "title": "Lock & Privacy",
+    "enroll": {
+      "description": "Set a 6-digit PIN to lock Exodus. While locked, the UI and the local API are inaccessible, but background tasks keep running.",
+      "enterLabel": "Enter a 6-digit PIN",
+      "confirmLabel": "Confirm your PIN",
+      "startOver": "Start over"
+    },
+    "idleOptions": {
+      "off": "Off",
+      "oneMinute": "1 minute",
+      "fiveMinutes": "5 minutes",
+      "fifteenMinutes": "15 minutes",
+      "thirtyMinutes": "30 minutes"
+    },
+    "touchIdToggleLabel": "Unlock with Touch ID",
+    "autoLockIdle": "Auto-lock when idle",
+    "lockOnLaunch": "Lock on app launch",
+    "lockOnSystemSleep": "Lock on system sleep",
+    "removeLock": {
+      "label": "Remove lock",
+      "description": "Turn off the app lock. Requires your current PIN.",
+      "button": "Remove",
+      "dialogTitle": "Remove lock?",
+      "dialogDescription": "Enter your current PIN to confirm. Exodus will no longer require a PIN to open.",
+      "confirmButton": "Remove lock"
+    },
+    "toast": {
+      "pinsDoNotMatch": "PINs do not match",
+      "setPinFailed": {
+        "title": "Could not set PIN",
+        "description": "A PIN already exists."
+      },
+      "lockEnabled": "Lock enabled",
+      "lockRemoved": "Lock removed"
+    }
+  }
+}
