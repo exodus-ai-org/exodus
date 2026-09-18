@@ -545,6 +545,17 @@ describe('settings namespace (en)', () => {
       pageOf: 'Page {{page}} of {{totalPages}}'
     })
   })
+
+  it('has the MCP Servers tab keys', () => {
+    expect(settings.mcpServers.serverCard).toMatchObject({
+      toolCount_one: '{{count}} tool',
+      toolCount_other: '{{count}} tools'
+    })
+    expect(settings.mcpServers.toast).toMatchObject({
+      updated: '"{{name}}" updated — reconnecting…',
+      operationFailed: 'Operation failed'
+    })
+  })
 })
 
 describe('settings namespace tools.voice.alert renders correctly via Trans', () => {
@@ -686,6 +697,33 @@ describe('settings namespace fullTextSearch.alert renders correctly via Trans', 
     )
     expect(html).toBe(
       'Exodus&#x27;s built-in search works across all languages, including Chinese, Japanese, and Korean — <strong>it matches exact text, not &quot;smart&quot; results</strong>: no relevance ranking, no typo tolerance, no stemming (searching &quot;run&quot; won&#x27;t find &quot;running&quot;). Configure a self-hosted or cloud Elasticsearch cluster below for better relevance ranking and real word segmentation. This is optional; leave the URL empty to keep using the built-in search. Exodus only reads and writes documents to your cluster&#x27;s index — for real word-level Chinese segmentation (rather than character-level), configure a language-aware analyzer (e.g. <code>ik</code>, <code>smartcn</code>, or the built-in <code>cjk</code>) on your cluster before pointing Exodus at it.'
+    )
+  })
+})
+
+describe('settings namespace mcpServers.intro renders correctly via Trans', () => {
+  it('intro — <a> link at index 2, correct position', async () => {
+    const { createElement } = await import('react')
+    const { renderToStaticMarkup } = await import('react-dom/server')
+    const { I18nextProvider, initReactI18next } = await import('react-i18next')
+    const i18next = (await import('i18next')).default
+    const { McpIntroNotice } =
+      await import('@/components/settings/settings-form/mcp-servers')
+
+    const i18n = i18next.createInstance()
+    await i18n.use(initReactI18next).init({
+      lng: 'en',
+      resources: { en: { settings } },
+      ns: ['settings'],
+      defaultNS: 'settings',
+      interpolation: { escapeValue: false }
+    })
+
+    const html = renderToStaticMarkup(
+      createElement(I18nextProvider, { i18n }, createElement(McpIntroNotice))
+    )
+    expect(html).toBe(
+      'Register <a href="https://modelcontextprotocol.io" target="_blank" rel="noopener noreferrer" class="font-semibold underline">MCP</a> servers (local or remote), then toggle the switch to enable their tools in chat.'
     )
   })
 })

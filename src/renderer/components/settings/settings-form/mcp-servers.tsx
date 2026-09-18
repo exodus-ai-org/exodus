@@ -11,7 +11,7 @@ import {
   XIcon
 } from 'lucide-react'
 import { lazy, Suspense, useCallback, useState } from 'react'
-import { useTranslation } from 'react-i18next'
+import { Trans, useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 import useSWR from 'swr'
 
@@ -73,6 +73,26 @@ function serversToJson(servers: McpServerItem[]): string {
   return JSON.stringify({ mcpServers: obj }, null, 2)
 }
 
+// ─── Intro Notice ────────────────────────────────────────────────────────────
+
+export function McpIntroNotice() {
+  return (
+    <Trans ns="settings" i18nKey="mcpServers.intro">
+      Register{' '}
+      <a
+        href={MCP_HOMEPAGE}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="font-semibold underline"
+      >
+        MCP
+      </a>{' '}
+      servers (local or remote), then toggle the switch to enable their tools in
+      chat.
+    </Trans>
+  )
+}
+
 // ─── Server Card with Tools Preview ─────────────────────────────────────────
 
 function ServerCard({
@@ -88,6 +108,7 @@ function ServerCard({
   onEdit: () => void
   onDelete: () => void
 }) {
+  const { t } = useTranslation('settings')
   const [expanded, setExpanded] = useState(false)
   const isActive = server.isActive ?? false
   const isRemote = server.transportType !== 'stdio'
@@ -105,7 +126,7 @@ function ServerCard({
             <p className="truncate text-sm font-medium">{server.name}</p>
             {tools.length > 0 && (
               <Badge variant="secondary" className="text-[10px]">
-                {tools.length} tool{tools.length > 1 ? 's' : ''}
+                {t('mcpServers.serverCard.toolCount', { count: tools.length })}
               </Badge>
             )}
           </div>
@@ -120,7 +141,7 @@ function ServerCard({
           variant="ghost"
           size="icon"
           className="h-7 w-7"
-          aria-label="Edit server"
+          aria-label={t('mcpServers.serverCard.editAria')}
           onClick={onEdit}
         >
           <PencilIcon className="h-3.5 w-3.5" />
@@ -129,7 +150,7 @@ function ServerCard({
           variant="ghost"
           size="icon"
           className="text-destructive h-7 w-7"
-          aria-label="Delete server"
+          aria-label={t('mcpServers.serverCard.deleteAria')}
           onClick={onDelete}
         >
           <Trash2Icon className="h-3.5 w-3.5" />
@@ -150,7 +171,9 @@ function ServerCard({
             <ChevronDownIcon
               className={`h-3 w-3 transition-transform ${expanded ? '' : '-rotate-90'}`}
             />
-            {expanded ? 'Hide tools' : 'Show tools'}
+            {expanded
+              ? t('mcpServers.serverCard.hideTools')
+              : t('mcpServers.serverCard.showTools')}
           </Button>
           {expanded && (
             <div className="flex flex-col gap-1 px-3 pb-2">
@@ -175,7 +198,7 @@ function ServerCard({
 // ─── Main Component ─────────────────────────────────────────────────────────
 
 export function McpServers() {
-  const { t } = useTranslation('common')
+  const { t } = useTranslation(['common', 'settings'])
   const { data: servers, mutate } = useSWR<McpServerItem[]>(
     '/api/mcp',
     getMcpServers
@@ -259,7 +282,7 @@ export function McpServers() {
         try {
           parsedHeaders = JSON.parse(headersStr)
         } catch {
-          sileo.error({ title: 'Invalid headers JSON' })
+          sileo.error({ title: t('settings:mcpServers.toast.invalidHeaders') })
           setSaving(false)
           return
         }
@@ -275,14 +298,16 @@ export function McpServers() {
             Array.isArray(parsed) ||
             parsed === null
           ) {
-            throw new Error('must be a JSON object')
+            throw new Error(t('settings:mcpServers.toast.mustBeJsonObject'))
           }
           parsedExtraConfig = parsed
         } catch (e) {
           sileo.error({
-            title: 'Invalid Extra Config',
+            title: t('settings:mcpServers.toast.invalidExtraConfig'),
             description:
-              e instanceof Error ? e.message : 'must be a JSON object'
+              e instanceof Error
+                ? e.message
+                : t('settings:mcpServers.toast.mustBeJsonObject')
           })
           setSaving(false)
           return
@@ -307,20 +332,29 @@ export function McpServers() {
 
       if (editing) {
         await updateMcpServerApi(editing.id, data)
-        sileo.success({ title: `"${data.name}" updated — reconnecting…` })
+        sileo.success({
+          title: t('settings:mcpServers.toast.updated', { name: data.name })
+        })
       } else {
         await createMcpServerApi(data)
         sileo.success({
-          title: `"${data.name}" registered`,
-          description: 'Disabled by default'
+          title: t('settings:mcpServers.toast.registered', {
+            name: data.name
+          }),
+          description: t('settings:mcpServers.toast.disabledByDefault')
         })
       }
       await refresh()
       resetForm()
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Operation failed'
+      const msg =
+        e instanceof Error
+          ? e.message
+          : t('settings:mcpServers.toast.operationFailed')
       sileo.error({
-        title: editing ? 'Failed to update server' : 'Failed to register',
+        title: editing
+          ? t('settings:mcpServers.toast.updateFailed')
+          : t('settings:mcpServers.toast.registerFailed'),
         description: msg
       })
     } finally {
@@ -337,22 +371,31 @@ export function McpServers() {
     extraConfigStr,
     editing,
     refresh,
-    resetForm
+    resetForm,
+    t
   ])
 
   const handleDelete = useCallback(
     async (server: McpServerItem) => {
       try {
         await deleteMcpServerApi(server.id)
-        sileo.success({ title: `"${server.name}" removed — connection closed` })
+        sileo.success({
+          title: t('settings:mcpServers.toast.removed', { name: server.name })
+        })
         await refresh()
         if (editing?.id === server.id) resetForm()
       } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Operation failed'
-        sileo.error({ title: 'Failed to remove server', description: msg })
+        const msg =
+          e instanceof Error
+            ? e.message
+            : t('settings:mcpServers.toast.operationFailed')
+        sileo.error({
+          title: t('settings:mcpServers.toast.removeFailed'),
+          description: msg
+        })
       }
     },
-    [editing, refresh, resetForm]
+    [editing, refresh, resetForm, t]
   )
 
   const handleToggle = useCallback(
@@ -362,18 +405,30 @@ export function McpServers() {
         await updateMcpServerApi(server.id, { isActive: enabling })
         await refresh()
         if (enabling) {
-          sileo.success({ title: `"${server.name}" enabled — reconnecting…` })
+          sileo.success({
+            title: t('settings:mcpServers.toast.enabled', {
+              name: server.name
+            })
+          })
         } else {
           sileo.success({
-            title: `"${server.name}" disabled — connection closed`
+            title: t('settings:mcpServers.toast.disabled', {
+              name: server.name
+            })
           })
         }
       } catch (e) {
-        const msg = e instanceof Error ? e.message : 'Operation failed'
-        sileo.error({ title: 'Failed to toggle server', description: msg })
+        const msg =
+          e instanceof Error
+            ? e.message
+            : t('settings:mcpServers.toast.operationFailed')
+        sileo.error({
+          title: t('settings:mcpServers.toast.toggleFailed'),
+          description: msg
+        })
       }
     },
-    [refresh]
+    [refresh, t]
   )
 
   const showForm = isNew || editing !== null
@@ -392,21 +447,17 @@ export function McpServers() {
       <Alert>
         <InfoIcon className="h-4 w-4" />
         <AlertDescription>
-          Register{' '}
-          <a
-            href={MCP_HOMEPAGE}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-semibold underline"
-          >
-            MCP
-          </a>{' '}
-          servers (local or remote), then toggle the switch to enable their
-          tools in chat.
+          <McpIntroNotice />
           {activeCount > 0 && (
             <span className="ml-1">
-              Currently <strong>{totalToolCount} tools</strong> from{' '}
-              <strong>{activeCount} servers</strong> active.
+              <Trans
+                ns="settings"
+                i18nKey="mcpServers.activeSummary"
+                values={{ totalToolCount, activeCount }}
+              >
+                Currently <strong>{totalToolCount} tools</strong> from{' '}
+                <strong>{activeCount} servers</strong> active.
+              </Trans>
             </span>
           )}
         </AlertDescription>
@@ -415,10 +466,10 @@ export function McpServers() {
       <Tabs defaultValue="form">
         <TabsList className="w-full">
           <TabsTrigger value="form" className="flex-1">
-            Servers
+            {t('settings:mcpServers.tabs.servers')}
           </TabsTrigger>
           <TabsTrigger value="json" className="flex-1">
-            JSON
+            {t('settings:mcpServers.tabs.json')}
           </TabsTrigger>
         </TabsList>
 
@@ -427,7 +478,7 @@ export function McpServers() {
           <SettingsSection plain>
             {list.length === 0 && !showForm && (
               <p className="text-muted-foreground py-8 text-center text-sm">
-                No MCP servers configured yet.
+                {t('settings:mcpServers.empty')}
               </p>
             )}
 
@@ -446,8 +497,10 @@ export function McpServers() {
             {showForm && (
               <div className="flex flex-col gap-3 rounded-lg border p-4">
                 <SettingsRow
-                  label="Transport"
-                  description="How to connect to the MCP server"
+                  label={t('settings:mcpServers.form.transport.label')}
+                  description={t(
+                    'settings:mcpServers.form.transport.description'
+                  )}
                   layout="vertical"
                 >
                   <SettingsSelect
@@ -456,19 +509,31 @@ export function McpServers() {
                       setTransportType(v as McpTransportType)
                     }
                     options={[
-                      { value: 'stdio', label: 'Stdio (Local Command)' },
+                      {
+                        value: 'stdio',
+                        label: t(
+                          'settings:mcpServers.form.transport.options.stdio'
+                        )
+                      },
                       {
                         value: 'streamable-http',
-                        label: 'Streamable HTTP (Remote)'
+                        label: t(
+                          'settings:mcpServers.form.transport.options.streamableHttp'
+                        )
                       },
-                      { value: 'sse', label: 'SSE (Remote Legacy)' }
+                      {
+                        value: 'sse',
+                        label: t(
+                          'settings:mcpServers.form.transport.options.sse'
+                        )
+                      }
                     ]}
                   />
                 </SettingsRow>
 
                 <SettingsRow
-                  label="Name"
-                  description="A unique identifier for this server"
+                  label={t('settings:mcpServers.form.name.label')}
+                  description={t('settings:mcpServers.form.name.description')}
                   layout="vertical"
                 >
                   <Input
@@ -481,8 +546,10 @@ export function McpServers() {
                 {transportType === 'stdio' ? (
                   <>
                     <SettingsRow
-                      label="Command"
-                      description="The executable command to start the MCP server"
+                      label={t('settings:mcpServers.form.command.label')}
+                      description={t(
+                        'settings:mcpServers.form.command.description'
+                      )}
                       layout="vertical"
                     >
                       <Input
@@ -492,8 +559,10 @@ export function McpServers() {
                       />
                     </SettingsRow>
                     <SettingsRow
-                      label="Args"
-                      description="Command arguments, one per row. Order matters."
+                      label={t('settings:mcpServers.form.args.label')}
+                      description={t(
+                        'settings:mcpServers.form.args.description'
+                      )}
                       layout="vertical"
                     >
                       <div className="flex flex-col gap-2">
@@ -523,7 +592,10 @@ export function McpServers() {
                                   prev.filter((_, j) => j !== i)
                                 )
                               }
-                              aria-label={`Remove argument ${i + 1}`}
+                              aria-label={t(
+                                'settings:mcpServers.form.args.removeAria',
+                                { index: i + 1 }
+                              )}
                             >
                               <XIcon className="h-4 w-4" />
                             </Button>
@@ -536,7 +608,7 @@ export function McpServers() {
                           onClick={() => setArgs((prev) => [...prev, ''])}
                         >
                           <PlusIcon className="h-3.5 w-3.5" />
-                          Add argument
+                          {t('settings:mcpServers.form.args.addButton')}
                         </Button>
                       </div>
                     </SettingsRow>
@@ -544,8 +616,13 @@ export function McpServers() {
                 ) : (
                   <>
                     <SettingsRow
-                      label="URL"
-                      description={`The ${transportType === 'sse' ? 'SSE' : 'HTTP'} endpoint URL of the remote server`}
+                      label={t('settings:mcpServers.form.url.label')}
+                      description={t(
+                        'settings:mcpServers.form.url.description',
+                        {
+                          protocol: transportType === 'sse' ? 'SSE' : 'HTTP'
+                        }
+                      )}
                       layout="vertical"
                     >
                       <Input
@@ -555,8 +632,10 @@ export function McpServers() {
                       />
                     </SettingsRow>
                     <SettingsRow
-                      label="Headers"
-                      description='Optional auth/custom headers as JSON, e.g. {"Authorization":"Bearer ..."}'
+                      label={t('settings:mcpServers.form.headers.label')}
+                      description={t(
+                        'settings:mcpServers.form.headers.description'
+                      )}
                       layout="vertical"
                     >
                       <Input
@@ -570,20 +649,26 @@ export function McpServers() {
                 )}
 
                 <SettingsRow
-                  label="Description"
-                  description="Optional notes about this server"
+                  label={t('settings:mcpServers.form.description.label')}
+                  description={t(
+                    'settings:mcpServers.form.description.description'
+                  )}
                   layout="vertical"
                 >
                   <Input
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    placeholder="Optional"
+                    placeholder={t(
+                      'settings:mcpServers.form.description.placeholder'
+                    )}
                   />
                 </SettingsRow>
 
                 <SettingsRow
-                  label="Extra Config"
-                  description="Additional fields merged into the JSON export (e.g. oauth, custom auth). Must be a valid JSON object."
+                  label={t('settings:mcpServers.form.extraConfig.label')}
+                  description={t(
+                    'settings:mcpServers.form.extraConfig.description'
+                  )}
                   layout="vertical"
                 >
                   <div className="border-border overflow-hidden rounded-md border">
@@ -628,7 +713,9 @@ export function McpServers() {
                     {saving && (
                       <Loader2Icon className="mr-1 h-3.5 w-3.5 animate-spin" />
                     )}
-                    {editing ? 'Update' : 'Register'}
+                    {editing
+                      ? t('settings:mcpServers.form.updateButton')
+                      : t('settings:mcpServers.form.registerButton')}
                   </Button>
                 </div>
               </div>
@@ -638,7 +725,7 @@ export function McpServers() {
               <div className="flex justify-end">
                 <Button variant="outline" size="sm" onClick={startNew}>
                   <PlusIcon className="mr-1 h-3.5 w-3.5" />
-                  Add Server
+                  {t('settings:mcpServers.form.addServerButton')}
                 </Button>
               </div>
             )}
@@ -649,8 +736,7 @@ export function McpServers() {
         <TabsContent value="json" className="mt-4">
           <div className="flex flex-col gap-2">
             <p className="text-muted-foreground text-xs">
-              Read-only view of current configuration. Use the Servers tab to
-              make changes.
+              {t('settings:mcpServers.json.description')}
             </p>
             <div className="border-border overflow-hidden rounded-lg border">
               <Suspense

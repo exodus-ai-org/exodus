@@ -538,5 +538,86 @@
       "prev": "Prev",
       "next": "Next"
     }
+  },
+  "mcpServers": {
+    "serverCard": {
+      "toolCount_one": "{{count}} tool",
+      "toolCount_other": "{{count}} tools",
+      "editAria": "Edit server",
+      "deleteAria": "Delete server",
+      "showTools": "Show tools",
+      "hideTools": "Hide tools"
+    },
+    "intro": "Register <2>MCP</2> servers (local or remote), then toggle the switch to enable their tools in chat.",
+    "activeSummary": "Currently <strong>{{totalToolCount}} tools</strong> from <strong>{{activeCount}} servers</strong> active.",
+    "tabs": {
+      "servers": "Servers",
+      "json": "JSON"
+    },
+    "empty": "No MCP servers configured yet.",
+    "form": {
+      "transport": {
+        "label": "Transport",
+        "description": "How to connect to the MCP server",
+        "options": {
+          "stdio": "Stdio (Local Command)",
+          "streamableHttp": "Streamable HTTP (Remote)",
+          "sse": "SSE (Remote Legacy)"
+        }
+      },
+      "name": {
+        "label": "Name",
+        "description": "A unique identifier for this server"
+      },
+      "command": {
+        "label": "Command",
+        "description": "The executable command to start the MCP server"
+      },
+      "args": {
+        "label": "Args",
+        "description": "Command arguments, one per row. Order matters.",
+        "addButton": "Add argument",
+        "removeAria": "Remove argument {{index}}"
+      },
+      "url": {
+        "label": "URL",
+        "description": "The {{protocol}} endpoint URL of the remote server"
+      },
+      "headers": {
+        "label": "Headers",
+        "description": "Optional auth/custom headers as JSON, e.g. {\"Authorization\":\"Bearer ...\"}"
+      },
+      "description": {
+        "label": "Description",
+        "description": "Optional notes about this server",
+        "placeholder": "Optional"
+      },
+      "extraConfig": {
+        "label": "Extra Config",
+        "description": "Additional fields merged into the JSON export (e.g. oauth, custom auth). Must be a valid JSON object."
+      },
+      "updateButton": "Update",
+      "registerButton": "Register",
+      "addServerButton": "Add Server"
+    },
+    "json": {
+      "description": "Read-only view of current configuration. Use the Servers tab to make changes."
+    },
+    "toast": {
+      "invalidHeaders": "Invalid headers JSON",
+      "invalidExtraConfig": "Invalid Extra Config",
+      "mustBeJsonObject": "must be a JSON object",
+      "updated": "\"{{name}}\" updated — reconnecting…",
+      "registered": "\"{{name}}\" registered",
+      "disabledByDefault": "Disabled by default",
+      "removed": "\"{{name}}\" removed — connection closed",
+      "enabled": "\"{{name}}\" enabled — reconnecting…",
+      "disabled": "\"{{name}}\" disabled — connection closed",
+      "updateFailed": "Failed to update server",
+      "registerFailed": "Failed to register",
+      "removeFailed": "Failed to remove server",
+      "toggleFailed": "Failed to toggle server",
+      "operationFailed": "Operation failed"
+    }
   }
 }
