@@ -1,1 +1,21 @@
-{}
+{
+  "player": {
+    "stop": "Interrompi",
+    "readAloud": "Leggi ad alta voce"
+  },
+  "recorder": {
+    "stopRecording": "Interrompi registrazione",
+    "dictate": "Detta",
+    "toast": {
+      "micErrorTitle": "Errore del microfono",
+      "micErrorFallback": "Impossibile accedere al microfono."
+    }
+  },
+  "hook": {
+    "toast": {
+      "audioErrorTitle": "Errore audio",
+      "transcriptionFailedTitle": "Trascrizione non riuscita",
+      "genericErrorFallback": "Si è verificato un errore, riprovi!"
+    }
+  }
+}

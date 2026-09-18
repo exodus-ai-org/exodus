@@ -1,1 +1,19 @@
-{}
+{
+  "file": "File",
+  "lockNow": "Blocca ora",
+  "edit": "Modifica",
+  "find": "Trova",
+  "speech": "Voce",
+  "view": "Visualizza",
+  "window": "Finestra",
+  "learnMore": "Scopri di più",
+  "tray": {
+    "showApp": "Mostra app",
+    "hideApp": "Nascondi app",
+    "quitExodus": "Esci da Exodus"
+  },
+  "notification": {
+    "philharmonicGroupError": "Il gruppo \"{{title}}\" ha riscontrato un errore",
+    "philharmonicGroupFinished": "Il gruppo \"{{title}}\" ha terminato"
+  }
+}

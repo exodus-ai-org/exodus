@@ -1,1 +1,695 @@
-{}
+{
+  "general": {
+    "language": {
+      "label": "Lingua",
+      "description": "La lingua in cui è visualizzata l'interfaccia di Exodus.",
+      "auto": "Automatica (rileva dal sistema)"
+    },
+    "theme": {
+      "label": "Tema",
+      "description": "Scegli chiaro, scuro, oppure segui la preferenza del sistema",
+      "system": "Sistema",
+      "light": "Chiaro",
+      "dark": "Scuro"
+    },
+    "runOnStartup": {
+      "label": "Esegui all'avvio",
+      "description": "Avvia automaticamente Exodus quando accedi"
+    },
+    "menuBar": {
+      "label": "Barra dei menu",
+      "description": "Mostra Exodus nella barra dei menu"
+    }
+  },
+  "nav": {
+    "profile": { "title": "Profilo" },
+    "general": { "title": "Generale" },
+    "personality": { "title": "Personalità" },
+    "aiProviders": { "title": "Provider AI" },
+    "amazonS3": { "title": "AWS S3" },
+    "mcpServers": { "title": "Server MCP" },
+    "skillsMarket": { "title": "Mercato delle skill" },
+    "fullTextSearch": { "title": "Ricerca full text" },
+    "knowledgeBase": { "title": "Knowledge Base" },
+    "builtinTools": { "title": "Strumenti integrati" },
+    "memory": { "title": "Memoria" },
+    "discover": { "title": "Discover" },
+    "voice": { "title": "Voce" },
+    "deepResearch": { "title": "Ricerca approfondita" },
+    "computerUse": { "title": "Computer Use" },
+    "dataControls": { "title": "Controlli sui dati" },
+    "logger": { "title": "Logger" },
+    "keyboardShortcuts": { "title": "Scorciatoie da tastiera" },
+    "about": { "title": "Informazioni su Exodus" },
+    "group": {
+      "personal": "Personale",
+      "aiTools": "AI e strumenti",
+      "integrations": "Integrazioni",
+      "storage": "Archiviazione",
+      "developer": "Sviluppatore"
+    }
+  },
+  "common": {
+    "searchPlaceholder": "Cerca nelle impostazioni…",
+    "backToApp": "Torna all'app"
+  },
+  "keyboardShortcuts": {
+    "category": {
+      "general": "Generale",
+      "chat": "Chat",
+      "search": "Ricerca"
+    },
+    "shortcuts": {
+      "new-chat": { "label": "Nuova chat" },
+      "open-settings": { "label": "Apri impostazioni" },
+      "toggle-sidebar": { "label": "Mostra/nascondi barra laterale" },
+      "toggle-developer-tools": {
+        "label": "Mostra/nascondi strumenti sviluppatore"
+      },
+      "force-refresh-page": { "label": "Forza ricaricamento pagina" },
+      "find-in-page": { "label": "Trova nella pagina" },
+      "search-chat-history": { "label": "Cerca nella cronologia chat" },
+      "close-find-bar": { "label": "Chiudi barra di ricerca" },
+      "close-tab": { "label": "Chiudi scheda corrente" },
+      "focus-chat-input": { "label": "Metti a fuoco il campo di chat" },
+      "send-message": { "label": "Invia messaggio" },
+      "new-line": { "label": "Nuova riga" }
+    }
+  },
+  "about": {
+    "version": "Versione",
+    "electron": "Electron",
+    "chromium": "Chromium",
+    "node": "Node.js",
+    "v8": "V8",
+    "os": "Sistema operativo",
+    "github": "GitHub",
+    "twitter": "X (Twitter)",
+    "website": "Sito web",
+    "license": "Licenza",
+    "autoUpdate": {
+      "label": "Aggiornamento automatico",
+      "description": "Scarica e installa automaticamente gli aggiornamenti quando disponibili"
+    },
+    "update": {
+      "checkPrompt": "Verifica la disponibilità dell'ultima versione",
+      "checkButton": "Verifica aggiornamenti",
+      "checking": "Verifica degli aggiornamenti…",
+      "upToDate": "Stai usando l'ultima versione",
+      "checkAgain": "Verifica di nuovo",
+      "available": "Aggiornamento disponibile",
+      "availableVersion": "Versione {{version}}",
+      "download": "Scarica",
+      "downloading": "Download dell'aggiornamento in corso…",
+      "ready": "Aggiornamento pronto per l'installazione",
+      "readyDescription": "Riavvia per applicare l'aggiornamento",
+      "restartAndInstall": "Riavvia e installa",
+      "failed": "Aggiornamento non riuscito"
+    }
+  },
+  "personality": {
+    "baseStyle": {
+      "label": "Stile e tono di base",
+      "description": "Imposta lo stile e il tono con cui Exodus ti risponde",
+      "options": {
+        "default": "Predefinito",
+        "professional": "Professionale",
+        "friendly": "Amichevole",
+        "candid": "Schietto",
+        "quirky": "Eccentrico",
+        "efficient": "Efficiente",
+        "cynical": "Cinico"
+      }
+    },
+    "level": {
+      "default": "Predefinito",
+      "more": "Di più",
+      "less": "Di meno"
+    },
+    "warm": "Caloroso",
+    "enthusiastic": "Entusiasta",
+    "headersAndLists": "Intestazioni ed elenchi",
+    "emoji": "Emoji",
+    "customInstructions": {
+      "label": "Istruzioni personalizzate",
+      "placeholder": "Ulteriori preferenze di comportamento, stile e tono"
+    },
+    "nickname": {
+      "label": "Soprannome",
+      "placeholder": "Come dovrebbe chiamarti Exodus?"
+    },
+    "occupation": {
+      "label": "Occupazione",
+      "placeholder": "es. Ingegnere del software, Designer"
+    },
+    "aboutYou": {
+      "label": "Altro su di te",
+      "placeholder": "Interessi, valori o preferenze da tenere presenti"
+    }
+  },
+  "profile": {
+    "stats": {
+      "lifetimeTokens": "Token totali",
+      "peakDay": "Giorno di picco",
+      "currentStreak": "Serie attuale",
+      "longestStreak": "Serie più lunga"
+    },
+    "activity": {
+      "heading": "Attività dei token",
+      "mode": {
+        "daily": "Giornaliera",
+        "cumulative": "Cumulativa"
+      },
+      "cellTooltip": "{{date}} · {{tokens}} token"
+    },
+    "insights": {
+      "sectionTitle": "Statistiche sull'attività",
+      "totalChats": "Chat totali",
+      "modelRequests": "Richieste al modello",
+      "installedSkills": "Skill installate",
+      "activeSkills": "Skill attive"
+    },
+    "topModels": {
+      "sectionTitle": "Modelli principali",
+      "empty": "Nessun utilizzo di modelli ancora"
+    },
+    "avatar": {
+      "uploadLabel": "Carica il tuo avatar",
+      "alt": "Il tuo avatar"
+    }
+  },
+  "providers": {
+    "config": {
+      "label": "Provider",
+      "description": "Il provider AI da usare per la chat",
+      "placeholder": "Seleziona un provider"
+    },
+    "keys": {
+      "sectionTitle": "Chiavi del provider"
+    },
+    "fields": {
+      "apiKey": {
+        "label": "Chiave API",
+        "description": "La tua chiave API {{provider}}"
+      },
+      "baseUrl": {
+        "label": "URL di base",
+        "description": "Endpoint API personalizzato. Lascia vuoto per usare quello predefinito"
+      }
+    },
+    "azure": {
+      "endpoint": {
+        "label": "Endpoint",
+        "description": "L'URL dell'endpoint della tua risorsa Azure OpenAI"
+      },
+      "apiVersion": {
+        "label": "Versione API",
+        "description": "Stringa della versione API di Azure OpenAI"
+      },
+      "model": {
+        "label": "Modello",
+        "description": "Il nome del deployment Azure da usare"
+      }
+    },
+    "ollama": {
+      "baseUrl": {
+        "label": "URL di base",
+        "description": "Indirizzo del server Ollama per l'inferenza dei modelli locali"
+      },
+      "status": {
+        "label": "Stato",
+        "description": "Stato della connessione al server Ollama",
+        "running": "Ollama è in esecuzione",
+        "notRunning": "Non in esecuzione"
+      }
+    },
+    "model": {
+      "label": "Modello",
+      "description": "Il modello usato per questo provider",
+      "searchPlaceholder": "Cerca modelli…",
+      "noModelsFound": "Nessun modello trovato.",
+      "refreshHint": "Aggiorna per vedere tutti i modelli disponibili.",
+      "staleWarning": "\"{{model}}\" non è più offerto da questo provider — scegli un modello attuale.",
+      "retrieving": "Recupero in corso…",
+      "refreshing": "Aggiornamento in corso…",
+      "retrieve": "Recupera elenco modelli",
+      "refresh": "Aggiorna elenco modelli",
+      "fetchErrorTitle": "Impossibile recuperare l'elenco dei modelli",
+      "fetchErrorFallback": "Recupero dell'elenco dei modelli non riuscito"
+    }
+  },
+  "tools": {
+    "groups": {
+      "web": "Web",
+      "fileSystem": "File system",
+      "aiData": "AI e dati",
+      "maps": "Mappe"
+    },
+    "registry": {
+      "weather": {
+        "label": "Meteo",
+        "description": "Consulta il meteo attuale e le previsioni per una località"
+      },
+      "webSearch": {
+        "label": "Ricerca web",
+        "description": "Cerca sul web tramite l'API di Brave Search (richiede una chiave API)"
+      },
+      "webFetch": {
+        "label": "Recupero web",
+        "description": "Recupera il contenuto di un URL (documentazione, API, file GitHub)"
+      },
+      "terminal": {
+        "label": "Terminale",
+        "description": "Esegui comandi shell sul tuo computer"
+      },
+      "readFile": {
+        "label": "Leggi file",
+        "description": "Leggi il contenuto di un file tramite il percorso"
+      },
+      "writeFile": {
+        "label": "Scrivi file",
+        "description": "Crea o sovrascrivi file"
+      },
+      "editFile": {
+        "label": "Modifica file",
+        "description": "Sostituzione mirata di stringhe nei file esistenti"
+      },
+      "listDirectory": {
+        "label": "Elenca directory",
+        "description": "Elenca file e cartelle in una directory"
+      },
+      "findFiles": {
+        "label": "Trova file",
+        "description": "Cerca file tramite pattern glob"
+      },
+      "grep": {
+        "label": "Grep",
+        "description": "Cerca il contenuto dei file tramite pattern regex"
+      },
+      "imageGeneration": {
+        "label": "Generazione immagini",
+        "description": "Genera immagini tramite DALL-E (richiede una chiave API OpenAI)"
+      },
+      "searchKnowledgeBase": {
+        "label": "Knowledge Base",
+        "description": "Recupera contesto dalla tua knowledge base (richiede un URL LightRAG configurato)"
+      },
+      "mapItinerary": {
+        "label": "Itinerario mappa",
+        "description": "Visualizza luoghi, percorsi e viaggi di più giorni in un'unica scheda mappa interattiva"
+      }
+    },
+    "googleMaps": {
+      "apiKey": {
+        "label": "Chiave API di Google",
+        "description": "Alimenta Maps Routing (indicazioni punto a punto) e Places (ricerca di località). Ottienila dalla console di Google Cloud.",
+        "placeholder": "Inserisci la tua chiave API di Google"
+      }
+    },
+    "imageGeneration": {
+      "model": {
+        "label": "Modello",
+        "description": "Solo OpenAI — usa la tua chiave API OpenAI configurata.",
+        "placeholder": "Seleziona un modello"
+      },
+      "size": {
+        "label": "Dimensione",
+        "description": "Le dimensioni dell'immagine generata."
+      },
+      "quality": {
+        "label": "Qualità",
+        "description": "Il livello di qualità dell'immagine generata."
+      },
+      "outputFormat": {
+        "label": "Formato di output",
+        "description": "Se lo sfondo è trasparente, il formato di output deve essere impostato su png (predefinito) o webp."
+      },
+      "generatedCounts": {
+        "label": "Numero generato",
+        "description": "Il numero di immagini da generare. Deve essere compreso tra 1 e 10."
+      },
+      "background": {
+        "label": "Sfondo",
+        "description": "Imposta lo stile dello sfondo per l'immagine generata."
+      }
+    },
+    "webSearch": {
+      "apiKey": {
+        "label": "Chiave API di Brave Search",
+        "description": "Richiesta per la ricerca web. Ottieni la tua su api-dashboard.search.brave.com"
+      },
+      "country": {
+        "label": "Paese",
+        "description": "Orienta i risultati verso una regione specifica",
+        "placeholder": "Seleziona un paese...",
+        "empty": "Nessun paese trovato."
+      },
+      "languages": {
+        "label": "Lingue",
+        "description": "Filtra i risultati di ricerca per lingua",
+        "placeholder": "Cerca lingue...",
+        "empty": "Nessuna lingua trovata."
+      },
+      "maxResults": {
+        "label": "Risultati massimi",
+        "description": "Numero di risultati di ricerca per query (1-50). Predefinito: 10."
+      },
+      "deepRecall": {
+        "label": "Recall approfondito",
+        "description": "Esegue una seconda ricerca web più ampia insieme alla chiamata di grounding e unisce i risultati aggiuntivi — forum, notizie e pagine che il filtro di grounding scarta. Recall più alto, circa il doppio dell'utilizzo dell'API Brave per ricerca."
+      },
+      "recency": {
+        "label": "Filtro di recenza",
+        "description": "Restituisce solo risultati di un periodo di tempo recente.",
+        "options": {
+          "none": "Nessun filtro",
+          "hour": "Ultima ora",
+          "day": "Ultime 24 ore",
+          "week": "Ultima settimana",
+          "month": "Ultimo mese",
+          "year": "Ultimo anno"
+        }
+      },
+      "domainFilter": {
+        "label": "Filtro dominio",
+        "description": "Separati da virgola. Anteponi - per escludere. Es. \"nature.com, .edu\" oppure \"-reddit.com\""
+      }
+    },
+    "voice": {
+      "alert": "I servizi Text-to-Speech e Speech-to-Text <strong>supportano solo OpenAI</strong>. Assicurati di aver configurato correttamente l'impostazione dell'API OpenAI prima di usare queste funzionalità.",
+      "speechToTextModel": {
+        "label": "Modello Speech to Text",
+        "description": "Trascrive l'audio in ingresso in testo"
+      },
+      "textToSpeechModel": {
+        "label": "Modello Text to Speech",
+        "description": "Genera audio parlato dalle risposte testuali. gpt-4o-mini-tts supporta istruzioni su tono e stile."
+      },
+      "textToSpeechVoice": {
+        "label": "Voce Text to Speech",
+        "description": "Persona vocale per il parlato generato"
+      },
+      "outputFormat": {
+        "label": "Formato di output",
+        "description": "Formato audio per il parlato generato"
+      },
+      "speed": {
+        "label": "Velocità",
+        "description": "Velocità di riproduzione (0,25 – 4,0, predefinita 1,0)"
+      },
+      "instructions": {
+        "label": "Istruzioni per la voce",
+        "description": "Istruzioni in linguaggio naturale per controllare tono, emozione e stile (solo gpt-4o-mini-tts)",
+        "placeholder": "es. Parla con un tono caldo e amichevole, con un leggero accento britannico"
+      }
+    },
+    "s3": {
+      "alert": {
+        "encoding": "Per impostazione predefinita, Exodus codifica gli allegati come <strong>base64</strong> inline nel prompt. Per file di grandi dimensioni o flussi di lavoro incentrati sulla visione, caricare su S3 e passare un URL è più efficiente e affidabile.",
+        "requirementsHeading": "<strong>Requisiti prima della configurazione:</strong>",
+        "publicReadAccess": "<strong>Accesso pubblico in lettura</strong> — AWS blocca l'accesso pubblico per impostazione predefinita. Devi disabilitare \"Blocca tutto l'accesso pubblico\" sul bucket e collegare una policy del bucket che conceda <2>s3:GetObject</2> a <4>*</4>, in modo che il provider AI possa recuperare l'URL senza credenziali.",
+        "cors": "<strong>CORS</strong> — Aggiungi una regola CORS che consenta <2>PUT</2> da <5>*</5> (o dall'origine della tua app), in modo che Exodus possa caricare direttamente dal desktop.",
+        "iamCredentials": "<strong>Credenziali IAM</strong> — L'Access Key ID / Secret Access Key deve appartenere a un utente o ruolo IAM con almeno le autorizzazioni <2>s3:PutObject</2> e <5>s3:PutObjectAcl</5> sul bucket configurato.",
+        "objectAcl": "<strong>ACL dell'oggetto</strong> — Ogni oggetto caricato viene impostato su <3>public-read</3>. Il tuo bucket non deve avere le ACL disabilitate (ovvero, Object Ownership deve essere impostato su <6>ACL abilitate / Proprietario del bucket preferito</6>)."
+      },
+      "region": {
+        "label": "Regione",
+        "description": "La regione AWS in cui è ospitato il tuo bucket S3."
+      },
+      "bucket": {
+        "label": "Bucket",
+        "description": "Il nome del tuo bucket S3 per il caricamento dei file.",
+        "placeholder": "Il tuo bucket S3"
+      },
+      "accessKeyId": {
+        "label": "Access Key ID",
+        "description": "L'ID della chiave di accesso IAM con autorizzazioni di scrittura su S3."
+      },
+      "secretAccessKey": {
+        "label": "Secret Access Key",
+        "description": "La chiave di accesso segreta IAM abbinata all'ID della chiave di accesso sopra."
+      }
+    }
+  },
+  "dataControls": {
+    "autoBackup": {
+      "label": "Backup automatici",
+      "description": "Esegue il backup dei tuoi dati ogni giorno alle 3:00. I backup vengono salvati localmente in ~/.exodus/backups/."
+    },
+    "lastBackup": {
+      "label": "Ultimo backup",
+      "none": "Nessun backup ancora"
+    },
+    "backupNow": {
+      "button": "Esegui backup ora",
+      "successToast": "Backup creato",
+      "errorToast": "Backup non riuscito"
+    },
+    "recentBackups": {
+      "label": "Backup recenti",
+      "description_one": "{{count}} backup salvato",
+      "description_other": "{{count}} backup salvati"
+    },
+    "export": {
+      "label": "Esporta dati",
+      "description": "Scarica una copia portatile delle tue conversazioni, impostazioni e altri dati come archivio ZIP.",
+      "button": "Esporta"
+    },
+    "import": {
+      "label": "Importa dati",
+      "description": "Ripristina da un archivio ZIP esportato in precedenza. Questo sostituirà tutti i dati esistenti.",
+      "button": "Importa",
+      "dialogDescription": "Seleziona un file ZIP esportato in precedenza. Questo sostituirà tutte le conversazioni e i dati esistenti. Prima dell'importazione verrà creato automaticamente un backup.",
+      "confirmButton": "Sostituisci e importa"
+    },
+    "delete": {
+      "label": "Elimina tutti i dati",
+      "description": "Cancella definitivamente tutte le conversazioni, le memorie e i dati di ricerca. Le tue impostazioni saranno conservate.",
+      "dialogDescription": "Questo eliminerà definitivamente tutte le tue conversazioni, memorie, dati di ricerca e documenti caricati. Le tue impostazioni e chiavi API saranno conservate. Prima dell'eliminazione verrà creato un backup.",
+      "confirmPrompt": "Digita <strong>DELETE</strong> per confermare:",
+      "confirmButton": "Elimina tutto"
+    }
+  },
+  "fullTextSearch": {
+    "alert": "La ricerca integrata di Exodus funziona con tutte le lingue, incluse cinese, giapponese e coreano — <strong>trova corrispondenze di testo esatte, non risultati \"intelligenti\"</strong>: nessuna classificazione per rilevanza, nessuna tolleranza per gli errori di battitura, nessuno stemming (cercare \"corri\" non troverà \"correndo\"). Configura qui sotto un cluster Elasticsearch self-hosted o cloud per una migliore classificazione per rilevanza e una segmentazione reale delle parole. Questo è facoltativo; lascia l'URL vuoto per continuare a usare la ricerca integrata. Exodus legge e scrive solo documenti nell'indice del tuo cluster — per una segmentazione cinese reale a livello di parola (anziché di carattere), configura un analizzatore linguistico dedicato (es. <4>ik</4>, <6>smartcn</6>, oppure quello integrato <9>cjk</9>) sul tuo cluster prima di puntarci Exodus.",
+    "url": {
+      "label": "URL di Elasticsearch",
+      "description": "Lascia vuoto per usare la ricerca full text integrata basata su PGlite."
+    },
+    "username": {
+      "label": "Nome utente"
+    },
+    "password": {
+      "label": "Password"
+    },
+    "optionalSecurityHint": "Facoltativo — richiesto solo se il tuo cluster ha la sicurezza abilitata.",
+    "indexName": {
+      "label": "Nome indice",
+      "description": "Il valore predefinito è \"exodus-messages\" se lasciato vuoto."
+    },
+    "connection": {
+      "label": "Connessione",
+      "description": "Verifica la connettività, oppure reindicizza tutta la cronologia chat esistente in Elasticsearch.",
+      "testButton": "Verifica connessione",
+      "testingLabel": "Verifica in corso...",
+      "reindexButton": "Reindicizza cronologia",
+      "reindexingLabel": "Reindicizzazione in corso..."
+    },
+    "toast": {
+      "connected": "Connesso a Elasticsearch",
+      "connectFailed": "Connessione a Elasticsearch non riuscita",
+      "reindexed_one": "Reindicizzato {{count}} messaggio",
+      "reindexed_other": "Reindicizzati {{count}} messaggi",
+      "reindexFailed": "Reindicizzazione dei messaggi non riuscita"
+    }
+  },
+  "logger": {
+    "filters": {
+      "allLevels": "Tutti",
+      "allScopes": "Tutti",
+      "datePlaceholder": "Data",
+      "levelPlaceholder": "Livello",
+      "scopePlaceholder": "Ambito",
+      "keywordPlaceholder": "Cerca parola chiave...",
+      "traceChip": "trace {{id}}"
+    },
+    "actions": {
+      "openDirectory": "Apri directory",
+      "export": "Esporta",
+      "clearAll": "Cancella tutto",
+      "clearAllConfirm": "Sei sicuro di voler eliminare tutti i file di log?"
+    },
+    "toast": {
+      "exported": "Log esportati",
+      "exportFailed": "Esportazione non riuscita",
+      "cleared": "Tutti i log cancellati",
+      "clearFailed": "Impossibile cancellare i log"
+    },
+    "table": {
+      "time": "Ora",
+      "level": "Livello",
+      "scope": "Ambito",
+      "message": "Messaggio",
+      "trace": "Trace",
+      "empty": "Nessuna voce di log trovata."
+    },
+    "pagination": {
+      "total_one": "{{count}} voce totale",
+      "total_other": "{{count}} voci totali",
+      "pageOf": "Pagina {{page}} di {{totalPages}}",
+      "prev": "Prec",
+      "next": "Succ"
+    }
+  },
+  "mcpServers": {
+    "serverCard": {
+      "toolCount_one": "{{count}} strumento",
+      "toolCount_other": "{{count}} strumenti",
+      "editAria": "Modifica server",
+      "deleteAria": "Elimina server",
+      "showTools": "Mostra strumenti",
+      "hideTools": "Nascondi strumenti"
+    },
+    "intro": "Registra server <2>MCP</2> (locali o remoti), poi attiva l'interruttore per abilitare i loro strumenti nella chat.",
+    "activeSummary": "Attualmente <strong>{{totalToolCount}} strumenti</strong> attivi da <strong>{{activeCount}} server</strong>.",
+    "tabs": {
+      "servers": "Server",
+      "json": "JSON"
+    },
+    "empty": "Nessun server MCP configurato ancora.",
+    "form": {
+      "transport": {
+        "label": "Trasporto",
+        "description": "Come connettersi al server MCP",
+        "options": {
+          "stdio": "Stdio (comando locale)",
+          "streamableHttp": "Streamable HTTP (remoto)",
+          "sse": "SSE (remoto, legacy)"
+        }
+      },
+      "name": {
+        "label": "Nome",
+        "description": "Un identificatore univoco per questo server"
+      },
+      "command": {
+        "label": "Comando",
+        "description": "Il comando eseguibile per avviare il server MCP"
+      },
+      "args": {
+        "label": "Argomenti",
+        "description": "Argomenti del comando, uno per riga. L'ordine conta.",
+        "addButton": "Aggiungi argomento",
+        "removeAria": "Rimuovi argomento {{index}}"
+      },
+      "url": {
+        "label": "URL",
+        "description": "L'URL dell'endpoint {{protocol}} del server remoto"
+      },
+      "headers": {
+        "label": "Intestazioni",
+        "description": "Intestazioni di autenticazione/personalizzate opzionali come JSON, es. {\"Authorization\":\"Bearer ...\"}"
+      },
+      "description": {
+        "label": "Descrizione",
+        "description": "Note facoltative su questo server",
+        "placeholder": "Facoltativo"
+      },
+      "extraConfig": {
+        "label": "Configurazione aggiuntiva",
+        "description": "Campi aggiuntivi uniti all'esportazione JSON (es. oauth, autenticazione personalizzata). Deve essere un oggetto JSON valido."
+      },
+      "updateButton": "Aggiorna",
+      "registerButton": "Registra",
+      "addServerButton": "Aggiungi server"
+    },
+    "json": {
+      "description": "Vista di sola lettura della configurazione corrente. Usa la scheda Server per apportare modifiche."
+    },
+    "toast": {
+      "invalidHeaders": "JSON delle intestazioni non valido",
+      "invalidExtraConfig": "Configurazione aggiuntiva non valida",
+      "mustBeJsonObject": "deve essere un oggetto JSON",
+      "updated": "\"{{name}}\" aggiornato — riconnessione in corso…",
+      "registered": "\"{{name}}\" registrato",
+      "disabledByDefault": "Disattivato per impostazione predefinita",
+      "removed": "\"{{name}}\" rimosso — connessione chiusa",
+      "enabled": "\"{{name}}\" attivato — riconnessione in corso…",
+      "disabled": "\"{{name}}\" disattivato — connessione chiusa",
+      "updateFailed": "Aggiornamento del server non riuscito",
+      "registerFailed": "Registrazione non riuscita",
+      "removeFailed": "Rimozione del server non riuscita",
+      "toggleFailed": "Impossibile attivare/disattivare il server",
+      "operationFailed": "Operazione non riuscita"
+    }
+  },
+  "memory": {
+    "sectionGroups": {
+      "profile": "Tu",
+      "topic": "Argomenti",
+      "person": "Persone"
+    },
+    "updatedLabel": "Aggiornato {{date}}",
+    "genericRetryHint": "Riprova",
+    "restoreLabel": "Ripristina",
+    "disableLabel": "Disattiva",
+    "row": {
+      "noSummaryYet": "Nessun riepilogo ancora"
+    },
+    "detail": {
+      "backButton": "Memoria",
+      "titlePlaceholder": "Titolo",
+      "summaryLabel": "Riepilogo",
+      "summaryPlaceholder": "Una frase compatta — cosa copre questa voce",
+      "detailsLabel": "Dettagli",
+      "detailsPlaceholder": "Un fatto per riga",
+      "toast": {
+        "notSavedTitle": "Non salvato",
+        "deleteFailedTitle": "Eliminazione non riuscita"
+      }
+    },
+    "composer": {
+      "placeholderScoped": "Indica all'assistente cosa modificare o rimuovere…",
+      "placeholderGeneral": "Indica all'assistente cosa ricordare…",
+      "submitAria": "Aggiungi alla memoria",
+      "toast": {
+        "updatedTitle": "Memoria aggiornata",
+        "updatedDescription_one": "{{count}} modifica applicata",
+        "updatedDescription_other": "{{count}} modifiche applicate",
+        "noChangeTitle": "Nessuna modifica",
+        "noChangeDescription": "Non richiedeva un aggiornamento della memoria.",
+        "applyFailedTitle": "Impossibile applicare la modifica"
+      }
+    },
+    "settings": {
+      "autoCapture": {
+        "label": "Cattura memorie",
+        "description": "Dopo ogni conversazione, consolida in memoria i fatti duraturi su di te (interessi, configurazione, persone) — aggiornando le voci esistenti anziché duplicarle."
+      },
+      "useInChat": {
+        "label": "Usa la memoria nelle chat",
+        "description": "Porta in evidenza nel contesto dell'assistente le voci di memoria pertinenti al tuo messaggio, all'inizio di una risposta."
+      },
+      "lcmEnabled": {
+        "label": "Gestione del contesto senza perdite",
+        "description": "Comprime automaticamente le conversazioni lunghe in un riepilogo gerarchico (DAG), così nulla va mai perso anche quando le chat superano la finestra di contesto."
+      },
+      "contextWindowPercent": {
+        "label": "Soglia di compattazione",
+        "description": "Attiva la compattazione del contesto quando la conversazione raggiunge questa percentuale della finestra di contesto del modello (50-95%). Predefinito: 75%."
+      },
+      "freshTailSize": {
+        "label": "Dimensione della coda recente",
+        "description": "Numero di messaggi recenti protetti dalla compattazione (8-64). Vengono sempre inviati al modello parola per parola. Predefinito: 16."
+      },
+      "newMemoryDefaultKey": "Nuova memoria",
+      "storedMemoriesHeading": "Memorie salvate",
+      "newButton": "Nuova",
+      "emptyState": "Ancora nessuna memoria — vengono aggiunte automaticamente dopo le conversazioni, oppure chiedi all'assistente di ricordare qualcosa qui sotto.",
+      "disabledHeading": "Disattivate · {{count}}",
+      "toast": {
+        "loadFailedTitle": "Caricamento delle memorie non riuscito",
+        "createFailedTitle": "Creazione non riuscita"
+      }
+    }
+  }
+}

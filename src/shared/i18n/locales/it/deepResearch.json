@@ -1,1 +1,42 @@
-{}
+{
+  "form": {
+    "breadth": {
+      "label": "Ampiezza",
+      "description": "Genera più query di ricerca per esplorare diversi aspetti del tuo argomento a ogni livello. Predefinito: 4."
+    },
+    "depth": {
+      "label": "Profondità",
+      "description": "Approfondisci ricorsivamente, seguendo le tracce e scoprendo connessioni per ogni ramo. Predefinito: 2."
+    }
+  },
+  "tabs": {
+    "activity": "Attività",
+    "sources_one": "{{count}} fonte",
+    "sources_other": "{{count}} fonti"
+  },
+  "messages": {
+    "start": {
+      "title": "Avvio della ricerca approfondita...",
+      "description": "Il processo di ricerca approfondita potrebbe richiedere del tempo. Sentiti libero di chattare con Exodus in altre conversazioni. Exodus ti avviserà non appena il report finale sarà pronto."
+    },
+    "learnings_one": "Ricerca approfondita su {{count}} elemento dalle risorse web precedenti",
+    "learnings_other": "Ricerca approfondita su {{count}} elementi dalle risorse web precedenti",
+    "queriesDeeper_one": "Generata {{count}} query di ricerca per le ricerche precedenti",
+    "queriesDeeper_other": "Generate {{count}} query di ricerca per le ricerche precedenti",
+    "queriesForTopic_one": "Generata {{count}} query di ricerca per \"{{query}}\"",
+    "queriesForTopic_other": "Generate {{count}} query di ricerca per \"{{query}}\"",
+    "searchedFor": "Ricerca effettuata per \"{{query}}\"",
+    "writingReport": {
+      "title": "Avvio della stesura del report finale...",
+      "description": "La fase di ricerca approfondita è completata. Il tuo report finale è in fase di generazione e sarà presentato a breve."
+    },
+    "complete": {
+      "title": "Ricerca approfondita completata",
+      "description": "Il report approfondito per \"{{query}}\" è stato generato completamente. Speriamo ti sia utile!"
+    }
+  },
+  "sources": {
+    "citations": "Citazioni",
+    "more": "Altro"
+  }
+}

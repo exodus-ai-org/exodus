@@ -1,1 +1,185 @@
-{}
+{
+  "imageGeneration": {
+    "status": {
+      "queued": "In attesa di generazione",
+      "generating": "Generazione immagine in corso",
+      "refining": "Rifinitura dei dettagli",
+      "complete": "Immagine pronta",
+      "error": "Generazione non riuscita"
+    },
+    "retry": "Riprova",
+    "generatedImageAlt": "Immagine generata"
+  },
+  "composer": {
+    "placeholder": "Chiedi qualsiasi cosa",
+    "pleaseWaitTitle": "Attendere prego",
+    "pleaseWaitDescription": "Il modello sta ancora generando una risposta.",
+    "stop": "Interrompi",
+    "send": "Invia"
+  },
+  "composerTools": {
+    "attachFiles": "Allega file",
+    "mcpTools": "Strumenti MCP",
+    "mcpDialog": {
+      "title": "Strumenti MCP disponibili",
+      "description": "Strumenti forniti dai server MCP attivi. Gestisci i server in <strong>Impostazioni > Server MCP</strong>.",
+      "noDescription": "Nessuna descrizione per {{name}}."
+    }
+  },
+  "advancedTools": {
+    "deepResearch": "Ricerca approfondita"
+  },
+  "messageList": {
+    "greetingTitle": "Ciao!",
+    "greetingSubtitle": "Come posso esserti utile oggi?",
+    "attachmentAlt": "allegato",
+    "scrollToBottom": "Scorri fino in fondo"
+  },
+  "toolPreview": {
+    "mapItineraryDayCount_one": "{{count}} giorno",
+    "mapItineraryDayCount_other": "{{count}} giorni",
+    "mapItineraryStopCount_one": "{{count}} tappa",
+    "mapItineraryStopCount_other": "{{count}} tappe",
+    "mapItinerarySummary": "{{days}}, {{stops}}",
+    "toolFailed": "{{tool}} non riuscito",
+    "webSearchResultCount_one": "{{count}} risultato",
+    "webSearchResultCount_other": "{{count}} risultati"
+  },
+  "toolFailedToast": {
+    "title": "Strumento non riuscito: {{tool}}"
+  },
+  "messageAction": {
+    "copy": "Copia",
+    "regenerate": "Rigenera",
+    "sources": "Fonti"
+  },
+  "thinkingTimeline": {
+    "thinking": "Sto pensando…",
+    "working": "Al lavoro…",
+    "thought": "Pensato",
+    "worked": "Lavorato",
+    "done": "Fatto",
+    "thoughtFor": "{{verb}} per {{duration}}",
+    "durationSeconds_one": "{{count}} secondo",
+    "durationSeconds_other": "{{count}} secondi",
+    "durationMinutes": "{{minutes}}m",
+    "durationMinutesSeconds": "{{minutes}}m {{seconds}}s",
+    "searchResultCount_one": "{{count}} risultato di ricerca",
+    "searchResultCount_other": "{{count}} risultati di ricerca"
+  },
+  "toc": {
+    "fallbackLabel": "Messaggio"
+  },
+  "toast": {
+    "chatUpdated": "Chat aggiornata",
+    "chatDeleted": "Chat eliminata"
+  },
+  "lcm": {
+    "compacting": "Compattazione della cronologia della conversazione…",
+    "compactedSummary_one": "Compattato {{count}} messaggio · risparmiati ~{{tokens}} token",
+    "compactedSummary_other": "Compattati {{count}} messaggi · risparmiati ~{{tokens}} token",
+    "compactionFailed": "Compattazione non riuscita (nuovo tentativo al prossimo turno)"
+  },
+  "upload": {
+    "failedTitle": "Caricamento non riuscito",
+    "failedDescription": "Impossibile caricare i file."
+  },
+  "artifactCard": {
+    "cannotOpenTitle": "Impossibile aprire il file dell'artefatto",
+    "missingFileDescription": "Il file .tsx salvato non è presente — potrebbe essere stato spostato o eliminato.",
+    "resolveFailedDescription": "Impossibile risolvere il percorso dell'artefatto.",
+    "revealAriaLabel": "Mostra {{title}} nel file manager",
+    "revealTitle": "Mostra nel file manager",
+    "exitFullscreen": "Esci da schermo intero",
+    "enterFullscreen": "Passa a schermo intero",
+    "exitFullscreenEsc": "Esci da schermo intero (Esc)",
+    "fullscreen": "Schermo intero"
+  },
+  "computerUseCard": {
+    "title": "Computer Use",
+    "stopFailedTitle": "Impossibile interrompere la sessione",
+    "stopFailedDescription": "La richiesta di interruzione non è riuscita — riprova.",
+    "answerFailedTitle": "Impossibile inviare la tua risposta",
+    "answerFailedDescription": "La richiesta non è riuscita — riprova.",
+    "error": "errore",
+    "running": "in esecuzione…",
+    "outcome": {
+      "success": "riuscito",
+      "failed": "non riuscito",
+      "aborted": "interrotto",
+      "abandoned": "abbandonato",
+      "stuck": "bloccato"
+    },
+    "stepBadge": "passaggio {{step}}",
+    "stepWithAction": "Passaggio {{step}}: {{action}}",
+    "stepNoAction": "Passaggio {{step}}: …",
+    "targetWindowAlt": "Finestra di destinazione al passaggio {{step}}",
+    "replyPlaceholder": "Scrivi una risposta, o lascia vuoto quando hai finito",
+    "doneContinue": "Fatto — continua",
+    "waitingForReply": "In attesa che la sessione accetti una risposta…",
+    "stop": "Interrompi",
+    "session": "sessione: {{sessionId}}"
+  },
+  "deepResearchCard": {
+    "researching": "Ricerca approfondita in corso...",
+    "completedSummary_one": "Ricerca completata in {{minutes}}m · {{count}} fonte",
+    "completedSummary_other": "Ricerca completata in {{minutes}}m · {{count}} fonti",
+    "exportAriaLabel": "Esporta come PDF",
+    "downloadPdfTooltip": "Scarica PDF",
+    "exportFailedTitle": "Esportazione non riuscita",
+    "exportFailedDescription": "Impossibile generare il report PDF.",
+    "unknownSource": "[{{rank}}] Fonte sconosciuta",
+    "referencesHeading": "Riferimenti"
+  },
+  "drawioCard": {
+    "noSource": "Lo strumento Draw.io non ha restituito alcuna sorgente del diagramma.",
+    "iframeTitle": "diagramma draw.io",
+    "openInDrawio": "Apri in draw.io",
+    "loadFailed": "Impossibile caricare l'editor di draw.io"
+  },
+  "genericToolCard": {
+    "fallbackLabel": "Strumento",
+    "badge": "strumento"
+  },
+  "mapItineraryCard": {
+    "missingApiKey": "Aggiungi una chiave API di Google in Impostazioni → Google Cloud per visualizzare la mappa del viaggio.",
+    "tabsAriaLabel": "Giorni dell'itinerario",
+    "openRouteTitle": "Apri il percorso in Google Maps",
+    "copyMarkdownTitle": "Copia il giorno come markdown"
+  },
+  "placeDetail": {
+    "goToPhotoAriaLabel": "Vai alla foto {{index}}",
+    "closeAriaLabel": "Chiudi pannello dei dettagli",
+    "open": "Aperto",
+    "closed": "Chiuso",
+    "tabsAriaLabel": "Sezioni del luogo",
+    "tabOverview": "Panoramica",
+    "tabReviews": "Recensioni",
+    "tabHours": "Orari",
+    "notes": "Note",
+    "anonymousReviewer": "Anonimo",
+    "previousAriaLabel": "Luogo precedente",
+    "nextAriaLabel": "Luogo successivo",
+    "pagination": "{{index}} di {{total}}"
+  },
+  "terminalCard": {
+    "exitCode": "uscita {{code}}",
+    "noOutput": "Nessun output"
+  },
+  "weatherCard": {
+    "today": "Oggi",
+    "tomorrow": "Domani",
+    "feels": "Percepiti {{temp}}° · {{observedAt}}",
+    "humidity": "Umidità",
+    "precip": "Precipitazioni",
+    "visibility": "Visibilità",
+    "uvIndex": "Indice UV"
+  },
+  "weatherForecast": {
+    "temperatureRange": "🌡️ Intervallo di temperatura",
+    "cold": "❄️ Freddo",
+    "hot": "🔥 Caldo",
+    "sunrise": "Alba",
+    "sunset": "Tramonto"
+  }
+}

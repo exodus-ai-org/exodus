@@ -1,1 +1,44 @@
-{}
+{
+  "incorrectPin": "PIN errato",
+  "screen": {
+    "unlockWithTouchId": "Sblocca con Touch ID",
+    "tooManyAttempts": "Troppi tentativi. Riprovi tra {{seconds}}s."
+  },
+  "privacy": {
+    "title": "Blocco e privacy",
+    "enroll": {
+      "description": "Imposti un PIN a 6 cifre per bloccare Exodus. Quando è bloccata, l'interfaccia e l'API locale non sono accessibili, ma le attività in background continuano a essere eseguite.",
+      "enterLabel": "Inserisci un PIN a 6 cifre",
+      "confirmLabel": "Conferma il tuo PIN",
+      "startOver": "Ricomincia"
+    },
+    "idleOptions": {
+      "off": "Disattivato",
+      "oneMinute": "1 minuto",
+      "fiveMinutes": "5 minuti",
+      "fifteenMinutes": "15 minuti",
+      "thirtyMinutes": "30 minuti"
+    },
+    "touchIdToggleLabel": "Sblocca con Touch ID",
+    "autoLockIdle": "Blocco automatico durante l'inattività",
+    "lockOnLaunch": "Blocca all'avvio dell'app",
+    "lockOnSystemSleep": "Blocca alla sospensione del sistema",
+    "removeLock": {
+      "label": "Rimuovi blocco",
+      "description": "Disattiva il blocco dell'app. Richiede il PIN attuale.",
+      "button": "Rimuovi",
+      "dialogTitle": "Rimuovere il blocco?",
+      "dialogDescription": "Inserisca il PIN attuale per confermare. Exodus non richiederà più un PIN per l'apertura.",
+      "confirmButton": "Rimuovi blocco"
+    },
+    "toast": {
+      "pinsDoNotMatch": "I PIN non coincidono",
+      "setPinFailed": {
+        "title": "Impossibile impostare il PIN",
+        "description": "Esiste già un PIN."
+      },
+      "lockEnabled": "Blocco attivato",
+      "lockRemoved": "Blocco rimosso"
+    }
+  }
+}
