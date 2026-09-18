@@ -1,1 +1,292 @@
-{}
+{
+  "container": {
+    "toast": {
+      "groupDeleted": "グループを削除しました",
+      "deleteGroupFailed": "グループを削除できませんでした"
+    },
+    "tabs": {
+      "costs": "コスト",
+      "schedule": "スケジュール"
+    },
+    "noGroupSelected": {
+      "title": "グループが選択されていません",
+      "description": "左側からグループを選ぶか、新しいグループを作成して仮想チームにメッセージを送りましょう。",
+      "createButton": "グループを作成"
+    },
+    "newGroupDefaultTitle": "新しいグループ"
+  },
+  "schedule": {
+    "tab": {
+      "heading": "スケジュール",
+      "upcomingTrigger": "予定",
+      "recurringTrigger": "定期実行"
+    },
+    "unknownGroup": "不明なグループ",
+    "scheduleTaskButton": "タスクをスケジュール",
+    "upcomingList": {
+      "empty": "予定されている単発タスクはありません。スケジュールするとここに表示されます。"
+    },
+    "recurringList": {
+      "empty": "定期実行のタスクはまだありません。",
+      "lastRun": "前回 {{time}}",
+      "nextRun": "次回 {{time}}"
+    },
+    "taskCard": {
+      "status": {
+        "pending": "保留中",
+        "running": "実行中",
+        "completed": "完了",
+        "failed": "失敗",
+        "cancelled": "キャンセル済み",
+        "waiting_for_user": "待機中"
+      },
+      "priority": {
+        "low": "低",
+        "medium": "中",
+        "high": "高",
+        "urgent": "緊急"
+      },
+      "cancelAria": "予定されたタスクをキャンセル"
+    },
+    "toast": {
+      "loadUpcomingFailed": "予定タスクを読み込めませんでした",
+      "loadRecurringFailed": "定期タスクを読み込めませんでした",
+      "taskCancelled": "タスクをキャンセルしました",
+      "cancelTaskFailed": "タスクをキャンセルできませんでした",
+      "taskScheduled": "タスクをスケジュールしました",
+      "scheduleTaskFailed": "タスクをスケジュールできませんでした"
+    },
+    "form": {
+      "title": "タスクをスケジュール",
+      "description": "既存のグループ内で、1回限りまたは定期スケジュールで実行します。",
+      "titleLabel": "タイトル",
+      "descriptionLabel": "説明",
+      "groupLabel": "グループ",
+      "groupPlaceholder": "グループを選択",
+      "onceButton": "1回限り",
+      "recurringButton": "定期実行",
+      "pickDateButton": "日付を選択",
+      "submitting": "スケジュール中…",
+      "cronPresets": {
+        "dailyNine": "毎日午前9:00",
+        "mondayNine": "毎週月曜午前9:00",
+        "custom": "カスタム"
+      }
+    }
+  },
+  "chat": {
+    "attachmentPreview": {
+      "removeAria": "{{name}}を削除"
+    },
+    "uploader": {
+      "attachAria": "画像を添付"
+    },
+    "composer": {
+      "placeholder": "チームにメッセージを送る…",
+      "stopAria": "停止",
+      "sendAria": "送信",
+      "hint": "<1>Enter</1>で送信、<4>Shift + Enter</4>で改行。画像の貼り付けや添付もできます。"
+    },
+    "planCard": {
+      "elapsed": {
+        "lessThanMin": "1分未満",
+        "minutes": "{{count}}分",
+        "hoursMinutes": "{{hours}}時間{{minutes}}分"
+      },
+      "status": {
+        "active": "実行中",
+        "done": "完了",
+        "aborted": "中断",
+        "draft": "下書き"
+      },
+      "stepStatusAria": {
+        "pending": "保留中",
+        "running": "実行中",
+        "done": "完了",
+        "skipped": "スキップ",
+        "failed": "失敗"
+      }
+    },
+    "roles": {
+      "pm": "PM",
+      "employeeFallback": "従業員"
+    },
+    "membersPanel": {
+      "heading": "メンバー",
+      "coordinatorsLabel": "コーディネーター",
+      "unassignedLabel": "未割り当て",
+      "idleCount": "{{count}}人が待機中",
+      "busyCount": "{{count}}人が対応中",
+      "idle": "待機中",
+      "noTeam": "チームなし",
+      "pmIdleActivity": "戦略立案 · 待機中",
+      "emptyState": {
+        "title": "チームメンバーはまだいません",
+        "description": "必要に応じてPMがチームメンバーを採用します。"
+      }
+    },
+    "conversationList": {
+      "configNav": {
+        "workforce": "ワークフォース",
+        "dashboard": "ダッシュボード"
+      },
+      "searchPlaceholder": "グループを検索",
+      "newGroupMenuItem": "新しいグループ",
+      "emptyState": {
+        "title": "グループはまだありません",
+        "description": "作成して仮想チームにメッセージを送りましょう。",
+        "createButton": "+ 新しいグループ"
+      },
+      "searchNoMatch": "「{{query}}」に一致するグループはありません",
+      "noMessagesYetPreview": "新しいグループ · メッセージはまだありません",
+      "deleteDialog": {
+        "title": "このグループを削除しますか?",
+        "description": "<0>{{title}}</0>とそのすべてのメッセージ、タスク、実行履歴が完全に削除されます。"
+      }
+    },
+    "dateLabels": {
+      "today": "今日",
+      "yesterday": "昨日"
+    },
+    "groupChat": {
+      "renameTitle": "クリックして名前を変更",
+      "memberCount_other": "{{count}}人のメンバー",
+      "toggleMembersAria": "メンバーの表示切り替え",
+      "emptyState": {
+        "title": "チームに仕事を任せましょう",
+        "description": "必要なことを説明してください。PMが分析し、仮想従業員を採用・割り当てたうえで、ここに報告します。"
+      },
+      "askUser": {
+        "replyPlaceholder": "PMに返信…",
+        "sendButton": "送信"
+      }
+    }
+  },
+  "employees": {
+    "avatar": {
+      "alt": "アバター"
+    },
+    "picker": {
+      "reroll": "作り直す"
+    },
+    "editor": {
+      "header": {
+        "label": "従業員",
+        "newFallback": "新しい従業員"
+      },
+      "avatarAria": "アバターを編集",
+      "fields": {
+        "name": "名前",
+        "team": "チーム",
+        "teamPlaceholder": "チームを選択",
+        "teamHelp": "すべての従業員はチームに所属し、そのチームのシステムプロンプトが全メンバーに適用されます。",
+        "description": "説明",
+        "descriptionPlaceholder": "この従業員が何をするかを一言で。",
+        "systemPrompt": "システムプロンプト",
+        "systemPromptPlaceholder": "チームのプロンプトに追加で適用されます。",
+        "skills": "スキル",
+        "noSkills": "インストール済みのスキルはまだありません。",
+        "mcpServers": "MCPサーバー",
+        "noMcpServers": "MCPサーバーはまだ設定されていません。",
+        "mcpServersHelp": "何も選択しない場合、この従業員は利用可能なすべてのサーバーを使用できます。",
+        "memory": "メモリー(読み取り専用)",
+        "noMemory": "蓄積されたメモリーはまだありません"
+      }
+    }
+  },
+  "teams": {
+    "editor": {
+      "header": {
+        "label": "チーム",
+        "newFallback": "新しいチーム"
+      },
+      "fields": {
+        "name": "名前",
+        "icon": "アイコン(絵文字、任意)",
+        "description": "説明",
+        "descriptionPlaceholder": "このチームが何をするかの簡単な説明。",
+        "systemPrompt": "システムプロンプト",
+        "systemPromptPlaceholder": "このチームの全メンバーのプロンプトに追加される共通の指示。"
+      }
+    }
+  },
+  "costAnalysis": {
+    "header": {
+      "title": "ダッシュボード"
+    },
+    "period": {
+      "last7Days": "過去7日間",
+      "last30Days": "過去30日間",
+      "allTime": "全期間"
+    },
+    "periodToggle": {
+      "sevenDays": "7日",
+      "thirtyDays": "30日",
+      "all": "全期間"
+    },
+    "loading": "利用状況データを読み込み中…",
+    "kpi": {
+      "totalCost": "総コスト",
+      "totalCostHint_other": "{{count}}人の従業員の合計",
+      "tokens": "トークン数",
+      "tokensHint": "処理された合計",
+      "employees": "従業員数",
+      "employeesHint": "利用記録のある従業員",
+      "conversations": "会話数",
+      "conversationsHint": "活動のあった会話"
+    },
+    "chart": {
+      "costLabel": "コスト",
+      "sectionTitle": "コストの推移"
+    },
+    "agentCostList": {
+      "title": "従業員別コスト",
+      "empty": "従業員の利用データはまだありません",
+      "tokens": "{{tokens}}トークン"
+    },
+    "conversationCostList": {
+      "title": "会話別コスト",
+      "empty": "会話の利用データはまだありません"
+    }
+  },
+  "workforce": {
+    "header": {
+      "title": "ワークフォース",
+      "employeeCount_other": "{{count}}人の従業員",
+      "teamCount_other": "{{count}}個のチーム",
+      "addTeamButton": "チーム",
+      "addEmployeeButton": "従業員",
+      "createTeamFirstTitle": "先にチームを作成してください"
+    },
+    "emptyState": {
+      "title": "まずはチームから",
+      "description": "すべての従業員は、共通のシステムプロンプトを提供するチームに所属します。まずチームを作成し、それに属する従業員を追加してください。",
+      "createButton": "+ 新しいチーム"
+    },
+    "teamSection": {
+      "editTeam": "チームを編集",
+      "addEmployeeHere": "ここに従業員を追加",
+      "deleteTeam": "チームを削除",
+      "unassignedFallback": "チームなし",
+      "addEmployeeButton": "従業員を追加"
+    },
+    "newEmployeeDefaultName": "新しい従業員",
+    "newTeamDefaultName": "新しいチーム",
+    "deleteEmployeeDialog": {
+      "title": "この従業員を削除しますか?",
+      "description": "<0>{{name}}</0>は、蓄積されたメモリーとともに完全に削除されます。"
+    },
+    "deleteTeamDialog": {
+      "title": "このチームを削除しますか?",
+      "description": "<0>{{name}}</0>は削除されます。既存のメンバーの記録は保持されますが、このチームへの所属は失われます。"
+    },
+    "toast": {
+      "created": "「{{name}}」を作成しました",
+      "deleted": "「{{name}}」を削除しました",
+      "saveEmployeeFailed": "従業員を保存できませんでした",
+      "deleteEmployeeFailed": "従業員を削除できませんでした",
+      "saveTeamFailed": "チームを保存できませんでした",
+      "deleteTeamFailed": "チームを削除できませんでした"
+    }
+  }
+}

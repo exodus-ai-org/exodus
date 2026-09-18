@@ -1,1 +1,38 @@
-{}
+{
+  "form": {
+    "breadth": {
+      "label": "幅",
+      "description": "各レベルでトピックのさまざまな側面を探るため、複数の検索クエリを生成します。デフォルト: 4。"
+    },
+    "depth": {
+      "label": "深さ",
+      "description": "手がかりをたどりながら再帰的に掘り下げ、各分岐でつながりを明らかにします。デフォルト: 2。"
+    }
+  },
+  "tabs": {
+    "activity": "アクティビティ",
+    "sources_other": "ソース{{count}}件"
+  },
+  "messages": {
+    "start": {
+      "title": "ディープリサーチを開始しています...",
+      "description": "ディープリサーチの処理にはしばらく時間がかかることがあります。その間、他の会話でExodusとチャットしていただいて構いません。最終レポートが完成次第、Exodusがお知らせします。"
+    },
+    "learnings_other": "これまでのウェブ資料から{{count}}件の情報をディープリサーチしました",
+    "queriesDeeper_other": "これまでのリサーチをもとに{{count}}件の検索クエリを生成しました",
+    "queriesForTopic_other": "「{{query}}」について{{count}}件の検索クエリを生成しました",
+    "searchedFor": "「{{query}}」を検索しました",
+    "writingReport": {
+      "title": "最終レポートの作成を開始しています...",
+      "description": "ディープリサーチの段階が完了しました。最終レポートを生成中です。まもなく表示されます。"
+    },
+    "complete": {
+      "title": "ディープリサーチが完了しました",
+      "description": "「{{query}}」に関する詳細レポートの生成が完了しました。お役に立てば幸いです!"
+    }
+  },
+  "sources": {
+    "citations": "引用",
+    "more": "もっと見る"
+  }
+}

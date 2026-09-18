@@ -1,1 +1,22 @@
-{}
+{
+  "alert": "Discoverは、保存されたメモリーをもとにホーム画面にパーソナライズされたニュースフィードを表示します — 有効にすると、メモリーのトピックがAIプロバイダーに送信されて検索クエリに変換され、その結果のクエリがウェブ検索と同じ提供元であるBraveに1日1回程度送信されます。デフォルトではオフになっており、有効にするまで何もお使いのマシンから外部に送信されません。",
+  "enable": {
+    "label": "Discoverを有効にする",
+    "description": "ホーム画面にパーソナライズされたニュースフィードを表示します。"
+  },
+  "braveKeyHint": "DiscoverにはBrave Search APIキーが必要です。<2>組み込みツールで追加してください</2>。",
+  "topicCount": {
+    "label": "トピック数",
+    "description": "メモリーから抽出するトピックの表示数。デフォルト4。"
+  },
+  "articlesPerTopic": {
+    "label": "トピックあたりの記事数",
+    "description": "トピック行ごとに表示する記事数。デフォルト3。"
+  },
+  "heading": "Discover",
+  "updatedAgo": "{{time}}に更新",
+  "refreshButton": "更新",
+  "toast": {
+    "refreshFailed": "更新に失敗しました"
+  }
+}

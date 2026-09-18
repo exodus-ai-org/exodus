@@ -1,1 +1,12 @@
-{}
+{
+  "videoCard": {
+    "views": "{{count}}回視聴"
+  },
+  "imageLightbox": {
+    "imageUnavailable": "画像を利用できません",
+    "previewOnly": "プレビューを表示しています — 完全な画像は利用できません",
+    "previousImage": "前の画像",
+    "nextImage": "次の画像",
+    "goToImage": "画像{{index}}へ移動"
+  }
+}

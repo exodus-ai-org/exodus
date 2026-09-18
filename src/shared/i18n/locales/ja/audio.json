@@ -1,1 +1,21 @@
-{}
+{
+  "player": {
+    "stop": "停止",
+    "readAloud": "読み上げ"
+  },
+  "recorder": {
+    "stopRecording": "録音を停止",
+    "dictate": "音声入力",
+    "toast": {
+      "micErrorTitle": "マイクエラー",
+      "micErrorFallback": "マイクにアクセスできませんでした。"
+    }
+  },
+  "hook": {
+    "toast": {
+      "audioErrorTitle": "音声エラー",
+      "transcriptionFailedTitle": "文字起こしに失敗しました",
+      "genericErrorFallback": "エラーが発生しました。もう一度お試しください!"
+    }
+  }
+}
