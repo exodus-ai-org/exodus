@@ -52,11 +52,11 @@ describe('philharmonic namespace (en)', () => {
   it('has the schedule tab and shared keys', () => {
     expect(philharmonic.schedule.tab).toMatchObject({
       heading: 'Schedule',
-      scheduleTaskButton: 'Schedule task',
       upcomingTrigger: 'Upcoming',
       recurringTrigger: 'Recurring'
     })
     expect(philharmonic.schedule.unknownGroup).toBe('Unknown group')
+    expect(philharmonic.schedule.scheduleTaskButton).toBe('Schedule task')
   })
 
   it('has the task card status and priority labels', () => {

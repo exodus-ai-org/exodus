@@ -244,7 +244,7 @@ export function ScheduleTaskForm({
           >
             {submitting
               ? t('schedule.form.submitting')
-              : t('schedule.tab.scheduleTaskButton')}
+              : t('schedule.scheduleTaskButton')}
           </Button>
         </SheetFooter>
       </SheetContent>

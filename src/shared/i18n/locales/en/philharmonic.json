@@ -18,11 +18,11 @@
   "schedule": {
     "tab": {
       "heading": "Schedule",
-      "scheduleTaskButton": "Schedule task",
       "upcomingTrigger": "Upcoming",
       "recurringTrigger": "Recurring"
     },
     "unknownGroup": "Unknown group",
+    "scheduleTaskButton": "Schedule task",
     "upcomingList": {
       "empty": "No upcoming one-off tasks. Schedule one to see it here."
     },

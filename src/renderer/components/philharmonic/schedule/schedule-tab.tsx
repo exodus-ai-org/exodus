@@ -98,7 +98,7 @@ export function ScheduleTab({
           onClick={() => setFormOpen(true)}
         >
           <PlusIcon className="h-4 w-4" />
-          {t('schedule.tab.scheduleTaskButton')}
+          {t('schedule.scheduleTaskButton')}
         </Button>
       </div>
       <Tabs defaultValue="upcoming" className="flex min-h-0 flex-1 flex-col">
