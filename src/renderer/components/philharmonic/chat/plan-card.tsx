@@ -1,8 +1,10 @@
 // src/renderer/components/philharmonic/chat/plan-card.tsx
 import type { PlanDto, StepStatus } from '@shared/types/philharmonic'
 import { Check, ChevronDown, ChevronRight, X } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
+import { i18n } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { AgentData } from '@/stores/philharmonic'
 
@@ -36,12 +38,27 @@ function elapsedLabel(plan: PlanDto): string {
       ? new Date(plan.updatedAt).getTime()
       : Date.now()
   const min = Math.floor((end - start) / 60_000)
-  if (min < 1) return '<1 min'
-  if (min < 60) return `${min} min`
-  return `${Math.floor(min / 60)}h ${min % 60}m`
+  if (min < 1) return i18n.t('philharmonic:chat.planCard.elapsed.lessThanMin')
+  if (min < 60)
+    return i18n.t('philharmonic:chat.planCard.elapsed.minutes', { count: min })
+  return i18n.t('philharmonic:chat.planCard.elapsed.hoursMinutes', {
+    hours: Math.floor(min / 60),
+    minutes: min % 60
+  })
 }
 
 export function PlanCard({ plan, agentsById }: Props) {
+  const { t } = useTranslation('philharmonic')
+  const stepStatusAria: Record<StepStatus, string> = useMemo(
+    () => ({
+      pending: t('chat.planCard.stepStatusAria.pending'),
+      running: t('chat.planCard.stepStatusAria.running'),
+      done: t('chat.planCard.stepStatusAria.done'),
+      skipped: t('chat.planCard.stepStatusAria.skipped'),
+      failed: t('chat.planCard.stepStatusAria.failed')
+    }),
+    [t]
+  )
   // Auto-collapse completed plans and busy plans with > 4 steps.
   const initialCollapsed =
     plan.status === 'completed' ||
@@ -99,7 +116,7 @@ export function PlanCard({ plan, agentsById }: Props) {
                 <span
                   className="mt-0.5 inline-flex h-4 w-4 shrink-0 items-center justify-center text-[12px]"
                   style={{ color: STATUS_COLOR[s.status] }}
-                  aria-label={s.status}
+                  aria-label={stepStatusAria[s.status]}
                 >
                   {s.status === 'done' ? (
                     <Check className="h-3.5 w-3.5" />
@@ -156,14 +173,15 @@ export function PlanCard({ plan, agentsById }: Props) {
 }
 
 function StatusPill({ status }: { status: PlanDto['status'] }) {
+  const { t } = useTranslation('philharmonic')
   const label =
     status === 'active'
-      ? 'active'
+      ? t('chat.planCard.status.active')
       : status === 'completed'
-        ? 'done'
+        ? t('chat.planCard.status.done')
         : status === 'aborted'
-          ? 'aborted'
-          : 'draft'
+          ? t('chat.planCard.status.aborted')
+          : t('chat.planCard.status.draft')
   return (
     <span
       className={cn(

@@ -73,5 +73,43 @@
         "custom": "Custom"
       }
     }
+  },
+  "chat": {
+    "attachmentPreview": {
+      "removeAria": "Remove {{name}}"
+    },
+    "uploader": {
+      "attachAria": "Attach images"
+    },
+    "composer": {
+      "placeholder": "Message your team…",
+      "stopAria": "Stop",
+      "sendAria": "Send",
+      "hint": "Press <1>Enter</1> to send, <4>Shift + Enter</4> for a new line. Paste or attach images."
+    },
+    "planCard": {
+      "elapsed": {
+        "lessThanMin": "<1 min",
+        "minutes": "{{count}} min",
+        "hoursMinutes": "{{hours}}h {{minutes}}m"
+      },
+      "status": {
+        "active": "active",
+        "done": "done",
+        "aborted": "aborted",
+        "draft": "draft"
+      },
+      "stepStatusAria": {
+        "pending": "Pending",
+        "running": "Running",
+        "done": "Done",
+        "skipped": "Skipped",
+        "failed": "Failed"
+      }
+    },
+    "roles": {
+      "pm": "PM",
+      "employeeFallback": "Employee"
+    }
   }
 }
