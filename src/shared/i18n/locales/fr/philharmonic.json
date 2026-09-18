@@ -79,7 +79,9 @@
       "removeAria": "Supprimer {{name}}"
     },
     "uploader": {
-      "attachAria": "Joindre des images"
+      "attachAria": "Joindre des images",
+      "s3FallbackTitle": "Échec du téléversement S3, utilisation de données intégrées",
+      "attachFailedTitle": "Impossible de joindre les fichiers"
     },
     "composer": {
       "placeholder": "Envoyer un message à votre équipe…",
@@ -150,6 +152,7 @@
     },
     "groupChat": {
       "renameTitle": "Cliquez pour renommer",
+      "errorTitle": "Le groupe a rencontré une erreur",
       "memberCount_one": "{{count}} membre",
       "memberCount_other": "{{count}} membres",
       "toggleMembersAria": "Afficher/masquer les membres",

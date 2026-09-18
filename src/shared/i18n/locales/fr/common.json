@@ -38,5 +38,9 @@
   "uploader": {
     "dragDrop": "Glissez-déposez des fichiers ici",
     "hint": "Ou cliquez pour parcourir (2 fichiers maximum, jusqu'à 5 Mo chacun)"
+  },
+  "clipboard": {
+    "failedTitle": "Échec de la copie",
+    "genericError": "Veuillez réessayer !"
   }
 }

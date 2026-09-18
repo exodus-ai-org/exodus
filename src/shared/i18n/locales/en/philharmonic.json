@@ -79,7 +79,9 @@
       "removeAria": "Remove {{name}}"
     },
     "uploader": {
-      "attachAria": "Attach images"
+      "attachAria": "Attach images",
+      "s3FallbackTitle": "S3 upload failed, using inline data",
+      "attachFailedTitle": "Could not attach files"
     },
     "composer": {
       "placeholder": "Message your team…",
@@ -150,6 +152,7 @@
     },
     "groupChat": {
       "renameTitle": "Click to rename",
+      "errorTitle": "Group encountered an error",
       "memberCount_one": "{{count}} member",
       "memberCount_other": "{{count}} members",
       "toggleMembersAria": "Toggle members",

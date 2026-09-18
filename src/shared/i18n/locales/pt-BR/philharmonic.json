@@ -79,7 +79,9 @@
       "removeAria": "Remover {{name}}"
     },
     "uploader": {
-      "attachAria": "Anexar imagens"
+      "attachAria": "Anexar imagens",
+      "s3FallbackTitle": "Falha no upload para o S3; usando dados incorporados",
+      "attachFailedTitle": "Não foi possível anexar os arquivos"
     },
     "composer": {
       "placeholder": "Envie uma mensagem para sua equipe…",
@@ -150,6 +152,7 @@
     },
     "groupChat": {
       "renameTitle": "Clique para renomear",
+      "errorTitle": "O grupo encontrou um erro",
       "memberCount_one": "{{count}} membro",
       "memberCount_other": "{{count}} membros",
       "toggleMembersAria": "Alternar membros",

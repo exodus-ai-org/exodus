@@ -22,25 +22,63 @@
     }
   },
   "nav": {
-    "profile": { "title": "プロフィール" },
-    "general": { "title": "一般" },
-    "personality": { "title": "パーソナリティ" },
-    "aiProviders": { "title": "AIプロバイダー" },
-    "amazonS3": { "title": "AWS S3" },
-    "mcpServers": { "title": "MCPサーバー" },
-    "skillsMarket": { "title": "スキルマーケット" },
-    "fullTextSearch": { "title": "全文検索" },
-    "knowledgeBase": { "title": "ナレッジベース" },
-    "builtinTools": { "title": "組み込みツール" },
-    "memory": { "title": "メモリー" },
-    "discover": { "title": "Discover" },
-    "voice": { "title": "音声" },
-    "deepResearch": { "title": "ディープリサーチ" },
-    "computerUse": { "title": "Computer Use" },
-    "dataControls": { "title": "データ管理" },
-    "logger": { "title": "ロガー" },
-    "keyboardShortcuts": { "title": "キーボードショートカット" },
-    "about": { "title": "Exodusについて" },
+    "profile": {
+      "title": "プロフィール"
+    },
+    "general": {
+      "title": "一般"
+    },
+    "personality": {
+      "title": "パーソナリティ"
+    },
+    "aiProviders": {
+      "title": "AIプロバイダー"
+    },
+    "amazonS3": {
+      "title": "AWS S3"
+    },
+    "mcpServers": {
+      "title": "MCPサーバー"
+    },
+    "skillsMarket": {
+      "title": "スキルマーケット"
+    },
+    "fullTextSearch": {
+      "title": "全文検索"
+    },
+    "knowledgeBase": {
+      "title": "ナレッジベース"
+    },
+    "builtinTools": {
+      "title": "組み込みツール"
+    },
+    "memory": {
+      "title": "メモリー"
+    },
+    "discover": {
+      "title": "Discover"
+    },
+    "voice": {
+      "title": "音声"
+    },
+    "deepResearch": {
+      "title": "ディープリサーチ"
+    },
+    "computerUse": {
+      "title": "Computer Use"
+    },
+    "dataControls": {
+      "title": "データ管理"
+    },
+    "logger": {
+      "title": "ロガー"
+    },
+    "keyboardShortcuts": {
+      "title": "キーボードショートカット"
+    },
+    "about": {
+      "title": "Exodusについて"
+    },
     "group": {
       "personal": "個人設定",
       "aiTools": "AIとツール",
@@ -60,18 +98,42 @@
       "search": "検索"
     },
     "shortcuts": {
-      "new-chat": { "label": "新しいチャット" },
-      "open-settings": { "label": "設定を開く" },
-      "toggle-sidebar": { "label": "サイドバーの表示切り替え" },
-      "toggle-developer-tools": { "label": "デベロッパーツールの表示切り替え" },
-      "force-refresh-page": { "label": "ページを強制的に再読み込み" },
-      "find-in-page": { "label": "ページ内検索" },
-      "search-chat-history": { "label": "チャット履歴を検索" },
-      "close-find-bar": { "label": "検索バーを閉じる" },
-      "close-tab": { "label": "現在のタブを閉じる" },
-      "focus-chat-input": { "label": "チャット入力欄にフォーカス" },
-      "send-message": { "label": "メッセージを送信" },
-      "new-line": { "label": "改行" }
+      "new-chat": {
+        "label": "新しいチャット"
+      },
+      "open-settings": {
+        "label": "設定を開く"
+      },
+      "toggle-sidebar": {
+        "label": "サイドバーの表示切り替え"
+      },
+      "toggle-developer-tools": {
+        "label": "デベロッパーツールの表示切り替え"
+      },
+      "force-refresh-page": {
+        "label": "ページを強制的に再読み込み"
+      },
+      "find-in-page": {
+        "label": "ページ内検索"
+      },
+      "search-chat-history": {
+        "label": "チャット履歴を検索"
+      },
+      "close-find-bar": {
+        "label": "検索バーを閉じる"
+      },
+      "close-tab": {
+        "label": "現在のタブを閉じる"
+      },
+      "focus-chat-input": {
+        "label": "チャット入力欄にフォーカス"
+      },
+      "send-message": {
+        "label": "メッセージを送信"
+      },
+      "new-line": {
+        "label": "改行"
+      }
     }
   },
   "about": {
@@ -450,21 +512,30 @@
     "export": {
       "label": "データをエクスポート",
       "description": "会話、設定などのデータをZIPアーカイブとしてダウンロードできる、ポータブルなコピーを作成します。",
-      "button": "エクスポート"
+      "button": "エクスポート",
+      "successToast": "データをエクスポートしました",
+      "errorToast": "エクスポートに失敗しました",
+      "errorFallback": "データのエクスポートに失敗しました。"
     },
     "import": {
       "label": "データをインポート",
       "description": "以前エクスポートしたZIPアーカイブから復元します。既存のすべてのデータが置き換えられます。",
       "button": "インポート",
       "dialogDescription": "以前エクスポートしたZIPファイルを選択してください。既存のすべての会話とデータが置き換えられます。インポート前に自動でバックアップが作成されます。",
-      "confirmButton": "置き換えてインポート"
+      "confirmButton": "置き換えてインポート",
+      "successToast": "データをインポートしました",
+      "errorToast": "インポートに失敗しました",
+      "errorFallback": "データのインポートに失敗しました。"
     },
     "delete": {
       "label": "すべてのデータを削除",
       "description": "すべての会話、メモリー、リサーチデータを完全に消去します。設定は保持されます。",
       "dialogDescription": "これにより、すべての会話、メモリー、リサーチデータ、アップロード済みのドキュメントが完全に削除されます。設定とAPIキーは保持されます。削除前にバックアップが作成されます。",
       "confirmPrompt": "確認のため<strong>DELETE</strong>と入力してください:",
-      "confirmButton": "すべて削除"
+      "confirmButton": "すべて削除",
+      "successToast": "すべてのデータを削除しました",
+      "errorToast": "削除に失敗しました",
+      "errorFallback": "データの削除に失敗しました。"
     }
   },
   "fullTextSearch": {
@@ -719,5 +790,10 @@
       "uninstallFailed": "アンインストールに失敗しました",
       "updateFailed": "スキルの更新に失敗しました"
     }
+  },
+  "toast": {
+    "saveFailed": "設定の保存に失敗しました",
+    "autoSaved": "自動保存しました",
+    "notSaved": "保存されていません"
   }
 }

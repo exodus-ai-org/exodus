@@ -100,6 +100,15 @@ describe('philharmonic namespace (en)', () => {
     expect(philharmonic.chat.composer.placeholder).toBe('Message your team…')
   })
 
+  it('has the Phase 5 uploader failure toasts (usePhilharmonicUpload)', () => {
+    expect(philharmonic.chat.uploader.s3FallbackTitle).toBe(
+      'S3 upload failed, using inline data'
+    )
+    expect(philharmonic.chat.uploader.attachFailedTitle).toBe(
+      'Could not attach files'
+    )
+  })
+
   it('has the plan card elapsed/status/aria keys', () => {
     expect(philharmonic.chat.planCard.elapsed).toMatchObject({
       lessThanMin: '<1 min',
@@ -163,6 +172,12 @@ describe('philharmonic namespace (en)', () => {
       memberCount_one: '{{count}} member',
       memberCount_other: '{{count}} members'
     })
+  })
+
+  it('has the Phase 5 groupChat.errorTitle key (useConversationStream SSE error)', () => {
+    expect(philharmonic.chat.groupChat.errorTitle).toBe(
+      'Group encountered an error'
+    )
   })
 
   it('has the employees avatar and picker keys', () => {

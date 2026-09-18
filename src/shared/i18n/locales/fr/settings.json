@@ -22,25 +22,63 @@
     }
   },
   "nav": {
-    "profile": { "title": "Profil" },
-    "general": { "title": "Général" },
-    "personality": { "title": "Personnalité" },
-    "aiProviders": { "title": "Fournisseurs d'IA" },
-    "amazonS3": { "title": "AWS S3" },
-    "mcpServers": { "title": "Serveurs MCP" },
-    "skillsMarket": { "title": "Marché de compétences" },
-    "fullTextSearch": { "title": "Recherche en texte intégral" },
-    "knowledgeBase": { "title": "Base de connaissances" },
-    "builtinTools": { "title": "Outils intégrés" },
-    "memory": { "title": "Mémoire" },
-    "discover": { "title": "Découvrir" },
-    "voice": { "title": "Voix" },
-    "deepResearch": { "title": "Recherche approfondie" },
-    "computerUse": { "title": "Utilisation de l'ordinateur" },
-    "dataControls": { "title": "Contrôles des données" },
-    "logger": { "title": "Journalisation" },
-    "keyboardShortcuts": { "title": "Raccourcis clavier" },
-    "about": { "title": "À propos d'Exodus" },
+    "profile": {
+      "title": "Profil"
+    },
+    "general": {
+      "title": "Général"
+    },
+    "personality": {
+      "title": "Personnalité"
+    },
+    "aiProviders": {
+      "title": "Fournisseurs d'IA"
+    },
+    "amazonS3": {
+      "title": "AWS S3"
+    },
+    "mcpServers": {
+      "title": "Serveurs MCP"
+    },
+    "skillsMarket": {
+      "title": "Marché de compétences"
+    },
+    "fullTextSearch": {
+      "title": "Recherche en texte intégral"
+    },
+    "knowledgeBase": {
+      "title": "Base de connaissances"
+    },
+    "builtinTools": {
+      "title": "Outils intégrés"
+    },
+    "memory": {
+      "title": "Mémoire"
+    },
+    "discover": {
+      "title": "Découvrir"
+    },
+    "voice": {
+      "title": "Voix"
+    },
+    "deepResearch": {
+      "title": "Recherche approfondie"
+    },
+    "computerUse": {
+      "title": "Utilisation de l'ordinateur"
+    },
+    "dataControls": {
+      "title": "Contrôles des données"
+    },
+    "logger": {
+      "title": "Journalisation"
+    },
+    "keyboardShortcuts": {
+      "title": "Raccourcis clavier"
+    },
+    "about": {
+      "title": "À propos d'Exodus"
+    },
     "group": {
       "personal": "Personnel",
       "aiTools": "IA et outils",
@@ -60,24 +98,42 @@
       "search": "Recherche"
     },
     "shortcuts": {
-      "new-chat": { "label": "Nouvelle conversation" },
-      "open-settings": { "label": "Ouvrir les paramètres" },
-      "toggle-sidebar": { "label": "Afficher/masquer la barre latérale" },
+      "new-chat": {
+        "label": "Nouvelle conversation"
+      },
+      "open-settings": {
+        "label": "Ouvrir les paramètres"
+      },
+      "toggle-sidebar": {
+        "label": "Afficher/masquer la barre latérale"
+      },
       "toggle-developer-tools": {
         "label": "Afficher/masquer les outils de développement"
       },
-      "force-refresh-page": { "label": "Forcer l'actualisation de la page" },
-      "find-in-page": { "label": "Rechercher dans la page" },
+      "force-refresh-page": {
+        "label": "Forcer l'actualisation de la page"
+      },
+      "find-in-page": {
+        "label": "Rechercher dans la page"
+      },
       "search-chat-history": {
         "label": "Rechercher dans l'historique des conversations"
       },
-      "close-find-bar": { "label": "Fermer la barre de recherche" },
-      "close-tab": { "label": "Fermer l'onglet actuel" },
+      "close-find-bar": {
+        "label": "Fermer la barre de recherche"
+      },
+      "close-tab": {
+        "label": "Fermer l'onglet actuel"
+      },
       "focus-chat-input": {
         "label": "Placer le curseur dans le champ de saisie"
       },
-      "send-message": { "label": "Envoyer le message" },
-      "new-line": { "label": "Nouvelle ligne" }
+      "send-message": {
+        "label": "Envoyer le message"
+      },
+      "new-line": {
+        "label": "Nouvelle ligne"
+      }
     }
   },
   "about": {
@@ -457,21 +513,30 @@
     "export": {
       "label": "Exporter les données",
       "description": "Téléchargez une copie portable de vos conversations, paramètres et autres données sous forme d'archive ZIP.",
-      "button": "Exporter"
+      "button": "Exporter",
+      "successToast": "Données exportées avec succès",
+      "errorToast": "Échec de l'exportation",
+      "errorFallback": "Échec de l'exportation des données."
     },
     "import": {
       "label": "Importer des données",
       "description": "Restaurez à partir d'une archive ZIP précédemment exportée. Cela remplacera toutes les données existantes.",
       "button": "Importer",
       "dialogDescription": "Sélectionnez un fichier ZIP précédemment exporté. Cela remplacera toutes les conversations et données existantes. Une sauvegarde sera créée automatiquement avant l'importation.",
-      "confirmButton": "Remplacer et importer"
+      "confirmButton": "Remplacer et importer",
+      "successToast": "Données importées avec succès",
+      "errorToast": "Échec de l'importation",
+      "errorFallback": "Échec de l'importation des données."
     },
     "delete": {
       "label": "Supprimer toutes les données",
       "description": "Effacez définitivement toutes les conversations, mémoires et données de recherche. Vos paramètres seront conservés.",
       "dialogDescription": "Cela supprimera définitivement toutes vos conversations, mémoires, données de recherche et documents envoyés. Vos paramètres et clés API seront conservés. Une sauvegarde sera créée avant la suppression.",
       "confirmPrompt": "Tapez <strong>DELETE</strong> pour confirmer :",
-      "confirmButton": "Tout supprimer"
+      "confirmButton": "Tout supprimer",
+      "successToast": "Toutes les données ont été supprimées",
+      "errorToast": "Échec de la suppression",
+      "errorFallback": "Échec de la suppression des données."
     }
   },
   "fullTextSearch": {
@@ -731,5 +796,10 @@
       "uninstallFailed": "Échec de la désinstallation",
       "updateFailed": "Échec de la mise à jour de la compétence"
     }
+  },
+  "toast": {
+    "saveFailed": "Échec de l'enregistrement des paramètres",
+    "autoSaved": "Enregistré automatiquement",
+    "notSaved": "Non enregistré"
   }
 }

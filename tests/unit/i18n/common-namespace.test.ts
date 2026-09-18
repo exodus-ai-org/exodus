@@ -48,4 +48,20 @@ describe('common.json (Phase 2 additions)', () => {
   it('has the nav.settings key (added alongside the NavFooter dropdown redesign)', () => {
     expect(common.nav).toMatchObject({ settings: 'Settings' })
   })
+  it('has the Phase 5 action.copy / state.copied keys (markdown code-block copy button)', () => {
+    expect(common.action.copy).toBe('Copy')
+    expect(common.state.copied).toBe('Copied')
+  })
+  it('has the Phase 5 uploader.* keys (the unused Uploader component)', () => {
+    expect(common.uploader).toMatchObject({
+      dragDrop: 'Drag & drop files here',
+      hint: 'Or click to browse (max 2 files, up to 5MB each)'
+    })
+  })
+  it('has the Phase 5 clipboard.* keys (useClipboard hook)', () => {
+    expect(common.clipboard).toMatchObject({
+      failedTitle: 'Failed to copy',
+      genericError: 'Please try again!'
+    })
+  })
 })

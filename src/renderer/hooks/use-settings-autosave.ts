@@ -1,6 +1,7 @@
 import type { UseFormReturnType } from '@shared/schemas/settings-schema'
 import { get, isEqual } from 'lodash-es'
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import { useSettings } from '@/hooks/use-settings'
@@ -37,6 +38,7 @@ function isTextEntryActive(): boolean {
  * moment focus leaves them.
  */
 export function useSettingsAutosave(form: UseFormReturnType) {
+  const { t } = useTranslation('settings')
   const { data: settings, updateSettings } = useSettings()
 
   const settingsRef = useRef(settings)
@@ -62,7 +64,7 @@ export function useSettingsAutosave(form: UseFormReturnType) {
     const result = buildSettingsSave(persisted, changes)
     if (result.status === 'noop') return
     if (result.status === 'invalid') {
-      sileo.error({ title: 'Not saved', description: result.errors[0] })
+      sileo.error({ title: t('toast.notSaved'), description: result.errors[0] })
       return
     }
     await updateRef.current(result.payload)

@@ -38,5 +38,9 @@
   "uploader": {
     "dragDrop": "將檔案拖放至此",
     "hint": "或點擊瀏覽（最多 2 個檔案，每個檔案最大 5MB）"
+  },
+  "clipboard": {
+    "failedTitle": "複製失敗",
+    "genericError": "請再試一次！"
   }
 }

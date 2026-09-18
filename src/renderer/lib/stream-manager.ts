@@ -6,6 +6,8 @@ import type {
 } from '@shared/types/chat'
 import { sileo } from 'sileo'
 
+import { i18n } from '@/lib/i18n'
+
 // ── Types ────────────────────────────────────────────────────────────────────
 
 export interface StreamSubscriber {
@@ -36,10 +38,10 @@ const streams = new Map<string, ActiveStream>()
 
 function notifyCompletion(chatId: string, title: string) {
   sileo.success({
-    title: 'Response ready',
-    description: title || 'Chat',
+    title: i18n.t('chat:toast.responseReadyTitle'),
+    description: title || i18n.t('chat:toast.chatFallbackTitle'),
     button: {
-      title: 'View',
+      title: i18n.t('chat:toast.viewButton'),
       onClick: () => {
         window.location.hash = `#/chat/${chatId}`
       }
@@ -49,10 +51,11 @@ function notifyCompletion(chatId: string, title: string) {
 
 function notifyError(chatId: string, title: string, error: Error) {
   sileo.error({
-    title: 'Chat failed',
-    description: error.message || title || 'An error occurred',
+    title: i18n.t('chat:toast.chatFailedTitle'),
+    description:
+      error.message || title || i18n.t('chat:toast.genericErrorFallback'),
     button: {
-      title: 'View',
+      title: i18n.t('chat:toast.viewButton'),
       onClick: () => {
         window.location.hash = `#/chat/${chatId}`
       }
@@ -69,9 +72,15 @@ function notifyNotice(
   if (stream.seenNotices.has(key)) return
   stream.seenNotices.add(key)
   if (level === 'info') {
-    sileo.info({ title: 'Heads up', description: message })
+    sileo.info({
+      title: i18n.t('chat:toast.headsUpTitle'),
+      description: message
+    })
   } else {
-    sileo.warning({ title: 'Heads up', description: message })
+    sileo.warning({
+      title: i18n.t('chat:toast.headsUpTitle'),
+      description: message
+    })
   }
 }
 

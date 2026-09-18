@@ -38,5 +38,9 @@
   "uploader": {
     "dragDrop": "Dateien hierher ziehen",
     "hint": "Oder klicken, um Dateien auszuwählen (max. 2 Dateien, je bis zu 5 MB)"
+  },
+  "clipboard": {
+    "failedTitle": "Kopieren fehlgeschlagen",
+    "genericError": "Bitte versuchen Sie es erneut!"
   }
 }

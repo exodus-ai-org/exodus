@@ -38,5 +38,9 @@
   "uploader": {
     "dragDrop": "Drag & drop files here",
     "hint": "Or click to browse (max 2 files, up to 5MB each)"
+  },
+  "clipboard": {
+    "failedTitle": "Failed to copy",
+    "genericError": "Please try again!"
   }
 }

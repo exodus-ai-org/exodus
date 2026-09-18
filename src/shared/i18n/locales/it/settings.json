@@ -22,25 +22,63 @@
     }
   },
   "nav": {
-    "profile": { "title": "Profilo" },
-    "general": { "title": "Generale" },
-    "personality": { "title": "Personalità" },
-    "aiProviders": { "title": "Provider AI" },
-    "amazonS3": { "title": "AWS S3" },
-    "mcpServers": { "title": "Server MCP" },
-    "skillsMarket": { "title": "Mercato delle skill" },
-    "fullTextSearch": { "title": "Ricerca full text" },
-    "knowledgeBase": { "title": "Knowledge Base" },
-    "builtinTools": { "title": "Strumenti integrati" },
-    "memory": { "title": "Memoria" },
-    "discover": { "title": "Discover" },
-    "voice": { "title": "Voce" },
-    "deepResearch": { "title": "Ricerca approfondita" },
-    "computerUse": { "title": "Computer Use" },
-    "dataControls": { "title": "Controlli sui dati" },
-    "logger": { "title": "Logger" },
-    "keyboardShortcuts": { "title": "Scorciatoie da tastiera" },
-    "about": { "title": "Informazioni su Exodus" },
+    "profile": {
+      "title": "Profilo"
+    },
+    "general": {
+      "title": "Generale"
+    },
+    "personality": {
+      "title": "Personalità"
+    },
+    "aiProviders": {
+      "title": "Provider AI"
+    },
+    "amazonS3": {
+      "title": "AWS S3"
+    },
+    "mcpServers": {
+      "title": "Server MCP"
+    },
+    "skillsMarket": {
+      "title": "Mercato delle skill"
+    },
+    "fullTextSearch": {
+      "title": "Ricerca full text"
+    },
+    "knowledgeBase": {
+      "title": "Knowledge Base"
+    },
+    "builtinTools": {
+      "title": "Strumenti integrati"
+    },
+    "memory": {
+      "title": "Memoria"
+    },
+    "discover": {
+      "title": "Discover"
+    },
+    "voice": {
+      "title": "Voce"
+    },
+    "deepResearch": {
+      "title": "Ricerca approfondita"
+    },
+    "computerUse": {
+      "title": "Computer Use"
+    },
+    "dataControls": {
+      "title": "Controlli sui dati"
+    },
+    "logger": {
+      "title": "Logger"
+    },
+    "keyboardShortcuts": {
+      "title": "Scorciatoie da tastiera"
+    },
+    "about": {
+      "title": "Informazioni su Exodus"
+    },
     "group": {
       "personal": "Personale",
       "aiTools": "AI e strumenti",
@@ -60,20 +98,42 @@
       "search": "Ricerca"
     },
     "shortcuts": {
-      "new-chat": { "label": "Nuova chat" },
-      "open-settings": { "label": "Apri impostazioni" },
-      "toggle-sidebar": { "label": "Mostra/nascondi barra laterale" },
+      "new-chat": {
+        "label": "Nuova chat"
+      },
+      "open-settings": {
+        "label": "Apri impostazioni"
+      },
+      "toggle-sidebar": {
+        "label": "Mostra/nascondi barra laterale"
+      },
       "toggle-developer-tools": {
         "label": "Mostra/nascondi strumenti sviluppatore"
       },
-      "force-refresh-page": { "label": "Forza ricaricamento pagina" },
-      "find-in-page": { "label": "Trova nella pagina" },
-      "search-chat-history": { "label": "Cerca nella cronologia chat" },
-      "close-find-bar": { "label": "Chiudi barra di ricerca" },
-      "close-tab": { "label": "Chiudi scheda corrente" },
-      "focus-chat-input": { "label": "Metti a fuoco il campo di chat" },
-      "send-message": { "label": "Invia messaggio" },
-      "new-line": { "label": "Nuova riga" }
+      "force-refresh-page": {
+        "label": "Forza ricaricamento pagina"
+      },
+      "find-in-page": {
+        "label": "Trova nella pagina"
+      },
+      "search-chat-history": {
+        "label": "Cerca nella cronologia chat"
+      },
+      "close-find-bar": {
+        "label": "Chiudi barra di ricerca"
+      },
+      "close-tab": {
+        "label": "Chiudi scheda corrente"
+      },
+      "focus-chat-input": {
+        "label": "Metti a fuoco il campo di chat"
+      },
+      "send-message": {
+        "label": "Invia messaggio"
+      },
+      "new-line": {
+        "label": "Nuova riga"
+      }
     }
   },
   "about": {
@@ -453,21 +513,30 @@
     "export": {
       "label": "Esporta dati",
       "description": "Scarica una copia portatile delle tue conversazioni, impostazioni e altri dati come archivio ZIP.",
-      "button": "Esporta"
+      "button": "Esporta",
+      "successToast": "Dati esportati con successo",
+      "errorToast": "Esportazione non riuscita",
+      "errorFallback": "Impossibile esportare i dati."
     },
     "import": {
       "label": "Importa dati",
       "description": "Ripristina da un archivio ZIP esportato in precedenza. Questo sostituirà tutti i dati esistenti.",
       "button": "Importa",
       "dialogDescription": "Seleziona un file ZIP esportato in precedenza. Questo sostituirà tutte le conversazioni e i dati esistenti. Prima dell'importazione verrà creato automaticamente un backup.",
-      "confirmButton": "Sostituisci e importa"
+      "confirmButton": "Sostituisci e importa",
+      "successToast": "Dati importati con successo",
+      "errorToast": "Importazione non riuscita",
+      "errorFallback": "Impossibile importare i dati."
     },
     "delete": {
       "label": "Elimina tutti i dati",
       "description": "Cancella definitivamente tutte le conversazioni, le memorie e i dati di ricerca. Le tue impostazioni saranno conservate.",
       "dialogDescription": "Questo eliminerà definitivamente tutte le tue conversazioni, memorie, dati di ricerca e documenti caricati. Le tue impostazioni e chiavi API saranno conservate. Prima dell'eliminazione verrà creato un backup.",
       "confirmPrompt": "Digita <strong>DELETE</strong> per confermare:",
-      "confirmButton": "Elimina tutto"
+      "confirmButton": "Elimina tutto",
+      "successToast": "Tutti i dati sono stati eliminati",
+      "errorToast": "Eliminazione non riuscita",
+      "errorFallback": "Impossibile eliminare i dati."
     }
   },
   "fullTextSearch": {
@@ -727,5 +796,10 @@
       "uninstallFailed": "Disinstallazione non riuscita",
       "updateFailed": "Aggiornamento della skill non riuscito"
     }
+  },
+  "toast": {
+    "saveFailed": "Impossibile salvare le impostazioni",
+    "autoSaved": "Salvato automaticamente",
+    "notSaved": "Non salvato"
   }
 }

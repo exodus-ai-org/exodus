@@ -69,7 +69,13 @@
     "chatUpdated": "チャットを更新しました",
     "chatDeleted": "チャットを削除しました",
     "sendFailedTitle": "問題が発生しました",
-    "sendFailedDescription": "エラーが発生しました。もう一度お試しください!"
+    "sendFailedDescription": "エラーが発生しました。もう一度お試しください!",
+    "responseReadyTitle": "返信の準備ができました",
+    "chatFallbackTitle": "チャット",
+    "viewButton": "表示",
+    "chatFailedTitle": "チャットに失敗しました",
+    "genericErrorFallback": "エラーが発生しました",
+    "headsUpTitle": "お知らせ"
   },
   "lcm": {
     "compacting": "会話履歴を圧縮中…",
@@ -187,8 +193,9 @@
     "searchChats": "チャットを検索",
     "history": {
       "empty": "チャットを始めると、ここに会話が表示されます!",
-      "favorite": "お気に入りに追加",
+      "favoriteAction": "お気に入りに追加",
       "unfavorite": "お気に入りから削除",
+      "favoritesGroup": "お気に入り",
       "chats": "チャット",
       "more": "もっと見る",
       "rename": "名前を変更"
@@ -241,6 +248,11 @@
       "tone": "例:フォーマル、カジュアル、テクニカル",
       "responseFormat": "例:箇条書き、詳細な段落",
       "constraints": "例:応答は200語以内に収める"
+    },
+    "toast": {
+      "createdTitle": "プロジェクトを作成しました",
+      "updatedTitle": "プロジェクトを更新しました",
+      "deletedTitle": "プロジェクトを削除しました"
     }
   }
 }

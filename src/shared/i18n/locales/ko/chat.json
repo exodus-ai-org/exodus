@@ -69,7 +69,13 @@
     "chatUpdated": "채팅이 업데이트되었습니다",
     "chatDeleted": "채팅이 삭제되었습니다",
     "sendFailedTitle": "문제가 발생했습니다",
-    "sendFailedDescription": "오류가 발생했습니다. 다시 시도해 주세요!"
+    "sendFailedDescription": "오류가 발생했습니다. 다시 시도해 주세요!",
+    "responseReadyTitle": "응답이 준비되었습니다",
+    "chatFallbackTitle": "채팅",
+    "viewButton": "보기",
+    "chatFailedTitle": "채팅 실패",
+    "genericErrorFallback": "오류가 발생했습니다",
+    "headsUpTitle": "알림"
   },
   "lcm": {
     "compacting": "대화 기록 압축 중…",
@@ -187,8 +193,9 @@
     "searchChats": "채팅 검색",
     "history": {
       "empty": "대화를 시작하면 여기에 표시됩니다!",
-      "favorite": "즐겨찾기 추가",
+      "favoriteAction": "즐겨찾기 추가",
       "unfavorite": "즐겨찾기 해제",
+      "favoritesGroup": "즐겨찾기",
       "chats": "채팅",
       "more": "더 보기",
       "rename": "이름 바꾸기"
@@ -241,6 +248,11 @@
       "tone": "예: 격식체, 캐주얼, 기술적",
       "responseFormat": "예: 글머리 기호, 상세한 문단",
       "constraints": "예: 응답을 200단어 이내로 유지"
+    },
+    "toast": {
+      "createdTitle": "프로젝트가 생성되었습니다",
+      "updatedTitle": "프로젝트가 업데이트되었습니다",
+      "deletedTitle": "프로젝트가 삭제되었습니다"
     }
   }
 }

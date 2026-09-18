@@ -74,7 +74,13 @@
     "chatUpdated": "Chat aktualisiert",
     "chatDeleted": "Chat gelöscht",
     "sendFailedTitle": "Es ist ein Fehler aufgetreten",
-    "sendFailedDescription": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut!"
+    "sendFailedDescription": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut!",
+    "responseReadyTitle": "Antwort bereit",
+    "chatFallbackTitle": "Chat",
+    "viewButton": "Anzeigen",
+    "chatFailedTitle": "Chat fehlgeschlagen",
+    "genericErrorFallback": "Ein Fehler ist aufgetreten",
+    "headsUpTitle": "Hinweis"
   },
   "lcm": {
     "compacting": "Unterhaltungsverlauf wird komprimiert…",
@@ -195,8 +201,9 @@
     "searchChats": "Chats durchsuchen",
     "history": {
       "empty": "Ihre Unterhaltungen werden hier angezeigt, sobald Sie zu chatten beginnen!",
-      "favorite": "Favorisieren",
+      "favoriteAction": "Favorisieren",
       "unfavorite": "Favorit entfernen",
+      "favoritesGroup": "Favoriten",
       "chats": "Chats",
       "more": "Mehr",
       "rename": "Umbenennen"
@@ -249,6 +256,11 @@
       "tone": "z. B. Formell, Locker, Technisch",
       "responseFormat": "z. B. Stichpunkte, ausführliche Absätze",
       "constraints": "z. B. Antworten auf maximal 200 Wörter begrenzen"
+    },
+    "toast": {
+      "createdTitle": "Projekt erstellt",
+      "updatedTitle": "Projekt aktualisiert",
+      "deletedTitle": "Projekt gelöscht"
     }
   }
 }

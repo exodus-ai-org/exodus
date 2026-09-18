@@ -99,7 +99,6 @@ pnpm asar:sniff       # Inspect built ASAR archive
 pnpm shadcn:generate  # Generate shadcn/ui component documentation
 pnpm i18n:check       # Verify catalog parity across all locales (also runs in the pre-commit gate)
 pnpm i18n:status      # Print the translation-review status board per locale
-pnpm i18n:audit       # Estimate how many renderer strings still aren't i18n'd (informational)
 ```
 
 ## Architecture
@@ -577,10 +576,11 @@ import('@/path/to/the/file')` and render that component directly —
    namespace pass that adds a real `t()` call in the same scope.
 9. **This is enforced, not just convention.** `tests/unit/i18n/no-hardcoded-strings.test.ts`
    (part of `pnpm test`, so gated on every commit) scans every
-   `src/renderer/**/*.tsx` (excluding `components/ui/**` and
-   `sub-apps/artifacts/sandbox.tsx`) for JSX text nodes, `sileo.*({ title
-| description })` values (including template literals and ternaries),
-   and `label:` properties in `src/main/lib/menu.ts`/`tray.ts` that aren't
+   `src/renderer/**/*.{ts,tsx}` (excluding `components/ui/**` and
+   `sub-apps/artifacts/sandbox.tsx`) for JSX text nodes (`.tsx` only),
+   `sileo.*({ title | description })` values (including template literals
+   and ternaries, in both `.ts` hooks/services and `.tsx` components), and
+   `label:` properties in `src/main/lib/menu.ts`/`tray.ts` that aren't
    routed through `t()`/`<Trans>`/`mainT()`. A new hardcoded string fails
    the suite immediately — add a catalog key instead. The only escape
    hatch is `tests/unit/i18n/allowlist.ts`, reserved for genuine proper

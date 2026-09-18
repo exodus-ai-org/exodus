@@ -79,7 +79,9 @@
       "removeAria": "{{name}}を削除"
     },
     "uploader": {
-      "attachAria": "画像を添付"
+      "attachAria": "画像を添付",
+      "s3FallbackTitle": "S3へのアップロードに失敗したため、インライン形式で保存します",
+      "attachFailedTitle": "ファイルを添付できませんでした"
     },
     "composer": {
       "placeholder": "チームにメッセージを送る…",
@@ -150,6 +152,7 @@
     },
     "groupChat": {
       "renameTitle": "クリックして名前を変更",
+      "errorTitle": "グループでエラーが発生しました",
       "memberCount_other": "{{count}}人のメンバー",
       "toggleMembersAria": "メンバーの表示切り替え",
       "emptyState": {

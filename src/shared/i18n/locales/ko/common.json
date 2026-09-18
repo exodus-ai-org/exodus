@@ -38,5 +38,9 @@
       "xhigh": "매우 높음",
       "max": "최대"
     }
+  },
+  "clipboard": {
+    "failedTitle": "복사에 실패했습니다",
+    "genericError": "다시 시도해 주세요!"
   }
 }

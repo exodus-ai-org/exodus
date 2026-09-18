@@ -74,7 +74,13 @@
     "chatUpdated": "Chat atualizado",
     "chatDeleted": "Chat excluído",
     "sendFailedTitle": "Algo deu errado",
-    "sendFailedDescription": "Ocorreu um erro, tente novamente!"
+    "sendFailedDescription": "Ocorreu um erro, tente novamente!",
+    "responseReadyTitle": "Resposta pronta",
+    "chatFallbackTitle": "Chat",
+    "viewButton": "Ver",
+    "chatFailedTitle": "Falha no chat",
+    "genericErrorFallback": "Ocorreu um erro",
+    "headsUpTitle": "Aviso"
   },
   "lcm": {
     "compacting": "Compactando histórico da conversa…",
@@ -195,8 +201,9 @@
     "searchChats": "Pesquisar chats",
     "history": {
       "empty": "Suas conversas aparecerão aqui assim que você começar a conversar!",
-      "favorite": "Favoritar",
+      "favoriteAction": "Favoritar",
       "unfavorite": "Remover dos favoritos",
+      "favoritesGroup": "Favoritos",
       "chats": "Chats",
       "more": "Mais",
       "rename": "Renomear"
@@ -249,6 +256,11 @@
       "tone": "ex.: Formal, Casual, Técnico",
       "responseFormat": "ex.: Tópicos, Parágrafos detalhados",
       "constraints": "ex.: Mantenha as respostas com menos de 200 palavras"
+    },
+    "toast": {
+      "createdTitle": "Projeto criado",
+      "updatedTitle": "Projeto atualizado",
+      "deletedTitle": "Projeto excluído"
     }
   }
 }

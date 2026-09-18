@@ -69,7 +69,13 @@
     "chatUpdated": "聊天已更新",
     "chatDeleted": "聊天已刪除",
     "sendFailedTitle": "發生錯誤",
-    "sendFailedDescription": "發生錯誤，請再試一次！"
+    "sendFailedDescription": "發生錯誤，請再試一次！",
+    "responseReadyTitle": "回覆已就緒",
+    "chatFallbackTitle": "聊天",
+    "viewButton": "查看",
+    "chatFailedTitle": "聊天失敗",
+    "genericErrorFallback": "發生錯誤",
+    "headsUpTitle": "提醒"
   },
   "lcm": {
     "compacting": "正在壓縮對話紀錄…",
@@ -187,8 +193,9 @@
     "searchChats": "搜尋聊天",
     "history": {
       "empty": "開始對話後，你的聊天紀錄將會顯示在這裡！",
-      "favorite": "加入最愛",
+      "favoriteAction": "加入最愛",
       "unfavorite": "取消最愛",
+      "favoritesGroup": "最愛",
       "chats": "聊天",
       "more": "更多",
       "rename": "重新命名"
@@ -241,6 +248,11 @@
       "tone": "例如：正式、輕鬆、技術性",
       "responseFormat": "例如：條列式重點、詳細段落",
       "constraints": "例如：回覆字數限制在 200 字以內"
+    },
+    "toast": {
+      "createdTitle": "專案已建立",
+      "updatedTitle": "專案已更新",
+      "deletedTitle": "專案已刪除"
     }
   }
 }

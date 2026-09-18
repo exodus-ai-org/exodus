@@ -22,25 +22,63 @@
     }
   },
   "nav": {
-    "profile": { "title": "Perfil" },
-    "general": { "title": "General" },
-    "personality": { "title": "Personalidad" },
-    "aiProviders": { "title": "Proveedores de IA" },
-    "amazonS3": { "title": "AWS S3" },
-    "mcpServers": { "title": "Servidores MCP" },
-    "skillsMarket": { "title": "Mercado de habilidades" },
-    "fullTextSearch": { "title": "Búsqueda de texto completo" },
-    "knowledgeBase": { "title": "Base de conocimientos" },
-    "builtinTools": { "title": "Herramientas integradas" },
-    "memory": { "title": "Memoria" },
-    "discover": { "title": "Descubrir" },
-    "voice": { "title": "Voz" },
-    "deepResearch": { "title": "Investigación profunda" },
-    "computerUse": { "title": "Uso del equipo" },
-    "dataControls": { "title": "Controles de datos" },
-    "logger": { "title": "Registro" },
-    "keyboardShortcuts": { "title": "Atajos de teclado" },
-    "about": { "title": "Acerca de Exodus" },
+    "profile": {
+      "title": "Perfil"
+    },
+    "general": {
+      "title": "General"
+    },
+    "personality": {
+      "title": "Personalidad"
+    },
+    "aiProviders": {
+      "title": "Proveedores de IA"
+    },
+    "amazonS3": {
+      "title": "AWS S3"
+    },
+    "mcpServers": {
+      "title": "Servidores MCP"
+    },
+    "skillsMarket": {
+      "title": "Mercado de habilidades"
+    },
+    "fullTextSearch": {
+      "title": "Búsqueda de texto completo"
+    },
+    "knowledgeBase": {
+      "title": "Base de conocimientos"
+    },
+    "builtinTools": {
+      "title": "Herramientas integradas"
+    },
+    "memory": {
+      "title": "Memoria"
+    },
+    "discover": {
+      "title": "Descubrir"
+    },
+    "voice": {
+      "title": "Voz"
+    },
+    "deepResearch": {
+      "title": "Investigación profunda"
+    },
+    "computerUse": {
+      "title": "Uso del equipo"
+    },
+    "dataControls": {
+      "title": "Controles de datos"
+    },
+    "logger": {
+      "title": "Registro"
+    },
+    "keyboardShortcuts": {
+      "title": "Atajos de teclado"
+    },
+    "about": {
+      "title": "Acerca de Exodus"
+    },
     "group": {
       "personal": "Personal",
       "aiTools": "IA y herramientas",
@@ -60,20 +98,42 @@
       "search": "Búsqueda"
     },
     "shortcuts": {
-      "new-chat": { "label": "Nuevo chat" },
-      "open-settings": { "label": "Abrir configuración" },
-      "toggle-sidebar": { "label": "Alternar barra lateral" },
+      "new-chat": {
+        "label": "Nuevo chat"
+      },
+      "open-settings": {
+        "label": "Abrir configuración"
+      },
+      "toggle-sidebar": {
+        "label": "Alternar barra lateral"
+      },
       "toggle-developer-tools": {
         "label": "Alternar herramientas de desarrollador"
       },
-      "force-refresh-page": { "label": "Forzar actualización de la página" },
-      "find-in-page": { "label": "Buscar en la página" },
-      "search-chat-history": { "label": "Buscar en el historial de chats" },
-      "close-find-bar": { "label": "Cerrar barra de búsqueda" },
-      "close-tab": { "label": "Cerrar pestaña actual" },
-      "focus-chat-input": { "label": "Enfocar el campo de mensaje" },
-      "send-message": { "label": "Enviar mensaje" },
-      "new-line": { "label": "Nueva línea" }
+      "force-refresh-page": {
+        "label": "Forzar actualización de la página"
+      },
+      "find-in-page": {
+        "label": "Buscar en la página"
+      },
+      "search-chat-history": {
+        "label": "Buscar en el historial de chats"
+      },
+      "close-find-bar": {
+        "label": "Cerrar barra de búsqueda"
+      },
+      "close-tab": {
+        "label": "Cerrar pestaña actual"
+      },
+      "focus-chat-input": {
+        "label": "Enfocar el campo de mensaje"
+      },
+      "send-message": {
+        "label": "Enviar mensaje"
+      },
+      "new-line": {
+        "label": "Nueva línea"
+      }
     }
   },
   "about": {
@@ -453,21 +513,30 @@
     "export": {
       "label": "Exportar datos",
       "description": "Descargue una copia portátil de sus conversaciones, ajustes y demás datos como un archivo ZIP.",
-      "button": "Exportar"
+      "button": "Exportar",
+      "successToast": "Datos exportados correctamente",
+      "errorToast": "Error al exportar",
+      "errorFallback": "No se pudieron exportar los datos."
     },
     "import": {
       "label": "Importar datos",
       "description": "Restaure desde un archivo ZIP exportado anteriormente. Esto reemplazará todos los datos existentes.",
       "button": "Importar",
       "dialogDescription": "Seleccione un archivo ZIP exportado anteriormente. Esto reemplazará todas las conversaciones y datos existentes. Se creará una copia de seguridad automáticamente antes de la importación.",
-      "confirmButton": "Reemplazar e importar"
+      "confirmButton": "Reemplazar e importar",
+      "successToast": "Datos importados correctamente",
+      "errorToast": "Error al importar",
+      "errorFallback": "No se pudieron importar los datos."
     },
     "delete": {
       "label": "Eliminar todos los datos",
       "description": "Borre permanentemente todas las conversaciones, memorias y datos de investigación. Se conservará su configuración.",
       "dialogDescription": "Esto eliminará permanentemente todas sus conversaciones, memorias, datos de investigación y documentos subidos. Se conservarán su configuración y sus claves de API. Se creará una copia de seguridad antes de eliminar.",
       "confirmPrompt": "Escriba <strong>DELETE</strong> para confirmar:",
-      "confirmButton": "Eliminar todo"
+      "confirmButton": "Eliminar todo",
+      "successToast": "Todos los datos fueron eliminados",
+      "errorToast": "Error al eliminar",
+      "errorFallback": "No se pudieron eliminar los datos."
     }
   },
   "fullTextSearch": {
@@ -727,5 +796,10 @@
       "uninstallFailed": "Error al desinstalar",
       "updateFailed": "No se pudo actualizar la habilidad"
     }
+  },
+  "toast": {
+    "saveFailed": "No se pudo guardar la configuración",
+    "autoSaved": "Guardado automáticamente",
+    "notSaved": "No guardado"
   }
 }

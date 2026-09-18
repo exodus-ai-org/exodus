@@ -38,5 +38,9 @@
   "uploader": {
     "dragDrop": "Trascina qui i file",
     "hint": "Oppure fai clic per sfogliare (massimo 2 file, fino a 5MB ciascuno)"
+  },
+  "clipboard": {
+    "failedTitle": "Copia non riuscita",
+    "genericError": "Riprova!"
   }
 }

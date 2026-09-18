@@ -763,3 +763,80 @@ describe('settings namespace mcpServers.intro renders correctly via Trans', () =
     )
   })
 })
+
+describe('settings namespace Phase 5 additions (en)', () => {
+  it('has the skillsMarket keys', () => {
+    expect(settings.skillsMarket.searchPlaceholder).toBe('Search skills...')
+    expect(settings.skillsMarket.installLocal).toBe('Install Local')
+    expect(settings.skillsMarket.tabs).toMatchObject({
+      browse: 'Browse',
+      installed: 'Installed'
+    })
+    expect(settings.skillsMarket.card.installsCount_one).toBe(
+      '{{formatted}} install'
+    )
+    expect(settings.skillsMarket.card.installsCount_other).toBe(
+      '{{formatted}} installs'
+    )
+    expect(settings.skillsMarket.toast.installedTitle).toBe(
+      '"{{name}}" installed'
+    )
+  })
+
+  it('has the new top-level toast.* keys (useSettings / useSettingsAutosave)', () => {
+    expect(settings.toast).toMatchObject({
+      saveFailed: 'Failed to save settings',
+      autoSaved: 'Auto saved',
+      notSaved: 'Not saved'
+    })
+  })
+
+  it('has the dataControls export/import/delete toast keys (useDbIo)', () => {
+    expect(settings.dataControls.export).toMatchObject({
+      successToast: 'Data exported successfully',
+      errorToast: 'Export failed',
+      errorFallback: 'Failed to export data.'
+    })
+    expect(settings.dataControls.import).toMatchObject({
+      successToast: 'Data imported successfully',
+      errorToast: 'Import failed',
+      errorFallback: 'Failed to import data.'
+    })
+    expect(settings.dataControls.delete).toMatchObject({
+      successToast: 'All data deleted',
+      errorToast: 'Delete failed',
+      errorFallback: 'Failed to delete data.'
+    })
+  })
+})
+
+describe('settings namespace skillsMarket.sourceNotice renders correctly via Trans', () => {
+  it("sourceNotice — <a> link at index 2 (explicit {' '} before it occupies index 1)", async () => {
+    const { createElement } = await import('react')
+    const { renderToStaticMarkup } = await import('react-dom/server')
+    const { I18nextProvider, initReactI18next } = await import('react-i18next')
+    const i18next = (await import('i18next')).default
+    const { SkillsDataSourceNotice } =
+      await import('@/containers/skills-market/index')
+
+    const i18n = i18next.createInstance()
+    await i18n.use(initReactI18next).init({
+      lng: 'en',
+      resources: { en: { settings } },
+      ns: ['settings'],
+      defaultNS: 'settings',
+      interpolation: { escapeValue: false }
+    })
+
+    const html = renderToStaticMarkup(
+      createElement(
+        I18nextProvider,
+        { i18n },
+        createElement(SkillsDataSourceNotice)
+      )
+    )
+    expect(html).toBe(
+      'Skills data sourced from <a href="https://clawhub.ai" target="_blank" rel="noopener noreferrer">clawhub.ai</a>. Please review skills carefully before installing to avoid potentially malicious programs.'
+    )
+  })
+})

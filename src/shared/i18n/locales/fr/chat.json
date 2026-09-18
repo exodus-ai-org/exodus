@@ -74,7 +74,13 @@
     "chatUpdated": "Conversation mise à jour",
     "chatDeleted": "Conversation supprimée",
     "sendFailedTitle": "Une erreur est survenue",
-    "sendFailedDescription": "Une erreur est survenue, veuillez réessayer !"
+    "sendFailedDescription": "Une erreur est survenue, veuillez réessayer !",
+    "responseReadyTitle": "Réponse prête",
+    "chatFallbackTitle": "Conversation",
+    "viewButton": "Afficher",
+    "chatFailedTitle": "Échec de la conversation",
+    "genericErrorFallback": "Une erreur est survenue",
+    "headsUpTitle": "À noter"
   },
   "lcm": {
     "compacting": "Compactage de l'historique de conversation…",
@@ -195,8 +201,9 @@
     "searchChats": "Rechercher des conversations",
     "history": {
       "empty": "Vos conversations apparaîtront ici dès que vous commencerez à discuter !",
-      "favorite": "Ajouter aux favoris",
+      "favoriteAction": "Ajouter aux favoris",
       "unfavorite": "Retirer des favoris",
+      "favoritesGroup": "Favoris",
       "chats": "Conversations",
       "more": "Plus",
       "rename": "Renommer"
@@ -249,6 +256,11 @@
       "tone": "par ex. Formel, Décontracté, Technique",
       "responseFormat": "par ex. Puces, Paragraphes détaillés",
       "constraints": "par ex. Limitez les réponses à 200 mots"
+    },
+    "toast": {
+      "createdTitle": "Projet créé",
+      "updatedTitle": "Projet mis à jour",
+      "deletedTitle": "Projet supprimé"
     }
   }
 }

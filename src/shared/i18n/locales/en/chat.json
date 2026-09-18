@@ -74,7 +74,13 @@
     "chatUpdated": "Chat updated",
     "chatDeleted": "Chat deleted",
     "sendFailedTitle": "Something went wrong",
-    "sendFailedDescription": "An error occurred, please try again!"
+    "sendFailedDescription": "An error occurred, please try again!",
+    "responseReadyTitle": "Response ready",
+    "chatFallbackTitle": "Chat",
+    "viewButton": "View",
+    "chatFailedTitle": "Chat failed",
+    "genericErrorFallback": "An error occurred",
+    "headsUpTitle": "Heads up"
   },
   "lcm": {
     "compacting": "Compacting conversation history…",
@@ -195,8 +201,9 @@
     "searchChats": "Search chats",
     "history": {
       "empty": "Your conversations will appear here once you start chatting!",
-      "favorite": "Favorite",
+      "favoriteAction": "Favorite",
       "unfavorite": "Unfavorite",
+      "favoritesGroup": "Favorites",
       "chats": "Chats",
       "more": "More",
       "rename": "Rename"
@@ -249,6 +256,11 @@
       "tone": "e.g., Formal, Casual, Technical",
       "responseFormat": "e.g., Bullet points, Detailed paragraphs",
       "constraints": "e.g., Keep responses under 200 words"
+    },
+    "toast": {
+      "createdTitle": "Project created",
+      "updatedTitle": "Project updated",
+      "deletedTitle": "Project deleted"
     }
   }
 }

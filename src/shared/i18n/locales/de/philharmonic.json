@@ -79,7 +79,9 @@
       "removeAria": "{{name}} entfernen"
     },
     "uploader": {
-      "attachAria": "Bilder anhängen"
+      "attachAria": "Bilder anhängen",
+      "s3FallbackTitle": "S3-Upload fehlgeschlagen, verwende eingebettete Daten",
+      "attachFailedTitle": "Dateien konnten nicht angehängt werden"
     },
     "composer": {
       "placeholder": "Nachricht an Ihr Team…",
@@ -150,6 +152,7 @@
     },
     "groupChat": {
       "renameTitle": "Zum Umbenennen klicken",
+      "errorTitle": "Bei der Gruppe ist ein Fehler aufgetreten",
       "memberCount_one": "{{count}} Mitglied",
       "memberCount_other": "{{count}} Mitglieder",
       "toggleMembersAria": "Mitglieder ein-/ausblenden",

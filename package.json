@@ -10,7 +10,6 @@
     "icons": "node scripts/render-icons.mjs",
     "i18n:check": "tsx scripts/i18n-check.ts",
     "i18n:status": "tsx scripts/i18n-status.ts",
-    "i18n:audit": "tsx scripts/i18n-audit.ts",
     "build": "npm run typecheck && electron-vite build",
     "build:helper": "swiftc -O -o resources/bin/exodus-input helper-src/exodus-input/main.swift -target arm64-apple-macos13",
     "build:linux": "cross-env STRIP_TEST_IDS=1 electron-vite build && electron-builder --linux",

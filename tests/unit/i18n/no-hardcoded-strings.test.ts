@@ -31,15 +31,24 @@ interface Violation {
   kind: string
 }
 
-function collectTsxFiles(dir: string): string[] {
+// Renderer source files worth scanning: `.tsx` for both the JSX-text check
+// and the `sileo` check, plus plain `.ts` for the `sileo` check only — a
+// hook/service file has no JSX but can still fire a hardcoded toast (e.g.
+// `services/project.ts`, `lib/stream-manager.ts`). `.d.ts` files declare
+// types, never runtime strings.
+function collectRendererSourceFiles(dir: string): string[] {
   const out: string[] = []
   for (const entry of readdirSync(dir, { withFileTypes: true })) {
     const full = join(dir, entry.name)
     if (EXCLUDED_DIRS.some((d) => full === d || full.startsWith(d + '/')))
       continue
     if (entry.isDirectory()) {
-      out.push(...collectTsxFiles(full))
-    } else if (entry.name.endsWith('.tsx') && !EXCLUDED_FILES.has(full)) {
+      out.push(...collectRendererSourceFiles(full))
+    } else if (
+      (entry.name.endsWith('.tsx') || entry.name.endsWith('.ts')) &&
+      !entry.name.endsWith('.d.ts') &&
+      !EXCLUDED_FILES.has(full)
+    ) {
       out.push(full)
     }
   }
@@ -101,9 +110,12 @@ function scanRendererFile(filePath: string): Violation[] {
   const relPath = relative(ROOT, filePath)
   const violations: Violation[] = []
 
+  // A plain `.ts` file can legally use the old angle-bracket type-assertion
+  // syntax (`<T>expr`), which the `jsx` plugin would misparse as a JSX tag —
+  // only enable `jsx` for `.tsx`, where that syntax is already illegal.
   const ast = parse(source, {
     sourceType: 'module',
-    plugins: ['jsx', 'typescript']
+    plugins: filePath.endsWith('.tsx') ? ['jsx', 'typescript'] : ['typescript']
   })
 
   traverse(ast, {
@@ -188,11 +200,13 @@ function scanMainLabelFile(filePath: string): Violation[] {
 }
 
 function isAllowlisted(v: Violation): boolean {
-  return ALLOWLIST.some((e) => e.file === v.file && e.text === v.text)
+  return ALLOWLIST.some(
+    (e) => e.file === v.file && e.text === v.text && e.line === v.line
+  )
 }
 
 describe('no-hardcoded-strings guard', () => {
-  const rendererFiles = collectTsxFiles(RENDERER_ROOT)
+  const rendererFiles = collectRendererSourceFiles(RENDERER_ROOT)
   const mainLabelFiles = [
     join(ROOT, 'src', 'main', 'lib', 'menu.ts'),
     join(ROOT, 'src', 'main', 'lib', 'tray.ts')
@@ -210,13 +224,24 @@ describe('no-hardcoded-strings guard', () => {
     expect(violations, `hardcoded strings found:\n${report}`).toEqual([])
   })
 
-  it('every allowlist entry still matches something in its file (no stale entries)', () => {
+  it('every allowlist entry still matches a real violation at its pinned file/line/text (no stale or over-broad entries)', () => {
+    // Re-scan (not a raw string.includes() check) so a stale entry — the
+    // line moved, the text changed, or the whole violation disappeared —
+    // fails loudly instead of silently continuing to exempt something
+    // unrelated. Using the guard's own scanner also means this test can't
+    // drift from what the guard itself actually flags.
+    const isMainLabelFile = (p: string) =>
+      p === join(ROOT, 'src', 'main', 'lib', 'menu.ts') ||
+      p === join(ROOT, 'src', 'main', 'lib', 'tray.ts')
+
     for (const entry of ALLOWLIST) {
       const full = join(ROOT, entry.file)
-      const source = readFileSync(full, 'utf8')
+      const found = (
+        isMainLabelFile(full) ? scanMainLabelFile(full) : scanRendererFile(full)
+      ).some((v) => v.text === entry.text && v.line === entry.line)
       expect(
-        source.includes(entry.text),
-        `allowlist entry no longer found in ${entry.file}: ${JSON.stringify(entry.text)}`
+        found,
+        `allowlist entry no longer matches a real violation in ${entry.file}:${entry.line}: ${JSON.stringify(entry.text)}`
       ).toBe(true)
     }
   })

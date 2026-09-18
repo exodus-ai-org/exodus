@@ -3,6 +3,7 @@ import { BASE_URL } from '@shared/constants/systems'
 import type { Attachment } from '@shared/types/chat'
 import { useSetAtom } from 'jotai'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import { useSettings } from '@/hooks/use-settings'
@@ -99,6 +100,7 @@ async function uploadViaBase64(file: File): Promise<Attachment> {
  * as the base64 path.
  */
 export function usePhilharmonicUpload() {
+  const { t } = useTranslation('philharmonic')
   const [uploading, setUploading] = useState(false)
   const { data: settings } = useSettings()
   const setAttachments = useSetAtom(philharmonicAttachmentAtom)
@@ -117,7 +119,7 @@ export function usePhilharmonicUpload() {
               // Fall back to base64 on individual failures so the user still
               // gets to send the message; warn so they know storage is off.
               sileo.warning({
-                title: 'S3 upload failed, using inline data',
+                title: t('chat.uploader.s3FallbackTitle'),
                 description: err instanceof Error ? err.message : String(err)
               })
               return await uploadViaBase64(file)
@@ -129,7 +131,7 @@ export function usePhilharmonicUpload() {
       setAttachments((prev) => [...prev, ...results])
     } catch (err) {
       sileo.error({
-        title: 'Could not attach files',
+        title: t('chat.uploader.attachFailedTitle'),
         description: err instanceof Error ? err.message : String(err)
       })
     } finally {

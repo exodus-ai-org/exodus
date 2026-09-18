@@ -22,25 +22,63 @@
     }
   },
   "nav": {
-    "profile": { "title": "Perfil" },
-    "general": { "title": "Geral" },
-    "personality": { "title": "Personalidade" },
-    "aiProviders": { "title": "Provedores de IA" },
-    "amazonS3": { "title": "AWS S3" },
-    "mcpServers": { "title": "Servidores MCP" },
-    "skillsMarket": { "title": "Mercado de Habilidades" },
-    "fullTextSearch": { "title": "Pesquisa de Texto Completo" },
-    "knowledgeBase": { "title": "Base de Conhecimento" },
-    "builtinTools": { "title": "Ferramentas Integradas" },
-    "memory": { "title": "Memória" },
-    "discover": { "title": "Descobrir" },
-    "voice": { "title": "Voz" },
-    "deepResearch": { "title": "Pesquisa Aprofundada" },
-    "computerUse": { "title": "Uso do Computador" },
-    "dataControls": { "title": "Controles de Dados" },
-    "logger": { "title": "Registro" },
-    "keyboardShortcuts": { "title": "Atalhos de Teclado" },
-    "about": { "title": "Sobre o Exodus" },
+    "profile": {
+      "title": "Perfil"
+    },
+    "general": {
+      "title": "Geral"
+    },
+    "personality": {
+      "title": "Personalidade"
+    },
+    "aiProviders": {
+      "title": "Provedores de IA"
+    },
+    "amazonS3": {
+      "title": "AWS S3"
+    },
+    "mcpServers": {
+      "title": "Servidores MCP"
+    },
+    "skillsMarket": {
+      "title": "Mercado de Habilidades"
+    },
+    "fullTextSearch": {
+      "title": "Pesquisa de Texto Completo"
+    },
+    "knowledgeBase": {
+      "title": "Base de Conhecimento"
+    },
+    "builtinTools": {
+      "title": "Ferramentas Integradas"
+    },
+    "memory": {
+      "title": "Memória"
+    },
+    "discover": {
+      "title": "Descobrir"
+    },
+    "voice": {
+      "title": "Voz"
+    },
+    "deepResearch": {
+      "title": "Pesquisa Aprofundada"
+    },
+    "computerUse": {
+      "title": "Uso do Computador"
+    },
+    "dataControls": {
+      "title": "Controles de Dados"
+    },
+    "logger": {
+      "title": "Registro"
+    },
+    "keyboardShortcuts": {
+      "title": "Atalhos de Teclado"
+    },
+    "about": {
+      "title": "Sobre o Exodus"
+    },
     "group": {
       "personal": "Pessoal",
       "aiTools": "IA e Ferramentas",
@@ -60,20 +98,42 @@
       "search": "Pesquisa"
     },
     "shortcuts": {
-      "new-chat": { "label": "Novo chat" },
-      "open-settings": { "label": "Abrir configurações" },
-      "toggle-sidebar": { "label": "Alternar barra lateral" },
+      "new-chat": {
+        "label": "Novo chat"
+      },
+      "open-settings": {
+        "label": "Abrir configurações"
+      },
+      "toggle-sidebar": {
+        "label": "Alternar barra lateral"
+      },
       "toggle-developer-tools": {
         "label": "Alternar ferramentas de desenvolvedor"
       },
-      "force-refresh-page": { "label": "Forçar atualização da página" },
-      "find-in-page": { "label": "Localizar na página" },
-      "search-chat-history": { "label": "Pesquisar histórico de chat" },
-      "close-find-bar": { "label": "Fechar barra de localização" },
-      "close-tab": { "label": "Fechar aba atual" },
-      "focus-chat-input": { "label": "Focar no campo de mensagem" },
-      "send-message": { "label": "Enviar mensagem" },
-      "new-line": { "label": "Nova linha" }
+      "force-refresh-page": {
+        "label": "Forçar atualização da página"
+      },
+      "find-in-page": {
+        "label": "Localizar na página"
+      },
+      "search-chat-history": {
+        "label": "Pesquisar histórico de chat"
+      },
+      "close-find-bar": {
+        "label": "Fechar barra de localização"
+      },
+      "close-tab": {
+        "label": "Fechar aba atual"
+      },
+      "focus-chat-input": {
+        "label": "Focar no campo de mensagem"
+      },
+      "send-message": {
+        "label": "Enviar mensagem"
+      },
+      "new-line": {
+        "label": "Nova linha"
+      }
     }
   },
   "about": {
@@ -453,21 +513,30 @@
     "export": {
       "label": "Exportar Dados",
       "description": "Baixe uma cópia portátil de suas conversas, configurações e outros dados como um arquivo ZIP.",
-      "button": "Exportar"
+      "button": "Exportar",
+      "successToast": "Dados exportados com sucesso",
+      "errorToast": "Falha na exportação",
+      "errorFallback": "Falha ao exportar os dados."
     },
     "import": {
       "label": "Importar Dados",
       "description": "Restaure a partir de um arquivo ZIP exportado anteriormente. Isso substituirá todos os dados existentes.",
       "button": "Importar",
       "dialogDescription": "Selecione um arquivo ZIP exportado anteriormente. Isso substituirá todas as conversas e dados existentes. Um backup será criado automaticamente antes da importação.",
-      "confirmButton": "Substituir e Importar"
+      "confirmButton": "Substituir e Importar",
+      "successToast": "Dados importados com sucesso",
+      "errorToast": "Falha na importação",
+      "errorFallback": "Falha ao importar os dados."
     },
     "delete": {
       "label": "Excluir Todos os Dados",
       "description": "Apague permanentemente todas as conversas, memórias e dados de pesquisa. Suas configurações serão preservadas.",
       "dialogDescription": "Isso excluirá permanentemente todas as suas conversas, memórias, dados de pesquisa e documentos enviados. Suas configurações e chaves de API serão preservadas. Um backup será criado antes da exclusão.",
       "confirmPrompt": "Digite <strong>DELETE</strong> para confirmar:",
-      "confirmButton": "Excluir Tudo"
+      "confirmButton": "Excluir Tudo",
+      "successToast": "Todos os dados foram excluídos",
+      "errorToast": "Falha ao excluir",
+      "errorFallback": "Falha ao excluir os dados."
     }
   },
   "fullTextSearch": {
@@ -727,5 +796,10 @@
       "uninstallFailed": "Falha na desinstalação",
       "updateFailed": "Falha ao atualizar habilidade"
     }
+  },
+  "toast": {
+    "saveFailed": "Falha ao salvar as configurações",
+    "autoSaved": "Salvo automaticamente",
+    "notSaved": "Não salvo"
   }
 }

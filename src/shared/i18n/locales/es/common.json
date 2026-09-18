@@ -38,5 +38,9 @@
       "xhigh": "Extra alto",
       "max": "Máximo"
     }
+  },
+  "clipboard": {
+    "failedTitle": "Error al copiar",
+    "genericError": "¡Inténtelo de nuevo!"
   }
 }

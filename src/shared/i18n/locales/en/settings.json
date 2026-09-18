@@ -451,21 +451,30 @@
     "export": {
       "label": "Export Data",
       "description": "Download a portable copy of your conversations, settings, and other data as a ZIP archive.",
-      "button": "Export"
+      "button": "Export",
+      "successToast": "Data exported successfully",
+      "errorToast": "Export failed",
+      "errorFallback": "Failed to export data."
     },
     "import": {
       "label": "Import Data",
       "description": "Restore from a previously exported ZIP archive. This will replace all existing data.",
       "button": "Import",
       "dialogDescription": "Select a previously exported ZIP file. This will replace all existing conversations and data. A backup will be created automatically before import.",
-      "confirmButton": "Replace & Import"
+      "confirmButton": "Replace & Import",
+      "successToast": "Data imported successfully",
+      "errorToast": "Import failed",
+      "errorFallback": "Failed to import data."
     },
     "delete": {
       "label": "Delete All Data",
       "description": "Permanently erase all conversations, memories, and research data. Your settings will be preserved.",
       "dialogDescription": "This will permanently delete all your conversations, memories, research data, and uploaded documents. Your settings and API keys will be preserved. A backup will be created before deletion.",
       "confirmPrompt": "Type <strong>DELETE</strong> to confirm:",
-      "confirmButton": "Delete Everything"
+      "confirmButton": "Delete Everything",
+      "successToast": "All data deleted",
+      "errorToast": "Delete failed",
+      "errorFallback": "Failed to delete data."
     }
   },
   "fullTextSearch": {
@@ -725,5 +734,10 @@
       "uninstallFailed": "Uninstall failed",
       "updateFailed": "Failed to update skill"
     }
+  },
+  "toast": {
+    "saveFailed": "Failed to save settings",
+    "autoSaved": "Auto saved",
+    "notSaved": "Not saved"
   }
 }

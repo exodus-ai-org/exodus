@@ -22,25 +22,63 @@
     }
   },
   "nav": {
-    "profile": { "title": "個人檔案" },
-    "general": { "title": "一般" },
-    "personality": { "title": "個性" },
-    "aiProviders": { "title": "AI 供應商" },
-    "amazonS3": { "title": "AWS S3" },
-    "mcpServers": { "title": "MCP 伺服器" },
-    "skillsMarket": { "title": "技能市集" },
-    "fullTextSearch": { "title": "全文搜尋" },
-    "knowledgeBase": { "title": "知識庫" },
-    "builtinTools": { "title": "內建工具" },
-    "memory": { "title": "記憶" },
-    "discover": { "title": "探索" },
-    "voice": { "title": "語音" },
-    "deepResearch": { "title": "深度研究" },
-    "computerUse": { "title": "電腦操作" },
-    "dataControls": { "title": "資料控制" },
-    "logger": { "title": "日誌" },
-    "keyboardShortcuts": { "title": "鍵盤快速鍵" },
-    "about": { "title": "關於 Exodus" },
+    "profile": {
+      "title": "個人檔案"
+    },
+    "general": {
+      "title": "一般"
+    },
+    "personality": {
+      "title": "個性"
+    },
+    "aiProviders": {
+      "title": "AI 供應商"
+    },
+    "amazonS3": {
+      "title": "AWS S3"
+    },
+    "mcpServers": {
+      "title": "MCP 伺服器"
+    },
+    "skillsMarket": {
+      "title": "技能市集"
+    },
+    "fullTextSearch": {
+      "title": "全文搜尋"
+    },
+    "knowledgeBase": {
+      "title": "知識庫"
+    },
+    "builtinTools": {
+      "title": "內建工具"
+    },
+    "memory": {
+      "title": "記憶"
+    },
+    "discover": {
+      "title": "探索"
+    },
+    "voice": {
+      "title": "語音"
+    },
+    "deepResearch": {
+      "title": "深度研究"
+    },
+    "computerUse": {
+      "title": "電腦操作"
+    },
+    "dataControls": {
+      "title": "資料控制"
+    },
+    "logger": {
+      "title": "日誌"
+    },
+    "keyboardShortcuts": {
+      "title": "鍵盤快速鍵"
+    },
+    "about": {
+      "title": "關於 Exodus"
+    },
     "group": {
       "personal": "個人",
       "aiTools": "AI 與工具",
@@ -60,18 +98,42 @@
       "search": "搜尋"
     },
     "shortcuts": {
-      "new-chat": { "label": "開新聊天" },
-      "open-settings": { "label": "開啟設定" },
-      "toggle-sidebar": { "label": "切換側邊欄" },
-      "toggle-developer-tools": { "label": "切換開發者工具" },
-      "force-refresh-page": { "label": "強制重新整理頁面" },
-      "find-in-page": { "label": "在頁面中尋找" },
-      "search-chat-history": { "label": "搜尋聊天記錄" },
-      "close-find-bar": { "label": "關閉尋找列" },
-      "close-tab": { "label": "關閉目前分頁" },
-      "focus-chat-input": { "label": "聚焦聊天輸入框" },
-      "send-message": { "label": "傳送訊息" },
-      "new-line": { "label": "換行" }
+      "new-chat": {
+        "label": "開新聊天"
+      },
+      "open-settings": {
+        "label": "開啟設定"
+      },
+      "toggle-sidebar": {
+        "label": "切換側邊欄"
+      },
+      "toggle-developer-tools": {
+        "label": "切換開發者工具"
+      },
+      "force-refresh-page": {
+        "label": "強制重新整理頁面"
+      },
+      "find-in-page": {
+        "label": "在頁面中尋找"
+      },
+      "search-chat-history": {
+        "label": "搜尋聊天記錄"
+      },
+      "close-find-bar": {
+        "label": "關閉尋找列"
+      },
+      "close-tab": {
+        "label": "關閉目前分頁"
+      },
+      "focus-chat-input": {
+        "label": "聚焦聊天輸入框"
+      },
+      "send-message": {
+        "label": "傳送訊息"
+      },
+      "new-line": {
+        "label": "換行"
+      }
     }
   },
   "about": {
@@ -450,21 +512,30 @@
     "export": {
       "label": "匯出資料",
       "description": "將你的對話、設定及其他資料下載為可攜式的 ZIP 封存檔。",
-      "button": "匯出"
+      "button": "匯出",
+      "successToast": "資料匯出成功",
+      "errorToast": "匯出失敗",
+      "errorFallback": "資料匯出失敗。"
     },
     "import": {
       "label": "匯入資料",
       "description": "從先前匯出的 ZIP 封存檔還原，這會取代所有現有資料。",
       "button": "匯入",
       "dialogDescription": "選擇先前匯出的 ZIP 檔案，這會取代所有現有的對話與資料。匯入前會自動建立備份。",
-      "confirmButton": "取代並匯入"
+      "confirmButton": "取代並匯入",
+      "successToast": "資料匯入成功",
+      "errorToast": "匯入失敗",
+      "errorFallback": "資料匯入失敗。"
     },
     "delete": {
       "label": "刪除所有資料",
       "description": "永久清除所有對話、記憶及研究資料，你的設定將會保留。",
       "dialogDescription": "這會永久刪除你所有的對話、記憶、研究資料及已上載的文件，你的設定與 API 金鑰將會保留。刪除前會先建立備份。",
       "confirmPrompt": "輸入 <strong>DELETE</strong> 以確認：",
-      "confirmButton": "刪除所有內容"
+      "confirmButton": "刪除所有內容",
+      "successToast": "所有資料已刪除",
+      "errorToast": "刪除失敗",
+      "errorFallback": "資料刪除失敗。"
     }
   },
   "fullTextSearch": {
@@ -719,5 +790,10 @@
       "uninstallFailed": "移除技能失敗",
       "updateFailed": "更新技能失敗"
     }
+  },
+  "toast": {
+    "saveFailed": "設定儲存失敗",
+    "autoSaved": "已自動儲存",
+    "notSaved": "未儲存"
   }
 }

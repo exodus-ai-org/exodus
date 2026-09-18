@@ -22,25 +22,63 @@
     }
   },
   "nav": {
-    "profile": { "title": "프로필" },
-    "general": { "title": "일반" },
-    "personality": { "title": "성격" },
-    "aiProviders": { "title": "AI 제공자" },
-    "amazonS3": { "title": "AWS S3" },
-    "mcpServers": { "title": "MCP 서버" },
-    "skillsMarket": { "title": "스킬 마켓" },
-    "fullTextSearch": { "title": "전문 검색" },
-    "knowledgeBase": { "title": "지식 베이스" },
-    "builtinTools": { "title": "내장 도구" },
-    "memory": { "title": "메모리" },
-    "discover": { "title": "Discover" },
-    "voice": { "title": "음성" },
-    "deepResearch": { "title": "심층 조사" },
-    "computerUse": { "title": "Computer Use" },
-    "dataControls": { "title": "데이터 관리" },
-    "logger": { "title": "로거" },
-    "keyboardShortcuts": { "title": "키보드 단축키" },
-    "about": { "title": "Exodus 정보" },
+    "profile": {
+      "title": "프로필"
+    },
+    "general": {
+      "title": "일반"
+    },
+    "personality": {
+      "title": "성격"
+    },
+    "aiProviders": {
+      "title": "AI 제공자"
+    },
+    "amazonS3": {
+      "title": "AWS S3"
+    },
+    "mcpServers": {
+      "title": "MCP 서버"
+    },
+    "skillsMarket": {
+      "title": "스킬 마켓"
+    },
+    "fullTextSearch": {
+      "title": "전문 검색"
+    },
+    "knowledgeBase": {
+      "title": "지식 베이스"
+    },
+    "builtinTools": {
+      "title": "내장 도구"
+    },
+    "memory": {
+      "title": "메모리"
+    },
+    "discover": {
+      "title": "Discover"
+    },
+    "voice": {
+      "title": "음성"
+    },
+    "deepResearch": {
+      "title": "심층 조사"
+    },
+    "computerUse": {
+      "title": "Computer Use"
+    },
+    "dataControls": {
+      "title": "데이터 관리"
+    },
+    "logger": {
+      "title": "로거"
+    },
+    "keyboardShortcuts": {
+      "title": "키보드 단축키"
+    },
+    "about": {
+      "title": "Exodus 정보"
+    },
     "group": {
       "personal": "개인",
       "aiTools": "AI 및 도구",
@@ -60,18 +98,42 @@
       "search": "검색"
     },
     "shortcuts": {
-      "new-chat": { "label": "새 채팅" },
-      "open-settings": { "label": "설정 열기" },
-      "toggle-sidebar": { "label": "사이드바 토글" },
-      "toggle-developer-tools": { "label": "개발자 도구 토글" },
-      "force-refresh-page": { "label": "페이지 강제 새로고침" },
-      "find-in-page": { "label": "페이지 내 찾기" },
-      "search-chat-history": { "label": "채팅 기록 검색" },
-      "close-find-bar": { "label": "찾기 표시줄 닫기" },
-      "close-tab": { "label": "현재 탭 닫기" },
-      "focus-chat-input": { "label": "채팅 입력창에 포커스" },
-      "send-message": { "label": "메시지 보내기" },
-      "new-line": { "label": "줄 바꿈" }
+      "new-chat": {
+        "label": "새 채팅"
+      },
+      "open-settings": {
+        "label": "설정 열기"
+      },
+      "toggle-sidebar": {
+        "label": "사이드바 토글"
+      },
+      "toggle-developer-tools": {
+        "label": "개발자 도구 토글"
+      },
+      "force-refresh-page": {
+        "label": "페이지 강제 새로고침"
+      },
+      "find-in-page": {
+        "label": "페이지 내 찾기"
+      },
+      "search-chat-history": {
+        "label": "채팅 기록 검색"
+      },
+      "close-find-bar": {
+        "label": "찾기 표시줄 닫기"
+      },
+      "close-tab": {
+        "label": "현재 탭 닫기"
+      },
+      "focus-chat-input": {
+        "label": "채팅 입력창에 포커스"
+      },
+      "send-message": {
+        "label": "메시지 보내기"
+      },
+      "new-line": {
+        "label": "줄 바꿈"
+      }
     }
   },
   "about": {
@@ -450,21 +512,30 @@
     "export": {
       "label": "데이터 내보내기",
       "description": "대화, 설정 및 기타 데이터를 ZIP 아카이브로 다운로드합니다.",
-      "button": "내보내기"
+      "button": "내보내기",
+      "successToast": "데이터를 내보냈습니다",
+      "errorToast": "내보내기 실패",
+      "errorFallback": "데이터 내보내기에 실패했습니다."
     },
     "import": {
       "label": "데이터 가져오기",
       "description": "이전에 내보낸 ZIP 아카이브에서 복원합니다. 기존 데이터가 모두 대체됩니다.",
       "button": "가져오기",
       "dialogDescription": "이전에 내보낸 ZIP 파일을 선택하세요. 기존의 모든 대화와 데이터가 대체됩니다. 가져오기 전에 자동으로 백업이 생성됩니다.",
-      "confirmButton": "대체 후 가져오기"
+      "confirmButton": "대체 후 가져오기",
+      "successToast": "데이터를 가져왔습니다",
+      "errorToast": "가져오기 실패",
+      "errorFallback": "데이터 가져오기에 실패했습니다."
     },
     "delete": {
       "label": "모든 데이터 삭제",
       "description": "모든 대화, 메모리, 조사 데이터를 영구적으로 삭제합니다. 설정은 유지됩니다.",
       "dialogDescription": "모든 대화, 메모리, 조사 데이터, 업로드한 문서가 영구적으로 삭제됩니다. 설정과 API 키는 유지됩니다. 삭제 전에 백업이 생성됩니다.",
       "confirmPrompt": "확인하려면 <strong>DELETE</strong>를 입력하세요:",
-      "confirmButton": "전체 삭제"
+      "confirmButton": "전체 삭제",
+      "successToast": "모든 데이터가 삭제되었습니다",
+      "errorToast": "삭제 실패",
+      "errorFallback": "데이터 삭제에 실패했습니다."
     }
   },
   "fullTextSearch": {
@@ -719,5 +790,10 @@
       "uninstallFailed": "제거 실패",
       "updateFailed": "스킬 업데이트에 실패했습니다"
     }
+  },
+  "toast": {
+    "saveFailed": "설정을 저장하지 못했습니다",
+    "autoSaved": "자동 저장됨",
+    "notSaved": "저장되지 않음"
   }
 }

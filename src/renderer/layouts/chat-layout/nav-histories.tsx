@@ -145,7 +145,7 @@ export const NavItems = memo(function NavItems({
             <span>
               {chat.favorite
                 ? t('chat:sidebar.history.unfavorite')
-                : t('chat:sidebar.history.favorite')}
+                : t('chat:sidebar.history.favoriteAction')}
             </span>
           </DropdownMenuItem>
           <DropdownMenuItem
@@ -221,7 +221,7 @@ export function NavHistories() {
               <SidebarGroupLabel className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mb-1 text-sm">
                 <CollapsibleTrigger className="group/trigger flex w-full items-center justify-between pl-0!">
                   <SidebarGroupLabel className="p-0">
-                    {t('sidebar.history.favorite')}
+                    {t('sidebar.history.favoritesGroup')}
                   </SidebarGroupLabel>
                   <ChevronRightIcon className="text-sidebar-foreground/50 h-4 w-4 transition-transform duration-200 group-data-panel-open/trigger:rotate-90" />
                 </CollapsibleTrigger>

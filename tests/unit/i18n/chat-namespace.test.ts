@@ -344,6 +344,101 @@ describe('chat namespace (en) — tool-card additions', () => {
   })
 })
 
+describe('chat namespace Phase 5 additions (en)', () => {
+  it('has the sourcesPanel keys', () => {
+    expect(chat.sourcesPanel.title_one).toBe('{{count}} Source')
+    expect(chat.sourcesPanel.title_other).toBe('{{count}} Sources')
+    expect(chat.sourcesPanel.citations).toBe('Citations ({{count}})')
+    expect(chat.sourcesPanel.more).toBe('More')
+  })
+
+  it('has the sidebar.newChat / searchChats / history / projects / dialogs / search keys', () => {
+    expect(chat.sidebar.newChat).toBe('New chat')
+    expect(chat.sidebar.searchChats).toBe('Search chats')
+    expect(chat.sidebar.history).toMatchObject({
+      favoriteAction: 'Favorite',
+      unfavorite: 'Unfavorite',
+      favoritesGroup: 'Favorites',
+      chats: 'Chats',
+      rename: 'Rename'
+    })
+    expect(chat.sidebar.projects.deleteDescription).toContain('{{name}}')
+    expect(chat.sidebar.renameDialog.title).toBe('Rename Chat')
+    expect(chat.sidebar.deleteDialog.description).toBe(
+      'This will delete <strong>{{title}}</strong>.'
+    )
+    expect(chat.sidebar.search.noContents).toBe('No contents')
+  })
+
+  it('has the projectDetail keys, including per-field structured placeholders and toasts', () => {
+    expect(chat.projectDetail.tabs.chats).toBe('Chats ({{count}})')
+    expect(chat.projectDetail.structuredFields).toMatchObject({
+      role: 'Role',
+      tone: 'Tone',
+      responseFormat: 'Response Format',
+      constraints: 'Constraints'
+    })
+    expect(chat.projectDetail.toast).toMatchObject({
+      createdTitle: 'Project created',
+      updatedTitle: 'Project updated',
+      deletedTitle: 'Project deleted'
+    })
+  })
+
+  it('has the extra toast keys for chat.tsx onError and stream-manager', () => {
+    expect(chat.toast.sendFailedTitle).toBe('Something went wrong')
+    expect(chat.toast.sendFailedDescription).toBe(
+      'An error occurred, please try again!'
+    )
+    expect(chat.toast.responseReadyTitle).toBe('Response ready')
+    expect(chat.toast.viewButton).toBe('View')
+    expect(chat.toast.headsUpTitle).toBe('Heads up')
+  })
+
+  it('sidebar.history.favoriteAction and .favoritesGroup are distinct UI roles, not one shared key', () => {
+    // Regression test for a real Phase 5 review finding: the dropdown-menu
+    // action ("Favorite" a chat) and the collapsible section heading
+    // ("Favorites") are different UI roles that happened to share English
+    // text — collapsing them onto one key produced a translated verb phrase
+    // ("Ajouter aux favoris") sitting where a plural noun heading belongs in
+    // every non-English locale. They must stay separate keys even where the
+    // English values coincide in form.
+    expect(chat.sidebar.history.favoriteAction).toBeDefined()
+    expect(chat.sidebar.history.favoritesGroup).toBeDefined()
+    expect(chat.sidebar.history).not.toHaveProperty('favorite')
+  })
+
+  it('deleteDialog.description renders <strong> literally via the real Trans component', async () => {
+    const { createElement } = await import('react')
+    const { renderToStaticMarkup } = await import('react-dom/server')
+    const { I18nextProvider, initReactI18next, Trans } =
+      await import('react-i18next')
+    const i18next = (await import('i18next')).default
+
+    const i18n = i18next.createInstance()
+    await i18n.use(initReactI18next).init({
+      lng: 'en',
+      resources: { en: { chat } },
+      ns: ['chat'],
+      defaultNS: 'chat',
+      interpolation: { escapeValue: false }
+    })
+
+    const html = renderToStaticMarkup(
+      createElement(
+        I18nextProvider,
+        { i18n },
+        createElement(Trans, {
+          ns: 'chat',
+          i18nKey: 'sidebar.deleteDialog.description',
+          values: { title: 'My Chat' }
+        })
+      )
+    )
+    expect(html).toBe('This will delete <strong>My Chat</strong>.')
+  })
+})
+
 describe('chat namespace tool-card CLDR plural resolves via the real i18next instance', () => {
   it('picks the singular/plural form for deepResearchCard.completedSummary', async () => {
     const { i18n, i18nReady } = await import('@/lib/i18n')

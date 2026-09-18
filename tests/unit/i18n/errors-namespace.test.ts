@@ -64,4 +64,14 @@ describe('errors namespace (en)', () => {
       expect(errors.code[code]).toBe(ErrorMessages[code])
     }
   })
+
+  it('has the Phase 5 routeBoundary.* keys (RouteErrorBoundary)', () => {
+    expect(errors.routeBoundary).toMatchObject({
+      title: 'Something went wrong',
+      description: 'An unexpected error occurred.',
+      fallbackDescription: 'The page could not be loaded.',
+      backToHome: 'Back to Home',
+      reload: 'Reload'
+    })
+  })
 })

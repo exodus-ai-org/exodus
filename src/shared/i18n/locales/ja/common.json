@@ -38,5 +38,9 @@
   "uploader": {
     "dragDrop": "ここにファイルをドラッグ&ドロップ",
     "hint": "またはクリックして選択(最大2ファイル、各5MBまで)"
+  },
+  "clipboard": {
+    "failedTitle": "コピーに失敗しました",
+    "genericError": "もう一度お試しください!"
   }
 }

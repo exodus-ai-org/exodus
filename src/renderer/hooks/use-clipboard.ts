@@ -1,7 +1,9 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 export function useClipboard() {
+  const { t } = useTranslation('common')
   const [copied, setCopied] = useState('')
 
   const handleCopy = async (text: string) => {
@@ -13,9 +15,9 @@ export function useClipboard() {
       }, 2000)
     } catch (error) {
       sileo.error({
-        title: 'Failed to copy',
+        title: t('clipboard.failedTitle'),
         description:
-          error instanceof Error ? error.message : 'Please try again!'
+          error instanceof Error ? error.message : t('clipboard.genericError')
       })
     }
   }
