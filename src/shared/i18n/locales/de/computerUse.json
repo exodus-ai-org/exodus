@@ -1,1 +1,22 @@
-{}
+{
+  "alert": "Computer Use ermöglicht es der KI, ein Fenster auf Ihrem Mac mit einer virtuellen Maus und Tastatur zu bedienen — sie sieht bei jedem Schritt einen Screenshot und handelt wie ein Mensch. Dafür ist ein KI-Modell mit Bildverständnis erforderlich. Sie greift nur auf Apps zu, die Sie unten zur Zulassungsliste hinzufügen (und öffnet eine App, die noch nicht läuft). Sie können sie jederzeit mit ⌥⇧⎋ stoppen, und jede Sitzung wird protokolliert. Standardmäßig deaktiviert.",
+  "enable": {
+    "label": "Computer Use aktivieren",
+    "description": "Lässt die KI ein zugelassenes Fenster bedienen."
+  },
+  "allowlist": {
+    "label": "Zugelassene Apps",
+    "description": "Computer Use greift nur auf diese Apps zu. Wählen Sie aus den auf diesem Mac installierten Apps.",
+    "searchPlaceholder": "Installierte Apps durchsuchen…",
+    "loading": "Apps werden geladen…",
+    "noAppFound": "Keine App gefunden."
+  },
+  "maxSteps": {
+    "label": "Max. Schritte",
+    "description": "Eine Sitzung nach dieser Anzahl von Aktionen beenden. Standard: 25."
+  },
+  "settleDelay": {
+    "label": "Beruhigungspause (ms)",
+    "description": "So lange nach jeder Aktion warten, bevor der nächste Screenshot gemacht wird. Standard: 800."
+  }
+}

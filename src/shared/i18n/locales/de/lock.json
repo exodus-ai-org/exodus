@@ -1,1 +1,44 @@
-{}
+{
+  "incorrectPin": "Falsche PIN",
+  "screen": {
+    "unlockWithTouchId": "Mit Touch ID entsperren",
+    "tooManyAttempts": "Zu viele Versuche. Versuchen Sie es in {{seconds}}s erneut."
+  },
+  "privacy": {
+    "title": "Sperre & Datenschutz",
+    "enroll": {
+      "description": "Legen Sie eine 6-stellige PIN fest, um Exodus zu sperren. Während die App gesperrt ist, sind die Oberfläche und die lokale API nicht zugänglich, Hintergrundaufgaben laufen jedoch weiter.",
+      "enterLabel": "Geben Sie eine 6-stellige PIN ein",
+      "confirmLabel": "Bestätigen Sie Ihre PIN",
+      "startOver": "Von vorne beginnen"
+    },
+    "idleOptions": {
+      "off": "Aus",
+      "oneMinute": "1 Minute",
+      "fiveMinutes": "5 Minuten",
+      "fifteenMinutes": "15 Minuten",
+      "thirtyMinutes": "30 Minuten"
+    },
+    "touchIdToggleLabel": "Mit Touch ID entsperren",
+    "autoLockIdle": "Bei Inaktivität automatisch sperren",
+    "lockOnLaunch": "Beim App-Start sperren",
+    "lockOnSystemSleep": "Beim Ruhezustand des Systems sperren",
+    "removeLock": {
+      "label": "Sperre entfernen",
+      "description": "Die App-Sperre deaktivieren. Erfordert Ihre aktuelle PIN.",
+      "button": "Entfernen",
+      "dialogTitle": "Sperre entfernen?",
+      "dialogDescription": "Geben Sie Ihre aktuelle PIN zur Bestätigung ein. Exodus fragt beim Öffnen dann keine PIN mehr ab.",
+      "confirmButton": "Sperre entfernen"
+    },
+    "toast": {
+      "pinsDoNotMatch": "PINs stimmen nicht überein",
+      "setPinFailed": {
+        "title": "PIN konnte nicht festgelegt werden",
+        "description": "Es existiert bereits eine PIN."
+      },
+      "lockEnabled": "Sperre aktiviert",
+      "lockRemoved": "Sperre entfernt"
+    }
+  }
+}

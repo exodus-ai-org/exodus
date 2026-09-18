@@ -1,1 +1,42 @@
-{}
+{
+  "form": {
+    "breadth": {
+      "label": "Breite",
+      "description": "Generieren Sie mehrere Suchanfragen, um auf jeder Ebene verschiedene Aspekte Ihres Themas zu untersuchen. Standard: 4."
+    },
+    "depth": {
+      "label": "Tiefe",
+      "description": "Rekursiv tiefer eintauchen, Spuren verfolgen und für jeden Zweig Zusammenhänge aufdecken. Standard: 2."
+    }
+  },
+  "tabs": {
+    "activity": "Aktivität",
+    "sources_one": "{{count}} Quelle",
+    "sources_other": "{{count}} Quellen"
+  },
+  "messages": {
+    "start": {
+      "title": "Deep Research wird gestartet...",
+      "description": "Der Deep-Research-Prozess kann eine Weile dauern. Chatten Sie gerne in anderen Unterhaltungen mit Exodus weiter. Exodus benachrichtigt Sie, sobald der Abschlussbericht fertig ist."
+    },
+    "learnings_one": "Aus den vorherigen Webressourcen wurde {{count}} Erkenntnis recherchiert",
+    "learnings_other": "Aus den vorherigen Webressourcen wurden {{count}} Erkenntnisse recherchiert",
+    "queriesDeeper_one": "{{count}} Suchanfrage für die vorherigen Recherchen generiert",
+    "queriesDeeper_other": "{{count}} Suchanfragen für die vorherigen Recherchen generiert",
+    "queriesForTopic_one": "{{count}} Suchanfrage für „{{query}}“ generiert",
+    "queriesForTopic_other": "{{count}} Suchanfragen für „{{query}}“ generiert",
+    "searchedFor": "Gesucht nach „{{query}}“",
+    "writingReport": {
+      "title": "Abschlussbericht wird verfasst...",
+      "description": "Die Deep-Research-Phase ist abgeschlossen. Ihr Abschlussbericht wird erstellt und in Kürze präsentiert."
+    },
+    "complete": {
+      "title": "Deep Research abgeschlossen",
+      "description": "Der ausführliche Bericht zu „{{query}}“ wurde vollständig erstellt. Wir hoffen, er ist hilfreich für Sie!"
+    }
+  },
+  "sources": {
+    "citations": "Zitate",
+    "more": "Mehr"
+  }
+}

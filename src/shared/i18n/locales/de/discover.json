@@ -1,1 +1,22 @@
-{}
+{
+  "alert": "Discover verwandelt Ihr gespeichertes Gedächtnis in einen personalisierten Nachrichtenfeed auf der Startseite — wird es aktiviert, sendet es Ihre Gedächtnisthemen an Ihren KI-Anbieter (um daraus Suchanfragen zu erstellen) und die daraus resultierenden Anfragen etwa einmal täglich an Brave (denselben Anbieter, der auch für die Websuche verwendet wird). Standardmäßig deaktiviert; es verlässt nichts Ihren Rechner, bis Sie es aktivieren.",
+  "enable": {
+    "label": "Discover aktivieren",
+    "description": "Einen personalisierten Nachrichtenfeed auf der Startseite anzeigen."
+  },
+  "braveKeyHint": "Discover benötigt einen Brave Search API-Schlüssel. <2>Fügen Sie einen unter Integrierte Tools hinzu</2>.",
+  "topicCount": {
+    "label": "Themen",
+    "description": "Wie viele aus dem Gedächtnis abgeleitete Themen angezeigt werden sollen. Standard: 4."
+  },
+  "articlesPerTopic": {
+    "label": "Artikel pro Thema",
+    "description": "Wie viele Artikel pro Themenzeile angezeigt werden. Standard: 3."
+  },
+  "heading": "Discover",
+  "updatedAgo": "aktualisiert {{time}}",
+  "refreshButton": "Aktualisieren",
+  "toast": {
+    "refreshFailed": "Aktualisierung fehlgeschlagen"
+  }
+}

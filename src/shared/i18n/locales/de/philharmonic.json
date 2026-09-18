@@ -1,1 +1,296 @@
-{}
+{
+  "container": {
+    "toast": {
+      "groupDeleted": "Gruppe gelöscht",
+      "deleteGroupFailed": "Die Gruppe konnte nicht gelöscht werden"
+    },
+    "tabs": {
+      "costs": "Kosten",
+      "schedule": "Zeitplan"
+    },
+    "noGroupSelected": {
+      "title": "Keine Gruppe ausgewählt",
+      "description": "Wählen Sie links eine Gruppe aus oder starten Sie eine neue, um Ihr virtuelles Team zu kontaktieren.",
+      "createButton": "Gruppe erstellen"
+    },
+    "newGroupDefaultTitle": "Neue Gruppe"
+  },
+  "schedule": {
+    "tab": {
+      "heading": "Zeitplan",
+      "upcomingTrigger": "Bevorstehend",
+      "recurringTrigger": "Wiederkehrend"
+    },
+    "unknownGroup": "Unbekannte Gruppe",
+    "scheduleTaskButton": "Aufgabe planen",
+    "upcomingList": {
+      "empty": "Keine bevorstehenden einmaligen Aufgaben. Planen Sie eine, um sie hier zu sehen."
+    },
+    "recurringList": {
+      "empty": "Noch keine wiederkehrenden Aufgaben.",
+      "lastRun": "zuletzt {{time}}",
+      "nextRun": "nächste {{time}}"
+    },
+    "taskCard": {
+      "status": {
+        "pending": "Ausstehend",
+        "running": "Läuft",
+        "completed": "Abgeschlossen",
+        "failed": "Fehlgeschlagen",
+        "cancelled": "Abgebrochen",
+        "waiting_for_user": "Wartend"
+      },
+      "priority": {
+        "low": "Niedrig",
+        "medium": "Mittel",
+        "high": "Hoch",
+        "urgent": "Dringend"
+      },
+      "cancelAria": "Geplante Aufgabe abbrechen"
+    },
+    "toast": {
+      "loadUpcomingFailed": "Bevorstehende Aufgaben konnten nicht geladen werden",
+      "loadRecurringFailed": "Wiederkehrende Aufgaben konnten nicht geladen werden",
+      "taskCancelled": "Aufgabe abgebrochen",
+      "cancelTaskFailed": "Aufgabe konnte nicht abgebrochen werden",
+      "taskScheduled": "Aufgabe geplant",
+      "scheduleTaskFailed": "Aufgabe konnte nicht geplant werden"
+    },
+    "form": {
+      "title": "Eine Aufgabe planen",
+      "description": "Läuft innerhalb einer bestehenden Gruppe, einmalig oder nach einem wiederkehrenden Zeitplan.",
+      "titleLabel": "Titel",
+      "descriptionLabel": "Beschreibung",
+      "groupLabel": "Gruppe",
+      "groupPlaceholder": "Gruppe auswählen",
+      "onceButton": "Einmalig",
+      "recurringButton": "Wiederkehrend",
+      "pickDateButton": "Datum auswählen",
+      "submitting": "Wird geplant…",
+      "cronPresets": {
+        "dailyNine": "Täglich um 9:00 Uhr",
+        "mondayNine": "Jeden Montag um 9:00 Uhr",
+        "custom": "Benutzerdefiniert"
+      }
+    }
+  },
+  "chat": {
+    "attachmentPreview": {
+      "removeAria": "{{name}} entfernen"
+    },
+    "uploader": {
+      "attachAria": "Bilder anhängen"
+    },
+    "composer": {
+      "placeholder": "Nachricht an Ihr Team…",
+      "stopAria": "Stopp",
+      "sendAria": "Senden",
+      "hint": "Drücken Sie <1>Enter</1> zum Senden, <4>Umschalt + Enter</4> für eine neue Zeile. Bilder einfügen oder anhängen."
+    },
+    "planCard": {
+      "elapsed": {
+        "lessThanMin": "< 1 Min.",
+        "minutes": "{{count}} Min.",
+        "hoursMinutes": "{{hours}} Std. {{minutes}} Min."
+      },
+      "status": {
+        "active": "aktiv",
+        "done": "fertig",
+        "aborted": "abgebrochen",
+        "draft": "Entwurf"
+      },
+      "stepStatusAria": {
+        "pending": "Ausstehend",
+        "running": "Läuft",
+        "done": "Fertig",
+        "skipped": "Übersprungen",
+        "failed": "Fehlgeschlagen"
+      }
+    },
+    "roles": {
+      "pm": "PM",
+      "employeeFallback": "Mitarbeiter"
+    },
+    "membersPanel": {
+      "heading": "Mitglieder",
+      "coordinatorsLabel": "Koordinatoren",
+      "unassignedLabel": "Nicht zugewiesen",
+      "idleCount": "{{count}} inaktiv",
+      "busyCount": "{{count}} beschäftigt",
+      "idle": "inaktiv",
+      "noTeam": "Kein Team",
+      "pmIdleActivity": "Strategie · inaktiv",
+      "emptyState": {
+        "title": "Noch keine Teammitglieder",
+        "description": "Der PM rekrutiert bei Bedarf Teammitglieder."
+      }
+    },
+    "conversationList": {
+      "configNav": {
+        "workforce": "Belegschaft",
+        "dashboard": "Dashboard"
+      },
+      "searchPlaceholder": "Gruppen durchsuchen",
+      "newGroupMenuItem": "Neue Gruppe",
+      "emptyState": {
+        "title": "Noch keine Gruppen",
+        "description": "Erstellen Sie eine, um Ihr virtuelles Team zu kontaktieren.",
+        "createButton": "+ Neue Gruppe"
+      },
+      "searchNoMatch": "Keine Gruppen entsprechen „{{query}}“",
+      "noMessagesYetPreview": "Neue Gruppe · noch keine Nachrichten",
+      "deleteDialog": {
+        "title": "Diese Gruppe löschen?",
+        "description": "<0>{{title}}</0> sowie alle zugehörigen Nachrichten, Aufgaben und Ausführungen werden endgültig entfernt."
+      }
+    },
+    "dateLabels": {
+      "today": "Heute",
+      "yesterday": "Gestern"
+    },
+    "groupChat": {
+      "renameTitle": "Zum Umbenennen klicken",
+      "memberCount_one": "{{count}} Mitglied",
+      "memberCount_other": "{{count}} Mitglieder",
+      "toggleMembersAria": "Mitglieder ein-/ausblenden",
+      "emptyState": {
+        "title": "Geben Sie Ihrem Team eine Aufgabe",
+        "description": "Beschreiben Sie, was Sie brauchen. Der PM analysiert, rekrutiert und delegiert an virtuelle Mitarbeiter und meldet sich anschließend hier zurück."
+      },
+      "askUser": {
+        "replyPlaceholder": "An PM antworten…",
+        "sendButton": "Senden"
+      }
+    }
+  },
+  "employees": {
+    "avatar": {
+      "alt": "Avatar"
+    },
+    "picker": {
+      "reroll": "Neu würfeln"
+    },
+    "editor": {
+      "header": {
+        "label": "Mitarbeiter",
+        "newFallback": "Neuer Mitarbeiter"
+      },
+      "avatarAria": "Avatar bearbeiten",
+      "fields": {
+        "name": "Name",
+        "team": "Team",
+        "teamPlaceholder": "Team auswählen",
+        "teamHelp": "Jeder Mitarbeiter gehört zu einem Team — der System-Prompt des Teams wird auf alle seine Mitglieder angewendet.",
+        "description": "Beschreibung",
+        "descriptionPlaceholder": "Eine Zeile darüber, was dieser Mitarbeiter macht.",
+        "systemPrompt": "System-Prompt",
+        "systemPromptPlaceholder": "Wird über den Prompt des Teams gelegt.",
+        "skills": "Skills",
+        "noSkills": "Noch keine Skills installiert.",
+        "mcpServers": "MCP-Server",
+        "noMcpServers": "Noch keine MCP-Server konfiguriert.",
+        "mcpServersHelp": "Wenn keiner ausgewählt ist, kann der Mitarbeiter alle verfügbaren Server nutzen.",
+        "memory": "Gedächtnis (schreibgeschützt)",
+        "noMemory": "Noch kein angesammeltes Gedächtnis"
+      }
+    }
+  },
+  "teams": {
+    "editor": {
+      "header": {
+        "label": "Team",
+        "newFallback": "Neues Team"
+      },
+      "fields": {
+        "name": "Name",
+        "icon": "Symbol (Emoji, optional)",
+        "description": "Beschreibung",
+        "descriptionPlaceholder": "Kurze Zusammenfassung, was dieses Team macht.",
+        "systemPrompt": "System-Prompt",
+        "systemPromptPlaceholder": "Gemeinsame Anweisungen, die dem Prompt jedes Mitglieds dieses Teams hinzugefügt werden."
+      }
+    }
+  },
+  "costAnalysis": {
+    "header": {
+      "title": "Dashboard"
+    },
+    "period": {
+      "last7Days": "Letzte 7 Tage",
+      "last30Days": "Letzte 30 Tage",
+      "allTime": "Gesamter Zeitraum"
+    },
+    "periodToggle": {
+      "sevenDays": "7 T.",
+      "thirtyDays": "30 T.",
+      "all": "Alle"
+    },
+    "loading": "Nutzungsdaten werden geladen…",
+    "kpi": {
+      "totalCost": "Gesamtkosten",
+      "totalCostHint_one": "Über {{count}} Mitarbeiter",
+      "totalCostHint_other": "Über {{count}} Mitarbeiter",
+      "tokens": "Tokens",
+      "tokensHint": "Insgesamt verarbeitet",
+      "employees": "Mitarbeiter",
+      "employeesHint": "Mit erfasster Nutzung",
+      "conversations": "Unterhaltungen",
+      "conversationsHint": "Mit Aktivität"
+    },
+    "chart": {
+      "costLabel": "Kosten",
+      "sectionTitle": "Kosten im Zeitverlauf"
+    },
+    "agentCostList": {
+      "title": "Kosten nach Mitarbeiter",
+      "empty": "Noch keine Mitarbeiternutzungsdaten",
+      "tokens": "{{tokens}} Tokens"
+    },
+    "conversationCostList": {
+      "title": "Kosten nach Unterhaltung",
+      "empty": "Noch keine Unterhaltungsnutzungsdaten"
+    }
+  },
+  "workforce": {
+    "header": {
+      "title": "Belegschaft",
+      "employeeCount_one": "{{count}} Mitarbeiter",
+      "employeeCount_other": "{{count}} Mitarbeiter",
+      "teamCount_one": "{{count}} Team",
+      "teamCount_other": "{{count}} Teams",
+      "addTeamButton": "Team",
+      "addEmployeeButton": "Mitarbeiter",
+      "createTeamFirstTitle": "Zuerst ein Team erstellen"
+    },
+    "emptyState": {
+      "title": "Beginnen Sie mit einem Team",
+      "description": "Jeder Mitarbeiter gehört zu einem Team, das einen gemeinsamen System-Prompt beisteuert. Erstellen Sie zuerst ein Team und fügen Sie dann die zugehörigen Mitarbeiter hinzu.",
+      "createButton": "+ Neues Team"
+    },
+    "teamSection": {
+      "editTeam": "Team bearbeiten",
+      "addEmployeeHere": "Mitarbeiter hier hinzufügen",
+      "deleteTeam": "Team löschen",
+      "unassignedFallback": "Kein Team",
+      "addEmployeeButton": "Mitarbeiter hinzufügen"
+    },
+    "newEmployeeDefaultName": "Neuer Mitarbeiter",
+    "newTeamDefaultName": "Neues Team",
+    "deleteEmployeeDialog": {
+      "title": "Diesen Mitarbeiter löschen?",
+      "description": "<0>{{name}}</0> wird zusammen mit dem gesamten angesammelten Gedächtnis endgültig entfernt."
+    },
+    "deleteTeamDialog": {
+      "title": "Dieses Team löschen?",
+      "description": "<0>{{name}}</0> wird entfernt. Bestehende Mitglieder behalten ihre Datensätze, verlieren jedoch die Zugehörigkeit zu diesem Team."
+    },
+    "toast": {
+      "created": "„{{name}}“ erstellt",
+      "deleted": "„{{name}}“ gelöscht",
+      "saveEmployeeFailed": "Der Mitarbeiter konnte nicht gespeichert werden",
+      "deleteEmployeeFailed": "Der Mitarbeiter konnte nicht gelöscht werden",
+      "saveTeamFailed": "Das Team konnte nicht gespeichert werden",
+      "deleteTeamFailed": "Das Team konnte nicht gelöscht werden"
+    }
+  }
+}

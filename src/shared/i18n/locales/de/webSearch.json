@@ -1,1 +1,12 @@
-{}
+{
+  "videoCard": {
+    "views": "{{count}} Aufrufe"
+  },
+  "imageLightbox": {
+    "imageUnavailable": "Bild nicht verfügbar",
+    "previewOnly": "Vorschau wird angezeigt — vollständiges Bild nicht verfügbar",
+    "previousImage": "Vorheriges Bild",
+    "nextImage": "Nächstes Bild",
+    "goToImage": "Zu Bild {{index}} wechseln"
+  }
+}

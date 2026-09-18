@@ -1,1 +1,36 @@
-{}
+{
+  "appName": "Exodus",
+  "action": {
+    "save": "Speichern",
+    "saving": "Wird gespeichert…",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "close": "Schließen",
+    "retry": "Wiederholen",
+    "confirm": "Bestätigen",
+    "edit": "Bearbeiten",
+    "add": "Hinzufügen",
+    "create": "Erstellen"
+  },
+  "state": {
+    "loading": "Wird geladen…",
+    "local": "Lokal",
+    "runOnLocal": "Lokal ausführen",
+    "you": "Sie"
+  },
+  "nav": {
+    "settings": "Einstellungen"
+  },
+  "composer": {
+    "reasoning": "Reasoning",
+    "reasoningPill": "Reasoning: {{label}}",
+    "reasoningLevel": {
+      "off": "Aus",
+      "low": "Niedrig",
+      "medium": "Mittel",
+      "high": "Hoch",
+      "xhigh": "Sehr hoch",
+      "max": "Maximal"
+    }
+  }
+}
