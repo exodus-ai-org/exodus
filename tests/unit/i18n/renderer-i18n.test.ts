@@ -11,6 +11,11 @@ describe('renderer i18n singleton', () => {
   it('initialises and falls back to en for empty catalogs', async () => {
     await i18nReady
     expect(i18n.isInitialized).toBe(true)
+    // Phase 3 populated every real locale catalog, so there's no longer a
+    // naturally-empty namespace to exercise the fallback chain with —
+    // simulate one deliberately instead of relying on catalog completeness.
+    i18n.removeResourceBundle('de', 'common')
+    i18n.addResourceBundle('de', 'common', {}, false, true)
     expect(i18n.t('common:action.save')).toBe('Save')
   })
 })

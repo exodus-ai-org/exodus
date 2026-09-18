@@ -12,7 +12,11 @@ describe('createI18n', () => {
   it('falls back to en for a missing key without throwing', async () => {
     const { i18n, ready } = createI18n('ja', { isRenderer: false })
     await ready
-    // ja/common.json is {} in Phase 1 -> resolves through fallbackLng
+    // Phase 3 populated every real locale catalog, so there's no longer a
+    // naturally-empty namespace to exercise the fallback chain with —
+    // simulate one deliberately instead of relying on catalog completeness.
+    i18n.removeResourceBundle('ja', 'common')
+    i18n.addResourceBundle('ja', 'common', {}, false, true)
     expect(i18n.t('common:action.cancel')).toBe('Cancel')
   })
 
