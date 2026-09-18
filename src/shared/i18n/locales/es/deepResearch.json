@@ -1,1 +1,42 @@
-{}
+{
+  "form": {
+    "breadth": {
+      "label": "Amplitud",
+      "description": "Genere varias consultas de búsqueda para explorar distintos aspectos de su tema en cada nivel. Predeterminado: 4."
+    },
+    "depth": {
+      "label": "Profundidad",
+      "description": "Profundice de forma recursiva, siguiendo pistas y descubriendo conexiones en cada rama. Predeterminado: 2."
+    }
+  },
+  "tabs": {
+    "activity": "Actividad",
+    "sources_one": "{{count}} Fuente",
+    "sources_other": "{{count}} Fuentes"
+  },
+  "messages": {
+    "start": {
+      "title": "Iniciando investigación profunda...",
+      "description": "El proceso de investigación profunda puede tardar un rato. Puede seguir chateando con Exodus en otras conversaciones. Exodus le avisará en cuanto el informe final esté listo."
+    },
+    "learnings_one": "Se investigó {{count}} elemento a partir de los recursos web anteriores",
+    "learnings_other": "Se investigaron {{count}} elementos a partir de los recursos web anteriores",
+    "queriesDeeper_one": "Se generó {{count}} consulta de búsqueda para las investigaciones anteriores",
+    "queriesDeeper_other": "Se generaron {{count}} consultas de búsqueda para las investigaciones anteriores",
+    "queriesForTopic_one": "Se generó {{count}} consulta de búsqueda para \"{{query}}\"",
+    "queriesForTopic_other": "Se generaron {{count}} consultas de búsqueda para \"{{query}}\"",
+    "searchedFor": "Se buscó \"{{query}}\"",
+    "writingReport": {
+      "title": "Comenzando a escribir el informe final...",
+      "description": "La fase de investigación profunda se completó. Su informe final se está generando y se presentará en breve."
+    },
+    "complete": {
+      "title": "Investigación profunda completada",
+      "description": "El informe detallado sobre \"{{query}}\" se generó por completo. ¡Esperamos que le sea útil!"
+    }
+  },
+  "sources": {
+    "citations": "Citas",
+    "more": "Más"
+  }
+}

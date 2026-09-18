@@ -1,1 +1,22 @@
-{}
+{
+  "alert": "Uso del equipo permite que la IA maneje una ventana de su Mac con un mouse y teclado virtuales; ve una captura de pantalla en cada paso y actúa como una persona. Requiere un modelo de IA con capacidad de visión. Solo interactúa con las aplicaciones que agregue a la lista de permitidas más abajo (y abrirá una que no esté ya en ejecución); puede detenerlo en cualquier momento con ⌥⇧⎋, y cada sesión queda registrada. Desactivado de forma predeterminada.",
+  "enable": {
+    "label": "Activar Uso del equipo",
+    "description": "Permitir que la IA maneje una ventana de la lista de permitidas."
+  },
+  "allowlist": {
+    "label": "Aplicaciones permitidas",
+    "description": "Uso del equipo solo interactúa con estas aplicaciones. Elija entre las instaladas en este Mac.",
+    "searchPlaceholder": "Buscar aplicaciones instaladas…",
+    "loading": "Cargando aplicaciones…",
+    "noAppFound": "No se encontró ninguna aplicación."
+  },
+  "maxSteps": {
+    "label": "Pasos máximos",
+    "description": "Detener una sesión después de esta cantidad de acciones. Predeterminado: 25."
+  },
+  "settleDelay": {
+    "label": "Retraso de estabilización (ms)",
+    "description": "Esperar este tiempo después de cada acción antes de la siguiente captura de pantalla. Predeterminado: 800."
+  }
+}

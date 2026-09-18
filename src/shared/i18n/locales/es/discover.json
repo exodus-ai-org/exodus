@@ -1,1 +1,22 @@
-{}
+{
+  "alert": "Descubrir convierte su memoria guardada en un feed de noticias personalizado en la página de inicio: al activarlo, se envían los temas de su memoria a su proveedor de IA (para convertirlos en consultas de búsqueda) y las consultas resultantes a Brave (el mismo proveedor usado para la Búsqueda web) aproximadamente una vez al día. Desactivado de forma predeterminada; nada sale de su equipo hasta que lo active.",
+  "enable": {
+    "label": "Activar Descubrir",
+    "description": "Mostrar un feed de noticias personalizado en la página de inicio."
+  },
+  "braveKeyHint": "Descubrir necesita una clave de API de Brave Search. <2>Agregue una en Herramientas integradas</2>.",
+  "topicCount": {
+    "label": "Temas",
+    "description": "Cuántos temas derivados de la memoria mostrar. Predeterminado: 4."
+  },
+  "articlesPerTopic": {
+    "label": "Artículos por tema",
+    "description": "Cuántos artículos mostrar por fila de tema. Predeterminado: 3."
+  },
+  "heading": "Descubrir",
+  "updatedAgo": "actualizado hace {{time}}",
+  "refreshButton": "Actualizar",
+  "toast": {
+    "refreshFailed": "Error al actualizar"
+  }
+}
