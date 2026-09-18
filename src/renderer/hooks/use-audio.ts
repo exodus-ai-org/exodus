@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import {
@@ -7,6 +8,7 @@ import {
 } from '@/services/audio'
 
 export function useAudio() {
+  const { t } = useTranslation('audio')
   const [data, setData] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
@@ -18,11 +20,9 @@ export function useAudio() {
       setData(audioUrl)
     } catch (e) {
       sileo.error({
-        title: 'Audio error',
+        title: t('hook.toast.audioErrorTitle'),
         description:
-          e instanceof Error
-            ? e.message
-            : 'An error occurred, please try again!'
+          e instanceof Error ? e.message : t('hook.toast.genericErrorFallback')
       })
     } finally {
       setLoading(false)
@@ -38,11 +38,9 @@ export function useAudio() {
       setData(transcription.text)
     } catch (e) {
       sileo.error({
-        title: 'Transcription failed',
+        title: t('hook.toast.transcriptionFailedTitle'),
         description:
-          e instanceof Error
-            ? e.message
-            : 'An error occurred, please try again!'
+          e instanceof Error ? e.message : t('hook.toast.genericErrorFallback')
       })
     } finally {
       setLoading(false)

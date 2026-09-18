@@ -1,5 +1,6 @@
 import { LoaderIcon, SquareIcon, Volume2Icon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { useAudio } from '@/hooks/use-audio'
 import { cn } from '@/lib/utils'
@@ -7,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { IconWrapper, MessageActionItem } from './message-action-primitives'
 
 export function AudioPlayer({ content }: { content: string }) {
+  const { t } = useTranslation('audio')
   const [isPlaying, setIsPlaying] = useState(false)
   const audioRef = useRef<HTMLAudioElement | null>(null)
   const { data, loading, textToSpeech } = useAudio()
@@ -48,7 +50,9 @@ export function AudioPlayer({ content }: { content: string }) {
   }, [data])
 
   return (
-    <MessageActionItem tooltipContent={isPlaying ? 'Stop' : 'Read aloud'}>
+    <MessageActionItem
+      tooltipContent={isPlaying ? t('player.stop') : t('player.readAloud')}
+    >
       <span>
         {!(loading || isPlaying) && (
           <IconWrapper onClick={fetchSpeech}>

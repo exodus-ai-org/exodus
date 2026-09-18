@@ -1,5 +1,6 @@
 import { AudioLinesIcon, LoaderIcon, SquareIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import { useAudio } from '@/hooks/use-audio'
@@ -33,6 +34,7 @@ export function AudioRecorder({
   input: string
   setInput: (input: string) => void
 }) {
+  const { t } = useTranslation('audio')
   const [isRecording, setIsRecording] = useState(false)
   const mediaRecorderRef = useRef<MediaRecorder | null>(null)
   const audioChunksRef = useRef<Blob[]>([])
@@ -69,11 +71,11 @@ export function AudioRecorder({
       setIsRecording(true)
     } catch (error) {
       sileo.error({
-        title: 'Microphone error',
+        title: t('recorder.toast.micErrorTitle'),
         description:
           error instanceof Error
             ? error.message
-            : 'Could not access the microphone.'
+            : t('recorder.toast.micErrorFallback')
       })
     }
   }
@@ -97,7 +99,9 @@ export function AudioRecorder({
     <Button
       size="icon"
       className="rounded-full"
-      aria-label={isRecording ? 'Stop recording' : 'Dictate'}
+      aria-label={
+        isRecording ? t('recorder.stopRecording') : t('recorder.dictate')
+      }
       onClick={isRecording ? stopRecording : startRecording}
     >
       {loading ? (
