@@ -1,1 +1,12 @@
-{}
+{
+  "videoCard": {
+    "views": "{{count}} 次觀看"
+  },
+  "imageLightbox": {
+    "imageUnavailable": "圖片無法使用",
+    "previewOnly": "只顯示預覽——完整圖片無法使用",
+    "previousImage": "上一張圖片",
+    "nextImage": "下一張圖片",
+    "goToImage": "前往圖片 {{index}}"
+  }
+}

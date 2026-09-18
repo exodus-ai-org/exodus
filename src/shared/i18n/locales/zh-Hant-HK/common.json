@@ -1,1 +1,36 @@
-{}
+{
+  "appName": "Exodus",
+  "action": {
+    "save": "儲存",
+    "saving": "儲存中…",
+    "cancel": "取消",
+    "delete": "刪除",
+    "close": "關閉",
+    "retry": "重試",
+    "confirm": "確認",
+    "edit": "編輯",
+    "add": "新增",
+    "create": "建立"
+  },
+  "state": {
+    "loading": "載入中…",
+    "local": "本機",
+    "runOnLocal": "在本機執行",
+    "you": "你"
+  },
+  "nav": {
+    "settings": "設定"
+  },
+  "composer": {
+    "reasoning": "推理",
+    "reasoningPill": "推理：{{label}}",
+    "reasoningLevel": {
+      "off": "關閉",
+      "low": "低",
+      "medium": "中",
+      "high": "高",
+      "xhigh": "超高",
+      "max": "最高"
+    }
+  }
+}
