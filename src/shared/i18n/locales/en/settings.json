@@ -504,6 +504,7 @@
   "logger": {
     "filters": {
       "allLevels": "All",
+      "allScopes": "All",
       "datePlaceholder": "Date",
       "levelPlaceholder": "Level",
       "scopePlaceholder": "Scope",

@@ -254,7 +254,7 @@ export function Logger() {
           }}
           options={scopeOptions.map((s) => ({
             value: s,
-            label: s === 'All' ? t('logger.filters.allLevels') : s
+            label: s === 'All' ? t('logger.filters.allScopes') : s
           }))}
         />
 
