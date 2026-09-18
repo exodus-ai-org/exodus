@@ -691,5 +691,41 @@
         "createFailedTitle": "Falha ao criar"
       }
     }
+  },
+  "skillsMarket": {
+    "sourceNotice": "Os dados das habilidades são obtidos de <2>clawhub.ai</2>. Revise as habilidades com cuidado antes de instalar, para evitar programas potencialmente maliciosos.",
+    "searchPlaceholder": "Pesquisar habilidades...",
+    "installLocal": "Instalar Localmente",
+    "tabs": {
+      "browse": "Explorar",
+      "installed": "Instaladas"
+    },
+    "browse": {
+      "noResults": "Nenhum resultado encontrado",
+      "noResultsHint": "Tente um termo de pesquisa diferente",
+      "loadFailed": "Falha ao carregar habilidades",
+      "loadFailedHint": "Verifique sua conexão com a internet e tente novamente",
+      "empty": "Nenhuma habilidade disponível",
+      "previous": "Anterior",
+      "next": "Próxima"
+    },
+    "installedTab": {
+      "empty": "Nenhuma habilidade instalada",
+      "emptyHint": "Explore o mercado para encontrar habilidades",
+      "installedAt": "Instalado em {{date}}"
+    },
+    "card": {
+      "installed": "Instalada",
+      "install": "Instalar",
+      "installsCount_one": "{{formatted}} instalação",
+      "installsCount_other": "{{formatted}} instalações"
+    },
+    "toast": {
+      "installedTitle": "\"{{name}}\" instalada",
+      "installFailed": "Falha na instalação",
+      "uninstalledTitle": "Habilidade desinstalada",
+      "uninstallFailed": "Falha na desinstalação",
+      "updateFailed": "Falha ao atualizar habilidade"
+    }
   }
 }

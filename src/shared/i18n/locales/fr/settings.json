@@ -695,5 +695,41 @@
         "createFailedTitle": "Échec de la création"
       }
     }
+  },
+  "skillsMarket": {
+    "sourceNotice": "Les données des compétences proviennent de <2>clawhub.ai</2>. Veuillez examiner attentivement les compétences avant de les installer, afin d'éviter tout programme potentiellement malveillant.",
+    "searchPlaceholder": "Rechercher des compétences…",
+    "installLocal": "Installer en local",
+    "tabs": {
+      "browse": "Parcourir",
+      "installed": "Installées"
+    },
+    "browse": {
+      "noResults": "Aucun résultat trouvé",
+      "noResultsHint": "Essayez un autre terme de recherche",
+      "loadFailed": "Échec du chargement des compétences",
+      "loadFailedHint": "Vérifiez votre connexion internet et réessayez",
+      "empty": "Aucune compétence disponible",
+      "previous": "Précédent",
+      "next": "Suivant"
+    },
+    "installedTab": {
+      "empty": "Aucune compétence installée",
+      "emptyHint": "Parcourez le marché pour trouver des compétences",
+      "installedAt": "Installée le {{date}}"
+    },
+    "card": {
+      "installed": "Installée",
+      "install": "Installer",
+      "installsCount_one": "{{formatted}} installation",
+      "installsCount_other": "{{formatted}} installations"
+    },
+    "toast": {
+      "installedTitle": "« {{name}} » installée",
+      "installFailed": "Échec de l'installation",
+      "uninstalledTitle": "Compétence désinstallée",
+      "uninstallFailed": "Échec de la désinstallation",
+      "updateFailed": "Échec de la mise à jour de la compétence"
+    }
   }
 }

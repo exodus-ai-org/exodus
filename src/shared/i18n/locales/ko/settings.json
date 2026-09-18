@@ -684,5 +684,40 @@
         "createFailedTitle": "생성에 실패했습니다"
       }
     }
+  },
+  "skillsMarket": {
+    "sourceNotice": "스킬 데이터는 <2>clawhub.ai</2>에서 제공됩니다. 잠재적으로 악성 프로그램이 설치되지 않도록 설치 전에 스킬을 주의 깊게 검토하세요.",
+    "searchPlaceholder": "스킬 검색...",
+    "installLocal": "로컬 설치",
+    "tabs": {
+      "browse": "둘러보기",
+      "installed": "설치됨"
+    },
+    "browse": {
+      "noResults": "검색 결과가 없습니다",
+      "noResultsHint": "다른 검색어를 시도해 보세요",
+      "loadFailed": "스킬을 불러오지 못했습니다",
+      "loadFailedHint": "인터넷 연결을 확인한 후 다시 시도해 주세요",
+      "empty": "사용 가능한 스킬이 없습니다",
+      "previous": "이전",
+      "next": "다음"
+    },
+    "installedTab": {
+      "empty": "설치된 스킬이 없습니다",
+      "emptyHint": "마켓에서 스킬을 찾아보세요",
+      "installedAt": "{{date}}에 설치됨"
+    },
+    "card": {
+      "installed": "설치됨",
+      "install": "설치",
+      "installsCount_other": "{{formatted}}회 설치"
+    },
+    "toast": {
+      "installedTitle": "\"{{name}}\" 설치됨",
+      "installFailed": "설치 실패",
+      "uninstalledTitle": "스킬 제거됨",
+      "uninstallFailed": "제거 실패",
+      "updateFailed": "스킬 업데이트에 실패했습니다"
+    }
   }
 }

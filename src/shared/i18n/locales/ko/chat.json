@@ -67,7 +67,9 @@
   },
   "toast": {
     "chatUpdated": "채팅이 업데이트되었습니다",
-    "chatDeleted": "채팅이 삭제되었습니다"
+    "chatDeleted": "채팅이 삭제되었습니다",
+    "sendFailedTitle": "문제가 발생했습니다",
+    "sendFailedDescription": "오류가 발생했습니다. 다시 시도해 주세요!"
   },
   "lcm": {
     "compacting": "대화 기록 압축 중…",
@@ -174,5 +176,71 @@
     "hot": "🔥 최고",
     "sunrise": "일출",
     "sunset": "일몰"
+  },
+  "sourcesPanel": {
+    "title_other": "출처 {{count}}개",
+    "citations": "인용 ({{count}})",
+    "more": "더 보기"
+  },
+  "sidebar": {
+    "newChat": "새 채팅",
+    "searchChats": "채팅 검색",
+    "history": {
+      "empty": "대화를 시작하면 여기에 표시됩니다!",
+      "favorite": "즐겨찾기 추가",
+      "unfavorite": "즐겨찾기 해제",
+      "chats": "채팅",
+      "more": "더 보기",
+      "rename": "이름 바꾸기"
+    },
+    "projects": {
+      "title": "프로젝트",
+      "newProject": "새 프로젝트",
+      "editProject": "프로젝트 편집",
+      "createTitle": "프로젝트 만들기",
+      "namePlaceholder": "프로젝트 이름",
+      "deleteTitle": "프로젝트를 삭제하시겠습니까?",
+      "deleteDescription": "\"{{name}}\" 및 관련된 모든 채팅이 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다."
+    },
+    "renameDialog": {
+      "title": "채팅 이름 바꾸기",
+      "submit": "제출"
+    },
+    "deleteDialog": {
+      "title": "채팅을 삭제하시겠습니까?",
+      "description": "<strong>{{title}}</strong>이(가) 삭제됩니다."
+    },
+    "search": {
+      "placeholder": "채팅 검색...",
+      "ariaLabel": "채팅 메시지 검색",
+      "noContents": "내용 없음"
+    }
+  },
+  "projectDetail": {
+    "namePlaceholder": "프로젝트 이름",
+    "descriptionPlaceholder": "설명 추가...",
+    "saveChanges": "변경 사항 저장",
+    "tabs": {
+      "chats": "채팅 ({{count}})",
+      "instructions": "지침",
+      "knowledgeComingSoon": "지식 (2단계)"
+    },
+    "newChatButton": "프로젝트에서 새 채팅",
+    "emptyChats": "아직 이 프로젝트에 채팅이 없습니다. 새 채팅을 시작해 보세요.",
+    "customInstructionsLabel": "사용자 지정 지침",
+    "instructionsPlaceholder": "이 프로젝트에서 AI가 어떻게 행동해야 하는지 알려주세요...",
+    "useStructuredLabel": "구조화된 지침 사용",
+    "structuredFields": {
+      "role": "역할",
+      "tone": "어조",
+      "responseFormat": "응답 형식",
+      "constraints": "제약 조건"
+    },
+    "structuredPlaceholders": {
+      "role": "예: 시니어 엔지니어, 작문 튜터",
+      "tone": "예: 격식체, 캐주얼, 기술적",
+      "responseFormat": "예: 글머리 기호, 상세한 문단",
+      "constraints": "예: 응답을 200단어 이내로 유지"
+    }
   }
 }

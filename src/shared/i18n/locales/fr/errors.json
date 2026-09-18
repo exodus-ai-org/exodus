@@ -61,5 +61,12 @@
     "INTERNAL_ERROR": "Une erreur interne du serveur est survenue.",
     "UNKNOWN_ERROR": "Une erreur inconnue est survenue.",
     "APP_LOCKED": "L'application est verrouillée."
+  },
+  "routeBoundary": {
+    "title": "Une erreur est survenue",
+    "description": "Une erreur inattendue est survenue.",
+    "fallbackDescription": "La page n'a pas pu être chargée.",
+    "backToHome": "Retour à l'accueil",
+    "reload": "Recharger"
   }
 }

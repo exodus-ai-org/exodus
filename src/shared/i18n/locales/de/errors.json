@@ -61,5 +61,12 @@
     "INTERNAL_ERROR": "Es ist ein interner Serverfehler aufgetreten.",
     "UNKNOWN_ERROR": "Ein unbekannter Fehler ist aufgetreten.",
     "APP_LOCKED": "Die Anwendung ist gesperrt."
+  },
+  "routeBoundary": {
+    "title": "Es ist ein Fehler aufgetreten",
+    "description": "Es ist ein unerwarteter Fehler aufgetreten.",
+    "fallbackDescription": "Die Seite konnte nicht geladen werden.",
+    "backToHome": "Zurück zur Startseite",
+    "reload": "Neu laden"
   }
 }

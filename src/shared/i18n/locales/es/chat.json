@@ -72,7 +72,9 @@
   },
   "toast": {
     "chatUpdated": "Chat actualizado",
-    "chatDeleted": "Chat eliminado"
+    "chatDeleted": "Chat eliminado",
+    "sendFailedTitle": "Se produjo un error",
+    "sendFailedDescription": "¡Se produjo un error, inténtelo de nuevo!"
   },
   "lcm": {
     "compacting": "Compactando historial de la conversación…",
@@ -181,5 +183,72 @@
     "hot": "🔥 Calor",
     "sunrise": "Amanecer",
     "sunset": "Atardecer"
+  },
+  "sourcesPanel": {
+    "title_one": "{{count}} fuente",
+    "title_other": "{{count}} fuentes",
+    "citations": "Citas ({{count}})",
+    "more": "Más"
+  },
+  "sidebar": {
+    "newChat": "Nuevo chat",
+    "searchChats": "Buscar chats",
+    "history": {
+      "empty": "¡Sus conversaciones aparecerán aquí en cuanto comience a chatear!",
+      "favorite": "Agregar a favoritos",
+      "unfavorite": "Quitar de favoritos",
+      "chats": "Chats",
+      "more": "Más",
+      "rename": "Renombrar"
+    },
+    "projects": {
+      "title": "Proyectos",
+      "newProject": "Nuevo proyecto",
+      "editProject": "Editar proyecto",
+      "createTitle": "Crear proyecto",
+      "namePlaceholder": "Nombre del proyecto",
+      "deleteTitle": "¿Eliminar proyecto?",
+      "deleteDescription": "Esto eliminará permanentemente \"{{name}}\" y todos sus chats. Esta acción no se puede deshacer."
+    },
+    "renameDialog": {
+      "title": "Renombrar chat",
+      "submit": "Enviar"
+    },
+    "deleteDialog": {
+      "title": "¿Eliminar chat?",
+      "description": "Esto eliminará <strong>{{title}}</strong>."
+    },
+    "search": {
+      "placeholder": "Buscar chat…",
+      "ariaLabel": "Buscar mensajes del chat",
+      "noContents": "Sin contenido"
+    }
+  },
+  "projectDetail": {
+    "namePlaceholder": "Nombre del proyecto",
+    "descriptionPlaceholder": "Agregar una descripción…",
+    "saveChanges": "Guardar cambios",
+    "tabs": {
+      "chats": "Chats ({{count}})",
+      "instructions": "Instrucciones",
+      "knowledgeComingSoon": "Conocimiento (Fase 2)"
+    },
+    "newChatButton": "Nuevo chat en el proyecto",
+    "emptyChats": "Aún no hay chats en este proyecto. Inicie un nuevo chat para comenzar.",
+    "customInstructionsLabel": "Instrucciones personalizadas",
+    "instructionsPlaceholder": "Indique a la IA cómo comportarse en este proyecto…",
+    "useStructuredLabel": "Usar instrucciones estructuradas",
+    "structuredFields": {
+      "role": "Rol",
+      "tone": "Tono",
+      "responseFormat": "Formato de respuesta",
+      "constraints": "Restricciones"
+    },
+    "structuredPlaceholders": {
+      "role": "P. ej., Ingeniero sénior, Tutor de escritura",
+      "tone": "P. ej., Formal, Informal, Técnico",
+      "responseFormat": "P. ej., Viñetas, Párrafos detallados",
+      "constraints": "P. ej., Mantenga las respuestas por debajo de 200 palabras"
+    }
   }
 }

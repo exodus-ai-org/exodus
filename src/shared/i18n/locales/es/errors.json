@@ -61,5 +61,12 @@
     "INTERNAL_ERROR": "Se produjo un error interno del servidor.",
     "UNKNOWN_ERROR": "Se produjo un error desconocido.",
     "APP_LOCKED": "La aplicación está bloqueada."
+  },
+  "routeBoundary": {
+    "title": "Se produjo un error",
+    "description": "Se produjo un error inesperado.",
+    "fallbackDescription": "No se pudo cargar la página.",
+    "backToHome": "Volver al inicio",
+    "reload": "Recargar"
   }
 }

@@ -10,13 +10,19 @@
     "confirm": "Confirmar",
     "edit": "Editar",
     "add": "Agregar",
-    "create": "Crear"
+    "create": "Crear",
+    "copy": "Copiar"
   },
   "state": {
     "loading": "Cargando…",
     "local": "Local",
     "runOnLocal": "Ejecutar en local",
-    "you": "Tú"
+    "you": "Tú",
+    "copied": "Copiado"
+  },
+  "uploader": {
+    "dragDrop": "Arrastre y suelte los archivos aquí",
+    "hint": "O haga clic para explorar (máximo 2 archivos, hasta 5 MB cada uno)"
   },
   "nav": {
     "settings": "Configuración"

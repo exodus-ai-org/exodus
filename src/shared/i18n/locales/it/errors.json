@@ -61,5 +61,12 @@
     "INTERNAL_ERROR": "Si è verificato un errore interno del server.",
     "UNKNOWN_ERROR": "Si è verificato un errore sconosciuto.",
     "APP_LOCKED": "L'applicazione è bloccata."
+  },
+  "routeBoundary": {
+    "title": "Qualcosa è andato storto",
+    "description": "Si è verificato un errore imprevisto.",
+    "fallbackDescription": "Non è stato possibile caricare la pagina.",
+    "backToHome": "Torna alla home",
+    "reload": "Ricarica"
   }
 }

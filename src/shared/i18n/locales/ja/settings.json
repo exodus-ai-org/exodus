@@ -684,5 +684,40 @@
         "createFailedTitle": "作成に失敗しました"
       }
     }
+  },
+  "skillsMarket": {
+    "sourceNotice": "スキルデータは<2>clawhub.ai</2>から提供されています。悪意のあるプログラムを避けるため、インストール前にスキルの内容を必ずご確認ください。",
+    "searchPlaceholder": "スキルを検索…",
+    "installLocal": "ローカルからインストール",
+    "tabs": {
+      "browse": "閲覧",
+      "installed": "インストール済み"
+    },
+    "browse": {
+      "noResults": "結果が見つかりません",
+      "noResultsHint": "別のキーワードでお試しください",
+      "loadFailed": "スキルの読み込みに失敗しました",
+      "loadFailedHint": "インターネット接続を確認してもう一度お試しください",
+      "empty": "利用可能なスキルがありません",
+      "previous": "前へ",
+      "next": "次へ"
+    },
+    "installedTab": {
+      "empty": "インストールされているスキルはありません",
+      "emptyHint": "マーケットプレイスでスキルを探してみましょう",
+      "installedAt": "{{date}}にインストール"
+    },
+    "card": {
+      "installed": "インストール済み",
+      "install": "インストール",
+      "installsCount_other": "{{formatted}}件のインストール"
+    },
+    "toast": {
+      "installedTitle": "「{{name}}」をインストールしました",
+      "installFailed": "インストールに失敗しました",
+      "uninstalledTitle": "スキルをアンインストールしました",
+      "uninstallFailed": "アンインストールに失敗しました",
+      "updateFailed": "スキルの更新に失敗しました"
+    }
   }
 }

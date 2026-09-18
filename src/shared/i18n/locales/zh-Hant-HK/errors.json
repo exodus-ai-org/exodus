@@ -61,5 +61,12 @@
     "INTERNAL_ERROR": "發生內部伺服器錯誤。",
     "UNKNOWN_ERROR": "發生未知錯誤。",
     "APP_LOCKED": "應用程式已鎖定。"
+  },
+  "routeBoundary": {
+    "title": "發生錯誤",
+    "description": "發生未預期的錯誤。",
+    "fallbackDescription": "無法載入此頁面。",
+    "backToHome": "返回首頁",
+    "reload": "重新載入"
   }
 }

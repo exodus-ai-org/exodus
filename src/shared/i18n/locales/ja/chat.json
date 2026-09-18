@@ -67,7 +67,9 @@
   },
   "toast": {
     "chatUpdated": "チャットを更新しました",
-    "chatDeleted": "チャットを削除しました"
+    "chatDeleted": "チャットを削除しました",
+    "sendFailedTitle": "問題が発生しました",
+    "sendFailedDescription": "エラーが発生しました。もう一度お試しください!"
   },
   "lcm": {
     "compacting": "会話履歴を圧縮中…",
@@ -174,5 +176,71 @@
     "hot": "🔥 最高",
     "sunrise": "日の出",
     "sunset": "日の入り"
+  },
+  "sourcesPanel": {
+    "title_other": "{{count}}件のソース",
+    "citations": "引用({{count}}件)",
+    "more": "もっと見る"
+  },
+  "sidebar": {
+    "newChat": "新しいチャット",
+    "searchChats": "チャットを検索",
+    "history": {
+      "empty": "チャットを始めると、ここに会話が表示されます!",
+      "favorite": "お気に入りに追加",
+      "unfavorite": "お気に入りから削除",
+      "chats": "チャット",
+      "more": "もっと見る",
+      "rename": "名前を変更"
+    },
+    "projects": {
+      "title": "プロジェクト",
+      "newProject": "新しいプロジェクト",
+      "editProject": "プロジェクトを編集",
+      "createTitle": "プロジェクトを作成",
+      "namePlaceholder": "プロジェクト名",
+      "deleteTitle": "プロジェクトを削除しますか?",
+      "deleteDescription": "「{{name}}」とそのすべてのチャットが完全に削除されます。この操作は取り消せません。"
+    },
+    "renameDialog": {
+      "title": "チャット名を変更",
+      "submit": "送信"
+    },
+    "deleteDialog": {
+      "title": "チャットを削除しますか?",
+      "description": "<strong>{{title}}</strong>を削除します。"
+    },
+    "search": {
+      "placeholder": "チャットを検索…",
+      "ariaLabel": "チャットメッセージを検索",
+      "noContents": "該当する内容がありません"
+    }
+  },
+  "projectDetail": {
+    "namePlaceholder": "プロジェクト名",
+    "descriptionPlaceholder": "説明を追加…",
+    "saveChanges": "変更を保存",
+    "tabs": {
+      "chats": "チャット({{count}}件)",
+      "instructions": "指示",
+      "knowledgeComingSoon": "ナレッジ(フェーズ2)"
+    },
+    "newChatButton": "プロジェクトで新しいチャット",
+    "emptyChats": "このプロジェクトにはまだチャットがありません。新しいチャットを始めましょう。",
+    "customInstructionsLabel": "カスタム指示",
+    "instructionsPlaceholder": "このプロジェクトでAIにどう振る舞ってほしいかを記入してください…",
+    "useStructuredLabel": "構造化された指示を使用",
+    "structuredFields": {
+      "role": "役割",
+      "tone": "トーン",
+      "responseFormat": "応答形式",
+      "constraints": "制約"
+    },
+    "structuredPlaceholders": {
+      "role": "例:シニアエンジニア、ライティング講師",
+      "tone": "例:フォーマル、カジュアル、テクニカル",
+      "responseFormat": "例:箇条書き、詳細な段落",
+      "constraints": "例:応答は200語以内に収める"
+    }
   }
 }

@@ -61,5 +61,12 @@
     "INTERNAL_ERROR": "内部サーバーエラーが発生しました。",
     "UNKNOWN_ERROR": "不明なエラーが発生しました。",
     "APP_LOCKED": "アプリケーションはロックされています。"
+  },
+  "routeBoundary": {
+    "title": "問題が発生しました",
+    "description": "予期しないエラーが発生しました。",
+    "fallbackDescription": "ページを読み込めませんでした。",
+    "backToHome": "ホームに戻る",
+    "reload": "再読み込み"
   }
 }

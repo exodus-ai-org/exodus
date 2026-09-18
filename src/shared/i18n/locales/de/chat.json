@@ -72,7 +72,9 @@
   },
   "toast": {
     "chatUpdated": "Chat aktualisiert",
-    "chatDeleted": "Chat gelöscht"
+    "chatDeleted": "Chat gelöscht",
+    "sendFailedTitle": "Es ist ein Fehler aufgetreten",
+    "sendFailedDescription": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut!"
   },
   "lcm": {
     "compacting": "Unterhaltungsverlauf wird komprimiert…",
@@ -181,5 +183,72 @@
     "hot": "🔥 Heiß",
     "sunrise": "Sonnenaufgang",
     "sunset": "Sonnenuntergang"
+  },
+  "sourcesPanel": {
+    "title_one": "{{count}} Quelle",
+    "title_other": "{{count}} Quellen",
+    "citations": "Zitate ({{count}})",
+    "more": "Mehr"
+  },
+  "sidebar": {
+    "newChat": "Neuer Chat",
+    "searchChats": "Chats durchsuchen",
+    "history": {
+      "empty": "Ihre Unterhaltungen werden hier angezeigt, sobald Sie zu chatten beginnen!",
+      "favorite": "Favorisieren",
+      "unfavorite": "Favorit entfernen",
+      "chats": "Chats",
+      "more": "Mehr",
+      "rename": "Umbenennen"
+    },
+    "projects": {
+      "title": "Projekte",
+      "newProject": "Neues Projekt",
+      "editProject": "Projekt bearbeiten",
+      "createTitle": "Projekt erstellen",
+      "namePlaceholder": "Projektname",
+      "deleteTitle": "Projekt löschen?",
+      "deleteDescription": "Dadurch werden „{{name}}“ und alle zugehörigen Chats dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden."
+    },
+    "renameDialog": {
+      "title": "Chat umbenennen",
+      "submit": "Speichern"
+    },
+    "deleteDialog": {
+      "title": "Chat löschen?",
+      "description": "Dadurch wird <strong>{{title}}</strong> gelöscht."
+    },
+    "search": {
+      "placeholder": "Chat durchsuchen…",
+      "ariaLabel": "Chat-Nachrichten durchsuchen",
+      "noContents": "Keine Inhalte"
+    }
+  },
+  "projectDetail": {
+    "namePlaceholder": "Projektname",
+    "descriptionPlaceholder": "Beschreibung hinzufügen…",
+    "saveChanges": "Änderungen speichern",
+    "tabs": {
+      "chats": "Chats ({{count}})",
+      "instructions": "Anweisungen",
+      "knowledgeComingSoon": "Wissen (Phase 2)"
+    },
+    "newChatButton": "Neuer Chat im Projekt",
+    "emptyChats": "Noch keine Chats in diesem Projekt. Starten Sie einen neuen Chat, um loszulegen.",
+    "customInstructionsLabel": "Benutzerdefinierte Anweisungen",
+    "instructionsPlaceholder": "Beschreiben Sie, wie sich die KI in diesem Projekt verhalten soll…",
+    "useStructuredLabel": "Strukturierte Anweisungen verwenden",
+    "structuredFields": {
+      "role": "Rolle",
+      "tone": "Ton",
+      "responseFormat": "Antwortformat",
+      "constraints": "Einschränkungen"
+    },
+    "structuredPlaceholders": {
+      "role": "z. B. Senior-Entwickler, Schreibtutor",
+      "tone": "z. B. Formell, Locker, Technisch",
+      "responseFormat": "z. B. Stichpunkte, ausführliche Absätze",
+      "constraints": "z. B. Antworten auf maximal 200 Wörter begrenzen"
+    }
   }
 }

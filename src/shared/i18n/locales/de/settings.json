@@ -689,5 +689,41 @@
         "createFailedTitle": "Erstellen fehlgeschlagen"
       }
     }
+  },
+  "skillsMarket": {
+    "sourceNotice": "Die Skill-Daten stammen von <2>clawhub.ai</2>. Bitte prüfen Sie Skills vor der Installation sorgfältig, um potenziell schädliche Programme zu vermeiden.",
+    "searchPlaceholder": "Skills suchen…",
+    "installLocal": "Lokal installieren",
+    "tabs": {
+      "browse": "Durchsuchen",
+      "installed": "Installiert"
+    },
+    "browse": {
+      "noResults": "Keine Ergebnisse gefunden",
+      "noResultsHint": "Versuchen Sie einen anderen Suchbegriff",
+      "loadFailed": "Skills konnten nicht geladen werden",
+      "loadFailedHint": "Überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut",
+      "empty": "Keine Skills verfügbar",
+      "previous": "Zurück",
+      "next": "Weiter"
+    },
+    "installedTab": {
+      "empty": "Keine Skills installiert",
+      "emptyHint": "Durchsuchen Sie den Marktplatz, um Skills zu finden",
+      "installedAt": "Installiert am {{date}}"
+    },
+    "card": {
+      "installed": "Installiert",
+      "install": "Installieren",
+      "installsCount_one": "{{formatted}} Installation",
+      "installsCount_other": "{{formatted}} Installationen"
+    },
+    "toast": {
+      "installedTitle": "„{{name}}“ installiert",
+      "installFailed": "Installation fehlgeschlagen",
+      "uninstalledTitle": "Skill deinstalliert",
+      "uninstallFailed": "Deinstallation fehlgeschlagen",
+      "updateFailed": "Skill konnte nicht aktualisiert werden"
+    }
   }
 }

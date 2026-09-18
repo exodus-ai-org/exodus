@@ -72,7 +72,9 @@
   },
   "toast": {
     "chatUpdated": "Chat atualizado",
-    "chatDeleted": "Chat excluído"
+    "chatDeleted": "Chat excluído",
+    "sendFailedTitle": "Algo deu errado",
+    "sendFailedDescription": "Ocorreu um erro, tente novamente!"
   },
   "lcm": {
     "compacting": "Compactando histórico da conversa…",
@@ -181,5 +183,72 @@
     "hot": "🔥 Quente",
     "sunrise": "Nascer do sol",
     "sunset": "Pôr do sol"
+  },
+  "sourcesPanel": {
+    "title_one": "{{count}} Fonte",
+    "title_other": "{{count}} Fontes",
+    "citations": "Citações ({{count}})",
+    "more": "Mais"
+  },
+  "sidebar": {
+    "newChat": "Novo chat",
+    "searchChats": "Pesquisar chats",
+    "history": {
+      "empty": "Suas conversas aparecerão aqui assim que você começar a conversar!",
+      "favorite": "Favoritar",
+      "unfavorite": "Remover dos favoritos",
+      "chats": "Chats",
+      "more": "Mais",
+      "rename": "Renomear"
+    },
+    "projects": {
+      "title": "Projetos",
+      "newProject": "Novo projeto",
+      "editProject": "Editar projeto",
+      "createTitle": "Criar Projeto",
+      "namePlaceholder": "Nome do projeto",
+      "deleteTitle": "Excluir projeto?",
+      "deleteDescription": "Isso excluirá permanentemente \"{{name}}\" e todos os seus chats. Esta ação não pode ser desfeita."
+    },
+    "renameDialog": {
+      "title": "Renomear Chat",
+      "submit": "Enviar"
+    },
+    "deleteDialog": {
+      "title": "Excluir chat?",
+      "description": "Isso excluirá <strong>{{title}}</strong>."
+    },
+    "search": {
+      "placeholder": "Pesquisar chat...",
+      "ariaLabel": "Pesquisar mensagens do chat",
+      "noContents": "Nenhum conteúdo"
+    }
+  },
+  "projectDetail": {
+    "namePlaceholder": "Nome do projeto",
+    "descriptionPlaceholder": "Adicione uma descrição...",
+    "saveChanges": "Salvar alterações",
+    "tabs": {
+      "chats": "Chats ({{count}})",
+      "instructions": "Instruções",
+      "knowledgeComingSoon": "Conhecimento (Fase 2)"
+    },
+    "newChatButton": "Novo Chat no Projeto",
+    "emptyChats": "Ainda não há chats neste projeto. Inicie um novo chat para começar.",
+    "customInstructionsLabel": "Instruções Personalizadas",
+    "instructionsPlaceholder": "Diga à IA como se comportar neste projeto...",
+    "useStructuredLabel": "Usar instruções estruturadas",
+    "structuredFields": {
+      "role": "Função",
+      "tone": "Tom",
+      "responseFormat": "Formato de Resposta",
+      "constraints": "Restrições"
+    },
+    "structuredPlaceholders": {
+      "role": "ex.: Engenheiro sênior, Tutor de redação",
+      "tone": "ex.: Formal, Casual, Técnico",
+      "responseFormat": "ex.: Tópicos, Parágrafos detalhados",
+      "constraints": "ex.: Mantenha as respostas com menos de 200 palavras"
+    }
   }
 }

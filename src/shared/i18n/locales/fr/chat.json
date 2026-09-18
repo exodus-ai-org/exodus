@@ -72,7 +72,9 @@
   },
   "toast": {
     "chatUpdated": "Conversation mise à jour",
-    "chatDeleted": "Conversation supprimée"
+    "chatDeleted": "Conversation supprimée",
+    "sendFailedTitle": "Une erreur est survenue",
+    "sendFailedDescription": "Une erreur est survenue, veuillez réessayer !"
   },
   "lcm": {
     "compacting": "Compactage de l'historique de conversation…",
@@ -181,5 +183,72 @@
     "hot": "🔥 Chaud",
     "sunrise": "Lever du soleil",
     "sunset": "Coucher du soleil"
+  },
+  "sourcesPanel": {
+    "title_one": "{{count}} source",
+    "title_other": "{{count}} sources",
+    "citations": "Citations ({{count}})",
+    "more": "Plus"
+  },
+  "sidebar": {
+    "newChat": "Nouvelle conversation",
+    "searchChats": "Rechercher des conversations",
+    "history": {
+      "empty": "Vos conversations apparaîtront ici dès que vous commencerez à discuter !",
+      "favorite": "Ajouter aux favoris",
+      "unfavorite": "Retirer des favoris",
+      "chats": "Conversations",
+      "more": "Plus",
+      "rename": "Renommer"
+    },
+    "projects": {
+      "title": "Projets",
+      "newProject": "Nouveau projet",
+      "editProject": "Modifier le projet",
+      "createTitle": "Créer un projet",
+      "namePlaceholder": "Nom du projet",
+      "deleteTitle": "Supprimer le projet ?",
+      "deleteDescription": "Cela supprimera définitivement « {{name}} » ainsi que toutes ses conversations. Cette action est irréversible."
+    },
+    "renameDialog": {
+      "title": "Renommer la conversation",
+      "submit": "Valider"
+    },
+    "deleteDialog": {
+      "title": "Supprimer la conversation ?",
+      "description": "Cela supprimera <strong>{{title}}</strong>."
+    },
+    "search": {
+      "placeholder": "Rechercher une conversation…",
+      "ariaLabel": "Rechercher dans les messages de la conversation",
+      "noContents": "Aucun contenu"
+    }
+  },
+  "projectDetail": {
+    "namePlaceholder": "Nom du projet",
+    "descriptionPlaceholder": "Ajouter une description…",
+    "saveChanges": "Enregistrer les modifications",
+    "tabs": {
+      "chats": "Conversations ({{count}})",
+      "instructions": "Instructions",
+      "knowledgeComingSoon": "Connaissances (Phase 2)"
+    },
+    "newChatButton": "Nouvelle conversation dans le projet",
+    "emptyChats": "Aucune conversation dans ce projet pour le moment. Démarrez une nouvelle conversation pour commencer.",
+    "customInstructionsLabel": "Instructions personnalisées",
+    "instructionsPlaceholder": "Indiquez à l'IA comment se comporter dans ce projet…",
+    "useStructuredLabel": "Utiliser des instructions structurées",
+    "structuredFields": {
+      "role": "Rôle",
+      "tone": "Ton",
+      "responseFormat": "Format de réponse",
+      "constraints": "Contraintes"
+    },
+    "structuredPlaceholders": {
+      "role": "par ex. Ingénieur senior, Tuteur en rédaction",
+      "tone": "par ex. Formel, Décontracté, Technique",
+      "responseFormat": "par ex. Puces, Paragraphes détaillés",
+      "constraints": "par ex. Limitez les réponses à 200 mots"
+    }
   }
 }

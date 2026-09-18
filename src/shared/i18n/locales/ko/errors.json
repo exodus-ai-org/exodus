@@ -1,4 +1,11 @@
 {
+  "routeBoundary": {
+    "title": "문제가 발생했습니다",
+    "description": "예기치 않은 오류가 발생했습니다.",
+    "fallbackDescription": "페이지를 불러올 수 없습니다.",
+    "backToHome": "홈으로 돌아가기",
+    "reload": "새로고침"
+  },
   "somethingWentWrong": "문제가 발생했습니다. 다시 시도해 주세요.",
   "http": {
     "unknown": "요청에 실패했습니다.",

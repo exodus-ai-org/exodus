@@ -10,13 +10,15 @@
     "confirm": "確認",
     "edit": "編輯",
     "add": "新增",
-    "create": "建立"
+    "create": "建立",
+    "copy": "複製"
   },
   "state": {
     "loading": "載入中…",
     "local": "本機",
     "runOnLocal": "在本機執行",
-    "you": "你"
+    "you": "你",
+    "copied": "已複製"
   },
   "nav": {
     "settings": "設定"
@@ -32,5 +34,9 @@
       "xhigh": "超高",
       "max": "最高"
     }
+  },
+  "uploader": {
+    "dragDrop": "將檔案拖放到這裡",
+    "hint": "或按此瀏覽檔案（最多 2 個檔案，每個上限 5MB）"
   }
 }

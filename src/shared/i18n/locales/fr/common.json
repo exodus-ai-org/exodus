@@ -10,13 +10,15 @@
     "confirm": "Confirmer",
     "edit": "Modifier",
     "add": "Ajouter",
-    "create": "Créer"
+    "create": "Créer",
+    "copy": "Copier"
   },
   "state": {
     "loading": "Chargement…",
     "local": "Local",
     "runOnLocal": "Exécuter en local",
-    "you": "Vous"
+    "you": "Vous",
+    "copied": "Copié"
   },
   "nav": {
     "settings": "Paramètres"
@@ -32,5 +34,9 @@
       "xhigh": "Très élevé",
       "max": "Maximum"
     }
+  },
+  "uploader": {
+    "dragDrop": "Glissez-déposez des fichiers ici",
+    "hint": "Ou cliquez pour parcourir (2 fichiers maximum, jusqu'à 5 Mo chacun)"
   }
 }

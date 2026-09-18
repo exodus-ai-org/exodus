@@ -684,5 +684,40 @@
         "createFailedTitle": "建立失敗"
       }
     }
+  },
+  "skillsMarket": {
+    "sourceNotice": "技能資料來源為 <2>clawhub.ai</2>。安裝前請仔細檢閱技能內容，以避免安裝潛在的惡意程式。",
+    "searchPlaceholder": "搜尋技能...",
+    "installLocal": "本機安裝",
+    "tabs": {
+      "browse": "瀏覽",
+      "installed": "已安裝"
+    },
+    "browse": {
+      "noResults": "找不到結果",
+      "noResultsHint": "請嘗試其他搜尋字詞",
+      "loadFailed": "載入技能失敗",
+      "loadFailedHint": "請檢查你的網路連線後再試一次",
+      "empty": "目前沒有可用的技能",
+      "previous": "上一頁",
+      "next": "下一頁"
+    },
+    "installedTab": {
+      "empty": "尚未安裝任何技能",
+      "emptyHint": "前往市集瀏覽技能",
+      "installedAt": "安裝於 {{date}}"
+    },
+    "card": {
+      "installed": "已安裝",
+      "install": "安裝",
+      "installsCount_other": "{{formatted}} 次安裝"
+    },
+    "toast": {
+      "installedTitle": "「{{name}}」已安裝",
+      "installFailed": "安裝失敗",
+      "uninstalledTitle": "技能已解除安裝",
+      "uninstallFailed": "解除安裝失敗",
+      "updateFailed": "更新技能失敗"
+    }
   }
 }
