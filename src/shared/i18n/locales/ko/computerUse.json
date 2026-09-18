@@ -1,1 +1,22 @@
-{}
+{
+  "alert": "Computer Use는 AI가 가상 마우스와 키보드로 Mac의 창 하나를 조작하게 합니다 — 매 단계마다 스크린샷을 보고 사람처럼 동작합니다. 비전 기능을 지원하는 AI 모델이 필요합니다. 아래 허용 목록에 추가한 앱만 조작하며(실행 중이 아니면 직접 실행합니다), 언제든지 ⌥⇧⎋로 중지할 수 있고, 모든 세션은 기록됩니다. 기본적으로 꺼져 있습니다.",
+  "enable": {
+    "label": "Computer Use 사용",
+    "description": "허용 목록에 있는 창을 AI가 조작하도록 합니다."
+  },
+  "allowlist": {
+    "label": "허용된 앱",
+    "description": "Computer Use는 이 앱들만 조작합니다. 이 Mac에 설치된 앱 중에서 선택하세요.",
+    "searchPlaceholder": "설치된 앱 검색…",
+    "loading": "앱 불러오는 중…",
+    "noAppFound": "앱을 찾을 수 없습니다."
+  },
+  "maxSteps": {
+    "label": "최대 단계 수",
+    "description": "이 횟수만큼 동작한 후 세션을 중지합니다. 기본값 25."
+  },
+  "settleDelay": {
+    "label": "안정화 지연 시간 (ms)",
+    "description": "각 동작 후 다음 스크린샷을 찍기 전까지 대기하는 시간입니다. 기본값 800."
+  }
+}

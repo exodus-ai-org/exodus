@@ -1,1 +1,688 @@
-{}
+{
+  "general": {
+    "language": {
+      "label": "언어",
+      "description": "Exodus 인터페이스에 표시되는 언어입니다.",
+      "auto": "자동 (시스템에서 감지)"
+    },
+    "theme": {
+      "label": "테마",
+      "description": "라이트, 다크 또는 시스템 설정을 따르도록 선택하세요",
+      "system": "시스템",
+      "light": "라이트",
+      "dark": "다크"
+    },
+    "runOnStartup": {
+      "label": "시작 시 실행",
+      "description": "로그인 시 Exodus를 자동으로 시작합니다"
+    },
+    "menuBar": {
+      "label": "메뉴 바",
+      "description": "메뉴 바에 Exodus를 표시합니다"
+    }
+  },
+  "nav": {
+    "profile": { "title": "프로필" },
+    "general": { "title": "일반" },
+    "personality": { "title": "성격" },
+    "aiProviders": { "title": "AI 제공자" },
+    "amazonS3": { "title": "AWS S3" },
+    "mcpServers": { "title": "MCP 서버" },
+    "skillsMarket": { "title": "스킬 마켓" },
+    "fullTextSearch": { "title": "전문 검색" },
+    "knowledgeBase": { "title": "지식 베이스" },
+    "builtinTools": { "title": "내장 도구" },
+    "memory": { "title": "메모리" },
+    "discover": { "title": "Discover" },
+    "voice": { "title": "음성" },
+    "deepResearch": { "title": "심층 조사" },
+    "computerUse": { "title": "Computer Use" },
+    "dataControls": { "title": "데이터 관리" },
+    "logger": { "title": "로거" },
+    "keyboardShortcuts": { "title": "키보드 단축키" },
+    "about": { "title": "Exodus 정보" },
+    "group": {
+      "personal": "개인",
+      "aiTools": "AI 및 도구",
+      "integrations": "통합",
+      "storage": "저장소",
+      "developer": "개발자"
+    }
+  },
+  "common": {
+    "searchPlaceholder": "설정 검색…",
+    "backToApp": "앱으로 돌아가기"
+  },
+  "keyboardShortcuts": {
+    "category": {
+      "general": "일반",
+      "chat": "채팅",
+      "search": "검색"
+    },
+    "shortcuts": {
+      "new-chat": { "label": "새 채팅" },
+      "open-settings": { "label": "설정 열기" },
+      "toggle-sidebar": { "label": "사이드바 토글" },
+      "toggle-developer-tools": { "label": "개발자 도구 토글" },
+      "force-refresh-page": { "label": "페이지 강제 새로고침" },
+      "find-in-page": { "label": "페이지 내 찾기" },
+      "search-chat-history": { "label": "채팅 기록 검색" },
+      "close-find-bar": { "label": "찾기 표시줄 닫기" },
+      "close-tab": { "label": "현재 탭 닫기" },
+      "focus-chat-input": { "label": "채팅 입력창에 포커스" },
+      "send-message": { "label": "메시지 보내기" },
+      "new-line": { "label": "줄 바꿈" }
+    }
+  },
+  "about": {
+    "version": "버전",
+    "electron": "Electron",
+    "chromium": "Chromium",
+    "node": "Node.js",
+    "v8": "V8",
+    "os": "OS",
+    "github": "GitHub",
+    "twitter": "X (Twitter)",
+    "website": "웹사이트",
+    "license": "라이선스",
+    "autoUpdate": {
+      "label": "자동 업데이트",
+      "description": "업데이트가 있으면 자동으로 다운로드하고 설치합니다"
+    },
+    "update": {
+      "checkPrompt": "최신 버전 확인",
+      "checkButton": "업데이트 확인",
+      "checking": "업데이트 확인 중…",
+      "upToDate": "최신 버전을 사용 중입니다",
+      "checkAgain": "다시 확인",
+      "available": "업데이트 사용 가능",
+      "availableVersion": "버전 {{version}}",
+      "download": "다운로드",
+      "downloading": "업데이트 다운로드 중…",
+      "ready": "설치 준비 완료",
+      "readyDescription": "업데이트를 적용하려면 재시작하세요",
+      "restartAndInstall": "재시작 및 설치",
+      "failed": "업데이트 실패"
+    }
+  },
+  "personality": {
+    "baseStyle": {
+      "label": "기본 스타일과 어조",
+      "description": "Exodus가 응답하는 스타일과 어조를 설정합니다",
+      "options": {
+        "default": "기본값",
+        "professional": "전문적",
+        "friendly": "친근함",
+        "candid": "솔직함",
+        "quirky": "독특함",
+        "efficient": "효율적",
+        "cynical": "냉소적"
+      }
+    },
+    "level": {
+      "default": "기본값",
+      "more": "더 많이",
+      "less": "더 적게"
+    },
+    "warm": "따뜻함",
+    "enthusiastic": "열정적",
+    "headersAndLists": "제목과 목록",
+    "emoji": "이모지",
+    "customInstructions": {
+      "label": "사용자 지정 지침",
+      "placeholder": "추가로 원하는 행동, 스타일, 어조"
+    },
+    "nickname": {
+      "label": "닉네임",
+      "placeholder": "Exodus가 당신을 어떻게 부르면 될까요?"
+    },
+    "occupation": {
+      "label": "직업",
+      "placeholder": "예: 소프트웨어 엔지니어, 디자이너"
+    },
+    "aboutYou": {
+      "label": "나에 대해 더 알려주기",
+      "placeholder": "관심사, 가치관, 또는 참고할 만한 선호 사항"
+    }
+  },
+  "profile": {
+    "stats": {
+      "lifetimeTokens": "누적 토큰",
+      "peakDay": "최고 사용일",
+      "currentStreak": "현재 연속 기록",
+      "longestStreak": "최장 연속 기록"
+    },
+    "activity": {
+      "heading": "토큰 활동",
+      "mode": {
+        "daily": "일별",
+        "cumulative": "누적"
+      },
+      "cellTooltip": "{{date}} · 토큰 {{tokens}}개"
+    },
+    "insights": {
+      "sectionTitle": "활동 인사이트",
+      "totalChats": "전체 채팅 수",
+      "modelRequests": "모델 요청 수",
+      "installedSkills": "설치된 스킬",
+      "activeSkills": "활성 스킬"
+    },
+    "topModels": {
+      "sectionTitle": "가장 많이 사용한 모델",
+      "empty": "아직 모델 사용 내역이 없습니다"
+    },
+    "avatar": {
+      "uploadLabel": "아바타 업로드",
+      "alt": "내 아바타"
+    }
+  },
+  "providers": {
+    "config": {
+      "label": "제공자",
+      "description": "채팅에 사용할 AI 제공자",
+      "placeholder": "제공자 선택"
+    },
+    "keys": {
+      "sectionTitle": "제공자 키"
+    },
+    "fields": {
+      "apiKey": {
+        "label": "API 키",
+        "description": "{{provider}} API 키"
+      },
+      "baseUrl": {
+        "label": "기본 URL",
+        "description": "사용자 지정 API 엔드포인트. 비워 두면 기본값을 사용합니다"
+      }
+    },
+    "azure": {
+      "endpoint": {
+        "label": "엔드포인트",
+        "description": "Azure OpenAI 리소스 엔드포인트 URL"
+      },
+      "apiVersion": {
+        "label": "API 버전",
+        "description": "Azure OpenAI API 버전 문자열"
+      },
+      "model": {
+        "label": "모델",
+        "description": "사용할 Azure 배포 이름"
+      }
+    },
+    "ollama": {
+      "baseUrl": {
+        "label": "기본 URL",
+        "description": "로컬 모델 추론을 위한 Ollama 서버 주소"
+      },
+      "status": {
+        "label": "상태",
+        "description": "Ollama 서버의 연결 상태",
+        "running": "Ollama가 실행 중입니다",
+        "notRunning": "실행되지 않음"
+      }
+    },
+    "model": {
+      "label": "모델",
+      "description": "이 제공자가 사용할 모델",
+      "searchPlaceholder": "모델 검색…",
+      "noModelsFound": "모델을 찾을 수 없습니다.",
+      "refreshHint": "새로고침하면 사용 가능한 모든 모델을 볼 수 있습니다.",
+      "staleWarning": "\"{{model}}\"은(는) 더 이상 이 제공자에서 제공되지 않습니다 — 현재 사용 가능한 모델을 선택하세요.",
+      "retrieving": "가져오는 중…",
+      "refreshing": "새로고침 중…",
+      "retrieve": "모델 목록 가져오기",
+      "refresh": "모델 목록 새로고침",
+      "fetchErrorTitle": "모델 목록을 가져올 수 없습니다",
+      "fetchErrorFallback": "모델 목록을 가져오지 못했습니다"
+    }
+  },
+  "tools": {
+    "groups": {
+      "web": "웹",
+      "fileSystem": "파일 시스템",
+      "aiData": "AI 및 데이터",
+      "maps": "지도"
+    },
+    "registry": {
+      "weather": {
+        "label": "날씨",
+        "description": "위치별 현재 날씨와 예보를 조회합니다"
+      },
+      "webSearch": {
+        "label": "웹 검색",
+        "description": "Brave Search API로 웹을 검색합니다 (API 키 필요)"
+      },
+      "webFetch": {
+        "label": "웹 가져오기",
+        "description": "URL의 콘텐츠를 가져옵니다 (문서, API, GitHub 파일)"
+      },
+      "terminal": {
+        "label": "터미널",
+        "description": "내 컴퓨터에서 셸 명령을 실행합니다"
+      },
+      "readFile": {
+        "label": "파일 읽기",
+        "description": "경로로 파일 내용을 읽습니다"
+      },
+      "writeFile": {
+        "label": "파일 쓰기",
+        "description": "파일을 생성하거나 덮어씁니다"
+      },
+      "editFile": {
+        "label": "파일 편집",
+        "description": "기존 파일에서 특정 문자열을 대상으로 교체합니다"
+      },
+      "listDirectory": {
+        "label": "디렉터리 목록",
+        "description": "디렉터리 내 파일과 폴더 목록을 표시합니다"
+      },
+      "findFiles": {
+        "label": "파일 찾기",
+        "description": "글롭 패턴으로 파일을 검색합니다"
+      },
+      "grep": {
+        "label": "Grep",
+        "description": "정규식 패턴으로 파일 내용을 검색합니다"
+      },
+      "imageGeneration": {
+        "label": "이미지 생성",
+        "description": "DALL-E로 이미지를 생성합니다 (OpenAI API 키 필요)"
+      },
+      "searchKnowledgeBase": {
+        "label": "지식 베이스",
+        "description": "지식 베이스에서 컨텍스트를 가져옵니다 (LightRAG URL 구성 필요)"
+      },
+      "mapItinerary": {
+        "label": "지도 일정",
+        "description": "장소, 경로, 여러 날에 걸친 여행을 하나의 인터랙티브 지도 카드에 표시합니다"
+      }
+    },
+    "googleMaps": {
+      "apiKey": {
+        "label": "Google API 키",
+        "description": "지도 경로 안내(지점 간 길찾기)와 장소 검색(위치 조회) 기능에 사용됩니다. Google Cloud 콘솔에서 발급받으세요.",
+        "placeholder": "Google API 키를 입력하세요"
+      }
+    },
+    "imageGeneration": {
+      "model": {
+        "label": "모델",
+        "description": "OpenAI 전용 — 구성된 OpenAI API 키를 사용합니다.",
+        "placeholder": "모델 선택"
+      },
+      "size": {
+        "label": "크기",
+        "description": "생성된 이미지의 크기입니다."
+      },
+      "quality": {
+        "label": "품질",
+        "description": "생성된 이미지의 품질 수준입니다."
+      },
+      "outputFormat": {
+        "label": "출력 형식",
+        "description": "배경이 투명한 경우 출력 형식을 png(기본값) 또는 webp로 설정해야 합니다."
+      },
+      "generatedCounts": {
+        "label": "생성 개수",
+        "description": "생성할 이미지 개수입니다. 1에서 10 사이여야 합니다."
+      },
+      "background": {
+        "label": "배경",
+        "description": "생성된 이미지의 배경 스타일을 설정합니다."
+      }
+    },
+    "webSearch": {
+      "apiKey": {
+        "label": "Brave Search API 키",
+        "description": "웹 검색에 필요합니다. api-dashboard.search.brave.com에서 발급받으세요"
+      },
+      "country": {
+        "label": "국가",
+        "description": "특정 지역에 가중치를 두어 결과를 표시합니다",
+        "placeholder": "국가 선택...",
+        "empty": "국가를 찾을 수 없습니다."
+      },
+      "languages": {
+        "label": "언어",
+        "description": "언어별로 검색 결과를 필터링합니다",
+        "placeholder": "언어 검색...",
+        "empty": "언어를 찾을 수 없습니다."
+      },
+      "maxResults": {
+        "label": "최대 결과 수",
+        "description": "쿼리당 검색 결과 수 (1~50). 기본값: 10."
+      },
+      "deepRecall": {
+        "label": "심층 재검색",
+        "description": "그라운딩 호출과 함께 더 광범위한 두 번째 웹 검색을 실행하고, 그라운딩 필터가 걸러낸 포럼, 뉴스, 페이지 등의 추가 결과를 병합합니다. 재현율이 높아지지만 검색당 Brave API 사용량이 약 2배가 됩니다."
+      },
+      "recency": {
+        "label": "최신순 필터",
+        "description": "최근 특정 기간의 결과만 반환합니다.",
+        "options": {
+          "none": "필터 없음",
+          "hour": "지난 1시간",
+          "day": "지난 24시간",
+          "week": "지난 1주",
+          "month": "지난 1개월",
+          "year": "지난 1년"
+        }
+      },
+      "domainFilter": {
+        "label": "도메인 필터",
+        "description": "쉼표로 구분합니다. 제외하려면 앞에 -를 붙이세요. 예: \"nature.com, .edu\" 또는 \"-reddit.com\""
+      }
+    },
+    "voice": {
+      "alert": "텍스트 음성 변환(TTS) 및 음성 텍스트 변환(STT) 서비스는 <strong>OpenAI만 지원</strong>합니다. 이 기능을 사용하기 전에 OpenAI API 설정을 올바르게 구성했는지 확인해 주세요.",
+      "speechToTextModel": {
+        "label": "음성 텍스트 변환 모델",
+        "description": "오디오 입력을 텍스트로 변환합니다"
+      },
+      "textToSpeechModel": {
+        "label": "텍스트 음성 변환 모델",
+        "description": "텍스트 응답을 음성으로 생성합니다. gpt-4o-mini-tts는 어조/스타일 지침을 지원합니다."
+      },
+      "textToSpeechVoice": {
+        "label": "텍스트 음성 변환 보이스",
+        "description": "생성된 음성의 목소리 페르소나"
+      },
+      "outputFormat": {
+        "label": "출력 형식",
+        "description": "생성된 음성의 오디오 형식"
+      },
+      "speed": {
+        "label": "속도",
+        "description": "재생 속도 (0.25 ~ 4.0, 기본값 1.0)"
+      },
+      "instructions": {
+        "label": "음성 지침",
+        "description": "어조, 감정, 스타일을 제어하는 자연어 지침 (gpt-4o-mini-tts 전용)",
+        "placeholder": "예: 살짝 영국식 억양이 섞인 따뜻하고 친근한 어조로 말해줘"
+      }
+    },
+    "s3": {
+      "alert": {
+        "encoding": "기본적으로 Exodus는 첨부 파일을 프롬프트에 인라인 <strong>base64</strong>로 인코딩합니다. 대용량 파일이나 비전 작업이 많은 워크플로에서는 S3에 업로드하고 URL을 전달하는 방식이 더 효율적이고 안정적입니다.",
+        "requirementsHeading": "<strong>구성 전 요구 사항:</strong>",
+        "publicReadAccess": "<strong>퍼블릭 읽기 액세스</strong> — AWS는 기본적으로 퍼블릭 액세스를 차단합니다. 버킷에서 \"모든 퍼블릭 액세스 차단\"을 비활성화하고, AI 제공자가 자격 증명 없이 URL을 가져올 수 있도록 <2>s3:GetObject</2> 권한을 <4>*</4>에 부여하는 버킷 정책을 연결해야 합니다.",
+        "cors": "<strong>CORS</strong> — Exodus가 데스크톱에서 직접 업로드할 수 있도록 <5>*</5>(또는 앱의 출처)에서 <2>PUT</2>을 허용하는 CORS 규칙을 추가하세요.",
+        "iamCredentials": "<strong>IAM 자격 증명</strong> — 액세스 키 ID / 보안 액세스 키는 구성된 버킷에 대해 최소한 <2>s3:PutObject</2> 및 <5>s3:PutObjectAcl</5> 권한을 가진 IAM 사용자 또는 역할에 속해야 합니다.",
+        "objectAcl": "<strong>객체 ACL</strong> — 업로드된 각 객체는 <3>public-read</3>로 설정됩니다. 버킷에서 ACL이 비활성화되어 있으면 안 됩니다(즉, 객체 소유권이 <6>ACL 활성화됨 / 버킷 소유자 선호</6>로 설정되어 있어야 합니다)."
+      },
+      "region": {
+        "label": "리전",
+        "description": "S3 버킷이 호스팅되는 AWS 리전입니다."
+      },
+      "bucket": {
+        "label": "버킷",
+        "description": "파일 업로드에 사용할 S3 버킷 이름입니다.",
+        "placeholder": "S3 버킷 이름"
+      },
+      "accessKeyId": {
+        "label": "액세스 키 ID",
+        "description": "S3 쓰기 권한이 있는 IAM 액세스 키 ID입니다."
+      },
+      "secretAccessKey": {
+        "label": "보안 액세스 키",
+        "description": "위 액세스 키 ID와 짝을 이루는 IAM 보안 액세스 키입니다."
+      }
+    }
+  },
+  "dataControls": {
+    "autoBackup": {
+      "label": "자동 백업",
+      "description": "매일 오전 3시에 데이터를 백업합니다. 백업은 ~/.exodus/backups/에 로컬로 저장됩니다."
+    },
+    "lastBackup": {
+      "label": "마지막 백업",
+      "none": "아직 백업이 없습니다"
+    },
+    "backupNow": {
+      "button": "지금 백업",
+      "successToast": "백업이 생성되었습니다",
+      "errorToast": "백업 실패"
+    },
+    "recentBackups": {
+      "label": "최근 백업",
+      "description_other": "백업 {{count}}개 저장됨"
+    },
+    "export": {
+      "label": "데이터 내보내기",
+      "description": "대화, 설정 및 기타 데이터를 ZIP 아카이브로 다운로드합니다.",
+      "button": "내보내기"
+    },
+    "import": {
+      "label": "데이터 가져오기",
+      "description": "이전에 내보낸 ZIP 아카이브에서 복원합니다. 기존 데이터가 모두 대체됩니다.",
+      "button": "가져오기",
+      "dialogDescription": "이전에 내보낸 ZIP 파일을 선택하세요. 기존의 모든 대화와 데이터가 대체됩니다. 가져오기 전에 자동으로 백업이 생성됩니다.",
+      "confirmButton": "대체 후 가져오기"
+    },
+    "delete": {
+      "label": "모든 데이터 삭제",
+      "description": "모든 대화, 메모리, 조사 데이터를 영구적으로 삭제합니다. 설정은 유지됩니다.",
+      "dialogDescription": "모든 대화, 메모리, 조사 데이터, 업로드한 문서가 영구적으로 삭제됩니다. 설정과 API 키는 유지됩니다. 삭제 전에 백업이 생성됩니다.",
+      "confirmPrompt": "확인하려면 <strong>DELETE</strong>를 입력하세요:",
+      "confirmButton": "전체 삭제"
+    }
+  },
+  "fullTextSearch": {
+    "alert": "Exodus의 내장 검색은 중국어, 일본어, 한국어를 포함한 모든 언어에서 작동하지만 — <strong>\"스마트\" 검색이 아니라 정확히 일치하는 텍스트만 찾습니다</strong>: 관련도 순위, 오타 허용, 어간 추출이 없습니다(예: \"run\"으로 검색하면 \"running\"은 찾지 못합니다). 더 나은 관련도 순위와 실제 단어 분리를 원한다면 아래에서 자체 호스팅 또는 클라우드 Elasticsearch 클러스터를 구성하세요. 이 설정은 선택 사항이며, URL을 비워 두면 계속 내장 검색을 사용합니다. Exodus는 클러스터의 인덱스에서 문서를 읽고 쓰기만 합니다 — (문자 단위가 아닌) 실제 단어 단위의 중국어 분리를 위해서는 Exodus를 연결하기 전에 클러스터에 언어 인식 분석기(예: <4>ik</4>, <6>smartcn</6>, 또는 내장된 <9>cjk</9>)를 구성하세요.",
+    "url": {
+      "label": "Elasticsearch URL",
+      "description": "비워 두면 내장된 PGlite 전문 검색을 사용합니다."
+    },
+    "username": {
+      "label": "사용자 이름"
+    },
+    "password": {
+      "label": "비밀번호"
+    },
+    "optionalSecurityHint": "선택 사항 — 클러스터에 보안이 활성화된 경우에만 필요합니다.",
+    "indexName": {
+      "label": "인덱스 이름",
+      "description": "비워 두면 기본값 \"exodus-messages\"가 사용됩니다."
+    },
+    "connection": {
+      "label": "연결",
+      "description": "연결 상태를 테스트하거나 기존 채팅 기록 전체를 Elasticsearch에 재색인합니다.",
+      "testButton": "연결 테스트",
+      "testingLabel": "테스트 중...",
+      "reindexButton": "기록 재색인",
+      "reindexingLabel": "재색인 중..."
+    },
+    "toast": {
+      "connected": "Elasticsearch에 연결되었습니다",
+      "connectFailed": "Elasticsearch 연결에 실패했습니다",
+      "reindexed_other": "메시지 {{count}}개를 재색인했습니다",
+      "reindexFailed": "메시지 재색인에 실패했습니다"
+    }
+  },
+  "logger": {
+    "filters": {
+      "allLevels": "전체",
+      "allScopes": "전체",
+      "datePlaceholder": "날짜",
+      "levelPlaceholder": "레벨",
+      "scopePlaceholder": "범위",
+      "keywordPlaceholder": "검색어...",
+      "traceChip": "trace {{id}}"
+    },
+    "actions": {
+      "openDirectory": "디렉터리 열기",
+      "export": "내보내기",
+      "clearAll": "모두 지우기",
+      "clearAllConfirm": "모든 로그 파일을 삭제하시겠습니까?"
+    },
+    "toast": {
+      "exported": "로그가 내보내졌습니다",
+      "exportFailed": "내보내기 실패",
+      "cleared": "모든 로그가 삭제되었습니다",
+      "clearFailed": "로그 삭제에 실패했습니다"
+    },
+    "table": {
+      "time": "시간",
+      "level": "레벨",
+      "scope": "범위",
+      "message": "메시지",
+      "trace": "Trace",
+      "empty": "로그 항목이 없습니다."
+    },
+    "pagination": {
+      "total_other": "총 {{count}}개 항목",
+      "pageOf": "{{totalPages}} 중 {{page}} 페이지",
+      "prev": "이전",
+      "next": "다음"
+    }
+  },
+  "mcpServers": {
+    "serverCard": {
+      "toolCount_other": "도구 {{count}}개",
+      "editAria": "서버 편집",
+      "deleteAria": "서버 삭제",
+      "showTools": "도구 표시",
+      "hideTools": "도구 숨기기"
+    },
+    "intro": "<2>MCP</2> 서버(로컬 또는 원격)를 등록한 다음, 스위치를 켜서 채팅에서 해당 도구를 사용하도록 설정하세요.",
+    "activeSummary": "현재 <strong>서버 {{activeCount}}개</strong>에서 제공하는 <strong>도구 {{totalToolCount}}개</strong>가 활성화되어 있습니다.",
+    "tabs": {
+      "servers": "서버",
+      "json": "JSON"
+    },
+    "empty": "아직 구성된 MCP 서버가 없습니다.",
+    "form": {
+      "transport": {
+        "label": "전송 방식",
+        "description": "MCP 서버에 연결하는 방식",
+        "options": {
+          "stdio": "Stdio (로컬 명령)",
+          "streamableHttp": "Streamable HTTP (원격)",
+          "sse": "SSE (원격, 레거시)"
+        }
+      },
+      "name": {
+        "label": "이름",
+        "description": "이 서버를 식별하는 고유 이름"
+      },
+      "command": {
+        "label": "명령",
+        "description": "MCP 서버를 시작하는 실행 명령"
+      },
+      "args": {
+        "label": "인자",
+        "description": "명령 인자, 한 줄에 하나씩. 순서가 중요합니다.",
+        "addButton": "인자 추가",
+        "removeAria": "인자 {{index}} 제거"
+      },
+      "url": {
+        "label": "URL",
+        "description": "원격 서버의 {{protocol}} 엔드포인트 URL"
+      },
+      "headers": {
+        "label": "헤더",
+        "description": "선택적 인증/사용자 지정 헤더를 JSON 형식으로 입력하세요. 예: {\"Authorization\":\"Bearer ...\"}"
+      },
+      "description": {
+        "label": "설명",
+        "description": "이 서버에 대한 선택적 메모",
+        "placeholder": "선택 사항"
+      },
+      "extraConfig": {
+        "label": "추가 설정",
+        "description": "JSON 내보내기에 병합될 추가 필드입니다 (예: oauth, 사용자 지정 인증). 유효한 JSON 객체여야 합니다."
+      },
+      "updateButton": "업데이트",
+      "registerButton": "등록",
+      "addServerButton": "서버 추가"
+    },
+    "json": {
+      "description": "현재 구성을 읽기 전용으로 표시합니다. 변경하려면 서버 탭을 사용하세요."
+    },
+    "toast": {
+      "invalidHeaders": "헤더 JSON이 올바르지 않습니다",
+      "invalidExtraConfig": "추가 설정이 올바르지 않습니다",
+      "mustBeJsonObject": "JSON 객체여야 합니다",
+      "updated": "\"{{name}}\" 업데이트됨 — 재연결 중…",
+      "registered": "\"{{name}}\" 등록됨",
+      "disabledByDefault": "기본적으로 비활성화됨",
+      "removed": "\"{{name}}\" 제거됨 — 연결 종료됨",
+      "enabled": "\"{{name}}\" 활성화됨 — 재연결 중…",
+      "disabled": "\"{{name}}\" 비활성화됨 — 연결 종료됨",
+      "updateFailed": "서버 업데이트에 실패했습니다",
+      "registerFailed": "등록에 실패했습니다",
+      "removeFailed": "서버 제거에 실패했습니다",
+      "toggleFailed": "서버 전환에 실패했습니다",
+      "operationFailed": "작업에 실패했습니다"
+    }
+  },
+  "memory": {
+    "sectionGroups": {
+      "profile": "나",
+      "topic": "주제",
+      "person": "사람"
+    },
+    "updatedLabel": "{{date}}에 업데이트됨",
+    "genericRetryHint": "다시 시도",
+    "restoreLabel": "복원",
+    "disableLabel": "비활성화",
+    "row": {
+      "noSummaryYet": "아직 요약이 없습니다"
+    },
+    "detail": {
+      "backButton": "메모리",
+      "titlePlaceholder": "제목",
+      "summaryLabel": "요약",
+      "summaryPlaceholder": "간단한 문구로 — 이 항목이 다루는 내용",
+      "detailsLabel": "세부 내용",
+      "detailsPlaceholder": "한 줄에 하나씩 사실을 입력하세요",
+      "toast": {
+        "notSavedTitle": "저장되지 않음",
+        "deleteFailedTitle": "삭제에 실패했습니다"
+      }
+    },
+    "composer": {
+      "placeholderScoped": "무엇을 변경하거나 삭제할지 어시스턴트에게 알려주세요…",
+      "placeholderGeneral": "무엇을 기억할지 어시스턴트에게 알려주세요…",
+      "submitAria": "메모리에 추가",
+      "toast": {
+        "updatedTitle": "메모리가 업데이트되었습니다",
+        "updatedDescription_other": "변경 사항 {{count}}건이 적용되었습니다",
+        "noChangeTitle": "변경 없음",
+        "noChangeDescription": "메모리를 업데이트할 필요가 없는 내용이었습니다.",
+        "applyFailedTitle": "적용하지 못했습니다"
+      }
+    },
+    "settings": {
+      "autoCapture": {
+        "label": "메모리 자동 기록",
+        "description": "대화가 끝날 때마다 당신에 대한 지속적인 사실(관심사, 설정, 사람)을 메모리로 통합합니다 — 중복 생성 대신 기존 항목을 업데이트합니다."
+      },
+      "useInChat": {
+        "label": "채팅에서 메모리 사용",
+        "description": "응답을 시작할 때 메시지와 관련된 메모리 항목을 어시스턴트의 컨텍스트에 반영합니다."
+      },
+      "lcmEnabled": {
+        "label": "무손실 컨텍스트 관리",
+        "description": "긴 대화를 계층적 요약 DAG로 자동 압축하여, 채팅이 컨텍스트 윈도우를 초과해도 아무 정보도 손실되지 않도록 합니다."
+      },
+      "contextWindowPercent": {
+        "label": "압축 임계값",
+        "description": "대화가 모델 컨텍스트 윈도우의 이 비율(50~95%)에 도달하면 컨텍스트 압축을 실행합니다. 기본값: 75%."
+      },
+      "freshTailSize": {
+        "label": "최신 유지 메시지 수",
+        "description": "압축에서 제외되는 최근 메시지 수(8~64)입니다. 이 메시지는 항상 모델에 그대로 전송됩니다. 기본값: 16."
+      },
+      "newMemoryDefaultKey": "새 메모리",
+      "storedMemoriesHeading": "저장된 메모리",
+      "newButton": "새로 만들기",
+      "emptyState": "아직 메모리가 없습니다 — 대화 후 자동으로 추가되거나, 아래에서 어시스턴트에게 기억할 내용을 알려주세요.",
+      "disabledHeading": "비활성화됨 · {{count}}",
+      "toast": {
+        "loadFailedTitle": "메모리를 불러오지 못했습니다",
+        "createFailedTitle": "생성에 실패했습니다"
+      }
+    }
+  }
+}

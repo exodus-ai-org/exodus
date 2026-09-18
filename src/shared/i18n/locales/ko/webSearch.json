@@ -1,1 +1,12 @@
-{}
+{
+  "videoCard": {
+    "views": "조회수 {{count}}회"
+  },
+  "imageLightbox": {
+    "imageUnavailable": "이미지를 사용할 수 없습니다",
+    "previewOnly": "미리보기만 표시 — 원본 이미지를 사용할 수 없습니다",
+    "previousImage": "이전 이미지",
+    "nextImage": "다음 이미지",
+    "goToImage": "이미지 {{index}}로 이동"
+  }
+}

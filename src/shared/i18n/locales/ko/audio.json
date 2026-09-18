@@ -1,1 +1,21 @@
-{}
+{
+  "player": {
+    "stop": "중지",
+    "readAloud": "소리 내어 읽기"
+  },
+  "recorder": {
+    "stopRecording": "녹음 중지",
+    "dictate": "받아쓰기",
+    "toast": {
+      "micErrorTitle": "마이크 오류",
+      "micErrorFallback": "마이크에 접근할 수 없습니다."
+    }
+  },
+  "hook": {
+    "toast": {
+      "audioErrorTitle": "오디오 오류",
+      "transcriptionFailedTitle": "음성 텍스트 변환 실패",
+      "genericErrorFallback": "오류가 발생했습니다. 다시 시도해 주세요!"
+    }
+  }
+}

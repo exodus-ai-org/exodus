@@ -1,1 +1,22 @@
-{}
+{
+  "alert": "Discover는 저장된 메모리를 홈 화면의 맞춤 뉴스 피드로 바꿔줍니다 — 이 기능을 켜면 메모리 주제가 AI 제공자로 전송되어 검색어로 변환되고, 그 결과 검색어가 하루에 한 번 정도 Brave(웹 검색에 사용하는 것과 동일한 제공자)로 전송됩니다. 기본적으로 꺼져 있으며, 켜기 전까지는 아무 데이터도 내 기기를 벗어나지 않습니다.",
+  "enable": {
+    "label": "Discover 사용",
+    "description": "홈 화면에 맞춤 뉴스 피드를 표시합니다."
+  },
+  "braveKeyHint": "Discover를 사용하려면 Brave Search API 키가 필요합니다. <2>내장 도구에서 추가하세요</2>.",
+  "topicCount": {
+    "label": "주제",
+    "description": "메모리에서 도출할 주제 수입니다. 기본값 4."
+  },
+  "articlesPerTopic": {
+    "label": "주제별 기사 수",
+    "description": "주제별 행마다 표시할 기사 수입니다. 기본값 3."
+  },
+  "heading": "Discover",
+  "updatedAgo": "{{time}} 업데이트됨",
+  "refreshButton": "새로고침",
+  "toast": {
+    "refreshFailed": "새로고침에 실패했습니다"
+  }
+}
