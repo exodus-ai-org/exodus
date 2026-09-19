@@ -195,7 +195,10 @@ copies `chat` / `message` / `project` out of PGlite via NDJSON into
 over `~/.exodus/logs/*.jsonl`; `duckdb.ts` lazy-`import()`s
 `@duckdb/node-api` on first use (never at boot), opens the file
 `READ_ONLY` for queries and `READ_WRITE` only while rebuilding, serialised
-on one promise chain, and caps results at 500 rows. Presets live in
+on one promise chain, and caps results at 500 rows. The editor is Monaco
+(`settings-form/chat-audit-editor.tsx`, SQL language, ⌘↩ bound via the editor,
+completions from `packages/shared/src/constants/chat-audit-schema.ts`, which
+is also what `snapshot.ts` builds the tables from). Presets live in
 `packages/shared/src/constants/chat-audit-presets.ts` and every one is
 executed against a fixture snapshot in
 `tests/unit/main/lib/analytics/snapshot.test.ts`. PGlite stays the only

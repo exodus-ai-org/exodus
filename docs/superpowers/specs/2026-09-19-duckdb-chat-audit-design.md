@@ -67,7 +67,10 @@ read_json(…, columns = {…})` with explicit types, the `logs` view
 
 Status card: snapshot age, row counts per table, DuckDB version, Rebuild and
 Open-folder buttons; an explanation when no snapshot exists yet. Presets as a
-row of small buttons; a mono `Textarea` (⌘/Ctrl+Enter runs); Run button with
+row of small buttons; a Monaco SQL editor (the app's existing
+`StandaloneCodeEditor`, `language: sql`, ⌘/Ctrl+Enter bound through the editor,
+completion of the snapshot's table and column names from
+`packages/shared/src/constants/chat-audit-schema.ts`); Run button with
 the row count and time; a results `Table` in a scrolling frame with sticky
 headers; the DuckDB error in a destructive `Alert`; Download CSV.
 

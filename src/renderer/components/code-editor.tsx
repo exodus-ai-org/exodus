@@ -53,26 +53,39 @@ const DEFAULT_OPTIONS: monaco.editor.IStandaloneEditorConstructionOptions = {
   minimap: { enabled: false }
 }
 
+export type EditorMountHandler = (
+  editor: monaco.editor.IStandaloneCodeEditor,
+  monacoApi: typeof monaco
+) => void
+
 /** Shared editor renderer */
 function EditorCore({
   className,
   value,
   onChange,
-  options
+  options,
+  language = 'json',
+  onMount
 }: {
   className?: string
   value: string
   onChange: (v?: string) => void
   options?: monaco.editor.IStandaloneEditorConstructionOptions
+  /** Model language ("json", "sql", …). `options.language` is ignored once a model exists, so it must come through here. */
+  language?: string
+  /** Access to the editor instance — key bindings, completion providers, focus. */
+  onMount?: EditorMountHandler
 }) {
   const { resolvedTheme } = useTheme()
   return (
     <MonacoEditor
       className={className}
       theme={resolvedTheme === 'dark' ? 'shadcn-dark' : 'shadcn-light'}
-      defaultLanguage="json"
+      defaultLanguage={language}
+      language={language}
       value={value}
       onChange={onChange}
+      onMount={onMount}
       options={{ ...DEFAULT_OPTIONS, ...options }}
       beforeMount={THEME_SETUP}
     />
@@ -139,12 +152,16 @@ export function StandaloneCodeEditor({
   className,
   value,
   onChange,
-  monacoEditorOption
+  monacoEditorOption,
+  language,
+  onMount
 }: {
   className?: string
   value?: string
   onChange?: (value: string) => void
   monacoEditorOption?: monaco.editor.IStandaloneEditorConstructionOptions
+  language?: string
+  onMount?: EditorMountHandler
 }) {
   return (
     <EditorCore
@@ -152,6 +169,8 @@ export function StandaloneCodeEditor({
       value={value ?? ''}
       onChange={(v) => onChange?.(v ?? '')}
       options={monacoEditorOption}
+      language={language}
+      onMount={onMount}
     />
   )
 }

@@ -39,10 +39,11 @@ test.describe('Settings — Chat Audit', () => {
       timeout: 30_000
     })
 
-    // A hand-written query renders a results table and enables CSV export.
-    await mainWindow
-      .getByTestId(TEST_IDS.chatAudit.sqlInput)
-      .fill("SELECT 42 AS answer, 'ok' AS status")
+    // A hand-written query (typed into the Monaco editor) renders a results
+    // table and enables CSV export.
+    await editor.locator('.monaco-editor').click()
+    await mainWindow.keyboard.press(`${modKey}+a`)
+    await mainWindow.keyboard.type("SELECT 42 AS answer, 'ok' AS status")
     await mainWindow.getByTestId(TEST_IDS.chatAudit.runButton).click()
     const table = mainWindow.getByTestId(TEST_IDS.chatAudit.resultsTable)
     await expect(table).toBeVisible({ timeout: 30_000 })

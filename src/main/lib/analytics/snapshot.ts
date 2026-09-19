@@ -2,6 +2,7 @@ import { existsSync, readdirSync, statSync } from 'fs'
 import { mkdir, readFile, rm, writeFile } from 'fs/promises'
 import { join } from 'path'
 
+import { CHAT_AUDIT_SCHEMA } from '@exodus/shared/constants/chat-audit-schema'
 import type { SnapshotMeta } from '@exodus/shared/types/analytics'
 import type { Usage } from '@mariozechner/pi-ai'
 import { eq } from 'drizzle-orm'
@@ -66,59 +67,12 @@ export interface SourceRows {
 
 // ─── Row mappers (pure, unit-tested) ─────────────────────────────────────────
 
-export const CHAT_COLUMNS = {
-  id: 'VARCHAR',
-  title: 'VARCHAR',
-  favorite: 'BOOLEAN',
-  project_id: 'VARCHAR',
-  project_name: 'VARCHAR',
-  created_at: 'TIMESTAMP'
-} as const
-
-export const MESSAGE_COLUMNS = {
-  id: 'VARCHAR',
-  chat_id: 'VARCHAR',
-  role: 'VARCHAR',
-  provider: 'VARCHAR',
-  model: 'VARCHAR',
-  api: 'VARCHAR',
-  stop_reason: 'VARCHAR',
-  error_message: 'VARCHAR',
-  tool_name: 'VARCHAR',
-  tool_call_id: 'VARCHAR',
-  is_error: 'BOOLEAN',
-  text: 'VARCHAR',
-  input_tokens: 'BIGINT',
-  output_tokens: 'BIGINT',
-  cache_read_tokens: 'BIGINT',
-  cache_write_tokens: 'BIGINT',
-  total_tokens: 'BIGINT',
-  cost_usd: 'DOUBLE',
-  duration_ms: 'BIGINT',
-  created_at: 'TIMESTAMP',
-  content: 'JSON'
-} as const
-
-export const PROJECT_COLUMNS = {
-  id: 'VARCHAR',
-  name: 'VARCHAR',
-  description: 'VARCHAR',
-  created_at: 'TIMESTAMP',
-  updated_at: 'TIMESTAMP'
-} as const
-
-/** JSONL log records, typed explicitly so ragged `attributes` never break inference. */
-export const LOG_COLUMNS = {
-  timestamp: 'TIMESTAMP',
-  severityNumber: 'INTEGER',
-  severityText: 'VARCHAR',
-  body: 'VARCHAR',
-  scope: 'STRUCT(name VARCHAR)',
-  attributes: 'JSON',
-  resource: 'JSON',
-  traceId: 'VARCHAR',
-  originTraceId: 'VARCHAR'
-} as const
+// The column definitions live in the shared package so the renderer's SQL
+// autocomplete and this loader can never disagree.
+export const CHAT_COLUMNS = CHAT_AUDIT_SCHEMA.chats
+export const MESSAGE_COLUMNS = CHAT_AUDIT_SCHEMA.messages
+export const PROJECT_COLUMNS = CHAT_AUDIT_SCHEMA.projects
+export const LOG_COLUMNS = CHAT_AUDIT_SCHEMA.logs
 
 export function toChatRow(c: ChatSource) {
   return {

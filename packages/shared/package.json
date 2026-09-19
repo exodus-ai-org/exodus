@@ -31,6 +31,7 @@
     "./constants/misc": "./src/constants/misc.ts",
     "./constants/test-ids": "./src/constants/test-ids.ts",
     "./constants/chat-audit-presets": "./src/constants/chat-audit-presets.ts",
+    "./constants/chat-audit-schema": "./src/constants/chat-audit-schema.ts",
     "./constants/tools": "./src/constants/tools.ts",
     "./schemas/project-schema": "./src/schemas/project-schema.ts",
     "./types/api-error": "./src/types/api-error.ts",

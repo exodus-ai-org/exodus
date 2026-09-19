@@ -881,7 +881,6 @@
     },
     "query": {
       "title": "查詢",
-      "placeholder": "SELECT … FROM messages",
       "run": "執行查詢",
       "running": "執行中…",
       "tables": "資料表：chats、messages、projects、logs (視圖)"

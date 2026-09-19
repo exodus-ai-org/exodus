@@ -35,7 +35,6 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
-import { Textarea } from '@/components/ui/textarea'
 import { useFormat } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import {
@@ -48,6 +47,7 @@ import {
 } from '@/services/analytics'
 
 import { SettingsSection } from '../settings-row'
+import { ChatAuditEditor } from './chat-audit-editor'
 
 const PRESET_KEYS = {
   messagesPerDay: 'chatAudit.presets.messagesPerDay',
@@ -264,23 +264,13 @@ export function ChatAudit() {
       </SettingsSection>
 
       <SettingsSection title={t('chatAudit.query.title')} plain>
-        <Textarea
-          data-testid={TEST_IDS.chatAudit.sqlInput}
+        <ChatAuditEditor
           value={sql}
-          onChange={(e) => {
-            setSql(e.target.value)
+          onChange={(next) => {
+            setSql(next)
             setPreset(null)
           }}
-          onKeyDown={(e) => {
-            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-              e.preventDefault()
-              run(sql)
-            }
-          }}
-          spellCheck={false}
-          rows={7}
-          placeholder={t('chatAudit.query.placeholder')}
-          className="font-mono text-xs leading-relaxed"
+          onRun={() => run(sql)}
         />
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-muted-foreground font-mono text-xs">

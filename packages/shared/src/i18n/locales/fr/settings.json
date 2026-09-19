@@ -886,7 +886,6 @@
     },
     "query": {
       "title": "Requête",
-      "placeholder": "SELECT … FROM messages",
       "run": "Exécuter",
       "running": "Exécution…",
       "tables": "Tables : chats, messages, projects, logs (vue)"

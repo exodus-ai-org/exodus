@@ -886,7 +886,6 @@
     },
     "query": {
       "title": "Abfrage",
-      "placeholder": "SELECT … FROM messages",
       "run": "Abfrage ausführen",
       "running": "Läuft…",
       "tables": "Tabellen: chats, messages, projects, logs (Sicht)"

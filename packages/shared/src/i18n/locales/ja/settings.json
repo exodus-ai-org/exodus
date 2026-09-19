@@ -881,7 +881,6 @@
     },
     "query": {
       "title": "クエリ",
-      "placeholder": "SELECT … FROM messages",
       "run": "クエリを実行",
       "running": "実行中…",
       "tables": "テーブル: chats, messages, projects, logs (ビュー)"

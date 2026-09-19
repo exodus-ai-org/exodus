@@ -881,7 +881,6 @@
     },
     "query": {
       "title": "쿼리",
-      "placeholder": "SELECT … FROM messages",
       "run": "쿼리 실행",
       "running": "실행 중…",
       "tables": "테이블: chats, messages, projects, logs (뷰)"
