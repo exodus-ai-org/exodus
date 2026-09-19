@@ -101,6 +101,11 @@ vi.mock('@main/lib/search/resolve-search-provider', () => ({
 }))
 
 const { default: chat } = await import('@main/lib/server/routes/chat')
+const { saveMessages } = await import('@main/lib/db/queries')
+const { resolveSearchProvider } =
+  await import('@main/lib/search/resolve-search-provider')
+const saveMessagesMock = vi.mocked(saveMessages)
+const resolveSearchProviderMock = vi.mocked(resolveSearchProvider)
 
 const FAKE_MODEL = { id: 'fake-model', cost: { input: 1, output: 2 } }
 const CHAT_ID = '11111111-1111-4111-8111-111111111111'
@@ -142,6 +147,37 @@ function successfulTurn() {
       }
     }
   ])
+}
+
+function assistantEnd(overrides: Record<string, unknown>) {
+  return {
+    type: 'message_end',
+    message: {
+      role: 'assistant',
+      content: [{ type: 'text', text: 'partial answer' }],
+      usage: { input: 1, output: 1, totalTokens: 2 },
+      api: 'anthropic-messages',
+      provider: 'anthropic',
+      model: 'claude-x',
+      stopReason: 'stop',
+      timestamp: Date.now(),
+      ...overrides
+    }
+  }
+}
+
+/** Rows handed to saveMessages for the assistant side of the turn. */
+function savedAssistantRows() {
+  return saveMessagesMock.mock.calls
+    .flatMap(([arg]) => arg.messages)
+    .filter((row) => row.role === 'assistant')
+}
+
+function sseEvents(body: string): Array<{ type: string }> {
+  return body
+    .split('\n\n')
+    .filter((frame) => frame.startsWith('data: '))
+    .map((frame) => JSON.parse(frame.slice(6)))
 }
 
 function postChat(body: Record<string, unknown>) {
@@ -236,5 +272,115 @@ describe('POST /api/v1/chat', () => {
       apiKey: 'test-key'
     })
     expect(memoryCall?.[1]).not.toHaveProperty('chatModel')
+  })
+
+  describe('index-message job', () => {
+    it('is not enqueued when Elasticsearch is not configured', async () => {
+      const response = await postChat({})
+      await response.text()
+
+      const queues = enqueueAndProcessMock.mock.calls.map((c) => c[0])
+      expect(queues).not.toContain('index-message')
+    })
+
+    it('is enqueued for the user message and each new message when Elasticsearch is configured', async () => {
+      resolveSearchProviderMock.mockReturnValue({
+        elasticsearch: {},
+        pglite: {}
+      } as never)
+
+      const response = await postChat({})
+      await response.text()
+
+      const indexed = enqueueAndProcessMock.mock.calls.filter(
+        (c) => c[0] === 'index-message'
+      )
+      expect(indexed.map((c) => (c[1] as { role: string }).role)).toEqual([
+        'user',
+        'assistant'
+      ])
+      resolveSearchProviderMock.mockReturnValue({
+        elasticsearch: null,
+        pglite: {}
+      } as never)
+    })
+  })
+
+  describe('saving the turn', () => {
+    it('saves the steps that finished when a later step fails, and still reports the error', async () => {
+      agentLoopMock.mockReturnValue(
+        fakeAgentStream([
+          assistantEnd({ content: [{ type: 'text', text: 'step one' }] }),
+          assistantEnd({ stopReason: 'error', errorMessage: 'provider 500' })
+        ])
+      )
+
+      const response = await postChat({})
+      const events = sseEvents(await response.text())
+
+      expect(events.map((e) => e.type)).toContain('error')
+      const rows = savedAssistantRows()
+      expect(rows).toHaveLength(1)
+      expect(JSON.stringify(rows[0].content)).toContain('step one')
+      // LCM must learn about what was saved, or its context drifts from the DB.
+      expect(
+        enqueueAndProcessMock.mock.calls.some((c) => c[0] === 'lcm-post-turn')
+      ).toBe(true)
+    })
+
+    it('keeps the partial answer of a stopped turn', async () => {
+      agentLoopMock.mockReturnValue(
+        fakeAgentStream([assistantEnd({ stopReason: 'aborted' })])
+      )
+
+      const response = await postChat({})
+      const events = sseEvents(await response.text())
+
+      expect(events.map((e) => e.type)).not.toContain('error')
+      const rows = savedAssistantRows()
+      expect(rows).toHaveLength(1)
+      expect(JSON.stringify(rows[0].content)).toContain('partial answer')
+    })
+
+    it('treats a turn stopped before the first token as nothing to save, not an error', async () => {
+      agentLoopMock.mockReturnValue(
+        fakeAgentStream([
+          assistantEnd({
+            stopReason: 'aborted',
+            content: [],
+            usage: { input: 0, output: 0, totalTokens: 0 }
+          })
+        ])
+      )
+
+      const response = await postChat({})
+      const events = sseEvents(await response.text())
+
+      expect(events.map((e) => e.type)).not.toContain('error')
+      expect(savedAssistantRows()).toHaveLength(0)
+    })
+
+    it('still saves the turn when the client has hung up (Stop cancels the response stream)', async () => {
+      let release!: () => void
+      const gate = new Promise<void>((resolve) => (release = resolve))
+      agentLoopMock.mockReturnValue({
+        async *[Symbol.asyncIterator]() {
+          yield {
+            type: 'message_update',
+            message: assistantEnd({ stopReason: 'pending' }).message
+          }
+          await gate
+          yield assistantEnd({ stopReason: 'aborted' })
+        }
+      })
+
+      const response = await postChat({})
+      const reader = response.body!.getReader()
+      await reader.read() // first frame arrived — the turn is streaming
+      await reader.cancel()
+      release()
+
+      await vi.waitFor(() => expect(savedAssistantRows()).toHaveLength(1))
+    })
   })
 })

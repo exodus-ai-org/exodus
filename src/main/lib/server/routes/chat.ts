@@ -68,6 +68,7 @@ import {
   toFriendlyChatError
 } from './chat-errors'
 import { stripId, toDbRow } from './chat-persistence'
+import { createSseWriter } from './chat-sse'
 
 const chat = new Hono<{ Variables: Variables }>()
 
@@ -153,9 +154,18 @@ chat.post('/', async (c) => {
   const saveUserMsgPromise = saveMessages({
     messages: [toDbRow(userMessage, id)]
   })
-  enqueueAndProcess('index-message', toDbRow(userMessage, id)).catch((error) =>
-    logEnqueueFailure('index-message', error)
-  )
+  // `index-message` only feeds Elasticsearch — the built-in PGlite search reads
+  // the `message` table directly. Without ES there is no job to run, so don't
+  // queue (and have the worker read, resolve settings for, and clear) one per
+  // message.
+  const indexesMessages = resolveSearchProvider(setting).elasticsearch !== null
+  const indexMessage = (row: ReturnType<typeof toDbRow>) => {
+    if (!indexesMessages) return
+    enqueueAndProcess('index-message', row).catch((error) =>
+      logEnqueueFailure('index-message', error)
+    )
+  }
+  indexMessage(toDbRow(userMessage, id))
 
   const lcmPromise = lcm
     ? lcm
@@ -237,11 +247,8 @@ chat.post('/', async (c) => {
   // Build SSE streaming response
   const stream = new ReadableStream({
     async start(controller) {
-      const encoder = new TextEncoder()
-
-      function sendEvent(event: ChatSseEvent) {
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`))
-      }
+      const sse = createSseWriter(controller)
+      const sendEvent = (event: ChatSseEvent) => sse.send(event)
 
       let assistantMsgId = uuidV4()
       let currentAssistantMsg: ChatAssistantMessage | null = null
@@ -321,7 +328,8 @@ chat.post('/', async (c) => {
               stopReason: assistantMsg.stopReason,
               timestamp: assistantMsg.timestamp ?? Date.now()
             }
-            sendEvent({ type: 'message_update', message: currentAssistantMsg })
+            // Coalesced, not sent per delta — see STREAM_FLUSH_INTERVAL_MS.
+            sse.queueUpdate(currentAssistantMsg)
           } else if (event.type === 'message_end') {
             const msg = event.message as Message
             if (msg.role === 'assistant') {
@@ -344,8 +352,16 @@ chat.post('/', async (c) => {
               // Accepting it silently drops the answer (and any artifact) and
               // pins the cost readout at $0, with no error shown. Surface it.
               if (isEmptyAssistantTurn(assistantMsg)) {
+                // Stop pressed before the first token: nothing to keep, and
+                // not a failure either.
+                if (assistantMsg.stopReason === 'aborted') {
+                  currentAssistantMsg = null
+                  continue
+                }
                 throw new Error(EMPTY_TURN_MESSAGE)
               }
+              // The last deltas may still be waiting on the flush interval.
+              sse.flush()
               // Use streaming content from currentAssistantMsg but authoritative
               // usage/stopReason from event.message (message_update carries 0 usage)
               const cost = calculateCost(assistantMsg.usage, model)
@@ -498,71 +514,78 @@ chat.post('/', async (c) => {
           })
         }
 
-        // Stamp turn duration on the last assistant message of this turn so
-        // the UI can show a precise "Worked for X seconds" — even for
-        // single-message turns where pi-ai's stream-START timestamp would
-        // otherwise leave us without a useful diff.
-        const turnDurationMs = Date.now() - turnStartedAt
-        for (let i = newMessages.length - 1; i >= 0; i--) {
-          if (newMessages[i].role === 'assistant') {
-            ;(newMessages[i] as ChatAssistantMessage).durationMs =
-              turnDurationMs
-            break
-          }
-        }
-
         // Send done event
         sendEvent({
           type: 'done',
-          messages: [...allMessages, ...newMessages]
+          messages: [...allMessages, ...stampTurnDuration()]
         })
-
-        // Persist new messages to DB
-        if (newMessages.length > 0) {
-          const rows = newMessages.map((m) => toDbRow(m, id))
-          await saveMessages({ messages: rows })
-          for (const row of rows) {
-            enqueueAndProcess('index-message', row).catch((error) =>
-              logEnqueueFailure('index-message', error)
-            )
-          }
-        }
-
-        // ── POST-CHAT: enqueue background jobs (non-blocking) ───────────────
-        if (newMessages.length > 0) {
-          const allSavedMessages = [...allMessages, ...newMessages]
-
-          if (lcm) {
-            enqueueAndProcess('lcm-post-turn', {
-              chatId: id,
-              model,
-              apiKey,
-              freshTailSize: memoryConfig?.freshTailSize ?? 16,
-              contextWindowPercent: memoryConfig?.contextWindowPercent ?? 75,
-              newMessages: newMessages.map((m) => ({
-                id: m.id,
-                content: m.content
-              }))
-            }).catch((error) => logEnqueueFailure('lcm-post-turn', error))
-          }
-
-          if (memoryCapture) {
-            enqueueAndProcess('memory-consolidate', {
-              messages: allSavedMessages.map((m) => ({
-                role: m.role,
-                content: m.content
-              })),
-              model,
-              apiKey
-            }).catch((error) => logEnqueueFailure('memory-consolidate', error))
-          }
-        }
       } catch (err) {
         const rawMsg = err instanceof Error ? err.message : String(err)
         logger.error('chat', 'Chat stream error', { error: String(rawMsg) })
         sendEvent({ type: 'error', error: toFriendlyChatError(rawMsg) })
       } finally {
-        controller.close()
+        // Runs however the turn ended. It used to sit at the end of the `try`,
+        // so a turn that threw midway (a provider error on step three) — or
+        // whose client had gone (Stop cancels the response stream, and the next
+        // write threw) — saved nothing: the tool calls had really run and were
+        // on screen, then vanished on reload and were missing from LCM's
+        // context. The stream stays open until the rows are written, as before.
+        await persistTurn().catch((error) => {
+          logger.error('chat', 'Failed to persist chat turn', {
+            chatId: id,
+            errorName: error instanceof Error ? error.name : typeof error
+          })
+        })
+        sse.close()
+      }
+
+      // Stamp turn duration on the last assistant message of this turn so
+      // the UI can show a precise "Worked for X seconds" — even for
+      // single-message turns where pi-ai's stream-START timestamp would
+      // otherwise leave us without a useful diff.
+      function stampTurnDuration(): ChatMessage[] {
+        const turnDurationMs = Date.now() - turnStartedAt
+        for (let i = newMessages.length - 1; i >= 0; i--) {
+          if (newMessages[i].role === 'assistant') {
+            ;(newMessages[i] as ChatAssistantMessage).durationMs ??=
+              turnDurationMs
+            break
+          }
+        }
+        return newMessages
+      }
+
+      async function persistTurn() {
+        if (newMessages.length === 0) return
+        const rows = stampTurnDuration().map((m) => toDbRow(m, id))
+        await saveMessages({ messages: rows })
+        rows.forEach(indexMessage)
+
+        // ── POST-CHAT: enqueue background jobs (non-blocking) ───────────────
+        if (lcm) {
+          enqueueAndProcess('lcm-post-turn', {
+            chatId: id,
+            model,
+            apiKey,
+            freshTailSize: memoryConfig?.freshTailSize ?? 16,
+            contextWindowPercent: memoryConfig?.contextWindowPercent ?? 75,
+            newMessages: newMessages.map((m) => ({
+              id: m.id,
+              content: m.content
+            }))
+          }).catch((error) => logEnqueueFailure('lcm-post-turn', error))
+        }
+
+        if (memoryCapture) {
+          enqueueAndProcess('memory-consolidate', {
+            messages: [...allMessages, ...newMessages].map((m) => ({
+              role: m.role,
+              content: m.content
+            })),
+            model,
+            apiKey
+          }).catch((error) => logEnqueueFailure('memory-consolidate', error))
+        }
       }
     }
   })
