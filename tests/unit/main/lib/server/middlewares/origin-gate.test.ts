@@ -6,21 +6,23 @@ vi.mock('@main/lib/logger', () => ({
   logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn(), debug: vi.fn() }
 }))
 
-const { isAllowedHost, isAllowedOrigin, originGate } =
+const { createOriginGate, isAllowedHost, isAllowedOrigin } =
   await import('@main/lib/server/middlewares/origin-gate')
 
+const DEV = 'http://localhost:5173'
+
 describe('isAllowedOrigin', () => {
-  it.each([
-    // Includes the packaged renderer: a file:// page in Electron sends none.
-    [
-      'no Origin header (exodus-ios, exodus-cli, curl, the packaged app)',
-      undefined
-    ],
-    ['the dev renderer', 'http://localhost:5173'],
-    ['a loopback IP', 'http://127.0.0.1:5173'],
-    ['IPv6 loopback', 'http://[::1]:5173']
-  ])('allows %s', (_label, origin) => {
-    expect(isAllowedOrigin(origin)).toBe(true)
+  // Measured on the packaged build: a file:// page in Electron sends no Origin
+  // at all — so neither does anything else of ours, except the dev renderer.
+  it('allows a request with no Origin (the packaged app, exodus-ios, exodus-cli, curl)', () => {
+    expect(isAllowedOrigin(undefined)).toBe(true)
+    expect(isAllowedOrigin(undefined, DEV)).toBe(true)
+  })
+
+  it('allows the dev renderer, and only in a dev build', () => {
+    expect(isAllowedOrigin(DEV, DEV)).toBe(true)
+    expect(isAllowedOrigin(DEV, `${DEV}/`)).toBe(true)
+    expect(isAllowedOrigin(DEV)).toBe(false)
   })
 
   it.each([
@@ -29,13 +31,19 @@ describe('isAllowedOrigin', () => {
     ['a site on the API port', 'http://evil.example:60223'],
     ['a lookalike of localhost', 'http://localhost.evil.example'],
     ['a LAN web page', 'http://192.168.1.20:8080'],
+    // Some other dev server on this machine — or an XSS on one.
+    ['another loopback port', 'http://localhost:3000'],
+    ['the same port on another loopback name', 'http://127.0.0.1:5173'],
     // What a sandboxed iframe on a hostile page sends. Exodus never does.
     ['an opaque origin', 'null'],
     ['a browser extension', 'chrome-extension://abcdefghijklmnop'],
     ['a file origin', 'file://'],
+    // Model-written code; see src/main/lib/artifact-protocol.ts.
+    ['the artifact sandbox', 'exodus-artifact://sandbox'],
     ['garbage', 'not a url']
-  ])('rejects %s', (_label, origin) => {
+  ])('rejects %s, in dev and packaged alike', (_label, origin) => {
     expect(isAllowedOrigin(origin)).toBe(false)
+    expect(isAllowedOrigin(origin, DEV)).toBe(false)
   })
 })
 
@@ -58,21 +66,16 @@ describe('isAllowedHost', () => {
     expect(isAllowedHost('evil.example:60223', '::ffff:127.0.0.1')).toBe(false)
   })
 
-  it('does not hold a LAN client (exodus-ios) to any particular name', () => {
-    expect(isAllowedHost('mac.tailnet.ts.net:60223', '100.64.0.7')).toBe(true)
-    expect(isAllowedHost('exodus.example.com', '192.168.1.30')).toBe(true)
-  })
-
   it('passes when there is nothing to judge (no Host, or no socket under app.request())', () => {
     expect(isAllowedHost(undefined, LOOPBACK)).toBe(true)
     expect(isAllowedHost('evil.example', undefined)).toBe(true)
   })
 })
 
-describe('originGate', () => {
-  function buildApp() {
+describe('createOriginGate', () => {
+  function buildApp(opts: { devOrigin?: string } = {}) {
     const app = new Hono()
-    app.use('*', originGate)
+    app.use('*', createOriginGate(opts))
     app.use('*', cors())
     app.get('/api/v1/settings', (c) => c.json({ apiKey: 'sk-secret' }))
     app.post('/api/v1/chat', (c) => c.json({ ok: true }))
@@ -80,19 +83,30 @@ describe('originGate', () => {
   }
 
   it('serves a request with no Origin', async () => {
-    const res = await buildApp().request('/api/v1/settings')
-    expect(res.status).toBe(200)
+    expect((await buildApp().request('/api/v1/settings')).status).toBe(200)
   })
 
-  it('serves the renderer', async () => {
+  it('packaged: refuses anything that carries an Origin, loopback included', async () => {
     const res = await buildApp().request('/api/v1/settings', {
-      headers: { Origin: 'http://localhost:5173' }
+      headers: { Origin: DEV }
     })
-    expect(res.status).toBe(200)
+    expect(res.status).toBe(403)
+  })
+
+  it('dev: serves exactly the Vite renderer', async () => {
+    const app = buildApp({ devOrigin: DEV })
+    const renderer = await app.request('/api/v1/settings', {
+      headers: { Origin: DEV }
+    })
+    const other = await app.request('/api/v1/settings', {
+      headers: { Origin: 'http://localhost:3000' }
+    })
+    expect(renderer.status).toBe(200)
+    expect(other.status).toBe(403)
   })
 
   it('refuses a website, without a body worth reading or a CORS grant', async () => {
-    const res = await buildApp().request('/api/v1/settings', {
+    const res = await buildApp({ devOrigin: DEV }).request('/api/v1/settings', {
       headers: { Origin: 'https://evil.example' }
     })
     expect(res.status).toBe(403)
@@ -105,7 +119,6 @@ describe('originGate', () => {
       headers: { Origin: 'null' }
     })
     expect(res.status).toBe(403)
-    expect(res.headers.get('access-control-allow-origin')).toBeNull()
   })
 
   it("refuses a website's preflight, so its real request is never sent", async () => {
@@ -120,12 +133,22 @@ describe('originGate', () => {
     expect(res.headers.get('access-control-allow-origin')).toBeNull()
   })
 
-  it('refuses a rebinding request that reaches it over loopback', async () => {
+  it('refuses a rebinding request that reaches the loopback listener', async () => {
     const res = await buildApp().request(
       '/api/v1/settings',
       { headers: { Host: 'evil.example:60223' } },
       { incoming: { socket: { remoteAddress: '127.0.0.1' } } }
     )
     expect(res.status).toBe(403)
+  })
+
+  // exodus-ios may reach the computer by whatever name the user gave it.
+  it('does not hold the lan listener to the Host check', async () => {
+    const res = await buildApp().request(
+      '/api/v1/settings',
+      { headers: { Host: 'mac.tailnet.ts.net:60224' } },
+      { listener: 'lan', incoming: { socket: { remoteAddress: '127.0.0.1' } } }
+    )
+    expect(res.status).toBe(200)
   })
 })

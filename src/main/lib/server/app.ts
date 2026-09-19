@@ -8,9 +8,9 @@ import { getSettings } from '../db/queries'
 import { initJobQueue } from '../jobs/worker'
 import { logger } from '../logger'
 import {
+  createOriginGate,
   errorHandler,
   lockGate,
-  originGate,
   traceMiddleware
 } from './middlewares'
 import analyticsRouter from './routes/analytics'
@@ -35,17 +35,28 @@ import settingsRouter from './routes/settings'
 import skillsRouter from './routes/skills'
 import toolsRouter from './routes/tools'
 import usageRouter from './routes/usage'
-import { Variables } from './types'
+import type { Bindings, Variables } from './types'
 
-// Export server functions
-export async function connectHttpServer() {
-  let server: ServerType | null = null
-  const app = new Hono<{ Variables: Variables }>()
+// A Vite define, so only present in a build made by electron-forge — not under
+// Vitest, where reading it bare would be a ReferenceError.
+declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined
+const devServerUrl =
+  typeof MAIN_WINDOW_VITE_DEV_SERVER_URL === 'string'
+    ? MAIN_WINDOW_VITE_DEV_SERVER_URL
+    : undefined
+
+// Loopback only, both families: the renderer says `localhost`, which resolves
+// to ::1 first. The LAN is served separately, over TLS (see ../lan/).
+const LOOPBACK_ADDRESSES = ['127.0.0.1', '::1']
+
+/** The Hono app, without a listener — what both listeners serve. */
+export function createApp() {
+  const app = new Hono<{ Variables: Variables; Bindings: Bindings }>()
 
   // Middleware
   // Origin gate first, ahead of CORS: a rejected web origin gets a bare 403
   // with no `Access-Control-Allow-Origin`, so its page can't read even that.
-  app.use('*', originGate)
+  app.use('*', createOriginGate({ devOrigin: devServerUrl }))
   app.use('*', cors())
 
   // Lock gate: reject all API access while the app is locked (423).
@@ -97,16 +108,50 @@ export async function connectHttpServer() {
   // Global error handler
   app.onError(errorHandler)
 
+  return app
+}
+
+// Export server functions
+export async function connectHttpServer() {
+  let servers: ServerType[] = []
+  const app = createApp()
+
   return {
     close(callback?: (err?: Error) => void) {
-      if (server) server.close(callback)
+      const closing = servers
+      servers = []
+      if (closing.length === 0) return callback?.()
+      let pending = closing.length
+      for (const server of closing) {
+        server.close((err) => {
+          pending--
+          if (err || pending === 0) callback?.(err)
+        })
+      }
     },
     start() {
-      server = serve({
-        fetch: app.fetch,
-        port: SERVER_PORT
+      servers = LOOPBACK_ADDRESSES.map((hostname) => {
+        const server = serve({
+          fetch: (request, env) =>
+            app.fetch(request, { ...(env as Bindings), listener: 'loopback' }),
+          port: SERVER_PORT,
+          hostname
+        })
+        // A machine with IPv6 switched off has no ::1 to bind; 127.0.0.1 alone
+        // still serves it. Anything else (the port is taken) stays loud.
+        server.on('error', (error: NodeJS.ErrnoException) => {
+          if (hostname === '::1' && error.code === 'EADDRNOTAVAIL') {
+            logger.warn('server', 'No IPv6 loopback to listen on', { hostname })
+            return
+          }
+          throw error
+        })
+        return server
       })
-      logger.info('server', 'Hono is running', { port: SERVER_PORT })
+      logger.info('server', 'Hono is running', {
+        port: SERVER_PORT,
+        addresses: LOOPBACK_ADDRESSES
+      })
 
       // Initialize cron scheduler after server is up
       initScheduler(emitToAll).catch((err) =>

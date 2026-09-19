@@ -3,6 +3,7 @@ import { isIP } from 'net'
 import type { Context, Next } from 'hono'
 
 import { logger } from '../../logger'
+import { type Bindings, listenerOf } from '../types'
 
 /**
  * The server has no authentication and listens on every interface (exodus-ios
@@ -17,28 +18,32 @@ import { logger } from '../../logger'
 const LOOPBACK_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]'])
 
 /**
- * A request may carry no `Origin`, or a loopback web origin — nothing else.
+ * A request may carry no `Origin` — or, in a dev build, the Vite renderer's.
+ * Nothing else.
  *
  * No `Origin` is every legitimate client but one: exodus-ios, exodus-cli, curl,
  * the API tests, and the packaged renderer itself — measured, not assumed: a
  * `file://` page in Electron sends none, on GET, JSON POST and PUT alike, and
- * is not preflighted. The one client that does send it is the dev renderer
- * (`http://localhost:5173`).
+ * is not preflighted. The one client that does send it is the dev renderer,
+ * so a dev build accepts exactly that origin (`devOrigin`), not loopback in
+ * general: another dev server on this machine — or an XSS on one — is no more
+ * entitled to the API than a website is.
  *
- * So `null` is refused: Exodus never sends it, and it is what a sandboxed
- * iframe on a hostile page would present. Likewise any other scheme
- * (`chrome-extension://…` — a browser extension reaching for the API).
+ * So `null` is refused (it is what a sandboxed iframe on a hostile page
+ * presents), and so is any other scheme: a browser extension, and the artifact
+ * sandbox's own `exodus-artifact://`.
  */
-export function isAllowedOrigin(origin: string | undefined): boolean {
+export function isAllowedOrigin(
+  origin: string | undefined,
+  devOrigin?: string
+): boolean {
   if (!origin) return true
-  let url: URL
+  if (devOrigin === undefined) return false
   try {
-    url = new URL(origin)
+    return origin === new URL(devOrigin).origin
   } catch {
     return false
   }
-  if (url.protocol !== 'http:' && url.protocol !== 'https:') return false
-  return LOOPBACK_HOSTNAMES.has(url.hostname)
 }
 
 function isLoopbackAddress(address: string | undefined): boolean {
@@ -75,33 +80,34 @@ export function isAllowedHost(
   return isIP(hostname.replace(/^\[|\]$/g, '')) !== 0
 }
 
-interface NodeBindings {
-  incoming?: { socket?: { remoteAddress?: string } }
-}
+export function createOriginGate(opts: { devOrigin?: string }) {
+  return async function originGate(c: Context, next: Next) {
+    const origin = c.req.header('origin')
+    const host = c.req.header('host')
+    // `c.env` is @hono/node-server's bindings; absent under `app.request()`.
+    const remoteAddress = (c.env as Bindings | undefined)?.incoming?.socket
+      ?.remoteAddress
+    // Rebinding is a browser on this machine; a LAN client is addressed by
+    // whatever name its user gave it, and is held to a token instead.
+    const hostOk = listenerOf(c) === 'lan' || isAllowedHost(host, remoteAddress)
 
-export async function originGate(c: Context, next: Next) {
-  const origin = c.req.header('origin')
-  const host = c.req.header('host')
-  // `c.env` is @hono/node-server's bindings; absent under `app.request()`.
-  const remoteAddress = (c.env as NodeBindings | undefined)?.incoming?.socket
-    ?.remoteAddress
-
-  if (!isAllowedOrigin(origin) || !isAllowedHost(host, remoteAddress)) {
-    logger.warn('server', 'Rejected a request from a foreign origin', {
-      origin,
-      host,
-      path: c.req.path
-    })
-    return c.json(
-      {
-        type: 'error',
-        error: {
-          code: 'FORBIDDEN_ORIGIN',
-          message: 'This origin may not call the Exodus API.'
-        }
-      },
-      403
-    )
+    if (!isAllowedOrigin(origin, opts.devOrigin) || !hostOk) {
+      logger.warn('server', 'Rejected a request from a foreign origin', {
+        origin,
+        host,
+        path: c.req.path
+      })
+      return c.json(
+        {
+          type: 'error',
+          error: {
+            code: 'FORBIDDEN_ORIGIN',
+            message: 'This origin may not call the Exodus API.'
+          }
+        },
+        403
+      )
+    }
+    return next()
   }
-  return next()
 }

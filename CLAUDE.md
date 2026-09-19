@@ -147,9 +147,11 @@ Exodus is the successor of the older `universal-client` app and shares its
   for every build — it only holds Chromium state (localStorage, caches) and is
   where the legacy-location migration looks. There is no `-dev` variant of
   anything.
-- **Server port**: `SERVER_PORT = 60223` (`packages/shared/src/constants/systems.ts`)
-  — the port `exodus-ios` (and any other client of this backend) connects to, so
-  don't change it without updating them.
+- **Server ports** (`packages/shared/src/constants/systems.ts`): `SERVER_PORT =
+60223` is plaintext HTTP bound to loopback only (`127.0.0.1` and `::1`) — the
+  renderer, exodus-cli, `tests/api` and the iOS Simulator; nothing on the LAN
+  can reach it. `LAN_SERVER_PORT = 60224` is what `exodus-ios` on a device
+  connects to. Don't change either without updating the clients.
 - **E2E**: `playwright.config.ts` points `$HOME` at a scratch dir
   (`<tmpdir>/exodus-e2e-home`); the electron fixture wipes `~/.exodus` under it
   before every test and throws at import unless `$HOME` is that dir. It also
@@ -248,7 +250,7 @@ The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatc
 
 **Middleware Pipeline** (order in `app.ts`):
 
-1. Origin gate (`originGate`) — a request must carry no `Origin` (exodus-ios, exodus-cli, `tests/api`, and the packaged renderer: a `file://` page in Electron sends none) or a loopback `http(s)` one (the dev renderer); anything else — a website, `null`, an extension — gets `403`, as does a loopback request addressed by a public `Host` (DNS rebinding). Runs before CORS so a refused origin gets no `Access-Control-Allow-Origin`
+1. Origin gate (`createOriginGate`) — a request must carry no `Origin` (exodus-ios, exodus-cli, `tests/api`, and the packaged renderer: a `file://` page in Electron sends none) or, in a dev build only, exactly the Vite renderer's; anything else — a website, another loopback port, `null`, an extension, the artifact sandbox — gets `403`, as does a request on the loopback listener addressed by a public `Host` (DNS rebinding). Runs before CORS so a refused origin gets no `Access-Control-Allow-Origin`. Which listener took a request is in the bindings (`listenerOf(c)` in `server/types.ts`)
 2. CORS middleware (`hono/cors`)
 3. Lock gate (`lockGate`) — rejects all `/api/*` with `423` while the app is locked
 4. Trace gate (`traceMiddleware`) — wraps each `/api/*` request in an `AsyncLocalStorage` trace (see `src/main/lib/logger/`), sets the `x-trace-id` response header
