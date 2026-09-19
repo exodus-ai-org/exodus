@@ -1053,9 +1053,6 @@ renders the real UI without console errors.
   i18n / tests) are OS-independent and now run once on ubuntu; the three-OS
   matrix builds the installers with `bun run make`, the release workflow's
   command, so packaging failures surface on the PR.
-- **macOS and Windows `make` have still never run in CI:** their release jobs
-  were cancelled during `bun install` when Linux failed (matrix `fail-fast`, now
-  off). The next PR is their first real test.
 - **The Playwright workflow had never passed** (51 failures, 0 successes — it
   failed before the migration too). The repo defines no `OPENAI_API_KEY` /
   `CLAUDE_API_KEY` secret, so model-backed API specs got empty replies. They now
@@ -1065,30 +1062,43 @@ renders the real UI without console errors.
   once, each triggering every workflow. The Slack notification workflow was
   removed.
 
+**Second run (PR #233 merged, 2026-09-19):** PR Check — including the three-OS
+`bun run make`, Squirrel on `windows-latest` among them — Playwright (its first
+success ever) and React Doctor were green. The Release run got Linux and macOS
+through `make`, but the Windows job died before it, in "Set package version":
+"The variable '$NEXT_VERSION' cannot be retrieved". Windows runners default to
+PowerShell, where an environment variable is `$env:NEXT_VERSION`; the step was
+written for bash. Fixed with `defaults.run.shell: bash`on the build job.
+Lesson: a PR check that runs`make` does not exercise the release workflow's own
+shell steps — the two can pass and fail independently, so read each OS's release
+job, not just PR Check.
+
 **Open — needs the user:**
 
-- **Push, PR, merge.** The migration and the CI fixes sit on local branches;
-  push `fix/ci` and open a PR to `master` — its PR Check is the first run of the
-  three-OS build. `release.yml` triggers on `master`; it keys off
-  conventional-commit types, and the migration commit is `build:` on purpose (no
-  `feat!` / `BREAKING CHANGE`) so semantic-release doesn't cut a major version
-  out of a tooling change. After the merge, existing Dependabot PRs pick up the
-  fixes with `@dependabot rebase`.
+- **Merge the Windows shell fix** (`fix/release-windows-shell`). The migration
+  and the first CI fixes are already on `master` (PR #225, #233). `release.yml`
+  triggers on `master` and keys off conventional-commit types: the migration
+  commit is `build:` on purpose (no `feat!` / `BREAKING CHANGE`) so
+  semantic-release doesn't cut a major version out of a tooling change, but `dev`
+  also carries `feat:` commits, so the first fully green release run publishes
+  v1.15.0. Existing Dependabot PRs pick up the CI fixes with
+  `@dependabot rebase`.
 - **The replacement for skills** (see Phase 3): plug it into
   `ai/skills/skills-manager.ts` and the Settings → Skills Market placeholder.
 
 **Open — unverified rather than broken:**
 
-- **`release.yml` end to end** — the tag / CHANGELOG / asset-upload half has
-  never run (the first run died in the Linux build). Builds are unsigned and not
+- **`release.yml`'s last half** — the `release` job (merge artifacts, tag,
+  CHANGELOG, attach assets) has never run: it was skipped both times because a
+  build leg failed. Only its asset-flattening step was simulated, with the real
+  Linux / macOS artifacts of the second run plus a Windows-style name containing a
+  space: all files survived, no name collided. Builds are unsigned and not
   notarized; adding `osxSign` / `osxNotarize` (and a Windows certificate) needs
   credentials.
-- `bun run make` for macOS and Windows on the GitHub runners (Squirrel in
-  particular). Linux deb / rpm are verified in a container; macOS was run
-  locally. The DMG was only checked as a file (`hdiutil verify`), not mounted and
-  launched.
-- The `api` Playwright job going green on GitHub — the skip logic was verified
-  locally only.
+- The Windows leg of the release workflow itself (fixed, not yet run). `make`
+  passes on all three OSes in PR Check, but no installer was ever launched — the
+  DMG was only checked as a file (`hdiutil verify`); Squirrel, deb and rpm were
+  only built.
 - `knowledge-base/` against a live LightRAG server (mock-tested only).
 - A real computer-use session (needs Screen Recording + Accessibility
   permission for the app).
