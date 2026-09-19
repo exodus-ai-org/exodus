@@ -22,6 +22,13 @@
       "when": 1789468195719,
       "tag": "0002_conscious_gamora",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789814234898,
+      "tag": "0003_sticky_firelord",
+      "breakpoints": true
     }
   ]
 }
