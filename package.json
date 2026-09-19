@@ -87,7 +87,7 @@
     "react-dom": "^19.3.0",
     "react-i18next": "^17.0.13",
     "react-resizable-panels": "^4.12.4",
-    "recharts": "3.8.0",
+    "recharts": "3.10.1",
     "sucrase": "^3.35.1",
     "tailwindcss": "^4.3.3",
     "turndown": "^7.2.4",
