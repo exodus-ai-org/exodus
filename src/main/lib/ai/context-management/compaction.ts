@@ -1,8 +1,8 @@
 import crypto from 'crypto'
 
 import type { Model } from '@mariozechner/pi-ai'
-import { completeSimple } from '@mariozechner/pi-ai'
 
+import { completeSimple } from '../utils/complete'
 import { getSummaryPromptForDepth } from './prompts'
 import {
   getContextItems,

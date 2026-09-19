@@ -1,5 +1,4 @@
 import type { Model } from '@mariozechner/pi-ai'
-import { completeSimple } from '@mariozechner/pi-ai'
 import z from 'zod'
 
 import {
@@ -14,6 +13,7 @@ import {
   type MemorySection
 } from '../../db/memory-queries'
 import { logger } from '../../logger'
+import { completeSimple } from '../utils/complete'
 
 export const LOCAL_USER_ID = '00000000-0000-0000-0000-000000000001'
 

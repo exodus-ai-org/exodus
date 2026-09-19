@@ -505,6 +505,8 @@ straight from `src/main/lib/db/schema.ts` (the shared package must not import th
 - Per-provider fallback defaults (contextWindow, cost) and `MODEL_METADATA_FALLBACK` are centralized in `resolve-model.ts`
 - Model lists are now live-fetched per provider from Settings via `src/main/lib/ai/providers/list-models/`
 - Model names/API keys are retrieved from settings (never hardcode)
+- One-shot completions go through `completeSimple` from `src/main/lib/ai/utils/complete.ts` (see Shared Utilities) — pi-ai does not throw on a failed request
+- `@mariozechner/pi-ai` / `pi-agent-core` are deprecated upstream at 0.73.1; the successor is `@earendil-works/pi-ai` (a `Models` collection API, the old global API under `/compat`). Not migrated yet — see `docs/pi-ai-review.md`
 
 ### When Working with Database
 
@@ -518,6 +520,9 @@ straight from `src/main/lib/db/schema.ts` (the shared package must not import th
 - Tool definitions go in `src/main/lib/ai/calling-tools/`
 - Tools are bound conditionally based on the `AdvancedTools` selection
 - Always validate inputs with Zod schemas
+- Enum parameters use pi-ai's `StringEnum([...] as const)`, never
+  `Type.Union([Type.Literal(...)])` — that emits `anyOf`/`const`, which
+  Google's function-calling schema rejects
 - Tool descriptions are critical for LLM understanding
 - Return structured data that the LLM can interpret
 
@@ -581,6 +586,7 @@ vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
 
 Reusable AI utilities that should be used (and tested) instead of inline implementations:
 
+- `src/main/lib/ai/utils/complete.ts` — `completeSimple()`: pi-ai's, except a failed request rejects (`LlmRequestError`). pi-ai itself **resolves** on a 429 / bad key / dropped connection, to an empty message with `stopReason: 'error'`, which reads as "the model said nothing". Always import `completeSimple` from here, never from `@mariozechner/pi-ai`, and make sure the caller's `catch` does something sensible
 - `src/main/lib/ai/utils/llm-response-util.ts` — `extractTextFromCompletion()` and `parseJsonFromLlmResponse()` for parsing LLM outputs
 - `src/main/lib/ai/utils/conversation-util.ts` — `extractConversationText()` for converting messages to text
 - `src/main/lib/ai/providers/resolve-model.ts` — Shared `resolveModel()` with per-provider fallback defaults
@@ -857,6 +863,9 @@ Docs:
 - `docs/superpowers/plans/` — implementation plans
 - `docs/security-hardening.md` — threat model, protections in place, and the
   open security items with their intended fixes
+- `docs/pi-ai-review.md` — review of the pi-ai usage against the upstream
+  README: what was fixed, and the migration path off the deprecated
+  `@mariozechner/*` packages
 - `docs/elasticsearch-setup.md` — end-user guide for configuring a
   self-hosted/cloud Elasticsearch cluster for Exodus's optional search
   upgrade (Exodus is consumer-only — never creates the index/mapping

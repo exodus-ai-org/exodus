@@ -1,8 +1,8 @@
 import { Learning } from '@exodus/shared/types/deep-research'
 import type { Model } from '@mariozechner/pi-ai'
-import { completeSimple } from '@mariozechner/pi-ai'
 
 import { deepResearchSystemPrompt } from '../prompts'
+import { completeSimple } from '../utils/complete'
 import { extractTextFromCompletion } from '../utils/llm-response-util'
 
 export async function writeFinalReport(

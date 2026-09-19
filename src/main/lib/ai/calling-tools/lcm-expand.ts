@@ -1,12 +1,13 @@
 import type { AgentTool } from '@mariozechner/pi-agent-core'
 import type { Model } from '@mariozechner/pi-ai'
-import { completeSimple, Type } from '@mariozechner/pi-ai'
+import { Type } from '@mariozechner/pi-ai'
 
 import {
   getChildIds,
   getSummaryById,
   searchSummaries
 } from '../context-management/queries'
+import { completeSimple } from '../utils/complete'
 
 const lcmExpandSchema = Type.Object({
   chatId: Type.String({ description: 'The chat session ID.' }),

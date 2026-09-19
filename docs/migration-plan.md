@@ -829,6 +829,10 @@ presets: [reactCompilerPreset()] })`). It was trialled on 2026-09-19 and
   - Cost: the renderer build goes from 2.3s to 5.9s (+0.8% JS), and every dev
     transform gains a Babel pass. There are next to no renderer component
     tests, so a regression would only show up by hand or in e2e.
+  - If it is ever wanted, the Babel-free route is plugin-react's native port
+    (`react({ compiler: true })` + `oxc-transform-react`), still marked
+    experimental as of plugin-react 6.1 — and the `form.watch()` problem
+    applies to it just the same.
 - **`data-testid` stripping** (the `strip-data-testid` plugin, gated on
   `STRIP_TEST_IDS=1`) is ported; `bun run make` / `publish` set it, `package`
   doesn't — the e2e suite needs the ids.

@@ -1,9 +1,9 @@
 import type { DiscoverGroup } from '@exodus/shared/types/discover'
-import { completeSimple } from '@mariozechner/pi-ai'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 
 import { LOCAL_USER_ID } from '../ai/memory/manager'
+import { completeSimple } from '../ai/utils/complete'
 import {
   extractTextFromCompletion,
   parseJsonFromLlmResponse

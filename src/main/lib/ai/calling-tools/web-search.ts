@@ -1,6 +1,6 @@
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import type { AgentTool } from '@mariozechner/pi-agent-core'
-import { Type } from '@mariozechner/pi-ai'
+import { StringEnum, Type } from '@mariozechner/pi-ai'
 
 import { Settings } from '../../db/schema'
 import { getModelFromProvider } from '../utils/model-util'
@@ -13,24 +13,18 @@ const webSearchSchema = Type.Object({
       'Keyword-style query, not a full question. Keep it under ~40 words. Use "quoted phrases" for exact matches, -term to exclude, site:domain to scope. Suffix a year/date when recency matters. Start broad; only add specifics on a follow-up search if the first was too general.'
   }),
   precision: Type.Optional(
-    Type.Union([Type.Literal('broad'), Type.Literal('strict')], {
+    // StringEnum, not a Union of Literals: that emits `anyOf`/`const`, which
+    // Google's function-calling schema rejects (pi-ai README, "Defining Tools").
+    StringEnum(['broad', 'strict'] as const, {
       description:
         'Relevance filter. "broad" (default) maximizes recall. Use "strict" on a follow-up search when the broad results were noisy or off-topic.'
     })
   ),
   media: Type.Optional(
-    Type.Union(
-      [
-        Type.Literal('images'),
-        Type.Literal('videos'),
-        Type.Literal('all'),
-        Type.Literal('none')
-      ],
-      {
-        description:
-          'Optional visual media search. Use "images" or "all" when building visual artifacts, comparisons, product/place explainers, or any answer that benefits from photos. Use "videos" or "all" for tutorials, demonstrations, or video-rich topics. Default: "none".'
-      }
-    )
+    StringEnum(['images', 'videos', 'all', 'none'] as const, {
+      description:
+        'Optional visual media search. Use "images" or "all" when building visual artifacts, comparisons, product/place explainers, or any answer that benefits from photos. Use "videos" or "all" for tutorials, demonstrations, or video-rich topics. Default: "none".'
+    })
   )
 })
 
