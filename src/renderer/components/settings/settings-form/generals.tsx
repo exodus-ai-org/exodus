@@ -5,13 +5,9 @@ import {
   type LanguageSetting
 } from '@exodus/shared/i18n/locales'
 import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
-import type { ParseKeys } from 'i18next'
-import { Moon, Sun, SunMoon } from 'lucide-react'
-import { useTheme } from 'next-themes'
 import { useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Theme } from '@/components/theme-provider'
 import { Switch } from '@/components/ui/switch'
 import { setLoginItem, setMenuBar } from '@/lib/ipc'
 
@@ -35,47 +31,6 @@ const LANGUAGE_OPTIONS: {
     flag: LOCALES[id].flag
   }))
 ]
-
-const APPEARANCE_MODES: {
-  value: Theme
-  labelKey: ParseKeys<'settings'>
-  icon: typeof Sun
-}[] = [
-  { value: 'system', labelKey: 'general.theme.system', icon: SunMoon },
-  { value: 'light', labelKey: 'general.theme.light', icon: Sun },
-  { value: 'dark', labelKey: 'general.theme.dark', icon: Moon }
-]
-
-function AppearanceSwitcher() {
-  const { t } = useTranslation('settings')
-  const { theme, setTheme } = useTheme()
-
-  return (
-    <div className="bg-muted inline-flex w-fit gap-0.5 rounded-full p-0.5">
-      {APPEARANCE_MODES.map(({ value, labelKey, icon: Icon }) => (
-        <span key={value}>
-          <input
-            className="peer sr-only"
-            type="radio"
-            id={`appearance-mode-${value}`}
-            name="appearance-mode"
-            value={value}
-            checked={theme === value}
-            onChange={(event) => setTheme(event.target.value)}
-          />
-          <label
-            htmlFor={`appearance-mode-${value}`}
-            data-testid={`${TEST_IDS.settings.themeMode}-${value}`}
-            aria-label={t(labelKey)}
-            className="text-muted-foreground peer-checked:bg-background peer-checked:text-foreground flex size-7 cursor-pointer items-center justify-center rounded-full transition-colors peer-checked:shadow-sm"
-          >
-            <Icon className="size-4" />
-          </label>
-        </span>
-      ))}
-    </div>
-  )
-}
 
 export function General({ form }: { form: UseFormReturnType }) {
   const { t } = useTranslation('settings')
@@ -103,13 +58,6 @@ export function General({ form }: { form: UseFormReturnType }) {
   return (
     <>
       <SettingsSection>
-        <SettingsRow
-          label={t('general.theme.label')}
-          description={t('general.theme.description')}
-        >
-          <AppearanceSwitcher />
-        </SettingsRow>
-
         <SettingsRow
           label={t('general.language.label')}
           description={t('general.language.description')}

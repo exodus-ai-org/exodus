@@ -28,6 +28,9 @@
     "general": {
       "title": "일반"
     },
+    "appearance": {
+      "title": "모양"
+    },
     "personality": {
       "title": "성격"
     },

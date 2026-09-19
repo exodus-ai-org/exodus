@@ -25,7 +25,7 @@ test.describe('Settings E2E', () => {
   test('theme mode switcher changes the active mode', async ({
     mainWindow
   }) => {
-    await openSettings(mainWindow)
+    await openSettings(mainWindow, 'Appearance')
 
     const dark = mainWindow.getByTestId(`${TEST_IDS.settings.themeMode}-dark`)
     const light = mainWindow.getByTestId(`${TEST_IDS.settings.themeMode}-light`)

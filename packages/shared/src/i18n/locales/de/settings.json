@@ -28,6 +28,9 @@
     "general": {
       "title": "Allgemein"
     },
+    "appearance": {
+      "title": "Erscheinungsbild"
+    },
     "personality": {
       "title": "Persönlichkeit"
     },

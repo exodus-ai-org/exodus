@@ -52,6 +52,7 @@ describe('settings namespace (en)', () => {
   it('has a nav title key for every SettingsLabel tab', () => {
     expect(settings.nav.profile.title).toBe('Profile')
     expect(settings.nav.general.title).toBe('General')
+    expect(settings.nav.appearance.title).toBe('Appearance')
     expect(settings.nav.personality.title).toBe('Personality')
     expect(settings.nav.aiProviders.title).toBe('AI Providers')
     expect(settings.nav.amazonS3.title).toBe('AWS S3')

@@ -7,6 +7,7 @@ import { useSettings } from '@/hooks/use-settings'
 import { useSettingsAutosave } from '@/hooks/use-settings-autosave'
 import { useSettingsTab } from '@/hooks/use-settings-tab'
 
+import { Appearance } from './settings-form/appearance'
 import { ChatAudit } from './settings-form/chat-audit'
 import { ComputerUse } from './settings-form/computer-use'
 import { DataControls } from './settings-form/data-controls'
@@ -64,6 +65,8 @@ export function SettingsForm() {
       {activeTitle === SettingsLabel.Profile && <Profile form={form} />}
 
       {activeTitle === SettingsLabel.General && <General form={form} />}
+
+      {activeTitle === SettingsLabel.Appearance && <Appearance form={form} />}
 
       {activeTitle === SettingsLabel.Personality && <Personality form={form} />}
 

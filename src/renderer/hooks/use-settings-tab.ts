@@ -9,6 +9,7 @@ import { SettingsLabel } from '@/components/settings/settings-menu'
  */
 export const SETTINGS_TAB_SLUGS: Record<SettingsLabel, string> = {
   [SettingsLabel.General]: 'general',
+  [SettingsLabel.Appearance]: 'appearance',
   [SettingsLabel.Profile]: 'profile',
   [SettingsLabel.Personality]: 'personality',
   [SettingsLabel.Memory]: 'memory',

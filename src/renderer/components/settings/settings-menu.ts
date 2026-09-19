@@ -9,6 +9,7 @@ import {
   KeyboardIcon,
   MemoryStickIcon,
   NetworkIcon,
+  PaletteIcon,
   ScrollTextIcon,
   DatabaseZapIcon,
   TextSearch,
@@ -25,6 +26,7 @@ import {
 export enum SettingsLabel {
   Profile = 'Profile',
   General = 'General',
+  Appearance = 'Appearance',
   Personality = 'Personality',
   AiProviders = 'AI Providers',
   AmazonS3 = 'AWS S3',
@@ -64,6 +66,7 @@ export type SettingsPage = SettingsLabel
 export const NAV_TITLE_KEYS = {
   [SettingsLabel.Profile]: 'nav.profile.title',
   [SettingsLabel.General]: 'nav.general.title',
+  [SettingsLabel.Appearance]: 'nav.appearance.title',
   [SettingsLabel.Personality]: 'nav.personality.title',
   [SettingsLabel.AiProviders]: 'nav.aiProviders.title',
   [SettingsLabel.AmazonS3]: 'nav.amazonS3.title',
@@ -95,6 +98,7 @@ export const menus = {
       label: 'nav.group.personal',
       items: [
         { title: SettingsLabel.General, icon: CogIcon },
+        { title: SettingsLabel.Appearance, icon: PaletteIcon },
         { title: SettingsLabel.Profile, icon: CircleUserRoundIcon },
         { title: SettingsLabel.Personality, icon: UserIcon },
         { title: SettingsLabel.Memory, icon: MemoryStickIcon },
