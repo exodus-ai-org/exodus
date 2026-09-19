@@ -152,8 +152,11 @@ export function setupIPC() {
   // Settings → Appearance → Translucent sidebar. The window boots with
   // `vibrancy: 'sidebar'` (window.ts); this flips it at runtime. Off = an
   // opaque window painted in the theme's background so nothing white leaks
-  // behind the transparent <body>. Other platforms have no vibrancy: only
-  // the background colour is applied.
+  // behind the transparent <body>. `setVibrancy` itself toggles the web
+  // contents between transparent and opaque, so re-enabling needs no
+  // background-colour reset (an alpha colour is only honoured on
+  // `transparent: true` windows anyway). Other platforms have no vibrancy:
+  // only the background colour is applied.
   safeHandle('set-window-translucency', (_, arg: unknown) => {
     const { enabled, backgroundColor } = arg as {
       enabled: boolean
@@ -166,7 +169,6 @@ export function setupIPC() {
       : '#ffffff'
     if (process.platform === 'darwin') {
       if (enabled) {
-        win.setBackgroundColor('#00000000')
         win.setVibrancy('sidebar')
       } else {
         win.setVibrancy(null)

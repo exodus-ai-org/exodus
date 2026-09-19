@@ -32,8 +32,8 @@ void i18nReady.finally(() => {
     <SWRConfig value={{ fetcher }}>
       <Provider>
         <ThemeProvider>
-          <AppearanceProvider />
           <I18nProvider>
+            <AppearanceProvider />
             <AppRoot />
           </I18nProvider>
         </ThemeProvider>
