@@ -252,6 +252,61 @@ export const KeyboardShortcutsSchema = z.object({
   disabled: z.array(z.string()).nullish()
 })
 
+// ─── Appearance ──────────────────────────────────────────────────────────────
+// Everything on Settings → Appearance except the light/dark/system MODE, which
+// next-themes keeps in localStorage (sub-apps and the e2e suite read that key).
+
+const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Expected #RRGGBB')
+
+export const AppearanceSchemeSchema = z.object({
+  // A THEME_PRESETS id, or CUSTOM_PRESET_ID after an import.
+  preset: z.string().default('exodus'),
+  // Per-colour overrides. null → the preset's own value.
+  accent: hexColor.nullish(),
+  background: hexColor.nullish(),
+  foreground: hexColor.nullish()
+})
+export type AppearanceScheme = z.infer<typeof AppearanceSchemeSchema>
+
+export const FontWeightSchema = z.enum(['light', 'regular', 'medium'])
+export type FontWeightId = z.infer<typeof FontWeightSchema>
+
+export const FontFamilySchema = z.enum([
+  'system',
+  'serif',
+  'mono',
+  'rounded',
+  'custom'
+])
+export type FontFamilyId = z.infer<typeof FontFamilySchema>
+
+export const FontSettingSchema = z.object({
+  family: FontFamilySchema.default('system'),
+  // Only read when family === 'custom': a family installed on this machine.
+  customFamily: z.string().max(100).nullish(),
+  // 'light' (300) is the weight globals.css applied to every element before
+  // this setting existed, so the default is a no-op.
+  weight: FontWeightSchema.default('light')
+})
+export type FontSetting = z.infer<typeof FontSettingSchema>
+
+export const ContentFontSettingSchema = FontSettingSchema.extend({
+  // 'ui' → same family AND weight as the UI font.
+  family: z.enum(['ui', ...FontFamilySchema.options]).default('ui')
+})
+export type ContentFontSetting = z.infer<typeof ContentFontSettingSchema>
+
+export const AppearanceSchema = z.object({
+  light: AppearanceSchemeSchema.prefault({}),
+  dark: AppearanceSchemeSchema.prefault({}),
+  uiFont: FontSettingSchema.prefault({}),
+  contentFont: ContentFontSettingSchema.prefault({}),
+  translucentSidebar: z.boolean().default(true),
+  // 0..100; 50 is neutral (k = 1.0 in derivePalette).
+  contrast: formNumber(z.number().int().min(0).max(100)).default(50)
+})
+export type Appearance = z.infer<typeof AppearanceSchema>
+
 export const SettingsSchema = z.object({
   id: z.string(),
   providerConfig: ProviderConfigSchema.nullish(),
@@ -279,6 +334,7 @@ export const SettingsSchema = z.object({
   memory: MemorySchema.nullish(),
   personality: PersonalitySchema.nullish(),
   keyboardShortcuts: KeyboardShortcutsSchema.nullish(),
+  appearance: AppearanceSchema.nullish(),
   createdAt: z.any(),
   updatedAt: z.any()
 })

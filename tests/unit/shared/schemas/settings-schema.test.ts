@@ -1,4 +1,5 @@
 import {
+  AppearanceSchema,
   EffortLevelSchema,
   ModelSnapshotSchema,
   ProviderConfigSchema
@@ -61,5 +62,34 @@ describe('ProviderConfigSchema', () => {
       }
     })
     expect(parsed.modelSnapshot?.contextWindow).toBe(1_050_000)
+  })
+})
+
+describe('AppearanceSchema', () => {
+  it('fills every default from an empty object', () => {
+    const parsed = AppearanceSchema.parse({})
+    expect(parsed.light.preset).toBe('exodus')
+    expect(parsed.dark.preset).toBe('exodus')
+    expect(parsed.uiFont).toEqual({ family: 'system', weight: 'light' })
+    expect(parsed.contentFont).toEqual({ family: 'ui', weight: 'light' })
+    expect(parsed.translucentSidebar).toBe(true)
+    expect(parsed.contrast).toBe(50)
+  })
+
+  it('accepts overrides as 6-digit hex only', () => {
+    expect(
+      AppearanceSchema.safeParse({ light: { accent: '#1F6FEB' } }).success
+    ).toBe(true)
+    expect(
+      AppearanceSchema.safeParse({ light: { accent: 'blue' } }).success
+    ).toBe(false)
+    expect(
+      AppearanceSchema.safeParse({ light: { accent: '#fff' } }).success
+    ).toBe(false)
+  })
+
+  it('bounds contrast to 0..100 and coerces the form string', () => {
+    expect(AppearanceSchema.safeParse({ contrast: 101 }).success).toBe(false)
+    expect(AppearanceSchema.parse({ contrast: '70' }).contrast).toBe(70)
   })
 })
