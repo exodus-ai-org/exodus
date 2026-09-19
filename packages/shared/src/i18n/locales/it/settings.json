@@ -762,39 +762,90 @@
     }
   },
   "skillsMarket": {
-    "sourceNotice": "I dati delle skill provengono da <2>clawhub.ai</2>. Rivedi attentamente le skill prima di installarle per evitare programmi potenzialmente dannosi.",
-    "searchPlaceholder": "Cerca skill...",
-    "installLocal": "Installa in locale",
+    "sourceNotice": "Le skill provengono da <registry>skills.sh</registry>, il registro aperto delle Agent Skills. Ognuna include audit di sicurezza indipendenti: leggili prima di installare.",
+    "searchPlaceholder": "Cerca skill per nome o autore",
+    "views": {
+      "trending": "Di tendenza (24 h)",
+      "hot": "Popolari",
+      "allTime": "Di sempre",
+      "allTimeWithTotal": "Di sempre ({{total}})"
+    },
     "tabs": {
-      "browse": "Esplora",
+      "discover": "Scopri",
       "installed": "Installate"
     },
     "browse": {
-      "noResults": "Nessun risultato trovato",
-      "noResultsHint": "Prova un termine di ricerca diverso",
-      "loadFailed": "Impossibile caricare le skill",
-      "loadFailedHint": "Verifica la tua connessione a Internet e riprova",
-      "empty": "Nessuna skill disponibile",
-      "previous": "Precedente",
-      "next": "Successivo"
+      "loadFailed": "Impossibile raggiungere skills.sh",
+      "loadFailedHint": "Controlla la connessione, poi riprova.",
+      "noResults": "Nessuna skill corrisponde a “{{query}}”",
+      "noResultsHint": "Prova con un’altra parola o con il nome dell’autore.",
+      "empty": "Nessuna skill da mostrare",
+      "loadMore": "Carica altre",
+      "resultCount_one": "{{count}} risultato",
+      "resultCount_other": "{{count}} risultati",
+      "searching": "Ricerca in corso…",
+      "moreFromSource_one": "+{{count}} altra da {{source}} ({{total}} in totale)",
+      "moreFromSource_other": "+{{count}} altre da {{source}} ({{total}} in totale)",
+      "lessFromSource": "Mostra meno da {{source}}"
+    },
+    "card": {
+      "installs": "{{formatted}} installazioni",
+      "installedBadge": "Installata",
+      "trend": "+{{formatted}} oggi"
+    },
+    "detail": {
+      "back": "Tutte le skill",
+      "install": "Installa",
+      "installing": "Installazione…",
+      "installed": "Installata",
+      "uninstall": "Disinstalla",
+      "active": "Attiva",
+      "openOnSkillsSh": "Vedi su skills.sh",
+      "openSource": "Vedi il codice sorgente",
+      "loadFailed": "Impossibile caricare questa skill",
+      "readme": "README",
+      "files_one": "{{count}} file incluso",
+      "files_other": "{{count}} file inclusi",
+      "audit": {
+        "title": "Audit di sicurezza",
+        "summary": "{{passed}} controlli su {{total}} superati",
+        "none": "Per questa skill non è ancora stato pubblicato alcun audit.",
+        "status": {
+          "pass": "Superato",
+          "warn": "Avviso",
+          "fail": "Fallito"
+        },
+        "auditedAt": "Verificato {{date}}"
+      },
+      "cli": {
+        "title": "Installa dal terminale",
+        "description": "La stessa skill, installata da exodus-cli nella stessa cartella letta da questa app."
+      }
     },
     "installedTab": {
       "empty": "Nessuna skill installata",
-      "emptyHint": "Esplora il mercato per trovare skill",
-      "installedAt": "Installata il {{date}}"
+      "emptyHint": "Apri Scopri per trovarne una, oppure esegui exodus-cli nel terminale.",
+      "installedAt": "Installata {{date}}",
+      "legacy": "Legacy",
+      "uninstallTitle": "Disinstallare “{{name}}”?",
+      "uninstallDescription": "I suoi file vengono rimossi dalla cartella delle skill. Potrai reinstallarla in qualsiasi momento."
     },
-    "card": {
-      "installed": "Installata",
-      "install": "Installa",
-      "installsCount_one": "{{formatted}} installazione",
-      "installsCount_other": "{{formatted}} installazioni"
+    "cli": {
+      "notice": "Preferisci il terminale? <cli>exodus-cli</cli> gestisce le stesse skill: <code>npm i -g exodus-cli</code>, poi <code>exodus skills</code>."
     },
     "toast": {
-      "installedTitle": "\"{{name}}\" installata",
+      "installedTitle": "“{{name}}” installata",
       "installFailed": "Installazione non riuscita",
-      "uninstalledTitle": "Skill disinstallata",
+      "uninstalledTitle": "“{{name}}” disinstallata",
       "uninstallFailed": "Disinstallazione non riuscita",
-      "updateFailed": "Aggiornamento della skill non riuscito"
+      "updateFailed": "Impossibile aggiornare la skill",
+      "copied": "Comando copiato"
+    },
+    "leaderboard": {
+      "rank": "#",
+      "skill": "Skill",
+      "activity": "Oggi",
+      "installs": "Installazioni"
     }
   },
   "toast": {

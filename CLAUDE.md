@@ -150,14 +150,34 @@ Exodus is the successor of the older `universal-client` app and shares its
   before every test and throws at import unless `$HOME` is that dir. To test a
   packaged build by hand, sandbox `$HOME` and pass `--user-data-dir` the same way.
 
-### Skills (deprecated)
+### Skills (skills.sh)
 
-The skills marketplace (backend `/api/v1/skills`, install/search flows, and the
-Settings → Skills Market UI) is deprecated and was not migrated. Only a seam
-remains: `src/main/lib/ai/skills/skills-manager.ts` exports the three functions
-live code still calls (`listInstalledSkills`, `getSkillsContentBySlugs`,
-`getActiveSkillsContent`) and returns "no skills"; the settings nav entry shows
-a placeholder. The replacement plugs in there.
+Agent Skills come from **skills.sh** (the ClawHub marketplace was dropped for
+quality reasons). `src/main/lib/ai/skills/`:
+
+- `skills-sh-client.ts` — list / search / detail / audit against the BFF relay
+  `SKILLS_SH_BFF_URL` (`https://skills-md.yancey.app`, the same relay
+  `exodus-cli` uses; `EXODUS_SKILLS_BFF_URL` overrides it).
+- `skills-store.ts` — installs a skill's `files[]` under
+  `~/.exodus/skills/<slug>/` and records it in `~/.exodus/skills/.lock.json`
+  (files first, lockfile last; paths that escape the slug dir are refused).
+  Same directory and lockfile shape as `exodus-cli`, so skills installed by
+  either are visible to both.
+- `skills-manager.ts` — the seam chat + Philharmonic consume:
+  `listInstalledSkills()`, `getSkillsContentBySlugs()`,
+  `getActiveSkillsContent()` (SKILL.md minus frontmatter, `$SKILL_DIR` baked
+  to the absolute install path, wrapped in `<active_skills>`).
+
+Route `/api/v1/skills` (`src/main/lib/server/routes/skills.ts`): `GET
+/registry?view&page&per_page`, `GET /search?q`, `GET /detail?id`, `GET
+/audit?id` (`null` when unaudited), `GET /installed`, `POST /install {id}`,
+`DELETE /:slug`, `PATCH /:slug/toggle`. Skill ids are `owner/repo/slug`, hence
+query params. UI: Settings → Skills Market
+(`src/renderer/components/skills-market/`): Discover (Trending / Hot / All
+time, search, paged card grid) → detail page (security audit, README, bundled
+files, the copyable `exodus skills install <id>` command) → install / toggle /
+uninstall; an Installed tab; a footer recommending `exodus-cli`. Spec:
+`docs/superpowers/specs/2026-09-19-skills-sh-market-design.md`.
 
 ### Migration status
 
@@ -174,7 +194,7 @@ The main process runs a **Hono HTTP server** that handles all business logic:
 
 Every business endpoint is mounted on one versioned sub-app (`app.route('/api/v1', v1)`), so the public paths are `/api/v1/<route>`; the lock/trace/settings middlewares still match `/api/*`. A breaking API change ships as a new `/api/v2` sub-app beside v1 rather than mutating v1 in place. Any client of this backend (the renderer, `tests/api`, `exodus-ios`) must address `/api/v1/...`.
 
-`/api/v1/chat`, `/api/v1/lcm`, `/api/v1/history`, `/api/v1/knowledge-base`, `/api/v1/project`, `/api/v1/settings`, `/api/v1/audio`, `/api/v1/db-io`, `/api/v1/deep-research`, `/api/v1/discover`, `/api/v1/tools`, `/api/v1/philharmonic`, `/api/v1/s3`, `/api/v1/mcp`, `/api/v1/memory`, `/api/v1/usage`, `/api/v1/logs`, `/api/v1/backup`, `/api/v1/artifacts`, `/api/v1/computer-use`.
+`/api/v1/chat`, `/api/v1/lcm`, `/api/v1/history`, `/api/v1/knowledge-base`, `/api/v1/project`, `/api/v1/settings`, `/api/v1/skills`, `/api/v1/audio`, `/api/v1/db-io`, `/api/v1/deep-research`, `/api/v1/discover`, `/api/v1/tools`, `/api/v1/philharmonic`, `/api/v1/s3`, `/api/v1/mcp`, `/api/v1/memory`, `/api/v1/usage`, `/api/v1/logs`, `/api/v1/backup`, `/api/v1/artifacts`, `/api/v1/computer-use`.
 
 The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatches to the appropriate list-models handler based on the provider in the request body, reading the API key from the request (not from saved settings) to fetch live model catalogs.
 
@@ -676,6 +696,7 @@ Main process:
 - `src/main/lib/ai/providers/` — LLM provider resolution (`resolve-model.ts`)
 - `src/main/lib/ai/providers/list-models/` — Live model catalog handlers per provider (`anthropic.ts`, `openai.ts`, `google.ts`, `xai.ts`, `ollama.ts`); each normalizes that provider's list-models API response into `{ id, displayName, snapshot: ModelSnapshot }`, dispatched by `index.ts` and called from `POST /api/v1/settings/models`
 - `src/main/lib/ai/calling-tools/` — built-in agent tools
+- `src/main/lib/ai/skills/` — skills.sh client, install store, and the prompt seam (see Skills)
 - `src/main/lib/ai/philharmonic/` — multi-agent Groups
 - `src/main/lib/ai/context-management/` — LCM
 - `src/main/lib/ai/memory/` — personalization memory (consolidation + recall)
@@ -732,6 +753,7 @@ Renderer:
 - `src/renderer/components/philharmonic/` — Philharmonic UI
 - `src/renderer/components/philharmonic/schedule/` — Schedule tab (agenda: upcoming one-off + recurring tasks)
 - `src/renderer/components/settings/` — settings
+- `src/renderer/components/skills-market/` — Settings → Skills Market (Discover grid, detail page with audit + CLI command, Installed list)
 - `src/renderer/containers/` — page-level components
 - `src/renderer/stores/` — Jotai atoms
 - `src/renderer/hooks/` — React hooks

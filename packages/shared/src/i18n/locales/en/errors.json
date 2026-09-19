@@ -1,13 +1,13 @@
 {
   "somethingWentWrong": "Something went wrong. Please try again.",
   "http": {
-    "unknown": "Request failed.",
     "400": "The request could not be processed.",
     "404": "The requested resource could not be found.",
     "408": "Request timed out.",
     "429": "Too many requests. Please try again later.",
     "500": "The server ran into a problem.",
-    "503": "The service is temporarily unavailable."
+    "503": "The service is temporarily unavailable.",
+    "unknown": "Request failed."
   },
   "code": {
     "TIMEOUT": "Request timed out.",
@@ -45,6 +45,7 @@
     "SERVICE_S3_PRESIGN_FAILED": "Failed to generate S3 presigned URL. Please check your S3 configuration.",
     "SERVICE_MCP_FAILED": "MCP service failed. Please check your MCP configuration.",
     "SERVICE_UNAVAILABLE": "External service is unavailable. Please try again later.",
+    "SERVICE_SKILLS_REGISTRY_FAILED": "The skills registry request failed. Please try again later.",
     "DB_QUERY_FAILED": "Database query failed.",
     "DB_CONNECTION_FAILED": "Failed to connect to database.",
     "DB_SAVE_FAILED": "Failed to save to database.",

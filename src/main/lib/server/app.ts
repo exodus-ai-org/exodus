@@ -26,6 +26,7 @@ import philharmonicRouter, { emitToAll } from './routes/philharmonic'
 import projectRouter from './routes/project'
 import s3UploaderRouter from './routes/s3-uploader'
 import settingsRouter from './routes/settings'
+import skillsRouter from './routes/skills'
 import toolsRouter from './routes/tools'
 import usageRouter from './routes/usage'
 import { Variables } from './types'
@@ -63,6 +64,7 @@ export async function connectHttpServer() {
   v1.route('/knowledge-base', knowledgeBaseRouter)
   v1.route('/project', projectRouter)
   v1.route('/settings', settingsRouter)
+  v1.route('/skills', skillsRouter)
   v1.route('/audio', audioRouter)
   v1.route('/db-io', dbIoRouter)
   v1.route('/deep-research', deepResearchRouter)

@@ -762,39 +762,90 @@
     }
   },
   "skillsMarket": {
-    "sourceNotice": "Die Skill-Daten stammen von <2>clawhub.ai</2>. Bitte prüfen Sie Skills vor der Installation sorgfältig, um potenziell schädliche Programme zu vermeiden.",
-    "searchPlaceholder": "Skills suchen…",
-    "installLocal": "Lokal installieren",
+    "sourceNotice": "Skills stammen von <registry>skills.sh</registry>, der offenen Agent-Skills-Registry. Jeder Skill hat unabhängige Sicherheitsprüfungen – lesen Sie sie vor der Installation.",
+    "searchPlaceholder": "Skills nach Name oder Autor suchen",
+    "views": {
+      "trending": "Im Trend (24 h)",
+      "hot": "Beliebt",
+      "allTime": "Gesamt",
+      "allTimeWithTotal": "Gesamt ({{total}})"
+    },
     "tabs": {
-      "browse": "Durchsuchen",
+      "discover": "Entdecken",
       "installed": "Installiert"
     },
     "browse": {
-      "noResults": "Keine Ergebnisse gefunden",
-      "noResultsHint": "Versuchen Sie einen anderen Suchbegriff",
-      "loadFailed": "Skills konnten nicht geladen werden",
-      "loadFailedHint": "Überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut",
-      "empty": "Keine Skills verfügbar",
-      "previous": "Zurück",
-      "next": "Weiter"
-    },
-    "installedTab": {
-      "empty": "Keine Skills installiert",
-      "emptyHint": "Durchsuchen Sie den Marktplatz, um Skills zu finden",
-      "installedAt": "Installiert am {{date}}"
+      "loadFailed": "skills.sh ist nicht erreichbar",
+      "loadFailedHint": "Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      "noResults": "Keine Skills passen zu „{{query}}“",
+      "noResultsHint": "Versuchen Sie ein anderes Wort oder den Namen des Autors.",
+      "empty": "Keine Skills vorhanden",
+      "loadMore": "Mehr laden",
+      "resultCount_one": "{{count}} Ergebnis",
+      "resultCount_other": "{{count}} Ergebnisse",
+      "searching": "Suche läuft…",
+      "moreFromSource_one": "+{{count}} weiterer von {{source}} ({{total}} gesamt)",
+      "moreFromSource_other": "+{{count}} weitere von {{source}} ({{total}} gesamt)",
+      "lessFromSource": "Weniger von {{source}} anzeigen"
     },
     "card": {
-      "installed": "Installiert",
+      "installs": "{{formatted}} Installationen",
+      "installedBadge": "Installiert",
+      "trend": "+{{formatted}} heute"
+    },
+    "detail": {
+      "back": "Alle Skills",
       "install": "Installieren",
-      "installsCount_one": "{{formatted}} Installation",
-      "installsCount_other": "{{formatted}} Installationen"
+      "installing": "Wird installiert…",
+      "installed": "Installiert",
+      "uninstall": "Deinstallieren",
+      "active": "Aktiv",
+      "openOnSkillsSh": "Auf skills.sh ansehen",
+      "openSource": "Quelle ansehen",
+      "loadFailed": "Dieser Skill konnte nicht geladen werden",
+      "readme": "README",
+      "files_one": "{{count}} enthaltene Datei",
+      "files_other": "{{count}} enthaltene Dateien",
+      "audit": {
+        "title": "Sicherheitsprüfung",
+        "summary": "{{passed}} von {{total}} Prüfungen bestanden",
+        "none": "Für diesen Skill wurde noch keine Prüfung veröffentlicht.",
+        "status": {
+          "pass": "Bestanden",
+          "warn": "Warnung",
+          "fail": "Fehlgeschlagen"
+        },
+        "auditedAt": "Geprüft {{date}}"
+      },
+      "cli": {
+        "title": "Über das Terminal installieren",
+        "description": "Derselbe Skill, von exodus-cli in denselben Ordner installiert, den diese App liest."
+      }
+    },
+    "installedTab": {
+      "empty": "Noch keine Skills installiert",
+      "emptyHint": "Öffnen Sie „Entdecken“, um einen zu finden, oder führen Sie exodus-cli im Terminal aus.",
+      "installedAt": "Installiert {{date}}",
+      "legacy": "Alt",
+      "uninstallTitle": "„{{name}}“ deinstallieren?",
+      "uninstallDescription": "Die Dateien werden aus dem Skills-Ordner entfernt. Sie können den Skill jederzeit erneut installieren."
+    },
+    "cli": {
+      "notice": "Lieber im Terminal? <cli>exodus-cli</cli> verwaltet dieselben Skills: <code>npm i -g exodus-cli</code>, dann <code>exodus skills</code>."
     },
     "toast": {
       "installedTitle": "„{{name}}“ installiert",
       "installFailed": "Installation fehlgeschlagen",
-      "uninstalledTitle": "Skill deinstalliert",
+      "uninstalledTitle": "„{{name}}“ deinstalliert",
       "uninstallFailed": "Deinstallation fehlgeschlagen",
-      "updateFailed": "Skill konnte nicht aktualisiert werden"
+      "updateFailed": "Der Skill konnte nicht aktualisiert werden",
+      "copied": "Befehl kopiert"
+    },
+    "leaderboard": {
+      "rank": "#",
+      "skill": "Skill",
+      "activity": "Heute",
+      "installs": "Installationen"
     }
   },
   "toast": {

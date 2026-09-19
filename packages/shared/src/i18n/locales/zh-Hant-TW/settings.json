@@ -757,38 +757,90 @@
     }
   },
   "skillsMarket": {
-    "sourceNotice": "技能資料來源為 <2>clawhub.ai</2>。安裝前請仔細檢閱技能內容，以避免安裝潛在的惡意程式。",
-    "searchPlaceholder": "搜尋技能...",
-    "installLocal": "本機安裝",
+    "sourceNotice": "技能來自開放的 Agent Skills 註冊庫 <registry>skills.sh</registry>。每個技能都附有獨立的安全稽核，安裝前請先閱讀。",
+    "searchPlaceholder": "依名稱或作者搜尋技能",
+    "views": {
+      "trending": "趨勢 (24 小時)",
+      "hot": "熱門",
+      "allTime": "全部期間",
+      "allTimeWithTotal": "全部期間 ({{total}})"
+    },
     "tabs": {
-      "browse": "瀏覽",
+      "discover": "探索",
       "installed": "已安裝"
     },
     "browse": {
-      "noResults": "找不到結果",
-      "noResultsHint": "請嘗試其他搜尋字詞",
-      "loadFailed": "載入技能失敗",
-      "loadFailedHint": "請檢查你的網路連線後再試一次",
-      "empty": "目前沒有可用的技能",
-      "previous": "上一頁",
-      "next": "下一頁"
+      "loadFailed": "無法連線至 skills.sh",
+      "loadFailedHint": "請檢查網路連線後重試。",
+      "noResults": "沒有技能符合「{{query}}」",
+      "noResultsHint": "試試其他字詞，或作者名稱。",
+      "empty": "沒有可顯示的技能",
+      "loadMore": "載入更多",
+      "resultCount_one": "{{count}} 筆結果",
+      "resultCount_other": "{{count}} 筆結果",
+      "searching": "搜尋中…",
+      "moreFromSource_one": "{{source}} 還有 {{count}} 個 (共 {{total}})",
+      "moreFromSource_other": "{{source}} 還有 {{count}} 個 (共 {{total}})",
+      "lessFromSource": "收起 {{source}} 的其他項目"
+    },
+    "card": {
+      "installs": "{{formatted}} 次安裝",
+      "installedBadge": "已安裝",
+      "trend": "今日 +{{formatted}}"
+    },
+    "detail": {
+      "back": "所有技能",
+      "install": "安裝",
+      "installing": "安裝中…",
+      "installed": "已安裝",
+      "uninstall": "解除安裝",
+      "active": "啟用",
+      "openOnSkillsSh": "在 skills.sh 檢視",
+      "openSource": "檢視原始碼",
+      "loadFailed": "無法載入此技能",
+      "readme": "README",
+      "files_one": "{{count}} 個隨附檔案",
+      "files_other": "{{count}} 個隨附檔案",
+      "audit": {
+        "title": "安全稽核",
+        "summary": "{{total}} 項檢查中有 {{passed}} 項通過",
+        "none": "此技能尚未發布任何稽核。",
+        "status": {
+          "pass": "通過",
+          "warn": "警告",
+          "fail": "未通過"
+        },
+        "auditedAt": "檢查於 {{date}}"
+      },
+      "cli": {
+        "title": "從終端機安裝",
+        "description": "同一個技能，由 exodus-cli 安裝到此應用程式讀取的同一資料夾。"
+      }
     },
     "installedTab": {
       "empty": "尚未安裝任何技能",
-      "emptyHint": "前往市集瀏覽技能",
-      "installedAt": "安裝於 {{date}}"
+      "emptyHint": "前往「探索」尋找技能，或在終端機執行 exodus-cli。",
+      "installedAt": "安裝於 {{date}}",
+      "legacy": "舊版",
+      "uninstallTitle": "要解除安裝「{{name}}」嗎？",
+      "uninstallDescription": "其檔案會從技能資料夾移除。您可以隨時重新安裝。"
     },
-    "card": {
-      "installed": "已安裝",
-      "install": "安裝",
-      "installsCount_other": "{{formatted}} 次安裝"
+    "cli": {
+      "notice": "偏好終端機？<cli>exodus-cli</cli> 可管理相同的技能：先執行 <code>npm i -g exodus-cli</code>，再執行 <code>exodus skills</code>。"
     },
     "toast": {
-      "installedTitle": "「{{name}}」已安裝",
+      "installedTitle": "已安裝「{{name}}」",
       "installFailed": "安裝失敗",
-      "uninstalledTitle": "技能已解除安裝",
+      "uninstalledTitle": "已解除安裝「{{name}}」",
       "uninstallFailed": "解除安裝失敗",
-      "updateFailed": "更新技能失敗"
+      "updateFailed": "無法更新技能",
+      "copied": "已複製指令"
+    },
+    "leaderboard": {
+      "rank": "#",
+      "skill": "技能",
+      "activity": "今日",
+      "installs": "安裝數"
     }
   },
   "toast": {

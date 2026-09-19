@@ -1,13 +1,13 @@
 {
   "somethingWentWrong": "Qualcosa è andato storto. Riprova.",
   "http": {
-    "unknown": "Richiesta non riuscita.",
     "400": "Non è stato possibile elaborare la richiesta.",
     "404": "La risorsa richiesta non è stata trovata.",
     "408": "Richiesta scaduta.",
     "429": "Troppe richieste. Riprova più tardi.",
     "500": "Il server ha riscontrato un problema.",
-    "503": "Il servizio non è temporaneamente disponibile."
+    "503": "Il servizio non è temporaneamente disponibile.",
+    "unknown": "Richiesta non riuscita."
   },
   "code": {
     "TIMEOUT": "Richiesta scaduta.",
@@ -45,6 +45,7 @@
     "SERVICE_S3_PRESIGN_FAILED": "Impossibile generare l'URL prefirmato di S3. Verifichi la configurazione S3.",
     "SERVICE_MCP_FAILED": "Il servizio MCP non è riuscito. Verifichi la configurazione MCP.",
     "SERVICE_UNAVAILABLE": "Il servizio esterno non è disponibile. Riprovi più tardi.",
+    "SERVICE_SKILLS_REGISTRY_FAILED": "La richiesta al registro delle skill non è riuscita. Riprova più tardi.",
     "DB_QUERY_FAILED": "Interrogazione del database non riuscita.",
     "DB_CONNECTION_FAILED": "Connessione al database non riuscita.",
     "DB_SAVE_FAILED": "Salvataggio nel database non riuscito.",

@@ -1,13 +1,13 @@
 {
   "somethingWentWrong": "Une erreur est survenue. Veuillez réessayer.",
   "http": {
-    "unknown": "Échec de la requête.",
     "400": "La requête n'a pas pu être traitée.",
     "404": "La ressource demandée est introuvable.",
     "408": "Délai d'attente de la requête dépassé.",
     "429": "Trop de requêtes. Veuillez réessayer plus tard.",
     "500": "Le serveur a rencontré un problème.",
-    "503": "Le service est temporairement indisponible."
+    "503": "Le service est temporairement indisponible.",
+    "unknown": "Échec de la requête."
   },
   "code": {
     "TIMEOUT": "Délai d'attente de la requête dépassé.",
@@ -45,6 +45,7 @@
     "SERVICE_S3_PRESIGN_FAILED": "Échec de la génération de l'URL présignée S3. Veuillez vérifier votre configuration S3.",
     "SERVICE_MCP_FAILED": "Le service MCP a échoué. Veuillez vérifier votre configuration MCP.",
     "SERVICE_UNAVAILABLE": "Le service externe est indisponible. Veuillez réessayer plus tard.",
+    "SERVICE_SKILLS_REGISTRY_FAILED": "La requête vers le registre de skills a échoué. Veuillez réessayer plus tard.",
     "DB_QUERY_FAILED": "Échec de la requête vers la base de données.",
     "DB_CONNECTION_FAILED": "Échec de la connexion à la base de données.",
     "DB_SAVE_FAILED": "Échec de l'enregistrement dans la base de données.",

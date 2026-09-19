@@ -14,11 +14,23 @@ export const EXODUS_WEBSITE = 'https://exodus.yancey.app'
 export const EXODUS_REPO = 'https://github.com/exodus-ai-org/exodus'
 export const EXODUS_TWITTER = 'https://x.com/YanceyOfficial'
 
-// ClawHub (skills marketplace)
-export const CLAWHUB_HOMEPAGE = 'https://clawhub.ai'
-export function clawhubSkill(slug: string): string {
-  return `${CLAWHUB_HOMEPAGE}/${slug}`
+// skills.sh (Agent Skills registry). The main process reaches it through the
+// same BFF relay exodus-cli uses; `EXODUS_SKILLS_BFF_URL` overrides the relay.
+export const SKILLS_SH_HOMEPAGE = 'https://www.skills.sh'
+export const SKILLS_SH_BFF_URL = 'https://skills-md.yancey.app'
+/** Public page of a skill; `id` is `owner/repo/slug`. */
+export function skillsShSkill(id: string): string {
+  return `${SKILLS_SH_HOMEPAGE}/${id}`
 }
+
+/** Source repository of a skill, from the registry's `owner/repo` string. */
+export function githubRepoUrl(ownerRepo: string): string {
+  return `https://github.com/${ownerRepo}`
+}
+
+// exodus-cli — the terminal counterpart of the Skills Market page.
+export const EXODUS_CLI_NPM = 'https://www.npmjs.com/package/exodus-cli'
+export const EXODUS_CLI_REPO = 'https://github.com/exodus-ai-org/exodus-cli'
 
 // Documentation
 export const BRAVE_SEARCH_DOCS =

@@ -1,13 +1,13 @@
 {
   "somethingWentWrong": "發生錯誤，請再試一次。",
   "http": {
-    "unknown": "請求失敗。",
     "400": "無法處理此請求。",
     "404": "找不到請求的資源。",
     "408": "請求逾時。",
     "429": "請求次數過多，請稍後再試。",
     "500": "伺服器發生問題。",
-    "503": "服務暫時無法使用。"
+    "503": "服務暫時無法使用。",
+    "unknown": "請求失敗。"
   },
   "code": {
     "TIMEOUT": "請求逾時。",
@@ -45,6 +45,7 @@
     "SERVICE_S3_PRESIGN_FAILED": "產生 S3 預先簽署 URL 失敗，請檢查你的 S3 設定。",
     "SERVICE_MCP_FAILED": "MCP 服務發生錯誤，請檢查你的 MCP 設定。",
     "SERVICE_UNAVAILABLE": "外部服務目前無法使用，請稍後再試。",
+    "SERVICE_SKILLS_REGISTRY_FAILED": "技能註冊庫請求失敗，請稍後再試。",
     "DB_QUERY_FAILED": "資料庫查詢失敗。",
     "DB_CONNECTION_FAILED": "連線資料庫失敗。",
     "DB_SAVE_FAILED": "儲存至資料庫失敗。",

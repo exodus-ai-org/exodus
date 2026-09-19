@@ -1,13 +1,13 @@
 {
   "somethingWentWrong": "Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.",
   "http": {
-    "unknown": "Die Anfrage ist fehlgeschlagen.",
     "400": "Die Anfrage konnte nicht verarbeitet werden.",
     "404": "Die angeforderte Ressource wurde nicht gefunden.",
     "408": "Zeitüberschreitung der Anfrage.",
     "429": "Zu viele Anfragen. Bitte versuchen Sie es später erneut.",
     "500": "Auf dem Server ist ein Problem aufgetreten.",
-    "503": "Der Dienst ist vorübergehend nicht verfügbar."
+    "503": "Der Dienst ist vorübergehend nicht verfügbar.",
+    "unknown": "Die Anfrage ist fehlgeschlagen."
   },
   "code": {
     "TIMEOUT": "Zeitüberschreitung der Anfrage.",
@@ -45,6 +45,7 @@
     "SERVICE_S3_PRESIGN_FAILED": "Die S3-Presigned-URL konnte nicht erstellt werden. Bitte überprüfen Sie Ihre S3-Konfiguration.",
     "SERVICE_MCP_FAILED": "Der MCP-Dienst ist fehlgeschlagen. Bitte überprüfen Sie Ihre MCP-Konfiguration.",
     "SERVICE_UNAVAILABLE": "Der externe Dienst ist nicht verfügbar. Bitte versuchen Sie es später erneut.",
+    "SERVICE_SKILLS_REGISTRY_FAILED": "Die Anfrage an die Skills-Registry ist fehlgeschlagen. Bitte versuchen Sie es später erneut.",
     "DB_QUERY_FAILED": "Die Datenbankabfrage ist fehlgeschlagen.",
     "DB_CONNECTION_FAILED": "Die Verbindung zur Datenbank ist fehlgeschlagen.",
     "DB_SAVE_FAILED": "Das Speichern in der Datenbank ist fehlgeschlagen.",
