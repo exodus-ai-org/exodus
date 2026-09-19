@@ -808,11 +808,27 @@ else here.
   sandbox-iframe URL used electron-vite's `ELECTRON_RENDERER_URL` — it now uses
   `window.location.origin` in dev and `./src/renderer/sub-apps/artifacts/
 index.html` when packaged.
-- **React Compiler is off** (the base template had `babel({ presets:
-[reactCompilerPreset()] })`): the ported UI was written and tested without
-  it, and the aim is identical runtime behavior. Add it back in
-  `vite.renderer.config.mts` once the UI has been checked against it
-  (`@rolldown/plugin-babel` and `babel-plugin-react-compiler` stay installed).
+- **React Compiler is off, and stays off** (the base template had `babel({
+presets: [reactCompilerPreset()] })`). It was trialled on 2026-09-19 and
+  dropped; `@rolldown/plugin-babel` and `babel-plugin-react-compiler` are
+  uninstalled. What the trial found, for whoever reconsiders it:
+  - It builds, and compiles 438 of 482 components/hooks — but only on
+    `@babel/core` 7. The hoisted `@babel/core` was 8.x, whose `LVal` no longer
+    covers `AssignmentPattern`, so the compiler silently skipped every
+    component that destructures props with defaults (115 of them). Pin
+    `@babel/core@^7` first.
+  - **It would break the settings forms.** Their children take `form` as a prop
+    and read `form.watch('field')` during render — 29 reads in 12 files. The
+    compiler's react-hook-form guard only catches a component that calls
+    `useForm()` itself; these were compiled, so each `watch()` result would be
+    cached on the (stable) `form` and never update. They need `useWatch()` or a
+    `'use no memo'` directive before the compiler can be on.
+  - The chat hot path gains little: `messages.tsx` and `markdown.tsx` are
+    already memoized by hand, and `Chat` / `useChat` are skipped anyway (they
+    write refs during render).
+  - Cost: the renderer build goes from 2.3s to 5.9s (+0.8% JS), and every dev
+    transform gains a Babel pass. There are next to no renderer component
+    tests, so a regression would only show up by hand or in e2e.
 - **`data-testid` stripping** (the `strip-data-testid` plugin, gated on
   `STRIP_TEST_IDS=1`) is ported; `bun run make` / `publish` set it, `package`
   doesn't — the e2e suite needs the ids.
@@ -1120,7 +1136,8 @@ build vs the packaged app). Not updated for that (it is another repo):
 `exodus-ios/README.md` says to run `pnpm dev` in `../universal-client` for the
 API — it must point at exodus instead.
 
-**Known, accepted divergences from universal-client:** React Compiler off;
+**Known, accepted divergences from universal-client:** React Compiler off
+(evaluated and dropped, see above);
 seven oxlint style rules downgraded to warnings; the auto-updater state machine
 rebuilt on `update-electron-app`; the sub-app windows use
 sandbox + context isolation.
