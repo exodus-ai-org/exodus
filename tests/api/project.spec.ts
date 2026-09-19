@@ -3,6 +3,7 @@
  */
 import { ApiClient, apiTest as test, expect } from '../fixtures/api-client'
 import { TestCleanup } from '../helpers/cleanup'
+import { skipWithoutKey } from '../helpers/require-key'
 import { injectOpenAiProvider } from '../helpers/settings-inject'
 import {
   getError,
@@ -58,6 +59,8 @@ test.describe('Project API', () => {
   test('project instructions are injected into chat context', async ({
     api
   }) => {
+    skipWithoutKey('OPENAI_API_KEY')
+
     const { data: project } = await api.createProject({
       name: 'Instructions Test',
       instructions:
@@ -86,6 +89,8 @@ test.describe('Project API', () => {
   })
 
   test('structured instructions influence response style', async ({ api }) => {
+    skipWithoutKey('OPENAI_API_KEY')
+
     const { data: project } = await api.createProject({
       name: 'Structured Instructions Test',
       structuredInstructions: {
