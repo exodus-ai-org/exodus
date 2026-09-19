@@ -98,3 +98,39 @@ describe('buildSettingsSave', () => {
     expect(r.payload.voice?.textToSpeechSpeed).toBe(3)
   })
 })
+
+describe('buildSettingsSave — appearance', () => {
+  it('saves the whole appearance object, filling schema defaults', () => {
+    const r = buildSettingsSave(
+      persisted({ appearance: null }),
+      new Map([
+        [
+          'appearance',
+          {
+            light: { preset: 'github' },
+            dark: { preset: 'exodus', accent: '#1f6feb' },
+            contrast: 70
+          }
+        ]
+      ])
+    )
+    expect(r.status).toBe('save')
+    if (r.status !== 'save') throw new Error('expected save')
+    expect(r.payload.appearance?.light.preset).toBe('github')
+    expect(r.payload.appearance?.dark.accent).toBe('#1f6feb')
+    expect(r.payload.appearance?.contrast).toBe(70)
+    expect(r.payload.appearance?.uiFont).toEqual({
+      family: 'system',
+      weight: 'light'
+    })
+    expect(r.payload.appearance?.translucentSidebar).toBe(true)
+  })
+
+  it('rejects an appearance override that is not a hex colour', () => {
+    const r = buildSettingsSave(
+      persisted({ appearance: null }),
+      new Map([['appearance', { light: { preset: 'github', accent: 'blue' } }]])
+    )
+    expect(r.status).toBe('invalid')
+  })
+})
