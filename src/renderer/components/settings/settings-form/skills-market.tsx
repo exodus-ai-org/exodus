@@ -1,20 +1,6 @@
-import { useTranslation } from 'react-i18next'
+import { SkillsMarket } from '@/components/skills-market'
 
-import { Empty, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
-
-/**
- * Placeholder: skills is deprecated (see docs/migration-plan.md, Phase 3
- * third pass). The marketplace UI was not migrated — a replacement is planned
- * — so this only keeps the settings nav entry, as the place to plug it in.
- */
+/** Settings → Skills Market: the skills.sh marketplace + the local install list. */
 export function SkillsMarketSetting() {
-  const { t } = useTranslation('settings')
-
-  return (
-    <Empty>
-      <EmptyHeader>
-        <EmptyTitle>{t('skillsMarket.installedTab.empty')}</EmptyTitle>
-      </EmptyHeader>
-    </Empty>
-  )
+  return <SkillsMarket />
 }

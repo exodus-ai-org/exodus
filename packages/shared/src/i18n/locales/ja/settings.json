@@ -12,6 +12,19 @@
       "light": "ライト",
       "dark": "ダーク"
     },
+    "colorTone": {
+      "label": "カラートーン",
+      "description": "インターフェースのアクセントカラーを選択します",
+      "tones": {
+        "neutral": "ニュートラル",
+        "emerald": "エメラルド",
+        "blue": "ブルー",
+        "violet": "バイオレット",
+        "rose": "ローズ",
+        "orange": "オレンジ",
+        "yellow": "イエロー"
+      }
+    },
     "runOnStartup": {
       "label": "起動時に実行",
       "description": "ログイン時にExodusを自動的に起動します"
@@ -72,6 +85,9 @@
     },
     "logger": {
       "title": "ロガー"
+    },
+    "chatAudit": {
+      "title": "チャット監査"
     },
     "keyboardShortcuts": {
       "title": "キーボードショートカット"
@@ -757,43 +773,144 @@
     }
   },
   "skillsMarket": {
-    "sourceNotice": "スキルデータは<2>clawhub.ai</2>から提供されています。悪意のあるプログラムを避けるため、インストール前にスキルの内容を必ずご確認ください。",
-    "searchPlaceholder": "スキルを検索…",
-    "installLocal": "ローカルからインストール",
+    "sourceNotice": "スキルはオープンな Agent Skills レジストリ <registry>skills.sh</registry> から提供されます。各スキルには独立したセキュリティ監査が付いています。インストール前に確認してください。",
+    "searchPlaceholder": "名前または作者でスキルを検索",
+    "views": {
+      "trending": "トレンド (24時間)",
+      "hot": "人気",
+      "allTime": "累計",
+      "allTimeWithTotal": "累計 ({{total}})"
+    },
     "tabs": {
-      "browse": "閲覧",
+      "discover": "探す",
       "installed": "インストール済み"
     },
     "browse": {
-      "noResults": "結果が見つかりません",
-      "noResultsHint": "別のキーワードでお試しください",
-      "loadFailed": "スキルの読み込みに失敗しました",
-      "loadFailedHint": "インターネット接続を確認してもう一度お試しください",
-      "empty": "利用可能なスキルがありません",
-      "previous": "前へ",
-      "next": "次へ"
-    },
-    "installedTab": {
-      "empty": "インストールされているスキルはありません",
-      "emptyHint": "マーケットプレイスでスキルを探してみましょう",
-      "installedAt": "{{date}}にインストール"
+      "loadFailed": "skills.sh に接続できません",
+      "loadFailedHint": "接続を確認して、もう一度お試しください。",
+      "noResults": "「{{query}}」に一致するスキルはありません",
+      "noResultsHint": "別の言葉か、作者名で試してください。",
+      "empty": "表示できるスキルがありません",
+      "loadMore": "さらに読み込む",
+      "resultCount_one": "{{count}} 件",
+      "resultCount_other": "{{count}} 件",
+      "searching": "検索中…",
+      "moreFromSource_one": "{{source}} からさらに {{count}} 件 (合計 {{total}})",
+      "moreFromSource_other": "{{source}} からさらに {{count}} 件 (合計 {{total}})",
+      "lessFromSource": "{{source}} の表示を減らす"
     },
     "card": {
-      "installed": "インストール済み",
+      "installs": "{{formatted}} インストール",
+      "installedBadge": "インストール済み",
+      "trend": "今日 +{{formatted}}"
+    },
+    "detail": {
+      "back": "すべてのスキル",
       "install": "インストール",
-      "installsCount_other": "{{formatted}}件のインストール"
+      "installing": "インストール中…",
+      "installed": "インストール済み",
+      "uninstall": "アンインストール",
+      "active": "有効",
+      "openOnSkillsSh": "skills.sh で見る",
+      "openSource": "ソースを見る",
+      "loadFailed": "このスキルを読み込めませんでした",
+      "readme": "README",
+      "files_one": "同梱ファイル {{count}} 件",
+      "files_other": "同梱ファイル {{count}} 件",
+      "audit": {
+        "title": "セキュリティ監査",
+        "summary": "{{total}} 件中 {{passed}} 件の検査に合格",
+        "none": "このスキルの監査はまだ公開されていません。",
+        "status": {
+          "pass": "合格",
+          "warn": "警告",
+          "fail": "不合格"
+        },
+        "auditedAt": "{{date}} に検査"
+      },
+      "cli": {
+        "title": "ターミナルからインストール",
+        "description": "同じスキルを exodus-cli が、このアプリが読み込む同じフォルダにインストールします。"
+      }
+    },
+    "installedTab": {
+      "empty": "インストール済みのスキルはまだありません",
+      "emptyHint": "「探す」で見つけるか、ターミナルで exodus-cli を実行してください。",
+      "installedAt": "{{date}} にインストール",
+      "legacy": "旧形式",
+      "uninstallTitle": "「{{name}}」をアンインストールしますか？",
+      "uninstallDescription": "ファイルはスキルフォルダから削除されます。いつでも再インストールできます。"
+    },
+    "cli": {
+      "notice": "ターミナル派ですか？ <cli>exodus-cli</cli> で同じスキルを管理できます: <code>npm i -g exodus-cli</code> の後に <code>exodus skills</code>。"
     },
     "toast": {
       "installedTitle": "「{{name}}」をインストールしました",
       "installFailed": "インストールに失敗しました",
-      "uninstalledTitle": "スキルをアンインストールしました",
+      "uninstalledTitle": "「{{name}}」をアンインストールしました",
       "uninstallFailed": "アンインストールに失敗しました",
-      "updateFailed": "スキルの更新に失敗しました"
+      "updateFailed": "スキルを更新できませんでした",
+      "copied": "コマンドをコピーしました"
+    },
+    "leaderboard": {
+      "rank": "#",
+      "skill": "スキル",
+      "activity": "今日",
+      "installs": "インストール"
     }
   },
   "toast": {
     "saveFailed": "設定の保存に失敗しました",
     "autoSaved": "自動保存しました",
     "notSaved": "保存されていません"
+  },
+  "chatAudit": {
+    "intro": "自分の履歴に SQL で問い合わせできます。チャットのスナップショットを DuckDB ファイルに作成し、ここでクエリするか任意の DuckDB クライアントで開いてください。このページからデータが変更されることはありません。",
+    "snapshot": {
+      "title": "スナップショット",
+      "none": "スナップショットはまだありません",
+      "noneHint": "作成すると、チャット・メッセージ・プロジェクトが DuckDB ファイルにコピーされます。",
+      "build": "スナップショットを作成",
+      "rebuild": "再作成",
+      "building": "作成中…",
+      "builtAt": "{{when}} に作成",
+      "engine": "DuckDB {{version}}",
+      "logsIncluded": "logs (ログファイルのビュー)",
+      "logsMissing": "logs (ログファイルなし)",
+      "openFolder": "フォルダを開く",
+      "unavailable": "DuckDB を起動できませんでした",
+      "unavailableHint": "ネイティブライブラリを読み込めませんでした。詳細はアプリのログを確認してください。"
+    },
+    "presets": {
+      "title": "プリセット",
+      "messagesPerDay": "1 日あたりのメッセージ数 (30 日間)",
+      "costByModel": "モデル別トークン数とコスト",
+      "toolCalls": "ツール呼び出し",
+      "longestChats": "最も長いチャット",
+      "errorsByModel": "モデル別エラー",
+      "activityByHour": "時間帯別アクティビティ (UTC)",
+      "searchText": "メッセージ本文を検索",
+      "logsBySeverity": "スコープ・重大度別ログ件数"
+    },
+    "query": {
+      "title": "クエリ",
+      "run": "クエリを実行",
+      "running": "実行中…",
+      "tables": "テーブル: chats, messages, projects, logs (ビュー)"
+    },
+    "results": {
+      "rowCount_one": "{{count}} 行",
+      "rowCount_other": "{{count}} 行",
+      "truncated": "先頭 {{count}} 行 (上限で打ち切り)",
+      "duration": "{{ms}} ms",
+      "empty": "クエリは行を返しませんでした",
+      "emptyHint": "日付範囲を広げるか、上記のテーブル名・列名を確認してください。",
+      "downloadCsv": "CSV をダウンロード",
+      "failed": "クエリに失敗しました"
+    },
+    "toast": {
+      "snapshotBuilt": "スナップショットを作成しました",
+      "snapshotFailed": "スナップショットを作成できませんでした"
+    }
   }
 }

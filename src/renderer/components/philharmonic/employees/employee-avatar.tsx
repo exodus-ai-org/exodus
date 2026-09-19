@@ -1,12 +1,40 @@
-import * as collection from '@dicebear/collection'
-import { createAvatar } from '@dicebear/core'
-import { DEFAULT_AVATAR_STYLE } from '@exodus/shared/constants/avatar'
+import { Avatar, Style } from '@dicebear/core'
+import adventurer from '@dicebear/styles/adventurer.json'
+import notionists from '@dicebear/styles/notionists.json'
+import thumbs from '@dicebear/styles/thumbs.json'
+import {
+  type AvatarStyle,
+  DEFAULT_AVATAR_STYLE
+} from '@exodus/shared/constants/avatar'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { cn } from '@/lib/utils'
 
 import { hueStyle, pickHue, type HueName } from '../lib/hue'
+
+// DiceBear v10 renders JSON style definitions (`@dicebear/styles`) through a
+// `Style` instance; constructing one validates the schema, so build each
+// style once and reuse it across every avatar.
+const DEFINITIONS: Record<AvatarStyle, unknown> = {
+  notionists,
+  thumbs,
+  adventurer
+}
+const styles = new Map<AvatarStyle, Style>()
+
+function resolveStyle(style: string | null): Style {
+  const key =
+    style && style in DEFINITIONS
+      ? (style as AvatarStyle)
+      : DEFAULT_AVATAR_STYLE
+  let instance = styles.get(key)
+  if (!instance) {
+    instance = new Style(DEFINITIONS[key])
+    styles.set(key, instance)
+  }
+  return instance
+}
 
 export function EmployeeAvatar({
   seed,
@@ -24,15 +52,11 @@ export function EmployeeAvatar({
   className?: string
 }) {
   const { t } = useTranslation('philharmonic')
-  const dataUri = useMemo(() => {
-    const styleKey = (style ?? DEFAULT_AVATAR_STYLE) as keyof typeof collection
-    const factory =
-      collection[styleKey] ??
-      collection[DEFAULT_AVATAR_STYLE as keyof typeof collection]
-    return createAvatar(factory as never, {
-      seed: seed ?? 'default'
-    }).toDataUri()
-  }, [seed, style])
+  const dataUri = useMemo(
+    () =>
+      new Avatar(resolveStyle(style), { seed: seed ?? 'default' }).toDataUri(),
+    [seed, style]
+  )
 
   const resolvedHue = hue ?? pickHue(seed ?? 'default')
   const wrapperStyle = ring ? hueStyle(resolvedHue) : undefined

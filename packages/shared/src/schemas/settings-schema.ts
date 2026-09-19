@@ -252,6 +252,18 @@ export const KeyboardShortcutsSchema = z.object({
   disabled: z.array(z.string()).nullish()
 })
 
+export const ColorToneSchema = z.enum([
+  'neutral',
+  'emerald',
+  'blue',
+  'violet',
+  'rose',
+  'orange',
+  'yellow'
+])
+export type ColorTone = z.infer<typeof ColorToneSchema>
+export const COLOR_TONES = ColorToneSchema.options
+
 export const SettingsSchema = z.object({
   id: z.string(),
   providerConfig: ProviderConfigSchema.nullish(),
@@ -279,6 +291,9 @@ export const SettingsSchema = z.object({
   memory: MemorySchema.nullish(),
   personality: PersonalitySchema.nullish(),
   keyboardShortcuts: KeyboardShortcutsSchema.nullish(),
+  // Settings → General → Color tone: which `[data-tone]` palette globals.css
+  // paints. null (older rows) = neutral.
+  colorTone: ColorToneSchema.nullish(),
   createdAt: z.any(),
   updatedAt: z.any()
 })

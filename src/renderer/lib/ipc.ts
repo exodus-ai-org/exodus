@@ -96,10 +96,6 @@ export function updaterInstall() {
   return window.electron.ipcRenderer.invoke('updater-install')
 }
 
-export function selectSkillPath(): Promise<string | null> {
-  return window.electron.ipcRenderer.invoke('select-skill-path')
-}
-
 export function setLoginItem(enable: boolean) {
   return window.electron.ipcRenderer.invoke('set-login-item', enable)
 }

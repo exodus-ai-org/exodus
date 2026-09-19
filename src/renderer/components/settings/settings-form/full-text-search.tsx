@@ -43,7 +43,7 @@ export function FullTextSearch({ form }: { form: UseFormReturnType }) {
   const handleTestConnection = async () => {
     setIsTesting(true)
     try {
-      await fetcher('/api/settings/full-text-search/test-connection', {
+      await fetcher('/api/v1/settings/full-text-search/test-connection', {
         method: 'POST'
       })
       sileo.success({ title: t('settings:fullTextSearch.toast.connected') })
@@ -61,7 +61,7 @@ export function FullTextSearch({ form }: { form: UseFormReturnType }) {
     setIsReindexing(true)
     try {
       const result = await fetcher<{ count: number }>(
-        '/api/settings/full-text-search/reindex',
+        '/api/v1/settings/full-text-search/reindex',
         { method: 'POST' }
       )
       sileo.success({

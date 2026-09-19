@@ -98,3 +98,21 @@ describe('buildSettingsSave', () => {
     expect(r.payload.voice?.textToSpeechSpeed).toBe(3)
   })
 })
+
+describe('buildSettingsSave — colorTone', () => {
+  it('saves a tone and rejects an unknown one', () => {
+    const ok = buildSettingsSave(
+      persisted({ colorTone: null }),
+      new Map([['colorTone', 'emerald']])
+    )
+    expect(ok.status).toBe('save')
+    if (ok.status !== 'save') throw new Error('expected save')
+    expect(ok.payload.colorTone).toBe('emerald')
+
+    const bad = buildSettingsSave(
+      persisted({ colorTone: null }),
+      new Map([['colorTone', 'magenta']])
+    )
+    expect(bad.status).toBe('invalid')
+  })
+})

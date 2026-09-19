@@ -200,12 +200,12 @@ function ServerCard({
 export function McpServers() {
   const { t } = useTranslation(['common', 'settings'])
   const { data: servers, mutate } = useSWR<McpServerItem[]>(
-    '/api/mcp',
+    '/api/v1/mcp',
     getMcpServers
   )
   const { data: toolsData, mutate: mutateTools } = useSWR<{
     tools: McpToolsGroup[]
-  }>('/api/mcp/tools')
+  }>('/api/v1/mcp/tools')
 
   const toolsByServer = new Map<string, McpToolInfo[]>()
   for (const group of toolsData?.tools ?? []) {

@@ -40,7 +40,7 @@ test.describe('Chat Management E2E', () => {
     testChatIds.push(chatId)
 
     await api.sendChatMessage({ chatId, text: 'Rename test chat.' })
-    await api.put('/api/chat', {
+    await api.put('/api/v1/chat', {
       id: chatId,
       title: 'My Renamed Chat E2E'
     })
@@ -59,7 +59,7 @@ test.describe('Chat Management E2E', () => {
     testChatIds.push(chatId)
 
     await api.sendChatMessage({ chatId, text: 'Delete test.' })
-    await api.put('/api/chat', {
+    await api.put('/api/v1/chat', {
       id: chatId,
       title: 'ToBeDeleted_E2E'
     })

@@ -1,4 +1,6 @@
 import {
+  COLOR_TONES,
+  ColorToneSchema,
   EffortLevelSchema,
   ModelSnapshotSchema,
   ProviderConfigSchema
@@ -61,5 +63,26 @@ describe('ProviderConfigSchema', () => {
       }
     })
     expect(parsed.modelSnapshot?.contextWindow).toBe(1_050_000)
+  })
+})
+
+describe('ColorToneSchema', () => {
+  it('accepts every tone the General page offers', () => {
+    expect(COLOR_TONES).toEqual([
+      'neutral',
+      'emerald',
+      'blue',
+      'violet',
+      'rose',
+      'orange',
+      'yellow'
+    ])
+    for (const tone of COLOR_TONES) {
+      expect(ColorToneSchema.safeParse(tone).success).toBe(true)
+    }
+  })
+
+  it('rejects an unknown tone', () => {
+    expect(ColorToneSchema.safeParse('magenta').success).toBe(false)
   })
 })

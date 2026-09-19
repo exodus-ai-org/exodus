@@ -13,7 +13,7 @@ import {
 } from './auto-updater'
 import { setupLockIPC } from './lock/ipc'
 import { logger } from './logger'
-import { getArtifactsDir, getLogsDir } from './paths'
+import { getAnalyticsDir, getArtifactsDir, getLogsDir } from './paths'
 import { destroyTray, setTray } from './tray'
 import {
   getMainWindow,
@@ -151,6 +151,10 @@ export function setupIPC() {
 
   safeHandle('open-logs-dir', () => {
     shell.openPath(getLogsDir())
+  })
+
+  safeHandle('open-analytics-dir', () => {
+    shell.openPath(getAnalyticsDir())
   })
 
   safeHandle('reveal-artifact-file', (_, arg: unknown) => {

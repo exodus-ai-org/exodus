@@ -4,7 +4,11 @@ import {
   LOCALES,
   type LanguageSetting
 } from '@exodus/shared/i18n/locales'
-import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
+import {
+  COLOR_TONES,
+  type ColorTone,
+  type UseFormReturnType
+} from '@exodus/shared/schemas/settings-schema'
 import type { ParseKeys } from 'i18next'
 import { Moon, Sun, SunMoon } from 'lucide-react'
 import { useTheme } from 'next-themes'
@@ -14,6 +18,8 @@ import { useTranslation } from 'react-i18next'
 import { Theme } from '@/components/theme-provider'
 import { Switch } from '@/components/ui/switch'
 import { setLoginItem, setMenuBar } from '@/lib/ipc'
+import { applyTone } from '@/lib/tone'
+import { cn } from '@/lib/utils'
 
 import { SettingsRow, SettingsSection } from '../settings-row'
 import { SettingsSelect } from '../settings-select'
@@ -77,11 +83,59 @@ function AppearanceSwitcher() {
   )
 }
 
+// The dot for each tone is its `--primary` (see the `[data-tone]` blocks in
+// globals.css); neutral is the default look.
+const TONE_SWATCHES: Record<ColorTone, string> = {
+  neutral: 'oklch(0.52 0 0)',
+  emerald: 'oklch(0.52 0.17 160)',
+  blue: 'oklch(0.52 0.17 230)',
+  violet: 'oklch(0.52 0.17 285)',
+  rose: 'oklch(0.52 0.17 350)',
+  orange: 'oklch(0.52 0.17 55)',
+  yellow: 'oklch(0.52 0.17 85)'
+}
+
+function ColorTonePicker({
+  value,
+  onChange
+}: {
+  value: ColorTone
+  onChange: (tone: ColorTone) => void
+}) {
+  const { t } = useTranslation('settings')
+  return (
+    <div className="flex items-center gap-2">
+      {COLOR_TONES.map((tone) => {
+        const label = t(`general.colorTone.tones.${tone}`)
+        return (
+          <button
+            key={tone}
+            type="button"
+            title={label}
+            aria-label={label}
+            aria-pressed={value === tone}
+            data-testid={`${TEST_IDS.settings.colorTone}-${tone}`}
+            className={cn(
+              'size-6 rounded-full transition-all',
+              value === tone
+                ? 'ring-ring ring-offset-background ring-2 ring-offset-2'
+                : 'hover:scale-110'
+            )}
+            style={{ backgroundColor: TONE_SWATCHES[tone] }}
+            onClick={() => onChange(tone)}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
 export function General({ form }: { form: UseFormReturnType }) {
   const { t } = useTranslation('settings')
   const runOnStartup = form.watch('runOnStartup') ?? false
   const menuBarEnabled = form.watch('menuBar') ?? true
   const language: LanguageSetting = form.watch('language') ?? 'auto'
+  const tone: ColorTone = form.watch('colorTone') ?? 'neutral'
 
   const languageOptions = useMemo(
     () =>
@@ -108,6 +162,20 @@ export function General({ form }: { form: UseFormReturnType }) {
           description={t('general.theme.description')}
         >
           <AppearanceSwitcher />
+        </SettingsRow>
+
+        <SettingsRow
+          label={t('general.colorTone.label')}
+          description={t('general.colorTone.description')}
+        >
+          <ColorTonePicker
+            value={tone}
+            onChange={(next) => {
+              // Paint now; the autosave persists it and ToneBridge re-applies.
+              applyTone(next)
+              form.setValue('colorTone', next)
+            }}
+          />
         </SettingsRow>
 
         <SettingsRow

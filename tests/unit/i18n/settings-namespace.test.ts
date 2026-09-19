@@ -71,6 +71,22 @@ describe('settings namespace (en)', () => {
     expect(settings.nav.about.title).toBe('About Exodus')
   })
 
+  it('has the General colour-tone keys', () => {
+    expect(settings.general.colorTone.label).toBe('Color tone')
+    expect(settings.general.colorTone.description).toBe(
+      'Choose a color accent for the interface'
+    )
+    expect(Object.keys(settings.general.colorTone.tones)).toEqual([
+      'neutral',
+      'emerald',
+      'blue',
+      'violet',
+      'rose',
+      'orange',
+      'yellow'
+    ])
+  })
+
   it('has the nav group heading keys', () => {
     expect(settings.nav.group.personal).toBe('Personal')
     expect(settings.nav.group.aiTools).toBe('AI & Tools')
@@ -766,22 +782,40 @@ describe('settings namespace mcpServers.intro renders correctly via Trans', () =
 })
 
 describe('settings namespace Phase 5 additions (en)', () => {
-  it('has the skillsMarket keys', () => {
-    expect(settings.skillsMarket.searchPlaceholder).toBe('Search skills...')
-    expect(settings.skillsMarket.installLocal).toBe('Install Local')
+  it('has the skillsMarket keys (skills.sh market)', () => {
+    expect(settings.skillsMarket.searchPlaceholder).toBe(
+      'Search skills by name or owner'
+    )
+    expect(settings.skillsMarket.views).toMatchObject({
+      trending: 'Trending (24h)',
+      hot: 'Hot',
+      allTime: 'All time'
+    })
     expect(settings.skillsMarket.tabs).toMatchObject({
-      browse: 'Browse',
+      discover: 'Discover',
       installed: 'Installed'
     })
-    expect(settings.skillsMarket.card.installsCount_one).toBe(
-      '{{formatted}} install'
+    expect(settings.skillsMarket.browse.resultCount_one).toBe(
+      '{{count}} result'
     )
-    expect(settings.skillsMarket.card.installsCount_other).toBe(
-      '{{formatted}} installs'
+    expect(settings.skillsMarket.browse.resultCount_other).toBe(
+      '{{count}} results'
+    )
+    expect(settings.skillsMarket.card.installs).toBe('{{formatted}} installs')
+    expect(settings.skillsMarket.detail.audit.summary).toBe(
+      '{{passed}} of {{total}} checks passed'
+    )
+    expect(settings.skillsMarket.detail.cli.title).toBe(
+      'Install from the terminal'
     )
     expect(settings.skillsMarket.toast.installedTitle).toBe(
-      '"{{name}}" installed'
+      '“{{name}}” installed'
     )
+    // Named (not positional) placeholders — see the render tests below.
+    expect(settings.skillsMarket.sourceNotice).toContain(
+      '<registry>skills.sh</registry>'
+    )
+    expect(settings.skillsMarket.cli.notice).toContain('<cli>exodus-cli</cli>')
   })
 
   it('has the new top-level toast.* keys (useSettings / useSettingsAutosave)', () => {
@@ -808,5 +842,58 @@ describe('settings namespace Phase 5 additions (en)', () => {
       errorToast: 'Delete failed',
       errorFallback: 'Failed to delete data.'
     })
+  })
+})
+
+describe('skillsMarket <Trans> notices render the real components', () => {
+  async function renderReal(Component: () => React.JSX.Element) {
+    const { createElement } = await import('react')
+    const { renderToStaticMarkup } = await import('react-dom/server')
+    const { I18nextProvider, initReactI18next } = await import('react-i18next')
+    const i18next = (await import('i18next')).default
+
+    const i18n = i18next.createInstance()
+    await i18n.use(initReactI18next).init({
+      lng: 'en',
+      resources: { en: { settings } },
+      ns: ['settings'],
+      defaultNS: 'settings',
+      interpolation: { escapeValue: false }
+    })
+
+    return renderToStaticMarkup(
+      createElement(I18nextProvider, { i18n }, createElement(Component))
+    )
+  }
+
+  it('sourceNotice — the <registry> component becomes the skills.sh anchor (not <link>, an HTML void element the parser would close early)', async () => {
+    const { SkillsSourceNoticeText } =
+      await import('@/components/skills-market/source-notice')
+    const html = await renderReal(SkillsSourceNoticeText)
+    expect(html).toBe(
+      'Skills come from <a href="https://www.skills.sh" target="_blank" rel="noopener noreferrer" class="text-foreground underline underline-offset-2">skills.sh</a>, the open Agent Skills registry. Each one carries independent security audits — read them before you install.'
+    )
+  })
+
+  it('cli.notice — <cli> is the repo link and both <code> spans render', async () => {
+    const { CliNotice } = await import('@/components/skills-market/cli-notice')
+    const html = await renderReal(CliNotice)
+    expect(html).toBe(
+      '<p class="text-muted-foreground text-xs leading-relaxed">Prefer the terminal? <a href="https://github.com/exodus-ai-org/exodus-cli" target="_blank" rel="noopener noreferrer" class="text-foreground underline underline-offset-2">exodus-cli</a> manages the same skills: <code>npm i -g exodus-cli</code>, then <code>exodus skills</code>.</p>'
+    )
+  })
+})
+
+describe('chatAudit (Settings → Developer, DuckDB) keys', () => {
+  it('has the nav title and the page copy', () => {
+    expect(settings.nav.chatAudit.title).toBe('Chat Audit')
+    expect(settings.chatAudit.snapshot.build).toBe('Build snapshot')
+    expect(settings.chatAudit.snapshot.builtAt).toBe('Built {{when}}')
+    expect(settings.chatAudit.results.rowCount_one).toBe('{{count}} row')
+    expect(settings.chatAudit.results.rowCount_other).toBe('{{count}} rows')
+    expect(settings.chatAudit.results.duration).toBe('{{ms}} ms')
+    expect(settings.chatAudit.presets.costByModel).toBe(
+      'Tokens & cost by model'
+    )
   })
 })

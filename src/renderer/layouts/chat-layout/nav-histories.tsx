@@ -175,7 +175,7 @@ export const NavItems = memo(function NavItems({
 
 export function NavHistories() {
   const { t } = useTranslation('chat')
-  const { data: history, isLoading } = useSWR<Chat[]>('/api/history', {
+  const { data: history, isLoading } = useSWR<Chat[]>('/api/v1/history', {
     fallbackData: []
   })
 

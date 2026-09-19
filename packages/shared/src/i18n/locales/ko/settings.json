@@ -12,6 +12,19 @@
       "light": "라이트",
       "dark": "다크"
     },
+    "colorTone": {
+      "label": "색조",
+      "description": "인터페이스의 강조 색상을 선택합니다",
+      "tones": {
+        "neutral": "중립",
+        "emerald": "에메랄드",
+        "blue": "블루",
+        "violet": "바이올렛",
+        "rose": "로즈",
+        "orange": "오렌지",
+        "yellow": "옐로"
+      }
+    },
     "runOnStartup": {
       "label": "시작 시 실행",
       "description": "로그인 시 Exodus를 자동으로 시작합니다"
@@ -72,6 +85,9 @@
     },
     "logger": {
       "title": "로거"
+    },
+    "chatAudit": {
+      "title": "채팅 감사"
     },
     "keyboardShortcuts": {
       "title": "키보드 단축키"
@@ -757,43 +773,144 @@
     }
   },
   "skillsMarket": {
-    "sourceNotice": "스킬 데이터는 <2>clawhub.ai</2>에서 제공됩니다. 잠재적으로 악성 프로그램이 설치되지 않도록 설치 전에 스킬을 주의 깊게 검토하세요.",
-    "searchPlaceholder": "스킬 검색...",
-    "installLocal": "로컬 설치",
+    "sourceNotice": "스킬은 개방형 Agent Skills 레지스트리인 <registry>skills.sh</registry>에서 제공됩니다. 각 스킬에는 독립적인 보안 감사가 포함되어 있으니 설치 전에 확인하세요.",
+    "searchPlaceholder": "이름 또는 작성자로 스킬 검색",
+    "views": {
+      "trending": "트렌드 (24시간)",
+      "hot": "인기",
+      "allTime": "전체 기간",
+      "allTimeWithTotal": "전체 기간 ({{total}})"
+    },
     "tabs": {
-      "browse": "둘러보기",
+      "discover": "둘러보기",
       "installed": "설치됨"
     },
     "browse": {
-      "noResults": "검색 결과가 없습니다",
-      "noResultsHint": "다른 검색어를 시도해 보세요",
-      "loadFailed": "스킬을 불러오지 못했습니다",
-      "loadFailedHint": "인터넷 연결을 확인한 후 다시 시도해 주세요",
-      "empty": "사용 가능한 스킬이 없습니다",
-      "previous": "이전",
-      "next": "다음"
-    },
-    "installedTab": {
-      "empty": "설치된 스킬이 없습니다",
-      "emptyHint": "마켓에서 스킬을 찾아보세요",
-      "installedAt": "{{date}}에 설치됨"
+      "loadFailed": "skills.sh에 연결할 수 없습니다",
+      "loadFailedHint": "연결을 확인한 뒤 다시 시도하세요.",
+      "noResults": "“{{query}}”와 일치하는 스킬이 없습니다",
+      "noResultsHint": "다른 단어나 작성자 이름으로 시도해 보세요.",
+      "empty": "표시할 스킬이 없습니다",
+      "loadMore": "더 불러오기",
+      "resultCount_one": "결과 {{count}}개",
+      "resultCount_other": "결과 {{count}}개",
+      "searching": "검색 중…",
+      "moreFromSource_one": "{{source}}에서 {{count}}개 더 (총 {{total}})",
+      "moreFromSource_other": "{{source}}에서 {{count}}개 더 (총 {{total}})",
+      "lessFromSource": "{{source}} 항목 접기"
     },
     "card": {
-      "installed": "설치됨",
+      "installs": "설치 {{formatted}}회",
+      "installedBadge": "설치됨",
+      "trend": "오늘 +{{formatted}}"
+    },
+    "detail": {
+      "back": "모든 스킬",
       "install": "설치",
-      "installsCount_other": "{{formatted}}회 설치"
+      "installing": "설치 중…",
+      "installed": "설치됨",
+      "uninstall": "제거",
+      "active": "활성",
+      "openOnSkillsSh": "skills.sh에서 보기",
+      "openSource": "소스 보기",
+      "loadFailed": "이 스킬을 불러올 수 없습니다",
+      "readme": "README",
+      "files_one": "포함된 파일 {{count}}개",
+      "files_other": "포함된 파일 {{count}}개",
+      "audit": {
+        "title": "보안 감사",
+        "summary": "{{total}}개 검사 중 {{passed}}개 통과",
+        "none": "이 스킬에 대한 감사가 아직 게시되지 않았습니다.",
+        "status": {
+          "pass": "통과",
+          "warn": "경고",
+          "fail": "실패"
+        },
+        "auditedAt": "{{date}} 검사"
+      },
+      "cli": {
+        "title": "터미널에서 설치",
+        "description": "같은 스킬을 exodus-cli가 이 앱이 읽는 같은 폴더에 설치합니다."
+      }
+    },
+    "installedTab": {
+      "empty": "아직 설치된 스킬이 없습니다",
+      "emptyHint": "둘러보기에서 찾거나 터미널에서 exodus-cli를 실행하세요.",
+      "installedAt": "{{date}} 설치",
+      "legacy": "레거시",
+      "uninstallTitle": "“{{name}}”을(를) 제거할까요?",
+      "uninstallDescription": "파일이 스킬 폴더에서 삭제됩니다. 언제든지 다시 설치할 수 있습니다."
+    },
+    "cli": {
+      "notice": "터미널을 선호하시나요? <cli>exodus-cli</cli>로 같은 스킬을 관리할 수 있습니다: <code>npm i -g exodus-cli</code> 다음 <code>exodus skills</code>."
     },
     "toast": {
-      "installedTitle": "\"{{name}}\" 설치됨",
+      "installedTitle": "“{{name}}” 설치됨",
       "installFailed": "설치 실패",
-      "uninstalledTitle": "스킬 제거됨",
+      "uninstalledTitle": "“{{name}}” 제거됨",
       "uninstallFailed": "제거 실패",
-      "updateFailed": "스킬 업데이트에 실패했습니다"
+      "updateFailed": "스킬을 업데이트할 수 없습니다",
+      "copied": "명령 복사됨"
+    },
+    "leaderboard": {
+      "rank": "#",
+      "skill": "스킬",
+      "activity": "오늘",
+      "installs": "설치"
     }
   },
   "toast": {
     "saveFailed": "설정을 저장하지 못했습니다",
     "autoSaved": "자동 저장됨",
     "notSaved": "저장되지 않음"
+  },
+  "chatAudit": {
+    "intro": "SQL로 내 기록에 질문하세요. 채팅 스냅샷을 DuckDB 파일로 만든 뒤 여기서 조회하거나 아무 DuckDB 클라이언트에서 열 수 있습니다. 이 페이지에서는 데이터가 변경되지 않습니다.",
+    "snapshot": {
+      "title": "스냅샷",
+      "none": "아직 스냅샷이 없습니다",
+      "noneHint": "스냅샷을 만들면 채팅, 메시지, 프로젝트가 DuckDB 파일로 복사됩니다.",
+      "build": "스냅샷 만들기",
+      "rebuild": "다시 만들기",
+      "building": "만드는 중…",
+      "builtAt": "{{when}} 생성",
+      "engine": "DuckDB {{version}}",
+      "logsIncluded": "logs (로그 파일 뷰)",
+      "logsMissing": "logs (로그 파일 없음)",
+      "openFolder": "폴더 열기",
+      "unavailable": "DuckDB를 시작할 수 없습니다",
+      "unavailableHint": "네이티브 라이브러리를 불러오지 못했습니다. 자세한 내용은 앱 로그를 확인하세요."
+    },
+    "presets": {
+      "title": "프리셋",
+      "messagesPerDay": "일별 메시지 수 (30일)",
+      "costByModel": "모델별 토큰 및 비용",
+      "toolCalls": "도구 호출",
+      "longestChats": "가장 긴 채팅",
+      "errorsByModel": "모델별 오류",
+      "activityByHour": "시간대별 활동 (UTC)",
+      "searchText": "메시지 본문 검색",
+      "logsBySeverity": "범위·심각도별 로그 항목"
+    },
+    "query": {
+      "title": "쿼리",
+      "run": "쿼리 실행",
+      "running": "실행 중…",
+      "tables": "테이블: chats, messages, projects, logs (뷰)"
+    },
+    "results": {
+      "rowCount_one": "{{count}}행",
+      "rowCount_other": "{{count}}행",
+      "truncated": "처음 {{count}}행 (행 한도에서 잘림)",
+      "duration": "{{ms}} ms",
+      "empty": "쿼리 결과가 없습니다",
+      "emptyHint": "날짜 범위를 넓히거나 위의 테이블 및 열 이름을 확인하세요.",
+      "downloadCsv": "CSV 다운로드",
+      "failed": "쿼리 실패"
+    },
+    "toast": {
+      "snapshotBuilt": "스냅샷 생성됨",
+      "snapshotFailed": "스냅샷을 만들 수 없습니다"
+    }
   }
 }

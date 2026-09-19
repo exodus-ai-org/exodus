@@ -4,7 +4,7 @@ import type {
 } from '@exodus/shared/types/knowledge-base'
 import { fetcher } from '@exodus/shared/utils/http'
 
-const BASE = '/api/knowledge-base'
+const BASE = '/api/v1/knowledge-base'
 
 export const getKnowledgeDocs = () =>
   fetcher<KnowledgeDocData[]>(`${BASE}/documents`)

@@ -31,7 +31,7 @@ export const deepResearch: AgentTool<typeof deepResearchSchema> = {
       }
 
       await saveDeepResearch(newDeepResearch)
-      fetcher('/api/deep-research', {
+      fetcher('/api/v1/deep-research', {
         method: 'POST',
         body: {
           deepResearchId: newDeepResearch.id,

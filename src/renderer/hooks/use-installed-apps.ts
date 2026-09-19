@@ -8,7 +8,7 @@ import useSWR from 'swr'
  */
 export function useInstalledApps(enabled: boolean) {
   const { data, isLoading } = useSWR<{ apps: InstalledApp[] }>(
-    enabled ? '/api/computer-use/apps' : null,
+    enabled ? '/api/v1/computer-use/apps' : null,
     { revalidateOnFocus: false, dedupingInterval: 60_000 }
   )
   return { apps: data?.apps ?? [], isLoading: enabled && isLoading }

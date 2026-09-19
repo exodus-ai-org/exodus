@@ -12,6 +12,19 @@
       "light": "Hell",
       "dark": "Dunkel"
     },
+    "colorTone": {
+      "label": "Farbton",
+      "description": "Wähle eine Akzentfarbe für die Oberfläche",
+      "tones": {
+        "neutral": "Neutral",
+        "emerald": "Smaragd",
+        "blue": "Blau",
+        "violet": "Violett",
+        "rose": "Rosé",
+        "orange": "Orange",
+        "yellow": "Gelb"
+      }
+    },
     "runOnStartup": {
       "label": "Beim Start ausführen",
       "description": "Exodus automatisch starten, wenn Sie sich anmelden"
@@ -72,6 +85,9 @@
     },
     "logger": {
       "title": "Protokolle"
+    },
+    "chatAudit": {
+      "title": "Chat-Audit"
     },
     "keyboardShortcuts": {
       "title": "Tastenkombinationen"
@@ -762,44 +778,144 @@
     }
   },
   "skillsMarket": {
-    "sourceNotice": "Die Skill-Daten stammen von <2>clawhub.ai</2>. Bitte prüfen Sie Skills vor der Installation sorgfältig, um potenziell schädliche Programme zu vermeiden.",
-    "searchPlaceholder": "Skills suchen…",
-    "installLocal": "Lokal installieren",
+    "sourceNotice": "Skills stammen von <registry>skills.sh</registry>, der offenen Agent-Skills-Registry. Jeder Skill hat unabhängige Sicherheitsprüfungen – lesen Sie sie vor der Installation.",
+    "searchPlaceholder": "Skills nach Name oder Autor suchen",
+    "views": {
+      "trending": "Im Trend (24 h)",
+      "hot": "Beliebt",
+      "allTime": "Gesamt",
+      "allTimeWithTotal": "Gesamt ({{total}})"
+    },
     "tabs": {
-      "browse": "Durchsuchen",
+      "discover": "Entdecken",
       "installed": "Installiert"
     },
     "browse": {
-      "noResults": "Keine Ergebnisse gefunden",
-      "noResultsHint": "Versuchen Sie einen anderen Suchbegriff",
-      "loadFailed": "Skills konnten nicht geladen werden",
-      "loadFailedHint": "Überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut",
-      "empty": "Keine Skills verfügbar",
-      "previous": "Zurück",
-      "next": "Weiter"
-    },
-    "installedTab": {
-      "empty": "Keine Skills installiert",
-      "emptyHint": "Durchsuchen Sie den Marktplatz, um Skills zu finden",
-      "installedAt": "Installiert am {{date}}"
+      "loadFailed": "skills.sh ist nicht erreichbar",
+      "loadFailedHint": "Prüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
+      "noResults": "Keine Skills passen zu „{{query}}“",
+      "noResultsHint": "Versuchen Sie ein anderes Wort oder den Namen des Autors.",
+      "empty": "Keine Skills vorhanden",
+      "loadMore": "Mehr laden",
+      "resultCount_one": "{{count}} Ergebnis",
+      "resultCount_other": "{{count}} Ergebnisse",
+      "searching": "Suche läuft…",
+      "moreFromSource_one": "+{{count}} weiterer von {{source}} ({{total}} gesamt)",
+      "moreFromSource_other": "+{{count}} weitere von {{source}} ({{total}} gesamt)",
+      "lessFromSource": "Weniger von {{source}} anzeigen"
     },
     "card": {
-      "installed": "Installiert",
+      "installs": "{{formatted}} Installationen",
+      "installedBadge": "Installiert",
+      "trend": "+{{formatted}} heute"
+    },
+    "detail": {
+      "back": "Alle Skills",
       "install": "Installieren",
-      "installsCount_one": "{{formatted}} Installation",
-      "installsCount_other": "{{formatted}} Installationen"
+      "installing": "Wird installiert…",
+      "installed": "Installiert",
+      "uninstall": "Deinstallieren",
+      "active": "Aktiv",
+      "openOnSkillsSh": "Auf skills.sh ansehen",
+      "openSource": "Quelle ansehen",
+      "loadFailed": "Dieser Skill konnte nicht geladen werden",
+      "readme": "README",
+      "files_one": "{{count}} enthaltene Datei",
+      "files_other": "{{count}} enthaltene Dateien",
+      "audit": {
+        "title": "Sicherheitsprüfung",
+        "summary": "{{passed}} von {{total}} Prüfungen bestanden",
+        "none": "Für diesen Skill wurde noch keine Prüfung veröffentlicht.",
+        "status": {
+          "pass": "Bestanden",
+          "warn": "Warnung",
+          "fail": "Fehlgeschlagen"
+        },
+        "auditedAt": "Geprüft {{date}}"
+      },
+      "cli": {
+        "title": "Über das Terminal installieren",
+        "description": "Derselbe Skill, von exodus-cli in denselben Ordner installiert, den diese App liest."
+      }
+    },
+    "installedTab": {
+      "empty": "Noch keine Skills installiert",
+      "emptyHint": "Öffnen Sie „Entdecken“, um einen zu finden, oder führen Sie exodus-cli im Terminal aus.",
+      "installedAt": "Installiert {{date}}",
+      "legacy": "Alt",
+      "uninstallTitle": "„{{name}}“ deinstallieren?",
+      "uninstallDescription": "Die Dateien werden aus dem Skills-Ordner entfernt. Sie können den Skill jederzeit erneut installieren."
+    },
+    "cli": {
+      "notice": "Lieber im Terminal? <cli>exodus-cli</cli> verwaltet dieselben Skills: <code>npm i -g exodus-cli</code>, dann <code>exodus skills</code>."
     },
     "toast": {
       "installedTitle": "„{{name}}“ installiert",
       "installFailed": "Installation fehlgeschlagen",
-      "uninstalledTitle": "Skill deinstalliert",
+      "uninstalledTitle": "„{{name}}“ deinstalliert",
       "uninstallFailed": "Deinstallation fehlgeschlagen",
-      "updateFailed": "Skill konnte nicht aktualisiert werden"
+      "updateFailed": "Der Skill konnte nicht aktualisiert werden",
+      "copied": "Befehl kopiert"
+    },
+    "leaderboard": {
+      "rank": "#",
+      "skill": "Skill",
+      "activity": "Heute",
+      "installs": "Installationen"
     }
   },
   "toast": {
     "saveFailed": "Einstellungen konnten nicht gespeichert werden",
     "autoSaved": "Automatisch gespeichert",
     "notSaved": "Nicht gespeichert"
+  },
+  "chatAudit": {
+    "intro": "Stellen Sie Ihrem eigenen Verlauf Fragen per SQL. Erstellen Sie einen Snapshot Ihrer Chats als DuckDB-Datei und fragen Sie ihn hier ab oder öffnen Sie ihn in einem beliebigen DuckDB-Client. Nichts auf dieser Seite kann Ihre Daten verändern.",
+    "snapshot": {
+      "title": "Snapshot",
+      "none": "Noch kein Snapshot",
+      "noneHint": "Erstellen Sie einen, um Chats, Nachrichten und Projekte in eine DuckDB-Datei zu kopieren.",
+      "build": "Snapshot erstellen",
+      "rebuild": "Neu erstellen",
+      "building": "Wird erstellt…",
+      "builtAt": "Erstellt {{when}}",
+      "engine": "DuckDB {{version}}",
+      "logsIncluded": "logs (Sicht auf die Logdateien)",
+      "logsMissing": "logs (keine Logdateien gefunden)",
+      "openFolder": "Ordner öffnen",
+      "unavailable": "DuckDB konnte nicht gestartet werden",
+      "unavailableHint": "Die native Bibliothek konnte nicht geladen werden. Details finden Sie im App-Log."
+    },
+    "presets": {
+      "title": "Vorlagen",
+      "messagesPerDay": "Nachrichten pro Tag (30 Tage)",
+      "costByModel": "Tokens & Kosten pro Modell",
+      "toolCalls": "Tool-Aufrufe",
+      "longestChats": "Längste Chats",
+      "errorsByModel": "Fehler pro Modell",
+      "activityByHour": "Aktivität nach Stunde (UTC)",
+      "searchText": "Nachrichtentext durchsuchen",
+      "logsBySeverity": "Logeinträge nach Bereich & Schweregrad"
+    },
+    "query": {
+      "title": "Abfrage",
+      "run": "Abfrage ausführen",
+      "running": "Läuft…",
+      "tables": "Tabellen: chats, messages, projects, logs (Sicht)"
+    },
+    "results": {
+      "rowCount_one": "{{count}} Zeile",
+      "rowCount_other": "{{count}} Zeilen",
+      "truncated": "Erste {{count}} Zeilen (Ergebnis am Zeilenlimit abgeschnitten)",
+      "duration": "{{ms}} ms",
+      "empty": "Die Abfrage lieferte keine Zeilen",
+      "emptyHint": "Versuchen Sie einen größeren Zeitraum oder prüfen Sie die Tabellen- und Spaltennamen oben.",
+      "downloadCsv": "CSV herunterladen",
+      "failed": "Abfrage fehlgeschlagen"
+    },
+    "toast": {
+      "snapshotBuilt": "Snapshot erstellt",
+      "snapshotFailed": "Der Snapshot konnte nicht erstellt werden"
+    }
   }
 }

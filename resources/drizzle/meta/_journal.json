@@ -22,6 +22,27 @@
       "when": 1789468195719,
       "tag": "0002_conscious_gamora",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1789814234898,
+      "tag": "0003_sticky_firelord",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789817433204,
+      "tag": "0004_fancy_thunderbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1789817433741,
+      "tag": "0005_tan_pixie",
+      "breakpoints": true
     }
   ]
 }

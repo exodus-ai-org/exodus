@@ -30,7 +30,7 @@ export function SearchDialog() {
 
   const { data } = useSWR<
     Array<ChatMessage & { title: string; chatId: string }>
-  >(query ? `/api/chat/search?query=${debouncedValue}` : null, {
+  >(query ? `/api/v1/chat/search?query=${debouncedValue}` : null, {
     fallbackData: []
   })
 

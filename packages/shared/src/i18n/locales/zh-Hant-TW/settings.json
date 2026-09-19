@@ -12,6 +12,19 @@
       "light": "淺色",
       "dark": "深色"
     },
+    "colorTone": {
+      "label": "色調",
+      "description": "為介面選擇一種強調色",
+      "tones": {
+        "neutral": "中性",
+        "emerald": "翡翠綠",
+        "blue": "藍色",
+        "violet": "紫羅蘭",
+        "rose": "玫瑰紅",
+        "orange": "橙色",
+        "yellow": "黃色"
+      }
+    },
     "runOnStartup": {
       "label": "開機時啟動",
       "description": "登入時自動啟動 Exodus"
@@ -72,6 +85,9 @@
     },
     "logger": {
       "title": "日誌"
+    },
+    "chatAudit": {
+      "title": "對話稽核"
     },
     "keyboardShortcuts": {
       "title": "鍵盤快速鍵"
@@ -757,43 +773,144 @@
     }
   },
   "skillsMarket": {
-    "sourceNotice": "技能資料來源為 <2>clawhub.ai</2>。安裝前請仔細檢閱技能內容，以避免安裝潛在的惡意程式。",
-    "searchPlaceholder": "搜尋技能...",
-    "installLocal": "本機安裝",
+    "sourceNotice": "技能來自開放的 Agent Skills 註冊庫 <registry>skills.sh</registry>。每個技能都附有獨立的安全稽核，安裝前請先閱讀。",
+    "searchPlaceholder": "依名稱或作者搜尋技能",
+    "views": {
+      "trending": "趨勢 (24 小時)",
+      "hot": "熱門",
+      "allTime": "全部期間",
+      "allTimeWithTotal": "全部期間 ({{total}})"
+    },
     "tabs": {
-      "browse": "瀏覽",
+      "discover": "探索",
       "installed": "已安裝"
     },
     "browse": {
-      "noResults": "找不到結果",
-      "noResultsHint": "請嘗試其他搜尋字詞",
-      "loadFailed": "載入技能失敗",
-      "loadFailedHint": "請檢查你的網路連線後再試一次",
-      "empty": "目前沒有可用的技能",
-      "previous": "上一頁",
-      "next": "下一頁"
+      "loadFailed": "無法連線至 skills.sh",
+      "loadFailedHint": "請檢查網路連線後重試。",
+      "noResults": "沒有技能符合「{{query}}」",
+      "noResultsHint": "試試其他字詞，或作者名稱。",
+      "empty": "沒有可顯示的技能",
+      "loadMore": "載入更多",
+      "resultCount_one": "{{count}} 筆結果",
+      "resultCount_other": "{{count}} 筆結果",
+      "searching": "搜尋中…",
+      "moreFromSource_one": "{{source}} 還有 {{count}} 個 (共 {{total}})",
+      "moreFromSource_other": "{{source}} 還有 {{count}} 個 (共 {{total}})",
+      "lessFromSource": "收起 {{source}} 的其他項目"
+    },
+    "card": {
+      "installs": "{{formatted}} 次安裝",
+      "installedBadge": "已安裝",
+      "trend": "今日 +{{formatted}}"
+    },
+    "detail": {
+      "back": "所有技能",
+      "install": "安裝",
+      "installing": "安裝中…",
+      "installed": "已安裝",
+      "uninstall": "解除安裝",
+      "active": "啟用",
+      "openOnSkillsSh": "在 skills.sh 檢視",
+      "openSource": "檢視原始碼",
+      "loadFailed": "無法載入此技能",
+      "readme": "README",
+      "files_one": "{{count}} 個隨附檔案",
+      "files_other": "{{count}} 個隨附檔案",
+      "audit": {
+        "title": "安全稽核",
+        "summary": "{{total}} 項檢查中有 {{passed}} 項通過",
+        "none": "此技能尚未發布任何稽核。",
+        "status": {
+          "pass": "通過",
+          "warn": "警告",
+          "fail": "未通過"
+        },
+        "auditedAt": "檢查於 {{date}}"
+      },
+      "cli": {
+        "title": "從終端機安裝",
+        "description": "同一個技能，由 exodus-cli 安裝到此應用程式讀取的同一資料夾。"
+      }
     },
     "installedTab": {
       "empty": "尚未安裝任何技能",
-      "emptyHint": "前往市集瀏覽技能",
-      "installedAt": "安裝於 {{date}}"
+      "emptyHint": "前往「探索」尋找技能，或在終端機執行 exodus-cli。",
+      "installedAt": "安裝於 {{date}}",
+      "legacy": "舊版",
+      "uninstallTitle": "要解除安裝「{{name}}」嗎？",
+      "uninstallDescription": "其檔案會從技能資料夾移除。您可以隨時重新安裝。"
     },
-    "card": {
-      "installed": "已安裝",
-      "install": "安裝",
-      "installsCount_other": "{{formatted}} 次安裝"
+    "cli": {
+      "notice": "偏好終端機？<cli>exodus-cli</cli> 可管理相同的技能：先執行 <code>npm i -g exodus-cli</code>，再執行 <code>exodus skills</code>。"
     },
     "toast": {
-      "installedTitle": "「{{name}}」已安裝",
+      "installedTitle": "已安裝「{{name}}」",
       "installFailed": "安裝失敗",
-      "uninstalledTitle": "技能已解除安裝",
+      "uninstalledTitle": "已解除安裝「{{name}}」",
       "uninstallFailed": "解除安裝失敗",
-      "updateFailed": "更新技能失敗"
+      "updateFailed": "無法更新技能",
+      "copied": "已複製指令"
+    },
+    "leaderboard": {
+      "rank": "#",
+      "skill": "技能",
+      "activity": "今日",
+      "installs": "安裝數"
     }
   },
   "toast": {
     "saveFailed": "設定儲存失敗",
     "autoSaved": "已自動儲存",
     "notSaved": "未儲存"
+  },
+  "chatAudit": {
+    "intro": "用 SQL 查詢您自己的對話紀錄。先將對話建立成一個 DuckDB 快照檔案，然後在這裡查詢，或用任何 DuckDB 用戶端開啟。此頁面不會更改您的資料。",
+    "snapshot": {
+      "title": "快照",
+      "none": "尚未建立快照",
+      "noneHint": "建立快照會將對話、訊息和專案複製到一個 DuckDB 檔案。",
+      "build": "建立快照",
+      "rebuild": "重新建立",
+      "building": "建立中…",
+      "builtAt": "建立於{{when}}",
+      "engine": "DuckDB {{version}}",
+      "logsIncluded": "logs (記錄檔檢視)",
+      "logsMissing": "logs (找不到記錄檔)",
+      "openFolder": "開啟資料夾",
+      "unavailable": "無法啟動 DuckDB",
+      "unavailableHint": "原生程式庫載入失敗。詳情請查看應用程式記錄。"
+    },
+    "presets": {
+      "title": "預設查詢",
+      "messagesPerDay": "每日訊息數 (30 天)",
+      "costByModel": "各模型的 Token 與費用",
+      "toolCalls": "工具呼叫",
+      "longestChats": "最長的對話",
+      "errorsByModel": "各模型的錯誤",
+      "activityByHour": "各小時活動 (UTC)",
+      "searchText": "搜尋訊息內容",
+      "logsBySeverity": "各範圍與嚴重程度的記錄數"
+    },
+    "query": {
+      "title": "查詢",
+      "run": "執行查詢",
+      "running": "執行中…",
+      "tables": "資料表：chats、messages、projects、logs (檢視)"
+    },
+    "results": {
+      "rowCount_one": "{{count}} 列",
+      "rowCount_other": "{{count}} 列",
+      "truncated": "前 {{count}} 列 (結果已在上限截斷)",
+      "duration": "{{ms}} 毫秒",
+      "empty": "查詢沒有傳回任何資料",
+      "emptyHint": "試試更大的日期範圍，或檢查上面的資料表與欄位名稱。",
+      "downloadCsv": "下載 CSV",
+      "failed": "查詢失敗"
+    },
+    "toast": {
+      "snapshotBuilt": "已建立快照",
+      "snapshotFailed": "無法建立快照"
+    }
   }
 }

@@ -149,7 +149,7 @@ export async function runComputerSession(
 
   // The Guard is the single abort authority — link the run's AbortSignal into
   // it so a chat Stop / client disconnect trips the same flag the global hotkey
-  // and `POST /api/computer-use/abort` use. Every `race()` below then watches
+  // and `POST /api/v1/computer-use/abort` use. Every `race()` below then watches
   // `guard.signal`, so a session parked in a `wait` sleep or in `askHuman`
   // still unwinds at once.
   if (opts.signal) {

@@ -1,16 +1,16 @@
 /**
- * API integration tests for /api/settings
+ * API integration tests for /api/v1/settings
  */
 import { apiTest as test, expect } from '../fixtures/api-client'
 
 test.describe('Settings API', () => {
-  test('GET /api/settings returns current settings', async ({ api }) => {
+  test('GET /api/v1/settings returns current settings', async ({ api }) => {
     const { status, data } = await api.getSettings()
     expect(status).toBe(200)
     expect(data).toHaveProperty('id', 'global')
   })
 
-  test('POST /api/settings updates provider config', async ({ api }) => {
+  test('POST /api/v1/settings updates provider config', async ({ api }) => {
     const { status } = await api.updateSettings({
       providerConfig: {
         provider: 'openai',
@@ -32,7 +32,7 @@ test.describe('Settings API', () => {
     expect(config.model).toBe('gpt-4.1-mini')
   })
 
-  test('POST /api/settings writes API keys', async ({ api }) => {
+  test('POST /api/v1/settings writes API keys', async ({ api }) => {
     const { status } = await api.updateSettings({
       providers: {
         openaiApiKey: process.env.OPENAI_API_KEY,
@@ -47,7 +47,7 @@ test.describe('Settings API', () => {
     expect(providers.anthropicApiKey).toBe(process.env.CLAUDE_API_KEY)
   })
 
-  test('POST /api/settings updates personality', async ({ api }) => {
+  test('POST /api/v1/settings updates personality', async ({ api }) => {
     await api.updateSettings({
       personality: {
         nickname: 'Tester',
@@ -65,7 +65,9 @@ test.describe('Settings API', () => {
     expect(personality.baseStyle).toBe('professional')
   })
 
-  test('POST /api/settings updates deep research config', async ({ api }) => {
+  test('POST /api/v1/settings updates deep research config', async ({
+    api
+  }) => {
     await api.updateSettings({
       deepResearch: { breadth: 5, depth: 2 }
     })
@@ -76,7 +78,7 @@ test.describe('Settings API', () => {
     expect(dr.depth).toBe(2)
   })
 
-  test('POST /api/settings updates memory config', async ({ api }) => {
+  test('POST /api/v1/settings updates memory config', async ({ api }) => {
     await api.updateSettings({
       memory: {
         autoCapture: false,
@@ -99,7 +101,7 @@ test.describe('Settings API', () => {
     })
   })
 
-  test('POST /api/settings updates web search config', async ({ api }) => {
+  test('POST /api/v1/settings updates web search config', async ({ api }) => {
     await api.updateSettings({
       webSearch: {
         braveApiKey: process.env.BRAVE_API_KEY,
@@ -114,7 +116,7 @@ test.describe('Settings API', () => {
     expect(ws.maxResults).toBe(10)
   })
 
-  test('POST /api/settings updates full text search config', async ({
+  test('POST /api/v1/settings updates full text search config', async ({
     api
   }) => {
     await api.updateSettings({

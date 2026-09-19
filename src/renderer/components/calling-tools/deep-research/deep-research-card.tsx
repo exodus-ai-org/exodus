@@ -88,7 +88,7 @@ export function DeepResearchCard({
   )
 
   const { data: deepResearchResult } = useSWR<DeepResearch>(
-    `/api/deep-research/result/${toolResult.id}`
+    `/api/v1/deep-research/result/${toolResult.id}`
   )
 
   const handleActiveDeepResearchSseId = () => {

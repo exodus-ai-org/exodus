@@ -21,9 +21,9 @@ export function ProjectDetail() {
   const navigate = useNavigate()
   const { data: project, mutate: mutateProject } = useSWR<
     Project & { chatCount: number }
-  >(id ? `/api/project/${id}` : null)
+  >(id ? `/api/v1/project/${id}` : null)
   const { data: chats } = useSWR<Chat[]>(
-    id ? `/api/history?projectId=${id}` : null,
+    id ? `/api/v1/history?projectId=${id}` : null,
     { fallbackData: [] }
   )
 

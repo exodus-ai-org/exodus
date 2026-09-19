@@ -8,6 +8,7 @@ import { getSettings } from '../db/queries'
 import { initJobQueue } from '../jobs/worker'
 import { logger } from '../logger'
 import { errorHandler, lockGate, traceMiddleware } from './middlewares'
+import analyticsRouter from './routes/analytics'
 import artifactsRouter from './routes/artifacts'
 import audioRouter from './routes/audio'
 import backupRouter from './routes/backup'
@@ -26,6 +27,7 @@ import philharmonicRouter, { emitToAll } from './routes/philharmonic'
 import projectRouter from './routes/project'
 import s3UploaderRouter from './routes/s3-uploader'
 import settingsRouter from './routes/settings'
+import skillsRouter from './routes/skills'
 import toolsRouter from './routes/tools'
 import usageRouter from './routes/usage'
 import { Variables } from './types'
@@ -53,27 +55,33 @@ export async function connectHttpServer() {
     await next()
   })
 
-  // Routes
-  app.route('/api/chat', chatRouter)
-  app.route('/api/lcm', lcmStatusRouter)
-  app.route('/api/history', historyRouter)
-  app.route('/api/knowledge-base', knowledgeBaseRouter)
-  app.route('/api/project', projectRouter)
-  app.route('/api/settings', settingsRouter)
-  app.route('/api/audio', audioRouter)
-  app.route('/api/db-io', dbIoRouter)
-  app.route('/api/deep-research', deepResearchRouter)
-  app.route('/api/discover', discoverRouter)
-  app.route('/api/computer-use', computerUseRouter)
-  app.route('/api/tools', toolsRouter)
-  app.route('/api/philharmonic', philharmonicRouter)
-  app.route('/api/s3', s3UploaderRouter)
-  app.route('/api/mcp', mcpRouter)
-  app.route('/api/memory', memoryRouter)
-  app.route('/api/usage', usageRouter)
-  app.route('/api/logs', logsRouter)
-  app.route('/api/backup', backupRouter)
-  app.route('/api/artifacts', artifactsRouter)
+  // Routes — every business endpoint lives under one version prefix so a
+  // breaking change can ship as /api/v2 next to it instead of on top of it.
+  // Clients (the renderer, tests/api, exodus-ios) address /api/v1/....
+  const v1 = new Hono<{ Variables: Variables }>()
+  v1.route('/chat', chatRouter)
+  v1.route('/lcm', lcmStatusRouter)
+  v1.route('/history', historyRouter)
+  v1.route('/knowledge-base', knowledgeBaseRouter)
+  v1.route('/project', projectRouter)
+  v1.route('/settings', settingsRouter)
+  v1.route('/skills', skillsRouter)
+  v1.route('/audio', audioRouter)
+  v1.route('/db-io', dbIoRouter)
+  v1.route('/deep-research', deepResearchRouter)
+  v1.route('/discover', discoverRouter)
+  v1.route('/computer-use', computerUseRouter)
+  v1.route('/tools', toolsRouter)
+  v1.route('/philharmonic', philharmonicRouter)
+  v1.route('/s3', s3UploaderRouter)
+  v1.route('/mcp', mcpRouter)
+  v1.route('/memory', memoryRouter)
+  v1.route('/usage', usageRouter)
+  v1.route('/logs', logsRouter)
+  v1.route('/backup', backupRouter)
+  v1.route('/artifacts', artifactsRouter)
+  v1.route('/analytics', analyticsRouter)
+  app.route('/api/v1', v1)
 
   // Ping
   app.get('/', (c) => c.text('Exodus is running.'))

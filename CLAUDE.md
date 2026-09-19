@@ -97,7 +97,6 @@ bun run db:generate      # Generate Drizzle migrations from schema
 ### Other
 
 ```bash
-bun run knip             # Find unused files/exports/dependencies
 bun run i18n:check       # Verify catalog parity across all locales (also runs in the pre-commit gate)
 bun run i18n:status      # Print the translation-review status board per locale
 ```
@@ -112,7 +111,7 @@ Exodus uses a three-process architecture:
    - Manages Electron app lifecycle, window creation, and IPC
    - Runs Hono HTTP server on `localhost:60223` (constant `SERVER_PORT` in `packages/shared/src/constants/systems.ts`)
    - Initializes PGlite database with pgvector extension
-   - MCP server connection is archived (commented out in `app.ts`); an `/api/mcp` route + settings remain
+   - MCP server connection is archived (commented out in `app.ts`); an `/api/v1/mcp` route + settings remain
    - Handles auto-updates via `update-electron-app` (`src/main/lib/auto-updater.ts`, which keeps the state machine the renderer's update panel speaks)
 
 2. **Renderer Process** (`src/renderer/`):
@@ -134,7 +133,8 @@ Exodus is the successor of the older `universal-client` app and shares its
 
 - **Data dir**: `~/.exodus` for packaged _and_ unpackaged runs (`bun run start`,
   `electron .`) — `getExodusHome()` in `src/main/lib/paths.ts`; startup logs the
-  directory in use (`Data directory`). **PGlite is single-process: never run two
+  directory in use (`Data directory`); `~/.exodus/analytics` holds the DuckDB
+  chat-audit snapshot. **PGlite is single-process: never run two
   Exodus processes (a dev build, the packaged app, universal-client) against it
   at the same time** — the database can be corrupted (backups live in
   `~/.exodus/backups`). `EXODUS_HOME` points a run at another directory.
@@ -147,17 +147,80 @@ Exodus is the successor of the older `universal-client` app and shares its
   don't change it without updating them.
 - **E2E**: `playwright.config.ts` points `$HOME` at a scratch dir
   (`<tmpdir>/exodus-e2e-home`); the electron fixture wipes `~/.exodus` under it
-  before every test and throws at import unless `$HOME` is that dir. To test a
+  before every test and throws at import unless `$HOME` is that dir. It also
+  refuses to launch while anything answers on `localhost:60223`: the renderer
+  always talks to that port, so a running dev build (`bun run start`) would be
+  driven by the suite instead of the app under test — reading and writing the
+  real `~/.exodus` through it. To test a
   packaged build by hand, sandbox `$HOME` and pass `--user-data-dir` the same way.
 
-### Skills (deprecated)
+### Skills (skills.sh)
 
-The skills marketplace (backend `/api/skills`, install/search flows, and the
-Settings → Skills Market UI) is deprecated and was not migrated. Only a seam
-remains: `src/main/lib/ai/skills/skills-manager.ts` exports the three functions
-live code still calls (`listInstalledSkills`, `getSkillsContentBySlugs`,
-`getActiveSkillsContent`) and returns "no skills"; the settings nav entry shows
-a placeholder. The replacement plugs in there.
+Agent Skills come from **skills.sh** (the ClawHub marketplace was dropped for
+quality reasons). `src/main/lib/ai/skills/`:
+
+- `skills-sh-client.ts` — list / search / detail / audit against the BFF relay
+  `SKILLS_SH_BFF_URL` (`https://skills-md.yancey.app`, the same relay
+  `exodus-cli` uses; `EXODUS_SKILLS_BFF_URL` overrides it).
+- `skills-store.ts` — installs a skill's `files[]` under
+  `~/.exodus/skills/<slug>/` and records it in `~/.exodus/skills/.lock.json`
+  (files first, lockfile last; paths that escape the slug dir are refused).
+  Same directory and lockfile shape as `exodus-cli`, so skills installed by
+  either are visible to both.
+- `skills-manager.ts` — the seam chat + Philharmonic consume:
+  `listInstalledSkills()`, `getSkillsContentBySlugs()`,
+  `getActiveSkillsContent()` (SKILL.md minus frontmatter, `$SKILL_DIR` baked
+  to the absolute install path, wrapped in `<active_skills>`).
+
+Route `/api/v1/skills` (`src/main/lib/server/routes/skills.ts`): `GET
+/registry?view&page&per_page`, `GET /search?q`, `GET /detail?id`, `GET
+/audit?id` (`null` when unaudited), `GET /installed`, `POST /install {id}`,
+`DELETE /:slug`, `PATCH /:slug/toggle`. Skill ids are `owner/repo/slug`, hence
+query params. UI: Settings → Skills Market
+(`src/renderer/components/skills-market/`): Discover (Trending / Hot / All
+time, search, paged card grid) → detail page (security audit, README, bundled
+files, the copyable `exodus skills install <id>` command) → install / toggle /
+uninstall; an Installed tab; a footer recommending `exodus-cli`. Spec:
+`docs/superpowers/specs/2026-09-19-skills-sh-market-design.md`.
+
+### Chat Audit (DuckDB)
+
+Settings → Developer → Chat Audit is a read-only SQL console over a DuckDB
+snapshot of the user's data (`src/main/lib/analytics/`, route
+`/api/v1/analytics`, page `settings-form/chat-audit.tsx`). `snapshot.ts`
+copies `chat` / `message` / `project` out of PGlite via NDJSON into
+`~/.exodus/analytics/exodus.duckdb` (usage flattened to `*_tokens` /
+`cost_usd` columns, `content` kept as JSON) and adds a `logs` view straight
+over `~/.exodus/logs/*.jsonl`; `duckdb.ts` lazy-`import()`s
+`@duckdb/node-api` on first use (never at boot), opens the file
+`READ_ONLY` for queries and `READ_WRITE` only while rebuilding, serialised
+on one promise chain, and caps results at 500 rows. The editor is Monaco
+(`settings-form/chat-audit-editor.tsx`, SQL language, ⌘↩ bound via the editor,
+completions from `packages/shared/src/constants/chat-audit-schema.ts`, which
+is also what `snapshot.ts` builds the tables from). Presets live in
+`packages/shared/src/constants/chat-audit-presets.ts` and every one is
+executed against a fixture snapshot in
+`tests/unit/main/lib/analytics/snapshot.test.ts`. PGlite stays the only
+write path. Packaging: the package is a Vite external and forge keeps
+`node_modules/@duckdb/**` + `detect-libc` and unpacks `@duckdb/**` from
+asar (the `.node` dlopens `libduckdb` beside itself). Research notes:
+`docs/duckdb-research.md`; spec:
+`docs/superpowers/specs/2026-09-19-duckdb-chat-audit-design.md`.
+
+### Colour tone
+
+Settings → General → Color tone (`generals.tsx`) persists `settings.colorTone`
+(`ColorToneSchema`: neutral | emerald | blue | violet | rose | orange | yellow;
+a `text` column defaulting to `neutral`). The value becomes `data-tone` on
+`<html>`, and `globals.css` carries one `[data-tone='…']` /
+`.dark[data-tone='…']` token block per tone (neutral is the base
+`:root` / `.dark`). `src/renderer/lib/tone.ts` applies the attribute and
+mirrors it to localStorage (`exodus-color-tone`) so every entry (`main.tsx`
+
+- the three sub-apps) can call `bootTone()` before React mounts (no flash);
+  `components/tone-bridge.tsx` follows `useSettings()` in the main window and
+  sub-apps follow via the `storage` event. The light/dark/system mode stays in
+  next-themes' `vite-ui-theme` key.
 
 ### Migration status
 
@@ -172,9 +235,11 @@ The main process runs a **Hono HTTP server** that handles all business logic:
 
 **Server Routes** (`src/main/lib/server/routes/`, registered in `src/main/lib/server/app.ts`):
 
-`/api/chat`, `/api/lcm`, `/api/history`, `/api/knowledge-base`, `/api/project`, `/api/settings`, `/api/audio`, `/api/db-io`, `/api/deep-research`, `/api/discover`, `/api/tools`, `/api/philharmonic`, `/api/s3`, `/api/mcp`, `/api/memory`, `/api/usage`, `/api/logs`, `/api/backup`, `/api/artifacts`, `/api/computer-use`.
+Every business endpoint is mounted on one versioned sub-app (`app.route('/api/v1', v1)`), so the public paths are `/api/v1/<route>`; the lock/trace/settings middlewares still match `/api/*`. A breaking API change ships as a new `/api/v2` sub-app beside v1 rather than mutating v1 in place. Any client of this backend (the renderer, `tests/api`, `exodus-ios`) must address `/api/v1/...`.
 
-The `/api/settings` route includes `POST /api/settings/models` — dispatches to the appropriate list-models handler based on the provider in the request body, reading the API key from the request (not from saved settings) to fetch live model catalogs.
+`/api/v1/chat`, `/api/v1/lcm`, `/api/v1/history`, `/api/v1/knowledge-base`, `/api/v1/project`, `/api/v1/settings`, `/api/v1/skills`, `/api/v1/audio`, `/api/v1/db-io`, `/api/v1/deep-research`, `/api/v1/discover`, `/api/v1/tools`, `/api/v1/philharmonic`, `/api/v1/s3`, `/api/v1/mcp`, `/api/v1/memory`, `/api/v1/usage`, `/api/v1/logs`, `/api/v1/backup`, `/api/v1/artifacts`, `/api/v1/computer-use`, `/api/v1/analytics`.
+
+The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatches to the appropriate list-models handler based on the provider in the request body, reading the API key from the request (not from saved settings) to fetch live model catalogs.
 
 **Middleware Pipeline** (order in `app.ts`):
 
@@ -197,7 +262,7 @@ The MCP-tools middleware (injecting MCP tools into context) is **archived** (com
 
 **Key Tables**:
 
-- `settings` - Global settings (models, API keys, preferences)
+- `settings` - Global settings (models, API keys, preferences, `colorTone`)
 - `knowledge_doc` - Knowledge base source documents + per-doc LightRAG sync status
 - `deep_research` / `deep_research_message` - Deep research jobs and progress updates
 - `memory` / `memory_usage_log` - User memory and audit trail
@@ -220,7 +285,7 @@ the base-URL setting, its fallback, the default model ids, and the pi-ai
 `Model` with nothing in the registry. Every path resolves through the shared
 `resolveModel()` in `resolve-model.ts` (do not duplicate model-resolution
 logic); it accepts an optional live-fetched `snapshot` parameter (from
-`POST /api/settings/models`) to override the pi-ai registry. Per-provider
+`POST /api/v1/settings/models`) to override the pi-ai registry. Per-provider
 fallback defaults (contextWindow, cost) and `MODEL_METADATA_FALLBACK` (narrower
 scope: only what a provider's own list API omits) live there. Live model lists
 are fetched per-provider from `src/main/lib/ai/providers/list-models/`.
@@ -281,7 +346,7 @@ Multi-level recursive research with real-time progress streaming:
 
 **Integration** (`src/main/lib/ai/mcp.ts`):
 
-> Note: automatic MCP server connection at startup is **archived** (`connectMcpServers()` is commented out in `app.ts`). The `/api/mcp` route and MCP settings remain. The flow below describes the intended/legacy behavior.
+> Note: automatic MCP server connection at startup is **archived** (`connectMcpServers()` is commented out in `app.ts`). The `/api/v1/mcp` route and MCP settings remain. The flow below describes the intended/legacy behavior.
 
 Allows external tools/servers to be integrated via MCP protocol:
 
@@ -344,7 +409,7 @@ Philharmonic runs multi-agent "Groups" (teams of agents collaborating on tasks).
 
 - Main process: `src/main/lib/ai/philharmonic/` (employee loop, execution engine, agent memory/tools, knowledge-base tools)
 - Renderer: `src/renderer/components/philharmonic/`
-- Route: `/api/philharmonic`
+- Route: `/api/v1/philharmonic`
 - Each Group gets an isolated workspace under `~/.exodus/groups`
 - Scheduled tasks (`task.cronExpression` for recurring, `task.runAt` for
   one-off) run via `src/main/lib/ai/philharmonic/scheduler.ts`
@@ -367,7 +432,7 @@ A local PIN lock protects the app and gates all API access.
 Compacts long conversations without losing information, surfacing summaries the agent can expand or grep.
 
 - Main process: `src/main/lib/ai/context-management/` (compaction, context assembler, token counter, status bus)
-- Route: `/api/lcm`
+- Route: `/api/v1/lcm`
 - Related built-in tools: `lcm-describe`, `lcm-expand`, `lcm-grep`
 
 ### Sub-apps
@@ -429,7 +494,7 @@ straight from `src/main/lib/db/schema.ts` (the shared package must not import th
 ### When Working with AI Providers
 
 - Providers resolve a `Model` (from `@mariozechner/pi-ai`) via the shared `resolveModel()` in `src/main/lib/ai/providers/resolve-model.ts` — do NOT duplicate model resolution logic
-- `resolveModel()` accepts an optional `snapshot` parameter (live-fetched from `POST /api/settings/models`) to override the pi-ai registry
+- `resolveModel()` accepts an optional `snapshot` parameter (live-fetched from `POST /api/v1/settings/models`) to override the pi-ai registry
 - Per-provider fallback defaults (contextWindow, cost) and `MODEL_METADATA_FALLBACK` are centralized in `resolve-model.ts`
 - Model lists are now live-fetched per provider from Settings via `src/main/lib/ai/providers/list-models/`
 - Model names/API keys are retrieved from settings (never hardcode)
@@ -672,8 +737,10 @@ Main process:
 - `src/main/lib/server/routes/` — API route handlers
 - `src/main/lib/server/middlewares/` — CORS, lock gate, error handler
 - `src/main/lib/ai/providers/` — LLM provider resolution (`resolve-model.ts`)
-- `src/main/lib/ai/providers/list-models/` — Live model catalog handlers per provider (`anthropic.ts`, `openai.ts`, `google.ts`, `xai.ts`, `ollama.ts`); each normalizes that provider's list-models API response into `{ id, displayName, snapshot: ModelSnapshot }`, dispatched by `index.ts` and called from `POST /api/settings/models`
+- `src/main/lib/ai/providers/list-models/` — Live model catalog handlers per provider (`anthropic.ts`, `openai.ts`, `google.ts`, `xai.ts`, `ollama.ts`); each normalizes that provider's list-models API response into `{ id, displayName, snapshot: ModelSnapshot }`, dispatched by `index.ts` and called from `POST /api/v1/settings/models`
 - `src/main/lib/ai/calling-tools/` — built-in agent tools
+- `src/main/lib/ai/skills/` — skills.sh client, install store, and the prompt seam (see Skills)
+- `src/main/lib/analytics/` — DuckDB chat-audit snapshot + read-only query wrapper (see Chat Audit)
 - `src/main/lib/ai/philharmonic/` — multi-agent Groups
 - `src/main/lib/ai/context-management/` — LCM
 - `src/main/lib/ai/memory/` — personalization memory (consolidation + recall)
@@ -701,7 +768,7 @@ Main process:
   `currentTrace` / `bindTraceAttributes`), `index.ts` (the `logger` API,
   call signature unchanged). `withTrace` wraps the `/api/*` middleware, the
   job worker, and the scheduler. JSONL at `~/.exodus/logs/`; read via
-  `/api/logs` (filters incl. `traceId`) + `/api/logs/scopes` and the
+  `/api/v1/logs` (filters incl. `traceId`) + `/api/v1/logs/scopes` and the
   Settings → Logger tab. See
   `docs/superpowers/specs/2026-09-06-standardized-logging-design.md`
 - `src/main/lib/computer/` — window-scoped screenshot-loop Computer Use V0: the
@@ -710,7 +777,7 @@ Main process:
   perceive→act loop), `liveness` (the ⌥⇧⎋ kill switch); `target.resolveOrLaunch`
   opens an allowlisted app that isn't running. The inner-loop agent is
   `src/main/lib/ai/computer-use/`. Bound as the `computerUse` calling-tool,
-  gated on `settings.computerUse.enabled`. `GET /api/computer-use/apps` feeds the
+  gated on `settings.computerUse.enabled`. `GET /api/v1/computer-use/apps` feeds the
   Settings allowlist picker. See
   `docs/superpowers/specs/2026-09-06-computer-use-v0-design.md`
 - `src/main/lib/i18n.ts` — the main-process i18next instance (`mainI18n`),
@@ -730,11 +797,13 @@ Renderer:
 - `src/renderer/components/philharmonic/` — Philharmonic UI
 - `src/renderer/components/philharmonic/schedule/` — Schedule tab (agenda: upcoming one-off + recurring tasks)
 - `src/renderer/components/settings/` — settings
+- `src/renderer/components/skills-market/` — Settings → Skills Market (Discover grid, detail page with audit + CLI command, Installed list)
 - `src/renderer/containers/` — page-level components
 - `src/renderer/stores/` — Jotai atoms
 - `src/renderer/hooks/` — React hooks
 - `src/renderer/services/` — API call wrappers
-- `src/renderer/lib/` — renderer utilities (ipc, stream-manager)
+- `src/renderer/lib/` — renderer utilities (ipc, stream-manager, `tone.ts` — `data-tone` apply/boot cache)
+- `src/renderer/components/tone-bridge.tsx` — follows `settings.colorTone` and re-applies it
 - `src/renderer/sub-apps/` — searchbar, quick-chat, artifacts entry points
 
 Shared:

@@ -26,7 +26,7 @@ export function createElasticsearchProvider(
     // The transport defaults to no request timeout and 3 retries, so a
     // routable-but-unreachable host (firewalled, wrong port, VPN-only cluster)
     // hangs forever instead of rejecting — which means the PGlite fallback in
-    // `GET /api/chat/search` never fires and the fire-and-forget indexing calls
+    // `GET /api/v1/chat/search` never fires and the fire-and-forget indexing calls
     // pile up as hung promises. Fail fast and let the fallback do its job.
     requestTimeout: 5000,
     maxRetries: 1

@@ -2,7 +2,7 @@ import { fetcher } from '@exodus/shared/utils/http'
 
 import type { AgentData, TeamData } from '@/stores/philharmonic'
 
-const BASE = '/api/philharmonic'
+const BASE = '/api/v1/philharmonic'
 
 export const getAgents = () => fetcher<AgentData[]>(`${BASE}/agents`)
 

@@ -51,7 +51,7 @@ import type { Project } from '@/types/db'
 
 export function NavProjects() {
   const { t } = useTranslation(['common', 'chat'])
-  const { data: projects, isLoading } = useSWR<Project[]>('/api/project', {
+  const { data: projects, isLoading } = useSWR<Project[]>('/api/v1/project', {
     fallbackData: []
   })
   const navigate = useNavigate()

@@ -35,6 +35,32 @@ export const TEST_IDS = {
     taskCard: 'schedule.task-card',
     cancelButton: 'schedule.cancel-button'
   },
+  skillsMarket: {
+    searchInput: 'skills-market.search-input',
+    viewToggle: 'skills-market.view-toggle',
+    discoverTab: 'skills-market.discover-tab',
+    installedTab: 'skills-market.installed-tab',
+    row: 'skills-market.row',
+    expandGroupButton: 'skills-market.expand-group-button',
+    loadMoreButton: 'skills-market.load-more-button',
+    backButton: 'skills-market.back-button',
+    installButton: 'skills-market.install-button',
+    uninstallButton: 'skills-market.uninstall-button',
+    confirmUninstallButton: 'skills-market.confirm-uninstall-button',
+    activeSwitch: 'skills-market.active-switch',
+    auditPanel: 'skills-market.audit-panel',
+    cliCommand: 'skills-market.cli-command',
+    copyCommandButton: 'skills-market.copy-command-button'
+  },
+  chatAudit: {
+    buildButton: 'chat-audit.build-button',
+    openFolderButton: 'chat-audit.open-folder-button',
+    presetButton: 'chat-audit.preset-button',
+    sqlInput: 'chat-audit.sql-input',
+    runButton: 'chat-audit.run-button',
+    resultsTable: 'chat-audit.results-table',
+    downloadCsvButton: 'chat-audit.download-csv-button'
+  },
   fullTextSearch: {
     testConnectionButton: 'full-text-search.test-connection-button',
     reindexButton: 'full-text-search.reindex-button'
@@ -69,6 +95,7 @@ export const TEST_IDS = {
   },
   settings: {
     themeMode: 'settings.theme-mode',
+    colorTone: 'settings.color-tone',
     languageSelect: 'settings.language-select'
   },
   chatLayout: {

@@ -12,6 +12,19 @@
       "light": "Light",
       "dark": "Dark"
     },
+    "colorTone": {
+      "label": "Color tone",
+      "description": "Choose a color accent for the interface",
+      "tones": {
+        "neutral": "Neutral",
+        "emerald": "Emerald",
+        "blue": "Blue",
+        "violet": "Violet",
+        "rose": "Rose",
+        "orange": "Orange",
+        "yellow": "Yellow"
+      }
+    },
     "runOnStartup": {
       "label": "Run on startup",
       "description": "Automatically start Exodus when you log in"
@@ -22,25 +35,66 @@
     }
   },
   "nav": {
-    "profile": { "title": "Profile" },
-    "general": { "title": "General" },
-    "personality": { "title": "Personality" },
-    "aiProviders": { "title": "AI Providers" },
-    "amazonS3": { "title": "AWS S3" },
-    "mcpServers": { "title": "MCP Servers" },
-    "skillsMarket": { "title": "Skills Market" },
-    "fullTextSearch": { "title": "Full Text Search" },
-    "knowledgeBase": { "title": "Knowledge Base" },
-    "builtinTools": { "title": "Built-in Tools" },
-    "memory": { "title": "Memory" },
-    "discover": { "title": "Discover" },
-    "voice": { "title": "Voice" },
-    "deepResearch": { "title": "Deep Research" },
-    "computerUse": { "title": "Computer Use" },
-    "dataControls": { "title": "Data Controls" },
-    "logger": { "title": "Logger" },
-    "keyboardShortcuts": { "title": "Keyboard Shortcuts" },
-    "about": { "title": "About Exodus" },
+    "profile": {
+      "title": "Profile"
+    },
+    "general": {
+      "title": "General"
+    },
+    "personality": {
+      "title": "Personality"
+    },
+    "aiProviders": {
+      "title": "AI Providers"
+    },
+    "amazonS3": {
+      "title": "AWS S3"
+    },
+    "mcpServers": {
+      "title": "MCP Servers"
+    },
+    "skillsMarket": {
+      "title": "Skills Market"
+    },
+    "fullTextSearch": {
+      "title": "Full Text Search"
+    },
+    "knowledgeBase": {
+      "title": "Knowledge Base"
+    },
+    "builtinTools": {
+      "title": "Built-in Tools"
+    },
+    "memory": {
+      "title": "Memory"
+    },
+    "discover": {
+      "title": "Discover"
+    },
+    "voice": {
+      "title": "Voice"
+    },
+    "deepResearch": {
+      "title": "Deep Research"
+    },
+    "computerUse": {
+      "title": "Computer Use"
+    },
+    "dataControls": {
+      "title": "Data Controls"
+    },
+    "logger": {
+      "title": "Logger"
+    },
+    "chatAudit": {
+      "title": "Chat Audit"
+    },
+    "keyboardShortcuts": {
+      "title": "Keyboard Shortcuts"
+    },
+    "about": {
+      "title": "About Exodus"
+    },
     "group": {
       "personal": "Personal",
       "aiTools": "AI & Tools",
@@ -60,18 +114,42 @@
       "search": "Search"
     },
     "shortcuts": {
-      "new-chat": { "label": "New chat" },
-      "open-settings": { "label": "Open settings" },
-      "toggle-sidebar": { "label": "Toggle sidebar" },
-      "toggle-developer-tools": { "label": "Toggle developer tools" },
-      "force-refresh-page": { "label": "Force refresh page" },
-      "find-in-page": { "label": "Find in page" },
-      "search-chat-history": { "label": "Search chat history" },
-      "close-find-bar": { "label": "Close find bar" },
-      "close-tab": { "label": "Close current tab" },
-      "focus-chat-input": { "label": "Focus chat input" },
-      "send-message": { "label": "Send message" },
-      "new-line": { "label": "New line" }
+      "new-chat": {
+        "label": "New chat"
+      },
+      "open-settings": {
+        "label": "Open settings"
+      },
+      "toggle-sidebar": {
+        "label": "Toggle sidebar"
+      },
+      "toggle-developer-tools": {
+        "label": "Toggle developer tools"
+      },
+      "force-refresh-page": {
+        "label": "Force refresh page"
+      },
+      "find-in-page": {
+        "label": "Find in page"
+      },
+      "search-chat-history": {
+        "label": "Search chat history"
+      },
+      "close-find-bar": {
+        "label": "Close find bar"
+      },
+      "close-tab": {
+        "label": "Close current tab"
+      },
+      "focus-chat-input": {
+        "label": "Focus chat input"
+      },
+      "send-message": {
+        "label": "Send message"
+      },
+      "new-line": {
+        "label": "New line"
+      }
     }
   },
   "about": {
@@ -700,44 +778,144 @@
     }
   },
   "skillsMarket": {
-    "sourceNotice": "Skills data sourced from <2>clawhub.ai</2>. Please review skills carefully before installing to avoid potentially malicious programs.",
-    "searchPlaceholder": "Search skills...",
-    "installLocal": "Install Local",
+    "sourceNotice": "Skills come from <registry>skills.sh</registry>, the open Agent Skills registry. Each one carries independent security audits — read them before you install.",
+    "searchPlaceholder": "Search skills by name or owner",
+    "views": {
+      "trending": "Trending (24h)",
+      "hot": "Hot",
+      "allTime": "All time",
+      "allTimeWithTotal": "All time ({{total}})"
+    },
     "tabs": {
-      "browse": "Browse",
+      "discover": "Discover",
       "installed": "Installed"
     },
     "browse": {
-      "noResults": "No results found",
-      "noResultsHint": "Try a different search term",
-      "loadFailed": "Failed to load skills",
-      "loadFailedHint": "Check your internet connection and try again",
-      "empty": "No skills available",
-      "previous": "Previous",
-      "next": "Next"
-    },
-    "installedTab": {
-      "empty": "No skills installed",
-      "emptyHint": "Browse the marketplace to find skills",
-      "installedAt": "Installed {{date}}"
+      "loadFailed": "Couldn’t reach skills.sh",
+      "loadFailedHint": "Check your connection, then retry.",
+      "noResults": "No skills match “{{query}}”",
+      "noResultsHint": "Try a different word, or the owner’s name.",
+      "empty": "No skills to show",
+      "loadMore": "Load more",
+      "resultCount_one": "{{count}} result",
+      "resultCount_other": "{{count}} results",
+      "searching": "Searching…",
+      "moreFromSource_one": "+{{count}} more from {{source}} ({{total}} total)",
+      "moreFromSource_other": "+{{count}} more from {{source}} ({{total}} total)",
+      "lessFromSource": "Show fewer from {{source}}"
     },
     "card": {
-      "installed": "Installed",
+      "installs": "{{formatted}} installs",
+      "installedBadge": "Installed",
+      "trend": "+{{formatted}} today"
+    },
+    "detail": {
+      "back": "All skills",
       "install": "Install",
-      "installsCount_one": "{{formatted}} install",
-      "installsCount_other": "{{formatted}} installs"
+      "installing": "Installing…",
+      "installed": "Installed",
+      "uninstall": "Uninstall",
+      "active": "Active",
+      "openOnSkillsSh": "View on skills.sh",
+      "openSource": "View source",
+      "loadFailed": "Couldn’t load this skill",
+      "readme": "README",
+      "files_one": "{{count}} bundled file",
+      "files_other": "{{count}} bundled files",
+      "audit": {
+        "title": "Security audit",
+        "summary": "{{passed}} of {{total}} checks passed",
+        "none": "No audit has been published for this skill yet.",
+        "status": {
+          "pass": "Pass",
+          "warn": "Warning",
+          "fail": "Fail"
+        },
+        "auditedAt": "Checked {{date}}"
+      },
+      "cli": {
+        "title": "Install from the terminal",
+        "description": "The same skill, installed by exodus-cli into the same folder this app reads."
+      }
+    },
+    "installedTab": {
+      "empty": "No skills installed yet",
+      "emptyHint": "Open Discover to find one, or run exodus-cli in your terminal.",
+      "installedAt": "Installed {{date}}",
+      "legacy": "Legacy",
+      "uninstallTitle": "Uninstall “{{name}}”?",
+      "uninstallDescription": "Its files are removed from the skills folder. You can install it again at any time."
+    },
+    "cli": {
+      "notice": "Prefer the terminal? <cli>exodus-cli</cli> manages the same skills: <code>npm i -g exodus-cli</code>, then <code>exodus skills</code>."
     },
     "toast": {
-      "installedTitle": "\"{{name}}\" installed",
+      "installedTitle": "“{{name}}” installed",
       "installFailed": "Install failed",
-      "uninstalledTitle": "Skill uninstalled",
+      "uninstalledTitle": "“{{name}}” uninstalled",
       "uninstallFailed": "Uninstall failed",
-      "updateFailed": "Failed to update skill"
+      "updateFailed": "Couldn’t update the skill",
+      "copied": "Command copied"
+    },
+    "leaderboard": {
+      "rank": "#",
+      "skill": "Skill",
+      "activity": "Today",
+      "installs": "Installs"
     }
   },
   "toast": {
     "saveFailed": "Failed to save settings",
     "autoSaved": "Auto saved",
     "notSaved": "Not saved"
+  },
+  "chatAudit": {
+    "intro": "Ask questions about your own history with SQL. Build a snapshot of your chats into a DuckDB file, then query it here or open it in any DuckDB client. Nothing on this page can change your data.",
+    "snapshot": {
+      "title": "Snapshot",
+      "none": "No snapshot yet",
+      "noneHint": "Build one to copy your chats, messages and projects into a DuckDB file.",
+      "build": "Build snapshot",
+      "rebuild": "Rebuild",
+      "building": "Building…",
+      "builtAt": "Built {{when}}",
+      "engine": "DuckDB {{version}}",
+      "logsIncluded": "logs (view over the log files)",
+      "logsMissing": "logs (no log files found)",
+      "openFolder": "Open folder",
+      "unavailable": "DuckDB could not be started",
+      "unavailableHint": "The native library failed to load. Check the app log for details."
+    },
+    "presets": {
+      "title": "Presets",
+      "messagesPerDay": "Messages per day (30 days)",
+      "costByModel": "Tokens & cost by model",
+      "toolCalls": "Tool calls",
+      "longestChats": "Longest chats",
+      "errorsByModel": "Errors by model",
+      "activityByHour": "Activity by hour (UTC)",
+      "searchText": "Search message text",
+      "logsBySeverity": "Log entries by scope & severity"
+    },
+    "query": {
+      "title": "Query",
+      "run": "Run query",
+      "running": "Running…",
+      "tables": "Tables: chats, messages, projects, logs (view)"
+    },
+    "results": {
+      "rowCount_one": "{{count}} row",
+      "rowCount_other": "{{count}} rows",
+      "truncated": "First {{count}} rows (result cut at the row cap)",
+      "duration": "{{ms}} ms",
+      "empty": "The query returned no rows",
+      "emptyHint": "Try a wider date range, or check the table and column names above.",
+      "downloadCsv": "Download CSV",
+      "failed": "Query failed"
+    },
+    "toast": {
+      "snapshotBuilt": "Snapshot built",
+      "snapshotFailed": "Couldn’t build the snapshot"
+    }
   }
 }

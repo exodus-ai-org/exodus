@@ -176,6 +176,8 @@ export const settings = pgTable('settings', {
   personality: jsonb('personality').$type<z.infer<typeof PersonalitySchema>>(),
   keyboardShortcuts:
     jsonb('keyboardShortcuts').$type<z.infer<typeof KeyboardShortcutsSchema>>(),
+  // Settings → General → Color tone (`ColorToneSchema` in settings-schema.ts).
+  colorTone: text('colorTone').default('neutral'),
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull()
 })

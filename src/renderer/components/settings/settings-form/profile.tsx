@@ -88,10 +88,10 @@ const CELL_GAP_PX = 4 // gap between cells (and between columns)
 export function Profile({ form }: { form: UseFormReturnType }) {
   const { t } = useTranslation(['common', 'settings'])
   const { data: settings } = useSettings()
-  const { data: usage } = useSWR<UsageSummary>('/api/usage')
-  const { data: chats } = useSWR<{ id: string }[]>('/api/history')
+  const { data: usage } = useSWR<UsageSummary>('/api/v1/usage')
+  const { data: chats } = useSWR<{ id: string }[]>('/api/v1/history')
   const { data: skills } = useSWR<{ isActive: boolean }[]>(
-    '/api/skills/installed'
+    '/api/v1/skills/installed'
   )
   const [mode, setMode] = useState<'daily' | 'cumulative'>('daily')
 

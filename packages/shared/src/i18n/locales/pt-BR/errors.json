@@ -1,13 +1,13 @@
 {
   "somethingWentWrong": "Algo deu errado. Tente novamente.",
   "http": {
-    "unknown": "Falha na solicitação.",
     "400": "Não foi possível processar a solicitação.",
     "404": "O recurso solicitado não foi encontrado.",
     "408": "A solicitação expirou.",
     "429": "Muitas solicitações. Tente novamente mais tarde.",
     "500": "O servidor encontrou um problema.",
-    "503": "O serviço está temporariamente indisponível."
+    "503": "O serviço está temporariamente indisponível.",
+    "unknown": "Falha na solicitação."
   },
   "code": {
     "TIMEOUT": "A solicitação expirou.",
@@ -45,6 +45,9 @@
     "SERVICE_S3_PRESIGN_FAILED": "Falha ao gerar a URL pré-assinada do S3. Verifique sua configuração do S3.",
     "SERVICE_MCP_FAILED": "O serviço MCP falhou. Verifique sua configuração do MCP.",
     "SERVICE_UNAVAILABLE": "O serviço externo está indisponível. Tente novamente mais tarde.",
+    "SERVICE_SKILLS_REGISTRY_FAILED": "A solicitação ao registro de skills falhou. Tente novamente mais tarde.",
+    "ANALYTICS_UNAVAILABLE": "Não foi possível iniciar o mecanismo de análise.",
+    "ANALYTICS_SNAPSHOT_MISSING": "Nenhum snapshot de chats foi criado ainda.",
     "DB_QUERY_FAILED": "Falha na consulta ao banco de dados.",
     "DB_CONNECTION_FAILED": "Falha ao conectar ao banco de dados.",
     "DB_SAVE_FAILED": "Falha ao salvar no banco de dados.",

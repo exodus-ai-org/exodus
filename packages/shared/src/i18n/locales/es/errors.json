@@ -1,13 +1,13 @@
 {
   "somethingWentWrong": "Se produjo un error. Inténtelo de nuevo.",
   "http": {
-    "unknown": "Error en la solicitud.",
     "400": "No se pudo procesar la solicitud.",
     "404": "No se pudo encontrar el recurso solicitado.",
     "408": "La solicitud agotó el tiempo de espera.",
     "429": "Demasiadas solicitudes. Inténtelo de nuevo más tarde.",
     "500": "El servidor tuvo un problema.",
-    "503": "El servicio no está disponible temporalmente."
+    "503": "El servicio no está disponible temporalmente.",
+    "unknown": "Error en la solicitud."
   },
   "code": {
     "TIMEOUT": "La solicitud agotó el tiempo de espera.",
@@ -45,6 +45,9 @@
     "SERVICE_S3_PRESIGN_FAILED": "No se pudo generar la URL prefirmada de S3. Revise su configuración de S3.",
     "SERVICE_MCP_FAILED": "El servicio MCP falló. Revise su configuración de MCP.",
     "SERVICE_UNAVAILABLE": "El servicio externo no está disponible. Inténtelo de nuevo más tarde.",
+    "SERVICE_SKILLS_REGISTRY_FAILED": "La solicitud al registro de skills ha fallado. Inténtalo de nuevo más tarde.",
+    "ANALYTICS_UNAVAILABLE": "No se pudo iniciar el motor de análisis.",
+    "ANALYTICS_SNAPSHOT_MISSING": "Aún no se ha creado ninguna instantánea de chats.",
     "DB_QUERY_FAILED": "Error en la consulta a la base de datos.",
     "DB_CONNECTION_FAILED": "No se pudo conectar a la base de datos.",
     "DB_SAVE_FAILED": "No se pudo guardar en la base de datos.",

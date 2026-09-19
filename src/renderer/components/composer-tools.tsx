@@ -127,7 +127,7 @@ export function ComposerToolsButton() {
   const availableEffortLevels = useAvailableEffortLevels()
   const [mcpOpen, setMcpOpen] = useState(false)
 
-  const { data } = useSWR<{ tools: McpToolsGroup[] }>('/api/mcp/tools')
+  const { data } = useSWR<{ tools: McpToolsGroup[] }>('/api/v1/mcp/tools')
   const mcpCount = useMemo(
     () => data?.tools?.reduce((acc, g) => acc + g.tools.length, 0) ?? 0,
     [data?.tools]

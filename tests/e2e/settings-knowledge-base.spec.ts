@@ -55,16 +55,16 @@ test.describe('Settings — Knowledge Base', () => {
     // cleanup: delete the doc + clear the URL so reruns start clean
     await mainWindow.evaluate(async () => {
       const r = await fetch(
-        'http://localhost:60223/api/knowledge-base/documents'
+        'http://localhost:60223/api/v1/knowledge-base/documents'
       )
       const docs = (await r.json()) as { id: string; title: string }[]
       for (const d of docs.filter((x) => x.title === 'Handbook')) {
         await fetch(
-          `http://localhost:60223/api/knowledge-base/documents/${d.id}`,
+          `http://localhost:60223/api/v1/knowledge-base/documents/${d.id}`,
           { method: 'DELETE' }
         )
       }
-      await fetch('http://localhost:60223/api/settings', {
+      await fetch('http://localhost:60223/api/v1/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: 'global', knowledgeBase: { url: '' } })

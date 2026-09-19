@@ -21,13 +21,13 @@ test.describe('Chat History & Search', () => {
     await cleanup.run()
   })
 
-  test('GET /api/history returns chat list', async ({ api }) => {
+  test('GET /api/v1/history returns chat list', async ({ api }) => {
     const { status, data } = await api.getHistory()
     expect(status).toBe(200)
     expect(Array.isArray(data)).toBe(true)
   })
 
-  test('DELETE /api/chat/:id removes a chat', async ({ api }) => {
+  test('DELETE /api/v1/chat/:id removes a chat', async ({ api }) => {
     skipWithoutKey('OPENAI_API_KEY')
 
     const chatId = crypto.randomUUID()
@@ -45,7 +45,7 @@ test.describe('Chat History & Search', () => {
     expect(after.find((c) => c.id === chatId)).toBeFalsy()
   })
 
-  test('PUT /api/chat updates chat metadata', async ({ api }) => {
+  test('PUT /api/v1/chat updates chat metadata', async ({ api }) => {
     skipWithoutKey('OPENAI_API_KEY')
 
     const chatId = crypto.randomUUID()
@@ -53,7 +53,7 @@ test.describe('Chat History & Search', () => {
 
     await api.sendChatMessage({ chatId, text: 'Update me.' })
 
-    await api.put('/api/chat', {
+    await api.put('/api/v1/chat', {
       id: chatId,
       title: 'Renamed Chat',
       favorite: true
@@ -66,7 +66,7 @@ test.describe('Chat History & Search', () => {
     expect(chat!.favorite).toBe(true)
   })
 
-  test('GET /api/chat/:id returns messages for a chat', async ({ api }) => {
+  test('GET /api/v1/chat/:id returns messages for a chat', async ({ api }) => {
     skipWithoutKey('OPENAI_API_KEY')
 
     const chatId = crypto.randomUUID()
@@ -79,7 +79,7 @@ test.describe('Chat History & Search', () => {
     expect(data.length).toBeGreaterThanOrEqual(2)
   })
 
-  test('GET /api/chat/search finds messages by keyword', async ({ api }) => {
+  test('GET /api/v1/chat/search finds messages by keyword', async ({ api }) => {
     skipWithoutKey('OPENAI_API_KEY')
 
     const chatId = crypto.randomUUID()

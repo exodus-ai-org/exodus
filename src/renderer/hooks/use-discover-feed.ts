@@ -16,7 +16,7 @@ const REFRESHING_POLL_MS = 3000
  */
 export function useDiscoverFeed(enabled: boolean) {
   const { data, mutate } = useSWR<DiscoverFeedDto>(
-    enabled ? '/api/discover' : null,
+    enabled ? '/api/v1/discover' : null,
     {
       refreshInterval: (latest) =>
         latest?.status === 'refreshing' ? REFRESHING_POLL_MS : 0

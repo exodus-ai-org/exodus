@@ -274,7 +274,7 @@ router.get('/conversations/:id/plan', async (c) => {
   return successResponse(c, plan ? toPlanDto(plan.plan, plan.steps) : null)
 })
 
-// Knowledge base management moved to /api/knowledge-base (Settings → Knowledge
+// Knowledge base management moved to /api/v1/knowledge-base (Settings → Knowledge
 // Base). Retrieval is bound as the `searchKnowledgeBase` tool for every
 // employee loop via `bindCallingTools`.
 

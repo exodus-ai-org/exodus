@@ -20,7 +20,7 @@ export interface MemoryItem {
 
 export const getMemories = (section?: MemorySection) => {
   const query = section ? `?section=${section}` : ''
-  return fetcher<MemoryItem[]>(`/api/memory${query}`)
+  return fetcher<MemoryItem[]>(`/api/v1/memory${query}`)
 }
 
 export const createMemory = (data: {
@@ -30,7 +30,7 @@ export const createMemory = (data: {
   details?: string[]
   confidence?: number
   source?: MemorySource
-}) => fetcher<MemoryItem>('/api/memory', { method: 'POST', body: data })
+}) => fetcher<MemoryItem>('/api/v1/memory', { method: 'POST', body: data })
 
 export const updateMemory = (
   id: string,
@@ -43,17 +43,17 @@ export const updateMemory = (
     source: MemorySource
     isActive: boolean
   }>
-) => fetcher<void>(`/api/memory/${id}`, { method: 'PATCH', body: data })
+) => fetcher<void>(`/api/v1/memory/${id}`, { method: 'PATCH', body: data })
 
 export const deleteMemory = (id: string, hard = false) =>
-  fetcher<void>(`/api/memory/${id}${hard ? '?hard=true' : ''}`, {
+  fetcher<void>(`/api/v1/memory/${id}${hard ? '?hard=true' : ''}`, {
     method: 'DELETE'
   })
 
 /** Apply a free-text instruction ("remember my plant is Gerald", "delete this")
  *  via the LLM. `scopeMemoryId` narrows the context to one entry. */
 export const instructMemory = (instruction: string, scopeMemoryId?: string) =>
-  fetcher<{ applied: number }>('/api/memory/instruct', {
+  fetcher<{ applied: number }>('/api/v1/memory/instruct', {
     method: 'POST',
     body: { instruction, ...(scopeMemoryId ? { scopeMemoryId } : {}) }
   })

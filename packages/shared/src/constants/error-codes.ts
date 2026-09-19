@@ -56,6 +56,9 @@ export enum ErrorCode {
   SERVICE_S3_PRESIGN_FAILED = 'SERVICE_S3_PRESIGN_FAILED',
   SERVICE_MCP_FAILED = 'SERVICE_MCP_FAILED',
   SERVICE_UNAVAILABLE = 'SERVICE_UNAVAILABLE',
+  SERVICE_SKILLS_REGISTRY_FAILED = 'SERVICE_SKILLS_REGISTRY_FAILED',
+  ANALYTICS_UNAVAILABLE = 'ANALYTICS_UNAVAILABLE',
+  ANALYTICS_SNAPSHOT_MISSING = 'ANALYTICS_SNAPSHOT_MISSING',
 
   // ── Database Errors (500) ──────────────────────────────────────────────────
   DB_QUERY_FAILED = 'DB_QUERY_FAILED',
@@ -131,6 +134,9 @@ export const ErrorCodeToStatus: Record<ErrorCode, number> = {
   [ErrorCode.SERVICE_S3_PRESIGN_FAILED]: 503,
   [ErrorCode.SERVICE_MCP_FAILED]: 503,
   [ErrorCode.SERVICE_UNAVAILABLE]: 503,
+  [ErrorCode.SERVICE_SKILLS_REGISTRY_FAILED]: 503,
+  [ErrorCode.ANALYTICS_UNAVAILABLE]: 503,
+  [ErrorCode.ANALYTICS_SNAPSHOT_MISSING]: 404,
 
   // Database Errors
   [ErrorCode.DB_QUERY_FAILED]: 500,
@@ -226,6 +232,12 @@ export const ErrorMessages: Record<ErrorCode, string> = {
     'MCP service failed. Please check your MCP configuration.',
   [ErrorCode.SERVICE_UNAVAILABLE]:
     'External service is unavailable. Please try again later.',
+  [ErrorCode.SERVICE_SKILLS_REGISTRY_FAILED]:
+    'The skills registry request failed. Please try again later.',
+  [ErrorCode.ANALYTICS_UNAVAILABLE]:
+    'The analytics engine could not be started.',
+  [ErrorCode.ANALYTICS_SNAPSHOT_MISSING]:
+    'No chat snapshot has been built yet.',
 
   // Database Errors
   [ErrorCode.DB_QUERY_FAILED]: 'Database query failed.',

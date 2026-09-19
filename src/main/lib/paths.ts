@@ -34,6 +34,12 @@ export function getArtifactsDir(): string {
   return join(getExodusHome(), 'artifacts')
 }
 
+/** Installed Agent Skills — one directory per slug plus `.lock.json`. The same
+ *  directory `exodus-cli` installs into, so the two stay interchangeable. */
+export function getSkillsDir(): string {
+  return join(getExodusHome(), 'skills')
+}
+
 /** Philharmonic Group workspace root, one directory per conversation. */
 export function getGroupsDir(): string {
   return join(getExodusHome(), 'groups')
@@ -43,6 +49,17 @@ export function getGroupDir(conversationId: string): string {
   const dir = join(getGroupsDir(), conversationId)
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
   return dir
+}
+
+/** DuckDB chat-audit snapshot (`exodus.duckdb` + `snapshot.json`) — Settings → Developer. */
+export function getAnalyticsDir(): string {
+  const dir = join(getExodusHome(), 'analytics')
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
+  return dir
+}
+
+export function getAnalyticsDbPath(): string {
+  return join(getAnalyticsDir(), 'exodus.duckdb')
 }
 
 export function getBackupsDir(): string {

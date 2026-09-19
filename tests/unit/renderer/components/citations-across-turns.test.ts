@@ -7,7 +7,7 @@ import { parseCitations } from '@/components/markdown'
 import { groupIntoSegments } from '@/components/messages'
 
 // Regression: a follow-up turn used to wipe the citations off every earlier
-// turn. `POST /api/chat` validated history messages with a strict `z.object`,
+// turn. `POST /api/v1/chat` validated history messages with a strict `z.object`,
 // which dropped `details`/`toolName`; the route then echoed that stripped
 // history back in the `done` SSE frame, so turn 1's webSearch sources vanished.
 

@@ -3,7 +3,7 @@
 // No pre-existing unit test for this route was found (only chat-errors.test.ts,
 // which covers chat.ts's pure helper exports, not the POST '/' handler itself —
 // the route's end-to-end behavior is otherwise only exercised by the Playwright
-// suite in tests/api/chat-*.spec.ts). This file mocks the route's collaborators
+// suite in tests/api/v1/chat-*.spec.ts). This file mocks the route's collaborators
 // the same way tests/unit/main/lib/ai/philharmonic/employee-loop.test.ts mocks
 // agentLoop + getModelFromProvider for a structurally similar agentLoop caller,
 // and tests/unit/main/lib/server/middlewares/trace.test.ts's pattern of wrapping
@@ -158,7 +158,7 @@ function postChat(body: Record<string, unknown>) {
   })
 }
 
-describe('POST /api/chat', () => {
+describe('POST /api/v1/chat', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     getModelFromProviderMock.mockReturnValue({

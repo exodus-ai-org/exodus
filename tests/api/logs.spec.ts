@@ -4,7 +4,7 @@
 import { apiTest as test, expect } from '../fixtures/api-client'
 
 test.describe('Logs API', () => {
-  test('GET /api/logs returns OTel-shaped records', async ({ api }) => {
+  test('GET /api/v1/logs returns OTel-shaped records', async ({ api }) => {
     const { status, data } = await api.get<{
       entries: {
         timestamp: string
@@ -16,7 +16,7 @@ test.describe('Logs API', () => {
       }[]
       total: number
       page: number
-    }>('/api/logs')
+    }>('/api/v1/logs')
     expect(status).toBe(200)
     expect(Array.isArray(data.entries)).toBe(true)
     // The server logs "Hono is running" at startup → today's file is non-empty.
@@ -30,23 +30,23 @@ test.describe('Logs API', () => {
     }
   })
 
-  test('GET /api/logs/scopes returns a sorted distinct list', async ({
+  test('GET /api/v1/logs/scopes returns a sorted distinct list', async ({
     api
   }) => {
     const { status, data } = await api.get<{ scopes: string[] }>(
-      '/api/logs/scopes'
+      '/api/v1/logs/scopes'
     )
     expect(status).toBe(200)
     expect(Array.isArray(data.scopes)).toBe(true)
     expect([...data.scopes].sort()).toEqual(data.scopes)
   })
 
-  test('GET /api/logs?level=error filters to error severity only', async ({
+  test('GET /api/v1/logs?level=error filters to error severity only', async ({
     api
   }) => {
     const { data } = await api.get<{
       entries: { severityNumber: number }[]
-    }>('/api/logs?level=error')
+    }>('/api/v1/logs?level=error')
     for (const e of data.entries)
       expect(e.severityNumber).toBeGreaterThanOrEqual(17)
   })

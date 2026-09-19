@@ -4,8 +4,8 @@
 import { apiTest as test, expect, rawFetch } from '../fixtures/api-client'
 
 test.describe('Database I/O', () => {
-  test.skip('POST /api/db-io/export returns a ZIP file — skipped: table name casing bug', async () => {
-    const res = await rawFetch('http://localhost:60223/api/db-io/export', {
+  test.skip('POST /api/v1/db-io/export returns a ZIP file — skipped: table name casing bug', async () => {
+    const res = await rawFetch('http://localhost:60223/api/v1/db-io/export', {
       method: 'POST'
     })
 

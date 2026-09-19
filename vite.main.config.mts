@@ -41,7 +41,14 @@ export default defineConfig({
         '@electric-sql/pglite',
         '@electric-sql/pglite-pgmq',
         '@electric-sql/pglite-pgvector',
-        '@electric-sql/pglite/contrib/pg_trgm'
+        '@electric-sql/pglite/contrib/pg_trgm',
+        // DuckDB (Settings → Developer → Chat Audit) is a Node-API native
+        // module that dlopens libduckdb from its own package directory —
+        // same "must load from the real node_modules" rule as PGlite. It is
+        // lazy-loaded via `import()` in lib/analytics/duckdb.ts, so keeping
+        // it external also keeps it out of the boot path.
+        '@duckdb/node-api',
+        '@duckdb/node-bindings'
       ]
     }
   }

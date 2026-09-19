@@ -14,7 +14,7 @@ const router = new Hono<{ Variables: Variables }>()
 const APPS_TTL_MS = 60_000
 let appsCache: { at: number; apps: InstalledApp[] } | null = null
 
-// GET /api/computer-use/apps — installed applications for the allowlist picker.
+// GET /api/v1/computer-use/apps — installed applications for the allowlist picker.
 router.get('/apps', async (c) => {
   if (!appsCache || Date.now() - appsCache.at > APPS_TTL_MS) {
     appsCache = { at: Date.now(), apps: await getHelper().listApps() }
@@ -22,14 +22,14 @@ router.get('/apps', async (c) => {
   return successResponse(c, { apps: appsCache.apps })
 })
 
-// POST /api/computer-use/abort — the Stop button. Aborts every live session
+// POST /api/v1/computer-use/abort — the Stop button. Aborts every live session
 // (same effect as the global ⌥⇧⎋ hotkey, with reason 'user').
 router.post('/abort', (c) => {
   liveness.abortAll('user')
   return successResponse(c, { ok: true })
 })
 
-// POST /api/computer-use/answer — { sessionId, answer }. Unblocks a session
+// POST /api/v1/computer-use/answer — { sessionId, answer }. Unblocks a session
 // parked on an `askHuman` action. Permissive for V0: a missing/blank sessionId
 // (or no pending question) is a silent no-op, still { ok: true }.
 router.post('/answer', async (c) => {

@@ -40,7 +40,7 @@ export function DeepResearchProcess() {
   const { data: deepResearchResult, mutate: mutateResult } =
     useSWR<DeepResearch>(
       activeDeepResearchId
-        ? `/api/deep-research/result/${activeDeepResearchId}`
+        ? `/api/v1/deep-research/result/${activeDeepResearchId}`
         : null
     )
 
@@ -85,7 +85,7 @@ export function DeepResearchProcess() {
       if (deepResearchResult?.jobStatus !== 'streaming') return
 
       source = new EventSource(
-        `${BASE_URL}/api/deep-research/sse?deepResearchId=${activeDeepResearchId}`
+        `${BASE_URL}/api/v1/deep-research/sse?deepResearchId=${activeDeepResearchId}`
       )
 
       source.onopen = () => {
