@@ -55,6 +55,15 @@ jobs:
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
 
+    # Windows runners default to PowerShell, where `$NEXT_VERSION` is not the
+    # environment variable (that is `$env:NEXT_VERSION`): the "Set package
+    # version" step below died on it ("The variable '$NEXT_VERSION' cannot be
+    # retrieved because it has not been set"). One shell everywhere keeps the
+    # steps portable; Git Bash ships on the Windows runners.
+    defaults:
+      run:
+        shell: bash
+
     steps:
       - uses: actions/checkout@v4
         with:
