@@ -112,7 +112,10 @@ describe('LockManager', () => {
 
   it('changePin records wrong attempts toward lockout', async () => {
     const { LockManager } = await import('@main/lib/lock/lock-manager')
-    const m = new LockManager()
+    // A fixed clock: `retryAfterMs` is "locked until" minus now, so on the real
+    // one a single millisecond between the last attempt and the assertion made
+    // it 29999 — which a loaded full-suite run did often enough to flake.
+    const m = new LockManager(() => 1_000_000)
     pinStore.verify.mockReturnValue(false)
     for (let i = 0; i < 5; i++) m.changePin('000000', '111111')
     // now locked out: a correct unlock attempt is refused
