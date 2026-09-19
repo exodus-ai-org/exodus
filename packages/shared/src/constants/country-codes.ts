@@ -1,1197 +1,958 @@
 export const countryCodes = [
   {
     country: 'Afghanistan',
-    countryCode: 'af',
-    flag: '🇦🇫'
+    countryCode: 'af'
   },
   {
     country: 'Albania',
-    countryCode: 'al',
-    flag: '🇦🇱'
+    countryCode: 'al'
   },
   {
     country: 'Algeria',
-    countryCode: 'dz',
-    flag: '🇩🇿'
+    countryCode: 'dz'
   },
   {
     country: 'American Samoa',
-    countryCode: 'as',
-    flag: '🇦🇸'
+    countryCode: 'as'
   },
   {
     country: 'Andorra',
-    countryCode: 'ad',
-    flag: '🇦🇩'
+    countryCode: 'ad'
   },
   {
     country: 'Angola',
-    countryCode: 'ao',
-    flag: '🇦🇴'
+    countryCode: 'ao'
   },
   {
     country: 'Anguilla',
-    countryCode: 'ai',
-    flag: '🇦🇮'
+    countryCode: 'ai'
   },
   {
     country: 'Antarctica',
-    countryCode: 'aq',
-    flag: '🇦🇶'
+    countryCode: 'aq'
   },
   {
     country: 'Antigua and Barbuda',
-    countryCode: 'ag',
-    flag: '🇦🇬'
+    countryCode: 'ag'
   },
   {
     country: 'Argentina',
-    countryCode: 'ar',
-    flag: '🇦🇷'
+    countryCode: 'ar'
   },
   {
     country: 'Armenia',
-    countryCode: 'am',
-    flag: '🇦🇲'
+    countryCode: 'am'
   },
   {
     country: 'Aruba',
-    countryCode: 'aw',
-    flag: '🇦🇼'
+    countryCode: 'aw'
   },
   {
     country: 'Australia',
-    countryCode: 'au',
-    flag: '🇦🇺'
+    countryCode: 'au'
   },
   {
     country: 'Austria',
-    countryCode: 'at',
-    flag: '🇦🇹'
+    countryCode: 'at'
   },
   {
     country: 'Azerbaijan',
-    countryCode: 'az',
-    flag: '🇦🇿'
+    countryCode: 'az'
   },
   {
     country: 'Bahamas',
-    countryCode: 'bs',
-    flag: '🇧🇸'
+    countryCode: 'bs'
   },
   {
     country: 'Bahrain',
-    countryCode: 'bh',
-    flag: '🇧🇭'
+    countryCode: 'bh'
   },
   {
     country: 'Bangladesh',
-    countryCode: 'bd',
-    flag: '🇧🇩'
+    countryCode: 'bd'
   },
   {
     country: 'Barbados',
-    countryCode: 'bb',
-    flag: '🇧🇧'
+    countryCode: 'bb'
   },
   {
     country: 'Belarus',
-    countryCode: 'by',
-    flag: '🇧🇾'
+    countryCode: 'by'
   },
   {
     country: 'Belgium',
-    countryCode: 'be',
-    flag: '🇧🇪'
+    countryCode: 'be'
   },
   {
     country: 'Belize',
-    countryCode: 'bz',
-    flag: '🇧🇿'
+    countryCode: 'bz'
   },
   {
     country: 'Benin',
-    countryCode: 'bj',
-    flag: '🇧🇯'
+    countryCode: 'bj'
   },
   {
     country: 'Bermuda',
-    countryCode: 'bm',
-    flag: '🇧🇲'
+    countryCode: 'bm'
   },
   {
     country: 'Bhutan',
-    countryCode: 'bt',
-    flag: '🇧🇹'
+    countryCode: 'bt'
   },
   {
     country: 'Bolivia',
-    countryCode: 'bo',
-    flag: '🇧🇴'
+    countryCode: 'bo'
   },
   {
     country: 'Bosnia and Herzegovina',
-    countryCode: 'ba',
-    flag: '🇧🇦'
+    countryCode: 'ba'
   },
   {
     country: 'Botswana',
-    countryCode: 'bw',
-    flag: '🇧🇼'
+    countryCode: 'bw'
   },
   {
     country: 'Bouvet Island',
-    countryCode: 'bv',
-    flag: '🇧🇻'
+    countryCode: 'bv'
   },
   {
     country: 'Brazil',
-    countryCode: 'br',
-    flag: '🇧🇷'
+    countryCode: 'br'
   },
   {
     country: 'British Indian Ocean Territory',
-    countryCode: 'io',
-    flag: '🇮🇴'
+    countryCode: 'io'
   },
   {
     country: 'Brunei Darussalam',
-    countryCode: 'bn',
-    flag: '🇧🇳'
+    countryCode: 'bn'
   },
   {
     country: 'Bulgaria',
-    countryCode: 'bg',
-    flag: '🇧🇬'
+    countryCode: 'bg'
   },
   {
     country: 'Burkina Faso',
-    countryCode: 'bf',
-    flag: '🇧🇫'
+    countryCode: 'bf'
   },
   {
     country: 'Burundi',
-    countryCode: 'bi',
-    flag: '🇧🇮'
+    countryCode: 'bi'
   },
   {
     country: 'Cambodia',
-    countryCode: 'kh',
-    flag: '🇰🇭'
+    countryCode: 'kh'
   },
   {
     country: 'Cameroon',
-    countryCode: 'cm',
-    flag: '🇨🇲'
+    countryCode: 'cm'
   },
   {
     country: 'Canada',
-    countryCode: 'ca',
-    flag: '🇨🇦'
+    countryCode: 'ca'
   },
   {
     country: 'Cape Verde',
-    countryCode: 'cv',
-    flag: '🇨🇻'
+    countryCode: 'cv'
   },
   {
     country: 'Cayman Islands',
-    countryCode: 'ky',
-    flag: '🇰🇾'
+    countryCode: 'ky'
   },
   {
     country: 'Central African Republic',
-    countryCode: 'cf',
-    flag: '🇨🇫'
+    countryCode: 'cf'
   },
   {
     country: 'Chad',
-    countryCode: 'td',
-    flag: '🇹🇩'
+    countryCode: 'td'
   },
   {
     country: 'Chile',
-    countryCode: 'cl',
-    flag: '🇨🇱'
+    countryCode: 'cl'
   },
   {
     country: 'China',
-    countryCode: 'cn',
-    flag: '🇨🇳'
+    countryCode: 'cn'
   },
   {
     country: 'Christmas Island',
-    countryCode: 'cx',
-    flag: '🇨🇽'
+    countryCode: 'cx'
   },
   {
     country: 'Cocos (Keeling) Islands',
-    countryCode: 'cc',
-    flag: '🇨🇨'
+    countryCode: 'cc'
   },
   {
     country: 'Colombia',
-    countryCode: 'co',
-    flag: '🇨🇴'
+    countryCode: 'co'
   },
   {
     country: 'Comoros',
-    countryCode: 'km',
-    flag: '🇰🇲'
+    countryCode: 'km'
   },
   {
     country: 'Congo',
-    countryCode: 'cg',
-    flag: '🇨🇬'
+    countryCode: 'cg'
   },
   {
     country: 'Congo, the Democratic Republic of the',
-    countryCode: 'cd',
-    flag: '🇨🇩'
+    countryCode: 'cd'
   },
   {
     country: 'Cook Islands',
-    countryCode: 'ck',
-    flag: '🇨🇰'
+    countryCode: 'ck'
   },
   {
     country: 'Costa Rica',
-    countryCode: 'cr',
-    flag: '🇨🇷'
+    countryCode: 'cr'
   },
   {
     country: "Cote D'ivoire",
-    countryCode: 'ci',
-    flag: '🇨🇮'
+    countryCode: 'ci'
   },
   {
     country: 'Croatia',
-    countryCode: 'hr',
-    flag: '🇭🇷'
+    countryCode: 'hr'
   },
   {
     country: 'Cuba',
-    countryCode: 'cu',
-    flag: '🇨🇺'
+    countryCode: 'cu'
   },
   {
     country: 'Cyprus',
-    countryCode: 'cy',
-    flag: '🇨🇾'
+    countryCode: 'cy'
   },
   {
     country: 'Czech Republic',
-    countryCode: 'cz',
-    flag: '🇨🇿'
+    countryCode: 'cz'
   },
   {
     country: 'Denmark',
-    countryCode: 'dk',
-    flag: '🇩🇰'
+    countryCode: 'dk'
   },
   {
     country: 'Djibouti',
-    countryCode: 'dj',
-    flag: '🇩🇯'
+    countryCode: 'dj'
   },
   {
     country: 'Dominica',
-    countryCode: 'dm',
-    flag: '🇩🇲'
+    countryCode: 'dm'
   },
   {
     country: 'Dominican Republic',
-    countryCode: 'do',
-    flag: '🇩🇴'
+    countryCode: 'do'
   },
   {
     country: 'Ecuador',
-    countryCode: 'ec',
-    flag: '🇪🇨'
+    countryCode: 'ec'
   },
   {
     country: 'Egypt',
-    countryCode: 'eg',
-    flag: '🇪🇬'
+    countryCode: 'eg'
   },
   {
     country: 'El Salvador',
-    countryCode: 'sv',
-    flag: '🇸🇻'
+    countryCode: 'sv'
   },
   {
     country: 'Equatorial Guinea',
-    countryCode: 'gq',
-    flag: '🇬🇶'
+    countryCode: 'gq'
   },
   {
     country: 'Eritrea',
-    countryCode: 'er',
-    flag: '🇪🇷'
+    countryCode: 'er'
   },
   {
     country: 'Estonia',
-    countryCode: 'ee',
-    flag: '🇪🇪'
+    countryCode: 'ee'
   },
   {
     country: 'Ethiopia',
-    countryCode: 'et',
-    flag: '🇪🇹'
+    countryCode: 'et'
   },
   {
     country: 'Falkland Islands (Malvinas)',
-    countryCode: 'fk',
-    flag: '🇫🇰'
+    countryCode: 'fk'
   },
   {
     country: 'Faroe Islands',
-    countryCode: 'fo',
-    flag: '🇫🇴'
+    countryCode: 'fo'
   },
   {
     country: 'Fiji',
-    countryCode: 'fj',
-    flag: '🇫🇯'
+    countryCode: 'fj'
   },
   {
     country: 'Finland',
-    countryCode: 'fi',
-    flag: '🇫🇮'
+    countryCode: 'fi'
   },
   {
     country: 'France',
-    countryCode: 'fr',
-    flag: '🇫🇷'
+    countryCode: 'fr'
   },
   {
     country: 'French Guiana',
-    countryCode: 'gf',
-    flag: '🇬🇫'
+    countryCode: 'gf'
   },
   {
     country: 'French Polynesia',
-    countryCode: 'pf',
-    flag: '🇵🇫'
+    countryCode: 'pf'
   },
   {
     country: 'French Southern Territories',
-    countryCode: 'tf',
-    flag: '🇹🇫'
+    countryCode: 'tf'
   },
   {
     country: 'Gabon',
-    countryCode: 'ga',
-    flag: '🇬🇦'
+    countryCode: 'ga'
   },
   {
     country: 'Gambia',
-    countryCode: 'gm',
-    flag: '🇬🇲'
+    countryCode: 'gm'
   },
   {
     country: 'Georgia',
-    countryCode: 'ge',
-    flag: '🇬🇪'
+    countryCode: 'ge'
   },
   {
     country: 'Germany',
-    countryCode: 'de',
-    flag: '🇩🇪'
+    countryCode: 'de'
   },
   {
     country: 'Ghana',
-    countryCode: 'gh',
-    flag: '🇬🇭'
+    countryCode: 'gh'
   },
   {
     country: 'Gibraltar',
-    countryCode: 'gi',
-    flag: '🇬🇮'
+    countryCode: 'gi'
   },
   {
     country: 'Greece',
-    countryCode: 'gr',
-    flag: '🇬🇷'
+    countryCode: 'gr'
   },
   {
     country: 'Greenland',
-    countryCode: 'gl',
-    flag: '🇬🇱'
+    countryCode: 'gl'
   },
   {
     country: 'Grenada',
-    countryCode: 'gd',
-    flag: '🇬🇩'
+    countryCode: 'gd'
   },
   {
     country: 'Guadeloupe',
-    countryCode: 'gp',
-    flag: '🇬🇵'
+    countryCode: 'gp'
   },
   {
     country: 'Guam',
-    countryCode: 'gu',
-    flag: '🇬🇺'
+    countryCode: 'gu'
   },
   {
     country: 'Guatemala',
-    countryCode: 'gt',
-    flag: '🇬🇹'
+    countryCode: 'gt'
   },
   {
     country: 'Guinea',
-    countryCode: 'gn',
-    flag: '🇬🇳'
+    countryCode: 'gn'
   },
   {
     country: 'Guinea-Bissau',
-    countryCode: 'gw',
-    flag: '🇬🇼'
+    countryCode: 'gw'
   },
   {
     country: 'Guyana',
-    countryCode: 'gy',
-    flag: '🇬🇾'
+    countryCode: 'gy'
   },
   {
     country: 'Haiti',
-    countryCode: 'ht',
-    flag: '🇭🇹'
+    countryCode: 'ht'
   },
   {
     country: 'Heard Island and Mcdonald Islands',
-    countryCode: 'hm',
-    flag: '🇭🇲'
+    countryCode: 'hm'
   },
   {
     country: 'Holy See (Vatican City State)',
-    countryCode: 'va',
-    flag: '🇻🇦'
+    countryCode: 'va'
   },
   {
     country: 'Honduras',
-    countryCode: 'hn',
-    flag: '🇭🇳'
+    countryCode: 'hn'
   },
   {
     country: 'Hong Kong',
-    countryCode: 'hk',
-    flag: '🇭🇰'
+    countryCode: 'hk'
   },
   {
     country: 'Hungary',
-    countryCode: 'hu',
-    flag: '🇭🇺'
+    countryCode: 'hu'
   },
   {
     country: 'Iceland',
-    countryCode: 'is',
-    flag: '🇮🇸'
+    countryCode: 'is'
   },
   {
     country: 'India',
-    countryCode: 'in',
-    flag: '🇮🇳'
+    countryCode: 'in'
   },
   {
     country: 'Indonesia',
-    countryCode: 'id',
-    flag: '🇮🇩'
+    countryCode: 'id'
   },
   {
     country: 'Iran, Islamic Republic of',
-    countryCode: 'ir',
-    flag: '🇮🇷'
+    countryCode: 'ir'
   },
   {
     country: 'Iraq',
-    countryCode: 'iq',
-    flag: '🇮🇶'
+    countryCode: 'iq'
   },
   {
     country: 'Ireland',
-    countryCode: 'ie',
-    flag: '🇮🇪'
+    countryCode: 'ie'
   },
   {
     country: 'Israel',
-    countryCode: 'il',
-    flag: '🇮🇱'
+    countryCode: 'il'
   },
   {
     country: 'Italy',
-    countryCode: 'it',
-    flag: '🇮🇹'
+    countryCode: 'it'
   },
   {
     country: 'Jamaica',
-    countryCode: 'jm',
-    flag: '🇯🇲'
+    countryCode: 'jm'
   },
   {
     country: 'Japan',
-    countryCode: 'jp',
-    flag: '🇯🇵'
+    countryCode: 'jp'
   },
   {
     country: 'Jordan',
-    countryCode: 'jo',
-    flag: '🇯🇴'
+    countryCode: 'jo'
   },
   {
     country: 'Kazakhstan',
-    countryCode: 'kz',
-    flag: '🇰🇿'
+    countryCode: 'kz'
   },
   {
     country: 'Kenya',
-    countryCode: 'ke',
-    flag: '🇰🇪'
+    countryCode: 'ke'
   },
   {
     country: 'Kiribati',
-    countryCode: 'ki',
-    flag: '🇰🇮'
+    countryCode: 'ki'
   },
   {
     country: "Korea, Democratic People's Republic of",
-    countryCode: 'kp',
-    flag: '🇰🇵'
+    countryCode: 'kp'
   },
   {
     country: 'Korea, Republic of',
-    countryCode: 'kr',
-    flag: '🇰🇷'
+    countryCode: 'kr'
   },
   {
     country: 'Kuwait',
-    countryCode: 'kw',
-    flag: '🇰🇼'
+    countryCode: 'kw'
   },
   {
     country: 'Kyrgyzstan',
-    countryCode: 'kg',
-    flag: '🇰🇬'
+    countryCode: 'kg'
   },
   {
     country: "Lao People's Democratic Republic",
-    countryCode: 'la',
-    flag: '🇱🇦'
+    countryCode: 'la'
   },
   {
     country: 'Latvia',
-    countryCode: 'lv',
-    flag: '🇱🇻'
+    countryCode: 'lv'
   },
   {
     country: 'Lebanon',
-    countryCode: 'lb',
-    flag: '🇱🇧'
+    countryCode: 'lb'
   },
   {
     country: 'Lesotho',
-    countryCode: 'ls',
-    flag: '🇱🇸'
+    countryCode: 'ls'
   },
   {
     country: 'Liberia',
-    countryCode: 'lr',
-    flag: '🇱🇷'
+    countryCode: 'lr'
   },
   {
     country: 'Libyan Arab Jamahiriya',
-    countryCode: 'ly',
-    flag: '🇱🇾'
+    countryCode: 'ly'
   },
   {
     country: 'Liechtenstein',
-    countryCode: 'li',
-    flag: '🇱🇮'
+    countryCode: 'li'
   },
   {
     country: 'Lithuania',
-    countryCode: 'lt',
-    flag: '🇱🇹'
+    countryCode: 'lt'
   },
   {
     country: 'Luxembourg',
-    countryCode: 'lu',
-    flag: '🇱🇺'
+    countryCode: 'lu'
   },
   {
     country: 'Macao',
-    countryCode: 'mo',
-    flag: '🇲🇴'
+    countryCode: 'mo'
   },
   {
     country: 'Macedonia, the Former Yugoslav Republic of',
-    countryCode: 'mk',
-    flag: '🇲🇰'
+    countryCode: 'mk'
   },
   {
     country: 'Madagascar',
-    countryCode: 'mg',
-    flag: '🇲🇬'
+    countryCode: 'mg'
   },
   {
     country: 'Malawi',
-    countryCode: 'mw',
-    flag: '🇲🇼'
+    countryCode: 'mw'
   },
   {
     country: 'Malaysia',
-    countryCode: 'my',
-    flag: '🇲🇾'
+    countryCode: 'my'
   },
   {
     country: 'Maldives',
-    countryCode: 'mv',
-    flag: '🇲🇻'
+    countryCode: 'mv'
   },
   {
     country: 'Mali',
-    countryCode: 'ml',
-    flag: '🇲🇱'
+    countryCode: 'ml'
   },
   {
     country: 'Malta',
-    countryCode: 'mt',
-    flag: '🇲🇹'
+    countryCode: 'mt'
   },
   {
     country: 'Marshall Islands',
-    countryCode: 'mh',
-    flag: '🇲🇭'
+    countryCode: 'mh'
   },
   {
     country: 'Martinique',
-    countryCode: 'mq',
-    flag: '🇲🇶'
+    countryCode: 'mq'
   },
   {
     country: 'Mauritania',
-    countryCode: 'mr',
-    flag: '🇲🇷'
+    countryCode: 'mr'
   },
   {
     country: 'Mauritius',
-    countryCode: 'mu',
-    flag: '🇲🇺'
+    countryCode: 'mu'
   },
   {
     country: 'Mayotte',
-    countryCode: 'yt',
-    flag: '🇾🇹'
+    countryCode: 'yt'
   },
   {
     country: 'Mexico',
-    countryCode: 'mx',
-    flag: '🇲🇽'
+    countryCode: 'mx'
   },
   {
     country: 'Micronesia, Federated States of',
-    countryCode: 'fm',
-    flag: '🇫🇲'
+    countryCode: 'fm'
   },
   {
     country: 'Moldova, Republic of',
-    countryCode: 'md',
-    flag: '🇲🇩'
+    countryCode: 'md'
   },
   {
     country: 'Monaco',
-    countryCode: 'mc',
-    flag: '🇲🇨'
+    countryCode: 'mc'
   },
   {
     country: 'Mongolia',
-    countryCode: 'mn',
-    flag: '🇲🇳'
+    countryCode: 'mn'
   },
   {
     country: 'Montserrat',
-    countryCode: 'ms',
-    flag: '🇲🇸'
+    countryCode: 'ms'
   },
   {
     country: 'Morocco',
-    countryCode: 'ma',
-    flag: '🇲🇦'
+    countryCode: 'ma'
   },
   {
     country: 'Mozambique',
-    countryCode: 'mz',
-    flag: '🇲🇿'
+    countryCode: 'mz'
   },
   {
     country: 'Myanmar',
-    countryCode: 'mm',
-    flag: '🇲🇲'
+    countryCode: 'mm'
   },
   {
     country: 'Namibia',
-    countryCode: 'na',
-    flag: '🇳🇦'
+    countryCode: 'na'
   },
   {
     country: 'Nauru',
-    countryCode: 'nr',
-    flag: '🇳🇷'
+    countryCode: 'nr'
   },
   {
     country: 'Nepal',
-    countryCode: 'np',
-    flag: '🇳🇵'
+    countryCode: 'np'
   },
   {
     country: 'Netherlands',
-    countryCode: 'nl',
-    flag: '🇳🇱'
+    countryCode: 'nl'
   },
   {
     country: 'Netherlands Antilles',
-    countryCode: 'an',
-    flag: '🇳🇱'
+    countryCode: 'an'
   },
   {
     country: 'New Caledonia',
-    countryCode: 'nc',
-    flag: '🇳🇨'
+    countryCode: 'nc'
   },
   {
     country: 'New Zealand',
-    countryCode: 'nz',
-    flag: '🇳🇿'
+    countryCode: 'nz'
   },
   {
     country: 'Nicaragua',
-    countryCode: 'ni',
-    flag: '🇳🇮'
+    countryCode: 'ni'
   },
   {
     country: 'Niger',
-    countryCode: 'ne',
-    flag: '🇳🇪'
+    countryCode: 'ne'
   },
   {
     country: 'Nigeria',
-    countryCode: 'ng',
-    flag: '🇳🇬'
+    countryCode: 'ng'
   },
   {
     country: 'Niue',
-    countryCode: 'nu',
-    flag: '🇳🇺'
+    countryCode: 'nu'
   },
   {
     country: 'Norfolk Island',
-    countryCode: 'nf',
-    flag: '🇳🇫'
+    countryCode: 'nf'
   },
   {
     country: 'Northern Mariana Islands',
-    countryCode: 'mp',
-    flag: '🇲🇵'
+    countryCode: 'mp'
   },
   {
     country: 'Norway',
-    countryCode: 'no',
-    flag: '🇳🇴'
+    countryCode: 'no'
   },
   {
     country: 'Oman',
-    countryCode: 'om',
-    flag: '🇴🇲'
+    countryCode: 'om'
   },
   {
     country: 'Pakistan',
-    countryCode: 'pk',
-    flag: '🇵🇰'
+    countryCode: 'pk'
   },
   {
     country: 'Palau',
-    countryCode: 'pw',
-    flag: '🇵🇼'
+    countryCode: 'pw'
   },
   {
     country: 'Palestinian Territory, Occupied',
-    countryCode: 'ps',
-    flag: '🇵🇸'
+    countryCode: 'ps'
   },
   {
     country: 'Panama',
-    countryCode: 'pa',
-    flag: '🇵🇦'
+    countryCode: 'pa'
   },
   {
     country: 'Papua New Guinea',
-    countryCode: 'pg',
-    flag: '🇵🇬'
+    countryCode: 'pg'
   },
   {
     country: 'Paraguay',
-    countryCode: 'py',
-    flag: '🇵🇾'
+    countryCode: 'py'
   },
   {
     country: 'Peru',
-    countryCode: 'pe',
-    flag: '🇵🇪'
+    countryCode: 'pe'
   },
   {
     country: 'Philippines',
-    countryCode: 'ph',
-    flag: '🇵🇭'
+    countryCode: 'ph'
   },
   {
     country: 'Pitcairn',
-    countryCode: 'pn',
-    flag: '🇵🇳'
+    countryCode: 'pn'
   },
   {
     country: 'Poland',
-    countryCode: 'pl',
-    flag: '🇵🇱'
+    countryCode: 'pl'
   },
   {
     country: 'Portugal',
-    countryCode: 'pt',
-    flag: '🇵🇹'
+    countryCode: 'pt'
   },
   {
     country: 'Puerto Rico',
-    countryCode: 'pr',
-    flag: '🇵🇷'
+    countryCode: 'pr'
   },
   {
     country: 'Qatar',
-    countryCode: 'qa',
-    flag: '🇶🇦'
+    countryCode: 'qa'
   },
   {
     country: 'Reunion',
-    countryCode: 're',
-    flag: '🇷🇪'
+    countryCode: 're'
   },
   {
     country: 'Romania',
-    countryCode: 'ro',
-    flag: '🇷🇴'
+    countryCode: 'ro'
   },
   {
     country: 'Russian Federation',
-    countryCode: 'ru',
-    flag: '🇷🇺'
+    countryCode: 'ru'
   },
   {
     country: 'Rwanda',
-    countryCode: 'rw',
-    flag: '🇷🇼'
+    countryCode: 'rw'
   },
   {
     country: 'Saint Helena',
-    countryCode: 'sh',
-    flag: '🇸🇭'
+    countryCode: 'sh'
   },
   {
     country: 'Saint Kitts and Nevis',
-    countryCode: 'kn',
-    flag: '🇰🇳'
+    countryCode: 'kn'
   },
   {
     country: 'Saint Lucia',
-    countryCode: 'lc',
-    flag: '🇱🇨'
+    countryCode: 'lc'
   },
   {
     country: 'Saint Pierre and Miquelon',
-    countryCode: 'pm',
-    flag: '🇵🇲'
+    countryCode: 'pm'
   },
   {
     country: 'Saint Vincent and the Grenadines',
-    countryCode: 'vc',
-    flag: '🇻🇨'
+    countryCode: 'vc'
   },
   {
     country: 'Samoa',
-    countryCode: 'ws',
-    flag: '🇼🇸'
+    countryCode: 'ws'
   },
   {
     country: 'San Marino',
-    countryCode: 'sm',
-    flag: '🇸🇲'
+    countryCode: 'sm'
   },
   {
     country: 'Sao Tome and Principe',
-    countryCode: 'st',
-    flag: '🇸🇹'
+    countryCode: 'st'
   },
   {
     country: 'Saudi Arabia',
-    countryCode: 'sa',
-    flag: '🇸🇦'
+    countryCode: 'sa'
   },
   {
     country: 'Senegal',
-    countryCode: 'sn',
-    flag: '🇸🇳'
+    countryCode: 'sn'
   },
   {
     country: 'Serbia and Montenegro',
-    countryCode: 'cs',
-    flag: '🇷🇸'
+    countryCode: 'cs'
   },
   {
     country: 'Seychelles',
-    countryCode: 'sc',
-    flag: '🇸🇨'
+    countryCode: 'sc'
   },
   {
     country: 'Sierra Leone',
-    countryCode: 'sl',
-    flag: '🇸🇱'
+    countryCode: 'sl'
   },
   {
     country: 'Singapore',
-    countryCode: 'sg',
-    flag: '🇸🇬'
+    countryCode: 'sg'
   },
   {
     country: 'Slovakia',
-    countryCode: 'sk',
-    flag: '🇸🇰'
+    countryCode: 'sk'
   },
   {
     country: 'Slovenia',
-    countryCode: 'si',
-    flag: '🇸🇮'
+    countryCode: 'si'
   },
   {
     country: 'Solomon Islands',
-    countryCode: 'sb',
-    flag: '🇸🇧'
+    countryCode: 'sb'
   },
   {
     country: 'Somalia',
-    countryCode: 'so',
-    flag: '🇸🇴'
+    countryCode: 'so'
   },
   {
     country: 'South Africa',
-    countryCode: 'za',
-    flag: '🇿🇦'
+    countryCode: 'za'
   },
   {
     country: 'South Georgia and the South Sandwich Islands',
-    countryCode: 'gs',
-    flag: '🇬🇸'
+    countryCode: 'gs'
   },
   {
     country: 'Spain',
-    countryCode: 'es',
-    flag: '🇪🇸'
+    countryCode: 'es'
   },
   {
     country: 'Sri Lanka',
-    countryCode: 'lk',
-    flag: '🇱🇰'
+    countryCode: 'lk'
   },
   {
     country: 'Sudan',
-    countryCode: 'sd',
-    flag: '🇸🇩'
+    countryCode: 'sd'
   },
   {
     country: 'Suriname',
-    countryCode: 'sr',
-    flag: '🇸🇷'
+    countryCode: 'sr'
   },
   {
     country: 'Svalbard and Jan Mayen',
-    countryCode: 'sj',
-    flag: '🇸🇯'
+    countryCode: 'sj'
   },
   {
     country: 'Swaziland',
-    countryCode: 'sz',
-    flag: '🇸🇿'
+    countryCode: 'sz'
   },
   {
     country: 'Sweden',
-    countryCode: 'se',
-    flag: '🇸🇪'
+    countryCode: 'se'
   },
   {
     country: 'Switzerland',
-    countryCode: 'ch',
-    flag: '🇨🇭'
+    countryCode: 'ch'
   },
   {
     country: 'Syrian Arab Republic',
-    countryCode: 'sy',
-    flag: '🇸🇾'
+    countryCode: 'sy'
   },
   {
     country: 'Taiwan, Province of China',
-    countryCode: 'tw',
-    flag: '🇹🇼'
+    countryCode: 'tw'
   },
   {
     country: 'Tajikistan',
-    countryCode: 'tj',
-    flag: '🇹🇯'
+    countryCode: 'tj'
   },
   {
     country: 'Tanzania, United Republic of',
-    countryCode: 'tz',
-    flag: '🇹🇿'
+    countryCode: 'tz'
   },
   {
     country: 'Thailand',
-    countryCode: 'th',
-    flag: '🇹🇭'
+    countryCode: 'th'
   },
   {
     country: 'Timor-Leste',
-    countryCode: 'tl',
-    flag: '🇹🇱'
+    countryCode: 'tl'
   },
   {
     country: 'Togo',
-    countryCode: 'tg',
-    flag: '🇹🇬'
+    countryCode: 'tg'
   },
   {
     country: 'Tokelau',
-    countryCode: 'tk',
-    flag: '🇹🇰'
+    countryCode: 'tk'
   },
   {
     country: 'Tonga',
-    countryCode: 'to',
-    flag: '🇹🇴'
+    countryCode: 'to'
   },
   {
     country: 'Trinidad and Tobago',
-    countryCode: 'tt',
-    flag: '🇹🇹'
+    countryCode: 'tt'
   },
   {
     country: 'Tunisia',
-    countryCode: 'tn',
-    flag: '🇹🇳'
+    countryCode: 'tn'
   },
   {
     country: 'Turkey',
-    countryCode: 'tr',
-    flag: '🇹🇷'
+    countryCode: 'tr'
   },
   {
     country: 'Turkmenistan',
-    countryCode: 'tm',
-    flag: '🇹🇲'
+    countryCode: 'tm'
   },
   {
     country: 'Turks and Caicos Islands',
-    countryCode: 'tc',
-    flag: '🇹🇨'
+    countryCode: 'tc'
   },
   {
     country: 'Tuvalu',
-    countryCode: 'tv',
-    flag: '🇹🇻'
+    countryCode: 'tv'
   },
   {
     country: 'Uganda',
-    countryCode: 'ug',
-    flag: '🇺🇬'
+    countryCode: 'ug'
   },
   {
     country: 'Ukraine',
-    countryCode: 'ua',
-    flag: '🇺🇦'
+    countryCode: 'ua'
   },
   {
     country: 'United Arab Emirates',
-    countryCode: 'ae',
-    flag: '🇦🇪'
+    countryCode: 'ae'
   },
   {
     country: 'United Kingdom',
-    countryCode: 'uk',
-    flag: '🇬🇧'
+    countryCode: 'uk'
   },
   {
     country: 'United States',
-    countryCode: 'us',
-    flag: '🇺🇸'
+    countryCode: 'us'
   },
   {
     country: 'United States Minor Outlying Islands',
-    countryCode: 'um',
-    flag: '🇺🇸'
+    countryCode: 'um'
   },
   {
     country: 'Uruguay',
-    countryCode: 'uy',
-    flag: '🇺🇾'
+    countryCode: 'uy'
   },
   {
     country: 'Uzbekistan',
-    countryCode: 'uz',
-    flag: '🇺🇿'
+    countryCode: 'uz'
   },
   {
     country: 'Vanuatu',
-    countryCode: 'vu',
-    flag: '🇻🇺'
+    countryCode: 'vu'
   },
   {
     country: 'Venezuela',
-    countryCode: 've',
-    flag: '🇻🇪'
+    countryCode: 've'
   },
   {
     country: 'Viet Nam',
-    countryCode: 'vn',
-    flag: '🇻🇳'
+    countryCode: 'vn'
   },
   {
     country: 'Virgin Islands, British',
-    countryCode: 'vg',
-    flag: '🇻🇬'
+    countryCode: 'vg'
   },
   {
     country: 'Virgin Islands, U.S.',
-    countryCode: 'vi',
-    flag: '🇻🇮'
+    countryCode: 'vi'
   },
   {
     country: 'Wallis and Futuna',
-    countryCode: 'wf',
-    flag: '🇼🇫'
+    countryCode: 'wf'
   },
   {
     country: 'Western Sahara',
-    countryCode: 'eh',
-    flag: '🇪🇭'
+    countryCode: 'eh'
   },
   {
     country: 'Yemen',
-    countryCode: 'ye',
-    flag: '🇾🇪'
+    countryCode: 'ye'
   },
   {
     country: 'Zambia',
-    countryCode: 'zm',
-    flag: '🇿🇲'
+    countryCode: 'zm'
   },
   {
     country: 'Zimbabwe',
-    countryCode: 'zw',
-    flag: '🇿🇼'
+    countryCode: 'zw'
   }
 ]

@@ -17,52 +17,72 @@ export const DEFAULT_LANGUAGE_SETTING: LanguageSetting = 'auto'
 
 export const LOCALES: Record<
   LocaleId,
-  { id: LocaleId; nativeName: string; englishName: string; flag: string }
+  {
+    id: LocaleId
+    nativeName: string
+    englishName: string
+    /**
+     * ISO 3166-1 alpha-2 code of the flag shown next to this language. A code,
+     * not a component or an emoji: this module is shared with the main process,
+     * and Windows has no flag emoji at all. The renderer's `<Flag>` draws it.
+     */
+    flagCode: string
+  }
 > = {
   en: {
     id: 'en',
     nativeName: 'English',
     englishName: 'English',
-    flag: '🇺🇸'
+    flagCode: 'US'
   },
   'zh-Hant-TW': {
     id: 'zh-Hant-TW',
     nativeName: '繁體中文（台灣）',
     englishName: 'Chinese (Traditional, Taiwan)',
-    flag: '🇹🇼'
+    flagCode: 'TW'
   },
   'zh-Hant-HK': {
     id: 'zh-Hant-HK',
     nativeName: '繁體中文（香港）',
     englishName: 'Chinese (Traditional, Hong Kong)',
-    flag: '🇭🇰'
+    flagCode: 'HK'
   },
-  ja: { id: 'ja', nativeName: '日本語', englishName: 'Japanese', flag: '🇯🇵' },
-  ko: { id: 'ko', nativeName: '한국어', englishName: 'Korean', flag: '🇰🇷' },
+  ja: {
+    id: 'ja',
+    nativeName: '日本語',
+    englishName: 'Japanese',
+    flagCode: 'JP'
+  },
+  ko: { id: 'ko', nativeName: '한국어', englishName: 'Korean', flagCode: 'KR' },
   fr: {
     id: 'fr',
     nativeName: 'Français',
     englishName: 'French',
-    flag: '🇫🇷'
+    flagCode: 'FR'
   },
-  de: { id: 'de', nativeName: 'Deutsch', englishName: 'German', flag: '🇩🇪' },
+  de: {
+    id: 'de',
+    nativeName: 'Deutsch',
+    englishName: 'German',
+    flagCode: 'DE'
+  },
   es: {
     id: 'es',
     nativeName: 'Español',
     englishName: 'Spanish',
-    flag: '🇪🇸'
+    flagCode: 'ES'
   },
   'pt-BR': {
     id: 'pt-BR',
     nativeName: 'Português (Brasil)',
     englishName: 'Portuguese (Brazil)',
-    flag: '🇧🇷'
+    flagCode: 'BR'
   },
   it: {
     id: 'it',
     nativeName: 'Italiano',
     englishName: 'Italian',
-    flag: '🇮🇹'
+    flagCode: 'IT'
   }
 }
 

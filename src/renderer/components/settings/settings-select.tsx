@@ -1,3 +1,5 @@
+import type { ReactNode } from 'react'
+
 import {
   Select,
   SelectContent,
@@ -10,6 +12,8 @@ import {
 export interface SettingsSelectOption {
   value: string
   label: string
+  /** Shown before the label, in the list and in the trigger (a flag, an icon). */
+  icon?: ReactNode
   disabled?: boolean
 }
 
@@ -39,7 +43,7 @@ export function SettingsSelect({
   className,
   testId
 }: SettingsSelectProps) {
-  const labelMap = new Map(options.map((o) => [o.value, o.label]))
+  const optionMap = new Map(options.map((o) => [o.value, o]))
 
   return (
     <Select
@@ -49,7 +53,16 @@ export function SettingsSelect({
     >
       <SelectTrigger data-testid={testId} className={className}>
         <SelectValue placeholder={placeholder}>
-          {(val: string) => labelMap.get(val) || placeholder || val}
+          {(val: string) => {
+            const selected = optionMap.get(val)
+            if (!selected) return placeholder || val
+            return (
+              <span className="flex items-center gap-2">
+                {selected.icon}
+                {selected.label}
+              </span>
+            )
+          }}
         </SelectValue>
       </SelectTrigger>
       <SelectContent className="w-full">
@@ -60,7 +73,10 @@ export function SettingsSelect({
               value={opt.value}
               disabled={opt.disabled}
             >
-              {opt.label}
+              <span className="flex items-center gap-2">
+                {opt.icon}
+                {opt.label}
+              </span>
             </SelectItem>
           ))}
         </SelectGroup>

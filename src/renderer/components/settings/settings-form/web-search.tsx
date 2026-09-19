@@ -5,6 +5,7 @@ import { useMemo } from 'react'
 import { Controller } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
+import { Flag } from '@/components/flag'
 import {
   Combobox,
   ComboboxChip,
@@ -25,8 +26,10 @@ import { SettingsSelect } from '../settings-select'
 
 type OptionItem = { label: string; value: string }
 
+// The label is what the combobox searches and shows in its input, so it is the
+// plain country name; the flag is drawn beside it in the list (see <Flag>).
 const countryItems: OptionItem[] = countryCodes.map((c) => ({
-  label: `${c.flag} ${c.country}`,
+  label: c.country,
   value: c.countryCode
 }))
 
@@ -109,6 +112,7 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
                 <ComboboxList>
                   {(item) => (
                     <ComboboxItem key={item.value} value={item}>
+                      <Flag code={item.value} />
                       {item.label}
                     </ComboboxItem>
                   )}
