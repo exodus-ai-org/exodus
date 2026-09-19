@@ -117,7 +117,24 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50 font-light;
+    @apply border-border outline-ring/50;
+    /* Settings → Appearance → UI font weight. 300 (`font-light`) is what
+       every element got before the setting existed. */
+    font-weight: var(--font-weight-base, 300);
+  }
+  html {
+    font-family: var(
+      --font-ui,
+      ui-sans-serif,
+      system-ui,
+      -apple-system,
+      'Segoe UI',
+      Roboto,
+      'Helvetica Neue',
+      Arial,
+      'Noto Sans',
+      sans-serif
+    );
   }
   /* Pin the app shell to the viewport so route layouts can rely on `h-full`
      cascading down — without this a tall page (a long chat) grows the
@@ -170,6 +187,11 @@
     color: var(--foreground);
     line-height: 1.7;
     font-size: 1rem;
+    /* Settings → Appearance → Content font. Redefining --font-weight-base
+       for this subtree lets the global `*` rule pick the content weight up
+       for every descendant while strong/headings keep their explicit 600. */
+    font-family: var(--font-content, inherit);
+    --font-weight-base: var(--font-weight-content, 300);
   }
 
   .markdown > :first-child {
@@ -520,6 +542,36 @@
   --ph-hue-periwinkle-ring: #5a75b5;
   --ph-hue-sage-fill: #1f3d1f;
   --ph-hue-sage-ring: #3e783e;
+}
+
+/* ── Appearance: opaque sidebar when translucency is off (or unsupported) ──
+ * The chat/Philharmonic sidebar is `bg-transparent` so macOS vibrancy shows
+ * through. Unlayered so it beats that utility. */
+html[data-translucent-sidebar='false'] [data-slot='sidebar'] {
+  background-color: var(--sidebar);
+}
+
+/* Native colour input drawn as a round swatch (Settings → Appearance). */
+.color-swatch-input {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 1rem;
+  height: 1rem;
+  padding: 0;
+  border: 0;
+  border-radius: 9999px;
+  background: transparent;
+  cursor: pointer;
+}
+.color-swatch-input::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+.color-swatch-input::-webkit-color-swatch {
+  border: 1px solid rgb(0 0 0 / 0.25);
+  border-radius: 9999px;
+}
+.color-swatch-input:disabled {
+  cursor: default;
 }
 
 @keyframes shake {

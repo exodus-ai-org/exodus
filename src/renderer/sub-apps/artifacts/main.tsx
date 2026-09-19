@@ -3,6 +3,7 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 
 import { I18nProvider } from '@/components/i18n-provider'
+import { bootAppearance, subscribeAppearanceCache } from '@/lib/appearance'
 import { i18nReady } from '@/lib/i18n'
 
 import { ArtifactSandbox } from './sandbox'
@@ -26,6 +27,11 @@ function applyTheme() {
 }
 
 applyTheme()
+
+// The token palette + fonts, from the same shared localStorage cache the main
+// window writes (see lib/appearance.ts); kept live via the `storage` event.
+bootAppearance()
+subscribeAppearanceCache(bootAppearance)
 
 // globals.css sets `body { bg-transparent }` for the main app — but in a
 // sandboxed iframe with no explicit surface, that lets the browser's default
