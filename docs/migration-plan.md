@@ -1036,23 +1036,59 @@ renders the real UI without console errors.
   (`@vis.gl/react-google-maps`, `react-resizable-panels`) — out of scope by
   design, see `stripTestIdPlugin`.
 
+**First GitHub run (PR #225 → master, 2026-09-19) and what it taught:**
+
+- **Linux `make` failed** on `deb` / `rpm`: "could not find the Electron app
+  binary at `out/Exodus-linux-x64/exodus`". The packager names the executable
+  after `productName` (`Exodus`); `MakerDeb` / `MakerRpm` default `bin` to
+  package.json's `name` (`exodus`). macOS and Windows filesystems are
+  case-insensitive, so a local macOS `make` could not show it. Fixed with
+  `bin: 'Exodus'` on both makers; reproduced (exit 1, same message) and fixed
+  (exit 0, `.deb` + `.rpm`) in an ubuntu 24.04 container. **Reproduce Linux
+  problems on the container's own filesystem** — a bind mount from macOS is
+  case-insensitive too, and hid the bug in a first, invalid attempt.
+- **The Windows PR Check leg failed `fmt:check` on all 946 files**: the runner
+  checks out CRLF (`core.autocrlf=true`), oxfmt expects LF. `.gitattributes`
+  (`* text=auto eol=lf`) fixes it. The source gates (lint / fmt / typecheck /
+  i18n / tests) are OS-independent and now run once on ubuntu; the three-OS
+  matrix builds the installers with `bun run make`, the release workflow's
+  command, so packaging failures surface on the PR.
+- **macOS and Windows `make` have still never run in CI:** their release jobs
+  were cancelled during `bun install` when Linux failed (matrix `fail-fast`, now
+  off). The next PR is their first real test.
+- **The Playwright workflow had never passed** (51 failures, 0 successes — it
+  failed before the migration too). The repo defines no `OPENAI_API_KEY` /
+  `CLAUDE_API_KEY` secret, so model-backed API specs got empty replies. They now
+  skip without a key (`tests/helpers/require-key.ts`). The Electron E2E job
+  (macOS, 28 passed / 7 skipped, about 3 minutes) was green.
+- Switching `dependabot.yml` from `npm` to `bun` made Dependabot open 28 PRs at
+  once, each triggering every workflow. The Slack notification workflow was
+  removed.
+
 **Open — needs the user:**
 
-- **Push, PR, merge.** Nothing was pushed. `release.yml` triggers on `master`;
-  it keys off conventional-commit types, and the migration commit is `build:` on
-  purpose (no `feat!` / `BREAKING CHANGE`) so semantic-release doesn't cut a
-  major version out of a tooling change.
+- **Push, PR, merge.** The migration and the CI fixes sit on local branches;
+  push `fix/ci` and open a PR to `master` — its PR Check is the first run of the
+  three-OS build. `release.yml` triggers on `master`; it keys off
+  conventional-commit types, and the migration commit is `build:` on purpose (no
+  `feat!` / `BREAKING CHANGE`) so semantic-release doesn't cut a major version
+  out of a tooling change. After the merge, existing Dependabot PRs pick up the
+  fixes with `@dependabot rebase`.
 - **The replacement for skills** (see Phase 3): plug it into
   `ai/skills/skills-manager.ts` and the Settings → Skills Market placeholder.
 
 **Open — unverified rather than broken:**
 
-- **`release.yml` itself** — it can only be exercised on GitHub, so the first
-  release run is its test. Builds are unsigned and not notarized; adding
-  `osxSign` / `osxNotarize` (and a Windows certificate) needs credentials.
-- `bun run make` on Windows and Linux (Squirrel, deb, rpm) — only macOS was run.
-  The DMG was only checked as a file (`hdiutil verify`), not mounted and
+- **`release.yml` end to end** — the tag / CHANGELOG / asset-upload half has
+  never run (the first run died in the Linux build). Builds are unsigned and not
+  notarized; adding `osxSign` / `osxNotarize` (and a Windows certificate) needs
+  credentials.
+- `bun run make` for macOS and Windows on the GitHub runners (Squirrel in
+  particular). Linux deb / rpm are verified in a container; macOS was run
+  locally. The DMG was only checked as a file (`hdiutil verify`), not mounted and
   launched.
+- The `api` Playwright job going green on GitHub — the skip logic was verified
+  locally only.
 - `knowledge-base/` against a live LightRAG server (mock-tested only).
 - A real computer-use session (needs Screen Recording + Accessibility
   permission for the app).

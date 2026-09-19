@@ -59,7 +59,7 @@ bun run start              # Start the dev build via electron-forge (Vite dev se
 
 ```bash
 bun run package          # Package the app for the current platform into out/ (keeps data-testid markers — e2e needs them)
-bun run make             # Build installers/archives (Squirrel, ZIP, deb, rpm); strips data-testid (STRIP_TEST_IDS=1)
+bun run make             # Build installers/archives (Squirrel, ZIP, DMG, deb, rpm); strips data-testid (STRIP_TEST_IDS=1)
 bun run publish          # Publish a release to GitHub (needs GITHUB_TOKEN)
 bun run build:helper     # Rebuild the macOS Swift computer-use helper into resources/bin/exodus-input
 ```
