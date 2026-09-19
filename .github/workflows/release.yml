@@ -49,6 +49,9 @@ jobs:
     if: needs.version.outputs.version != ''
     runs-on: ${{ matrix.os }}
     strategy:
+      # A failure on one OS must not cancel the others mid-install: the first
+      # run of this workflow lost the macOS and Windows results that way.
+      fail-fast: false
       matrix:
         os: [macos-latest, windows-latest, ubuntu-latest]
 

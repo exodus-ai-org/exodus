@@ -1,0 +1,11 @@
+# Keep LF in every checkout, whatever the OS or the user's core.autocrlf.
+# GitHub's Windows runners default to autocrlf=true, which turned all ~950
+# files into CRLF and made `oxfmt --check` (it expects LF) fail on every one.
+* text=auto eol=lf
+
+# Binaries: never normalise.
+*.png binary
+*.jpg binary
+*.ico binary
+*.icns binary
+resources/bin/* binary

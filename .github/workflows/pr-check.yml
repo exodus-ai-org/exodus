@@ -5,13 +5,15 @@ on:
     branches:
       - master
 
-jobs:
-  check:
-    runs-on: ${{ matrix.os }}
+# A new push to a PR (or a dependabot rebase) makes the previous run moot.
+concurrency:
+  group: pr-check-${{ github.ref }}
+  cancel-in-progress: true
 
-    strategy:
-      matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+jobs:
+  # Source-level gates. None of them depends on the OS, so one runner is enough.
+  check:
+    runs-on: ubuntu-latest
 
     steps:
       - name: Check out code
@@ -42,3 +44,42 @@ jobs:
 
       - name: Test
         run: bun run test
+
+  # Installers on every OS, with the same command the release workflow runs, so
+  # a packaging problem (a wrong binary name for the deb, a missing icon, …)
+  # fails the PR instead of the release after the merge.
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      # Forge's deb / rpm makers shell out to dpkg+fakeroot and rpmbuild.
+      - name: Install Linux packaging tools
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install -y dpkg fakeroot rpm
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build distributables
+        run: bun run make
