@@ -1,7 +1,7 @@
-import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 
 import { getAllChats } from '../../db/queries'
+import { Variables } from '../types'
 import { handleDatabaseOperation, successResponse } from '../utils'
 
 const history = new Hono<{ Variables: Variables }>()

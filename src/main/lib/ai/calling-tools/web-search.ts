@@ -1,12 +1,23 @@
+import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import type { AgentTool } from '@mariozechner/pi-agent-core'
 import { Type } from '@mariozechner/pi-ai'
-import { Settings } from '@shared/types/db'
-import type { WebSearchResult } from '@shared/types/web-search'
 
+import { Settings } from '../../db/schema'
+import { getModelFromProvider } from '../utils/model-util'
+import { expandQuery } from '../utils/query-expansion'
 import { fetchWebSearch } from '../utils/web-search-util'
 
 const webSearchSchema = Type.Object({
-  query: Type.String({ description: 'The search query.' }),
+  query: Type.String({
+    description:
+      'Keyword-style query, not a full question. Keep it under ~40 words. Use "quoted phrases" for exact matches, -term to exclude, site:domain to scope. Suffix a year/date when recency matters. Start broad; only add specifics on a follow-up search if the first was too general.'
+  }),
+  precision: Type.Optional(
+    Type.Union([Type.Literal('broad'), Type.Literal('strict')], {
+      description:
+        'Relevance filter. "broad" (default) maximizes recall. Use "strict" on a follow-up search when the broad results were noisy or off-topic.'
+    })
+  ),
   media: Type.Optional(
     Type.Union(
       [
@@ -24,17 +35,19 @@ const webSearchSchema = Type.Object({
 })
 
 export const webSearch = (
-  setting: Settings
+  setting: Settings,
+  // Shared rank registry — webFetch writes into the same map so citation
+  // numbers ([N]) stay coherent across both tools.
+  webSources: Map<string, WebSearchResult> = new Map()
 ): AgentTool<typeof webSearchSchema> => {
-  const webSources = new Map<string, WebSearchResult>()
   let searchQueue = Promise.resolve()
 
   return {
     name: 'webSearch',
     label: 'Web Search',
-    description: `Search the web for up-to-date information. Results are numbered [1],[2],… — you MUST cite every factual sentence in your reply using 【N-source】 markers. Set media="images", "videos", or "all" when the user asks for a visual artifact, visual comparison, product/place explanation, tutorial, or any answer that would be better with media. Suffix a specific date to the query if needed. Today is ${new Date().toISOString()}`,
+    description: `Search the web for up-to-date information. Results are numbered [1],[2],… — you MUST cite every factual sentence in your reply using 【N-source】 markers. Higher-numbered results are snippet-only breadth hits; call webFetch on one to read it in full. Set media="images", "videos", or "all" when the user asks for a visual artifact, visual comparison, product/place explanation, tutorial, or any answer that would be better with media. Today is ${new Date().toISOString()}`,
     parameters: webSearchSchema,
-    execute: async (_toolCallId, { query, media }, signal) => {
+    execute: async (_toolCallId, { query, media, precision }, signal) => {
       const search = async () => {
         if (signal?.aborted) throw new Error('Aborted')
         if (!setting?.webSearch?.braveApiKey) {
@@ -43,10 +56,26 @@ export const webSearch = (
           )
         }
         const ws = setting.webSearch
+        const deep = ws.deepRecall !== false
+
+        // Fan-out: expand the query into complementary phrasings so recall
+        // isn't bounded by one wording. Best-effort — a resolution or LLM
+        // failure just searches the original query alone.
+        let expandedQueries: string[] = []
+        if (deep) {
+          try {
+            const { model, apiKey } = getModelFromProvider(setting)
+            expandedQueries = await expandQuery(query, model, apiKey, signal)
+          } catch {
+            expandedQueries = []
+          }
+        }
+
         const details = await fetchWebSearch({
           query,
           braveApiKey: ws.braveApiKey!,
           webSources,
+          expandedQueries,
           media:
             media === 'images' ? 'image' : media === 'videos' ? 'video' : media,
           country: ws.country,
@@ -59,6 +88,10 @@ export const webSearch = (
                 .map((d) => d.trim())
                 .filter(Boolean)
             : null,
+          // Deep recall (grounding + web/search breadth pass) is on unless the
+          // user turned it off to conserve Brave API quota.
+          deep,
+          threshold: precision,
           signal
         })
 
@@ -87,6 +120,8 @@ export const webSearch = (
                 const attrs = [
                   m.thumbnailUrl ? `thumbnail: ${m.thumbnailUrl}` : '',
                   m.source ? `source: ${m.source}` : '',
+                  m.creator ? `creator: ${m.creator}` : '',
+                  m.views ? `views: ${m.views}` : '',
                   m.duration ? `duration: ${m.duration}` : '',
                   m.width && m.height ? `size: ${m.width}x${m.height}` : ''
                 ]

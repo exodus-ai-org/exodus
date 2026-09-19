@@ -1,11 +1,13 @@
 // src/renderer/components/philharmonic/chat/uploader.tsx
 import { Loader2Icon, PaperclipIcon } from 'lucide-react'
 import { type ChangeEvent, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { usePhilharmonicUpload } from '@/hooks/use-philharmonic-upload'
 
 export function ComposerUploader() {
+  const { t } = useTranslation('philharmonic')
   const { upload, uploading } = usePhilharmonicUpload()
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -20,7 +22,7 @@ export function ComposerUploader() {
     <Button
       variant="ghost"
       size="icon-sm"
-      aria-label="Attach images"
+      aria-label={t('chat.uploader.attachAria')}
       disabled={uploading}
       className="text-muted-foreground hover:bg-background hover:text-foreground relative shrink-0 rounded-lg"
     >

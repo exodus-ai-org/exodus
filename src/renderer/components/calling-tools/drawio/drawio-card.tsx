@@ -1,6 +1,7 @@
 import { ExternalLinkIcon } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 
@@ -18,16 +19,30 @@ export interface DrawioToolOutput {
   _version?: string
 }
 
+// Mermaid diagram headers (optionally preceded by an `%%{init …}%%` directive).
+const MERMAID_START_RE =
+  /^\s*(?:%%\{[\s\S]*?\}%%\s*)?(?:graph|flowchart|sequenceDiagram|classDiagram|stateDiagram(?:-v2)?|erDiagram|journey|gantt|pie|mindmap|timeline|gitGraph|quadrantChart|requirementDiagram|C4Context|sankey-beta|xychart-beta|block-beta|packet-beta|kanban|architecture-beta)\b/
+
+const DRAWIO_XML_START_RE = /^\s*<(?:\?xml|mxfile|mxGraphModel|diagram)\b/i
+
 export function isDrawioOutput(output: unknown): output is DrawioToolOutput {
   if (!output || typeof output !== 'object') return false
   const o = output as Record<string, unknown>
-  const versioned =
-    typeof o._version === 'string' && o._version.startsWith('drawio-')
-  const hasSource =
-    typeof o.mermaid === 'string' ||
-    typeof o.xml === 'string' ||
-    typeof o.csv === 'string'
-  return versioned && hasSource
+  const mermaid = typeof o.mermaid === 'string' ? o.mermaid : null
+  const xml = typeof o.xml === 'string' ? o.xml : null
+  const csv = typeof o.csv === 'string' ? o.csv : null
+  if (!mermaid && !xml && !csv) return false
+
+  // The App Server tags results `drawio-mcp-…`; trust that outright.
+  if (typeof o._version === 'string' && o._version.startsWith('drawio-')) {
+    return true
+  }
+  // Some draw.io MCP servers omit `_version` — sniff the source so a bare
+  // `{ mermaid }` / `{ xml }` payload still gets the canvas instead of being
+  // dumped as raw JSON by GenericToolCard. `csv` alone is too ambiguous.
+  if (mermaid && MERMAID_START_RE.test(mermaid)) return true
+  if (xml && DRAWIO_XML_START_RE.test(xml)) return true
+  return false
 }
 
 type DiagramFormat = 'mermaid' | 'xml' | 'csv'
@@ -56,6 +71,7 @@ function buildEmbedUrl(dark: boolean): string {
 }
 
 export function DrawioCard({ output }: { output: DrawioToolOutput }) {
+  const { t } = useTranslation('chat')
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const [error, setError] = useState<string | null>(null)
   const source = pickSource(output)
@@ -98,7 +114,7 @@ export function DrawioCard({ output }: { output: DrawioToolOutput }) {
   if (!source) {
     return (
       <div className="text-muted-foreground rounded-lg border p-3 text-xs">
-        Draw.io tool returned no diagram source.
+        {t('drawioCard.noSource')}
       </div>
     )
   }
@@ -131,11 +147,11 @@ export function DrawioCard({ output }: { output: DrawioToolOutput }) {
               href={openUrl}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Open in draw.io"
+              aria-label={t('drawioCard.openInDrawio')}
             />
           }
         >
-          Open in draw.io
+          {t('drawioCard.openInDrawio')}
           <ExternalLinkIcon className="ml-1 size-3" />
         </Button>
       </div>
@@ -145,8 +161,8 @@ export function DrawioCard({ output }: { output: DrawioToolOutput }) {
         key={isDark ? 'dark' : 'light'}
         ref={iframeRef}
         src={buildEmbedUrl(isDark)}
-        title="draw.io diagram"
-        onError={() => setError('Failed to load draw.io editor')}
+        title={t('drawioCard.iframeTitle')}
+        onError={() => setError(t('drawioCard.loadFailed'))}
         className="block h-[420px] w-full"
         sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
       />

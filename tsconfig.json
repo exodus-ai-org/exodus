@@ -9,6 +9,21 @@
     },
     {
       "path": "./tsconfig.test.json"
+    },
+    {
+      "path": "./packages/shared/tsconfig.json"
     }
-  ]
+  ],
+  "compilerOptions": {
+    // This root config compiles nothing itself ("files": [] — the real
+    // work happens in the referenced project configs above), so this
+    // block has no effect on typechecking or the build. It exists only
+    // so tools that sniff a single root tsconfig.json for import aliases
+    // (e.g. shadcn/ui's CLI "Configure import aliases" step) can find
+    // them — keep in sync with tsconfig.web.json's "paths".
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/renderer/*"]
+    }
+  }
 }

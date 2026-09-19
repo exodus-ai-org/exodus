@@ -1,10 +1,7 @@
 import { spawn } from 'child_process'
-import { existsSync } from 'fs'
 import { join } from 'path'
-import { cwd } from 'process'
 
-import { is } from '@electron-toolkit/utils'
-
+import { getResourcePath } from '../paths'
 import type {
   HelperCommand,
   InputHelper,
@@ -15,30 +12,13 @@ import type {
 const BINARY_NAME = 'exodus-input'
 
 /**
- * Where the prebuilt Swift binary lives:
- * - dev: `<repo-root>/resources/bin/exodus-input` (committed, `pnpm dev` runs
- *   from the repo root)
- * - packaged: `process.resourcesPath/bin/exodus-input` (electron-builder
- *   `extraResources: [{ from: resources/bin, to: bin }]`), with the
- *   `app.asar.unpacked` copy as a fallback since `asarUnpack: resources/**`
- *   also matches it.
+ * Where the prebuilt Swift binary lives — `getResourcePath()` resolves both:
+ * - dev: `<repo-root>/resources/bin/exodus-input` (committed)
+ * - packaged: `Contents/Resources/resources/bin/exodus-input`
+ *   (`packagerConfig.extraResource: ['./resources']` in forge.config.ts)
  */
 function resolveBinaryPath(): string {
-  const candidates = is.dev
-    ? [join(cwd(), 'resources', 'bin', BINARY_NAME)]
-    : [
-        join(process.resourcesPath, 'bin', BINARY_NAME),
-        join(
-          process.resourcesPath,
-          'app.asar.unpacked',
-          'resources',
-          'bin',
-          BINARY_NAME
-        )
-      ]
-  return (
-    candidates.find((p) => existsSync(p)) ?? candidates[candidates.length - 1]
-  )
+  return getResourcePath(join('bin', BINARY_NAME))
 }
 
 /**

@@ -1,0 +1,299 @@
+{
+  "container": {
+    "toast": {
+      "groupDeleted": "Grupo excluído",
+      "deleteGroupFailed": "Não foi possível excluir o grupo"
+    },
+    "tabs": {
+      "costs": "Custos",
+      "schedule": "Agenda"
+    },
+    "noGroupSelected": {
+      "title": "Nenhum grupo selecionado",
+      "description": "Escolha um grupo à esquerda ou inicie um novo para conversar com sua equipe virtual.",
+      "createButton": "Criar um grupo"
+    },
+    "newGroupDefaultTitle": "Novo grupo"
+  },
+  "schedule": {
+    "tab": {
+      "heading": "Agenda",
+      "upcomingTrigger": "Próximas",
+      "recurringTrigger": "Recorrentes"
+    },
+    "unknownGroup": "Grupo desconhecido",
+    "scheduleTaskButton": "Agendar tarefa",
+    "upcomingList": {
+      "empty": "Nenhuma tarefa única próxima. Agende uma para vê-la aqui."
+    },
+    "recurringList": {
+      "empty": "Ainda não há tarefas recorrentes.",
+      "lastRun": "última {{time}}",
+      "nextRun": "próxima {{time}}"
+    },
+    "taskCard": {
+      "status": {
+        "pending": "Pendente",
+        "running": "Em execução",
+        "completed": "Concluída",
+        "failed": "Falhou",
+        "cancelled": "Cancelada",
+        "waiting_for_user": "Aguardando"
+      },
+      "priority": {
+        "low": "Baixa",
+        "medium": "Média",
+        "high": "Alta",
+        "urgent": "Urgente"
+      },
+      "cancelAria": "Cancelar tarefa agendada"
+    },
+    "toast": {
+      "loadUpcomingFailed": "Não foi possível carregar as próximas tarefas",
+      "loadRecurringFailed": "Não foi possível carregar as tarefas recorrentes",
+      "taskCancelled": "Tarefa cancelada",
+      "cancelTaskFailed": "Não foi possível cancelar a tarefa",
+      "taskScheduled": "Tarefa agendada",
+      "scheduleTaskFailed": "Não foi possível agendar a tarefa"
+    },
+    "form": {
+      "title": "Agendar uma tarefa",
+      "description": "Executa dentro de um grupo existente, uma vez ou em uma agenda recorrente.",
+      "titleLabel": "Título",
+      "descriptionLabel": "Descrição",
+      "groupLabel": "Grupo",
+      "groupPlaceholder": "Escolha um grupo",
+      "onceButton": "Única",
+      "recurringButton": "Recorrente",
+      "pickDateButton": "Escolher uma data",
+      "submitting": "Agendando…",
+      "cronPresets": {
+        "dailyNine": "Todos os dias às 9h",
+        "mondayNine": "Toda segunda-feira às 9h",
+        "custom": "Personalizado"
+      }
+    }
+  },
+  "chat": {
+    "attachmentPreview": {
+      "removeAria": "Remover {{name}}"
+    },
+    "uploader": {
+      "attachAria": "Anexar imagens",
+      "s3FallbackTitle": "Falha no upload para o S3; usando dados incorporados",
+      "attachFailedTitle": "Não foi possível anexar os arquivos"
+    },
+    "composer": {
+      "placeholder": "Envie uma mensagem para sua equipe…",
+      "stopAria": "Parar",
+      "sendAria": "Enviar",
+      "hint": "Pressione <1>Enter</1> para enviar, <4>Shift + Enter</4> para uma nova linha. Cole ou anexe imagens."
+    },
+    "planCard": {
+      "elapsed": {
+        "lessThanMin": "<1 min",
+        "minutes": "{{count}} min",
+        "hoursMinutes": "{{hours}}h {{minutes}}m"
+      },
+      "status": {
+        "active": "ativo",
+        "done": "concluído",
+        "aborted": "abortado",
+        "draft": "rascunho"
+      },
+      "stepStatusAria": {
+        "pending": "Pendente",
+        "running": "Em execução",
+        "done": "Concluído",
+        "skipped": "Ignorado",
+        "failed": "Falhou"
+      }
+    },
+    "roles": {
+      "pm": "PM",
+      "employeeFallback": "Funcionário"
+    },
+    "membersPanel": {
+      "heading": "Membros",
+      "coordinatorsLabel": "Coordenadores",
+      "unassignedLabel": "Sem atribuição",
+      "idleCount": "{{count}} ociosos",
+      "busyCount": "{{count}} ocupados",
+      "idle": "ocioso",
+      "noTeam": "Sem equipe",
+      "pmIdleActivity": "Estratégia · ocioso",
+      "emptyState": {
+        "title": "Ainda não há colegas de equipe",
+        "description": "O PM recrutará colegas de equipe conforme necessário."
+      }
+    },
+    "conversationList": {
+      "configNav": {
+        "workforce": "Força de Trabalho",
+        "dashboard": "Painel"
+      },
+      "searchPlaceholder": "Pesquisar grupos",
+      "newGroupMenuItem": "Novo grupo",
+      "emptyState": {
+        "title": "Ainda não há grupos",
+        "description": "Crie um para conversar com sua equipe virtual.",
+        "createButton": "+ Novo grupo"
+      },
+      "searchNoMatch": "Nenhum grupo corresponde a “{{query}}”",
+      "noMessagesYetPreview": "Novo grupo · ainda sem mensagens",
+      "deleteDialog": {
+        "title": "Excluir este grupo?",
+        "description": "<0>{{title}}</0> e todas as suas mensagens, tarefas e execuções serão removidas permanentemente."
+      }
+    },
+    "dateLabels": {
+      "today": "Hoje",
+      "yesterday": "Ontem"
+    },
+    "groupChat": {
+      "renameTitle": "Clique para renomear",
+      "errorTitle": "O grupo encontrou um erro",
+      "memberCount_one": "{{count}} membro",
+      "memberCount_other": "{{count}} membros",
+      "toggleMembersAria": "Alternar membros",
+      "emptyState": {
+        "title": "Entregue algo à sua equipe",
+        "description": "Descreva o que você precisa. O PM vai analisar, recrutar e delegar para funcionários virtuais, depois reportar aqui."
+      },
+      "askUser": {
+        "replyPlaceholder": "Responder ao PM…",
+        "sendButton": "Enviar"
+      }
+    }
+  },
+  "employees": {
+    "avatar": {
+      "alt": "avatar"
+    },
+    "picker": {
+      "reroll": "Sortear novamente"
+    },
+    "editor": {
+      "header": {
+        "label": "Funcionário",
+        "newFallback": "Novo funcionário"
+      },
+      "avatarAria": "Editar avatar",
+      "fields": {
+        "name": "Nome",
+        "team": "Equipe",
+        "teamPlaceholder": "Selecione uma equipe",
+        "teamHelp": "Todo funcionário pertence a uma equipe — o prompt de sistema da equipe é aplicado a todos os seus membros.",
+        "description": "Descrição",
+        "descriptionPlaceholder": "Uma linha sobre o que este funcionário faz.",
+        "systemPrompt": "Prompt de sistema",
+        "systemPromptPlaceholder": "Aplicado sobre o prompt da equipe.",
+        "skills": "Habilidades",
+        "noSkills": "Ainda não há habilidades instaladas.",
+        "mcpServers": "Servidores MCP",
+        "noMcpServers": "Ainda não há servidores MCP configurados.",
+        "mcpServersHelp": "Se nenhum for selecionado, o funcionário poderá usar todos os servidores disponíveis.",
+        "memory": "Memória (somente leitura)",
+        "noMemory": "Ainda não há memória acumulada"
+      }
+    }
+  },
+  "teams": {
+    "editor": {
+      "header": {
+        "label": "Equipe",
+        "newFallback": "Nova equipe"
+      },
+      "fields": {
+        "name": "Nome",
+        "icon": "Ícone (emoji, opcional)",
+        "description": "Descrição",
+        "descriptionPlaceholder": "Breve resumo do que esta equipe faz.",
+        "systemPrompt": "Prompt de sistema",
+        "systemPromptPlaceholder": "Instruções compartilhadas adicionadas ao prompt de todos os membros desta equipe."
+      }
+    }
+  },
+  "costAnalysis": {
+    "header": {
+      "title": "Painel"
+    },
+    "period": {
+      "last7Days": "Últimos 7 dias",
+      "last30Days": "Últimos 30 dias",
+      "allTime": "Todo o período"
+    },
+    "periodToggle": {
+      "sevenDays": "7d",
+      "thirtyDays": "30d",
+      "all": "Tudo"
+    },
+    "loading": "Carregando dados de uso…",
+    "kpi": {
+      "totalCost": "Custo total",
+      "totalCostHint_one": "Entre {{count}} funcionário",
+      "totalCostHint_other": "Entre {{count}} funcionários",
+      "tokens": "Tokens",
+      "tokensHint": "Total processado",
+      "employees": "Funcionários",
+      "employeesHint": "Com uso registrado",
+      "conversations": "Conversas",
+      "conversationsHint": "Com atividade"
+    },
+    "chart": {
+      "costLabel": "Custo",
+      "sectionTitle": "Custo ao longo do tempo"
+    },
+    "agentCostList": {
+      "title": "Custo por funcionário",
+      "empty": "Ainda não há dados de uso de funcionários",
+      "tokens": "{{tokens}} tokens"
+    },
+    "conversationCostList": {
+      "title": "Custo por conversa",
+      "empty": "Ainda não há dados de uso de conversas"
+    }
+  },
+  "workforce": {
+    "header": {
+      "title": "Força de Trabalho",
+      "employeeCount_one": "{{count}} funcionário",
+      "employeeCount_other": "{{count}} funcionários",
+      "teamCount_one": "{{count}} equipe",
+      "teamCount_other": "{{count}} equipes",
+      "addTeamButton": "Equipe",
+      "addEmployeeButton": "Funcionário",
+      "createTeamFirstTitle": "Crie uma equipe primeiro"
+    },
+    "emptyState": {
+      "title": "Comece com uma equipe",
+      "description": "Todo funcionário pertence a uma equipe que contribui com um prompt de sistema compartilhado. Crie uma equipe primeiro e depois adicione os funcionários que pertencem a ela.",
+      "createButton": "+ Nova equipe"
+    },
+    "teamSection": {
+      "editTeam": "Editar equipe",
+      "addEmployeeHere": "Adicionar funcionário aqui",
+      "deleteTeam": "Excluir equipe",
+      "unassignedFallback": "Sem equipe",
+      "addEmployeeButton": "Adicionar funcionário"
+    },
+    "newEmployeeDefaultName": "Novo Funcionário",
+    "newTeamDefaultName": "Nova Equipe",
+    "deleteEmployeeDialog": {
+      "title": "Excluir este funcionário?",
+      "description": "<0>{{name}}</0> será removido permanentemente, junto com sua memória acumulada."
+    },
+    "deleteTeamDialog": {
+      "title": "Excluir esta equipe?",
+      "description": "<0>{{name}}</0> será removida. Os membros existentes mantêm seus registros, mas perdem essa afiliação de equipe."
+    },
+    "toast": {
+      "created": "\"{{name}}\" criado(a)",
+      "deleted": "\"{{name}}\" excluído(a)",
+      "saveEmployeeFailed": "Não foi possível salvar o funcionário",
+      "deleteEmployeeFailed": "Não foi possível excluir o funcionário",
+      "saveTeamFailed": "Não foi possível salvar a equipe",
+      "deleteTeamFailed": "Não foi possível excluir a equipe"
+    }
+  }
+}

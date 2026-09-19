@@ -1,13 +1,8 @@
 import { Menu, Tray } from 'electron'
 
-// Tray needs a raster image — Electron's nativeImage.createFromPath rejects
-// SVGs on macOS. The SVG source lives in resources/iconTemplate.svg and is
-// rasterized to iconStarsTemplate{,@2x,@3x}.png by `pnpm icons`. Import the
-// 1x base — Electron picks @2x/@3x by filename on Retina; loading @3x
-// directly makes Electron treat 66px as logical points and the menu bar
-// down-scales it. The `Template` suffix tells macOS to auto-invert.
-import icon from '../../../resources/iconStarsTemplate@2x.png?asset'
+import { mainT } from './i18n'
 import { logger } from './logger'
+import { getResourcePath } from './paths'
 import {
   getMainWindow,
   getQuickChatView,
@@ -57,19 +52,23 @@ function buildContextMenu(): Menu {
   const visible = !!win && win.isVisible() && !win.isMinimized()
   return Menu.buildFromTemplate([
     {
-      label: visible ? 'Hide App' : 'Show App',
+      label: visible
+        ? mainT('menu:tray.hideApp', 'Hide App')
+        : mainT('menu:tray.showApp', 'Show App'),
       click: toggleMainWindow,
       enabled: !!win
     },
     { type: 'separator' },
-    { role: 'quit', label: 'Quit Exodus' }
+    { role: 'quit', label: mainT('menu:tray.quitExodus', 'Quit Exodus') }
   ])
 }
 
 export function setTray() {
   if (tray) return
   try {
-    tray = new Tray(icon)
+    // Tray needs a raster image — nativeImage.createFromPath rejects SVGs
+    // on macOS. Electron picks up @2x/@3x by filename next to the 1x base.
+    tray = new Tray(getResourcePath('iconStarsTemplate@2x.png'))
     tray.addListener('click', toggleQuickChat)
     // Rebuild on each right-click so the Show/Hide label tracks current
     // window visibility — Electron caches a Menu set via setContextMenu,
@@ -85,6 +84,10 @@ export function setTray() {
   }
 }
 
+export function getTray(): Tray | null {
+  return tray
+}
+
 export function destroyTray() {
   if (tray) {
     try {
@@ -96,8 +99,4 @@ export function destroyTray() {
     }
     tray = null
   }
-}
-
-export function getTray(): Tray | null {
-  return tray
 }

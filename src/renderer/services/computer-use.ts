@@ -1,5 +1,5 @@
-import type { InstalledApp } from '@shared/types/computer-use'
-import { fetcher } from '@shared/utils/http'
+import type { InstalledApp } from '@exodus/shared/types/computer-use'
+import { fetcher } from '@exodus/shared/utils/http'
 
 export const abortComputerUse = () =>
   fetcher<void>('/api/computer-use/abort', { method: 'POST' })

@@ -1,13 +1,21 @@
+import type { ToolNotice } from '@exodus/shared/types/chat'
 import { APIProvider, Map } from '@vis.gl/react-google-maps'
-import { CheckIcon, CopyIcon, ExternalLinkIcon } from 'lucide-react'
+import {
+  CheckIcon,
+  CopyIcon,
+  ExternalLinkIcon,
+  InfoIcon,
+  TriangleAlertIcon
+} from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { memo, useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { useClipboard } from '@/hooks/use-clipboard'
 import { useSettings } from '@/hooks/use-settings'
 import { cn } from '@/lib/utils'
 
-import { DayLayer } from './day-layer'
+import { DayLayer, FocusedPlaceContext } from './day-layer'
 import { PlaceDetail } from './place-detail'
 import type { ItineraryDay, MapItineraryDetails } from './types'
 
@@ -84,23 +92,22 @@ function buildDayMarkdown(day: ItineraryDay): string {
   return `${header}${summary}\n${places}`
 }
 
-/** Inner Map subtree, isolated and memoized so interactive state in the
- *  parent (focusedPlaceIdx, copy-button confirm flash) doesn't trigger a
- *  Map re-render. The Map itself is the most expensive thing in this card
- *  by far — keeping its prop set stable avoids any chance of remount. */
+/** Inner Map subtree, isolated and memoized so interactive parent state
+ *  (focused pin, copy-button confirm flash, SWR settings revalidation) never
+ *  reaches the map. Its whole prop set is stable for the life of the card:
+ *  `apiKey`/`colorScheme` are primitives, `places` is a slice of the frozen
+ *  tool result, `onMarkerClick` is a `useCallback([])`. Focus flows to
+ *  `DayLayer` through `FocusedPlaceContext` (see day-layer.tsx), so a pin
+ *  click re-renders only that layer, not `<APIProvider>` / `<Map>`. */
 const MapSurface = memo(function MapSurface({
   apiKey,
   colorScheme,
-  activeDayIdx,
   places,
-  focusedIdx,
   onMarkerClick
 }: {
   apiKey: string
   colorScheme: 'LIGHT' | 'DARK'
-  activeDayIdx: number
   places: ItineraryDay['places']
-  focusedIdx: number | null
   onMarkerClick: (idx: number) => void
 }) {
   return (
@@ -110,26 +117,49 @@ const MapSurface = memo(function MapSurface({
         defaultZoom={MAP_DEFAULT_ZOOM}
         gestureHandling="greedy"
         disableDefaultUI={true}
+        // `disableDefaultUI` doesn't cover the keyboard-shortcuts pill — that's
+        // a separate option. (The "Terms" / "Report a map error" / Google
+        // attribution is required by the Maps Platform ToS and has no hide flag.)
+        keyboardShortcuts={false}
         mapId={MAP_ID}
         colorScheme={colorScheme}
         className="h-full w-full"
       >
-        <DayLayer
-          key={activeDayIdx}
-          places={places}
-          focusedIdx={focusedIdx}
-          onMarkerClick={onMarkerClick}
-        />
+        {/* No `key` — a day switch changes `places`, and DayLayer's effects
+            already refit bounds and rebuild the polyline on that dep; keying
+            forced a full teardown/rebuild of every marker instead. */}
+        <DayLayer places={places} onMarkerClick={onMarkerClick} />
       </Map>
     </APIProvider>
   )
 })
+
+/** Non-fatal degradation banner — e.g. Places enrichment couldn't run, so the
+ *  map renders from the LLM's coordinates but ratings/photos/hours are missing. */
+function ItineraryNotice({ notice }: { notice: ToolNotice }) {
+  const isInfo = notice.level === 'info'
+  const Icon = isInfo ? InfoIcon : TriangleAlertIcon
+  return (
+    <div
+      className={cn(
+        'flex items-start gap-2 border-b px-3 py-2 text-xs',
+        isInfo
+          ? 'border-border/60 bg-muted/40 text-muted-foreground'
+          : 'border-amber-500/20 bg-amber-500/10 text-amber-700 dark:text-amber-400'
+      )}
+    >
+      <Icon className="mt-px size-3.5 shrink-0" />
+      <span>{notice.message}</span>
+    </div>
+  )
+}
 
 function MapItineraryCardImpl({
   toolResult
 }: {
   toolResult: MapItineraryDetails
 }) {
+  const { t } = useTranslation('chat')
   const { data: settings } = useSettings()
   const { copied, handleCopy } = useClipboard()
   const { resolvedTheme } = useTheme()
@@ -196,7 +226,7 @@ function MapItineraryCardImpl({
   if (!apiKey) {
     return (
       <div className="border-border bg-muted/30 text-muted-foreground rounded-lg border p-4 text-sm">
-        Add a Google API Key in Settings → Google Cloud to render the trip map.
+        {t('mapItineraryCard.missingApiKey')}
       </div>
     )
   }
@@ -209,21 +239,22 @@ function MapItineraryCardImpl({
 
   return (
     <div className="border-border bg-card relative overflow-hidden rounded-2xl border shadow-sm">
+      {toolResult.notice && <ItineraryNotice notice={toolResult.notice} />}
       <div className="relative h-120 w-full">
-        <MapSurface
-          apiKey={apiKey}
-          colorScheme={colorScheme}
-          activeDayIdx={activeDayIdx}
-          places={activeDay.places}
-          focusedIdx={focusedPlaceIdx}
-          onMarkerClick={onMarkerClick}
-        />
+        <FocusedPlaceContext.Provider value={focusedPlaceIdx}>
+          <MapSurface
+            apiKey={apiKey}
+            colorScheme={colorScheme}
+            places={activeDay.places}
+            onMarkerClick={onMarkerClick}
+          />
+        </FocusedPlaceContext.Provider>
 
         {/* Floating tab strip — only rendered for >1 day. */}
         {toolResult.days.length > 1 && (
           <div
             role="tablist"
-            aria-label="Itinerary days"
+            aria-label={t('mapItineraryCard.tabsAriaLabel')}
             className="bg-background/85 absolute top-3 left-3 z-10 flex gap-1 overflow-x-auto rounded-full p-1 shadow-md backdrop-blur"
           >
             {toolResult.days.map((day, i) => {
@@ -257,7 +288,7 @@ function MapItineraryCardImpl({
                 href={gmapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                title="Open route in Google Maps"
+                title={t('mapItineraryCard.openRouteTitle')}
                 className="bg-background/85 text-foreground hover:bg-background flex size-8 items-center justify-center rounded-full shadow-md backdrop-blur transition-colors"
               >
                 <ExternalLinkIcon size={14} />
@@ -266,7 +297,7 @@ function MapItineraryCardImpl({
             <button
               type="button"
               onClick={onCopy}
-              title="Copy day as markdown"
+              title={t('mapItineraryCard.copyMarkdownTitle')}
               className="bg-background/85 text-foreground hover:bg-background flex size-8 items-center justify-center rounded-full shadow-md backdrop-blur transition-colors"
             >
               {copied === copyMarkdown ? (
@@ -294,8 +325,13 @@ function MapItineraryCardImpl({
   )
 }
 
-// Memoize the whole card so any parent re-renders during streaming (the
-// chat surface re-renders on every token) don't reach into this subtree.
-// `toolResult` is a stable reference once the tool resolves, so default
-// shallow comparison is correct.
-export const MapItineraryCard = memo(MapItineraryCardImpl)
+// Memoize the whole card so parent re-renders during streaming (the chat
+// surface re-renders on every token) don't reach this subtree. Identity is
+// NOT enough: the `done` frame and every history reload hand back a fresh,
+// value-equal copy of the tool message (SSE is JSON), which would otherwise
+// re-initialise the map once per turn end. Fall back to a value check — it
+// only runs on the rare identity miss, and an itinerary payload is small.
+export const MapItineraryCard = memo(MapItineraryCardImpl, (a, b) => {
+  if (a.toolResult === b.toolResult) return true
+  return JSON.stringify(a.toolResult) === JSON.stringify(b.toolResult)
+})

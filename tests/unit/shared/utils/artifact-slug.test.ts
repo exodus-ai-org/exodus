@@ -1,4 +1,7 @@
-import { artifactShortId, artifactSlug } from '@shared/utils/artifact-slug'
+import {
+  artifactShortId,
+  artifactSlug
+} from '@exodus/shared/utils/artifact-slug'
 import { describe, expect, it } from 'vitest'
 
 describe('artifactSlug', () => {

@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 vi.mock('electron', () => ({
   app: { getVersion: () => '1.2.3', getPath: () => '/tmp' }
 }))
-vi.mock('@electron-toolkit/utils', () => ({ is: { dev: true } }))
 
 const appendMock = vi.fn().mockResolvedValue(undefined)
 vi.mock('fs/promises', () => ({

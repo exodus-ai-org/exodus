@@ -2,7 +2,7 @@ import { existsSync, rmSync } from 'fs'
 import { homedir } from 'os'
 import { join } from 'path'
 
-import { TEST_IDS } from '../../src/shared/constants/test-ids'
+import { TEST_IDS } from '../../packages/shared/src/constants/test-ids'
 import { electronTest as test, expect } from '../fixtures/electron'
 
 const LOCK_DAT = join(homedir(), '.exodus', 'lock.dat')

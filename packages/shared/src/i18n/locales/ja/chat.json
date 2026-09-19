@@ -1,0 +1,258 @@
+{
+  "imageGeneration": {
+    "status": {
+      "queued": "生成待ち",
+      "generating": "画像を生成中",
+      "refining": "詳細を調整中",
+      "complete": "画像が完成しました",
+      "error": "生成に失敗しました"
+    },
+    "retry": "再試行",
+    "generatedImageAlt": "生成された画像"
+  },
+  "composer": {
+    "placeholder": "何でも聞いてください",
+    "pleaseWaitTitle": "少々お待ちください",
+    "pleaseWaitDescription": "モデルが応答を生成しています。",
+    "stop": "停止",
+    "send": "送信"
+  },
+  "composerTools": {
+    "attachFiles": "ファイルを添付",
+    "mcpTools": "MCPツール",
+    "mcpDialog": {
+      "title": "利用可能なMCPツール",
+      "description": "有効なMCPサーバーが提供するツールです。サーバーの管理は<strong>設定 > MCPサーバー</strong>から行えます。",
+      "noDescription": "{{name}}の説明はありません。"
+    }
+  },
+  "advancedTools": {
+    "deepResearch": "ディープリサーチ"
+  },
+  "messageList": {
+    "greetingTitle": "こんにちは!",
+    "greetingSubtitle": "今日はどのようなご用件ですか?",
+    "attachmentAlt": "添付ファイル",
+    "scrollToBottom": "最下部へスクロール"
+  },
+  "toolPreview": {
+    "mapItineraryDayCount_other": "{{count}}日間",
+    "mapItineraryStopCount_other": "{{count}}件の立ち寄り先",
+    "mapItinerarySummary": "{{days}}、{{stops}}",
+    "toolFailed": "{{tool}}が失敗しました",
+    "webSearchResultCount_other": "{{count}}件の結果"
+  },
+  "toolFailedToast": {
+    "title": "ツールが失敗しました: {{tool}}"
+  },
+  "messageAction": {
+    "copy": "コピー",
+    "regenerate": "再生成",
+    "sources": "ソース"
+  },
+  "thinkingTimeline": {
+    "thinking": "考え中…",
+    "working": "作業中…",
+    "thought": "思考",
+    "worked": "作業",
+    "done": "完了",
+    "thoughtFor": "{{duration}}{{verb}}",
+    "durationSeconds_other": "{{count}}秒",
+    "durationMinutes": "{{minutes}}分",
+    "durationMinutesSeconds": "{{minutes}}分{{seconds}}秒",
+    "searchResultCount_other": "{{count}}件の検索結果"
+  },
+  "toc": {
+    "fallbackLabel": "メッセージ"
+  },
+  "toast": {
+    "chatUpdated": "チャットを更新しました",
+    "chatDeleted": "チャットを削除しました",
+    "sendFailedTitle": "問題が発生しました",
+    "sendFailedDescription": "エラーが発生しました。もう一度お試しください!",
+    "responseReadyTitle": "返信の準備ができました",
+    "chatFallbackTitle": "チャット",
+    "viewButton": "表示",
+    "chatFailedTitle": "チャットに失敗しました",
+    "genericErrorFallback": "エラーが発生しました",
+    "headsUpTitle": "お知らせ"
+  },
+  "lcm": {
+    "compacting": "会話履歴を圧縮中…",
+    "compactedSummary_other": "{{count}}件のメッセージを圧縮 · 約{{tokens}}トークン節約",
+    "compactionFailed": "圧縮に失敗しました(次のターンで再試行します)"
+  },
+  "upload": {
+    "failedTitle": "アップロードに失敗しました",
+    "failedDescription": "ファイルのアップロードに失敗しました。"
+  },
+  "artifactCard": {
+    "cannotOpenTitle": "アーティファクトファイルを開けません",
+    "missingFileDescription": "保存された.tsxファイルが見つかりません — 移動または削除された可能性があります。",
+    "resolveFailedDescription": "アーティファクトのパスを解決できませんでした。",
+    "revealAriaLabel": "{{title}}をファイルマネージャーで表示",
+    "revealTitle": "ファイルマネージャーで表示",
+    "exitFullscreen": "全画面表示を終了",
+    "enterFullscreen": "全画面表示にする",
+    "exitFullscreenEsc": "全画面表示を終了 (Esc)",
+    "fullscreen": "全画面表示"
+  },
+  "computerUseCard": {
+    "title": "Computer Use",
+    "stopFailedTitle": "セッションを停止できませんでした",
+    "stopFailedDescription": "停止リクエストに失敗しました — もう一度お試しください。",
+    "answerFailedTitle": "回答を送信できませんでした",
+    "answerFailedDescription": "リクエストに失敗しました — もう一度お試しください。",
+    "error": "エラー",
+    "running": "実行中…",
+    "outcome": {
+      "success": "成功",
+      "failed": "失敗",
+      "aborted": "中断",
+      "abandoned": "放棄",
+      "stuck": "停止中"
+    },
+    "stepBadge": "ステップ {{step}}",
+    "stepWithAction": "ステップ{{step}}: {{action}}",
+    "stepNoAction": "ステップ{{step}}: …",
+    "targetWindowAlt": "ステップ{{step}}時点の対象ウィンドウ",
+    "replyPlaceholder": "返信を入力(完了の場合は空欄のまま)",
+    "doneContinue": "完了 — 続行",
+    "waitingForReply": "セッションが返信を受け付けるのを待っています…",
+    "stop": "停止",
+    "session": "セッション: {{sessionId}}"
+  },
+  "deepResearchCard": {
+    "researching": "ディープリサーチ中...",
+    "completedSummary_other": "{{minutes}}分でリサーチが完了 · ソース{{count}}件",
+    "exportAriaLabel": "PDFとしてエクスポート",
+    "downloadPdfTooltip": "PDFをダウンロード",
+    "exportFailedTitle": "エクスポートに失敗しました",
+    "exportFailedDescription": "PDFレポートの生成に失敗しました。",
+    "unknownSource": "[{{rank}}] 不明なソース",
+    "referencesHeading": "参考文献"
+  },
+  "drawioCard": {
+    "noSource": "draw.ioツールが図のソースを返しませんでした。",
+    "iframeTitle": "draw.io図",
+    "openInDrawio": "draw.ioで開く",
+    "loadFailed": "draw.ioエディタの読み込みに失敗しました"
+  },
+  "genericToolCard": {
+    "fallbackLabel": "ツール",
+    "badge": "ツール"
+  },
+  "mapItineraryCard": {
+    "missingApiKey": "旅程マップを表示するには、設定 → Google CloudでGoogle APIキーを追加してください。",
+    "tabsAriaLabel": "旅程の日程",
+    "openRouteTitle": "Googleマップでルートを開く",
+    "copyMarkdownTitle": "その日の予定をMarkdownとしてコピー"
+  },
+  "placeDetail": {
+    "goToPhotoAriaLabel": "写真{{index}}へ移動",
+    "closeAriaLabel": "詳細パネルを閉じる",
+    "open": "営業中",
+    "closed": "営業時間外",
+    "tabsAriaLabel": "スポットの情報",
+    "tabOverview": "概要",
+    "tabReviews": "口コミ",
+    "tabHours": "営業時間",
+    "notes": "メモ",
+    "anonymousReviewer": "匿名",
+    "previousAriaLabel": "前のスポット",
+    "nextAriaLabel": "次のスポット",
+    "pagination": "{{total}}件中{{index}}件目"
+  },
+  "terminalCard": {
+    "exitCode": "終了コード {{code}}",
+    "noOutput": "出力なし"
+  },
+  "weatherCard": {
+    "today": "今日",
+    "tomorrow": "明日",
+    "feels": "体感 {{temp}}° · {{observedAt}}",
+    "humidity": "湿度",
+    "precip": "降水量",
+    "visibility": "視界",
+    "uvIndex": "UV指数"
+  },
+  "weatherForecast": {
+    "temperatureRange": "🌡️ 気温の範囲",
+    "cold": "❄️ 最低",
+    "hot": "🔥 最高",
+    "sunrise": "日の出",
+    "sunset": "日の入り"
+  },
+  "sourcesPanel": {
+    "title_other": "{{count}}件のソース",
+    "citations": "引用({{count}}件)",
+    "more": "もっと見る"
+  },
+  "sidebar": {
+    "newChat": "新しいチャット",
+    "searchChats": "チャットを検索",
+    "history": {
+      "empty": "チャットを始めると、ここに会話が表示されます!",
+      "favoriteAction": "お気に入りに追加",
+      "unfavorite": "お気に入りから削除",
+      "favoritesGroup": "お気に入り",
+      "chats": "チャット",
+      "more": "もっと見る",
+      "rename": "名前を変更"
+    },
+    "projects": {
+      "title": "プロジェクト",
+      "newProject": "新しいプロジェクト",
+      "editProject": "プロジェクトを編集",
+      "createTitle": "プロジェクトを作成",
+      "namePlaceholder": "プロジェクト名",
+      "deleteTitle": "プロジェクトを削除しますか?",
+      "deleteDescription": "「{{name}}」とそのすべてのチャットが完全に削除されます。この操作は取り消せません。"
+    },
+    "renameDialog": {
+      "title": "チャット名を変更",
+      "submit": "送信"
+    },
+    "deleteDialog": {
+      "title": "チャットを削除しますか?",
+      "description": "<strong>{{title}}</strong>を削除します。"
+    },
+    "search": {
+      "placeholder": "チャットを検索…",
+      "ariaLabel": "チャットメッセージを検索",
+      "noContents": "該当する内容がありません"
+    }
+  },
+  "projectDetail": {
+    "namePlaceholder": "プロジェクト名",
+    "descriptionPlaceholder": "説明を追加…",
+    "saveChanges": "変更を保存",
+    "tabs": {
+      "chats": "チャット({{count}}件)",
+      "instructions": "指示",
+      "knowledgeComingSoon": "ナレッジ(フェーズ2)"
+    },
+    "newChatButton": "プロジェクトで新しいチャット",
+    "emptyChats": "このプロジェクトにはまだチャットがありません。新しいチャットを始めましょう。",
+    "customInstructionsLabel": "カスタム指示",
+    "instructionsPlaceholder": "このプロジェクトでAIにどう振る舞ってほしいかを記入してください…",
+    "useStructuredLabel": "構造化された指示を使用",
+    "structuredFields": {
+      "role": "役割",
+      "tone": "トーン",
+      "responseFormat": "応答形式",
+      "constraints": "制約"
+    },
+    "structuredPlaceholders": {
+      "role": "例:シニアエンジニア、ライティング講師",
+      "tone": "例:フォーマル、カジュアル、テクニカル",
+      "responseFormat": "例:箇条書き、詳細な段落",
+      "constraints": "例:応答は200語以内に収める"
+    },
+    "toast": {
+      "createdTitle": "プロジェクトを作成しました",
+      "updatedTitle": "プロジェクトを更新しました",
+      "deletedTitle": "プロジェクトを削除しました"
+    }
+  }
+}

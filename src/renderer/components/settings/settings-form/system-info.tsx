@@ -2,10 +2,11 @@ import {
   EXODUS_REPO,
   EXODUS_TWITTER,
   EXODUS_WEBSITE
-} from '@shared/constants/external-urls'
-import { UseFormReturnType } from '@shared/schemas/settings-schema'
+} from '@exodus/shared/constants/external-urls'
+import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
 import { ExternalLinkIcon } from 'lucide-react'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Switch } from '@/components/ui/switch'
 import { useUpdater } from '@/hooks/use-updater'
@@ -36,6 +37,7 @@ function ExternalLink({
 }
 
 export function SystemInfo({ form }: { form: UseFormReturnType }) {
+  const { t } = useTranslation('settings')
   const { versions } = window.electron.process
   const { os } = window.api
   const { payload } = useUpdater()
@@ -47,41 +49,41 @@ export function SystemInfo({ form }: { form: UseFormReturnType }) {
 
   return (
     <SettingsSection>
-      <SettingsRow label="Version">
+      <SettingsRow label={t('about.version')}>
         <span className="text-ring text-sm">v{version}</span>
       </SettingsRow>
-      <SettingsRow label="Electron">
+      <SettingsRow label={t('about.electron')}>
         <span className="text-ring text-sm">v{versions.electron}</span>
       </SettingsRow>
-      <SettingsRow label="Chromium">
+      <SettingsRow label={t('about.chromium')}>
         <span className="text-ring text-sm">v{versions.chrome}</span>
       </SettingsRow>
-      <SettingsRow label="Node.js">
+      <SettingsRow label={t('about.node')}>
         <span className="text-ring text-sm">v{versions.node}</span>
       </SettingsRow>
-      <SettingsRow label="V8">
+      <SettingsRow label={t('about.v8')}>
         <span className="text-ring text-sm">v{versions.v8}</span>
       </SettingsRow>
-      <SettingsRow label="OS">
+      <SettingsRow label={t('about.os')}>
         <span className="text-ring text-sm">{os}</span>
       </SettingsRow>
 
-      <SettingsRow label="GitHub">
+      <SettingsRow label={t('about.github')}>
         <ExternalLink href={EXODUS_REPO}>exodus-ai-org/exodus</ExternalLink>
       </SettingsRow>
-      <SettingsRow label="X (Twitter)">
+      <SettingsRow label={t('about.twitter')}>
         <ExternalLink href={EXODUS_TWITTER}>@YanceyOfficial</ExternalLink>
       </SettingsRow>
-      <SettingsRow label="Website">
+      <SettingsRow label={t('about.website')}>
         <ExternalLink href={EXODUS_WEBSITE}>exodus.yancey.app</ExternalLink>
       </SettingsRow>
-      <SettingsRow label="License">
+      <SettingsRow label={t('about.license')}>
         <span className="text-ring text-sm">MIT</span>
       </SettingsRow>
 
       <SettingsRow
-        label="Auto Update"
-        description="Automatically download and install updates when available"
+        label={t('about.autoUpdate.label')}
+        description={t('about.autoUpdate.description')}
       >
         <Switch
           checked={autoUpdate}

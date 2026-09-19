@@ -1,0 +1,44 @@
+{
+  "incorrectPin": "PIN이 올바르지 않습니다",
+  "screen": {
+    "unlockWithTouchId": "Touch ID로 잠금 해제",
+    "tooManyAttempts": "시도 횟수가 너무 많습니다. {{seconds}}초 후 다시 시도해 주세요."
+  },
+  "privacy": {
+    "title": "잠금 및 개인정보 보호",
+    "enroll": {
+      "description": "Exodus를 잠글 6자리 PIN을 설정하세요. 잠긴 동안에는 UI와 로컬 API에 접근할 수 없지만 백그라운드 작업은 계속 실행됩니다.",
+      "enterLabel": "6자리 PIN 입력",
+      "confirmLabel": "PIN 확인",
+      "startOver": "처음부터 다시"
+    },
+    "idleOptions": {
+      "off": "끄기",
+      "oneMinute": "1분",
+      "fiveMinutes": "5분",
+      "fifteenMinutes": "15분",
+      "thirtyMinutes": "30분"
+    },
+    "touchIdToggleLabel": "Touch ID로 잠금 해제",
+    "autoLockIdle": "유휴 상태 시 자동 잠금",
+    "lockOnLaunch": "앱 실행 시 잠금",
+    "lockOnSystemSleep": "시스템 절전 시 잠금",
+    "removeLock": {
+      "label": "잠금 제거",
+      "description": "앱 잠금을 끕니다. 현재 PIN이 필요합니다.",
+      "button": "제거",
+      "dialogTitle": "잠금을 제거하시겠습니까?",
+      "dialogDescription": "확인을 위해 현재 PIN을 입력하세요. 이후 Exodus를 열 때 PIN이 필요하지 않습니다.",
+      "confirmButton": "잠금 제거"
+    },
+    "toast": {
+      "pinsDoNotMatch": "PIN이 일치하지 않습니다",
+      "setPinFailed": {
+        "title": "PIN을 설정할 수 없습니다",
+        "description": "이미 PIN이 설정되어 있습니다."
+      },
+      "lockEnabled": "잠금이 활성화되었습니다",
+      "lockRemoved": "잠금이 제거되었습니다"
+    }
+  }
+}

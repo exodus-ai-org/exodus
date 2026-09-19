@@ -6,7 +6,6 @@ import { describe, expect, it, vi } from 'vitest'
 // `db/db.ts` (real PGlite instantiation) and `logger.ts` (@electron-toolkit/utils).
 vi.mock('@main/lib/db/db', () => ({ pglite: {} }))
 vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
-vi.mock('@electron-toolkit/utils', () => ({ is: { dev: true } }))
 
 const { resolveSearchProvider } =
   await import('@main/lib/search/resolve-search-provider')

@@ -1,13 +1,13 @@
-import type { Project } from '@shared/types/db'
 import {
-  ChevronRightIcon,
   FolderIcon,
   FolderPlusIcon,
   MoreHorizontalIcon,
+  PlusIcon,
   SquarePenIcon,
   Trash2Icon
 } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router'
 import useSWR from 'swr'
 
@@ -22,11 +22,6 @@ import {
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger
-} from '@/components/ui/collapsible'
 import {
   Dialog,
   DialogContent,
@@ -43,6 +38,8 @@ import {
 import { Input } from '@/components/ui/input'
 import {
   SidebarGroup,
+  SidebarGroupAction,
+  SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuAction,
@@ -50,8 +47,10 @@ import {
   SidebarMenuItem
 } from '@/components/ui/sidebar'
 import { createProject, deleteProject } from '@/services/project'
+import type { Project } from '@/types/db'
 
 export function NavProjects() {
+  const { t } = useTranslation(['common', 'chat'])
   const { data: projects, isLoading } = useSWR<Project[]>('/api/project', {
     fallbackData: []
   })
@@ -82,26 +81,24 @@ export function NavProjects() {
 
   if (isLoading) return null
 
+  const hasProjects = !!projects && projects.length > 0
+
   return (
     <>
       <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-        <SidebarMenu className="gap-1">
-          <Collapsible defaultOpen>
-            <SidebarGroupLabel className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mb-1 text-sm">
-              <CollapsibleTrigger className="group/trigger flex w-full items-center justify-between pl-0!">
-                <SidebarGroupLabel>Projects</SidebarGroupLabel>
-                <ChevronRightIcon className="text-sidebar-foreground/50 h-4 w-4 transition-transform duration-200 group-data-panel-open/trigger:rotate-90" />
-              </CollapsibleTrigger>
-            </SidebarGroupLabel>
-            <CollapsibleContent>
-              <SidebarMenuItem>
-                <SidebarMenuButton onClick={() => setShowCreateDialog(true)}>
-                  <FolderPlusIcon />
-                  <span>New project</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-
-              {projects?.map((project) => (
+        <SidebarGroupLabel>
+          {t('chat:sidebar.projects.title')}
+        </SidebarGroupLabel>
+        <SidebarGroupAction
+          aria-label={t('chat:sidebar.projects.newProject')}
+          onClick={() => setShowCreateDialog(true)}
+        >
+          <PlusIcon />
+        </SidebarGroupAction>
+        <SidebarGroupContent>
+          <SidebarMenu className="gap-1">
+            {hasProjects ? (
+              projects.map((project) => (
                 <SidebarMenuItem key={project.id}>
                   <SidebarMenuButton
                     isActive={currentId === project.id}
@@ -113,11 +110,13 @@ export function NavProjects() {
                     </span>
                   </SidebarMenuButton>
                   <DropdownMenu>
-                    <DropdownMenuTrigger>
-                      <SidebarMenuAction showOnHover>
-                        <MoreHorizontalIcon />
-                      </SidebarMenuAction>
-                    </DropdownMenuTrigger>
+                    <DropdownMenuTrigger
+                      render={
+                        <SidebarMenuAction showOnHover>
+                          <MoreHorizontalIcon />
+                        </SidebarMenuAction>
+                      }
+                    />
                     <DropdownMenuContent
                       className="w-48 rounded-lg"
                       side="right"
@@ -127,31 +126,43 @@ export function NavProjects() {
                         onClick={() => navigate(`/project/${project.id}`)}
                       >
                         <SquarePenIcon className="text-muted-foreground" />
-                        <span>Edit project</span>
+                        <span>{t('chat:sidebar.projects.editProject')}</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => setToBeDeletedProject(project)}
                       >
                         <Trash2Icon className="text-destructive" />
-                        <span className="text-destructive">Delete</span>
+                        <span className="text-destructive">
+                          {t('action.delete')}
+                        </span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </SidebarMenuItem>
-              ))}
-            </CollapsibleContent>
-          </Collapsible>
-        </SidebarMenu>
+              ))
+            ) : (
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  className="text-muted-foreground"
+                  onClick={() => setShowCreateDialog(true)}
+                >
+                  <FolderPlusIcon />
+                  <span>{t('chat:sidebar.projects.newProject')}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+          </SidebarMenu>
+        </SidebarGroupContent>
       </SidebarGroup>
 
       {/* Create Project Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create Project</DialogTitle>
+            <DialogTitle>{t('chat:sidebar.projects.createTitle')}</DialogTitle>
           </DialogHeader>
           <Input
-            placeholder="Project name"
+            placeholder={t('chat:sidebar.projects.namePlaceholder')}
             value={newProjectName}
             onChange={(e) => setNewProjectName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleCreateProject()}
@@ -163,7 +174,7 @@ export function NavProjects() {
               disabled={!newProjectName.trim()}
               size="sm"
             >
-              Create
+              {t('action.create')}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -176,16 +187,19 @@ export function NavProjects() {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete project?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t('chat:sidebar.projects.deleteTitle')}
+            </AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete &quot;{toBeDeletedProject?.name}
-              &quot; and all its chats. This action cannot be undone.
+              {t('chat:sidebar.projects.deleteDescription', {
+                name: toBeDeletedProject?.name
+              })}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('action.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteProject}>
-              Delete
+              {t('action.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

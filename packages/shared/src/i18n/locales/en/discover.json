@@ -1,0 +1,22 @@
+{
+  "alert": "Discover turns your saved Memory into a personalized news feed on the home page — enabling it sends your memory topics to your AI provider (to turn them into search queries) and the resulting queries to Brave (the same provider used for Web Search) roughly once a day. Off by default; nothing leaves your machine until you turn it on.",
+  "enable": {
+    "label": "Enable Discover",
+    "description": "Show a personalized news feed on the home page."
+  },
+  "braveKeyHint": "Discover needs a Brave Search API key. <2>Add one under Built-in Tools</2>.",
+  "topicCount": {
+    "label": "Topics",
+    "description": "How many memory-derived topics to show. Default 4."
+  },
+  "articlesPerTopic": {
+    "label": "Articles per topic",
+    "description": "How many articles per topic row. Default 3."
+  },
+  "heading": "Discover",
+  "updatedAgo": "updated {{time}}",
+  "refreshButton": "Refresh",
+  "toast": {
+    "refreshFailed": "Failed to refresh"
+  }
+}

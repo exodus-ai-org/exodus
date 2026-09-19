@@ -1,7 +1,8 @@
 // src/renderer/components/philharmonic/schedule/schedule-tab.tsx
-import { TEST_IDS } from '@shared/constants/test-ids'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { PlusIcon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import { Button } from '@/components/ui/button'
@@ -22,6 +23,7 @@ export function ScheduleTab({
 }: {
   conversations: ConversationData[]
 }) {
+  const { t } = useTranslation('philharmonic')
   const [upcoming, setUpcoming] = useState<TaskData[]>([])
   const [recurring, setRecurring] = useState<TaskData[]>([])
   const [formOpen, setFormOpen] = useState(false)
@@ -32,7 +34,7 @@ export function ScheduleTab({
       .then(setUpcoming)
       .catch((err) =>
         sileo.error({
-          title: 'Could not load upcoming tasks',
+          title: t('schedule.toast.loadUpcomingFailed'),
           description: err instanceof Error ? err.message : String(err)
         })
       )
@@ -40,11 +42,11 @@ export function ScheduleTab({
       .then(setRecurring)
       .catch((err) =>
         sileo.error({
-          title: 'Could not load recurring tasks',
+          title: t('schedule.toast.loadRecurringFailed'),
           description: err instanceof Error ? err.message : String(err)
         })
       )
-  }, [])
+  }, [t])
 
   const conversationsById = useMemo(
     () => Object.fromEntries(conversations.map((c) => [c.id, c])),
@@ -63,27 +65,32 @@ export function ScheduleTab({
     }
   }, [])
 
-  const handleCancel = useCallback(async (id: string) => {
-    setCancellingId(id)
-    try {
-      await cancelScheduledTask(id)
-      setUpcoming((p) => p.filter((t) => t.id !== id))
-      setRecurring((p) => p.filter((t) => t.id !== id))
-      sileo.success({ title: 'Task cancelled' })
-    } catch (err) {
-      sileo.error({
-        title: 'Could not cancel task',
-        description: err instanceof Error ? err.message : String(err)
-      })
-    } finally {
-      setCancellingId(null)
-    }
-  }, [])
+  const handleCancel = useCallback(
+    async (id: string) => {
+      setCancellingId(id)
+      try {
+        await cancelScheduledTask(id)
+        setUpcoming((p) => p.filter((t) => t.id !== id))
+        setRecurring((p) => p.filter((t) => t.id !== id))
+        sileo.success({ title: t('schedule.toast.taskCancelled') })
+      } catch (err) {
+        sileo.error({
+          title: t('schedule.toast.cancelTaskFailed'),
+          description: err instanceof Error ? err.message : String(err)
+        })
+      } finally {
+        setCancellingId(null)
+      }
+    },
+    [t]
+  )
 
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="border-border flex shrink-0 items-center justify-between border-b px-4 py-3">
-        <span className="text-foreground text-sm font-semibold">Schedule</span>
+        <span className="text-foreground text-sm font-semibold">
+          {t('schedule.tab.heading')}
+        </span>
         <Button
           data-testid={TEST_IDS.schedule.createButton}
           type="button"
@@ -91,13 +98,17 @@ export function ScheduleTab({
           onClick={() => setFormOpen(true)}
         >
           <PlusIcon className="h-4 w-4" />
-          Schedule task
+          {t('schedule.scheduleTaskButton')}
         </Button>
       </div>
       <Tabs defaultValue="upcoming" className="flex min-h-0 flex-1 flex-col">
         <TabsList className="mx-4 mt-3 w-fit shrink-0">
-          <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-          <TabsTrigger value="recurring">Recurring</TabsTrigger>
+          <TabsTrigger value="upcoming">
+            {t('schedule.tab.upcomingTrigger')}
+          </TabsTrigger>
+          <TabsTrigger value="recurring">
+            {t('schedule.tab.recurringTrigger')}
+          </TabsTrigger>
         </TabsList>
         <TabsContent value="upcoming" className="min-h-0 flex-1">
           <UpcomingList

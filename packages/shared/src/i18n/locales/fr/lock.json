@@ -1,0 +1,44 @@
+{
+  "incorrectPin": "PIN incorrect",
+  "screen": {
+    "unlockWithTouchId": "Déverrouiller avec Touch ID",
+    "tooManyAttempts": "Trop de tentatives. Réessayez dans {{seconds}} s."
+  },
+  "privacy": {
+    "title": "Verrouillage et confidentialité",
+    "enroll": {
+      "description": "Définissez un code PIN à 6 chiffres pour verrouiller Exodus. Lorsque l'application est verrouillée, l'interface et l'API locale sont inaccessibles, mais les tâches en arrière-plan continuent de s'exécuter.",
+      "enterLabel": "Saisissez un code PIN à 6 chiffres",
+      "confirmLabel": "Confirmez votre code PIN",
+      "startOver": "Recommencer"
+    },
+    "idleOptions": {
+      "off": "Désactivé",
+      "oneMinute": "1 minute",
+      "fiveMinutes": "5 minutes",
+      "fifteenMinutes": "15 minutes",
+      "thirtyMinutes": "30 minutes"
+    },
+    "touchIdToggleLabel": "Déverrouiller avec Touch ID",
+    "autoLockIdle": "Verrouillage automatique en cas d'inactivité",
+    "lockOnLaunch": "Verrouiller au lancement de l'application",
+    "lockOnSystemSleep": "Verrouiller à la mise en veille du système",
+    "removeLock": {
+      "label": "Supprimer le verrouillage",
+      "description": "Désactiver le verrouillage de l'application. Nécessite votre code PIN actuel.",
+      "button": "Supprimer",
+      "dialogTitle": "Supprimer le verrouillage ?",
+      "dialogDescription": "Saisissez votre code PIN actuel pour confirmer. Exodus ne demandera plus de code PIN à l'ouverture.",
+      "confirmButton": "Supprimer le verrouillage"
+    },
+    "toast": {
+      "pinsDoNotMatch": "Les codes PIN ne correspondent pas",
+      "setPinFailed": {
+        "title": "Impossible de définir le code PIN",
+        "description": "Un code PIN existe déjà."
+      },
+      "lockEnabled": "Verrouillage activé",
+      "lockRemoved": "Verrouillage supprimé"
+    }
+  }
+}

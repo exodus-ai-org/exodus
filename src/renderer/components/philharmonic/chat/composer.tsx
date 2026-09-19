@@ -1,8 +1,9 @@
 // src/renderer/components/philharmonic/chat/composer.tsx
-import type { Attachment } from '@shared/types/chat'
+import type { Attachment } from '@exodus/shared/types/chat'
 import { useAtom } from 'jotai'
 import { SendIcon, SquareIcon } from 'lucide-react'
 import { type ClipboardEvent, useState } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -11,6 +12,21 @@ import { philharmonicAttachmentAtom } from '@/stores/philharmonic'
 
 import { AttachmentPreview } from './attachment-preview'
 import { ComposerUploader } from './uploader'
+
+export function ComposerHint() {
+  return (
+    <p className="text-muted-foreground mt-1.5 px-1 text-[10px]">
+      <Trans ns="philharmonic" i18nKey="chat.composer.hint">
+        Press <kbd className="bg-background rounded px-1 py-px">Enter</kbd> to
+        send,{' '}
+        <kbd className="bg-background ml-1 rounded px-1 py-px">
+          Shift + Enter
+        </kbd>{' '}
+        for a new line. Paste or attach images.
+      </Trans>
+    </p>
+  )
+}
 
 export function Composer({
   onSend,
@@ -24,6 +40,7 @@ export function Composer({
   busy?: boolean
   onStop?: () => void
 }) {
+  const { t } = useTranslation('philharmonic')
   const [text, setText] = useState('')
   const [attachments, setAttachments] = useAtom(philharmonicAttachmentAtom)
   const { upload } = usePhilharmonicUpload()
@@ -68,7 +85,7 @@ export function Composer({
               }
             }}
             onPaste={onPaste}
-            placeholder="Message your team…"
+            placeholder={t('chat.composer.placeholder')}
             className="max-h-48 min-h-[36px] resize-none border-0 bg-transparent p-1.5 shadow-none focus-visible:ring-0 dark:bg-transparent"
           />
           <ComposerUploader />
@@ -77,7 +94,7 @@ export function Composer({
               size="icon-sm"
               variant="destructive"
               onClick={onStop}
-              aria-label="Stop"
+              aria-label={t('chat.composer.stopAria')}
               className="shrink-0 rounded-lg"
             >
               <SquareIcon className="h-3 w-3 fill-current" />
@@ -87,7 +104,7 @@ export function Composer({
               size="icon-sm"
               onClick={submit}
               disabled={!canSend}
-              aria-label="Send"
+              aria-label={t('chat.composer.sendAria')}
               className="shrink-0 rounded-lg"
             >
               <SendIcon className="h-3.5 w-3.5" />
@@ -95,14 +112,7 @@ export function Composer({
           )}
         </div>
       </div>
-      <p className="text-muted-foreground mt-1.5 px-1 text-[10px]">
-        Press <kbd className="bg-background rounded px-1 py-px">Enter</kbd> to
-        send,{' '}
-        <kbd className="bg-background ml-1 rounded px-1 py-px">
-          Shift + Enter
-        </kbd>{' '}
-        for a new line. Paste or attach images.
-      </p>
+      <ComposerHint />
     </div>
   )
 }

@@ -1,10 +1,10 @@
 #!/usr/bin/env node
-// Rasterize the icon SVGs into the PNGs Electron's Tray + electron-builder
+// Rasterize the icon SVGs into the PNGs Electron's Tray + the packagers
 // expect. Uses headless Chrome — qlmanage produces a black-square preview
 // for these template SVGs, and we'd rather not require a Homebrew install
 // (librsvg) just for this one task.
 //
-// Run with `pnpm icons` after editing resources/icon{Template,}.svg.
+// Run with `bun run icons` after editing resources/icon{Template,}.svg.
 import { execFileSync, spawn } from 'node:child_process'
 import { existsSync, mkdtempSync, rmSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'

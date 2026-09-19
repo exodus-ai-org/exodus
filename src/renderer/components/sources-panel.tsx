@@ -1,6 +1,7 @@
-import type { WebSearchResult } from '@shared/types/web-search'
+import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import { useAtom } from 'jotai'
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { sourcesPanelAtom } from '@/stores/chat'
 
@@ -60,6 +61,7 @@ function SourceLink({ item }: { item: WebSearchResult }) {
 }
 
 export function SourcesPanel() {
+  const { t } = useTranslation('chat')
   const [sourcesData, setSourcesData] = useAtom(sourcesPanelAtom)
   const isOpen = sourcesData !== null
 
@@ -76,7 +78,7 @@ export function SourcesPanel() {
     <SheetPanel open={isOpen} onClose={() => setSourcesData(null)} className="">
       <div className="bg-background sticky top-0 z-10 flex h-12 shrink-0 items-center border-b px-4">
         <h2 className="text-sm font-semibold">
-          {webSearchResults.length} Sources
+          {t('sourcesPanel.title', { count: webSearchResults.length })}
         </h2>
       </div>
 
@@ -85,7 +87,7 @@ export function SourcesPanel() {
           {cited.length > 0 && (
             <>
               <p className="mb-2 px-3 text-xs font-semibold">
-                Citations ({cited.length})
+                {t('sourcesPanel.citations', { count: cited.length })}
               </p>
               <div className="flex flex-col gap-0.5">
                 {cited.map((item) => (
@@ -97,7 +99,9 @@ export function SourcesPanel() {
           {more.length > 0 && (
             <>
               {cited.length > 0 && <Separator className="my-3" />}
-              <p className="mb-2 px-3 text-xs font-semibold">More</p>
+              <p className="mb-2 px-3 text-xs font-semibold">
+                {t('sourcesPanel.more')}
+              </p>
               <div className="flex flex-col gap-0.5">
                 {more.map((item) => (
                   <SourceLink key={item.link} item={item} />

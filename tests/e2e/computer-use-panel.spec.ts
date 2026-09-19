@@ -1,4 +1,4 @@
-import { TEST_IDS } from '../../src/shared/constants/test-ids'
+import { TEST_IDS } from '../../packages/shared/src/constants/test-ids'
 /**
  * E2E: the in-chat ComputerUseCard for a running `computerUse` session.
  *

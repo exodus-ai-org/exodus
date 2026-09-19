@@ -1,4 +1,3 @@
-// src/main/lib/db/plan-queries.ts
 import { and, asc, desc, eq, isNull } from 'drizzle-orm'
 
 import { db } from './db'

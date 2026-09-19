@@ -1664,7 +1664,7 @@ Replace the empty-state block (~line 478-485):
   messages.length === 0 && (
     <div
       className={cn(
-        'animate-fade-in-up mx-auto flex size-full max-w-4xl flex-col px-8',
+        'animate-fade-in-up mx-auto flex size-full max-w-3xl flex-col px-8',
         showDiscover
           ? 'justify-start pt-12 md:pt-16'
           : 'justify-center md:mt-20'
@@ -1754,7 +1754,7 @@ export function DiscoverFeed() {
 
   return (
     <div
-      className="mt-10 flex flex-col gap-6"
+      className="py-10 flex flex-col gap-6"
       data-testid={TEST_IDS.discover.section}
     >
       <div className="flex items-center justify-between">

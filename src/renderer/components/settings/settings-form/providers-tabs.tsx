@@ -1,4 +1,7 @@
-import { UseFormReturnType } from '@shared/schemas/settings-schema'
+import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
+import { AiProviders } from '@exodus/shared/types/ai'
+import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
@@ -20,13 +23,47 @@ const PROVIDER_TABS = [
   { value: 'ollama', label: 'Ollama', Component: Ollama }
 ] as const
 
+type ProviderTab = (typeof PROVIDER_TABS)[number]['value']
+
+/**
+ * Maps the "Provider" dropdown selection (an `AiProviders` enum value) onto
+ * the matching "Provider keys" tab, so picking a provider above jumps the
+ * tabs below straight to its key fields.
+ */
+const PROVIDER_TO_TAB: Record<AiProviders, ProviderTab> = {
+  [AiProviders.OpenAiGpt]: 'openai',
+  [AiProviders.AzureOpenAi]: 'azure',
+  [AiProviders.AnthropicClaude]: 'claude',
+  [AiProviders.GoogleGemini]: 'gemini',
+  [AiProviders.XaiGrok]: 'grok',
+  [AiProviders.Ollama]: 'ollama'
+}
+
 export function ProvidersTabs({ form }: { form: UseFormReturnType }) {
+  const { t } = useTranslation('settings')
+  const provider = form.watch('providerConfig.provider')
+  const [tab, setTab] = useState<ProviderTab>(
+    () => PROVIDER_TO_TAB[provider as AiProviders] ?? 'openai'
+  )
+
+  // Follow the Provider dropdown: selecting a provider above jumps the key
+  // tabs to it. Manual tab clicks still work — this only reacts when the
+  // dropdown value itself changes.
+  useEffect(() => {
+    const next = PROVIDER_TO_TAB[provider as AiProviders]
+    if (next) setTab(next)
+  }, [provider])
+
   return (
     <div className="flex flex-col gap-8">
       <ProviderConfig form={form} />
 
-      <SettingsSection title="Provider keys" plain>
-        <Tabs defaultValue="openai" className="gap-5">
+      <SettingsSection title={t('providers.keys.sectionTitle')} plain>
+        <Tabs
+          value={tab}
+          onValueChange={(value) => setTab(value as ProviderTab)}
+          className="gap-5"
+        >
           <TabsList className="w-full">
             {PROVIDER_TABS.map((t) => (
               <TabsTrigger key={t.value} value={t.value}>
@@ -35,7 +72,11 @@ export function ProvidersTabs({ form }: { form: UseFormReturnType }) {
             ))}
           </TabsList>
           {PROVIDER_TABS.map(({ value, Component }) => (
-            <TabsContent key={value} value={value}>
+            <TabsContent
+              key={value}
+              value={value}
+              className="flex flex-col gap-5"
+            >
               <Component form={form} />
             </TabsContent>
           ))}

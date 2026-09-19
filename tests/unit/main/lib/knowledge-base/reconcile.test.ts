@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
-vi.mock('@electron-toolkit/utils', () => ({ is: { dev: true } }))
 vi.mock('@main/lib/db/db', () => ({ db: {}, pglite: {} }))
 
 const mockGetSettings = vi.fn()

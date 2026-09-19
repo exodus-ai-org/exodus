@@ -22,7 +22,7 @@ interface IndexMessagePayload {
 
 interface LcmPostTurnPayload {
   chatId: string
-  chatModel: Model<string>
+  model: Model<string>
   apiKey: string
   freshTailSize: number
   contextWindowPercent: number
@@ -31,7 +31,7 @@ interface LcmPostTurnPayload {
 
 interface MemoryConsolidatePayload {
   messages: Array<{ role: string; content: unknown }>
-  chatModel: Model<string>
+  model: Model<string>
   apiKey: string
 }
 
@@ -51,7 +51,7 @@ export const handlers: Record<QueueName, (payload: unknown) => Promise<void>> =
 
     'lcm-post-turn': async (payload) => {
       const p = payload as LcmPostTurnPayload
-      const lcm = new LcmManager(p.chatId, p.chatModel, p.apiKey, {
+      const lcm = new LcmManager(p.chatId, p.model, p.apiKey, {
         freshTailSize: p.freshTailSize,
         contextWindowPercent: p.contextWindowPercent
       })
@@ -61,7 +61,7 @@ export const handlers: Record<QueueName, (payload: unknown) => Promise<void>> =
 
     'memory-consolidate': async (payload) => {
       const p = payload as MemoryConsolidatePayload
-      await runMemoryConsolidation(p.messages, p.chatModel, p.apiKey)
+      await runMemoryConsolidation(p.messages, p.model, p.apiKey)
     },
 
     'kb-sync': async (payload) => {

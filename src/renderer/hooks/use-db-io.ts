@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import { downloadFile } from '@/lib/utils'
@@ -9,6 +10,7 @@ import {
 } from '@/services/db'
 
 export function useDbIo() {
+  const { t } = useTranslation('settings')
   const [exportLoading, setExportLoading] = useState(false)
   const [importLoading, setImportLoading] = useState(false)
   const [deleteLoading, setDeleteLoading] = useState(false)
@@ -21,11 +23,14 @@ export function useDbIo() {
         blob,
         `exodus-export-${new Date().toISOString().slice(0, 10)}.zip`
       )
-      sileo.success({ title: 'Data exported successfully' })
+      sileo.success({ title: t('dataControls.export.successToast') })
     } catch (e) {
       sileo.error({
-        title: 'Export failed',
-        description: e instanceof Error ? e.message : 'Failed to export data.'
+        title: t('dataControls.export.errorToast'),
+        description:
+          e instanceof Error
+            ? e.message
+            : t('dataControls.export.errorFallback')
       })
     } finally {
       setExportLoading(false)
@@ -36,11 +41,14 @@ export function useDbIo() {
     try {
       setImportLoading(true)
       await importAllDataService(file)
-      sileo.success({ title: 'Data imported successfully' })
+      sileo.success({ title: t('dataControls.import.successToast') })
     } catch (e) {
       sileo.error({
-        title: 'Import failed',
-        description: e instanceof Error ? e.message : 'Failed to import data.'
+        title: t('dataControls.import.errorToast'),
+        description:
+          e instanceof Error
+            ? e.message
+            : t('dataControls.import.errorFallback')
       })
     } finally {
       setImportLoading(false)
@@ -51,11 +59,14 @@ export function useDbIo() {
     try {
       setDeleteLoading(true)
       await resetAllDataService()
-      sileo.success({ title: 'All data deleted' })
+      sileo.success({ title: t('dataControls.delete.successToast') })
     } catch (e) {
       sileo.error({
-        title: 'Delete failed',
-        description: e instanceof Error ? e.message : 'Failed to delete data.'
+        title: t('dataControls.delete.errorToast'),
+        description:
+          e instanceof Error
+            ? e.message
+            : t('dataControls.delete.errorFallback')
       })
     } finally {
       setDeleteLoading(false)

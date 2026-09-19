@@ -63,8 +63,8 @@ export const computerUse: AgentTool<typeof schema> = {
         }
       }
 
-      const { chatModel, apiKey } = getModelFromProvider(s)
-      const agent = new ClaudeComputerAgent({ task, model: chatModel, apiKey })
+      const { model, apiKey } = getModelFromProvider(s)
+      const agent = new ClaudeComputerAgent({ task, model, apiKey })
 
       const sessionId = uuidV4()
       const guard = new Guard()

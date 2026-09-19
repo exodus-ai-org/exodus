@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from 'vitest'
 
 // Mock modules that transitively import Electron
 vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
-vi.mock('@electron-toolkit/utils', () => ({ is: { dev: true } }))
 
 const { LcmStatusBus } =
   await import('@main/lib/ai/context-management/lcm-status-bus')

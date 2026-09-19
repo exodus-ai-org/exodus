@@ -18,8 +18,8 @@ export function IconWrapper({
   return (
     <Button
       variant="ghost"
-      size="icon-xs"
-      className="text-muted-foreground hover:bg-secondary"
+      size="icon-sm"
+      className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg [&_svg]:size-4"
       onClick={onClick}
     >
       {children}

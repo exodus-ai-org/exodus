@@ -45,7 +45,9 @@ export const writeFile: AgentTool<typeof writeFileSchema> = {
       }
     } catch (err: unknown) {
       const e = err as { message?: string }
-      throw new Error(`Failed to write file "${path}": ${e.message}`)
+      throw new Error(`Failed to write file "${path}": ${e.message}`, {
+        cause: err
+      })
     }
   }
 }

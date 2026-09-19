@@ -1,4 +1,4 @@
-import { WebSearchResult } from '@shared/types/web-search'
+import { WebSearchResult } from '@exodus/shared/types/web-search'
 
 import { fetchWebSearch } from '../utils/web-search-util'
 

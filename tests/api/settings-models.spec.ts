@@ -1,0 +1,22 @@
+/**
+ * API integration tests for /api/settings/models
+ */
+import { apiTest as test, expect } from '../fixtures/api-client'
+
+test.describe('POST /api/settings/models', () => {
+  test('rejects an unknown provider', async ({ api }) => {
+    const { status } = await api.post('/api/settings/models', {
+      provider: 'not-a-real-provider'
+    })
+    expect(status).toBe(400)
+  })
+
+  test('rejects a missing API key for a non-Ollama provider', async ({
+    api
+  }) => {
+    const { status } = await api.post('/api/settings/models', {
+      provider: 'OpenAI GPT'
+    })
+    expect(status).toBe(400)
+  })
+})

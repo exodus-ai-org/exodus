@@ -1,0 +1,22 @@
+{
+  "alert": "Discover trasforma la tua Memoria salvata in un feed di notizie personalizzato nella home page: attivandolo, i tuoi argomenti di memoria vengono inviati al tuo provider AI (per trasformarli in query di ricerca) e le query risultanti vengono inviate a Brave (lo stesso provider usato per la Ricerca web) circa una volta al giorno. Disattivato per impostazione predefinita; nulla lascia il tuo computer finché non lo attivi.",
+  "enable": {
+    "label": "Attiva Discover",
+    "description": "Mostra un feed di notizie personalizzato nella home page."
+  },
+  "braveKeyHint": "Discover richiede una chiave API di Brave Search. <2>Aggiungine una in Strumenti integrati</2>.",
+  "topicCount": {
+    "label": "Argomenti",
+    "description": "Quanti argomenti derivati dalla memoria mostrare. Predefinito 4."
+  },
+  "articlesPerTopic": {
+    "label": "Articoli per argomento",
+    "description": "Quanti articoli mostrare per ogni riga di argomento. Predefinito 3."
+  },
+  "heading": "Discover",
+  "updatedAgo": "aggiornato {{time}}",
+  "refreshButton": "Aggiorna",
+  "toast": {
+    "refreshFailed": "Aggiornamento non riuscito"
+  }
+}

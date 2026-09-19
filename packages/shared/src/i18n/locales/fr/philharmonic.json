@@ -1,0 +1,299 @@
+{
+  "container": {
+    "toast": {
+      "groupDeleted": "Groupe supprimé",
+      "deleteGroupFailed": "Impossible de supprimer le groupe"
+    },
+    "tabs": {
+      "costs": "Coûts",
+      "schedule": "Planification"
+    },
+    "noGroupSelected": {
+      "title": "Aucun groupe sélectionné",
+      "description": "Choisissez un groupe à gauche, ou créez-en un nouveau pour envoyer un message à votre équipe virtuelle.",
+      "createButton": "Créer un groupe"
+    },
+    "newGroupDefaultTitle": "Nouveau groupe"
+  },
+  "schedule": {
+    "tab": {
+      "heading": "Planification",
+      "upcomingTrigger": "À venir",
+      "recurringTrigger": "Récurrentes"
+    },
+    "unknownGroup": "Groupe inconnu",
+    "scheduleTaskButton": "Planifier une tâche",
+    "upcomingList": {
+      "empty": "Aucune tâche ponctuelle à venir. Planifiez-en une pour la voir ici."
+    },
+    "recurringList": {
+      "empty": "Aucune tâche récurrente pour le moment.",
+      "lastRun": "dernière {{time}}",
+      "nextRun": "prochaine {{time}}"
+    },
+    "taskCard": {
+      "status": {
+        "pending": "En attente",
+        "running": "En cours",
+        "completed": "Terminée",
+        "failed": "Échouée",
+        "cancelled": "Annulée",
+        "waiting_for_user": "En attente de l'utilisateur"
+      },
+      "priority": {
+        "low": "Faible",
+        "medium": "Moyenne",
+        "high": "Élevée",
+        "urgent": "Urgente"
+      },
+      "cancelAria": "Annuler la tâche planifiée"
+    },
+    "toast": {
+      "loadUpcomingFailed": "Impossible de charger les tâches à venir",
+      "loadRecurringFailed": "Impossible de charger les tâches récurrentes",
+      "taskCancelled": "Tâche annulée",
+      "cancelTaskFailed": "Impossible d'annuler la tâche",
+      "taskScheduled": "Tâche planifiée",
+      "scheduleTaskFailed": "Impossible de planifier la tâche"
+    },
+    "form": {
+      "title": "Planifier une tâche",
+      "description": "S'exécute dans un groupe existant, une fois ou selon une planification récurrente.",
+      "titleLabel": "Titre",
+      "descriptionLabel": "Description",
+      "groupLabel": "Groupe",
+      "groupPlaceholder": "Choisir un groupe",
+      "onceButton": "Ponctuelle",
+      "recurringButton": "Récurrente",
+      "pickDateButton": "Choisir une date",
+      "submitting": "Planification…",
+      "cronPresets": {
+        "dailyNine": "Tous les jours à 9h00",
+        "mondayNine": "Tous les lundis à 9h00",
+        "custom": "Personnalisé"
+      }
+    }
+  },
+  "chat": {
+    "attachmentPreview": {
+      "removeAria": "Supprimer {{name}}"
+    },
+    "uploader": {
+      "attachAria": "Joindre des images",
+      "s3FallbackTitle": "Échec du téléversement S3, utilisation de données intégrées",
+      "attachFailedTitle": "Impossible de joindre les fichiers"
+    },
+    "composer": {
+      "placeholder": "Envoyer un message à votre équipe…",
+      "stopAria": "Arrêter",
+      "sendAria": "Envoyer",
+      "hint": "Appuyez sur <1>Entrée</1> pour envoyer, <4>Maj + Entrée</4> pour un saut de ligne. Collez ou joignez des images."
+    },
+    "planCard": {
+      "elapsed": {
+        "lessThanMin": "< 1 min",
+        "minutes": "{{count}} min",
+        "hoursMinutes": "{{hours}} h {{minutes}} min"
+      },
+      "status": {
+        "active": "active",
+        "done": "terminée",
+        "aborted": "interrompue",
+        "draft": "brouillon"
+      },
+      "stepStatusAria": {
+        "pending": "En attente",
+        "running": "En cours",
+        "done": "Terminé",
+        "skipped": "Ignoré",
+        "failed": "Échoué"
+      }
+    },
+    "roles": {
+      "pm": "PM",
+      "employeeFallback": "Employé"
+    },
+    "membersPanel": {
+      "heading": "Membres",
+      "coordinatorsLabel": "Coordinateurs",
+      "unassignedLabel": "Non assigné",
+      "idleCount": "{{count}} inactifs",
+      "busyCount": "{{count}} occupés",
+      "idle": "inactif",
+      "noTeam": "Aucune équipe",
+      "pmIdleActivity": "Stratégie · inactif",
+      "emptyState": {
+        "title": "Aucun coéquipier pour le moment",
+        "description": "Le PM recrutera des coéquipiers selon les besoins."
+      }
+    },
+    "conversationList": {
+      "configNav": {
+        "workforce": "Effectif",
+        "dashboard": "Tableau de bord"
+      },
+      "searchPlaceholder": "Rechercher des groupes",
+      "newGroupMenuItem": "Nouveau groupe",
+      "emptyState": {
+        "title": "Aucun groupe pour le moment",
+        "description": "Créez-en un pour envoyer un message à votre équipe virtuelle.",
+        "createButton": "+ Nouveau groupe"
+      },
+      "searchNoMatch": "Aucun groupe ne correspond à « {{query}} »",
+      "noMessagesYetPreview": "Nouveau groupe · aucun message pour le moment",
+      "deleteDialog": {
+        "title": "Supprimer ce groupe ?",
+        "description": "<0>{{title}}</0> ainsi que tous ses messages, tâches et exécutions seront définitivement supprimés."
+      }
+    },
+    "dateLabels": {
+      "today": "Aujourd'hui",
+      "yesterday": "Hier"
+    },
+    "groupChat": {
+      "renameTitle": "Cliquez pour renommer",
+      "errorTitle": "Le groupe a rencontré une erreur",
+      "memberCount_one": "{{count}} membre",
+      "memberCount_other": "{{count}} membres",
+      "toggleMembersAria": "Afficher/masquer les membres",
+      "emptyState": {
+        "title": "Confiez une tâche à votre équipe",
+        "description": "Décrivez ce dont vous avez besoin. Le PM analysera, recrutera et déléguera aux employés virtuels, puis fera un rapport ici."
+      },
+      "askUser": {
+        "replyPlaceholder": "Répondre au PM…",
+        "sendButton": "Envoyer"
+      }
+    }
+  },
+  "employees": {
+    "avatar": {
+      "alt": "avatar"
+    },
+    "picker": {
+      "reroll": "Relancer"
+    },
+    "editor": {
+      "header": {
+        "label": "Employé",
+        "newFallback": "Nouvel employé"
+      },
+      "avatarAria": "Modifier l'avatar",
+      "fields": {
+        "name": "Nom",
+        "team": "Équipe",
+        "teamPlaceholder": "Sélectionner une équipe",
+        "teamHelp": "Chaque employé appartient à une équipe — le prompt système de l'équipe est appliqué à tous ses membres.",
+        "description": "Description",
+        "descriptionPlaceholder": "Une ligne décrivant ce que fait cet employé.",
+        "systemPrompt": "Prompt système",
+        "systemPromptPlaceholder": "Vient s'ajouter au prompt de l'équipe.",
+        "skills": "Compétences",
+        "noSkills": "Aucune compétence installée pour le moment.",
+        "mcpServers": "Serveurs MCP",
+        "noMcpServers": "Aucun serveur MCP configuré pour le moment.",
+        "mcpServersHelp": "Si aucun n'est sélectionné, l'employé peut utiliser tous les serveurs disponibles.",
+        "memory": "Mémoire (lecture seule)",
+        "noMemory": "Aucune mémoire accumulée pour le moment"
+      }
+    }
+  },
+  "teams": {
+    "editor": {
+      "header": {
+        "label": "Équipe",
+        "newFallback": "Nouvelle équipe"
+      },
+      "fields": {
+        "name": "Nom",
+        "icon": "Icône (émoji, facultatif)",
+        "description": "Description",
+        "descriptionPlaceholder": "Bref résumé de ce que fait cette équipe.",
+        "systemPrompt": "Prompt système",
+        "systemPromptPlaceholder": "Instructions communes ajoutées au prompt de chaque membre de cette équipe."
+      }
+    }
+  },
+  "costAnalysis": {
+    "header": {
+      "title": "Tableau de bord"
+    },
+    "period": {
+      "last7Days": "7 derniers jours",
+      "last30Days": "30 derniers jours",
+      "allTime": "Depuis le début"
+    },
+    "periodToggle": {
+      "sevenDays": "7j",
+      "thirtyDays": "30j",
+      "all": "Tout"
+    },
+    "loading": "Chargement des données d'utilisation…",
+    "kpi": {
+      "totalCost": "Coût total",
+      "totalCostHint_one": "Sur {{count}} employé",
+      "totalCostHint_other": "Sur {{count}} employés",
+      "tokens": "Jetons",
+      "tokensHint": "Total traité",
+      "employees": "Employés",
+      "employeesHint": "Avec utilisation enregistrée",
+      "conversations": "Conversations",
+      "conversationsHint": "Avec activité"
+    },
+    "chart": {
+      "costLabel": "Coût",
+      "sectionTitle": "Coût dans le temps"
+    },
+    "agentCostList": {
+      "title": "Coût par employé",
+      "empty": "Aucune donnée d'utilisation par employé pour le moment",
+      "tokens": "{{tokens}} jetons"
+    },
+    "conversationCostList": {
+      "title": "Coût par conversation",
+      "empty": "Aucune donnée d'utilisation par conversation pour le moment"
+    }
+  },
+  "workforce": {
+    "header": {
+      "title": "Effectif",
+      "employeeCount_one": "{{count}} employé",
+      "employeeCount_other": "{{count}} employés",
+      "teamCount_one": "{{count}} équipe",
+      "teamCount_other": "{{count}} équipes",
+      "addTeamButton": "Équipe",
+      "addEmployeeButton": "Employé",
+      "createTeamFirstTitle": "Créez d'abord une équipe"
+    },
+    "emptyState": {
+      "title": "Commencez par une équipe",
+      "description": "Chaque employé appartient à une équipe qui fournit un prompt système partagé. Créez d'abord une équipe, puis ajoutez les employés qui en font partie.",
+      "createButton": "+ Nouvelle équipe"
+    },
+    "teamSection": {
+      "editTeam": "Modifier l'équipe",
+      "addEmployeeHere": "Ajouter un employé ici",
+      "deleteTeam": "Supprimer l'équipe",
+      "unassignedFallback": "Aucune équipe",
+      "addEmployeeButton": "Ajouter un employé"
+    },
+    "newEmployeeDefaultName": "Nouvel employé",
+    "newTeamDefaultName": "Nouvelle équipe",
+    "deleteEmployeeDialog": {
+      "title": "Supprimer cet employé ?",
+      "description": "<0>{{name}}</0> sera définitivement supprimé ainsi que sa mémoire accumulée."
+    },
+    "deleteTeamDialog": {
+      "title": "Supprimer cette équipe ?",
+      "description": "<0>{{name}}</0> sera supprimée. Les membres existants conservent leurs données mais perdent leur affiliation à cette équipe."
+    },
+    "toast": {
+      "created": "« {{name}} » créé",
+      "deleted": "« {{name}} » supprimé",
+      "saveEmployeeFailed": "Impossible d'enregistrer l'employé",
+      "deleteEmployeeFailed": "Impossible de supprimer l'employé",
+      "saveTeamFailed": "Impossible d'enregistrer l'équipe",
+      "deleteTeamFailed": "Impossible de supprimer l'équipe"
+    }
+  }
+}

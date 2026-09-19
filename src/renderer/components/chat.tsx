@@ -1,19 +1,19 @@
-import { QUICK_CHAT_KEY } from '@shared/constants/misc'
-import { BASE_URL } from '@shared/constants/systems'
-import { Attachment, ChatMessage } from '@shared/types/chat'
-import type { Project } from '@shared/types/db'
+import { QUICK_CHAT_KEY } from '@exodus/shared/constants/misc'
+import { BASE_URL } from '@exodus/shared/constants/systems'
+import { ChatMessage } from '@exodus/shared/types/chat'
 import { useSetAtom } from 'jotai'
 import { useAtomCallback } from 'jotai/utils'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router'
 import { sileo } from 'sileo'
-import { mutate } from 'swr'
-import useSWR from 'swr'
+import useSWR, { mutate } from 'swr'
 import { v4 as uuidV4 } from 'uuid'
 
 import { useChat } from '@/hooks/use-chat'
-import { advancedToolsAtom } from '@/stores/chat'
+import { advancedToolsAtom, reasoningEffortAtom } from '@/stores/chat'
 import { chatInputAtom, chatStatusAtom, chatStopFnAtom } from '@/stores/input'
+import type { Project } from '@/types/db'
 
 import { LcmStatusCard } from './chat/lcm-status-card'
 import Messages from './messages'
@@ -53,6 +53,7 @@ export function Chat({
   chatTitle,
   showDiscover
 }: Props) {
+  const { t } = useTranslation('chat')
   const { id: routeId } = useParams()
   const navigate = useNavigate()
   // Read once on mount — quick-chat hand-off only fires for the first render of a fresh chat.
@@ -67,6 +68,9 @@ export function Chat({
   const getAdvancedTools = useAtomCallback(
     useCallback((get) => get(advancedToolsAtom), [])
   )
+  const getReasoningEffort = useAtomCallback(
+    useCallback((get) => get(reasoningEffortAtom), [])
+  )
   const projectIdRef = useRef(projectId)
   projectIdRef.current = projectId
 
@@ -74,7 +78,6 @@ export function Chat({
   const setChatStatus = useSetAtom(chatStatusAtom)
   const setChatStop = useSetAtom(chatStopFnAtom)
 
-  const [attachments, setAttachments] = useState<Attachment[]>([])
   const [title, setTitle] = useState(chatTitle)
 
   const {
@@ -96,6 +99,7 @@ export function Chat({
       id,
       messages,
       advancedTools: getAdvancedTools(),
+      reasoningEffort: getReasoningEffort(),
       projectId: projectIdRef.current
     }),
     onFinish: () => {
@@ -106,11 +110,9 @@ export function Chat({
     },
     onError: (e) => {
       sileo.error({
-        title: 'Something went wrong',
+        title: t('toast.sendFailedTitle'),
         description:
-          e instanceof Error
-            ? e.message
-            : 'An error occurred, please try again!'
+          e instanceof Error ? e.message : t('toast.sendFailedDescription')
       })
     },
     onTitle: (newTitle) => {
@@ -145,26 +147,47 @@ export function Chat({
     }
   }, [id, sendMessage, setChatInput])
 
-  return (
+  const composer = (
     <>
-      {projectId && <ProjectBreadcrumb projectId={projectId} />}
-      <Messages
-        chatId={id}
-        status={status}
-        messages={messages}
-        regenerate={regenerate}
-        showDiscover={showDiscover}
-      />
       <LcmStatusCard chatId={id} />
       <MultimodalInput
         chatId={id}
-        attachments={attachments}
-        setAttachments={setAttachments}
         messages={messages}
         setMessages={setMessages}
         sendMessage={sendMessage}
         lastUsage={lastUsage}
       />
+    </>
+  )
+
+  return (
+    <>
+      {projectId && <ProjectBreadcrumb projectId={projectId} />}
+      <div className="relative flex min-h-0 flex-1 flex-col">
+        <Messages
+          chatId={id}
+          status={status}
+          messages={messages}
+          regenerate={regenerate}
+          showDiscover={showDiscover}
+        />
+
+        {messages.length === 0 ? (
+          // Landing screen: the composer stays in normal flow so the greeting
+          // and the Discover feed above it stay fully visible and clickable —
+          // an overlay here would cover the bottom feed row.
+          <div className="shrink-0 pb-6">{composer}</div>
+        ) : (
+          // Conversation: the composer floats over the message list, which
+          // scrolls its full height behind it and dissolves into a scrim just
+          // above the input (ChatGPT-style). `pointer-events-none` on the dock
+          // lets a wheel over the scrim still scroll the list; its children
+          // opt back in so the pill and status card stay interactive.
+          <div className="from-card pointer-events-none absolute inset-x-0 bottom-0 z-20 bg-linear-to-t to-transparent pb-6 [&>*]:pointer-events-auto">
+            {composer}
+          </div>
+        )}
+      </div>
     </>
   )
 }

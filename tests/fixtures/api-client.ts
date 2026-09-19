@@ -92,6 +92,7 @@ export class ApiClient {
     chatId: string
     text: string
     advancedTools?: string[]
+    reasoningEffort?: string
     projectId?: string
     signal?: AbortSignal
   }) {
@@ -108,6 +109,7 @@ export class ApiClient {
         id: opts.chatId,
         messages: [userMessage],
         advancedTools: opts.advancedTools ?? [],
+        reasoningEffort: opts.reasoningEffort,
         projectId: opts.projectId
       }),
       signal: opts.signal

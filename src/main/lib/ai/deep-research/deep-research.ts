@@ -1,11 +1,11 @@
-import type { Model } from '@mariozechner/pi-ai'
 import {
   DeepResearchProgress,
   Learning,
   QueryWithResearchGoal,
   ReportProgressPayload
-} from '@shared/types/deep-research'
-import { WebSearchResult } from '@shared/types/web-search'
+} from '@exodus/shared/types/deep-research'
+import { WebSearchResult } from '@exodus/shared/types/web-search'
+import type { Model } from '@mariozechner/pi-ai'
 
 import { generateSerpQueries } from './generate-queries'
 import { processSerpResult } from './process-search-results'

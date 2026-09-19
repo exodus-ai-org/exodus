@@ -1,0 +1,22 @@
+{
+  "alert": "O Descobrir transforma sua Memória salva em um feed de notícias personalizado na página inicial — ativá-lo envia seus tópicos de memória para o seu provedor de IA (para transformá-los em consultas de pesquisa) e as consultas resultantes para o Brave (o mesmo provedor usado na Pesquisa na Web) cerca de uma vez por dia. Desativado por padrão; nada sai da sua máquina até que você o ative.",
+  "enable": {
+    "label": "Ativar Descobrir",
+    "description": "Mostrar um feed de notícias personalizado na página inicial."
+  },
+  "braveKeyHint": "O Descobrir precisa de uma chave de API do Brave Search. <2>Adicione uma em Ferramentas Integradas</2>.",
+  "topicCount": {
+    "label": "Tópicos",
+    "description": "Quantos tópicos derivados da memória mostrar. Padrão: 4."
+  },
+  "articlesPerTopic": {
+    "label": "Artigos por tópico",
+    "description": "Quantos artigos por linha de tópico. Padrão: 3."
+  },
+  "heading": "Descobrir",
+  "updatedAgo": "atualizado {{time}}",
+  "refreshButton": "Atualizar",
+  "toast": {
+    "refreshFailed": "Falha ao atualizar"
+  }
+}

@@ -3,7 +3,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@main/lib/db/db', () => ({ pglite: {} }))
 vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
-vi.mock('@electron-toolkit/utils', () => ({ is: { dev: true } }))
 
 const mockElasticsearchSearch = vi.fn()
 const mockPgliteSearch = vi.fn()

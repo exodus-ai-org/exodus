@@ -1,11 +1,13 @@
-import type { Settings } from '@shared/schemas/settings-schema'
-import { getHttpErrorMessage } from '@shared/utils/http'
+import type { Settings } from '@exodus/shared/schemas/settings-schema'
+import { getHttpErrorMessage, toErrorI18n } from '@exodus/shared/utils/http'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 import useSWR from 'swr'
 
 import { updateSettings as updateSettingsService } from '@/services/settings'
 
 export function useSettings() {
+  const { t, i18n } = useTranslation(['errors', 'settings'])
   const { data, error, isLoading, mutate } = useSWR<Settings>('/api/settings')
 
   const updateSettings = async (payload: Settings) => {
@@ -13,8 +15,8 @@ export function useSettings() {
       await updateSettingsService(payload)
     } catch (err) {
       sileo.error({
-        title: 'Failed to save settings',
-        description: getHttpErrorMessage(err)
+        title: t('settings:toast.saveFailed'),
+        description: getHttpErrorMessage(err, toErrorI18n(i18n))
       })
       return
     }
@@ -28,7 +30,7 @@ export function useSettings() {
       (current) => ({ ...(current as Settings), ...payload }) as Settings,
       { revalidate: false }
     )
-    sileo.success({ title: 'Auto saved' })
+    sileo.success({ title: t('settings:toast.autoSaved') })
   }
 
   return {

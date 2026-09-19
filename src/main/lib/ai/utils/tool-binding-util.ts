@@ -1,9 +1,11 @@
+import { AdvancedTools, McpTools } from '@exodus/shared/types/ai'
+import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import type { AgentTool } from '@mariozechner/pi-agent-core'
 import type { Model } from '@mariozechner/pi-ai'
-import { AdvancedTools, McpTools } from '@shared/types/ai'
 
 import { Settings } from '../../db/schema'
 import { resolveKnowledgeBase } from '../../knowledge-base/resolve-knowledge-base'
+import { logger } from '../../logger'
 import {
   computerUse,
   createArtifact,
@@ -33,6 +35,15 @@ import {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ErasedTool = AgentTool<any>
+
+// OpenAI's Chat Completions API hard-rejects a `tools` array over 128 entries
+// (400 "array too long") — the whole request fails, not just the overflow
+// tools. Built-ins stay comfortably under this on their own; MCP servers are
+// what push the total over (a single server can expose 100+ tools), so they
+// get truncated to whatever budget built-ins leave. Applied for every
+// provider, not just OpenAI: no other provider here documents a higher
+// tolerance, and 128+ tool schemas bloat the request regardless.
+const MAX_TOOLS = 128
 
 export function bindCallingTools({
   advancedTools,
@@ -72,9 +83,12 @@ export function bindCallingTools({
   if (enabled('listDirectory')) tools.push(listDirectory)
   if (enabled('findFiles')) tools.push(findFiles)
   if (enabled('grep')) tools.push(grep)
-  if (enabled('webFetch')) tools.push(webFetch())
+  // webSearch + webFetch share one rank registry so 【N-source】 citations
+  // resolve regardless of which tool produced source N.
+  const webSources = new Map<string, WebSearchResult>()
+  if (enabled('webFetch')) tools.push(webFetch(webSources))
   if (enabled('createArtifact') && chatId) tools.push(createArtifact(chatId))
-  if (enabled('webSearch')) tools.push(webSearch(setting))
+  if (enabled('webSearch')) tools.push(webSearch(setting, webSources))
   if (setting.computerUse?.enabled && enabled('computerUse'))
     tools.push(computerUse)
 
@@ -93,5 +107,14 @@ export function bindCallingTools({
     }
   }
 
-  return [...mcpToolsList, ...tools]
+  const combined = [...tools, ...mcpToolsList]
+  if (combined.length <= MAX_TOOLS) return combined
+
+  const kept = combined.slice(0, MAX_TOOLS)
+  logger.warn('chat', 'Too many tools bound; truncating to provider limit', {
+    total: combined.length,
+    kept: kept.length,
+    dropped: combined.length - kept.length
+  })
+  return kept
 }

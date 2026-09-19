@@ -1,10 +1,12 @@
 // src/renderer/components/philharmonic/chat/attachment-preview.tsx
 import { useAtom } from 'jotai'
 import { XIcon } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { philharmonicAttachmentAtom } from '@/stores/philharmonic'
 
 export function AttachmentPreview() {
+  const { t } = useTranslation('philharmonic')
   const [attachments, setAttachments] = useAtom(philharmonicAttachmentAtom)
 
   if (attachments.length === 0) return null
@@ -20,7 +22,9 @@ export function AttachmentPreview() {
           />
           <button
             type="button"
-            aria-label={`Remove ${a.name}`}
+            aria-label={t('chat.attachmentPreview.removeAria', {
+              name: a.name
+            })}
             onClick={() =>
               setAttachments((p) => p.filter((_, idx) => idx !== i))
             }

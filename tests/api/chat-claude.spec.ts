@@ -71,7 +71,8 @@ test.describe('Chat — Claude', () => {
     const events = await api.sendChatMessage({
       chatId,
       text: 'Think step by step: what is 15 factorial divided by 14 factorial?',
-      advancedTools: ['Reasoning']
+      advancedTools: [],
+      reasoningEffort: 'high'
     })
 
     const error = getError(events)

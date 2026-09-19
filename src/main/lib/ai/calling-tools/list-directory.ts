@@ -60,7 +60,9 @@ export const listDirectory: AgentTool<typeof listDirectorySchema> = {
       }
     } catch (err: unknown) {
       const e = err as { message?: string }
-      throw new Error(`Failed to list directory "${path}": ${e.message}`)
+      throw new Error(`Failed to list directory "${path}": ${e.message}`, {
+        cause: err
+      })
     }
   }
 }

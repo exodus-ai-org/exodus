@@ -10,7 +10,7 @@ function jsonResponse(body: unknown, ok = true, status = 200) {
 }
 
 describe('searchBraveNews', () => {
-  it('sends the query, count, freshness, and auth header', async () => {
+  it('sends the query, a widened pool count, freshness, and auth header', async () => {
     fetchMock.mockResolvedValue(jsonResponse({ results: [] }))
     await searchBraveNews('k', 'SoftBank 9984', {
       count: 3,
@@ -19,11 +19,48 @@ describe('searchBraveNews', () => {
     })
     const [url, init] = fetchMock.mock.calls[0]
     expect(String(url)).toContain('q=SoftBank')
-    expect(String(url)).toContain('count=3')
+    // Requests a wide relevance-ranked pool (min 12), then re-ranks locally.
+    expect(String(url)).toContain('count=15')
     expect(String(url)).toContain('freshness=pd')
     expect(String(url)).toContain('country=us')
     expect(String(url)).toContain('search_lang=en')
     expect(init.headers['x-subscription-token']).toBe('k')
+  })
+
+  it('re-ranks the pool by recency and returns the freshest `count`', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({
+        results: [
+          {
+            title: 'old preview',
+            url: 'https://x/1',
+            page_age: '2026-09-09T09:00:00'
+          },
+          {
+            title: 'match report',
+            url: 'https://x/2',
+            page_age: '2026-09-09T18:46:20'
+          },
+          { title: 'mid', url: 'https://x/3', page_age: '2026-09-09T13:00:00' }
+        ]
+      })
+    )
+    const res = await searchBraveNews('k', 'q', { count: 2 })
+    expect(res.map((a) => a.title)).toEqual(['match report', 'mid'])
+    expect(res[0].publishedAt).toBe('2026-09-09T18:46:20Z')
+  })
+
+  it('sorts a result with no timestamp to the bottom (evergreen page)', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({
+        results: [
+          { title: 'club profile', url: 'https://x/profile' },
+          { title: 'todays news', url: 'https://x/news', age: '3 hours ago' }
+        ]
+      })
+    )
+    const res = await searchBraveNews('k', 'q', { count: 2 })
+    expect(res.map((a) => a.title)).toEqual(['todays news', 'club profile'])
   })
 
   it('maps results, preferring source over meta_url.hostname', async () => {
@@ -54,6 +91,24 @@ describe('searchBraveNews', () => {
         age: '2h'
       }
     ])
+  })
+
+  it('prefers profile.name (the readable outlet) over source and hostname', async () => {
+    fetchMock.mockResolvedValue(
+      jsonResponse({
+        results: [
+          {
+            title: 'C',
+            url: 'https://www.espn.com/soccer/story',
+            source: 'espn.com',
+            profile: { name: 'ESPN' },
+            meta_url: { hostname: 'www.espn.com' }
+          }
+        ]
+      })
+    )
+    const res = await searchBraveNews('k', 'q', { count: 3 })
+    expect(res[0].source).toBe('ESPN')
   })
 
   it('falls back to meta_url.hostname when source is missing', async () => {

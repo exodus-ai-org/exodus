@@ -1,0 +1,46 @@
+{
+  "appName": "Exodus",
+  "action": {
+    "save": "저장",
+    "saving": "저장 중…",
+    "cancel": "취소",
+    "delete": "삭제",
+    "close": "닫기",
+    "retry": "재시도",
+    "confirm": "확인",
+    "edit": "편집",
+    "add": "추가",
+    "create": "만들기",
+    "copy": "복사"
+  },
+  "state": {
+    "loading": "로딩 중…",
+    "local": "로컬",
+    "runOnLocal": "로컬에서 실행",
+    "you": "나",
+    "copied": "복사됨"
+  },
+  "nav": {
+    "settings": "설정"
+  },
+  "uploader": {
+    "dragDrop": "파일을 여기에 끌어다 놓으세요",
+    "hint": "또는 클릭하여 찾아보기 (최대 2개 파일, 파일당 최대 5MB)"
+  },
+  "composer": {
+    "reasoning": "추론",
+    "reasoningPill": "추론: {{label}}",
+    "reasoningLevel": {
+      "off": "끄기",
+      "low": "낮음",
+      "medium": "보통",
+      "high": "높음",
+      "xhigh": "매우 높음",
+      "max": "최대"
+    }
+  },
+  "clipboard": {
+    "failedTitle": "복사에 실패했습니다",
+    "genericError": "다시 시도해 주세요!"
+  }
+}

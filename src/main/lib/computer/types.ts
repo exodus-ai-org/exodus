@@ -4,7 +4,7 @@
 // `export` added so the rest of the module can import it. `HelperCommand` and
 // `InputHelper` (the `exodus-input` client contract) follow at the bottom.
 
-import type { InstalledApp } from '@shared/types/computer-use'
+import type { InstalledApp } from '@exodus/shared/types/computer-use'
 
 export type { InstalledApp }
 

@@ -1,349 +1,537 @@
-import { UseFormReturnType } from '@shared/schemas/settings-schema'
+import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
+import { format } from 'date-fns'
 import {
-  BrainIcon,
+  ArrowLeftIcon,
+  ArrowUpIcon,
+  ChevronRightIcon,
+  EyeIcon,
   EyeOffIcon,
-  PencilIcon,
+  LoaderIcon,
   PlusIcon,
   Trash2Icon
 } from 'lucide-react'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Controller } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import {
+  InputGroup,
+  InputGroupInput,
+  InputGroupAddon
+} from '@/components/ui/input-group'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { i18n } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 import {
   createMemory,
   deleteMemory,
   getMemories,
+  instructMemory,
   updateMemory,
   type MemoryItem,
-  type MemorySection,
-  type MemorySource
+  type MemorySection
 } from '../../../services/memory'
 import { SettingsRow, SettingsSection } from '../settings-row'
-import { SettingsSelect } from '../settings-select'
 
-const MEMORY_SECTIONS: MemorySection[] = ['profile', 'topic', 'person']
-
-const SECTION_VARIANTS: Record<
-  MemorySection,
-  'default' | 'secondary' | 'outline'
-> = {
-  profile: 'default',
-  topic: 'secondary',
-  person: 'outline'
+/** DB serializes local wall-clock with a trailing `Z`; strip it so the day is right. */
+function updatedLabel(m: MemoryItem): string {
+  const raw = m.updatedAt ?? m.createdAt
+  if (!raw) return ''
+  const d = new Date(raw.replace(/Z$/, ''))
+  return Number.isNaN(d.getTime())
+    ? ''
+    : i18n.t('settings:memory.updatedLabel', { date: format(d, 'MMM d') })
 }
 
-// ─── Memory Edit Dialog ───────────────────────────────────────────────────────
-
-interface MemoryDialogProps {
-  open: boolean
-  onClose: () => void
-  memory?: MemoryItem | null
-  onSaved: () => void
+function detailsFromText(text: string): string[] {
+  return text
+    .split('\n')
+    .map((d) => d.replace(/^[-*]\s*/, '').trim())
+    .filter(Boolean)
 }
 
-function MemoryDialog({ open, onClose, memory, onSaved }: MemoryDialogProps) {
-  const isEdit = !!memory
-  const [section, setSection] = useState<MemorySection>('topic')
-  const [key, setKey] = useState('')
-  const [summary, setSummary] = useState('')
-  const [detailsText, setDetailsText] = useState('')
-  const [confidence, setConfidence] = useState('0.8')
-  const [source, setSource] = useState<MemorySource>('system')
-  const [saving, setSaving] = useState(false)
+// ─── List row ─────────────────────────────────────────────────────────────────
 
-  useEffect(() => {
-    setSection(memory?.section ?? 'topic')
-    setKey(memory?.key ?? '')
-    setSummary(memory?.summary ?? '')
-    setDetailsText((memory?.details ?? []).join('\n'))
-    setConfidence(
-      memory?.confidence != null ? String(memory.confidence) : '0.8'
-    )
-    setSource(memory?.source ?? 'system')
-  }, [memory, open])
-
-  const handleSave = async () => {
-    if (!key.trim() || !summary.trim()) {
-      sileo.error({ title: 'Key and summary are required' })
-      return
-    }
-    setSaving(true)
-    try {
-      const details = detailsText
-        .split('\n')
-        .map((d) => d.replace(/^[-*]\s*/, '').trim())
-        .filter(Boolean)
-      const fields = {
-        section,
-        key: key.trim(),
-        summary: summary.trim(),
-        details,
-        confidence: parseFloat(confidence)
-      }
-      if (isEdit && memory) {
-        await updateMemory(memory.id, { ...fields, source })
-        sileo.success({ title: 'Memory updated' })
-      } else {
-        await createMemory({ ...fields, source })
-        sileo.success({ title: 'Memory created' })
-      }
-      onSaved()
-      onClose()
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Operation failed'
-      sileo.error({ title: 'Failed to save memory', description: msg })
-    } finally {
-      setSaving(false)
-    }
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{isEdit ? 'Edit memory' : 'Add memory'}</DialogTitle>
-        </DialogHeader>
-
-        <div className="flex flex-col gap-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div className="flex flex-col gap-1.5">
-              <Label>Section</Label>
-              <SettingsSelect
-                value={section}
-                onValueChange={(v) => setSection(v as MemorySection)}
-                options={MEMORY_SECTIONS.map((s) => ({
-                  value: s,
-                  label: s.charAt(0).toUpperCase() + s.slice(1)
-                }))}
-              />
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <Label>Source</Label>
-              <SettingsSelect
-                value={source}
-                onValueChange={(v) => setSource(v as MemorySource)}
-                options={[
-                  { value: 'explicit', label: 'Explicit' },
-                  { value: 'implicit', label: 'Implicit' },
-                  { value: 'system', label: 'System' }
-                ]}
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label>Title</Label>
-            <Input
-              placeholder="e.g. Classical Music"
-              value={key}
-              onChange={(e) => setKey(e.target.value)}
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label>Summary</Label>
-            <Input
-              placeholder="One sentence"
-              value={summary}
-              onChange={(e) => setSummary(e.target.value)}
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label>Details</Label>
-            <Textarea
-              placeholder={'One bullet per line'}
-              rows={4}
-              value={detailsText}
-              onChange={(e) => setDetailsText(e.target.value)}
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <Label>Confidence (0-1)</Label>
-            <Input
-              type="number"
-              step="0.1"
-              min="0"
-              max="1"
-              value={confidence}
-              onChange={(e) => setConfidence(e.target.value)}
-              className="w-32"
-            />
-          </div>
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose} disabled={saving}>
-            Cancel
-          </Button>
-          <Button onClick={handleSave} disabled={saving}>
-            {saving ? 'Saving...' : isEdit ? 'Save changes' : 'Add memory'}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
-}
-
-// ─── Memory List Item ─────────────────────────────────────────────────────────
-
-function MemoryListItem({
+function MemoryRow({
   item,
-  onEdit,
+  onOpen,
   onToggle,
   onDelete
 }: {
   item: MemoryItem
-  onEdit: (item: MemoryItem) => void
-  onToggle: (item: MemoryItem) => void
-  onDelete: (item: MemoryItem) => void
+  onOpen: () => void
+  onToggle: () => void
+  onDelete: () => void
 }) {
+  const { t } = useTranslation(['common', 'settings'])
+  const disabled = item.isActive === false
   return (
     <div
-      className={cn(
-        'flex items-start gap-3 rounded-md border p-3 transition-opacity',
-        item.isActive === false && 'opacity-50'
-      )}
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onOpen()
+        }
+      }}
+      className="group hover:bg-muted/55 focus-visible:bg-muted/55 relative flex h-10 cursor-pointer items-center gap-3.5 px-3 outline-none"
     >
-      <div className="min-w-0 flex-1">
-        <div className="mb-1 flex items-center gap-2">
-          <Badge variant={SECTION_VARIANTS[item.section]}>{item.section}</Badge>
-          <span className="truncate text-sm font-medium">{item.key}</span>
-          {item.confidence != null && (
-            <span className="text-muted-foreground ml-auto text-xs">
-              {Math.round(item.confidence * 100)}%
-            </span>
-          )}
-        </div>
-        <p className="text-muted-foreground text-xs">{item.summary}</p>
-        {item.details.length > 0 && (
-          <ul className="text-muted-foreground mt-1 list-disc pl-4 text-xs">
-            {item.details.slice(0, 5).map((d, i) => (
-              <li key={i} className="truncate">
-                {d}
-              </li>
-            ))}
-          </ul>
+      <span
+        className={cn(
+          'max-w-[60%] shrink-0 truncate text-sm font-medium',
+          disabled && 'text-muted-foreground'
         )}
-      </div>
+      >
+        {item.key}
+      </span>
+      <span className="text-muted-foreground min-w-0 flex-1 truncate text-[13px]">
+        {item.summary || (
+          <span className="italic">
+            {t('settings:memory.row.noSummaryYet')}
+          </span>
+        )}
+      </span>
 
-      <div className="flex shrink-0 gap-1">
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-7"
-          title={item.isActive === false ? 'Restore' : 'Disable'}
-          onClick={() => onToggle(item)}
-        >
-          <EyeOffIcon className="size-3.5" data-icon />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-7"
-          title="Edit"
-          onClick={() => onEdit(item)}
-        >
-          <PencilIcon className="size-3.5" data-icon />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-destructive hover:text-destructive size-7"
-          title="Delete"
-          onClick={() => onDelete(item)}
-        >
-          <Trash2Icon className="size-3.5" data-icon />
-        </Button>
+      {/* Fixed slot: a chevron at rest, the eye/trash actions on hover — the
+          slot keeps its width both ways so the swap never nudges the row. */}
+      <div className="relative flex h-7 w-16 shrink-0 items-center justify-end">
+        <ChevronRightIcon
+          className="text-muted-foreground/40 size-4 transition-opacity group-hover:opacity-0"
+          data-icon
+        />
+        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center gap-0.5 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:text-foreground size-7"
+            title={
+              disabled
+                ? t('settings:memory.restoreLabel')
+                : t('settings:memory.disableLabel')
+            }
+            onClick={(e) => {
+              e.stopPropagation()
+              onToggle()
+            }}
+          >
+            {disabled ? (
+              <EyeIcon className="size-3.5" data-icon />
+            ) : (
+              <EyeOffIcon className="size-3.5" data-icon />
+            )}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="text-muted-foreground hover:text-destructive size-7"
+            title={t('action.delete')}
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete()
+            }}
+          >
+            <Trash2Icon className="size-3.5" data-icon />
+          </Button>
+        </div>
       </div>
     </div>
   )
 }
 
-// ─── Main Component ───────────────────────────────────────────────────────────
+// ─── Detail view ──────────────────────────────────────────────────────────────
+
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
+      {children}
+    </span>
+  )
+}
+
+function MemoryDetail({
+  item,
+  onBack,
+  onPatched,
+  onDeleted
+}: {
+  item: MemoryItem
+  onBack: () => void
+  onPatched: (next: MemoryItem) => void
+  onDeleted: () => void
+}) {
+  const { t } = useTranslation(['common', 'settings'])
+  const [key, setKey] = useState(item.key)
+  const [summary, setSummary] = useState(item.summary)
+  const [detailsText, setDetailsText] = useState(() => item.details.join('\n'))
+  const disabled = item.isActive === false
+  // The item snapshot each field was last synced from — lets the effect
+  // below tell "user hasn't touched this field since" apart from "user is
+  // mid-edit," per field.
+  const lastSyncedRef = useRef(item)
+
+  type MemoryPatch = Partial<Pick<MemoryItem, 'key' | 'summary'>> & {
+    details?: string[]
+    isActive?: boolean
+  }
+
+  // Re-sync when a different entry is opened — always wins over any
+  // in-progress, unblurred edit in the previous entry's fields.
+  useEffect(() => {
+    setKey(item.key)
+    setSummary(item.summary)
+    setDetailsText(item.details.join('\n'))
+    lastSyncedRef.current = item
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [item.id])
+
+  // The same entry can also change underneath us without a different `item.id`
+  // — e.g. the natural-language composer below patches it via `instructMemory`,
+  // which reloads the list but leaves this view open. Pull in the new value
+  // per field, but only for a field the user hasn't started typing into since
+  // the last sync, so an in-progress edit in one field survives an unrelated
+  // instruction that only touched another field.
+  useEffect(() => {
+    const prev = lastSyncedRef.current
+    if (item.id !== prev.id) return
+    const prevDetailsText = prev.details.join('\n')
+    setKey((cur) => (cur === prev.key ? item.key : cur))
+    setSummary((cur) => (cur === prev.summary ? item.summary : cur))
+    setDetailsText((cur) =>
+      cur === prevDetailsText ? item.details.join('\n') : cur
+    )
+    lastSyncedRef.current = item
+  }, [item])
+
+  const save = useCallback(
+    async (patch: MemoryPatch) => {
+      try {
+        await updateMemory(item.id, patch)
+        onPatched({ ...item, ...patch })
+      } catch (e) {
+        sileo.error({
+          title: t('settings:memory.detail.toast.notSavedTitle'),
+          description:
+            e instanceof Error
+              ? e.message
+              : t('settings:memory.genericRetryHint')
+        })
+      }
+    },
+    [item, onPatched, t]
+  )
+
+  const handleDelete = async () => {
+    try {
+      await deleteMemory(item.id, true)
+      onDeleted()
+    } catch (e) {
+      sileo.error({
+        title: t('settings:memory.detail.toast.deleteFailedTitle'),
+        description:
+          e instanceof Error ? e.message : t('settings:memory.genericRetryHint')
+      })
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="flex items-center justify-between">
+        <button
+          type="button"
+          onClick={onBack}
+          className="text-muted-foreground hover:text-foreground -ml-1 flex items-center gap-1.5 text-sm"
+        >
+          <ArrowLeftIcon className="size-4" data-icon />
+          {t('settings:memory.detail.backButton')}
+        </button>
+        <div className="flex items-center gap-1">
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => save({ isActive: disabled })}
+          >
+            {disabled
+              ? t('settings:memory.restoreLabel')
+              : t('settings:memory.disableLabel')}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground hover:text-destructive"
+            onClick={handleDelete}
+          >
+            {t('action.delete')}
+          </Button>
+        </div>
+      </div>
+
+      <input
+        value={key}
+        onChange={(e) => setKey(e.target.value)}
+        onBlur={() => {
+          const v = key.trim()
+          if (v && v !== item.key) save({ key: v })
+          else setKey(item.key)
+        }}
+        placeholder={t('settings:memory.detail.titlePlaceholder')}
+        aria-label={t('settings:memory.detail.titlePlaceholder')}
+        className="placeholder:text-muted-foreground/50 -my-1 border-0 bg-transparent p-0 text-lg font-semibold outline-none"
+      />
+
+      {updatedLabel(item) && (
+        <p className="text-muted-foreground/70 -mt-3 text-xs">
+          {updatedLabel(item)}
+        </p>
+      )}
+
+      <div className="flex flex-col gap-1.5">
+        <FieldLabel>{t('settings:memory.detail.summaryLabel')}</FieldLabel>
+        <Input
+          value={summary}
+          onChange={(e) => setSummary(e.target.value)}
+          onBlur={() => {
+            const v = summary.trim()
+            if (v !== item.summary) save({ summary: v })
+          }}
+          placeholder={t('settings:memory.detail.summaryPlaceholder')}
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <FieldLabel>{t('settings:memory.detail.detailsLabel')}</FieldLabel>
+        <Textarea
+          rows={6}
+          value={detailsText}
+          onChange={(e) => setDetailsText(e.target.value)}
+          onBlur={() => {
+            const next = detailsFromText(detailsText)
+            if (JSON.stringify(next) !== JSON.stringify(item.details)) {
+              save({ details: next })
+            }
+          }}
+          placeholder={t('settings:memory.detail.detailsPlaceholder')}
+        />
+      </div>
+    </div>
+  )
+}
+
+// ─── Natural-language composer ────────────────────────────────────────────────
+
+function MemoryComposer({
+  scopeMemoryId,
+  onApplied
+}: {
+  scopeMemoryId?: string
+  onApplied: () => void
+}) {
+  const { t } = useTranslation('settings')
+  const [text, setText] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  const submit = async () => {
+    const t2 = text.trim()
+    if (!t2 || busy) return
+    setBusy(true)
+    try {
+      const { applied } = await instructMemory(t2, scopeMemoryId)
+      setText('')
+      if (applied > 0) {
+        sileo.success({
+          title: t('memory.composer.toast.updatedTitle'),
+          description: t('memory.composer.toast.updatedDescription', {
+            count: applied
+          })
+        })
+        onApplied()
+      } else {
+        sileo.info({
+          title: t('memory.composer.toast.noChangeTitle'),
+          description: t('memory.composer.toast.noChangeDescription')
+        })
+      }
+    } catch (e) {
+      sileo.error({
+        title: t('memory.composer.toast.applyFailedTitle'),
+        description:
+          e instanceof Error ? e.message : t('memory.genericRetryHint')
+      })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="border-border focus-within:border-ring flex items-end gap-2 rounded-2xl border px-3 py-2 transition-colors">
+      <textarea
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault()
+            submit()
+          }
+        }}
+        rows={1}
+        disabled={busy}
+        placeholder={
+          scopeMemoryId
+            ? t('memory.composer.placeholderScoped')
+            : t('memory.composer.placeholderGeneral')
+        }
+        className="placeholder:text-muted-foreground max-h-32 min-h-6 flex-1 resize-none bg-transparent py-1 text-sm outline-none"
+      />
+      <Button
+        type="button"
+        size="icon"
+        aria-label={t('memory.composer.submitAria')}
+        className="size-7 shrink-0 rounded-full"
+        disabled={!text.trim() || busy}
+        onClick={submit}
+      >
+        {busy ? (
+          <LoaderIcon className="size-4 animate-spin" data-icon />
+        ) : (
+          <ArrowUpIcon className="size-4" data-icon />
+        )}
+      </Button>
+    </div>
+  )
+}
+
+// ─── Main ─────────────────────────────────────────────────────────────────────
 
 export function MemorySettings({ form }: { form: UseFormReturnType }) {
+  const { t } = useTranslation('settings')
   const [memories, setMemories] = useState<MemoryItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [editTarget, setEditTarget] = useState<MemoryItem | null>(null)
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+
+  const sectionGroups: { section: MemorySection; label: string }[] = useMemo(
+    () => [
+      { section: 'profile', label: t('memory.sectionGroups.profile') },
+      { section: 'topic', label: t('memory.sectionGroups.topic') },
+      { section: 'person', label: t('memory.sectionGroups.person') }
+    ],
+    [t]
+  )
 
   const lcmEnabled = form.watch('memory.lcmEnabled') ?? true
 
-  const loadMemories = useCallback(async () => {
+  const load = useCallback(async () => {
     try {
-      const data = await getMemories()
-      setMemories(data)
+      setMemories(await getMemories())
     } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Operation failed'
-      sileo.error({ title: 'Failed to load memories', description: msg })
+      sileo.error({
+        title: t('memory.settings.toast.loadFailedTitle'),
+        description:
+          e instanceof Error ? e.message : t('memory.genericRetryHint')
+      })
     } finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
-    loadMemories()
-  }, [loadMemories])
+    load()
+  }, [load])
 
-  const handleEdit = (item: MemoryItem) => {
-    setEditTarget(item)
-    setDialogOpen(true)
-  }
+  const selected = useMemo(
+    () => memories.find((m) => m.id === selectedId) ?? null,
+    [memories, selectedId]
+  )
+  useEffect(() => {
+    if (selectedId && !loading && !selected) setSelectedId(null)
+  }, [selectedId, selected, loading])
 
-  const handleAdd = () => {
-    setEditTarget(null)
-    setDialogOpen(true)
+  const patchLocal = useCallback((next: MemoryItem) => {
+    setMemories((ms) => ms.map((m) => (m.id === next.id ? next : m)))
+  }, [])
+
+  const handleNew = async () => {
+    try {
+      const row = await createMemory({
+        section: 'topic',
+        key: t('memory.settings.newMemoryDefaultKey'),
+        summary: '',
+        details: [],
+        source: 'explicit'
+      })
+      await load()
+      setSelectedId(row.id)
+    } catch (e) {
+      sileo.error({
+        title: t('memory.settings.toast.createFailedTitle'),
+        description:
+          e instanceof Error ? e.message : t('memory.genericRetryHint')
+      })
+    }
   }
 
   const handleToggle = async (item: MemoryItem) => {
+    patchLocal({ ...item, isActive: item.isActive === false })
     try {
-      await updateMemory(item.id, { isActive: !item.isActive })
-      await loadMemories()
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Operation failed'
-      sileo.error({ title: 'Failed to update memory', description: msg })
+      await updateMemory(item.id, { isActive: item.isActive === false })
+    } catch {
+      load()
     }
   }
 
   const handleDelete = async (item: MemoryItem) => {
+    setMemories((ms) => ms.filter((m) => m.id !== item.id))
     try {
-      await deleteMemory(item.id)
-      await loadMemories()
-      sileo.success({ title: 'Memory deleted' })
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Operation failed'
-      sileo.error({ title: 'Failed to delete memory', description: msg })
+      await deleteMemory(item.id, true)
+    } catch {
+      load()
     }
   }
 
-  const activeMemories = memories.filter((m) => m.isActive !== false)
-  const inactiveMemories = memories.filter((m) => m.isActive === false)
+  // ── Detail view ──
+  if (selected) {
+    return (
+      <div className="flex flex-col gap-6">
+        <MemoryDetail
+          item={selected}
+          onBack={() => setSelectedId(null)}
+          onPatched={patchLocal}
+          onDeleted={() => {
+            setSelectedId(null)
+            load()
+          }}
+        />
+        <MemoryComposer scopeMemoryId={selected.id} onApplied={load} />
+      </div>
+    )
+  }
+
+  // ── List view ──
+  const active = memories.filter((m) => m.isActive !== false)
+  const inactive = memories.filter((m) => m.isActive === false)
+  const activeGroups = sectionGroups
+    .map((g) => ({
+      ...g,
+      rows: active.filter((m) => m.section === g.section)
+    }))
+    .filter((g) => g.rows.length > 0)
 
   return (
-    <>
+    <div className="flex flex-col gap-8">
       <SettingsSection>
         <SettingsRow
-          label="Capture memories"
-          description="After each conversation, consolidate durable facts about you (interests, setup, people) into memory — updating existing entries rather than duplicating them."
+          label={t('memory.settings.autoCapture.label')}
+          description={t('memory.settings.autoCapture.description')}
         >
           <Controller
             control={form.control}
@@ -358,8 +546,8 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
         </SettingsRow>
 
         <SettingsRow
-          label="Use memory in chats"
-          description="Surface the memory entries relevant to your message into the assistant's context at the start of a reply."
+          label={t('memory.settings.useInChat.label')}
+          description={t('memory.settings.useInChat.description')}
         >
           <Controller
             control={form.control}
@@ -374,8 +562,8 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
         </SettingsRow>
 
         <SettingsRow
-          label="Lossless context management"
-          description="Automatically compress long conversations into a hierarchical summary DAG, so nothing is ever lost even when chats exceed the context window."
+          label={t('memory.settings.lcmEnabled.label')}
+          description={t('memory.settings.lcmEnabled.description')}
         >
           <Controller
             control={form.control}
@@ -396,20 +584,25 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
               name="memory.contextWindowPercent"
               render={({ field, fieldState }) => (
                 <SettingsRow
-                  label="Compaction threshold"
-                  description="Trigger context compaction when the conversation reaches this percentage of the model's context window (50-95%). Default: 75%."
+                  label={t('memory.settings.contextWindowPercent.label')}
+                  description={t(
+                    'memory.settings.contextWindowPercent.description'
+                  )}
                   error={fieldState.error}
                 >
-                  <Input
-                    placeholder="75"
-                    type="number"
-                    min={50}
-                    max={95}
-                    className="w-20"
-                    {...field}
-                    value={field.value ?? ''}
-                    onChange={(e) => field.onChange(Number(e.target.value))}
-                  />
+                  <InputGroup>
+                    <InputGroupInput
+                      placeholder="75"
+                      type="number"
+                      min={50}
+                      max={95}
+                      className="w-14"
+                      {...field}
+                      value={field.value ?? ''}
+                      onChange={(e) => field.onChange(Number(e.target.value))}
+                    />
+                    <InputGroupAddon align="inline-end">%</InputGroupAddon>
+                  </InputGroup>
                 </SettingsRow>
               )}
             />
@@ -419,8 +612,8 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
               name="memory.freshTailSize"
               render={({ field, fieldState }) => (
                 <SettingsRow
-                  label="Fresh tail size"
-                  description="Number of recent messages protected from compaction (8-64). These are always sent to the model verbatim. Default: 16."
+                  label={t('memory.settings.freshTailSize.label')}
+                  description={t('memory.settings.freshTailSize.description')}
                   error={fieldState.error}
                 >
                   <Input
@@ -440,76 +633,72 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
         )}
       </SettingsSection>
 
-      <SettingsSection title="Stored memories" plain>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <BrainIcon className="text-muted-foreground size-4" />
-            <span className="text-sm font-medium">
-              Memories
-              {activeMemories.length > 0 && (
-                <Badge variant="secondary" className="ml-2 text-xs">
-                  {activeMemories.length}
-                </Badge>
-              )}
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-sm font-semibold">
+            {t('memory.settings.storedMemoriesHeading')}
+            <span className="text-muted-foreground ml-1.5 text-xs font-normal tabular-nums">
+              {memories.length}
             </span>
-          </div>
-          <Button size="sm" variant="outline" onClick={handleAdd}>
+          </h2>
+          <Button type="button" size="sm" variant="outline" onClick={handleNew}>
             <PlusIcon className="mr-1 size-3.5" data-icon />
-            Add
+            {t('memory.settings.newButton')}
           </Button>
         </div>
 
         {loading ? (
           <div className="flex flex-col gap-2">
-            <Skeleton className="h-16 w-full" />
-            <Skeleton className="h-16 w-full" />
+            <Skeleton className="h-10 w-full rounded-lg" />
+            <Skeleton className="h-10 w-full rounded-lg" />
+            <Skeleton className="h-10 w-full rounded-lg" />
           </div>
         ) : memories.length === 0 ? (
-          <div className="text-muted-foreground rounded-md border border-dashed py-8 text-center text-sm">
-            No memories yet. They&apos;ll be added automatically after
-            conversations, or you can add them manually.
+          <div className="text-muted-foreground rounded-xl border border-dashed py-10 text-center text-sm">
+            {t('memory.settings.emptyState')}
           </div>
         ) : (
-          <div className="flex flex-col gap-2">
-            {activeMemories.map((item) => (
-              <MemoryListItem
-                key={item.id}
-                item={item}
-                onEdit={handleEdit}
-                onToggle={handleToggle}
-                onDelete={handleDelete}
-              />
-            ))}
-
-            {inactiveMemories.length > 0 && (
-              <>
-                <p className="text-muted-foreground mt-1 text-xs">
-                  Disabled ({inactiveMemories.length})
+          <div className="border-border divide-border divide-y overflow-hidden rounded-xl border">
+            {activeGroups.map((g) => (
+              <div key={g.section}>
+                <p className="text-muted-foreground px-3 pt-3 pb-1.5 text-[11px] font-semibold tracking-wide uppercase">
+                  {g.label}
                 </p>
-                {inactiveMemories.map((item) => (
-                  <MemoryListItem
-                    key={item.id}
-                    item={item}
-                    onEdit={handleEdit}
-                    onToggle={handleToggle}
-                    onDelete={handleDelete}
+                {g.rows.map((m) => (
+                  <MemoryRow
+                    key={m.id}
+                    item={m}
+                    onOpen={() => setSelectedId(m.id)}
+                    onToggle={() => handleToggle(m)}
+                    onDelete={() => handleDelete(m)}
                   />
                 ))}
-              </>
+              </div>
+            ))}
+
+            {inactive.length > 0 && (
+              <div>
+                <p className="text-muted-foreground/70 px-3 pt-3 pb-1.5 text-[11px] font-semibold tracking-wide uppercase">
+                  {t('memory.settings.disabledHeading', {
+                    count: inactive.length
+                  })}
+                </p>
+                {inactive.map((m) => (
+                  <MemoryRow
+                    key={m.id}
+                    item={m}
+                    onOpen={() => setSelectedId(m.id)}
+                    onToggle={() => handleToggle(m)}
+                    onDelete={() => handleDelete(m)}
+                  />
+                ))}
+              </div>
             )}
           </div>
         )}
-      </SettingsSection>
 
-      <MemoryDialog
-        open={dialogOpen}
-        onClose={() => {
-          setDialogOpen(false)
-          setEditTarget(null)
-        }}
-        memory={editTarget}
-        onSaved={loadMemories}
-      />
-    </>
+        <MemoryComposer onApplied={load} />
+      </div>
+    </div>
   )
 }

@@ -1,4 +1,5 @@
 import { format } from 'date-fns'
+import { useTranslation } from 'react-i18next'
 
 import { ScrollArea } from '@/components/ui/scroll-area'
 import type { ConversationData, TaskData } from '@/stores/philharmonic'
@@ -17,12 +18,13 @@ export function UpcomingList({
   cancellingId: string | null
   onCancel: (id: string) => void
 }) {
+  const { t } = useTranslation('philharmonic')
   const groups = groupTasksByDay(tasks)
 
   if (groups.length === 0) {
     return (
       <div className="text-muted-foreground flex h-full items-center justify-center px-6 text-center text-sm">
-        No upcoming one-off tasks. Schedule one to see it here.
+        {t('schedule.upcomingList.empty')}
       </div>
     )
   }
@@ -42,7 +44,7 @@ export function UpcomingList({
                   task={task}
                   groupTitle={
                     conversationsById[task.conversationId ?? '']?.title ??
-                    'Unknown group'
+                    t('schedule.unknownGroup')
                   }
                   subtitle={format(new Date(task.runAt!), 'HH:mm')}
                   onCancel={onCancel}

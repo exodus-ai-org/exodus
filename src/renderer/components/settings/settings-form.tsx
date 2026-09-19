@@ -1,11 +1,11 @@
+import { SettingsSchema } from '@exodus/shared/schemas/settings-schema'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Settings, SettingsSchema } from '@shared/schemas/settings-schema'
-import { useAtomValue } from 'jotai'
-import { useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 
 import { useSettings } from '@/hooks/use-settings'
-import { settingsLabelAtom } from '@/stores/settings'
+import { useSettingsAutosave } from '@/hooks/use-settings-autosave'
+import { useSettingsTab } from '@/hooks/use-settings-tab'
 
 import { ComputerUse } from './settings-form/computer-use'
 import { DataControls } from './settings-form/data-controls'
@@ -26,11 +26,12 @@ import { SkillsMarketSetting } from './settings-form/skills-market'
 import { SystemInfo } from './settings-form/system-info'
 import { Tools } from './settings-form/tools'
 import { Voice } from './settings-form/voice'
-import { SettingsLabel } from './settings-menu'
+import { NAV_TITLE_KEYS, SettingsLabel } from './settings-menu'
 
 export function SettingsForm() {
-  const { data: settings, updateSettings } = useSettings()
-  const activeTitle = useAtomValue(settingsLabelAtom)
+  const { t } = useTranslation('settings')
+  const { data: settings } = useSettings()
+  const [activeTitle] = useSettingsTab()
 
   const form = useForm({
     resolver: zodResolver(SettingsSchema),
@@ -38,62 +39,28 @@ export function SettingsForm() {
     resetOptions: { keepDirtyValues: true }
   })
 
-  // Refs let the watch effect read latest closure without re-subscribing on
-  // every render of the parent. The watch subscription must outlive the
-  // section-tab swaps that re-render this component.
-  const settingsRef = useRef(settings)
-  settingsRef.current = settings
-  const updateSettingsRef = useRef(updateSettings)
-  updateSettingsRef.current = updateSettings
-
-  // Auto-save: subscribe to any user-initiated value change (typed input,
-  // Switch toggle, Select pick, programmatic setValue) and persist once the
-  // schema validates. Debounced so a burst of keystrokes coalesces into one
-  // write. Replaces the old `onBlur={handleSubmit(...)}` form handler, which
-  // missed Switch/Select changes and fired spurious saves on tab switches.
-  useEffect(() => {
-    let timeoutId: ReturnType<typeof setTimeout> | null = null
-    const persist = (values: Settings) => {
-      const current = settingsRef.current
-      if (!current) return
-      updateSettingsRef.current({ ...values, id: current.id })
-    }
-    const flush = () => {
-      timeoutId = null
-      // handleSubmit runs the Zod resolver; persist only fires for valid values.
-      void form.handleSubmit(persist)()
-    }
-    const subscription = form.watch((values, { name }) => {
-      // RHF emits a watch event with `name` undefined when the `values: settings`
-      // prop hydrates the form on mount or when reset() is called — skip those
-      // so loading from the DB doesn't immediately echo-save.
-      if (!name) return
-      // Echo guard: after a save, the server bumps `updatedAt` and refetches
-      // through SWR. RHF then resets the form to the new values and emits a
-      // watch event for the changed timestamp field, which would otherwise
-      // trigger another save → infinite POST loop. Compare what we'd save
-      // against the persisted settings; equal means there's nothing new.
-      const current = settingsRef.current
-      if (current && JSON.stringify(values) === JSON.stringify(current)) return
-      if (timeoutId) clearTimeout(timeoutId)
-      timeoutId = setTimeout(flush, 300)
-    })
-    return () => {
-      subscription.unsubscribe()
-      if (timeoutId) {
-        clearTimeout(timeoutId)
-        // Flush any pending save when the component unmounts (navigating away
-        // from /settings) so the last edit isn't dropped.
-        flush()
-      }
-    }
-  }, [form])
+  // Per-field autosave. `flushNow` fires the pending save immediately so a text
+  // input persists the instant focus leaves it (`onBlur` bubbles from any
+  // input/textarea in the form); Switch/Select changes settle on their own.
+  const { flushNow } = useSettingsAutosave(form)
 
   return (
-    <form className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8">
-      <h1 className="text-xl">{activeTitle}</h1>
+    <form
+      className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-8"
+      onBlur={(e) => {
+        const el = e.target as HTMLElement
+        if (
+          el.tagName === 'INPUT' ||
+          el.tagName === 'TEXTAREA' ||
+          el.isContentEditable
+        ) {
+          flushNow()
+        }
+      }}
+    >
+      <h1 className="text-xl">{t(NAV_TITLE_KEYS[activeTitle])}</h1>
 
-      {activeTitle === SettingsLabel.Profile && <Profile />}
+      {activeTitle === SettingsLabel.Profile && <Profile form={form} />}
 
       {activeTitle === SettingsLabel.General && <General form={form} />}
 

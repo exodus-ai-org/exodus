@@ -12,15 +12,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: 24
-      - name: Install pnpm
-        run: npm install -g pnpm
+          bun-version: latest
       - name: Install dependencies
-        run: pnpm install
+        run: bun install
       - name: Build app
-        run: pnpm run build
+        # `package` builds the production bundles into .vite/ (main, preload,
+        # renderer) — what `electron .` below runs, via package.json's `main`.
+        run: bun run package
       - name: Start app in background
         # ubuntu-latest ships with xvfb preinstalled. --no-sandbox is required
         # because GitHub-hosted runners don't support Chromium's setuid-sandbox
@@ -28,7 +29,7 @@ jobs:
         # next step can talk to its Hono server.
         run: |
           nohup xvfb-run --auto-servernum --server-args="-screen 0 1280x720x24" \
-            npx electron ./out/main/index.js --no-sandbox \
+            ./node_modules/.bin/electron . --no-sandbox \
             > /tmp/electron.log 2>&1 &
           # Poll until the Hono server is reachable instead of `sleep 10` —
           # surfaces "electron didn't start" as a real failure with logs.
@@ -50,7 +51,7 @@ jobs:
           GOOGLE_CLOUD: ${{ secrets.GOOGLE_CLOUD }}
           EXODUS_DISABLE_AUTO_UPDATE: '1'
       - name: Run API tests
-        run: pnpm test:e2e:api
+        run: bun run test:e2e:api
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
@@ -76,17 +77,16 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: 24
-      - name: Install pnpm
-        run: npm install -g pnpm
+          bun-version: latest
       - name: Install dependencies
-        run: pnpm install
-      - name: Build app
-        run: pnpm run build
+        run: bun install
       - name: Run E2E tests
-        run: pnpm test:e2e:electron
+        # Packages first (production bundles into .vite/), then drives the
+        # unpackaged app through Playwright — see tests/fixtures/electron.ts.
+        run: bun run test:e2e:electron
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}

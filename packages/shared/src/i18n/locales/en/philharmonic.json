@@ -1,0 +1,299 @@
+{
+  "container": {
+    "toast": {
+      "groupDeleted": "Group deleted",
+      "deleteGroupFailed": "Could not delete the group"
+    },
+    "tabs": {
+      "costs": "Costs",
+      "schedule": "Schedule"
+    },
+    "noGroupSelected": {
+      "title": "No group selected",
+      "description": "Pick a group from the left, or start a new one to message your virtual team.",
+      "createButton": "Create a group"
+    },
+    "newGroupDefaultTitle": "New group"
+  },
+  "schedule": {
+    "tab": {
+      "heading": "Schedule",
+      "upcomingTrigger": "Upcoming",
+      "recurringTrigger": "Recurring"
+    },
+    "unknownGroup": "Unknown group",
+    "scheduleTaskButton": "Schedule task",
+    "upcomingList": {
+      "empty": "No upcoming one-off tasks. Schedule one to see it here."
+    },
+    "recurringList": {
+      "empty": "No recurring tasks yet.",
+      "lastRun": "last {{time}}",
+      "nextRun": "next {{time}}"
+    },
+    "taskCard": {
+      "status": {
+        "pending": "Pending",
+        "running": "Running",
+        "completed": "Completed",
+        "failed": "Failed",
+        "cancelled": "Cancelled",
+        "waiting_for_user": "Waiting"
+      },
+      "priority": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High",
+        "urgent": "Urgent"
+      },
+      "cancelAria": "Cancel scheduled task"
+    },
+    "toast": {
+      "loadUpcomingFailed": "Could not load upcoming tasks",
+      "loadRecurringFailed": "Could not load recurring tasks",
+      "taskCancelled": "Task cancelled",
+      "cancelTaskFailed": "Could not cancel task",
+      "taskScheduled": "Task scheduled",
+      "scheduleTaskFailed": "Could not schedule task"
+    },
+    "form": {
+      "title": "Schedule a task",
+      "description": "Runs inside an existing Group, once or on a recurring schedule.",
+      "titleLabel": "Title",
+      "descriptionLabel": "Description",
+      "groupLabel": "Group",
+      "groupPlaceholder": "Choose a group",
+      "onceButton": "One-off",
+      "recurringButton": "Recurring",
+      "pickDateButton": "Pick a date",
+      "submitting": "Scheduling…",
+      "cronPresets": {
+        "dailyNine": "Every day at 9:00 AM",
+        "mondayNine": "Every Monday at 9:00 AM",
+        "custom": "Custom"
+      }
+    }
+  },
+  "chat": {
+    "attachmentPreview": {
+      "removeAria": "Remove {{name}}"
+    },
+    "uploader": {
+      "attachAria": "Attach images",
+      "s3FallbackTitle": "S3 upload failed, using inline data",
+      "attachFailedTitle": "Could not attach files"
+    },
+    "composer": {
+      "placeholder": "Message your team…",
+      "stopAria": "Stop",
+      "sendAria": "Send",
+      "hint": "Press <1>Enter</1> to send, <4>Shift + Enter</4> for a new line. Paste or attach images."
+    },
+    "planCard": {
+      "elapsed": {
+        "lessThanMin": "<1 min",
+        "minutes": "{{count}} min",
+        "hoursMinutes": "{{hours}}h {{minutes}}m"
+      },
+      "status": {
+        "active": "active",
+        "done": "done",
+        "aborted": "aborted",
+        "draft": "draft"
+      },
+      "stepStatusAria": {
+        "pending": "Pending",
+        "running": "Running",
+        "done": "Done",
+        "skipped": "Skipped",
+        "failed": "Failed"
+      }
+    },
+    "roles": {
+      "pm": "PM",
+      "employeeFallback": "Employee"
+    },
+    "membersPanel": {
+      "heading": "Members",
+      "coordinatorsLabel": "Coordinators",
+      "unassignedLabel": "Unassigned",
+      "idleCount": "{{count}} idle",
+      "busyCount": "{{count}} busy",
+      "idle": "idle",
+      "noTeam": "No team",
+      "pmIdleActivity": "Strategy · idle",
+      "emptyState": {
+        "title": "No teammates yet",
+        "description": "The PM will recruit teammates as needed."
+      }
+    },
+    "conversationList": {
+      "configNav": {
+        "workforce": "Workforce",
+        "dashboard": "Dashboard"
+      },
+      "searchPlaceholder": "Search groups",
+      "newGroupMenuItem": "New group",
+      "emptyState": {
+        "title": "No groups yet",
+        "description": "Create one to message your virtual team.",
+        "createButton": "+ New group"
+      },
+      "searchNoMatch": "No groups match “{{query}}”",
+      "noMessagesYetPreview": "New group · no messages yet",
+      "deleteDialog": {
+        "title": "Delete this group?",
+        "description": "<0>{{title}}</0> and all its messages, tasks, and executions will be permanently removed."
+      }
+    },
+    "dateLabels": {
+      "today": "Today",
+      "yesterday": "Yesterday"
+    },
+    "groupChat": {
+      "renameTitle": "Click to rename",
+      "errorTitle": "Group encountered an error",
+      "memberCount_one": "{{count}} member",
+      "memberCount_other": "{{count}} members",
+      "toggleMembersAria": "Toggle members",
+      "emptyState": {
+        "title": "Hand something to your team",
+        "description": "Describe what you need. The PM will analyze, recruit and delegate to virtual employees, then report back here."
+      },
+      "askUser": {
+        "replyPlaceholder": "Reply to PM…",
+        "sendButton": "Send"
+      }
+    }
+  },
+  "employees": {
+    "avatar": {
+      "alt": "avatar"
+    },
+    "picker": {
+      "reroll": "Reroll"
+    },
+    "editor": {
+      "header": {
+        "label": "Employee",
+        "newFallback": "New employee"
+      },
+      "avatarAria": "Edit avatar",
+      "fields": {
+        "name": "Name",
+        "team": "Team",
+        "teamPlaceholder": "Select a team",
+        "teamHelp": "Every employee belongs to a team — the team's system prompt is applied to all its members.",
+        "description": "Description",
+        "descriptionPlaceholder": "One line about what this employee does.",
+        "systemPrompt": "System prompt",
+        "systemPromptPlaceholder": "Layered on top of the team's prompt.",
+        "skills": "Skills",
+        "noSkills": "No skills installed yet.",
+        "mcpServers": "MCP servers",
+        "noMcpServers": "No MCP servers configured yet.",
+        "mcpServersHelp": "If none are selected, the employee can use all available servers.",
+        "memory": "Memory (read-only)",
+        "noMemory": "No accumulated memory yet"
+      }
+    }
+  },
+  "teams": {
+    "editor": {
+      "header": {
+        "label": "Team",
+        "newFallback": "New team"
+      },
+      "fields": {
+        "name": "Name",
+        "icon": "Icon (emoji, optional)",
+        "description": "Description",
+        "descriptionPlaceholder": "Short summary of what this team does.",
+        "systemPrompt": "System prompt",
+        "systemPromptPlaceholder": "Shared instructions added to every member of this team's prompt."
+      }
+    }
+  },
+  "costAnalysis": {
+    "header": {
+      "title": "Dashboard"
+    },
+    "period": {
+      "last7Days": "Last 7 days",
+      "last30Days": "Last 30 days",
+      "allTime": "All time"
+    },
+    "periodToggle": {
+      "sevenDays": "7d",
+      "thirtyDays": "30d",
+      "all": "All"
+    },
+    "loading": "Loading usage data…",
+    "kpi": {
+      "totalCost": "Total cost",
+      "totalCostHint_one": "Across {{count}} employee",
+      "totalCostHint_other": "Across {{count}} employees",
+      "tokens": "Tokens",
+      "tokensHint": "Total processed",
+      "employees": "Employees",
+      "employeesHint": "With recorded usage",
+      "conversations": "Conversations",
+      "conversationsHint": "With activity"
+    },
+    "chart": {
+      "costLabel": "Cost",
+      "sectionTitle": "Cost over time"
+    },
+    "agentCostList": {
+      "title": "Cost by employee",
+      "empty": "No employee usage data yet",
+      "tokens": "{{tokens}} tokens"
+    },
+    "conversationCostList": {
+      "title": "Cost by conversation",
+      "empty": "No conversation usage data yet"
+    }
+  },
+  "workforce": {
+    "header": {
+      "title": "Workforce",
+      "employeeCount_one": "{{count}} employee",
+      "employeeCount_other": "{{count}} employees",
+      "teamCount_one": "{{count}} team",
+      "teamCount_other": "{{count}} teams",
+      "addTeamButton": "Team",
+      "addEmployeeButton": "Employee",
+      "createTeamFirstTitle": "Create a team first"
+    },
+    "emptyState": {
+      "title": "Start with a team",
+      "description": "Every employee belongs to a team that contributes a shared system prompt. Create a team first, then add the employees that belong to it.",
+      "createButton": "+ New team"
+    },
+    "teamSection": {
+      "editTeam": "Edit team",
+      "addEmployeeHere": "Add employee here",
+      "deleteTeam": "Delete team",
+      "unassignedFallback": "No team",
+      "addEmployeeButton": "Add employee"
+    },
+    "newEmployeeDefaultName": "New Employee",
+    "newTeamDefaultName": "New Team",
+    "deleteEmployeeDialog": {
+      "title": "Delete this employee?",
+      "description": "<0>{{name}}</0> will be permanently removed along with their accumulated memory."
+    },
+    "deleteTeamDialog": {
+      "title": "Delete this team?",
+      "description": "<0>{{name}}</0> will be removed. Existing members keep their records but lose this team affiliation."
+    },
+    "toast": {
+      "created": "\"{{name}}\" created",
+      "deleted": "\"{{name}}\" deleted",
+      "saveEmployeeFailed": "Could not save the employee",
+      "deleteEmployeeFailed": "Could not delete the employee",
+      "saveTeamFailed": "Could not save the team",
+      "deleteTeamFailed": "Could not delete the team"
+    }
+  }
+}

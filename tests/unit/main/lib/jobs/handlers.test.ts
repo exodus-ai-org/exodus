@@ -2,7 +2,6 @@ import type { Model } from '@mariozechner/pi-ai'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
-vi.mock('@electron-toolkit/utils', () => ({ is: { dev: true } }))
 vi.mock('@main/lib/db/db', () => ({ pglite: {}, db: {} }))
 
 const mockGetSettings = vi.fn()
@@ -104,7 +103,7 @@ describe('handlers.lcm-post-turn', () => {
 
     await handlers['lcm-post-turn']({
       chatId: 'chat-1',
-      chatModel: fakeModel,
+      model: fakeModel,
       apiKey: 'key',
       freshTailSize: 16,
       contextWindowPercent: 75,
@@ -124,7 +123,7 @@ describe('handlers.memory-consolidate', () => {
 
     await handlers['memory-consolidate']({
       messages: [{ role: 'user', content: 'hi' }],
-      chatModel: fakeModel,
+      model: fakeModel,
       apiKey: 'key'
     })
 

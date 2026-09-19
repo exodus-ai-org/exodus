@@ -15,7 +15,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 vi.mock('@main/lib/logger', () => ({
   logger: { info: vi.fn(), debug: vi.fn(), warn: vi.fn(), error: vi.fn() }
 }))
-vi.mock('@electron-toolkit/utils', () => ({ is: { dev: true } }))
 vi.mock('electron', () => ({
   app: { getPath: () => '/tmp', getAppPath: () => '/repo' }
 }))

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Exodus is a cross-platform desktop AI chat application built with Electron, React, and Node.js. It features multi-provider LLM support, a knowledge base (RAG), Deep Research, Philharmonic (multi-agent Groups), MCP (Model Context Protocol) routes, an app lock, lossless context management (LCM), and a memory/personalization layer.
+Exodus is a cross-platform desktop AI chat application built with Electron, React, and Node.js. The toolchain is electron-forge + Vite (via `@electron-forge/plugin-vite`) + bun, with a `packages/shared` workspace package (`@exodus/shared`). It features multi-provider LLM support, a knowledge base (RAG), Deep Research, Philharmonic (multi-agent Groups), MCP (Model Context Protocol) routes, an app lock, lossless context management (LCM), and a memory/personalization layer.
 
 ## Project Constraints (read first)
 
@@ -12,74 +12,94 @@ These rules are mandatory. Some are automated (noted); the rest are conventions
 you must uphold.
 
 - **Tests + checkpoints with UI.** When adding a key interactive element, add a
-  `TEST_IDS` entry (`src/shared/constants/test-ids.ts`) + `data-testid`, and
+  `TEST_IDS` entry (`packages/shared/src/constants/test-ids.ts`) + `data-testid`, and
   reference it from a Playwright test. Test ids are a durable contract — never
   rename or regenerate an existing id. _Enforced by `test-ids.linkage.test.ts`._
-- **Pre-commit gate.** Before committing, `pnpm format` → `pnpm lint` →
-  `pnpm typecheck` → `pnpm test` must pass. _Enforced by the husky pre-commit
-  hook._ Do not `--no-verify` except for the known flaky PGlite WASM teardown in
-  `src/main/lib/ai/context-management/index.test.ts`.
+- **Pre-commit gate.** Before committing, `bun run fmt` → `bun run lint` →
+  `bun run typecheck` → `bun run i18n:check` → `bun run test` must pass. _Enforced by
+  the husky pre-commit hook._ Do not `--no-verify` except for one known,
+  standing cause: a flaky PGlite WASM teardown (`RuntimeError: Aborted()`
+  during an `invoke_viiiiii`/wasm abort in `@electric-sql/pglite`) under
+  the parallel-worker test isolation — a race in PGlite's WASM teardown,
+  not a bug in one specific test file. It has surfaced attributed to
+  `src/main/lib/ai/context-management/index.test.ts` and to
+  `src/main/lib/jobs/worker.test.ts` on different runs of an unrelated,
+  passing (785/785) suite — before invoking `--no-verify` for this,
+  confirm all tests actually passed and the only failure is this
+  unhandled-rejection-during-teardown pattern, then retry `bun run test`
+  once (it's intermittent and often passes clean on a second run) before
+  reaching for `--no-verify`. (A second, long-standing exception — an
+  orphan `TEST_IDS.providerModels.modelSelect` id — was resolved
+  2026-09-18 when `model-picker.tsx`'s i18n pass applied the id to its
+  `ComboboxInput`, satisfying the linkage test the Playwright spec had
+  been waiting on since before this id existed.)
 - **Reuse UI primitives.** Prefer existing `@/components/ui` (shadcn) components
   over hand-rolled equivalents (e.g. shadcn `Select`, `InputOTP`).
-- **Copy language.** New user-facing strings default to English.
+- **Copy language.** New user-facing strings are keys in
+  `packages/shared/src/i18n/locales/en/<namespace>.json`, rendered via `t()` /
+  `<Trans>` (renderer) or `mainI18n.t()` (main) — never hardcoded literals.
+  English is the source catalog. `bun run i18n:check` gates catalog parity.
 - **Keep this file current.** Any change to architecture, routes, or directory
   structure updates CLAUDE.md in the same change. _Partly enforced by
   `claude-md-freshness.test.ts` (paths) and `claude-md-staleness.test.ts`
   (retired claims)._
 - **Models & providers.** Use the shared `resolveModel()`
-  (`src/main/lib/ai/providers/resolve-model.ts`); selectable model lists live in
-  `src/shared/constants/models.ts`.
+  (`src/main/lib/ai/providers/resolve-model.ts`); model selection is now
+  live-fetched per provider from Settings.
 
 ## Development Commands
 
 ### Running the Application
 
 ```bash
-pnpm dev              # Start development server with hot reload
-pnpm start            # Preview built application
+bun run start              # Start the dev build via electron-forge (Vite dev servers, hot reload)
 ```
 
 ### Building
 
 ```bash
-pnpm build            # Build for development (runs typecheck first)
-pnpm build:mac        # Build macOS application
-pnpm build:linux      # Build Linux application
-pnpm build:win        # Build Windows application
-pnpm build:unpack     # Build without packaging (for testing)
+bun run package          # Package the app for the current platform into out/ (keeps data-testid markers — e2e needs them)
+bun run make             # Build installers/archives (Squirrel, ZIP, deb, rpm); strips data-testid (STRIP_TEST_IDS=1)
+bun run publish          # Publish a release to GitHub (needs GITHUB_TOKEN)
+bun run build:helper     # Rebuild the macOS Swift computer-use helper into resources/bin/exodus-input
 ```
 
 ### Code Quality
 
 ```bash
-pnpm typecheck        # Run TypeScript checks for both node and web
-pnpm typecheck:node   # Check main process code only
-pnpm typecheck:web    # Check renderer process code only
-pnpm lint             # Run oxlint (replaces ESLint, ~50-100x faster)
-pnpm lint:fix         # Run oxlint with auto-fix
-pnpm format           # Format all files with oxfmt (replaces Prettier, ~30x faster)
-pnpm format:check     # Check formatting without modifying files
+bun run typecheck        # Run TypeScript checks for node (main + preload), web (renderer) and the shared package
+bun run typecheck:node   # Check main process + preload code only
+bun run typecheck:web    # Check renderer process code only
+bun run typecheck:shared # Check packages/shared only
+bun run lint             # Run oxlint (replaces ESLint, ~50-100x faster)
+bun run lint:fix         # Run oxlint with auto-fix
+bun run fmt           # Format all files with oxfmt (replaces Prettier, ~30x faster)
+bun run fmt:check     # Check formatting without modifying files
 ```
 
 ### Testing
 
 ```bash
-pnpm test             # Run all unit tests with Vitest
-pnpm test:watch       # Run tests in watch mode
-pnpm test:coverage    # Run tests with V8 coverage report
+bun run test             # Run all unit tests with Vitest
+bun run test:watch       # Run tests in watch mode
+bun run test:coverage    # Run tests with V8 coverage report
+bun run test:e2e:electron  # Playwright Electron E2E (packages first: it drives the production build in .vite/)
+bun run test:e2e:api       # Playwright API integration (needs a running app + .env.test)
+bun run test:e2e:providers # Provider compatibility (needs API keys in .env.test)
 ```
 
 ### Database
 
 ```bash
-pnpm db:generate      # Generate Drizzle migrations from schema
+bun run db:generate      # Generate Drizzle migrations from schema
 ```
 
 ### Other
 
 ```bash
-pnpm asar:sniff       # Inspect built ASAR archive
-pnpm shadcn:generate  # Generate shadcn/ui component documentation
+bun run knip             # Find unused files/exports/dependencies
+bun run i18n:check       # Verify catalog parity across all locales (also runs in the pre-commit gate)
+bun run i18n:status      # Print the translation-review status board per locale
 ```
 
 ## Architecture
@@ -88,12 +108,12 @@ pnpm shadcn:generate  # Generate shadcn/ui component documentation
 
 Exodus uses a three-process architecture:
 
-1. **Main Process** (`src/main/index.ts`):
+1. **Main Process** (`src/main/main.ts`):
    - Manages Electron app lifecycle, window creation, and IPC
-   - Runs Hono HTTP server on `localhost:60223` (constant `SERVER_PORT` in `src/shared/constants/systems.ts`)
+   - Runs Hono HTTP server on `localhost:60223` (constant `SERVER_PORT` in `packages/shared/src/constants/systems.ts`)
    - Initializes PGlite database with pgvector extension
    - MCP server connection is archived (commented out in `app.ts`); an `/api/mcp` route + settings remain
-   - Handles auto-updates
+   - Handles auto-updates via `update-electron-app` (`src/main/lib/auto-updater.ts`, which keeps the state machine the renderer's update panel speaks)
 
 2. **Renderer Process** (`src/renderer/`):
    - React 19 application with React Router v7
@@ -102,10 +122,49 @@ Exodus uses a three-process architecture:
    - SWR for server state fetching
    - Entry points: main app plus the sub-apps searchbar, quick-chat, artifacts
 
-3. **Preload Process** (`src/preload/`):
+3. **Preload Process** (`src/preload/preload.ts`):
    - Provides secure bridge between renderer and Electron APIs
-   - Context isolation enabled
-   - Exposes limited API surface to renderer
+   - Context isolation + sandbox enabled
+   - Exposes `window.electron` (`ipcRenderer.{send,invoke,on,once,removeListener,removeAllListeners}` + `process`, the same nested shape as `@electron-toolkit/preload`'s `electronAPI`, reimplemented without the dependency) and `window.api` (`os`, `locale`)
+
+### Data directory, ports and isolation
+
+Exodus is the successor of the older `universal-client` app and shares its
+`~/.exodus` layout, so a dev build sees the same chats, settings and memories:
+
+- **Data dir**: `~/.exodus` for packaged _and_ unpackaged runs (`bun run start`,
+  `electron .`) — `getExodusHome()` in `src/main/lib/paths.ts`; startup logs the
+  directory in use (`Data directory`). **PGlite is single-process: never run two
+  Exodus processes (a dev build, the packaged app, universal-client) against it
+  at the same time** — the database can be corrupted (backups live in
+  `~/.exodus/backups`). `EXODUS_HOME` points a run at another directory.
+- **Electron `userData`**: the default `~/Library/Application Support/Exodus`
+  for every build — it only holds Chromium state (localStorage, caches) and is
+  where the legacy-location migration looks. There is no `-dev` variant of
+  anything.
+- **Server port**: `SERVER_PORT = 60223` (`packages/shared/src/constants/systems.ts`)
+  — the port `exodus-ios` (and any other client of this backend) connects to, so
+  don't change it without updating them.
+- **E2E**: `playwright.config.ts` points `$HOME` at a scratch dir
+  (`<tmpdir>/exodus-e2e-home`); the electron fixture wipes `~/.exodus` under it
+  before every test and throws at import unless `$HOME` is that dir. To test a
+  packaged build by hand, sandbox `$HOME` and pass `--user-data-dir` the same way.
+
+### Skills (deprecated)
+
+The skills marketplace (backend `/api/skills`, install/search flows, and the
+Settings → Skills Market UI) is deprecated and was not migrated. Only a seam
+remains: `src/main/lib/ai/skills/skills-manager.ts` exports the three functions
+live code still calls (`listInstalledSkills`, `getSkillsContentBySlugs`,
+`getActiveSkillsContent`) and returns "no skills"; the settings nav entry shows
+a placeholder. The replacement plugs in there.
+
+### Migration status
+
+`docs/migration-plan.md` records how the business code was ported from
+universal-client and every place it deliberately diverges (React Compiler left
+off, seven oxlint style rules downgraded to warnings, auto-updater state machine
+rebuilt on `update-electron-app`, …). Read it before changing build/packaging code.
 
 ### Backend Server Architecture
 
@@ -113,7 +172,9 @@ The main process runs a **Hono HTTP server** that handles all business logic:
 
 **Server Routes** (`src/main/lib/server/routes/`, registered in `src/main/lib/server/app.ts`):
 
-`/api/chat`, `/api/lcm`, `/api/history`, `/api/knowledge-base`, `/api/project`, `/api/settings`, `/api/audio`, `/api/db-io`, `/api/deep-research`, `/api/discover`, `/api/tools`, `/api/philharmonic`, `/api/s3`, `/api/skills`, `/api/mcp`, `/api/memory`, `/api/usage`, `/api/logs`, `/api/backup`, `/api/artifacts`, `/api/computer-use`.
+`/api/chat`, `/api/lcm`, `/api/history`, `/api/knowledge-base`, `/api/project`, `/api/settings`, `/api/audio`, `/api/db-io`, `/api/deep-research`, `/api/discover`, `/api/tools`, `/api/philharmonic`, `/api/s3`, `/api/mcp`, `/api/memory`, `/api/usage`, `/api/logs`, `/api/backup`, `/api/artifacts`, `/api/computer-use`.
+
+The `/api/settings` route includes `POST /api/settings/models` — dispatches to the appropriate list-models handler based on the provider in the request body, reading the API key from the request (not from saved settings) to fetch live model catalogs.
 
 **Middleware Pipeline** (order in `app.ts`):
 
@@ -151,16 +212,18 @@ The full chat/message tables and indexes are defined in `src/main/lib/db/schema.
 ### AI/LLM Integration
 
 **Multi-Provider Support** (built on `@mariozechner/pi-ai` + `@mariozechner/pi-agent-core`):
-All providers are in `src/main/lib/ai/providers/`. Each provider file resolves a `Model` via the shared `resolveModel()` in `src/main/lib/ai/providers/resolve-model.ts` (do not duplicate model-resolution logic). Per-provider fallback defaults (contextWindow, cost) live in `resolve-model.ts`; model lists live in `src/shared/constants/models.ts`.
-
-Supported providers (files in `src/main/lib/ai/providers/`):
-
-- OpenAI GPT (`openai-gpt.ts`)
-- Azure OpenAI (`azure-openai.ts`)
-- Anthropic Claude (`anthropic-claude.ts`)
-- Google Gemini (`google-gemini.ts`)
-- xAI Grok (`xai-grok.ts`)
-- Ollama (`ollama.ts` - local models)
+All model resolution lives in `src/main/lib/ai/providers/`. The registry-backed
+providers (OpenAI GPT, Azure OpenAI, Anthropic Claude, Google Gemini, xAI Grok)
+are one `SPECS` table + a `fromSpec` factory in `index.ts` — a row only supplies
+the base-URL setting, its fallback, the default model ids, and the pi-ai
+`provider` / `api` strings. Ollama (`ollama.ts`) is the exception: a hand-built
+`Model` with nothing in the registry. Every path resolves through the shared
+`resolveModel()` in `resolve-model.ts` (do not duplicate model-resolution
+logic); it accepts an optional live-fetched `snapshot` parameter (from
+`POST /api/settings/models`) to override the pi-ai registry. Per-provider
+fallback defaults (contextWindow, cost) and `MODEL_METADATA_FALLBACK` (narrower
+scope: only what a provider's own list API omits) live there. Live model lists
+are fetched per-provider from `src/main/lib/ai/providers/list-models/`.
 
 **Chat Flow** (`src/main/lib/server/routes/chat.ts`):
 
@@ -343,16 +406,17 @@ Separate renderer entry points under `src/renderer/sub-apps/`: `searchbar`, `qui
 
 ### Path Aliases
 
-**Main Process** (`tsconfig.node.json`):
-
-- `@shared` → `src/shared`
+**Main Process** (`tsconfig.node.json`): no aliases — relative imports, plus the
+`@exodus/shared/*` workspace package. Main-process code imports DB row types
+straight from `src/main/lib/db/schema.ts` (the shared package must not import the app).
 
 **Renderer Process** (`tsconfig.web.json`):
 
 - `@` → `src/renderer`
-- `@shared` → `src/shared`
+- `@exodus/shared/*` → the `packages/shared` workspace package (subpath exports, see its `package.json`)
+- DB row types come from `@/types/db` (a renderer-side passthrough of `src/main/lib/db/schema.ts`)
 
-**Shared Code** (`src/shared/`):
+**Shared Code** (`packages/shared/src/`, imported as `@exodus/shared/...`):
 
 - `types/` - Shared TypeScript types
 - `constants/` - Constants used across processes
@@ -365,14 +429,15 @@ Separate renderer entry points under `src/renderer/sub-apps/`: `searchbar`, `qui
 ### When Working with AI Providers
 
 - Providers resolve a `Model` (from `@mariozechner/pi-ai`) via the shared `resolveModel()` in `src/main/lib/ai/providers/resolve-model.ts` — do NOT duplicate model resolution logic
-- Per-provider fallback defaults (contextWindow, cost) are centralized in `resolve-model.ts`
-- Model lists live in `src/shared/constants/models.ts`
+- `resolveModel()` accepts an optional `snapshot` parameter (live-fetched from `POST /api/settings/models`) to override the pi-ai registry
+- Per-provider fallback defaults (contextWindow, cost) and `MODEL_METADATA_FALLBACK` are centralized in `resolve-model.ts`
+- Model lists are now live-fetched per provider from Settings via `src/main/lib/ai/providers/list-models/`
 - Model names/API keys are retrieved from settings (never hardcode)
 
 ### When Working with Database
 
 - Always use Drizzle ORM queries (`src/main/lib/db/queries.ts`)
-- Schema changes require running `pnpm db:generate` to create migrations
+- Schema changes require running `bun run db:generate` to create migrations
 - Vector searches use `cosineDistance()` from pgvector
 - All timestamps use `timestamp('created_at').notNull().defaultNow()`
 
@@ -416,14 +481,14 @@ Separate renderer entry points under `src/renderer/sub-apps/`: `searchbar`, `qui
 
 Vitest v4 with the following configuration (`vitest.config.ts`):
 
-- Path aliases: `@shared` → `src/shared`, `@main` → `src/main`, `@` → `src/renderer`
+- Path aliases: `@main` → `src/main`, `@` → `src/renderer` (shared code is imported as `@exodus/shared/...` through the workspace package)
 - Test files: `tests/unit/**/*.test.ts`
-- Coverage: V8 provider targeting `src/shared/` and `src/main/lib/`
+- Coverage: V8 provider targeting `packages/shared/src/` and `src/main/lib/`
 
 ### Writing Tests
 
-- Tests live under `tests/unit/`, mirroring the source tree: `src/main/lib/paths.ts` → `tests/unit/main/lib/paths.test.ts`. Test files are never co-located with the module they test — this keeps `src/` free of test files. A dedicated `tsconfig.test.json` (referenced from the root `tsconfig.json`) covers `tests/unit/**/*` for editor support; it is intentionally not part of the `pnpm typecheck` gate.
-- Import the module under test via the matching alias (`@main/...`, `@/...`, or `@shared/...`), not a relative path — relative paths would need to reach back out of `tests/unit/` into `src/`.
+- Tests live under `tests/unit/`, mirroring the source tree: `src/main/lib/paths.ts` → `tests/unit/main/lib/paths.test.ts`. Test files are never co-located with the module they test — this keeps `src/` free of test files. A dedicated `tsconfig.test.json` (referenced from the root `tsconfig.json`) covers `tests/unit/**/*` for editor support; it is intentionally not part of the `bun run typecheck` gate.
+- Import the module under test via the matching alias (`@main/...`, `@/...`, or `@exodus/shared/...`), not a relative path — relative paths would need to reach back out of `tests/unit/` into `src/`.
 - Tests for main-process code that transitively imports Electron/PGlite must mock those modules:
 
 ```typescript
@@ -443,11 +508,17 @@ Reusable AI utilities that should be used (and tested) instead of inline impleme
 
 ## Testing Locally
 
-1. Install dependencies: `pnpm install`
-2. Start dev server: `pnpm dev`
+1. Install dependencies: `bun install`
+2. Start dev server: `bun run start`
 3. The app will launch with hot reload enabled
 4. Database automatically initialized on first run
 5. Configure at least one AI provider in settings before chatting
+6. The dev window opens DevTools automatically. A console error whose stack is
+   only `VMnnn` / `<anonymous>` frames — e.g. `Cannot read properties of
+undefined (reading 'startTime') at …reportAllChanges` — is not app code (app
+   frames show `localhost:5173/src/...`, and nothing here depends on
+   `web-vitals`): it is the script DevTools injects for the Performance panel's
+   Live metrics, and is noise.
 
 ## Common Development Patterns
 
@@ -470,27 +541,116 @@ Reusable AI utilities that should be used (and tested) instead of inline impleme
 
 ### Adding a New Provider
 
-1. Create provider file in `src/main/lib/ai/providers/my-provider.ts`
-2. Resolve a `Model` via the shared `resolveModel()` (`src/main/lib/ai/providers/resolve-model.ts`)
-3. Add the provider's models to `src/shared/constants/models.ts`
-4. Update settings UI to include the new provider
-5. Update schema validation in `src/shared/schemas/`
+1. Add the `AiProviders` enum member in `packages/shared/src/types/ai.ts`
+2. Add a `SPECS` row in `src/main/lib/ai/providers/index.ts` (base-URL
+   getter + fallback, default model ids, pi-ai `provider` / `api`). A provider
+   that can't go through `resolveModel()` (like Ollama) gets its own module +
+   a hand-written `ProviderFn` instead
+3. Add a list-models handler in `src/main/lib/ai/providers/list-models/` (e.g., `my-provider.ts`) that normalizes the provider's API response
+4. Register the handler in `src/main/lib/ai/providers/list-models/index.ts`
+5. Add any per-provider fallback defaults to `MODEL_METADATA_FALLBACK` in `resolve-model.ts` (only what the provider's list API omits)
+6. Add its key/base-URL fields to `ProvidersSchema` in `packages/shared/src/schemas/settings-schema.ts` and a tab in `settings-form/providers-tabs.tsx`
+
+### Adding a User-Facing String
+
+1. Add the key to the right namespace in `packages/shared/src/i18n/locales/en/<ns>.json`
+   (dot-nested, component-scoped: `chat.composer.placeholder`).
+2. Renderer, inside a component or hook:
+   `const { t } = useTranslation('<ns>')` → `t('composer.placeholder')`;
+   rich text (embedded link/bold) → `<Trans ns="<ns>" i18nKey="…">`. In the
+   catalog key, a `<strong>`/`<i>`/`<p>`/`<br>` child MUST be written
+   as that literal tag (`<strong>text</strong>`), never a numbered
+   placeholder (`<1>text</1>`) — react-i18next's default
+   `transKeepBasicHtmlNodesFor` renders exactly those 4 tags literally
+   (notably, `<b>` is NOT in the default allowlist — write it as a numbered
+   placeholder like any other non-allowlisted element), and a numbered
+   placeholder for one of the 4 silently drops the child's content at
+   render time. Numbered placeholders (`<1>`, `<2>`, …) are only
+   correct for elements outside that allowlist (a custom component, `<a>`,
+   `<span>`, etc.). `bun run i18n:check`/typecheck/lint do not catch a wrong
+   choice here — a real render test does (see
+   `tests/unit/i18n/chat-namespace.test.ts`'s
+   `composerTools.mcpDialog.description` test for the pattern). If the
+   file already has `useTranslation('<otherNs>')`, switch to the array form
+   `useTranslation(['<otherNs>', '<ns>'])` — keep the existing namespace
+   first so already-written bare `t('key')` calls keep resolving unchanged —
+   and prefix every new lookup with `<ns>:`.
+
+   A numbered placeholder's `<N>` is the child's raw 0-indexed position in
+   the FULL `<Trans>` children array — text nodes and an explicit `{' '}`
+   each occupy their own index too, not just element children. A block
+   with two `<code>` children separated by plain text (`[text, <code>,
+text, <code>, text]`) numbers them `<1>` and `<3>`; adding a `{' '}`
+   anywhere before the second one shifts it to `<4>`. This makes such a
+   block fragile against `bun run fmt`/oxfmt reflowing the JSX (a
+   line-wrap can insert or remove an explicit `{' '}` with no visible
+   change to non-`<Trans>` rendering, but it renumbers everything after
+   it) — a real incident shipped with a fully green test suite because
+   the test hand-copied the children into a `createElement()` call
+   instead of rendering the real component, so the reflow-induced
+   renumbering had nothing to fail against. For any `<Trans>` block with
+   two or more non-allowlisted (numbered) children, extract it into its
+   own exported component and have the test `await
+import('@/path/to/the/file')` and render that component directly —
+   never hand-copy its children into the test (see `s3.tsx`'s
+   `PublicReadAccessNotice` and its render test in
+   `tests/unit/i18n/settings-namespace.test.ts` for the pattern). Don't
+   trust a manual count of the children either — dump the actual
+   compiled array (`React.Children.forEach` over the component's own
+   `props.children`, or an `esbuild --jsx=transform` compile) before
+   writing the catalog's placeholder numbers.
+
+3. Renderer, outside a component/hook (a plain exported function, a
+   module-level helper, a `src/renderer/services/*.ts` function) —
+   `useTranslation()` isn't callable there. Import the shared instance
+   directly: `import { i18n } from '@/lib/i18n'` → `i18n.t('<ns>:key')`
+   (always the explicit `ns:key` form — the raw instance has no namespace
+   bound beyond the global `defaultNS: 'common'`).
+4. Main process: `mainI18n.t('<ns>:key')` (or the `mainT()` helper in
+   `src/main/lib/i18n.ts`, which additionally tolerates `mainI18n` being
+   unassigned during a failed boot).
+5. Dates/numbers: `useFormat()` (renderer). Never build a sentence by
+   splicing a hand-formatted date/number into raw English word order — pass
+   it as an interpolation param to a translated key instead.
+6. Non-English catalogs are filled by the machine-translation pass — do not
+   hand-edit them.
+7. `src/renderer/components/ui/**` (shadcn primitives) is permanently out of
+   scope for extraction — the generator (`bun run shadcn:generate`) overwrites
+   these files and drops any `t()` calls added by hand.
+8. Before extracting a string into an existing function scope, check whether
+   that scope already binds a local `t` (a loop variable, a destructured
+   field, anything) — a shadowed `t` compiles fine today but breaks the next
+   namespace pass that adds a real `t()` call in the same scope.
+9. **This is enforced, not just convention.** `tests/unit/i18n/no-hardcoded-strings.test.ts`
+   (part of `bun run test`, so gated on every commit) scans every
+   `src/renderer/**/*.{ts,tsx}` (excluding `components/ui/**` and
+   `sub-apps/artifacts/sandbox.tsx`) for JSX text nodes (`.tsx` only),
+   `sileo.*({ title | description })` values (including template literals
+   and ternaries, in both `.ts` hooks/services and `.tsx` components), and
+   `label:` properties in `src/main/lib/menu.ts`/`tray.ts` that aren't
+   routed through `t()`/`<Trans>`/`mainT()`. A new hardcoded string fails
+   the suite immediately — add a catalog key instead. The only escape
+   hatch is `tests/unit/i18n/allowlist.ts`, reserved for genuine proper
+   nouns/brand names/technical identifiers (a GitHub org slug, a license
+   name, a URI scheme prefix) — never for deferred i18n debt; every entry
+   needs a real reason.
 
 ### Test-ID Checkpoints (traceability)
 
 When adding or generating an interactive element that warrants test coverage:
 
-1. Add a semantic id to `src/shared/constants/test-ids.ts` (the value mirrors the
+1. Add a semantic id to `packages/shared/src/constants/test-ids.ts` (the value mirrors the
    object path, camelCase → kebab-case), e.g. `TEST_IDS.lock.unlockButton` →
    `'lock.unlock-button'`.
 2. Apply it on the element: `data-testid={TEST_IDS.lock.unlockButton}`. For the
    `PinInput` (and similar wrapped components), pass the `testId` prop instead.
 3. Reference the same constant from a Playwright test in `tests/` via
    `getByTestId(TEST_IDS.lock.unlockButton)`. (Playwright does not resolve the
-   `@shared` alias — import `TEST_IDS` via a relative path in specs.)
+   workspace package specifier — import `TEST_IDS` via a relative path,
+   `../../packages/shared/src/constants/test-ids`, in specs.)
 
 Rules enforced by the Vitest linkage test `test-ids.linkage.test.ts` (runs in
-`pnpm test` and the pre-commit hook):
+`bun run test` and the pre-commit hook):
 
 - every registry id must be applied in `src/renderer` (no orphan ids),
 - every registry id must be referenced by at least one test (no uncovered ids),
@@ -499,19 +659,20 @@ Rules enforced by the Vitest linkage test `test-ids.linkage.test.ts` (runs in
 Ids are a durable contract: never rename or regenerate an existing id; only add
 new ones. Dangling references to non-existent ids are caught by TypeScript (the
 registry is typed). `data-testid` attributes are stripped from packaged release
-builds by a small Vite `transform` plugin in `electron.vite.config.ts` gated on
-`STRIP_TEST_IDS=1` (set in `build:mac`/`build:win`/`build:linux`); dev and E2E
-builds keep the markers.
+builds by a small Vite `transform` plugin in `vite.renderer.config.mts` gated on
+`STRIP_TEST_IDS=1` (set by `bun run make` / `bun run publish`); dev, `bun run package`
+and E2E builds keep the markers.
 
 ## Code Structure
 
 Main process:
 
-- `src/main/index.ts` — app bootstrap, lifecycle, IPC + server startup
+- `src/main/main.ts` — app bootstrap, lifecycle, IPC + server startup
 - `src/main/lib/server/app.ts` — Hono server + route registration
 - `src/main/lib/server/routes/` — API route handlers
 - `src/main/lib/server/middlewares/` — CORS, lock gate, error handler
 - `src/main/lib/ai/providers/` — LLM provider resolution (`resolve-model.ts`)
+- `src/main/lib/ai/providers/list-models/` — Live model catalog handlers per provider (`anthropic.ts`, `openai.ts`, `google.ts`, `xai.ts`, `ollama.ts`); each normalizes that provider's list-models API response into `{ id, displayName, snapshot: ModelSnapshot }`, dispatched by `index.ts` and called from `POST /api/settings/models`
 - `src/main/lib/ai/calling-tools/` — built-in agent tools
 - `src/main/lib/ai/philharmonic/` — multi-agent Groups
 - `src/main/lib/ai/context-management/` — LCM
@@ -552,12 +713,14 @@ Main process:
   gated on `settings.computerUse.enabled`. `GET /api/computer-use/apps` feeds the
   Settings allowlist picker. See
   `docs/superpowers/specs/2026-09-06-computer-use-v0-design.md`
+- `src/main/lib/i18n.ts` — the main-process i18next instance (`mainI18n`),
+  `resolveEffectiveLocale`, and the `get-app-locale` / `set-app-locale` IPC
 - `src/main/lib/ipc.ts` — main-process IPC handlers
 - `src/main/lib/paths.ts` — `~/.exodus` path helpers
 
 Preload:
 
-- `src/preload/index.ts` — context-isolated bridge
+- `src/preload/preload.ts` — context-isolated bridge (`preload.d.ts` types `window.electron` / `window.api`)
 
 Renderer:
 
@@ -576,10 +739,15 @@ Renderer:
 
 Shared:
 
-- `src/shared/types/` — cross-process types
-- `src/shared/constants/` — constants (`models.ts`, `test-ids.ts`, `systems.ts`)
-- `src/shared/schemas/` — Zod schemas
-- `src/shared/utils/` — shared utilities
+- `packages/shared/src/types/` — cross-process types
+- `packages/shared/src/constants/` — constants (`test-ids.ts`, `systems.ts`)
+- `packages/shared/src/schemas/` — Zod schemas
+- `packages/shared/src/utils/` — shared utilities
+- `packages/shared/src/i18n/` — application i18n: `locales.ts` (the 10 locale IDs +
+  `resolveLocale`), `namespaces.ts`, `index.ts` (`createI18n` — one i18next
+  config for both processes, JSON catalogs lazy-loaded per locale),
+  `catalog-audit.ts`, `types.d.ts` (typed `t()` keys), `locales/<id>/<ns>.json`.
+  See `docs/superpowers/specs/2026-09-11-i18n-design.md`.
 
 Tests & config:
 
@@ -589,8 +757,9 @@ Tests & config:
 - `tests/providers/` — provider compatibility
 - `tests/fixtures/` — Playwright fixtures (electron, api-client)
 - `tests/helpers/` — test helpers
-- `tsconfig.test.json` — editor/type support for `tests/unit/**/*` (not part of the `pnpm typecheck` gate)
-- `electron.vite.config.ts` — build config (incl. `data-testid` strip)
+- `tsconfig.test.json` — editor/type support for `tests/unit/**/*` (not part of the `bun run typecheck` gate)
+- `forge.config.ts` — electron-forge config (packager, makers, publisher, Vite plugin, fuses)
+- `vite.main.config.mts` / `vite.preload.config.mts` / `vite.renderer.config.mts` — Vite configs per target (the renderer one has the `data-testid` strip and the sub-app HTML entries)
 - `vitest.config.ts` — unit test config
 - `playwright.config.ts` — E2E config
 

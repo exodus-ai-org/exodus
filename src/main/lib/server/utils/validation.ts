@@ -1,6 +1,6 @@
 import { S3Client } from '@aws-sdk/client-s3'
-import { ErrorCode } from '@shared/constants/error-codes'
-import { ConfigurationError } from '@shared/errors/app-error'
+import { ErrorCode } from '@exodus/shared/constants/error-codes'
+import { ConfigurationError } from '@exodus/shared/errors/app-error'
 
 import { Settings } from '../../db/schema'
 
@@ -20,10 +20,7 @@ export function validateS3Config(setting: Settings) {
   }
 
   if (!s3Config?.bucket) {
-    throw new ConfigurationError(
-      ErrorCode.CONFIG_MISSING_S3,
-      'S3 bucket is not configured'
-    )
+    throw new ConfigurationError(ErrorCode.CONFIG_MISSING_S3_BUCKET)
   }
 
   return {

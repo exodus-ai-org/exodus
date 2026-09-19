@@ -1,10 +1,10 @@
-import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 
 import { computerAskRegistry } from '../../computer/ask-registry'
 import { getHelper } from '../../computer/helper'
 import { liveness } from '../../computer/liveness'
 import type { InstalledApp } from '../../computer/types'
+import { Variables } from '../types'
 import { successResponse } from '../utils'
 
 const router = new Hono<{ Variables: Variables }>()

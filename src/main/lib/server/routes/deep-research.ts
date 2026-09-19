@@ -1,11 +1,10 @@
-import type { JSONRPCNotification } from '@modelcontextprotocol/sdk/types.js'
-import { ErrorCode } from '@shared/constants/error-codes'
-import { ConfigurationError, NotFoundError } from '@shared/errors/app-error'
+import { ErrorCode } from '@exodus/shared/constants/error-codes'
+import { NotFoundError } from '@exodus/shared/errors/app-error'
 import {
   DeepResearchProgress,
   ReportProgressPayload
-} from '@shared/types/deep-research'
-import { Variables } from '@shared/types/server'
+} from '@exodus/shared/types/deep-research'
+import type { JSONRPCNotification } from '@modelcontextprotocol/sdk/types.js'
 import { Hono } from 'hono'
 import { v4 as uuidV4 } from 'uuid'
 
@@ -20,6 +19,7 @@ import {
 } from '../../db/queries'
 import { bindTraceAttributes } from '../../logger/trace-context'
 import { createDeepResearchSchema } from '../schemas/deep-research'
+import { Variables } from '../types'
 import {
   getRequiredQuery,
   handleDatabaseOperation,
@@ -75,16 +75,9 @@ deepResearch.post('/', async (c) => {
     )
   }
 
-  if (!setting.providerConfig?.reasoningModel) {
-    throw new ConfigurationError(
-      ErrorCode.CONFIG_MISSING_REASONING_MODEL,
-      'Reasoning model is not configured'
-    )
-  }
-
   const braveApiKey = validateBraveApiKey(setting)
 
-  const { reasoningModel, apiKey } = getModelFromProvider(setting)
+  const { model, apiKey } = getModelFromProvider(setting)
 
   await notifyClients(deepResearchId, {
     type: DeepResearchProgress.StartDeepResearch
@@ -97,7 +90,7 @@ deepResearch.post('/', async (c) => {
     },
     {
       braveApiKey,
-      model: reasoningModel,
+      model,
       apiKey,
       notify: (data) => notifyClients(deepResearchId, data)
     }
@@ -111,7 +104,7 @@ deepResearch.post('/', async (c) => {
       prompt: query,
       learnings
     },
-    { model: reasoningModel, apiKey }
+    { model, apiKey }
   )
 
   const deepResearchById = await getDeepResearchById({ id: deepResearchId })
@@ -162,10 +155,9 @@ deepResearch.get('/result/:id', async (c) => {
   )
 
   if (!result) {
-    throw new NotFoundError(
-      ErrorCode.DEEP_RESEARCH_NOT_FOUND,
-      `Deep research with ID ${id} not found`
-    )
+    throw new NotFoundError(ErrorCode.DEEP_RESEARCH_NOT_FOUND, undefined, {
+      id
+    })
   }
 
   return successResponse(c, result)

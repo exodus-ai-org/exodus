@@ -1,0 +1,38 @@
+{
+  "form": {
+    "breadth": {
+      "label": "廣度",
+      "description": "在每個層級生成多組搜尋查詢，探索主題的不同面向。預設值：4。"
+    },
+    "depth": {
+      "label": "深度",
+      "description": "遞迴深入探索，追蹤線索並發掘各分支之間的關聯。預設值：2。"
+    }
+  },
+  "tabs": {
+    "activity": "動態",
+    "sources_other": "{{count}} 個來源"
+  },
+  "messages": {
+    "start": {
+      "title": "開始進行深度研究...",
+      "description": "深度研究過程可能需要一些時間。你可以自由在其他對話中與 Exodus 聊天。最終報告完成後 Exodus 會立即通知你。"
+    },
+    "learnings_other": "已從先前的網路資源中深度研究出 {{count}} 項內容",
+    "queriesDeeper_other": "已針對先前的研究產生 {{count}} 個搜尋查詢",
+    "queriesForTopic_other": "已針對「{{query}}」產生 {{count}} 個搜尋查詢",
+    "searchedFor": "已搜尋「{{query}}」",
+    "writingReport": {
+      "title": "開始撰寫最終報告...",
+      "description": "深度研究階段已完成，你的最終報告正在生成中，即將呈現。"
+    },
+    "complete": {
+      "title": "深度研究已完成",
+      "description": "針對「{{query}}」的深入報告已完整生成，希望對你有所幫助！"
+    }
+  },
+  "sources": {
+    "citations": "引用來源",
+    "more": "更多"
+  }
+}

@@ -4,10 +4,20 @@ import { join } from 'path'
 
 import { app } from 'electron'
 
-export const getHomedir = homedir
-
+/**
+ * `~/.exodus` — packaged and unpackaged (dev) builds alike, so a dev build
+ * sees the same chats, settings and memories as the real app. Exodus is the
+ * successor of `universal-client`, which uses this same directory.
+ *
+ * PGlite is single-process: never run two Exodus processes (a dev build, the
+ * packaged app, universal-client) against one data directory at the same
+ * time — the database can be corrupted. Backups live in `~/.exodus/backups`.
+ *
+ * `EXODUS_HOME` points a run at another directory instead (e.g. a scratch
+ * dir); the e2e suite gets the same effect by sandboxing `$HOME`.
+ */
 export function getExodusHome(): string {
-  return join(getHomedir(), '.exodus')
+  return process.env.EXODUS_HOME || join(homedir(), '.exodus')
 }
 
 export function getDatabaseDir(): string {
@@ -20,20 +30,8 @@ export function getLogsDir(): string {
   return dir
 }
 
-export function getSkillsDir(): string {
-  return join(getExodusHome(), 'skills')
-}
-
 export function getArtifactsDir(): string {
   return join(getExodusHome(), 'artifacts')
-}
-
-export function getLockSecretPath(): string {
-  return join(getExodusHome(), 'lock.dat')
-}
-
-export function getLockConfigPath(): string {
-  return join(getExodusHome(), 'lock-config.json')
 }
 
 /** Philharmonic Group workspace root, one directory per conversation. */
@@ -63,12 +61,19 @@ export function getManualBackupsDir(): string {
   return dir
 }
 
+export function getLockSecretPath(): string {
+  return join(getExodusHome(), 'lock.dat')
+}
+
+export function getLockConfigPath(): string {
+  return join(getExodusHome(), 'lock-config.json')
+}
+
 export function ensureExodusDirs(): void {
   const dirs = [
     getExodusHome(),
     getDatabaseDir(),
     getLogsDir(),
-    getSkillsDir(),
     getArtifactsDir(),
     getAutoBackupsDir(),
     getManualBackupsDir()
@@ -105,4 +110,26 @@ export function migrateFromLegacyLocation(): void {
       }
     }
   }
+}
+
+/**
+ * Resolves a path under the app's bundled `resources/` directory (icons,
+ * etc.). electron-forge's Vite plugin has no electron-vite `?asset` import,
+ * so bundled assets are read straight off disk instead.
+ *
+ * In dev, `__dirname` is `<repo>/.vite/build` (where main.js lives) — two
+ * levels up is the repo root, then into `resources/`.
+ *
+ * In a packaged build, `packagerConfig.extraResource: ['./resources']`
+ * (see forge.config.ts) copies the *directory* into
+ * `Contents/Resources/resources/` — electron-packager preserves the source
+ * folder's basename rather than flattening its contents — so
+ * `process.resourcesPath` alone is one level short; verified against a real
+ * `electron-forge package` output, not assumed.
+ */
+export function getResourcePath(relPath: string): string {
+  const base = app.isPackaged
+    ? join(process.resourcesPath, 'resources')
+    : join(__dirname, '../../resources')
+  return join(base, relPath)
 }

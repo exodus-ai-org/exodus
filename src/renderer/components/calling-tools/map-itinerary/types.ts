@@ -1,6 +1,8 @@
 /** Shared place + day shapes for the map-itinerary card.
  *  Mirrors the server-side schema in
  *  `src/main/lib/ai/calling-tools/map-itinerary.ts` — keep them in sync. */
+import type { ToolNotice } from '@exodus/shared/types/chat'
+
 export type ItineraryReview = {
   author?: string
   authorPhotoUrl?: string
@@ -45,6 +47,10 @@ export type MapItineraryDetails = {
   type: 'mapItinerary'
   title?: string
   days: ItineraryDay[]
+  /** Set when Places enrichment failed for a user-fixable reason (expired /
+   *  invalid key, API disabled, no billing, quota). Rendered as a banner on
+   *  the card; also toasted once while streaming. */
+  notice?: ToolNotice
 }
 
 /** Build a Places API photo URL from a photo reference path. The user's

@@ -1,3 +1,4 @@
+import type { ParseKeys } from 'i18next'
 import { useSetAtom } from 'jotai'
 import { useCallback, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router'
@@ -13,7 +14,7 @@ export const MOD_KEY = isMac ? '⌘' : 'Ctrl'
 export type ShortcutDef = {
   id: string
   keys: string[]
-  label: string
+  labelKey: ParseKeys<'settings'>
   category: 'General' | 'Chat' | 'Search'
   /**
    * Defaults to true. Explicitly false for shortcuts that either have no
@@ -36,68 +37,95 @@ export const SHORTCUT_MAP: ShortcutDef[] = [
   {
     id: 'new-chat',
     keys: [MOD_KEY, 'N'],
-    label: 'New chat',
+    labelKey: 'keyboardShortcuts.shortcuts.new-chat.label',
     category: 'General'
   },
   {
     id: 'open-settings',
     keys: [MOD_KEY, ','],
-    label: 'Open settings',
+    labelKey: 'keyboardShortcuts.shortcuts.open-settings.label',
     category: 'General'
   },
   {
     id: 'toggle-sidebar',
     keys: [MOD_KEY, 'B'],
-    label: 'Toggle sidebar',
+    labelKey: 'keyboardShortcuts.shortcuts.toggle-sidebar.label',
+    category: 'General',
+    toggleable: false
+  },
+  {
+    id: 'toggle-developer-tools',
+    keys: [MOD_KEY, 'Alt', 'I'],
+    labelKey: 'keyboardShortcuts.shortcuts.toggle-developer-tools.label',
+    category: 'General',
+    toggleable: false
+  },
+  {
+    id: 'force-refresh-page',
+    keys: [MOD_KEY, 'Shift', 'R'],
+    labelKey: 'keyboardShortcuts.shortcuts.force-refresh-page.label',
     category: 'General',
     toggleable: false
   },
   {
     id: 'find-in-page',
     keys: [MOD_KEY, 'F'],
-    label: 'Find in page',
+    labelKey: 'keyboardShortcuts.shortcuts.find-in-page.label',
     category: 'Search',
     toggleable: false
   },
   {
     id: 'search-chat-history',
     keys: [MOD_KEY, '⇧', 'F'],
-    label: 'Search chat history',
+    labelKey: 'keyboardShortcuts.shortcuts.search-chat-history.label',
     category: 'Search'
   },
   {
     id: 'close-find-bar',
     keys: ['Esc'],
-    label: 'Close find bar',
+    labelKey: 'keyboardShortcuts.shortcuts.close-find-bar.label',
     category: 'Search'
   },
   {
     id: 'close-tab',
     keys: [MOD_KEY, 'W'],
-    label: 'Close current tab',
+    labelKey: 'keyboardShortcuts.shortcuts.close-tab.label',
     category: 'Chat'
   },
   {
     id: 'focus-chat-input',
     keys: [MOD_KEY, '⇧', 'E'],
-    label: 'Focus chat input',
+    labelKey: 'keyboardShortcuts.shortcuts.focus-chat-input.label',
     category: 'Chat'
   },
   {
     id: 'send-message',
     keys: ['Enter'],
-    label: 'Send message',
+    labelKey: 'keyboardShortcuts.shortcuts.send-message.label',
     category: 'Chat',
     toggleable: false
   },
   {
     id: 'new-line',
     keys: ['⇧', 'Enter'],
-    label: 'New line',
+    labelKey: 'keyboardShortcuts.shortcuts.new-line.label',
     category: 'Chat',
     toggleable: false
   }
 ]
+
+/**
+ * i18n key for each shortcut category heading, keyed by
+ * `ShortcutDef['category']` the same way `NAV_TITLE_KEYS`
+ * (`settings-menu.ts`) keys off `SettingsLabel` — `as const satisfies
+ * Record<...>` keeps each value's exact literal key type so
+ * `t(CATEGORY_TITLE_KEYS[category])` type-checks with no cast.
+ */
+export const CATEGORY_TITLE_KEYS = {
+  General: 'keyboardShortcuts.category.general',
+  Chat: 'keyboardShortcuts.category.chat',
+  Search: 'keyboardShortcuts.category.search'
+} as const satisfies Record<ShortcutDef['category'], ParseKeys<'settings'>>
 
 function isModKey(e: KeyboardEvent) {
   return isMac ? e.metaKey : e.ctrlKey
@@ -183,7 +211,7 @@ export function useKeyboardShortcuts() {
       if (key === 'n') {
         if (disabled.has('new-chat')) return
         e.preventDefault()
-        window.location.href = '/'
+        navigate('/')
         return
       }
 

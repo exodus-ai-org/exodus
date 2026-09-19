@@ -1,6 +1,7 @@
 // src/renderer/components/philharmonic/employees/employee-editor.tsx
 import { Pencil } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 // NOTE: useEffect to sync draft from employee prop removed — key={employee.id}
 // at the call site causes React to remount when the employee changes, so the
 // useState initializer always receives the fresh value on mount.
@@ -51,6 +52,7 @@ export function EmployeeEditor({
   onSave: (data: Partial<AgentData>) => void
   onClose: () => void
 }) {
+  const { t } = useTranslation(['common', 'philharmonic'])
   const [draft, setDraft] = useState<AgentData>(employee)
   const [skills, setSkills] = useState<Array<{ slug: string; name: string }>>(
     []
@@ -77,10 +79,11 @@ export function EmployeeEditor({
       <header className="border-border flex h-14 shrink-0 items-center border-b pr-14 pl-5">
         <div className="min-w-0">
           <div className="text-muted-foreground text-[11px] tracking-wider uppercase">
-            Employee
+            {t('philharmonic:employees.editor.header.label')}
           </div>
           <div className="text-foreground truncate text-sm font-semibold">
-            {draft.name || 'New employee'}
+            {draft.name ||
+              t('philharmonic:employees.editor.header.newFallback')}
           </div>
         </div>
       </header>
@@ -90,7 +93,7 @@ export function EmployeeEditor({
         <div className="flex items-center gap-4">
           <Popover>
             <PopoverTrigger
-              aria-label="Edit avatar"
+              aria-label={t('philharmonic:employees.editor.avatarAria')}
               className="relative inline-block"
             >
               <EmployeeAvatar
@@ -114,7 +117,9 @@ export function EmployeeEditor({
             </PopoverContent>
           </Popover>
           <div className="flex-1">
-            <FieldLabel>Name</FieldLabel>
+            <FieldLabel>
+              {t('philharmonic:employees.editor.fields.name')}
+            </FieldLabel>
             <Input
               value={draft.name}
               onChange={(e) => setDraft({ ...draft, name: e.target.value })}
@@ -126,59 +131,73 @@ export function EmployeeEditor({
         {/* Team + Description */}
         <div>
           <FieldLabel>
-            Team <span className="text-destructive">*</span>
+            {t('philharmonic:employees.editor.fields.team')}{' '}
+            <span className="text-destructive">*</span>
           </FieldLabel>
           <Select
             value={draft.teamId ?? ''}
             onValueChange={(v) => setDraft({ ...draft, teamId: v })}
           >
             <SelectTrigger className="border-border bg-muted rounded-lg">
-              <SelectValue placeholder="Select a team" />
+              <SelectValue
+                placeholder={t(
+                  'philharmonic:employees.editor.fields.teamPlaceholder'
+                )}
+              />
             </SelectTrigger>
             <SelectContent>
-              {teams.map((t) => (
-                <SelectItem key={t.id} value={t.id}>
-                  {t.icon ? `${t.icon} ` : ''}
-                  {t.name}
+              {teams.map((team) => (
+                <SelectItem key={team.id} value={team.id}>
+                  {team.icon ? `${team.icon} ` : ''}
+                  {team.name}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <p className="text-muted-foreground mt-1 text-xs">
-            Every employee belongs to a team — the team's system prompt is
-            applied to all its members.
+            {t('philharmonic:employees.editor.fields.teamHelp')}
           </p>
         </div>
 
         <div>
-          <FieldLabel>Description</FieldLabel>
+          <FieldLabel>
+            {t('philharmonic:employees.editor.fields.description')}
+          </FieldLabel>
           <Input
             value={draft.description ?? ''}
             onChange={(e) =>
               setDraft({ ...draft, description: e.target.value })
             }
             className="border-border bg-muted rounded-lg"
-            placeholder="One line about what this employee does."
+            placeholder={t(
+              'philharmonic:employees.editor.fields.descriptionPlaceholder'
+            )}
           />
         </div>
 
         <div>
-          <FieldLabel>System prompt</FieldLabel>
+          <FieldLabel>
+            {t('philharmonic:employees.editor.fields.systemPrompt')}
+          </FieldLabel>
           <Textarea
             value={draft.systemPrompt ?? ''}
             onChange={(e) =>
               setDraft({ ...draft, systemPrompt: e.target.value })
             }
             className="border-border bg-muted min-h-24 rounded-lg"
-            placeholder="Layered on top of the team's prompt."
+            placeholder={t(
+              'philharmonic:employees.editor.fields.systemPromptPlaceholder'
+            )}
           />
         </div>
 
         <div>
-          <FieldLabel>Skills</FieldLabel>
+          <FieldLabel>
+            {t('philharmonic:employees.editor.fields.skills')}
+          </FieldLabel>
           {skills.length === 0 ? (
             <span className="text-muted-foreground text-xs">
-              No skills installed yet.
+              {t('philharmonic:employees.editor.fields.noSkills')}
             </span>
           ) : (
             <ToggleGroup
@@ -202,10 +221,12 @@ export function EmployeeEditor({
         </div>
 
         <div>
-          <FieldLabel>MCP servers</FieldLabel>
+          <FieldLabel>
+            {t('philharmonic:employees.editor.fields.mcpServers')}
+          </FieldLabel>
           {mcpServers.length === 0 ? (
             <span className="text-muted-foreground text-xs">
-              No MCP servers configured yet.
+              {t('philharmonic:employees.editor.fields.noMcpServers')}
             </span>
           ) : (
             <ToggleGroup
@@ -227,15 +248,21 @@ export function EmployeeEditor({
             </ToggleGroup>
           )}
           <p className="text-muted-foreground mt-1 text-xs">
-            If none are selected, the employee can use all available servers.
+            {t('philharmonic:employees.editor.fields.mcpServersHelp')}
           </p>
         </div>
 
         {!isNew && (
           <div>
-            <FieldLabel>Memory (read-only)</FieldLabel>
+            <FieldLabel>
+              {t('philharmonic:employees.editor.fields.memory')}
+            </FieldLabel>
             <div className="text-muted-foreground space-y-1 text-xs">
-              {memories.length === 0 && <span>No accumulated memory yet</span>}
+              {memories.length === 0 && (
+                <span>
+                  {t('philharmonic:employees.editor.fields.noMemory')}
+                </span>
+              )}
               {memories.map((m) => (
                 <div key={m.id} className="bg-muted rounded-md p-1.5">
                   <b className="text-foreground">{m.key}</b>:{' '}
@@ -249,14 +276,14 @@ export function EmployeeEditor({
 
       <footer className="border-border flex h-14 shrink-0 items-center justify-end gap-1.5 border-t px-5">
         <Button variant="ghost" size="sm" onClick={onClose}>
-          Cancel
+          {t('action.cancel')}
         </Button>
         <Button
           size="sm"
           onClick={() => canSave && onSave(draft)}
           disabled={!canSave}
         >
-          {isNew ? 'Create' : 'Save'}
+          {isNew ? t('action.create') : t('action.save')}
         </Button>
       </footer>
     </div>

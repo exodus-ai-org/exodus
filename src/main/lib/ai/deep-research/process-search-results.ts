@@ -1,7 +1,7 @@
+import { Learning } from '@exodus/shared/types/deep-research'
+import { WebSearchResult } from '@exodus/shared/types/web-search'
 import type { Model } from '@mariozechner/pi-ai'
 import { completeSimple } from '@mariozechner/pi-ai'
-import { Learning } from '@shared/types/deep-research'
-import { WebSearchResult } from '@shared/types/web-search'
 import { z } from 'zod'
 
 import { deepResearchSystemPrompt } from '../prompts'

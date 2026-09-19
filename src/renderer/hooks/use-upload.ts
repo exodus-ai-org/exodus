@@ -1,11 +1,13 @@
 import { useSetAtom } from 'jotai'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import { convertFileToBase64 } from '@/lib/utils'
 import { attachmentAtom } from '@/stores/chat'
 
 export function useUpload() {
+  const { t } = useTranslation('chat')
   const [loading, setLoading] = useState(false)
   const setAttachments = useSetAtom(attachmentAtom)
 
@@ -25,8 +27,8 @@ export function useUpload() {
       await uploadFileToBase64(files)
     } catch {
       sileo.error({
-        title: 'Upload failed',
-        description: 'Failed to upload files.'
+        title: t('upload.failedTitle'),
+        description: t('upload.failedDescription')
       })
     } finally {
       setLoading(false)

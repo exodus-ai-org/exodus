@@ -1,4 +1,4 @@
-import { TEST_IDS } from '../../src/shared/constants/test-ids'
+import { TEST_IDS } from '../../packages/shared/src/constants/test-ids'
 import { electronTest as test, expect } from '../fixtures/electron'
 
 // The gallery only renders when a web search returned image media, which is
@@ -12,6 +12,7 @@ test('web-search gallery checkpoints are addressable', async ({
     TEST_IDS.gallery.lightboxClose,
     TEST_IDS.gallery.lightboxPrev,
     TEST_IDS.gallery.lightboxNext,
+    TEST_IDS.gallery.lightboxDot,
     TEST_IDS.video.card
   ]) {
     expect(await mainWindow.getByTestId(id).count()).toBeGreaterThanOrEqual(0)

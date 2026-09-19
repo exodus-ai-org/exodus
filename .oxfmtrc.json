@@ -6,7 +6,7 @@
   "semi": false,
   "singleQuote": true,
   "trailingComma": "none",
-  "ignorePatterns": ["pnpm-lock.yaml", "CHANGELOG.md", "out/", "dist/"],
+  "ignorePatterns": ["bun.lock", "CHANGELOG.md", "out/", "node_modules/"],
   "sortImports": {
     "enabled": true
   },

@@ -1,4 +1,5 @@
 import { useAtom, useSetAtom } from 'jotai'
+import { useTranslation } from 'react-i18next'
 
 import {
   AlertDialog,
@@ -15,6 +16,7 @@ import { updateChat } from '@/services/chat'
 import { openTabsAtom, renamedChatTitleAtom } from '@/stores/chat'
 
 export function RenameChatDialog() {
+  const { t } = useTranslation(['common', 'chat'])
   const [renamedChatTitle, setRenamedChatTitle] = useAtom(renamedChatTitleAtom)
   const setOpenTabs = useSetAtom(openTabsAtom)
   const reset = () => setRenamedChatTitle({ id: '', title: '', open: false })
@@ -30,7 +32,9 @@ export function RenameChatDialog() {
     >
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Rename Chat</AlertDialogTitle>
+          <AlertDialogTitle>
+            {t('chat:sidebar.renameDialog.title')}
+          </AlertDialogTitle>
           <AlertDialogDescription className="w-full">
             <Input
               className="text-foreground mt-2"
@@ -45,18 +49,20 @@ export function RenameChatDialog() {
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={reset}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel onClick={reset}>
+            {t('action.cancel')}
+          </AlertDialogCancel>
           <AlertDialogAction
             onClick={() => {
               const { id, title } = renamedChatTitle
               updateChat({ id, title })
               setOpenTabs((prev) =>
-                prev.map((t) => (t.id === id ? { ...t, title } : t))
+                prev.map((tab) => (tab.id === id ? { ...tab, title } : tab))
               )
               reset()
             }}
           >
-            Submit
+            {t('chat:sidebar.renameDialog.submit')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -2,6 +2,9 @@ import '@/assets/stylesheets/globals.css'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 
+import { I18nProvider } from '@/components/i18n-provider'
+import { i18nReady } from '@/lib/i18n'
+
 import { ArtifactSandbox } from './sandbox'
 
 // Apply theme from localStorage (same key as main app's ThemeProvider).
@@ -36,10 +39,14 @@ window
   .matchMedia('(prefers-color-scheme: dark)')
   .addEventListener('change', applyTheme)
 
-ReactDOM.createRoot(
-  document.getElementById('artifact-root') as HTMLElement
-).render(
-  <React.StrictMode>
-    <ArtifactSandbox />
-  </React.StrictMode>
-)
+void i18nReady.finally(() => {
+  ReactDOM.createRoot(
+    document.getElementById('artifact-root') as HTMLElement
+  ).render(
+    <React.StrictMode>
+      <I18nProvider>
+        <ArtifactSandbox />
+      </I18nProvider>
+    </React.StrictMode>
+  )
+})

@@ -1,0 +1,44 @@
+{
+  "incorrectPin": "PINが正しくありません",
+  "screen": {
+    "unlockWithTouchId": "Touch IDでロック解除",
+    "tooManyAttempts": "試行回数が多すぎます。{{seconds}}秒後にもう一度お試しください。"
+  },
+  "privacy": {
+    "title": "ロックとプライバシー",
+    "enroll": {
+      "description": "Exodusをロックするための6桁のPINを設定します。ロック中はUIとローカルAPIにアクセスできませんが、バックグラウンドのタスクは引き続き実行されます。",
+      "enterLabel": "6桁のPINを入力してください",
+      "confirmLabel": "PINを再入力してください",
+      "startOver": "やり直す"
+    },
+    "idleOptions": {
+      "off": "オフ",
+      "oneMinute": "1分",
+      "fiveMinutes": "5分",
+      "fifteenMinutes": "15分",
+      "thirtyMinutes": "30分"
+    },
+    "touchIdToggleLabel": "Touch IDでロック解除",
+    "autoLockIdle": "アイドル時に自動ロック",
+    "lockOnLaunch": "アプリ起動時にロック",
+    "lockOnSystemSleep": "システムのスリープ時にロック",
+    "removeLock": {
+      "label": "ロックを解除",
+      "description": "アプリのロックをオフにします。現在のPINが必要です。",
+      "button": "解除",
+      "dialogTitle": "ロックを解除しますか?",
+      "dialogDescription": "確認のため現在のPINを入力してください。以降、Exodusを開く際にPINは不要になります。",
+      "confirmButton": "ロックを解除"
+    },
+    "toast": {
+      "pinsDoNotMatch": "PINが一致しません",
+      "setPinFailed": {
+        "title": "PINを設定できませんでした",
+        "description": "PINはすでに設定されています。"
+      },
+      "lockEnabled": "ロックを有効にしました",
+      "lockRemoved": "ロックを解除しました"
+    }
+  }
+}

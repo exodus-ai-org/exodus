@@ -1,7 +1,9 @@
-import type { Project } from '@shared/types/db'
-import { fetcher } from '@shared/utils/http'
+import { fetcher } from '@exodus/shared/utils/http'
 import { sileo } from 'sileo'
 import { mutate } from 'swr'
+
+import { i18n } from '@/lib/i18n'
+import type { Project } from '@/types/db'
 
 interface CreateProjectInput {
   name: string
@@ -28,7 +30,7 @@ export const createProject = async (data: CreateProjectInput) => {
   })
 
   mutate('/api/project')
-  sileo.success({ title: 'Project created' })
+  sileo.success({ title: i18n.t('chat:projectDetail.toast.createdTitle') })
   return project
 }
 
@@ -40,16 +42,18 @@ export const updateProject = async (id: string, data: UpdateProjectInput) => {
 
   mutate('/api/project')
   mutate(`/api/project/${id}`)
-  sileo.success({ title: 'Project updated' })
+  sileo.success({ title: i18n.t('chat:projectDetail.toast.updatedTitle') })
   return project
 }
 
 export const deleteProject = async (project: Project) => {
-  await fetcher<string>(`/api/project/${project.id}`, {
-    method: 'DELETE',
-    responseType: 'text'
+  await fetcher<void>(`/api/project/${project.id}`, {
+    method: 'DELETE'
   })
 
   mutate('/api/project')
-  sileo.success({ title: 'Project deleted', description: project.name })
+  sileo.success({
+    title: i18n.t('chat:projectDetail.toast.deletedTitle'),
+    description: project.name
+  })
 }

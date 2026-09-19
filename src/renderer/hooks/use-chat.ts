@@ -4,7 +4,7 @@ import type {
   ChatStatus,
   SendMessageOptions,
   Usage
-} from '@shared/types/chat'
+} from '@exodus/shared/types/chat'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { v4 as uuidV4 } from 'uuid'
 

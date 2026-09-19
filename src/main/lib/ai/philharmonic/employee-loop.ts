@@ -1,8 +1,8 @@
+import type { PhilharmonicSseEvent } from '@exodus/shared/types/philharmonic'
 // src/main/lib/ai/philharmonic/employee-loop.ts
 import type { AgentMessage, AgentTool } from '@mariozechner/pi-agent-core'
 import { agentLoop } from '@mariozechner/pi-agent-core'
 import type { Message, Usage } from '@mariozechner/pi-ai'
-import type { PhilharmonicSseEvent } from '@shared/types/philharmonic'
 import { v4 as uuidV4 } from 'uuid'
 
 import {
@@ -62,7 +62,7 @@ export async function runEmployeeLoop(
   const { agent, instructions, executionId, conversationId, emit, signal } =
     args
   const setting = await getSettings()
-  const { chatModel, apiKey } = getModelFromProvider(setting)
+  const { model, apiKey } = getModelFromProvider(setting)
 
   const mcpNames = (agent.mcpServerNames as string[] | null) ?? []
   const mcpTools =
@@ -121,7 +121,7 @@ export async function runEmployeeLoop(
     [userMessage as AgentMessage],
     { systemPrompt, messages: [], tools },
     {
-      model: chatModel,
+      model,
       apiKey,
       convertToLlm: (msgs: AgentMessage[]): Message[] =>
         msgs.filter(
@@ -206,7 +206,7 @@ export async function runEmployeeLoop(
       }
     }
 
-    const cost = calculateCost(lastUsage, chatModel).total
+    const cost = calculateCost(lastUsage, model).total
     await updateTaskExecution(executionId, {
       status: 'completed',
       completedAt: new Date(),

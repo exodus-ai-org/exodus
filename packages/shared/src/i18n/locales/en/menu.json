@@ -1,0 +1,19 @@
+{
+  "file": "File",
+  "lockNow": "Lock Now",
+  "edit": "Edit",
+  "find": "Find",
+  "speech": "Speech",
+  "view": "View",
+  "window": "Window",
+  "learnMore": "Learn More",
+  "tray": {
+    "showApp": "Show App",
+    "hideApp": "Hide App",
+    "quitExodus": "Quit Exodus"
+  },
+  "notification": {
+    "philharmonicGroupError": "Group \"{{title}}\" hit an error",
+    "philharmonicGroupFinished": "Group \"{{title}}\" finished"
+  }
+}

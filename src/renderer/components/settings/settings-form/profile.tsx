@@ -1,3 +1,4 @@
+import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
 import {
   addDays,
   differenceInCalendarDays,
@@ -7,9 +8,9 @@ import {
   subWeeks
 } from 'date-fns'
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { useSettings } from '@/hooks/use-settings'
@@ -17,6 +18,7 @@ import { cn } from '@/lib/utils'
 import type { UsageSummary } from '@/services/usage'
 
 import { SettingsSection } from '../settings-row'
+import { AvatarUploader } from './avatar-uploader'
 
 const WEEKS = 52
 
@@ -83,7 +85,8 @@ const HEAT = [
 const CELL_PX = 10 // cell width/height
 const CELL_GAP_PX = 4 // gap between cells (and between columns)
 
-export function Profile() {
+export function Profile({ form }: { form: UseFormReturnType }) {
+  const { t } = useTranslation(['common', 'settings'])
   const { data: settings } = useSettings()
   const { data: usage } = useSWR<UsageSummary>('/api/usage')
   const { data: chats } = useSWR<{ id: string }[]>('/api/history')
@@ -107,14 +110,14 @@ export function Profile() {
       const d = addDays(start, i)
       if (d > end) break
       const key = format(d, 'yyyy-MM-dd')
-      const t = byDay.get(key) ?? 0
-      running += t
-      days.push({ date: key, tokens: mode === 'cumulative' ? running : t })
+      const count = byDay.get(key) ?? 0
+      running += count
+      days.push({ date: key, tokens: mode === 'cumulative' ? running : count })
     }
     const activeDays = new Set(
-      [...byDay.entries()].filter(([, t]) => t > 0).map(([k]) => k)
+      [...byDay.entries()].filter(([, count]) => count > 0).map(([k]) => k)
     )
-    const dailyPeak = Math.max(0, ...[...byDay.values()])
+    const dailyPeak = Math.max(0, ...byDay.values())
     const scaleMax = Math.max(1, ...days.map((x) => x.tokens))
     const grid = days.map((x) => ({
       ...x,
@@ -144,21 +147,21 @@ export function Profile() {
   }, [byDay, mode])
 
   const nickname = settings?.personality?.nickname?.trim()
+  const you = t('state.you')
 
   return (
     <div className="flex flex-col gap-8">
       {/* Header */}
       <div className="flex flex-col items-center gap-3 pt-2">
-        <Avatar className="size-20">
-          <AvatarImage src={settings?.assistantAvatar ?? undefined} />
-          <AvatarFallback className="text-xl">
-            {(nickname ?? 'You').slice(0, 1).toUpperCase()}
-          </AvatarFallback>
-        </Avatar>
+        <AvatarUploader
+          props={{ control: form.control, name: 'userAvatar' }}
+          className="size-20"
+          fallback={(nickname ?? you).slice(0, 1).toUpperCase()}
+        />
         <div className="flex flex-col items-center gap-1">
-          <h2 className="text-lg font-semibold">{nickname ?? 'You'}</h2>
+          <h2 className="text-lg font-semibold">{nickname ?? you}</h2>
           <Badge variant="secondary" className="text-xs font-normal">
-            Local
+            {t('state.runOnLocal')}
           </Badge>
         </div>
       </div>
@@ -167,17 +170,28 @@ export function Profile() {
       <Card className="[&>*:not(:last-child)]:border-border grid grid-cols-2 gap-0 py-0 sm:grid-cols-4 [&>*:not(:last-child)]:border-r">
         <Stat
           value={compact(usage?.totalTokens ?? 0)}
-          label="Lifetime tokens"
+          label={t('settings:profile.stats.lifetimeTokens')}
         />
-        <Stat value={compact(peak)} label="Peak day" />
-        <Stat value={`${streaks.current}d`} label="Current streak" />
-        <Stat value={`${streaks.longest}d`} label="Longest streak" />
+        <Stat
+          value={compact(peak)}
+          label={t('settings:profile.stats.peakDay')}
+        />
+        <Stat
+          value={`${streaks.current}d`}
+          label={t('settings:profile.stats.currentStreak')}
+        />
+        <Stat
+          value={`${streaks.longest}d`}
+          label={t('settings:profile.stats.longestStreak')}
+        />
       </Card>
 
       {/* Token activity heatmap */}
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-medium">Token activity</h2>
+          <h2 className="text-sm font-medium">
+            {t('settings:profile.activity.heading')}
+          </h2>
           <div className="text-muted-foreground flex gap-3 text-xs">
             {(['daily', 'cumulative'] as const).map((m) => (
               <button
@@ -185,11 +199,13 @@ export function Profile() {
                 type="button"
                 onClick={() => setMode(m)}
                 className={cn(
-                  'capitalize transition-colors hover:text-foreground',
+                  'transition-colors hover:text-foreground',
                   mode === m && 'text-foreground font-medium'
                 )}
               >
-                {m}
+                {m === 'daily'
+                  ? t('settings:profile.activity.mode.daily')
+                  : t('settings:profile.activity.mode.cumulative')}
               </button>
             ))}
           </div>
@@ -219,7 +235,10 @@ export function Profile() {
               {grid.map((cell) => (
                 <div
                   key={cell.date}
-                  title={`${cell.date} · ${compact(cell.tokens)} tokens`}
+                  title={t('settings:profile.activity.cellTooltip', {
+                    date: cell.date,
+                    tokens: compact(cell.tokens)
+                  })}
                   className={cn('rounded-xs', HEAT[cell.level])}
                   style={{ width: CELL_PX, height: CELL_PX }}
                 />
@@ -231,23 +250,26 @@ export function Profile() {
 
       {/* Insights */}
       <div className="grid gap-6 sm:grid-cols-2">
-        <SettingsSection title="Activity insights">
-          <InsightRow label="Total chats" value={String(chats?.length ?? 0)} />
+        <SettingsSection title={t('settings:profile.insights.sectionTitle')}>
           <InsightRow
-            label="Model requests"
+            label={t('settings:profile.insights.totalChats')}
+            value={String(chats?.length ?? 0)}
+          />
+          <InsightRow
+            label={t('settings:profile.insights.modelRequests')}
             value={compact(usage?.totalRequests ?? 0)}
           />
           <InsightRow
-            label="Installed skills"
+            label={t('settings:profile.insights.installedSkills')}
             value={String(skills?.length ?? 0)}
           />
           <InsightRow
-            label="Active skills"
+            label={t('settings:profile.insights.activeSkills')}
             value={String(skills?.filter((s) => s.isActive).length ?? 0)}
           />
         </SettingsSection>
 
-        <SettingsSection title="Top models">
+        <SettingsSection title={t('settings:profile.topModels.sectionTitle')}>
           {usage?.models?.length ? (
             usage.models
               .slice(0, 5)
@@ -260,7 +282,7 @@ export function Profile() {
               ))
           ) : (
             <p className="text-muted-foreground px-4 py-6 text-center text-sm">
-              No model usage yet
+              {t('settings:profile.topModels.empty')}
             </p>
           )}
         </SettingsSection>

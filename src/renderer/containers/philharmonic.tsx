@@ -1,4 +1,4 @@
-import { TEST_IDS } from '@shared/constants/test-ids'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { MessageSquarePlus } from 'lucide-react'
 import {
   lazy,
@@ -8,6 +8,7 @@ import {
   useMemo,
   useState
 } from 'react'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import {
@@ -24,7 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useConversationStream } from '@/hooks/use-conversation-stream'
 import type { PhilharmonicPage } from '@/layouts/philharmonic-layout'
 import { PhilharmonicContentHeader } from '@/layouts/philharmonic-layout/philharmonic-content-header'
-import { PhilharmonicWorkspace } from '@/layouts/philharmonic-layout/philharmonic-workspace'
+import { ResizableSidebarShell } from '@/layouts/shared/resizable-sidebar'
 import { getAgents, getTeams } from '@/services/philharmonic'
 import {
   createConversation,
@@ -57,6 +58,7 @@ export function PhilharmonicContainer({
   activePage: PhilharmonicPage
   onNavigate: (p: PhilharmonicPage) => void
 }) {
+  const { t } = useTranslation('philharmonic')
   const [conversations, setConversations] = useState<ConversationData[]>([])
   const [employees, setEmployees] = useState<AgentData[]>([])
   const [teams, setTeams] = useState<TeamData[]>([])
@@ -82,11 +84,13 @@ export function PhilharmonicContainer({
   )
 
   const handleCreate = useCallback(async () => {
-    const conv = await createConversation({ title: 'New group' })
+    const conv = await createConversation({
+      title: t('container.newGroupDefaultTitle')
+    })
     setConversations((p) => [{ ...conv, latestMessage: null }, ...p])
     setActiveId(conv.id)
     onNavigate('chat')
-  }, [onNavigate])
+  }, [onNavigate, t])
 
   const handleSelect = useCallback(
     (id: string) => {
@@ -96,19 +100,22 @@ export function PhilharmonicContainer({
     [onNavigate]
   )
 
-  const handleDelete = useCallback(async (id: string) => {
-    try {
-      await deleteConversation(id)
-      setConversations((p) => p.filter((c) => c.id !== id))
-      setActiveId((cur) => (cur === id ? null : cur))
-      sileo.success({ title: 'Group deleted' })
-    } catch (err) {
-      sileo.error({
-        title: 'Could not delete the group',
-        description: err instanceof Error ? err.message : String(err)
-      })
-    }
-  }, [])
+  const handleDelete = useCallback(
+    async (id: string) => {
+      try {
+        await deleteConversation(id)
+        setConversations((p) => p.filter((c) => c.id !== id))
+        setActiveId((cur) => (cur === id ? null : cur))
+        sileo.success({ title: t('container.toast.groupDeleted') })
+      } catch (err) {
+        sileo.error({
+          title: t('container.toast.deleteGroupFailed'),
+          description: err instanceof Error ? err.message : String(err)
+        })
+      }
+    },
+    [t]
+  )
 
   const handleRename = useCallback(async (id: string, title: string) => {
     setConversations((p) => p.map((c) => (c.id === id ? { ...c, title } : c)))
@@ -137,9 +144,9 @@ export function PhilharmonicContainer({
       return (
         <Tabs defaultValue="costs" className="flex h-full min-h-0 flex-col">
           <TabsList className="mx-4 mt-3 w-fit shrink-0">
-            <TabsTrigger value="costs">Costs</TabsTrigger>
+            <TabsTrigger value="costs">{t('container.tabs.costs')}</TabsTrigger>
             <TabsTrigger value="schedule" data-testid={TEST_IDS.schedule.tab}>
-              Schedule
+              {t('container.tabs.schedule')}
             </TabsTrigger>
           </TabsList>
           <TabsContent value="costs" className="min-h-0 flex-1">
@@ -173,14 +180,13 @@ export function PhilharmonicContainer({
       <div className="text-muted-foreground flex h-full flex-col items-center justify-center gap-3 px-6 text-center">
         <MessageSquarePlus className="h-12 w-12 opacity-30" />
         <div className="text-foreground text-sm font-medium">
-          No group selected
+          {t('container.noGroupSelected.title')}
         </div>
         <div className="max-w-xs text-xs">
-          Pick a group from the left, or start a new one to message your virtual
-          team.
+          {t('container.noGroupSelected.description')}
         </div>
         <Button size="sm" onClick={handleCreate}>
-          Create a group
+          {t('container.noGroupSelected.createButton')}
         </Button>
       </div>
     )
@@ -195,7 +201,8 @@ export function PhilharmonicContainer({
 
   return (
     <>
-      <PhilharmonicWorkspace
+      <ResizableSidebarShell
+        id="ph"
         sidebar={
           <ConversationList
             conversations={conversations}
@@ -213,7 +220,7 @@ export function PhilharmonicContainer({
           {!groupChatOwnsHeader && <PhilharmonicContentHeader />}
           <div className="min-h-0 flex-1 overflow-hidden">{mainContent}</div>
         </SidebarInset>
-      </PhilharmonicWorkspace>
+      </ResizableSidebarShell>
 
       <SheetPanel
         open={showMembers && membersOpen}

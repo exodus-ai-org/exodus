@@ -1,8 +1,9 @@
-import { TEST_IDS } from '@shared/constants/test-ids'
-import { UseFormReturnType } from '@shared/schemas/settings-schema'
-import type { InstalledApp } from '@shared/types/computer-use'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
+import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
+import type { InstalledApp } from '@exodus/shared/types/computer-use'
 import { AlertCircleIcon } from 'lucide-react'
 import { Controller } from 'react-hook-form'
+import { useTranslation } from 'react-i18next'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
@@ -34,6 +35,7 @@ function AppIcon({
 }
 
 export function ComputerUse({ form }: { form: UseFormReturnType }) {
+  const { t } = useTranslation('computerUse')
   const allowlist: string[] = form.watch('computerUse.targetAllowlist') ?? []
   const { apps, isLoading } = useInstalledApps(true)
 
@@ -56,20 +58,13 @@ export function ComputerUse({ form }: { form: UseFormReturnType }) {
     <>
       <Alert className="mb-4">
         <AlertCircleIcon className="h-4 w-4" />
-        <AlertDescription className="inline">
-          Computer Use lets the AI operate one window on your Mac with a virtual
-          mouse and keyboard — it sees a screenshot each step and acts like a
-          person. It needs a vision-capable AI model. It only touches apps you
-          add to the allowlist below (and will open one that isn&apos;t already
-          running), you can stop it any time with ⌥⇧⎋, and every session is
-          logged. Off by default.
-        </AlertDescription>
+        <AlertDescription className="inline">{t('alert')}</AlertDescription>
       </Alert>
 
       <SettingsSection>
         <SettingsRow
-          label="Enable Computer Use"
-          description="Let the AI drive an allowlisted window."
+          label={t('enable.label')}
+          description={t('enable.description')}
         >
           <Controller
             control={form.control}
@@ -85,8 +80,8 @@ export function ComputerUse({ form }: { form: UseFormReturnType }) {
         </SettingsRow>
 
         <SettingsRow
-          label="Allowlisted apps"
-          description="Computer Use only touches these apps. Pick from the ones installed on this Mac."
+          label={t('allowlist.label')}
+          description={t('allowlist.description')}
           layout="vertical"
         >
           <Combobox
@@ -111,14 +106,14 @@ export function ComputerUse({ form }: { form: UseFormReturnType }) {
               ))}
               <ComboboxChipsInput
                 placeholder={
-                  selected.length === 0 ? 'Search installed apps…' : ''
+                  selected.length === 0 ? t('allowlist.searchPlaceholder') : ''
                 }
                 data-testid={TEST_IDS.computerUse.allowlistInput}
               />
             </ComboboxChips>
             <ComboboxContent anchor={chipsAnchor}>
               <ComboboxEmpty>
-                {isLoading ? 'Loading apps…' : 'No app found.'}
+                {isLoading ? t('allowlist.loading') : t('allowlist.noAppFound')}
               </ComboboxEmpty>
               <ComboboxList>
                 {(app: InstalledApp) => (
@@ -137,8 +132,8 @@ export function ComputerUse({ form }: { form: UseFormReturnType }) {
           name="computerUse.maxSteps"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="Max steps"
-              description="Stop a session after this many actions. Default 25."
+              label={t('maxSteps.label')}
+              description={t('maxSteps.description')}
               error={fieldState.error}
             >
               <Input
@@ -164,8 +159,8 @@ export function ComputerUse({ form }: { form: UseFormReturnType }) {
           name="computerUse.settleMs"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="Settle delay (ms)"
-              description="Wait this long after each action before the next screenshot. Default 800."
+              label={t('settleDelay.label')}
+              description={t('settleDelay.description')}
               error={fieldState.error}
             >
               <Input

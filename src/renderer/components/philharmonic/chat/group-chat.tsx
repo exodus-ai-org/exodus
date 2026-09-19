@@ -1,13 +1,15 @@
 // src/renderer/components/philharmonic/chat/group-chat.tsx
-import { TEST_IDS } from '@shared/constants/test-ids'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { isSameDay, isToday, isYesterday, format } from 'date-fns'
 import { AlertTriangleIcon, HelpCircleIcon, UsersIcon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
+import { i18n } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import {
   getConversationMessages,
@@ -31,8 +33,8 @@ import { PlanCard } from './plan-card'
 type BubbleWithDate = BubbleModel & { createdAt?: string }
 
 function formatDayLabel(d: Date): string {
-  if (isToday(d)) return 'Today'
-  if (isYesterday(d)) return 'Yesterday'
+  if (isToday(d)) return i18n.t('philharmonic:chat.dateLabels.today')
+  if (isYesterday(d)) return i18n.t('philharmonic:chat.dateLabels.yesterday')
   return format(d, 'PPP')
 }
 
@@ -59,6 +61,7 @@ export function GroupChat({
   membersOpen: boolean
   onToggleMembers: () => void
 }) {
+  const { t } = useTranslation('philharmonic')
   const conversationId = conversation.id
   const { open: sidebarOpen } = useSidebar()
   const isFullscreen = useIsFullscreen()
@@ -273,14 +276,14 @@ export function GroupChat({
               <button
                 type="button"
                 onClick={() => setEditingTitle(true)}
-                title="Click to rename"
+                title={t('chat.groupChat.renameTitle')}
                 className="text-foreground truncate text-left text-sm font-semibold tracking-tight transition-colors hover:underline"
               >
                 {conversation.title}
               </button>
             )}
             <div className="text-muted-foreground text-[11px]">
-              {memberCount} {memberCount === 1 ? 'member' : 'members'}
+              {t('chat.groupChat.memberCount', { count: memberCount })}
               {primaryTeam ? ` · ${primaryTeam}` : ''}
             </div>
           </div>
@@ -288,7 +291,7 @@ export function GroupChat({
         <Button
           variant="ghost"
           size="icon-sm"
-          aria-label="Toggle members"
+          aria-label={t('chat.groupChat.toggleMembersAria')}
           data-testid={TEST_IDS.philharmonic.membersToggle}
           onClick={onToggleMembers}
           className={cn(
@@ -309,8 +312,8 @@ export function GroupChat({
         {merged.length === 0 ? (
           <PhilharmonicEmptyState
             avatars={[{ hue: 'lilac' }, { hue: 'mint' }, { hue: 'peach' }]}
-            title="Hand something to your team"
-            description="Describe what you need. The PM will analyze, recruit and delegate to virtual employees, then report back here."
+            title={t('chat.groupChat.emptyState.title')}
+            description={t('chat.groupChat.emptyState.description')}
           />
         ) : (
           <div className="mx-auto flex max-w-2xl flex-col gap-1">
@@ -359,7 +362,7 @@ export function GroupChat({
               <Input
                 value={answer}
                 onChange={(e) => setAnswer(e.target.value)}
-                placeholder="Reply to PM…"
+                placeholder={t('chat.groupChat.askUser.replyPlaceholder')}
                 autoFocus
                 className="border-border bg-card rounded-lg"
               />
@@ -370,7 +373,7 @@ export function GroupChat({
                   setAnswer('')
                 }}
               >
-                Send
+                {t('chat.groupChat.askUser.sendButton')}
               </Button>
             </div>
           </div>

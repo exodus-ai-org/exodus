@@ -1,6 +1,7 @@
 // src/renderer/components/philharmonic/chat/group-message-bubble.tsx
 import { format } from 'date-fns'
 import { CheckIcon, Loader2Icon, WrenchIcon } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 import { ArtifactCard } from '@/components/calling-tools/artifact/artifact-card'
 import { Markdown } from '@/components/markdown'
@@ -46,12 +47,17 @@ export function GroupMessageBubble({
   agentsById: Record<string, AgentData>
   teamsById: Record<string, TeamData>
 }) {
+  const { t } = useTranslation(['common', 'philharmonic'])
   const isUser = bubble.role === 'user'
   const isSystem = bubble.role === 'system'
   const isPm = bubble.role === 'pm'
   const agent = bubble.agentId ? agentsById[bubble.agentId] : undefined
   const team = agent?.teamId ? teamsById[agent.teamId] : undefined
-  const name = isUser ? 'You' : isPm ? 'PM' : (agent?.name ?? 'Employee')
+  const name = isUser
+    ? t('state.you')
+    : isPm
+      ? t('philharmonic:chat.roles.pm')
+      : (agent?.name ?? t('philharmonic:chat.roles.employeeFallback'))
 
   if (isSystem) {
     return (
@@ -92,11 +98,11 @@ export function GroupMessageBubble({
     >
       {isPm ? (
         <div className="bg-primary text-primary-foreground ring-accent flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold ring-[3px]">
-          PM
+          {t('philharmonic:chat.roles.pm')}
         </div>
       ) : isUser ? (
         <div className="bg-accent text-accent-foreground flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-semibold">
-          You
+          {t('state.you')}
         </div>
       ) : (
         <EmployeeAvatar

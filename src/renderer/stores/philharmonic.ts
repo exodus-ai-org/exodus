@@ -1,5 +1,5 @@
-import type { Attachment } from '@shared/types/chat'
-import type { ConversationMessageRole } from '@shared/types/philharmonic'
+import type { Attachment } from '@exodus/shared/types/chat'
+import type { ConversationMessageRole } from '@exodus/shared/types/philharmonic'
 import { atom } from 'jotai'
 
 /**

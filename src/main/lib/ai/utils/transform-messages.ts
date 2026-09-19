@@ -17,6 +17,35 @@ function normalizeToolCallId(id: string): string {
 }
 
 /**
+ * Strip a `data:<mime>;base64,` prefix from image content, leaving the raw
+ * base64 that pi-ai's provider adapters expect. Attachments enter the app as
+ * full data URLs (`FileReader.readAsDataURL`) and are stored and rendered that
+ * way, but every pi-ai provider wants the bare base64 in `ImageContent.data`:
+ * the OpenAI adapters prepend their own `data:${mimeType};base64,` wrapper (an
+ * already-prefixed value becomes a double prefix → "invalid base64-encoded
+ * value"), and Gemini sends the field verbatim. Normalizing here, at the LLM
+ * boundary, keeps both the stored history and the renderer's `<img>` sources
+ * untouched.
+ */
+const DATA_URL_BASE64_PREFIX_RE = /^data:[^;,]*;base64,/i
+
+function normalizeImageContent(
+  content: Array<{ type: string; [k: string]: unknown }>
+): Array<{ type: string; [k: string]: unknown }> {
+  let changed = false
+  const next = content.map((block) => {
+    if (block.type !== 'image') return block
+    const data = (block as { data?: unknown }).data
+    if (typeof data !== 'string') return block
+    const stripped = data.replace(DATA_URL_BASE64_PREFIX_RE, '')
+    if (stripped === data) return block
+    changed = true
+    return { ...block, data: stripped }
+  })
+  return changed ? next : content
+}
+
+/**
  * Filter thinking blocks from assistant messages.
  * - Redacted thinking (empty content) is always removed
  * - Non-empty thinking blocks are converted to text content to preserve context
@@ -168,6 +197,21 @@ export function transformMessages(messages: Message[]): Message[] {
       } else {
         result.push(msg)
       }
+    } else if (
+      msg.role === 'user' &&
+      Array.isArray((msg as { content?: unknown }).content)
+    ) {
+      // User turns carry attachments as image blocks; strip any data-URL
+      // prefix so the provider adapter receives raw base64.
+      const original = (msg as { content: unknown[] }).content
+      const normalized = normalizeImageContent(
+        original as Array<{ type: string; [k: string]: unknown }>
+      )
+      result.push(
+        normalized === original
+          ? msg
+          : ({ ...msg, content: normalized } as unknown as Message)
+      )
     } else {
       result.push(msg)
     }

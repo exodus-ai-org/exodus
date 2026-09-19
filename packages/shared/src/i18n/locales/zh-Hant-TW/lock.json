@@ -1,0 +1,44 @@
+{
+  "incorrectPin": "PIN 碼錯誤",
+  "screen": {
+    "unlockWithTouchId": "使用 Touch ID 解鎖",
+    "tooManyAttempts": "嘗試次數過多，請於 {{seconds}} 秒後再試。"
+  },
+  "privacy": {
+    "title": "鎖定與隱私",
+    "enroll": {
+      "description": "設定 6 位數 PIN 碼以鎖定 Exodus。鎖定期間，介面與本機 API 皆無法存取，但背景任務會持續執行。",
+      "enterLabel": "輸入 6 位數 PIN 碼",
+      "confirmLabel": "確認你的 PIN 碼",
+      "startOver": "重新開始"
+    },
+    "idleOptions": {
+      "off": "關閉",
+      "oneMinute": "1 分鐘",
+      "fiveMinutes": "5 分鐘",
+      "fifteenMinutes": "15 分鐘",
+      "thirtyMinutes": "30 分鐘"
+    },
+    "touchIdToggleLabel": "使用 Touch ID 解鎖",
+    "autoLockIdle": "閒置時自動鎖定",
+    "lockOnLaunch": "啟動應用程式時鎖定",
+    "lockOnSystemSleep": "系統休眠時鎖定",
+    "removeLock": {
+      "label": "移除鎖定",
+      "description": "關閉應用程式鎖定，需要輸入目前的 PIN 碼。",
+      "button": "移除",
+      "dialogTitle": "移除鎖定？",
+      "dialogDescription": "輸入你目前的 PIN 碼以確認。Exodus 將不再需要 PIN 碼即可開啟。",
+      "confirmButton": "移除鎖定"
+    },
+    "toast": {
+      "pinsDoNotMatch": "PIN 碼不相符",
+      "setPinFailed": {
+        "title": "無法設定 PIN 碼",
+        "description": "PIN 碼已存在。"
+      },
+      "lockEnabled": "鎖定已啟用",
+      "lockRemoved": "鎖定已移除"
+    }
+  }
+}

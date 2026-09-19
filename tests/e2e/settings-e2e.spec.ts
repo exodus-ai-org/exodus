@@ -1,23 +1,9 @@
 /**
  * E2E: Settings page interaction.
  */
-import { TEST_IDS } from '../../src/shared/constants/test-ids'
+import { TEST_IDS } from '../../packages/shared/src/constants/test-ids'
 import { electronTest as test, expect } from '../fixtures/electron'
-
-async function openSettings(mainWindow: import('@playwright/test').Page) {
-  const settingsLink = mainWindow.locator(
-    '[data-testid="nav-settings"], a[href*="settings"], button:has-text("Settings")'
-  )
-  if (
-    await settingsLink
-      .first()
-      .isVisible({ timeout: 5_000 })
-      .catch(() => false)
-  ) {
-    await settingsLink.first().click()
-    await mainWindow.waitForTimeout(1_000)
-  }
-}
+import { openSettings } from '../helpers/open-settings'
 
 test.describe('Settings E2E', () => {
   test('settings page renders and shows provider options', async ({
@@ -54,5 +40,50 @@ test.describe('Settings E2E', () => {
     await expect
       .poll(() => mainWindow.evaluate(() => document.documentElement.className))
       .not.toContain('dark')
+  })
+
+  test('language selector switches the app language live', async ({
+    mainWindow
+  }) => {
+    await openSettings(mainWindow)
+
+    const select = mainWindow.getByTestId(TEST_IDS.settings.languageSelect)
+    await select.waitFor({ state: 'visible', timeout: 10_000 })
+
+    await select.click()
+    await mainWindow.getByRole('option', { name: 'Deutsch' }).click()
+
+    await expect
+      .poll(() => mainWindow.evaluate(() => document.documentElement.lang))
+      .toBe('de')
+  })
+
+  test('switching back to Auto Detect re-resolves the OS language, not the previous explicit choice', async ({
+    mainWindow
+  }) => {
+    // Regression: switching to an explicit locale, then back to "Auto
+    // Detect" in the same session used to silently stay on the explicit
+    // locale — LocaleBridge was reading a boot-time snapshot
+    // (`window.api.locale`) instead of asking the main process to
+    // re-resolve `'auto'` against the OS's current preferred languages.
+    // CI runs with an English OS locale, so a correct re-resolution lands
+    // back on `en`; a regression would stay on `de`.
+    await openSettings(mainWindow)
+
+    const select = mainWindow.getByTestId(TEST_IDS.settings.languageSelect)
+    await select.waitFor({ state: 'visible', timeout: 10_000 })
+
+    await select.click()
+    await mainWindow.getByRole('option', { name: 'Deutsch' }).click()
+    await expect
+      .poll(() => mainWindow.evaluate(() => document.documentElement.lang))
+      .toBe('de')
+
+    await select.click()
+    await mainWindow.getByRole('option', { name: /Auto/i }).click()
+
+    await expect
+      .poll(() => mainWindow.evaluate(() => document.documentElement.lang))
+      .toBe('en')
   })
 })

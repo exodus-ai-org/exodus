@@ -169,7 +169,8 @@ export const grep: AgentTool<typeof grepSchema> = {
       regex = new RegExp(pattern, case_insensitive ? 'ig' : 'g')
     } catch (e) {
       throw new Error(
-        `Invalid regex pattern: ${e instanceof Error ? e.message : String(e)}`
+        `Invalid regex pattern: ${e instanceof Error ? e.message : String(e)}`,
+        { cause: e }
       )
     }
 

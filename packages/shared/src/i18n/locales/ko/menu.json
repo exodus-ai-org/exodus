@@ -1,0 +1,19 @@
+{
+  "file": "파일",
+  "lockNow": "지금 잠그기",
+  "edit": "편집",
+  "find": "찾기",
+  "speech": "음성",
+  "view": "보기",
+  "window": "윈도우",
+  "learnMore": "더 알아보기",
+  "tray": {
+    "showApp": "앱 표시",
+    "hideApp": "앱 숨기기",
+    "quitExodus": "Exodus 종료"
+  },
+  "notification": {
+    "philharmonicGroupError": "그룹 \"{{title}}\"에서 오류가 발생했습니다",
+    "philharmonicGroupFinished": "그룹 \"{{title}}\"이(가) 완료되었습니다"
+  }
+}

@@ -1,6 +1,3 @@
-import type { GroupedChats } from '@shared/types/chat'
-import type { Chat } from '@shared/types/db'
-import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns'
 import { useSetAtom } from 'jotai'
 import {
   ChevronRightIcon,
@@ -10,6 +7,7 @@ import {
   Trash2Icon
 } from 'lucide-react'
 import { memo, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
 import useSWR from 'swr'
 
@@ -36,6 +34,7 @@ import {
   useSidebar
 } from '@/components/ui/sidebar'
 import { Skeleton } from '@/components/ui/skeleton'
+import { compactRelativeTime } from '@/lib/relative-time'
 import { cn } from '@/lib/utils'
 import { updateChat } from '@/services/chat'
 import {
@@ -43,6 +42,7 @@ import {
   renamedChatTitleAtom,
   toBeDeletedChatAtom
 } from '@/stores/chat'
+import type { Chat } from '@/types/db'
 
 /**
  * The DB currently persists `createdAt` as the local wall-clock time but
@@ -62,30 +62,17 @@ function parseLocalishCreatedAt(value: string | Date): Date {
   return new Date(stripped)
 }
 
-function compactRelativeTime(date: Date): string {
-  const diff = Date.now() - date.getTime()
-  const mins = Math.floor(diff / 60_000)
-  if (mins < 1) return 'now'
-  if (mins < 60) return `${mins}m`
-  const hours = Math.floor(mins / 60)
-  if (hours < 24) return `${hours}h`
-  const days = Math.floor(hours / 24)
-  if (days < 7) return `${days}d`
-  const weeks = Math.floor(days / 7)
-  if (weeks < 5) return `${weeks}w`
-  const months = Math.floor(days / 30)
-  return `${months}mo`
-}
-
 export function NavHistorySkeleton() {
   return (
     <section className="flex flex-col gap-3 p-2">
-      <Skeleton className="m-2 h-4 w-20" />
-      {new Array(10).fill(0).map((_, idx) => (
-        <div key={idx} className="flex px-2">
-          <Skeleton className="h-5 w-full" />
-        </div>
-      ))}
+      <Skeleton className="bg-border m-2 h-4 w-20" />
+      {Array.from({ length: 10 })
+        .fill(0)
+        .map((_, idx) => (
+          <div key={idx} className="flex px-2">
+            <Skeleton className="bg-border h-5 w-full" />
+          </div>
+        ))}
     </section>
   )
 }
@@ -97,6 +84,7 @@ export const NavItems = memo(function NavItems({
   chat: Chat
   className?: string
 }) {
+  const { t } = useTranslation(['common', 'chat'])
   const { id } = useParams<{ id: string }>()
   const { isMobile } = useSidebar()
   const setRenamedChatTitle = useSetAtom(renamedChatTitleAtom)
@@ -112,7 +100,7 @@ export const NavItems = memo(function NavItems({
             to={`/chat/${chat.id}`}
             onClick={() =>
               setOpenTabs((prev) =>
-                prev.find((t) => t.id === chat.id)
+                prev.find((tab) => tab.id === chat.id)
                   ? prev
                   : [...prev, { id: chat.id, title: chat.title }]
               )
@@ -131,12 +119,14 @@ export const NavItems = memo(function NavItems({
         </span>
       </SidebarMenuButton>
       <DropdownMenu>
-        <DropdownMenuTrigger>
-          <SidebarMenuAction showOnHover>
-            <MoreHorizontalIcon />
-            <span className="sr-only">More</span>
-          </SidebarMenuAction>
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger
+          render={
+            <SidebarMenuAction showOnHover>
+              <MoreHorizontalIcon />
+              <span className="sr-only">{t('chat:sidebar.history.more')}</span>
+            </SidebarMenuAction>
+          }
+        />
         <DropdownMenuContent
           className="w-56 rounded-lg"
           side={isMobile ? 'bottom' : 'right'}
@@ -152,7 +142,11 @@ export const NavItems = memo(function NavItems({
                 ['fill-yellow-500 text-yellow-500']: chat.favorite
               })}
             />
-            <span>{chat.favorite ? 'Unfavorite' : 'Favorite'}</span>
+            <span>
+              {chat.favorite
+                ? t('chat:sidebar.history.unfavorite')
+                : t('chat:sidebar.history.favoriteAction')}
+            </span>
           </DropdownMenuItem>
           <DropdownMenuItem
             onClick={() => {
@@ -164,13 +158,13 @@ export const NavItems = memo(function NavItems({
             }}
           >
             <Edit2Icon className="text-muted-foreground" />
-            <span>Rename</span>
+            <span>{t('chat:sidebar.history.rename')}</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setToBeDeletedChat(chat)}>
             <Trash2Icon className="text-destructive" />
             <span className="text-destructive hover:text-destructive">
-              Delete
+              {t('action.delete')}
             </span>
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -180,52 +174,21 @@ export const NavItems = memo(function NavItems({
 })
 
 export function NavHistories() {
+  const { t } = useTranslation('chat')
   const { data: history, isLoading } = useSWR<Chat[]>('/api/history', {
     fallbackData: []
   })
 
-  const groupedChats = useMemo(() => {
-    if (!history || history.length === 0) return null
-
-    const now = new Date()
-    const oneWeekAgo = subWeeks(now, 1)
-    const oneMonthAgo = subMonths(now, 1)
-
-    const favorite = history.filter((chat) => chat.favorite)
-    const unfavorite = history.filter((chat) => !chat.favorite)
-
-    const histories = unfavorite.reduce(
-      (groups, chat) => {
-        const chatDate = parseLocalishCreatedAt(chat.createdAt)
-
-        if (isToday(chatDate)) {
-          groups.today.push(chat)
-        } else if (isYesterday(chatDate)) {
-          groups.yesterday.push(chat)
-        } else if (chatDate > oneWeekAgo) {
-          groups.lastWeek.push(chat)
-        } else if (chatDate > oneMonthAgo) {
-          groups.lastMonth.push(chat)
-        } else {
-          groups.older.push(chat)
-        }
-
-        return groups
-      },
-      {
-        favorite: [],
-        today: [],
-        yesterday: [],
-        lastWeek: [],
-        lastMonth: [],
-        older: []
-      } as GroupedChats
-    )
-
-    return {
-      ...histories,
-      favorite
+  // Each row shows its own relative age ("1d", "1w"…), so the sidebar no
+  // longer buckets by date — just favourites, then everything else in the
+  // API's newest-first order.
+  const { favorite, chats } = useMemo(() => {
+    const favorite: Chat[] = []
+    const chats: Chat[] = []
+    for (const chat of history ?? []) {
+      ;(chat.favorite ? favorite : chats).push(chat)
     }
+    return { favorite, chats }
   }, [history])
 
   if (isLoading) {
@@ -242,7 +205,7 @@ export function NavHistories() {
       <SidebarGroup>
         <SidebarGroupContent>
           <div className="text-muted-foreground flex w-full flex-row items-center justify-center gap-2 px-2 text-sm">
-            Your conversations will appear here once you start chatting!
+            {t('sidebar.history.empty')}
           </div>
         </SidebarGroupContent>
       </SidebarGroup>
@@ -251,87 +214,41 @@ export function NavHistories() {
 
   return (
     <section>
-      {groupedChats && (
-        <>
-          {groupedChats.favorite.length > 0 && (
-            <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-              <SidebarMenu className="gap-1">
-                <Collapsible defaultOpen>
-                  <SidebarGroupLabel className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mb-1 text-sm">
-                    <CollapsibleTrigger className="group/trigger flex w-full items-center justify-between pl-0!">
-                      <SidebarGroupLabel>Favorite</SidebarGroupLabel>
-                      <ChevronRightIcon className="text-sidebar-foreground/50 h-4 w-4 transition-transform duration-200 group-data-panel-open/trigger:rotate-90" />
-                    </CollapsibleTrigger>
+      {favorite.length > 0 && (
+        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+          <SidebarMenu className="gap-1">
+            <Collapsible defaultOpen>
+              <SidebarGroupLabel className="text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground mb-1 text-sm">
+                <CollapsibleTrigger className="group/trigger flex w-full items-center justify-between pl-0!">
+                  <SidebarGroupLabel className="p-0">
+                    {t('sidebar.history.favoritesGroup')}
                   </SidebarGroupLabel>
-                  <CollapsibleContent>
-                    {groupedChats.favorite.map((chat) => (
-                      <NavItems
-                        chat={chat}
-                        key={chat.id}
-                        className="mb-1 last:mb-0"
-                      />
-                    ))}
-                  </CollapsibleContent>
-                </Collapsible>
-              </SidebarMenu>
-            </SidebarGroup>
-          )}
-
-          {groupedChats.today.length > 0 && (
-            <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-              <SidebarGroupLabel>Today</SidebarGroupLabel>
-              <SidebarMenu className="gap-1">
-                {groupedChats.today.map((chat) => (
-                  <NavItems chat={chat} key={chat.id} />
+                  <ChevronRightIcon className="text-sidebar-foreground/50 h-4 w-4 transition-transform duration-200 group-data-panel-open/trigger:rotate-90" />
+                </CollapsibleTrigger>
+              </SidebarGroupLabel>
+              <CollapsibleContent>
+                {favorite.map((chat) => (
+                  <NavItems
+                    chat={chat}
+                    key={chat.id}
+                    className="mb-1 last:mb-0"
+                  />
                 ))}
-              </SidebarMenu>
-            </SidebarGroup>
-          )}
+              </CollapsibleContent>
+            </Collapsible>
+          </SidebarMenu>
+        </SidebarGroup>
+      )}
 
-          {groupedChats.yesterday.length > 0 && (
-            <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-              <SidebarGroupLabel>Yesterday</SidebarGroupLabel>
-              <SidebarMenu className="gap-1">
-                {groupedChats.yesterday.map((chat) => (
-                  <NavItems chat={chat} key={chat.id} />
-                ))}
-              </SidebarMenu>
-            </SidebarGroup>
-          )}
-
-          {groupedChats.lastWeek.length > 0 && (
-            <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-              <SidebarGroupLabel>Last Week</SidebarGroupLabel>
-              <SidebarMenu className="gap-1">
-                {groupedChats.lastWeek.map((chat) => (
-                  <NavItems chat={chat} key={chat.id} />
-                ))}
-              </SidebarMenu>
-            </SidebarGroup>
-          )}
-
-          {groupedChats.lastMonth.length > 0 && (
-            <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-              <SidebarGroupLabel>Last Month</SidebarGroupLabel>
-              <SidebarMenu className="gap-1">
-                {groupedChats.lastMonth.map((chat) => (
-                  <NavItems chat={chat} key={chat.id} />
-                ))}
-              </SidebarMenu>
-            </SidebarGroup>
-          )}
-
-          {groupedChats.older.length > 0 && (
-            <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-              <SidebarGroupLabel>Older</SidebarGroupLabel>
-              <SidebarMenu className="gap-1">
-                {groupedChats.older.map((chat) => (
-                  <NavItems chat={chat} key={chat.id} />
-                ))}
-              </SidebarMenu>
-            </SidebarGroup>
-          )}
-        </>
+      {chats.length > 0 && (
+        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+          <SidebarGroupLabel>{t('sidebar.history.chats')}</SidebarGroupLabel>
+          <SidebarMenu className="gap-1">
+            {chats.map((chat) => (
+              <NavItems chat={chat} key={chat.id} />
+            ))}
+          </SidebarMenu>
+        </SidebarGroup>
       )}
     </section>
   )

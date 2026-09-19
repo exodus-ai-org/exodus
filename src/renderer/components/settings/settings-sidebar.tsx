@@ -1,6 +1,6 @@
-import { useAtom } from 'jotai'
 import { ArrowLeftIcon, Search } from 'lucide-react'
 import { ComponentProps, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 
 import { Button } from '@/components/ui/button'
@@ -15,14 +15,15 @@ import {
   SidebarMenuItem
 } from '@/components/ui/sidebar'
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
+import { useSettingsTab } from '@/hooks/use-settings-tab'
 import { cn } from '@/lib/utils'
-import { settingsLabelAtom } from '@/stores/settings'
 
 import { InputGroup, InputGroupInput, InputGroupAddon } from '../ui/input-group'
-import { menus } from './settings-menu'
+import { menus, NAV_TITLE_KEYS } from './settings-menu'
 
 export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
-  const [active, setActive] = useAtom(settingsLabelAtom)
+  const { t } = useTranslation('settings')
+  const [active, setActive] = useSettingsTab()
   const [query, setQuery] = useState('')
   const navigate = useNavigate()
   const isFullscreen = useIsFullscreen()
@@ -35,11 +36,11 @@ export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
       .map((group) => ({
         label: group.label,
         items: group.items.filter((item) =>
-          item.title.toLowerCase().includes(q)
+          t(NAV_TITLE_KEYS[item.title]).toLowerCase().includes(q)
         )
       }))
       .filter((group) => group.items.length > 0)
-  }, [query])
+  }, [query, t])
 
   return (
     <Sidebar {...props} collapsible="none" className="select-none">
@@ -55,7 +56,7 @@ export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
           className="no-drag text-muted-foreground flex justify-start gap-2"
         >
           <ArrowLeftIcon />
-          Back to app
+          {t('common.backToApp')}
         </Button>
 
         <InputGroup
@@ -68,7 +69,7 @@ export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
           <InputGroupInput
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search settings…"
+            placeholder={t('common.searchPlaceholder')}
           />
           <InputGroupAddon align="inline-start">
             <Search />
@@ -80,7 +81,7 @@ export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
           <SidebarGroup key={group.label} className="gap-0.5 py-1">
             {group.label && (
               <SidebarGroupLabel className="text-muted-foreground/70 px-2 text-[11px] font-medium tracking-wider uppercase">
-                {group.label}
+                {t(group.label)}
               </SidebarGroupLabel>
             )}
             <SidebarMenu className="gap-0.5">
@@ -91,7 +92,7 @@ export function SettingsSidebar({ ...props }: ComponentProps<typeof Sidebar>) {
                     onClick={() => setActive(item.title)}
                   >
                     {item.icon && <item.icon />}
-                    {item.title}
+                    {t(NAV_TITLE_KEYS[item.title])}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

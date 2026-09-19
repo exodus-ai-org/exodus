@@ -1,0 +1,22 @@
+{
+  "alert": "O Uso do Computador permite que a IA opere uma janela no seu Mac com um mouse e teclado virtuais — ela vê uma captura de tela a cada etapa e age como uma pessoa. Requer um modelo de IA com capacidade de visão. Ele só interage com os apps que você adicionar à lista de permissões abaixo (e abrirá um que ainda não estiver em execução); você pode pará-lo a qualquer momento com ⌥⇧⎋, e cada sessão é registrada. Desativado por padrão.",
+  "enable": {
+    "label": "Ativar Uso do Computador",
+    "description": "Permitir que a IA controle uma janela da lista de permissões."
+  },
+  "allowlist": {
+    "label": "Apps permitidos",
+    "description": "O Uso do Computador só interage com esses apps. Escolha entre os instalados neste Mac.",
+    "searchPlaceholder": "Pesquisar apps instalados…",
+    "loading": "Carregando apps…",
+    "noAppFound": "Nenhum app encontrado."
+  },
+  "maxSteps": {
+    "label": "Máximo de etapas",
+    "description": "Parar uma sessão após esse número de ações. Padrão: 25."
+  },
+  "settleDelay": {
+    "label": "Atraso de estabilização (ms)",
+    "description": "Aguardar esse tempo após cada ação antes da próxima captura de tela. Padrão: 800."
+  }
+}

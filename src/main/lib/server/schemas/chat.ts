@@ -1,6 +1,8 @@
-import { AdvancedTools } from '@shared/types/ai'
-import { Chat } from '@shared/types/db'
+import { EffortLevelSchema } from '@exodus/shared/schemas/settings-schema'
+import { AdvancedTools } from '@exodus/shared/types/ai'
 import { z } from 'zod'
+
+import { Chat } from '../../db/schema'
 
 // Chat routes schemas
 export const createChatSchema = z.object({
@@ -31,8 +33,13 @@ const userMessageSchema = z.object({
   content: z.union([z.string(), z.array(userContentSchema)])
 })
 
-// For all messages (more permissive schema - handles user, assistant, toolResult)
-const messageSchema = z.object({
+// For all messages (permissive — handles user, assistant, toolResult). Must be
+// `looseObject`, not `object`: the chat route echoes the parsed history back to
+// the renderer in the `done` SSE event, so a plain `object` (which drops
+// unknown keys) would strip `details`/`toolCallId`/`toolName`/`isError` off
+// every prior turn's messages — e.g. a webSearch turn would lose its citation
+// sources the moment the next turn's `done` frame lands.
+const messageSchema = z.looseObject({
   id: z.string(),
   role: z.string(),
   content: z.any()
@@ -44,6 +51,7 @@ export const postRequestBodySchema = z.object({
   message: userMessageSchema.optional(),
   messages: z.array(messageSchema),
   advancedTools: z.array(z.enum(AdvancedTools)),
+  reasoningEffort: EffortLevelSchema.optional(),
   projectId: z.string().uuid().optional()
 })
 

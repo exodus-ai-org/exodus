@@ -1,0 +1,74 @@
+{
+  "alert": "Exodus 的知識庫為選用功能，由<strong>你自行架設的自架 LightRAG 伺服器</strong>提供支援——Exodus 僅會連接至該伺服器，推送你的文件並請求相關內容，並不會自行執行、升級或管理 LightRAG。將 URL 留空即可保持知識庫停用狀態。檢索僅提供內容脈絡：LightRAG 會找出相關段落，但答案一律由你設定的聊天模型撰寫。嵌入模型在<strong>你匯入第一份文件後即會鎖定</strong>——之後若要更換，需要清除 LightRAG 的儲存資料並重新新增所有文件，因此請一開始就選定你會持續使用的模型。",
+  "serverUrl": {
+    "label": "伺服器 URL",
+    "description": "你自架的 LightRAG 伺服器。留空則停用知識庫。"
+  },
+  "apiKey": {
+    "label": "API 金鑰",
+    "description": "會以 X-API-Key 標頭傳送（即你的 LIGHTRAG_API_KEY）。"
+  },
+  "queryMode": {
+    "label": "查詢模式",
+    "description": "mix 會結合知識圖譜與向量搜尋——品質最佳，但速度稍慢。",
+    "options": {
+      "naive": "Naive",
+      "local": "Local",
+      "global": "Global",
+      "hybrid": "Hybrid",
+      "mix": "Mix"
+    }
+  },
+  "advancedToggle": "進階",
+  "topK": {
+    "label": "Top K",
+    "description": "要擷取的知識圖譜實體／關係數量。預設為 60。"
+  },
+  "chunkTopK": {
+    "label": "Chunk Top K",
+    "description": "重新排序後保留的文字區塊數量。預設為 10。"
+  },
+  "connection": {
+    "label": "連線",
+    "description": "確認 Exodus 是否能連線至你的 LightRAG 伺服器。",
+    "testingLabel": "測試中…",
+    "testButton": "測試連線"
+  },
+  "documents": {
+    "title": "文件",
+    "reindexAllButton": "全部重新索引",
+    "empty": "尚無文件。",
+    "needsUrlHint": "請先在上方新增伺服器 URL 以管理文件。"
+  },
+  "docList": {
+    "updatedAgo": "{{distance}}前更新",
+    "status": {
+      "pending": "待處理",
+      "processing": "索引中…",
+      "processed": "已索引",
+      "failed": "失敗",
+      "stale": "需要重新索引"
+    }
+  },
+  "docDialog": {
+    "editTitle": "編輯文件",
+    "addTitle": "新增文件",
+    "titleLabel": "標題",
+    "contentLabel": "內容"
+  },
+  "deleteDialog": {
+    "title": "刪除文件？",
+    "description": "「{{title}}」將從知識庫中移除。"
+  },
+  "toast": {
+    "saveFailed": "儲存文件失敗",
+    "loadFailed": "載入文件失敗",
+    "connected": "已連線",
+    "embeddingLabel": "嵌入模型",
+    "docsCount_other": "{{count}} 份文件",
+    "connectFailed": "連線失敗",
+    "reindexQueued_other": "已將 {{count}} 份文件加入重新索引佇列",
+    "reindexFailed": "重新索引失敗",
+    "deleteFailed": "刪除文件失敗"
+  }
+}

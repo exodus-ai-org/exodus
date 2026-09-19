@@ -4,7 +4,7 @@ import {
   type LockNotification,
   type LockStatus,
   type UnlockResult
-} from '@shared/types/lock'
+} from '@exodus/shared/types/lock'
 import type { IpcRendererEvent } from 'electron'
 
 const ipc = () => window.electron.ipcRenderer
@@ -35,7 +35,7 @@ export const getRecentLockNotifications = (): Promise<LockNotification[]> =>
   ipc().invoke(LOCK_CHANNELS.getRecentNotifications)
 
 export function onLockStateChanged(cb: () => void): () => void {
-  const handler = (_: IpcRendererEvent) => cb()
+  const handler = () => cb()
   ipc().on(LOCK_CHANNELS.stateChanged, handler)
   return () => ipc().removeListener(LOCK_CHANNELS.stateChanged, handler)
 }

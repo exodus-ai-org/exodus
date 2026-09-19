@@ -1,0 +1,22 @@
+{
+  "alert": "Computer Use consente all'AI di operare una finestra sul tuo Mac con un mouse e una tastiera virtuali: vede uno screenshot a ogni passaggio e agisce come farebbe una persona. Richiede un modello AI con capacità di visione. Interagisce solo con le app aggiunte all'elenco consentiti qui sotto (e ne aprirà una se non è già in esecuzione); puoi interromperla in qualsiasi momento con ⌥⇧⎋, e ogni sessione viene registrata. Disattivato per impostazione predefinita.",
+  "enable": {
+    "label": "Attiva Computer Use",
+    "description": "Consenti all'AI di controllare una finestra nell'elenco consentiti."
+  },
+  "allowlist": {
+    "label": "App consentite",
+    "description": "Computer Use interagisce solo con queste app. Scegli tra quelle installate su questo Mac.",
+    "searchPlaceholder": "Cerca app installate…",
+    "loading": "Caricamento app…",
+    "noAppFound": "Nessuna app trovata."
+  },
+  "maxSteps": {
+    "label": "Passaggi massimi",
+    "description": "Interrompi una sessione dopo questo numero di azioni. Predefinito 25."
+  },
+  "settleDelay": {
+    "label": "Ritardo di stabilizzazione (ms)",
+    "description": "Attendi questo tempo dopo ogni azione prima dello screenshot successivo. Predefinito 800."
+  }
+}

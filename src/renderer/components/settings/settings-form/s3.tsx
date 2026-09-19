@@ -1,50 +1,107 @@
-import { UseFormReturnType } from '@shared/schemas/settings-schema'
+import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
 import { AlertCircleIcon } from 'lucide-react'
 import { Controller } from 'react-hook-form'
+import { Trans, useTranslation } from 'react-i18next'
 
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 
 import { SettingsRow, SettingsSection } from '../settings-row'
 
+// Each of these is its own named component (rather than JSX inlined
+// directly into `S3`) specifically so `tests/unit/i18n/settings-namespace.test.ts`
+// can import and render the REAL component — a formatter-driven reflow of
+// this file (oxfmt inserts/removes `{' '}` around wrapped JSX text, which
+// shifts `<Trans>`'s positional numbering for non-allowlisted tags like
+// `<code>`/`<em>`) must be caught by rendering the actual source, not a
+// hand-copied children array that can silently drift out of sync with it.
+
+export function EncodingNotice() {
+  return (
+    <Trans ns="settings" i18nKey="tools.s3.alert.encoding">
+      By default, Exodus encodes attachments as <strong>base64</strong> inline
+      in the prompt. For large files or vision-heavy workflows, uploading to S3
+      and passing a URL is more efficient and reliable.
+    </Trans>
+  )
+}
+
+export function RequirementsHeading() {
+  return (
+    <Trans ns="settings" i18nKey="tools.s3.alert.requirementsHeading">
+      <strong>Requirements before configuring:</strong>
+    </Trans>
+  )
+}
+
+export function PublicReadAccessNotice() {
+  return (
+    <Trans ns="settings" i18nKey="tools.s3.alert.publicReadAccess">
+      <strong>Public read access</strong> — AWS blocks public access by default.
+      You must disable "Block all public access" on the bucket and attach a
+      bucket policy granting <code>s3:GetObject</code> to <code>*</code>, so the
+      AI provider can fetch the URL without credentials.
+    </Trans>
+  )
+}
+
+export function CorsNotice() {
+  return (
+    <Trans ns="settings" i18nKey="tools.s3.alert.cors">
+      <strong>CORS</strong> — Add a CORS rule allowing <code>PUT</code> from{' '}
+      <code>*</code> (or your app origin) so Exodus can upload directly from the
+      desktop.
+    </Trans>
+  )
+}
+
+export function IamCredentialsNotice() {
+  return (
+    <Trans ns="settings" i18nKey="tools.s3.alert.iamCredentials">
+      <strong>IAM credentials</strong> — The Access Key ID / Secret Access Key
+      must belong to an IAM user or role with at least <code>s3:PutObject</code>{' '}
+      and <code>s3:PutObjectAcl</code> permissions on the configured bucket.
+    </Trans>
+  )
+}
+
+export function ObjectAclNotice() {
+  return (
+    <Trans ns="settings" i18nKey="tools.s3.alert.objectAcl">
+      <strong>Object ACL</strong> — Each uploaded object is set to{' '}
+      <code>public-read</code>. Your bucket must not have ACLs disabled (i.e.,
+      Object Ownership must be set to{' '}
+      <em>ACLs enabled / Bucket owner preferred</em>).
+    </Trans>
+  )
+}
+
 export function S3({ form }: { form: UseFormReturnType }) {
+  const { t } = useTranslation('settings')
+
   return (
     <>
       <Alert className="mb-4">
         <AlertCircleIcon className="size-4" data-icon />
         <AlertDescription className="flex flex-col gap-2 text-sm">
           <p>
-            By default, Exodus encodes attachments as <strong>base64</strong>{' '}
-            inline in the prompt. For large files or vision-heavy workflows,
-            uploading to S3 and passing a URL is more efficient and reliable.
+            <EncodingNotice />
           </p>
           <p>
-            <strong>Requirements before configuring:</strong>
+            <RequirementsHeading />
           </p>
           <ul className="flex list-disc flex-col gap-1 pl-4">
             <li>
-              <strong>Public read access</strong> — AWS blocks public access by
-              default. You must disable "Block all public access" on the bucket
-              and attach a bucket policy granting <code>s3:GetObject</code> to{' '}
-              <code>*</code>, so the AI provider can fetch the URL without
-              credentials.
+              <PublicReadAccessNotice />
             </li>
             <li>
-              <strong>CORS</strong> — Add a CORS rule allowing <code>PUT</code>{' '}
-              from <code>*</code> (or your app origin) so Exodus can upload
-              directly from the desktop.
+              <CorsNotice />
             </li>
             <li>
-              <strong>IAM credentials</strong> — The Access Key ID / Secret
-              Access Key must belong to an IAM user or role with at least{' '}
-              <code>s3:PutObject</code> and <code>s3:PutObjectAcl</code>{' '}
-              permissions on the configured bucket.
+              <IamCredentialsNotice />
             </li>
             <li>
-              <strong>Object ACL</strong> — Each uploaded object is set to{' '}
-              <code>public-read</code>. Your bucket must not have ACLs disabled
-              (i.e., Object Ownership must be set to{' '}
-              <em>ACLs enabled / Bucket owner preferred</em>).
+              <ObjectAclNotice />
             </li>
           </ul>
         </AlertDescription>
@@ -55,8 +112,8 @@ export function S3({ form }: { form: UseFormReturnType }) {
           name="s3.region"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="Region"
-              description="The AWS region where your S3 bucket is hosted."
+              label={t('tools.s3.region.label')}
+              description={t('tools.s3.region.description')}
               error={fieldState.error}
               layout="vertical"
             >
@@ -75,15 +132,15 @@ export function S3({ form }: { form: UseFormReturnType }) {
           name="s3.bucket"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="Bucket"
-              description="The name of your S3 bucket for file uploads."
+              label={t('tools.s3.bucket.label')}
+              description={t('tools.s3.bucket.description')}
               error={fieldState.error}
               layout="vertical"
             >
               <Input
                 type="input"
                 id="s3-bucket-input"
-                placeholder="Your S3 bucket"
+                placeholder={t('tools.s3.bucket.placeholder')}
                 {...field}
                 value={field.value ?? ''}
               />
@@ -95,8 +152,8 @@ export function S3({ form }: { form: UseFormReturnType }) {
           name="s3.accessKeyId"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="Access Key ID"
-              description="The IAM access key ID with S3 write permissions."
+              label={t('tools.s3.accessKeyId.label')}
+              description={t('tools.s3.accessKeyId.description')}
               error={fieldState.error}
               layout="vertical"
             >
@@ -114,8 +171,8 @@ export function S3({ form }: { form: UseFormReturnType }) {
           name="s3.secretAccessKey"
           render={({ field, fieldState }) => (
             <SettingsRow
-              label="Secret Access Key"
-              description="The IAM secret access key paired with the access key ID above."
+              label={t('tools.s3.secretAccessKey.label')}
+              description={t('tools.s3.secretAccessKey.description')}
               error={fieldState.error}
               layout="vertical"
             >

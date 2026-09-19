@@ -1,10 +1,10 @@
-import { ErrorCode } from '@shared/constants/error-codes'
+import { ErrorCode } from '@exodus/shared/constants/error-codes'
 import {
   AppError,
   DatabaseError,
   isAppError,
   ValidationError
-} from '@shared/errors/app-error'
+} from '@exodus/shared/errors/app-error'
 import z from 'zod'
 
 /**

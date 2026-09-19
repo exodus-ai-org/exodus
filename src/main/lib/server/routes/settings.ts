@@ -1,12 +1,17 @@
-import { ErrorCode } from '@shared/constants/error-codes'
-import { ValidationError } from '@shared/errors/app-error'
-import { Variables } from '@shared/types/server'
+import { ErrorCode } from '@exodus/shared/constants/error-codes'
+import { ValidationError } from '@exodus/shared/errors/app-error'
+import { AiProviders } from '@exodus/shared/types/ai'
 import { Hono } from 'hono'
 
+import { listModelsByProvider } from '../../ai/providers/list-models'
 import { getAllSearchableMessages, updateSettings } from '../../db/queries'
 import { Settings as DBSettings } from '../../db/schema'
 import { resolveSearchProvider } from '../../search/resolve-search-provider'
-import { updateSettingsSchema } from '../schemas/settings'
+import {
+  listModelsRequestSchema,
+  updateSettingsSchema
+} from '../schemas/settings'
+import { Variables } from '../types'
 import {
   handleDatabaseOperation,
   successResponse,
@@ -79,6 +84,42 @@ settingsRouter.post('/full-text-search/reindex', async (c) => {
   await elasticsearch.bulkIndexMessages(rows)
 
   return successResponse(c, { count: rows.length })
+})
+
+settingsRouter.post('/models', async (c) => {
+  const { provider, apiKey, baseUrl, apiVersion } = validateSchema(
+    listModelsRequestSchema,
+    await c.req.json(),
+    'Invalid model-list request'
+  )
+
+  const listFn = listModelsByProvider[provider]
+  if (!listFn) {
+    throw new ValidationError(
+      ErrorCode.VALIDATION_FAILED,
+      'Live model listing is not available for this provider'
+    )
+  }
+  if (provider !== AiProviders.Ollama && !apiKey) {
+    throw new ValidationError(
+      ErrorCode.VALIDATION_FAILED,
+      'API key is required'
+    )
+  }
+
+  try {
+    const models = await listFn({
+      apiKey: apiKey ?? '',
+      baseUrl,
+      apiVersion
+    })
+    return successResponse(c, { models })
+  } catch (error) {
+    throw new ValidationError(
+      ErrorCode.VALIDATION_FAILED,
+      error instanceof Error ? error.message : 'Failed to fetch model list'
+    )
+  }
 })
 
 export default settingsRouter

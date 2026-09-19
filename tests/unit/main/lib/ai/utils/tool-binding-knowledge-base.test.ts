@@ -30,6 +30,16 @@ vi.mock('@main/lib/knowledge-base/resolve-knowledge-base', () => ({
   resolveKnowledgeBase: mockResolveKnowledgeBase
 }))
 
+const mockLoggerWarn = vi.fn()
+vi.mock('@main/lib/logger', () => ({
+  logger: {
+    info: vi.fn(),
+    warn: mockLoggerWarn,
+    error: vi.fn(),
+    debug: vi.fn()
+  }
+}))
+
 const { bindCallingTools } =
   await import('@main/lib/ai/utils/tool-binding-util')
 
@@ -71,5 +81,56 @@ describe('bindCallingTools — knowledge base', () => {
       mcpTools: []
     } as never)
     expect(names(tools)).not.toContain('searchKnowledgeBase')
+  })
+})
+
+describe('bindCallingTools — provider tool-count cap', () => {
+  beforeEach(() => {
+    mockResolveKnowledgeBase.mockReset().mockReturnValue(null)
+    mockLoggerWarn.mockReset()
+  })
+
+  it('truncates a combined tool count over 128 (OpenAI rejects the request otherwise)', () => {
+    // A single MCP server can expose far more tools than any built-in set —
+    // this is the exact shape that produced "array too long ... length 152".
+    const mcpTools = [
+      {
+        mcpServerName: 'alphavantage',
+        tools: Array.from({ length: 140 }, (_, i) => stub(`mcp-${i}`))
+      }
+    ]
+    const tools = bindCallingTools({
+      advancedTools: [],
+      setting: { id: 'global' },
+      mcpTools
+    } as never)
+    expect(tools.length).toBe(128)
+    expect(mockLoggerWarn).toHaveBeenCalled()
+  })
+
+  it('keeps every built-in tool before filling the remaining budget with MCP tools', () => {
+    const mcpTools = [
+      {
+        mcpServerName: 'alphavantage',
+        tools: Array.from({ length: 140 }, (_, i) => stub(`mcp-${i}`))
+      }
+    ]
+    const tools = bindCallingTools({
+      advancedTools: [],
+      setting: { id: 'global' },
+      mcpTools
+    } as never)
+    expect(names(tools)).toContain('weather')
+    expect(names(tools)).toContain('terminal')
+  })
+
+  it('does not truncate or warn when under the limit', () => {
+    const tools = bindCallingTools({
+      advancedTools: [],
+      setting: { id: 'global' },
+      mcpTools: [{ mcpServerName: 'small', tools: [stub('mcp-1')] }]
+    } as never)
+    expect(tools.length).toBeLessThan(128)
+    expect(mockLoggerWarn).not.toHaveBeenCalled()
   })
 })

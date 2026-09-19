@@ -1,4 +1,4 @@
-import { TEST_IDS } from '@shared/constants/test-ids'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { CheckIcon, ChevronDownIcon, MessageSquareIcon } from 'lucide-react'
 import { useLocation, useNavigate } from 'react-router'
 

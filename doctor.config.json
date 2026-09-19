@@ -4,6 +4,7 @@
       "out/**",
       "build/**",
       "dist/**",
+      ".vite/**",
       "src/renderer/sub-apps/artifacts/sandbox.tsx",
       "src/renderer/components/orb.tsx",
       "src/renderer/components/ui/label.tsx",

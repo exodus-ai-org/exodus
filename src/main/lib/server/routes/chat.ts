@@ -1,16 +1,16 @@
-import type { AgentMessage } from '@mariozechner/pi-agent-core'
-import { agentLoop } from '@mariozechner/pi-agent-core'
-import type { Message } from '@mariozechner/pi-ai'
-import { ErrorCode } from '@shared/constants/error-codes'
-import { NotFoundError } from '@shared/errors/app-error'
-import { AdvancedTools } from '@shared/types/ai'
+import { ErrorCode } from '@exodus/shared/constants/error-codes'
+import { NotFoundError } from '@exodus/shared/errors/app-error'
+import { AdvancedTools } from '@exodus/shared/types/ai'
 import type {
   ChatAssistantMessage,
   ChatMessage,
   ChatSseEvent,
-  ChatToolResultMessage
-} from '@shared/types/chat'
-import { Variables } from '@shared/types/server'
+  ChatToolResultMessage,
+  ToolNotice
+} from '@exodus/shared/types/chat'
+import type { AgentMessage } from '@mariozechner/pi-agent-core'
+import { agentLoop } from '@mariozechner/pi-agent-core'
+import type { Message } from '@mariozechner/pi-ai'
 import { Hono } from 'hono'
 import { v4 as uuidV4 } from 'uuid'
 
@@ -52,6 +52,7 @@ import {
   searchWithFallback
 } from '../../search/resolve-search-provider'
 import { postRequestBodySchema, updateChatSchema } from '../schemas/chat'
+import { Variables } from '../types'
 import {
   deletionSuccessResponse,
   getRequiredParam,
@@ -90,19 +91,20 @@ chat.get('/:id', async (c) => {
 })
 
 chat.post('/', async (c) => {
-  const { id, messages, advancedTools, projectId } = validateSchema(
-    postRequestBodySchema,
-    await c.req.json(),
-    'Invalid request body'
-  )
+  const { id, messages, advancedTools, reasoningEffort, projectId } =
+    validateSchema(
+      postRequestBodySchema,
+      await c.req.json(),
+      'Invalid request body'
+    )
   bindTraceAttributes({ chatId: id })
   const setting = c.get('settings')
-  const { chatModel, reasoningModel, apiKey } = getModelFromProvider(setting)
-  const isReasoningModel =
-    advancedTools?.includes(AdvancedTools.Reasoning) ||
-    advancedTools?.includes(AdvancedTools.DeepResearch)
+  const { model, apiKey } = getModelFromProvider(setting)
 
-  const allMessages = messages as ChatMessage[]
+  // `messages` is validated by a loose schema (unknown keys pass through so
+  // prior turns keep their toolResult `details` etc.); its inferred shape has
+  // an index signature that no longer narrows to ChatMessage directly.
+  const allMessages = messages as unknown as ChatMessage[]
 
   // The last message is the new user message; everything before is context
   const userMessage = allMessages.at(-1)!
@@ -122,7 +124,7 @@ chat.post('/', async (c) => {
     }
     titlePromise = generateTitleFromUserMessage({
       message: userMessage,
-      model: chatModel,
+      model,
       apiKey
     })
   }
@@ -142,7 +144,7 @@ chat.post('/', async (c) => {
 
   // Single LcmManager instance — reused for post-chat compaction
   const lcm = lcmEnabled
-    ? new LcmManager(id, chatModel, apiKey, {
+    ? new LcmManager(id, model, apiKey, {
         freshTailSize: memoryConfig?.freshTailSize ?? 16,
         contextWindowPercent: memoryConfig?.contextWindowPercent ?? 75
       })
@@ -165,12 +167,7 @@ chat.post('/', async (c) => {
     : Promise.resolve(allMessages.slice(0, -1).map(stripId))
 
   const memoryPromise = memoryUseInChat
-    ? loadRelevantMemories(
-        getTextFromMessage(userMessage),
-        chatModel,
-        apiKey,
-        id
-      )
+    ? loadRelevantMemories(getTextFromMessage(userMessage), model, apiKey, id)
         .then(formatMemoriesForSystem)
         .catch((err) => {
           logger.warn('chat', 'Memory loading failed, continuing without', {
@@ -189,11 +186,10 @@ chat.post('/', async (c) => {
     mcpPromise
   ])
 
-  const activeModel = isReasoningModel ? reasoningModel : chatModel
   const tools = bindCallingTools({
     advancedTools,
     setting,
-    chatModel,
+    chatModel: model,
     apiKey,
     mcpTools,
     chatId: id
@@ -262,6 +258,26 @@ chat.post('/', async (c) => {
       const turnStartedAt = Date.now()
 
       try {
+        // Deep Research forces a strong reasoning effort regardless of what
+        // the composer's picker requested.
+        //
+        // Our app-level EffortLevel adds a 'max' tier beyond pi-agent-core's
+        // ThinkingLevel ('off' | 'minimal' | 'low' | 'medium' | 'high' |
+        // 'xhigh') — 'max' only exists as Anthropic's own wire value, which
+        // pi-ai already maps its top ThinkingLevel ('xhigh') to internally
+        // per-model (see thinkingLevelMap in
+        // @mariozechner/pi-ai/dist/models.generated.js). So 'max' collapses
+        // to 'xhigh' here; pi-ai does the provider-specific mapping from there.
+        const effectiveReasoning = advancedTools?.includes(
+          AdvancedTools.DeepResearch
+        )
+          ? 'high'
+          : reasoningEffort && reasoningEffort !== 'off'
+            ? reasoningEffort === 'max'
+              ? 'xhigh'
+              : reasoningEffort
+            : undefined
+
         const agentStream = agentLoop(
           [stripId(userMessage) as AgentMessage],
           {
@@ -270,9 +286,9 @@ chat.post('/', async (c) => {
             tools
           },
           {
-            model: activeModel,
+            model,
             apiKey,
-            reasoning: isReasoningModel ? 'high' : undefined,
+            reasoning: effectiveReasoning,
             convertToLlm: (agentMessages: AgentMessage[]): Message[] => {
               const messages = agentMessages.filter(
                 (m): m is Message =>
@@ -332,7 +348,7 @@ chat.post('/', async (c) => {
               }
               // Use streaming content from currentAssistantMsg but authoritative
               // usage/stopReason from event.message (message_update carries 0 usage)
-              const cost = calculateCost(assistantMsg.usage, activeModel)
+              const cost = calculateCost(assistantMsg.usage, model)
               const finalMsg: ChatAssistantMessage = {
                 id: currentAssistantMsg?.id ?? assistantMsgId,
                 role: 'assistant',
@@ -440,6 +456,27 @@ chat.post('/', async (c) => {
             toolMsgIds.delete(event.toolCallId)
             newMessages.push(toolResultMsg)
             sendEvent({ type: 'message_update', message: toolResultMsg })
+
+            // Relay a non-fatal tool notice (e.g. an expired API key that only
+            // degraded enrichment — the tool still succeeded) so the renderer
+            // can toast it. Tools opt in by putting `notice` on their details.
+            const notice =
+              details && typeof details === 'object' && 'notice' in details
+                ? (details as { notice?: unknown }).notice
+                : null
+            if (
+              notice &&
+              typeof notice === 'object' &&
+              typeof (notice as ToolNotice).message === 'string'
+            ) {
+              const n = notice as ToolNotice
+              sendEvent({
+                type: 'notice',
+                level: n.level === 'info' ? 'info' : 'warning',
+                message: n.message
+              })
+            }
+
             sendEvent({
               type: 'tool_call_end',
               toolCallId: event.toolCallId,
@@ -498,7 +535,7 @@ chat.post('/', async (c) => {
           if (lcm) {
             enqueueAndProcess('lcm-post-turn', {
               chatId: id,
-              chatModel,
+              model,
               apiKey,
               freshTailSize: memoryConfig?.freshTailSize ?? 16,
               contextWindowPercent: memoryConfig?.contextWindowPercent ?? 75,
@@ -515,7 +552,7 @@ chat.post('/', async (c) => {
                 role: m.role,
                 content: m.content
               })),
-              chatModel,
+              model,
               apiKey
             }).catch((error) => logEnqueueFailure('memory-consolidate', error))
           }

@@ -1,11 +1,12 @@
-import { BASE_URL } from '@shared/constants/systems'
+import { BASE_URL } from '@exodus/shared/constants/systems'
 import type {
   PhilharmonicSseEvent,
   PlanDto,
   StepDto,
   StepPatch
-} from '@shared/types/philharmonic'
+} from '@exodus/shared/types/philharmonic'
 import { useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import { getActivePlan } from '@/services/philharmonic-chat'
@@ -66,6 +67,7 @@ function applyStepPatch(step: StepDto, patch: StepPatch): StepDto {
 export function useConversationStream(
   conversationId: string | null
 ): ConversationStream {
+  const { t } = useTranslation('philharmonic')
   const [bubbles, setBubbles] = useState<LiveBubble[]>([])
   const [askUser, setAskUser] = useState<ConversationStream['askUser']>(null)
   const [error, setError] = useState<string | null>(null)
@@ -195,7 +197,7 @@ export function useConversationStream(
           // Bubble to the app shell so users see it even when the panel is
           // closed. The inline error block in GroupChat is still rendered.
           sileo.error({
-            title: 'Group encountered an error',
+            title: t('chat.groupChat.errorTitle'),
             description:
               evt.error.length > 200 ? `${evt.error.slice(0, 197)}…` : evt.error
           })

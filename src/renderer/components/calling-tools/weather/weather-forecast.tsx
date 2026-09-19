@@ -1,4 +1,4 @@
-import { WeatherForecastDay, WWO_CODE } from '@shared/types/weather'
+import { WeatherForecastDay, WWO_CODE } from '@exodus/shared/types/weather'
 import { domAnimation, LazyMotion, m } from 'framer-motion'
 import {
   CloudDrizzleIcon,
@@ -10,6 +10,7 @@ import {
   CloudSunIcon,
   SunIcon
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 function getWeatherIcon(code: string) {
   const type = WWO_CODE[code as keyof typeof WWO_CODE] ?? 'Cloudy'
@@ -50,6 +51,10 @@ function getWeatherIcon(code: string) {
 }
 
 // "0" → "12 AM", "900" → "9 AM", "1500" → "3 PM"
+// Deliberately out of scope for this i18n pass — see this plan's Global
+// Constraints: this hardcodes 12-hour AM/PM notation regardless of locale,
+// which is a date/time-formatting concern (useFormat()/Intl.DateTimeFormat
+// territory), not a string-extraction site.
 function formatTime(time: string): string {
   const h = Math.floor(Number(time) / 100)
   if (h === 0) return '12 AM'
@@ -63,13 +68,14 @@ export function WeatherForecast({
 }: {
   forecast: WeatherForecastDay
 }) {
+  const { t } = useTranslation('chat')
   return (
     <LazyMotion features={domAnimation}>
       <div className="flex flex-col gap-3 px-2 pt-3 pb-2">
         {/* ── min/max bar ── */}
         <div className="bg-muted/60 rounded-2xl px-3 py-2.5">
           <div className="text-muted-foreground mb-1.5 flex items-center justify-between text-xs">
-            <span>🌡️ Temperature range</span>
+            <span>{t('weatherForecast.temperatureRange')}</span>
             <span className="text-foreground font-semibold">
               {forecast.minTempC}° – {forecast.maxTempC}°
             </span>
@@ -88,8 +94,8 @@ export function WeatherForecast({
             />
           </div>
           <div className="text-muted-foreground mt-2 flex justify-between text-[10px]">
-            <span>❄️ Cold</span>
-            <span>🔥 Hot</span>
+            <span>{t('weatherForecast.cold')}</span>
+            <span>{t('weatherForecast.hot')}</span>
           </div>
         </div>
 
@@ -98,14 +104,18 @@ export function WeatherForecast({
           <div className="bg-muted/60 flex flex-1 items-center gap-2 rounded-2xl px-3 py-2">
             <span className="text-lg leading-none">🌅</span>
             <div>
-              <p className="text-muted-foreground text-[10px]">Sunrise</p>
+              <p className="text-muted-foreground text-[10px]">
+                {t('weatherForecast.sunrise')}
+              </p>
               <p className="text-xs font-semibold">{forecast.sunrise}</p>
             </div>
           </div>
           <div className="bg-muted/60 flex flex-1 items-center gap-2 rounded-2xl px-3 py-2">
             <span className="text-lg leading-none">🌇</span>
             <div>
-              <p className="text-muted-foreground text-[10px]">Sunset</p>
+              <p className="text-muted-foreground text-[10px]">
+                {t('weatherForecast.sunset')}
+              </p>
               <p className="text-xs font-semibold">{forecast.sunset}</p>
             </div>
           </div>

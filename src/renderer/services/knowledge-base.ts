@@ -1,8 +1,8 @@
 import type {
   KnowledgeDocData,
   LightRagHealthDto
-} from '@shared/types/knowledge-base'
-import { fetcher } from '@shared/utils/http'
+} from '@exodus/shared/types/knowledge-base'
+import { fetcher } from '@exodus/shared/utils/http'
 
 const BASE = '/api/knowledge-base'
 
@@ -22,10 +22,7 @@ export const updateKnowledgeDoc = (
   })
 
 export const deleteKnowledgeDoc = (id: string) =>
-  fetcher<void>(`${BASE}/documents/${id}`, {
-    method: 'DELETE',
-    responseType: 'text'
-  })
+  fetcher<void>(`${BASE}/documents/${id}`, { method: 'DELETE' })
 
 export const reindexAll = () =>
   fetcher<{ count: number }>(`${BASE}/documents/reindex-all`, {

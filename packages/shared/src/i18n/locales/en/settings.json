@@ -1,0 +1,743 @@
+{
+  "general": {
+    "language": {
+      "label": "Language",
+      "description": "The language Exodus's interface is shown in.",
+      "auto": "Auto (detect from system)"
+    },
+    "theme": {
+      "label": "Theme",
+      "description": "Choose light, dark, or match your system preference",
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "runOnStartup": {
+      "label": "Run on startup",
+      "description": "Automatically start Exodus when you log in"
+    },
+    "menuBar": {
+      "label": "Menu bar",
+      "description": "Show Exodus in the menu bar"
+    }
+  },
+  "nav": {
+    "profile": { "title": "Profile" },
+    "general": { "title": "General" },
+    "personality": { "title": "Personality" },
+    "aiProviders": { "title": "AI Providers" },
+    "amazonS3": { "title": "AWS S3" },
+    "mcpServers": { "title": "MCP Servers" },
+    "skillsMarket": { "title": "Skills Market" },
+    "fullTextSearch": { "title": "Full Text Search" },
+    "knowledgeBase": { "title": "Knowledge Base" },
+    "builtinTools": { "title": "Built-in Tools" },
+    "memory": { "title": "Memory" },
+    "discover": { "title": "Discover" },
+    "voice": { "title": "Voice" },
+    "deepResearch": { "title": "Deep Research" },
+    "computerUse": { "title": "Computer Use" },
+    "dataControls": { "title": "Data Controls" },
+    "logger": { "title": "Logger" },
+    "keyboardShortcuts": { "title": "Keyboard Shortcuts" },
+    "about": { "title": "About Exodus" },
+    "group": {
+      "personal": "Personal",
+      "aiTools": "AI & Tools",
+      "integrations": "Integrations",
+      "storage": "Storage",
+      "developer": "Developer"
+    }
+  },
+  "common": {
+    "searchPlaceholder": "Search settings…",
+    "backToApp": "Back to app"
+  },
+  "keyboardShortcuts": {
+    "category": {
+      "general": "General",
+      "chat": "Chat",
+      "search": "Search"
+    },
+    "shortcuts": {
+      "new-chat": { "label": "New chat" },
+      "open-settings": { "label": "Open settings" },
+      "toggle-sidebar": { "label": "Toggle sidebar" },
+      "toggle-developer-tools": { "label": "Toggle developer tools" },
+      "force-refresh-page": { "label": "Force refresh page" },
+      "find-in-page": { "label": "Find in page" },
+      "search-chat-history": { "label": "Search chat history" },
+      "close-find-bar": { "label": "Close find bar" },
+      "close-tab": { "label": "Close current tab" },
+      "focus-chat-input": { "label": "Focus chat input" },
+      "send-message": { "label": "Send message" },
+      "new-line": { "label": "New line" }
+    }
+  },
+  "about": {
+    "version": "Version",
+    "electron": "Electron",
+    "chromium": "Chromium",
+    "node": "Node.js",
+    "v8": "V8",
+    "os": "OS",
+    "github": "GitHub",
+    "twitter": "X (Twitter)",
+    "website": "Website",
+    "license": "License",
+    "autoUpdate": {
+      "label": "Auto Update",
+      "description": "Automatically download and install updates when available"
+    },
+    "update": {
+      "checkPrompt": "Check for the latest version",
+      "checkButton": "Check for Updates",
+      "checking": "Checking for updates…",
+      "upToDate": "You're on the latest version",
+      "checkAgain": "Check again",
+      "available": "Update available",
+      "availableVersion": "Version {{version}}",
+      "download": "Download",
+      "downloading": "Downloading update…",
+      "ready": "Update ready to install",
+      "readyDescription": "Restart to apply the update",
+      "restartAndInstall": "Restart & Install",
+      "failed": "Update failed"
+    }
+  },
+  "personality": {
+    "baseStyle": {
+      "label": "Base style and tone",
+      "description": "Set the style and tone of how Exodus responds to you",
+      "options": {
+        "default": "Default",
+        "professional": "Professional",
+        "friendly": "Friendly",
+        "candid": "Candid",
+        "quirky": "Quirky",
+        "efficient": "Efficient",
+        "cynical": "Cynical"
+      }
+    },
+    "level": {
+      "default": "Default",
+      "more": "More",
+      "less": "Less"
+    },
+    "warm": "Warm",
+    "enthusiastic": "Enthusiastic",
+    "headersAndLists": "Headers & Lists",
+    "emoji": "Emoji",
+    "customInstructions": {
+      "label": "Custom instructions",
+      "placeholder": "Additional behavior, style, and tone preferences"
+    },
+    "nickname": {
+      "label": "Nickname",
+      "placeholder": "What should Exodus call you?"
+    },
+    "occupation": {
+      "label": "Occupation",
+      "placeholder": "e.g., Software engineer, Designer"
+    },
+    "aboutYou": {
+      "label": "More about you",
+      "placeholder": "Interests, values, or preferences to keep in mind"
+    }
+  },
+  "profile": {
+    "stats": {
+      "lifetimeTokens": "Lifetime tokens",
+      "peakDay": "Peak day",
+      "currentStreak": "Current streak",
+      "longestStreak": "Longest streak"
+    },
+    "activity": {
+      "heading": "Token activity",
+      "mode": {
+        "daily": "Daily",
+        "cumulative": "Cumulative"
+      },
+      "cellTooltip": "{{date}} · {{tokens}} tokens"
+    },
+    "insights": {
+      "sectionTitle": "Activity insights",
+      "totalChats": "Total chats",
+      "modelRequests": "Model requests",
+      "installedSkills": "Installed skills",
+      "activeSkills": "Active skills"
+    },
+    "topModels": {
+      "sectionTitle": "Top models",
+      "empty": "No model usage yet"
+    },
+    "avatar": {
+      "uploadLabel": "Upload your avatar",
+      "alt": "Your avatar"
+    }
+  },
+  "providers": {
+    "config": {
+      "label": "Provider",
+      "description": "The AI provider to use for chat",
+      "placeholder": "Select a provider"
+    },
+    "keys": {
+      "sectionTitle": "Provider keys"
+    },
+    "fields": {
+      "apiKey": {
+        "label": "API Key",
+        "description": "Your {{provider}} API key"
+      },
+      "baseUrl": {
+        "label": "Base URL",
+        "description": "Custom API endpoint. Leave empty for default"
+      }
+    },
+    "azure": {
+      "endpoint": {
+        "label": "Endpoint",
+        "description": "Your Azure OpenAI resource endpoint URL"
+      },
+      "apiVersion": {
+        "label": "API Version",
+        "description": "Azure OpenAI API version string"
+      },
+      "model": {
+        "label": "Model",
+        "description": "The Azure deployment name to use"
+      }
+    },
+    "ollama": {
+      "baseUrl": {
+        "label": "Base URL",
+        "description": "Ollama server address for local model inference"
+      },
+      "status": {
+        "label": "Status",
+        "description": "Connection status of the Ollama server",
+        "running": "Ollama is running",
+        "notRunning": "Not running"
+      }
+    },
+    "model": {
+      "label": "Model",
+      "description": "The model used for this provider",
+      "searchPlaceholder": "Search models…",
+      "noModelsFound": "No models found.",
+      "refreshHint": "Refresh to see all available models.",
+      "staleWarning": "\"{{model}}\" is no longer offered by this provider — pick a current model.",
+      "retrieving": "Retrieving…",
+      "refreshing": "Refreshing…",
+      "retrieve": "Retrieve model list",
+      "refresh": "Refresh model list",
+      "fetchErrorTitle": "Could not fetch model list",
+      "fetchErrorFallback": "Failed to fetch model list"
+    }
+  },
+  "tools": {
+    "groups": {
+      "web": "Web",
+      "fileSystem": "File System",
+      "aiData": "AI & Data",
+      "maps": "Maps"
+    },
+    "registry": {
+      "weather": {
+        "label": "Weather",
+        "description": "Look up current weather and forecasts by location"
+      },
+      "webSearch": {
+        "label": "Web Search",
+        "description": "Search the web via Brave Search API (requires API key)"
+      },
+      "webFetch": {
+        "label": "Web Fetch",
+        "description": "Fetch the content of a URL (docs, APIs, GitHub files)"
+      },
+      "terminal": {
+        "label": "Terminal",
+        "description": "Execute shell commands on your machine"
+      },
+      "readFile": {
+        "label": "Read File",
+        "description": "Read file contents by path"
+      },
+      "writeFile": {
+        "label": "Write File",
+        "description": "Create or overwrite files"
+      },
+      "editFile": {
+        "label": "Edit File",
+        "description": "Targeted string replacement in existing files"
+      },
+      "listDirectory": {
+        "label": "List Directory",
+        "description": "List files and folders in a directory"
+      },
+      "findFiles": {
+        "label": "Find Files",
+        "description": "Search for files by glob pattern"
+      },
+      "grep": {
+        "label": "Grep",
+        "description": "Search file contents by regex pattern"
+      },
+      "imageGeneration": {
+        "label": "Image Generation",
+        "description": "Generate images via DALL-E (requires OpenAI API key)"
+      },
+      "searchKnowledgeBase": {
+        "label": "Knowledge Base",
+        "description": "Retrieve context from your knowledge base (requires a configured LightRAG URL)"
+      },
+      "mapItinerary": {
+        "label": "Map Itinerary",
+        "description": "Render places, routes, and multi-day trips on a single interactive map card"
+      }
+    },
+    "googleMaps": {
+      "apiKey": {
+        "label": "Google API Key",
+        "description": "Powers Maps Routing (point-to-point directions) and Places (location lookup). Get one from the Google Cloud console.",
+        "placeholder": "Enter your Google API key"
+      }
+    },
+    "imageGeneration": {
+      "model": {
+        "label": "Model",
+        "description": "OpenAI only — uses your configured OpenAI API key.",
+        "placeholder": "Select a model"
+      },
+      "size": {
+        "label": "Size",
+        "description": "The dimensions of the generated image."
+      },
+      "quality": {
+        "label": "Quality",
+        "description": "The quality level of the generated image."
+      },
+      "outputFormat": {
+        "label": "Output Format",
+        "description": "If the background is transparent, the output format should be set to either png (default) or webp."
+      },
+      "generatedCounts": {
+        "label": "Generated Counts",
+        "description": "The number of images to generate. Must be between 1 and 10."
+      },
+      "background": {
+        "label": "Background",
+        "description": "Set the background style for the generated image."
+      }
+    },
+    "webSearch": {
+      "apiKey": {
+        "label": "Brave Search API Key",
+        "description": "Required for web search. Get yours at api-dashboard.search.brave.com"
+      },
+      "country": {
+        "label": "Country",
+        "description": "Bias results toward a specific region",
+        "placeholder": "Select country...",
+        "empty": "No country found."
+      },
+      "languages": {
+        "label": "Languages",
+        "description": "Filter search results by language",
+        "placeholder": "Search languages...",
+        "empty": "No language found."
+      },
+      "maxResults": {
+        "label": "Max Results",
+        "description": "Number of search results per query (1-50). Default: 10."
+      },
+      "deepRecall": {
+        "label": "Deep recall",
+        "description": "Run a second, broader web search alongside the grounding call and merge in the extra results — forums, news, and pages the grounding filter drops. Higher recall, ~2× Brave API usage per search."
+      },
+      "recency": {
+        "label": "Recency Filter",
+        "description": "Only return results from a recent time period.",
+        "options": {
+          "none": "No filter",
+          "hour": "Past hour",
+          "day": "Past 24 hours",
+          "week": "Past week",
+          "month": "Past month",
+          "year": "Past year"
+        }
+      },
+      "domainFilter": {
+        "label": "Domain Filter",
+        "description": "Comma-separated. Prefix with - to exclude. e.g. \"nature.com, .edu\" or \"-reddit.com\""
+      }
+    },
+    "voice": {
+      "alert": "The Text-to-Speech and Speech-to-Text services <strong>only support OpenAI</strong>. Please make sure you have configured the OpenAI API setting correctly before using these features.",
+      "speechToTextModel": {
+        "label": "Speech to Text Model",
+        "description": "Transcribes audio input into text"
+      },
+      "textToSpeechModel": {
+        "label": "Text to Speech Model",
+        "description": "Generates spoken audio from text responses. gpt-4o-mini-tts supports tone/style instructions."
+      },
+      "textToSpeechVoice": {
+        "label": "Text to Speech Voice",
+        "description": "Voice persona for generated speech"
+      },
+      "outputFormat": {
+        "label": "Output Format",
+        "description": "Audio format for generated speech"
+      },
+      "speed": {
+        "label": "Speed",
+        "description": "Playback speed (0.25 – 4.0, default 1.0)"
+      },
+      "instructions": {
+        "label": "Voice Instructions",
+        "description": "Natural-language instructions to control tone, emotion and style (gpt-4o-mini-tts only)",
+        "placeholder": "e.g. Speak in a warm, friendly tone with a slight British accent"
+      }
+    },
+    "s3": {
+      "alert": {
+        "encoding": "By default, Exodus encodes attachments as <strong>base64</strong> inline in the prompt. For large files or vision-heavy workflows, uploading to S3 and passing a URL is more efficient and reliable.",
+        "requirementsHeading": "<strong>Requirements before configuring:</strong>",
+        "publicReadAccess": "<strong>Public read access</strong> — AWS blocks public access by default. You must disable \"Block all public access\" on the bucket and attach a bucket policy granting <2>s3:GetObject</2> to <4>*</4>, so the AI provider can fetch the URL without credentials.",
+        "cors": "<strong>CORS</strong> — Add a CORS rule allowing <2>PUT</2> from <5>*</5> (or your app origin) so Exodus can upload directly from the desktop.",
+        "iamCredentials": "<strong>IAM credentials</strong> — The Access Key ID / Secret Access Key must belong to an IAM user or role with at least <2>s3:PutObject</2> and <5>s3:PutObjectAcl</5> permissions on the configured bucket.",
+        "objectAcl": "<strong>Object ACL</strong> — Each uploaded object is set to <3>public-read</3>. Your bucket must not have ACLs disabled (i.e., Object Ownership must be set to <6>ACLs enabled / Bucket owner preferred</6>)."
+      },
+      "region": {
+        "label": "Region",
+        "description": "The AWS region where your S3 bucket is hosted."
+      },
+      "bucket": {
+        "label": "Bucket",
+        "description": "The name of your S3 bucket for file uploads.",
+        "placeholder": "Your S3 bucket"
+      },
+      "accessKeyId": {
+        "label": "Access Key ID",
+        "description": "The IAM access key ID with S3 write permissions."
+      },
+      "secretAccessKey": {
+        "label": "Secret Access Key",
+        "description": "The IAM secret access key paired with the access key ID above."
+      }
+    }
+  },
+  "dataControls": {
+    "autoBackup": {
+      "label": "Automatic Backups",
+      "description": "Back up your data daily at 3:00 AM. Backups are stored locally in ~/.exodus/backups/."
+    },
+    "lastBackup": {
+      "label": "Last Backup",
+      "none": "No backups yet"
+    },
+    "backupNow": {
+      "button": "Back Up Now",
+      "successToast": "Backup created",
+      "errorToast": "Backup failed"
+    },
+    "recentBackups": {
+      "label": "Recent Backups",
+      "description_one": "{{count}} backup stored",
+      "description_other": "{{count}} backups stored"
+    },
+    "export": {
+      "label": "Export Data",
+      "description": "Download a portable copy of your conversations, settings, and other data as a ZIP archive.",
+      "button": "Export",
+      "successToast": "Data exported successfully",
+      "errorToast": "Export failed",
+      "errorFallback": "Failed to export data."
+    },
+    "import": {
+      "label": "Import Data",
+      "description": "Restore from a previously exported ZIP archive. This will replace all existing data.",
+      "button": "Import",
+      "dialogDescription": "Select a previously exported ZIP file. This will replace all existing conversations and data. A backup will be created automatically before import.",
+      "confirmButton": "Replace & Import",
+      "successToast": "Data imported successfully",
+      "errorToast": "Import failed",
+      "errorFallback": "Failed to import data."
+    },
+    "delete": {
+      "label": "Delete All Data",
+      "description": "Permanently erase all conversations, memories, and research data. Your settings will be preserved.",
+      "dialogDescription": "This will permanently delete all your conversations, memories, research data, and uploaded documents. Your settings and API keys will be preserved. A backup will be created before deletion.",
+      "confirmPrompt": "Type <strong>DELETE</strong> to confirm:",
+      "confirmButton": "Delete Everything",
+      "successToast": "All data deleted",
+      "errorToast": "Delete failed",
+      "errorFallback": "Failed to delete data."
+    }
+  },
+  "fullTextSearch": {
+    "alert": "Exodus's built-in search works across all languages, including Chinese, Japanese, and Korean — <strong>it matches exact text, not \"smart\" results</strong>: no relevance ranking, no typo tolerance, no stemming (searching \"run\" won't find \"running\"). Configure a self-hosted or cloud Elasticsearch cluster below for better relevance ranking and real word segmentation. This is optional; leave the URL empty to keep using the built-in search. Exodus only reads and writes documents to your cluster's index — for real word-level Chinese segmentation (rather than character-level), configure a language-aware analyzer (e.g. <4>ik</4>, <6>smartcn</6>, or the built-in <9>cjk</9>) on your cluster before pointing Exodus at it.",
+    "url": {
+      "label": "Elasticsearch URL",
+      "description": "Leave empty to use the built-in PGlite full-text search."
+    },
+    "username": {
+      "label": "Username"
+    },
+    "password": {
+      "label": "Password"
+    },
+    "optionalSecurityHint": "Optional — required only if your cluster has security enabled.",
+    "indexName": {
+      "label": "Index Name",
+      "description": "Defaults to \"exodus-messages\" if left empty."
+    },
+    "connection": {
+      "label": "Connection",
+      "description": "Test connectivity, or reindex all existing chat history into Elasticsearch.",
+      "testButton": "Test Connection",
+      "testingLabel": "Testing...",
+      "reindexButton": "Reindex History",
+      "reindexingLabel": "Reindexing..."
+    },
+    "toast": {
+      "connected": "Connected to Elasticsearch",
+      "connectFailed": "Failed to connect to Elasticsearch",
+      "reindexed_one": "Reindexed {{count}} message",
+      "reindexed_other": "Reindexed {{count}} messages",
+      "reindexFailed": "Failed to reindex messages"
+    }
+  },
+  "logger": {
+    "filters": {
+      "allLevels": "All",
+      "allScopes": "All",
+      "datePlaceholder": "Date",
+      "levelPlaceholder": "Level",
+      "scopePlaceholder": "Scope",
+      "keywordPlaceholder": "Search keyword...",
+      "traceChip": "trace {{id}}"
+    },
+    "actions": {
+      "openDirectory": "Open Directory",
+      "export": "Export",
+      "clearAll": "Clear All",
+      "clearAllConfirm": "Are you sure you want to delete all log files?"
+    },
+    "toast": {
+      "exported": "Logs exported",
+      "exportFailed": "Export failed",
+      "cleared": "All logs cleared",
+      "clearFailed": "Failed to clear logs"
+    },
+    "table": {
+      "time": "Time",
+      "level": "Level",
+      "scope": "Scope",
+      "message": "Message",
+      "trace": "Trace",
+      "empty": "No log entries found."
+    },
+    "pagination": {
+      "total_one": "{{count}} entry total",
+      "total_other": "{{count}} entries total",
+      "pageOf": "Page {{page}} of {{totalPages}}",
+      "prev": "Prev",
+      "next": "Next"
+    }
+  },
+  "mcpServers": {
+    "serverCard": {
+      "toolCount_one": "{{count}} tool",
+      "toolCount_other": "{{count}} tools",
+      "editAria": "Edit server",
+      "deleteAria": "Delete server",
+      "showTools": "Show tools",
+      "hideTools": "Hide tools"
+    },
+    "intro": "Register <2>MCP</2> servers (local or remote), then toggle the switch to enable their tools in chat.",
+    "activeSummary": "Currently <strong>{{totalToolCount}} tools</strong> from <strong>{{activeCount}} servers</strong> active.",
+    "tabs": {
+      "servers": "Servers",
+      "json": "JSON"
+    },
+    "empty": "No MCP servers configured yet.",
+    "form": {
+      "transport": {
+        "label": "Transport",
+        "description": "How to connect to the MCP server",
+        "options": {
+          "stdio": "Stdio (Local Command)",
+          "streamableHttp": "Streamable HTTP (Remote)",
+          "sse": "SSE (Remote Legacy)"
+        }
+      },
+      "name": {
+        "label": "Name",
+        "description": "A unique identifier for this server"
+      },
+      "command": {
+        "label": "Command",
+        "description": "The executable command to start the MCP server"
+      },
+      "args": {
+        "label": "Args",
+        "description": "Command arguments, one per row. Order matters.",
+        "addButton": "Add argument",
+        "removeAria": "Remove argument {{index}}"
+      },
+      "url": {
+        "label": "URL",
+        "description": "The {{protocol}} endpoint URL of the remote server"
+      },
+      "headers": {
+        "label": "Headers",
+        "description": "Optional auth/custom headers as JSON, e.g. {\"Authorization\":\"Bearer ...\"}"
+      },
+      "description": {
+        "label": "Description",
+        "description": "Optional notes about this server",
+        "placeholder": "Optional"
+      },
+      "extraConfig": {
+        "label": "Extra Config",
+        "description": "Additional fields merged into the JSON export (e.g. oauth, custom auth). Must be a valid JSON object."
+      },
+      "updateButton": "Update",
+      "registerButton": "Register",
+      "addServerButton": "Add Server"
+    },
+    "json": {
+      "description": "Read-only view of current configuration. Use the Servers tab to make changes."
+    },
+    "toast": {
+      "invalidHeaders": "Invalid headers JSON",
+      "invalidExtraConfig": "Invalid Extra Config",
+      "mustBeJsonObject": "must be a JSON object",
+      "updated": "\"{{name}}\" updated — reconnecting…",
+      "registered": "\"{{name}}\" registered",
+      "disabledByDefault": "Disabled by default",
+      "removed": "\"{{name}}\" removed — connection closed",
+      "enabled": "\"{{name}}\" enabled — reconnecting…",
+      "disabled": "\"{{name}}\" disabled — connection closed",
+      "updateFailed": "Failed to update server",
+      "registerFailed": "Failed to register",
+      "removeFailed": "Failed to remove server",
+      "toggleFailed": "Failed to toggle server",
+      "operationFailed": "Operation failed"
+    }
+  },
+  "memory": {
+    "sectionGroups": {
+      "profile": "You",
+      "topic": "Topics",
+      "person": "People"
+    },
+    "updatedLabel": "Updated {{date}}",
+    "genericRetryHint": "Try again",
+    "restoreLabel": "Restore",
+    "disableLabel": "Disable",
+    "row": {
+      "noSummaryYet": "No summary yet"
+    },
+    "detail": {
+      "backButton": "Memory",
+      "titlePlaceholder": "Title",
+      "summaryLabel": "Summary",
+      "summaryPlaceholder": "A compact phrase — what this entry covers",
+      "detailsLabel": "Details",
+      "detailsPlaceholder": "One fact per line",
+      "toast": {
+        "notSavedTitle": "Not saved",
+        "deleteFailedTitle": "Failed to delete"
+      }
+    },
+    "composer": {
+      "placeholderScoped": "Tell the assistant what to change or remove…",
+      "placeholderGeneral": "Tell the assistant what to remember…",
+      "submitAria": "Add to memory",
+      "toast": {
+        "updatedTitle": "Memory updated",
+        "updatedDescription_one": "{{count}} change applied",
+        "updatedDescription_other": "{{count}} changes applied",
+        "noChangeTitle": "No change",
+        "noChangeDescription": "That didn't call for a memory update.",
+        "applyFailedTitle": "Couldn't apply that"
+      }
+    },
+    "settings": {
+      "autoCapture": {
+        "label": "Capture memories",
+        "description": "After each conversation, consolidate durable facts about you (interests, setup, people) into memory — updating existing entries rather than duplicating them."
+      },
+      "useInChat": {
+        "label": "Use memory in chats",
+        "description": "Surface the memory entries relevant to your message into the assistant's context at the start of a reply."
+      },
+      "lcmEnabled": {
+        "label": "Lossless context management",
+        "description": "Automatically compress long conversations into a hierarchical summary DAG, so nothing is ever lost even when chats exceed the context window."
+      },
+      "contextWindowPercent": {
+        "label": "Compaction threshold",
+        "description": "Trigger context compaction when the conversation reaches this percentage of the model's context window (50-95%). Default: 75%."
+      },
+      "freshTailSize": {
+        "label": "Fresh tail size",
+        "description": "Number of recent messages protected from compaction (8-64). These are always sent to the model verbatim. Default: 16."
+      },
+      "newMemoryDefaultKey": "New memory",
+      "storedMemoriesHeading": "Stored memories",
+      "newButton": "New",
+      "emptyState": "No memories yet — they're added automatically after conversations, or tell the assistant to remember something below.",
+      "disabledHeading": "Disabled · {{count}}",
+      "toast": {
+        "loadFailedTitle": "Failed to load memories",
+        "createFailedTitle": "Failed to create"
+      }
+    }
+  },
+  "skillsMarket": {
+    "sourceNotice": "Skills data sourced from <2>clawhub.ai</2>. Please review skills carefully before installing to avoid potentially malicious programs.",
+    "searchPlaceholder": "Search skills...",
+    "installLocal": "Install Local",
+    "tabs": {
+      "browse": "Browse",
+      "installed": "Installed"
+    },
+    "browse": {
+      "noResults": "No results found",
+      "noResultsHint": "Try a different search term",
+      "loadFailed": "Failed to load skills",
+      "loadFailedHint": "Check your internet connection and try again",
+      "empty": "No skills available",
+      "previous": "Previous",
+      "next": "Next"
+    },
+    "installedTab": {
+      "empty": "No skills installed",
+      "emptyHint": "Browse the marketplace to find skills",
+      "installedAt": "Installed {{date}}"
+    },
+    "card": {
+      "installed": "Installed",
+      "install": "Install",
+      "installsCount_one": "{{formatted}} install",
+      "installsCount_other": "{{formatted}} installs"
+    },
+    "toast": {
+      "installedTitle": "\"{{name}}\" installed",
+      "installFailed": "Install failed",
+      "uninstalledTitle": "Skill uninstalled",
+      "uninstallFailed": "Uninstall failed",
+      "updateFailed": "Failed to update skill"
+    }
+  },
+  "toast": {
+    "saveFailed": "Failed to save settings",
+    "autoSaved": "Auto saved",
+    "notSaved": "Not saved"
+  }
+}

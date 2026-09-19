@@ -1,7 +1,7 @@
-import type { PhilharmonicSseEvent } from '@shared/types/philharmonic'
-import type { Variables } from '@shared/types/server'
+import type { PhilharmonicSseEvent } from '@exodus/shared/types/philharmonic'
 import { Hono } from 'hono'
 
+import type { Variables } from '../types'
 import { getRequiredParam } from '../utils'
 import { SSE_HEADERS, SseManager } from '../utils/sse-manager'
 

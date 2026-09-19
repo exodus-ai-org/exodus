@@ -1,0 +1,799 @@
+{
+  "general": {
+    "language": {
+      "label": "言語",
+      "description": "Exodusのインターフェースで使用する言語です。",
+      "auto": "自動(システムから検出)"
+    },
+    "theme": {
+      "label": "テーマ",
+      "description": "ライト、ダーク、またはシステム設定に合わせるかを選択します",
+      "system": "システム",
+      "light": "ライト",
+      "dark": "ダーク"
+    },
+    "runOnStartup": {
+      "label": "起動時に実行",
+      "description": "ログイン時にExodusを自動的に起動します"
+    },
+    "menuBar": {
+      "label": "メニューバー",
+      "description": "メニューバーにExodusを表示します"
+    }
+  },
+  "nav": {
+    "profile": {
+      "title": "プロフィール"
+    },
+    "general": {
+      "title": "一般"
+    },
+    "personality": {
+      "title": "パーソナリティ"
+    },
+    "aiProviders": {
+      "title": "AIプロバイダー"
+    },
+    "amazonS3": {
+      "title": "AWS S3"
+    },
+    "mcpServers": {
+      "title": "MCPサーバー"
+    },
+    "skillsMarket": {
+      "title": "スキルマーケット"
+    },
+    "fullTextSearch": {
+      "title": "全文検索"
+    },
+    "knowledgeBase": {
+      "title": "ナレッジベース"
+    },
+    "builtinTools": {
+      "title": "組み込みツール"
+    },
+    "memory": {
+      "title": "メモリー"
+    },
+    "discover": {
+      "title": "Discover"
+    },
+    "voice": {
+      "title": "音声"
+    },
+    "deepResearch": {
+      "title": "ディープリサーチ"
+    },
+    "computerUse": {
+      "title": "Computer Use"
+    },
+    "dataControls": {
+      "title": "データ管理"
+    },
+    "logger": {
+      "title": "ロガー"
+    },
+    "keyboardShortcuts": {
+      "title": "キーボードショートカット"
+    },
+    "about": {
+      "title": "Exodusについて"
+    },
+    "group": {
+      "personal": "個人設定",
+      "aiTools": "AIとツール",
+      "integrations": "連携",
+      "storage": "ストレージ",
+      "developer": "開発者向け"
+    }
+  },
+  "common": {
+    "searchPlaceholder": "設定を検索…",
+    "backToApp": "アプリに戻る"
+  },
+  "keyboardShortcuts": {
+    "category": {
+      "general": "一般",
+      "chat": "チャット",
+      "search": "検索"
+    },
+    "shortcuts": {
+      "new-chat": {
+        "label": "新しいチャット"
+      },
+      "open-settings": {
+        "label": "設定を開く"
+      },
+      "toggle-sidebar": {
+        "label": "サイドバーの表示切り替え"
+      },
+      "toggle-developer-tools": {
+        "label": "デベロッパーツールの表示切り替え"
+      },
+      "force-refresh-page": {
+        "label": "ページを強制的に再読み込み"
+      },
+      "find-in-page": {
+        "label": "ページ内検索"
+      },
+      "search-chat-history": {
+        "label": "チャット履歴を検索"
+      },
+      "close-find-bar": {
+        "label": "検索バーを閉じる"
+      },
+      "close-tab": {
+        "label": "現在のタブを閉じる"
+      },
+      "focus-chat-input": {
+        "label": "チャット入力欄にフォーカス"
+      },
+      "send-message": {
+        "label": "メッセージを送信"
+      },
+      "new-line": {
+        "label": "改行"
+      }
+    }
+  },
+  "about": {
+    "version": "バージョン",
+    "electron": "Electron",
+    "chromium": "Chromium",
+    "node": "Node.js",
+    "v8": "V8",
+    "os": "OS",
+    "github": "GitHub",
+    "twitter": "X (Twitter)",
+    "website": "ウェブサイト",
+    "license": "ライセンス",
+    "autoUpdate": {
+      "label": "自動更新",
+      "description": "利用可能になった更新プログラムを自動的にダウンロードしてインストールします"
+    },
+    "update": {
+      "checkPrompt": "最新バージョンを確認",
+      "checkButton": "更新を確認",
+      "checking": "更新を確認中…",
+      "upToDate": "最新バージョンです",
+      "checkAgain": "再確認",
+      "available": "更新があります",
+      "availableVersion": "バージョン {{version}}",
+      "download": "ダウンロード",
+      "downloading": "更新をダウンロード中…",
+      "ready": "更新の準備ができました",
+      "readyDescription": "再起動して更新を適用してください",
+      "restartAndInstall": "再起動してインストール",
+      "failed": "更新に失敗しました"
+    }
+  },
+  "personality": {
+    "baseStyle": {
+      "label": "基本のスタイルとトーン",
+      "description": "Exodusがあなたに応答する際のスタイルとトーンを設定します",
+      "options": {
+        "default": "デフォルト",
+        "professional": "プロフェッショナル",
+        "friendly": "フレンドリー",
+        "candid": "率直",
+        "quirky": "個性的",
+        "efficient": "効率重視",
+        "cynical": "シニカル"
+      }
+    },
+    "level": {
+      "default": "デフォルト",
+      "more": "多め",
+      "less": "少なめ"
+    },
+    "warm": "温かみ",
+    "enthusiastic": "熱意",
+    "headersAndLists": "見出しとリスト",
+    "emoji": "絵文字",
+    "customInstructions": {
+      "label": "カスタム指示",
+      "placeholder": "追加の振る舞い、スタイル、トーンの好みについて"
+    },
+    "nickname": {
+      "label": "ニックネーム",
+      "placeholder": "Exodusにどう呼んでほしいですか?"
+    },
+    "occupation": {
+      "label": "職業",
+      "placeholder": "例:ソフトウェアエンジニア、デザイナー"
+    },
+    "aboutYou": {
+      "label": "あなたについて",
+      "placeholder": "覚えておいてほしい興味、価値観、好みなど"
+    }
+  },
+  "profile": {
+    "stats": {
+      "lifetimeTokens": "累計トークン数",
+      "peakDay": "最多利用日",
+      "currentStreak": "現在の連続利用日数",
+      "longestStreak": "最長連続利用日数"
+    },
+    "activity": {
+      "heading": "トークン使用状況",
+      "mode": {
+        "daily": "日別",
+        "cumulative": "累積"
+      },
+      "cellTooltip": "{{date}} · {{tokens}}トークン"
+    },
+    "insights": {
+      "sectionTitle": "利用状況インサイト",
+      "totalChats": "総チャット数",
+      "modelRequests": "モデルリクエスト数",
+      "installedSkills": "インストール済みスキル数",
+      "activeSkills": "有効なスキル数"
+    },
+    "topModels": {
+      "sectionTitle": "よく使うモデル",
+      "empty": "モデルの利用履歴はまだありません"
+    },
+    "avatar": {
+      "uploadLabel": "アバターをアップロード",
+      "alt": "あなたのアバター"
+    }
+  },
+  "providers": {
+    "config": {
+      "label": "プロバイダー",
+      "description": "チャットに使用するAIプロバイダー",
+      "placeholder": "プロバイダーを選択"
+    },
+    "keys": {
+      "sectionTitle": "プロバイダーのAPIキー"
+    },
+    "fields": {
+      "apiKey": {
+        "label": "APIキー",
+        "description": "あなたの{{provider}} APIキー"
+      },
+      "baseUrl": {
+        "label": "ベースURL",
+        "description": "カスタムAPIエンドポイント。デフォルトを使う場合は空欄のままにしてください"
+      }
+    },
+    "azure": {
+      "endpoint": {
+        "label": "エンドポイント",
+        "description": "Azure OpenAIリソースのエンドポイントURL"
+      },
+      "apiVersion": {
+        "label": "APIバージョン",
+        "description": "Azure OpenAI APIのバージョン文字列"
+      },
+      "model": {
+        "label": "モデル",
+        "description": "使用するAzureのデプロイ名"
+      }
+    },
+    "ollama": {
+      "baseUrl": {
+        "label": "ベースURL",
+        "description": "ローカルモデル推論用のOllamaサーバーアドレス"
+      },
+      "status": {
+        "label": "ステータス",
+        "description": "Ollamaサーバーの接続状態",
+        "running": "Ollamaは稼働中です",
+        "notRunning": "稼働していません"
+      }
+    },
+    "model": {
+      "label": "モデル",
+      "description": "このプロバイダーで使用するモデル",
+      "searchPlaceholder": "モデルを検索…",
+      "noModelsFound": "モデルが見つかりません。",
+      "refreshHint": "更新して利用可能なすべてのモデルを表示します。",
+      "staleWarning": "「{{model}}」はこのプロバイダーではもう提供されていません — 現在のモデルを選んでください。",
+      "retrieving": "取得中…",
+      "refreshing": "更新中…",
+      "retrieve": "モデル一覧を取得",
+      "refresh": "モデル一覧を更新",
+      "fetchErrorTitle": "モデル一覧を取得できませんでした",
+      "fetchErrorFallback": "モデル一覧の取得に失敗しました"
+    }
+  },
+  "tools": {
+    "groups": {
+      "web": "ウェブ",
+      "fileSystem": "ファイルシステム",
+      "aiData": "AIとデータ",
+      "maps": "マップ"
+    },
+    "registry": {
+      "weather": {
+        "label": "天気",
+        "description": "場所ごとの現在の天気と予報を調べます"
+      },
+      "webSearch": {
+        "label": "ウェブ検索",
+        "description": "Brave Search API経由でウェブを検索します(APIキーが必要です)"
+      },
+      "webFetch": {
+        "label": "ウェブ取得",
+        "description": "URLのコンテンツを取得します(ドキュメント、API、GitHubファイルなど)"
+      },
+      "terminal": {
+        "label": "ターミナル",
+        "description": "お使いのマシンでシェルコマンドを実行します"
+      },
+      "readFile": {
+        "label": "ファイル読み取り",
+        "description": "パスを指定してファイルの内容を読み取ります"
+      },
+      "writeFile": {
+        "label": "ファイル書き込み",
+        "description": "ファイルを新規作成または上書きします"
+      },
+      "editFile": {
+        "label": "ファイル編集",
+        "description": "既存ファイルに対する対象を絞った文字列の置換"
+      },
+      "listDirectory": {
+        "label": "ディレクトリ一覧",
+        "description": "ディレクトリ内のファイルとフォルダを一覧表示します"
+      },
+      "findFiles": {
+        "label": "ファイル検索",
+        "description": "globパターンでファイルを検索します"
+      },
+      "grep": {
+        "label": "Grep",
+        "description": "正規表現パターンでファイルの内容を検索します"
+      },
+      "imageGeneration": {
+        "label": "画像生成",
+        "description": "DALL-E経由で画像を生成します(OpenAI APIキーが必要です)"
+      },
+      "searchKnowledgeBase": {
+        "label": "ナレッジベース",
+        "description": "ナレッジベースからコンテキストを取得します(LightRAGのURLの設定が必要です)"
+      },
+      "mapItinerary": {
+        "label": "旅程マップ",
+        "description": "スポット、ルート、複数日の旅程を1枚のインタラクティブなマップカードに表示します"
+      }
+    },
+    "googleMaps": {
+      "apiKey": {
+        "label": "Google APIキー",
+        "description": "マップのルート検索(地点間の経路案内)とスポット検索(場所の検索)を利用できます。Google Cloud consoleから取得してください。",
+        "placeholder": "Google APIキーを入力"
+      }
+    },
+    "imageGeneration": {
+      "model": {
+        "label": "モデル",
+        "description": "OpenAIのみ対応 — 設定済みのOpenAI APIキーを使用します。",
+        "placeholder": "モデルを選択"
+      },
+      "size": {
+        "label": "サイズ",
+        "description": "生成される画像の寸法です。"
+      },
+      "quality": {
+        "label": "品質",
+        "description": "生成される画像の品質レベルです。"
+      },
+      "outputFormat": {
+        "label": "出力形式",
+        "description": "背景を透過にする場合、出力形式はpng(デフォルト)またはwebpに設定する必要があります。"
+      },
+      "generatedCounts": {
+        "label": "生成数",
+        "description": "生成する画像の枚数です。1〜10の範囲で指定してください。"
+      },
+      "background": {
+        "label": "背景",
+        "description": "生成される画像の背景スタイルを設定します。"
+      }
+    },
+    "webSearch": {
+      "apiKey": {
+        "label": "Brave Search APIキー",
+        "description": "ウェブ検索に必要です。api-dashboard.search.brave.comから取得してください"
+      },
+      "country": {
+        "label": "国",
+        "description": "特定の地域の結果を優先的に表示します",
+        "placeholder": "国を選択...",
+        "empty": "国が見つかりません。"
+      },
+      "languages": {
+        "label": "言語",
+        "description": "検索結果を言語でフィルタリングします",
+        "placeholder": "言語を検索...",
+        "empty": "言語が見つかりません。"
+      },
+      "maxResults": {
+        "label": "最大結果数",
+        "description": "クエリごとの検索結果数(1〜50)。デフォルト: 10。"
+      },
+      "deepRecall": {
+        "label": "ディープリコール",
+        "description": "グラウンディング呼び出しと並行して、より広範な2回目のウェブ検索を実行し、フォーラムやニュースなどグラウンディングフィルターで除外されるページを追加の結果として統合します。再現率が高まる一方、検索あたりのBrave API使用量は約2倍になります。"
+      },
+      "recency": {
+        "label": "更新日フィルター",
+        "description": "指定した期間内の結果のみを返します。",
+        "options": {
+          "none": "フィルターなし",
+          "hour": "過去1時間",
+          "day": "過去24時間",
+          "week": "過去1週間",
+          "month": "過去1か月",
+          "year": "過去1年"
+        }
+      },
+      "domainFilter": {
+        "label": "ドメインフィルター",
+        "description": "カンマ区切りで指定します。除外するには先頭に-を付けます。例:「nature.com, .edu」または「-reddit.com」"
+      }
+    },
+    "voice": {
+      "alert": "音声合成(Text-to-Speech)と音声認識(Speech-to-Text)は<strong>OpenAIのみ対応</strong>です。これらの機能を使用する前に、OpenAI APIの設定が正しく行われていることを確認してください。",
+      "speechToTextModel": {
+        "label": "音声認識モデル",
+        "description": "音声入力をテキストに書き起こします"
+      },
+      "textToSpeechModel": {
+        "label": "音声合成モデル",
+        "description": "テキストの応答から音声を生成します。gpt-4o-mini-ttsはトーン/スタイルの指示に対応しています。"
+      },
+      "textToSpeechVoice": {
+        "label": "音声合成の声",
+        "description": "生成される音声の話者"
+      },
+      "outputFormat": {
+        "label": "出力形式",
+        "description": "生成される音声のフォーマット"
+      },
+      "speed": {
+        "label": "速度",
+        "description": "再生速度(0.25〜4.0、デフォルト1.0)"
+      },
+      "instructions": {
+        "label": "音声の指示",
+        "description": "トーン、感情、スタイルを制御する自然言語の指示(gpt-4o-mini-ttsのみ)",
+        "placeholder": "例:わずかにイギリス訛りのある、温かくフレンドリーなトーンで話す"
+      }
+    },
+    "s3": {
+      "alert": {
+        "encoding": "デフォルトでは、Exodusは添付ファイルをプロンプト内に<strong>base64</strong>としてインライン埋め込みします。大きなファイルや画像を多用するワークフローでは、S3にアップロードしてURLを渡す方が効率的で信頼性が高くなります。",
+        "requirementsHeading": "<strong>設定前に必要な要件:</strong>",
+        "publicReadAccess": "<strong>パブリック読み取りアクセス</strong> — AWSはデフォルトでパブリックアクセスをブロックしています。バケットの「すべてのパブリックアクセスをブロック」を無効にし、AIプロバイダーが認証情報なしでURLを取得できるよう、<2>s3:GetObject</2>を<4>*</4>に付与するバケットポリシーを設定する必要があります。",
+        "cors": "<strong>CORS</strong> — Exodusがデスクトップから直接アップロードできるよう、<5>*</5>(またはアプリのオリジン)からの<2>PUT</2>を許可するCORSルールを追加してください。",
+        "iamCredentials": "<strong>IAM認証情報</strong> — アクセスキーID/シークレットアクセスキーは、設定したバケットに対して少なくとも<2>s3:PutObject</2>と<5>s3:PutObjectAcl</5>の権限を持つIAMユーザーまたはロールに属している必要があります。",
+        "objectAcl": "<strong>オブジェクトACL</strong> — アップロードされた各オブジェクトは<3>public-read</3>に設定されます。バケットのACLは無効化されていない必要があります(つまり、オブジェクト所有者の設定を<6>ACL有効 / バケット所有者を優先</6>にする必要があります)。"
+      },
+      "region": {
+        "label": "リージョン",
+        "description": "S3バケットがホストされているAWSリージョンです。"
+      },
+      "bucket": {
+        "label": "バケット",
+        "description": "ファイルのアップロードに使用するS3バケット名です。",
+        "placeholder": "S3バケット名"
+      },
+      "accessKeyId": {
+        "label": "アクセスキーID",
+        "description": "S3への書き込み権限を持つIAMアクセスキーIDです。"
+      },
+      "secretAccessKey": {
+        "label": "シークレットアクセスキー",
+        "description": "上記のアクセスキーIDと対になるIAMシークレットアクセスキーです。"
+      }
+    }
+  },
+  "dataControls": {
+    "autoBackup": {
+      "label": "自動バックアップ",
+      "description": "毎日午前3:00にデータをバックアップします。バックアップは~/.exodus/backups/にローカル保存されます。"
+    },
+    "lastBackup": {
+      "label": "最終バックアップ",
+      "none": "まだバックアップがありません"
+    },
+    "backupNow": {
+      "button": "今すぐバックアップ",
+      "successToast": "バックアップを作成しました",
+      "errorToast": "バックアップに失敗しました"
+    },
+    "recentBackups": {
+      "label": "最近のバックアップ",
+      "description_other": "{{count}}件のバックアップを保存"
+    },
+    "export": {
+      "label": "データをエクスポート",
+      "description": "会話、設定などのデータをZIPアーカイブとしてダウンロードできる、ポータブルなコピーを作成します。",
+      "button": "エクスポート",
+      "successToast": "データをエクスポートしました",
+      "errorToast": "エクスポートに失敗しました",
+      "errorFallback": "データのエクスポートに失敗しました。"
+    },
+    "import": {
+      "label": "データをインポート",
+      "description": "以前エクスポートしたZIPアーカイブから復元します。既存のすべてのデータが置き換えられます。",
+      "button": "インポート",
+      "dialogDescription": "以前エクスポートしたZIPファイルを選択してください。既存のすべての会話とデータが置き換えられます。インポート前に自動でバックアップが作成されます。",
+      "confirmButton": "置き換えてインポート",
+      "successToast": "データをインポートしました",
+      "errorToast": "インポートに失敗しました",
+      "errorFallback": "データのインポートに失敗しました。"
+    },
+    "delete": {
+      "label": "すべてのデータを削除",
+      "description": "すべての会話、メモリー、リサーチデータを完全に消去します。設定は保持されます。",
+      "dialogDescription": "これにより、すべての会話、メモリー、リサーチデータ、アップロード済みのドキュメントが完全に削除されます。設定とAPIキーは保持されます。削除前にバックアップが作成されます。",
+      "confirmPrompt": "確認のため<strong>DELETE</strong>と入力してください:",
+      "confirmButton": "すべて削除",
+      "successToast": "すべてのデータを削除しました",
+      "errorToast": "削除に失敗しました",
+      "errorFallback": "データの削除に失敗しました。"
+    }
+  },
+  "fullTextSearch": {
+    "alert": "Exodusの組み込み検索は、中国語、日本語、韓国語を含むすべての言語に対応していますが、<strong>「スマート」な結果ではなく、完全一致のテキスト検索</strong>です。関連度によるランキング、タイプミスの許容、語幹処理は行われません(「run」で検索しても「running」はヒットしません)。より良い関連度ランキングと本格的な単語分割を利用するには、以下でセルフホストまたはクラウドのElasticsearchクラスターを設定してください。これは任意の設定です。組み込み検索を使い続ける場合はURLを空欄のままにしてください。Exodusはお使いのクラスターのインデックスに対してドキュメントの読み書きのみを行います — 中国語の(文字単位ではなく)本格的な単語レベルの分割を行うには、Exodusを接続する前にクラスター側で言語対応のアナライザー(例:<4>ik</4>、<6>smartcn</6>、または組み込みの<9>cjk</9>)を設定してください。",
+    "url": {
+      "label": "Elasticsearch URL",
+      "description": "組み込みのPGlite全文検索を使う場合は空欄のままにしてください。"
+    },
+    "username": {
+      "label": "ユーザー名"
+    },
+    "password": {
+      "label": "パスワード"
+    },
+    "optionalSecurityHint": "任意 — クラスターでセキュリティが有効になっている場合のみ必要です。",
+    "indexName": {
+      "label": "インデックス名",
+      "description": "空欄の場合は「exodus-messages」がデフォルトで使用されます。"
+    },
+    "connection": {
+      "label": "接続",
+      "description": "接続を確認するか、既存のすべてのチャット履歴をElasticsearchに再インデックスします。",
+      "testButton": "接続をテスト",
+      "testingLabel": "テスト中...",
+      "reindexButton": "履歴を再インデックス",
+      "reindexingLabel": "再インデックス中..."
+    },
+    "toast": {
+      "connected": "Elasticsearchに接続しました",
+      "connectFailed": "Elasticsearchへの接続に失敗しました",
+      "reindexed_other": "{{count}}件のメッセージを再インデックスしました",
+      "reindexFailed": "メッセージの再インデックスに失敗しました"
+    }
+  },
+  "logger": {
+    "filters": {
+      "allLevels": "すべて",
+      "allScopes": "すべて",
+      "datePlaceholder": "日付",
+      "levelPlaceholder": "レベル",
+      "scopePlaceholder": "スコープ",
+      "keywordPlaceholder": "キーワードを検索...",
+      "traceChip": "トレース {{id}}"
+    },
+    "actions": {
+      "openDirectory": "ディレクトリを開く",
+      "export": "エクスポート",
+      "clearAll": "すべて消去",
+      "clearAllConfirm": "すべてのログファイルを削除してもよろしいですか?"
+    },
+    "toast": {
+      "exported": "ログをエクスポートしました",
+      "exportFailed": "エクスポートに失敗しました",
+      "cleared": "すべてのログを消去しました",
+      "clearFailed": "ログの消去に失敗しました"
+    },
+    "table": {
+      "time": "時刻",
+      "level": "レベル",
+      "scope": "スコープ",
+      "message": "メッセージ",
+      "trace": "トレース",
+      "empty": "ログエントリが見つかりません。"
+    },
+    "pagination": {
+      "total_other": "全{{count}}件",
+      "pageOf": "{{page}} / {{totalPages}}ページ",
+      "prev": "前へ",
+      "next": "次へ"
+    }
+  },
+  "mcpServers": {
+    "serverCard": {
+      "toolCount_other": "{{count}}個のツール",
+      "editAria": "サーバーを編集",
+      "deleteAria": "サーバーを削除",
+      "showTools": "ツールを表示",
+      "hideTools": "ツールを非表示"
+    },
+    "intro": "<2>MCP</2>サーバー(ローカルまたはリモート)を登録し、スイッチを切り替えてチャットでそのツールを有効にします。",
+    "activeSummary": "現在<strong>{{activeCount}}個のサーバー</strong>から<strong>{{totalToolCount}}個のツール</strong>が有効です。",
+    "tabs": {
+      "servers": "サーバー",
+      "json": "JSON"
+    },
+    "empty": "MCPサーバーはまだ設定されていません。",
+    "form": {
+      "transport": {
+        "label": "トランスポート",
+        "description": "MCPサーバーへの接続方法",
+        "options": {
+          "stdio": "Stdio(ローカルコマンド)",
+          "streamableHttp": "Streamable HTTP(リモート)",
+          "sse": "SSE(リモート・レガシー)"
+        }
+      },
+      "name": {
+        "label": "名前",
+        "description": "このサーバーの一意な識別子"
+      },
+      "command": {
+        "label": "コマンド",
+        "description": "MCPサーバーを起動する実行コマンド"
+      },
+      "args": {
+        "label": "引数",
+        "description": "コマンド引数を1行ずつ指定します。順序が重要です。",
+        "addButton": "引数を追加",
+        "removeAria": "引数{{index}}を削除"
+      },
+      "url": {
+        "label": "URL",
+        "description": "リモートサーバーの{{protocol}}エンドポイントURL"
+      },
+      "headers": {
+        "label": "ヘッダー",
+        "description": "任意の認証・カスタムヘッダーをJSON形式で指定します。例:{\"Authorization\":\"Bearer ...\"}"
+      },
+      "description": {
+        "label": "説明",
+        "description": "このサーバーに関する任意のメモ",
+        "placeholder": "任意"
+      },
+      "extraConfig": {
+        "label": "追加設定",
+        "description": "JSONエクスポートにマージされる追加フィールド(OAuth、カスタム認証など)。有効なJSONオブジェクトである必要があります。"
+      },
+      "updateButton": "更新",
+      "registerButton": "登録",
+      "addServerButton": "サーバーを追加"
+    },
+    "json": {
+      "description": "現在の設定の読み取り専用表示です。変更を行うには「サーバー」タブを使用してください。"
+    },
+    "toast": {
+      "invalidHeaders": "ヘッダーのJSONが無効です",
+      "invalidExtraConfig": "追加設定が無効です",
+      "mustBeJsonObject": "JSONオブジェクトである必要があります",
+      "updated": "「{{name}}」を更新しました — 再接続しています…",
+      "registered": "「{{name}}」を登録しました",
+      "disabledByDefault": "デフォルトで無効",
+      "removed": "「{{name}}」を削除しました — 接続を終了しました",
+      "enabled": "「{{name}}」を有効にしました — 再接続しています…",
+      "disabled": "「{{name}}」を無効にしました — 接続を終了しました",
+      "updateFailed": "サーバーの更新に失敗しました",
+      "registerFailed": "登録に失敗しました",
+      "removeFailed": "サーバーの削除に失敗しました",
+      "toggleFailed": "サーバーの切り替えに失敗しました",
+      "operationFailed": "操作に失敗しました"
+    }
+  },
+  "memory": {
+    "sectionGroups": {
+      "profile": "あなた",
+      "topic": "トピック",
+      "person": "人物"
+    },
+    "updatedLabel": "{{date}}に更新",
+    "genericRetryHint": "もう一度お試しください",
+    "restoreLabel": "復元",
+    "disableLabel": "無効化",
+    "row": {
+      "noSummaryYet": "まだ要約がありません"
+    },
+    "detail": {
+      "backButton": "メモリー",
+      "titlePlaceholder": "タイトル",
+      "summaryLabel": "要約",
+      "summaryPlaceholder": "簡潔なフレーズ — このエントリが扱う内容",
+      "detailsLabel": "詳細",
+      "detailsPlaceholder": "1行に1つの事実",
+      "toast": {
+        "notSavedTitle": "保存されませんでした",
+        "deleteFailedTitle": "削除に失敗しました"
+      }
+    },
+    "composer": {
+      "placeholderScoped": "変更または削除したい内容をアシスタントに伝えてください…",
+      "placeholderGeneral": "覚えておいてほしいことをアシスタントに伝えてください…",
+      "submitAria": "メモリーに追加",
+      "toast": {
+        "updatedTitle": "メモリーを更新しました",
+        "updatedDescription_other": "{{count}}件の変更を適用しました",
+        "noChangeTitle": "変更なし",
+        "noChangeDescription": "メモリーの更新が必要な内容ではありませんでした。",
+        "applyFailedTitle": "適用できませんでした"
+      }
+    },
+    "settings": {
+      "autoCapture": {
+        "label": "メモリーを記録",
+        "description": "各会話の後、あなたに関する永続的な事実(興味、環境、人物など)を重複させることなく既存のエントリを更新しながらメモリーに統合します。"
+      },
+      "useInChat": {
+        "label": "チャットでメモリーを使用",
+        "description": "メッセージに関連するメモリーのエントリを、応答の開始時にアシスタントのコンテキストに反映します。"
+      },
+      "lcmEnabled": {
+        "label": "ロスレスなコンテキスト管理",
+        "description": "長い会話を階層的な要約DAGに自動圧縮し、チャットがコンテキストウィンドウを超えても情報が失われないようにします。"
+      },
+      "contextWindowPercent": {
+        "label": "圧縮のしきい値",
+        "description": "会話がモデルのコンテキストウィンドウのこの割合(50〜95%)に達すると、コンテキストの圧縮を実行します。デフォルト: 75%。"
+      },
+      "freshTailSize": {
+        "label": "直近メッセージの保護数",
+        "description": "圧縮から保護される直近のメッセージ数(8〜64)。これらは常にそのままモデルに送信されます。デフォルト: 16。"
+      },
+      "newMemoryDefaultKey": "新しいメモリー",
+      "storedMemoriesHeading": "保存されたメモリー",
+      "newButton": "新規",
+      "emptyState": "メモリーはまだありません — 会話の後に自動的に追加されるか、下の欄でアシスタントに覚えてほしいことを伝えてください。",
+      "disabledHeading": "無効 · {{count}}",
+      "toast": {
+        "loadFailedTitle": "メモリーの読み込みに失敗しました",
+        "createFailedTitle": "作成に失敗しました"
+      }
+    }
+  },
+  "skillsMarket": {
+    "sourceNotice": "スキルデータは<2>clawhub.ai</2>から提供されています。悪意のあるプログラムを避けるため、インストール前にスキルの内容を必ずご確認ください。",
+    "searchPlaceholder": "スキルを検索…",
+    "installLocal": "ローカルからインストール",
+    "tabs": {
+      "browse": "閲覧",
+      "installed": "インストール済み"
+    },
+    "browse": {
+      "noResults": "結果が見つかりません",
+      "noResultsHint": "別のキーワードでお試しください",
+      "loadFailed": "スキルの読み込みに失敗しました",
+      "loadFailedHint": "インターネット接続を確認してもう一度お試しください",
+      "empty": "利用可能なスキルがありません",
+      "previous": "前へ",
+      "next": "次へ"
+    },
+    "installedTab": {
+      "empty": "インストールされているスキルはありません",
+      "emptyHint": "マーケットプレイスでスキルを探してみましょう",
+      "installedAt": "{{date}}にインストール"
+    },
+    "card": {
+      "installed": "インストール済み",
+      "install": "インストール",
+      "installsCount_other": "{{formatted}}件のインストール"
+    },
+    "toast": {
+      "installedTitle": "「{{name}}」をインストールしました",
+      "installFailed": "インストールに失敗しました",
+      "uninstalledTitle": "スキルをアンインストールしました",
+      "uninstallFailed": "アンインストールに失敗しました",
+      "updateFailed": "スキルの更新に失敗しました"
+    }
+  },
+  "toast": {
+    "saveFailed": "設定の保存に失敗しました",
+    "autoSaved": "自動保存しました",
+    "notSaved": "保存されていません"
+  }
+}

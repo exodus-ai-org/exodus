@@ -1,6 +1,6 @@
-import type { Attachment } from '@shared/types/chat'
-import type { PlanDto } from '@shared/types/philharmonic'
-import { fetcher } from '@shared/utils/http'
+import type { Attachment } from '@exodus/shared/types/chat'
+import type { PlanDto } from '@exodus/shared/types/philharmonic'
+import { fetcher } from '@exodus/shared/utils/http'
 
 import type {
   ConversationData,
@@ -25,10 +25,7 @@ export const updateConversation = (
     body: data as never
   })
 export const deleteConversation = (id: string) =>
-  fetcher<void>(`${BASE}/conversations/${id}`, {
-    method: 'DELETE',
-    responseType: 'text'
-  })
+  fetcher<void>(`${BASE}/conversations/${id}`, { method: 'DELETE' })
 export const getConversationMessages = (id: string) =>
   fetcher<ConversationMessageData[]>(`${BASE}/conversations/${id}/messages`)
 export const sendConversationMessage = (

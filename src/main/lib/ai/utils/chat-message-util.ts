@@ -1,6 +1,6 @@
+import type { ChatMessage } from '@exodus/shared/types/chat'
 import type { Model, TextContent } from '@mariozechner/pi-ai'
 import { completeSimple } from '@mariozechner/pi-ai'
-import type { ChatMessage } from '@shared/types/chat'
 
 import { titleGenerationPrompt } from '../prompts'
 

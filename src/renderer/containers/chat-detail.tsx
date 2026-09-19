@@ -1,4 +1,3 @@
-import type { Chat as ChatRecord, Message as DBMessage } from '@shared/types/db'
 import { useSetAtom } from 'jotai'
 import { useEffect, useMemo } from 'react'
 import { useParams } from 'react-router'
@@ -7,6 +6,7 @@ import useSWR from 'swr'
 import { Chat } from '@/components/chat'
 import { convertToUIMessages } from '@/lib/utils'
 import { openTabsAtom } from '@/stores/chat'
+import type { Chat as ChatRecord, Message as DBMessage } from '@/types/db'
 
 export function ChatDetail() {
   const { id } = useParams()

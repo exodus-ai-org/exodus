@@ -1,7 +1,8 @@
-import type { ChatToolResultMessage } from '@shared/types/chat'
+import type { ChatToolResultMessage } from '@exodus/shared/types/chat'
 import { capitalCase } from 'change-case'
 import { AlertCircleIcon } from 'lucide-react'
 import { memo, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import { ArtifactCard } from './calling-tools/artifact/artifact-card'
@@ -46,13 +47,16 @@ function CallingTools({
   chatId: string
   toolResult: ChatToolResultMessage
 }) {
+  const { t } = useTranslation('chat')
   const toolName = toolResult.toolName ?? ''
   // toolName stays canonical (used for dispatch below); toolLabel is the
   // user-facing form ('webSearch' → 'Web Search') and only flows into the
   // toast title and the fallback error string. Older persisted tool results
   // may be missing toolName entirely — capitalCase('') is safe, so guard once
   // up front rather than scatter ?. throughout.
-  const toolLabel = toolName ? capitalCase(toolName) : 'Tool'
+  const toolLabel = toolName
+    ? capitalCase(toolName)
+    : t('genericToolCard.fallbackLabel')
 
   // Extract error message from content when isError is true.
   // Computed unconditionally (before any early returns) so the useEffect
@@ -62,7 +66,9 @@ function CallingTools({
         const textBlock = toolResult.content.find((c) => c.type === 'text')
         const text =
           textBlock && textBlock.type === 'text' ? textBlock.text : ''
-        return text && text !== '{}' ? text : `${toolLabel} failed`
+        return text && text !== '{}'
+          ? text
+          : t('toolPreview.toolFailed', { tool: toolLabel })
       })()
     : null
 
@@ -72,7 +78,7 @@ function CallingTools({
   useEffect(() => {
     if (errorMessage) {
       sileo.error({
-        title: `Tool failed: ${toolLabel}`,
+        title: t('toolFailedToast.title', { tool: toolLabel }),
         description: errorMessage
       })
     }

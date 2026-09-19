@@ -1,5 +1,5 @@
 // src/renderer/components/philharmonic/chat/conversation-list.tsx
-import { TEST_IDS } from '@shared/constants/test-ids'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import {
   differenceInCalendarDays,
   format,
@@ -14,6 +14,7 @@ import {
   UsersIcon
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { Trans, useTranslation } from 'react-i18next'
 
 import { PhilharmonicEmptyState } from '@/components/philharmonic/empty-state'
 import {
@@ -48,6 +49,7 @@ import {
 } from '@/components/ui/sidebar'
 import { WorkspaceSwitcher } from '@/components/workspace-switcher'
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
+import { i18n } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { AgentData, ConversationData } from '@/stores/philharmonic'
 
@@ -55,21 +57,27 @@ import { hueStyle, pickHue } from '../lib/hue'
 
 export type ConfigPage = 'workforce' | 'dashboard'
 
-const CONFIG_NAV: Array<{
-  page: ConfigPage
-  label: string
-  icon: React.ComponentType<{ className?: string }>
-}> = [
-  { page: 'workforce', label: 'Workforce', icon: UsersIcon },
-  { page: 'dashboard', label: 'Dashboard', icon: LayoutDashboardIcon }
-]
+export function DeleteGroupDescription({ title }: { title: string }) {
+  return (
+    <Trans
+      ns="philharmonic"
+      i18nKey="chat.conversationList.deleteDialog.description"
+      values={{ title }}
+    >
+      <span className="bg-muted rounded-sm px-1.5 py-0.5 font-mono text-xs">
+        {title}
+      </span>{' '}
+      and all its messages, tasks, and executions will be permanently removed.
+    </Trans>
+  )
+}
 
 /** Smart timestamp: HH:mm today, 'Yesterday', day name within the week, otherwise MM/dd. */
 function smartTime(iso: string): string {
   try {
     const d = new Date(iso)
     if (isToday(d)) return format(d, 'HH:mm')
-    if (isYesterday(d)) return 'Yesterday'
+    if (isYesterday(d)) return i18n.t('philharmonic:chat.dateLabels.yesterday')
     const diff = differenceInCalendarDays(new Date(), d)
     if (diff < 7) return format(d, 'EEE')
     return format(d, 'MM/dd')
@@ -87,12 +95,13 @@ function previewLine(
   if (latest.role === 'system') return text
   const senderLabel =
     latest.role === 'user'
-      ? 'You'
+      ? i18n.t('common:state.you')
       : latest.role === 'pm'
-        ? 'PM'
+        ? i18n.t('philharmonic:chat.roles.pm')
         : latest.agentId
-          ? (agentsById[latest.agentId]?.name ?? 'Employee')
-          : 'Employee'
+          ? (agentsById[latest.agentId]?.name ??
+            i18n.t('philharmonic:chat.roles.employeeFallback'))
+          : i18n.t('philharmonic:chat.roles.employeeFallback')
   return `${senderLabel}: ${text}`
 }
 
@@ -115,6 +124,22 @@ export function ConversationList({
   onDelete: (id: string) => void | Promise<void>
   onNavigateConfig: (page: ConfigPage) => void
 }) {
+  const { t } = useTranslation(['common', 'philharmonic'])
+  const configNav = useMemo(
+    () => [
+      {
+        page: 'workforce' as const,
+        label: t('philharmonic:chat.conversationList.configNav.workforce'),
+        icon: UsersIcon
+      },
+      {
+        page: 'dashboard' as const,
+        label: t('philharmonic:chat.conversationList.configNav.dashboard'),
+        icon: LayoutDashboardIcon
+      }
+    ],
+    [t]
+  )
   const [confirming, setConfirming] = useState<ConversationData | null>(null)
   const [query, setQuery] = useState('')
   const isFullscreen = useIsFullscreen()
@@ -139,7 +164,7 @@ export function ConversationList({
       )}
     >
       <SidebarHeader
-        className={cn('draggable gap-1 pt-11 transition-all', {
+        className={cn('draggable gap-1 pt-11 transition-[padding]', {
           ['pt-2']: isFullscreen
         })}
       >
@@ -152,7 +177,9 @@ export function ConversationList({
             <InputGroupInput
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search groups"
+              placeholder={t(
+                'philharmonic:chat.conversationList.searchPlaceholder'
+              )}
             />
             <InputGroupAddon align="inline-start">
               <SearchIcon />
@@ -167,7 +194,7 @@ export function ConversationList({
             data-testid={TEST_IDS.philharmonic.newGroup}
           >
             <SquarePenIcon size={16} />
-            New group
+            {t('philharmonic:chat.conversationList.newGroupMenuItem')}
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
@@ -176,13 +203,22 @@ export function ConversationList({
         {conversations.length === 0 ? (
           <PhilharmonicEmptyState
             avatars={[{ hue: 'lilac' }, { hue: 'mint' }, { hue: 'peach' }]}
-            title="No groups yet"
-            description="Create one to message your virtual team."
-            action={{ label: '+ New group', onClick: onCreate }}
+            title={t('philharmonic:chat.conversationList.emptyState.title')}
+            description={t(
+              'philharmonic:chat.conversationList.emptyState.description'
+            )}
+            action={{
+              label: t(
+                'philharmonic:chat.conversationList.emptyState.createButton'
+              ),
+              onClick: onCreate
+            }}
           />
         ) : filtered.length === 0 ? (
           <div className="text-muted-foreground flex h-full items-center justify-center px-4 text-center text-xs">
-            No groups match &ldquo;{query}&rdquo;
+            {t('philharmonic:chat.conversationList.searchNoMatch', {
+              query
+            })}
           </div>
         ) : (
           <SidebarMenu className="gap-0.5">
@@ -219,7 +255,10 @@ export function ConversationList({
                             </span>
                           </span>
                           <span className="text-muted-foreground truncate text-xs">
-                            {preview || 'New group · no messages yet'}
+                            {preview ||
+                              t(
+                                'philharmonic:chat.conversationList.noMessagesYetPreview'
+                              )}
                           </span>
                         </span>
                       </button>
@@ -230,7 +269,7 @@ export function ConversationList({
                         onClick={() => setConfirming(c)}
                       >
                         <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-                        Delete
+                        {t('action.delete')}
                       </ContextMenuItem>
                     </ContextMenuContent>
                   </ContextMenu>
@@ -243,7 +282,7 @@ export function ConversationList({
 
       <SidebarFooter>
         <SidebarMenu className="gap-0.5">
-          {CONFIG_NAV.map((item) => {
+          {configNav.map((item) => {
             const Icon = item.icon
             return (
               <SidebarMenuItem key={item.page}>
@@ -266,23 +305,19 @@ export function ConversationList({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this group?</AlertDialogTitle>
+            <AlertDialogTitle>
+              {t('philharmonic:chat.conversationList.deleteDialog.title')}
+            </AlertDialogTitle>
             <AlertDialogDescription>
               {confirming ? (
-                <>
-                  <span className="bg-muted rounded-sm px-1.5 py-0.5 font-mono text-xs">
-                    {confirming.title}
-                  </span>{' '}
-                  and all its messages, tasks, and executions will be
-                  permanently removed.
-                </>
+                <DeleteGroupDescription title={confirming.title} />
               ) : (
                 ''
               )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t('action.cancel')}</AlertDialogCancel>
             <AlertDialogAction
               variant="destructive"
               onClick={async () => {
@@ -292,7 +327,7 @@ export function ConversationList({
                 await onDelete(id)
               }}
             >
-              Delete
+              {t('action.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -66,5 +66,5 @@ export function listArtifacts(chatId: string): ArtifactMeta[] {
   return readdirSync(dir)
     .filter((f) => f.endsWith('.json'))
     .map((f) => JSON.parse(readFileSync(join(dir, f), 'utf-8')) as ArtifactMeta)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .toSorted((a, b) => b.createdAt.localeCompare(a.createdAt))
 }

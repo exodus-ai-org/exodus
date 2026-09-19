@@ -1,7 +1,8 @@
-import { TEST_IDS } from '@shared/constants/test-ids'
-import type { LockNotification, LockStatus } from '@shared/types/lock'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
+import type { LockNotification, LockStatus } from '@exodus/shared/types/lock'
 import { FingerprintIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -22,6 +23,7 @@ export function LockScreen({
   status: LockStatus
   onUnlocked: () => void
 }) {
+  const { t } = useTranslation('lock')
   const [pin, setPin] = useState('')
   const [shake, setShake] = useState(false)
   const [error, setError] = useState('')
@@ -53,8 +55,10 @@ export function LockScreen({
         setShake(true)
         setError(
           res.reason === 'locked-out'
-            ? `Too many attempts. Try again in ${Math.ceil(res.retryAfterMs / 1000)}s.`
-            : 'Incorrect PIN'
+            ? t('screen.tooManyAttempts', {
+                seconds: Math.ceil(res.retryAfterMs / 1000)
+              })
+            : t('incorrectPin')
         )
         setPin('')
         setTimeout(() => setShake(false), 450)
@@ -63,7 +67,7 @@ export function LockScreen({
     return () => {
       cancelled = true
     }
-  }, [pin, onUnlocked])
+  }, [pin, onUnlocked, t])
 
   const tryTouchId = async () => {
     const res = await unlockWithTouchId()
@@ -104,7 +108,7 @@ export function LockScreen({
           onClick={tryTouchId}
           className="text-muted-foreground"
         >
-          <FingerprintIcon size={18} /> Unlock with Touch ID
+          <FingerprintIcon size={18} /> {t('screen.unlockWithTouchId')}
         </Button>
       )}
 

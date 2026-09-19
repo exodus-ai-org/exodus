@@ -42,7 +42,8 @@ export const editFile: AgentTool<typeof editFileSchema> = {
       fileContent = await readFile(path, { encoding: 'utf-8', signal })
     } catch (e) {
       throw new Error(
-        `Failed to read file: ${e instanceof Error ? e.message : String(e)}`
+        `Failed to read file: ${e instanceof Error ? e.message : String(e)}`,
+        { cause: e }
       )
     }
 
@@ -67,7 +68,8 @@ export const editFile: AgentTool<typeof editFileSchema> = {
       await writeFile(path, newContent, { encoding: 'utf-8', signal })
     } catch (e) {
       throw new Error(
-        `Failed to write file: ${e instanceof Error ? e.message : String(e)}`
+        `Failed to write file: ${e instanceof Error ? e.message : String(e)}`,
+        { cause: e }
       )
     }
 

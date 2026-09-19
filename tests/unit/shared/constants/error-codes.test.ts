@@ -2,7 +2,7 @@ import {
   ErrorCode,
   ErrorCodeToStatus,
   ErrorMessages
-} from '@shared/constants/error-codes'
+} from '@exodus/shared/constants/error-codes'
 import { describe, expect, it } from 'vitest'
 
 describe('ErrorCode enum', () => {
@@ -14,6 +14,13 @@ describe('ErrorCode enum', () => {
   it('contains expected not-found error codes', () => {
     expect(ErrorCode.CHAT_NOT_FOUND).toBe('CHAT_NOT_FOUND')
     expect(ErrorCode.SETTING_NOT_FOUND).toBe('SETTING_NOT_FOUND')
+  })
+
+  it('contains the new S3-bucket and app-locked codes', () => {
+    expect(ErrorCode.CONFIG_MISSING_S3_BUCKET).toBe('CONFIG_MISSING_S3_BUCKET')
+    expect(ErrorCode.APP_LOCKED).toBe('APP_LOCKED')
+    expect(ErrorCodeToStatus[ErrorCode.CONFIG_MISSING_S3_BUCKET]).toBe(400)
+    expect(ErrorCodeToStatus[ErrorCode.APP_LOCKED]).toBe(423)
   })
 })
 
@@ -39,7 +46,7 @@ describe('ErrorCodeToStatus', () => {
   })
 
   it('maps all status codes to valid HTTP codes', () => {
-    const validCodes = [400, 404, 429, 500, 503]
+    const validCodes = [400, 404, 423, 429, 500, 503]
     for (const code of Object.values(ErrorCode)) {
       expect(validCodes).toContain(ErrorCodeToStatus[code])
     }

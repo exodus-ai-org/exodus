@@ -1,9 +1,9 @@
-import { ErrorCode } from '@shared/constants/error-codes'
-import { NotFoundError, ValidationError } from '@shared/errors/app-error'
-import { Variables } from '@shared/types/server'
+import { ErrorCode } from '@exodus/shared/constants/error-codes'
+import { NotFoundError, ValidationError } from '@exodus/shared/errors/app-error'
 import { Hono } from 'hono'
 
-import { LOCAL_USER_ID } from '../../ai/memory/manager'
+import { LOCAL_USER_ID, runMemoryInstruction } from '../../ai/memory/manager'
+import { getModelFromProvider } from '../../ai/utils/model-util'
 import {
   createMemory,
   getAllMemories,
@@ -14,6 +14,7 @@ import {
   type MemorySection,
   type MemorySource
 } from '../../db/memory-queries'
+import { Variables } from '../types'
 import {
   deletionSuccessResponse,
   getRequiredParam,
@@ -43,12 +44,36 @@ memoryRouter.get('/:id', async (c) => {
     'Failed to load memory'
   )
   if (!row) {
-    throw new NotFoundError(
-      ErrorCode.MEMORY_NOT_FOUND,
-      `Memory ${id} not found`
-    )
+    throw new NotFoundError(ErrorCode.MEMORY_NOT_FOUND, undefined, { id })
   }
   return successResponse(c, row)
+})
+
+// POST /api/memory/instruct — apply a free-text instruction via the LLM
+memoryRouter.post('/instruct', async (c) => {
+  const body = await c.req.json<{
+    instruction?: string
+    scopeMemoryId?: string
+  }>()
+  if (!body.instruction?.trim()) {
+    throw new ValidationError(
+      ErrorCode.VALIDATION_FAILED,
+      'instruction is required'
+    )
+  }
+
+  const { model, apiKey } = getModelFromProvider(c.get('settings'))
+  const result = await handleDatabaseOperation(
+    () =>
+      runMemoryInstruction(
+        body.instruction!,
+        body.scopeMemoryId ?? null,
+        model,
+        apiKey
+      ),
+    'Failed to apply the instruction'
+  )
+  return successResponse(c, result)
 })
 
 // POST /api/memory — create
@@ -62,10 +87,10 @@ memoryRouter.post('/', async (c) => {
     source?: MemorySource
   }>()
 
-  if (!body.section || !body.key || !body.summary) {
+  if (!body.section || !body.key) {
     throw new ValidationError(
       ErrorCode.VALIDATION_FAILED,
-      'section, key, and summary are required'
+      'section and key are required'
     )
   }
 
@@ -75,7 +100,7 @@ memoryRouter.post('/', async (c) => {
         userId: LOCAL_USER_ID,
         section: body.section,
         key: body.key,
-        summary: body.summary,
+        summary: body.summary ?? '',
         details: body.details,
         confidence: body.confidence,
         source: body.source ?? 'system'
@@ -103,10 +128,7 @@ memoryRouter.patch('/:id', async (c) => {
     'Failed to update memory'
   )
   if (!updated) {
-    throw new NotFoundError(
-      ErrorCode.MEMORY_NOT_FOUND,
-      `Memory ${id} not found`
-    )
+    throw new NotFoundError(ErrorCode.MEMORY_NOT_FOUND, undefined, { id })
   }
   return updateSuccessResponse(c, 'memory', id)
 })

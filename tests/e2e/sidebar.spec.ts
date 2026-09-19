@@ -1,7 +1,7 @@
 /**
  * E2E: Sidebar navigation and interaction.
  */
-import { TEST_IDS } from '../../src/shared/constants/test-ids'
+import { TEST_IDS } from '../../packages/shared/src/constants/test-ids'
 import { electronTest as test, expect } from '../fixtures/electron'
 
 test.describe('Sidebar', () => {
@@ -66,6 +66,38 @@ test.describe('Sidebar', () => {
     await expect(mainWindow.getByPlaceholder('Search Chat...')).toBeVisible({
       timeout: 5_000
     })
+  })
+
+  test('new chat button returns to a fresh chat', async ({ mainWindow }) => {
+    const newChat = mainWindow.getByTestId(TEST_IDS.chatLayout.newChat)
+    await newChat.waitFor({ state: 'visible', timeout: 10_000 })
+    await newChat.click()
+
+    await expect
+      .poll(() => mainWindow.evaluate(() => window.location.hash), {
+        timeout: 10_000
+      })
+      .not.toContain('/chat/')
+  })
+
+  test('account row opens settings', async ({ mainWindow }) => {
+    // The account row opens a dropdown menu (profile info + actions);
+    // Settings is one of its items, not a direct navigate-on-click target.
+    const account = mainWindow.getByTestId(TEST_IDS.chatLayout.account)
+    await account.waitFor({ state: 'visible', timeout: 10_000 })
+    await account.click()
+
+    const settingsItem = mainWindow.getByTestId(
+      TEST_IDS.chatLayout.accountSettings
+    )
+    await settingsItem.waitFor({ state: 'visible', timeout: 10_000 })
+    await settingsItem.click()
+
+    await expect
+      .poll(() => mainWindow.evaluate(() => window.location.hash), {
+        timeout: 10_000
+      })
+      .toContain('settings')
   })
 
   test('workspace switcher navigates to Philharmonic', async ({

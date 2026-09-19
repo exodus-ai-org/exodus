@@ -1,3 +1,4 @@
+import type { ChatMessage } from '@exodus/shared/types/chat'
 import type {
   Api,
   AssistantMessage,
@@ -6,10 +7,10 @@ import type {
   ToolResultMessage,
   UserMessage
 } from '@mariozechner/pi-ai'
-import type { ChatMessage } from '@shared/types/chat'
-import type { Message as DBMessage } from '@shared/types/db'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+
+import type { Message as DBMessage } from '@/types/db'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))

@@ -1,6 +1,6 @@
+import { ELEVEN_PERLIN_NOISE_TEXTURE } from '@exodus/shared/constants/external-urls'
 import { useTexture } from '@react-three/drei'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { ELEVEN_PERLIN_NOISE_TEXTURE } from '@shared/constants/external-urls'
 import { useEffect, useMemo, useRef } from 'react'
 import * as THREE from 'three'
 

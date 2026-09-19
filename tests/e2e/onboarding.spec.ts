@@ -2,23 +2,13 @@
  * E2E: First-time onboarding — configure API keys in settings.
  */
 import { electronTest as test, expect } from '../fixtures/electron'
+import { openSettings } from '../helpers/open-settings'
 
 test.describe('Onboarding — Settings Configuration', () => {
   test('navigate to settings and configure OpenAI API key', async ({
     mainWindow
   }) => {
-    // Click the settings navigation item in sidebar
-    // The sidebar should have a settings link/button
-    const settingsLink = mainWindow.locator(
-      '[data-testid="nav-settings"], a[href*="settings"], button:has-text("Settings")'
-    )
-    await settingsLink.first().click()
-    await mainWindow.waitForURL(/settings/, { timeout: 5_000 }).catch(() => {
-      // Hash-based routing may not change URL path
-    })
-
-    // Wait for settings page to render
-    await mainWindow.waitForTimeout(1_000)
+    await openSettings(mainWindow, 'AI Providers')
 
     // Look for OpenAI API key input field
     const apiKeyInput = mainWindow.locator(

@@ -1,4 +1,4 @@
-import { BASE_URL } from '@shared/constants/systems'
+import { BASE_URL } from '@exodus/shared/constants/systems'
 import { useEffect, useState } from 'react'
 
 type CompletePayload = {

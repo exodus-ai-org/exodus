@@ -1,0 +1,266 @@
+{
+  "imageGeneration": {
+    "status": {
+      "queued": "Wartet auf Generierung",
+      "generating": "Bild wird generiert",
+      "refining": "Details werden verfeinert",
+      "complete": "Bild fertig",
+      "error": "Generierung fehlgeschlagen"
+    },
+    "retry": "Erneut versuchen",
+    "generatedImageAlt": "Generiertes Bild"
+  },
+  "composer": {
+    "placeholder": "Fragen Sie mich etwas",
+    "pleaseWaitTitle": "Bitte warten",
+    "pleaseWaitDescription": "Das Modell generiert noch eine Antwort.",
+    "stop": "Stopp",
+    "send": "Senden"
+  },
+  "composerTools": {
+    "attachFiles": "Dateien anhängen",
+    "mcpTools": "MCP-Tools",
+    "mcpDialog": {
+      "title": "Verfügbare MCP-Tools",
+      "description": "Tools, die von aktiven MCP-Servern bereitgestellt werden. Verwalten Sie Server unter <strong>Einstellungen > MCP-Server</strong>.",
+      "noDescription": "Keine Beschreibung für {{name}}."
+    }
+  },
+  "advancedTools": {
+    "deepResearch": "Deep Research"
+  },
+  "messageList": {
+    "greetingTitle": "Hallo!",
+    "greetingSubtitle": "Wie kann ich Ihnen heute helfen?",
+    "attachmentAlt": "Anhang",
+    "scrollToBottom": "Nach unten scrollen"
+  },
+  "toolPreview": {
+    "mapItineraryDayCount_one": "{{count}} Tag",
+    "mapItineraryDayCount_other": "{{count}} Tage",
+    "mapItineraryStopCount_one": "{{count}} Stopp",
+    "mapItineraryStopCount_other": "{{count}} Stopps",
+    "mapItinerarySummary": "{{days}}, {{stops}}",
+    "toolFailed": "{{tool}} fehlgeschlagen",
+    "webSearchResultCount_one": "{{count}} Ergebnis",
+    "webSearchResultCount_other": "{{count}} Ergebnisse"
+  },
+  "toolFailedToast": {
+    "title": "Tool fehlgeschlagen: {{tool}}"
+  },
+  "messageAction": {
+    "copy": "Kopieren",
+    "regenerate": "Neu generieren",
+    "sources": "Quellen"
+  },
+  "thinkingTimeline": {
+    "thinking": "Denkt nach…",
+    "working": "Arbeitet…",
+    "thought": "Nachgedacht",
+    "worked": "Gearbeitet",
+    "done": "Fertig",
+    "thoughtFor": "{{verb}} für {{duration}}",
+    "durationSeconds_one": "{{count}} Sekunde",
+    "durationSeconds_other": "{{count}} Sekunden",
+    "durationMinutes": "{{minutes}} Min.",
+    "durationMinutesSeconds": "{{minutes}} Min. {{seconds}} Sek.",
+    "searchResultCount_one": "{{count}} Suchergebnis",
+    "searchResultCount_other": "{{count}} Suchergebnisse"
+  },
+  "toc": {
+    "fallbackLabel": "Nachricht"
+  },
+  "toast": {
+    "chatUpdated": "Chat aktualisiert",
+    "chatDeleted": "Chat gelöscht",
+    "sendFailedTitle": "Es ist ein Fehler aufgetreten",
+    "sendFailedDescription": "Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut!",
+    "responseReadyTitle": "Antwort bereit",
+    "chatFallbackTitle": "Chat",
+    "viewButton": "Anzeigen",
+    "chatFailedTitle": "Chat fehlgeschlagen",
+    "genericErrorFallback": "Ein Fehler ist aufgetreten",
+    "headsUpTitle": "Hinweis"
+  },
+  "lcm": {
+    "compacting": "Unterhaltungsverlauf wird komprimiert…",
+    "compactedSummary_one": "{{count}} Nachricht komprimiert · ~{{tokens}} Tokens gespart",
+    "compactedSummary_other": "{{count}} Nachrichten komprimiert · ~{{tokens}} Tokens gespart",
+    "compactionFailed": "Komprimierung fehlgeschlagen (wird beim nächsten Zug erneut versucht)"
+  },
+  "upload": {
+    "failedTitle": "Upload fehlgeschlagen",
+    "failedDescription": "Dateien konnten nicht hochgeladen werden."
+  },
+  "artifactCard": {
+    "cannotOpenTitle": "Artefaktdatei kann nicht geöffnet werden",
+    "missingFileDescription": "Die gespeicherte .tsx-Datei fehlt — sie wurde möglicherweise verschoben oder gelöscht.",
+    "resolveFailedDescription": "Der Artefaktpfad konnte nicht aufgelöst werden.",
+    "revealAriaLabel": "{{title}} im Dateimanager anzeigen",
+    "revealTitle": "Im Dateimanager anzeigen",
+    "exitFullscreen": "Vollbild beenden",
+    "enterFullscreen": "Vollbild",
+    "exitFullscreenEsc": "Vollbild beenden (Esc)",
+    "fullscreen": "Vollbild"
+  },
+  "computerUseCard": {
+    "title": "Computer Use",
+    "stopFailedTitle": "Sitzung konnte nicht gestoppt werden",
+    "stopFailedDescription": "Die Stopp-Anfrage ist fehlgeschlagen — versuchen Sie es erneut.",
+    "answerFailedTitle": "Ihre Antwort konnte nicht gesendet werden",
+    "answerFailedDescription": "Die Anfrage ist fehlgeschlagen — versuchen Sie es erneut.",
+    "error": "Fehler",
+    "running": "läuft…",
+    "outcome": {
+      "success": "erfolgreich",
+      "failed": "fehlgeschlagen",
+      "aborted": "abgebrochen",
+      "abandoned": "aufgegeben",
+      "stuck": "blockiert"
+    },
+    "stepBadge": "Schritt {{step}}",
+    "stepWithAction": "Schritt {{step}}: {{action}}",
+    "stepNoAction": "Schritt {{step}}: …",
+    "targetWindowAlt": "Zielfenster bei Schritt {{step}}",
+    "replyPlaceholder": "Antwort eingeben oder leer lassen, wenn fertig",
+    "doneContinue": "Fertig — weiter",
+    "waitingForReply": "Warten darauf, dass die Sitzung eine Antwort akzeptiert…",
+    "stop": "Stopp",
+    "session": "Sitzung: {{sessionId}}"
+  },
+  "deepResearchCard": {
+    "researching": "Deep Research läuft...",
+    "completedSummary_one": "Recherche in {{minutes}} Min. abgeschlossen · {{count}} Quelle",
+    "completedSummary_other": "Recherche in {{minutes}} Min. abgeschlossen · {{count}} Quellen",
+    "exportAriaLabel": "Als PDF exportieren",
+    "downloadPdfTooltip": "PDF herunterladen",
+    "exportFailedTitle": "Export fehlgeschlagen",
+    "exportFailedDescription": "Der PDF-Bericht konnte nicht erstellt werden.",
+    "unknownSource": "[{{rank}}] Unbekannte Quelle",
+    "referencesHeading": "Referenzen"
+  },
+  "drawioCard": {
+    "noSource": "Das draw.io-Tool hat keine Diagrammquelle zurückgegeben.",
+    "iframeTitle": "draw.io-Diagramm",
+    "openInDrawio": "In draw.io öffnen",
+    "loadFailed": "Der draw.io-Editor konnte nicht geladen werden"
+  },
+  "genericToolCard": {
+    "fallbackLabel": "Tool",
+    "badge": "Tool"
+  },
+  "mapItineraryCard": {
+    "missingApiKey": "Fügen Sie unter Einstellungen → Google Cloud einen Google-API-Schlüssel hinzu, um die Reisekarte anzuzeigen.",
+    "tabsAriaLabel": "Reisetage",
+    "openRouteTitle": "Route in Google Maps öffnen",
+    "copyMarkdownTitle": "Tag als Markdown kopieren"
+  },
+  "placeDetail": {
+    "goToPhotoAriaLabel": "Zu Foto {{index}} wechseln",
+    "closeAriaLabel": "Detailbereich schließen",
+    "open": "Geöffnet",
+    "closed": "Geschlossen",
+    "tabsAriaLabel": "Ortsbereiche",
+    "tabOverview": "Übersicht",
+    "tabReviews": "Bewertungen",
+    "tabHours": "Öffnungszeiten",
+    "notes": "Notizen",
+    "anonymousReviewer": "Anonym",
+    "previousAriaLabel": "Vorheriger Ort",
+    "nextAriaLabel": "Nächster Ort",
+    "pagination": "{{index}} von {{total}}"
+  },
+  "terminalCard": {
+    "exitCode": "Exit {{code}}",
+    "noOutput": "Keine Ausgabe"
+  },
+  "weatherCard": {
+    "today": "Heute",
+    "tomorrow": "Morgen",
+    "feels": "Gefühlt {{temp}}° · {{observedAt}}",
+    "humidity": "Luftfeuchtigkeit",
+    "precip": "Niederschlag",
+    "visibility": "Sichtweite",
+    "uvIndex": "UV-Index"
+  },
+  "weatherForecast": {
+    "temperatureRange": "🌡️ Temperaturbereich",
+    "cold": "❄️ Kalt",
+    "hot": "🔥 Heiß",
+    "sunrise": "Sonnenaufgang",
+    "sunset": "Sonnenuntergang"
+  },
+  "sourcesPanel": {
+    "title_one": "{{count}} Quelle",
+    "title_other": "{{count}} Quellen",
+    "citations": "Zitate ({{count}})",
+    "more": "Mehr"
+  },
+  "sidebar": {
+    "newChat": "Neuer Chat",
+    "searchChats": "Chats durchsuchen",
+    "history": {
+      "empty": "Ihre Unterhaltungen werden hier angezeigt, sobald Sie zu chatten beginnen!",
+      "favoriteAction": "Favorisieren",
+      "unfavorite": "Favorit entfernen",
+      "favoritesGroup": "Favoriten",
+      "chats": "Chats",
+      "more": "Mehr",
+      "rename": "Umbenennen"
+    },
+    "projects": {
+      "title": "Projekte",
+      "newProject": "Neues Projekt",
+      "editProject": "Projekt bearbeiten",
+      "createTitle": "Projekt erstellen",
+      "namePlaceholder": "Projektname",
+      "deleteTitle": "Projekt löschen?",
+      "deleteDescription": "Dadurch werden „{{name}}“ und alle zugehörigen Chats dauerhaft gelöscht. Diese Aktion kann nicht rückgängig gemacht werden."
+    },
+    "renameDialog": {
+      "title": "Chat umbenennen",
+      "submit": "Speichern"
+    },
+    "deleteDialog": {
+      "title": "Chat löschen?",
+      "description": "Dadurch wird <strong>{{title}}</strong> gelöscht."
+    },
+    "search": {
+      "placeholder": "Chat durchsuchen…",
+      "ariaLabel": "Chat-Nachrichten durchsuchen",
+      "noContents": "Keine Inhalte"
+    }
+  },
+  "projectDetail": {
+    "namePlaceholder": "Projektname",
+    "descriptionPlaceholder": "Beschreibung hinzufügen…",
+    "saveChanges": "Änderungen speichern",
+    "tabs": {
+      "chats": "Chats ({{count}})",
+      "instructions": "Anweisungen",
+      "knowledgeComingSoon": "Wissen (Phase 2)"
+    },
+    "newChatButton": "Neuer Chat im Projekt",
+    "emptyChats": "Noch keine Chats in diesem Projekt. Starten Sie einen neuen Chat, um loszulegen.",
+    "customInstructionsLabel": "Benutzerdefinierte Anweisungen",
+    "instructionsPlaceholder": "Beschreiben Sie, wie sich die KI in diesem Projekt verhalten soll…",
+    "useStructuredLabel": "Strukturierte Anweisungen verwenden",
+    "structuredFields": {
+      "role": "Rolle",
+      "tone": "Ton",
+      "responseFormat": "Antwortformat",
+      "constraints": "Einschränkungen"
+    },
+    "structuredPlaceholders": {
+      "role": "z. B. Senior-Entwickler, Schreibtutor",
+      "tone": "z. B. Formell, Locker, Technisch",
+      "responseFormat": "z. B. Stichpunkte, ausführliche Absätze",
+      "constraints": "z. B. Antworten auf maximal 200 Wörter begrenzen"
+    },
+    "toast": {
+      "createdTitle": "Projekt erstellt",
+      "updatedTitle": "Projekt aktualisiert",
+      "deletedTitle": "Projekt gelöscht"
+    }
+  }
+}

@@ -1,11 +1,11 @@
-import type { DiscoverFeedDto } from '@shared/types/discover'
-import { Variables } from '@shared/types/server'
+import type { DiscoverFeedDto } from '@exodus/shared/types/discover'
 import { Hono } from 'hono'
 
 import { getDiscoverFeed, setDiscoverFeed } from '../../db/discover-queries'
 import { getSettings } from '../../db/queries'
 import type { DiscoverFeedRow } from '../../db/schema'
 import { enqueueAndProcess, logEnqueueFailure } from '../../jobs/worker'
+import { Variables } from '../types'
 import { successResponse } from '../utils'
 
 const router = new Hono<{ Variables: Variables }>()
@@ -27,14 +27,13 @@ router.get('/', async (c) => {
 })
 
 router.post('/refresh', async (c) => {
-  const row = await getDiscoverFeed()
+  const [row, settings] = await Promise.all([getDiscoverFeed(), getSettings()])
 
   // Guard mirrors runDiscoverRefresh's own early-return checks (disabled, no
   // Brave key). Without this, a refresh triggered in either state would flip
   // status to 'refreshing' here and then never flip back — the job itself
   // returns before ever calling setDiscoverFeed again in both cases, leaving
   // the row stuck at 'refreshing' permanently.
-  const settings = await getSettings()
   if (!settings.discover?.enabled || !settings.webSearch?.braveApiKey) {
     return successResponse(c, toDto(row))
   }

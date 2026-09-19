@@ -102,7 +102,9 @@ export function createElasticsearchProvider(
         query: { match: { searchText: query } }
       })
       const ids = result.hits.hits
-        .map((hit) => hit._id)
+        // Bracket access sidesteps no-underscore-dangle — `_id` is
+        // Elasticsearch's own response field name, not ours to rename.
+        .map((hit) => hit['_id'])
         .filter((id): id is string => typeof id === 'string')
       if (ids.length === 0) return []
       return getMessagesWithTitleByIds(ids)

@@ -1,8 +1,9 @@
+import type { ToolNotice } from '@exodus/shared/types/chat'
 import { v1 } from '@googlemaps/places'
 import type { AgentTool } from '@mariozechner/pi-agent-core'
 import { Type } from '@mariozechner/pi-ai'
-import { Settings } from '@shared/types/db'
 
+import { Settings } from '../../db/schema'
 import { logger } from '../../logger'
 
 /**
@@ -141,6 +142,48 @@ export type MapItineraryDetails = {
     routeMode?: 'walking' | 'driving' | 'transit'
     places: ItineraryPlace[]
   }>
+  /** Set when Places enrichment failed for a reason the user can fix
+   *  (expired/invalid key, API disabled, no billing, quota). The map still
+   *  renders from the LLM's data; the card + a toast explain what's missing. */
+  notice?: ToolNotice
+}
+
+/**
+ * Classify a Places enrichment rejection. Returns a short, user-facing reason
+ * for the failures worth surfacing — the ones fixable in Settings → Google
+ * Cloud — or `null` for transient failures (timeouts, 5xx, no match), which
+ * we swallow silently since the map still renders.
+ */
+export function classifyPlacesFailure(reason: unknown): string | null {
+  const msg = String(
+    reason instanceof Error ? reason.message : reason
+  ).toLowerCase()
+  if (/api key expired|renew the api key/.test(msg)) {
+    return 'the Google API key has expired'
+  }
+  if (/api_key_invalid|api key not valid|invalid api key/.test(msg)) {
+    return 'the Google API key is invalid'
+  }
+  if (
+    /service_disabled|has not been used in project|is disabled|not enabled/.test(
+      msg
+    )
+  ) {
+    return 'the Places API is not enabled for this Google Cloud project'
+  }
+  if (/billing/.test(msg)) {
+    return 'the Google Cloud project has no active billing account'
+  }
+  if (/permission_denied|permission denied|forbidden|\b403\b/.test(msg)) {
+    return 'the Google API key lacks permission for the Places API'
+  }
+  if (/unauthenticated|unauthorized|\b401\b/.test(msg)) {
+    return 'the Google API key was rejected'
+  }
+  if (/resource_exhausted|quota|rate limit|\b429\b/.test(msg)) {
+    return 'the Places API quota has been exceeded'
+  }
+  return null
 }
 
 function normalizeRouteMode(
@@ -269,6 +312,7 @@ export const mapItinerary = (
 
     type EnrichmentMap = Record<string, Partial<ItineraryPlace>>
     const byKey: EnrichmentMap = {}
+    let placesFailureReason: string | null = null
     enrichments.forEach((settled, i) => {
       const { dayIdx, placeIdx } = flat[i]
       if (settled.status === 'fulfilled') {
@@ -279,8 +323,16 @@ export const mapItinerary = (
           error: String(settled.reason)
         })
         byKey[`${dayIdx}-${placeIdx}`] = {}
+        placesFailureReason ??= classifyPlacesFailure(settled.reason)
       }
     })
+
+    const notice: ToolNotice | undefined = placesFailureReason
+      ? {
+          level: 'warning',
+          message: `Live place data is unavailable — ${placesFailureReason}. The map shows your stops, but ratings, photos, phone numbers, and opening hours are missing. Check your key in Settings → Google Cloud.`
+        }
+      : undefined
 
     const days: MapItineraryDetails['days'] = payload.days.map((d, dayIdx) => ({
       label: d.label,
@@ -317,7 +369,8 @@ export const mapItinerary = (
     const details: MapItineraryDetails = {
       type: 'mapItinerary',
       title: payload.title,
-      days
+      days,
+      ...(notice && { notice })
     }
     return {
       content: [

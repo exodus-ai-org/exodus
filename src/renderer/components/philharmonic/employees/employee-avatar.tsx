@@ -1,7 +1,8 @@
 import * as collection from '@dicebear/collection'
 import { createAvatar } from '@dicebear/core'
-import { DEFAULT_AVATAR_STYLE } from '@shared/constants/avatar'
+import { DEFAULT_AVATAR_STYLE } from '@exodus/shared/constants/avatar'
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { cn } from '@/lib/utils'
 
@@ -22,6 +23,7 @@ export function EmployeeAvatar({
   ring?: boolean
   className?: string
 }) {
+  const { t } = useTranslation('philharmonic')
   const dataUri = useMemo(() => {
     const styleKey = (style ?? DEFAULT_AVATAR_STYLE) as keyof typeof collection
     const factory =
@@ -45,7 +47,7 @@ export function EmployeeAvatar({
         width={size}
         height={size}
         className="rounded-full"
-        alt="avatar"
+        alt={t('employees.avatar.alt')}
       />
     </div>
   )

@@ -1,4 +1,3 @@
-import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import { z } from 'zod'
 
@@ -14,7 +13,9 @@ import {
   updateMcpServer
 } from '../../db/mcp-queries'
 import { logger } from '../../logger'
+import { Variables } from '../types'
 import {
+  deletionSuccessResponse,
   getRequiredParam,
   handleDatabaseOperation,
   successResponse,
@@ -91,7 +92,7 @@ mcp.delete('/:id', async (c) => {
     'Failed to delete MCP server'
   )
   if (target) invalidateMcpCache(target.name)
-  return c.text('MCP server deleted successfully', 200)
+  return deletionSuccessResponse(c, 'MCP server')
 })
 
 // List available tools from all active MCP servers

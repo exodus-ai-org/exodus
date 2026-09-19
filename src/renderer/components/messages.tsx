@@ -8,16 +8,18 @@ import type {
   Segment,
   TextContent,
   TimelineStep
-} from '@shared/types/chat'
-import type { WebSearchResult } from '@shared/types/web-search'
+} from '@exodus/shared/types/chat'
+import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import { capitalCase } from 'change-case'
-import { ChevronDownIcon } from 'lucide-react'
+import { ArrowDownIcon } from 'lucide-react'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import Zoom from 'react-medium-image-zoom'
 
 import { Button } from '@/components/ui/button'
 import { useDiscoverFeed } from '@/hooks/use-discover-feed'
 import { useSettings } from '@/hooks/use-settings'
+import { i18n } from '@/lib/i18n'
 import { userMessageText } from '@/lib/user-message-text'
 import { cn } from '@/lib/utils'
 
@@ -25,10 +27,9 @@ import { ChatToc } from './chat-toc'
 import { DiscoverFeed } from './home/discover-feed'
 import Markdown from './markdown'
 import { MessageAction } from './massage-action'
-import { MessageSpinner } from './message-spinner'
+import { MessageSpinner, shouldShowMessageSpinner } from './message-spinner'
 import { MessageCallingTools } from './messages-calling-tools'
 import { ThinkingTimeline } from './thinking-timeline'
-import { Avatar, AvatarImage } from './ui/avatar'
 import { collectGalleryImages } from './web-search/collect-gallery-images'
 import { collectGalleryVideos } from './web-search/collect-gallery-videos'
 import { ImageGallery } from './web-search/image-gallery'
@@ -49,6 +50,7 @@ const UserSegment = memo(function UserSegment({
 }: {
   message: ChatMessage
 }) {
+  const { t } = useTranslation('chat')
   return (
     <div
       data-user-msg-id={message.id}
@@ -66,7 +68,7 @@ const UserSegment = memo(function UserSegment({
                       <img
                         className="max-h-96 max-w-64 rounded-lg object-cover"
                         src={part.data}
-                        alt="attachment"
+                        alt={t('messageList.attachmentAlt')}
                       />
                     </Zoom>
                   )
@@ -76,7 +78,7 @@ const UserSegment = memo(function UserSegment({
             )}
           </div>
         )}
-      <p className="bg-primary text-primary-foreground max-w-[60%] rounded-2xl rounded-br-sm px-4 py-2.5 text-base leading-relaxed wrap-break-word whitespace-pre-wrap shadow-sm">
+      <p className="bg-secondary text-foreground max-w-[75%] rounded-2xl rounded-br-sm px-4 py-2.5 text-base leading-relaxed wrap-break-word whitespace-pre-wrap">
         {userMessageText(message)}
       </p>
     </div>
@@ -93,7 +95,6 @@ type AssistantTurnSegmentProps = {
   // rare case where a later turn re-runs a search with reset numbering.
   citationSources?: WebSearchResult[]
   isStreaming: boolean
-  assistantAvatar?: string
   regenerate: () => void
 }
 
@@ -103,7 +104,6 @@ const AssistantTurnSegment = memo(
     turn,
     citationSources,
     isStreaming,
-    assistantAvatar,
     regenerate
   }: AssistantTurnSegmentProps) {
     // The turn's own searches drive the per-turn "Sources" panel; the
@@ -125,22 +125,16 @@ const AssistantTurnSegment = memo(
 
     return (
       <div className="mb-8 flex flex-col items-start last:mb-4">
-        <div className="flex w-full gap-4">
-          {!!assistantAvatar && (
-            <Avatar>
-              <AvatarImage src={assistantAvatar} className="object-cover" />
-            </Avatar>
+        <div className="w-full min-w-0">
+          {(turn.steps.length > 0 || isStreaming) && (
+            <ThinkingTimeline
+              steps={turn.steps}
+              durationMs={turn.durationMs}
+              isStreaming={isStreaming && turn.finalTextBlocks.length === 0}
+            />
           )}
-          <div className="w-full min-w-0">
-            {(turn.steps.length > 0 || isStreaming) && (
-              <ThinkingTimeline
-                steps={turn.steps}
-                durationMs={turn.durationMs}
-                isStreaming={isStreaming && turn.finalTextBlocks.length === 0}
-              />
-            )}
 
-            {/* {isStreaming &&
+          {/* {isStreaming &&
               turn.pendingToolCalls.map((tc) => (
                 <ShimmeringText
                   key={tc.id}
@@ -149,15 +143,17 @@ const AssistantTurnSegment = memo(
                 />
               ))} */}
 
-            {turn.toolCards.map((toolResult) => (
-              <MessageCallingTools
-                key={toolResult.id}
-                chatId={chatId}
-                toolResult={toolResult}
-              />
-            ))}
+          {turn.toolCards.map((toolResult) => (
+            <MessageCallingTools
+              key={toolResult.id}
+              chatId={chatId}
+              toolResult={toolResult}
+            />
+          ))}
 
-            {turn.finalTextBlocks.map((block, i) => (
+          {turn.finalTextBlocks.map((block, i) => {
+            const isLastBlock = i === turn.finalTextBlocks.length - 1
+            return (
               <section
                 key={`${block.messageId}-${block.blockIdx}`}
                 className={cn(
@@ -166,18 +162,21 @@ const AssistantTurnSegment = memo(
                 )}
               >
                 <Markdown src={block.text} webSearchResults={citationResults} />
+                {isLastBlock && galleryImages.length > 0 && (
+                  <ImageGallery images={galleryImages} />
+                )}
+                {isLastBlock && galleryVideos.length > 0 && (
+                  <VideoCards videos={galleryVideos} />
+                )}
                 <MessageAction
                   regenerate={regenerate}
                   content={block.text}
                   webSearchResults={ownSources}
+                  timestamp={isLastBlock ? block.timestamp : undefined}
                 />
               </section>
-            ))}
-            {galleryImages.length > 0 && (
-              <ImageGallery images={galleryImages} />
-            )}
-            {galleryVideos.length > 0 && <VideoCards videos={galleryVideos} />}
-          </div>
+            )
+          })}
         </div>
       </div>
     )
@@ -191,7 +190,6 @@ const AssistantTurnSegment = memo(
     if (
       prev.chatId !== next.chatId ||
       prev.isStreaming !== next.isStreaming ||
-      prev.assistantAvatar !== next.assistantAvatar ||
       prev.regenerate !== next.regenerate
     ) {
       return false
@@ -249,8 +247,23 @@ function getToolCallPreview(
         const places = (d as { places?: unknown[] } | null)?.places
         return acc + (Array.isArray(places) ? places.length : 0)
       }, 0)
+      // Days and stops pluralize independently, so each gets its own
+      // CLDR-keyed lookup; the outer "{{days}}, {{stops}}" template composes
+      // the two already-translated fragments (same technique
+      // common.composer.reasoningPill already uses for its {{label}} param).
+      // This is a plain helper (not a component or hook), so translated text
+      // uses the shared `i18n` singleton directly rather than useTranslation().
       const dayCount = days.length
-      const summary = `${dayCount} day${dayCount === 1 ? '' : 's'}, ${stops} stop${stops === 1 ? '' : 's'}`
+      const daysText = i18n.t('chat:toolPreview.mapItineraryDayCount', {
+        count: dayCount
+      })
+      const stopsText = i18n.t('chat:toolPreview.mapItineraryStopCount', {
+        count: stops
+      })
+      const summary = i18n.t('chat:toolPreview.mapItinerarySummary', {
+        days: daysText,
+        stops: stopsText
+      })
       return withInline(label, summary)
     }
     default:
@@ -292,7 +305,8 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
           finalTextBlocks.push({
             text: block.text,
             messageId: msg.id,
-            blockIdx: idx
+            blockIdx: idx,
+            timestamp: assistantMsg.timestamp
           })
         }
       }
@@ -311,7 +325,9 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
         // local array per iteration; overhead of building a Map exceeds benefit.
         const errorText =
           toolResult.content.find((c) => c.type === 'text')?.text ??
-          `${capitalCase(toolResult.toolName)} failed`
+          i18n.t('chat:toolPreview.toolFailed', {
+            tool: capitalCase(toolResult.toolName)
+          })
         steps.push({
           type: 'toolResult',
           text: errorText,
@@ -331,10 +347,25 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
         webSearchResults.push(...results)
         steps.push({
           type: 'toolResult',
-          text: `${results.length} results`,
+          text: i18n.t('chat:toolPreview.webSearchResultCount', {
+            count: results.length
+          }),
           toolName: 'webSearch',
           webSearchResults: results
         })
+      } else if (
+        toolResult.toolName === 'webFetch' &&
+        !toolResult.isError &&
+        toolResult.details &&
+        typeof toolResult.details === 'object' &&
+        !Array.isArray(toolResult.details) &&
+        typeof (toolResult.details as { link?: unknown }).link === 'string' &&
+        typeof (toolResult.details as { rank?: unknown }).rank === 'number'
+      ) {
+        // A fetched page is a citeable source too — register it so the
+        // model's 【N-source】 markers resolve, and still show the card.
+        webSearchResults.push(toolResult.details as WebSearchResult)
+        toolCards.push(toolResult)
       } else if (!toolResult.isError) {
         // Non-webSearch successful tool results → render as cards
         toolCards.push(toolResult)
@@ -383,7 +414,8 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
  * Group messages into segments: each segment is either a user message
  * or a contiguous run of assistant+toolResult messages (a "turn").
  */
-function groupIntoSegments(messages: ChatMessage[]): Segment[] {
+// eslint-disable-next-line react-refresh/only-export-components -- pure helper, exported for tests
+export function groupIntoSegments(messages: ChatMessage[]): Segment[] {
   const segments: Segment[] = []
   let turnBuffer: ChatMessage[] = []
 
@@ -417,6 +449,7 @@ function Messages({
   regenerate,
   showDiscover
 }: MessagesProps) {
+  const { t } = useTranslation('chat')
   const isLoading = status === 'streaming' || status === 'submitted'
   const { data: settings } = useSettings()
   const chatBoxRef = useRef<HTMLDivElement>(null)
@@ -436,7 +469,7 @@ function Messages({
   const discoverHasContent =
     discoverActive && (discoverFeed?.groups.length ?? 0) > 0
 
-  const segments = useMemo(() => groupIntoSegments(messages), [messages])
+  const segments = useMemo(() => groupIntoSegments(messages), [messages, t])
 
   // Accumulate web-search sources across turns so a turn that cites a source
   // found in an earlier turn can still resolve its 【N-source】 badges. Keyed by
@@ -492,28 +525,41 @@ function Messages({
   return (
     <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
       <section
-        className="no-scrollbar flex flex-1 flex-col items-center gap-8 overflow-y-scroll px-16 py-4 transition-all"
+        className={cn(
+          'no-scrollbar flex flex-1 flex-col items-center gap-8 overflow-y-scroll px-16 pt-4 transition-[padding]',
+          // Room for the floating composer to clear the last message — but
+          // only once it's floating (the landing screen keeps it in flow).
+          messages.length === 0 ? 'pb-6' : 'pb-36'
+        )}
         ref={chatBoxRef}
         onScroll={handleScroll}
       >
         {messages.length === 0 && (
           <div
             className={cn(
-              'animate-fade-in-up mx-auto flex size-full max-w-4xl flex-col px-8',
+              'animate-fade-in-up mx-auto flex size-full max-w-3xl flex-col px-8',
               discoverHasContent
-                ? 'justify-start pt-12 md:pt-16'
+                ? 'justify-start pt-4'
                 : 'justify-center md:mt-20'
             )}
           >
-            <p className="text-3xl font-bold tracking-tight">Hello there!</p>
-            <p className="text-muted-foreground mt-2 text-lg">
-              How can I assist you today?
-            </p>
+            {/* The generic greeting is filler once a personalized feed fills
+                the screen — drop it and let Discover be the landing content. */}
+            {!discoverHasContent && (
+              <>
+                <p className="text-3xl font-bold tracking-tight">
+                  {t('messageList.greetingTitle')}
+                </p>
+                <p className="text-muted-foreground mt-2 text-lg">
+                  {t('messageList.greetingSubtitle')}
+                </p>
+              </>
+            )}
             {discoverActive && <DiscoverFeed />}
           </div>
         )}
 
-        <div className="w-full md:max-w-4xl">
+        <div className="w-full md:max-w-3xl">
           {segments.map((segment, segIdx) => {
             if (segment.type === 'user') {
               return (
@@ -534,30 +580,26 @@ function Messages({
                 turn={segment.turn}
                 citationSources={citationSourcesByTurn.get(segment)}
                 isStreaming={turnIsStreaming}
-                assistantAvatar={settings?.assistantAvatar ?? undefined}
                 regenerate={regenerate}
               />
             )
           })}
 
-          {(status === 'submitted' || status === 'streaming') &&
-            messages[messages.length - 1]?.role !== 'assistant' && (
-              <MessageSpinner />
-            )}
+          {shouldShowMessageSpinner(segments, isLoading) && <MessageSpinner />}
         </div>
       </section>
 
       <ChatToc scrollContainerRef={chatBoxRef} messages={messages} />
 
-      {showScrollButton && (
+      {showScrollButton && messages.length > 0 && (
         <Button
-          variant="outline"
-          size="icon-sm"
+          variant="secondary"
+          size="icon-lg"
           onClick={() => scrollToBottom('smooth')}
-          className="absolute bottom-4 left-1/2 -translate-x-1/2 rounded-full shadow-md"
-          aria-label="Scroll to bottom"
+          className="absolute bottom-24 left-1/2 z-30 -translate-x-1/2 rounded-full border shadow-md"
+          aria-label={t('messageList.scrollToBottom')}
         >
-          <ChevronDownIcon size={16} />
+          <ArrowDownIcon />
         </Button>
       )}
     </div>

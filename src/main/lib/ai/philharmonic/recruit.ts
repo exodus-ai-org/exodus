@@ -1,9 +1,9 @@
-// src/main/lib/ai/philharmonic/recruit.ts
-import { completeSimple } from '@mariozechner/pi-ai'
 import {
   DEFAULT_AVATAR_STYLE,
   randomAvatarSeed
-} from '@shared/constants/avatar'
+} from '@exodus/shared/constants/avatar'
+// src/main/lib/ai/philharmonic/recruit.ts
+import { completeSimple } from '@mariozechner/pi-ai'
 
 import { createAgent, getAllAgents } from '../../db/philharmonic-queries'
 import { getSettings } from '../../db/queries'
@@ -25,14 +25,14 @@ export interface RecruitParams {
 /** Create and persist a new employee. Reused by the PM `recruitEmployee` tool. */
 export async function autoCreateEmployee(params: RecruitParams) {
   const setting = await getSettings()
-  const { chatModel, apiKey } = getModelFromProvider(setting)
+  const { model, apiKey } = getModelFromProvider(setting)
 
   let description = `Virtual employee for: ${params.role}`
   let systemPrompt = `You are a virtual employee. Your role: ${params.role}.`
 
   try {
     const result = await completeSimple(
-      chatModel,
+      model,
       {
         systemPrompt: SPEC_PROMPT,
         messages: [

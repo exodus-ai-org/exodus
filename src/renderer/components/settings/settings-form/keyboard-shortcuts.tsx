@@ -1,8 +1,13 @@
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Kbd } from '@/components/ui/kbd'
 import { Switch } from '@/components/ui/switch'
-import { SHORTCUT_MAP, ShortcutDef } from '@/hooks/use-keyboard-shortcuts'
+import {
+  CATEGORY_TITLE_KEYS,
+  SHORTCUT_MAP,
+  ShortcutDef
+} from '@/hooks/use-keyboard-shortcuts'
 import { useSettings } from '@/hooks/use-settings'
 
 import { SettingsSection } from '../settings-row'
@@ -16,6 +21,8 @@ function ShortcutRow({
   disabled: boolean
   onToggle: (id: string, enabled: boolean) => void
 }) {
+  const { t } = useTranslation('settings')
+
   return (
     <div className="flex items-center gap-3 py-2">
       <div className="flex w-9 shrink-0">
@@ -26,7 +33,7 @@ function ShortcutRow({
           />
         )}
       </div>
-      <span className="flex-1 text-sm">{shortcut.label}</span>
+      <span className="flex-1 text-sm">{t(shortcut.labelKey)}</span>
       <Kbd>{shortcut.keys.join(' + ')}</Kbd>
     </div>
   )
@@ -63,6 +70,7 @@ function ShortcutGroup({
 }
 
 export function KeyboardShortcuts() {
+  const { t } = useTranslation('settings')
   const { data: settings, updateSettings } = useSettings()
 
   const disabledIds = useMemo(
@@ -71,7 +79,7 @@ export function KeyboardShortcuts() {
   )
 
   const grouped = useMemo(() => {
-    const map = new Map<string, ShortcutDef[]>()
+    const map = new Map<ShortcutDef['category'], ShortcutDef[]>()
     for (const s of SHORTCUT_MAP) {
       const list = map.get(s.category) ?? []
       list.push(s)
@@ -100,7 +108,7 @@ export function KeyboardShortcuts() {
         {Array.from(grouped.entries()).map(([category, shortcuts]) => (
           <ShortcutGroup
             key={category}
-            title={category}
+            title={t(CATEGORY_TITLE_KEYS[category])}
             shortcuts={shortcuts}
             disabledIds={disabledIds}
             onToggle={handleToggle}

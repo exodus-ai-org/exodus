@@ -1,0 +1,21 @@
+{
+  "player": {
+    "stop": "Stop",
+    "readAloud": "Read aloud"
+  },
+  "recorder": {
+    "stopRecording": "Stop recording",
+    "dictate": "Dictate",
+    "toast": {
+      "micErrorTitle": "Microphone error",
+      "micErrorFallback": "Could not access the microphone."
+    }
+  },
+  "hook": {
+    "toast": {
+      "audioErrorTitle": "Audio error",
+      "transcriptionFailedTitle": "Transcription failed",
+      "genericErrorFallback": "An error occurred, please try again!"
+    }
+  }
+}

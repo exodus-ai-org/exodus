@@ -1,22 +1,22 @@
-import type { Attachment, ChatMessage, Usage } from '@shared/types/chat'
+import type { ChatMessage, Usage } from '@exodus/shared/types/chat'
 import { useAtom, useAtomValue } from 'jotai'
-import { ArrowUpIcon, CircleStopIcon } from 'lucide-react'
+import { ArrowUpIcon, SquareIcon } from 'lucide-react'
 import {
   ChangeEvent,
   ClipboardEvent,
-  Dispatch,
   memo,
-  SetStateAction,
   useCallback,
   useEffect,
   useRef
 } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams } from 'react-router'
 import { sileo } from 'sileo'
 
 import { UseChatHelpers } from '@/hooks/use-chat'
 import { useUpload } from '@/hooks/use-upload'
 import { cn } from '@/lib/utils'
+import { attachmentAtom } from '@/stores/chat'
 import { chatInputAtom, chatStatusAtom, chatStopFnAtom } from '@/stores/input'
 
 import { AudioRecorder } from './audio-recoder'
@@ -27,22 +27,25 @@ import { Textarea } from './ui/textarea'
 
 function InputBox({
   chatId,
-  attachments,
-  setAttachments,
   // messages,
   // setMessages,
-  sendMessage,
-  lastUsage
+  sendMessage
+  // lastUsage
 }: {
   chatId: string
-  attachments: Attachment[]
-  setAttachments: Dispatch<SetStateAction<Attachment[]>>
   messages: ChatMessage[]
   setMessages: UseChatHelpers['setMessages']
   sendMessage: UseChatHelpers['sendMessage']
   lastUsage?: Usage | null
 }) {
+  const { t } = useTranslation('chat')
   const [input, setInput] = useAtom(chatInputAtom)
+  // Staged attachments live in `attachmentAtom` — the single source of truth
+  // shared with `<FilePreview>` and `useUpload`. (This component used to take
+  // its own `attachments` prop from `<Chat>`, which was never wired to the
+  // atom: picked images showed in the preview but weren't sent and weren't
+  // cleared on submit.)
+  const [attachments, setAttachments] = useAtom(attachmentAtom)
   const status = useAtomValue(chatStatusAtom)
   const stop = useAtomValue(chatStopFnAtom)
   const { id } = useParams()
@@ -55,9 +58,7 @@ function InputBox({
   const adjustHeight = () => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto'
-      textareaRef.current.style.height = `${
-        textareaRef.current.scrollHeight + 2
-      }px`
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
     }
   }
 
@@ -90,10 +91,10 @@ function InputBox({
 
     sendMessage({
       text: input,
-      attachments
+      attachments: attachments ?? []
     })
 
-    setAttachments([])
+    setAttachments(undefined)
     setInput('')
     // Inline reset so we don't add a recreated-each-render function to deps.
     if (textareaRef.current) {
@@ -113,7 +114,7 @@ function InputBox({
     const el = textareaRef.current
     if (el) {
       el.style.height = 'auto'
-      el.style.height = `${el.scrollHeight + 2}px`
+      el.style.height = `${el.scrollHeight}px`
     }
   }, [])
 
@@ -129,12 +130,18 @@ function InputBox({
         <ActiveToolPills />
         <div className="flex items-end gap-1">
           <ComposerToolsButton />
+          {/*
+            Pin to 16px (matching the message body). The base Textarea is
+            `text-base md:text-sm`, an iOS-zoom guard that's meaningless in
+            Electron — it only made the composer text + line-height jump
+            16↔14px / 24↔20px as the window crossed the `md` breakpoint.
+          */}
           <Textarea
             ref={textareaRef}
-            placeholder="Ask anything"
+            placeholder={t('composer.placeholder')}
             value={input}
             onChange={handleInput}
-            className="max-h-[45dvh] min-h-8 flex-1 resize-none border-none bg-transparent! px-1 py-1.5 shadow-none focus-visible:ring-0"
+            className="max-h-[45dvh] min-h-8 flex-1 resize-none rounded-none border-none bg-transparent! px-1 py-1 text-base leading-6 shadow-none focus-visible:ring-0 md:text-base"
             rows={1}
             autoFocus
             onKeyDown={(event) => {
@@ -147,8 +154,8 @@ function InputBox({
 
                 if (status === 'streaming') {
                   sileo.warning({
-                    title: 'Please wait',
-                    description: 'The model is still generating a response.'
+                    title: t('composer.pleaseWaitTitle'),
+                    description: t('composer.pleaseWaitDescription')
                   })
                 } else {
                   submitForm()
@@ -166,27 +173,29 @@ function InputBox({
 
           {status === 'submitted' || status === 'streaming' ? (
             <Button
-              aria-label="Stop"
+              size="icon"
+              className="rounded-full"
+              aria-label={t('composer.stop')}
               onClick={stop ?? undefined}
-              className="bg-foreground text-background hover:bg-foreground/85 size-8 shrink-0 rounded-full [&_svg]:size-[18px]"
             >
-              <CircleStopIcon />
+              <SquareIcon className="size-3 fill-current" />
             </Button>
           ) : input.trim() === '' ? (
             <AudioRecorder input={input} setInput={setInput} />
           ) : (
             <Button
+              size="icon"
+              className="rounded-full"
               type="button"
-              aria-label="Send"
+              aria-label={t('composer.send')}
               onClick={submitForm}
-              className="bg-foreground text-background hover:bg-foreground/85 size-8 shrink-0 rounded-full [&_svg]:size-[18px]"
             >
               <ArrowUpIcon />
             </Button>
           )}
         </div>
       </div>
-      {lastUsage && (
+      {/* {lastUsage && (
         <div className="text-muted-foreground/70 flex justify-end gap-2 px-1 py-1 text-[10px]">
           <span>↑{lastUsage.input.toLocaleString()}</span>
           <span>↓{lastUsage.output.toLocaleString()}</span>
@@ -195,7 +204,7 @@ function InputBox({
             <span>${lastUsage.cost.total.toFixed(4)}</span>
           )}
         </div>
-      )}
+      )} */}
     </div>
   )
 }

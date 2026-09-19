@@ -39,7 +39,7 @@ export function SettingsSection({
       {plain ? (
         <div className="flex flex-col gap-4">{children}</div>
       ) : (
-        <Card className="divide-border gap-0 divide-y px-3 py-0 [&>*]:px-2.5 [&>*]:py-4">
+        <Card className="divide-border gap-0 divide-y px-3 py-0 *:px-2.5 *:py-4">
           {children}
         </Card>
       )}
@@ -54,6 +54,12 @@ interface SettingsRowProps {
   description?: string
   children: React.ReactNode
   error?: RHFFieldError
+  /**
+   * Non-blocking red hint shown alongside `error` — e.g. a saved value that
+   * is still valid but no longer recommended (a model dropped from the
+   * provider lineup).
+   */
+  warning?: React.ReactNode
   /**
    * Layout mode:
    * - "horizontal" (default): label+desc left, control right (for Select, Switch, short inputs)
@@ -71,6 +77,7 @@ export function SettingsRow({
   description,
   children,
   error,
+  warning,
   layout = 'horizontal'
 }: SettingsRowProps) {
   return (
@@ -89,6 +96,9 @@ export function SettingsRow({
           {description && <FieldDescription>{description}</FieldDescription>}
           {children}
           {error && <p className="text-destructive text-xs">{error.message}</p>}
+          {!error && warning && (
+            <p className="text-destructive text-xs">{warning}</p>
+          )}
         </>
       ) : (
         <>
@@ -97,6 +107,9 @@ export function SettingsRow({
             {description && <FieldDescription>{description}</FieldDescription>}
             {error && (
               <p className="text-destructive text-xs">{error.message}</p>
+            )}
+            {!error && warning && (
+              <p className="text-destructive text-xs">{warning}</p>
             )}
           </div>
           <div className="shrink-0">{children}</div>

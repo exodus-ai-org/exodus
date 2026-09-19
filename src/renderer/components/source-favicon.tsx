@@ -1,4 +1,4 @@
-import { faviconUrl } from '@shared/constants/external-urls'
+import { faviconUrl } from '@exodus/shared/constants/external-urls'
 import { useState } from 'react'
 
 import { cn } from '@/lib/utils'

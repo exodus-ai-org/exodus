@@ -1,4 +1,4 @@
-import { fetcher } from '@shared/utils/http'
+import { fetcher } from '@exodus/shared/utils/http'
 
 export type MemorySection = 'profile' | 'topic' | 'person'
 export type MemorySource = 'explicit' | 'implicit' | 'system'
@@ -48,4 +48,12 @@ export const updateMemory = (
 export const deleteMemory = (id: string, hard = false) =>
   fetcher<void>(`/api/memory/${id}${hard ? '?hard=true' : ''}`, {
     method: 'DELETE'
+  })
+
+/** Apply a free-text instruction ("remember my plant is Gerald", "delete this")
+ *  via the LLM. `scopeMemoryId` narrows the context to one entry. */
+export const instructMemory = (instruction: string, scopeMemoryId?: string) =>
+  fetcher<{ applied: number }>('/api/memory/instruct', {
+    method: 'POST',
+    body: { instruction, ...(scopeMemoryId ? { scopeMemoryId } : {}) }
   })

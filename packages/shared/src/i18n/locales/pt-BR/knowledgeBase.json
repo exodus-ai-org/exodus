@@ -1,0 +1,76 @@
+{
+  "alert": "A base de conhecimento do Exodus é opcional e é alimentada por um <strong>servidor LightRAG autogerenciado que você mesmo executa</strong> — o Exodus apenas se conecta a ele, enviando seus documentos e solicitando o contexto relevante; ele nunca executa, atualiza ou gerencia o LightRAG. Deixe a URL vazia para manter a base de conhecimento desativada. A recuperação é somente de contexto: o LightRAG encontra os trechos relevantes, mas o modelo de chat configurado sempre escreve a resposta. O modelo de embedding fica <strong>bloqueado assim que você inserir um documento</strong> — alterá-lo depois exige apagar o armazenamento do LightRAG e readicionar todos os documentos, então escolha um que pretenda manter.",
+  "serverUrl": {
+    "label": "URL do Servidor",
+    "description": "Seu servidor LightRAG autogerenciado. Deixe vazio para desativar a base de conhecimento."
+  },
+  "apiKey": {
+    "label": "Chave de API",
+    "description": "Enviada como o cabeçalho X-API-Key (sua LIGHTRAG_API_KEY)."
+  },
+  "queryMode": {
+    "label": "Modo de consulta",
+    "description": "mix combina o grafo de conhecimento e a pesquisa vetorial — melhor qualidade, um pouco mais lento.",
+    "options": {
+      "naive": "Simples",
+      "local": "Local",
+      "global": "Global",
+      "hybrid": "Híbrido",
+      "mix": "Mix"
+    }
+  },
+  "advancedToggle": "Avançado",
+  "topK": {
+    "label": "Top K",
+    "description": "Entidades/relações do grafo de conhecimento a serem recuperadas. Padrão: 60."
+  },
+  "chunkTopK": {
+    "label": "Chunk Top K",
+    "description": "Trechos de texto mantidos após a reclassificação. Padrão: 10."
+  },
+  "connection": {
+    "label": "Conexão",
+    "description": "Verifique se o Exodus consegue acessar seu servidor LightRAG.",
+    "testingLabel": "Testando…",
+    "testButton": "Testar Conexão"
+  },
+  "documents": {
+    "title": "Documentos",
+    "reindexAllButton": "Reindexar tudo",
+    "empty": "Ainda não há documentos.",
+    "needsUrlHint": "Adicione uma URL de servidor acima para gerenciar documentos."
+  },
+  "docList": {
+    "updatedAgo": "Atualizado há {{distance}}",
+    "status": {
+      "pending": "Pendente",
+      "processing": "Indexando…",
+      "processed": "Indexado",
+      "failed": "Falhou",
+      "stale": "Precisa reindexar"
+    }
+  },
+  "docDialog": {
+    "editTitle": "Editar documento",
+    "addTitle": "Adicionar documento",
+    "titleLabel": "Título",
+    "contentLabel": "Conteúdo"
+  },
+  "deleteDialog": {
+    "title": "Excluir documento?",
+    "description": "\"{{title}}\" será removido da base de conhecimento."
+  },
+  "toast": {
+    "saveFailed": "Falha ao salvar documento",
+    "loadFailed": "Falha ao carregar documentos",
+    "connected": "Conectado",
+    "embeddingLabel": "Embedding",
+    "docsCount_one": "{{count}} documento",
+    "docsCount_other": "{{count}} documentos",
+    "connectFailed": "Falha ao conectar",
+    "reindexQueued_one": "{{count}} documento adicionado à fila para reindexação",
+    "reindexQueued_other": "{{count}} documentos adicionados à fila para reindexação",
+    "reindexFailed": "Falha ao reindexar",
+    "deleteFailed": "Falha ao excluir documento"
+  }
+}

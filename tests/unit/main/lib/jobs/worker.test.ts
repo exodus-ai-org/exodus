@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 const mockReadBatch = vi.fn()
 const mockArchiveMessage = vi.fn()
 const mockEnqueueJob = vi.fn()
+vi.mock('@main/lib/db/db', () => ({ db: {}, pglite: {} }))
 vi.mock('@main/lib/jobs/queries', () => ({
   readBatch: mockReadBatch,
   archiveMessage: mockArchiveMessage,

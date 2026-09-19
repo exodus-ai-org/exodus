@@ -1,0 +1,76 @@
+{
+  "alert": "La knowledge base di Exodus è opzionale ed è basata su un <strong>server LightRAG self-hosted gestito da te</strong>: Exodus si limita a connettersi a esso, inviando i tuoi documenti e richiedendo il contesto pertinente; non esegue, aggiorna o gestisce mai LightRAG in prima persona. Lascia l'URL vuoto per mantenere la knowledge base disattivata. Il recupero è solo contestuale: LightRAG individua i passaggi pertinenti, ma il modello di chat configurato scrive sempre la risposta. Il modello di embedding viene <strong>bloccato non appena importi un documento</strong>: cambiarlo in seguito richiede di cancellare l'archiviazione di LightRAG e riaggiungere ogni documento, quindi sceglline uno che vuoi mantenere.",
+  "serverUrl": {
+    "label": "URL del server",
+    "description": "Il tuo server LightRAG self-hosted. Lascia vuoto per disattivare la knowledge base."
+  },
+  "apiKey": {
+    "label": "Chiave API",
+    "description": "Inviata come intestazione X-API-Key (la tua LIGHTRAG_API_KEY)."
+  },
+  "queryMode": {
+    "label": "Modalità query",
+    "description": "mix combina il grafo di conoscenza e la ricerca vettoriale — qualità migliore, leggermente più lenta.",
+    "options": {
+      "naive": "Naive",
+      "local": "Locale",
+      "global": "Globale",
+      "hybrid": "Ibrida",
+      "mix": "Mix"
+    }
+  },
+  "advancedToggle": "Avanzate",
+  "topK": {
+    "label": "Top K",
+    "description": "Entità/relazioni del grafo di conoscenza da recuperare. Predefinito 60."
+  },
+  "chunkTopK": {
+    "label": "Chunk Top K",
+    "description": "Blocchi di testo mantenuti dopo il reranking. Predefinito 10."
+  },
+  "connection": {
+    "label": "Connessione",
+    "description": "Verifica che Exodus possa raggiungere il tuo server LightRAG.",
+    "testingLabel": "Verifica in corso…",
+    "testButton": "Verifica connessione"
+  },
+  "documents": {
+    "title": "Documenti",
+    "reindexAllButton": "Reindicizza tutto",
+    "empty": "Nessun documento ancora.",
+    "needsUrlHint": "Aggiungi un URL del server qui sopra per gestire i documenti."
+  },
+  "docList": {
+    "updatedAgo": "Aggiornato {{distance}} fa",
+    "status": {
+      "pending": "In attesa",
+      "processing": "Indicizzazione…",
+      "processed": "Indicizzato",
+      "failed": "Non riuscito",
+      "stale": "Richiede reindicizzazione"
+    }
+  },
+  "docDialog": {
+    "editTitle": "Modifica documento",
+    "addTitle": "Aggiungi documento",
+    "titleLabel": "Titolo",
+    "contentLabel": "Contenuto"
+  },
+  "deleteDialog": {
+    "title": "Eliminare il documento?",
+    "description": "\"{{title}}\" verrà rimosso dalla knowledge base."
+  },
+  "toast": {
+    "saveFailed": "Salvataggio del documento non riuscito",
+    "loadFailed": "Caricamento dei documenti non riuscito",
+    "connected": "Connesso",
+    "embeddingLabel": "Embedding",
+    "docsCount_one": "{{count}} documento",
+    "docsCount_other": "{{count}} documenti",
+    "connectFailed": "Connessione non riuscita",
+    "reindexQueued_one": "{{count}} documento accodato per la reindicizzazione",
+    "reindexQueued_other": "{{count}} documenti accodati per la reindicizzazione",
+    "reindexFailed": "Reindicizzazione non riuscita",
+    "deleteFailed": "Eliminazione del documento non riuscita"
+  }
+}

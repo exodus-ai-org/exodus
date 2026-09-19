@@ -1,0 +1,76 @@
+{
+  "alert": "Die Wissensdatenbank von Exodus ist optional und wird von einem <strong>selbst gehosteten LightRAG-Server betrieben</strong> — Exodus verbindet sich lediglich damit, überträgt Ihre Dokumente und fragt nach relevantem Kontext; es führt LightRAG niemals selbst aus, aktualisiert oder verwaltet es nicht. Lassen Sie die URL leer, um die Wissensdatenbank deaktiviert zu lassen. Der Abruf liefert nur Kontext: LightRAG findet relevante Textstellen, aber Ihr konfiguriertes Chat-Modell verfasst immer die Antwort. Das Embedding-Modell wird <strong>festgelegt, sobald Sie ein Dokument aufnehmen</strong> — eine spätere Änderung erfordert das Löschen des LightRAG-Speichers und das erneute Hinzufügen aller Dokumente. Wählen Sie daher eines, bei dem Sie bleiben möchten.",
+  "serverUrl": {
+    "label": "Server-URL",
+    "description": "Ihr selbst gehosteter LightRAG-Server. Leer lassen, um die Wissensdatenbank zu deaktivieren."
+  },
+  "apiKey": {
+    "label": "API-Schlüssel",
+    "description": "Wird als X-API-Key-Header gesendet (Ihr LIGHTRAG_API_KEY)."
+  },
+  "queryMode": {
+    "label": "Abfragemodus",
+    "description": "mix kombiniert den Wissensgraphen und die Vektorsuche — beste Qualität, etwas langsamer.",
+    "options": {
+      "naive": "Naiv",
+      "local": "Lokal",
+      "global": "Global",
+      "hybrid": "Hybrid",
+      "mix": "Mix"
+    }
+  },
+  "advancedToggle": "Erweitert",
+  "topK": {
+    "label": "Top K",
+    "description": "Abzurufende Entitäten/Beziehungen aus dem Wissensgraphen. Standard: 60."
+  },
+  "chunkTopK": {
+    "label": "Chunk Top K",
+    "description": "Nach dem Reranking beibehaltene Textabschnitte. Standard: 10."
+  },
+  "connection": {
+    "label": "Verbindung",
+    "description": "Überprüfen Sie, ob Exodus Ihren LightRAG-Server erreichen kann.",
+    "testingLabel": "Wird getestet…",
+    "testButton": "Verbindung testen"
+  },
+  "documents": {
+    "title": "Dokumente",
+    "reindexAllButton": "Alle neu indizieren",
+    "empty": "Noch keine Dokumente.",
+    "needsUrlHint": "Fügen Sie oben eine Server-URL hinzu, um Dokumente zu verwalten."
+  },
+  "docList": {
+    "updatedAgo": "Aktualisiert vor {{distance}}",
+    "status": {
+      "pending": "Ausstehend",
+      "processing": "Wird indiziert…",
+      "processed": "Indiziert",
+      "failed": "Fehlgeschlagen",
+      "stale": "Neuindizierung erforderlich"
+    }
+  },
+  "docDialog": {
+    "editTitle": "Dokument bearbeiten",
+    "addTitle": "Dokument hinzufügen",
+    "titleLabel": "Titel",
+    "contentLabel": "Inhalt"
+  },
+  "deleteDialog": {
+    "title": "Dokument löschen?",
+    "description": "„{{title}}“ wird aus der Wissensdatenbank entfernt."
+  },
+  "toast": {
+    "saveFailed": "Speichern des Dokuments fehlgeschlagen",
+    "loadFailed": "Dokumente konnten nicht geladen werden",
+    "connected": "Verbunden",
+    "embeddingLabel": "Embedding",
+    "docsCount_one": "{{count}} Dokument",
+    "docsCount_other": "{{count}} Dokumente",
+    "connectFailed": "Verbindung fehlgeschlagen",
+    "reindexQueued_one": "{{count}} Dokument zur Neuindizierung eingereiht",
+    "reindexQueued_other": "{{count}} Dokumente zur Neuindizierung eingereiht",
+    "reindexFailed": "Neuindizierung fehlgeschlagen",
+    "deleteFailed": "Löschen des Dokuments fehlgeschlagen"
+  }
+}

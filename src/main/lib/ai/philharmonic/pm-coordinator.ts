@@ -1,8 +1,8 @@
+import type { Attachment } from '@exodus/shared/types/chat'
 // src/main/lib/ai/philharmonic/pm-coordinator.ts
 import type { AgentMessage, AgentTool } from '@mariozechner/pi-agent-core'
 import { agentLoop } from '@mariozechner/pi-agent-core'
 import type { Message } from '@mariozechner/pi-ai'
-import type { Attachment } from '@shared/types/chat'
 import { v4 as uuidV4 } from 'uuid'
 
 import {
@@ -20,6 +20,7 @@ import {
 } from '../../db/plan-queries'
 import { getSettings } from '../../db/queries'
 import { getAllTeams } from '../../db/team-queries'
+import { mainT } from '../../i18n'
 import { resolveKnowledgeBase } from '../../knowledge-base/resolve-knowledge-base'
 import { notifyIfBackground } from '../../philharmonic-notifications'
 import { searchKnowledgeBase } from '../calling-tools/search-knowledge-base'
@@ -127,7 +128,7 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
   emit({ type: 'pm_started', conversationId })
 
   const setting = await getSettings()
-  const { chatModel, apiKey } = getModelFromProvider(setting)
+  const { model, apiKey } = getModelFromProvider(setting)
 
   const [employees, allTeams, conversationRow] = await Promise.all([
     getActiveAgents(),
@@ -141,7 +142,7 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
   // straight conversion of every persisted message; when over, it replaces
   // the oldest turns with a rolling summary it maintains itself. Settings
   // pulled from the memory settings mirror what Chat's LCM uses.
-  const lcm = new PhilharmonicLcm(conversationId, chatModel, apiKey, {
+  const lcm = new PhilharmonicLcm(conversationId, model, apiKey, {
     enabled: setting.memory?.lcmEnabled ?? true,
     contextWindowPercent: setting.memory?.contextWindowPercent ?? 75,
     freshTailSize: setting.memory?.freshTailSize ?? 16
@@ -362,7 +363,7 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
         tools
       },
       {
-        model: chatModel,
+        model,
         apiKey,
         convertToLlm: (msgs: AgentMessage[]): Message[] =>
           msgs.filter(
@@ -466,7 +467,11 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
     })
     emit({ type: 'message_end', conversationId, messageId })
     notifyIfBackground({
-      title: `Group "${conversationTitle}" hit an error`,
+      title: mainT(
+        'menu:notification.philharmonicGroupError',
+        'Group "{{title}}" hit an error',
+        { title: conversationTitle }
+      ),
       body: message.length > 140 ? `${message.slice(0, 137)}…` : message
     })
     emit({ type: 'pm_ended', conversationId, reason: 'error' })
@@ -513,7 +518,11 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
       await mirrorActivePlan()
       const summary = final.plan.summary
       notifyIfBackground({
-        title: `Group "${conversationTitle}" finished`,
+        title: mainT(
+          'menu:notification.philharmonicGroupFinished',
+          'Group "{{title}}" finished',
+          { title: conversationTitle }
+        ),
         body: summary.length > 140 ? `${summary.slice(0, 137)}…` : summary
       })
     }

@@ -1,26 +1,74 @@
-import type { Model } from '@mariozechner/pi-ai'
-import { AiProviders } from '@shared/types/ai'
-import type { Settings } from '@shared/types/db'
+import { AiProviders } from '@exodus/shared/types/ai'
+import type { Api, KnownProvider, Model } from '@mariozechner/pi-ai'
 
-import { getAnthropicClaude } from './anthropic-claude'
-import { getAzureOpenAi } from './azure-openai'
-import { getGoogleGemini } from './google-gemini'
+import type { Settings } from '../../db/schema'
 import { getOllama } from './ollama'
-import { getOpenAi } from './openai-gpt'
-import { getXaiGrok } from './xai-grok'
+import { resolveModel } from './resolve-model'
 
-export type ProviderResult = {
-  chatModel: Model<string>
-  reasoningModel: Model<string>
+export type ProviderFn = (setting: Settings) => Model<string>
+
+interface ProviderSpec {
+  provider: KnownProvider
+  api: Api
+  baseUrl: (setting: Settings) => string
+  defaultModel: string
 }
 
-export type ProviderFn = (setting: Settings) => ProviderResult
+const SPECS: Record<Exclude<AiProviders, AiProviders.Ollama>, ProviderSpec> = {
+  [AiProviders.OpenAiGpt]: {
+    provider: 'openai',
+    // Every OpenAI model in pi-ai's own registry resolves through the
+    // Responses API, not Chat Completions — the legacy endpoint outright
+    // rejects function tools + reasoning_effort together on current models.
+    // xAI/Ollama stay on 'openai-completions': their APIs mimic the legacy
+    // Chat Completions shape and have no Responses-API equivalent.
+    api: 'openai-responses',
+    baseUrl: (s) => s.providers?.openaiBaseUrl ?? 'https://api.openai.com/v1',
+    defaultModel: 'gpt-5.6'
+  },
+  [AiProviders.AzureOpenAi]: {
+    provider: 'azure-openai-responses',
+    api: 'azure-openai-responses',
+    baseUrl: (s) => s.providers?.azureOpenAiEndpoint ?? '',
+    defaultModel: 'gpt-5.6'
+  },
+  [AiProviders.AnthropicClaude]: {
+    provider: 'anthropic',
+    api: 'anthropic-messages',
+    baseUrl: (s) =>
+      s.providers?.anthropicBaseUrl ?? 'https://api.anthropic.com',
+    defaultModel: 'claude-opus-5'
+  },
+  [AiProviders.GoogleGemini]: {
+    provider: 'google',
+    api: 'google-generative-ai',
+    baseUrl: (s) =>
+      s.providers?.googleGeminiBaseUrl ??
+      'https://generativelanguage.googleapis.com/v1beta',
+    defaultModel: 'gemini-3.1-pro-preview'
+  },
+  [AiProviders.XaiGrok]: {
+    provider: 'xai',
+    api: 'openai-completions',
+    baseUrl: (s) => s.providers?.xAiBaseUrl ?? 'https://api.x.ai/v1',
+    defaultModel: 'grok-4.6'
+  }
+}
+
+function fromSpec(spec: ProviderSpec): ProviderFn {
+  return (setting) => {
+    const baseUrl = spec.baseUrl(setting)
+    const id = setting.providerConfig?.model ?? spec.defaultModel
+    const snapshot = setting.providerConfig?.modelSnapshot ?? undefined
+    return resolveModel(spec.provider, id, baseUrl, spec.api, snapshot)
+  }
+}
 
 export const providers: Record<AiProviders, ProviderFn> = {
-  [AiProviders.AnthropicClaude]: getAnthropicClaude,
-  [AiProviders.AzureOpenAi]: getAzureOpenAi,
-  [AiProviders.GoogleGemini]: getGoogleGemini,
   [AiProviders.Ollama]: getOllama,
-  [AiProviders.OpenAiGpt]: getOpenAi,
-  [AiProviders.XaiGrok]: getXaiGrok
+  [AiProviders.OpenAiGpt]: fromSpec(SPECS[AiProviders.OpenAiGpt]),
+  [AiProviders.AzureOpenAi]: fromSpec(SPECS[AiProviders.AzureOpenAi]),
+  [AiProviders.AnthropicClaude]: fromSpec(SPECS[AiProviders.AnthropicClaude]),
+  [AiProviders.GoogleGemini]: fromSpec(SPECS[AiProviders.GoogleGemini]),
+  [AiProviders.XaiGrok]: fromSpec(SPECS[AiProviders.XaiGrok])
 }

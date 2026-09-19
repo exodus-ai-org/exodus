@@ -1,0 +1,46 @@
+{
+  "appName": "Exodus",
+  "action": {
+    "save": "Speichern",
+    "saving": "Wird gespeichert…",
+    "cancel": "Abbrechen",
+    "delete": "Löschen",
+    "close": "Schließen",
+    "retry": "Wiederholen",
+    "confirm": "Bestätigen",
+    "edit": "Bearbeiten",
+    "add": "Hinzufügen",
+    "create": "Erstellen",
+    "copy": "Kopieren"
+  },
+  "state": {
+    "loading": "Wird geladen…",
+    "local": "Lokal",
+    "runOnLocal": "Lokal ausführen",
+    "you": "Sie",
+    "copied": "Kopiert"
+  },
+  "nav": {
+    "settings": "Einstellungen"
+  },
+  "composer": {
+    "reasoning": "Reasoning",
+    "reasoningPill": "Reasoning: {{label}}",
+    "reasoningLevel": {
+      "off": "Aus",
+      "low": "Niedrig",
+      "medium": "Mittel",
+      "high": "Hoch",
+      "xhigh": "Sehr hoch",
+      "max": "Maximal"
+    }
+  },
+  "uploader": {
+    "dragDrop": "Dateien hierher ziehen",
+    "hint": "Oder klicken, um Dateien auszuwählen (max. 2 Dateien, je bis zu 5 MB)"
+  },
+  "clipboard": {
+    "failedTitle": "Kopieren fehlgeschlagen",
+    "genericError": "Bitte versuchen Sie es erneut!"
+  }
+}

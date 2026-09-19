@@ -1,4 +1,4 @@
-import { WebSearchResult } from '@shared/types/web-search'
+import { WebSearchResult } from '@exodus/shared/types/web-search'
 import { CheckIcon, CopyIcon } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import {
@@ -9,6 +9,7 @@ import {
   useContext,
   useMemo
 } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import 'katex/dist/katex.min.css'
 import ReactMarkdown from 'react-markdown'
@@ -89,13 +90,13 @@ const CitationChip = memo(function CitationChip({
           />
         }
       >
-        <Badge variant="secondary" className="ml-1 gap-1">
+        <Badge variant="secondary" className="ml-1 h-4 gap-1 px-1">
           <SourceFavicon
             link={source.link}
             favicon={source.favicon}
-            className="size-3.5"
+            className="size-3"
           />
-          <span className="max-w-28 truncate">{label}</span>
+          <span className="max-w-28 truncate text-[9px]">{label}</span>
         </Badge>
       </HoverCardTrigger>
       <HoverCardContent
@@ -169,25 +170,29 @@ function inlineReplaceCitations(
   return nodes
 }
 
+// Strip citation markers we can't resolve to a source — a bare "【1-source】"
+// in the prose reads as a rendering bug. Happens when the model cites but no
+// tool registered source N (cited from memory, an un-instrumented tool, or a
+// hallucinated index).
+const stripCitations = (s: string) =>
+  s.replace(citationGlobalRegex, '').replace(/ {2,}/g, ' ')
+
 function TextWithCitations({ children }: { children: ReactNode }) {
   const rankMap = useContext(WebSearchRankMapContext)
 
   return useMemo<ReactNode>(() => {
-    if (!rankMap) return <>{children}</>
+    const render = (text: string): ReactNode =>
+      rankMap ? inlineReplaceCitations(text, rankMap) : stripCitations(text)
 
     if (typeof children === 'string') {
       if (!citationDetectRegex.test(children)) return <>{children}</>
-      return <>{inlineReplaceCitations(children, rankMap)}</>
+      return <>{render(children)}</>
     }
 
     if (Array.isArray(children)) {
       const processed = children.map((child, i) => {
         if (typeof child === 'string' && citationDetectRegex.test(child)) {
-          return (
-            <Fragment key={i}>
-              {inlineReplaceCitations(child, rankMap)}
-            </Fragment>
-          )
+          return <Fragment key={i}>{render(child)}</Fragment>
         }
         return child
       })
@@ -221,7 +226,12 @@ const rehypePluginsStable: any[] = [rehypeKatex]
 const codeBlockStyle = {
   padding: '0.75rem',
   fontSize: '0.8125rem',
-  lineHeight: '1.5'
+  lineHeight: '1.5',
+  margin: 0,
+  // The outer `.markdown pre` already scrolls/caps height; keep this inner
+  // element from establishing its own competing scroll or clipping.
+  maxHeight: 'none',
+  overflow: 'visible'
 }
 
 export function Markdown({
@@ -231,6 +241,7 @@ export function Markdown({
   src: string
   webSearchResults?: WebSearchResult[]
 }) {
+  const { t } = useTranslation('common')
   const { copied, handleCopy } = useClipboard()
   const { resolvedTheme } = useTheme()
   // resolvedTheme is undefined on first paint until next-themes hydrates;
@@ -270,12 +281,12 @@ export function Markdown({
                     }}
                   >
                     <CopyIcon size={10} />
-                    Copy
+                    {t('action.copy')}
                   </button>
                 ) : (
                   <span className="hover:text-primary flex items-center gap-1.5">
                     <CheckIcon size={10} strokeWidth={2.5} />
-                    Copied
+                    {t('state.copied')}
                   </span>
                 )}
               </div>
@@ -355,7 +366,7 @@ export function Markdown({
         // on thead/tr below) carry the structure. Wider tables still scroll
         // horizontally via overflow-x-auto without the boxed-in feel.
         return (
-          <div className="my-4 overflow-x-auto text-sm leading-normal">
+          <div className="mb-[var(--md-gap)] overflow-x-auto text-[0.9375rem] leading-normal last:mb-0">
             <table {...rest} className={cn('w-full caption-bottom', className)}>
               {children}
             </table>
@@ -424,7 +435,7 @@ export function Markdown({
       //   return null
       // }
     }),
-    [copied, handleCopy, codeTheme]
+    [copied, handleCopy, codeTheme, t]
   )
 
   return (

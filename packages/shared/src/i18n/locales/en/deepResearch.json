@@ -1,0 +1,42 @@
+{
+  "form": {
+    "breadth": {
+      "label": "Breadth",
+      "description": "Generate multiple search queries to explore different aspects of your topic at each level. Default: 4."
+    },
+    "depth": {
+      "label": "Depth",
+      "description": "Recursively dive deeper, following leads and uncovering connections for each branch. Default: 2."
+    }
+  },
+  "tabs": {
+    "activity": "Activity",
+    "sources_one": "{{count}} Source",
+    "sources_other": "{{count}} Sources"
+  },
+  "messages": {
+    "start": {
+      "title": "Start deep researching...",
+      "description": "The deep research process may take a while. Feel free to chat with Exodus in other conversations. Exodus will notify you as soon as the final report is ready."
+    },
+    "learnings_one": "Deep researched {{count}} item from the previous web resources",
+    "learnings_other": "Deep researched {{count}} items from the previous web resources",
+    "queriesDeeper_one": "Generated {{count}} search query for the previous researches",
+    "queriesDeeper_other": "Generated {{count}} search queries for the previous researches",
+    "queriesForTopic_one": "Generated {{count}} search query for \"{{query}}\"",
+    "queriesForTopic_other": "Generated {{count}} search queries for \"{{query}}\"",
+    "searchedFor": "Searched for \"{{query}}\"",
+    "writingReport": {
+      "title": "Start writing final report...",
+      "description": "The deep research phase is completed. Your final report is being generated and will be presented shortly."
+    },
+    "complete": {
+      "title": "Completed deep research",
+      "description": "The in-depth report for \"{{query}}\" has been fully generated. Hope it's helpful to you!"
+    }
+  },
+  "sources": {
+    "citations": "Citations",
+    "more": "More"
+  }
+}

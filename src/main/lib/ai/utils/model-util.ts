@@ -1,7 +1,6 @@
+import { ConfigurationError, ErrorCode, NotFoundError } from '@exodus/shared'
+import { AiProviders } from '@exodus/shared/types/ai'
 import type { Model } from '@mariozechner/pi-ai'
-import { ErrorCode } from '@shared/constants/error-codes'
-import { ConfigurationError, NotFoundError } from '@shared/errors/app-error'
-import { AiProviders } from '@shared/types/ai'
 
 import { Settings } from '../../db/schema'
 import { providers } from '../providers'
@@ -38,8 +37,7 @@ export function getApiKeyFromSetting(setting: Settings): string {
 }
 
 export function getModelFromProvider(setting: Settings): {
-  chatModel: Model<string>
-  reasoningModel: Model<string>
+  model: Model<string>
   apiKey: string
 } {
   if (!('id' in setting)) {
@@ -50,28 +48,19 @@ export function getModelFromProvider(setting: Settings): {
   }
 
   if (!setting.providerConfig?.provider) {
-    throw new ConfigurationError(
-      ErrorCode.CONFIG_MISSING_PROVIDER,
-      'No AI provider selected. Please choose a provider in Settings → AI Providers.'
-    )
+    throw new ConfigurationError(ErrorCode.CONFIG_MISSING_PROVIDER)
   }
 
   const providerEnum = setting.providerConfig.provider as AiProviders
-  const provider = providers[providerEnum]
-  const models = provider(setting)
+  const model = providers[providerEnum](setting)
   const apiKey = getApiKeyFromSetting(setting)
 
   if (!apiKey) {
     const label = PROVIDER_API_KEY_LABELS[providerEnum] ?? providerEnum
-    throw new ConfigurationError(
-      ErrorCode.CONFIG_INVALID,
-      `${label} is not configured. Please add it in Settings → AI Providers before chatting.`
-    )
+    throw new ConfigurationError(ErrorCode.CONFIG_MISSING_API_KEY, undefined, {
+      label
+    })
   }
 
-  return {
-    chatModel: models.chatModel,
-    reasoningModel: models.reasoningModel,
-    apiKey
-  }
+  return { model, apiKey }
 }

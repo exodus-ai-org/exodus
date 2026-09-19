@@ -1,14 +1,27 @@
 import { AdvancedMarker, useMap } from '@vis.gl/react-google-maps'
-import { memo, useEffect, useMemo, useRef } from 'react'
+import {
+  createContext,
+  memo,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef
+} from 'react'
 
 import { useSettings } from '@/hooks/use-settings'
 import { cn } from '@/lib/utils'
 
 import { buildPlacePhotoUrl, type ItineraryPlace } from './types'
 
+/**
+ * Focused-place index, threaded past the memoized `<MapSurface>` / `<Map>` via
+ * context rather than props. A pin click / prev-next then re-renders only this
+ * layer — the map instance and `<APIProvider>` never see the change.
+ */
+export const FocusedPlaceContext = createContext<number | null>(null)
+
 type DayLayerProps = {
   places: ItineraryPlace[]
-  focusedIdx: number | null
   onMarkerClick: (idx: number) => void
 }
 
@@ -27,10 +40,23 @@ function computeRightPad(containerWidth: number): number {
  * numeric badge — click opens the detail overlay. Lives inside <Map>
  * because it needs the map instance from useMap().
  */
-export function DayLayer({ places, focusedIdx, onMarkerClick }: DayLayerProps) {
+export function DayLayer({ places, onMarkerClick }: DayLayerProps) {
   const map = useMap()
+  const focusedIdx = useContext(FocusedPlaceContext)
   const { data: settings } = useSettings()
   const apiKey = settings?.googleCloud?.googleApiKey
+
+  // Stable per-marker position objects + click handlers — otherwise every
+  // re-render of this layer (a pin focus change) hands `AdvancedMarker` fresh
+  // object/closure identities and churns its listeners and placement.
+  const positions = useMemo(
+    () => places.map((p) => ({ lat: p.lat, lng: p.lng })),
+    [places]
+  )
+  const clickHandlers = useMemo(
+    () => places.map((_, i) => () => onMarkerClick(i)),
+    [places, onMarkerClick]
+  )
 
   // After fitBounds re-positions the map to the padded left area, the panTo
   // effect would fire on the same commit (focusedIdx=0 on mount/day-switch)
@@ -96,8 +122,8 @@ export function DayLayer({ places, focusedIdx, onMarkerClick }: DayLayerProps) {
       {places.map((p, i) => (
         <AdvancedMarker
           key={`${p.lat}-${p.lng}-${i}`}
-          position={{ lat: p.lat, lng: p.lng }}
-          onClick={() => onMarkerClick(i)}
+          position={positions[i]}
+          onClick={clickHandlers[i]}
           zIndex={focusedIdx === i ? 100 : 10}
         >
           <ThumbnailPin

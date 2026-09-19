@@ -1,4 +1,6 @@
-import type { UseFormReturnType } from '@shared/schemas/settings-schema'
+import type { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
+import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
@@ -16,88 +18,103 @@ type BaseStyle =
   | 'cynical'
 type Level = 'default' | 'more' | 'less'
 
-const BASE_STYLES = [
-  { value: 'default', label: 'Default' },
-  { value: 'professional', label: 'Professional' },
-  { value: 'friendly', label: 'Friendly' },
-  { value: 'candid', label: 'Candid' },
-  { value: 'quirky', label: 'Quirky' },
-  { value: 'efficient', label: 'Efficient' },
-  { value: 'cynical', label: 'Cynical' }
-]
-
-const LEVELS = [
-  { value: 'default', label: 'Default' },
-  { value: 'more', label: 'More' },
-  { value: 'less', label: 'Less' }
-]
-
 export function Personality({ form }: { form: UseFormReturnType }) {
+  const { t } = useTranslation('settings')
   const baseStyle = form.watch('personality.baseStyle') ?? 'default'
   const warm = form.watch('personality.warm') ?? 'default'
   const enthusiastic = form.watch('personality.enthusiastic') ?? 'default'
   const headersAndLists = form.watch('personality.headersAndLists') ?? 'default'
   const emoji = form.watch('personality.emoji') ?? 'default'
 
+  const baseStyleOptions = useMemo(
+    () => [
+      { value: 'default', label: t('personality.baseStyle.options.default') },
+      {
+        value: 'professional',
+        label: t('personality.baseStyle.options.professional')
+      },
+      {
+        value: 'friendly',
+        label: t('personality.baseStyle.options.friendly')
+      },
+      { value: 'candid', label: t('personality.baseStyle.options.candid') },
+      { value: 'quirky', label: t('personality.baseStyle.options.quirky') },
+      {
+        value: 'efficient',
+        label: t('personality.baseStyle.options.efficient')
+      },
+      { value: 'cynical', label: t('personality.baseStyle.options.cynical') }
+    ],
+    [t]
+  )
+
+  const levelOptions = useMemo(
+    () => [
+      { value: 'default', label: t('personality.level.default') },
+      { value: 'more', label: t('personality.level.more') },
+      { value: 'less', label: t('personality.level.less') }
+    ],
+    [t]
+  )
+
   return (
     <SettingsSection>
       {/* Personalization */}
       <SettingsRow
-        label="Base style and tone"
-        description="Set the style and tone of how Exodus responds to you"
+        label={t('personality.baseStyle.label')}
+        description={t('personality.baseStyle.description')}
       >
         <SettingsSelect
           value={baseStyle}
           onValueChange={(v) =>
             form.setValue('personality.baseStyle', v as BaseStyle)
           }
-          options={BASE_STYLES}
+          options={baseStyleOptions}
         />
       </SettingsRow>
 
-      <SettingsRow label="Warm">
+      <SettingsRow label={t('personality.warm')}>
         <SettingsSelect
           value={warm}
           onValueChange={(v) => form.setValue('personality.warm', v as Level)}
-          options={LEVELS}
+          options={levelOptions}
         />
       </SettingsRow>
 
-      <SettingsRow label="Enthusiastic">
+      <SettingsRow label={t('personality.enthusiastic')}>
         <SettingsSelect
           value={enthusiastic}
           onValueChange={(v) =>
             form.setValue('personality.enthusiastic', v as Level)
           }
-          options={LEVELS}
+          options={levelOptions}
         />
       </SettingsRow>
 
-      <SettingsRow label="Headers & Lists">
+      <SettingsRow label={t('personality.headersAndLists')}>
         <SettingsSelect
           value={headersAndLists}
           onValueChange={(v) =>
             form.setValue('personality.headersAndLists', v as Level)
           }
-          options={LEVELS}
+          options={levelOptions}
         />
       </SettingsRow>
 
-      <SettingsRow label="Emoji">
+      <SettingsRow label={t('personality.emoji')}>
         <SettingsSelect
           value={emoji}
           onValueChange={(v) => form.setValue('personality.emoji', v as Level)}
-          options={LEVELS}
+          options={levelOptions}
         />
       </SettingsRow>
 
       <SettingsRow
-        label="Custom instructions"
-        description="Additional behavior, style, and tone preferences"
+        label={t('personality.customInstructions.label')}
         layout="vertical"
       >
         <Textarea
-          placeholder="Additional behavior, style, and tone preferences"
+          placeholder={t('personality.customInstructions.placeholder')}
           className="min-h-20"
           value={form.watch('personality.customInstructions') ?? ''}
           onChange={(e) =>
@@ -107,9 +124,9 @@ export function Personality({ form }: { form: UseFormReturnType }) {
       </SettingsRow>
 
       {/* About you */}
-      <SettingsRow label="Nickname" layout="vertical">
+      <SettingsRow label={t('personality.nickname.label')} layout="vertical">
         <Input
-          placeholder="What should Exodus call you?"
+          placeholder={t('personality.nickname.placeholder')}
           value={form.watch('personality.nickname') ?? ''}
           onChange={(e) =>
             form.setValue('personality.nickname', e.target.value)
@@ -117,9 +134,9 @@ export function Personality({ form }: { form: UseFormReturnType }) {
         />
       </SettingsRow>
 
-      <SettingsRow label="Occupation" layout="vertical">
+      <SettingsRow label={t('personality.occupation.label')} layout="vertical">
         <Input
-          placeholder="e.g., Software engineer, Designer"
+          placeholder={t('personality.occupation.placeholder')}
           value={form.watch('personality.occupation') ?? ''}
           onChange={(e) =>
             form.setValue('personality.occupation', e.target.value)
@@ -127,9 +144,9 @@ export function Personality({ form }: { form: UseFormReturnType }) {
         />
       </SettingsRow>
 
-      <SettingsRow label="More about you" layout="vertical">
+      <SettingsRow label={t('personality.aboutYou.label')} layout="vertical">
         <Textarea
-          placeholder="Interests, values, or preferences to keep in mind"
+          placeholder={t('personality.aboutYou.placeholder')}
           className="min-h-[80px]"
           value={form.watch('personality.aboutYou') ?? ''}
           onChange={(e) =>

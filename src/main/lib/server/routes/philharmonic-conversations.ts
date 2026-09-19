@@ -1,5 +1,3 @@
-// src/main/lib/server/routes/philharmonic-conversations.ts
-import type { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import { z } from 'zod'
 
@@ -19,7 +17,10 @@ import {
 import { getPhilharmonicCostRows } from '../../db/philharmonic-queries'
 import { getActivePlanByConversationId } from '../../db/plan-queries'
 import { logger } from '../../logger'
+// src/main/lib/server/routes/philharmonic-conversations.ts
+import type { Variables } from '../types'
 import {
+  deletionSuccessResponse,
   getRequiredParam,
   handleDatabaseOperation,
   successResponse,
@@ -140,7 +141,7 @@ router.delete('/conversations/:id', async (c) => {
     () => deleteConversation(id),
     'Failed to delete conversation'
   )
-  return c.text('Conversation deleted', 200)
+  return deletionSuccessResponse(c, 'Conversation')
 })
 
 router.put('/conversations/:id', async (c) => {

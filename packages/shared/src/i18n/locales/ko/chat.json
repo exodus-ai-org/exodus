@@ -1,0 +1,258 @@
+{
+  "imageGeneration": {
+    "status": {
+      "queued": "생성 대기 중",
+      "generating": "이미지 생성 중",
+      "refining": "세부 사항 다듬는 중",
+      "complete": "이미지 준비 완료",
+      "error": "생성 실패"
+    },
+    "retry": "다시 시도",
+    "generatedImageAlt": "생성된 이미지"
+  },
+  "composer": {
+    "placeholder": "무엇이든 물어보세요",
+    "pleaseWaitTitle": "잠시만 기다려 주세요",
+    "pleaseWaitDescription": "모델이 아직 응답을 생성하고 있습니다.",
+    "stop": "중지",
+    "send": "전송"
+  },
+  "composerTools": {
+    "attachFiles": "파일 첨부",
+    "mcpTools": "MCP 도구",
+    "mcpDialog": {
+      "title": "사용 가능한 MCP 도구",
+      "description": "활성화된 MCP 서버가 제공하는 도구입니다. <strong>설정 > MCP 서버</strong>에서 서버를 관리하세요.",
+      "noDescription": "{{name}}에 대한 설명이 없습니다."
+    }
+  },
+  "advancedTools": {
+    "deepResearch": "심층 조사"
+  },
+  "messageList": {
+    "greetingTitle": "안녕하세요!",
+    "greetingSubtitle": "무엇을 도와드릴까요?",
+    "attachmentAlt": "첨부 파일",
+    "scrollToBottom": "맨 아래로 스크롤"
+  },
+  "toolPreview": {
+    "mapItineraryDayCount_other": "{{count}}일",
+    "mapItineraryStopCount_other": "{{count}}개 경유지",
+    "mapItinerarySummary": "{{days}}, {{stops}}",
+    "toolFailed": "{{tool}} 실패",
+    "webSearchResultCount_other": "결과 {{count}}건"
+  },
+  "toolFailedToast": {
+    "title": "도구 실패: {{tool}}"
+  },
+  "messageAction": {
+    "copy": "복사",
+    "regenerate": "다시 생성",
+    "sources": "출처"
+  },
+  "thinkingTimeline": {
+    "thinking": "생각 중…",
+    "working": "작업 중…",
+    "thought": "생각함",
+    "worked": "작업함",
+    "done": "완료",
+    "thoughtFor": "{{duration}} 동안 {{verb}}",
+    "durationSeconds_other": "{{count}}초",
+    "durationMinutes": "{{minutes}}분",
+    "durationMinutesSeconds": "{{minutes}}분 {{seconds}}초",
+    "searchResultCount_other": "검색 결과 {{count}}건"
+  },
+  "toc": {
+    "fallbackLabel": "메시지"
+  },
+  "toast": {
+    "chatUpdated": "채팅이 업데이트되었습니다",
+    "chatDeleted": "채팅이 삭제되었습니다",
+    "sendFailedTitle": "문제가 발생했습니다",
+    "sendFailedDescription": "오류가 발생했습니다. 다시 시도해 주세요!",
+    "responseReadyTitle": "응답이 준비되었습니다",
+    "chatFallbackTitle": "채팅",
+    "viewButton": "보기",
+    "chatFailedTitle": "채팅 실패",
+    "genericErrorFallback": "오류가 발생했습니다",
+    "headsUpTitle": "알림"
+  },
+  "lcm": {
+    "compacting": "대화 기록 압축 중…",
+    "compactedSummary_other": "메시지 {{count}}개 압축 · 약 {{tokens}} 토큰 절약",
+    "compactionFailed": "압축 실패 (다음 턴에 재시도합니다)"
+  },
+  "upload": {
+    "failedTitle": "업로드 실패",
+    "failedDescription": "파일을 업로드하지 못했습니다."
+  },
+  "artifactCard": {
+    "cannotOpenTitle": "아티팩트 파일을 열 수 없음",
+    "missingFileDescription": "저장된 .tsx 파일이 없습니다 — 이동되었거나 삭제되었을 수 있습니다.",
+    "resolveFailedDescription": "아티팩트 경로를 확인할 수 없습니다.",
+    "revealAriaLabel": "파일 관리자에서 {{title}} 표시",
+    "revealTitle": "파일 관리자에서 표시",
+    "exitFullscreen": "전체 화면 종료",
+    "enterFullscreen": "전체 화면으로 보기",
+    "exitFullscreenEsc": "전체 화면 종료 (Esc)",
+    "fullscreen": "전체 화면"
+  },
+  "computerUseCard": {
+    "title": "Computer Use",
+    "stopFailedTitle": "세션을 중지할 수 없습니다",
+    "stopFailedDescription": "중지 요청이 실패했습니다 — 다시 시도해 주세요.",
+    "answerFailedTitle": "답변을 보낼 수 없습니다",
+    "answerFailedDescription": "요청이 실패했습니다 — 다시 시도해 주세요.",
+    "error": "오류",
+    "running": "실행 중…",
+    "outcome": {
+      "success": "성공",
+      "failed": "실패",
+      "aborted": "중단됨",
+      "abandoned": "포기됨",
+      "stuck": "막힘"
+    },
+    "stepBadge": "{{step}}단계",
+    "stepWithAction": "{{step}}단계: {{action}}",
+    "stepNoAction": "{{step}}단계: …",
+    "targetWindowAlt": "{{step}}단계의 대상 윈도우",
+    "replyPlaceholder": "답장을 입력하거나, 완료되었으면 비워 두세요",
+    "doneContinue": "완료 — 계속",
+    "waitingForReply": "세션이 답장을 받을 준비가 되기를 기다리는 중…",
+    "stop": "중지",
+    "session": "세션: {{sessionId}}"
+  },
+  "deepResearchCard": {
+    "researching": "심층 조사 중...",
+    "completedSummary_other": "{{minutes}}분 만에 조사 완료 · 출처 {{count}}건",
+    "exportAriaLabel": "PDF로 내보내기",
+    "downloadPdfTooltip": "PDF 다운로드",
+    "exportFailedTitle": "내보내기 실패",
+    "exportFailedDescription": "PDF 보고서를 생성하지 못했습니다.",
+    "unknownSource": "[{{rank}}] 알 수 없는 출처",
+    "referencesHeading": "참고 자료"
+  },
+  "drawioCard": {
+    "noSource": "Draw.io 도구가 다이어그램 소스를 반환하지 않았습니다.",
+    "iframeTitle": "draw.io 다이어그램",
+    "openInDrawio": "draw.io에서 열기",
+    "loadFailed": "draw.io 편집기를 불러오지 못했습니다"
+  },
+  "genericToolCard": {
+    "fallbackLabel": "도구",
+    "badge": "도구"
+  },
+  "mapItineraryCard": {
+    "missingApiKey": "여행 지도를 표시하려면 설정 → Google Cloud에서 Google API 키를 추가하세요.",
+    "tabsAriaLabel": "여행 일정",
+    "openRouteTitle": "Google 지도에서 경로 열기",
+    "copyMarkdownTitle": "해당 날짜를 마크다운으로 복사"
+  },
+  "placeDetail": {
+    "goToPhotoAriaLabel": "사진 {{index}}로 이동",
+    "closeAriaLabel": "상세 패널 닫기",
+    "open": "영업 중",
+    "closed": "영업 종료",
+    "tabsAriaLabel": "장소 섹션",
+    "tabOverview": "개요",
+    "tabReviews": "리뷰",
+    "tabHours": "영업시간",
+    "notes": "메모",
+    "anonymousReviewer": "익명",
+    "previousAriaLabel": "이전 장소",
+    "nextAriaLabel": "다음 장소",
+    "pagination": "{{total}} 중 {{index}}"
+  },
+  "terminalCard": {
+    "exitCode": "종료 코드 {{code}}",
+    "noOutput": "출력 없음"
+  },
+  "weatherCard": {
+    "today": "오늘",
+    "tomorrow": "내일",
+    "feels": "체감 {{temp}}° · {{observedAt}}",
+    "humidity": "습도",
+    "precip": "강수",
+    "visibility": "가시거리",
+    "uvIndex": "자외선 지수"
+  },
+  "weatherForecast": {
+    "temperatureRange": "🌡️ 기온 범위",
+    "cold": "❄️ 최저",
+    "hot": "🔥 최고",
+    "sunrise": "일출",
+    "sunset": "일몰"
+  },
+  "sourcesPanel": {
+    "title_other": "출처 {{count}}개",
+    "citations": "인용 ({{count}})",
+    "more": "더 보기"
+  },
+  "sidebar": {
+    "newChat": "새 채팅",
+    "searchChats": "채팅 검색",
+    "history": {
+      "empty": "대화를 시작하면 여기에 표시됩니다!",
+      "favoriteAction": "즐겨찾기 추가",
+      "unfavorite": "즐겨찾기 해제",
+      "favoritesGroup": "즐겨찾기",
+      "chats": "채팅",
+      "more": "더 보기",
+      "rename": "이름 바꾸기"
+    },
+    "projects": {
+      "title": "프로젝트",
+      "newProject": "새 프로젝트",
+      "editProject": "프로젝트 편집",
+      "createTitle": "프로젝트 만들기",
+      "namePlaceholder": "프로젝트 이름",
+      "deleteTitle": "프로젝트를 삭제하시겠습니까?",
+      "deleteDescription": "\"{{name}}\" 및 관련된 모든 채팅이 영구적으로 삭제됩니다. 이 작업은 되돌릴 수 없습니다."
+    },
+    "renameDialog": {
+      "title": "채팅 이름 바꾸기",
+      "submit": "제출"
+    },
+    "deleteDialog": {
+      "title": "채팅을 삭제하시겠습니까?",
+      "description": "<strong>{{title}}</strong>이(가) 삭제됩니다."
+    },
+    "search": {
+      "placeholder": "채팅 검색...",
+      "ariaLabel": "채팅 메시지 검색",
+      "noContents": "내용 없음"
+    }
+  },
+  "projectDetail": {
+    "namePlaceholder": "프로젝트 이름",
+    "descriptionPlaceholder": "설명 추가...",
+    "saveChanges": "변경 사항 저장",
+    "tabs": {
+      "chats": "채팅 ({{count}})",
+      "instructions": "지침",
+      "knowledgeComingSoon": "지식 (2단계)"
+    },
+    "newChatButton": "프로젝트에서 새 채팅",
+    "emptyChats": "아직 이 프로젝트에 채팅이 없습니다. 새 채팅을 시작해 보세요.",
+    "customInstructionsLabel": "사용자 지정 지침",
+    "instructionsPlaceholder": "이 프로젝트에서 AI가 어떻게 행동해야 하는지 알려주세요...",
+    "useStructuredLabel": "구조화된 지침 사용",
+    "structuredFields": {
+      "role": "역할",
+      "tone": "어조",
+      "responseFormat": "응답 형식",
+      "constraints": "제약 조건"
+    },
+    "structuredPlaceholders": {
+      "role": "예: 시니어 엔지니어, 작문 튜터",
+      "tone": "예: 격식체, 캐주얼, 기술적",
+      "responseFormat": "예: 글머리 기호, 상세한 문단",
+      "constraints": "예: 응답을 200단어 이내로 유지"
+    },
+    "toast": {
+      "createdTitle": "프로젝트가 생성되었습니다",
+      "updatedTitle": "프로젝트가 업데이트되었습니다",
+      "deletedTitle": "프로젝트가 삭제되었습니다"
+    }
+  }
+}

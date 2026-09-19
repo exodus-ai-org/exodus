@@ -1,5 +1,12 @@
-import type { ChatMessage, ChatSseEvent, ChatStatus } from '@shared/types/chat'
+import type {
+  ChatMessage,
+  ChatSseEvent,
+  ChatStatus,
+  ToolNoticeLevel
+} from '@exodus/shared/types/chat'
 import { sileo } from 'sileo'
+
+import { i18n } from '@/lib/i18n'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -18,6 +25,9 @@ interface ActiveStream {
   status: ChatStatus
   messages: ChatMessage[]
   subscriber: StreamSubscriber | null
+  // Tool notices already toasted this turn — a 12-stop itinerary hitting the
+  // same expired key toasts once, not per place.
+  seenNotices: Set<string>
 }
 
 // ── Singleton state ──────────────────────────────────────────────────────────
@@ -28,10 +38,10 @@ const streams = new Map<string, ActiveStream>()
 
 function notifyCompletion(chatId: string, title: string) {
   sileo.success({
-    title: 'Response ready',
-    description: title || 'Chat',
+    title: i18n.t('chat:toast.responseReadyTitle'),
+    description: title || i18n.t('chat:toast.chatFallbackTitle'),
     button: {
-      title: 'View',
+      title: i18n.t('chat:toast.viewButton'),
       onClick: () => {
         window.location.hash = `#/chat/${chatId}`
       }
@@ -41,15 +51,37 @@ function notifyCompletion(chatId: string, title: string) {
 
 function notifyError(chatId: string, title: string, error: Error) {
   sileo.error({
-    title: 'Chat failed',
-    description: error.message || title || 'An error occurred',
+    title: i18n.t('chat:toast.chatFailedTitle'),
+    description:
+      error.message || title || i18n.t('chat:toast.genericErrorFallback'),
     button: {
-      title: 'View',
+      title: i18n.t('chat:toast.viewButton'),
       onClick: () => {
         window.location.hash = `#/chat/${chatId}`
       }
     }
   })
+}
+
+function notifyNotice(
+  stream: ActiveStream,
+  level: ToolNoticeLevel,
+  message: string
+) {
+  const key = `${level}:${message}`
+  if (stream.seenNotices.has(key)) return
+  stream.seenNotices.add(key)
+  if (level === 'info') {
+    sileo.info({
+      title: i18n.t('chat:toast.headsUpTitle'),
+      description: message
+    })
+  } else {
+    sileo.warning({
+      title: i18n.t('chat:toast.headsUpTitle'),
+      description: message
+    })
+  }
 }
 
 // ── SSE parsing ──────────────────────────────────────────────────────────────
@@ -59,22 +91,31 @@ async function consumeStream(stream: ActiveStream, response: Response) {
   const decoder = new TextDecoder()
   let buffer = ''
 
-  while (true) {
-    const { done, value } = await reader.read()
-    if (done) break
+  try {
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
 
-    buffer += decoder.decode(value, { stream: true })
-    const lines = buffer.split('\n')
-    buffer = lines.pop() ?? ''
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() ?? ''
 
-    for (const line of lines) {
-      if (!line.startsWith('data: ')) continue
-      const jsonStr = line.slice(6).trim()
-      if (!jsonStr) continue
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue
+        const jsonStr = line.slice(6).trim()
+        if (!jsonStr) continue
 
-      try {
-        const event = JSON.parse(jsonStr) as ChatSseEvent
+        let event: ChatSseEvent
+        try {
+          event = JSON.parse(jsonStr) as ChatSseEvent
+        } catch {
+          // Skip malformed SSE frames
+          continue
+        }
 
+        // Event handling lives outside the parse try/catch: an `error` frame
+        // must propagate to `startStream`'s catch (→ toast / onError), not be
+        // mistaken for a malformed frame and swallowed.
         if (event.type === 'message_update') {
           const updatedMsg = event.message
           const idx = stream.messages.findIndex((m) => m.id === updatedMsg.id)
@@ -96,13 +137,17 @@ async function consumeStream(stream: ActiveStream, response: Response) {
         } else if (event.type === 'title') {
           stream.chatTitle = event.title
           stream.subscriber?.onTitle(event.title)
+        } else if (event.type === 'notice') {
+          notifyNotice(stream, event.level, event.message)
         } else if (event.type === 'error') {
           throw new Error(event.error)
         }
-      } catch {
-        // Skip malformed SSE frames
       }
     }
+  } finally {
+    // Release the connection whether we finished cleanly or bailed out on an
+    // `error` frame.
+    reader.cancel().catch(() => {})
   }
 }
 
@@ -126,7 +171,8 @@ export function startStream(opts: {
     abortController,
     status: 'submitted',
     messages: opts.initialMessages,
-    subscriber: opts.subscriber
+    subscriber: opts.subscriber,
+    seenNotices: new Set()
   }
   streams.set(opts.chatId, stream)
   opts.subscriber.onStatus('submitted')

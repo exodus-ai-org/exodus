@@ -1,5 +1,5 @@
+import type { DiscoverGroup } from '@exodus/shared/types/discover'
 import { completeSimple } from '@mariozechner/pi-ai'
-import type { DiscoverGroup } from '@shared/types/discover'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 
@@ -19,11 +19,16 @@ import { searchBraveNews } from './brave-news-client'
 
 const STALE_AFTER_MS = 20 * 60 * 60 * 1000 // ~20h
 
-const DISCOVER_QUERY_SYSTEM = `You turn a user's personal memory entries into news-search queries.
+const DISCOVER_QUERY_SYSTEM = `You turn a user's personal memory entries into news-search queries for a "what's new" feed that refreshes daily.
 
-For each memory given, decide:
-- If it could plausibly have relevant, genuinely newsworthy developments (a company/stock, a sports team, a public figure, an ongoing situation, a product category) — write ONE concise, high-signal news search query for it, and a short topic label (2-4 words) for display.
-- If it's a personal habit, preference, skill practice, or private/local detail with no news angle (e.g. language-study progress, home-network configuration, a personal preference) — set "query" to null.
+For each memory, find the BROAD ONGOING SUBJECT behind it — the franchise, company, field, product line, team, or person the user follows — and write ONE news query for that subject, plus a 2-4 word topic label for display.
+
+Pitch the query so it keeps returning fresh, different stories week after week. Test it: "would this return genuinely new results a month from now?"
+- Good: "The Legend of Zelda series news", "Nvidia AI data center news", "semiconductor industry news", "Formula 1 news"
+- Bad — a specific release, product, event, or settled fact: "Zelda Switch 2 preorder date", "RTX 5090 price", "iPhone 17 review". Those have fixed answers; they are not news.
+- Never put "release date", "price", "preorder", "specs", "review", "how to", "vs", or "guide" in a query.
+
+If the memory has no news angle — a personal habit, a skill they practice, a local or private setup, a plain preference (language-study progress, home-network configuration) — set "query" to null.
 
 Return ONLY JSON matching this shape, one entry per memory given, in the same order:
 {"items":[{"memoryId":"<id>","topic":"<short label>","query":"<search query>"},{"memoryId":"<id>","topic":"<short label>","query":null}]}`
@@ -84,10 +89,10 @@ export async function runDiscoverRefresh(
       return
     }
 
-    const { chatModel, apiKey } = getModelFromProvider(settings)
+    const { model, apiKey } = getModelFromProvider(settings)
     const prompt = `Memories:\n${candidates.map(formatMemoryForPrompt).join('\n')}`
     const result = await completeSimple(
-      chatModel,
+      model,
       {
         systemPrompt: DISCOVER_QUERY_SYSTEM,
         messages: [

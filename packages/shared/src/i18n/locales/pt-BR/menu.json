@@ -1,0 +1,19 @@
+{
+  "file": "Arquivo",
+  "lockNow": "Bloquear Agora",
+  "edit": "Editar",
+  "find": "Localizar",
+  "speech": "Fala",
+  "view": "Visualizar",
+  "window": "Janela",
+  "learnMore": "Saiba Mais",
+  "tray": {
+    "showApp": "Mostrar Aplicativo",
+    "hideApp": "Ocultar Aplicativo",
+    "quitExodus": "Sair do Exodus"
+  },
+  "notification": {
+    "philharmonicGroupError": "O grupo \"{{title}}\" encontrou um erro",
+    "philharmonicGroupFinished": "O grupo \"{{title}}\" foi concluído"
+  }
+}

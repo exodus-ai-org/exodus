@@ -1,6 +1,7 @@
 import { LoaderIcon, UploadCloudIcon } from 'lucide-react'
 import { useCallback } from 'react'
 import { useDropzone } from 'react-dropzone'
+import { useTranslation } from 'react-i18next'
 
 import { cn } from '@/lib/utils'
 
@@ -15,6 +16,7 @@ export function Uploader({
   accept?: string
   onChange: (files: File[]) => Promise<void>
 }) {
+  const { t } = useTranslation('common')
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
       onChange(acceptedFiles)
@@ -41,10 +43,8 @@ export function Uploader({
         <div className="flex items-center justify-center rounded-full border p-2.5">
           <UploadCloudIcon className="text-muted-foreground" />
         </div>
-        <p className="text-sm font-medium">Drag &amp; drop files here</p>
-        <p className="text-muted-foreground text-xs">
-          Or click to browse (max 2 files, up to 5MB each)
-        </p>
+        <p className="text-sm font-medium">{t('uploader.dragDrop')}</p>
+        <p className="text-muted-foreground text-xs">{t('uploader.hint')}</p>
       </div>
       {loading && (
         <div className="bg-accent/80 absolute top-0 left-0 z-10 flex h-full w-full items-center justify-center">

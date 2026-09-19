@@ -1,8 +1,10 @@
-import { AdvancedTools } from '@shared/types/ai'
-import { Attachment, ChatTab } from '@shared/types/chat'
-import { Chat, DeepResearchMessage } from '@shared/types/db'
-import { WebSearchResult } from '@shared/types/web-search'
+import type { EffortLevel } from '@exodus/shared/schemas/settings-schema'
+import { AdvancedTools } from '@exodus/shared/types/ai'
+import { Attachment, ChatTab } from '@exodus/shared/types/chat'
+import { WebSearchResult } from '@exodus/shared/types/web-search'
 import { atom } from 'jotai'
+
+import { Chat, DeepResearchMessage } from '@/types/db'
 
 export type { ChatTab }
 export const openTabsAtom = atom<ChatTab[]>([])
@@ -26,6 +28,8 @@ export const renamedChatTitleAtom = atom({
 export const attachmentAtom = atom<Attachment[] | undefined>(undefined)
 
 export const advancedToolsAtom = atom<AdvancedTools[]>([])
+
+export const reasoningEffortAtom = atom<EffortLevel>('off')
 
 export const sourcesPanelAtom = atom<{
   webSearchResults: WebSearchResult[]

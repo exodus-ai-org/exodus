@@ -14,17 +14,22 @@ test.describe('Settings API', () => {
     const { status } = await api.updateSettings({
       providerConfig: {
         provider: 'openai',
-        chatModel: 'gpt-4.1-mini',
-        reasoningModel: 'o4-mini'
+        model: 'gpt-4.1-mini',
+        modelSnapshot: {
+          contextWindow: 1_047_576,
+          maxOutputTokens: 32_768,
+          reasoningLevels: [],
+          cost: { input: 0.4, output: 1.6 }
+        }
       }
     })
     expect(status).toBe(200)
 
     // Verify persistence
     const { data } = await api.getSettings()
-    const config = data.providerConfig as Record<string, string>
+    const config = data.providerConfig as Record<string, unknown>
     expect(config.provider).toBe('openai')
-    expect(config.chatModel).toBe('gpt-4.1-mini')
+    expect(config.model).toBe('gpt-4.1-mini')
   })
 
   test('POST /api/settings writes API keys', async ({ api }) => {

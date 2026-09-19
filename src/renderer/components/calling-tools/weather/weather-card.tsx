@@ -1,7 +1,9 @@
-import { WeatherResult, WWO_CODE } from '@shared/types/weather'
+import { WeatherResult, WWO_CODE } from '@exodus/shared/types/weather'
 import { domAnimation, LazyMotion, m } from 'framer-motion'
+import { useTranslation } from 'react-i18next'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { i18n } from '@/lib/i18n'
 
 import { WeatherForecast } from './weather-forecast'
 
@@ -193,14 +195,22 @@ function StatPill({
 
 // ── main component ────────────────────────────────────────────────────────────
 
+/**
+ * A plain helper (not a component or hook) — translated text for 'Today'/
+ * 'Tmr' uses the shared `i18n` singleton directly rather than
+ * `useTranslation()`. The 'en'-hardcoded `toLocaleDateString` fallback
+ * below is a separate, deliberately out-of-scope locale-formatting gap —
+ * see this plan's Global Constraints — left untouched.
+ */
 function formatTabLabel(dateStr: string, i: number) {
-  if (i === 0) return 'Today'
-  if (i === 1) return 'Tmr'
+  if (i === 0) return i18n.t('chat:weatherCard.today')
+  if (i === 1) return i18n.t('chat:weatherCard.tomorrow')
   const d = new Date(dateStr)
   return d.toLocaleDateString('en', { weekday: 'short' })
 }
 
 export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
+  const { t } = useTranslation('chat')
   const { location, current, forecast } = toolResult
   const weatherType =
     WWO_CODE[current.weatherCode as keyof typeof WWO_CODE] ?? 'Cloudy'
@@ -208,7 +218,7 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
 
   return (
     <LazyMotion features={domAnimation}>
-      <div className="w-full max-w-xs overflow-hidden rounded-3xl shadow-2xl">
+      <div className="light:shadow-2xl w-full max-w-xs overflow-hidden rounded-3xl dark:border">
         {/* ── hero ── */}
         <div className="relative" style={{ background: theme.gradient }}>
           {theme.particles === 'rain' && <RainOverlay />}
@@ -235,7 +245,10 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
                   {current.condition}
                 </p>
                 <p className="mt-0.5 text-xs text-white/55">
-                  Feels {current.feelsLikeC}° · {current.observedAt}
+                  {t('weatherCard.feels', {
+                    temp: current.feelsLikeC,
+                    observedAt: current.observedAt
+                  })}
                 </p>
               </m.div>
 
@@ -257,7 +270,7 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
               <StatPill
                 emoji="💧"
                 value={`${current.humidity}%`}
-                label="Humidity"
+                label={t('weatherCard.humidity')}
               />
               <StatPill
                 emoji="💨"
@@ -267,14 +280,18 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
               <StatPill
                 emoji="☔"
                 value={`${current.precipMM}mm`}
-                label="Precip"
+                label={t('weatherCard.precip')}
               />
               <StatPill
                 emoji="👁"
                 value={`${current.visibility} km`}
-                label="Visibility"
+                label={t('weatherCard.visibility')}
               />
-              <StatPill emoji="🔆" value={current.uvIndex} label="UV Index" />
+              <StatPill
+                emoji="🔆"
+                value={current.uvIndex}
+                label={t('weatherCard.uvIndex')}
+              />
               <StatPill emoji="📊" value={`${current.pressure}`} label="hPa" />
             </div>
           </div>

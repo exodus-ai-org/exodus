@@ -1,4 +1,8 @@
-import { AppError, isAppError, toAppError } from '@shared/errors/app-error'
+import {
+  AppError,
+  isAppError,
+  toAppError
+} from '@exodus/shared/errors/app-error'
 import { Context } from 'hono'
 
 import { logger } from '../../logger'

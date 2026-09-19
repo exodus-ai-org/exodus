@@ -1,0 +1,38 @@
+{
+  "form": {
+    "breadth": {
+      "label": "폭",
+      "description": "각 단계에서 주제의 다양한 측면을 탐색하기 위해 여러 검색어를 생성합니다. 기본값: 4."
+    },
+    "depth": {
+      "label": "깊이",
+      "description": "각 갈래에서 단서를 따라가며 연결점을 재귀적으로 더 깊이 파고듭니다. 기본값: 2."
+    }
+  },
+  "tabs": {
+    "activity": "활동",
+    "sources_other": "출처 {{count}}건"
+  },
+  "messages": {
+    "start": {
+      "title": "심층 조사를 시작합니다...",
+      "description": "심층 조사 과정은 다소 시간이 걸릴 수 있습니다. 그동안 다른 대화에서 편하게 Exodus와 채팅하세요. 최종 보고서가 준비되면 바로 알려드리겠습니다."
+    },
+    "learnings_other": "이전 웹 자료에서 {{count}}개 항목을 심층 조사했습니다",
+    "queriesDeeper_other": "이전 조사를 위한 검색어 {{count}}개를 생성했습니다",
+    "queriesForTopic_other": "\"{{query}}\"에 대한 검색어 {{count}}개를 생성했습니다",
+    "searchedFor": "\"{{query}}\" 검색함",
+    "writingReport": {
+      "title": "최종 보고서 작성을 시작합니다...",
+      "description": "심층 조사 단계가 완료되었습니다. 최종 보고서를 생성 중이며 곧 제공됩니다."
+    },
+    "complete": {
+      "title": "심층 조사 완료",
+      "description": "\"{{query}}\"에 대한 심층 보고서 작성이 완료되었습니다. 도움이 되었으면 좋겠습니다!"
+    }
+  },
+  "sources": {
+    "citations": "인용",
+    "more": "더 보기"
+  }
+}

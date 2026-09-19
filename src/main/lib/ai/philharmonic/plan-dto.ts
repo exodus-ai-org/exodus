@@ -1,5 +1,5 @@
 // src/main/lib/ai/philharmonic/plan-dto.ts
-import type { PlanDto, StepDto } from '@shared/types/philharmonic'
+import type { PlanDto, StepDto } from '@exodus/shared/types/philharmonic'
 
 import type { ConversationPlan, PlanStep } from '../../db/schema'
 

@@ -1,12 +1,9 @@
-import { join } from 'path'
-import { cwd } from 'process'
-
-import { is } from '@electron-toolkit/utils'
 import { migrate } from 'drizzle-orm/pglite/migrator'
 import { Notification } from 'electron'
 
 import { QUEUE_NAMES } from '../jobs/types'
 import { logger } from '../logger'
+import { getResourcePath } from '../paths'
 import { db, pglite } from './db'
 
 export const runMigrate = async () => {
@@ -18,20 +15,18 @@ export const runMigrate = async () => {
     // pg_trgm backs the message search index (gin_trgm_ops) — must exist
     // before the migration that creates that index runs.
     await pglite.exec('CREATE EXTENSION IF NOT EXISTS pg_trgm;')
-    await migrate(db, {
-      migrationsFolder: is.dev
-        ? join(cwd(), './resources/drizzle')
-        : join(
-            process.resourcesPath,
-            'app.asar.unpacked',
-            'resources',
-            'drizzle'
-          )
-    })
+    // getResourcePath('drizzle') resolves to <repo>/resources/drizzle in dev
+    // and Contents/Resources/resources/drizzle in a packaged build (see
+    // paths.ts) — replaces universal-client's electron-builder-specific
+    // `app.asar.unpacked` path, which doesn't apply to forge's packaging.
+    await migrate(db, { migrationsFolder: getResourcePath('drizzle') })
 
     // Idempotent column additions for columns that may have been missed by the migrator
     await pglite.exec(
       `ALTER TABLE "task" ADD COLUMN IF NOT EXISTS "lastRunStatus" varchar;`
+    )
+    await pglite.exec(
+      `ALTER TABLE "settings" ADD COLUMN IF NOT EXISTS "language" text DEFAULT 'auto';`
     )
 
     // Job-queue setup runs AFTER the Drizzle migrations on purpose. No
@@ -59,6 +54,11 @@ export const runMigrate = async () => {
       durationMs: end - start
     })
   } catch (error) {
+    logger.error('migration', 'Migration failed', {
+      error: String(error),
+      cause: error instanceof Error ? String(error.cause) : undefined,
+      stack: error instanceof Error ? error.stack : undefined
+    })
     new Notification({
       title: 'Exodus',
       body:

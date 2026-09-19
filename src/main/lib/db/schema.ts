@@ -1,4 +1,3 @@
-import type { Usage } from '@mariozechner/pi-ai'
 import {
   VoiceSchema,
   DeepResearchSchema,
@@ -9,6 +8,7 @@ import {
   KeyboardShortcutsSchema,
   KnowledgeBaseSchema,
   MemorySchema,
+  ModelCatalogSchema,
   PersonalitySchema,
   ProviderConfigSchema,
   ProvidersSchema,
@@ -16,9 +16,10 @@ import {
   FullTextSearchSchema,
   ToolsSchema,
   WebSearchSchema
-} from '@shared/schemas/settings-schema'
-import type { DiscoverGroup } from '@shared/types/discover'
-import { WebSearchResult } from '@shared/types/web-search'
+} from '@exodus/shared/schemas/settings-schema'
+import type { DiscoverGroup } from '@exodus/shared/types/discover'
+import { WebSearchResult } from '@exodus/shared/types/web-search'
+import type { Usage } from '@mariozechner/pi-ai'
 import { sql, type InferSelectModel } from 'drizzle-orm'
 import {
   boolean,
@@ -144,10 +145,15 @@ export const settings = pgTable('settings', {
   providerConfig:
     jsonb('providerConfig').$type<z.infer<typeof ProviderConfigSchema>>(),
   providers: jsonb('providers').$type<z.infer<typeof ProvidersSchema>>(),
+  modelCatalog:
+    jsonb('modelCatalog').$type<z.infer<typeof ModelCatalogSchema>>(),
   mcpServers: text('mcpServers').default(''),
   tools: jsonb('tools').$type<z.infer<typeof ToolsSchema>>(),
   voice: jsonb('voice').$type<z.infer<typeof VoiceSchema>>(),
-  assistantAvatar: text('assistantAvatar').default(''),
+  // The user's avatar (Sidebar footer + Settings → Profile). The physical
+  // column is still named `assistantAvatar` — it used to be the AI's avatar —
+  // so existing rows carry over without a migration.
+  userAvatar: text('assistantAvatar').default(''),
   googleCloud: jsonb('googleCloud').$type<z.infer<typeof GoogleCloudSchema>>(),
   webSearch: jsonb('webSearch').$type<z.infer<typeof WebSearchSchema>>(),
   fullTextSearch:
@@ -163,6 +169,7 @@ export const settings = pgTable('settings', {
   autoUpdate: boolean('autoUpdate').default(true),
   runOnStartup: boolean('runOnStartup').default(false),
   menuBar: boolean('menuBar').default(true),
+  language: text('language').default('auto'),
   autoBackup: boolean('autoBackup').default(true),
   lastBackupAt: timestamp('lastBackupAt'),
   memory: jsonb('memory').$type<z.infer<typeof MemorySchema>>(),

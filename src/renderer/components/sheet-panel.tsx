@@ -1,5 +1,6 @@
 import { XIcon } from 'lucide-react'
 import * as React from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -19,6 +20,8 @@ export function SheetPanel({
   open: boolean
   onClose: () => void
 }) {
+  const { t } = useTranslation('common')
+
   return (
     <section
       data-slot="sheet-panel"
@@ -37,7 +40,7 @@ export function SheetPanel({
         onClick={onClose}
       >
         <XIcon />
-        <span className="sr-only">Close</span>
+        <span className="sr-only">{t('action.close')}</span>
       </Button>
     </section>
   )
