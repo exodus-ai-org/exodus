@@ -40,7 +40,17 @@ test.describe('Settings — Knowledge Base', () => {
     await mainWindow.getByTestId(TEST_IDS.knowledgeBase.docSaveButton).click()
 
     await expect(mainWindow.getByText('Handbook')).toBeVisible()
-    await expect(mainWindow.getByText('Pending')).toBeVisible()
+    // The row's status badge is transient. Nothing listens on :9621 here, so
+    // the kb-sync job moves the doc Pending → Failed within milliseconds and
+    // which label the UI catches is a race (a slower CI runner lost it, twice).
+    // Assert that the row carries a status, not which one. Labels are
+    // knowledgeBase.json's `docList.status`.
+    await expect(
+      mainWindow
+        .getByRole('button')
+        .filter({ hasText: 'Handbook' })
+        .getByText(/^(Pending|Indexing…|Indexed|Failed|Needs reindex)$/u)
+    ).toBeVisible()
 
     // cleanup: delete the doc + clear the URL so reruns start clean
     await mainWindow.evaluate(async () => {
