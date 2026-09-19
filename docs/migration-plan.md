@@ -1065,40 +1065,46 @@ renders the real UI without console errors.
 **Second run (PR #233 merged, 2026-09-19):** PR Check — including the three-OS
 `bun run make`, Squirrel on `windows-latest` among them — Playwright (its first
 success ever) and React Doctor were green. The Release run got Linux and macOS
-through `make`, but the Windows job died before it, in "Set package version":
-"The variable '$NEXT_VERSION' cannot be retrieved". Windows runners default to
+through `make`, but the Windows job died before it, in "Set package version", with
+`The variable '$NEXT_VERSION' cannot be retrieved`. Windows runners default to
 PowerShell, where an environment variable is `$env:NEXT_VERSION`; the step was
-written for bash. Fixed with `defaults.run.shell: bash`on the build job.
-Lesson: a PR check that runs`make` does not exercise the release workflow's own
+written for bash. Fixed with `defaults.run.shell: bash` on the build job.
+Lesson: a PR check that runs `make` does not exercise the release workflow's own
 shell steps — the two can pass and fail independently, so read each OS's release
-job, not just PR Check.
+job, not just PR Check. (Formatter quirk met while writing this: oxfmt reads a
+bare pair of `$` in markdown prose as inline math and strips the spaces after
+inline code between them — keep `$VARS` inside code spans.)
+
+**Third run (Windows shell fix merged, 2026-09-19):** the Release run succeeded.
+semantic-release cut **v1.15.0** (`chore(release): 1.15.0 [skip ci]`, db824b02)
+and the release carries seven assets: `.rpm`, `.deb`, `.dmg`, the macOS `.zip`,
+and Windows `Setup.exe` / `.nupkg` / `RELEASES` (GitHub turns the space in
+`Exodus-1.15.0 Setup.exe` into a dot). So the `release` job — merge artifacts,
+tag, CHANGELOG, attach assets — is now proven end to end. The same PR's
+Playwright run failed once, on `settings-knowledge-base`, and did not block the
+release: the spec points the knowledge base at `localhost:9621`, nothing listens
+there, so `kb-sync` moves the doc Pending → Failed in milliseconds and the
+assertion on the transient `Pending` badge is a race a slower runner loses. The
+spec now asserts that the row carries _a_ status (any of the five labels). That
+was checked against a replica of the row's markup in Chromium, not end to end
+(a dev instance held port 60223).
 
 **Open — needs the user:**
 
-- **Merge the Windows shell fix** (`fix/release-windows-shell`). The migration
-  and the first CI fixes are already on `master` (PR #225, #233). `release.yml`
-  triggers on `master` and keys off conventional-commit types: the migration
-  commit is `build:` on purpose (no `feat!` / `BREAKING CHANGE`) so
-  semantic-release doesn't cut a major version out of a tooling change, but `dev`
-  also carries `feat:` commits, so the first fully green release run publishes
-  v1.15.0. Existing Dependabot PRs pick up the CI fixes with
-  `@dependabot rebase`.
+- **Merge the e2e fix** (`fix/e2e-kb-status-race`); its own Playwright run is the
+  end-to-end check. Nothing else is waiting: the migration and the CI fixes are
+  on `master` (PR #225, #233 and the Windows shell fix) and v1.15.0 is out.
+  Existing Dependabot PRs pick up the CI fixes with `@dependabot rebase`.
 - **The replacement for skills** (see Phase 3): plug it into
   `ai/skills/skills-manager.ts` and the Settings → Skills Market placeholder.
 
 **Open — unverified rather than broken:**
 
-- **`release.yml`'s last half** — the `release` job (merge artifacts, tag,
-  CHANGELOG, attach assets) has never run: it was skipped both times because a
-  build leg failed. Only its asset-flattening step was simulated, with the real
-  Linux / macOS artifacts of the second run plus a Windows-style name containing a
-  space: all files survived, no name collided. Builds are unsigned and not
-  notarized; adding `osxSign` / `osxNotarize` (and a Windows certificate) needs
-  credentials.
-- The Windows leg of the release workflow itself (fixed, not yet run). `make`
-  passes on all three OSes in PR Check, but no installer was ever launched — the
-  DMG was only checked as a file (`hdiutil verify`); Squirrel, deb and rpm were
-  only built.
+- **Signing and notarization** — builds are unsigned and not notarized; adding
+  `osxSign` / `osxNotarize` (and a Windows certificate) needs credentials.
+- **No installer was ever launched.** The DMG was only checked as a file
+  (`hdiutil verify`); Squirrel, deb and rpm were built and uploaded, not
+  installed.
 - `knowledge-base/` against a live LightRAG server (mock-tested only).
 - A real computer-use session (needs Screen Recording + Accessibility
   permission for the app).
