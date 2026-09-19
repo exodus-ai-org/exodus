@@ -56,11 +56,14 @@ export function Chat({
   const { t } = useTranslation('chat')
   const { id: routeId } = useParams()
   const navigate = useNavigate()
-  // Read once on mount — quick-chat hand-off only fires for the first render of a fresh chat.
-  const quickChatRef = useRef<string | null>(null)
-  if (quickChatRef.current === null) {
-    quickChatRef.current = window.localStorage.getItem(QUICK_CHAT_KEY)
-  }
+  // Read once on mount — quick-chat hand-off only fires for the first render of
+  // a fresh chat. (A lazy `useState`, not a ref filled during render: a ref
+  // that stays `null` when there is nothing pending re-read localStorage on
+  // every render, streaming frames included.)
+  const [pendingQuickChat] = useState(() =>
+    window.localStorage.getItem(QUICK_CHAT_KEY)
+  )
+  const quickChatSentRef = useRef(false)
   // advancedTools is only read inside prepareBody (a callback fired on send),
   // so we don't need to subscribe — useAtomCallback gets the latest value
   // lazily without triggering a Chat re-render on every tool toggle, which
@@ -135,17 +138,20 @@ export function Chat({
 
   // Quick-chat: if localStorage had a pending quick-chat message at mount, send it immediately
   useEffect(() => {
-    const quickChat = quickChatRef.current
-    if (quickChat) {
-      setChatInput(quickChat)
-      // Use replaceState for immediate URL update; React Router navigate
-      // happens in onFinish after the stream completes.
-      window.history.replaceState({}, '', `/chat/${id}`)
-      sendMessage({ text: quickChat })
-      setChatInput('')
-      window.localStorage.removeItem(QUICK_CHAT_KEY)
-    }
-  }, [id, sendMessage, setChatInput])
+    // `sendMessage` has a new identity on every render, so this effect re-runs
+    // constantly. The pending text outlives the send (it is mount-time state),
+    // so without the flag every re-run sent it again — aborting the stream it
+    // had just started.
+    if (!pendingQuickChat || quickChatSentRef.current) return
+    quickChatSentRef.current = true
+    setChatInput(pendingQuickChat)
+    // Use replaceState for immediate URL update; React Router navigate
+    // happens in onFinish after the stream completes.
+    window.history.replaceState({}, '', `/chat/${id}`)
+    sendMessage({ text: pendingQuickChat })
+    setChatInput('')
+    window.localStorage.removeItem(QUICK_CHAT_KEY)
+  }, [id, pendingQuickChat, sendMessage, setChatInput])
 
   const composer = (
     <>

@@ -65,9 +65,9 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
     isStreamActive(id) ? 'streaming' : 'idle'
   )
   const [lastUsage, setLastUsage] = useState<Usage | null>(() => {
-    const lastAssistant = [...initialMessages]
-      .reverse()
-      .find((m): m is ChatAssistantMessage => m.role === 'assistant')
+    const lastAssistant = initialMessages.findLast(
+      (m): m is ChatAssistantMessage => m.role === 'assistant'
+    )
     return lastAssistant?.usage ?? null
   })
 
@@ -87,9 +87,10 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
     return {
       onMessages: (msgs: ChatMessage[]) => {
         setMessages(msgs)
-        const last = [...msgs]
-          .reverse()
-          .find((m): m is ChatAssistantMessage => m.role === 'assistant')
+        // Runs per streamed frame: search from the end, don't copy + reverse.
+        const last = msgs.findLast(
+          (m): m is ChatAssistantMessage => m.role === 'assistant'
+        )
         if (last?.usage) setLastUsage(last.usage)
       },
       onStatus: setStatus,
