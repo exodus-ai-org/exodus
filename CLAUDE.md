@@ -590,6 +590,541 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
 
 ### Security Considerations
 
+- `docs/security-hardening.md` is the reference: the threat model, what is in
+  place and the smaller items still open — read it before touching the server
+  middleware, preload, window creation, the LAN listener or the artifact sandbox
+- Windows run with `sandbox: true` + `contextIsolation: true`; `hardenRenderers()`
+  (`src/main/lib/security.ts`) cancels navigation away from the app, denies new
+  windows, opens only `http(s)` / `mailto` links externally, and grants
+  permissions only to Exodus's own pages. Never call `shell.openExternal`
+  directly — use `openExternalSafely`
+- **The artifact sandbox has an origin of its own** (`exodus-artifact://sandbox`,
+  `src/main/lib/artifact-protocol.ts`), which is the whole of its isolation:
+  model-written code there cannot reach `window.parent`, the preload bridge or
+  the API (its CSP allows no network at all, and the origin gate refuses that
+  origin). Never serve it from the app's origin again, and never add anything to
+  it that needs the API — it gets its code by `postMessage`
+- **The API has two faces** (see Middleware Pipeline and `src/main/lib/lan/`):
+  plaintext on loopback, with no token — a local process can read `~/.exodus`
+  anyway, and browsers are stopped by the origin gate; and HTTPS on the LAN,
+  where every request needs a paired device's token and the certificate is
+  pinned by the device. A paired device gets the whole API (exodus-ios edits
+  provider keys), which is why that path is TLS-only
+- API keys stored locally in PGlite database
+
+## Testing
+
+```bash
+bun run test             # Run all unit tests with Vitest
+bun run test:watch       # Run tests in watch mode
+bun run test:coverage    # Run tests with V8 coverage report
+bun run test:e2e:electron  # Playwright Electron E2E (packages first: it drives the production build in .vite/)
+bun run test:e2e:api       # Playwright API integration (needs a running app + .env.test)
+bun run test:e2e:providers # Provider compatibility (needs API keys in .env.test)
+```
+
+### Database
+
+```bash
+bun run db:generate      # Generate Drizzle migrations from schema
+```
+
+### Other
+
+```bash
+bun run i18n:check       # Verify catalog parity across all locales (also runs in the pre-commit gate)
+bun run i18n:status      # Print the translation-review status board per locale
+```
+
+## Architecture
+
+### Electron Process Model
+
+Exodus uses a three-process architecture:
+
+1. **Main Process** (`src/main/main.ts`):
+   - Manages Electron app lifecycle, window creation, and IPC
+   - Runs Hono HTTP server on `localhost:60223` (constant `SERVER_PORT` in `packages/shared/src/constants/systems.ts`)
+   - Initializes PGlite database with pgvector extension
+   - MCP server connection is archived (commented out in `app.ts`); an `/api/v1/mcp` route + settings remain
+   - Handles auto-updates via `update-electron-app` (`src/main/lib/auto-updater.ts`, which keeps the state machine the renderer's update panel speaks)
+
+2. **Renderer Process** (`src/renderer/`):
+   - React 19 application with React Router v7
+   - Communicates with main process via HTTP (localhost:60223)
+   - Uses Jotai for global state management
+   - SWR for server state fetching
+   - Entry points: main app plus the sub-apps searchbar, quick-chat, artifacts
+
+3. **Preload Process** (`src/preload/preload.ts`):
+   - Provides secure bridge between renderer and Electron APIs
+   - Context isolation + sandbox enabled
+   - Exposes `window.electron` (`ipcRenderer.{send,invoke,on,once,removeListener,removeAllListeners}` + `process.{platform,versions}` — deliberately not `process.env` — the same nested shape as `@electron-toolkit/preload`'s `electronAPI`, reimplemented without the dependency) and `window.api` (`os`, `locale`)
+
+### Data directory, ports and isolation
+
+Exodus is the successor of the older `universal-client` app and shares its
+`~/.exodus` layout, so a dev build sees the same chats, settings and memories:
+
+- **Data dir**: `~/.exodus` for packaged _and_ unpackaged runs (`bun run start`,
+  `electron .`) — `getExodusHome()` in `src/main/lib/paths.ts`; startup logs the
+  directory in use (`Data directory`); `~/.exodus/analytics` holds the DuckDB
+  chat-audit snapshot. **PGlite is single-process: never run two
+  Exodus processes (a dev build, the packaged app, universal-client) against it
+  at the same time** — the database can be corrupted (backups live in
+  `~/.exodus/backups`). Between Exodus builds this is enforced:
+  `src/main/lib/single-instance.ts` takes Electron's single-instance lock from
+  `db/db.ts`, before PGlite is constructed (dev and packaged share `userData`,
+  so they share the lock); a second launch exits and the running app raises its
+  window, or — if the holder is quitting — waits for it. universal-client has
+  its own `userData` and is not covered. `EXODUS_HOME` points a run at another directory.
+- **Electron `userData`**: the default `~/Library/Application Support/Exodus`
+  for every build — it only holds Chromium state (localStorage, caches) and is
+  where the legacy-location migration looks. There is no `-dev` variant of
+  anything.
+- **Server ports** (`packages/shared/src/constants/systems.ts`): `SERVER_PORT =
+60223` is plaintext HTTP bound to loopback only (`127.0.0.1` and `::1`) — the
+  renderer, exodus-cli, `tests/api` and the iOS Simulator; nothing on the LAN
+  can reach it. `LAN_SERVER_PORT = 60224` is what `exodus-ios` on a device
+  connects to. Don't change either without updating the clients.
+- **E2E**: `playwright.config.ts` points `$HOME` at a scratch dir
+  (`<tmpdir>/exodus-e2e-home`); the electron fixture wipes `~/.exodus` under it
+  before every test and throws at import unless `$HOME` is that dir. It also
+  refuses to launch while anything answers on `localhost:60223`: the renderer
+  always talks to that port, so a running dev build (`bun run start`) would be
+  driven by the suite instead of the app under test — reading and writing the
+  real `~/.exodus` through it. To test a
+  packaged build by hand, sandbox `$HOME` and pass `--user-data-dir` the same way.
+
+### Skills (skills.sh)
+
+Agent Skills come from **skills.sh** (the ClawHub marketplace was dropped for
+quality reasons). `src/main/lib/ai/skills/`:
+
+- `skills-sh-client.ts` — list / search / detail / audit against the BFF relay
+  `SKILLS_SH_BFF_URL` (`https://skills-md.yancey.app`, the same relay
+  `exodus-cli` uses; `EXODUS_SKILLS_BFF_URL` overrides it).
+- `skills-store.ts` — installs a skill's `files[]` under
+  `~/.exodus/skills/<slug>/` and records it in `~/.exodus/skills/.lock.json`
+  (files first, lockfile last; paths that escape the slug dir are refused).
+  Same directory and lockfile shape as `exodus-cli`, so skills installed by
+  either are visible to both.
+- `skills-manager.ts` — the seam chat + Philharmonic consume:
+  `listInstalledSkills()`, `getSkillsContentBySlugs()`,
+  `getActiveSkillsContent()` (SKILL.md minus frontmatter, `$SKILL_DIR` baked
+  to the absolute install path, wrapped in `<active_skills>`).
+
+Route `/api/v1/skills` (`src/main/lib/server/routes/skills.ts`): `GET
+/registry?view&page&per_page`, `GET /search?q`, `GET /detail?id`, `GET
+/audit?id` (`null` when unaudited), `GET /installed`, `POST /install {id}`,
+`DELETE /:slug`, `PATCH /:slug/toggle`. Skill ids are `owner/repo/slug`, hence
+query params. UI: Settings → Skills Market
+(`src/renderer/components/skills-market/`): Discover (Trending / Hot / All
+time, search, paged card grid) → detail page (security audit, README, bundled
+files, the copyable `exodus skills install <id>` command) → install / toggle /
+uninstall; an Installed tab; a footer recommending `exodus-cli`. Spec:
+`docs/superpowers/specs/2026-09-19-skills-sh-market-design.md`.
+
+### Chat Audit (DuckDB)
+
+Settings → Developer → Chat Audit is a read-only SQL console over a DuckDB
+snapshot of the user's data (`src/main/lib/analytics/`, route
+`/api/v1/analytics`, page `settings-form/chat-audit.tsx`). `snapshot.ts`
+copies `chat` / `message` / `project` out of PGlite via NDJSON into
+`~/.exodus/analytics/exodus.duckdb` (usage flattened to `*_tokens` /
+`cost_usd` columns, `content` kept as JSON) and adds a `logs` view straight
+over `~/.exodus/logs/*.jsonl`; `duckdb.ts` lazy-`import()`s
+`@duckdb/node-api` on first use (never at boot), opens the file
+`READ_ONLY` for queries and `READ_WRITE` only while rebuilding, serialised
+on one promise chain, and caps results at 500 rows. The editor is Monaco
+(`settings-form/chat-audit-editor.tsx`, SQL language, ⌘↩ bound via the editor,
+completions from `packages/shared/src/constants/chat-audit-schema.ts`, which
+is also what `snapshot.ts` builds the tables from). Presets live in
+`packages/shared/src/constants/chat-audit-presets.ts` and every one is
+executed against a fixture snapshot in
+`tests/unit/main/lib/analytics/snapshot.test.ts`. PGlite stays the only
+write path. Packaging: the package is a Vite external and forge keeps
+`node_modules/@duckdb/**` + `detect-libc` and unpacks `@duckdb/**` from
+asar (the `.node` dlopens `libduckdb` beside itself). Research notes:
+`docs/duckdb-research.md`; spec:
+`docs/superpowers/specs/2026-09-19-duckdb-chat-audit-design.md`.
+
+### Colour tone
+
+Settings → General → Color tone (`generals.tsx`) persists `settings.colorTone`
+(`ColorToneSchema`: neutral | emerald | blue | violet | rose | orange | yellow;
+a `text` column defaulting to `neutral`). The value becomes `data-tone` on
+`<html>`, and `globals.css` carries one `[data-tone='…']` /
+`.dark[data-tone='…']` token block per tone (neutral is the base
+`:root` / `.dark`). `src/renderer/lib/tone.ts` applies the attribute and
+mirrors it to localStorage (`exodus-color-tone`) so every entry (`main.tsx`
+
+- the three sub-apps) can call `bootTone()` before React mounts (no flash);
+  `components/tone-bridge.tsx` follows `useSettings()` in the main window and
+  sub-apps follow via the `storage` event. The light/dark/system mode stays in
+  next-themes' `vite-ui-theme` key.
+
+### Migration status
+
+`docs/migration-plan.md` records how the business code was ported from
+universal-client and every place it deliberately diverges (React Compiler left
+off, seven oxlint style rules downgraded to warnings, auto-updater state machine
+rebuilt on `update-electron-app`, …). Read it before changing build/packaging code.
+
+### Backend Server Architecture
+
+The main process runs a **Hono HTTP server** that handles all business logic:
+
+**Server Routes** (`src/main/lib/server/routes/`, registered in `src/main/lib/server/app.ts`):
+
+Every business endpoint is mounted on one versioned sub-app (`app.route('/api/v1', v1)`), so the public paths are `/api/v1/<route>`; the lock/trace/settings middlewares still match `/api/*`. A breaking API change ships as a new `/api/v2` sub-app beside v1 rather than mutating v1 in place. Any client of this backend (the renderer, `tests/api`, `exodus-ios`) must address `/api/v1/...`.
+
+`/api/v1/chat`, `/api/v1/lcm`, `/api/v1/history`, `/api/v1/knowledge-base`, `/api/v1/project`, `/api/v1/settings`, `/api/v1/skills`, `/api/v1/audio`, `/api/v1/db-io`, `/api/v1/deep-research`, `/api/v1/discover`, `/api/v1/tools`, `/api/v1/philharmonic`, `/api/v1/s3`, `/api/v1/mcp`, `/api/v1/memory`, `/api/v1/usage`, `/api/v1/logs`, `/api/v1/backup`, `/api/v1/artifacts`, `/api/v1/computer-use`, `/api/v1/analytics`, `/api/v1/pair`, `/api/v1/devices`.
+
+The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatches to the appropriate list-models handler based on the provider in the request body, reading the API key from the request (not from saved settings) to fetch live model catalogs.
+
+**Middleware Pipeline** (order in `app.ts`):
+
+1. Origin gate (`createOriginGate`) — a request must carry no `Origin` (exodus-ios, exodus-cli, `tests/api`, and the packaged renderer: a `file://` page in Electron sends none) or, in a dev build only, exactly the Vite renderer's; anything else — a website, another loopback port, `null`, an extension, the artifact sandbox — gets `403`, as does a request on the loopback listener addressed by a public `Host` (DNS rebinding). Runs before CORS so a refused origin gets no `Access-Control-Allow-Origin`. Which listener took a request is in the bindings (`listenerOf(c)` in `server/types.ts`)
+2. CORS middleware (`hono/cors`)
+3. Auth gate (`authGate`) — on the LAN listener a request needs `Authorization: Bearer <token>` of a paired device (`401` otherwise), except `POST /api/v1/pair`, which the pairing window guards; `/api/v1/devices*` is refused there outright (`403`). Loopback passes straight through. Ahead of the lock gate so an unauthenticated request learns nothing, not even that the app is locked
+4. Lock gate (`lockGate`) — rejects all `/api/*` with `423` while the app is locked
+5. Trace gate (`traceMiddleware`) — wraps each `/api/*` request in an `AsyncLocalStorage` trace (see `src/main/lib/logger/`), sets the `x-trace-id` response header
+6. Settings injection — `getSettings()` set on the Hono context per request (served from a cache in `db/queries.ts` that `updateSettings` / `updateSettingField` invalidate — write the `settings` table only through those two)
+7. Error handler (`app.onError`, returns JSON errors)
+
+The MCP-tools middleware (injecting MCP tools into context) is **archived** (commented out in `app.ts`).
+
+### Database Layer
+
+**Database**: PGlite (embedded Postgres) with pgvector extension
+
+- Location: `~/.exodus/database` (`getDatabaseDir` in `src/main/lib/paths.ts`)
+- ORM: Drizzle ORM with Zod schemas
+- Schema: `src/main/lib/db/schema.ts`
+- Migrations: `resources/drizzle/`
+
+**Key Tables**:
+
+- `settings` - Global settings (models, API keys, preferences, `colorTone`)
+- `knowledge_doc` - Knowledge base source documents + per-doc LightRAG sync status
+- `deep_research` / `deep_research_message` - Deep research jobs and progress updates
+- `memory` / `memory_usage_log` - User memory and audit trail
+- `session_summary` - Summarized conversation context
+- `project` - Projects
+- `mcp_server` - Configured MCP servers
+- `paired_device` - Devices allowed onto the LAN listener: a name and the SHA-256 of
+  the device's token, never the token. Machine-local — deliberately not part of
+  `db-io` export/import or of a data reset
+- `lcm_summary` - Lossless context-management summaries
+- Philharmonic: `agent`, `agent_memory`, `team`, `task`, `task_execution`, `task_execution_event`, `conversation_plan`, `plan_step`
+
+The full chat/message tables and indexes are defined in `src/main/lib/db/schema.ts`.
+
+### AI/LLM Integration
+
+**Multi-Provider Support** (built on `@mariozechner/pi-ai` + `@mariozechner/pi-agent-core`):
+All model resolution lives in `src/main/lib/ai/providers/`. The registry-backed
+providers (OpenAI GPT, Azure OpenAI, Anthropic Claude, Google Gemini, xAI Grok)
+are one `SPECS` table + a `fromSpec` factory in `index.ts` — a row only supplies
+the base-URL setting, its fallback, the default model ids, and the pi-ai
+`provider` / `api` strings. Ollama (`ollama.ts`) is the exception: a hand-built
+`Model` with nothing in the registry. Every path resolves through the shared
+`resolveModel()` in `resolve-model.ts` (do not duplicate model-resolution
+logic); it accepts an optional live-fetched `snapshot` parameter (from
+`POST /api/v1/settings/models`) to override the pi-ai registry. Per-provider
+fallback defaults (contextWindow, cost) and `MODEL_METADATA_FALLBACK` (narrower
+scope: only what a provider's own list API omits) live there. Live model lists
+are fetched per-provider from `src/main/lib/ai/providers/list-models/`.
+
+**Chat Flow** (`src/main/lib/server/routes/chat.ts`):
+
+1. Retrieve user settings (model selection, API keys)
+2. Load chat history from database
+3. Bind built-in tools based on `AdvancedTools` selection
+4. Stream via `agentLoop` from `@mariozechner/pi-agent-core` for multi-step tool execution
+5. Stream response back to renderer through `createSseWriter`
+   (`routes/chat-sse.ts`): streaming `message_update` snapshots are coalesced
+   to one per `STREAM_FLUSH_INTERVAL_MS` (each carries the whole message so
+   far), other events flush first so order holds, and writes become no-ops
+   once the client has gone
+6. However the turn ends — done, a provider error midway, or Stop (which
+   cancels the response stream) — save the messages that completed and enqueue
+   background jobs (LCM compaction, memory consolidation, and search indexing
+   only when Elasticsearch is configured) onto the pgmq-backed job queue
+   (`src/main/lib/jobs/`) rather than running them inline
+
+**Tool Architecture** (`src/main/lib/ai/calling-tools/`):
+Each tool has a description for LLM understanding, a Zod input schema, and an execute function.
+
+Built-in tools (files in `src/main/lib/ai/calling-tools/`):
+
+`computer-use`, `create-artifact`, `deep-research`, `edit-file`, `find-files`, `grep`, `image-generation`, `lcm-describe`, `lcm-expand`, `lcm-grep`, `list-directory`, `map-itinerary`, `read-file`, `search-knowledge-base`, `terminal`, `weather`, `web-fetch`, `web-search`, `write-file`.
+
+### Knowledge Base (LightRAG)
+
+The knowledge base is backed by an **optional, self-hosted LightRAG server** the user runs (Exodus is a client only — see `docs/lightrag-setup.md`). `knowledge_doc` rows are the editable source-of-truth (Settings → Knowledge Base); the `kb-sync` job (`src/main/lib/jobs/handlers.ts`) pushes them into LightRAG via `src/main/lib/knowledge-base/lightrag-client.ts` (delete + re-insert on edit), and `reconcile.ts` on the jobs cron settles each row's `indexStatus` via LightRAG's `track_status`. `resolveKnowledgeBase(settings)` (never throws) gates the `searchKnowledgeBase` tool, bound by `bindCallingTools` for the main chat and every Philharmonic employee loop. Retrieval is context-only (`only_need_context: true`) — Exodus's own model writes the answer. No scoping: one shared KB.
+
+### Deep Research
+
+**Architecture** (`src/main/lib/ai/deep-research/`):
+
+Multi-level recursive research with real-time progress streaming:
+
+1. **Query Generation** (`generate-queries.ts`):
+   - AI generates search queries based on topic
+   - Configurable breadth (default: 4 queries per level)
+
+2. **Search Execution** (`deep-research.ts`):
+   - Executes Serper API searches recursively
+   - Depth parameter controls recursion levels (default: 2)
+   - Processes results and extracts learnings
+
+3. **Result Processing** (`process-search-results.ts`):
+   - Extracts key insights from search results
+   - Identifies web sources with titles and URLs
+   - Determines next research directions
+
+4. **Report Generation** (`final-report.ts`):
+   - Compiles all findings into structured Markdown report
+   - Includes source citations
+   - Stored in database for later retrieval
+
+5. **Progress Streaming** (`src/main/lib/server/routes/deep-research.ts`):
+   - SSE connection for real-time updates
+   - Status: `streaming` → `completed` or `failed`
+   - Frontend polls for progress messages
+
+### MCP (Model Context Protocol)
+
+**Integration** (`src/main/lib/ai/mcp.ts`):
+
+> Note: automatic MCP server connection at startup is **archived** (`connectMcpServers()` is commented out in `app.ts`). The `/api/v1/mcp` route and MCP settings remain. The flow below describes the intended/legacy behavior.
+
+Allows external tools/servers to be integrated via MCP protocol:
+
+1. **Configuration**: Users define MCP servers in settings JSON:
+
+```json
+{
+  "mcpServers": {
+    "git": { "command": "git-mcp", "args": [] },
+    "filesystem": { "command": "fs-server", "args": [] }
+  }
+}
+```
+
+2. **Connection** (`connectMcpServers()`):
+   - Launches each server via StdIO transport
+   - Retrieves available tools from each server
+   - Stores tools in Hono context
+
+3. **Tool Execution**:
+   - MCP tools merged with built-in tools
+   - AI can call MCP tools during conversation
+   - Results returned via standard MCP protocol
+
+**Key Dependencies**:
+
+- `@ai-sdk/mcp` - MCP client
+- `@modelcontextprotocol/sdk` - MCP protocol implementation
+
+### Memory & Personalization Layer
+
+**Memory System** (`src/main/lib/ai/memory/manager.ts`):
+
+A durable, topic-consolidated memory of the user. Key functions:
+`runMemoryConsolidation()`, `loadRelevantMemories()`, `formatMemoriesForSystem()`.
+
+**Memory entries** (one row per topic/person in the `memory` table):
+
+- `section` - `profile` (durable identity / setup / hard constraints / stable
+  preferences) | `topic` (an interest, project, recurring subject) | `person`
+- `key` - short stable title (e.g. "Classical Music")
+- `summary` - one sentence; `details` - `string[]` of bullets
+
+**Memory Operations** (all in `src/main/lib/ai/memory/manager.ts`):
+
+1. **Consolidation** (`runMemoryConsolidation()`) — `memory-consolidate` job
+   after each turn when `memory.autoCapture`. One LLM call sees the
+   conversation + the existing memory index and returns `create`/`update`
+   operations. Prefers updating an existing entry (returning its full revised
+   summary + details) over inserting a duplicate.
+
+2. **Read filter** (`loadRelevantMemories()` / `formatMemoriesForSystem()`) —
+   pre-turn when `memory.useInChat`. One LLM call picks the relevant
+   entries; selected entries are recorded in `memory_usage_log` and get
+   `lastUsedAt` bumped, then rendered into a `<user_memory>` system block.
+
+### Philharmonic (multi-agent Groups)
+
+Philharmonic runs multi-agent "Groups" (teams of agents collaborating on tasks).
+
+- Main process: `src/main/lib/ai/philharmonic/` (employee loop, execution engine, agent memory/tools, knowledge-base tools)
+- Renderer: `src/renderer/components/philharmonic/`
+- Route: `/api/v1/philharmonic`
+- Each Group gets an isolated workspace under `~/.exodus/groups`
+- Scheduled tasks (`task.cronExpression` for recurring, `task.runAt` for
+  one-off) run via `src/main/lib/ai/philharmonic/scheduler.ts`
+  (per-task `node-cron` jobs + a once-a-minute sweep for one-off tasks);
+  managed from the Schedule tab on the Dashboard page
+  (`components/philharmonic/schedule/`)
+
+### App Lock
+
+A local PIN lock protects the app and gates all API access.
+
+- Main process: `src/main/lib/lock/` (`lock-manager` state machine, `pin-store` using scrypt + Electron `safeStorage`, `idle-watcher`, `lock-config`, IPC handlers)
+- The `lockGate` middleware rejects every `/api/*` request with `423` while locked
+- Unlock happens only via IPC (the lock screen), never over HTTP
+- The encrypted PIN secret lives at `~/.exodus/lock.dat`
+- Renderer: `src/renderer/components/lock/`
+
+### LCM (lossless context management)
+
+Compacts long conversations without losing information, surfacing summaries the agent can expand or grep.
+
+- Main process: `src/main/lib/ai/context-management/` (compaction, context assembler, token counter, status bus)
+- Route: `/api/v1/lcm`
+- Related built-in tools: `lcm-describe`, `lcm-expand`, `lcm-grep`
+
+### Sub-apps
+
+Separate renderer entry points under `src/renderer/sub-apps/`: `searchbar`, `quick-chat`, `artifacts`.
+
+### Frontend Structure
+
+**Stack**:
+
+- React 19 with TypeScript
+- React Router v7 for navigation
+- Jotai for global state management (atoms in `src/renderer/stores/`)
+- SWR for server state fetching
+- Tailwind CSS + Radix UI components
+- @tiptap for rich text editing (Immersive Editor)
+- Monaco Editor for code display
+- Three.js for 3D visualizations
+
+**Key Directories**:
+
+- `components/` - Reusable UI components (including shadcn/ui)
+- `services/` - API call wrappers (chat, RAG, settings, etc.)
+- `stores/` - Jotai atoms for global state
+- `hooks/` - Custom React hooks
+- `layouts/` - Page layouts (workspace, chat)
+- `routes/` - Route definitions
+- `containers/` - Page-level components
+- `sub-apps/` - Special entry points (searchbar, quick-chat)
+
+**API Communication**:
+
+- All API calls via `fetcher()` utility to `http://localhost:60223/api/*`
+- Streaming responses are consumed from the server's `agentLoop`-driven SSE/stream
+- SWR for caching and revalidation
+
+### Path Aliases
+
+**Main Process** (`tsconfig.node.json`): no aliases — relative imports, plus the
+`@exodus/shared/*` workspace package. Main-process code imports DB row types
+straight from `src/main/lib/db/schema.ts` (the shared package must not import the app).
+
+**Renderer Process** (`tsconfig.web.json`):
+
+- `@` → `src/renderer`
+- `@exodus/shared/*` → the `packages/shared` workspace package (subpath exports, see its `package.json`)
+- DB row types come from `@/types/db` (a renderer-side passthrough of `src/main/lib/db/schema.ts`)
+
+**Shared Code** (`packages/shared/src/`, imported as `@exodus/shared/...`):
+
+- `types/` - Shared TypeScript types
+- `constants/` - Constants used across processes
+- `utils/` - Utility functions
+- `schemas/` - Zod schemas
+- `errors/` - Custom error classes
+
+## Important Implementation Notes
+
+### When Working with AI Providers
+
+- Providers resolve a `Model` (from `@mariozechner/pi-ai`) via the shared `resolveModel()` in `src/main/lib/ai/providers/resolve-model.ts` — do NOT duplicate model resolution logic
+- `resolveModel()` accepts an optional `snapshot` parameter (live-fetched from `POST /api/v1/settings/models`) to override the pi-ai registry
+- Per-provider fallback defaults (contextWindow, cost) and `MODEL_METADATA_FALLBACK` are centralized in `resolve-model.ts`
+- Model lists are now live-fetched per provider from Settings via `src/main/lib/ai/providers/list-models/`
+- Model names/API keys are retrieved from settings (never hardcode)
+- One-shot completions go through `completeSimple` from `src/main/lib/ai/utils/complete.ts` (see Shared Utilities) — pi-ai does not throw on a failed request
+- `@mariozechner/pi-ai` / `pi-agent-core` are deprecated upstream at 0.73.1; the successor is `@earendil-works/pi-ai` (a `Models` collection API, the old global API under `/compat`). Not migrated yet — see `docs/pi-ai-review.md`
+
+### When Working with Database
+
+- Always use Drizzle ORM queries (`src/main/lib/db/queries.ts`)
+- Schema changes require running `bun run db:generate` to create migrations
+- Vector searches use `cosineDistance()` from pgvector
+- All timestamps use `timestamp('created_at').notNull().defaultNow()`
+
+### When Working with Tools
+
+- Tool definitions go in `src/main/lib/ai/calling-tools/`
+- Tools are bound conditionally based on the `AdvancedTools` selection
+- Always validate inputs with Zod schemas
+- Enum parameters use pi-ai's `StringEnum([...] as const)`, never
+  `Type.Union([Type.Literal(...)])` — that emits `anyOf`/`const`, which
+  Google's function-calling schema rejects
+- Tool descriptions are critical for LLM understanding
+- Return structured data that the LLM can interpret
+
+### When Working with Chat
+
+- Chat route streams via `agentLoop` from `@mariozechner/pi-agent-core`
+- `agentLoop` handles multi-turn tool calling internally
+- Always save messages to database after completion
+- Message parts stored as JSONB in `message.parts` column
+
+### When Working with the Chat Render Path
+
+A reply streams at up to ~25 frames a second and every frame gives `<Chat>` a
+new `messages` array, so anything that re-renders per frame is paid for
+hundreds of times per answer. What keeps it cheap — all of it guarded by
+`tests/unit/renderer/components/messages-rerender.test.ts`,
+`tests/unit/renderer/hooks/use-chat.test.ts` and
+`tests/unit/renderer/lib/markdown-blocks.test.ts`:
+
+- **`useChat` hands out stable callbacks.** `sendMessage`, `regenerate`, `stop`
+  and `setMessages` must not depend on `messages` — they read the live list
+  from a ref that `setMessages` keeps in sync, and `prepareBody` / the `on*`
+  callbacks from refs synced in an effect. `regenerate` is a prop of every
+  assistant turn: when it changed per frame, the whole transcript re-rendered
+  per frame, straight through its `memo`.
+- **Unchanged segments keep their identity.** `groupIntoSegments` and
+  `buildCitationSources` (`messages.tsx`) take a cache and return the same
+  segment objects / source arrays for turns a frame did not touch.
+  `AssistantTurnSegment` and `Markdown` are memoized on exactly those
+  identities — never build a fresh array or object per render for a prop of
+  either.
+- **Markdown renders block by block while it streams.** `useMarkdownBlocks`
+  splits a changing document into top-level blocks
+  (`lib/markdown-blocks.ts`, same remark config as the renderer via
+  `lib/markdown-plugins.ts`), each a memoized `MarkdownBlock`, so a frame
+  re-parses the last block or two instead of the whole answer. Text that never
+  changes (history) is rendered whole. A plugin added to the renderer must be
+  added to `markdown-plugins.ts`, not to `markdown.tsx`.
+- **Memoized leaves take only what they render.** The composer
+  (`multimodel-input.tsx`) and `ChatToc` are `memo`'d; don't pass them
+  `messages` or anything else that changes per frame unless they show it
+  (`ChatToc` compares user messages only).
+
+### When Working with Frontend
+
+- Use Jotai atoms for global state (avoid prop drilling)
+- SWR hooks for server data fetching with automatic revalidation
+- Always use path alias `@` for renderer imports
+- Tailwind + Radix UI for consistent styling
+- Toast notifications via `sileo` (mounted once as `<AppToaster />` per
+  layout — chat/settings/philharmonic); `sonner`'s `Toaster` is a leftover
+  shadcn primitive (`components/ui/sonner.tsx`) that is never mounted, so
+  `sonner`'s `toast()` calls render nothing — use `sileo` instead
+
+### Security Considerations
+
 - `docs/security-hardening.md` is the reference: what is in place, and the
   open items (artifact sandbox shares the app's origin; LAN clients are
   unauthenticated) — read it before touching the
@@ -895,6 +1430,12 @@ Renderer:
 - `src/renderer/components/philharmonic/` — Philharmonic UI
 - `src/renderer/components/philharmonic/schedule/` — Schedule tab (agenda: upcoming one-off + recurring tasks)
 - `src/renderer/components/settings/` — settings
+- `src/renderer/components/settings/settings-form/devices.tsx` — Settings →
+  Integrations → Devices: pair a device by QR code, revoke, reset (the UI of
+  `src/main/lib/lan/`)
+- `src/renderer/components/flag.tsx` — `<Flag code>`: a country flag as a
+  separate SVG file by ISO code (never emoji — Windows has none; never inlined —
+  the web-search list is 239 of them)
 - `src/renderer/components/skills-market/` — Settings → Skills Market (Discover grid, detail page with audit + CLI command, Installed list)
 - `src/renderer/containers/` — page-level components
 - `src/renderer/stores/` — Jotai atoms
