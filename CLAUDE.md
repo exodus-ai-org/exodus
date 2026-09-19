@@ -277,6 +277,9 @@ The MCP-tools middleware (injecting MCP tools into context) is **archived** (com
 - `session_summary` - Summarized conversation context
 - `project` - Projects
 - `mcp_server` - Configured MCP servers
+- `paired_device` - Devices allowed onto the LAN listener: a name and the SHA-256 of
+  the device's token, never the token. Machine-local — deliberately not part of
+  `db-io` export/import or of a data reset
 - `lcm_summary` - Lossless context-management summaries
 - Philharmonic: `agent`, `agent_memory`, `team`, `task`, `task_execution`, `task_execution_event`, `conversation_plan`, `plan_step`
 

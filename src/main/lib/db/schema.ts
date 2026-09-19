@@ -237,6 +237,18 @@ export const mcpServer = pgTable('mcp_server', {
   updatedAt: timestamp('updatedAt').defaultNow().notNull()
 })
 
+// A device allowed onto the LAN listener (see src/main/lib/lan/). Only the
+// hash of its token is kept; the token itself exists on the device alone.
+export const pairedDevice = pgTable('paired_device', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  name: text('name').notNull(),
+  tokenHash: text('tokenHash').notNull().unique(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  lastSeenAt: timestamp('lastSeenAt')
+})
+
+export type PairedDevice = InferSelectModel<typeof pairedDevice>
+
 export type McpServer = InferSelectModel<typeof mcpServer>
 
 // ─── Philharmonic ────────────────────────────────────────────────────────────────
