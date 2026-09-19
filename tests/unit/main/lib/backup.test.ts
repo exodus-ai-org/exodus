@@ -17,7 +17,6 @@ vi.mock('@main/lib/paths', () => ({
   getAutoBackupsDir: () => join(tmpdir(), 'exodus-test-backups'),
   getLogsDir: () => join(tmpdir(), 'exodus-test-logs')
 }))
-vi.mock('@electron-toolkit/utils', () => ({ is: { dev: true } }))
 vi.mock('@main/lib/logger', () => ({
   logger: {
     info: vi.fn(),

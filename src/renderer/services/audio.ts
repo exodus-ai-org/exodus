@@ -1,4 +1,4 @@
-import { fetcher } from '@shared/utils/http'
+import { fetcher } from '@exodus/shared/utils/http'
 import { Transcription } from 'openai/resources/audio/transcriptions'
 
 export const textToSpeech = async (text: string) =>

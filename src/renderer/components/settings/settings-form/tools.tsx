@@ -3,8 +3,8 @@ import {
   TOOL_GROUPS,
   TOOL_REGISTRY,
   ToolGroup
-} from '@shared/constants/tools'
-import { UseFormReturnType } from '@shared/schemas/settings-schema'
+} from '@exodus/shared/constants/tools'
+import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
 import type { ParseKeys } from 'i18next'
 import { ChevronRightIcon } from 'lucide-react'
 import { useWatch } from 'react-hook-form'

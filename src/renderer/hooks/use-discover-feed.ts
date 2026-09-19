@@ -1,4 +1,4 @@
-import type { DiscoverFeedDto } from '@shared/types/discover'
+import type { DiscoverFeedDto } from '@exodus/shared/types/discover'
 import useSWR from 'swr'
 
 // While a refresh is running, poll so the freshly generated groups appear

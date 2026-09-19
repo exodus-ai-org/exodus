@@ -1,4 +1,4 @@
-import type { LocaleId } from '@shared/i18n/locales'
+import type { LocaleId } from '@exodus/shared/i18n/locales'
 import { formatDistanceToNow } from 'date-fns'
 import {
   de,

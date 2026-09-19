@@ -1,6 +1,6 @@
-import type { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 
+import type { Variables } from '../types'
 import philharmonicConversations from './philharmonic-conversations'
 import philharmonicCrud from './philharmonic-crud'
 import philharmonicSse from './philharmonic-sse'

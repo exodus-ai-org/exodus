@@ -1,4 +1,4 @@
-import { flattenTestIds } from '@shared/constants/test-ids'
+import { flattenTestIds } from '@exodus/shared/constants/test-ids'
 import { describe, expect, it } from 'vitest'
 
 describe('TEST_IDS', () => {

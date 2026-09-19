@@ -9,6 +9,9 @@
     },
     {
       "path": "./tsconfig.test.json"
+    },
+    {
+      "path": "./packages/shared/tsconfig.json"
     }
   ],
   "compilerOptions": {
@@ -20,8 +23,7 @@
     // them — keep in sync with tsconfig.web.json's "paths".
     "baseUrl": ".",
     "paths": {
-      "@/*": ["./src/renderer/*"],
-      "@shared/*": ["./src/shared/*"]
+      "@/*": ["./src/renderer/*"]
     }
   }
 }

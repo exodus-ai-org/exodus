@@ -1,7 +1,7 @@
 /** Shared place + day shapes for the map-itinerary card.
  *  Mirrors the server-side schema in
  *  `src/main/lib/ai/calling-tools/map-itinerary.ts` — keep them in sync. */
-import type { ToolNotice } from '@shared/types/chat'
+import type { ToolNotice } from '@exodus/shared/types/chat'
 
 export type ItineraryReview = {
   author?: string

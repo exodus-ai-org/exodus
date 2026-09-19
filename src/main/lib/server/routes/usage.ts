@@ -1,7 +1,7 @@
-import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 
 import { getUsageRows } from '../../db/queries'
+import { Variables } from '../types'
 import { successResponse } from '../utils'
 
 const usage = new Hono<{ Variables: Variables }>()

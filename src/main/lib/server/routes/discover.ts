@@ -1,11 +1,11 @@
-import type { DiscoverFeedDto } from '@shared/types/discover'
-import { Variables } from '@shared/types/server'
+import type { DiscoverFeedDto } from '@exodus/shared/types/discover'
 import { Hono } from 'hono'
 
 import { getDiscoverFeed, setDiscoverFeed } from '../../db/discover-queries'
 import { getSettings } from '../../db/queries'
 import type { DiscoverFeedRow } from '../../db/schema'
 import { enqueueAndProcess, logEnqueueFailure } from '../../jobs/worker'
+import { Variables } from '../types'
 import { successResponse } from '../utils'
 
 const router = new Hono<{ Variables: Variables }>()

@@ -1,5 +1,4 @@
-import { DeepResearch } from '@shared/types/db'
-import { WebSearchResult } from '@shared/types/web-search'
+import { WebSearchResult } from '@exodus/shared/types/web-search'
 import { differenceInMinutes } from 'date-fns'
 import { useAtom } from 'jotai'
 import { DownloadIcon, LoaderIcon } from 'lucide-react'
@@ -22,6 +21,7 @@ import { i18n } from '@/lib/i18n'
 import { downloadFile } from '@/lib/utils'
 import { markdownToPdf } from '@/services/tools'
 import { activeDeepResearchIdAtom } from '@/stores/chat'
+import { DeepResearch } from '@/types/db'
 
 /**
  * Convert inline 【N-source】 markers to superscript [N] and append a

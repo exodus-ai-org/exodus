@@ -1,11 +1,11 @@
-import { ErrorCode } from '@shared/constants/error-codes'
-import { AppError, ServiceError } from '@shared/errors/app-error'
-import { Variables } from '@shared/types/server'
+import { ErrorCode } from '@exodus/shared/constants/error-codes'
+import { AppError, ServiceError } from '@exodus/shared/errors/app-error'
 import { BrowserWindow } from 'electron'
 import { Hono } from 'hono'
 import MarkdownIt from 'markdown-it'
 
 import { markdownToPdfSchema } from '../schemas/tools'
+import { Variables } from '../types'
 import { getRequiredQuery, successResponse, validateSchema } from '../utils'
 import { bufferToArrayBuffer } from '../utils/helpers'
 

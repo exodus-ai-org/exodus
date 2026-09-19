@@ -1,4 +1,4 @@
-import { UseFormReturnType } from '@shared/schemas/settings-schema'
+import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
 import { format } from 'date-fns'
 import {
   ArrowLeftIcon,

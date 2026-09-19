@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
 
-vi.mock('@electron-toolkit/utils', () => ({ is: { dev: true } }))
 vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
 
 const agentLoopMock = vi.fn()

@@ -112,25 +112,28 @@ Since Exodus is not available on the App Store, you may encounter the following 
 
 ### Prerequisites
 
-We have chosen [Electron](https://www.electronjs.org/) as our cross-platform framework. Make sure that [Node.js](https://nodejs.org/) and [pnpm](https://pnpm.io/) are installed on your system.
+We have chosen [Electron](https://www.electronjs.org/) as our cross-platform framework, built with [Electron Forge](https://www.electronforge.io/) and [Vite](https://vite.dev/). Make sure that [Bun](https://bun.sh/) is installed on your system, then run `bun install`.
 
 ### Available Scripts
 
-| Command              | Description                                        |
-| -------------------- | -------------------------------------------------- |
-| `pnpm dev`           | Start development server with hot reload           |
-| `pnpm build:mac`     | Build for macOS (also builds the Swift helper)     |
-| `pnpm build:linux`   | Build for Linux                                    |
-| `pnpm build:win`     | Build for Windows                                  |
-| `pnpm build:helper`  | Build the `exodus-input` helper for Computer Use   |
-| `pnpm test`          | Run unit tests (Vitest)                            |
-| `pnpm test:watch`    | Run tests in watch mode                            |
-| `pnpm test:coverage` | Run tests with coverage report                     |
-| `pnpm typecheck`     | Run TypeScript type checking                       |
-| `pnpm lint`          | Run oxlint (fast Rust-based linter)                |
-| `pnpm lint:fix`      | Run oxlint with auto-fix                           |
-| `pnpm format`        | Format code with oxfmt (fast Rust-based formatter) |
-| `pnpm format:check`  | Check formatting without modifying files           |
+| Command                     | Description                                                           |
+| --------------------------- | --------------------------------------------------------------------- |
+| `bun run start`             | Start the app in development (Vite dev servers, hot reload)           |
+| `bun run package`           | Package the app for the current platform into `out/`                  |
+| `bun run make`              | Build distributables (macOS ZIP/DMG, Windows Squirrel, Linux deb/rpm) |
+| `bun run build:helper`      | Build the `exodus-input` helper for Computer Use (macOS, needs Xcode) |
+| `bun run test`              | Run unit tests (Vitest)                                               |
+| `bun run test:watch`        | Run tests in watch mode                                               |
+| `bun run test:coverage`     | Run tests with coverage report                                        |
+| `bun run test:e2e:electron` | Package the app, then run the Playwright Electron end-to-end tests    |
+| `bun run typecheck`         | Run TypeScript type checking (main, renderer and the shared package)  |
+| `bun run lint`              | Run oxlint (fast Rust-based linter)                                   |
+| `bun run lint:fix`          | Run oxlint with auto-fix                                              |
+| `bun run fmt`               | Format code with oxfmt (fast Rust-based formatter)                    |
+| `bun run fmt:check`         | Check formatting without modifying files                              |
+| `bun run i18n:check`        | Verify translation catalogs are complete across all locales           |
+
+Development builds use your real data directory, `~/.exodus` — see [CLAUDE.md](./CLAUDE.md) for the details, and don't run two Exodus processes on it at once.
 
 ## Contributing
 

@@ -1,4 +1,7 @@
-import { artifactShortId, artifactSlug } from '@shared/utils/artifact-slug'
+import {
+  artifactShortId,
+  artifactSlug
+} from '@exodus/shared/utils/artifact-slug'
 import { MaximizeIcon, MinimizeIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -20,12 +23,16 @@ interface ArtifactDetails {
   artifactId: string
 }
 
+// The sandbox is another HTML entry of this same renderer build (see
+// vite.renderer.config.mts). Vite's root is the repo root, so its page keeps
+// the `src/renderer/sub-apps/` prefix. Dev: served by the same Vite dev
+// server as this page. Packaged: a sibling path of this page's index.html.
+const ARTIFACT_SANDBOX_PAGE = 'src/renderer/sub-apps/artifacts/index.html'
+
 function getArtifactSandboxUrl(): string {
-  const devUrl = import.meta.env.ELECTRON_RENDERER_URL as string | undefined
-  if (import.meta.env.DEV && devUrl) {
-    return `${devUrl}/sub-apps/artifacts/index.html`
-  }
-  return '../sub-apps/artifacts/index.html'
+  return import.meta.env.DEV
+    ? `${window.location.origin}/${ARTIFACT_SANDBOX_PAGE}`
+    : `./${ARTIFACT_SANDBOX_PAGE}`
 }
 
 function sendToIframe(

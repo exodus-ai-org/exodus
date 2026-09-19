@@ -1,6 +1,9 @@
-import { TEST_IDS } from '@shared/constants/test-ids'
-import type { DiscoverArticle, DiscoverGroup } from '@shared/types/discover'
-import { getHttpErrorMessage, toErrorI18n } from '@shared/utils/http'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
+import type {
+  DiscoverArticle,
+  DiscoverGroup
+} from '@exodus/shared/types/discover'
+import { getHttpErrorMessage, toErrorI18n } from '@exodus/shared/utils/http'
 import { formatDistanceToNow } from 'date-fns'
 import { RefreshCwIcon } from 'lucide-react'
 import { memo, useEffect, useRef, useState } from 'react'

@@ -1,6 +1,6 @@
 import { S3Client } from '@aws-sdk/client-s3'
-import { ErrorCode } from '@shared/constants/error-codes'
-import { ConfigurationError } from '@shared/errors/app-error'
+import { ErrorCode } from '@exodus/shared/constants/error-codes'
+import { ConfigurationError } from '@exodus/shared/errors/app-error'
 
 import { Settings } from '../../db/schema'
 

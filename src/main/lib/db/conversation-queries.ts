@@ -1,4 +1,3 @@
-// src/main/lib/db/conversation-queries.ts
 import { asc, desc, eq, sql } from 'drizzle-orm'
 
 import { db } from './db'
@@ -22,8 +21,8 @@ export interface LatestMessage {
 }
 
 /**
- * One row per conversation: the most recent message. Used to render the
- * Feishu-style preview line under each title in the conversation list.
+ * One row per conversation: the most recent message. Used to render a
+ * preview line under each title in the conversation list.
  */
 export async function getLatestMessagePerConversation(): Promise<
   LatestMessage[]

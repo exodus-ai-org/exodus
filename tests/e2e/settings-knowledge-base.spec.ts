@@ -1,4 +1,4 @@
-import { TEST_IDS } from '../../src/shared/constants/test-ids'
+import { TEST_IDS } from '../../packages/shared/src/constants/test-ids'
 import { electronTest as test, expect } from '../fixtures/electron'
 
 test.describe('Settings — Knowledge Base', () => {

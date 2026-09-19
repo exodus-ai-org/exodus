@@ -1,5 +1,3 @@
-// src/main/lib/server/routes/philharmonic-conversations.ts
-import type { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import { z } from 'zod'
 
@@ -19,6 +17,8 @@ import {
 import { getPhilharmonicCostRows } from '../../db/philharmonic-queries'
 import { getActivePlanByConversationId } from '../../db/plan-queries'
 import { logger } from '../../logger'
+// src/main/lib/server/routes/philharmonic-conversations.ts
+import type { Variables } from '../types'
 import {
   deletionSuccessResponse,
   getRequiredParam,

@@ -1,11 +1,15 @@
-import { TEST_IDS } from '@shared/constants/test-ids'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import {
   CachedModelEntry,
   SettingsInput,
   UseFormReturnType
-} from '@shared/schemas/settings-schema'
-import { AiProviders } from '@shared/types/ai'
-import { fetcher, getHttpErrorMessage, toErrorI18n } from '@shared/utils/http'
+} from '@exodus/shared/schemas/settings-schema'
+import { AiProviders } from '@exodus/shared/types/ai'
+import {
+  fetcher,
+  getHttpErrorMessage,
+  toErrorI18n
+} from '@exodus/shared/utils/http'
 import { AstroidIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { FieldPath } from 'react-hook-form'

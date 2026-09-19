@@ -1,4 +1,4 @@
-import type { InstalledApp } from '@shared/types/computer-use'
+import type { InstalledApp } from '@exodus/shared/types/computer-use'
 import useSWR from 'swr'
 
 /**

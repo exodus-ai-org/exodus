@@ -1,6 +1,10 @@
-import { TEST_IDS } from '@shared/constants/test-ids'
-import { UseFormReturnType } from '@shared/schemas/settings-schema'
-import { fetcher, getHttpErrorMessage, toErrorI18n } from '@shared/utils/http'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
+import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
+import {
+  fetcher,
+  getHttpErrorMessage,
+  toErrorI18n
+} from '@exodus/shared/utils/http'
 import { AlertCircleIcon } from 'lucide-react'
 import { useState } from 'react'
 import { Controller } from 'react-hook-form'

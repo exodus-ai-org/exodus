@@ -1,7 +1,7 @@
+import { AdvancedTools, McpTools } from '@exodus/shared/types/ai'
+import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import type { AgentTool } from '@mariozechner/pi-agent-core'
 import type { Model } from '@mariozechner/pi-ai'
-import { AdvancedTools, McpTools } from '@shared/types/ai'
-import type { WebSearchResult } from '@shared/types/web-search'
 
 import { Settings } from '../../db/schema'
 import { resolveKnowledgeBase } from '../../knowledge-base/resolve-knowledge-base'

@@ -1,11 +1,11 @@
-import { TEST_IDS } from '@shared/constants/test-ids'
-import { UseFormReturnType } from '@shared/schemas/settings-schema'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
+import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
 import type {
   KnowledgeDocData,
   KnowledgeIndexStatus,
   LightRagHealthDto
-} from '@shared/types/knowledge-base'
-import { getHttpErrorMessage, toErrorI18n } from '@shared/utils/http'
+} from '@exodus/shared/types/knowledge-base'
+import { getHttpErrorMessage, toErrorI18n } from '@exodus/shared/utils/http'
 import { formatDistanceToNow } from 'date-fns'
 import {
   AlertCircleIcon,

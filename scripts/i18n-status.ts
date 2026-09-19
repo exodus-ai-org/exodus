@@ -1,10 +1,18 @@
 import { readFileSync } from 'fs'
 import { join } from 'path'
 
-import { LOCALE_IDS } from '../src/shared/i18n/locales'
-import { NAMESPACES } from '../src/shared/i18n/namespaces'
+import { LOCALE_IDS } from '@exodus/shared/i18n/locales'
+import { NAMESPACES } from '@exodus/shared/i18n/namespaces'
 
-const ROOT = join(__dirname, '..', 'src', 'shared', 'i18n', 'locales')
+const ROOT = join(
+  __dirname,
+  '..',
+  'packages',
+  'shared',
+  'src',
+  'i18n',
+  'locales'
+)
 
 for (const locale of LOCALE_IDS) {
   if (locale === 'en') {

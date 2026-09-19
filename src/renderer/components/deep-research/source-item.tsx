@@ -1,5 +1,5 @@
-import { faviconUrl } from '@shared/constants/external-urls'
-import { WebSearchResult } from '@shared/types/web-search'
+import { faviconUrl } from '@exodus/shared/constants/external-urls'
+import { WebSearchResult } from '@exodus/shared/types/web-search'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 

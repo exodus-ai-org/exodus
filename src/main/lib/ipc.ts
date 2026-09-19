@@ -1,7 +1,8 @@
 import { existsSync } from 'fs'
 import { join, resolve, sep } from 'path'
 
-import { app, dialog, ipcMain, nativeTheme, shell } from 'electron'
+import { toAppError } from '@exodus/shared'
+import { app, ipcMain, nativeTheme, shell } from 'electron'
 
 import {
   updaterCheck,
@@ -31,11 +32,13 @@ function safeHandle(
     try {
       return await handler(...args)
     } catch (err) {
+      const appError = toAppError(err)
       logger.error('app', `IPC handler "${channel}" failed`, {
-        error: String(err),
-        stack: err instanceof Error ? err.stack : undefined
+        code: appError.code,
+        error: appError.message,
+        stack: appError.stack
       })
-      throw err
+      throw appError
     }
   })
 }
@@ -144,20 +147,6 @@ export function setupIPC() {
 
   safeHandle('set-native-theme', (_, source: unknown) => {
     nativeTheme.themeSource = source as 'dark' | 'light' | 'system'
-  })
-
-  // Skill upload: open native dialog for ZIP file or folder
-  safeHandle('select-skill-path', async () => {
-    const win = getMainWindow()
-    if (!win) return null
-    const result = await dialog.showOpenDialog(win, {
-      title: 'Install Skill',
-      buttonLabel: 'Install',
-      properties: ['openFile', 'openDirectory'],
-      filters: [{ name: 'Skill Package', extensions: ['zip'] }]
-    })
-    if (result.canceled || result.filePaths.length === 0) return null
-    return result.filePaths[0]
   })
 
   safeHandle('open-logs-dir', () => {

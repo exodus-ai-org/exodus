@@ -1,8 +1,8 @@
+import type { PhilharmonicSseEvent } from '@exodus/shared/types/philharmonic'
 // src/main/lib/ai/philharmonic/employee-loop.ts
 import type { AgentMessage, AgentTool } from '@mariozechner/pi-agent-core'
 import { agentLoop } from '@mariozechner/pi-agent-core'
 import type { Message, Usage } from '@mariozechner/pi-ai'
-import type { PhilharmonicSseEvent } from '@shared/types/philharmonic'
 import { v4 as uuidV4 } from 'uuid'
 
 import {

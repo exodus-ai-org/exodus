@@ -1,5 +1,5 @@
-import { Attachment } from '@shared/types/chat'
-import { fetcher } from '@shared/utils/http'
+import { Attachment } from '@exodus/shared/types/chat'
+import { fetcher } from '@exodus/shared/utils/http'
 
 export const customUpload = async (formData: FormData) =>
   fetcher<Attachment[]>('/api/custom-uploader', {

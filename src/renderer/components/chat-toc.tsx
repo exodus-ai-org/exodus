@@ -1,5 +1,5 @@
-import { TEST_IDS } from '@shared/constants/test-ids'
-import type { ChatMessage } from '@shared/types/chat'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
+import type { ChatMessage } from '@exodus/shared/types/chat'
 import { type RefObject, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 

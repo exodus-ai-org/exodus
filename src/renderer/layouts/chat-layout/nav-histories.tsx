@@ -1,4 +1,3 @@
-import type { Chat } from '@shared/types/db'
 import { useSetAtom } from 'jotai'
 import {
   ChevronRightIcon,
@@ -43,6 +42,7 @@ import {
   renamedChatTitleAtom,
   toBeDeletedChatAtom
 } from '@/stores/chat'
+import type { Chat } from '@/types/db'
 
 /**
  * The DB currently persists `createdAt` as the local wall-clock time but

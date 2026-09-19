@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from 'vitest'
 
 vi.mock('@main/lib/db/db', () => ({ pglite: {}, db: {} }))
 vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
-vi.mock('@electron-toolkit/utils', () => ({ is: { dev: true } }))
 
 const { resolveKnowledgeBase } =
   await import('@main/lib/knowledge-base/resolve-knowledge-base')

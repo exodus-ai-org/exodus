@@ -1,5 +1,5 @@
+import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import { webFetch } from '@main/lib/ai/calling-tools/web-fetch'
-import type { WebSearchResult } from '@shared/types/web-search'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const loadDocument = vi.fn()

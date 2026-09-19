@@ -1,5 +1,5 @@
 import '@/assets/stylesheets/globals.css'
-import { fetcher } from '@shared/utils/http'
+import { fetcher } from '@exodus/shared/utils/http'
 import { Provider } from 'jotai'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider } from 'react-router'

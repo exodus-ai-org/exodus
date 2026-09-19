@@ -1,4 +1,7 @@
-import { SettingsSchema, type Settings } from '@shared/schemas/settings-schema'
+import {
+  SettingsSchema,
+  type Settings
+} from '@exodus/shared/schemas/settings-schema'
 import { cloneDeep, get, isEqual, set } from 'lodash-es'
 
 export type SettingsSaveResult =

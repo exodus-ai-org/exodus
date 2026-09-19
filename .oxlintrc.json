@@ -2,9 +2,46 @@
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["typescript", "unicorn", "oxc"],
   "categories": {
-    "correctness": "error"
+    "correctness": "error",
+    "suspicious": "error",
+    "pedantic": "warn"
   },
-  "rules": {},
+  "rules": {
+    // The business code migrated from universal-client (whose oxlint config
+    // only enforced `correctness`) trips these seven style rules in ~70
+    // places. It is being ported as-is — behavior parity over polish — so
+    // they stay warnings instead of edits to code that has no exodus-side
+    // test coverage of its own (an unattended auto-fix already turned a
+    // 32-bit `| 0` wrap into a non-equivalent `Math.trunc`). New code should
+    // still avoid them.
+    "no-underscore-dangle": "warn",
+    "no-shadow": "warn",
+    "unicorn/no-array-sort": "warn",
+    "unicorn/no-array-reverse": "warn",
+    "unicorn/prefer-add-event-listener": "warn",
+    "unicorn/consistent-function-scoping": "warn",
+    "typescript/no-extraneous-class": "warn",
+    // A warning, not an error: ~80 functions in the code ported from
+    // universal-client (runPmCoordinator 422 lines, the chat route handler 485,
+    // McpServers 562, ...) exceed 120 lines, and as an error this fails the
+    // lint-staged pre-commit hook on any commit touching those files and turns
+    // the PR check red. Flip back to "error" once they've been split.
+    "max-lines-per-function": [
+      "warn",
+      {
+        "max": 120
+      }
+    ]
+  },
+  "overrides": [
+    {
+      "files": ["src/renderer/components/ui/**"],
+      "rules": {
+        "no-shadow": "off",
+        "no-underscore-dangle": "off"
+      }
+    }
+  ],
   "env": {
     "builtin": true
   }

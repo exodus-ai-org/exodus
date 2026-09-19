@@ -1,10 +1,10 @@
-import { BASE_URL } from '@shared/constants/systems'
+import { BASE_URL } from '@exodus/shared/constants/systems'
 import type {
   PhilharmonicSseEvent,
   PlanDto,
   StepDto,
   StepPatch
-} from '@shared/types/philharmonic'
+} from '@exodus/shared/types/philharmonic'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'

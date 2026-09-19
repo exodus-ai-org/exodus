@@ -1,4 +1,3 @@
-import type { Project } from '@shared/types/db'
 import {
   FolderIcon,
   FolderPlusIcon,
@@ -48,6 +47,7 @@ import {
   SidebarMenuItem
 } from '@/components/ui/sidebar'
 import { createProject, deleteProject } from '@/services/project'
+import type { Project } from '@/types/db'
 
 export function NavProjects() {
   const { t } = useTranslation(['common', 'chat'])

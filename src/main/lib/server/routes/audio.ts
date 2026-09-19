@@ -1,10 +1,10 @@
-import { ErrorCode } from '@shared/constants/error-codes'
-import { NotFoundError, ValidationError } from '@shared/errors/app-error'
-import { Variables } from '@shared/types/server'
+import { ErrorCode } from '@exodus/shared/constants/error-codes'
+import { NotFoundError, ValidationError } from '@exodus/shared/errors/app-error'
 import { Hono } from 'hono'
 import OpenAI from 'openai'
 
 import { speechSchema } from '../schemas/audio'
+import { Variables } from '../types'
 import { successResponse, validateOpenAIConfig, validateSchema } from '../utils'
 
 const audio = new Hono<{ Variables: Variables }>()

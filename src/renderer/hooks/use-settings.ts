@@ -1,5 +1,5 @@
-import type { Settings } from '@shared/schemas/settings-schema'
-import { getHttpErrorMessage, toErrorI18n } from '@shared/utils/http'
+import type { Settings } from '@exodus/shared/schemas/settings-schema'
+import { getHttpErrorMessage, toErrorI18n } from '@exodus/shared/utils/http'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 import useSWR from 'swr'

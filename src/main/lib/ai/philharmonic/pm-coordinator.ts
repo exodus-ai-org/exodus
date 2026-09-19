@@ -1,8 +1,8 @@
+import type { Attachment } from '@exodus/shared/types/chat'
 // src/main/lib/ai/philharmonic/pm-coordinator.ts
 import type { AgentMessage, AgentTool } from '@mariozechner/pi-agent-core'
 import { agentLoop } from '@mariozechner/pi-agent-core'
 import type { Message } from '@mariozechner/pi-ai'
-import type { Attachment } from '@shared/types/chat'
 import { v4 as uuidV4 } from 'uuid'
 
 import {

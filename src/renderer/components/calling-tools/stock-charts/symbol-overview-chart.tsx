@@ -1,4 +1,4 @@
-import { TRADINGVIEW_SYMBOL_OVERVIEW_WIDGET } from '@shared/constants/external-urls'
+import { TRADINGVIEW_SYMBOL_OVERVIEW_WIDGET } from '@exodus/shared/constants/external-urls'
 import { memo, useEffect, useRef } from 'react'
 
 function SymbolOverviewChart({ symbols }: { symbols: string[] }) {

@@ -6,7 +6,7 @@ on:
       - master
 
 jobs:
-  build:
+  check:
     runs-on: ${{ matrix.os }}
 
     strategy:
@@ -20,33 +20,25 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: 24
+          bun-version: latest
 
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
 
-      - name: Install Dependencies
-        run: pnpm install
+      - name: Lint
+        run: bun run lint
 
-      - name: Build Mac
-        if: matrix.os == 'macos-latest'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pnpm run build:mac
+      - name: Format check
+        run: bun run fmt:check
 
-      - name: Build Windows
-        if: matrix.os == 'windows-latest'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pnpm run build:win
+      - name: Typecheck
+        run: bun run typecheck
 
-      - name: Build Linux
-        if: matrix.os == 'ubuntu-latest'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pnpm run build:linux
+      - name: Translation catalogs
+        run: bun run i18n:check
+
+      - name: Test
+        run: bun run test

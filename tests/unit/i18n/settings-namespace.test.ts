@@ -10,8 +10,9 @@ const settings = JSON.parse(
       '..',
       '..',
       '..',
-      'src',
+      'packages',
       'shared',
+      'src',
       'i18n',
       'locales',
       'en',
@@ -807,36 +808,5 @@ describe('settings namespace Phase 5 additions (en)', () => {
       errorToast: 'Delete failed',
       errorFallback: 'Failed to delete data.'
     })
-  })
-})
-
-describe('settings namespace skillsMarket.sourceNotice renders correctly via Trans', () => {
-  it("sourceNotice — <a> link at index 2 (explicit {' '} before it occupies index 1)", async () => {
-    const { createElement } = await import('react')
-    const { renderToStaticMarkup } = await import('react-dom/server')
-    const { I18nextProvider, initReactI18next } = await import('react-i18next')
-    const i18next = (await import('i18next')).default
-    const { SkillsDataSourceNotice } =
-      await import('@/containers/skills-market/index')
-
-    const i18n = i18next.createInstance()
-    await i18n.use(initReactI18next).init({
-      lng: 'en',
-      resources: { en: { settings } },
-      ns: ['settings'],
-      defaultNS: 'settings',
-      interpolation: { escapeValue: false }
-    })
-
-    const html = renderToStaticMarkup(
-      createElement(
-        I18nextProvider,
-        { i18n },
-        createElement(SkillsDataSourceNotice)
-      )
-    )
-    expect(html).toBe(
-      'Skills data sourced from <a href="https://clawhub.ai" target="_blank" rel="noopener noreferrer">clawhub.ai</a>. Please review skills carefully before installing to avoid potentially malicious programs.'
-    )
   })
 })

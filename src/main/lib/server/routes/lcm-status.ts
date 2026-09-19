@@ -1,8 +1,8 @@
-import type { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 
 import { lcmStatusBus } from '../../ai/context-management/lcm-status-bus'
 import { logger } from '../../logger'
+import type { Variables } from '../types'
 import { getRequiredParam } from '../utils'
 import { SSE_HEADERS } from '../utils/sse-manager'
 

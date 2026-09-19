@@ -1,6 +1,6 @@
-import { TEST_IDS } from '@shared/constants/test-ids'
-import type { EffortLevel } from '@shared/schemas/settings-schema'
-import { AdvancedTools as AdvancedToolsType } from '@shared/types/ai'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
+import type { EffortLevel } from '@exodus/shared/schemas/settings-schema'
+import { AdvancedTools as AdvancedToolsType } from '@exodus/shared/types/ai'
 import { produce } from 'immer'
 import { useAtom } from 'jotai'
 import {

@@ -1,9 +1,9 @@
-// src/main/lib/ai/philharmonic/recruit.ts
-import { completeSimple } from '@mariozechner/pi-ai'
 import {
   DEFAULT_AVATAR_STYLE,
   randomAvatarSeed
-} from '@shared/constants/avatar'
+} from '@exodus/shared/constants/avatar'
+// src/main/lib/ai/philharmonic/recruit.ts
+import { completeSimple } from '@mariozechner/pi-ai'
 
 import { createAgent, getAllAgents } from '../../db/philharmonic-queries'
 import { getSettings } from '../../db/queries'

@@ -34,7 +34,7 @@ vi.mock('node-cron', () => ({
     schedule: (_e: string, fn: () => void) => ({ stop: () => {}, _fn: fn })
   }
 }))
-// Mock logger to avoid pulling in electron / @electron-toolkit/utils
+// Mock logger to avoid pulling in electron
 vi.mock('@main/lib/logger', () => ({
   logger: {
     info: vi.fn(),

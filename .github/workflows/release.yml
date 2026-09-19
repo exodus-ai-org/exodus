@@ -8,7 +8,14 @@ on:
 permissions:
   contents: write
 
+env:
+  # bun install runs `prepare: husky`; nothing here should touch git hooks.
+  HUSKY: 0
+
 jobs:
+  # Ask semantic-release (dry run) what the next version would be. Empty when
+  # the commits since the last tag don't warrant a release — the jobs below
+  # are then skipped instead of failing.
   version:
     runs-on: ubuntu-latest
     outputs:
@@ -23,22 +30,23 @@ jobs:
         with:
           node-version: 24
 
-      - uses: pnpm/action-setup@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          version: 10
+          bun-version: latest
 
-      - run: pnpm install
+      - run: bun install --frozen-lockfile
 
       - id: get_version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          NEXT_VERSION=$(npx semantic-release --dry-run --no-ci | grep -oP 'The next release version is \K[0-9]+\.[0-9]+\.[0-9]+')
-          echo "Next version: $NEXT_VERSION"
+          NEXT_VERSION=$(npx semantic-release --dry-run --no-ci | grep -oP 'The next release version is \K[0-9]+\.[0-9]+\.[0-9]+' || true)
+          echo "Next version: ${NEXT_VERSION:-<none — nothing to release>}"
           echo "version=$NEXT_VERSION" >> $GITHUB_OUTPUT
 
   build:
     needs: version
+    if: needs.version.outputs.version != ''
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -54,60 +62,52 @@ jobs:
         with:
           node-version: 24
 
-      - uses: pnpm/action-setup@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          version: 10
+          bun-version: latest
 
-      - run: pnpm install
-
-      - name: Update package.json version
-        run: |
-          pnpm version --no-git-tag-version ${{ needs.version.outputs.version }}
-
-      - name: Build Mac
-        if: matrix.os == 'macos-latest'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pnpm run build:mac
-
-      - name: Build Windows
-        if: matrix.os == 'windows-latest'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pnpm run build:win
-
-      - name: Build Linux
+      # Forge's deb / rpm makers shell out to dpkg+fakeroot and rpmbuild.
+      - name: Install Linux packaging tools
         if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install -y dpkg fakeroot rpm
+
+      - run: bun install --frozen-lockfile
+
+      # The version lives in package.json, which is what the makers stamp into
+      # the installers; semantic-release commits the real bump afterwards.
+      - name: Set package version
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: pnpm run build:linux
+          NEXT_VERSION: ${{ needs.version.outputs.version }}
+        run: npm pkg set version="$NEXT_VERSION"
+
+      # `make` = electron-forge make with data-testid stripped (see package.json).
+      # Output: macOS ZIP + DMG, Windows Squirrel (.exe/.nupkg/RELEASES),
+      # Linux .deb + .rpm — all under out/make/. Unsigned for now.
+      - name: Build distributables
+        run: bun run make
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: electron-artifacts-${{ matrix.os }}
           path: |
-            dist/*.exe
-            dist/*.zip
-            dist/*.dmg
-            dist/*.AppImage
-            dist/*.snap
-            dist/*.deb
-            dist/*.rpm
-            dist/*.tar.gz
-            dist/*.yml
-            dist/*.blockmap
-          if-no-files-found: ignore
+            out/make/**/*.zip
+            out/make/**/*.dmg
+            out/make/**/*.exe
+            out/make/**/*.nupkg
+            out/make/**/RELEASES
+            out/make/**/*.deb
+            out/make/**/*.rpm
+          if-no-files-found: error
 
   release:
-    needs: build
+    needs: [version, build]
+    if: needs.version.outputs.version != ''
     runs-on: ubuntu-latest
     # semantic-release's @semantic-release/git plugin makes the version-bump
-    # commit; without this, the husky pre-commit hook re-runs lint-staged +
-    # `pnpm test` and a flaky PGlite WASM teardown can fail the commit even
-    # when every test passes. The gate already ran on the PR.
-    env:
-      HUSKY: 0
+    # commit; with HUSKY=0 (set for the whole workflow above) the pre-commit
+    # hook doesn't re-run lint-staged/typecheck on it. The gate already ran on
+    # the PR.
     steps:
       - uses: actions/checkout@v4
         with:
@@ -118,11 +118,11 @@ jobs:
         with:
           node-version: 24
 
-      - uses: pnpm/action-setup@v4
+      - uses: oven-sh/setup-bun@v2
         with:
-          version: 10
+          bun-version: latest
 
-      - run: pnpm install
+      - run: bun install --frozen-lockfile
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4

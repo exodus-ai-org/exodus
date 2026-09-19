@@ -1,4 +1,4 @@
-import { WeatherForecastDay, WWO_CODE } from '@shared/types/weather'
+import { WeatherForecastDay, WWO_CODE } from '@exodus/shared/types/weather'
 import { domAnimation, LazyMotion, m } from 'framer-motion'
 import {
   CloudDrizzleIcon,

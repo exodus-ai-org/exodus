@@ -1,5 +1,5 @@
-import { Settings } from '@shared/schemas/settings-schema'
-import { AiProviders } from '@shared/types/ai'
+import { Settings } from '@exodus/shared/schemas/settings-schema'
+import { AiProviders } from '@exodus/shared/types/ai'
 import z from 'zod'
 
 // Settings routes schemas

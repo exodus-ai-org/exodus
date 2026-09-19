@@ -1,0 +1,11 @@
+# Bun defaults to an isolated (symlinked, pnpm-style) node_modules layout
+# once a `workspaces` field is present. That breaks two things for an
+# Electron app specifically: TypeScript can no longer resolve
+# phantom/transitive-only imports like forge.config.ts's
+# `@electron-forge/shared-types` (it's electron-forge/cli's dependency, not
+# ours), and — the harder one to catch — electron-forge/electron-builder's
+# packager needs a real flat tree to bundle into the asar; a symlink forest
+# has caused packaged (not dev) builds to crash at startup missing modules
+# in sibling Electron projects. Force the classic flat/hoisted layout.
+[install]
+linker = "hoisted"

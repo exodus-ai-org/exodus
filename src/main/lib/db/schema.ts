@@ -1,4 +1,3 @@
-import type { Usage } from '@mariozechner/pi-ai'
 import {
   VoiceSchema,
   DeepResearchSchema,
@@ -17,9 +16,10 @@ import {
   FullTextSearchSchema,
   ToolsSchema,
   WebSearchSchema
-} from '@shared/schemas/settings-schema'
-import type { DiscoverGroup } from '@shared/types/discover'
-import { WebSearchResult } from '@shared/types/web-search'
+} from '@exodus/shared/schemas/settings-schema'
+import type { DiscoverGroup } from '@exodus/shared/types/discover'
+import { WebSearchResult } from '@exodus/shared/types/web-search'
+import type { Usage } from '@mariozechner/pi-ai'
 import { sql, type InferSelectModel } from 'drizzle-orm'
 import {
   boolean,

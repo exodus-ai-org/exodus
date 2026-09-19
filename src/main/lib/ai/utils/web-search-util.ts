@@ -1,9 +1,9 @@
-import { WebPDFLoader } from '@langchain/community/document_loaders/web/pdf'
 import type {
   WebSearchMediaKind,
   WebSearchMediaResult,
   WebSearchResult
-} from '@shared/types/web-search'
+} from '@exodus/shared/types/web-search'
+import { WebPDFLoader } from '@langchain/community/document_loaders/web/pdf'
 import * as cheerio from 'cheerio'
 import TurndownService from 'turndown'
 
@@ -797,7 +797,7 @@ export async function fetchWebSearch({
     }
 
     const results: WebSearchResult[] = []
-    const ranked = [...grounded.entries()].sort(
+    const ranked = [...grounded.entries()].toSorted(
       (a, b) => b[1].hits - a[1].hits || a[1].order - b[1].order
     )
     for (const [url, g] of ranked) {

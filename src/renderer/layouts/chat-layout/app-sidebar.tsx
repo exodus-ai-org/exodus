@@ -1,4 +1,4 @@
-import { TEST_IDS } from '@shared/constants/test-ids'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { useSetAtom } from 'jotai'
 import { SearchIcon, SquarePenIcon } from 'lucide-react'
 import * as React from 'react'

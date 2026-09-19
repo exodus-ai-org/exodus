@@ -1,8 +1,8 @@
-import { settings } from '@main/lib/db/schema'
 import {
   ComputerUseSchema,
   SettingsSchema
-} from '@shared/schemas/settings-schema'
+} from '@exodus/shared/schemas/settings-schema'
+import { settings } from '@main/lib/db/schema'
 import { describe, expect, it } from 'vitest'
 
 describe('computer use schema', () => {

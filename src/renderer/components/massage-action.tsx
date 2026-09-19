@@ -1,5 +1,5 @@
-import { faviconUrl } from '@shared/constants/external-urls'
-import type { WebSearchResult } from '@shared/types/web-search'
+import { faviconUrl } from '@exodus/shared/constants/external-urls'
+import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import { useSetAtom } from 'jotai'
 import { CheckIcon, CopyIcon, RefreshCwIcon } from 'lucide-react'
 import { memo, useCallback, useMemo } from 'react'

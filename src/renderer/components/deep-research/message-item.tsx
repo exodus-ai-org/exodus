@@ -1,10 +1,11 @@
-import { DeepResearchMessage } from '@shared/types/db'
 import {
   DeepResearchProgress,
   ReportProgressPayload
-} from '@shared/types/deep-research'
+} from '@exodus/shared/types/deep-research'
 import { BotIcon, CheckIcon, SearchIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+
+import { DeepResearchMessage } from '@/types/db'
 
 import { SourceItem } from './source-item'
 

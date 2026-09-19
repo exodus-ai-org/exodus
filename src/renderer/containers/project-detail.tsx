@@ -1,5 +1,4 @@
-import type { StructuredInstructions } from '@shared/schemas/project-schema'
-import type { Chat, Project } from '@shared/types/db'
+import type { StructuredInstructions } from '@exodus/shared/schemas/project-schema'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router'
@@ -13,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
 import { useFormat } from '@/lib/format'
 import { updateProject } from '@/services/project'
+import type { Chat, Project } from '@/types/db'
 
 export function ProjectDetail() {
   const { t } = useTranslation('chat')

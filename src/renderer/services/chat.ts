@@ -1,9 +1,9 @@
-import { Chat } from '@shared/types/db'
-import { fetcher } from '@shared/utils/http'
+import { fetcher } from '@exodus/shared/utils/http'
 import { sileo } from 'sileo'
 import { mutate } from 'swr'
 
 import { i18n } from '@/lib/i18n'
+import { Chat } from '@/types/db'
 
 export const updateChat = async (payload: Partial<Chat>) => {
   await fetcher<void>('/api/chat', {

@@ -1,5 +1,5 @@
-import { TEST_IDS } from '@shared/constants/test-ids'
-import type { LockNotification, LockStatus } from '@shared/types/lock'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
+import type { LockNotification, LockStatus } from '@exodus/shared/types/lock'
 import { FingerprintIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'

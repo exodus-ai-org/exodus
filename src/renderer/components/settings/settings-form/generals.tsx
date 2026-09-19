@@ -1,6 +1,10 @@
-import { TEST_IDS } from '@shared/constants/test-ids'
-import { LOCALE_IDS, LOCALES, type LanguageSetting } from '@shared/i18n/locales'
-import { UseFormReturnType } from '@shared/schemas/settings-schema'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
+import {
+  LOCALE_IDS,
+  LOCALES,
+  type LanguageSetting
+} from '@exodus/shared/i18n/locales'
+import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
 import type { ParseKeys } from 'i18next'
 import { Moon, Sun, SunMoon } from 'lucide-react'
 import { useTheme } from 'next-themes'

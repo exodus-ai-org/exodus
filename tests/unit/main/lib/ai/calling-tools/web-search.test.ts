@@ -1,7 +1,7 @@
+import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import { webSearch } from '@main/lib/ai/calling-tools/web-search'
 import { fetchWebSearch } from '@main/lib/ai/utils/web-search-util'
-import type { Settings } from '@shared/types/db'
-import type { WebSearchResult } from '@shared/types/web-search'
+import type { Settings } from '@main/lib/db/schema'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@main/lib/ai/utils/web-search-util', () => ({

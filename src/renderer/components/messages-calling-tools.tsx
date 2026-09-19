@@ -1,4 +1,4 @@
-import type { ChatToolResultMessage } from '@shared/types/chat'
+import type { ChatToolResultMessage } from '@exodus/shared/types/chat'
 import { capitalCase } from 'change-case'
 import { AlertCircleIcon } from 'lucide-react'
 import { memo, useEffect } from 'react'

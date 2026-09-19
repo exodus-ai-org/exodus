@@ -1,7 +1,7 @@
 import { readFileSync } from 'fs'
 import { join } from 'path'
 
-import { ErrorCode, ErrorMessages } from '@shared/constants/error-codes'
+import { ErrorCode, ErrorMessages } from '@exodus/shared/constants/error-codes'
 import { describe, expect, it } from 'vitest'
 
 const errors = JSON.parse(
@@ -11,8 +11,9 @@ const errors = JSON.parse(
       '..',
       '..',
       '..',
-      'src',
+      'packages',
       'shared',
+      'src',
       'i18n',
       'locales',
       'en',

@@ -1,6 +1,6 @@
+import type { ModelSnapshot } from '@exodus/shared/schemas/settings-schema'
 import type { Api, KnownProvider, Model } from '@mariozechner/pi-ai'
 import { getModel } from '@mariozechner/pi-ai'
-import type { ModelSnapshot } from '@shared/schemas/settings-schema'
 
 interface FallbackDefaults {
   contextWindow: number
@@ -107,13 +107,13 @@ export function resolveModel(
       thinkingLevelMap,
       contextWindow: snapshot.contextWindow ?? defaults.contextWindow,
       maxTokens: snapshot.maxOutputTokens ?? defaults.maxTokens,
-      // ModelSnapshotSchema (src/shared/schemas/settings-schema.ts) has no
-      // field for cache pricing — none of the list-models handlers this
-      // snapshot came from report cache read/write rates, so cost estimates
-      // under-report for any model that gets a real cache discount. This is
-      // a known gap in the schema, not fixed here (too large/risky for a
-      // one-shot fix) — revisit if ModelSnapshotSchema ever gains cache-rate
-      // fields.
+      // ModelSnapshotSchema (packages/shared/src/schemas/settings-schema.ts)
+      // has no field for cache pricing — none of the list-models handlers
+      // this snapshot came from report cache read/write rates, so cost
+      // estimates under-report for any model that gets a real cache
+      // discount. This is a known gap in the schema, not fixed here (too
+      // large/risky for a one-shot fix) — revisit if ModelSnapshotSchema
+      // ever gains cache-rate fields.
       cost: snapshot.cost
         ? { ...snapshot.cost, cacheRead: 0, cacheWrite: 0 }
         : { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }

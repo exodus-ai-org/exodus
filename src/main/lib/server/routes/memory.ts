@@ -1,6 +1,5 @@
-import { ErrorCode } from '@shared/constants/error-codes'
-import { NotFoundError, ValidationError } from '@shared/errors/app-error'
-import { Variables } from '@shared/types/server'
+import { ErrorCode } from '@exodus/shared/constants/error-codes'
+import { NotFoundError, ValidationError } from '@exodus/shared/errors/app-error'
 import { Hono } from 'hono'
 
 import { LOCAL_USER_ID, runMemoryInstruction } from '../../ai/memory/manager'
@@ -15,6 +14,7 @@ import {
   type MemorySection,
   type MemorySource
 } from '../../db/memory-queries'
+import { Variables } from '../types'
 import {
   deletionSuccessResponse,
   getRequiredParam,

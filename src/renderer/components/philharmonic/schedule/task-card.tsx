@@ -1,5 +1,5 @@
 // src/renderer/components/philharmonic/schedule/task-card.tsx
-import { TEST_IDS } from '@shared/constants/test-ids'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { Loader2Icon, XIcon } from 'lucide-react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'

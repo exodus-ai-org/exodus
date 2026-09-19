@@ -1,4 +1,7 @@
-import { AVATAR_STYLES, randomAvatarSeed } from '@shared/constants/avatar'
+import {
+  AVATAR_STYLES,
+  randomAvatarSeed
+} from '@exodus/shared/constants/avatar'
 import { RefreshCwIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'

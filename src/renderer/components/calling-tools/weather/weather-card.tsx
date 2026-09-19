@@ -1,4 +1,4 @@
-import { WeatherResult, WWO_CODE } from '@shared/types/weather'
+import { WeatherResult, WWO_CODE } from '@exodus/shared/types/weather'
 import { domAnimation, LazyMotion, m } from 'framer-motion'
 import { useTranslation } from 'react-i18next'
 

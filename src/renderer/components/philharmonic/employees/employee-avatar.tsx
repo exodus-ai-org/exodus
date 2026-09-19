@@ -1,6 +1,6 @@
 import * as collection from '@dicebear/collection'
 import { createAvatar } from '@dicebear/core'
-import { DEFAULT_AVATAR_STYLE } from '@shared/constants/avatar'
+import { DEFAULT_AVATAR_STYLE } from '@exodus/shared/constants/avatar'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 

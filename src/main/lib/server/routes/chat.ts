@@ -1,17 +1,16 @@
-import type { AgentMessage } from '@mariozechner/pi-agent-core'
-import { agentLoop } from '@mariozechner/pi-agent-core'
-import type { Message } from '@mariozechner/pi-ai'
-import { ErrorCode } from '@shared/constants/error-codes'
-import { NotFoundError } from '@shared/errors/app-error'
-import { AdvancedTools } from '@shared/types/ai'
+import { ErrorCode } from '@exodus/shared/constants/error-codes'
+import { NotFoundError } from '@exodus/shared/errors/app-error'
+import { AdvancedTools } from '@exodus/shared/types/ai'
 import type {
   ChatAssistantMessage,
   ChatMessage,
   ChatSseEvent,
   ChatToolResultMessage,
   ToolNotice
-} from '@shared/types/chat'
-import { Variables } from '@shared/types/server'
+} from '@exodus/shared/types/chat'
+import type { AgentMessage } from '@mariozechner/pi-agent-core'
+import { agentLoop } from '@mariozechner/pi-agent-core'
+import type { Message } from '@mariozechner/pi-ai'
 import { Hono } from 'hono'
 import { v4 as uuidV4 } from 'uuid'
 
@@ -53,6 +52,7 @@ import {
   searchWithFallback
 } from '../../search/resolve-search-provider'
 import { postRequestBodySchema, updateChatSchema } from '../schemas/chat'
+import { Variables } from '../types'
 import {
   deletionSuccessResponse,
   getRequiredParam,

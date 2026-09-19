@@ -1,6 +1,6 @@
-import type { Attachment } from '@shared/types/chat'
-import type { PlanDto } from '@shared/types/philharmonic'
-import { fetcher } from '@shared/utils/http'
+import type { Attachment } from '@exodus/shared/types/chat'
+import type { PlanDto } from '@exodus/shared/types/philharmonic'
+import { fetcher } from '@exodus/shared/utils/http'
 
 import type {
   ConversationData,

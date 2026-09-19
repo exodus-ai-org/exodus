@@ -1,4 +1,4 @@
-import { QUICK_CHAT_KEY } from '@shared/constants/misc'
+import { QUICK_CHAT_KEY } from '@exodus/shared/constants/misc'
 import { IpcRendererEvent } from 'electron'
 import { useCallback, useEffect } from 'react'
 import { Outlet, useNavigate } from 'react-router'

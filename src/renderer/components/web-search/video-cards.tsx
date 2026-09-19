@@ -1,4 +1,4 @@
-import { TEST_IDS } from '@shared/constants/test-ids'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { PlayIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 

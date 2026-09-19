@@ -1,6 +1,5 @@
-import { ErrorCode } from '@shared/constants/error-codes'
-import { DatabaseError } from '@shared/errors/app-error'
-import { Variables } from '@shared/types/server'
+import { ErrorCode } from '@exodus/shared/constants/error-codes'
+import { DatabaseError } from '@exodus/shared/errors/app-error'
 import { Hono } from 'hono'
 import JSZip from 'jszip'
 
@@ -10,6 +9,7 @@ import type { Settings } from '../../db/schema'
 import { logger } from '../../logger'
 import { resolveSearchProvider } from '../../search/resolve-search-provider'
 import { importDataSchema } from '../schemas/db-io'
+import { Variables } from '../types'
 import {
   handleDatabaseOperation,
   successResponse,

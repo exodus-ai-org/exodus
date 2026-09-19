@@ -7,7 +7,6 @@ vi.mock('@main/lib/db/db', () => ({
   pglite: {}
 }))
 vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
-vi.mock('@electron-toolkit/utils', () => ({ is: { dev: true } }))
 
 const { orderByIds, escapeLikePattern, fullTextSearchOnMessages } =
   await import('@main/lib/db/queries')

@@ -1,5 +1,6 @@
 import type { Model } from '@mariozechner/pi-ai'
-import { Settings } from '@shared/types/db'
+
+import type { Settings } from '../../db/schema'
 
 export function getOllama(setting: Settings): Model<string> {
   const baseUrl =

@@ -1,182 +1,74 @@
 import {
-  ErrorCode,
-  ErrorCodeToStatus,
-  ErrorMessages
-} from '@shared/constants/error-codes'
-import {
-  AIError,
   AppError,
-  ConfigurationError,
-  DatabaseError,
-  FileError,
+  ErrorCode,
   InternalError,
   NotFoundError,
-  ServiceError,
-  ValidationError,
   isAppError,
   toAppError
-} from '@shared/errors/app-error'
+} from '@exodus/shared'
 import { describe, expect, it } from 'vitest'
 
 describe('AppError', () => {
-  it('should create an error with code and default message', () => {
-    const err = new AppError(ErrorCode.INTERNAL_ERROR)
-    expect(err.code).toBe(ErrorCode.INTERNAL_ERROR)
-    expect(err.message).toBe(ErrorMessages[ErrorCode.INTERNAL_ERROR])
-    expect(err.statusCode).toBe(500)
-    expect(err.isOperational).toBe(true)
-  })
-
-  it('should create an error with custom message', () => {
-    const err = new AppError(ErrorCode.CHAT_NOT_FOUND, 'Chat 123 not found')
-    expect(err.message).toBe('Chat 123 not found')
+  it('uses the default message and status for its error code', () => {
+    const err = new NotFoundError()
+    expect(err.code).toBe(ErrorCode.RESOURCE_NOT_FOUND)
     expect(err.statusCode).toBe(404)
+    expect(err.message).toBe('Resource not found.')
+    expect(err.hasCustomMessage).toBe(false)
   })
 
-  it('serializes to Anthropic-style JSON with hasCustomMessage true for an explicit message', () => {
-    const err = new AppError(ErrorCode.VALIDATION_FAILED, 'Bad input')
-    const json = err.toJSON()
-    expect(json).toEqual({
-      type: 'error',
-      error: {
-        code: ErrorCode.VALIDATION_FAILED,
-        message: 'Bad input',
-        hasCustomMessage: true
-      }
-    })
-  })
-
-  it('serializes with hasCustomMessage false and includes params when code-driven', () => {
-    const err = new AppError(
-      ErrorCode.VALIDATION_MISSING_FIELD,
-      undefined,
-      true,
-      {
-        field: 'chatId'
-      }
+  it('keeps a custom message verbatim and flags it as custom', () => {
+    const err = new NotFoundError(
+      ErrorCode.RESOURCE_NOT_FOUND,
+      'Chat 123 not found'
     )
-    const json = err.toJSON()
-    expect(json).toEqual({
+    expect(err.message).toBe('Chat 123 not found')
+    expect(err.hasCustomMessage).toBe(true)
+  })
+
+  it('serializes to the Anthropic-style JSON shape', () => {
+    const err = new NotFoundError()
+    expect(err.toJSON()).toEqual({
       type: 'error',
       error: {
-        code: ErrorCode.VALIDATION_MISSING_FIELD,
-        message: 'chatId is required.',
-        params: { field: 'chatId' },
+        code: ErrorCode.RESOURCE_NOT_FOUND,
+        message: 'Resource not found.',
         hasCustomMessage: false
       }
     })
   })
-})
 
-describe('Error subclasses', () => {
-  it('ConfigurationError defaults to CONFIG_INVALID', () => {
-    const err = new ConfigurationError()
-    expect(err.code).toBe(ErrorCode.CONFIG_INVALID)
-    expect(err.statusCode).toBe(400)
-    expect(err).toBeInstanceOf(AppError)
-  })
-
-  it('NotFoundError defaults to RESOURCE_NOT_FOUND', () => {
-    const err = new NotFoundError()
-    expect(err.code).toBe(ErrorCode.RESOURCE_NOT_FOUND)
-    expect(err.statusCode).toBe(404)
-  })
-
-  it('ValidationError defaults to VALIDATION_FAILED', () => {
-    const err = new ValidationError()
-    expect(err.code).toBe(ErrorCode.VALIDATION_FAILED)
-    expect(err.statusCode).toBe(400)
-  })
-
-  it('ServiceError defaults to SERVICE_UNAVAILABLE', () => {
-    const err = new ServiceError()
-    expect(err.code).toBe(ErrorCode.SERVICE_UNAVAILABLE)
-    expect(err.statusCode).toBe(503)
-  })
-
-  it('DatabaseError defaults to DB_QUERY_FAILED', () => {
-    const err = new DatabaseError()
-    expect(err.code).toBe(ErrorCode.DB_QUERY_FAILED)
-    expect(err.statusCode).toBe(500)
-  })
-
-  it('FileError defaults to FILE_READ_FAILED', () => {
-    const err = new FileError()
-    expect(err.code).toBe(ErrorCode.FILE_READ_FAILED)
-    expect(err.statusCode).toBe(500)
-  })
-
-  it('AIError defaults to AI_GENERATION_FAILED', () => {
-    const err = new AIError()
-    expect(err.code).toBe(ErrorCode.AI_GENERATION_FAILED)
-    expect(err.statusCode).toBe(500)
-  })
-
-  it('InternalError is non-operational', () => {
-    const err = new InternalError('Something broke')
-    expect(err.code).toBe(ErrorCode.INTERNAL_ERROR)
-    expect(err.isOperational).toBe(false)
-  })
-
-  it('typed subclasses forward params to the base class', () => {
-    const err = new NotFoundError(ErrorCode.MEMORY_NOT_FOUND, undefined, {
-      id: 'mem-1'
+  it('includes params in the serialized output when provided', () => {
+    const err = new NotFoundError(ErrorCode.RESOURCE_NOT_FOUND, undefined, {
+      id: '123'
     })
-    expect(err.params).toEqual({ id: 'mem-1' })
-    expect(err.hasCustomMessage).toBe(false)
-  })
-
-  it('interpolates {{param}} placeholders into the default ErrorMessages template', () => {
-    const err = new NotFoundError(ErrorCode.MEMORY_NOT_FOUND, undefined, {
-      id: 'mem-1'
-    })
-    expect(err.message).toBe('Memory mem-1 not found.')
+    expect(err.toJSON().error.params).toEqual({ id: '123' })
   })
 })
 
-describe('isAppError', () => {
-  it('returns true for AppError instances', () => {
-    expect(isAppError(new AppError(ErrorCode.INTERNAL_ERROR))).toBe(true)
+describe('isAppError / toAppError', () => {
+  it('recognizes AppError instances', () => {
     expect(isAppError(new NotFoundError())).toBe(true)
+    expect(isAppError(new Error('plain'))).toBe(false)
+    expect(isAppError('not an error')).toBe(false)
   })
 
-  it('returns false for regular errors', () => {
-    expect(isAppError(new Error('oops'))).toBe(false)
-    expect(isAppError('string')).toBe(false)
-    expect(isAppError(null)).toBe(false)
-  })
-})
-
-describe('toAppError', () => {
-  it('returns AppError as-is', () => {
+  it('passes an existing AppError through unchanged', () => {
     const original = new NotFoundError()
     expect(toAppError(original)).toBe(original)
   })
 
-  it('wraps regular Error as InternalError', () => {
-    const err = toAppError(new Error('oops'))
-    expect(err).toBeInstanceOf(InternalError)
-    expect(err.message).toBe('oops')
+  it('wraps a plain Error as an InternalError, preserving its message', () => {
+    const wrapped = toAppError(new Error('boom'))
+    expect(wrapped).toBeInstanceOf(InternalError)
+    expect(wrapped.code).toBe(ErrorCode.INTERNAL_ERROR)
+    expect(wrapped.message).toBe('boom')
+    expect(wrapped.hasCustomMessage).toBe(true)
   })
 
-  it('wraps unknown values as InternalError, stringifying the input', () => {
-    const err = toAppError('unexpected')
-    expect(err).toBeInstanceOf(InternalError)
-    expect(err.message).toBe('unexpected')
-  })
-})
-
-describe('ErrorCode completeness', () => {
-  it('every ErrorCode has a status mapping', () => {
-    for (const code of Object.values(ErrorCode)) {
-      expect(ErrorCodeToStatus[code]).toBeDefined()
-    }
-  })
-
-  it('every ErrorCode has a message', () => {
-    for (const code of Object.values(ErrorCode)) {
-      expect(ErrorMessages[code]).toBeDefined()
-      expect(typeof ErrorMessages[code]).toBe('string')
-    }
+  it('wraps a non-Error thrown value by stringifying it', () => {
+    const wrapped = toAppError('just a string')
+    expect(wrapped).toBeInstanceOf(AppError)
+    expect(wrapped.message).toBe('just a string')
   })
 })

@@ -1,4 +1,4 @@
-import { stripDataTestId } from '@shared/utils/strip-test-id'
+import { stripDataTestId } from '@exodus/shared/utils/strip-test-id'
 import { describe, expect, it } from 'vitest'
 
 describe('stripDataTestId', () => {

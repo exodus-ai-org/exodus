@@ -1,5 +1,5 @@
 // src/renderer/components/philharmonic/chat/group-chat.tsx
-import { TEST_IDS } from '@shared/constants/test-ids'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { isSameDay, isToday, isYesterday, format } from 'date-fns'
 import { AlertTriangleIcon, HelpCircleIcon, UsersIcon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'

@@ -1,5 +1,5 @@
+import type { DiscoverGroup } from '@exodus/shared/types/discover'
 import { completeSimple } from '@mariozechner/pi-ai'
-import type { DiscoverGroup } from '@shared/types/discover'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 

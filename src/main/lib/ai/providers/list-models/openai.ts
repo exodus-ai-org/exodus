@@ -24,7 +24,7 @@ export const listOpenAiModels: ListModelsFn = async ({ apiKey, baseUrl }) => {
   // newest-first (by `created`) is the useful default; a model carrying a
   // `shutdown_date` (announced retirement) sinks below every still-current
   // model regardless of age, since picking one fresh is rarely what you want.
-  const sorted = [...data].sort((a, b) => {
+  const sorted = data.toSorted((a, b) => {
     const aRetiring = a.shutdown_date != null
     const bRetiring = b.shutdown_date != null
     if (aRetiring !== bRetiring) return aRetiring ? 1 : -1

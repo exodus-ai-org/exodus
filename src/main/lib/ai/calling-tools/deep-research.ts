@@ -1,10 +1,10 @@
+import { fetcher } from '@exodus/shared/utils/http'
 import type { AgentTool } from '@mariozechner/pi-agent-core'
 import { Type } from '@mariozechner/pi-ai'
-import { DeepResearch } from '@shared/types/db'
-import { fetcher } from '@shared/utils/http'
 import { v4 as uuidV4 } from 'uuid'
 
 import { saveDeepResearch } from '../../db/queries'
+import { DeepResearch } from '../../db/schema'
 
 const deepResearchSchema = Type.Object({
   subject: Type.String({ description: 'The subject to research' })

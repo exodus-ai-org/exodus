@@ -1,17 +1,10 @@
-import type { ChatMessage } from '@shared/types/chat'
+import type { ChatMessage } from '@exodus/shared/types/chat'
 import { describe, expect, it, vi } from 'vitest'
 
 // Mock the modules that transitively import Electron/DB
 vi.mock('@main/lib/db/db', () => ({ pglite: {} }))
 vi.mock('@main/lib/db/queries', () => ({}))
 vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
-vi.mock('@electron-toolkit/utils', () => ({ is: { dev: true } }))
-vi.mock('@electric-sql/pglite', () => ({
-  PGlite: class {
-    // noop
-    constructor() {} // eslint-disable-line @typescript-eslint/no-empty-function
-  }
-}))
 
 const { getTextFromMessage } =
   await import('@main/lib/ai/utils/chat-message-util')

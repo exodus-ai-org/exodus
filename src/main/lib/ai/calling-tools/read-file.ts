@@ -35,7 +35,9 @@ export const readFile: AgentTool<typeof readFileSchema> = {
       }
     } catch (err: unknown) {
       const e = err as { message?: string }
-      throw new Error(`Failed to read file "${path}": ${e.message}`)
+      throw new Error(`Failed to read file "${path}": ${e.message}`, {
+        cause: err
+      })
     }
   }
 }

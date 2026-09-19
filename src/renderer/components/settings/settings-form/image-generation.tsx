@@ -1,4 +1,4 @@
-import { UseFormReturnType } from '@shared/schemas/settings-schema'
+import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
 import { useEffect, useMemo } from 'react'
 import { Controller } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'

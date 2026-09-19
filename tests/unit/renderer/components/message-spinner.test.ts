@@ -1,4 +1,4 @@
-import type { ChatMessage } from '@shared/types/chat'
+import type { ChatMessage } from '@exodus/shared/types/chat'
 import { describe, expect, it } from 'vitest'
 
 import { shouldShowMessageSpinner } from '@/components/message-spinner'

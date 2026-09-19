@@ -1,5 +1,5 @@
 // src/renderer/services/philharmonic-tasks.ts
-import { fetcher } from '@shared/utils/http'
+import { fetcher } from '@exodus/shared/utils/http'
 
 import type { TaskData } from '@/stores/philharmonic'
 

@@ -2,7 +2,6 @@ import type { Model } from '@mariozechner/pi-ai'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
-vi.mock('@electron-toolkit/utils', () => ({ is: { dev: true } }))
 vi.mock('@main/lib/db/db', () => ({ pglite: {}, db: {} }))
 
 const mockGetSettings = vi.fn()

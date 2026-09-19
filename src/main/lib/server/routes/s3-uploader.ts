@@ -4,16 +4,16 @@ import {
   PutObjectCommand
 } from '@aws-sdk/client-s3'
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner'
-import { ErrorCode } from '@shared/constants/error-codes'
+import { ErrorCode } from '@exodus/shared/constants/error-codes'
 import {
   isAppError,
   ServiceError,
   ValidationError
-} from '@shared/errors/app-error'
-import { Variables } from '@shared/types/server'
+} from '@exodus/shared/errors/app-error'
 import { Hono } from 'hono'
 
 import { getPresignedUrlSchema, uploadToS3Schema } from '../schemas/s3-uploader'
+import { Variables } from '../types'
 import {
   createS3ClientFromSettings,
   getRequiredParam,

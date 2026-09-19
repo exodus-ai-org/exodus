@@ -1,5 +1,5 @@
-import { createI18n } from '@shared/i18n'
-import { isLocaleId } from '@shared/i18n/locales'
+import { createI18n } from '@exodus/shared/i18n'
+import { isLocaleId } from '@exodus/shared/i18n/locales'
 
 export function getBootLocale(): string {
   const q = new URLSearchParams(

@@ -2,8 +2,8 @@ import {
   EXODUS_REPO,
   EXODUS_TWITTER,
   EXODUS_WEBSITE
-} from '@shared/constants/external-urls'
-import { UseFormReturnType } from '@shared/schemas/settings-schema'
+} from '@exodus/shared/constants/external-urls'
+import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
 import { ExternalLinkIcon } from 'lucide-react'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'

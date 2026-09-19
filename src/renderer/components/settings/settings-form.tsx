@@ -1,5 +1,5 @@
+import { SettingsSchema } from '@exodus/shared/schemas/settings-schema'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { SettingsSchema } from '@shared/schemas/settings-schema'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 

@@ -1,4 +1,4 @@
-import { ChatMessage } from '@shared/types/chat'
+import { ChatMessage } from '@exodus/shared/types/chat'
 import { useAtom } from 'jotai'
 import { SearchIcon } from 'lucide-react'
 import { useState } from 'react'

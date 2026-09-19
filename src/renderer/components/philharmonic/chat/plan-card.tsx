@@ -1,5 +1,5 @@
 // src/renderer/components/philharmonic/chat/plan-card.tsx
-import type { PlanDto, StepStatus } from '@shared/types/philharmonic'
+import type { PlanDto, StepStatus } from '@exodus/shared/types/philharmonic'
 import { Check, ChevronDown, ChevronRight, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'

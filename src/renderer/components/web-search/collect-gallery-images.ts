@@ -1,4 +1,4 @@
-import type { WebSearchResult } from '@shared/types/web-search'
+import type { WebSearchResult } from '@exodus/shared/types/web-search'
 
 export interface GalleryImage {
   /** Full-size image (shown in the lightbox). */

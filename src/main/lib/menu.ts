@@ -1,4 +1,4 @@
-import { EXODUS_WEBSITE } from '@shared/constants/external-urls'
+import { EXODUS_WEBSITE } from '@exodus/shared/constants/external-urls'
 import {
   app,
   BrowserWindow,

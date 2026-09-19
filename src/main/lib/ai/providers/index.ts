@@ -1,7 +1,7 @@
+import { AiProviders } from '@exodus/shared/types/ai'
 import type { Api, KnownProvider, Model } from '@mariozechner/pi-ai'
-import { AiProviders } from '@shared/types/ai'
-import type { Settings } from '@shared/types/db'
 
+import type { Settings } from '../../db/schema'
 import { getOllama } from './ollama'
 import { resolveModel } from './resolve-model'
 

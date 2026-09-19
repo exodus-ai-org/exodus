@@ -1,4 +1,4 @@
-import type { WebSearchResult } from '@shared/types/web-search'
+import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import { useAtom } from 'jotai'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'

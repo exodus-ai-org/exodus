@@ -4,7 +4,6 @@ import { describe, expect, it, vi } from 'vitest'
 
 // logger.ts transitively imports Electron for its log-directory resolution.
 vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
-vi.mock('@electron-toolkit/utils', () => ({ is: { dev: true } }))
 
 const mockIndex = vi.fn()
 const mockSearch = vi.fn()

@@ -1,9 +1,9 @@
-import type { Project } from '@shared/types/db'
-import { fetcher } from '@shared/utils/http'
+import { fetcher } from '@exodus/shared/utils/http'
 import { sileo } from 'sileo'
 import { mutate } from 'swr'
 
 import { i18n } from '@/lib/i18n'
+import type { Project } from '@/types/db'
 
 interface CreateProjectInput {
   name: string

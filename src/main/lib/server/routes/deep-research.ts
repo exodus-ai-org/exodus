@@ -1,11 +1,10 @@
-import type { JSONRPCNotification } from '@modelcontextprotocol/sdk/types.js'
-import { ErrorCode } from '@shared/constants/error-codes'
-import { NotFoundError } from '@shared/errors/app-error'
+import { ErrorCode } from '@exodus/shared/constants/error-codes'
+import { NotFoundError } from '@exodus/shared/errors/app-error'
 import {
   DeepResearchProgress,
   ReportProgressPayload
-} from '@shared/types/deep-research'
-import { Variables } from '@shared/types/server'
+} from '@exodus/shared/types/deep-research'
+import type { JSONRPCNotification } from '@modelcontextprotocol/sdk/types.js'
 import { Hono } from 'hono'
 import { v4 as uuidV4 } from 'uuid'
 
@@ -20,6 +19,7 @@ import {
 } from '../../db/queries'
 import { bindTraceAttributes } from '../../logger/trace-context'
 import { createDeepResearchSchema } from '../schemas/deep-research'
+import { Variables } from '../types'
 import {
   getRequiredQuery,
   handleDatabaseOperation,

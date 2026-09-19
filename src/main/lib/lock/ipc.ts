@@ -1,6 +1,5 @@
-import type { LockConfig } from '@shared/types/lock'
-import { LOCK_CHANNELS } from '@shared/types/lock'
-// src/main/lib/lock/ipc.ts
+import type { LockConfig } from '@exodus/shared/types/lock'
+import { LOCK_CHANNELS } from '@exodus/shared/types/lock'
 import { ipcMain, safeStorage, systemPreferences } from 'electron'
 
 import { logger } from '../logger'

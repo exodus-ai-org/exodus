@@ -1,5 +1,9 @@
-import { createI18n } from '@shared/i18n'
-import { getHttpErrorMessage, HttpError, toErrorI18n } from '@shared/utils/http'
+import { createI18n } from '@exodus/shared/i18n'
+import {
+  getHttpErrorMessage,
+  HttpError,
+  toErrorI18n
+} from '@exodus/shared/utils/http'
 import { describe, expect, it } from 'vitest'
 
 describe('getHttpErrorMessage', () => {

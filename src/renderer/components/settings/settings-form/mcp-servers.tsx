@@ -1,4 +1,4 @@
-import { MCP_HOMEPAGE } from '@shared/constants/external-urls'
+import { MCP_HOMEPAGE } from '@exodus/shared/constants/external-urls'
 import {
   ChevronDownIcon,
   CloudIcon,

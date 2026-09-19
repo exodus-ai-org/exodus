@@ -1,4 +1,4 @@
-import { AiProviders } from '@shared/types/ai'
+import { AiProviders } from '@exodus/shared/types/ai'
 
 import { listAnthropicModels } from './anthropic'
 import { listGoogleModels } from './google'

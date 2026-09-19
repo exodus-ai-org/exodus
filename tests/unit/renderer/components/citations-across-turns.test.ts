@@ -1,6 +1,6 @@
+import type { ChatMessage } from '@exodus/shared/types/chat'
+import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import { postRequestBodySchema } from '@main/lib/server/schemas/chat'
-import type { ChatMessage } from '@shared/types/chat'
-import type { WebSearchResult } from '@shared/types/web-search'
 import { describe, expect, it } from 'vitest'
 
 import { parseCitations } from '@/components/markdown'

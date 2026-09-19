@@ -1,4 +1,4 @@
-import type { Segment } from '@shared/types/chat'
+import type { Segment } from '@exodus/shared/types/chat'
 
 /**
  * Whether to show the "waiting for the assistant" spinner.

@@ -1,8 +1,9 @@
 import type { AgentTool } from '@mariozechner/pi-agent-core'
 import { Type } from '@mariozechner/pi-ai'
-import { Settings } from '@shared/types/db'
 import OpenAI from 'openai'
 import { ImageGenerateParams } from 'openai/resources/images'
+
+import { Settings } from '../../db/schema'
 
 const imageGenerationSchema = Type.Object({
   prompt: Type.String({
@@ -54,7 +55,8 @@ export const imageGeneration = (
       }
     } catch (e) {
       throw new Error(
-        e instanceof Error ? e.message : 'Failed to generate images'
+        e instanceof Error ? e.message : 'Failed to generate images',
+        { cause: e }
       )
     }
   }

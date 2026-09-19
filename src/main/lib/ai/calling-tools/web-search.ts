@@ -1,8 +1,8 @@
+import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import type { AgentTool } from '@mariozechner/pi-agent-core'
 import { Type } from '@mariozechner/pi-ai'
-import { Settings } from '@shared/types/db'
-import type { WebSearchResult } from '@shared/types/web-search'
 
+import { Settings } from '../../db/schema'
 import { getModelFromProvider } from '../utils/model-util'
 import { expandQuery } from '../utils/query-expansion'
 import { fetchWebSearch } from '../utils/web-search-util'

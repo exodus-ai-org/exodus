@@ -1,9 +1,8 @@
-import { BASE_URL } from '@shared/constants/systems'
-import { DeepResearch, DeepResearchMessage } from '@shared/types/db'
+import { BASE_URL } from '@exodus/shared/constants/systems'
 import {
   DeepResearchProgress,
   ReportProgressPayload
-} from '@shared/types/deep-research'
+} from '@exodus/shared/types/deep-research'
 import { domAnimation, LazyMotion, m } from 'framer-motion'
 import { useAtom } from 'jotai'
 import { useEffect, useMemo, useRef, useState } from 'react'
@@ -18,6 +17,7 @@ import {
   activeDeepResearchIdAtom,
   deepResearchMessagesAtom
 } from '@/stores/chat'
+import { DeepResearch, DeepResearchMessage } from '@/types/db'
 
 import { MessageItem } from './message-item'
 import { SourceItem } from './source-item'

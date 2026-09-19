@@ -2,7 +2,7 @@ import {
   AVATAR_STYLES,
   DEFAULT_AVATAR_STYLE,
   randomAvatarSeed
-} from '@shared/constants/avatar'
+} from '@exodus/shared/constants/avatar'
 import { describe, expect, it } from 'vitest'
 
 describe('avatar constants', () => {

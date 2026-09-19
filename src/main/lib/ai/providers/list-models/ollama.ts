@@ -24,7 +24,7 @@ export const listOllamaModels: ListModelsFn = async ({ baseUrl }) => {
   // Ollama's list has no notion of a model's real release date — `modified_at`
   // (when it was last pulled/updated locally) is the closest available proxy
   // for "recent," so most-recently-pulled sorts first.
-  const sorted = [...models].sort(
+  const sorted = models.toSorted(
     (a, b) => Date.parse(b.modified_at ?? '') - Date.parse(a.modified_at ?? '')
   )
 

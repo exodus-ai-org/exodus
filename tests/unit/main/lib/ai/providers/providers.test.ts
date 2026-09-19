@@ -1,6 +1,6 @@
+import { AiProviders } from '@exodus/shared/types/ai'
 import { providers } from '@main/lib/ai/providers'
 import type { Settings } from '@main/lib/db/schema'
-import { AiProviders } from '@shared/types/ai'
 import { describe, expect, it } from 'vitest'
 
 const settings = (over: Partial<Settings> = {}): Settings =>

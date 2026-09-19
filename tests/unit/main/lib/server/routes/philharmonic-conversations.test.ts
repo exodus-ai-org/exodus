@@ -1,7 +1,6 @@
 // src/main/lib/server/routes/philharmonic-conversations.test.ts
 import { describe, expect, it, vi } from 'vitest'
 vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
-vi.mock('@electron-toolkit/utils', () => ({ is: { dev: true } }))
 vi.mock('@main/lib/server/utils', () => ({
   getRequiredParam: (_c: unknown, _k: string) => 'id',
   handleDatabaseOperation: (fn: () => unknown) => fn(),

@@ -2,7 +2,7 @@ import {
   EffortLevelSchema,
   ModelSnapshotSchema,
   ProviderConfigSchema
-} from '@shared/schemas/settings-schema'
+} from '@exodus/shared/schemas/settings-schema'
 import { describe, expect, it } from 'vitest'
 
 describe('EffortLevelSchema', () => {

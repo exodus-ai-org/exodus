@@ -1,5 +1,3 @@
-// src/main/lib/server/routes/philharmonic-crud.ts
-import type { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import { z } from 'zod'
 
@@ -17,6 +15,8 @@ import {
   getAllTeams,
   updateTeam
 } from '../../db/team-queries'
+// src/main/lib/server/routes/philharmonic-crud.ts
+import type { Variables } from '../types'
 import {
   deletionSuccessResponse,
   getRequiredParam,

@@ -1,8 +1,7 @@
 import {
   createProjectSchema,
   updateProjectSchema
-} from '@shared/schemas/project-schema'
-import { Variables } from '@shared/types/server'
+} from '@exodus/shared/schemas/project-schema'
 import { Hono } from 'hono'
 
 import {
@@ -15,6 +14,7 @@ import {
 import { getAllChats } from '../../db/queries'
 import { logger } from '../../logger'
 import { resolveSearchProvider } from '../../search/resolve-search-provider'
+import { Variables } from '../types'
 import {
   deletionSuccessResponse,
   getRequiredParam,

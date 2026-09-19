@@ -101,7 +101,7 @@ describe('toolCallToAction', () => {
   })
 
   it('exposes exactly the 11 model-facing verbs', () => {
-    expect(ACTION_TOOLS.map((t) => t.name).sort()).toEqual(
+    expect(ACTION_TOOLS.map((t) => t.name).toSorted()).toEqual(
       [
         'askHuman',
         'done',
@@ -114,24 +114,30 @@ describe('toolCallToAction', () => {
         'scroll',
         'type',
         'wait'
-      ].sort()
+      ].toSorted()
     )
   })
 })
 
-describe('trimImages', () => {
-  const msg = (step: number) => ({
-    role: 'toolResult' as const,
-    toolCallId: `tc${step}`,
-    toolName: 'click',
-    content: [
-      { type: 'text' as const, text: `step ${step} · cursor 0,0` },
-      { type: 'image' as const, data: `img${step}`, mimeType: 'image/png' }
-    ],
-    isError: false,
-    timestamp: 0
-  })
+const msg = (step: number) => ({
+  role: 'toolResult' as const,
+  toolCallId: `tc${step}`,
+  toolName: 'click',
+  content: [
+    { type: 'text' as const, text: `step ${step} · cursor 0,0` },
+    { type: 'image' as const, data: `img${step}`, mimeType: 'image/png' }
+  ],
+  isError: false,
+  timestamp: 0
+})
 
+const textOnly = (text: string) => ({
+  role: 'assistant' as const,
+  content: [{ type: 'text' as const, text }],
+  timestamp: 0
+})
+
+describe('trimImages', () => {
   it('keeps images only on the last 3 image-bearing messages', () => {
     const input = [msg(1), msg(2), msg(3), msg(4), msg(5), msg(6)]
 
@@ -172,11 +178,6 @@ describe('trimImages', () => {
   })
 
   it('passes image-free messages through and does not count them toward keep', () => {
-    const textOnly = (text: string) => ({
-      role: 'assistant' as const,
-      content: [{ type: 'text' as const, text }],
-      timestamp: 0
-    })
     // image-bearing messages sit at indices 0, 2, 4; text-only at 1, 3
     const input = [
       msg(1),

@@ -1,5 +1,5 @@
 // src/renderer/components/philharmonic/chat/conversation-list.tsx
-import { TEST_IDS } from '@shared/constants/test-ids'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import {
   differenceInCalendarDays,
   format,

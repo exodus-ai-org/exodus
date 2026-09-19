@@ -7,7 +7,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 vi.mock('electron', () => ({
   app: { getPath: () => '/tmp', getAppPath: () => '/repo' }
 }))
-vi.mock('@electron-toolkit/utils', () => ({ is: { dev: true } }))
 
 const { getHelper, mockHelper, realHelper, serialize } =
   await import('@main/lib/computer/helper')

@@ -1,8 +1,8 @@
 import { existsSync, readdirSync, readFileSync, unlinkSync } from 'fs'
 import { join } from 'path'
 
-import { ErrorCode } from '@shared/constants/error-codes'
-import { NotFoundError } from '@shared/errors/app-error'
+import { ErrorCode } from '@exodus/shared/constants/error-codes'
+import { NotFoundError } from '@exodus/shared/errors/app-error'
 import { Hono } from 'hono'
 
 import {

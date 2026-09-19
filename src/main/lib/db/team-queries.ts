@@ -1,4 +1,3 @@
-// src/main/lib/db/team-queries.ts
 import { asc, eq } from 'drizzle-orm'
 
 import { db } from './db'

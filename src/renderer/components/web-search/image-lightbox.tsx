@@ -1,5 +1,5 @@
 // src/renderer/components/web-search/image-lightbox.tsx
-import { TEST_IDS } from '@shared/constants/test-ids'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,

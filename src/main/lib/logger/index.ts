@@ -2,7 +2,7 @@ import { readdirSync, unlinkSync } from 'fs'
 import { appendFile } from 'fs/promises'
 import { join } from 'path'
 
-import { is } from '@electron-toolkit/utils'
+import { app } from 'electron'
 
 import { getLogsDir } from '../paths'
 import {
@@ -46,7 +46,7 @@ type KnownLogSurface =
 // type-checks — new subsystems no longer have to edit this list.
 export type LogSurface = KnownLogSurface | (string & {})
 
-const MIN_SEVERITY = is.dev ? MIN_SEVERITY_DEV : MIN_SEVERITY_PROD
+const MIN_SEVERITY = app.isPackaged ? MIN_SEVERITY_PROD : MIN_SEVERITY_DEV
 const RETENTION_DAYS = 7
 
 // Use the user's local date for filenames (and cleanup cutoff). `toISOString`

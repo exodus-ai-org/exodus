@@ -1,6 +1,10 @@
 import { EventEmitter } from 'events'
 
-import type { LockConfig, LockStatus, UnlockResult } from '@shared/types/lock'
+import type {
+  LockConfig,
+  LockStatus,
+  UnlockResult
+} from '@exodus/shared/types/lock'
 
 import { logger } from '../logger'
 import { readConfig, writeConfig } from './lock-config'

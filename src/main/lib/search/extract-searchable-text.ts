@@ -17,17 +17,9 @@ function isNonEmptyTextBlock(
 
 /**
  * Extracts the text actually shown in the chat bubble for a message — the
- * same content `search-dialog.tsx` displays. Excludes `thinking` blocks and
- * all `toolResult` messages (web search payloads, tool output, etc.) so
- * search only matches what a user would recognize seeing in the transcript.
- *
- * The backfill migration (`resources/drizzle/0009_dry_thor_girl.sql`)
- * reimplements this same logic in raw SQL to populate `searchText` for
- * pre-existing rows. The two are equivalent only because `content` array
- * elements' `text` field is always a real string and `role` is always one
- * of `'user' | 'assistant' | 'toolResult'` (per `ChatMessage`'s closed union
- * in `@shared/types/chat.ts`) — if either invariant ever changes, re-check
- * the migration SQL stays in sync with this function.
+ * same content the search UI displays. Excludes `thinking` blocks and all
+ * `toolResult` messages (web search payloads, tool output, etc.) so search
+ * only matches what a user would recognize seeing in the transcript.
  */
 export function extractSearchableText(
   message: SearchableMessage

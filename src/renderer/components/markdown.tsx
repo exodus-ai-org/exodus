@@ -1,4 +1,4 @@
-import { WebSearchResult } from '@shared/types/web-search'
+import { WebSearchResult } from '@exodus/shared/types/web-search'
 import { CheckIcon, CopyIcon } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import {

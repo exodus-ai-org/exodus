@@ -1,8 +1,8 @@
-import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 
 import { createAutoBackup, listAutoBackups } from '../../backup'
 import { getSettings } from '../../db/queries'
+import { Variables } from '../types'
 import { successResponse } from '../utils'
 
 const backupRouter = new Hono<{ Variables: Variables }>()

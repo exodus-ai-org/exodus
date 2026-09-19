@@ -1,4 +1,4 @@
-import { TEST_IDS } from '../../src/shared/constants/test-ids'
+import { TEST_IDS } from '../../packages/shared/src/constants/test-ids'
 import { ApiClient } from '../fixtures/api-client'
 /**
  * E2E: the Chat table-of-contents rail (user-message navigation).

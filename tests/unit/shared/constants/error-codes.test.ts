@@ -2,7 +2,7 @@ import {
   ErrorCode,
   ErrorCodeToStatus,
   ErrorMessages
-} from '@shared/constants/error-codes'
+} from '@exodus/shared/constants/error-codes'
 import { describe, expect, it } from 'vitest'
 
 describe('ErrorCode enum', () => {

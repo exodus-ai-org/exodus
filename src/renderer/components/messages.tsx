@@ -8,8 +8,8 @@ import type {
   Segment,
   TextContent,
   TimelineStep
-} from '@shared/types/chat'
-import type { WebSearchResult } from '@shared/types/web-search'
+} from '@exodus/shared/types/chat'
+import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import { capitalCase } from 'change-case'
 import { ArrowDownIcon } from 'lucide-react'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'

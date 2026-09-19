@@ -1,4 +1,4 @@
-import type { ToolNotice } from '@shared/types/chat'
+import type { ToolNotice } from '@exodus/shared/types/chat'
 import { APIProvider, Map } from '@vis.gl/react-google-maps'
 import {
   CheckIcon,

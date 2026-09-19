@@ -1,5 +1,5 @@
-import { TEST_IDS } from '@shared/constants/test-ids'
-import { UseFormReturnType } from '@shared/schemas/settings-schema'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
+import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
 import { AlertCircleIcon } from 'lucide-react'
 import { Controller } from 'react-hook-form'
 import { Trans, useTranslation } from 'react-i18next'

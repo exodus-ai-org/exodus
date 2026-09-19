@@ -1,4 +1,3 @@
-import { Variables } from '@shared/types/server'
 import { Hono } from 'hono'
 import { z } from 'zod'
 
@@ -14,6 +13,7 @@ import {
   updateMcpServer
 } from '../../db/mcp-queries'
 import { logger } from '../../logger'
+import { Variables } from '../types'
 import {
   deletionSuccessResponse,
   getRequiredParam,

@@ -1,16 +1,8 @@
-import { ErrorCode } from '@shared/constants/error-codes'
-import { DatabaseError } from '@shared/errors/app-error'
+import { ErrorCode, DatabaseError } from '@exodus/shared'
 import { and, asc, desc, eq, ilike, inArray, sql } from 'drizzle-orm'
 
 import { logger } from '../logger'
 import { extractSearchableText } from '../search/extract-searchable-text'
-
-function logDbError(message: string, error: unknown) {
-  logger.error('database', message, {
-    error: String(error),
-    stack: error instanceof Error ? error.stack : undefined
-  })
-}
 import { db, pglite } from './db'
 import {
   chat,
@@ -26,6 +18,13 @@ import {
   type Message,
   type Settings
 } from './schema'
+
+function logDbError(logMessage: string, error: unknown) {
+  logger.error('database', logMessage, {
+    error: String(error),
+    stack: error instanceof Error ? error.stack : undefined
+  })
+}
 
 export async function saveChat({
   title,
@@ -212,8 +211,7 @@ export function escapeLikePattern(term: string): string {
  * words at all — is matched the same way as any other language: literal
  * character sequences, not "word" boundaries. A multi-word query requires
  * every word to appear somewhere in the message (AND), not necessarily
- * adjacent or in order — e.g. "北京 烤鸭" matches a message containing both
- * "北京" and "烤鸭" anywhere, matching how most search boxes behave.
+ * adjacent or in order.
  */
 export async function fullTextSearchOnMessages(query: string) {
   try {
@@ -230,11 +228,11 @@ export async function fullTextSearchOnMessages(query: string) {
       .where(and(...conditions))
 
     const searchResults = await Promise.all(
-      messages.map(async (message) => {
-        const chat = await getChatById({ id: message.chatId })
+      messages.map(async (m) => {
+        const c = await getChatById({ id: m.chatId })
         return {
-          ...message,
-          title: chat.title
+          ...m,
+          title: c.title
         }
       })
     )
@@ -249,16 +247,15 @@ export async function fullTextSearchOnMessages(query: string) {
 /**
  * Reorders `rows` to match `ids`'s order. `inArray()`'s WHERE clause gives
  * no ordering guarantee, so without this an external ranking (e.g.
- * Elasticsearch relevance order, which is exactly what `ids` carries when
- * called from `elasticsearch-search.ts`'s `search()`) is lost by the time
- * results reach the caller.
+ * Elasticsearch relevance order) is lost by the time results reach the
+ * caller.
  */
 export function orderByIds<T extends { id: string }>(
   rows: T[],
   ids: string[]
 ): T[] {
   const rank = new Map(ids.map((id, i) => [id, i]))
-  return [...rows].sort((a, b) => (rank.get(a.id) ?? 0) - (rank.get(b.id) ?? 0))
+  return rows.toSorted((a, b) => (rank.get(a.id) ?? 0) - (rank.get(b.id) ?? 0))
 }
 
 export async function getMessagesWithTitleByIds(
@@ -273,8 +270,8 @@ export async function getMessagesWithTitleByIds(
 
     const withTitles = await Promise.all(
       messages.map(async (m) => {
-        const chat = await getChatById({ id: m.chatId })
-        return { ...m, title: chat.title }
+        const c = await getChatById({ id: m.chatId })
+        return { ...m, title: c.title }
       })
     )
 

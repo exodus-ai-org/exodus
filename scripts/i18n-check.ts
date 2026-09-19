@@ -5,11 +5,19 @@ import {
   auditCatalogs,
   flattenCatalog,
   type NsMap
-} from '../src/shared/i18n/catalog-audit'
-import { LOCALE_IDS } from '../src/shared/i18n/locales'
-import { NAMESPACES } from '../src/shared/i18n/namespaces'
+} from '@exodus/shared/i18n/catalog-audit'
+import { LOCALE_IDS } from '@exodus/shared/i18n/locales'
+import { NAMESPACES } from '@exodus/shared/i18n/namespaces'
 
-const ROOT = join(__dirname, '..', 'src', 'shared', 'i18n', 'locales')
+const ROOT = join(
+  __dirname,
+  '..',
+  'packages',
+  'shared',
+  'src',
+  'i18n',
+  'locales'
+)
 
 function nsMap(locale: string): NsMap {
   const out: NsMap = {}

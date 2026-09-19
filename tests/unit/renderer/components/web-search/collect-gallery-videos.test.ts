@@ -1,4 +1,4 @@
-import type { WebSearchResult } from '@shared/types/web-search'
+import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import { describe, expect, it } from 'vitest'
 
 import { collectGalleryVideos } from '@/components/web-search/collect-gallery-videos'

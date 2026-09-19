@@ -4,7 +4,16 @@ Hi! We are really excited that you are interested in contributing to Exodus. Bef
 
 ## Repo Setup
 
-To develop and test the core `Exodus` package, please respect the [Tauri Guide](https://tauri.app/v1/guides/).
+Exodus is an Electron app built on [electron-forge](https://www.electronforge.io/) + Vite + React.
+
+```bash
+bun install
+bun run start      # launch the app in dev mode
+bun run lint       # oxlint
+bun run fmt:check  # oxfmt
+bun run typecheck  # tsc, split across main/preload, renderer, and packages/shared
+bun run test       # vitest
+```
 
 ## Pull Request Guidelines
 
@@ -23,5 +32,5 @@ To develop and test the core `Exodus` package, please respect the [Tauri Guide](
 
 - Make sure tests pass!
 
-- Commit messages must follow the [Angular Team's Commit Message Guidelines](https://github.com/angular/angular/blob/master/CONTRIBUTING.md#commit) so that changelogs can be automatically generated. Commit messages are automatically validated before commit.
-- No need to worry about code style as long as you have installed the dev dependencies - modified files are automatically formatted with Prettier on commit.
+- Commit messages should follow the [Angular Team's Commit Message Guidelines](https://github.com/angular/angular/blob/master/CONTRIBUTING.md#commit) so that changelogs can eventually be generated from them.
+- No need to worry about code style as long as you have installed the dev dependencies - staged files are automatically linted and formatted with oxlint/oxfmt on commit.

@@ -3,7 +3,7 @@ import type {
   ChatSseEvent,
   ChatStatus,
   ToolNoticeLevel
-} from '@shared/types/chat'
+} from '@exodus/shared/types/chat'
 import { sileo } from 'sileo'
 
 import { i18n } from '@/lib/i18n'

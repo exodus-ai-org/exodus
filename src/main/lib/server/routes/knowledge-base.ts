@@ -1,7 +1,6 @@
 // src/main/lib/server/routes/knowledge-base.ts
-import { ErrorCode } from '@shared/constants/error-codes'
-import { ValidationError } from '@shared/errors/app-error'
-import { Variables } from '@shared/types/server'
+import { ErrorCode } from '@exodus/shared/constants/error-codes'
+import { ValidationError } from '@exodus/shared/errors/app-error'
 import { Hono } from 'hono'
 import { z } from 'zod'
 
@@ -15,6 +14,7 @@ import {
 } from '../../db/knowledge-queries'
 import { enqueueAndProcess, logEnqueueFailure } from '../../jobs/worker'
 import { resolveKnowledgeBase } from '../../knowledge-base/resolve-knowledge-base'
+import { Variables } from '../types'
 import {
   deletionSuccessResponse,
   getRequiredParam,

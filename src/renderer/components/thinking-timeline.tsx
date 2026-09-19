@@ -1,6 +1,6 @@
-import { faviconUrl } from '@shared/constants/external-urls'
-import type { TimelineStep } from '@shared/types/chat'
-import type { WebSearchResult } from '@shared/types/web-search'
+import { faviconUrl } from '@exodus/shared/constants/external-urls'
+import type { TimelineStep } from '@exodus/shared/types/chat'
+import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import {
   BrainIcon,
   CheckIcon,

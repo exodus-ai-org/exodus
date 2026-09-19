@@ -1,8 +1,10 @@
-// src/main/lib/philharmonic-notifications.ts
-//
 // Native notification helper for Philharmonic Group events. Fires only when
 // the user is NOT actively looking at the app, so we don't spam the UI with
 // duplicate signals (the plan card and in-stream messages cover that case).
+//
+// Also used by the lock feature's `lock-notifications.ts` — genuinely
+// generic "notify if backgrounded" logic, not philharmonic-specific despite
+// the filename.
 
 import { Notification } from 'electron'
 

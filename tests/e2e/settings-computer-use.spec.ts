@@ -1,4 +1,4 @@
-import { TEST_IDS } from '../../src/shared/constants/test-ids'
+import { TEST_IDS } from '../../packages/shared/src/constants/test-ids'
 import { electronTest as test, expect } from '../fixtures/electron'
 
 test.describe('Settings — Computer Use', () => {
@@ -22,6 +22,10 @@ test.describe('Settings — Computer Use', () => {
     await input.fill('Chess')
     await mainWindow.getByRole('option', { name: 'Chess' }).first().click()
 
-    await expect(mainWindow.getByText('Chess')).toBeVisible()
+    // Scope to the chip: the dropdown option with the same name may still be
+    // on screen, and getByText('Chess') alone then matches both.
+    await expect(
+      mainWindow.locator('[data-slot="combobox-chip"]').getByText('Chess')
+    ).toBeVisible()
   })
 })

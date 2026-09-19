@@ -1,7 +1,6 @@
+import { ConfigurationError, ErrorCode, NotFoundError } from '@exodus/shared'
+import { AiProviders } from '@exodus/shared/types/ai'
 import type { Model } from '@mariozechner/pi-ai'
-import { ErrorCode } from '@shared/constants/error-codes'
-import { ConfigurationError, NotFoundError } from '@shared/errors/app-error'
-import { AiProviders } from '@shared/types/ai'
 
 import { Settings } from '../../db/schema'
 import { providers } from '../providers'

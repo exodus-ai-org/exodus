@@ -1,9 +1,9 @@
+import type { ToolNotice } from '@exodus/shared/types/chat'
 import { v1 } from '@googlemaps/places'
 import type { AgentTool } from '@mariozechner/pi-agent-core'
 import { Type } from '@mariozechner/pi-ai'
-import type { ToolNotice } from '@shared/types/chat'
-import { Settings } from '@shared/types/db'
 
+import { Settings } from '../../db/schema'
 import { logger } from '../../logger'
 
 /**

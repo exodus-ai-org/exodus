@@ -1,7 +1,6 @@
-import { ErrorCode } from '@shared/constants/error-codes'
-import { ValidationError } from '@shared/errors/app-error'
-import { AiProviders } from '@shared/types/ai'
-import { Variables } from '@shared/types/server'
+import { ErrorCode } from '@exodus/shared/constants/error-codes'
+import { ValidationError } from '@exodus/shared/errors/app-error'
+import { AiProviders } from '@exodus/shared/types/ai'
 import { Hono } from 'hono'
 
 import { listModelsByProvider } from '../../ai/providers/list-models'
@@ -12,6 +11,7 @@ import {
   listModelsRequestSchema,
   updateSettingsSchema
 } from '../schemas/settings'
+import { Variables } from '../types'
 import {
   handleDatabaseOperation,
   successResponse,

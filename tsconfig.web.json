@@ -1,16 +1,28 @@
 {
-  "extends": "@electron-toolkit/tsconfig/tsconfig.web.json",
-  "include": ["src/renderer/**/*", "src/shared/**/*", "src/preload/*.d.ts"],
+  "include": [
+    "src/renderer/**/*",
+    "src/preload/preload.d.ts",
+    "forge.env.d.ts",
+    "vite.renderer.config.mts",
+    "packages/shared/src/i18n/types.d.ts"
+  ],
   "compilerOptions": {
+    "composite": true,
+    "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "Bundler",
-    "composite": true,
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "jsx": "react-jsx",
-    "ignoreDeprecations": "6.0",
-    "types": ["google.maps"],
+    "types": ["vite/client", "google.maps"],
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
     "paths": {
-      "@/*": ["./src/renderer/*"],
-      "@shared/*": ["./src/shared/*"]
+      "@/*": ["./src/renderer/*"]
     }
   }
 }

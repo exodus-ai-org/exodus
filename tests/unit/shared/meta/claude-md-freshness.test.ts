@@ -33,8 +33,9 @@ describe('CLAUDE.md code-structure freshness', () => {
       .filter((p) => !/[{}*,()<>\s]/.test(p))
       .filter(
         (p) =>
-          /^(src|tests|resources|docs)\//.test(p) ||
-          p === 'electron.vite.config.ts' ||
+          /^(src|tests|resources|docs|packages)\//.test(p) ||
+          p === 'forge.config.ts' ||
+          /^vite\.(main|preload|renderer)\.config\.mts$/.test(p) ||
           p === 'vitest.config.ts' ||
           p === 'playwright.config.ts'
       )

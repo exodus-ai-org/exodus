@@ -1,4 +1,4 @@
-import type { UseFormReturnType } from '@shared/schemas/settings-schema'
+import type { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
 import { get, isEqual } from 'lodash-es'
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'

@@ -2,8 +2,9 @@ import { existsSync, rmSync } from 'fs'
 import { homedir } from 'os'
 import { join } from 'path'
 
-import { TEST_IDS } from '../../src/shared/constants/test-ids'
+import { TEST_IDS } from '../../packages/shared/src/constants/test-ids'
 import { electronTest as test, expect } from '../fixtures/electron'
+import { openSettings } from '../helpers/open-settings'
 
 const LOCK_DAT = join(homedir(), '.exodus', 'lock.dat')
 const LOCK_CFG = join(homedir(), '.exodus', 'lock-config.json')
@@ -21,10 +22,7 @@ test('lock settings expose enrollment + config checkpoints', async ({
   // Navigate to Settings → General (Lock & Privacy lives there). Adjust the
   // opener if the app uses a different control; the assertions below are the
   // contract that matters.
-  await mainWindow
-    .getByRole('button', { name: /settings/i })
-    .first()
-    .click()
+  await openSettings(mainWindow)
   await mainWindow.getByText('General', { exact: true }).first().click()
 
   await mainWindow.getByTestId(TEST_IDS.lock.enablePinInput).fill('246802')

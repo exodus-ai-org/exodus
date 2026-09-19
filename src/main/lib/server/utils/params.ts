@@ -1,5 +1,5 @@
-import { ErrorCode } from '@shared/constants/error-codes'
-import { ValidationError } from '@shared/errors/app-error'
+import { ErrorCode } from '@exodus/shared/constants/error-codes'
+import { ValidationError } from '@exodus/shared/errors/app-error'
 import { Context } from 'hono'
 
 /**

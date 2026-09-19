@@ -1,5 +1,5 @@
 // src/renderer/components/philharmonic/chat/composer.tsx
-import type { Attachment } from '@shared/types/chat'
+import type { Attachment } from '@exodus/shared/types/chat'
 import { useAtom } from 'jotai'
 import { SendIcon, SquareIcon } from 'lucide-react'
 import { type ClipboardEvent, useState } from 'react'

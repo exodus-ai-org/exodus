@@ -1,6 +1,6 @@
-import { BASE_URL } from '@shared/constants/systems'
-import { TEST_IDS } from '@shared/constants/test-ids'
-import { fetcher } from '@shared/utils/http'
+import { BASE_URL } from '@exodus/shared/constants/systems'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
+import { fetcher } from '@exodus/shared/utils/http'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,

@@ -1,7 +1,8 @@
-import { EffortLevelSchema } from '@shared/schemas/settings-schema'
-import { AdvancedTools } from '@shared/types/ai'
-import { Chat } from '@shared/types/db'
+import { EffortLevelSchema } from '@exodus/shared/schemas/settings-schema'
+import { AdvancedTools } from '@exodus/shared/types/ai'
 import { z } from 'zod'
+
+import { Chat } from '../../db/schema'
 
 // Chat routes schemas
 export const createChatSchema = z.object({

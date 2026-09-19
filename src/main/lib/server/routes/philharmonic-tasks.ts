@@ -1,7 +1,6 @@
 // src/main/lib/server/routes/philharmonic-tasks.ts
-import { ErrorCode } from '@shared/constants/error-codes'
-import { ValidationError } from '@shared/errors/app-error'
-import type { Variables } from '@shared/types/server'
+import { ErrorCode } from '@exodus/shared/constants/error-codes'
+import { ValidationError } from '@exodus/shared/errors/app-error'
 import { Hono } from 'hono'
 import cron from 'node-cron'
 import { z } from 'zod'
@@ -13,6 +12,7 @@ import {
   getUpcomingOneOffTasks,
   updateTask
 } from '../../db/philharmonic-queries'
+import type { Variables } from '../types'
 import {
   getRequiredParam,
   handleDatabaseOperation,

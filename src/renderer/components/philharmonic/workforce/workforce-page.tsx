@@ -2,7 +2,7 @@
 import {
   DEFAULT_AVATAR_STYLE,
   randomAvatarSeed
-} from '@shared/constants/avatar'
+} from '@exodus/shared/constants/avatar'
 import {
   Building2Icon,
   ChevronRight,

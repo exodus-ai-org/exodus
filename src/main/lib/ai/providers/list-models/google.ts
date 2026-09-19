@@ -23,7 +23,7 @@ export const listGoogleModels: ListModelsFn = async ({ apiKey, baseUrl }) => {
   // Google's list API reports no chronological signal at all (no created
   // date, no version ordering) — alphabetical by id is just for predictable,
   // stable ordering, not a meaningful "best model first" ranking.
-  const sorted = [...models].sort((a, b) => a.name.localeCompare(b.name))
+  const sorted = models.toSorted((a, b) => a.name.localeCompare(b.name))
 
   return sorted.map((m): NormalizedModel => {
     const id = m.name.replace(/^models\//, '')

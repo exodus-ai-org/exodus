@@ -1,10 +1,10 @@
-import { ErrorCode } from '@shared/constants/error-codes'
-import { NotFoundError } from '@shared/errors/app-error'
-import { Variables } from '@shared/types/server'
+import { ErrorCode } from '@exodus/shared/constants/error-codes'
+import { NotFoundError } from '@exodus/shared/errors/app-error'
 import { Hono } from 'hono'
 
 import { getArtifact, listArtifacts } from '../../ai/artifacts'
 import { updateArtifactCodeByArtifactId } from '../../db/queries'
+import { Variables } from '../types'
 import { successResponse } from '../utils'
 
 const artifactsRouter = new Hono<{ Variables: Variables }>()
