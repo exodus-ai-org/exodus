@@ -7,6 +7,14 @@ import { pg_trgm } from '@electric-sql/pglite/contrib/pg_trgm'
 import { drizzle } from 'drizzle-orm/pglite'
 
 import { getDatabaseDir } from '../paths'
+import { holdSingleInstanceLock } from '../single-instance'
+
+// PGlite has no cross-process lock, so nothing may open the data directory
+// until this process holds the app's single-instance lock. It is taken here —
+// not in main.ts — because this module opens the database as it is imported,
+// before any code in main.ts's body gets to run. Ends the process if another
+// instance owns the directory.
+holdSingleInstanceLock()
 
 // PGlite's own dataDir mkdir isn't recursive — it needs the parent
 // (`getExodusHome()`) to already exist. This module is evaluated at import

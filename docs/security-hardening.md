@@ -21,19 +21,20 @@ Exodus is local-first, but three things make it a target anyway:
 
 ## In place
 
-| Layer            | Protection                                                                                                                                         | Where                                 |
-| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| Electron fuses   | `RunAsNode`, `NODE_OPTIONS`, `--inspect` off; cookie encryption, ASAR integrity and `OnlyLoadAppFromAsar` on                                       | `forge.config.ts`                     |
-| Windows          | `sandbox: true`, `contextIsolation: true`, no `nodeIntegration`, no `<webview>`                                                                    | `window.ts`, `security.ts`            |
-| Navigation       | A window can only reload itself; any other main-frame navigation is cancelled and, if it is a web link, handed to the OS                           | `security.ts` `hardenRenderers()`     |
-| New windows      | Always denied; `http(s)` / `mailto` links open externally, every other scheme (`file:`, `smb:`, app schemes) is dropped                            | `security.ts` `isSafeExternalUrl()`   |
-| Permissions      | Granted only to Exodus's own pages, never to an embedded frame (Electron's default grants everything)                                              | `security.ts` `isAppUrl()`            |
-| Preload          | Exposes `ipcRenderer` wrappers, `process.platform` / `versions`, `api.os` / `locale` — not `process.env`                                           | `preload.ts`                          |
-| HTTP origin gate | Rejects requests whose `Origin` is a non-loopback web origin, and loopback requests addressed by a public `Host` (DNS rebinding) — 403 before CORS | `middlewares/origin-gate.ts`          |
-| App lock         | `lockGate` answers 423 on `/api/*` while locked; unlock is IPC-only                                                                                | `middlewares/lock-gate.ts`            |
-| Artifact files   | `chatId` / `artifactId` may not resolve outside `~/.exodus/artifacts/<chatId>`                                                                     | `ai/artifacts.ts`, `ipc.ts`           |
-| Job payloads     | Finished jobs are deleted, not archived; archives are truncated at launch (they held `apiKey` + whole conversations)                               | `jobs/`                               |
-| CSP              | `<meta>` policy per HTML entry; scripts `'self'` only in the main window                                                                           | `index.html`, `sub-apps/*/index.html` |
+| Layer            | Protection                                                                                                                                                                                                                                                                                                           | Where                                 |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| Electron fuses   | `RunAsNode`, `NODE_OPTIONS`, `--inspect` off; cookie encryption, ASAR integrity and `OnlyLoadAppFromAsar` on                                                                                                                                                                                                         | `forge.config.ts`                     |
+| Windows          | `sandbox: true`, `contextIsolation: true`, no `nodeIntegration`, no `<webview>`                                                                                                                                                                                                                                      | `window.ts`, `security.ts`            |
+| Navigation       | A window can only reload itself; any other main-frame navigation is cancelled and, if it is a web link, handed to the OS                                                                                                                                                                                             | `security.ts` `hardenRenderers()`     |
+| New windows      | Always denied; `http(s)` / `mailto` links open externally, every other scheme (`file:`, `smb:`, app schemes) is dropped                                                                                                                                                                                              | `security.ts` `isSafeExternalUrl()`   |
+| Permissions      | Granted only to Exodus's own pages, never to an embedded frame (Electron's default grants everything)                                                                                                                                                                                                                | `security.ts` `isAppUrl()`            |
+| Preload          | Exposes `ipcRenderer` wrappers, `process.platform` / `versions`, `api.os` / `locale` — not `process.env`                                                                                                                                                                                                             | `preload.ts`                          |
+| HTTP origin gate | Accepts a request with no `Origin` (every native client, and the packaged renderer — a `file://` page in Electron sends none) or a loopback `http(s)` one (the dev renderer); rejects any other — websites, `null`, extensions — and loopback requests addressed by a public `Host` (DNS rebinding). 403 before CORS | `middlewares/origin-gate.ts`          |
+| App lock         | `lockGate` answers 423 on `/api/*` while locked; unlock is IPC-only                                                                                                                                                                                                                                                  | `middlewares/lock-gate.ts`            |
+| Single instance  | Electron's single-instance lock is taken in `db/db.ts` before PGlite is constructed; a second launch exits (the running app raises its window), or waits if the holder is quitting                                                                                                                                   | `single-instance.ts`, `db/db.ts`      |
+| Artifact files   | `chatId` / `artifactId` may not resolve outside `~/.exodus/artifacts/<chatId>`                                                                                                                                                                                                                                       | `ai/artifacts.ts`, `ipc.ts`           |
+| Job payloads     | Finished jobs are deleted, not archived; archives are truncated at launch (they held `apiKey` + whole conversations)                                                                                                                                                                                                 | `jobs/`                               |
+| CSP              | `<meta>` policy per HTML entry; scripts `'self'` only in the main window                                                                                                                                                                                                                                             | `index.html`, `sub-apps/*/index.html` |
 
 ## Open — needs a decision or a verified change
 
@@ -72,27 +73,15 @@ pairing token — main generates a secret, the renderer gets it over IPC,
 it. Until then: bind to loopback unless "Allow LAN clients" is switched on.
 Both change the `exodus-ios` contract.
 
-### 3. No single-instance lock (data integrity)
-
-PGlite has no cross-process lock and `db.ts` opens the database at import time,
-so a second launch (dev build + packaged app share `~/.exodus`, and Forge's
-restart-on-edit overlaps the old process's up-to-5s PGlite shutdown) can corrupt
-it. Fix: `app.requestSingleInstanceLock()` in a module imported before `db.ts`,
-focusing the first instance on `second-instance`; in dev, retry for a few
-seconds instead of exiting, so restart-on-edit survives the overlap.
-
-### 4. `Origin: null` passes the origin gate
-
-Needed until the packaged renderer's actual `Origin` is confirmed (`file://` vs
-`null`). A sandboxed iframe on a hostile page also sends `null`. Once #2 lands
-this stops mattering; otherwise confirm on a packaged build and drop `null`.
-
-### 5. Smaller items
+### 3. Smaller items
 
 - `img-src *` in every CSP is the exfiltration channel for #1; narrowing it
   breaks remote images in chat unless they are proxied through main.
 - `terminal`, `writeFile` and `editFile` run without per-call confirmation;
   the tool toggle in the composer is the only gate.
+- The single-instance lock is keyed on Electron's `userData`, so it covers dev
+  vs packaged Exodus but not universal-client, which shares `~/.exodus` from a
+  `userData` of its own.
 - Signing / notarization is not wired (`osxSign`), so ASAR integrity is only as
   strong as the unsigned bundle.
 - `GET /api/v1/tools/ping-ollama?url=` fetches any URL from main (reachability

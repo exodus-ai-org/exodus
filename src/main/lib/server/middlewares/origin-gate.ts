@@ -17,25 +17,27 @@ import { logger } from '../../logger'
 const LOOPBACK_HOSTNAMES = new Set(['localhost', '127.0.0.1', '[::1]'])
 
 /**
- * A request's `Origin` is acceptable unless it names a web origin that isn't
- * this machine. That lets through the renderer (`http://localhost:5173` in
- * dev, `file://` when packaged), the artifact sandbox, and everything that
- * sends no `Origin` at all (exodus-ios, exodus-cli, curl, the API tests), and
- * rejects `https://some.site` — which no part of Exodus ever is.
+ * A request may carry no `Origin`, or a loopback web origin — nothing else.
  *
- * `null` (an opaque origin) has to pass: a packaged `file://` page may send it.
- * A sandboxed iframe on a hostile page sends it too, so this is a filter for
- * the ordinary drive-by request, not a substitute for authentication.
+ * No `Origin` is every legitimate client but one: exodus-ios, exodus-cli, curl,
+ * the API tests, and the packaged renderer itself — measured, not assumed: a
+ * `file://` page in Electron sends none, on GET, JSON POST and PUT alike, and
+ * is not preflighted. The one client that does send it is the dev renderer
+ * (`http://localhost:5173`).
+ *
+ * So `null` is refused: Exodus never sends it, and it is what a sandboxed
+ * iframe on a hostile page would present. Likewise any other scheme
+ * (`chrome-extension://…` — a browser extension reaching for the API).
  */
 export function isAllowedOrigin(origin: string | undefined): boolean {
-  if (!origin || origin === 'null') return true
+  if (!origin) return true
   let url: URL
   try {
     url = new URL(origin)
   } catch {
     return false
   }
-  if (url.protocol !== 'http:' && url.protocol !== 'https:') return true
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return false
   return LOOPBACK_HOSTNAMES.has(url.hostname)
 }
 

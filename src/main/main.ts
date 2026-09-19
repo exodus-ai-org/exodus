@@ -25,8 +25,9 @@ import { getExodusHome, migrateFromLegacyLocation } from './lib/paths'
 import { hardenRenderers } from './lib/security'
 import { connectHttpServer } from './lib/server/app'
 import { getServer, setServer } from './lib/server/instance'
+import { onSecondInstance } from './lib/single-instance'
 import { destroyTray, setTray } from './lib/tray'
-import { createWindow } from './lib/window'
+import { createWindow, raiseMainWindow } from './lib/window'
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined
 
@@ -148,6 +149,9 @@ app.on('ready', async () => {
 
   setupIPC()
   createWindow()
+  // Launching Exodus while it is running lands here (the lock itself is taken
+  // in db/db.ts): the closed-to-tray window is the one the user was after.
+  onSecondInstance(raiseMainWindow)
 
   // ── Lock screen ─────────────────────────────────────────────
   const lockManager = getLockManager()

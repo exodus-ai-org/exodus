@@ -99,6 +99,15 @@ export function getMainWindow(): BrowserWindow | null {
   return mainWindow
 }
 
+/** Bring the main window back in front of the user, wherever it was left. */
+export function raiseMainWindow(): void {
+  if (!mainWindow) return
+  if (mainWindow.isMinimized()) mainWindow.restore()
+  if (!mainWindow.isVisible()) mainWindow.show()
+  mainWindow.focus()
+  app.focus({ steal: true })
+}
+
 // ── Sub-apps ────────────────────────────────────────────────────────────
 // The search bar and quick-chat are separate HTML entries of the one
 // renderer build (see vite.renderer.config.mts). Vite's root is the repo

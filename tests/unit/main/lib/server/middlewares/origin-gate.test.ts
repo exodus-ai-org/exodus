@@ -11,13 +11,14 @@ const { isAllowedHost, isAllowedOrigin, originGate } =
 
 describe('isAllowedOrigin', () => {
   it.each([
-    ['no Origin header (exodus-ios, exodus-cli, curl)', undefined],
+    // Includes the packaged renderer: a file:// page in Electron sends none.
+    [
+      'no Origin header (exodus-ios, exodus-cli, curl, the packaged app)',
+      undefined
+    ],
     ['the dev renderer', 'http://localhost:5173'],
     ['a loopback IP', 'http://127.0.0.1:5173'],
-    ['IPv6 loopback', 'http://[::1]:5173'],
-    ['the packaged renderer', 'file://'],
-    ['an opaque origin', 'null'],
-    ['a custom app scheme', 'app://exodus']
+    ['IPv6 loopback', 'http://[::1]:5173']
   ])('allows %s', (_label, origin) => {
     expect(isAllowedOrigin(origin)).toBe(true)
   })
@@ -28,6 +29,10 @@ describe('isAllowedOrigin', () => {
     ['a site on the API port', 'http://evil.example:60223'],
     ['a lookalike of localhost', 'http://localhost.evil.example'],
     ['a LAN web page', 'http://192.168.1.20:8080'],
+    // What a sandboxed iframe on a hostile page sends. Exodus never does.
+    ['an opaque origin', 'null'],
+    ['a browser extension', 'chrome-extension://abcdefghijklmnop'],
+    ['a file origin', 'file://'],
     ['garbage', 'not a url']
   ])('rejects %s', (_label, origin) => {
     expect(isAllowedOrigin(origin)).toBe(false)
@@ -92,6 +97,14 @@ describe('originGate', () => {
     })
     expect(res.status).toBe(403)
     expect(await res.text()).not.toContain('sk-secret')
+    expect(res.headers.get('access-control-allow-origin')).toBeNull()
+  })
+
+  it('refuses an opaque origin — a sandboxed iframe on a hostile page', async () => {
+    const res = await buildApp().request('/api/v1/settings', {
+      headers: { Origin: 'null' }
+    })
+    expect(res.status).toBe(403)
     expect(res.headers.get('access-control-allow-origin')).toBeNull()
   })
 

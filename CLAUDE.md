@@ -137,7 +137,12 @@ Exodus is the successor of the older `universal-client` app and shares its
   chat-audit snapshot. **PGlite is single-process: never run two
   Exodus processes (a dev build, the packaged app, universal-client) against it
   at the same time** — the database can be corrupted (backups live in
-  `~/.exodus/backups`). `EXODUS_HOME` points a run at another directory.
+  `~/.exodus/backups`). Between Exodus builds this is enforced:
+  `src/main/lib/single-instance.ts` takes Electron's single-instance lock from
+  `db/db.ts`, before PGlite is constructed (dev and packaged share `userData`,
+  so they share the lock); a second launch exits and the running app raises its
+  window, or — if the holder is quitting — waits for it. universal-client has
+  its own `userData` and is not covered. `EXODUS_HOME` points a run at another directory.
 - **Electron `userData`**: the default `~/Library/Application Support/Exodus`
   for every build — it only holds Chromium state (localStorage, caches) and is
   where the legacy-location migration looks. There is no `-dev` variant of
@@ -243,7 +248,7 @@ The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatc
 
 **Middleware Pipeline** (order in `app.ts`):
 
-1. Origin gate (`originGate`) — `403` for a request whose `Origin` is a non-loopback web origin, or that arrives over loopback addressed by a public `Host` (DNS rebinding). Clients that send no `Origin` (exodus-ios, exodus-cli, `tests/api`) are unaffected. Runs before CORS so a refused origin gets no `Access-Control-Allow-Origin`
+1. Origin gate (`originGate`) — a request must carry no `Origin` (exodus-ios, exodus-cli, `tests/api`, and the packaged renderer: a `file://` page in Electron sends none) or a loopback `http(s)` one (the dev renderer); anything else — a website, `null`, an extension — gets `403`, as does a loopback request addressed by a public `Host` (DNS rebinding). Runs before CORS so a refused origin gets no `Access-Control-Allow-Origin`
 2. CORS middleware (`hono/cors`)
 3. Lock gate (`lockGate`) — rejects all `/api/*` with `423` while the app is locked
 4. Trace gate (`traceMiddleware`) — wraps each `/api/*` request in an `AsyncLocalStorage` trace (see `src/main/lib/logger/`), sets the `x-trace-id` response header
@@ -581,7 +586,7 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
 
 - `docs/security-hardening.md` is the reference: what is in place, and the
   open items (artifact sandbox shares the app's origin; LAN clients are
-  unauthenticated; no single-instance lock) — read it before touching the
+  unauthenticated) — read it before touching the
   server middleware, preload, window creation, or the artifact sandbox
 - Windows run with `sandbox: true` + `contextIsolation: true`; `hardenRenderers()`
   (`src/main/lib/security.ts`) cancels navigation away from the app, denies new
@@ -844,6 +849,8 @@ Main process:
 - `src/main/lib/i18n.ts` — the main-process i18next instance (`mainI18n`),
   `resolveEffectiveLocale`, and the `get-app-locale` / `set-app-locale` IPC
 - `src/main/lib/ipc.ts` — main-process IPC handlers
+- `src/main/lib/single-instance.ts` — the single-instance lock, taken by
+  `db/db.ts` before it opens PGlite (see Data directory, ports and isolation)
 - `src/main/lib/security.ts` — renderer hardening (`hardenRenderers()`:
   navigation guard, window-open handler, permission handler) and
   `openExternalSafely` / `isSafeExternalUrl`
