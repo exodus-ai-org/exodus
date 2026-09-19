@@ -68,8 +68,13 @@ const config: ForgeConfig = {
     // `*-darwin-*.zip`); the DMG is what people download.
     new MakerZIP({}, ['darwin']),
     new MakerDMG({}, ['darwin']),
-    new MakerRpm({}),
-    new MakerDeb({})
+    // The packager names the Linux executable after `productName` ("Exodus"),
+    // but these two makers default `bin` to package.json's `name` ("exodus")
+    // and fail with "could not find the Electron app binary" — Linux paths are
+    // case-sensitive (macOS and Windows aren't, which is why only the Linux
+    // release job caught it). The /usr/bin launcher they install stays `exodus`.
+    new MakerRpm({ options: { bin: 'Exodus' } }),
+    new MakerDeb({ options: { bin: 'Exodus' } })
   ],
   // Manual publishing to GitHub Releases — the prerequisite for the free
   // update.electronjs.org auto-update service (see lib/auto-updater.ts, which
