@@ -52,7 +52,6 @@ describe('settings namespace (en)', () => {
   it('has a nav title key for every SettingsLabel tab', () => {
     expect(settings.nav.profile.title).toBe('Profile')
     expect(settings.nav.general.title).toBe('General')
-    expect(settings.nav.appearance.title).toBe('Appearance')
     expect(settings.nav.personality.title).toBe('Personality')
     expect(settings.nav.aiProviders.title).toBe('AI Providers')
     expect(settings.nav.amazonS3.title).toBe('AWS S3')
@@ -72,16 +71,20 @@ describe('settings namespace (en)', () => {
     expect(settings.nav.about.title).toBe('About Exodus')
   })
 
-  it('has the Appearance page keys', () => {
-    expect(settings.appearance.scheme.light).toBe('Light theme')
-    expect(settings.appearance.scheme.dark).toBe('Dark theme')
-    expect(settings.appearance.scheme.copy).toBe('Copy theme')
-    expect(settings.appearance.scheme.lowContrast).toContain('{{ratio}}')
-    expect(settings.appearance.fonts.families.ui).toBe('Same as UI font')
-    expect(settings.appearance.window.contrast.label).toBe('Contrast')
-    expect(settings.appearance.importDialog.invalid).toBe(
-      "That doesn't look like an Exodus theme."
+  it('has the General colour-tone keys', () => {
+    expect(settings.general.colorTone.label).toBe('Color tone')
+    expect(settings.general.colorTone.description).toBe(
+      'Choose a color accent for the interface'
     )
+    expect(Object.keys(settings.general.colorTone.tones)).toEqual([
+      'neutral',
+      'emerald',
+      'blue',
+      'violet',
+      'rose',
+      'orange',
+      'yellow'
+    ])
   })
 
   it('has the nav group heading keys', () => {

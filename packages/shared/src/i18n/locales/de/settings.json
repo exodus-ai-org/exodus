@@ -12,6 +12,19 @@
       "light": "Hell",
       "dark": "Dunkel"
     },
+    "colorTone": {
+      "label": "Farbton",
+      "description": "Wähle eine Akzentfarbe für die Oberfläche",
+      "tones": {
+        "neutral": "Neutral",
+        "emerald": "Smaragd",
+        "blue": "Blau",
+        "violet": "Violett",
+        "rose": "Rosé",
+        "orange": "Orange",
+        "yellow": "Gelb"
+      }
+    },
     "runOnStartup": {
       "label": "Beim Start ausführen",
       "description": "Exodus automatisch starten, wenn Sie sich anmelden"
@@ -27,9 +40,6 @@
     },
     "general": {
       "title": "Allgemein"
-    },
-    "appearance": {
-      "title": "Erscheinungsbild"
     },
     "personality": {
       "title": "Persönlichkeit"
@@ -906,85 +916,6 @@
     "toast": {
       "snapshotBuilt": "Snapshot erstellt",
       "snapshotFailed": "Der Snapshot konnte nicht erstellt werden"
-    }
-  },
-  "appearance": {
-    "scheme": {
-      "light": "Helles Design",
-      "dark": "Dunkles Design",
-      "import": "Importieren",
-      "copy": "Design kopieren",
-      "custom": "Benutzerdefiniert",
-      "presetDefault": "Voreinstellung",
-      "presetLabel": "Design-Voreinstellung",
-      "accent": "Akzent",
-      "background": "Hintergrund",
-      "foreground": "Vordergrund",
-      "pickColor": "Farbe wählen",
-      "lowContrast": "Geringer Kontrast ({{ratio}}:1) – Text ist möglicherweise schwer lesbar",
-      "accents": {
-        "blue": "Blau",
-        "purple": "Lila",
-        "pink": "Rosa",
-        "red": "Rot",
-        "orange": "Orange",
-        "yellow": "Gelb",
-        "green": "Grün",
-        "graphite": "Graphit"
-      }
-    },
-    "importDialog": {
-      "title": "Design importieren",
-      "description": "Füge ein aus Exodus kopiertes Design ein – ein JSON-Objekt mit Akzent-, Hintergrund- und Vordergrundfarbe.",
-      "placeholder": "{ \"accent\": \"#1f6feb\", \"background\": \"#0d1117\", \"foreground\": \"#e6edf3\" }",
-      "invalid": "Das sieht nicht nach einem Exodus-Design aus.",
-      "confirm": "Importieren",
-      "cancel": "Abbrechen"
-    },
-    "fonts": {
-      "title": "Schriftarten",
-      "ui": {
-        "label": "UI-Schriftart",
-        "description": "Die Schrift für die gesamte Oberfläche."
-      },
-      "content": {
-        "label": "Inhalts-Schriftart",
-        "description": "Die Schrift für Chat-Nachrichten."
-      },
-      "customFamily": {
-        "label": "Schriftfamilie",
-        "description": "Der Name einer auf diesem Computer installierten Schriftart.",
-        "placeholder": "z. B. Inter"
-      },
-      "families": {
-        "ui": "Wie UI-Schriftart",
-        "system": "Systemstandard",
-        "serif": "Serif",
-        "mono": "Monospace",
-        "rounded": "Abgerundet",
-        "custom": "Benutzerdefiniert…"
-      },
-      "weights": {
-        "light": "Leicht",
-        "regular": "Normal",
-        "medium": "Mittel"
-      }
-    },
-    "window": {
-      "title": "Fenster",
-      "translucentSidebar": {
-        "label": "Durchscheinende Seitenleiste",
-        "description": "Lässt den Schreibtisch durch die Seitenleiste durchscheinen."
-      },
-      "contrast": {
-        "label": "Kontrast",
-        "description": "Wie stark sich Flächen, Rahmen und Sekundärtext vom Hintergrund abheben."
-      }
-    },
-    "toast": {
-      "copied": "Design in die Zwischenablage kopiert",
-      "copyFailed": "Design konnte nicht kopiert werden",
-      "imported": "Design importiert"
     }
   }
 }

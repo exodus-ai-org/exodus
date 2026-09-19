@@ -6,18 +6,18 @@ import { RouterProvider } from 'react-router'
 import { SWRConfig } from 'swr'
 
 import 'react-medium-image-zoom/dist/styles.css'
-import { AppearanceProvider } from '@/components/appearance-provider'
 import { I18nProvider } from '@/components/i18n-provider'
 import { LockScreen } from '@/components/lock/lock-screen'
 import { ThemeProvider } from '@/components/theme-provider'
+import { ToneBridge } from '@/components/tone-bridge'
 import { useLock } from '@/hooks/use-lock'
-import { bootAppearance } from '@/lib/appearance'
 import { i18nReady } from '@/lib/i18n'
+import { bootTone } from '@/lib/tone'
 import { router } from '@/routes'
 
-// First paint already carries the user's theme: apply the cached appearance
-// synchronously, before anything renders. The provider below keeps it live.
-bootAppearance()
+// First paint already carries the user's colour tone: apply the cached value
+// synchronously, before anything renders. ToneBridge keeps it live.
+bootTone()
 
 function AppRoot() {
   const { status, refresh, locked } = useLock()
@@ -33,7 +33,7 @@ void i18nReady.finally(() => {
       <Provider>
         <ThemeProvider>
           <I18nProvider>
-            <AppearanceProvider />
+            <ToneBridge />
             <AppRoot />
           </I18nProvider>
         </ThemeProvider>

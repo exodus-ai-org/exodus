@@ -42,9 +42,6 @@
     "./utils/artifact-slug": "./src/utils/artifact-slug.ts",
     "./utils/strip-test-id": "./src/utils/strip-test-id.ts",
     "./constants/error-codes": "./src/constants/error-codes.ts",
-    "./errors/app-error": "./src/errors/app-error.ts",
-    "./constants/appearance": "./src/constants/appearance.ts",
-    "./utils/color": "./src/utils/color.ts",
-    "./utils/appearance": "./src/utils/appearance.ts"
+    "./errors/app-error": "./src/errors/app-error.ts"
   }
 }

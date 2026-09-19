@@ -1,5 +1,7 @@
 # Appearance System Implementation Plan
 
+> **Withdrawn (2026-09-19):** implemented, then replaced the same day by the much simpler Settings → General → Color tone picker (`settings.colorTone`, the universal-client approach) at the user's request. Kept for history only.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** A Settings → Appearance page (theme mode, light/dark scheme cards with presets + accent/background/foreground, import/copy, fonts, translucent sidebar, contrast) whose choices persist in `settings.appearance` and are rendered as the shadcn CSS tokens the whole renderer already uses.

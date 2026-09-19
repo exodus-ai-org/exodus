@@ -12,6 +12,19 @@
       "light": "Clair",
       "dark": "Sombre"
     },
+    "colorTone": {
+      "label": "Teinte",
+      "description": "Choisissez une couleur d'accent pour l'interface",
+      "tones": {
+        "neutral": "Neutre",
+        "emerald": "Émeraude",
+        "blue": "Bleu",
+        "violet": "Violet",
+        "rose": "Rose",
+        "orange": "Orange",
+        "yellow": "Jaune"
+      }
+    },
     "runOnStartup": {
       "label": "Lancer au démarrage",
       "description": "Démarrer automatiquement Exodus lors de votre connexion"
@@ -27,9 +40,6 @@
     },
     "general": {
       "title": "Général"
-    },
-    "appearance": {
-      "title": "Apparence"
     },
     "personality": {
       "title": "Personnalité"
@@ -906,85 +916,6 @@
     "toast": {
       "snapshotBuilt": "Instantané créé",
       "snapshotFailed": "Impossible de créer l’instantané"
-    }
-  },
-  "appearance": {
-    "scheme": {
-      "light": "Thème clair",
-      "dark": "Thème sombre",
-      "import": "Importer",
-      "copy": "Copier le thème",
-      "custom": "Personnalisé",
-      "presetDefault": "Valeur du préréglage",
-      "presetLabel": "Préréglage du thème",
-      "accent": "Accent",
-      "background": "Arrière-plan",
-      "foreground": "Premier plan",
-      "pickColor": "Choisir une couleur",
-      "lowContrast": "Contraste faible ({{ratio}}:1) — le texte peut être difficile à lire",
-      "accents": {
-        "blue": "Bleu",
-        "purple": "Violet",
-        "pink": "Rose",
-        "red": "Rouge",
-        "orange": "Orange",
-        "yellow": "Jaune",
-        "green": "Vert",
-        "graphite": "Graphite"
-      }
-    },
-    "importDialog": {
-      "title": "Importer un thème",
-      "description": "Collez un thème copié depuis Exodus : un objet JSON avec les couleurs d'accent, d'arrière-plan et de premier plan.",
-      "placeholder": "{ \"accent\": \"#1f6feb\", \"background\": \"#0d1117\", \"foreground\": \"#e6edf3\" }",
-      "invalid": "Cela ne ressemble pas à un thème Exodus.",
-      "confirm": "Importer",
-      "cancel": "Annuler"
-    },
-    "fonts": {
-      "title": "Polices",
-      "ui": {
-        "label": "Police de l'interface",
-        "description": "La police utilisée dans toute l'interface."
-      },
-      "content": {
-        "label": "Police du contenu",
-        "description": "La police utilisée pour les messages de chat."
-      },
-      "customFamily": {
-        "label": "Famille de police",
-        "description": "Le nom d'une police installée sur cet ordinateur.",
-        "placeholder": "p. ex. Inter"
-      },
-      "families": {
-        "ui": "Identique à la police de l'interface",
-        "system": "Police système",
-        "serif": "Serif",
-        "mono": "Monospace",
-        "rounded": "Arrondie",
-        "custom": "Personnalisée…"
-      },
-      "weights": {
-        "light": "Fine",
-        "regular": "Normale",
-        "medium": "Moyenne"
-      }
-    },
-    "window": {
-      "title": "Fenêtre",
-      "translucentSidebar": {
-        "label": "Barre latérale translucide",
-        "description": "Laisse le bureau transparaître à travers la barre latérale."
-      },
-      "contrast": {
-        "label": "Contraste",
-        "description": "L'intensité avec laquelle les surfaces, bordures et textes secondaires se détachent de l'arrière-plan."
-      }
-    },
-    "toast": {
-      "copied": "Thème copié dans le presse-papiers",
-      "copyFailed": "Impossible de copier le thème",
-      "imported": "Thème importé"
     }
   }
 }

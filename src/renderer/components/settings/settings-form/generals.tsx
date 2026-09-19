@@ -4,12 +4,22 @@ import {
   LOCALES,
   type LanguageSetting
 } from '@exodus/shared/i18n/locales'
-import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
+import {
+  COLOR_TONES,
+  type ColorTone,
+  type UseFormReturnType
+} from '@exodus/shared/schemas/settings-schema'
+import type { ParseKeys } from 'i18next'
+import { Moon, Sun, SunMoon } from 'lucide-react'
+import { useTheme } from 'next-themes'
 import { useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { Theme } from '@/components/theme-provider'
 import { Switch } from '@/components/ui/switch'
 import { setLoginItem, setMenuBar } from '@/lib/ipc'
+import { applyTone } from '@/lib/tone'
+import { cn } from '@/lib/utils'
 
 import { SettingsRow, SettingsSection } from '../settings-row'
 import { SettingsSelect } from '../settings-select'
@@ -32,11 +42,100 @@ const LANGUAGE_OPTIONS: {
   }))
 ]
 
+const APPEARANCE_MODES: {
+  value: Theme
+  labelKey: ParseKeys<'settings'>
+  icon: typeof Sun
+}[] = [
+  { value: 'system', labelKey: 'general.theme.system', icon: SunMoon },
+  { value: 'light', labelKey: 'general.theme.light', icon: Sun },
+  { value: 'dark', labelKey: 'general.theme.dark', icon: Moon }
+]
+
+function AppearanceSwitcher() {
+  const { t } = useTranslation('settings')
+  const { theme, setTheme } = useTheme()
+
+  return (
+    <div className="bg-muted inline-flex w-fit gap-0.5 rounded-full p-0.5">
+      {APPEARANCE_MODES.map(({ value, labelKey, icon: Icon }) => (
+        <span key={value}>
+          <input
+            className="peer sr-only"
+            type="radio"
+            id={`appearance-mode-${value}`}
+            name="appearance-mode"
+            value={value}
+            checked={theme === value}
+            onChange={(event) => setTheme(event.target.value)}
+          />
+          <label
+            htmlFor={`appearance-mode-${value}`}
+            data-testid={`${TEST_IDS.settings.themeMode}-${value}`}
+            aria-label={t(labelKey)}
+            className="text-muted-foreground peer-checked:bg-background peer-checked:text-foreground flex size-7 cursor-pointer items-center justify-center rounded-full transition-colors peer-checked:shadow-sm"
+          >
+            <Icon className="size-4" />
+          </label>
+        </span>
+      ))}
+    </div>
+  )
+}
+
+// The dot for each tone is its `--primary` (see the `[data-tone]` blocks in
+// globals.css); neutral is the default look.
+const TONE_SWATCHES: Record<ColorTone, string> = {
+  neutral: 'oklch(0.52 0 0)',
+  emerald: 'oklch(0.52 0.17 160)',
+  blue: 'oklch(0.52 0.17 230)',
+  violet: 'oklch(0.52 0.17 285)',
+  rose: 'oklch(0.52 0.17 350)',
+  orange: 'oklch(0.52 0.17 55)',
+  yellow: 'oklch(0.52 0.17 85)'
+}
+
+function ColorTonePicker({
+  value,
+  onChange
+}: {
+  value: ColorTone
+  onChange: (tone: ColorTone) => void
+}) {
+  const { t } = useTranslation('settings')
+  return (
+    <div className="flex items-center gap-2">
+      {COLOR_TONES.map((tone) => {
+        const label = t(`general.colorTone.tones.${tone}`)
+        return (
+          <button
+            key={tone}
+            type="button"
+            title={label}
+            aria-label={label}
+            aria-pressed={value === tone}
+            data-testid={`${TEST_IDS.settings.colorTone}-${tone}`}
+            className={cn(
+              'size-6 rounded-full transition-all',
+              value === tone
+                ? 'ring-ring ring-offset-background ring-2 ring-offset-2'
+                : 'hover:scale-110'
+            )}
+            style={{ backgroundColor: TONE_SWATCHES[tone] }}
+            onClick={() => onChange(tone)}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
 export function General({ form }: { form: UseFormReturnType }) {
   const { t } = useTranslation('settings')
   const runOnStartup = form.watch('runOnStartup') ?? false
   const menuBarEnabled = form.watch('menuBar') ?? true
   const language: LanguageSetting = form.watch('language') ?? 'auto'
+  const tone: ColorTone = form.watch('colorTone') ?? 'neutral'
 
   const languageOptions = useMemo(
     () =>
@@ -58,6 +157,27 @@ export function General({ form }: { form: UseFormReturnType }) {
   return (
     <>
       <SettingsSection>
+        <SettingsRow
+          label={t('general.theme.label')}
+          description={t('general.theme.description')}
+        >
+          <AppearanceSwitcher />
+        </SettingsRow>
+
+        <SettingsRow
+          label={t('general.colorTone.label')}
+          description={t('general.colorTone.description')}
+        >
+          <ColorTonePicker
+            value={tone}
+            onChange={(next) => {
+              // Paint now; the autosave persists it and ToneBridge re-applies.
+              applyTone(next)
+              form.setValue('colorTone', next)
+            }}
+          />
+        </SettingsRow>
+
         <SettingsRow
           label={t('general.language.label')}
           description={t('general.language.description')}

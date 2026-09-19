@@ -12,6 +12,19 @@
       "light": "淺色",
       "dark": "深色"
     },
+    "colorTone": {
+      "label": "色調",
+      "description": "為介面選擇一種強調色",
+      "tones": {
+        "neutral": "中性",
+        "emerald": "翡翠綠",
+        "blue": "藍色",
+        "violet": "紫羅蘭",
+        "rose": "玫瑰紅",
+        "orange": "橙色",
+        "yellow": "黃色"
+      }
+    },
     "runOnStartup": {
       "label": "開機時啟動",
       "description": "登入時自動啟動 Exodus"
@@ -27,9 +40,6 @@
     },
     "general": {
       "title": "一般"
-    },
-    "appearance": {
-      "title": "外觀"
     },
     "personality": {
       "title": "個性"
@@ -901,85 +911,6 @@
     "toast": {
       "snapshotBuilt": "已建立快照",
       "snapshotFailed": "無法建立快照"
-    }
-  },
-  "appearance": {
-    "scheme": {
-      "light": "淺色主題",
-      "dark": "深色主題",
-      "import": "匯入",
-      "copy": "複製主題",
-      "custom": "自訂",
-      "presetDefault": "預設值",
-      "presetLabel": "主題預設",
-      "accent": "強調色",
-      "background": "背景",
-      "foreground": "前景",
-      "pickColor": "選擇顏色",
-      "lowContrast": "對比度過低（{{ratio}}:1）— 文字可能難以閱讀",
-      "accents": {
-        "blue": "藍色",
-        "purple": "紫色",
-        "pink": "粉紅色",
-        "red": "紅色",
-        "orange": "橙色",
-        "yellow": "黃色",
-        "green": "綠色",
-        "graphite": "石墨色"
-      }
-    },
-    "importDialog": {
-      "title": "匯入主題",
-      "description": "貼上從 Exodus 複製的主題：一個包含強調色、背景與前景顏色的 JSON 物件。",
-      "placeholder": "{ \"accent\": \"#1f6feb\", \"background\": \"#0d1117\", \"foreground\": \"#e6edf3\" }",
-      "invalid": "這看起來不像 Exodus 主題。",
-      "confirm": "匯入",
-      "cancel": "取消"
-    },
-    "fonts": {
-      "title": "字型",
-      "ui": {
-        "label": "介面字型",
-        "description": "整個介面使用的字體。"
-      },
-      "content": {
-        "label": "內容字型",
-        "description": "聊天訊息使用的字體。"
-      },
-      "customFamily": {
-        "label": "字型名稱",
-        "description": "此電腦已安裝字型的名稱。",
-        "placeholder": "例如 Inter"
-      },
-      "families": {
-        "ui": "與介面字型相同",
-        "system": "系統預設",
-        "serif": "襯線",
-        "mono": "等寬",
-        "rounded": "圓體",
-        "custom": "自訂…"
-      },
-      "weights": {
-        "light": "細",
-        "regular": "標準",
-        "medium": "中等"
-      }
-    },
-    "window": {
-      "title": "視窗",
-      "translucentSidebar": {
-        "label": "半透明側邊欄",
-        "description": "讓桌面透過側邊欄顯示。"
-      },
-      "contrast": {
-        "label": "對比度",
-        "description": "表面、邊框與次要文字相對於背景的突出程度。"
-      }
-    },
-    "toast": {
-      "copied": "主題已複製到剪貼簿",
-      "copyFailed": "無法複製主題",
-      "imported": "主題已匯入"
     }
   }
 }

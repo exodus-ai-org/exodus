@@ -25,7 +25,7 @@ test.describe('Settings E2E', () => {
   test('theme mode switcher changes the active mode', async ({
     mainWindow
   }) => {
-    await openSettings(mainWindow, 'Appearance')
+    await openSettings(mainWindow)
 
     const dark = mainWindow.getByTestId(`${TEST_IDS.settings.themeMode}-dark`)
     const light = mainWindow.getByTestId(`${TEST_IDS.settings.themeMode}-light`)
@@ -40,6 +40,43 @@ test.describe('Settings E2E', () => {
     await expect
       .poll(() => mainWindow.evaluate(() => document.documentElement.className))
       .not.toContain('dark')
+  })
+
+  test('colour tone picker paints data-tone and persists it', async ({
+    mainWindow
+  }) => {
+    await openSettings(mainWindow)
+
+    const emerald = mainWindow.getByTestId(
+      `${TEST_IDS.settings.colorTone}-emerald`
+    )
+    await emerald.waitFor({ state: 'visible', timeout: 10_000 })
+    await emerald.click()
+    await expect
+      .poll(() =>
+        mainWindow.evaluate(() => document.documentElement.dataset.tone)
+      )
+      .toBe('emerald')
+
+    // Persisted through the autosave, not merely applied.
+    await expect
+      .poll(() =>
+        mainWindow.evaluate(async () => {
+          const res = await fetch('http://localhost:60223/api/v1/settings')
+          const s = await res.json()
+          return s?.colorTone ?? null
+        })
+      )
+      .toBe('emerald')
+
+    await mainWindow
+      .getByTestId(`${TEST_IDS.settings.colorTone}-neutral`)
+      .click()
+    await expect
+      .poll(() =>
+        mainWindow.evaluate(() => document.documentElement.dataset.tone)
+      )
+      .toBe('neutral')
   })
 
   test('language selector switches the app language live', async ({

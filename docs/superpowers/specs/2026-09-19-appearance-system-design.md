@@ -1,7 +1,9 @@
 # Appearance System — Design
 
 Date: 2026-09-19
-Status: Approved (autonomous session), implemented in the same branch
+Status: Withdrawn — superseded by the Color tone picker (see note below)
+
+> **Withdrawn (2026-09-19):** implemented, then replaced the same day by the much simpler Settings → General → Color tone picker (`settings.colorTone`, the universal-client approach) at the user's request. Kept for history only.
 
 ## Summary
 

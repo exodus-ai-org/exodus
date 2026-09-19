@@ -126,13 +126,3 @@ export function revealArtifactFile(chatId: string, artifactId: string) {
     artifactId
   })
 }
-
-export function setWindowTranslucency(
-  enabled: boolean,
-  backgroundColor: string
-) {
-  return window.electron.ipcRenderer.invoke('set-window-translucency', {
-    enabled,
-    backgroundColor
-  })
-}
