@@ -50,7 +50,7 @@
     "@aws-sdk/s3-request-presigner": "^3.1127.0",
     "@base-ui/react": "^1.8.0",
     "@dicebear/collection": "^9.4.2",
-    "@dicebear/core": "^9.4.2",
+    "@dicebear/core": "^10.7.0",
     "@elastic/elasticsearch": "^9.5.1",
     "@electric-sql/pglite": "^0.5.8",
     "@electric-sql/pglite-pgmq": "^0.0.6",
