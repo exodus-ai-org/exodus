@@ -25,14 +25,19 @@ interface ArtifactDetails {
 
 // The sandbox is another HTML entry of this same renderer build (see
 // vite.renderer.config.mts). Vite's root is the repo root, so its page keeps
-// the `src/renderer/sub-apps/` prefix. Dev: served by the same Vite dev
-// server as this page. Packaged: a sibling path of this page's index.html.
+// the `src/renderer/sub-apps/` prefix — in the dev server and in the built
+// renderer directory alike, which is what the scheme below serves.
 const ARTIFACT_SANDBOX_PAGE = 'src/renderer/sub-apps/artifacts/index.html'
 
+// The sandbox runs model-written code, so it gets an origin of its own — served
+// by the main process through a custom scheme (src/main/lib/artifact-protocol.ts)
+// rather than from this window's origin, where `window.parent` would hand that
+// code the IPC bridge and the API. Same URL in dev and packaged. A literal, as
+// the renderer cannot import main-process code.
+const ARTIFACT_ORIGIN = 'exodus-artifact://sandbox'
+
 function getArtifactSandboxUrl(): string {
-  return import.meta.env.DEV
-    ? `${window.location.origin}/${ARTIFACT_SANDBOX_PAGE}`
-    : `./${ARTIFACT_SANDBOX_PAGE}`
+  return `${ARTIFACT_ORIGIN}/${ARTIFACT_SANDBOX_PAGE}`
 }
 
 function sendToIframe(
@@ -43,8 +48,10 @@ function sendToIframe(
   const win = iframe?.contentWindow
   if (!win || !code) return
   const theme = window.localStorage.getItem('vite-ui-theme') ?? 'system'
-  win.postMessage({ type: 'theme', theme }, '*')
-  win.postMessage({ type: 'render', code, artifactId: title }, '*')
+  // Addressed to the sandbox's origin: if the frame were ever navigated
+  // elsewhere, the artifact's code would not be delivered to it.
+  win.postMessage({ type: 'theme', theme }, ARTIFACT_ORIGIN)
+  win.postMessage({ type: 'render', code, artifactId: title }, ARTIFACT_ORIGIN)
 }
 
 /** Track whether the Electron window is in macOS native fullscreen. */
@@ -242,6 +249,7 @@ export function ArtifactCard({
   // initial render message and stranding the UI on "Waiting for artifact…".
   useEffect(() => {
     const onMessage = (event: MessageEvent) => {
+      if (event.origin !== ARTIFACT_ORIGIN) return
       if (
         typeof event.data !== 'object' ||
         event.data === null ||
