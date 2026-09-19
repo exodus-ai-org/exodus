@@ -1,0 +1,125 @@
+import {
+  buildPairingLink,
+  createPairing,
+  lanHosts,
+  MAX_PAIRING_ATTEMPTS,
+  PAIRING_TTL_MS,
+  randomPairingCode
+} from '@main/lib/lan/pairing'
+import { describe, expect, it } from 'vitest'
+
+function setup() {
+  let now = 1_000_000
+  let n = 0
+  const pairing = createPairing({
+    now: () => now,
+    randomCode: () => `code-${++n}`
+  })
+  return { pairing, advance: (ms: number) => (now += ms) }
+}
+
+describe('pairing window', () => {
+  it('is closed until opened', () => {
+    const { pairing } = setup()
+    expect(pairing.current()).toBeNull()
+    expect(pairing.verify('anything')).toBe('closed')
+  })
+
+  it('accepts its code once, then is closed', () => {
+    const { pairing } = setup()
+    const { code } = pairing.open()
+    expect(pairing.verify(code)).toBe('ok')
+    expect(pairing.verify(code)).toBe('closed')
+    expect(pairing.current()).toBeNull()
+  })
+
+  it('expires after two minutes', () => {
+    const { pairing, advance } = setup()
+    const { code, expiresAt } = pairing.open()
+    expect(expiresAt).toBe(1_000_000 + PAIRING_TTL_MS)
+    advance(PAIRING_TTL_MS - 1)
+    expect(pairing.current()).not.toBeNull()
+    advance(1)
+    expect(pairing.current()).toBeNull()
+    expect(pairing.verify(code)).toBe('closed')
+  })
+
+  it('closes after too many wrong codes — the right one no longer works', () => {
+    const { pairing } = setup()
+    const { code } = pairing.open()
+    for (let i = 1; i <= MAX_PAIRING_ATTEMPTS; i++) {
+      expect(pairing.verify('nope')).toBe(
+        i < MAX_PAIRING_ATTEMPTS ? 'wrong' : 'closed'
+      )
+    }
+    expect(pairing.verify(code)).toBe('closed')
+  })
+
+  it('replaces the previous window — and its attempt count — when opened again', () => {
+    const { pairing } = setup()
+    const first = pairing.open()
+    for (let i = 1; i < MAX_PAIRING_ATTEMPTS; i++) pairing.verify('nope')
+    const second = pairing.open()
+
+    expect(second.code).not.toBe(first.code)
+    expect(pairing.verify(first.code)).toBe('wrong')
+    expect(pairing.verify(second.code)).toBe('ok')
+  })
+
+  it('can be cancelled', () => {
+    const { pairing } = setup()
+    const { code } = pairing.open()
+    pairing.close()
+    expect(pairing.verify(code)).toBe('closed')
+  })
+})
+
+describe('randomPairingCode', () => {
+  it('is 128 bits of URL-safe text, different every time', () => {
+    const a = randomPairingCode()
+    const b = randomPairingCode()
+    expect(a).toMatch(/^[A-Za-z0-9_-]{22}$/)
+    expect(a).not.toBe(b)
+  })
+})
+
+describe('buildPairingLink', () => {
+  it('round-trips through URL parsing', () => {
+    const link = buildPairingLink({
+      hosts: ['192.168.1.10', 'mac.local'],
+      port: 60224,
+      code: 'abc-DEF_123',
+      fingerprint: 'VldKaXWVm4PX',
+      name: "Yancey's Mac & Co"
+    })
+    const url = new URL(link)
+    expect(url.protocol).toBe('exodus:')
+    expect(url.host).toBe('pair')
+    expect(url.searchParams.get('h')).toBe('192.168.1.10,mac.local')
+    expect(url.searchParams.get('p')).toBe('60224')
+    expect(url.searchParams.get('c')).toBe('abc-DEF_123')
+    expect(url.searchParams.get('f')).toBe('VldKaXWVm4PX')
+    expect(url.searchParams.get('n')).toBe("Yancey's Mac & Co")
+  })
+})
+
+describe('lanHosts', () => {
+  it('lists external IPv4 addresses, then the .local name', () => {
+    const hosts = lanHosts(
+      {
+        lo0: [{ family: 'IPv4', address: '127.0.0.1', internal: true }],
+        en0: [
+          { family: 'IPv6', address: 'fe80::1', internal: false },
+          { family: 'IPv4', address: '192.168.1.10', internal: false }
+        ],
+        utun3: [{ family: 'IPv4', address: '100.64.0.7', internal: false }]
+      } as never,
+      'Yanceys-Mac.local'
+    )
+    expect(hosts).toEqual(['192.168.1.10', '100.64.0.7', 'Yanceys-Mac.local'])
+  })
+
+  it('appends .local to a bare hostname', () => {
+    expect(lanHosts({}, 'studio')).toEqual(['studio.local'])
+  })
+})
