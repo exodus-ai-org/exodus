@@ -19,7 +19,8 @@ import {
   MousePointer2Icon,
   CircleUserRoundIcon,
   MicIcon,
-  CompassIcon
+  CompassIcon,
+  MonitorSmartphoneIcon
 } from 'lucide-react'
 
 export enum SettingsLabel {
@@ -41,6 +42,7 @@ export enum SettingsLabel {
   DataControls = 'Data Controls',
   Logger = 'Logger',
   ChatAudit = 'Chat Audit',
+  Devices = 'Devices',
   KeyboardShortcuts = 'Keyboard Shortcuts',
   AboutExodus = 'About Exodus'
 }
@@ -80,6 +82,7 @@ export const NAV_TITLE_KEYS = {
   [SettingsLabel.DataControls]: 'nav.dataControls.title',
   [SettingsLabel.Logger]: 'nav.logger.title',
   [SettingsLabel.ChatAudit]: 'nav.chatAudit.title',
+  [SettingsLabel.Devices]: 'nav.devices.title',
   [SettingsLabel.KeyboardShortcuts]: 'nav.keyboardShortcuts.title',
   [SettingsLabel.AboutExodus]: 'nav.about.title'
 } as const satisfies Record<SettingsLabel, ParseKeys<'settings'>>
@@ -114,14 +117,15 @@ export const menus = {
     {
       // External, connection-backed capabilities: search backends, the
       // knowledge base, the computer-use sandbox, MCP connectors, the skills
-      // marketplace.
+      // marketplace — and the devices allowed to connect to this one.
       label: 'nav.group.integrations',
       items: [
         { title: SettingsLabel.FullTextSearch, icon: TextSearch },
         { title: SettingsLabel.KnowledgeBase, icon: NetworkIcon },
         { title: SettingsLabel.ComputerUse, icon: MousePointer2Icon },
         { title: SettingsLabel.McpServers, icon: HammerIcon },
-        { title: SettingsLabel.SkillsMarket, icon: ShoppingBagIcon }
+        { title: SettingsLabel.SkillsMarket, icon: ShoppingBagIcon },
+        { title: SettingsLabel.Devices, icon: MonitorSmartphoneIcon }
       ]
     },
     {

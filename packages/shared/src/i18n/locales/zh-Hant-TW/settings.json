@@ -95,6 +95,9 @@
     "about": {
       "title": "關於 Exodus"
     },
+    "devices": {
+      "title": "裝置"
+    },
     "group": {
       "personal": "個人",
       "aiTools": "AI 與工具",
@@ -911,6 +914,40 @@
     "toast": {
       "snapshotBuilt": "已建立快照",
       "snapshotFailed": "無法建立快照"
+    }
+  },
+  "devices": {
+    "heading": "裝置",
+    "description": "可透過區域網路使用 Exodus 的手機與平板。裝置必須先在這裡配對；在配對任何裝置之前，網路上完全無法連線到 Exodus。",
+    "empty": "尚未配對任何裝置。",
+    "pair": "配對裝置",
+    "pairing": {
+      "title": "使用 iPhone 上的 Exodus 掃描",
+      "instructions": "在裝置上開啟 Exodus，前往「設定 → 與電腦配對」，然後掃描此 QR Code。兩者必須在同一個網路上。",
+      "expiresIn": "{{seconds}} 秒後過期",
+      "copyLink": "複製配對連結",
+      "linkCopied": "已複製配對連結",
+      "cancel": "取消"
+    },
+    "row": {
+      "pairedOn": "配對於 {{date}}",
+      "lastSeen": "上次連線：{{date}}",
+      "neverSeen": "尚未連線",
+      "revoke": "撤銷"
+    },
+    "revokeDialog": {
+      "title": "要撤銷「{{name}}」嗎？",
+      "description": "它會立即失去存取權，必須重新配對才能再次使用。",
+      "confirm": "撤銷"
+    },
+    "reset": {
+      "button": "全部重設",
+      "title": "要重設所有配對嗎？",
+      "description": "所有裝置都會被移除，並簽發新的憑證。每台裝置都必須重新掃描 QR Code。",
+      "confirm": "重設"
+    },
+    "toast": {
+      "failedTitle": "操作失敗"
     }
   }
 }

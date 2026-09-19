@@ -95,6 +95,9 @@
     "about": {
       "title": "Exodusについて"
     },
+    "devices": {
+      "title": "デバイス"
+    },
     "group": {
       "personal": "個人設定",
       "aiTools": "AIとツール",
@@ -911,6 +914,40 @@
     "toast": {
       "snapshotBuilt": "スナップショットを作成しました",
       "snapshotFailed": "スナップショットを作成できませんでした"
+    }
+  },
+  "devices": {
+    "heading": "デバイス",
+    "description": "ローカルネットワーク経由で Exodus を利用できるスマートフォンやタブレットです。デバイスは最初にここでペアリングする必要があります。ペアリングするまで、Exodus はネットワークから一切アクセスできません。",
+    "empty": "ペアリング済みのデバイスはありません。",
+    "pair": "デバイスをペアリング",
+    "pairing": {
+      "title": "iPhone の Exodus でスキャン",
+      "instructions": "デバイスで Exodus を開き、「設定 → コンピュータとペアリング」に進んで、このコードをスキャンしてください。両方が同じネットワーク上にある必要があります。",
+      "expiresIn": "あと {{seconds}} 秒で期限切れ",
+      "copyLink": "ペアリングリンクをコピー",
+      "linkCopied": "ペアリングリンクをコピーしました",
+      "cancel": "キャンセル"
+    },
+    "row": {
+      "pairedOn": "{{date}} にペアリング",
+      "lastSeen": "最終接続：{{date}}",
+      "neverSeen": "未接続",
+      "revoke": "取り消す"
+    },
+    "revokeDialog": {
+      "title": "「{{name}}」のペアリングを取り消しますか？",
+      "description": "直ちにアクセスできなくなり、再度利用するにはペアリングし直す必要があります。",
+      "confirm": "取り消す"
+    },
+    "reset": {
+      "button": "すべてリセット",
+      "title": "すべてのペアリングをリセットしますか？",
+      "description": "すべてのデバイスが削除され、新しい証明書が発行されます。各デバイスで新しいコードをスキャンし直す必要があります。",
+      "confirm": "リセット"
+    },
+    "toast": {
+      "failedTitle": "操作に失敗しました"
     }
   }
 }

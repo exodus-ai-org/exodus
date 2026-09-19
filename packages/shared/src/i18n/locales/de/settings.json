@@ -95,6 +95,9 @@
     "about": {
       "title": "Über Exodus"
     },
+    "devices": {
+      "title": "Geräte"
+    },
     "group": {
       "personal": "Persönlich",
       "aiTools": "KI & Tools",
@@ -916,6 +919,40 @@
     "toast": {
       "snapshotBuilt": "Snapshot erstellt",
       "snapshotFailed": "Der Snapshot konnte nicht erstellt werden"
+    }
+  },
+  "devices": {
+    "heading": "Geräte",
+    "description": "Smartphones und Tablets, die Exodus über Ihr lokales Netzwerk nutzen dürfen. Ein Gerät muss zuerst hier gekoppelt werden; solange keines gekoppelt ist, ist Exodus aus dem Netzwerk überhaupt nicht erreichbar.",
+    "empty": "Keine gekoppelten Geräte.",
+    "pair": "Gerät koppeln",
+    "pairing": {
+      "title": "Mit Exodus auf Ihrem iPhone scannen",
+      "instructions": "Öffnen Sie Exodus auf dem Gerät, gehen Sie zu Einstellungen → Mit Computer koppeln und scannen Sie diesen Code. Beide müssen sich im selben Netzwerk befinden.",
+      "expiresIn": "Läuft in {{seconds}} s ab",
+      "copyLink": "Kopplungslink kopieren",
+      "linkCopied": "Kopplungslink kopiert",
+      "cancel": "Abbrechen"
+    },
+    "row": {
+      "pairedOn": "Gekoppelt am {{date}}",
+      "lastSeen": "Zuletzt verbunden {{date}}",
+      "neverSeen": "Noch nie verbunden",
+      "revoke": "Widerrufen"
+    },
+    "revokeDialog": {
+      "title": "{{name}} widerrufen?",
+      "description": "Das Gerät verliert sofort den Zugriff und muss neu gekoppelt werden, um ihn zurückzuerhalten.",
+      "confirm": "Widerrufen"
+    },
+    "reset": {
+      "button": "Alle zurücksetzen",
+      "title": "Alle Kopplungen zurücksetzen?",
+      "description": "Alle Geräte werden entfernt und ein neues Zertifikat wird ausgestellt. Jedes Gerät muss einen neuen Code scannen.",
+      "confirm": "Zurücksetzen"
+    },
+    "toast": {
+      "failedTitle": "Das hat nicht funktioniert"
     }
   }
 }

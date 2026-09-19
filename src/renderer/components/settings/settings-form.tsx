@@ -11,6 +11,7 @@ import { ChatAudit } from './settings-form/chat-audit'
 import { ComputerUse } from './settings-form/computer-use'
 import { DataControls } from './settings-form/data-controls'
 import { DeepResearch } from './settings-form/deep-research'
+import { Devices } from './settings-form/devices'
 import { Discover } from './settings-form/discover'
 import { FullTextSearch } from './settings-form/full-text-search'
 import { General } from './settings-form/generals'
@@ -104,6 +105,7 @@ export function SettingsForm() {
       {activeTitle === SettingsLabel.Logger && <Logger />}
 
       {activeTitle === SettingsLabel.ChatAudit && <ChatAudit />}
+      {activeTitle === SettingsLabel.Devices && <Devices />}
 
       {activeTitle === SettingsLabel.KeyboardShortcuts && <KeyboardShortcuts />}
 

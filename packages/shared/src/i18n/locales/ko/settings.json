@@ -95,6 +95,9 @@
     "about": {
       "title": "Exodus 정보"
     },
+    "devices": {
+      "title": "기기"
+    },
     "group": {
       "personal": "개인",
       "aiTools": "AI 및 도구",
@@ -911,6 +914,40 @@
     "toast": {
       "snapshotBuilt": "스냅샷 생성됨",
       "snapshotFailed": "스냅샷을 만들 수 없습니다"
+    }
+  },
+  "devices": {
+    "heading": "기기",
+    "description": "로컬 네트워크를 통해 Exodus를 사용할 수 있는 휴대폰과 태블릿입니다. 기기는 먼저 여기에서 페어링해야 하며, 페어링하기 전에는 네트워크에서 Exodus에 전혀 접근할 수 없습니다.",
+    "empty": "페어링된 기기가 없습니다.",
+    "pair": "기기 페어링",
+    "pairing": {
+      "title": "iPhone의 Exodus로 스캔하세요",
+      "instructions": "기기에서 Exodus를 열고 ‘설정 → 컴퓨터와 페어링’으로 이동한 다음 이 코드를 스캔하세요. 두 기기가 같은 네트워크에 있어야 합니다.",
+      "expiresIn": "{{seconds}}초 후 만료",
+      "copyLink": "페어링 링크 복사",
+      "linkCopied": "페어링 링크를 복사했습니다",
+      "cancel": "취소"
+    },
+    "row": {
+      "pairedOn": "{{date}}에 페어링됨",
+      "lastSeen": "마지막 연결: {{date}}",
+      "neverSeen": "연결된 적 없음",
+      "revoke": "해제"
+    },
+    "revokeDialog": {
+      "title": "‘{{name}}’의 페어링을 해제할까요?",
+      "description": "즉시 접근 권한을 잃으며, 다시 사용하려면 새로 페어링해야 합니다.",
+      "confirm": "해제"
+    },
+    "reset": {
+      "button": "모두 재설정",
+      "title": "모든 페어링을 재설정할까요?",
+      "description": "모든 기기가 제거되고 새 인증서가 발급됩니다. 각 기기에서 새 코드를 다시 스캔해야 합니다.",
+      "confirm": "재설정"
+    },
+    "toast": {
+      "failedTitle": "작업에 실패했습니다"
     }
   }
 }

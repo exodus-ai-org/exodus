@@ -95,6 +95,9 @@
     "about": {
       "title": "Acerca de Exodus"
     },
+    "devices": {
+      "title": "Dispositivos"
+    },
     "group": {
       "personal": "Personal",
       "aiTools": "IA y herramientas",
@@ -916,6 +919,40 @@
     "toast": {
       "snapshotBuilt": "Instantánea creada",
       "snapshotFailed": "No se pudo crear la instantánea"
+    }
+  },
+  "devices": {
+    "heading": "Dispositivos",
+    "description": "Teléfonos y tabletas que pueden usar Exodus a través de tu red local. Primero hay que vincular el dispositivo aquí; hasta que haya alguno vinculado, Exodus no es accesible desde la red en absoluto.",
+    "empty": "No hay dispositivos vinculados.",
+    "pair": "Vincular un dispositivo",
+    "pairing": {
+      "title": "Escanea con Exodus en tu iPhone",
+      "instructions": "Abre Exodus en el dispositivo, ve a Ajustes → Vincular con el ordenador y escanea este código. Ambos deben estar en la misma red.",
+      "expiresIn": "Caduca en {{seconds}} s",
+      "copyLink": "Copiar enlace de vinculación",
+      "linkCopied": "Enlace de vinculación copiado",
+      "cancel": "Cancelar"
+    },
+    "row": {
+      "pairedOn": "Vinculado el {{date}}",
+      "lastSeen": "Última conexión {{date}}",
+      "neverSeen": "Nunca se ha conectado",
+      "revoke": "Revocar"
+    },
+    "revokeDialog": {
+      "title": "¿Revocar {{name}}?",
+      "description": "Pierde el acceso de inmediato y habrá que vincularlo de nuevo para que vuelva.",
+      "confirm": "Revocar"
+    },
+    "reset": {
+      "button": "Restablecer todo",
+      "title": "¿Restablecer todas las vinculaciones?",
+      "description": "Se eliminan todos los dispositivos y se emite un certificado nuevo. Cada dispositivo tendrá que escanear un código nuevo.",
+      "confirm": "Restablecer"
+    },
+    "toast": {
+      "failedTitle": "No ha funcionado"
     }
   }
 }

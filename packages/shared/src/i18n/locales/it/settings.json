@@ -95,6 +95,9 @@
     "about": {
       "title": "Informazioni su Exodus"
     },
+    "devices": {
+      "title": "Dispositivi"
+    },
     "group": {
       "personal": "Personale",
       "aiTools": "AI e strumenti",
@@ -916,6 +919,40 @@
     "toast": {
       "snapshotBuilt": "Snapshot creato",
       "snapshotFailed": "Impossibile creare lo snapshot"
+    }
+  },
+  "devices": {
+    "heading": "Dispositivi",
+    "description": "Telefoni e tablet che possono usare Exodus tramite la rete locale. Un dispositivo deve prima essere abbinato qui; finché non ce n’è uno abbinato, Exodus non è raggiungibile dalla rete in alcun modo.",
+    "empty": "Nessun dispositivo abbinato.",
+    "pair": "Abbina un dispositivo",
+    "pairing": {
+      "title": "Scansiona con Exodus sul tuo iPhone",
+      "instructions": "Apri Exodus sul dispositivo, vai in Impostazioni → Abbina al computer e scansiona questo codice. Entrambi devono essere sulla stessa rete.",
+      "expiresIn": "Scade tra {{seconds}} s",
+      "copyLink": "Copia link di abbinamento",
+      "linkCopied": "Link di abbinamento copiato",
+      "cancel": "Annulla"
+    },
+    "row": {
+      "pairedOn": "Abbinato il {{date}}",
+      "lastSeen": "Ultima connessione {{date}}",
+      "neverSeen": "Mai connesso",
+      "revoke": "Revoca"
+    },
+    "revokeDialog": {
+      "title": "Revocare {{name}}?",
+      "description": "Perde l’accesso immediatamente e dovrà essere abbinato di nuovo per tornare.",
+      "confirm": "Revoca"
+    },
+    "reset": {
+      "button": "Reimposta tutto",
+      "title": "Reimpostare tutti gli abbinamenti?",
+      "description": "Tutti i dispositivi vengono rimossi e viene emesso un nuovo certificato. Ogni dispositivo dovrà scansionare un nuovo codice.",
+      "confirm": "Reimposta"
+    },
+    "toast": {
+      "failedTitle": "Non ha funzionato"
     }
   }
 }

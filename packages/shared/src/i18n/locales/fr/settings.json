@@ -95,6 +95,9 @@
     "about": {
       "title": "À propos d'Exodus"
     },
+    "devices": {
+      "title": "Appareils"
+    },
     "group": {
       "personal": "Personnel",
       "aiTools": "IA et outils",
@@ -916,6 +919,40 @@
     "toast": {
       "snapshotBuilt": "Instantané créé",
       "snapshotFailed": "Impossible de créer l’instantané"
+    }
+  },
+  "devices": {
+    "heading": "Appareils",
+    "description": "Téléphones et tablettes autorisés à utiliser Exodus sur votre réseau local. Un appareil doit d’abord être jumelé ici ; tant qu’aucun ne l’est, Exodus est totalement inaccessible depuis le réseau.",
+    "empty": "Aucun appareil jumelé.",
+    "pair": "Jumeler un appareil",
+    "pairing": {
+      "title": "Scannez avec Exodus sur votre iPhone",
+      "instructions": "Ouvrez Exodus sur l’appareil, allez dans Réglages → Jumeler avec l’ordinateur, puis scannez ce code. Les deux doivent être sur le même réseau.",
+      "expiresIn": "Expire dans {{seconds}} s",
+      "copyLink": "Copier le lien de jumelage",
+      "linkCopied": "Lien de jumelage copié",
+      "cancel": "Annuler"
+    },
+    "row": {
+      "pairedOn": "Jumelé le {{date}}",
+      "lastSeen": "Dernière connexion {{date}}",
+      "neverSeen": "Jamais connecté",
+      "revoke": "Révoquer"
+    },
+    "revokeDialog": {
+      "title": "Révoquer {{name}} ?",
+      "description": "Il perd l’accès immédiatement et devra être jumelé à nouveau pour revenir.",
+      "confirm": "Révoquer"
+    },
+    "reset": {
+      "button": "Tout réinitialiser",
+      "title": "Réinitialiser tous les jumelages ?",
+      "description": "Tous les appareils sont supprimés et un nouveau certificat est émis. Chaque appareil devra scanner un nouveau code.",
+      "confirm": "Réinitialiser"
+    },
+    "toast": {
+      "failedTitle": "L’opération a échoué"
     }
   }
 }

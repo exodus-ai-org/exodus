@@ -61,6 +61,15 @@ export const TEST_IDS = {
     resultsTable: 'chat-audit.results-table',
     downloadCsvButton: 'chat-audit.download-csv-button'
   },
+  devices: {
+    pairButton: 'devices.pair-button',
+    qrCode: 'devices.qr-code',
+    copyLinkButton: 'devices.copy-link-button',
+    cancelPairingButton: 'devices.cancel-pairing-button',
+    deviceRow: 'devices.device-row',
+    revokeButton: 'devices.revoke-button',
+    resetButton: 'devices.reset-button'
+  },
   fullTextSearch: {
     testConnectionButton: 'full-text-search.test-connection-button',
     reindexButton: 'full-text-search.reindex-button'

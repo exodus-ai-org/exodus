@@ -95,6 +95,9 @@
     "about": {
       "title": "Sobre o Exodus"
     },
+    "devices": {
+      "title": "Dispositivos"
+    },
     "group": {
       "personal": "Pessoal",
       "aiTools": "IA e Ferramentas",
@@ -916,6 +919,40 @@
     "toast": {
       "snapshotBuilt": "Snapshot criado",
       "snapshotFailed": "Não foi possível criar o snapshot"
+    }
+  },
+  "devices": {
+    "heading": "Dispositivos",
+    "description": "Celulares e tablets que podem usar o Exodus pela sua rede local. O dispositivo precisa ser pareado aqui primeiro; até que haja algum pareado, o Exodus não fica acessível pela rede de forma alguma.",
+    "empty": "Nenhum dispositivo pareado.",
+    "pair": "Parear um dispositivo",
+    "pairing": {
+      "title": "Escaneie com o Exodus no seu iPhone",
+      "instructions": "Abra o Exodus no dispositivo, vá em Ajustes → Parear com o computador e escaneie este código. Os dois precisam estar na mesma rede.",
+      "expiresIn": "Expira em {{seconds}} s",
+      "copyLink": "Copiar link de pareamento",
+      "linkCopied": "Link de pareamento copiado",
+      "cancel": "Cancelar"
+    },
+    "row": {
+      "pairedOn": "Pareado em {{date}}",
+      "lastSeen": "Última conexão {{date}}",
+      "neverSeen": "Nunca conectou",
+      "revoke": "Revogar"
+    },
+    "revokeDialog": {
+      "title": "Revogar {{name}}?",
+      "description": "Ele perde o acesso imediatamente e precisará ser pareado de novo para voltar.",
+      "confirm": "Revogar"
+    },
+    "reset": {
+      "button": "Redefinir tudo",
+      "title": "Redefinir todos os pareamentos?",
+      "description": "Todos os dispositivos são removidos e um novo certificado é emitido. Cada dispositivo terá de escanear um novo código.",
+      "confirm": "Redefinir"
+    },
+    "toast": {
+      "failedTitle": "Não deu certo"
     }
   }
 }
