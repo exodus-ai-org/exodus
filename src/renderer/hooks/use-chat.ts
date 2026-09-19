@@ -47,6 +47,16 @@ export interface UseChatHelpers {
   regenerate: () => void
 }
 
+function isSameUsage(a: Usage | null, b: Usage): boolean {
+  return (
+    a !== null &&
+    a.input === b.input &&
+    a.output === b.output &&
+    a.totalTokens === b.totalTokens &&
+    a.cost?.total === b.cost?.total
+  )
+}
+
 export function useChat(options: UseChatOptions): UseChatHelpers {
   const {
     id,
@@ -60,7 +70,19 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
     prepareBody
   } = options
 
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages)
+  // `messages` is mirrored in a ref that every write goes through, so the
+  // callbacks below can read the current list without closing over it. They
+  // used to depend on `messages`, which gave `sendMessage` — and `regenerate`
+  // after it — a new identity on every streamed frame; `regenerate` is a prop
+  // of every assistant turn, so each frame re-rendered the whole transcript
+  // straight through its `memo`.
+  const [messages, setMessagesState] = useState<ChatMessage[]>(initialMessages)
+  const messagesRef = useRef(messages)
+  const setMessages = useCallback<UseChatHelpers['setMessages']>((next) => {
+    const value = typeof next === 'function' ? next(messagesRef.current) : next
+    messagesRef.current = value
+    setMessagesState(value)
+  }, [])
   const [status, setStatus] = useState<ChatStatus>(() =>
     isStreamActive(id) ? 'streaming' : 'idle'
   )
@@ -74,13 +96,22 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
   const lastUserMsgRef = useRef<SendMessageOptions | null>(null)
   const extraBodyRef = useRef<Record<string, unknown>>({})
 
-  // Keep callbacks in refs so the subscriber closure always sees the latest
+  // Keep callbacks in refs so the subscriber closure — and the stable
+  // `sendMessage` — always see the latest. Synced in an effect rather than
+  // during render (a render-phase ref write is a Rules of React violation); all
+  // of them are only read later, from stream events and user actions.
   const onFinishRef = useRef(onFinish)
-  onFinishRef.current = onFinish
   const onErrorRef = useRef(onError)
-  onErrorRef.current = onError
   const onTitleRef = useRef(onTitle)
-  onTitleRef.current = onTitle
+  const prepareBodyRef = useRef(prepareBody)
+  const chatTitleRef = useRef(chatTitle)
+  useEffect(() => {
+    onFinishRef.current = onFinish
+    onErrorRef.current = onError
+    onTitleRef.current = onTitle
+    prepareBodyRef.current = prepareBody
+    chatTitleRef.current = chatTitle
+  })
 
   // Helper to build a subscriber object (used both on mount and when sending)
   const makeSubscriber = useCallback(() => {
@@ -91,14 +122,19 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
         const last = msgs.findLast(
           (m): m is ChatAssistantMessage => m.role === 'assistant'
         )
-        if (last?.usage) setLastUsage(last.usage)
+        // Every frame parses to a fresh `usage` object; only a change in the
+        // numbers is a change worth a re-render of whoever reads it.
+        const usage = last?.usage
+        if (usage) {
+          setLastUsage((prev) => (isSameUsage(prev, usage) ? prev : usage))
+        }
       },
       onStatus: setStatus,
       onTitle: (t: string) => onTitleRef.current?.(t),
       onError: (e: Error) => onErrorRef.current?.(e),
       onFinish: (msgs: ChatMessage[]) => onFinishRef.current?.(msgs)
     }
-  }, [])
+  }, [setMessages])
 
   // Subscribe to an existing background stream on mount
   useEffect(() => {
@@ -146,11 +182,12 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
         timestamp: Date.now()
       }
 
-      const newMessages = [...messages, userMsg]
+      const newMessages = [...messagesRef.current, userMsg]
       setMessages(newMessages)
 
-      const body = prepareBody
-        ? prepareBody({
+      const prepare = prepareBodyRef.current
+      const body = prepare
+        ? prepare({
             id,
             messages: newMessages,
             body: extraBodyRef.current
@@ -159,28 +196,25 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
 
       startStream({
         chatId: id,
-        chatTitle,
+        chatTitle: chatTitleRef.current,
         api,
         body,
         initialMessages: newMessages,
         subscriber: makeSubscriber()
       })
     },
-    [messages, id, chatTitle, api, generateId, prepareBody, makeSubscriber]
+    [id, api, generateId, makeSubscriber, setMessages]
   )
 
+  // Re-asks the last question as a new turn; the previous answer stays in the
+  // transcript (the server has it saved either way). This used to first slice
+  // the last answer off with a functional update — which never took effect:
+  // `sendMessage` then set the list from its own, un-sliced snapshot in the same
+  // batch. With `sendMessage` reading the live list that slice would start
+  // working and leave the screen disagreeing with the database until a reload,
+  // so it is dropped rather than accidentally switched on.
   const regenerate = useCallback(() => {
-    if (lastUserMsgRef.current) {
-      setMessages((prev) => {
-        const lastAssistantIdx = [...prev]
-          .reverse()
-          .findIndex((m) => m.role === 'assistant')
-        if (lastAssistantIdx < 0) return prev
-        const idx = prev.length - 1 - lastAssistantIdx
-        return prev.slice(0, idx)
-      })
-      sendMessage(lastUserMsgRef.current)
-    }
+    if (lastUserMsgRef.current) sendMessage(lastUserMsgRef.current)
   }, [sendMessage])
 
   return {

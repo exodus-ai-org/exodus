@@ -1,0 +1,27 @@
+import rehypeKatex from 'rehype-katex'
+import remarkGfm from 'remark-gfm'
+import remarkMath from 'remark-math'
+
+// One definition of the markdown pipeline, shared by the renderer
+// (components/markdown.tsx) and the block splitter (lib/markdown-blocks.ts) —
+// the splitter is only correct while it parses exactly what the renderer does.
+// Hoisted constants, so the arrays are never re-created per render.
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const remarkPluginsStable: any[] = [
+  remarkGfm,
+  [
+    remarkMath,
+    {
+      // KaTeX supports both single dollar ($) and double dollar ($$) delimiters for math expressions.
+      // However, ordinary text containing single dollar signs, such as: "The daily salary ranges from $200 - $300," can be incorrectly interpreted as KaTeX.
+      // Therefore, ensure that the `singleDollarTextMath` parameter is set to `false` to prevent this.
+      // **IMPORTANT:** Instruct your LLM model to always use the double dollar ($$) format when writing mathematical formulas using KaTeX:
+      // e.g. "When writing mathematical formulas using KaTeX format, enclose them within **$$** symbols."
+      singleDollarTextMath: false
+    }
+  ]
+]
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const rehypePluginsStable: any[] = [rehypeKatex]

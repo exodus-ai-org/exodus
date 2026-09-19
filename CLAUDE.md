@@ -533,6 +533,39 @@ straight from `src/main/lib/db/schema.ts` (the shared package must not import th
 - Always save messages to database after completion
 - Message parts stored as JSONB in `message.parts` column
 
+### When Working with the Chat Render Path
+
+A reply streams at up to ~25 frames a second and every frame gives `<Chat>` a
+new `messages` array, so anything that re-renders per frame is paid for
+hundreds of times per answer. What keeps it cheap — all of it guarded by
+`tests/unit/renderer/components/messages-rerender.test.ts`,
+`tests/unit/renderer/hooks/use-chat.test.ts` and
+`tests/unit/renderer/lib/markdown-blocks.test.ts`:
+
+- **`useChat` hands out stable callbacks.** `sendMessage`, `regenerate`, `stop`
+  and `setMessages` must not depend on `messages` — they read the live list
+  from a ref that `setMessages` keeps in sync, and `prepareBody` / the `on*`
+  callbacks from refs synced in an effect. `regenerate` is a prop of every
+  assistant turn: when it changed per frame, the whole transcript re-rendered
+  per frame, straight through its `memo`.
+- **Unchanged segments keep their identity.** `groupIntoSegments` and
+  `buildCitationSources` (`messages.tsx`) take a cache and return the same
+  segment objects / source arrays for turns a frame did not touch.
+  `AssistantTurnSegment` and `Markdown` are memoized on exactly those
+  identities — never build a fresh array or object per render for a prop of
+  either.
+- **Markdown renders block by block while it streams.** `useMarkdownBlocks`
+  splits a changing document into top-level blocks
+  (`lib/markdown-blocks.ts`, same remark config as the renderer via
+  `lib/markdown-plugins.ts`), each a memoized `MarkdownBlock`, so a frame
+  re-parses the last block or two instead of the whole answer. Text that never
+  changes (history) is rendered whole. A plugin added to the renderer must be
+  added to `markdown-plugins.ts`, not to `markdown.tsx`.
+- **Memoized leaves take only what they render.** The composer
+  (`multimodel-input.tsx`) and `ChatToc` are `memo`'d; don't pass them
+  `messages` or anything else that changes per frame unless they show it
+  (`ChatToc` compares user messages only).
+
 ### When Working with Frontend
 
 - Use Jotai atoms for global state (avoid prop drilling)
@@ -572,6 +605,12 @@ Vitest v4 with the following configuration (`vitest.config.ts`):
 ### Writing Tests
 
 - Tests live under `tests/unit/`, mirroring the source tree: `src/main/lib/paths.ts` → `tests/unit/main/lib/paths.test.ts`. Test files are never co-located with the module they test — this keeps `src/` free of test files. A dedicated `tsconfig.test.json` (referenced from the root `tsconfig.json`) covers `tests/unit/**/*` for editor support; it is intentionally not part of the `bun run typecheck` gate.
+- The default environment is `node`. A test that needs a DOM (rendering a
+  component or a hook) starts with `// @vitest-environment happy-dom` and drives
+  React with `createRoot` + `act` — still a `.test.ts` file, using
+  `createElement` rather than JSX (see
+  `tests/unit/renderer/hooks/use-chat.test.ts`). Use it for render-count and
+  identity guarantees; pure logic stays in `node`.
 - Import the module under test via the matching alias (`@main/...`, `@/...`, or `@exodus/shared/...`), not a relative path — relative paths would need to reach back out of `tests/unit/` into `src/`.
 - Tests for main-process code that transitively imports Electron/PGlite must mock those modules:
 

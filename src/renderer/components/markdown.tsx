@@ -7,7 +7,9 @@ import {
   memo,
   ReactNode,
   useContext,
-  useMemo
+  useMemo,
+  useRef,
+  useState
 } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -18,11 +20,17 @@ import {
   atomOneDark,
   atomOneLight
 } from 'react-syntax-highlighter/dist/esm/styles/hljs'
-import rehypeKatex from 'rehype-katex'
-import remarkGfm from 'remark-gfm'
-import remarkMath from 'remark-math'
 
 import { useClipboard } from '@/hooks/use-clipboard'
+import {
+  createMarkdownBlockCache,
+  type MarkdownBlockCache,
+  splitMarkdownBlocks
+} from '@/lib/markdown-blocks'
+import {
+  rehypePluginsStable,
+  remarkPluginsStable
+} from '@/lib/markdown-plugins'
 import { cn } from '@/lib/utils'
 
 import { LazyLoadImage } from './lazy-load-image'
@@ -203,26 +211,6 @@ function TextWithCitations({ children }: { children: ReactNode }) {
   }, [children, rankMap])
 }
 
-// Stable plugin arrays hoisted outside component to avoid re-creation on every render.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const remarkPluginsStable: any[] = [
-  remarkGfm,
-  [
-    remarkMath,
-    {
-      // KaTeX supports both single dollar ($) and double dollar ($$) delimiters for math expressions.
-      // However, ordinary text containing single dollar signs, such as: "The daily salary ranges from $200 - $300," can be incorrectly interpreted as KaTeX.
-      // Therefore, ensure that the `singleDollarTextMath` parameter is set to `false` to prevent this.
-      // **IMPORTANT:** Instruct your LLM model to always use the double dollar ($$) format when writing mathematical formulas using KaTeX:
-      // e.g. "When writing mathematical formulas using KaTeX format, enclose them within **$$** symbols."
-      singleDollarTextMath: false
-    }
-  ]
-]
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const rehypePluginsStable: any[] = [rehypeKatex]
-
 const codeBlockStyle = {
   padding: '0.75rem',
   fontSize: '0.8125rem',
@@ -232,6 +220,53 @@ const codeBlockStyle = {
   // element from establishing its own competing scroll or clipping.
   maxHeight: 'none',
   overflow: 'visible'
+}
+
+/**
+ * One top-level block of a document. Memoized on its text: while a reply
+ * streams, only the last block or two are different from the frame before, so
+ * everything above them — finished paragraphs, highlighted code, KaTeX — is
+ * left alone instead of being re-parsed and re-rendered each frame.
+ */
+const MarkdownBlock = memo(function MarkdownBlock({
+  src,
+  components
+}: {
+  src: string
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ReactMarkdown component overrides use broad prop types
+  components: Record<string, any>
+}) {
+  return (
+    <ReactMarkdown
+      remarkPlugins={remarkPluginsStable}
+      rehypePlugins={rehypePluginsStable}
+      components={components}
+    >
+      {src}
+    </ReactMarkdown>
+  )
+})
+
+/**
+ * The document as the blocks to render. Text that never changes — all of a
+ * chat's history — stays a single block: splitting costs a parse of its own and
+ * only pays for itself when there are frames to skip. The first time `src`
+ * differs from what this instance mounted with, it is a streaming reply, and
+ * from then on it is split (incrementally — see splitMarkdownBlocks).
+ */
+function useMarkdownBlocks(src: string): string[] {
+  const [mountedWith] = useState(src)
+  const [streams, setStreams] = useState(false)
+  if (!streams && src !== mountedWith) setStreams(true)
+
+  // A memo table for the splitter, nothing more: what it returns depends on
+  // `src` alone, the cache only lets it skip re-parsing the closed blocks.
+  const cacheRef = useRef<MarkdownBlockCache | null>(null)
+  return useMemo(() => {
+    if (!streams) return [src]
+    cacheRef.current ??= createMarkdownBlockCache()
+    return splitMarkdownBlocks(src, cacheRef.current)
+  }, [src, streams])
 }
 
 export function Markdown({
@@ -249,6 +284,8 @@ export function Markdown({
   // sensible instead of crashing.
   const themeKey: 'light' | 'dark' = resolvedTheme === 'dark' ? 'dark' : 'light'
   const { codeTheme } = useMemo(() => themes[themeKey], [themeKey])
+
+  const blocks = useMarkdownBlocks(src)
 
   const rankMap = useMemo(() => {
     if (!webSearchResults || webSearchResults.length === 0) return null
@@ -441,13 +478,13 @@ export function Markdown({
   return (
     <WebSearchRankMapContext.Provider value={rankMap}>
       <section className="markdown max-w-none">
-        <ReactMarkdown
-          remarkPlugins={remarkPluginsStable}
-          rehypePlugins={rehypePluginsStable}
-          components={components}
-        >
-          {src}
-        </ReactMarkdown>
+        {/* Blocks are only ever appended or grown in place — never reordered
+            — so the index is their identity. They render as fragments: the DOM
+            under .markdown is the same flat run of elements as before. */}
+        {blocks.map((block, i) => (
+          // eslint-disable-next-line react/no-array-index-key -- see above
+          <MarkdownBlock key={i} src={block} components={components} />
+        ))}
       </section>
     </WebSearchRankMapContext.Provider>
   )

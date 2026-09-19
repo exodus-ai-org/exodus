@@ -190,7 +190,8 @@ const AssistantTurnSegment = memo(
     if (
       prev.chatId !== next.chatId ||
       prev.isStreaming !== next.isStreaming ||
-      prev.regenerate !== next.regenerate
+      prev.regenerate !== next.regenerate ||
+      prev.citationSources !== next.citationSources
     ) {
       return false
     }
@@ -411,19 +412,48 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
 }
 
 /**
+ * Segments from the previous pass, keyed by their first message's id. While a
+ * reply streams, `messages` is a new array on every frame but only its last
+ * element is a new object; with a cache, every segment whose messages are the
+ * same objects as last time comes back as the *same* segment. That identity is
+ * what `AssistantTurnSegment`'s memo (and the citation arrays below) key on —
+ * without it each frame rebuilt, and re-rendered, the entire transcript.
+ */
+export type SegmentCache = Map<string, Segment>
+
+function sameMessages(a: ChatMessage[], b: ChatMessage[]): boolean {
+  if (a.length !== b.length) return false
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false
+  }
+  return true
+}
+
+/**
  * Group messages into segments: each segment is either a user message
  * or a contiguous run of assistant+toolResult messages (a "turn").
  */
 // eslint-disable-next-line react-refresh/only-export-components -- pure helper, exported for tests
-export function groupIntoSegments(messages: ChatMessage[]): Segment[] {
+export function groupIntoSegments(
+  messages: ChatMessage[],
+  cache?: SegmentCache
+): Segment[] {
   const segments: Segment[] = []
+  const seen: SegmentCache = new Map()
   let turnBuffer: ChatMessage[] = []
 
   const flushTurn = () => {
     if (turnBuffer.length > 0) {
-      const turn = buildAssistantTurn(turnBuffer)
-      if (turn.hasContent) {
-        segments.push({ type: 'assistantTurn', turn })
+      const key = `turn:${turnBuffer[0].id}`
+      const cached = cache?.get(key)
+      const segment: Segment =
+        cached?.type === 'assistantTurn' &&
+        sameMessages(cached.turn.messages, turnBuffer)
+          ? cached
+          : { type: 'assistantTurn', turn: buildAssistantTurn(turnBuffer) }
+      seen.set(key, segment)
+      if (segment.type === 'assistantTurn' && segment.turn.hasContent) {
+        segments.push(segment)
       }
       turnBuffer = []
     }
@@ -432,14 +462,72 @@ export function groupIntoSegments(messages: ChatMessage[]): Segment[] {
   for (const msg of messages) {
     if (msg.role === 'user') {
       flushTurn()
-      segments.push({ type: 'user', message: msg })
+      const key = `user:${msg.id}`
+      const cached = cache?.get(key)
+      const segment: Segment =
+        cached?.type === 'user' && cached.message === msg
+          ? cached
+          : { type: 'user', message: msg }
+      seen.set(key, segment)
+      segments.push(segment)
     } else {
       turnBuffer.push(msg)
     }
   }
   flushTurn()
 
+  // Keep only what this pass saw, so a long-lived cache can't outgrow the chat.
+  if (cache) {
+    cache.clear()
+    for (const [key, segment] of seen) cache.set(key, segment)
+  }
+
   return segments
+}
+
+/** What `buildCitationSources` returned last time, to reuse arrays from. */
+export interface CitationSourcesCache {
+  turns: Segment[]
+  sources: WebSearchResult[][]
+}
+
+/**
+ * Every web-search source seen through each assistant turn, in chat order — a
+ * turn can cite a source an earlier turn found, so badge resolution needs the
+ * cumulative set. A turn's array only changes if that turn or one before it
+ * did; otherwise the previous array is handed back, because `Markdown` is
+ * memoized on its identity: a fresh array per frame re-parsed every message in
+ * any chat that had run a web search.
+ */
+// eslint-disable-next-line react-refresh/only-export-components -- pure helper, exported for tests
+export function buildCitationSources(
+  segments: Segment[],
+  cache?: CitationSourcesCache
+): Map<Segment, WebSearchResult[]> {
+  const map = new Map<Segment, WebSearchResult[]>()
+  const turns: Segment[] = []
+  const sources: WebSearchResult[][] = []
+  const acc: WebSearchResult[] = []
+  let prefixUnchanged = cache !== undefined
+
+  for (const segment of segments) {
+    if (segment.type !== 'assistantTurn') continue
+    if (segment.turn.webSearchResults.length > 0) {
+      acc.push(...segment.turn.webSearchResults)
+    }
+    const i = turns.length
+    prefixUnchanged = prefixUnchanged && cache?.turns[i] === segment
+    const forTurn = prefixUnchanged && cache ? cache.sources[i] : acc.slice()
+    turns.push(segment)
+    sources.push(forTurn)
+    map.set(segment, forTurn)
+  }
+
+  if (cache) {
+    cache.turns = turns
+    cache.sources = sources
+  }
+  return map
 }
 
 function Messages({
@@ -469,24 +557,29 @@ function Messages({
   const discoverHasContent =
     discoverActive && (discoverFeed?.groups.length ?? 0) > 0
 
-  const segments = useMemo(() => groupIntoSegments(messages), [messages, t])
+  // Caches of the previous pass, so unchanged segments (and their citation
+  // arrays) keep their identity from frame to frame — see `SegmentCache`. Both
+  // are pure memo tables: same input, same output, whatever is in them. Turn
+  // labels are translated when a turn is built, hence a fresh pair per `t`.
+  const caches = useMemo(
+    () => ({
+      segments: new Map() as SegmentCache,
+      citations: { turns: [], sources: [] } as CitationSourcesCache
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `t` is the reset key
+    [t]
+  )
 
-  // Accumulate web-search sources across turns so a turn that cites a source
-  // found in an earlier turn can still resolve its 【N-source】 badges. Keyed by
-  // the segment object (same memoized refs used in render below); each value is
-  // a snapshot of every source seen through that turn, in chat order.
-  const citationSourcesByTurn = useMemo(() => {
-    const map = new Map<Segment, WebSearchResult[]>()
-    const acc: WebSearchResult[] = []
-    for (const segment of segments) {
-      if (segment.type !== 'assistantTurn') continue
-      if (segment.turn.webSearchResults.length > 0) {
-        acc.push(...segment.turn.webSearchResults)
-      }
-      map.set(segment, acc.slice())
-    }
-    return map
-  }, [segments])
+  const segments = useMemo(
+    () => groupIntoSegments(messages, caches.segments),
+    [messages, caches]
+  )
+
+  // Keyed by the segment object (same memoized refs used in render below).
+  const citationSourcesByTurn = useMemo(
+    () => buildCitationSources(segments, caches.citations),
+    [segments, caches]
+  )
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'instant') => {
     const $el = chatBoxRef.current

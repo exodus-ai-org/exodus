@@ -75,7 +75,9 @@ export function Chat({
     useCallback((get) => get(reasoningEffortAtom), [])
   )
   const projectIdRef = useRef(projectId)
-  projectIdRef.current = projectId
+  useEffect(() => {
+    projectIdRef.current = projectId
+  }, [projectId])
 
   const setChatInput = useSetAtom(chatInputAtom)
   const setChatStatus = useSetAtom(chatStatusAtom)
@@ -83,15 +85,7 @@ export function Chat({
 
   const [title, setTitle] = useState(chatTitle)
 
-  const {
-    messages,
-    setMessages,
-    sendMessage,
-    status,
-    stop,
-    regenerate,
-    lastUsage
-  } = useChat({
+  const { messages, sendMessage, status, stop, regenerate } = useChat({
     id,
     chatTitle: title,
     api: `${BASE_URL}/api/v1/chat`,
@@ -128,13 +122,10 @@ export function Chat({
     setChatStatus(status)
   }, [status, setChatStatus])
 
-  // Store stop in a ref to avoid re-renders from function identity changes
-  const stopRef = useRef(stop)
-  stopRef.current = stop
-  const stableStop = useCallback(() => stopRef.current(), [])
+  // `stop` is stable per chat id (see useChat), so it can go in the atom as is.
   useEffect(() => {
-    setChatStop(() => stableStop)
-  }, [stableStop, setChatStop])
+    setChatStop(() => stop)
+  }, [stop, setChatStop])
 
   // Quick-chat: if localStorage had a pending quick-chat message at mount, send it immediately
   useEffect(() => {
@@ -156,13 +147,7 @@ export function Chat({
   const composer = (
     <>
       <LcmStatusCard chatId={id} />
-      <MultimodalInput
-        chatId={id}
-        messages={messages}
-        setMessages={setMessages}
-        sendMessage={sendMessage}
-        lastUsage={lastUsage}
-      />
+      <MultimodalInput chatId={id} sendMessage={sendMessage} />
     </>
   )
 

@@ -1,6 +1,6 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { ChatMessage } from '@exodus/shared/types/chat'
-import { type RefObject, useEffect, useRef, useState } from 'react'
+import { memo, type RefObject, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { userMessageText } from '@/lib/user-message-text'
@@ -22,13 +22,37 @@ interface TocEntry {
  * when the rail is hovered. Clicking scrolls that message near the top; the
  * active entry tracks the scroll position.
  */
-export function ChatToc({
-  scrollContainerRef,
-  messages
-}: {
+interface ChatTocProps {
   scrollContainerRef: RefObject<HTMLDivElement | null>
   messages: ChatMessage[]
-}) {
+}
+
+/**
+ * The rail only lists user messages, and those never change while a reply
+ * streams — but `messages` is a new array on every frame. Compare what is
+ * actually rendered, so the rail sits out the stream.
+ */
+function sameUserMessages(a: ChatMessage[], b: ChatMessage[]): boolean {
+  let i = 0
+  let j = 0
+  for (;;) {
+    while (i < a.length && a[i].role !== 'user') i++
+    while (j < b.length && b[j].role !== 'user') j++
+    if (i >= a.length || j >= b.length) return i >= a.length && j >= b.length
+    if (a[i] !== b[j]) return false
+    i++
+    j++
+  }
+}
+
+export const ChatToc = memo(ChatTocImpl, (prev, next) => {
+  return (
+    prev.scrollContainerRef === next.scrollContainerRef &&
+    sameUserMessages(prev.messages, next.messages)
+  )
+})
+
+function ChatTocImpl({ scrollContainerRef, messages }: ChatTocProps) {
   const { t } = useTranslation('chat')
   const entries: TocEntry[] = messages
     .filter((m) => m.role === 'user')
