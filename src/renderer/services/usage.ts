@@ -24,4 +24,4 @@ export interface UsageSummary {
   models: ModelCost[]
 }
 
-export const getUsageSummary = () => fetcher<UsageSummary>('/api/usage')
+export const getUsageSummary = () => fetcher<UsageSummary>('/api/v1/usage')

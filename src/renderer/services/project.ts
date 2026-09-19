@@ -18,40 +18,40 @@ interface CreateProjectInput {
 }
 type UpdateProjectInput = Partial<CreateProjectInput>
 
-export const getProjects = () => fetcher<Project[]>('/api/project')
+export const getProjects = () => fetcher<Project[]>('/api/v1/project')
 
 export const getProject = (id: string) =>
-  fetcher<Project & { chatCount: number }>(`/api/project/${id}`)
+  fetcher<Project & { chatCount: number }>(`/api/v1/project/${id}`)
 
 export const createProject = async (data: CreateProjectInput) => {
-  const project = await fetcher<Project>('/api/project', {
+  const project = await fetcher<Project>('/api/v1/project', {
     method: 'POST',
     body: data as never
   })
 
-  mutate('/api/project')
+  mutate('/api/v1/project')
   sileo.success({ title: i18n.t('chat:projectDetail.toast.createdTitle') })
   return project
 }
 
 export const updateProject = async (id: string, data: UpdateProjectInput) => {
-  const project = await fetcher<Project>(`/api/project/${id}`, {
+  const project = await fetcher<Project>(`/api/v1/project/${id}`, {
     method: 'PUT',
     body: data as never
   })
 
-  mutate('/api/project')
-  mutate(`/api/project/${id}`)
+  mutate('/api/v1/project')
+  mutate(`/api/v1/project/${id}`)
   sileo.success({ title: i18n.t('chat:projectDetail.toast.updatedTitle') })
   return project
 }
 
 export const deleteProject = async (project: Project) => {
-  await fetcher<void>(`/api/project/${project.id}`, {
+  await fetcher<void>(`/api/v1/project/${project.id}`, {
     method: 'DELETE'
   })
 
-  mutate('/api/project')
+  mutate('/api/v1/project')
   sileo.success({
     title: i18n.t('chat:projectDetail.toast.deletedTitle'),
     description: project.name

@@ -72,11 +72,11 @@ export class ApiClient {
   // ── Settings ───────────────────────────────────────────────────────────
 
   async getSettings() {
-    return this.get<Record<string, unknown>>('/api/settings')
+    return this.get<Record<string, unknown>>('/api/v1/settings')
   }
 
   async updateSettings(payload: Record<string, unknown>) {
-    return this.post<Record<string, unknown>>('/api/settings', {
+    return this.post<Record<string, unknown>>('/api/v1/settings', {
       id: 'global',
       ...payload
     })
@@ -102,7 +102,7 @@ export class ApiClient {
       content: opts.text
     }
 
-    const res = await fetch(`${this.baseUrl}/api/chat`, {
+    const res = await fetch(`${this.baseUrl}/api/v1/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -128,7 +128,7 @@ export class ApiClient {
     advancedTools?: string[]
     projectId?: string
   }) {
-    const res = await fetch(`${this.baseUrl}/api/chat`, {
+    const res = await fetch(`${this.baseUrl}/api/v1/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -183,64 +183,66 @@ export class ApiClient {
 
   async getHistory(projectId?: string) {
     const qs = projectId ? `?projectId=${projectId}` : ''
-    return this.get<Array<Record<string, unknown>>>(`/api/history${qs}`)
+    return this.get<Array<Record<string, unknown>>>(`/api/v1/history${qs}`)
   }
 
   async getChatMessages(chatId: string) {
-    return this.get<Array<Record<string, unknown>>>(`/api/chat/${chatId}`)
+    return this.get<Array<Record<string, unknown>>>(`/api/v1/chat/${chatId}`)
   }
 
   async deleteChat(chatId: string) {
-    return this.delete(`/api/chat/${chatId}`)
+    return this.delete(`/api/v1/chat/${chatId}`)
   }
 
   // ── Memory ─────────────────────────────────────────────────────────────
 
   async getMemories(section?: string) {
     const qs = section ? `?section=${section}` : ''
-    return this.get<Array<Record<string, unknown>>>(`/api/memory${qs}`)
+    return this.get<Array<Record<string, unknown>>>(`/api/v1/memory${qs}`)
   }
 
   async createMemory(payload: Record<string, unknown>) {
-    return this.post<Record<string, unknown>>('/api/memory', payload)
+    return this.post<Record<string, unknown>>('/api/v1/memory', payload)
   }
 
   async deleteMemory(id: string, hard = true) {
-    return this.delete(`/api/memory/${id}?hard=${hard}`)
+    return this.delete(`/api/v1/memory/${id}?hard=${hard}`)
   }
 
   // ── Project ────────────────────────────────────────────────────────────
 
   async getProjects() {
-    return this.get<Array<Record<string, unknown>>>('/api/project')
+    return this.get<Array<Record<string, unknown>>>('/api/v1/project')
   }
 
   async createProject(payload: Record<string, unknown>) {
-    return this.post<Record<string, unknown>>('/api/project', payload)
+    return this.post<Record<string, unknown>>('/api/v1/project', payload)
   }
 
   async deleteProject(id: string) {
-    return this.delete(`/api/project/${id}`)
+    return this.delete(`/api/v1/project/${id}`)
   }
 
   // ── Deep Research ──────────────────────────────────────────────────────
 
   async startDeepResearch(deepResearchId: string, query: string) {
-    return this.post<Record<string, unknown>>('/api/deep-research', {
+    return this.post<Record<string, unknown>>('/api/v1/deep-research', {
       deepResearchId,
       query
     })
   }
 
   async getDeepResearchResult(id: string) {
-    return this.get<Record<string, unknown>>(`/api/deep-research/result/${id}`)
+    return this.get<Record<string, unknown>>(
+      `/api/v1/deep-research/result/${id}`
+    )
   }
 
   // ── Search ─────────────────────────────────────────────────────────────
 
   async searchMessages(query: string) {
     return this.get<Array<Record<string, unknown>>>(
-      `/api/chat/search?query=${encodeURIComponent(query)}`
+      `/api/v1/chat/search?query=${encodeURIComponent(query)}`
     )
   }
 }

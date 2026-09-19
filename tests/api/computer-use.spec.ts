@@ -8,32 +8,32 @@
 import { apiTest as test, expect } from '../fixtures/api-client'
 
 test.describe('Computer Use API', () => {
-  test('POST /api/computer-use/abort is a no-op { ok: true } when nothing is running', async ({
+  test('POST /api/v1/computer-use/abort is a no-op { ok: true } when nothing is running', async ({
     api
   }) => {
     const { status, data } = await api.post<{ ok: boolean }>(
-      '/api/computer-use/abort'
+      '/api/v1/computer-use/abort'
     )
     expect(status).toBe(200)
     expect(data.ok).toBe(true)
   })
 
-  test('POST /api/computer-use/answer no-ops for an unknown session id', async ({
+  test('POST /api/v1/computer-use/answer no-ops for an unknown session id', async ({
     api
   }) => {
     const { status, data } = await api.post<{ ok: boolean }>(
-      '/api/computer-use/answer',
+      '/api/v1/computer-use/answer',
       { sessionId: 'never-registered', answer: 'hello' }
     )
     expect(status).toBe(200)
     expect(data.ok).toBe(true)
   })
 
-  test('POST /api/computer-use/answer tolerates a missing body', async ({
+  test('POST /api/v1/computer-use/answer tolerates a missing body', async ({
     api
   }) => {
     const { status, data } = await api.post<{ ok: boolean }>(
-      '/api/computer-use/answer'
+      '/api/v1/computer-use/answer'
     )
     expect(status).toBe(200)
     expect(data.ok).toBe(true)

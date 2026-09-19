@@ -8,7 +8,8 @@ import { updateSettings as updateSettingsService } from '@/services/settings'
 
 export function useSettings() {
   const { t, i18n } = useTranslation(['errors', 'settings'])
-  const { data, error, isLoading, mutate } = useSWR<Settings>('/api/settings')
+  const { data, error, isLoading, mutate } =
+    useSWR<Settings>('/api/v1/settings')
 
   const updateSettings = async (payload: Settings) => {
     try {
@@ -22,7 +23,7 @@ export function useSettings() {
     }
     // Optimistically merge the just-saved payload into the local SWR cache
     // without revalidating. A revalidation (`mutate()` with no args) would
-    // re-GET /api/settings and bring back a freshly-bumped `updatedAt`,
+    // re-GET /api/v1/settings and bring back a freshly-bumped `updatedAt`,
     // which echoes through `useForm({ values: settings })` → RHF resets
     // form → watch fires for the timestamp field → autosave fires again
     // → infinite POST/GET loop.

@@ -31,7 +31,7 @@ function parseLogFile(filePath: string): LogRecord[] {
 
 const logsRouter = new Hono()
 
-// GET /api/logs — query log entries
+// GET /api/v1/logs — query log entries
 logsRouter.get('/', (c) => {
   const date = c.req.query('date') || localDateStr()
   const page = Math.max(1, Number(c.req.query('page')) || 1)
@@ -61,7 +61,7 @@ logsRouter.get('/', (c) => {
   return c.json({ entries: paged, total, page })
 })
 
-// GET /api/logs/scopes — distinct scope names present in a day's file
+// GET /api/v1/logs/scopes — distinct scope names present in a day's file
 logsRouter.get('/scopes', (c) => {
   const date = c.req.query('date') || localDateStr()
   const records = parseLogFile(join(getLogsDir(), `${date}.jsonl`))
@@ -69,7 +69,7 @@ logsRouter.get('/scopes', (c) => {
   return c.json({ scopes })
 })
 
-// GET /api/logs/dates — list available log dates
+// GET /api/v1/logs/dates — list available log dates
 logsRouter.get('/dates', (c) => {
   const dir = getLogsDir()
   if (!existsSync(dir)) return c.json({ dates: [] })
@@ -83,7 +83,7 @@ logsRouter.get('/dates', (c) => {
   return c.json({ dates })
 })
 
-// GET /api/logs/export — download a day's log file
+// GET /api/v1/logs/export — download a day's log file
 logsRouter.get('/export', (c) => {
   const date = c.req.query('date') || localDateStr()
   const filePath = join(getLogsDir(), `${date}.jsonl`)
@@ -101,7 +101,7 @@ logsRouter.get('/export', (c) => {
   })
 })
 
-// DELETE /api/logs — clear all logs
+// DELETE /api/v1/logs — clear all logs
 logsRouter.delete('/', (c) => {
   const dir = getLogsDir()
   if (existsSync(dir)) {

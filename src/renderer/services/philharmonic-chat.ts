@@ -7,7 +7,7 @@ import type {
   ConversationMessageData
 } from '@/stores/philharmonic'
 
-const BASE = '/api/philharmonic'
+const BASE = '/api/v1/philharmonic'
 
 export const getConversations = () =>
   fetcher<ConversationData[]>(`${BASE}/conversations`)

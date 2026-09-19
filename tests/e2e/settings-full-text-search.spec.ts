@@ -12,7 +12,7 @@ test.describe('Settings — Full Text Search', () => {
   }) => {
     await mainWindow.evaluate(
       async ({ url, username, password }) => {
-        await fetch('http://localhost:60223/api/settings', {
+        await fetch('http://localhost:60223/api/v1/settings', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -48,7 +48,7 @@ test.describe('Settings — Full Text Search', () => {
 
     // Restore — leave Elasticsearch unconfigured for other tests/dev use.
     await mainWindow.evaluate(async () => {
-      await fetch('http://localhost:60223/api/settings', {
+      await fetch('http://localhost:60223/api/v1/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -120,7 +120,7 @@ export function useConversationStream(
     setBusy(emptyBusyState())
 
     const source = new EventSource(
-      `${BASE_URL}/api/philharmonic/conversations/${conversationId}/sse`
+      `${BASE_URL}/api/v1/philharmonic/conversations/${conversationId}/sse`
     )
     source.onmessage = (e) => {
       let evt: PhilharmonicSseEvent

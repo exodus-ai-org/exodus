@@ -12,7 +12,7 @@
 //
 // Wiring: Task 9's `computer-use` tool creates a fresh `Guard` per run and
 // registers it with `liveness.start(sessionId, guard)` / `liveness.end(...)`
-// in a `finally`. `POST /api/computer-use/abort` calls `abortAll('user')`.
+// in a `finally`. `POST /api/v1/computer-use/abort` calls `abortAll('user')`.
 
 import { globalShortcut } from 'electron'
 

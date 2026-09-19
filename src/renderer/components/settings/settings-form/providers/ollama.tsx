@@ -15,7 +15,7 @@ export function Ollama({ form }: { form: UseFormReturnType }) {
   const { data: settings } = useSettings()
   const { error } = useSWR(
     settings?.providers?.ollamaBaseUrl
-      ? `/api/tools/ping-ollama?url=${settings?.providers?.ollamaBaseUrl}`
+      ? `/api/v1/tools/ping-ollama?url=${settings?.providers?.ollamaBaseUrl}`
       : null
   )
 

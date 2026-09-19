@@ -1,6 +1,6 @@
 import { fetcher } from '@exodus/shared/utils/http'
 
-const BASE = '/api/mcp'
+const BASE = '/api/v1/mcp'
 
 export type McpTransportType = 'stdio' | 'sse' | 'streamable-http'
 

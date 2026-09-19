@@ -45,10 +45,12 @@ function formatDate(iso: string): string {
 export function DataControls() {
   const { t } = useTranslation(['common', 'settings'])
   const { data: settings, updateSettings } = useSettings()
-  const { data: backupStatus, mutate: mutateStatus } =
-    useSWR<BackupStatus>('/api/backup/status')
-  const { data: backups, mutate: mutateBackups } =
-    useSWR<BackupInfo[]>('/api/backup/list')
+  const { data: backupStatus, mutate: mutateStatus } = useSWR<BackupStatus>(
+    '/api/v1/backup/status'
+  )
+  const { data: backups, mutate: mutateBackups } = useSWR<BackupInfo[]>(
+    '/api/v1/backup/list'
+  )
 
   const {
     exportData,

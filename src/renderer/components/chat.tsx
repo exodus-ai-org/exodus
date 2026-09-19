@@ -21,7 +21,7 @@ import MultimodalInput from './multimodel-input'
 
 function ProjectBreadcrumb({ projectId }: { projectId: string }) {
   const { data: project } = useSWR<Project & { chatCount: number }>(
-    `/api/project/${projectId}`
+    `/api/v1/project/${projectId}`
   )
 
   if (!project) return null
@@ -91,7 +91,7 @@ export function Chat({
   } = useChat({
     id,
     chatTitle: title,
-    api: `${BASE_URL}/api/chat`,
+    api: `${BASE_URL}/api/v1/chat`,
     messages: initialMessages,
     generateId: uuidV4,
     prepareBody: ({ id, messages, body }) => ({
@@ -103,7 +103,7 @@ export function Chat({
       projectId: projectIdRef.current
     }),
     onFinish: () => {
-      mutate('/api/history')
+      mutate('/api/v1/history')
       if (!routeId) {
         navigate(`/chat/${id}`, { replace: true })
       }
@@ -117,7 +117,7 @@ export function Chat({
     },
     onTitle: (newTitle) => {
       setTitle(newTitle)
-      mutate('/api/history')
+      mutate('/api/v1/history')
     }
   })
 

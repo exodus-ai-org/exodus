@@ -56,7 +56,7 @@ function s3PublicUrl(bucket: string, region: string, key: string): string {
 async function uploadViaS3(file: File): Promise<Attachment> {
   const formData = new FormData()
   formData.append('file', file)
-  const res = await fetch(`${BASE_URL}/api/s3-uploader/direct-upload`, {
+  const res = await fetch(`${BASE_URL}/api/v1/s3-uploader/direct-upload`, {
     method: 'POST',
     body: formData
   })

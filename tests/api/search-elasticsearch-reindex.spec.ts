@@ -54,7 +54,7 @@ test.describe('Elasticsearch reindex', () => {
       }
     })
     const { status, data } = await api.post<{ count: number }>(
-      '/api/settings/full-text-search/reindex'
+      '/api/v1/settings/full-text-search/reindex'
     )
     expect(status).toBe(200)
     expect(data.count).toBeGreaterThanOrEqual(1)

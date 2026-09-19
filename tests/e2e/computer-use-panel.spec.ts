@@ -16,10 +16,10 @@ import { TEST_IDS } from '../../packages/shared/src/constants/test-ids'
  *     step: header shows "step N", a thumbnail of the window, the last action.
  *  4. While it runs, the card shows a Stop button
  *     (`TEST_IDS.computerUse.stopButton`) — clicking it POSTs
- *     /api/computer-use/abort and the session ends with outcome "aborted".
+ *     /api/v1/computer-use/abort and the session ends with outcome "aborted".
  *  5. If the agent calls askHuman, the card shows the question, a text input,
  *     and a "Done — continue" button (`TEST_IDS.computerUse.continueButton`)
- *     that POSTs /api/computer-use/answer with the session id carried on the
+ *     that POSTs /api/v1/computer-use/answer with the session id carried on the
  *     streamed frame.
  *  6. On completion the card shows the one-line summary, the outcome, and a
  *     "session: <sessionId>" line.

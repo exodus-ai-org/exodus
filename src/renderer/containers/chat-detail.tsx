@@ -11,9 +11,9 @@ import type { Chat as ChatRecord, Message as DBMessage } from '@/types/db'
 export function ChatDetail() {
   const { id } = useParams()
   const { data: messagesFromDb, isLoading } = useSWR<DBMessage[]>(
-    id ? `/api/chat/${id}` : null
+    id ? `/api/v1/chat/${id}` : null
   )
-  const { data: history } = useSWR<ChatRecord[]>('/api/history', {
+  const { data: history } = useSWR<ChatRecord[]>('/api/v1/history', {
     fallbackData: []
   })
   const setOpenTabs = useSetAtom(openTabsAtom)

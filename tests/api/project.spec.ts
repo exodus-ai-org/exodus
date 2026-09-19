@@ -40,7 +40,7 @@ test.describe('Project API', () => {
     expect(found).toBeTruthy()
     expect(found!.name).toBe('E2E Test Project')
 
-    await api.put(`/api/project/${projectId}`, {
+    await api.put(`/api/v1/project/${projectId}`, {
       name: 'Updated Project',
       description: 'Updated by tests'
     })

@@ -46,7 +46,7 @@ test.describe('App Launch', () => {
   test('HTTP server is running', async ({ mainWindow }) => {
     // The main process Hono server should be reachable
     const response = await mainWindow.evaluate(async () => {
-      const res = await fetch('http://localhost:60223/api/settings')
+      const res = await fetch('http://localhost:60223/api/v1/settings')
       return { status: res.status, ok: res.ok }
     })
 

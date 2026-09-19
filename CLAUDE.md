@@ -112,7 +112,7 @@ Exodus uses a three-process architecture:
    - Manages Electron app lifecycle, window creation, and IPC
    - Runs Hono HTTP server on `localhost:60223` (constant `SERVER_PORT` in `packages/shared/src/constants/systems.ts`)
    - Initializes PGlite database with pgvector extension
-   - MCP server connection is archived (commented out in `app.ts`); an `/api/mcp` route + settings remain
+   - MCP server connection is archived (commented out in `app.ts`); an `/api/v1/mcp` route + settings remain
    - Handles auto-updates via `update-electron-app` (`src/main/lib/auto-updater.ts`, which keeps the state machine the renderer's update panel speaks)
 
 2. **Renderer Process** (`src/renderer/`):
@@ -152,7 +152,7 @@ Exodus is the successor of the older `universal-client` app and shares its
 
 ### Skills (deprecated)
 
-The skills marketplace (backend `/api/skills`, install/search flows, and the
+The skills marketplace (backend `/api/v1/skills`, install/search flows, and the
 Settings → Skills Market UI) is deprecated and was not migrated. Only a seam
 remains: `src/main/lib/ai/skills/skills-manager.ts` exports the three functions
 live code still calls (`listInstalledSkills`, `getSkillsContentBySlugs`,
@@ -172,9 +172,11 @@ The main process runs a **Hono HTTP server** that handles all business logic:
 
 **Server Routes** (`src/main/lib/server/routes/`, registered in `src/main/lib/server/app.ts`):
 
-`/api/chat`, `/api/lcm`, `/api/history`, `/api/knowledge-base`, `/api/project`, `/api/settings`, `/api/audio`, `/api/db-io`, `/api/deep-research`, `/api/discover`, `/api/tools`, `/api/philharmonic`, `/api/s3`, `/api/mcp`, `/api/memory`, `/api/usage`, `/api/logs`, `/api/backup`, `/api/artifacts`, `/api/computer-use`.
+Every business endpoint is mounted on one versioned sub-app (`app.route('/api/v1', v1)`), so the public paths are `/api/v1/<route>`; the lock/trace/settings middlewares still match `/api/*`. A breaking API change ships as a new `/api/v2` sub-app beside v1 rather than mutating v1 in place. Any client of this backend (the renderer, `tests/api`, `exodus-ios`) must address `/api/v1/...`.
 
-The `/api/settings` route includes `POST /api/settings/models` — dispatches to the appropriate list-models handler based on the provider in the request body, reading the API key from the request (not from saved settings) to fetch live model catalogs.
+`/api/v1/chat`, `/api/v1/lcm`, `/api/v1/history`, `/api/v1/knowledge-base`, `/api/v1/project`, `/api/v1/settings`, `/api/v1/audio`, `/api/v1/db-io`, `/api/v1/deep-research`, `/api/v1/discover`, `/api/v1/tools`, `/api/v1/philharmonic`, `/api/v1/s3`, `/api/v1/mcp`, `/api/v1/memory`, `/api/v1/usage`, `/api/v1/logs`, `/api/v1/backup`, `/api/v1/artifacts`, `/api/v1/computer-use`.
+
+The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatches to the appropriate list-models handler based on the provider in the request body, reading the API key from the request (not from saved settings) to fetch live model catalogs.
 
 **Middleware Pipeline** (order in `app.ts`):
 
@@ -220,7 +222,7 @@ the base-URL setting, its fallback, the default model ids, and the pi-ai
 `Model` with nothing in the registry. Every path resolves through the shared
 `resolveModel()` in `resolve-model.ts` (do not duplicate model-resolution
 logic); it accepts an optional live-fetched `snapshot` parameter (from
-`POST /api/settings/models`) to override the pi-ai registry. Per-provider
+`POST /api/v1/settings/models`) to override the pi-ai registry. Per-provider
 fallback defaults (contextWindow, cost) and `MODEL_METADATA_FALLBACK` (narrower
 scope: only what a provider's own list API omits) live there. Live model lists
 are fetched per-provider from `src/main/lib/ai/providers/list-models/`.
@@ -281,7 +283,7 @@ Multi-level recursive research with real-time progress streaming:
 
 **Integration** (`src/main/lib/ai/mcp.ts`):
 
-> Note: automatic MCP server connection at startup is **archived** (`connectMcpServers()` is commented out in `app.ts`). The `/api/mcp` route and MCP settings remain. The flow below describes the intended/legacy behavior.
+> Note: automatic MCP server connection at startup is **archived** (`connectMcpServers()` is commented out in `app.ts`). The `/api/v1/mcp` route and MCP settings remain. The flow below describes the intended/legacy behavior.
 
 Allows external tools/servers to be integrated via MCP protocol:
 
@@ -344,7 +346,7 @@ Philharmonic runs multi-agent "Groups" (teams of agents collaborating on tasks).
 
 - Main process: `src/main/lib/ai/philharmonic/` (employee loop, execution engine, agent memory/tools, knowledge-base tools)
 - Renderer: `src/renderer/components/philharmonic/`
-- Route: `/api/philharmonic`
+- Route: `/api/v1/philharmonic`
 - Each Group gets an isolated workspace under `~/.exodus/groups`
 - Scheduled tasks (`task.cronExpression` for recurring, `task.runAt` for
   one-off) run via `src/main/lib/ai/philharmonic/scheduler.ts`
@@ -367,7 +369,7 @@ A local PIN lock protects the app and gates all API access.
 Compacts long conversations without losing information, surfacing summaries the agent can expand or grep.
 
 - Main process: `src/main/lib/ai/context-management/` (compaction, context assembler, token counter, status bus)
-- Route: `/api/lcm`
+- Route: `/api/v1/lcm`
 - Related built-in tools: `lcm-describe`, `lcm-expand`, `lcm-grep`
 
 ### Sub-apps
@@ -429,7 +431,7 @@ straight from `src/main/lib/db/schema.ts` (the shared package must not import th
 ### When Working with AI Providers
 
 - Providers resolve a `Model` (from `@mariozechner/pi-ai`) via the shared `resolveModel()` in `src/main/lib/ai/providers/resolve-model.ts` — do NOT duplicate model resolution logic
-- `resolveModel()` accepts an optional `snapshot` parameter (live-fetched from `POST /api/settings/models`) to override the pi-ai registry
+- `resolveModel()` accepts an optional `snapshot` parameter (live-fetched from `POST /api/v1/settings/models`) to override the pi-ai registry
 - Per-provider fallback defaults (contextWindow, cost) and `MODEL_METADATA_FALLBACK` are centralized in `resolve-model.ts`
 - Model lists are now live-fetched per provider from Settings via `src/main/lib/ai/providers/list-models/`
 - Model names/API keys are retrieved from settings (never hardcode)
@@ -672,7 +674,7 @@ Main process:
 - `src/main/lib/server/routes/` — API route handlers
 - `src/main/lib/server/middlewares/` — CORS, lock gate, error handler
 - `src/main/lib/ai/providers/` — LLM provider resolution (`resolve-model.ts`)
-- `src/main/lib/ai/providers/list-models/` — Live model catalog handlers per provider (`anthropic.ts`, `openai.ts`, `google.ts`, `xai.ts`, `ollama.ts`); each normalizes that provider's list-models API response into `{ id, displayName, snapshot: ModelSnapshot }`, dispatched by `index.ts` and called from `POST /api/settings/models`
+- `src/main/lib/ai/providers/list-models/` — Live model catalog handlers per provider (`anthropic.ts`, `openai.ts`, `google.ts`, `xai.ts`, `ollama.ts`); each normalizes that provider's list-models API response into `{ id, displayName, snapshot: ModelSnapshot }`, dispatched by `index.ts` and called from `POST /api/v1/settings/models`
 - `src/main/lib/ai/calling-tools/` — built-in agent tools
 - `src/main/lib/ai/philharmonic/` — multi-agent Groups
 - `src/main/lib/ai/context-management/` — LCM
@@ -701,7 +703,7 @@ Main process:
   `currentTrace` / `bindTraceAttributes`), `index.ts` (the `logger` API,
   call signature unchanged). `withTrace` wraps the `/api/*` middleware, the
   job worker, and the scheduler. JSONL at `~/.exodus/logs/`; read via
-  `/api/logs` (filters incl. `traceId`) + `/api/logs/scopes` and the
+  `/api/v1/logs` (filters incl. `traceId`) + `/api/v1/logs/scopes` and the
   Settings → Logger tab. See
   `docs/superpowers/specs/2026-09-06-standardized-logging-design.md`
 - `src/main/lib/computer/` — window-scoped screenshot-loop Computer Use V0: the
@@ -710,7 +712,7 @@ Main process:
   perceive→act loop), `liveness` (the ⌥⇧⎋ kill switch); `target.resolveOrLaunch`
   opens an allowlisted app that isn't running. The inner-loop agent is
   `src/main/lib/ai/computer-use/`. Bound as the `computerUse` calling-tool,
-  gated on `settings.computerUse.enabled`. `GET /api/computer-use/apps` feeds the
+  gated on `settings.computerUse.enabled`. `GET /api/v1/computer-use/apps` feeds the
   Settings allowlist picker. See
   `docs/superpowers/specs/2026-09-06-computer-use-v0-design.md`
 - `src/main/lib/i18n.ts` — the main-process i18next instance (`mainI18n`),

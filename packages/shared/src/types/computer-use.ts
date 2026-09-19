@@ -1,4 +1,4 @@
-/** One installed application, as `GET /api/computer-use/apps` returns it. */
+/** One installed application, as `GET /api/v1/computer-use/apps` returns it. */
 export interface InstalledApp {
   name: string
   bundleId: string

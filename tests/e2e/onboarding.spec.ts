@@ -30,7 +30,7 @@ test.describe('Onboarding — Settings Configuration', () => {
 
     // Verify settings were saved via API
     const settingsOk = await mainWindow.evaluate(async () => {
-      const res = await fetch('http://localhost:60223/api/settings')
+      const res = await fetch('http://localhost:60223/api/v1/settings')
       const json = await res.json()
       return json.data?.providers?.openaiApiKey != null
     })

@@ -25,7 +25,7 @@ import {
 
 const memoryRouter = new Hono<{ Variables: Variables }>()
 
-// GET /api/memory — list all memories (active + inactive)
+// GET /api/v1/memory — list all memories (active + inactive)
 memoryRouter.get('/', async (c) => {
   const section = c.req.query('section') as MemorySection | undefined
   const rows = await handleDatabaseOperation(
@@ -36,7 +36,7 @@ memoryRouter.get('/', async (c) => {
   return successResponse(c, filtered)
 })
 
-// GET /api/memory/:id
+// GET /api/v1/memory/:id
 memoryRouter.get('/:id', async (c) => {
   const id = getRequiredParam(c, 'id')
   const row = await handleDatabaseOperation(
@@ -49,7 +49,7 @@ memoryRouter.get('/:id', async (c) => {
   return successResponse(c, row)
 })
 
-// POST /api/memory/instruct — apply a free-text instruction via the LLM
+// POST /api/v1/memory/instruct — apply a free-text instruction via the LLM
 memoryRouter.post('/instruct', async (c) => {
   const body = await c.req.json<{
     instruction?: string
@@ -76,7 +76,7 @@ memoryRouter.post('/instruct', async (c) => {
   return successResponse(c, result)
 })
 
-// POST /api/memory — create
+// POST /api/v1/memory — create
 memoryRouter.post('/', async (c) => {
   const body = await c.req.json<{
     section: MemorySection
@@ -110,7 +110,7 @@ memoryRouter.post('/', async (c) => {
   return successResponse(c, row, 201)
 })
 
-// PATCH /api/memory/:id — update
+// PATCH /api/v1/memory/:id — update
 memoryRouter.patch('/:id', async (c) => {
   const id = getRequiredParam(c, 'id')
   const body = await c.req.json<{
@@ -133,7 +133,7 @@ memoryRouter.patch('/:id', async (c) => {
   return updateSuccessResponse(c, 'memory', id)
 })
 
-// DELETE /api/memory/:id — soft delete (sets isActive=false)
+// DELETE /api/v1/memory/:id — soft delete (sets isActive=false)
 memoryRouter.delete('/:id', async (c) => {
   const id = getRequiredParam(c, 'id')
   const hard = c.req.query('hard') === 'true'

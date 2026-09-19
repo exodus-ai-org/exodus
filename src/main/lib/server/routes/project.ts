@@ -73,7 +73,7 @@ projectRouter.delete('/:id', async (c) => {
   const id = getRequiredParam(c, 'id')
 
   // `deleteProject()` also deletes every child chat's messages, so the
-  // Elasticsearch index has to be cascaded the same way `DELETE /api/chat/:id`
+  // Elasticsearch index has to be cascaded the same way `DELETE /api/v1/chat/:id`
   // does. Collect the chat ids first — after the delete they're gone.
   const { elasticsearch } = resolveSearchProvider(c.get('settings'))
   const projectChatIds = elasticsearch

@@ -106,7 +106,7 @@ export function ModelPicker({
     setLoading(true)
     try {
       const result = await fetcher<{ models: CachedModelEntry[] }>(
-        '/api/settings/models',
+        '/api/v1/settings/models',
         {
           method: 'POST',
           body: { provider, apiKey, baseUrl, apiVersion }

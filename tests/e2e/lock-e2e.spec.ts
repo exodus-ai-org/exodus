@@ -20,7 +20,7 @@ test.afterAll(cleanLockFiles)
 test('set PIN → lock blocks API (423) → unlock restores (200)', async ({
   mainWindow
 }) => {
-  const before = await fetch(`${API}/api/settings`)
+  const before = await fetch(`${API}/api/v1/settings`)
   expect(before.status).toBe(200)
 
   const setOk = await mainWindow.evaluate(
@@ -44,13 +44,13 @@ test('set PIN → lock blocks API (423) → unlock restores (200)', async ({
     await mainWindow.getByTestId(TEST_IDS.lock.touchIdButton).count()
   ).toBeGreaterThanOrEqual(0)
 
-  const locked = await fetch(`${API}/api/settings`)
+  const locked = await fetch(`${API}/api/v1/settings`)
   expect(locked.status).toBe(423)
 
   await mainWindow.getByTestId(TEST_IDS.lock.pinInput).fill('135790')
 
   await expect(mainWindow.getByTestId(TEST_IDS.lock.pinInput)).toBeHidden()
   await expect
-    .poll(async () => (await fetch(`${API}/api/settings`)).status)
+    .poll(async () => (await fetch(`${API}/api/v1/settings`)).status)
     .toBe(200)
 })

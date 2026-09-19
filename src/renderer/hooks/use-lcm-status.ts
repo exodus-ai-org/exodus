@@ -28,7 +28,7 @@ export function useLcmStatus(chatId: string): LcmStatusState {
   useEffect(() => {
     if (!chatId) return
 
-    const source = new EventSource(`${BASE_URL}/api/lcm/${chatId}/status`)
+    const source = new EventSource(`${BASE_URL}/api/v1/lcm/${chatId}/status`)
     let dismissTimer: ReturnType<typeof setTimeout> | null = null
 
     const scheduleDismiss = () => {

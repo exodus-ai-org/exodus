@@ -3,7 +3,7 @@ import { fetcher } from '@exodus/shared/utils/http'
 
 import type { TaskData } from '@/stores/philharmonic'
 
-const BASE = '/api/philharmonic'
+const BASE = '/api/v1/philharmonic'
 
 export const getUpcomingTasks = () =>
   fetcher<TaskData[]>(`${BASE}/tasks/upcoming`)

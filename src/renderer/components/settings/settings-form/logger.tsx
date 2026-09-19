@@ -150,12 +150,12 @@ export function Logger() {
   if (debouncedKeyword) params.set('keyword', debouncedKeyword)
   if (traceId) params.set('traceId', traceId)
 
-  const logsKey = `/api/logs?${params.toString()}`
+  const logsKey = `/api/v1/logs?${params.toString()}`
 
   const { data: logsData, mutate } = useSWR<LogsResponse>(logsKey)
-  const { data: datesData } = useSWR<DatesResponse>('/api/logs/dates')
+  const { data: datesData } = useSWR<DatesResponse>('/api/v1/logs/dates')
   const { data: scopesData } = useSWR<ScopesResponse>(
-    `/api/logs/scopes?date=${date}`
+    `/api/v1/logs/scopes?date=${date}`
   )
 
   const scopeOptions = ['All', ...(scopesData?.scopes ?? [])]
@@ -177,7 +177,7 @@ export function Logger() {
 
   const handleExport = useCallback(async () => {
     try {
-      const res = await fetch(`${BASE_URL}/api/logs/export?date=${date}`)
+      const res = await fetch(`${BASE_URL}/api/v1/logs/export?date=${date}`)
       if (!res.ok) throw new Error(t('logger.toast.exportFailed'))
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
@@ -200,7 +200,7 @@ export function Logger() {
   const handleClearAll = useCallback(async () => {
     if (!window.confirm(t('logger.actions.clearAllConfirm'))) return
     try {
-      await fetcher('/api/logs', { method: 'DELETE' })
+      await fetcher('/api/v1/logs', { method: 'DELETE' })
       sileo.success({ title: t('logger.toast.cleared') })
       mutate()
     } catch (err) {

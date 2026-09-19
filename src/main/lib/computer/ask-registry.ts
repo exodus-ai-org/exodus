@@ -3,7 +3,7 @@
 // Identical shape to `src/main/lib/ai/philharmonic/ask-user-registry.ts`
 // (`wait` / `has` / `resolve`), keyed by the computer-use session id instead
 // of a conversation id. The session loop awaits `wait(sessionId)` when the
-// inner agent emits an `askHuman` action; `POST /api/computer-use/answer`
+// inner agent emits an `askHuman` action; `POST /api/v1/computer-use/answer`
 // calls `resolve(sessionId, answer)` to unblock it. Spec §3.5 / §4.1.
 
 type Resolver = (answer: string) => void
