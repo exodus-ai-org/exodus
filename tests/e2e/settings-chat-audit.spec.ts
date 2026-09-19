@@ -30,9 +30,10 @@ test.describe('Settings — Chat Audit', () => {
       .getByTestId(TEST_IDS.chatAudit.presetButton)
       .first()
       .click()
-    await expect(
-      mainWindow.getByTestId(TEST_IDS.chatAudit.sqlInput)
-    ).toHaveValue(/FROM messages/)
+    // The editor is Monaco, not an <input>: there is no value to read, the SQL
+    // is in its rendered lines (where spaces are drawn as NBSP — hence \s).
+    const editor = mainWindow.getByTestId(TEST_IDS.chatAudit.sqlInput)
+    await expect(editor.locator('.view-lines')).toContainText(/FROM\s+messages/)
     await expect(
       mainWindow.getByText('The query returned no rows')
     ).toBeVisible({
@@ -41,7 +42,7 @@ test.describe('Settings — Chat Audit', () => {
 
     // A hand-written query (typed into the Monaco editor) renders a results
     // table and enables CSV export.
-    await editor.locator('.monaco-editor').click()
+    await editor.locator('.view-lines').click()
     await mainWindow.keyboard.press(`${modKey}+a`)
     await mainWindow.keyboard.type("SELECT 42 AS answer, 'ok' AS status")
     await mainWindow.getByTestId(TEST_IDS.chatAudit.runButton).click()
