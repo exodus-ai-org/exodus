@@ -1,8 +1,14 @@
+import { join } from 'path'
+
 import { app, BrowserWindow, globalShortcut, powerMonitor } from 'electron'
 import started from 'electron-squirrel-startup'
 
 import { migrateSharedArtifacts } from './lib/ai/artifacts-migration'
 import { closeDuckDB } from './lib/analytics/duckdb'
+import {
+  registerArtifactScheme,
+  serveArtifactProtocol
+} from './lib/artifact-protocol'
 import { setupAutoUpdater } from './lib/auto-updater'
 import { startBackupScheduler } from './lib/backup'
 import { pglite } from './lib/db/db'
@@ -30,6 +36,10 @@ import { destroyTray, setTray } from './lib/tray'
 import { createWindow, raiseMainWindow } from './lib/window'
 
 declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined
+declare const MAIN_WINDOW_VITE_NAME: string
+
+// Before `ready`: a scheme can only be made privileged up front.
+registerArtifactScheme()
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -142,6 +152,13 @@ app.on('ready', async () => {
         event.preventDefault()
       }
     })
+  })
+
+  // The artifact sandbox's own origin (see artifact-protocol.ts): the built
+  // renderer when packaged, the Vite dev server behind the same scheme in dev.
+  serveArtifactProtocol({
+    rendererDir: join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}`),
+    devServerUrl: MAIN_WINDOW_VITE_DEV_SERVER_URL
   })
 
   // Before the first window exists, so no webContents is ever unguarded.
