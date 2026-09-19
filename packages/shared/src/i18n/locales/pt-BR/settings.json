@@ -907,5 +907,84 @@
       "snapshotBuilt": "Snapshot criado",
       "snapshotFailed": "Não foi possível criar o snapshot"
     }
+  },
+  "appearance": {
+    "scheme": {
+      "light": "Tema claro",
+      "dark": "Tema escuro",
+      "import": "Importar",
+      "copy": "Copiar tema",
+      "custom": "Personalizado",
+      "presetDefault": "Padrão da predefinição",
+      "presetLabel": "Predefinição de tema",
+      "accent": "Destaque",
+      "background": "Fundo",
+      "foreground": "Primeiro plano",
+      "pickColor": "Escolher uma cor",
+      "lowContrast": "Contraste baixo ({{ratio}}:1) — o texto pode ficar difícil de ler",
+      "accents": {
+        "blue": "Azul",
+        "purple": "Roxo",
+        "pink": "Rosa",
+        "red": "Vermelho",
+        "orange": "Laranja",
+        "yellow": "Amarelo",
+        "green": "Verde",
+        "graphite": "Grafite"
+      }
+    },
+    "importDialog": {
+      "title": "Importar tema",
+      "description": "Cole um tema copiado do Exodus: um objeto JSON com as cores de destaque, fundo e primeiro plano.",
+      "placeholder": "{ \"accent\": \"#1f6feb\", \"background\": \"#0d1117\", \"foreground\": \"#e6edf3\" }",
+      "invalid": "Isso não parece um tema do Exodus.",
+      "confirm": "Importar",
+      "cancel": "Cancelar"
+    },
+    "fonts": {
+      "title": "Fontes",
+      "ui": {
+        "label": "Fonte da interface",
+        "description": "A tipografia usada em toda a interface."
+      },
+      "content": {
+        "label": "Fonte do conteúdo",
+        "description": "A tipografia usada nas mensagens de chat."
+      },
+      "customFamily": {
+        "label": "Família da fonte",
+        "description": "O nome de uma fonte instalada neste computador.",
+        "placeholder": "ex.: Inter"
+      },
+      "families": {
+        "ui": "Igual à fonte da interface",
+        "system": "Padrão do sistema",
+        "serif": "Serifada",
+        "mono": "Monoespaçada",
+        "rounded": "Arredondada",
+        "custom": "Personalizada…"
+      },
+      "weights": {
+        "light": "Fina",
+        "regular": "Normal",
+        "medium": "Média"
+      }
+    },
+    "window": {
+      "title": "Janela",
+      "translucentSidebar": {
+        "label": "Barra lateral translúcida",
+        "description": "Deixa a área de trabalho aparecer através da barra lateral."
+      },
+      "contrast": {
+        "label": "Contraste",
+        "description": "O quanto superfícies, bordas e texto secundário se destacam do fundo."
+      }
+    },
+    "toast": {
+      "copied": "Tema copiado para a área de transferência",
+      "copyFailed": "Não foi possível copiar o tema",
+      "imported": "Tema importado"
+    }
   }
 }

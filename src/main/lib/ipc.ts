@@ -161,7 +161,7 @@ export function setupIPC() {
     }
     const win = getMainWindow()
     if (!win) return
-    const color = /^#[0-9a-f]{6}$/i.test(backgroundColor)
+    const color = /^#[0-9a-f]{6}$/iu.test(backgroundColor)
       ? backgroundColor
       : '#ffffff'
     if (process.platform === 'darwin') {

@@ -907,5 +907,84 @@
       "snapshotBuilt": "Instantánea creada",
       "snapshotFailed": "No se pudo crear la instantánea"
     }
+  },
+  "appearance": {
+    "scheme": {
+      "light": "Tema claro",
+      "dark": "Tema oscuro",
+      "import": "Importar",
+      "copy": "Copiar tema",
+      "custom": "Personalizado",
+      "presetDefault": "Valor del preajuste",
+      "presetLabel": "Preajuste de tema",
+      "accent": "Acento",
+      "background": "Fondo",
+      "foreground": "Primer plano",
+      "pickColor": "Elegir un color",
+      "lowContrast": "Contraste bajo ({{ratio}}:1): el texto puede ser difícil de leer",
+      "accents": {
+        "blue": "Azul",
+        "purple": "Morado",
+        "pink": "Rosa",
+        "red": "Rojo",
+        "orange": "Naranja",
+        "yellow": "Amarillo",
+        "green": "Verde",
+        "graphite": "Grafito"
+      }
+    },
+    "importDialog": {
+      "title": "Importar tema",
+      "description": "Pega un tema copiado de Exodus: un objeto JSON con los colores de acento, fondo y primer plano.",
+      "placeholder": "{ \"accent\": \"#1f6feb\", \"background\": \"#0d1117\", \"foreground\": \"#e6edf3\" }",
+      "invalid": "Esto no parece un tema de Exodus.",
+      "confirm": "Importar",
+      "cancel": "Cancelar"
+    },
+    "fonts": {
+      "title": "Fuentes",
+      "ui": {
+        "label": "Fuente de la interfaz",
+        "description": "La tipografía usada en toda la interfaz."
+      },
+      "content": {
+        "label": "Fuente del contenido",
+        "description": "La tipografía usada en los mensajes de chat."
+      },
+      "customFamily": {
+        "label": "Familia tipográfica",
+        "description": "El nombre de una fuente instalada en este equipo.",
+        "placeholder": "p. ej. Inter"
+      },
+      "families": {
+        "ui": "Igual que la fuente de la interfaz",
+        "system": "Predeterminada del sistema",
+        "serif": "Serif",
+        "mono": "Monoespaciada",
+        "rounded": "Redondeada",
+        "custom": "Personalizada…"
+      },
+      "weights": {
+        "light": "Fina",
+        "regular": "Normal",
+        "medium": "Media"
+      }
+    },
+    "window": {
+      "title": "Ventana",
+      "translucentSidebar": {
+        "label": "Barra lateral translúcida",
+        "description": "Deja que el escritorio se vea a través de la barra lateral."
+      },
+      "contrast": {
+        "label": "Contraste",
+        "description": "Cuánto destacan las superficies, los bordes y el texto secundario sobre el fondo."
+      }
+    },
+    "toast": {
+      "copied": "Tema copiado al portapapeles",
+      "copyFailed": "No se pudo copiar el tema",
+      "imported": "Tema importado"
+    }
   }
 }

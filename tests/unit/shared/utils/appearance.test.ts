@@ -107,7 +107,7 @@ describe('derivePalette', () => {
 describe('resolveFontFamily', () => {
   it('expands generic families and quotes a custom one', () => {
     expect(resolveFontFamily({ family: 'serif', weight: 'light' })).toMatch(
-      /^ui-serif/
+      /^ui-serif/u
     )
     expect(
       resolveFontFamily({
@@ -115,19 +115,19 @@ describe('resolveFontFamily', () => {
         customFamily: 'Inter',
         weight: 'light'
       })
-    ).toMatch(/^"Inter", ui-sans-serif/)
+    ).toMatch(/^"Inter", ui-sans-serif/u)
   })
 
   it('falls back to system when custom has no name, and follows the UI font for content', () => {
     expect(resolveFontFamily({ family: 'custom', weight: 'light' })).toMatch(
-      /^ui-sans-serif/
+      /^ui-sans-serif/u
     )
     expect(
       resolveFontFamily(
         { family: 'ui', weight: 'light' },
         { family: 'mono', weight: 'light' }
       )
-    ).toMatch(/^ui-monospace/)
+    ).toMatch(/^ui-monospace/u)
   })
 })
 

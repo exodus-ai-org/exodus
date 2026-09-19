@@ -256,7 +256,7 @@ export const KeyboardShortcutsSchema = z.object({
 // Everything on Settings → Appearance except the light/dark/system MODE, which
 // next-themes keeps in localStorage (sub-apps and the e2e suite read that key).
 
-const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/, 'Expected #RRGGBB')
+const hexColor = z.string().regex(/^#[0-9a-fA-F]{6}$/u, 'Expected #RRGGBB')
 
 export const AppearanceSchemeSchema = z.object({
   // A THEME_PRESETS id, or CUSTOM_PRESET_ID after an import.

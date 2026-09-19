@@ -907,5 +907,84 @@
       "snapshotBuilt": "Snapshot built",
       "snapshotFailed": "Couldn’t build the snapshot"
     }
+  },
+  "appearance": {
+    "scheme": {
+      "light": "Light theme",
+      "dark": "Dark theme",
+      "import": "Import",
+      "copy": "Copy theme",
+      "custom": "Custom",
+      "presetDefault": "Preset default",
+      "presetLabel": "Theme preset",
+      "accent": "Accent",
+      "background": "Background",
+      "foreground": "Foreground",
+      "pickColor": "Pick a colour",
+      "lowContrast": "Low contrast ({{ratio}}:1) — text may be hard to read",
+      "accents": {
+        "blue": "Blue",
+        "purple": "Purple",
+        "pink": "Pink",
+        "red": "Red",
+        "orange": "Orange",
+        "yellow": "Yellow",
+        "green": "Green",
+        "graphite": "Graphite"
+      }
+    },
+    "importDialog": {
+      "title": "Import theme",
+      "description": "Paste a theme copied from Exodus — a JSON object with accent, background and foreground colours.",
+      "placeholder": "{ \"accent\": \"#1f6feb\", \"background\": \"#0d1117\", \"foreground\": \"#e6edf3\" }",
+      "invalid": "That doesn't look like an Exodus theme.",
+      "confirm": "Import",
+      "cancel": "Cancel"
+    },
+    "fonts": {
+      "title": "Fonts",
+      "ui": {
+        "label": "UI font",
+        "description": "The typeface used across the interface."
+      },
+      "content": {
+        "label": "Content font",
+        "description": "The typeface used for chat messages."
+      },
+      "customFamily": {
+        "label": "Font family",
+        "description": "The name of a font installed on this computer.",
+        "placeholder": "e.g. Inter"
+      },
+      "families": {
+        "ui": "Same as UI font",
+        "system": "System default",
+        "serif": "Serif",
+        "mono": "Monospace",
+        "rounded": "Rounded",
+        "custom": "Custom…"
+      },
+      "weights": {
+        "light": "Light",
+        "regular": "Regular",
+        "medium": "Medium"
+      }
+    },
+    "window": {
+      "title": "Window",
+      "translucentSidebar": {
+        "label": "Translucent sidebar",
+        "description": "Let the desktop show through the sidebar."
+      },
+      "contrast": {
+        "label": "Contrast",
+        "description": "How strongly surfaces, borders and secondary text stand out from the background."
+      }
+    },
+    "toast": {
+      "copied": "Theme copied to the clipboard",
+      "copyFailed": "Couldn't copy the theme",
+      "imported": "Theme imported"
+    }
   }
 }

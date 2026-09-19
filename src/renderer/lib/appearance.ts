@@ -49,9 +49,7 @@ export function isMacRenderer(): boolean {
 export function applyAppearance(resolved: ResolvedAppearance): void {
   if (typeof document === 'undefined') return
   const css = buildAppearanceCss(resolved)
-  let el = document.getElementById(
-    APPEARANCE_STYLE_ID
-  ) as HTMLStyleElement | null
+  let el = document.querySelector<HTMLStyleElement>(`#${APPEARANCE_STYLE_ID}`)
   if (!el) {
     el = document.createElement('style')
     el.id = APPEARANCE_STYLE_ID
@@ -78,7 +76,8 @@ export function readAppearanceCache(): unknown {
 
 export function writeAppearanceCache(raw: unknown): void {
   try {
-    if (raw == null) window.localStorage.removeItem(APPEARANCE_CACHE_KEY)
+    if (raw === null || raw === undefined)
+      window.localStorage.removeItem(APPEARANCE_CACHE_KEY)
     else window.localStorage.setItem(APPEARANCE_CACHE_KEY, JSON.stringify(raw))
   } catch {
     // Blocked storage: the provider still applies the live value.

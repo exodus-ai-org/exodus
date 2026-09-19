@@ -907,5 +907,84 @@
       "snapshotBuilt": "Snapshot creato",
       "snapshotFailed": "Impossibile creare lo snapshot"
     }
+  },
+  "appearance": {
+    "scheme": {
+      "light": "Tema chiaro",
+      "dark": "Tema scuro",
+      "import": "Importa",
+      "copy": "Copia tema",
+      "custom": "Personalizzato",
+      "presetDefault": "Predefinito del preset",
+      "presetLabel": "Preset del tema",
+      "accent": "Accento",
+      "background": "Sfondo",
+      "foreground": "Primo piano",
+      "pickColor": "Scegli un colore",
+      "lowContrast": "Contrasto basso ({{ratio}}:1): il testo potrebbe essere difficile da leggere",
+      "accents": {
+        "blue": "Blu",
+        "purple": "Viola",
+        "pink": "Rosa",
+        "red": "Rosso",
+        "orange": "Arancione",
+        "yellow": "Giallo",
+        "green": "Verde",
+        "graphite": "Grafite"
+      }
+    },
+    "importDialog": {
+      "title": "Importa tema",
+      "description": "Incolla un tema copiato da Exodus: un oggetto JSON con i colori di accento, sfondo e primo piano.",
+      "placeholder": "{ \"accent\": \"#1f6feb\", \"background\": \"#0d1117\", \"foreground\": \"#e6edf3\" }",
+      "invalid": "Non sembra un tema di Exodus.",
+      "confirm": "Importa",
+      "cancel": "Annulla"
+    },
+    "fonts": {
+      "title": "Caratteri",
+      "ui": {
+        "label": "Carattere dell'interfaccia",
+        "description": "Il carattere usato in tutta l'interfaccia."
+      },
+      "content": {
+        "label": "Carattere dei contenuti",
+        "description": "Il carattere usato per i messaggi di chat."
+      },
+      "customFamily": {
+        "label": "Famiglia di caratteri",
+        "description": "Il nome di un carattere installato su questo computer.",
+        "placeholder": "es. Inter"
+      },
+      "families": {
+        "ui": "Uguale al carattere dell'interfaccia",
+        "system": "Predefinito di sistema",
+        "serif": "Serif",
+        "mono": "Monospazio",
+        "rounded": "Arrotondato",
+        "custom": "Personalizzato…"
+      },
+      "weights": {
+        "light": "Leggero",
+        "regular": "Normale",
+        "medium": "Medio"
+      }
+    },
+    "window": {
+      "title": "Finestra",
+      "translucentSidebar": {
+        "label": "Barra laterale traslucida",
+        "description": "Lascia intravedere la scrivania attraverso la barra laterale."
+      },
+      "contrast": {
+        "label": "Contrasto",
+        "description": "Quanto superfici, bordi e testo secondario risaltano rispetto allo sfondo."
+      }
+    },
+    "toast": {
+      "copied": "Tema copiato negli appunti",
+      "copyFailed": "Impossibile copiare il tema",
+      "imported": "Tema importato"
+    }
   }
 }

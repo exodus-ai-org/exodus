@@ -72,6 +72,18 @@ describe('settings namespace (en)', () => {
     expect(settings.nav.about.title).toBe('About Exodus')
   })
 
+  it('has the Appearance page keys', () => {
+    expect(settings.appearance.scheme.light).toBe('Light theme')
+    expect(settings.appearance.scheme.dark).toBe('Dark theme')
+    expect(settings.appearance.scheme.copy).toBe('Copy theme')
+    expect(settings.appearance.scheme.lowContrast).toContain('{{ratio}}')
+    expect(settings.appearance.fonts.families.ui).toBe('Same as UI font')
+    expect(settings.appearance.window.contrast.label).toBe('Contrast')
+    expect(settings.appearance.importDialog.invalid).toBe(
+      "That doesn't look like an Exodus theme."
+    )
+  })
+
   it('has the nav group heading keys', () => {
     expect(settings.nav.group.personal).toBe('Personal')
     expect(settings.nav.group.aiTools).toBe('AI & Tools')

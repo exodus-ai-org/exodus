@@ -902,5 +902,84 @@
       "snapshotBuilt": "スナップショットを作成しました",
       "snapshotFailed": "スナップショットを作成できませんでした"
     }
+  },
+  "appearance": {
+    "scheme": {
+      "light": "ライトテーマ",
+      "dark": "ダークテーマ",
+      "import": "インポート",
+      "copy": "テーマをコピー",
+      "custom": "カスタム",
+      "presetDefault": "プリセットの既定",
+      "presetLabel": "テーマプリセット",
+      "accent": "アクセント",
+      "background": "背景",
+      "foreground": "前景",
+      "pickColor": "色を選択",
+      "lowContrast": "コントラストが低い（{{ratio}}:1）— 文字が読みにくくなる可能性があります",
+      "accents": {
+        "blue": "青",
+        "purple": "紫",
+        "pink": "ピンク",
+        "red": "赤",
+        "orange": "オレンジ",
+        "yellow": "黄",
+        "green": "緑",
+        "graphite": "グラファイト"
+      }
+    },
+    "importDialog": {
+      "title": "テーマをインポート",
+      "description": "Exodus からコピーしたテーマを貼り付けてください。アクセント、背景、前景の色を含む JSON オブジェクトです。",
+      "placeholder": "{ \"accent\": \"#1f6feb\", \"background\": \"#0d1117\", \"foreground\": \"#e6edf3\" }",
+      "invalid": "これは Exodus のテーマではないようです。",
+      "confirm": "インポート",
+      "cancel": "キャンセル"
+    },
+    "fonts": {
+      "title": "フォント",
+      "ui": {
+        "label": "UI フォント",
+        "description": "インターフェース全体で使用する書体です。"
+      },
+      "content": {
+        "label": "コンテンツフォント",
+        "description": "チャットメッセージに使用する書体です。"
+      },
+      "customFamily": {
+        "label": "フォントファミリー",
+        "description": "このコンピューターにインストールされているフォントの名前です。",
+        "placeholder": "例: Inter"
+      },
+      "families": {
+        "ui": "UI フォントと同じ",
+        "system": "システム既定",
+        "serif": "セリフ",
+        "mono": "等幅",
+        "rounded": "丸ゴシック",
+        "custom": "カスタム…"
+      },
+      "weights": {
+        "light": "細",
+        "regular": "標準",
+        "medium": "中"
+      }
+    },
+    "window": {
+      "title": "ウィンドウ",
+      "translucentSidebar": {
+        "label": "半透明のサイドバー",
+        "description": "サイドバーからデスクトップを透かして表示します。"
+      },
+      "contrast": {
+        "label": "コントラスト",
+        "description": "面、枠線、補助テキストが背景からどの程度際立つかを調整します。"
+      }
+    },
+    "toast": {
+      "copied": "テーマをクリップボードにコピーしました",
+      "copyFailed": "テーマをコピーできませんでした",
+      "imported": "テーマをインポートしました"
+    }
   }
 }

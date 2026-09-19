@@ -9,7 +9,7 @@ import {
 import { contrastRatio } from '@exodus/shared/utils/color'
 import { describe, expect, it } from 'vitest'
 
-const HEX = /^#[0-9a-f]{6}$/
+const HEX = /^#[0-9a-f]{6}$/u
 
 describe('THEME_PRESETS', () => {
   it('has unique ids, none of them the custom sentinel, and includes the default', () => {

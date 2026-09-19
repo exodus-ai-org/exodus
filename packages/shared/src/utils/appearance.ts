@@ -43,8 +43,8 @@ export function isSchemeCustomized(
   if (!scheme) return false
   return (
     scheme.preset === CUSTOM_PRESET_ID ||
-    scheme.background != null ||
-    scheme.foreground != null
+    (scheme.background !== null && scheme.background !== undefined) ||
+    (scheme.foreground !== null && scheme.foreground !== undefined)
   )
 }
 
@@ -192,7 +192,7 @@ export function resolveFontFamily(
     return ui ? resolveFontFamily(ui) : FONT_FAMILY_STACKS.system
   }
   if (setting.family === 'custom') {
-    const name = setting.customFamily?.trim().replace(/["\\]/g, '')
+    const name = setting.customFamily?.trim().replaceAll(/["\\]/gu, '')
     return name
       ? `"${name}", ${FONT_FAMILY_STACKS.system}`
       : FONT_FAMILY_STACKS.system

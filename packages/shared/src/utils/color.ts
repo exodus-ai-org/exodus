@@ -1,9 +1,10 @@
 // Pure colour maths for the appearance system — no DOM, no dependencies.
 // sRGB ⇄ OKLab per Björn Ottosson (https://bottosson.github.io/posts/oklab/).
 
-export type Rgb = [number, number, number] // 0..255 ints
+/** sRGB channels, 0..255 integers. */
+export type Rgb = [number, number, number]
 
-const HEX_RE = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i
+const HEX_RE = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/iu
 
 export function parseHex(input: string): Rgb | null {
   const m = HEX_RE.exec(input.trim())
@@ -35,7 +36,7 @@ export function normalizeHex(input: string): string | null {
 }
 
 export function isHexColor(input: string): boolean {
-  return /^#[0-9a-f]{6}$/i.test(input)
+  return /^#[0-9a-f]{6}$/iu.test(input)
 }
 
 const toLinear = (c: number) => {
@@ -96,7 +97,7 @@ export function mix(a: string, b: string, t: number): string {
 export function relativeLuminance(hex: string): number {
   const rgb = parseHex(hex)
   if (!rgb) throw new Error(`relativeLuminance(): invalid hex (${hex})`)
-  const [r, g, b] = rgb.map(toLinear)
+  const [r, g, b] = rgb.map((c) => toLinear(c))
   return 0.2126 * r + 0.7152 * g + 0.0722 * b
 }
 

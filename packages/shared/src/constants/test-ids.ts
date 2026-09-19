@@ -115,6 +115,24 @@ export const TEST_IDS = {
   composer: {
     reasoningEffortItem: 'composer.reasoning-effort-item',
     reasoningEffortLevel: 'composer.reasoning-effort-level'
+  },
+  // Settings → Appearance. `presetSelect` / `accentSelect` / `colorInput` are
+  // applied with a `-${slot}` (and `-${field}`) suffix, like settings.themeMode.
+  appearance: {
+    presetSelect: 'appearance.preset-select',
+    accentSelect: 'appearance.accent-select',
+    colorInput: 'appearance.color-input',
+    copyTheme: 'appearance.copy-theme',
+    importTheme: 'appearance.import-theme',
+    importTextarea: 'appearance.import-textarea',
+    importConfirm: 'appearance.import-confirm',
+    uiFontSelect: 'appearance.ui-font-select',
+    uiFontWeight: 'appearance.ui-font-weight',
+    customFontInput: 'appearance.custom-font-input',
+    contentFontSelect: 'appearance.content-font-select',
+    contentFontWeight: 'appearance.content-font-weight',
+    translucentSidebar: 'appearance.translucent-sidebar',
+    contrastSlider: 'appearance.contrast-slider'
   }
 } as const
 

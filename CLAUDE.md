@@ -97,7 +97,6 @@ bun run db:generate      # Generate Drizzle migrations from schema
 ### Other
 
 ```bash
-bun run knip             # Find unused files/exports/dependencies
 bun run i18n:check       # Verify catalog parity across all locales (also runs in the pre-commit gate)
 bun run i18n:status      # Print the translation-review status board per locale
 ```
@@ -208,6 +207,34 @@ asar (the `.node` dlopens `libduckdb` beside itself). Research notes:
 `docs/duckdb-research.md`; spec:
 `docs/superpowers/specs/2026-09-19-duckdb-chat-audit-design.md`.
 
+### Appearance (themes, fonts, window)
+
+Settings → Appearance (`src/renderer/components/settings/settings-form/appearance.tsx`
+
+- `appearance/`) persists one `settings.appearance` jsonb value
+  (`AppearanceSchema` in `settings-schema.ts`: per-scheme `preset` +
+  `accent`/`background`/`foreground` overrides, `uiFont`, `contentFont`,
+  `translucentSidebar`, `contrast`). The theme **mode** (System/Light/Dark)
+  stays in next-themes' `vite-ui-theme` localStorage key — never in settings.
+  Presets, named accents and font stacks are constants in
+  `packages/shared/src/constants/appearance.ts` (every preset is
+  AA-legible by unit test); `packages/shared/src/utils/appearance.ts`
+  resolves a scheme and **derives every shadcn token** from three colours +
+  contrast via OKLab mixes (`packages/shared/src/utils/color.ts`), with the
+  `exodus` preset at contrast 50 reproducing the `globals.css` defaults
+  exactly. The renderer side (`src/renderer/lib/appearance.ts`) renders that
+  into a `<style id="exodus-appearance">` upserted last in `<head>`; every
+  entry (`main.tsx` + the three sub-apps) calls `bootAppearance()` before
+  React mounts using the `exodus-appearance` localStorage cache (no flash),
+  and `components/appearance-provider.tsx` follows `useSettings()` to keep
+  the stylesheet, the cache and the window in sync. Fonts flow through
+  `--font-ui` / `--font-weight-base` / `--font-content` /
+  `--font-weight-content` in `globals.css`; translucency is the
+  `set-window-translucency` IPC (macOS `setVibrancy` on/off + background
+  colour) plus `html[data-translucent-sidebar='false']`. Copy/Import share a
+  scheme as `{ name, accent, background, foreground }` JSON. Spec:
+  `docs/superpowers/specs/2026-09-19-appearance-system-design.md`.
+
 ### Migration status
 
 `docs/migration-plan.md` records how the business code was ported from
@@ -248,7 +275,7 @@ The MCP-tools middleware (injecting MCP tools into context) is **archived** (com
 
 **Key Tables**:
 
-- `settings` - Global settings (models, API keys, preferences)
+- `settings` - Global settings (models, API keys, preferences, the `appearance` theme)
 - `knowledge_doc` - Knowledge base source documents + per-doc LightRAG sync status
 - `deep_research` / `deep_research_message` - Deep research jobs and progress updates
 - `memory` / `memory_usage_log` - User memory and audit trail
@@ -768,7 +795,7 @@ Main process:
   `docs/superpowers/specs/2026-09-06-computer-use-v0-design.md`
 - `src/main/lib/i18n.ts` — the main-process i18next instance (`mainI18n`),
   `resolveEffectiveLocale`, and the `get-app-locale` / `set-app-locale` IPC
-- `src/main/lib/ipc.ts` — main-process IPC handlers
+- `src/main/lib/ipc.ts` — main-process IPC handlers (incl. `set-window-translucency` for Appearance)
 - `src/main/lib/paths.ts` — `~/.exodus` path helpers
 
 Preload:
@@ -788,7 +815,9 @@ Renderer:
 - `src/renderer/stores/` — Jotai atoms
 - `src/renderer/hooks/` — React hooks
 - `src/renderer/services/` — API call wrappers
-- `src/renderer/lib/` — renderer utilities (ipc, stream-manager)
+- `src/renderer/lib/` — renderer utilities (ipc, stream-manager, `appearance.ts` — the theme stylesheet injector + boot cache)
+- `src/renderer/components/appearance-provider.tsx` — follows `settings.appearance`, re-applies the theme, updates window translucency
+- `src/renderer/components/settings/settings-form/appearance/` — Appearance page pieces (scheme cards, colour field, preset select, import dialog, fonts, window)
 - `src/renderer/sub-apps/` — searchbar, quick-chat, artifacts entry points
 
 Shared:
@@ -796,7 +825,8 @@ Shared:
 - `packages/shared/src/types/` — cross-process types
 - `packages/shared/src/constants/` — constants (`test-ids.ts`, `systems.ts`)
 - `packages/shared/src/schemas/` — Zod schemas
-- `packages/shared/src/utils/` — shared utilities
+- `packages/shared/src/utils/` — shared utilities (`color.ts` OKLab/WCAG maths, `appearance.ts` palette derivation + theme import/export)
+- `packages/shared/src/constants/appearance.ts` — theme presets, named accents, font stacks
 - `packages/shared/src/i18n/` — application i18n: `locales.ts` (the 10 locale IDs +
   `resolveLocale`), `namespaces.ts`, `index.ts` (`createI18n` — one i18next
   config for both processes, JSON catalogs lazy-loaded per locale),
