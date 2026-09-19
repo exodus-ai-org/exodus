@@ -3,6 +3,7 @@
  */
 import { ApiClient, apiTest as test, expect } from '../fixtures/api-client'
 import { TestCleanup } from '../helpers/cleanup'
+import { skipWithoutKey } from '../helpers/require-key'
 import { injectOpenAiProvider } from '../helpers/settings-inject'
 
 test.describe('Chat History & Search', () => {
@@ -27,6 +28,8 @@ test.describe('Chat History & Search', () => {
   })
 
   test('DELETE /api/chat/:id removes a chat', async ({ api }) => {
+    skipWithoutKey('OPENAI_API_KEY')
+
     const chatId = crypto.randomUUID()
     cleanup.trackChat(chatId)
 
@@ -43,6 +46,8 @@ test.describe('Chat History & Search', () => {
   })
 
   test('PUT /api/chat updates chat metadata', async ({ api }) => {
+    skipWithoutKey('OPENAI_API_KEY')
+
     const chatId = crypto.randomUUID()
     cleanup.trackChat(chatId)
 
@@ -62,6 +67,8 @@ test.describe('Chat History & Search', () => {
   })
 
   test('GET /api/chat/:id returns messages for a chat', async ({ api }) => {
+    skipWithoutKey('OPENAI_API_KEY')
+
     const chatId = crypto.randomUUID()
     cleanup.trackChat(chatId)
 
@@ -73,6 +80,8 @@ test.describe('Chat History & Search', () => {
   })
 
   test('GET /api/chat/search finds messages by keyword', async ({ api }) => {
+    skipWithoutKey('OPENAI_API_KEY')
+
     const chatId = crypto.randomUUID()
     cleanup.trackChat(chatId)
 

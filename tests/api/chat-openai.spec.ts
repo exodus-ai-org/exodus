@@ -4,6 +4,7 @@
  */
 import { ApiClient, apiTest as test, expect } from '../fixtures/api-client'
 import { TestCleanup } from '../helpers/cleanup'
+import { skipWithoutKey } from '../helpers/require-key'
 import { injectOpenAiProvider } from '../helpers/settings-inject'
 import {
   getDoneMessages,
@@ -14,6 +15,8 @@ import {
 } from '../helpers/wait-for-stream'
 
 test.describe('Chat — OpenAI', () => {
+  skipWithoutKey('OPENAI_API_KEY')
+
   let cleanup: TestCleanup
 
   test.beforeAll(async () => {
