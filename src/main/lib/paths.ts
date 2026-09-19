@@ -78,6 +78,11 @@ export function getManualBackupsDir(): string {
   return dir
 }
 
+/** The LAN listener's certificate and (encrypted) private key. */
+export function getTlsDir(): string {
+  return join(getExodusHome(), 'tls')
+}
+
 export function getLockSecretPath(): string {
   return join(getExodusHome(), 'lock.dat')
 }
