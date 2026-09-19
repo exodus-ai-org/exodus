@@ -37,10 +37,10 @@ const electron = {
     },
     get versions() {
       return process.versions
-    },
-    get env() {
-      return { ...process.env }
     }
+    // No `env`: the renderer never read it, and it handed every environment
+    // variable of the launching shell (tokens, keys) to any script that gets
+    // to run in a window.
   }
 }
 

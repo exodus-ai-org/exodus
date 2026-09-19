@@ -7,7 +7,12 @@ import { initScheduler } from '../ai/philharmonic/scheduler'
 import { getSettings } from '../db/queries'
 import { initJobQueue } from '../jobs/worker'
 import { logger } from '../logger'
-import { errorHandler, lockGate, traceMiddleware } from './middlewares'
+import {
+  errorHandler,
+  lockGate,
+  originGate,
+  traceMiddleware
+} from './middlewares'
 import analyticsRouter from './routes/analytics'
 import artifactsRouter from './routes/artifacts'
 import audioRouter from './routes/audio'
@@ -38,6 +43,9 @@ export async function connectHttpServer() {
   const app = new Hono<{ Variables: Variables }>()
 
   // Middleware
+  // Origin gate first, ahead of CORS: a rejected web origin gets a bare 403
+  // with no `Access-Control-Allow-Origin`, so its page can't read even that.
+  app.use('*', originGate)
   app.use('*', cors())
 
   // Lock gate: reject all API access while the app is locked (423).

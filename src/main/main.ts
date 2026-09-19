@@ -22,10 +22,13 @@ import { hasPin as lockHasPin } from './lib/lock/pin-store'
 import { cleanupOldLogs, logger } from './lib/logger'
 import { setupMenu } from './lib/menu'
 import { getExodusHome, migrateFromLegacyLocation } from './lib/paths'
+import { hardenRenderers } from './lib/security'
 import { connectHttpServer } from './lib/server/app'
 import { getServer, setServer } from './lib/server/instance'
 import { destroyTray, setTray } from './lib/tray'
 import { createWindow } from './lib/window'
+
+declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -139,6 +142,9 @@ app.on('ready', async () => {
       }
     })
   })
+
+  // Before the first window exists, so no webContents is ever unguarded.
+  hardenRenderers(MAIN_WINDOW_VITE_DEV_SERVER_URL)
 
   setupIPC()
   createWindow()

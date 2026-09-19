@@ -1,6 +1,6 @@
 import { join } from 'path'
 
-import { BrowserWindow, WebContentsView, app, screen, shell } from 'electron'
+import { BrowserWindow, WebContentsView, app, screen } from 'electron'
 
 import { logger } from './logger'
 import { getResourcePath } from './paths'
@@ -61,10 +61,8 @@ export function createWindow(): void {
     }
   })
 
-  mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
-    return { action: 'deny' }
-  })
+  // New-window and navigation handling is installed for every webContents by
+  // `hardenRenderers()` (security.ts), not per window.
 
   // A sandboxed preload (webPreferences.sandbox: true) that throws at load
   // time otherwise fails silently — the renderer just never gets

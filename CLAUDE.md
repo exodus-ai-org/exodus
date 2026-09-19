@@ -124,7 +124,7 @@ Exodus uses a three-process architecture:
 3. **Preload Process** (`src/preload/preload.ts`):
    - Provides secure bridge between renderer and Electron APIs
    - Context isolation + sandbox enabled
-   - Exposes `window.electron` (`ipcRenderer.{send,invoke,on,once,removeListener,removeAllListeners}` + `process`, the same nested shape as `@electron-toolkit/preload`'s `electronAPI`, reimplemented without the dependency) and `window.api` (`os`, `locale`)
+   - Exposes `window.electron` (`ipcRenderer.{send,invoke,on,once,removeListener,removeAllListeners}` + `process.{platform,versions}` — deliberately not `process.env` — the same nested shape as `@electron-toolkit/preload`'s `electronAPI`, reimplemented without the dependency) and `window.api` (`os`, `locale`)
 
 ### Data directory, ports and isolation
 
@@ -243,11 +243,12 @@ The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatc
 
 **Middleware Pipeline** (order in `app.ts`):
 
-1. CORS middleware (`hono/cors`, allows all origins for localhost development)
-2. Lock gate (`lockGate`) — rejects all `/api/*` with `423` while the app is locked
-3. Trace gate (`traceMiddleware`) — wraps each `/api/*` request in an `AsyncLocalStorage` trace (see `src/main/lib/logger/`), sets the `x-trace-id` response header
-4. Settings injection — fresh `getSettings()` set on the Hono context per request
-5. Error handler (`app.onError`, returns JSON errors)
+1. Origin gate (`originGate`) — `403` for a request whose `Origin` is a non-loopback web origin, or that arrives over loopback addressed by a public `Host` (DNS rebinding). Clients that send no `Origin` (exodus-ios, exodus-cli, `tests/api`) are unaffected. Runs before CORS so a refused origin gets no `Access-Control-Allow-Origin`
+2. CORS middleware (`hono/cors`)
+3. Lock gate (`lockGate`) — rejects all `/api/*` with `423` while the app is locked
+4. Trace gate (`traceMiddleware`) — wraps each `/api/*` request in an `AsyncLocalStorage` trace (see `src/main/lib/logger/`), sets the `x-trace-id` response header
+5. Settings injection — `getSettings()` set on the Hono context per request (served from a cache in `db/queries.ts` that `updateSettings` / `updateSettingField` invalidate — write the `settings` table only through those two)
+6. Error handler (`app.onError`, returns JSON errors)
 
 The MCP-tools middleware (injecting MCP tools into context) is **archived** (commented out in `app.ts`).
 
@@ -296,10 +297,16 @@ are fetched per-provider from `src/main/lib/ai/providers/list-models/`.
 2. Load chat history from database
 3. Bind built-in tools based on `AdvancedTools` selection
 4. Stream via `agentLoop` from `@mariozechner/pi-agent-core` for multi-step tool execution
-5. Stream response back to renderer
-6. On completion: save messages; enqueue background jobs (search indexing,
-   LCM compaction, memory consolidation) onto the pgmq-backed
-   job queue (`src/main/lib/jobs/`) rather than running them inline
+5. Stream response back to renderer through `createSseWriter`
+   (`routes/chat-sse.ts`): streaming `message_update` snapshots are coalesced
+   to one per `STREAM_FLUSH_INTERVAL_MS` (each carries the whole message so
+   far), other events flush first so order holds, and writes become no-ops
+   once the client has gone
+6. However the turn ends — done, a provider error midway, or Stop (which
+   cancels the response stream) — save the messages that completed and enqueue
+   background jobs (LCM compaction, memory consolidation, and search indexing
+   only when Elasticsearch is configured) onto the pgmq-backed job queue
+   (`src/main/lib/jobs/`) rather than running them inline
 
 **Tool Architecture** (`src/main/lib/ai/calling-tools/`):
 Each tool has a description for LLM understanding, a Zod input schema, and an execute function.
@@ -534,11 +541,18 @@ straight from `src/main/lib/db/schema.ts` (the shared package must not import th
 
 ### Security Considerations
 
-- Context isolation enabled in preload
+- `docs/security-hardening.md` is the reference: what is in place, and the
+  open items (artifact sandbox shares the app's origin; LAN clients are
+  unauthenticated; no single-instance lock) — read it before touching the
+  server middleware, preload, window creation, or the artifact sandbox
+- Windows run with `sandbox: true` + `contextIsolation: true`; `hardenRenderers()`
+  (`src/main/lib/security.ts`) cancels navigation away from the app, denies new
+  windows, opens only `http(s)` / `mailto` links externally, and grants
+  permissions only to Exodus's own pages. Never call `shell.openExternal`
+  directly — use `openExternalSafely`
 - API keys stored locally in PGlite database
-- No external authentication (local-first application)
-- CORS allows localhost only in development
-- Sandbox disabled (required for native modules)
+- No authentication on the HTTP API, which listens on every interface for
+  exodus-ios; the origin gate (see Middleware Pipeline) only stops browsers
 
 ## Testing
 
@@ -735,7 +749,7 @@ Main process:
 - `src/main/main.ts` — app bootstrap, lifecycle, IPC + server startup
 - `src/main/lib/server/app.ts` — Hono server + route registration
 - `src/main/lib/server/routes/` — API route handlers
-- `src/main/lib/server/middlewares/` — CORS, lock gate, error handler
+- `src/main/lib/server/middlewares/` — origin gate, lock gate, trace, error handler
 - `src/main/lib/ai/providers/` — LLM provider resolution (`resolve-model.ts`)
 - `src/main/lib/ai/providers/list-models/` — Live model catalog handlers per provider (`anthropic.ts`, `openai.ts`, `google.ts`, `xai.ts`, `ollama.ts`); each normalizes that provider's list-models API response into `{ id, displayName, snapshot: ModelSnapshot }`, dispatched by `index.ts` and called from `POST /api/v1/settings/models`
 - `src/main/lib/ai/calling-tools/` — built-in agent tools
@@ -754,8 +768,10 @@ Main process:
 - `src/main/lib/discover/` — Home Discover feed: Brave News client, memory-driven
   query generation, `runDiscoverRefresh` (see docs/superpowers/specs/2026-09-05-home-discover-feed-design.md)
 - `src/main/lib/jobs/` — durable job queue (pgmq-backed): `queries.ts`
-  (enqueue/read/archive), `handlers.ts` (per-queue job logic), `worker.ts`
-  (`enqueueAndProcess()` + periodic sweep); decouples chat.ts's post-turn
+  (enqueue/read/delete/archive/purge), `handlers.ts` (per-queue job logic),
+  `worker.ts` (`enqueueAndProcess()` + periodic sweep). A finished job is
+  deleted; only a job given up on is archived, and archives are truncated at
+  launch — payloads carry `apiKey` and whole conversations. Decouples chat.ts's post-turn
   side effects (search indexing, LCM compaction, memory consolidation,
   `kb-sync`, `discover-refresh`) from the request/response cycle.
   `queries.ts`'s `enqueueJob` stamps the ambient `traceId` onto the payload
@@ -783,6 +799,9 @@ Main process:
 - `src/main/lib/i18n.ts` — the main-process i18next instance (`mainI18n`),
   `resolveEffectiveLocale`, and the `get-app-locale` / `set-app-locale` IPC
 - `src/main/lib/ipc.ts` — main-process IPC handlers
+- `src/main/lib/security.ts` — renderer hardening (`hardenRenderers()`:
+  navigation guard, window-open handler, permission handler) and
+  `openExternalSafely` / `isSafeExternalUrl`
 - `src/main/lib/paths.ts` — `~/.exodus` path helpers
 
 Preload:
@@ -836,6 +855,8 @@ Docs:
 
 - `docs/superpowers/specs/` — design specs
 - `docs/superpowers/plans/` — implementation plans
+- `docs/security-hardening.md` — threat model, protections in place, and the
+  open security items with their intended fixes
 - `docs/elasticsearch-setup.md` — end-user guide for configuring a
   self-hosted/cloud Elasticsearch cluster for Exodus's optional search
   upgrade (Exodus is consumer-only — never creates the index/mapping

@@ -19,7 +19,10 @@ async function markdownStringToPdfBuffer(markdownString: string) {
     show: false,
     webPreferences: {
       nodeIntegration: false,
-      contextIsolation: true
+      contextIsolation: true,
+      sandbox: true,
+      // Rendered markdown is static; nothing in it should get to run.
+      javascript: false
     }
   })
 
