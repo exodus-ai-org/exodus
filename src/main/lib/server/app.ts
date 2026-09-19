@@ -6,8 +6,10 @@ import { cors } from 'hono/cors'
 import { initScheduler } from '../ai/philharmonic/scheduler'
 import { getSettings } from '../db/queries'
 import { initJobQueue } from '../jobs/worker'
+import { initLan, stopLan, syncLan } from '../lan'
 import { logger } from '../logger'
 import {
+  authGate,
   createOriginGate,
   errorHandler,
   lockGate,
@@ -21,6 +23,7 @@ import chatRouter from './routes/chat'
 import computerUseRouter from './routes/computer-use'
 import dbIoRouter from './routes/db-io'
 import deepResearchRouter from './routes/deep-research'
+import devicesRouter from './routes/devices'
 import discoverRouter from './routes/discover'
 import historyRouter from './routes/history'
 import knowledgeBaseRouter from './routes/knowledge-base'
@@ -28,6 +31,7 @@ import lcmStatusRouter from './routes/lcm-status'
 import logsRouter from './routes/logs'
 import mcpRouter from './routes/mcp'
 import memoryRouter from './routes/memory'
+import pairRouter from './routes/pair'
 import philharmonicRouter, { emitToAll } from './routes/philharmonic'
 import projectRouter from './routes/project'
 import s3UploaderRouter from './routes/s3-uploader'
@@ -58,6 +62,11 @@ export function createApp() {
   // with no `Access-Control-Allow-Origin`, so its page can't read even that.
   app.use('*', createOriginGate({ devOrigin: devServerUrl }))
   app.use('*', cors())
+
+  // Auth gate: on the LAN listener, only a paired device's token gets further
+  // (loopback passes straight through). Ahead of the lock gate, so an
+  // unauthenticated request learns nothing — not even that the app is locked.
+  app.use('/api/*', authGate)
 
   // Lock gate: reject all API access while the app is locked (423).
   app.use('/api/*', lockGate)
@@ -100,6 +109,8 @@ export function createApp() {
   v1.route('/backup', backupRouter)
   v1.route('/artifacts', artifactsRouter)
   v1.route('/analytics', analyticsRouter)
+  v1.route('/pair', pairRouter)
+  v1.route('/devices', devicesRouter)
   app.route('/api/v1', v1)
 
   // Ping
@@ -118,6 +129,7 @@ export async function connectHttpServer() {
 
   return {
     close(callback?: (err?: Error) => void) {
+      stopLan()
       const closing = servers
       servers = []
       if (closing.length === 0) return callback?.()
@@ -152,6 +164,11 @@ export async function connectHttpServer() {
         port: SERVER_PORT,
         addresses: LOOPBACK_ADDRESSES
       })
+
+      // The LAN listener (HTTPS, token-gated) serves this same app; it comes up
+      // now only if a device is already paired — see ../lan/.
+      initLan((request, env) => app.fetch(request, env))
+      void syncLan()
 
       // Initialize cron scheduler after server is up
       initScheduler(emitToAll).catch((err) =>

@@ -244,7 +244,7 @@ The main process runs a **Hono HTTP server** that handles all business logic:
 
 Every business endpoint is mounted on one versioned sub-app (`app.route('/api/v1', v1)`), so the public paths are `/api/v1/<route>`; the lock/trace/settings middlewares still match `/api/*`. A breaking API change ships as a new `/api/v2` sub-app beside v1 rather than mutating v1 in place. Any client of this backend (the renderer, `tests/api`, `exodus-ios`) must address `/api/v1/...`.
 
-`/api/v1/chat`, `/api/v1/lcm`, `/api/v1/history`, `/api/v1/knowledge-base`, `/api/v1/project`, `/api/v1/settings`, `/api/v1/skills`, `/api/v1/audio`, `/api/v1/db-io`, `/api/v1/deep-research`, `/api/v1/discover`, `/api/v1/tools`, `/api/v1/philharmonic`, `/api/v1/s3`, `/api/v1/mcp`, `/api/v1/memory`, `/api/v1/usage`, `/api/v1/logs`, `/api/v1/backup`, `/api/v1/artifacts`, `/api/v1/computer-use`, `/api/v1/analytics`.
+`/api/v1/chat`, `/api/v1/lcm`, `/api/v1/history`, `/api/v1/knowledge-base`, `/api/v1/project`, `/api/v1/settings`, `/api/v1/skills`, `/api/v1/audio`, `/api/v1/db-io`, `/api/v1/deep-research`, `/api/v1/discover`, `/api/v1/tools`, `/api/v1/philharmonic`, `/api/v1/s3`, `/api/v1/mcp`, `/api/v1/memory`, `/api/v1/usage`, `/api/v1/logs`, `/api/v1/backup`, `/api/v1/artifacts`, `/api/v1/computer-use`, `/api/v1/analytics`, `/api/v1/pair`, `/api/v1/devices`.
 
 The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatches to the appropriate list-models handler based on the provider in the request body, reading the API key from the request (not from saved settings) to fetch live model catalogs.
 
@@ -252,10 +252,11 @@ The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatc
 
 1. Origin gate (`createOriginGate`) — a request must carry no `Origin` (exodus-ios, exodus-cli, `tests/api`, and the packaged renderer: a `file://` page in Electron sends none) or, in a dev build only, exactly the Vite renderer's; anything else — a website, another loopback port, `null`, an extension, the artifact sandbox — gets `403`, as does a request on the loopback listener addressed by a public `Host` (DNS rebinding). Runs before CORS so a refused origin gets no `Access-Control-Allow-Origin`. Which listener took a request is in the bindings (`listenerOf(c)` in `server/types.ts`)
 2. CORS middleware (`hono/cors`)
-3. Lock gate (`lockGate`) — rejects all `/api/*` with `423` while the app is locked
-4. Trace gate (`traceMiddleware`) — wraps each `/api/*` request in an `AsyncLocalStorage` trace (see `src/main/lib/logger/`), sets the `x-trace-id` response header
-5. Settings injection — `getSettings()` set on the Hono context per request (served from a cache in `db/queries.ts` that `updateSettings` / `updateSettingField` invalidate — write the `settings` table only through those two)
-6. Error handler (`app.onError`, returns JSON errors)
+3. Auth gate (`authGate`) — on the LAN listener a request needs `Authorization: Bearer <token>` of a paired device (`401` otherwise), except `POST /api/v1/pair`, which the pairing window guards; `/api/v1/devices*` is refused there outright (`403`). Loopback passes straight through. Ahead of the lock gate so an unauthenticated request learns nothing, not even that the app is locked
+4. Lock gate (`lockGate`) — rejects all `/api/*` with `423` while the app is locked
+5. Trace gate (`traceMiddleware`) — wraps each `/api/*` request in an `AsyncLocalStorage` trace (see `src/main/lib/logger/`), sets the `x-trace-id` response header
+6. Settings injection — `getSettings()` set on the Hono context per request (served from a cache in `db/queries.ts` that `updateSettings` / `updateSettingField` invalidate — write the `settings` table only through those two)
+7. Error handler (`app.onError`, returns JSON errors)
 
 The MCP-tools middleware (injecting MCP tools into context) is **archived** (commented out in `app.ts`).
 
@@ -854,6 +855,27 @@ Main process:
 - `src/main/lib/i18n.ts` — the main-process i18next instance (`mainI18n`),
   `resolveEffectiveLocale`, and the `get-app-locale` / `set-app-locale` IPC
 - `src/main/lib/ipc.ts` — main-process IPC handlers
+- `src/main/lib/lan/` — access from the LAN (exodus-ios on a device). The app is
+  served twice (`server/app.ts`): plaintext on loopback, and over HTTPS on
+  `LAN_SERVER_PORT` behind `authGate` — but only while a device is paired or a
+  pairing window is open; until then nothing listens on the LAN at all.
+  `pairing.ts` (the pairing window: a one-time code, two minutes, single use,
+  five wrong guesses close it; pure, clock injected; also the
+  `exodus://pair?h=&p=&c=&f=&n=` link and LAN host discovery), `devices.ts`
+  (256-bit tokens stored as SHA-256 in `paired_device`; constant-time match
+  through a cache every write drops, so a revocation bites on the next
+  request), `certificate.ts` (self-signed P-256, ten years, key under
+  `safeStorage` in `~/.exodus/tls/`; its fingerprint is what devices pin — never
+  rotated except by "Reset all"), `listener.ts` (`sync()` makes the HTTPS
+  listener match "wanted"; resolves once listening), `index.ts` (the process's
+  `pairing`, `syncLan()`, `openPairingWindow()`). Routes: `POST /api/v1/pair`
+  (code → token), `/api/v1/devices` (list, open/close a window, revoke, reset —
+  loopback only). Spec:
+  `docs/superpowers/specs/2026-09-20-lan-pairing-sandbox-isolation-design.md`
+- `src/main/lib/artifact-protocol.ts` — the `exodus-artifact://sandbox` scheme
+  the artifact sandbox is served from, so model-written code has an origin of
+  its own and cannot reach `window.parent` (path-guarded static files when
+  packaged; a proxy to the Vite dev server in dev)
 - `src/main/lib/single-instance.ts` — the single-instance lock, taken by
   `db/db.ts` before it opens PGlite (see Data directory, ports and isolation)
 - `src/main/lib/security.ts` — renderer hardening (`hardenRenderers()`:
