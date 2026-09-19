@@ -2,7 +2,7 @@ import { existsSync } from 'fs'
 import { join, resolve, sep } from 'path'
 
 import { toAppError } from '@exodus/shared'
-import { app, ipcMain, nativeTheme, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, nativeTheme, shell } from 'electron'
 
 import {
   updaterCheck,
@@ -42,6 +42,12 @@ function safeHandle(
     }
   })
 }
+
+// The window whose fullscreen events are already being relayed. Every mounted
+// `useIsFullscreen()` invokes the subscribe channel, and each call used to add
+// two more listeners to the window — never removed — so every transition was
+// sent once per mount so far (and Node warned past ten).
+let fullscreenRelayWindow: BrowserWindow | null = null
 
 export function setupIPC() {
   ipcMain.on('ping', () => logger.debug('app', 'pong'))
@@ -135,7 +141,8 @@ export function setupIPC() {
 
   safeHandle('subscribe-fullscreen-change', () => {
     const win = getMainWindow()
-    if (!win) return
+    if (!win || fullscreenRelayWindow === win) return
+    fullscreenRelayWindow = win
 
     const send = (isFullscreen: boolean) => {
       win.webContents.send('fullscreen-changed', isFullscreen)

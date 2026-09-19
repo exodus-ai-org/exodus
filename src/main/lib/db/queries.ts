@@ -330,26 +330,49 @@ export async function getVotesByChatId({ id }: { id: string }) {
   return await db.select().from(vote).where(eq(vote.chatId, id))
 }
 
-export async function getSettings() {
+// The settings row is read on every `/api/*` request (app.ts) and by most
+// background work, and it used to cost two PGlite round trips each time — an
+// upsert-if-missing plus the select — on a single-threaded WASM database that
+// every other query queues behind. It only ever changes through the two
+// update functions below, so it is read through a cache they invalidate.
+let settingsCache: Settings | null = null
+// Bumped on every write. A read that was already in flight when a write landed
+// carries the old row; the version check keeps it from re-filling the cache.
+let settingsVersion = 0
+
+function invalidateSettingsCache() {
+  settingsCache = null
+  settingsVersion++
+}
+
+export async function getSettings(): Promise<Settings> {
+  // A copy, so a caller that edits what it got can't rewrite everyone's view.
+  if (settingsCache) return structuredClone(settingsCache)
+  const version = settingsVersion
   await db.insert(settings).values({ id: 'global' }).onConflictDoNothing()
   const [data] = await db.select().from(settings)
-  return data!
+  if (version === settingsVersion) settingsCache = data!
+  return structuredClone(data!)
 }
 
 export async function updateSettings(payload: Settings) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { createdAt, updatedAt, lastBackupAt, ...rest } = payload
-  return await db
-    .update(settings)
-    .set({
-      ...rest,
-      // lastBackupAt arrives as ISO string from frontend; convert to Date for DB
-      lastBackupAt: lastBackupAt
-        ? new Date(lastBackupAt as unknown as string)
-        : null,
-      updatedAt: new Date()
-    })
-    .where(eq(settings.id, payload.id))
+  try {
+    return await db
+      .update(settings)
+      .set({
+        ...rest,
+        // lastBackupAt arrives as ISO string from frontend; convert to Date for DB
+        lastBackupAt: lastBackupAt
+          ? new Date(lastBackupAt as unknown as string)
+          : null,
+        updatedAt: new Date()
+      })
+      .where(eq(settings.id, payload.id))
+  } finally {
+    invalidateSettingsCache()
+  }
 }
 
 export async function updateSettingField(
@@ -364,6 +387,8 @@ export async function updateSettingField(
   } catch (error) {
     logDbError(`Failed to update setting field: ${field}`, error)
     throw error
+  } finally {
+    invalidateSettingsCache()
   }
 }
 
