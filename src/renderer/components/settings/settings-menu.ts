@@ -10,6 +10,7 @@ import {
   MemoryStickIcon,
   NetworkIcon,
   ScrollTextIcon,
+  DatabaseZapIcon,
   TextSearch,
   ShoppingBagIcon,
   TelescopeIcon,
@@ -39,6 +40,7 @@ export enum SettingsLabel {
   ComputerUse = 'Computer Use',
   DataControls = 'Data Controls',
   Logger = 'Logger',
+  ChatAudit = 'Chat Audit',
   KeyboardShortcuts = 'Keyboard Shortcuts',
   AboutExodus = 'About Exodus'
 }
@@ -77,6 +79,7 @@ export const NAV_TITLE_KEYS = {
   [SettingsLabel.ComputerUse]: 'nav.computerUse.title',
   [SettingsLabel.DataControls]: 'nav.dataControls.title',
   [SettingsLabel.Logger]: 'nav.logger.title',
+  [SettingsLabel.ChatAudit]: 'nav.chatAudit.title',
   [SettingsLabel.KeyboardShortcuts]: 'nav.keyboardShortcuts.title',
   [SettingsLabel.AboutExodus]: 'nav.about.title'
 } as const satisfies Record<SettingsLabel, ParseKeys<'settings'>>
@@ -131,7 +134,10 @@ export const menus = {
     },
     {
       label: 'nav.group.developer',
-      items: [{ title: SettingsLabel.Logger, icon: ScrollTextIcon }]
+      items: [
+        { title: SettingsLabel.Logger, icon: ScrollTextIcon },
+        { title: SettingsLabel.ChatAudit, icon: DatabaseZapIcon }
+      ]
     },
     {
       label: '',

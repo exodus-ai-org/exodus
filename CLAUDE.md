@@ -134,7 +134,8 @@ Exodus is the successor of the older `universal-client` app and shares its
 
 - **Data dir**: `~/.exodus` for packaged _and_ unpackaged runs (`bun run start`,
   `electron .`) — `getExodusHome()` in `src/main/lib/paths.ts`; startup logs the
-  directory in use (`Data directory`). **PGlite is single-process: never run two
+  directory in use (`Data directory`); `~/.exodus/analytics` holds the DuckDB
+  chat-audit snapshot. **PGlite is single-process: never run two
   Exodus processes (a dev build, the packaged app, universal-client) against it
   at the same time** — the database can be corrupted (backups live in
   `~/.exodus/backups`). `EXODUS_HOME` points a run at another directory.
@@ -147,7 +148,11 @@ Exodus is the successor of the older `universal-client` app and shares its
   don't change it without updating them.
 - **E2E**: `playwright.config.ts` points `$HOME` at a scratch dir
   (`<tmpdir>/exodus-e2e-home`); the electron fixture wipes `~/.exodus` under it
-  before every test and throws at import unless `$HOME` is that dir. To test a
+  before every test and throws at import unless `$HOME` is that dir. It also
+  refuses to launch while anything answers on `localhost:60223`: the renderer
+  always talks to that port, so a running dev build (`bun run start`) would be
+  driven by the suite instead of the app under test — reading and writing the
+  real `~/.exodus` through it. To test a
   packaged build by hand, sandbox `$HOME` and pass `--user-data-dir` the same way.
 
 ### Skills (skills.sh)
@@ -179,6 +184,27 @@ files, the copyable `exodus skills install <id>` command) → install / toggle /
 uninstall; an Installed tab; a footer recommending `exodus-cli`. Spec:
 `docs/superpowers/specs/2026-09-19-skills-sh-market-design.md`.
 
+### Chat Audit (DuckDB)
+
+Settings → Developer → Chat Audit is a read-only SQL console over a DuckDB
+snapshot of the user's data (`src/main/lib/analytics/`, route
+`/api/v1/analytics`, page `settings-form/chat-audit.tsx`). `snapshot.ts`
+copies `chat` / `message` / `project` out of PGlite via NDJSON into
+`~/.exodus/analytics/exodus.duckdb` (usage flattened to `*_tokens` /
+`cost_usd` columns, `content` kept as JSON) and adds a `logs` view straight
+over `~/.exodus/logs/*.jsonl`; `duckdb.ts` lazy-`import()`s
+`@duckdb/node-api` on first use (never at boot), opens the file
+`READ_ONLY` for queries and `READ_WRITE` only while rebuilding, serialised
+on one promise chain, and caps results at 500 rows. Presets live in
+`packages/shared/src/constants/chat-audit-presets.ts` and every one is
+executed against a fixture snapshot in
+`tests/unit/main/lib/analytics/snapshot.test.ts`. PGlite stays the only
+write path. Packaging: the package is a Vite external and forge keeps
+`node_modules/@duckdb/**` + `detect-libc` and unpacks `@duckdb/**` from
+asar (the `.node` dlopens `libduckdb` beside itself). Research notes:
+`docs/duckdb-research.md`; spec:
+`docs/superpowers/specs/2026-09-19-duckdb-chat-audit-design.md`.
+
 ### Migration status
 
 `docs/migration-plan.md` records how the business code was ported from
@@ -194,7 +220,7 @@ The main process runs a **Hono HTTP server** that handles all business logic:
 
 Every business endpoint is mounted on one versioned sub-app (`app.route('/api/v1', v1)`), so the public paths are `/api/v1/<route>`; the lock/trace/settings middlewares still match `/api/*`. A breaking API change ships as a new `/api/v2` sub-app beside v1 rather than mutating v1 in place. Any client of this backend (the renderer, `tests/api`, `exodus-ios`) must address `/api/v1/...`.
 
-`/api/v1/chat`, `/api/v1/lcm`, `/api/v1/history`, `/api/v1/knowledge-base`, `/api/v1/project`, `/api/v1/settings`, `/api/v1/skills`, `/api/v1/audio`, `/api/v1/db-io`, `/api/v1/deep-research`, `/api/v1/discover`, `/api/v1/tools`, `/api/v1/philharmonic`, `/api/v1/s3`, `/api/v1/mcp`, `/api/v1/memory`, `/api/v1/usage`, `/api/v1/logs`, `/api/v1/backup`, `/api/v1/artifacts`, `/api/v1/computer-use`.
+`/api/v1/chat`, `/api/v1/lcm`, `/api/v1/history`, `/api/v1/knowledge-base`, `/api/v1/project`, `/api/v1/settings`, `/api/v1/skills`, `/api/v1/audio`, `/api/v1/db-io`, `/api/v1/deep-research`, `/api/v1/discover`, `/api/v1/tools`, `/api/v1/philharmonic`, `/api/v1/s3`, `/api/v1/mcp`, `/api/v1/memory`, `/api/v1/usage`, `/api/v1/logs`, `/api/v1/backup`, `/api/v1/artifacts`, `/api/v1/computer-use`, `/api/v1/analytics`.
 
 The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatches to the appropriate list-models handler based on the provider in the request body, reading the API key from the request (not from saved settings) to fetch live model catalogs.
 
@@ -697,6 +723,7 @@ Main process:
 - `src/main/lib/ai/providers/list-models/` — Live model catalog handlers per provider (`anthropic.ts`, `openai.ts`, `google.ts`, `xai.ts`, `ollama.ts`); each normalizes that provider's list-models API response into `{ id, displayName, snapshot: ModelSnapshot }`, dispatched by `index.ts` and called from `POST /api/v1/settings/models`
 - `src/main/lib/ai/calling-tools/` — built-in agent tools
 - `src/main/lib/ai/skills/` — skills.sh client, install store, and the prompt seam (see Skills)
+- `src/main/lib/analytics/` — DuckDB chat-audit snapshot + read-only query wrapper (see Chat Audit)
 - `src/main/lib/ai/philharmonic/` — multi-agent Groups
 - `src/main/lib/ai/context-management/` — LCM
 - `src/main/lib/ai/memory/` — personalization memory (consolidation + recall)

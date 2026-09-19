@@ -46,6 +46,8 @@
     "SERVICE_MCP_FAILED": "MCP service failed. Please check your MCP configuration.",
     "SERVICE_UNAVAILABLE": "External service is unavailable. Please try again later.",
     "SERVICE_SKILLS_REGISTRY_FAILED": "The skills registry request failed. Please try again later.",
+    "ANALYTICS_UNAVAILABLE": "The analytics engine could not be started.",
+    "ANALYTICS_SNAPSHOT_MISSING": "No chat snapshot has been built yet.",
     "DB_QUERY_FAILED": "Database query failed.",
     "DB_CONNECTION_FAILED": "Failed to connect to database.",
     "DB_SAVE_FAILED": "Failed to save to database.",

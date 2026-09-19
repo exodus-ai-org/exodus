@@ -51,6 +51,17 @@ export function getGroupDir(conversationId: string): string {
   return dir
 }
 
+/** DuckDB chat-audit snapshot (`exodus.duckdb` + `snapshot.json`) — Settings → Developer. */
+export function getAnalyticsDir(): string {
+  const dir = join(getExodusHome(), 'analytics')
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
+  return dir
+}
+
+export function getAnalyticsDbPath(): string {
+  return join(getAnalyticsDir(), 'exodus.duckdb')
+}
+
 export function getBackupsDir(): string {
   return join(getExodusHome(), 'backups')
 }

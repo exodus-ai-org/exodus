@@ -51,6 +51,7 @@
     "@base-ui/react": "^1.8.0",
     "@dicebear/core": "^10.7.0",
     "@dicebear/styles": "^10.6.0",
+    "@duckdb/node-api": "1.5.5-r.5",
     "@elastic/elasticsearch": "^9.5.1",
     "@electric-sql/pglite": "^0.5.8",
     "@electric-sql/pglite-pgmq": "^0.0.6",

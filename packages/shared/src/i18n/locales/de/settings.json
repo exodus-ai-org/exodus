@@ -73,6 +73,9 @@
     "logger": {
       "title": "Protokolle"
     },
+    "chatAudit": {
+      "title": "Chat-Audit"
+    },
     "keyboardShortcuts": {
       "title": "Tastenkombinationen"
     },
@@ -852,5 +855,55 @@
     "saveFailed": "Einstellungen konnten nicht gespeichert werden",
     "autoSaved": "Automatisch gespeichert",
     "notSaved": "Nicht gespeichert"
+  },
+  "chatAudit": {
+    "intro": "Stellen Sie Ihrem eigenen Verlauf Fragen per SQL. Erstellen Sie einen Snapshot Ihrer Chats als DuckDB-Datei und fragen Sie ihn hier ab oder öffnen Sie ihn in einem beliebigen DuckDB-Client. Nichts auf dieser Seite kann Ihre Daten verändern.",
+    "snapshot": {
+      "title": "Snapshot",
+      "none": "Noch kein Snapshot",
+      "noneHint": "Erstellen Sie einen, um Chats, Nachrichten und Projekte in eine DuckDB-Datei zu kopieren.",
+      "build": "Snapshot erstellen",
+      "rebuild": "Neu erstellen",
+      "building": "Wird erstellt…",
+      "builtAt": "Erstellt {{when}}",
+      "engine": "DuckDB {{version}}",
+      "logsIncluded": "logs (Sicht auf die Logdateien)",
+      "logsMissing": "logs (keine Logdateien gefunden)",
+      "openFolder": "Ordner öffnen",
+      "unavailable": "DuckDB konnte nicht gestartet werden",
+      "unavailableHint": "Die native Bibliothek konnte nicht geladen werden. Details finden Sie im App-Log."
+    },
+    "presets": {
+      "title": "Vorlagen",
+      "messagesPerDay": "Nachrichten pro Tag (30 Tage)",
+      "costByModel": "Tokens & Kosten pro Modell",
+      "toolCalls": "Tool-Aufrufe",
+      "longestChats": "Längste Chats",
+      "errorsByModel": "Fehler pro Modell",
+      "activityByHour": "Aktivität nach Stunde (UTC)",
+      "searchText": "Nachrichtentext durchsuchen",
+      "logsBySeverity": "Logeinträge nach Bereich & Schweregrad"
+    },
+    "query": {
+      "title": "Abfrage",
+      "placeholder": "SELECT … FROM messages",
+      "run": "Abfrage ausführen",
+      "running": "Läuft…",
+      "tables": "Tabellen: chats, messages, projects, logs (Sicht)"
+    },
+    "results": {
+      "rowCount_one": "{{count}} Zeile",
+      "rowCount_other": "{{count}} Zeilen",
+      "truncated": "Erste {{count}} Zeilen (Ergebnis am Zeilenlimit abgeschnitten)",
+      "duration": "{{ms}} ms",
+      "empty": "Die Abfrage lieferte keine Zeilen",
+      "emptyHint": "Versuchen Sie einen größeren Zeitraum oder prüfen Sie die Tabellen- und Spaltennamen oben.",
+      "downloadCsv": "CSV herunterladen",
+      "failed": "Abfrage fehlgeschlagen"
+    },
+    "toast": {
+      "snapshotBuilt": "Snapshot erstellt",
+      "snapshotFailed": "Der Snapshot konnte nicht erstellt werden"
+    }
   }
 }

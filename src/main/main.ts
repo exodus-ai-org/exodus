@@ -2,6 +2,7 @@ import { app, BrowserWindow, globalShortcut, powerMonitor } from 'electron'
 import started from 'electron-squirrel-startup'
 
 import { migrateSharedArtifacts } from './lib/ai/artifacts-migration'
+import { closeDuckDB } from './lib/analytics/duckdb'
 import { setupAutoUpdater } from './lib/auto-updater'
 import { startBackupScheduler } from './lib/backup'
 import { pglite } from './lib/db/db'
@@ -194,6 +195,9 @@ const PGLITE_CLOSE_TIMEOUT_MS = 5000
 app.on('will-quit', (event) => {
   destroyTray()
   globalShortcut.unregisterAll()
+  // Release the DuckDB file (Chat Audit) if it was ever opened; a no-op
+  // otherwise — the native library is only loaded on first use.
+  closeDuckDB()
 
   // Ensure a clean Postgres shutdown (which always performs a shutdown
   // checkpoint) before the process exits, so the on-disk data directory is

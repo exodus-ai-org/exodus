@@ -46,6 +46,8 @@
     "SERVICE_MCP_FAILED": "Il servizio MCP non è riuscito. Verifichi la configurazione MCP.",
     "SERVICE_UNAVAILABLE": "Il servizio esterno non è disponibile. Riprovi più tardi.",
     "SERVICE_SKILLS_REGISTRY_FAILED": "La richiesta al registro delle skill non è riuscita. Riprova più tardi.",
+    "ANALYTICS_UNAVAILABLE": "Impossibile avviare il motore di analisi.",
+    "ANALYTICS_SNAPSHOT_MISSING": "Non è ancora stato creato alcuno snapshot delle chat.",
     "DB_QUERY_FAILED": "Interrogazione del database non riuscita.",
     "DB_CONNECTION_FAILED": "Connessione al database non riuscita.",
     "DB_SAVE_FAILED": "Salvataggio nel database non riuscito.",

@@ -8,6 +8,7 @@ import { getSettings } from '../db/queries'
 import { initJobQueue } from '../jobs/worker'
 import { logger } from '../logger'
 import { errorHandler, lockGate, traceMiddleware } from './middlewares'
+import analyticsRouter from './routes/analytics'
 import artifactsRouter from './routes/artifacts'
 import audioRouter from './routes/audio'
 import backupRouter from './routes/backup'
@@ -79,6 +80,7 @@ export async function connectHttpServer() {
   v1.route('/logs', logsRouter)
   v1.route('/backup', backupRouter)
   v1.route('/artifacts', artifactsRouter)
+  v1.route('/analytics', analyticsRouter)
   app.route('/api/v1', v1)
 
   // Ping

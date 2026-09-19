@@ -12,7 +12,11 @@ import { FuseV1Options, FuseVersion } from '@electron/fuses'
 
 const config: ForgeConfig = {
   packagerConfig: {
-    asar: true,
+    // Unpack DuckDB from the asar: AutoUnpackNativesPlugin only extracts
+    // `*.node`, but `duckdb.node` dlopens `libduckdb.<dylib|so|dll>` next to
+    // itself, and a dlopen cannot read inside the archive. (The plugin merges
+    // this pattern with its own rather than replacing it.)
+    asar: { unpack: '**/node_modules/@duckdb/**' },
     icon: './build/icon',
     extraResource: ['./resources'],
     appBundleId: 'app.yancey.exodus',
@@ -50,13 +54,22 @@ const config: ForgeConfig = {
       // the first ignored directory, so allowing only the deep path left
       // nothing on disk to recurse into. Verified by an empty asar listing
       // with only the leaf-path check in place.
-      const target = '/node_modules/@electric-sql'
-      if (
-        file === target ||
-        file.startsWith(`${target}/`) ||
-        target.startsWith(file)
-      ) {
-        return false
+      // Same rule for DuckDB (lib/analytics/duckdb.ts): the Node-API binding
+      // plus the platform package it requires at runtime, and `detect-libc`,
+      // its one runtime dependency.
+      const kept = [
+        '/node_modules/@electric-sql',
+        '/node_modules/@duckdb',
+        '/node_modules/detect-libc'
+      ]
+      for (const target of kept) {
+        if (
+          file === target ||
+          file.startsWith(`${target}/`) ||
+          target.startsWith(file)
+        ) {
+          return false
+        }
       }
       return true
     }

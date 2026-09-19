@@ -73,6 +73,9 @@
     "logger": {
       "title": "Logger"
     },
+    "chatAudit": {
+      "title": "Chat Audit"
+    },
     "keyboardShortcuts": {
       "title": "Keyboard Shortcuts"
     },
@@ -852,5 +855,55 @@
     "saveFailed": "Failed to save settings",
     "autoSaved": "Auto saved",
     "notSaved": "Not saved"
+  },
+  "chatAudit": {
+    "intro": "Ask questions about your own history with SQL. Build a snapshot of your chats into a DuckDB file, then query it here or open it in any DuckDB client. Nothing on this page can change your data.",
+    "snapshot": {
+      "title": "Snapshot",
+      "none": "No snapshot yet",
+      "noneHint": "Build one to copy your chats, messages and projects into a DuckDB file.",
+      "build": "Build snapshot",
+      "rebuild": "Rebuild",
+      "building": "Building…",
+      "builtAt": "Built {{when}}",
+      "engine": "DuckDB {{version}}",
+      "logsIncluded": "logs (view over the log files)",
+      "logsMissing": "logs (no log files found)",
+      "openFolder": "Open folder",
+      "unavailable": "DuckDB could not be started",
+      "unavailableHint": "The native library failed to load. Check the app log for details."
+    },
+    "presets": {
+      "title": "Presets",
+      "messagesPerDay": "Messages per day (30 days)",
+      "costByModel": "Tokens & cost by model",
+      "toolCalls": "Tool calls",
+      "longestChats": "Longest chats",
+      "errorsByModel": "Errors by model",
+      "activityByHour": "Activity by hour (UTC)",
+      "searchText": "Search message text",
+      "logsBySeverity": "Log entries by scope & severity"
+    },
+    "query": {
+      "title": "Query",
+      "placeholder": "SELECT … FROM messages",
+      "run": "Run query",
+      "running": "Running…",
+      "tables": "Tables: chats, messages, projects, logs (view)"
+    },
+    "results": {
+      "rowCount_one": "{{count}} row",
+      "rowCount_other": "{{count}} rows",
+      "truncated": "First {{count}} rows (result cut at the row cap)",
+      "duration": "{{ms}} ms",
+      "empty": "The query returned no rows",
+      "emptyHint": "Try a wider date range, or check the table and column names above.",
+      "downloadCsv": "Download CSV",
+      "failed": "Query failed"
+    },
+    "toast": {
+      "snapshotBuilt": "Snapshot built",
+      "snapshotFailed": "Couldn’t build the snapshot"
+    }
   }
 }

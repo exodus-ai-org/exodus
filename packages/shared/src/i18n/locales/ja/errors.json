@@ -46,6 +46,8 @@
     "SERVICE_MCP_FAILED": "MCPサービスでエラーが発生しました。MCPの設定を確認してください。",
     "SERVICE_UNAVAILABLE": "外部サービスが利用できません。しばらくしてからもう一度お試しください。",
     "SERVICE_SKILLS_REGISTRY_FAILED": "スキルレジストリへのリクエストに失敗しました。しばらくしてからもう一度お試しください。",
+    "ANALYTICS_UNAVAILABLE": "分析エンジンを起動できませんでした。",
+    "ANALYTICS_SNAPSHOT_MISSING": "チャットのスナップショットはまだ作成されていません。",
     "DB_QUERY_FAILED": "データベースへのクエリに失敗しました。",
     "DB_CONNECTION_FAILED": "データベースへの接続に失敗しました。",
     "DB_SAVE_FAILED": "データベースへの保存に失敗しました。",

@@ -73,6 +73,9 @@
     "logger": {
       "title": "Logger"
     },
+    "chatAudit": {
+      "title": "Audit delle chat"
+    },
     "keyboardShortcuts": {
       "title": "Scorciatoie da tastiera"
     },
@@ -852,5 +855,55 @@
     "saveFailed": "Impossibile salvare le impostazioni",
     "autoSaved": "Salvato automaticamente",
     "notSaved": "Non salvato"
+  },
+  "chatAudit": {
+    "intro": "Interroga la tua cronologia con SQL. Crea uno snapshot delle tue chat in un file DuckDB, poi interrogalo qui o aprilo in qualsiasi client DuckDB. Nulla in questa pagina può modificare i tuoi dati.",
+    "snapshot": {
+      "title": "Snapshot",
+      "none": "Nessuno snapshot",
+      "noneHint": "Creane uno per copiare chat, messaggi e progetti in un file DuckDB.",
+      "build": "Crea snapshot",
+      "rebuild": "Ricrea",
+      "building": "Creazione…",
+      "builtAt": "Creato {{when}}",
+      "engine": "DuckDB {{version}}",
+      "logsIncluded": "logs (vista sui file di log)",
+      "logsMissing": "logs (nessun file di log trovato)",
+      "openFolder": "Apri cartella",
+      "unavailable": "Impossibile avviare DuckDB",
+      "unavailableHint": "La libreria nativa non è stata caricata. Controlla il log dell’app per i dettagli."
+    },
+    "presets": {
+      "title": "Query predefinite",
+      "messagesPerDay": "Messaggi al giorno (30 giorni)",
+      "costByModel": "Token e costo per modello",
+      "toolCalls": "Chiamate agli strumenti",
+      "longestChats": "Chat più lunghe",
+      "errorsByModel": "Errori per modello",
+      "activityByHour": "Attività per ora (UTC)",
+      "searchText": "Cerca nel testo dei messaggi",
+      "logsBySeverity": "Voci di log per ambito e gravità"
+    },
+    "query": {
+      "title": "Query",
+      "placeholder": "SELECT … FROM messages",
+      "run": "Esegui query",
+      "running": "In esecuzione…",
+      "tables": "Tabelle: chats, messages, projects, logs (vista)"
+    },
+    "results": {
+      "rowCount_one": "{{count}} riga",
+      "rowCount_other": "{{count}} righe",
+      "truncated": "Prime {{count}} righe (risultato troncato al limite)",
+      "duration": "{{ms}} ms",
+      "empty": "La query non ha restituito righe",
+      "emptyHint": "Prova un intervallo di date più ampio o controlla i nomi di tabelle e colonne qui sopra.",
+      "downloadCsv": "Scarica CSV",
+      "failed": "Query non riuscita"
+    },
+    "toast": {
+      "snapshotBuilt": "Snapshot creato",
+      "snapshotFailed": "Impossibile creare lo snapshot"
+    }
   }
 }

@@ -73,6 +73,9 @@
     "logger": {
       "title": "Registro"
     },
+    "chatAudit": {
+      "title": "Auditoria de chats"
+    },
     "keyboardShortcuts": {
       "title": "Atalhos de Teclado"
     },
@@ -852,5 +855,55 @@
     "saveFailed": "Falha ao salvar as configurações",
     "autoSaved": "Salvo automaticamente",
     "notSaved": "Não salvo"
+  },
+  "chatAudit": {
+    "intro": "Faça perguntas sobre o seu próprio histórico com SQL. Crie um snapshot dos seus chats em um arquivo DuckDB e consulte-o aqui ou abra-o em qualquer cliente DuckDB. Nada nesta página pode alterar seus dados.",
+    "snapshot": {
+      "title": "Snapshot",
+      "none": "Nenhum snapshot ainda",
+      "noneHint": "Crie um para copiar seus chats, mensagens e projetos para um arquivo DuckDB.",
+      "build": "Criar snapshot",
+      "rebuild": "Recriar",
+      "building": "Criando…",
+      "builtAt": "Criado {{when}}",
+      "engine": "DuckDB {{version}}",
+      "logsIncluded": "logs (visão sobre os arquivos de log)",
+      "logsMissing": "logs (nenhum arquivo de log encontrado)",
+      "openFolder": "Abrir pasta",
+      "unavailable": "Não foi possível iniciar o DuckDB",
+      "unavailableHint": "A biblioteca nativa não pôde ser carregada. Veja o log do app para detalhes."
+    },
+    "presets": {
+      "title": "Consultas prontas",
+      "messagesPerDay": "Mensagens por dia (30 dias)",
+      "costByModel": "Tokens e custo por modelo",
+      "toolCalls": "Chamadas de ferramentas",
+      "longestChats": "Chats mais longos",
+      "errorsByModel": "Erros por modelo",
+      "activityByHour": "Atividade por hora (UTC)",
+      "searchText": "Buscar no texto das mensagens",
+      "logsBySeverity": "Entradas de log por escopo e severidade"
+    },
+    "query": {
+      "title": "Consulta",
+      "placeholder": "SELECT … FROM messages",
+      "run": "Executar consulta",
+      "running": "Executando…",
+      "tables": "Tabelas: chats, messages, projects, logs (visão)"
+    },
+    "results": {
+      "rowCount_one": "{{count}} linha",
+      "rowCount_other": "{{count}} linhas",
+      "truncated": "Primeiras {{count}} linhas (resultado cortado no limite)",
+      "duration": "{{ms}} ms",
+      "empty": "A consulta não retornou linhas",
+      "emptyHint": "Tente um período maior ou verifique os nomes de tabelas e colunas acima.",
+      "downloadCsv": "Baixar CSV",
+      "failed": "Falha na consulta"
+    },
+    "toast": {
+      "snapshotBuilt": "Snapshot criado",
+      "snapshotFailed": "Não foi possível criar o snapshot"
+    }
   }
 }

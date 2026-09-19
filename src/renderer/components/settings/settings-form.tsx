@@ -7,6 +7,7 @@ import { useSettings } from '@/hooks/use-settings'
 import { useSettingsAutosave } from '@/hooks/use-settings-autosave'
 import { useSettingsTab } from '@/hooks/use-settings-tab'
 
+import { ChatAudit } from './settings-form/chat-audit'
 import { ComputerUse } from './settings-form/computer-use'
 import { DataControls } from './settings-form/data-controls'
 import { DeepResearch } from './settings-form/deep-research'
@@ -101,6 +102,8 @@ export function SettingsForm() {
       {activeTitle === SettingsLabel.DataControls && <DataControls />}
 
       {activeTitle === SettingsLabel.Logger && <Logger />}
+
+      {activeTitle === SettingsLabel.ChatAudit && <ChatAudit />}
 
       {activeTitle === SettingsLabel.KeyboardShortcuts && <KeyboardShortcuts />}
 

@@ -73,6 +73,9 @@
     "logger": {
       "title": "ロガー"
     },
+    "chatAudit": {
+      "title": "チャット監査"
+    },
     "keyboardShortcuts": {
       "title": "キーボードショートカット"
     },
@@ -847,5 +850,55 @@
     "saveFailed": "設定の保存に失敗しました",
     "autoSaved": "自動保存しました",
     "notSaved": "保存されていません"
+  },
+  "chatAudit": {
+    "intro": "自分の履歴に SQL で問い合わせできます。チャットのスナップショットを DuckDB ファイルに作成し、ここでクエリするか任意の DuckDB クライアントで開いてください。このページからデータが変更されることはありません。",
+    "snapshot": {
+      "title": "スナップショット",
+      "none": "スナップショットはまだありません",
+      "noneHint": "作成すると、チャット・メッセージ・プロジェクトが DuckDB ファイルにコピーされます。",
+      "build": "スナップショットを作成",
+      "rebuild": "再作成",
+      "building": "作成中…",
+      "builtAt": "{{when}} に作成",
+      "engine": "DuckDB {{version}}",
+      "logsIncluded": "logs (ログファイルのビュー)",
+      "logsMissing": "logs (ログファイルなし)",
+      "openFolder": "フォルダを開く",
+      "unavailable": "DuckDB を起動できませんでした",
+      "unavailableHint": "ネイティブライブラリを読み込めませんでした。詳細はアプリのログを確認してください。"
+    },
+    "presets": {
+      "title": "プリセット",
+      "messagesPerDay": "1 日あたりのメッセージ数 (30 日間)",
+      "costByModel": "モデル別トークン数とコスト",
+      "toolCalls": "ツール呼び出し",
+      "longestChats": "最も長いチャット",
+      "errorsByModel": "モデル別エラー",
+      "activityByHour": "時間帯別アクティビティ (UTC)",
+      "searchText": "メッセージ本文を検索",
+      "logsBySeverity": "スコープ・重大度別ログ件数"
+    },
+    "query": {
+      "title": "クエリ",
+      "placeholder": "SELECT … FROM messages",
+      "run": "クエリを実行",
+      "running": "実行中…",
+      "tables": "テーブル: chats, messages, projects, logs (ビュー)"
+    },
+    "results": {
+      "rowCount_one": "{{count}} 行",
+      "rowCount_other": "{{count}} 行",
+      "truncated": "先頭 {{count}} 行 (上限で打ち切り)",
+      "duration": "{{ms}} ms",
+      "empty": "クエリは行を返しませんでした",
+      "emptyHint": "日付範囲を広げるか、上記のテーブル名・列名を確認してください。",
+      "downloadCsv": "CSV をダウンロード",
+      "failed": "クエリに失敗しました"
+    },
+    "toast": {
+      "snapshotBuilt": "スナップショットを作成しました",
+      "snapshotFailed": "スナップショットを作成できませんでした"
+    }
   }
 }

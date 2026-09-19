@@ -73,6 +73,9 @@
     "logger": {
       "title": "日誌"
     },
+    "chatAudit": {
+      "title": "對話審計"
+    },
     "keyboardShortcuts": {
       "title": "鍵盤快速鍵"
     },
@@ -847,5 +850,55 @@
     "saveFailed": "設定儲存失敗",
     "autoSaved": "已自動儲存",
     "notSaved": "未儲存"
+  },
+  "chatAudit": {
+    "intro": "用 SQL 查詢你自己的對話記錄。先把對話建立成一個 DuckDB 快照檔案，然後在這裡查詢，或用任何 DuckDB 客戶端開啟。此頁面不會更改你的資料。",
+    "snapshot": {
+      "title": "快照",
+      "none": "尚未建立快照",
+      "noneHint": "建立快照會把對話、訊息和專案複製到一個 DuckDB 檔案。",
+      "build": "建立快照",
+      "rebuild": "重新建立",
+      "building": "建立中…",
+      "builtAt": "建立於{{when}}",
+      "engine": "DuckDB {{version}}",
+      "logsIncluded": "logs (記錄檔視圖)",
+      "logsMissing": "logs (找不到記錄檔)",
+      "openFolder": "開啟資料夾",
+      "unavailable": "無法啟動 DuckDB",
+      "unavailableHint": "原生程式庫載入失敗。詳情請查看應用程式記錄。"
+    },
+    "presets": {
+      "title": "預設查詢",
+      "messagesPerDay": "每日訊息數 (30 天)",
+      "costByModel": "各模型的 Token 與費用",
+      "toolCalls": "工具呼叫",
+      "longestChats": "最長的對話",
+      "errorsByModel": "各模型的錯誤",
+      "activityByHour": "各小時活動 (UTC)",
+      "searchText": "搜尋訊息內容",
+      "logsBySeverity": "各範圍與嚴重程度的記錄數"
+    },
+    "query": {
+      "title": "查詢",
+      "placeholder": "SELECT … FROM messages",
+      "run": "執行查詢",
+      "running": "執行中…",
+      "tables": "資料表：chats、messages、projects、logs (視圖)"
+    },
+    "results": {
+      "rowCount_one": "{{count}} 列",
+      "rowCount_other": "{{count}} 列",
+      "truncated": "前 {{count}} 列 (結果已在上限截斷)",
+      "duration": "{{ms}} 毫秒",
+      "empty": "查詢沒有傳回任何資料",
+      "emptyHint": "試試更大的日期範圍，或檢查上面的資料表與欄位名稱。",
+      "downloadCsv": "下載 CSV",
+      "failed": "查詢失敗"
+    },
+    "toast": {
+      "snapshotBuilt": "已建立快照",
+      "snapshotFailed": "無法建立快照"
+    }
   }
 }

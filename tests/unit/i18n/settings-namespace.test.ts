@@ -867,3 +867,17 @@ describe('skillsMarket <Trans> notices render the real components', () => {
     )
   })
 })
+
+describe('chatAudit (Settings → Developer, DuckDB) keys', () => {
+  it('has the nav title and the page copy', () => {
+    expect(settings.nav.chatAudit.title).toBe('Chat Audit')
+    expect(settings.chatAudit.snapshot.build).toBe('Build snapshot')
+    expect(settings.chatAudit.snapshot.builtAt).toBe('Built {{when}}')
+    expect(settings.chatAudit.results.rowCount_one).toBe('{{count}} row')
+    expect(settings.chatAudit.results.rowCount_other).toBe('{{count}} rows')
+    expect(settings.chatAudit.results.duration).toBe('{{ms}} ms')
+    expect(settings.chatAudit.presets.costByModel).toBe(
+      'Tokens & cost by model'
+    )
+  })
+})

@@ -15,6 +15,8 @@ import {
 } from '@playwright/test'
 import { _electron as electron } from 'playwright'
 
+import { SERVER_PORT } from '../../packages/shared/src/constants/systems'
+
 export type ElectronFixtures = {
   electronApp: ElectronApplication
   mainWindow: Page
@@ -35,9 +37,36 @@ if (
   )
 }
 
+/**
+ * The renderer always talks to localhost:SERVER_PORT. If another Exodus (a
+ * `bun run start` dev build, the installed app) is already serving it, the
+ * app under test silently drives THAT process — reading and writing the
+ * developer's real ~/.exodus through it, sandboxed HOME or not. Refuse.
+ */
+async function assertPortFree(): Promise<void> {
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), 1500)
+  try {
+    const res = await fetch(`http://localhost:${SERVER_PORT}/`, {
+      signal: controller.signal
+    })
+    const body = await res.text().catch(() => '')
+    throw new Error(
+      `e2e fixture refuses to run: something already serves localhost:${SERVER_PORT} (${res.status} ${body.slice(0, 40)}). Quit the running Exodus (dev build or installed app) first.`
+    )
+  } catch (err) {
+    if (err instanceof Error && err.message.startsWith('e2e fixture refuses'))
+      throw err
+    // Connection refused / aborted: nothing is listening, which is what we want.
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 export const electronTest = base.extend<ElectronFixtures>({
   // eslint-disable-next-line no-empty-pattern
   electronApp: async ({}, use) => {
+    await assertPortFree()
     // The repo root: Electron resolves `main` (.vite/build/main.js) from
     // package.json, and loads the built renderer from .vite/renderer. Run
     // `bun run package` first — it produces those production bundles (a

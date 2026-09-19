@@ -52,6 +52,15 @@ export const TEST_IDS = {
     cliCommand: 'skills-market.cli-command',
     copyCommandButton: 'skills-market.copy-command-button'
   },
+  chatAudit: {
+    buildButton: 'chat-audit.build-button',
+    openFolderButton: 'chat-audit.open-folder-button',
+    presetButton: 'chat-audit.preset-button',
+    sqlInput: 'chat-audit.sql-input',
+    runButton: 'chat-audit.run-button',
+    resultsTable: 'chat-audit.results-table',
+    downloadCsvButton: 'chat-audit.download-csv-button'
+  },
   fullTextSearch: {
     testConnectionButton: 'full-text-search.test-connection-button',
     reindexButton: 'full-text-search.reindex-button'

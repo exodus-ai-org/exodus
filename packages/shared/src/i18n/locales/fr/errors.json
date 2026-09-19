@@ -46,6 +46,8 @@
     "SERVICE_MCP_FAILED": "Le service MCP a échoué. Veuillez vérifier votre configuration MCP.",
     "SERVICE_UNAVAILABLE": "Le service externe est indisponible. Veuillez réessayer plus tard.",
     "SERVICE_SKILLS_REGISTRY_FAILED": "La requête vers le registre de skills a échoué. Veuillez réessayer plus tard.",
+    "ANALYTICS_UNAVAILABLE": "Le moteur d’analyse n’a pas pu démarrer.",
+    "ANALYTICS_SNAPSHOT_MISSING": "Aucun instantané de discussions n’a encore été créé.",
     "DB_QUERY_FAILED": "Échec de la requête vers la base de données.",
     "DB_CONNECTION_FAILED": "Échec de la connexion à la base de données.",
     "DB_SAVE_FAILED": "Échec de l'enregistrement dans la base de données.",

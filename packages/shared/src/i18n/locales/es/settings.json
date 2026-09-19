@@ -73,6 +73,9 @@
     "logger": {
       "title": "Registro"
     },
+    "chatAudit": {
+      "title": "Auditoría de chats"
+    },
     "keyboardShortcuts": {
       "title": "Atajos de teclado"
     },
@@ -852,5 +855,55 @@
     "saveFailed": "No se pudo guardar la configuración",
     "autoSaved": "Guardado automáticamente",
     "notSaved": "No guardado"
+  },
+  "chatAudit": {
+    "intro": "Haz preguntas sobre tu propio historial con SQL. Crea una instantánea de tus chats en un archivo DuckDB y consúltala aquí o ábrela en cualquier cliente de DuckDB. Nada en esta página puede modificar tus datos.",
+    "snapshot": {
+      "title": "Instantánea",
+      "none": "Aún no hay instantánea",
+      "noneHint": "Crea una para copiar tus chats, mensajes y proyectos en un archivo DuckDB.",
+      "build": "Crear instantánea",
+      "rebuild": "Regenerar",
+      "building": "Creando…",
+      "builtAt": "Creada {{when}}",
+      "engine": "DuckDB {{version}}",
+      "logsIncluded": "logs (vista sobre los archivos de registro)",
+      "logsMissing": "logs (no se encontraron archivos de registro)",
+      "openFolder": "Abrir carpeta",
+      "unavailable": "No se pudo iniciar DuckDB",
+      "unavailableHint": "No se pudo cargar la biblioteca nativa. Revisa el registro de la app para más detalles."
+    },
+    "presets": {
+      "title": "Consultas predefinidas",
+      "messagesPerDay": "Mensajes por día (30 días)",
+      "costByModel": "Tokens y coste por modelo",
+      "toolCalls": "Llamadas a herramientas",
+      "longestChats": "Chats más largos",
+      "errorsByModel": "Errores por modelo",
+      "activityByHour": "Actividad por hora (UTC)",
+      "searchText": "Buscar en el texto de los mensajes",
+      "logsBySeverity": "Entradas de registro por ámbito y gravedad"
+    },
+    "query": {
+      "title": "Consulta",
+      "placeholder": "SELECT … FROM messages",
+      "run": "Ejecutar consulta",
+      "running": "Ejecutando…",
+      "tables": "Tablas: chats, messages, projects, logs (vista)"
+    },
+    "results": {
+      "rowCount_one": "{{count}} fila",
+      "rowCount_other": "{{count}} filas",
+      "truncated": "Primeras {{count}} filas (resultado recortado en el límite)",
+      "duration": "{{ms}} ms",
+      "empty": "La consulta no devolvió filas",
+      "emptyHint": "Prueba un rango de fechas más amplio o revisa los nombres de tablas y columnas de arriba.",
+      "downloadCsv": "Descargar CSV",
+      "failed": "La consulta falló"
+    },
+    "toast": {
+      "snapshotBuilt": "Instantánea creada",
+      "snapshotFailed": "No se pudo crear la instantánea"
+    }
   }
 }
