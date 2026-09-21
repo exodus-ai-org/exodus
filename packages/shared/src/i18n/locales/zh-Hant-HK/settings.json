@@ -156,6 +156,10 @@
     }
   },
   "about": {
+    "sections": {
+      "runtime": "執行環境",
+      "links": "連結"
+    },
     "version": "版本",
     "electron": "Electron",
     "chromium": "Chromium",
@@ -187,6 +191,11 @@
     }
   },
   "personality": {
+    "sections": {
+      "style": "風格",
+      "instructions": "指示",
+      "aboutYou": "關於你"
+    },
     "baseStyle": {
       "label": "基本風格與語氣",
       "description": "設定 Exodus 回覆你時的風格與語氣",
@@ -511,6 +520,11 @@
     }
   },
   "dataControls": {
+    "sections": {
+      "backups": "備份",
+      "transfer": "匯出與匯入",
+      "danger": "危險操作"
+    },
     "autoBackup": {
       "label": "自動備份",
       "description": "每天凌晨 3:00 備份你的資料，備份會儲存在本機的 ~/.exodus/backups/。"
@@ -641,6 +655,16 @@
       "json": "JSON"
     },
     "empty": "尚未設定任何 MCP 伺服器。",
+    "emptyHint": "你註冊的伺服器會顯示在這裡，每個都有開關控制其工具。",
+    "addCard": {
+      "title": "新增 MCP 伺服器",
+      "description": "本機指令（stdio）或遠端 URL。開啟後，其工具即可在對話中使用。"
+    },
+    "deleteDialog": {
+      "title": "要移除 {{name}} 嗎？",
+      "description": "其工具會從對話中消失，指令、標頭與設定也會一併刪除。之後可以重新註冊。",
+      "confirm": "移除"
+    },
     "form": {
       "transport": {
         "label": "傳輸方式",
@@ -744,6 +768,10 @@
       }
     },
     "settings": {
+      "sections": {
+        "memory": "記憶",
+        "context": "上下文管理"
+      },
       "autoCapture": {
         "label": "擷取記憶",
         "description": "每次對話結束後，將關於你的持久事實（興趣、設定、相關人物）整合進記憶——更新現有項目，而非重複建立。"
@@ -767,7 +795,8 @@
       "newMemoryDefaultKey": "新記憶",
       "storedMemoriesHeading": "已儲存的記憶",
       "newButton": "新增",
-      "emptyState": "尚無任何記憶——對話結束後會自動新增，或在下方告訴助理要記住什麼。",
+      "emptyTitle": "尚無任何記憶",
+      "emptyHint": "對話結束後會自動新增，也可以在下方告訴助理要記住什麼。",
       "disabledHeading": "已停用 · {{count}}",
       "toast": {
         "loadFailedTitle": "載入記憶失敗",
@@ -782,7 +811,8 @@
       "trending": "趨勢 (24 小時)",
       "hot": "熱門",
       "allTime": "全部時間",
-      "allTimeWithTotal": "全部時間 ({{total}})"
+      "allTimeWithTotal": "全部時間 ({{total}})",
+      "curated": "精選"
     },
     "tabs": {
       "discover": "探索",
@@ -802,8 +832,15 @@
       "moreFromSource_other": "{{source}} 還有 {{count}} 個 (共 {{total}})",
       "lessFromSource": "收起 {{source}} 的其他項目"
     },
+    "curated": {
+      "summary": "{{owners}} 個發佈者 · {{skills}} 個技能",
+      "skillCount_other": "{{count}} 個技能",
+      "featured": "精選",
+      "showAll": "顯示全部（還有 {{count}} 個）",
+      "showFewer": "收起"
+    },
     "card": {
-      "installs": "{{formatted}} 次安裝",
+      "installs": "<n>{{formatted}}</n> 次安裝",
       "installedBadge": "已安裝",
       "trend": "今日 +{{formatted}}"
     },
@@ -845,7 +882,7 @@
       "uninstallDescription": "其檔案會從技能資料夾移除。你可以隨時重新安裝。"
     },
     "cli": {
-      "notice": "偏好終端機？<cli>exodus-cli</cli> 可管理相同的技能：先執行 <code>npm i -g exodus-cli</code>，再執行 <code>exodus skills</code>。"
+      "title": "偏好終端機？試試 <cli>exodus-cli</cli>"
     },
     "toast": {
       "installedTitle": "已安裝「{{name}}」",
@@ -854,12 +891,6 @@
       "uninstallFailed": "解除安裝失敗",
       "updateFailed": "無法更新技能",
       "copied": "已複製指令"
-    },
-    "leaderboard": {
-      "rank": "#",
-      "skill": "技能",
-      "activity": "今日",
-      "installs": "安裝數"
     }
   },
   "toast": {
@@ -917,14 +948,24 @@
     }
   },
   "devices": {
-    "heading": "裝置",
+    "heading": "已配對的裝置",
     "description": "可透過區域網絡使用 Exodus 的手機和平板電腦。裝置必須先在這裡配對；在配對任何裝置之前，網絡上完全無法連接到 Exodus。",
-    "empty": "尚未配對任何裝置。",
+    "empty": "尚未配對任何裝置",
+    "emptyHint": "已配對的裝置會顯示在這裡，你可以隨時撤銷。",
     "pair": "配對裝置",
+    "pairCard": {
+      "title": "連接 iPhone 或 iPad",
+      "description": "配對時會顯示 QR Code 兩分鐘，請用裝置上的 Exodus App 掃描。"
+    },
     "pairing": {
       "title": "使用 iPhone 上的 Exodus 掃描",
-      "instructions": "在裝置上開啟 Exodus，前往「設定 → 與電腦配對」，然後掃描此 QR Code。兩者必須在同一個網絡上。",
-      "expiresIn": "{{seconds}} 秒後到期",
+      "steps": {
+        "open": "在 iPhone 或 iPad 上開啟 Exodus",
+        "navigate": "前往<strong>設定 → 與電腦配對</strong>",
+        "scan": "掃描此 QR Code"
+      },
+      "sameNetwork": "兩部裝置必須在同一個網絡上。",
+      "expiresIn": "{{time}} 後到期",
       "copyLink": "複製配對連結",
       "linkCopied": "已複製配對連結",
       "cancel": "取消"
@@ -941,13 +982,16 @@
       "confirm": "撤銷"
     },
     "reset": {
+      "label": "重設所有配對",
+      "rowDescription": "移除所有裝置，並簽發新的憑證。",
       "button": "全部重設",
       "title": "要重設所有配對嗎？",
       "description": "所有裝置都會被移除，並簽發新的憑證。每部裝置都必須重新掃描 QR Code。",
       "confirm": "重設"
     },
     "toast": {
-      "failedTitle": "操作失敗"
+      "failedTitle": "操作失敗",
+      "pairedTitle": "裝置已配對"
     }
   }
 }

@@ -156,6 +156,10 @@
     }
   },
   "about": {
+    "sections": {
+      "runtime": "런타임",
+      "links": "링크"
+    },
     "version": "버전",
     "electron": "Electron",
     "chromium": "Chromium",
@@ -187,6 +191,11 @@
     }
   },
   "personality": {
+    "sections": {
+      "style": "스타일",
+      "instructions": "지침",
+      "aboutYou": "사용자 정보"
+    },
     "baseStyle": {
       "label": "기본 스타일과 어조",
       "description": "Exodus가 응답하는 스타일과 어조를 설정합니다",
@@ -511,6 +520,11 @@
     }
   },
   "dataControls": {
+    "sections": {
+      "backups": "백업",
+      "transfer": "내보내기 및 가져오기",
+      "danger": "위험 구역"
+    },
     "autoBackup": {
       "label": "자동 백업",
       "description": "매일 오전 3시에 데이터를 백업합니다. 백업은 ~/.exodus/backups/에 로컬로 저장됩니다."
@@ -641,6 +655,16 @@
       "json": "JSON"
     },
     "empty": "아직 구성된 MCP 서버가 없습니다.",
+    "emptyHint": "등록한 서버가 여기에 표시되며, 서버마다 도구를 켜고 끄는 스위치가 있습니다.",
+    "addCard": {
+      "title": "MCP 서버 추가",
+      "description": "로컬 명령(stdio) 또는 원격 URL입니다. 켜면 해당 도구를 채팅에서 사용할 수 있습니다."
+    },
+    "deleteDialog": {
+      "title": "{{name}}을(를) 제거할까요?",
+      "description": "해당 도구가 채팅에서 사라지고 명령, 헤더, 구성이 삭제됩니다. 나중에 다시 등록할 수 있습니다.",
+      "confirm": "제거"
+    },
     "form": {
       "transport": {
         "label": "전송 방식",
@@ -744,6 +768,10 @@
       }
     },
     "settings": {
+      "sections": {
+        "memory": "메모리",
+        "context": "컨텍스트 관리"
+      },
       "autoCapture": {
         "label": "메모리 자동 기록",
         "description": "대화가 끝날 때마다 당신에 대한 지속적인 사실(관심사, 설정, 사람)을 메모리로 통합합니다 — 중복 생성 대신 기존 항목을 업데이트합니다."
@@ -767,7 +795,8 @@
       "newMemoryDefaultKey": "새 메모리",
       "storedMemoriesHeading": "저장된 메모리",
       "newButton": "새로 만들기",
-      "emptyState": "아직 메모리가 없습니다 — 대화 후 자동으로 추가되거나, 아래에서 어시스턴트에게 기억할 내용을 알려주세요.",
+      "emptyTitle": "아직 메모리가 없습니다",
+      "emptyHint": "대화 후 자동으로 추가됩니다. 아래에서 어시스턴트에게 기억할 내용을 알려줄 수도 있습니다.",
       "disabledHeading": "비활성화됨 · {{count}}",
       "toast": {
         "loadFailedTitle": "메모리를 불러오지 못했습니다",
@@ -782,7 +811,8 @@
       "trending": "트렌드 (24시간)",
       "hot": "인기",
       "allTime": "전체 기간",
-      "allTimeWithTotal": "전체 기간 ({{total}})"
+      "allTimeWithTotal": "전체 기간 ({{total}})",
+      "curated": "엄선"
     },
     "tabs": {
       "discover": "둘러보기",
@@ -802,8 +832,15 @@
       "moreFromSource_other": "{{source}}에서 {{count}}개 더 (총 {{total}})",
       "lessFromSource": "{{source}} 항목 접기"
     },
+    "curated": {
+      "summary": "{{owners}}개 게시자 · {{skills}}개 스킬",
+      "skillCount_other": "{{count}}개 스킬",
+      "featured": "추천",
+      "showAll": "모두 보기 ({{count}}개 더)",
+      "showFewer": "접기"
+    },
     "card": {
-      "installs": "설치 {{formatted}}회",
+      "installs": "설치 <n>{{formatted}}</n>회",
       "installedBadge": "설치됨",
       "trend": "오늘 +{{formatted}}"
     },
@@ -845,7 +882,7 @@
       "uninstallDescription": "파일이 스킬 폴더에서 삭제됩니다. 언제든지 다시 설치할 수 있습니다."
     },
     "cli": {
-      "notice": "터미널을 선호하시나요? <cli>exodus-cli</cli>로 같은 스킬을 관리할 수 있습니다: <code>npm i -g exodus-cli</code> 다음 <code>exodus skills</code>."
+      "title": "터미널이 더 편하다면 <cli>exodus-cli</cli>"
     },
     "toast": {
       "installedTitle": "“{{name}}” 설치됨",
@@ -854,12 +891,6 @@
       "uninstallFailed": "제거 실패",
       "updateFailed": "스킬을 업데이트할 수 없습니다",
       "copied": "명령 복사됨"
-    },
-    "leaderboard": {
-      "rank": "#",
-      "skill": "스킬",
-      "activity": "오늘",
-      "installs": "설치"
     }
   },
   "toast": {
@@ -917,14 +948,24 @@
     }
   },
   "devices": {
-    "heading": "기기",
+    "heading": "페어링된 기기",
     "description": "로컬 네트워크를 통해 Exodus를 사용할 수 있는 휴대폰과 태블릿입니다. 기기는 먼저 여기에서 페어링해야 하며, 페어링하기 전에는 네트워크에서 Exodus에 전혀 접근할 수 없습니다.",
-    "empty": "페어링된 기기가 없습니다.",
+    "empty": "페어링된 기기가 없습니다",
+    "emptyHint": "페어링한 기기가 여기에 표시됩니다. 언제든지 해제할 수 있습니다.",
     "pair": "기기 페어링",
+    "pairCard": {
+      "title": "iPhone 또는 iPad 연결",
+      "description": "페어링을 시작하면 QR 코드가 2분 동안 표시됩니다. 기기의 Exodus 앱으로 스캔하세요."
+    },
     "pairing": {
       "title": "iPhone의 Exodus로 스캔하세요",
-      "instructions": "기기에서 Exodus를 열고 ‘설정 → 컴퓨터와 페어링’으로 이동한 다음 이 코드를 스캔하세요. 두 기기가 같은 네트워크에 있어야 합니다.",
-      "expiresIn": "{{seconds}}초 후 만료",
+      "steps": {
+        "open": "iPhone 또는 iPad에서 Exodus를 엽니다",
+        "navigate": "<strong>설정 → 컴퓨터와 페어링</strong>으로 이동합니다",
+        "scan": "이 코드를 스캔합니다"
+      },
+      "sameNetwork": "두 기기가 같은 네트워크에 있어야 합니다.",
+      "expiresIn": "{{time}} 후 만료",
       "copyLink": "페어링 링크 복사",
       "linkCopied": "페어링 링크를 복사했습니다",
       "cancel": "취소"
@@ -941,13 +982,16 @@
       "confirm": "해제"
     },
     "reset": {
+      "label": "모든 페어링 재설정",
+      "rowDescription": "모든 기기를 제거하고 새 인증서를 발급합니다.",
       "button": "모두 재설정",
       "title": "모든 페어링을 재설정할까요?",
       "description": "모든 기기가 제거되고 새 인증서가 발급됩니다. 각 기기에서 새 코드를 다시 스캔해야 합니다.",
       "confirm": "재설정"
     },
     "toast": {
-      "failedTitle": "작업에 실패했습니다"
+      "failedTitle": "작업에 실패했습니다",
+      "pairedTitle": "기기 페어링 완료"
     }
   }
 }

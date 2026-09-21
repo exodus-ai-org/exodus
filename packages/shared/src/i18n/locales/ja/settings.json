@@ -156,6 +156,10 @@
     }
   },
   "about": {
+    "sections": {
+      "runtime": "ランタイム",
+      "links": "リンク"
+    },
     "version": "バージョン",
     "electron": "Electron",
     "chromium": "Chromium",
@@ -187,6 +191,11 @@
     }
   },
   "personality": {
+    "sections": {
+      "style": "スタイル",
+      "instructions": "指示",
+      "aboutYou": "あなたについて"
+    },
     "baseStyle": {
       "label": "基本のスタイルとトーン",
       "description": "Exodusがあなたに応答する際のスタイルとトーンを設定します",
@@ -511,6 +520,11 @@
     }
   },
   "dataControls": {
+    "sections": {
+      "backups": "バックアップ",
+      "transfer": "エクスポートとインポート",
+      "danger": "危険な操作"
+    },
     "autoBackup": {
       "label": "自動バックアップ",
       "description": "毎日午前3:00にデータをバックアップします。バックアップは~/.exodus/backups/にローカル保存されます。"
@@ -641,6 +655,16 @@
       "json": "JSON"
     },
     "empty": "MCPサーバーはまだ設定されていません。",
+    "emptyHint": "登録したサーバーがここに表示され、それぞれのツールをスイッチで切り替えられます。",
+    "addCard": {
+      "title": "MCP サーバーを追加",
+      "description": "ローカルコマンド（stdio）またはリモート URL。オンにすると、そのツールがチャットで使えるようになります。"
+    },
+    "deleteDialog": {
+      "title": "{{name}} を削除しますか？",
+      "description": "このサーバーのツールはチャットで使えなくなり、コマンド・ヘッダー・設定は削除されます。後でもう一度登録できます。",
+      "confirm": "削除"
+    },
     "form": {
       "transport": {
         "label": "トランスポート",
@@ -744,6 +768,10 @@
       }
     },
     "settings": {
+      "sections": {
+        "memory": "メモリー",
+        "context": "コンテキスト管理"
+      },
       "autoCapture": {
         "label": "メモリーを記録",
         "description": "各会話の後、あなたに関する永続的な事実(興味、環境、人物など)を重複させることなく既存のエントリを更新しながらメモリーに統合します。"
@@ -767,7 +795,8 @@
       "newMemoryDefaultKey": "新しいメモリー",
       "storedMemoriesHeading": "保存されたメモリー",
       "newButton": "新規",
-      "emptyState": "メモリーはまだありません — 会話の後に自動的に追加されるか、下の欄でアシスタントに覚えてほしいことを伝えてください。",
+      "emptyTitle": "メモリーはまだありません",
+      "emptyHint": "会話の後に自動的に追加されます。下の欄でアシスタントに覚えてほしいことを伝えることもできます。",
       "disabledHeading": "無効 · {{count}}",
       "toast": {
         "loadFailedTitle": "メモリーの読み込みに失敗しました",
@@ -782,7 +811,8 @@
       "trending": "トレンド (24時間)",
       "hot": "人気",
       "allTime": "累計",
-      "allTimeWithTotal": "累計 ({{total}})"
+      "allTimeWithTotal": "累計 ({{total}})",
+      "curated": "厳選"
     },
     "tabs": {
       "discover": "探す",
@@ -802,8 +832,15 @@
       "moreFromSource_other": "{{source}} からさらに {{count}} 件 (合計 {{total}})",
       "lessFromSource": "{{source}} の表示を減らす"
     },
+    "curated": {
+      "summary": "{{owners}} 社・{{skills}} 件のスキル",
+      "skillCount_other": "{{count}} 件のスキル",
+      "featured": "注目",
+      "showAll": "すべて表示（あと {{count}} 件）",
+      "showFewer": "表示を減らす"
+    },
     "card": {
-      "installs": "{{formatted}} インストール",
+      "installs": "<n>{{formatted}}</n> インストール",
       "installedBadge": "インストール済み",
       "trend": "今日 +{{formatted}}"
     },
@@ -845,7 +882,7 @@
       "uninstallDescription": "ファイルはスキルフォルダから削除されます。いつでも再インストールできます。"
     },
     "cli": {
-      "notice": "ターミナル派ですか？ <cli>exodus-cli</cli> で同じスキルを管理できます: <code>npm i -g exodus-cli</code> の後に <code>exodus skills</code>。"
+      "title": "ターミナル派なら <cli>exodus-cli</cli>"
     },
     "toast": {
       "installedTitle": "「{{name}}」をインストールしました",
@@ -854,12 +891,6 @@
       "uninstallFailed": "アンインストールに失敗しました",
       "updateFailed": "スキルを更新できませんでした",
       "copied": "コマンドをコピーしました"
-    },
-    "leaderboard": {
-      "rank": "#",
-      "skill": "スキル",
-      "activity": "今日",
-      "installs": "インストール"
     }
   },
   "toast": {
@@ -917,14 +948,24 @@
     }
   },
   "devices": {
-    "heading": "デバイス",
+    "heading": "ペアリング済みのデバイス",
     "description": "ローカルネットワーク経由で Exodus を利用できるスマートフォンやタブレットです。デバイスは最初にここでペアリングする必要があります。ペアリングするまで、Exodus はネットワークから一切アクセスできません。",
-    "empty": "ペアリング済みのデバイスはありません。",
+    "empty": "ペアリング済みのデバイスはありません",
+    "emptyHint": "ペアリングしたデバイスはここに表示されます。いつでも取り消せます。",
     "pair": "デバイスをペアリング",
+    "pairCard": {
+      "title": "iPhone または iPad を接続",
+      "description": "ペアリングを始めると QR コードが 2 分間表示されます。デバイスの Exodus アプリでスキャンしてください。"
+    },
     "pairing": {
       "title": "iPhone の Exodus でスキャン",
-      "instructions": "デバイスで Exodus を開き、「設定 → コンピュータとペアリング」に進んで、このコードをスキャンしてください。両方が同じネットワーク上にある必要があります。",
-      "expiresIn": "あと {{seconds}} 秒で期限切れ",
+      "steps": {
+        "open": "iPhone または iPad で Exodus を開く",
+        "navigate": "<strong>設定 → コンピュータとペアリング</strong>に進む",
+        "scan": "このコードをスキャンする"
+      },
+      "sameNetwork": "両方のデバイスが同じネットワーク上にある必要があります。",
+      "expiresIn": "あと {{time}} で期限切れ",
       "copyLink": "ペアリングリンクをコピー",
       "linkCopied": "ペアリングリンクをコピーしました",
       "cancel": "キャンセル"
@@ -941,13 +982,16 @@
       "confirm": "取り消す"
     },
     "reset": {
+      "label": "すべてのペアリングをリセット",
+      "rowDescription": "すべてのデバイスを削除し、新しい証明書を発行します。",
       "button": "すべてリセット",
       "title": "すべてのペアリングをリセットしますか？",
       "description": "すべてのデバイスが削除され、新しい証明書が発行されます。各デバイスで新しいコードをスキャンし直す必要があります。",
       "confirm": "リセット"
     },
     "toast": {
-      "failedTitle": "操作に失敗しました"
+      "failedTitle": "操作に失敗しました",
+      "pairedTitle": "デバイスをペアリングしました"
     }
   }
 }

@@ -8,8 +8,9 @@ import type {
 import { getHttpErrorMessage, toErrorI18n } from '@exodus/shared/utils/http'
 import { formatDistanceToNow } from 'date-fns'
 import {
-  AlertCircleIcon,
   BookOpenIcon,
+  FileTextIcon,
+  Loader2Icon,
   PencilIcon,
   PlusIcon,
   Trash2Icon
@@ -19,7 +20,6 @@ import { Controller } from 'react-hook-form'
 import { Trans, useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,6 +48,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
+import { cn } from '@/lib/utils'
 
 import {
   createKnowledgeDoc,
@@ -57,6 +58,13 @@ import {
   testKnowledgeBaseConnection,
   updateKnowledgeDoc
 } from '../../../services/knowledge-base'
+import {
+  ENTER_UP,
+  IconTile,
+  SettingsEmpty,
+  SettingsIntro,
+  SwapLabel
+} from '../settings-kit'
 import { SettingsRow, SettingsSection } from '../settings-row'
 import { SettingsSelect } from '../settings-select'
 
@@ -209,7 +217,10 @@ function DocListItem({
   )
   const badge = statusBadge[doc.indexStatus]
   return (
-    <div className="flex items-start gap-3 rounded-md border p-3">
+    <div className={cn('flex items-center gap-3.5', ENTER_UP)}>
+      <IconTile>
+        <FileTextIcon />
+      </IconTile>
       <button
         type="button"
         className="min-w-0 flex-1 text-left"
@@ -235,21 +246,20 @@ function DocListItem({
       <div className="flex shrink-0 gap-1">
         <Button
           variant="ghost"
-          size="icon"
-          className="size-7"
+          size="icon-sm"
           title={t('action.edit')}
           onClick={() => onEdit(doc)}
         >
-          <PencilIcon className="size-3.5" data-icon />
+          <PencilIcon />
         </Button>
         <Button
           variant="ghost"
-          size="icon"
-          className="text-destructive hover:text-destructive size-7"
+          size="icon-sm"
+          className="text-muted-foreground hover:text-destructive"
           title={t('action.delete')}
           onClick={() => onDelete(doc)}
         >
-          <Trash2Icon className="size-3.5" data-icon />
+          <Trash2Icon />
         </Button>
       </div>
     </div>
@@ -387,9 +397,8 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
 
   return (
     <>
-      <Alert className="mb-4">
-        <AlertCircleIcon className="h-4 w-4" />
-        <AlertDescription className="inline">
+      <SettingsIntro>
+        <p>
           <Trans ns="knowledgeBase" i18nKey="alert">
             Exodus's knowledge base is optional and powered by a{' '}
             <strong>self-hosted LightRAG server that you run</strong> — Exodus
@@ -402,8 +411,8 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
             later requires wiping LightRAG's storage and re-adding every
             document, so pick one you'll keep.
           </Trans>
-        </AlertDescription>
-      </Alert>
+        </p>
+      </SettingsIntro>
 
       <SettingsSection>
         <Controller
@@ -520,7 +529,6 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
         <SettingsRow
           label={t('knowledgeBase:connection.label')}
           description={t('knowledgeBase:connection.description')}
-          layout="vertical"
         >
           <Button
             type="button"
@@ -529,27 +537,33 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
             onClick={handleTest}
             data-testid={TEST_IDS.knowledgeBase.testConnectionButton}
           >
-            {testing
-              ? t('knowledgeBase:connection.testingLabel')
-              : t('knowledgeBase:connection.testButton')}
+            <SwapLabel
+              active={testing ? 'testing' : 'idle'}
+              labels={{
+                idle: t('knowledgeBase:connection.testButton'),
+                testing: (
+                  <>
+                    <Loader2Icon className="animate-spin" />
+                    {t('knowledgeBase:connection.testingLabel')}
+                  </>
+                )
+              }}
+            />
           </Button>
         </SettingsRow>
       </SettingsSection>
 
       {url ? (
-        <SettingsSection title={t('knowledgeBase:documents.title')} plain>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <BookOpenIcon className="text-muted-foreground size-4" />
-              <span className="text-sm font-medium">
-                {t('knowledgeBase:documents.title')}
-                {docs.length > 0 && (
-                  <Badge variant="secondary" className="ml-2 text-xs">
-                    {docs.length}
-                  </Badge>
-                )}
-              </span>
-            </div>
+        <div className="flex flex-col gap-2">
+          {/* The label every SettingsSection carries, plus this list's count
+              and its actions. */}
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+              {t('knowledgeBase:documents.title')}
+              {docs.length > 0 && (
+                <span className="ml-1.5 tabular-nums">{docs.length}</span>
+              )}
+            </h2>
             <div className="flex gap-2">
               <Button
                 size="sm"
@@ -565,38 +579,42 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
                 onClick={openAdd}
                 data-testid={TEST_IDS.knowledgeBase.addButton}
               >
-                <PlusIcon className="mr-1 size-3.5" data-icon />
+                <PlusIcon />
                 {t('knowledgeBase:docDialog.addTitle')}
               </Button>
             </div>
           </div>
 
-          {loading ? (
-            <div className="flex flex-col gap-2">
-              <Skeleton className="h-16 w-full" />
-              <Skeleton className="h-16 w-full" />
-            </div>
-          ) : docs.length === 0 ? (
-            <div className="text-muted-foreground rounded-md border border-dashed py-8 text-center text-sm">
-              {t('knowledgeBase:documents.empty')}
-            </div>
-          ) : (
-            <div className="flex flex-col gap-2">
-              {docs.map((doc) => (
+          <SettingsSection>
+            {loading ? (
+              <div className="flex flex-col gap-2">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            ) : docs.length === 0 ? (
+              <SettingsEmpty
+                icon={BookOpenIcon}
+                title={t('knowledgeBase:documents.empty')}
+              />
+            ) : (
+              docs.map((doc) => (
                 <DocListItem
                   key={doc.id}
                   doc={doc}
                   onEdit={openEdit}
                   onDelete={setDeleteTarget}
                 />
-              ))}
-            </div>
-          )}
-        </SettingsSection>
+              ))
+            )}
+          </SettingsSection>
+        </div>
       ) : (
-        <p className="text-muted-foreground px-1 text-xs">
-          {t('knowledgeBase:documents.needsUrlHint')}
-        </p>
+        <SettingsSection title={t('knowledgeBase:documents.title')}>
+          <SettingsEmpty
+            icon={BookOpenIcon}
+            title={t('knowledgeBase:documents.needsUrlHint')}
+          />
+        </SettingsSection>
       )}
 
       <DocDialog

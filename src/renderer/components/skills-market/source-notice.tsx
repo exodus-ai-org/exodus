@@ -1,8 +1,5 @@
 import { SKILLS_SH_HOMEPAGE } from '@exodus/shared/constants/external-urls'
-import { InfoIcon } from 'lucide-react'
 import { Trans } from 'react-i18next'
-
-import { Alert, AlertDescription } from '@/components/ui/alert'
 
 /**
  * Named `components` (not positional children) so a formatter reflow can't
@@ -27,16 +24,5 @@ export function SkillsSourceNoticeText() {
         )
       }}
     />
-  )
-}
-
-export function SkillsSourceNotice() {
-  return (
-    <Alert>
-      <InfoIcon />
-      <AlertDescription>
-        <SkillsSourceNoticeText />
-      </AlertDescription>
-    </Alert>
   )
 }

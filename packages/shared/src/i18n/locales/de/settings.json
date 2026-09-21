@@ -156,6 +156,10 @@
     }
   },
   "about": {
+    "sections": {
+      "runtime": "Laufzeit",
+      "links": "Links"
+    },
     "version": "Version",
     "electron": "Electron",
     "chromium": "Chromium",
@@ -187,6 +191,11 @@
     }
   },
   "personality": {
+    "sections": {
+      "style": "Stil",
+      "instructions": "Anweisungen",
+      "aboutYou": "Über Sie"
+    },
     "baseStyle": {
       "label": "Grundstil und Ton",
       "description": "Legen Sie fest, in welchem Stil und Ton Exodus Ihnen antwortet",
@@ -511,6 +520,11 @@
     }
   },
   "dataControls": {
+    "sections": {
+      "backups": "Backups",
+      "transfer": "Export & Import",
+      "danger": "Gefahrenzone"
+    },
     "autoBackup": {
       "label": "Automatische Backups",
       "description": "Sichert Ihre Daten täglich um 3:00 Uhr. Backups werden lokal unter ~/.exodus/backups/ gespeichert."
@@ -645,6 +659,16 @@
       "json": "JSON"
     },
     "empty": "Noch keine MCP-Server konfiguriert.",
+    "emptyHint": "Registrierte Server erscheinen hier, jeweils mit einem Schalter für ihre Tools.",
+    "addCard": {
+      "title": "MCP-Server hinzufügen",
+      "description": "Ein lokaler Befehl (stdio) oder eine Remote-URL. Seine Tools stehen im Chat zur Verfügung, sobald er eingeschaltet ist."
+    },
+    "deleteDialog": {
+      "title": "{{name}} entfernen?",
+      "description": "Seine Tools verschwinden aus dem Chat, und Befehl, Header und Konfiguration werden gelöscht. Sie können ihn später erneut registrieren.",
+      "confirm": "Entfernen"
+    },
     "form": {
       "transport": {
         "label": "Transport",
@@ -749,6 +773,10 @@
       }
     },
     "settings": {
+      "sections": {
+        "memory": "Gedächtnis",
+        "context": "Kontextverwaltung"
+      },
       "autoCapture": {
         "label": "Gedächtnis erfassen",
         "description": "Fasst nach jeder Unterhaltung dauerhafte Fakten über Sie (Interessen, Einrichtung, Personen) im Gedächtnis zusammen — bestehende Einträge werden aktualisiert, statt sie zu duplizieren."
@@ -772,7 +800,8 @@
       "newMemoryDefaultKey": "Neuer Gedächtniseintrag",
       "storedMemoriesHeading": "Gespeicherte Gedächtniseinträge",
       "newButton": "Neu",
-      "emptyState": "Noch keine Gedächtniseinträge — sie werden automatisch nach Unterhaltungen hinzugefügt, oder sagen Sie dem Assistenten unten, was er sich merken soll.",
+      "emptyTitle": "Noch keine Gedächtniseinträge",
+      "emptyHint": "Sie werden automatisch nach Unterhaltungen hinzugefügt — oder sagen Sie dem Assistenten unten, was er sich merken soll.",
       "disabledHeading": "Deaktiviert · {{count}}",
       "toast": {
         "loadFailedTitle": "Gedächtniseinträge konnten nicht geladen werden",
@@ -787,7 +816,8 @@
       "trending": "Im Trend (24 h)",
       "hot": "Beliebt",
       "allTime": "Gesamt",
-      "allTimeWithTotal": "Gesamt ({{total}})"
+      "allTimeWithTotal": "Gesamt ({{total}})",
+      "curated": "Kuratiert"
     },
     "tabs": {
       "discover": "Entdecken",
@@ -807,8 +837,16 @@
       "moreFromSource_other": "+{{count}} weitere von {{source}} ({{total}} gesamt)",
       "lessFromSource": "Weniger von {{source}} anzeigen"
     },
+    "curated": {
+      "summary": "{{owners}} Anbieter · {{skills}} Skills",
+      "skillCount_one": "{{count}} Skill",
+      "skillCount_other": "{{count}} Skills",
+      "featured": "Empfohlen",
+      "showAll": "Alle anzeigen ({{count}} weitere)",
+      "showFewer": "Weniger anzeigen"
+    },
     "card": {
-      "installs": "{{formatted}} Installationen",
+      "installs": "<n>{{formatted}}</n> Installationen",
       "installedBadge": "Installiert",
       "trend": "+{{formatted}} heute"
     },
@@ -850,7 +888,7 @@
       "uninstallDescription": "Die Dateien werden aus dem Skills-Ordner entfernt. Sie können den Skill jederzeit erneut installieren."
     },
     "cli": {
-      "notice": "Lieber im Terminal? <cli>exodus-cli</cli> verwaltet dieselben Skills: <code>npm i -g exodus-cli</code>, dann <code>exodus skills</code>."
+      "title": "Lieber im Terminal? <cli>exodus-cli</cli> nutzen"
     },
     "toast": {
       "installedTitle": "„{{name}}“ installiert",
@@ -859,12 +897,6 @@
       "uninstallFailed": "Deinstallation fehlgeschlagen",
       "updateFailed": "Der Skill konnte nicht aktualisiert werden",
       "copied": "Befehl kopiert"
-    },
-    "leaderboard": {
-      "rank": "#",
-      "skill": "Skill",
-      "activity": "Heute",
-      "installs": "Installationen"
     }
   },
   "toast": {
@@ -922,14 +954,24 @@
     }
   },
   "devices": {
-    "heading": "Geräte",
+    "heading": "Gekoppelte Geräte",
     "description": "Smartphones und Tablets, die Exodus über Ihr lokales Netzwerk nutzen dürfen. Ein Gerät muss zuerst hier gekoppelt werden; solange keines gekoppelt ist, ist Exodus aus dem Netzwerk überhaupt nicht erreichbar.",
-    "empty": "Keine gekoppelten Geräte.",
+    "empty": "Keine gekoppelten Geräte",
+    "emptyHint": "Gekoppelte Geräte erscheinen hier. Sie können den Zugriff jederzeit widerrufen.",
     "pair": "Gerät koppeln",
+    "pairCard": {
+      "title": "iPhone oder iPad verbinden",
+      "description": "Beim Koppeln wird zwei Minuten lang ein QR-Code angezeigt. Scannen Sie ihn mit der Exodus-App auf dem Gerät."
+    },
     "pairing": {
       "title": "Mit Exodus auf Ihrem iPhone scannen",
-      "instructions": "Öffnen Sie Exodus auf dem Gerät, gehen Sie zu Einstellungen → Mit Computer koppeln und scannen Sie diesen Code. Beide müssen sich im selben Netzwerk befinden.",
-      "expiresIn": "Läuft in {{seconds}} s ab",
+      "steps": {
+        "open": "Öffnen Sie Exodus auf Ihrem iPhone oder iPad",
+        "navigate": "Gehen Sie zu <strong>Einstellungen → Mit Computer koppeln</strong>",
+        "scan": "Scannen Sie diesen Code"
+      },
+      "sameNetwork": "Beide Geräte müssen sich im selben Netzwerk befinden.",
+      "expiresIn": "Läuft in {{time}} ab",
       "copyLink": "Kopplungslink kopieren",
       "linkCopied": "Kopplungslink kopiert",
       "cancel": "Abbrechen"
@@ -946,13 +988,16 @@
       "confirm": "Widerrufen"
     },
     "reset": {
+      "label": "Alle Kopplungen zurücksetzen",
+      "rowDescription": "Entfernt alle Geräte und stellt ein neues Zertifikat aus.",
       "button": "Alle zurücksetzen",
       "title": "Alle Kopplungen zurücksetzen?",
       "description": "Alle Geräte werden entfernt und ein neues Zertifikat wird ausgestellt. Jedes Gerät muss einen neuen Code scannen.",
       "confirm": "Zurücksetzen"
     },
     "toast": {
-      "failedTitle": "Das hat nicht funktioniert"
+      "failedTitle": "Das hat nicht funktioniert",
+      "pairedTitle": "Gerät gekoppelt"
     }
   }
 }

@@ -156,6 +156,10 @@
     }
   },
   "about": {
+    "sections": {
+      "runtime": "Runtime",
+      "links": "Link"
+    },
     "version": "Versione",
     "electron": "Electron",
     "chromium": "Chromium",
@@ -187,6 +191,11 @@
     }
   },
   "personality": {
+    "sections": {
+      "style": "Stile",
+      "instructions": "Istruzioni",
+      "aboutYou": "Su di te"
+    },
     "baseStyle": {
       "label": "Stile e tono di base",
       "description": "Imposta lo stile e il tono con cui Exodus ti risponde",
@@ -511,6 +520,11 @@
     }
   },
   "dataControls": {
+    "sections": {
+      "backups": "Backup",
+      "transfer": "Esporta e importa",
+      "danger": "Zona pericolosa"
+    },
     "autoBackup": {
       "label": "Backup automatici",
       "description": "Esegue il backup dei tuoi dati ogni giorno alle 3:00. I backup vengono salvati localmente in ~/.exodus/backups/."
@@ -645,6 +659,16 @@
       "json": "JSON"
     },
     "empty": "Nessun server MCP configurato ancora.",
+    "emptyHint": "I server che registri compaiono qui, ciascuno con un interruttore per i suoi strumenti.",
+    "addCard": {
+      "title": "Aggiungi un server MCP",
+      "description": "Un comando locale (stdio) o un URL remoto. I suoi strumenti sono disponibili in chat non appena viene attivato."
+    },
+    "deleteDialog": {
+      "title": "Rimuovere {{name}}?",
+      "description": "I suoi strumenti scompaiono dalla chat e il comando, le intestazioni e la configurazione vengono eliminati. Potrai registrarlo di nuovo in seguito.",
+      "confirm": "Rimuovi"
+    },
     "form": {
       "transport": {
         "label": "Trasporto",
@@ -749,6 +773,10 @@
       }
     },
     "settings": {
+      "sections": {
+        "memory": "Memoria",
+        "context": "Gestione del contesto"
+      },
       "autoCapture": {
         "label": "Cattura memorie",
         "description": "Dopo ogni conversazione, consolida in memoria i fatti duraturi su di te (interessi, configurazione, persone) — aggiornando le voci esistenti anziché duplicarle."
@@ -772,7 +800,8 @@
       "newMemoryDefaultKey": "Nuova memoria",
       "storedMemoriesHeading": "Memorie salvate",
       "newButton": "Nuova",
-      "emptyState": "Ancora nessuna memoria — vengono aggiunte automaticamente dopo le conversazioni, oppure chiedi all'assistente di ricordare qualcosa qui sotto.",
+      "emptyTitle": "Ancora nessuna memoria",
+      "emptyHint": "Vengono aggiunte automaticamente dopo le conversazioni, oppure di’ all’assistente cosa ricordare qui sotto.",
       "disabledHeading": "Disattivate · {{count}}",
       "toast": {
         "loadFailedTitle": "Caricamento delle memorie non riuscito",
@@ -787,7 +816,8 @@
       "trending": "Di tendenza (24 h)",
       "hot": "Popolari",
       "allTime": "Di sempre",
-      "allTimeWithTotal": "Di sempre ({{total}})"
+      "allTimeWithTotal": "Di sempre ({{total}})",
+      "curated": "Selezionate"
     },
     "tabs": {
       "discover": "Scopri",
@@ -807,8 +837,16 @@
       "moreFromSource_other": "+{{count}} altre da {{source}} ({{total}} in totale)",
       "lessFromSource": "Mostra meno da {{source}}"
     },
+    "curated": {
+      "summary": "{{owners}} editori · {{skills}} skill",
+      "skillCount_one": "{{count}} skill",
+      "skillCount_other": "{{count}} skill",
+      "featured": "In evidenza",
+      "showAll": "Mostra tutte ({{count}} in più)",
+      "showFewer": "Mostra meno"
+    },
     "card": {
-      "installs": "{{formatted}} installazioni",
+      "installs": "<n>{{formatted}}</n> installazioni",
       "installedBadge": "Installata",
       "trend": "+{{formatted}} oggi"
     },
@@ -850,7 +888,7 @@
       "uninstallDescription": "I suoi file vengono rimossi dalla cartella delle skill. Potrai reinstallarla in qualsiasi momento."
     },
     "cli": {
-      "notice": "Preferisci il terminale? <cli>exodus-cli</cli> gestisce le stesse skill: <code>npm i -g exodus-cli</code>, poi <code>exodus skills</code>."
+      "title": "Preferisci il terminale? Usa <cli>exodus-cli</cli>"
     },
     "toast": {
       "installedTitle": "“{{name}}” installata",
@@ -859,12 +897,6 @@
       "uninstallFailed": "Disinstallazione non riuscita",
       "updateFailed": "Impossibile aggiornare la skill",
       "copied": "Comando copiato"
-    },
-    "leaderboard": {
-      "rank": "#",
-      "skill": "Skill",
-      "activity": "Oggi",
-      "installs": "Installazioni"
     }
   },
   "toast": {
@@ -922,14 +954,24 @@
     }
   },
   "devices": {
-    "heading": "Dispositivi",
+    "heading": "Dispositivi abbinati",
     "description": "Telefoni e tablet che possono usare Exodus tramite la rete locale. Un dispositivo deve prima essere abbinato qui; finché non ce n’è uno abbinato, Exodus non è raggiungibile dalla rete in alcun modo.",
-    "empty": "Nessun dispositivo abbinato.",
+    "empty": "Nessun dispositivo abbinato",
+    "emptyHint": "I dispositivi che abbini compaiono qui. Puoi revocarne uno in qualsiasi momento.",
     "pair": "Abbina un dispositivo",
+    "pairCard": {
+      "title": "Collega un iPhone o un iPad",
+      "description": "L’abbinamento mostra un codice QR per due minuti. Scansionalo con l’app Exodus sul dispositivo."
+    },
     "pairing": {
       "title": "Scansiona con Exodus sul tuo iPhone",
-      "instructions": "Apri Exodus sul dispositivo, vai in Impostazioni → Abbina al computer e scansiona questo codice. Entrambi devono essere sulla stessa rete.",
-      "expiresIn": "Scade tra {{seconds}} s",
+      "steps": {
+        "open": "Apri Exodus sul tuo iPhone o iPad",
+        "navigate": "Vai in <strong>Impostazioni → Abbina al computer</strong>",
+        "scan": "Scansiona questo codice"
+      },
+      "sameNetwork": "Entrambi i dispositivi devono essere sulla stessa rete.",
+      "expiresIn": "Scade tra {{time}}",
       "copyLink": "Copia link di abbinamento",
       "linkCopied": "Link di abbinamento copiato",
       "cancel": "Annulla"
@@ -946,13 +988,16 @@
       "confirm": "Revoca"
     },
     "reset": {
+      "label": "Reimposta tutti gli abbinamenti",
+      "rowDescription": "Rimuove tutti i dispositivi ed emette un nuovo certificato.",
       "button": "Reimposta tutto",
       "title": "Reimpostare tutti gli abbinamenti?",
       "description": "Tutti i dispositivi vengono rimossi e viene emesso un nuovo certificato. Ogni dispositivo dovrà scansionare un nuovo codice.",
       "confirm": "Reimposta"
     },
     "toast": {
-      "failedTitle": "Non ha funzionato"
+      "failedTitle": "Non ha funzionato",
+      "pairedTitle": "Dispositivo abbinato"
     }
   }
 }

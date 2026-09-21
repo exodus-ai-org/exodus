@@ -15,6 +15,7 @@ export const REGISTRY_PAGE_SIZE = 24
 
 /** SWR keys double as request URLs — keep them here so mutate() targets match. */
 export const INSTALLED_SKILLS_KEY = `${BASE}/installed`
+export const CURATED_KEY = `${BASE}/curated`
 
 export function registryKey(view: SkillsView, page: number): string {
   return `${BASE}/registry?view=${view}&page=${page}&per_page=${REGISTRY_PAGE_SIZE}`

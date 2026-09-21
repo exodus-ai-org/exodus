@@ -1,32 +1,34 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
-import { AlertCircleIcon } from 'lucide-react'
+import { KeyRoundIcon } from 'lucide-react'
 import { Controller } from 'react-hook-form'
 import { Trans, useTranslation } from 'react-i18next'
 
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { useSettingsTab } from '@/hooks/use-settings-tab'
 
+import { ENTER_UP, SettingsIntro, SettingsNotice } from '../settings-kit'
 import { SettingsLabel } from '../settings-menu'
 import { SettingsRow, SettingsSection } from '../settings-row'
 
+/**
+ * Discover cannot run without the Brave key, so this is a caveat, not a
+ * description: it is the page's one `Alert` (see `Discover`).
+ */
 export function BraveKeyHint({ onNavigate }: { onNavigate: () => void }) {
   return (
-    <p className="text-muted-foreground -mt-1 text-xs">
-      <Trans ns="discover" i18nKey="braveKeyHint">
-        Discover needs a Brave Search API key.{' '}
-        <button
-          type="button"
-          className="text-primary underline underline-offset-2"
-          onClick={onNavigate}
-        >
-          Add one under Built-in Tools
-        </button>
-        .
-      </Trans>
-    </p>
+    <Trans ns="discover" i18nKey="braveKeyHint">
+      Discover needs a Brave Search API key.{' '}
+      <button
+        type="button"
+        className="text-foreground underline underline-offset-4"
+        onClick={onNavigate}
+      >
+        Add one under Built-in Tools
+      </button>
+      .
+    </Trans>
   )
 }
 
@@ -37,10 +39,15 @@ export function Discover({ form }: { form: UseFormReturnType }) {
 
   return (
     <>
-      <Alert className="mb-4">
-        <AlertCircleIcon className="h-4 w-4" />
-        <AlertDescription className="inline">{t('alert')}</AlertDescription>
-      </Alert>
+      <SettingsIntro>{t('alert')}</SettingsIntro>
+
+      {!hasBraveKey && (
+        <SettingsNotice icon={KeyRoundIcon} className={ENTER_UP}>
+          <BraveKeyHint
+            onNavigate={() => setActiveSection(SettingsLabel.BuiltinTools)}
+          />
+        </SettingsNotice>
+      )}
 
       <SettingsSection>
         <SettingsRow
@@ -59,12 +66,6 @@ export function Discover({ form }: { form: UseFormReturnType }) {
             )}
           />
         </SettingsRow>
-
-        {!hasBraveKey && (
-          <BraveKeyHint
-            onNavigate={() => setActiveSection(SettingsLabel.BuiltinTools)}
-          />
-        )}
 
         <Controller
           control={form.control}

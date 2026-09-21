@@ -5,16 +5,16 @@ import {
   getHttpErrorMessage,
   toErrorI18n
 } from '@exodus/shared/utils/http'
-import { AlertCircleIcon } from 'lucide-react'
+import { Loader2Icon } from 'lucide-react'
 import { useState } from 'react'
 import { Controller } from 'react-hook-form'
 import { Trans, useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
+import { SettingsIntro, SwapLabel } from '../settings-kit'
 import { SettingsRow, SettingsSection } from '../settings-row'
 
 export function SearchQualityNotice() {
@@ -81,12 +81,11 @@ export function FullTextSearch({ form }: { form: UseFormReturnType }) {
 
   return (
     <>
-      <Alert className="mb-4">
-        <AlertCircleIcon className="h-4 w-4" />
-        <AlertDescription className="inline">
+      <SettingsIntro>
+        <p>
           <SearchQualityNotice />
-        </AlertDescription>
-      </Alert>
+        </p>
+      </SettingsIntro>
 
       <SettingsSection>
         <Controller
@@ -175,9 +174,18 @@ export function FullTextSearch({ form }: { form: UseFormReturnType }) {
               onClick={handleTestConnection}
               data-testid={TEST_IDS.fullTextSearch.testConnectionButton}
             >
-              {isTesting
-                ? t('settings:fullTextSearch.connection.testingLabel')
-                : t('settings:fullTextSearch.connection.testButton')}
+              <SwapLabel
+                active={isTesting ? 'busy' : 'idle'}
+                labels={{
+                  idle: t('settings:fullTextSearch.connection.testButton'),
+                  busy: (
+                    <>
+                      <Loader2Icon className="animate-spin" />
+                      {t('settings:fullTextSearch.connection.testingLabel')}
+                    </>
+                  )
+                }}
+              />
             </Button>
             <Button
               type="button"
@@ -186,9 +194,18 @@ export function FullTextSearch({ form }: { form: UseFormReturnType }) {
               onClick={handleReindex}
               data-testid={TEST_IDS.fullTextSearch.reindexButton}
             >
-              {isReindexing
-                ? t('settings:fullTextSearch.connection.reindexingLabel')
-                : t('settings:fullTextSearch.connection.reindexButton')}
+              <SwapLabel
+                active={isReindexing ? 'busy' : 'idle'}
+                labels={{
+                  idle: t('settings:fullTextSearch.connection.reindexButton'),
+                  busy: (
+                    <>
+                      <Loader2Icon className="animate-spin" />
+                      {t('settings:fullTextSearch.connection.reindexingLabel')}
+                    </>
+                  )
+                }}
+              />
             </Button>
           </div>
         </SettingsRow>

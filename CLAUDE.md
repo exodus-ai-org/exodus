@@ -180,14 +180,23 @@ quality reasons). `src/main/lib/ai/skills/`:
   to the absolute install path, wrapped in `<active_skills>`).
 
 Route `/api/v1/skills` (`src/main/lib/server/routes/skills.ts`): `GET
-/registry?view&page&per_page`, `GET /search?q`, `GET /detail?id`, `GET
-/audit?id` (`null` when unaudited), `GET /installed`, `POST /install {id}`,
-`DELETE /:slug`, `PATCH /:slug/toggle`. Skill ids are `owner/repo/slug`, hence
-query params. UI: Settings → Skills Market
-(`src/renderer/components/skills-market/`): Discover (Trending / Hot / All
-time, search, paged card grid) → detail page (security audit, README, bundled
-files, the copyable `exodus skills install <id>` command) → install / toggle /
-uninstall; an Installed tab; a footer recommending `exodus-cli`. Spec:
+/registry?view&page&per_page`, `GET /search?q`, `GET /curated` (the registry's
+publishers, each with every skill it maintains — ~2 MB, no parameters), `GET
+/detail?id`, `GET /audit?id` (`null` when unaudited), `GET /installed`, `POST
+/install {id}`, `DELETE /:slug`, `PATCH /:slug/toggle`. Skill ids are
+`owner/repo/slug`, hence query params. UI: Settings → Skills Market
+(`src/renderer/components/skills-market/`), built from the Settings kit like
+every other page (one-line list rows — rank, name, source, an "Installed"
+badge, installs on the right; no icon tiles, no mono outside commands and file
+paths): Discover (search; All time / Trending / Hot leaderboards, same-repo
+rows collapsed behind "+N more"; Curated — `curated.tsx`, publishers sorted by
+installs, each opening to its skills with the registry's featured pick
+badged) → detail page (security audit card, the copyable `exodus skills
+install <id>` command, README card, bundled files) → install / toggle /
+uninstall; an Installed tab. The page header is one short band: the intro on
+the left and, on the right, a compact terminal block for `exodus-cli`
+(`cli-notice.tsx`: package-manager tabs + two copyable commands, built from the
+same `CommandLine` the detail page uses); it stacks in a narrow window. Spec:
 `docs/superpowers/specs/2026-09-19-skills-sh-market-design.md`.
 
 ### Chat Audit (DuckDB)
@@ -715,14 +724,23 @@ quality reasons). `src/main/lib/ai/skills/`:
   to the absolute install path, wrapped in `<active_skills>`).
 
 Route `/api/v1/skills` (`src/main/lib/server/routes/skills.ts`): `GET
-/registry?view&page&per_page`, `GET /search?q`, `GET /detail?id`, `GET
-/audit?id` (`null` when unaudited), `GET /installed`, `POST /install {id}`,
-`DELETE /:slug`, `PATCH /:slug/toggle`. Skill ids are `owner/repo/slug`, hence
-query params. UI: Settings → Skills Market
-(`src/renderer/components/skills-market/`): Discover (Trending / Hot / All
-time, search, paged card grid) → detail page (security audit, README, bundled
-files, the copyable `exodus skills install <id>` command) → install / toggle /
-uninstall; an Installed tab; a footer recommending `exodus-cli`. Spec:
+/registry?view&page&per_page`, `GET /search?q`, `GET /curated` (the registry's
+publishers, each with every skill it maintains — ~2 MB, no parameters), `GET
+/detail?id`, `GET /audit?id` (`null` when unaudited), `GET /installed`, `POST
+/install {id}`, `DELETE /:slug`, `PATCH /:slug/toggle`. Skill ids are
+`owner/repo/slug`, hence query params. UI: Settings → Skills Market
+(`src/renderer/components/skills-market/`), built from the Settings kit like
+every other page (one-line list rows — rank, name, source, an "Installed"
+badge, installs on the right; no icon tiles, no mono outside commands and file
+paths): Discover (search; All time / Trending / Hot leaderboards, same-repo
+rows collapsed behind "+N more"; Curated — `curated.tsx`, publishers sorted by
+installs, each opening to its skills with the registry's featured pick
+badged) → detail page (security audit card, the copyable `exodus skills
+install <id>` command, README card, bundled files) → install / toggle /
+uninstall; an Installed tab. The page header is one short band: the intro on
+the left and, on the right, a compact terminal block for `exodus-cli`
+(`cli-notice.tsx`: package-manager tabs + two copyable commands, built from the
+same `CommandLine` the detail page uses); it stacks in a narrow window. Spec:
 `docs/superpowers/specs/2026-09-19-skills-sh-market-design.md`.
 
 ### Chat Audit (DuckDB)
@@ -1429,10 +1447,27 @@ Renderer:
 - `src/renderer/components/lock/` — lock screen
 - `src/renderer/components/philharmonic/` — Philharmonic UI
 - `src/renderer/components/philharmonic/schedule/` — Schedule tab (agenda: upcoming one-off + recurring tasks)
-- `src/renderer/components/settings/` — settings
+- `src/renderer/components/settings/` — settings. Every page is put together
+  from `settings-row.tsx` (`SettingsSection` — a titled card of hairline rows —
+  and `SettingsRow`) plus `settings-kit.tsx`: `SettingsIntro` at the top (what the
+  page is for, as muted prose — explanation gets no box; `SettingsNotice`, an
+  `Alert`, is only for a caveat that must be heeded for the thing in front of
+  the user to work, e.g. "same network" in the pairing steps), `SettingsItem` (icon tile + name + one line of meta +
+  actions) for anything in a list and for a page's primary action,
+  `SettingsEmpty` for an empty list, `SwapLabel` for a button whose label
+  changes with state (stable width, blurred crossfade), and the motion tokens
+  `ENTER` / `ENTER_UP` / `PAGE_ENTER` / `staggerDelay()` (`@starting-style`
+  transitions — for what appears occasionally, never on a switch, a select or
+  typing). A page reads top to bottom: intro, primary action, content
+  sections, and anything destructive last in a section of its own, behind an
+  `AlertDialog`. `settings-form.tsx` keys the page wrapper by tab so each page
+  arrives with `PAGE_ENTER`
 - `src/renderer/components/settings/settings-form/devices.tsx` — Settings →
   Integrations → Devices: pair a device by QR code, revoke, reset (the UI of
-  `src/main/lib/lan/`)
+  `src/main/lib/lan/`). The pairing card is `devices-pairing.tsx`: an invitation,
+  or — while a window is open — numbered steps beside the QR code and a
+  countdown drawn from the shared `PAIRING_TTL_MS`
+  (`packages/shared/src/constants/systems.ts`, enforced by the main process)
 - `src/renderer/components/flag.tsx` — `<Flag code>`: a country flag as a
   separate SVG file by ISO code (never emoji — Windows has none; never inlined —
   the web-search list is 239 of them)
@@ -1441,7 +1476,7 @@ Renderer:
 - `src/renderer/stores/` — Jotai atoms
 - `src/renderer/hooks/` — React hooks
 - `src/renderer/services/` — API call wrappers
-- `src/renderer/lib/` — renderer utilities (ipc, stream-manager, `tone.ts` — `data-tone` apply/boot cache)
+- `src/renderer/lib/` — renderer utilities (ipc, stream-manager, `tone.ts` — `data-tone` apply/boot cache, `mask-url.ts` — `maskUrlSecrets()` for showing a URL without its query-string credentials, `heatmap-months.ts` — month labels for the Profile heatmap)
 - `src/renderer/components/tone-bridge.tsx` — follows `settings.colorTone` and re-applies it
 - `src/renderer/sub-apps/` — searchbar, quick-chat, artifacts entry points
 

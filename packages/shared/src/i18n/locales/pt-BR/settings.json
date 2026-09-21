@@ -156,6 +156,10 @@
     }
   },
   "about": {
+    "sections": {
+      "runtime": "Ambiente de execução",
+      "links": "Links"
+    },
     "version": "Versão",
     "electron": "Electron",
     "chromium": "Chromium",
@@ -187,6 +191,11 @@
     }
   },
   "personality": {
+    "sections": {
+      "style": "Estilo",
+      "instructions": "Instruções",
+      "aboutYou": "Sobre você"
+    },
     "baseStyle": {
       "label": "Estilo e tom base",
       "description": "Defina o estilo e o tom de como o Exodus responde a você",
@@ -511,6 +520,11 @@
     }
   },
   "dataControls": {
+    "sections": {
+      "backups": "Backups",
+      "transfer": "Exportar e importar",
+      "danger": "Zona de perigo"
+    },
     "autoBackup": {
       "label": "Backups Automáticos",
       "description": "Faça backup dos seus dados diariamente às 3h. Os backups são armazenados localmente em ~/.exodus/backups/."
@@ -645,6 +659,16 @@
       "json": "JSON"
     },
     "empty": "Ainda não há servidores MCP configurados.",
+    "emptyHint": "Os servidores que você registrar aparecem aqui, cada um com uma chave para suas ferramentas.",
+    "addCard": {
+      "title": "Adicionar um servidor MCP",
+      "description": "Um comando local (stdio) ou uma URL remota. As ferramentas dele ficam disponíveis no chat assim que ele é ativado."
+    },
+    "deleteDialog": {
+      "title": "Remover {{name}}?",
+      "description": "As ferramentas dele somem do chat, e o comando, os cabeçalhos e a configuração são excluídos. Você pode registrá-lo novamente depois.",
+      "confirm": "Remover"
+    },
     "form": {
       "transport": {
         "label": "Transporte",
@@ -749,6 +773,10 @@
       }
     },
     "settings": {
+      "sections": {
+        "memory": "Memória",
+        "context": "Gerenciamento de contexto"
+      },
       "autoCapture": {
         "label": "Capturar memórias",
         "description": "Após cada conversa, consolidar fatos duradouros sobre você (interesses, configuração, pessoas) na memória — atualizando entradas existentes em vez de duplicá-las."
@@ -772,7 +800,8 @@
       "newMemoryDefaultKey": "Nova memória",
       "storedMemoriesHeading": "Memórias armazenadas",
       "newButton": "Nova",
-      "emptyState": "Ainda não há memórias — elas são adicionadas automaticamente após as conversas, ou diga ao assistente para lembrar algo abaixo.",
+      "emptyTitle": "Ainda não há memórias",
+      "emptyHint": "Elas são adicionadas automaticamente após as conversas — ou diga ao assistente o que lembrar abaixo.",
       "disabledHeading": "Desativadas · {{count}}",
       "toast": {
         "loadFailedTitle": "Falha ao carregar memórias",
@@ -787,7 +816,8 @@
       "trending": "Em alta (24 h)",
       "hot": "Populares",
       "allTime": "Todo o período",
-      "allTimeWithTotal": "Todo o período ({{total}})"
+      "allTimeWithTotal": "Todo o período ({{total}})",
+      "curated": "Selecionadas"
     },
     "tabs": {
       "discover": "Descobrir",
@@ -807,8 +837,16 @@
       "moreFromSource_other": "+{{count}} de {{source}} ({{total}} no total)",
       "lessFromSource": "Mostrar menos de {{source}}"
     },
+    "curated": {
+      "summary": "{{owners}} publicadores · {{skills}} skills",
+      "skillCount_one": "{{count}} skill",
+      "skillCount_other": "{{count}} skills",
+      "featured": "Destaque",
+      "showAll": "Mostrar todas ({{count}} a mais)",
+      "showFewer": "Mostrar menos"
+    },
     "card": {
-      "installs": "{{formatted}} instalações",
+      "installs": "<n>{{formatted}}</n> instalações",
       "installedBadge": "Instalada",
       "trend": "+{{formatted}} hoje"
     },
@@ -850,7 +888,7 @@
       "uninstallDescription": "Os arquivos são removidos da pasta de skills. Você pode instalá-la novamente a qualquer momento."
     },
     "cli": {
-      "notice": "Prefere o terminal? O <cli>exodus-cli</cli> gerencia as mesmas skills: <code>npm i -g exodus-cli</code> e depois <code>exodus skills</code>."
+      "title": "Prefere o terminal? Use o <cli>exodus-cli</cli>"
     },
     "toast": {
       "installedTitle": "“{{name}}” instalada",
@@ -859,12 +897,6 @@
       "uninstallFailed": "Falha na desinstalação",
       "updateFailed": "Não foi possível atualizar a skill",
       "copied": "Comando copiado"
-    },
-    "leaderboard": {
-      "rank": "#",
-      "skill": "Skill",
-      "activity": "Hoje",
-      "installs": "Instalações"
     }
   },
   "toast": {
@@ -922,14 +954,24 @@
     }
   },
   "devices": {
-    "heading": "Dispositivos",
+    "heading": "Dispositivos pareados",
     "description": "Celulares e tablets que podem usar o Exodus pela sua rede local. O dispositivo precisa ser pareado aqui primeiro; até que haja algum pareado, o Exodus não fica acessível pela rede de forma alguma.",
-    "empty": "Nenhum dispositivo pareado.",
+    "empty": "Nenhum dispositivo pareado",
+    "emptyHint": "Os dispositivos que você parear aparecem aqui. Você pode revogar qualquer um a qualquer momento.",
     "pair": "Parear um dispositivo",
+    "pairCard": {
+      "title": "Conecte um iPhone ou iPad",
+      "description": "O pareamento mostra um QR code por dois minutos. Escaneie-o com o app Exodus no dispositivo."
+    },
     "pairing": {
       "title": "Escaneie com o Exodus no seu iPhone",
-      "instructions": "Abra o Exodus no dispositivo, vá em Ajustes → Parear com o computador e escaneie este código. Os dois precisam estar na mesma rede.",
-      "expiresIn": "Expira em {{seconds}} s",
+      "steps": {
+        "open": "Abra o Exodus no seu iPhone ou iPad",
+        "navigate": "Vá em <strong>Ajustes → Parear com o computador</strong>",
+        "scan": "Escaneie este código"
+      },
+      "sameNetwork": "Os dois dispositivos precisam estar na mesma rede.",
+      "expiresIn": "Expira em {{time}}",
       "copyLink": "Copiar link de pareamento",
       "linkCopied": "Link de pareamento copiado",
       "cancel": "Cancelar"
@@ -946,13 +988,16 @@
       "confirm": "Revogar"
     },
     "reset": {
+      "label": "Redefinir todos os pareamentos",
+      "rowDescription": "Remove todos os dispositivos e emite um novo certificado.",
       "button": "Redefinir tudo",
       "title": "Redefinir todos os pareamentos?",
       "description": "Todos os dispositivos são removidos e um novo certificado é emitido. Cada dispositivo terá de escanear um novo código.",
       "confirm": "Redefinir"
     },
     "toast": {
-      "failedTitle": "Não deu certo"
+      "failedTitle": "Não deu certo",
+      "pairedTitle": "Dispositivo pareado"
     }
   }
 }

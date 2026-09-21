@@ -1,7 +1,9 @@
 import { randomBytes, timingSafeEqual } from 'crypto'
 import type { NetworkInterfaceInfo } from 'os'
 
-export const PAIRING_TTL_MS = 120_000
+import { PAIRING_TTL_MS } from '@exodus/shared/constants/systems'
+
+export { PAIRING_TTL_MS }
 export const MAX_PAIRING_ATTEMPTS = 5
 
 export interface PairingWindow {

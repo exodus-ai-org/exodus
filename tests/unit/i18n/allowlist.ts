@@ -34,37 +34,37 @@ export const ALLOWLIST: AllowlistEntry[] = [
   {
     file: 'src/renderer/components/settings/settings-form/logger.tsx',
     text: 'traceId:',
-    line: 390,
+    line: 411,
     reason: 'Debug-only technical field label in the raw log inspector.'
   },
   {
     file: 'src/renderer/components/settings/settings-form/logger.tsx',
     text: 'originTraceId:',
-    line: 392,
+    line: 413,
     reason: 'Debug-only technical field label in the raw log inspector.'
   },
   {
     file: 'src/renderer/components/settings/settings-form/system-info.tsx',
     text: 'exodus-ai-org/exodus',
-    line: 72,
+    line: 98,
     reason: 'GitHub org/repo slug, a proper noun.'
   },
   {
     file: 'src/renderer/components/settings/settings-form/system-info.tsx',
     text: '@YanceyOfficial',
-    line: 75,
+    line: 101,
     reason: 'Social handle, a proper noun.'
   },
   {
     file: 'src/renderer/components/settings/settings-form/system-info.tsx',
     text: 'exodus.yancey.app',
-    line: 78,
+    line: 104,
     reason: 'Website domain, a proper noun.'
   },
   {
     file: 'src/renderer/components/settings/settings-form/system-info.tsx',
     text: 'MIT',
-    line: 81,
+    line: 107,
     reason: 'Software license name — never translated.'
   }
 ]

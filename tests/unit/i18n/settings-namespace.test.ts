@@ -801,7 +801,9 @@ describe('settings namespace Phase 5 additions (en)', () => {
     expect(settings.skillsMarket.browse.resultCount_other).toBe(
       '{{count}} results'
     )
-    expect(settings.skillsMarket.card.installs).toBe('{{formatted}} installs')
+    expect(settings.skillsMarket.card.installs).toBe(
+      '<n>{{formatted}}</n> installs'
+    )
     expect(settings.skillsMarket.detail.audit.summary).toBe(
       '{{passed}} of {{total}} checks passed'
     )
@@ -815,7 +817,7 @@ describe('settings namespace Phase 5 additions (en)', () => {
     expect(settings.skillsMarket.sourceNotice).toContain(
       '<registry>skills.sh</registry>'
     )
-    expect(settings.skillsMarket.cli.notice).toContain('<cli>exodus-cli</cli>')
+    expect(settings.skillsMarket.cli.title).toContain('<cli>exodus-cli</cli>')
   })
 
   it('has the new top-level toast.* keys (useSettings / useSettingsAutosave)', () => {
@@ -875,11 +877,24 @@ describe('skillsMarket <Trans> notices render the real components', () => {
     )
   })
 
-  it('cli.notice — <cli> is the repo link and both <code> spans render', async () => {
-    const { CliNotice } = await import('@/components/skills-market/cli-notice')
-    const html = await renderReal(CliNotice)
+  it('card.installs — <n> wraps the number, so it can be coloured apart from the word', async () => {
+    const { Installs } = await import('@/components/skills-market/skill-row')
+    const { createElement } = await import('react')
+    const html = await renderReal(() =>
+      createElement(Installs, { count: 3_500_000, emphasis: true })
+    )
     expect(html).toBe(
-      '<p class="text-muted-foreground text-xs leading-relaxed">Prefer the terminal? <a href="https://github.com/exodus-ai-org/exodus-cli" target="_blank" rel="noopener noreferrer" class="text-foreground underline underline-offset-2">exodus-cli</a> manages the same skills: <code>npm i -g exodus-cli</code>, then <code>exodus skills</code>.</p>'
+      '<span class="text-muted-foreground tabular-nums"><span class="text-foreground">3.5M</span> installs</span>'
+    )
+  })
+
+  it('cli.title — <cli> is the repo link (the commands are not copy: they live in CliQuickStart)', async () => {
+    const { CliTitle } = await import('@/components/skills-market/cli-notice')
+    const { EXODUS_CLI_REPO } =
+      await import('@exodus/shared/constants/external-urls')
+    const html = await renderReal(CliTitle)
+    expect(html).toBe(
+      `Prefer the terminal? Use <a href="${EXODUS_CLI_REPO}" target="_blank" rel="noopener noreferrer" class="text-foreground underline underline-offset-2">exodus-cli</a>`
     )
   })
 })
@@ -895,5 +910,78 @@ describe('chatAudit (Settings → Developer, DuckDB) keys', () => {
     expect(settings.chatAudit.presets.costByModel).toBe(
       'Tokens & cost by model'
     )
+  })
+})
+
+describe('devices.pairing.steps.navigate renders correctly via Trans', () => {
+  // Render the REAL exported component from devices-pairing.tsx, in every locale: the
+  // menu path is the part of the pairing steps people hunt for, and it is only
+  // bold if each catalog kept the literal <strong> tag.
+  const LOCALES = [
+    'en',
+    'de',
+    'es',
+    'fr',
+    'it',
+    'ja',
+    'ko',
+    'pt-BR',
+    'zh-Hant-HK',
+    'zh-Hant-TW'
+  ]
+
+  async function renderStep(locale: string): Promise<string> {
+    const { createElement } = await import('react')
+    const { renderToStaticMarkup } = await import('react-dom/server')
+    const { I18nextProvider, initReactI18next } = await import('react-i18next')
+    const i18next = (await import('i18next')).default
+    const { PairingNavigateStep } =
+      await import('@/components/settings/settings-form/devices-pairing')
+    const catalog = JSON.parse(
+      readFileSync(
+        join(
+          __dirname,
+          '..',
+          '..',
+          '..',
+          'packages',
+          'shared',
+          'src',
+          'i18n',
+          'locales',
+          locale,
+          'settings.json'
+        ),
+        'utf8'
+      )
+    )
+
+    const i18n = i18next.createInstance()
+    await i18n.use(initReactI18next).init({
+      lng: locale,
+      resources: { [locale]: { settings: catalog } },
+      ns: ['settings'],
+      defaultNS: 'settings',
+      interpolation: { escapeValue: false }
+    })
+    return renderToStaticMarkup(
+      createElement(
+        I18nextProvider,
+        { i18n },
+        createElement(PairingNavigateStep)
+      )
+    )
+  }
+
+  it('en — the menu path is a literal <strong>', async () => {
+    expect(await renderStep('en')).toBe(
+      'Go to <strong>Settings → Pair with computer</strong>'
+    )
+  })
+
+  it.each(LOCALES)('%s — keeps exactly one <strong> run', async (locale) => {
+    const html = await renderStep(locale)
+    expect(html.match(/<strong>[^<]+<\/strong>/g)).toHaveLength(1)
+    expect(html).not.toContain('&lt;')
   })
 })

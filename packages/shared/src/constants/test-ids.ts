@@ -42,6 +42,7 @@ export const TEST_IDS = {
     installedTab: 'skills-market.installed-tab',
     row: 'skills-market.row',
     expandGroupButton: 'skills-market.expand-group-button',
+    curatedOwnerButton: 'skills-market.curated-owner-button',
     loadMoreButton: 'skills-market.load-more-button',
     backButton: 'skills-market.back-button',
     installButton: 'skills-market.install-button',

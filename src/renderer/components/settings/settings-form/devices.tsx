@@ -1,6 +1,6 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
-import { QRCodeSVG } from 'qrcode.react'
-import { useEffect, useState } from 'react'
+import { SmartphoneIcon, TabletIcon } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 import useSWR from 'swr'
@@ -16,7 +16,6 @@ import {
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
-import { useClipboard } from '@/hooks/use-clipboard'
 import { useFormat } from '@/lib/format'
 import {
   cancelPairing,
@@ -24,76 +23,18 @@ import {
   getDevices,
   openPairing,
   type PairedDeviceInfo,
-  type PairingInfo,
   resetDevices,
   revokeDevice
 } from '@/services/devices'
 
-import { SettingsSection } from '../settings-row'
-
-/** Seconds until `expiresAt`, ticking once a second. */
-function useSecondsLeft(expiresAt: number): number {
-  const [now, setNow] = useState(() => Date.now())
-  useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 1000)
-    return () => clearInterval(timer)
-  }, [])
-  return Math.max(0, Math.ceil((expiresAt - now) / 1000))
-}
-
-function PairingPanel({
-  pairing,
-  onCancel
-}: {
-  pairing: PairingInfo
-  onCancel: () => void
-}) {
-  const { t } = useTranslation('settings')
-  const { copied, handleCopy } = useClipboard()
-  const secondsLeft = useSecondsLeft(pairing.expiresAt)
-
-  return (
-    <SettingsSection title={t('devices.pairing.title')}>
-      <div className="flex flex-col items-center gap-4">
-        <p className="text-muted-foreground text-center text-sm">
-          {t('devices.pairing.instructions')}
-        </p>
-        {/* Always dark-on-light: a QR code inverted for dark mode won't scan. */}
-        <div className="rounded-xl bg-white p-3">
-          <QRCodeSVG
-            value={pairing.link}
-            size={224}
-            marginSize={2}
-            data-testid={TEST_IDS.devices.qrCode}
-          />
-        </div>
-        <p className="text-muted-foreground text-sm tabular-nums">
-          {t('devices.pairing.expiresIn', { seconds: secondsLeft })}
-        </p>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            data-testid={TEST_IDS.devices.copyLinkButton}
-            onClick={() => handleCopy(pairing.link)}
-          >
-            {copied === pairing.link
-              ? t('devices.pairing.linkCopied')
-              : t('devices.pairing.copyLink')}
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            data-testid={TEST_IDS.devices.cancelPairingButton}
-            onClick={onCancel}
-          >
-            {t('devices.pairing.cancel')}
-          </Button>
-        </div>
-      </div>
-    </SettingsSection>
-  )
-}
+import {
+  ENTER_UP,
+  SettingsEmpty,
+  SettingsIntro,
+  SettingsItem
+} from '../settings-kit'
+import { SettingsRow, SettingsSection } from '../settings-row'
+import { PairCard, PairingPanel } from './devices-pairing'
 
 function DeviceRow({
   device,
@@ -114,25 +55,30 @@ function DeviceRow({
     : t('devices.row.neverSeen')
 
   return (
-    <div
+    <SettingsItem
       data-testid={TEST_IDS.devices.deviceRow}
-      className="flex items-center justify-between gap-4"
-    >
-      <div className="min-w-0">
-        <p className="truncate text-sm font-medium">{device.name}</p>
-        <p className="text-muted-foreground text-xs">{pairedOn}</p>
-        <p className="text-muted-foreground text-xs">{lastSeen}</p>
-      </div>
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        data-testid={TEST_IDS.devices.revokeButton}
-        onClick={onRevoke}
-      >
-        {t('devices.row.revoke')}
-      </Button>
-    </div>
+      className={ENTER_UP}
+      icon={
+        /ipad|tablet/iu.test(device.name) ? <TabletIcon /> : <SmartphoneIcon />
+      }
+      title={<span className="truncate">{device.name}</span>}
+      description={
+        <p className="truncate text-xs">
+          {pairedOn} · {lastSeen}
+        </p>
+      }
+      actions={
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          data-testid={TEST_IDS.devices.revokeButton}
+          onClick={onRevoke}
+        >
+          {t('devices.row.revoke')}
+        </Button>
+      }
+    />
   )
 }
 
@@ -141,6 +87,10 @@ function DeviceRow({
  * device has been paired from this page: "Pair a device" opens a two-minute
  * window and shows its QR code (see src/main/lib/lan/). The page polls while a
  * window is open — that is how it learns the phone has paired.
+ *
+ * Top to bottom: the pairing card (an invitation, or the steps + QR code while
+ * a window is open), the paired devices, then "Reset all" on its own row, away
+ * from the primary action.
  */
 export function Devices() {
   const { t } = useTranslation('settings')
@@ -154,6 +104,29 @@ export function Devices() {
   })
   const pairing = data?.pairing ?? null
   useEffect(() => setPolling(pairing !== null), [pairing])
+
+  // The QR code vanishing is the only other sign a phone has paired, so say
+  // so: a device that was not there while a window was open is the new one.
+  const lastSeen = useRef<{ ids: Set<string>; pairing: boolean } | null>(null)
+  useEffect(() => {
+    if (!data) return
+    const previous = lastSeen.current
+    const added = previous?.pairing
+      ? data.devices.find((device) => !previous.ids.has(device.id))
+      : undefined
+    if (added) {
+      // The name goes in the description: sileo capitalises every word of a
+      // title, which turns "iPhone" into "IPhone".
+      sileo.success({
+        title: t('devices.toast.pairedTitle'),
+        description: added.name
+      })
+    }
+    lastSeen.current = {
+      ids: new Set(data.devices.map((device) => device.id)),
+      pairing: data.pairing !== null
+    }
+  }, [data, t])
 
   async function run(action: () => Promise<unknown>) {
     try {
@@ -170,45 +143,49 @@ export function Devices() {
 
   return (
     <>
-      <p className="text-muted-foreground -mt-4 text-sm">
-        {t('devices.description')}
-      </p>
+      <SettingsIntro>{t('devices.description')}</SettingsIntro>
 
-      <SettingsSection title={t('devices.heading')}>
-        {data?.devices.length === 0 && (
-          <p className="text-muted-foreground text-sm">{t('devices.empty')}</p>
-        )}
-        {data?.devices.map((device) => (
-          <DeviceRow
-            key={device.id}
-            device={device}
-            onRevoke={() => setRevoking(device)}
-          />
-        ))}
-        <div className="flex gap-2">
-          {!pairing && (
-            <Button
-              type="button"
-              data-testid={TEST_IDS.devices.pairButton}
-              onClick={() => run(openPairing)}
-            >
-              {t('devices.pair')}
-            </Button>
+      {pairing ? (
+        <PairingPanel pairing={pairing} onCancel={() => run(cancelPairing)} />
+      ) : (
+        <PairCard onPair={() => run(openPairing)} />
+      )}
+
+      {data && (
+        <SettingsSection title={t('devices.heading')}>
+          {data.devices.length === 0 ? (
+            <SettingsEmpty
+              icon={SmartphoneIcon}
+              title={t('devices.empty')}
+              description={t('devices.emptyHint')}
+            />
+          ) : (
+            data.devices.map((device) => (
+              <DeviceRow
+                key={device.id}
+                device={device}
+                onRevoke={() => setRevoking(device)}
+              />
+            ))
           )}
+        </SettingsSection>
+      )}
+
+      <SettingsSection>
+        <SettingsRow
+          label={t('devices.reset.label')}
+          description={t('devices.reset.rowDescription')}
+        >
           <Button
             type="button"
-            variant="ghost"
+            variant="destructive"
             data-testid={TEST_IDS.devices.resetButton}
             onClick={() => setResetting(true)}
           >
             {t('devices.reset.button')}
           </Button>
-        </div>
+        </SettingsRow>
       </SettingsSection>
-
-      {pairing && (
-        <PairingPanel pairing={pairing} onCancel={() => run(cancelPairing)} />
-      )}
 
       <AlertDialog
         open={revoking !== null}

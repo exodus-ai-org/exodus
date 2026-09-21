@@ -1,11 +1,9 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
 import type { InstalledApp } from '@exodus/shared/types/computer-use'
-import { AlertCircleIcon } from 'lucide-react'
 import { Controller } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import {
   Combobox,
   ComboboxChip,
@@ -21,6 +19,7 @@ import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { useInstalledApps } from '@/hooks/use-installed-apps'
 
+import { SettingsIntro } from '../settings-kit'
 import { SettingsRow, SettingsSection } from '../settings-row'
 
 function AppIcon({
@@ -56,10 +55,7 @@ export function ComputerUse({ form }: { form: UseFormReturnType }) {
 
   return (
     <>
-      <Alert className="mb-4">
-        <AlertCircleIcon className="h-4 w-4" />
-        <AlertDescription className="inline">{t('alert')}</AlertDescription>
-      </Alert>
+      <SettingsIntro>{t('alert')}</SettingsIntro>
 
       <SettingsSection>
         <SettingsRow

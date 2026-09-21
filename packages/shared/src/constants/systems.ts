@@ -7,4 +7,8 @@ export const SERVER_PORT = 60223
 // here. Changing either port means updating every client.
 export const LAN_SERVER_PORT = 60224
 
+// How long a pairing window (and the QR code on Settings → Devices) stays
+// open. The main process enforces it; the renderer only draws the countdown.
+export const PAIRING_TTL_MS = 120_000
+
 export const BASE_URL = `http://localhost:${SERVER_PORT}`

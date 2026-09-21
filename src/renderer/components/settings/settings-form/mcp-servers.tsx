@@ -2,9 +2,9 @@ import { MCP_HOMEPAGE } from '@exodus/shared/constants/external-urls'
 import {
   ChevronDownIcon,
   CloudIcon,
-  InfoIcon,
   Loader2Icon,
   PencilIcon,
+  PlugIcon,
   PlusIcon,
   TerminalIcon,
   Trash2Icon,
@@ -22,12 +22,23 @@ const CodeEditor = lazy(() =>
     default: m.StandaloneCodeEditor
   }))
 )
-import { Alert, AlertDescription } from '@/components/ui/alert'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { maskUrlSecrets } from '@/lib/mask-url'
+import { cn } from '@/lib/utils'
 import {
   createMcpServerApi,
   deleteMcpServerApi,
@@ -37,6 +48,13 @@ import {
   updateMcpServerApi
 } from '@/services/mcp-service'
 
+import {
+  ENTER_UP,
+  SettingsEmpty,
+  SettingsIntro,
+  SettingsItem,
+  staggerDelay
+} from '../settings-kit'
 import { SettingsRow, SettingsSection } from '../settings-row'
 import { SettingsSelect } from '../settings-select'
 
@@ -114,72 +132,87 @@ function ServerCard({
   const isRemote = server.transportType !== 'stdio'
 
   return (
-    <div className="rounded-lg border">
-      <div className="flex items-center gap-3 p-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            {isRemote ? (
-              <CloudIcon className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
-            ) : (
-              <TerminalIcon className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
-            )}
-            <p className="truncate text-sm font-medium">{server.name}</p>
-            {tools.length > 0 && (
-              <Badge variant="secondary" className="text-[10px]">
-                {t('mcpServers.serverCard.toolCount', { count: tools.length })}
-              </Badge>
-            )}
-          </div>
-          <p className="text-muted-foreground truncate pl-5.5 font-mono text-xs">
-            {isRemote
-              ? server.url
-              : `${server.command} ${(server.args ?? []).join(' ')}`}
-          </p>
-        </div>
-        <Switch checked={isActive} onCheckedChange={onToggle} />
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-7 w-7"
-          aria-label={t('mcpServers.serverCard.editAria')}
-          onClick={onEdit}
-        >
-          <PencilIcon className="h-3.5 w-3.5" />
-        </Button>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="text-destructive h-7 w-7"
-          aria-label={t('mcpServers.serverCard.deleteAria')}
-          onClick={onDelete}
-        >
-          <Trash2Icon className="h-3.5 w-3.5" />
-        </Button>
-      </div>
-      {server.description && (
-        <p className="text-muted-foreground p-3 pt-0 text-xs">
-          {server.description}
-        </p>
-      )}
-      {tools.length > 0 && (
+    <SettingsItem
+      className={ENTER_UP}
+      icon={isRemote ? <CloudIcon /> : <TerminalIcon />}
+      title={
         <>
+          <span className="truncate">{server.name}</span>
+          {tools.length > 0 && (
+            <Badge variant="secondary" className="tabular-nums">
+              {t('mcpServers.serverCard.toolCount', { count: tools.length })}
+            </Badge>
+          )}
+        </>
+      }
+      description={
+        <p className="truncate font-mono text-xs">
+          {isRemote
+            ? maskUrlSecrets(server.url ?? '')
+            : `${server.command} ${(server.args ?? []).join(' ')}`}
+        </p>
+      }
+      actions={
+        <>
+          <Switch checked={isActive} onCheckedChange={onToggle} />
           <Button
             variant="ghost"
-            className="text-muted-foreground flex w-full items-center justify-start gap-1 rounded-none border-t px-3 py-1.5 text-xs"
-            onClick={() => setExpanded(!expanded)}
+            size="icon-sm"
+            aria-label={t('mcpServers.serverCard.editAria')}
+            onClick={onEdit}
           >
-            <ChevronDownIcon
-              className={`h-3 w-3 transition-transform ${expanded ? '' : '-rotate-90'}`}
-            />
-            {expanded
-              ? t('mcpServers.serverCard.hideTools')
-              : t('mcpServers.serverCard.showTools')}
+            <PencilIcon />
           </Button>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="text-muted-foreground hover:text-destructive"
+            aria-label={t('mcpServers.serverCard.deleteAria')}
+            onClick={onDelete}
+          >
+            <Trash2Icon />
+          </Button>
+        </>
+      }
+    >
+      {(server.description || tools.length > 0) && (
+        // Lined up under the name, past the icon tile.
+        <div className="flex min-w-0 flex-col items-start gap-2 pl-[54px]">
+          {server.description && (
+            <p className="text-muted-foreground text-xs">
+              {server.description}
+            </p>
+          )}
+          {tools.length > 0 && (
+            <Button
+              variant="ghost"
+              size="xs"
+              className="text-muted-foreground -ml-2.5"
+              aria-expanded={expanded}
+              onClick={() => setExpanded(!expanded)}
+            >
+              <ChevronDownIcon
+                className={cn(
+                  'transition-transform duration-200',
+                  !expanded && '-rotate-90'
+                )}
+              />
+              {expanded
+                ? t('mcpServers.serverCard.hideTools')
+                : t('mcpServers.serverCard.showTools')}
+            </Button>
+          )}
           {expanded && (
-            <div className="flex flex-col gap-1 px-3 pb-2">
-              {tools.map((tool) => (
-                <div key={tool.name} className="flex flex-col">
-                  <p className="text-xs font-medium">{tool.name}</p>
+            // Stretched, not `items-start`: a long description has to wrap
+            // inside the card rather than size the list to its own width.
+            <div className="flex w-full min-w-0 flex-col gap-1.5 self-stretch break-words">
+              {tools.map((tool, index) => (
+                <div
+                  key={tool.name}
+                  className={cn('flex min-w-0 flex-col', ENTER_UP)}
+                  style={staggerDelay(index)}
+                >
+                  <p className="font-mono text-xs font-medium">{tool.name}</p>
                   {tool.description && (
                     <div className="[&_.markdown]:text-muted-foreground [&_.markdown]:text-[11px] [&_.markdown]:leading-snug [&_.markdown_li]:leading-normal [&_.markdown_ol]:mb-0.5 [&_.markdown_ul]:mb-0.5">
                       <Markdown src={tool.description} />
@@ -189,9 +222,9 @@ function ServerCard({
               ))}
             </div>
           )}
-        </>
+        </div>
       )}
-    </div>
+    </SettingsItem>
   )
 }
 
@@ -216,6 +249,8 @@ export function McpServers() {
   const [editing, setEditing] = useState<McpServerItem | null>(null)
   const [isNew, setIsNew] = useState(false)
   const [saving, setSaving] = useState(false)
+  // Removing a server drops its headers and config for good, so it is confirmed.
+  const [deleting, setDeleting] = useState<McpServerItem | null>(null)
   const [transportType, setTransportType] = useState<McpTransportType>('stdio')
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -443,13 +478,12 @@ export function McpServers() {
     name.trim() && (transportType === 'stdio' ? command.trim() : url.trim())
 
   return (
-    <div className="flex flex-col gap-4">
-      <Alert>
-        <InfoIcon className="h-4 w-4" />
-        <AlertDescription>
+    <div className="flex flex-col gap-8">
+      <SettingsIntro>
+        <p>
           <McpIntroNotice />
           {activeCount > 0 && (
-            <span className="ml-1">
+            <span className="ml-1 tabular-nums">
               <Trans
                 ns="settings"
                 i18nKey="mcpServers.activeSummary"
@@ -460,8 +494,8 @@ export function McpServers() {
               </Trans>
             </span>
           )}
-        </AlertDescription>
-      </Alert>
+        </p>
+      </SettingsIntro>
 
       <Tabs defaultValue="form">
         <TabsList className="w-full">
@@ -474,28 +508,55 @@ export function McpServers() {
         </TabsList>
 
         {/* ── Form Tab ─────────────────────────────────────────────────── */}
-        <TabsContent value="form" className="mt-4">
-          <SettingsSection plain>
-            {list.length === 0 && !showForm && (
-              <p className="text-muted-foreground py-8 text-center text-sm">
-                {t('settings:mcpServers.empty')}
-              </p>
+        <TabsContent value="form" className="mt-6">
+          <div className="flex flex-col gap-8">
+            {!showForm && (
+              <SettingsSection>
+                <SettingsItem
+                  icon={<PlugIcon />}
+                  title={t('settings:mcpServers.addCard.title')}
+                  description={t('settings:mcpServers.addCard.description')}
+                  actions={
+                    <Button onClick={startNew}>
+                      <PlusIcon />
+                      {t('settings:mcpServers.form.addServerButton')}
+                    </Button>
+                  }
+                />
+              </SettingsSection>
             )}
 
-            {!showForm &&
-              list.map((s) => (
-                <ServerCard
-                  key={s.id}
-                  server={s}
-                  tools={toolsByServer.get(s.name) ?? []}
-                  onToggle={() => handleToggle(s)}
-                  onEdit={() => startEdit(s)}
-                  onDelete={() => handleDelete(s)}
-                />
-              ))}
+            {!showForm && servers && (
+              <SettingsSection title={t('settings:mcpServers.tabs.servers')}>
+                {list.length === 0 ? (
+                  <SettingsEmpty
+                    icon={PlugIcon}
+                    title={t('settings:mcpServers.empty')}
+                    description={t('settings:mcpServers.emptyHint')}
+                  />
+                ) : (
+                  list.map((server) => (
+                    <ServerCard
+                      key={server.id}
+                      server={server}
+                      tools={toolsByServer.get(server.name) ?? []}
+                      onToggle={() => handleToggle(server)}
+                      onEdit={() => startEdit(server)}
+                      onDelete={() => setDeleting(server)}
+                    />
+                  ))
+                )}
+              </SettingsSection>
+            )}
 
             {showForm && (
-              <div className="flex flex-col gap-3 rounded-lg border p-4">
+              <SettingsSection
+                title={
+                  editing
+                    ? t('settings:mcpServers.form.updateButton')
+                    : t('settings:mcpServers.form.registerButton')
+                }
+              >
                 <SettingsRow
                   label={t('settings:mcpServers.form.transport.label')}
                   description={t(
@@ -718,22 +779,13 @@ export function McpServers() {
                       : t('settings:mcpServers.form.registerButton')}
                   </Button>
                 </div>
-              </div>
+              </SettingsSection>
             )}
-
-            {!showForm && (
-              <div className="flex justify-end">
-                <Button variant="outline" size="sm" onClick={startNew}>
-                  <PlusIcon className="mr-1 h-3.5 w-3.5" />
-                  {t('settings:mcpServers.form.addServerButton')}
-                </Button>
-              </div>
-            )}
-          </SettingsSection>
+          </div>
         </TabsContent>
 
         {/* ── JSON Tab (read-only) ───────────────────────────────────── */}
-        <TabsContent value="json" className="mt-4">
+        <TabsContent value="json" className="mt-6">
           <div className="flex flex-col gap-2">
             <p className="text-muted-foreground text-xs">
               {t('settings:mcpServers.json.description')}
@@ -756,6 +808,37 @@ export function McpServers() {
           </div>
         </TabsContent>
       </Tabs>
+
+      <AlertDialog
+        open={deleting !== null}
+        onOpenChange={(open) => !open && setDeleting(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t('settings:mcpServers.deleteDialog.title', {
+                name: deleting?.name ?? ''
+              })}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('settings:mcpServers.deleteDialog.description')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('action.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => {
+                const server = deleting
+                setDeleting(null)
+                if (server) void handleDelete(server)
+              }}
+            >
+              {t('settings:mcpServers.deleteDialog.confirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
