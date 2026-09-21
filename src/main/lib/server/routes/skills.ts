@@ -13,6 +13,7 @@ import { z } from 'zod'
 import {
   getSkillAudit,
   getSkillDetail,
+  listCuratedSkills,
   listSkills,
   searchSkills,
   SkillsApiError
@@ -28,8 +29,8 @@ import type { Variables } from '../types'
 import { successResponse } from '../utils'
 
 /**
- * `/api/v1/skills` — the skills.sh marketplace (browse / search / detail /
- * audit) plus the local install store. Skill ids are `owner/repo/slug`, so
+ * `/api/v1/skills` — the skills.sh marketplace (browse / search / curated /
+ * detail / audit) plus the local install store. Skill ids are `owner/repo/slug`, so
  * the registry endpoints take them as `?id=` rather than a path segment.
  */
 const skillsRouter = new Hono<{ Variables: Variables }>()
@@ -96,6 +97,15 @@ skillsRouter.get('/search', async (c) => {
   const limit = Math.min(parseIntParam(c.req.query('limit'), 40), 100)
   try {
     return successResponse(c, await searchSkills(q, { limit }))
+  } catch (err) {
+    toRegistryError(err)
+  }
+})
+
+// GET /curated — publishers with every skill they maintain
+skillsRouter.get('/curated', async (c) => {
+  try {
+    return successResponse(c, await listCuratedSkills())
   } catch (err) {
     toRegistryError(err)
   }

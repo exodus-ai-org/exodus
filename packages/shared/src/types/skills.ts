@@ -46,6 +46,26 @@ export interface SkillListResponse {
   pagination: { page: number; perPage: number; total: number; hasMore: boolean }
 }
 
+/**
+ * One publisher on the registry's curated list — a company or project that
+ * maintains its own skills — with every skill it publishes.
+ */
+export interface SkillCuratedOwner {
+  owner: string
+  totalInstalls: number
+  featuredRepo: string
+  /** The slug of the skill the registry features for this owner. */
+  featuredSkill: string
+  skills: SkillListItem[]
+}
+
+export interface SkillCuratedResponse {
+  data: SkillCuratedOwner[]
+  totalOwners: number
+  totalSkills: number
+  generatedAt: string
+}
+
 export interface SkillSearchResponse {
   data: SkillListItem[]
   query: string
