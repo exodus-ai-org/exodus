@@ -192,11 +192,11 @@ export const countryCodes = [
     countryCode: 'km'
   },
   {
-    country: 'Congo',
+    country: 'Republic of the Congo',
     countryCode: 'cg'
   },
   {
-    country: 'Congo, the Democratic Republic of the',
+    country: 'Democratic Republic of the Congo',
     countryCode: 'cd'
   },
   {

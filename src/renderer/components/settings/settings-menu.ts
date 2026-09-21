@@ -4,10 +4,8 @@ import {
   CogIcon,
   DatabaseIcon,
   HammerIcon,
-  HandCoinsIcon,
   InfoIcon,
   KeyboardIcon,
-  MemoryStickIcon,
   NetworkIcon,
   ScrollTextIcon,
   DatabaseZapIcon,
@@ -20,7 +18,9 @@ import {
   CircleUserRoundIcon,
   MicIcon,
   CompassIcon,
-  MonitorSmartphoneIcon
+  MonitorSmartphoneIcon,
+  SparklesIcon,
+  BrainCircuitIcon
 } from 'lucide-react'
 
 export enum SettingsLabel {
@@ -100,7 +100,7 @@ export const menus = {
         { title: SettingsLabel.General, icon: CogIcon },
         { title: SettingsLabel.Profile, icon: CircleUserRoundIcon },
         { title: SettingsLabel.Personality, icon: UserIcon },
-        { title: SettingsLabel.Memory, icon: MemoryStickIcon },
+        { title: SettingsLabel.Memory, icon: BrainCircuitIcon },
         { title: SettingsLabel.Discover, icon: CompassIcon },
         { title: SettingsLabel.Voice, icon: MicIcon },
         { title: SettingsLabel.KeyboardShortcuts, icon: KeyboardIcon }
@@ -109,7 +109,7 @@ export const menus = {
     {
       label: 'nav.group.aiTools',
       items: [
-        { title: SettingsLabel.AiProviders, icon: HandCoinsIcon },
+        { title: SettingsLabel.AiProviders, icon: SparklesIcon },
         { title: SettingsLabel.BuiltinTools, icon: WrenchIcon },
         { title: SettingsLabel.DeepResearch, icon: TelescopeIcon }
       ]
