@@ -62,11 +62,15 @@
 }
 
 :root {
-  --background: oklch(1 0 0);
+  /* Not pure white: a page at oklch(1) is glare, and the tinted tones already
+   * sit at 0.985 with their cards a step lighter — neutral follows the same
+   * ladder (page 0.985, card/popover 0.995, sidebar 0.975) so switching tone
+   * changes the hue, not the depth. */
+  --background: oklch(0.985 0 0);
   --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
+  --card: oklch(0.995 0 0);
   --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
+  --popover: oklch(0.995 0 0);
   --popover-foreground: oklch(0.145 0 0);
   --primary: oklch(0.205 0 0);
   --primary-foreground: oklch(0.985 0 0);
@@ -86,7 +90,7 @@
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
+  --sidebar: oklch(0.975 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
   --sidebar-primary-foreground: oklch(0.985 0 0);
