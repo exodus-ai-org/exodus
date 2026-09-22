@@ -907,12 +907,45 @@
   animation: shake 0.4s ease-in-out;
 }
 
+/* Reduced motion means fewer and gentler animations, not none: movement goes
+ * (nothing slides, scales or rises), the opacity fades that say "something
+ * changed" stay, short, and spinners keep spinning — a frozen spinner reads
+ * as a hang. Setting every duration to 0 made fades pop and the "thinking"
+ * dots freeze. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
+    /* Transitions: only the properties that do not move anything still run
+     * (a @starting-style rise becomes a plain fade; a hover tint still
+     * tints); translate / scale / width / grid rows snap. */
+    transition-property:
+      opacity, color, background-color, border-color, box-shadow, filter !important;
+    transition-duration: 150ms !important;
+    /* tw-animate's animate-in / animate-out keyframes read these: with the
+     * movement zeroed they are pure fades. */
+    --tw-enter-translate-x: 0;
+    --tw-enter-translate-y: 0;
+    --tw-enter-scale: 1;
+    --tw-enter-rotate: 0;
+    --tw-exit-translate-x: 0;
+    --tw-exit-translate-y: 0;
+    --tw-exit-scale: 1;
+    --tw-exit-rotate: 0;
+  }
+
+  /* Keyframe entrances keep a short fixed length; the spinners and the
+   * caret keep their loops — a frozen spinner reads as a hang. */
+  *:not(.animate-spin):not(.animate-pulse):not(.animate-caret-blink) {
+    animation-duration: 150ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  }
+
+  .animate-fade-in-up {
+    animation-name: fade-in !important;
+  }
+
+  .animate-shake {
+    animation: none !important;
   }
 }
