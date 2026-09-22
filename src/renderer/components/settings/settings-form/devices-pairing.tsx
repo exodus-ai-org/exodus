@@ -88,7 +88,7 @@ function Countdown({ expiresAt }: { expiresAt: number }) {
         aria-hidden
         value={secondsLeft}
         max={PAIRING_TTL_MS / 1000}
-        className="w-full **:data-[slot=progress-indicator]:duration-1000 **:data-[slot=progress-indicator]:ease-linear **:data-[slot=progress-track]:h-1"
+        className="w-full **:data-[slot=progress-indicator]:rounded-xl **:data-[slot=progress-indicator]:duration-1000 **:data-[slot=progress-indicator]:ease-linear **:data-[slot=progress-track]:h-1"
       />
       <p className="text-muted-foreground text-xs tabular-nums">
         {t('devices.pairing.expiresIn', { time })}
