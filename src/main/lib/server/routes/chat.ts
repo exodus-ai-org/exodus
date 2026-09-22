@@ -1,22 +1,13 @@
-import type { AgentMessage } from '@earendil-works/pi-agent-core'
-import { agentLoop } from '@earendil-works/pi-agent-core'
-import type { Message } from '@earendil-works/pi-ai'
 import { ErrorCode } from '@exodus/shared/constants/error-codes'
-import { NotFoundError } from '@exodus/shared/errors/app-error'
+import { TOOL_NAMES, toToolName } from '@exodus/shared/constants/tool-names'
+import { NotFoundError, ValidationError } from '@exodus/shared/errors/app-error'
 import { AdvancedTools } from '@exodus/shared/types/ai'
-import type {
-  ChatAssistantMessage,
-  ChatMessage,
-  ChatSseEvent,
-  ChatToolResultMessage,
-  ToolNotice
-} from '@exodus/shared/types/chat'
+import type { ChatMessage, ToolNotice } from '@exodus/shared/types/chat'
 import { Hono } from 'hono'
-import { v4 as uuidV4 } from 'uuid'
 
 import { LcmManager, freshTailRuns } from '../../ai/context-management'
-import { dropBrokenRuns } from '../../ai/kernel/invariant'
-import { streamFn } from '../../ai/kernel/models'
+import { RunRecorder } from '../../ai/kernel/record'
+import { runAgent } from '../../ai/kernel/run'
 import { getMcpTools } from '../../ai/mcp'
 import {
   formatMemoriesForSystem,
@@ -34,7 +25,6 @@ import {
   getModelFromProvider,
   getTextFromMessage
 } from '../../ai/utils/chat-message-util'
-import { calculateCost } from '../../ai/utils/cost'
 import { getProjectById, bumpProjectUpdatedAt } from '../../db/project-queries'
 import {
   deleteChatById,
@@ -62,16 +52,24 @@ import {
   updateSuccessResponse,
   validateSchema
 } from '../utils'
-import {
-  EMPTY_TURN_MESSAGE,
-  extractToolErrorMessage,
-  isEmptyAssistantTurn,
-  toFriendlyChatError
-} from './chat-errors'
+import { toFriendlyChatError } from './chat-errors'
 import { stripId, toDbRow, withRunId } from './chat-persistence'
 import { createSseWriter } from './chat-sse'
 
 const chat = new Hono<{ Variables: Variables }>()
+
+/** A tool's opt-in notice on its `details`, if it is well-formed. */
+function noticeOf(details: unknown): ToolNotice | null {
+  const n =
+    details && typeof details === 'object' && 'notice' in details
+      ? (details as { notice?: unknown }).notice
+      : null
+  return n &&
+    typeof n === 'object' &&
+    typeof (n as ToolNotice).message === 'string'
+    ? (n as ToolNotice)
+    : null
+}
 
 chat.get('/search', async (c) => {
   const query = c.req.query('query') ?? ''
@@ -110,8 +108,16 @@ chat.post('/', async (c) => {
 
   // The last message is the new user message; everything before is context.
   // Its id names the run every message it produces belongs to.
-  const userMessage = withRunId(allMessages.at(-1)!, allMessages.at(-1)!.id)
-  const runId = userMessage.id
+  const last = allMessages.at(-1)!
+  if (last.role !== 'user') {
+    throw new ValidationError(
+      ErrorCode.VALIDATION_NO_USER_MESSAGE,
+      'The last message must be the user prompt'
+    )
+  }
+  const userMessage = withRunId(last, last.id)
+  /** The conversation as the client sent it, with the prompt stamped. */
+  const history: ChatMessage[] = [...allMessages.slice(0, -1), userMessage]
 
   // Create chat record if new
   const existingChat = await getChatById({ id })
@@ -247,353 +253,139 @@ chat.post('/', async (c) => {
       memoriesSection +
       skillsSection
 
-  // Build SSE streaming response
+  // Deep Research forces a strong reasoning effort regardless of what the
+  // composer's picker requested. pi's ThinkingLevel has every tier of the
+  // app's EffortLevel but 'off', which is "no reasoning option".
+  const effectiveReasoning = advancedTools?.includes(AdvancedTools.DeepResearch)
+    ? 'high'
+    : reasoningEffort && reasoningEffort !== 'off'
+      ? reasoningEffort
+      : undefined
+
+  // Tools a call to which the kernel blocks before it runs — the binder
+  // does not bind them either; this covers a setting changed mid-run and
+  // the model naming a tool it was not given.
+  const disabledTools = new Set(
+    (setting.tools?.disabledTools ?? []).map(toToolName)
+  )
+  if (!setting.computerUse?.enabled) disabledTools.add(TOOL_NAMES.computerUse)
+
+  const recorder = new RunRecorder({
+    chatId: id,
+    model,
+    apiKey,
+    lcm: lcm
+      ? {
+          freshTailRuns: freshTailRuns(memoryConfig),
+          contextWindowPercent: memoryConfig?.contextWindowPercent ?? 75
+        }
+      : null,
+    memoryCapture,
+    indexMessage,
+    priorMessages: history
+  })
+
+  // The run streams as SSE: every kernel event maps onto one wire event
+  // (shapes unchanged; every message carries `runId`).
   const stream = new ReadableStream({
     async start(controller) {
       const sse = createSseWriter(controller)
-      const sendEvent = (event: ChatSseEvent) => sse.send(event)
-
-      let assistantMsgId = uuidV4()
-      let currentAssistantMsg: ChatAssistantMessage | null = null
-      const newMessages: ChatMessage[] = []
-      // Stable message id per in-flight tool call, assigned at
-      // `tool_execution_start`. Streaming `tool_execution_update` frames (used by
-      // `computerUse` to drive its live chat panel) and the final
-      // `tool_execution_end` message all reuse it, so the renderer upserts one
-      // card in place instead of flashing a new one per frame. Must be a UUID —
-      // the id lands in the `message.id` uuid column on save.
-      const toolMsgIds = new Map<string, string>()
-      // Wall-clock turn start — used to stamp the last assistant message with
-      // an accurate durationMs that the UI can show as "Worked for X seconds".
-      const turnStartedAt = Date.now()
-
       try {
-        // Deep Research forces a strong reasoning effort regardless of what
-        // the composer's picker requested. pi's ThinkingLevel has every tier
-        // of the app's EffortLevel but 'off', which is "no reasoning option".
-        const effectiveReasoning = advancedTools?.includes(
-          AdvancedTools.DeepResearch
-        )
-          ? 'high'
-          : reasoningEffort && reasoningEffort !== 'off'
-            ? reasoningEffort
-            : undefined
-
-        const agentStream = agentLoop(
-          [stripId(userMessage) as AgentMessage],
-          {
-            systemPrompt: systemContent,
-            messages: contextMessages,
-            tools
-          },
-          {
-            model,
-            apiKey,
-            reasoning: effectiveReasoning,
-            convertToLlm: (agentMessages: AgentMessage[]): Message[] => {
-              const messages = agentMessages.filter(
-                (m): m is Message =>
-                  (m as Message).role === 'user' ||
-                  (m as Message).role === 'assistant' ||
-                  (m as Message).role === 'toolResult'
-              )
-              // Context is assembled in whole runs, so this never fires;
-              // it is the last line of defence against a 400 from the
-              // provider (a tool result without its tool call). Thinking
-              // blocks and cross-provider handoff are pi 0.85's job.
-              const { messages: safe, dropped } = dropBrokenRuns(messages)
-              if (dropped > 0) {
-                logger.error(
-                  'chat',
-                  'Dropped runs that would have broken the provider request',
-                  { chatId: id, dropped }
-                )
-              }
-              return safe
-            }
-          },
-          c.req.raw.signal,
-          streamFn
-        )
-
-        for await (const event of agentStream) {
-          if (event.type === 'message_update') {
-            const msg = event.message as Message
-            if (msg.role !== 'assistant') continue
-            const assistantMsg = msg as Message & { role: 'assistant' }
-            currentAssistantMsg = {
-              id: assistantMsgId,
-              runId,
-              role: 'assistant',
-              content: assistantMsg.content,
-              usage: assistantMsg.usage,
-              api: assistantMsg.api,
-              provider: assistantMsg.provider,
-              model: assistantMsg.model,
-              stopReason: assistantMsg.stopReason,
-              timestamp: assistantMsg.timestamp ?? Date.now()
-            }
-            // Coalesced, not sent per delta — see STREAM_FLUSH_INTERVAL_MS.
-            sse.queueUpdate(currentAssistantMsg)
-          } else if (event.type === 'message_end') {
-            const msg = event.message as Message
-            if (msg.role === 'assistant') {
-              const assistantMsg = msg as Message & { role: 'assistant' }
-              // pi-ai surfaces provider failures (e.g. an OpenAI 4xx on the
-              // request) as an assistant message with stopReason 'error' and the
-              // detail on `errorMessage` — it does NOT throw. Without this guard
-              // the turn was saved as an empty assistant message and the user
-              // saw "no response" with no explanation. Re-throw so the catch
-              // below logs the real error and streams it to the client.
-              if (assistantMsg.stopReason === 'error') {
-                throw new Error(
-                  assistantMsg.errorMessage ||
-                    'The model returned an error without details.'
-                )
-              }
-              // Background/async "pro" models (e.g. gpt-5.5-pro) can end the
-              // stream without a `response.completed` event — pi-ai then yields
-              // a normal 'stop' message with empty content and zero tokens.
-              // Accepting it silently drops the answer (and any artifact) and
-              // pins the cost readout at $0, with no error shown. Surface it.
-              if (isEmptyAssistantTurn(assistantMsg)) {
-                // Stop pressed before the first token: nothing to keep, and
-                // not a failure either.
-                if (assistantMsg.stopReason === 'aborted') {
-                  currentAssistantMsg = null
-                  continue
-                }
-                throw new Error(EMPTY_TURN_MESSAGE)
-              }
+        const events = runAgent({
+          chatId: id,
+          userMessage,
+          systemPrompt: systemContent,
+          contextMessages,
+          tools,
+          model,
+          apiKey,
+          reasoning: effectiveReasoning,
+          signal: c.req.raw.signal,
+          disabledTools
+        })
+        for await (const event of events) {
+          recorder.observe(event)
+          switch (event.type) {
+            case 'message_update':
+              // Coalesced, not sent per delta — see STREAM_FLUSH_INTERVAL_MS.
+              sse.queueUpdate(event.message)
+              break
+            case 'message_end':
               // The last deltas may still be waiting on the flush interval.
               sse.flush()
-              // Use streaming content from currentAssistantMsg but authoritative
-              // usage/stopReason from event.message (message_update carries 0 usage)
-              const cost = calculateCost(assistantMsg.usage, model)
-              const finalMsg: ChatAssistantMessage = {
-                id: currentAssistantMsg?.id ?? assistantMsgId,
-                runId,
-                role: 'assistant',
-                content: currentAssistantMsg?.content ?? assistantMsg.content,
-                usage: assistantMsg.usage,
-                cost,
-                api: assistantMsg.api,
-                provider: assistantMsg.provider,
-                model: assistantMsg.model,
-                stopReason: assistantMsg.stopReason,
-                timestamp: assistantMsg.timestamp ?? Date.now()
-              }
-              newMessages.push(finalMsg)
-              assistantMsgId = uuidV4()
-              currentAssistantMsg = null
-            }
-          } else if (event.type === 'tool_execution_start') {
-            toolMsgIds.set(event.toolCallId, uuidV4())
-            sendEvent({
-              type: 'tool_call_start',
-              toolCallId: event.toolCallId,
-              toolName: event.toolName
-            })
-          } else if (event.type === 'tool_execution_update') {
-            // Relay a tool's mid-execution progress (`onUpdate`) to the renderer
-            // as a live tool-result message. Only `computerUse` streams these
-            // today; its `ComputerUseCard` reads the evolving `details`. Not
-            // pushed to `newMessages` — the authoritative row is written at
-            // `tool_execution_end`.
-            const partial = event.partialResult as {
-              content?: Array<{ type: 'text'; text: string }>
-              details?: unknown
-            } | null
-            sendEvent({
-              type: 'message_update',
-              message: {
-                id: toolMsgIds.get(event.toolCallId) ?? uuidV4(),
-                runId,
-                role: 'toolResult',
+              break
+            case 'tool_start':
+              sse.send({
+                type: 'tool_call_start',
                 toolCallId: event.toolCallId,
-                toolName: event.toolName,
-                content: Array.isArray(partial?.content) ? partial.content : [],
-                details: partial?.details ?? null,
-                isError: false,
-                timestamp: Date.now()
-              }
-            })
-          } else if (event.type === 'tool_execution_end') {
-            // Extract error message from various possible shapes:
-            // 1. AgentToolResult: { content: [{ type: 'text', text: '...' }], details: {} }
-            // 2. Raw Error object: { message: '...' }
-            // 3. Plain string
-            const errorMessage = event.isError
-              ? extractToolErrorMessage(event.result)
-              : null
-
-            const details =
-              !event.isError &&
-              event.result &&
-              typeof event.result === 'object' &&
-              'details' in event.result
-                ? event.result.details
-                : event.isError
-                  ? null
-                  : event.result
-
-            // Use the tool's own content if provided (allows tools to control
-            // exactly what text the LLM sees, e.g. formatted citations prompt).
-            // Fall back to JSON-serialising details for tools that don't set content.
-            const resultObj = event.result as {
-              content?: Array<{ type: string; text?: string }>
-            } | null
-            const hasContentArray =
-              resultObj &&
-              typeof resultObj === 'object' &&
-              'content' in resultObj &&
-              Array.isArray(resultObj.content)
-
-            const toolContent: Array<{ type: 'text'; text: string }> =
-              hasContentArray
-                ? (resultObj.content as Array<{ type: 'text'; text: string }>)
-                : errorMessage
-                  ? [{ type: 'text' as const, text: errorMessage }]
-                  : details
-                    ? [
-                        {
-                          type: 'text' as const,
-                          text:
-                            typeof details === 'string'
-                              ? details
-                              : JSON.stringify(details)
-                        }
-                      ]
-                    : []
-
-            const toolResultMsg: ChatToolResultMessage = {
-              id: toolMsgIds.get(event.toolCallId) ?? uuidV4(),
-              runId,
-              role: 'toolResult',
-              toolCallId: event.toolCallId,
-              toolName: event.toolName,
-              content: toolContent,
-              details,
-              isError: event.isError,
-              timestamp: Date.now()
-            }
-            toolMsgIds.delete(event.toolCallId)
-            newMessages.push(toolResultMsg)
-            sendEvent({ type: 'message_update', message: toolResultMsg })
-
-            // Relay a non-fatal tool notice (e.g. an expired API key that only
-            // degraded enrichment — the tool still succeeded) so the renderer
-            // can toast it. Tools opt in by putting `notice` on their details.
-            const notice =
-              details && typeof details === 'object' && 'notice' in details
-                ? (details as { notice?: unknown }).notice
-                : null
-            if (
-              notice &&
-              typeof notice === 'object' &&
-              typeof (notice as ToolNotice).message === 'string'
-            ) {
-              const n = notice as ToolNotice
-              sendEvent({
-                type: 'notice',
-                level: n.level === 'info' ? 'info' : 'warning',
-                message: n.message
+                toolName: event.toolName
               })
+              break
+            case 'tool_update':
+              sse.send({ type: 'message_update', message: event.message })
+              break
+            case 'tool_end': {
+              sse.send({ type: 'message_update', message: event.message })
+              // A non-fatal tool notice (e.g. an expired API key that only
+              // degraded enrichment — the tool still succeeded), so the
+              // renderer can toast it. Tools opt in via `details.notice`.
+              const notice = noticeOf(event.message.details)
+              if (notice) {
+                sse.send({
+                  type: 'notice',
+                  level: notice.level === 'info' ? 'info' : 'warning',
+                  message: notice.message
+                })
+              }
+              sse.send({
+                type: 'tool_call_end',
+                toolCallId: event.message.toolCallId,
+                toolName: event.message.toolName,
+                isError: event.message.isError
+              })
+              break
             }
-
-            sendEvent({
-              type: 'tool_call_end',
-              toolCallId: event.toolCallId,
-              toolName: event.toolName,
-              isError: event.isError
-            })
+            case 'run_end':
+              if (titlePromise) {
+                const title = await titlePromise
+                sse.send({ type: 'title', title })
+                updateChatTitleById({ id, title }).catch((err) => {
+                  logger.error('chat', 'Failed to persist chat title', {
+                    chatId: id,
+                    error: String(err)
+                  })
+                })
+              }
+              sse.send({
+                type: 'done',
+                messages: [...history, ...event.messages]
+              })
+              break
+            case 'error':
+              logger.error('chat', 'Chat stream error', { error: event.error })
+              sse.send({
+                type: 'error',
+                error: toFriendlyChatError(event.error)
+              })
+              break
           }
         }
-
-        // Generate title for new chats
-        if (titlePromise) {
-          const title = await titlePromise
-          sendEvent({ type: 'title', title })
-          updateChatTitleById({ id, title }).catch((err) => {
-            logger.error('chat', 'Failed to persist chat title', {
-              chatId: id,
-              error: String(err)
-            })
-          })
-        }
-
-        // Send done event
-        sendEvent({
-          type: 'done',
-          messages: [...allMessages, ...stampTurnDuration()]
-        })
       } catch (err) {
-        const rawMsg = err instanceof Error ? err.message : String(err)
-        logger.error('chat', 'Chat stream error', { error: String(rawMsg) })
-        sendEvent({ type: 'error', error: toFriendlyChatError(rawMsg) })
+        const raw = err instanceof Error ? err.message : String(err)
+        logger.error('chat', 'Chat stream error', { error: raw })
+        sse.send({ type: 'error', error: toFriendlyChatError(raw) })
       } finally {
-        // Runs however the turn ended. It used to sit at the end of the `try`,
-        // so a turn that threw midway (a provider error on step three) — or
-        // whose client had gone (Stop cancels the response stream, and the next
-        // write threw) — saved nothing: the tool calls had really run and were
-        // on screen, then vanished on reload and were missing from LCM's
-        // context. The stream stays open until the rows are written, as before.
-        await persistTurn().catch((error) => {
-          logger.error('chat', 'Failed to persist chat turn', {
+        // Runs however the run ended — done, a provider error midway, or Stop
+        // (the client hung up, and the next write threw): the steps that
+        // completed are saved. The stream stays open until the rows are
+        // written.
+        await recorder.persist().catch((error) => {
+          logger.error('chat', 'Failed to persist chat run', {
             chatId: id,
             errorName: error instanceof Error ? error.name : typeof error
           })
         })
         sse.close()
-      }
-
-      // Stamp turn duration on the last assistant message of this turn so
-      // the UI can show a precise "Worked for X seconds" — even for
-      // single-message turns where pi-ai's stream-START timestamp would
-      // otherwise leave us without a useful diff.
-      function stampTurnDuration(): ChatMessage[] {
-        const turnDurationMs = Date.now() - turnStartedAt
-        for (let i = newMessages.length - 1; i >= 0; i--) {
-          if (newMessages[i].role === 'assistant') {
-            ;(newMessages[i] as ChatAssistantMessage).durationMs ??=
-              turnDurationMs
-            break
-          }
-        }
-        return newMessages
-      }
-
-      async function persistTurn() {
-        if (newMessages.length === 0) return
-        const rows = stampTurnDuration().map((m) => toDbRow(m, id))
-        await saveMessages({ messages: rows })
-        rows.forEach(indexMessage)
-
-        // ── POST-CHAT: enqueue background jobs (non-blocking) ───────────────
-        if (lcm) {
-          enqueueAndProcess('lcm-post-turn', {
-            chatId: id,
-            model,
-            apiKey,
-            freshTailRuns: freshTailRuns(memoryConfig),
-            contextWindowPercent: memoryConfig?.contextWindowPercent ?? 75,
-            newMessages: newMessages.map((m) => ({
-              id: m.id,
-              content: m.content
-            }))
-          }).catch((error) => logEnqueueFailure('lcm-post-turn', error))
-        }
-
-        if (memoryCapture) {
-          enqueueAndProcess('memory-consolidate', {
-            messages: [...allMessages, ...newMessages].map((m) => ({
-              role: m.role,
-              content: m.content
-            })),
-            model,
-            apiKey
-          }).catch((error) => logEnqueueFailure('memory-consolidate', error))
-        }
       }
     }
   })
