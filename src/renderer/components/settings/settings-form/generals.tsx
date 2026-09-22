@@ -118,7 +118,7 @@ function ColorTonePicker({
             aria-pressed={value === tone}
             data-testid={`${TEST_IDS.settings.colorTone}-${tone}`}
             className={cn(
-              'size-6 rounded-full transition-all',
+              'size-6 rounded-full transition-[scale,box-shadow]',
               value === tone
                 ? 'ring-ring ring-offset-background ring-2 ring-offset-2'
                 : 'hover:scale-110'
