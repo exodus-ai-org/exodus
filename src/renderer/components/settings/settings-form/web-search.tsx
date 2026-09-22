@@ -1,4 +1,3 @@
-import { countryCodes } from '@exodus/shared/constants/country-codes'
 import { languageCodes } from '@exodus/shared/constants/language-codes'
 import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
 import { useMemo } from 'react'
@@ -19,19 +18,14 @@ import {
   useComboboxAnchor
 } from '@/components/ui/combobox'
 import { Input } from '@/components/ui/input'
+import { InputGroupAddon } from '@/components/ui/input-group'
 import { Switch } from '@/components/ui/switch'
+import { countryOptions } from '@/lib/country-names'
 
 import { SettingsRow, SettingsSection } from '../settings-row'
 import { SettingsSelect } from '../settings-select'
 
 type OptionItem = { label: string; value: string }
-
-// The label is what the combobox searches and shows in its input, so it is the
-// plain country name; the flag is drawn beside it in the list (see <Flag>).
-const countryItems: OptionItem[] = countryCodes.map((c) => ({
-  label: c.country,
-  value: c.countryCode
-}))
 
 const languageItems: OptionItem[] = languageCodes.map((l) => ({
   label: l.language,
@@ -39,7 +33,16 @@ const languageItems: OptionItem[] = languageCodes.map((l) => ({
 }))
 
 export function WebSearch({ form }: { form: UseFormReturnType }) {
-  const { t } = useTranslation('settings')
+  const { t, i18n } = useTranslation('settings')
+  // Named in the user's language (see country-names.ts); the label is what
+  // the combobox searches and shows in its input, the flag sits beside it.
+  const countryItems = useMemo(
+    () =>
+      countryOptions(i18n.resolvedLanguage ?? i18n.language ?? 'en').map(
+        (c) => ({ label: c.name, value: c.code })
+      ),
+    [i18n.resolvedLanguage, i18n.language]
+  )
   const languageChipsAnchor = useComboboxAnchor()
 
   const recencyOptions = useMemo(
@@ -103,9 +106,15 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
               <ComboboxInput
                 placeholder={t('tools.webSearch.country.placeholder')}
                 showClear
-                className="w-52"
-              />
-              <ComboboxContent>
+                className="w-64"
+              >
+                {field.value && (
+                  <InputGroupAddon align="inline-start">
+                    <Flag code={field.value} />
+                  </InputGroupAddon>
+                )}
+              </ComboboxInput>
+              <ComboboxContent className="w-72">
                 <ComboboxEmpty>
                   {t('tools.webSearch.country.empty')}
                 </ComboboxEmpty>
@@ -113,7 +122,7 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
                   {(item) => (
                     <ComboboxItem key={item.value} value={item}>
                       <Flag code={item.value} />
-                      {item.label}
+                      <span className="truncate">{item.label}</span>
                     </ComboboxItem>
                   )}
                 </ComboboxList>
