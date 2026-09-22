@@ -16,6 +16,7 @@ import { memo, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { i18n } from '@/lib/i18n'
+import { ROW_ENTER } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
 import { Markdown } from './markdown'
@@ -100,7 +101,7 @@ function TimelineNode({
   children: React.ReactNode
 }) {
   return (
-    <div className="animate-in fade-in-0 slide-in-from-top-1 flex gap-2.5 pb-3 duration-300 ease-out last:pb-0">
+    <div className={cn(ROW_ENTER, 'flex gap-2.5 pb-3 last:pb-0')}>
       <div className="mt-1 flex flex-col items-center">
         <div className="flex shrink-0 items-center justify-center">{icon}</div>
         {!isLast && <div className="border-border w-px flex-1 border-l" />}

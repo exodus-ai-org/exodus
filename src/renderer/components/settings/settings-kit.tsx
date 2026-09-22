@@ -20,27 +20,9 @@ import { cn } from '@/lib/utils'
 
 // ─── Motion ───────────────────────────────────────────────────────────────────
 
-// How things arrive: a short fade (up) on a strong ease-out. `starting:`
-// (@starting-style) needs no mount effect, and being a transition rather than
-// a keyframe it never restarts from zero. Only for what appears occasionally —
-// a page, a list row, a panel; never on a switch, a select or anything typed.
-export const ENTER =
-  'transition-[opacity,translate,scale] duration-300 ease-out starting:opacity-0'
-export const ENTER_UP = `${ENTER} starting:translate-y-1.5`
-// A whole page swapping in on a tab change: seen far more often than a row, so
-// shorter and barely moving — enough that the swap is not a hard cut.
-export const PAGE_ENTER =
-  'transition-[opacity,translate] duration-200 ease-out starting:translate-y-1 starting:opacity-0'
-
-const STAGGER_MS = 40
-// A long list staggered all the way down would still be arriving a second
-// later; past this many items the rest come in together.
-const STAGGER_CAP = 6
-
-/** `style` for the `index`-th of a few items entering together. */
-export function staggerDelay(index: number): React.CSSProperties {
-  return { transitionDelay: `${Math.min(index, STAGGER_CAP) * STAGGER_MS}ms` }
-}
+// The entrances are app-wide (`@/lib/motion`); re-exported here so the
+// Settings pages keep importing them from the kit.
+export { ENTER, ENTER_UP, PAGE_ENTER, staggerDelay } from '@/lib/motion'
 
 // ─── Building blocks ──────────────────────────────────────────────────────────
 
