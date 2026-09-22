@@ -795,7 +795,7 @@
       },
       "freshTailSize": {
         "label": "Fresh tail size",
-        "description": "Number of recent messages protected from compaction (8-64). These are always sent to the model verbatim. Default: 16."
+        "description": "Number of recent runs — a message of yours with every model step and tool result that answered it — protected from compaction (2-24). They are always sent to the model verbatim. Default: 6."
       },
       "newMemoryDefaultKey": "New memory",
       "storedMemoriesHeading": "Stored memories",

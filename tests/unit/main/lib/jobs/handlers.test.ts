@@ -105,7 +105,7 @@ describe('handlers.lcm-post-turn', () => {
       chatId: 'chat-1',
       model: fakeModel,
       apiKey: 'key',
-      freshTailSize: 16,
+      freshTailRuns: 6,
       contextWindowPercent: 75,
       newMessages: [{ id: 'msg-1', content: 'hi' }]
     })

@@ -625,10 +625,10 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
                   error={fieldState.error}
                 >
                   <Input
-                    placeholder="16"
+                    placeholder="6"
                     type="number"
-                    min={8}
-                    max={64}
+                    min={2}
+                    max={24}
                     className="w-20"
                     {...field}
                     value={field.value ?? ''}

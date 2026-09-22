@@ -13,6 +13,28 @@ export type { AssembledContext } from './context-assembler'
 // Used when the setting doesn't specify an explicit limit
 const DEFAULT_CONTEXT_WINDOW = 128_000
 
+export const DEFAULT_FRESH_TAIL_RUNS = 6
+const MIN_FRESH_TAIL_RUNS = 2
+const MAX_FRESH_TAIL_RUNS = 24
+
+/**
+ * The `memory.freshTailSize` setting as a number of runs. It counted messages
+ * (8-64, default 16) before the chat kernel rewrite, so a value saved then is
+ * clamped into the new range rather than read as that many runs.
+ */
+export function freshTailRuns(
+  memory:
+    | {
+        freshTailSize?: number | null
+      }
+    | null
+    | undefined
+): number {
+  const raw = memory?.freshTailSize
+  if (raw == null || !Number.isFinite(raw)) return DEFAULT_FRESH_TAIL_RUNS
+  return Math.min(MAX_FRESH_TAIL_RUNS, Math.max(MIN_FRESH_TAIL_RUNS, raw))
+}
+
 /**
  * LcmManager: per-instance manager for a single chat session.
  *
@@ -27,7 +49,7 @@ export class LcmManager {
   private chatId: string
   private model: Model<string>
   private apiKey: string
-  private freshTailSize: number
+  private freshTailRuns: number
   private contextWindowPercent: number
   private contextWindow: number
 
@@ -39,7 +61,8 @@ export class LcmManager {
     model: Model<string>,
     apiKey: string,
     options: {
-      freshTailSize?: number
+      /** Runs kept verbatim, never compacted (see context-assembler). */
+      freshTailRuns?: number
       contextWindowPercent?: number
       contextWindow?: number
     } = {}
@@ -47,7 +70,7 @@ export class LcmManager {
     this.chatId = chatId
     this.model = model
     this.apiKey = apiKey
-    this.freshTailSize = options.freshTailSize ?? 16
+    this.freshTailRuns = options.freshTailRuns ?? DEFAULT_FRESH_TAIL_RUNS
     this.contextWindowPercent = options.contextWindowPercent ?? 75
     this.contextWindow = options.contextWindow ?? DEFAULT_CONTEXT_WINDOW
   }
@@ -65,7 +88,7 @@ export class LcmManager {
     totalTokens: number
     trackedMessageIds: Set<string>
   }> {
-    return assembleContext(this.chatId, this.tokenBudget, this.freshTailSize)
+    return assembleContext(this.chatId, this.tokenBudget, this.freshTailRuns)
   }
 
   /**
@@ -141,7 +164,7 @@ export class LcmManager {
           this.chatId,
           this.model,
           this.apiKey,
-          this.freshTailSize
+          this.freshTailRuns
         )
       }
 

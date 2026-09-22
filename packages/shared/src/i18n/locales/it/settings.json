@@ -795,7 +795,7 @@
       },
       "freshTailSize": {
         "label": "Dimensione della coda recente",
-        "description": "Numero di messaggi recenti protetti dalla compattazione (8-64). Vengono sempre inviati al modello parola per parola. Predefinito: 16."
+        "description": "Numero di esecuzioni recenti — un tuo messaggio con ogni passaggio del modello e risultato di strumento che gli ha risposto — protette dalla compattazione (2-24). Vengono sempre inviate al modello così come sono. Predefinito: 6."
       },
       "newMemoryDefaultKey": "Nuova memoria",
       "storedMemoriesHeading": "Memorie salvate",

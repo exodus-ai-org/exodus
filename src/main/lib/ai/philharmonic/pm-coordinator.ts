@@ -141,12 +141,14 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
 
   // PhilharmonicLcm hydrates the LLM history: when within budget it's a
   // straight conversion of every persisted message; when over, it replaces
-  // the oldest turns with a rolling summary it maintains itself. Settings
-  // pulled from the memory settings mirror what Chat's LCM uses.
+  // the oldest turns with a rolling summary it maintains itself. The switch
+  // and the threshold mirror Chat's LCM; the tail is its own — Chat's
+  // `freshTailSize` counts runs since the kernel rewrite, this one counts
+  // messages, and 16 is what it always kept.
   const lcm = new PhilharmonicLcm(conversationId, model, apiKey, {
     enabled: setting.memory?.lcmEnabled ?? true,
     contextWindowPercent: setting.memory?.contextWindowPercent ?? 75,
-    freshTailSize: setting.memory?.freshTailSize ?? 16
+    freshTailSize: 16
   })
   const history = await lcm.assembleContext(excludeMessageId)
   const kb = resolveKnowledgeBase(setting)

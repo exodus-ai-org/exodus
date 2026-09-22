@@ -795,7 +795,7 @@
       },
       "freshTailSize": {
         "label": "Tamaño de la cola reciente",
-        "description": "Número de mensajes recientes protegidos de la compactación (8-64). Estos siempre se envían al modelo tal cual. Predeterminado: 16."
+        "description": "Número de ejecuciones recientes (un mensaje tuyo con cada paso del modelo y resultado de herramienta que lo respondió) protegidas de la compactación (2-24). Siempre se envían al modelo tal cual. Predeterminado: 6."
       },
       "newMemoryDefaultKey": "Nueva memoria",
       "storedMemoriesHeading": "Memorias almacenadas",

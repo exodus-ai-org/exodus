@@ -795,7 +795,7 @@
       },
       "freshTailSize": {
         "label": "Anzahl aktueller Nachrichten",
-        "description": "Anzahl der neuesten Nachrichten, die von der Komprimierung ausgenommen sind (8-64). Diese werden dem Modell immer unverändert gesendet. Standard: 16."
+        "description": "Anzahl der neuesten Durchläufe – eine Nachricht von dir mit jedem Modellschritt und Werkzeugergebnis, das sie beantwortet hat –, die von der Komprimierung ausgenommen sind (2–24). Sie werden dem Modell immer unverändert gesendet. Standard: 6."
       },
       "newMemoryDefaultKey": "Neuer Gedächtniseintrag",
       "storedMemoriesHeading": "Gespeicherte Gedächtniseinträge",

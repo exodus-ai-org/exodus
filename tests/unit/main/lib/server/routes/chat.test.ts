@@ -20,6 +20,7 @@ vi.mock('@earendil-works/pi-agent-core', () => ({
 vi.mock('@earendil-works/pi-ai', () => ({}))
 
 vi.mock('@main/lib/ai/context-management', () => ({
+  freshTailRuns: () => 6,
   LcmManager: class {
     trackNewMessages = vi.fn(async () => {})
     assembleContext = vi.fn(async () => ({ messages: [] }))
@@ -60,10 +61,6 @@ vi.mock('@main/lib/ai/utils/chat-message-util', () => ({
 
 vi.mock('@main/lib/ai/utils/cost', () => ({
   calculateCost: vi.fn(() => ({ total: 0 }))
-}))
-
-vi.mock('@main/lib/ai/utils/transform-messages', () => ({
-  transformMessages: vi.fn((m: unknown) => m)
 }))
 
 vi.mock('@main/lib/db/project-queries', () => ({

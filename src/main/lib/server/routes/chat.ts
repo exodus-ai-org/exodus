@@ -14,7 +14,8 @@ import type {
 import { Hono } from 'hono'
 import { v4 as uuidV4 } from 'uuid'
 
-import { LcmManager } from '../../ai/context-management'
+import { LcmManager, freshTailRuns } from '../../ai/context-management'
+import { dropBrokenRuns } from '../../ai/kernel/invariant'
 import { streamFn } from '../../ai/kernel/models'
 import { getMcpTools } from '../../ai/mcp'
 import {
@@ -34,7 +35,6 @@ import {
   getTextFromMessage
 } from '../../ai/utils/chat-message-util'
 import { calculateCost } from '../../ai/utils/cost'
-import { transformMessages } from '../../ai/utils/transform-messages'
 import { getProjectById, bumpProjectUpdatedAt } from '../../db/project-queries'
 import {
   deleteChatById,
@@ -149,7 +149,7 @@ chat.post('/', async (c) => {
   // Single LcmManager instance — reused for post-chat compaction
   const lcm = lcmEnabled
     ? new LcmManager(id, model, apiKey, {
-        freshTailSize: memoryConfig?.freshTailSize ?? 16,
+        freshTailRuns: freshTailRuns(memoryConfig),
         contextWindowPercent: memoryConfig?.contextWindowPercent ?? 75
       })
     : null
@@ -297,10 +297,19 @@ chat.post('/', async (c) => {
                   (m as Message).role === 'assistant' ||
                   (m as Message).role === 'toolResult'
               )
-              // Normalize messages for cross-provider compatibility:
-              // strips thinking blocks, normalizes tool call IDs,
-              // resolves orphaned tool calls, filters error/aborted messages.
-              return transformMessages(messages)
+              // Context is assembled in whole runs, so this never fires;
+              // it is the last line of defence against a 400 from the
+              // provider (a tool result without its tool call). Thinking
+              // blocks and cross-provider handoff are pi 0.85's job.
+              const { messages: safe, dropped } = dropBrokenRuns(messages)
+              if (dropped > 0) {
+                logger.error(
+                  'chat',
+                  'Dropped runs that would have broken the provider request',
+                  { chatId: id, dropped }
+                )
+              }
+              return safe
             }
           },
           c.req.raw.signal,
@@ -566,7 +575,7 @@ chat.post('/', async (c) => {
             chatId: id,
             model,
             apiKey,
-            freshTailSize: memoryConfig?.freshTailSize ?? 16,
+            freshTailRuns: freshTailRuns(memoryConfig),
             contextWindowPercent: memoryConfig?.contextWindowPercent ?? 75,
             newMessages: newMessages.map((m) => ({
               id: m.id,

@@ -790,7 +790,7 @@
       },
       "freshTailSize": {
         "label": "保留訊息數量",
-        "description": "不受壓縮影響的最近訊息數量（8-64），這些訊息會一律以原文傳送給模型。預設值：16。"
+        "description": "不受壓縮影響的最近回合數量（2-24）。一個回合是你的一則訊息，連同回應它的每一個模型步驟和工具結果。這些回合會一律以原文傳送給模型。預設值：6。"
       },
       "newMemoryDefaultKey": "新記憶",
       "storedMemoriesHeading": "已儲存的記憶",

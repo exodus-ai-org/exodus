@@ -795,7 +795,7 @@
       },
       "freshTailSize": {
         "label": "Taille de la fenêtre récente",
-        "description": "Nombre de messages récents protégés du compactage (8 à 64). Ils sont toujours envoyés au modèle tels quels. Par défaut : 16."
+        "description": "Nombre d'exécutions récentes — un de vos messages avec chaque étape du modèle et résultat d'outil qui y a répondu — protégées du compactage (2 à 24). Elles sont toujours envoyées au modèle telles quelles. Par défaut : 6."
       },
       "newMemoryDefaultKey": "Nouvelle mémoire",
       "storedMemoriesHeading": "Mémoires enregistrées",

@@ -51,7 +51,7 @@ describe('LcmManager.compactAfterTurn emits status events', () => {
     const lcm = new LcmManager('chat-test', fakeModel, 'k', {
       contextWindow: 10_000,
       contextWindowPercent: 75,
-      freshTailSize: 16
+      freshTailRuns: 6
     })
     await lcm.compactAfterTurn()
     off()
@@ -76,7 +76,7 @@ describe('LcmManager.compactAfterTurn emits status events', () => {
     const lcm = new LcmManager('chat-test', fakeModel, 'k', {
       contextWindow: 10_000,
       contextWindowPercent: 75,
-      freshTailSize: 16
+      freshTailRuns: 6
     })
     await lcm.compactAfterTurn()
     off()
@@ -107,7 +107,7 @@ describe('LcmManager.compactAfterTurn emits status events', () => {
     const lcm = new LcmManager('chat-test', fakeModel, 'k', {
       contextWindow: 10_000,
       contextWindowPercent: 75,
-      freshTailSize: 16
+      freshTailRuns: 6
     })
     // compactAfterTurn catches errors internally — we don't expect a throw.
     await lcm.compactAfterTurn()
