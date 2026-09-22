@@ -113,16 +113,25 @@ export interface TimelineStep {
   codeArgument?: string
 }
 
+/**
+ * A run that failed after the prompt was accepted: the provider's error, shown
+ * at the foot of that run's message. Not persisted — the steps that completed
+ * are, the failure is not — so it lives only for the session.
+ */
+export interface RunError {
+  runId: string
+  message: string
+}
+
+/** One run as the renderer shows it: a timeline of steps above one body. */
 export interface AssistantTurn {
+  runId: string
   messages: ChatMessage[]
   steps: TimelineStep[]
-  finalTextBlocks: Array<{
-    text: string
-    messageId: string
-    blockIdx: number
-    /** Timestamp of the assistant message this block came from (stream start). */
-    timestamp: number
-  }>
+  /** Every assistant text block of the run, in order, joined as paragraphs. */
+  body: string
+  /** Timestamp of the last assistant message (stream start). */
+  timestamp: number
   pendingToolCalls: Array<{
     name: string
     id: string

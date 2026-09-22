@@ -85,38 +85,40 @@ export function Chat({
 
   const [title, setTitle] = useState(chatTitle)
 
-  const { messages, sendMessage, status, stop, regenerate } = useChat({
-    id,
-    chatTitle: title,
-    api: `${BASE_URL}/api/v1/chat`,
-    messages: initialMessages,
-    generateId: uuidV4,
-    prepareBody: ({ id, messages, body }) => ({
-      ...body,
+  const { messages, sendMessage, status, stop, regenerate, runError } = useChat(
+    {
       id,
-      messages,
-      advancedTools: getAdvancedTools(),
-      reasoningEffort: getReasoningEffort(),
-      projectId: projectIdRef.current
-    }),
-    onFinish: () => {
-      mutate('/api/v1/history')
-      if (!routeId) {
-        navigate(`/chat/${id}`, { replace: true })
+      chatTitle: title,
+      api: `${BASE_URL}/api/v1/chat`,
+      messages: initialMessages,
+      generateId: uuidV4,
+      prepareBody: ({ id, messages, body }) => ({
+        ...body,
+        id,
+        messages,
+        advancedTools: getAdvancedTools(),
+        reasoningEffort: getReasoningEffort(),
+        projectId: projectIdRef.current
+      }),
+      onFinish: () => {
+        mutate('/api/v1/history')
+        if (!routeId) {
+          navigate(`/chat/${id}`, { replace: true })
+        }
+      },
+      onError: (e) => {
+        sileo.error({
+          title: t('toast.sendFailedTitle'),
+          description:
+            e instanceof Error ? e.message : t('toast.sendFailedDescription')
+        })
+      },
+      onTitle: (newTitle) => {
+        setTitle(newTitle)
+        mutate('/api/v1/history')
       }
-    },
-    onError: (e) => {
-      sileo.error({
-        title: t('toast.sendFailedTitle'),
-        description:
-          e instanceof Error ? e.message : t('toast.sendFailedDescription')
-      })
-    },
-    onTitle: (newTitle) => {
-      setTitle(newTitle)
-      mutate('/api/v1/history')
     }
-  })
+  )
 
   useEffect(() => {
     setChatStatus(status)
@@ -161,6 +163,7 @@ export function Chat({
           messages={messages}
           regenerate={regenerate}
           showDiscover={showDiscover}
+          runError={runError}
         />
 
         {messages.length === 0 ? (

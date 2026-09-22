@@ -262,5 +262,8 @@
       "updatedTitle": "Projekt aktualisiert",
       "deletedTitle": "Projekt gelöscht"
     }
+  },
+  "run": {
+    "error": "Diese Antwort wurde mit einem Fehler abgebrochen: {{message}}"
   }
 }

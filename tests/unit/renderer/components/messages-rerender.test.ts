@@ -95,18 +95,21 @@ const SOURCES: WebSearchResult[] = [
   }
 ] as WebSearchResult[]
 
+// Every message carries its run (the user message's id).
 const user = (id: string, text: string) =>
-  ({ id, role: 'user', content: text, timestamp: 1 }) as ChatMessage
-const assistant = (id: string, text: string) =>
+  ({ id, runId: id, role: 'user', content: text, timestamp: 1 }) as ChatMessage
+const assistant = (id: string, text: string, runId = `u${id.slice(1)}`) =>
   ({
     id,
+    runId,
     role: 'assistant',
     content: [{ type: 'text', text }],
     timestamp: 2
   }) as unknown as ChatMessage
-const webSearch = (id: string) =>
+const webSearch = (id: string, runId = `u${id.slice(1)}`) =>
   ({
     id,
+    runId,
     role: 'toolResult',
     toolCallId: `call-${id}`,
     toolName: 'web_search',

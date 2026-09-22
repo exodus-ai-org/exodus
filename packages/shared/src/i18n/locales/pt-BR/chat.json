@@ -262,5 +262,8 @@
       "updatedTitle": "Projeto atualizado",
       "deletedTitle": "Projeto excluído"
     }
+  },
+  "run": {
+    "error": "Esta resposta foi interrompida por um erro: {{message}}"
   }
 }

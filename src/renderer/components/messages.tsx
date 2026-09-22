@@ -6,6 +6,7 @@ import type {
   ChatStatus,
   ChatToolResultMessage,
   ImageContent,
+  RunError,
   Segment,
   TextContent,
   TimelineStep
@@ -42,6 +43,8 @@ type MessagesProps = {
   messages: ChatMessage[]
   regenerate: () => void
   showDiscover?: boolean
+  /** The run that failed last; its message shows the error at its foot. */
+  runError?: RunError | null
 }
 
 const AT_BOTTOM_THRESHOLD = 80
@@ -97,6 +100,8 @@ type AssistantTurnSegmentProps = {
   citationSources?: WebSearchResult[]
   isStreaming: boolean
   regenerate: () => void
+  /** The provider's error, when this run ended in one. */
+  error?: string
 }
 
 const AssistantTurnSegment = memo(
@@ -105,8 +110,10 @@ const AssistantTurnSegment = memo(
     turn,
     citationSources,
     isStreaming,
-    regenerate
+    regenerate,
+    error
   }: AssistantTurnSegmentProps) {
+    const { t } = useTranslation('chat')
     // The turn's own searches drive the per-turn "Sources" panel; the
     // cumulative set drives inline citation badges.
     const ownSources =
@@ -131,18 +138,9 @@ const AssistantTurnSegment = memo(
             <ThinkingTimeline
               steps={turn.steps}
               durationMs={turn.durationMs}
-              isStreaming={isStreaming && turn.finalTextBlocks.length === 0}
+              isStreaming={isStreaming && turn.body.length === 0}
             />
           )}
-
-          {/* {isStreaming &&
-              turn.pendingToolCalls.map((tc) => (
-                <ShimmeringText
-                  key={tc.id}
-                  className="mb-4"
-                  text={`Calling tool: ${tc.name}`}
-                />
-              ))} */}
 
           {turn.toolCards.map((toolResult) => (
             <MessageCallingTools
@@ -152,32 +150,35 @@ const AssistantTurnSegment = memo(
             />
           ))}
 
-          {turn.finalTextBlocks.map((block, i) => {
-            const isLastBlock = i === turn.finalTextBlocks.length - 1
-            return (
-              <section
-                key={`${block.messageId}-${block.blockIdx}`}
-                className={cn(
-                  'group relative',
-                  i < turn.finalTextBlocks.length - 1 && 'mb-16'
-                )}
-              >
-                <Markdown src={block.text} webSearchResults={citationResults} />
-                {isLastBlock && galleryImages.length > 0 && (
-                  <ImageGallery images={galleryImages} />
-                )}
-                {isLastBlock && galleryVideos.length > 0 && (
-                  <VideoCards videos={galleryVideos} />
-                )}
+          {/* One run, one body: every assistant text block of the run joined
+              in order — the text after a tool step is the next paragraph,
+              not the next message — with one action bar. */}
+          {(turn.body.length > 0 || error) && (
+            <section className="group relative">
+              {turn.body.length > 0 && (
+                <Markdown src={turn.body} webSearchResults={citationResults} />
+              )}
+              {galleryImages.length > 0 && (
+                <ImageGallery images={galleryImages} />
+              )}
+              {galleryVideos.length > 0 && (
+                <VideoCards videos={galleryVideos} />
+              )}
+              {error && (
+                <p role="alert" className="text-destructive mt-3 text-sm">
+                  {t('run.error', { message: error })}
+                </p>
+              )}
+              {turn.body.length > 0 && (
                 <MessageAction
                   regenerate={regenerate}
-                  content={block.text}
+                  content={turn.body}
                   webSearchResults={ownSources}
-                  timestamp={isLastBlock ? block.timestamp : undefined}
+                  timestamp={turn.timestamp}
                 />
-              </section>
-            )
-          })}
+              )}
+            </section>
+          )}
         </div>
       </div>
     )
@@ -192,7 +193,8 @@ const AssistantTurnSegment = memo(
       prev.chatId !== next.chatId ||
       prev.isStreaming !== next.isStreaming ||
       prev.regenerate !== next.regenerate ||
-      prev.citationSources !== next.citationSources
+      prev.citationSources !== next.citationSources ||
+      prev.error !== next.error
     ) {
       return false
     }
@@ -278,12 +280,16 @@ function withInline(label: string, value: string): { text: string } {
 }
 
 /**
- * A "turn" groups all assistant/toolResult messages between two user messages.
- * This lets us render thinking+tools as a timeline above the final text.
+ * A run's assistant/toolResult messages as one turn: thinking and tools as a
+ * timeline above one body of text.
  */
-function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
+function buildAssistantTurn(
+  runId: string,
+  turnMessages: ChatMessage[]
+): AssistantTurn {
   const steps: TimelineStep[] = []
-  const finalTextBlocks: AssistantTurn['finalTextBlocks'] = []
+  const texts: string[] = []
+  let timestamp = 0
   const pendingToolCalls: AssistantTurn['pendingToolCalls'] = []
   const toolCards: ChatToolResultMessage[] = []
   const webSearchResults: WebSearchResult[] = []
@@ -291,7 +297,8 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
   for (const msg of turnMessages) {
     if (msg.role === 'assistant') {
       const assistantMsg = msg as ChatAssistantMessage
-      for (const [idx, block] of assistantMsg.content.entries()) {
+      timestamp = assistantMsg.timestamp
+      for (const block of assistantMsg.content) {
         if (block.type === 'thinking' && block.thinking?.trim()) {
           steps.push({ type: 'thinking', text: block.thinking })
         } else if (block.type === 'toolCall') {
@@ -304,12 +311,7 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
           })
           pendingToolCalls.push({ name: block.name, id: block.id })
         } else if (block.type === 'text' && block.text.trim()) {
-          finalTextBlocks.push({
-            text: block.text,
-            messageId: msg.id,
-            blockIdx: idx,
-            timestamp: assistantMsg.timestamp
-          })
+          texts.push(block.text)
         }
       }
     } else if (msg.role === 'toolResult') {
@@ -396,16 +398,19 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
     durationMs = firstTs && lastTs ? lastTs - firstTs : 0
   }
 
+  const body = texts.join('\n\n')
   return {
+    runId,
     messages: turnMessages,
     steps,
-    finalTextBlocks,
+    body,
+    timestamp,
     pendingToolCalls,
     toolCards,
     durationMs,
     hasContent:
       steps.length > 0 ||
-      finalTextBlocks.length > 0 ||
+      body.length > 0 ||
       pendingToolCalls.length > 0 ||
       toolCards.length > 0,
     webSearchResults
@@ -431,8 +436,10 @@ function sameMessages(a: ChatMessage[], b: ChatMessage[]): boolean {
 }
 
 /**
- * Group messages into segments: each segment is either a user message
- * or a contiguous run of assistant+toolResult messages (a "turn").
+ * Group messages into segments: a user message, or the assistant + toolResult
+ * messages of one run (keyed by `runId`). A message without a `runId` — a
+ * fixture, a row older than the column — joins the run of the user message
+ * before it, which is the same grouping.
  */
 // eslint-disable-next-line react-refresh/only-export-components -- pure helper, exported for tests
 export function groupIntoSegments(
@@ -442,16 +449,21 @@ export function groupIntoSegments(
   const segments: Segment[] = []
   const seen: SegmentCache = new Map()
   let turnBuffer: ChatMessage[] = []
+  let turnRunId = ''
+  let currentRun = ''
 
   const flushTurn = () => {
     if (turnBuffer.length > 0) {
-      const key = `turn:${turnBuffer[0].id}`
+      const key = `run:${turnRunId}`
       const cached = cache?.get(key)
       const segment: Segment =
         cached?.type === 'assistantTurn' &&
         sameMessages(cached.turn.messages, turnBuffer)
           ? cached
-          : { type: 'assistantTurn', turn: buildAssistantTurn(turnBuffer) }
+          : {
+              type: 'assistantTurn',
+              turn: buildAssistantTurn(turnRunId, turnBuffer)
+            }
       seen.set(key, segment)
       if (segment.type === 'assistantTurn' && segment.turn.hasContent) {
         segments.push(segment)
@@ -463,6 +475,7 @@ export function groupIntoSegments(
   for (const msg of messages) {
     if (msg.role === 'user') {
       flushTurn()
+      currentRun = msg.runId ?? msg.id
       const key = `user:${msg.id}`
       const cached = cache?.get(key)
       const segment: Segment =
@@ -472,6 +485,9 @@ export function groupIntoSegments(
       seen.set(key, segment)
       segments.push(segment)
     } else {
+      const runId = msg.runId ?? currentRun ?? msg.id
+      if (turnBuffer.length > 0 && runId !== turnRunId) flushTurn()
+      turnRunId = runId
       turnBuffer.push(msg)
     }
   }
@@ -536,7 +552,8 @@ function Messages({
   status,
   messages,
   regenerate,
-  showDiscover
+  showDiscover,
+  runError
 }: MessagesProps) {
   const { t } = useTranslation('chat')
   const isLoading = status === 'streaming' || status === 'submitted'
@@ -669,15 +686,32 @@ function Messages({
 
             return (
               <AssistantTurnSegment
-                key={`turn-${segIdx}`}
+                key={`run-${segment.turn.runId}`}
                 chatId={chatId}
                 turn={segment.turn}
                 citationSources={citationSourcesByTurn.get(segment)}
                 isStreaming={turnIsStreaming}
                 regenerate={regenerate}
+                error={
+                  runError?.runId === segment.turn.runId
+                    ? runError.message
+                    : undefined
+                }
               />
             )
           })}
+
+          {/* A run that failed before any step completed has no turn to
+              carry its error; it shows under the prompt. */}
+          {runError &&
+            !segments.some(
+              (s) =>
+                s.type === 'assistantTurn' && s.turn.runId === runError.runId
+            ) && (
+              <p role="alert" className="text-destructive mb-8 text-sm">
+                {t('run.error', { message: runError.message })}
+              </p>
+            )}
 
           {shouldShowMessageSpinner(segments, isLoading) && <MessageSpinner />}
         </div>

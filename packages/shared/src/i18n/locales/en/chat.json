@@ -262,5 +262,8 @@
       "updatedTitle": "Project updated",
       "deletedTitle": "Project deleted"
     }
+  },
+  "run": {
+    "error": "This reply stopped with an error: {{message}}"
   }
 }

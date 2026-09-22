@@ -2,6 +2,7 @@ import type {
   ChatAssistantMessage,
   ChatMessage,
   ChatStatus,
+  RunError,
   SendMessageOptions,
   Usage
 } from '@exodus/shared/types/chat'
@@ -42,6 +43,8 @@ export interface UseChatHelpers {
   ) => void
   status: ChatStatus
   lastUsage: Usage | null
+  /** The run that failed last, until the next send. */
+  runError: RunError | null
   sendMessage: (opts: SendMessageOptions) => Promise<void>
   stop: () => void
   regenerate: () => void
@@ -95,6 +98,9 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
 
   const lastUserMsgRef = useRef<SendMessageOptions | null>(null)
   const extraBodyRef = useRef<Record<string, unknown>>({})
+  // The run in flight, so an error can be pinned to its message.
+  const currentRunRef = useRef<string | null>(null)
+  const [runError, setRunError] = useState<RunError | null>(null)
 
   // Keep callbacks in refs so the subscriber closure — and the stable
   // `sendMessage` — always see the latest. Synced in an effect rather than
@@ -131,7 +137,11 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
       },
       onStatus: setStatus,
       onTitle: (t: string) => onTitleRef.current?.(t),
-      onError: (e: Error) => onErrorRef.current?.(e),
+      onError: (e: Error) => {
+        const runId = currentRunRef.current
+        if (runId) setRunError({ runId, message: e.message })
+        onErrorRef.current?.(e)
+      },
       onFinish: (msgs: ChatMessage[]) => onFinishRef.current?.(msgs)
     }
   }, [setMessages])
@@ -174,6 +184,8 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
 
       // A user message opens a run named by its own id.
       const userId = generateId()
+      currentRunRef.current = userId
+      setRunError(null)
       const userMsg: ChatMessage = {
         id: userId,
         runId: userId,
@@ -225,6 +237,7 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
     setMessages,
     status,
     lastUsage,
+    runError,
     sendMessage,
     stop,
     regenerate

@@ -262,5 +262,8 @@
       "updatedTitle": "Projet mis à jour",
       "deletedTitle": "Projet supprimé"
     }
+  },
+  "run": {
+    "error": "Cette réponse s'est arrêtée sur une erreur : {{message}}"
   }
 }

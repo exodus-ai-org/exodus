@@ -254,5 +254,8 @@
       "updatedTitle": "項目已更新",
       "deletedTitle": "項目已刪除"
     }
+  },
+  "run": {
+    "error": "此回覆因錯誤而中斷：{{message}}"
   }
 }

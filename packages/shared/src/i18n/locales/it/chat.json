@@ -262,5 +262,8 @@
       "updatedTitle": "Progetto aggiornato",
       "deletedTitle": "Progetto eliminato"
     }
+  },
+  "run": {
+    "error": "Questa risposta si è interrotta con un errore: {{message}}"
   }
 }

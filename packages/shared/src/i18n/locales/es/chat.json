@@ -262,5 +262,8 @@
       "updatedTitle": "Proyecto actualizado",
       "deletedTitle": "Proyecto eliminado"
     }
+  },
+  "run": {
+    "error": "Esta respuesta se detuvo con un error: {{message}}"
   }
 }

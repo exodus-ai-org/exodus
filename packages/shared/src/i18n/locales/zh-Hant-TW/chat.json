@@ -254,5 +254,8 @@
       "updatedTitle": "專案已更新",
       "deletedTitle": "專案已刪除"
     }
+  },
+  "run": {
+    "error": "此回覆因錯誤而中斷：{{message}}"
   }
 }
