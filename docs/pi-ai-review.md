@@ -51,40 +51,27 @@ now coalesces `message_update` frames (`routes/chat-sse.ts`). Upstream's
 wire, one reducer on the client — and is the natural next step after a
 migration, since it changes the SSE contract `exodus-ios` also speaks.
 
-## The package is deprecated
+## The package is deprecated — migrated
 
-`@mariozechner/pi-ai` and `pi-agent-core` stopped at 0.73.1 (npm: "please use
-@earendil-works/pi-ai instead"). The successor is at 0.85.x and changed shape:
+Done 2026-09-22, with the chat kernel
+(`docs/superpowers/specs/2026-09-22-chat-kernel-design.md`,
+`src/main/lib/ai/kernel/`). Both packages are `@earendil-works/pi-ai` and
+`@earendil-works/pi-agent-core` 0.85; the kernel targets the `Models`
+collection API directly (`getKernelModels()` in `kernel/models.ts`), and
+nothing imports the `/compat` entrypoint. What the move changed in practice:
 
-- A `Models` collection (`createModels()` + `models.setProvider(…)`) replaces
-  the global `getModel` / `stream` / `complete`. Providers own their catalog
-  and auth; per-request `apiKey` still wins, which is what Exodus does.
-- The old global API survives verbatim under `@earendil-works/pi-ai/compat`,
-  slated for removal.
-- Provider factories are subpath imports
-  (`@earendil-works/pi-ai/providers/anthropic`) with SDKs in lazy chunks.
-
-Suggested path, as its own branch with `bun run test:e2e:providers` (needs
-keys) as the gate:
-
-1. Swap the package names and point every import at `/compat`. Mechanical;
-   proves 0.85 behaves before any API change.
-2. Move `providers/index.ts` (`SPECS` / `fromSpec`) and `resolve-model.ts` onto
-   a `Models` collection holding only the five providers Exodus offers, keeping
-   the live-fetched snapshot override. Ollama stays a hand-built `Model`
-   (`createProvider()` is the upstream way to express it).
-3. Drop `/compat`.
-
-Things worth picking up once there:
-
-- `getSupportedThinkingLevels(model)` instead of mapping the composer's `max`
-  to `xhigh` by hand in `chat.ts`.
-- `constrainedSampling: { type: 'json_schema', strict: 'prefer' }` on
-  `editFile` / `writeFile`, where a malformed argument costs a retry.
-- `utils/transform-messages.ts` overlaps with upstream's cross-provider
-  handoff (thinking blocks → tagged text, orphaned tool calls). Check what is
-  still needed before keeping both.
-- `onPayload` for debugging provider 4xx instead of ad-hoc logging.
+- `completeSimple` / `complete` / `getModel` go through the collection;
+  `src/main/lib/ai/utils/complete.ts` keeps its contract.
+- `agentLoop` takes `streamFn` as its fifth argument (Philharmonic), and the
+  chat route is on pi's `Agent` through `runAgent()`.
+- Ollama is a dynamic provider of its own (`ollama`); the `openai` provider in
+  0.85 serves the Responses API only, as does `xai`, so the xAI spec row is
+  `openai-responses`.
+- `ThinkingLevel` has `max` and no `off`.
+- `transform-messages.ts` is gone: cross-provider handoff of thinking blocks
+  is pi's; orphaned tool results cannot arise now that context is assembled in
+  whole runs (`dropBrokenRuns()` in `kernel/invariant.ts` is the last line of
+  defence).
 
 ## Smaller observations
 

@@ -1,7 +1,7 @@
 # Chat kernel on pi 0.85 — Design
 
 Date: 2026-09-22
-Status: Approved by the user in chat; not yet implemented.
+Status: Implemented on `feat/chat-kernel` (plan: `docs/superpowers/plans/2026-09-22-chat-kernel.md`).
 Background: `docs/pi-ai-review.md` (the deprecated packages and the migration
 path), the 2026-09-21 failure `messages.0.content.5: unexpected tool_use_id
 found in tool_result blocks` (trace `1a801fcf…`).

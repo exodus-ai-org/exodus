@@ -83,7 +83,7 @@ bun run fmt:check     # Check formatting without modifying files
 bun run test             # Run all unit tests with Vitest
 bun run test:watch       # Run tests in watch mode
 bun run test:coverage    # Run tests with V8 coverage report
-bun run test:e2e:electron  # Playwright Electron E2E (packages first: it drives the production build in .vite/)
+bun run test:e2e:electron  # Playwright Electron E2E (packages first: it drives the production build in .vite/; the app boots pi's scripted provider — EXODUS_FAUX_PROVIDER=1 from the fixture — so chat specs need no key)
 bun run test:e2e:api       # Playwright API integration (needs a running app + .env.test)
 bun run test:e2e:providers # Provider compatibility (needs API keys in .env.test)
 ```
@@ -291,49 +291,103 @@ The MCP-tools middleware (injecting MCP tools into context) is **archived** (com
   the device's token, never the token. Machine-local — deliberately not part of
   `db-io` export/import or of a data reset
 - `lcm_summary` - Lossless context-management summaries
+- `message.runId` - the run a row belongs to: the id of the run's user message
+  (backfilled by migration 0008 by walking each chat in `createdAt` order; a
+  row with no user row before it is a run of its own). `runId` is on every
+  `ChatMessage` on the wire too
 - Philharmonic: `agent`, `agent_memory`, `team`, `task`, `task_execution`, `task_execution_event`, `conversation_plan`, `plan_step`
 
 The full chat/message tables and indexes are defined in `src/main/lib/db/schema.ts`.
 
 ### AI/LLM Integration
 
-**Multi-Provider Support** (built on `@mariozechner/pi-ai` + `@mariozechner/pi-agent-core`):
-All model resolution lives in `src/main/lib/ai/providers/`. The registry-backed
+**Multi-Provider Support** (built on `@earendil-works/pi-ai` + `@earendil-works/pi-agent-core` 0.85):
+pi 0.85 has no global registry: every request is routed by `model.provider`
+to a provider registered on a `Models` collection, and the process's one
+collection is `getKernelModels()` in `src/main/lib/ai/kernel/models.ts` —
+the five built-in providers through pi's factories, plus Ollama as a dynamic
+provider `ollama` (empty catalog; `providers/ollama.ts` hand-builds the model
+per request with `provider: 'ollama'`). `streamFn` from the same file is what
+every `Agent` / `agentLoop` streams through; the API key from Settings is
+passed explicitly per request and wins over anything a provider would
+resolve from the environment. The `/compat` entrypoint is not used.
+
+Model resolution lives in `src/main/lib/ai/providers/`. The catalog-backed
 providers (OpenAI GPT, Azure OpenAI, Anthropic Claude, Google Gemini, xAI Grok)
 are one `SPECS` table + a `fromSpec` factory in `index.ts` — a row only supplies
 the base-URL setting, its fallback, the default model ids, and the pi-ai
-`provider` / `api` strings. Ollama (`ollama.ts`) is the exception: a hand-built
-`Model` with nothing in the registry. Every path resolves through the shared
+`provider` / `api` strings (xAI is `openai-responses`: pi 0.85's xai provider
+serves the Responses API only). Every path resolves through the shared
 `resolveModel()` in `resolve-model.ts` (do not duplicate model-resolution
-logic); it accepts an optional live-fetched `snapshot` parameter (from
-`POST /api/v1/settings/models`) to override the pi-ai registry. Per-provider
-fallback defaults (contextWindow, cost) and `MODEL_METADATA_FALLBACK` (narrower
-scope: only what a provider's own list API omits) live there. Live model lists
-are fetched per-provider from `src/main/lib/ai/providers/list-models/`.
+logic); it looks the id up in the collection's catalog and accepts an
+optional live-fetched `snapshot` parameter (from `POST /api/v1/settings/models`)
+to override it. Per-provider fallback defaults (contextWindow, cost) and
+`MODEL_METADATA_FALLBACK` (narrower scope: only what a provider's own list API
+omits) live there. Live model lists are fetched per-provider from
+`src/main/lib/ai/providers/list-models/`.
+
+**Chat kernel** (`src/main/lib/ai/kernel/`, spec
+`docs/superpowers/specs/2026-09-22-chat-kernel-design.md`):
+
+A **run** is one user message through the final answer, with every model
+step and tool result in between; `message.runId` (the user message's own id,
+on every row of the run) is the unit that context assembly, compaction and
+rendering work in.
+
+- `models.ts` — the `Models` collection and `streamFn` (above)
+- `run.ts` — `runAgent(input): AsyncIterable<KernelEvent>` wraps pi's `Agent`
+  (`convertToLlm` asserts the run invariant, `beforeToolCall` blocks tools
+  disabled in settings) and yields the kernel's own events, each stamped with
+  `runId`: `message_update` · `message_end` · `tool_start` · `tool_update` ·
+  `tool_end` · `run_end` (always, with the messages that completed) · `error`
+  (after `run_end`, when a provider failed). Stop aborts the agent; a partial
+  answer is kept, marked `aborted`
+- `record.ts` — `RunRecorder`: fed every event, `persist()` from the route's
+  `finally` saves the run's rows with its duration and enqueues the post-run
+  jobs
+- `invariant.ts` — `dropBrokenRuns()`: a provider request starts with a user
+  message and every tool result follows its tool call; a violating run is
+  dropped and logged, never sent (the 2026-09-21 `unexpected tool_use_id` 400)
+- `events.ts` — the `KernelEvent` union; `faux.ts` / `faux-boot.ts` — pi's
+  scripted provider for tests (see Testing)
 
 **Chat Flow** (`src/main/lib/server/routes/chat.ts`):
 
 1. Retrieve user settings (model selection, API keys)
-2. Load chat history from database
-3. Bind built-in tools based on `AdvancedTools` selection
-4. Stream via `agentLoop` from `@mariozechner/pi-agent-core` for multi-step tool execution
-5. Stream response back to renderer through `createSseWriter`
-   (`routes/chat-sse.ts`): streaming `message_update` snapshots are coalesced
-   to one per `STREAM_FLUSH_INTERVAL_MS` (each carries the whole message so
-   far), other events flush first so order holds, and writes become no-ops
-   once the client has gone
-6. However the turn ends — done, a provider error midway, or Stop (which
-   cancels the response stream) — save the messages that completed and enqueue
-   background jobs (LCM compaction, memory consolidation, and search indexing
-   only when Elasticsearch is configured) onto the pgmq-backed job queue
-   (`src/main/lib/jobs/`) rather than running them inline
+2. Assemble the context (LCM, in whole runs) and bind built-in tools based on
+   the `AdvancedTools` selection and `settings.tools.disabledTools`
+3. `for await` over `runAgent()`, mapping each kernel event onto one SSE
+   event through `createSseWriter` (`routes/chat-sse.ts`): streaming
+   `message_update` snapshots are coalesced to one per
+   `STREAM_FLUSH_INTERVAL_MS` (each carries the whole message so far), other
+   events flush first so order holds, and writes become no-ops once the
+   client has gone. Wire shapes are unchanged; every message carries `runId`
+4. However the run ends — done, a provider error midway, or Stop (which
+   cancels the response stream) — `RunRecorder.persist()` saves the messages
+   that completed and enqueues background jobs (LCM compaction, memory
+   consolidation, and search indexing only when Elasticsearch is configured)
+   onto the pgmq-backed job queue (`src/main/lib/jobs/`) rather than running
+   them inline
 
 **Tool Architecture** (`src/main/lib/ai/calling-tools/`):
-Each tool has a description for LLM understanding, a Zod input schema, and an execute function.
+Each tool has a description for LLM understanding, a TypeBox parameter schema, and an execute function.
 
-Built-in tools (files in `src/main/lib/ai/calling-tools/`):
+Built-in tools (files in `src/main/lib/ai/calling-tools/`), named in
+snake_case on the wire — the names are `TOOL_NAMES` in
+`packages/shared/src/constants/tool-names.ts`, the single source of truth for
+the tool definitions, the binder, the system prompt, the renderer's dispatch
+and the settings registry (migration 0007 rewrote stored rows from the old
+camelCase; `toToolName()` maps a pre-rename `disabledTools` key):
 
-`computer-use`, `create-artifact`, `deep-research`, `edit-file`, `find-files`, `grep`, `image-generation`, `lcm-describe`, `lcm-expand`, `lcm-grep`, `list-directory`, `map-itinerary`, `read-file`, `search-knowledge-base`, `terminal`, `weather`, `web-fetch`, `web-search`, `write-file`.
+`computer_use`, `create_artifact`, `deep_research`, `edit_file`, `find_files`, `grep`, `image_generation`, `lcm_describe`, `lcm_expand`, `lcm_grep`, `list_directory`, `map_itinerary`, `read_file`, `search_knowledge_base`, `terminal`, `weather`, `web_fetch`, `web_search`, `write_file`.
+
+**MCP toolbox** (`calling-tools/mcp-toolbox.ts`): MCP servers are not bound
+tool by tool (providers cap the tools array — OpenAI at 128 — and one server
+can exceed it alone). Two tools stand in for all of them: `list_mcp_tools({
+server?, query? })` returns each tool's server, name, description and
+parameter schema; `call_mcp_tool({ server, tool, arguments })` forwards the
+call and returns the result unchanged. `getSystemPrompt(mcpDirectory)`
+carries one line per connected server so the model knows what exists.
 
 ### Knowledge Base (LightRAG)
 
@@ -460,7 +514,17 @@ Compacts long conversations without losing information, surfacing summaries the 
 
 - Main process: `src/main/lib/ai/context-management/` (compaction, context assembler, token counter, status bus)
 - Route: `/api/v1/lcm`
-- Related built-in tools: `lcm-describe`, `lcm-expand`, `lcm-grep`
+- Related built-in tools: `lcm_describe`, `lcm_expand`, `lcm_grep`
+- **The run is the atom.** `assembleContext(chatId, budget, freshTailRuns)`
+  groups context items by `message.runId` (`groupItemsIntoRuns`): the fresh
+  tail is the most recent N runs, whole; back-fill adds whole older runs,
+  newest first, and stops at the first that does not fit; leaf compaction
+  chunks on run boundaries. So a request starts with a user message and every
+  tool result follows its tool call — a 40-seed property test on a real PGlite
+  (`context-assembler.property.test.ts`) holds it. `memory.freshTailSize`
+  counts runs (default 6, range 2–24; `freshTailRuns()` clamps a value saved
+  when it counted messages). Philharmonic's own LCM keeps a fixed 16-message
+  tail
 
 ### Sub-apps
 
@@ -493,7 +557,7 @@ Separate renderer entry points under `src/renderer/sub-apps/`: `searchbar`, `qui
 **API Communication**:
 
 - All API calls via `fetcher()` utility to `http://localhost:60223/api/*`
-- Streaming responses are consumed from the server's `agentLoop`-driven SSE/stream
+- Streaming responses are consumed from the server's `runAgent()`-driven SSE stream (`lib/stream-manager.ts`)
 - SWR for caching and revalidation
 
 ### Path Aliases
@@ -520,13 +584,13 @@ straight from `src/main/lib/db/schema.ts` (the shared package must not import th
 
 ### When Working with AI Providers
 
-- Providers resolve a `Model` (from `@mariozechner/pi-ai`) via the shared `resolveModel()` in `src/main/lib/ai/providers/resolve-model.ts` — do NOT duplicate model resolution logic
+- Providers resolve a `Model` (from `@earendil-works/pi-ai`) via the shared `resolveModel()` in `src/main/lib/ai/providers/resolve-model.ts` — do NOT duplicate model resolution logic
 - `resolveModel()` accepts an optional `snapshot` parameter (live-fetched from `POST /api/v1/settings/models`) to override the pi-ai registry
 - Per-provider fallback defaults (contextWindow, cost) and `MODEL_METADATA_FALLBACK` are centralized in `resolve-model.ts`
 - Model lists are now live-fetched per provider from Settings via `src/main/lib/ai/providers/list-models/`
 - Model names/API keys are retrieved from settings (never hardcode)
 - One-shot completions go through `completeSimple` from `src/main/lib/ai/utils/complete.ts` (see Shared Utilities) — pi-ai does not throw on a failed request
-- `@mariozechner/pi-ai` / `pi-agent-core` are deprecated upstream at 0.73.1; the successor is `@earendil-works/pi-ai` (a `Models` collection API, the old global API under `/compat`). Not migrated yet — see `docs/pi-ai-review.md`
+- `@earendil-works/pi-ai` / `pi-agent-core` 0.85: there is no global `stream`/`complete`/`getModel` — everything goes through `getKernelModels()` (`src/main/lib/ai/kernel/models.ts`); `completeSimple` still comes from `src/main/lib/ai/utils/complete.ts`; the `/compat` entrypoint is not used. `ThinkingLevel` has `max` and no `off` (the app's `off` means no reasoning option). History: `docs/pi-ai-review.md`
 
 ### When Working with Database
 
@@ -537,9 +601,13 @@ straight from `src/main/lib/db/schema.ts` (the shared package must not import th
 
 ### When Working with Tools
 
-- Tool definitions go in `src/main/lib/ai/calling-tools/`
-- Tools are bound conditionally based on the `AdvancedTools` selection
-- Always validate inputs with Zod schemas
+- Tool definitions go in `src/main/lib/ai/calling-tools/`; the `name` is a
+  `TOOL_NAMES` entry (`packages/shared/src/constants/tool-names.ts`), added
+  there first — snake_case, and never renamed once rows carry it
+- Tools are bound conditionally based on the `AdvancedTools` selection and
+  `settings.tools.disabledTools`; a call to a disabled tool is also blocked in
+  the kernel's `beforeToolCall`
+- Parameters are TypeBox schemas (`Type` from `@earendil-works/pi-ai`)
 - Enum parameters use pi-ai's `StringEnum([...] as const)`, never
   `Type.Union([Type.Literal(...)])` — that emits `anyOf`/`const`, which
   Google's function-calling schema rejects
@@ -548,10 +616,12 @@ straight from `src/main/lib/db/schema.ts` (the shared package must not import th
 
 ### When Working with Chat
 
-- Chat route streams via `agentLoop` from `@mariozechner/pi-agent-core`
-- `agentLoop` handles multi-turn tool calling internally
-- Always save messages to database after completion
-- Message parts stored as JSONB in `message.parts` column
+- The chat route drives `runAgent()` (`src/main/lib/ai/kernel/run.ts`); pi's
+  `Agent` handles multi-step tool calling, parallel tools and cancellation
+- Persistence is `RunRecorder.persist()` from the route's `finally` — however
+  the run ended, the steps that completed are saved with the run's `runId`
+- Message content is stored as JSONB in `message.content`; `message.runId`
+  groups a run's rows (index `message_chat_run_idx`)
 
 ### When Working with the Chat Render Path
 
@@ -568,6 +638,11 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   callbacks from refs synced in an effect. `regenerate` is a prop of every
   assistant turn: when it changed per frame, the whole transcript re-rendered
   per frame, straight through its `memo`.
+- **One run, one assistant message.** `groupIntoSegments` groups by
+  `runId` (segment key `run:<runId>`); `buildAssistantTurn` joins every
+  assistant text block of the run into one `body` under one
+  `ThinkingTimeline`, with one action bar. A provider error is pinned to the
+  run it ended (`useChat().runError`) and shown at that message's foot.
 - **Unchanged segments keep their identity.** `groupIntoSegments` and
   `buildCitationSources` (`messages.tsx`) take a cache and return the same
   segment objects / source arrays for turns a frame did not touch.
@@ -627,7 +702,7 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
 bun run test             # Run all unit tests with Vitest
 bun run test:watch       # Run tests in watch mode
 bun run test:coverage    # Run tests with V8 coverage report
-bun run test:e2e:electron  # Playwright Electron E2E (packages first: it drives the production build in .vite/)
+bun run test:e2e:electron  # Playwright Electron E2E (packages first: it drives the production build in .vite/; the app boots pi's scripted provider — EXODUS_FAUX_PROVIDER=1 from the fixture — so chat specs need no key)
 bun run test:e2e:api       # Playwright API integration (needs a running app + .env.test)
 bun run test:e2e:providers # Provider compatibility (needs API keys in .env.test)
 ```
@@ -835,49 +910,103 @@ The MCP-tools middleware (injecting MCP tools into context) is **archived** (com
   the device's token, never the token. Machine-local — deliberately not part of
   `db-io` export/import or of a data reset
 - `lcm_summary` - Lossless context-management summaries
+- `message.runId` - the run a row belongs to: the id of the run's user message
+  (backfilled by migration 0008 by walking each chat in `createdAt` order; a
+  row with no user row before it is a run of its own). `runId` is on every
+  `ChatMessage` on the wire too
 - Philharmonic: `agent`, `agent_memory`, `team`, `task`, `task_execution`, `task_execution_event`, `conversation_plan`, `plan_step`
 
 The full chat/message tables and indexes are defined in `src/main/lib/db/schema.ts`.
 
 ### AI/LLM Integration
 
-**Multi-Provider Support** (built on `@mariozechner/pi-ai` + `@mariozechner/pi-agent-core`):
-All model resolution lives in `src/main/lib/ai/providers/`. The registry-backed
+**Multi-Provider Support** (built on `@earendil-works/pi-ai` + `@earendil-works/pi-agent-core` 0.85):
+pi 0.85 has no global registry: every request is routed by `model.provider`
+to a provider registered on a `Models` collection, and the process's one
+collection is `getKernelModels()` in `src/main/lib/ai/kernel/models.ts` —
+the five built-in providers through pi's factories, plus Ollama as a dynamic
+provider `ollama` (empty catalog; `providers/ollama.ts` hand-builds the model
+per request with `provider: 'ollama'`). `streamFn` from the same file is what
+every `Agent` / `agentLoop` streams through; the API key from Settings is
+passed explicitly per request and wins over anything a provider would
+resolve from the environment. The `/compat` entrypoint is not used.
+
+Model resolution lives in `src/main/lib/ai/providers/`. The catalog-backed
 providers (OpenAI GPT, Azure OpenAI, Anthropic Claude, Google Gemini, xAI Grok)
 are one `SPECS` table + a `fromSpec` factory in `index.ts` — a row only supplies
 the base-URL setting, its fallback, the default model ids, and the pi-ai
-`provider` / `api` strings. Ollama (`ollama.ts`) is the exception: a hand-built
-`Model` with nothing in the registry. Every path resolves through the shared
+`provider` / `api` strings (xAI is `openai-responses`: pi 0.85's xai provider
+serves the Responses API only). Every path resolves through the shared
 `resolveModel()` in `resolve-model.ts` (do not duplicate model-resolution
-logic); it accepts an optional live-fetched `snapshot` parameter (from
-`POST /api/v1/settings/models`) to override the pi-ai registry. Per-provider
-fallback defaults (contextWindow, cost) and `MODEL_METADATA_FALLBACK` (narrower
-scope: only what a provider's own list API omits) live there. Live model lists
-are fetched per-provider from `src/main/lib/ai/providers/list-models/`.
+logic); it looks the id up in the collection's catalog and accepts an
+optional live-fetched `snapshot` parameter (from `POST /api/v1/settings/models`)
+to override it. Per-provider fallback defaults (contextWindow, cost) and
+`MODEL_METADATA_FALLBACK` (narrower scope: only what a provider's own list API
+omits) live there. Live model lists are fetched per-provider from
+`src/main/lib/ai/providers/list-models/`.
+
+**Chat kernel** (`src/main/lib/ai/kernel/`, spec
+`docs/superpowers/specs/2026-09-22-chat-kernel-design.md`):
+
+A **run** is one user message through the final answer, with every model
+step and tool result in between; `message.runId` (the user message's own id,
+on every row of the run) is the unit that context assembly, compaction and
+rendering work in.
+
+- `models.ts` — the `Models` collection and `streamFn` (above)
+- `run.ts` — `runAgent(input): AsyncIterable<KernelEvent>` wraps pi's `Agent`
+  (`convertToLlm` asserts the run invariant, `beforeToolCall` blocks tools
+  disabled in settings) and yields the kernel's own events, each stamped with
+  `runId`: `message_update` · `message_end` · `tool_start` · `tool_update` ·
+  `tool_end` · `run_end` (always, with the messages that completed) · `error`
+  (after `run_end`, when a provider failed). Stop aborts the agent; a partial
+  answer is kept, marked `aborted`
+- `record.ts` — `RunRecorder`: fed every event, `persist()` from the route's
+  `finally` saves the run's rows with its duration and enqueues the post-run
+  jobs
+- `invariant.ts` — `dropBrokenRuns()`: a provider request starts with a user
+  message and every tool result follows its tool call; a violating run is
+  dropped and logged, never sent (the 2026-09-21 `unexpected tool_use_id` 400)
+- `events.ts` — the `KernelEvent` union; `faux.ts` / `faux-boot.ts` — pi's
+  scripted provider for tests (see Testing)
 
 **Chat Flow** (`src/main/lib/server/routes/chat.ts`):
 
 1. Retrieve user settings (model selection, API keys)
-2. Load chat history from database
-3. Bind built-in tools based on `AdvancedTools` selection
-4. Stream via `agentLoop` from `@mariozechner/pi-agent-core` for multi-step tool execution
-5. Stream response back to renderer through `createSseWriter`
-   (`routes/chat-sse.ts`): streaming `message_update` snapshots are coalesced
-   to one per `STREAM_FLUSH_INTERVAL_MS` (each carries the whole message so
-   far), other events flush first so order holds, and writes become no-ops
-   once the client has gone
-6. However the turn ends — done, a provider error midway, or Stop (which
-   cancels the response stream) — save the messages that completed and enqueue
-   background jobs (LCM compaction, memory consolidation, and search indexing
-   only when Elasticsearch is configured) onto the pgmq-backed job queue
-   (`src/main/lib/jobs/`) rather than running them inline
+2. Assemble the context (LCM, in whole runs) and bind built-in tools based on
+   the `AdvancedTools` selection and `settings.tools.disabledTools`
+3. `for await` over `runAgent()`, mapping each kernel event onto one SSE
+   event through `createSseWriter` (`routes/chat-sse.ts`): streaming
+   `message_update` snapshots are coalesced to one per
+   `STREAM_FLUSH_INTERVAL_MS` (each carries the whole message so far), other
+   events flush first so order holds, and writes become no-ops once the
+   client has gone. Wire shapes are unchanged; every message carries `runId`
+4. However the run ends — done, a provider error midway, or Stop (which
+   cancels the response stream) — `RunRecorder.persist()` saves the messages
+   that completed and enqueues background jobs (LCM compaction, memory
+   consolidation, and search indexing only when Elasticsearch is configured)
+   onto the pgmq-backed job queue (`src/main/lib/jobs/`) rather than running
+   them inline
 
 **Tool Architecture** (`src/main/lib/ai/calling-tools/`):
-Each tool has a description for LLM understanding, a Zod input schema, and an execute function.
+Each tool has a description for LLM understanding, a TypeBox parameter schema, and an execute function.
 
-Built-in tools (files in `src/main/lib/ai/calling-tools/`):
+Built-in tools (files in `src/main/lib/ai/calling-tools/`), named in
+snake_case on the wire — the names are `TOOL_NAMES` in
+`packages/shared/src/constants/tool-names.ts`, the single source of truth for
+the tool definitions, the binder, the system prompt, the renderer's dispatch
+and the settings registry (migration 0007 rewrote stored rows from the old
+camelCase; `toToolName()` maps a pre-rename `disabledTools` key):
 
-`computer-use`, `create-artifact`, `deep-research`, `edit-file`, `find-files`, `grep`, `image-generation`, `lcm-describe`, `lcm-expand`, `lcm-grep`, `list-directory`, `map-itinerary`, `read-file`, `search-knowledge-base`, `terminal`, `weather`, `web-fetch`, `web-search`, `write-file`.
+`computer_use`, `create_artifact`, `deep_research`, `edit_file`, `find_files`, `grep`, `image_generation`, `lcm_describe`, `lcm_expand`, `lcm_grep`, `list_directory`, `map_itinerary`, `read_file`, `search_knowledge_base`, `terminal`, `weather`, `web_fetch`, `web_search`, `write_file`.
+
+**MCP toolbox** (`calling-tools/mcp-toolbox.ts`): MCP servers are not bound
+tool by tool (providers cap the tools array — OpenAI at 128 — and one server
+can exceed it alone). Two tools stand in for all of them: `list_mcp_tools({
+server?, query? })` returns each tool's server, name, description and
+parameter schema; `call_mcp_tool({ server, tool, arguments })` forwards the
+call and returns the result unchanged. `getSystemPrompt(mcpDirectory)`
+carries one line per connected server so the model knows what exists.
 
 ### Knowledge Base (LightRAG)
 
@@ -1004,7 +1133,17 @@ Compacts long conversations without losing information, surfacing summaries the 
 
 - Main process: `src/main/lib/ai/context-management/` (compaction, context assembler, token counter, status bus)
 - Route: `/api/v1/lcm`
-- Related built-in tools: `lcm-describe`, `lcm-expand`, `lcm-grep`
+- Related built-in tools: `lcm_describe`, `lcm_expand`, `lcm_grep`
+- **The run is the atom.** `assembleContext(chatId, budget, freshTailRuns)`
+  groups context items by `message.runId` (`groupItemsIntoRuns`): the fresh
+  tail is the most recent N runs, whole; back-fill adds whole older runs,
+  newest first, and stops at the first that does not fit; leaf compaction
+  chunks on run boundaries. So a request starts with a user message and every
+  tool result follows its tool call — a 40-seed property test on a real PGlite
+  (`context-assembler.property.test.ts`) holds it. `memory.freshTailSize`
+  counts runs (default 6, range 2–24; `freshTailRuns()` clamps a value saved
+  when it counted messages). Philharmonic's own LCM keeps a fixed 16-message
+  tail
 
 ### Sub-apps
 
@@ -1037,7 +1176,7 @@ Separate renderer entry points under `src/renderer/sub-apps/`: `searchbar`, `qui
 **API Communication**:
 
 - All API calls via `fetcher()` utility to `http://localhost:60223/api/*`
-- Streaming responses are consumed from the server's `agentLoop`-driven SSE/stream
+- Streaming responses are consumed from the server's `runAgent()`-driven SSE stream (`lib/stream-manager.ts`)
 - SWR for caching and revalidation
 
 ### Path Aliases
@@ -1064,13 +1203,13 @@ straight from `src/main/lib/db/schema.ts` (the shared package must not import th
 
 ### When Working with AI Providers
 
-- Providers resolve a `Model` (from `@mariozechner/pi-ai`) via the shared `resolveModel()` in `src/main/lib/ai/providers/resolve-model.ts` — do NOT duplicate model resolution logic
+- Providers resolve a `Model` (from `@earendil-works/pi-ai`) via the shared `resolveModel()` in `src/main/lib/ai/providers/resolve-model.ts` — do NOT duplicate model resolution logic
 - `resolveModel()` accepts an optional `snapshot` parameter (live-fetched from `POST /api/v1/settings/models`) to override the pi-ai registry
 - Per-provider fallback defaults (contextWindow, cost) and `MODEL_METADATA_FALLBACK` are centralized in `resolve-model.ts`
 - Model lists are now live-fetched per provider from Settings via `src/main/lib/ai/providers/list-models/`
 - Model names/API keys are retrieved from settings (never hardcode)
 - One-shot completions go through `completeSimple` from `src/main/lib/ai/utils/complete.ts` (see Shared Utilities) — pi-ai does not throw on a failed request
-- `@mariozechner/pi-ai` / `pi-agent-core` are deprecated upstream at 0.73.1; the successor is `@earendil-works/pi-ai` (a `Models` collection API, the old global API under `/compat`). Not migrated yet — see `docs/pi-ai-review.md`
+- `@earendil-works/pi-ai` / `pi-agent-core` 0.85: there is no global `stream`/`complete`/`getModel` — everything goes through `getKernelModels()` (`src/main/lib/ai/kernel/models.ts`); `completeSimple` still comes from `src/main/lib/ai/utils/complete.ts`; the `/compat` entrypoint is not used. `ThinkingLevel` has `max` and no `off` (the app's `off` means no reasoning option). History: `docs/pi-ai-review.md`
 
 ### When Working with Database
 
@@ -1081,9 +1220,13 @@ straight from `src/main/lib/db/schema.ts` (the shared package must not import th
 
 ### When Working with Tools
 
-- Tool definitions go in `src/main/lib/ai/calling-tools/`
-- Tools are bound conditionally based on the `AdvancedTools` selection
-- Always validate inputs with Zod schemas
+- Tool definitions go in `src/main/lib/ai/calling-tools/`; the `name` is a
+  `TOOL_NAMES` entry (`packages/shared/src/constants/tool-names.ts`), added
+  there first — snake_case, and never renamed once rows carry it
+- Tools are bound conditionally based on the `AdvancedTools` selection and
+  `settings.tools.disabledTools`; a call to a disabled tool is also blocked in
+  the kernel's `beforeToolCall`
+- Parameters are TypeBox schemas (`Type` from `@earendil-works/pi-ai`)
 - Enum parameters use pi-ai's `StringEnum([...] as const)`, never
   `Type.Union([Type.Literal(...)])` — that emits `anyOf`/`const`, which
   Google's function-calling schema rejects
@@ -1092,10 +1235,12 @@ straight from `src/main/lib/db/schema.ts` (the shared package must not import th
 
 ### When Working with Chat
 
-- Chat route streams via `agentLoop` from `@mariozechner/pi-agent-core`
-- `agentLoop` handles multi-turn tool calling internally
-- Always save messages to database after completion
-- Message parts stored as JSONB in `message.parts` column
+- The chat route drives `runAgent()` (`src/main/lib/ai/kernel/run.ts`); pi's
+  `Agent` handles multi-step tool calling, parallel tools and cancellation
+- Persistence is `RunRecorder.persist()` from the route's `finally` — however
+  the run ended, the steps that completed are saved with the run's `runId`
+- Message content is stored as JSONB in `message.content`; `message.runId`
+  groups a run's rows (index `message_chat_run_idx`)
 
 ### When Working with the Chat Render Path
 
@@ -1112,6 +1257,11 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   callbacks from refs synced in an effect. `regenerate` is a prop of every
   assistant turn: when it changed per frame, the whole transcript re-rendered
   per frame, straight through its `memo`.
+- **One run, one assistant message.** `groupIntoSegments` groups by
+  `runId` (segment key `run:<runId>`); `buildAssistantTurn` joins every
+  assistant text block of the run into one `body` under one
+  `ThinkingTimeline`, with one action bar. A provider error is pinned to the
+  run it ended (`useChat().runError`) and shown at that message's foot.
 - **Unchanged segments keep their identity.** `groupIntoSegments` and
   `buildCitationSources` (`messages.tsx`) take a cache and return the same
   segment objects / source arrays for turns a frame did not touch.
@@ -1184,12 +1334,27 @@ vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
 ```
 
 - Use `await import('@main/lib/paths')` (alias, not a relative path) after mocks for dynamic import when needed
+- **Anything that talks to a model is tested on pi's faux provider**, never
+  a key: `registerFauxProvider()` (`src/main/lib/ai/kernel/faux.ts`) puts it
+  on the kernel collection, `setResponses([...])` scripts the replies
+  (`fauxAssistantMessage`, `fauxText`, `fauxToolCall` from
+  `@earendil-works/pi-ai`; a response factory answers from the context). Each
+  registration replaces the one before it, so register last and pass
+  `handle.getModel()` in. Modules that one-shot through `completeSimple` are
+  mocked at `@main/lib/ai/kernel/models` (`getKernelModels: () => ({
+completeSimple })`). See `tests/unit/main/lib/ai/kernel/run.test.ts` and
+  `tests/unit/main/lib/server/routes/chat.faux.test.ts`
+- **A migration or a query is tested on a real in-memory PGlite** with the
+  shipped migrations applied: `createMigratedPglite('0008')` in
+  `tests/unit/helpers/migrated-pglite.ts` (plus `migrationFile()` /
+  `migrationSql()` to apply the one under test), mocked in as `@main/lib/db/db`
+  with `drizzle(pglite)` where the module under test imports `db`
 
 ### Shared Utilities
 
 Reusable AI utilities that should be used (and tested) instead of inline implementations:
 
-- `src/main/lib/ai/utils/complete.ts` — `completeSimple()`: pi-ai's, except a failed request rejects (`LlmRequestError`). pi-ai itself **resolves** on a 429 / bad key / dropped connection, to an empty message with `stopReason: 'error'`, which reads as "the model said nothing". Always import `completeSimple` from here, never from `@mariozechner/pi-ai`, and make sure the caller's `catch` does something sensible
+- `src/main/lib/ai/utils/complete.ts` — `completeSimple()`: the kernel collection's, except a failed request rejects (`LlmRequestError`). pi-ai itself **resolves** on a 429 / bad key / dropped connection, to an empty message with `stopReason: 'error'`, which reads as "the model said nothing". Always import `completeSimple` from here, and make sure the caller's `catch` does something sensible
 - `src/main/lib/ai/utils/llm-response-util.ts` — `extractTextFromCompletion()` and `parseJsonFromLlmResponse()` for parsing LLM outputs
 - `src/main/lib/ai/utils/conversation-util.ts` — `extractConversationText()` for converting messages to text
 - `src/main/lib/ai/providers/resolve-model.ts` — Shared `resolveModel()` with per-provider fallback defaults
@@ -1361,7 +1526,8 @@ Main process:
 - `src/main/lib/server/middlewares/` — origin gate, lock gate, trace, error handler
 - `src/main/lib/ai/providers/` — LLM provider resolution (`resolve-model.ts`)
 - `src/main/lib/ai/providers/list-models/` — Live model catalog handlers per provider (`anthropic.ts`, `openai.ts`, `google.ts`, `xai.ts`, `ollama.ts`); each normalizes that provider's list-models API response into `{ id, displayName, snapshot: ModelSnapshot }`, dispatched by `index.ts` and called from `POST /api/v1/settings/models`
-- `src/main/lib/ai/calling-tools/` — built-in agent tools
+- `src/main/lib/ai/kernel/` — the chat kernel: `models.ts` (the `Models` collection, `streamFn`), `run.ts` (`runAgent()`), `record.ts` (`RunRecorder`), `invariant.ts` (`dropBrokenRuns()`), `events.ts`, `faux.ts` + `faux-boot.ts` (pi's scripted provider; `EXODUS_FAUX_PROVIDER=1`)
+- `src/main/lib/ai/calling-tools/` — built-in agent tools (snake_case names from `packages/shared/src/constants/tool-names.ts`) and the MCP toolbox (`mcp-toolbox.ts`)
 - `src/main/lib/ai/skills/` — skills.sh client, install store, and the prompt seam (see Skills)
 - `src/main/lib/analytics/` — DuckDB chat-audit snapshot + read-only query wrapper (see Chat Audit)
 - `src/main/lib/ai/philharmonic/` — multi-agent Groups
@@ -1483,7 +1649,7 @@ Renderer:
 Shared:
 
 - `packages/shared/src/types/` — cross-process types
-- `packages/shared/src/constants/` — constants (`test-ids.ts`, `systems.ts`)
+- `packages/shared/src/constants/` — constants (`test-ids.ts`, `systems.ts`, `tool-names.ts`)
 - `packages/shared/src/schemas/` — Zod schemas
 - `packages/shared/src/utils/` — shared utilities
 - `packages/shared/src/i18n/` — application i18n: `locales.ts` (the 10 locale IDs +
@@ -1513,8 +1679,8 @@ Docs:
 - `docs/security-hardening.md` — threat model, protections in place, and the
   open security items with their intended fixes
 - `docs/pi-ai-review.md` — review of the pi-ai usage against the upstream
-  README: what was fixed, and the migration path off the deprecated
-  `@mariozechner/*` packages
+  README: what was fixed, and the migration to `@earendil-works/*` 0.85
+  (done with the chat kernel, spec `2026-09-22-chat-kernel-design.md`)
 - `docs/elasticsearch-setup.md` — end-user guide for configuring a
   self-hosted/cloud Elasticsearch cluster for Exodus's optional search
   upgrade (Exodus is consumer-only — never creates the index/mapping

@@ -18,7 +18,12 @@ const FORBIDDEN: RegExp[] = [
   /\/api\/setting\b/,
   /\/api\/workflow/,
   /\/api\/custom-uploader/,
-  /calculator\.ts/
+  /calculator\.ts/,
+  // Retired with the chat kernel (2026-09-22): the deprecated packages, the
+  // message normaliser pi 0.85 made redundant, the MCP tool truncation cap.
+  /@mariozechner\//,
+  /transform-messages/,
+  /MAX_TOOLS/
 ]
 
 describe('CLAUDE.md staleness', () => {
