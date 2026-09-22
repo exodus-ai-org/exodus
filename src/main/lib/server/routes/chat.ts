@@ -19,7 +19,7 @@ import {
   deepResearchBootPrompt,
   getSystemPrompt
 } from '../../ai/prompts'
-import { getActiveSkillsContent } from '../../ai/skills/skills-manager'
+import { getActiveSkillsIndex } from '../../ai/skills/skills-manager'
 import {
   bindCallingTools,
   generateTitleFromUserMessage,
@@ -39,6 +39,7 @@ import {
 import { enqueueAndProcess, logEnqueueFailure } from '../../jobs/worker'
 import { logger } from '../../logger'
 import { bindTraceAttributes } from '../../logger/trace-context'
+import { getChatWorkspaceDir } from '../../paths'
 import {
   resolveSearchProvider,
   searchWithFallback
@@ -241,18 +242,21 @@ chat.post('/', async (c) => {
   }
 
   const personalityPrompt = buildPersonalityPrompt(setting)
-  const skillsSection = await getActiveSkillsContent()
+  const skillsIndex = await getActiveSkillsIndex()
   logger.info('chat', 'skill injection', {
     deepResearch: advancedTools?.includes(AdvancedTools.DeepResearch) ?? false,
-    skillsBytes: skillsSection.length
+    skills: skillsIndex ? skillsIndex.split('\n').length : 0
   })
   const systemContent = advancedTools?.includes(AdvancedTools.DeepResearch)
     ? deepResearchBootPrompt
-    : getSystemPrompt(mcpDirectory(mcpTools)) +
+    : getSystemPrompt({
+        mcpDirectory: mcpDirectory(mcpTools),
+        workspaceDir: getChatWorkspaceDir(id),
+        skillsIndex
+      }) +
       personalityPrompt +
       projectInstructions +
-      memoriesSection +
-      skillsSection
+      memoriesSection
 
   // Deep Research forces a strong reasoning effort regardless of what the
   // composer's picker requested. pi's ThinkingLevel has every tier of the

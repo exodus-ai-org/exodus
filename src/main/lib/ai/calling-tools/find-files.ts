@@ -28,7 +28,7 @@ const findFilesSchema = Type.Object({
   searchPath: Type.Optional(
     Type.String({
       description:
-        'Root directory to search from. Defaults to user home directory.'
+        'Root directory to search from. Defaults to the workspace directory named in the system prompt.'
     })
   ),
   maxResults: Type.Optional(
@@ -38,7 +38,10 @@ const findFilesSchema = Type.Object({
   )
 })
 
-export const findFiles: AgentTool<typeof findFilesSchema> = {
+/** @param defaultRoot where a search starts when the model names no `searchPath`. */
+export const findFiles = (
+  defaultRoot: string = homedir()
+): AgentTool<typeof findFilesSchema> => ({
   name: TOOL_NAMES.findFiles,
   label: 'Find Files',
   description:
@@ -46,7 +49,7 @@ export const findFiles: AgentTool<typeof findFilesSchema> = {
   parameters: findFilesSchema,
   execute: async (_toolCallId, { pattern, searchPath, maxResults }, signal) => {
     if (signal?.aborted) throw new Error('Aborted')
-    const root = searchPath ?? homedir()
+    const root = searchPath ?? defaultRoot
     const limit = maxResults ?? 50
     const results: string[] = []
 
@@ -95,4 +98,4 @@ export const findFiles: AgentTool<typeof findFilesSchema> = {
       details
     }
   }
-}
+})

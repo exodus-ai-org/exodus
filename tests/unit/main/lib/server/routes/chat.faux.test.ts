@@ -35,7 +35,7 @@ vi.mock('@main/lib/ai/prompts', () => ({
   getSystemPrompt: vi.fn(() => 'SYSTEM')
 }))
 vi.mock('@main/lib/ai/skills/skills-manager', () => ({
-  getActiveSkillsContent: vi.fn(async () => '')
+  getActiveSkillsIndex: vi.fn(async () => '')
 }))
 
 const weather: AgentTool = {

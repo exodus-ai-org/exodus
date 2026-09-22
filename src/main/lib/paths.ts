@@ -45,6 +45,20 @@ export function getGroupsDir(): string {
   return join(getExodusHome(), 'groups')
 }
 
+/** Per-chat workspaces: where the chat's file and shell tools work by default. */
+export function getWorkspacesDir(): string {
+  return join(getExodusHome(), 'workspace')
+}
+
+/**
+ * A chat's workspace, `~/.exodus/workspace/<chatId>`. Not created here — the
+ * terminal tool creates it on first use, and write_file makes parents — so a
+ * chat that never touches a file leaves no directory behind.
+ */
+export function getChatWorkspaceDir(chatId: string): string {
+  return join(getWorkspacesDir(), chatId)
+}
+
 export function getGroupDir(conversationId: string): string {
   const dir = join(getGroupsDir(), conversationId)
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true })

@@ -41,7 +41,7 @@ vi.mock('@main/lib/ai/prompts', () => ({
 }))
 
 vi.mock('@main/lib/ai/skills/skills-manager', () => ({
-  getActiveSkillsContent: vi.fn(async () => '')
+  getActiveSkillsIndex: vi.fn(async () => '')
 }))
 
 const getModelFromProviderMock = vi.fn()

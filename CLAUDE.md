@@ -175,9 +175,14 @@ quality reasons). `src/main/lib/ai/skills/`:
   Same directory and lockfile shape as `exodus-cli`, so skills installed by
   either are visible to both.
 - `skills-manager.ts` — the seam chat + Philharmonic consume:
-  `listInstalledSkills()`, `getSkillsContentBySlugs()`,
-  `getActiveSkillsContent()` (SKILL.md minus frontmatter, `$SKILL_DIR` baked
-  to the absolute install path, wrapped in `<active_skills>`).
+  `listInstalledSkills()`; for chat, `getActiveSkillsIndex()` — one line per
+  active skill (slug, the SKILL.md frontmatter `description` folded onto one
+  line, the absolute path of its SKILL.md) that the system prompt carries in
+  `<skills>`, so the model reads a skill's body with `read_file` only when a
+  task matches (the Agent Skills spec's own model; constant prompt cost);
+  for Philharmonic, `getSkillsContentBySlugs()` / `getActiveSkillsContent()`
+  (full bodies, frontmatter stripped, `$SKILL_DIR` baked to the install path,
+  wrapped in `<active_skills>`).
 
 Route `/api/v1/skills` (`src/main/lib/server/routes/skills.ts`): `GET
 /registry?view&page&per_page`, `GET /search?q`, `GET /curated` (the registry's
@@ -386,8 +391,26 @@ tool by tool (providers cap the tools array — OpenAI at 128 — and one server
 can exceed it alone). Two tools stand in for all of them: `list_mcp_tools({
 server?, query? })` returns each tool's server, name, description and
 parameter schema; `call_mcp_tool({ server, tool, arguments })` forwards the
-call and returns the result unchanged. `getSystemPrompt(mcpDirectory)`
+call and returns the result unchanged; the prompt's `<mcp_servers>` block
 carries one line per connected server so the model knows what exists.
+
+**System prompt** (`src/main/lib/ai/prompts.ts`, `getSystemPrompt({
+mcpDirectory, workspaceDir, skillsIndex })`): the policy is autonomy — use
+tools without asking or announcing, chain calls until the task is done, stop
+only for a real ambiguity or a `<hard_stops>` item (deleting/overwriting
+outside the workspace, `sudo`, system-wide installs, `git push`, anything sent
+or paid on the user's behalf). Every built-in is explained by its wire name
+(`tests/unit/main/lib/ai/prompts.test.ts` holds that — a new tool must be
+added there), grouped research / files & shell / output / memory / computer;
+HTML and anything visual goes through `create_artifact`. `<workspace>`,
+`<skills>` and `<mcp_servers>` render only when given; citations live under
+`<citation_rules>`.
+
+**Chat workspace**: `getChatWorkspaceDir(chatId)` = `~/.exodus/workspace/<chatId>`
+(`paths.ts`; not created until used). `terminal(defaultCwd)` and
+`findFiles(defaultRoot)` are factories, bound to the workspace when
+`bindCallingTools` gets a `chatId` and to the user's home otherwise
+(Philharmonic keeps `~/.exodus/groups/<id>` as its own).
 
 ### Knowledge Base (LightRAG)
 
@@ -800,9 +823,14 @@ quality reasons). `src/main/lib/ai/skills/`:
   Same directory and lockfile shape as `exodus-cli`, so skills installed by
   either are visible to both.
 - `skills-manager.ts` — the seam chat + Philharmonic consume:
-  `listInstalledSkills()`, `getSkillsContentBySlugs()`,
-  `getActiveSkillsContent()` (SKILL.md minus frontmatter, `$SKILL_DIR` baked
-  to the absolute install path, wrapped in `<active_skills>`).
+  `listInstalledSkills()`; for chat, `getActiveSkillsIndex()` — one line per
+  active skill (slug, the SKILL.md frontmatter `description` folded onto one
+  line, the absolute path of its SKILL.md) that the system prompt carries in
+  `<skills>`, so the model reads a skill's body with `read_file` only when a
+  task matches (the Agent Skills spec's own model; constant prompt cost);
+  for Philharmonic, `getSkillsContentBySlugs()` / `getActiveSkillsContent()`
+  (full bodies, frontmatter stripped, `$SKILL_DIR` baked to the install path,
+  wrapped in `<active_skills>`).
 
 Route `/api/v1/skills` (`src/main/lib/server/routes/skills.ts`): `GET
 /registry?view&page&per_page`, `GET /search?q`, `GET /curated` (the registry's
@@ -1011,8 +1039,26 @@ tool by tool (providers cap the tools array — OpenAI at 128 — and one server
 can exceed it alone). Two tools stand in for all of them: `list_mcp_tools({
 server?, query? })` returns each tool's server, name, description and
 parameter schema; `call_mcp_tool({ server, tool, arguments })` forwards the
-call and returns the result unchanged. `getSystemPrompt(mcpDirectory)`
+call and returns the result unchanged; the prompt's `<mcp_servers>` block
 carries one line per connected server so the model knows what exists.
+
+**System prompt** (`src/main/lib/ai/prompts.ts`, `getSystemPrompt({
+mcpDirectory, workspaceDir, skillsIndex })`): the policy is autonomy — use
+tools without asking or announcing, chain calls until the task is done, stop
+only for a real ambiguity or a `<hard_stops>` item (deleting/overwriting
+outside the workspace, `sudo`, system-wide installs, `git push`, anything sent
+or paid on the user's behalf). Every built-in is explained by its wire name
+(`tests/unit/main/lib/ai/prompts.test.ts` holds that — a new tool must be
+added there), grouped research / files & shell / output / memory / computer;
+HTML and anything visual goes through `create_artifact`. `<workspace>`,
+`<skills>` and `<mcp_servers>` render only when given; citations live under
+`<citation_rules>`.
+
+**Chat workspace**: `getChatWorkspaceDir(chatId)` = `~/.exodus/workspace/<chatId>`
+(`paths.ts`; not created until used). `terminal(defaultCwd)` and
+`findFiles(defaultRoot)` are factories, bound to the workspace when
+`bindCallingTools` gets a `chatId` and to the user's home otherwise
+(Philharmonic keeps `~/.exodus/groups/<id>` as its own).
 
 ### Knowledge Base (LightRAG)
 

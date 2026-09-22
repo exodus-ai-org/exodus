@@ -1,4 +1,5 @@
 import { exec } from 'child_process'
+import { mkdir } from 'fs/promises'
 import { homedir } from 'os'
 import { promisify } from 'util'
 
@@ -13,15 +14,22 @@ const terminalSchema = Type.Object({
   cwd: Type.Optional(
     Type.String({
       description:
-        'Working directory for the command. Defaults to the user home directory.'
+        'Working directory for the command. Defaults to the workspace directory named in the system prompt.'
     })
   )
 })
 
-export const terminal: AgentTool<typeof terminalSchema> = {
+/**
+ * @param defaultCwd where a command runs when the model names no `cwd` —
+ *   the chat's workspace (`getChatWorkspaceDir`), created on first use so an
+ *   unused chat leaves no directory behind. The user's home when unbound.
+ */
+export const terminal = (
+  defaultCwd: string = homedir()
+): AgentTool<typeof terminalSchema> => ({
   name: TOOL_NAMES.terminal,
   label: 'Terminal',
-  description: `Execute a shell command on the local machine and return its output. Use this to run CLI tools, scripts, or any shell command. Commands run in the user's home directory by default.
+  description: `Execute a shell command on the local machine and return its output. Use this to run CLI tools, scripts, or any shell command. Commands run in the workspace directory by default (see the system prompt); pass cwd to run elsewhere.
 
 LANGUAGE PREFERENCE
 - Always PREFER Node.js inline (\`node -e "..."\`) for ad-hoc scripting. Node's built-ins cover most tasks: \`fetch\`, \`JSON\`, \`URL\`, \`Date\`, \`Math\`, \`crypto\`, \`fs\`, \`path\` — no install needed.
@@ -41,8 +49,9 @@ Commands run with the user's full OS privileges. Avoid destructive operations.`,
   parameters: terminalSchema,
   execute: async (_toolCallId, { command, cwd }, signal) => {
     if (signal?.aborted) throw new Error('Aborted')
-    const workDir = cwd ?? homedir()
+    const workDir = cwd ?? defaultCwd
     try {
+      if (!cwd) await mkdir(workDir, { recursive: true })
       const { stdout, stderr } = await execAsync(command, {
         cwd: workDir,
         timeout: 30_000,
@@ -80,4 +89,4 @@ Commands run with the user's full OS privileges. Avoid destructive operations.`,
       }
     }
   }
-}
+})

@@ -7,7 +7,7 @@ vi.mock('@main/lib/ai/calling-tools', () => ({
   createArtifact: () => stub('create_artifact'),
   deepResearch: stub('deep_research'),
   editFile: stub('edit_file'),
-  findFiles: stub('find_files'),
+  findFiles: () => stub('find_files'),
   grep: stub('grep'),
   imageGeneration: () => stub('image_generation'),
   lcmDescribe: stub('lcm_describe'),
@@ -18,7 +18,7 @@ vi.mock('@main/lib/ai/calling-tools', () => ({
   readFile: stub('read_file'),
   searchKnowledgeBase: (_client: unknown, _cfg: unknown) =>
     stub('search_knowledge_base'),
-  terminal: stub('terminal'),
+  terminal: () => stub('terminal'),
   weather: stub('weather'),
   webFetch: () => stub('web_fetch'),
   webSearch: () => stub('web_search'),
@@ -26,6 +26,10 @@ vi.mock('@main/lib/ai/calling-tools', () => ({
 }))
 
 const mockResolveKnowledgeBase = vi.fn()
+// The binder resolves the chat's workspace through paths.ts, which reads
+// Electron's `app` for the legacy-location migration.
+vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
+
 vi.mock('@main/lib/knowledge-base/resolve-knowledge-base', () => ({
   resolveKnowledgeBase: mockResolveKnowledgeBase
 }))

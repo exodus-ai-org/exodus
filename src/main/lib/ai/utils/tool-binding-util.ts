@@ -6,6 +6,7 @@ import type { WebSearchResult } from '@exodus/shared/types/web-search'
 
 import { Settings } from '../../db/schema'
 import { resolveKnowledgeBase } from '../../knowledge-base/resolve-knowledge-base'
+import { getChatWorkspaceDir } from '../../paths'
 import {
   computerUse,
   createArtifact,
@@ -73,12 +74,15 @@ export function bindCallingTools({
   }
   if (enabled(TOOL_NAMES.mapItinerary)) tools.push(mapItinerary(setting))
   if (enabled(TOOL_NAMES.imageGeneration)) tools.push(imageGeneration(setting))
-  if (enabled(TOOL_NAMES.terminal)) tools.push(terminal)
+  // The chat's workspace is where its shell and file tools work by default;
+  // Philharmonic binds without a chatId and keeps the user's home.
+  const workspaceDir = chatId ? getChatWorkspaceDir(chatId) : undefined
+  if (enabled(TOOL_NAMES.terminal)) tools.push(terminal(workspaceDir))
   if (enabled(TOOL_NAMES.readFile)) tools.push(readFile)
   if (enabled(TOOL_NAMES.writeFile)) tools.push(writeFile)
   if (enabled(TOOL_NAMES.editFile)) tools.push(editFile)
   if (enabled(TOOL_NAMES.listDirectory)) tools.push(listDirectory)
-  if (enabled(TOOL_NAMES.findFiles)) tools.push(findFiles)
+  if (enabled(TOOL_NAMES.findFiles)) tools.push(findFiles(workspaceDir))
   if (enabled(TOOL_NAMES.grep)) tools.push(grep)
   // webSearch + webFetch share one rank registry so 【N-source】 citations
   // resolve regardless of which tool produced source N.
