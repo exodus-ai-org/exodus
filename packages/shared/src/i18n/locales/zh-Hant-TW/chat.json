@@ -183,7 +183,9 @@
     "rainChance": "降雨 {{percent}}%",
     "observedAt": "{{time}} 觀測",
     "high": "最高",
-    "low": "最低"
+    "low": "最低",
+    "details": "詳細",
+    "less": "收合"
   },
   "weatherForecast": {
     "temperatureRange": "🌡️ 溫度範圍",

@@ -190,7 +190,9 @@
     "rainChance": "{{percent}} % Regen",
     "observedAt": "Gemessen {{time}}",
     "high": "Max.",
-    "low": "Min."
+    "low": "Min.",
+    "details": "Details",
+    "less": "Weniger"
   },
   "weatherForecast": {
     "temperatureRange": "🌡️ Temperaturbereich",

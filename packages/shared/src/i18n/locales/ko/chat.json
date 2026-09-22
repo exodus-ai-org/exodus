@@ -183,7 +183,9 @@
     "rainChance": "강수 {{percent}}%",
     "observedAt": "{{time}} 관측",
     "high": "최고",
-    "low": "최저"
+    "low": "최저",
+    "details": "상세",
+    "less": "접기"
   },
   "weatherForecast": {
     "temperatureRange": "🌡️ 기온 범위",

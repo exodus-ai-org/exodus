@@ -14,6 +14,7 @@ import { TerminalCard } from '@/components/calling-tools/terminal/terminal-card'
 
 import { WeatherComposite } from './composite'
 import { WeatherEditorial } from './editorial'
+import { WeatherExpanding } from './expanding'
 import { WeatherInstrument } from './instrument'
 import { WeatherLedger } from './ledger'
 import { SAMPLE } from './shared'
@@ -41,7 +42,8 @@ const VARIANTS: Array<{
   { name: 'Ledger', Component: WeatherLedger, data: THREE_DAYS },
   { name: 'Editorial', Component: WeatherEditorial, data: THREE_DAYS },
   { name: 'Instrument', Component: WeatherInstrument, data: THREE_DAYS },
-  { name: 'Composite', Component: WeatherComposite, data: SAMPLE }
+  { name: 'Composite', Component: WeatherComposite, data: SAMPLE },
+  { name: 'Expanding', Component: WeatherExpanding, data: SAMPLE }
 ]
 
 const PICKER_CSS = `

@@ -190,7 +190,9 @@
     "rainChance": "{{percent}} % de pluie",
     "observedAt": "Relevé à {{time}}",
     "high": "Max.",
-    "low": "Min."
+    "low": "Min.",
+    "details": "Détails",
+    "less": "Moins"
   },
   "weatherForecast": {
     "temperatureRange": "🌡️ Plage de températures",
