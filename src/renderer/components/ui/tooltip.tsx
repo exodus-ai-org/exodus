@@ -4,14 +4,23 @@ import { Tooltip as TooltipPrimitive } from '@base-ui/react/tooltip'
 
 import { cn } from '@/lib/utils'
 
+/**
+ * The first tooltip in a group waits, so the pointer crossing a toolbar does
+ * not pop one per button; once one is open, the neighbours open at once —
+ * and, marked `data-instant` by Base UI, without an animation (a 150 ms
+ * zoom on each hop is what makes a toolbar feel slow). `timeout` is how
+ * long after the last one closed that still counts as "the same visit".
+ */
 function TooltipProvider({
-  delay = 0,
+  delay = 500,
+  timeout = 300,
   ...props
 }: TooltipPrimitive.Provider.Props) {
   return (
     <TooltipPrimitive.Provider
       data-slot="tooltip-provider"
       delay={delay}
+      timeout={timeout}
       {...props}
     />
   )
@@ -50,7 +59,7 @@ function TooltipContent({
         <TooltipPrimitive.Popup
           data-slot="tooltip-content"
           className={cn(
-            'z-50 inline-flex w-fit max-w-xs origin-(--transform-origin) items-center gap-1.5 rounded-xl bg-foreground px-3 py-1.5 text-xs text-background has-data-[slot=kbd]:pr-1.5 data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 **:data-[slot=kbd]:relative **:data-[slot=kbd]:isolate **:data-[slot=kbd]:z-50 **:data-[slot=kbd]:rounded-lg data-[state=delayed-open]:animate-in data-[state=delayed-open]:ease-out data-[state=delayed-open]:fade-in-0 data-[state=delayed-open]:zoom-in-95 data-open:animate-in data-open:ease-out data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:ease-out data-closed:fade-out-0 data-closed:zoom-out-95',
+            'z-50 inline-flex w-fit max-w-xs origin-(--transform-origin) data-instant:animate-none data-instant:duration-0 items-center gap-1.5 rounded-xl bg-foreground px-3 py-1.5 text-xs text-background has-data-[slot=kbd]:pr-1.5 data-[side=bottom]:slide-in-from-top-2 data-[side=inline-end]:slide-in-from-left-2 data-[side=inline-start]:slide-in-from-right-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 **:data-[slot=kbd]:relative **:data-[slot=kbd]:isolate **:data-[slot=kbd]:z-50 **:data-[slot=kbd]:rounded-lg data-[state=delayed-open]:animate-in data-[state=delayed-open]:ease-out data-[state=delayed-open]:fade-in-0 data-[state=delayed-open]:zoom-in-95 data-open:animate-in data-open:ease-out data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:ease-out data-closed:fade-out-0 data-closed:zoom-out-95',
             className
           )}
           {...props}
