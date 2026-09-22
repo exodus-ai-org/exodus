@@ -1,5 +1,6 @@
 import { createHash, webcrypto, X509Certificate } from 'crypto'
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'fs'
+import { hostname } from 'os'
 import { join } from 'path'
 
 import { safeStorage } from 'electron'
@@ -53,6 +54,20 @@ function readKey(): string {
   return text.startsWith('-----BEGIN') ? text : safeStorage.decryptString(raw)
 }
 
+/**
+ * A certificate Apple's TLS stack will even show to the app. A v3 certificate
+ * with no extensions at all is rejected during the handshake
+ * (CERTIFICATE_VERIFY_FAILED) before URLSession asks the delegate anything — so
+ * the phone's pin check never ran, and pairing failed with "certificate
+ * invalid". Any of the usual server-certificate extensions clears that bar
+ * (measured against six variants); these are the conventional set. The SAN is
+ * decorative — a paired device checks the fingerprint, not the name.
+ */
+function hasServerExtensions(certPem: string): boolean {
+  const parsed = new X509Certificate(certPem)
+  return parsed.subjectAltName !== undefined && parsed.keyUsage !== undefined
+}
+
 async function create(): Promise<LanCertificate> {
   // Lazy: needed once per installation, and @peculiar/x509 will not even
   // import without the reflect polyfill (tsyringe) loaded first.
@@ -64,13 +79,26 @@ async function create(): Promise<LanCertificate> {
     'sign',
     'verify'
   ])
+  const name = hostname().replace(/\.local$/, '')
   const cert = await x509.X509CertificateGenerator.createSelfSigned({
     serialNumber: Date.now().toString(16),
     name: 'CN=Exodus',
     keys,
     signingAlgorithm: ALGORITHM,
     notBefore: new Date(),
-    notAfter: new Date(Date.now() + TEN_YEARS_MS)
+    notAfter: new Date(Date.now() + TEN_YEARS_MS),
+    extensions: [
+      new x509.BasicConstraintsExtension(false, undefined, true),
+      new x509.KeyUsagesExtension(
+        x509.KeyUsageFlags.digitalSignature |
+          x509.KeyUsageFlags.keyEncipherment,
+        true
+      ),
+      new x509.ExtendedKeyUsageExtension([x509.ExtendedKeyUsage.serverAuth]),
+      new x509.SubjectAlternativeNameExtension([
+        { type: 'dns', value: `${name}.local` }
+      ])
+    ]
   })
   const certPem = cert.toString('pem')
   const keyPem = toPem(
@@ -94,7 +122,13 @@ async function create(): Promise<LanCertificate> {
 export async function loadOrCreateCertificate(): Promise<LanCertificate> {
   if (existsSync(certPath()) && existsSync(keyPath())) {
     const certPem = readFileSync(certPath(), 'utf8')
-    return { certPem, keyPem: readKey(), fingerprint: fingerprintOf(certPem) }
+    if (hasServerExtensions(certPem)) {
+      return { certPem, keyPem: readKey(), fingerprint: fingerprintOf(certPem) }
+    }
+    // Issued before the extensions were added: no device could ever have
+    // completed a pairing against it, so replacing it locks nobody out.
+    logger.warn('lan', 'Replacing a TLS certificate without server extensions')
+    return resetCertificate()
   }
   return create()
 }

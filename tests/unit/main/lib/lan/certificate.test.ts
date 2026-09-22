@@ -1,5 +1,11 @@
-import { X509Certificate } from 'crypto'
-import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'fs'
+import { webcrypto, X509Certificate } from 'crypto'
+import {
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync
+} from 'fs'
 import { tmpdir } from 'os'
 import { join } from 'path'
 import { createSecureContext } from 'tls'
@@ -43,6 +49,60 @@ describe('LAN certificate', () => {
     const years = (Date.parse(parsed.validTo) - Date.now()) / (365 * 864e5)
     expect(years).toBeGreaterThan(9.9)
     expect(years).toBeLessThan(10.1)
+  })
+
+  // A v3 certificate with no extensions is refused by Apple's TLS stack during
+  // the handshake, before the app's trust delegate is consulted — the phone
+  // could never pin it. These are what clear that bar.
+  it('carries the extensions a TLS server certificate needs', async () => {
+    const { certPem } = await loadOrCreateCertificate()
+    const parsed = new X509Certificate(certPem)
+    await import('reflect-metadata')
+    const x509 = await import('@peculiar/x509')
+    const cert = new x509.X509Certificate(certPem)
+
+    expect(parsed.ca).toBe(false)
+    // Node's `keyUsage` is the *extended* key usage, as OIDs.
+    expect(parsed.keyUsage).toEqual([x509.ExtendedKeyUsage.serverAuth])
+    expect(parsed.subjectAltName).toMatch(/^DNS:.+\.local$/)
+    const keyUsage = cert.getExtension(x509.KeyUsagesExtension)
+    expect(keyUsage?.usages).toBe(
+      x509.KeyUsageFlags.digitalSignature | x509.KeyUsageFlags.keyEncipherment
+    )
+    expect(cert.getExtension(x509.BasicConstraintsExtension)?.ca).toBe(false)
+  })
+
+  it('replaces a certificate from before the extensions were added', async () => {
+    await import('reflect-metadata')
+    const x509 = await import('@peculiar/x509')
+    x509.cryptoProvider.set(webcrypto as Crypto)
+    const alg = { name: 'ECDSA', namedCurve: 'P-256', hash: 'SHA-256' }
+    const keys = await webcrypto.subtle.generateKey(alg, true, [
+      'sign',
+      'verify'
+    ])
+    const bare = await x509.X509CertificateGenerator.createSelfSigned({
+      serialNumber: '01',
+      name: 'CN=Exodus',
+      keys,
+      signingAlgorithm: alg,
+      notBefore: new Date(),
+      notAfter: new Date(Date.now() + 864e5)
+    })
+    const pkcs8 = await webcrypto.subtle.exportKey('pkcs8', keys.privateKey)
+    const keyPem = `-----BEGIN PRIVATE KEY-----\n${Buffer.from(pkcs8).toString('base64')}\n-----END PRIVATE KEY-----\n`
+    writeFileSync(join(tlsDir, 'cert.pem'), bare.toString('pem'))
+    writeFileSync(join(tlsDir, 'key.enc'), keyPem)
+    const bareFingerprint = fingerprintOf(bare.toString('pem'))
+
+    const replaced = await loadOrCreateCertificate()
+
+    expect(replaced.fingerprint).not.toBe(bareFingerprint)
+    expect(new X509Certificate(replaced.certPem).subjectAltName).toBeDefined()
+    // And it sticks: the next load is the replacement, not another one.
+    expect((await loadOrCreateCertificate()).fingerprint).toBe(
+      replaced.fingerprint
+    )
   })
 
   it('can serve TLS: the key matches the certificate', async () => {
