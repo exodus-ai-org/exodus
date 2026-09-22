@@ -104,9 +104,6 @@
       "integrations": "Integrazioni",
       "storage": "Archiviazione",
       "developer": "Sviluppatore"
-    },
-    "experiments": {
-      "title": "Esperimenti"
     }
   },
   "common": {
@@ -1001,17 +998,6 @@
     "toast": {
       "failedTitle": "Non ha funzionato",
       "pairedTitle": "Dispositivo abbinato"
-    }
-  },
-  "experiments": {
-    "intro": "Interruttori per ciò che è in prova. Valgono solo in questa finestra e si possono ripristinare in qualsiasi momento.",
-    "markdownEngine": {
-      "label": "Motore Markdown",
-      "description": "Come vengono mostrate le risposte. Exodus è il renderer integrato; Streamdown è quello di Vercel, con evidenziazione del codice shiki. Si applica subito a tutte le chat.",
-      "options": {
-        "exodus": "Exodus",
-        "streamdown": "Streamdown"
-      }
     }
   }
 }

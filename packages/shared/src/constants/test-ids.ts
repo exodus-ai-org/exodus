@@ -127,9 +127,6 @@ export const TEST_IDS = {
     /** One per assistant message (= one per run). */
     messageAction: 'chat.message-action'
   },
-  experiments: {
-    markdownEngineSelect: 'experiments.markdown-engine-select'
-  },
   composer: {
     reasoningEffortItem: 'composer.reasoning-effort-item',
     reasoningEffortLevel: 'composer.reasoning-effort-level'

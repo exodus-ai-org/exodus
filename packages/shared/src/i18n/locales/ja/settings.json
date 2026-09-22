@@ -104,9 +104,6 @@
       "integrations": "連携",
       "storage": "ストレージ",
       "developer": "開発者向け"
-    },
-    "experiments": {
-      "title": "実験機能"
     }
   },
   "common": {
@@ -995,17 +992,6 @@
     "toast": {
       "failedTitle": "操作に失敗しました",
       "pairedTitle": "デバイスをペアリングしました"
-    }
-  },
-  "experiments": {
-    "intro": "試験中の機能の切り替えです。このウィンドウにのみ適用され、いつでも元に戻せます。",
-    "markdownEngine": {
-      "label": "Markdown エンジン",
-      "description": "返信の表示方法です。Exodus は内蔵のレンダラー、Streamdown は Vercel 製で shiki によるコードハイライトを備えています。すべてのチャットに即時反映されます。",
-      "options": {
-        "exodus": "Exodus",
-        "streamdown": "Streamdown"
-      }
     }
   }
 }

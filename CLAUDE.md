@@ -687,17 +687,12 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   added to `markdown-plugins.ts`, not to `markdown.tsx`. The last block is
   passed through `healStreamingTail` (`remend` closes an open `**`, `*`,
   `~~`, `` ` `` or `$$` and neutralises a half-typed link; a half-streamed
-  `【N-source】` marker is dropped) so nothing flashes as literal markup.
-- **Two Markdown engines, one switch.** `<Markdown>` (the default export of
-  `markdown.tsx`) renders through react-markdown + the splitter, or — when
-  Settings → Developer → Experiments says so (`lib/markdown-engine.ts`, a
-  localStorage preference) — through Vercel's streamdown with shiki and
-  KaTeX (`markdown-streamdown.tsx`, lazy-loaded, its wrapper deliberately
-  without our `.markdown` CSS). The `【N-source】` citation chips live in
-  `markdown-citations.tsx` and are layered onto both. Research and numbers:
-  the 2026-09-22 spike in the commit history of `markdown-blocks.ts`
-  (react-markdown + splitter ≈ streamdown's own splitter at ~1 ms a frame;
-  markdown-to-jsx has no math; md4x emits HTML, not a React tree).
+  `【N-source】` marker is dropped) so nothing flashes as literal markup. The
+  `【N-source】` citation chips live in `markdown-citations.tsx`. (A 2026-09-22
+  spike compared streamdown, markdown-to-jsx and md4x: the splitter already
+  parses in ~1 ms a frame, the same as streamdown's own; markdown-to-jsx has
+  no math; md4x emits HTML, not a React tree. streamdown was tried behind a
+  switch and dropped — its styling did not drop in over ours.)
 - **Memoized leaves take only what they render.** The composer
   (`multimodel-input.tsx`) and `ChatToc` are `memo`'d; don't pass them
   `messages` or anything else that changes per frame unless they show it
@@ -1348,17 +1343,12 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   added to `markdown-plugins.ts`, not to `markdown.tsx`. The last block is
   passed through `healStreamingTail` (`remend` closes an open `**`, `*`,
   `~~`, `` ` `` or `$$` and neutralises a half-typed link; a half-streamed
-  `【N-source】` marker is dropped) so nothing flashes as literal markup.
-- **Two Markdown engines, one switch.** `<Markdown>` (the default export of
-  `markdown.tsx`) renders through react-markdown + the splitter, or — when
-  Settings → Developer → Experiments says so (`lib/markdown-engine.ts`, a
-  localStorage preference) — through Vercel's streamdown with shiki and
-  KaTeX (`markdown-streamdown.tsx`, lazy-loaded, its wrapper deliberately
-  without our `.markdown` CSS). The `【N-source】` citation chips live in
-  `markdown-citations.tsx` and are layered onto both. Research and numbers:
-  the 2026-09-22 spike in the commit history of `markdown-blocks.ts`
-  (react-markdown + splitter ≈ streamdown's own splitter at ~1 ms a frame;
-  markdown-to-jsx has no math; md4x emits HTML, not a React tree).
+  `【N-source】` marker is dropped) so nothing flashes as literal markup. The
+  `【N-source】` citation chips live in `markdown-citations.tsx`. (A 2026-09-22
+  spike compared streamdown, markdown-to-jsx and md4x: the splitter already
+  parses in ~1 ms a frame, the same as streamdown's own; markdown-to-jsx has
+  no math; md4x emits HTML, not a React tree. streamdown was tried behind a
+  switch and dropped — its styling did not drop in over ours.)
 - **Memoized leaves take only what they render.** The composer
   (`multimodel-input.tsx`) and `ChatToc` are `memo`'d; don't pass them
   `messages` or anything else that changes per frame unless they show it
@@ -1712,9 +1702,6 @@ Renderer:
   sections, and anything destructive last in a section of its own, behind an
   `AlertDialog`. `settings-form.tsx` keys the page wrapper by tab so each page
   arrives with `PAGE_ENTER`
-- `src/renderer/components/settings/settings-form/experiments.tsx` — Settings →
-  Developer → Experiments: renderer-only switches kept in this window's
-  localStorage (today: the Markdown engine, `lib/markdown-engine.ts`)
 - `src/renderer/components/settings/settings-form/devices.tsx` — Settings →
   Integrations → Devices: pair a device by QR code, revoke, reset (the UI of
   `src/main/lib/lan/`). The pairing card is `devices-pairing.tsx`: an invitation,

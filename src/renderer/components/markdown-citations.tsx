@@ -15,9 +15,9 @@ import { HoverCard, HoverCardContent, HoverCardTrigger } from './ui/hover-card'
 
 /**
  * The 【N-source】 citation markers the model writes after a web search, as
- * hover-card chips — shared by both Markdown engines (`markdown.tsx`,
- * `markdown-streamdown.tsx`), which hand text nodes to `TextWithCitations`
- * from their `p` / `li` / `td` / `th` overrides.
+ * hover-card chips. `markdown.tsx` hands text nodes to `TextWithCitations`
+ * from its `p` / `li` / `td` / `th` overrides; `sources-panel.tsx` and the
+ * deep-research source list read `parseCitations`.
  */
 
 // Matches 【1-source】 or 【1,2-source】

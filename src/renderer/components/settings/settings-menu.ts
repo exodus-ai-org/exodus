@@ -18,7 +18,6 @@ import {
   CircleUserRoundIcon,
   MicIcon,
   CompassIcon,
-  FlaskConicalIcon,
   MonitorSmartphoneIcon,
   SparklesIcon,
   BrainCircuitIcon
@@ -43,7 +42,6 @@ export enum SettingsLabel {
   DataControls = 'Data Controls',
   Logger = 'Logger',
   ChatAudit = 'Chat Audit',
-  Experiments = 'Experiments',
   Devices = 'Devices',
   KeyboardShortcuts = 'Keyboard Shortcuts',
   AboutExodus = 'About Exodus'
@@ -84,7 +82,6 @@ export const NAV_TITLE_KEYS = {
   [SettingsLabel.DataControls]: 'nav.dataControls.title',
   [SettingsLabel.Logger]: 'nav.logger.title',
   [SettingsLabel.ChatAudit]: 'nav.chatAudit.title',
-  [SettingsLabel.Experiments]: 'nav.experiments.title',
   [SettingsLabel.Devices]: 'nav.devices.title',
   [SettingsLabel.KeyboardShortcuts]: 'nav.keyboardShortcuts.title',
   [SettingsLabel.AboutExodus]: 'nav.about.title'
@@ -143,8 +140,7 @@ export const menus = {
       label: 'nav.group.developer',
       items: [
         { title: SettingsLabel.Logger, icon: ScrollTextIcon },
-        { title: SettingsLabel.ChatAudit, icon: DatabaseZapIcon },
-        { title: SettingsLabel.Experiments, icon: FlaskConicalIcon }
+        { title: SettingsLabel.ChatAudit, icon: DatabaseZapIcon }
       ]
     },
     {

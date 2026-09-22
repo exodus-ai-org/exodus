@@ -14,7 +14,6 @@ import { DataControls } from './settings-form/data-controls'
 import { DeepResearch } from './settings-form/deep-research'
 import { Devices } from './settings-form/devices'
 import { Discover } from './settings-form/discover'
-import { Experiments } from './settings-form/experiments'
 import { FullTextSearch } from './settings-form/full-text-search'
 import { General } from './settings-form/generals'
 import { KeyboardShortcuts } from './settings-form/keyboard-shortcuts'
@@ -117,7 +116,6 @@ export function SettingsForm() {
         {activeTitle === SettingsLabel.Logger && <Logger />}
 
         {activeTitle === SettingsLabel.ChatAudit && <ChatAudit />}
-        {activeTitle === SettingsLabel.Experiments && <Experiments />}
         {activeTitle === SettingsLabel.Devices && <Devices />}
 
         {activeTitle === SettingsLabel.KeyboardShortcuts && (

@@ -27,7 +27,6 @@ export const SETTINGS_TAB_SLUGS: Record<SettingsLabel, string> = {
   [SettingsLabel.AmazonS3]: 's3',
   [SettingsLabel.Logger]: 'logger',
   [SettingsLabel.ChatAudit]: 'chat-audit',
-  [SettingsLabel.Experiments]: 'experiments',
   [SettingsLabel.Devices]: 'devices',
   [SettingsLabel.AboutExodus]: 'about'
 }

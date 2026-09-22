@@ -104,9 +104,6 @@
       "integrations": "整合",
       "storage": "儲存空間",
       "developer": "開發者"
-    },
-    "experiments": {
-      "title": "實驗功能"
     }
   },
   "common": {
@@ -995,17 +992,6 @@
     "toast": {
       "failedTitle": "操作失敗",
       "pairedTitle": "裝置已配對"
-    }
-  },
-  "experiments": {
-    "intro": "試用中功能的開關，只在此視窗生效，隨時可以切回。",
-    "markdownEngine": {
-      "label": "Markdown 引擎",
-      "description": "回覆的呈現方式。Exodus 是內建的渲染器；Streamdown 是 Vercel 的，附帶 shiki 程式碼高亮。所有對話即時生效。",
-      "options": {
-        "exodus": "Exodus",
-        "streamdown": "Streamdown"
-      }
     }
   }
 }

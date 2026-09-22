@@ -1,16 +1,16 @@
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import { CheckIcon, CopyIcon } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { Suspense, lazy, memo, useMemo, useRef, useState } from 'react'
+import { memo, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import 'katex/dist/katex.min.css'
 import ReactMarkdown from 'react-markdown'
 import SyntaxHighlighter from 'react-syntax-highlighter'
 import {
-  atomOneDark,
-  atomOneLight
-} from 'react-syntax-highlighter/dist/esm/styles/hljs'
+  oneLight,
+  vscDarkPlus
+} from 'react-syntax-highlighter/dist/esm/styles/prism'
 
 import { useClipboard } from '@/hooks/use-clipboard'
 import {
@@ -20,7 +20,6 @@ import {
   splitMarkdownBlocks,
   type MarkdownBlockCache
 } from '@/lib/markdown-blocks'
-import { useMarkdownEngine } from '@/lib/markdown-engine'
 import {
   rehypePluginsStable,
   remarkPluginsStable
@@ -33,8 +32,8 @@ import {
 } from './markdown-citations'
 
 const themes = {
-  light: { codeTheme: atomOneLight },
-  dark: { codeTheme: atomOneDark }
+  light: { codeTheme: oneLight },
+  dark: { codeTheme: vscDarkPlus }
 }
 
 const codeBlockStyle = {
@@ -93,9 +92,8 @@ function useMarkdownBlocks(src: string): string[] {
     cacheRef.current ??= createMarkdownBlockCache()
     const blocks = splitMarkdownBlocks(src, cacheRef.current)
     // Only the last block is still arriving; the ones above it are closed.
-    if (blocks.length > 0) {
-      blocks[blocks.length - 1] = healStreamingTail(blocks[blocks.length - 1])
-    }
+    const last = blocks.length - 1
+    if (last >= 0) blocks[last] = healStreamingTail(blocks[last])
     return blocks
   }, [src, streams])
 }
@@ -138,7 +136,12 @@ export function Markdown({
             >
               <span>{match[1]}</span>
               <div className="flex cursor-default items-center gap-6">
-                {copied !== children ? (
+                {copied === children ? (
+                  <span className="hover:text-primary flex items-center gap-1.5">
+                    <CheckIcon size={10} strokeWidth={2.5} />
+                    {t('state.copied')}
+                  </span>
+                ) : (
                   <button
                     type="button"
                     className="hover:text-primary flex items-center gap-1.5"
@@ -151,11 +154,6 @@ export function Markdown({
                     <CopyIcon size={10} />
                     {t('action.copy')}
                   </button>
-                ) : (
-                  <span className="hover:text-primary flex items-center gap-1.5">
-                    <CheckIcon size={10} strokeWidth={2.5} />
-                    {t('state.copied')}
-                  </span>
                 )}
               </div>
             </section>
@@ -325,31 +323,8 @@ export function Markdown({
   )
 }
 
-// The streamdown engine is loaded the first time it is chosen: the default
-// path does not pay for streamdown, shiki or its plugins.
-const StreamdownMarkdown = lazy(() => import('./markdown-streamdown'))
-
-/**
- * The chat's Markdown, through whichever engine the Experiments page picked
- * (`lib/markdown-engine.ts`). Props are the same either way.
- */
-function MarkdownByEngine(props: {
-  src: string
-  webSearchResults?: WebSearchResult[]
-}) {
-  const engine = useMarkdownEngine()
-  if (engine === 'streamdown') {
-    return (
-      <Suspense fallback={<Markdown {...props} />}>
-        <StreamdownMarkdown {...props} />
-      </Suspense>
-    )
-  }
-  return <Markdown {...props} />
-}
-
 export default memo(
-  MarkdownByEngine,
+  Markdown,
   (prevProps, nextProps) =>
     prevProps.src === nextProps.src &&
     prevProps.webSearchResults === nextProps.webSearchResults
