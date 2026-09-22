@@ -123,6 +123,10 @@ export const TEST_IDS = {
     refreshButton: 'provider-models.refresh-button',
     modelSelect: 'provider-models.model-select'
   },
+  chat: {
+    /** One per assistant message (= one per run). */
+    messageAction: 'chat.message-action'
+  },
   composer: {
     reasoningEffortItem: 'composer.reasoning-effort-item',
     reasoningEffortLevel: 'composer.reasoning-effort-level'

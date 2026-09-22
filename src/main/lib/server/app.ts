@@ -3,6 +3,7 @@ import { serve, ServerType } from '@hono/node-server'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 
+import { bootFauxProviderIfRequested } from '../ai/kernel/faux-boot'
 import { initScheduler } from '../ai/philharmonic/scheduler'
 import { getSettings } from '../db/queries'
 import { initJobQueue } from '../jobs/worker'
@@ -55,6 +56,9 @@ const LOOPBACK_ADDRESSES = ['127.0.0.1', '::1']
 
 /** The Hono app, without a listener — what both listeners serve. */
 export function createApp() {
+  // The Electron e2e's scripted provider; a no-op unless the env asks for it.
+  bootFauxProviderIfRequested()
+
   const app = new Hono<{ Variables: Variables; Bindings: Bindings }>()
 
   // Middleware

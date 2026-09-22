@@ -28,6 +28,7 @@ import {
   writeFile
 } from '../calling-tools'
 import { mcpToolbox } from '../calling-tools/mcp-toolbox'
+import { fauxHandle, fauxWeatherTool } from '../kernel/faux'
 
 /**
  * Type-erased AgentTool for heterogeneous collections.
@@ -66,7 +67,10 @@ export function bindCallingTools({
 
   const tools: ErasedTool[] = []
 
-  if (enabled(TOOL_NAMES.weather)) tools.push(weather)
+  // Under the e2e's faux provider the weather tool must not reach wttr.in.
+  if (enabled(TOOL_NAMES.weather)) {
+    tools.push(fauxHandle() ? fauxWeatherTool : weather)
+  }
   if (enabled(TOOL_NAMES.mapItinerary)) tools.push(mapItinerary(setting))
   if (enabled(TOOL_NAMES.imageGeneration)) tools.push(imageGeneration(setting))
   if (enabled(TOOL_NAMES.terminal)) tools.push(terminal)
