@@ -29,6 +29,7 @@ import discoverRouter from './routes/discover'
 import historyRouter from './routes/history'
 import knowledgeBaseRouter from './routes/knowledge-base'
 import lcmStatusRouter from './routes/lcm-status'
+import lockRouter from './routes/lock'
 import logsRouter from './routes/logs'
 import mcpRouter from './routes/mcp'
 import memoryRouter from './routes/memory'
@@ -71,6 +72,10 @@ export function createApp() {
   // (loopback passes straight through). Ahead of the lock gate, so an
   // unauthenticated request learns nothing — not even that the app is locked.
   app.use('/api/*', authGate)
+
+  // Unlock, registered ahead of the lock gate so it is reachable while
+  // locked — the one API route that has to be. Still behind authGate above.
+  app.route('/api/v1/lock', lockRouter)
 
   // Lock gate: reject all API access while the app is locked (423).
   app.use('/api/*', lockGate)
