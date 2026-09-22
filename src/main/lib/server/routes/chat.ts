@@ -5,6 +5,7 @@ import { AdvancedTools } from '@exodus/shared/types/ai'
 import type { ChatMessage, ToolNotice } from '@exodus/shared/types/chat'
 import { Hono } from 'hono'
 
+import { mcpDirectory } from '../../ai/calling-tools/mcp-toolbox'
 import { LcmManager, freshTailRuns } from '../../ai/context-management'
 import { RunRecorder } from '../../ai/kernel/record'
 import { runAgent } from '../../ai/kernel/run'
@@ -247,7 +248,7 @@ chat.post('/', async (c) => {
   })
   const systemContent = advancedTools?.includes(AdvancedTools.DeepResearch)
     ? deepResearchBootPrompt
-    : getSystemPrompt() +
+    : getSystemPrompt(mcpDirectory(mcpTools)) +
       personalityPrompt +
       projectInstructions +
       memoriesSection +

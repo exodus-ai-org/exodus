@@ -58,7 +58,11 @@ export function buildPersonalityPrompt(settings: Settings): string {
   return parts.length > 0 ? '\n\n' + parts.join('\n\n') : ''
 }
 
-export function getSystemPrompt(): string {
+/**
+ * @param mcpDirectory one line per connected MCP server (`mcpDirectory()` in
+ *   `calling-tools/mcp-toolbox.ts`); empty when none is connected.
+ */
+export function getSystemPrompt(mcpDirectory = ''): string {
   const currentDate = new Date().toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
@@ -115,7 +119,16 @@ Correct:
 WRONG (never do this — missing citations):
   NVIDIA announced Vera Rubin at GTC, targeting enterprise AI infrastructure.
 </tool_use_rules>
-
+${
+  mcpDirectory
+    ? `
+<mcp_servers>
+These MCP servers are connected. Use list_mcp_tools to see a server's tools and their arguments, then call_mcp_tool to run one.
+${mcpDirectory}
+</mcp_servers>
+`
+    : ''
+}
 <response_format>
 - **Length**: Match the complexity of the request. Short questions deserve short answers. Don't pad responses.
 - **Code**: Always use fenced code blocks with the correct language identifier. For standalone scripts or components, prefer complete, runnable code.

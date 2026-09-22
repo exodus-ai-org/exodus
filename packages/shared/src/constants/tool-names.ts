@@ -23,7 +23,11 @@ export const TOOL_NAMES = {
   terminal: 'terminal',
   readFile: 'read_file',
   webFetch: 'web_fetch',
-  writeFile: 'write_file'
+  writeFile: 'write_file',
+  // The MCP toolbox (`calling-tools/mcp-toolbox.ts`): MCP servers are not
+  // bound tool by tool; the model lists a server's tools, then calls one.
+  listMcpTools: 'list_mcp_tools',
+  callMcpTool: 'call_mcp_tool'
 } as const
 
 export type ToolName = (typeof TOOL_NAMES)[keyof typeof TOOL_NAMES]
@@ -33,7 +37,31 @@ export type ToolName = (typeof TOOL_NAMES)[keyof typeof TOOL_NAMES]
  * name), keyed to their new spelling. Nineteen entries, fixed: a tool added
  * after the rename has no legacy name.
  */
-export const LEGACY_TOOL_NAMES: Record<string, ToolName> = { ...TOOL_NAMES }
+export const LEGACY_TOOL_NAMES: Record<string, ToolName> = Object.fromEntries(
+  (
+    [
+      'computerUse',
+      'deepResearch',
+      'createArtifact',
+      'imageGeneration',
+      'findFiles',
+      'editFile',
+      'lcmGrep',
+      'grep',
+      'lcmDescribe',
+      'searchKnowledgeBase',
+      'mapItinerary',
+      'webSearch',
+      'lcmExpand',
+      'weather',
+      'listDirectory',
+      'terminal',
+      'readFile',
+      'webFetch',
+      'writeFile'
+    ] as const
+  ).map((key) => [key, TOOL_NAMES[key]])
+)
 
 /** A legacy name becomes its snake_case name; anything else is unchanged. */
 export function toToolName(name: string): string {

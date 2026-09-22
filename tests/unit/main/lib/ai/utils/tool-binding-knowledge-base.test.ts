@@ -91,9 +91,9 @@ describe('bindCallingTools — provider tool-count cap', () => {
     mockLoggerWarn.mockReset()
   })
 
-  it('truncates a combined tool count over 128 (OpenAI rejects the request otherwise)', () => {
-    // A single MCP server can expose far more tools than any built-in set —
-    // this is the exact shape that produced "array too long ... length 152".
+  it("binds the two-tool MCP toolbox instead of the servers' tools, however many there are", () => {
+    // A single MCP server can expose far more tools than any provider's cap
+    // (OpenAI: 128) — the shape that once produced "array too long ... 152".
     const mcpTools = [
       {
         mcpServerName: 'alphavantage',
@@ -105,33 +105,22 @@ describe('bindCallingTools — provider tool-count cap', () => {
       setting: { id: 'global' },
       mcpTools
     } as never)
-    expect(tools.length).toBe(128)
-    expect(mockLoggerWarn).toHaveBeenCalled()
-  })
-
-  it('keeps every built-in tool before filling the remaining budget with MCP tools', () => {
-    const mcpTools = [
-      {
-        mcpServerName: 'alphavantage',
-        tools: Array.from({ length: 140 }, (_, i) => stub(`mcp-${i}`))
-      }
-    ]
-    const tools = bindCallingTools({
-      advancedTools: [],
-      setting: { id: 'global' },
-      mcpTools
-    } as never)
+    expect(names(tools)).toContain('list_mcp_tools')
+    expect(names(tools)).toContain('call_mcp_tool')
+    expect(names(tools)).not.toContain('mcp-0')
     expect(names(tools)).toContain('weather')
     expect(names(tools)).toContain('terminal')
+    expect(tools.length).toBeLessThan(30)
+    expect(mockLoggerWarn).not.toHaveBeenCalled()
   })
 
-  it('does not truncate or warn when under the limit', () => {
+  it('binds no toolbox when no MCP server is connected', () => {
     const tools = bindCallingTools({
       advancedTools: [],
       setting: { id: 'global' },
-      mcpTools: [{ mcpServerName: 'small', tools: [stub('mcp-1')] }]
+      mcpTools: []
     } as never)
-    expect(tools.length).toBeLessThan(128)
-    expect(mockLoggerWarn).not.toHaveBeenCalled()
+    expect(names(tools)).not.toContain('list_mcp_tools')
+    expect(names(tools)).not.toContain('call_mcp_tool')
   })
 })

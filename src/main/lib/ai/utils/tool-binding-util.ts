@@ -6,7 +6,6 @@ import type { WebSearchResult } from '@exodus/shared/types/web-search'
 
 import { Settings } from '../../db/schema'
 import { resolveKnowledgeBase } from '../../knowledge-base/resolve-knowledge-base'
-import { logger } from '../../logger'
 import {
   computerUse,
   createArtifact,
@@ -28,6 +27,7 @@ import {
   webSearch,
   writeFile
 } from '../calling-tools'
+import { mcpToolbox } from '../calling-tools/mcp-toolbox'
 
 /**
  * Type-erased AgentTool for heterogeneous collections.
@@ -36,15 +36,6 @@ import {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ErasedTool = AgentTool<any>
-
-// OpenAI's Chat Completions API hard-rejects a `tools` array over 128 entries
-// (400 "array too long") — the whole request fails, not just the overflow
-// tools. Built-ins stay comfortably under this on their own; MCP servers are
-// what push the total over (a single server can expose 100+ tools), so they
-// get truncated to whatever budget built-ins leave. Applied for every
-// provider, not just OpenAI: no other provider here documents a higher
-// tolerance, and 128+ tool schemas bloat the request regardless.
-const MAX_TOOLS = 128
 
 export function bindCallingTools({
   advancedTools,
@@ -66,8 +57,6 @@ export function bindCallingTools({
   if (advancedTools.includes(AdvancedTools.DeepResearch)) {
     return [deepResearch]
   }
-
-  const mcpToolsList: ErasedTool[] = mcpTools.flatMap((t) => t.tools)
 
   // Keys saved before the snake_case rename still disable the same tool.
   const disabledTools = new Set(
@@ -112,14 +101,10 @@ export function bindCallingTools({
     }
   }
 
-  const combined = [...tools, ...mcpToolsList]
-  if (combined.length <= MAX_TOOLS) return combined
+  // MCP servers are reached through the two-tool toolbox, never bound one
+  // by one: providers cap the tools array (OpenAI: 128) and a single server
+  // can exceed that alone. 19 built-ins plus two sit far below every limit.
+  if (mcpTools.length > 0) tools.push(...mcpToolbox(mcpTools))
 
-  const kept = combined.slice(0, MAX_TOOLS)
-  logger.warn('chat', 'Too many tools bound; truncating to provider limit', {
-    total: combined.length,
-    kept: kept.length,
-    dropped: combined.length - kept.length
-  })
-  return kept
+  return tools
 }

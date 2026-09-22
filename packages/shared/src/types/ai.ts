@@ -15,5 +15,7 @@ export enum AdvancedTools {
 
 export interface McpTools {
   mcpServerName: string
+  /** The server's description from Settings, for the prompt's directory. */
+  description?: string
   tools: AgentTool[]
 }

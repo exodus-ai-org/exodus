@@ -155,7 +155,11 @@ async function connectMcpServer(server: McpServer): Promise<McpTools> {
     return agentTool
   })
 
-  const tools: McpTools = { mcpServerName: server.name, tools: agentTools }
+  const tools: McpTools = {
+    mcpServerName: server.name,
+    description: server.description || undefined,
+    tools: agentTools
+  }
   mcpCache.set(server.name, { tools, client, cachedAt: Date.now() })
   return tools
 }
