@@ -6,6 +6,7 @@ import {
   type RegisterFauxProviderOptions
 } from '@earendil-works/pi-ai'
 import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
+import type { WeatherResult } from '@exodus/shared/types/weather'
 
 import { getKernelModels } from './models'
 
@@ -38,14 +39,39 @@ export function setFauxHandle(handle: FauxProviderHandle | null): void {
 
 const weatherSchema = Type.Object({ location: Type.String() })
 
-/** Stands in for the real `weather` tool (wttr.in) while the faux provider is on. */
+/**
+ * Stands in for the real `weather` tool (wttr.in) while the faux provider is
+ * on. Its `details` are a whole `WeatherResult`, since `WeatherCard` renders
+ * them: a fixed sunny day, no forecast.
+ */
 export const fauxWeatherTool: AgentTool<typeof weatherSchema> = {
   name: TOOL_NAMES.weather,
   label: 'Weather',
   description: 'Current weather for a location (faux).',
   parameters: weatherSchema,
-  execute: async (_toolCallId, { location }) => ({
-    content: [{ type: 'text', text: `sunny in ${location}` }],
-    details: { location, faux: true }
-  })
+  execute: async (_toolCallId, { location }) => {
+    const details: WeatherResult = {
+      location,
+      current: {
+        condition: 'Sunny',
+        weatherCode: '113',
+        tempC: '21',
+        feelsLikeC: '21',
+        humidity: '40',
+        windKmph: '8',
+        windDirDegree: '180',
+        windDir: 'S',
+        precipMM: '0.0',
+        uvIndex: '5',
+        visibility: '10',
+        pressure: '1015',
+        observedAt: '2026-09-22 12:00 PM'
+      },
+      forecast: []
+    }
+    return {
+      content: [{ type: 'text', text: `sunny in ${location}` }],
+      details
+    }
+  }
 }
