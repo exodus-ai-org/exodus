@@ -712,9 +712,50 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
 - Always use path alias `@` for renderer imports
 - Tailwind + Radix UI for consistent styling
 - Toast notifications via `sileo` (mounted once as `<AppToaster />` per
-  layout — chat/settings/philharmonic); `sonner`'s `Toaster` is a leftover
-  shadcn primitive (`components/ui/sonner.tsx`) that is never mounted, so
-  `sonner`'s `toast()` calls render nothing — use `sileo` instead
+  layout — chat/settings/philharmonic; its fill is the `--foreground` token
+  read from the document, so it follows the colour tone); `sonner`'s
+  `Toaster` is a leftover shadcn primitive (`components/ui/sonner.tsx`) that
+  is never mounted, so `sonner`'s `toast()` calls render nothing — use
+  `sileo` instead
+
+### Motion (read before animating anything)
+
+The bar is Emil Kowalski's design-engineering philosophy (the
+`emil-design-eng` / `animate` / `review-animations` skills); the 2026-09-23
+audit that applied it is in the commit history (`style(motion): …`).
+
+- **Tokens.** `globals.css` `@theme` redefines the `ease-*` utilities:
+  `ease-out` = `cubic-bezier(0.23,1,0.32,1)` (everything entering or
+  leaving), `ease-in-out` = `cubic-bezier(0.77,0,0.175,1)` (on-screen
+  movement), `ease-drawer` = `cubic-bezier(0.32,0.72,0,1)` (a drawer, the
+  side sheet). Never hand-type a curve, never `ease-in` on UI, never
+  `ease-linear` except constant motion. Durations: press 100–160, tooltip
+  125–200, popover 150–250, modal 200 in / 150 out, nothing on UI over 300.
+- **Entrances** are the class strings in `src/renderer/lib/motion.ts`:
+  `ENTER` (fade), `ENTER_UP` (fade + 6px rise), `ROW_ENTER` (a row in a list
+  still growing — a timeline step, a fresh message), `PAGE_ENTER` (a tab
+  swap), `staggerDelay(i)` for a few items together. They are
+  `@starting-style` transitions, so no mount effect and no restart. Only for
+  what appears occasionally; never on a switch, a select, typing, or the
+  result of a keyboard shortcut. Overlays are tw-animate `animate-in` /
+  `animate-out` **with `ease-out` beside them** (tw-animate reads the
+  token); popovers keep `origin-(--transform-origin)`, modals stay centered.
+- **What is deliberate:** the sidebar toggle transitions `flex-grow` for
+  200 ms (`layouts/shared/resizable-sidebar.tsx`, only while toggling, never
+  during a drag — the one layout-property animation); a fresh run's user
+  bubble and reply enter, what the chat opened with does not; tooltips wait
+  500 ms for the first and are instant (`data-instant`, no animation) for
+  the neighbours; the "thinking" dots are `bg-foreground/40` staggered
+  `animate-pulse`; the compaction card lingers 150 ms to fade out.
+- **Never `transition-all`** — name the properties. Animate `transform` and
+  `opacity`; a `width`/`padding`/`grid-template-rows` transition needs a
+  reason in a comment. `prefers-reduced-motion` in `globals.css` removes
+  movement and keeps opacity/colour at 150 ms — do not add a second rule
+  that zeroes everything.
+- **Colour:** the light neutral base is `oklch(0.985)` (page) / `0.995`
+  (card, popover) / `0.975` (sidebar) — never pure white; dark is `0.145`.
+  No raw Tailwind palette colours (`bg-blue-400`) on chat surfaces and no
+  `bg-black`/`bg-white` except an overlay scrim; use the tokens.
 
 ### Security Considerations
 
@@ -1058,9 +1099,9 @@ Renderer:
   actions) for anything in a list and for a page's primary action,
   `SettingsEmpty` for an empty list, `SwapLabel` for a button whose label
   changes with state (stable width, blurred crossfade), and the motion tokens
-  `ENTER` / `ENTER_UP` / `PAGE_ENTER` / `staggerDelay()` (`@starting-style`
-  transitions — for what appears occasionally, never on a switch, a select or
-  typing). A page reads top to bottom: intro, primary action, content
+  `ENTER` / `ENTER_UP` / `PAGE_ENTER` / `staggerDelay()` (re-exported from
+  `src/renderer/lib/motion.ts` — see Motion above). A page reads top to
+  bottom: intro, primary action, content
   sections, and anything destructive last in a section of its own, behind an
   `AlertDialog`. `settings-form.tsx` keys the page wrapper by tab so each page
   arrives with `PAGE_ENTER`
