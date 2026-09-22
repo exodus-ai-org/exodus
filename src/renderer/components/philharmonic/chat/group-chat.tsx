@@ -228,7 +228,7 @@ export function GroupChat({
     <div className="flex h-full flex-col">
       <header
         className={cn(
-          'draggable border-border bg-card/80 flex h-12 shrink-0 items-center gap-2 border-b pr-3 backdrop-blur-sm transition-[padding] duration-200 ease-linear',
+          'draggable border-border bg-card/80 flex h-12 shrink-0 items-center gap-2 border-b pr-3 backdrop-blur-sm transition-[padding] duration-200 ease-out',
           sidebarOpen ? 'pl-2' : isFullscreen ? 'pl-4' : 'pl-21'
         )}
       >

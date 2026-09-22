@@ -660,7 +660,7 @@ function Messages({
     <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
       <section
         className={cn(
-          'no-scrollbar flex flex-1 flex-col items-center gap-8 overflow-y-scroll px-16 pt-4 transition-[padding]',
+          'no-scrollbar flex flex-1 flex-col items-center gap-8 overflow-y-scroll px-16 pt-4 transition-[padding] duration-200 ease-out',
           // Room for the floating composer to clear the last message — but
           // only once it's floating (the landing screen keeps it in flow).
           messages.length === 0 ? 'pb-6' : 'pb-36'
