@@ -24,6 +24,25 @@ const BUILTIN_TOOL_NAMES = new Set<string>([
   'rag'
 ])
 
+/** Built-ins with a card of their own below. */
+const CARD_TOOL_NAMES = new Set<string>([
+  TOOL_NAMES.mapItinerary,
+  TOOL_NAMES.weather,
+  TOOL_NAMES.deepResearch,
+  TOOL_NAMES.computerUse,
+  TOOL_NAMES.terminal,
+  TOOL_NAMES.createArtifact
+])
+
+/**
+ * Built-ins whose successful result renders nothing here: a web_search shows
+ * up as Sources in MessageAction, the rest surface in the timeline row (the
+ * call and its arguments) and, for an error, in the box below.
+ */
+const SILENT_TOOL_NAMES = new Set<string>(
+  [...BUILTIN_TOOL_NAMES].filter((name) => !CARD_TOOL_NAMES.has(name))
+)
+
 function CallingTools({
   chatId,
   toolResult
@@ -70,8 +89,12 @@ function CallingTools({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toolResult.toolCallId])
 
-  // Successful webSearch results are rendered via Sources in MessageAction, not here
-  if (toolName === TOOL_NAMES.webSearch && !toolResult.isError) {
+  // No card, and no section either: an empty section used to cancel its
+  // own margin with a negative-margin child, and CSS margin collapsing let
+  // that eat the previous card's bottom margin too, so two cards with a
+  // read_file between them touched (and a tool with neither card nor hack
+  // left a 16px hole).
+  if (!toolResult.isError && SILENT_TOOL_NAMES.has(toolName)) {
     return null
   }
 
@@ -151,11 +174,6 @@ function CallingTools({
         output?.type === 'artifact' && (
           <ArtifactCard chatId={chatId} toolResult={output} />
         )}
-      {(toolName === TOOL_NAMES.imageGeneration ||
-        toolName === TOOL_NAMES.readFile ||
-        toolName === TOOL_NAMES.writeFile ||
-        toolName === TOOL_NAMES.listDirectory ||
-        toolName === TOOL_NAMES.findFiles) && <div className="-mb-4" />}
       {!BUILTIN_TOOL_NAMES.has(toolName) &&
         (isDrawioOutput(output) ? (
           <DrawioCard output={output} />
