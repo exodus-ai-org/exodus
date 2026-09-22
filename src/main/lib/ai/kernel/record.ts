@@ -73,6 +73,16 @@ export class RunRecorder {
     }
 
     const rows = this.done.map((m) => toDbRow(m, chatId))
+    // Rows are read back ORDER BY createdAt. A tool result is stamped at
+    // tool_end and the next step at its stream start — often the same
+    // millisecond — so make the stamps strictly increasing within the run
+    // rather than leave the order to the database.
+    for (let i = 1; i < rows.length; i++) {
+      const prev = rows[i - 1].createdAt.getTime()
+      if (rows[i].createdAt.getTime() <= prev) {
+        rows[i] = { ...rows[i], createdAt: new Date(prev + 1) }
+      }
+    }
     await saveMessages({ messages: rows })
     for (const row of rows) indexMessage(row)
 

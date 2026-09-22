@@ -98,6 +98,40 @@ describe('RunRecorder', () => {
     )
   })
 
+  it('keeps the rows of a run in order even when two share a millisecond', async () => {
+    // A tool result is stamped at tool_end and the next step at its stream
+    // start — the same ms is common. Rows are read back ORDER BY createdAt,
+    // so equal stamps would leave the order to the database.
+    const call = { ...assistant, id: 'a1', timestamp: 1000 }
+    const result = {
+      id: 't1',
+      runId: RUN_ID,
+      role: 'toolResult' as const,
+      toolCallId: 'c1',
+      toolName: 'weather',
+      content: [],
+      details: null,
+      isError: false,
+      timestamp: 1000
+    }
+    const answer = { ...assistant, id: 'a2', timestamp: 1000 }
+    const r = recorder()
+    r.observe({
+      type: 'run_end',
+      runId: RUN_ID,
+      messages: [call, result, answer],
+      durationMs: 1
+    })
+    await r.persist()
+    const rows = (
+      saveMessages.mock.calls[0] as unknown as [
+        { messages: Array<{ createdAt: Date }> }
+      ]
+    )[0].messages
+    const stamps = rows.map((row) => row.createdAt.getTime())
+    expect(stamps).toEqual([1000, 1001, 1002])
+  })
+
   it('persists nothing when the run produced nothing', async () => {
     const r = recorder()
     r.observe({ type: 'run_end', runId: RUN_ID, messages: [], durationMs: 5 })
