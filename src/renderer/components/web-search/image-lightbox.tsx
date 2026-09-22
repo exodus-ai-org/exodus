@@ -166,7 +166,7 @@ export function ImageLightbox({
 
   return createPortal(
     <div
-      className="bg-background/95 animate-in fade-in fixed inset-0 z-[100] flex flex-col backdrop-blur-xl duration-150"
+      className="bg-background/95 animate-in fade-in fixed inset-0 z-[100] flex flex-col backdrop-blur-xl duration-150 ease-out"
       onClick={closeOnBackdrop}
     >
       <div className="flex h-12 shrink-0 items-center px-3">

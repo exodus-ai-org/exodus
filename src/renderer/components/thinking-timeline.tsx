@@ -100,7 +100,7 @@ function TimelineNode({
   children: React.ReactNode
 }) {
   return (
-    <div className="animate-in fade-in-0 slide-in-from-top-1 flex gap-2.5 pb-3 duration-300 last:pb-0">
+    <div className="animate-in fade-in-0 slide-in-from-top-1 flex gap-2.5 pb-3 duration-300 ease-out last:pb-0">
       <div className="mt-1 flex flex-col items-center">
         <div className="flex shrink-0 items-center justify-center">{icon}</div>
         {!isLast && <div className="border-border w-px flex-1 border-l" />}
