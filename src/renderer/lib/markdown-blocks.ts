@@ -86,7 +86,7 @@ export function splitMarkdownBlocks(
   return starts.map((start, i) => src.slice(start, starts[i + 1]))
 }
 
-/** The href remend gives a link whose URL has not finished streaming. */
+/** The href `remend` gives a link whose URL has not finished streaming (its own sentinel). */
 export const INCOMPLETE_LINK_HREF = 'streamdown:incomplete-link'
 
 /** A citation marker still arriving: `【`, `【1`, `【1,2-sou` … at the very end. */
