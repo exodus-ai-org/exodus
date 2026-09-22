@@ -68,7 +68,7 @@ import {
   isEmptyAssistantTurn,
   toFriendlyChatError
 } from './chat-errors'
-import { stripId, toDbRow } from './chat-persistence'
+import { stripId, toDbRow, withRunId } from './chat-persistence'
 import { createSseWriter } from './chat-sse'
 
 const chat = new Hono<{ Variables: Variables }>()
@@ -108,8 +108,10 @@ chat.post('/', async (c) => {
   // an index signature that no longer narrows to ChatMessage directly.
   const allMessages = messages as unknown as ChatMessage[]
 
-  // The last message is the new user message; everything before is context
-  const userMessage = allMessages.at(-1)!
+  // The last message is the new user message; everything before is context.
+  // Its id names the run every message it produces belongs to.
+  const userMessage = withRunId(allMessages.at(-1)!, allMessages.at(-1)!.id)
+  const runId = userMessage.id
 
   // Create chat record if new
   const existingChat = await getChatById({ id })
@@ -312,6 +314,7 @@ chat.post('/', async (c) => {
             const assistantMsg = msg as Message & { role: 'assistant' }
             currentAssistantMsg = {
               id: assistantMsgId,
+              runId,
               role: 'assistant',
               content: assistantMsg.content,
               usage: assistantMsg.usage,
@@ -360,6 +363,7 @@ chat.post('/', async (c) => {
               const cost = calculateCost(assistantMsg.usage, model)
               const finalMsg: ChatAssistantMessage = {
                 id: currentAssistantMsg?.id ?? assistantMsgId,
+                runId,
                 role: 'assistant',
                 content: currentAssistantMsg?.content ?? assistantMsg.content,
                 usage: assistantMsg.usage,
@@ -395,6 +399,7 @@ chat.post('/', async (c) => {
               type: 'message_update',
               message: {
                 id: toolMsgIds.get(event.toolCallId) ?? uuidV4(),
+                runId,
                 role: 'toolResult',
                 toolCallId: event.toolCallId,
                 toolName: event.toolName,
@@ -454,6 +459,7 @@ chat.post('/', async (c) => {
 
             const toolResultMsg: ChatToolResultMessage = {
               id: toolMsgIds.get(event.toolCallId) ?? uuidV4(),
+              runId,
               role: 'toolResult',
               toolCallId: event.toolCallId,
               toolName: event.toolName,

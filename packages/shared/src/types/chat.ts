@@ -28,9 +28,16 @@ export interface CostBreakdown {
   total: number
 }
 
-export type ChatUserMessage = UserMessage & { id: string }
+/**
+ * Every message carries the run it belongs to: the id of the run's user
+ * message (which is its own `runId`). One run = one user message and every
+ * model step and tool result that answered it; the renderer groups by it and
+ * the database indexes it (`message.runId`).
+ */
+export type ChatUserMessage = UserMessage & { id: string; runId: string }
 export type ChatAssistantMessage = AssistantMessage & {
   id: string
+  runId: string
   cost?: CostBreakdown
   /** Wall-clock duration of the entire turn this message belongs to. Set only
    * on the LAST assistant message of a turn by the server (chat route) so the
@@ -38,7 +45,10 @@ export type ChatAssistantMessage = AssistantMessage & {
    * timestamps (which mark stream start, not end). */
   durationMs?: number
 }
-export type ChatToolResultMessage = ToolResultMessage & { id: string }
+export type ChatToolResultMessage = ToolResultMessage & {
+  id: string
+  runId: string
+}
 export type ChatMessage =
   | ChatUserMessage
   | ChatAssistantMessage

@@ -81,6 +81,11 @@ export const message = pgTable(
     chatId: uuid('chatId')
       .notNull()
       .references(() => chat.id),
+    // The run this row belongs to: the id of the run's user message (the
+    // user row carries its own id). Context assembly, compaction and the
+    // renderer all work in runs, never in single rows. Backfilled by
+    // migration 0008.
+    runId: uuid('runId').notNull(),
     role: varchar('role').notNull(), // 'user' | 'assistant' | 'toolResult'
     content: jsonb('content').notNull(), // content array for the message
     // Extracted, indexable text — only `text` blocks from user/assistant
@@ -113,7 +118,8 @@ export const message = pgTable(
     index('message_search_index').using(
       'gin',
       sql`${table.searchText} gin_trgm_ops`
-    )
+    ),
+    index('message_chat_run_idx').on(table.chatId, table.runId)
   ]
 )
 

@@ -34,6 +34,7 @@ export function convertToUIMessages(
     if (dbMsg.role === 'user') {
       return {
         id: dbMsg.id,
+        runId: dbMsg.runId,
         role: 'user' as const,
         content: dbMsg.content as UserMessage['content'],
         timestamp
@@ -42,6 +43,7 @@ export function convertToUIMessages(
     if (dbMsg.role === 'assistant') {
       return {
         id: dbMsg.id,
+        runId: dbMsg.runId,
         role: 'assistant' as const,
         content: dbMsg.content as AssistantMessage['content'],
         usage: dbMsg.usage!,
@@ -56,6 +58,7 @@ export function convertToUIMessages(
     }
     return {
       id: dbMsg.id,
+      runId: dbMsg.runId,
       role: 'toolResult' as const,
       toolCallId: dbMsg.toolCallId ?? '',
       toolName: dbMsg.toolName ?? '',

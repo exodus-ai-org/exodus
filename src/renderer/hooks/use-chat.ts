@@ -172,8 +172,11 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
         })
       }
 
+      // A user message opens a run named by its own id.
+      const userId = generateId()
       const userMsg: ChatMessage = {
-        id: generateId(),
+        id: userId,
+        runId: userId,
         role: 'user',
         content:
           content.length === 1 && content[0].type === 'text'
