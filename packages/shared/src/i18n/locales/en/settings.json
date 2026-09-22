@@ -104,6 +104,9 @@
       "integrations": "Integrations",
       "storage": "Storage",
       "developer": "Developer"
+    },
+    "experiments": {
+      "title": "Experiments"
     }
   },
   "common": {
@@ -998,6 +1001,17 @@
     "toast": {
       "failedTitle": "That didn't work",
       "pairedTitle": "Device paired"
+    }
+  },
+  "experiments": {
+    "intro": "Switches for things being tried out. They live in this window only and can be flipped back at any time.",
+    "markdownEngine": {
+      "label": "Markdown engine",
+      "description": "How replies are rendered. Exodus is the built-in renderer; Streamdown is Vercel’s, with shiki code highlighting. Applies to every chat immediately.",
+      "options": {
+        "exodus": "Exodus",
+        "streamdown": "Streamdown"
+      }
     }
   }
 }

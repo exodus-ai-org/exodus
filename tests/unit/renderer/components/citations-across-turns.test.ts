@@ -3,7 +3,7 @@ import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import { postRequestBodySchema } from '@main/lib/server/schemas/chat'
 import { describe, expect, it } from 'vitest'
 
-import { parseCitations } from '@/components/markdown'
+import { parseCitations } from '@/components/markdown-citations'
 import { groupIntoSegments } from '@/components/messages'
 
 // Regression: a follow-up turn used to wipe the citations off every earlier

@@ -104,6 +104,9 @@
       "integrations": "Intégrations",
       "storage": "Stockage",
       "developer": "Développeur"
+    },
+    "experiments": {
+      "title": "Expérimentations"
     }
   },
   "common": {
@@ -998,6 +1001,17 @@
     "toast": {
       "failedTitle": "L’opération a échoué",
       "pairedTitle": "Appareil jumelé"
+    }
+  },
+  "experiments": {
+    "intro": "Des interrupteurs pour ce qui est à l’essai. Ils ne concernent que cette fenêtre et peuvent être remis à tout moment.",
+    "markdownEngine": {
+      "label": "Moteur Markdown",
+      "description": "La façon dont les réponses sont affichées. Exodus est le moteur intégré ; Streamdown est celui de Vercel, avec la coloration de code shiki. S’applique immédiatement à toutes les conversations.",
+      "options": {
+        "exodus": "Exodus",
+        "streamdown": "Streamdown"
+      }
     }
   }
 }
