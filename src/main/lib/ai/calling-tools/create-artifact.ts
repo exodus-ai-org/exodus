@@ -1,5 +1,6 @@
 import type { AgentTool } from '@earendil-works/pi-agent-core'
 import { Type } from '@earendil-works/pi-ai'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import { v4 as uuidV4 } from 'uuid'
 
 import { saveArtifact } from '../artifacts'
@@ -47,9 +48,9 @@ AVAILABLE IMPORTS:
 - @/ui/tabs (Tabs, TabsContent, TabsList, TabsTrigger)
 
 MEDIA:
-- You may use externally hosted image/video URLs returned by webSearch media results directly in <img>, <video>, or as links to source pages.
+- You may use externally hosted image/video URLs returned by web_search media results directly in <img>, <video>, or as links to source pages.
 - Prefer Brave thumbnail URLs for image display when available; link back to the original sourceUrl for attribution/inspection.
-- Never invent media URLs. If webSearch did not return media, make a strong visual artifact with icons, diagrams, tables, and layout instead of fake images.
+- Never invent media URLs. If web_search did not return media, make a strong visual artifact with icons, diagrams, tables, and layout instead of fake images.
 - Always include meaningful alt text for images. For videos, show the thumbnail and open the sourceUrl in a new tab unless you are sure the URL is directly embeddable.
 
 STYLING:
@@ -138,7 +139,7 @@ module.exports = { default: YtdChart }`
 export const createArtifact = (
   chatId: string
 ): AgentTool<typeof createArtifactSchema> => ({
-  name: 'createArtifact',
+  name: TOOL_NAMES.createArtifact,
   label: 'Create Artifact',
   description:
     'Create a rich visual artifact (chart, table, dashboard, comparison, etc.) rendered as a live React component. Use this when data would be better presented visually rather than as plain text — for example after collecting research data, comparing options, or analyzing statistics. The component will be rendered in an interactive sandbox with Tailwind CSS styling.',

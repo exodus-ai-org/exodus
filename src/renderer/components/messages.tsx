@@ -1,3 +1,4 @@
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import type {
   AssistantTurn,
   ChatAssistantMessage,
@@ -214,7 +215,7 @@ const AssistantTurnSegment = memo(
  * The raw tool name is the canonical identifier (used as the SSE event
  * key, the DB column, and the dispatch key in messages-calling-tools); we
  * format it for display only here, at the rendering boundary, via
- * capitalCase ('webSearch' → 'Web Search').
+ * capitalCase ('web_search' → 'Web Search').
  */
 function getToolCallPreview(
   name: string,
@@ -230,17 +231,17 @@ function getToolCallPreview(
       const cmd = pick('command')
       return cmd ? { text: label, codeArgument: cmd } : { text: label }
     }
-    case 'webSearch':
+    case TOOL_NAMES.webSearch:
       return withInline(label, pick('query'))
-    case 'webFetch':
+    case TOOL_NAMES.webFetch:
       return withInline(label, pick('url'))
-    case 'readFile':
-    case 'writeFile':
-    case 'editFile':
+    case TOOL_NAMES.readFile:
+    case TOOL_NAMES.writeFile:
+    case TOOL_NAMES.editFile:
       return withInline(label, pick('path') || pick('filePath'))
     case 'weather':
       return withInline(label, pick('location'))
-    case 'mapItinerary': {
+    case TOOL_NAMES.mapItinerary: {
       // Show "Map Itinerary: 3 days, 12 stops" so the timeline conveys the
       // scale of the itinerary the LLM just built.
       const days = Array.isArray(args.days) ? (args.days as unknown[]) : []
@@ -338,7 +339,7 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
       }
 
       if (
-        toolResult.toolName === 'webSearch' &&
+        toolResult.toolName === TOOL_NAMES.webSearch &&
         !toolResult.isError &&
         Array.isArray(toolResult.details) &&
         toolResult.details.length > 0
@@ -351,11 +352,11 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
           text: i18n.t('chat:toolPreview.webSearchResultCount', {
             count: results.length
           }),
-          toolName: 'webSearch',
+          toolName: TOOL_NAMES.webSearch,
           webSearchResults: results
         })
       } else if (
-        toolResult.toolName === 'webFetch' &&
+        toolResult.toolName === TOOL_NAMES.webFetch &&
         !toolResult.isError &&
         toolResult.details &&
         typeof toolResult.details === 'object' &&

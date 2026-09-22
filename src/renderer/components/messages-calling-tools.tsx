@@ -1,3 +1,4 @@
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import type { ChatToolResultMessage } from '@exodus/shared/types/chat'
 import { capitalCase } from 'change-case'
 import { AlertCircleIcon } from 'lucide-react'
@@ -18,26 +19,9 @@ import { WeatherCard } from './calling-tools/weather/weather-card'
 // rendered as a no-op (their output surfaces elsewhere in the UI). Anything
 // outside this set — including every MCP tool — falls back to GenericToolCard
 // so the user at least sees that the tool ran.
-const BUILTIN_TOOL_NAMES = new Set([
-  'mapItinerary',
-  'weather',
-  'deepResearch',
-  'computerUse',
-  'terminal',
-  'createArtifact',
-  'webSearch',
-  'imageGeneration',
-  'readFile',
-  'writeFile',
-  'editFile',
-  'listDirectory',
-  'findFiles',
-  'grep',
-  'webFetch',
-  'rag',
-  'lcmGrep',
-  'lcmDescribe',
-  'lcmExpand'
+const BUILTIN_TOOL_NAMES = new Set<string>([
+  ...Object.values(TOOL_NAMES),
+  'rag'
 ])
 
 function CallingTools({
@@ -50,7 +34,7 @@ function CallingTools({
   const { t } = useTranslation('chat')
   const toolName = toolResult.toolName ?? ''
   // toolName stays canonical (used for dispatch below); toolLabel is the
-  // user-facing form ('webSearch' → 'Web Search') and only flows into the
+  // user-facing form ('web_search' → 'Web Search') and only flows into the
   // toast title and the fallback error string. Older persisted tool results
   // may be missing toolName entirely — capitalCase('') is safe, so guard once
   // up front rather than scatter ?. throughout.
@@ -87,7 +71,7 @@ function CallingTools({
   }, [toolResult.toolCallId])
 
   // Successful webSearch results are rendered via Sources in MessageAction, not here
-  if (toolName === 'webSearch' && !toolResult.isError) {
+  if (toolName === TOOL_NAMES.webSearch && !toolResult.isError) {
     return null
   }
 
@@ -151,21 +135,27 @@ function CallingTools({
 
   return (
     <section className="mb-4 w-full">
-      {toolName === 'mapItinerary' && output?.type === 'mapItinerary' && (
-        <MapItineraryCard toolResult={output} />
-      )}
+      {toolName === TOOL_NAMES.mapItinerary &&
+        output?.type === 'mapItinerary' && (
+          <MapItineraryCard toolResult={output} />
+        )}
       {toolName === 'weather' && <WeatherCard toolResult={output} />}
-      {toolName === 'deepResearch' && <DeepResearchCard toolResult={output} />}
-      {toolName === 'computerUse' && <ComputerUseCard toolResult={output} />}
-      {toolName === 'terminal' && <TerminalCard toolResult={output} />}
-      {toolName === 'createArtifact' && output?.type === 'artifact' && (
-        <ArtifactCard chatId={chatId} toolResult={output} />
+      {toolName === TOOL_NAMES.deepResearch && (
+        <DeepResearchCard toolResult={output} />
       )}
-      {(toolName === 'imageGeneration' ||
-        toolName === 'readFile' ||
-        toolName === 'writeFile' ||
-        toolName === 'listDirectory' ||
-        toolName === 'findFiles') && <div className="-mb-4" />}
+      {toolName === TOOL_NAMES.computerUse && (
+        <ComputerUseCard toolResult={output} />
+      )}
+      {toolName === 'terminal' && <TerminalCard toolResult={output} />}
+      {toolName === TOOL_NAMES.createArtifact &&
+        output?.type === 'artifact' && (
+          <ArtifactCard chatId={chatId} toolResult={output} />
+        )}
+      {(toolName === TOOL_NAMES.imageGeneration ||
+        toolName === TOOL_NAMES.readFile ||
+        toolName === TOOL_NAMES.writeFile ||
+        toolName === TOOL_NAMES.listDirectory ||
+        toolName === TOOL_NAMES.findFiles) && <div className="-mb-4" />}
       {!BUILTIN_TOOL_NAMES.has(toolName) &&
         (isDrawioOutput(output) ? (
           <DrawioCard output={output} />

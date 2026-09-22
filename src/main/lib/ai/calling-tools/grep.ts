@@ -3,6 +3,7 @@ import path from 'path'
 
 import type { AgentTool } from '@earendil-works/pi-agent-core'
 import { Type } from '@earendil-works/pi-ai'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 
 const MAX_RESULTS = 100
 const SKIP_DIRS = new Set([
@@ -151,7 +152,7 @@ const grepSchema = Type.Object({
 })
 
 export const grep: AgentTool<typeof grepSchema> = {
-  name: 'grep',
+  name: TOOL_NAMES.grep,
   label: 'Grep',
   description:
     'Search for a regex pattern in files. Returns matching lines with optional context. ' +

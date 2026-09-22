@@ -1,3 +1,4 @@
+import { toToolName } from '@exodus/shared/constants/tool-names'
 import {
   GROUP_TITLE_KEYS,
   TOOL_GROUPS,
@@ -97,12 +98,16 @@ function ToolRow({
 
 export function Tools({ form }: { form: UseFormReturnType }) {
   const { t } = useTranslation('settings')
-  const disabledTools: string[] =
+  // Keys saved before the snake_case rename are read as their new name and
+  // written back as such on the next toggle.
+  const disabledTools: string[] = (
     useWatch({ control: form.control, name: 'tools.disabledTools' }) ?? []
+  ).map(toToolName)
 
   function toggle(key: string, enabled: boolean) {
-    const current: string[] =
+    const current: string[] = (
       (form.getValues('tools.disabledTools') as string[] | null) ?? []
+    ).map(toToolName)
     const next = enabled
       ? current.filter((k) => k !== key)
       : [...current.filter((k) => k !== key), key]

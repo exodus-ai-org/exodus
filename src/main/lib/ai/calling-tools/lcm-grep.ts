@@ -1,5 +1,6 @@
 import type { AgentTool } from '@earendil-works/pi-agent-core'
 import { Type } from '@earendil-works/pi-ai'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 
 import { searchMessages, searchSummaries } from '../context-management/queries'
 
@@ -19,12 +20,12 @@ const lcmGrepSchema = Type.Object({
 })
 
 export const lcmGrep: AgentTool<typeof lcmGrepSchema> = {
-  name: 'lcmGrep',
+  name: TOOL_NAMES.lcmGrep,
   label: 'LCM Search',
   description:
     'Search through conversation history (LCM summaries and raw messages) for a specific pattern. ' +
     'Use this as the first step when you need to recall something from earlier in a long conversation. ' +
-    'Returns snippets with summary IDs (for lcmDescribe) or message previews.',
+    'Returns snippets with summary IDs (for lcm_describe) or message previews.',
   parameters: lcmGrepSchema,
   execute: async (_toolCallId, { chatId, pattern, limit = 10 }, signal) => {
     if (signal?.aborted) throw new Error('Aborted')

@@ -4,6 +4,7 @@ import { promisify } from 'util'
 
 import type { AgentTool } from '@earendil-works/pi-agent-core'
 import { Type } from '@earendil-works/pi-ai'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 
 const execAsync = promisify(exec)
 
@@ -18,7 +19,7 @@ const terminalSchema = Type.Object({
 })
 
 export const terminal: AgentTool<typeof terminalSchema> = {
-  name: 'terminal',
+  name: TOOL_NAMES.terminal,
   label: 'Terminal',
   description: `Execute a shell command on the local machine and return its output. Use this to run CLI tools, scripts, or any shell command. Commands run in the user's home directory by default.
 

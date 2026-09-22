@@ -83,7 +83,7 @@ describe('useChat', () => {
   })
 
   it('still sends the live transcript and the latest prepareBody, stable identity or not', async () => {
-    let tools = ['webSearch']
+    let tools = ['web_search']
     await mount(() => ({ advancedTools: tools }))
     await act(async () => latest.sendMessage({ text: 'first' }))
     const subscriber = startStream.mock.calls[0][0]

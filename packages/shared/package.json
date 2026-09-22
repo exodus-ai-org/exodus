@@ -33,6 +33,7 @@
     "./constants/chat-audit-presets": "./src/constants/chat-audit-presets.ts",
     "./constants/chat-audit-schema": "./src/constants/chat-audit-schema.ts",
     "./constants/tools": "./src/constants/tools.ts",
+    "./constants/tool-names": "./src/constants/tool-names.ts",
     "./schemas/project-schema": "./src/schemas/project-schema.ts",
     "./types/api-error": "./src/types/api-error.ts",
     "./types/fs": "./src/types/fs.ts",

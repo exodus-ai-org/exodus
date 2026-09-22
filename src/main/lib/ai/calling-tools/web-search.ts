@@ -1,5 +1,6 @@
 import type { AgentTool } from '@earendil-works/pi-agent-core'
 import { StringEnum, Type } from '@earendil-works/pi-ai'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
 
 import { Settings } from '../../db/schema'
@@ -37,9 +38,9 @@ export const webSearch = (
   let searchQueue = Promise.resolve()
 
   return {
-    name: 'webSearch',
+    name: TOOL_NAMES.webSearch,
     label: 'Web Search',
-    description: `Search the web for up-to-date information. Results are numbered [1],[2],… — you MUST cite every factual sentence in your reply using 【N-source】 markers. Higher-numbered results are snippet-only breadth hits; call webFetch on one to read it in full. Set media="images", "videos", or "all" when the user asks for a visual artifact, visual comparison, product/place explanation, tutorial, or any answer that would be better with media. Today is ${new Date().toISOString()}`,
+    description: `Search the web for up-to-date information. Results are numbered [1],[2],… — you MUST cite every factual sentence in your reply using 【N-source】 markers. Higher-numbered results are snippet-only breadth hits; call web_fetch on one to read it in full. Set media="images", "videos", or "all" when the user asks for a visual artifact, visual comparison, product/place explanation, tutorial, or any answer that would be better with media. Today is ${new Date().toISOString()}`,
     parameters: webSearchSchema,
     execute: async (_toolCallId, { query, media, precision }, signal) => {
       const search = async () => {

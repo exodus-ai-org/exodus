@@ -3,6 +3,7 @@ import { dirname } from 'path'
 
 import type { AgentTool } from '@earendil-works/pi-agent-core'
 import { Type } from '@earendil-works/pi-ai'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 
 const writeFileSchema = Type.Object({
   path: Type.String({
@@ -17,7 +18,7 @@ const writeFileSchema = Type.Object({
 })
 
 export const writeFile: AgentTool<typeof writeFileSchema> = {
-  name: 'writeFile',
+  name: TOOL_NAMES.writeFile,
   label: 'Write File',
   description:
     'Write content to a file at the given path. Creates parent directories if they do not exist. Overwrites existing files.',
@@ -28,7 +29,7 @@ export const writeFile: AgentTool<typeof writeFileSchema> = {
       await mkdir(dirname(path), { recursive: true })
       if (append) {
         // fs/promises.appendFile's options type doesn't include `signal`
-        // (unlike readFile/writeFile), so append mode can't be cancelled.
+        // (unlike read_file/write_file), so append mode can't be cancelled.
         const { appendFile } = await import('fs/promises')
         await appendFile(path, content, 'utf-8')
       } else {

@@ -4,6 +4,7 @@ import { join, relative } from 'path'
 
 import type { AgentTool } from '@earendil-works/pi-agent-core'
 import { Type } from '@earendil-works/pi-ai'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 
 function matchGlob(name: string, pattern: string): boolean {
   // Simple glob: * matches anything, ? matches single char
@@ -38,7 +39,7 @@ const findFilesSchema = Type.Object({
 })
 
 export const findFiles: AgentTool<typeof findFilesSchema> = {
-  name: 'findFiles',
+  name: TOOL_NAMES.findFiles,
   label: 'Find Files',
   description:
     'Find files matching a name pattern within a directory. Searches recursively up to 5 levels deep.',

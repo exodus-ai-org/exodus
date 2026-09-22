@@ -4,25 +4,25 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 // pulling in pi-ai's Type builder or the real tool implementations.
 const stub = (name: string) => ({ name })
 vi.mock('@main/lib/ai/calling-tools', () => ({
-  createArtifact: () => stub('createArtifact'),
-  deepResearch: stub('deepResearch'),
-  editFile: stub('editFile'),
-  findFiles: stub('findFiles'),
+  createArtifact: () => stub('create_artifact'),
+  deepResearch: stub('deep_research'),
+  editFile: stub('edit_file'),
+  findFiles: stub('find_files'),
   grep: stub('grep'),
-  imageGeneration: () => stub('imageGeneration'),
-  lcmDescribe: stub('lcmDescribe'),
-  lcmExpand: () => stub('lcmExpand'),
-  lcmGrep: stub('lcmGrep'),
-  listDirectory: stub('listDirectory'),
-  mapItinerary: () => stub('mapItinerary'),
-  readFile: stub('readFile'),
+  imageGeneration: () => stub('image_generation'),
+  lcmDescribe: stub('lcm_describe'),
+  lcmExpand: () => stub('lcm_expand'),
+  lcmGrep: stub('lcm_grep'),
+  listDirectory: stub('list_directory'),
+  mapItinerary: () => stub('map_itinerary'),
+  readFile: stub('read_file'),
   searchKnowledgeBase: (_client: unknown, _cfg: unknown) =>
-    stub('searchKnowledgeBase'),
+    stub('search_knowledge_base'),
   terminal: stub('terminal'),
   weather: stub('weather'),
-  webFetch: () => stub('webFetch'),
-  webSearch: () => stub('webSearch'),
-  writeFile: stub('writeFile')
+  webFetch: () => stub('web_fetch'),
+  webSearch: () => stub('web_search'),
+  writeFile: stub('write_file')
 }))
 
 const mockResolveKnowledgeBase = vi.fn()
@@ -56,7 +56,7 @@ describe('bindCallingTools — knowledge base', () => {
       setting: { id: 'global', knowledgeBase: { url: 'http://h:9621' } },
       mcpTools: []
     } as never)
-    expect(names(tools)).toContain('searchKnowledgeBase')
+    expect(names(tools)).toContain('search_knowledge_base')
   })
 
   it('does not bind it when the knowledge base is unconfigured', () => {
@@ -66,7 +66,7 @@ describe('bindCallingTools — knowledge base', () => {
       setting: { id: 'global' },
       mcpTools: []
     } as never)
-    expect(names(tools)).not.toContain('searchKnowledgeBase')
+    expect(names(tools)).not.toContain('search_knowledge_base')
   })
 
   it('does not bind it when the tool is disabled in settings', () => {
@@ -76,11 +76,12 @@ describe('bindCallingTools — knowledge base', () => {
       setting: {
         id: 'global',
         knowledgeBase: { url: 'http://h:9621' },
+        // The pre-rename key still disables the tool.
         tools: { disabledTools: ['searchKnowledgeBase'] }
       },
       mcpTools: []
     } as never)
-    expect(names(tools)).not.toContain('searchKnowledgeBase')
+    expect(names(tools)).not.toContain('search_knowledge_base')
   })
 })
 

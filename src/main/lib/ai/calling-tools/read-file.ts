@@ -2,6 +2,7 @@ import { readFile as fsReadFile } from 'fs/promises'
 
 import type { AgentTool } from '@earendil-works/pi-agent-core'
 import { StringEnum, Type } from '@earendil-works/pi-ai'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 
 const readFileSchema = Type.Object({
   path: Type.String({
@@ -17,7 +18,7 @@ const readFileSchema = Type.Object({
 })
 
 export const readFile: AgentTool<typeof readFileSchema> = {
-  name: 'readFile',
+  name: TOOL_NAMES.readFile,
   label: 'Read File',
   description: 'Read the contents of a file at the given path.',
   parameters: readFileSchema,

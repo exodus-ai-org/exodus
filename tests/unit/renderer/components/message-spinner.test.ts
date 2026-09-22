@@ -43,7 +43,7 @@ describe('shouldShowMessageSpinner', () => {
     const segments = groupIntoSegments([
       user('u1'),
       assistant('a1', [
-        { type: 'toolCall', id: 'c1', name: 'webSearch', arguments: {} }
+        { type: 'toolCall', id: 'c1', name: 'web_search', arguments: {} }
       ])
     ])
     expect(shouldShowMessageSpinner(segments, true)).toBe(false)

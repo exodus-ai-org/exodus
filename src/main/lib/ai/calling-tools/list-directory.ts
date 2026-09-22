@@ -3,6 +3,7 @@ import { join } from 'path'
 
 import type { AgentTool } from '@earendil-works/pi-agent-core'
 import { Type } from '@earendil-works/pi-ai'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 
 const listDirectorySchema = Type.Object({
   path: Type.String({ description: 'Directory path to list.' }),
@@ -14,7 +15,7 @@ const listDirectorySchema = Type.Object({
 })
 
 export const listDirectory: AgentTool<typeof listDirectorySchema> = {
-  name: 'listDirectory',
+  name: TOOL_NAMES.listDirectory,
   label: 'List Directory',
   description: 'List files and directories at a given path.',
   parameters: listDirectorySchema,

@@ -1,5 +1,6 @@
 import type { AgentTool } from '@earendil-works/pi-agent-core'
 import type { Model } from '@earendil-works/pi-ai'
+import { TOOL_NAMES, toToolName } from '@exodus/shared/constants/tool-names'
 import { AdvancedTools, McpTools } from '@exodus/shared/types/ai'
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
 
@@ -68,32 +69,36 @@ export function bindCallingTools({
 
   const mcpToolsList: ErasedTool[] = mcpTools.flatMap((t) => t.tools)
 
-  const disabledTools = new Set(setting.tools?.disabledTools ?? [])
+  // Keys saved before the snake_case rename still disable the same tool.
+  const disabledTools = new Set(
+    (setting.tools?.disabledTools ?? []).map(toToolName)
+  )
   const enabled = (key: string) => !disabledTools.has(key)
 
   const tools: ErasedTool[] = []
 
-  if (enabled('weather')) tools.push(weather)
-  if (enabled('mapItinerary')) tools.push(mapItinerary(setting))
-  if (enabled('imageGeneration')) tools.push(imageGeneration(setting))
-  if (enabled('terminal')) tools.push(terminal)
-  if (enabled('readFile')) tools.push(readFile)
-  if (enabled('writeFile')) tools.push(writeFile)
-  if (enabled('editFile')) tools.push(editFile)
-  if (enabled('listDirectory')) tools.push(listDirectory)
-  if (enabled('findFiles')) tools.push(findFiles)
-  if (enabled('grep')) tools.push(grep)
+  if (enabled(TOOL_NAMES.weather)) tools.push(weather)
+  if (enabled(TOOL_NAMES.mapItinerary)) tools.push(mapItinerary(setting))
+  if (enabled(TOOL_NAMES.imageGeneration)) tools.push(imageGeneration(setting))
+  if (enabled(TOOL_NAMES.terminal)) tools.push(terminal)
+  if (enabled(TOOL_NAMES.readFile)) tools.push(readFile)
+  if (enabled(TOOL_NAMES.writeFile)) tools.push(writeFile)
+  if (enabled(TOOL_NAMES.editFile)) tools.push(editFile)
+  if (enabled(TOOL_NAMES.listDirectory)) tools.push(listDirectory)
+  if (enabled(TOOL_NAMES.findFiles)) tools.push(findFiles)
+  if (enabled(TOOL_NAMES.grep)) tools.push(grep)
   // webSearch + webFetch share one rank registry so 【N-source】 citations
   // resolve regardless of which tool produced source N.
   const webSources = new Map<string, WebSearchResult>()
-  if (enabled('webFetch')) tools.push(webFetch(webSources))
-  if (enabled('createArtifact') && chatId) tools.push(createArtifact(chatId))
-  if (enabled('webSearch')) tools.push(webSearch(setting, webSources))
-  if (setting.computerUse?.enabled && enabled('computerUse'))
+  if (enabled(TOOL_NAMES.webFetch)) tools.push(webFetch(webSources))
+  if (enabled(TOOL_NAMES.createArtifact) && chatId)
+    tools.push(createArtifact(chatId))
+  if (enabled(TOOL_NAMES.webSearch)) tools.push(webSearch(setting, webSources))
+  if (setting.computerUse?.enabled && enabled(TOOL_NAMES.computerUse))
     tools.push(computerUse)
 
   const kb = resolveKnowledgeBase(setting)
-  if (kb && enabled('searchKnowledgeBase')) {
+  if (kb && enabled(TOOL_NAMES.searchKnowledgeBase)) {
     tools.push(searchKnowledgeBase(kb, setting.knowledgeBase))
   }
 

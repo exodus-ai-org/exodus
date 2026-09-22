@@ -109,7 +109,7 @@ const webSearch = (id: string) =>
     id,
     role: 'toolResult',
     toolCallId: `call-${id}`,
-    toolName: 'webSearch',
+    toolName: 'web_search',
     content: [{ type: 'text', text: 'results' }],
     details: SOURCES,
     isError: false,

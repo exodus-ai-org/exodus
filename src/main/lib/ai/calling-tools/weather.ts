@@ -1,5 +1,6 @@
 import type { AgentTool } from '@earendil-works/pi-agent-core'
 import { Type } from '@earendil-works/pi-ai'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 
 interface WttrCondition {
   weatherDesc?: Array<{ value?: string }>
@@ -51,7 +52,7 @@ const weatherSchema = Type.Object({
 })
 
 export const weather: AgentTool<typeof weatherSchema> = {
-  name: 'weather',
+  name: TOOL_NAMES.weather,
   label: 'Weather',
   description:
     'Get current weather conditions and a short forecast for a location.',

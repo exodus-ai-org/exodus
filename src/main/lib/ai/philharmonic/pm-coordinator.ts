@@ -55,7 +55,7 @@ Execution loop:
 - After each employee returns, REVIEW their output against the step's goal. If it falls short, update the step to "failed" (or "pending" if you want to retry) and either delegate again with corrections, or recruit/replace. Never pass along sub-par work.
 - When every step is done, write ONE final message that summarizes the outcome. Do not call any tool in that final turn.
 
-Use searchKnowledgeBase for company-specific facts before asking the user. Use askUser only when truly blocked.
+Use search_knowledge_base for company-specific facts before asking the user. Use askUser only when truly blocked.
 Delegate to one employee at a time.`
 
 function rosterText(

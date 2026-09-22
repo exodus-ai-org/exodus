@@ -2,6 +2,7 @@ import { readFile, writeFile } from 'fs/promises'
 
 import type { AgentTool } from '@earendil-works/pi-agent-core'
 import { Type } from '@earendil-works/pi-ai'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 
 const editFileSchema = Type.Object({
   path: Type.String({ description: 'Absolute path to the file to edit.' }),
@@ -22,11 +23,11 @@ const editFileSchema = Type.Object({
 })
 
 export const editFile: AgentTool<typeof editFileSchema> = {
-  name: 'editFile',
+  name: TOOL_NAMES.editFile,
   label: 'Edit File',
   description:
     'Edit a file by replacing a specific string with a new string. ' +
-    'Prefer this over writeFile for targeted edits — it only changes what you specify. ' +
+    'Prefer this over write_file for targeted edits — it only changes what you specify. ' +
     'The old_string must match exactly (including whitespace and indentation). ' +
     'To insert text, provide old_string as the surrounding context and include it in new_string. ' +
     'To delete text, set new_string to empty string.',

@@ -1,4 +1,5 @@
 import { faviconUrl } from '@exodus/shared/constants/external-urls'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import type { TimelineStep } from '@exodus/shared/types/chat'
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import {
@@ -50,7 +51,7 @@ function StepIcon({
     return <XCircleIcon size={15} className="text-destructive shrink-0" />
   }
   const cls = cn('shrink-0', STATUS_TEXT[status])
-  if (step.toolName === 'webSearch')
+  if (step.toolName === TOOL_NAMES.webSearch)
     return <GlobeIcon size={15} className={cls} />
   if (step.type === 'thinking') return <BrainIcon size={15} className={cls} />
   return <ClockFadingIcon size={15} className={cls} />

@@ -1,4 +1,5 @@
 import { ErrorCode, DatabaseError } from '@exodus/shared'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import { and, asc, desc, eq, ilike, inArray, sql } from 'drizzle-orm'
 
 import { logger } from '../logger'
@@ -179,7 +180,7 @@ export async function updateArtifactCodeByArtifactId({
       .where(
         and(
           eq(message.role, 'toolResult'),
-          eq(message.toolName, 'createArtifact'),
+          eq(message.toolName, TOOL_NAMES.createArtifact),
           sql`${message.details}->>'artifactId' = ${artifactId}`
         )
       )
