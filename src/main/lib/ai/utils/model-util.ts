@@ -1,6 +1,6 @@
+import type { Model } from '@earendil-works/pi-ai'
 import { ConfigurationError, ErrorCode, NotFoundError } from '@exodus/shared'
 import { AiProviders } from '@exodus/shared/types/ai'
-import type { Model } from '@mariozechner/pi-ai'
 
 import { Settings } from '../../db/schema'
 import { providers } from '../providers'

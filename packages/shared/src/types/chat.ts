@@ -7,7 +7,7 @@ import type {
   ToolResultMessage,
   Usage,
   UserMessage
-} from '@mariozechner/pi-ai'
+} from '@earendil-works/pi-ai'
 
 export type {
   AssistantMessage,

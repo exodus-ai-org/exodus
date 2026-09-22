@@ -1,6 +1,6 @@
+import type { AgentTool } from '@earendil-works/pi-agent-core'
+import { StringEnum, Type } from '@earendil-works/pi-ai'
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
-import type { AgentTool } from '@mariozechner/pi-agent-core'
-import { StringEnum, Type } from '@mariozechner/pi-ai'
 
 import { Settings } from '../../db/schema'
 import { getModelFromProvider } from '../utils/model-util'

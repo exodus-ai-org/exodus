@@ -1,6 +1,6 @@
+import type { Model } from '@earendil-works/pi-ai'
 import { Learning } from '@exodus/shared/types/deep-research'
 import { WebSearchResult } from '@exodus/shared/types/web-search'
-import type { Model } from '@mariozechner/pi-ai'
 import { z } from 'zod'
 
 import { deepResearchSystemPrompt } from '../prompts'

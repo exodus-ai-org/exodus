@@ -62,8 +62,6 @@
     "@hono/node-server": "^2.1.1",
     "@langchain/community": "^1.1.29",
     "@langchain/core": "^1.2.11",
-    "@mariozechner/pi-agent-core": "^0.73.1",
-    "@mariozechner/pi-ai": "^0.73.1",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "@peculiar/x509": "^2.1.0",
     "@tailwindcss/vite": "^4.3.3",

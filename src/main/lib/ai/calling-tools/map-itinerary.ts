@@ -1,7 +1,7 @@
+import type { AgentTool } from '@earendil-works/pi-agent-core'
+import { Type } from '@earendil-works/pi-ai'
 import type { ToolNotice } from '@exodus/shared/types/chat'
 import { v1 } from '@googlemaps/places'
-import type { AgentTool } from '@mariozechner/pi-agent-core'
-import { Type } from '@mariozechner/pi-ai'
 
 import { Settings } from '../../db/schema'
 import { logger } from '../../logger'

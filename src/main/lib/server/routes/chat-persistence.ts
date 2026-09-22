@@ -1,5 +1,5 @@
+import type { Message } from '@earendil-works/pi-ai'
 import type { ChatMessage } from '@exodus/shared/types/chat'
-import type { Message } from '@mariozechner/pi-ai'
 
 export function stripId(msg: ChatMessage): Message {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars

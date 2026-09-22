@@ -1,3 +1,4 @@
+import type { Usage } from '@earendil-works/pi-ai'
 import {
   VoiceSchema,
   DeepResearchSchema,
@@ -19,7 +20,6 @@ import {
 } from '@exodus/shared/schemas/settings-schema'
 import type { DiscoverGroup } from '@exodus/shared/types/discover'
 import { WebSearchResult } from '@exodus/shared/types/web-search'
-import type { Usage } from '@mariozechner/pi-ai'
 import { sql, type InferSelectModel } from 'drizzle-orm'
 import {
   boolean,

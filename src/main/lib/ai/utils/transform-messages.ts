@@ -1,4 +1,4 @@
-import type { Message } from '@mariozechner/pi-ai'
+import type { Message } from '@earendil-works/pi-ai'
 
 /**
  * Normalize tool call IDs to be compatible across providers.

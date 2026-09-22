@@ -14,10 +14,10 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
 
 const agentLoopMock = vi.fn()
-vi.mock('@mariozechner/pi-agent-core', () => ({
+vi.mock('@earendil-works/pi-agent-core', () => ({
   agentLoop: (...args: unknown[]) => agentLoopMock(...args)
 }))
-vi.mock('@mariozechner/pi-ai', () => ({}))
+vi.mock('@earendil-works/pi-ai', () => ({}))
 
 vi.mock('@main/lib/ai/context-management', () => ({
   LcmManager: class {
@@ -233,12 +233,12 @@ describe('POST /api/v1/chat', () => {
     expect(options.reasoning).toBeUndefined()
   })
 
-  it('maps reasoningEffort "max" down to "xhigh" (pi-agent-core has no "max" ThinkingLevel)', async () => {
+  it('passes reasoningEffort "max" through (a ThinkingLevel since pi 0.85)', async () => {
     const response = await postChat({ reasoningEffort: 'max' })
     await response.text()
 
     const options = agentLoopMock.mock.calls[0][2]
-    expect(options.reasoning).toBe('xhigh')
+    expect(options.reasoning).toBe('max')
   })
 
   it('forces reasoning "high" for Deep Research regardless of reasoningEffort', async () => {

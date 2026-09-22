@@ -1,5 +1,5 @@
 // src/main/lib/ai/philharmonic/lcm/summarize.ts
-import type { Message, Model } from '@mariozechner/pi-ai'
+import type { Message, Model } from '@earendil-works/pi-ai'
 
 import type { ConversationMessage } from '../../../db/schema'
 import { completeSimple } from '../../utils/complete'

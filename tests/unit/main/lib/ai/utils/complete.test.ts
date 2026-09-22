@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const piCompleteSimple = vi.fn()
-vi.mock('@mariozechner/pi-ai', () => ({
-  completeSimple: (...args: unknown[]) => piCompleteSimple(...args)
+vi.mock('@main/lib/ai/kernel/models', () => ({
+  getKernelModels: () => ({
+    completeSimple: (...args: unknown[]) => piCompleteSimple(...args)
+  })
 }))
 vi.mock('@main/lib/ai/prompts', () => ({ titleGenerationPrompt: 'TITLE' }))
 vi.mock('@main/lib/ai/utils/model-util', () => ({}))

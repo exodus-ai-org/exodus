@@ -1,5 +1,5 @@
+import type { Model } from '@earendil-works/pi-ai'
 import { Learning } from '@exodus/shared/types/deep-research'
-import type { Model } from '@mariozechner/pi-ai'
 
 import { deepResearchSystemPrompt } from '../prompts'
 import { completeSimple } from '../utils/complete'

@@ -1,5 +1,5 @@
+import type { Message } from '@earendil-works/pi-ai'
 import { transformMessages } from '@main/lib/ai/utils/transform-messages'
-import type { Message } from '@mariozechner/pi-ai'
 import { describe, expect, it } from 'vitest'
 
 const RAW_B64 =

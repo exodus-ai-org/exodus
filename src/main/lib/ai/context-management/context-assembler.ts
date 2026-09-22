@@ -1,4 +1,4 @@
-import type { Message } from '@mariozechner/pi-ai'
+import type { Message } from '@earendil-works/pi-ai'
 import { asc, eq } from 'drizzle-orm'
 
 import { db } from '../../db/db'

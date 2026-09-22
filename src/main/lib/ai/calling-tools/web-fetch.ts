@@ -1,6 +1,6 @@
+import type { AgentTool } from '@earendil-works/pi-agent-core'
+import { Type } from '@earendil-works/pi-ai'
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
-import type { AgentTool } from '@mariozechner/pi-agent-core'
-import { Type } from '@mariozechner/pi-ai'
 
 import { loadDocument } from '../utils/web-search-util'
 

@@ -1,12 +1,12 @@
-import type { ChatMessage } from '@exodus/shared/types/chat'
 import type {
   Api,
   AssistantMessage,
-  Provider,
+  ProviderId,
   StopReason,
   ToolResultMessage,
   UserMessage
-} from '@mariozechner/pi-ai'
+} from '@earendil-works/pi-ai'
+import type { ChatMessage } from '@exodus/shared/types/chat'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
@@ -46,7 +46,7 @@ export function convertToUIMessages(
         content: dbMsg.content as AssistantMessage['content'],
         usage: dbMsg.usage!,
         api: (dbMsg.api ?? '') as Api,
-        provider: (dbMsg.provider ?? '') as Provider,
+        provider: (dbMsg.provider ?? '') as ProviderId,
         model: dbMsg.model ?? '',
         stopReason: (dbMsg.stopReason ?? 'stop') as StopReason,
         errorMessage: dbMsg.errorMessage ?? undefined,

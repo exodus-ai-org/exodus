@@ -1,10 +1,12 @@
+import type { Model } from '@earendil-works/pi-ai'
 import { expandQuery } from '@main/lib/ai/utils/query-expansion'
-import type { Model } from '@mariozechner/pi-ai'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const completeSimple = vi.fn()
-vi.mock('@mariozechner/pi-ai', () => ({
-  completeSimple: (...args: unknown[]) => completeSimple(...args)
+vi.mock('@main/lib/ai/kernel/models', () => ({
+  getKernelModels: () => ({
+    completeSimple: (...args: unknown[]) => completeSimple(...args)
+  })
 }))
 
 const model = {} as Model<string>

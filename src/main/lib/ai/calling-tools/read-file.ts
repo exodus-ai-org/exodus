@@ -1,7 +1,7 @@
 import { readFile as fsReadFile } from 'fs/promises'
 
-import type { AgentTool } from '@mariozechner/pi-agent-core'
-import { StringEnum, Type } from '@mariozechner/pi-ai'
+import type { AgentTool } from '@earendil-works/pi-agent-core'
+import { StringEnum, Type } from '@earendil-works/pi-ai'
 
 const readFileSchema = Type.Object({
   path: Type.String({

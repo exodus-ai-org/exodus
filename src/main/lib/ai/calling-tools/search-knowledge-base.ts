@@ -1,6 +1,6 @@
 // src/main/lib/ai/calling-tools/search-knowledge-base.ts
-import type { AgentTool } from '@mariozechner/pi-agent-core'
-import { Type } from '@mariozechner/pi-ai'
+import type { AgentTool } from '@earendil-works/pi-agent-core'
+import { Type } from '@earendil-works/pi-ai'
 
 import type { LightRagClient } from '../../knowledge-base/lightrag-client'
 import { logger } from '../../logger'

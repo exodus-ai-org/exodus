@@ -1,4 +1,4 @@
-import type { Model, Usage } from '@mariozechner/pi-ai'
+import type { Model, Usage } from '@earendil-works/pi-ai'
 
 export interface CostBreakdown {
   input: number

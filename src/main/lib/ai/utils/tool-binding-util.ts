@@ -1,7 +1,7 @@
+import type { AgentTool } from '@earendil-works/pi-agent-core'
+import type { Model } from '@earendil-works/pi-ai'
 import { AdvancedTools, McpTools } from '@exodus/shared/types/ai'
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
-import type { AgentTool } from '@mariozechner/pi-agent-core'
-import type { Model } from '@mariozechner/pi-ai'
 
 import { Settings } from '../../db/schema'
 import { resolveKnowledgeBase } from '../../knowledge-base/resolve-knowledge-base'

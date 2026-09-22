@@ -9,7 +9,6 @@
 // tool-calling chat model works with the screenshot loop. The ctor takes
 // whatever `getModelFromProvider` resolved (Task 9 wires that up).
 
-import { complete } from '@mariozechner/pi-ai'
 import type {
   ImageContent,
   Message,
@@ -18,9 +17,10 @@ import type {
   ToolCall,
   ToolResultMessage,
   UserMessage
-} from '@mariozechner/pi-ai'
+} from '@earendil-works/pi-ai'
 
 import type { Action, ComputerState } from '../../computer/types'
+import { getKernelModels } from '../kernel/models'
 import { ACTION_TOOLS, toolCallToAction } from './action-tools'
 import { computerSystemPrompt } from './system-prompt'
 
@@ -119,7 +119,7 @@ export class ClaudeComputerAgent implements ComputerAgent {
       this.messages.push(result)
     }
 
-    const res = await complete(
+    const res = await getKernelModels().complete(
       this.model,
       {
         systemPrompt: this.systemPrompt,

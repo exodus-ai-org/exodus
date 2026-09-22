@@ -2,8 +2,8 @@ import { readdir, stat } from 'fs/promises'
 import { homedir } from 'os'
 import { join, relative } from 'path'
 
-import type { AgentTool } from '@mariozechner/pi-agent-core'
-import { Type } from '@mariozechner/pi-ai'
+import type { AgentTool } from '@earendil-works/pi-agent-core'
+import { Type } from '@earendil-works/pi-ai'
 
 function matchGlob(name: string, pattern: string): boolean {
   // Simple glob: * matches anything, ? matches single char

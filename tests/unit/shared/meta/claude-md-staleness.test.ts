@@ -34,7 +34,7 @@ describe('CLAUDE.md staleness', () => {
 
   it('references the real AI dependency from package.json', () => {
     const deps = { ...pkg.dependencies, ...pkg.devDependencies }
-    expect(deps['@mariozechner/pi-ai']).toBeTruthy()
-    expect(claudeMd).toContain('@mariozechner/pi-ai')
+    expect(deps['@earendil-works/pi-ai']).toBeTruthy()
+    expect(claudeMd).toContain('@earendil-works/pi-ai')
   })
 })

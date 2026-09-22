@@ -1,4 +1,11 @@
-import { completeSimple as piCompleteSimple } from '@mariozechner/pi-ai'
+import type {
+  AssistantMessage,
+  Context,
+  Model,
+  SimpleStreamOptions
+} from '@earendil-works/pi-ai'
+
+import { getKernelModels } from '../kernel/models'
 
 /** A model request that pi-ai reported as failed or cancelled. */
 export class LlmRequestError extends Error {
@@ -26,9 +33,11 @@ export class LlmRequestError extends Error {
  * here is all it takes. Use this, not pi-ai's export, for one-shot completions.
  */
 export async function completeSimple(
-  ...args: Parameters<typeof piCompleteSimple>
-): ReturnType<typeof piCompleteSimple> {
-  const result = await piCompleteSimple(...args)
+  model: Model<string>,
+  context: Context,
+  options?: SimpleStreamOptions
+): Promise<AssistantMessage> {
+  const result = await getKernelModels().completeSimple(model, context, options)
   if (result.stopReason === 'error' || result.stopReason === 'aborted') {
     throw new LlmRequestError(
       result.errorMessage ||

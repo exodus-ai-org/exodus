@@ -1,8 +1,8 @@
 import { readFile, readdir, stat } from 'fs/promises'
 import path from 'path'
 
-import type { AgentTool } from '@mariozechner/pi-agent-core'
-import { Type } from '@mariozechner/pi-ai'
+import type { AgentTool } from '@earendil-works/pi-agent-core'
+import { Type } from '@earendil-works/pi-ai'
 
 const MAX_RESULTS = 100
 const SKIP_DIRS = new Set([

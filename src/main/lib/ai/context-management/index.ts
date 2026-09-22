@@ -1,4 +1,4 @@
-import type { Message, Model } from '@mariozechner/pi-ai'
+import type { Message, Model } from '@earendil-works/pi-ai'
 
 import { logger } from '../../logger'
 import { runFullCompaction } from './compaction'

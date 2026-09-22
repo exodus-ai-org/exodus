@@ -1,6 +1,6 @@
+import type { AgentTool } from '@earendil-works/pi-agent-core'
+import { Type } from '@earendil-works/pi-ai'
 import { fetcher } from '@exodus/shared/utils/http'
-import type { AgentTool } from '@mariozechner/pi-agent-core'
-import { Type } from '@mariozechner/pi-ai'
 import { v4 as uuidV4 } from 'uuid'
 
 import { saveDeepResearch } from '../../db/queries'

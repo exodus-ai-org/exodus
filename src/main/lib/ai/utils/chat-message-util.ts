@@ -1,5 +1,5 @@
+import type { Model, TextContent } from '@earendil-works/pi-ai'
 import type { ChatMessage } from '@exodus/shared/types/chat'
-import type { Model, TextContent } from '@mariozechner/pi-ai'
 
 import { titleGenerationPrompt } from '../prompts'
 import { completeSimple } from './complete'

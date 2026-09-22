@@ -1,8 +1,8 @@
-import type { Attachment } from '@exodus/shared/types/chat'
 // src/main/lib/ai/philharmonic/pm-coordinator.ts
-import type { AgentMessage, AgentTool } from '@mariozechner/pi-agent-core'
-import { agentLoop } from '@mariozechner/pi-agent-core'
-import type { Message } from '@mariozechner/pi-ai'
+import type { AgentMessage, AgentTool } from '@earendil-works/pi-agent-core'
+import { agentLoop } from '@earendil-works/pi-agent-core'
+import type { Message } from '@earendil-works/pi-ai'
+import type { Attachment } from '@exodus/shared/types/chat'
 import { v4 as uuidV4 } from 'uuid'
 
 import {
@@ -24,6 +24,7 @@ import { mainT } from '../../i18n'
 import { resolveKnowledgeBase } from '../../knowledge-base/resolve-knowledge-base'
 import { notifyIfBackground } from '../../philharmonic-notifications'
 import { searchKnowledgeBase } from '../calling-tools/search-knowledge-base'
+import { streamFn } from '../kernel/models'
 import { getModelFromProvider } from '../utils/chat-message-util'
 import { createEscalateToUserTool } from './agent-tools'
 import { askUserRegistry } from './ask-user-registry'
@@ -373,7 +374,8 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
               (m as Message).role === 'toolResult'
           )
       },
-      signal
+      signal,
+      streamFn
     )
 
     for await (const event of stream) {

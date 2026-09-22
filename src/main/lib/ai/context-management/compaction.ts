@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 
-import type { Model } from '@mariozechner/pi-ai'
+import type { Model } from '@earendil-works/pi-ai'
 
 import { completeSimple } from '../utils/complete'
 import { getSummaryPromptForDepth } from './prompts'

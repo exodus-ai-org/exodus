@@ -1,6 +1,6 @@
-import type { AgentTool } from '@mariozechner/pi-agent-core'
-import type { Model } from '@mariozechner/pi-ai'
-import { Type } from '@mariozechner/pi-ai'
+import type { AgentTool } from '@earendil-works/pi-agent-core'
+import type { Model } from '@earendil-works/pi-ai'
+import { Type } from '@earendil-works/pi-ai'
 
 import {
   getChildIds,

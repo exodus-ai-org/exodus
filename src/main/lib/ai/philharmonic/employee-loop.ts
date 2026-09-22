@@ -1,8 +1,8 @@
-import type { PhilharmonicSseEvent } from '@exodus/shared/types/philharmonic'
 // src/main/lib/ai/philharmonic/employee-loop.ts
-import type { AgentMessage, AgentTool } from '@mariozechner/pi-agent-core'
-import { agentLoop } from '@mariozechner/pi-agent-core'
-import type { Message, Usage } from '@mariozechner/pi-ai'
+import type { AgentMessage, AgentTool } from '@earendil-works/pi-agent-core'
+import { agentLoop } from '@earendil-works/pi-agent-core'
+import type { Message, Usage } from '@earendil-works/pi-ai'
+import type { PhilharmonicSseEvent } from '@exodus/shared/types/philharmonic'
 import { v4 as uuidV4 } from 'uuid'
 
 import {
@@ -13,6 +13,7 @@ import {
 import { getSettings } from '../../db/queries'
 import type { Agent, Team } from '../../db/schema'
 import { getTeamById } from '../../db/team-queries'
+import { streamFn } from '../kernel/models'
 import { getMcpTools, getMcpToolsByNames } from '../mcp'
 import {
   getActiveSkillsContent,
@@ -131,7 +132,8 @@ export async function runEmployeeLoop(
             (m as Message).role === 'toolResult'
         )
     },
-    signal
+    signal,
+    streamFn
   )
 
   try {

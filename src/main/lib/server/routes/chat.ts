@@ -1,3 +1,6 @@
+import type { AgentMessage } from '@earendil-works/pi-agent-core'
+import { agentLoop } from '@earendil-works/pi-agent-core'
+import type { Message } from '@earendil-works/pi-ai'
 import { ErrorCode } from '@exodus/shared/constants/error-codes'
 import { NotFoundError } from '@exodus/shared/errors/app-error'
 import { AdvancedTools } from '@exodus/shared/types/ai'
@@ -8,13 +11,11 @@ import type {
   ChatToolResultMessage,
   ToolNotice
 } from '@exodus/shared/types/chat'
-import type { AgentMessage } from '@mariozechner/pi-agent-core'
-import { agentLoop } from '@mariozechner/pi-agent-core'
-import type { Message } from '@mariozechner/pi-ai'
 import { Hono } from 'hono'
 import { v4 as uuidV4 } from 'uuid'
 
 import { LcmManager } from '../../ai/context-management'
+import { streamFn } from '../../ai/kernel/models'
 import { getMcpTools } from '../../ai/mcp'
 import {
   formatMemoriesForSystem,
@@ -266,23 +267,14 @@ chat.post('/', async (c) => {
 
       try {
         // Deep Research forces a strong reasoning effort regardless of what
-        // the composer's picker requested.
-        //
-        // Our app-level EffortLevel adds a 'max' tier beyond pi-agent-core's
-        // ThinkingLevel ('off' | 'minimal' | 'low' | 'medium' | 'high' |
-        // 'xhigh') — 'max' only exists as Anthropic's own wire value, which
-        // pi-ai already maps its top ThinkingLevel ('xhigh') to internally
-        // per-model (see thinkingLevelMap in
-        // @mariozechner/pi-ai/dist/models.generated.js). So 'max' collapses
-        // to 'xhigh' here; pi-ai does the provider-specific mapping from there.
+        // the composer's picker requested. pi's ThinkingLevel has every tier
+        // of the app's EffortLevel but 'off', which is "no reasoning option".
         const effectiveReasoning = advancedTools?.includes(
           AdvancedTools.DeepResearch
         )
           ? 'high'
           : reasoningEffort && reasoningEffort !== 'off'
-            ? reasoningEffort === 'max'
-              ? 'xhigh'
-              : reasoningEffort
+            ? reasoningEffort
             : undefined
 
         const agentStream = agentLoop(
@@ -309,7 +301,8 @@ chat.post('/', async (c) => {
               return transformMessages(messages)
             }
           },
-          c.req.raw.signal
+          c.req.raw.signal,
+          streamFn
         )
 
         for await (const event of agentStream) {
