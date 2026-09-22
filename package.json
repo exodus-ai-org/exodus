@@ -51,6 +51,8 @@
     "@dicebear/core": "^10.7.0",
     "@dicebear/styles": "^10.6.0",
     "@duckdb/node-api": "1.5.5-r.5",
+    "@earendil-works/pi-agent-core": "^0.85.1",
+    "@earendil-works/pi-ai": "^0.85.1",
     "@elastic/elasticsearch": "^9.5.1",
     "@electric-sql/pglite": "^0.5.8",
     "@electric-sql/pglite-pgmq": "^0.0.6",
