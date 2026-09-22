@@ -265,5 +265,6 @@
   },
   "run": {
     "error": "Esta resposta foi interrompida por um erro: {{message}}"
-  }
+  },
+  "renderFailed": "Não foi possível exibir {{what}}."
 }

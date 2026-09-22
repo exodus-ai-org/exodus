@@ -265,5 +265,6 @@
   },
   "run": {
     "error": "This reply stopped with an error: {{message}}"
-  }
+  },
+  "renderFailed": "{{what}} could not be shown."
 }

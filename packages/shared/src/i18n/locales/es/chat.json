@@ -265,5 +265,6 @@
   },
   "run": {
     "error": "Esta respuesta se detuvo con un error: {{message}}"
-  }
+  },
+  "renderFailed": "No se pudo mostrar {{what}}."
 }

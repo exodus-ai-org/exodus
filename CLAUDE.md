@@ -693,6 +693,13 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   parses in ~1 ms a frame, the same as streamdown's own; markdown-to-jsx has
   no math; md4x emits HTML, not a React tree. streamdown was tried behind a
   switch and dropped — its styling did not drop in over ours.)
+- **A render failure stays inside its piece.** Every tool card and every
+  answer body is wrapped in `ErrorBoundary` (`card-error-boundary.tsx`): a
+  card reading a field its result did not carry shows `RenderFailed` in its
+  place, a body that will not parse falls back to its plain text, and the
+  error goes to the main-process log (`reportRendererError`, `POST
+/api/v1/logs`) — it used to take the whole chat page down to the route's
+  "Something went wrong", which also reports now.
 - **Memoized leaves take only what they render.** The composer
   (`multimodel-input.tsx`) and `ChatToc` are `memo`'d; don't pass them
   `messages` or anything else that changes per frame unless they show it
@@ -1349,6 +1356,13 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   parses in ~1 ms a frame, the same as streamdown's own; markdown-to-jsx has
   no math; md4x emits HTML, not a React tree. streamdown was tried behind a
   switch and dropped — its styling did not drop in over ours.)
+- **A render failure stays inside its piece.** Every tool card and every
+  answer body is wrapped in `ErrorBoundary` (`card-error-boundary.tsx`): a
+  card reading a field its result did not carry shows `RenderFailed` in its
+  place, a body that will not parse falls back to its plain text, and the
+  error goes to the main-process log (`reportRendererError`, `POST
+/api/v1/logs`) — it used to take the whole chat page down to the route's
+  "Something went wrong", which also reports now.
 - **Memoized leaves take only what they render.** The composer
   (`multimodel-input.tsx`) and `ChatToc` are `memo`'d; don't pass them
   `messages` or anything else that changes per frame unless they show it
@@ -1634,7 +1648,9 @@ Main process:
   call signature unchanged). `withTrace` wraps the `/api/*` middleware, the
   job worker, and the scheduler. JSONL at `~/.exodus/logs/`; read via
   `/api/v1/logs` (filters incl. `traceId`) + `/api/v1/logs/scopes` and the
-  Settings → Logger tab. See
+  Settings → Logger tab; `POST /api/v1/logs` is the renderer reporting an
+  error it caught (`lib/report-error.ts`), written under a
+  `renderer/<scope>` surface. See
   `docs/superpowers/specs/2026-09-06-standardized-logging-design.md`
 - `src/main/lib/computer/` — window-scoped screenshot-loop Computer Use V0: the
   `exodus-input` Swift helper (list-windows / list-apps / screenshot / activate /

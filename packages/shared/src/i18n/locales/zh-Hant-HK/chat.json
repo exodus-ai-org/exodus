@@ -257,5 +257,6 @@
   },
   "run": {
     "error": "此回覆因錯誤而中斷：{{message}}"
-  }
+  },
+  "renderFailed": "無法顯示{{what}}。"
 }

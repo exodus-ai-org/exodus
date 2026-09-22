@@ -265,5 +265,6 @@
   },
   "run": {
     "error": "Cette réponse s'est arrêtée sur une erreur : {{message}}"
-  }
+  },
+  "renderFailed": "{{what}} n'a pas pu être affiché."
 }

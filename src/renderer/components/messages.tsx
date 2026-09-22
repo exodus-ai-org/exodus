@@ -25,6 +25,7 @@ import { i18n } from '@/lib/i18n'
 import { userMessageText } from '@/lib/user-message-text'
 import { cn } from '@/lib/utils'
 
+import { ErrorBoundary, RenderFailed } from './card-error-boundary'
 import { ChatToc } from './chat-toc'
 import { DiscoverFeed } from './home/discover-feed'
 import Markdown from './markdown'
@@ -143,11 +144,19 @@ const AssistantTurnSegment = memo(
           )}
 
           {turn.toolCards.map((toolResult) => (
-            <MessageCallingTools
+            <ErrorBoundary
               key={toolResult.id}
-              chatId={chatId}
-              toolResult={toolResult}
-            />
+              scope="tool-card"
+              attributes={{
+                toolName: toolResult.toolName,
+                toolCallId: toolResult.toolCallId
+              }}
+              fallback={
+                <RenderFailed what={capitalCase(toolResult.toolName)} />
+              }
+            >
+              <MessageCallingTools chatId={chatId} toolResult={toolResult} />
+            </ErrorBoundary>
           ))}
 
           {/* One run, one body: every assistant text block of the run joined
@@ -156,7 +165,21 @@ const AssistantTurnSegment = memo(
           {(turn.body.length > 0 || error) && (
             <section className="group relative">
               {turn.body.length > 0 && (
-                <Markdown src={turn.body} webSearchResults={citationResults} />
+                <ErrorBoundary
+                  scope="markdown"
+                  attributes={{ runId: turn.runId }}
+                  // The words are still worth reading when the markup is not.
+                  fallback={
+                    <pre className="font-sans whitespace-pre-wrap">
+                      {turn.body}
+                    </pre>
+                  }
+                >
+                  <Markdown
+                    src={turn.body}
+                    webSearchResults={citationResults}
+                  />
+                </ErrorBoundary>
               )}
               {galleryImages.length > 0 && (
                 <ImageGallery images={galleryImages} />
@@ -394,7 +417,7 @@ function buildAssistantTurn(
   }
   if (durationMs === 0) {
     const firstTs = turnMessages[0]?.timestamp ?? 0
-    const lastTs = turnMessages[turnMessages.length - 1]?.timestamp ?? 0
+    const lastTs = turnMessages.at(-1)?.timestamp ?? 0
     durationMs = firstTs && lastTs ? lastTs - firstTs : 0
   }
 
