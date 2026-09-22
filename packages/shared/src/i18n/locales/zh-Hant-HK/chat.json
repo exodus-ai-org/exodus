@@ -170,7 +170,6 @@
   "weatherCard": {
     "today": "今日",
     "tomorrow": "明日",
-    "feels": "體感 {{temp}}° · {{observedAt}}",
     "humidity": "濕度",
     "precip": "降雨機率",
     "visibility": "能見度",
@@ -182,17 +181,8 @@
     "sunset": "日落",
     "rainChance": "降雨 {{percent}}%",
     "observedAt": "{{time}} 觀測",
-    "high": "最高",
-    "low": "最低",
     "details": "詳情",
     "less": "收起"
-  },
-  "weatherForecast": {
-    "temperatureRange": "🌡️ 溫度範圍",
-    "cold": "❄️ 較冷",
-    "hot": "🔥 較熱",
-    "sunrise": "日出",
-    "sunset": "日落"
   },
   "sourcesPanel": {
     "title_other": "{{count}} 項來源",

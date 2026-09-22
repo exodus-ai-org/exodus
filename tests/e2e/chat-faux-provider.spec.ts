@@ -42,6 +42,17 @@ test.describe('chat on the faux provider', () => {
     await expect(
       mainWindow.getByTestId(TEST_IDS.chat.messageAction)
     ).toHaveCount(1)
+
+    // The weather card is compact until Details opens it: the readings
+    // grid has no height (and is inert) closed, and is visible open.
+    const details = mainWindow.getByTestId(TEST_IDS.weatherCard.details)
+    const readings = mainWindow.getByTestId(TEST_IDS.weatherCard.readings)
+    await expect(details).toHaveAttribute('aria-expanded', 'false')
+    await expect(readings).not.toBeVisible()
+    await details.click()
+    await expect(details).toHaveAttribute('aria-expanded', 'true')
+    await expect(readings).toBeVisible()
+    await expect(readings).toContainText('Humidity')
   })
 
   test('a second send is a second run, each with its own message', async ({

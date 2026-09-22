@@ -177,7 +177,6 @@
   "weatherCard": {
     "today": "Aujourd'hui",
     "tomorrow": "Dem.",
-    "feels": "Ressenti {{temp}}° · {{observedAt}}",
     "humidity": "Humidité",
     "precip": "Préc.",
     "visibility": "Visibilité",
@@ -189,17 +188,8 @@
     "sunset": "Coucher",
     "rainChance": "{{percent}} % de pluie",
     "observedAt": "Relevé à {{time}}",
-    "high": "Max.",
-    "low": "Min.",
     "details": "Détails",
     "less": "Moins"
-  },
-  "weatherForecast": {
-    "temperatureRange": "🌡️ Plage de températures",
-    "cold": "❄️ Froid",
-    "hot": "🔥 Chaud",
-    "sunrise": "Lever du soleil",
-    "sunset": "Coucher du soleil"
   },
   "sourcesPanel": {
     "title_one": "{{count}} source",

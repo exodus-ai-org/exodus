@@ -130,6 +130,12 @@ export const TEST_IDS = {
   composer: {
     reasoningEffortItem: 'composer.reasoning-effort-item',
     reasoningEffortLevel: 'composer.reasoning-effort-level'
+  },
+  weatherCard: {
+    /** The Details / Less toggle at the card's foot. */
+    details: 'weather-card.details',
+    /** The readings grid, visible only once the card is open. */
+    readings: 'weather-card.readings'
   }
 } as const
 

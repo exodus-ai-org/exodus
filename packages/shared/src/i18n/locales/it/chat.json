@@ -177,7 +177,6 @@
   "weatherCard": {
     "today": "Oggi",
     "tomorrow": "Domani",
-    "feels": "Percepiti {{temp}}° · {{observedAt}}",
     "humidity": "Umidità",
     "precip": "Precipitazioni",
     "visibility": "Visibilità",
@@ -189,17 +188,8 @@
     "sunset": "Tramonto",
     "rainChance": "{{percent}}% pioggia",
     "observedAt": "Rilevato {{time}}",
-    "high": "Max",
-    "low": "Min",
     "details": "Dettagli",
     "less": "Meno"
-  },
-  "weatherForecast": {
-    "temperatureRange": "🌡️ Intervallo di temperatura",
-    "cold": "❄️ Freddo",
-    "hot": "🔥 Caldo",
-    "sunrise": "Alba",
-    "sunset": "Tramonto"
   },
   "sourcesPanel": {
     "title_one": "{{count}} fonte",

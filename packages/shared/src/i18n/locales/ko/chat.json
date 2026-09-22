@@ -170,7 +170,6 @@
   "weatherCard": {
     "today": "오늘",
     "tomorrow": "내일",
-    "feels": "체감 {{temp}}° · {{observedAt}}",
     "humidity": "습도",
     "precip": "강수",
     "visibility": "가시거리",
@@ -182,17 +181,8 @@
     "sunset": "일몰",
     "rainChance": "강수 {{percent}}%",
     "observedAt": "{{time}} 관측",
-    "high": "최고",
-    "low": "최저",
     "details": "상세",
     "less": "접기"
-  },
-  "weatherForecast": {
-    "temperatureRange": "🌡️ 기온 범위",
-    "cold": "❄️ 최저",
-    "hot": "🔥 최고",
-    "sunrise": "일출",
-    "sunset": "일몰"
   },
   "sourcesPanel": {
     "title_other": "출처 {{count}}개",
