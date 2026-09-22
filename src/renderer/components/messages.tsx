@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button'
 import { useDiscoverFeed } from '@/hooks/use-discover-feed'
 import { useSettings } from '@/hooks/use-settings'
 import { i18n } from '@/lib/i18n'
+import { ENTER, ENTER_UP } from '@/lib/motion'
 import { userMessageText } from '@/lib/user-message-text'
 import { cn } from '@/lib/utils'
 
@@ -51,15 +52,21 @@ type MessagesProps = {
 const AT_BOTTOM_THRESHOLD = 80
 
 const UserSegment = memo(function UserSegment({
-  message
+  message,
+  fresh
 }: {
   message: ChatMessage
+  /** Sent during this visit (not loaded with the chat): it rises in. */
+  fresh: boolean
 }) {
   const { t } = useTranslation('chat')
   return (
     <div
       data-user-msg-id={message.id}
-      className="mb-8 flex flex-col items-end first:mt-0 last:mb-4"
+      className={cn(
+        'mb-8 flex flex-col items-end first:mt-0 last:mb-4',
+        fresh && ENTER_UP
+      )}
     >
       {Array.isArray(message.content) &&
         message.content.some((c) => c.type === 'image') && (
@@ -103,6 +110,8 @@ type AssistantTurnSegmentProps = {
   regenerate: () => void
   /** The provider's error, when this run ended in one. */
   error?: string
+  /** A reply to a message sent during this visit: it fades in under the dots. */
+  fresh: boolean
 }
 
 const AssistantTurnSegment = memo(
@@ -112,7 +121,8 @@ const AssistantTurnSegment = memo(
     citationSources,
     isStreaming,
     regenerate,
-    error
+    error,
+    fresh
   }: AssistantTurnSegmentProps) {
     const { t } = useTranslation('chat')
     // The turn's own searches drive the per-turn "Sources" panel; the
@@ -133,7 +143,12 @@ const AssistantTurnSegment = memo(
     )
 
     return (
-      <div className="mb-8 flex flex-col items-start last:mb-4">
+      <div
+        className={cn(
+          'mb-8 flex flex-col items-start last:mb-4',
+          fresh && ENTER
+        )}
+      >
         <div className="w-full min-w-0">
           {(turn.steps.length > 0 || isStreaming) && (
             <ThinkingTimeline
@@ -217,7 +232,8 @@ const AssistantTurnSegment = memo(
       prev.isStreaming !== next.isStreaming ||
       prev.regenerate !== next.regenerate ||
       prev.citationSources !== next.citationSources ||
-      prev.error !== next.error
+      prev.error !== next.error ||
+      prev.fresh !== next.fresh
     ) {
       return false
     }
@@ -616,6 +632,12 @@ function Messages({
     [messages, caches]
   )
 
+  // The messages the chat opened with: history, rendered in place. Only a
+  // run that starts after that is "fresh" and gets an entrance — the whole
+  // transcript rising on every open would be motion without a purpose.
+  const [openedWith] = useState(() => new Set(messages.map((m) => m.id)))
+  const isFresh = (runId: string) => !openedWith.has(runId)
+
   // Keyed by the segment object (same memoized refs used in render below).
   const citationSourcesByTurn = useMemo(
     () => buildCitationSources(segments, caches.citations),
@@ -700,6 +722,7 @@ function Messages({
                 <UserSegment
                   key={segment.message.id}
                   message={segment.message}
+                  fresh={isFresh(segment.message.runId ?? segment.message.id)}
                 />
               )
             }
@@ -715,6 +738,7 @@ function Messages({
                 citationSources={citationSourcesByTurn.get(segment)}
                 isStreaming={turnIsStreaming}
                 regenerate={regenerate}
+                fresh={isFresh(segment.turn.runId)}
                 error={
                   runError?.runId === segment.turn.runId
                     ? runError.message
