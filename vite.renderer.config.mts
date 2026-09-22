@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig, type Plugin } from 'vite'
 
-import { stripDataTestId } from './packages/shared/src/utils/strip-test-id'
+import { stripDataTestId } from '@exodus/shared/utils/strip-test-id'
 
 const stripTestIds = process.env.STRIP_TEST_IDS === '1'
 
