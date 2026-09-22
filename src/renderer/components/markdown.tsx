@@ -23,9 +23,11 @@ import {
 
 import { useClipboard } from '@/hooks/use-clipboard'
 import {
+  INCOMPLETE_LINK_HREF,
   createMarkdownBlockCache,
-  type MarkdownBlockCache,
-  splitMarkdownBlocks
+  healStreamingTail,
+  splitMarkdownBlocks,
+  type MarkdownBlockCache
 } from '@/lib/markdown-blocks'
 import {
   rehypePluginsStable,
@@ -265,7 +267,12 @@ function useMarkdownBlocks(src: string): string[] {
   return useMemo(() => {
     if (!streams) return [src]
     cacheRef.current ??= createMarkdownBlockCache()
-    return splitMarkdownBlocks(src, cacheRef.current)
+    const blocks = splitMarkdownBlocks(src, cacheRef.current)
+    // Only the last block is still arriving; the ones above it are closed.
+    if (blocks.length > 0) {
+      blocks[blocks.length - 1] = healStreamingTail(blocks[blocks.length - 1])
+    }
+    return blocks
   }, [src, streams])
 }
 
@@ -382,13 +389,17 @@ export function Markdown({
         )
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
-      a({ className, children, node, ...rest }: any) {
+      a({ className, children, node, href, ...rest }: any) {
+        // A link still streaming in (see healStreamingTail) is text until
+        // its URL is complete.
+        if (href === INCOMPLETE_LINK_HREF) return <span>{children}</span>
         // Styling lives in globals.css `.markdown a` — primary color, no
         // underline by default, underline on hover. The previous always-bold
         // + always-underlined treatment made body text feel cluttered.
         return (
           <a
             {...rest}
+            href={href}
             rel="noopener noreferrer"
             target="_blank"
             className={className}

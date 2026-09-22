@@ -1,4 +1,5 @@
 import remarkParse from 'remark-parse'
+import remend from 'remend'
 import { unified } from 'unified'
 
 import { remarkPluginsStable } from './markdown-plugins'
@@ -83,4 +84,23 @@ export function splitMarkdownBlocks(
     cache.starts = starts
   }
   return starts.map((start, i) => src.slice(start, starts[i + 1]))
+}
+
+/** The href remend gives a link whose URL has not finished streaming. */
+export const INCOMPLETE_LINK_HREF = 'streamdown:incomplete-link'
+
+/** A citation marker still arriving: `【`, `【1`, `【1,2-sou` … at the very end. */
+const PARTIAL_CITATION = /【[^】]*$/u
+
+/**
+ * The block that is still streaming, made renderable as it stands. An
+ * unclosed `**`, `*`, `~~`, `` ` `` or `$$` renders as literal markup until
+ * its closing token arrives — a flash of asterisks on every emphasised phrase
+ * — so `remend` (streamdown's healer) closes them; a half-typed link keeps
+ * its text and gets a sentinel href the renderer shows as plain text. A
+ * half-streamed `【N-source】` marker is ours alone: dropped until whole.
+ * Finished text and `$200 - $300` pass through unchanged.
+ */
+export function healStreamingTail(block: string): string {
+  return remend(block.replace(PARTIAL_CITATION, ''))
 }

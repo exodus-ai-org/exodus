@@ -273,3 +273,43 @@ More text.
     )
   })
 })
+
+describe('healStreamingTail', () => {
+  it('closes what is open at the end of a streaming block so it does not flash as literal markup', async () => {
+    const { healStreamingTail } = await import('@/lib/markdown-blocks')
+    expect(healStreamingTail('This is **important and')).toBe(
+      'This is **important and**'
+    )
+    expect(healStreamingTail('and *maybe')).toBe('and *maybe*')
+    expect(healStreamingTail('~~old')).toBe('~~old~~')
+    expect(healStreamingTail('run `npm i')).toBe('run `npm i`')
+    expect(healStreamingTail('so $$E = mc')).toBe('so $$E = mc$$')
+  })
+
+  it('leaves finished text and dollar amounts alone', async () => {
+    const { healStreamingTail } = await import('@/lib/markdown-blocks')
+    expect(healStreamingTail('costs $200 - $300 today')).toBe(
+      'costs $200 - $300 today'
+    )
+    expect(healStreamingTail('**done** and `done`')).toBe('**done** and `done`')
+  })
+
+  it('drops a half-streamed citation marker rather than showing it', async () => {
+    const { healStreamingTail } = await import('@/lib/markdown-blocks')
+    // (remend also trims the trailing space; it comes back with the marker.)
+    expect(healStreamingTail('as reported 【1-sou')).toBe('as reported')
+    expect(healStreamingTail('as reported 【1')).toBe('as reported')
+    expect(healStreamingTail('as reported 【1-source】.')).toBe(
+      'as reported 【1-source】.'
+    )
+  })
+
+  it('neutralises a half-typed link instead of rendering a broken one', async () => {
+    const { healStreamingTail } = await import('@/lib/markdown-blocks')
+    const healed = healStreamingTail('see [the docs](https://exa')
+    // remend keeps the text and points the href at a sentinel the renderer
+    // treats as "not a link yet".
+    expect(healed).toContain('[the docs]')
+    expect(healed).not.toContain('https://exa)')
+  })
+})
