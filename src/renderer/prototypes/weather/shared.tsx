@@ -132,6 +132,64 @@ export const SAMPLE: WeatherResult = {
         ['119', '296', '296', '296', '296', '353', '119', '119'],
         [50, 70, 80, 85, 80, 70, 40, 30]
       )
+    },
+    // Four more days — what a week looks like (wttr.in stops at three;
+    // Open-Meteo would carry the card this far).
+    {
+      date: '2026-09-25',
+      condition: 'Heavy showers',
+      weatherCode: '356',
+      maxTempC: '12',
+      minTempC: '8',
+      sunrise: '06:58 AM',
+      sunset: '07:09 PM',
+      hourly: hourly(
+        [9, 8, 8, 10, 12, 12, 11, 9],
+        ['296', '356', '356', '356', '305', '356', '296', '119'],
+        [80, 90, 95, 95, 90, 85, 70, 50]
+      )
+    },
+    {
+      date: '2026-09-26',
+      condition: 'Cloudy',
+      weatherCode: '119',
+      maxTempC: '13',
+      minTempC: '7',
+      sunrise: '07:00 AM',
+      sunset: '07:06 PM',
+      hourly: hourly(
+        [8, 7, 8, 10, 13, 13, 11, 9],
+        ['119', '119', '122', '119', '119', '116', '116', '119'],
+        [30, 30, 20, 20, 10, 10, 10, 20]
+      )
+    },
+    {
+      date: '2026-09-27',
+      condition: 'Partly cloudy',
+      weatherCode: '116',
+      maxTempC: '15',
+      minTempC: '6',
+      sunrise: '07:02 AM',
+      sunset: '07:03 PM',
+      hourly: hourly(
+        [7, 6, 7, 11, 15, 15, 12, 9],
+        ['113', '113', '116', '116', '116', '113', '113', '113'],
+        [0, 0, 5, 10, 10, 5, 0, 0]
+      )
+    },
+    {
+      date: '2026-09-28',
+      condition: 'Sunny',
+      weatherCode: '113',
+      maxTempC: '16',
+      minTempC: '5',
+      sunrise: '07:04 AM',
+      sunset: '07:00 PM',
+      hourly: hourly(
+        [6, 5, 6, 11, 16, 16, 13, 9],
+        ['113', '113', '113', '113', '113', '113', '113', '113'],
+        [0, 0, 0, 0, 0, 0, 0, 0]
+      )
     }
   ]
 }

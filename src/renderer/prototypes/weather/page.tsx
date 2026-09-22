@@ -12,26 +12,36 @@ import { useSearchParams } from 'react-router'
 
 import { TerminalCard } from '@/components/calling-tools/terminal/terminal-card'
 
+import { WeatherComposite } from './composite'
 import { WeatherEditorial } from './editorial'
 import { WeatherInstrument } from './instrument'
 import { WeatherLedger } from './ledger'
 import { SAMPLE } from './shared'
 
 /**
- * Prototype surface — `#/prototypes/weather`. Three directions for the
+ * Prototype surface — `#/prototypes/weather`. The directions for the
  * weather card behind the picker, rendered one at a time, full size, in a
  * mock transcript with a terminal card beside them for scale. Deleted when
  * a variant is promoted. The picker's look is the `prototype` skill's spec,
  * verbatim — it is harness chrome, not part of the design.
  */
 
+/** The first three were designed for wttr.in's three days; Composite gets
+ *  the week to show how it scales. */
+const THREE_DAYS: WeatherResult = {
+  ...SAMPLE,
+  forecast: SAMPLE.forecast.slice(0, 3)
+}
+
 const VARIANTS: Array<{
   name: string
   Component: ComponentType<{ data: WeatherResult }>
+  data: WeatherResult
 }> = [
-  { name: 'Ledger', Component: WeatherLedger },
-  { name: 'Editorial', Component: WeatherEditorial },
-  { name: 'Instrument', Component: WeatherInstrument }
+  { name: 'Ledger', Component: WeatherLedger, data: THREE_DAYS },
+  { name: 'Editorial', Component: WeatherEditorial, data: THREE_DAYS },
+  { name: 'Instrument', Component: WeatherInstrument, data: THREE_DAYS },
+  { name: 'Composite', Component: WeatherComposite, data: SAMPLE }
 ]
 
 const PICKER_CSS = `
@@ -122,7 +132,7 @@ export function WeatherPrototypes() {
     return () => document.removeEventListener('keydown', onKey)
   }, [current, replay, setActive])
 
-  const { Component } = VARIANTS[current]
+  const { Component, data } = VARIANTS[current]
   const prompt = 'weather in Oslo'
   const step = 'Weather: Oslo'
   const answer =
@@ -147,7 +157,7 @@ export function WeatherPrototypes() {
         </div>
 
         <div className="mb-4" key={mountKey}>
-          <Component data={SAMPLE} />
+          <Component data={data} />
         </div>
 
         <p className="text-foreground mb-8 text-base leading-relaxed">
