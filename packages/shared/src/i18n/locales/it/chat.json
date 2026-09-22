@@ -181,7 +181,16 @@
     "humidity": "Umidità",
     "precip": "Precipitazioni",
     "visibility": "Visibilità",
-    "uvIndex": "Indice UV"
+    "uvIndex": "Indice UV",
+    "wind": "Vento",
+    "pressure": "Pressione",
+    "feelsLike": "Percepita {{temp}}°",
+    "sunrise": "Alba",
+    "sunset": "Tramonto",
+    "rainChance": "{{percent}}% pioggia",
+    "observedAt": "Rilevato {{time}}",
+    "high": "Max",
+    "low": "Min"
   },
   "weatherForecast": {
     "temperatureRange": "🌡️ Intervallo di temperatura",

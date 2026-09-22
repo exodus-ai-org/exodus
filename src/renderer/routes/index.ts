@@ -34,6 +34,19 @@ export const router = createHashRouter([
   },
 
   {
+    // The `prototype` skill's surface: design directions behind a picker,
+    // rendered in the app's real tokens. Nothing in the app links here;
+    // deleted with the prototype once a direction is promoted.
+    path: '/prototypes/weather',
+    HydrateFallback: LazyRouteFallback,
+    ErrorBoundary: RouteErrorBoundary,
+    lazy: () =>
+      import('@/prototypes/weather/page').then((m) => ({
+        Component: m.WeatherPrototypes
+      }))
+  },
+
+  {
     Component: ChatLayout,
     ErrorBoundary: RouteErrorBoundary,
     children: [

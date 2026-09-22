@@ -181,7 +181,16 @@
     "humidity": "Humidity",
     "precip": "Precip",
     "visibility": "Visibility",
-    "uvIndex": "UV Index"
+    "uvIndex": "UV Index",
+    "wind": "Wind",
+    "pressure": "Pressure",
+    "feelsLike": "Feels like {{temp}}°",
+    "sunrise": "Sunrise",
+    "sunset": "Sunset",
+    "rainChance": "{{percent}}% rain",
+    "observedAt": "Observed {{time}}",
+    "high": "High",
+    "low": "Low"
   },
   "weatherForecast": {
     "temperatureRange": "🌡️ Temperature range",

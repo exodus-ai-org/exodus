@@ -174,7 +174,16 @@
     "humidity": "濕度",
     "precip": "降雨機率",
     "visibility": "能見度",
-    "uvIndex": "紫外線指數"
+    "uvIndex": "紫外線指數",
+    "wind": "風",
+    "pressure": "氣壓",
+    "feelsLike": "體感 {{temp}}°",
+    "sunrise": "日出",
+    "sunset": "日落",
+    "rainChance": "降雨 {{percent}}%",
+    "observedAt": "{{time}} 觀測",
+    "high": "最高",
+    "low": "最低"
   },
   "weatherForecast": {
     "temperatureRange": "🌡️ 溫度範圍",
