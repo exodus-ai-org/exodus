@@ -1,10 +1,5 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
-import type {
-  SkillListItem,
-  SkillListResponse,
-  SkillSearchResponse,
-  SkillsView
-} from '@exodus/shared/types/skills'
+import type { SkillListItem, SkillsView } from '@exodus/shared/types/skills'
 import {
   ChevronDownIcon,
   Loader2Icon,
@@ -13,15 +8,16 @@ import {
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
-import useSWRInfinite from 'swr/infinite'
 
 import { SettingsEmpty } from '@/components/settings/settings-kit'
 import { SettingsSection } from '@/components/settings/settings-row'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
+import {
+  useSkillsInfiniteRegistry,
+  useSkillsSearch
+} from '@/hooks/use-skills-registry'
 import { cn } from '@/lib/utils'
-import { registryKey, searchKey } from '@/services/skills'
 
 import { SkillRow, SkillRowSkeleton, useCompactNumber } from './skill-row'
 
@@ -223,12 +219,10 @@ export function SearchResults({
   onOpen: (item: SkillListItem) => void
 }) {
   const { t } = useTranslation('settings')
-  const { data, error, isLoading, mutate } = useSWR<SkillSearchResponse>(
-    searchKey(query)
-  )
+  const { data, error, isLoading, refetch } = useSkillsSearch(query)
 
   if (isLoading) return <Skeletons count={5} />
-  if (error) return <LoadFailed onRetry={() => mutate()} />
+  if (error) return <LoadFailed onRetry={() => void refetch()} />
   if (!data || data.data.length === 0) {
     return (
       <SettingsSection>
@@ -266,15 +260,20 @@ export function RegistryLeaderboard({
   onOpen: (item: SkillListItem) => void
 }) {
   const { t } = useTranslation('settings')
-  const { data, error, isLoading, isValidating, size, setSize, mutate } =
-    useSWRInfinite<SkillListResponse>((index) => registryKey(view, index), {
-      revalidateFirstPage: false
-    })
+  const {
+    data,
+    error,
+    isLoading,
+    isFetchingNextPage,
+    hasNextPage,
+    fetchNextPage,
+    refetch
+  } = useSkillsInfiniteRegistry(view)
 
   const items = useMemo(() => {
     const seen = new Set<string>()
     const out: SkillListItem[] = []
-    for (const page of data ?? []) {
+    for (const page of data?.pages ?? []) {
       for (const item of page.data) {
         if (seen.has(item.id)) continue
         seen.add(item.id)
@@ -283,12 +282,10 @@ export function RegistryLeaderboard({
     }
     return out
   }, [data])
-  const hasMore = data?.at(-1)?.pagination.hasMore ?? false
-  const loadingMore = isValidating && size > 1
 
   if (isLoading) return <Skeletons count={8} />
   if (error && items.length === 0) {
-    return <LoadFailed onRetry={() => mutate()} />
+    return <LoadFailed onRetry={() => void refetch()} />
   }
   if (items.length === 0) {
     return (
@@ -310,16 +307,16 @@ export function RegistryLeaderboard({
         collapseSources
         onOpen={onOpen}
       />
-      {hasMore && (
+      {hasNextPage && (
         <div className="flex justify-center">
           <Button
             variant="outline"
             size="sm"
             data-testid={TEST_IDS.skillsMarket.loadMoreButton}
-            disabled={loadingMore}
-            onClick={() => setSize(size + 1)}
+            disabled={isFetchingNextPage}
+            onClick={() => void fetchNextPage()}
           >
-            {loadingMore && <Loader2Icon className="animate-spin" />}
+            {isFetchingNextPage && <Loader2Icon className="animate-spin" />}
             {t('skillsMarket.browse.loadMore')}
           </Button>
         </div>

@@ -1,6 +1,7 @@
 import type {
   InstalledSkill,
   SkillAuditResponse,
+  SkillCuratedResponse,
   SkillDetail,
   SkillListResponse,
   SkillSearchResponse,
@@ -12,28 +13,45 @@ const BASE = '/api/v1/skills'
 
 export const REGISTRY_PAGE_SIZE = 24
 
-/** SWR keys double as request URLs — keep them here so mutate() targets match. */
-export const INSTALLED_SKILLS_KEY = `${BASE}/installed`
-export const CURATED_KEY = `${BASE}/curated`
+export const INSTALLED_SKILLS_URL = `${BASE}/installed`
+export const CURATED_URL = `${BASE}/curated`
 
-export function registryKey(view: SkillsView, page: number): string {
+export function registryUrl(view: SkillsView, page: number): string {
   return `${BASE}/registry?view=${view}&page=${page}&per_page=${REGISTRY_PAGE_SIZE}`
 }
 
-export function searchKey(query: string): string {
+export function searchUrl(query: string): string {
   return `${BASE}/search?q=${encodeURIComponent(query)}&limit=40`
 }
 
-export function detailKey(id: string): string {
+export function detailUrl(id: string): string {
   return `${BASE}/detail?id=${encodeURIComponent(id)}`
 }
 
-export function auditKey(id: string): string {
+export function auditUrl(id: string): string {
   return `${BASE}/audit?id=${encodeURIComponent(id)}`
 }
 
 export type { InstalledSkill, SkillAuditResponse, SkillDetail }
 export type { SkillListResponse, SkillSearchResponse }
+
+export const getSkillsRegistry = (view: SkillsView, page: number) =>
+  fetcher<SkillListResponse>(registryUrl(view, page))
+
+export const searchSkills = (query: string) =>
+  fetcher<SkillSearchResponse>(searchUrl(query))
+
+export const getSkillDetail = (id: string) =>
+  fetcher<SkillDetail>(detailUrl(id))
+
+/** `null` when the registry has no audit for the skill. */
+export const getSkillAudit = (id: string) =>
+  fetcher<SkillAuditResponse | null>(auditUrl(id))
+
+export const getCuratedSkills = () => fetcher<SkillCuratedResponse>(CURATED_URL)
+
+export const getInstalledSkills = () =>
+  fetcher<InstalledSkill[]>(INSTALLED_SKILLS_URL)
 
 export const installSkill = (id: string) =>
   fetcher<InstalledSkill>(`${BASE}/install`, { method: 'POST', body: { id } })

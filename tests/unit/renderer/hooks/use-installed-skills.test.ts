@@ -6,16 +6,12 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { renderWithQueryClient } from '../../helpers/query-test-utils'
 
-const fetcherMock = vi.fn()
-vi.mock('@exodus/shared/utils/http', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@exodus/shared/utils/http')>()),
-  fetcher: (...args: unknown[]) => fetcherMock(...args)
-}))
+const getInstalledService = vi.fn()
 const installService = vi.fn()
 const uninstallService = vi.fn()
 const toggleService = vi.fn()
-vi.mock('@/services/skills', async (importOriginal) => ({
-  ...(await importOriginal<typeof import('@/services/skills')>()),
+vi.mock('@/services/skills', () => ({
+  getInstalledSkills: (...args: unknown[]) => getInstalledService(...args),
   installSkill: (...args: unknown[]) => installService(...args),
   uninstallSkill: (...args: unknown[]) => uninstallService(...args),
   toggleSkill: (...args: unknown[]) => toggleService(...args)
@@ -114,7 +110,7 @@ const skills = [
 ]
 
 afterEach(() => {
-  fetcherMock.mockReset()
+  getInstalledService.mockReset()
   installService.mockReset()
   uninstallService.mockReset()
   toggleService.mockReset()
@@ -168,8 +164,8 @@ describe('installedSkillsKeys', () => {
 })
 
 describe('useInstalledSkills', () => {
-  it('reads the installed route once and caches it at installedSkillsKeys.all', async () => {
-    fetcherMock.mockResolvedValue(skills)
+  it('reads the installed skills once through the service and caches them at installedSkillsKeys.all', async () => {
+    getInstalledService.mockResolvedValue(skills)
     const { queryClient, api } = await mountHook(useInstalledSkills)
     expect(api().data).toBeUndefined()
 
@@ -177,13 +173,13 @@ describe('useInstalledSkills', () => {
       await vi.waitFor(() => expect(api().data).toEqual(skills))
     })
 
-    expect(fetcherMock).toHaveBeenCalledTimes(1)
-    expect(fetcherMock).toHaveBeenCalledWith('/api/v1/skills/installed')
+    expect(getInstalledService).toHaveBeenCalledTimes(1)
+    expect(getInstalledService).toHaveBeenCalledWith()
     expect(queryClient.getQueryData(installedSkillsKeys.all)).toEqual(skills)
   })
 
   it('a failed read is reported and never toasted, and leaves the data undefined', async () => {
-    fetcherMock.mockRejectedValue(new Error('skills are down'))
+    getInstalledService.mockRejectedValue(new Error('skills are down'))
     const { api } = await mountHookOnAppClient(useInstalledSkills)
 
     await act(async () => {
@@ -358,8 +354,8 @@ describe('the refresh after a write', () => {
     'settles $name only once the list has re-read, so the switch and the badge never flicker',
     async ({ arrange, hook, run }) => {
       const refreshed = deferred<typeof skills>()
-      fetcherMock.mockResolvedValueOnce(skills)
-      fetcherMock.mockReturnValueOnce(refreshed.promise)
+      getInstalledService.mockResolvedValueOnce(skills)
+      getInstalledService.mockReturnValueOnce(refreshed.promise)
       arrange()
       const { api } = await mountHook(() => ({
         list: useInstalledSkills(),
@@ -376,7 +372,9 @@ describe('the refresh after a write', () => {
         void run(api().write).then(() => {
           settled = true
         })
-        await vi.waitFor(() => expect(fetcherMock).toHaveBeenCalledTimes(2))
+        await vi.waitFor(() =>
+          expect(getInstalledService).toHaveBeenCalledTimes(2)
+        )
       })
       expect(settled).toBe(false)
 
@@ -390,8 +388,8 @@ describe('the refresh after a write', () => {
   )
 
   it('a failed re-read does not turn a successful install into a failed one', async () => {
-    fetcherMock.mockResolvedValueOnce(skills)
-    fetcherMock.mockRejectedValueOnce(new Error('list is down'))
+    getInstalledService.mockResolvedValueOnce(skills)
+    getInstalledService.mockRejectedValueOnce(new Error('list is down'))
     installService.mockResolvedValue(skills[0])
     const { api } = await mountHookOnAppClient(() => ({
       list: useInstalledSkills(),

@@ -3,11 +3,7 @@ import {
   skillsShSkill
 } from '@exodus/shared/constants/external-urls'
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
-import type {
-  InstalledSkill,
-  SkillAuditResponse,
-  SkillDetail
-} from '@exodus/shared/types/skills'
+import type { InstalledSkill, SkillDetail } from '@exodus/shared/types/skills'
 import {
   ArrowLeftIcon,
   ChevronDownIcon,
@@ -18,7 +14,6 @@ import {
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
 
 import Markdown from '@/components/markdown'
 import { SettingsEmpty, SwapLabel } from '@/components/settings/settings-kit'
@@ -38,7 +33,8 @@ import {
   useToggleSkill,
   useUninstallSkill
 } from '@/hooks/use-installed-skills'
-import { auditKey, cliInstallCommand, detailKey } from '@/services/skills'
+import { useSkillAudit, useSkillDetail } from '@/hooks/use-skills-registry'
+import { cliInstallCommand } from '@/services/skills'
 
 import { AuditPanel } from './audit-panel'
 import { CommandLine } from './command-line'
@@ -78,14 +74,8 @@ export function SkillDetailPage({
   const { t } = useTranslation(['settings', 'common'])
   const slug = slugOf(item.id)
 
-  const {
-    data: detail,
-    error,
-    isLoading,
-    mutate
-  } = useSWR<SkillDetail>(detailKey(item.id))
-  const { data: audit, isLoading: auditLoading } =
-    useSWR<SkillAuditResponse | null>(auditKey(item.id))
+  const { data: detail, error, isLoading, refetch } = useSkillDetail(item.id)
+  const { data: audit, isLoading: auditLoading } = useSkillAudit(item.id)
   const { data: installedList } = useInstalledSkills()
   const installed = installedList?.find((s) => s.slug === slug) ?? null
   const install = useInstallSkill()
@@ -245,7 +235,7 @@ export function SkillDetailPage({
             title={t('skillsMarket.detail.loadFailed')}
             description={t('skillsMarket.browse.loadFailedHint')}
           >
-            <Button variant="outline" size="sm" onClick={() => mutate()}>
+            <Button variant="outline" size="sm" onClick={() => void refetch()}>
               {t('common:action.retry')}
             </Button>
           </SettingsEmpty>

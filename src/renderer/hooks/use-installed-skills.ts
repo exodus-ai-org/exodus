@@ -1,5 +1,4 @@
 import type { InstalledSkill } from '@exodus/shared/types/skills'
-import { fetcher } from '@exodus/shared/utils/http'
 import {
   type QueryClient,
   useMutation,
@@ -10,7 +9,7 @@ import { sileo } from 'sileo'
 
 import { i18n } from '@/lib/i18n'
 import {
-  INSTALLED_SKILLS_KEY,
+  getInstalledSkills,
   installSkill,
   toggleSkill,
   uninstallSkill
@@ -21,7 +20,7 @@ export const installedSkillsKeys = { all: ['installed-skills'] as const }
 export function useInstalledSkills() {
   const { data, isLoading } = useQuery({
     queryKey: installedSkillsKeys.all,
-    queryFn: () => fetcher<InstalledSkill[]>(INSTALLED_SKILLS_KEY)
+    queryFn: () => getInstalledSkills()
   })
   return { data, isLoading }
 }

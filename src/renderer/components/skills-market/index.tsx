@@ -1,9 +1,7 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
-import type { SkillListResponse } from '@exodus/shared/types/skills'
 import { SearchIcon } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
 
 import { SettingsIntro } from '@/components/settings/settings-kit'
 import {
@@ -15,8 +13,8 @@ import { Kbd } from '@/components/ui/kbd'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useDebouncedValue } from '@/hooks/use-debounce'
 import { useInstalledSkills } from '@/hooks/use-installed-skills'
+import { useSkillsInfiniteRegistry } from '@/hooks/use-skills-registry'
 import { useFormat } from '@/lib/format'
-import { registryKey } from '@/services/skills'
 
 import { CliQuickStart } from './cli-notice'
 import { CuratedOwners } from './curated'
@@ -67,12 +65,10 @@ export function SkillsMarket() {
     () => new Set(installedList?.map((s) => s.slug) ?? []),
     [installedList]
   )
-  // The registry's total, for the "All time (n)" tab — same key as the
-  // leaderboard's first page, so it is one request, not two.
-  const { data: firstPage } = useSWR<SkillListResponse>(
-    registryKey('all-time', 0)
-  )
-  const total = firstPage?.pagination.total
+  // The registry's total, for the "All time (n)" tab — the same query as the
+  // leaderboard's, so it is one request, not two.
+  const { data: allTime } = useSkillsInfiniteRegistry('all-time')
+  const total = allTime?.pages[0]?.pagination.total
 
   const viewLabel = (v: BrowseView) => {
     if (v === 'trending') return t('skillsMarket.views.trending')
