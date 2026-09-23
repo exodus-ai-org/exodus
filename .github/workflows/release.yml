@@ -53,7 +53,10 @@ jobs:
       # run of this workflow lost the macOS and Windows results that way.
       fail-fast: false
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
+        # macos-26, not -latest: packaging compiles build/icon.icon (the Icon
+        # Composer app icon) with actool, which needs macOS 26 + Xcode 26 and
+        # fails the build rather than falling back to the .icns.
+        os: [macos-26, windows-latest, ubuntu-latest]
 
     # Windows runners default to PowerShell, where `$NEXT_VERSION` is not the
     # environment variable (that is `$env:NEXT_VERSION`): the "Set package

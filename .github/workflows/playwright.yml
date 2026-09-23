@@ -78,7 +78,9 @@ jobs:
   e2e-tests:
     name: Electron E2E Tests
     timeout-minutes: 30
-    runs-on: macos-latest
+    # macos-26: the e2e build packages first, and packaging compiles
+    # build/icon.icon with actool (macOS 26 + Xcode 26).
+    runs-on: macos-26
     steps:
       - uses: actions/checkout@v4
       - name: Set up Bun

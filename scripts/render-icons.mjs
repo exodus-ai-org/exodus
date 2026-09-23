@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 import { execFileSync } from 'node:child_process'
 import {
+  cpSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   rmSync,
   writeFileSync
@@ -14,7 +16,7 @@ import { join, resolve } from 'node:path'
 // Render every Exodus icon, the tray glyph, web assets and the boot splash
 // from brand/art.mjs. Run with `bun run icons` after editing the art.
 //
-//   build/      icon.icns, icon-dock.png, icon.ico, icon.png, <n>x<n>.png
+//   build/      icon.icns, icon.icon, icon-dock.png, icon.ico, icon.png, <n>x<n>.png
 //   resources/  icon.png, trayTemplate{,@2x,@3x}.png   (shipped with the app)
 //   brand/      svg/, icon-composer/, ios/, web/
 //   src/renderer/assets/images/logo-{light,dark}.png   (Settings → About)
@@ -241,6 +243,25 @@ await png(out('resources/trayTemplate@3x.png'), tray(66), 66)
 for (const [name, body] of Object.entries(m.composerLayers())) {
   writeFileSync(out(`brand/icon-composer/${name}.svg`), svg(body))
   await png(out(`brand/icon-composer/${name}.png`), svg(body), 1024)
+}
+
+// ── Icon Composer document → build/icon.icon ──────────────────────────────
+// brand/Exodus.icon is the Icon Composer document (the composition: layer
+// order, glass, shadow, the dark-appearance background). Refresh its layer
+// SVGs from the ones just rendered, then hand forge a copy: @electron/packager
+// compiles build/icon.icon with actool (macOS 26 + Xcode 26) into Assets.car,
+// which macOS 26 uses to follow the icon style (light / dark / clear / tinted);
+// older macOS keeps using build/icon.icns.
+
+const iconDoc = join(root, 'brand/Exodus.icon')
+if (existsSync(iconDoc)) {
+  for (const f of readdirSync(join(iconDoc, 'Assets'))) {
+    const fresh = join(root, 'brand/icon-composer', f)
+    if (existsSync(fresh)) cpSync(fresh, join(iconDoc, 'Assets', f))
+  }
+  rmSync(join(root, 'build/icon.icon'), { recursive: true, force: true })
+  cpSync(iconDoc, join(root, 'build/icon.icon'), { recursive: true })
+  console.log('✓ build/icon.icon (from brand/Exodus.icon)')
 }
 
 // ── iOS ───────────────────────────────────────────────────────────────────

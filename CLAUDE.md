@@ -303,6 +303,16 @@ plus `iconutil`) renders everything from it:
   `brand/liquid-glass/light.png`, on Apple's 824-in-1024 grid with a drop
   shadow; `build/icon.ico`, `build/icon.png`, `build/<n>x<n>.png` for the
   other packagers
+- `build/icon.icon` — a copy of `brand/Exodus.icon`, the Icon Composer
+  document (layer order, glass, shadow; the background swaps to
+  `background-dark.svg` in the dark appearance via `hidden-specializations`),
+  with its layer SVGs refreshed from `brand/icon-composer/`. @electron/packager
+  compiles it with `actool` into `Assets.car` + `CFBundleIconName`, so macOS 26
+  follows the icon style (light / dark / clear / tinted); older macOS falls
+  back to `icon.icns`. That needs macOS 26 + Xcode 26 on the packaging machine
+  and fails the build otherwise, which is why every macOS job in CI
+  (`release.yml`, `pr-check.yml`, `playwright.yml`) runs on `macos-26`, not
+  `macos-latest`
 - `src/renderer/assets/images/logo-light.png` and `logo-dark.png` — the
   Liquid Glass exports at 256 px for the header of Settings → About (the
   app theme picks one)
