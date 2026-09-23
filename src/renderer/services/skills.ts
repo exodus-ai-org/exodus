@@ -7,7 +7,6 @@ import type {
   SkillsView
 } from '@exodus/shared/types/skills'
 import { fetcher } from '@exodus/shared/utils/http'
-import { mutate } from 'swr'
 
 const BASE = '/api/v1/skills'
 
@@ -36,32 +35,19 @@ export function auditKey(id: string): string {
 export type { InstalledSkill, SkillAuditResponse, SkillDetail }
 export type { SkillListResponse, SkillSearchResponse }
 
-export async function installSkill(id: string): Promise<InstalledSkill> {
-  const installed = await fetcher<InstalledSkill>(`${BASE}/install`, {
-    method: 'POST',
-    body: { id }
-  })
-  await mutate(INSTALLED_SKILLS_KEY)
-  return installed
-}
+export const installSkill = (id: string) =>
+  fetcher<InstalledSkill>(`${BASE}/install`, { method: 'POST', body: { id } })
 
-export async function uninstallSkill(slug: string): Promise<void> {
-  await fetcher<{ success: true }>(`${BASE}/${encodeURIComponent(slug)}`, {
+export const uninstallSkill = (slug: string) =>
+  fetcher<{ success: true }>(`${BASE}/${encodeURIComponent(slug)}`, {
     method: 'DELETE'
   })
-  await mutate(INSTALLED_SKILLS_KEY)
-}
 
-export async function toggleSkill(
-  slug: string,
-  isActive: boolean
-): Promise<void> {
-  await fetcher<{ success: true }>(
-    `${BASE}/${encodeURIComponent(slug)}/toggle`,
-    { method: 'PATCH', body: { isActive } }
-  )
-  await mutate(INSTALLED_SKILLS_KEY)
-}
+export const toggleSkill = (slug: string, isActive: boolean) =>
+  fetcher<{ success: true }>(`${BASE}/${encodeURIComponent(slug)}/toggle`, {
+    method: 'PATCH',
+    body: { isActive }
+  })
 
 /** The exodus-cli equivalent of the Install button, shown on every detail page. */
 export function cliInstallCommand(id: string): string {

@@ -8,7 +8,6 @@ import type {
   SkillAuditResponse,
   SkillDetail
 } from '@exodus/shared/types/skills'
-import { getHttpErrorMessage, toErrorI18n } from '@exodus/shared/utils/http'
 import {
   ArrowLeftIcon,
   ChevronDownIcon,
@@ -19,7 +18,6 @@ import {
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { sileo } from 'sileo'
 import useSWR from 'swr'
 
 import Markdown from '@/components/markdown'
@@ -35,14 +33,12 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
 import {
-  auditKey,
-  cliInstallCommand,
-  detailKey,
-  INSTALLED_SKILLS_KEY,
-  installSkill,
-  toggleSkill,
-  uninstallSkill
-} from '@/services/skills'
+  useInstallSkill,
+  useInstalledSkills,
+  useToggleSkill,
+  useUninstallSkill
+} from '@/hooks/use-installed-skills'
+import { auditKey, cliInstallCommand, detailKey } from '@/services/skills'
 
 import { AuditPanel } from './audit-panel'
 import { CommandLine } from './command-line'
@@ -79,7 +75,7 @@ export function SkillDetailPage({
   item: SkillRef
   onBack: () => void
 }) {
-  const { t, i18n } = useTranslation(['settings', 'common'])
+  const { t } = useTranslation(['settings', 'common'])
   const slug = slugOf(item.id)
 
   const {
@@ -90,8 +86,11 @@ export function SkillDetailPage({
   } = useSWR<SkillDetail>(detailKey(item.id))
   const { data: audit, isLoading: auditLoading } =
     useSWR<SkillAuditResponse | null>(auditKey(item.id))
-  const { data: installedList } = useSWR<InstalledSkill[]>(INSTALLED_SKILLS_KEY)
+  const { data: installedList } = useInstalledSkills()
   const installed = installedList?.find((s) => s.slug === slug) ?? null
+  const install = useInstallSkill()
+  const uninstall = useUninstallSkill()
+  const toggle = useToggleSkill()
 
   const [pending, setPending] = useState(false)
   const [confirmUninstall, setConfirmUninstall] = useState(false)
@@ -104,22 +103,12 @@ export function SkillDetailPage({
   const installs = detail?.installs ?? item.installs
   const command = cliInstallCommand(item.id)
 
-  const failWith = (title: string, err: unknown) => {
-    const description = getHttpErrorMessage(err, toErrorI18n(i18n))
-    sileo.error({ title, description })
-  }
-
   const handleInstall = async () => {
     setPending(true)
     try {
-      const result = await installSkill(item.id)
-      sileo.success({
-        title: t('skillsMarket.toast.installedTitle', {
-          name: result.displayName
-        })
-      })
-    } catch (err) {
-      failWith(t('skillsMarket.toast.installFailed'), err)
+      await install.mutateAsync(item.id)
+    } catch {
+      // Reported and toasted by the global mutation handler.
     } finally {
       setPending(false)
     }
@@ -129,26 +118,20 @@ export function SkillDetailPage({
     setConfirmUninstall(false)
     setPending(true)
     try {
-      await uninstallSkill(skill.slug)
-      sileo.success({
-        title: t('skillsMarket.toast.uninstalledTitle', {
-          name: skill.displayName
-        })
+      await uninstall.mutateAsync({
+        slug: skill.slug,
+        displayName: skill.displayName
       })
-    } catch (err) {
-      failWith(t('skillsMarket.toast.uninstallFailed'), err)
+    } catch {
+      // Reported and toasted by the global mutation handler.
     } finally {
       setPending(false)
     }
   }
 
-  const handleToggle = async (isActive: boolean) => {
+  const handleToggle = (isActive: boolean) => {
     if (!installed) return
-    try {
-      await toggleSkill(installed.slug, isActive)
-    } catch (err) {
-      failWith(t('skillsMarket.toast.updateFailed'), err)
-    }
+    toggle.mutate({ slug: installed.slug, isActive })
   }
 
   return (
