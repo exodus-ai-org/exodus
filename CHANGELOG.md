@@ -1,3 +1,81 @@
+# [1.16.0](https://github.com/exodus-ai-org/exodus/compare/v1.15.0...v1.16.0) (2026-09-23)
+
+
+### Bug Fixes
+
+* **ai:** treat a failed model request as a failure, not an empty answer ([2bf66c7](https://github.com/exodus-ai-org/exodus/commit/2bf66c78bc3e60816ee2ed9f0a9411be543633c7))
+* **appearance:** re-enable vibrancy without resetting the background colour; mount the provider under I18nProvider ([c32dcc9](https://github.com/exodus-ai-org/exodus/commit/c32dcc938efc8423a0e57aa6717ca8cd2806fa0c))
+* **build:** silence the Vite native-configLoader warning on the renderer config ([e4ac9f4](https://github.com/exodus-ai-org/exodus/commit/e4ac9f49507397d8988ba7c0523878f8df74abd6))
+* **chat:** save stopped and failed turns; coalesce streaming frames ([537cebb](https://github.com/exodus-ai-org/exodus/commit/537cebb96c477d26c8c24b32f26e48edb78d0e47))
+* **chat:** stop re-sending the quick-chat hand-off on every render ([8be8d1a](https://github.com/exodus-ai-org/exodus/commit/8be8d1a4a31c6fe2690389d35249d585493dff0e))
+* **chat:** tool cards no longer touch across a silent tool result ([d3f70e1](https://github.com/exodus-ai-org/exodus/commit/d3f70e1b71121df41ae2abb56931835d440b5436))
+* **ci:** regenerate bun.lock after dropping knip ([1dbe66d](https://github.com/exodus-ai-org/exodus/commit/1dbe66d68346d68c740855792df944ab4ce96745))
+* **kernel:** keep a run's rows in order when two share a millisecond ([dda6f59](https://github.com/exodus-ai-org/exodus/commit/dda6f591d05fd0d36a99e02d0a475d3d029f7d48))
+* **lan:** give the certificate the extensions Apple's TLS stack demands ([2158a7b](https://github.com/exodus-ai-org/exodus/commit/2158a7ba66d8881090f7eb1280a3092318193272))
+* **lcm:** assemble context in whole runs, and assert it before every request ([5f0bc5a](https://github.com/exodus-ai-org/exodus/commit/5f0bc5af50096bf7a99e0b269084b8405aa26086))
+* **markdown:** a single tilde is a range, not strikethrough ([91560b2](https://github.com/exodus-ai-org/exodus/commit/91560b2a2fccfef0688162d5829d0f2bc5aafb61))
+* **morph:** Reveal's testid must sit on the element that actually collapses ([6631591](https://github.com/exodus-ai-org/exodus/commit/66315911f27541831daed97645af3303afd42be5))
+* **profile:** drop a heatmap month label the next one would overlap ([af9a919](https://github.com/exodus-ai-org/exodus/commit/af9a919c2b6dc1538922f1549668d15b9bc9d121))
+* **security:** origin gate, renderer hardening, artifact path guard ([3fa7958](https://github.com/exodus-ai-org/exodus/commit/3fa7958299d799adb03ab55f309dce49e9cbf9f4))
+* **settings:** the Built-in Tools panels are back, and the page opens in place ([d80d36e](https://github.com/exodus-ai-org/exodus/commit/d80d36e31216410b6fc50ab7b7732aef6a504c05))
+
+
+### Features
+
+* **api:** mount every Hono route under /api/v1 ([ae80bbc](https://github.com/exodus-ai-org/exodus/commit/ae80bbcdf06053f854aa440c3b76d1e80d2d285c))
+* **appearance:** Appearance settings tab with the theme mode switcher ([fa862ea](https://github.com/exodus-ai-org/exodus/commit/fa862eae198944944a1a09e33df9ef6df4902f7c))
+* **appearance:** palette derivation, resolution and theme import/export ([450b1c8](https://github.com/exodus-ai-org/exodus/commit/450b1c86f5d49b09eefc4b16d1dafb25a35f14c4))
+* **appearance:** renderer theme engine, boot cache and window translucency IPC ([7041310](https://github.com/exodus-ai-org/exodus/commit/7041310eb03bc15b058ec65801696863ba931a4d))
+* **appearance:** scheme cards, fonts, window controls, e2e spec, ten-locale copy ([e8fcc36](https://github.com/exodus-ai-org/exodus/commit/e8fcc36d4223b1fbfdccce1d2cb2fb849358be90))
+* **appearance:** settings schema, theme presets and OKLab colour maths ([9eb9eac](https://github.com/exodus-ai-org/exodus/commit/9eb9eac04d5074f0c657379b7fa81067eeac919e))
+* **appearance:** settings.appearance jsonb column ([14fa97b](https://github.com/exodus-ai-org/exodus/commit/14fa97b88f12f589dbb1f1ff2526071144a88595))
+* **artifacts:** the create_artifact contract speaks the app's design language ([1f5d971](https://github.com/exodus-ai-org/exodus/commit/1f5d9716fd6e749c0dd6ed94acd9ad614d622854))
+* **chat:** a system prompt for autonomous tool and skill use ([970cbbc](https://github.com/exodus-ai-org/exodus/commit/970cbbce427355b86649a8b8beb87840c43d3846))
+* **chat:** contain a render failure to its card, and log it ([e71d4f2](https://github.com/exodus-ai-org/exodus/commit/e71d4f27c2bd18c44cf246e444b53d2b82ea2ef2))
+* **chat:** one assistant message per run, grouped by runId ([9f1ebc5](https://github.com/exodus-ai-org/exodus/commit/9f1ebc51a9e15c99bbf13e3a289f941c71a42890))
+* **db:** message.runId — a run's rows share its user message id ([49df81a](https://github.com/exodus-ai-org/exodus/commit/49df81a345b1944cd0a17c7c04eb7fd1330e9b7e))
+* **db:** paired_device table ([ce0f5b1](https://github.com/exodus-ai-org/exodus/commit/ce0f5b10cce6b05e5ad939ca8ae97b28f71634c8))
+* **developer:** Chat Audit — a read-only DuckDB console over the user's chats ([1ee4455](https://github.com/exodus-ai-org/exodus/commit/1ee445525ae0011218c94b0509304ed0adc18131))
+* **developer:** Monaco SQL editor for Chat Audit ([741438f](https://github.com/exodus-ai-org/exodus/commit/741438fc7ecae9b9ad1bed4f02921f2a293b2913))
+* **errors:** a global safety net, and RenderFailed reads as a real notice ([133c33a](https://github.com/exodus-ai-org/exodus/commit/133c33a87e8a4dd4250cd427296b761a35ce92e0))
+* **kernel:** runAgent() on pi's Agent, and RunRecorder ([d7b7543](https://github.com/exodus-ai-org/exodus/commit/d7b7543f7bfa302ed2fdf5117fe4446d53374402))
+* **kernel:** the Models collection on pi 0.85 ([07e3616](https://github.com/exodus-ai-org/exodus/commit/07e36166c346352c8fbb028254610fedb232efd0))
+* **lan:** device tokens ([ca02e0a](https://github.com/exodus-ai-org/exodus/commit/ca02e0a230302c4fedc1345c4b9d1740d06e812a))
+* **lan:** pairing window and pairing link ([16bf951](https://github.com/exodus-ai-org/exodus/commit/16bf951090ad272b3e865c0093719a6fb44fd0f6))
+* **lan:** self-signed certificate, key under safeStorage ([e31c9c2](https://github.com/exodus-ai-org/exodus/commit/e31c9c27f157d3af19a26a1f68bf324a9c3a3cfe))
+* **lan:** token-gated HTTPS listener, pairing and device routes ([59cc0a2](https://github.com/exodus-ai-org/exodus/commit/59cc0a22739c4b9a3c3683ded3b4dd4d68f27290))
+* **lock:** a paired device can unlock the app from the phone ([555ecdd](https://github.com/exodus-ai-org/exodus/commit/555ecdd679273d9ca66a01d17d43d4b987dca808))
+* **lock:** Touch ID prompts itself on the lock screen, and ⌘L is documented ([99669e0](https://github.com/exodus-ai-org/exodus/commit/99669e008f1133182180d0975036cc21bbce2c4c))
+* **main:** single-instance lock ahead of PGlite; origin gate refuses `null` ([d82e492](https://github.com/exodus-ai-org/exodus/commit/d82e492755abf32e4781dbe4b3432faf7f4be1bf))
+* **markdown:** a streamdown engine to compare, behind an Experiments switch ([b36c16a](https://github.com/exodus-ai-org/exodus/commit/b36c16adb4ff26ee191836a922c00c8cc352549e))
+* **markdown:** heal the streaming tail block ([9cf397e](https://github.com/exodus-ai-org/exodus/commit/9cf397ed0f419c23bcbbaac4f2fda2e703fc1f5d))
+* **mcp:** a two-tool toolbox instead of binding every MCP tool ([1b410b3](https://github.com/exodus-ai-org/exodus/commit/1b410b362be3bad71e86cdbc3f8360f8f5bfa453))
+* **menu:** New Chat and Settings… as real commands, not just system roles ([1e35b85](https://github.com/exodus-ai-org/exodus/commit/1e35b857bfa2f7e5d4ce2738698cf9acfae810bc))
+* **security:** isolate the artifact sandbox on its own origin ([88d96b3](https://github.com/exodus-ai-org/exodus/commit/88d96b359c6f5eb031f0b4dcca5ec02da8631356))
+* **security:** serve the artifact sandbox from its own origin scheme ([8f355a0](https://github.com/exodus-ai-org/exodus/commit/8f355a04c1fcd340ec70b5d30e756e62ab897a48))
+* **server:** bind the API to loopback; the origin gate takes only the dev renderer ([b8c38e9](https://github.com/exodus-ai-org/exodus/commit/b8c38e9b962a9760adf702bb82852cb49b94058c))
+* **settings:** Devices page — pair by QR code, revoke, reset ([6c6008f](https://github.com/exodus-ai-org/exodus/commit/6c6008f1bd866b4ea5d6c6339db78c6c6c9e6282))
+* **settings:** name web-search countries in the user's language ([99c196a](https://github.com/exodus-ai-org/exodus/commit/99c196ac59a1376fcfe1ca55c2be625d6d507b83))
+* **settings:** one design language across Settings, Devices and the Skills Market ([21088cb](https://github.com/exodus-ai-org/exodus/commit/21088cbd9dd689d5c153acf2d2506c9bbfab9fa8))
+* **settings:** replace the Appearance system with a Color tone picker ([6520ade](https://github.com/exodus-ai-org/exodus/commit/6520adefdf8391818d1137779a81d0a70fa9fd96))
+* **settings:** SVG flags for the language and web-search country pickers ([865165f](https://github.com/exodus-ai-org/exodus/commit/865165fd8726d6cd2d7faf81a366743b001e63fc))
+* **skills:** proxy the registry's curated publishers list ([ebbd637](https://github.com/exodus-ai-org/exodus/commit/ebbd637b052a1b55276a45ac8f7458cdc62336d9))
+* **skills:** rebuild the Skills Market on skills.sh ([3d7ba00](https://github.com/exodus-ai-org/exodus/commit/3d7ba00b1cfa38182ed8ed4d4c2a328b0ed1a6b2))
+* **weather:** Open-Meteo — a seven-day forecast, the curve on the colour tone ([b781879](https://github.com/exodus-ai-org/exodus/commit/b781879f1e14bac8d8b428597ad0341bcf8c2a88))
+
+
+### Performance Improvements
+
+* **chat:** stop re-rendering the transcript on every streamed frame ([d0b04a3](https://github.com/exodus-ai-org/exodus/commit/d0b04a3754426f08e4595c466bd20e083d17fac5))
+* **main:** cache the settings row, stop archiving finished jobs, fix an IPC listener leak ([2be19af](https://github.com/exodus-ai-org/exodus/commit/2be19af7e1c43bf07d8e6bd9abd5a98ae6662199))
+* **weather:** the model reads a summary, the card reads everything ([4a6f733](https://github.com/exodus-ai-org/exodus/commit/4a6f733b27a846791a1c8d9555e410ddec070484))
+
+
+### Reverts
+
+* **lock:** Touch ID stays behind the button, not auto-prompted ([e5527c9](https://github.com/exodus-ai-org/exodus/commit/e5527c978ffe26531db0745e080fc0cc7aa0a1f1))
+* **markdown:** drop the streamdown experiment — react-markdown stays ([1580817](https://github.com/exodus-ai-org/exodus/commit/15808175d2e60d1e941dd8cfde566c671f879d56))
+
 # [1.15.0](https://github.com/exodus-ai-org/exodus/compare/v1.14.0...v1.15.0) (2026-09-19)
 
 
