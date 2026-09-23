@@ -694,7 +694,10 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   `lib/markdown-plugins.ts`), each a memoized `MarkdownBlock`, so a frame
   re-parses the last block or two instead of the whole answer. Text that never
   changes (history) is rendered whole. A plugin added to the renderer must be
-  added to `markdown-plugins.ts`, not to `markdown.tsx`. The last block is
+  added to `markdown-plugins.ts`, not to `markdown.tsx` — that file also holds
+  the two "prose is not markup" settings: `singleDollarTextMath: false`
+  (`$200 - $300` is money) and GFM's `singleTilde: false` (`19~32°C` is a
+  range; only `~~` strikes through). The last block is
   passed through `healStreamingTail` (`remend` closes an open `**`, `*`,
   `~~`, `` ` `` or `$$` and neutralises a half-typed link; a half-streamed
   `【N-source】` marker is dropped) so nothing flashes as literal markup. The

@@ -9,7 +9,16 @@ import remarkMath from 'remark-math'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const remarkPluginsStable: any[] = [
-  remarkGfm,
+  [
+    remarkGfm,
+    {
+      // GFM strikes through on a single tilde too, so a range written the
+      // way people write ranges — "19~32°C", "12点~15点", "1~10%" — pairs up
+      // into struck-through text. Only `~~` strikes; the same reasoning as
+      // `singleDollarTextMath` below.
+      singleTilde: false
+    }
+  ],
   [
     remarkMath,
     {

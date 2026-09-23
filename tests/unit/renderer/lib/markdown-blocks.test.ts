@@ -274,6 +274,18 @@ More text.
   })
 })
 
+describe('the shared remark config', () => {
+  it('strikes through on ~~ only — a single tilde is how people write a range', () => {
+    // GFM's default pairs single tildes too, which struck out half of a
+    // weather answer: "19~32°C, 午后 (12点~15点) … 1~10%".
+    const ranges =
+      '全天温度区间19~32°C，午后（12点~15点）最热能到30~32°C，降雨概率1~10%。'
+    expect(render(ranges)).not.toContain('<del>')
+    expect(render(ranges)).toContain('19~32°C')
+    expect(render('~~old~~ new')).toContain('<del>old</del>')
+  })
+})
+
 describe('healStreamingTail', () => {
   it('closes what is open at the end of a streaming block so it does not flash as literal markup', async () => {
     const { healStreamingTail } = await import('@/lib/markdown-blocks')
