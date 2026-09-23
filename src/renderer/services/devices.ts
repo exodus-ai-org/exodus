@@ -20,18 +20,18 @@ export interface DevicesState {
   lanRunning: boolean
 }
 
-export const DEVICES_KEY = '/api/v1/devices'
+export const DEVICES_URL = '/api/v1/devices'
 
-export const getDevices = () => fetcher<DevicesState>(DEVICES_KEY)
+export const getDevices = () => fetcher<DevicesState>(DEVICES_URL)
 
 export const openPairing = () =>
-  fetcher<PairingInfo>(`${DEVICES_KEY}/pairing`, { method: 'POST' })
+  fetcher<PairingInfo>(`${DEVICES_URL}/pairing`, { method: 'POST' })
 
 export const cancelPairing = () =>
-  fetcher(`${DEVICES_KEY}/pairing`, { method: 'DELETE' })
+  fetcher(`${DEVICES_URL}/pairing`, { method: 'DELETE' })
 
 export const revokeDevice = (id: string) =>
-  fetcher(`${DEVICES_KEY}/${id}`, { method: 'DELETE' })
+  fetcher(`${DEVICES_URL}/${id}`, { method: 'DELETE' })
 
 export const resetDevices = () =>
-  fetcher(`${DEVICES_KEY}/reset`, { method: 'POST' })
+  fetcher(`${DEVICES_URL}/reset`, { method: 'POST' })
