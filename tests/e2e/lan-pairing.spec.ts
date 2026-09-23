@@ -24,6 +24,7 @@ const LAN_PORT = 60224
  */
 function pinnedSocket(pin: string) {
   return new Promise<tls.TLSSocket>((resolve, reject) => {
+    // codeql[js/disabling-certificate-validation]: intentional — pinning below is the real check.
     const socket = tls.connect(
       { host: '127.0.0.1', port: LAN_PORT, rejectUnauthorized: false },
       () => {

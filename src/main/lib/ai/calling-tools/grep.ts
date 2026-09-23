@@ -85,7 +85,7 @@ function matchGlob(filename: string, glob: string): boolean {
     }
     return filename.endsWith('.' + exts)
   }
-  return filename.includes(glob.replace('*', ''))
+  return filename.includes(glob.replaceAll('*', ''))
 }
 
 async function grepFile(
