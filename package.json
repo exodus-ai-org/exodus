@@ -42,7 +42,8 @@
     "test:e2e:electron": "electron-forge package && playwright test --project=e2e",
     "test:e2e:providers": "playwright test --project=providers",
     "db:generate": "drizzle-kit generate",
-    "icons": "node scripts/render-icons.mjs"
+    "icons": "node scripts/render-icons.mjs",
+    "icons:use": "node scripts/render-icons.mjs --use"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1136.0",
