@@ -327,6 +327,13 @@
     }
   },
   "tools": {
+    "intro": "What the model may call on its own. Turn a tool off to keep it out of every chat. A tool that needs a key or has options carries its settings under its row; one that is on but missing its key says so until it is set.",
+    "configure": "Configure",
+    "needsKey": {
+      "webSearch": "Needs a Brave Search API key",
+      "imageGeneration": "Needs an OpenAI API key — set it under Providers",
+      "mapItinerary": "Needs a Google API key"
+    },
     "groups": {
       "web": "Web",
       "fileSystem": "File System",

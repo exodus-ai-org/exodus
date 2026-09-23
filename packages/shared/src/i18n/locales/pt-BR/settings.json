@@ -327,6 +327,13 @@
     }
   },
   "tools": {
+    "intro": "O que o modelo pode chamar por conta própria. Desligue uma ferramenta para deixá-la fora de todas as conversas. Uma ferramenta que precisa de chave ou tem opções traz suas configurações sob a linha; se estiver ligada sem a chave, avisa até que ela seja definida.",
+    "configure": "Configurar",
+    "needsKey": {
+      "webSearch": "Precisa de uma chave de API do Brave Search",
+      "imageGeneration": "Precisa de uma chave de API da OpenAI — defina em Provedores",
+      "mapItinerary": "Precisa de uma chave de API do Google"
+    },
     "groups": {
       "web": "Web",
       "fileSystem": "Sistema de Arquivos",

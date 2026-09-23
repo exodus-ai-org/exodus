@@ -136,6 +136,15 @@ export const TEST_IDS = {
     details: 'weather-card.details',
     /** The readings grid, visible only once the card is open. */
     readings: 'weather-card.readings'
+  },
+  /** Settings → Built-in Tools. Each carries `data-tool="<wire name>"`. */
+  tools: {
+    /** A tool's on/off switch. */
+    toggle: 'tools.toggle',
+    /** The Configure disclosure of a tool that has a panel. */
+    configure: 'tools.configure',
+    /** The panel itself (its `data-open` says whether it is open). */
+    panel: 'tools.panel'
   }
 } as const
 

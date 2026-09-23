@@ -327,6 +327,13 @@
     }
   },
   "tools": {
+    "intro": "Ciò che il modello può richiamare da solo. Disattiva uno strumento per tenerlo fuori da ogni chat. Uno strumento che richiede una chiave o ha opzioni porta le sue impostazioni sotto la sua riga; se è attivo ma senza chiave, lo segnala finché non viene impostata.",
+    "configure": "Configura",
+    "needsKey": {
+      "webSearch": "Richiede una chiave API di Brave Search",
+      "imageGeneration": "Richiede una chiave API di OpenAI — impostala in Provider",
+      "mapItinerary": "Richiede una chiave API di Google"
+    },
     "groups": {
       "web": "Web",
       "fileSystem": "File system",

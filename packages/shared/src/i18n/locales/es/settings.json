@@ -327,6 +327,13 @@
     }
   },
   "tools": {
+    "intro": "Lo que el modelo puede invocar por su cuenta. Desactiva una herramienta para dejarla fuera de todos los chats. Una herramienta que necesita una clave o tiene opciones lleva su configuración bajo su fila; si está activada pero sin clave, lo indica hasta que la pongas.",
+    "configure": "Configurar",
+    "needsKey": {
+      "webSearch": "Necesita una clave de API de Brave Search",
+      "imageGeneration": "Necesita una clave de API de OpenAI — configúrala en Proveedores",
+      "mapItinerary": "Necesita una clave de API de Google"
+    },
     "groups": {
       "web": "Web",
       "fileSystem": "Sistema de archivos",

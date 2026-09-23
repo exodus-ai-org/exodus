@@ -327,6 +327,13 @@
     }
   },
   "tools": {
+    "intro": "모델이 스스로 호출할 수 있는 도구입니다. 도구를 끄면 모든 채팅에서 제외됩니다. 키나 옵션이 필요한 도구는 해당 행 아래에 설정이 있습니다. 켜져 있지만 키가 없으면 설정될 때까지 그 사실을 표시합니다.",
+    "configure": "설정",
+    "needsKey": {
+      "webSearch": "Brave Search API 키가 필요합니다",
+      "imageGeneration": "OpenAI API 키가 필요합니다 — 제공자에서 설정하세요",
+      "mapItinerary": "Google API 키가 필요합니다"
+    },
     "groups": {
       "web": "웹",
       "fileSystem": "파일 시스템",

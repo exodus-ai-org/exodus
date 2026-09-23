@@ -1111,6 +1111,20 @@ Renderer:
   or — while a window is open — numbered steps beside the QR code and a
   countdown drawn from the shared `PAIRING_TTL_MS`
   (`packages/shared/src/constants/systems.ts`, enforced by the main process)
+- `src/renderer/components/settings/settings-form/tools.tsx` — Settings →
+  Built-in Tools: one hairline row per `TOOL_REGISTRY` entry (name, what it
+  does, its switch). A tool with something to set up carries its panel under
+  the row, open by default, with a Configure disclosure that folds it (a
+  `Reveal`); `tool-config.tsx` is that map — **keyed by the tool's wire name
+  (`TOOL_NAMES.*`), the same key as the registry** — with, per tool, the one
+  field it cannot work without and the red hint shown while the tool is on
+  and that field is empty. (The snake_case rename once left this map on the
+  old camelCase keys and the three panels vanished silently;
+  `tool-config.test.ts` pins the keys to the registry now.)
+- `src/renderer/components/morph.tsx` — `Morph` (two states in one cell, the
+  height following the active one under a blurred crossfade) and `Reveal` (a
+  section growing from 0fr): the in-place opening a card or a row is allowed
+  (see Motion); used by the weather card and the Built-in Tools panels
 - `src/renderer/components/flag.tsx` — `<Flag code>`: a country flag as a
   separate SVG file by ISO code (never emoji — Windows has none; never inlined —
   the web-search list is 239 of them)

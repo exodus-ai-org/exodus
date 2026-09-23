@@ -327,6 +327,13 @@
     }
   },
   "tools": {
+    "intro": "模型可以自行調用的工具。關閉某個工具，它就不會出現在任何對話中。需要金鑰或有選項的工具，設定就在該列下方；已開啟但缺少金鑰的工具會一直提示，直到設定好為止。",
+    "configure": "設定",
+    "needsKey": {
+      "webSearch": "需要 Brave Search API 金鑰",
+      "imageGeneration": "需要 OpenAI API 金鑰 — 請在「供應商」中設定",
+      "mapItinerary": "需要 Google API 金鑰"
+    },
     "groups": {
       "web": "網絡",
       "fileSystem": "檔案系統",

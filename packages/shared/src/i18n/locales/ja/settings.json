@@ -327,6 +327,13 @@
     }
   },
   "tools": {
+    "intro": "モデルが自律的に呼び出せるツールです。オフにしたツールはどのチャットでも使われません。キーやオプションが必要なツールは、その行の下に設定が並びます。オンなのにキーが未設定なら、設定されるまでその旨を表示します。",
+    "configure": "設定",
+    "needsKey": {
+      "webSearch": "Brave Search の API キーが必要です",
+      "imageGeneration": "OpenAI の API キーが必要です — プロバイダーで設定してください",
+      "mapItinerary": "Google の API キーが必要です"
+    },
     "groups": {
       "web": "ウェブ",
       "fileSystem": "ファイルシステム",

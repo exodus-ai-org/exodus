@@ -327,6 +327,13 @@
     }
   },
   "tools": {
+    "intro": "Ce que le modèle peut appeler de lui-même. Désactivez un outil pour l’écarter de toutes les conversations. Un outil qui a besoin d’une clé ou qui a des options porte ses réglages sous sa ligne ; s’il est activé sans sa clé, il le signale jusqu’à ce qu’elle soit renseignée.",
+    "configure": "Configurer",
+    "needsKey": {
+      "webSearch": "Nécessite une clé API Brave Search",
+      "imageGeneration": "Nécessite une clé API OpenAI — à renseigner dans Fournisseurs",
+      "mapItinerary": "Nécessite une clé API Google"
+    },
     "groups": {
       "web": "Web",
       "fileSystem": "Système de fichiers",

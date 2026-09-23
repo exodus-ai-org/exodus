@@ -327,6 +327,13 @@
     }
   },
   "tools": {
+    "intro": "Was das Modell selbstständig aufrufen darf. Ein ausgeschaltetes Tool bleibt aus jedem Chat heraus. Ein Tool, das einen Schlüssel braucht oder Optionen hat, trägt seine Einstellungen unter seiner Zeile; ist es eingeschaltet, aber ohne Schlüssel, steht das dort, bis er gesetzt ist.",
+    "configure": "Konfigurieren",
+    "needsKey": {
+      "webSearch": "Braucht einen Brave-Search-API-Schlüssel",
+      "imageGeneration": "Braucht einen OpenAI-API-Schlüssel — unter „Anbieter“ eintragen",
+      "mapItinerary": "Braucht einen Google-API-Schlüssel"
+    },
     "groups": {
       "web": "Web",
       "fileSystem": "Dateisystem",
