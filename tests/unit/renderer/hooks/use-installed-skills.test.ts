@@ -1,10 +1,13 @@
 // @vitest-environment happy-dom
-import { type QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import {
+  focusManager,
+  QueryClient,
+  QueryClientProvider,
+  useQuery
+} from '@tanstack/react-query'
 import { act, createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-
-import { renderWithQueryClient } from '../../helpers/query-test-utils'
 
 const getInstalledService = vi.fn()
 const installService = vi.fn()
@@ -61,33 +64,47 @@ function Probe<T>({
   return null
 }
 
-async function mountHook<T>(hook: () => T) {
-  let latest: T | undefined
-  const { queryClient } = await renderWithQueryClient(
-    createElement(Probe<T>, { hook, onReady: (value) => (latest = value) })
-  )
-  return { queryClient, api: () => latest! }
-}
+// Roots a test mounted, unmounted in afterEach: a leaked root stays subscribed
+// to the focus manager and would answer the window-focus test's focus events.
+const mounted: Array<() => Promise<void>> = []
 
-// The app's own client, so a failing read goes through the real
-// `queryCache.onError`; retries off so the failure lands without a backoff.
-async function mountHookOnAppClient<T>(hook: () => T) {
+async function mountOn<T>(queryClient: QueryClient, hook: () => T) {
   let latest: T | undefined
-  const queryClient = createAppQueryClient()
-  queryClient.setDefaultOptions({
-    ...queryClient.getDefaultOptions(),
-    queries: { ...queryClient.getDefaultOptions().queries, retry: false }
-  })
+  const root = createRoot(document.createElement('div'))
   const probe = createElement(Probe<T>, {
     hook,
     onReady: (value) => (latest = value)
   })
   await act(async () => {
-    createRoot(document.createElement('div')).render(
+    root.render(
       createElement(QueryClientProvider, { client: queryClient }, probe)
     )
   })
+  mounted.push(async () => {
+    await act(async () => {
+      root.unmount()
+    })
+  })
   return { queryClient, api: () => latest! }
+}
+
+const mountHook = <T>(hook: () => T) =>
+  mountOn(
+    new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } }
+    }),
+    hook
+  )
+
+// The app's own client, so a failing read goes through the real
+// `queryCache.onError`; retries off so the failure lands without a backoff.
+function mountHookOnAppClient<T>(hook: () => T) {
+  const queryClient = createAppQueryClient()
+  queryClient.setDefaultOptions({
+    ...queryClient.getDefaultOptions(),
+    queries: { ...queryClient.getDefaultOptions().queries, retry: false }
+  })
+  return mountOn(queryClient, hook)
 }
 
 const skills = [
@@ -109,7 +126,9 @@ const skills = [
   }
 ]
 
-afterEach(() => {
+afterEach(async () => {
+  focusManager.setFocused(undefined)
+  for (const unmount of mounted.splice(0)) await unmount()
   getInstalledService.mockReset()
   installService.mockReset()
   uninstallService.mockReset()
@@ -192,6 +211,36 @@ describe('useInstalledSkills', () => {
     })
     expect(sileoError).not.toHaveBeenCalled()
     expect(api().data).toBeUndefined()
+  })
+})
+
+describe('useInstalledSkills on window focus', () => {
+  it('reads again when the window regains focus, so an install by exodus-cli shows up, and only this read does', async () => {
+    getInstalledService
+      .mockResolvedValueOnce(skills)
+      .mockResolvedValueOnce([skills[1]])
+    const other = vi.fn().mockResolvedValue('unchanged')
+    const { api } = await mountHookOnAppClient(() => ({
+      list: useInstalledSkills(),
+      other: useQuery({ queryKey: ['not-installed-skills'], queryFn: other })
+    }))
+    await act(async () => {
+      await vi.waitFor(() => expect(api().list.data).toEqual(skills))
+      await vi.waitFor(() => expect(api().other.data).toBe('unchanged'))
+    })
+
+    await act(async () => {
+      focusManager.setFocused(false)
+    })
+    expect(getInstalledService).toHaveBeenCalledTimes(1)
+
+    await act(async () => {
+      focusManager.setFocused(true)
+      await vi.waitFor(() => expect(api().list.data).toEqual([skills[1]]))
+    })
+
+    expect(getInstalledService).toHaveBeenCalledTimes(2)
+    expect(other).toHaveBeenCalledTimes(1)
   })
 })
 

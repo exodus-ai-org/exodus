@@ -1,6 +1,7 @@
 import type { SkillsView } from '@exodus/shared/types/skills'
 import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 
+import { RELAY_RETRY } from '@/lib/relay-retry'
 import {
   getCuratedSkills,
   getSkillAudit,
@@ -25,6 +26,10 @@ const REGISTRY_STALE_MS = 5 * 60_000
 // the default 5 minutes an unmounted query is dropped, making staleTime moot.
 const CURATED_STALE_MS = 10 * 60_000
 
+// Every hook below returns `isLoading: isPending`, not the query's own
+// `isLoading` (pending *and* fetching): a retry waiting out a blurred window is
+// paused, nothing is fetching, and the screen would fall to its empty state.
+
 /**
  * One view's leaderboard, a page at a time. The Skills Market's "All time (n)"
  * tab reads its total from `pages[0]` of this same query, so tab and list
@@ -34,7 +39,7 @@ export function useSkillsInfiniteRegistry(view: SkillsView) {
   const {
     data,
     error,
-    isLoading,
+    isPending,
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
@@ -45,12 +50,13 @@ export function useSkillsInfiniteRegistry(view: SkillsView) {
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) =>
       lastPage.pagination.hasMore ? allPages.length : undefined,
-    staleTime: REGISTRY_STALE_MS
+    staleTime: REGISTRY_STALE_MS,
+    ...RELAY_RETRY
   })
   return {
     data,
     error,
-    isLoading,
+    isLoading: isPending,
     isFetchingNextPage,
     hasNextPage,
     fetchNextPage,
@@ -59,40 +65,45 @@ export function useSkillsInfiniteRegistry(view: SkillsView) {
 }
 
 export function useSkillsSearch(query: string) {
-  const { data, error, isLoading, refetch } = useQuery({
+  const { data, error, isPending, refetch } = useQuery({
     queryKey: skillsKeys.search(query),
     queryFn: () => searchSkills(query),
     enabled: !!query,
-    staleTime: REGISTRY_STALE_MS
+    staleTime: REGISTRY_STALE_MS,
+    ...RELAY_RETRY
   })
-  return { data, error, isLoading, refetch }
+  // Disabled for an empty query: pending, with nothing to wait for.
+  return { data, error, isLoading: !!query && isPending, refetch }
 }
 
 export function useSkillDetail(id: string) {
-  const { data, error, isLoading, refetch } = useQuery({
+  const { data, error, isPending, refetch } = useQuery({
     queryKey: skillsKeys.detail(id),
     queryFn: () => getSkillDetail(id),
-    staleTime: REGISTRY_STALE_MS
+    staleTime: REGISTRY_STALE_MS,
+    ...RELAY_RETRY
   })
-  return { data, error, isLoading, refetch }
+  return { data, error, isLoading: isPending, refetch }
 }
 
 // `data` is `null` (a settled read, not an error) for an unaudited skill.
 export function useSkillAudit(id: string) {
-  const { data, isLoading } = useQuery({
+  const { data, isPending } = useQuery({
     queryKey: skillsKeys.audit(id),
     queryFn: () => getSkillAudit(id),
-    staleTime: REGISTRY_STALE_MS
+    staleTime: REGISTRY_STALE_MS,
+    ...RELAY_RETRY
   })
-  return { data, isLoading }
+  return { data, isLoading: isPending }
 }
 
 export function useCuratedSkills() {
-  const { data, error, isLoading, refetch } = useQuery({
+  const { data, error, isPending, refetch } = useQuery({
     queryKey: skillsKeys.curated,
     queryFn: () => getCuratedSkills(),
     staleTime: CURATED_STALE_MS,
-    gcTime: CURATED_STALE_MS
+    gcTime: CURATED_STALE_MS,
+    ...RELAY_RETRY
   })
-  return { data, error, isLoading, refetch }
+  return { data, error, isLoading: isPending, refetch }
 }
