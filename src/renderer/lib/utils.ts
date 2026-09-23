@@ -1,12 +1,12 @@
-import type { ChatMessage } from '@exodus/shared/types/chat'
 import type {
   Api,
   AssistantMessage,
-  Provider,
+  ProviderId,
   StopReason,
   ToolResultMessage,
   UserMessage
-} from '@mariozechner/pi-ai'
+} from '@earendil-works/pi-ai'
+import type { ChatMessage } from '@exodus/shared/types/chat'
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 
@@ -34,6 +34,7 @@ export function convertToUIMessages(
     if (dbMsg.role === 'user') {
       return {
         id: dbMsg.id,
+        runId: dbMsg.runId,
         role: 'user' as const,
         content: dbMsg.content as UserMessage['content'],
         timestamp
@@ -42,11 +43,12 @@ export function convertToUIMessages(
     if (dbMsg.role === 'assistant') {
       return {
         id: dbMsg.id,
+        runId: dbMsg.runId,
         role: 'assistant' as const,
         content: dbMsg.content as AssistantMessage['content'],
         usage: dbMsg.usage!,
         api: (dbMsg.api ?? '') as Api,
-        provider: (dbMsg.provider ?? '') as Provider,
+        provider: (dbMsg.provider ?? '') as ProviderId,
         model: dbMsg.model ?? '',
         stopReason: (dbMsg.stopReason ?? 'stop') as StopReason,
         errorMessage: dbMsg.errorMessage ?? undefined,
@@ -56,6 +58,7 @@ export function convertToUIMessages(
     }
     return {
       id: dbMsg.id,
+      runId: dbMsg.runId,
       role: 'toolResult' as const,
       toolCallId: dbMsg.toolCallId ?? '',
       toolName: dbMsg.toolName ?? '',

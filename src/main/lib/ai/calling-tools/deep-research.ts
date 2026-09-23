@@ -1,6 +1,7 @@
+import type { AgentTool } from '@earendil-works/pi-agent-core'
+import { Type } from '@earendil-works/pi-ai'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import { fetcher } from '@exodus/shared/utils/http'
-import type { AgentTool } from '@mariozechner/pi-agent-core'
-import { Type } from '@mariozechner/pi-ai'
 import { v4 as uuidV4 } from 'uuid'
 
 import { saveDeepResearch } from '../../db/queries'
@@ -11,7 +12,7 @@ const deepResearchSchema = Type.Object({
 })
 
 export const deepResearch: AgentTool<typeof deepResearchSchema> = {
-  name: 'deepResearch',
+  name: TOOL_NAMES.deepResearch,
   label: 'Deep Research',
   description:
     'Given a research subject and ask some follow up questions to clarify the research direction',

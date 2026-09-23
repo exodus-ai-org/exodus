@@ -9,11 +9,25 @@ import {
 
 import { mainT } from './i18n'
 import { getLockManager } from './lock/lock-manager'
-import { registerSearchMenu } from './window'
+import { getMainWindow, raiseMainWindow, registerSearchMenu } from './window'
 
 const isMac = process.platform === 'darwin'
 
-function buildMenu(): MenuItemConstructorOptions[] {
+/**
+ * Sends a channel to the main window's renderer, raising it first — so the
+ * menu (a global, OS-level accelerator: it fires no matter which window has
+ * focus, or none) always lands on the real app window, never silently on a
+ * sub-app, and shows it if it was hidden or minimized. `main.tsx` is the
+ * listener (`router.navigate()` is a plain import there, reachable outside
+ * any component).
+ */
+function goToMainWindow(channel: string) {
+  raiseMainWindow()
+  getMainWindow()?.webContents.send(channel)
+}
+
+/** Exported for `menu.test.ts` — `setupMenu()` itself just hands this to Electron. */
+export function buildMenu(): MenuItemConstructorOptions[] {
   return [
     ...(isMac
       ? [
@@ -21,6 +35,12 @@ function buildMenu(): MenuItemConstructorOptions[] {
             label: app.name,
             submenu: [
               { role: 'about' },
+              { type: 'separator' },
+              {
+                label: mainT('menu:settings', 'Settings…'),
+                accelerator: 'Cmd+,',
+                click: () => goToMainWindow('menu:open-settings')
+              },
               { type: 'separator' },
               { role: 'services' },
               { type: 'separator' },
@@ -36,6 +56,22 @@ function buildMenu(): MenuItemConstructorOptions[] {
     {
       label: mainT('menu:file', 'File'),
       submenu: [
+        {
+          label: mainT('menu:newChat', 'New Chat'),
+          accelerator: 'CmdOrCtrl+N',
+          click: () => goToMainWindow('menu:new-chat')
+        },
+        { type: 'separator' },
+        ...(isMac
+          ? []
+          : [
+              {
+                label: mainT('menu:settings', 'Settings…'),
+                accelerator: 'Ctrl+,',
+                click: () => goToMainWindow('menu:open-settings')
+              } as MenuItemConstructorOptions,
+              { type: 'separator' as const }
+            ]),
         {
           label: mainT('menu:lockNow', 'Lock Now'),
           accelerator: 'CmdOrCtrl+L',

@@ -177,18 +177,19 @@
   "weatherCard": {
     "today": "Today",
     "tomorrow": "Tmr",
-    "feels": "Feels {{temp}}° · {{observedAt}}",
     "humidity": "Humidity",
     "precip": "Precip",
     "visibility": "Visibility",
-    "uvIndex": "UV Index"
-  },
-  "weatherForecast": {
-    "temperatureRange": "🌡️ Temperature range",
-    "cold": "❄️ Cold",
-    "hot": "🔥 Hot",
+    "uvIndex": "UV Index",
+    "wind": "Wind",
+    "pressure": "Pressure",
+    "feelsLike": "Feels like {{temp}}°",
     "sunrise": "Sunrise",
-    "sunset": "Sunset"
+    "sunset": "Sunset",
+    "rainChance": "{{percent}}% rain",
+    "observedAt": "Observed {{time}}",
+    "details": "Details",
+    "less": "Less"
   },
   "sourcesPanel": {
     "title_one": "{{count}} Source",
@@ -262,5 +263,9 @@
       "updatedTitle": "Project updated",
       "deletedTitle": "Project deleted"
     }
-  }
+  },
+  "run": {
+    "error": "This reply stopped with an error: {{message}}"
+  },
+  "renderFailed": "{{what}} could not be shown."
 }

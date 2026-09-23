@@ -6,8 +6,8 @@
 // keeps a DAG of leaf and condensed summaries; for Philharmonic v1 we keep
 // one summary row per conversation. Future iterations can graduate if needed.
 
+import type { Message, Model } from '@earendil-works/pi-ai'
 import type { Attachment } from '@exodus/shared/types/chat'
-import type { Message, Model } from '@mariozechner/pi-ai'
 
 import { getMessagesByConversationId } from '../../../db/conversation-queries'
 import type { ConversationMessage } from '../../../db/schema'

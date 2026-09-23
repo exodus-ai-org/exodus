@@ -34,6 +34,11 @@ describe('menu namespace (en)', () => {
     expect(menu.learnMore).toBe('Learn More')
   })
 
+  it('has New Chat and Settings… — real commands, not just system roles', () => {
+    expect(menu.newChat).toBe('New Chat')
+    expect(menu.settings).toBe('Settings…')
+  })
+
   it('has the 3 tray labels', () => {
     expect(menu.tray.showApp).toBe('Show App')
     expect(menu.tray.hideApp).toBe('Hide App')

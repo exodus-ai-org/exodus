@@ -2,12 +2,12 @@ import {
   DEFAULT_AVATAR_STYLE,
   randomAvatarSeed
 } from '@exodus/shared/constants/avatar'
-// src/main/lib/ai/philharmonic/recruit.ts
-import { completeSimple } from '@mariozechner/pi-ai'
 
 import { createAgent, getAllAgents } from '../../db/philharmonic-queries'
 import { getSettings } from '../../db/queries'
 import { getModelFromProvider } from '../utils/chat-message-util'
+// src/main/lib/ai/philharmonic/recruit.ts
+import { completeSimple } from '../utils/complete'
 import { pickName } from './names'
 
 const SPEC_PROMPT = `You are designing a virtual employee for a group-chat team. Given a role and optional skills, produce a JSON spec.

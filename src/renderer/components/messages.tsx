@@ -1,3 +1,4 @@
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import type {
   AssistantTurn,
   ChatAssistantMessage,
@@ -5,6 +6,7 @@ import type {
   ChatStatus,
   ChatToolResultMessage,
   ImageContent,
+  RunError,
   Segment,
   TextContent,
   TimelineStep
@@ -20,9 +22,11 @@ import { Button } from '@/components/ui/button'
 import { useDiscoverFeed } from '@/hooks/use-discover-feed'
 import { useSettings } from '@/hooks/use-settings'
 import { i18n } from '@/lib/i18n'
+import { ENTER, ENTER_UP } from '@/lib/motion'
 import { userMessageText } from '@/lib/user-message-text'
 import { cn } from '@/lib/utils'
 
+import { ErrorBoundary, RenderFailed } from './card-error-boundary'
 import { ChatToc } from './chat-toc'
 import { DiscoverFeed } from './home/discover-feed'
 import Markdown from './markdown'
@@ -41,20 +45,28 @@ type MessagesProps = {
   messages: ChatMessage[]
   regenerate: () => void
   showDiscover?: boolean
+  /** The run that failed last; its message shows the error at its foot. */
+  runError?: RunError | null
 }
 
 const AT_BOTTOM_THRESHOLD = 80
 
 const UserSegment = memo(function UserSegment({
-  message
+  message,
+  fresh
 }: {
   message: ChatMessage
+  /** Sent during this visit (not loaded with the chat): it rises in. */
+  fresh: boolean
 }) {
   const { t } = useTranslation('chat')
   return (
     <div
       data-user-msg-id={message.id}
-      className="mb-8 flex flex-col items-end first:mt-0 last:mb-4"
+      className={cn(
+        'mb-8 flex flex-col items-end first:mt-0 last:mb-4',
+        fresh && ENTER_UP
+      )}
     >
       {Array.isArray(message.content) &&
         message.content.some((c) => c.type === 'image') && (
@@ -96,6 +108,10 @@ type AssistantTurnSegmentProps = {
   citationSources?: WebSearchResult[]
   isStreaming: boolean
   regenerate: () => void
+  /** The provider's error, when this run ended in one. */
+  error?: string
+  /** A reply to a message sent during this visit: it fades in under the dots. */
+  fresh: boolean
 }
 
 const AssistantTurnSegment = memo(
@@ -104,8 +120,11 @@ const AssistantTurnSegment = memo(
     turn,
     citationSources,
     isStreaming,
-    regenerate
+    regenerate,
+    error,
+    fresh
   }: AssistantTurnSegmentProps) {
+    const { t } = useTranslation('chat')
     // The turn's own searches drive the per-turn "Sources" panel; the
     // cumulative set drives inline citation badges.
     const ownSources =
@@ -124,59 +143,80 @@ const AssistantTurnSegment = memo(
     )
 
     return (
-      <div className="mb-8 flex flex-col items-start last:mb-4">
+      <div
+        className={cn(
+          'mb-8 flex flex-col items-start last:mb-4',
+          fresh && ENTER
+        )}
+      >
         <div className="w-full min-w-0">
           {(turn.steps.length > 0 || isStreaming) && (
             <ThinkingTimeline
               steps={turn.steps}
               durationMs={turn.durationMs}
-              isStreaming={isStreaming && turn.finalTextBlocks.length === 0}
+              isStreaming={isStreaming && turn.body.length === 0}
             />
           )}
 
-          {/* {isStreaming &&
-              turn.pendingToolCalls.map((tc) => (
-                <ShimmeringText
-                  key={tc.id}
-                  className="mb-4"
-                  text={`Calling tool: ${tc.name}`}
-                />
-              ))} */}
-
           {turn.toolCards.map((toolResult) => (
-            <MessageCallingTools
+            <ErrorBoundary
               key={toolResult.id}
-              chatId={chatId}
-              toolResult={toolResult}
-            />
+              scope="tool-card"
+              attributes={{
+                toolName: toolResult.toolName,
+                toolCallId: toolResult.toolCallId
+              }}
+              fallback={
+                <RenderFailed what={capitalCase(toolResult.toolName)} />
+              }
+            >
+              <MessageCallingTools chatId={chatId} toolResult={toolResult} />
+            </ErrorBoundary>
           ))}
 
-          {turn.finalTextBlocks.map((block, i) => {
-            const isLastBlock = i === turn.finalTextBlocks.length - 1
-            return (
-              <section
-                key={`${block.messageId}-${block.blockIdx}`}
-                className={cn(
-                  'group relative',
-                  i < turn.finalTextBlocks.length - 1 && 'mb-16'
-                )}
-              >
-                <Markdown src={block.text} webSearchResults={citationResults} />
-                {isLastBlock && galleryImages.length > 0 && (
-                  <ImageGallery images={galleryImages} />
-                )}
-                {isLastBlock && galleryVideos.length > 0 && (
-                  <VideoCards videos={galleryVideos} />
-                )}
+          {/* One run, one body: every assistant text block of the run joined
+              in order — the text after a tool step is the next paragraph,
+              not the next message — with one action bar. */}
+          {(turn.body.length > 0 || error) && (
+            <section className="group relative">
+              {turn.body.length > 0 && (
+                <ErrorBoundary
+                  scope="markdown"
+                  attributes={{ runId: turn.runId }}
+                  // The words are still worth reading when the markup is not.
+                  fallback={
+                    <pre className="font-sans whitespace-pre-wrap">
+                      {turn.body}
+                    </pre>
+                  }
+                >
+                  <Markdown
+                    src={turn.body}
+                    webSearchResults={citationResults}
+                  />
+                </ErrorBoundary>
+              )}
+              {galleryImages.length > 0 && (
+                <ImageGallery images={galleryImages} />
+              )}
+              {galleryVideos.length > 0 && (
+                <VideoCards videos={galleryVideos} />
+              )}
+              {error && (
+                <p role="alert" className="text-destructive mt-3 text-sm">
+                  {t('run.error', { message: error })}
+                </p>
+              )}
+              {turn.body.length > 0 && (
                 <MessageAction
                   regenerate={regenerate}
-                  content={block.text}
+                  content={turn.body}
                   webSearchResults={ownSources}
-                  timestamp={isLastBlock ? block.timestamp : undefined}
+                  timestamp={turn.timestamp}
                 />
-              </section>
-            )
-          })}
+              )}
+            </section>
+          )}
         </div>
       </div>
     )
@@ -190,7 +230,10 @@ const AssistantTurnSegment = memo(
     if (
       prev.chatId !== next.chatId ||
       prev.isStreaming !== next.isStreaming ||
-      prev.regenerate !== next.regenerate
+      prev.regenerate !== next.regenerate ||
+      prev.citationSources !== next.citationSources ||
+      prev.error !== next.error ||
+      prev.fresh !== next.fresh
     ) {
       return false
     }
@@ -213,7 +256,7 @@ const AssistantTurnSegment = memo(
  * The raw tool name is the canonical identifier (used as the SSE event
  * key, the DB column, and the dispatch key in messages-calling-tools); we
  * format it for display only here, at the rendering boundary, via
- * capitalCase ('webSearch' → 'Web Search').
+ * capitalCase ('web_search' → 'Web Search').
  */
 function getToolCallPreview(
   name: string,
@@ -229,17 +272,17 @@ function getToolCallPreview(
       const cmd = pick('command')
       return cmd ? { text: label, codeArgument: cmd } : { text: label }
     }
-    case 'webSearch':
+    case TOOL_NAMES.webSearch:
       return withInline(label, pick('query'))
-    case 'webFetch':
+    case TOOL_NAMES.webFetch:
       return withInline(label, pick('url'))
-    case 'readFile':
-    case 'writeFile':
-    case 'editFile':
+    case TOOL_NAMES.readFile:
+    case TOOL_NAMES.writeFile:
+    case TOOL_NAMES.editFile:
       return withInline(label, pick('path') || pick('filePath'))
     case 'weather':
       return withInline(label, pick('location'))
-    case 'mapItinerary': {
+    case TOOL_NAMES.mapItinerary: {
       // Show "Map Itinerary: 3 days, 12 stops" so the timeline conveys the
       // scale of the itinerary the LLM just built.
       const days = Array.isArray(args.days) ? (args.days as unknown[]) : []
@@ -276,12 +319,16 @@ function withInline(label: string, value: string): { text: string } {
 }
 
 /**
- * A "turn" groups all assistant/toolResult messages between two user messages.
- * This lets us render thinking+tools as a timeline above the final text.
+ * A run's assistant/toolResult messages as one turn: thinking and tools as a
+ * timeline above one body of text.
  */
-function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
+function buildAssistantTurn(
+  runId: string,
+  turnMessages: ChatMessage[]
+): AssistantTurn {
   const steps: TimelineStep[] = []
-  const finalTextBlocks: AssistantTurn['finalTextBlocks'] = []
+  const texts: string[] = []
+  let timestamp = 0
   const pendingToolCalls: AssistantTurn['pendingToolCalls'] = []
   const toolCards: ChatToolResultMessage[] = []
   const webSearchResults: WebSearchResult[] = []
@@ -289,7 +336,8 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
   for (const msg of turnMessages) {
     if (msg.role === 'assistant') {
       const assistantMsg = msg as ChatAssistantMessage
-      for (const [idx, block] of assistantMsg.content.entries()) {
+      timestamp = assistantMsg.timestamp
+      for (const block of assistantMsg.content) {
         if (block.type === 'thinking' && block.thinking?.trim()) {
           steps.push({ type: 'thinking', text: block.thinking })
         } else if (block.type === 'toolCall') {
@@ -302,12 +350,7 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
           })
           pendingToolCalls.push({ name: block.name, id: block.id })
         } else if (block.type === 'text' && block.text.trim()) {
-          finalTextBlocks.push({
-            text: block.text,
-            messageId: msg.id,
-            blockIdx: idx,
-            timestamp: assistantMsg.timestamp
-          })
+          texts.push(block.text)
         }
       }
     } else if (msg.role === 'toolResult') {
@@ -337,7 +380,7 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
       }
 
       if (
-        toolResult.toolName === 'webSearch' &&
+        toolResult.toolName === TOOL_NAMES.webSearch &&
         !toolResult.isError &&
         Array.isArray(toolResult.details) &&
         toolResult.details.length > 0
@@ -350,11 +393,11 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
           text: i18n.t('chat:toolPreview.webSearchResultCount', {
             count: results.length
           }),
-          toolName: 'webSearch',
+          toolName: TOOL_NAMES.webSearch,
           webSearchResults: results
         })
       } else if (
-        toolResult.toolName === 'webFetch' &&
+        toolResult.toolName === TOOL_NAMES.webFetch &&
         !toolResult.isError &&
         toolResult.details &&
         typeof toolResult.details === 'object' &&
@@ -390,20 +433,23 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
   }
   if (durationMs === 0) {
     const firstTs = turnMessages[0]?.timestamp ?? 0
-    const lastTs = turnMessages[turnMessages.length - 1]?.timestamp ?? 0
+    const lastTs = turnMessages.at(-1)?.timestamp ?? 0
     durationMs = firstTs && lastTs ? lastTs - firstTs : 0
   }
 
+  const body = texts.join('\n\n')
   return {
+    runId,
     messages: turnMessages,
     steps,
-    finalTextBlocks,
+    body,
+    timestamp,
     pendingToolCalls,
     toolCards,
     durationMs,
     hasContent:
       steps.length > 0 ||
-      finalTextBlocks.length > 0 ||
+      body.length > 0 ||
       pendingToolCalls.length > 0 ||
       toolCards.length > 0,
     webSearchResults
@@ -411,19 +457,55 @@ function buildAssistantTurn(turnMessages: ChatMessage[]): AssistantTurn {
 }
 
 /**
- * Group messages into segments: each segment is either a user message
- * or a contiguous run of assistant+toolResult messages (a "turn").
+ * Segments from the previous pass, keyed by their first message's id. While a
+ * reply streams, `messages` is a new array on every frame but only its last
+ * element is a new object; with a cache, every segment whose messages are the
+ * same objects as last time comes back as the *same* segment. That identity is
+ * what `AssistantTurnSegment`'s memo (and the citation arrays below) key on —
+ * without it each frame rebuilt, and re-rendered, the entire transcript.
+ */
+export type SegmentCache = Map<string, Segment>
+
+function sameMessages(a: ChatMessage[], b: ChatMessage[]): boolean {
+  if (a.length !== b.length) return false
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false
+  }
+  return true
+}
+
+/**
+ * Group messages into segments: a user message, or the assistant + toolResult
+ * messages of one run (keyed by `runId`). A message without a `runId` — a
+ * fixture, a row older than the column — joins the run of the user message
+ * before it, which is the same grouping.
  */
 // eslint-disable-next-line react-refresh/only-export-components -- pure helper, exported for tests
-export function groupIntoSegments(messages: ChatMessage[]): Segment[] {
+export function groupIntoSegments(
+  messages: ChatMessage[],
+  cache?: SegmentCache
+): Segment[] {
   const segments: Segment[] = []
+  const seen: SegmentCache = new Map()
   let turnBuffer: ChatMessage[] = []
+  let turnRunId = ''
+  let currentRun = ''
 
   const flushTurn = () => {
     if (turnBuffer.length > 0) {
-      const turn = buildAssistantTurn(turnBuffer)
-      if (turn.hasContent) {
-        segments.push({ type: 'assistantTurn', turn })
+      const key = `run:${turnRunId}`
+      const cached = cache?.get(key)
+      const segment: Segment =
+        cached?.type === 'assistantTurn' &&
+        sameMessages(cached.turn.messages, turnBuffer)
+          ? cached
+          : {
+              type: 'assistantTurn',
+              turn: buildAssistantTurn(turnRunId, turnBuffer)
+            }
+      seen.set(key, segment)
+      if (segment.type === 'assistantTurn' && segment.turn.hasContent) {
+        segments.push(segment)
       }
       turnBuffer = []
     }
@@ -432,14 +514,76 @@ export function groupIntoSegments(messages: ChatMessage[]): Segment[] {
   for (const msg of messages) {
     if (msg.role === 'user') {
       flushTurn()
-      segments.push({ type: 'user', message: msg })
+      currentRun = msg.runId ?? msg.id
+      const key = `user:${msg.id}`
+      const cached = cache?.get(key)
+      const segment: Segment =
+        cached?.type === 'user' && cached.message === msg
+          ? cached
+          : { type: 'user', message: msg }
+      seen.set(key, segment)
+      segments.push(segment)
     } else {
+      const runId = msg.runId ?? currentRun ?? msg.id
+      if (turnBuffer.length > 0 && runId !== turnRunId) flushTurn()
+      turnRunId = runId
       turnBuffer.push(msg)
     }
   }
   flushTurn()
 
+  // Keep only what this pass saw, so a long-lived cache can't outgrow the chat.
+  if (cache) {
+    cache.clear()
+    for (const [key, segment] of seen) cache.set(key, segment)
+  }
+
   return segments
+}
+
+/** What `buildCitationSources` returned last time, to reuse arrays from. */
+export interface CitationSourcesCache {
+  turns: Segment[]
+  sources: WebSearchResult[][]
+}
+
+/**
+ * Every web-search source seen through each assistant turn, in chat order — a
+ * turn can cite a source an earlier turn found, so badge resolution needs the
+ * cumulative set. A turn's array only changes if that turn or one before it
+ * did; otherwise the previous array is handed back, because `Markdown` is
+ * memoized on its identity: a fresh array per frame re-parsed every message in
+ * any chat that had run a web search.
+ */
+// eslint-disable-next-line react-refresh/only-export-components -- pure helper, exported for tests
+export function buildCitationSources(
+  segments: Segment[],
+  cache?: CitationSourcesCache
+): Map<Segment, WebSearchResult[]> {
+  const map = new Map<Segment, WebSearchResult[]>()
+  const turns: Segment[] = []
+  const sources: WebSearchResult[][] = []
+  const acc: WebSearchResult[] = []
+  let prefixUnchanged = cache !== undefined
+
+  for (const segment of segments) {
+    if (segment.type !== 'assistantTurn') continue
+    if (segment.turn.webSearchResults.length > 0) {
+      acc.push(...segment.turn.webSearchResults)
+    }
+    const i = turns.length
+    prefixUnchanged = prefixUnchanged && cache?.turns[i] === segment
+    const forTurn = prefixUnchanged && cache ? cache.sources[i] : acc.slice()
+    turns.push(segment)
+    sources.push(forTurn)
+    map.set(segment, forTurn)
+  }
+
+  if (cache) {
+    cache.turns = turns
+    cache.sources = sources
+  }
+  return map
 }
 
 function Messages({
@@ -447,7 +591,8 @@ function Messages({
   status,
   messages,
   regenerate,
-  showDiscover
+  showDiscover,
+  runError
 }: MessagesProps) {
   const { t } = useTranslation('chat')
   const isLoading = status === 'streaming' || status === 'submitted'
@@ -469,24 +614,35 @@ function Messages({
   const discoverHasContent =
     discoverActive && (discoverFeed?.groups.length ?? 0) > 0
 
-  const segments = useMemo(() => groupIntoSegments(messages), [messages, t])
+  // Caches of the previous pass, so unchanged segments (and their citation
+  // arrays) keep their identity from frame to frame — see `SegmentCache`. Both
+  // are pure memo tables: same input, same output, whatever is in them. Turn
+  // labels are translated when a turn is built, hence a fresh pair per `t`.
+  const caches = useMemo(
+    () => ({
+      segments: new Map() as SegmentCache,
+      citations: { turns: [], sources: [] } as CitationSourcesCache
+    }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- `t` is the reset key
+    [t]
+  )
 
-  // Accumulate web-search sources across turns so a turn that cites a source
-  // found in an earlier turn can still resolve its 【N-source】 badges. Keyed by
-  // the segment object (same memoized refs used in render below); each value is
-  // a snapshot of every source seen through that turn, in chat order.
-  const citationSourcesByTurn = useMemo(() => {
-    const map = new Map<Segment, WebSearchResult[]>()
-    const acc: WebSearchResult[] = []
-    for (const segment of segments) {
-      if (segment.type !== 'assistantTurn') continue
-      if (segment.turn.webSearchResults.length > 0) {
-        acc.push(...segment.turn.webSearchResults)
-      }
-      map.set(segment, acc.slice())
-    }
-    return map
-  }, [segments])
+  const segments = useMemo(
+    () => groupIntoSegments(messages, caches.segments),
+    [messages, caches]
+  )
+
+  // The messages the chat opened with: history, rendered in place. Only a
+  // run that starts after that is "fresh" and gets an entrance — the whole
+  // transcript rising on every open would be motion without a purpose.
+  const [openedWith] = useState(() => new Set(messages.map((m) => m.id)))
+  const isFresh = (runId: string) => !openedWith.has(runId)
+
+  // Keyed by the segment object (same memoized refs used in render below).
+  const citationSourcesByTurn = useMemo(
+    () => buildCitationSources(segments, caches.citations),
+    [segments, caches]
+  )
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'instant') => {
     const $el = chatBoxRef.current
@@ -526,7 +682,7 @@ function Messages({
     <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
       <section
         className={cn(
-          'no-scrollbar flex flex-1 flex-col items-center gap-8 overflow-y-scroll px-16 pt-4 transition-[padding]',
+          'no-scrollbar flex flex-1 flex-col items-center gap-8 overflow-y-scroll px-16 pt-4 transition-[padding] duration-200 ease-out',
           // Room for the floating composer to clear the last message — but
           // only once it's floating (the landing screen keeps it in flow).
           messages.length === 0 ? 'pb-6' : 'pb-36'
@@ -566,6 +722,7 @@ function Messages({
                 <UserSegment
                   key={segment.message.id}
                   message={segment.message}
+                  fresh={isFresh(segment.message.runId ?? segment.message.id)}
                 />
               )
             }
@@ -575,15 +732,33 @@ function Messages({
 
             return (
               <AssistantTurnSegment
-                key={`turn-${segIdx}`}
+                key={`run-${segment.turn.runId}`}
                 chatId={chatId}
                 turn={segment.turn}
                 citationSources={citationSourcesByTurn.get(segment)}
                 isStreaming={turnIsStreaming}
                 regenerate={regenerate}
+                fresh={isFresh(segment.turn.runId)}
+                error={
+                  runError?.runId === segment.turn.runId
+                    ? runError.message
+                    : undefined
+                }
               />
             )
           })}
+
+          {/* A run that failed before any step completed has no turn to
+              carry its error; it shows under the prompt. */}
+          {runError &&
+            !segments.some(
+              (s) =>
+                s.type === 'assistantTurn' && s.turn.runId === runError.runId
+            ) && (
+              <p role="alert" className="text-destructive mb-8 text-sm">
+                {t('run.error', { message: runError.message })}
+              </p>
+            )}
 
           {shouldShowMessageSpinner(segments, isLoading) && <MessageSpinner />}
         </div>

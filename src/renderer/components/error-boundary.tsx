@@ -1,7 +1,9 @@
 import { AlertTriangleIcon, RotateCcwIcon } from 'lucide-react'
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router'
 
+import { reportRendererError } from '@/lib/report-error'
 import { cn } from '@/lib/utils'
 
 import { Button } from './ui/button'
@@ -10,6 +12,14 @@ export function RouteErrorBoundary() {
   const { t } = useTranslation('errors')
   const error = useRouteError()
   const navigate = useNavigate()
+
+  // What DevTools would have shown, in the log instead — this screen is
+  // what the user sees of a crash in a packaged build.
+  useEffect(() => {
+    reportRendererError('route', error, {
+      route: window.location.hash || window.location.pathname
+    })
+  }, [error])
 
   let title = t('routeBoundary.title')
   let description = t('routeBoundary.description')

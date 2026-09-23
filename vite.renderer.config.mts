@@ -1,10 +1,9 @@
 import { resolve } from 'path'
 
+import { stripDataTestId } from '@exodus/shared/utils/strip-test-id'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig, type Plugin } from 'vite'
-
-import { stripDataTestId } from './packages/shared/src/utils/strip-test-id'
 
 const stripTestIds = process.env.STRIP_TEST_IDS === '1'
 
@@ -53,11 +52,12 @@ export default defineConfig({
     // disk) never had the problem.
     preserveSymlinks: false
   },
-  // React Compiler (`babel({ presets: [reactCompilerPreset()] })` from
-  // @rolldown/plugin-babel) is deliberately off: the business UI ported from
-  // universal-client was written and tested without it, and the migration
-  // aims for identical runtime behavior. Add it back here once that UI has
-  // been checked against it.
+  // No React Compiler — evaluated 2026-09-19 and dropped (its two packages are
+  // uninstalled). The streaming hot path (messages.tsx, markdown.tsx) is
+  // already memoized by hand, while 29 `form.watch()` reads across the
+  // settings forms would go stale under it (react-hook-form, a known
+  // incompatibility), for a build that takes 2.5x as long. The full notes are
+  // in docs/migration-plan.md.
   plugins: [
     ...(stripTestIds ? [stripTestIdPlugin()] : []),
     react(),

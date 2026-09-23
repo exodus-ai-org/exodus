@@ -30,7 +30,7 @@ export function githubRepoUrl(ownerRepo: string): string {
 
 // exodus-cli — the terminal counterpart of the Skills Market page.
 export const EXODUS_CLI_NPM = 'https://www.npmjs.com/package/exodus-cli'
-export const EXODUS_CLI_REPO = 'https://github.com/exodus-ai-org/exodus-cli'
+export const EXODUS_CLI_REPO = 'https://github.com/exodus-ai-org/cli'
 
 // Documentation
 export const BRAVE_SEARCH_DOCS =

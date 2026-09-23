@@ -329,19 +329,27 @@ describe('chat namespace (en) — tool-card additions', () => {
   it('has the weatherCard keys', () => {
     expect(chat.weatherCard.today).toBe('Today')
     expect(chat.weatherCard.tomorrow).toBe('Tmr')
-    expect(chat.weatherCard.feels).toBe('Feels {{temp}}° · {{observedAt}}')
+    expect(chat.weatherCard.feelsLike).toBe('Feels like {{temp}}°')
+    expect(chat.weatherCard.observedAt).toBe('Observed {{time}}')
     expect(chat.weatherCard.humidity).toBe('Humidity')
+    expect(chat.weatherCard.wind).toBe('Wind')
     expect(chat.weatherCard.precip).toBe('Precip')
     expect(chat.weatherCard.visibility).toBe('Visibility')
     expect(chat.weatherCard.uvIndex).toBe('UV Index')
+    expect(chat.weatherCard.pressure).toBe('Pressure')
+    expect(chat.weatherCard.rainChance).toBe('{{percent}}% rain')
+    expect(chat.weatherCard.sunrise).toBe('Sunrise')
+    expect(chat.weatherCard.sunset).toBe('Sunset')
+    // The card's Details / Less toggle.
+    expect(chat.weatherCard.details).toBe('Details')
+    expect(chat.weatherCard.less).toBe('Less')
   })
 
-  it('has the weatherForecast keys', () => {
-    expect(chat.weatherForecast.temperatureRange).toBe('🌡️ Temperature range')
-    expect(chat.weatherForecast.cold).toBe('❄️ Cold')
-    expect(chat.weatherForecast.hot).toBe('🔥 Hot')
-    expect(chat.weatherForecast.sunrise).toBe('Sunrise')
-    expect(chat.weatherForecast.sunset).toBe('Sunset')
+  it('no longer carries the retired weather-forecast panel', () => {
+    // The 2026-09-23 card redesign folded the forecast into the card; its
+    // emoji-labelled panel keys and `weatherCard.feels` went with it.
+    expect(chat).not.toHaveProperty('weatherForecast')
+    expect(chat.weatherCard).not.toHaveProperty('feels')
   })
 })
 

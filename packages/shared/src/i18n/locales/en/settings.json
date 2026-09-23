@@ -95,6 +95,9 @@
     "about": {
       "title": "About Exodus"
     },
+    "devices": {
+      "title": "Devices"
+    },
     "group": {
       "personal": "Personal",
       "aiTools": "AI & Tools",
@@ -120,11 +123,14 @@
       "open-settings": {
         "label": "Open settings"
       },
-      "toggle-sidebar": {
-        "label": "Toggle sidebar"
+      "lock-now": {
+        "label": "Lock now"
       },
       "toggle-developer-tools": {
         "label": "Toggle developer tools"
+      },
+      "toggle-sidebar": {
+        "label": "Toggle sidebar"
       },
       "force-refresh-page": {
         "label": "Force refresh page"
@@ -153,6 +159,10 @@
     }
   },
   "about": {
+    "sections": {
+      "runtime": "Runtime",
+      "links": "Links"
+    },
     "version": "Version",
     "electron": "Electron",
     "chromium": "Chromium",
@@ -184,6 +194,11 @@
     }
   },
   "personality": {
+    "sections": {
+      "style": "Style",
+      "instructions": "Instructions",
+      "aboutYou": "About you"
+    },
     "baseStyle": {
       "label": "Base style and tone",
       "description": "Set the style and tone of how Exodus responds to you",
@@ -315,6 +330,13 @@
     }
   },
   "tools": {
+    "intro": "What the model may call on its own. Turn a tool off to keep it out of every chat. A tool that needs a key or has options carries its settings under its row; one that is on but missing its key says so until it is set.",
+    "configure": "Configure",
+    "needsKey": {
+      "webSearch": "Needs a Brave Search API key",
+      "imageGeneration": "Needs an OpenAI API key — set it under Providers",
+      "mapItinerary": "Needs a Google API key"
+    },
     "groups": {
       "web": "Web",
       "fileSystem": "File System",
@@ -508,6 +530,11 @@
     }
   },
   "dataControls": {
+    "sections": {
+      "backups": "Backups",
+      "transfer": "Export & import",
+      "danger": "Danger zone"
+    },
     "autoBackup": {
       "label": "Automatic Backups",
       "description": "Back up your data daily at 3:00 AM. Backups are stored locally in ~/.exodus/backups/."
@@ -642,6 +669,16 @@
       "json": "JSON"
     },
     "empty": "No MCP servers configured yet.",
+    "emptyHint": "Servers you register show up here, each with a switch for its tools.",
+    "addCard": {
+      "title": "Add an MCP server",
+      "description": "A local command (stdio) or a remote URL. Its tools become available in chat once it is switched on."
+    },
+    "deleteDialog": {
+      "title": "Remove {{name}}?",
+      "description": "Its tools disappear from chat, and its command, headers and config are deleted. You can register it again later.",
+      "confirm": "Remove"
+    },
     "form": {
       "transport": {
         "label": "Transport",
@@ -746,6 +783,10 @@
       }
     },
     "settings": {
+      "sections": {
+        "memory": "Memory",
+        "context": "Context management"
+      },
       "autoCapture": {
         "label": "Capture memories",
         "description": "After each conversation, consolidate durable facts about you (interests, setup, people) into memory — updating existing entries rather than duplicating them."
@@ -764,12 +805,13 @@
       },
       "freshTailSize": {
         "label": "Fresh tail size",
-        "description": "Number of recent messages protected from compaction (8-64). These are always sent to the model verbatim. Default: 16."
+        "description": "Number of recent runs — a message of yours with every model step and tool result that answered it — protected from compaction (2-24). They are always sent to the model verbatim. Default: 6."
       },
       "newMemoryDefaultKey": "New memory",
       "storedMemoriesHeading": "Stored memories",
       "newButton": "New",
-      "emptyState": "No memories yet — they're added automatically after conversations, or tell the assistant to remember something below.",
+      "emptyTitle": "No memories yet",
+      "emptyHint": "They are added automatically after conversations — or tell the assistant what to remember below.",
       "disabledHeading": "Disabled · {{count}}",
       "toast": {
         "loadFailedTitle": "Failed to load memories",
@@ -784,7 +826,8 @@
       "trending": "Trending (24h)",
       "hot": "Hot",
       "allTime": "All time",
-      "allTimeWithTotal": "All time ({{total}})"
+      "allTimeWithTotal": "All time ({{total}})",
+      "curated": "Curated"
     },
     "tabs": {
       "discover": "Discover",
@@ -804,8 +847,16 @@
       "moreFromSource_other": "+{{count}} more from {{source}} ({{total}} total)",
       "lessFromSource": "Show fewer from {{source}}"
     },
+    "curated": {
+      "summary": "{{owners}} publishers · {{skills}} skills",
+      "skillCount_one": "{{count}} skill",
+      "skillCount_other": "{{count}} skills",
+      "featured": "Featured",
+      "showAll": "Show all ({{count}} more)",
+      "showFewer": "Show fewer"
+    },
     "card": {
-      "installs": "{{formatted}} installs",
+      "installs": "<n>{{formatted}}</n> installs",
       "installedBadge": "Installed",
       "trend": "+{{formatted}} today"
     },
@@ -847,7 +898,7 @@
       "uninstallDescription": "Its files are removed from the skills folder. You can install it again at any time."
     },
     "cli": {
-      "notice": "Prefer the terminal? <cli>exodus-cli</cli> manages the same skills: <code>npm i -g exodus-cli</code>, then <code>exodus skills</code>."
+      "title": "Prefer the terminal? Use <cli>exodus-cli</cli>"
     },
     "toast": {
       "installedTitle": "“{{name}}” installed",
@@ -856,12 +907,6 @@
       "uninstallFailed": "Uninstall failed",
       "updateFailed": "Couldn’t update the skill",
       "copied": "Command copied"
-    },
-    "leaderboard": {
-      "rank": "#",
-      "skill": "Skill",
-      "activity": "Today",
-      "installs": "Installs"
     }
   },
   "toast": {
@@ -916,6 +961,53 @@
     "toast": {
       "snapshotBuilt": "Snapshot built",
       "snapshotFailed": "Couldn’t build the snapshot"
+    }
+  },
+  "devices": {
+    "heading": "Paired devices",
+    "description": "Phones and tablets that may use Exodus over your local network. A device has to be paired here first; until one is, Exodus is not reachable from the network at all.",
+    "empty": "No paired devices",
+    "emptyHint": "Devices you pair show up here. You can revoke one at any time.",
+    "pair": "Pair a device",
+    "pairCard": {
+      "title": "Connect an iPhone or iPad",
+      "description": "Pairing shows a QR code for two minutes. Scan it with the Exodus app on the device."
+    },
+    "pairing": {
+      "title": "Scan with Exodus on your iPhone",
+      "steps": {
+        "open": "Open Exodus on your iPhone or iPad",
+        "navigate": "Go to <strong>Settings → Pair with computer</strong>",
+        "scan": "Scan this code"
+      },
+      "sameNetwork": "Both devices must be on the same network.",
+      "expiresIn": "Expires in {{time}}",
+      "copyLink": "Copy pairing link",
+      "linkCopied": "Pairing link copied",
+      "cancel": "Cancel"
+    },
+    "row": {
+      "pairedOn": "Paired {{date}}",
+      "lastSeen": "Last seen {{date}}",
+      "neverSeen": "Never connected",
+      "revoke": "Revoke"
+    },
+    "revokeDialog": {
+      "title": "Revoke {{name}}?",
+      "description": "It loses access immediately and has to be paired again to come back.",
+      "confirm": "Revoke"
+    },
+    "reset": {
+      "label": "Reset all pairings",
+      "rowDescription": "Removes every device and issues a new certificate.",
+      "button": "Reset all",
+      "title": "Reset all pairings?",
+      "description": "Every device is removed and a new certificate is issued. Each device has to scan a new code.",
+      "confirm": "Reset"
+    },
+    "toast": {
+      "failedTitle": "That didn't work",
+      "pairedTitle": "Device paired"
     }
   }
 }

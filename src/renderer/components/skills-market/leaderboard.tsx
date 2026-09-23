@@ -16,24 +16,14 @@ import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 import useSWRInfinite from 'swr/infinite'
 
+import { SettingsEmpty } from '@/components/settings/settings-kit'
+import { SettingsSection } from '@/components/settings/settings-row'
 import { Button } from '@/components/ui/button'
-import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle
-} from '@/components/ui/empty'
+import { Card } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
 import { registryKey, searchKey } from '@/services/skills'
 
-import { SectionLabel } from './section-label'
-import {
-  ROW_GRID,
-  SkillRow,
-  SkillRowSkeleton,
-  useCompactNumber
-} from './skill-row'
+import { SkillRow, SkillRowSkeleton, useCompactNumber } from './skill-row'
 
 const SKELETONS = Array.from({ length: 8 }, (_, i) => i)
 
@@ -57,7 +47,7 @@ function groupBySource(items: SkillListItem[], collapse: boolean): RowGroup[] {
   const groups: RowGroup[] = []
   items.forEach((item, i) => {
     const ranked = { item, rank: i + 1 }
-    const last = groups[groups.length - 1]
+    const last = groups.at(-1)
     if (collapse && last && last.head.item.source === item.source) {
       last.rest.push(ranked)
       last.total += item.installs
@@ -68,32 +58,82 @@ function groupBySource(items: SkillListItem[], collapse: boolean): RowGroup[] {
   return groups
 }
 
-function LoadFailed({ onRetry }: { onRetry: () => void }) {
+export function LoadFailed({ onRetry }: { onRetry: () => void }) {
   const { t } = useTranslation(['settings', 'common'])
   return (
-    <Empty>
-      <EmptyHeader>
-        <EmptyMedia variant="icon">
-          <UnplugIcon />
-        </EmptyMedia>
-        <EmptyTitle>{t('skillsMarket.browse.loadFailed')}</EmptyTitle>
-        <EmptyDescription>
-          {t('skillsMarket.browse.loadFailedHint')}
-        </EmptyDescription>
-      </EmptyHeader>
-      <Button variant="outline" size="sm" onClick={onRetry}>
-        {t('common:action.retry')}
-      </Button>
-    </Empty>
+    <SettingsSection>
+      <SettingsEmpty
+        icon={UnplugIcon}
+        title={t('skillsMarket.browse.loadFailed')}
+        description={t('skillsMarket.browse.loadFailedHint')}
+      >
+        <Button variant="outline" size="sm" onClick={onRetry}>
+          {t('common:action.retry')}
+        </Button>
+      </SettingsEmpty>
+    </SettingsSection>
   )
 }
 
-function Skeletons({ count }: { count: number }) {
+/** The list card every browse view is drawn in: rows with hairlines. */
+export function ListCard({
+  className,
+  children
+}: {
+  className?: string
+  children: React.ReactNode
+}) {
   return (
-    <div className="divide-border divide-y">
+    <Card className={cn('divide-border gap-0 divide-y py-0', className)}>
+      {children}
+    </Card>
+  )
+}
+
+export function Skeletons({ count }: { count: number }) {
+  return (
+    <ListCard>
       {SKELETONS.slice(0, count).map((i) => (
         <SkillRowSkeleton key={i} />
       ))}
+    </ListCard>
+  )
+}
+
+/** A "show more / show fewer" line under a row, lined up with its text. */
+export function ExpandToggle({
+  open,
+  label,
+  indent,
+  testId,
+  onClick
+}: {
+  open: boolean
+  label: string
+  /** Where the rows above start their text. */
+  indent: 'ranked' | 'nested'
+  testId?: string
+  onClick: () => void
+}) {
+  return (
+    <div className={cn('py-2', indent === 'ranked' ? 'pl-13' : 'pl-8')}>
+      <Button
+        type="button"
+        variant="ghost"
+        size="xs"
+        data-testid={testId}
+        aria-expanded={open}
+        className="text-muted-foreground -ml-2.5"
+        onClick={onClick}
+      >
+        {label}
+        <ChevronDownIcon
+          className={cn(
+            'transition-transform duration-200',
+            open && 'rotate-180'
+          )}
+        />
+      </Button>
     </div>
   )
 }
@@ -139,33 +179,22 @@ export function LeaderboardTable({
   )
 
   return (
-    <div className="divide-border flex flex-col divide-y">
-      <div className={cn(ROW_GRID, 'pb-2')}>
-        <SectionLabel>{t('skillsMarket.leaderboard.rank')}</SectionLabel>
-        <SectionLabel>{t('skillsMarket.leaderboard.skill')}</SectionLabel>
-        <SectionLabel className="justify-self-end">
-          {showActivity ? t('skillsMarket.leaderboard.activity') : ''}
-        </SectionLabel>
-        <SectionLabel className="justify-self-end">
-          {t('skillsMarket.leaderboard.installs')}
-        </SectionLabel>
-      </div>
+    <ListCard>
       {groups.map((group) => {
         const id = group.head.item.id
         const open = expanded.has(id)
         return (
           <div key={id} className="divide-border flex flex-col divide-y">
             {row(group.head)}
+            {open && group.rest.map(row)}
             {group.rest.length > 0 && (
-              <>
-                {open && group.rest.map(row)}
-                <button
-                  type="button"
-                  data-testid={TEST_IDS.skillsMarket.expandGroupButton}
-                  onClick={() => toggle(id)}
-                  className="text-muted-foreground hover:text-foreground flex items-center gap-1.5 py-2.5 pl-11 text-left font-mono text-xs transition-colors"
-                >
-                  {open
+              <ExpandToggle
+                open={open}
+                indent="ranked"
+                testId={TEST_IDS.skillsMarket.expandGroupButton}
+                onClick={() => toggle(id)}
+                label={
+                  open
                     ? t('skillsMarket.browse.lessFromSource', {
                         source: group.head.item.source
                       })
@@ -173,20 +202,14 @@ export function LeaderboardTable({
                         count: group.rest.length,
                         source: group.head.item.source,
                         total: compact(group.total)
-                      })}
-                  <ChevronDownIcon
-                    className={cn(
-                      'size-3.5 transition-transform',
-                      open && 'rotate-180'
-                    )}
-                  />
-                </button>
-              </>
+                      })
+                }
+              />
             )}
           </div>
         )
       })}
-    </div>
+    </ListCard>
   )
 }
 
@@ -208,26 +231,20 @@ export function SearchResults({
   if (error) return <LoadFailed onRetry={() => mutate()} />
   if (!data || data.data.length === 0) {
     return (
-      <Empty>
-        <EmptyHeader>
-          <EmptyMedia variant="icon">
-            <SearchXIcon />
-          </EmptyMedia>
-          <EmptyTitle>
-            {t('skillsMarket.browse.noResults', { query })}
-          </EmptyTitle>
-          <EmptyDescription>
-            {t('skillsMarket.browse.noResultsHint')}
-          </EmptyDescription>
-        </EmptyHeader>
-      </Empty>
+      <SettingsSection>
+        <SettingsEmpty
+          icon={SearchXIcon}
+          title={t('skillsMarket.browse.noResults', { query })}
+          description={t('skillsMarket.browse.noResultsHint')}
+        />
+      </SettingsSection>
     )
   }
   return (
-    <div className="flex flex-col gap-3">
-      <p className="text-muted-foreground font-mono text-xs">
-        {t('skillsMarket.browse.resultCount', { count: data.data.length })}
-      </p>
+    <SettingsSection
+      title={t('skillsMarket.browse.resultCount', { count: data.data.length })}
+      plain
+    >
       <LeaderboardTable
         items={data.data}
         installedSlugs={installedSlugs}
@@ -235,7 +252,7 @@ export function SearchResults({
         collapseSources={false}
         onOpen={onOpen}
       />
-    </div>
+    </SettingsSection>
   )
 }
 
@@ -266,7 +283,7 @@ export function RegistryLeaderboard({
     }
     return out
   }, [data])
-  const hasMore = data?.[data.length - 1]?.pagination.hasMore ?? false
+  const hasMore = data?.at(-1)?.pagination.hasMore ?? false
   const loadingMore = isValidating && size > 1
 
   if (isLoading) return <Skeletons count={8} />
@@ -275,11 +292,12 @@ export function RegistryLeaderboard({
   }
   if (items.length === 0) {
     return (
-      <Empty>
-        <EmptyHeader>
-          <EmptyTitle>{t('skillsMarket.browse.empty')}</EmptyTitle>
-        </EmptyHeader>
-      </Empty>
+      <SettingsSection>
+        <SettingsEmpty
+          icon={SearchXIcon}
+          title={t('skillsMarket.browse.empty')}
+        />
+      </SettingsSection>
     )
   }
 

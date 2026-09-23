@@ -4,28 +4,32 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 // pulling in pi-ai's Type builder or the real tool implementations.
 const stub = (name: string) => ({ name })
 vi.mock('@main/lib/ai/calling-tools', () => ({
-  createArtifact: () => stub('createArtifact'),
-  deepResearch: stub('deepResearch'),
-  editFile: stub('editFile'),
-  findFiles: stub('findFiles'),
+  createArtifact: () => stub('create_artifact'),
+  deepResearch: stub('deep_research'),
+  editFile: stub('edit_file'),
+  findFiles: () => stub('find_files'),
   grep: stub('grep'),
-  imageGeneration: () => stub('imageGeneration'),
-  lcmDescribe: stub('lcmDescribe'),
-  lcmExpand: () => stub('lcmExpand'),
-  lcmGrep: stub('lcmGrep'),
-  listDirectory: stub('listDirectory'),
-  mapItinerary: () => stub('mapItinerary'),
-  readFile: stub('readFile'),
+  imageGeneration: () => stub('image_generation'),
+  lcmDescribe: stub('lcm_describe'),
+  lcmExpand: () => stub('lcm_expand'),
+  lcmGrep: stub('lcm_grep'),
+  listDirectory: stub('list_directory'),
+  mapItinerary: () => stub('map_itinerary'),
+  readFile: stub('read_file'),
   searchKnowledgeBase: (_client: unknown, _cfg: unknown) =>
-    stub('searchKnowledgeBase'),
-  terminal: stub('terminal'),
+    stub('search_knowledge_base'),
+  terminal: () => stub('terminal'),
   weather: stub('weather'),
-  webFetch: () => stub('webFetch'),
-  webSearch: () => stub('webSearch'),
-  writeFile: stub('writeFile')
+  webFetch: () => stub('web_fetch'),
+  webSearch: () => stub('web_search'),
+  writeFile: stub('write_file')
 }))
 
 const mockResolveKnowledgeBase = vi.fn()
+// The binder resolves the chat's workspace through paths.ts, which reads
+// Electron's `app` for the legacy-location migration.
+vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
+
 vi.mock('@main/lib/knowledge-base/resolve-knowledge-base', () => ({
   resolveKnowledgeBase: mockResolveKnowledgeBase
 }))
@@ -56,7 +60,7 @@ describe('bindCallingTools — knowledge base', () => {
       setting: { id: 'global', knowledgeBase: { url: 'http://h:9621' } },
       mcpTools: []
     } as never)
-    expect(names(tools)).toContain('searchKnowledgeBase')
+    expect(names(tools)).toContain('search_knowledge_base')
   })
 
   it('does not bind it when the knowledge base is unconfigured', () => {
@@ -66,7 +70,7 @@ describe('bindCallingTools — knowledge base', () => {
       setting: { id: 'global' },
       mcpTools: []
     } as never)
-    expect(names(tools)).not.toContain('searchKnowledgeBase')
+    expect(names(tools)).not.toContain('search_knowledge_base')
   })
 
   it('does not bind it when the tool is disabled in settings', () => {
@@ -76,11 +80,12 @@ describe('bindCallingTools — knowledge base', () => {
       setting: {
         id: 'global',
         knowledgeBase: { url: 'http://h:9621' },
+        // The pre-rename key still disables the tool.
         tools: { disabledTools: ['searchKnowledgeBase'] }
       },
       mcpTools: []
     } as never)
-    expect(names(tools)).not.toContain('searchKnowledgeBase')
+    expect(names(tools)).not.toContain('search_knowledge_base')
   })
 })
 
@@ -90,9 +95,9 @@ describe('bindCallingTools — provider tool-count cap', () => {
     mockLoggerWarn.mockReset()
   })
 
-  it('truncates a combined tool count over 128 (OpenAI rejects the request otherwise)', () => {
-    // A single MCP server can expose far more tools than any built-in set —
-    // this is the exact shape that produced "array too long ... length 152".
+  it("binds the two-tool MCP toolbox instead of the servers' tools, however many there are", () => {
+    // A single MCP server can expose far more tools than any provider's cap
+    // (OpenAI: 128) — the shape that once produced "array too long ... 152".
     const mcpTools = [
       {
         mcpServerName: 'alphavantage',
@@ -104,33 +109,22 @@ describe('bindCallingTools — provider tool-count cap', () => {
       setting: { id: 'global' },
       mcpTools
     } as never)
-    expect(tools.length).toBe(128)
-    expect(mockLoggerWarn).toHaveBeenCalled()
-  })
-
-  it('keeps every built-in tool before filling the remaining budget with MCP tools', () => {
-    const mcpTools = [
-      {
-        mcpServerName: 'alphavantage',
-        tools: Array.from({ length: 140 }, (_, i) => stub(`mcp-${i}`))
-      }
-    ]
-    const tools = bindCallingTools({
-      advancedTools: [],
-      setting: { id: 'global' },
-      mcpTools
-    } as never)
+    expect(names(tools)).toContain('list_mcp_tools')
+    expect(names(tools)).toContain('call_mcp_tool')
+    expect(names(tools)).not.toContain('mcp-0')
     expect(names(tools)).toContain('weather')
     expect(names(tools)).toContain('terminal')
+    expect(tools.length).toBeLessThan(30)
+    expect(mockLoggerWarn).not.toHaveBeenCalled()
   })
 
-  it('does not truncate or warn when under the limit', () => {
+  it('binds no toolbox when no MCP server is connected', () => {
     const tools = bindCallingTools({
       advancedTools: [],
       setting: { id: 'global' },
-      mcpTools: [{ mcpServerName: 'small', tools: [stub('mcp-1')] }]
+      mcpTools: []
     } as never)
-    expect(tools.length).toBeLessThan(128)
-    expect(mockLoggerWarn).not.toHaveBeenCalled()
+    expect(names(tools)).not.toContain('list_mcp_tools')
+    expect(names(tools)).not.toContain('call_mcp_tool')
   })
 })

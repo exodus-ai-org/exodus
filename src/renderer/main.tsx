@@ -14,13 +14,19 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { ToneBridge } from '@/components/tone-bridge'
 import { useLock } from '@/hooks/use-lock'
 import { i18nReady } from '@/lib/i18n'
+import { installMenuBridge } from '@/lib/menu-bridge'
 import { queryClient } from '@/lib/query-client'
+import { installGlobalErrorReporting } from '@/lib/report-error'
 import { bootTone } from '@/lib/tone'
 import { router } from '@/routes'
 
 // First paint already carries the user's colour tone: apply the cached value
 // synchronously, before anything renders. ToneBridge keeps it live.
 bootTone()
+// Catches what no ErrorBoundary in the tree below can — see its docstring.
+installGlobalErrorReporting()
+// New Chat / Settings… on the native menu — see menu-bridge.ts.
+installMenuBridge()
 
 function AppRoot() {
   const { status, refresh, locked } = useLock()
@@ -31,7 +37,7 @@ function AppRoot() {
 }
 
 void i18nReady.finally(() => {
-  ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+  ReactDOM.createRoot(document.querySelector('#root') as HTMLElement).render(
     <QueryClientProvider client={queryClient}>
       <SWRConfig value={{ fetcher }}>
         <Provider>

@@ -1,5 +1,6 @@
-import type { Model } from '@mariozechner/pi-ai'
-import { completeSimple } from '@mariozechner/pi-ai'
+import type { Model } from '@earendil-works/pi-ai'
+
+import { completeSimple } from './complete'
 
 const SYSTEM = `You expand a web-search query into alternate phrasings that a search index would match against DIFFERENT pages, to widen recall.
 

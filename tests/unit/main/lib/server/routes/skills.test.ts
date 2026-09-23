@@ -11,6 +11,7 @@ vi.mock('@main/lib/logger', () => ({
 const client = vi.hoisted(() => ({
   listSkills: vi.fn(),
   searchSkills: vi.fn(),
+  listCuratedSkills: vi.fn(),
   getSkillDetail: vi.fn(),
   getSkillAudit: vi.fn()
 }))
@@ -59,6 +60,20 @@ describe('/api/v1/skills', () => {
       page: 3,
       perPage: 100
     })
+  })
+
+  it('GET /curated proxies the publishers list', async () => {
+    client.listCuratedSkills.mockResolvedValue({
+      data: [{ owner: 'vercel', totalInstalls: 1, skills: [] }],
+      totalOwners: 1,
+      totalSkills: 0,
+      generatedAt: 'x'
+    })
+    const app = await buildApp()
+    const res = await app.request('/api/v1/skills/curated')
+    expect(res.status).toBe(200)
+    const body = (await res.json()) as { totalOwners: number }
+    expect(body.totalOwners).toBe(1)
   })
 
   it('GET /search requires q', async () => {

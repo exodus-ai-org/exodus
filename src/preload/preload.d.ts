@@ -21,7 +21,6 @@ export interface ElectronBridge {
   process: {
     readonly platform: NodeJS.Platform
     readonly versions: NodeJS.ProcessVersions
-    readonly env: NodeJS.ProcessEnv
   }
 }
 

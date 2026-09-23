@@ -1,126 +1,12 @@
-export interface WeatherAPIResponse {
-  current_condition: CurrentCondition[]
-  nearest_area: NearestArea[]
-  request: Request[]
-  weather: Weather[]
-}
-
-export interface CurrentCondition {
-  FeelsLikeC: string
-  FeelsLikeF: string
-  cloudcover: string
-  humidity: string
-  localObsDateTime: string
-  observation_time: string
-  precipInches: string
-  precipMM: string
-  pressure: string
-  pressureInches: string
-  temp_C: string
-  temp_F: string
-  uvIndex: string
-  visibility: string
-  visibilityMiles: string
-  weatherCode: string
-  weatherDesc: Value[]
-  weatherIconUrl: Value[]
-  winddir16Point: string
-  winddirDegree: string
-  windspeedKmph: string
-  windspeedMiles: string
-}
-
-export interface NearestArea {
-  areaName: Value[]
-  country: Value[]
-  latitude: string
-  longitude: string
-  population: string
-  region: Value[]
-  weatherUrl: Value[]
-}
-
-export interface Value {
-  value: string
-}
-
-export interface Request {
-  query: string
-  type: string
-}
-
-export interface Weather {
-  astronomy: Astronomy[]
-  avgtempC: string
-  avgtempF: string
-  date: string
-  hourly: Hourly[]
-  maxtempC: string
-  maxtempF: string
-  mintempC: string
-  mintempF: string
-  sunHour: string
-  totalSnow_cm: string
-  uvIndex: string
-}
-
-export interface Astronomy {
-  moon_illumination: string
-  moon_phase: string
-  moonrise: string
-  moonset: string
-  sunrise: string
-  sunset: string
-}
-
-export interface Hourly {
-  DewPointC: string
-  DewPointF: string
-  FeelsLikeC: string
-  FeelsLikeF: string
-  HeatIndexC: string
-  HeatIndexF: string
-  WindChillC: string
-  WindChillF: string
-  WindGustKmph: string
-  WindGustMiles: string
-  chanceoffog: string
-  chanceoffrost: string
-  chanceofhightemp: string
-  chanceofovercast: string
-  chanceofrain: string
-  chanceofremdry: string
-  chanceofsnow: string
-  chanceofsunshine: string
-  chanceofthunder: string
-  chanceofwindy: string
-  cloudcover: string
-  diffRad: string
-  humidity: string
-  precipInches: string
-  precipMM: string
-  pressure: string
-  pressureInches: string
-  shortRad: string
-  tempC: string
-  tempF: string
-  time: string
-  uvIndex: string
-  visibility: string
-  visibilityMiles: string
-  weatherCode: string
-  weatherDesc: Value[]
-  weatherIconUrl: Value[]
-  winddir16Point: string
-  winddirDegree: string
-  windspeedKmph: string
-  windspeedMiles: string
-}
-
-// ── Tool result shape (returned by the weather calling-tool) ──────────────────
+// ── Tool result shape (returned by the `weather` calling-tool) ────────────────
+//
+// Times are the place's local time. New rows carry ISO local timestamps
+// ("2026-09-23T06:02"); rows saved before the Open-Meteo switch carry
+// wttr.in's forms ("300" for an hourly slot, "06:52 AM" for sunrise) and the
+// card reads both.
 
 export interface WeatherHourly {
-  time: string // "0" | "300" | ... | "2100"
+  time: string
   tempC: string
   weatherCode: string
   condition: string
@@ -154,13 +40,79 @@ export interface WeatherResult {
     visibility: string
     pressure: string
     observedAt: string
+    /** False at night — a clear night is a moon, not a sun. Absent on old rows. */
+    isDay?: boolean
   }
   forecast: WeatherForecastDay[]
 }
 
-// ── Raw API response (wttr.in) ─────────────────────────────────────────────────
+// ── Conditions ────────────────────────────────────────────────────────────────
 
-export const WWO_CODE = {
+/** The condition vocabulary the card draws from — one icon per name. */
+export type WeatherConditionName =
+  | 'Sunny'
+  | 'PartlyCloudy'
+  | 'Cloudy'
+  | 'VeryCloudy'
+  | 'Fog'
+  | 'LightShowers'
+  | 'LightSleetShowers'
+  | 'LightSleet'
+  | 'LightSnow'
+  | 'LightSnowShowers'
+  | 'HeavySnow'
+  | 'HeavySnowShowers'
+  | 'LightRain'
+  | 'HeavyShowers'
+  | 'HeavyRain'
+  | 'ThunderyShowers'
+  | 'ThunderyHeavyRain'
+  | 'ThunderySnowShowers'
+
+/**
+ * WMO weather interpretation codes (what Open-Meteo returns) → the condition
+ * name and the words for it.
+ */
+export const WMO_CODE: Record<
+  string,
+  { name: WeatherConditionName; text: string }
+> = {
+  '0': { name: 'Sunny', text: 'Clear sky' },
+  '1': { name: 'Sunny', text: 'Mainly clear' },
+  '2': { name: 'PartlyCloudy', text: 'Partly cloudy' },
+  '3': { name: 'Cloudy', text: 'Overcast' },
+  '45': { name: 'Fog', text: 'Fog' },
+  '48': { name: 'Fog', text: 'Rime fog' },
+  '51': { name: 'LightShowers', text: 'Light drizzle' },
+  '53': { name: 'LightShowers', text: 'Drizzle' },
+  '55': { name: 'LightShowers', text: 'Dense drizzle' },
+  '56': { name: 'LightSleet', text: 'Freezing drizzle' },
+  '57': { name: 'LightSleet', text: 'Dense freezing drizzle' },
+  '61': { name: 'LightRain', text: 'Slight rain' },
+  '63': { name: 'LightRain', text: 'Rain' },
+  '65': { name: 'HeavyRain', text: 'Heavy rain' },
+  '66': { name: 'LightSleet', text: 'Freezing rain' },
+  '67': { name: 'LightSleet', text: 'Heavy freezing rain' },
+  '71': { name: 'LightSnow', text: 'Slight snow' },
+  '73': { name: 'LightSnow', text: 'Snow' },
+  '75': { name: 'HeavySnow', text: 'Heavy snow' },
+  '77': { name: 'LightSnow', text: 'Snow grains' },
+  '80': { name: 'LightShowers', text: 'Slight rain showers' },
+  '81': { name: 'HeavyShowers', text: 'Rain showers' },
+  '82': { name: 'HeavyShowers', text: 'Violent rain showers' },
+  '85': { name: 'LightSnowShowers', text: 'Slight snow showers' },
+  '86': { name: 'HeavySnowShowers', text: 'Heavy snow showers' },
+  '95': { name: 'ThunderyShowers', text: 'Thunderstorm' },
+  '96': { name: 'ThunderyHeavyRain', text: 'Thunderstorm with hail' },
+  '99': { name: 'ThunderyHeavyRain', text: 'Thunderstorm with heavy hail' }
+}
+
+/**
+ * World Weather Online codes, which wttr.in returned. Rows saved before the
+ * Open-Meteo switch (2026-09-23) carry these; the two ranges do not overlap
+ * (WMO is 0–99, WWO 113–395), so `conditionNameOf` reads either.
+ */
+export const WWO_CODE: Record<string, WeatherConditionName> = {
   '113': 'Sunny',
   '116': 'PartlyCloudy',
   '119': 'Cloudy',
@@ -209,4 +161,29 @@ export const WWO_CODE = {
   '389': 'ThunderyHeavyRain',
   '392': 'ThunderySnowShowers',
   '395': 'HeavySnowShowers'
+}
+
+export function conditionNameOf(weatherCode: string): WeatherConditionName {
+  return WMO_CODE[weatherCode]?.name ?? WWO_CODE[weatherCode] ?? 'Cloudy'
+}
+
+/**
+ * The hour of a weather time, as a fraction (13.5 = 13:30), in any of the
+ * forms a row may carry: ISO local ("2026-09-23T06:02"), wttr.in's clock
+ * ("06:52 AM") or its hourly slot ("0" … "2100"). `null` if none matches.
+ */
+export function weatherClockHours(time: string): number | null {
+  const iso = /T(\d{2}):(\d{2})/u.exec(time)
+  if (iso) return Number(iso[1]) + Number(iso[2]) / 60
+  const clock = /^(\d{1,2}):(\d{2})\s*(AM|PM)$/iu.exec(time.trim())
+  if (clock) {
+    let h = Number(clock[1]) % 12
+    if (clock[3].toUpperCase() === 'PM') h += 12
+    return h + Number(clock[2]) / 60
+  }
+  if (/^\d{1,4}$/u.test(time)) {
+    const n = Number(time)
+    return Math.floor(n / 100) + (n % 100) / 60
+  }
+  return null
 }

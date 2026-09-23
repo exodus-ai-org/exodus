@@ -8,7 +8,7 @@ vi.mock('@main/lib/ai/artifacts', () => ({ saveArtifact }))
 
 // Type.Object/String are noops in unit context; the real pi-ai schema builder
 // is not interesting for this test.
-vi.mock('@mariozechner/pi-ai', () => ({
+vi.mock('@earendil-works/pi-ai', () => ({
   Type: {
     Object: (s: unknown) => s,
     String: (s: unknown) => s

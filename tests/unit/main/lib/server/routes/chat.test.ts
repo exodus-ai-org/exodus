@@ -1,25 +1,23 @@
 // src/main/lib/server/routes/chat.ts
 //
-// No pre-existing unit test for this route was found (only chat-errors.test.ts,
-// which covers chat.ts's pure helper exports, not the POST '/' handler itself —
-// the route's end-to-end behavior is otherwise only exercised by the Playwright
-// suite in tests/api/v1/chat-*.spec.ts). This file mocks the route's collaborators
-// the same way tests/unit/main/lib/ai/philharmonic/employee-loop.test.ts mocks
-// agentLoop + getModelFromProvider for a structurally similar agentLoop caller,
-// and tests/unit/main/lib/server/middlewares/trace.test.ts's pattern of wrapping
-// a route in a bare Hono app and driving it with app.request().
+// The route's own job — validate, build the run, map kernel events onto SSE,
+// persist however it ends — with the kernel (`runAgent`) mocked to a scripted
+// event stream. The kernel itself is tested in tests/unit/main/lib/ai/kernel/,
+// and chat.faux.test.ts drives this route through the real kernel on pi's
+// faux provider. The route is wrapped in a bare Hono app and driven with
+// app.request(), the pattern of middlewares/trace.test.ts.
 import { Hono } from 'hono'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
 
-const agentLoopMock = vi.fn()
-vi.mock('@mariozechner/pi-agent-core', () => ({
-  agentLoop: (...args: unknown[]) => agentLoopMock(...args)
+const runAgentMock = vi.fn()
+vi.mock('@main/lib/ai/kernel/run', () => ({
+  runAgent: (...args: unknown[]) => runAgentMock(...args)
 }))
-vi.mock('@mariozechner/pi-ai', () => ({}))
 
 vi.mock('@main/lib/ai/context-management', () => ({
+  freshTailRuns: () => 6,
   LcmManager: class {
     trackNewMessages = vi.fn(async () => {})
     assembleContext = vi.fn(async () => ({ messages: [] }))
@@ -43,7 +41,7 @@ vi.mock('@main/lib/ai/prompts', () => ({
 }))
 
 vi.mock('@main/lib/ai/skills/skills-manager', () => ({
-  getActiveSkillsContent: vi.fn(async () => '')
+  getActiveSkillsIndex: vi.fn(async () => '')
 }))
 
 const getModelFromProviderMock = vi.fn()
@@ -60,10 +58,6 @@ vi.mock('@main/lib/ai/utils/chat-message-util', () => ({
 
 vi.mock('@main/lib/ai/utils/cost', () => ({
   calculateCost: vi.fn(() => ({ total: 0 }))
-}))
-
-vi.mock('@main/lib/ai/utils/transform-messages', () => ({
-  transformMessages: vi.fn((m: unknown) => m)
 }))
 
 vi.mock('@main/lib/db/project-queries', () => ({
@@ -101,6 +95,11 @@ vi.mock('@main/lib/search/resolve-search-provider', () => ({
 }))
 
 const { default: chat } = await import('@main/lib/server/routes/chat')
+const { saveMessages } = await import('@main/lib/db/queries')
+const { resolveSearchProvider } =
+  await import('@main/lib/search/resolve-search-provider')
+const saveMessagesMock = vi.mocked(saveMessages)
+const resolveSearchProviderMock = vi.mocked(resolveSearchProvider)
 
 const FAKE_MODEL = { id: 'fake-model', cost: { input: 1, output: 2 } }
 const CHAT_ID = '11111111-1111-4111-8111-111111111111'
@@ -118,7 +117,9 @@ function buildApp() {
   return app
 }
 
-function fakeAgentStream(events: unknown[]) {
+const RUN_ID = 'u1'
+
+function fakeRun(events: unknown[]) {
   return {
     async *[Symbol.asyncIterator]() {
       for (const e of events) yield e
@@ -126,22 +127,45 @@ function fakeAgentStream(events: unknown[]) {
   }
 }
 
-function successfulTurn() {
-  return fakeAgentStream([
-    {
-      type: 'message_end',
-      message: {
-        role: 'assistant',
-        content: [{ type: 'text', text: 'Hello world' }],
-        usage: { input: 1, output: 1, totalTokens: 2 },
-        api: 'anthropic-messages',
-        provider: 'anthropic',
-        model: 'claude-x',
-        stopReason: 'stop',
-        timestamp: Date.now()
-      }
-    }
+function assistant(overrides: Record<string, unknown> = {}) {
+  return {
+    id: overrides.id ?? 'a1',
+    runId: RUN_ID,
+    role: 'assistant',
+    content: [{ type: 'text', text: 'partial answer' }],
+    usage: { input: 1, output: 1, totalTokens: 2 },
+    api: 'anthropic-messages',
+    provider: 'anthropic',
+    model: 'claude-x',
+    stopReason: 'stop',
+    timestamp: Date.now(),
+    ...overrides
+  }
+}
+
+/** A run that answers "Hello world" in one step. */
+function successfulRun() {
+  const message = assistant({
+    content: [{ type: 'text', text: 'Hello world' }]
+  })
+  return fakeRun([
+    { type: 'message_end', runId: RUN_ID, message },
+    { type: 'run_end', runId: RUN_ID, messages: [message], durationMs: 10 }
   ])
+}
+
+/** Rows handed to saveMessages for the assistant side of the turn. */
+function savedAssistantRows() {
+  return saveMessagesMock.mock.calls
+    .flatMap(([arg]) => arg.messages)
+    .filter((row) => row.role === 'assistant')
+}
+
+function sseEvents(body: string): Array<{ type: string }> {
+  return body
+    .split('\n\n')
+    .filter((frame) => frame.startsWith('data: '))
+    .map((frame) => JSON.parse(frame.slice(6)))
 }
 
 function postChat(body: Record<string, unknown>) {
@@ -165,19 +189,21 @@ describe('POST /api/v1/chat', () => {
       model: FAKE_MODEL,
       apiKey: 'test-key'
     })
-    agentLoopMock.mockReturnValue(successfulTurn())
+    runAgentMock.mockReturnValue(successfulRun())
   })
 
-  it('passes reasoningEffort through to agentLoop as the reasoning option', async () => {
+  it('passes reasoningEffort through to the kernel as the reasoning level', async () => {
     const response = await postChat({ reasoningEffort: 'high' })
     await response.text() // drain the SSE stream so start() finishes
 
-    expect(agentLoopMock).toHaveBeenCalledTimes(1)
-    const options = agentLoopMock.mock.calls[0][2]
-    expect(options).toMatchObject({
+    expect(runAgentMock).toHaveBeenCalledTimes(1)
+    const input = runAgentMock.mock.calls[0][0]
+    expect(input).toMatchObject({
+      chatId: CHAT_ID,
       model: FAKE_MODEL,
       apiKey: 'test-key',
-      reasoning: 'high'
+      reasoning: 'high',
+      userMessage: { id: RUN_ID, runId: RUN_ID, role: 'user' }
     })
   })
 
@@ -185,24 +211,24 @@ describe('POST /api/v1/chat', () => {
     const response = await postChat({ reasoningEffort: 'off' })
     await response.text()
 
-    const options = agentLoopMock.mock.calls[0][2]
-    expect(options.reasoning).toBeUndefined()
+    const input = runAgentMock.mock.calls[0][0]
+    expect(input.reasoning).toBeUndefined()
   })
 
   it('omits reasoning when reasoningEffort is absent', async () => {
     const response = await postChat({})
     await response.text()
 
-    const options = agentLoopMock.mock.calls[0][2]
-    expect(options.reasoning).toBeUndefined()
+    const input = runAgentMock.mock.calls[0][0]
+    expect(input.reasoning).toBeUndefined()
   })
 
-  it('maps reasoningEffort "max" down to "xhigh" (pi-agent-core has no "max" ThinkingLevel)', async () => {
+  it('passes reasoningEffort "max" through (a ThinkingLevel since pi 0.85)', async () => {
     const response = await postChat({ reasoningEffort: 'max' })
     await response.text()
 
-    const options = agentLoopMock.mock.calls[0][2]
-    expect(options.reasoning).toBe('xhigh')
+    const input = runAgentMock.mock.calls[0][0]
+    expect(input.reasoning).toBe('max')
   })
 
   it('forces reasoning "high" for Deep Research regardless of reasoningEffort', async () => {
@@ -212,8 +238,8 @@ describe('POST /api/v1/chat', () => {
     })
     await response.text()
 
-    const options = agentLoopMock.mock.calls[0][2]
-    expect(options.reasoning).toBe('high')
+    const input = runAgentMock.mock.calls[0][0]
+    expect(input.reasoning).toBe('high')
   })
 
   it('enqueues lcm-post-turn and memory-consolidate payloads with the renamed model field', async () => {
@@ -236,5 +262,199 @@ describe('POST /api/v1/chat', () => {
       apiKey: 'test-key'
     })
     expect(memoryCall?.[1]).not.toHaveProperty('chatModel')
+  })
+
+  describe('index-message job', () => {
+    it('is not enqueued when Elasticsearch is not configured', async () => {
+      const response = await postChat({})
+      await response.text()
+
+      const queues = enqueueAndProcessMock.mock.calls.map((c) => c[0])
+      expect(queues).not.toContain('index-message')
+    })
+
+    it('is enqueued for the user message and each new message when Elasticsearch is configured', async () => {
+      resolveSearchProviderMock.mockReturnValue({
+        elasticsearch: {},
+        pglite: {}
+      } as never)
+
+      const response = await postChat({})
+      await response.text()
+
+      const indexed = enqueueAndProcessMock.mock.calls.filter(
+        (c) => c[0] === 'index-message'
+      )
+      expect(indexed.map((c) => (c[1] as { role: string }).role)).toEqual([
+        'user',
+        'assistant'
+      ])
+      resolveSearchProviderMock.mockReturnValue({
+        elasticsearch: null,
+        pglite: {}
+      } as never)
+    })
+  })
+
+  describe('saving the run', () => {
+    it('saves the steps that finished when a later step fails, and still reports the error', async () => {
+      const stepOne = assistant({
+        content: [{ type: 'text', text: 'step one' }]
+      })
+      runAgentMock.mockReturnValue(
+        fakeRun([
+          { type: 'message_end', runId: RUN_ID, message: stepOne },
+          {
+            type: 'run_end',
+            runId: RUN_ID,
+            messages: [stepOne],
+            durationMs: 5
+          },
+          { type: 'error', runId: RUN_ID, error: 'provider 500' }
+        ])
+      )
+
+      const response = await postChat({})
+      const events = sseEvents(await response.text())
+
+      expect(events.map((e) => e.type)).toContain('error')
+      const rows = savedAssistantRows()
+      expect(rows).toHaveLength(1)
+      expect(JSON.stringify(rows[0].content)).toContain('step one')
+      expect(rows[0]).toMatchObject({ runId: RUN_ID, durationMs: 5 })
+      // LCM must learn about what was saved, or its context drifts from the DB.
+      expect(
+        enqueueAndProcessMock.mock.calls.some((c) => c[0] === 'lcm-post-turn')
+      ).toBe(true)
+    })
+
+    it('keeps the partial answer of a stopped run', async () => {
+      const partial = assistant({ stopReason: 'aborted' })
+      runAgentMock.mockReturnValue(
+        fakeRun([
+          { type: 'run_end', runId: RUN_ID, messages: [partial], durationMs: 5 }
+        ])
+      )
+
+      const response = await postChat({})
+      const events = sseEvents(await response.text())
+
+      expect(events.map((e) => e.type)).not.toContain('error')
+      const rows = savedAssistantRows()
+      expect(rows).toHaveLength(1)
+      expect(JSON.stringify(rows[0].content)).toContain('partial answer')
+    })
+
+    it('a run that produced nothing saves nothing and is not an error', async () => {
+      runAgentMock.mockReturnValue(
+        fakeRun([
+          { type: 'run_end', runId: RUN_ID, messages: [], durationMs: 1 }
+        ])
+      )
+
+      const response = await postChat({})
+      const events = sseEvents(await response.text())
+
+      expect(events.map((e) => e.type)).not.toContain('error')
+      expect(savedAssistantRows()).toHaveLength(0)
+    })
+
+    it('maps a tool step onto tool_call_start / message_update / tool_call_end, with the notice', async () => {
+      const call = assistant({
+        id: 'a1',
+        stopReason: 'toolUse',
+        content: [
+          { type: 'toolCall', id: 'c1', name: 'weather', arguments: {} }
+        ]
+      })
+      const result = {
+        id: 't1',
+        runId: RUN_ID,
+        role: 'toolResult',
+        toolCallId: 'c1',
+        toolName: 'weather',
+        content: [{ type: 'text', text: 'sunny' }],
+        details: { notice: { level: 'warning', message: 'key expiring' } },
+        isError: false,
+        timestamp: Date.now()
+      }
+      const answer = assistant({
+        id: 'a2',
+        content: [{ type: 'text', text: 'Sunny.' }]
+      })
+      runAgentMock.mockReturnValue(
+        fakeRun([
+          { type: 'message_end', runId: RUN_ID, message: call },
+          {
+            type: 'tool_start',
+            runId: RUN_ID,
+            toolCallId: 'c1',
+            toolName: 'weather',
+            messageId: 't1'
+          },
+          { type: 'tool_end', runId: RUN_ID, message: result },
+          { type: 'message_end', runId: RUN_ID, message: answer },
+          {
+            type: 'run_end',
+            runId: RUN_ID,
+            messages: [call, result, answer],
+            durationMs: 7
+          }
+        ])
+      )
+
+      const response = await postChat({})
+      const events = sseEvents(await response.text())
+
+      expect(events.map((e) => e.type)).toEqual([
+        'tool_call_start',
+        'message_update',
+        'notice',
+        'tool_call_end',
+        'title', // a new chat: its title is generated in the background
+        'done'
+      ])
+      const done = events.at(-1) as {
+        messages: Array<{ runId?: string; role: string }>
+      }
+      expect(done.messages.map((m) => m.role)).toEqual([
+        'user',
+        'assistant',
+        'toolResult',
+        'assistant'
+      ])
+      expect(done.messages.every((m) => m.runId === RUN_ID)).toBe(true)
+      expect(savedAssistantRows()).toHaveLength(2)
+    })
+
+    it('still saves the run when the client has hung up (Stop cancels the response stream)', async () => {
+      let release!: () => void
+      const gate = new Promise<void>((resolve) => (release = resolve))
+      const partial = assistant({ stopReason: 'aborted' })
+      runAgentMock.mockReturnValue({
+        async *[Symbol.asyncIterator]() {
+          yield {
+            type: 'message_update',
+            runId: RUN_ID,
+            message: assistant({ stopReason: 'pending' })
+          }
+          await gate
+          yield {
+            type: 'run_end',
+            runId: RUN_ID,
+            messages: [partial],
+            durationMs: 3
+          }
+        }
+      })
+
+      const response = await postChat({})
+      const reader = response.body!.getReader()
+      await reader.read() // first frame arrived — the run is streaming
+      await reader.cancel()
+      release()
+
+      await vi.waitFor(() => expect(savedAssistantRows()).toHaveLength(1))
+    })
   })
 })

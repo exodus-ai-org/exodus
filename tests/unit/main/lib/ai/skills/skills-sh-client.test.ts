@@ -39,6 +39,24 @@ describe('skills-sh-client', () => {
     expect(url.searchParams.get('per_page')).toBe('10')
   })
 
+  it('lists the curated publishers from /api/v1/skills/curated', async () => {
+    const { listCuratedSkills } =
+      await import('@main/lib/ai/skills/skills-sh-client')
+    fetchMock.mockResolvedValue(
+      jsonResponse(200, {
+        data: [],
+        totalOwners: 0,
+        totalSkills: 0,
+        generatedAt: '2026-09-20T00:00:00.000Z'
+      })
+    )
+    const res = await listCuratedSkills()
+    expect(res.totalOwners).toBe(0)
+    const url = fetchMock.mock.calls[0][0] as URL
+    expect(url.pathname).toBe('/api/v1/skills/curated')
+    expect([...url.searchParams.keys()]).toEqual([])
+  })
+
   it('honours EXODUS_SKILLS_BFF_URL', async () => {
     process.env.EXODUS_SKILLS_BFF_URL = 'http://localhost:9999'
     const { searchSkills } =

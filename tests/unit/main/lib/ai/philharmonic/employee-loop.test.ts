@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
 
 const agentLoopMock = vi.fn()
-vi.mock('@mariozechner/pi-agent-core', () => ({
+vi.mock('@earendil-works/pi-agent-core', () => ({
   agentLoop: (...args: unknown[]) => agentLoopMock(...args)
 }))
-vi.mock('@mariozechner/pi-ai', () => ({}))
+vi.mock('@earendil-works/pi-ai', () => ({}))
 vi.mock('@main/lib/db/queries', () => ({
   getSettings: async () => ({ id: 's' })
 }))

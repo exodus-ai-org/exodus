@@ -170,18 +170,19 @@
   "weatherCard": {
     "today": "今日",
     "tomorrow": "明日",
-    "feels": "体感 {{temp}}° · {{observedAt}}",
     "humidity": "湿度",
     "precip": "降水量",
     "visibility": "視界",
-    "uvIndex": "UV指数"
-  },
-  "weatherForecast": {
-    "temperatureRange": "🌡️ 気温の範囲",
-    "cold": "❄️ 最低",
-    "hot": "🔥 最高",
+    "uvIndex": "UV指数",
+    "wind": "風",
+    "pressure": "気圧",
+    "feelsLike": "体感 {{temp}}°",
     "sunrise": "日の出",
-    "sunset": "日の入り"
+    "sunset": "日の入り",
+    "rainChance": "降水 {{percent}}%",
+    "observedAt": "{{time}} 観測",
+    "details": "詳細",
+    "less": "閉じる"
   },
   "sourcesPanel": {
     "title_other": "{{count}}件のソース",
@@ -254,5 +255,9 @@
       "updatedTitle": "プロジェクトを更新しました",
       "deletedTitle": "プロジェクトを削除しました"
     }
-  }
+  },
+  "run": {
+    "error": "この回答はエラーで中断しました: {{message}}"
+  },
+  "renderFailed": "{{what}} を表示できませんでした。"
 }

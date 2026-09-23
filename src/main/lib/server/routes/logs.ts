@@ -4,9 +4,11 @@ import { join } from 'path'
 import { ErrorCode } from '@exodus/shared/constants/error-codes'
 import { NotFoundError } from '@exodus/shared/errors/app-error'
 import { Hono } from 'hono'
+import { z } from 'zod'
 
 import {
   localDateStr,
+  logger,
   type LogRecord,
   normalizeToLogRecord
 } from '../../logger'
@@ -99,6 +101,55 @@ logsRouter.get('/export', (c) => {
       'Content-Disposition': `attachment; filename="${date}.jsonl"`
     }
   })
+})
+
+// What one report from the renderer may carry. A stack is the biggest item;
+// anything past the cap is cut, not refused, so a real error still lands.
+const MAX_MESSAGE_CHARS = 2000
+const MAX_ATTRIBUTE_CHARS = 8000
+
+const reportSchema = z.object({
+  level: z.enum(['warn', 'error']),
+  scope: z.string().min(1).max(64),
+  message: z.string().min(1),
+  attributes: z.record(z.string(), z.unknown()).optional()
+})
+
+const clip = (value: unknown, max: number): unknown =>
+  typeof value === 'string' && value.length > max
+    ? `${value.slice(0, max - 1)}…`
+    : value
+
+// POST /api/v1/logs — an error the renderer caught (an error boundary, a
+// route error). Renderer errors otherwise live only in DevTools; this puts
+// them in the same JSONL the Logger tab reads, under a `renderer/<scope>`
+// surface, so a card that failed to render is diagnosable after the fact.
+logsRouter.post('/', async (c) => {
+  const parsed = reportSchema.safeParse(await c.req.json().catch(() => null))
+  if (!parsed.success) {
+    return c.json(
+      {
+        type: 'error',
+        error: { code: ErrorCode.VALIDATION_FAILED, message: 'Invalid report' }
+      },
+      400
+    )
+  }
+  const { level, scope, message, attributes } = parsed.data
+  const detail = attributes
+    ? Object.fromEntries(
+        Object.entries(attributes).map(([k, v]) => [
+          k,
+          clip(v, MAX_ATTRIBUTE_CHARS)
+        ])
+      )
+    : undefined
+  logger[level](
+    `renderer/${scope}`,
+    clip(message, MAX_MESSAGE_CHARS) as string,
+    detail
+  )
+  return c.body(null, 204)
 })
 
 // DELETE /api/v1/logs — clear all logs

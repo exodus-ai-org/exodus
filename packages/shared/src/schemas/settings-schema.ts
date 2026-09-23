@@ -218,8 +218,11 @@ export const MemorySchema = z.object({
   lcmEnabled: z.boolean().default(true),
   // LCM: trigger compaction when context exceeds this % of the context window (50-95)
   contextWindowPercent: formNumber(z.number().gte(50).lte(95)).nullish(),
-  // LCM: number of most recent messages protected from compaction (8-64)
-  freshTailSize: formNumber(z.number().gte(8).lte(64)).nullish()
+  // LCM: number of most recent runs — a user message with every model step
+  // and tool result that answered it — protected from compaction (2-24). It
+  // counted messages (8-64) before the chat kernel rewrite; a stored value
+  // from then is clamped where it is read (`freshTailRuns()`).
+  freshTailSize: formNumber(z.number().gte(2).lte(24)).nullish()
 })
 
 export const PersonalitySchema = z.object({

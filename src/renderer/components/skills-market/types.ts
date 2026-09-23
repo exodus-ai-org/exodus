@@ -1,4 +1,17 @@
-import type { InstalledSkill, SkillListItem } from '@exodus/shared/types/skills'
+import type {
+  InstalledSkill,
+  SkillListItem,
+  SkillsView
+} from '@exodus/shared/types/skills'
+
+/** The registry's leaderboard views, plus its curated publishers list. */
+export type BrowseView = SkillsView | 'curated'
+export const BROWSE_VIEWS: BrowseView[] = [
+  'all-time',
+  'trending',
+  'hot',
+  'curated'
+]
 
 /**
  * What the detail page needs before the registry answers: the id (to fetch),

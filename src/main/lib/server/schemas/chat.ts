@@ -41,6 +41,9 @@ const userMessageSchema = z.object({
 // sources the moment the next turn's `done` frame lands.
 const messageSchema = z.looseObject({
   id: z.string(),
+  // Stamped by the server (a user message's runId is its own id); a client
+  // that sends it is echoing what it was given.
+  runId: z.string().optional(),
   role: z.string(),
   content: z.any()
 })

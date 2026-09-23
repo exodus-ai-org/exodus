@@ -1,12 +1,11 @@
 import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
-import { AlertCircleIcon } from 'lucide-react'
 import { Controller } from 'react-hook-form'
 import { Trans, useTranslation } from 'react-i18next'
 
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 
+import { SettingsIntro } from '../settings-kit'
 import { SettingsRow, SettingsSection } from '../settings-row'
 import { SettingsSelect } from '../settings-select'
 
@@ -71,12 +70,11 @@ export function Voice({ form }: { form: UseFormReturnType }) {
 
   return (
     <>
-      <Alert className="mb-4">
-        <AlertCircleIcon className="h-4 w-4" />
-        <AlertDescription className="inline">
+      <SettingsIntro>
+        <p>
           <OpenAiOnlyNotice />
-        </AlertDescription>
-      </Alert>
+        </p>
+      </SettingsIntro>
 
       <SettingsSection>
         <Controller

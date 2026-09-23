@@ -9,8 +9,8 @@
 // `toolCallToAction` turns the model's one tool call per turn into the typed
 // `Action` the runtime executes.
 
-import { Type } from '@mariozechner/pi-ai'
-import type { Tool } from '@mariozechner/pi-ai'
+import { Type } from '@earendil-works/pi-ai'
+import type { Tool } from '@earendil-works/pi-ai'
 
 import type { Action } from '../../computer/types'
 

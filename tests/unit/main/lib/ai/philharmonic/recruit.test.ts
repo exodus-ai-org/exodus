@@ -1,7 +1,7 @@
 // src/main/lib/ai/philharmonic/recruit.test.ts
 import { describe, expect, it, vi } from 'vitest'
 
-vi.mock('@mariozechner/pi-ai', () => ({
+vi.mock('@earendil-works/pi-ai', () => ({
   completeSimple: vi.fn(async () => ({
     content: [
       {

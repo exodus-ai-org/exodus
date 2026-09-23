@@ -7,8 +7,8 @@
 // stash the result via onCreate so the PM coordinator can attach it to the
 // turn's final conversation_message row.
 
-import type { AgentTool } from '@mariozechner/pi-agent-core'
-import { Type } from '@mariozechner/pi-ai'
+import type { AgentTool } from '@earendil-works/pi-agent-core'
+import { Type } from '@earendil-works/pi-ai'
 import { v4 as uuidV4 } from 'uuid'
 
 import { saveArtifact } from '../artifacts'

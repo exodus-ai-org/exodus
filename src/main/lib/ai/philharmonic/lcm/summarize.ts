@@ -1,7 +1,8 @@
 // src/main/lib/ai/philharmonic/lcm/summarize.ts
-import { completeSimple, type Message, type Model } from '@mariozechner/pi-ai'
+import type { Message, Model } from '@earendil-works/pi-ai'
 
 import type { ConversationMessage } from '../../../db/schema'
+import { completeSimple } from '../../utils/complete'
 
 const SYSTEM_PROMPT = `You are a context compactor for a Philharmonic Group chat (a virtual team managed by a PM with employees).
 
@@ -39,11 +40,16 @@ export async function summarizeMessages(args: {
     },
     { apiKey: args.apiKey }
   )
-  return result.content
+  const summary = result.content
     .filter((c): c is { type: 'text'; text: string } => c.type === 'text')
     .map((c) => c.text)
     .join('')
     .trim()
+  // The caller replaces the conversation's rolling summary with whatever comes
+  // back, previous summary folded in. An empty reply (some models end a stream
+  // with no content and no error) must not be allowed to blank it.
+  if (!summary) throw new Error('The summarizer returned no text')
+  return summary
 }
 
 function roleLabel(m: ConversationMessage): string {

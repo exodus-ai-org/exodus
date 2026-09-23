@@ -18,7 +18,7 @@ describe('postRequestBodySchema — message passthrough', () => {
           id: 't1',
           role: 'toolResult',
           toolCallId: 'call_1',
-          toolName: 'webSearch',
+          toolName: 'web_search',
           content: [{ type: 'text', text: 'formatted citations' }],
           details: sources,
           isError: false
@@ -35,7 +35,7 @@ describe('postRequestBodySchema — message passthrough', () => {
     const tool = parsed.messages[1] as Record<string, unknown>
     expect(tool.details).toEqual(sources)
     expect(tool.toolCallId).toBe('call_1')
-    expect(tool.toolName).toBe('webSearch')
+    expect(tool.toolName).toBe('web_search')
     expect(tool.isError).toBe(false)
   })
 

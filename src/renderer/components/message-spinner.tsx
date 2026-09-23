@@ -24,12 +24,26 @@ export function shouldShowMessageSpinner(
   return segments[segments.length - 1]?.type !== 'assistantTurn'
 }
 
+/**
+ * Three dots of the foreground colour, breathing in turn — a wave, not a
+ * blink. Seen on every send, so it is the palette and nothing else: it
+ * follows the colour tone and never reads as a status light. The wave is
+ * `animate-pulse` offset by a third of its period per dot.
+ */
 export function MessageSpinner() {
   return (
-    <div className="flex animate-pulse items-center justify-start space-x-2 p-2">
-      <div className="h-2 w-2 rounded-full bg-blue-400"></div>
-      <div className="h-2 w-2 rounded-full bg-green-400"></div>
-      <div className="h-2 w-2 rounded-full bg-black dark:bg-white"></div>
+    <div
+      className="flex items-center justify-start gap-1.5 px-2 py-3"
+      role="status"
+      aria-live="polite"
+    >
+      {[0, 1, 2].map((i) => (
+        <span
+          key={i}
+          className="bg-foreground/40 size-1.5 animate-pulse rounded-full"
+          style={{ animationDelay: `${i * 240}ms` }}
+        />
+      ))}
     </div>
   )
 }

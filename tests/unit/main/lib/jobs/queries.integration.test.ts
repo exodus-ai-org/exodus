@@ -43,7 +43,7 @@ vi.mock('@main/lib/logger', () => ({
 }))
 
 const { pglite } = await import('@main/lib/db/db')
-const { enqueueJob, readBatch, archiveMessage } =
+const { enqueueJob, readBatch, archiveMessage, deleteMessage, purgeArchive } =
   await import('@main/lib/jobs/queries')
 const { processQueue } = await import('@main/lib/jobs/worker')
 
@@ -96,7 +96,20 @@ describe('job queue SQL against a real PGlite + pgmq instance', () => {
     expect(await archiveDepth()).toBe(1)
   })
 
-  it('processQueue archives a message whose handler succeeds', async () => {
+  // Same overload trap as `archive`: `pgmq.delete(text, bigint)` vs
+  // `pgmq.delete(text, bigint[])` — only real SQL proves the cast resolves.
+  it('deleteMessage removes a message without archiving it', async () => {
+    const archivedBefore = await archiveDepth()
+    await enqueueJob(QUEUE, { id: 'msg-del', chatId: 'chat-del' })
+    const [read] = await readBatch(QUEUE, 0, 5)
+
+    await deleteMessage(QUEUE, read.msgId)
+
+    expect(await queueDepth()).toBe(0)
+    expect(await archiveDepth()).toBe(archivedBefore)
+  })
+
+  it('processQueue deletes — and does not archive — a message whose handler succeeds', async () => {
     mockHandler.mockClear()
     mockHandler.mockResolvedValue(undefined)
     const archivedBefore = await archiveDepth()
@@ -107,7 +120,15 @@ describe('job queue SQL against a real PGlite + pgmq instance', () => {
     expect(mockHandler).toHaveBeenCalledWith({ id: 'msg-2', chatId: 'chat-2' })
     expect(await readBatch(QUEUE, 0, 5)).toEqual([])
     expect(await queueDepth()).toBe(0)
-    expect(await archiveDepth()).toBe(archivedBefore + 1)
+    expect(await archiveDepth()).toBe(archivedBefore)
+  })
+
+  it('purgeArchive empties the (hyphenated, quoted) archive table', async () => {
+    expect(await archiveDepth()).toBeGreaterThan(0)
+
+    await purgeArchive(QUEUE)
+
+    expect(await archiveDepth()).toBe(0)
   })
 
   it('processQueue leaves a message queued when its handler throws', async () => {

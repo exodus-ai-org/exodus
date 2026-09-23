@@ -3,7 +3,7 @@ import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import { postRequestBodySchema } from '@main/lib/server/schemas/chat'
 import { describe, expect, it } from 'vitest'
 
-import { parseCitations } from '@/components/markdown'
+import { parseCitations } from '@/components/markdown-citations'
 import { groupIntoSegments } from '@/components/messages'
 
 // Regression: a follow-up turn used to wipe the citations off every earlier
@@ -39,7 +39,7 @@ const turn1: ChatMessage[] = [
     id: 't1',
     role: 'toolResult',
     toolCallId: 'call_1',
-    toolName: 'webSearch',
+    toolName: 'web_search',
     content: [{ type: 'text', text: 'formatted citations prompt' }],
     details: SOURCES,
     isError: false,
@@ -114,7 +114,7 @@ describe('citations survive a follow-up turn', () => {
         id: 'tf',
         role: 'toolResult',
         toolCallId: 'call_f',
-        toolName: 'webFetch',
+        toolName: 'web_fetch',
         content: [
           { type: 'text', text: '[1] BLS PPI\nURL: https://bls.gov/x' }
         ],

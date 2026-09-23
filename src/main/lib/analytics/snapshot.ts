@@ -2,9 +2,9 @@ import { existsSync, readdirSync, statSync } from 'fs'
 import { mkdir, readFile, rm, writeFile } from 'fs/promises'
 import { join } from 'path'
 
+import type { Usage } from '@earendil-works/pi-ai'
 import { CHAT_AUDIT_SCHEMA } from '@exodus/shared/constants/chat-audit-schema'
 import type { SnapshotMeta } from '@exodus/shared/types/analytics'
-import type { Usage } from '@mariozechner/pi-ai'
 import { eq } from 'drizzle-orm'
 
 import { db } from '../db/db'

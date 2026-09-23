@@ -1,5 +1,6 @@
-import type { AgentTool } from '@mariozechner/pi-agent-core'
-import { Type } from '@mariozechner/pi-ai'
+import type { AgentTool } from '@earendil-works/pi-agent-core'
+import { Type } from '@earendil-works/pi-ai'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import OpenAI from 'openai'
 import { ImageGenerateParams } from 'openai/resources/images'
 
@@ -14,7 +15,7 @@ const imageGenerationSchema = Type.Object({
 export const imageGeneration = (
   setting: Settings
 ): AgentTool<typeof imageGenerationSchema> => ({
-  name: 'imageGeneration',
+  name: TOOL_NAMES.imageGeneration,
   label: 'Image Generation',
   description: 'Generate one or more images from a text prompt.',
   parameters: imageGenerationSchema,

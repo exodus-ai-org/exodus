@@ -48,3 +48,27 @@ export async function archiveMessage(
 ): Promise<void> {
   await db.execute(sql`SELECT pgmq.archive(${queueName}, ${msgId}::bigint)`)
 }
+
+/**
+ * Removes a finished job for good. Success takes this path rather than
+ * `archiveMessage`: nothing ever reads `pgmq.a_*`, and the payloads are heavy
+ * (`memory-consolidate` carries the whole conversation, `index-message` a full
+ * message row) and sensitive (`apiKey`), so archiving every one grew the
+ * database by a copy of each chat per turn. Same `::bigint` cast, same reason
+ * — `delete` is overloaded on `bigint` / `bigint[]` too.
+ */
+export async function deleteMessage(
+  queueName: QueueName,
+  msgId: number
+): Promise<void> {
+  await db.execute(sql`SELECT pgmq.delete(${queueName}, ${msgId}::bigint)`)
+}
+
+/**
+ * Empties a queue's archive table. `TRUNCATE` (not `DELETE`) so the disk space
+ * actually comes back. The table name can't be a bound parameter; `queueName`
+ * is a closed union, never user input.
+ */
+export async function purgeArchive(queueName: QueueName): Promise<void> {
+  await db.execute(sql.raw(`TRUNCATE TABLE pgmq."a_${queueName}"`))
+}

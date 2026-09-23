@@ -1,4 +1,4 @@
-import type { Usage } from '@mariozechner/pi-ai'
+import type { Usage } from '@earendil-works/pi-ai'
 
 /**
  * Regex patterns that match context-window overflow errors from major providers.

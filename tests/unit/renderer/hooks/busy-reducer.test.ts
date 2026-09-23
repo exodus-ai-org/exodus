@@ -72,10 +72,10 @@ describe('reduceBusy', () => {
       type: 'tool_card',
       conversationId: cid,
       messageId: 'm1',
-      toolName: 'searchKnowledgeBase',
+      toolName: 'search_knowledge_base',
       phase: 'start'
     })
-    expect(s.busyAgents.get(PM_KEY)).toBe('running searchKnowledgeBase…')
+    expect(s.busyAgents.get(PM_KEY)).toBe('running search_knowledge_base…')
   })
 
   it('user and system messages do not mark anyone busy', () => {

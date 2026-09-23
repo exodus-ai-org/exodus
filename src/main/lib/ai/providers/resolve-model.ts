@@ -1,6 +1,7 @@
+import type { Api, KnownProvider, Model } from '@earendil-works/pi-ai'
 import type { ModelSnapshot } from '@exodus/shared/schemas/settings-schema'
-import type { Api, KnownProvider, Model } from '@mariozechner/pi-ai'
-import { getModel } from '@mariozechner/pi-ai'
+
+import { getKernelModels } from '../kernel/models'
 
 interface FallbackDefaults {
   contextWindow: number
@@ -82,7 +83,7 @@ export function resolveModel(
 
     // pi-ai's clampThinkingLevel() silently clamps a requested 'xhigh' down to
     // 'high' whenever a model has no thinkingLevelMap entry for 'xhigh' (see
-    // getSupportedThinkingLevels in @mariozechner/pi-ai/dist/models.js — a
+    // getSupportedThinkingLevels in @earendil-works/pi-ai/dist/models.js — a
     // missing map entry means the level isn't "supported"). Our app-level
     // EffortLevel 'max' already collapses to pi-ai's 'xhigh' before it gets
     // here (see chat.ts), so a model whose snapshot reports 'max' or 'xhigh'
@@ -120,13 +121,17 @@ export function resolveModel(
     }
   }
 
-  try {
-    // @ts-expect-error — model ID is user-configured, may not be in registry; fallback below handles it
-    const registered = getModel(provider, id)
+  // The model id is user-configured and may not be in the provider's
+  // catalog; the fallback below covers that.
+  const registered = getKernelModels().getModel(provider, id) as
+    | Model<string>
+    | undefined
+  if (registered) {
     return baseUrl !== registered.baseUrl
       ? { ...registered, baseUrl }
       : registered
-  } catch {
+  }
+  {
     const fallback = MODEL_METADATA_FALLBACK[id]
     return {
       id,

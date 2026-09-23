@@ -2,11 +2,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const mockReadBatch = vi.fn()
 const mockArchiveMessage = vi.fn()
+const mockDeleteMessage = vi.fn()
+const mockPurgeArchive = vi.fn()
 const mockEnqueueJob = vi.fn()
 vi.mock('@main/lib/db/db', () => ({ db: {}, pglite: {} }))
 vi.mock('@main/lib/jobs/queries', () => ({
   readBatch: mockReadBatch,
   archiveMessage: mockArchiveMessage,
+  deleteMessage: mockDeleteMessage,
+  purgeArchive: mockPurgeArchive,
   enqueueJob: mockEnqueueJob
 }))
 
@@ -34,10 +38,11 @@ beforeEach(() => {
   // Faithful to the real signature: `archiveMessage` returns a promise, and
   // `processQueue` attaches a `.catch` to it on the give-up path.
   mockArchiveMessage.mockResolvedValue(undefined)
+  mockDeleteMessage.mockResolvedValue(undefined)
 })
 
 describe('processQueue', () => {
-  it('archives a message after its handler succeeds', async () => {
+  it('deletes — never archives — a message after its handler succeeds', async () => {
     mockReadBatch.mockResolvedValueOnce([
       { msgId: 1, readCt: 0, message: { id: 'msg-1' } }
     ])
@@ -46,7 +51,8 @@ describe('processQueue', () => {
     await processQueue('index-message')
 
     expect(mockIndexMessageHandler).toHaveBeenCalledWith({ id: 'msg-1' })
-    expect(mockArchiveMessage).toHaveBeenCalledWith('index-message', 1)
+    expect(mockDeleteMessage).toHaveBeenCalledWith('index-message', 1)
+    expect(mockArchiveMessage).not.toHaveBeenCalled()
   })
 
   it('leaves a failed message alone for retry when under the attempt cap', async () => {
@@ -58,6 +64,7 @@ describe('processQueue', () => {
     await processQueue('index-message')
 
     expect(mockArchiveMessage).not.toHaveBeenCalled()
+    expect(mockDeleteMessage).not.toHaveBeenCalled()
   })
 
   it('leaves a failed message alone on the last attempt below the cap', async () => {
@@ -69,6 +76,7 @@ describe('processQueue', () => {
     await processQueue('index-message')
 
     expect(mockArchiveMessage).not.toHaveBeenCalled()
+    expect(mockDeleteMessage).not.toHaveBeenCalled()
   })
 
   it('archives a failed message once it exceeds the attempt cap', async () => {
@@ -93,9 +101,9 @@ describe('processQueue', () => {
 
     await expect(processQueue('index-message')).resolves.toBeUndefined()
 
-    // The second message still got handled and archived.
+    // The second message still got handled and cleared off the queue.
     expect(mockIndexMessageHandler).toHaveBeenCalledWith({ id: 'msg-11' })
-    expect(mockArchiveMessage).toHaveBeenCalledWith('index-message', 11)
+    expect(mockDeleteMessage).toHaveBeenCalledWith('index-message', 11)
   })
 
   it('processes an empty batch without error', async () => {

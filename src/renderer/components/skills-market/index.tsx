@@ -1,14 +1,14 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type {
   InstalledSkill,
-  SkillListResponse,
-  SkillsView
+  SkillListResponse
 } from '@exodus/shared/types/skills'
 import { SearchIcon } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import useSWR from 'swr'
 
+import { SettingsIntro } from '@/components/settings/settings-kit'
 import {
   InputGroup,
   InputGroupAddon,
@@ -20,14 +20,18 @@ import { useDebouncedValue } from '@/hooks/use-debounce'
 import { useFormat } from '@/lib/format'
 import { INSTALLED_SKILLS_KEY, registryKey } from '@/services/skills'
 
-import { CliNotice } from './cli-notice'
+import { CliQuickStart } from './cli-notice'
+import { CuratedOwners } from './curated'
 import { InstalledSkillsList } from './installed-list'
 import { RegistryLeaderboard, SearchResults } from './leaderboard'
 import { SkillDetailPage } from './skill-detail'
-import { SkillsSourceNotice } from './source-notice'
-import { refFromListItem, type SkillRef } from './types'
-
-const VIEWS: SkillsView[] = ['all-time', 'trending', 'hot']
+import { SkillsSourceNoticeText } from './source-notice'
+import {
+  BROWSE_VIEWS,
+  type BrowseView,
+  refFromListItem,
+  type SkillRef
+} from './types'
 
 /** `/` focuses the search unless the user is already typing somewhere. */
 function useSlashToFocus(ref: React.RefObject<HTMLInputElement | null>) {
@@ -54,7 +58,7 @@ export function SkillsMarket() {
   const { t } = useTranslation('settings')
   const { number } = useFormat()
   const [query, setQuery] = useState('')
-  const [view, setView] = useState<SkillsView>('all-time')
+  const [view, setView] = useState<BrowseView>('all-time')
   const [selected, setSelected] = useState<SkillRef | null>(null)
   const debouncedQuery = useDebouncedValue(query.trim(), 350)
   const searchRef = useRef<HTMLInputElement>(null)
@@ -72,9 +76,10 @@ export function SkillsMarket() {
   )
   const total = firstPage?.pagination.total
 
-  const viewLabel = (v: SkillsView) => {
+  const viewLabel = (v: BrowseView) => {
     if (v === 'trending') return t('skillsMarket.views.trending')
     if (v === 'hot') return t('skillsMarket.views.hot')
+    if (v === 'curated') return t('skillsMarket.views.curated')
     return total === undefined
       ? t('skillsMarket.views.allTime')
       : t('skillsMarket.views.allTimeWithTotal', { total: number(total) })
@@ -86,7 +91,18 @@ export function SkillsMarket() {
 
   return (
     <div className="flex flex-col gap-6">
-      <SkillsSourceNotice />
+      {/* One short band, split in half: what the page is on the left, the
+          terminal route on the right; stacked when the window is narrow. */}
+      <div className="@container -mt-4">
+        <div className="grid items-start gap-x-8 gap-y-4 @2xl:grid-cols-2">
+          <SettingsIntro className="mt-0">
+            <p>
+              <SkillsSourceNoticeText />
+            </p>
+          </SettingsIntro>
+          <CliQuickStart />
+        </div>
+      </div>
 
       <Tabs defaultValue="discover" className="flex flex-col gap-5">
         <TabsList variant="line">
@@ -102,7 +118,7 @@ export function SkillsMarket() {
           >
             {t('skillsMarket.tabs.installed')}
             {installedList?.length ? (
-              <span className="text-muted-foreground font-mono tabular-nums">
+              <span className="text-muted-foreground tabular-nums">
                 {installedList.length}
               </span>
             ) : null}
@@ -135,25 +151,28 @@ export function SkillsMarket() {
           ) : (
             <Tabs
               value={view}
-              onValueChange={(v) => setView(v as SkillsView)}
+              onValueChange={(v) => setView(v as BrowseView)}
               className="flex flex-col gap-4"
             >
-              <TabsList
-                variant="line"
-                data-testid={TEST_IDS.skillsMarket.viewToggle}
-                className="font-mono"
-              >
-                {VIEWS.map((v) => (
-                  <TabsTrigger key={v} value={v}>
+              <TabsList data-testid={TEST_IDS.skillsMarket.viewToggle}>
+                {BROWSE_VIEWS.map((v) => (
+                  <TabsTrigger key={v} value={v} className="px-3">
                     {viewLabel(v)}
                   </TabsTrigger>
                 ))}
               </TabsList>
-              <RegistryLeaderboard
-                view={view}
-                installedSlugs={installedSlugs}
-                onOpen={(item) => setSelected(refFromListItem(item))}
-              />
+              {view === 'curated' ? (
+                <CuratedOwners
+                  installedSlugs={installedSlugs}
+                  onOpen={(item) => setSelected(refFromListItem(item))}
+                />
+              ) : (
+                <RegistryLeaderboard
+                  view={view}
+                  installedSlugs={installedSlugs}
+                  onOpen={(item) => setSelected(refFromListItem(item))}
+                />
+              )}
             </Tabs>
           )}
         </TabsContent>
@@ -162,8 +181,6 @@ export function SkillsMarket() {
           <InstalledSkillsList onOpen={setSelected} />
         </TabsContent>
       </Tabs>
-
-      <CliNotice />
     </div>
   )
 }

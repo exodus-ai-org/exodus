@@ -30,7 +30,7 @@ function ContentHeader() {
   return (
     <header
       className={cn(
-        'draggable border-border bg-card/80 flex h-12 shrink-0 items-center rounded-tl-xl border-b pr-3 backdrop-blur-sm transition-[padding] duration-200 ease-linear',
+        'draggable border-border bg-card/80 flex h-12 shrink-0 items-center rounded-tl-xl border-b pr-3 backdrop-blur-sm transition-[padding] duration-200 ease-out',
         open ? 'pl-1' : isFullscreen ? 'pl-4' : 'pl-21'
       )}
     >

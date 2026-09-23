@@ -26,7 +26,8 @@ export function SheetPanel({
     <section
       data-slot="sheet-panel"
       className={cn(
-        'bg-background invisible relative flex h-svh w-0 shrink-0 flex-col overflow-hidden transition-[width] duration-200',
+        // A side panel: the drawer curve, so it settles rather than stops.
+        'bg-background invisible relative flex h-svh w-0 shrink-0 flex-col overflow-hidden transition-[width] duration-250 ease-drawer',
         open && 'visible w-88 overflow-y-auto border-l',
         className
       )}

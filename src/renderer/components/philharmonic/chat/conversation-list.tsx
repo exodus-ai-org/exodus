@@ -164,9 +164,12 @@ export function ConversationList({
       )}
     >
       <SidebarHeader
-        className={cn('draggable gap-1 pt-11 transition-[padding]', {
-          ['pt-2']: isFullscreen
-        })}
+        className={cn(
+          'draggable gap-1 pt-11 transition-[padding] duration-200 ease-out',
+          {
+            ['pt-2']: isFullscreen
+          }
+        )}
       >
         <div className="flex items-center px-1 pb-1">
           <WorkspaceSwitcher />

@@ -1,10 +1,14 @@
+import type { Message } from '@earendil-works/pi-ai'
 import type { ChatMessage } from '@exodus/shared/types/chat'
-import type { Message } from '@mariozechner/pi-ai'
 
 export function stripId(msg: ChatMessage): Message {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { id, ...rest } = msg
+  const { id, runId, ...rest } = msg
   return rest as Message
+}
+
+export function withRunId<T extends ChatMessage>(msg: T, runId: string): T {
+  return { ...msg, runId }
 }
 
 export function toDbRow(msg: ChatMessage, chatId: string) {
@@ -12,6 +16,7 @@ export function toDbRow(msg: ChatMessage, chatId: string) {
   const base = {
     id: msg.id,
     chatId,
+    runId: msg.runId,
     role: msg.role,
     content: msg.content,
     createdAt: isNaN(ts.getTime()) ? new Date() : ts

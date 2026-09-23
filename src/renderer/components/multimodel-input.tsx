@@ -1,4 +1,3 @@
-import type { ChatMessage, Usage } from '@exodus/shared/types/chat'
 import { useAtom, useAtomValue } from 'jotai'
 import { ArrowUpIcon, SquareIcon } from 'lucide-react'
 import {
@@ -25,18 +24,16 @@ import { FilePreview } from './file-preview'
 import { Button } from './ui/button'
 import { Textarea } from './ui/textarea'
 
+// Props are deliberately few and stable: this is `memo`'d, and `<Chat>`
+// re-renders on every streamed frame. It used to also take `messages`,
+// `setMessages` and `lastUsage` — none of them read — and `messages` alone
+// changed per frame, so the whole composer re-rendered along with the stream.
 function InputBox({
   chatId,
-  // messages,
-  // setMessages,
   sendMessage
-  // lastUsage
 }: {
   chatId: string
-  messages: ChatMessage[]
-  setMessages: UseChatHelpers['setMessages']
   sendMessage: UseChatHelpers['sendMessage']
-  lastUsage?: Usage | null
 }) {
   const { t } = useTranslation('chat')
   const [input, setInput] = useAtom(chatInputAtom)

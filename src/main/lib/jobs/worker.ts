@@ -6,7 +6,13 @@ import { logger } from '../logger'
 import { bindTraceAttributes, withTrace } from '../logger/trace-context'
 import { handlers } from './handlers'
 import { extractOriginTraceId } from './origin-trace'
-import { archiveMessage, enqueueJob, readBatch } from './queries'
+import {
+  archiveMessage,
+  deleteMessage,
+  enqueueJob,
+  purgeArchive,
+  readBatch
+} from './queries'
 import { QUEUE_NAMES, type QueueName } from './types'
 
 /**
@@ -23,11 +29,14 @@ const BATCH_SIZE = 5
 const MAX_READ_COUNT = 5
 
 /**
- * Reads and processes one batch from a queue. Errors are isolated per
- * message: a handler throwing logs the error and leaves the message alone
+ * Reads and processes one batch from a queue. A job whose handler succeeds is
+ * deleted (see `deleteMessage` for why it isn't archived). Errors are isolated
+ * per message: a handler throwing logs the error and leaves the message alone
  * (pgmq's visibility timeout makes it available again for retry), unless
  * it has already been read `MAX_READ_COUNT` times, in which case it's
- * archived anyway so a permanently-broken payload doesn't retry forever.
+ * archived so a permanently-broken payload doesn't retry forever — the one
+ * case where keeping the payload around (until the next launch's
+ * `purgeArchive`) is worth it.
  *
  * Known limitation — not every job type can actually trigger this
  * retry/give-up logic, because three of the four handlers in `./handlers`
@@ -72,7 +81,7 @@ export async function processQueue(queueName: QueueName): Promise<void> {
         },
         { originTraceId: extractOriginTraceId(msg.message) }
       )
-      await archiveMessage(queueName, msg.msgId)
+      await deleteMessage(queueName, msg.msgId)
     } catch (error) {
       logger.error('jobs', `Job handler failed for ${queueName}`, {
         msgId: msg.msgId,
@@ -141,6 +150,17 @@ export function logEnqueueFailure(queueName: QueueName, error: unknown): void {
  * others.
  */
 export function initJobQueue(): void {
+  // Archives are write-only (see `deleteMessage`). Builds before this one
+  // archived every finished job, so an existing database carries a copy of
+  // each conversation per turn in there, plaintext `apiKey` included.
+  for (const queueName of QUEUE_NAMES) {
+    purgeArchive(queueName).catch((error) => {
+      logger.error('jobs', `Failed to purge the ${queueName} archive`, {
+        errorName: error instanceof Error ? error.name : typeof error
+      })
+    })
+  }
+
   // A refresh can't outlive the process — clear any row stuck at 'refreshing'
   // from a crash or a rejected enqueue so it isn't blocked for up to ~20h.
   resetStuckDiscoverRefresh().catch((error) => {

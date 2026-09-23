@@ -1,6 +1,7 @@
 import { SKILLS_SH_BFF_URL } from '@exodus/shared/constants/external-urls'
 import type {
   SkillAuditResponse,
+  SkillCuratedResponse,
   SkillDetail,
   SkillListResponse,
   SkillSearchResponse,
@@ -62,6 +63,12 @@ export async function searchSkills(
   if (opts.limit !== undefined)
     url.searchParams.set('limit', String(opts.limit))
   return request<SkillSearchResponse>(url)
+}
+
+/** The curated publishers list. No parameters; ~2 MB, every skill of every owner. */
+export async function listCuratedSkills(): Promise<SkillCuratedResponse> {
+  const url = new URL('/api/v1/skills/curated', resolveSkillsBffUrl())
+  return request<SkillCuratedResponse>(url)
 }
 
 /** `id` is `owner/repo/slug` — three path segments on the BFF. */

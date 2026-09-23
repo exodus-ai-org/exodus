@@ -4,10 +4,8 @@ import {
   CogIcon,
   DatabaseIcon,
   HammerIcon,
-  HandCoinsIcon,
   InfoIcon,
   KeyboardIcon,
-  MemoryStickIcon,
   NetworkIcon,
   ScrollTextIcon,
   DatabaseZapIcon,
@@ -19,7 +17,10 @@ import {
   MousePointer2Icon,
   CircleUserRoundIcon,
   MicIcon,
-  CompassIcon
+  CompassIcon,
+  MonitorSmartphoneIcon,
+  SparklesIcon,
+  BrainCircuitIcon
 } from 'lucide-react'
 
 export enum SettingsLabel {
@@ -41,6 +42,7 @@ export enum SettingsLabel {
   DataControls = 'Data Controls',
   Logger = 'Logger',
   ChatAudit = 'Chat Audit',
+  Devices = 'Devices',
   KeyboardShortcuts = 'Keyboard Shortcuts',
   AboutExodus = 'About Exodus'
 }
@@ -80,6 +82,7 @@ export const NAV_TITLE_KEYS = {
   [SettingsLabel.DataControls]: 'nav.dataControls.title',
   [SettingsLabel.Logger]: 'nav.logger.title',
   [SettingsLabel.ChatAudit]: 'nav.chatAudit.title',
+  [SettingsLabel.Devices]: 'nav.devices.title',
   [SettingsLabel.KeyboardShortcuts]: 'nav.keyboardShortcuts.title',
   [SettingsLabel.AboutExodus]: 'nav.about.title'
 } as const satisfies Record<SettingsLabel, ParseKeys<'settings'>>
@@ -97,7 +100,7 @@ export const menus = {
         { title: SettingsLabel.General, icon: CogIcon },
         { title: SettingsLabel.Profile, icon: CircleUserRoundIcon },
         { title: SettingsLabel.Personality, icon: UserIcon },
-        { title: SettingsLabel.Memory, icon: MemoryStickIcon },
+        { title: SettingsLabel.Memory, icon: BrainCircuitIcon },
         { title: SettingsLabel.Discover, icon: CompassIcon },
         { title: SettingsLabel.Voice, icon: MicIcon },
         { title: SettingsLabel.KeyboardShortcuts, icon: KeyboardIcon }
@@ -106,7 +109,7 @@ export const menus = {
     {
       label: 'nav.group.aiTools',
       items: [
-        { title: SettingsLabel.AiProviders, icon: HandCoinsIcon },
+        { title: SettingsLabel.AiProviders, icon: SparklesIcon },
         { title: SettingsLabel.BuiltinTools, icon: WrenchIcon },
         { title: SettingsLabel.DeepResearch, icon: TelescopeIcon }
       ]
@@ -114,14 +117,15 @@ export const menus = {
     {
       // External, connection-backed capabilities: search backends, the
       // knowledge base, the computer-use sandbox, MCP connectors, the skills
-      // marketplace.
+      // marketplace — and the devices allowed to connect to this one.
       label: 'nav.group.integrations',
       items: [
         { title: SettingsLabel.FullTextSearch, icon: TextSearch },
         { title: SettingsLabel.KnowledgeBase, icon: NetworkIcon },
         { title: SettingsLabel.ComputerUse, icon: MousePointer2Icon },
         { title: SettingsLabel.McpServers, icon: HammerIcon },
-        { title: SettingsLabel.SkillsMarket, icon: ShoppingBagIcon }
+        { title: SettingsLabel.SkillsMarket, icon: ShoppingBagIcon },
+        { title: SettingsLabel.Devices, icon: MonitorSmartphoneIcon }
       ]
     },
     {

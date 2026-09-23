@@ -1,8 +1,0 @@
-import { Attachment } from '@exodus/shared/types/chat'
-import { fetcher } from '@exodus/shared/utils/http'
-
-export const customUpload = async (formData: FormData) =>
-  fetcher<Attachment[]>('/api/v1/custom-uploader', {
-    method: 'POST',
-    body: formData
-  })

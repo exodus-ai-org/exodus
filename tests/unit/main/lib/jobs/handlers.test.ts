@@ -1,4 +1,4 @@
-import type { Model } from '@mariozechner/pi-ai'
+import type { Model } from '@earendil-works/pi-ai'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
@@ -105,7 +105,7 @@ describe('handlers.lcm-post-turn', () => {
       chatId: 'chat-1',
       model: fakeModel,
       apiKey: 'key',
-      freshTailSize: 16,
+      freshTailRuns: 6,
       contextWindowPercent: 75,
       newMessages: [{ id: 'msg-1', content: 'hi' }]
     })

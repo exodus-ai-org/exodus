@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync } from 'fs'
 import { writeFile } from 'fs/promises'
-import { join } from 'path'
+import { join, resolve, sep } from 'path'
 
 import { getArtifactsDir } from '../paths'
 
@@ -11,8 +11,27 @@ export interface ArtifactMeta {
   createdAt: string
 }
 
-function getChatArtifactsDir(chatId: string): string {
-  const dir = join(getArtifactsDir(), chatId)
+/**
+ * `<artifacts>/<chatId>`, or null when `chatId` / `artifactId` would climb out
+ * of it. Both reach this module straight from URL params
+ * (`/api/v1/artifacts/:chatId/:artifactId`, where `..%2F` decodes to `../`), so
+ * without the check the route read any `.tsx` / `.json` on disk and `mkdir`ed
+ * wherever it was pointed. Same rule as the `reveal-artifact-file` IPC.
+ */
+function resolveChatDir(chatId: string, artifactId?: string): string | null {
+  const base = resolve(getArtifactsDir())
+  const dir = resolve(base, chatId)
+  if (!dir.startsWith(base + sep)) return null
+  if (artifactId !== undefined) {
+    const file = resolve(dir, `${artifactId}.tsx`)
+    if (!file.startsWith(dir + sep)) return null
+  }
+  return dir
+}
+
+function getChatArtifactsDir(chatId: string, artifactId: string): string {
+  const dir = resolveChatDir(chatId, artifactId)
+  if (!dir) throw new Error('Invalid artifact path')
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true })
   return dir
 }
@@ -23,7 +42,7 @@ export async function saveArtifact(
   title: string,
   code: string
 ): Promise<string> {
-  const dir = getChatArtifactsDir(chatId)
+  const dir = getChatArtifactsDir(chatId, artifactId)
   const filePath = join(dir, `${artifactId}.tsx`)
   const metaPath = join(dir, `${artifactId}.json`)
 
@@ -45,7 +64,8 @@ export function getArtifact(
   chatId: string,
   artifactId: string
 ): { code: string; meta: ArtifactMeta } | null {
-  const dir = join(getArtifactsDir(), chatId)
+  const dir = resolveChatDir(chatId, artifactId)
+  if (!dir) return null
   const filePath = join(dir, `${artifactId}.tsx`)
   const metaPath = join(dir, `${artifactId}.json`)
 
@@ -60,8 +80,8 @@ export function getArtifact(
 }
 
 export function listArtifacts(chatId: string): ArtifactMeta[] {
-  const dir = join(getArtifactsDir(), chatId)
-  if (!existsSync(dir)) return []
+  const dir = resolveChatDir(chatId)
+  if (!dir || !existsSync(dir)) return []
 
   return readdirSync(dir)
     .filter((f) => f.endsWith('.json'))

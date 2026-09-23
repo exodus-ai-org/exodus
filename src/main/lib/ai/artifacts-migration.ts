@@ -10,6 +10,7 @@ import {
 } from 'fs'
 import { join } from 'path'
 
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import { and, eq, sql } from 'drizzle-orm'
 
 import { db } from '../db/db'
@@ -58,7 +59,7 @@ export async function migrateSharedArtifacts(): Promise<void> {
       .from(message)
       .where(
         and(
-          eq(message.toolName, 'createArtifact'),
+          eq(message.toolName, TOOL_NAMES.createArtifact),
           sql`${message.details}->>'artifactId' = ${artifactId}`
         )
       )

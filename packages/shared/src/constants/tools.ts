@@ -1,5 +1,7 @@
 import type { ParseKeys } from 'i18next'
 
+import { TOOL_NAMES } from './tool-names'
+
 export interface ToolMeta {
   key: string
   labelKey: ParseKeys<'settings'>
@@ -12,19 +14,19 @@ export type ToolGroup = 'Web' | 'File System' | 'AI & Data' | 'Maps'
 export const TOOL_REGISTRY: ToolMeta[] = [
   // Web
   {
-    key: 'weather',
+    key: TOOL_NAMES.weather,
     labelKey: 'tools.registry.weather.label',
     descriptionKey: 'tools.registry.weather.description',
     group: 'Web'
   },
   {
-    key: 'webSearch',
+    key: TOOL_NAMES.webSearch,
     labelKey: 'tools.registry.webSearch.label',
     descriptionKey: 'tools.registry.webSearch.description',
     group: 'Web'
   },
   {
-    key: 'webFetch',
+    key: TOOL_NAMES.webFetch,
     labelKey: 'tools.registry.webFetch.label',
     descriptionKey: 'tools.registry.webFetch.description',
     group: 'Web'
@@ -32,43 +34,43 @@ export const TOOL_REGISTRY: ToolMeta[] = [
 
   // File System
   {
-    key: 'terminal',
+    key: TOOL_NAMES.terminal,
     labelKey: 'tools.registry.terminal.label',
     descriptionKey: 'tools.registry.terminal.description',
     group: 'File System'
   },
   {
-    key: 'readFile',
+    key: TOOL_NAMES.readFile,
     labelKey: 'tools.registry.readFile.label',
     descriptionKey: 'tools.registry.readFile.description',
     group: 'File System'
   },
   {
-    key: 'writeFile',
+    key: TOOL_NAMES.writeFile,
     labelKey: 'tools.registry.writeFile.label',
     descriptionKey: 'tools.registry.writeFile.description',
     group: 'File System'
   },
   {
-    key: 'editFile',
+    key: TOOL_NAMES.editFile,
     labelKey: 'tools.registry.editFile.label',
     descriptionKey: 'tools.registry.editFile.description',
     group: 'File System'
   },
   {
-    key: 'listDirectory',
+    key: TOOL_NAMES.listDirectory,
     labelKey: 'tools.registry.listDirectory.label',
     descriptionKey: 'tools.registry.listDirectory.description',
     group: 'File System'
   },
   {
-    key: 'findFiles',
+    key: TOOL_NAMES.findFiles,
     labelKey: 'tools.registry.findFiles.label',
     descriptionKey: 'tools.registry.findFiles.description',
     group: 'File System'
   },
   {
-    key: 'grep',
+    key: TOOL_NAMES.grep,
     labelKey: 'tools.registry.grep.label',
     descriptionKey: 'tools.registry.grep.description',
     group: 'File System'
@@ -76,13 +78,13 @@ export const TOOL_REGISTRY: ToolMeta[] = [
 
   // AI & Data
   {
-    key: 'imageGeneration',
+    key: TOOL_NAMES.imageGeneration,
     labelKey: 'tools.registry.imageGeneration.label',
     descriptionKey: 'tools.registry.imageGeneration.description',
     group: 'AI & Data'
   },
   {
-    key: 'searchKnowledgeBase',
+    key: TOOL_NAMES.searchKnowledgeBase,
     labelKey: 'tools.registry.searchKnowledgeBase.label',
     descriptionKey: 'tools.registry.searchKnowledgeBase.description',
     group: 'AI & Data'
@@ -90,7 +92,7 @@ export const TOOL_REGISTRY: ToolMeta[] = [
 
   // Maps
   {
-    key: 'mapItinerary',
+    key: TOOL_NAMES.mapItinerary,
     labelKey: 'tools.registry.mapItinerary.label',
     descriptionKey: 'tools.registry.mapItinerary.description',
     group: 'Maps'

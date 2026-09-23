@@ -1,13 +1,13 @@
-import type { Message } from '@mariozechner/pi-ai'
+import type { Message } from '@earendil-works/pi-ai'
 import { asc, eq } from 'drizzle-orm'
 
 import { db } from '../../db/db'
-import type { LcmSummary } from '../../db/schema'
+import type { LcmContextItem, LcmSummary } from '../../db/schema'
 import { message as messageTable } from '../../db/schema'
 import { formatSummaryAsXml } from './prompts'
 import {
   getContextItems,
-  getMessageById,
+  getMessagesByIds,
   getParentIds,
   getSummariesByIds,
   initContextItems
@@ -15,7 +15,7 @@ import {
 import { estimateMessageTokens, estimateTokens } from './token-counter'
 
 export interface AssembledContext {
-  /** Messages to pass directly to agentLoop (summaries injected as system messages) */
+  /** Messages to pass directly to the agent (summaries injected as user messages) */
   messages: Message[]
   /** Total token estimate of assembled context */
   totalTokens: number
@@ -24,18 +24,50 @@ export interface AssembledContext {
 }
 
 /**
+ * A run of context items: the rows of one `message.runId`, or one summary
+ * on its own. The unit that assembly and compaction work in — a run is in the
+ * context whole or not at all, so a request never carries a tool result
+ * without its tool call, or opens on anything but a user message.
+ */
+export interface RunGroup {
+  /** The `runId`, or `summary:<id>`. */
+  key: string
+  items: LcmContextItem[]
+}
+
+export function groupItemsIntoRuns(
+  items: LcmContextItem[],
+  runIdOf: Map<string, string>
+): RunGroup[] {
+  const groups: RunGroup[] = []
+  for (const item of items) {
+    const key =
+      item.kind === 'summary'
+        ? `summary:${item.refId}`
+        : (runIdOf.get(item.refId) ?? `orphan:${item.refId}`)
+    const last = groups.at(-1)
+    if (last && last.key === key) last.items.push(item)
+    else groups.push({ key, items: [item] })
+  }
+  return groups
+}
+
+type MessageRow = typeof messageTable.$inferSelect
+
+/**
  * Assembles the LLM context for a chat session.
  *
  * Flow:
  * 1. If no context items exist for this chat, bootstrap from message table
- * 2. Split items into: evictable prefix (summaries + old messages) + fresh tail (protected)
- * 3. Fill token budget: always include fresh tail, then backfill from evictable set
- * 4. Inject summaries as special user messages with XML markers
+ * 2. Group items into runs; the fresh tail is the most recent N runs
+ * 3. Fill the token budget: the fresh tail whole, then whole older runs
+ *    newest first, stopping at the first that does not fit
+ * 4. Inject summaries as user messages with XML markers
  */
 export async function assembleContext(
   chatId: string,
   tokenBudget: number,
-  freshTailSize: number
+  freshTailRuns: number
 ): Promise<AssembledContext> {
   // Bootstrap: if no context items tracked yet, seed from DB messages
   let items = await getContextItems(chatId)
@@ -52,74 +84,61 @@ export async function assembleContext(
     return { messages: [], totalTokens: 0, trackedMessageIds }
   }
 
-  // Split: fresh tail = last N items; evictable = everything before
-  const freshTail = items.slice(-freshTailSize)
-  const evictable = items.slice(0, -freshTailSize)
+  const rows = await getMessagesByIds(Array.from(trackedMessageIds))
+  const rowById = new Map(rows.map((m) => [m.id, m]))
+  const runIdOf = new Map(rows.map((m) => [m.id, m.runId]))
+  const runs = groupItemsIntoRuns(items, runIdOf)
 
-  // Compute fresh tail token cost
-  let freshTailTokens = 0
-  const freshMessages: Message[] = []
-  for (const item of freshTail) {
-    if (item.kind === 'message') {
-      const msg = await getMessageById(item.refId)
-      if (msg) {
-        const tokens = item.tokenCount ?? estimateMessageTokens(msg.content)
-        freshTailTokens += tokens
-        freshMessages.push(dbMessageToLlmMessage(msg))
-      }
-    } else {
-      // Summary in fresh tail (uncommon but possible)
-      const [summary] = await getSummariesByIds([item.refId])
-      if (summary) {
-        const tokens = item.tokenCount ?? estimateTokens(summary.content)
-        freshTailTokens += tokens
-        freshMessages.push(summaryToMessage(summary, []))
+  const materialize = async (
+    group: RunGroup
+  ): Promise<{ messages: Message[]; tokens: number }> => {
+    const out: Message[] = []
+    let tokens = 0
+    for (const item of group.items) {
+      if (item.kind === 'message') {
+        const row = rowById.get(item.refId)
+        if (!row) continue
+        tokens += item.tokenCount ?? estimateMessageTokens(row.content)
+        out.push(dbMessageToLlmMessage(row))
+      } else {
+        const [summary] = await getSummariesByIds([item.refId])
+        if (!summary) continue
+        tokens += item.tokenCount ?? estimateTokens(summary.content)
+        out.push(summaryToMessage(summary, await getParentIds(summary.id)))
       }
     }
+    return { messages: out, tokens }
   }
 
-  const remainingBudget = tokenBudget - freshTailTokens
-  const prefixMessages: Message[] = []
-  let prefixTokens = 0
+  // Fresh tail: the most recent N runs, always included whole.
+  const freshRuns = runs.slice(-freshTailRuns)
+  const evictableRuns = runs.slice(0, -freshTailRuns)
 
-  // Fill remaining budget from evictable set, newest first
-  for (let i = evictable.length - 1; i >= 0; i--) {
-    const item = evictable[i]
-    if (item.kind === 'message') {
-      const msg = await getMessageById(item.refId)
-      if (!msg) continue
-      const tokens = item.tokenCount ?? estimateMessageTokens(msg.content)
-      if (prefixTokens + tokens > remainingBudget) break
-      prefixTokens += tokens
-      prefixMessages.unshift(dbMessageToLlmMessage(msg))
-    } else {
-      const [summary] = await getSummariesByIds([item.refId])
-      if (!summary) continue
-      const tokens = item.tokenCount ?? estimateTokens(summary.content)
-      if (prefixTokens + tokens > remainingBudget) break
-      prefixTokens += tokens
-      const parentIds = await getParentIds(summary.id)
-      prefixMessages.unshift(summaryToMessage(summary, parentIds))
-    }
+  const fresh = await Promise.all(freshRuns.map(materialize))
+  const freshTokens = fresh.reduce((n, r) => n + r.tokens, 0)
+
+  // Back-fill whole runs, newest first; the first that does not fit ends it —
+  // a run is never trimmed to fit.
+  let remaining = tokenBudget - freshTokens
+  const prefix: Message[][] = []
+  let prefixTokens = 0
+  for (let i = evictableRuns.length - 1; i >= 0; i--) {
+    const run = await materialize(evictableRuns[i])
+    if (run.tokens > remaining) break
+    remaining -= run.tokens
+    prefixTokens += run.tokens
+    prefix.unshift(run.messages)
   }
 
   return {
-    messages: [...prefixMessages, ...freshMessages],
-    totalTokens: prefixTokens + freshTailTokens,
+    messages: [...prefix.flat(), ...fresh.flatMap((r) => r.messages)],
+    totalTokens: prefixTokens + freshTokens,
     trackedMessageIds
   }
 }
 
 /** Convert a DB message row to a pi-ai Message (handling all roles) */
-function dbMessageToLlmMessage(msg: {
-  id: string
-  role: string
-  content: unknown
-  toolCallId: string | null
-  toolName: string | null
-  isError: boolean | null
-  createdAt: Date
-}): Message {
+function dbMessageToLlmMessage(msg: MessageRow): Message {
   if (msg.role === 'toolResult') {
     return {
       role: 'toolResult',

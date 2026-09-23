@@ -18,7 +18,12 @@ const FORBIDDEN: RegExp[] = [
   /\/api\/setting\b/,
   /\/api\/workflow/,
   /\/api\/custom-uploader/,
-  /calculator\.ts/
+  /calculator\.ts/,
+  // Retired with the chat kernel (2026-09-22): the deprecated packages, the
+  // message normaliser pi 0.85 made redundant, the MCP tool truncation cap.
+  /@mariozechner\//,
+  /transform-messages/,
+  /MAX_TOOLS/
 ]
 
 describe('CLAUDE.md staleness', () => {
@@ -34,7 +39,7 @@ describe('CLAUDE.md staleness', () => {
 
   it('references the real AI dependency from package.json', () => {
     const deps = { ...pkg.dependencies, ...pkg.devDependencies }
-    expect(deps['@mariozechner/pi-ai']).toBeTruthy()
-    expect(claudeMd).toContain('@mariozechner/pi-ai')
+    expect(deps['@earendil-works/pi-ai']).toBeTruthy()
+    expect(claudeMd).toContain('@earendil-works/pi-ai')
   })
 })

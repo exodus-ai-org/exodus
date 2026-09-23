@@ -113,7 +113,7 @@ export function LockPrivacy() {
   return (
     <SettingsSection title={t('lock:privacy.title')} plain>
       {!status.hasPin ? (
-        <Card className="gap-4 p-5">
+        <Card className="gap-4 px-5.5 py-5">
           <p className="text-muted-foreground text-sm">
             {t('lock:privacy.enroll.description')}
           </p>

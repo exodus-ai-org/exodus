@@ -1,4 +1,5 @@
 import {
+  ArchiveIcon,
   HardDriveDownload,
   HardDriveUpload,
   Loader2,
@@ -24,12 +25,14 @@ import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { useDbIo } from '@/hooks/use-db-io'
 import { useSettings } from '@/hooks/use-settings'
+import { cn } from '@/lib/utils'
 import {
   createBackupNow,
   type BackupInfo,
   type BackupStatus
 } from '@/services/backup'
 
+import { ENTER_UP, staggerDelay } from '../settings-kit'
 import { SettingsRow, SettingsSection } from '../settings-row'
 
 function formatBytes(bytes: number): string {
@@ -104,192 +107,210 @@ export function DataControls() {
   }
 
   return (
-    <SettingsSection>
-      {/* Automatic Backups */}
-      <SettingsRow
-        label={t('settings:dataControls.autoBackup.label')}
-        description={t('settings:dataControls.autoBackup.description')}
-      >
-        <Switch
-          checked={backupStatus?.autoBackup ?? true}
-          onCheckedChange={handleToggleAutoBackup}
-        />
-      </SettingsRow>
-
-      <SettingsRow
-        label={t('settings:dataControls.lastBackup.label')}
-        description={
-          backupStatus?.lastBackupAt
-            ? formatDate(backupStatus.lastBackupAt)
-            : t('settings:dataControls.lastBackup.none')
-        }
-      >
-        <Button
-          variant="outline"
-          size="sm"
-          disabled={backupLoading}
-          onClick={handleBackupNow}
-        >
-          {backupLoading ? (
-            <Loader2 className="animate-spin" />
-          ) : (
-            <ShieldCheck />
-          )}
-          {t('settings:dataControls.backupNow.button')}
-        </Button>
-      </SettingsRow>
-
-      {/* Show recent backups */}
-      {backups && backups.length > 0 && (
+    <>
+      <SettingsSection title={t('settings:dataControls.sections.backups')}>
+        {/* Automatic Backups */}
         <SettingsRow
-          label={t('settings:dataControls.recentBackups.label')}
-          description={t('settings:dataControls.recentBackups.description', {
-            count: backups.length
-          })}
-          layout="vertical"
+          label={t('settings:dataControls.autoBackup.label')}
+          description={t('settings:dataControls.autoBackup.description')}
         >
-          <div className="text-muted-foreground flex flex-col gap-1 text-xs">
-            {backups.slice(0, 5).map((b) => (
-              <div key={b.name} className="flex justify-between">
-                <span>{b.name}</span>
-                <span>{formatBytes(b.size)}</span>
-              </div>
-            ))}
-          </div>
+          <Switch
+            checked={backupStatus?.autoBackup ?? true}
+            onCheckedChange={handleToggleAutoBackup}
+          />
         </SettingsRow>
-      )}
 
-      {/* Export */}
-      <SettingsRow
-        label={t('settings:dataControls.export.label')}
-        description={t('settings:dataControls.export.description')}
-      >
-        <Button variant="outline" disabled={exportLoading} onClick={exportData}>
-          {exportLoading ? (
-            <Loader2 className="animate-spin" />
-          ) : (
-            <HardDriveDownload />
-          )}
-          {t('settings:dataControls.export.button')}
-        </Button>
-      </SettingsRow>
+        <SettingsRow
+          label={t('settings:dataControls.lastBackup.label')}
+          description={
+            backupStatus?.lastBackupAt
+              ? formatDate(backupStatus.lastBackupAt)
+              : t('settings:dataControls.lastBackup.none')
+          }
+        >
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={backupLoading}
+            onClick={handleBackupNow}
+          >
+            {backupLoading ? (
+              <Loader2 className="animate-spin" />
+            ) : (
+              <ShieldCheck />
+            )}
+            {t('settings:dataControls.backupNow.button')}
+          </Button>
+        </SettingsRow>
 
-      {/* Import */}
-      <SettingsRow
-        label={t('settings:dataControls.import.label')}
-        description={t('settings:dataControls.import.description')}
-      >
-        <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
-          <DialogTrigger
-            render={
-              <Button variant="outline" disabled={importLoading}>
-                {importLoading ? (
-                  <Loader2 className="animate-spin" />
-                ) : (
-                  <HardDriveUpload />
-                )}
-                {t('settings:dataControls.import.button')}
-              </Button>
-            }
-          />
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {t('settings:dataControls.import.label')}
-              </DialogTitle>
-              <DialogDescription>
-                {t('settings:dataControls.import.dialogDescription')}
-              </DialogDescription>
-            </DialogHeader>
-            <Input
-              ref={fileInputRef}
-              type="file"
-              accept=".zip"
-              onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
-            />
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setImportDialogOpen(false)}
-              >
-                {t('action.cancel')}
-              </Button>
-              <Button
-                disabled={!selectedFile || importLoading}
-                onClick={handleImportConfirm}
-              >
-                {importLoading && <Loader2 className="animate-spin" />}
-                {t('settings:dataControls.import.confirmButton')}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </SettingsRow>
-
-      {/* Delete */}
-      <SettingsRow
-        label={t('settings:dataControls.delete.label')}
-        description={t('settings:dataControls.delete.description')}
-      >
-        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <DialogTrigger
-            render={
-              <Button variant="destructive" disabled={deleteLoading}>
-                {deleteLoading ? (
-                  <Loader2 className="animate-spin" />
-                ) : (
-                  <Trash2 />
-                )}
-                {t('settings:dataControls.delete.label')}
-              </Button>
-            }
-          />
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>
-                {t('settings:dataControls.delete.label')}
-              </DialogTitle>
-              <DialogDescription>
-                {t('settings:dataControls.delete.dialogDescription')}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="flex flex-col gap-2">
-              <p className="text-sm">
-                <Trans
-                  ns="settings"
-                  i18nKey="dataControls.delete.confirmPrompt"
+        {/* Show recent backups */}
+        {backups && backups.length > 0 && (
+          <SettingsRow
+            label={t('settings:dataControls.recentBackups.label')}
+            description={t('settings:dataControls.recentBackups.description', {
+              count: backups.length
+            })}
+            layout="vertical"
+          >
+            <ul className="text-muted-foreground mt-1 flex flex-col gap-1.5 text-xs">
+              {backups.slice(0, 5).map((b, index) => (
+                <li
+                  key={b.name}
+                  className={cn('flex items-center justify-between', ENTER_UP)}
+                  style={staggerDelay(index)}
                 >
-                  Type <strong>DELETE</strong> to confirm:
-                </Trans>
-              </p>
+                  <span className="flex items-center gap-2 font-mono">
+                    <ArchiveIcon className="size-3.5" />
+                    {b.name}
+                  </span>
+                  <span className="tabular-nums">{formatBytes(b.size)}</span>
+                </li>
+              ))}
+            </ul>
+          </SettingsRow>
+        )}
+      </SettingsSection>
+
+      <SettingsSection title={t('settings:dataControls.sections.transfer')}>
+        {/* Export */}
+        <SettingsRow
+          label={t('settings:dataControls.export.label')}
+          description={t('settings:dataControls.export.description')}
+        >
+          <Button
+            variant="outline"
+            disabled={exportLoading}
+            onClick={exportData}
+          >
+            {exportLoading ? (
+              <Loader2 className="animate-spin" />
+            ) : (
+              <HardDriveDownload />
+            )}
+            {t('settings:dataControls.export.button')}
+          </Button>
+        </SettingsRow>
+
+        {/* Import */}
+        <SettingsRow
+          label={t('settings:dataControls.import.label')}
+          description={t('settings:dataControls.import.description')}
+        >
+          <Dialog open={importDialogOpen} onOpenChange={setImportDialogOpen}>
+            <DialogTrigger
+              render={
+                <Button variant="outline" disabled={importLoading}>
+                  {importLoading ? (
+                    <Loader2 className="animate-spin" />
+                  ) : (
+                    <HardDriveUpload />
+                  )}
+                  {t('settings:dataControls.import.button')}
+                </Button>
+              }
+            />
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {t('settings:dataControls.import.label')}
+                </DialogTitle>
+                <DialogDescription>
+                  {t('settings:dataControls.import.dialogDescription')}
+                </DialogDescription>
+              </DialogHeader>
               <Input
-                value={deleteConfirmText}
-                onChange={(e) => setDeleteConfirmText(e.target.value)}
-                placeholder="DELETE"
+                ref={fileInputRef}
+                type="file"
+                accept=".zip"
+                onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
               />
-            </div>
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setDeleteDialogOpen(false)
-                  setDeleteConfirmText('')
-                }}
-              >
-                {t('action.cancel')}
-              </Button>
-              <Button
-                variant="destructive"
-                disabled={deleteConfirmText !== 'DELETE' || deleteLoading}
-                onClick={handleDeleteConfirm}
-              >
-                {deleteLoading && <Loader2 className="animate-spin" />}
-                {t('settings:dataControls.delete.confirmButton')}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </SettingsRow>
-    </SettingsSection>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setImportDialogOpen(false)}
+                >
+                  {t('action.cancel')}
+                </Button>
+                <Button
+                  disabled={!selectedFile || importLoading}
+                  onClick={handleImportConfirm}
+                >
+                  {importLoading && <Loader2 className="animate-spin" />}
+                  {t('settings:dataControls.import.confirmButton')}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </SettingsRow>
+      </SettingsSection>
+
+      {/* Destructive, so on its own and last — never beside Export/Import. */}
+      <SettingsSection title={t('settings:dataControls.sections.danger')}>
+        {/* Delete */}
+        <SettingsRow
+          label={t('settings:dataControls.delete.label')}
+          description={t('settings:dataControls.delete.description')}
+        >
+          <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+            <DialogTrigger
+              render={
+                <Button variant="destructive" disabled={deleteLoading}>
+                  {deleteLoading ? (
+                    <Loader2 className="animate-spin" />
+                  ) : (
+                    <Trash2 />
+                  )}
+                  {t('settings:dataControls.delete.label')}
+                </Button>
+              }
+            />
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>
+                  {t('settings:dataControls.delete.label')}
+                </DialogTitle>
+                <DialogDescription>
+                  {t('settings:dataControls.delete.dialogDescription')}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex flex-col gap-2">
+                <p className="text-sm">
+                  <Trans
+                    ns="settings"
+                    i18nKey="dataControls.delete.confirmPrompt"
+                  >
+                    Type <strong>DELETE</strong> to confirm:
+                  </Trans>
+                </p>
+                <Input
+                  value={deleteConfirmText}
+                  onChange={(e) => setDeleteConfirmText(e.target.value)}
+                  placeholder="DELETE"
+                />
+              </div>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setDeleteDialogOpen(false)
+                    setDeleteConfirmText('')
+                  }}
+                >
+                  {t('action.cancel')}
+                </Button>
+                <Button
+                  variant="destructive"
+                  disabled={deleteConfirmText !== 'DELETE' || deleteLoading}
+                  onClick={handleDeleteConfirm}
+                >
+                  {deleteLoading && <Loader2 className="animate-spin" />}
+                  {t('settings:dataControls.delete.confirmButton')}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </SettingsRow>
+      </SettingsSection>
+    </>
   )
 }

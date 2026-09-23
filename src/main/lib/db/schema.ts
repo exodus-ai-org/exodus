@@ -1,3 +1,4 @@
+import type { Usage } from '@earendil-works/pi-ai'
 import {
   VoiceSchema,
   DeepResearchSchema,
@@ -19,7 +20,6 @@ import {
 } from '@exodus/shared/schemas/settings-schema'
 import type { DiscoverGroup } from '@exodus/shared/types/discover'
 import { WebSearchResult } from '@exodus/shared/types/web-search'
-import type { Usage } from '@mariozechner/pi-ai'
 import { sql, type InferSelectModel } from 'drizzle-orm'
 import {
   boolean,
@@ -81,6 +81,11 @@ export const message = pgTable(
     chatId: uuid('chatId')
       .notNull()
       .references(() => chat.id),
+    // The run this row belongs to: the id of the run's user message (the
+    // user row carries its own id). Context assembly, compaction and the
+    // renderer all work in runs, never in single rows. Backfilled by
+    // migration 0008.
+    runId: uuid('runId').notNull(),
     role: varchar('role').notNull(), // 'user' | 'assistant' | 'toolResult'
     content: jsonb('content').notNull(), // content array for the message
     // Extracted, indexable text — only `text` blocks from user/assistant
@@ -113,7 +118,8 @@ export const message = pgTable(
     index('message_search_index').using(
       'gin',
       sql`${table.searchText} gin_trgm_ops`
-    )
+    ),
+    index('message_chat_run_idx').on(table.chatId, table.runId)
   ]
 )
 
@@ -236,6 +242,18 @@ export const mcpServer = pgTable('mcp_server', {
   createdAt: timestamp('createdAt').defaultNow().notNull(),
   updatedAt: timestamp('updatedAt').defaultNow().notNull()
 })
+
+// A device allowed onto the LAN listener (see src/main/lib/lan/). Only the
+// hash of its token is kept; the token itself exists on the device alone.
+export const pairedDevice = pgTable('paired_device', {
+  id: uuid('id').primaryKey().notNull().defaultRandom(),
+  name: text('name').notNull(),
+  tokenHash: text('tokenHash').notNull().unique(),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  lastSeenAt: timestamp('lastSeenAt')
+})
+
+export type PairedDevice = InferSelectModel<typeof pairedDevice>
 
 export type McpServer = InferSelectModel<typeof mcpServer>
 

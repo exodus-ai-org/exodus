@@ -56,11 +56,14 @@ export function Chat({
   const { t } = useTranslation('chat')
   const { id: routeId } = useParams()
   const navigate = useNavigate()
-  // Read once on mount — quick-chat hand-off only fires for the first render of a fresh chat.
-  const quickChatRef = useRef<string | null>(null)
-  if (quickChatRef.current === null) {
-    quickChatRef.current = window.localStorage.getItem(QUICK_CHAT_KEY)
-  }
+  // Read once on mount — quick-chat hand-off only fires for the first render of
+  // a fresh chat. (A lazy `useState`, not a ref filled during render: a ref
+  // that stays `null` when there is nothing pending re-read localStorage on
+  // every render, streaming frames included.)
+  const [pendingQuickChat] = useState(() =>
+    window.localStorage.getItem(QUICK_CHAT_KEY)
+  )
+  const quickChatSentRef = useRef(false)
   // advancedTools is only read inside prepareBody (a callback fired on send),
   // so we don't need to subscribe — useAtomCallback gets the latest value
   // lazily without triggering a Chat re-render on every tool toggle, which
@@ -72,7 +75,9 @@ export function Chat({
     useCallback((get) => get(reasoningEffortAtom), [])
   )
   const projectIdRef = useRef(projectId)
-  projectIdRef.current = projectId
+  useEffect(() => {
+    projectIdRef.current = projectId
+  }, [projectId])
 
   const setChatInput = useSetAtom(chatInputAtom)
   const setChatStatus = useSetAtom(chatStatusAtom)
@@ -80,83 +85,71 @@ export function Chat({
 
   const [title, setTitle] = useState(chatTitle)
 
-  const {
-    messages,
-    setMessages,
-    sendMessage,
-    status,
-    stop,
-    regenerate,
-    lastUsage
-  } = useChat({
-    id,
-    chatTitle: title,
-    api: `${BASE_URL}/api/v1/chat`,
-    messages: initialMessages,
-    generateId: uuidV4,
-    prepareBody: ({ id, messages, body }) => ({
-      ...body,
+  const { messages, sendMessage, status, stop, regenerate, runError } = useChat(
+    {
       id,
-      messages,
-      advancedTools: getAdvancedTools(),
-      reasoningEffort: getReasoningEffort(),
-      projectId: projectIdRef.current
-    }),
-    onFinish: () => {
-      mutate('/api/v1/history')
-      if (!routeId) {
-        navigate(`/chat/${id}`, { replace: true })
+      chatTitle: title,
+      api: `${BASE_URL}/api/v1/chat`,
+      messages: initialMessages,
+      generateId: uuidV4,
+      prepareBody: ({ id, messages, body }) => ({
+        ...body,
+        id,
+        messages,
+        advancedTools: getAdvancedTools(),
+        reasoningEffort: getReasoningEffort(),
+        projectId: projectIdRef.current
+      }),
+      onFinish: () => {
+        mutate('/api/v1/history')
+        if (!routeId) {
+          navigate(`/chat/${id}`, { replace: true })
+        }
+      },
+      onError: (e) => {
+        sileo.error({
+          title: t('toast.sendFailedTitle'),
+          description:
+            e instanceof Error ? e.message : t('toast.sendFailedDescription')
+        })
+      },
+      onTitle: (newTitle) => {
+        setTitle(newTitle)
+        mutate('/api/v1/history')
       }
-    },
-    onError: (e) => {
-      sileo.error({
-        title: t('toast.sendFailedTitle'),
-        description:
-          e instanceof Error ? e.message : t('toast.sendFailedDescription')
-      })
-    },
-    onTitle: (newTitle) => {
-      setTitle(newTitle)
-      mutate('/api/v1/history')
     }
-  })
+  )
 
   useEffect(() => {
     setChatStatus(status)
   }, [status, setChatStatus])
 
-  // Store stop in a ref to avoid re-renders from function identity changes
-  const stopRef = useRef(stop)
-  stopRef.current = stop
-  const stableStop = useCallback(() => stopRef.current(), [])
+  // `stop` is stable per chat id (see useChat), so it can go in the atom as is.
   useEffect(() => {
-    setChatStop(() => stableStop)
-  }, [stableStop, setChatStop])
+    setChatStop(() => stop)
+  }, [stop, setChatStop])
 
   // Quick-chat: if localStorage had a pending quick-chat message at mount, send it immediately
   useEffect(() => {
-    const quickChat = quickChatRef.current
-    if (quickChat) {
-      setChatInput(quickChat)
-      // Use replaceState for immediate URL update; React Router navigate
-      // happens in onFinish after the stream completes.
-      window.history.replaceState({}, '', `/chat/${id}`)
-      sendMessage({ text: quickChat })
-      setChatInput('')
-      window.localStorage.removeItem(QUICK_CHAT_KEY)
-    }
-  }, [id, sendMessage, setChatInput])
+    // `sendMessage` has a new identity on every render, so this effect re-runs
+    // constantly. The pending text outlives the send (it is mount-time state),
+    // so without the flag every re-run sent it again — aborting the stream it
+    // had just started.
+    if (!pendingQuickChat || quickChatSentRef.current) return
+    quickChatSentRef.current = true
+    setChatInput(pendingQuickChat)
+    // Use replaceState for immediate URL update; React Router navigate
+    // happens in onFinish after the stream completes.
+    window.history.replaceState({}, '', `/chat/${id}`)
+    sendMessage({ text: pendingQuickChat })
+    setChatInput('')
+    window.localStorage.removeItem(QUICK_CHAT_KEY)
+  }, [id, pendingQuickChat, sendMessage, setChatInput])
 
   const composer = (
     <>
       <LcmStatusCard chatId={id} />
-      <MultimodalInput
-        chatId={id}
-        messages={messages}
-        setMessages={setMessages}
-        sendMessage={sendMessage}
-        lastUsage={lastUsage}
-      />
+      <MultimodalInput chatId={id} sendMessage={sendMessage} />
     </>
   )
 
@@ -170,6 +163,7 @@ export function Chat({
           messages={messages}
           regenerate={regenerate}
           showDiscover={showDiscover}
+          runError={runError}
         />
 
         {messages.length === 0 ? (
