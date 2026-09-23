@@ -12,11 +12,12 @@ import { sileo } from 'sileo'
 
 import { SourceFavicon } from '@/components/source-favicon'
 import { Button } from '@/components/ui/button'
-import { useDiscoverFeed } from '@/hooks/use-discover-feed'
+import {
+  useDiscoverFeed,
+  useRefreshDiscoverFeed
+} from '@/hooks/use-discover-feed'
 import { useSettings } from '@/hooks/use-settings'
 import { cn } from '@/lib/utils'
-
-import { refreshDiscoverFeed } from '../../services/discover'
 
 /**
  * `publishedAt` (ISO) gets a live relative label so a card cached for ~20h
@@ -125,7 +126,8 @@ export function DiscoverFeed() {
   const { t, i18n } = useTranslation(['errors', 'discover'])
   const { data: settings } = useSettings()
   const enabled = settings?.discover?.enabled ?? false
-  const { feed, mutate } = useDiscoverFeed(enabled)
+  const { feed } = useDiscoverFeed(enabled)
+  const { mutateAsync: refreshFeed } = useRefreshDiscoverFeed()
   const [refreshing, setRefreshing] = useState(false)
   const kickedInitialRefresh = useRef(false)
 
@@ -138,10 +140,10 @@ export function DiscoverFeed() {
     if (kickedInitialRefresh.current) return
     if (!enabled || !feed || feed.generatedAt || feed.status !== 'idle') return
     kickedInitialRefresh.current = true
-    void mutate(refreshDiscoverFeed(), { revalidate: false }).catch(() => {
+    void refreshFeed().catch(() => {
       // The feed row records its own failure; nothing actionable here.
     })
-  }, [enabled, feed, mutate])
+  }, [enabled, feed, refreshFeed])
 
   // Nothing to show until there's at least one group of recommendations —
   // keep the welcome page in its original, uncluttered state otherwise.
@@ -150,7 +152,7 @@ export function DiscoverFeed() {
   const handleRefresh = async () => {
     setRefreshing(true)
     try {
-      await mutate(refreshDiscoverFeed(), { revalidate: false })
+      await refreshFeed()
     } catch (e) {
       sileo.error({
         title: t('discover:toast.refreshFailed'),
