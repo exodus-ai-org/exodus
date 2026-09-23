@@ -1,3 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="-1.4 -0.8 17 17"><defs><clipPath id="tc"><rect width="16" height="16"/></clipPath></defs><g clip-path="url(#tc)"><mask id="tm" maskUnits="userSpaceOnUse" x="0" y="0" width="16" height="16"><rect width="16" height="16" fill="#fff"/><ellipse cx="10.4" cy="10.3" rx=".62" ry="1.15" fill="#000"/><ellipse cx="12" cy="10.3" rx=".62" ry="1.15" fill="#000"/></mask>
-  <path d="M5.2 15C5.2 10.4 6.8 6.9 9.2 6.9S13.2 10.4 13.2 15Z" mask="url(#tm)"/>
-  <path d="M6.6 11.4L4 6.6" stroke="#000" stroke-width="1.1" stroke-linecap="round"/><circle cx="3.4" cy="5.2" r="2.3"/></g></svg>

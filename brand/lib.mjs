@@ -1,4 +1,4 @@
-// Shared drawing helpers for the brand variants in brand/<variant>/art.mjs.
+// Shared drawing helpers for brand/art.mjs.
 // All art is drawn on a 1024 × 1024 canvas.
 
 export const blurs = (u) =>

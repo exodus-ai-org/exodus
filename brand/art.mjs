@@ -1,11 +1,11 @@
 // Ody the Traveller — the Exodus mascot, bindle on its shoulder, glancing
-// toward the way out.
+// toward the way out. The menu bar glyph is Ody's head alone.
 //
 // Every icon, splash and web asset is generated from these functions by
 // scripts/render-icons.mjs; edit the art here, then run `bun run icons`.
 // All art is drawn on a 1024 × 1024 canvas (the menu bar glyph on 16 × 16).
 
-import { blurs, lin, rad } from '../lib.mjs'
+import { blurs, lin, rad } from './lib.mjs'
 
 export const PALETTE = {
   sun: '#FFD84A',
@@ -139,15 +139,24 @@ export function composerLayers() {
 
 // ── Menu bar ──────────────────────────────────────────────────────────────
 
-/** Template glyph on a 16 × 16 grid: black on transparent. */
+/**
+ * Template glyph on a 16 × 16 grid, black on transparent: Ody's head leaning
+ * in from the corner (the menu bar keeps the "peekaboo" pose — a head reads
+ * better than the full figure at 22 pt).
+ */
 export function glyph(u) {
-  return `<mask id="${u}m" maskUnits="userSpaceOnUse" x="0" y="0" width="16" height="16"><rect width="16" height="16" fill="#fff"/><ellipse cx="10.4" cy="10.3" rx=".62" ry="1.15" fill="#000"/><ellipse cx="12" cy="10.3" rx=".62" ry="1.15" fill="#000"/></mask>
-  <path d="M5.2 15C5.2 10.4 6.8 6.9 9.2 6.9S13.2 10.4 13.2 15Z" mask="url(#${u}m)"/>
-  <path d="M6.6 11.4L4 6.6" stroke="#000" stroke-width="1.1" stroke-linecap="round"/><circle cx="3.4" cy="5.2" r="2.3"/>`
+  const egg =
+    'M8 2.4C11.3 2.4 13.9 6.1 13.9 9.9C13.9 13.6 11.4 16.4 8 16.4C4.6 16.4 2.1 13.6 2.1 9.9C2.1 6.1 4.7 2.4 8 2.4Z'
+  return `<mask id="${u}m" maskUnits="userSpaceOnUse" x="-8" y="-8" width="32" height="32"><rect x="-8" y="-8" width="32" height="32" fill="#fff"/><ellipse cx="5.3" cy="8.4" rx=".85" ry="1.55" fill="#000"/><ellipse cx="7.6" cy="8.4" rx=".85" ry="1.55" fill="#000"/><ellipse cx="6.5" cy="10.9" rx=".5" ry=".6" fill="#000"/></mask>
+  <g transform="translate(11.2 18.2) rotate(-20) scale(1.22) translate(-8 -14.2)"><path d="${egg}" mask="url(#${u}m)"/></g>
+  <g stroke="#000" stroke-width="1.1" stroke-linecap="round"><path d="M2.6 3.6L1.4 2.6"/><path d="M2 5.8H.6"/></g>`
 }
 
-/** The tray's viewBox: the glyph centred with a little air around it. */
-export const GLYPH_VIEWBOX = '-1.4 -0.8 17 17'
+/**
+ * The tray's viewBox: the glyph (y 2.6–16, cropped flat at the bottom)
+ * centred in the 22-pt item like every other menu bar icon.
+ */
+export const GLYPH_VIEWBOX = '-1.2 -0.2 19 19'
 
 // ── Boot splash (index.html) ──────────────────────────────────────────────
 
