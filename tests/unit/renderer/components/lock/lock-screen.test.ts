@@ -50,28 +50,15 @@ async function mount(s: LockStatus, onUnlocked = vi.fn()) {
 describe('LockScreen', () => {
   afterEach(() => unlockWithTouchId.mockClear())
 
-  it('prompts Touch ID itself on mount — no click needed — when it is available and enabled', async () => {
+  it('never prompts Touch ID on its own — only the button does', async () => {
     unlockWithTouchId.mockResolvedValue({ ok: false })
     await mount(status(true))
-    expect(unlockWithTouchId).toHaveBeenCalledTimes(1)
-  })
-
-  it('unlocks straight from that automatic prompt, same as the button would', async () => {
-    unlockWithTouchId.mockResolvedValue({ ok: true })
-    const { onUnlocked } = await mount(status(true))
-    expect(onUnlocked).toHaveBeenCalledTimes(1)
-  })
-
-  it('never prompts when Touch ID is unavailable or off', async () => {
-    unlockWithTouchId.mockResolvedValue({ ok: false })
-    await mount(status(false))
     expect(unlockWithTouchId).not.toHaveBeenCalled()
   })
 
-  it('the button still works, and does not double up with the automatic prompt', async () => {
-    unlockWithTouchId.mockResolvedValue({ ok: false })
-    const { host } = await mount(status(true))
-    expect(unlockWithTouchId).toHaveBeenCalledTimes(1)
+  it('shows the button when Touch ID is available and enabled, and it unlocks on success', async () => {
+    unlockWithTouchId.mockResolvedValue({ ok: true })
+    const { host, onUnlocked } = await mount(status(true))
 
     const button = host.querySelector<HTMLButtonElement>(
       '[data-testid="lock.touch-id-button"]'
@@ -79,6 +66,16 @@ describe('LockScreen', () => {
     await act(async () => {
       button.dispatchEvent(new MouseEvent('click', { bubbles: true }))
     })
-    expect(unlockWithTouchId).toHaveBeenCalledTimes(2)
+    expect(unlockWithTouchId).toHaveBeenCalledTimes(1)
+    expect(onUnlocked).toHaveBeenCalledTimes(1)
+  })
+
+  it('has no button, and never calls Touch ID, when it is unavailable or off', async () => {
+    unlockWithTouchId.mockResolvedValue({ ok: false })
+    const { host } = await mount(status(false))
+    expect(
+      host.querySelector('[data-testid="lock.touch-id-button"]')
+    ).toBeNull()
+    expect(unlockWithTouchId).not.toHaveBeenCalled()
   })
 })

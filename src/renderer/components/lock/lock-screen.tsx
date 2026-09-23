@@ -1,7 +1,7 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { LockNotification, LockStatus } from '@exodus/shared/types/lock'
 import { FingerprintIcon } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Button } from '@/components/ui/button'
@@ -73,21 +73,6 @@ export function LockScreen({
     const res = await unlockWithTouchId()
     if (res.ok) onUnlocked()
   }
-
-  // Once per lock: the sensor is ready the moment this screen appears, so a
-  // finger already resting on it unlocks without the extra click — the
-  // button stays for a manual retry after a cancel/failure (macOS's own
-  // Touch ID sheet, not this component, owns that state; auto-retrying on
-  // every failure would just re-pop it at the user). The `hasPrompted` ref
-  // (not state — this must never itself cause a re-render/re-fire) also
-  // absorbs Strict Mode's double effect-invoke in dev.
-  const hasPrompted = useRef(false)
-  useEffect(() => {
-    if (!touchId || hasPrompted.current) return
-    hasPrompted.current = true
-    void tryTouchId()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [touchId])
 
   return (
     <div className="bg-background text-foreground fixed inset-0 z-[100] flex flex-col items-center justify-center gap-10">
