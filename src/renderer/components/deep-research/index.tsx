@@ -7,10 +7,10 @@ import { domAnimation, LazyMotion, m } from 'framer-motion'
 import { useAtom } from 'jotai'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
 
 import { SheetPanel } from '@/components/sheet-panel'
 import { Button } from '@/components/ui/button'
+import { useDeepResearchResult } from '@/hooks/use-deep-research'
 import { reportRendererError } from '@/lib/report-error'
 import { cn } from '@/lib/utils'
 import { fetchDeepResearchMessages } from '@/services/deep-research'
@@ -18,7 +18,7 @@ import {
   activeDeepResearchIdAtom,
   deepResearchMessagesAtom
 } from '@/stores/chat'
-import { DeepResearch, DeepResearchMessage } from '@/types/db'
+import { DeepResearchMessage } from '@/types/db'
 
 import { MessageItem } from './message-item'
 import { SourceItem } from './source-item'
@@ -38,12 +38,8 @@ export function DeepResearchProcess() {
   const [deepResearchMessages, setDeepResearchMessages] = useAtom(
     deepResearchMessagesAtom
   )
-  const { data: deepResearchResult, mutate: mutateResult } =
-    useSWR<DeepResearch>(
-      activeDeepResearchId
-        ? `/api/v1/deep-research/result/${activeDeepResearchId}`
-        : null
-    )
+  const { data: deepResearchResult, refetch: refetchResult } =
+    useDeepResearchResult(activeDeepResearchId)
 
   const allWebSearchResults = useMemo(
     () =>
@@ -112,7 +108,7 @@ export function DeepResearchProcess() {
             reportProgressPayload.type ===
             DeepResearchProgress.CompleteDeepResearch
           ) {
-            mutateResult()
+            refetchResult()
             source?.close()
           } else {
             enqueue(deepResearchMessage)
@@ -142,7 +138,7 @@ export function DeepResearchProcess() {
   }, [
     activeDeepResearchId,
     deepResearchResult?.jobStatus,
-    mutateResult,
+    refetchResult,
     setDeepResearchMessages
   ])
 
