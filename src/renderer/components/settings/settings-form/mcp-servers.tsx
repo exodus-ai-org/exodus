@@ -13,7 +13,6 @@ import {
 import { lazy, Suspense, useCallback, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
-import useSWR from 'swr'
 
 import Markdown from '@/components/markdown'
 
@@ -37,15 +36,20 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import {
+  useCreateMcpServer,
+  useDeleteMcpServer,
+  useMcpServers,
+  useMcpTools,
+  useToggleMcpServer,
+  useUpdateMcpServer
+} from '@/hooks/use-mcp'
 import { maskUrlSecrets } from '@/lib/mask-url'
 import { cn } from '@/lib/utils'
-import {
-  createMcpServerApi,
-  deleteMcpServerApi,
-  getMcpServers,
-  type McpServerItem,
-  type McpTransportType,
-  updateMcpServerApi
+import type {
+  McpServerItem,
+  McpToolInfo,
+  McpTransportType
 } from '@/services/mcp-service'
 
 import {
@@ -57,18 +61,6 @@ import {
 } from '../settings-kit'
 import { SettingsRow, SettingsSection } from '../settings-row'
 import { SettingsSelect } from '../settings-select'
-
-// ─── Types ──────────────────────────────────────────────────────────────────
-
-interface McpToolInfo {
-  name: string
-  description: string
-}
-
-interface McpToolsGroup {
-  mcpServerName: string
-  tools: McpToolInfo[]
-}
 
 // ─── JSON serialisation (read-only view) ────────────────────────────────────
 
@@ -232,13 +224,16 @@ function ServerCard({
 
 export function McpServers() {
   const { t } = useTranslation(['common', 'settings'])
-  const { data: servers, mutate } = useSWR<McpServerItem[]>(
-    '/api/v1/mcp',
-    getMcpServers
-  )
-  const { data: toolsData, mutate: mutateTools } = useSWR<{
-    tools: McpToolsGroup[]
-  }>('/api/v1/mcp/tools')
+  const { data: servers } = useMcpServers()
+  const { data: toolsData } = useMcpTools()
+  const { mutateAsync: createServer, isPending: creating } =
+    useCreateMcpServer()
+  const { mutateAsync: updateServer, isPending: updating } =
+    useUpdateMcpServer()
+  const { mutateAsync: deleteServer } = useDeleteMcpServer()
+  // `mutate`, not `mutateAsync`: nothing follows a toggle, so there is no
+  // rejection to catch.
+  const { mutate: toggleServer } = useToggleMcpServer()
 
   const toolsByServer = new Map<string, McpToolInfo[]>()
   for (const group of toolsData?.tools ?? []) {
@@ -248,7 +243,6 @@ export function McpServers() {
   // Form state
   const [editing, setEditing] = useState<McpServerItem | null>(null)
   const [isNew, setIsNew] = useState(false)
-  const [saving, setSaving] = useState(false)
   // Removing a server drops its headers and config for good, so it is confirmed.
   const [deleting, setDeleting] = useState<McpServerItem | null>(null)
   const [transportType, setTransportType] = useState<McpTransportType>('stdio')
@@ -262,6 +256,8 @@ export function McpServers() {
   const [headersStr, setHeadersStr] = useState('')
   // extra config (arbitrary JSON object)
   const [extraConfigStr, setExtraConfigStr] = useState('{}')
+
+  const saving = creating || updating
 
   // JSON (read-only)
   const jsonValue = servers ? serversToJson(servers) : '{}'
@@ -301,100 +297,74 @@ export function McpServers() {
     )
   }, [])
 
-  const refresh = useCallback(async () => {
-    await mutate()
-    await mutateTools()
-  }, [mutate, mutateTools])
-
   const handleSave = useCallback(async () => {
     if (!name.trim()) return
     if (transportType === 'stdio' && !command.trim()) return
     if (transportType !== 'stdio' && !url.trim()) return
-    setSaving(true)
-    try {
-      let parsedHeaders: Record<string, string> | null = null
-      if (headersStr.trim()) {
-        try {
-          parsedHeaders = JSON.parse(headersStr)
-        } catch {
-          sileo.error({ title: t('settings:mcpServers.toast.invalidHeaders') })
-          setSaving(false)
-          return
-        }
-      }
 
-      let parsedExtraConfig: Record<string, unknown> | null = null
-      const trimmedExtra = extraConfigStr.trim()
-      if (trimmedExtra && trimmedExtra !== '{}') {
-        try {
-          const parsed = JSON.parse(trimmedExtra)
-          if (
-            typeof parsed !== 'object' ||
-            Array.isArray(parsed) ||
-            parsed === null
-          ) {
-            throw new Error(t('settings:mcpServers.toast.mustBeJsonObject'))
-          }
-          parsedExtraConfig = parsed
-        } catch (e) {
-          sileo.error({
-            title: t('settings:mcpServers.toast.invalidExtraConfig'),
-            description:
-              e instanceof Error
-                ? e.message
-                : t('settings:mcpServers.toast.mustBeJsonObject')
-          })
-          setSaving(false)
-          return
-        }
+    let parsedHeaders: Record<string, string> | null = null
+    if (headersStr.trim()) {
+      try {
+        parsedHeaders = JSON.parse(headersStr)
+      } catch {
+        sileo.error({ title: t('settings:mcpServers.toast.invalidHeaders') })
+        return
       }
-
-      const data: Partial<McpServerItem> & { name: string } = {
-        name: name.trim(),
-        description: description.trim() || null,
-        transportType,
-        extraConfig: parsedExtraConfig
-      }
-
-      if (transportType === 'stdio') {
-        data.command = command.trim()
-        data.args = args.map((a) => a.trim()).filter(Boolean)
-        data.env = null
-      } else {
-        data.url = url.trim()
-        data.headers = parsedHeaders
-      }
-
-      if (editing) {
-        await updateMcpServerApi(editing.id, data)
-        sileo.success({
-          title: t('settings:mcpServers.toast.updated', { name: data.name })
-        })
-      } else {
-        await createMcpServerApi(data)
-        sileo.success({
-          title: t('settings:mcpServers.toast.registered', {
-            name: data.name
-          }),
-          description: t('settings:mcpServers.toast.disabledByDefault')
-        })
-      }
-      await refresh()
-      resetForm()
-    } catch (e) {
-      const msg =
-        e instanceof Error
-          ? e.message
-          : t('settings:mcpServers.toast.operationFailed')
-      sileo.error({
-        title: editing
-          ? t('settings:mcpServers.toast.updateFailed')
-          : t('settings:mcpServers.toast.registerFailed'),
-        description: msg
-      })
-    } finally {
-      setSaving(false)
     }
+
+    let parsedExtraConfig: Record<string, unknown> | null = null
+    const trimmedExtra = extraConfigStr.trim()
+    if (trimmedExtra && trimmedExtra !== '{}') {
+      try {
+        const parsed = JSON.parse(trimmedExtra)
+        if (
+          typeof parsed !== 'object' ||
+          Array.isArray(parsed) ||
+          parsed === null
+        ) {
+          throw new Error(t('settings:mcpServers.toast.mustBeJsonObject'))
+        }
+        parsedExtraConfig = parsed
+      } catch (e) {
+        sileo.error({
+          title: t('settings:mcpServers.toast.invalidExtraConfig'),
+          description:
+            e instanceof Error
+              ? e.message
+              : t('settings:mcpServers.toast.mustBeJsonObject')
+        })
+        return
+      }
+    }
+
+    const data: Partial<McpServerItem> & { name: string } = {
+      name: name.trim(),
+      description: description.trim() || null,
+      transportType,
+      extraConfig: parsedExtraConfig
+    }
+
+    if (transportType === 'stdio') {
+      data.command = command.trim()
+      data.args = args.map((a) => a.trim()).filter(Boolean)
+      data.env = null
+    } else {
+      data.url = url.trim()
+      data.headers = parsedHeaders
+    }
+
+    try {
+      if (editing) {
+        await updateServer({ id: editing.id, data })
+      } else {
+        await createServer(data)
+      }
+    } catch {
+      // Already reported and toasted by the global mutation handler; the form
+      // stays open so the input is not lost.
+      return
+    }
+    resetForm()
   }, [
     name,
     description,
@@ -405,7 +375,8 @@ export function McpServers() {
     headersStr,
     extraConfigStr,
     editing,
-    refresh,
+    createServer,
+    updateServer,
     resetForm,
     t
   ])
@@ -413,57 +384,14 @@ export function McpServers() {
   const handleDelete = useCallback(
     async (server: McpServerItem) => {
       try {
-        await deleteMcpServerApi(server.id)
-        sileo.success({
-          title: t('settings:mcpServers.toast.removed', { name: server.name })
-        })
-        await refresh()
-        if (editing?.id === server.id) resetForm()
-      } catch (e) {
-        const msg =
-          e instanceof Error
-            ? e.message
-            : t('settings:mcpServers.toast.operationFailed')
-        sileo.error({
-          title: t('settings:mcpServers.toast.removeFailed'),
-          description: msg
-        })
+        await deleteServer(server)
+      } catch {
+        // Already reported and toasted by the global mutation handler.
+        return
       }
+      if (editing?.id === server.id) resetForm()
     },
-    [editing, refresh, resetForm, t]
-  )
-
-  const handleToggle = useCallback(
-    async (server: McpServerItem) => {
-      const enabling = !server.isActive
-      try {
-        await updateMcpServerApi(server.id, { isActive: enabling })
-        await refresh()
-        if (enabling) {
-          sileo.success({
-            title: t('settings:mcpServers.toast.enabled', {
-              name: server.name
-            })
-          })
-        } else {
-          sileo.success({
-            title: t('settings:mcpServers.toast.disabled', {
-              name: server.name
-            })
-          })
-        }
-      } catch (e) {
-        const msg =
-          e instanceof Error
-            ? e.message
-            : t('settings:mcpServers.toast.operationFailed')
-        sileo.error({
-          title: t('settings:mcpServers.toast.toggleFailed'),
-          description: msg
-        })
-      }
-    },
-    [refresh, t]
+    [deleteServer, editing, resetForm]
   )
 
   const showForm = isNew || editing !== null
@@ -540,7 +468,7 @@ export function McpServers() {
                       key={server.id}
                       server={server}
                       tools={toolsByServer.get(server.name) ?? []}
-                      onToggle={() => handleToggle(server)}
+                      onToggle={() => toggleServer(server)}
                       onEdit={() => startEdit(server)}
                       onDelete={() => setDeleting(server)}
                     />

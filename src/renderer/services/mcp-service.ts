@@ -22,7 +22,20 @@ export interface McpServerItem {
   updatedAt: string
 }
 
+export interface McpToolInfo {
+  name: string
+  description: string
+}
+
+export interface McpToolsGroup {
+  mcpServerName: string
+  tools: McpToolInfo[]
+}
+
 export const getMcpServers = () => fetcher<McpServerItem[]>(BASE)
+
+export const getMcpTools = () =>
+  fetcher<{ tools: McpToolsGroup[] }>(`${BASE}/tools`)
 
 export const createMcpServerApi = (
   data: Partial<McpServerItem> & { name: string }
