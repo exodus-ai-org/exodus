@@ -1,11 +1,10 @@
 import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
-import { AlertCircleIcon } from 'lucide-react'
 import { Controller } from 'react-hook-form'
 import { Trans, useTranslation } from 'react-i18next'
 
-import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Input } from '@/components/ui/input'
 
+import { SettingsIntro } from '../settings-kit'
 import { SettingsRow, SettingsSection } from '../settings-row'
 
 // Each of these is its own named component (rather than JSX inlined
@@ -81,31 +80,28 @@ export function S3({ form }: { form: UseFormReturnType }) {
 
   return (
     <>
-      <Alert className="mb-4">
-        <AlertCircleIcon className="size-4" data-icon />
-        <AlertDescription className="flex flex-col gap-2 text-sm">
-          <p>
-            <EncodingNotice />
-          </p>
-          <p>
-            <RequirementsHeading />
-          </p>
-          <ul className="flex list-disc flex-col gap-1 pl-4">
-            <li>
-              <PublicReadAccessNotice />
-            </li>
-            <li>
-              <CorsNotice />
-            </li>
-            <li>
-              <IamCredentialsNotice />
-            </li>
-            <li>
-              <ObjectAclNotice />
-            </li>
-          </ul>
-        </AlertDescription>
-      </Alert>
+      <SettingsIntro>
+        <p>
+          <EncodingNotice />
+        </p>
+        <p>
+          <RequirementsHeading />
+        </p>
+        <ul className="flex list-disc flex-col gap-1 pl-4">
+          <li>
+            <PublicReadAccessNotice />
+          </li>
+          <li>
+            <CorsNotice />
+          </li>
+          <li>
+            <IamCredentialsNotice />
+          </li>
+          <li>
+            <ObjectAclNotice />
+          </li>
+        </ul>
+      </SettingsIntro>
       <SettingsSection>
         <Controller
           control={form.control}

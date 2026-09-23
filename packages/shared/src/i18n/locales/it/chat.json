@@ -177,18 +177,19 @@
   "weatherCard": {
     "today": "Oggi",
     "tomorrow": "Domani",
-    "feels": "Percepiti {{temp}}° · {{observedAt}}",
     "humidity": "Umidità",
     "precip": "Precipitazioni",
     "visibility": "Visibilità",
-    "uvIndex": "Indice UV"
-  },
-  "weatherForecast": {
-    "temperatureRange": "🌡️ Intervallo di temperatura",
-    "cold": "❄️ Freddo",
-    "hot": "🔥 Caldo",
+    "uvIndex": "Indice UV",
+    "wind": "Vento",
+    "pressure": "Pressione",
+    "feelsLike": "Percepita {{temp}}°",
     "sunrise": "Alba",
-    "sunset": "Tramonto"
+    "sunset": "Tramonto",
+    "rainChance": "{{percent}}% pioggia",
+    "observedAt": "Rilevato {{time}}",
+    "details": "Dettagli",
+    "less": "Meno"
   },
   "sourcesPanel": {
     "title_one": "{{count}} fonte",
@@ -262,5 +263,9 @@
       "updatedTitle": "Progetto aggiornato",
       "deletedTitle": "Progetto eliminato"
     }
-  }
+  },
+  "run": {
+    "error": "Questa risposta si è interrotta con un errore: {{message}}"
+  },
+  "renderFailed": "Impossibile mostrare {{what}}."
 }

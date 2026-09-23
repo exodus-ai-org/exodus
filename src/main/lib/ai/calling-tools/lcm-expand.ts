@@ -1,12 +1,14 @@
-import type { AgentTool } from '@mariozechner/pi-agent-core'
-import type { Model } from '@mariozechner/pi-ai'
-import { completeSimple, Type } from '@mariozechner/pi-ai'
+import type { AgentTool } from '@earendil-works/pi-agent-core'
+import type { Model } from '@earendil-works/pi-ai'
+import { Type } from '@earendil-works/pi-ai'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 
 import {
   getChildIds,
   getSummaryById,
   searchSummaries
 } from '../context-management/queries'
+import { completeSimple } from '../utils/complete'
 
 const lcmExpandSchema = Type.Object({
   chatId: Type.String({ description: 'The chat session ID.' }),
@@ -32,21 +34,21 @@ const lcmExpandSchema = Type.Object({
 
 /**
  * Deep recall: walks the LCM DAG to answer a specific question.
- * This is the most expensive LCM operation; prefer lcmGrep → lcmDescribe first.
+ * This is the most expensive LCM operation; prefer lcm_grep → lcm_describe first.
  *
  * Bound into the chat tool set whenever LCM is enabled (see
- * `tool-binding-util.ts`), alongside `lcmGrep` and `lcmDescribe`.
+ * `tool-binding-util.ts`), alongside `lcm_grep` and `lcm_describe`.
  */
 export const lcmExpand = (
   model: Model<string>,
   apiKey: string
 ): AgentTool<typeof lcmExpandSchema> => ({
-  name: 'lcmExpand',
+  name: TOOL_NAMES.lcmExpand,
   label: 'LCM Deep Recall',
   description:
     'Deeply recall information from compressed conversation history by walking the LCM summary DAG. ' +
     'This is the most thorough (and expensive) recall operation. ' +
-    'Use lcmGrep first, then lcmDescribe, and only use this for complex recall needs.',
+    'Use lcm_grep first, then lcm_describe, and only use this for complex recall needs.',
   parameters: lcmExpandSchema,
   execute: async (
     _toolCallId,

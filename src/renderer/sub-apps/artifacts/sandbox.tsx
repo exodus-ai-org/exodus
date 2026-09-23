@@ -111,6 +111,9 @@ export function ArtifactSandbox() {
   const [key, setKey] = useState(0)
 
   const handleMessage = useCallback((event: MessageEvent) => {
+    // Only the embedding window may hand this frame code to run — not a frame
+    // an artifact opened itself, nor anything else that can reach this window.
+    if (event.source !== window.parent) return
     const { data } = event
 
     // Handle theme sync from parent
@@ -156,9 +159,11 @@ export function ArtifactSandbox() {
 
       // Intentional: this is the artifact sandbox execution engine. AI-generated
       // artifact code must be dynamically evaluated so users can run components
-      // the LLM produces. Isolation is enforced at the iframe level (sandbox
-      // attribute + separate origin) with a strict CSP; this sub-app never runs
-      // in the main renderer process.
+      // the LLM produces. Isolation is enforced at the iframe level: this page
+      // is served from its own origin (`exodus-artifact://sandbox`, see
+      // src/main/lib/artifact-protocol.ts), so `window.parent` is cross-origin,
+      // and its CSP allows no network access at all. Keep it that way — nothing
+      // added here may need the API.
       // eslint-disable-next-line no-new-func
       // react-doctor-disable-next-line react-doctor/no-eval -- Deliberate sandbox execution engine; isolated in sandboxed artifacts iframe with CSP
       const factory = new Function('require', 'exports', 'module', wrapped)

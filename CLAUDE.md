@@ -83,7 +83,7 @@ bun run fmt:check     # Check formatting without modifying files
 bun run test             # Run all unit tests with Vitest
 bun run test:watch       # Run tests in watch mode
 bun run test:coverage    # Run tests with V8 coverage report
-bun run test:e2e:electron  # Playwright Electron E2E (packages first: it drives the production build in .vite/)
+bun run test:e2e:electron  # Playwright Electron E2E (packages first: it drives the production build in .vite/; the app boots pi's scripted provider — EXODUS_FAUX_PROVIDER=1 from the fixture — so chat specs need no key)
 bun run test:e2e:api       # Playwright API integration (needs a running app + .env.test)
 bun run test:e2e:providers # Provider compatibility (needs API keys in .env.test)
 ```
@@ -124,7 +124,7 @@ Exodus uses a three-process architecture:
 3. **Preload Process** (`src/preload/preload.ts`):
    - Provides secure bridge between renderer and Electron APIs
    - Context isolation + sandbox enabled
-   - Exposes `window.electron` (`ipcRenderer.{send,invoke,on,once,removeListener,removeAllListeners}` + `process`, the same nested shape as `@electron-toolkit/preload`'s `electronAPI`, reimplemented without the dependency) and `window.api` (`os`, `locale`)
+   - Exposes `window.electron` (`ipcRenderer.{send,invoke,on,once,removeListener,removeAllListeners}` + `process.{platform,versions}` — deliberately not `process.env` — the same nested shape as `@electron-toolkit/preload`'s `electronAPI`, reimplemented without the dependency) and `window.api` (`os`, `locale`)
 
 ### Data directory, ports and isolation
 
@@ -137,14 +137,21 @@ Exodus is the successor of the older `universal-client` app and shares its
   chat-audit snapshot. **PGlite is single-process: never run two
   Exodus processes (a dev build, the packaged app, universal-client) against it
   at the same time** — the database can be corrupted (backups live in
-  `~/.exodus/backups`). `EXODUS_HOME` points a run at another directory.
+  `~/.exodus/backups`). Between Exodus builds this is enforced:
+  `src/main/lib/single-instance.ts` takes Electron's single-instance lock from
+  `db/db.ts`, before PGlite is constructed (dev and packaged share `userData`,
+  so they share the lock); a second launch exits and the running app raises its
+  window, or — if the holder is quitting — waits for it. universal-client has
+  its own `userData` and is not covered. `EXODUS_HOME` points a run at another directory.
 - **Electron `userData`**: the default `~/Library/Application Support/Exodus`
   for every build — it only holds Chromium state (localStorage, caches) and is
   where the legacy-location migration looks. There is no `-dev` variant of
   anything.
-- **Server port**: `SERVER_PORT = 60223` (`packages/shared/src/constants/systems.ts`)
-  — the port `exodus-ios` (and any other client of this backend) connects to, so
-  don't change it without updating them.
+- **Server ports** (`packages/shared/src/constants/systems.ts`): `SERVER_PORT =
+60223` is plaintext HTTP bound to loopback only (`127.0.0.1` and `::1`) — the
+  renderer, exodus-cli, `tests/api` and the iOS Simulator; nothing on the LAN
+  can reach it. `LAN_SERVER_PORT = 60224` is what `exodus-ios` on a device
+  connects to. Don't change either without updating the clients.
 - **E2E**: `playwright.config.ts` points `$HOME` at a scratch dir
   (`<tmpdir>/exodus-e2e-home`); the electron fixture wipes `~/.exodus` under it
   before every test and throws at import unless `$HOME` is that dir. It also
@@ -168,19 +175,33 @@ quality reasons). `src/main/lib/ai/skills/`:
   Same directory and lockfile shape as `exodus-cli`, so skills installed by
   either are visible to both.
 - `skills-manager.ts` — the seam chat + Philharmonic consume:
-  `listInstalledSkills()`, `getSkillsContentBySlugs()`,
-  `getActiveSkillsContent()` (SKILL.md minus frontmatter, `$SKILL_DIR` baked
-  to the absolute install path, wrapped in `<active_skills>`).
+  `listInstalledSkills()`; for chat, `getActiveSkillsIndex()` — one line per
+  active skill (slug, the SKILL.md frontmatter `description` folded onto one
+  line, the absolute path of its SKILL.md) that the system prompt carries in
+  `<skills>`, so the model reads a skill's body with `read_file` only when a
+  task matches (the Agent Skills spec's own model; constant prompt cost);
+  for Philharmonic, `getSkillsContentBySlugs()` / `getActiveSkillsContent()`
+  (full bodies, frontmatter stripped, `$SKILL_DIR` baked to the install path,
+  wrapped in `<active_skills>`).
 
 Route `/api/v1/skills` (`src/main/lib/server/routes/skills.ts`): `GET
-/registry?view&page&per_page`, `GET /search?q`, `GET /detail?id`, `GET
-/audit?id` (`null` when unaudited), `GET /installed`, `POST /install {id}`,
-`DELETE /:slug`, `PATCH /:slug/toggle`. Skill ids are `owner/repo/slug`, hence
-query params. UI: Settings → Skills Market
-(`src/renderer/components/skills-market/`): Discover (Trending / Hot / All
-time, search, paged card grid) → detail page (security audit, README, bundled
-files, the copyable `exodus skills install <id>` command) → install / toggle /
-uninstall; an Installed tab; a footer recommending `exodus-cli`. Spec:
+/registry?view&page&per_page`, `GET /search?q`, `GET /curated` (the registry's
+publishers, each with every skill it maintains — ~2 MB, no parameters), `GET
+/detail?id`, `GET /audit?id` (`null` when unaudited), `GET /installed`, `POST
+/install {id}`, `DELETE /:slug`, `PATCH /:slug/toggle`. Skill ids are
+`owner/repo/slug`, hence query params. UI: Settings → Skills Market
+(`src/renderer/components/skills-market/`), built from the Settings kit like
+every other page (one-line list rows — rank, name, source, an "Installed"
+badge, installs on the right; no icon tiles, no mono outside commands and file
+paths): Discover (search; All time / Trending / Hot leaderboards, same-repo
+rows collapsed behind "+N more"; Curated — `curated.tsx`, publishers sorted by
+installs, each opening to its skills with the registry's featured pick
+badged) → detail page (security audit card, the copyable `exodus skills
+install <id>` command, README card, bundled files) → install / toggle /
+uninstall; an Installed tab. The page header is one short band: the intro on
+the left and, on the right, a compact terminal block for `exodus-cli`
+(`cli-notice.tsx`: package-manager tabs + two copyable commands, built from the
+same `CommandLine` the detail page uses); it stacks in a narrow window. Spec:
 `docs/superpowers/specs/2026-09-19-skills-sh-market-design.md`.
 
 ### Chat Audit (DuckDB)
@@ -237,17 +258,19 @@ The main process runs a **Hono HTTP server** that handles all business logic:
 
 Every business endpoint is mounted on one versioned sub-app (`app.route('/api/v1', v1)`), so the public paths are `/api/v1/<route>`; the lock/trace/settings middlewares still match `/api/*`. A breaking API change ships as a new `/api/v2` sub-app beside v1 rather than mutating v1 in place. Any client of this backend (the renderer, `tests/api`, `exodus-ios`) must address `/api/v1/...`.
 
-`/api/v1/chat`, `/api/v1/lcm`, `/api/v1/history`, `/api/v1/knowledge-base`, `/api/v1/project`, `/api/v1/settings`, `/api/v1/skills`, `/api/v1/audio`, `/api/v1/db-io`, `/api/v1/deep-research`, `/api/v1/discover`, `/api/v1/tools`, `/api/v1/philharmonic`, `/api/v1/s3`, `/api/v1/mcp`, `/api/v1/memory`, `/api/v1/usage`, `/api/v1/logs`, `/api/v1/backup`, `/api/v1/artifacts`, `/api/v1/computer-use`, `/api/v1/analytics`.
+`/api/v1/chat`, `/api/v1/lcm`, `/api/v1/history`, `/api/v1/knowledge-base`, `/api/v1/project`, `/api/v1/settings`, `/api/v1/skills`, `/api/v1/audio`, `/api/v1/db-io`, `/api/v1/deep-research`, `/api/v1/discover`, `/api/v1/tools`, `/api/v1/philharmonic`, `/api/v1/s3`, `/api/v1/mcp`, `/api/v1/memory`, `/api/v1/usage`, `/api/v1/logs`, `/api/v1/backup`, `/api/v1/artifacts`, `/api/v1/computer-use`, `/api/v1/analytics`, `/api/v1/pair`, `/api/v1/devices`, `/api/v1/lock` (mounted directly on `app`, ahead of the lock gate — see App Lock).
 
 The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatches to the appropriate list-models handler based on the provider in the request body, reading the API key from the request (not from saved settings) to fetch live model catalogs.
 
 **Middleware Pipeline** (order in `app.ts`):
 
-1. CORS middleware (`hono/cors`, allows all origins for localhost development)
-2. Lock gate (`lockGate`) — rejects all `/api/*` with `423` while the app is locked
-3. Trace gate (`traceMiddleware`) — wraps each `/api/*` request in an `AsyncLocalStorage` trace (see `src/main/lib/logger/`), sets the `x-trace-id` response header
-4. Settings injection — fresh `getSettings()` set on the Hono context per request
-5. Error handler (`app.onError`, returns JSON errors)
+1. Origin gate (`createOriginGate`) — a request must carry no `Origin` (exodus-ios, exodus-cli, `tests/api`, and the packaged renderer: a `file://` page in Electron sends none) or, in a dev build only, exactly the Vite renderer's; anything else — a website, another loopback port, `null`, an extension, the artifact sandbox — gets `403`, as does a request on the loopback listener addressed by a public `Host` (DNS rebinding). Runs before CORS so a refused origin gets no `Access-Control-Allow-Origin`. Which listener took a request is in the bindings (`listenerOf(c)` in `server/types.ts`)
+2. CORS middleware (`hono/cors`)
+3. Auth gate (`authGate`) — on the LAN listener a request needs `Authorization: Bearer <token>` of a paired device (`401` otherwise), except `POST /api/v1/pair`, which the pairing window guards; `/api/v1/devices*` is refused there outright (`403`). Loopback passes straight through. Ahead of the lock gate so an unauthenticated request learns nothing, not even that the app is locked
+4. Lock gate (`lockGate`) — rejects all `/api/*` with `423` while the app is locked. `POST /api/v1/lock/unlock` is mounted just before it (after `authGate`), so a paired device can unlock the app from the phone
+5. Trace gate (`traceMiddleware`) — wraps each `/api/*` request in an `AsyncLocalStorage` trace (see `src/main/lib/logger/`), sets the `x-trace-id` response header
+6. Settings injection — `getSettings()` set on the Hono context per request (served from a cache in `db/queries.ts` that `updateSettings` / `updateSettingField` invalidate — write the `settings` table only through those two)
+7. Error handler (`app.onError`, returns JSON errors)
 
 The MCP-tools middleware (injecting MCP tools into context) is **archived** (commented out in `app.ts`).
 
@@ -269,44 +292,139 @@ The MCP-tools middleware (injecting MCP tools into context) is **archived** (com
 - `session_summary` - Summarized conversation context
 - `project` - Projects
 - `mcp_server` - Configured MCP servers
+- `paired_device` - Devices allowed onto the LAN listener: a name and the SHA-256 of
+  the device's token, never the token. Machine-local — deliberately not part of
+  `db-io` export/import or of a data reset
 - `lcm_summary` - Lossless context-management summaries
+- `message.runId` - the run a row belongs to: the id of the run's user message
+  (backfilled by migration 0008 by walking each chat in `createdAt` order; a
+  row with no user row before it is a run of its own). `runId` is on every
+  `ChatMessage` on the wire too
 - Philharmonic: `agent`, `agent_memory`, `team`, `task`, `task_execution`, `task_execution_event`, `conversation_plan`, `plan_step`
 
 The full chat/message tables and indexes are defined in `src/main/lib/db/schema.ts`.
 
 ### AI/LLM Integration
 
-**Multi-Provider Support** (built on `@mariozechner/pi-ai` + `@mariozechner/pi-agent-core`):
-All model resolution lives in `src/main/lib/ai/providers/`. The registry-backed
+**Multi-Provider Support** (built on `@earendil-works/pi-ai` + `@earendil-works/pi-agent-core` 0.85):
+pi 0.85 has no global registry: every request is routed by `model.provider`
+to a provider registered on a `Models` collection, and the process's one
+collection is `getKernelModels()` in `src/main/lib/ai/kernel/models.ts` —
+the five built-in providers through pi's factories, plus Ollama as a dynamic
+provider `ollama` (empty catalog; `providers/ollama.ts` hand-builds the model
+per request with `provider: 'ollama'`). `streamFn` from the same file is what
+every `Agent` / `agentLoop` streams through; the API key from Settings is
+passed explicitly per request and wins over anything a provider would
+resolve from the environment. The `/compat` entrypoint is not used.
+
+Model resolution lives in `src/main/lib/ai/providers/`. The catalog-backed
 providers (OpenAI GPT, Azure OpenAI, Anthropic Claude, Google Gemini, xAI Grok)
 are one `SPECS` table + a `fromSpec` factory in `index.ts` — a row only supplies
 the base-URL setting, its fallback, the default model ids, and the pi-ai
-`provider` / `api` strings. Ollama (`ollama.ts`) is the exception: a hand-built
-`Model` with nothing in the registry. Every path resolves through the shared
+`provider` / `api` strings (xAI is `openai-responses`: pi 0.85's xai provider
+serves the Responses API only). Every path resolves through the shared
 `resolveModel()` in `resolve-model.ts` (do not duplicate model-resolution
-logic); it accepts an optional live-fetched `snapshot` parameter (from
-`POST /api/v1/settings/models`) to override the pi-ai registry. Per-provider
-fallback defaults (contextWindow, cost) and `MODEL_METADATA_FALLBACK` (narrower
-scope: only what a provider's own list API omits) live there. Live model lists
-are fetched per-provider from `src/main/lib/ai/providers/list-models/`.
+logic); it looks the id up in the collection's catalog and accepts an
+optional live-fetched `snapshot` parameter (from `POST /api/v1/settings/models`)
+to override it. Per-provider fallback defaults (contextWindow, cost) and
+`MODEL_METADATA_FALLBACK` (narrower scope: only what a provider's own list API
+omits) live there. Live model lists are fetched per-provider from
+`src/main/lib/ai/providers/list-models/`.
+
+**Chat kernel** (`src/main/lib/ai/kernel/`, spec
+`docs/superpowers/specs/2026-09-22-chat-kernel-design.md`):
+
+A **run** is one user message through the final answer, with every model
+step and tool result in between; `message.runId` (the user message's own id,
+on every row of the run) is the unit that context assembly, compaction and
+rendering work in.
+
+- `models.ts` — the `Models` collection and `streamFn` (above)
+- `run.ts` — `runAgent(input): AsyncIterable<KernelEvent>` wraps pi's `Agent`
+  (`convertToLlm` asserts the run invariant, `beforeToolCall` blocks tools
+  disabled in settings) and yields the kernel's own events, each stamped with
+  `runId`: `message_update` · `message_end` · `tool_start` · `tool_update` ·
+  `tool_end` · `run_end` (always, with the messages that completed) · `error`
+  (after `run_end`, when a provider failed). Stop aborts the agent; a partial
+  answer is kept, marked `aborted`
+- `record.ts` — `RunRecorder`: fed every event, `persist()` from the route's
+  `finally` saves the run's rows with its duration and enqueues the post-run
+  jobs
+- `invariant.ts` — `dropBrokenRuns()`: a provider request starts with a user
+  message and every tool result follows its tool call; a violating run is
+  dropped and logged, never sent (the 2026-09-21 `unexpected tool_use_id` 400)
+- `events.ts` — the `KernelEvent` union; `faux.ts` / `faux-boot.ts` — pi's
+  scripted provider for tests (see Testing)
 
 **Chat Flow** (`src/main/lib/server/routes/chat.ts`):
 
 1. Retrieve user settings (model selection, API keys)
-2. Load chat history from database
-3. Bind built-in tools based on `AdvancedTools` selection
-4. Stream via `agentLoop` from `@mariozechner/pi-agent-core` for multi-step tool execution
-5. Stream response back to renderer
-6. On completion: save messages; enqueue background jobs (search indexing,
-   LCM compaction, memory consolidation) onto the pgmq-backed
-   job queue (`src/main/lib/jobs/`) rather than running them inline
+2. Assemble the context (LCM, in whole runs) and bind built-in tools based on
+   the `AdvancedTools` selection and `settings.tools.disabledTools`
+3. `for await` over `runAgent()`, mapping each kernel event onto one SSE
+   event through `createSseWriter` (`routes/chat-sse.ts`): streaming
+   `message_update` snapshots are coalesced to one per
+   `STREAM_FLUSH_INTERVAL_MS` (each carries the whole message so far), other
+   events flush first so order holds, and writes become no-ops once the
+   client has gone. Wire shapes are unchanged; every message carries `runId`
+4. However the run ends — done, a provider error midway, or Stop (which
+   cancels the response stream) — `RunRecorder.persist()` saves the messages
+   that completed and enqueues background jobs (LCM compaction, memory
+   consolidation, and search indexing only when Elasticsearch is configured)
+   onto the pgmq-backed job queue (`src/main/lib/jobs/`) rather than running
+   them inline
 
 **Tool Architecture** (`src/main/lib/ai/calling-tools/`):
-Each tool has a description for LLM understanding, a Zod input schema, and an execute function.
+Each tool has a description for LLM understanding, a TypeBox parameter schema, and an execute function.
 
-Built-in tools (files in `src/main/lib/ai/calling-tools/`):
+Built-in tools (files in `src/main/lib/ai/calling-tools/`), named in
+snake_case on the wire — the names are `TOOL_NAMES` in
+`packages/shared/src/constants/tool-names.ts`, the single source of truth for
+the tool definitions, the binder, the system prompt, the renderer's dispatch
+and the settings registry (migration 0007 rewrote stored rows from the old
+camelCase; `toToolName()` maps a pre-rename `disabledTools` key):
 
-`computer-use`, `create-artifact`, `deep-research`, `edit-file`, `find-files`, `grep`, `image-generation`, `lcm-describe`, `lcm-expand`, `lcm-grep`, `list-directory`, `map-itinerary`, `read-file`, `search-knowledge-base`, `terminal`, `weather`, `web-fetch`, `web-search`, `write-file`.
+`computer_use`, `create_artifact`, `deep_research`, `edit_file`, `find_files`, `grep`, `image_generation`, `lcm_describe`, `lcm_expand`, `lcm_grep`, `list_directory`, `map_itinerary`, `read_file`, `search_knowledge_base`, `terminal`, `weather`, `web_fetch`, `web_search`, `write_file`.
+
+`weather` is Open-Meteo (no key: a geocoding call, then seven days with 24
+hourly points, WMO codes, all in the place's local time). The card reads
+`details` (everything); the model reads the text block, which is
+`summarizeForModel()` — now, a line per day, hours at three-hour steps for
+today and tomorrow — because the full week is ~18 k characters and a tool
+result stays in the context for the rest of the chat. The result type
+(`packages/shared/src/types/weather.ts`) has not changed shape since the
+wttr.in years, so rows saved then still render: `conditionNameOf()` reads
+WMO and WWO codes alike and `weatherClockHours()` reads ISO, "06:52 AM" and
+"300". The card (`components/calling-tools/weather/`) is compact in the
+transcript — a line of now, the day's temperature curve on the colour tone's
+accent, three segmented days — and opens in place on Details to the
+headline, the readings and the week as range-bar rows.
+
+**MCP toolbox** (`calling-tools/mcp-toolbox.ts`): MCP servers are not bound
+tool by tool (providers cap the tools array — OpenAI at 128 — and one server
+can exceed it alone). Two tools stand in for all of them: `list_mcp_tools({
+server?, query? })` returns each tool's server, name, description and
+parameter schema; `call_mcp_tool({ server, tool, arguments })` forwards the
+call and returns the result unchanged; the prompt's `<mcp_servers>` block
+carries one line per connected server so the model knows what exists.
+
+**System prompt** (`src/main/lib/ai/prompts.ts`, `getSystemPrompt({
+mcpDirectory, workspaceDir, skillsIndex })`): the policy is autonomy — use
+tools without asking or announcing, chain calls until the task is done, stop
+only for a real ambiguity or a `<hard_stops>` item (deleting/overwriting
+outside the workspace, `sudo`, system-wide installs, `git push`, anything sent
+or paid on the user's behalf). Every built-in is explained by its wire name
+(`tests/unit/main/lib/ai/prompts.test.ts` holds that — a new tool must be
+added there), grouped research / files & shell / output / memory / computer;
+HTML and anything visual goes through `create_artifact`. `<workspace>`,
+`<skills>` and `<mcp_servers>` render only when given; citations live under
+`<citation_rules>`.
+
+**Chat workspace**: `getChatWorkspaceDir(chatId)` = `~/.exodus/workspace/<chatId>`
+(`paths.ts`; not created until used). `terminal(defaultCwd)` and
+`findFiles(defaultRoot)` are factories, bound to the workspace when
+`bindCallingTools` gets a `chatId` and to the user's home otherwise
+(Philharmonic keeps `~/.exodus/groups/<id>` as its own).
 
 ### Knowledge Base (LightRAG)
 
@@ -422,8 +540,14 @@ Philharmonic runs multi-agent "Groups" (teams of agents collaborating on tasks).
 A local PIN lock protects the app and gates all API access.
 
 - Main process: `src/main/lib/lock/` (`lock-manager` state machine, `pin-store` using scrypt + Electron `safeStorage`, `idle-watcher`, `lock-config`, IPC handlers)
-- The `lockGate` middleware rejects every `/api/*` request with `423` while locked
-- Unlock happens only via IPC (the lock screen), never over HTTP
+- The `lockGate` middleware rejects every `/api/*` request with `423` while locked (`/api/v1/lock/unlock` excepted, below)
+- Unlock is IPC (the lock screen: PIN, or the Mac's Touch ID) or `POST
+/api/v1/lock/unlock` (`routes/lock.ts`), the one API route mounted ahead of
+  `lockGate`. It reads no PIN: a paired device's own biometric (Face ID on
+  the phone) stands in for it, the way Touch ID does locally — the trust is
+  in holding a device token. `authGate` still runs first, so on the LAN only
+  a paired device reaches it; on loopback any local process can, which the
+  threat model already trusts (it can read `~/.exodus`)
 - The encrypted PIN secret lives at `~/.exodus/lock.dat`
 - Renderer: `src/renderer/components/lock/`
 
@@ -433,7 +557,17 @@ Compacts long conversations without losing information, surfacing summaries the 
 
 - Main process: `src/main/lib/ai/context-management/` (compaction, context assembler, token counter, status bus)
 - Route: `/api/v1/lcm`
-- Related built-in tools: `lcm-describe`, `lcm-expand`, `lcm-grep`
+- Related built-in tools: `lcm_describe`, `lcm_expand`, `lcm_grep`
+- **The run is the atom.** `assembleContext(chatId, budget, freshTailRuns)`
+  groups context items by `message.runId` (`groupItemsIntoRuns`): the fresh
+  tail is the most recent N runs, whole; back-fill adds whole older runs,
+  newest first, and stops at the first that does not fit; leaf compaction
+  chunks on run boundaries. So a request starts with a user message and every
+  tool result follows its tool call — a 40-seed property test on a real PGlite
+  (`context-assembler.property.test.ts`) holds it. `memory.freshTailSize`
+  counts runs (default 6, range 2–24; `freshTailRuns()` clamps a value saved
+  when it counted messages). Philharmonic's own LCM keeps a fixed 16-message
+  tail
 
 ### Sub-apps
 
@@ -466,7 +600,7 @@ Separate renderer entry points under `src/renderer/sub-apps/`: `searchbar`, `qui
 **API Communication**:
 
 - All API calls via `fetcher()` utility to `http://localhost:60223/api/*`
-- Streaming responses are consumed from the server's `agentLoop`-driven SSE/stream
+- Streaming responses are consumed from the server's `runAgent()`-driven SSE stream (`lib/stream-manager.ts`)
 - SWR for caching and revalidation
 
 ### Path Aliases
@@ -493,11 +627,13 @@ straight from `src/main/lib/db/schema.ts` (the shared package must not import th
 
 ### When Working with AI Providers
 
-- Providers resolve a `Model` (from `@mariozechner/pi-ai`) via the shared `resolveModel()` in `src/main/lib/ai/providers/resolve-model.ts` — do NOT duplicate model resolution logic
+- Providers resolve a `Model` (from `@earendil-works/pi-ai`) via the shared `resolveModel()` in `src/main/lib/ai/providers/resolve-model.ts` — do NOT duplicate model resolution logic
 - `resolveModel()` accepts an optional `snapshot` parameter (live-fetched from `POST /api/v1/settings/models`) to override the pi-ai registry
 - Per-provider fallback defaults (contextWindow, cost) and `MODEL_METADATA_FALLBACK` are centralized in `resolve-model.ts`
 - Model lists are now live-fetched per provider from Settings via `src/main/lib/ai/providers/list-models/`
 - Model names/API keys are retrieved from settings (never hardcode)
+- One-shot completions go through `completeSimple` from `src/main/lib/ai/utils/complete.ts` (see Shared Utilities) — pi-ai does not throw on a failed request
+- `@earendil-works/pi-ai` / `pi-agent-core` 0.85: there is no global `stream`/`complete`/`getModel` — everything goes through `getKernelModels()` (`src/main/lib/ai/kernel/models.ts`); `completeSimple` still comes from `src/main/lib/ai/utils/complete.ts`; the `/compat` entrypoint is not used. `ThinkingLevel` has `max` and no `off` (the app's `off` means no reasoning option). History: `docs/pi-ai-review.md`
 
 ### When Working with Database
 
@@ -508,18 +644,91 @@ straight from `src/main/lib/db/schema.ts` (the shared package must not import th
 
 ### When Working with Tools
 
-- Tool definitions go in `src/main/lib/ai/calling-tools/`
-- Tools are bound conditionally based on the `AdvancedTools` selection
-- Always validate inputs with Zod schemas
+- Tool definitions go in `src/main/lib/ai/calling-tools/`; the `name` is a
+  `TOOL_NAMES` entry (`packages/shared/src/constants/tool-names.ts`), added
+  there first — snake_case, and never renamed once rows carry it
+- Tools are bound conditionally based on the `AdvancedTools` selection and
+  `settings.tools.disabledTools`; a call to a disabled tool is also blocked in
+  the kernel's `beforeToolCall`
+- Parameters are TypeBox schemas (`Type` from `@earendil-works/pi-ai`)
+- Enum parameters use pi-ai's `StringEnum([...] as const)`, never
+  `Type.Union([Type.Literal(...)])` — that emits `anyOf`/`const`, which
+  Google's function-calling schema rejects
 - Tool descriptions are critical for LLM understanding
 - Return structured data that the LLM can interpret
 
 ### When Working with Chat
 
-- Chat route streams via `agentLoop` from `@mariozechner/pi-agent-core`
-- `agentLoop` handles multi-turn tool calling internally
-- Always save messages to database after completion
-- Message parts stored as JSONB in `message.parts` column
+- The chat route drives `runAgent()` (`src/main/lib/ai/kernel/run.ts`); pi's
+  `Agent` handles multi-step tool calling, parallel tools and cancellation
+- Persistence is `RunRecorder.persist()` from the route's `finally` — however
+  the run ended, the steps that completed are saved with the run's `runId`
+- Message content is stored as JSONB in `message.content`; `message.runId`
+  groups a run's rows (index `message_chat_run_idx`)
+
+### When Working with the Chat Render Path
+
+A reply streams at up to ~25 frames a second and every frame gives `<Chat>` a
+new `messages` array, so anything that re-renders per frame is paid for
+hundreds of times per answer. What keeps it cheap — all of it guarded by
+`tests/unit/renderer/components/messages-rerender.test.ts`,
+`tests/unit/renderer/hooks/use-chat.test.ts` and
+`tests/unit/renderer/lib/markdown-blocks.test.ts`:
+
+- **`useChat` hands out stable callbacks.** `sendMessage`, `regenerate`, `stop`
+  and `setMessages` must not depend on `messages` — they read the live list
+  from a ref that `setMessages` keeps in sync, and `prepareBody` / the `on*`
+  callbacks from refs synced in an effect. `regenerate` is a prop of every
+  assistant turn: when it changed per frame, the whole transcript re-rendered
+  per frame, straight through its `memo`.
+- **One run, one assistant message.** `groupIntoSegments` groups by
+  `runId` (segment key `run:<runId>`); `buildAssistantTurn` joins every
+  assistant text block of the run into one `body` under one
+  `ThinkingTimeline`, with one action bar. A provider error is pinned to the
+  run it ended (`useChat().runError`) and shown at that message's foot.
+- **Unchanged segments keep their identity.** `groupIntoSegments` and
+  `buildCitationSources` (`messages.tsx`) take a cache and return the same
+  segment objects / source arrays for turns a frame did not touch.
+  `AssistantTurnSegment` and `Markdown` are memoized on exactly those
+  identities — never build a fresh array or object per render for a prop of
+  either.
+- **Markdown renders block by block while it streams.** `useMarkdownBlocks`
+  splits a changing document into top-level blocks
+  (`lib/markdown-blocks.ts`, same remark config as the renderer via
+  `lib/markdown-plugins.ts`), each a memoized `MarkdownBlock`, so a frame
+  re-parses the last block or two instead of the whole answer. Text that never
+  changes (history) is rendered whole. A plugin added to the renderer must be
+  added to `markdown-plugins.ts`, not to `markdown.tsx` — that file also holds
+  the two "prose is not markup" settings: `singleDollarTextMath: false`
+  (`$200 - $300` is money) and GFM's `singleTilde: false` (`19~32°C` is a
+  range; only `~~` strikes through). The last block is
+  passed through `healStreamingTail` (`remend` closes an open `**`, `*`,
+  `~~`, `` ` `` or `$$` and neutralises a half-typed link; a half-streamed
+  `【N-source】` marker is dropped) so nothing flashes as literal markup. The
+  `【N-source】` citation chips live in `markdown-citations.tsx`. (A 2026-09-22
+  spike compared streamdown, markdown-to-jsx and md4x: the splitter already
+  parses in ~1 ms a frame, the same as streamdown's own; markdown-to-jsx has
+  no math; md4x emits HTML, not a React tree. streamdown was tried behind a
+  switch and dropped — its styling did not drop in over ours.)
+- **A render failure stays inside its piece.** Every tool card and every
+  answer body is wrapped in `ErrorBoundary` (`card-error-boundary.tsx`): a
+  card reading a field its result did not carry shows `RenderFailed` in its
+  place (a quiet notice, `border-border/50 bg-background/70` — never the
+  tool-failure box's destructive red, since it's our bug, not the tool's), a
+  body that will not parse falls back to its plain text, and the error goes
+  to the main-process log (`reportRendererError`, `POST /api/v1/logs`) — it
+  used to take the whole chat page down to the route's "Something went
+  wrong", which also reports now. React boundaries only see errors thrown
+  during render, so `installGlobalErrorReporting()` (same file) catches what
+  they can't — an event handler, a timer, an unawaited promise — via
+  `window.onerror` / `unhandledrejection`; called once at boot in `main.tsx`
+  and the searchbar/quick-chat sub-apps, never the artifact sandbox (a
+  distinct origin whose CSP allows no network at all — the call would just
+  be dead weight there).
+- **Memoized leaves take only what they render.** The composer
+  (`multimodel-input.tsx`) and `ChatToc` are `memo`'d; don't pass them
+  `messages` or anything else that changes per frame unless they show it
+  (`ChatToc` compares user messages only).
 
 ### When Working with Frontend
 
@@ -528,17 +737,74 @@ straight from `src/main/lib/db/schema.ts` (the shared package must not import th
 - Always use path alias `@` for renderer imports
 - Tailwind + Radix UI for consistent styling
 - Toast notifications via `sileo` (mounted once as `<AppToaster />` per
-  layout — chat/settings/philharmonic); `sonner`'s `Toaster` is a leftover
-  shadcn primitive (`components/ui/sonner.tsx`) that is never mounted, so
-  `sonner`'s `toast()` calls render nothing — use `sileo` instead
+  layout — chat/settings/philharmonic; its fill is the `--foreground` token
+  read from the document, so it follows the colour tone); `sonner`'s
+  `Toaster` is a leftover shadcn primitive (`components/ui/sonner.tsx`) that
+  is never mounted, so `sonner`'s `toast()` calls render nothing — use
+  `sileo` instead
+
+### Motion (read before animating anything)
+
+The bar is Emil Kowalski's design-engineering philosophy (the
+`emil-design-eng` / `animate` / `review-animations` skills); the 2026-09-23
+audit that applied it is in the commit history (`style(motion): …`).
+
+- **Tokens.** `globals.css` `@theme` redefines the `ease-*` utilities:
+  `ease-out` = `cubic-bezier(0.23,1,0.32,1)` (everything entering or
+  leaving), `ease-in-out` = `cubic-bezier(0.77,0,0.175,1)` (on-screen
+  movement), `ease-drawer` = `cubic-bezier(0.32,0.72,0,1)` (a drawer, the
+  side sheet). Never hand-type a curve, never `ease-in` on UI, never
+  `ease-linear` except constant motion. Durations: press 100–160, tooltip
+  125–200, popover 150–250, modal 200 in / 150 out, nothing on UI over 300.
+- **Entrances** are the class strings in `src/renderer/lib/motion.ts`:
+  `ENTER` (fade), `ENTER_UP` (fade + 6px rise), `ROW_ENTER` (a row in a list
+  still growing — a timeline step, a fresh message), `PAGE_ENTER` (a tab
+  swap), `staggerDelay(i)` for a few items together. They are
+  `@starting-style` transitions, so no mount effect and no restart. Only for
+  what appears occasionally; never on a switch, a select, typing, or the
+  result of a keyboard shortcut. Overlays are tw-animate `animate-in` /
+  `animate-out` **with `ease-out` beside them** (tw-animate reads the
+  token); popovers keep `origin-(--transform-origin)`, modals stay centered.
+- **What is deliberate:** the sidebar toggle transitions `flex-grow` for
+  200 ms (`layouts/shared/resizable-sidebar.tsx`, only while toggling, never
+  during a drag — the one layout-property animation); a fresh run's user
+  bubble and reply enter, what the chat opened with does not; tooltips wait
+  500 ms for the first and are instant (`data-instant`, no animation) for
+  the neighbours; the "thinking" dots are `bg-foreground/40` staggered
+  `animate-pulse`; the compaction card lingers 150 ms to fade out.
+- **Never `transition-all`** — name the properties. Animate `transform` and
+  `opacity`; a `width`/`padding`/`grid-template-rows` transition needs a
+  reason in a comment. `prefers-reduced-motion` in `globals.css` removes
+  movement and keeps opacity/colour at 150 ms — do not add a second rule
+  that zeroes everything.
+- **Colour:** the light neutral base is `oklch(0.985)` (page) / `0.995`
+  (card, popover) / `0.975` (sidebar) — never pure white; dark is `0.145`.
+  No raw Tailwind palette colours (`bg-blue-400`) on chat surfaces and no
+  `bg-black`/`bg-white` except an overlay scrim; use the tokens.
 
 ### Security Considerations
 
-- Context isolation enabled in preload
+- `docs/security-hardening.md` is the reference: the threat model, what is in
+  place and the smaller items still open — read it before touching the server
+  middleware, preload, window creation, the LAN listener or the artifact sandbox
+- Windows run with `sandbox: true` + `contextIsolation: true`; `hardenRenderers()`
+  (`src/main/lib/security.ts`) cancels navigation away from the app, denies new
+  windows, opens only `http(s)` / `mailto` links externally, and grants
+  permissions only to Exodus's own pages. Never call `shell.openExternal`
+  directly — use `openExternalSafely`
+- **The artifact sandbox has an origin of its own** (`exodus-artifact://sandbox`,
+  `src/main/lib/artifact-protocol.ts`), which is the whole of its isolation:
+  model-written code there cannot reach `window.parent`, the preload bridge or
+  the API (its CSP allows no network at all, and the origin gate refuses that
+  origin). Never serve it from the app's origin again, and never add anything to
+  it that needs the API — it gets its code by `postMessage`
+- **The API has two faces** (see Middleware Pipeline and `src/main/lib/lan/`):
+  plaintext on loopback, with no token — a local process can read `~/.exodus`
+  anyway, and browsers are stopped by the origin gate; and HTTPS on the LAN,
+  where every request needs a paired device's token and the certificate is
+  pinned by the device. A paired device gets the whole API (exodus-ios edits
+  provider keys), which is why that path is TLS-only
 - API keys stored locally in PGlite database
-- No external authentication (local-first application)
-- CORS allows localhost only in development
-- Sandbox disabled (required for native modules)
 
 ## Testing
 
@@ -553,6 +819,12 @@ Vitest v4 with the following configuration (`vitest.config.ts`):
 ### Writing Tests
 
 - Tests live under `tests/unit/`, mirroring the source tree: `src/main/lib/paths.ts` → `tests/unit/main/lib/paths.test.ts`. Test files are never co-located with the module they test — this keeps `src/` free of test files. A dedicated `tsconfig.test.json` (referenced from the root `tsconfig.json`) covers `tests/unit/**/*` for editor support; it is intentionally not part of the `bun run typecheck` gate.
+- The default environment is `node`. A test that needs a DOM (rendering a
+  component or a hook) starts with `// @vitest-environment happy-dom` and drives
+  React with `createRoot` + `act` — still a `.test.ts` file, using
+  `createElement` rather than JSX (see
+  `tests/unit/renderer/hooks/use-chat.test.ts`). Use it for render-count and
+  identity guarantees; pure logic stays in `node`.
 - Import the module under test via the matching alias (`@main/...`, `@/...`, or `@exodus/shared/...`), not a relative path — relative paths would need to reach back out of `tests/unit/` into `src/`.
 - Tests for main-process code that transitively imports Electron/PGlite must mock those modules:
 
@@ -562,11 +834,27 @@ vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
 ```
 
 - Use `await import('@main/lib/paths')` (alias, not a relative path) after mocks for dynamic import when needed
+- **Anything that talks to a model is tested on pi's faux provider**, never
+  a key: `registerFauxProvider()` (`src/main/lib/ai/kernel/faux.ts`) puts it
+  on the kernel collection, `setResponses([...])` scripts the replies
+  (`fauxAssistantMessage`, `fauxText`, `fauxToolCall` from
+  `@earendil-works/pi-ai`; a response factory answers from the context). Each
+  registration replaces the one before it, so register last and pass
+  `handle.getModel()` in. Modules that one-shot through `completeSimple` are
+  mocked at `@main/lib/ai/kernel/models` (`getKernelModels: () => ({
+completeSimple })`). See `tests/unit/main/lib/ai/kernel/run.test.ts` and
+  `tests/unit/main/lib/server/routes/chat.faux.test.ts`
+- **A migration or a query is tested on a real in-memory PGlite** with the
+  shipped migrations applied: `createMigratedPglite('0008')` in
+  `tests/unit/helpers/migrated-pglite.ts` (plus `migrationFile()` /
+  `migrationSql()` to apply the one under test), mocked in as `@main/lib/db/db`
+  with `drizzle(pglite)` where the module under test imports `db`
 
 ### Shared Utilities
 
 Reusable AI utilities that should be used (and tested) instead of inline implementations:
 
+- `src/main/lib/ai/utils/complete.ts` — `completeSimple()`: the kernel collection's, except a failed request rejects (`LlmRequestError`). pi-ai itself **resolves** on a 429 / bad key / dropped connection, to an empty message with `stopReason: 'error'`, which reads as "the model said nothing". Always import `completeSimple` from here, and make sure the caller's `catch` does something sensible
 - `src/main/lib/ai/utils/llm-response-util.ts` — `extractTextFromCompletion()` and `parseJsonFromLlmResponse()` for parsing LLM outputs
 - `src/main/lib/ai/utils/conversation-util.ts` — `extractConversationText()` for converting messages to text
 - `src/main/lib/ai/providers/resolve-model.ts` — Shared `resolveModel()` with per-provider fallback defaults
@@ -735,10 +1023,11 @@ Main process:
 - `src/main/main.ts` — app bootstrap, lifecycle, IPC + server startup
 - `src/main/lib/server/app.ts` — Hono server + route registration
 - `src/main/lib/server/routes/` — API route handlers
-- `src/main/lib/server/middlewares/` — CORS, lock gate, error handler
+- `src/main/lib/server/middlewares/` — origin gate, lock gate, trace, error handler
 - `src/main/lib/ai/providers/` — LLM provider resolution (`resolve-model.ts`)
 - `src/main/lib/ai/providers/list-models/` — Live model catalog handlers per provider (`anthropic.ts`, `openai.ts`, `google.ts`, `xai.ts`, `ollama.ts`); each normalizes that provider's list-models API response into `{ id, displayName, snapshot: ModelSnapshot }`, dispatched by `index.ts` and called from `POST /api/v1/settings/models`
-- `src/main/lib/ai/calling-tools/` — built-in agent tools
+- `src/main/lib/ai/kernel/` — the chat kernel: `models.ts` (the `Models` collection, `streamFn`), `run.ts` (`runAgent()`), `record.ts` (`RunRecorder`), `invariant.ts` (`dropBrokenRuns()`), `events.ts`, `faux.ts` + `faux-boot.ts` (pi's scripted provider; `EXODUS_FAUX_PROVIDER=1`)
+- `src/main/lib/ai/calling-tools/` — built-in agent tools (snake_case names from `packages/shared/src/constants/tool-names.ts`) and the MCP toolbox (`mcp-toolbox.ts`)
 - `src/main/lib/ai/skills/` — skills.sh client, install store, and the prompt seam (see Skills)
 - `src/main/lib/analytics/` — DuckDB chat-audit snapshot + read-only query wrapper (see Chat Audit)
 - `src/main/lib/ai/philharmonic/` — multi-agent Groups
@@ -754,8 +1043,10 @@ Main process:
 - `src/main/lib/discover/` — Home Discover feed: Brave News client, memory-driven
   query generation, `runDiscoverRefresh` (see docs/superpowers/specs/2026-09-05-home-discover-feed-design.md)
 - `src/main/lib/jobs/` — durable job queue (pgmq-backed): `queries.ts`
-  (enqueue/read/archive), `handlers.ts` (per-queue job logic), `worker.ts`
-  (`enqueueAndProcess()` + periodic sweep); decouples chat.ts's post-turn
+  (enqueue/read/delete/archive/purge), `handlers.ts` (per-queue job logic),
+  `worker.ts` (`enqueueAndProcess()` + periodic sweep). A finished job is
+  deleted; only a job given up on is archived, and archives are truncated at
+  launch — payloads carry `apiKey` and whole conversations. Decouples chat.ts's post-turn
   side effects (search indexing, LCM compaction, memory consolidation,
   `kb-sync`, `discover-refresh`) from the request/response cycle.
   `queries.ts`'s `enqueueJob` stamps the ambient `traceId` onto the payload
@@ -769,7 +1060,9 @@ Main process:
   call signature unchanged). `withTrace` wraps the `/api/*` middleware, the
   job worker, and the scheduler. JSONL at `~/.exodus/logs/`; read via
   `/api/v1/logs` (filters incl. `traceId`) + `/api/v1/logs/scopes` and the
-  Settings → Logger tab. See
+  Settings → Logger tab; `POST /api/v1/logs` is the renderer reporting an
+  error it caught (`lib/report-error.ts`), written under a
+  `renderer/<scope>` surface. See
   `docs/superpowers/specs/2026-09-06-standardized-logging-design.md`
 - `src/main/lib/computer/` — window-scoped screenshot-loop Computer Use V0: the
   `exodus-input` Swift helper (list-windows / list-apps / screenshot / activate /
@@ -783,6 +1076,32 @@ Main process:
 - `src/main/lib/i18n.ts` — the main-process i18next instance (`mainI18n`),
   `resolveEffectiveLocale`, and the `get-app-locale` / `set-app-locale` IPC
 - `src/main/lib/ipc.ts` — main-process IPC handlers
+- `src/main/lib/lan/` — access from the LAN (exodus-ios on a device). The app is
+  served twice (`server/app.ts`): plaintext on loopback, and over HTTPS on
+  `LAN_SERVER_PORT` behind `authGate` — but only while a device is paired or a
+  pairing window is open; until then nothing listens on the LAN at all.
+  `pairing.ts` (the pairing window: a one-time code, two minutes, single use,
+  five wrong guesses close it; pure, clock injected; also the
+  `exodus://pair?h=&p=&c=&f=&n=` link and LAN host discovery), `devices.ts`
+  (256-bit tokens stored as SHA-256 in `paired_device`; constant-time match
+  through a cache every write drops, so a revocation bites on the next
+  request), `certificate.ts` (self-signed P-256, ten years, key under
+  `safeStorage` in `~/.exodus/tls/`; its fingerprint is what devices pin — never
+  rotated except by "Reset all"), `listener.ts` (`sync()` makes the HTTPS
+  listener match "wanted"; resolves once listening), `index.ts` (the process's
+  `pairing`, `syncLan()`, `openPairingWindow()`). Routes: `POST /api/v1/pair`
+  (code → token), `/api/v1/devices` (list, open/close a window, revoke, reset —
+  loopback only). Spec:
+  `docs/superpowers/specs/2026-09-20-lan-pairing-sandbox-isolation-design.md`
+- `src/main/lib/artifact-protocol.ts` — the `exodus-artifact://sandbox` scheme
+  the artifact sandbox is served from, so model-written code has an origin of
+  its own and cannot reach `window.parent` (path-guarded static files when
+  packaged; a proxy to the Vite dev server in dev)
+- `src/main/lib/single-instance.ts` — the single-instance lock, taken by
+  `db/db.ts` before it opens PGlite (see Data directory, ports and isolation)
+- `src/main/lib/security.ts` — renderer hardening (`hardenRenderers()`:
+  navigation guard, window-open handler, permission handler) and
+  `openExternalSafely` / `isSafeExternalUrl`
 - `src/main/lib/paths.ts` — `~/.exodus` path helpers
 
 Preload:
@@ -796,20 +1115,57 @@ Renderer:
 - `src/renderer/components/lock/` — lock screen
 - `src/renderer/components/philharmonic/` — Philharmonic UI
 - `src/renderer/components/philharmonic/schedule/` — Schedule tab (agenda: upcoming one-off + recurring tasks)
-- `src/renderer/components/settings/` — settings
+- `src/renderer/components/settings/` — settings. Every page is put together
+  from `settings-row.tsx` (`SettingsSection` — a titled card of hairline rows —
+  and `SettingsRow`) plus `settings-kit.tsx`: `SettingsIntro` at the top (what the
+  page is for, as muted prose — explanation gets no box; `SettingsNotice`, an
+  `Alert`, is only for a caveat that must be heeded for the thing in front of
+  the user to work, e.g. "same network" in the pairing steps), `SettingsItem` (icon tile + name + one line of meta +
+  actions) for anything in a list and for a page's primary action,
+  `SettingsEmpty` for an empty list, `SwapLabel` for a button whose label
+  changes with state (stable width, blurred crossfade), and the motion tokens
+  `ENTER` / `ENTER_UP` / `PAGE_ENTER` / `staggerDelay()` (re-exported from
+  `src/renderer/lib/motion.ts` — see Motion above). A page reads top to
+  bottom: intro, primary action, content
+  sections, and anything destructive last in a section of its own, behind an
+  `AlertDialog`. `settings-form.tsx` keys the page wrapper by tab so each page
+  arrives with `PAGE_ENTER`
+- `src/renderer/components/settings/settings-form/devices.tsx` — Settings →
+  Integrations → Devices: pair a device by QR code, revoke, reset (the UI of
+  `src/main/lib/lan/`). The pairing card is `devices-pairing.tsx`: an invitation,
+  or — while a window is open — numbered steps beside the QR code and a
+  countdown drawn from the shared `PAIRING_TTL_MS`
+  (`packages/shared/src/constants/systems.ts`, enforced by the main process)
+- `src/renderer/components/settings/settings-form/tools.tsx` — Settings →
+  Built-in Tools: one hairline row per `TOOL_REGISTRY` entry (name, what it
+  does, its switch). A tool with something to set up carries its panel under
+  the row, open by default, with a Configure disclosure that folds it (a
+  `Reveal`); `tool-config.tsx` is that map — **keyed by the tool's wire name
+  (`TOOL_NAMES.*`), the same key as the registry** — with, per tool, the one
+  field it cannot work without and the red hint shown while the tool is on
+  and that field is empty. (The snake_case rename once left this map on the
+  old camelCase keys and the three panels vanished silently;
+  `tool-config.test.ts` pins the keys to the registry now.)
+- `src/renderer/components/morph.tsx` — `Morph` (two states in one cell, the
+  height following the active one under a blurred crossfade) and `Reveal` (a
+  section growing from 0fr): the in-place opening a card or a row is allowed
+  (see Motion); used by the weather card and the Built-in Tools panels
+- `src/renderer/components/flag.tsx` — `<Flag code>`: a country flag as a
+  separate SVG file by ISO code (never emoji — Windows has none; never inlined —
+  the web-search list is 239 of them)
 - `src/renderer/components/skills-market/` — Settings → Skills Market (Discover grid, detail page with audit + CLI command, Installed list)
 - `src/renderer/containers/` — page-level components
 - `src/renderer/stores/` — Jotai atoms
 - `src/renderer/hooks/` — React hooks
 - `src/renderer/services/` — API call wrappers
-- `src/renderer/lib/` — renderer utilities (ipc, stream-manager, `tone.ts` — `data-tone` apply/boot cache)
+- `src/renderer/lib/` — renderer utilities (ipc, stream-manager, `tone.ts` — `data-tone` apply/boot cache, `mask-url.ts` — `maskUrlSecrets()` for showing a URL without its query-string credentials, `heatmap-months.ts` — month labels for the Profile heatmap, `report-error.ts` — `reportRendererError()` + `installGlobalErrorReporting()` (see Motion/render-path notes above), `menu-bridge.ts` — `installMenuBridge()`, the renderer half of the native menu's New Chat / Settings… items: `menu.ts`'s `goToMainWindow()` raises the main window and sends `menu:new-chat` / `menu:open-settings`; `router.navigate()` needs no component to answer it)
 - `src/renderer/components/tone-bridge.tsx` — follows `settings.colorTone` and re-applies it
 - `src/renderer/sub-apps/` — searchbar, quick-chat, artifacts entry points
 
 Shared:
 
 - `packages/shared/src/types/` — cross-process types
-- `packages/shared/src/constants/` — constants (`test-ids.ts`, `systems.ts`)
+- `packages/shared/src/constants/` — constants (`test-ids.ts`, `systems.ts`, `tool-names.ts`)
 - `packages/shared/src/schemas/` — Zod schemas
 - `packages/shared/src/utils/` — shared utilities
 - `packages/shared/src/i18n/` — application i18n: `locales.ts` (the 10 locale IDs +
@@ -836,6 +1192,11 @@ Docs:
 
 - `docs/superpowers/specs/` — design specs
 - `docs/superpowers/plans/` — implementation plans
+- `docs/security-hardening.md` — threat model, protections in place, and the
+  open security items with their intended fixes
+- `docs/pi-ai-review.md` — review of the pi-ai usage against the upstream
+  README: what was fixed, and the migration to `@earendil-works/*` 0.85
+  (done with the chat kernel, spec `2026-09-22-chat-kernel-design.md`)
 - `docs/elasticsearch-setup.md` — end-user guide for configuring a
   self-hosted/cloud Elasticsearch cluster for Exodus's optional search
   upgrade (Exodus is consumer-only — never creates the index/mapping

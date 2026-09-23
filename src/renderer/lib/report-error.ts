@@ -1,0 +1,66 @@
+import { fetcher } from '@exodus/shared/utils/http'
+
+/**
+ * Sends an error the renderer caught to the main process's log
+ * (`POST /api/v1/logs` → `renderer/<scope>` in the JSONL the Logger tab
+ * reads). Fire and forget: reporting must never add a failure of its own,
+ * so a refused request is dropped silently — including from the artifact
+ * sandbox origin, whose CSP allows no network at all; the call is harmless
+ * there, it just never leaves.
+ */
+export function reportRendererError(
+  scope: string,
+  error: unknown,
+  attributes: Record<string, unknown> = {}
+): void {
+  const message =
+    error instanceof Error ? error.message : String(error ?? 'unknown')
+  const stack = error instanceof Error ? error.stack : undefined
+  fetcher<void>('/api/v1/logs', {
+    method: 'POST',
+    body: {
+      level: 'error',
+      scope,
+      message,
+      attributes: stack ? { ...attributes, stack } : attributes
+    },
+    responseType: 'text'
+  }).catch(() => {})
+}
+
+// A well-known false positive: browsers fire it when an observer's own
+// resize-triggered layout change couldn't be delivered within one frame —
+// harmless, and every layout-driven ResizeObserver in the app (Morph, the
+// resizable sidebar) can trigger it under fast resizing.
+const BENIGN_MESSAGE = /^ResizeObserver loop/u
+
+let installed = false
+
+/**
+ * Catches what no `ErrorBoundary` can: React's boundaries only see errors
+ * thrown during render, so anything thrown in an event handler, a timer, or
+ * a promise nobody awaited went straight to DevTools and nowhere else.
+ * Call once per entry that can reach the API (`main.tsx`, the searchbar and
+ * quick-chat sub-apps) — never the artifact sandbox: it is a distinct,
+ * deliberately isolated origin (see `security.md`) and installing this
+ * there would be dead weight, not a safety net.
+ */
+export function installGlobalErrorReporting(): void {
+  if (installed) return
+  installed = true
+
+  window.addEventListener('error', (event) => {
+    const message =
+      event.error instanceof Error ? event.error.message : event.message
+    if (BENIGN_MESSAGE.test(message)) return
+    reportRendererError('window', event.error ?? event.message, {
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno
+    })
+  })
+
+  window.addEventListener('unhandledrejection', (event) => {
+    reportRendererError('unhandled-rejection', event.reason)
+  })
+}

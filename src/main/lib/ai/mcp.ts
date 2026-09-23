@@ -1,6 +1,6 @@
+import type { AgentTool, AgentToolResult } from '@earendil-works/pi-agent-core'
+import { Type } from '@earendil-works/pi-ai'
 import { McpTools } from '@exodus/shared/types/ai'
-import type { AgentTool, AgentToolResult } from '@mariozechner/pi-agent-core'
-import { Type } from '@mariozechner/pi-ai'
 import { Client } from '@modelcontextprotocol/sdk/client/index.js'
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js'
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js'
@@ -155,7 +155,11 @@ async function connectMcpServer(server: McpServer): Promise<McpTools> {
     return agentTool
   })
 
-  const tools: McpTools = { mcpServerName: server.name, tools: agentTools }
+  const tools: McpTools = {
+    mcpServerName: server.name,
+    description: server.description || undefined,
+    tools: agentTools
+  }
   mcpCache.set(server.name, { tools, client, cachedAt: Date.now() })
   return tools
 }

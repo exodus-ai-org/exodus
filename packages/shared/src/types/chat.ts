@@ -7,7 +7,7 @@ import type {
   ToolResultMessage,
   Usage,
   UserMessage
-} from '@mariozechner/pi-ai'
+} from '@earendil-works/pi-ai'
 
 export type {
   AssistantMessage,
@@ -28,9 +28,16 @@ export interface CostBreakdown {
   total: number
 }
 
-export type ChatUserMessage = UserMessage & { id: string }
+/**
+ * Every message carries the run it belongs to: the id of the run's user
+ * message (which is its own `runId`). One run = one user message and every
+ * model step and tool result that answered it; the renderer groups by it and
+ * the database indexes it (`message.runId`).
+ */
+export type ChatUserMessage = UserMessage & { id: string; runId: string }
 export type ChatAssistantMessage = AssistantMessage & {
   id: string
+  runId: string
   cost?: CostBreakdown
   /** Wall-clock duration of the entire turn this message belongs to. Set only
    * on the LAST assistant message of a turn by the server (chat route) so the
@@ -38,7 +45,10 @@ export type ChatAssistantMessage = AssistantMessage & {
    * timestamps (which mark stream start, not end). */
   durationMs?: number
 }
-export type ChatToolResultMessage = ToolResultMessage & { id: string }
+export type ChatToolResultMessage = ToolResultMessage & {
+  id: string
+  runId: string
+}
 export type ChatMessage =
   | ChatUserMessage
   | ChatAssistantMessage
@@ -103,16 +113,25 @@ export interface TimelineStep {
   codeArgument?: string
 }
 
+/**
+ * A run that failed after the prompt was accepted: the provider's error, shown
+ * at the foot of that run's message. Not persisted — the steps that completed
+ * are, the failure is not — so it lives only for the session.
+ */
+export interface RunError {
+  runId: string
+  message: string
+}
+
+/** One run as the renderer shows it: a timeline of steps above one body. */
 export interface AssistantTurn {
+  runId: string
   messages: ChatMessage[]
   steps: TimelineStep[]
-  finalTextBlocks: Array<{
-    text: string
-    messageId: string
-    blockIdx: number
-    /** Timestamp of the assistant message this block came from (stream start). */
-    timestamp: number
-  }>
+  /** Every assistant text block of the run, in order, joined as paragraphs. */
+  body: string
+  /** Timestamp of the last assistant message (stream start). */
+  timestamp: number
   pendingToolCalls: Array<{
     name: string
     id: string

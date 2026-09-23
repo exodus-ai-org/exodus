@@ -1,3 +1,4 @@
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import type { ChatToolResultMessage } from '@exodus/shared/types/chat'
 import { capitalCase } from 'change-case'
 import { AlertCircleIcon } from 'lucide-react'
@@ -18,27 +19,29 @@ import { WeatherCard } from './calling-tools/weather/weather-card'
 // rendered as a no-op (their output surfaces elsewhere in the UI). Anything
 // outside this set — including every MCP tool — falls back to GenericToolCard
 // so the user at least sees that the tool ran.
-const BUILTIN_TOOL_NAMES = new Set([
-  'mapItinerary',
-  'weather',
-  'deepResearch',
-  'computerUse',
-  'terminal',
-  'createArtifact',
-  'webSearch',
-  'imageGeneration',
-  'readFile',
-  'writeFile',
-  'editFile',
-  'listDirectory',
-  'findFiles',
-  'grep',
-  'webFetch',
-  'rag',
-  'lcmGrep',
-  'lcmDescribe',
-  'lcmExpand'
+const BUILTIN_TOOL_NAMES = new Set<string>([
+  ...Object.values(TOOL_NAMES),
+  'rag'
 ])
+
+/** Built-ins with a card of their own below. */
+const CARD_TOOL_NAMES = new Set<string>([
+  TOOL_NAMES.mapItinerary,
+  TOOL_NAMES.weather,
+  TOOL_NAMES.deepResearch,
+  TOOL_NAMES.computerUse,
+  TOOL_NAMES.terminal,
+  TOOL_NAMES.createArtifact
+])
+
+/**
+ * Built-ins whose successful result renders nothing here: a web_search shows
+ * up as Sources in MessageAction, the rest surface in the timeline row (the
+ * call and its arguments) and, for an error, in the box below.
+ */
+const SILENT_TOOL_NAMES = new Set<string>(
+  [...BUILTIN_TOOL_NAMES].filter((name) => !CARD_TOOL_NAMES.has(name))
+)
 
 function CallingTools({
   chatId,
@@ -50,7 +53,7 @@ function CallingTools({
   const { t } = useTranslation('chat')
   const toolName = toolResult.toolName ?? ''
   // toolName stays canonical (used for dispatch below); toolLabel is the
-  // user-facing form ('webSearch' → 'Web Search') and only flows into the
+  // user-facing form ('web_search' → 'Web Search') and only flows into the
   // toast title and the fallback error string. Older persisted tool results
   // may be missing toolName entirely — capitalCase('') is safe, so guard once
   // up front rather than scatter ?. throughout.
@@ -86,8 +89,12 @@ function CallingTools({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [toolResult.toolCallId])
 
-  // Successful webSearch results are rendered via Sources in MessageAction, not here
-  if (toolName === 'webSearch' && !toolResult.isError) {
+  // No card, and no section either: an empty section used to cancel its
+  // own margin with a negative-margin child, and CSS margin collapsing let
+  // that eat the previous card's bottom margin too, so two cards with a
+  // read_file between them touched (and a tool with neither card nor hack
+  // left a 16px hole).
+  if (!toolResult.isError && SILENT_TOOL_NAMES.has(toolName)) {
     return null
   }
 
@@ -151,21 +158,22 @@ function CallingTools({
 
   return (
     <section className="mb-4 w-full">
-      {toolName === 'mapItinerary' && output?.type === 'mapItinerary' && (
-        <MapItineraryCard toolResult={output} />
-      )}
+      {toolName === TOOL_NAMES.mapItinerary &&
+        output?.type === 'mapItinerary' && (
+          <MapItineraryCard toolResult={output} />
+        )}
       {toolName === 'weather' && <WeatherCard toolResult={output} />}
-      {toolName === 'deepResearch' && <DeepResearchCard toolResult={output} />}
-      {toolName === 'computerUse' && <ComputerUseCard toolResult={output} />}
-      {toolName === 'terminal' && <TerminalCard toolResult={output} />}
-      {toolName === 'createArtifact' && output?.type === 'artifact' && (
-        <ArtifactCard chatId={chatId} toolResult={output} />
+      {toolName === TOOL_NAMES.deepResearch && (
+        <DeepResearchCard toolResult={output} />
       )}
-      {(toolName === 'imageGeneration' ||
-        toolName === 'readFile' ||
-        toolName === 'writeFile' ||
-        toolName === 'listDirectory' ||
-        toolName === 'findFiles') && <div className="-mb-4" />}
+      {toolName === TOOL_NAMES.computerUse && (
+        <ComputerUseCard toolResult={output} />
+      )}
+      {toolName === 'terminal' && <TerminalCard toolResult={output} />}
+      {toolName === TOOL_NAMES.createArtifact &&
+        output?.type === 'artifact' && (
+          <ArtifactCard chatId={chatId} toolResult={output} />
+        )}
       {!BUILTIN_TOOL_NAMES.has(toolName) &&
         (isDrawioOutput(output) ? (
           <DrawioCard output={output} />

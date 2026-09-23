@@ -90,7 +90,10 @@ export const electronTest = base.extend<ElectronFixtures>({
         EXODUS_HOME: '',
         NODE_ENV: 'test',
         // Prevent auto-update popups during testing
-        EXODUS_DISABLE_AUTO_UPDATE: '1'
+        EXODUS_DISABLE_AUTO_UPDATE: '1',
+        // The scripted provider: a chat spec can run a whole conversation
+        // with a tool call and no key (src/main/lib/ai/kernel/faux-boot.ts).
+        EXODUS_FAUX_PROVIDER: process.env.EXODUS_FAUX_PROVIDER ?? '1'
       }
     })
 

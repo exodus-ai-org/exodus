@@ -6,6 +6,7 @@ import {
   ChevronRightIcon,
   DownloadIcon,
   FolderOpenIcon,
+  ScrollTextIcon,
   Trash2Icon,
   XIcon
 } from 'lucide-react'
@@ -14,10 +15,22 @@ import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 import useSWR from 'swr'
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 
+import { SettingsEmpty } from '../settings-kit'
 import { SettingsSection } from '../settings-row'
 import { SettingsSelect } from '../settings-select'
 
@@ -107,7 +120,7 @@ function todayStr(): string {
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function Logger() {
-  const { t } = useTranslation('settings')
+  const { t } = useTranslation(['settings', 'common'])
   const [date, setDate] = useState(todayStr)
   const [level, setLevel] = useState('All')
   const [scope, setScope] = useState('All')
@@ -115,6 +128,7 @@ export function Logger() {
   const [debouncedKeyword, setDebouncedKeyword] = useState('')
   const [traceId, setTraceId] = useState<string | null>(null)
   const [page, setPage] = useState(1)
+  const [clearing, setClearing] = useState(false)
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null)
 
   const levelOptions = useMemo(
@@ -198,7 +212,6 @@ export function Logger() {
   }, [date, t])
 
   const handleClearAll = useCallback(async () => {
-    if (!window.confirm(t('logger.actions.clearAllConfirm'))) return
     try {
       await fetcher('/api/v1/logs', { method: 'DELETE' })
       sileo.success({ title: t('logger.toast.cleared') })
@@ -283,26 +296,33 @@ export function Logger() {
           </button>
         )}
 
-        {/* Spacer */}
-        <div className="flex-1" />
+        {/* Filters above, actions below — a deliberate second row rather
+            than whatever happens to wrap. */}
+        <div className="basis-full" />
 
         {/* Action buttons */}
         <Button variant="outline" size="sm" onClick={handleOpenDir}>
-          <FolderOpenIcon className="mr-1.5 h-3.5 w-3.5" />
+          <FolderOpenIcon />
           {t('logger.actions.openDirectory')}
         </Button>
         <Button variant="outline" size="sm" onClick={handleExport}>
-          <DownloadIcon className="mr-1.5 h-3.5 w-3.5" />
+          <DownloadIcon />
           {t('logger.actions.export')}
         </Button>
-        <Button variant="outline" size="sm" onClick={handleClearAll}>
-          <Trash2Icon className="mr-1.5 h-3.5 w-3.5" />
+        {/* Destructive, so it looks it and asks first. */}
+        <Button
+          variant="destructive"
+          size="sm"
+          className="ml-auto"
+          onClick={() => setClearing(true)}
+        >
+          <Trash2Icon />
           {t('logger.actions.clearAll')}
         </Button>
       </div>
 
       {/* Log table */}
-      <div className="border-border overflow-hidden rounded-md border">
+      <Card className="gap-0 py-0">
         {/* Header */}
         <div className="bg-muted/50 flex items-center gap-3 px-3 py-2 text-xs font-medium">
           <span className="w-[90px] shrink-0">{t('logger.table.time')}</span>
@@ -315,9 +335,10 @@ export function Logger() {
         {/* Rows */}
         <div className="max-h-[480px] overflow-y-auto">
           {entries.length === 0 && (
-            <div className="text-muted-foreground py-8 text-center text-sm">
-              {t('logger.table.empty')}
-            </div>
+            <SettingsEmpty
+              icon={ScrollTextIcon}
+              title={t('logger.table.empty')}
+            />
           )}
           {entries.map((entry, idx) => (
             <div key={`${entry.timestamp}-${idx}`}>
@@ -403,10 +424,10 @@ export function Logger() {
             </div>
           ))}
         </div>
-      </div>
+      </Card>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between text-sm">
+      <div className="flex items-center justify-between text-sm tabular-nums">
         <span className="text-muted-foreground">
           {t('logger.pagination.total', { count: total })}
         </span>
@@ -440,6 +461,29 @@ export function Logger() {
           </Button>
         </div>
       </div>
+
+      <AlertDialog open={clearing} onOpenChange={setClearing}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('logger.actions.clearAll')}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t('logger.actions.clearAllConfirm')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('common:action.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => {
+                setClearing(false)
+                void handleClearAll()
+              }}
+            >
+              {t('logger.actions.clearAll')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </SettingsSection>
   )
 }

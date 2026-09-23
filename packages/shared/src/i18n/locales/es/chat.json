@@ -177,18 +177,19 @@
   "weatherCard": {
     "today": "Hoy",
     "tomorrow": "Mañ.",
-    "feels": "Sensación {{temp}}° · {{observedAt}}",
     "humidity": "Humedad",
     "precip": "Precip.",
     "visibility": "Visibilidad",
-    "uvIndex": "Índice UV"
-  },
-  "weatherForecast": {
-    "temperatureRange": "🌡️ Rango de temperatura",
-    "cold": "❄️ Frío",
-    "hot": "🔥 Calor",
+    "uvIndex": "Índice UV",
+    "wind": "Viento",
+    "pressure": "Presión",
+    "feelsLike": "Sensación {{temp}}°",
     "sunrise": "Amanecer",
-    "sunset": "Atardecer"
+    "sunset": "Atardecer",
+    "rainChance": "{{percent}} % lluvia",
+    "observedAt": "Observado {{time}}",
+    "details": "Detalles",
+    "less": "Menos"
   },
   "sourcesPanel": {
     "title_one": "{{count}} fuente",
@@ -262,5 +263,9 @@
       "updatedTitle": "Proyecto actualizado",
       "deletedTitle": "Proyecto eliminado"
     }
-  }
+  },
+  "run": {
+    "error": "Esta respuesta se detuvo con un error: {{message}}"
+  },
+  "renderFailed": "No se pudo mostrar {{what}}."
 }

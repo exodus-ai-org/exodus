@@ -3,6 +3,7 @@ import { format } from 'date-fns'
 import {
   ArrowLeftIcon,
   ArrowUpIcon,
+  BrainIcon,
   ChevronRightIcon,
   EyeIcon,
   EyeOffIcon,
@@ -16,6 +17,7 @@ import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import {
   InputGroup,
@@ -37,6 +39,7 @@ import {
   type MemoryItem,
   type MemorySection
 } from '../../../services/memory'
+import { ENTER, SettingsEmpty } from '../settings-kit'
 import { SettingsRow, SettingsSection } from '../settings-row'
 
 /** DB serializes local wall-clock with a trailing `Z`; strip it so the day is right. */
@@ -82,7 +85,10 @@ function MemoryRow({
           onOpen()
         }
       }}
-      className="group hover:bg-muted/55 focus-visible:bg-muted/55 relative flex h-10 cursor-pointer items-center gap-3.5 px-3 outline-none"
+      className={cn(
+        'group hover:bg-muted/55 focus-visible:bg-muted/55 relative flex h-10 cursor-pointer items-center gap-3.5 px-3 outline-none',
+        ENTER
+      )}
     >
       <span
         className={cn(
@@ -528,7 +534,7 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
 
   return (
     <div className="flex flex-col gap-8">
-      <SettingsSection>
+      <SettingsSection title={t('memory.settings.sections.memory')}>
         <SettingsRow
           label={t('memory.settings.autoCapture.label')}
           description={t('memory.settings.autoCapture.description')}
@@ -560,7 +566,9 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
             )}
           />
         </SettingsRow>
+      </SettingsSection>
 
+      <SettingsSection title={t('memory.settings.sections.context')}>
         <SettingsRow
           label={t('memory.settings.lcmEnabled.label')}
           description={t('memory.settings.lcmEnabled.description')}
@@ -617,10 +625,10 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
                   error={fieldState.error}
                 >
                   <Input
-                    placeholder="16"
+                    placeholder="6"
                     type="number"
-                    min={8}
-                    max={64}
+                    min={2}
+                    max={24}
                     className="w-20"
                     {...field}
                     value={field.value ?? ''}
@@ -633,13 +641,13 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
         )}
       </SettingsSection>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2">
+        {/* The same label every SettingsSection carries, plus this list's
+            count and its "New" action. */}
         <div className="flex items-center justify-between px-1">
-          <h2 className="text-sm font-semibold">
+          <h2 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
             {t('memory.settings.storedMemoriesHeading')}
-            <span className="text-muted-foreground ml-1.5 text-xs font-normal tabular-nums">
-              {memories.length}
-            </span>
+            <span className="ml-1.5 tabular-nums">{memories.length}</span>
           </h2>
           <Button type="button" size="sm" variant="outline" onClick={handleNew}>
             <PlusIcon className="mr-1 size-3.5" data-icon />
@@ -654,11 +662,15 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
             <Skeleton className="h-10 w-full rounded-lg" />
           </div>
         ) : memories.length === 0 ? (
-          <div className="text-muted-foreground rounded-xl border border-dashed py-10 text-center text-sm">
-            {t('memory.settings.emptyState')}
-          </div>
+          <SettingsSection>
+            <SettingsEmpty
+              icon={BrainIcon}
+              title={t('memory.settings.emptyTitle')}
+              description={t('memory.settings.emptyHint')}
+            />
+          </SettingsSection>
         ) : (
-          <div className="border-border divide-border divide-y overflow-hidden rounded-xl border">
+          <Card className="divide-border gap-0 divide-y py-0">
             {activeGroups.map((g) => (
               <div key={g.section}>
                 <p className="text-muted-foreground px-3 pt-3 pb-1.5 text-[11px] font-semibold tracking-wide uppercase">
@@ -694,10 +706,12 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
                 ))}
               </div>
             )}
-          </div>
+          </Card>
         )}
 
-        <MemoryComposer onApplied={load} />
+        <div className="mt-1">
+          <MemoryComposer onApplied={load} />
+        </div>
       </div>
     </div>
   )

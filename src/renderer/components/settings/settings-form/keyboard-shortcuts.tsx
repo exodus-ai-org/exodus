@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Kbd } from '@/components/ui/kbd'
+import { Kbd, KbdGroup } from '@/components/ui/kbd'
 import { Switch } from '@/components/ui/switch'
 import {
   CATEGORY_TITLE_KEYS,
@@ -9,6 +9,7 @@ import {
   ShortcutDef
 } from '@/hooks/use-keyboard-shortcuts'
 import { useSettings } from '@/hooks/use-settings'
+import { cn } from '@/lib/utils'
 
 import { SettingsSection } from '../settings-row'
 
@@ -23,9 +24,25 @@ function ShortcutRow({
 }) {
   const { t } = useTranslation('settings')
 
+  // Same shape as every other settings row: what it is on the left, the
+  // control on the right. The switch keeps its slot when a shortcut can't be
+  // turned off, so the keys stay in one column.
   return (
-    <div className="flex items-center gap-3 py-2">
-      <div className="flex w-9 shrink-0">
+    <div className="flex items-center gap-4">
+      <span
+        className={cn(
+          'flex-1 text-sm font-medium transition-colors',
+          disabled && 'text-muted-foreground'
+        )}
+      >
+        {t(shortcut.labelKey)}
+      </span>
+      <KbdGroup className={cn('transition-opacity', disabled && 'opacity-50')}>
+        {shortcut.keys.map((key) => (
+          <Kbd key={key}>{key}</Kbd>
+        ))}
+      </KbdGroup>
+      <div className="flex w-9 shrink-0 justify-end">
         {shortcut.toggleable !== false && (
           <Switch
             checked={!disabled}
@@ -33,8 +50,6 @@ function ShortcutRow({
           />
         )}
       </div>
-      <span className="flex-1 text-sm">{t(shortcut.labelKey)}</span>
-      <Kbd>{shortcut.keys.join(' + ')}</Kbd>
     </div>
   )
 }
@@ -51,21 +66,16 @@ function ShortcutGroup({
   onToggle: (id: string, enabled: boolean) => void
 }) {
   return (
-    <div className="flex flex-col gap-1">
-      <h3 className="text-muted-foreground mb-1 text-xs font-semibold tracking-wider uppercase">
-        {title}
-      </h3>
-      <div className="divide-border divide-y">
-        {shortcuts.map((s) => (
-          <ShortcutRow
-            key={s.id}
-            shortcut={s}
-            disabled={disabledIds.has(s.id)}
-            onToggle={onToggle}
-          />
-        ))}
-      </div>
-    </div>
+    <SettingsSection title={title}>
+      {shortcuts.map((s) => (
+        <ShortcutRow
+          key={s.id}
+          shortcut={s}
+          disabled={disabledIds.has(s.id)}
+          onToggle={onToggle}
+        />
+      ))}
+    </SettingsSection>
   )
 }
 
@@ -103,18 +113,16 @@ export function KeyboardShortcuts() {
   }
 
   return (
-    <SettingsSection plain>
-      <div className="flex flex-col gap-6">
-        {Array.from(grouped.entries()).map(([category, shortcuts]) => (
-          <ShortcutGroup
-            key={category}
-            title={t(CATEGORY_TITLE_KEYS[category])}
-            shortcuts={shortcuts}
-            disabledIds={disabledIds}
-            onToggle={handleToggle}
-          />
-        ))}
-      </div>
-    </SettingsSection>
+    <>
+      {Array.from(grouped.entries()).map(([category, shortcuts]) => (
+        <ShortcutGroup
+          key={category}
+          title={t(CATEGORY_TITLE_KEYS[category])}
+          shortcuts={shortcuts}
+          disabledIds={disabledIds}
+          onToggle={handleToggle}
+        />
+      ))}
+    </>
   )
 }

@@ -1,4 +1,5 @@
 import { faviconUrl } from '@exodus/shared/constants/external-urls'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import type { TimelineStep } from '@exodus/shared/types/chat'
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import {
@@ -15,6 +16,7 @@ import { memo, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { i18n } from '@/lib/i18n'
+import { ROW_ENTER } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
 import { Markdown } from './markdown'
@@ -50,7 +52,7 @@ function StepIcon({
     return <XCircleIcon size={15} className="text-destructive shrink-0" />
   }
   const cls = cn('shrink-0', STATUS_TEXT[status])
-  if (step.toolName === 'webSearch')
+  if (step.toolName === TOOL_NAMES.webSearch)
     return <GlobeIcon size={15} className={cls} />
   if (step.type === 'thinking') return <BrainIcon size={15} className={cls} />
   return <ClockFadingIcon size={15} className={cls} />
@@ -99,7 +101,7 @@ function TimelineNode({
   children: React.ReactNode
 }) {
   return (
-    <div className="animate-in fade-in-0 slide-in-from-top-1 flex gap-2.5 pb-3 duration-300 last:pb-0">
+    <div className={cn(ROW_ENTER, 'flex gap-2.5 pb-3 last:pb-0')}>
       <div className="mt-1 flex flex-col items-center">
         <div className="flex shrink-0 items-center justify-center">{icon}</div>
         {!isLast && <div className="border-border w-px flex-1 border-l" />}

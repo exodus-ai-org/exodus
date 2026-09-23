@@ -2,8 +2,9 @@ import { readdir, stat } from 'fs/promises'
 import { homedir } from 'os'
 import { join, relative } from 'path'
 
-import type { AgentTool } from '@mariozechner/pi-agent-core'
-import { Type } from '@mariozechner/pi-ai'
+import type { AgentTool } from '@earendil-works/pi-agent-core'
+import { Type } from '@earendil-works/pi-ai'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 
 function matchGlob(name: string, pattern: string): boolean {
   // Simple glob: * matches anything, ? matches single char
@@ -27,7 +28,7 @@ const findFilesSchema = Type.Object({
   searchPath: Type.Optional(
     Type.String({
       description:
-        'Root directory to search from. Defaults to user home directory.'
+        'Root directory to search from. Defaults to the workspace directory named in the system prompt.'
     })
   ),
   maxResults: Type.Optional(
@@ -37,15 +38,18 @@ const findFilesSchema = Type.Object({
   )
 })
 
-export const findFiles: AgentTool<typeof findFilesSchema> = {
-  name: 'findFiles',
+/** @param defaultRoot where a search starts when the model names no `searchPath`. */
+export const findFiles = (
+  defaultRoot: string = homedir()
+): AgentTool<typeof findFilesSchema> => ({
+  name: TOOL_NAMES.findFiles,
   label: 'Find Files',
   description:
     'Find files matching a name pattern within a directory. Searches recursively up to 5 levels deep.',
   parameters: findFilesSchema,
   execute: async (_toolCallId, { pattern, searchPath, maxResults }, signal) => {
     if (signal?.aborted) throw new Error('Aborted')
-    const root = searchPath ?? homedir()
+    const root = searchPath ?? defaultRoot
     const limit = maxResults ?? 50
     const results: string[] = []
 
@@ -94,4 +98,4 @@ export const findFiles: AgentTool<typeof findFilesSchema> = {
       details
     }
   }
-}
+})

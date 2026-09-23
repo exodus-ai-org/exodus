@@ -42,6 +42,7 @@ export const TEST_IDS = {
     installedTab: 'skills-market.installed-tab',
     row: 'skills-market.row',
     expandGroupButton: 'skills-market.expand-group-button',
+    curatedOwnerButton: 'skills-market.curated-owner-button',
     loadMoreButton: 'skills-market.load-more-button',
     backButton: 'skills-market.back-button',
     installButton: 'skills-market.install-button',
@@ -60,6 +61,15 @@ export const TEST_IDS = {
     runButton: 'chat-audit.run-button',
     resultsTable: 'chat-audit.results-table',
     downloadCsvButton: 'chat-audit.download-csv-button'
+  },
+  devices: {
+    pairButton: 'devices.pair-button',
+    qrCode: 'devices.qr-code',
+    copyLinkButton: 'devices.copy-link-button',
+    cancelPairingButton: 'devices.cancel-pairing-button',
+    deviceRow: 'devices.device-row',
+    revokeButton: 'devices.revoke-button',
+    resetButton: 'devices.reset-button'
   },
   fullTextSearch: {
     testConnectionButton: 'full-text-search.test-connection-button',
@@ -113,9 +123,28 @@ export const TEST_IDS = {
     refreshButton: 'provider-models.refresh-button',
     modelSelect: 'provider-models.model-select'
   },
+  chat: {
+    /** One per assistant message (= one per run). */
+    messageAction: 'chat.message-action'
+  },
   composer: {
     reasoningEffortItem: 'composer.reasoning-effort-item',
     reasoningEffortLevel: 'composer.reasoning-effort-level'
+  },
+  weatherCard: {
+    /** The Details / Less toggle at the card's foot. */
+    details: 'weather-card.details',
+    /** The readings grid, visible only once the card is open. */
+    readings: 'weather-card.readings'
+  },
+  /** Settings → Built-in Tools. Each carries `data-tool="<wire name>"`. */
+  tools: {
+    /** A tool's on/off switch. */
+    toggle: 'tools.toggle',
+    /** The Configure disclosure of a tool that has a panel. */
+    configure: 'tools.configure',
+    /** The panel itself (its `data-open` says whether it is open). */
+    panel: 'tools.panel'
   }
 } as const
 

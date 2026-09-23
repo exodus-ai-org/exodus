@@ -1,8 +1,8 @@
-import type { Attachment } from '@exodus/shared/types/chat'
 // src/main/lib/ai/philharmonic/pm-coordinator.ts
-import type { AgentMessage, AgentTool } from '@mariozechner/pi-agent-core'
-import { agentLoop } from '@mariozechner/pi-agent-core'
-import type { Message } from '@mariozechner/pi-ai'
+import type { AgentMessage, AgentTool } from '@earendil-works/pi-agent-core'
+import { agentLoop } from '@earendil-works/pi-agent-core'
+import type { Message } from '@earendil-works/pi-ai'
+import type { Attachment } from '@exodus/shared/types/chat'
 import { v4 as uuidV4 } from 'uuid'
 
 import {
@@ -24,6 +24,7 @@ import { mainT } from '../../i18n'
 import { resolveKnowledgeBase } from '../../knowledge-base/resolve-knowledge-base'
 import { notifyIfBackground } from '../../philharmonic-notifications'
 import { searchKnowledgeBase } from '../calling-tools/search-knowledge-base'
+import { streamFn } from '../kernel/models'
 import { getModelFromProvider } from '../utils/chat-message-util'
 import { createEscalateToUserTool } from './agent-tools'
 import { askUserRegistry } from './ask-user-registry'
@@ -54,7 +55,7 @@ Execution loop:
 - After each employee returns, REVIEW their output against the step's goal. If it falls short, update the step to "failed" (or "pending" if you want to retry) and either delegate again with corrections, or recruit/replace. Never pass along sub-par work.
 - When every step is done, write ONE final message that summarizes the outcome. Do not call any tool in that final turn.
 
-Use searchKnowledgeBase for company-specific facts before asking the user. Use askUser only when truly blocked.
+Use search_knowledge_base for company-specific facts before asking the user. Use askUser only when truly blocked.
 Delegate to one employee at a time.`
 
 function rosterText(
@@ -140,12 +141,14 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
 
   // PhilharmonicLcm hydrates the LLM history: when within budget it's a
   // straight conversion of every persisted message; when over, it replaces
-  // the oldest turns with a rolling summary it maintains itself. Settings
-  // pulled from the memory settings mirror what Chat's LCM uses.
+  // the oldest turns with a rolling summary it maintains itself. The switch
+  // and the threshold mirror Chat's LCM; the tail is its own — Chat's
+  // `freshTailSize` counts runs since the kernel rewrite, this one counts
+  // messages, and 16 is what it always kept.
   const lcm = new PhilharmonicLcm(conversationId, model, apiKey, {
     enabled: setting.memory?.lcmEnabled ?? true,
     contextWindowPercent: setting.memory?.contextWindowPercent ?? 75,
-    freshTailSize: setting.memory?.freshTailSize ?? 16
+    freshTailSize: 16
   })
   const history = await lcm.assembleContext(excludeMessageId)
   const kb = resolveKnowledgeBase(setting)
@@ -373,7 +376,8 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
               (m as Message).role === 'toolResult'
           )
       },
-      signal
+      signal,
+      streamFn
     )
 
     for await (const event of stream) {

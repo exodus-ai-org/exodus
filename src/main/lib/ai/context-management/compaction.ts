@@ -1,13 +1,16 @@
 import crypto from 'crypto'
 
-import type { Model } from '@mariozechner/pi-ai'
-import { completeSimple } from '@mariozechner/pi-ai'
+import type { Model } from '@earendil-works/pi-ai'
 
+import type { LcmContextItem } from '../../db/schema'
+import { completeSimple } from '../utils/complete'
+import { groupItemsIntoRuns, type RunGroup } from './context-assembler'
 import { getSummaryPromptForDepth } from './prompts'
 import {
   getContextItems,
   getLatestLeafSummary,
   getMessageById,
+  getMessagesByIds,
   getSummariesByIds,
   insertSummary,
   linkSummaryToMessages,
@@ -116,34 +119,62 @@ async function summarizeWithFallback(
 }
 
 /**
- * Leaf pass: find oldest compactable messages, summarize them.
+ * The context items before the fresh tail — the last `freshTailRuns` runs
+ * (see `groupItemsIntoRuns`) are never compacted.
+ */
+async function compactableRuns(
+  items: LcmContextItem[],
+  freshTailRuns: number
+): Promise<RunGroup[]> {
+  const rows = await getMessagesByIds(
+    items.filter((i) => i.kind === 'message').map((i) => i.refId)
+  )
+  const runs = groupItemsIntoRuns(
+    items,
+    new Map(rows.map((m) => [m.id, m.runId]))
+  )
+  return runs.slice(0, Math.max(0, runs.length - freshTailRuns))
+}
+
+/**
+ * Leaf pass: find the oldest compactable runs, summarize them.
  * Returns true if any compaction was performed.
  */
 export async function runLeafPass(
   chatId: string,
   model: Model<string>,
   apiKey: string,
-  freshTailSize: number
+  freshTailRuns: number
 ): Promise<boolean> {
   const items = await getContextItems(chatId)
-  if (items.length <= freshTailSize) return false
+  const runs = await compactableRuns(items, freshTailRuns)
 
-  // Eligible items: everything before the fresh tail, only 'message' kind
-  const compactable = items.slice(0, -freshTailSize)
-  const messageItems = compactable.filter((i) => i.kind === 'message')
-  if (messageItems.length === 0) return false
-
-  // Accumulate a chunk up to LEAF_CHUNK_TOKENS
-  const chunkItems: typeof messageItems = []
+  // Accumulate whole runs up to LEAF_CHUNK_TOKENS: a run is summarized whole
+  // or kept whole, never split. The chunk is one contiguous span of message
+  // runs — summaries already made stay where they are, so a summary run ends
+  // the chunk once it has begun (and is skipped before it has).
+  const chunkItems: LcmContextItem[] = []
   let chunkTokens = 0
 
-  for (const item of messageItems) {
-    const msg = await getMessageById(item.refId)
-    if (!msg) continue
-    const tokens = item.tokenCount ?? estimateTokens(extractText(msg.content))
-    if (chunkTokens + tokens > LEAF_CHUNK_TOKENS && chunkItems.length > 0) break
-    chunkItems.push(item)
-    chunkTokens += tokens
+  for (const run of runs) {
+    if (run.key.startsWith('summary:')) {
+      if (chunkItems.length > 0) break
+      continue
+    }
+    let runTokens = 0
+    for (const item of run.items) {
+      if (item.tokenCount != null) {
+        runTokens += item.tokenCount
+        continue
+      }
+      const msg = await getMessageById(item.refId)
+      if (msg) runTokens += estimateTokens(extractText(msg.content))
+    }
+    if (chunkTokens + runTokens > LEAF_CHUNK_TOKENS && chunkItems.length > 0) {
+      break
+    }
+    chunkItems.push(...run.items)
+    chunkTokens += runTokens
   }
 
   if (chunkItems.length === 0) return false
@@ -223,10 +254,12 @@ export async function runCondensedPass(
   chatId: string,
   model: Model<string>,
   apiKey: string,
-  freshTailSize: number
+  freshTailRuns: number
 ): Promise<boolean> {
   const items = await getContextItems(chatId)
-  const compactable = items.slice(0, -freshTailSize)
+  const compactable = (await compactableRuns(items, freshTailRuns)).flatMap(
+    (run) => run.items
+  )
 
   // Find contiguous groups of same-depth summaries
   let groupDepth = -1
@@ -331,11 +364,11 @@ export async function runFullCompaction(
   chatId: string,
   model: Model<string>,
   apiKey: string,
-  freshTailSize: number,
+  freshTailRuns: number,
   maxRounds = 10
 ): Promise<void> {
   for (let round = 0; round < maxRounds; round++) {
-    const leafDone = await runLeafPass(chatId, model, apiKey, freshTailSize)
+    const leafDone = await runLeafPass(chatId, model, apiKey, freshTailRuns)
     if (!leafDone) break
   }
   for (let round = 0; round < maxRounds; round++) {
@@ -343,7 +376,7 @@ export async function runFullCompaction(
       chatId,
       model,
       apiKey,
-      freshTailSize
+      freshTailRuns
     )
     if (!condenseDone) break
   }

@@ -40,9 +40,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {...props}
     >
       <SidebarHeader
-        className={cn('draggable gap-2 pt-11 transition-[padding]', {
-          ['pt-2']: isFullscreen
-        })}
+        className={cn(
+          'draggable gap-2 pt-11 transition-[padding] duration-200 ease-out',
+          {
+            ['pt-2']: isFullscreen
+          }
+        )}
       >
         <div className="flex items-center px-1">
           <WorkspaceSwitcher />

@@ -46,12 +46,31 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+/* ── Motion tokens ────────────────────────────────────────────────────────
+ * One curve family for the whole app, as the `ease-*` utilities. The
+ * built-in CSS easings are too weak to read as deliberate, so `ease-out` and
+ * `ease-in-out` are redefined here — everything entering or leaving takes
+ * `ease-out` (fast start: the user is watching that first frame), on-screen
+ * movement takes `ease-in-out`, a drawer or side panel `ease-drawer`. Never
+ * `ease-in` on UI. Durations are not tokens (Tailwind's `duration-N` is the
+ * scale); the budgets are: press 100–160, tooltip 125–200, popover 150–250,
+ * modal 200–500, and nothing on UI over 300. */
+@theme {
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+}
+
 :root {
-  --background: oklch(1 0 0);
+  /* Not pure white: a page at oklch(1) is glare, and the tinted tones already
+   * sit at 0.985 with their cards a step lighter — neutral follows the same
+   * ladder (page 0.985, card/popover 0.995, sidebar 0.975) so switching tone
+   * changes the hue, not the depth. */
+  --background: oklch(0.985 0 0);
   --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
+  --card: oklch(0.995 0 0);
   --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
+  --popover: oklch(0.995 0 0);
   --popover-foreground: oklch(0.145 0 0);
   --primary: oklch(0.205 0 0);
   --primary-foreground: oklch(0.985 0 0);
@@ -71,7 +90,7 @@
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
+  --sidebar: oklch(0.975 0 0);
   --sidebar-foreground: oklch(0.145 0 0);
   --sidebar-primary: oklch(0.205 0 0);
   --sidebar-primary-foreground: oklch(0.985 0 0);
@@ -828,7 +847,7 @@
   }
 
   .animate-fade-in-up {
-    animation: fade-in-up 0.3s cubic-bezier(0.25, 1, 0.5, 1) both;
+    animation: fade-in-up 0.3s var(--ease-out) both;
   }
 }
 
@@ -892,12 +911,45 @@
   animation: shake 0.4s ease-in-out;
 }
 
+/* Reduced motion means fewer and gentler animations, not none: movement goes
+ * (nothing slides, scales or rises), the opacity fades that say "something
+ * changed" stay, short, and spinners keep spinning — a frozen spinner reads
+ * as a hang. Setting every duration to 0 made fades pop and the "thinking"
+ * dots freeze. */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
+    /* Transitions: only the properties that do not move anything still run
+     * (a @starting-style rise becomes a plain fade; a hover tint still
+     * tints); translate / scale / width / grid rows snap. */
+    transition-property:
+      opacity, color, background-color, border-color, box-shadow, filter !important;
+    transition-duration: 150ms !important;
+    /* tw-animate's animate-in / animate-out keyframes read these: with the
+     * movement zeroed they are pure fades. */
+    --tw-enter-translate-x: 0;
+    --tw-enter-translate-y: 0;
+    --tw-enter-scale: 1;
+    --tw-enter-rotate: 0;
+    --tw-exit-translate-x: 0;
+    --tw-exit-translate-y: 0;
+    --tw-exit-scale: 1;
+    --tw-exit-rotate: 0;
+  }
+
+  /* Keyframe entrances keep a short fixed length; the spinners and the
+   * caret keep their loops — a frozen spinner reads as a hang. */
+  *:not(.animate-spin):not(.animate-pulse):not(.animate-caret-blink) {
+    animation-duration: 150ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  }
+
+  .animate-fade-in-up {
+    animation-name: fade-in !important;
+  }
+
+  .animate-shake {
+    animation: none !important;
   }
 }

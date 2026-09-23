@@ -1,6 +1,7 @@
+import type { AgentTool } from '@earendil-works/pi-agent-core'
+import { Type } from '@earendil-works/pi-ai'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
-import type { AgentTool } from '@mariozechner/pi-agent-core'
-import { Type } from '@mariozechner/pi-ai'
 
 import { loadDocument } from '../utils/web-search-util'
 
@@ -32,20 +33,20 @@ function plainExcerpt(markdown: string, n: number): string {
 }
 
 /**
- * `webSources` is the same rank registry `webSearch` uses. Registering the
+ * `webSources` is the same rank registry `web_search` uses. Registering the
  * fetched page here means a summary the model writes from a webFetch result
  * can carry a real 【N-source】 citation even when webSearch never ran.
  */
 export const webFetch = (
   webSources?: Map<string, WebSearchResult>
 ): AgentTool<typeof webFetchSchema> => ({
-  name: 'webFetch',
+  name: TOOL_NAMES.webFetch,
   label: 'Web Fetch',
   description:
     'Fetch the content of a URL and return it as clean Markdown. ' +
     'Use this to read documentation pages, API references, GitHub files, or any web page. ' +
-    'Do not use this for web search — use webSearch instead. ' +
-    'The result is numbered [N]; cite facts drawn from it with 【N-source】, same as webSearch results.',
+    'Do not use this for web search — use web_search instead. ' +
+    'The result is numbered [N]; cite facts drawn from it with 【N-source】, same as web_search results.',
   parameters: webFetchSchema,
   execute: async (_toolCallId, { url }, signal) => {
     if (signal?.aborted) throw new Error('Aborted')

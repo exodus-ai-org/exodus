@@ -10,11 +10,12 @@ import {
   type UseFormReturnType
 } from '@exodus/shared/schemas/settings-schema'
 import type { ParseKeys } from 'i18next'
-import { Moon, Sun, SunMoon } from 'lucide-react'
+import { Globe, Moon, Sun, SunMoon } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { Flag } from '@/components/flag'
 import { Theme } from '@/components/theme-provider'
 import { Switch } from '@/components/ui/switch'
 import { setLoginItem, setMenuBar } from '@/lib/ipc'
@@ -32,13 +33,14 @@ import { LockPrivacy } from './lock-privacy'
 const LANGUAGE_OPTIONS: {
   value: LanguageSetting
   nativeName: string | null
-  flag: string
+  /** null for `auto`: a globe, never one country's flag. */
+  flagCode: string | null
 }[] = [
-  { value: 'auto', nativeName: null, flag: '🌐' },
+  { value: 'auto', nativeName: null, flagCode: null },
   ...LOCALE_IDS.map((id) => ({
     value: id,
     nativeName: LOCALES[id].nativeName,
-    flag: LOCALES[id].flag
+    flagCode: LOCALES[id].flagCode
   }))
 ]
 
@@ -116,7 +118,7 @@ function ColorTonePicker({
             aria-pressed={value === tone}
             data-testid={`${TEST_IDS.settings.colorTone}-${tone}`}
             className={cn(
-              'size-6 rounded-full transition-all',
+              'size-6 rounded-full transition-[scale,box-shadow]',
               value === tone
                 ? 'ring-ring ring-offset-background ring-2 ring-offset-2'
                 : 'hover:scale-110'
@@ -141,7 +143,12 @@ export function General({ form }: { form: UseFormReturnType }) {
     () =>
       LANGUAGE_OPTIONS.map((o) => ({
         value: o.value,
-        label: `${o.flag} ${o.nativeName ?? t('general.language.auto')}`
+        label: o.nativeName ?? t('general.language.auto'),
+        icon: o.flagCode ? (
+          <Flag code={o.flagCode} />
+        ) : (
+          <Globe aria-hidden className="text-muted-foreground size-4" />
+        )
       })),
     [t]
   )

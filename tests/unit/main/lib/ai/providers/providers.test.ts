@@ -28,9 +28,8 @@ describe('providers table', () => {
         'gemini-3.1-pro-preview',
         'google-generative-ai'
       ],
-      // xAI's API mimics the legacy OpenAI Chat Completions shape and has no
-      // Responses-API equivalent — must stay 'openai-completions'.
-      [AiProviders.XaiGrok, 'xai', 'grok-4.6', 'openai-completions']
+      // pi 0.85's xai provider serves the Responses API only.
+      [AiProviders.XaiGrok, 'xai', 'grok-4.6', 'openai-responses']
     ]
     for (const [key, provider, defaultId, api] of cases) {
       const model = providers[key](settings())

@@ -1,4 +1,4 @@
-import type { Model } from '@mariozechner/pi-ai'
+import type { Model } from '@earendil-works/pi-ai'
 
 import { LcmManager } from '../ai/context-management'
 import { runMemoryConsolidation } from '../ai/memory/manager'
@@ -24,7 +24,7 @@ interface LcmPostTurnPayload {
   chatId: string
   model: Model<string>
   apiKey: string
-  freshTailSize: number
+  freshTailRuns: number
   contextWindowPercent: number
   newMessages: Array<{ id: string; content: unknown }>
 }
@@ -52,7 +52,7 @@ export const handlers: Record<QueueName, (payload: unknown) => Promise<void>> =
     'lcm-post-turn': async (payload) => {
       const p = payload as LcmPostTurnPayload
       const lcm = new LcmManager(p.chatId, p.model, p.apiKey, {
-        freshTailSize: p.freshTailSize,
+        freshTailRuns: p.freshTailRuns,
         contextWindowPercent: p.contextWindowPercent
       })
       await lcm.trackNewMessages(p.newMessages)

@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Separator } from '@/components/ui/separator'
 
-import { parseCitations } from '../markdown'
+import { parseCitations } from '../markdown-citations'
 
 function SourceItemLink({ item }: { item: WebSearchResult }) {
   let hostname = ''

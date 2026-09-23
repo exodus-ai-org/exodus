@@ -1,21 +1,24 @@
 import { readFile as fsReadFile } from 'fs/promises'
 
-import type { AgentTool } from '@mariozechner/pi-agent-core'
-import { Type } from '@mariozechner/pi-ai'
+import type { AgentTool } from '@earendil-works/pi-agent-core'
+import { StringEnum, Type } from '@earendil-works/pi-ai'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 
 const readFileSchema = Type.Object({
   path: Type.String({
     description: 'Absolute or relative path to the file to read.'
   }),
   encoding: Type.Optional(
-    Type.Union([Type.Literal('utf-8'), Type.Literal('base64')], {
+    // StringEnum: a Union of Literals emits `anyOf`/`const`, which Google's
+    // function-calling schema rejects.
+    StringEnum(['utf-8', 'base64'] as const, {
       description: 'File encoding. Use base64 for binary files.'
     })
   )
 })
 
 export const readFile: AgentTool<typeof readFileSchema> = {
-  name: 'readFile',
+  name: TOOL_NAMES.readFile,
   label: 'Read File',
   description: 'Read the contents of a file at the given path.',
   parameters: readFileSchema,

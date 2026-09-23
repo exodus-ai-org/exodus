@@ -1,4 +1,5 @@
 import { faviconUrl } from '@exodus/shared/constants/external-urls'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import { useSetAtom } from 'jotai'
 import { CheckIcon, CopyIcon, RefreshCwIcon } from 'lucide-react'
@@ -95,7 +96,10 @@ export const MessageAction = memo(function MessageAction({
 
   return (
     <TooltipProvider>
-      <div className="text-muted-foreground mt-1.5 flex items-center gap-0.5">
+      <div
+        className="text-muted-foreground mt-1.5 flex items-center gap-0.5"
+        data-testid={TEST_IDS.chat.messageAction}
+      >
         <MessageActionItem tooltipContent={t('messageAction.copy')}>
           <IconWrapper onClick={onCopy}>
             {copied !== content ? <CopyIcon /> : <CheckIcon />}

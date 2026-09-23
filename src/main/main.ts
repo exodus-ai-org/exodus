@@ -1,8 +1,14 @@
+import { join } from 'path'
+
 import { app, BrowserWindow, globalShortcut, powerMonitor } from 'electron'
 import started from 'electron-squirrel-startup'
 
 import { migrateSharedArtifacts } from './lib/ai/artifacts-migration'
 import { closeDuckDB } from './lib/analytics/duckdb'
+import {
+  registerArtifactScheme,
+  serveArtifactProtocol
+} from './lib/artifact-protocol'
 import { setupAutoUpdater } from './lib/auto-updater'
 import { startBackupScheduler } from './lib/backup'
 import { pglite } from './lib/db/db'
@@ -22,10 +28,18 @@ import { hasPin as lockHasPin } from './lib/lock/pin-store'
 import { cleanupOldLogs, logger } from './lib/logger'
 import { setupMenu } from './lib/menu'
 import { getExodusHome, migrateFromLegacyLocation } from './lib/paths'
+import { hardenRenderers } from './lib/security'
 import { connectHttpServer } from './lib/server/app'
 import { getServer, setServer } from './lib/server/instance'
+import { onSecondInstance } from './lib/single-instance'
 import { destroyTray, setTray } from './lib/tray'
-import { createWindow } from './lib/window'
+import { createWindow, raiseMainWindow } from './lib/window'
+
+declare const MAIN_WINDOW_VITE_DEV_SERVER_URL: string | undefined
+declare const MAIN_WINDOW_VITE_NAME: string
+
+// Before `ready`: a scheme can only be made privileged up front.
+registerArtifactScheme()
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -140,8 +154,21 @@ app.on('ready', async () => {
     })
   })
 
+  // The artifact sandbox's own origin (see artifact-protocol.ts): the built
+  // renderer when packaged, the Vite dev server behind the same scheme in dev.
+  serveArtifactProtocol({
+    rendererDir: join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}`),
+    devServerUrl: MAIN_WINDOW_VITE_DEV_SERVER_URL
+  })
+
+  // Before the first window exists, so no webContents is ever unguarded.
+  hardenRenderers(MAIN_WINDOW_VITE_DEV_SERVER_URL)
+
   setupIPC()
   createWindow()
+  // Launching Exodus while it is running lands here (the lock itself is taken
+  // in db/db.ts): the closed-to-tray window is the one the user was after.
+  onSecondInstance(raiseMainWindow)
 
   // ── Lock screen ─────────────────────────────────────────────
   const lockManager = getLockManager()

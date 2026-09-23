@@ -1,6 +1,6 @@
 // src/main/lib/ai/philharmonic/pm-tools.test.ts
 import { describe, expect, it, vi } from 'vitest'
-vi.mock('@mariozechner/pi-ai', () => ({
+vi.mock('@earendil-works/pi-ai', () => ({
   Type: {
     Object: (o: unknown) => o,
     String: (o?: unknown) => o ?? {},

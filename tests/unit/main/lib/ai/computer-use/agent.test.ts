@@ -1,28 +1,17 @@
-import type { Model } from '@mariozechner/pi-ai'
+import type { Model } from '@earendil-works/pi-ai'
 import { describe, expect, it, vi } from 'vitest'
 
-// `agent.ts` imports `complete` from `@mariozechner/pi-ai` and `action-tools.ts`
-// imports `Type` from it. Neither `trimImages` nor `toolCallToAction` touches
-// the network — mock the module so the pure functions import cheaply.
-vi.mock('@mariozechner/pi-ai', () => ({
-  Type: {
-    Object: (o: unknown) => o,
-    Array: (_t: unknown, o?: unknown) => o ?? {},
-    Number: (o?: unknown) => o ?? {},
-    String: (o?: unknown) => o ?? {},
-    Boolean: (o?: unknown) => o ?? {},
-    Optional: (t: unknown) => t,
-    Union: (_t: unknown, o?: unknown) => o ?? {},
-    Literal: (v: unknown) => ({ const: v })
-  },
-  complete: vi.fn()
+// `agent.ts` completes through the kernel's `Models` collection; neither
+// `trimImages` nor `toolCallToAction` touches the network, so mock only that.
+const complete = vi.fn()
+vi.mock('@main/lib/ai/kernel/models', () => ({
+  getKernelModels: () => ({ complete })
 }))
 
 const { trimImages, ClaudeComputerAgent } =
   await import('@main/lib/ai/computer-use/agent')
 const { toolCallToAction, ACTION_TOOLS } =
   await import('@main/lib/ai/computer-use/action-tools')
-const { complete } = await import('@mariozechner/pi-ai')
 
 describe('toolCallToAction', () => {
   // One row per model-facing verb. Coordinates are asymmetric (x ≠ y, from ≠ to,

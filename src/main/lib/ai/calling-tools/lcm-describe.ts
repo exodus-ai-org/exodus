@@ -1,5 +1,6 @@
-import type { AgentTool } from '@mariozechner/pi-agent-core'
-import { Type } from '@mariozechner/pi-ai'
+import type { AgentTool } from '@earendil-works/pi-agent-core'
+import { Type } from '@earendil-works/pi-ai'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 
 import {
   getChildIds,
@@ -11,17 +12,17 @@ import {
 const lcmDescribeSchema = Type.Object({
   id: Type.String({
     description:
-      'The summary ID (e.g. "sum_abc123...") returned by lcmGrep. ' +
+      'The summary ID (e.g. "sum_abc123...") returned by lcm_grep. ' +
       'Returns the full content and DAG metadata.'
   })
 })
 
 export const lcmDescribe: AgentTool<typeof lcmDescribeSchema> = {
-  name: 'lcmDescribe',
+  name: TOOL_NAMES.lcmDescribe,
   label: 'LCM Describe',
   description:
     'Retrieve the full content and metadata of a specific LCM summary by its ID. ' +
-    'Use this after lcmGrep to read a full summary. ' +
+    'Use this after lcm_grep to read a full summary. ' +
     'The response includes parent/child summary IDs for DAG traversal.',
   parameters: lcmDescribeSchema,
   execute: async (_toolCallId, { id }, signal) => {

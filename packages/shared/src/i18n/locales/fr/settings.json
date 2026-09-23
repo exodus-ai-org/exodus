@@ -95,6 +95,9 @@
     "about": {
       "title": "À propos d'Exodus"
     },
+    "devices": {
+      "title": "Appareils"
+    },
     "group": {
       "personal": "Personnel",
       "aiTools": "IA et outils",
@@ -120,11 +123,14 @@
       "open-settings": {
         "label": "Ouvrir les paramètres"
       },
-      "toggle-sidebar": {
-        "label": "Afficher/masquer la barre latérale"
+      "lock-now": {
+        "label": "Verrouiller maintenant"
       },
       "toggle-developer-tools": {
         "label": "Afficher/masquer les outils de développement"
+      },
+      "toggle-sidebar": {
+        "label": "Afficher/masquer la barre latérale"
       },
       "force-refresh-page": {
         "label": "Forcer l'actualisation de la page"
@@ -153,6 +159,10 @@
     }
   },
   "about": {
+    "sections": {
+      "runtime": "Environnement d’exécution",
+      "links": "Liens"
+    },
     "version": "Version",
     "electron": "Electron",
     "chromium": "Chromium",
@@ -184,6 +194,11 @@
     }
   },
   "personality": {
+    "sections": {
+      "style": "Style",
+      "instructions": "Instructions",
+      "aboutYou": "À propos de vous"
+    },
     "baseStyle": {
       "label": "Style et ton de base",
       "description": "Définissez le style et le ton des réponses d'Exodus",
@@ -315,6 +330,13 @@
     }
   },
   "tools": {
+    "intro": "Ce que le modèle peut appeler de lui-même. Désactivez un outil pour l’écarter de toutes les conversations. Un outil qui a besoin d’une clé ou qui a des options porte ses réglages sous sa ligne ; s’il est activé sans sa clé, il le signale jusqu’à ce qu’elle soit renseignée.",
+    "configure": "Configurer",
+    "needsKey": {
+      "webSearch": "Nécessite une clé API Brave Search",
+      "imageGeneration": "Nécessite une clé API OpenAI — à renseigner dans Fournisseurs",
+      "mapItinerary": "Nécessite une clé API Google"
+    },
     "groups": {
       "web": "Web",
       "fileSystem": "Système de fichiers",
@@ -508,6 +530,11 @@
     }
   },
   "dataControls": {
+    "sections": {
+      "backups": "Sauvegardes",
+      "transfer": "Exporter et importer",
+      "danger": "Zone de danger"
+    },
     "autoBackup": {
       "label": "Sauvegardes automatiques",
       "description": "Sauvegardez vos données quotidiennement à 3h00. Les sauvegardes sont stockées localement dans ~/.exodus/backups/."
@@ -642,6 +669,16 @@
       "json": "JSON"
     },
     "empty": "Aucun serveur MCP configuré pour le moment.",
+    "emptyHint": "Les serveurs que vous enregistrez apparaissent ici, chacun avec un interrupteur pour ses outils.",
+    "addCard": {
+      "title": "Ajouter un serveur MCP",
+      "description": "Une commande locale (stdio) ou une URL distante. Ses outils sont disponibles dans le chat dès qu’il est activé."
+    },
+    "deleteDialog": {
+      "title": "Supprimer {{name}} ?",
+      "description": "Ses outils disparaissent du chat, et sa commande, ses en-têtes et sa configuration sont supprimés. Vous pourrez l’enregistrer à nouveau plus tard.",
+      "confirm": "Supprimer"
+    },
     "form": {
       "transport": {
         "label": "Transport",
@@ -746,6 +783,10 @@
       }
     },
     "settings": {
+      "sections": {
+        "memory": "Mémoire",
+        "context": "Gestion du contexte"
+      },
       "autoCapture": {
         "label": "Capturer les mémoires",
         "description": "Après chaque conversation, consolide en mémoire les faits durables vous concernant (centres d'intérêt, configuration, personnes) — en mettant à jour les entrées existantes plutôt qu'en les dupliquant."
@@ -764,12 +805,13 @@
       },
       "freshTailSize": {
         "label": "Taille de la fenêtre récente",
-        "description": "Nombre de messages récents protégés du compactage (8 à 64). Ils sont toujours envoyés au modèle tels quels. Par défaut : 16."
+        "description": "Nombre d'exécutions récentes — un de vos messages avec chaque étape du modèle et résultat d'outil qui y a répondu — protégées du compactage (2 à 24). Elles sont toujours envoyées au modèle telles quelles. Par défaut : 6."
       },
       "newMemoryDefaultKey": "Nouvelle mémoire",
       "storedMemoriesHeading": "Mémoires enregistrées",
       "newButton": "Nouveau",
-      "emptyState": "Aucune mémoire pour le moment — elles sont ajoutées automatiquement après les conversations, ou demandez à l'assistant de retenir quelque chose ci-dessous.",
+      "emptyTitle": "Aucune mémoire pour le moment",
+      "emptyHint": "Elles sont ajoutées automatiquement après les conversations — ou dites à l’assistant quoi retenir ci-dessous.",
       "disabledHeading": "Désactivées · {{count}}",
       "toast": {
         "loadFailedTitle": "Échec du chargement des mémoires",
@@ -784,7 +826,8 @@
       "trending": "Tendances (24 h)",
       "hot": "Populaires",
       "allTime": "Depuis toujours",
-      "allTimeWithTotal": "Depuis toujours ({{total}})"
+      "allTimeWithTotal": "Depuis toujours ({{total}})",
+      "curated": "Sélection"
     },
     "tabs": {
       "discover": "Découvrir",
@@ -804,8 +847,16 @@
       "moreFromSource_other": "+{{count}} autres de {{source}} ({{total}} au total)",
       "lessFromSource": "Afficher moins de {{source}}"
     },
+    "curated": {
+      "summary": "{{owners}} éditeurs · {{skills}} skills",
+      "skillCount_one": "{{count}} skill",
+      "skillCount_other": "{{count}} skills",
+      "featured": "À la une",
+      "showAll": "Tout afficher ({{count}} de plus)",
+      "showFewer": "Afficher moins"
+    },
     "card": {
-      "installs": "{{formatted}} installations",
+      "installs": "<n>{{formatted}}</n> installations",
       "installedBadge": "Installé",
       "trend": "+{{formatted}} aujourd’hui"
     },
@@ -847,7 +898,7 @@
       "uninstallDescription": "Ses fichiers sont supprimés du dossier des skills. Vous pourrez le réinstaller à tout moment."
     },
     "cli": {
-      "notice": "Vous préférez le terminal ? <cli>exodus-cli</cli> gère les mêmes skills : <code>npm i -g exodus-cli</code>, puis <code>exodus skills</code>."
+      "title": "Vous préférez le terminal ? Utilisez <cli>exodus-cli</cli>"
     },
     "toast": {
       "installedTitle": "« {{name}} » installé",
@@ -856,12 +907,6 @@
       "uninstallFailed": "Échec de la désinstallation",
       "updateFailed": "Impossible de mettre à jour le skill",
       "copied": "Commande copiée"
-    },
-    "leaderboard": {
-      "rank": "#",
-      "skill": "Skill",
-      "activity": "Aujourd’hui",
-      "installs": "Installations"
     }
   },
   "toast": {
@@ -916,6 +961,53 @@
     "toast": {
       "snapshotBuilt": "Instantané créé",
       "snapshotFailed": "Impossible de créer l’instantané"
+    }
+  },
+  "devices": {
+    "heading": "Appareils jumelés",
+    "description": "Téléphones et tablettes autorisés à utiliser Exodus sur votre réseau local. Un appareil doit d’abord être jumelé ici ; tant qu’aucun ne l’est, Exodus est totalement inaccessible depuis le réseau.",
+    "empty": "Aucun appareil jumelé",
+    "emptyHint": "Les appareils que vous jumelez apparaissent ici. Vous pouvez en révoquer un à tout moment.",
+    "pair": "Jumeler un appareil",
+    "pairCard": {
+      "title": "Connecter un iPhone ou un iPad",
+      "description": "Le jumelage affiche un code QR pendant deux minutes. Scannez-le avec l’app Exodus sur l’appareil."
+    },
+    "pairing": {
+      "title": "Scannez avec Exodus sur votre iPhone",
+      "steps": {
+        "open": "Ouvrez Exodus sur votre iPhone ou iPad",
+        "navigate": "Allez dans <strong>Réglages → Jumeler avec l’ordinateur</strong>",
+        "scan": "Scannez ce code"
+      },
+      "sameNetwork": "Les deux appareils doivent être sur le même réseau.",
+      "expiresIn": "Expire dans {{time}}",
+      "copyLink": "Copier le lien de jumelage",
+      "linkCopied": "Lien de jumelage copié",
+      "cancel": "Annuler"
+    },
+    "row": {
+      "pairedOn": "Jumelé le {{date}}",
+      "lastSeen": "Dernière connexion {{date}}",
+      "neverSeen": "Jamais connecté",
+      "revoke": "Révoquer"
+    },
+    "revokeDialog": {
+      "title": "Révoquer {{name}} ?",
+      "description": "Il perd l’accès immédiatement et devra être jumelé à nouveau pour revenir.",
+      "confirm": "Révoquer"
+    },
+    "reset": {
+      "label": "Réinitialiser tous les jumelages",
+      "rowDescription": "Supprime tous les appareils et émet un nouveau certificat.",
+      "button": "Tout réinitialiser",
+      "title": "Réinitialiser tous les jumelages ?",
+      "description": "Tous les appareils sont supprimés et un nouveau certificat est émis. Chaque appareil devra scanner un nouveau code.",
+      "confirm": "Réinitialiser"
+    },
+    "toast": {
+      "failedTitle": "L’opération a échoué",
+      "pairedTitle": "Appareil jumelé"
     }
   }
 }

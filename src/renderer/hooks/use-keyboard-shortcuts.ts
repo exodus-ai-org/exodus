@@ -21,8 +21,9 @@ export type ShortcutDef = {
    * safe fallback if disabled (Enter to send, Shift+Enter for a new line)
    * or whose keybinding lives outside this hook — Toggle sidebar is wired
    * directly into the shadcn Sidebar primitive
-   * (`components/ui/sidebar.tsx`), and Find in page is a native Electron
-   * menu accelerator (`main/lib/menu.ts`) — so there's nothing here to gate.
+   * (`components/ui/sidebar.tsx`), and Find in page and Lock Now are native
+   * Electron menu accelerators (`main/lib/menu.ts`) — so there's nothing
+   * here to gate.
    */
   toggleable?: boolean
 }
@@ -50,6 +51,13 @@ export const SHORTCUT_MAP: ShortcutDef[] = [
     id: 'toggle-sidebar',
     keys: [MOD_KEY, 'B'],
     labelKey: 'keyboardShortcuts.shortcuts.toggle-sidebar.label',
+    category: 'General',
+    toggleable: false
+  },
+  {
+    id: 'lock-now',
+    keys: [MOD_KEY, 'L'],
+    labelKey: 'keyboardShortcuts.shortcuts.lock-now.label',
     category: 'General',
     toggleable: false
   },

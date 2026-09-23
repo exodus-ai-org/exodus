@@ -14,6 +14,7 @@ import useSWR from 'swr'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { useSettings } from '@/hooks/use-settings'
+import { monthLabels } from '@/lib/heatmap-months'
 import { cn } from '@/lib/utils'
 import type { UsageSummary } from '@/services/usage'
 
@@ -126,21 +127,11 @@ export function Profile({ form }: { form: UseFormReturnType }) {
           ? 0
           : Math.min(4, 1 + Math.floor((x.tokens / scaleMax) * 3.999))
     }))
-    // Month labels: column index where a new month first appears.
-    const months: { col: number; label: string }[] = []
-    let lastMonth = ''
-    for (let c = 0; c < Math.ceil(grid.length / 7); c++) {
-      const cell = grid[c * 7]
-      if (!cell) break
-      const mo = format(parseISO(cell.date), 'MMM')
-      if (mo !== lastMonth) {
-        months.push({ col: c, label: mo })
-        lastMonth = mo
-      }
-    }
     return {
       grid,
-      months,
+      months: monthLabels(
+        grid.filter((_, i) => i % 7 === 0).map((cell) => cell.date)
+      ),
       peak: dailyPeak,
       streaks: computeStreaks(activeDays)
     }

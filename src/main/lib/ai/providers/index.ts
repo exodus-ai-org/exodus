@@ -1,5 +1,5 @@
+import type { Api, KnownProvider, Model } from '@earendil-works/pi-ai'
 import { AiProviders } from '@exodus/shared/types/ai'
-import type { Api, KnownProvider, Model } from '@mariozechner/pi-ai'
 
 import type { Settings } from '../../db/schema'
 import { getOllama } from './ollama'
@@ -49,7 +49,9 @@ const SPECS: Record<Exclude<AiProviders, AiProviders.Ollama>, ProviderSpec> = {
   },
   [AiProviders.XaiGrok]: {
     provider: 'xai',
-    api: 'openai-completions',
+    // pi 0.85's xai provider serves the Responses API only (its catalog lists
+    // every Grok model as openai-responses at https://api.x.ai/v1).
+    api: 'openai-responses',
     baseUrl: (s) => s.providers?.xAiBaseUrl ?? 'https://api.x.ai/v1',
     defaultModel: 'grok-4.6'
   }

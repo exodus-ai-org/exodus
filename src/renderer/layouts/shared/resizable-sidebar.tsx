@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { PanelImperativeHandle } from 'react-resizable-panels'
 
 import {
@@ -12,6 +12,8 @@ import { useSidebar } from '@/components/ui/sidebar'
 // components/ui/sidebar.tsx (the shadcn `--sidebar-width` CSS var).
 const SIDEBAR_WIDTH = '16rem'
 const SIDEBAR_MAX_WIDTH = '30rem'
+/** How long a toggle (Cmd+B, the trigger) takes to slide the sidebar. */
+const TOGGLE_MS = 200
 
 /**
  * The resizable `[ sidebar | content ]` shell shared by the Chat and
@@ -37,17 +39,42 @@ export function ResizableSidebarShell({
   const { open, setOpen } = useSidebar()
   const sidebarPanel = useRef<PanelImperativeHandle>(null)
   const wasCollapsed = useRef(false)
+  // True only for the length of a toggle. The library sizes the panels with
+  // an inline flex-grow, so a transition on that property slides the sidebar
+  // — but only while toggling: during a drag the pointer sets the width and a
+  // transition would lag behind it. flex-grow is a layout property, the one
+  // deliberate exception here: the alternative is a 16rem teleport.
+  const [toggling, setToggling] = useState(false)
 
   useEffect(() => {
     const panel = sidebarPanel.current
     if (!panel) return
-    if (open && panel.isCollapsed()) panel.expand()
-    else if (!open && !panel.isCollapsed()) panel.collapse()
+    const collapsed = panel.isCollapsed()
+    if (open === !collapsed) return
+    setToggling(true)
+    // The attribute must be on the element before the size changes, or the
+    // first frame jumps; React commits the state before this effect's
+    // sibling effects run, so defer the resize by a frame.
+    const frame = requestAnimationFrame(() => {
+      if (open) panel.expand()
+      else panel.collapse()
+    })
+    const done = setTimeout(() => setToggling(false), TOGGLE_MS + 50)
+    return () => {
+      cancelAnimationFrame(frame)
+      clearTimeout(done)
+    }
   }, [open])
 
   return (
     <div className="h-full w-full overflow-hidden">
-      <ResizablePanelGroup orientation="horizontal">
+      {/* Both panels transition, or the content would snap to its new share
+          while the sidebar was still on its way. */}
+      <ResizablePanelGroup
+        orientation="horizontal"
+        data-toggling={toggling || undefined}
+        className="data-toggling:[&>[data-panel]]:transition-[flex-grow] data-toggling:[&>[data-panel]]:duration-200 data-toggling:[&>[data-panel]]:ease-out motion-reduce:[&>[data-panel]]:transition-none"
+      >
         <ResizablePanel
           id={`${id}-sidebar`}
           panelRef={sidebarPanel}

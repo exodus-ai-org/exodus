@@ -3,10 +3,10 @@ import { describe, expect, it, vi } from 'vitest'
 vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
 
 const agentLoopMock = vi.fn()
-vi.mock('@mariozechner/pi-agent-core', () => ({
+vi.mock('@earendil-works/pi-agent-core', () => ({
   agentLoop: (...a: unknown[]) => agentLoopMock(...a)
 }))
-vi.mock('@mariozechner/pi-ai', () => ({
+vi.mock('@earendil-works/pi-ai', () => ({
   Type: {
     Object: (o: unknown) => o,
     String: (o?: unknown) => o ?? {},

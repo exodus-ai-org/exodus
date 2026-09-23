@@ -76,7 +76,7 @@ describe('discover namespace braveKeyHint renders correctly via Trans', () => {
       )
     )
     expect(html).toBe(
-      '<p class="text-muted-foreground -mt-1 text-xs">Discover needs a Brave Search API key. <button type="button" class="text-primary underline underline-offset-2">Add one under Built-in Tools</button>.</p>'
+      'Discover needs a Brave Search API key. <button type="button" class="text-foreground underline underline-offset-4">Add one under Built-in Tools</button>.'
     )
   })
 })

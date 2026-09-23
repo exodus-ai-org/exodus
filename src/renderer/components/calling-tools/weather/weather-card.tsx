@@ -1,331 +1,357 @@
-import { WeatherResult, WWO_CODE } from '@exodus/shared/types/weather'
-import { domAnimation, LazyMotion, m } from 'framer-motion'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
+import {
+  weatherClockHours,
+  type WeatherResult
+} from '@exodus/shared/types/weather'
+import { ChevronDown, Sunrise, Sunset } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { i18n } from '@/lib/i18n'
+import { Morph, Reveal } from '@/components/morph'
+import { useFormat } from '@/lib/format'
+import { ROW_ENTER, staggerDelay } from '@/lib/motion'
+import { cn } from '@/lib/utils'
 
-import { WeatherForecast } from './weather-forecast'
-
-// ── per-weather-type config ───────────────────────────────────────────────────
-
-const THEME: Record<
-  string,
-  { gradient: string; emoji: string; particles?: 'rain' | 'snow' }
-> = {
-  Sunny: {
-    gradient: 'linear-gradient(135deg, #f59e0b, #fb923c, #38bdf8)',
-    emoji: '☀️'
-  },
-  PartlyCloudy: {
-    gradient: 'linear-gradient(135deg, #7dd3fc, #60a5fa, #818cf8)',
-    emoji: '⛅'
-  },
-  Cloudy: {
-    gradient: 'linear-gradient(135deg, #94a3b8, #64748b, #475569)',
-    emoji: '☁️'
-  },
-  VeryCloudy: {
-    gradient: 'linear-gradient(135deg, #64748b, #475569, #334155)',
-    emoji: '☁️'
-  },
-  Fog: {
-    gradient: 'linear-gradient(135deg, #cbd5e1, #94a3b8, #64748b)',
-    emoji: '🌫️'
-  },
-  LightShowers: {
-    gradient: 'linear-gradient(135deg, #7dd3fc, #3b82f6, #475569)',
-    emoji: '🌦️',
-    particles: 'rain'
-  },
-  LightSleetShowers: {
-    gradient: 'linear-gradient(135deg, #bae6fd, #93c5fd, #6366f1)',
-    emoji: '🌨️',
-    particles: 'snow'
-  },
-  LightSleet: {
-    gradient: 'linear-gradient(135deg, #bae6fd, #93c5fd, #6366f1)',
-    emoji: '🌨️',
-    particles: 'snow'
-  },
-  LightSnow: {
-    gradient: 'linear-gradient(135deg, #e0f2fe, #bae6fd, #a5b4fc)',
-    emoji: '🌨️',
-    particles: 'snow'
-  },
-  LightSnowShowers: {
-    gradient: 'linear-gradient(135deg, #e0f2fe, #bae6fd, #a5b4fc)',
-    emoji: '❄️',
-    particles: 'snow'
-  },
-  HeavySnow: {
-    gradient: 'linear-gradient(135deg, #f1f5f9, #bae6fd, #a5b4fc)',
-    emoji: '❄️',
-    particles: 'snow'
-  },
-  HeavySnowShowers: {
-    gradient: 'linear-gradient(135deg, #f1f5f9, #bae6fd, #a5b4fc)',
-    emoji: '❄️',
-    particles: 'snow'
-  },
-  ThunderyShowers: {
-    gradient: 'linear-gradient(135deg, #475569, #334155, #1e293b)',
-    emoji: '⛈️',
-    particles: 'rain'
-  },
-  ThunderyHeavyRain: {
-    gradient: 'linear-gradient(135deg, #334155, #1e293b, #0f172a)',
-    emoji: '⛈️',
-    particles: 'rain'
-  },
-  ThunderySnowShowers: {
-    gradient: 'linear-gradient(135deg, #475569, #334155, #312e81)',
-    emoji: '🌨️',
-    particles: 'snow'
-  },
-  LightRain: {
-    gradient: 'linear-gradient(135deg, #60a5fa, #2563eb, #475569)',
-    emoji: '🌧️',
-    particles: 'rain'
-  },
-  HeavyShowers: {
-    gradient: 'linear-gradient(135deg, #3b82f6, #1d4ed8, #334155)',
-    emoji: '🌧️',
-    particles: 'rain'
-  },
-  HeavyRain: {
-    gradient: 'linear-gradient(135deg, #1d4ed8, #1e40af, #1e293b)',
-    emoji: '⛈️',
-    particles: 'rain'
-  }
-}
-
-const DEFAULT_THEME = {
-  gradient: 'linear-gradient(135deg, #64748b, #475569, #334155)',
-  emoji: '☁️'
-}
-
-// ── particle overlays ─────────────────────────────────────────────────────────
-
-const RAIN_DROPS = Array.from({ length: 24 }, (_, i) => ({
-  left: `${(i * 4.2) % 100}%`,
-  delay: (i * 0.13) % 1.2,
-  duration: 0.6 + (i % 4) * 0.15
-}))
-
-const SNOW_FLAKES = Array.from({ length: 18 }, (_, i) => ({
-  left: `${(i * 5.6) % 100}%`,
-  delay: (i * 0.2) % 2,
-  size: i % 3 === 0 ? 6 : i % 3 === 1 ? 5 : 4
-}))
-
-function RainOverlay() {
-  return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      {/* react-doctor/no-array-index-as-key: suppressed — RAIN_DROPS is a
-          static module-level array of purely decorative particle specs with no
-          per-item identity. The list never reorders or filters. */}
-      {RAIN_DROPS.map((d, i) => (
-        <m.div
-          key={i}
-          className="absolute rounded-full bg-white/40"
-          style={{ left: d.left, top: '-8%', width: 1.5, height: 14 }}
-          animate={{ y: ['0%', '120%'], opacity: [0.6, 0] }}
-          transition={{
-            duration: d.duration,
-            repeat: Infinity,
-            delay: d.delay,
-            ease: 'linear'
-          }}
-        />
-      ))}
-    </div>
-  )
-}
-
-function SnowOverlay() {
-  return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      {/* react-doctor/no-array-index-as-key: suppressed — SNOW_FLAKES is a
-          static module-level array of purely decorative particle specs with no
-          per-item identity. The list never reorders or filters. */}
-      {SNOW_FLAKES.map((f, i) => (
-        <m.div
-          key={i}
-          className="absolute rounded-full bg-white/70"
-          style={{ left: f.left, top: '-5%', width: f.size, height: f.size }}
-          animate={{
-            y: ['0%', '110%'],
-            x: [0, 12, -8, 6, 0],
-            opacity: [0.8, 0]
-          }}
-          transition={{
-            duration: 3 + (i % 3),
-            repeat: Infinity,
-            delay: f.delay,
-            ease: 'easeInOut'
-          }}
-        />
-      ))}
-    </div>
-  )
-}
-
-// ── stat pill ─────────────────────────────────────────────────────────────────
-
-function StatPill({
-  emoji,
-  value,
-  label
-}: {
-  emoji: string
-  value: string
-  label: string
-}) {
-  return (
-    <div className="flex flex-col gap-0.5 rounded-2xl bg-white/15 px-3 py-2.5 backdrop-blur-sm">
-      <span className="text-base leading-none">{emoji}</span>
-      <span className="text-sm leading-tight font-semibold text-white">
-        {value}
-      </span>
-      <span className="text-[10px] leading-none text-white/60">{label}</span>
-    </div>
-  )
-}
-
-// ── main component ────────────────────────────────────────────────────────────
+import { conditionOf } from './condition'
+import { canDrawCurve, TemperatureCurve } from './temperature-curve'
 
 /**
- * A plain helper (not a component or hook) — translated text for 'Today'/
- * 'Tmr' uses the shared `i18n` singleton directly rather than
- * `useTranslation()`. The 'en'-hardcoded `toLocaleDateString` fallback
- * below is a separate, deliberately out-of-scope locale-formatting gap —
- * see this plan's Global Constraints — left untouched.
+ * The weather card: compact in the transcript, the whole picture on
+ * "Details". Closed, it is a line of now (icon, temperature, feels like,
+ * condition · place; the selected day's hi/lo on the right), the day's
+ * temperature curve, and the first three days as a segmented control.
+ * Open, the header becomes a headline, the readings and the curve's
+ * caption grow in above the curve, and the segmented days become the
+ * forecast as range-bar rows — which are also the day selector. The curve
+ * is the constant; everything else moves on one 250 ms ease-out, so it
+ * reads as one card opening. Tokens only; the condition's colour is in
+ * its icon and, at 14%, the curve's wash.
  */
-function formatTabLabel(dateStr: string, i: number) {
-  if (i === 0) return i18n.t('chat:weatherCard.today')
-  if (i === 1) return i18n.t('chat:weatherCard.tomorrow')
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('en', { weekday: 'short' })
-}
+
+/** What a segmented control can hold; the rest waits behind Details. */
+const COMPACT_DAYS = 3
 
 export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
   const { t } = useTranslation('chat')
-  const { location, current, forecast } = toolResult
-  const weatherType =
-    WWO_CODE[current.weatherCode as keyof typeof WWO_CODE] ?? 'Cloudy'
-  const theme = THEME[weatherType] ?? DEFAULT_THEME
+  const { dateTime } = useFormat()
+  const { current, forecast, location } = toolResult
+  const now = conditionOf(current.weatherCode, current.isDay ?? true)
+  const [expanded, setExpanded] = useState(false)
+  const [dayIndex, setDayIndex] = useState(0)
+  const [hover, setHover] = useState<number | null>(null)
+  const day = forecast[dayIndex]
+  const hasCurve = canDrawCurve(day)
+
+  const weekday = (date: string, i: number) => {
+    if (i === 0) return t('weatherCard.today')
+    if (i === 1) return t('weatherCard.tomorrow')
+    return dateTime(new Date(date), { weekday: 'short' })
+  }
+  // Times are the place's own, shown as clocks in the user's locale — the
+  // parser reads Open-Meteo's ISO and the wttr.in strings on old rows.
+  const clock = (time: string, o: Intl.DateTimeFormatOptions) => {
+    const h = weatherClockHours(time)
+    if (h === null) return time
+    return dateTime(
+      new Date(2026, 0, 1, Math.floor(h), Math.round((h % 1) * 60)),
+      o
+    )
+  }
+  const hour = (time: string) => clock(time, { hour: 'numeric' })
+  const hourMinute = (time: string) =>
+    clock(time, { hour: 'numeric', minute: '2-digit' })
+
+  const readings: Array<[string, string]> = [
+    [t('weatherCard.humidity'), `${current.humidity}%`],
+    [t('weatherCard.wind'), `${current.windKmph} km/h ${current.windDir}`],
+    [t('weatherCard.precip'), `${current.precipMM} mm`],
+    [t('weatherCard.uvIndex'), current.uvIndex],
+    [t('weatherCard.visibility'), `${current.visibility} km`],
+    [t('weatherCard.pressure'), `${current.pressure} hPa`]
+  ]
+
+  // The bars' scale: every day's hi/lo in the forecast.
+  const scale = useMemo(() => {
+    const lo = Math.min(...forecast.map((f) => Number(f.minTempC)))
+    const hi = Math.max(...forecast.map((f) => Number(f.maxTempC)))
+    return { lo, span: Math.max(1, hi - lo) }
+  }, [forecast])
+
+  // The selected day's numbers: hi/lo, or the scrub readout. Two lines in
+  // the compact header's right, one line above the curve when open.
+  const active = hover === null || !day ? null : day.hourly[hover]
+  const value = day ? (
+    active ? (
+      <span className="text-foreground font-medium">
+        {active.tempC}°
+        <span className="text-muted-foreground ml-1.5 font-normal">
+          {hour(active.time)}
+        </span>
+      </span>
+    ) : (
+      <span className="text-foreground font-medium">
+        {day.maxTempC}°
+        <span className="text-muted-foreground font-normal">
+          /{day.minTempC}°
+        </span>
+      </span>
+    )
+  ) : null
+  const detail = active
+    ? t('weatherCard.rainChance', { percent: active.rainChance })
+    : day?.condition
+
+  const toggle = () => {
+    setExpanded((v) => !v)
+    // The compact control holds three days; leaving the week on a later
+    // one would select a tab that is not there.
+    if (expanded && dayIndex >= COMPACT_DAYS) setDayIndex(0)
+  }
 
   return (
-    <LazyMotion features={domAnimation}>
-      <div className="light:shadow-2xl w-full max-w-xs overflow-hidden rounded-3xl dark:border">
-        {/* ── hero ── */}
-        <div className="relative" style={{ background: theme.gradient }}>
-          {theme.particles === 'rain' && <RainOverlay />}
-          {theme.particles === 'snow' && <SnowOverlay />}
-
-          <div className="relative px-5 pt-5 pb-5 text-white">
-            {/* location */}
-            <p className="mb-4 flex items-center gap-1 text-xs font-medium text-white/70">
-              <span>📍</span>
-              {location}
-            </p>
-
-            {/* temp + icon */}
-            <div className="flex items-end justify-between">
-              <m.div
-                initial={{ opacity: 0, y: 12 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-              >
-                <p className="text-7xl leading-none font-thin tracking-tighter">
-                  {current.tempC}°
-                </p>
-                <p className="mt-2 text-base font-light text-white/90">
-                  {current.condition}
-                </p>
-                <p className="mt-0.5 text-xs text-white/55">
-                  {t('weatherCard.feels', {
-                    temp: current.feelsLikeC,
-                    observedAt: current.observedAt
-                  })}
-                </p>
-              </m.div>
-
-              <m.span
-                className="text-6xl leading-none select-none"
-                animate={{ y: [0, -6, 0] }}
-                transition={{
-                  duration: 4,
-                  repeat: Infinity,
-                  ease: 'easeInOut'
-                }}
-              >
-                {theme.emoji}
-              </m.span>
+    <div
+      className={cn(
+        ROW_ENTER,
+        // The open card is a step wider (the curve breathes, seven rows do
+        // not crowd); the width moves with the height so it opens as one.
+        'bg-card border-border w-full overflow-hidden rounded-lg border transition-[max-width] duration-250 ease-out',
+        expanded ? 'max-w-md' : 'max-w-sm'
+      )}
+    >
+      <Morph active={expanded ? 1 : 0}>
+        {/* compact: a line of now */}
+        <div className="flex items-center gap-3 px-4 pt-4 pb-2">
+          <now.Icon
+            className={cn('size-8 shrink-0', now.tint)}
+            strokeWidth={1.5}
+          />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-baseline gap-2">
+              <span className="text-foreground text-3xl leading-none font-medium tracking-tight tabular-nums">
+                {current.tempC}°
+              </span>
+              <span className="text-muted-foreground text-xs tabular-nums">
+                {t('weatherCard.feelsLike', { temp: current.feelsLikeC })}
+              </span>
             </div>
-
-            {/* stats grid */}
-            <div className="mt-5 grid grid-cols-3 gap-2">
-              <StatPill
-                emoji="💧"
-                value={`${current.humidity}%`}
-                label={t('weatherCard.humidity')}
-              />
-              <StatPill
-                emoji="💨"
-                value={`${current.windKmph} km/h`}
-                label={`${current.windDir}`}
-              />
-              <StatPill
-                emoji="☔"
-                value={`${current.precipMM}mm`}
-                label={t('weatherCard.precip')}
-              />
-              <StatPill
-                emoji="👁"
-                value={`${current.visibility} km`}
-                label={t('weatherCard.visibility')}
-              />
-              <StatPill
-                emoji="🔆"
-                value={current.uvIndex}
-                label={t('weatherCard.uvIndex')}
-              />
-              <StatPill emoji="📊" value={`${current.pressure}`} label="hPa" />
+            <div className="text-muted-foreground mt-1 truncate text-xs">
+              {current.condition}
+              <span className="mx-1.5 opacity-40">·</span>
+              {location}
             </div>
           </div>
+          {day && (
+            <div
+              className="flex flex-col items-end text-xs tabular-nums"
+              aria-live="polite"
+            >
+              <div>{value}</div>
+              <div className="text-muted-foreground">{detail}</div>
+            </div>
+          )}
         </div>
 
-        {/* ── forecast tabs ── */}
-        <Tabs defaultValue="0">
-          <TabsList className="mx-3 my-1 grid grid-cols-3 bg-transparent">
-            {forecast.slice(0, 3).map((day, i) => {
-              const dayType =
-                WWO_CODE[day.weatherCode as keyof typeof WWO_CODE] ?? 'Cloudy'
-              const dayEmoji = (THEME[dayType] ?? DEFAULT_THEME).emoji
-              return (
-                <TabsTrigger
-                  key={day.date}
-                  value={String(i)}
-                  className="flex flex-col gap-1 py-1 text-xs"
-                >
-                  <span className="text-base leading-none">{dayEmoji}</span>
-                  <span className="font-medium">
-                    {formatTabLabel(day.date, i)}
-                  </span>
-                </TabsTrigger>
-              )
-            })}
-          </TabsList>
+        {/* open: the headline */}
+        <div className="flex items-start justify-between gap-4 px-5 pt-5 pb-4">
+          <div>
+            <div className="flex items-start">
+              <span className="text-foreground text-6xl leading-none font-light tracking-tighter tabular-nums">
+                {current.tempC}
+              </span>
+              <span className="text-muted-foreground mt-1 text-2xl leading-none font-light">
+                °
+              </span>
+            </div>
+            <p className="text-foreground mt-3 text-sm font-medium">
+              {current.condition}
+              <span className="text-muted-foreground font-normal">
+                <span className="mx-1.5 opacity-40">·</span>
+                {location}
+              </span>
+            </p>
+            <p className="text-muted-foreground mt-0.5 text-xs tabular-nums">
+              {t('weatherCard.feelsLike', { temp: current.feelsLikeC })}
+              <span className="mx-1.5 opacity-40">·</span>
+              {t('weatherCard.observedAt', {
+                time: hourMinute(current.observedAt)
+              })}
+            </p>
+          </div>
+          <now.Icon
+            className={cn('mt-1 size-9 shrink-0', now.tint)}
+            strokeWidth={1.5}
+          />
+        </div>
+      </Morph>
 
-          {forecast.slice(0, 3).map((day, i) => (
-            <TabsContent key={day.date} value={String(i)} className="p-0">
-              <WeatherForecast forecast={day} />
-            </TabsContent>
+      {/* open: the readings */}
+      <Reveal open={expanded} data-testid={TEST_IDS.weatherCard.readings}>
+        <dl className="border-border grid grid-cols-3 gap-x-4 gap-y-3 border-t px-5 py-4">
+          {readings.map(([label, reading], i) => (
+            <div key={label} className={ROW_ENTER} style={staggerDelay(i)}>
+              <dt className="text-muted-foreground text-[11px] leading-none">
+                {label}
+              </dt>
+              <dd className="text-foreground mt-1.5 text-sm leading-none font-medium tabular-nums">
+                {reading}
+              </dd>
+            </div>
           ))}
-        </Tabs>
-      </div>
-    </LazyMotion>
+        </dl>
+      </Reveal>
+
+      {day && (
+        <>
+          {/* open: the curve's caption (the compact header carried it) */}
+          <Reveal open={expanded}>
+            <div
+              className="border-border flex items-baseline justify-between border-t px-5 pt-3 text-xs tabular-nums"
+              aria-live="polite"
+            >
+              <span className="text-foreground font-medium">
+                {weekday(day.date, dayIndex)}
+                <span className="text-muted-foreground font-normal">
+                  <span className="mx-1.5 opacity-40">·</span>
+                  {day.condition}
+                </span>
+              </span>
+              <span>
+                {value}
+                <span className="text-muted-foreground">
+                  <span className="mx-1.5 opacity-40">·</span>
+                  {detail}
+                </span>
+              </span>
+            </div>
+          </Reveal>
+
+          {/* the curve — the constant */}
+          {hasCurve && (
+            <>
+              <TemperatureCurve day={day} hover={hover} onHover={setHover} />
+              <div className="text-muted-foreground flex items-center justify-between px-5 pb-2 text-[10px] tabular-nums">
+                <span className="flex items-center gap-1">
+                  <Sunrise className="size-3" aria-hidden="true" />
+                  <span className="sr-only">{t('weatherCard.sunrise')}</span>
+                  {hourMinute(day.sunrise)}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Sunset className="size-3" aria-hidden="true" />
+                  <span className="sr-only">{t('weatherCard.sunset')}</span>
+                  {hourMinute(day.sunset)}
+                </span>
+              </div>
+            </>
+          )}
+
+          <Morph active={expanded ? 1 : 0}>
+            {/* compact: the segmented days */}
+            <div
+              role="tablist"
+              className="border-border bg-muted/40 flex border-t p-1"
+            >
+              {forecast.slice(0, COMPACT_DAYS).map((f, i) => {
+                const c = conditionOf(f.weatherCode)
+                const selected = i === dayIndex
+                return (
+                  <button
+                    key={f.date}
+                    type="button"
+                    role="tab"
+                    aria-selected={selected}
+                    onClick={() => setDayIndex(i)}
+                    className={cn(
+                      'flex flex-1 items-center justify-center gap-2 rounded-md px-2 py-1.5 text-xs transition-[background-color,color,box-shadow,transform] duration-150 ease-out active:scale-[0.98]',
+                      selected
+                        ? 'bg-card text-foreground shadow-xs'
+                        : 'text-muted-foreground hover:text-foreground'
+                    )}
+                  >
+                    <span>{weekday(f.date, i)}</span>
+                    <c.Icon
+                      className={cn('size-3.5', c.tint)}
+                      strokeWidth={1.75}
+                    />
+                    <span className="tabular-nums">
+                      {f.maxTempC}°
+                      <span className="opacity-60">/{f.minTempC}°</span>
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* open: the forecast as range bars, and the selector */}
+            <div className="border-border border-t px-3 py-2">
+              {forecast.map((f, i) => {
+                const c = conditionOf(f.weatherCode)
+                const lo = Number(f.minTempC)
+                const hi = Number(f.maxTempC)
+                const left = ((lo - scale.lo) / scale.span) * 100
+                const width = ((hi - lo) / scale.span) * 100
+                const selected = i === dayIndex
+                return (
+                  <button
+                    key={f.date}
+                    type="button"
+                    aria-pressed={selected}
+                    onClick={() => setDayIndex(i)}
+                    className={cn(
+                      'grid w-full grid-cols-[3rem_1.25rem_2.25rem_1fr_2.25rem] items-center gap-2 rounded-md px-2 py-1.5 text-left text-xs',
+                      'transition-[background-color,transform] duration-150 ease-out active:scale-[0.99]',
+                      selected ? 'bg-muted' : 'hover:bg-muted/50'
+                    )}
+                  >
+                    <span className="text-foreground">
+                      {weekday(f.date, i)}
+                    </span>
+                    <c.Icon
+                      className={cn('size-4', c.tint)}
+                      strokeWidth={1.75}
+                    />
+                    <span className="text-muted-foreground text-right tabular-nums">
+                      {lo}°
+                    </span>
+                    <span className="bg-muted-foreground/15 relative h-1 rounded-full">
+                      {/* the selected day's bar takes the curve's colour */}
+                      <span
+                        className={cn(
+                          'absolute inset-y-0 rounded-full transition-colors duration-150 ease-out',
+                          selected ? 'bg-primary' : 'bg-foreground/50'
+                        )}
+                        style={{
+                          left: `${left}%`,
+                          width: `${Math.max(width, 4)}%`
+                        }}
+                      />
+                    </span>
+                    <span className="text-foreground text-right font-medium tabular-nums">
+                      {hi}°
+                    </span>
+                  </button>
+                )
+              })}
+            </div>
+          </Morph>
+        </>
+      )}
+
+      {/* the toggle — last, in the same place in both states */}
+      <button
+        type="button"
+        aria-expanded={expanded}
+        onClick={toggle}
+        data-testid={TEST_IDS.weatherCard.details}
+        className="border-border text-muted-foreground hover:text-foreground hover:bg-muted/50 flex w-full items-center justify-center gap-1 border-t py-1.5 text-xs transition-[color,background-color,transform] duration-150 ease-out active:scale-[0.99]"
+      >
+        {expanded ? t('weatherCard.less') : t('weatherCard.details')}
+        <ChevronDown
+          className={cn(
+            'size-3.5 transition-transform duration-200 ease-out',
+            expanded && 'rotate-180'
+          )}
+        />
+      </button>
+    </div>
   )
 }

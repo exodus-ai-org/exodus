@@ -170,18 +170,19 @@
   "weatherCard": {
     "today": "今天",
     "tomorrow": "明天",
-    "feels": "體感 {{temp}}° · {{observedAt}}",
     "humidity": "濕度",
     "precip": "降雨機率",
     "visibility": "能見度",
-    "uvIndex": "紫外線指數"
-  },
-  "weatherForecast": {
-    "temperatureRange": "🌡️ 溫度範圍",
-    "cold": "❄️ 較冷",
-    "hot": "🔥 較熱",
+    "uvIndex": "紫外線指數",
+    "wind": "風",
+    "pressure": "氣壓",
+    "feelsLike": "體感 {{temp}}°",
     "sunrise": "日出",
-    "sunset": "日落"
+    "sunset": "日落",
+    "rainChance": "降雨 {{percent}}%",
+    "observedAt": "{{time}} 觀測",
+    "details": "詳細",
+    "less": "收合"
   },
   "sourcesPanel": {
     "title_other": "{{count}} 個來源",
@@ -254,5 +255,9 @@
       "updatedTitle": "專案已更新",
       "deletedTitle": "專案已刪除"
     }
-  }
+  },
+  "run": {
+    "error": "此回覆因錯誤而中斷：{{message}}"
+  },
+  "renderFailed": "無法顯示{{what}}。"
 }

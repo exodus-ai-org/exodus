@@ -1,5 +1,6 @@
-import type { AgentTool } from '@mariozechner/pi-agent-core'
-import { Type } from '@mariozechner/pi-ai'
+import type { AgentTool } from '@earendil-works/pi-agent-core'
+import { Type } from '@earendil-works/pi-ai'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import { v4 as uuidV4 } from 'uuid'
 
 import { Guard } from '../../computer/guard'
@@ -21,7 +22,7 @@ const schema = Type.Object({
 })
 
 export const computerUse: AgentTool<typeof schema> = {
-  name: 'computerUse',
+  name: TOOL_NAMES.computerUse,
   label: 'Computer Use',
   description:
     "Operate a single window on the user's Mac with a virtual mouse and " +

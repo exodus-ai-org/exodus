@@ -95,6 +95,9 @@
     "about": {
       "title": "Exodusについて"
     },
+    "devices": {
+      "title": "デバイス"
+    },
     "group": {
       "personal": "個人設定",
       "aiTools": "AIとツール",
@@ -120,11 +123,14 @@
       "open-settings": {
         "label": "設定を開く"
       },
-      "toggle-sidebar": {
-        "label": "サイドバーの表示切り替え"
+      "lock-now": {
+        "label": "今すぐロック"
       },
       "toggle-developer-tools": {
         "label": "デベロッパーツールの表示切り替え"
+      },
+      "toggle-sidebar": {
+        "label": "サイドバーの表示切り替え"
       },
       "force-refresh-page": {
         "label": "ページを強制的に再読み込み"
@@ -153,6 +159,10 @@
     }
   },
   "about": {
+    "sections": {
+      "runtime": "ランタイム",
+      "links": "リンク"
+    },
     "version": "バージョン",
     "electron": "Electron",
     "chromium": "Chromium",
@@ -184,6 +194,11 @@
     }
   },
   "personality": {
+    "sections": {
+      "style": "スタイル",
+      "instructions": "指示",
+      "aboutYou": "あなたについて"
+    },
     "baseStyle": {
       "label": "基本のスタイルとトーン",
       "description": "Exodusがあなたに応答する際のスタイルとトーンを設定します",
@@ -315,6 +330,13 @@
     }
   },
   "tools": {
+    "intro": "モデルが自律的に呼び出せるツールです。オフにしたツールはどのチャットでも使われません。キーやオプションが必要なツールは、その行の下に設定が並びます。オンなのにキーが未設定なら、設定されるまでその旨を表示します。",
+    "configure": "設定",
+    "needsKey": {
+      "webSearch": "Brave Search の API キーが必要です",
+      "imageGeneration": "OpenAI の API キーが必要です — プロバイダーで設定してください",
+      "mapItinerary": "Google の API キーが必要です"
+    },
     "groups": {
       "web": "ウェブ",
       "fileSystem": "ファイルシステム",
@@ -508,6 +530,11 @@
     }
   },
   "dataControls": {
+    "sections": {
+      "backups": "バックアップ",
+      "transfer": "エクスポートとインポート",
+      "danger": "危険な操作"
+    },
     "autoBackup": {
       "label": "自動バックアップ",
       "description": "毎日午前3:00にデータをバックアップします。バックアップは~/.exodus/backups/にローカル保存されます。"
@@ -638,6 +665,16 @@
       "json": "JSON"
     },
     "empty": "MCPサーバーはまだ設定されていません。",
+    "emptyHint": "登録したサーバーがここに表示され、それぞれのツールをスイッチで切り替えられます。",
+    "addCard": {
+      "title": "MCP サーバーを追加",
+      "description": "ローカルコマンド（stdio）またはリモート URL。オンにすると、そのツールがチャットで使えるようになります。"
+    },
+    "deleteDialog": {
+      "title": "{{name}} を削除しますか？",
+      "description": "このサーバーのツールはチャットで使えなくなり、コマンド・ヘッダー・設定は削除されます。後でもう一度登録できます。",
+      "confirm": "削除"
+    },
     "form": {
       "transport": {
         "label": "トランスポート",
@@ -741,6 +778,10 @@
       }
     },
     "settings": {
+      "sections": {
+        "memory": "メモリー",
+        "context": "コンテキスト管理"
+      },
       "autoCapture": {
         "label": "メモリーを記録",
         "description": "各会話の後、あなたに関する永続的な事実(興味、環境、人物など)を重複させることなく既存のエントリを更新しながらメモリーに統合します。"
@@ -759,12 +800,13 @@
       },
       "freshTailSize": {
         "label": "直近メッセージの保護数",
-        "description": "圧縮から保護される直近のメッセージ数(8〜64)。これらは常にそのままモデルに送信されます。デフォルト: 16。"
+        "description": "圧縮から保護される直近のラン数（2〜24）。ランとは、あなたのメッセージ 1 件と、それに応答したモデルの各ステップおよびツール結果のことです。これらは常にそのままモデルに送信されます。デフォルト: 6。"
       },
       "newMemoryDefaultKey": "新しいメモリー",
       "storedMemoriesHeading": "保存されたメモリー",
       "newButton": "新規",
-      "emptyState": "メモリーはまだありません — 会話の後に自動的に追加されるか、下の欄でアシスタントに覚えてほしいことを伝えてください。",
+      "emptyTitle": "メモリーはまだありません",
+      "emptyHint": "会話の後に自動的に追加されます。下の欄でアシスタントに覚えてほしいことを伝えることもできます。",
       "disabledHeading": "無効 · {{count}}",
       "toast": {
         "loadFailedTitle": "メモリーの読み込みに失敗しました",
@@ -779,7 +821,8 @@
       "trending": "トレンド (24時間)",
       "hot": "人気",
       "allTime": "累計",
-      "allTimeWithTotal": "累計 ({{total}})"
+      "allTimeWithTotal": "累計 ({{total}})",
+      "curated": "厳選"
     },
     "tabs": {
       "discover": "探す",
@@ -799,8 +842,15 @@
       "moreFromSource_other": "{{source}} からさらに {{count}} 件 (合計 {{total}})",
       "lessFromSource": "{{source}} の表示を減らす"
     },
+    "curated": {
+      "summary": "{{owners}} 社・{{skills}} 件のスキル",
+      "skillCount_other": "{{count}} 件のスキル",
+      "featured": "注目",
+      "showAll": "すべて表示（あと {{count}} 件）",
+      "showFewer": "表示を減らす"
+    },
     "card": {
-      "installs": "{{formatted}} インストール",
+      "installs": "<n>{{formatted}}</n> インストール",
       "installedBadge": "インストール済み",
       "trend": "今日 +{{formatted}}"
     },
@@ -842,7 +892,7 @@
       "uninstallDescription": "ファイルはスキルフォルダから削除されます。いつでも再インストールできます。"
     },
     "cli": {
-      "notice": "ターミナル派ですか？ <cli>exodus-cli</cli> で同じスキルを管理できます: <code>npm i -g exodus-cli</code> の後に <code>exodus skills</code>。"
+      "title": "ターミナル派なら <cli>exodus-cli</cli>"
     },
     "toast": {
       "installedTitle": "「{{name}}」をインストールしました",
@@ -851,12 +901,6 @@
       "uninstallFailed": "アンインストールに失敗しました",
       "updateFailed": "スキルを更新できませんでした",
       "copied": "コマンドをコピーしました"
-    },
-    "leaderboard": {
-      "rank": "#",
-      "skill": "スキル",
-      "activity": "今日",
-      "installs": "インストール"
     }
   },
   "toast": {
@@ -911,6 +955,53 @@
     "toast": {
       "snapshotBuilt": "スナップショットを作成しました",
       "snapshotFailed": "スナップショットを作成できませんでした"
+    }
+  },
+  "devices": {
+    "heading": "ペアリング済みのデバイス",
+    "description": "ローカルネットワーク経由で Exodus を利用できるスマートフォンやタブレットです。デバイスは最初にここでペアリングする必要があります。ペアリングするまで、Exodus はネットワークから一切アクセスできません。",
+    "empty": "ペアリング済みのデバイスはありません",
+    "emptyHint": "ペアリングしたデバイスはここに表示されます。いつでも取り消せます。",
+    "pair": "デバイスをペアリング",
+    "pairCard": {
+      "title": "iPhone または iPad を接続",
+      "description": "ペアリングを始めると QR コードが 2 分間表示されます。デバイスの Exodus アプリでスキャンしてください。"
+    },
+    "pairing": {
+      "title": "iPhone の Exodus でスキャン",
+      "steps": {
+        "open": "iPhone または iPad で Exodus を開く",
+        "navigate": "<strong>設定 → コンピュータとペアリング</strong>に進む",
+        "scan": "このコードをスキャンする"
+      },
+      "sameNetwork": "両方のデバイスが同じネットワーク上にある必要があります。",
+      "expiresIn": "あと {{time}} で期限切れ",
+      "copyLink": "ペアリングリンクをコピー",
+      "linkCopied": "ペアリングリンクをコピーしました",
+      "cancel": "キャンセル"
+    },
+    "row": {
+      "pairedOn": "{{date}} にペアリング",
+      "lastSeen": "最終接続：{{date}}",
+      "neverSeen": "未接続",
+      "revoke": "取り消す"
+    },
+    "revokeDialog": {
+      "title": "「{{name}}」のペアリングを取り消しますか？",
+      "description": "直ちにアクセスできなくなり、再度利用するにはペアリングし直す必要があります。",
+      "confirm": "取り消す"
+    },
+    "reset": {
+      "label": "すべてのペアリングをリセット",
+      "rowDescription": "すべてのデバイスを削除し、新しい証明書を発行します。",
+      "button": "すべてリセット",
+      "title": "すべてのペアリングをリセットしますか？",
+      "description": "すべてのデバイスが削除され、新しい証明書が発行されます。各デバイスで新しいコードをスキャンし直す必要があります。",
+      "confirm": "リセット"
+    },
+    "toast": {
+      "failedTitle": "操作に失敗しました",
+      "pairedTitle": "デバイスをペアリングしました"
     }
   }
 }

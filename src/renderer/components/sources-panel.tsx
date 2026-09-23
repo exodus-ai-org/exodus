@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { sourcesPanelAtom } from '@/stores/chat'
 
 import { LazyLoadImage } from './lazy-load-image'
-import { parseCitations } from './markdown'
+import { parseCitations } from './markdown-citations'
 import { SheetPanel } from './sheet-panel'
 import { SourceFavicon } from './source-favicon'
 import { Separator } from './ui/separator'

@@ -3,16 +3,16 @@ import { describe, expect, it } from 'vitest'
 
 describe('resolveModel', () => {
   it('uses the curated override for models missing from the pi-ai registry', () => {
-    // claude-opus-4-8 is newer than the installed registry and has no MODEL_METADATA_FALLBACK
+    // An id the installed catalog does not carry, with no MODEL_METADATA_FALLBACK
     // entry (Anthropic needs none — it's expected to always carry a live-fetched snapshot).
     // Without a snapshot, this falls back to PROVIDER_DEFAULTS for Anthropic.
     const model = resolveModel(
       'anthropic',
-      'claude-opus-4-8',
+      'claude-opus-99-unreleased',
       'https://api.anthropic.com',
       'anthropic-messages'
     )
-    expect(model.id).toBe('claude-opus-4-8')
+    expect(model.id).toBe('claude-opus-99-unreleased')
     expect(model.provider).toBe('anthropic')
     expect(model.api).toBe('anthropic-messages')
     expect(model.cost.input).toBe(0)
@@ -25,7 +25,7 @@ describe('resolveModel', () => {
   it('honors a custom baseUrl in the override path', () => {
     const model = resolveModel(
       'anthropic',
-      'claude-opus-4-8',
+      'claude-opus-99-unreleased',
       'https://proxy.example.com',
       'anthropic-messages'
     )

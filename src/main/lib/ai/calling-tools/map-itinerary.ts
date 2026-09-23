@@ -1,13 +1,14 @@
+import type { AgentTool } from '@earendil-works/pi-agent-core'
+import { Type } from '@earendil-works/pi-ai'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import type { ToolNotice } from '@exodus/shared/types/chat'
 import { v1 } from '@googlemaps/places'
-import type { AgentTool } from '@mariozechner/pi-agent-core'
-import { Type } from '@mariozechner/pi-ai'
 
 import { Settings } from '../../db/schema'
 import { logger } from '../../logger'
 
 /**
- * `mapItinerary` is the single map-rendering tool: lookups, A→B routes, and
+ * `map_itinerary` is the single map-rendering tool: lookups, A→B routes, and
  * full multi-day itineraries collapse into one interactive card with tabs,
  * a shared map, and pin-driven detail overlays. The legacy `googleMapsPlaces`
  * / `googleMapsRouting` tools were removed; this tool internally calls the
@@ -278,7 +279,7 @@ async function enrichPlace(
 export const mapItinerary = (
   setting: Settings
 ): AgentTool<typeof mapItinerarySchema> => ({
-  name: 'mapItinerary',
+  name: TOOL_NAMES.mapItinerary,
   label: 'Map Itinerary',
   description:
     'Build a trip plan or any map-based answer as a single interactive card with tabs (one tab per day or section), a shared map instance, and a clickable place list. ' +

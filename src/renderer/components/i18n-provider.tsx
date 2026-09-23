@@ -5,6 +5,7 @@ import { I18nextProvider } from 'react-i18next'
 import { useSettings } from '@/hooks/use-settings'
 import { i18n } from '@/lib/i18n'
 import { setAppLocale } from '@/lib/ipc'
+import { reportRendererError } from '@/lib/report-error'
 
 /**
  * Follows `settings.language` and keeps i18next, `<html lang>`, and the main
@@ -39,10 +40,7 @@ function LocaleBridge() {
       }
       if (hasElectronBridge) {
         setAppLocale(next).catch((err) => {
-          console.error(
-            '[i18n] failed to notify main process of locale change',
-            err
-          )
+          reportRendererError('i18n', err, { step: 'notify-main', next })
         })
       }
       return
@@ -64,7 +62,7 @@ function LocaleBridge() {
         document.documentElement.dir = 'ltr'
       })
       .catch((err) => {
-        console.error('[i18n] failed to resolve the auto locale', err)
+        reportRendererError('i18n', err, { step: 'resolve-auto' })
       })
     return () => {
       cancelled = true

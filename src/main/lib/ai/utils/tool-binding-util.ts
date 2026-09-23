@@ -1,11 +1,12 @@
+import type { AgentTool } from '@earendil-works/pi-agent-core'
+import type { Model } from '@earendil-works/pi-ai'
+import { TOOL_NAMES, toToolName } from '@exodus/shared/constants/tool-names'
 import { AdvancedTools, McpTools } from '@exodus/shared/types/ai'
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
-import type { AgentTool } from '@mariozechner/pi-agent-core'
-import type { Model } from '@mariozechner/pi-ai'
 
 import { Settings } from '../../db/schema'
 import { resolveKnowledgeBase } from '../../knowledge-base/resolve-knowledge-base'
-import { logger } from '../../logger'
+import { getChatWorkspaceDir } from '../../paths'
 import {
   computerUse,
   createArtifact,
@@ -27,6 +28,8 @@ import {
   webSearch,
   writeFile
 } from '../calling-tools'
+import { mcpToolbox } from '../calling-tools/mcp-toolbox'
+import { fauxHandle, fauxWeatherTool } from '../kernel/faux'
 
 /**
  * Type-erased AgentTool for heterogeneous collections.
@@ -35,15 +38,6 @@ import {
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ErasedTool = AgentTool<any>
-
-// OpenAI's Chat Completions API hard-rejects a `tools` array over 128 entries
-// (400 "array too long") — the whole request fails, not just the overflow
-// tools. Built-ins stay comfortably under this on their own; MCP servers are
-// what push the total over (a single server can expose 100+ tools), so they
-// get truncated to whatever budget built-ins leave. Applied for every
-// provider, not just OpenAI: no other provider here documents a higher
-// tolerance, and 128+ tool schemas bloat the request regardless.
-const MAX_TOOLS = 128
 
 export function bindCallingTools({
   advancedTools,
@@ -66,34 +60,42 @@ export function bindCallingTools({
     return [deepResearch]
   }
 
-  const mcpToolsList: ErasedTool[] = mcpTools.flatMap((t) => t.tools)
-
-  const disabledTools = new Set(setting.tools?.disabledTools ?? [])
+  // Keys saved before the snake_case rename still disable the same tool.
+  const disabledTools = new Set(
+    (setting.tools?.disabledTools ?? []).map(toToolName)
+  )
   const enabled = (key: string) => !disabledTools.has(key)
 
   const tools: ErasedTool[] = []
 
-  if (enabled('weather')) tools.push(weather)
-  if (enabled('mapItinerary')) tools.push(mapItinerary(setting))
-  if (enabled('imageGeneration')) tools.push(imageGeneration(setting))
-  if (enabled('terminal')) tools.push(terminal)
-  if (enabled('readFile')) tools.push(readFile)
-  if (enabled('writeFile')) tools.push(writeFile)
-  if (enabled('editFile')) tools.push(editFile)
-  if (enabled('listDirectory')) tools.push(listDirectory)
-  if (enabled('findFiles')) tools.push(findFiles)
-  if (enabled('grep')) tools.push(grep)
+  // Under the e2e's faux provider the weather tool must not reach Open-Meteo.
+  if (enabled(TOOL_NAMES.weather)) {
+    tools.push(fauxHandle() ? fauxWeatherTool : weather)
+  }
+  if (enabled(TOOL_NAMES.mapItinerary)) tools.push(mapItinerary(setting))
+  if (enabled(TOOL_NAMES.imageGeneration)) tools.push(imageGeneration(setting))
+  // The chat's workspace is where its shell and file tools work by default;
+  // Philharmonic binds without a chatId and keeps the user's home.
+  const workspaceDir = chatId ? getChatWorkspaceDir(chatId) : undefined
+  if (enabled(TOOL_NAMES.terminal)) tools.push(terminal(workspaceDir))
+  if (enabled(TOOL_NAMES.readFile)) tools.push(readFile)
+  if (enabled(TOOL_NAMES.writeFile)) tools.push(writeFile)
+  if (enabled(TOOL_NAMES.editFile)) tools.push(editFile)
+  if (enabled(TOOL_NAMES.listDirectory)) tools.push(listDirectory)
+  if (enabled(TOOL_NAMES.findFiles)) tools.push(findFiles(workspaceDir))
+  if (enabled(TOOL_NAMES.grep)) tools.push(grep)
   // webSearch + webFetch share one rank registry so 【N-source】 citations
   // resolve regardless of which tool produced source N.
   const webSources = new Map<string, WebSearchResult>()
-  if (enabled('webFetch')) tools.push(webFetch(webSources))
-  if (enabled('createArtifact') && chatId) tools.push(createArtifact(chatId))
-  if (enabled('webSearch')) tools.push(webSearch(setting, webSources))
-  if (setting.computerUse?.enabled && enabled('computerUse'))
+  if (enabled(TOOL_NAMES.webFetch)) tools.push(webFetch(webSources))
+  if (enabled(TOOL_NAMES.createArtifact) && chatId)
+    tools.push(createArtifact(chatId))
+  if (enabled(TOOL_NAMES.webSearch)) tools.push(webSearch(setting, webSources))
+  if (setting.computerUse?.enabled && enabled(TOOL_NAMES.computerUse))
     tools.push(computerUse)
 
   const kb = resolveKnowledgeBase(setting)
-  if (kb && enabled('searchKnowledgeBase')) {
+  if (kb && enabled(TOOL_NAMES.searchKnowledgeBase)) {
     tools.push(searchKnowledgeBase(kb, setting.knowledgeBase))
   }
 
@@ -107,14 +109,10 @@ export function bindCallingTools({
     }
   }
 
-  const combined = [...tools, ...mcpToolsList]
-  if (combined.length <= MAX_TOOLS) return combined
+  // MCP servers are reached through the two-tool toolbox, never bound one
+  // by one: providers cap the tools array (OpenAI: 128) and a single server
+  // can exceed that alone. 19 built-ins plus two sit far below every limit.
+  if (mcpTools.length > 0) tools.push(...mcpToolbox(mcpTools))
 
-  const kept = combined.slice(0, MAX_TOOLS)
-  logger.warn('chat', 'Too many tools bound; truncating to provider limit', {
-    total: combined.length,
-    kept: kept.length,
-    dropped: combined.length - kept.length
-  })
-  return kept
+  return tools
 }

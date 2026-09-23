@@ -170,18 +170,19 @@
   "weatherCard": {
     "today": "오늘",
     "tomorrow": "내일",
-    "feels": "체감 {{temp}}° · {{observedAt}}",
     "humidity": "습도",
     "precip": "강수",
     "visibility": "가시거리",
-    "uvIndex": "자외선 지수"
-  },
-  "weatherForecast": {
-    "temperatureRange": "🌡️ 기온 범위",
-    "cold": "❄️ 최저",
-    "hot": "🔥 최고",
+    "uvIndex": "자외선 지수",
+    "wind": "바람",
+    "pressure": "기압",
+    "feelsLike": "체감 {{temp}}°",
     "sunrise": "일출",
-    "sunset": "일몰"
+    "sunset": "일몰",
+    "rainChance": "강수 {{percent}}%",
+    "observedAt": "{{time}} 관측",
+    "details": "상세",
+    "less": "접기"
   },
   "sourcesPanel": {
     "title_other": "출처 {{count}}개",
@@ -254,5 +255,9 @@
       "updatedTitle": "프로젝트가 업데이트되었습니다",
       "deletedTitle": "프로젝트가 삭제되었습니다"
     }
-  }
+  },
+  "run": {
+    "error": "이 답변은 오류로 중단되었습니다: {{message}}"
+  },
+  "renderFailed": "{{what}}을(를) 표시할 수 없습니다."
 }

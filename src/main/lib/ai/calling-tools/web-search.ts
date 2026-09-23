@@ -1,6 +1,7 @@
+import type { AgentTool } from '@earendil-works/pi-agent-core'
+import { StringEnum, Type } from '@earendil-works/pi-ai'
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
-import type { AgentTool } from '@mariozechner/pi-agent-core'
-import { Type } from '@mariozechner/pi-ai'
 
 import { Settings } from '../../db/schema'
 import { getModelFromProvider } from '../utils/model-util'
@@ -13,24 +14,18 @@ const webSearchSchema = Type.Object({
       'Keyword-style query, not a full question. Keep it under ~40 words. Use "quoted phrases" for exact matches, -term to exclude, site:domain to scope. Suffix a year/date when recency matters. Start broad; only add specifics on a follow-up search if the first was too general.'
   }),
   precision: Type.Optional(
-    Type.Union([Type.Literal('broad'), Type.Literal('strict')], {
+    // StringEnum, not a Union of Literals: that emits `anyOf`/`const`, which
+    // Google's function-calling schema rejects (pi-ai README, "Defining Tools").
+    StringEnum(['broad', 'strict'] as const, {
       description:
         'Relevance filter. "broad" (default) maximizes recall. Use "strict" on a follow-up search when the broad results were noisy or off-topic.'
     })
   ),
   media: Type.Optional(
-    Type.Union(
-      [
-        Type.Literal('images'),
-        Type.Literal('videos'),
-        Type.Literal('all'),
-        Type.Literal('none')
-      ],
-      {
-        description:
-          'Optional visual media search. Use "images" or "all" when building visual artifacts, comparisons, product/place explainers, or any answer that benefits from photos. Use "videos" or "all" for tutorials, demonstrations, or video-rich topics. Default: "none".'
-      }
-    )
+    StringEnum(['images', 'videos', 'all', 'none'] as const, {
+      description:
+        'Optional visual media search. Use "images" or "all" when building visual artifacts, comparisons, product/place explainers, or any answer that benefits from photos. Use "videos" or "all" for tutorials, demonstrations, or video-rich topics. Default: "none".'
+    })
   )
 })
 
@@ -43,9 +38,9 @@ export const webSearch = (
   let searchQueue = Promise.resolve()
 
   return {
-    name: 'webSearch',
+    name: TOOL_NAMES.webSearch,
     label: 'Web Search',
-    description: `Search the web for up-to-date information. Results are numbered [1],[2],… — you MUST cite every factual sentence in your reply using 【N-source】 markers. Higher-numbered results are snippet-only breadth hits; call webFetch on one to read it in full. Set media="images", "videos", or "all" when the user asks for a visual artifact, visual comparison, product/place explanation, tutorial, or any answer that would be better with media. Today is ${new Date().toISOString()}`,
+    description: `Search the web for up-to-date information. Results are numbered [1],[2],… — you MUST cite every factual sentence in your reply using 【N-source】 markers. Higher-numbered results are snippet-only breadth hits; call web_fetch on one to read it in full. Set media="images", "videos", or "all" when the user asks for a visual artifact, visual comparison, product/place explanation, tutorial, or any answer that would be better with media. Today is ${new Date().toISOString()}`,
     parameters: webSearchSchema,
     execute: async (_toolCallId, { query, media, precision }, signal) => {
       const search = async () => {
