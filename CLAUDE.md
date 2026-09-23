@@ -112,7 +112,7 @@ Exodus uses a three-process architecture:
    - Runs Hono HTTP server on `localhost:60223` (constant `SERVER_PORT` in `packages/shared/src/constants/systems.ts`)
    - Initializes PGlite database with pgvector extension
    - MCP server connection is archived (commented out in `app.ts`); an `/api/v1/mcp` route + settings remain
-   - Handles auto-updates via `update-electron-app` (`src/main/lib/auto-updater.ts`, which keeps the state machine the renderer's update panel speaks)
+   - Handles updates (`src/main/lib/auto-updater.ts`, which keeps the state machine the renderer's update panel speaks): Squirrel via `update-electron-app` for a signed build, a release-page link for an unsigned one — see "Updates and code signing"
 
 2. **Renderer Process** (`src/renderer/`):
    - React 19 application with React Router v7
@@ -160,6 +160,51 @@ Exodus is the successor of the older `universal-client` app and shares its
   driven by the suite instead of the app under test — reading and writing the
   real `~/.exodus` through it. To test a
   packaged build by hand, sandbox `$HOME` and pass `--user-data-dir` the same way.
+
+### Updates and code signing
+
+The macOS releases are **ad-hoc signed** (no Apple Developer account yet).
+Squirrel.Mac only accepts an update that satisfies the _running_ app's
+designated requirement, and an ad-hoc app's requirement is its own `cdhash` —
+so no update can ever pass, whatever the network does. The updater therefore
+has two modes (`UpdateMode`, in the payload the panel receives):
+
+- **`auto`** — Squirrel through `update-electron-app` (10-minute re-checks,
+  downloads by itself, `ready` → "Restart & Install"). Windows, and any mac
+  build with a real signature.
+- **`manual`** — a mac build with an ad-hoc or missing signature. Squirrel is
+  never started (its re-check would download the ~180 MB zip and fail every ten
+  minutes); one lookup of the same update.electronjs.org feed at launch and one
+  per manual check say whether a newer version exists, and the panel's button
+  opens the GitHub releases page (`updaterDownload()`).
+
+Which one is decided at runtime by `detectUpdateMode()` reading
+`codesign -dv` on the running bundle (`Signature=adhoc` → `manual`) — no build
+flag, so a build signed with a Developer ID switches to `auto` by itself.
+
+The packaged bundle's signature is made self-consistent by the `postPackage`
+hook in `forge.config.ts` (`codesign --force --deep --sign -`, skipped as soon as
+`packagerConfig.osxSign` is set). Without it the bundle fails
+`codesign --verify` with "invalid Info.plist (plist or signature have been
+modified)": the packager rewrites `Info.plist`, and flipping fuses re-signs only
+the executable — that was the exact error every downloaded update failed with.
+
+**When a Developer ID exists** (none of this is wired or tested yet):
+
+- forge: `osxSign` (identity, hardened runtime, an entitlements file for
+  Electron's JIT/unsigned-memory needs) and `osxNotarize`; the secrets and
+  certificate import in `release.yml`. Every Mach-O in the bundle must be signed,
+  including the unpacked DuckDB `.node`/dylib and `resources/bin/exodus-input`,
+  or notarization fails.
+- The first signed release cannot be reached by auto-update from an ad-hoc one
+  (the old requirement is a `cdhash`): users install it by hand once.
+- On the first signed build, check what is bound to the signing identity:
+  `safeStorage` data (`lock.dat`, the LAN certificate's private key — a lost key
+  means a new fingerprint and every paired device has to re-pair), and the
+  Accessibility / Screen Recording grants Computer Use needs.
+- `quitAndInstall()` together with the "closing the window only hides it"
+  handler in `window.ts` has never run (no update has ever got past validation):
+  test it with two consecutive signed builds.
 
 ### Skills (skills.sh)
 
