@@ -1,5 +1,6 @@
 {
   "somethingWentWrong": "Une erreur est survenue. Veuillez réessayer.",
+  "generic": "Un problème est survenu",
   "http": {
     "400": "La requête n'a pas pu être traitée.",
     "404": "La ressource demandée est introuvable.",

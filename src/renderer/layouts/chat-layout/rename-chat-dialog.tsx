@@ -12,13 +12,14 @@ import {
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
 import { Input } from '@/components/ui/input'
-import { updateChat } from '@/services/chat'
+import { useUpdateChat } from '@/hooks/use-chat-history'
 import { openTabsAtom, renamedChatTitleAtom } from '@/stores/chat'
 
 export function RenameChatDialog() {
   const { t } = useTranslation(['common', 'chat'])
   const [renamedChatTitle, setRenamedChatTitle] = useAtom(renamedChatTitleAtom)
   const setOpenTabs = useSetAtom(openTabsAtom)
+  const { mutate: updateChat } = useUpdateChat()
   const reset = () => setRenamedChatTitle({ id: '', title: '', open: false })
 
   return (
