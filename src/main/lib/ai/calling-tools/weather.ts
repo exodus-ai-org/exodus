@@ -182,6 +182,62 @@ export function toWeatherResult(
   }
 }
 
+/** Days that get an hourly line in the model's summary. */
+const HOURLY_DAYS = 2
+/** One hourly point every this many hours in that line. */
+const HOURLY_STEP = 3
+
+const clock = (time: string) => time.slice(11, 16) || time
+
+/**
+ * What the model reads. The card gets the whole result in `details`; the
+ * text block is a summary — now, one line per day, and the hours of today
+ * and tomorrow at three-hour steps — because the full seven days of hourly
+ * points are ~18 k characters, and a tool result stays in the context for
+ * the rest of the chat. Exported for the test.
+ */
+export function summarizeForModel(result: WeatherResult) {
+  const { current, forecast, location } = result
+  return {
+    location,
+    localTime: current.observedAt,
+    now: {
+      condition: current.condition,
+      tempC: Number(current.tempC),
+      feelsLikeC: Number(current.feelsLikeC),
+      humidityPct: Number(current.humidity),
+      wind: `${current.windKmph} km/h ${current.windDir}`,
+      precipMm: Number(current.precipMM),
+      uvIndex: Number(current.uvIndex),
+      visibilityKm: Number(current.visibility),
+      pressureHPa: Number(current.pressure),
+      isDay: current.isDay ?? true
+    },
+    days: forecast.map((day, i) => ({
+      date: day.date,
+      condition: day.condition,
+      maxC: Number(day.maxTempC),
+      minC: Number(day.minTempC),
+      sunrise: clock(day.sunrise),
+      sunset: clock(day.sunset),
+      rainChanceMaxPct: Math.max(
+        0,
+        ...day.hourly.map((h) => Number(h.rainChance) || 0)
+      ),
+      ...(i < HOURLY_DAYS && {
+        hourly: day.hourly
+          .filter((_, j) => j % HOURLY_STEP === 0)
+          .map((h) => ({
+            t: clock(h.time),
+            c: Number(h.tempC),
+            condition: h.condition,
+            rainPct: Number(h.rainChance) || 0
+          }))
+      })
+    }))
+  }
+}
+
 const weatherSchema = Type.Object({
   location: Type.String({
     description:
@@ -224,7 +280,12 @@ export const weather: AgentTool<typeof weatherSchema> = {
       raw
     )
     return {
-      content: [{ type: 'text' as const, text: JSON.stringify(details) }],
+      content: [
+        {
+          type: 'text' as const,
+          text: JSON.stringify(summarizeForModel(details))
+        }
+      ],
       details
     }
   }

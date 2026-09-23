@@ -1,11 +1,14 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-const { compassPoint, toWeatherResult, weather } =
+const { compassPoint, summarizeForModel, toWeatherResult, weather } =
   await import('@main/lib/ai/calling-tools/weather')
 
-/** Two days of Open-Meteo, 24 hourly points each, observed at 18:30 day one. */
-function forecastFixture() {
-  const days = ['2026-09-23', '2026-09-24']
+/** Days of Open-Meteo, 24 hourly points each, observed at 18:30 day one. */
+function forecastFixture(dayCount = 2) {
+  const days = Array.from(
+    { length: dayCount },
+    (_, i) => `2026-09-${String(23 + i).padStart(2, '0')}`
+  )
   const time = days.flatMap((d) =>
     Array.from(
       { length: 24 },
@@ -35,11 +38,11 @@ function forecastFixture() {
     },
     daily: {
       time: days,
-      weather_code: [3, 61],
-      temperature_2m_max: [32.5, 28.1],
-      temperature_2m_min: [21.6, 19.9],
-      sunrise: ['2026-09-23T06:02', '2026-09-24T06:03'],
-      sunset: ['2026-09-23T18:10', '2026-09-24T18:08']
+      weather_code: days.map((_, i) => (i === 0 ? 3 : 61)),
+      temperature_2m_max: days.map((_, i) => (i === 0 ? 32.5 : 28.1)),
+      temperature_2m_min: days.map((_, i) => (i === 0 ? 21.6 : 19.9)),
+      sunrise: days.map((d, i) => `${d}T06:0${2 + (i % 8)}`),
+      sunset: days.map((d, i) => `${d}T18:${10 - i}`)
     }
   }
 }
@@ -102,6 +105,55 @@ describe('toWeatherResult', () => {
   })
 })
 
+describe('summarizeForModel', () => {
+  const result = toWeatherResult('Beijing, China', forecastFixture())
+  const summary = summarizeForModel(result)
+
+  it('is now, one line per day, and the hours of the first two days at three-hour steps', () => {
+    expect(summary.location).toBe('Beijing, China')
+    expect(summary.localTime).toBe('2026-09-23T18:30')
+    expect(summary.now).toEqual({
+      condition: 'Overcast',
+      tempC: 30,
+      feelsLikeC: 31,
+      humidityPct: 43,
+      wind: '11 km/h S',
+      precipMm: 0,
+      uvIndex: 2,
+      visibilityKm: 11,
+      pressureHPa: 1013,
+      isDay: false
+    })
+    expect(summary.days).toHaveLength(2)
+    const [today] = summary.days
+    expect(today.date).toBe('2026-09-23')
+    expect(today.maxC).toBe(33)
+    expect(today.sunrise).toBe('06:02')
+    expect(today.sunset).toBe('18:10')
+    expect(today.rainChanceMaxPct).toBe(92)
+    expect(today.hourly).toHaveLength(8)
+    expect(today.hourly?.[0]).toEqual({
+      t: '00:00',
+      c: 20,
+      condition: 'Mainly clear',
+      rainPct: 0
+    })
+    expect(today.hourly?.[7].t).toBe('21:00')
+  })
+
+  it('is a fraction of the full result — the whole week of hours is the card’s, not the model’s', () => {
+    // Seven real days are ~18 k characters against ~2 k for the summary.
+    const week = toWeatherResult('Beijing, China', forecastFixture(7))
+    const full = JSON.stringify(week).length
+    const text = JSON.stringify(summarizeForModel(week)).length
+    expect(text).toBeLessThan(full / 5)
+    // Only the first two days carry hours.
+    const days = summarizeForModel(week).days
+    expect(days.filter((d) => d.hourly)).toHaveLength(2)
+    expect(days[6].hourly).toBeUndefined()
+  })
+})
+
 describe('weather tool', () => {
   afterEach(() => vi.unstubAllGlobals())
 
@@ -135,8 +187,11 @@ describe('weather tool', () => {
     expect(forecastUrl.searchParams.get('daily')).toContain('sunrise')
     expect(out.details.location).toBe('Beijing, China')
     expect(out.details.current.tempC).toBe('30')
-    // The text block is the same JSON, for the model.
-    expect(JSON.parse(out.content[0].text)).toEqual(out.details)
+    // The card reads `details` (everything); the model reads the summary.
+    expect(out.details.forecast[0].hourly).toHaveLength(24)
+    expect(JSON.parse(out.content[0].text)).toEqual(
+      summarizeForModel(out.details)
+    )
   })
 
   it('fails plainly when the place is unknown', async () => {

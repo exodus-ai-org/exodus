@@ -387,7 +387,11 @@ camelCase; `toToolName()` maps a pre-rename `disabledTools` key):
 `computer_use`, `create_artifact`, `deep_research`, `edit_file`, `find_files`, `grep`, `image_generation`, `lcm_describe`, `lcm_expand`, `lcm_grep`, `list_directory`, `map_itinerary`, `read_file`, `search_knowledge_base`, `terminal`, `weather`, `web_fetch`, `web_search`, `write_file`.
 
 `weather` is Open-Meteo (no key: a geocoding call, then seven days with 24
-hourly points, WMO codes, all in the place's local time). The result type
+hourly points, WMO codes, all in the place's local time). The card reads
+`details` (everything); the model reads the text block, which is
+`summarizeForModel()` — now, a line per day, hours at three-hour steps for
+today and tomorrow — because the full week is ~18 k characters and a tool
+result stays in the context for the rest of the chat. The result type
 (`packages/shared/src/types/weather.ts`) has not changed shape since the
 wttr.in years, so rows saved then still render: `conditionNameOf()` reads
 WMO and WWO codes alike and `weatherClockHours()` reads ISO, "06:52 AM" and
