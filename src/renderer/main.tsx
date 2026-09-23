@@ -34,7 +34,7 @@ function AppRoot() {
 }
 
 void i18nReady.finally(() => {
-  ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
+  ReactDOM.createRoot(document.querySelector('#root') as HTMLElement).render(
     <SWRConfig value={{ fetcher }}>
       <Provider>
         <ThemeProvider>
