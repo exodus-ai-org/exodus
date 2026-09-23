@@ -303,6 +303,9 @@ plus `iconutil`) renders everything from it:
   `brand/liquid-glass/light.png`, on Apple's 824-in-1024 grid with a drop
   shadow; `build/icon.ico`, `build/icon.png`, `build/<n>x<n>.png` for the
   other packagers
+- `src/renderer/assets/images/logo-light.png` and `logo-dark.png` — the
+  Liquid Glass exports at 256 px for the header of Settings → About (the
+  app theme picks one)
 - `resources/icon.png` (Linux window icon) and
   `resources/trayTemplate{,@2x,@3x}.png` (22 pt, black + alpha: the
   `Template` suffix lets macOS tint it; `tray.ts` loads the 1x name)

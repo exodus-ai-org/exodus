@@ -45,26 +45,32 @@ export const ALLOWLIST: AllowlistEntry[] = [
   },
   {
     file: 'src/renderer/components/settings/settings-form/system-info.tsx',
+    text: 'Exodus',
+    line: 62,
+    reason: "The app's own name under its icon in About, a brand name."
+  },
+  {
+    file: 'src/renderer/components/settings/settings-form/system-info.tsx',
     text: 'exodus-ai-org/exodus',
-    line: 98,
+    line: 130,
     reason: 'GitHub org/repo slug, a proper noun.'
   },
   {
     file: 'src/renderer/components/settings/settings-form/system-info.tsx',
     text: '@YanceyOfficial',
-    line: 101,
+    line: 133,
     reason: 'Social handle, a proper noun.'
   },
   {
     file: 'src/renderer/components/settings/settings-form/system-info.tsx',
     text: 'exodus.yancey.app',
-    line: 104,
+    line: 136,
     reason: 'Website domain, a proper noun.'
   },
   {
     file: 'src/renderer/components/settings/settings-form/system-info.tsx',
     text: 'MIT',
-    line: 107,
+    line: 139,
     reason: 'Software license name — never translated.'
   }
 ]

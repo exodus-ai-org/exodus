@@ -17,6 +17,7 @@ import { join, resolve } from 'node:path'
 //   build/      icon.icns, icon-dock.png, icon.ico, icon.png, <n>x<n>.png
 //   resources/  icon.png, trayTemplate{,@2x,@3x}.png   (shipped with the app)
 //   brand/      svg/, icon-composer/, ios/, web/
+//   src/renderer/assets/images/logo-{light,dark}.png   (Settings → About)
 //   index.html  the boot splash, between its boot-splash markers
 //
 // The macOS .icns and the dev Dock icon come from brand/liquid-glass/light.png
@@ -196,6 +197,23 @@ rmSync(join(iconset, '..'), { recursive: true, force: true })
 console.log(
   `✓ build/icon.icns (16–1024, @1x/@2x${hasGlass ? ', from liquid-glass/light.png' : ''})`
 )
+
+// ── In-app logo (Settings → About) ────────────────────────────────────────
+// The Liquid Glass exports, light and dark, at 256 px (a 2x of the 128 px
+// the page shows at most) — the 1024 originals are ~2 MB each.
+
+for (const mode of ['light', 'dark']) {
+  const src = join(root, `brand/liquid-glass/${mode}.png`)
+  const markup = existsSync(src)
+    ? `<img src="data:image/png;base64,${readFileSync(src).toString('base64')}" width="256" height="256">`
+    : svg(
+        framed('a', m.icon, { inset: 0, shadow: false, dark: mode === 'dark' }),
+        256,
+        256,
+        '0 0 1024 1024'
+      )
+  await png(out(`src/renderer/assets/images/logo-${mode}.png`), markup, 256)
+}
 
 // ── Windows / Linux ───────────────────────────────────────────────────────
 
