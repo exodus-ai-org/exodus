@@ -87,7 +87,7 @@ describe('buildPairingLink', () => {
   it('round-trips through URL parsing', () => {
     const link = buildPairingLink({
       hosts: ['192.168.1.10', 'mac.local'],
-      port: 60224,
+      port: 63129,
       code: 'abc-DEF_123',
       fingerprint: 'VldKaXWVm4PX',
       name: "Yancey's Mac & Co"
@@ -96,7 +96,7 @@ describe('buildPairingLink', () => {
     expect(url.protocol).toBe('exodus:')
     expect(url.host).toBe('pair')
     expect(url.searchParams.get('h')).toBe('192.168.1.10,mac.local')
-    expect(url.searchParams.get('p')).toBe('60224')
+    expect(url.searchParams.get('p')).toBe('63129')
     expect(url.searchParams.get('c')).toBe('abc-DEF_123')
     expect(url.searchParams.get('f')).toBe('VldKaXWVm4PX')
     expect(url.searchParams.get('n')).toBe("Yancey's Mac & Co")

@@ -150,7 +150,7 @@ Exodus is the successor of the older `universal-client` app and shares its
 - **Server ports** (`packages/shared/src/constants/systems.ts`): `SERVER_PORT =
 60223` is plaintext HTTP bound to loopback only (`127.0.0.1` and `::1`) — the
   renderer, exodus-cli, `tests/api` and the iOS Simulator; nothing on the LAN
-  can reach it. `LAN_SERVER_PORT = 60224` is what `exodus-ios` on a device
+  can reach it. `LAN_SERVER_PORT = 63129` is what `exodus-ios` on a device
   connects to. Don't change either without updating the clients.
 - **E2E**: `playwright.config.ts` points `$HOME` at a scratch dir
   (`<tmpdir>/exodus-e2e-home`); the electron fixture wipes `~/.exodus` under it

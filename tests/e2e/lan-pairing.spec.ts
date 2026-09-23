@@ -12,7 +12,7 @@ interface Reply {
   body: string
 }
 
-const LAN_PORT = 60224
+const LAN_PORT = 63129
 
 /**
  * A TLS connection whose peer has been checked against the pin — resolved only

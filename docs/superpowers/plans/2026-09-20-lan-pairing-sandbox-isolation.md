@@ -4,7 +4,7 @@
 
 **Goal:** Model-written artifact code can no longer reach the app, and a device on the LAN can do nothing until it has been paired from the desktop's screen — over TLS, with the iPhone's token behind Face ID.
 
-**Architecture:** The artifact sandbox moves to its own origin through a privileged custom scheme (`exodus-artifact://sandbox`), served from the built renderer and proxied to Vite in dev. The Hono app is served twice: plaintext on loopback only (`127.0.0.1` + `::1`, port 60223, no token) and HTTPS on `0.0.0.0:60224` behind an `authGate` that requires a per-device bearer token; that listener only runs while a device is paired or a pairing window is open. Pairing is a one-time code shown as a QR code together with the self-signed certificate's fingerprint, which exodus-ios pins.
+**Architecture:** The artifact sandbox moves to its own origin through a privileged custom scheme (`exodus-artifact://sandbox`), served from the built renderer and proxied to Vite in dev. The Hono app is served twice: plaintext on loopback only (`127.0.0.1` + `::1`, port 60223, no token) and HTTPS on `0.0.0.0:63129` behind an `authGate` that requires a per-device bearer token; that listener only runs while a device is paired or a pairing window is open. Pairing is a one-time code shown as a QR code together with the self-signed certificate's fingerprint, which exodus-ios pins.
 
 **Tech Stack:** Electron 44 (`protocol.handle`, `safeStorage`), Hono 4 + `@hono/node-server` 2.1 (`createServer: https.createServer`), Drizzle + PGlite, `@peculiar/x509` 2.1 (+ `reflect-metadata`), `qrcode.react`, Vitest, Playwright; Swift 6 / SwiftUI / Tuist on iOS 27 (`DataScannerViewController`, Keychain + `LocalAuthentication`, `URLSessionDelegate`).
 
@@ -13,9 +13,9 @@
 ## Global Constraints
 
 - Branch `feat/lan-pairing-sandbox-isolation` in `exodus`. In `../exodus-ios`, work directly in the existing working tree (the user's call); it has uncommitted edits to `Project.swift` and `Sources/App/SideDrawer.swift` — do not revert or reformat them, and do not commit in that repo unless asked.
-- Ports: loopback `SERVER_PORT = 60223` (unchanged), LAN `LAN_SERVER_PORT = 60224`.
+- Ports: loopback `SERVER_PORT = 60223` (unchanged), LAN `LAN_SERVER_PORT = 63129`.
 - Pairing code: 128 random bits, base64url, valid 120 s, single use, 5 wrong attempts close the window. Device token: 256 random bits, base64url; stored only as hex SHA-256.
-- Pairing link: `exodus://pair?h=<hosts,comma-separated>&p=60224&c=<code>&f=<base64url SHA-256 of cert DER>&n=<computer name>`.
+- Pairing link: `exodus://pair?h=<hosts,comma-separated>&p=63129&c=<code>&f=<base64url SHA-256 of cert DER>&n=<computer name>`.
 - Certificate: ECDSA P-256, self-signed, 10 years, `~/.exodus/tls/`; private key encrypted with `safeStorage`. Never rotated except by "Reset all".
 - Middleware order: origin gate → CORS → auth gate → lock gate → trace → settings.
 - Face ID (iOS): prompt on cold start and after > 300 s in the background; passcode fallback allowed; a device with no passcode cannot pair.
@@ -368,7 +368,7 @@ git add -A && git commit -m "feat(security): isolate the artifact sandbox on its
 
 **Interfaces:**
 
-- Produces: `LAN_SERVER_PORT = 60224`; `type ListenerKind = 'loopback' | 'lan'`; `interface Bindings { listener?: ListenerKind; incoming?: { socket?: { remoteAddress?: string } } }`; `listenerOf(c: Context): ListenerKind`; `createOriginGate(opts: { devOrigin?: string }): MiddlewareHandler`; `createApp(): Hono` (the app without listeners) and `connectHttpServer()` still returning `{ start, close }`.
+- Produces: `LAN_SERVER_PORT = 63129`; `type ListenerKind = 'loopback' | 'lan'`; `interface Bindings { listener?: ListenerKind; incoming?: { socket?: { remoteAddress?: string } } }`; `listenerOf(c: Context): ListenerKind`; `createOriginGate(opts: { devOrigin?: string }): MiddlewareHandler`; `createApp(): Hono` (the app without listeners) and `connectHttpServer()` still returning `{ start, close }`.
 
 - [ ] **Step 1: Failing tests** — append to `origin-gate.test.ts`:
 
@@ -406,7 +406,7 @@ describe('createOriginGate', () => {
     const app = appWith({})
     const lan = await app.request(
       '/x',
-      { headers: { Host: 'mac.tailnet.ts.net:60224' } },
+      { headers: { Host: 'mac.tailnet.ts.net:63129' } },
       { listener: 'lan', incoming: { socket: { remoteAddress: '127.0.0.1' } } }
     )
     expect(lan.status).toBe(200)
@@ -421,7 +421,7 @@ describe('createOriginGate', () => {
 ```ts
 // HTTPS, token-gated, only up while a device is paired (see src/main/lib/lan/).
 // exodus-ios connects here; the plaintext SERVER_PORT is loopback-only.
-export const LAN_SERVER_PORT = 60224
+export const LAN_SERVER_PORT = 63129
 ```
 
 - [ ] **Step 3: `server/types.ts`**
@@ -719,7 +719,7 @@ describe('buildPairingLink', () => {
   it('round-trips through URL parsing', () => {
     const link = buildPairingLink({
       hosts: ['192.168.1.10', 'mac.local'],
-      port: 60224,
+      port: 63129,
       code: 'abc-DEF_123',
       fingerprint: 'VldKaXWVm4PX',
       name: "Yancey's Mac"
@@ -728,7 +728,7 @@ describe('buildPairingLink', () => {
     expect(url.protocol).toBe('exodus:')
     expect(url.host).toBe('pair')
     expect(url.searchParams.get('h')).toBe('192.168.1.10,mac.local')
-    expect(url.searchParams.get('p')).toBe('60224')
+    expect(url.searchParams.get('p')).toBe('63129')
     expect(url.searchParams.get('c')).toBe('abc-DEF_123')
     expect(url.searchParams.get('f')).toBe('VldKaXWVm4PX')
     expect(url.searchParams.get('n')).toBe("Yancey's Mac")
@@ -1223,7 +1223,7 @@ it('comes up over HTTPS on every interface when wanted, once', async () => {
   await listener.sync()
   expect(serve).toHaveBeenCalledTimes(1)
   expect(serve.mock.calls[0][0]).toMatchObject({
-    port: 60224,
+    port: 63129,
     hostname: '0.0.0.0',
     serverOptions: { cert: 'CERT', key: 'KEY' }
   })
@@ -1640,7 +1640,7 @@ interface Reply {
 function pinnedSocket(pin: string) {
   return new Promise<tls.TLSSocket>((resolve, reject) => {
     const socket = tls.connect(
-      { host: '127.0.0.1', port: 60224, rejectUnauthorized: false },
+      { host: '127.0.0.1', port: 63129, rejectUnauthorized: false },
       () => {
         const seen = createHash('sha256')
           .update(socket.getPeerCertificate().raw)
@@ -1668,7 +1668,7 @@ async function pinned(
       {
         createConnection: () => socket,
         host: '127.0.0.1',
-        port: 60224,
+        port: 63129,
         path,
         method: init.method ?? 'GET',
         headers: {
@@ -1708,7 +1708,7 @@ test.describe('LAN pairing', () => {
   test('nothing listens on the LAN until a device is paired; pairing works; revoking locks it out', async ({
     mainWindow
   }) => {
-    expect(await canConnect('127.0.0.1', 60224)).toBe(false)
+    expect(await canConnect('127.0.0.1', 63129)).toBe(false)
 
     const modKey = process.platform === 'darwin' ? 'Meta' : 'Control'
     await mainWindow.keyboard.press(`${modKey}+,`)
@@ -1730,7 +1730,7 @@ test.describe('LAN pairing', () => {
     const link = new URL(state.pairing.link)
     const pin = link.searchParams.get('f')!
     const code = link.searchParams.get('c')!
-    expect(link.searchParams.get('p')).toBe('60224')
+    expect(link.searchParams.get('p')).toBe('63129')
 
     // Unpaired: the API is shut, a wrong code is refused.
     expect((await pinned(pin, '/api/v1/history')).status).toBe(401)
@@ -1771,7 +1771,7 @@ test.describe('LAN pairing', () => {
       .getByRole('button', { name: 'Revoke', exact: true })
       .click()
     await expect(row).toHaveCount(0)
-    await expect.poll(() => canConnect('127.0.0.1', 60224)).toBe(false)
+    await expect.poll(() => canConnect('127.0.0.1', 63129)).toBe(false)
     await expect(
       mainWindow.getByTestId(TEST_IDS.devices.resetButton)
     ).toBeVisible()
@@ -2163,7 +2163,7 @@ export function Devices() {
 
 **Files:** `CLAUDE.md`, `docs/security-hardening.md`
 
-- [ ] **Step 1:** `CLAUDE.md` — "Data directory, ports and isolation": the two ports, that 60223 is loopback-only and exodus-ios uses 60224; "Middleware Pipeline": the six steps in order with the auth gate; routes list gains `/api/v1/pair`, `/api/v1/devices`; Key Tables gains `paired_device`; Code Structure gains `src/main/lib/lan/` (one line per file) and `src/main/lib/artifact-protocol.ts`; Security Considerations: replace the "No authentication on the HTTP API" bullet with the pairing model, and state that the artifact sandbox has its own origin and that nothing may be added to it that needs the API.
+- [ ] **Step 1:** `CLAUDE.md` — "Data directory, ports and isolation": the two ports, that 60223 is loopback-only and exodus-ios uses 63129; "Middleware Pipeline": the six steps in order with the auth gate; routes list gains `/api/v1/pair`, `/api/v1/devices`; Key Tables gains `paired_device`; Code Structure gains `src/main/lib/lan/` (one line per file) and `src/main/lib/artifact-protocol.ts`; Security Considerations: replace the "No authentication on the HTTP API" bullet with the pairing model, and state that the artifact sandbox has its own origin and that nothing may be added to it that needs the API.
 - [ ] **Step 2:** `docs/security-hardening.md` — move items 1 and 2 into the "In place" table (rows _Artifact sandbox_ and _LAN access_), delete their "Open" sections, keep "Smaller items".
 - [ ] **Step 3:** `bunx vitest run tests/unit/config` (the CLAUDE.md freshness tests) → PASS; commit `docs: paired LAN access and the isolated artifact sandbox`.
 
@@ -2191,12 +2191,12 @@ import Testing
 @testable import NetworkingKit
 
 @Suite struct PairingLinkTests {
-    static let valid = "exodus://pair?h=192.168.1.10%2Cmac.local&p=60224&c=abc-DEF_123&f=VldKaXWVm4PXpwRHg9LDxh0tcUW5A5sOgwTVeSyjWtM&n=Yancey%27s+Mac"
+    static let valid = "exodus://pair?h=192.168.1.10%2Cmac.local&p=63129&c=abc-DEF_123&f=VldKaXWVm4PXpwRHg9LDxh0tcUW5A5sOgwTVeSyjWtM&n=Yancey%27s+Mac"
 
     @Test func parsesEveryField() throws {
         let link = try #require(PairingLink(string: Self.valid))
         #expect(link.hosts == ["192.168.1.10", "mac.local"])
-        #expect(link.port == 60224)
+        #expect(link.port == 63129)
         #expect(link.code == "abc-DEF_123")
         #expect(link.fingerprint == "VldKaXWVm4PXpwRHg9LDxh0tcUW5A5sOgwTVeSyjWtM")
         #expect(link.name == "Yancey's Mac")
@@ -2205,12 +2205,12 @@ import Testing
     @Test(arguments: [
         "https://pair?h=a&p=1&c=x&f=y&n=z",          // wrong scheme
         "exodus://other?h=a&p=1&c=x&f=y&n=z",        // wrong host
-        "exodus://pair?p=60224&c=x&f=y&n=z",         // no hosts
-        "exodus://pair?h=&p=60224&c=x&f=y&n=z",      // empty hosts
+        "exodus://pair?p=63129&c=x&f=y&n=z",         // no hosts
+        "exodus://pair?h=&p=63129&c=x&f=y&n=z",      // empty hosts
         "exodus://pair?h=a&p=notaport&c=x&f=y&n=z",  // bad port
         "exodus://pair?h=a&p=70000&c=x&f=y&n=z",     // port out of range
-        "exodus://pair?h=a&p=60224&f=y&n=z",         // no code
-        "exodus://pair?h=a&p=60224&c=x&n=z",         // no fingerprint
+        "exodus://pair?h=a&p=63129&f=y&n=z",         // no code
+        "exodus://pair?h=a&p=63129&c=x&n=z",         // no fingerprint
         "not a url"
     ])
     func rejects(_ string: String) {
@@ -2219,12 +2219,12 @@ import Testing
 
     @Test func triesTheLastGoodHostFirst() {
         var server = PairedServer(
-            hosts: ["10.0.0.2", "mac.local"], port: 60224, fingerprint: "f",
+            hosts: ["10.0.0.2", "mac.local"], port: 63129, fingerprint: "f",
             name: "Mac", deviceId: "d", token: "t", lastGoodHost: nil)
         #expect(server.orderedHosts == ["10.0.0.2", "mac.local"])
         server.lastGoodHost = "mac.local"
         #expect(server.orderedHosts == ["mac.local", "10.0.0.2"])
-        #expect(server.baseURLString(host: "mac.local") == "https://mac.local:60224")
+        #expect(server.baseURLString(host: "mac.local") == "https://mac.local:63129")
     }
 }
 ```
@@ -2504,7 +2504,7 @@ public final class InMemoryCredentialStore: CredentialStoring, @unchecked Sendab
 - Consumes: Tasks 11–13.
 - Produces: `final class ServerConnection: @unchecked Sendable` with `init(store: CredentialStoring)`, `var isPaired: Bool`, `var isUnlocked: Bool`, `var pin: String?`, `var authorization: String?`, `var baseURLString: String?`, `func unlock(reason: String) async throws`, `func lock()`, `func pair(_ link: PairingLink, deviceName: String, session: URLSession) async throws`, `func unpair()`, `func noteReachable(host: String)`, `static let backgroundGrace: TimeInterval = 300`; `ServerConfigStore.connection: ServerConnection?`, `ServerConfigStore.authorization: String?`.
 
-- [ ] **Step 1: Failing tests** (with `InMemoryCredentialStore` and a `URLProtocol` stub for the pair request): unpaired → `baseURLString == nil`, `authorization == nil`; after `unlock` with a stored server → `https://<first host>:60224` and `Bearer <token>`; `lock()` forgets both but `isPaired` stays true; `pair` posts `{code, deviceName}` to `/api/v1/pair`, stores the returned token, and leaves the connection unlocked; a 403 from pair throws and stores nothing; `unpair()` clears the store; `ServerConfigStore(userDefaults:)` with a connection returns the paired URL, and the plain `http://localhost:60223` default without one.
+- [ ] **Step 1: Failing tests** (with `InMemoryCredentialStore` and a `URLProtocol` stub for the pair request): unpaired → `baseURLString == nil`, `authorization == nil`; after `unlock` with a stored server → `https://<first host>:63129` and `Bearer <token>`; `lock()` forgets both but `isPaired` stays true; `pair` posts `{code, deviceName}` to `/api/v1/pair`, stores the returned token, and leaves the connection unlocked; a 403 from pair throws and stores nothing; `unpair()` clears the store; `ServerConfigStore(userDefaults:)` with a connection returns the paired URL, and the plain `http://localhost:60223` default without one.
 
 - [ ] **Step 2: Implement**
 

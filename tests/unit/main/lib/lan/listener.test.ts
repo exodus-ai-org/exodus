@@ -45,7 +45,7 @@ describe('LAN listener', () => {
 
     expect(serve).toHaveBeenCalledTimes(1)
     expect(serve.mock.calls[0][0]).toMatchObject({
-      port: 60224,
+      port: 63129,
       hostname: '0.0.0.0',
       serverOptions: { cert: 'CERT', key: 'KEY' }
     })
