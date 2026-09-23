@@ -302,7 +302,8 @@ comes from the Icon Composer export in `brand/peekaboo/liquid-glass/`) and
 - `bun run icons` (`scripts/render-icons.mjs`: Playwright's Chromium or an
   installed Chrome, plus `iconutil`) renders every variant into its own
   folders — `build/<v>/` (`icon.icns` on Apple's 824-in-1024 grid with a
-  drop shadow, `icon.ico`, `icon.png`, `<n>x<n>.png`), `resources/<v>/`
+  drop shadow, `icon-dock.png` — the same art as a PNG, `icon.ico`,
+  `icon.png`, `<n>x<n>.png`), `resources/<v>/`
   (`icon.png`, the 22-pt `trayTemplate{,@2x,@3x}.png`) and `brand/<v>/`
   (`svg/`, `icon-composer/` layers without Ody's contact shadow,
   `ios/AppIcon.appiconset` light/dark/tinted with no alpha, `web/` favicons,
@@ -321,6 +322,15 @@ comes from the Icon Composer export in `brand/peekaboo/liquid-glass/`) and
   background of its own (window vibrancy), and animates only `transform` /
   `opacity` on separate HTML layers — those run on the compositor, so the
   motion does not freeze while the main thread is busy.
+
+A dev run (`bun run start`) is node_modules' prebuilt `Electron.app`, so
+macOS shows Electron's own icon and name. `setDevDockIcon()`
+(`src/main/lib/dock-icon.ts`, first thing on `ready`, dev + macOS only)
+points the Dock at `build/icon-dock.png`, so it follows `icons:use` too
+(`nativeImage` cannot read `.icns`). The menu bar title stays "Electron":
+it is that bundle's `CFBundleName` and cannot change at runtime; patching
+its `Info.plist` would also invalidate the signature the Accessibility /
+Screen Recording grants are tied to, so it is deliberately left alone.
 
 Never edit a generated file by hand. `brand/` is deliberately outside
 `resources/`, which is copied into the app bundle whole (`extraResource`).

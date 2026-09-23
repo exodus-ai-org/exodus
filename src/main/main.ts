@@ -18,6 +18,7 @@ import {
   cleanupStaleWaitingTasks
 } from './lib/db/philharmonic-queries'
 import { getSettings } from './lib/db/queries'
+import { setDevDockIcon } from './lib/dock-icon'
 import { initMainI18n } from './lib/i18n'
 import { setupIPC } from './lib/ipc'
 import { IdleWatcher } from './lib/lock/idle-watcher'
@@ -62,6 +63,8 @@ process.on('unhandledRejection', (reason) => {
 })
 
 app.on('ready', async () => {
+  setDevDockIcon()
+
   // Migrate data from the legacy location to ~/.exodus (one-time, idempotent).
   // Also creates the ~/.exodus directory tree.
   migrateFromLegacyLocation()

@@ -62,6 +62,7 @@ const LIVE = {
     'icon.icns',
     'icon.ico',
     'icon.png',
+    'icon-dock.png',
     ...[16, 24, 32, 48, 64, 128, 256, 512, 1024].map((n) => `${n}x${n}.png`)
   ],
   resources: [
@@ -267,6 +268,12 @@ async function render(v) {
       await shoot(macosAt(base * 2), base * 2)
     )
   }
+  // The same art as a PNG for the Dock of a dev run (src/main/lib/dock-icon.ts):
+  // nativeImage cannot read .icns.
+  writeFileSync(
+    out('build', v, 'icon-dock.png'),
+    await shoot(macosAt(1024), 1024)
+  )
   execFileSync('iconutil', [
     '-c',
     'icns',
