@@ -24,7 +24,11 @@ export function useOllamaStatus(baseUrl: string | null | undefined) {
   const { data } = useQuery({
     queryKey: ollamaStatusKeys.baseUrl(baseUrl ?? ''),
     queryFn: () => pingOllama(baseUrl!),
-    enabled: !!baseUrl
+    enabled: !!baseUrl,
+    // Ollama is usually started in another app: coming back to Exodus is the
+    // moment to ask again. Off app-wide (settings autosave), but this writes
+    // nothing to settings.
+    refetchOnWindowFocus: true
   })
   // Running until proven otherwise, so the dot does not flash red while the
   // first ping is in flight.

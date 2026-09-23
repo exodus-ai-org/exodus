@@ -1,5 +1,5 @@
 // @vitest-environment happy-dom
-import { QueryClientProvider } from '@tanstack/react-query'
+import { focusManager, QueryClientProvider } from '@tanstack/react-query'
 import { act, createElement, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -42,13 +42,18 @@ function Probe({
   return null
 }
 
+// Every mounted client listens to the one global focusManager, so a root left
+// mounted would answer the focus tests' toggles with fetches of its own.
+const mounted: Array<() => Promise<void>> = []
+
 // The app's own client, retries left at React Query's default: a probe that
 // rejected would be retried with backoff and reported by `queryCache.onError`.
 async function mountStatus(initial: string | null | undefined) {
   let latest: Harness | undefined
   const queryClient = createAppQueryClient()
+  const root = createRoot(document.createElement('div'))
   await act(async () => {
-    createRoot(document.createElement('div')).render(
+    root.render(
       createElement(
         QueryClientProvider,
         { client: queryClient },
@@ -58,6 +63,11 @@ async function mountStatus(initial: string | null | undefined) {
         })
       )
     )
+  })
+  mounted.push(async () => {
+    await act(async () => {
+      root.unmount()
+    })
   })
   return {
     queryClient,
@@ -95,8 +105,10 @@ describe('ollamaStatusKeys', () => {
 })
 
 describe('useOllamaStatus', () => {
-  afterEach(() => {
+  afterEach(async () => {
     vi.useRealTimers()
+    for (const unmount of mounted.splice(0)) await unmount()
+    focusManager.setFocused(undefined)
     fetcherMock.mockReset()
     report.mockClear()
     sileoError.mockClear()
@@ -237,4 +249,44 @@ describe('useOllamaStatus', () => {
     expect(api().isRunning).toBe(false)
     expect(fetcherMock).toHaveBeenCalledTimes(1)
   })
+
+  it('re-pings when the window regains focus, so a server started meanwhile turns the dot green', async () => {
+    fetcherMock.mockRejectedValueOnce(new Error('Ollama is not reachable'))
+    const { queryClient, api } = await mountStatus(BASE_URL)
+    await act(async () => {
+      await vi.waitFor(() => expect(api().isRunning).toBe(false))
+    })
+    expect(fetcherMock).toHaveBeenCalledTimes(1)
+
+    fetcherMock.mockResolvedValue({})
+    await act(async () => {
+      focusManager.setFocused(false)
+      focusManager.setFocused(true)
+      await vi.waitFor(() => expect(api().isRunning).toBe(true))
+    })
+
+    expect(fetcherMock).toHaveBeenCalledTimes(2)
+    expect(fetcherMock).toHaveBeenLastCalledWith(pingUrl(BASE_URL))
+    expect(queryClient.getQueryData(ollamaStatusKeys.baseUrl(BASE_URL))).toBe(
+      true
+    )
+    expect(report).not.toHaveBeenCalled()
+  })
+
+  it.each([undefined, ''])(
+    'does not ping on focus while the base URL is %j',
+    async (baseUrl) => {
+      await mountStatus(baseUrl)
+
+      await act(async () => {
+        focusManager.setFocused(false)
+        focusManager.setFocused(true)
+        await new Promise<void>((resolve) => {
+          setTimeout(resolve, 20)
+        })
+      })
+
+      expect(fetcherMock).not.toHaveBeenCalled()
+    }
+  )
 })
