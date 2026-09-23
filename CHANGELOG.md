@@ -1,3 +1,17 @@
+# [1.17.0](https://github.com/exodus-ai-org/exodus/compare/v1.16.0...v1.17.0) (2026-09-23)
+
+
+### Bug Fixes
+
+* **security:** close the open CodeQL findings ([e6fecbc](https://github.com/exodus-ai-org/exodus/commit/e6fecbc05dd1182a586d232ed04d556aa4410c5d))
+* **settings:** keep a long log scope inside its column ([54806ae](https://github.com/exodus-ai-org/exodus/commit/54806aeb02445149ea721d9b8220ba0722fee2f1))
+* **updater:** stop failing macOS updates on ad-hoc builds ([ba015d4](https://github.com/exodus-ai-org/exodus/commit/ba015d4ac9c852bb9f8b85be7f04c67f444a0c42))
+
+
+### Features
+
+* **hotkeys:** adopt TanStack Hotkeys; fix and redesign the find bar and quick chat ([7d59e74](https://github.com/exodus-ai-org/exodus/commit/7d59e7481f7c35a03b9a9f8669aafa1c1ff7606f))
+
 # [1.16.0](https://github.com/exodus-ai-org/exodus/compare/v1.15.0...v1.16.0) (2026-09-23)
 
 
