@@ -332,8 +332,8 @@ describe('useRefreshDiscoverFeed', () => {
     await act(async () => {
       await vi.waitFor(() => expect(api().read.feed).toEqual(refreshed))
     })
-    // The parity with `mutate(promise, { revalidate: false })`: the POST's own
-    // answer is the new state, and asking the server again would race it.
+    // Not invalidated: the POST's own answer is the new state, and asking
+    // the server again would race it.
     expect(queryClient.getQueryState(discoverKeys.feed)?.isInvalidated).toBe(
       false
     )

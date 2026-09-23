@@ -170,7 +170,6 @@
     "semantic-release": "^25.0.9",
     "shadcn": "^4.21.0",
     "sileo": "^0.1.5",
-    "swr": "^2.5.1",
     "tailwind-merge": "^3.7.0",
     "three": "^0.186.0",
     "typescript": "~7.0.2",

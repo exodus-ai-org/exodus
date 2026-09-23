@@ -120,7 +120,7 @@ Exodus uses a three-process architecture:
    - React 19 application with React Router v7
    - Communicates with main process via HTTP (localhost:60223)
    - Uses Jotai for global state management
-   - SWR for server state fetching
+   - @tanstack/react-query for server state fetching
    - Entry points: main app plus the sub-apps searchbar, quick-chat, artifacts
 
 3. **Preload Process** (`src/preload/preload.ts`):
@@ -694,7 +694,7 @@ Their windows live in `src/main/lib/window.ts`.
 - React 19 with TypeScript
 - React Router v7 for navigation
 - Jotai for global state management (atoms in `src/renderer/stores/`)
-- SWR for server state fetching
+- @tanstack/react-query for server state fetching
 - Tailwind CSS + Radix UI components
 - @tiptap for rich text editing (Immersive Editor)
 - Monaco Editor for code display
@@ -715,7 +715,24 @@ Their windows live in `src/main/lib/window.ts`.
 
 - All API calls via `fetcher()` utility to `http://localhost:60223/api/*`
 - Streaming responses are consumed from the server's `runAgent()`-driven SSE stream (`lib/stream-manager.ts`)
-- SWR for caching and revalidation
+- @tanstack/react-query for caching and revalidation (see "Server state (React Query)" below)
+
+### Server state (React Query)
+
+- `services/*.ts` are pure `fetcher()` wrappers (no React/sileo/i18n); each domain has
+  `hooks/use-<domain>.ts` with a query-key factory plus `useQuery`/`useMutation` — components never
+  import `useQuery`/`useMutation`/`useQueryClient` directly.
+- The one client is `lib/query-client.ts` (`createAppQueryClient()`): a failed query is reported
+  (`reportRendererError`) never toasted; a failed mutation is reported and toasted once, globally,
+  from `meta.errorTitle` (`meta.silent` opts out, a localized fallback) — hooks never catch-and-toast;
+  success toasts live in the hook's own `onSuccess`.
+- Defaults suit a LOCAL API: `retry: 1` at 500 ms, no focus/reconnect refetch, `networkMode:
+'always'`; `refetchOnWindowFocus: true` is opted in per query an external writer can change
+  (`use-devices.ts`, `use-installed-skills.ts` — exodus-ios/exodus-cli). The remote skills.sh relay
+  uses `lib/relay-retry.ts`'s `RELAY_RETRY` instead. `installWindowFocusListener()` (`main.tsx`, at
+  boot) follows the window's own focus/blur, not just `visibilitychange`.
+- Hook tests use `tests/unit/helpers/query-test-utils.ts`; `@tanstack/react-query-devtools` is
+  dev-only in `main.tsx`.
 
 ### Path Aliases
 
@@ -847,7 +864,7 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
 ### When Working with Frontend
 
 - Use Jotai atoms for global state (avoid prop drilling)
-- SWR hooks for server data fetching with automatic revalidation
+- React Query hooks (`hooks/use-<domain>.ts`) for server data fetching with automatic revalidation
 - Always use path alias `@` for renderer imports
 - Tailwind + Radix UI for consistent styling
 - Keyboard shortcuts go through TanStack Hotkeys (`@tanstack/react-hotkeys`,
@@ -1016,7 +1033,7 @@ undefined (reading 'startTime') at …reportAllChanges` — is not app code (app
 2. Define Hono route handlers
 3. Import and register in main server setup
 4. Create corresponding service in `src/renderer/services/my-service.ts`
-5. Use SWR hook for data fetching in components
+5. Add a `hooks/use-my-domain.ts` wrapping it in `useQuery`/`useMutation` (see "Server state (React Query)") and use that hook for data fetching in components
 
 ### Adding a New Provider
 
@@ -1284,7 +1301,16 @@ Renderer:
 - `src/renderer/stores/` — Jotai atoms
 - `src/renderer/hooks/` — React hooks
 - `src/renderer/services/` — API call wrappers
-- `src/renderer/lib/` — renderer utilities (ipc, stream-manager, `tone.ts` — `data-tone` apply/boot cache, `mask-url.ts` — `maskUrlSecrets()` for showing a URL without its query-string credentials, `heatmap-months.ts` — month labels for the Profile heatmap, `report-error.ts` — `reportRendererError()` + `installGlobalErrorReporting()` (see Motion/render-path notes above), `menu-bridge.ts` — `installMenuBridge()`, the renderer half of the native menu's New Chat / Settings… items: `menu.ts`'s `goToMainWindow()` raises the main window and sends `menu:new-chat` / `menu:open-settings`; `router.navigate()` needs no component to answer it)
+- `src/renderer/lib/` — renderer utilities (ipc, stream-manager, `query-client.ts` — the one
+  `QueryClient` (`createAppQueryClient()`) and `installWindowFocusListener()` (see "Server state
+  (React Query)" above), `relay-retry.ts` — `RELAY_RETRY` for the remote skills.sh relay, `tone.ts`
+  — `data-tone` apply/boot cache, `mask-url.ts` — `maskUrlSecrets()` for showing a URL without its
+  query-string credentials, `heatmap-months.ts` — month labels for the Profile heatmap,
+  `report-error.ts` — `reportRendererError()` + `installGlobalErrorReporting()` (see
+  Motion/render-path notes above), `menu-bridge.ts` — `installMenuBridge()`, the renderer half of
+  the native menu's New Chat / Settings… items: `menu.ts`'s `goToMainWindow()` raises the main
+  window and sends `menu:new-chat` / `menu:open-settings`; `router.navigate()` needs no component to
+  answer it)
 - `src/renderer/components/tone-bridge.tsx` — follows `settings.colorTone` and re-applies it
 - `src/renderer/sub-apps/` — searchbar, quick-chat, artifacts entry points
 

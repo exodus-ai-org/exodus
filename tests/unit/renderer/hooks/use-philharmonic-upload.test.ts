@@ -3,8 +3,8 @@
 import { describe, expect, it } from 'vitest'
 
 // We re-import the internal helper by re-declaring its logic here. The hook
-// module imports Electron/SWR-related modules that are not worth wiring into
-// a unit test; instead this test asserts the contract.
+// module imports Electron/React-Query-related modules that are not worth
+// wiring into a unit test; instead this test asserts the contract.
 
 function isS3Configured(s3: unknown): boolean {
   if (!s3 || typeof s3 !== 'object') return false

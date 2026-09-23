@@ -10,7 +10,7 @@ export function useAnalyticsStatus() {
     queryKey: analyticsKeys.status,
     queryFn: getAnalyticsStatus
   })
-  // Returned so `await refresh()` waits for the refetch, as SWR's `mutate()` did.
+  // Returned so `await refresh()` waits for the refetch to complete.
   const refresh = () =>
     queryClient.invalidateQueries({ queryKey: analyticsKeys.status })
   return { data, isLoading, refresh }

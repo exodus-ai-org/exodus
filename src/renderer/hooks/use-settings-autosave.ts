@@ -73,7 +73,7 @@ export function useSettingsAutosave(form: UseFormReturnType) {
   useEffect(() => {
     const subscription = form.watch((values, { name }) => {
       // RHF fires with `name` undefined on mount hydration and on `reset()`
-      // (which the post-save SWR refresh triggers) — never a user edit.
+      // (which the post-save settings refetch triggers) — never a user edit.
       if (!name) return
       const persisted = settingsRef.current
       if (!persisted) return

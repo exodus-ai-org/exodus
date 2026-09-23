@@ -94,7 +94,7 @@ function buildDayMarkdown(day: ItineraryDay): string {
 }
 
 /** Inner Map subtree, isolated and memoized so interactive parent state
- *  (focused pin, copy-button confirm flash, SWR settings revalidation) never
+ *  (focused pin, copy-button confirm flash, settings query revalidation) never
  *  reaches the map. Its whole prop set is stable for the life of the card:
  *  `apiKey`/`colorScheme` are primitives, `places` is a slice of the frozen
  *  tool result, `onMarkerClick` is a `useCallback([])`. Focus flows to
