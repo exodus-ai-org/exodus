@@ -308,8 +308,9 @@ plus `iconutil`) renders everything from it:
   `background-dark.svg` in the dark appearance via `hidden-specializations`),
   with its layer SVGs refreshed from `brand/icon-composer/`. @electron/packager
   compiles it with `actool` into `Assets.car` + `CFBundleIconName`, so macOS 26
-  follows the icon style (light / dark / clear / tinted); older macOS falls
-  back to `icon.icns`. That needs macOS 26 + Xcode 26 on the packaging machine
+  follows System Settings → Appearance → Icon & widget style (Default /
+  Dark / Clear / Tinted — not the light/dark appearance itself); older macOS
+  falls back to `icon.icns`. That needs macOS 26 + Xcode 26 on the packaging machine
   and fails the build otherwise, which is why every macOS job in CI
   (`release.yml`, `pr-check.yml`, `playwright.yml`) runs on `macos-26`, not
   `macos-latest`
