@@ -6,6 +6,17 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { renderWithQueryClient } from '../../helpers/query-test-utils'
 
+const fetcherMock = vi.fn()
+vi.mock('@exodus/shared/utils/http', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@exodus/shared/utils/http')>()),
+  fetcher: (...args: unknown[]) => fetcherMock(...args)
+}))
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => key,
+    i18n: { exists: () => false }
+  })
+}))
 const getBackupStatusService = vi.fn()
 const listBackupsService = vi.fn()
 const createBackupNowService = vi.fn()
@@ -30,6 +41,7 @@ vi.mock('sileo', () => ({
 
 const { backupKeys, useBackupStatus, useBackupList, useCreateBackup } =
   await import('@/hooks/use-backup')
+const { settingsKeys, useSettings } = await import('@/hooks/use-settings')
 const { createAppQueryClient } = await import('@/lib/query-client')
 
 ;(
@@ -82,12 +94,20 @@ const backups = [
   { name: 'exodus-2026-09-23.zip', size: 2048, createdAt: status.lastBackupAt }
 ]
 
+const settings = {
+  id: 'global',
+  autoBackup: true,
+  lastBackupAt: status.lastBackupAt
+}
+
 function seedCaches(queryClient: QueryClient) {
   queryClient.setQueryData(backupKeys.status, status)
   queryClient.setQueryData(backupKeys.list, backups)
+  queryClient.setQueryData(settingsKeys.all, settings)
 }
 
 afterEach(() => {
+  fetcherMock.mockReset()
   getBackupStatusService.mockReset()
   listBackupsService.mockReset()
   createBackupNowService.mockReset()
@@ -172,7 +192,7 @@ describe('useBackupList', () => {
 })
 
 describe('useCreateBackup', () => {
-  it('creates a backup with no arguments, marks both queries stale, and toasts once', async () => {
+  it('creates a backup with no arguments, marks the backup queries and the settings stale, and toasts once', async () => {
     createBackupNowService.mockResolvedValue({ filePath: '/tmp/b.zip' })
     const { queryClient, api } = await mountHook(useCreateBackup)
     seedCaches(queryClient)
@@ -189,6 +209,10 @@ describe('useCreateBackup', () => {
       true
     )
     expect(queryClient.getQueryState(backupKeys.list)?.isInvalidated).toBe(true)
+    // A stale cached `lastBackupAt` would be posted back by the next save.
+    expect(queryClient.getQueryState(settingsKeys.all)?.isInvalidated).toBe(
+      true
+    )
     expect(sileoSuccess).toHaveBeenCalledTimes(1)
     expect(sileoSuccess).toHaveBeenCalledWith({
       title: 'settings:dataControls.backupNow.successToast'
@@ -236,6 +260,9 @@ describe('useCreateBackup', () => {
     expect(queryClient.getQueryState(backupKeys.list)?.isInvalidated).toBe(
       false
     )
+    expect(queryClient.getQueryState(settingsKeys.all)?.isInvalidated).toBe(
+      false
+    )
     expect(sileoSuccess).not.toHaveBeenCalled()
     expect(report).toHaveBeenCalledTimes(1)
     expect(report).toHaveBeenCalledWith('mutation', expect.any(Error), {
@@ -248,5 +275,29 @@ describe('useCreateBackup', () => {
       title: 'settings:dataControls.backupNow.errorToast',
       description: 'disk full'
     })
+  })
+
+  it('a mounted settings reader re-reads after a backup, so it holds the new lastBackupAt', async () => {
+    const before = { ...settings, lastBackupAt: '2026-09-22T03:00:00.000Z' }
+    const after = { ...settings, lastBackupAt: '2026-09-23T10:15:00.000Z' }
+    fetcherMock.mockResolvedValueOnce(before).mockResolvedValueOnce(after)
+    createBackupNowService.mockResolvedValue({ filePath: '/tmp/b.zip' })
+    const { api } = await mountHook(() => ({
+      settings: useSettings(),
+      backup: useCreateBackup()
+    }))
+
+    await act(async () => {
+      await vi.waitFor(() => expect(api().settings.data).toEqual(before))
+    })
+    expect(fetcherMock).toHaveBeenCalledTimes(1)
+
+    await act(async () => {
+      await api().backup.mutateAsync()
+      await vi.waitFor(() => expect(api().settings.data).toEqual(after))
+    })
+
+    expect(fetcherMock).toHaveBeenCalledTimes(2)
+    expect(fetcherMock).toHaveBeenLastCalledWith('/api/v1/settings')
   })
 })

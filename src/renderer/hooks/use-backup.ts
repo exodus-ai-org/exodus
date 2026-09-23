@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { sileo } from 'sileo'
 
+import { settingsKeys } from '@/hooks/use-settings'
 import { i18n } from '@/lib/i18n'
 import {
   createBackupNow,
@@ -40,6 +41,12 @@ export function useCreateBackup() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: backupKeys.status })
       void queryClient.invalidateQueries({ queryKey: backupKeys.list })
+      // A backup moves the server's `lastBackupAt`, and a settings save posts
+      // the whole object back: a stale cached copy would rewind it.
+      void queryClient.invalidateQueries({
+        queryKey: settingsKeys.all,
+        exact: true
+      })
       sileo.success({
         title: i18n.t('settings:dataControls.backupNow.successToast')
       })
