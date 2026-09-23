@@ -1,3 +1,4 @@
+import { getHttpErrorMessage, toErrorI18n } from '@exodus/shared/utils/http'
 import {
   focusManager,
   MutationCache,
@@ -6,6 +7,7 @@ import {
 } from '@tanstack/react-query'
 import { sileo } from 'sileo'
 
+import { i18n } from '@/lib/i18n'
 import { reportRendererError } from '@/lib/report-error'
 
 /**
@@ -46,7 +48,9 @@ export function createAppQueryClient(): QueryClient {
         if (meta?.silent) return
         sileo.error({
           title: meta?.errorTitle ?? GENERIC_ERROR_TITLE,
-          description: error instanceof Error ? error.message : String(error)
+          description:
+            getHttpErrorMessage(error, toErrorI18n(i18n)) ??
+            (error instanceof Error ? error.message : String(error))
         })
       }
     }),
@@ -56,6 +60,12 @@ export function createAppQueryClient(): QueryClient {
         // `updatedAt` that resets the form and re-fires autosave
         // (use-settings.ts), and the API is local, so nothing to catch up on.
         refetchOnWindowFocus: false,
+        // The API is on localhost, so a failure is nearly always persistent
+        // (server down, locked, erroring), not transient: the default
+        // 3 retries at 1 s + 2 s + 4 s would keep `isLoading` true ~7 s
+        // before reporting. One quick retry covers a server mid-restart.
+        retry: 1,
+        retryDelay: 500,
         // The API is on localhost, so connectivity is irrelevant.
         networkMode: 'always',
         refetchOnReconnect: false

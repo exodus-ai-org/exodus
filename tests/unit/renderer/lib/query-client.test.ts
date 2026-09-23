@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { HttpError } from '@exodus/shared/utils/http'
 import {
   focusManager,
   onlineManager,
@@ -7,6 +8,22 @@ import {
 import type { QueryClient } from '@tanstack/react-query'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+// A recognisable localized string per key, and a catalog that only knows one
+// `errors:code.*` entry and the 503 status, so the code -> status -> unknown
+// fallback chain of `getHttpErrorMessage` shows in the assertion.
+const i18nExists = vi.fn(
+  (key: string) => key === 'errors:code.KNOWN_CODE' || key === 'errors:http.503'
+)
+const i18nT = vi.fn(
+  (key: string, params?: Record<string, string>) =>
+    `localized(${key}${params ? `:${JSON.stringify(params)}` : ''})`
+)
+vi.mock('@/lib/i18n', () => ({
+  i18n: {
+    exists: (...args: [string]) => i18nExists(...args),
+    t: (...args: [string, Record<string, string>?]) => i18nT(...args)
+  }
+}))
 const report = vi.fn()
 vi.mock('@/lib/report-error', () => ({
   reportRendererError: (...args: unknown[]) => report(...args)
@@ -19,21 +36,45 @@ vi.mock('sileo', () => ({
 const { createAppQueryClient, installWindowFocusListener } =
   await import('@/lib/query-client')
 
+// The one quick retry a read gets against the local API (see the client's
+// `retryDelay`).
+const RETRY_DELAY_MS = 500
+
+const observe = (
+  client: QueryClient,
+  queryFn: () => Promise<unknown>,
+  extra: { retry?: false } = {}
+) => {
+  const observer = new QueryObserver(client, {
+    queryKey: ['failing-read'],
+    queryFn,
+    ...extra
+  })
+  const unsubscribe = observer.subscribe(() => {})
+  return { observer, unsubscribe }
+}
+
 describe('createAppQueryClient', () => {
   afterEach(() => {
+    vi.useRealTimers()
     report.mockClear()
     sileoError.mockClear()
+    i18nExists.mockClear()
+    i18nT.mockClear()
     onlineManager.setOnline(true)
   })
 
   it('a failed query reports but never toasts', async () => {
+    vi.useFakeTimers()
     const client = createAppQueryClient()
-    await client
+    const settled = client
       .fetchQuery({
         queryKey: ['boom-query'],
         queryFn: () => Promise.reject(new Error('read failed'))
       })
       .catch(() => {})
+    await vi.advanceTimersByTimeAsync(RETRY_DELAY_MS)
+    await settled
 
     expect(report).toHaveBeenCalledTimes(1)
     expect(report).toHaveBeenCalledWith('query', expect.any(Error), {
@@ -94,6 +135,177 @@ describe('createAppQueryClient', () => {
     expect(sileoError).toHaveBeenCalledWith({
       title: 'Something went wrong',
       description: 'write failed'
+    })
+  })
+
+  describe('a failing read', () => {
+    // The API is on localhost, so a failure is almost always persistent:
+    // React Query's remote-API default (3 retries, 1 s + 2 s + 4 s) would keep
+    // `isLoading` true for ~7 s. One quick retry, then report.
+    it('is asked once more after a short delay, then reported', async () => {
+      vi.useFakeTimers()
+      const client = createAppQueryClient()
+      const queryFn = vi.fn(() => Promise.reject(new Error('read failed')))
+      const { observer, unsubscribe } = observe(client, queryFn)
+
+      await vi.advanceTimersByTimeAsync(RETRY_DELAY_MS - 1)
+      expect(queryFn).toHaveBeenCalledTimes(1)
+      expect(observer.getCurrentResult().isLoading).toBe(true)
+      expect(report).not.toHaveBeenCalled()
+
+      await vi.advanceTimersByTimeAsync(1)
+      expect(queryFn).toHaveBeenCalledTimes(2)
+      expect(observer.getCurrentResult().isError).toBe(true)
+      expect(observer.getCurrentResult().isLoading).toBe(false)
+      expect(report).toHaveBeenCalledTimes(1)
+      expect(report).toHaveBeenCalledWith('query', expect.any(Error), {
+        queryKey: ['failing-read']
+      })
+
+      await vi.advanceTimersByTimeAsync(60_000)
+      expect(queryFn).toHaveBeenCalledTimes(2)
+      expect(report).toHaveBeenCalledTimes(1)
+      unsubscribe()
+    })
+
+    it('a query that opts out with retry: false is asked exactly once', async () => {
+      vi.useFakeTimers()
+      const client = createAppQueryClient()
+      const queryFn = vi.fn(() => Promise.reject(new Error('read failed')))
+      const { observer, unsubscribe } = observe(client, queryFn, {
+        retry: false
+      })
+
+      await vi.advanceTimersByTimeAsync(0)
+      expect(observer.getCurrentResult().isError).toBe(true)
+      expect(report).toHaveBeenCalledTimes(1)
+
+      await vi.advanceTimersByTimeAsync(60_000)
+      expect(queryFn).toHaveBeenCalledTimes(1)
+      unsubscribe()
+    })
+
+    it('a read that recovers on the retry is never reported', async () => {
+      vi.useFakeTimers()
+      const client = createAppQueryClient()
+      const queryFn = vi
+        .fn<() => Promise<string>>()
+        .mockRejectedValueOnce(new Error('server restarting'))
+        .mockResolvedValue('data')
+      const { observer, unsubscribe } = observe(client, queryFn)
+
+      await vi.advanceTimersByTimeAsync(RETRY_DELAY_MS)
+
+      expect(queryFn).toHaveBeenCalledTimes(2)
+      expect(observer.getCurrentResult().data).toBe('data')
+      expect(report).not.toHaveBeenCalled()
+      unsubscribe()
+    })
+
+    it('a mutation is not retried', async () => {
+      vi.useFakeTimers()
+      const client = createAppQueryClient()
+      const mutationFn = vi.fn(() => Promise.reject(new Error('write failed')))
+      const settled = client
+        .getMutationCache()
+        .build(client, { mutationKey: ['no-retry-mutation'], mutationFn })
+        .execute(undefined)
+        .catch(() => {})
+
+      await vi.advanceTimersByTimeAsync(60_000)
+      await settled
+
+      expect(mutationFn).toHaveBeenCalledTimes(1)
+      expect(report).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe("a failed mutation's toast description", () => {
+    const fail = async (thrown: unknown, meta?: Record<string, unknown>) => {
+      const client = createAppQueryClient()
+      await client
+        .getMutationCache()
+        .build(client, {
+          mutationKey: ['described-mutation'],
+          mutationFn: () => Promise.reject(thrown),
+          meta
+        })
+        .execute(undefined)
+        .catch(() => {})
+    }
+
+    it('is the localized text of a code-driven HttpError, with its params', async () => {
+      await fail(
+        new HttpError(
+          400,
+          'KNOWN_CODE',
+          'raw server text',
+          { label: 'OpenAI' },
+          false
+        ),
+        { errorTitle: 'Could not save' }
+      )
+
+      expect(i18nT).toHaveBeenCalledWith('errors:code.KNOWN_CODE', {
+        label: 'OpenAI'
+      })
+      expect(sileoError).toHaveBeenCalledTimes(1)
+      expect(sileoError).toHaveBeenCalledWith({
+        title: 'Could not save',
+        description: 'localized(errors:code.KNOWN_CODE:{"label":"OpenAI"})'
+      })
+    })
+
+    it('falls back to the status text, then to the generic one, for an unknown code', async () => {
+      await fail(new HttpError(503, 'NOT_IN_CATALOG', 'raw', undefined, false))
+      await fail(new HttpError(418, 'NOT_IN_CATALOG', 'raw', undefined, false))
+
+      expect(sileoError).toHaveBeenNthCalledWith(1, {
+        title: 'Something went wrong',
+        description: 'localized(errors:http.503)'
+      })
+      expect(sileoError).toHaveBeenNthCalledWith(2, {
+        title: 'Something went wrong',
+        description: 'localized(errors:http.unknown)'
+      })
+    })
+
+    it('is the verbatim message of an HttpError that carries a custom one', async () => {
+      await fail(new HttpError(500, 'KNOWN_CODE', 'Provider said: bad key'))
+
+      expect(i18nT).not.toHaveBeenCalled()
+      expect(sileoError).toHaveBeenCalledWith({
+        title: 'Something went wrong',
+        description: 'Provider said: bad key'
+      })
+    })
+
+    it('is the message of a plain Error, untouched by the catalog', async () => {
+      await fail(new Error('write failed'))
+
+      expect(i18nT).not.toHaveBeenCalled()
+      expect(sileoError).toHaveBeenCalledWith({
+        title: 'Something went wrong',
+        description: 'write failed'
+      })
+    })
+
+    it('is String(thrown) for something that is not an Error', async () => {
+      await fail('plain string failure')
+
+      expect(sileoError).toHaveBeenCalledWith({
+        title: 'Something went wrong',
+        description: 'plain string failure'
+      })
+    })
+
+    it('meta.silent still skips the toast for an HttpError, and still reports', async () => {
+      await fail(new HttpError(400, 'KNOWN_CODE', 'raw', undefined, false), {
+        silent: true
+      })
+
+      expect(sileoError).not.toHaveBeenCalled()
+      expect(report).toHaveBeenCalledTimes(1)
     })
   })
 
