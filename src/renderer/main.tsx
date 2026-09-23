@@ -1,5 +1,7 @@
 import '@/assets/stylesheets/globals.css'
 import { fetcher } from '@exodus/shared/utils/http'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { Provider } from 'jotai'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider } from 'react-router'
@@ -12,6 +14,7 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { ToneBridge } from '@/components/tone-bridge'
 import { useLock } from '@/hooks/use-lock'
 import { i18nReady } from '@/lib/i18n'
+import { queryClient } from '@/lib/query-client'
 import { bootTone } from '@/lib/tone'
 import { router } from '@/routes'
 
@@ -29,15 +32,20 @@ function AppRoot() {
 
 void i18nReady.finally(() => {
   ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
-    <SWRConfig value={{ fetcher }}>
-      <Provider>
-        <ThemeProvider>
-          <I18nProvider>
-            <ToneBridge />
-            <AppRoot />
-          </I18nProvider>
-        </ThemeProvider>
-      </Provider>
-    </SWRConfig>
+    <QueryClientProvider client={queryClient}>
+      <SWRConfig value={{ fetcher }}>
+        <Provider>
+          <ThemeProvider>
+            <I18nProvider>
+              <ToneBridge />
+              <AppRoot />
+            </I18nProvider>
+          </ThemeProvider>
+        </Provider>
+      </SWRConfig>
+      {import.meta.env.DEV && (
+        <ReactQueryDevtools buttonPosition="bottom-left" />
+      )}
+    </QueryClientProvider>
   )
 })
