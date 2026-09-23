@@ -1,10 +1,8 @@
-import { ChatMessage } from '@exodus/shared/types/chat'
 import { useAtom } from 'jotai'
 import { SearchIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router'
-import useSWR from 'swr'
 
 import {
   Dialog,
@@ -13,7 +11,7 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog'
-import { useDebouncedValue } from '@/hooks/use-debounce'
+import { useChatSearch } from '@/hooks/use-chat-search'
 import { isFullTextSearchVisibleAtom } from '@/stores/chat'
 
 export function SearchDialog() {
@@ -22,17 +20,11 @@ export function SearchDialog() {
     isFullTextSearchVisibleAtom
   )
   const [query, setQuery] = useState('')
-  const debouncedValue = useDebouncedValue(query)
+  const { data } = useChatSearch(query)
 
   const handleInputChange = (value: string) => {
     setQuery(value)
   }
-
-  const { data } = useSWR<
-    Array<ChatMessage & { title: string; chatId: string }>
-  >(query ? `/api/v1/chat/search?query=${debouncedValue}` : null, {
-    fallbackData: []
-  })
 
   return (
     <Dialog
@@ -60,7 +52,7 @@ export function SearchDialog() {
         </DialogHeader>
 
         <ol className="flex flex-col gap-2 p-2 pt-0">
-          {!data || data.length === 0 ? (
+          {data.length === 0 ? (
             <div className="text-ring flex h-40 items-center justify-center">
               {t('sidebar.search.noContents')}
             </div>
