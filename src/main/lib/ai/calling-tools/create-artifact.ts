@@ -55,76 +55,135 @@ MEDIA:
 
 STYLING:
 - Tailwind utility classes. For dimensions, prefer inline style={{}} over arbitrary values like h-[380px] — arbitrary values are NOT available in the sandbox CSS.
-- For colors, follow the THEME ADAPTATION rules above — every surface/text/border goes through theme tokens.
+- For colors, follow the THEME ADAPTATION rules above — every surface/text/border goes through theme tokens. \`primary\` is the user's chosen colour tone (it may be emerald, blue, violet, rose, orange, yellow or plain neutral) — the one accent an artifact needs, and it already matches the app around it.
+- The app's easing tokens are in scope: \`var(--ease-out)\` = cubic-bezier(0.23, 1, 0.32, 1) for anything entering or leaving, \`var(--ease-in-out)\` = cubic-bezier(0.77, 0, 0.175, 1) for something moving on screen. In framer-motion write them as \`ease: [0.23, 1, 0.32, 1]\` / \`[0.77, 0, 0.175, 1]\`.
 - Recharts: pass width and height as numbers directly on the chart component. Do NOT rely on ResponsiveContainer with percentage heights. Wire \`stroke\` / \`fill\` to \`var(--chart-1..5)\`, axes to \`var(--muted-foreground)\`, gridlines to \`var(--border)\`.
 - Export default a React component via module.exports.
 
-DESIGN PRINCIPLES (apply every time):
-1. Commit to ONE aesthetic direction per artifact — editorial, brutalist, refined, playful, terminal/bloomberg, hand-drawn, etc. Never default to "clean generic dashboard". Pick a direction before writing markup.
-2. Typography hierarchy via contrast: at least 1.25× size ratio between levels, varied weights (400/500/700). Use no more than three sizes. Labels can be small uppercase with letter-spacing; body text should not.
-3. Color: pick a single accent hue and apply it via \`text-primary\` / \`bg-primary/10\` / \`var(--primary)\` — never via raw hex. Use the theme tokens (background / card / muted / foreground / muted-foreground / border) as your neutral base; do NOT shift the neutrals with custom hex tints, the theme already provides tinted neutrals that flip per mode. Follow 60-30-10 weight (neutral / secondary / accent). The accent should be rare — that is what gives it force.
-4. Space: rhythm through varied spacing, not uniform padding. Tight groupings next to generous separations. Break the grid intentionally for emphasis.
-5. Motion: use framer-motion for entrance reveals and state transitions only. Ease-out feel (or transition={{ type: 'spring', stiffness: 180, damping: 22 }}). No bouncy/elastic easing. Never animate decorative elements that don't serve comprehension.
-6. Data first: when showing data, make it legible before decorating. Axis labels, scales, and units should be unambiguous.
-7. Left-align text; avoid centering everything. Asymmetry reads as designed; centered columns read as templated.
+CRAFT (this is what makes an artifact feel designed rather than generated — apply all of it, every time):
+
+Typography
+- Inherit the app's font; never set font-family except \`ui-monospace, Menlo, monospace\` for code, paths and identifiers — never as shorthand for "technical".
+- At most three sizes, at least 1.25× apart, weights 400 / 500 / 600. One heading. Labels 11–12px in \`text-muted-foreground\`; uppercase with letter-spacing only for a section label, never for body or values.
+- Numbers get \`tabular-nums\`; a large numeral gets \`tracking-tight\` and a light or medium weight, its unit smaller and muted beside it.
+- Left-align. Sentence case. Real words, no lorem ipsum, no exclamation marks, no emoji anywhere (lucide icons, size 16, strokeWidth 1.5–1.75, are the only pictures).
+
+Surface and space
+- One \`Card\` is a surface; rows inside it are separated by hairlines (\`divide-y\`, \`border-border\`), not by boxes inside boxes. Two levels of surface at most.
+- \`rounded-lg\` on cards and panels, \`rounded-md\` inside them; 1px borders; \`shadow-xs\` at most — depth comes from the hairline and the muted surface, not from shadows.
+- An 8px rhythm (8 / 12 / 16 / 24 / 32) with contrast: tight within a group, generous between groups. Padding 20–24 on a card, 12–16 on a row.
+- Fill the card's width; do not centre a narrow column. Asymmetry reads as designed, centring reads as a template.
+
+Colour
+- The neutrals are the tokens. One accent, \`primary\` (\`text-primary\`, \`bg-primary\`, \`bg-primary/10\`, \`stroke="var(--primary)"\`), used rarely — a selected row, the one line that matters, a filled control. Status hues (emerald / amber / rose) only for status, and always paired with their \`dark:\` variants.
+- Never pure black or white: every surface and every text colour is a token.
+
+Motion — decide in this order, and default to none
+1. How often will the user see it? A thing toggled many times a session (a tab, a filter, a hover) gets 150ms on colour and opacity or nothing; an entrance happens once; a chart's line may draw in once because the shape is the explanation. Nothing loops: no \`repeat: Infinity\`, no floating, pulsing, shimmering or orbiting decoration.
+2. What is it for? Feedback (a press), state (open/closed, selected), space (where a thing came from), or explanation. If the answer is "it looks nice", do not animate it.
+3. Easing: \`[0.23, 1, 0.32, 1]\` for anything entering or leaving, \`[0.77, 0, 0.175, 1]\` for movement on screen, \`linear\` only for constant motion. Never ease-in, never bounce or elastic; a spring is \`{ type: 'spring', duration: 0.3, bounce: 0.1 }\` at most and only for something the hand drags.
+4. Duration: press 100–160ms, hover 150ms, an entrance or reveal 200–300ms, a page-sized opening 250ms. Nothing in an artifact takes longer than 300ms.
+5. Only \`opacity\` and \`transform\`. An entrance is \`initial={{ opacity: 0, y: 6 }}\` — six pixels, never a slide from far away, never \`scale: 0\` (start at 0.97 if you scale). Do not animate width, height, padding or colour of a surface; the one exception is a section growing in place, done with \`grid-template-rows\` 0fr → 1fr over 250ms so the content below moves with it instead of jumping.
+6. Stagger at most 40ms per item and at most six items; after that, everything arrives together.
+7. Every pressable thing answers the press: \`whileTap={{ scale: 0.97 }}\` (or \`active:scale-[0.97]\`) with a 150ms ease-out transition, a visible hover, and a \`focus-visible\` ring. Never \`transition-all\`; name the properties.
+8. Respect \`useReducedMotion()\` from framer-motion: when it is true, drop the movement and keep only the opacity change.
+
+Interaction
+- Tabs and segmented controls swap in 150ms with the selected item on \`bg-card\` + \`shadow-xs\` (or \`bg-muted\`), the rest in \`text-muted-foreground\`; the panel content itself does not animate on a switch.
+- A disclosure opens in place (see Motion 5) with a chevron that rotates 180° in 200ms; the toggle stays where it was.
+- Anything that can be hovered for a value (a chart point, a row) shows it immediately — a readout follows the pointer, it is never animated.
+
+Data
+- Legible before decorated: a title that says what the numbers are, units on the axis or in the label, the source or period if there is one.
+- Lines 1.5–2px, \`type="monotone"\`, \`dot={false}\`; at most a faint wash under one line (a gradient from the line's colour at 14–18% opacity to 0); gridlines dashed \`var(--border)\`, horizontal only; ticks 11px \`var(--muted-foreground)\`, \`tickLine={false}\`, \`axisLine={false}\`.
+- One series in \`var(--primary)\`; several in \`var(--chart-1..5)\`. Never a rainbow, never 3D, never a pie for more than four slices.
+- Tables: hairline rows, numbers right-aligned in \`tabular-nums\`, the header in the label style.
 
 STRICT BANS (these are AI tells — NEVER produce them):
-- Hard-coded hex / rgb / oklch on \`background\`, \`color\`, or \`border-color\` for any surface, text, or divider. (Recharts \`stroke\`/\`fill\` and decorative SVG inside an icon are the ONLY exceptions, and even there prefer \`var(--chart-*)\`.)
+- Hard-coded hex / rgb / oklch on \`background\`, \`color\`, or \`border-color\` for any surface, text, or divider. (Recharts \`stroke\`/\`fill\` and decorative SVG inside an icon are the ONLY exceptions, and even there prefer \`var(--chart-*)\` / \`var(--primary)\`.)
 - Static Tailwind palette classes for surfaces or text (\`bg-stone-*\`, \`text-stone-*\`, \`border-stone-*\`, \`bg-gray-*\`, \`text-gray-*\`, \`bg-zinc-*\`, \`text-zinc-*\`, \`bg-neutral-*\`, \`text-neutral-*\`, \`bg-slate-*\`, \`text-slate-*\`). Status badges (emerald/amber/rose/red) are OK only when paired with their \`dark:\` counterparts.
 - Inline \`style={{ background: ... }}\` on \`<Card>\` or any surface container — Card already themes itself, override only by changing className to a different theme token.
-- Gradient text (background-clip: text with gradient fill).
-- Side-stripe borders greater than 1px on cards/list items/callouts (border-left: 3px solid … and variants).
-- Glassmorphism/blur decoration.
-- Identical card grids of icon + heading + text repeated endlessly.
-- Hero-metric template (giant number, tiny label, gradient accent).
-- Cyan-on-dark or purple-to-blue gradients.
-- Monospace as shorthand for "technical".
+- Gradients on surfaces or text (hero gradients, gradient borders, background-clip: text), glassmorphism / backdrop blur, drop shadows, glows.
+- Emoji as icons or decoration; particles, confetti, floating or bouncing elements, \`repeat: Infinity\`, shimmer/skeleton loaders in a finished artifact.
+- \`ease-in\`, bounce / elastic easing, anything over 300ms, \`transition-all\`, animating width / height / padding (except the grid-rows disclosure), entrances from \`scale: 0\` or from off-screen.
+- Side-stripe borders greater than 1px on cards/list items/callouts (border-left: 3px solid … and variants); \`rounded-3xl\` / pill-shaped cards; borders thicker than 1px.
+- Identical card grids of icon + heading + text repeated endlessly; the hero-metric template (giant number, tiny label, gradient accent); centred single columns; uppercase body text.
+- Cyan-on-dark or purple-to-blue gradients; monospace as shorthand for "technical".
 
-EXAMPLE (good — demonstrates theme-token surfaces, hierarchy, restraint, motion used meaningfully):
+EXAMPLE (good — theme-token surfaces, one accent on the tone, hairlines, tabular numbers, one 250ms entrance, a line that draws in once, a segmented control that answers the press, reduced motion respected):
 const React = require('react')
-const { motion } = require('framer-motion')
+const { useState } = React
+const { motion, useReducedMotion } = require('framer-motion')
 const { Card, CardContent } = require('@/ui/card')
 const { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } = require('recharts')
 
-const data = [
-  { d: 'Jan', a: 100, b: 100 },
-  { d: 'Feb', a: 108, b: 103 },
-  { d: 'Mar', a: 112, b: 107 },
-  { d: 'Apr', a: 119, b: 109 },
-  { d: 'May', a: 124, b: 118 },
-  { d: 'Jun', a: 132, b: 124 }
-]
+const SERIES = {
+  ytd: [
+    { d: 'Jan', a: 100, b: 100 }, { d: 'Feb', a: 108, b: 103 }, { d: 'Mar', a: 112, b: 107 },
+    { d: 'Apr', a: 119, b: 109 }, { d: 'May', a: 124, b: 118 }, { d: 'Jun', a: 132, b: 124 }
+  ],
+  q2: [
+    { d: 'Apr', a: 100, b: 100 }, { d: 'May', a: 104, b: 108 }, { d: 'Jun', a: 111, b: 113 }
+  ]
+}
+const RANGES = [{ id: 'ytd', label: 'Year to date' }, { id: 'q2', label: 'Q2' }]
+const EASE = [0.23, 1, 0.32, 1]
 
-function YtdChart() {
+function Performance() {
+  const [range, setRange] = useState('ytd')
+  const reduced = useReducedMotion()
+  const data = SERIES[range]
+  const last = data[data.length - 1]
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8 }}
+      initial={{ opacity: 0, y: reduced ? 0 : 6 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, ease: [0.2, 0.8, 0.2, 1] }}
+      transition={{ duration: 0.25, ease: EASE }}
       className="bg-background text-foreground"
       style={{ padding: 24 }}
     >
-      <Card className="bg-card border-border">
-        <CardContent style={{ padding: '28px 24px 20px' }}>
-          <div className="text-muted-foreground" style={{ fontSize: 11, letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: 4 }}>
-            YTD Performance
+      <Card className="bg-card border-border rounded-lg shadow-xs">
+        <CardContent className="divide-y divide-border" style={{ padding: 0 }}>
+          <div style={{ padding: '20px 24px 16px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16 }}>
+            <div>
+              <div className="text-muted-foreground" style={{ fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
+                Indexed performance · base 100
+              </div>
+              <div className="text-foreground" style={{ fontSize: 20, fontWeight: 600, letterSpacing: '-0.01em', marginTop: 4 }}>
+                Corning vs Furukawa
+              </div>
+            </div>
+            <div className="text-foreground tabular-nums" style={{ display: 'flex', gap: 20, fontSize: 13 }}>
+              <span>GLW <span className="text-primary" style={{ fontWeight: 500 }}>{last.a}</span></span>
+              <span>5801.T <span className="text-muted-foreground" style={{ fontWeight: 500 }}>{last.b}</span></span>
+            </div>
           </div>
-          <div className="text-foreground" style={{ fontSize: 22, fontWeight: 600, letterSpacing: '-0.01em' }}>
-            Corning &amp; Furukawa
-          </div>
-          <div className="text-foreground" style={{ display: 'flex', gap: 24, marginTop: 12, fontFamily: 'ui-monospace, Menlo, monospace', fontSize: 13 }}>
-            <span>GLW <span style={{ color: 'var(--chart-1)' }}>+24.1%</span></span>
-            <span>5801.T <span style={{ color: 'var(--chart-2)' }}>+18.3%</span></span>
-          </div>
-          <div style={{ marginTop: 18 }}>
-            <LineChart width={600} height={240} data={data}>
+
+          <div style={{ padding: '16px 16px 8px' }}>
+            <LineChart width={600} height={220} data={data} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
               <CartesianGrid strokeDasharray="2 4" stroke="var(--border)" vertical={false} />
-              <XAxis dataKey="d" stroke="var(--muted-foreground)" tickLine={false} />
-              <YAxis stroke="var(--muted-foreground)" tickLine={false} domain={[95, 140]} />
-              <Tooltip />
-              <Line type="monotone" dataKey="a" stroke="var(--chart-1)" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="b" stroke="var(--chart-2)" strokeWidth={2} dot={false} />
+              <XAxis dataKey="d" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
+              <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} domain={['dataMin - 4', 'dataMax + 4']} />
+              <Tooltip cursor={{ stroke: 'var(--border)' }} contentStyle={{ background: 'var(--popover)', border: '1px solid var(--border)', borderRadius: 8, fontSize: 12 }} />
+              <Line key={range + '-a'} type="monotone" dataKey="a" stroke="var(--primary)" strokeWidth={2} dot={false} isAnimationActive={!reduced} animationDuration={300} animationEasing="ease-out" />
+              <Line key={range + '-b'} type="monotone" dataKey="b" stroke="var(--muted-foreground)" strokeWidth={1.5} dot={false} isAnimationActive={!reduced} animationDuration={300} animationEasing="ease-out" />
             </LineChart>
+          </div>
+
+          <div className="bg-muted/40" style={{ display: 'flex', gap: 4, padding: 4 }}>
+            {RANGES.map((r) => (
+              <motion.button
+                key={r.id}
+                type="button"
+                whileTap={{ scale: 0.97 }}
+                transition={{ duration: 0.15, ease: EASE }}
+                onClick={() => setRange(r.id)}
+                className={range === r.id ? 'bg-card text-foreground shadow-xs rounded-md' : 'text-muted-foreground rounded-md'}
+                style={{ flex: 1, padding: '6px 10px', fontSize: 13, transition: 'color 150ms var(--ease-out), background-color 150ms var(--ease-out)' }}
+              >
+                {r.label}
+              </motion.button>
+            ))}
           </div>
         </CardContent>
       </Card>
@@ -132,7 +191,7 @@ function YtdChart() {
   )
 }
 
-module.exports = { default: YtdChart }`
+module.exports = { default: Performance }`
   })
 })
 
@@ -142,7 +201,7 @@ export const createArtifact = (
   name: TOOL_NAMES.createArtifact,
   label: 'Create Artifact',
   description:
-    'Create a rich visual artifact (chart, table, dashboard, comparison, etc.) rendered as a live React component. Use this when data would be better presented visually rather than as plain text — for example after collecting research data, comparing options, or analyzing statistics. The component will be rendered in an interactive sandbox with Tailwind CSS styling.',
+    "Create a visual artifact — a chart, a table, a comparison, a small interactive piece — rendered as a live React component inside the chat, in the app's own design system (its theme tokens, the user's colour tone, its easing). Use it when something is better seen than read: after collecting data, comparing options, analysing numbers, or when the user asks for a page or a demo. The code parameter's description is the design contract; follow it.",
   parameters: createArtifactSchema,
   execute: async (_toolCallId, { title, code }, signal) => {
     if (signal?.aborted) throw new Error('Aborted')
