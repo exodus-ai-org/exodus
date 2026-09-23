@@ -7,23 +7,20 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router'
 import { sileo } from 'sileo'
-import useSWR from 'swr'
 import { v4 as uuidV4 } from 'uuid'
 
 import { useChat } from '@/hooks/use-chat'
 import { useInvalidateChatHistory } from '@/hooks/use-chat-history'
+import { useProject } from '@/hooks/use-projects'
 import { advancedToolsAtom, reasoningEffortAtom } from '@/stores/chat'
 import { chatInputAtom, chatStatusAtom, chatStopFnAtom } from '@/stores/input'
-import type { Project } from '@/types/db'
 
 import { LcmStatusCard } from './chat/lcm-status-card'
 import Messages from './messages'
 import MultimodalInput from './multimodel-input'
 
 function ProjectBreadcrumb({ projectId }: { projectId: string }) {
-  const { data: project } = useSWR<Project & { chatCount: number }>(
-    `/api/v1/project/${projectId}`
-  )
+  const { data: project } = useProject(projectId)
 
   if (!project) return null
 
