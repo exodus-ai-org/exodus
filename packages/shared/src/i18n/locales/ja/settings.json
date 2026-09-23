@@ -186,6 +186,8 @@
       "available": "更新があります",
       "availableVersion": "バージョン {{version}}",
       "download": "ダウンロード",
+      "downloadPage": "ダウンロードページを開く",
+      "manualHint": "このビルドは自動更新できません。新しいバージョンをダウンロードして、アプリを置き換えてください。",
       "downloading": "更新をダウンロード中…",
       "ready": "更新の準備ができました",
       "readyDescription": "再起動して更新を適用してください",

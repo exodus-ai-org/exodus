@@ -1,11 +1,16 @@
+import { useHotkeys } from '@tanstack/react-hotkeys'
 import { BotIcon, CornerDownLeftIcon } from 'lucide-react'
 import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 import { Input } from '@/components/ui/input'
+import { Kbd } from '@/components/ui/kbd'
 import { closeQuickChat, transferQuickChat } from '@/lib/ipc'
+import { ENTER_UP } from '@/lib/motion'
 import { cn } from '@/lib/utils'
 
 export function QuickChat() {
+  const { t } = useTranslation('chat')
   const inputRef = useRef<HTMLInputElement | null>(null)
   const [value, setValue] = useState('')
   const submittingRef = useRef(false)
@@ -13,7 +18,7 @@ export function QuickChat() {
   const handleClose = useCallback(() => {
     if (submittingRef.current) return
     setValue('')
-    closeQuickChat()
+    void closeQuickChat()
   }, [])
 
   const handleSubmit = useCallback(async () => {
@@ -27,11 +32,9 @@ export function QuickChat() {
   }, [value])
 
   // Effect Events: always read the latest handler without being reactive deps,
-  // so the addEventListener effects don't re-subscribe on every value change.
+  // so the blur effect doesn't re-subscribe on every value change.
   const onClose = useEffectEvent(() => handleClose())
-  const onSubmit = useEffectEvent(() => handleSubmit())
 
-  // Auto-focus on mount
   useEffect(() => {
     inputRef.current?.focus()
   }, [])
@@ -43,39 +46,52 @@ export function QuickChat() {
     return () => window.removeEventListener('blur', onBlur)
   }, [])
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose()
-      } else if (e.key === 'Enter' && !e.isComposing) {
-        e.preventDefault()
-        onSubmit()
+  // Enter inside the input is the point, so inputs are not skipped; a key that
+  // is committing an IME composition is not a submit.
+  useHotkeys(
+    [
+      { hotkey: 'Escape', callback: () => handleClose() },
+      {
+        hotkey: 'Enter',
+        callback: (event) => {
+          if (!event.isComposing) void handleSubmit()
+        }
       }
-    }
+    ],
+    { ignoreInputs: false }
+  )
 
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [])
+  const hasText = value.trim().length > 0
 
+  // The window is a transparent stage a little larger than the pill (see
+  // window.ts) so the pill's shadow has room to fall.
   return (
-    <div className="bg-background flex w-[600px] items-center gap-2 rounded-2xl border p-2 shadow-lg">
-      <BotIcon className="text-muted-foreground ml-1 shrink-0" size={18} />
-      <Input
-        ref={inputRef}
-        className="w-full border-none px-1 py-0 shadow-none focus-visible:ring-0"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        placeholder="How can I help you today?"
-      />
-      <kbd
+    <div className="flex h-screen items-center justify-center px-6">
+      <div
         className={cn(
-          'text-muted-foreground pointer-events-none flex shrink-0 select-none items-center gap-0.5 rounded-md border px-1.5 py-0.5 text-[10px] font-medium transition-opacity',
-          value.trim().length > 0 ? 'opacity-100' : 'opacity-0'
+          'bg-popover text-popover-foreground border-border/60 flex w-full items-center gap-2 rounded-3xl border p-2 pl-4 shadow-lg',
+          ENTER_UP
         )}
       >
-        <CornerDownLeftIcon size={10} />
-      </kbd>
+        <BotIcon className="text-muted-foreground shrink-0" size={18} />
+        <Input
+          ref={inputRef}
+          className="h-10 w-full border-none bg-transparent px-1 py-0 text-base shadow-none focus-visible:ring-0 dark:bg-transparent"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder={t('quickChat.placeholder')}
+          aria-label={t('quickChat.placeholder')}
+          autoComplete="off"
+        />
+        <Kbd
+          className={cn(
+            'mr-1 transition-opacity duration-150 ease-out',
+            hasText ? 'opacity-100' : 'opacity-0'
+          )}
+        >
+          <CornerDownLeftIcon />
+        </Kbd>
+      </div>
     </div>
   )
 }

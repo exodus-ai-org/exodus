@@ -5,6 +5,10 @@ on:
   pull_request:
     branches: [main, master]
 
+# Least-privilege default: neither job needs more than read access to the repo.
+permissions:
+  contents: read
+
 jobs:
   api-tests:
     name: API Integration Tests

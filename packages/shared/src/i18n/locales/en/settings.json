@@ -186,6 +186,8 @@
       "available": "Update available",
       "availableVersion": "Version {{version}}",
       "download": "Download",
+      "downloadPage": "Open download page",
+      "manualHint": "This build can't update itself. Download the new version and replace the app.",
       "downloading": "Downloading update…",
       "ready": "Update ready to install",
       "readyDescription": "Restart to apply the update",

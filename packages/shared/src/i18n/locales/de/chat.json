@@ -267,5 +267,15 @@
   "run": {
     "error": "Diese Antwort wurde mit einem Fehler abgebrochen: {{message}}"
   },
-  "renderFailed": "{{what}} konnte nicht angezeigt werden."
+  "renderFailed": "{{what}} konnte nicht angezeigt werden.",
+  "findInPage": {
+    "placeholder": "Auf der Seite suchen…",
+    "noResults": "Keine Ergebnisse",
+    "previous": "Vorheriger Treffer (Shift+Enter)",
+    "next": "Nächster Treffer (Enter)",
+    "close": "Schließen (Esc)"
+  },
+  "quickChat": {
+    "placeholder": "Wie kann ich dir heute helfen?"
+  }
 }

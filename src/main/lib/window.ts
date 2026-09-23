@@ -46,6 +46,20 @@ export function createWindow(): void {
     mainWindow?.show()
   })
 
+  // Registered once for the window's life (the find bar is opened and closed
+  // many times; hooking these per open leaked a listener each time).
+  mainWindow.on('resize', placeSearchView)
+  mainWindow.webContents.on('found-in-page', (_event, result) => {
+    if (searchBarOpen) {
+      searchView?.webContents.send('find-in-page-result', result)
+    }
+  })
+  // The bar searches the page it is docked to, and a route change swaps that
+  // page's content out from under it (hash routes are in-page navigations), so
+  // its query and highlights no longer mean anything.
+  mainWindow.webContents.on('did-navigate-in-page', () => closeSearchBar())
+  mainWindow.webContents.on('did-navigate', () => closeSearchBar())
+
   app.on('before-quit', () => {
     isQuitting = true
   })
@@ -143,39 +157,78 @@ function loadSubApp(
 let searchView: WebContentsView | null = null
 let quickChatView: BrowserWindow | null = null
 
-const SEARCH_BAR_WIDTH = 418
-const SEARCH_BAR_HEIGHT = 86
+// The find bar is a view of its own, not React inside the main page:
+// `webContents.findInPage` searches the page it is called on, so a bar
+// rendered there would match its own input and its own match counter.
+// The view is a strip just under the 48px header, sized to the bar plus room
+// for its shadow; it is created on first use and then only shown/hidden, so
+// Cmd+F is instant and no renderer process is left behind per open.
+const SEARCH_BAR_WIDTH = 416
+const SEARCH_BAR_HEIGHT = 74
+const SEARCH_BAR_TOP = 44
+const SEARCH_BAR_RIGHT_GAP = 4
 
-export function registerSearchMenu(parent: BrowserWindow): void {
-  if (searchView) return
+let searchBarOpen = false
 
-  searchView = new WebContentsView({
-    webPreferences: SUB_APP_WEB_PREFERENCES
-  })
-
-  const place = () => {
-    searchView?.setBounds({
-      x: parent.getBounds().width - SEARCH_BAR_WIDTH,
-      y: 0,
-      width: SEARCH_BAR_WIDTH,
-      height: SEARCH_BAR_HEIGHT
-    })
-  }
-  place()
-  parent.contentView.addChildView(searchView)
-
-  loadSubApp(searchView.webContents, 'searchbar')
-
-  parent.on('resize', place)
-
-  parent.webContents.on('found-in-page', (_event, result) => {
-    searchView?.webContents.send('find-in-page-result', result)
-  })
-
-  searchView.webContents.once('did-finish-load', () => {
-    searchView?.webContents.focus()
+function placeSearchView(): void {
+  if (!searchView || !mainWindow) return
+  const [width] = mainWindow.getContentSize()
+  searchView.setBounds({
+    x: width - SEARCH_BAR_WIDTH - SEARCH_BAR_RIGHT_GAP,
+    y: SEARCH_BAR_TOP,
+    width: SEARCH_BAR_WIDTH,
+    height: SEARCH_BAR_HEIGHT
   })
 }
+
+export function openSearchBar(): void {
+  const parent = mainWindow
+  if (!parent) return
+
+  if (!searchView) {
+    searchView = new WebContentsView({
+      webPreferences: SUB_APP_WEB_PREFERENCES
+    })
+    // Without this the view paints an opaque backdrop (a dark rectangle behind
+    // the bar in dark mode) — the bar's own rounded surface is the only thing
+    // that should show.
+    searchView.setBackgroundColor('#00000000')
+    parent.contentView.addChildView(searchView)
+    loadSubApp(searchView.webContents, 'searchbar')
+    // The page focuses its input once it has mounted; this covers the view
+    // taking key focus at all.
+    searchView.webContents.once('did-finish-load', () => {
+      if (searchBarOpen) searchView?.webContents.focus()
+    })
+  }
+
+  const wasOpen = searchBarOpen
+  searchBarOpen = true
+  placeSearchView()
+  searchView.setVisible(true)
+  searchView.webContents.focus()
+  // A freshly created page is still loading and focuses itself on mount.
+  if (!searchView.webContents.isLoading()) {
+    searchView.webContents.send('focus-search-bar', !wasOpen)
+  }
+}
+
+export function closeSearchBar(): void {
+  if (!searchView || !searchBarOpen) return
+  searchBarOpen = false
+  searchView.setVisible(false)
+  mainWindow?.webContents.stopFindInPage('clearSelection')
+  // Hiding the focused view leaves the window with no key view: hand focus
+  // back to the page so shortcuts keep working without a click.
+  mainWindow?.webContents.focus()
+}
+
+// Quick chat: room around the pill for its shadow (a window cut tight to the
+// pill clips it into hard rectangular edges). The window is transparent, so
+// the extra room is invisible.
+const QUICK_CHAT_MARGIN = 24
+const QUICK_CHAT_WIDTH = 600 + 2 * QUICK_CHAT_MARGIN
+const QUICK_CHAT_HEIGHT = 58 + 2 * QUICK_CHAT_MARGIN
 
 export function registerQuickChat(): void {
   if (quickChatView) return
@@ -183,29 +236,29 @@ export function registerQuickChat(): void {
   quickChatView = new BrowserWindow({
     frame: false,
     transparent: true,
+    backgroundColor: '#00000000',
     resizable: false,
     movable: false,
-    hasShadow: true,
+    // The pill draws its own shadow inside the transparent margin; the native
+    // one would trace the whole window.
+    hasShadow: false,
     webPreferences: SUB_APP_WEB_PREFERENCES
   })
 
-  const { width, height } = screen.getPrimaryDisplay().workArea
+  // Open where the user is working: the display under the cursor (the tray
+  // icon that summoned this was just clicked), not always the primary one.
+  const { x, y, width, height } = screen.getDisplayNearestPoint(
+    screen.getCursorScreenPoint()
+  ).workArea
   quickChatView.setBounds({
-    x: (width - 600) / 2,
-    y: height * 0.32,
-    width: 600,
-    height: 54
+    x: Math.round(x + (width - QUICK_CHAT_WIDTH) / 2),
+    // The pill (not the window) sits 32% down the screen, as it always did.
+    y: Math.round(y + height * 0.32 - QUICK_CHAT_MARGIN),
+    width: QUICK_CHAT_WIDTH,
+    height: QUICK_CHAT_HEIGHT
   })
 
   loadSubApp(quickChatView.webContents, 'quick-chat')
-}
-
-export function getSearchView(): WebContentsView | null {
-  return searchView
-}
-
-export function setSearchView(view: WebContentsView | null): void {
-  searchView = view
 }
 
 export function getQuickChatView(): BrowserWindow | null {

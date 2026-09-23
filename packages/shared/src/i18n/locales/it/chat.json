@@ -267,5 +267,15 @@
   "run": {
     "error": "Questa risposta si è interrotta con un errore: {{message}}"
   },
-  "renderFailed": "Impossibile mostrare {{what}}."
+  "renderFailed": "Impossibile mostrare {{what}}.",
+  "findInPage": {
+    "placeholder": "Trova nella pagina…",
+    "noResults": "Nessun risultato",
+    "previous": "Risultato precedente (Shift+Enter)",
+    "next": "Risultato successivo (Enter)",
+    "close": "Chiudi (Esc)"
+  },
+  "quickChat": {
+    "placeholder": "Come posso aiutarti oggi?"
+  }
 }

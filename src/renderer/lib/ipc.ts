@@ -46,6 +46,19 @@ export function closeSearchbar() {
   return window.electron.ipcRenderer.invoke('close-search-bar')
 }
 
+/** `fresh` is true when the bar was hidden and is being opened again. */
+export function subscribeFocusSearchBar(
+  callback: (_: IpcRendererEvent, fresh: boolean) => void
+) {
+  window.electron.ipcRenderer.on('focus-search-bar', callback)
+}
+
+export function unsubscribeFocusSearchBar(
+  callback: (_: IpcRendererEvent, fresh: boolean) => void
+) {
+  window.electron.ipcRenderer.removeListener('focus-search-bar', callback)
+}
+
 export function closeQuickChat() {
   return window.electron.ipcRenderer.invoke('close-quick-chat')
 }

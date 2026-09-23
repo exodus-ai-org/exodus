@@ -186,6 +186,8 @@
       "available": "업데이트 사용 가능",
       "availableVersion": "버전 {{version}}",
       "download": "다운로드",
+      "downloadPage": "다운로드 페이지 열기",
+      "manualHint": "이 빌드는 자동으로 업데이트할 수 없습니다. 새 버전을 내려받아 앱을 교체하세요.",
       "downloading": "업데이트 다운로드 중…",
       "ready": "설치 준비 완료",
       "readyDescription": "업데이트를 적용하려면 재시작하세요",

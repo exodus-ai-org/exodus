@@ -112,7 +112,7 @@ Exodus uses a three-process architecture:
    - Runs Hono HTTP server on `localhost:60223` (constant `SERVER_PORT` in `packages/shared/src/constants/systems.ts`)
    - Initializes PGlite database with pgvector extension
    - MCP server connection is archived (commented out in `app.ts`); an `/api/v1/mcp` route + settings remain
-   - Handles auto-updates via `update-electron-app` (`src/main/lib/auto-updater.ts`, which keeps the state machine the renderer's update panel speaks)
+   - Handles updates (`src/main/lib/auto-updater.ts`, which keeps the state machine the renderer's update panel speaks): Squirrel via `update-electron-app` for a signed build, a release-page link for an unsigned one — see "Updates and code signing"
 
 2. **Renderer Process** (`src/renderer/`):
    - React 19 application with React Router v7
@@ -150,7 +150,7 @@ Exodus is the successor of the older `universal-client` app and shares its
 - **Server ports** (`packages/shared/src/constants/systems.ts`): `SERVER_PORT =
 60223` is plaintext HTTP bound to loopback only (`127.0.0.1` and `::1`) — the
   renderer, exodus-cli, `tests/api` and the iOS Simulator; nothing on the LAN
-  can reach it. `LAN_SERVER_PORT = 60224` is what `exodus-ios` on a device
+  can reach it. `LAN_SERVER_PORT = 63129` is what `exodus-ios` on a device
   connects to. Don't change either without updating the clients.
 - **E2E**: `playwright.config.ts` points `$HOME` at a scratch dir
   (`<tmpdir>/exodus-e2e-home`); the electron fixture wipes `~/.exodus` under it
@@ -160,6 +160,51 @@ Exodus is the successor of the older `universal-client` app and shares its
   driven by the suite instead of the app under test — reading and writing the
   real `~/.exodus` through it. To test a
   packaged build by hand, sandbox `$HOME` and pass `--user-data-dir` the same way.
+
+### Updates and code signing
+
+The macOS releases are **ad-hoc signed** (no Apple Developer account yet).
+Squirrel.Mac only accepts an update that satisfies the _running_ app's
+designated requirement, and an ad-hoc app's requirement is its own `cdhash` —
+so no update can ever pass, whatever the network does. The updater therefore
+has two modes (`UpdateMode`, in the payload the panel receives):
+
+- **`auto`** — Squirrel through `update-electron-app` (10-minute re-checks,
+  downloads by itself, `ready` → "Restart & Install"). Windows, and any mac
+  build with a real signature.
+- **`manual`** — a mac build with an ad-hoc or missing signature. Squirrel is
+  never started (its re-check would download the ~180 MB zip and fail every ten
+  minutes); one lookup of the same update.electronjs.org feed at launch and one
+  per manual check say whether a newer version exists, and the panel's button
+  opens the GitHub releases page (`updaterDownload()`).
+
+Which one is decided at runtime by `detectUpdateMode()` reading
+`codesign -dv` on the running bundle (`Signature=adhoc` → `manual`) — no build
+flag, so a build signed with a Developer ID switches to `auto` by itself.
+
+The packaged bundle's signature is made self-consistent by the `postPackage`
+hook in `forge.config.ts` (`codesign --force --deep --sign -`, skipped as soon as
+`packagerConfig.osxSign` is set). Without it the bundle fails
+`codesign --verify` with "invalid Info.plist (plist or signature have been
+modified)": the packager rewrites `Info.plist`, and flipping fuses re-signs only
+the executable — that was the exact error every downloaded update failed with.
+
+**When a Developer ID exists** (none of this is wired or tested yet):
+
+- forge: `osxSign` (identity, hardened runtime, an entitlements file for
+  Electron's JIT/unsigned-memory needs) and `osxNotarize`; the secrets and
+  certificate import in `release.yml`. Every Mach-O in the bundle must be signed,
+  including the unpacked DuckDB `.node`/dylib and `resources/bin/exodus-input`,
+  or notarization fails.
+- The first signed release cannot be reached by auto-update from an ad-hoc one
+  (the old requirement is a `cdhash`): users install it by hand once.
+- On the first signed build, check what is bound to the signing identity:
+  `safeStorage` data (`lock.dat`, the LAN certificate's private key — a lost key
+  means a new fingerprint and every paired device has to re-pair), and the
+  Accessibility / Screen Recording grants Computer Use needs.
+- `quitAndInstall()` together with the "closing the window only hides it"
+  handler in `window.ts` has never run (no update has ever got past validation):
+  test it with two consecutive signed builds.
 
 ### Skills (skills.sh)
 
@@ -572,6 +617,28 @@ Compacts long conversations without losing information, surfacing summaries the 
 ### Sub-apps
 
 Separate renderer entry points under `src/renderer/sub-apps/`: `searchbar`, `quick-chat`, `artifacts`.
+Their windows live in `src/main/lib/window.ts`.
+
+- **`searchbar` (the Cmd+F find bar) must stay a view of its own — do not turn
+  it into a portal in the main page.** `webContents.findInPage` searches the
+  page it runs on, including form-control values, so a bar rendered there finds
+  its own input (and its own "1/3" counter) and Enter cycles onto itself
+  (measured in a standalone Electron probe, 2026-09-23). It is a
+  `WebContentsView` docked under the header, created on first Cmd+F and then
+  only shown/hidden (`openSearchBar()` / `closeSearchBar()`), so re-opening is
+  instant and no renderer process is left behind per open. Three things are
+  load-bearing: `setBackgroundColor('#00000000')` (without it the view paints an
+  opaque backdrop — a dark rectangle behind the bar in dark mode), the
+  `resize` / `found-in-page` listeners registered once in `createWindow()`, and
+  `closeSearchBar()` handing key focus back to the main page. The bar also
+  closes itself on a route change (`did-navigate-in-page`, since routes are
+  hashes): the page it was searching is gone.
+- **`quick-chat`** is a real transparent `BrowserWindow` because the tray summons
+  it whether or not the main window exists. It opens on the display under the
+  cursor, and the window is deliberately larger than the pill (transparent
+  margin) so the pill's own shadow is not clipped.
+- Sub-app roots are not `#root`, so `h-full` collapses there — centre with
+  `h-screen`.
 
 ### Frontend Structure
 
@@ -736,6 +803,18 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
 - SWR hooks for server data fetching with automatic revalidation
 - Always use path alias `@` for renderer imports
 - Tailwind + Radix UI for consistent styling
+- Keyboard shortcuts go through TanStack Hotkeys (`@tanstack/react-hotkeys`,
+  pre-1.0 — pinned exact): `useHotkeys` in `hooks/use-keyboard-shortcuts.ts`
+  for the app shortcuts, `useHotkey` for a component's own Escape/arrows. Three
+  things the library defaults differently from a hand-written `keydown`
+  listener, which every call site here sets on purpose: `stopPropagation`
+  (defaults true — set false so `use-lock.ts`'s window-level idle tracker still
+  sees the key), `preventDefault` (true — false for Escape/arrows), and
+  `ignoreInputs` (false for Ctrl/Meta combos and Escape, true otherwise —
+  `Enter` inside an input needs `ignoreInputs: false`). A key that several
+  mounted components register (Escape) needs `conflictBehavior: 'allow'`, or
+  every duplicate `console.warn`s — disabled registrations included. A key that
+  commits an IME composition arrives with `event.isComposing`: guard it.
 - Toast notifications via `sileo` (mounted once as `<AppToaster />` per
   layout — chat/settings/philharmonic; its fill is the `--foreground` token
   read from the document, so it follows the colour tone); `sonner`'s

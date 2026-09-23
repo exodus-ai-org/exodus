@@ -186,6 +186,8 @@
       "available": "有可用的更新",
       "availableVersion": "版本 {{version}}",
       "download": "下載",
+      "downloadPage": "開啟下載頁面",
+      "manualHint": "此版本無法自動更新。請下載新版本並取代現有的應用程式。",
       "downloading": "正在下載更新…",
       "ready": "更新已就緒，可以安裝",
       "readyDescription": "重新啟動以套用更新",

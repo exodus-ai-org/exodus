@@ -146,7 +146,7 @@ describe('createOriginGate', () => {
   it('does not hold the lan listener to the Host check', async () => {
     const res = await buildApp().request(
       '/api/v1/settings',
-      { headers: { Host: 'mac.tailnet.ts.net:60224' } },
+      { headers: { Host: 'mac.tailnet.ts.net:63129' } },
       { listener: 'lan', incoming: { socket: { remoteAddress: '127.0.0.1' } } }
     )
     expect(res.status).toBe(200)

@@ -20,18 +20,23 @@ export type UpdaterState =
   | 'ready'
   | 'error'
 
+/** `manual`: this build can't update itself — the panel links to the release page. */
+export type UpdateMode = 'auto' | 'manual'
+
 export interface UpdaterPayload {
   state: UpdaterState
   availableVersion: string | null
   downloadProgress: number
   errorMessage: string | null
+  mode: UpdateMode
 }
 
 const defaultPayload: UpdaterPayload = {
   state: 'idle',
   availableVersion: null,
   downloadProgress: 0,
-  errorMessage: null
+  errorMessage: null,
+  mode: 'auto'
 }
 
 export function useUpdater() {

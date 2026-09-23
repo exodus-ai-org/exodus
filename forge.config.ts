@@ -1,3 +1,7 @@
+import { execFileSync } from 'node:child_process'
+import { readdirSync } from 'node:fs'
+import { join } from 'node:path'
+
 import { MakerDeb } from '@electron-forge/maker-deb'
 import { MakerDMG } from '@electron-forge/maker-dmg'
 import { MakerRpm } from '@electron-forge/maker-rpm'
@@ -75,6 +79,36 @@ const config: ForgeConfig = {
     }
   },
   rebuildConfig: {},
+  hooks: {
+    // The packager rewrites the bundle's Info.plist (bundle id, purpose
+    // strings…) and the fuses plugin flips the executable, which only gets an
+    // ad-hoc signature of its own — so the bundle's seal no longer matches:
+    // `codesign --verify` says "invalid Info.plist (plist or signature have
+    // been modified)", and that is exactly the error every downloaded update
+    // failed with. Seal the whole bundle once, after everything has touched it.
+    // Skipped when a real identity is configured (`osxSign`), which signs
+    // properly itself — that is the switch to flip once a Developer ID exists
+    // (see "Updates and code signing" in CLAUDE.md).
+    postPackage: async (forgeConfig, { platform, outputPaths }) => {
+      if (
+        platform !== 'darwin' ||
+        process.platform !== 'darwin' ||
+        forgeConfig.packagerConfig.osxSign
+      ) {
+        return
+      }
+      for (const dir of outputPaths) {
+        for (const entry of readdirSync(dir)) {
+          if (!entry.endsWith('.app')) continue
+          execFileSync(
+            '/usr/bin/codesign',
+            ['--force', '--deep', '--sign', '-', join(dir, entry)],
+            { stdio: 'inherit' }
+          )
+        }
+      }
+    }
+  },
   makers: [
     new MakerSquirrel({ setupIcon: './build/icon.ico' }),
     // ZIP feeds the auto-updater (update.electronjs.org needs

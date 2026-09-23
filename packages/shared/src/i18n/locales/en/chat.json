@@ -267,5 +267,15 @@
   "run": {
     "error": "This reply stopped with an error: {{message}}"
   },
-  "renderFailed": "{{what}} could not be shown."
+  "renderFailed": "{{what}} could not be shown.",
+  "findInPage": {
+    "placeholder": "Find in page...",
+    "noResults": "No results",
+    "previous": "Previous match (Shift+Enter)",
+    "next": "Next match (Enter)",
+    "close": "Close (Esc)"
+  },
+  "quickChat": {
+    "placeholder": "How can I help you today?"
+  }
 }

@@ -1,4 +1,5 @@
 import type { ToolNotice } from '@exodus/shared/types/chat'
+import { useHotkey } from '@tanstack/react-hotkeys'
 import { APIProvider, Map } from '@vis.gl/react-google-maps'
 import {
   CheckIcon,
@@ -8,7 +9,7 @@ import {
   TriangleAlertIcon
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { memo, useCallback, useEffect, useMemo, useState } from 'react'
+import { memo, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useClipboard } from '@/hooks/use-clipboard'
@@ -199,14 +200,12 @@ function MapItineraryCardImpl({
   }, [activeDay])
 
   // Esc dismisses the detail card.
-  useEffect(() => {
-    if (focusedPlaceIdx == null) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setFocusedPlaceIdx(null)
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [focusedPlaceIdx])
+  useHotkey('Escape', () => setFocusedPlaceIdx(null), {
+    enabled: focusedPlaceIdx != null,
+    conflictBehavior: 'allow',
+    preventDefault: false,
+    stopPropagation: false
+  })
 
   const onCopy = useCallback(() => {
     if (!activeDay) return

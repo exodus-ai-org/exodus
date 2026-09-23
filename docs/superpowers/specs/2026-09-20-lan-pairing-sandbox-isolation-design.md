@@ -57,7 +57,7 @@ without duplicating routes.
 
 |           | Loopback                                         | LAN                                                       |
 | --------- | ------------------------------------------------ | --------------------------------------------------------- |
-| Bind      | `127.0.0.1:60223` and `[::1]:60223`              | `0.0.0.0:60224` (`LAN_SERVER_PORT`)                       |
+| Bind      | `127.0.0.1:60223` and `[::1]:60223`              | `0.0.0.0:63129` (`LAN_SERVER_PORT`)                       |
 | Transport | HTTP                                             | HTTPS, self-signed                                        |
 | Clients   | renderer, exodus-cli, `tests/api`, iOS simulator | exodus-ios on a device                                    |
 | Gate      | origin gate                                      | `authGate`: device token, except `POST /api/v1/pair`      |
@@ -85,7 +85,7 @@ listener only.
    _pairing window_: a one-time code (128 random bits, base64url), valid for
    two minutes, single use; starts the LAN listener if it is not running.
 2. The page shows a QR code encoding
-   `exodus://pair?h=<hosts>&p=60224&c=<code>&f=<fingerprint>&n=<name>` —
+   `exodus://pair?h=<hosts>&p=63129&c=<code>&f=<fingerprint>&n=<name>` —
    `hosts` is every non-internal IPv4 address plus the machine's `.local`
    name, comma-separated; `f` is the base64url SHA-256 of the certificate's
    DER; `n` is the computer's name, for display.
@@ -185,7 +185,7 @@ elements get `TEST_IDS.devices.*` and are referenced from the e2e spec.
   timeout.
 - **NetworkingKit**: one `URLSession` with a pinning delegate, shared by
   `APIClient` and `SSEClient`; when paired the base URL is
-  `https://<host>:60224` and requests carry the bearer token. Hosts from the QR
+  `https://<host>:63129` and requests carry the bearer token. Hosts from the QR
   are tried in order and the last one that answered is remembered.
 - Unpaired behaviour is unchanged — plain `http://localhost:60223`, which is
   what the simulator and the UI tests use. A `401` means "revoked": clear the

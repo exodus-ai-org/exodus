@@ -2,6 +2,7 @@ import {
   artifactShortId,
   artifactSlug
 } from '@exodus/shared/utils/artifact-slug'
+import { useHotkey } from '@tanstack/react-hotkeys'
 import { MaximizeIcon, MinimizeIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
@@ -290,18 +291,21 @@ export function ArtifactCard({
     }
   }, [toolResult.code, toolResult.title, expanded])
 
-  useEffect(() => {
-    if (!expanded) return
-    const handleKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        // Reset ready flag on exit so the next mount's handshake re-triggers a render.
-        fullscreenReady.current = false
-        setExpanded(false)
-      }
+  useHotkey(
+    'Escape',
+    () => {
+      // Reset ready flag on exit so the next mount's handshake re-triggers a render.
+      fullscreenReady.current = false
+      setExpanded(false)
+    },
+    // Every card on screen registers Escape; each is only enabled while open.
+    {
+      enabled: expanded,
+      conflictBehavior: 'allow',
+      preventDefault: false,
+      stopPropagation: false
     }
-    window.addEventListener('keydown', handleKey)
-    return () => window.removeEventListener('keydown', handleKey)
-  }, [expanded])
+  )
 
   return (
     <>

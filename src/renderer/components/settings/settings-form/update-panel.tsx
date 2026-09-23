@@ -19,7 +19,8 @@ interface UpdatePanelProps {
 
 export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
   const { t } = useTranslation(['common', 'settings'])
-  const { state, availableVersion, downloadProgress, errorMessage } = payload
+  const { state, availableVersion, downloadProgress, errorMessage, mode } =
+    payload
 
   if (state === 'idle') {
     return (
@@ -62,10 +63,13 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
   }
 
   if (state === 'available') {
+    // A build that can't update itself always needs the button: the page is
+    // the only way to get the new version.
+    const manual = mode === 'manual'
     return (
-      <div className="flex items-center justify-between rounded-lg px-4 py-3">
+      <div className="flex items-center justify-between gap-4 rounded-lg px-4 py-3">
         <div className="flex items-center gap-3">
-          <ZapIcon className="size-4 text-blue-500" />
+          <ZapIcon className="size-4 shrink-0 text-blue-500" />
           <div className="flex flex-col">
             <span className="text-sm font-medium">
               {t('settings:about.update.available')}
@@ -77,12 +81,23 @@ export function UpdatePanel({ payload, autoUpdate }: UpdatePanelProps) {
                 })}
               </span>
             )}
+            {manual && (
+              <span className="text-muted-foreground max-w-sm text-xs">
+                {t('settings:about.update.manualHint')}
+              </span>
+            )}
           </div>
         </div>
-        {!autoUpdate && (
-          <Button size="sm" onClick={() => updaterDownload()}>
+        {(manual || !autoUpdate) && (
+          <Button
+            size="sm"
+            className="shrink-0"
+            onClick={() => updaterDownload()}
+          >
             <DownloadIcon className="mr-1.5 size-3.5" data-icon />
-            {t('settings:about.update.download')}
+            {manual
+              ? t('settings:about.update.downloadPage')
+              : t('settings:about.update.download')}
           </Button>
         )}
       </div>
