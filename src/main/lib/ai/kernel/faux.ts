@@ -40,7 +40,7 @@ export function setFauxHandle(handle: FauxProviderHandle | null): void {
 const weatherSchema = Type.Object({ location: Type.String() })
 
 /**
- * Stands in for the real `weather` tool (wttr.in) while the faux provider is
+ * Stands in for the real `weather` tool (Open-Meteo) while the faux provider is
  * on. Its `details` are a whole `WeatherResult`, since `WeatherCard` renders
  * them: a fixed sunny day, no forecast.
  */

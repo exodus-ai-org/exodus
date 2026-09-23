@@ -68,7 +68,7 @@ export function bindCallingTools({
 
   const tools: ErasedTool[] = []
 
-  // Under the e2e's faux provider the weather tool must not reach wttr.in.
+  // Under the e2e's faux provider the weather tool must not reach Open-Meteo.
   if (enabled(TOOL_NAMES.weather)) {
     tools.push(fauxHandle() ? fauxWeatherTool : weather)
   }

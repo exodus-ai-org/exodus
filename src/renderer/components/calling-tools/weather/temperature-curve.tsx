@@ -1,15 +1,18 @@
-import type { WeatherForecastDay } from '@exodus/shared/types/weather'
+import {
+  weatherClockHours,
+  type WeatherForecastDay
+} from '@exodus/shared/types/weather'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 
-import { conditionOf } from './condition'
-
 /**
- * A day's temperature as a curve through its hourly slots. It draws in once
- * per day (explanation, not decoration — the shape of the day is the
- * point), the pointer scrubs it (no animation: it follows the hand; the
- * card shows the readout), and sunrise / sunset sit as ticks on the
- * baseline. The curve is drawn on the day's own range with a 6° floor, so
- * a still day stays flat instead of becoming full-height noise.
+ * A day's temperature as a curve through its hourly slots (24 from
+ * Open-Meteo; 8 on rows from the wttr.in years). It draws in once per day
+ * (explanation, not decoration — the shape of the day is the point), the
+ * pointer scrubs it (no animation: it follows the hand; the card shows the
+ * readout), and sunrise / sunset sit as ticks on the baseline. The curve is
+ * drawn on the day's own range with a 6° floor, so a still day stays flat
+ * instead of becoming full-height noise. Its colour is the colour tone's
+ * accent (`primary`), the wash under it the same at 18%.
  */
 
 const W = 400
@@ -44,16 +47,17 @@ function curveOf(day: WeatherForecastDay) {
   return { d, pts }
 }
 
-/** "06:52 AM" → x across the day (wttr.in's eight slots run 0:00 → 21:00). */
-function timeToX(clock: string): number {
-  const m = /(\d+):(\d+)\s*(AM|PM)/iu.exec(clock)
-  if (!m) return PAD_X
-  let h = Number(m[1]) % 12
-  if (m[3].toUpperCase() === 'PM') h += 12
-  return PAD_X + ((h + Number(m[2]) / 60) / 21) * (W - PAD_X * 2)
+/**
+ * A clock → x across the day. The slots run from 0:00 to the day's last
+ * slot (23:00 from Open-Meteo, 21:00 on old rows), so that is the width.
+ */
+function timeToX(clock: string, lastHour: number): number {
+  const h = weatherClockHours(clock)
+  if (h === null) return PAD_X
+  return PAD_X + (h / lastHour) * (W - PAD_X * 2)
 }
 
-/** A curve needs two points; wttr.in gives eight, a stub may give none. */
+/** A curve needs two points; a stub (the faux provider) may give none. */
 export function canDrawCurve(day: WeatherForecastDay | undefined) {
   return day !== undefined && day.hourly.length >= 2
 }
@@ -69,6 +73,7 @@ export function TemperatureCurve({
   onHover: (index: number | null) => void
 }) {
   const { d, pts } = useMemo(() => curveOf(day), [day])
+  const lastHour = weatherClockHours(day.hourly.at(-1)!.time) ?? 23
   const gradId = useId()
 
   // Draw-in: dash offset from the measured length to 0, once per curve.
@@ -102,24 +107,24 @@ export function TemperatureCurve({
       <defs>
         {/* `currentColor` on a stop resolves from the gradient's own
             inheritance chain, not from the path that paints with it — so
-            the day's tint lives here */}
+            the colour lives here */}
         <linearGradient
           id={gradId}
           x1="0"
           y1="0"
           x2="0"
           y2="1"
-          className={conditionOf(day.weatherCode).tint}
+          className="text-primary"
         >
-          <stop offset="0" stopColor="currentColor" stopOpacity="0.14" />
+          <stop offset="0" stopColor="currentColor" stopOpacity="0.18" />
           <stop offset="1" stopColor="currentColor" stopOpacity="0" />
         </linearGradient>
       </defs>
       {[day.sunrise, day.sunset].map((clock, i) => (
         <line
           key={i}
-          x1={timeToX(clock)}
-          x2={timeToX(clock)}
+          x1={timeToX(clock, lastHour)}
+          x2={timeToX(clock, lastHour)}
           y1={H - 6}
           y2={H}
           className="stroke-muted-foreground/50"
@@ -136,7 +141,7 @@ export function TemperatureCurve({
         ref={pathRef}
         d={d}
         fill="none"
-        className="stroke-foreground"
+        className="stroke-primary"
         strokeWidth={1.5}
         strokeLinecap="round"
         strokeDasharray={length || undefined}
@@ -161,7 +166,7 @@ export function TemperatureCurve({
             cx={active.x}
             cy={active.y}
             r={3.5}
-            className="fill-card stroke-foreground"
+            className="fill-card stroke-primary"
             strokeWidth={1.5}
           />
         </>

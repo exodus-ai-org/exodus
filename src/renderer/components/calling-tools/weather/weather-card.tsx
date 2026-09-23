@@ -1,5 +1,8 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
-import type { WeatherResult } from '@exodus/shared/types/weather'
+import {
+  weatherClockHours,
+  type WeatherResult
+} from '@exodus/shared/types/weather'
 import { ChevronDown, Sunrise, Sunset } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -32,7 +35,7 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
   const { t } = useTranslation('chat')
   const { dateTime } = useFormat()
   const { current, forecast, location } = toolResult
-  const now = conditionOf(current.weatherCode)
+  const now = conditionOf(current.weatherCode, current.isDay ?? true)
   const [expanded, setExpanded] = useState(false)
   const [dayIndex, setDayIndex] = useState(0)
   const [hover, setHover] = useState<number | null>(null)
@@ -44,11 +47,19 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
     if (i === 1) return t('weatherCard.tomorrow')
     return dateTime(new Date(date), { weekday: 'short' })
   }
-  // wttr.in's hourly slots are "0" | "300" | … | "2100".
-  const hour = (time: string) =>
-    dateTime(new Date(2026, 0, 1, Math.floor(Number(time) / 100)), {
-      hour: 'numeric'
-    })
+  // Times are the place's own, shown as clocks in the user's locale — the
+  // parser reads Open-Meteo's ISO and the wttr.in strings on old rows.
+  const clock = (time: string, o: Intl.DateTimeFormatOptions) => {
+    const h = weatherClockHours(time)
+    if (h === null) return time
+    return dateTime(
+      new Date(2026, 0, 1, Math.floor(h), Math.round((h % 1) * 60)),
+      o
+    )
+  }
+  const hour = (time: string) => clock(time, { hour: 'numeric' })
+  const hourMinute = (time: string) =>
+    clock(time, { hour: 'numeric', minute: '2-digit' })
 
   const readings: Array<[string, string]> = [
     [t('weatherCard.humidity'), `${current.humidity}%`],
@@ -161,7 +172,9 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
             <p className="text-muted-foreground mt-0.5 text-xs tabular-nums">
               {t('weatherCard.feelsLike', { temp: current.feelsLikeC })}
               <span className="mx-1.5 opacity-40">·</span>
-              {t('weatherCard.observedAt', { time: current.observedAt })}
+              {t('weatherCard.observedAt', {
+                time: hourMinute(current.observedAt)
+              })}
             </p>
           </div>
           <now.Icon
@@ -223,12 +236,12 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
                 <span className="flex items-center gap-1">
                   <Sunrise className="size-3" aria-hidden="true" />
                   <span className="sr-only">{t('weatherCard.sunrise')}</span>
-                  {day.sunrise}
+                  {hourMinute(day.sunrise)}
                 </span>
                 <span className="flex items-center gap-1">
                   <Sunset className="size-3" aria-hidden="true" />
                   <span className="sr-only">{t('weatherCard.sunset')}</span>
-                  {day.sunset}
+                  {hourMinute(day.sunset)}
                 </span>
               </div>
             </>
@@ -303,8 +316,12 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
                       {lo}°
                     </span>
                     <span className="bg-muted-foreground/15 relative h-1 rounded-full">
+                      {/* the selected day's bar takes the curve's colour */}
                       <span
-                        className="bg-foreground/60 absolute inset-y-0 rounded-full"
+                        className={cn(
+                          'absolute inset-y-0 rounded-full transition-colors duration-150 ease-out',
+                          selected ? 'bg-primary' : 'bg-foreground/50'
+                        )}
                         style={{
                           left: `${left}%`,
                           width: `${Math.max(width, 4)}%`

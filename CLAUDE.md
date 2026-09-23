@@ -386,6 +386,16 @@ camelCase; `toToolName()` maps a pre-rename `disabledTools` key):
 
 `computer_use`, `create_artifact`, `deep_research`, `edit_file`, `find_files`, `grep`, `image_generation`, `lcm_describe`, `lcm_expand`, `lcm_grep`, `list_directory`, `map_itinerary`, `read_file`, `search_knowledge_base`, `terminal`, `weather`, `web_fetch`, `web_search`, `write_file`.
 
+`weather` is Open-Meteo (no key: a geocoding call, then seven days with 24
+hourly points, WMO codes, all in the place's local time). The result type
+(`packages/shared/src/types/weather.ts`) has not changed shape since the
+wttr.in years, so rows saved then still render: `conditionNameOf()` reads
+WMO and WWO codes alike and `weatherClockHours()` reads ISO, "06:52 AM" and
+"300". The card (`components/calling-tools/weather/`) is compact in the
+transcript — a line of now, the day's temperature curve on the colour tone's
+accent, three segmented days — and opens in place on Details to the
+headline, the readings and the week as range-bar rows.
+
 **MCP toolbox** (`calling-tools/mcp-toolbox.ts`): MCP servers are not bound
 tool by tool (providers cap the tools array — OpenAI at 128 — and one server
 can exceed it alone). Two tools stand in for all of them: `list_mcp_tools({
