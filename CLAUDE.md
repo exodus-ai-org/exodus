@@ -713,10 +713,18 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
 - **A render failure stays inside its piece.** Every tool card and every
   answer body is wrapped in `ErrorBoundary` (`card-error-boundary.tsx`): a
   card reading a field its result did not carry shows `RenderFailed` in its
-  place, a body that will not parse falls back to its plain text, and the
-  error goes to the main-process log (`reportRendererError`, `POST
-/api/v1/logs`) — it used to take the whole chat page down to the route's
-  "Something went wrong", which also reports now.
+  place (a quiet notice, `border-border/50 bg-background/70` — never the
+  tool-failure box's destructive red, since it's our bug, not the tool's), a
+  body that will not parse falls back to its plain text, and the error goes
+  to the main-process log (`reportRendererError`, `POST /api/v1/logs`) — it
+  used to take the whole chat page down to the route's "Something went
+  wrong", which also reports now. React boundaries only see errors thrown
+  during render, so `installGlobalErrorReporting()` (same file) catches what
+  they can't — an event handler, a timer, an unawaited promise — via
+  `window.onerror` / `unhandledrejection`; called once at boot in `main.tsx`
+  and the searchbar/quick-chat sub-apps, never the artifact sandbox (a
+  distinct origin whose CSP allows no network at all — the call would just
+  be dead weight there).
 - **Memoized leaves take only what they render.** The composer
   (`multimodel-input.tsx`) and `ChatToc` are `memo`'d; don't pass them
   `messages` or anything else that changes per frame unless they show it

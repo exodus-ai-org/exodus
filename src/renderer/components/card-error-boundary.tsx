@@ -2,7 +2,9 @@ import { AlertCircleIcon } from 'lucide-react'
 import { Component, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { ROW_ENTER } from '@/lib/motion'
 import { reportRendererError } from '@/lib/report-error'
+import { cn } from '@/lib/utils'
 
 /**
  * Contains a render failure to the piece that failed. Without it, one tool
@@ -38,16 +40,26 @@ export class ErrorBoundary extends Component<
   }
 }
 
-/** The one-line stand-in for a piece of a reply that could not be shown. */
+/**
+ * The stand-in for a piece of a reply that could not be shown — our bug,
+ * not the tool's, so it reads as a quiet system notice (the
+ * `border-border/50 bg-background/70` language `lcm-status-card.tsx` uses
+ * for "nothing to act on here"), never as the tool-failure box
+ * (`border-destructive/30 bg-destructive/10`, `messages-calling-tools.tsx`)
+ * — that one says the tool itself came back with an error.
+ */
 export function RenderFailed({ what }: { what: string }) {
   const { t } = useTranslation('chat')
   return (
-    <p
+    <div
       role="alert"
-      className="text-muted-foreground mb-4 flex items-center gap-1.5 text-sm"
+      className={cn(
+        ROW_ENTER,
+        'border-border/50 bg-background/70 text-muted-foreground mb-4 flex items-center gap-2 rounded-lg border px-3 py-2 text-sm backdrop-blur-md'
+      )}
     >
       <AlertCircleIcon className="size-3.5 shrink-0" aria-hidden />
       {t('renderFailed', { what })}
-    </p>
+    </div>
   )
 }

@@ -5,6 +5,7 @@ import ReactDOM from 'react-dom/client'
 import { I18nProvider } from '@/components/i18n-provider'
 import { ThemeProvider } from '@/components/theme-provider'
 import { i18nReady } from '@/lib/i18n'
+import { installGlobalErrorReporting } from '@/lib/report-error'
 import { bootTone, subscribeToneCache } from '@/lib/tone'
 
 import { QuickChat } from './app'
@@ -13,6 +14,7 @@ import { QuickChat } from './app'
 // colour tone now and follow later changes via the `storage` event.
 bootTone()
 subscribeToneCache(bootTone)
+installGlobalErrorReporting()
 
 void i18nReady.finally(() => {
   ReactDOM.createRoot(

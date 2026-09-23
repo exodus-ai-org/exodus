@@ -12,12 +12,15 @@ import { ThemeProvider } from '@/components/theme-provider'
 import { ToneBridge } from '@/components/tone-bridge'
 import { useLock } from '@/hooks/use-lock'
 import { i18nReady } from '@/lib/i18n'
+import { installGlobalErrorReporting } from '@/lib/report-error'
 import { bootTone } from '@/lib/tone'
 import { router } from '@/routes'
 
 // First paint already carries the user's colour tone: apply the cached value
 // synchronously, before anything renders. ToneBridge keeps it live.
 bootTone()
+// Catches what no ErrorBoundary in the tree below can — see its docstring.
+installGlobalErrorReporting()
 
 function AppRoot() {
   const { status, refresh, locked } = useLock()

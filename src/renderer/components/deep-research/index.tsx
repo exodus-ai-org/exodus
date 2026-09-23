@@ -11,6 +11,7 @@ import useSWR from 'swr'
 
 import { SheetPanel } from '@/components/sheet-panel'
 import { Button } from '@/components/ui/button'
+import { reportRendererError } from '@/lib/report-error'
 import { cn } from '@/lib/utils'
 import { fetchDeepResearchMessages } from '@/services/deep-research'
 import {
@@ -117,7 +118,9 @@ export function DeepResearchProcess() {
             enqueue(deepResearchMessage)
           }
         } catch (error) {
-          console.error('Error parsing event data:', error)
+          reportRendererError('deep-research', error, {
+            rawEventData: event.data
+          })
           source?.close()
         }
       }

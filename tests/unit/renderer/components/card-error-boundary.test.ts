@@ -95,3 +95,18 @@ describe('ErrorBoundary', () => {
     expect(host.querySelector('pre')?.textContent).toMatch(/^plain: /u)
   })
 })
+
+describe('RenderFailed', () => {
+  it('reads as a quiet system notice, never as the tool-failure box', async () => {
+    const host = document.createElement('div')
+    await act(async () =>
+      createRoot(host).render(createElement(RenderFailed, { what: 'Weather' }))
+    )
+    const el = host.querySelector('[role="alert"]')
+    expect(el?.textContent).toBe('Weather could not be shown.')
+    // The tool-failure box (messages-calling-tools.tsx) is
+    // border-destructive/bg-destructive; this is our own bug, not the
+    // tool's, so it must not borrow that colour.
+    expect(el?.className).not.toMatch(/destructive/u)
+  })
+})
