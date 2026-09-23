@@ -1158,7 +1158,7 @@ Renderer:
 - `src/renderer/stores/` — Jotai atoms
 - `src/renderer/hooks/` — React hooks
 - `src/renderer/services/` — API call wrappers
-- `src/renderer/lib/` — renderer utilities (ipc, stream-manager, `tone.ts` — `data-tone` apply/boot cache, `mask-url.ts` — `maskUrlSecrets()` for showing a URL without its query-string credentials, `heatmap-months.ts` — month labels for the Profile heatmap)
+- `src/renderer/lib/` — renderer utilities (ipc, stream-manager, `tone.ts` — `data-tone` apply/boot cache, `mask-url.ts` — `maskUrlSecrets()` for showing a URL without its query-string credentials, `heatmap-months.ts` — month labels for the Profile heatmap, `report-error.ts` — `reportRendererError()` + `installGlobalErrorReporting()` (see Motion/render-path notes above), `menu-bridge.ts` — `installMenuBridge()`, the renderer half of the native menu's New Chat / Settings… items: `menu.ts`'s `goToMainWindow()` raises the main window and sends `menu:new-chat` / `menu:open-settings`; `router.navigate()` needs no component to answer it)
 - `src/renderer/components/tone-bridge.tsx` — follows `settings.colorTone` and re-applies it
 - `src/renderer/sub-apps/` — searchbar, quick-chat, artifacts entry points
 
