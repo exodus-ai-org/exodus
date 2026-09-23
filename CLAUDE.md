@@ -723,16 +723,25 @@ Their windows live in `src/main/lib/window.ts`.
   `hooks/use-<domain>.ts` with a query-key factory plus `useQuery`/`useMutation` — components never
   import `useQuery`/`useMutation`/`useQueryClient` directly.
 - The one client is `lib/query-client.ts` (`createAppQueryClient()`): a failed query is reported
-  (`reportRendererError`) never toasted; a failed mutation is reported and toasted once, globally,
-  from `meta.errorTitle` (`meta.silent` opts out, a localized fallback) — hooks never catch-and-toast;
-  success toasts live in the hook's own `onSuccess`.
+  (`reportRendererError`) never toasted; a failed mutation is reported, then toasted once, globally,
+  titled from `meta.errorTitle` (falling back to a localized generic message) unless `meta.silent` is
+  set, which skips the toast but not the report — hooks never catch-and-toast themselves; success
+  toasts live in the hook's own `onSuccess`. The one deliberate exception is `use-settings.ts`: its
+  save must land in the cache without a revalidating GET (a GET's freshly-bumped `updatedAt` would
+  echo through `useForm({ values: settings })` and loop the autosave), so it `try`/`catch`es the write
+  itself and toasts both outcomes directly, instead of going through a `useMutation`.
 - Defaults suit a LOCAL API: `retry: 1` at 500 ms, no focus/reconnect refetch, `networkMode:
-'always'`; `refetchOnWindowFocus: true` is opted in per query an external writer can change
-  (`use-devices.ts`, `use-installed-skills.ts` — exodus-ios/exodus-cli). The remote skills.sh relay
-  uses `lib/relay-retry.ts`'s `RELAY_RETRY` instead. `installWindowFocusListener()` (`main.tsx`, at
-  boot) follows the window's own focus/blur, not just `visibilitychange`.
-- Hook tests use `tests/unit/helpers/query-test-utils.ts`; `@tanstack/react-query-devtools` is
-  dev-only in `main.tsx`.
+'always'`; `refetchOnWindowFocus: true` is opted in per query whose data an outside writer
+  (exodus-ios, exodus-cli, the phone) can change: chat history, the projects list + project chats,
+  devices, installed skills, the three logs reads, the Discover feed, and the Ollama probe
+  (`use-chat-history.ts`, `use-projects.ts`, `use-devices.ts`, `use-installed-skills.ts`,
+  `use-logs.ts`, `use-discover-feed.ts`, `use-ollama-status.ts`). The remote skills.sh relay uses
+  `lib/relay-retry.ts`'s `RELAY_RETRY` instead. `installWindowFocusListener()` (`main.tsx`, at boot)
+  follows the window's own focus/blur, not just `visibilitychange`, and feeds every one of those
+  opted-in queries.
+- Hook tests: some wrap `renderWithQueryClient` from `tests/unit/helpers/query-test-utils.ts` for the
+  mount scaffolding (isolated client, retries off); others still roll their own — not yet a single
+  convention across every hook test. `@tanstack/react-query-devtools` is dev-only in `main.tsx`.
 
 ### Path Aliases
 

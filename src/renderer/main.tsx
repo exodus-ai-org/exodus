@@ -23,8 +23,10 @@ import { router } from '@/routes'
 bootTone()
 // Catches what no ErrorBoundary in the tree below can — see its docstring.
 installGlobalErrorReporting()
-// Lets the Ollama status probe re-check when the window regains focus — see
-// query-client.ts.
+// Feeds every query that opts into `refetchOnWindowFocus` (the Ollama probe
+// and the rest of the "Server state (React Query)" list in CLAUDE.md) a
+// focus signal when the window itself regains focus, not just on
+// `visibilitychange` — see query-client.ts.
 installWindowFocusListener()
 // New Chat / Settings… on the native menu — see menu-bridge.ts.
 installMenuBridge()

@@ -56,7 +56,10 @@ export function createAppQueryClient(): QueryClient {
       queries: {
         // Off app-wide: a revalidating settings GET brings back a bumped
         // `updatedAt` that resets the form and re-fires autosave
-        // (use-settings.ts), and the API is local, so nothing to catch up on.
+        // (use-settings.ts). Individual queries whose data an outside writer
+        // can change (exodus-ios, exodus-cli, the phone) opt back in with
+        // `refetchOnWindowFocus: true` — see "Server state (React Query)" in
+        // CLAUDE.md for the current list.
         refetchOnWindowFocus: false,
         // The API is on localhost, so a failure is nearly always persistent
         // (server down, locked, erroring), not transient: the default
