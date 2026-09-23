@@ -126,6 +126,8 @@ export function DeepResearchProcess() {
         if (source?.readyState === EventSource.CLOSED) {
           console.log('SSE connection closed')
         }
+        // A job that finished while the stream was down would stay "streaming".
+        refetchResult()
         source?.close()
       }
     }

@@ -1,4 +1,5 @@
 import {
+  type Query,
   type QueryClient,
   useMutation,
   useQuery,
@@ -21,9 +22,8 @@ export const devicesKeys = { all: ['devices'] as const }
 // phone has paired.
 const PAIRING_POLL_MS = 1500
 
-const pollWhilePairing = (query: {
-  state: { data: DevicesState | undefined }
-}) => (query.state.data?.pairing ? PAIRING_POLL_MS : false)
+const pollWhilePairing = (query: Query<DevicesState>) =>
+  query.state.data?.pairing ? PAIRING_POLL_MS : false
 
 // `data` keeps its identity across polls that return equal data (structural
 // sharing — never turn it off): the "device paired" toast is an effect over it.
@@ -34,10 +34,14 @@ export function useDevices() {
     refetchInterval: pollWhilePairing,
     // The QR code is scanned from a phone, so this window is usually blurred
     // when the "device paired" toast has to land, and React Query would pause
-    // the interval on blur (SWR only paused a hidden page). Bounded: the main
-    // process closes the window after PAIRING_TTL_MS and `pairing: null` ends
-    // the poll.
-    refetchIntervalInBackground: true
+    // the interval on blur. The poll ends when a read shows `pairing: null`
+    // (the main process closes the window after PAIRING_TTL_MS) or when the
+    // page unmounts, which is what a lock mid-window does.
+    refetchIntervalInBackground: true,
+    // A paired phone's `lastSeenAt` changes without the desktop's involvement
+    // (the phone calls the LAN API); coming back to the window is when the
+    // user would look. Off app-wide (settings autosave), on for this read.
+    refetchOnWindowFocus: true
   })
   return { data }
 }

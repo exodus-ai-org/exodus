@@ -127,8 +127,10 @@ const skills = [
 ]
 
 afterEach(async () => {
-  focusManager.setFocused(undefined)
+  // Unmount first: restoring focus while a root is still mounted fires a
+  // focus refetch against an already-reset (exhausted) service mock.
   for (const unmount of mounted.splice(0)) await unmount()
+  focusManager.setFocused(undefined)
   getInstalledService.mockReset()
   installService.mockReset()
   uninstallService.mockReset()

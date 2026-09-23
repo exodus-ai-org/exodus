@@ -1,10 +1,12 @@
 // @vitest-environment happy-dom
-import { type QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import {
+  focusManager,
+  QueryClient,
+  QueryClientProvider
+} from '@tanstack/react-query'
 import { act, createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-
-import { renderWithQueryClient } from '../../helpers/query-test-utils'
 
 const fetcherMock = vi.fn()
 vi.mock('@exodus/shared/utils/http', async (importOriginal) => ({
@@ -56,11 +58,34 @@ function Probe<T>({
   return null
 }
 
+// useChatHistory now opts into refetchOnWindowFocus, and every mounted client
+// listens to the one global focusManager: a root left mounted from an earlier
+// test would answer a later test's focus toggles with requests of its own.
+const mounted: Array<() => Promise<void>> = []
+
+// Not `renderWithQueryClient` (it doesn't hand back the root to unmount):
+// same retry:false isolated client, but this file's queries can opt into
+// window focus, so every mount here has to be undoable.
 async function mountHook<T>(hook: () => T) {
   let latest: T | undefined
-  const { queryClient } = await renderWithQueryClient(
-    createElement(Probe<T>, { hook, onReady: (value) => (latest = value) })
-  )
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } }
+  })
+  const probe = createElement(Probe<T>, {
+    hook,
+    onReady: (value) => (latest = value)
+  })
+  const root = createRoot(document.createElement('div'))
+  await act(async () => {
+    root.render(
+      createElement(QueryClientProvider, { client: queryClient }, probe)
+    )
+  })
+  mounted.push(async () => {
+    await act(async () => {
+      root.unmount()
+    })
+  })
   return { queryClient, api: () => latest! }
 }
 
@@ -73,13 +98,24 @@ async function mountHookOnAppClient<T>(hook: () => T) {
     hook,
     onReady: (value) => (latest = value)
   })
+  const root = createRoot(document.createElement('div'))
   await act(async () => {
-    createRoot(document.createElement('div')).render(
+    root.render(
       createElement(QueryClientProvider, { client: queryClient }, probe)
     )
   })
+  mounted.push(async () => {
+    await act(async () => {
+      root.unmount()
+    })
+  })
   return { queryClient, api: () => latest! }
 }
+
+afterEach(async () => {
+  for (const unmount of mounted.splice(0)) await unmount()
+  focusManager.setFocused(undefined)
+})
 
 const chats = [{ id: 'c1', title: 'Chat one' }]
 
@@ -116,6 +152,34 @@ describe('useChatHistory', () => {
     expect(fetcherMock).toHaveBeenCalledWith('/api/v1/history')
     expect(api().isLoading).toBe(false)
     expect(queryClient.getQueryData(historyKeys.all)).toEqual(chats)
+  })
+})
+
+describe('useChatHistory on window focus', () => {
+  it('reads again when the window regains focus, so a chat exodus-ios or the CLI edited shows up, although the app turns that off', async () => {
+    fetcherMock
+      .mockResolvedValueOnce(chats)
+      .mockResolvedValueOnce([...chats, { id: 'c2', title: 'From the phone' }])
+    const { queryClient, api } = await mountHookOnAppClient(useChatHistory)
+    await act(async () => {
+      await vi.waitFor(() => expect(api().data).toEqual(chats))
+    })
+    expect(queryClient.getDefaultOptions().queries?.refetchOnWindowFocus).toBe(
+      false
+    )
+
+    await act(async () => {
+      focusManager.setFocused(false)
+    })
+    expect(fetcherMock).toHaveBeenCalledTimes(1)
+
+    await act(async () => {
+      focusManager.setFocused(true)
+      await vi.waitFor(() => expect(api().data).toHaveLength(2))
+    })
+
+    expect(fetcherMock).toHaveBeenCalledTimes(2)
+    expect(report).not.toHaveBeenCalled()
   })
 })
 

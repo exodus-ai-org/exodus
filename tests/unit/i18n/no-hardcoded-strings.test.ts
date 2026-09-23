@@ -34,8 +34,10 @@ interface Violation {
 // Renderer source files worth scanning: `.tsx` for both the JSX-text check
 // and the `sileo` check, plus plain `.ts` for the `sileo` check only — a
 // hook/service file has no JSX but can still fire a hardcoded toast (e.g.
-// `services/project.ts`, `lib/stream-manager.ts`). `.d.ts` files declare
-// types, never runtime strings.
+// `hooks/use-projects.ts`, `lib/stream-manager.ts` — the React Query
+// migration moved the toasting out of `services/project.ts` and into the
+// hook that owns the mutation). `.d.ts` files declare types, never runtime
+// strings.
 function collectRendererSourceFiles(dir: string): string[] {
   const out: string[] = []
   for (const entry of readdirSync(dir, { withFileTypes: true })) {

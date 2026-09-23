@@ -302,6 +302,35 @@ describe('useDevices', () => {
     })
   })
 
+  describe('on window focus', () => {
+    it("reads again when the window regains focus, so a phone's last-seen time shows up, although the app turns that off", async () => {
+      const seen = { ...iphone, lastSeenAt: '2026-09-24T08:00:00.000Z' }
+      getDevicesService
+        .mockResolvedValueOnce(stateOf({ devices: [iphone] }))
+        .mockResolvedValueOnce(stateOf({ devices: [seen] }))
+      const { queryClient, api } = await mountHook(useDevices)
+      await act(async () => {
+        await vi.waitFor(() => expect(api().data?.devices).toEqual([iphone]))
+      })
+      expect(
+        queryClient.getDefaultOptions().queries?.refetchOnWindowFocus
+      ).toBe(false)
+
+      await act(async () => {
+        focusManager.setFocused(false)
+      })
+      expect(getDevicesService).toHaveBeenCalledTimes(1)
+
+      await act(async () => {
+        focusManager.setFocused(true)
+        await vi.waitFor(() => expect(api().data?.devices).toEqual([seen]))
+      })
+
+      expect(getDevicesService).toHaveBeenCalledTimes(2)
+      expect(report).not.toHaveBeenCalled()
+    })
+  })
+
   describe('as a useEffect dependency (the "device paired" toast)', () => {
     it('keeps the same data object when a poll returns an equal payload, and hands out a new one when it changed', async () => {
       vi.useFakeTimers()

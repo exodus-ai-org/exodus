@@ -33,7 +33,11 @@ const invalidateProjects = (queryClient: QueryClient) =>
 export function useProjects() {
   const { data, isLoading } = useQuery({
     queryKey: projectKeys.all,
-    queryFn: getProjects
+    queryFn: getProjects,
+    // exodus-ios and the CLI edit projects through the API; coming back to
+    // the window is when the user would look. Off app-wide (settings
+    // autosave), on for this list read.
+    refetchOnWindowFocus: true
   })
   return { data, isLoading }
 }
@@ -52,7 +56,9 @@ export function useProjectChats(id: string | undefined) {
   const { data, isLoading } = useQuery({
     queryKey: projectKeys.chats(id ?? ''),
     queryFn: () => fetcher<Chat[]>(`/api/v1/history?projectId=${id}`),
-    enabled: !!id
+    enabled: !!id,
+    // Same external writers as the unfiltered history list.
+    refetchOnWindowFocus: true
   })
   return { data, isLoading }
 }

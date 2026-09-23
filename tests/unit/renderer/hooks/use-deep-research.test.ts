@@ -324,6 +324,58 @@ describe('useDeepResearchResult', () => {
     expect(fetchDeepResearchResultService).toHaveBeenCalledWith(OTHER_ID)
   })
 
+  // `refetch` bypasses `enabled`, and the panel's stream can call it after the
+  // id was cleared; a request for an empty id must never leave the renderer.
+  it.each([
+    ['undefined', undefined],
+    ['an empty string', '']
+  ])(
+    'refetch makes no request while the id is %s, and neither reports nor fails',
+    async (_name, id) => {
+      const queryClient = appClient()
+      const { api } = await mountOn(queryClient, () =>
+        useDeepResearchResult(id)
+      )
+
+      let result: { isError: boolean } | undefined
+      await act(async () => {
+        result = await api().refetch()
+      })
+      await settle()
+
+      expect(fetchDeepResearchResultService).not.toHaveBeenCalled()
+      expect(result?.isError).toBe(false)
+      expect(api().data).toBeUndefined()
+      expect(report).not.toHaveBeenCalled()
+      expect(sileoError).not.toHaveBeenCalled()
+    }
+  )
+
+  it('a refetch from a stream that outlived its id makes no request and reports nothing', async () => {
+    fetchDeepResearchResultService.mockResolvedValue(research())
+    let id = ID
+    const { api, rerender } = await mountOn(appClient(), () =>
+      useDeepResearchResult(id)
+    )
+    await act(async () => {
+      await vi.waitFor(() => expect(api().data?.id).toBe(ID))
+    })
+    const refetchFromTheStream = api().refetch
+
+    id = ''
+    await rerender()
+    expect(api().data).toBeUndefined()
+    fetchDeepResearchResultService.mockClear()
+    await act(async () => {
+      await refetchFromTheStream()
+    })
+    await settle()
+
+    expect(fetchDeepResearchResultService).not.toHaveBeenCalled()
+    expect(api().data).toBeUndefined()
+    expect(report).not.toHaveBeenCalled()
+  })
+
   describe('as a useEffect dependency', () => {
     it('hands out the same refetch on every render, and after the data changes', async () => {
       fetchDeepResearchResultService

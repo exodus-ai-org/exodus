@@ -1,10 +1,12 @@
 // @vitest-environment happy-dom
-import { type QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import {
+  focusManager,
+  QueryClient,
+  QueryClientProvider
+} from '@tanstack/react-query'
 import { act, createElement } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-
-import { renderWithQueryClient } from '../../helpers/query-test-utils'
 
 const fetcherMock = vi.fn()
 vi.mock('@exodus/shared/utils/http', async (importOriginal) => ({
@@ -64,11 +66,32 @@ function Probe<T>({
   return null
 }
 
+// useProjects/useProjectChats can opt into refetchOnWindowFocus, and every
+// mounted client listens to the one global focusManager: a root left mounted
+// from an earlier test would answer a later test's focus toggles with
+// requests of its own.
+const mounted: Array<() => Promise<void>> = []
+
 async function mountHook<T>(hook: () => T) {
   let latest: T | undefined
-  const { queryClient } = await renderWithQueryClient(
-    createElement(Probe<T>, { hook, onReady: (value) => (latest = value) })
-  )
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } }
+  })
+  const probe = createElement(Probe<T>, {
+    hook,
+    onReady: (value) => (latest = value)
+  })
+  const root = createRoot(document.createElement('div'))
+  await act(async () => {
+    root.render(
+      createElement(QueryClientProvider, { client: queryClient }, probe)
+    )
+  })
+  mounted.push(async () => {
+    await act(async () => {
+      root.unmount()
+    })
+  })
   return { queryClient, api: () => latest! }
 }
 
@@ -81,13 +104,24 @@ async function mountHookOnAppClient<T>(hook: () => T) {
     hook,
     onReady: (value) => (latest = value)
   })
+  const root = createRoot(document.createElement('div'))
   await act(async () => {
-    createRoot(document.createElement('div')).render(
+    root.render(
       createElement(QueryClientProvider, { client: queryClient }, probe)
     )
   })
+  mounted.push(async () => {
+    await act(async () => {
+      root.unmount()
+    })
+  })
   return { queryClient, api: () => latest! }
 }
+
+afterEach(async () => {
+  for (const unmount of mounted.splice(0)) await unmount()
+  focusManager.setFocused(undefined)
+})
 
 const p1 = { id: 'p1', name: 'Alpha' }
 const p2 = { id: 'p2', name: 'Beta' }
@@ -142,6 +176,35 @@ describe('useProjects', () => {
     expect(api().isLoading).toBe(false)
     expect(queryClient.getQueryData(projectKeys.all)).toEqual(projects)
   })
+
+  it('reads again when the window regains focus, so a project exodus-ios or the CLI edited shows up, although the app turns that off', async () => {
+    getProjectsService
+      .mockResolvedValueOnce(projects)
+      .mockResolvedValueOnce([
+        ...projects,
+        { id: 'p3', name: 'From the phone' }
+      ])
+    const { queryClient, api } = await mountHookOnAppClient(useProjects)
+    await act(async () => {
+      await vi.waitFor(() => expect(api().data).toEqual(projects))
+    })
+    expect(queryClient.getDefaultOptions().queries?.refetchOnWindowFocus).toBe(
+      false
+    )
+
+    await act(async () => {
+      focusManager.setFocused(false)
+    })
+    expect(getProjectsService).toHaveBeenCalledTimes(1)
+
+    await act(async () => {
+      focusManager.setFocused(true)
+      await vi.waitFor(() => expect(api().data).toHaveLength(3))
+    })
+
+    expect(getProjectsService).toHaveBeenCalledTimes(2)
+    expect(report).not.toHaveBeenCalled()
+  })
 })
 
 describe('useProject', () => {
@@ -194,6 +257,35 @@ describe('useProjectChats', () => {
     expect(fetcherMock).not.toHaveBeenCalled()
     expect(api().isLoading).toBe(false)
     expect(api().data).toBeUndefined()
+  })
+
+  it('reads again when the window regains focus, so a chat exodus-ios or the CLI moved into the project shows up, although the app turns that off', async () => {
+    const rows = [{ id: 'c1', title: 'In the project' }]
+    fetcherMock
+      .mockResolvedValueOnce(rows)
+      .mockResolvedValueOnce([...rows, { id: 'c2', title: 'Moved in' }])
+    const { queryClient, api } = await mountHookOnAppClient(() =>
+      useProjectChats('p1')
+    )
+    await act(async () => {
+      await vi.waitFor(() => expect(api().data).toEqual(rows))
+    })
+    expect(queryClient.getDefaultOptions().queries?.refetchOnWindowFocus).toBe(
+      false
+    )
+
+    await act(async () => {
+      focusManager.setFocused(false)
+    })
+    expect(fetcherMock).toHaveBeenCalledTimes(1)
+
+    await act(async () => {
+      focusManager.setFocused(true)
+      await vi.waitFor(() => expect(api().data).toHaveLength(2))
+    })
+
+    expect(fetcherMock).toHaveBeenCalledTimes(2)
+    expect(report).not.toHaveBeenCalled()
   })
 })
 

@@ -16,10 +16,12 @@ import {
   updateMcpServerApi
 } from '@/services/mcp-service'
 
+const MCP_ROOT = ['mcp'] as const
+
 export const mcpKeys = {
-  all: ['mcp'] as const,
-  servers: ['mcp', 'servers'] as const,
-  tools: ['mcp', 'tools'] as const
+  all: MCP_ROOT,
+  servers: [...MCP_ROOT, 'servers'] as const,
+  tools: [...MCP_ROOT, 'tools'] as const
 }
 
 // A server change can change its tools, so every write marks both leaves.

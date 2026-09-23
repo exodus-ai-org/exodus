@@ -102,6 +102,24 @@ async function advance(ms: number) {
   })
 }
 
+// React Query tells its observers through a `setTimeout(0)`, so a change (or
+// the absence of one) only shows a macrotask after the request settled.
+async function settle() {
+  await act(async () => {
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 10)
+    })
+  })
+}
+
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>((res) => {
+    resolve = res
+  })
+  return { promise, resolve }
+}
+
 const feedOf = (overrides: Partial<DiscoverFeedDto> = {}): DiscoverFeedDto => ({
   groups: [],
   generatedAt: '2026-09-24T03:00:00.000Z',
@@ -128,6 +146,11 @@ const refreshing = feedOf({ groups: [group], status: 'refreshing' })
 const refreshed = feedOf({
   groups: [group, { ...group, memoryId: 'mem-2', topic: 'Go' }],
   generatedAt: '2026-09-24T09:30:00.000Z'
+})
+// What a read that left before the refresh would still bring back.
+const older = feedOf({
+  groups: [group],
+  generatedAt: '2026-09-24T02:00:00.000Z'
 })
 
 afterEach(async () => {
@@ -316,6 +339,43 @@ describe('useRefreshDiscoverFeed', () => {
     )
     expect(getDiscoverFeedService).toHaveBeenCalledTimes(1)
     expect(sileoError).not.toHaveBeenCalled()
+    expect(report).not.toHaveBeenCalled()
+  })
+
+  it('a read already in flight when the POST returns cannot overwrite the feed the POST wrote', async () => {
+    const inFlight = deferred<DiscoverFeedDto>()
+    getDiscoverFeedService
+      .mockResolvedValueOnce(idle)
+      .mockReturnValueOnce(inFlight.promise)
+    refreshDiscoverFeedService.mockResolvedValue(refreshed)
+    const { queryClient, api } = await mountHook(() => ({
+      read: useDiscoverFeed(true),
+      refresh: useRefreshDiscoverFeed()
+    }))
+    await act(async () => {
+      await vi.waitFor(() => expect(api().read.feed).toEqual(idle))
+    })
+    // Coming back to the window starts a read, and the POST answers before it.
+    await act(async () => {
+      focusManager.setFocused(false)
+      focusManager.setFocused(true)
+      await vi.waitFor(() =>
+        expect(getDiscoverFeedService).toHaveBeenCalledTimes(2)
+      )
+    })
+
+    await act(async () => {
+      await api().refresh.mutateAsync()
+    })
+    expect(cachedFeed(queryClient)).toEqual(refreshed)
+
+    await act(async () => {
+      inFlight.resolve(older)
+    })
+    await settle()
+
+    expect(cachedFeed(queryClient)).toEqual(refreshed)
+    expect(api().read.feed).toEqual(refreshed)
     expect(report).not.toHaveBeenCalled()
   })
 

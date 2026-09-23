@@ -264,6 +264,13 @@ describe.each(reads)('the relay policy on $name', (read) => {
     await at(600_000)
 
     expect(read.service).toHaveBeenCalledTimes(2)
+    // The query still settles as failed once the backoff it was mid-way
+    // through ends, even with no observer left to show it: pin the report so
+    // a library change that swallows or duplicates it is caught.
+    expect(report).toHaveBeenCalledTimes(1)
+    expect(report).toHaveBeenCalledWith('query', expect.any(Error), {
+      queryKey: read.key
+    })
     expect(sileoError).not.toHaveBeenCalled()
   })
 

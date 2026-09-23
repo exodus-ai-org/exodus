@@ -26,7 +26,11 @@ const invalidateHistory = (queryClient: QueryClient) =>
 export function useChatHistory() {
   const { data, isLoading } = useQuery({
     queryKey: historyKeys.all,
-    queryFn: () => fetcher<Chat[]>('/api/v1/history')
+    queryFn: () => fetcher<Chat[]>('/api/v1/history'),
+    // exodus-ios and the CLI edit chats through the API; coming back to the
+    // window is when the user would look. Off app-wide (settings autosave),
+    // on for this list read.
+    refetchOnWindowFocus: true
   })
   return { data, isLoading }
 }

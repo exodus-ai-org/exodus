@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 
 import { fetchDeepResearchResult } from '@/services/deep-research'
+import type { DeepResearch } from '@/types/db'
 
 export const deepResearchKeys = {
   result: (id: string) => ['deep-research', 'result', id] as const
@@ -18,8 +19,12 @@ export const deepResearchKeys = {
 export function useDeepResearchResult(id: string | undefined) {
   const { data, refetch } = useQuery({
     queryKey: deepResearchKeys.result(id ?? ''),
-    queryFn: () => fetchDeepResearchResult(id!),
+    // `refetch()` bypasses `enabled`, and a stream that outlived its id can
+    // still call it: with no id there is nothing to read, so resolve `null`
+    // (no request, and no error for the global handler to report).
+    queryFn: async (): Promise<DeepResearch | null> =>
+      id ? fetchDeepResearchResult(id) : null,
     enabled: !!id
   })
-  return { data, refetch }
+  return { data: data ?? undefined, refetch }
 }

@@ -8,8 +8,8 @@ export const ollamaStatusKeys = {
 
 async function pingOllama(baseUrl: string): Promise<boolean> {
   // "Unreachable" is the answer this probe exists to give, not a failure: a
-  // rejecting queryFn would be retried with backoff (a red dot ~7 s late) and
-  // reported to the log for every half-typed URL.
+  // rejecting queryFn would be retried (the client default is one retry after
+  // 500 ms) and reported to the log for every half-typed URL.
   try {
     await fetcher(
       `/api/v1/tools/ping-ollama?url=${encodeURIComponent(baseUrl)}`

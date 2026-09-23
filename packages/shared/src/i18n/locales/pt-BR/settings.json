@@ -742,8 +742,7 @@
       "updateFailed": "Falha ao atualizar servidor",
       "registerFailed": "Falha ao registrar",
       "removeFailed": "Falha ao remover servidor",
-      "toggleFailed": "Falha ao alternar servidor",
-      "operationFailed": "Falha na operação"
+      "toggleFailed": "Falha ao alternar servidor"
     }
   },
   "memory": {

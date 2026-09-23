@@ -738,8 +738,7 @@
       "updateFailed": "更新伺服器失敗",
       "registerFailed": "註冊失敗",
       "removeFailed": "移除伺服器失敗",
-      "toggleFailed": "切換伺服器狀態失敗",
-      "operationFailed": "操作失敗"
+      "toggleFailed": "切換伺服器狀態失敗"
     }
   },
   "memory": {

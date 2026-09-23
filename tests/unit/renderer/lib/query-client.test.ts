@@ -103,6 +103,7 @@ describe('createAppQueryClient', () => {
       title: 'Could not save',
       description: 'write failed'
     })
+    expect(i18nT).not.toHaveBeenCalled()
   })
 
   it('meta.silent suppresses the toast but still reports', async () => {
@@ -121,7 +122,7 @@ describe('createAppQueryClient', () => {
     expect(sileoError).not.toHaveBeenCalled()
   })
 
-  it('a mutation with no meta.errorTitle falls back to a generic title', async () => {
+  it('a mutation with no meta.errorTitle falls back to the catalog title, errors:generic', async () => {
     const client = createAppQueryClient()
     await client
       .getMutationCache()
@@ -132,8 +133,29 @@ describe('createAppQueryClient', () => {
       .execute(undefined)
       .catch(() => {})
 
+    expect(i18nT).toHaveBeenCalledWith('errors:generic')
     expect(sileoError).toHaveBeenCalledWith({
-      title: 'Something went wrong',
+      title: 'localized(errors:generic)',
+      description: 'write failed'
+    })
+  })
+
+  it('resolves the fallback title when the mutation fails, so it follows a language change', async () => {
+    const client = createAppQueryClient()
+    const fail = () =>
+      client
+        .getMutationCache()
+        .build(client, {
+          mutationFn: () => Promise.reject(new Error('write failed'))
+        })
+        .execute(undefined)
+        .catch(() => {})
+    await fail()
+    i18nT.mockImplementationOnce(() => 'Etwas ist schiefgelaufen')
+    await fail()
+
+    expect(sileoError).toHaveBeenLastCalledWith({
+      title: 'Etwas ist schiefgelaufen',
       description: 'write failed'
     })
   })
@@ -261,11 +283,11 @@ describe('createAppQueryClient', () => {
       await fail(new HttpError(418, 'NOT_IN_CATALOG', 'raw', undefined, false))
 
       expect(sileoError).toHaveBeenNthCalledWith(1, {
-        title: 'Something went wrong',
+        title: 'localized(errors:generic)',
         description: 'localized(errors:http.503)'
       })
       expect(sileoError).toHaveBeenNthCalledWith(2, {
-        title: 'Something went wrong',
+        title: 'localized(errors:generic)',
         description: 'localized(errors:http.unknown)'
       })
     })
@@ -273,9 +295,10 @@ describe('createAppQueryClient', () => {
     it('is the verbatim message of an HttpError that carries a custom one', async () => {
       await fail(new HttpError(500, 'KNOWN_CODE', 'Provider said: bad key'))
 
-      expect(i18nT).not.toHaveBeenCalled()
+      // Only the title is looked up: the description stays as the server said.
+      expect(i18nT.mock.calls).toEqual([['errors:generic']])
       expect(sileoError).toHaveBeenCalledWith({
-        title: 'Something went wrong',
+        title: 'localized(errors:generic)',
         description: 'Provider said: bad key'
       })
     })
@@ -283,9 +306,9 @@ describe('createAppQueryClient', () => {
     it('is the message of a plain Error, untouched by the catalog', async () => {
       await fail(new Error('write failed'))
 
-      expect(i18nT).not.toHaveBeenCalled()
+      expect(i18nT.mock.calls).toEqual([['errors:generic']])
       expect(sileoError).toHaveBeenCalledWith({
-        title: 'Something went wrong',
+        title: 'localized(errors:generic)',
         description: 'write failed'
       })
     })
@@ -294,7 +317,7 @@ describe('createAppQueryClient', () => {
       await fail('plain string failure')
 
       expect(sileoError).toHaveBeenCalledWith({
-        title: 'Something went wrong',
+        title: 'localized(errors:generic)',
         description: 'plain string failure'
       })
     })

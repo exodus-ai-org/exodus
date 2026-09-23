@@ -742,8 +742,7 @@
       "updateFailed": "Server konnte nicht aktualisiert werden",
       "registerFailed": "Registrierung fehlgeschlagen",
       "removeFailed": "Server konnte nicht entfernt werden",
-      "toggleFailed": "Server konnte nicht umgeschaltet werden",
-      "operationFailed": "Vorgang fehlgeschlagen"
+      "toggleFailed": "Server konnte nicht umgeschaltet werden"
     }
   },
   "memory": {

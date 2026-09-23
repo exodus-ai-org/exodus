@@ -38,4 +38,4 @@ export const getLogScopes = (date: string) =>
   )
 
 export const clearLogs = () =>
-  fetcher<void>('/api/v1/logs', { method: 'DELETE' })
+  fetcher<{ ok: true }>('/api/v1/logs', { method: 'DELETE' })

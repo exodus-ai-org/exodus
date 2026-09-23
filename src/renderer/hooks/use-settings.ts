@@ -36,7 +36,11 @@ export function useSettings() {
     // resets the form → watch fires for the timestamp field → autosave fires
     // again → infinite POST/GET loop. Cancel a GET already in flight first:
     // setQueryData leaves it running, and it would land afterwards with the
-    // pre-save object and overwrite what was just saved.
+    // pre-save object and overwrite what was just saved. Even this cache write
+    // re-triggers RHF's `values` sync and the watch it fires; that loop is
+    // closed on the other end, by `useSettingsAutosave`'s `isEqual(next,
+    // get(persisted, name))` check (settings-autosave.ts) — the field's new
+    // value already matches what was just cached, so nothing gets queued.
     await queryClient.cancelQueries({ queryKey: settingsKeys.all })
     queryClient.setQueryData(
       settingsKeys.all,

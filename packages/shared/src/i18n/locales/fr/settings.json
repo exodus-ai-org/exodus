@@ -742,8 +742,7 @@
       "updateFailed": "Échec de la mise à jour du serveur",
       "registerFailed": "Échec de l'enregistrement",
       "removeFailed": "Échec de la suppression du serveur",
-      "toggleFailed": "Échec du basculement du serveur",
-      "operationFailed": "Échec de l'opération"
+      "toggleFailed": "Échec du basculement du serveur"
     }
   },
   "memory": {

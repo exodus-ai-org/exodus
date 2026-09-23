@@ -20,8 +20,9 @@ const pollWhileRefreshing = (query: {
  * greeting layout), and `DiscoverFeed` uses it to render the feed itself —
  * one query key, so both consumers share a single request and cache entry.
  *
- * Pass `enabled: false` to stand the hook down entirely (no request) when the
- * user hasn't opted into Discover or the route isn't the true home.
+ * Pass `enabled: false` when the user hasn't opted into Discover or the route
+ * isn't the true home: it makes no request (no mount read, no focus refetch,
+ * no poll) but still returns whatever the cache already holds.
  */
 export function useDiscoverFeed(enabled: boolean) {
   const { data } = useQuery({
@@ -51,7 +52,10 @@ export function useRefreshDiscoverFeed() {
   return useMutation({
     // Bare call: React Query would hand the service (variables, context).
     mutationFn: () => refreshDiscoverFeed(),
-    onSuccess: (feed) => {
+    onSuccess: async (feed) => {
+      // A read already in flight (a focus refetch, a poll) would land after
+      // the write with the pre-refresh feed and overwrite it.
+      await queryClient.cancelQueries({ queryKey: discoverKeys.feed })
       queryClient.setQueryData(discoverKeys.feed, feed)
     },
     meta: { silent: true }

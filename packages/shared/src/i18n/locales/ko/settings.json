@@ -738,8 +738,7 @@
       "updateFailed": "서버 업데이트에 실패했습니다",
       "registerFailed": "등록에 실패했습니다",
       "removeFailed": "서버 제거에 실패했습니다",
-      "toggleFailed": "서버 전환에 실패했습니다",
-      "operationFailed": "작업에 실패했습니다"
+      "toggleFailed": "서버 전환에 실패했습니다"
     }
   },
   "memory": {

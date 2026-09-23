@@ -742,8 +742,7 @@
       "updateFailed": "No se pudo actualizar el servidor",
       "registerFailed": "No se pudo registrar",
       "removeFailed": "No se pudo eliminar el servidor",
-      "toggleFailed": "No se pudo alternar el servidor",
-      "operationFailed": "La operación falló"
+      "toggleFailed": "No se pudo alternar el servidor"
     }
   },
   "memory": {

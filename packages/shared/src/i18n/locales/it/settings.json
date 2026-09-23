@@ -742,8 +742,7 @@
       "updateFailed": "Aggiornamento del server non riuscito",
       "registerFailed": "Registrazione non riuscita",
       "removeFailed": "Rimozione del server non riuscita",
-      "toggleFailed": "Impossibile attivare/disattivare il server",
-      "operationFailed": "Operazione non riuscita"
+      "toggleFailed": "Impossibile attivare/disattivare il server"
     }
   },
   "memory": {

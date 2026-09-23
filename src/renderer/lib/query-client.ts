@@ -12,16 +12,14 @@ import { reportRendererError } from '@/lib/report-error'
 
 /**
  * A mutation's `meta`, read back by the global `mutationCache.onError`
- * below. `errorTitle` is the toast title on failure (falls back to a
- * generic one); `silent: true` skips the toast entirely (reporting still
- * happens — this never means "don't tell the log").
+ * below. `errorTitle` is the toast title on failure (falls back to the
+ * catalog's `errors:generic`); `silent: true` skips the toast entirely
+ * (reporting still happens — this never means "don't tell the log").
  */
 export interface MutationMeta extends Record<string, unknown> {
   errorTitle?: string
   silent?: boolean
 }
-
-const GENERIC_ERROR_TITLE = 'Something went wrong'
 
 /**
  * One QueryClient for the app, with two non-overlapping error surfaces:
@@ -47,7 +45,7 @@ export function createAppQueryClient(): QueryClient {
         const meta = mutation.meta as MutationMeta | undefined
         if (meta?.silent) return
         sileo.error({
-          title: meta?.errorTitle ?? GENERIC_ERROR_TITLE,
+          title: meta?.errorTitle ?? i18n.t('errors:generic'),
           description:
             getHttpErrorMessage(error, toErrorI18n(i18n)) ??
             (error instanceof Error ? error.message : String(error))
@@ -82,6 +80,11 @@ export const queryClient = createAppQueryClient()
  * fires when an Electron window merely loses focus to another app. Follow the
  * window's own `focus` / `blur` too; `setEventListener` replaces (and cleans
  * up) any previous listener, so installing twice does not double-register.
+ *
+ * The cleanup this returns only removes THIS registration — it does not put
+ * the library's own default listener back. After a full unsubscribe (no one
+ * has called `setEventListener` again), `focusManager` re-adds its own
+ * default on the next subscriber. That only matters in a test today.
  */
 export function installWindowFocusListener(): () => void {
   let remove: (() => void) | undefined

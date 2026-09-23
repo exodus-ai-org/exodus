@@ -4,12 +4,14 @@ import { sileo } from 'sileo'
 import { i18n } from '@/lib/i18n'
 import { clearLogs, getLogDates, getLogs, getLogScopes } from '@/services/logs'
 
+const LOGS_ROOT = ['logs'] as const
+
 export const logsKeys = {
-  all: ['logs'] as const,
+  all: LOGS_ROOT,
   entries: (paramsString: string) =>
-    [...logsKeys.all, 'entries', paramsString] as const,
-  dates: ['logs', 'dates'] as const,
-  scopes: (date: string) => [...logsKeys.all, 'scopes', date] as const
+    [...LOGS_ROOT, 'entries', paramsString] as const,
+  dates: [...LOGS_ROOT, 'dates'] as const,
+  scopes: (date: string) => [...LOGS_ROOT, 'scopes', date] as const
 }
 
 // Refetch on focus is off app-wide (settings autosave); a log viewer wants it

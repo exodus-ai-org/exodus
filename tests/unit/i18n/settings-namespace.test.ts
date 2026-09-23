@@ -572,8 +572,7 @@ describe('settings namespace (en)', () => {
       toolCount_other: '{{count}} tools'
     })
     expect(settings.mcpServers.toast).toMatchObject({
-      updated: '"{{name}}" updated — reconnecting…',
-      operationFailed: 'Operation failed'
+      updated: '"{{name}}" updated — reconnecting…'
     })
   })
 

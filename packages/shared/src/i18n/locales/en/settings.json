@@ -742,8 +742,7 @@
       "updateFailed": "Failed to update server",
       "registerFailed": "Failed to register",
       "removeFailed": "Failed to remove server",
-      "toggleFailed": "Failed to toggle server",
-      "operationFailed": "Operation failed"
+      "toggleFailed": "Failed to toggle server"
     }
   },
   "memory": {

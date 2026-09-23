@@ -15,7 +15,7 @@ export function useInstalledApps(enabled: boolean) {
     queryFn: getInstalledApps,
     enabled,
     // The scan is expensive and its failures (missing helper, no permission)
-    // are permanent: show the failure once instead of scanning four times.
+    // are permanent: show the failure once instead of scanning twice.
     retry: false,
     refetchOnWindowFocus: false,
     staleTime: 60_000

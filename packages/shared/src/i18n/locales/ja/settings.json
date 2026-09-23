@@ -738,8 +738,7 @@
       "updateFailed": "サーバーの更新に失敗しました",
       "registerFailed": "登録に失敗しました",
       "removeFailed": "サーバーの削除に失敗しました",
-      "toggleFailed": "サーバーの切り替えに失敗しました",
-      "operationFailed": "操作に失敗しました"
+      "toggleFailed": "サーバーの切り替えに失敗しました"
     }
   },
   "memory": {
