@@ -267,5 +267,15 @@
   "run": {
     "error": "Esta respuesta se detuvo con un error: {{message}}"
   },
-  "renderFailed": "No se pudo mostrar {{what}}."
+  "renderFailed": "No se pudo mostrar {{what}}.",
+  "findInPage": {
+    "placeholder": "Buscar en la página…",
+    "noResults": "Sin resultados",
+    "previous": "Resultado anterior (Shift+Enter)",
+    "next": "Resultado siguiente (Enter)",
+    "close": "Cerrar (Esc)"
+  },
+  "quickChat": {
+    "placeholder": "¿En qué puedo ayudarte hoy?"
+  }
 }

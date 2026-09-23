@@ -599,7 +599,7 @@ skills-manager's external dependency), not environment compatibility.
   `@exodus/shared/utils/http`, the HTTP client shared by renderer and main),
   because Phase 3's `deepResearch` tool POSTs to `/api/deep-research` through
   it. **Resolved — `SERVER_PORT` stays `60223`.** It was briefly changed to
-  `60224` (to keep two dev builds from fighting for the port, and to stop an
+  `63129` (to keep two dev builds from fighting for the port, and to stop an
   exodus renderer from reaching universal-client's server and, through it, that
   app's database) and reverted the same day, on the user's correction. The
   collision rationale had gone away — the data directory is shared anyway now,

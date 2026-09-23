@@ -186,6 +186,8 @@
       "available": "Atualização disponível",
       "availableVersion": "Versão {{version}}",
       "download": "Baixar",
+      "downloadPage": "Abrir página de download",
+      "manualHint": "Esta versão não consegue se atualizar sozinha. Baixe a nova versão e substitua o aplicativo.",
       "downloading": "Baixando atualização…",
       "ready": "Atualização pronta para instalar",
       "readyDescription": "Reinicie para aplicar a atualização",

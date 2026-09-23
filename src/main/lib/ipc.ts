@@ -16,11 +16,10 @@ import { logger } from './logger'
 import { getAnalyticsDir, getArtifactsDir, getLogsDir } from './paths'
 import { destroyTray, setTray } from './tray'
 import {
+  closeSearchBar,
   getMainWindow,
   getQuickChatView,
-  getSearchView,
-  setQuickChatView,
-  setSearchView
+  setQuickChatView
 } from './window'
 
 /** Wrap an IPC handler so that any thrown error is logged instead of silently lost. */
@@ -82,14 +81,7 @@ export function setupIPC() {
     }
   })
 
-  safeHandle('close-search-bar', () => {
-    const searchView = getSearchView()
-    if (searchView) {
-      getMainWindow()?.contentView.removeChildView(searchView)
-      setSearchView(null)
-      getMainWindow()?.webContents.stopFindInPage('clearSelection')
-    }
-  })
+  safeHandle('close-search-bar', () => closeSearchBar())
 
   safeHandle('close-quick-chat', () => {
     const quickChatView = getQuickChatView()

@@ -22,7 +22,7 @@ export const ALLOWLIST: AllowlistEntry[] = [
   {
     file: 'src/renderer/components/calling-tools/artifact/artifact-card.tsx',
     text: 'artifact://',
-    line: 132,
+    line: 133,
     reason: "The app's own URI scheme prefix, not user-facing prose."
   },
   {
@@ -34,13 +34,13 @@ export const ALLOWLIST: AllowlistEntry[] = [
   {
     file: 'src/renderer/components/settings/settings-form/logger.tsx',
     text: 'traceId:',
-    line: 411,
+    line: 417,
     reason: 'Debug-only technical field label in the raw log inspector.'
   },
   {
     file: 'src/renderer/components/settings/settings-form/logger.tsx',
     text: 'originTraceId:',
-    line: 413,
+    line: 419,
     reason: 'Debug-only technical field label in the raw log inspector.'
   },
   {

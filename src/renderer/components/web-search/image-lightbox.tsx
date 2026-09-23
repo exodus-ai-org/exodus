@@ -1,5 +1,6 @@
 // src/renderer/components/web-search/image-lightbox.tsx
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
+import { useHotkeys } from '@tanstack/react-hotkeys'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -134,16 +135,30 @@ export function ImageLightbox({
   const atStart = index <= 0
   const atEnd = index >= images.length - 1
 
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-      else if (e.key === 'ArrowLeft' && index > 0) onIndexChange(index - 1)
-      else if (e.key === 'ArrowRight' && index < images.length - 1)
-        onIndexChange(index + 1)
+  // Same semantics as the window listener this replaced: fires wherever focus
+  // is (the composer behind the overlay may still hold it), and never swallows
+  // the event.
+  useHotkeys(
+    [
+      { hotkey: 'Escape', callback: () => onClose() },
+      {
+        hotkey: 'ArrowLeft',
+        callback: () => onIndexChange(index - 1),
+        options: { enabled: index > 0 }
+      },
+      {
+        hotkey: 'ArrowRight',
+        callback: () => onIndexChange(index + 1),
+        options: { enabled: index < images.length - 1 }
+      }
+    ],
+    {
+      conflictBehavior: 'allow',
+      ignoreInputs: false,
+      preventDefault: false,
+      stopPropagation: false
     }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [index, images.length, onIndexChange, onClose])
+  )
 
   // Warm the browser cache for the neighbouring frames so stepping through the
   // carousel is instant after the first visit.

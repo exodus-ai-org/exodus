@@ -129,7 +129,14 @@ export const TEST_IDS = {
   },
   composer: {
     reasoningEffortItem: 'composer.reasoning-effort-item',
-    reasoningEffortLevel: 'composer.reasoning-effort-level'
+    reasoningEffortLevel: 'composer.reasoning-effort-level',
+    textarea: 'composer.textarea'
+  },
+  findInPage: {
+    input: 'find-in-page.input',
+    previousButton: 'find-in-page.previous-button',
+    nextButton: 'find-in-page.next-button',
+    closeButton: 'find-in-page.close-button'
   },
   weatherCard: {
     /** The Details / Less toggle at the card's foot. */

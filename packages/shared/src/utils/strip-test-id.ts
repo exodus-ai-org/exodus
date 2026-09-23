@@ -20,7 +20,7 @@
  */
 export function stripDataTestId(code: string): string {
   return code
-    .replace(/\s+data-testid=\{(?:[^{}]|\{[^{}]*\})*\}/g, '')
+    .replace(/\s+data-testid=\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g, '')
     .replace(/\s+data-testid="[^"]*"/g, '')
     .replace(/\s+data-testid='[^']*'/g, '')
 }

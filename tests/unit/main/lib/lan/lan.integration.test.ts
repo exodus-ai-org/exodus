@@ -86,6 +86,7 @@ function pinnedSocket(expected: string) {
     // Self-signed by design: there is no CA to verify against, and the
     // fingerprint comparison below *is* the verification — made before a single
     // byte of a request (least of all a bearer token) is written.
+    // codeql[js/disabling-certificate-validation]: intentional — pinning below is the real check.
     const socket = tls.connect(
       { host: '127.0.0.1', port, rejectUnauthorized: false },
       () => {

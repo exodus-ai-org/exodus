@@ -361,8 +361,14 @@ export function Logger() {
                   </Badge>
                 </span>
                 <span className="w-[120px] shrink-0">
-                  <Badge variant="outline" className="text-[10px]">
-                    {entry.scope.name}
+                  {/* Scopes like `renderer/unhandled-rejection` are wider than the
+                      column: truncate inside it (full name on hover) instead of spilling over the message. */}
+                  <Badge
+                    variant="outline"
+                    className="max-w-full text-[10px]"
+                    title={entry.scope.name}
+                  >
+                    <span className="truncate">{entry.scope.name}</span>
                   </Badge>
                 </span>
                 <span className="flex-1 truncate text-left">{entry.body}</span>
