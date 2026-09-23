@@ -15,7 +15,7 @@ import { ToneBridge } from '@/components/tone-bridge'
 import { useLock } from '@/hooks/use-lock'
 import { i18nReady } from '@/lib/i18n'
 import { installMenuBridge } from '@/lib/menu-bridge'
-import { queryClient } from '@/lib/query-client'
+import { installWindowFocusListener, queryClient } from '@/lib/query-client'
 import { installGlobalErrorReporting } from '@/lib/report-error'
 import { bootTone } from '@/lib/tone'
 import { router } from '@/routes'
@@ -25,6 +25,9 @@ import { router } from '@/routes'
 bootTone()
 // Catches what no ErrorBoundary in the tree below can — see its docstring.
 installGlobalErrorReporting()
+// Lets the Ollama status probe re-check when the window regains focus — see
+// query-client.ts.
+installWindowFocusListener()
 // New Chat / Settings… on the native menu — see menu-bridge.ts.
 installMenuBridge()
 

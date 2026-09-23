@@ -1,4 +1,9 @@
-import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query'
+import {
+  focusManager,
+  MutationCache,
+  QueryCache,
+  QueryClient
+} from '@tanstack/react-query'
 import { sileo } from 'sileo'
 
 import { reportRendererError } from '@/lib/report-error'
@@ -47,9 +52,9 @@ export function createAppQueryClient(): QueryClient {
     }),
     defaultOptions: {
       queries: {
-        // SWR's default: don't treat a background read failure as fatal to
-        // the UI, and don't hammer the server — React Query's own default
-        // (3 retries, exponential backoff) is fine to keep as-is.
+        // Off app-wide: a revalidating settings GET brings back a bumped
+        // `updatedAt` that resets the form and re-fires autosave
+        // (use-settings.ts), and the API is local, so nothing to catch up on.
         refetchOnWindowFocus: false,
         // The API is on localhost, so connectivity is irrelevant.
         networkMode: 'always',
@@ -61,3 +66,36 @@ export function createAppQueryClient(): QueryClient {
 }
 
 export const queryClient = createAppQueryClient()
+
+/**
+ * The default focus manager listens to `visibilitychange` only, which never
+ * fires when an Electron window merely loses focus to another app. Follow the
+ * window's own `focus` / `blur` too; `setEventListener` replaces (and cleans
+ * up) any previous listener, so installing twice does not double-register.
+ */
+export function installWindowFocusListener(): () => void {
+  let remove: (() => void) | undefined
+  focusManager.setEventListener((handleFocus) => {
+    const onFocus = () => {
+      handleFocus(true)
+    }
+    const onBlur = () => {
+      handleFocus(false)
+    }
+    const onVisibilityChange = () => {
+      handleFocus(!document.hidden)
+    }
+    window.addEventListener('focus', onFocus)
+    window.addEventListener('blur', onBlur)
+    window.addEventListener('visibilitychange', onVisibilityChange)
+    remove = () => {
+      window.removeEventListener('focus', onFocus)
+      window.removeEventListener('blur', onBlur)
+      window.removeEventListener('visibilitychange', onVisibilityChange)
+    }
+    return remove
+  })
+  return () => {
+    remove?.()
+  }
+}

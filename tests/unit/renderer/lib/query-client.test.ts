@@ -1,5 +1,10 @@
 // @vitest-environment happy-dom
-import { onlineManager } from '@tanstack/react-query'
+import {
+  focusManager,
+  onlineManager,
+  QueryObserver
+} from '@tanstack/react-query'
+import type { QueryClient } from '@tanstack/react-query'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const report = vi.fn()
@@ -11,7 +16,8 @@ vi.mock('sileo', () => ({
   sileo: { error: (...args: unknown[]) => sileoError(...args) }
 }))
 
-const { createAppQueryClient } = await import('@/lib/query-client')
+const { createAppQueryClient, installWindowFocusListener } =
+  await import('@/lib/query-client')
 
 describe('createAppQueryClient', () => {
   afterEach(() => {
@@ -141,5 +147,117 @@ describe('createAppQueryClient', () => {
 
       expect(defaults.queries?.refetchOnReconnect).toBe(false)
     })
+  })
+})
+
+const callsFor = (spy: { mock: { calls: unknown[][] } }, type: string) =>
+  spy.mock.calls.filter(([name]) => name === type).length
+
+describe('installWindowFocusListener', () => {
+  let uninstall: (() => void) | undefined
+  let client: QueryClient | undefined
+
+  afterEach(() => {
+    uninstall?.()
+    uninstall = undefined
+    client?.unmount()
+    client?.clear()
+    client = undefined
+    vi.restoreAllMocks()
+    // There is no public way back to the library's own listener, so put an
+    // equivalent one in place for whatever runs after this file.
+    focusManager.setEventListener((handleFocus) => {
+      const listener = () => {
+        handleFocus()
+      }
+      window.addEventListener('visibilitychange', listener, false)
+      return () => {
+        window.removeEventListener('visibilitychange', listener)
+      }
+    })
+    focusManager.setFocused(undefined)
+  })
+
+  it('follows the window losing and regaining focus', () => {
+    uninstall = installWindowFocusListener()
+
+    window.dispatchEvent(new Event('blur'))
+    expect(focusManager.isFocused()).toBe(false)
+
+    window.dispatchEvent(new Event('focus'))
+    expect(focusManager.isFocused()).toBe(true)
+  })
+
+  it('still follows the page becoming hidden and visible', () => {
+    uninstall = installWindowFocusListener()
+    const hidden = vi.spyOn(document, 'hidden', 'get')
+
+    hidden.mockReturnValue(true)
+    document.dispatchEvent(new Event('visibilitychange', { bubbles: true }))
+    expect(focusManager.isFocused()).toBe(false)
+
+    hidden.mockReturnValue(false)
+    document.dispatchEvent(new Event('visibilitychange', { bubbles: true }))
+    expect(focusManager.isFocused()).toBe(true)
+  })
+
+  it('refetches an opt-in query on refocus and leaves a default one alone', async () => {
+    uninstall = installWindowFocusListener()
+    client = createAppQueryClient()
+    client.mount()
+    const optIn = vi.fn(() => Promise.resolve('opt-in'))
+    const byDefault = vi.fn(() => Promise.resolve('default'))
+    const unsubscribe = [
+      new QueryObserver(client, {
+        queryKey: ['opt-in'],
+        queryFn: optIn,
+        refetchOnWindowFocus: true
+      }),
+      new QueryObserver(client, {
+        queryKey: ['default'],
+        queryFn: byDefault
+      })
+    ].map((observer) => observer.subscribe(() => {}))
+    await vi.waitFor(() => {
+      expect(optIn).toHaveBeenCalledTimes(1)
+      expect(byDefault).toHaveBeenCalledTimes(1)
+      expect(client!.isFetching()).toBe(0)
+    })
+
+    window.dispatchEvent(new Event('blur'))
+    window.dispatchEvent(new Event('focus'))
+
+    await vi.waitFor(() => {
+      expect(optIn).toHaveBeenCalledTimes(2)
+      expect(client!.isFetching()).toBe(0)
+    })
+    expect(byDefault).toHaveBeenCalledTimes(1)
+    unsubscribe.forEach((off) => {
+      off()
+    })
+  })
+
+  it('installing again replaces the listeners instead of adding to them', () => {
+    installWindowFocusListener()
+    const add = vi.spyOn(window, 'addEventListener')
+    const remove = vi.spyOn(window, 'removeEventListener')
+    uninstall = installWindowFocusListener()
+
+    for (const type of ['focus', 'blur', 'visibilitychange']) {
+      expect(callsFor(add, type)).toBe(1)
+      expect(callsFor(remove, type)).toBe(1)
+    }
+  })
+
+  it('the cleanup it returns removes the listeners', () => {
+    uninstall = installWindowFocusListener()
+    window.dispatchEvent(new Event('blur'))
+    expect(focusManager.isFocused()).toBe(false)
+    window.dispatchEvent(new Event('focus'))
+
+    uninstall()
+    window.dispatchEvent(new Event('blur'))
+
+    expect(focusManager.isFocused()).toBe(true)
   })
 })
