@@ -34,13 +34,13 @@ export const ALLOWLIST: AllowlistEntry[] = [
   {
     file: 'src/renderer/components/settings/settings-form/logger.tsx',
     text: 'traceId:',
-    line: 411,
+    line: 417,
     reason: 'Debug-only technical field label in the raw log inspector.'
   },
   {
     file: 'src/renderer/components/settings/settings-form/logger.tsx',
     text: 'originTraceId:',
-    line: 413,
+    line: 419,
     reason: 'Debug-only technical field label in the raw log inspector.'
   },
   {
