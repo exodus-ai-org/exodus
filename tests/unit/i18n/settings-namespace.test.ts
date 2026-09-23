@@ -68,7 +68,7 @@ describe('settings namespace (en)', () => {
     expect(settings.nav.dataControls.title).toBe('Data Controls')
     expect(settings.nav.logger.title).toBe('Logger')
     expect(settings.nav.keyboardShortcuts.title).toBe('Keyboard Shortcuts')
-    expect(settings.nav.about.title).toBe('About Exodus')
+    expect(settings.nav.about.title).toBe('About')
   })
 
   it('has the General colour-tone keys', () => {
