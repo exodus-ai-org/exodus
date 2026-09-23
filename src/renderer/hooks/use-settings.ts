@@ -34,7 +34,10 @@ export function useSettings() {
     // revalidating GET (`invalidateQueries`) would bring back a freshly-bumped
     // `updatedAt`, which echoes through `useForm({ values: settings })` → RHF
     // resets the form → watch fires for the timestamp field → autosave fires
-    // again → infinite POST/GET loop.
+    // again → infinite POST/GET loop. Cancel a GET already in flight first:
+    // setQueryData leaves it running, and it would land afterwards with the
+    // pre-save object and overwrite what was just saved.
+    await queryClient.cancelQueries({ queryKey: settingsKeys.all })
     queryClient.setQueryData(
       settingsKeys.all,
       (current: Settings | undefined) =>

@@ -63,6 +63,14 @@ async function mountSettled() {
   return { queryClient, api: () => latest! }
 }
 
+async function flushTasks() {
+  await act(async () => {
+    await new Promise((resolve) => {
+      setTimeout(resolve, 0)
+    })
+  })
+}
+
 describe('useSettings', () => {
   beforeEach(() => {
     fetcherMock.mockResolvedValue(initial)
@@ -85,11 +93,7 @@ describe('useSettings', () => {
     await act(async () => {
       await api().updateSettings(payload)
     })
-    await act(async () => {
-      await new Promise((resolve) => {
-        setTimeout(resolve, 0)
-      })
-    })
+    await flushTasks()
 
     expect(updateSettingsService).toHaveBeenCalledWith(payload)
     expect(queryClient.getQueryData<Settings>(settingsKeys.all)).toEqual({
@@ -124,7 +128,43 @@ describe('useSettings', () => {
     expect(sileoError).toHaveBeenCalledTimes(1)
     expect(sileoError).toHaveBeenCalledWith({
       title: 'settings:toast.saveFailed',
-      description: expect.any(String)
+      description: 'network down'
     })
+  })
+
+  it('a GET already in flight when the save lands cannot overwrite the saved cache', async () => {
+    updateSettingsService.mockResolvedValue(null)
+    const { queryClient, api } = await mountSettled()
+
+    let resolveStale!: (value: Settings) => void
+    fetcherMock.mockReturnValueOnce(
+      new Promise<Settings>((resolve) => {
+        resolveStale = resolve
+      })
+    )
+    await act(async () => {
+      void queryClient.refetchQueries({ queryKey: settingsKeys.all })
+      await Promise.resolve()
+    })
+    expect(fetcherMock).toHaveBeenCalledTimes(2)
+    expect(queryClient.getQueryState(settingsKeys.all)?.fetchStatus).toBe(
+      'fetching'
+    )
+
+    await act(async () => {
+      await api().updateSettings({ language: 'ja' } as unknown as Settings)
+    })
+    resolveStale(initial)
+    await flushTasks()
+
+    expect(queryClient.getQueryData<Settings>(settingsKeys.all)).toEqual({
+      language: 'ja',
+      updatedAt: '2026-01-01T00:00:00Z'
+    })
+    expect(fetcherMock).toHaveBeenCalledTimes(2)
+    expect(queryClient.getQueryState(settingsKeys.all)?.fetchStatus).toBe(
+      'idle'
+    )
+    expect(sileoSuccess).toHaveBeenCalledTimes(1)
   })
 })
