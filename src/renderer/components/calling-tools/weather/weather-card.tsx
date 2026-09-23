@@ -185,11 +185,8 @@ export function WeatherCard({ toolResult }: { toolResult: WeatherResult }) {
       </Morph>
 
       {/* open: the readings */}
-      <Reveal open={expanded}>
-        <dl
-          className="border-border grid grid-cols-3 gap-x-4 gap-y-3 border-t px-5 py-4"
-          data-testid={TEST_IDS.weatherCard.readings}
-        >
+      <Reveal open={expanded} data-testid={TEST_IDS.weatherCard.readings}>
+        <dl className="border-border grid grid-cols-3 gap-x-4 gap-y-3 border-t px-5 py-4">
           {readings.map(([label, reading], i) => (
             <div key={label} className={ROW_ENTER} style={staggerDelay(i)}>
               <dt className="text-muted-foreground text-[11px] leading-none">

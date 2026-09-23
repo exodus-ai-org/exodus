@@ -104,12 +104,12 @@ function ConfigurableRow({
           />
         </Button>
       </RowHead>
-      <Reveal open={open}>
-        <div
-          className="bg-muted/40 mt-4 rounded-lg px-4 py-4"
-          data-testid={TEST_IDS.tools.panel}
-          data-tool={row.tool.key}
-        >
+      <Reveal
+        open={open}
+        data-testid={TEST_IDS.tools.panel}
+        data-tool={row.tool.key}
+      >
+        <div className="bg-muted/40 mt-4 rounded-lg px-4 py-4">
           <config.Panel form={form} />
         </div>
       </Reveal>

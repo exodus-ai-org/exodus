@@ -1,4 +1,10 @@
-import { useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import {
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ComponentPropsWithoutRef,
+  type ReactNode
+} from 'react'
 
 import { cn } from '@/lib/utils'
 
@@ -58,21 +64,36 @@ export function Morph({
   )
 }
 
-/** A section growing from nothing: `grid-template-rows` 0fr → 1fr. */
+/**
+ * A section growing from nothing: `grid-template-rows` 0fr → 1fr. This outer
+ * div is the one whose own layout box truly goes to 0×0 (the CSS grid track
+ * collapses, and `min-h-0 overflow-hidden` on the inner one lets it shrink
+ * below its content's size) — it is genuinely gone, not just painted
+ * transparent. The children do NOT shrink themselves; they are only clipped
+ * by the ancestor's `overflow: hidden`, so their own bounding box stays at
+ * full size even while closed. A test asserting visible/hidden (Playwright's
+ * `toBeVisible()` checks only the target's own box, never an ancestor's
+ * clipping) must target *this* element — pass `data-testid` here, never on
+ * the content — or it will see the clipped content as "visible" throughout.
+ */
 export function Reveal({
   open,
-  children
+  children,
+  className,
+  ...rest
 }: {
   open: boolean
   children: ReactNode
-}) {
+} & Omit<ComponentPropsWithoutRef<'div'>, 'children'>) {
   return (
     <div
+      {...rest}
       inert={!open}
       data-open={open || undefined}
       className={cn(
         'grid transition-[grid-template-rows] duration-250 ease-out',
-        open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+        open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+        className
       )}
     >
       <div
