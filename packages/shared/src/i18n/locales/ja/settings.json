@@ -123,11 +123,14 @@
       "open-settings": {
         "label": "設定を開く"
       },
-      "toggle-sidebar": {
-        "label": "サイドバーの表示切り替え"
+      "lock-now": {
+        "label": "今すぐロック"
       },
       "toggle-developer-tools": {
         "label": "デベロッパーツールの表示切り替え"
+      },
+      "toggle-sidebar": {
+        "label": "サイドバーの表示切り替え"
       },
       "force-refresh-page": {
         "label": "ページを強制的に再読み込み"

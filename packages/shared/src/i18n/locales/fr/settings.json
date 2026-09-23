@@ -123,11 +123,14 @@
       "open-settings": {
         "label": "Ouvrir les paramètres"
       },
-      "toggle-sidebar": {
-        "label": "Afficher/masquer la barre latérale"
+      "lock-now": {
+        "label": "Verrouiller maintenant"
       },
       "toggle-developer-tools": {
         "label": "Afficher/masquer les outils de développement"
+      },
+      "toggle-sidebar": {
+        "label": "Afficher/masquer la barre latérale"
       },
       "force-refresh-page": {
         "label": "Forcer l'actualisation de la page"

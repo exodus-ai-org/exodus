@@ -123,11 +123,14 @@
       "open-settings": {
         "label": "Einstellungen öffnen"
       },
-      "toggle-sidebar": {
-        "label": "Seitenleiste ein-/ausblenden"
+      "lock-now": {
+        "label": "Jetzt sperren"
       },
       "toggle-developer-tools": {
         "label": "Entwicklertools ein-/ausblenden"
+      },
+      "toggle-sidebar": {
+        "label": "Seitenleiste ein-/ausblenden"
       },
       "force-refresh-page": {
         "label": "Seite erzwungen neu laden"

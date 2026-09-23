@@ -119,6 +119,9 @@ describe('settings namespace (en)', () => {
     expect(
       settings.keyboardShortcuts.shortcuts['force-refresh-page'].label
     ).toBe('Force refresh page')
+    expect(settings.keyboardShortcuts.shortcuts['lock-now'].label).toBe(
+      'Lock now'
+    )
     expect(settings.keyboardShortcuts.shortcuts['find-in-page'].label).toBe(
       'Find in page'
     )

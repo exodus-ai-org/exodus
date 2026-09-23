@@ -123,11 +123,14 @@
       "open-settings": {
         "label": "Abrir configuración"
       },
-      "toggle-sidebar": {
-        "label": "Alternar barra lateral"
+      "lock-now": {
+        "label": "Bloquear ahora"
       },
       "toggle-developer-tools": {
         "label": "Alternar herramientas de desarrollador"
+      },
+      "toggle-sidebar": {
+        "label": "Alternar barra lateral"
       },
       "force-refresh-page": {
         "label": "Forzar actualización de la página"

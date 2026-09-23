@@ -123,11 +123,14 @@
       "open-settings": {
         "label": "開啟設定"
       },
-      "toggle-sidebar": {
-        "label": "切換側邊欄"
+      "lock-now": {
+        "label": "立即鎖定"
       },
       "toggle-developer-tools": {
         "label": "切換開發者工具"
+      },
+      "toggle-sidebar": {
+        "label": "切換側邊欄"
       },
       "force-refresh-page": {
         "label": "強制重新整理頁面"

@@ -123,11 +123,14 @@
       "open-settings": {
         "label": "Open settings"
       },
-      "toggle-sidebar": {
-        "label": "Toggle sidebar"
+      "lock-now": {
+        "label": "Lock now"
       },
       "toggle-developer-tools": {
         "label": "Toggle developer tools"
+      },
+      "toggle-sidebar": {
+        "label": "Toggle sidebar"
       },
       "force-refresh-page": {
         "label": "Force refresh page"

@@ -123,11 +123,14 @@
       "open-settings": {
         "label": "Apri impostazioni"
       },
-      "toggle-sidebar": {
-        "label": "Mostra/nascondi barra laterale"
+      "lock-now": {
+        "label": "Blocca ora"
       },
       "toggle-developer-tools": {
         "label": "Mostra/nascondi strumenti sviluppatore"
+      },
+      "toggle-sidebar": {
+        "label": "Mostra/nascondi barra laterale"
       },
       "force-refresh-page": {
         "label": "Forza ricaricamento pagina"
