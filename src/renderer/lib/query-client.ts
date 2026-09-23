@@ -50,8 +50,12 @@ export function createAppQueryClient(): QueryClient {
         // SWR's default: don't treat a background read failure as fatal to
         // the UI, and don't hammer the server — React Query's own default
         // (3 retries, exponential backoff) is fine to keep as-is.
-        refetchOnWindowFocus: false
-      }
+        refetchOnWindowFocus: false,
+        // The API is on localhost, so connectivity is irrelevant.
+        networkMode: 'always',
+        refetchOnReconnect: false
+      },
+      mutations: { networkMode: 'always' }
     }
   })
 }
