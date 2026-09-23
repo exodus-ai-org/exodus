@@ -93,7 +93,7 @@ export function DataControls() {
           description={t('settings:dataControls.autoBackup.description')}
         >
           <Switch
-            checked={backupStatus?.autoBackup ?? true}
+            checked={settings?.autoBackup ?? true}
             onCheckedChange={handleToggleAutoBackup}
           />
         </SettingsRow>
