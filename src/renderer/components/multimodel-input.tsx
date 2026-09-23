@@ -1,3 +1,4 @@
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { useAtom, useAtomValue } from 'jotai'
 import { ArrowUpIcon, SquareIcon } from 'lucide-react'
 import {
@@ -135,6 +136,7 @@ function InputBox({
           */}
           <Textarea
             ref={textareaRef}
+            data-testid={TEST_IDS.composer.textarea}
             placeholder={t('composer.placeholder')}
             value={input}
             onChange={handleInput}

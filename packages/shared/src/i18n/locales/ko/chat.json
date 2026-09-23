@@ -259,5 +259,15 @@
   "run": {
     "error": "이 답변은 오류로 중단되었습니다: {{message}}"
   },
-  "renderFailed": "{{what}}을(를) 표시할 수 없습니다."
+  "renderFailed": "{{what}}을(를) 표시할 수 없습니다.",
+  "findInPage": {
+    "placeholder": "페이지에서 찾기…",
+    "noResults": "결과 없음",
+    "previous": "이전 결과 (Shift+Enter)",
+    "next": "다음 결과 (Enter)",
+    "close": "닫기 (Esc)"
+  },
+  "quickChat": {
+    "placeholder": "오늘은 무엇을 도와드릴까요?"
+  }
 }

@@ -1,9 +1,12 @@
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
+import { useHotkeys } from '@tanstack/react-hotkeys'
 import type { ParseKeys } from 'i18next'
 import { useSetAtom } from 'jotai'
-import { useCallback, useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router'
 
 import { useSettings } from '@/hooks/use-settings'
+import { closeSearchbar } from '@/lib/ipc'
 import { isFullTextSearchVisibleAtom, openTabsAtom } from '@/stores/chat'
 
 const isMac = navigator.platform.toUpperCase().includes('MAC')
@@ -135,12 +138,12 @@ export const CATEGORY_TITLE_KEYS = {
   Search: 'keyboardShortcuts.category.search'
 } as const satisfies Record<ShortcutDef['category'], ParseKeys<'settings'>>
 
-function isModKey(e: KeyboardEvent) {
-  return isMac ? e.metaKey : e.ctrlKey
-}
-
 /**
  * Central keyboard shortcuts listener. Mount once at the ChatLayout level.
+ * Backed by TanStack Hotkeys' singleton manager — no manual addEventListener
+ * bookkeeping, and `ignoreInputs` replaces the hand-rolled input-focus check.
+ * `stopPropagation: false` keeps the keydown reaching other window-level
+ * listeners (the idle-lock activity tracker in `use-lock.ts` sees every key).
  */
 export function useKeyboardShortcuts() {
   const navigate = useNavigate()
@@ -152,89 +155,75 @@ export function useKeyboardShortcuts() {
     [settings?.keyboardShortcuts?.disabled]
   )
 
-  const handler = useCallback(
-    (e: KeyboardEvent) => {
-      // Ignore events inside contentEditable / CodeMirror etc.
-      const tag = (e.target as HTMLElement)?.tagName
-      const isInput = tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
-
-      // --- Escape: always works ---
-      if (e.key === 'Escape') {
-        if (disabled.has('close-find-bar')) return
-        window.electron.ipcRenderer.invoke('close-search-bar')
-        return
-      }
-
-      // --- Mod-key combos ---
-      if (!isModKey(e)) return
-
-      const key = e.key.toLowerCase()
-
-      // Mod+Shift combos
-      if (e.shiftKey) {
-        if (key === 'f') {
-          if (disabled.has('search-chat-history')) return
-          e.preventDefault()
-          setSearchVisible(true)
-          return
+  useHotkeys(
+    [
+      {
+        // Closes the find bar, which lives in its own view (see window.ts): the
+        // main window only relays the keypress when it has focus.
+        hotkey: 'Escape',
+        callback: () => {
+          void closeSearchbar()
+        },
+        options: {
+          enabled: !disabled.has('close-find-bar'),
+          preventDefault: false,
+          conflictBehavior: 'allow'
         }
-        if (key === 'e') {
-          if (disabled.has('focus-chat-input')) return
-          e.preventDefault()
-          const textarea = document.querySelector<HTMLTextAreaElement>(
-            'textarea[placeholder="Send a message..."]'
-          )
-          textarea?.focus()
-          return
-        }
-        return
+      },
+      {
+        // Skips inputs to match the app's existing convention that Mod+N
+        // shouldn't fire while the user is mid-typing (Mod+W/Shift+F/Shift+E
+        // are the deliberate exceptions below).
+        hotkey: 'Mod+N',
+        callback: () => navigate('/'),
+        options: { enabled: !disabled.has('new-chat'), ignoreInputs: true }
+      },
+      {
+        hotkey: 'Mod+,',
+        callback: () => navigate('/settings'),
+        options: { enabled: !disabled.has('open-settings'), ignoreInputs: true }
+      },
+      {
+        // Always works, including while typing — closing/switching tabs from
+        // the composer is the whole point.
+        hotkey: 'Mod+W',
+        callback: () => {
+          // Extract active tab id from URL hash: #/chat/:id
+          const match = window.location.hash.match(/^#\/chat\/(.+)$/)
+          if (!match) return
+          const activeId = match[1]
+          setOpenTabs((prev) => {
+            const idx = prev.findIndex((t) => t.id === activeId)
+            if (idx === -1) return prev
+            const next = prev.filter((t) => t.id !== activeId)
+            if (next.length > 0) {
+              const target = next[Math.max(0, idx - 1)]
+              navigate(`/chat/${target.id}`)
+            } else {
+              navigate('/')
+            }
+            return next
+          })
+        },
+        options: { enabled: !disabled.has('close-tab') }
+      },
+      {
+        hotkey: 'Mod+Shift+F',
+        callback: () => setSearchVisible(true),
+        options: { enabled: !disabled.has('search-chat-history') }
+      },
+      {
+        hotkey: 'Mod+Shift+E',
+        callback: () => {
+          document
+            .querySelector<HTMLTextAreaElement>(
+              `[data-testid='${TEST_IDS.composer.textarea}']`
+            )
+            ?.focus()
+        },
+        options: { enabled: !disabled.has('focus-chat-input') }
       }
-
-      // Mod-only combos (skip if typing in inputs, except Mod+W which always works)
-      if (key === 'w') {
-        if (disabled.has('close-tab')) return
-        e.preventDefault()
-        // Extract active tab id from URL hash: #/chat/:id
-        const match = window.location.hash.match(/^#\/chat\/(.+)$/)
-        if (!match) return
-        const activeId = match[1]
-        setOpenTabs((prev) => {
-          const idx = prev.findIndex((t) => t.id === activeId)
-          if (idx === -1) return prev
-          const next = prev.filter((t) => t.id !== activeId)
-          if (next.length > 0) {
-            const target = next[Math.max(0, idx - 1)]
-            navigate(`/chat/${target.id}`)
-          } else {
-            navigate('/')
-          }
-          return next
-        })
-        return
-      }
-
-      // For remaining shortcuts, skip if focused in an input
-      if (isInput) return
-
-      if (key === 'n') {
-        if (disabled.has('new-chat')) return
-        e.preventDefault()
-        navigate('/')
-        return
-      }
-
-      if (key === ',') {
-        if (disabled.has('open-settings')) return
-        e.preventDefault()
-        navigate('/settings')
-        return
-      }
-    },
-    [navigate, setSearchVisible, setOpenTabs, disabled]
+    ],
+    { stopPropagation: false }
   )
-
-  useEffect(() => {
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [handler])
 }

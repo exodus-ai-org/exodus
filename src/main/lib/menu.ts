@@ -1,15 +1,9 @@
 import { EXODUS_WEBSITE } from '@exodus/shared/constants/external-urls'
-import {
-  app,
-  BrowserWindow,
-  Menu,
-  MenuItemConstructorOptions,
-  shell
-} from 'electron'
+import { app, Menu, MenuItemConstructorOptions, shell } from 'electron'
 
 import { mainT } from './i18n'
 import { getLockManager } from './lock/lock-manager'
-import { getMainWindow, raiseMainWindow, registerSearchMenu } from './window'
+import { getMainWindow, openSearchBar, raiseMainWindow } from './window'
 
 const isMac = process.platform === 'darwin'
 
@@ -87,11 +81,7 @@ export function buildMenu(): MenuItemConstructorOptions[] {
         {
           label: mainT('menu:find', 'Find'),
           accelerator: 'CmdOrCtrl+F',
-          click: () => {
-            const mainWindow = BrowserWindow.getFocusedWindow()
-            if (!mainWindow) return
-            registerSearchMenu(mainWindow)
-          }
+          click: () => openSearchBar()
         },
         { role: 'undo' },
         { role: 'redo' },

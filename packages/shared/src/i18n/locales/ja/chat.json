@@ -259,5 +259,15 @@
   "run": {
     "error": "この回答はエラーで中断しました: {{message}}"
   },
-  "renderFailed": "{{what}} を表示できませんでした。"
+  "renderFailed": "{{what}} を表示できませんでした。",
+  "findInPage": {
+    "placeholder": "ページ内を検索…",
+    "noResults": "見つかりません",
+    "previous": "前の検索結果 (Shift+Enter)",
+    "next": "次の検索結果 (Enter)",
+    "close": "閉じる (Esc)"
+  },
+  "quickChat": {
+    "placeholder": "今日はどのようなご用件ですか？"
+  }
 }

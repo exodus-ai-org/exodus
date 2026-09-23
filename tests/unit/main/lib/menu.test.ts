@@ -16,7 +16,7 @@ const raiseMainWindow = vi.fn()
 vi.mock('@main/lib/window', () => ({
   getMainWindow: () => ({ webContents: { send } }),
   raiseMainWindow,
-  registerSearchMenu: vi.fn()
+  openSearchBar: vi.fn()
 }))
 
 /** A menu item by label, one level deep — every submenu here is flat enough. */

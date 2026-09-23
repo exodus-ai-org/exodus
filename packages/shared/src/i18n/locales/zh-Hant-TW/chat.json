@@ -259,5 +259,15 @@
   "run": {
     "error": "此回覆因錯誤而中斷：{{message}}"
   },
-  "renderFailed": "無法顯示{{what}}。"
+  "renderFailed": "無法顯示{{what}}。",
+  "findInPage": {
+    "placeholder": "在頁面中尋找…",
+    "noResults": "沒有結果",
+    "previous": "上一個符合項目 (Shift+Enter)",
+    "next": "下一個符合項目 (Enter)",
+    "close": "關閉 (Esc)"
+  },
+  "quickChat": {
+    "placeholder": "今天有什麼我可以幫你的嗎？"
+  }
 }

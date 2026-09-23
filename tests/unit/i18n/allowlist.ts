@@ -22,7 +22,7 @@ export const ALLOWLIST: AllowlistEntry[] = [
   {
     file: 'src/renderer/components/calling-tools/artifact/artifact-card.tsx',
     text: 'artifact://',
-    line: 132,
+    line: 133,
     reason: "The app's own URI scheme prefix, not user-facing prose."
   },
   {
