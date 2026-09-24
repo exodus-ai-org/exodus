@@ -395,7 +395,7 @@
         "description": "Retrieve context from your knowledge base (requires a configured LightRAG URL)"
       },
       "updateMemory": {
-        "label": "Update memory",
+        "label": "Update Memory",
         "description": "Lets the assistant correct, add or remove memories when you tell it something about you is wrong."
       },
       "mapItinerary": {

@@ -188,20 +188,27 @@ chat.post('/', async (c) => {
         .then((assembled) => assembled.messages.slice(0, -1))
     : Promise.resolve(allMessages.slice(0, -1).map(stripId))
 
-  const memoryPromise: Promise<MemoryRow[]> = memoryUseInChat
-    ? loadRelevantMemories(
-        getTextFromMessage(userMessage),
-        model,
-        apiKey,
-        id,
-        userMessage.id
-      ).catch((err) => {
-        logger.warn('chat', 'Memory loading failed, continuing without', {
-          error: String(err)
+  // Deep Research runs on its own boot prompt, which carries no
+  // `<user_memory>` block — so it gets no read filter either: no LLM call,
+  // no usage-log rows, no `lastUsedAt` bump and no `memories_used` claiming
+  // memories the reply never saw.
+  const isDeepResearch =
+    advancedTools?.includes(AdvancedTools.DeepResearch) ?? false
+  const memoryPromise: Promise<MemoryRow[]> =
+    memoryUseInChat && !isDeepResearch
+      ? loadRelevantMemories(
+          getTextFromMessage(userMessage),
+          model,
+          apiKey,
+          id,
+          userMessage.id
+        ).catch((err) => {
+          logger.warn('chat', 'Memory loading failed, continuing without', {
+            error: String(err)
+          })
+          return []
         })
-        return []
-      })
-    : Promise.resolve([])
+      : Promise.resolve([])
 
   const mcpPromise = getMcpTools()
 
@@ -250,10 +257,10 @@ chat.post('/', async (c) => {
   const personalityPrompt = buildPersonalityPrompt(setting)
   const skillsIndex = await getActiveSkillsIndex()
   logger.info('chat', 'skill injection', {
-    deepResearch: advancedTools?.includes(AdvancedTools.DeepResearch) ?? false,
+    deepResearch: isDeepResearch,
     skills: skillsIndex ? skillsIndex.split('\n').length : 0
   })
-  const systemContent = advancedTools?.includes(AdvancedTools.DeepResearch)
+  const systemContent = isDeepResearch
     ? deepResearchBootPrompt
     : getSystemPrompt({
         mcpDirectory: mcpDirectory(mcpTools),
@@ -267,7 +274,7 @@ chat.post('/', async (c) => {
   // Deep Research forces a strong reasoning effort regardless of what the
   // composer's picker requested. pi's ThinkingLevel has every tier of the
   // app's EffortLevel but 'off', which is "no reasoning option".
-  const effectiveReasoning = advancedTools?.includes(AdvancedTools.DeepResearch)
+  const effectiveReasoning = isDeepResearch
     ? 'high'
     : reasoningEffort && reasoningEffort !== 'off'
       ? reasoningEffort

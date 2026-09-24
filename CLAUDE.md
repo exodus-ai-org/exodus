@@ -632,8 +632,9 @@ A durable, topic-consolidated memory of the user. Key functions:
    `{ applied, changes: MemoryChange[] }` (`MemoryChange`/`MemorySnapshot` in
    `packages/shared/src/types/memory.ts`): `before`/`after` snapshots per
    change, `null` for a create's `before` or a delete's `after`. The
-   `update_memory` tool (`calling-tools/update-memory.ts`, bound whenever a
-   chat has a model + key) calls it directly and synchronously, with no
+   `update_memory` tool (`calling-tools/update-memory.ts`, bound for a chat
+   with a model and key, except in Deep Research or when switched off in
+   Built-in Tools) calls it directly and synchronously, with no
    scope — the model corrects, adds or forgets something without asking
    first (the system prompt's autonomy policy); "no change needed" is a
    normal result, not an error, and draws no UI. `POST /api/v1/memory/undo`
@@ -646,7 +647,8 @@ A durable, topic-consolidated memory of the user. Key functions:
 
 **Which memories a run used**: the chat route sends `{ type: 'memories_used',
 runId, memories: [{ id, key, section }] }` over SSE before the first frame,
-whenever the read filter selected something; `GET /api/v1/memory/usage?chatId=`
+whenever the read filter selected something (Deep Research runs no read
+filter — its prompt carries no memories); `GET /api/v1/memory/usage?chatId=`
 (`getMemoryUsageByChat()`) replays the same shape per run for a chat reopened
 from history, grouped by `runId` (a pre-migration row with a null `runId` is
 skipped, not shown). Renderer: `hooks/use-memory.ts` (`useMemories`,

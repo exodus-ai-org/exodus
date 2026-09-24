@@ -236,6 +236,34 @@ describe('POST /api/v1/chat on the faux provider', () => {
     })
   })
 
+  it('in Deep Research mode runs no read filter and sends no memories_used — its prompt carries no memories', async () => {
+    const faux = registerFauxProvider()
+    faux.setResponses([fauxAssistantMessage([fauxText('Researching.')])])
+    getModelFromProviderMock.mockReturnValue({
+      model: faux.getModel(),
+      apiKey: 'k'
+    })
+    vi.mocked(loadRelevantMemories).mockResolvedValue([
+      { id: 'mem-1', key: 'Classical Music', section: 'topic' } as never
+    ])
+
+    const response = await buildAppMemoryOn().request('/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: CHAT_ID,
+        messages: [{ id: USER_ID, role: 'user', content: 'hi', timestamp: 1 }],
+        advancedTools: ['Deep Research']
+      })
+    })
+    const events = sseEvents(await response.text())
+
+    // No read filter means no usage-log rows and no lastUsedAt bump either —
+    // those happen inside loadRelevantMemories.
+    expect(loadRelevantMemories).not.toHaveBeenCalled()
+    expect(events.some((e) => e.type === 'memories_used')).toBe(false)
+  })
+
   it('sends no memories_used event when the read filter selected nothing', async () => {
     const faux = registerFauxProvider()
     faux.setResponses([fauxAssistantMessage([fauxText('Sunny.')])])

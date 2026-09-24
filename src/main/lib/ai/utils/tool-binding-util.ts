@@ -118,7 +118,7 @@ export function bindCallingTools({
 
   // MCP servers are reached through the two-tool toolbox, never bound one
   // by one: providers cap the tools array (OpenAI: 128) and a single server
-  // can exceed that alone. 19 built-ins plus two sit far below every limit.
+  // can exceed that alone. 20 built-ins plus two sit far below every limit.
   if (mcpTools.length > 0) tools.push(...mcpToolbox(mcpTools))
 
   return tools

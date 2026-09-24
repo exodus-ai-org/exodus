@@ -1,9 +1,19 @@
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
 import type { Model } from '@earendil-works/pi-ai'
 import type { MemoryChange } from '@exodus/shared/types/memory'
 import { describe, expect, it, vi } from 'vitest'
 
 const runMemoryInstruction = vi.fn()
 vi.mock('@main/lib/ai/memory/manager', () => ({ runMemoryInstruction }))
+
+const enSettings = JSON.parse(
+  readFileSync(
+    join(process.cwd(), 'packages/shared/src/i18n/locales/en/settings.json'),
+    'utf8'
+  )
+)
 
 const { updateMemory } =
   await import('@main/lib/ai/calling-tools/update-memory')
@@ -74,6 +84,25 @@ describe('updateMemory tool', () => {
       type: 'text',
       text: "Deleted 'Old address'."
     })
+  })
+
+  it('lowercases every later op label, capitalising only the first', async () => {
+    runMemoryInstruction.mockResolvedValue({
+      applied: 3,
+      changes: [del('Old address'), update('Work setup'), create('New hobby')]
+    })
+    const tool = updateMemory(model, 'k')
+    const result = await tool.execute('call-2b', { instruction: 'tidy up' })
+    expect(result.content[0]).toEqual({
+      type: 'text',
+      text: "Deleted 'Old address'; updated 'Work setup'; added 'New hobby'."
+    })
+  })
+
+  it('has the Title Case label every other built-in has', () => {
+    expect(updateMemory(model, 'k').label).toBe('Update Memory')
+    // …and so does its row in Settings → Built-in Tools (English catalog).
+    expect(enSettings.tools.registry.updateMemory.label).toBe('Update Memory')
   })
 
   it('reports a create with "Added"', async () => {

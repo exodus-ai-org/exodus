@@ -17,17 +17,19 @@ const updateMemorySchema = Type.Object({
 function opLabel(op: MemoryChange['op']): string {
   switch (op) {
     case 'create':
-      return 'Added'
+      return 'added'
     case 'update':
-      return 'Updated'
+      return 'updated'
     case 'delete':
       return 'deleted'
   }
 }
 
 /** "Updated 'Work setup'; deleted 'Old address'." — or "No memory change
- *  was needed." when nothing changed. The key comes from `after` (its
- *  value post-change) falling back to `before` for a delete. */
+ *  was needed." when nothing changed. Every op label is lowercase and only
+ *  the sentence's first character is capitalised, whichever op comes first.
+ *  The key comes from `after` (its value post-change) falling back to
+ *  `before` for a delete. */
 function summarize(changes: MemoryChange[]): string {
   if (changes.length === 0) return 'No memory change was needed.'
   const text = changes
@@ -42,8 +44,9 @@ function summarize(changes: MemoryChange[]): string {
 /**
  * Lets the model correct, add or remove what it knows about the user
  * mid-conversation, reusing the same instruction engine as Settings →
- * Memory's instruction box. Bound only for chats that have a model and API
- * key (`tool-binding-util.ts`) — Philharmonic keeps its own agent memory.
+ * Memory's instruction box. Bound only for a chat with a model and API key,
+ * except in Deep Research or when switched off in Built-in Tools
+ * (`tool-binding-util.ts`) — Philharmonic keeps its own agent memory.
  */
 export function updateMemory(
   model: Model<string>,
@@ -51,7 +54,7 @@ export function updateMemory(
 ): AgentTool<typeof updateMemorySchema> {
   return {
     name: TOOL_NAMES.updateMemory,
-    label: 'Update memory',
+    label: 'Update Memory',
     description:
       "Change the user's long-term memory: correct, add or remove what you know about them. " +
       'Call it when the user corrects something you know about them, or asks you to remember or forget something.',

@@ -36,12 +36,29 @@ const memorySnapshotSchema = z.object({
   isActive: z.boolean()
 })
 
-const memoryChangeSchema = z.object({
-  op: z.enum(['create', 'update', 'delete']),
-  id: z.string(),
-  before: memorySnapshotSchema.nullable(),
-  after: memorySnapshotSchema.nullable()
-})
+// Each op carries exactly the snapshots its reversal reads: a create has no
+// `before`, a delete no `after`, an update both. Ids are uuids — anything else
+// is a 400 here rather than a Postgres "invalid input syntax" 500 later.
+const memoryChangeSchema = z.discriminatedUnion('op', [
+  z.object({
+    op: z.literal('create'),
+    id: z.uuid(),
+    before: z.null(),
+    after: memorySnapshotSchema
+  }),
+  z.object({
+    op: z.literal('update'),
+    id: z.uuid(),
+    before: memorySnapshotSchema,
+    after: memorySnapshotSchema
+  }),
+  z.object({
+    op: z.literal('delete'),
+    id: z.uuid(),
+    before: memorySnapshotSchema,
+    after: z.null()
+  })
+])
 
 const undoRequestSchema = z.object({
   changes: z.array(memoryChangeSchema)
@@ -78,7 +95,11 @@ memoryRouter.post('/undo', async (c) => {
 // GET /api/v1/memory/usage?chatId= — which memories each run of a chat used.
 // Registered ahead of the /:id routes below, same as every other non-:id path.
 memoryRouter.get('/usage', async (c) => {
-  const chatId = getRequiredQuery(c, 'chatId')
+  const chatId = validateSchema(
+    z.uuid(),
+    getRequiredQuery(c, 'chatId'),
+    'chatId must be a uuid'
+  )
   const usage = await handleDatabaseOperation(
     () => getMemoryUsageByChat(chatId),
     'Failed to load memory usage'

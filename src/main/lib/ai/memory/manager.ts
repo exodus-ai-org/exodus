@@ -140,7 +140,8 @@ const MEMORY_MODEL = `A memory entry is ONE topic / person / profile-area:
 - summary: a compact noun phrase naming what the entry covers — NOT a sentence, no "User is…". e.g. "Japanese equities trading, thesis, and analytical frameworks"
 - details: 2–5 bullets, each ONE durable, self-contained fact about the user, stated at a level that stays true for months — what they do, own, use, track, or have decided. Lead with specifics: names, tickers, tools, frameworks, places. Never a single purchase or one-time event, a backstory anecdote, a wish ("would like to see…"), or how they want answers formatted. Drop hedges ("interested in", "finds useful", "wants"). Merge and prune aggressively; never past 5.`
 
-const CONSOLIDATE_SYSTEM = `You maintain a durable, long-term memory of the user across conversations.
+/** Exported for the faux-boot marker test only. */
+export const CONSOLIDATE_SYSTEM = `You maintain a durable, long-term memory of the user across conversations.
 
 You are given the latest conversation and the current memory index. Decide what — if anything — to change. The default is to change NOTHING: almost every conversation teaches nothing worth keeping. The running context of THIS conversation is handled elsewhere — your only job is the handful of facts that will still change how you help this person in unrelated chats months from now.
 
@@ -174,7 +175,8 @@ Respond ONLY with a JSON object:
 
 Return { "operations": [] } when nothing durable was learned — this is the common case. Never invent an id — only use ids from the index.`
 
-const INSTRUCTION_SYSTEM = `You edit the user's long-term memory from a direct instruction. They are looking at their memory and telling you what to add, change, or remove.
+/** Exported for the faux-boot marker test only. */
+export const INSTRUCTION_SYSTEM = `You edit the user's long-term memory from a direct instruction. They are looking at their memory and telling you what to add, change, or remove.
 
 ${MEMORY_MODEL}
 
@@ -377,7 +379,8 @@ export async function runMemoryInstruction(
 
 // ─── Read filter ──────────────────────────────────────────────────────────────
 
-const READ_FILTER_SYSTEM = `You select which memory entries are directly relevant to a user's message.
+/** Exported for the faux-boot marker test only. */
+export const READ_FILTER_SYSTEM = `You select which memory entries are directly relevant to a user's message.
 Be conservative: only pick entries that would NOTICEABLY improve the reply.
 Respond ONLY with JSON: { "selectedMemoryIds": ["id1", "id2"] }
 If nothing is relevant: { "selectedMemoryIds": [] }`

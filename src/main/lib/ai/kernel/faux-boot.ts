@@ -30,14 +30,21 @@ const UUID_RE =
 // The engine's own system prompts (`src/main/lib/ai/memory/manager.ts`) and
 // the title generator's (`prompts.ts`) — matched by a stable substring so a
 // wording tweak elsewhere doesn't need mirroring here.
-const TITLE_SYSTEM_MARKER = 'you will generate a short title'
-const READ_FILTER_MARKER =
-  'You select which memory entries are directly relevant'
-const INSTRUCTION_MARKER =
-  "You edit the user's long-term memory from a direct instruction"
-const CONSOLIDATE_MARKER =
-  'You maintain a durable, long-term memory of the user'
-const USER_MEMORY_MARKER = '<user_memory>'
+// `tests/unit/main/lib/ai/kernel/faux-boot-markers.test.ts` pins each one to
+// the live prompt, so a rewording that drops a marker fails a unit test
+// instead of misrouting an e2e call.
+export const FAUX_PROMPT_MARKERS = {
+  title: 'you will generate a short title',
+  readFilter: 'You select which memory entries are directly relevant',
+  instruction: "You edit the user's long-term memory from a direct instruction",
+  consolidate: 'You maintain a durable, long-term memory of the user',
+  userMemory: '<user_memory>'
+} as const
+const TITLE_SYSTEM_MARKER = FAUX_PROMPT_MARKERS.title
+const READ_FILTER_MARKER = FAUX_PROMPT_MARKERS.readFilter
+const INSTRUCTION_MARKER = FAUX_PROMPT_MARKERS.instruction
+const CONSOLIDATE_MARKER = FAUX_PROMPT_MARKERS.consolidate
+const USER_MEMORY_MARKER = FAUX_PROMPT_MARKERS.userMemory
 
 function textOf(message: Message): string {
   if (typeof message.content === 'string') return message.content
