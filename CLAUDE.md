@@ -1384,7 +1384,10 @@ Main process:
   (every current secret value, and masking them out of copied text). A
   startup self-check turns encryption off if `safeStorage` output is not a
   recognizable envelope. An MCP row that did not fully decrypt carries
-  `mcpDecryptFailures()` and is never connected (`ai/mcp.ts`)
+  `mcpDecryptFailures()` and is never connected (`ai/mcp.ts`); a save keeps
+  what did not decrypt, and writes what it leaves unchanged as stored, never
+  as the plaintext it opened to (`keepStoredMcpForms`, fail closed while
+  encryption is unavailable)
 - `src/main/lib/security.ts` — renderer hardening (`hardenRenderers()`:
   navigation guard, window-open handler, permission handler) and
   `openExternalSafely` / `isSafeExternalUrl`

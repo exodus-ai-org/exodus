@@ -134,8 +134,32 @@ export function prepareSettingsWrite<T extends object>(
     }
   }
 
+  keepUnchangedAsStored(restored, stored)
   encryptSettingsSecretsInPlace(restored)
   return restored
+}
+
+/**
+ * Fail closed (ruling R2-2): a value the write leaves unchanged — a mask
+ * posted back, restored to the stored plaintext above — is written as it is
+ * stored, not as the plaintext it opened to. Normally that is the same
+ * ciphertext encryption would produce again; while encryption is
+ * unavailable (no backend, or a failed envelope self-check) it is the only
+ * thing that keeps a key that is an envelope at rest from being written back
+ * in the clear. A new value is written as typed (and encrypted when it can).
+ */
+function keepUnchangedAsStored(
+  write: object,
+  stored: StoredSettingsState
+): void {
+  for (const path of SETTINGS_SECRET_PATHS) {
+    const at = parentOf(write, path)
+    const v = at?.parent[at.key]
+    if (!at || typeof v !== 'string' || v === '') continue
+    if (v !== getAtPath(stored.plain, path)) continue
+    const raw = getAtPath(stored.raw, path)
+    if (typeof raw === 'string') at.parent[at.key] = raw
+  }
 }
 
 // ─── mcp_server ──────────────────────────────────────────────────────────────
@@ -469,4 +493,123 @@ export function prepareMcpUpdate<T extends McpWriteBody>(
     )
   }
   return restored
+}
+
+// ─── what a save keeps as stored (rulings R2-1 / R2-2) ───────────────────────
+
+type McpStoredRow = McpSecretColumns & {
+  command?: string | null
+  transportType?: string | null
+}
+
+const argsUnset = (v: unknown): boolean =>
+  v === null || (Array.isArray(v) && v.length === 0)
+
+/** A value's stored (raw) form in place of an unchanged plaintext, at any depth. */
+function keepUnchangedLeaves(
+  write: unknown,
+  plain: unknown,
+  raw: unknown
+): unknown {
+  if (Array.isArray(write)) {
+    return write.map((w, i) =>
+      keepUnchangedLeaves(
+        w,
+        Array.isArray(plain) ? plain[i] : undefined,
+        Array.isArray(raw) ? raw[i] : undefined
+      )
+    )
+  }
+  if (isPlainObject(write)) {
+    return Object.fromEntries(
+      Object.entries(write).map(([k, w]) => [
+        k,
+        keepUnchangedLeaves(
+          w,
+          isPlainObject(plain) ? plain[k] : undefined,
+          isPlainObject(raw) ? raw[k] : undefined
+        )
+      ])
+    )
+  }
+  const scalar = typeof write === 'string' || typeof write === 'number'
+  return scalar && write === plain && raw !== plain && raw !== undefined
+    ? raw
+    : write
+}
+
+/** Puts `value` at a dotted path under `root`, creating objects on the way. */
+function setDeep(
+  root: Record<string, unknown>,
+  keys: string[],
+  value: unknown
+) {
+  let o: Record<string, unknown> = root
+  for (const k of keys.slice(0, -1)) {
+    if (!isPlainObject(o[k])) o[k] = {}
+    o = o[k] as Record<string, unknown>
+  }
+  const last = keys.at(-1)!
+  if (isUnset(o[last])) o[last] = value
+}
+
+/**
+ * An MCP update, just before encryption, with what must stay as stored put
+ * back (`raw` is the row as stored):
+ *
+ * - R2-1: a save that does not move a value's destination keeps the stored
+ *   ciphertext of anything that did not decrypt. An `env` / `headers` /
+ *   `extraConfig` secret the API left out (so the form posts it absent,
+ *   unset or as `null`) is put back; an undecryptable `url` / `args` is
+ *   replaced only by a real value — the `null` / `[]` the API showed for it
+ *   keeps the ciphertext, and the row stays unconnectable (N1).
+ * - R2-2: a value the write leaves unchanged is written as stored, never as
+ *   the plaintext it opened to (see `keepUnchangedAsStored`).
+ *
+ * A column whose destination moves (`movedMcpSecretColumns`), and `args`
+ * under a new command, keep nothing: that is the destination rule.
+ */
+export function keepStoredMcpForms<T extends McpWriteBody>(
+  write: T,
+  raw: McpStoredRow
+): T {
+  const { plain, undecryptable } = decryptMcpRow(raw)
+  const failed = new Set(undecryptable)
+  const out = { ...write } as Record<string, unknown>
+  const moved = movedMcpSecretColumns(write, plain as McpDestination)
+
+  for (const col of ['env', 'headers', 'extraConfig'] as const) {
+    if (out[col] === undefined || moved.has(col)) continue
+    let value = keepUnchangedLeaves(out[col], plain[col], raw[col])
+    const lost = [...failed].filter((l) => l.startsWith(`${col}.`))
+    if (lost.length > 0) {
+      const obj = isPlainObject(value) ? { ...value } : {}
+      for (const label of lost) {
+        const keys = label.split('.').slice(1)
+        setDeep(obj, keys, getAtPath(raw[col], keys.join('.')))
+      }
+      value = obj
+    }
+    out[col] = value
+  }
+
+  if (out.url !== undefined) {
+    if (failed.has('url') && isUnset(out.url)) out.url = raw.url
+    else if (out.url === plain.url && raw.url !== plain.url) out.url = raw.url
+  }
+
+  const commandMoved =
+    write.command !== undefined &&
+    (write.command ?? '').trim() !== (plain.command ?? '').trim()
+  if (out.args !== undefined && !commandMoved) {
+    if (failed.has('args') && argsUnset(out.args)) out.args = raw.args
+    else if (
+      Array.isArray(out.args) &&
+      JSON.stringify(out.args) === JSON.stringify(plain.args) &&
+      !Array.isArray(raw.args)
+    ) {
+      out.args = raw.args
+    }
+  }
+  return out as T
 }

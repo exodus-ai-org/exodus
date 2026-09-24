@@ -1,4 +1,12 @@
-import { readdirSync, readFileSync, writeFileSync } from 'fs'
+import {
+  chmodSync,
+  readdirSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  statSync,
+  writeFileSync
+} from 'fs'
 import { join } from 'path'
 
 import { maskSecret } from './mask'
@@ -27,29 +35,62 @@ export function scrubSecrets(text: string, secrets: readonly string[]): string {
   return out
 }
 
+/** Files larger than this are skipped (read whole; one must not abort the rest). */
+const MAX_SCRUB_BYTES = 64 * 1024 * 1024
+
+export interface ScrubResult {
+  /** Files rewritten with secrets masked. */
+  changed: number
+  /** Files over the size cap, left as they are (and logged). */
+  skipped: number
+  /** Files that could not be read or written. */
+  failed: number
+}
+
 /**
  * Every `*.jsonl` log file in `dir` rewritten with `scrubSecrets` applied —
- * a line written before the secret-safe errors (S1) could quote a key.
- * Only files that change are written; returns how many. Run by the one-time
- * purge (`migrate.ts`), before the server starts. A line the logger appends
- * between the read and the write of today's file would be lost (a known,
- * one-time race).
+ * a line written before the secret-safe errors (S1) could quote a key. Run
+ * by the one-time purge (`migrate.ts`), before the server starts.
+ *
+ * Each file on its own: one that is over `maxBytes` is skipped, one that
+ * fails is counted, and neither stops the rest. A rewrite goes through a
+ * temp file in the same directory and a `rename`, with the file's mode
+ * kept, so a crash midway leaves the old file or the new one, never half of
+ * one. A line the logger appends to today's file between the read and the
+ * rename is lost (a known, one-time race).
  */
-export function scrubLogFiles(dir: string, secrets: readonly string[]): number {
+export function scrubLogFiles(
+  dir: string,
+  secrets: readonly string[],
+  { maxBytes = MAX_SCRUB_BYTES }: { maxBytes?: number } = {}
+): ScrubResult {
+  const result: ScrubResult = { changed: 0, skipped: 0, failed: 0 }
   let names: string[]
   try {
     names = readdirSync(dir).filter((f) => f.endsWith('.jsonl'))
   } catch {
-    return 0
+    return result
   }
-  let changed = 0
   for (const name of names) {
     const path = join(dir, name)
-    const text = readFileSync(path, 'utf8')
-    const out = scrubSecrets(text, secrets)
-    if (out === text) continue
-    writeFileSync(path, out, 'utf8')
-    changed++
+    const tmp = join(dir, `.${name}.scrub-${process.pid}.tmp`)
+    try {
+      const { size, mode } = statSync(path)
+      if (size > maxBytes) {
+        result.skipped++
+        continue
+      }
+      const text = readFileSync(path, 'utf8')
+      const out = scrubSecrets(text, secrets)
+      if (out === text) continue
+      writeFileSync(tmp, out, { encoding: 'utf8', mode: mode & 0o777 })
+      chmodSync(tmp, mode & 0o777)
+      renameSync(tmp, path)
+      result.changed++
+    } catch {
+      rmSync(tmp, { force: true })
+      result.failed++
+    }
   }
-  return changed
+  return result
 }

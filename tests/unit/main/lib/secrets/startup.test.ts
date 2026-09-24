@@ -7,6 +7,7 @@
 // re-wrapping and purging on every launch. In-memory PGlite with pgmq; the
 // marker and the logs live in a temp dir; safeStorage is faked.
 import {
+  chmodSync,
   existsSync,
   mkdirSync,
   mkdtempSync,
@@ -90,6 +91,14 @@ async function seed() {
   invalidateSettingsCache()
 }
 
+function markerState(): {
+  version?: number
+  purgedAt?: string
+  lastAttemptAt?: string
+} {
+  return existsSync(marker) ? JSON.parse(readFileSync(marker, 'utf8')) : {}
+}
+
 async function queue(payload: object, q = 'lcm-post-turn') {
   await pglite.query(`SELECT pgmq.send($1, $2::jsonb)`, [
     q,
@@ -137,8 +146,10 @@ describe('each startup step stands on its own (N2)', () => {
     expect(result.purged).toBe(true)
     expect(await queued()).not.toContain(JOB_KEY)
     // The plaintext rows could not be encrypted; the first launch that can
-    // encrypt them purges again (it changes them), so no marker yet.
-    expect(existsSync(marker)).toBe(false)
+    // encrypt them purges again (it changes them), so the marker only
+    // records the attempt.
+    expect(markerState().purgedAt).toBeUndefined()
+    expect(markerState().lastAttemptAt).toBeDefined()
     expect(JSON.stringify(logged.error.mock.calls)).not.toContain(OPENAI)
 
     fakeSafeStorageState.denyEncrypt = false
@@ -226,5 +237,53 @@ describe('the envelope self-check', () => {
     )
     // No re-wrapping, so nothing to purge on the next launch.
     expect((await secretsAtRestStartup()).purged).toBe(false)
+  })
+})
+
+describe('the marker (fix round 3)', () => {
+  it('a directory marked by an earlier build (no version) is purged and scrubbed once', async () => {
+    writeFileSync(marker, JSON.stringify({ purgedAt: '2026-09-25T00:00:00Z' }))
+    const leaky = join(logsDir, '2026-09-20.jsonl')
+    writeFileSync(leaky, JSON.stringify({ body: OPENAI }) + '\n')
+    const first = await secretsAtRestStartup()
+    expect(first.purged).toBe(true)
+    expect(readFileSync(leaky, 'utf8')).not.toContain(OPENAI)
+    expect(markerState().version).toBe(2)
+    expect((await secretsAtRestStartup()).purged).toBe(false)
+  })
+
+  it('is not completed when the log scrub failed', async () => {
+    const leaky = join(logsDir, '2026-09-20.jsonl')
+    writeFileSync(leaky, JSON.stringify({ body: OPENAI }) + '\n')
+    chmodSync(leaky, 0o000)
+    try {
+      const result = await secretsAtRestStartup()
+      expect(result.purged).toBe(true)
+      expect(result.scrubFailed).toBe(true)
+      expect(markerState().purgedAt).toBeUndefined()
+    } finally {
+      chmodSync(leaky, 0o600)
+    }
+  })
+
+  it('while a step keeps failing, the full purge is retried at most once a day', async () => {
+    await queue({ chatId: 'a', apiKey: JOB_KEY })
+    fakeSafeStorageState.denyEncrypt = true
+    expect((await secretsAtRestStartup()).purged).toBe(true)
+    // Still denied, nothing new to strip: no VACUUM + WAL rounds again today.
+    expect((await secretsAtRestStartup()).purged).toBe(false)
+    // A day later it tries again.
+    const state = markerState()
+    writeFileSync(
+      marker,
+      JSON.stringify({
+        ...state,
+        lastAttemptAt: new Date(Date.now() - 25 * 3600_000).toISOString()
+      })
+    )
+    expect((await secretsAtRestStartup()).purged).toBe(true)
+    // Something changed (a new key to strip): no waiting.
+    await queue({ chatId: 'b', apiKey: JOB_KEY })
+    expect((await secretsAtRestStartup()).purged).toBe(true)
   })
 })

@@ -1,7 +1,11 @@
 import { asc, eq, inArray } from 'drizzle-orm'
 
 import { secretSafeWriteError } from '../secrets'
-import { decryptMcpRow, encryptMcpSecrets } from '../secrets/at-rest'
+import {
+  decryptMcpRow,
+  encryptMcpSecrets,
+  keepStoredMcpForms
+} from '../secrets/at-rest'
 import {
   clearMcpDecryptFailures,
   forgetMcpServer,
@@ -67,7 +71,13 @@ export async function updateMcpServer(
   id: string,
   data: Partial<typeof mcpServer.$inferInsert>
 ) {
-  const { sealed } = encryptMcpSecrets(data)
+  // Keep, as stored, what did not decrypt and what the write left unchanged
+  // (rulings R2-1 / R2-2) — so a save never unlocks a row it cannot read,
+  // nor writes a key that is an envelope at rest back in the clear.
+  const [raw] = await db.select().from(mcpServer).where(eq(mcpServer.id, id))
+  const { sealed } = encryptMcpSecrets(
+    raw ? keepStoredMcpForms(data, raw) : data
+  )
   try {
     const [result] = await db
       .update(mcpServer)

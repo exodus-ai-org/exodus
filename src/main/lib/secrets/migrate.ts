@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, writeFileSync } from 'fs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'fs'
 import { dirname } from 'path'
 
 import { eq } from 'drizzle-orm'
@@ -89,6 +89,7 @@ export interface SecretsStartupResult {
   logsScrubbed: number
   encryptFailed: boolean
   stripFailed: boolean
+  scrubFailed: boolean
 }
 
 /** A step's failure, logged without a value (drizzle quotes parameters). */
@@ -101,9 +102,56 @@ function logStep(what: string, error: unknown): void {
   )
 }
 
+/**
+ * The marker's format. Version 2 (fix round 3) also scrubs the raw log files,
+ * so a directory completed by an earlier build runs the pass once more.
+ */
+const MARKER_VERSION = 2
+/** While a step keeps failing, the full purge is retried at most this often. */
+const RETRY_AFTER_MS = 24 * 60 * 60 * 1000
+
+interface PurgeMarker {
+  version?: number
+  /** Set once a pass completed every step. */
+  purgedAt?: string
+  /** The last pass that ran (complete or not). */
+  lastAttemptAt?: string
+}
+
+function readMarker(path: string): PurgeMarker {
+  try {
+    return existsSync(path)
+      ? (JSON.parse(readFileSync(path, 'utf8')) as PurgeMarker)
+      : {}
+  } catch {
+    return {}
+  }
+}
+
+function writeMarker(path: string, marker: PurgeMarker): void {
+  mkdirSync(dirname(path), { recursive: true })
+  writeFileSync(path, JSON.stringify(marker, null, 2))
+}
+
+/**
+ * Everything `main.ts` runs for secrets at rest, after the schema migrations
+ * and before any route or job:
+ *
+ * 1. encrypt what is still plaintext (`encryptSecretsAtRest`);
+ * 2. strip keys from queued job payloads (ruling R3);
+ * 3. purge the plaintext the old values left on disk (`purge.ts`, review S2
+ *    C2) and rewrite the raw log files with every current secret masked.
+ *
+ * Each step fails on its own (re-review N2): a denied Keychain prompt does
+ * not keep the job keys from being stripped and vacuumed. Step 3 runs when
+ * steps 1–2 changed something, or when no pass has completed yet — but while
+ * a step keeps failing it is retried at most once a day (`RETRY_AFTER_MS`),
+ * not on every launch. The marker (`~/.exodus/secrets-purge.json`) records
+ * the last attempt, and `purgedAt` once a pass completed every step
+ * (encrypt, strip, purge, scrub); its `purgedAt` is the moment backups older
+ * than it may still hold plaintext (`removeBackupsOlderThan` in `backup.ts`).
+ */
 export async function secretsAtRestStartup(): Promise<SecretsStartupResult> {
-  // Each step on its own (re-review S2 N2): a denied Keychain prompt must not
-  // keep the job keys from being stripped, nor the strip the purge.
   let counts = { settings: 0, mcp: 0 }
   let encryptFailed = false
   try {
@@ -122,37 +170,70 @@ export async function secretsAtRestStartup(): Promise<SecretsStartupResult> {
   }
 
   const result = { ...counts, jobs, encryptFailed, stripFailed }
-  const marker = getSecretsPurgeMarkerPath()
+  const skipped = {
+    ...result,
+    purged: false,
+    logsScrubbed: 0,
+    scrubFailed: false
+  }
+  const path = getSecretsPurgeMarkerPath()
+  const marker = readMarker(path)
+  const complete =
+    (marker.version ?? 1) >= MARKER_VERSION && Boolean(marker.purgedAt)
   const changed = counts.settings + counts.mcp + jobs > 0
-  if (!changed && existsSync(marker)) {
-    return { ...result, purged: false, logsScrubbed: 0 }
+  if (!changed) {
+    if (complete) return skipped
+    const last = Date.parse(marker.lastAttemptAt ?? '')
+    if (
+      (marker.version ?? 1) >= MARKER_VERSION &&
+      Number.isFinite(last) &&
+      Date.now() - last < RETRY_AFTER_MS
+    ) {
+      return skipped
+    }
   }
 
   // The purge runs even when encryption failed: the stripped job payloads and
   // their dead tuples are worth vacuuming, and it costs the plaintext rows
-  // nothing. The marker waits for a pass where every step succeeded — the
+  // nothing. Completion waits for a pass where every step succeeded — the
   // launch that finally encrypts the rows changes them and purges again.
+  const now = new Date().toISOString()
   try {
     await purgeResidualPlaintext()
   } catch (error) {
     logStep('Purging plaintext residue failed', error)
-    return { ...result, purged: false, logsScrubbed: 0 }
+    writeMarker(path, { version: MARKER_VERSION, lastAttemptAt: now })
+    return skipped
   }
   let logsScrubbed = 0
+  let scrubFailed = false
   try {
-    logsScrubbed = scrubLogFiles(getLogsDir(), await knownSecretValues())
+    const scrub = scrubLogFiles(getLogsDir(), await knownSecretValues())
+    logsScrubbed = scrub.changed
+    scrubFailed = scrub.failed > 0
+    if (scrub.skipped > 0) {
+      logger.warn('secrets', 'Log files over the size cap were not scrubbed', {
+        count: scrub.skipped
+      })
+    }
+    if (scrubFailed) {
+      logger.error('secrets', 'Some log files could not be scrubbed', {
+        count: scrub.failed
+      })
+    }
   } catch (error) {
+    scrubFailed = true
     logStep('Scrubbing the log files failed', error)
   }
-  if (!encryptFailed && !stripFailed) {
-    mkdirSync(dirname(marker), { recursive: true })
-    writeFileSync(
-      marker,
-      JSON.stringify({ purgedAt: new Date().toISOString() }, null, 2)
-    )
-  }
-  logger.info('secrets', 'Purged plaintext residue from the database files', {
-    logsScrubbed
+  const ok = !encryptFailed && !stripFailed && !scrubFailed
+  writeMarker(path, {
+    version: MARKER_VERSION,
+    ...(ok ? { purgedAt: now } : {}),
+    lastAttemptAt: now
   })
-  return { ...result, purged: true, logsScrubbed }
+  logger.info('secrets', 'Purged plaintext residue from the database files', {
+    logsScrubbed,
+    complete: ok
+  })
+  return { ...result, purged: true, logsScrubbed, scrubFailed }
 }
