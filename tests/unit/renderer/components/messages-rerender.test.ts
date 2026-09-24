@@ -26,7 +26,8 @@ vi.mock('@/components/markdown', () => ({
 // `t` must be one function, as it is in react-i18next: Messages resets its
 // segment caches whenever it changes (turn labels are translated when built).
 const t = (key: string) => key
-vi.mock('react-i18next', () => ({ useTranslation: () => ({ t }) }))
+const i18n = { language: 'en' }
+vi.mock('react-i18next', () => ({ useTranslation: () => ({ t, i18n }) }))
 vi.mock('@/lib/i18n', () => ({ i18n: { t } }))
 vi.mock('@/hooks/use-settings', () => ({
   useSettings: () => ({ data: undefined })
@@ -71,7 +72,8 @@ vi.mock('@/hooks/use-memory', () => ({
     memoryReads.usage.set(runId, (memoryReads.usage.get(runId) ?? 0) + 1)
     return NO_USAGE
   },
-  useUndoMemoryChanges: () => ({ mutate: vi.fn(), isPending: false })
+  useUndoMemoryChanges: () => ({ mutate: vi.fn(), isPending: false }),
+  useInvalidateMemory: () => vi.fn()
 }))
 
 const startStream = vi.fn()

@@ -3,14 +3,19 @@ import type { ChatMessage } from '@exodus/shared/types/chat'
 import type { MemoryChange, MemorySnapshot } from '@exodus/shared/types/memory'
 import { isEqual } from 'lodash-es'
 import { CheckIcon, ChevronDownIcon, TriangleAlertIcon } from 'lucide-react'
-import { memo, useMemo, useState } from 'react'
+import { memo, useEffect, useId, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { Reveal } from '@/components/morph'
 import { StatusStrip } from '@/components/status-strip'
 import { Button } from '@/components/ui/button'
 import { Spinner } from '@/components/ui/spinner'
-import { useMemories, useUndoMemoryChanges } from '@/hooks/use-memory'
+import {
+  useInvalidateMemory,
+  useMemories,
+  useUndoMemoryChanges
+} from '@/hooks/use-memory'
+import { useFormat } from '@/lib/format'
 import {
   runMemoryChanges,
   type RunMemoryChanges
@@ -26,21 +31,51 @@ const ICON = 'size-3.5 shrink-0'
  * each change. Renders nothing for a run that did not call the tool or whose
  * call needed no change.
  *
+ * `active` is whether this run is still streaming (the turn's own
+ * `isStreaming`: the chat is `streaming`/`submitted` and this is its last
+ * run). A call still out once the run is not active — the user pressed Stop,
+ * so the client never sees the tool's end — no longer counts as running: the
+ * strip stops spinning and memory is re-read once, since the call may still
+ * have finished server-side.
+ *
  * Memoized on the `messages` array: a settled run keeps its array between
  * streaming frames (`groupIntoSegments`' cache), so it is never re-read.
  */
 export const MemoryChangeStrip = memo(function MemoryChangeStrip({
-  messages
+  messages,
+  active
 }: {
   messages: ChatMessage[]
+  active: boolean
 }) {
-  const state = useMemo(() => runMemoryChanges(messages), [messages])
-  if (!state.running && !state.failed && state.changes.length === 0) {
-    return null
-  }
-  // Split so a run that never touched memory subscribes to nothing.
-  return <StripBody state={state} />
+  const derived = useMemo(() => runMemoryChanges(messages), [messages])
+  const stopped = derived.running && !active
+  const state = useMemo(
+    () => (stopped ? { ...derived, running: false } : derived),
+    [derived, stopped]
+  )
+  const body =
+    !state.running && !state.failed && state.changes.length === 0 ? null : (
+      // Split so a run that never touched memory subscribes to nothing.
+      <StripBody state={state} />
+    )
+  return (
+    <>
+      {stopped && <RereadMemory />}
+      {body}
+    </>
+  )
 })
+
+/** Re-reads memory once, on mount: rendered while a run is stopped with an
+ *  `update_memory` call still out, whose result the client will not see. */
+function RereadMemory() {
+  const invalidate = useInvalidateMemory()
+  useEffect(() => {
+    void invalidate()
+  }, [invalidate])
+  return null
+}
 
 type UndoState =
   | { kind: 'idle' }
@@ -71,6 +106,8 @@ function stillAsLeft(change: MemoryChange, list: MemoryItem[]): boolean {
 
 function StripBody({ state }: { state: RunMemoryChanges }) {
   const { t } = useTranslation('chat')
+  const format = useFormat()
+  const detailsId = useId()
   const { data: list } = useMemories()
   const undo = useUndoMemoryChanges()
   const [open, setOpen] = useState(false)
@@ -115,7 +152,10 @@ function StripBody({ state }: { state: RunMemoryChanges }) {
     !changes.some((c) => stillAsLeft(c, list))
   const shown: UndoState = stale ? { kind: 'stale' } : undoState
 
-  const keys = [...new Set(changes.map((c) => keyOf(c)))].join(', ')
+  const keys = format.list([...new Set(changes.map((c) => keyOf(c)))])
+  // Some call failed while another changed something: what applied is
+  // listed (and undoable), but the label must not read as a clean update.
+  const partly = state.failed
   const label =
     shown.kind === 'undone'
       ? t('memoryStrip.undone')
@@ -126,7 +166,9 @@ function StripBody({ state }: { state: RunMemoryChanges }) {
           })
         : shown.kind === 'stale'
           ? t('memoryStrip.stale')
-          : t('memoryStrip.updated', { keys })
+          : partly
+            ? t('memoryStrip.partlyUpdated', { keys })
+            : t('memoryStrip.updated', { keys })
 
   const onUndo = () =>
     undo.mutate(changes, {
@@ -149,9 +191,15 @@ function StripBody({ state }: { state: RunMemoryChanges }) {
     <StatusStrip
       role="status"
       data-testid={TEST_IDS.chat.memoryStrip.root}
-      icon={<CheckIcon className={ICON} />}
+      icon={
+        partly && shown.kind === 'idle' ? (
+          <TriangleAlertIcon className={ICON} />
+        ) : (
+          <CheckIcon className={ICON} />
+        )
+      }
       details={
-        <Reveal open={open}>
+        <Reveal id={detailsId} open={open}>
           <ul className="flex flex-col gap-2 pt-2 pl-5.5">
             {changes.map((change, i) => (
               // One entry can change twice in a run: the index keeps keys unique.
@@ -165,6 +213,7 @@ function StripBody({ state }: { state: RunMemoryChanges }) {
         type="button"
         data-testid={TEST_IDS.chat.memoryStrip.toggle}
         aria-expanded={open}
+        aria-controls={detailsId}
         onClick={() => setOpen((o) => !o)}
         className="hover:text-foreground flex min-w-0 flex-1 items-center gap-1 text-left transition-colors duration-150 ease-out"
       >

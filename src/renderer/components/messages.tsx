@@ -225,7 +225,7 @@ const AssistantTurnSegment = memo(
               Each renders nothing when there is nothing to say (`empty:`). */}
           <div className="mt-2 flex flex-col gap-2 empty:hidden">
             <UsedMemories chatId={chatId} runId={turn.runId} />
-            <MemoryChangeStrip messages={turn.messages} />
+            <MemoryChangeStrip messages={turn.messages} active={isStreaming} />
           </div>
         </div>
       </div>

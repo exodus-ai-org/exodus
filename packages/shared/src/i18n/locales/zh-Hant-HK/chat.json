@@ -262,6 +262,7 @@
   "memoryStrip": {
     "updating": "正在更新記憶…",
     "updated": "已更新記憶 · {{keys}}",
+    "partlyUpdated": "已部分更新記憶 · {{keys}}",
     "undo": "復原",
     "undone": "已復原",
     "partial": "已復原 {{undone}} 項 · {{skipped}} 項其後已更改，予以保留",

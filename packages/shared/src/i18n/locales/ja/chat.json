@@ -262,6 +262,7 @@
   "memoryStrip": {
     "updating": "メモリーを更新しています…",
     "updated": "メモリーを更新しました · {{keys}}",
+    "partlyUpdated": "メモリーを一部更新しました · {{keys}}",
     "undo": "元に戻す",
     "undone": "元に戻しました",
     "partial": "{{undone}} 件を元に戻しました · {{skipped}} 件はその後変更されたため保持しました",

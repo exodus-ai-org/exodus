@@ -262,6 +262,7 @@
   "memoryStrip": {
     "updating": "메모리를 업데이트하는 중…",
     "updated": "메모리 업데이트됨 · {{keys}}",
+    "partlyUpdated": "메모리 일부 업데이트됨 · {{keys}}",
     "undo": "실행 취소",
     "undone": "실행 취소됨",
     "partial": "{{undone}}개 실행 취소 · {{skipped}}개는 이후 변경되어 유지됨",

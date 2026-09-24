@@ -13,7 +13,7 @@ import {
   PopoverTrigger
 } from '@/components/ui/popover'
 import { useMemories, useRunMemoryUsage } from '@/hooks/use-memory'
-import { ENTER_UP } from '@/lib/motion'
+import { useFormat } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { chatInputAtom, chatInputFocusAtom } from '@/stores/input'
 
@@ -44,6 +44,7 @@ export const UsedMemories = memo(function UsedMemories({
 
 function UsedMemoriesLine({ used }: { used: UsedMemory[] }) {
   const { t } = useTranslation('chat')
+  const format = useFormat()
   const [open, setOpen] = useState(false)
   // "This is wrong" hands focus to the composer; the popover must not take it
   // back to its trigger as it closes.
@@ -59,16 +60,21 @@ function UsedMemoriesLine({ used }: { used: UsedMemory[] }) {
     >
       <PopoverTrigger
         data-testid={TEST_IDS.chat.usedMemories.trigger}
+        // `ENTER_UP` spelled out with the hover colour in one property list:
+        // beside `transition-colors` it would lose its own transition to
+        // tailwind-merge (same group, last wins), and with it the entrance.
+        // Durations pair up with the properties: the entrance's 300 ms, the
+        // hover's 150 ms.
         className={cn(
-          ENTER_UP,
-          'text-muted-foreground hover:text-foreground flex max-w-full items-center gap-1.5 self-start text-xs transition-colors duration-150 ease-out'
+          'transition-[opacity,translate,scale,color] duration-[300ms,300ms,300ms,150ms] ease-out starting:translate-y-1.5 starting:opacity-0',
+          'text-muted-foreground hover:text-foreground flex max-w-full items-center gap-1.5 self-start text-xs'
         )}
       >
         <BrainIcon className="size-3.5 shrink-0" />
         <span className="truncate">
           {t('usedMemories.label', {
             count: used.length,
-            keys: used.map((m) => m.key).join(', ')
+            keys: format.list(used.map((m) => m.key))
           })}
         </span>
       </PopoverTrigger>

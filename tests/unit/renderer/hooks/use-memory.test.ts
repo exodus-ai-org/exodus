@@ -54,6 +54,7 @@ vi.mock('sileo', () => ({
 
 const {
   memoryKeys,
+  useInvalidateMemory,
   useMemories,
   useRunMemoryUsage,
   useSetMemoryList,
@@ -290,6 +291,42 @@ describe('useMemories', () => {
 
     expect(getMemoriesService).toHaveBeenCalledTimes(2)
     expect(other).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('useMemories — a failed read', () => {
+  it('says so (isError) and refetch() reads again, so the page can offer Retry instead of an empty list', async () => {
+    getMemoriesService.mockReset()
+    getMemoriesService.mockRejectedValueOnce(new Error('memory store is down'))
+    const { api } = await mountHookOnAppClient(useMemories)
+    await act(async () => {
+      await vi.waitFor(() => expect(api().isError).toBe(true))
+    })
+    expect(api().data).toBeUndefined()
+
+    getMemoriesService.mockResolvedValueOnce([memoryItem()])
+    await act(async () => {
+      await api().refetch()
+      await vi.waitFor(() => expect(api().isError).toBe(false))
+    })
+    expect(api().data).toEqual([memoryItem()])
+  })
+})
+
+describe('useInvalidateMemory', () => {
+  it('marks every memory query stale — the list and each chat’s usage — through one stable callback', async () => {
+    const { queryClient, api } = await mountHook(useInvalidateMemory)
+    const first = api()
+    queryClient.setQueryData(memoryKeys.list, [memoryItem()])
+    queryClient.setQueryData(memoryKeys.usage('chat-1'), {})
+
+    await act(async () => {
+      await api()()
+    })
+
+    expect(isInvalidated(queryClient, memoryKeys.list)).toBe(true)
+    expect(isInvalidated(queryClient, memoryKeys.usage('chat-1'))).toBe(true)
+    expect(api()).toBe(first)
   })
 })
 

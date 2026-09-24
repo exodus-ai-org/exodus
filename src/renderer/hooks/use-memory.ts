@@ -16,8 +16,10 @@ export const memoryKeys = {
   usage: (chatId: string) => ['memory', 'usage', chatId] as const
 }
 
+/** The memory list. `isError` + `refetch` let a page tell "the read failed"
+ *  apart from "there are no memories" and offer a Retry. */
 export function useMemories() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: memoryKeys.list,
     queryFn: () => getMemories(),
     // The chat's `update_memory` tool and background consolidation both
@@ -26,7 +28,7 @@ export function useMemories() {
     // devices/installed skills — see CLAUDE.md "Server state").
     refetchOnWindowFocus: true
   })
-  return { data, isLoading }
+  return { data, isLoading, isError, refetch }
 }
 
 // A stable empty array: falling back to a fresh `[]` on every read would
@@ -101,6 +103,17 @@ export function useSetMemoryList() {
   }, [invalidate])
 
   return { set, invalidate, beginWrite, settleWrite }
+}
+
+/** Marks every memory query stale — for a component that learns memory may
+ *  have changed server-side without a response to say so (a run stopped
+ *  while its `update_memory` call was out). */
+export function useInvalidateMemory() {
+  const queryClient = useQueryClient()
+  return useCallback(
+    () => queryClient.invalidateQueries({ queryKey: memoryKeys.all }),
+    [queryClient]
+  )
 }
 
 export function useUndoMemoryChanges() {

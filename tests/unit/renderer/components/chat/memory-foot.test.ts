@@ -28,10 +28,12 @@ vi.mock('react-router', () => ({ useNavigate: () => navigate }))
 const memories: { data: MemoryItem[] | undefined } = { data: undefined }
 const usage = new Map<string, UsedMemory[]>()
 const mutate = vi.fn()
+const invalidateMemory = vi.fn()
 vi.mock('@/hooks/use-memory', () => ({
   useMemories: () => ({ data: memories.data, isLoading: false }),
   useRunMemoryUsage: (_chatId: string, runId: string) => usage.get(runId) ?? [],
-  useUndoMemoryChanges: () => ({ mutate, isPending: false })
+  useUndoMemoryChanges: () => ({ mutate, isPending: false }),
+  useInvalidateMemory: () => invalidateMemory
 }))
 
 const { MemoryChangeStrip } =
@@ -140,6 +142,7 @@ beforeEach(() => {
   memories.data = undefined
   usage.clear()
   mutate.mockReset()
+  invalidateMemory.mockReset()
   navigate.mockReset()
 })
 afterEach(() => {
@@ -150,7 +153,7 @@ afterEach(() => {
 describe('<MemoryChangeStrip>', () => {
   it('renders nothing for a run that did not touch memory', async () => {
     const { host, ready } = mount(
-      createElement(MemoryChangeStrip, { messages: [] })
+      createElement(MemoryChangeStrip, { messages: [], active: false })
     )
     await ready
     expect(host.innerHTML).toBe('')
@@ -159,6 +162,7 @@ describe('<MemoryChangeStrip>', () => {
   it('renders nothing when the call needed no change', async () => {
     const { host, ready } = mount(
       createElement(MemoryChangeStrip, {
+        active: false,
         messages: [call('c1'), result('c1', [])]
       })
     )
@@ -168,7 +172,10 @@ describe('<MemoryChangeStrip>', () => {
 
   it('says it is updating while the call runs', async () => {
     const { ready } = mount(
-      createElement(MemoryChangeStrip, { messages: [call('c1')] })
+      createElement(MemoryChangeStrip, {
+        messages: [call('c1')],
+        active: true
+      })
     )
     await ready
     const strip = byTestId(TEST_IDS.chat.memoryStrip.root)
@@ -183,6 +190,7 @@ describe('<MemoryChangeStrip>', () => {
     memories.data = [item('m1', a.after!), item('m3', c.after!)]
     const { ready } = mount(
       createElement(MemoryChangeStrip, {
+        active: false,
         messages: [
           call('c1'),
           result('c1', [a, b]),
@@ -193,7 +201,7 @@ describe('<MemoryChangeStrip>', () => {
     )
     await ready
     expect(byTestId(TEST_IDS.chat.memoryStrip.root)?.textContent).toContain(
-      'memoryStrip.updated(Work setup, Old address, Pets)'
+      'memoryStrip.updated(Work setup, Old address, & Pets)'
     )
 
     await click(byTestId(TEST_IDS.chat.memoryStrip.undo))
@@ -214,6 +222,7 @@ describe('<MemoryChangeStrip>', () => {
     memories.data = [item('m1', a.after!), item('m2', b.after!)]
     const { ready } = mount(
       createElement(MemoryChangeStrip, {
+        active: false,
         messages: [call('c1'), result('c1', [a, b])]
       })
     )
@@ -233,6 +242,7 @@ describe('<MemoryChangeStrip>', () => {
     memories.data = [item('m1', snap('Work setup', 'edited in Settings'))]
     const { ready } = mount(
       createElement(MemoryChangeStrip, {
+        active: false,
         messages: [call('c1'), result('c1', [a, c])]
       })
     )
@@ -247,6 +257,7 @@ describe('<MemoryChangeStrip>', () => {
     memories.data = []
     const { ready } = mount(
       createElement(MemoryChangeStrip, {
+        active: false,
         messages: [call('c1'), result('c1', [remove('m2', 'Old address')])]
       })
     )
@@ -257,6 +268,7 @@ describe('<MemoryChangeStrip>', () => {
   it('shows the destructive strip when the call failed', async () => {
     const { ready } = mount(
       createElement(MemoryChangeStrip, {
+        active: false,
         messages: [call('c1'), result('c1', [], true)]
       })
     )
@@ -270,6 +282,7 @@ describe('<MemoryChangeStrip>', () => {
     memories.data = []
     const { ready } = mount(
       createElement(MemoryChangeStrip, {
+        active: false,
         messages: [
           call('c1'),
           result('c1', [create('m3', 'Pets'), remove('m2', 'Old address')])
@@ -284,6 +297,93 @@ describe('<MemoryChangeStrip>', () => {
     const text = byTestId(TEST_IDS.chat.memoryStrip.root)?.textContent ?? ''
     expect(text).toContain('memoryStrip.new')
     expect(text).toContain('memoryStrip.deleted')
+  })
+
+  it('a pending call stops counting as running once the chat is idle, and memory is re-read once', async () => {
+    const { host, render, ready } = mount(
+      createElement(MemoryChangeStrip, {
+        messages: [call('c1')],
+        active: true
+      })
+    )
+    await ready
+    expect(byTestId(TEST_IDS.chat.memoryStrip.root)?.textContent).toContain(
+      'memoryStrip.updating'
+    )
+    expect(invalidateMemory).not.toHaveBeenCalled()
+
+    // Stop: the client aborted the stream and never sees the tool's end.
+    await render(
+      createElement(MemoryChangeStrip, {
+        messages: [call('c1')],
+        active: false
+      })
+    )
+    expect(host.textContent).not.toContain('memoryStrip.updating')
+    expect(invalidateMemory).toHaveBeenCalledTimes(1)
+
+    // Re-rendering in the same state does not re-read again.
+    await render(
+      createElement(MemoryChangeStrip, {
+        messages: [call('c1')],
+        active: false
+      })
+    )
+    expect(invalidateMemory).toHaveBeenCalledTimes(1)
+  })
+
+  it('an idle run whose later call is pending still shows what an earlier call changed', async () => {
+    const a = update('m1', 'Work setup')
+    memories.data = [item('m1', a.after!)]
+    const { ready } = mount(
+      createElement(MemoryChangeStrip, {
+        active: false,
+        messages: [call('c1'), result('c1', [a]), call('c2')]
+      })
+    )
+    await ready
+    const text = byTestId(TEST_IDS.chat.memoryStrip.root)?.textContent ?? ''
+    expect(text).toContain('memoryStrip.updated(Work setup)')
+    expect(text).not.toContain('memoryStrip.updating')
+  })
+
+  it('says memory was only partly updated when one call failed and another changed something', async () => {
+    const a = update('m1', 'Work setup')
+    memories.data = [item('m1', a.after!)]
+    const { ready } = mount(
+      createElement(MemoryChangeStrip, {
+        active: false,
+        messages: [
+          call('c1'),
+          result('c1', [a]),
+          call('c2'),
+          result('c2', [], true)
+        ]
+      })
+    )
+    await ready
+    const text = byTestId(TEST_IDS.chat.memoryStrip.root)?.textContent ?? ''
+    expect(text).toContain('memoryStrip.partlyUpdated(Work setup)')
+    expect(text).not.toContain('memoryStrip.updated(')
+    // What did apply can still be undone.
+    expect(byTestId(TEST_IDS.chat.memoryStrip.undo)).not.toBeNull()
+  })
+
+  it('the toggle controls the details region it opens', async () => {
+    memories.data = []
+    const { ready } = mount(
+      createElement(MemoryChangeStrip, {
+        active: false,
+        messages: [call('c1'), result('c1', [create('m3', 'Pets')])]
+      })
+    )
+    await ready
+    const toggle = byTestId(TEST_IDS.chat.memoryStrip.toggle)
+    const controls = toggle?.getAttribute('aria-controls')
+    expect(controls).toBeTruthy()
+    const region = document.getElementById(controls!)
+    expect(region).not.toBeNull()
+    expect(region?.textContent).toContain('Pets')
   })
 })
 
@@ -310,7 +410,7 @@ describe('<UsedMemories>', () => {
     await ready
     const trigger = byTestId(TEST_IDS.chat.usedMemories.trigger)
     expect(trigger?.textContent).toContain(
-      'usedMemories.label(2|Work setup, Gone)'
+      'usedMemories.label(2|Work setup & Gone)'
     )
 
     await click(trigger)
@@ -333,6 +433,24 @@ describe('<UsedMemories>', () => {
     await click(byTestId(TEST_IDS.chat.usedMemories.wrong))
     expect(store.get(chatInputAtom)).toBe('usedMemories.prefill(Work setup)')
     expect(store.get(chatInputFocusAtom)).toBe(before + 1)
+  })
+
+  it('keeps its entrance: the trigger transitions opacity and translate as well as colour', async () => {
+    usage.set('u1', [{ id: 'm1', key: 'Work setup', section: 'profile' }])
+    const { ready } = mount(
+      createElement(UsedMemories, { chatId: 'chat-1', runId: 'u1' })
+    )
+    await ready
+    const classes = (
+      byTestId(TEST_IDS.chat.usedMemories.trigger)?.className ?? ''
+    ).split(/\s+/)
+    const transition = classes.find((c) => c.startsWith('transition'))
+    expect(classes.filter((c) => c.startsWith('transition'))).toHaveLength(1)
+    for (const property of ['opacity', 'translate', 'color']) {
+      expect(transition).toContain(property)
+    }
+    expect(classes).toContain('starting:opacity-0')
+    expect(classes).toContain('starting:translate-y-1.5')
   })
 
   it('"Open in Settings" goes to the Memory page', async () => {

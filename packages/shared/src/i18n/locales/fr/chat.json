@@ -270,6 +270,7 @@
   "memoryStrip": {
     "updating": "Mise à jour de la mémoire…",
     "updated": "Mémoire mise à jour · {{keys}}",
+    "partlyUpdated": "Mémoire mise à jour en partie · {{keys}}",
     "undo": "Annuler",
     "undone": "Annulé",
     "partial": "{{undone}} annulé(s) · {{skipped}} modifié(s) depuis et conservé(s)",
