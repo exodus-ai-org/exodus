@@ -283,6 +283,9 @@
     "prefill": "「{{key}}」についてのメモリーは間違っています: "
   },
   "renderFailed": "{{what}} を表示できませんでした。",
+  "remoteImage": {
+    "loadButton": "画像を読み込む"
+  },
   "findInPage": {
     "placeholder": "ページ内を検索…",
     "noResults": "見つかりません",

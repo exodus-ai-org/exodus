@@ -292,6 +292,9 @@
     "prefill": "The memory about '{{key}}' is wrong: "
   },
   "renderFailed": "{{what}} could not be shown.",
+  "remoteImage": {
+    "loadButton": "Load image"
+  },
   "findInPage": {
     "placeholder": "Find in page...",
     "noResults": "No results",

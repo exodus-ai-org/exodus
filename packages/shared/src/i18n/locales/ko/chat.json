@@ -283,6 +283,9 @@
     "prefill": "'{{key}}'에 대한 메모리가 잘못되었습니다: "
   },
   "renderFailed": "{{what}}을(를) 표시할 수 없습니다.",
+  "remoteImage": {
+    "loadButton": "이미지 불러오기"
+  },
   "findInPage": {
     "placeholder": "페이지에서 찾기…",
     "noResults": "결과 없음",

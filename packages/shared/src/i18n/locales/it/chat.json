@@ -292,6 +292,9 @@
     "prefill": "La memoria su '{{key}}' è sbagliata: "
   },
   "renderFailed": "Impossibile mostrare {{what}}.",
+  "remoteImage": {
+    "loadButton": "Carica immagine"
+  },
   "findInPage": {
     "placeholder": "Trova nella pagina…",
     "noResults": "Nessun risultato",

@@ -163,6 +163,11 @@ export const TEST_IDS = {
       /** One per entry in the popover. */
       wrong: 'chat.used-memories.wrong',
       openSettings: 'chat.used-memories.open-settings'
+    },
+    /** A remote markdown image that has not been loaded yet (see remote-image.tsx). */
+    remoteImage: {
+      placeholder: 'chat.remote-image.placeholder',
+      loadButton: 'chat.remote-image.load-button'
     }
   },
   composer: {

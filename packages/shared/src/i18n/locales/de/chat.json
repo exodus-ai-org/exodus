@@ -292,6 +292,9 @@
     "prefill": "Der Gedächtniseintrag zu „{{key}}“ ist falsch: "
   },
   "renderFailed": "{{what}} konnte nicht angezeigt werden.",
+  "remoteImage": {
+    "loadButton": "Bild laden"
+  },
   "findInPage": {
     "placeholder": "Auf der Seite suchen…",
     "noResults": "Keine Ergebnisse",

@@ -945,6 +945,17 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   parses in ~1 ms a frame, the same as streamdown's own; markdown-to-jsx has
   no math; md4x emits HTML, not a React tree. streamdown was tried behind a
   switch and dropped — its styling did not drop in over ours.)
+- **A remote image loads on tap, not by itself.** The `img` override
+  (`remote-image.tsx`'s `RemoteImage`) auto-loads only a `data:` URL, the
+  app's own media route, or an `https:` image whose host is one of the run's
+  own `webSearchResults` (threaded through its own context, the same reason
+  `WebSearchRankMapContext` exists, so streaming results in never invalidates
+  the memoized `components` map); anything else — including `http:` from a
+  trusted host — shows a placeholder until tapped. "Loaded" is a module-level
+  `Set` keyed by `src`, not React state, so the same URL stays loaded across
+  a remount. Shared by every `<Markdown>` caller (chat, Philharmonic, deep
+  research, skill READMEs). See docs/security-hardening.md, "Remote images in
+  chat" — the CSP stays `img-src *`, so the gate lives here, not there.
 - **A render failure stays inside its piece.** Every tool card and every
   answer body is wrapped in `ErrorBoundary` (`card-error-boundary.tsx`): a
   card reading a field its result did not carry shows `RenderFailed` in its
