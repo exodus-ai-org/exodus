@@ -3,6 +3,9 @@
 Status: agreed in conversation on 2026-09-25 (items 1–4 from the threat walk-through, plus encryption at rest:
 "按 1 到 4 写设计吧, 但我还是觉得既然做了, 那就把 safeStorage 一起做了"). Reference: `docs/security-hardening.md`.
 
+**Goal of this round (owner):** every secret Exodus stores is encrypted, and no injected instruction can get one out
+of Exodus. Secrets that live elsewhere on the machine are intercepted and the user decides.
+
 ## 1. Threat
 
 Untrusted content reaches the model — web pages (`web_fetch`, `web_search`, deep research), MCP results, files it
@@ -65,17 +68,35 @@ local-interface address **and** whose port is `SERVER_PORT` (60223) or `LAN_SERV
 `localhost`, `127.0.0.1`, `[::1]`, `0.0.0.0` and this machine's LAN IPs — checked on every redirect hop. Other local and
 LAN services stay reachable (the user's intranet use case). Reuse `src/main/lib/net/safe-fetch.ts`'s resolution helpers.
 
-### 2.5 Prompt hard stops
+### 2.5 Secrets outside Exodus: the user decides (approval gate)
 
-Add to `<hard_stops>` in `prompts.ts`: ask before (a) reading credential stores or secrets — `~/.ssh`, `~/.aws`,
-`~/.config/**/credentials`, keychains, `~/.exodus` data files, `.env` files outside the workspace — and (b) sending
-data from this machine to a third party that the user did not ask for (a URL carrying local data, an upload, a paste
-service). Keep it short, in the prompt's voice; `prompts.test.ts` pins the lines.
+Owner's rule (2026-09-25): Exodus's own secrets are defended without exception (2.2–2.4); secrets elsewhere on the
+machine are **intercepted and left to the user** — real work sometimes needs the model to read a private key.
+
+- **Gate, not just a prompt line.** In the kernel's `beforeToolCall`, a call is paused for approval when it touches a
+  sensitive path: `read_file` / `write_file` / `edit_file` / `list_directory` / `find_files` / `grep` whose resolved
+  path is under `~/.ssh`, `~/.aws`, `~/.gnupg`, `~/.config/**/credentials*`, `~/.docker/config.json`, `~/.netrc`,
+  `~/.kube`, the macOS keychains, or a `.env*` / `*.pem` / `*.key` / `id_*` file outside the chat workspace; and
+  `terminal` commands that mention one of those paths or call `security find-*-password`, `cat`/`cp`/`scp` on them
+  (a documented heuristic, not a parser). One shared matcher, table-tested.
+- **`~/.exodus` itself is not a "user decides" path:** the data files hold only ciphertext (2.3) and the API hands out
+  masks (2.2), so reading them yields nothing secret; `lock.dat` and `tls/` are refused outright.
+- **Approval flow:** the paused call emits an SSE event `{ type: 'approval_required', runId, toolCallId, toolName,
+  summary }` (summary = the path or command, never file contents); the run waits; the renderer shows an approval card
+  in the timeline — **Allow once**, **Deny** — and `POST /api/v1/chat/approval { runId, toolCallId, decision }`
+  resumes it. Deny → the tool returns "The user declined access to <path>." to the model. No answer within 10
+  minutes → denied. Stop → denied. Allowed-once is per call, not remembered.
+- **exodus-ios:** the same card on the phone (the remote principle: the user may be away from the desk) — a follow-up
+  iOS task; until then iOS shows "Waiting for approval on your computer".
+- **Prompt:** add to `<hard_stops>` in `prompts.ts`: ask before sending data from this machine to a third party the
+  user did not ask for (a URL carrying local data, an upload, a paste service); mention that reading credentials is
+  gated and the user may decline — explain what you need and why. `prompts.test.ts` pins the lines.
 
 ## 3. Out of scope (recorded as open items)
 
-A loopback API token for the renderer; a terminal approval mode; sandboxing `read_file`; DNS-rebinding hardening of
-`web_fetch` beyond the port rule; encrypting non-secret data.
+A loopback API token for the renderer; a general terminal approval mode (only the sensitive-path heuristic is gated);
+sandboxing `read_file`; DNS-rebinding hardening of `web_fetch` beyond the port rule; encrypting non-secret data (chats,
+memory). The approval card on exodus-ios is a follow-up task.
 
 ## 4. Testing
 
@@ -86,6 +107,9 @@ A loopback API token for the renderer; a terminal approval mode; sandboxing `rea
 - safeStorage: encrypt-on-write, decrypt-on-load, startup migration idempotent, unavailable backend → plaintext +
   notice, decrypt failure → unset + notice (safeStorage mocked; PGlite real).
 - web_fetch: own ports on loopback / LAN IP / localhost / redirect refused; another local port allowed.
+- Approval gate: the sensitive-path matcher table (paths, `.env` in vs outside the workspace, terminal heuristics,
+  false positives such as `~/.sshconfig-notes`); a faux run: sensitive `read_file` → `approval_required` → allow →
+  tool runs; deny → declined result; timeout and Stop → denied; `lock.dat` refused without asking; e2e for the card.
 - Prompt: the hard-stop lines present.
 - exodus-ios: Providers page with masked values — display, unchanged save, replace (a small iOS task after the desktop
   lands).
