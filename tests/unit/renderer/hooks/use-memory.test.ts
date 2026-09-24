@@ -408,6 +408,10 @@ describe('useSetMemoryList', () => {
     getMemoriesService
       .mockResolvedValueOnce(before)
       .mockReturnValueOnce(inFlight.promise)
+      // set()'s own recovery re-read (round 2, below): a read really was
+      // in flight, so it re-reads once in the background. Nothing here for
+      // it to fold in that `after` doesn't already have.
+      .mockResolvedValueOnce(before)
     const { queryClient, api } = await mountHookOnAppClient(() => ({
       list: useMemories(),
       setList: useSetMemoryList()
@@ -432,6 +436,8 @@ describe('useSetMemoryList', () => {
       await api().setList.set(() => after)
     })
     expect(queryClient.getQueryData(memoryKeys.list)).toEqual(after)
+    await settle()
+    expect(queryClient.getQueryData(memoryKeys.list)).toEqual(after)
 
     // The stale GET now resolves with the pre-write list.
     await act(async () => {
@@ -441,6 +447,84 @@ describe('useSetMemoryList', () => {
 
     expect(queryClient.getQueryData(memoryKeys.list)).toEqual(after)
     expect(api().list.data).toEqual(after)
+  })
+
+  // Regression (round 2): cancelling a read discards its answer outright —
+  // React Query never applies a cancelled fetch's late result, `revert`
+  // option or not — so a read cancelled mid-flight can lose more than
+  // staleness: if it was on its way to bring in a row someone else just
+  // created (e.g. `handleNew`'s own post-create invalidate), that row would
+  // be gone from the cache too, not just reverted. `set()` recovers it with
+  // a fire-and-forget re-read, folded in by id so it can only ADD what this
+  // write's own snapshot doesn't know about — never touching (never
+  // reverting) the id this write itself just changed.
+  it('a write that cancels an in-flight read recovers whatever that read would have carried, without reverting itself', async () => {
+    const before = [memoryItem({ id: 'm1', isActive: true })]
+    const withNewRow = [
+      memoryItem({ id: 'm1', isActive: true }),
+      memoryItem({ id: 'new', key: 'New entry', summary: '' })
+    ]
+    const finalList = [
+      memoryItem({ id: 'm1', isActive: false }),
+      memoryItem({ id: 'new', key: 'New entry', summary: '' })
+    ]
+    const cancelledRead = deferred<MemoryItem[]>()
+    getMemoriesService
+      .mockResolvedValueOnce(before) // initial mount load
+      .mockReturnValueOnce(cancelledRead.promise) // the invalidate this write cancels
+      .mockResolvedValueOnce(withNewRow) // set()'s own recovery re-read
+    const { queryClient, api } = await mountHookOnAppClient(() => ({
+      list: useMemories(),
+      setList: useSetMemoryList()
+    }))
+    await act(async () => {
+      await vi.waitFor(() => expect(api().list.data).toEqual(before))
+    })
+
+    // Someone else's invalidate (e.g. `handleNew`'s, its own POST already
+    // committed server-side) is in flight, not yet resolved.
+    act(() => {
+      void queryClient.invalidateQueries({ queryKey: memoryKeys.list })
+    })
+    await act(async () => {
+      await vi.waitFor(() =>
+        expect(getMemoriesService).toHaveBeenCalledTimes(2)
+      )
+    })
+
+    // The local write (a toggle) — cancels that read and applies
+    // immediately, same as round 1. (Whether the fire-and-forget recovery
+    // below has already landed by this exact point is unspecified timing —
+    // not asserted here; only the toggle itself is guaranteed immediate.)
+    await act(async () => {
+      await api().setList.set((ms) =>
+        ms.map((m) => (m.id === 'm1' ? { ...m, isActive: false } : m))
+      )
+    })
+    expect(
+      queryClient
+        .getQueryData<MemoryItem[]>(memoryKeys.list)
+        ?.find((m) => m.id === 'm1')?.isActive
+    ).toBe(false)
+
+    // Its own recovery re-read (a read really was in flight) resolves.
+    await act(async () => {
+      await vi.waitFor(() =>
+        expect(getMemoriesService).toHaveBeenCalledTimes(3)
+      )
+    })
+    await settle()
+
+    expect(queryClient.getQueryData(memoryKeys.list)).toEqual(finalList)
+    expect(api().list.data).toEqual(finalList)
+
+    // Whatever the cancelled read would have resolved to lands too late to
+    // matter either way — round 1's guarantee, still intact.
+    await act(async () => {
+      cancelledRead.resolve(withNewRow)
+    })
+    await settle()
+    expect(queryClient.getQueryData(memoryKeys.list)).toEqual(finalList)
   })
 })
 

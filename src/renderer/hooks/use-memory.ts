@@ -1,5 +1,10 @@
 import type { MemoryChange, UsedMemory } from '@exodus/shared/types/memory'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  type QueryClient,
+  useMutation,
+  useQuery,
+  useQueryClient
+} from '@tanstack/react-query'
 import { useCallback } from 'react'
 
 import { i18n } from '@/lib/i18n'
@@ -50,6 +55,36 @@ export function useRunMemoryUsage(chatId: string, runId: string): UsedMemory[] {
   return data ?? NO_USAGE
 }
 
+/** Cancelling a read that was already in flight (`set()`, below) discards
+ *  its own answer outright: React Query never applies a cancelled fetch's
+ *  late result to the query, `revert` option or not (its retryer rejects
+ *  the instant `cancelQueries` runs, and a resolution arriving afterwards
+ *  finds the retryer already settled and is dropped). So a read cancelled
+ *  mid-flight can lose more than staleness — if it was on its way to bring
+ *  in a row created elsewhere (e.g. `handleNew`'s own post-create
+ *  invalidate, raced by a concurrent toggle/delete's `set()`), that row
+ *  would be gone from the cache too, not just reverted.
+ *
+ *  Recover it with one fire-and-forget re-read, folded in by id so it can
+ *  only ADD an entry this write's own snapshot doesn't know about yet —
+ *  never touching (never reverting) whatever id the write itself just
+ *  changed. `set()` only calls this when a read genuinely was in flight. */
+function recoverFromCancelledRead(queryClient: QueryClient) {
+  getMemories()
+    .then((fetched) => {
+      queryClient.setQueryData<MemoryItem[]>(memoryKeys.list, (current) => {
+        if (!current) return fetched
+        const known = new Set(current.map((m) => m.id))
+        const missing = fetched.filter((m) => !known.has(m.id))
+        return missing.length > 0 ? [...current, ...missing] : current
+      })
+    })
+    .catch(() => {
+      // Best-effort recovery: the next real read (a focus refetch, the
+      // caller's own follow-up invalidate) still catches up eventually.
+    })
+}
+
 /** The Memory settings page's local edits to the cached list — `set`
  *  replaces the old `setMemories(updater)`/`patchLocal` local state,
  *  `invalidate` replaces the old `load()` re-fetch after a write. */
@@ -57,6 +92,8 @@ export function useSetMemoryList() {
   const queryClient = useQueryClient()
   const set = useCallback(
     async (updater: (list: MemoryItem[]) => MemoryItem[]) => {
+      const readWasInFlight =
+        queryClient.getQueryState(memoryKeys.list)?.fetchStatus === 'fetching'
       // `useMemories()` carries `refetchOnWindowFocus: true` — a read
       // already in flight (the window regaining focus while this write
       // happens) would otherwise land afterwards with the pre-write list
@@ -67,6 +104,7 @@ export function useSetMemoryList() {
       queryClient.setQueryData<MemoryItem[]>(memoryKeys.list, (old) =>
         updater(old ?? [])
       )
+      if (readWasInFlight) recoverFromCancelledRead(queryClient)
     },
     [queryClient]
   )
