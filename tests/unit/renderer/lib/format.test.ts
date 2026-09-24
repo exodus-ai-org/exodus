@@ -10,7 +10,10 @@ describe('makeFormatters().list', () => {
 
   it('joins titles the way the locale does', () => {
     expect(makeFormatters('en').list(['Work setup', 'Pets'])).toBe(
-      'Work setup & Pets'
+      'Work setup and Pets'
+    )
+    expect(makeFormatters('en').list(['Work setup', 'Pets', 'Music'])).toBe(
+      'Work setup, Pets, and Music'
     )
     expect(makeFormatters('ja').list(['仕事', 'ペット', '音楽'])).toBe(
       '仕事、ペット、音楽'
@@ -21,7 +24,7 @@ describe('makeFormatters().list', () => {
   })
 
   it('falls back to the app default for a locale it does not know', () => {
-    expect(makeFormatters('xx').list(['A', 'B'])).toBe('A & B')
+    expect(makeFormatters('xx').list(['A', 'B'])).toBe('A and B')
   })
 
   it('a single title is just that title', () => {

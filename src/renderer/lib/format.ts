@@ -39,13 +39,13 @@ export function makeFormatters(localeId: string) {
       new Intl.DateTimeFormat(intlTag, o).format(d),
     number: (n: number, o?: Intl.NumberFormatOptions) =>
       new Intl.NumberFormat(intlTag, o).format(n),
-    /** A list of names the locale's way — "A, B & C", 「A、B、C」. A
-     *  conjunction list, short style: `type: 'unit'` would drop the
+    /** A list of names the locale's way — "A, B, and C", 「A、B、C」. A
+     *  conjunction list, long style: `type: 'unit'` would drop the
      *  separator entirely in Chinese and Japanese ("ABC"). */
     list: (items: string[]) =>
       typeof Intl.ListFormat === 'function'
         ? new Intl.ListFormat(intlTag, {
-            style: 'short',
+            style: 'long',
             type: 'conjunction'
           }).format(items)
         : items.join(', ')

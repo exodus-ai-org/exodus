@@ -201,7 +201,7 @@ describe('<MemoryChangeStrip>', () => {
     )
     await ready
     expect(byTestId(TEST_IDS.chat.memoryStrip.root)?.textContent).toContain(
-      'memoryStrip.updated(Work setup, Old address, & Pets)'
+      'memoryStrip.updated(Work setup, Old address, and Pets)'
     )
 
     await click(byTestId(TEST_IDS.chat.memoryStrip.undo))
@@ -410,7 +410,7 @@ describe('<UsedMemories>', () => {
     await ready
     const trigger = byTestId(TEST_IDS.chat.usedMemories.trigger)
     expect(trigger?.textContent).toContain(
-      'usedMemories.label(2|Work setup & Gone)'
+      'usedMemories.label(2|Work setup and Gone)'
     )
 
     await click(trigger)
