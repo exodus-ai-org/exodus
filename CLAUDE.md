@@ -486,7 +486,7 @@ the tool definitions, the binder, the system prompt, the renderer's dispatch
 and the settings registry (migration 0007 rewrote stored rows from the old
 camelCase; `toToolName()` maps a pre-rename `disabledTools` key):
 
-`computer_use`, `create_artifact`, `deep_research`, `edit_file`, `find_files`, `grep`, `image_generation`, `lcm_describe`, `lcm_expand`, `lcm_grep`, `list_directory`, `map_itinerary`, `read_file`, `search_knowledge_base`, `terminal`, `weather`, `web_fetch`, `web_search`, `write_file`.
+`computer_use`, `create_artifact`, `deep_research`, `edit_file`, `find_files`, `grep`, `image_generation`, `lcm_describe`, `lcm_expand`, `lcm_grep`, `list_directory`, `map_itinerary`, `read_file`, `search_knowledge_base`, `terminal`, `update_memory`, `weather`, `web_fetch`, `web_search`, `write_file`.
 
 `weather` is Open-Meteo (no key: a geocoding call, then seven days with 24
 hourly points, WMO codes, all in the place's local time). The card reads
@@ -601,7 +601,8 @@ Allows external tools/servers to be integrated via MCP protocol:
 **Memory System** (`src/main/lib/ai/memory/manager.ts`):
 
 A durable, topic-consolidated memory of the user. Key functions:
-`runMemoryConsolidation()`, `loadRelevantMemories()`, `formatMemoriesForSystem()`.
+`runMemoryConsolidation()`, `loadRelevantMemories()`, `formatMemoriesForSystem()`,
+`runMemoryInstruction()`.
 
 **Memory entries** (one row per topic/person in the `memory` table):
 
@@ -620,8 +621,43 @@ A durable, topic-consolidated memory of the user. Key functions:
 
 2. **Read filter** (`loadRelevantMemories()` / `formatMemoriesForSystem()`) —
    pre-turn when `memory.useInChat`. One LLM call picks the relevant
-   entries; selected entries are recorded in `memory_usage_log` and get
-   `lastUsedAt` bumped, then rendered into a `<user_memory>` system block.
+   entries; selected entries are recorded in `memory_usage_log` (with the
+   run's id and the entry's key/section at the time, so a later delete still
+   has a name to show) and get `lastUsedAt` bumped, then rendered into a
+   `<user_memory>` system block.
+
+3. **User correction** (`runMemoryInstruction()`, the same engine Settings →
+   Memory's instruction box uses) — one LLM call turns a free-text
+   instruction into `create`/`update`/`delete` operations and returns
+   `{ applied, changes: MemoryChange[] }` (`MemoryChange`/`MemorySnapshot` in
+   `packages/shared/src/types/memory.ts`): `before`/`after` snapshots per
+   change, `null` for a create's `before` or a delete's `after`. The
+   `update_memory` tool (`calling-tools/update-memory.ts`, bound whenever a
+   chat has a model + key) calls it directly and synchronously, with no
+   scope — the model corrects, adds or forgets something without asking
+   first (the system prompt's autonomy policy); "no change needed" is a
+   normal result, not an error, and draws no UI. `POST /api/v1/memory/undo`
+   (body `{ changes }`, `memory/undo.ts`) reverses a run's changes
+   newest-first, each only while the entry's current state still equals that
+   change's
+   `after` (a missing row counts as `after === null`) — an entry edited
+   since elsewhere (Settings, another chat) is skipped and reported, never
+   overwritten; running the same `changes` twice is a no-op the second time.
+
+**Which memories a run used**: the chat route sends `{ type: 'memories_used',
+runId, memories: [{ id, key, section }] }` over SSE before the first frame,
+whenever the read filter selected something; `GET /api/v1/memory/usage?chatId=`
+(`getMemoryUsageByChat()`) replays the same shape per run for a chat reopened
+from history, grouped by `runId` (a pre-migration row with a null `runId` is
+skipped, not shown). Renderer: `hooks/use-memory.ts` (`useMemories`,
+`useRunMemoryUsage`, `useUndoMemoryChanges`) backs
+`components/chat/used-memories.tsx` (the "Used N memories · keys" line and its
+popover at the run's foot — a deleted entry still shows its logged key,
+greyed; "This is wrong" prefills the composer through `chatInputFocusAtom`)
+and `components/chat/memory-change-strip.tsx` (the run-foot strip for
+`update_memory`: running → done, with per-change before/after and Undo;
+`lib/run-memory-changes.ts` derives its state from the run's own messages,
+never a separate fetch).
 
 ### Philharmonic (multi-agent Groups)
 
@@ -745,7 +781,9 @@ Their windows live in `src/main/lib/window.ts`.
   (exodus-ios, exodus-cli, the phone) can change: chat history, the projects list + project chats,
   devices, installed skills, the three logs reads, the Discover feed, and the Ollama probe
   (`use-chat-history.ts`, `use-projects.ts`, `use-devices.ts`, `use-installed-skills.ts`,
-  `use-logs.ts`, `use-discover-feed.ts`, `use-ollama-status.ts`). The remote skills.sh relay uses
+  `use-logs.ts`, `use-discover-feed.ts`, `use-ollama-status.ts`) — plus the memory list
+  (`use-memory.ts`'s `useMemories()`), which the chat's own `update_memory` tool and background
+  consolidation can both write with the Memory page not open. The remote skills.sh relay uses
   `lib/relay-retry.ts`'s `RELAY_RETRY` instead. `installWindowFocusListener()` (`main.tsx`, at boot)
   follows the window's own focus/blur, not just `visibilitychange`, and feeds every one of those
   opted-in queries.
@@ -879,6 +917,13 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   (`multimodel-input.tsx`) and `ChatToc` are `memo`'d; don't pass them
   `messages` or anything else that changes per frame unless they show it
   (`ChatToc` compares user messages only).
+- **The memory foot subscribes to its own run only.** `UsedMemories` and
+  `MemoryChangeStrip` (`chat/used-memories.tsx`, `chat/memory-change-strip.tsx`)
+  render under `AssistantTurnSegment`, after the body. `MemoryChangeStrip` is
+  memoized on the turn's `messages` array — unchanged for a settled run, per
+  the identity guarantee above — and `UsedMemories` reads only its own
+  `runId`'s slice of the chat's usage record (`useRunMemoryUsage`'s `select`);
+  another run streaming touches neither.
 
 ### When Working with Frontend
 
@@ -1308,6 +1353,10 @@ Renderer:
   and that field is empty. (The snake_case rename once left this map on the
   old camelCase keys and the three panels vanished silently;
   `tool-config.test.ts` pins the keys to the registry now.)
+- `src/renderer/components/status-strip.tsx` — `StatusStrip` (an icon + text
+  row on the frosted surface, with an optional `Reveal`-able `details`
+  section): shared by `lcm-status-card.tsx` (compaction) and
+  `chat/memory-change-strip.tsx` (`update_memory`)
 - `src/renderer/components/morph.tsx` — `Morph` (two states in one cell, the
   height following the active one under a blurred crossfade) and `Reveal` (a
   section growing from 0fr): the in-place opening a card or a row is allowed
@@ -1317,7 +1366,10 @@ Renderer:
   the web-search list is 239 of them)
 - `src/renderer/components/skills-market/` — Settings → Skills Market (Discover grid, detail page with audit + CLI command, Installed list)
 - `src/renderer/containers/` — page-level components
-- `src/renderer/stores/` — Jotai atoms
+- `src/renderer/stores/` — Jotai atoms, incl. `input.ts`'s `chatInputAtom`
+  (the composer's draft text) and `chatInputFocusAtom` (a counter
+  `multimodel-input.tsx`'s `InputBox` watches to refocus and re-caret the
+  composer — bumped by `used-memories.tsx`'s "This is wrong")
 - `src/renderer/hooks/` — React hooks
 - `src/renderer/services/` — API call wrappers
 - `src/renderer/lib/` — renderer utilities (ipc, stream-manager, `query-client.ts` — the one
