@@ -1,4 +1,9 @@
 import type { Model } from '@earendil-works/pi-ai'
+import type {
+  MemoryChange,
+  MemoryInstructionResult,
+  MemorySnapshot
+} from '@exodus/shared/types/memory'
 import z from 'zod'
 
 import {
@@ -243,6 +248,18 @@ export async function runMemoryConsolidation(
 
 // ─── User instruction (manual edit) ───────────────────────────────────────────
 
+/** The field values an entry had (or now has), independent of its id — what
+ *  a `MemoryChange`'s `before`/`after` carries and undo restores. */
+export function snapshotOf(m: MemoryRow): MemorySnapshot {
+  return {
+    section: m.section,
+    key: m.key,
+    summary: m.summary,
+    details: m.details,
+    isActive: m.isActive ?? true
+  }
+}
+
 function memoryEntryBlock(m: MemoryRow): string {
   const bullets = m.details.map((d) => `- ${d}`).join('\n')
   return `[${m.id}] (${m.section}) ${m.key}\nsummary: ${m.summary}${
@@ -261,7 +278,7 @@ export async function runMemoryInstruction(
   scopeMemoryId: string | null,
   model: Model<string>,
   apiKey: string
-): Promise<{ applied: number }> {
+): Promise<MemoryInstructionResult> {
   // Include inactive entries so the user can reference / restore / delete them.
   const all = await getAllMemories(LOCAL_USER_ID)
   const scoped = scopeMemoryId
@@ -294,15 +311,20 @@ export async function runMemoryInstruction(
     throw new Error("Couldn't interpret that instruction — try rephrasing.")
   }
 
-  const validIds = new Set(all.map((m) => m.id))
-  let applied = 0
+  const byId = new Map(all.map((m) => [m.id, m]))
+  const changes: MemoryChange[] = []
 
   for (const op of parsed.data.operations) {
     if (op.op === 'delete') {
-      if (op.id && validIds.has(op.id)) {
-        await hardDeleteMemory(op.id)
-        applied++
-      }
+      const before = op.id ? byId.get(op.id) : undefined
+      if (!before) continue // unknown id: ignored, not reported
+      await hardDeleteMemory(before.id)
+      changes.push({
+        op: 'delete',
+        id: before.id,
+        before: snapshotOf(before),
+        after: null
+      })
       continue
     }
 
@@ -317,21 +339,37 @@ export async function runMemoryInstruction(
         .slice(0, 8)
     }
 
-    if (op.op === 'update' && op.id && validIds.has(op.id)) {
-      await updateMemory(op.id, { ...fields, confidence: op.confidence })
-      applied++
+    if (op.op === 'update') {
+      const before = op.id ? byId.get(op.id) : undefined
+      if (!before) continue // unknown id: ignored, not reported (never invents a create)
+      const updated = await updateMemory(before.id, {
+        ...fields,
+        confidence: op.confidence
+      })
+      if (!updated) continue
+      changes.push({
+        op: 'update',
+        id: before.id,
+        before: snapshotOf(before),
+        after: snapshotOf(updated)
+      })
     } else {
-      await createMemory({
+      const created = await createMemory({
         userId: LOCAL_USER_ID,
         source: 'explicit',
         confidence: op.confidence ?? 0.9,
         ...fields
       })
-      applied++
+      changes.push({
+        op: 'create',
+        id: created.id,
+        before: null,
+        after: snapshotOf(created)
+      })
     }
   }
 
-  return { applied }
+  return { applied: changes.length, changes }
 }
 
 // ─── Read filter ──────────────────────────────────────────────────────────────

@@ -1,10 +1,11 @@
+import type { MemorySection, MemorySnapshot } from '@exodus/shared/types/memory'
 import { and, desc, eq, inArray } from 'drizzle-orm'
 import { v4 as uuidV4 } from 'uuid'
 
 import { db } from './db'
 import { memory, memoryUsageLog } from './schema'
 
-export type MemorySection = 'profile' | 'topic' | 'person'
+export type { MemorySection }
 export type MemorySource = 'explicit' | 'implicit' | 'system'
 
 export interface MemoryRow {
@@ -101,6 +102,30 @@ export async function softDeleteMemory(id: string): Promise<void> {
 
 export async function hardDeleteMemory(id: string): Promise<void> {
   await db.delete(memory).where(eq(memory.id, id))
+}
+
+/** Re-inserts a snapshot under its original id — what undo uses to reverse a
+ *  `create` (the deleted row) or a `delete` (the snapshot it removed). */
+export async function restoreMemory(
+  id: string,
+  userId: string,
+  s: MemorySnapshot,
+  source: MemorySource
+): Promise<MemoryRow> {
+  const [row] = await db
+    .insert(memory)
+    .values({
+      id,
+      userId,
+      section: s.section,
+      key: s.key,
+      summary: s.summary,
+      details: s.details,
+      isActive: s.isActive,
+      source
+    })
+    .returning()
+  return row as unknown as MemoryRow
 }
 
 /** Bump `lastUsedAt` for memories that were surfaced into a chat. */
