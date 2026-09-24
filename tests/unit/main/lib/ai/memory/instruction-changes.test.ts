@@ -166,6 +166,96 @@ describe('runMemoryInstruction', () => {
     expect(result).toEqual({ applied: 0, changes: [] })
   })
 
+  it("a second update on the same id reads before from the first update's after", async () => {
+    const entry = await createMemory({
+      userId: LOCAL_USER_ID,
+      section: 'topic',
+      key: 'Rust',
+      summary: 'Learning Rust',
+      details: ['Reading the book'],
+      source: 'explicit'
+    })
+
+    reply(
+      JSON.stringify({
+        operations: [
+          {
+            op: 'update',
+            id: entry.id,
+            section: 'topic',
+            key: 'Rust',
+            summary: 'Learning Rust — week 2',
+            details: ['Built a CLI']
+          },
+          {
+            op: 'update',
+            id: entry.id,
+            section: 'topic',
+            key: 'Rust',
+            summary: 'Learning Rust — week 3',
+            details: ['Built a CLI', 'Wrote a parser']
+          }
+        ]
+      })
+    )
+
+    const { changes } = await runMemoryInstruction(
+      'update it twice',
+      null,
+      model,
+      'k'
+    )
+
+    expect(changes).toHaveLength(2)
+    expect(changes[1].before).toEqual(changes[0].after)
+    expect(changes[1].after).toEqual({
+      section: 'topic',
+      key: 'Rust',
+      summary: 'Learning Rust — week 3',
+      details: ['Built a CLI', 'Wrote a parser'],
+      isActive: true
+    })
+  })
+
+  it("a delete after an update on the same id reads before from the update's after", async () => {
+    const entry = await createMemory({
+      userId: LOCAL_USER_ID,
+      section: 'topic',
+      key: 'Go',
+      summary: 'Learning Go',
+      details: [],
+      source: 'explicit'
+    })
+
+    reply(
+      JSON.stringify({
+        operations: [
+          {
+            op: 'update',
+            id: entry.id,
+            section: 'topic',
+            key: 'Go',
+            summary: 'Learning Go — done with the tour',
+            details: ['Finished the tour']
+          },
+          { op: 'delete', id: entry.id }
+        ]
+      })
+    )
+
+    const { changes } = await runMemoryInstruction(
+      'update then delete it',
+      null,
+      model,
+      'k'
+    )
+
+    expect(changes).toHaveLength(2)
+    expect(changes[1].op).toBe('delete')
+    expect(changes[1].before).toEqual(changes[0].after)
+    expect(changes[1].after).toBeNull()
+  })
+
   it('still throws on an unparseable reply', async () => {
     reply('not json')
 

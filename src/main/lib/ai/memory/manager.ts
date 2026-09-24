@@ -317,8 +317,9 @@ export async function runMemoryInstruction(
   for (const op of parsed.data.operations) {
     if (op.op === 'delete') {
       const before = op.id ? byId.get(op.id) : undefined
-      if (!before) continue // unknown id: ignored, not reported
+      if (!before) continue // unknown id (or deleted earlier this reply): ignored, not reported
       await hardDeleteMemory(before.id)
+      byId.delete(before.id)
       changes.push({
         op: 'delete',
         id: before.id,
@@ -341,12 +342,14 @@ export async function runMemoryInstruction(
 
     if (op.op === 'update') {
       const before = op.id ? byId.get(op.id) : undefined
-      if (!before) continue // unknown id: ignored, not reported (never invents a create)
+      // unknown id, or deleted earlier this reply: ignored (never invents a create)
+      if (!before) continue
       const updated = await updateMemory(before.id, {
         ...fields,
         confidence: op.confidence
       })
       if (!updated) continue
+      byId.set(before.id, updated)
       changes.push({
         op: 'update',
         id: before.id,
