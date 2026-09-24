@@ -41,6 +41,33 @@ export async function createAutoBackup(): Promise<string> {
   return filePath
 }
 
+/**
+ * Deletes the auto-backups written before `cutoff` and returns their names.
+ * Meant for the backups taken before secrets were encrypted at rest: they
+ * hold every API key in plaintext (review S2 C2). NOT CALLED YET — deleting
+ * a user's backups is the owner's decision; once made, it is one line after
+ * a fresh post-migration backup succeeds:
+ * `removeBackupsOlderThan(new Date(readJson(getSecretsPurgeMarkerPath()).purgedAt))`.
+ */
+export function removeBackupsOlderThan(cutoff: Date): string[] {
+  const dir = getAutoBackupsDir()
+  if (!existsSync(dir)) return []
+  const removed: string[] = []
+  for (const name of readdirSync(dir).toSorted()) {
+    if (!name.endsWith('.tar.gz')) continue
+    const path = join(dir, name)
+    if (statSync(path).mtimeMs >= cutoff.getTime()) continue
+    unlinkSync(path)
+    removed.push(name)
+  }
+  if (removed.length > 0) {
+    logger.info('app', 'Deleted backups older than the cutoff', {
+      count: removed.length
+    })
+  }
+  return removed
+}
+
 function cleanupOldBackups(): void {
   const dir = getAutoBackupsDir()
   const files = readdirSync(dir)

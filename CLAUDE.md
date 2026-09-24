@@ -274,7 +274,9 @@ copies `chat` / `message` / `project` out of PGlite via NDJSON into
 on one promise chain, and caps results at 500 rows. The query instance runs
 with `enable_external_access = false` + `lock_configuration = true`, so no
 query can read a file (`read_text`, `read_json`, `COPY`, `ATTACH`) — which is
-why `logs` is a table built at rebuild, not a view over the files. The editor is Monaco
+why `logs` is a table built at rebuild, not a view over the files. The copy
+masks every current secret value (`secrets/scrub.ts`): an old log line could
+quote a key. The editor is Monaco
 (`settings-form/chat-audit-editor.tsx`, SQL language, ⌘↩ bound via the editor,
 completions from `packages/shared/src/constants/chat-audit-schema.ts`, which
 is also what `snapshot.ts` builds the tables from). Presets live in
@@ -1364,10 +1366,17 @@ Main process:
   `SECRET_DESTINATIONS`), the mask (`mask.ts`), `maskSettings` /
   `restoreSettingsSecrets` / `maskMcpServer` / `restoreMcpSecrets`
   (`index.ts`), the stored-plaintext accessors (`current.ts`), and encryption
-  at rest: `crypto.ts` (`enc:v1:` over `safeStorage`), `at-rest.ts` (decrypt a
-  row on read, `prepareSettingsWrite` on write), `migrate.ts` (the idempotent
-  startup pass `main.ts` runs after the schema migrations), `status.ts` (what
-  `GET /api/v1/settings/secrets-status` reports)
+  at rest: `crypto.ts` (`enc:v1:` over `safeStorage`; only a well-formed
+  envelope counts as encrypted), `at-rest.ts` (decrypt a row on read,
+  `prepareSettingsWrite` / `prepareMcpUpdate` on write; MCP `url` and `args`
+  are encrypted whole), `migrate.ts` (`secretsAtRestStartup()`, the idempotent
+  pass `main.ts` runs after the schema migrations: encrypt, strip job keys,
+  then — once, or whenever it changed something — `purge.ts`: `VACUUM FULL`
+  and three `pg_switch_wal()` / `CHECKPOINT` rounds so no plaintext survives in
+  the heap, the WAL or a `dumpDataDir()` backup; marker
+  `~/.exodus/secrets-purge.json`), `status.ts` (what
+  `GET /api/v1/settings/secrets-status` reports), `known.ts` + `scrub.ts`
+  (every current secret value, and masking them out of copied text)
 - `src/main/lib/security.ts` — renderer hardening (`hardenRenderers()`:
   navigation guard, window-open handler, permission handler) and
   `openExternalSafely` / `isSafeExternalUrl`

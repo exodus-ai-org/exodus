@@ -70,8 +70,34 @@ describe('encryptSecret / decryptSecret', () => {
     expect(JSON.stringify(out)).not.toContain(ENC_PREFIX)
   })
 
-  it('reports a malformed envelope as a failure', () => {
-    expect(decryptSecret(`${ENC_PREFIX}!!!not base64`)).toEqual({ ok: false })
+  // M1: only a well-formed envelope counts as encrypted — the prefix, valid
+  // base64, and an OSCrypt `v10` / `v11` blob inside. A plaintext that merely
+  // starts with `enc:v1:` is encrypted like any other value.
+  it.each([
+    'enc:v1:hello',
+    'enc:v1:!!!not base64',
+    `enc:v1:${Buffer.from('plain bytes, no tag').toString('base64')}`,
+    'enc:v1:'
+  ])('encrypts a plaintext that only looks like an envelope: %s', (v) => {
+    expect(isEncryptedSecret(v)).toBe(false)
+    const sealed = encryptSecret(v)
+    expect(sealed).not.toBe(v)
+    expect(isEncryptedSecret(sealed)).toBe(true)
+    expect(decryptSecret(sealed)).toEqual({ ok: true, value: v })
+  })
+
+  it('reads such a value stored with no backend as the plaintext it is', () => {
+    expect(decryptSecret('enc:v1:!!!not base64')).toEqual({
+      ok: true,
+      value: 'enc:v1:!!!not base64'
+    })
+  })
+
+  it("still treats another machine's well-formed ciphertext as encrypted", () => {
+    const sealed = encryptSecret(KEY)
+    fakeSafeStorageState.machine = 'machine-B'
+    expect(isEncryptedSecret(sealed)).toBe(true)
+    expect(encryptSecret(sealed)).toBe(sealed)
   })
 })
 

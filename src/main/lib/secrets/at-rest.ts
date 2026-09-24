@@ -1,5 +1,5 @@
 import type { McpServer } from '../db/schema'
-import { decryptSecret, encryptSecret } from './crypto'
+import { decryptSecret, encryptSecret, isEncryptedSecret } from './crypto'
 import { mcpPlaintext, type McpSecretsPlaintext } from './current'
 import {
   restoreMcpLocators,
@@ -11,6 +11,7 @@ import {
 import { looksLikeMask } from './mask'
 import {
   MCP_KEY_NAMED_SECRET_COLUMNS,
+  MCP_EXTRA_CONFIG_DESTINATION_KEY,
   MCP_SECRET_DESTINATIONS,
   MCP_SECRET_RECORD_COLUMNS,
   SECRET_DESTINATIONS,
@@ -143,6 +144,45 @@ type McpSecretColumns = {
   env?: Record<string, string> | null
   headers?: Record<string, string> | null
   extraConfig?: Record<string, unknown> | null
+  url?: string | null
+  args?: string[] | null
+}
+
+/**
+ * How the whole-value locators are stored: `url` as `enc:v1:` of itself,
+ * `args` as `enc:v1:` of its JSON (a jsonb string in the `args` column). Both
+ * can carry secrets (a capability path, userinfo, `--api-key=…` — ruling (b)),
+ * and masking them over the API (`locators.ts`) is not encryption at rest.
+ */
+function mapMcpLocators<T extends McpSecretColumns>(
+  copy: T,
+  fn: (s: string, label: string) => string | null,
+  direction: 'seal' | 'open'
+): void {
+  if (typeof copy.url === 'string' && copy.url) {
+    copy.url = fn(copy.url, 'url')
+  }
+  const args = copy.args as unknown
+  if (direction === 'seal') {
+    if (Array.isArray(args) && args.length > 0) {
+      const sealed = fn(JSON.stringify(args), 'args')
+      // Unchanged (no backend): keep the array as it was.
+      copy.args = (
+        sealed === null || !isEncryptedSecret(sealed) ? args : sealed
+      ) as never
+    }
+    return
+  }
+  if (typeof args === 'string') {
+    const opened = fn(args, 'args')
+    let parsed: unknown = null
+    try {
+      parsed = opened === null ? null : JSON.parse(opened)
+    } catch {
+      parsed = null
+    }
+    copy.args = (Array.isArray(parsed) ? parsed : []) as never
+  }
 }
 
 /**
@@ -205,12 +245,14 @@ export function decryptMcpRow<T extends McpSecretColumns>(
   row: T
 ): { plain: T; undecryptable: string[] } {
   const undecryptable: string[] = []
-  const plain = mapMcpSecrets(row, (v, label) => {
+  const open = (v: string, label: string) => {
     const out = decryptSecret(v)
     if (out.ok) return out.value
     undecryptable.push(label)
     return null
-  })
+  }
+  const plain = mapMcpSecrets(row, open)
+  mapMcpLocators(plain, open, 'open')
   return { plain, undecryptable }
 }
 
@@ -219,11 +261,13 @@ export function encryptMcpSecrets<T extends McpSecretColumns>(
   body: T
 ): { sealed: T; changed: number } {
   let changed = 0
-  const sealed = mapMcpSecrets(body, (v) => {
+  const seal = (v: string) => {
     const out = encryptSecret(v)
     if (out !== v) changed++
     return out
-  })
+  }
+  const sealed = mapMcpSecrets(body, seal)
+  mapMcpLocators(sealed, seal, 'seal')
   return { sealed, changed }
 }
 
@@ -232,6 +276,25 @@ interface McpDestination {
   transportType?: string | null
   command?: string | null
   args?: string[] | null
+  extraConfig?: Record<string, unknown> | null
+}
+
+/**
+ * The `extraConfig` values that name a place a secret goes (ruling a): every
+ * string under a key matching `MCP_EXTRA_CONFIG_DESTINATION_KEY`, at any
+ * depth, as `path=normalized value` — an OAuth `issuer` / `tokenUrl`, a proxy
+ * `host`, an `endpoint`.
+ */
+function extraConfigDestinations(value: unknown, path = ''): string[] {
+  if (Array.isArray(value)) {
+    return value.flatMap((v, i) => extraConfigDestinations(v, `${path}.${i}`))
+  }
+  if (!isPlainObject(value)) return []
+  return Object.entries(value).flatMap(([k, v]) =>
+    typeof v === 'string' && MCP_EXTRA_CONFIG_DESTINATION_KEY.test(k)
+      ? [`${path}.${k}=${normalizeBaseUrl(v) ?? ''}`]
+      : extraConfigDestinations(v, `${path}.${k}`)
+  )
 }
 
 type McpWriteBody = McpSecretColumns & {
@@ -251,8 +314,9 @@ const sameArgs = (
  * the EFFECTIVE one — each of `url` / `transportType` / `command` / `args` as
  * posted, or as stored when the write leaves it out (a partial PUT) —
  * compared with the stored one: `headers` and the `extraConfig` secrets go to
- * the `url` over `transportType`; `env` goes to the process `command` + `args`
- * start. `body` must already have had its masked `url` / `args` restored
+ * the `url` over `transportType` (and to the `extraConfig` url / endpoint /
+ * host / issuer values — ruling a); `env` goes to the process `command` +
+ * `args` start. `body` must already have had its masked `url` / `args` restored
  * (`restoreMcpLocators`), so a url posted back as its mask is no move.
  */
 export function movedMcpSecretColumns(
@@ -262,9 +326,24 @@ export function movedMcpSecretColumns(
   const pick = <K extends keyof McpDestination>(k: K) =>
     body[k] === undefined ? stored[k] : body[k]
   const moved = new Set<keyof McpSecretsPlaintext>()
+  // A destination under a secret-named key (`tokenUrl`) comes back masked:
+  // compare what the posted masks stand for, not the masks.
+  const postedExtra =
+    body.extraConfig === undefined
+      ? stored.extraConfig
+      : restoreMcpSecrets(
+          { extraConfig: body.extraConfig },
+          {
+            env: null,
+            headers: null,
+            extraConfig: stored.extraConfig ?? null
+          }
+        ).extraConfig
   const remoteMoved =
     normalizeBaseUrl(pick('url')) !== normalizeBaseUrl(stored.url) ||
-    (pick('transportType') ?? 'stdio') !== (stored.transportType ?? 'stdio')
+    (pick('transportType') ?? 'stdio') !== (stored.transportType ?? 'stdio') ||
+    extraConfigDestinations(postedExtra).toSorted().join('\n') !==
+      extraConfigDestinations(stored.extraConfig).toSorted().join('\n')
   const processMoved =
     (pick('command') ?? '').trim() !== (stored.command ?? '').trim() ||
     !sameArgs(pick('args'), stored.args)

@@ -28,6 +28,8 @@ vi.mock('@main/lib/paths', () => ({
   getLogsDir: () => logsDir
 }))
 
+const noSecrets = async () => [] as string[]
+
 const now = new Date('2026-09-19T10:00:00.000Z')
 const usage = {
   input: 120,
@@ -194,7 +196,7 @@ describe('buildSnapshot + runQuery (real DuckDB)', () => {
     const { runQuery, MAX_RESULT_ROWS } =
       await import('@main/lib/analytics/duckdb')
 
-    const meta = await buildSnapshot({ source })
+    const meta = await buildSnapshot({ source, secrets: noSecrets })
     expect(meta.tables).toEqual([
       { name: 'chats', rows: 2 },
       { name: 'messages', rows: 3 },
@@ -250,9 +252,45 @@ describe('buildSnapshot + runQuery (real DuckDB)', () => {
       await conn.run('CREATE OR REPLACE VIEW logs AS SELECT 1 AS old')
     })
     closeDuckDB()
-    const meta = await buildSnapshot({ source })
+    const meta = await buildSnapshot({ source, secrets: noSecrets })
     expect(meta.logsIncluded).toBe(true)
     const logs = await runQuery('select count(*) as n from logs')
     expect(logs.rows[0].n).toBe(1)
+  }, 60_000)
+
+  // Review S2 M3: a log line written before S1's secret-safe errors could
+  // quote a key (drizzle's `params: …`); the logs table outlives the file, so
+  // the copy scrubs every current secret value to its mask.
+  it('scrubs current secret values out of the copied logs', async () => {
+    const LEAK = 'sk-proj-LOGGED-secret-value-9f8e7d6c'
+    const QUOTE = 'pa"ss\\word-LOGGED-5a4b3c2d'
+    writeFileSync(
+      join(logsDir, '2026-09-20.jsonl'),
+      JSON.stringify({
+        timestamp: '2026-09-20T07:34:02.819Z',
+        severityNumber: 17,
+        severityText: 'ERROR',
+        body: `Failed query: update "settings" params: ${LEAK},${QUOTE}`,
+        scope: { name: 'database' },
+        attributes: { error: `cause ${LEAK}`, nested: { v: QUOTE } },
+        resource: { 'service.name': 'exodus' },
+        traceId: 't2'
+      }) + '\n'
+    )
+    const { buildSnapshot } = await import('@main/lib/analytics/snapshot')
+    const { runQuery } = await import('@main/lib/analytics/duckdb')
+    const { maskSecret } = await import('@main/lib/secrets/mask')
+    await buildSnapshot({ source, secrets: async () => [LEAK, QUOTE] })
+
+    const rows = await runQuery(
+      "select body, attributes::varchar as a from logs where scope.name = 'database'"
+    )
+    const text = JSON.stringify(rows.rows)
+    expect(text).not.toContain('LOGGED-secret-value')
+    expect(text).not.toContain('LOGGED-5a4b3c2d')
+    expect(text).toContain(maskSecret(LEAK)!)
+    const { readFileSync } = await import('fs')
+    const file = readFileSync(join(analyticsDir, 'exodus.duckdb'))
+    expect(file.includes(Buffer.from(LEAK))).toBe(false)
   }, 60_000)
 })

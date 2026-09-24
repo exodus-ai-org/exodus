@@ -77,6 +77,14 @@ export function getMediaDir(): string {
 }
 
 /** DuckDB chat-audit snapshot (`exodus.duckdb` + `snapshot.json`) — Settings → Developer. */
+/**
+ * Written once the plaintext left on disk by pre-encryption builds has been
+ * purged (`secrets/migrate.ts`); holds `{ purgedAt }`.
+ */
+export function getSecretsPurgeMarkerPath(): string {
+  return join(getExodusHome(), 'secrets-purge.json')
+}
+
 export function getAnalyticsDir(): string {
   const dir = join(getExodusHome(), 'analytics')
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true })

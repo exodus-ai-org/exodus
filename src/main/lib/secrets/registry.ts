@@ -173,6 +173,14 @@ export const SECRET_DESTINATIONS: Partial<
  * The same rule for an `mcp_server` row: `headers` and the secrets inside
  * `extraConfig` go to `url`; `env` goes to the process `command` starts.
  */
+/**
+ * Inside `extraConfig`, a string under a key like this names a destination
+ * too (an OAuth `issuer` / `tokenUrl`, a proxy `host`, an `endpoint`): when
+ * one changes, the `url`-bound secrets (`headers`, the `extraConfig`
+ * secrets) are cleared as for a new `url` (ruling a).
+ */
+export const MCP_EXTRA_CONFIG_DESTINATION_KEY = /url|endpoint|host|issuer/iu
+
 export const MCP_SECRET_DESTINATIONS = {
   headers: 'url',
   extraConfig: 'url',

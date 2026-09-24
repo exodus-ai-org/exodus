@@ -21,8 +21,42 @@ export const ENC_PREFIX = 'enc:v1:'
 
 export type EncryptionState = 'on' | 'unavailable'
 
+const BASE64 = /^[A-Za-z0-9+/]+={0,2}$/u
+
+/**
+ * A well-formed envelope: the prefix, valid base64, and inside it an OSCrypt
+ * blob — `v10` / `v11`, the tag every `safeStorage.encryptString` result
+ * starts with (the same test `lock/pin-store.ts` uses). Deliberately not
+ * "decrypts here": another machine's ciphertext is still ciphertext, and must
+ * be neither encrypted again nor read as a key. A plaintext that merely
+ * starts with `enc:v1:` is not an envelope, and gets encrypted (review M1).
+ */
 export function isEncryptedSecret(value: unknown): value is string {
-  return typeof value === 'string' && value.startsWith(ENC_PREFIX)
+  if (typeof value !== 'string' || !value.startsWith(ENC_PREFIX)) return false
+  const body = value.slice(ENC_PREFIX.length)
+  if (!BASE64.test(body)) return false
+  const raw = Buffer.from(body, 'base64')
+  // "v1" then "0" or "1".
+  return (
+    raw.length > 3 &&
+    raw[0] === 0x76 &&
+    raw[1] === 0x31 &&
+    (raw[2] === 0x30 || raw[2] === 0x31)
+  )
+}
+
+/**
+ * The Keychain (DPAPI, libsecret) refused to encrypt although the backend is
+ * there — a denied prompt, a locked keychain. The save fails closed; this
+ * message, which carries no value, is what the API answers with (review M2).
+ */
+export class SecretEncryptionError extends Error {
+  constructor() {
+    super(
+      'Could not encrypt the secret: the system keychain refused access. Allow Exodus in the keychain prompt (or unlock the keychain) and save again.'
+    )
+    this.name = 'SecretEncryptionError'
+  }
 }
 
 export function encryptionState(): EncryptionState {
@@ -47,6 +81,7 @@ let warned = false
 /** For tests: the "unavailable" warning is once per process. */
 export function resetEncryptionWarning(): void {
   warned = false
+  encryptFailureLogged = false
 }
 
 export function warnUnavailableOnce(): void {
@@ -72,20 +107,35 @@ export function encryptSecret(value: string): string {
     warnUnavailableOnce()
     return value
   }
-  return ENC_PREFIX + safeStorage.encryptString(value).toString('base64')
+  try {
+    return ENC_PREFIX + safeStorage.encryptString(value).toString('base64')
+  } catch {
+    logEncryptFailureOnce()
+    throw new SecretEncryptionError()
+  }
+}
+
+let encryptFailureLogged = false
+
+function logEncryptFailureOnce(): void {
+  if (encryptFailureLogged) return
+  encryptFailureLogged = true
+  void import('../logger').then(({ logger }) =>
+    logger.error('secrets', new SecretEncryptionError().message)
+  )
 }
 
 export type DecryptedSecret = { ok: true; value: string } | { ok: false }
 
 /**
- * The plaintext of a stored secret. A value without the prefix is plaintext
- * already (written before the migration, or with no backend).
+ * The plaintext of a stored secret. A value that is not a well-formed
+ * envelope is plaintext already (written before the migration, or with no
+ * backend).
  */
 export function decryptSecret(value: string): DecryptedSecret {
   if (!isEncryptedSecret(value)) return { ok: true, value }
   try {
     const body = value.slice(ENC_PREFIX.length)
-    if (!/^[A-Za-z0-9+/]+={0,2}$/u.test(body)) return { ok: false }
     return {
       ok: true,
       value: safeStorage.decryptString(Buffer.from(body, 'base64'))

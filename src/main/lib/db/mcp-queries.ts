@@ -51,12 +51,12 @@ export async function getMcpServersByNames(names: string[]) {
 
 // Writes rethrow a secret-safe error: the driver's message quotes every
 // parameter, `env` / `headers` values included.
+// Encryption runs before the `try`: a Keychain refusal surfaces as its own
+// value-free `SecretEncryptionError`, not as a generic write failure.
 export async function createMcpServer(data: typeof mcpServer.$inferInsert) {
+  const { sealed } = encryptMcpSecrets(data)
   try {
-    const [result] = await db
-      .insert(mcpServer)
-      .values(encryptMcpSecrets(data).sealed)
-      .returning()
+    const [result] = await db.insert(mcpServer).values(sealed).returning()
     return decrypted(result)
   } catch (error) {
     throw secretSafeWriteError('Failed to create MCP server', error)
@@ -67,10 +67,11 @@ export async function updateMcpServer(
   id: string,
   data: Partial<typeof mcpServer.$inferInsert>
 ) {
+  const { sealed } = encryptMcpSecrets(data)
   try {
     const [result] = await db
       .update(mcpServer)
-      .set({ ...encryptMcpSecrets(data).sealed, updatedAt: new Date() })
+      .set({ ...sealed, updatedAt: new Date() })
       .where(eq(mcpServer.id, id))
       .returning()
     return decrypted(result)

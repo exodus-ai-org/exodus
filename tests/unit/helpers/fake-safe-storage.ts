@@ -14,7 +14,9 @@
 export const fakeSafeStorageState = {
   available: true,
   machine: 'machine-A',
-  backend: 'keychain' as string
+  backend: 'keychain' as string,
+  // Available, but the Keychain refuses this call (a denied prompt).
+  denyEncrypt: false
 }
 
 const tag = () => Buffer.from(`v10${fakeSafeStorageState.machine}|`)
@@ -24,7 +26,7 @@ export const fakeSafeStorage = {
   isEncryptionAvailable: () => fakeSafeStorageState.available,
   getSelectedStorageBackend: () => fakeSafeStorageState.backend,
   encryptString(plain: string): Buffer {
-    if (!fakeSafeStorageState.available) {
+    if (!fakeSafeStorageState.available || fakeSafeStorageState.denyEncrypt) {
       throw new Error('Encryption is not available.')
     }
     return Buffer.concat([tag(), xor(Buffer.from(plain, 'utf8'))])
@@ -47,4 +49,5 @@ export function resetFakeSafeStorage(): void {
   fakeSafeStorageState.available = true
   fakeSafeStorageState.machine = 'machine-A'
   fakeSafeStorageState.backend = 'keychain'
+  fakeSafeStorageState.denyEncrypt = false
 }

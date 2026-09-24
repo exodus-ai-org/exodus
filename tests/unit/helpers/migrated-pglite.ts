@@ -30,11 +30,22 @@ export function migrationSql(file: string): string {
  * ships. `pg_trgm` and `vector` are what `db/migrate.ts` creates before it
  * migrates; 0000 needs the first for the message search index.
  */
-export async function createMigratedPglite(upTo: string): Promise<PGlite> {
-  const pglite = new PGlite({ extensions: { pg_trgm, vector } })
+export async function createMigratedPglite(
+  upTo: string,
+  options: { dataDir?: string; pgmq?: boolean } = {}
+): Promise<PGlite> {
+  const extensions: Record<string, unknown> = { pg_trgm, vector }
+  if (options.pgmq) {
+    extensions.pgmq = (await import('@electric-sql/pglite-pgmq')).pgmq
+  }
+  const pglite = new PGlite({
+    ...(options.dataDir ? { dataDir: options.dataDir } : {}),
+    extensions: extensions as never
+  })
   await pglite.waitReady
   await pglite.exec('CREATE EXTENSION IF NOT EXISTS vector;')
   await pglite.exec('CREATE EXTENSION IF NOT EXISTS pg_trgm;')
+  if (options.pgmq) await pglite.exec('CREATE EXTENSION IF NOT EXISTS pgmq;')
   const files = readdirSync(DRIZZLE)
     .filter((n) => n.endsWith('.sql') && n.slice(0, 4) <= upTo)
     .sort()

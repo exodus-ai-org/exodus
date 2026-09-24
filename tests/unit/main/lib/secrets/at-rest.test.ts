@@ -216,7 +216,8 @@ describe('startup migration', () => {
     expect(JSON.stringify(await rawMcp())).toContain(MCP_SECRETS[0])
 
     const counts = await encryptSecretsAtRest()
-    expect(counts).toEqual({ settings: SETTINGS_SECRET_PATHS.length, mcp: 3 })
+    // env, headers, the extraConfig secret — and the url (ruling b).
+    expect(counts).toEqual({ settings: SETTINGS_SECRET_PATHS.length, mcp: 4 })
 
     const row = await rawSettings()
     for (const p of SETTINGS_SECRET_PATHS) {
@@ -225,6 +226,7 @@ describe('startup migration', () => {
     const [mcp] = await rawMcp()
     expect(mcp.env!.GITHUB_TOKEN.startsWith(ENC_PREFIX)).toBe(true)
     expect(mcp.headers!.Authorization.startsWith(ENC_PREFIX)).toBe(true)
+    expect(mcp.url!.startsWith(ENC_PREFIX)).toBe(true)
     expect(
       String(
         (mcp.extraConfig as { oauth: { clientSecret: string } }).oauth
@@ -248,6 +250,7 @@ describe('startup migration', () => {
     expect(read.env).toEqual(MCP_ROW.env)
     expect(read.headers).toEqual(MCP_ROW.headers)
     expect(read.extraConfig).toEqual(MCP_ROW.extraConfig)
+    expect(read.url).toBe(MCP_ROW.url)
   })
 
   it('is idempotent: a second run changes nothing', async () => {
