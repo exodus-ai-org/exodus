@@ -2,10 +2,9 @@ import { CheckIcon, TriangleAlertIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { StatusStrip } from '@/components/status-strip'
 import { Spinner } from '@/components/ui/spinner'
 import { useLcmStatus, type LcmStatusState } from '@/hooks/use-lcm-status'
-import { ENTER_UP } from '@/lib/motion'
-import { cn } from '@/lib/utils'
 
 function formatTokens(n: number): string {
   if (n >= 1000) return `${(n / 1000).toFixed(1)}k`
@@ -51,56 +50,49 @@ export function LcmStatusCard({ chatId }: { chatId: string }) {
 
   if (!shown) return null
 
-  // A frosted strip over whatever is behind it (it sits above the floating
-  // composer, over the transcript): rises in, fades out.
-  const surface = cn(
-    ENTER_UP,
-    'mx-auto my-2 flex w-[calc(100%-8rem)] items-center gap-2 rounded-xl border px-3 py-2 text-xs backdrop-blur-md md:max-w-3xl',
-    leaving && 'opacity-0'
-  )
+  // Sits above the floating composer, over the transcript: rises in, fades out.
+  const place = 'mx-auto my-2 w-[calc(100%-8rem)] md:max-w-3xl'
 
   if (shown.kind === 'error') {
     return (
-      <div
+      <StatusStrip
         role="status"
-        className={cn(
-          surface,
-          'border-destructive/30 bg-destructive/10 text-destructive'
-        )}
+        tone="destructive"
+        leaving={leaving}
+        className={place}
+        icon={<TriangleAlertIcon className="size-3.5 shrink-0" />}
       >
-        <TriangleAlertIcon className="size-3.5 shrink-0" />
         <span>{t('lcm.compactionFailed')}</span>
-      </div>
+      </StatusStrip>
     )
   }
 
   return (
-    <div
+    <StatusStrip
       role="status"
-      className={cn(
-        surface,
-        'border-border/50 bg-background/70 text-muted-foreground'
-      )}
+      leaving={leaving}
+      className={place}
+      icon={
+        shown.kind === 'running' ? (
+          <Spinner className="size-3.5 shrink-0" />
+        ) : (
+          <CheckIcon className="size-3.5 shrink-0" />
+        )
+      }
     >
       {shown.kind === 'running' ? (
-        <>
-          <Spinner className="size-3.5 shrink-0" />
-          <span>{t('lcm.compacting')}</span>
-        </>
+        <span>{t('lcm.compacting')}</span>
       ) : (
-        <>
-          <CheckIcon className="size-3.5 shrink-0" />
-          <span>
-            {t('lcm.compactedSummary', {
-              count: Math.max(
-                0,
-                shown.payload.messagesBefore - shown.payload.messagesAfter
-              ),
-              tokens: formatTokens(shown.payload.tokensSaved)
-            })}
-          </span>
-        </>
+        <span>
+          {t('lcm.compactedSummary', {
+            count: Math.max(
+              0,
+              shown.payload.messagesBefore - shown.payload.messagesAfter
+            ),
+            tokens: formatTokens(shown.payload.tokensSaved)
+          })}
+        </span>
       )}
-    </div>
+    </StatusStrip>
   )
 }

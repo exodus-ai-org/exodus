@@ -260,7 +260,23 @@
     "error": "此回覆因錯誤而中斷：{{message}}"
   },
   "memoryStrip": {
-    "undoFailed": "無法復原"
+    "updating": "正在更新記憶…",
+    "updated": "已更新記憶 · {{keys}}",
+    "undo": "復原",
+    "undone": "已復原",
+    "partial": "已復原 {{undone}} 項 · {{skipped}} 項之後已變更，予以保留",
+    "stale": "已復原或之後已變更",
+    "failed": "無法更新記憶",
+    "undoFailed": "無法復原",
+    "new": "新增",
+    "deleted": "已刪除"
+  },
+  "usedMemories": {
+    "label_other": "使用了 {{count}} 項記憶 · {{keys}}",
+    "wrong": "這是錯的",
+    "openSettings": "在設定中開啟",
+    "deleted": "已刪除",
+    "prefill": "關於「{{key}}」的記憶有誤："
   },
   "renderFailed": "無法顯示{{what}}。",
   "findInPage": {

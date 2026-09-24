@@ -268,7 +268,24 @@
     "error": "Esta respuesta se detuvo con un error: {{message}}"
   },
   "memoryStrip": {
-    "undoFailed": "No se pudo deshacer"
+    "updating": "Actualizando la memoria…",
+    "updated": "Memoria actualizada · {{keys}}",
+    "undo": "Deshacer",
+    "undone": "Deshecho",
+    "partial": "Se deshicieron {{undone}} · {{skipped}} cambiaron desde entonces y se conservaron",
+    "stale": "Deshecho o cambiado desde entonces",
+    "failed": "No se pudo actualizar la memoria",
+    "undoFailed": "No se pudo deshacer",
+    "new": "Nuevo",
+    "deleted": "Eliminado"
+  },
+  "usedMemories": {
+    "label_one": "Se usó {{count}} memoria · {{keys}}",
+    "label_other": "Se usaron {{count}} memorias · {{keys}}",
+    "wrong": "Esto es incorrecto",
+    "openSettings": "Abrir en Configuración",
+    "deleted": "Eliminado",
+    "prefill": "La memoria sobre «{{key}}» es incorrecta: "
   },
   "renderFailed": "No se pudo mostrar {{what}}.",
   "findInPage": {

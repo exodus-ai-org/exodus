@@ -260,7 +260,23 @@
     "error": "この回答はエラーで中断しました: {{message}}"
   },
   "memoryStrip": {
-    "undoFailed": "元に戻せませんでした"
+    "updating": "メモリーを更新しています…",
+    "updated": "メモリーを更新しました · {{keys}}",
+    "undo": "元に戻す",
+    "undone": "元に戻しました",
+    "partial": "{{undone}} 件を元に戻しました · {{skipped}} 件はその後変更されたため保持しました",
+    "stale": "元に戻したか、その後変更されています",
+    "failed": "メモリーを更新できませんでした",
+    "undoFailed": "元に戻せませんでした",
+    "new": "新規",
+    "deleted": "削除"
+  },
+  "usedMemories": {
+    "label_other": "{{count}} 件のメモリーを使用 · {{keys}}",
+    "wrong": "これは間違っています",
+    "openSettings": "設定で開く",
+    "deleted": "削除済み",
+    "prefill": "「{{key}}」についてのメモリーは間違っています: "
   },
   "renderFailed": "{{what}} を表示できませんでした。",
   "findInPage": {

@@ -268,7 +268,24 @@
     "error": "Questa risposta si è interrotta con un errore: {{message}}"
   },
   "memoryStrip": {
-    "undoFailed": "Impossibile annullare"
+    "updating": "Aggiornamento della memoria…",
+    "updated": "Memoria aggiornata · {{keys}}",
+    "undo": "Annulla",
+    "undone": "Annullato",
+    "partial": "{{undone}} annullate · {{skipped}} modificate nel frattempo e mantenute",
+    "stale": "Annullato o modificato nel frattempo",
+    "failed": "Impossibile aggiornare la memoria",
+    "undoFailed": "Impossibile annullare",
+    "new": "Nuova",
+    "deleted": "Eliminata"
+  },
+  "usedMemories": {
+    "label_one": "Usata {{count}} memoria · {{keys}}",
+    "label_other": "Usate {{count}} memorie · {{keys}}",
+    "wrong": "È sbagliato",
+    "openSettings": "Apri nelle Impostazioni",
+    "deleted": "Eliminata",
+    "prefill": "La memoria su '{{key}}' è sbagliata: "
   },
   "renderFailed": "Impossibile mostrare {{what}}.",
   "findInPage": {
