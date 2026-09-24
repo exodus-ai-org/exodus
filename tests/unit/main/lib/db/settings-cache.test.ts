@@ -101,7 +101,11 @@ describe('getSettings cache', () => {
     row.colorTone = 'changed-behind-the-cache'
     failNextStatement = true
 
-    await expect(updateSettings(current as never)).rejects.toThrow('disk full')
+    // Rethrown without the driver's message, which would quote the row's
+    // secrets (see secretSafeWriteError).
+    await expect(updateSettings(current as never)).rejects.toThrow(
+      'Failed to update settings'
+    )
     expect((await getSettings()).colorTone).toBe('changed-behind-the-cache')
   })
 })

@@ -7,6 +7,8 @@ import { listModelsByProvider } from '../../ai/providers/list-models'
 import { getAllSearchableMessages, updateSettings } from '../../db/queries'
 import { Settings as DBSettings } from '../../db/schema'
 import { resolveSearchProvider } from '../../search/resolve-search-provider'
+import { looksLikeMask, maskSettings, normalizeBaseUrl } from '../../secrets'
+import { PROVIDER_BASE_URL, PROVIDER_KEY_FIELD } from '../../secrets/registry'
 import {
   listModelsRequestSchema,
   updateSettingsSchema
@@ -20,9 +22,10 @@ import {
 
 const settingsRouter = new Hono<{ Variables: Variables }>()
 
-settingsRouter.get('/', async (c) => {
-  const settings = c.get('settings')
-  return successResponse(c, settings)
+// Secrets leave the main process as masks only (spec 2026-09-25 §2.2); the
+// in-process `c.get('settings')` stays plaintext for everything else.
+settingsRouter.get('/', (c) => {
+  return successResponse(c, maskSettings(c.get('settings')))
 })
 
 settingsRouter.post('/', async (c) => {
@@ -32,6 +35,8 @@ settingsRouter.post('/', async (c) => {
     'Invalid setting configuration'
   )
 
+  // A posted mask means "unchanged" — `updateSettings` swaps it back for the
+  // stored key. The answer is the driver's write result (no row data in it).
   const updatedSettings = await handleDatabaseOperation(
     () => updateSettings(payload as unknown as DBSettings),
     'Failed to update settings'
@@ -87,11 +92,43 @@ settingsRouter.post('/full-text-search/reindex', async (c) => {
 })
 
 settingsRouter.post('/models', async (c) => {
-  const { provider, apiKey, baseUrl, apiVersion } = validateSchema(
+  const {
+    provider,
+    apiKey: postedKey,
+    baseUrl,
+    apiVersion
+  } = validateSchema(
     listModelsRequestSchema,
     await c.req.json(),
     'Invalid model-list request'
   )
+
+  // The Settings page posts what its key field holds — the mask it was given,
+  // unless the user typed a new key. A mask stands for the stored key, but only
+  // toward the stored destination: otherwise any caller could post a mask with
+  // its own base URL and have the real key sent there.
+  let apiKey = postedKey
+  let effectiveBaseUrl = baseUrl
+  if (looksLikeMask(postedKey) && provider !== AiProviders.Ollama) {
+    const stored = c.get('settings').providers as
+      | Record<string, string | null | undefined>
+      | null
+      | undefined
+    const { field, fallback } = PROVIDER_BASE_URL[provider]
+    const storedBaseUrl = stored?.[field] || null
+    const requested = normalizeBaseUrl(baseUrl)
+    if (
+      requested !== null &&
+      requested !== normalizeBaseUrl(storedBaseUrl ?? fallback)
+    ) {
+      throw new ValidationError(
+        ErrorCode.VALIDATION_FAILED,
+        'The base URL differs from the saved one: re-enter the API key to use it with a new base URL'
+      )
+    }
+    apiKey = stored?.[PROVIDER_KEY_FIELD[provider]] ?? null
+    effectiveBaseUrl = storedBaseUrl
+  }
 
   const listFn = listModelsByProvider[provider]
   if (!listFn) {
@@ -110,7 +147,7 @@ settingsRouter.post('/models', async (c) => {
   try {
     const models = await listFn({
       apiKey: apiKey ?? '',
-      baseUrl,
+      baseUrl: effectiveBaseUrl,
       apiVersion
     })
     return successResponse(c, { models })

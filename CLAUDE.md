@@ -365,7 +365,9 @@ Every business endpoint is mounted on one versioned sub-app (`app.route('/api/v1
 
 `/api/v1/chat`, `/api/v1/lcm`, `/api/v1/history`, `/api/v1/knowledge-base`, `/api/v1/project`, `/api/v1/settings`, `/api/v1/skills`, `/api/v1/audio`, `/api/v1/db-io`, `/api/v1/deep-research`, `/api/v1/discover`, `/api/v1/tools`, `/api/v1/philharmonic`, `/api/v1/s3`, `/api/v1/mcp`, `/api/v1/memory`, `/api/v1/usage`, `/api/v1/logs`, `/api/v1/backup`, `/api/v1/artifacts`, `/api/v1/media`, `/api/v1/computer-use`, `/api/v1/analytics`, `/api/v1/pair`, `/api/v1/devices`, `/api/v1/lock` (mounted directly on `app`, ahead of the lock gate — see App Lock).
 
-The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatches to the appropriate list-models handler based on the provider in the request body, reading the API key from the request (not from saved settings) to fetch live model catalogs.
+The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatches to the appropriate list-models handler based on the provider in the request body, reading the API key from the request (not from saved settings) to fetch live model catalogs; a posted mask stands for the stored key, and only with the stored (or default) base URL — a mask with another base URL is a 400 ("re-enter the API key"), so a stored key is never sent to a caller-chosen host.
+
+**Secrets leave the main process as masks only** (`src/main/lib/secrets/`): `GET /api/v1/settings` and the `/api/v1/mcp` responses turn every registry field (`registry.ts` — provider keys, Google / Brave / LightRAG keys, the Elasticsearch password, S3 credentials, the legacy `mcpServers` blob; `mcp_server.env` / `headers` values and secret-named `extraConfig` values) into `"•••• " + last4` (`"••••"` under 12 characters). A posted mask means "unchanged": `updateSettings` / `updateSettingField` and the MCP create/update swap it back for the stored value (read through `current.ts`'s plaintext accessors — the seam at-rest encryption plugs into), `null` / `""` clear, anything else sets — so the desktop autosave and exodus-ios, which post whole sections/columns back, need no knowledge of masks. `getSettings()` / `c.get('settings')` stay plaintext inside main. A new `*Key` / `*Secret` / `*Password` / `*Token` schema field fails `registry.test.ts` until it is put in the registry or on its commented non-secret list.
 
 **Middleware Pipeline** (order in `app.ts`):
 
@@ -1040,7 +1042,10 @@ audit that applied it is in the commit history (`style(motion): …`).
   where every request needs a paired device's token and the certificate is
   pinned by the device. A paired device gets the whole API (exodus-ios edits
   provider keys), which is why that path is TLS-only
-- API keys stored locally in PGlite database
+- API keys stored locally in PGlite database; the API hands them out masked
+  only (see `src/main/lib/secrets/` under Backend Server Architecture) —
+  never add a route or response that serializes the settings row or an
+  `mcp_server` row without `maskSettings()` / `maskMcpServer()`
 
 ## Testing
 
@@ -1340,6 +1345,10 @@ Main process:
   packaged; a proxy to the Vite dev server in dev)
 - `src/main/lib/single-instance.ts` — the single-instance lock, taken by
   `db/db.ts` before it opens PGlite (see Data directory, ports and isolation)
+- `src/main/lib/secrets/` — the secret registry (`registry.ts`), the mask
+  (`mask.ts`), `maskSettings` / `restoreSettingsSecrets` / `maskMcpServer` /
+  `restoreMcpSecrets` (`index.ts`) and the stored-plaintext accessors
+  (`current.ts`)
 - `src/main/lib/security.ts` — renderer hardening (`hardenRenderers()`:
   navigation guard, window-open handler, permission handler) and
   `openExternalSafely` / `isSafeExternalUrl`

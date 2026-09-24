@@ -10,9 +10,11 @@ import {
   createMcpServer,
   deleteMcpServer,
   getAllMcpServers,
+  getMcpServerById,
   updateMcpServer
 } from '../../db/mcp-queries'
 import { logger } from '../../logger'
+import { maskMcpServer, mcpPlaintext, restoreMcpSecrets } from '../../secrets'
 import { Variables } from '../types'
 import {
   deletionSuccessResponse,
@@ -45,7 +47,12 @@ mcp.get('/', async (c) => {
     () => getAllMcpServers(),
     'Failed to get MCP servers'
   )
-  return successResponse(c, servers)
+  // `env` / `headers` values (and secret-named `extraConfig` values) leave as
+  // masks only (spec 2026-09-25 §2.2); a posted mask means "unchanged".
+  return successResponse(
+    c,
+    servers.map((s) => maskMcpServer(s))
+  )
 })
 
 mcp.post('/', async (c) => {
@@ -55,11 +62,11 @@ mcp.post('/', async (c) => {
     'Invalid MCP server data'
   )
   const result = await handleDatabaseOperation(
-    () => createMcpServer(data),
+    () => createMcpServer(restoreMcpSecrets(data, mcpPlaintext(null))),
     'Failed to create MCP server'
   )
   invalidateAllMcpCache()
-  return successResponse(c, result, 201)
+  return successResponse(c, result && maskMcpServer(result), 201)
 })
 
 mcp.put('/:id', async (c) => {
@@ -74,12 +81,13 @@ mcp.put('/:id', async (c) => {
   const old = servers.find((s) => s.id === id)
   if (old) invalidateMcpCache(old.name)
 
+  const stored = await getMcpServerById(id)
   const result = await handleDatabaseOperation(
-    () => updateMcpServer(id, data),
+    () => updateMcpServer(id, restoreMcpSecrets(data, mcpPlaintext(stored))),
     'Failed to update MCP server'
   )
   if (data.name) invalidateMcpCache(data.name)
-  return successResponse(c, result)
+  return successResponse(c, result && maskMcpServer(result))
 })
 
 mcp.delete('/:id', async (c) => {

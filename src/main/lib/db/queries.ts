@@ -4,6 +4,13 @@ import { and, asc, desc, eq, ilike, inArray, sql } from 'drizzle-orm'
 
 import { logger } from '../logger'
 import { extractSearchableText } from '../search/extract-searchable-text'
+import {
+  restoreSettingsSecrets,
+  secretSafeWriteError,
+  settingsColumnHasSecrets,
+  settingsPlaintext
+} from '../secrets'
+import { SETTINGS_SECRET_PATHS } from '../secrets/registry'
 import { db, pglite } from './db'
 import {
   chat,
@@ -356,9 +363,21 @@ export async function getSettings(): Promise<Settings> {
   return structuredClone(data!)
 }
 
+/**
+ * Posted masks back to the stored plaintext (spec 2026-09-25 §2.2): the API
+ * hands out masks only, and a client that posts one back (the desktop
+ * autosave posts whole sections, exodus-ios whole columns) means "unchanged".
+ * The comparison reads the stored value through `settingsPlaintext` — the
+ * seam S2 keeps working once the columns are encrypted.
+ */
+async function withStoredSecrets<T extends object>(payload: T): Promise<T> {
+  return restoreSettingsSecrets(payload, settingsPlaintext(await getSettings()))
+}
+
 export async function updateSettings(payload: Settings) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { createdAt, updatedAt, lastBackupAt, ...rest } = payload
+  const { createdAt, updatedAt, lastBackupAt, ...rest } =
+    await withStoredSecrets(payload)
   try {
     return await db
       .update(settings)
@@ -371,6 +390,10 @@ export async function updateSettings(payload: Settings) {
         updatedAt: new Date()
       })
       .where(eq(settings.id, payload.id))
+  } catch (error) {
+    const safe = secretSafeWriteError('Failed to update settings', error)
+    logDbError(safe.message, safe)
+    throw safe
   } finally {
     invalidateSettingsCache()
   }
@@ -380,14 +403,21 @@ export async function updateSettingField(
   field: keyof Settings,
   value: unknown
 ) {
+  const resolved = settingsColumnHasSecrets(field)
+    ? (await withStoredSecrets({ [field]: value }))[field]
+    : value
   try {
     return await db
       .update(settings)
-      .set({ [field]: value, updatedAt: new Date() })
+      .set({ [field]: resolved, updatedAt: new Date() })
       .where(eq(settings.id, 'global'))
   } catch (error) {
-    logDbError(`Failed to update setting field: ${field}`, error)
-    throw error
+    const safe = secretSafeWriteError(
+      `Failed to update setting field: ${field}`,
+      error
+    )
+    logDbError(safe.message, safe)
+    throw safe
   } finally {
     invalidateSettingsCache()
   }
@@ -426,10 +456,41 @@ export async function importData(tableName: string, blob: Blob) {
 }
 
 export async function exportData(tableName: string) {
+  if (tableName === 'settings') return exportSettingsWithoutSecrets()
   const ret = await pglite.query(
     `COPY "${tableName}" TO '/dev/blob' DELIMITER ',' CSV HEADER;`
   )
   return ret.blob
+}
+
+/**
+ * The settings table for a db-io export, with every registry secret removed
+ * (spec 2026-09-25 §2.2–2.3: an export carries neither plaintext nor
+ * ciphertext). A copy in a temp table has the secret keys deleted from its
+ * jsonb columns (`#-`) and a whole-value secret column nulled, then that copy
+ * is what COPY writes — same columns, same order, as before.
+ */
+function exportSettingsWithoutSecrets() {
+  const byColumn = new Map<string, string[][]>()
+  for (const path of SETTINGS_SECRET_PATHS) {
+    const [column, ...rest] = path.split('.')
+    byColumn.set(column, [...(byColumn.get(column) ?? []), rest])
+  }
+  const sets = [...byColumn].map(([column, rests]) =>
+    rests.some((r) => r.length === 0)
+      ? `"${column}" = NULL`
+      : `"${column}" = "${column}"${rests.map((r) => ` #- '{${r.join(',')}}'`).join('')}`
+  )
+  return pglite.transaction(async (tx) => {
+    await tx.exec(
+      `CREATE TEMP TABLE settings_export ON COMMIT DROP AS SELECT * FROM settings;
+       UPDATE settings_export SET ${sets.join(', ')};`
+    )
+    const ret = await tx.query(
+      `COPY settings_export TO '/dev/blob' DELIMITER ',' CSV HEADER;`
+    )
+    return ret.blob
+  })
 }
 
 export async function saveDeepResearch(payload: DeepResearch) {

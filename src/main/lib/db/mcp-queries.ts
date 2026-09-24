@@ -1,5 +1,6 @@
 import { asc, eq, inArray } from 'drizzle-orm'
 
+import { secretSafeWriteError } from '../secrets'
 import { db } from './db'
 import { mcpServer } from './schema'
 
@@ -16,21 +17,31 @@ export async function getMcpServersByNames(names: string[]) {
   return db.select().from(mcpServer).where(inArray(mcpServer.name, names))
 }
 
+// Writes rethrow a secret-safe error: the driver's message quotes every
+// parameter, `env` / `headers` values included.
 export async function createMcpServer(data: typeof mcpServer.$inferInsert) {
-  const [result] = await db.insert(mcpServer).values(data).returning()
-  return result
+  try {
+    const [result] = await db.insert(mcpServer).values(data).returning()
+    return result
+  } catch (error) {
+    throw secretSafeWriteError('Failed to create MCP server', error)
+  }
 }
 
 export async function updateMcpServer(
   id: string,
   data: Partial<typeof mcpServer.$inferInsert>
 ) {
-  const [result] = await db
-    .update(mcpServer)
-    .set({ ...data, updatedAt: new Date() })
-    .where(eq(mcpServer.id, id))
-    .returning()
-  return result
+  try {
+    const [result] = await db
+      .update(mcpServer)
+      .set({ ...data, updatedAt: new Date() })
+      .where(eq(mcpServer.id, id))
+      .returning()
+    return result
+  } catch (error) {
+    throw secretSafeWriteError('Failed to update MCP server', error)
+  }
 }
 
 export async function deleteMcpServer(id: string) {
