@@ -817,9 +817,10 @@
       "newButton": "Nueva",
       "emptyTitle": "Aún no hay memorias",
       "emptyHint": "Se agregan automáticamente después de las conversaciones, o dile al asistente qué recordar más abajo.",
+      "loadFailedTitle": "No se pudieron cargar las memorias",
+      "loadFailedHint": "Tus memorias siguen guardadas. Inténtalo de nuevo.",
       "disabledHeading": "Desactivadas · {{count}}",
       "toast": {
-        "loadFailedTitle": "No se pudieron cargar las memorias",
         "createFailedTitle": "No se pudo crear"
       }
     }

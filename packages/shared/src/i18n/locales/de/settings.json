@@ -817,9 +817,10 @@
       "newButton": "Neu",
       "emptyTitle": "Noch keine Gedächtniseinträge",
       "emptyHint": "Sie werden automatisch nach Unterhaltungen hinzugefügt — oder sagen Sie dem Assistenten unten, was er sich merken soll.",
+      "loadFailedTitle": "Gedächtniseinträge konnten nicht geladen werden",
+      "loadFailedHint": "Deine Gedächtniseinträge sind weiterhin gespeichert. Versuche es erneut.",
       "disabledHeading": "Deaktiviert · {{count}}",
       "toast": {
-        "loadFailedTitle": "Gedächtniseinträge konnten nicht geladen werden",
         "createFailedTitle": "Erstellen fehlgeschlagen"
       }
     }

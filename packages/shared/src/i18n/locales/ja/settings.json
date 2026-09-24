@@ -812,9 +812,10 @@
       "newButton": "新規",
       "emptyTitle": "メモリーはまだありません",
       "emptyHint": "会話の後に自動的に追加されます。下の欄でアシスタントに覚えてほしいことを伝えることもできます。",
+      "loadFailedTitle": "メモリーの読み込みに失敗しました",
+      "loadFailedHint": "メモリーは保存されたままです。もう一度お試しください。",
       "disabledHeading": "無効 · {{count}}",
       "toast": {
-        "loadFailedTitle": "メモリーの読み込みに失敗しました",
         "createFailedTitle": "作成に失敗しました"
       }
     }

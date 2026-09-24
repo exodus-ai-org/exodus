@@ -812,9 +812,10 @@
       "newButton": "새로 만들기",
       "emptyTitle": "아직 메모리가 없습니다",
       "emptyHint": "대화 후 자동으로 추가됩니다. 아래에서 어시스턴트에게 기억할 내용을 알려줄 수도 있습니다.",
+      "loadFailedTitle": "메모리를 불러오지 못했습니다",
+      "loadFailedHint": "메모리는 그대로 저장되어 있습니다. 다시 시도해 주세요.",
       "disabledHeading": "비활성화됨 · {{count}}",
       "toast": {
-        "loadFailedTitle": "메모리를 불러오지 못했습니다",
         "createFailedTitle": "생성에 실패했습니다"
       }
     }

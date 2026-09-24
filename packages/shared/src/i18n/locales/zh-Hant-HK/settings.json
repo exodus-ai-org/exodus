@@ -812,9 +812,10 @@
       "newButton": "新增",
       "emptyTitle": "尚無任何記憶",
       "emptyHint": "對話結束後會自動新增，也可以在下方告訴助理要記住什麼。",
+      "loadFailedTitle": "載入記憶失敗",
+      "loadFailedHint": "記憶仍然保存著，請再試一次。",
       "disabledHeading": "已停用 · {{count}}",
       "toast": {
-        "loadFailedTitle": "載入記憶失敗",
         "createFailedTitle": "建立失敗"
       }
     }

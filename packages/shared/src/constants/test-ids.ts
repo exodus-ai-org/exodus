@@ -158,6 +158,11 @@ export const TEST_IDS = {
     /** The readings grid, visible only once the card is open. */
     readings: 'weather-card.readings'
   },
+  /** Settings → Memory. */
+  memorySettings: {
+    /** Retry on the stored-memories list after its read failed. */
+    retry: 'memory-settings.retry'
+  },
   /** Settings → Built-in Tools. Each carries `data-tool="<wire name>"`. */
   tools: {
     /** A tool's on/off switch. */

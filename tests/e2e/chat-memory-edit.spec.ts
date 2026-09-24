@@ -22,6 +22,7 @@ import {
 } from '../../src/main/lib/ai/kernel/faux-memory-fixtures'
 import { ApiClient } from '../fixtures/api-client'
 import { electronTest as test, expect } from '../fixtures/electron'
+import { openSettings } from '../helpers/open-settings'
 
 async function useFauxProvider(api: ApiClient) {
   await api.updateSettings({
@@ -113,5 +114,30 @@ test.describe('editing memory from the chat', () => {
       .getByTestId(TEST_IDS.chat.usedMemories.openSettings)
       .click()
     await expect(mainWindow).toHaveURL(/tab=memory/u)
+  })
+
+  test('Settings → Memory: a failed list read offers Retry, and Retry reads again', async ({
+    mainWindow
+  }) => {
+    const api = new ApiClient()
+    await api.createMemory(MEMORY_USAGE_SEED)
+
+    // The page's list read fails (its one quick retry included) until the
+    // route is released: the page must say so, not show "No memories yet".
+    let failing = true
+    await mainWindow.route(/\/api\/v1\/memory$/u, (route) =>
+      failing && route.request().method() === 'GET'
+        ? route.abort()
+        : route.fallback()
+    )
+    await openSettings(mainWindow, 'Memory')
+
+    const retry = mainWindow.getByTestId(TEST_IDS.memorySettings.retry)
+    await expect(retry).toBeVisible({ timeout: 15_000 })
+
+    failing = false
+    await retry.click()
+    await expect(retry).toHaveCount(0)
+    await expect(mainWindow.getByText(MEMORY_USAGE_SEED.key)).toBeVisible()
   })
 })

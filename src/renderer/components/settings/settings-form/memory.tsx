@@ -1,3 +1,4 @@
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
 import { format } from 'date-fns'
 import {
@@ -9,7 +10,8 @@ import {
   EyeOffIcon,
   LoaderIcon,
   PlusIcon,
-  Trash2Icon
+  Trash2Icon,
+  UnplugIcon
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Controller } from 'react-hook-form'
@@ -433,9 +435,17 @@ function MemoryComposer({
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export function MemorySettings({ form }: { form: UseFormReturnType }) {
-  const { t } = useTranslation('settings')
-  const { data, isLoading } = useMemories()
+  const { t } = useTranslation(['settings', 'common'])
+  const { data, isLoading, isError, refetch } = useMemories()
   const memories = data ?? []
+  // A read that failed with nothing to show: say so and offer Retry — an
+  // empty list here would read as "you have no memories". A failed
+  // background re-read keeps showing the list it already has.
+  const loadFailed = isError && data === undefined
+  // One write counter for the whole page: it lives in this hook instance,
+  // so the detail view and the composers get this instance's
+  // `beginWrite`/`settleWrite` passed down rather than calling the hook
+  // themselves.
   const { set: setMemoryList, beginWrite, settleWrite } = useSetMemoryList()
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
@@ -493,10 +503,13 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
     }
   }
 
+  // `beginWrite()` comes before the optimistic change: a write already
+  // settling in between would otherwise invalidate and re-read the list
+  // before this one is counted, flickering the row back for a moment.
   const handleToggle = async (item: MemoryItem) => {
-    await patchLocal({ ...item, isActive: item.isActive === false })
     beginWrite()
     try {
+      await patchLocal({ ...item, isActive: item.isActive === false })
       await updateMemory(item.id, { isActive: item.isActive === false })
     } catch {
       // Silent — `settleWrite()`'s invalidate (below) resyncs to the true
@@ -507,9 +520,9 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
   }
 
   const handleDelete = async (item: MemoryItem) => {
-    await setMemoryList((ms) => ms.filter((m) => m.id !== item.id))
     beginWrite()
     try {
+      await setMemoryList((ms) => ms.filter((m) => m.id !== item.id))
       await deleteMemory(item.id, true)
     } catch {
       // Silent — `settleWrite()`'s invalidate (below) resyncs to the true
@@ -679,6 +692,24 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
             <Skeleton className="h-10 w-full rounded-lg" />
             <Skeleton className="h-10 w-full rounded-lg" />
           </div>
+        ) : loadFailed ? (
+          <SettingsSection>
+            <SettingsEmpty
+              icon={UnplugIcon}
+              title={t('memory.settings.loadFailedTitle')}
+              description={t('memory.settings.loadFailedHint')}
+            >
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                data-testid={TEST_IDS.memorySettings.retry}
+                onClick={() => void refetch()}
+              >
+                {t('common:action.retry')}
+              </Button>
+            </SettingsEmpty>
+          </SettingsSection>
         ) : memories.length === 0 ? (
           <SettingsSection>
             <SettingsEmpty

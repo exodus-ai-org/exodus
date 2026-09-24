@@ -817,9 +817,10 @@
       "newButton": "Nouveau",
       "emptyTitle": "Aucune mémoire pour le moment",
       "emptyHint": "Elles sont ajoutées automatiquement après les conversations — ou dites à l’assistant quoi retenir ci-dessous.",
+      "loadFailedTitle": "Échec du chargement des mémoires",
+      "loadFailedHint": "Vos mémoires sont toujours enregistrées. Réessayez.",
       "disabledHeading": "Désactivées · {{count}}",
       "toast": {
-        "loadFailedTitle": "Échec du chargement des mémoires",
         "createFailedTitle": "Échec de la création"
       }
     }

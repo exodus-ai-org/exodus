@@ -817,9 +817,10 @@
       "newButton": "New",
       "emptyTitle": "No memories yet",
       "emptyHint": "They are added automatically after conversations — or tell the assistant what to remember below.",
+      "loadFailedTitle": "Couldn’t load your memories",
+      "loadFailedHint": "Your memories are still saved — try again.",
       "disabledHeading": "Disabled · {{count}}",
       "toast": {
-        "loadFailedTitle": "Failed to load memories",
         "createFailedTitle": "Failed to create"
       }
     }

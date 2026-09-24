@@ -70,7 +70,14 @@ export function useRunMemoryUsage(chatId: string, runId: string): UsedMemory[] {
  *  DIFFERENT write's own invalidate starts only afterwards). By the time
  *  every bracketed write has settled, each one's own mutation has already
  *  committed server-side, so the resulting read is authoritative for all
- *  of them at once. */
+ *  of them at once.
+ *
+ *  The pending-write counter belongs to this hook instance: two components
+ *  each calling `useSetMemoryList()` count separately and would each
+ *  invalidate on their own. A page shares one instance — call the hook once
+ *  and pass `beginWrite`/`settleWrite` down (Settings → Memory hands them to
+ *  its detail view and composers). Open the bracket before an optimistic
+ *  `set()`, so a write settling meanwhile cannot re-read over it. */
 export function useSetMemoryList() {
   const queryClient = useQueryClient()
   const pendingWrites = useRef(0)
