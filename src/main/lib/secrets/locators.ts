@@ -110,17 +110,12 @@ const HEADER_FLAGS = new Set(['header', 'headers', 'H'])
 // own it is far more often a port, so it is not masked then.
 const USER_FLAGS = new Set(['-u', '--user', '--username'])
 
-/** One argument, or a flag with the value it takes, as it is shown. */
-interface ArgGroup {
-  raw: string[]
-  shown: string[]
-}
-
-function scanArgs(args: string[]): ArgGroup[] {
-  const groups: ArgGroup[] = []
+/** Each argument as it is shown (a flag and the value it takes together). */
+function scanArgs(args: string[]): string[] {
+  const shown: string[] = []
   for (let i = 0; i < args.length; i++) {
     const arg = args[i]!
-    const one = (shown: string) => groups.push({ raw: [arg], shown: [shown] })
+    const one = (value: string) => shown.push(value)
     const shortHeader = SHORT_HEADER.exec(arg)
     if (shortHeader && shortHeader[1]!.includes(':')) {
       one(`-H${maskHeaderArg(shortHeader[1]!)}`)
@@ -149,19 +144,14 @@ function scanArgs(args: string[]): ArgGroup[] {
       next !== undefined &&
       !next.startsWith('--')
     ) {
-      groups.push({
-        raw: [arg, next],
-        shown: [arg, isHeader ? maskHeaderArg(next) : maskArgValue(next)]
-      })
+      shown.push(arg, isHeader ? maskHeaderArg(next) : maskArgValue(next))
       i++
       continue
     }
     one(arg)
   }
-  return groups
+  return shown
 }
-
-const carriesSecret = (g: ArgGroup) => g.shown.some((s, i) => s !== g.raw[i])
 
 /**
  * An MCP server's `args` as the API shows them: the value of a secret-named
@@ -176,26 +166,7 @@ export function maskMcpArgs(
   args: string[] | null | undefined
 ): string[] | null {
   if (args === null || args === undefined) return null
-  return scanArgs(args).flatMap((g) => g.shown)
-}
-
-/**
- * `args` without the secrets in them: every argument (with its flag) that
- * `maskMcpArgs` would mask is left out. What stored args become when the
- * command they are handed to changes and nothing new was posted (N1).
- */
-export function stripMcpArgs(
-  args: string[] | null | undefined
-): string[] | null {
-  if (args === null || args === undefined) return null
   return scanArgs(args)
-    .filter((g) => !carriesSecret(g))
-    .flatMap((g) => g.raw)
-}
-
-/** Whether stored args carry any secret `maskMcpArgs` would hide. */
-export function argsCarrySecrets(args: string[] | null | undefined): boolean {
-  return !!args && scanArgs(args).some((g) => carriesSecret(g))
 }
 
 /** 400 for a value that holds a mask it cannot be restored from (N2). */
@@ -260,7 +231,9 @@ export function refuseMasksOnCreate(body: {
   const anyMask = (v: unknown): boolean =>
     holdsMask(v) ||
     (Array.isArray(v) && v.some((x) => anyMask(x))) ||
-    (typeof v === 'object' && v !== null && Object.values(v).some((x) => anyMask(x)))
+    (typeof v === 'object' &&
+      v !== null &&
+      Object.values(v).some((x) => anyMask(x)))
   for (const col of ['url', 'args', 'env', 'headers', 'extraConfig'] as const) {
     if (anyMask(body[col])) refuseMask(col)
   }

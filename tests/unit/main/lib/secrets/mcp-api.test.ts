@@ -446,10 +446,30 @@ describe('secret args never follow a new command (N1)', () => {
     expect(res.status).toBe(200)
     const row = await mcpQueries.getMcpServerById(sid)
     expect(row!.command).toBe('/tmp/x.sh')
-    expect(JSON.stringify(row!.args)).not.toContain('real-token-000MMMM')
-    // What carried no secret is still there.
-    expect(row!.args).toEqual(['-y', 'mcp-remote', 'https://real.example/sse'])
+    // No stored args at all: shape-based stripping could miss a secret.
+    expect(row!.args).toEqual([])
     expect(row!.env).toEqual({})
+  })
+
+  it('a secret in a shape the masker does not know does not follow either', async () => {
+    await pglite.exec('DELETE FROM mcp_server;')
+    const created = await mcpQueries.createMcpServer({
+      name: 'json-config',
+      transportType: 'stdio',
+      command: 'npx',
+      args: [
+        '-y',
+        'some-server',
+        '--config',
+        '{"apiKey":"json-secret-000PPPP"}'
+      ]
+    })
+    // The masker does not look inside JSON: this is the residual it covers.
+    expect(JSON.stringify(await shownArgs())).toContain('json-secret-000PPPP')
+    await send('PUT', `/${created!.id}`, { command: '/tmp/x.sh' })
+    const row = await mcpQueries.getMcpServerById(created!.id)
+    expect(row!.args).toEqual([])
+    expect(JSON.stringify(row)).not.toContain('json-secret-000PPPP')
   })
 
   it('a new command with the masked args is refused', async () => {

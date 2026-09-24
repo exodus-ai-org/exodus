@@ -7,7 +7,7 @@ import {
   settingsPlaintext,
   stripMcpSecrets
 } from './index'
-import { argsCarrySecrets, restoreMcpLocators, stripMcpArgs } from './locators'
+import { restoreMcpLocators } from './locators'
 import { looksLikeMask } from './mask'
 import {
   MCP_KEY_NAMED_SECRET_COLUMNS,
@@ -419,8 +419,11 @@ export function prepareMcpUpdate<T extends McpWriteBody>(
     | null
     | undefined
 ): T {
-  // N1: args are handed to the command. A new command gets no stored secret
-  // args: masked ones are refused, left-out ones lose their secrets.
+  // N1: args are handed to the command. A new command gets none of the
+  // stored args: masked ones are refused, and left-out ones are not carried
+  // over at all — stripping them by shape could miss a secret the masker does
+  // not recognise (a JSON argument). The desktop form always posts args with
+  // the command, so only a command-only PUT starts with an empty list.
   const commandMoved =
     !!stored &&
     body.command !== undefined &&
@@ -428,13 +431,7 @@ export function prepareMcpUpdate<T extends McpWriteBody>(
   const located = restoreMcpLocators(body, stored, {
     restoreArgs: !commandMoved
   })
-  if (
-    commandMoved &&
-    located.args === undefined &&
-    argsCarrySecrets(stored!.args)
-  ) {
-    located.args = stripMcpArgs(stored!.args)
-  }
+  if (commandMoved && located.args === undefined) located.args = []
   const restored = restoreMcpSecrets(
     located,
     mcpPlaintextForWrite(located, stored)
