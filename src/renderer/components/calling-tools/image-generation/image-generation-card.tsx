@@ -1,7 +1,10 @@
+import { BASE_URL } from '@exodus/shared/constants/systems'
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type {
   ChatToolResultMessage,
-  ImageGenerationDetails
+  GeneratedImage,
+  ImageGenerationDetails,
+  LegacyGeneratedImage
 } from '@exodus/shared/types/chat'
 import { memo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -36,6 +39,24 @@ export function parseImageSize(size: string | null | undefined): {
   if (!match) return { aspectRatio: '1 / 1' }
   const [, w, h] = match
   return { aspectRatio: `${w} / ${h}`, resolution: `${w} × ${h}` }
+}
+
+/**
+ * Where an image loads from: a saved image from the local media route; a row
+ * written before images were saved (a base64 `data:` URL, or a DALL·E link —
+ * dead an hour after it was made, which `onError` turns into "unavailable")
+ * from its `url`. Anything else has nothing to show.
+ */
+export function imageSrcOf(
+  image: Partial<GeneratedImage> & LegacyGeneratedImage
+): string | undefined {
+  if (image.mediaId) {
+    return image.chatId
+      ? `${BASE_URL}/api/v1/media/${encodeURIComponent(image.chatId)}/${encodeURIComponent(image.mediaId)}`
+      : undefined
+  }
+  const url = image.url
+  return url && /^(https?:|data:image\/)/u.test(url) ? url : undefined
 }
 
 function imagesOf(result: ChatToolResultMessage | undefined) {
@@ -119,7 +140,7 @@ export const ImageGenerationCard = memo(function ImageGenerationCard({
     status === 'complete'
       ? images.length > 0
         ? images.map((image) => ({
-            url: image.url,
+            url: imageSrcOf(image),
             alt: image.revisedPrompt
           }))
         : [{}]

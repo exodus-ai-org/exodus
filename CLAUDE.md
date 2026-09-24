@@ -135,7 +135,9 @@ Exodus is the successor of the older `universal-client` app and shares its
 - **Data dir**: `~/.exodus` for packaged _and_ unpackaged runs (`bun run start`,
   `electron .`) — `getExodusHome()` in `src/main/lib/paths.ts`; startup logs the
   directory in use (`Data directory`); `~/.exodus/analytics` holds the DuckDB
-  chat-audit snapshot. **PGlite is single-process: never run two
+  chat-audit snapshot; `~/.exodus/media/<chatId>/` holds generated images
+  (`getMediaDir()` / `getChatMediaDir()`; a Philharmonic Group's go to
+  `media/_groups/<conversationId>/`). **PGlite is single-process: never run two
   Exodus processes (a dev build, the packaged app, universal-client) against it
   at the same time** — the database can be corrupted (backups live in
   `~/.exodus/backups`). Between Exodus builds this is enforced:
@@ -360,7 +362,7 @@ The main process runs a **Hono HTTP server** that handles all business logic:
 
 Every business endpoint is mounted on one versioned sub-app (`app.route('/api/v1', v1)`), so the public paths are `/api/v1/<route>`; the lock/trace/settings middlewares still match `/api/*`. A breaking API change ships as a new `/api/v2` sub-app beside v1 rather than mutating v1 in place. Any client of this backend (the renderer, `tests/api`, `exodus-ios`) must address `/api/v1/...`.
 
-`/api/v1/chat`, `/api/v1/lcm`, `/api/v1/history`, `/api/v1/knowledge-base`, `/api/v1/project`, `/api/v1/settings`, `/api/v1/skills`, `/api/v1/audio`, `/api/v1/db-io`, `/api/v1/deep-research`, `/api/v1/discover`, `/api/v1/tools`, `/api/v1/philharmonic`, `/api/v1/s3`, `/api/v1/mcp`, `/api/v1/memory`, `/api/v1/usage`, `/api/v1/logs`, `/api/v1/backup`, `/api/v1/artifacts`, `/api/v1/computer-use`, `/api/v1/analytics`, `/api/v1/pair`, `/api/v1/devices`, `/api/v1/lock` (mounted directly on `app`, ahead of the lock gate — see App Lock).
+`/api/v1/chat`, `/api/v1/lcm`, `/api/v1/history`, `/api/v1/knowledge-base`, `/api/v1/project`, `/api/v1/settings`, `/api/v1/skills`, `/api/v1/audio`, `/api/v1/db-io`, `/api/v1/deep-research`, `/api/v1/discover`, `/api/v1/tools`, `/api/v1/philharmonic`, `/api/v1/s3`, `/api/v1/mcp`, `/api/v1/memory`, `/api/v1/usage`, `/api/v1/logs`, `/api/v1/backup`, `/api/v1/artifacts`, `/api/v1/media`, `/api/v1/computer-use`, `/api/v1/analytics`, `/api/v1/pair`, `/api/v1/devices`, `/api/v1/lock` (mounted directly on `app`, ahead of the lock gate — see App Lock).
 
 The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatches to the appropriate list-models handler based on the provider in the request body, reading the API key from the request (not from saved settings) to fetch live model catalogs.
 
@@ -502,10 +504,21 @@ transcript — a line of now, the day's temperature curve on the colour tone's
 accent, three segmented days — and opens in place on Details to the
 headline, the readings and the week as range-bar rows.
 
-`image_generation` returns `ImageGenerationDetails` (`types/chat.ts`): each
-image's `url` is DALL·E's https link or a `data:` URL built from a GPT image
-model's base64; the model's text block gets only the count and revised
-prompts, never the bytes. The card
+`image_generation` saves every image the moment it has it — a GPT image
+model's base64 decoded, a DALL·E link fetched at once (it expires in an hour)
+— as `~/.exodus/media/<chatId>/<uuid>.<png|jpg|webp>` (`src/main/lib/media/
+store.ts`; typed by magic bytes; one failed image fails the call and removes
+the files it already wrote). `ImageGenerationDetails` (`types/chat.ts`)
+carries per image `{ mediaId, chatId?, mimeType, width?, height?,
+revisedPrompt? }` and never bytes; the model's text block gets only the count
+and revised prompts. `GET /api/v1/media/:chatId/:file` (`routes/media.ts`)
+serves the file — no index, the path is the storage layout; both segments
+must match what `saveMedia` writes and resolve inside the media dir, else
+400 — with `Cache-Control: private, max-age=31536000, immutable`. Deleting a
+chat, a project's chats or a Group removes its media dir (best-effort,
+logged); "reset all data" removes `~/.exodus/media`; `db-io` export does not
+carry media. Rows written before this (`url`: a `data:` URL or an expired
+DALL·E link) still render through `imageSrcOf()`'s legacy branch. The card
 (`components/calling-tools/image-generation/`, built on the beui.dev
 `image-generation-loading.tsx`) is rendered by `AssistantTurnSegment` from
 the run's calls (`collectImageGenerations`), not by `MessageCallingTools`,
@@ -1250,6 +1263,7 @@ Main process:
 - `src/main/lib/ai/calling-tools/` — built-in agent tools (snake_case names from `packages/shared/src/constants/tool-names.ts`) and the MCP toolbox (`mcp-toolbox.ts`)
 - `src/main/lib/ai/skills/` — skills.sh client, install store, and the prompt seam (see Skills)
 - `src/main/lib/analytics/` — DuckDB chat-audit snapshot + read-only query wrapper (see Chat Audit)
+- `src/main/lib/media/` — generated images on disk (`store.ts`: `saveMedia`, the `resolveMediaFile` path guard the media route uses, per-chat / per-Group / all removal); see the `image_generation` note
 - `src/main/lib/ai/philharmonic/` — multi-agent Groups
 - `src/main/lib/ai/context-management/` — LCM
 - `src/main/lib/ai/memory/` — personalization memory (consolidation + recall)

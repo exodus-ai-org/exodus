@@ -70,7 +70,12 @@ export async function runEmployeeLoop(
     mcpNames.length > 0
       ? await getMcpToolsByNames(mcpNames)
       : await getMcpTools()
-  const allTools = bindCallingTools({ advancedTools: [], setting, mcpTools })
+  const allTools = bindCallingTools({
+    advancedTools: [],
+    setting,
+    mcpTools,
+    groupId: conversationId
+  })
 
   const allowList = (agent.toolAllowList as string[] | null) ?? []
   let tools =

@@ -94,6 +94,11 @@ vi.mock('@main/lib/search/resolve-search-provider', () => ({
   searchWithFallback: vi.fn(async () => [])
 }))
 
+const removeChatMediaMock = vi.fn(async () => {})
+vi.mock('@main/lib/media/store', () => ({
+  removeChatMedia: (...args: unknown[]) => removeChatMediaMock(...args)
+}))
+
 const { default: chat } = await import('@main/lib/server/routes/chat')
 const { saveMessages } = await import('@main/lib/db/queries')
 const { resolveSearchProvider } =
@@ -456,5 +461,17 @@ describe('POST /api/v1/chat', () => {
 
       await vi.waitFor(() => expect(savedAssistantRows()).toHaveLength(1))
     })
+  })
+})
+
+describe('DELETE /api/v1/chat/:id', () => {
+  it('removes the chat’s generated media along with its rows', async () => {
+    const { deleteChatById } = await import('@main/lib/db/queries')
+    removeChatMediaMock.mockClear()
+    const res = await buildApp().request(`/${CHAT_ID}`, { method: 'DELETE' })
+
+    expect(res.status).toBe(200)
+    expect(vi.mocked(deleteChatById)).toHaveBeenCalledWith({ id: CHAT_ID })
+    expect(removeChatMediaMock).toHaveBeenCalledWith(CHAT_ID)
   })
 })

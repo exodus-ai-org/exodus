@@ -7,6 +7,7 @@ import { createAutoBackup } from '../../backup'
 import { exportData, importData, resetAllData } from '../../db/queries'
 import type { Settings } from '../../db/schema'
 import { logger } from '../../logger'
+import { removeAllMedia } from '../../media/store'
 import { resolveSearchProvider } from '../../search/resolve-search-provider'
 import { importDataSchema } from '../schemas/db-io'
 import { Variables } from '../types'
@@ -140,6 +141,9 @@ dbIo.delete('/reset', async (c) => {
   await createAutoBackup()
   await handleDatabaseOperation(() => resetAllData(), 'Failed to reset data')
   clearSearchIndexInBackground(c.get('settings'))
+  // The chats that referenced it are gone. (Not on /import-all: that restores
+  // chats, possibly this machine's own, whose images are still on disk.)
+  await removeAllMedia()
   return successResponse(c, { success: true })
 })
 

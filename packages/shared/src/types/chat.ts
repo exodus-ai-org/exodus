@@ -81,8 +81,33 @@ export interface ToolNotice {
  * base64) — the model is told only the count and the revised prompts, never
  * the bytes. Rows saved before 2026-09-25 may carry an image with no `url`.
  */
+/**
+ * One generated image as `image_generation` records it: saved under
+ * `~/.exodus/media/<chatId>/<mediaId>` and served by
+ * `GET /api/v1/media/<chatId>/<mediaId>`. `chatId` is absent for a
+ * Philharmonic Group's image (saved, never served).
+ */
+export interface GeneratedImage {
+  /** The file name, `<uuid>.png|jpg|webp`. */
+  mediaId: string
+  chatId?: string
+  mimeType: string
+  width?: number
+  height?: number
+  revisedPrompt?: string
+}
+
+/**
+ * A row written before images were saved to disk: a base64 `data:` URL
+ * (24665d84) or a DALL·E link that expired an hour after it was made.
+ */
+export interface LegacyGeneratedImage {
+  url?: string
+  revisedPrompt?: string
+}
+
 export interface ImageGenerationDetails {
-  images: Array<{ url?: string; revisedPrompt?: string }>
+  images: Array<GeneratedImage | LegacyGeneratedImage>
   /** The `size` the request asked for (e.g. `1024x1536`, `auto`). */
   size?: string
 }

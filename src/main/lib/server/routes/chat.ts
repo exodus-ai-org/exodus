@@ -40,6 +40,7 @@ import {
 import { enqueueAndProcess, logEnqueueFailure } from '../../jobs/worker'
 import { logger } from '../../logger'
 import { bindTraceAttributes } from '../../logger/trace-context'
+import { removeChatMedia } from '../../media/store'
 import { getChatWorkspaceDir } from '../../paths'
 import {
   resolveSearchProvider,
@@ -438,6 +439,9 @@ chat.delete('/:id', async (c) => {
     () => deleteChatById({ id }),
     'Failed to delete chat'
   )
+
+  // Best-effort, like the search index below: the chat is gone either way.
+  await removeChatMedia(id)
 
   const { elasticsearch } = resolveSearchProvider(c.get('settings'))
   if (elasticsearch) {

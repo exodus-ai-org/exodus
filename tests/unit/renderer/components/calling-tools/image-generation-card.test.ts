@@ -25,7 +25,12 @@ vi.mock('motion/react', async (importOriginal) => ({
   useReducedMotion: () => motionPrefs.reduce
 }))
 
-const { ImageGenerationCard, imageGenerationStatus, parseImageSize } =
+const {
+  ImageGenerationCard,
+  imageGenerationStatus,
+  imageSrcOf,
+  parseImageSize
+} =
   await import('@/components/calling-tools/image-generation/image-generation-card')
 
 ;(
@@ -116,7 +121,70 @@ describe('parseImageSize', () => {
   })
 })
 
+const CHAT = '11111111-1111-4111-8111-111111111111'
+const MEDIA = '22222222-2222-4222-8222-222222222222.png'
+
+describe('imageSrcOf', () => {
+  it('points a saved image at the local media route', () => {
+    expect(
+      imageSrcOf({ mediaId: MEDIA, chatId: CHAT, mimeType: 'image/png' })
+    ).toBe(`http://localhost:60223/api/v1/media/${CHAT}/${MEDIA}`)
+  })
+
+  it('still shows a row saved with a data URL, or an old DALL·E link', () => {
+    expect(imageSrcOf({ url: 'data:image/png;base64,QUJD' })).toBe(
+      'data:image/png;base64,QUJD'
+    )
+    expect(imageSrcOf({ url: 'https://img.example/1.png' })).toBe(
+      'https://img.example/1.png'
+    )
+  })
+
+  it('has nothing to show for a saved image with no chat, or a row with neither', () => {
+    expect(
+      imageSrcOf({ mediaId: MEDIA, mimeType: 'image/png' })
+    ).toBeUndefined()
+    expect(imageSrcOf({})).toBeUndefined()
+    expect(imageSrcOf({ url: 'javascript:alert(1)' })).toBeUndefined()
+  })
+})
+
 describe('ImageGenerationCard', () => {
+  it('loads a saved image from the local media route', () => {
+    const el = render({
+      prompt: 'a fox',
+      result: result({
+        images: [
+          {
+            mediaId: MEDIA,
+            chatId: CHAT,
+            mimeType: 'image/png',
+            width: 1024,
+            height: 1536,
+            revisedPrompt: 'a red fox'
+          }
+        ]
+      })
+    })
+    const [frame] = frames(el)
+    expect(frame.dataset.state).toBe('complete')
+    const img = frame.querySelector('img')
+    expect(img?.getAttribute('src')).toBe(
+      `http://localhost:60223/api/v1/media/${CHAT}/${MEDIA}`
+    )
+    expect(img?.getAttribute('alt')).toBe('a red fox')
+  })
+
+  it('still renders an old DALL·E row by its url', () => {
+    const el = render({
+      prompt: 'a fox',
+      result: result({ images: [{ url: 'https://img.example/1.png' }] })
+    })
+    expect(el.querySelector('img')?.getAttribute('src')).toBe(
+      'https://img.example/1.png'
+    )
+  })
+
   it('shows a pending call as generating, with its prompt and the size the settings ask for', () => {
     settings.image = { size: '1024x1536' }
     const el = render({ prompt: 'a fox in snow' })
