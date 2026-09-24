@@ -138,6 +138,8 @@ test.describe('editing memory from the chat', () => {
     failing = false
     await retry.click()
     await expect(retry).toHaveCount(0)
-    await expect(mainWindow.getByText(MEMORY_USAGE_SEED.key)).toBeVisible()
+    await expect(
+      mainWindow.getByText(MEMORY_USAGE_SEED.key, { exact: true })
+    ).toBeVisible()
   })
 })
