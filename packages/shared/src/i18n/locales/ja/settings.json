@@ -925,7 +925,7 @@
       "building": "作成中…",
       "builtAt": "{{when}} に作成",
       "engine": "DuckDB {{version}}",
-      "logsIncluded": "logs (ログファイルのビュー)",
+      "logsIncluded": "logs (ログファイルからコピー)",
       "logsMissing": "logs (ログファイルなし)",
       "openFolder": "フォルダを開く",
       "unavailable": "DuckDB を起動できませんでした",
@@ -946,7 +946,7 @@
       "title": "クエリ",
       "run": "クエリを実行",
       "running": "実行中…",
-      "tables": "テーブル: chats, messages, projects, logs (ビュー)"
+      "tables": "テーブル: chats, messages, projects, logs"
     },
     "results": {
       "rowCount_one": "{{count}} 行",

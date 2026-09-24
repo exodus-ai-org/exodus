@@ -53,7 +53,17 @@ vi.mock('@main/lib/knowledge-base/resolve-knowledge-base', () => ({
 
 const { handlers } = await import('@main/lib/jobs/handlers')
 
-const fakeModel = { id: 'gpt-4.1-mini' } as unknown as Model<string>
+const fakeModel = {
+  id: 'gpt-4.1-mini',
+  provider: 'openai',
+  baseUrl: 'https://api.openai.com/v1'
+} as unknown as Model<string>
+
+/** Settings whose OpenAI key the jobs resolve at run time (ruling R3). */
+const withOpenAiKey = (over: Record<string, unknown> = {}) => ({
+  id: 'global',
+  providers: { openaiApiKey: 'sk-from-settings', ...over }
+})
 
 describe('handlers.index-message', () => {
   it('does nothing when elasticsearch is not configured', async () => {
@@ -97,14 +107,16 @@ describe('handlers.index-message', () => {
 })
 
 describe('handlers.lcm-post-turn', () => {
-  it('constructs an LcmManager and tracks then compacts', async () => {
+  it('constructs an LcmManager with the key from settings and tracks then compacts', async () => {
     mockTrackNewMessages.mockResolvedValue(undefined)
     mockCompactAfterTurn.mockResolvedValue(undefined)
+    mockGetSettings.mockResolvedValue(withOpenAiKey())
+    const { LcmManager } = await import('@main/lib/ai/context-management')
+    vi.mocked(LcmManager).mockClear()
 
     await handlers['lcm-post-turn']({
       chatId: 'chat-1',
       model: fakeModel,
-      apiKey: 'key',
       freshTailRuns: 6,
       contextWindowPercent: 75,
       newMessages: [{ id: 'msg-1', content: 'hi' }]
@@ -114,24 +126,53 @@ describe('handlers.lcm-post-turn', () => {
       { id: 'msg-1', content: 'hi' }
     ])
     expect(mockCompactAfterTurn).toHaveBeenCalledTimes(1)
+    expect(vi.mocked(LcmManager).mock.calls[0][2]).toBe('sk-from-settings')
+  })
+
+  it('skips the job when the key is no longer saved for that host', async () => {
+    mockTrackNewMessages.mockClear()
+    mockGetSettings.mockResolvedValue(
+      withOpenAiKey({ openaiBaseUrl: 'https://elsewhere.example.net/v1' })
+    )
+    await handlers['lcm-post-turn']({
+      chatId: 'chat-1',
+      model: fakeModel,
+      freshTailRuns: 6,
+      contextWindowPercent: 75,
+      newMessages: []
+    })
+    expect(mockTrackNewMessages).not.toHaveBeenCalled()
   })
 })
 
 describe('handlers.memory-consolidate', () => {
-  it('calls runMemoryConsolidation with the payload fields', async () => {
+  it('calls runMemoryConsolidation with the payload and the key from settings', async () => {
     mockRunMemoryConsolidation.mockResolvedValue(undefined)
+    mockGetSettings.mockResolvedValue(withOpenAiKey())
 
     await handlers['memory-consolidate']({
       messages: [{ role: 'user', content: 'hi' }],
-      model: fakeModel,
-      apiKey: 'key'
+      model: fakeModel
     })
 
     expect(mockRunMemoryConsolidation).toHaveBeenCalledWith(
       [{ role: 'user', content: 'hi' }],
       fakeModel,
-      'key'
+      'sk-from-settings'
     )
+  })
+
+  it('ignores a key a previous build left in the payload', async () => {
+    mockRunMemoryConsolidation.mockClear()
+    mockGetSettings.mockResolvedValue({ id: 'global', providers: {} })
+
+    await handlers['memory-consolidate']({
+      messages: [],
+      model: fakeModel,
+      apiKey: 'sk-stale-from-queue'
+    })
+
+    expect(mockRunMemoryConsolidation).not.toHaveBeenCalled()
   })
 })
 

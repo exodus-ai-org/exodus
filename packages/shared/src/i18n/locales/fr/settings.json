@@ -931,7 +931,7 @@
       "building": "Création…",
       "builtAt": "Créé {{when}}",
       "engine": "DuckDB {{version}}",
-      "logsIncluded": "logs (vue sur les fichiers journaux)",
+      "logsIncluded": "logs (copiés depuis les fichiers journaux)",
       "logsMissing": "logs (aucun fichier journal trouvé)",
       "openFolder": "Ouvrir le dossier",
       "unavailable": "Impossible de démarrer DuckDB",
@@ -952,7 +952,7 @@
       "title": "Requête",
       "run": "Exécuter",
       "running": "Exécution…",
-      "tables": "Tables : chats, messages, projects, logs (vue)"
+      "tables": "Tables : chats, messages, projects, logs"
     },
     "results": {
       "rowCount_one": "{{count}} ligne",

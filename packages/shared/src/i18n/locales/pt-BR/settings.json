@@ -931,7 +931,7 @@
       "building": "Criando…",
       "builtAt": "Criado {{when}}",
       "engine": "DuckDB {{version}}",
-      "logsIncluded": "logs (visão sobre os arquivos de log)",
+      "logsIncluded": "logs (copiados dos arquivos de log)",
       "logsMissing": "logs (nenhum arquivo de log encontrado)",
       "openFolder": "Abrir pasta",
       "unavailable": "Não foi possível iniciar o DuckDB",
@@ -952,7 +952,7 @@
       "title": "Consulta",
       "run": "Executar consulta",
       "running": "Executando…",
-      "tables": "Tabelas: chats, messages, projects, logs (visão)"
+      "tables": "Tabelas: chats, messages, projects, logs"
     },
     "results": {
       "rowCount_one": "{{count}} linha",

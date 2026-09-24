@@ -925,7 +925,7 @@
       "building": "建立中…",
       "builtAt": "建立於{{when}}",
       "engine": "DuckDB {{version}}",
-      "logsIncluded": "logs (記錄檔視圖)",
+      "logsIncluded": "logs (從記錄檔複製)",
       "logsMissing": "logs (找不到記錄檔)",
       "openFolder": "開啟資料夾",
       "unavailable": "無法啟動 DuckDB",
@@ -946,7 +946,7 @@
       "title": "查詢",
       "run": "執行查詢",
       "running": "執行中…",
-      "tables": "資料表：chats、messages、projects、logs (視圖)"
+      "tables": "資料表：chats、messages、projects、logs"
     },
     "results": {
       "rowCount_one": "{{count}} 列",

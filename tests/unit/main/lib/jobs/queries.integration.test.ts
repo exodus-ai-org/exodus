@@ -43,8 +43,14 @@ vi.mock('@main/lib/logger', () => ({
 }))
 
 const { pglite } = await import('@main/lib/db/db')
-const { enqueueJob, readBatch, archiveMessage, deleteMessage, purgeArchive } =
-  await import('@main/lib/jobs/queries')
+const {
+  enqueueJob,
+  readBatch,
+  archiveMessage,
+  deleteMessage,
+  purgeArchive,
+  stripApiKeysFromQueuedJobs
+} = await import('@main/lib/jobs/queries')
 const { processQueue } = await import('@main/lib/jobs/worker')
 
 const QUEUE = 'index-message' as const
@@ -149,5 +155,23 @@ describe('job queue SQL against a real PGlite + pgmq instance', () => {
     )
     await archiveMessage(QUEUE, Number(pending.rows[0].msg_id))
     expect(await queueDepth()).toBe(0)
+  })
+
+  // Ledger ruling R3: a build before it queued `apiKey` in lcm / memory
+  // payloads; the startup pass removes it from live rows (and archives), and
+  // tolerates the queues this instance never created.
+  it('stripApiKeysFromQueuedJobs removes a queued apiKey and keeps the rest', async () => {
+    await readBatch(QUEUE, 0, 100).then((rows) =>
+      Promise.all(rows.map((r) => deleteMessage(QUEUE, r.msgId)))
+    )
+    await enqueueJob(QUEUE, { chatId: 'c', apiKey: 'sk-queued-secret-9999' })
+
+    await stripApiKeysFromQueuedJobs()
+
+    const raw = await pglite.query<{ message: unknown }>(
+      `SELECT message FROM pgmq."q_${QUEUE}"`
+    )
+    expect(JSON.stringify(raw.rows)).not.toContain('sk-queued-secret-9999')
+    expect(raw.rows[0].message).toEqual({ chatId: 'c' })
   })
 })

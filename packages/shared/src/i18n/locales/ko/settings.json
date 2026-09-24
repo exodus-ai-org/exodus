@@ -925,7 +925,7 @@
       "building": "만드는 중…",
       "builtAt": "{{when}} 생성",
       "engine": "DuckDB {{version}}",
-      "logsIncluded": "logs (로그 파일 뷰)",
+      "logsIncluded": "logs (로그 파일에서 복사)",
       "logsMissing": "logs (로그 파일 없음)",
       "openFolder": "폴더 열기",
       "unavailable": "DuckDB를 시작할 수 없습니다",
@@ -946,7 +946,7 @@
       "title": "쿼리",
       "run": "쿼리 실행",
       "running": "실행 중…",
-      "tables": "테이블: chats, messages, projects, logs (뷰)"
+      "tables": "테이블: chats, messages, projects, logs"
     },
     "results": {
       "rowCount_one": "{{count}}행",

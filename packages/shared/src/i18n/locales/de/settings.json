@@ -931,7 +931,7 @@
       "building": "Wird erstellt…",
       "builtAt": "Erstellt {{when}}",
       "engine": "DuckDB {{version}}",
-      "logsIncluded": "logs (Sicht auf die Logdateien)",
+      "logsIncluded": "logs (aus den Logdateien kopiert)",
       "logsMissing": "logs (keine Logdateien gefunden)",
       "openFolder": "Ordner öffnen",
       "unavailable": "DuckDB konnte nicht gestartet werden",
@@ -952,7 +952,7 @@
       "title": "Abfrage",
       "run": "Abfrage ausführen",
       "running": "Läuft…",
-      "tables": "Tabellen: chats, messages, projects, logs (Sicht)"
+      "tables": "Tabellen: chats, messages, projects, logs"
     },
     "results": {
       "rowCount_one": "{{count}} Zeile",

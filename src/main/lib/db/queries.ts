@@ -4,13 +4,14 @@ import { and, asc, desc, eq, ilike, inArray, sql } from 'drizzle-orm'
 
 import { logger } from '../logger'
 import { extractSearchableText } from '../search/extract-searchable-text'
+import { secretSafeWriteError, settingsColumnHasSecrets } from '../secrets'
 import {
-  restoreSettingsSecrets,
-  secretSafeWriteError,
-  settingsColumnHasSecrets,
-  settingsPlaintext
-} from '../secrets'
+  decryptSettingsRow,
+  prepareSettingsWrite,
+  type StoredSettingsState
+} from '../secrets/at-rest'
 import { SETTINGS_SECRET_PATHS } from '../secrets/registry'
+import { recordSettingsDecryptFailures } from '../secrets/status'
 import { db, pglite } from './db'
 import {
   chat,
@@ -343,41 +344,51 @@ export async function getVotesByChatId({ id }: { id: string }) {
 // upsert-if-missing plus the select — on a single-threaded WASM database that
 // every other query queues behind. It only ever changes through the two
 // update functions below, so it is read through a cache they invalidate.
-let settingsCache: Settings | null = null
+//
+// The row holds every registry secret encrypted (`secrets/at-rest.ts`); the
+// cache keeps the row as stored and as decrypted, so the rest of the process
+// sees plaintext and a write can still find a ciphertext that would not open.
+let settingsCache: StoredSettingsState<Settings> | null = null
 // Bumped on every write. A read that was already in flight when a write landed
 // carries the old row; the version check keeps it from re-filling the cache.
 let settingsVersion = 0
 
-function invalidateSettingsCache() {
+export function invalidateSettingsCache() {
   settingsCache = null
   settingsVersion++
 }
 
-export async function getSettings(): Promise<Settings> {
-  // A copy, so a caller that edits what it got can't rewrite everyone's view.
-  if (settingsCache) return structuredClone(settingsCache)
+async function loadSettingsState(): Promise<StoredSettingsState<Settings>> {
+  if (settingsCache) return settingsCache
   const version = settingsVersion
   await db.insert(settings).values({ id: 'global' }).onConflictDoNothing()
   const [data] = await db.select().from(settings)
-  if (version === settingsVersion) settingsCache = data!
-  return structuredClone(data!)
+  const state = decryptSettingsRow(data!)
+  recordSettingsDecryptFailures(state.undecryptable)
+  if (version === settingsVersion) settingsCache = state
+  return state
+}
+
+export async function getSettings(): Promise<Settings> {
+  // A copy, so a caller that edits what it got can't rewrite everyone's view.
+  return structuredClone((await loadSettingsState()).plain)
 }
 
 /**
- * Posted masks back to the stored plaintext (spec 2026-09-25 §2.2): the API
- * hands out masks only, and a client that posts one back (the desktop
- * autosave posts whole sections, exodus-ios whole columns) means "unchanged".
- * The comparison reads the stored value through `settingsPlaintext` — the
- * seam S2 keeps working once the columns are encrypted.
+ * A settings write in its stored form (spec 2026-09-25 §2.2–2.3): posted masks
+ * back to the stored plaintext (the API hands out masks only, and a client
+ * that posts one back — the desktop autosave posts whole sections, exodus-ios
+ * whole columns — means "unchanged"), a secret whose destination moves
+ * cleared, and every secret encrypted. See `prepareSettingsWrite`.
  */
-async function withStoredSecrets<T extends object>(payload: T): Promise<T> {
-  return restoreSettingsSecrets(payload, settingsPlaintext(await getSettings()))
+async function toStoredForm<T extends object>(payload: T): Promise<T> {
+  return prepareSettingsWrite(payload, await loadSettingsState())
 }
 
 export async function updateSettings(payload: Settings) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { createdAt, updatedAt, lastBackupAt, ...rest } =
-    await withStoredSecrets(payload)
+    await toStoredForm(payload)
   try {
     return await db
       .update(settings)
@@ -404,7 +415,7 @@ export async function updateSettingField(
   value: unknown
 ) {
   const resolved = settingsColumnHasSecrets(field)
-    ? (await withStoredSecrets({ [field]: value }))[field]
+    ? (await toStoredForm({ [field]: value }))[field]
     : value
   try {
     return await db

@@ -21,6 +21,7 @@ import { getSettings } from './lib/db/queries'
 import { setDevDockIcon } from './lib/dock-icon'
 import { initMainI18n } from './lib/i18n'
 import { setupIPC } from './lib/ipc'
+import { stripApiKeysFromQueuedJobs } from './lib/jobs/queries'
 import { IdleWatcher } from './lib/lock/idle-watcher'
 import { setLockIdleWatcher } from './lib/lock/ipc'
 import { readConfig as readLockConfig } from './lib/lock/lock-config'
@@ -29,6 +30,8 @@ import { hasPin as lockHasPin } from './lib/lock/pin-store'
 import { cleanupOldLogs, logger } from './lib/logger'
 import { setupMenu } from './lib/menu'
 import { getExodusHome, migrateFromLegacyLocation } from './lib/paths'
+import { secretSafeWriteError } from './lib/secrets'
+import { encryptSecretsAtRest } from './lib/secrets/migrate'
 import { hardenRenderers } from './lib/security'
 import { connectHttpServer } from './lib/server/app'
 import { getServer, setServer } from './lib/server/instance'
@@ -82,6 +85,16 @@ app.on('ready', async () => {
   // Must run before setupIPC() / createWindow() — both assume the schema
   // is already migrated once a renderer can issue DB queries.
   await runMigrate()
+
+  // Secrets at rest (spec 2026-09-25 §2.3), before anything reads settings:
+  // encrypt what an earlier build left plaintext, and strip the API key it
+  // queued in job payloads. Idempotent; neither may keep the app from starting.
+  await encryptSecretsAtRest().catch((err) => {
+    logger.error('secrets', secretSafeWriteError('Encrypt failed', err).message)
+  })
+  await stripApiKeysFromQueuedJobs().catch((err) => {
+    logger.error('jobs', secretSafeWriteError('Strip failed', err).message)
+  })
 
   // Resolves the effective locale from settings + OS and registers the
   // get/set-app-locale IPC. Must run after migrations (it reads settings)

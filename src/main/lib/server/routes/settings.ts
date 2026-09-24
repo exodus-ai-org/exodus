@@ -4,11 +4,13 @@ import { AiProviders } from '@exodus/shared/types/ai'
 import { Hono } from 'hono'
 
 import { listModelsByProvider } from '../../ai/providers/list-models'
+import { getAllMcpServers } from '../../db/mcp-queries'
 import { getAllSearchableMessages, updateSettings } from '../../db/queries'
 import { Settings as DBSettings } from '../../db/schema'
 import { resolveSearchProvider } from '../../search/resolve-search-provider'
 import { looksLikeMask, maskSettings, normalizeBaseUrl } from '../../secrets'
 import { PROVIDER_BASE_URL, PROVIDER_KEY_FIELD } from '../../secrets/registry'
+import { getSecretsStatus } from '../../secrets/status'
 import {
   listModelsRequestSchema,
   updateSettingsSchema
@@ -26,6 +28,15 @@ const settingsRouter = new Hono<{ Variables: Variables }>()
 // in-process `c.get('settings')` stays plaintext for everything else.
 settingsRouter.get('/', (c) => {
   return successResponse(c, maskSettings(c.get('settings')))
+})
+
+// Whether secrets are encrypted at rest, and which stored ones did not decrypt
+// (they read as unset until entered again) — for the Settings notice. The
+// settings row was decrypted for this request already; the MCP rows are read
+// so their failures are current too.
+settingsRouter.get('/secrets-status', async (c) => {
+  await getAllMcpServers()
+  return successResponse(c, getSecretsStatus())
 })
 
 settingsRouter.post('/', async (c) => {

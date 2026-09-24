@@ -1,28 +1,63 @@
 import { asc, eq, inArray } from 'drizzle-orm'
 
 import { secretSafeWriteError } from '../secrets'
+import { decryptMcpRow, encryptMcpSecrets } from '../secrets/at-rest'
+import {
+  clearMcpDecryptFailures,
+  forgetMcpServer,
+  recordMcpDecryptFailures
+} from '../secrets/status'
 import { db } from './db'
-import { mcpServer } from './schema'
+import { mcpServer, type McpServer } from './schema'
+
+/**
+ * `env` / `headers` values and secret-named `extraConfig` values are stored
+ * encrypted (spec 2026-09-25 §2.3). Every read here hands out plaintext; a
+ * value that will not decrypt is left out and reported for re-entry.
+ */
+function decrypted(row: McpServer): McpServer
+function decrypted(row: McpServer | undefined): McpServer | undefined
+function decrypted(row: McpServer | undefined): McpServer | undefined {
+  if (!row) return row
+  const { plain, undecryptable } = decryptMcpRow(row)
+  recordMcpDecryptFailures(
+    row.id,
+    undecryptable.map((label) => `mcp:${row.name}:${label}`)
+  )
+  return plain
+}
 
 export async function getAllMcpServers() {
-  return db.select().from(mcpServer).orderBy(asc(mcpServer.createdAt))
+  const rows = await db
+    .select()
+    .from(mcpServer)
+    .orderBy(asc(mcpServer.createdAt))
+  clearMcpDecryptFailures()
+  return rows.map((r) => decrypted(r))
 }
 
 export async function getMcpServerById(id: string) {
   const [result] = await db.select().from(mcpServer).where(eq(mcpServer.id, id))
-  return result
+  return decrypted(result)
 }
 
 export async function getMcpServersByNames(names: string[]) {
-  return db.select().from(mcpServer).where(inArray(mcpServer.name, names))
+  const rows = await db
+    .select()
+    .from(mcpServer)
+    .where(inArray(mcpServer.name, names))
+  return rows.map((r) => decrypted(r))
 }
 
 // Writes rethrow a secret-safe error: the driver's message quotes every
 // parameter, `env` / `headers` values included.
 export async function createMcpServer(data: typeof mcpServer.$inferInsert) {
   try {
-    const [result] = await db.insert(mcpServer).values(data).returning()
-    return result
+    const [result] = await db
+      .insert(mcpServer)
+      .values(encryptMcpSecrets(data).sealed)
+      .returning()
+    return decrypted(result)
   } catch (error) {
     throw secretSafeWriteError('Failed to create MCP server', error)
   }
@@ -35,15 +70,16 @@ export async function updateMcpServer(
   try {
     const [result] = await db
       .update(mcpServer)
-      .set({ ...data, updatedAt: new Date() })
+      .set({ ...encryptMcpSecrets(data).sealed, updatedAt: new Date() })
       .where(eq(mcpServer.id, id))
       .returning()
-    return result
+    return decrypted(result)
   } catch (error) {
     throw secretSafeWriteError('Failed to update MCP server', error)
   }
 }
 
 export async function deleteMcpServer(id: string) {
+  forgetMcpServer(id)
   return db.delete(mcpServer).where(eq(mcpServer.id, id))
 }

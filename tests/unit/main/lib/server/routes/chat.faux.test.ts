@@ -85,6 +85,8 @@ vi.mock('@main/lib/search/resolve-search-provider', () => ({
 }))
 
 const { default: chat } = await import('@main/lib/server/routes/chat')
+const { enqueueAndProcess } = await import('@main/lib/jobs/worker')
+const { SETTINGS_SECRET_PATHS } = await import('@main/lib/secrets/registry')
 const { registerFauxProvider } = await import('@main/lib/ai/kernel/faux')
 const { loadRelevantMemories } = await import('@main/lib/ai/memory/manager')
 
@@ -285,5 +287,56 @@ describe('POST /api/v1/chat on the faux provider', () => {
     const events = sseEvents(await response.text())
 
     expect(events.some((e) => e.type === 'memories_used')).toBe(false)
+  })
+
+  // Ledger ruling R3: pgmq rows live in PGlite (and a job given up on is
+  // archived until the next launch), so a job payload must carry no key —
+  // the handler reads it from settings when it runs.
+  it('enqueues post-run jobs whose payloads carry no registry secret', async () => {
+    const faux = registerFauxProvider()
+    faux.setResponses([fauxAssistantMessage([fauxText('Hi.')])])
+    const secret = (path: string) => `sk-${path}-DO-NOT-QUEUE-0000`
+    const settings: Record<string, unknown> = {
+      id: 'settings-1',
+      memory: { lcmEnabled: true, autoCapture: true, useInChat: false }
+    }
+    for (const path of SETTINGS_SECRET_PATHS) {
+      const keys = path.split('.')
+      let o = settings
+      for (const k of keys.slice(0, -1)) o = (o[k] ??= {}) as typeof o
+      o[keys.at(-1)!] = secret(path)
+    }
+    getModelFromProviderMock.mockReturnValue({
+      model: faux.getModel(),
+      apiKey: secret('providers.openaiApiKey')
+    })
+    vi.mocked(enqueueAndProcess).mockClear()
+
+    const app = new Hono()
+    app.use('*', async (c, next) => {
+      c.set('settings', settings as never)
+      await next()
+    })
+    app.route('/', chat)
+    const response = await app.request('/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: CHAT_ID,
+        messages: [{ id: USER_ID, role: 'user', content: 'hi', timestamp: 1 }],
+        advancedTools: []
+      })
+    })
+    await response.text()
+
+    const calls = vi.mocked(enqueueAndProcess).mock.calls as unknown[][]
+    expect(calls.map((c) => c[0])).toEqual(
+      expect.arrayContaining(['lcm-post-turn', 'memory-consolidate'])
+    )
+    const queued = JSON.stringify(calls.map((c) => c[1]))
+    expect(queued).not.toContain('apiKey')
+    for (const path of SETTINGS_SECRET_PATHS) {
+      expect(queued).not.toContain(secret(path))
+    }
   })
 })

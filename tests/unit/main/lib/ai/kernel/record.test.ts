@@ -23,7 +23,6 @@ function recorder(
   return new RunRecorder({
     chatId: 'c',
     model,
-    apiKey: 'k',
     lcm: { freshTailRuns: 6, contextWindowPercent: 75 },
     memoryCapture: true,
     indexMessage: vi.fn(),

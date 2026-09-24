@@ -931,7 +931,7 @@
       "building": "Building…",
       "builtAt": "Built {{when}}",
       "engine": "DuckDB {{version}}",
-      "logsIncluded": "logs (view over the log files)",
+      "logsIncluded": "logs (copied from the log files)",
       "logsMissing": "logs (no log files found)",
       "openFolder": "Open folder",
       "unavailable": "DuckDB could not be started",
@@ -952,7 +952,7 @@
       "title": "Query",
       "run": "Run query",
       "running": "Running…",
-      "tables": "Tables: chats, messages, projects, logs (view)"
+      "tables": "Tables: chats, messages, projects, logs"
     },
     "results": {
       "rowCount_one": "{{count}} row",

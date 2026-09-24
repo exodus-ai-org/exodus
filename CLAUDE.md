@@ -206,6 +206,13 @@ the executable — that was the exact error every downloaded update failed with.
   `safeStorage` data (`lock.dat`, the LAN certificate's private key — a lost key
   means a new fingerprint and every paired device has to re-pair), and the
   Accessibility / Screen Recording grants Computer Use needs.
+- The settings secrets are `safeStorage`-bound too: every registry value in
+  `settings` and every MCP secret is stored `enc:v1:…` under the same key
+  (`src/main/lib/secrets/`). If the new identity cannot open them, nothing
+  crashes and no ciphertext is ever sent — each key reads as unset,
+  `GET /api/v1/settings/secrets-status` lists it in `needsReentry`, and the
+  user pastes each API key (and MCP token) in again once; a save that does not
+  touch a key keeps its old ciphertext until then.
 - `quitAndInstall()` together with the "closing the window only hides it"
   handler in `window.ts` has never run (no update has ever got past validation):
   test it with two consecutive signed builds.
@@ -260,11 +267,14 @@ snapshot of the user's data (`src/main/lib/analytics/`, route
 `/api/v1/analytics`, page `settings-form/chat-audit.tsx`). `snapshot.ts`
 copies `chat` / `message` / `project` out of PGlite via NDJSON into
 `~/.exodus/analytics/exodus.duckdb` (usage flattened to `*_tokens` /
-`cost_usd` columns, `content` kept as JSON) and adds a `logs` view straight
-over `~/.exodus/logs/*.jsonl`; `duckdb.ts` lazy-`import()`s
+`cost_usd` columns, `content` kept as JSON) and copies
+`~/.exodus/logs/*.jsonl` into a `logs` table; `duckdb.ts` lazy-`import()`s
 `@duckdb/node-api` on first use (never at boot), opens the file
 `READ_ONLY` for queries and `READ_WRITE` only while rebuilding, serialised
-on one promise chain, and caps results at 500 rows. The editor is Monaco
+on one promise chain, and caps results at 500 rows. The query instance runs
+with `enable_external_access = false` + `lock_configuration = true`, so no
+query can read a file (`read_text`, `read_json`, `COPY`, `ATTACH`) — which is
+why `logs` is a table built at rebuild, not a view over the files. The editor is Monaco
 (`settings-form/chat-audit-editor.tsx`, SQL language, ⌘↩ bound via the editor,
 completions from `packages/shared/src/constants/chat-audit-schema.ts`, which
 is also what `snapshot.ts` builds the tables from). Presets live in
@@ -367,7 +377,7 @@ Every business endpoint is mounted on one versioned sub-app (`app.route('/api/v1
 
 The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatches to the appropriate list-models handler based on the provider in the request body, reading the API key from the request (not from saved settings) to fetch live model catalogs; a posted mask stands for the stored key, and only with the stored (or default) base URL — a mask with another base URL is a 400 ("re-enter the API key"), so a stored key is never sent to a caller-chosen host.
 
-**Secrets leave the main process as masks only** (`src/main/lib/secrets/`): `GET /api/v1/settings` and the `/api/v1/mcp` responses turn every registry field (`registry.ts` — provider keys, Google / Brave / LightRAG keys, the Elasticsearch password, S3 credentials, the legacy `mcpServers` blob; `mcp_server.env` / `headers` values and secret-named `extraConfig` values) into `"•••• " + last4` (`"••••"` under 12 characters). A posted mask means "unchanged": `updateSettings` / `updateSettingField` and the MCP create/update swap it back for the stored value (read through `current.ts`'s plaintext accessors — the seam at-rest encryption plugs into), `null` / `""` clear, anything else sets — so the desktop autosave and exodus-ios, which post whole sections/columns back, need no knowledge of masks. `getSettings()` / `c.get('settings')` stay plaintext inside main. A new `*Key` / `*Secret` / `*Password` / `*Token` schema field fails `registry.test.ts` until it is put in the registry or on its commented non-secret list.
+**Secrets leave the main process as masks only** (`src/main/lib/secrets/`): `GET /api/v1/settings` and the `/api/v1/mcp` responses turn every registry field (`registry.ts` — provider keys, Google / Brave / LightRAG keys, the Elasticsearch password, S3 credentials, the legacy `mcpServers` blob; `mcp_server.env` / `headers` values and secret-named `extraConfig` values) into `"•••• " + last4` (`"••••"` under 12 characters). A posted mask means "unchanged": `updateSettings` / `updateSettingField` and the MCP create/update swap it back for the stored value (read through `current.ts`'s plaintext accessors — the seam at-rest encryption plugs into), `null` / `""` clear, anything else sets — so the desktop autosave and exodus-ios, which post whole sections/columns back, need no knowledge of masks. `getSettings()` / `c.get('settings')` stay plaintext inside main. A write that moves a secret's destination (`SECRET_DESTINATIONS`: a provider base URL / Azure endpoint, the Elasticsearch or LightRAG URL; for MCP `url` / `command`) while the secret comes back as its mask clears it — a stored key is never carried to a new host. At rest the values are `enc:v1:…` (see Security Considerations); `GET /api/v1/settings/secrets-status` answers `{ encryption: 'on' | 'unavailable', needsReentry: string[] }` for the Settings notice. A new `*Key` / `*Secret` / `*Password` / `*Token` schema field fails `registry.test.ts` until it is put in the registry or on its commented non-secret list.
 
 **Middleware Pipeline** (order in `app.ts`):
 
@@ -1042,10 +1052,13 @@ audit that applied it is in the commit history (`style(motion): …`).
   where every request needs a paired device's token and the certificate is
   pinned by the device. A paired device gets the whole API (exodus-ios edits
   provider keys), which is why that path is TLS-only
-- API keys stored locally in PGlite database; the API hands them out masked
-  only (see `src/main/lib/secrets/` under Backend Server Architecture) —
-  never add a route or response that serializes the settings row or an
-  `mcp_server` row without `maskSettings()` / `maskMcpServer()`
+- API keys stored locally in PGlite database, encrypted with `safeStorage`
+  (`enc:v1:…`; decrypted only into the in-process settings cache and the MCP
+  query results); the API hands them out masked only (see
+  `src/main/lib/secrets/` under Backend Server Architecture) — never add a
+  route or response that serializes the settings row or an `mcp_server` row
+  without `maskSettings()` / `maskMcpServer()`, and never read either table
+  except through `db/queries.ts` / `db/mcp-queries.ts`
 
 ## Testing
 
@@ -1289,7 +1302,9 @@ Main process:
   (enqueue/read/delete/archive/purge), `handlers.ts` (per-queue job logic),
   `worker.ts` (`enqueueAndProcess()` + periodic sweep). A finished job is
   deleted; only a job given up on is archived, and archives are truncated at
-  launch — payloads carry `apiKey` and whole conversations. Decouples chat.ts's post-turn
+  launch — payloads carry whole conversations. No payload carries an API key:
+  the handler reads it from settings when it runs (`job-api-key.ts`), and
+  launch strips one an earlier build queued. Decouples chat.ts's post-turn
   side effects (search indexing, LCM compaction, memory consolidation,
   `kb-sync`, `discover-refresh`) from the request/response cycle.
   `queries.ts`'s `enqueueJob` stamps the ambient `traceId` onto the payload
@@ -1345,10 +1360,14 @@ Main process:
   packaged; a proxy to the Vite dev server in dev)
 - `src/main/lib/single-instance.ts` — the single-instance lock, taken by
   `db/db.ts` before it opens PGlite (see Data directory, ports and isolation)
-- `src/main/lib/secrets/` — the secret registry (`registry.ts`), the mask
-  (`mask.ts`), `maskSettings` / `restoreSettingsSecrets` / `maskMcpServer` /
-  `restoreMcpSecrets` (`index.ts`) and the stored-plaintext accessors
-  (`current.ts`)
+- `src/main/lib/secrets/` — the secret registry (`registry.ts`, incl.
+  `SECRET_DESTINATIONS`), the mask (`mask.ts`), `maskSettings` /
+  `restoreSettingsSecrets` / `maskMcpServer` / `restoreMcpSecrets`
+  (`index.ts`), the stored-plaintext accessors (`current.ts`), and encryption
+  at rest: `crypto.ts` (`enc:v1:` over `safeStorage`), `at-rest.ts` (decrypt a
+  row on read, `prepareSettingsWrite` on write), `migrate.ts` (the idempotent
+  startup pass `main.ts` runs after the schema migrations), `status.ts` (what
+  `GET /api/v1/settings/secrets-status` reports)
 - `src/main/lib/security.ts` — renderer hardening (`hardenRenderers()`:
   navigation guard, window-open handler, permission handler) and
   `openExternalSafely` / `isSafeExternalUrl`

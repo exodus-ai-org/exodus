@@ -11,8 +11,8 @@ import type { KernelEvent } from './events'
 
 export interface RecorderDeps {
   chatId: string
+  /** The run's model; the post-run jobs read its key from settings (R3). */
   model: Model<string>
-  apiKey: string
   /** LCM's post-run compaction job, or null when LCM is off. */
   lcm: { freshTailRuns: number; contextWindowPercent: number } | null
   /** Whether the memory-consolidation job runs after the run. */
@@ -53,15 +53,8 @@ export class RunRecorder {
   async persist(): Promise<void> {
     if (this.persisted || this.done.length === 0) return
     this.persisted = true
-    const {
-      chatId,
-      model,
-      apiKey,
-      lcm,
-      memoryCapture,
-      indexMessage,
-      priorMessages
-    } = this.deps
+    const { chatId, model, lcm, memoryCapture, indexMessage, priorMessages } =
+      this.deps
 
     // "Worked for X seconds" reads the last assistant message of the run.
     for (let i = this.done.length - 1; i >= 0; i--) {
@@ -90,7 +83,6 @@ export class RunRecorder {
       enqueueAndProcess('lcm-post-turn', {
         chatId,
         model,
-        apiKey,
         freshTailRuns: lcm.freshTailRuns,
         contextWindowPercent: lcm.contextWindowPercent,
         newMessages: this.done.map((m) => ({ id: m.id, content: m.content }))
@@ -103,8 +95,7 @@ export class RunRecorder {
           role: m.role,
           content: m.content
         })),
-        model,
-        apiKey
+        model
       }).catch((error) => logEnqueueFailure('memory-consolidate', error))
     }
   }

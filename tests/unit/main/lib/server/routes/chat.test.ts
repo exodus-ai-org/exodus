@@ -247,7 +247,9 @@ describe('POST /api/v1/chat', () => {
     expect(input.reasoning).toBe('high')
   })
 
-  it('enqueues lcm-post-turn and memory-consolidate payloads with the renamed model field', async () => {
+  // No `apiKey` in either payload (ledger ruling R3): the handler reads the
+  // key from settings when the job runs.
+  it('enqueues lcm-post-turn and memory-consolidate payloads with the renamed model field and no key', async () => {
     const response = await postChat({ reasoningEffort: 'low' })
     await response.text()
 
@@ -257,16 +259,12 @@ describe('POST /api/v1/chat', () => {
     const memoryCall = enqueueAndProcessMock.mock.calls.find(
       (c) => c[0] === 'memory-consolidate'
     )
-    expect(lcmCall?.[1]).toMatchObject({
-      model: FAKE_MODEL,
-      apiKey: 'test-key'
-    })
+    expect(lcmCall?.[1]).toMatchObject({ model: FAKE_MODEL })
     expect(lcmCall?.[1]).not.toHaveProperty('chatModel')
-    expect(memoryCall?.[1]).toMatchObject({
-      model: FAKE_MODEL,
-      apiKey: 'test-key'
-    })
+    expect(lcmCall?.[1]).not.toHaveProperty('apiKey')
+    expect(memoryCall?.[1]).toMatchObject({ model: FAKE_MODEL })
     expect(memoryCall?.[1]).not.toHaveProperty('chatModel')
+    expect(memoryCall?.[1]).not.toHaveProperty('apiKey')
   })
 
   describe('index-message job', () => {

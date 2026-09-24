@@ -224,5 +224,35 @@ describe('buildSnapshot + runQuery (real DuckDB)', () => {
     // Read-only: the console cannot mutate the snapshot.
     await expect(runQuery('delete from messages')).rejects.toThrow(/read-only/i)
     await expect(runQuery('select nope from messages')).rejects.toThrow(/nope/)
+
+    // No file access from the console (ledger ruling R2): the snapshot is all
+    // it can read — not the PGlite files, not the keys, not /etc.
+    await expect(
+      runQuery("select * from read_text('/etc/hosts')")
+    ).rejects.toThrow(/disabled by configuration|Permission/i)
+    await expect(
+      runQuery(`select * from read_json('${join(logsDir, '*.jsonl')}')`)
+    ).rejects.toThrow(/disabled by configuration|Permission/i)
+    await expect(
+      runQuery("attach '/tmp/exodus-attach-probe.db' as x")
+    ).rejects.toThrow()
+    await expect(runQuery('set enable_external_access = true')).rejects.toThrow(
+      /locked/i
+    )
+  }, 60_000)
+
+  it('a rebuild over a snapshot that still has the old logs view', async () => {
+    const { buildSnapshot } = await import('@main/lib/analytics/snapshot')
+    const { runQuery, withReadWrite, closeDuckDB } =
+      await import('@main/lib/analytics/duckdb')
+    await withReadWrite(async (conn) => {
+      await conn.run('DROP TABLE IF EXISTS logs')
+      await conn.run('CREATE OR REPLACE VIEW logs AS SELECT 1 AS old')
+    })
+    closeDuckDB()
+    const meta = await buildSnapshot({ source })
+    expect(meta.logsIncluded).toBe(true)
+    const logs = await runQuery('select count(*) as n from logs')
+    expect(logs.rows[0].n).toBe(1)
   }, 60_000)
 })

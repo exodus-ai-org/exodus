@@ -1,5 +1,5 @@
 import { ErrorCode } from '@exodus/shared/constants/error-codes'
-import { DatabaseError } from '@exodus/shared/errors/app-error'
+import { DatabaseError, ValidationError } from '@exodus/shared/errors/app-error'
 import { Hono } from 'hono'
 import JSZip from 'jszip'
 
@@ -29,6 +29,14 @@ const tableNames = [
   'deep_research',
   'deep_research_message'
 ]
+
+/**
+ * What an import may write: the tables an export writes, bar `settings`. A
+ * zip from another machine carries that machine's ciphertext (safeStorage is
+ * bound to it), and a crafted one could carry anything — neither may land in
+ * `settings`, `mcp_server` or `paired_device` as if it were this machine's.
+ */
+const importableTables = new Set(tableNames.filter((t) => t !== 'settings'))
 
 /**
  * Fire-and-forget: `resetAllData()` TRUNCATEs the `message` table, so the
@@ -75,6 +83,13 @@ dbIo.post('/import', async (c) => {
     },
     'Invalid request body'
   )
+
+  if (!importableTables.has(tableName)) {
+    throw new ValidationError(
+      ErrorCode.VALIDATION_FAILED,
+      'This table cannot be imported'
+    )
+  }
 
   await handleDatabaseOperation(
     () => importData(tableName, file),
@@ -128,7 +143,8 @@ dbIo.post('/import-all', async (c) => {
   for (const [fileName, zipEntry] of Object.entries(zip.files)) {
     if (!fileName.endsWith('.csv') || zipEntry.dir) continue
     const tableName = fileName.replace('.csv', '')
-    if (tableName === 'settings') continue // Don't overwrite settings
+    // Settings, or a table an export never writes.
+    if (!importableTables.has(tableName)) continue
     const csvBlob = new Blob([await zipEntry.async('arraybuffer')])
     await importData(tableName, csvBlob)
   }

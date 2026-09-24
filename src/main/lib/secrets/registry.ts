@@ -113,3 +113,42 @@ export const PROVIDER_BASE_URL: Record<
     fallback: 'https://api.x.ai/v1'
   }
 }
+
+/**
+ * Where a secret is sent, as the dotted path of the field that holds the
+ * destination (and its default when unset). A settings write that moves the
+ * destination while the secret comes back as its mask clears the secret
+ * (ledger ruling R1): a stored key is never carried to a new host — the user
+ * enters it again for the new one. Compared with `normalizeBaseUrl`. Secrets
+ * not listed go to a fixed service (Brave, Google, AWS by region).
+ */
+export const SECRET_DESTINATIONS: Partial<
+  Record<SettingsSecretPath, { field: string; fallback: string | null }>
+> = {
+  ...Object.fromEntries(
+    (
+      Object.keys(PROVIDER_KEY_FIELD) as Array<keyof typeof PROVIDER_KEY_FIELD>
+    ).map((p) => [
+      `providers.${PROVIDER_KEY_FIELD[p]}`,
+      {
+        field: `providers.${PROVIDER_BASE_URL[p].field}`,
+        fallback: PROVIDER_BASE_URL[p].fallback
+      }
+    ])
+  ),
+  'fullTextSearch.elasticsearch.password': {
+    field: 'fullTextSearch.elasticsearch.url',
+    fallback: null
+  },
+  'knowledgeBase.apiKey': { field: 'knowledgeBase.url', fallback: null }
+}
+
+/**
+ * The same rule for an `mcp_server` row: `headers` and the secrets inside
+ * `extraConfig` go to `url`; `env` goes to the process `command` starts.
+ */
+export const MCP_SECRET_DESTINATIONS = {
+  headers: 'url',
+  extraConfig: 'url',
+  env: 'command'
+} as const

@@ -20,7 +20,7 @@ const removeAllMedia = vi.fn(async () => {})
 vi.mock('@main/lib/media/store', () => ({ removeAllMedia }))
 
 const { default: dbIo } = await import('@main/lib/server/routes/db-io')
-const { resetAllData } = await import('@main/lib/db/queries')
+const { importData, resetAllData } = await import('@main/lib/db/queries')
 
 function buildApp() {
   const app = new Hono()
@@ -49,5 +49,61 @@ describe('DELETE /api/v1/db-io/reset', () => {
 
     expect(res.status).not.toBe(200)
     expect(removeAllMedia).not.toHaveBeenCalled()
+  })
+})
+
+// An import never writes settings or another table's secrets: a zip from
+// another machine carries its ciphertext (or a crafted one plaintext), which
+// must not land in `settings` / `mcp_server` as if it were a key. Only the
+// tables an export writes, bar settings, are imported.
+describe('imports', () => {
+  function form(tableName: string) {
+    const body = new FormData()
+    body.append('tableName', tableName)
+    body.append('file', new File(['id\n'], `${tableName}.csv`))
+    return body
+  }
+
+  it.each(['settings', 'mcp_server', 'paired_device'])(
+    'POST /import refuses %s',
+    async (table) => {
+      const res = await buildApp().request('/import', {
+        method: 'POST',
+        body: form(table)
+      })
+      expect(res.status).not.toBe(200)
+      expect(vi.mocked(importData)).not.toHaveBeenCalled()
+    }
+  )
+
+  it('POST /import takes an exported table', async () => {
+    const res = await buildApp().request('/import', {
+      method: 'POST',
+      body: form('chat')
+    })
+    expect(res.status).toBe(200)
+    expect(vi.mocked(importData)).toHaveBeenCalledWith(
+      'chat',
+      expect.anything()
+    )
+  })
+
+  it('POST /import-all skips settings and tables it never exports', async () => {
+    const JSZip = (await import('jszip')).default
+    const zip = new JSZip()
+    for (const t of ['chat', 'settings', 'mcp_server', 'paired_device']) {
+      zip.file(`${t}.csv`, 'id\n')
+    }
+    const body = new FormData()
+    body.append(
+      'file',
+      new File([await zip.generateAsync({ type: 'uint8array' })], 'a.zip')
+    )
+    const res = await buildApp().request('/import-all', {
+      method: 'POST',
+      body
+    })
+    expect(res.status).toBe(200)
+    expect(vi.mocked(importData).mock.calls.map((c) => c[0])).toEqual(['chat'])
   })
 })

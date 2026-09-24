@@ -292,7 +292,6 @@ chat.post('/', async (c) => {
   const recorder = new RunRecorder({
     chatId: id,
     model,
-    apiKey,
     lcm: lcm
       ? {
           freshTailRuns: freshTailRuns(memoryConfig),

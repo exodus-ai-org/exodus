@@ -151,13 +151,17 @@ describe('POST /api/v1/settings', () => {
     const app = buildApp()
     const { body } = await getJson(app)
     // A non-secret edit alongside: the providers page changing a base URL.
+    // That moves the OpenAI key's destination, so its mask clears it (ledger
+    // ruling R1, tested pair by pair in at-rest.test.ts); every other key stays.
     ;(body.providers as Tree).openaiBaseUrl = 'https://proxy.example.com/v1'
     await post(app, body)
 
     const s = await queries.getSettings()
     expect(s.providers?.openaiBaseUrl).toBe('https://proxy.example.com/v1')
-    for (const p of SETTINGS_SECRET_PATHS.filter((path) =>
-      path.startsWith('providers.')
+    expect(s.providers?.openaiApiKey).toBeNull()
+    for (const p of SETTINGS_SECRET_PATHS.filter(
+      (path) =>
+        path.startsWith('providers.') && path !== 'providers.openaiApiKey'
     )) {
       expect(getAt(s, p), p).toBe(plain(p))
     }
