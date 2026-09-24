@@ -247,8 +247,27 @@ function mapMcpSecrets<T extends McpSecretColumns>(row: T, fn: SecretFn): T {
 }
 
 /**
+ * On a row `decryptMcpRow` could not fully open: the labels of what failed.
+ * A symbol, so it never reaches JSON (the API) yet survives a spread.
+ */
+export const MCP_DECRYPT_FAILURES: unique symbol = Symbol('mcpDecryptFailures')
+
+/**
+ * What would not decrypt on an MCP row read through `db/mcp-queries.ts` —
+ * empty when the row is whole. Such a row must not be connected (re-review
+ * S2 N1): its url reads as null and its args as [], which is not the server
+ * the user configured.
+ */
+export function mcpDecryptFailures(row: object): readonly string[] {
+  return (
+    (row as { [MCP_DECRYPT_FAILURES]?: string[] })[MCP_DECRYPT_FAILURES] ?? []
+  )
+}
+
+/**
  * A row as the app uses it: every secret decrypted; one that will not open is
- * left out (so it reads as unset) and listed by `<column>.<name>`.
+ * left out (so it reads as unset) and listed by `<column>.<name>` — also on
+ * the row itself (`mcpDecryptFailures`).
  */
 export function decryptMcpRow<T extends McpSecretColumns>(
   row: T
@@ -271,6 +290,11 @@ export function decryptMcpRow<T extends McpSecretColumns>(
   }
   const plain = mapMcpSecrets(row, openAny)
   mapMcpLocators(plain, open, 'open')
+  if (undecryptable.length > 0) {
+    ;(plain as { [MCP_DECRYPT_FAILURES]?: string[] })[MCP_DECRYPT_FAILURES] = [
+      ...undecryptable
+    ]
+  }
   return { plain, undecryptable }
 }
 

@@ -1,5 +1,6 @@
 import { getAllMcpServers } from '../db/mcp-queries'
 import { getSettings } from '../db/queries'
+import { mcpLocatorSecrets } from './locators'
 import { isSecretName, SETTINGS_SECRET_PATHS } from './registry'
 import { getAtPath, isPlainObject } from './tree'
 
@@ -20,8 +21,8 @@ function secretStrings(value: unknown, secret: boolean, out: string[]): void {
 
 /**
  * Every secret value Exodus holds right now, in plaintext: the settings
- * registry fields and each MCP server's `env` / `headers` values and
- * `extraConfig` secrets. For scrubbing copies of old text (`scrub.ts`); never
+ * registry fields and each MCP server's `env` / `headers` values,
+ * `extraConfig` secrets and the secrets inside its `url` / `args`. For scrubbing copies of old text (`scrub.ts`); never
  * leaves the process.
  */
 export async function knownSecretValues(): Promise<string[]> {
@@ -35,6 +36,7 @@ export async function knownSecretValues(): Promise<string[]> {
     secretStrings(server.env, true, out)
     secretStrings(server.headers, true, out)
     secretStrings(server.extraConfig, false, out)
+    out.push(...mcpLocatorSecrets(server.url, server.args as string[] | null))
   }
   return out
 }

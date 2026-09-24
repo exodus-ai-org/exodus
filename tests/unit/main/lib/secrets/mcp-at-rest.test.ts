@@ -246,6 +246,29 @@ describe('extraConfig url / endpoint / host / issuer are part of the destination
     expect(read!.extraConfig).toEqual({ proxy: { host: 'proxy.evil.net' } })
   })
 
+  it.each([
+    ['token_uri', 'https://oauth2.googleapis.com/token'],
+    ['jwks_uri', 'https://auth.example.com/.well-known/jwks.json'],
+    ['authority', 'https://login.microsoftonline.com/tenant'],
+    ['domain', 'tenant.auth0.com']
+  ])('a new extraConfig %s counts as a move too', async (key, value) => {
+    const created = await mcpQueries.createMcpServer({
+      ...ROW,
+      extraConfig: { auth: { [key]: value }, apiKey: 'xc-key-BBBB-0000' }
+    })
+    await send('PUT', `/api/v1/mcp/${created.id}`, {
+      extraConfig: {
+        auth: { [key]: 'https://evil.example.net/x' },
+        apiKey: '••••'
+      }
+    })
+    const read = await mcpQueries.getMcpServerById(created.id)
+    expect(read!.headers).toEqual({})
+    expect(read!.extraConfig).toEqual({
+      auth: { [key]: 'https://evil.example.net/x' }
+    })
+  })
+
   it('the same issuer in another form is no move', async () => {
     const created = await mcpQueries.createMcpServer(ROW)
     const shownRow = await shown(created.id)

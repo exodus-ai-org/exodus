@@ -1373,10 +1373,14 @@ Main process:
   pass `main.ts` runs after the schema migrations: encrypt, strip job keys,
   then — once, or whenever it changed something — `purge.ts`: `VACUUM FULL`
   and three `pg_switch_wal()` / `CHECKPOINT` rounds so no plaintext survives in
-  the heap, the WAL or a `dumpDataDir()` backup; marker
+  the heap, the WAL or a `dumpDataDir()` backup, and the raw log files are
+  rewritten with secrets masked; each step fails on its own; marker
   `~/.exodus/secrets-purge.json`), `status.ts` (what
   `GET /api/v1/settings/secrets-status` reports), `known.ts` + `scrub.ts`
-  (every current secret value, and masking them out of copied text)
+  (every current secret value, and masking them out of copied text). A
+  startup self-check turns encryption off if `safeStorage` output is not a
+  recognizable envelope. An MCP row that did not fully decrypt carries
+  `mcpDecryptFailures()` and is never connected (`ai/mcp.ts`)
 - `src/main/lib/security.ts` — renderer hardening (`hardenRenderers()`:
   navigation guard, window-open handler, permission handler) and
   `openExternalSafely` / `isSafeExternalUrl`

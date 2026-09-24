@@ -293,4 +293,25 @@ describe('buildSnapshot + runQuery (real DuckDB)', () => {
     const file = readFileSync(join(analyticsDir, 'exodus.duckdb'))
     expect(file.includes(Buffer.from(LEAK))).toBe(false)
   }, 60_000)
+
+  // Re-review S2 N3: the logs table is optional. If the current secrets
+  // cannot be read, the rebuild goes on without it rather than failing, and
+  // never copies the logs unscrubbed.
+  it('rebuilds without the logs table when the secrets cannot be read', async () => {
+    const { buildSnapshot } = await import('@main/lib/analytics/snapshot')
+    const { runQuery } = await import('@main/lib/analytics/duckdb')
+    const { logger } = await import('@main/lib/logger')
+    const meta = await buildSnapshot({
+      source,
+      secrets: async () => {
+        throw new Error('settings unreadable')
+      }
+    })
+    expect(meta.logsIncluded).toBe(false)
+    await expect(runQuery('select count(*) from logs')).rejects.toThrow()
+    expect(
+      (await runQuery('select count(*) as n from messages')).rows[0].n
+    ).toBe(3)
+    expect(JSON.stringify(vi.mocked(logger.warn).mock.calls)).toMatch(/logs/u)
+  }, 60_000)
 })

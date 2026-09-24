@@ -8,11 +8,18 @@ import { invalidateSettingsCache } from '../db/queries'
 import { mcpServer, settings } from '../db/schema'
 import { stripApiKeysFromQueuedJobs } from '../jobs/queries'
 import { logger } from '../logger'
-import { getSecretsPurgeMarkerPath } from '../paths'
+import { getLogsDir, getSecretsPurgeMarkerPath } from '../paths'
 import { encryptMcpSecrets, encryptSettingsSecretsInPlace } from './at-rest'
-import { encryptionState, warnUnavailableOnce } from './crypto'
+import {
+  encryptionState,
+  SecretEncryptionError,
+  warnUnavailableOnce
+} from './crypto'
+import { secretSafeWriteError } from './index'
+import { knownSecretValues } from './known'
 import { purgeResidualPlaintext } from './purge'
 import { SETTINGS_SECRET_PATHS } from './registry'
+import { scrubLogFiles } from './scrub'
 
 /** The `settings` columns that hold a registry secret. */
 const SECRET_COLUMNS = [
@@ -78,31 +85,74 @@ export interface SecretsStartupResult {
   jobs: number
   /** Whether the on-disk residue was purged this launch. */
   purged: boolean
+  /** Raw log files the purge rewrote with secrets masked. */
+  logsScrubbed: number
+  encryptFailed: boolean
+  stripFailed: boolean
 }
 
-/**
- * Everything `main.ts` runs for secrets at rest, after the schema migrations
- * and before any route or job: encrypt what is still plaintext, strip keys
- * from queued job payloads (ruling R3), and then — when either changed
- * something, or no purge has ever run on this data directory — purge the
- * plaintext the old values left on disk (review S2 C2, `purge.ts`). A marker
- * file records the purge, so a normal launch does not repeat it; its
- * `purgedAt` is the moment backups older than it may still hold plaintext
- * (`removeBackupsOlderThan` in `backup.ts`).
- */
+/** A step's failure, logged without a value (drizzle quotes parameters). */
+function logStep(what: string, error: unknown): void {
+  logger.error(
+    'secrets',
+    error instanceof SecretEncryptionError
+      ? `${what}: ${error.message}`
+      : secretSafeWriteError(what, error).message
+  )
+}
+
 export async function secretsAtRestStartup(): Promise<SecretsStartupResult> {
-  const counts = await encryptSecretsAtRest()
-  const jobs = await stripApiKeysFromQueuedJobs()
+  // Each step on its own (re-review S2 N2): a denied Keychain prompt must not
+  // keep the job keys from being stripped, nor the strip the purge.
+  let counts = { settings: 0, mcp: 0 }
+  let encryptFailed = false
+  try {
+    counts = await encryptSecretsAtRest()
+  } catch (error) {
+    encryptFailed = true
+    logStep('Encrypting stored secrets failed', error)
+  }
+  let jobs = 0
+  let stripFailed = false
+  try {
+    jobs = await stripApiKeysFromQueuedJobs()
+  } catch (error) {
+    stripFailed = true
+    logStep('Stripping keys from queued jobs failed', error)
+  }
+
+  const result = { ...counts, jobs, encryptFailed, stripFailed }
   const marker = getSecretsPurgeMarkerPath()
   const changed = counts.settings + counts.mcp + jobs > 0
-  if (!changed && existsSync(marker)) return { ...counts, jobs, purged: false }
+  if (!changed && existsSync(marker)) {
+    return { ...result, purged: false, logsScrubbed: 0 }
+  }
 
-  await purgeResidualPlaintext()
-  mkdirSync(dirname(marker), { recursive: true })
-  writeFileSync(
-    marker,
-    JSON.stringify({ purgedAt: new Date().toISOString() }, null, 2)
-  )
-  logger.info('secrets', 'Purged plaintext residue from the database files')
-  return { ...counts, jobs, purged: true }
+  // The purge runs even when encryption failed: the stripped job payloads and
+  // their dead tuples are worth vacuuming, and it costs the plaintext rows
+  // nothing. The marker waits for a pass where every step succeeded — the
+  // launch that finally encrypts the rows changes them and purges again.
+  try {
+    await purgeResidualPlaintext()
+  } catch (error) {
+    logStep('Purging plaintext residue failed', error)
+    return { ...result, purged: false, logsScrubbed: 0 }
+  }
+  let logsScrubbed = 0
+  try {
+    logsScrubbed = scrubLogFiles(getLogsDir(), await knownSecretValues())
+  } catch (error) {
+    logStep('Scrubbing the log files failed', error)
+  }
+  if (!encryptFailed && !stripFailed) {
+    mkdirSync(dirname(marker), { recursive: true })
+    writeFileSync(
+      marker,
+      JSON.stringify({ purgedAt: new Date().toISOString() }, null, 2)
+    )
+  }
+  logger.info('secrets', 'Purged plaintext residue from the database files', {
+    logsScrubbed
+  })
+  return { ...result, purged: true, logsScrubbed }
 }

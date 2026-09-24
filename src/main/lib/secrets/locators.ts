@@ -238,3 +238,60 @@ export function refuseMasksOnCreate(body: {
     if (anyMask(body[col])) refuseMask(col)
   }
 }
+
+/** The secret parts of a URL, as `maskMcpUrl` judges them (raw and decoded). */
+function urlSecrets(url: string, out: string[]): void {
+  const m = URL_PARTS.exec(url)
+  if (!m) return
+  const [, , authority, path, query = ''] = m
+  const at = authority.lastIndexOf('@')
+  if (at !== -1) {
+    const userinfo = authority.slice(0, at)
+    out.push(userinfo)
+    const colon = userinfo.indexOf(':')
+    if (colon !== -1) out.push(userinfo.slice(colon + 1))
+  }
+  for (const seg of path.split('/')) if (isCapabilitySegment(seg)) out.push(seg)
+  for (const pair of query.slice(1).split('&')) {
+    const eq = pair.indexOf('=')
+    if (eq === -1) continue
+    if (!isSecretName(safeDecode(pair.slice(0, eq)))) continue
+    const raw = pair.slice(eq + 1)
+    if (raw) out.push(raw, safeDecode(raw))
+  }
+}
+
+/**
+ * The secret values inside an MCP server's `url` / `args`, as the masking
+ * above judges them — what the log scrub (`secrets/known.ts`) must find.
+ * Generous on purpose: an argument that masking changes is listed whole, and
+ * so are its `=` value, its header value (with and without the auth scheme)
+ * and the secret parts of any URL in it.
+ */
+export function mcpLocatorSecrets(
+  url: string | null | undefined,
+  args: string[] | null | undefined
+): string[] {
+  const out: string[] = []
+  if (url) urlSecrets(url, out)
+  if (!Array.isArray(args)) return out
+  const shown = scanArgs(args)
+  args.forEach((arg, i) => {
+    if (shown[i] === arg) return
+    out.push(arg)
+    const eq = arg.indexOf('=')
+    if (eq !== -1) {
+      out.push(arg.slice(eq + 1))
+      urlSecrets(arg.slice(eq + 1), out)
+    }
+    const colon = arg.indexOf(':')
+    if (colon > 0) {
+      const value = arg.slice(colon + 1).trim()
+      out.push(value)
+      const scheme = AUTH_SCHEME.exec(value)
+      if (scheme) out.push(scheme[2]!)
+    }
+    urlSecrets(arg, out)
+  })
+  return out.filter(Boolean)
+}

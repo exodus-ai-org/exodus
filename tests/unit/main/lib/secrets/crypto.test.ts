@@ -132,3 +132,19 @@ describe('an unavailable backend', () => {
     expect(decryptSecret(sealed)).toEqual({ ok: false })
   })
 })
+
+describe('the envelope self-check', () => {
+  it('a backend whose blobs are not v10 / v11 envelopes counts as unavailable', () => {
+    fakeSafeStorageState.tag = 'v20'
+    expect(encryptionState()).toBe('unavailable')
+    // Kept as it is, never wrapped into an envelope nothing would recognize.
+    expect(encryptSecret(KEY)).toBe(KEY)
+  })
+
+  it('a Keychain refusing the probe is no verdict', () => {
+    fakeSafeStorageState.denyEncrypt = true
+    expect(encryptionState()).toBe('on')
+    fakeSafeStorageState.denyEncrypt = false
+    expect(encryptSecret(KEY).startsWith(ENC_PREFIX)).toBe(true)
+  })
+})

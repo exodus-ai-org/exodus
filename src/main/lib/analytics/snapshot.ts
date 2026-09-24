@@ -301,11 +301,19 @@ export async function buildSnapshot(
   const stagedLogs = join(tmp, 'logs.ndjson')
   let logsIncluded = false
   try {
-    const haveLogs = await stageLogs(
-      logsDir,
-      stagedLogs,
-      await (opts.secrets ?? currentSecrets)()
-    )
+    // The logs table is optional (re-review S2 N3): without the current
+    // secrets to scrub with, the rebuild goes on without it — never with an
+    // unscrubbed copy.
+    let secrets: string[] | null = null
+    try {
+      secrets = await (opts.secrets ?? currentSecrets)()
+    } catch (err) {
+      logger.warn('analytics', 'logs table skipped: secrets unreadable', {
+        error: err instanceof Error ? err.name : 'unknown'
+      })
+    }
+    const haveLogs =
+      secrets !== null && (await stageLogs(logsDir, stagedLogs, secrets))
     await withReadWrite(async (conn) => {
       await conn.run(
         loadTableSql(

@@ -16,10 +16,13 @@ export const fakeSafeStorageState = {
   machine: 'machine-A',
   backend: 'keychain' as string,
   // Available, but the Keychain refuses this call (a denied prompt).
-  denyEncrypt: false
+  denyEncrypt: false,
+  // OSCrypt's version tag; a future Electron could change it.
+  tag: 'v10'
 }
 
-const tag = () => Buffer.from(`v10${fakeSafeStorageState.machine}|`)
+const tag = () =>
+  Buffer.from(`${fakeSafeStorageState.tag}${fakeSafeStorageState.machine}|`)
 const xor = (b: Buffer) => Buffer.from(b.map((x) => x ^ 0x5a))
 
 export const fakeSafeStorage = {
@@ -50,4 +53,5 @@ export function resetFakeSafeStorage(): void {
   fakeSafeStorageState.machine = 'machine-A'
   fakeSafeStorageState.backend = 'keychain'
   fakeSafeStorageState.denyEncrypt = false
+  fakeSafeStorageState.tag = 'v10'
 }

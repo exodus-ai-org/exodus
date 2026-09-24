@@ -1,3 +1,6 @@
+import { readdirSync, readFileSync, writeFileSync } from 'fs'
+import { join } from 'path'
+
 import { maskSecret } from './mask'
 
 /** Shorter values are too likely to match ordinary text to be scrubbed. */
@@ -22,4 +25,31 @@ export function scrubSecrets(text: string, secrets: readonly string[]): string {
     if (escaped !== secret) out = out.replaceAll(escaped, mask)
   }
   return out
+}
+
+/**
+ * Every `*.jsonl` log file in `dir` rewritten with `scrubSecrets` applied —
+ * a line written before the secret-safe errors (S1) could quote a key.
+ * Only files that change are written; returns how many. Run by the one-time
+ * purge (`migrate.ts`), before the server starts. A line the logger appends
+ * between the read and the write of today's file would be lost (a known,
+ * one-time race).
+ */
+export function scrubLogFiles(dir: string, secrets: readonly string[]): number {
+  let names: string[]
+  try {
+    names = readdirSync(dir).filter((f) => f.endsWith('.jsonl'))
+  } catch {
+    return 0
+  }
+  let changed = 0
+  for (const name of names) {
+    const path = join(dir, name)
+    const text = readFileSync(path, 'utf8')
+    const out = scrubSecrets(text, secrets)
+    if (out === text) continue
+    writeFileSync(path, out, 'utf8')
+    changed++
+  }
+  return changed
 }

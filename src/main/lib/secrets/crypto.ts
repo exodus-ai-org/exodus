@@ -70,17 +70,57 @@ export function encryptionState(): EncryptionState {
     ) {
       return 'unavailable'
     }
-    return 'on'
+    return envelopeSelfCheck() ? 'on' : 'unavailable'
   } catch {
     return 'unavailable'
   }
 }
 
+const SELF_CHECK_PROBE = 'exodus-envelope-self-check'
+let selfCheck: boolean | null = null
+
+/**
+ * Whether what `safeStorage` produces is what `isEncryptedSecret` recognizes
+ * (an OSCrypt `v10` / `v11` blob) and opens back to the probe. A future
+ * Electron with another tag would otherwise make every value look plaintext:
+ * re-wrapped (nested envelopes) and purged on every launch, and a nested
+ * envelope read back as "the key". So a failed check turns encryption off —
+ * values are kept as they are — and is logged once. Checked once per
+ * process; a probe the Keychain refuses is not a verdict (the save that needs
+ * it fails with `SecretEncryptionError` on its own).
+ */
+function envelopeSelfCheck(): boolean {
+  if (selfCheck !== null) return selfCheck
+  let blob: Buffer
+  try {
+    blob = safeStorage.encryptString(SELF_CHECK_PROBE)
+  } catch {
+    return true
+  }
+  let opens = false
+  try {
+    opens = safeStorage.decryptString(blob) === SELF_CHECK_PROBE
+  } catch {
+    opens = false
+  }
+  selfCheck = opens && isEncryptedSecret(ENC_PREFIX + blob.toString('base64'))
+  if (!selfCheck) {
+    void import('../logger').then(({ logger }) =>
+      logger.error(
+        'secrets',
+        'safeStorage envelope self-check failed — encryption at rest is off'
+      )
+    )
+  }
+  return selfCheck
+}
+
 let warned = false
 
-/** For tests: the "unavailable" warning is once per process. */
+/** For tests: the warnings and the self-check are once per process. */
 export function resetEncryptionWarning(): void {
   warned = false
+  selfCheck = null
   encryptFailureLogged = false
 }
 
