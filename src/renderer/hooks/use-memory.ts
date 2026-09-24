@@ -1,11 +1,6 @@
 import type { MemoryChange, UsedMemory } from '@exodus/shared/types/memory'
-import {
-  type QueryClient,
-  useMutation,
-  useQuery,
-  useQueryClient
-} from '@tanstack/react-query'
-import { useCallback } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useCallback, useRef } from 'react'
 
 import { i18n } from '@/lib/i18n'
 import {
@@ -55,45 +50,31 @@ export function useRunMemoryUsage(chatId: string, runId: string): UsedMemory[] {
   return data ?? NO_USAGE
 }
 
-/** Cancelling a read that was already in flight (`set()`, below) discards
- *  its own answer outright: React Query never applies a cancelled fetch's
- *  late result to the query, `revert` option or not (its retryer rejects
- *  the instant `cancelQueries` runs, and a resolution arriving afterwards
- *  finds the retryer already settled and is dropped). So a read cancelled
- *  mid-flight can lose more than staleness — if it was on its way to bring
- *  in a row created elsewhere (e.g. `handleNew`'s own post-create
- *  invalidate, raced by a concurrent toggle/delete's `set()`), that row
- *  would be gone from the cache too, not just reverted.
- *
- *  Recover it with one fire-and-forget re-read, folded in by id so it can
- *  only ADD an entry this write's own snapshot doesn't know about yet —
- *  never touching (never reverting) whatever id the write itself just
- *  changed. `set()` only calls this when a read genuinely was in flight. */
-function recoverFromCancelledRead(queryClient: QueryClient) {
-  getMemories()
-    .then((fetched) => {
-      queryClient.setQueryData<MemoryItem[]>(memoryKeys.list, (current) => {
-        if (!current) return fetched
-        const known = new Set(current.map((m) => m.id))
-        const missing = fetched.filter((m) => !known.has(m.id))
-        return missing.length > 0 ? [...current, ...missing] : current
-      })
-    })
-    .catch(() => {
-      // Best-effort recovery: the next real read (a focus refetch, the
-      // caller's own follow-up invalidate) still catches up eventually.
-    })
-}
-
 /** The Memory settings page's local edits to the cached list — `set`
  *  replaces the old `setMemories(updater)`/`patchLocal` local state,
- *  `invalidate` replaces the old `load()` re-fetch after a write. */
+ *  `invalidate` replaces the old `load()` re-fetch after a write.
+ *
+ *  `beginWrite`/`settleWrite` bracket a server write this page owns
+ *  (create/update/delete): call `beginWrite()` before starting it and
+ *  `settleWrite()` once it settles, success or failure, in a `finally`.
+ *  `settleWrite()` invalidates the list — but only once every write this
+ *  page currently has in flight has settled, so two overlapping writes (a
+ *  toggle, a concurrent delete) collapse into one authoritative re-read
+ *  afterwards instead of each firing its own: an earlier one's invalidate
+ *  landing while a later one is still uncommitted would read stale server
+ *  state and revert the later write right back — the standard TanStack
+ *  optimistic-update pattern (`set()`'s own `cancelQueries` guards only a
+ *  read already running *when* a write applies; it can't reach a read a
+ *  DIFFERENT write's own invalidate starts only afterwards). By the time
+ *  every bracketed write has settled, each one's own mutation has already
+ *  committed server-side, so the resulting read is authoritative for all
+ *  of them at once. */
 export function useSetMemoryList() {
   const queryClient = useQueryClient()
+  const pendingWrites = useRef(0)
+
   const set = useCallback(
     async (updater: (list: MemoryItem[]) => MemoryItem[]) => {
-      const readWasInFlight =
-        queryClient.getQueryState(memoryKeys.list)?.fetchStatus === 'fetching'
       // `useMemories()` carries `refetchOnWindowFocus: true` — a read
       // already in flight (the window regaining focus while this write
       // happens) would otherwise land afterwards with the pre-write list
@@ -104,7 +85,6 @@ export function useSetMemoryList() {
       queryClient.setQueryData<MemoryItem[]>(memoryKeys.list, (old) =>
         updater(old ?? [])
       )
-      if (readWasInFlight) recoverFromCancelledRead(queryClient)
     },
     [queryClient]
   )
@@ -112,7 +92,15 @@ export function useSetMemoryList() {
     () => queryClient.invalidateQueries({ queryKey: memoryKeys.list }),
     [queryClient]
   )
-  return { set, invalidate }
+  const beginWrite = useCallback(() => {
+    pendingWrites.current += 1
+  }, [])
+  const settleWrite = useCallback(() => {
+    pendingWrites.current = Math.max(0, pendingWrites.current - 1)
+    if (pendingWrites.current === 0) invalidate()
+  }, [invalidate])
+
+  return { set, invalidate, beginWrite, settleWrite }
 }
 
 export function useUndoMemoryChanges() {

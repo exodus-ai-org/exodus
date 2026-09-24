@@ -6,19 +6,30 @@ import {
   QueryClientProvider,
   useQuery
 } from '@tanstack/react-query'
-import { act, createElement } from 'react'
+import { act, createElement, useEffect, useMemo, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import type { MemoryItem } from '@/services/memory'
+import {
+  createMemory,
+  deleteMemory,
+  updateMemory,
+  type MemoryItem
+} from '@/services/memory'
 
 const getMemoriesService = vi.fn()
 const getMemoryUsageService = vi.fn()
 const undoMemoryChangesService = vi.fn()
+const createMemoryService = vi.fn()
+const updateMemoryService = vi.fn()
+const deleteMemoryService = vi.fn()
 vi.mock('@/services/memory', () => ({
   getMemories: (...args: unknown[]) => getMemoriesService(...args),
   getMemoryUsage: (...args: unknown[]) => getMemoryUsageService(...args),
-  undoMemoryChanges: (...args: unknown[]) => undoMemoryChangesService(...args)
+  undoMemoryChanges: (...args: unknown[]) => undoMemoryChangesService(...args),
+  createMemory: (...args: unknown[]) => createMemoryService(...args),
+  updateMemory: (...args: unknown[]) => updateMemoryService(...args),
+  deleteMemory: (...args: unknown[]) => deleteMemoryService(...args)
 }))
 // `key[name]` when the copy is interpolated, so a wrong name or a wrong key
 // both show in the assertion.
@@ -155,6 +166,9 @@ afterEach(async () => {
   getMemoriesService.mockReset()
   getMemoryUsageService.mockReset()
   undoMemoryChangesService.mockReset()
+  createMemoryService.mockReset()
+  updateMemoryService.mockReset()
+  deleteMemoryService.mockReset()
   report.mockClear()
   sileoSuccess.mockClear()
   sileoError.mockClear()
@@ -408,10 +422,6 @@ describe('useSetMemoryList', () => {
     getMemoriesService
       .mockResolvedValueOnce(before)
       .mockReturnValueOnce(inFlight.promise)
-      // set()'s own recovery re-read (round 2, below): a read really was
-      // in flight, so it re-reads once in the background. Nothing here for
-      // it to fold in that `after` doesn't already have.
-      .mockResolvedValueOnce(before)
     const { queryClient, api } = await mountHookOnAppClient(() => ({
       list: useMemories(),
       setList: useSetMemoryList()
@@ -436,8 +446,6 @@ describe('useSetMemoryList', () => {
       await api().setList.set(() => after)
     })
     expect(queryClient.getQueryData(memoryKeys.list)).toEqual(after)
-    await settle()
-    expect(queryClient.getQueryData(memoryKeys.list)).toEqual(after)
 
     // The stale GET now resolves with the pre-write list.
     await act(async () => {
@@ -449,40 +457,255 @@ describe('useSetMemoryList', () => {
     expect(api().list.data).toEqual(after)
   })
 
-  // Regression (round 2): cancelling a read discards its answer outright —
-  // React Query never applies a cancelled fetch's late result, `revert`
-  // option or not — so a read cancelled mid-flight can lose more than
-  // staleness: if it was on its way to bring in a row someone else just
-  // created (e.g. `handleNew`'s own post-create invalidate), that row would
-  // be gone from the cache too, not just reverted. `set()` recovers it with
-  // a fire-and-forget re-read, folded in by id so it can only ADD what this
-  // write's own snapshot doesn't know about — never touching (never
-  // reverting) the id this write itself just changed.
-  it('a write that cancels an in-flight read recovers whatever that read would have carried, without reverting itself', async () => {
-    const before = [memoryItem({ id: 'm1', isActive: true })]
-    const withNewRow = [
-      memoryItem({ id: 'm1', isActive: true }),
-      memoryItem({ id: 'new', key: 'New entry', summary: '' })
-    ]
-    const finalList = [
-      memoryItem({ id: 'm1', isActive: false }),
-      memoryItem({ id: 'new', key: 'New entry', summary: '' })
-    ]
-    const cancelledRead = deferred<MemoryItem[]>()
-    getMemoriesService
-      .mockResolvedValueOnce(before) // initial mount load
-      .mockReturnValueOnce(cancelledRead.promise) // the invalidate this write cancels
-      .mockResolvedValueOnce(withNewRow) // set()'s own recovery re-read
-    const { queryClient, api } = await mountHookOnAppClient(() => ({
-      list: useMemories(),
-      setList: useSetMemoryList()
-    }))
-    await act(async () => {
-      await vi.waitFor(() => expect(api().list.data).toEqual(before))
+  // Regression (round 3): `beginWrite`/`settleWrite` bracket a server write
+  // this page owns (create/update/delete) — `settleWrite()` invalidates the
+  // list, but only once every write currently in flight has settled, so two
+  // overlapping writes collapse into one authoritative re-read afterwards
+  // instead of each firing its own (an earlier one's invalidate landing
+  // while a later one is still uncommitted would read stale server state
+  // and revert the later write right back).
+  describe('beginWrite / settleWrite', () => {
+    it('settleWrite() after a single beginWrite() invalidates the list', async () => {
+      const { queryClient, api } = await mountHook(useSetMemoryList)
+      queryClient.setQueryData(memoryKeys.list, [memoryItem()])
+
+      act(() => {
+        api().beginWrite()
+      })
+      expect(isInvalidated(queryClient, memoryKeys.list)).toBe(false)
+      await act(async () => {
+        api().settleWrite()
+      })
+
+      expect(isInvalidated(queryClient, memoryKeys.list)).toBe(true)
     })
 
-    // Someone else's invalidate (e.g. `handleNew`'s, its own POST already
-    // committed server-side) is in flight, not yet resolved.
+    it('two overlapping writes invalidate once, only once both have settled', async () => {
+      getMemoriesService.mockResolvedValue([memoryItem()])
+      const { api } = await mountHookOnAppClient(() => ({
+        list: useMemories(),
+        setList: useSetMemoryList()
+      }))
+      await act(async () => {
+        await vi.waitFor(() => expect(api().list.data).toBeDefined())
+      })
+      getMemoriesService.mockClear()
+
+      act(() => {
+        api().setList.beginWrite() // the toggle
+        api().setList.beginWrite() // the concurrent delete
+      })
+      await act(async () => {
+        api().setList.settleWrite() // the toggle's own PATCH settles first
+      })
+      // Not yet — the delete is still in flight, so this settle must not
+      // fire its own invalidate.
+      expect(getMemoriesService).not.toHaveBeenCalled()
+
+      await act(async () => {
+        api().setList.settleWrite() // the delete's own DELETE settles
+      })
+      expect(getMemoriesService).toHaveBeenCalledTimes(1)
+    })
+
+    it('never goes negative — an extra settleWrite() past zero still invalidates, once', async () => {
+      getMemoriesService.mockResolvedValue([memoryItem()])
+      const { api } = await mountHookOnAppClient(() => ({
+        list: useMemories(),
+        setList: useSetMemoryList()
+      }))
+      await act(async () => {
+        await vi.waitFor(() => expect(api().list.data).toBeDefined())
+      })
+      getMemoriesService.mockClear()
+
+      await act(async () => {
+        api().setList.settleWrite()
+      })
+      expect(getMemoriesService).toHaveBeenCalledTimes(1)
+      getMemoriesService.mockClear()
+
+      act(() => {
+        api().setList.beginWrite()
+      })
+      await act(async () => {
+        api().setList.settleWrite()
+      })
+      expect(getMemoriesService).toHaveBeenCalledTimes(1)
+    })
+  })
+})
+
+// A minimal stand-in for `settings-form/memory.tsx`'s relevant logic (list +
+// selection + handleNew/handleToggle/handleDelete + the "not found → clear
+// selection" effect), used to prove the hook primitives compose correctly
+// end to end without needing that component's `UseFormReturnType` prop.
+// Mirrors the real handlers' exact sequence — see `memory.tsx`.
+function useMemoryPageHarness() {
+  const { data, isLoading } = useMemories()
+  const memories = data ?? []
+  const { set, beginWrite, settleWrite } = useSetMemoryList()
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+
+  const selected = useMemo(
+    () => memories.find((m) => m.id === selectedId) ?? null,
+    [memories, selectedId]
+  )
+  useEffect(() => {
+    if (selectedId && !isLoading && !selected) setSelectedId(null)
+  }, [selectedId, selected, isLoading])
+
+  const handleNew = async () => {
+    beginWrite()
+    try {
+      const row = await createMemory({
+        section: 'topic',
+        key: 'New memory',
+        summary: '',
+        details: [],
+        source: 'explicit'
+      })
+      await set((ms) => (ms.some((m) => m.id === row.id) ? ms : [...ms, row]))
+      setSelectedId(row.id)
+    } finally {
+      settleWrite()
+    }
+  }
+
+  const handleToggle = async (item: MemoryItem) => {
+    await set((ms) =>
+      ms.map((m) =>
+        m.id === item.id ? { ...m, isActive: item.isActive === false } : m
+      )
+    )
+    beginWrite()
+    try {
+      await updateMemory(item.id, { isActive: item.isActive === false })
+    } catch {
+      // Silent — matches `memory.tsx`'s `handleToggle`.
+    } finally {
+      settleWrite()
+    }
+  }
+
+  const handleDelete = async (item: MemoryItem) => {
+    await set((ms) => ms.filter((m) => m.id !== item.id))
+    beginWrite()
+    try {
+      await deleteMemory(item.id, true)
+    } catch {
+      // Silent — matches `memory.tsx`'s `handleDelete`.
+    } finally {
+      settleWrite()
+    }
+  }
+
+  return {
+    memories,
+    selectedId,
+    selected,
+    isLoading,
+    handleNew,
+    handleToggle,
+    handleDelete
+  }
+}
+
+describe('a memory.tsx-style consumer — regression round 3 (findings a & b)', () => {
+  it('(i) create, then toggle another row while the post-create invalidate is in flight: the new row is in the list AND the selection is the new row', async () => {
+    const A = memoryItem({ id: 'A', key: 'A' })
+    const B = memoryItem({ id: 'B', key: 'B', isActive: true })
+    const C = memoryItem({ id: 'C', key: 'New memory', summary: '' })
+    const finalList = [A, { ...B, isActive: false }, C]
+    const postCreateGet = deferred<MemoryItem[]>()
+    getMemoriesService
+      .mockResolvedValueOnce([A, B]) // initial mount load
+      .mockReturnValueOnce(postCreateGet.promise) // handleNew's own settle-invalidate
+      .mockResolvedValueOnce(finalList) // handleToggle's own settle-invalidate
+    createMemoryService.mockResolvedValue(C)
+    updateMemoryService.mockResolvedValue(undefined)
+
+    const { queryClient, api } =
+      await mountHookOnAppClient(useMemoryPageHarness)
+    await act(async () => {
+      await vi.waitFor(() => expect(api().memories).toEqual([A, B]))
+    })
+
+    await act(async () => {
+      await api().handleNew()
+    })
+    // handleNew's own follow-up invalidate is fire-and-forget — wait for it
+    // to have started (still unresolved: `postCreateGet` hasn't settled).
+    await act(async () => {
+      await vi.waitFor(() =>
+        expect(getMemoriesService).toHaveBeenCalledTimes(2)
+      )
+    })
+
+    // The core of finding (a): the selection and the new row are both in
+    // place immediately — neither waited on that still-unresolved invalidate
+    // to land.
+    expect(api().selectedId).toBe(C.id)
+    expect(api().selected?.id).toBe(C.id)
+    expect(queryClient.getQueryData<MemoryItem[]>(memoryKeys.list)).toEqual([
+      A,
+      B,
+      C
+    ])
+
+    // Toggle B while that invalidate's GET is still in flight — `set()`
+    // cancels it (round 1) and applies on top of the current cache, which
+    // already has C.
+    await act(async () => {
+      await api().handleToggle(B)
+    })
+    await act(async () => {
+      await vi.waitFor(() =>
+        expect(getMemoriesService).toHaveBeenCalledTimes(3)
+      )
+    })
+    await settle()
+
+    // The toggle's own settle-invalidate (started only after its own PATCH
+    // committed) is authoritative for both changes at once.
+    expect(queryClient.getQueryData<MemoryItem[]>(memoryKeys.list)).toEqual(
+      finalList
+    )
+    expect(api().memories).toEqual(finalList)
+    // The selection never moved — the not-found effect never fired.
+    expect(api().selectedId).toBe(C.id)
+    expect(api().selected?.id).toBe(C.id)
+
+    // Whatever the cancelled post-create GET would have resolved to lands
+    // too late to matter — round 1's guarantee, still intact.
+    await act(async () => {
+      postCreateGet.resolve([A, B])
+    })
+    await settle()
+    expect(queryClient.getQueryData<MemoryItem[]>(memoryKeys.list)).toEqual(
+      finalList
+    )
+  })
+
+  it('(ii) a read in flight when a delete happens: the stale GET (still listing the deleted row) resolves afterwards, but the row stays gone', async () => {
+    const X = memoryItem({ id: 'X', key: 'X' })
+    const Y = memoryItem({ id: 'Y', key: 'Y' })
+    const staleRead = deferred<MemoryItem[]>()
+    getMemoriesService
+      .mockResolvedValueOnce([X, Y]) // initial mount load
+      .mockReturnValueOnce(staleRead.promise) // some other read — in flight
+      .mockResolvedValueOnce([Y]) // handleDelete's own settle-invalidate
+    deleteMemoryService.mockResolvedValue(undefined)
+
+    const { queryClient, api } =
+      await mountHookOnAppClient(useMemoryPageHarness)
+    await act(async () => {
+      await vi.waitFor(() => expect(api().memories).toEqual([X, Y]))
+    })
+
+    // A read is already in flight (e.g. a focus refetch, the chat stream's
+    // invalidate after `update_memory`, undo's `onSettled`, the composer's
+    // `onApplied`) — not yet resolved.
     act(() => {
       void queryClient.invalidateQueries({ queryKey: memoryKeys.list })
     })
@@ -492,39 +715,28 @@ describe('useSetMemoryList', () => {
       )
     })
 
-    // The local write (a toggle) — cancels that read and applies
-    // immediately, same as round 1. (Whether the fire-and-forget recovery
-    // below has already landed by this exact point is unspecified timing —
-    // not asserted here; only the toggle itself is guaranteed immediate.)
+    // Delete X while that read is still in flight — cancels it, removes X
+    // locally, and (once its own DELETE has committed) invalidates for real.
     await act(async () => {
-      await api().setList.set((ms) =>
-        ms.map((m) => (m.id === 'm1' ? { ...m, isActive: false } : m))
-      )
+      await api().handleDelete(X)
     })
-    expect(
-      queryClient
-        .getQueryData<MemoryItem[]>(memoryKeys.list)
-        ?.find((m) => m.id === 'm1')?.isActive
-    ).toBe(false)
-
-    // Its own recovery re-read (a read really was in flight) resolves.
     await act(async () => {
       await vi.waitFor(() =>
         expect(getMemoriesService).toHaveBeenCalledTimes(3)
       )
     })
     await settle()
+    expect(queryClient.getQueryData<MemoryItem[]>(memoryKeys.list)).toEqual([Y])
 
-    expect(queryClient.getQueryData(memoryKeys.list)).toEqual(finalList)
-    expect(api().list.data).toEqual(finalList)
-
-    // Whatever the cancelled read would have resolved to lands too late to
-    // matter either way — round 1's guarantee, still intact.
+    // The stale read (started before the delete) resolves afterwards, still
+    // listing X — round 1's guarantee, and (round 2 reverted) no recovery
+    // mechanism left to resurrect a locally deleted row from it either.
     await act(async () => {
-      cancelledRead.resolve(withNewRow)
+      staleRead.resolve([X, Y])
     })
     await settle()
-    expect(queryClient.getQueryData(memoryKeys.list)).toEqual(finalList)
+    expect(queryClient.getQueryData<MemoryItem[]>(memoryKeys.list)).toEqual([Y])
+    expect(api().memories).toEqual([Y])
   })
 })
 
