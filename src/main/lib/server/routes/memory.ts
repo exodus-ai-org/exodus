@@ -1,8 +1,10 @@
 import { ErrorCode } from '@exodus/shared/constants/error-codes'
 import { NotFoundError, ValidationError } from '@exodus/shared/errors/app-error'
 import { Hono } from 'hono'
+import { z } from 'zod'
 
 import { LOCAL_USER_ID, runMemoryInstruction } from '../../ai/memory/manager'
+import { undoMemoryChanges } from '../../ai/memory/undo'
 import { getModelFromProvider } from '../../ai/utils/model-util'
 import {
   createMemory,
@@ -20,8 +22,28 @@ import {
   getRequiredParam,
   handleDatabaseOperation,
   successResponse,
-  updateSuccessResponse
+  updateSuccessResponse,
+  validateSchema
 } from '../utils'
+
+const memorySnapshotSchema = z.object({
+  section: z.enum(['profile', 'topic', 'person']),
+  key: z.string(),
+  summary: z.string(),
+  details: z.array(z.string()),
+  isActive: z.boolean()
+})
+
+const memoryChangeSchema = z.object({
+  op: z.enum(['create', 'update', 'delete']),
+  id: z.string(),
+  before: memorySnapshotSchema.nullable(),
+  after: memorySnapshotSchema.nullable()
+})
+
+const undoRequestSchema = z.object({
+  changes: z.array(memoryChangeSchema)
+})
 
 const memoryRouter = new Hono<{ Variables: Variables }>()
 
@@ -34,6 +56,21 @@ memoryRouter.get('/', async (c) => {
   )
   const filtered = section ? rows.filter((m) => m.section === section) : rows
   return successResponse(c, filtered)
+})
+
+// POST /api/v1/memory/undo — reverse a set of changes unless edited since.
+// Registered ahead of the /:id routes below, same as every other non-:id path.
+memoryRouter.post('/undo', async (c) => {
+  const { changes } = validateSchema(
+    undoRequestSchema,
+    await c.req.json(),
+    'changes is required'
+  )
+  const result = await handleDatabaseOperation(
+    () => undoMemoryChanges(changes),
+    'Failed to undo memory changes'
+  )
+  return successResponse(c, result)
 })
 
 // GET /api/v1/memory/:id
