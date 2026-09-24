@@ -2,12 +2,12 @@ import type { McpServer } from '../db/schema'
 import { decryptSecret, encryptSecret, isEncryptedSecret } from './crypto'
 import { mcpPlaintext, type McpSecretsPlaintext } from './current'
 import {
-  restoreMcpLocators,
   restoreMcpSecrets,
   restoreSettingsSecrets,
   settingsPlaintext,
   stripMcpSecrets
 } from './index'
+import { argsCarrySecrets, restoreMcpLocators, stripMcpArgs } from './locators'
 import { looksLikeMask } from './mask'
 import {
   MCP_KEY_NAMED_SECRET_COLUMNS,
@@ -186,6 +186,16 @@ function mapMcpLocators<T extends McpSecretColumns>(
 }
 
 /**
+ * One secret value through a seal / open step: a string, or a number under a
+ * secret-named `extraConfig` key (sealed as a string envelope, opened back
+ * into a number). `null` drops it.
+ */
+type SecretFn = (v: string | number, label: string) => string | number | null
+
+/** Marks a sealed number, so opening it gives the number back. */
+const NUMBER_ENVELOPE = 'exodus-number:'
+
+/**
  * Every secret string inside `value` through `fn`: a string under a
  * secret-named key (`isSecretName`), at any depth beneath it — a
  * `tokens: { access }` object is a secret as a whole. A `null` answer drops
@@ -193,11 +203,13 @@ function mapMcpLocators<T extends McpSecretColumns>(
  */
 function mapKeyNamed(
   value: unknown,
-  fn: (s: string, path: string) => string | null,
+  fn: SecretFn,
   path: string,
   secret = false
 ): unknown {
-  if (secret && typeof value === 'string') return fn(value, path)
+  if (secret && (typeof value === 'string' || typeof value === 'number')) {
+    return fn(value, path)
+  }
   if (Array.isArray(value)) {
     return value.flatMap((v, i) => {
       const mapped = mapKeyNamed(v, fn, `${path}.${i}`, secret)
@@ -214,10 +226,7 @@ function mapKeyNamed(
 }
 
 /** Every MCP secret of a row (or write) through `fn`, as a copy. */
-function mapMcpSecrets<T extends McpSecretColumns>(
-  row: T,
-  fn: (s: string, label: string) => string | null
-): T {
+function mapMcpSecrets<T extends McpSecretColumns>(row: T, fn: SecretFn): T {
   const copy = { ...row }
   for (const col of MCP_SECRET_RECORD_COLUMNS) {
     const rec = copy[col]
@@ -225,7 +234,7 @@ function mapMcpSecrets<T extends McpSecretColumns>(
     const out: Record<string, string> = {}
     for (const [k, v] of Object.entries(rec)) {
       const mapped = typeof v === 'string' ? fn(v, `${col}.${k}`) : v
-      if (mapped !== null) out[k] = mapped
+      if (mapped !== null) out[k] = String(mapped)
     }
     copy[col] = out
   }
@@ -245,13 +254,22 @@ export function decryptMcpRow<T extends McpSecretColumns>(
   row: T
 ): { plain: T; undecryptable: string[] } {
   const undecryptable: string[] = []
-  const open = (v: string, label: string) => {
+  const open = (v: string, label: string): string | null => {
     const out = decryptSecret(v)
     if (out.ok) return out.value
     undecryptable.push(label)
     return null
   }
-  const plain = mapMcpSecrets(row, open)
+  const openAny: SecretFn = (v, label) => {
+    if (typeof v === 'number') return v
+    const out = open(v, label)
+    return out !== null &&
+      isEncryptedSecret(v) &&
+      out.startsWith(NUMBER_ENVELOPE)
+      ? Number(out.slice(NUMBER_ENVELOPE.length))
+      : out
+  }
+  const plain = mapMcpSecrets(row, openAny)
   mapMcpLocators(plain, open, 'open')
   return { plain, undecryptable }
 }
@@ -266,7 +284,16 @@ export function encryptMcpSecrets<T extends McpSecretColumns>(
     if (out !== v) changed++
     return out
   }
-  const sealed = mapMcpSecrets(body, seal)
+  const sealAny: SecretFn = (v) => {
+    if (typeof v === 'string') return seal(v)
+    // A number: sealed as a string envelope when there is a backend; with
+    // none it stays the number it was (plaintext, like every other value).
+    const out = encryptSecret(`${NUMBER_ENVELOPE}${v}`)
+    if (!isEncryptedSecret(out)) return v
+    changed++
+    return out
+  }
+  const sealed = mapMcpSecrets(body, sealAny)
   mapMcpLocators(sealed, seal, 'seal')
   return { sealed, changed }
 }
@@ -392,7 +419,22 @@ export function prepareMcpUpdate<T extends McpWriteBody>(
     | null
     | undefined
 ): T {
-  const located = restoreMcpLocators(body, stored)
+  // N1: args are handed to the command. A new command gets no stored secret
+  // args: masked ones are refused, left-out ones lose their secrets.
+  const commandMoved =
+    !!stored &&
+    body.command !== undefined &&
+    (body.command ?? '').trim() !== (stored.command ?? '').trim()
+  const located = restoreMcpLocators(body, stored, {
+    restoreArgs: !commandMoved
+  })
+  if (
+    commandMoved &&
+    located.args === undefined &&
+    argsCarrySecrets(stored!.args)
+  ) {
+    located.args = stripMcpArgs(stored!.args)
+  }
   const restored = restoreMcpSecrets(
     located,
     mcpPlaintextForWrite(located, stored)

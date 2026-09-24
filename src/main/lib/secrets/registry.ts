@@ -68,7 +68,8 @@ export const SETTINGS_NON_SECRET_PATHS: Record<string, string> = {
  * Judged word by word (`apiKey`, `api_key` and `X-API-KEY` are all `api` +
  * `key`), so a short marker only matches a whole word: `pat` but not `path`,
  * `auth` / `authoriz…` / `authentic…` but not `author`, `authority` or `oauth`,
- * `…key` but not `keyboard`. Under a secret-named key, everything is a secret
+ * `…key` but not `keyboard`, `pass` / `sig` but not `passenger` / `signal`;
+ * a trailing number is ignored (`API_KEY2`). Under a secret-named key, everything is a secret
  * (a `tokens: { access, expiresIn }` object is masked whole).
  */
 export function isSecretName(name: string): boolean {
@@ -76,16 +77,22 @@ export function isSecretName(name: string): boolean {
     .replaceAll(/([a-z0-9])([A-Z])/gu, '$1 $2')
     .toLowerCase()
     .split(/[^a-z0-9]+/u)
+    // A numbered one (`apiKey2`, `API_KEY2`) is the same kind of field.
+    .map((w) => w.replace(/\d+$/u, ''))
     .filter(Boolean)
   return words.some(
     (w) =>
-      /secret|passw|token|credential|cookie|bearer/u.test(w) ||
+      /secret|passw|passphr|token|credential|cookie|bearer|jwt/u.test(w) ||
       w.endsWith('key') ||
+      w.endsWith('keys') ||
       w === 'auth' ||
       w.startsWith('authoriz') ||
       w.startsWith('authentic') ||
       w === 'pat' ||
+      w === 'pass' ||
       w === 'pwd' ||
+      w === 'sig' ||
+      w.startsWith('signature') ||
       w.startsWith('session')
   )
 }

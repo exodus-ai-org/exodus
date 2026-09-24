@@ -14,7 +14,12 @@ import {
   updateMcpServer
 } from '../../db/mcp-queries'
 import { logger } from '../../logger'
-import { maskMcpServer, mcpPlaintext, restoreMcpSecrets } from '../../secrets'
+import {
+  maskMcpServer,
+  mcpPlaintext,
+  refuseMasksOnCreate,
+  restoreMcpSecrets
+} from '../../secrets'
 import { prepareMcpUpdate } from '../../secrets/at-rest'
 import { Variables } from '../types'
 import {
@@ -62,6 +67,8 @@ mcp.post('/', async (c) => {
     await c.req.json(),
     'Invalid MCP server data'
   )
+  // Nothing is stored yet, so a mask here has nothing to stand for (N2).
+  refuseMasksOnCreate(data)
   const result = await handleDatabaseOperation(
     () => createMcpServer(restoreMcpSecrets(data, mcpPlaintext(null))),
     'Failed to create MCP server'

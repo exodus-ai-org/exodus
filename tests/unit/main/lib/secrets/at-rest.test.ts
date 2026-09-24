@@ -538,7 +538,8 @@ describe('secrets nested under a secret-named key (review S1 M2)', () => {
       extraConfig: {
         tokens: {
           access: 'nested-access-token-JJJJ',
-          list: ['one-token-KKKK']
+          list: ['one-token-KKKK'],
+          pin: 48151623
         },
         timeout: 30
       }
@@ -550,11 +551,17 @@ describe('secrets nested under a secret-named key (review S1 M2)', () => {
     const stored = JSON.stringify(raw!.extraConfig)
     expect(stored).not.toContain('nested-access-token-JJJJ')
     expect(stored).not.toContain('one-token-KKKK')
+    // A number under a secret-named key is sealed too, and opens as a number.
+    expect(stored).not.toContain('48151623')
     expect(stored).toContain(ENC_PREFIX)
 
     const read = await mcpQueries.getMcpServerById(created.id)
     expect(read!.extraConfig).toEqual({
-      tokens: { access: 'nested-access-token-JJJJ', list: ['one-token-KKKK'] },
+      tokens: {
+        access: 'nested-access-token-JJJJ',
+        list: ['one-token-KKKK'],
+        pin: 48151623
+      },
       timeout: 30
     })
   })

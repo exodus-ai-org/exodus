@@ -157,18 +157,36 @@ describe('a failed MCP write', () => {
 })
 
 describe('POST /api/v1/mcp', () => {
-  it('answers with the new row masked and never stores a mask', async () => {
+  it('answers with the new row masked', async () => {
     const res = await send('POST', '', {
       name: 'other',
       transportType: 'sse',
       url: 'https://other.example.com',
-      headers: { Authorization: 'Bearer created-token-EEEE', Stale: '••••' }
+      headers: { Authorization: 'Bearer created-token-EEEE' }
     })
     expect(res.status).toBe(201)
     const body = (await res.json()) as { id: string; headers: unknown }
     expect(body.headers).toEqual({ Authorization: '•••• EEEE' })
     const row = await mcpQueries.getMcpServerById(body.id)
     expect(row!.headers).toEqual({ Authorization: 'Bearer created-token-EEEE' })
+  })
+
+  it.each([
+    ['a header', { headers: { Authorization: '••••' } }],
+    ['the url', { url: 'https://h.example/sse?api_key=•••• mnop' }],
+    ['the args', { args: ['--token', '•••• 1234'] }],
+    ['extraConfig', { extraConfig: { oauth: { clientSecret: '•••• CCCC' } } }]
+  ])('refuses a create carrying a mask in %s (N2)', async (_, extra) => {
+    const res = await send('POST', '', {
+      name: 'with-mask',
+      transportType: 'sse',
+      url: 'https://other.example.com',
+      ...extra
+    })
+    expect(res.status).toBe(400)
+    expect(await res.text()).toMatch(/re-enter the secret/iu)
+    const rows = await mcpQueries.getAllMcpServers()
+    expect(rows.map((r) => r.name)).not.toContain('with-mask')
   })
 })
 
@@ -388,5 +406,107 @@ describe('a partial PUT that moves where the secrets go (C1)', () => {
   it('the same url in another form, or as its mask, is no move', async () => {
     await send('PUT', `/${id}`, { url: 'HTTPS://MCP.example.com/' })
     expect((await read())!.headers).toEqual({ Authorization: HEADER_SECRET })
+  })
+})
+
+// ─── S1 fix round 2 ─────────────────────────────────────────────────────────
+
+const ARG_BEARER = 'Bearer real-token-000MMMM'
+const REMOTE_ARGS = [
+  '-y',
+  'mcp-remote',
+  'https://real.example/sse',
+  '--header',
+  `Authorization: ${ARG_BEARER}`
+]
+
+async function seedStdio() {
+  await pglite.exec('DELETE FROM mcp_server;')
+  const row = await mcpQueries.createMcpServer({
+    name: 'remote-via-stdio',
+    transportType: 'stdio',
+    command: 'npx',
+    args: REMOTE_ARGS,
+    env: { GITHUB_TOKEN: ENV_SECRET }
+  })
+  return row!.id
+}
+
+const shownArgs = async () =>
+  (
+    (await (await buildApp().request('/api/v1/mcp')).json()) as Array<{
+      args: string[]
+    }>
+  )[0]!.args
+
+describe('secret args never follow a new command (N1)', () => {
+  it('a PUT of only {command} starts the new command without the stored secrets', async () => {
+    const sid = await seedStdio()
+    const res = await send('PUT', `/${sid}`, { command: '/tmp/x.sh' })
+    expect(res.status).toBe(200)
+    const row = await mcpQueries.getMcpServerById(sid)
+    expect(row!.command).toBe('/tmp/x.sh')
+    expect(JSON.stringify(row!.args)).not.toContain('real-token-000MMMM')
+    // What carried no secret is still there.
+    expect(row!.args).toEqual(['-y', 'mcp-remote', 'https://real.example/sse'])
+    expect(row!.env).toEqual({})
+  })
+
+  it('a new command with the masked args is refused', async () => {
+    const sid = await seedStdio()
+    const res = await send('PUT', `/${sid}`, {
+      command: '/tmp/x.sh',
+      args: await shownArgs()
+    })
+    expect(res.status).toBe(400)
+    expect(await res.text()).toMatch(/re-enter the secret/iu)
+    const row = await mcpQueries.getMcpServerById(sid)
+    expect(row!.command).toBe('npx')
+    expect(row!.args).toEqual(REMOTE_ARGS)
+  })
+
+  it('a new command with the args re-sent in plaintext takes them', async () => {
+    const sid = await seedStdio()
+    const args = ['--header', 'Authorization: Bearer typed-again-000NNNN']
+    await send('PUT', `/${sid}`, { command: 'other-launcher', args })
+    const row = await mcpQueries.getMcpServerById(sid)
+    expect(row!.args).toEqual(args)
+  })
+
+  it('the same command with the masked args keeps them', async () => {
+    const sid = await seedStdio()
+    await send('PUT', `/${sid}`, { command: 'npx', args: await shownArgs() })
+    expect((await mcpQueries.getMcpServerById(sid))!.args).toEqual(REMOTE_ARGS)
+  })
+})
+
+describe('a half-edited mask is refused, never stored (N2)', () => {
+  it('a url edited around its mask', async () => {
+    await pglite.exec('DELETE FROM mcp_server;')
+    const row = await mcpQueries.createMcpServer({
+      name: 'q',
+      transportType: 'sse',
+      url: 'https://h.com/sse?api_key=abcdefghijklmnop',
+      headers: { Authorization: HEADER_SECRET }
+    })
+    const res = await send('PUT', `/${row!.id}`, {
+      url: 'https://h.com/sse2?api_key=•••• mnop'
+    })
+    expect(res.status).toBe(400)
+    expect(await res.text()).toMatch(/re-enter the secret/iu)
+    const after = await mcpQueries.getMcpServerById(row!.id)
+    expect(after!.url).toBe('https://h.com/sse?api_key=abcdefghijklmnop')
+    expect(after!.headers).toEqual({ Authorization: HEADER_SECRET })
+  })
+
+  it('args edited around their masks', async () => {
+    const sid = await seedStdio()
+    const res = await send('PUT', `/${sid}`, {
+      args: [...(await shownArgs()), '--debug']
+    })
+    expect(res.status).toBe(400)
+    const after = await mcpQueries.getMcpServerById(sid)
+    expect(after!.args).toEqual(REMOTE_ARGS)
+    expect(after!.env).toEqual({ GITHUB_TOKEN: ENV_SECRET })
   })
 })

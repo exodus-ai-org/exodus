@@ -275,7 +275,7 @@ describe('a Keychain that refuses to encrypt (M2)', () => {
       string,
       Record<string, unknown>
     >
-    s.providers = { ...(s.providers ?? {}), openaiApiKey: KEY }
+    s.providers = { ...s.providers, openaiApiKey: KEY }
     for (let i = 0; i < 2; i++) {
       const res = await send('POST', '/api/v1/settings', s)
       expect(res.status).toBeGreaterThanOrEqual(400)
@@ -312,7 +312,7 @@ describe('knownSecretValues (what the logs copy scrubs)', () => {
       Record<string, unknown>
     >
     s.providers = {
-      ...(s.providers ?? {}),
+      ...s.providers,
       anthropicApiKey: 'sk-ant-known-1111'
     }
     await queries.updateSettings(s as never)

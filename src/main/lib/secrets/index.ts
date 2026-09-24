@@ -13,7 +13,12 @@ import { isPlainObject, parentOf } from './tree'
 export { maskSecret, looksLikeMask, resolvePostedSecret } from './mask'
 export { settingsPlaintext, mcpPlaintext } from './current'
 export { normalizeBaseUrl } from './url'
-export { maskMcpArgs, maskMcpUrl, restoreMcpLocators } from './locators'
+export {
+  maskMcpArgs,
+  maskMcpUrl,
+  refuseMasksOnCreate,
+  restoreMcpLocators
+} from './locators'
 export type { CurrentPlaintext, McpSecretsPlaintext } from './current'
 
 /**

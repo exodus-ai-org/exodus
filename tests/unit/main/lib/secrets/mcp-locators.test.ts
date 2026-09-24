@@ -84,7 +84,7 @@ describe('maskMcpArgs', () => {
       'mcp-remote',
       'https://mcp.example.com/sse',
       '--header',
-      'Authorization: •••• mnop',
+      'Authorization: Bearer •••• mnop',
       '--header=X-Api-Key: •••• 89ab',
       '--header',
       'Cookie: •••• qrst',
@@ -112,6 +112,85 @@ describe('maskMcpArgs', () => {
       '8080'
     ]
     expect(maskMcpArgs(args)).toEqual(args)
+  })
+})
+
+describe('maskMcpArgs, round 2 (N3 + minors)', () => {
+  it('masks a URL given as an inline flag value', () => {
+    expect(
+      maskMcpArgs([
+        '--url=https://h.example/sse?api_key=abcdefghij1234',
+        '--connection-string=postgresql://u:PW-long-password@db/x'
+      ])
+    ).toEqual([
+      '--url=https://h.example/sse?api_key=•••• 1234',
+      '--connection-string=postgresql://••••@db/x'
+    ])
+  })
+
+  it('masks NAME=value arguments with a secret name', () => {
+    expect(
+      maskMcpArgs([
+        '-e',
+        'GITHUB_PERSONAL_ACCESS_TOKEN=ghp_abcdefghij1234',
+        '--env',
+        'API_KEY=sk-abcdefghijkl9999',
+        'API_KEY2=short',
+        'PATH=/usr/bin',
+        '--env=OPENAI_API_KEY=sk-inline-00000QQQQ'
+      ])
+    ).toEqual([
+      '-e',
+      'GITHUB_PERSONAL_ACCESS_TOKEN=•••• 1234',
+      '--env',
+      'API_KEY=•••• 9999',
+      'API_KEY2=••••',
+      'PATH=/usr/bin',
+      '--env=OPENAI_API_KEY=•••• QQQQ'
+    ])
+  })
+
+  it('masks -HName: value and --headers', () => {
+    expect(
+      maskMcpArgs([
+        '-HAuthorization: Bearer abcdefghijklmnop',
+        '--headers',
+        'X-Api-Key: key-0123456789ab'
+      ])
+    ).toEqual([
+      '-HAuthorization: Bearer •••• mnop',
+      '--headers',
+      'X-Api-Key: •••• 89ab'
+    ])
+  })
+
+  it('masks -p only after a user flag, since -p is usually a port', () => {
+    expect(maskMcpArgs(['-u', 'root', '-p', 'hunter2-password'])).toEqual([
+      '-u',
+      'root',
+      '-p',
+      '•••• word'
+    ])
+    expect(maskMcpArgs(['-p', '8080'])).toEqual(['-p', '8080'])
+    expect(maskMcpArgs(['--port', '3000', '-p', '8080'])).toEqual([
+      '--port',
+      '3000',
+      '-p',
+      '8080'
+    ])
+  })
+})
+
+describe('maskMcpUrl, round 2', () => {
+  it('masks a long mixed base64-ish capability segment', () => {
+    expect(
+      maskMcpUrl('https://h.example/s/QWxhZGRpbjpvcGVuIHNlc2FtZQ1234abcd==/mcp')
+    ).toBe('https://h.example/s/•••• cd==/mcp')
+  })
+
+  it('leaves a long dotted file name with no digits alone', () => {
+    const url = 'https://example.com/docs/model-context-protocol.overview.html'
+    expect(maskMcpUrl(url)).toBe(url)
   })
 })
 
@@ -172,7 +251,17 @@ describe('isSecretName', () => {
       'pat',
       'githubPat',
       'session',
-      'sessionId'
+      'sessionId',
+      'pass',
+      'passwd',
+      'passphrase',
+      'jwt',
+      'sig',
+      'signature',
+      'apiKey2',
+      'API_KEY2',
+      'keys',
+      'apikeys'
     ]) {
       expect(isSecretName(name), name).toBe(true)
     }
@@ -190,7 +279,11 @@ describe('isSecretName', () => {
       'keyword',
       'url',
       'clientId',
-      'timeout'
+      'timeout',
+      'signal',
+      'passenger',
+      'bypass',
+      'compass'
     ]) {
       expect(isSecretName(name), name).toBe(false)
     }
