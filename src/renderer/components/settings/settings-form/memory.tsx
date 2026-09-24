@@ -447,9 +447,8 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
   }, [selectedId, selected, isLoading])
 
   const patchLocal = useCallback(
-    (next: MemoryItem) => {
-      setMemoryList((ms) => ms.map((m) => (m.id === next.id ? next : m)))
-    },
+    (next: MemoryItem) =>
+      setMemoryList((ms) => ms.map((m) => (m.id === next.id ? next : m))),
     [setMemoryList]
   )
 
@@ -474,7 +473,7 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
   }
 
   const handleToggle = async (item: MemoryItem) => {
-    patchLocal({ ...item, isActive: item.isActive === false })
+    await patchLocal({ ...item, isActive: item.isActive === false })
     try {
       await updateMemory(item.id, { isActive: item.isActive === false })
     } catch {
@@ -483,7 +482,7 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
   }
 
   const handleDelete = async (item: MemoryItem) => {
-    setMemoryList((ms) => ms.filter((m) => m.id !== item.id))
+    await setMemoryList((ms) => ms.filter((m) => m.id !== item.id))
     try {
       await deleteMemory(item.id, true)
     } catch {

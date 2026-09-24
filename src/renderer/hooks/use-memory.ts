@@ -50,13 +50,20 @@ export function useRunMemoryUsage(chatId: string, runId: string): UsedMemory[] {
   return data ?? NO_USAGE
 }
 
-/** The Memory settings page's local, synchronous edits to the cached list —
- *  `set` replaces the old `setMemories(updater)`/`patchLocal` local state,
+/** The Memory settings page's local edits to the cached list — `set`
+ *  replaces the old `setMemories(updater)`/`patchLocal` local state,
  *  `invalidate` replaces the old `load()` re-fetch after a write. */
 export function useSetMemoryList() {
   const queryClient = useQueryClient()
   const set = useCallback(
-    (updater: (list: MemoryItem[]) => MemoryItem[]) => {
+    async (updater: (list: MemoryItem[]) => MemoryItem[]) => {
+      // `useMemories()` carries `refetchOnWindowFocus: true` — a read
+      // already in flight (the window regaining focus while this write
+      // happens) would otherwise land afterwards with the pre-write list
+      // and silently revert it (a toggle flips back, a deleted row
+      // reappears). Cancel it first, same guard `use-settings.ts`'s save
+      // and `useRefreshDiscoverFeed` use before their own `setQueryData`.
+      await queryClient.cancelQueries({ queryKey: memoryKeys.list })
       queryClient.setQueryData<MemoryItem[]>(memoryKeys.list, (old) =>
         updater(old ?? [])
       )

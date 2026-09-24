@@ -179,6 +179,25 @@ const memoryItem = (overrides: Partial<MemoryItem> = {}): MemoryItem => ({
 const isInvalidated = (queryClient: QueryClient, key: readonly unknown[]) =>
   queryClient.getQueryState(key)?.isInvalidated
 
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  const promise = new Promise<T>((res) => {
+    resolve = res
+  })
+  return { promise, resolve }
+}
+
+// React Query tells its observers through a `setTimeout(0)`, so a change (or
+// the absence of one) only shows a macrotask after a request settles — same
+// helper as `use-discover-feed.test.ts`'s.
+async function settle() {
+  await act(async () => {
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 10)
+    })
+  })
+}
+
 function expectSingleGlobalFailure(title: string, message: string) {
   expect(report).toHaveBeenCalledTimes(1)
   expect(report).toHaveBeenCalledWith('mutation', expect.any(Error), {
@@ -351,7 +370,7 @@ describe('useSetMemoryList', () => {
     ])
 
     await act(async () => {
-      api().set((list) =>
+      await api().set((list) =>
         list.map((m) => (m.id === 'm1' ? { ...m, isActive: false } : m))
       )
     })
@@ -373,6 +392,55 @@ describe('useSetMemoryList', () => {
 
     expect(isInvalidated(queryClient, memoryKeys.list)).toBe(true)
     expect(isInvalidated(queryClient, memoryKeys.usage('chat-1'))).toBe(false)
+  })
+
+  // Regression: `useMemories()` carries `refetchOnWindowFocus: true`. A
+  // focus refetch already in flight when `set()` writes an optimistic
+  // change (a toggle, a delete) would otherwise land afterwards with the
+  // pre-write list and silently revert it — the same hazard
+  // `use-settings.ts`'s save and `use-discover-feed.ts`'s
+  // `useRefreshDiscoverFeed` guard against with `cancelQueries` before their
+  // own `setQueryData`.
+  it('a list GET already in flight when set() writes cannot overwrite it once the GET resolves', async () => {
+    const before = [memoryItem({ id: 'm1', isActive: true })]
+    const after = [memoryItem({ id: 'm1', isActive: false })]
+    const inFlight = deferred<MemoryItem[]>()
+    getMemoriesService
+      .mockResolvedValueOnce(before)
+      .mockReturnValueOnce(inFlight.promise)
+    const { queryClient, api } = await mountHookOnAppClient(() => ({
+      list: useMemories(),
+      setList: useSetMemoryList()
+    }))
+    await act(async () => {
+      await vi.waitFor(() => expect(api().list.data).toEqual(before))
+    })
+
+    // Coming back to the window starts a second read (the stale one this
+    // test's write must survive) — it does not resolve yet.
+    await act(async () => {
+      focusManager.setFocused(false)
+      focusManager.setFocused(true)
+      await vi.waitFor(() =>
+        expect(getMemoriesService).toHaveBeenCalledTimes(2)
+      )
+    })
+
+    // The optimistic write (what a toggle/delete does) while that GET is
+    // still in flight.
+    await act(async () => {
+      await api().setList.set(() => after)
+    })
+    expect(queryClient.getQueryData(memoryKeys.list)).toEqual(after)
+
+    // The stale GET now resolves with the pre-write list.
+    await act(async () => {
+      inFlight.resolve(before)
+    })
+    await settle()
+
+    expect(queryClient.getQueryData(memoryKeys.list)).toEqual(after)
+    expect(api().list.data).toEqual(after)
   })
 })
 
