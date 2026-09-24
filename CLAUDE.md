@@ -136,8 +136,9 @@ Exodus is the successor of the older `universal-client` app and shares its
   `electron .`) — `getExodusHome()` in `src/main/lib/paths.ts`; startup logs the
   directory in use (`Data directory`); `~/.exodus/analytics` holds the DuckDB
   chat-audit snapshot; `~/.exodus/media/<chatId>/` holds generated images
-  (`getMediaDir()` / `getChatMediaDir()`; a Philharmonic Group's go to
-  `media/_groups/<conversationId>/`). **PGlite is single-process: never run two
+  (`getMediaDir()`, and a chat's or Group's own dir only through
+  `mediaDirFor()` in `media/store.ts`, which refuses an id that would leave
+  it; a Philharmonic Group's go to `media/_groups/<conversationId>/`). **PGlite is single-process: never run two
   Exodus processes (a dev build, the packaged app, universal-client) against it
   at the same time** — the database can be corrupted (backups live in
   `~/.exodus/backups`). Between Exodus builds this is enforced:
@@ -506,7 +507,9 @@ headline, the readings and the week as range-bar rows.
 
 `image_generation` saves every image the moment it has it — a GPT image
 model's base64 decoded, a DALL·E link fetched at once (it expires in an hour)
-— as `~/.exodus/media/<chatId>/<uuid>.<png|jpg|webp>` (`src/main/lib/media/
+through `fetchPublicHttps()` (`src/main/lib/net/safe-fetch.ts`: https only,
+no loopback / private / link-local / metadata address, redirects re-checked,
+the connection pinned to the vetted address) — as `~/.exodus/media/<chatId>/<uuid>.<png|jpg|webp>` (`src/main/lib/media/
 store.ts`; typed by magic bytes; one failed image fails the call and removes
 the files it already wrote). `ImageGenerationDetails` (`types/chat.ts`)
 carries per image `{ mediaId, chatId?, mimeType, width?, height?,
@@ -1263,7 +1266,8 @@ Main process:
 - `src/main/lib/ai/calling-tools/` — built-in agent tools (snake_case names from `packages/shared/src/constants/tool-names.ts`) and the MCP toolbox (`mcp-toolbox.ts`)
 - `src/main/lib/ai/skills/` — skills.sh client, install store, and the prompt seam (see Skills)
 - `src/main/lib/analytics/` — DuckDB chat-audit snapshot + read-only query wrapper (see Chat Audit)
-- `src/main/lib/media/` — generated images on disk (`store.ts`: `saveMedia`, the `resolveMediaFile` path guard the media route uses, per-chat / per-Group / all removal); see the `image_generation` note
+- `src/main/lib/media/` — generated images on disk (`store.ts`: `mediaDirFor` — the one way to name a chat's / Group's media dir, refusing a bad id — `saveMedia`, the `resolveMediaFile` path guard the media route uses, per-chat / per-Group / all removal); see the `image_generation` note
+- `src/main/lib/net/` — `safe-fetch.ts`: `fetchPublicHttps()` / `isPublicAddress()`, the SSRF guard for a URL someone else chose (see `docs/security-hardening.md`)
 - `src/main/lib/ai/philharmonic/` — multi-agent Groups
 - `src/main/lib/ai/context-management/` — LCM
 - `src/main/lib/ai/memory/` — personalization memory (consolidation + recall)

@@ -5,6 +5,7 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   writeFileSync
 } from 'fs'
@@ -80,13 +81,53 @@ function webpVp8x(width = 640, height = 480): Buffer {
 
 beforeEach(() => logError.mockReset())
 
-describe('paths', () => {
+/** Every file under `dir`, relative, recursively. */
+function filesUnder(dir: string): string[] {
+  if (!existsSync(dir)) return []
+  return readdirSync(dir, { recursive: true, encoding: 'utf8' }).sort()
+}
+
+const chatDir = (id: string) => join(home, 'media', id)
+
+// Ids a client (a local process, a paired device) could send that must never
+// name a directory: traversal, a separator, empty, encoded, the groups dir.
+const BAD_CHAT_IDS = [
+  '../x',
+  '../../x',
+  '..',
+  '.',
+  'a/b',
+  '',
+  '..%2Fx',
+  '%2e%2e',
+  '_groups',
+  `${CHAT}/../..`,
+  'AAAAAAAA-1111-4111-8111-111111111111'
+]
+const BAD_GROUP_IDS = ['../x', '..', '.', 'a/b', '', '..%2Fx', 'a\\b', '/etc']
+
+describe('mediaDirFor', () => {
   it('puts media under <home>/media, one dir per chat, groups apart', () => {
     expect(paths.getMediaDir()).toBe(join(home, 'media'))
-    expect(paths.getChatMediaDir(CHAT)).toBe(join(home, 'media', CHAT))
-    expect(paths.getGroupMediaDir('g1')).toBe(
+    expect(store.mediaDirFor({ chatId: CHAT })).toBe(join(home, 'media', CHAT))
+    expect(store.mediaDirFor({ groupId: 'g1' })).toBe(
       join(home, 'media', '_groups', 'g1')
     )
+  })
+
+  it.each(BAD_CHAT_IDS)('refuses the chat id %j', (chatId) => {
+    expect(() => store.mediaDirFor({ chatId })).toThrow(/invalid media target/i)
+  })
+
+  it.each(BAD_GROUP_IDS)('refuses the group id %j', (groupId) => {
+    expect(() => store.mediaDirFor({ groupId })).toThrow(
+      /invalid media target/i
+    )
+  })
+
+  it('leaves no unguarded way to name a media dir in paths', () => {
+    expect(paths).not.toHaveProperty('getChatMediaDir')
+    expect(paths).not.toHaveProperty('getGroupMediaDir')
   })
 })
 
@@ -124,8 +165,8 @@ describe('sniffImage', () => {
 
 describe('saveMedia', () => {
   it('writes <uuid>.<ext> into the dir and returns its id, type and size', async () => {
-    const dir = paths.getChatMediaDir(CHAT)
-    const saved = await store.saveMedia(dir, png(3, 2))
+    const dir = chatDir(CHAT)
+    const saved = await store.saveMedia({ chatId: CHAT }, png(3, 2))
 
     expect(saved.mediaId).toMatch(
       /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.png$/
@@ -136,9 +177,31 @@ describe('saveMedia', () => {
 
   it('refuses bytes that are not a png, jpeg or webp', async () => {
     await expect(
-      store.saveMedia(paths.getChatMediaDir(CHAT), Buffer.from('<html>'))
+      store.saveMedia({ chatId: CHAT }, Buffer.from('<html>'))
     ).rejects.toThrow(/not a png, jpeg or webp/i)
   })
+
+  it.each(BAD_CHAT_IDS)(
+    'writes nothing anywhere for the chat id %j',
+    async (chatId) => {
+      const before = filesUnder(home)
+      await expect(store.saveMedia({ chatId }, png())).rejects.toThrow(
+        /invalid media target/i
+      )
+      expect(filesUnder(home)).toEqual(before)
+    }
+  )
+
+  it.each(BAD_GROUP_IDS)(
+    'writes nothing anywhere for the group id %j',
+    async (groupId) => {
+      const before = filesUnder(home)
+      await expect(store.saveMedia({ groupId }, png())).rejects.toThrow(
+        /invalid media target/i
+      )
+      expect(filesUnder(home)).toEqual(before)
+    }
+  )
 })
 
 describe('resolveMediaFile', () => {
@@ -180,14 +243,14 @@ describe('resolveMediaFile', () => {
 describe('removal', () => {
   it('removes one chat’s dir and leaves the others', async () => {
     const other = '33333333-3333-4333-8333-333333333333'
-    mkdirSync(paths.getChatMediaDir(CHAT), { recursive: true })
-    mkdirSync(paths.getChatMediaDir(other), { recursive: true })
-    writeFileSync(join(paths.getChatMediaDir(CHAT), 'x.png'), 'x')
+    mkdirSync(chatDir(CHAT), { recursive: true })
+    mkdirSync(chatDir(other), { recursive: true })
+    writeFileSync(join(chatDir(CHAT), 'x.png'), 'x')
 
     await store.removeChatMedia(CHAT)
 
-    expect(existsSync(paths.getChatMediaDir(CHAT))).toBe(false)
-    expect(existsSync(paths.getChatMediaDir(other))).toBe(true)
+    expect(existsSync(chatDir(CHAT))).toBe(false)
+    expect(existsSync(chatDir(other))).toBe(true)
   })
 
   it('is a quiet no-op for a chat that never had media', async () => {
@@ -202,14 +265,26 @@ describe('removal', () => {
     expect(existsSync(home)).toBe(true)
   })
 
+  it('never removes anything for a traversal id, chat or group', async () => {
+    // A sibling of the media dir a traversal would reach.
+    const outside = join(home, 'x')
+    mkdirSync(join(outside, 'keep'), { recursive: true })
+    mkdirSync(join(home, 'media', '_groups'), { recursive: true })
+    for (const id of BAD_CHAT_IDS) await store.removeChatMedia(id)
+    for (const id of BAD_GROUP_IDS) await store.removeGroupMedia(id)
+    expect(existsSync(join(outside, 'keep'))).toBe(true)
+    expect(existsSync(join(home, 'media', '_groups'))).toBe(true)
+    expect(logError).not.toHaveBeenCalled()
+  })
+
   it('removes a group’s dir', async () => {
-    mkdirSync(paths.getGroupMediaDir('g1'), { recursive: true })
+    mkdirSync(join(home, 'media', '_groups', 'g1'), { recursive: true })
     await store.removeGroupMedia('g1')
-    expect(existsSync(paths.getGroupMediaDir('g1'))).toBe(false)
+    expect(existsSync(join(home, 'media', '_groups', 'g1'))).toBe(false)
   })
 
   it('removes the whole media dir on reset', async () => {
-    mkdirSync(paths.getChatMediaDir(CHAT), { recursive: true })
+    mkdirSync(chatDir(CHAT), { recursive: true })
     await store.removeAllMedia()
     expect(existsSync(paths.getMediaDir())).toBe(false)
     expect(existsSync(home)).toBe(true)

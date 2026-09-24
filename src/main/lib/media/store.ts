@@ -3,7 +3,7 @@ import { mkdir, rm, writeFile } from 'fs/promises'
 import { join, resolve, sep } from 'path'
 
 import { logger } from '../logger'
-import { getChatMediaDir, getGroupMediaDir, getMediaDir } from '../paths'
+import { getMediaDir } from '../paths'
 
 /**
  * Generated media on disk: `~/.exodus/media/<chatId>/<uuid>.<ext>` for a chat,
@@ -31,6 +31,32 @@ const CHAT_ID_RE = new RegExp(`^${UUID}$`)
 const MEDIA_FILE_RE = new RegExp(`^${UUID}\\.(png|jpg|webp)$`)
 // A Group's conversation id: one path segment of safe characters.
 const GROUP_ID_RE = /^[A-Za-z0-9_-]{1,128}$/
+
+/** Whose media: a chat's (a lowercase uuid) or a Philharmonic Group's. */
+export type MediaTarget = { chatId: string } | { groupId: string }
+
+/**
+ * The directory a target's media lives in — the one way to name it, for
+ * writing and for removing alike. The id comes from a client (the chat
+ * request body, a route param), so it is checked here rather than trusted:
+ * a chat id must be a lowercase uuid, a Group's one safe path segment, and
+ * the resolved path must still sit strictly inside the media dir. Anything
+ * else throws, before any directory is created or removed.
+ */
+export function mediaDirFor(target: MediaTarget): string {
+  const base = resolve(getMediaDir())
+  const [valid, dir] =
+    'chatId' in target
+      ? [CHAT_ID_RE.test(target.chatId), resolve(base, target.chatId)]
+      : [
+          GROUP_ID_RE.test(target.groupId),
+          resolve(base, '_groups', target.groupId)
+        ]
+  if (!valid || !dir.startsWith(base + sep)) {
+    throw new Error(`Invalid media target: ${JSON.stringify(target)}`)
+  }
+  return dir
+}
 
 export interface SniffedImage {
   ext: MediaExt
@@ -136,12 +162,13 @@ export function sniffImage(
   return { ext, mimeType: MIME_BY_EXT[ext], ...size }
 }
 
-/** Writes the bytes as `<uuid>.<ext>` in `dir` (created if missing). */
+/** Writes the bytes as `<uuid>.<ext>` in the target's dir (created if missing). */
 export async function saveMedia(
-  dir: string,
+  target: MediaTarget,
   bytes: Buffer,
   contentType?: string | null
 ): Promise<SavedMedia> {
+  const dir = mediaDirFor(target)
   const sniffed = sniffImage(bytes, contentType)
   if (!sniffed) throw new Error('The image is not a png, jpeg or webp')
   const mediaId = `${randomUUID()}.${sniffed.ext}`
@@ -170,9 +197,9 @@ export function mediaContentType(file: string): string {
   return MIME_BY_EXT[ext] ?? 'application/octet-stream'
 }
 
-async function removeDir(dir: string, what: Record<string, string>) {
+async function removeDir(dir: () => string, what: Record<string, string>) {
   try {
-    await rm(dir, { recursive: true, force: true })
+    await rm(dir(), { recursive: true, force: true })
   } catch (error) {
     logger.error('media', 'Failed to remove generated media', {
       ...what,
@@ -183,17 +210,20 @@ async function removeDir(dir: string, what: Record<string, string>) {
 
 /** Best-effort: a deleted chat's media goes with it; a failure is logged. */
 export async function removeChatMedia(chatId: string): Promise<void> {
+  // A malformed id never named a media dir: nothing to remove, nothing to log.
   if (!CHAT_ID_RE.test(chatId)) return
-  await removeDir(getChatMediaDir(chatId), { chatId })
+  await removeDir(() => mediaDirFor({ chatId }), { chatId })
 }
 
 /** Best-effort: a deleted Group's media goes with it; a failure is logged. */
 export async function removeGroupMedia(conversationId: string): Promise<void> {
   if (!GROUP_ID_RE.test(conversationId)) return
-  await removeDir(getGroupMediaDir(conversationId), { conversationId })
+  await removeDir(() => mediaDirFor({ groupId: conversationId }), {
+    conversationId
+  })
 }
 
 /** "Reset all data": every chat's and every Group's media. */
 export async function removeAllMedia(): Promise<void> {
-  await removeDir(getMediaDir(), { scope: 'all' })
+  await removeDir(getMediaDir, { scope: 'all' })
 }

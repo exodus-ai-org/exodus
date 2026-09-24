@@ -9,8 +9,13 @@ import OpenAI from 'openai'
 import { ImageGenerateParams } from 'openai/resources/images'
 
 import { Settings } from '../../db/schema'
-import { saveMedia, type SavedMedia } from '../../media/store'
-import { getChatMediaDir, getGroupMediaDir } from '../../paths'
+import {
+  mediaDirFor,
+  saveMedia,
+  type MediaTarget,
+  type SavedMedia
+} from '../../media/store'
+import { fetchPublicHttps } from '../../net/safe-fetch'
 
 const imageGenerationSchema = Type.Object({
   prompt: Type.String({
@@ -19,26 +24,21 @@ const imageGenerationSchema = Type.Object({
 })
 
 /** Where the images are saved: a chat's media dir, or a Group's. */
-export type ImageGenerationTarget = { chatId: string } | { groupId: string }
+export type ImageGenerationTarget = MediaTarget
 
 // A DALL·E link is fetched the moment it arrives (it expires in an hour).
 const DOWNLOAD_TIMEOUT_MS = 60_000
 const MAX_DOWNLOAD_BYTES = 50 * 1024 * 1024
 
-async function download(
-  url: string,
-  signal?: AbortSignal
-): Promise<{ bytes: Buffer; contentType: string | null }> {
-  if (!/^https?:\/\//iu.test(url)) throw new Error('not an http(s) URL')
-  const timeout = AbortSignal.timeout(DOWNLOAD_TIMEOUT_MS)
-  const res = await fetch(url, {
-    signal: signal ? AbortSignal.any([signal, timeout]) : timeout
+// The link comes from whatever answers at the OpenAI base URL (a setting),
+// so it is fetched through the public-internet-only guard: https, no
+// loopback / LAN / metadata address, every redirect re-checked.
+const download = (url: string, signal?: AbortSignal) =>
+  fetchPublicHttps(url, {
+    signal,
+    maxBytes: MAX_DOWNLOAD_BYTES,
+    timeoutMs: DOWNLOAD_TIMEOUT_MS
   })
-  if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const bytes = Buffer.from(await res.arrayBuffer())
-  if (bytes.length > MAX_DOWNLOAD_BYTES) throw new Error('image too large')
-  return { bytes, contentType: res.headers.get('content-type') }
-}
 
 export const imageGeneration = (
   setting: Settings,
@@ -55,6 +55,9 @@ export const imageGeneration = (
         'Image Generation requires an OpenAI API Key. Please add it in Settings → Providers.'
       )
     }
+    // Checked before the API is paid: an id that would leave the media dir
+    // fails the call here, and nothing is written.
+    const dir = mediaDirFor(target)
     try {
       const openai = new OpenAI({
         baseURL: setting.providers?.openaiBaseUrl,
@@ -77,10 +80,6 @@ export const imageGeneration = (
       // Either way the image is saved under ~/.exodus/media right now, and
       // `details` carries only its id: base64 in the row would add megabytes
       // to every history load, and a DALL·E link is dead in an hour.
-      const dir =
-        'chatId' in target
-          ? getChatMediaDir(target.chatId)
-          : getGroupMediaDir(target.groupId)
       const outputMime = `image/${response.output_format ?? 'png'}`
       const data = response.data ?? []
       const saved: SavedMedia[] = []
@@ -95,7 +94,7 @@ export const imageGeneration = (
               : img.url
                 ? await download(img.url, signal)
                 : { bytes: Buffer.alloc(0), contentType: null }
-            saved.push(await saveMedia(dir, bytes, contentType))
+            saved.push(await saveMedia(target, bytes, contentType))
           } catch (e) {
             throw new Error(
               `Image ${i + 1} of ${data.length} could not be saved: ${

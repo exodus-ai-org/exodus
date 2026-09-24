@@ -17,6 +17,11 @@ vi.mock('openai', () => ({
   }
 }))
 
+// The download itself (https only, public addresses only, pinned) is
+// safe-fetch's own suite; here it is the seam the tool calls.
+const fetchMock = vi.fn()
+vi.mock('@main/lib/net/safe-fetch', () => ({ fetchPublicHttps: fetchMock }))
+
 // A scratch data dir of this file's own: the tool writes real files.
 const home = mkdtempSync(join(tmpdir(), 'exodus-imagegen-'))
 const originalExodusHome = process.env.EXODUS_HOME
@@ -48,12 +53,22 @@ function png(width = 3, height = 2): Buffer {
 }
 
 const chatDir = join(home, 'media', CHAT)
-const fetchMock = vi.fn()
+
+/** What `fetchPublicHttps` resolves with for a downloaded image. */
+const downloaded = (bytes: Buffer | string, contentType: string | null) => ({
+  bytes: Buffer.from(bytes),
+  contentType
+})
+
+/** Every file under `dir`, relative, recursively. */
+function filesUnder(dir: string): string[] {
+  if (!existsSync(dir)) return []
+  return readdirSync(dir, { recursive: true, encoding: 'utf8' }).sort()
+}
 
 afterEach(() => {
   generate.mockReset()
   fetchMock.mockReset()
-  vi.unstubAllGlobals()
 })
 
 function textOf(out: { content: Array<{ type: string; text?: string }> }) {
@@ -103,10 +118,7 @@ describe('image_generation', () => {
 
   it('downloads a URL result right away and saves it, typed by its bytes', async () => {
     const bytes = png(8, 8)
-    fetchMock.mockResolvedValue(
-      new Response(bytes, { headers: { 'content-type': 'image/png' } })
-    )
-    vi.stubGlobal('fetch', fetchMock)
+    fetchMock.mockResolvedValue(downloaded(bytes, 'image/png'))
     generate.mockResolvedValue({
       data: [{ url: 'https://img.example/1.png' }]
     })
@@ -114,7 +126,11 @@ describe('image_generation', () => {
 
     expect(fetchMock).toHaveBeenCalledWith(
       'https://img.example/1.png',
-      expect.objectContaining({ signal: expect.any(AbortSignal) })
+      // The 50 MB cap and the 60 s timeout are kept, now enforced there.
+      expect.objectContaining({
+        maxBytes: 50 * 1024 * 1024,
+        timeoutMs: 60_000
+      })
     )
     const [image] = out.details.images
     expect(image).toMatchObject({
@@ -135,9 +151,8 @@ describe('image_generation', () => {
 
   it('turns a failed download into a tool error, and leaves no files behind', async () => {
     fetchMock
-      .mockResolvedValueOnce(new Response(png(), { status: 200 }))
-      .mockResolvedValueOnce(new Response('gone', { status: 403 }))
-    vi.stubGlobal('fetch', fetchMock)
+      .mockResolvedValueOnce(downloaded(png(), null))
+      .mockRejectedValueOnce(new Error('HTTP 403'))
     generate.mockResolvedValue({
       data: [
         { url: 'https://img.example/1.png' },
@@ -151,10 +166,7 @@ describe('image_generation', () => {
   })
 
   it('turns a download that is not an image into a tool error', async () => {
-    fetchMock.mockResolvedValue(
-      new Response('<html>', { headers: { 'content-type': 'text/html' } })
-    )
-    vi.stubGlobal('fetch', fetchMock)
+    fetchMock.mockResolvedValue(downloaded('<html>', 'text/html'))
     generate.mockResolvedValue({ data: [{ url: 'https://img.example/1.png' }] })
 
     await expect(run()).rejects.toThrow(/not a png, jpeg or webp/i)
@@ -171,5 +183,34 @@ describe('image_generation', () => {
     expect(
       existsSync(join(home, 'media', '_groups', 'group-1', image.mediaId!))
     ).toBe(true)
+  })
+
+  it('turns a link the download guard refuses into a tool error', async () => {
+    fetchMock.mockRejectedValue(
+      new Error('Refused: 169.254.169.254 is not a public address')
+    )
+    generate.mockResolvedValue({
+      data: [{ url: 'https://169.254.169.254/latest/meta-data/' }]
+    })
+    await expect(run()).rejects.toThrow(/image 1 of 1.*refused/i)
+  })
+
+  it.each([
+    { chatId: '../../x' },
+    { chatId: '..' },
+    { chatId: 'a/b' },
+    { chatId: '' },
+    { chatId: '..%2Fx' },
+    { groupId: '../x' },
+    { groupId: '..' },
+    { groupId: 'a/b' },
+    { groupId: '' }
+  ])('fails with a tool error and writes nothing for %j', async (target) => {
+    generate.mockResolvedValue({
+      data: [{ b64_json: png().toString('base64') }]
+    })
+    const before = filesUnder(home)
+    await expect(run(target)).rejects.toThrow(/invalid media target/i)
+    expect(filesUnder(home)).toEqual(before)
   })
 })
