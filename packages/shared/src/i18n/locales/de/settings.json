@@ -394,6 +394,10 @@
         "label": "Wissensdatenbank",
         "description": "Kontext aus Ihrer Wissensdatenbank abrufen (erfordert eine konfigurierte LightRAG-URL)"
       },
+      "updateMemory": {
+        "label": "Gedächtnis aktualisieren",
+        "description": "Erlaubt dem Assistenten, Gedächtniseinträge zu korrigieren, hinzuzufügen oder zu entfernen, wenn Sie ihm sagen, dass etwas über Sie nicht stimmt."
+      },
       "mapItinerary": {
         "label": "Reiseroute",
         "description": "Orte, Routen und mehrtägige Reisen auf einer interaktiven Kartenkarte darstellen"

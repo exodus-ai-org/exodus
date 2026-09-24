@@ -394,6 +394,10 @@
         "label": "Knowledge Base",
         "description": "Retrieve context from your knowledge base (requires a configured LightRAG URL)"
       },
+      "updateMemory": {
+        "label": "Update memory",
+        "description": "Lets the assistant correct, add or remove memories when you tell it something about you is wrong."
+      },
       "mapItinerary": {
         "label": "Map Itinerary",
         "description": "Render places, routes, and multi-day trips on a single interactive map card"

@@ -394,6 +394,10 @@
         "label": "지식 베이스",
         "description": "지식 베이스에서 컨텍스트를 가져옵니다 (LightRAG URL 구성 필요)"
       },
+      "updateMemory": {
+        "label": "메모리 업데이트",
+        "description": "당신에 대해 잘못 알고 있는 점을 알려주면 어시스턴트가 메모리를 수정, 추가 또는 삭제할 수 있습니다."
+      },
       "mapItinerary": {
         "label": "지도 일정",
         "description": "장소, 경로, 여러 날에 걸친 여행을 하나의 인터랙티브 지도 카드에 표시합니다"

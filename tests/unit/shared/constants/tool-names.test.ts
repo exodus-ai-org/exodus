@@ -8,9 +8,9 @@ import { describe, expect, it } from 'vitest'
 describe('tool names', () => {
   it('are snake_case and unique', () => {
     const values = Object.values(TOOL_NAMES)
-    // 19 built-ins + the two MCP toolbox tools.
-    expect(values).toHaveLength(21)
-    expect(new Set(values).size).toBe(21)
+    // 20 built-ins + the two MCP toolbox tools.
+    expect(values).toHaveLength(22)
+    expect(new Set(values).size).toBe(22)
     for (const v of values) expect(v).toMatch(/^[a-z]+(_[a-z]+)*$/u)
   })
 

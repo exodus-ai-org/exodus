@@ -394,6 +394,10 @@
         "label": "知識庫",
         "description": "從你的知識庫擷取內容（需要設定 LightRAG URL）"
       },
+      "updateMemory": {
+        "label": "更新記憶",
+        "description": "當你告訴助理你的某些資訊有誤時，助理可以修正、新增或刪除記憶。"
+      },
       "mapItinerary": {
         "label": "地圖行程",
         "description": "在單一互動式地圖卡片上顯示地點、路線與多日行程"

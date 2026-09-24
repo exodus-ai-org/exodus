@@ -394,6 +394,10 @@
         "label": "Knowledge Base",
         "description": "Recupera contesto dalla tua knowledge base (richiede un URL LightRAG configurato)"
       },
+      "updateMemory": {
+        "label": "Aggiorna memoria",
+        "description": "Consente all'assistente di correggere, aggiungere o rimuovere voci di memoria quando gli dici che qualcosa su di te è sbagliato."
+      },
       "mapItinerary": {
         "label": "Itinerario mappa",
         "description": "Visualizza luoghi, percorsi e viaggi di più giorni in un'unica scheda mappa interattiva"

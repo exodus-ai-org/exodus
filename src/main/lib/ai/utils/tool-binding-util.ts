@@ -23,6 +23,7 @@ import {
   readFile,
   searchKnowledgeBase,
   terminal,
+  updateMemory,
   weather,
   webFetch,
   webSearch,
@@ -107,6 +108,12 @@ export function bindCallingTools({
     if (chatModel && apiKey) {
       tools.push(lcmExpand(chatModel, apiKey))
     }
+  }
+
+  // Only for a chat (needs a model + key to run the instruction engine, and
+  // a chatId so this isn't Philharmonic, which keeps its own agent memory).
+  if (chatId && chatModel && apiKey && enabled(TOOL_NAMES.updateMemory)) {
+    tools.push(updateMemory(chatModel, apiKey))
   }
 
   // MCP servers are reached through the two-tool toolbox, never bound one

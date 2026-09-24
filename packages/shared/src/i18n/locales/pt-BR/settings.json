@@ -394,6 +394,10 @@
         "label": "Base de Conhecimento",
         "description": "Recuperar contexto da sua base de conhecimento (requer uma URL do LightRAG configurada)"
       },
+      "updateMemory": {
+        "label": "Atualizar Memória",
+        "description": "Permite que o assistente corrija, adicione ou remova memórias quando você disser que algo sobre você está errado."
+      },
       "mapItinerary": {
         "label": "Itinerário no Mapa",
         "description": "Renderizar locais, rotas e viagens de vários dias em um único cartão de mapa interativo"
