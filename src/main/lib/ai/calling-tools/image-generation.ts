@@ -1,6 +1,7 @@
 import type { AgentTool } from '@earendil-works/pi-agent-core'
 import { Type } from '@earendil-works/pi-ai'
 import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
+import type { ImageGenerationDetails } from '@exodus/shared/types/chat'
 import OpenAI from 'openai'
 import { ImageGenerateParams } from 'openai/resources/images'
 
@@ -44,14 +45,28 @@ export const imageGeneration = (
         },
         { signal }
       )
-      const details = {
+      // GPT image models only answer in base64; DALL·E answers with a URL.
+      const mime = `image/${response.output_format ?? 'png'}`
+      const details: ImageGenerationDetails = {
         images: (response.data ?? []).map((img) => ({
-          url: img.url,
+          url:
+            img.url ??
+            (img.b64_json ? `data:${mime};base64,${img.b64_json}` : undefined),
           revisedPrompt: img.revised_prompt
+        })),
+        size: setting.image?.size ?? undefined
+      }
+      // The card shows the images; the model gets what it can talk about.
+      // A data URL would put megabytes of base64 into the context for good.
+      const forModel = {
+        shownToUser: details.images.length,
+        images: details.images.map(({ url, revisedPrompt }) => ({
+          ...(url?.startsWith('http') ? { url } : {}),
+          ...(revisedPrompt ? { revisedPrompt } : {})
         }))
       }
       return {
-        content: [{ type: 'text' as const, text: JSON.stringify(details) }],
+        content: [{ type: 'text' as const, text: JSON.stringify(forModel) }],
         details
       }
     } catch (e) {

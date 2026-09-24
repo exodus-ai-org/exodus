@@ -158,6 +158,11 @@ export const TEST_IDS = {
     /** The readings grid, visible only once the card is open. */
     readings: 'weather-card.readings'
   },
+  /** The `image_generation` tool's card in a chat. */
+  imageGeneration: {
+    /** One frame (its `data-state`: generating / complete / error). */
+    card: 'image-generation.card'
+  },
   /** Settings → Memory. */
   memorySettings: {
     /** Retry on the stored-memories list after its read failed. */

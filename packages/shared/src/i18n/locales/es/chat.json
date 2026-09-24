@@ -5,10 +5,13 @@
       "generating": "Generando imagen",
       "refining": "Refinando detalles",
       "complete": "Imagen lista",
-      "error": "Error al generar"
+      "error": "Error al generar",
+      "unavailable": "Imagen no disponible"
     },
     "retry": "Intentar de nuevo",
-    "generatedImageAlt": "Imagen generada"
+    "generatedImageAlt": "Imagen generada",
+    "labelWithPrompt": "{{status}}: {{prompt}}",
+    "quotedPrompt": "«{{prompt}}»"
   },
   "composer": {
     "placeholder": "Pregunte lo que quiera",

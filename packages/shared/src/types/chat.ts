@@ -75,6 +75,18 @@ export interface ToolNotice {
   message: string
 }
 
+/**
+ * `image_generation`'s `details`: what the card shows. `url` is an https URL
+ * (DALL·E, valid for an hour) or a `data:` URL (GPT image models only return
+ * base64) — the model is told only the count and the revised prompts, never
+ * the bytes. Rows saved before 2026-09-25 may carry an image with no `url`.
+ */
+export interface ImageGenerationDetails {
+  images: Array<{ url?: string; revisedPrompt?: string }>
+  /** The `size` the request asked for (e.g. `1024x1536`, `auto`). */
+  size?: string
+}
+
 // SSE event types for streaming protocol
 export type ChatSseEvent =
   | { type: 'message_update'; message: ChatMessage }

@@ -5,10 +5,13 @@
       "generating": "이미지 생성 중",
       "refining": "세부 사항 다듬는 중",
       "complete": "이미지 준비 완료",
-      "error": "생성 실패"
+      "error": "생성 실패",
+      "unavailable": "이미지를 표시할 수 없음"
     },
     "retry": "다시 시도",
-    "generatedImageAlt": "생성된 이미지"
+    "generatedImageAlt": "생성된 이미지",
+    "labelWithPrompt": "{{status}}: {{prompt}}",
+    "quotedPrompt": "“{{prompt}}”"
   },
   "composer": {
     "placeholder": "무엇이든 물어보세요",

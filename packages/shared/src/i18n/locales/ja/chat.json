@@ -5,10 +5,13 @@
       "generating": "画像を生成中",
       "refining": "詳細を調整中",
       "complete": "画像が完成しました",
-      "error": "生成に失敗しました"
+      "error": "生成に失敗しました",
+      "unavailable": "画像を表示できません"
     },
     "retry": "再試行",
-    "generatedImageAlt": "生成された画像"
+    "generatedImageAlt": "生成された画像",
+    "labelWithPrompt": "{{status}}：{{prompt}}",
+    "quotedPrompt": "「{{prompt}}」"
   },
   "composer": {
     "placeholder": "何でも聞いてください",

@@ -26,6 +26,8 @@ import { ENTER, ENTER_UP } from '@/lib/motion'
 import { userMessageText } from '@/lib/user-message-text'
 import { cn } from '@/lib/utils'
 
+import { collectImageGenerations } from './calling-tools/image-generation/collect-image-generations'
+import { ImageGenerationCard } from './calling-tools/image-generation/image-generation-card'
 import { ErrorBoundary, RenderFailed } from './card-error-boundary'
 import { ChatToc } from './chat-toc'
 import { MemoryChangeStrip } from './chat/memory-change-strip'
@@ -143,6 +145,15 @@ const AssistantTurnSegment = memo(
       () => collectGalleryVideos(turn.webSearchResults),
       [turn.webSearchResults]
     )
+    // A call still waiting for its result is forming only while the run
+    // streams; in a run that was stopped it never will, so it shows nothing.
+    const imageGenerations = useMemo(
+      () =>
+        collectImageGenerations(turn.messages).filter(
+          (call) => call.result || isStreaming
+        ),
+      [turn.messages, isStreaming]
+    )
 
     return (
       <div
@@ -173,6 +184,22 @@ const AssistantTurnSegment = memo(
               }
             >
               <MessageCallingTools chatId={chatId} toolResult={toolResult} />
+            </ErrorBoundary>
+          ))}
+
+          {imageGenerations.map((call) => (
+            <ErrorBoundary
+              key={call.toolCallId}
+              scope="tool-card"
+              attributes={{
+                toolName: TOOL_NAMES.imageGeneration,
+                toolCallId: call.toolCallId
+              }}
+              fallback={
+                <RenderFailed what={capitalCase(TOOL_NAMES.imageGeneration)} />
+              }
+            >
+              <ImageGenerationCard prompt={call.prompt} result={call.result} />
             </ErrorBoundary>
           ))}
 

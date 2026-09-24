@@ -502,6 +502,17 @@ transcript — a line of now, the day's temperature curve on the colour tone's
 accent, three segmented days — and opens in place on Details to the
 headline, the readings and the week as range-bar rows.
 
+`image_generation` returns `ImageGenerationDetails` (`types/chat.ts`): each
+image's `url` is DALL·E's https link or a `data:` URL built from a GPT image
+model's base64; the model's text block gets only the count and revised
+prompts, never the bytes. The card
+(`components/calling-tools/image-generation/`, built on the beui.dev
+`image-generation-loading.tsx`) is rendered by `AssistantTurnSegment` from
+the run's calls (`collectImageGenerations`), not by `MessageCallingTools`,
+so the frame that shows the dither field while the call runs is the same
+element the image resolves in (with its zoom); a call left without a result
+by Stop shows nothing.
+
 **MCP toolbox** (`calling-tools/mcp-toolbox.ts`): MCP servers are not bound
 tool by tool (providers cap the tools array — OpenAI at 128 — and one server
 can exceed it alone). Two tools stand in for all of them: `list_mcp_tools({

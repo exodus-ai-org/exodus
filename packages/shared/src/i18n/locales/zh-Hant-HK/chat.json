@@ -5,10 +5,13 @@
       "generating": "圖片生成中",
       "refining": "細節調整中",
       "complete": "圖片已完成",
-      "error": "生成失敗"
+      "error": "生成失敗",
+      "unavailable": "圖片無法顯示"
     },
     "retry": "重試",
-    "generatedImageAlt": "生成的圖片"
+    "generatedImageAlt": "生成的圖片",
+    "labelWithPrompt": "{{status}}：{{prompt}}",
+    "quotedPrompt": "「{{prompt}}」"
   },
   "composer": {
     "placeholder": "有什麼想問的？",
