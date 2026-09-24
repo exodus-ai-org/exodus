@@ -4,7 +4,7 @@ import { AiProviders } from '@exodus/shared/types/ai'
  * Every secret Exodus stores (spec 2026-09-25 §2.2). A registry field leaves
  * the main process only as a mask (`mask.ts`); S2 encrypts exactly these at
  * rest. `tests/unit/main/lib/secrets/registry.test.ts` walks the settings
- * schema and fails on any field whose name matches `SECRET_NAME_PATTERN` that
+ * schema and fails on any field whose name matches `isSecretName` that
  * is in neither list below — a new key field needs a decision here.
  */
 
@@ -19,6 +19,8 @@ export const SETTINGS_SECRET_PATHS = [
   'webSearch.braveApiKey',
   'fullTextSearch.elasticsearch.password',
   'knowledgeBase.apiKey',
+  // Also carried, by design, in the `X-Amz-Credential` of every presigned
+  // URL `POST /api/v1/s3/presigned-url` returns (the secret key is not).
   's3.accessKeyId',
   's3.secretAccessKey',
   // The legacy universal-client MCP config blob (a JSON string of
@@ -61,14 +63,38 @@ export const SETTINGS_NON_SECRET_PATHS: Record<string, string> = {
   'modelCatalog.*.[].snapshot.maxOutputTokens': 'token budget, a number'
 }
 
-/** Field names that would be a secret by the look of them. */
-export const SECRET_NAME_PATTERN = /key|secret|password|token/iu
+/**
+ * Whether a field / header / flag name would be a secret by the look of it.
+ * Judged word by word (`apiKey`, `api_key` and `X-API-KEY` are all `api` +
+ * `key`), so a short marker only matches a whole word: `pat` but not `path`,
+ * `auth` / `authoriz…` / `authentic…` but not `author`, `authority` or `oauth`,
+ * `…key` but not `keyboard`. Under a secret-named key, everything is a secret
+ * (a `tokens: { access, expiresIn }` object is masked whole).
+ */
+export function isSecretName(name: string): boolean {
+  const words = name
+    .replaceAll(/([a-z0-9])([A-Z])/gu, '$1 $2')
+    .toLowerCase()
+    .split(/[^a-z0-9]+/u)
+    .filter(Boolean)
+  return words.some(
+    (w) =>
+      /secret|passw|token|credential|cookie|bearer/u.test(w) ||
+      w.endsWith('key') ||
+      w === 'auth' ||
+      w.startsWith('authoriz') ||
+      w.startsWith('authentic') ||
+      w === 'pat' ||
+      w === 'pwd' ||
+      w.startsWith('session')
+  )
+}
 
 /**
  * `mcp_server` columns whose every value is a secret: env vars handed to a
  * stdio server and headers sent to a remote one (tokens, `Authorization`).
  * `extraConfig` is free-form, so inside it a string whose key matches
- * `SECRET_NAME_PATTERN` (an OAuth `clientSecret`, an `apiKey`) is a secret.
+ * `isSecretName` (an OAuth `clientSecret`, an `apiKey`) is a secret.
  */
 export const MCP_SECRET_RECORD_COLUMNS = ['env', 'headers'] as const
 export const MCP_KEY_NAMED_SECRET_COLUMNS = ['extraConfig'] as const

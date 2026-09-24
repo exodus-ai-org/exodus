@@ -1,17 +1,19 @@
 import type { CurrentPlaintext, McpSecretsPlaintext } from './current'
+import { maskMcpArgs, maskMcpUrl } from './locators'
 import { maskSecret, resolvePostedSecret, looksLikeMask } from './mask'
 import {
   API_MASKED_SETTINGS_PATHS,
   MCP_KEY_NAMED_SECRET_COLUMNS,
   MCP_SECRET_RECORD_COLUMNS,
-  SECRET_NAME_PATTERN,
-  SETTINGS_SECRET_PATHS
+  SETTINGS_SECRET_PATHS,
+  isSecretName
 } from './registry'
 import { isPlainObject, parentOf } from './tree'
 
 export { maskSecret, looksLikeMask, resolvePostedSecret } from './mask'
 export { settingsPlaintext, mcpPlaintext } from './current'
 export { normalizeBaseUrl } from './url'
+export { maskMcpArgs, maskMcpUrl, restoreMcpLocators } from './locators'
 export type { CurrentPlaintext, McpSecretsPlaintext } from './current'
 
 /**
@@ -82,39 +84,111 @@ type McpSecretColumns = {
   env?: Record<string, string> | null
   headers?: Record<string, string> | null
   extraConfig?: Record<string, unknown> | null
+  url?: string | null
+  args?: string[] | null
 }
 
-function maskKeyNamed(value: unknown): unknown {
-  if (Array.isArray(value)) return value.map((v) => maskKeyNamed(v))
-  if (!isPlainObject(value)) return value
-  return Object.fromEntries(
-    Object.entries(value).map(([k, v]) => [
-      k,
-      SECRET_NAME_PATTERN.test(k) && typeof v === 'string'
-        ? maskSecret(v)
-        : maskKeyNamed(v)
-    ])
-  )
-}
+const DROP = Symbol('drop')
 
-function restoreKeyNamed(posted: unknown, stored: unknown): unknown {
-  if (Array.isArray(posted)) {
-    return posted.map((v, i) =>
-      restoreKeyNamed(v, Array.isArray(stored) ? stored[i] : undefined)
+/**
+ * `extraConfig` as the API shows it: under a secret-named key (`isSecretName`)
+ * every string and number leaf is masked — a `tokens: { access, expiresIn }`
+ * object as much as an `apiKey` string.
+ */
+function maskTree(value: unknown, secret: boolean): unknown {
+  if (Array.isArray(value)) return value.map((v) => maskTree(v, secret))
+  if (isPlainObject(value)) {
+    return Object.fromEntries(
+      Object.entries(value).map(([k, v]) => [
+        k,
+        maskTree(v, secret || isSecretName(k))
+      ])
     )
   }
-  if (!isPlainObject(posted)) return posted
-  const out: Record<string, unknown> = {}
-  for (const [k, v] of Object.entries(posted)) {
-    const was = isPlainObject(stored) ? stored[k] : undefined
-    if (SECRET_NAME_PATTERN.test(k) && looksLikeMask(v)) {
-      // A mask under a key that held no string is dropped, never stored.
-      if (typeof was === 'string') out[k] = was
-      continue
-    }
-    out[k] = restoreKeyNamed(v, was)
+  if (secret && (typeof value === 'string' || typeof value === 'number')) {
+    return maskSecret(String(value)) ?? value
   }
-  return out
+  return value
+}
+
+/** Identity keys an `extraConfig` array item may be matched back by. */
+const ITEM_IDENTITY_KEYS = ['id', 'name'] as const
+
+/**
+ * The stored item a posted array item stands for. An item with an `id` /
+ * `name` is matched by it wherever it moved; one without is matched only
+ * when it is exactly the stored item at the same index, as shown — so a
+ * reordered or edited identity-less item gets no secrets back (the user
+ * re-sends them) rather than a secret landing next to another item's URL.
+ */
+function storedItemFor(
+  posted: unknown,
+  index: number,
+  stored: unknown[],
+  secret: boolean
+): unknown {
+  if (isPlainObject(posted)) {
+    for (const key of ITEM_IDENTITY_KEYS) {
+      const id = posted[key]
+      if (typeof id !== 'string' && typeof id !== 'number') continue
+      const hits = stored.filter((s) => isPlainObject(s) && s[key] === id)
+      return hits.length === 1 ? hits[0] : undefined
+    }
+  }
+  const candidate = stored[index]
+  return JSON.stringify(maskTree(candidate, secret)) === JSON.stringify(posted)
+    ? candidate
+    : undefined
+}
+
+/** The inverse of `maskTree`: a posted mask becomes the stored leaf. */
+function restoreTree(
+  posted: unknown,
+  stored: unknown,
+  secret: boolean
+): unknown {
+  if (secret && looksLikeMask(posted)) {
+    // A mask with nothing stored behind it is dropped, never stored.
+    return typeof stored === 'string' || typeof stored === 'number'
+      ? stored
+      : DROP
+  }
+  if (Array.isArray(posted)) {
+    const was = Array.isArray(stored) ? stored : []
+    return posted
+      .map((v, i) => restoreTree(v, storedItemFor(v, i, was, secret), secret))
+      .filter((v) => v !== DROP)
+  }
+  if (isPlainObject(posted)) {
+    const out: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(posted)) {
+      const r = restoreTree(
+        v,
+        isPlainObject(stored) ? stored[k] : undefined,
+        secret || isSecretName(k)
+      )
+      if (r !== DROP) out[k] = r
+    }
+    return out
+  }
+  return posted
+}
+
+/**
+ * A stored secret column with its secrets taken out: `env` / `headers` keep
+ * no value, `extraConfig` keeps everything that is not a secret. What a column
+ * becomes when its destination moves and nothing new was posted for it.
+ */
+export function stripMcpSecrets(
+  col: 'env' | 'headers' | 'extraConfig',
+  value: Record<string, unknown> | null | undefined
+): Record<string, never> | Record<string, unknown> | null {
+  if (value === null || value === undefined) return null
+  if (col !== 'extraConfig') return {}
+  return restoreTree(maskTree(value, false), undefined, false) as Record<
+    string,
+    unknown
+  >
 }
 
 /** A copy of an `mcp_server` row with its secrets masked, for the API. */
@@ -130,9 +204,11 @@ export function maskMcpServer<T extends McpSecretColumns>(row: T): T {
   }
   for (const col of MCP_KEY_NAMED_SECRET_COLUMNS) {
     if (copy[col]) {
-      copy[col] = maskKeyNamed(copy[col]) as Record<string, unknown>
+      copy[col] = maskTree(copy[col], false) as Record<string, unknown>
     }
   }
+  if (typeof copy.url === 'string') copy.url = maskMcpUrl(copy.url)
+  if (Array.isArray(copy.args)) copy.args = maskMcpArgs(copy.args)
   return copy
 }
 
@@ -163,7 +239,7 @@ export function restoreMcpSecrets<T extends McpSecretColumns>(
   }
   for (const col of MCP_KEY_NAMED_SECRET_COLUMNS) {
     if (copy[col]) {
-      copy[col] = restoreKeyNamed(copy[col], current[col]) as Record<
+      copy[col] = restoreTree(copy[col], current[col], false) as Record<
         string,
         unknown
       >

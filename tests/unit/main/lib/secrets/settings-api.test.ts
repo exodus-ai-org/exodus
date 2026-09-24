@@ -272,8 +272,18 @@ describe('POST /api/v1/settings/models', () => {
     })
     expect(res.status).toBe(400)
     const text = await res.text()
-    expect(text).toMatch(/re-enter the API key/i)
+    expect(text).toMatch(/re-enter the API key/iu)
     expect(text).not.toContain(plain('providers.openaiApiKey'))
+    expect(listOpenAiModels).not.toHaveBeenCalled()
+  })
+
+  it('refuses a mask with a userinfo URL that only looks like the stored host', async () => {
+    await storeBaseUrl(null)
+    const res = await request({
+      apiKey: mask(),
+      baseUrl: 'https://api.openai.com@evil.example/v1'
+    })
+    expect(res.status).toBe(400)
     expect(listOpenAiModels).not.toHaveBeenCalled()
   })
 
@@ -312,6 +322,14 @@ describe('a failed write', () => {
     const err = await queries.updateSettings(s as never).catch((e) => e)
     expect(err).toBeInstanceOf(Error)
     expect(String(err.message)).not.toContain('sk-in-a-failing-write-1234')
-    expect(JSON.stringify(err)).not.toContain('sk-in-a-failing-write-1234')
+    // Nothing reachable from the error carries the driver's message either…
+    expect(err.cause).toBeUndefined()
+    expect(String(err.stack)).not.toContain('sk-in-a-failing-write-1234')
+    // …and neither does what was logged about it.
+    const { logger } = await import('@main/lib/logger')
+    expect(vi.mocked(logger.error)).toHaveBeenCalled()
+    expect(JSON.stringify(vi.mocked(logger.error).mock.calls)).not.toContain(
+      'sk-in-a-failing-write-1234'
+    )
   })
 })

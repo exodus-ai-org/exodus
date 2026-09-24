@@ -171,3 +171,222 @@ describe('POST /api/v1/mcp', () => {
     expect(row!.headers).toEqual({ Authorization: 'Bearer created-token-EEEE' })
   })
 })
+
+// ─── review S1, fix round 1 ─────────────────────────────────────────────────
+
+const CAP_URL = 'https://mcp.zapier.com/api/mcp/s/Zk3q9XbT7mW2pL8vR4nY6cA1/mcp'
+const ARG_TOKEN = 'ghp_argtoken000GGGG'
+
+async function seedLocators() {
+  await pglite.exec('DELETE FROM mcp_server;')
+  const row = await mcpQueries.createMcpServer({
+    name: 'zapier',
+    transportType: 'streamable-http',
+    url: CAP_URL,
+    args: ['--token', ARG_TOKEN, '--verbose'],
+    headers: { Authorization: HEADER_SECRET }
+  })
+  return row!.id
+}
+
+describe('MCP url / args (I2)', () => {
+  it('GET masks a capability url and a --token argument', async () => {
+    await seedLocators()
+    const res = await buildApp().request('/api/v1/mcp')
+    const text = await res.clone().text()
+    const [server] = (await res.json()) as Array<Record<string, unknown>>
+    expect(server.url).toBe('https://mcp.zapier.com/api/mcp/s/•••• 6cA1/mcp')
+    expect(server.args).toEqual(['--token', '•••• GGGG', '--verbose'])
+    expect(text).not.toContain('Zk3q9XbT7mW2pL8vR4nY6cA1')
+    expect(text).not.toContain(ARG_TOKEN)
+  })
+
+  it('a form posting back the masked url / args keeps them, and keeps the headers', async () => {
+    const sid = await seedLocators()
+    const [shown] = (await (
+      await buildApp().request('/api/v1/mcp')
+    ).json()) as Array<Record<string, unknown>>
+    await send('PUT', `/${sid}`, {
+      name: 'zapier',
+      url: shown.url,
+      args: shown.args,
+      headers: shown.headers
+    })
+    const row = await mcpQueries.getMcpServerById(sid)
+    expect(row!.url).toBe(CAP_URL)
+    expect(row!.args).toEqual(['--token', ARG_TOKEN, '--verbose'])
+    // The masked url is not a "new destination" (S2's rule): headers stay.
+    expect(row!.headers).toEqual({ Authorization: HEADER_SECRET })
+  })
+
+  it('a real url change is stored, and the masked headers do not follow it', async () => {
+    const sid = await seedLocators()
+    await send('PUT', `/${sid}`, {
+      url: 'https://evil.example/mcp',
+      headers: { Authorization: '•••• BBBB' }
+    })
+    const row = await mcpQueries.getMcpServerById(sid)
+    expect(row!.url).toBe('https://evil.example/mcp')
+    expect(row!.headers).toEqual({})
+  })
+})
+
+describe('extraConfig secrets (M1, M2)', () => {
+  async function seedExtra(extraConfig: Record<string, unknown>) {
+    await pglite.exec('DELETE FROM mcp_server;')
+    const row = await mcpQueries.createMcpServer({
+      name: 'x',
+      transportType: 'sse',
+      url: 'https://mcp.example.com',
+      extraConfig
+    })
+    return row!.id
+  }
+  const shownExtra = async () =>
+    (
+      (await (await buildApp().request('/api/v1/mcp')).json()) as Array<{
+        extraConfig: Record<string, unknown>
+      }>
+    )[0]!.extraConfig
+
+  it('masks everything under a secret-named key, not only its strings', async () => {
+    await seedExtra({
+      tokens: { access: 'access-token-value-HHHH', expiresIn: 3600 },
+      auth: { bearer: 'bearer-value-000IIII' },
+      timeout: 30
+    })
+    const shown = await shownExtra()
+    expect(shown).toEqual({
+      tokens: { access: '•••• HHHH', expiresIn: '••••' },
+      auth: { bearer: '•••• IIII' },
+      timeout: 30
+    })
+    expect(JSON.stringify(shown)).not.toContain('3600')
+  })
+
+  it('round-trips a masked subtree', async () => {
+    const sid = await seedExtra({
+      tokens: { access: 'access-token-value-HHHH', expiresIn: 3600 }
+    })
+    await send('PUT', `/${sid}`, { extraConfig: await shownExtra() })
+    const row = await mcpQueries.getMcpServerById(sid)
+    expect(row!.extraConfig).toEqual({
+      tokens: { access: 'access-token-value-HHHH', expiresIn: 3600 }
+    })
+  })
+
+  it('restores array items by their name, whatever the order', async () => {
+    const sid = await seedExtra({
+      providers: [
+        { name: 'a', apiKey: 'key-for-a-000000AAAA' },
+        { name: 'b', apiKey: 'key-for-b-000000BBBB' }
+      ]
+    })
+    const shown = (await shownExtra()) as { providers: unknown[] }
+    await send('PUT', `/${sid}`, {
+      extraConfig: { providers: shown.providers.toReversed() }
+    })
+    const row = await mcpQueries.getMcpServerById(sid)
+    expect(row!.extraConfig).toEqual({
+      providers: [
+        { name: 'b', apiKey: 'key-for-b-000000BBBB' },
+        { name: 'a', apiKey: 'key-for-a-000000AAAA' }
+      ]
+    })
+  })
+
+  it('clears the masks of a reordered array with no identity key', async () => {
+    const sid = await seedExtra({
+      servers: [
+        { url: 'https://one.example', token: 'token-one-00000OOOO' },
+        { url: 'https://two.example', token: 'token-two-00000TTTT' }
+      ]
+    })
+    const shown = (await shownExtra()) as { servers: unknown[] }
+    await send('PUT', `/${sid}`, {
+      extraConfig: { servers: shown.servers.toReversed() }
+    })
+    const row = await mcpQueries.getMcpServerById(sid)
+    // Never token-one next to two.example: the user re-enters them.
+    expect(row!.extraConfig).toEqual({
+      servers: [{ url: 'https://two.example' }, { url: 'https://one.example' }]
+    })
+  })
+
+  it('keeps the masks of an array sent back unchanged', async () => {
+    const sid = await seedExtra({
+      servers: [{ url: 'https://one.example', token: 'token-one-00000OOOO' }]
+    })
+    await send('PUT', `/${sid}`, { extraConfig: await shownExtra() })
+    const row = await mcpQueries.getMcpServerById(sid)
+    expect(row!.extraConfig).toEqual({
+      servers: [{ url: 'https://one.example', token: 'token-one-00000OOOO' }]
+    })
+  })
+})
+
+// ─── S2 review C1: a partial PUT that moves the destination ─────────────────
+
+describe('a partial PUT that moves where the secrets go (C1)', () => {
+  const read = () => mcpQueries.getMcpServerById(id)
+  const STRIPPED_EXTRA = {
+    oauth: { clientId: 'public-client-id' },
+    timeout: 30
+  }
+
+  it('url only: the stored headers and extraConfig secrets are cleared', async () => {
+    await send('PUT', `/${id}`, { url: 'https://attacker.example/mcp' })
+    const row = await read()
+    expect(row!.url).toBe('https://attacker.example/mcp')
+    expect(row!.headers).toEqual({})
+    expect(row!.extraConfig).toEqual(STRIPPED_EXTRA)
+  })
+
+  it('transportType only: the headers are cleared', async () => {
+    await send('PUT', `/${id}`, { transportType: 'sse' })
+    const row = await read()
+    expect(row!.headers).toEqual({})
+    expect(row!.extraConfig).toEqual(STRIPPED_EXTRA)
+  })
+
+  it('args only: the env is cleared', async () => {
+    await send('PUT', `/${id}`, { args: ['-y', 'attacker-pkg'] })
+    const row = await read()
+    expect(row!.args).toEqual(['-y', 'attacker-pkg'])
+    expect(row!.env).toEqual({})
+  })
+
+  it('command only: the env is cleared', async () => {
+    await send('PUT', `/${id}`, { command: 'attacker-binary' })
+    expect((await read())!.env).toEqual({})
+  })
+
+  it('keeps a plaintext secret posted with the move', async () => {
+    await send('PUT', `/${id}`, {
+      url: 'https://new-host.example/mcp',
+      headers: { Authorization: 'Bearer typed-for-new-host-LLLL' }
+    })
+    expect((await read())!.headers).toEqual({
+      Authorization: 'Bearer typed-for-new-host-LLLL'
+    })
+  })
+
+  it('name or isActive only: every secret stays', async () => {
+    await send('PUT', `/${id}`, { name: 'renamed' })
+    await send('PUT', `/${id}`, { isActive: true })
+    const row = await read()
+    expect(row!.name).toBe('renamed')
+    expect(row!.isActive).toBe(true)
+    expect(row!.env).toEqual({ GITHUB_TOKEN: ENV_SECRET, SHORT: 'abc' })
+    expect(row!.headers).toEqual({ Authorization: HEADER_SECRET })
+    expect(row!.extraConfig).toEqual({
+      oauth: { clientId: 'public-client-id', clientSecret: OAUTH_SECRET },
+      timeout: 30
+    })
+  })
+
+  it('the same url in another form, or as its mask, is no move', async () => {
+    await send('PUT', `/${id}`, { url: 'HTTPS://MCP.example.com/' })
+    expect((await read())!.headers).toEqual({ Authorization: HEADER_SECRET })
+  })
+})

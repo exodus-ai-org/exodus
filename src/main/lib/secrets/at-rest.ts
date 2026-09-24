@@ -1,16 +1,22 @@
 import type { McpServer } from '../db/schema'
 import { decryptSecret, encryptSecret } from './crypto'
 import { mcpPlaintext, type McpSecretsPlaintext } from './current'
-import { restoreSettingsSecrets, settingsPlaintext } from './index'
+import {
+  restoreMcpLocators,
+  restoreMcpSecrets,
+  restoreSettingsSecrets,
+  settingsPlaintext,
+  stripMcpSecrets
+} from './index'
 import { looksLikeMask } from './mask'
 import {
   MCP_KEY_NAMED_SECRET_COLUMNS,
   MCP_SECRET_DESTINATIONS,
   MCP_SECRET_RECORD_COLUMNS,
   SECRET_DESTINATIONS,
-  SECRET_NAME_PATTERN,
   SETTINGS_SECRET_PATHS,
-  type SettingsSecretPath
+  type SettingsSecretPath,
+  isSecretName
 } from './registry'
 import { getAtPath, isPlainObject, parentOf } from './tree'
 import { normalizeBaseUrl } from './url'
@@ -140,26 +146,29 @@ type McpSecretColumns = {
 }
 
 /**
- * Every secret-named string inside `value` (any depth) through `fn`; a `null`
- * answer drops the key. `path` is the dotted route to each one.
+ * Every secret string inside `value` through `fn`: a string under a
+ * secret-named key (`isSecretName`), at any depth beneath it — a
+ * `tokens: { access }` object is a secret as a whole. A `null` answer drops
+ * the key (or array item). `path` is the dotted route to each one.
  */
 function mapKeyNamed(
   value: unknown,
   fn: (s: string, path: string) => string | null,
-  path: string
+  path: string,
+  secret = false
 ): unknown {
+  if (secret && typeof value === 'string') return fn(value, path)
   if (Array.isArray(value)) {
-    return value.map((v, i) => mapKeyNamed(v, fn, `${path}.${i}`))
+    return value.flatMap((v, i) => {
+      const mapped = mapKeyNamed(v, fn, `${path}.${i}`, secret)
+      return mapped === null && v !== null ? [] : [mapped]
+    })
   }
   if (!isPlainObject(value)) return value
   const out: Record<string, unknown> = {}
   for (const [k, v] of Object.entries(value)) {
-    if (SECRET_NAME_PATTERN.test(k) && typeof v === 'string') {
-      const mapped = fn(v, `${path}.${k}`)
-      if (mapped !== null) out[k] = mapped
-    } else {
-      out[k] = mapKeyNamed(v, fn, `${path}.${k}`)
-    }
+    const mapped = mapKeyNamed(v, fn, `${path}.${k}`, secret || isSecretName(k))
+    if (mapped !== null || v === null) out[k] = mapped
   }
   return out
 }
@@ -218,30 +227,104 @@ export function encryptMcpSecrets<T extends McpSecretColumns>(
   return { sealed, changed }
 }
 
+interface McpDestination {
+  url?: string | null
+  transportType?: string | null
+  command?: string | null
+  args?: string[] | null
+}
+
+type McpWriteBody = McpSecretColumns & {
+  url?: string | null
+  transportType?: string | null
+  command?: string | null
+  args?: string[] | null
+}
+
+const sameArgs = (
+  a: string[] | null | undefined,
+  b: string[] | null | undefined
+) => JSON.stringify(a ?? []) === JSON.stringify(b ?? [])
+
+/**
+ * Which secret columns a write moves to a new destination. The destination is
+ * the EFFECTIVE one — each of `url` / `transportType` / `command` / `args` as
+ * posted, or as stored when the write leaves it out (a partial PUT) —
+ * compared with the stored one: `headers` and the `extraConfig` secrets go to
+ * the `url` over `transportType`; `env` goes to the process `command` + `args`
+ * start. `body` must already have had its masked `url` / `args` restored
+ * (`restoreMcpLocators`), so a url posted back as its mask is no move.
+ */
+export function movedMcpSecretColumns(
+  body: McpDestination,
+  stored: McpDestination
+): Set<keyof McpSecretsPlaintext> {
+  const pick = <K extends keyof McpDestination>(k: K) =>
+    body[k] === undefined ? stored[k] : body[k]
+  const moved = new Set<keyof McpSecretsPlaintext>()
+  const remoteMoved =
+    normalizeBaseUrl(pick('url')) !== normalizeBaseUrl(stored.url) ||
+    (pick('transportType') ?? 'stdio') !== (stored.transportType ?? 'stdio')
+  const processMoved =
+    (pick('command') ?? '').trim() !== (stored.command ?? '').trim() ||
+    !sameArgs(pick('args'), stored.args)
+  for (const [col, dest] of Object.entries(MCP_SECRET_DESTINATIONS) as [
+    keyof McpSecretsPlaintext,
+    'url' | 'command'
+  ][]) {
+    if (dest === 'url' ? remoteMoved : processMoved) moved.add(col)
+  }
+  return moved
+}
+
 /**
  * The stored secrets a posted mask may stand for (`restoreMcpSecrets`), minus
- * those whose destination the same write moves: `headers` / `extraConfig`
- * posted as masks with a new `url`, `env` with a new `command`, are dropped
- * rather than carried along (the MCP form of ruling R1).
+ * those whose destination the same write moves (ruling R1, MCP form).
  */
 export function mcpPlaintextForWrite(
-  body: { url?: string | null; command?: string | null },
+  body: McpWriteBody,
   stored:
-    | Pick<McpServer, 'env' | 'headers' | 'extraConfig' | 'url' | 'command'>
+    | (Pick<McpServer, 'env' | 'headers' | 'extraConfig'> & McpDestination)
     | null
     | undefined
 ): McpSecretsPlaintext {
   const current = mcpPlaintext(stored)
   if (!stored) return current
-  for (const [col, destField] of Object.entries(MCP_SECRET_DESTINATIONS) as [
-    keyof McpSecretsPlaintext,
-    'url' | 'command'
-  ][]) {
-    const posted = body[destField]
-    if (posted === undefined) continue
-    if (normalizeBaseUrl(posted) !== normalizeBaseUrl(stored[destField])) {
-      current[col] = null
-    }
-  }
+  for (const col of movedMcpSecretColumns(body, stored)) current[col] = null
   return current
+}
+
+/**
+ * An MCP update as it is written (before encryption):
+ *
+ * 1. A `url` / `args` posted back as the stored one's mask is the stored one.
+ * 2. Every other posted mask becomes the stored secret — unless the write
+ *    moves that secret's destination (`movedMcpSecretColumns`), in which case
+ *    only plaintext posted in this same request survives.
+ * 3. A moved secret column the write left out is written too, with the
+ *    secrets stripped: a partial PUT of just `url` or `args` cannot carry the
+ *    stored `Authorization` / `GITHUB_TOKEN` to the new destination (S2
+ *    review C1).
+ */
+export function prepareMcpUpdate<T extends McpWriteBody>(
+  body: T,
+  stored:
+    | (Pick<McpServer, 'env' | 'headers' | 'extraConfig'> & McpDestination)
+    | null
+    | undefined
+): T {
+  const located = restoreMcpLocators(body, stored)
+  const restored = restoreMcpSecrets(
+    located,
+    mcpPlaintextForWrite(located, stored)
+  )
+  if (!stored) return restored
+  for (const col of movedMcpSecretColumns(located, stored)) {
+    if (restored[col] !== undefined) continue
+    ;(restored as Record<string, unknown>)[col] = stripMcpSecrets(
+      col,
+      stored[col]
+    )
+  }
+  return restored
 }

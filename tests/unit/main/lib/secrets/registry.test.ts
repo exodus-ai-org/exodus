@@ -4,15 +4,17 @@
 // `*Token` field added without one fails here.
 import { SettingsSchema } from '@exodus/shared/schemas/settings-schema'
 import { AiProviders } from '@exodus/shared/types/ai'
+import { getTableColumns } from 'drizzle-orm'
 import { describe, expect, it } from 'vitest'
 import type { z } from 'zod'
 
 const {
   SETTINGS_SECRET_PATHS,
   SETTINGS_NON_SECRET_PATHS,
-  SECRET_NAME_PATTERN,
+  isSecretName,
   PROVIDER_KEY_FIELD
 } = await import('@main/lib/secrets/registry')
+const { settings: settingsTable } = await import('@main/lib/db/schema')
 
 interface Leaf {
   path: string
@@ -31,6 +33,10 @@ function leaves(schema: z.ZodType, path: string[] = []): Leaf[] {
           shape?: Record<string, z.ZodType>
           valueType?: z.ZodType
           element?: z.ZodType
+          options?: z.ZodType[]
+          left?: z.ZodType
+          right?: z.ZodType
+          getter?: () => z.ZodType
         }
       }
     }
@@ -54,6 +60,14 @@ function leaves(schema: z.ZodType, path: string[] = []): Leaf[] {
       return leaves(def.valueType!, [...path, '*'])
     case 'array':
       return leaves(def.element!, [...path, '[]'])
+    // Every member of a union / intersection is walked at the same path, so
+    // a secret inside one branch's object is still seen.
+    case 'union':
+      return def.options!.flatMap((o) => leaves(o, path))
+    case 'intersection':
+      return [...leaves(def.left!, path), ...leaves(def.right!, path)]
+    case 'lazy':
+      return leaves(def.getter!(), path)
     default:
       return [{ path: path.join('.'), type: def.type }]
   }
@@ -76,10 +90,30 @@ describe('settings secret registry', () => {
       ...Object.keys(SETTINGS_NON_SECRET_PATHS)
     ])
     const undecided = all
-      .filter((l) => SECRET_NAME_PATTERN.test(l.path.split('.').at(-1)!))
+      // Any secret-named step counts: under `auth: { user, pass }` every
+      // leaf is a secret, whatever its own name.
+      .filter((l) => l.path.split('.').some((step) => isSecretName(step)))
       .map((l) => l.path)
       .filter((p) => !decided.has(p))
     expect(undecided).toEqual([])
+  })
+
+  it('walks union members', () => {
+    // `language` is a union of an enum and a literal: both branches seen.
+    const types = all.filter((l) => l.path === 'language').map((l) => l.type)
+    expect(types).toEqual(expect.arrayContaining(['enum', 'literal']))
+  })
+
+  it('knows every column of the drizzle settings table', () => {
+    // The test walks the zod schema; a column the schema lacks would be a
+    // place for a secret it never sees. (jsonb columns' inner shapes are
+    // `$type<>` — compile-time only, so they cannot be compared at run time;
+    // each is typed from the same zod schema, which is what this walks.)
+    const shape = (SettingsSchema as unknown as { shape: object }).shape
+    const missing = Object.keys(getTableColumns(settingsTable)).filter(
+      (c) => !(c in shape)
+    )
+    expect(missing).toEqual([])
   })
 
   it('lists only string fields the schema really has', () => {

@@ -15,7 +15,7 @@ import {
 } from '../../db/mcp-queries'
 import { logger } from '../../logger'
 import { maskMcpServer, mcpPlaintext, restoreMcpSecrets } from '../../secrets'
-import { mcpPlaintextForWrite } from '../../secrets/at-rest'
+import { prepareMcpUpdate } from '../../secrets/at-rest'
 import { Variables } from '../types'
 import {
   deletionSuccessResponse,
@@ -82,15 +82,11 @@ mcp.put('/:id', async (c) => {
   const old = servers.find((s) => s.id === id)
   if (old) invalidateMcpCache(old.name)
 
-  // A mask stands for the stored secret only toward the stored destination:
-  // with a new `url` (headers, extraConfig) or `command` (env) it is dropped.
+  // Masked url / args / secrets posted back stand for the stored ones, but
+  // no stored secret follows a move of its destination (prepareMcpUpdate).
   const stored = await getMcpServerById(id)
   const result = await handleDatabaseOperation(
-    () =>
-      updateMcpServer(
-        id,
-        restoreMcpSecrets(data, mcpPlaintextForWrite(data, stored))
-      ),
+    () => updateMcpServer(id, prepareMcpUpdate(data, stored)),
     'Failed to update MCP server'
   )
   if (data.name) invalidateMcpCache(data.name)

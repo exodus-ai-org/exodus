@@ -7,6 +7,7 @@
 // a secret posted back as its mask while its destination changes is cleared.
 // Real SQL on an in-memory PGlite.
 import { isAppError } from '@exodus/shared/errors/app-error'
+import { eq } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { afterAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -522,5 +523,36 @@ describe('an MCP destination change clears the secrets posted back as masks', ()
     })
     const read = await mcpQueries.getMcpServerById(created.id)
     expect(read.headers).toEqual(MCP_ROW.headers)
+  })
+})
+
+describe('secrets nested under a secret-named key (review S1 M2)', () => {
+  it('are stored encrypted, and read back as they were', async () => {
+    const created = await mcpQueries.createMcpServer({
+      name: 'nested',
+      transportType: 'sse',
+      url: 'https://mcp.example.com',
+      extraConfig: {
+        tokens: {
+          access: 'nested-access-token-JJJJ',
+          list: ['one-token-KKKK']
+        },
+        timeout: 30
+      }
+    })
+    const [raw] = await db
+      .select()
+      .from(mcpServer)
+      .where(eq(mcpServer.id, created.id))
+    const stored = JSON.stringify(raw!.extraConfig)
+    expect(stored).not.toContain('nested-access-token-JJJJ')
+    expect(stored).not.toContain('one-token-KKKK')
+    expect(stored).toContain(ENC_PREFIX)
+
+    const read = await mcpQueries.getMcpServerById(created.id)
+    expect(read!.extraConfig).toEqual({
+      tokens: { access: 'nested-access-token-JJJJ', list: ['one-token-KKKK'] },
+      timeout: 30
+    })
   })
 })
