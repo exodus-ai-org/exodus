@@ -267,6 +267,27 @@
   "run": {
     "error": "Cette réponse s'est arrêtée sur une erreur : {{message}}"
   },
+  "memoryStrip": {
+    "updating": "Mise à jour de la mémoire…",
+    "updated": "Mémoire mise à jour · {{keys}}",
+    "partlyUpdated": "Mémoire mise à jour en partie · {{keys}}",
+    "undo": "Annuler",
+    "undone": "Annulé",
+    "partial": "{{undone}} annulé(s) · {{skipped}} modifié(s) depuis et conservé(s)",
+    "stale": "Annulé ou modifié depuis",
+    "failed": "Impossible de mettre à jour la mémoire",
+    "undoFailed": "Impossible d'annuler",
+    "new": "Nouveau",
+    "deleted": "Supprimé"
+  },
+  "usedMemories": {
+    "label_one": "{{count}} mémoire utilisée · {{keys}}",
+    "label_other": "{{count}} mémoires utilisées · {{keys}}",
+    "wrong": "C'est inexact",
+    "openSettings": "Ouvrir dans les réglages",
+    "deleted": "Supprimée",
+    "prefill": "La mémoire « {{key}} » est inexacte : "
+  },
   "renderFailed": "{{what}} n'a pas pu être affiché.",
   "findInPage": {
     "placeholder": "Rechercher dans la page…",

@@ -267,6 +267,27 @@
   "run": {
     "error": "Esta resposta foi interrompida por um erro: {{message}}"
   },
+  "memoryStrip": {
+    "updating": "Atualizando a memória…",
+    "updated": "Memória atualizada · {{keys}}",
+    "partlyUpdated": "Memória atualizada em parte · {{keys}}",
+    "undo": "Desfazer",
+    "undone": "Desfeito",
+    "partial": "{{undone}} desfeitas · {{skipped}} alteradas desde então e mantidas",
+    "stale": "Desfeito ou alterado desde então",
+    "failed": "Não foi possível atualizar a memória",
+    "undoFailed": "Não foi possível desfazer",
+    "new": "Nova",
+    "deleted": "Excluída"
+  },
+  "usedMemories": {
+    "label_one": "{{count}} memória usada · {{keys}}",
+    "label_other": "{{count}} memórias usadas · {{keys}}",
+    "wrong": "Isto está errado",
+    "openSettings": "Abrir nas Configurações",
+    "deleted": "Excluída",
+    "prefill": "A memória sobre '{{key}}' está errada: "
+  },
   "renderFailed": "Não foi possível exibir {{what}}.",
   "findInPage": {
     "placeholder": "Localizar na página…",

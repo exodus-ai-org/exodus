@@ -6,10 +6,9 @@ import {
   StarIcon,
   Trash2Icon
 } from 'lucide-react'
-import { memo, useMemo } from 'react'
+import { memo, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
-import useSWR from 'swr'
 
 import {
   Collapsible,
@@ -34,9 +33,9 @@ import {
   useSidebar
 } from '@/components/ui/sidebar'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useChatHistory, useUpdateChat } from '@/hooks/use-chat-history'
 import { compactRelativeTime } from '@/lib/relative-time'
 import { cn } from '@/lib/utils'
-import { updateChat } from '@/services/chat'
 import {
   openTabsAtom,
   renamedChatTitleAtom,
@@ -79,10 +78,12 @@ export function NavHistorySkeleton() {
 
 export const NavItems = memo(function NavItems({
   chat,
-  className
+  className,
+  onToggleFavorite
 }: {
   chat: Chat
   className?: string
+  onToggleFavorite: (chat: Chat) => void
 }) {
   const { t } = useTranslation(['common', 'chat'])
   const { id } = useParams<{ id: string }>()
@@ -132,11 +133,7 @@ export const NavItems = memo(function NavItems({
           side={isMobile ? 'bottom' : 'right'}
           align={isMobile ? 'end' : 'start'}
         >
-          <DropdownMenuItem
-            onClick={() =>
-              updateChat({ id: chat.id, favorite: !chat.favorite })
-            }
-          >
+          <DropdownMenuItem onClick={() => onToggleFavorite(chat)}>
             <StarIcon
               className={cn('text-muted-foreground', {
                 ['fill-yellow-500 text-yellow-500']: chat.favorite
@@ -175,9 +172,13 @@ export const NavItems = memo(function NavItems({
 
 export function NavHistories() {
   const { t } = useTranslation('chat')
-  const { data: history, isLoading } = useSWR<Chat[]>('/api/v1/history', {
-    fallbackData: []
-  })
+  const { data: history, isLoading } = useChatHistory()
+  const { mutate: updateChat } = useUpdateChat()
+  // `mutate` is stable, so the memoized rows do not re-render on this.
+  const toggleFavorite = useCallback(
+    (chat: Chat) => updateChat({ id: chat.id, favorite: !chat.favorite }),
+    [updateChat]
+  )
 
   // Each row shows its own relative age ("1d", "1w"…), so the sidebar no
   // longer buckets by date — just favourites, then everything else in the
@@ -200,7 +201,7 @@ export function NavHistories() {
     )
   }
 
-  if (history?.length === 0) {
+  if (!history?.length) {
     return (
       <SidebarGroup>
         <SidebarGroupContent>
@@ -232,6 +233,7 @@ export function NavHistories() {
                     chat={chat}
                     key={chat.id}
                     className="mb-1 last:mb-0"
+                    onToggleFavorite={toggleFavorite}
                   />
                 ))}
               </CollapsibleContent>
@@ -245,7 +247,11 @@ export function NavHistories() {
           <SidebarGroupLabel>{t('sidebar.history.chats')}</SidebarGroupLabel>
           <SidebarMenu className="gap-1">
             {chats.map((chat) => (
-              <NavItems chat={chat} key={chat.id} />
+              <NavItems
+                chat={chat}
+                key={chat.id}
+                onToggleFavorite={toggleFavorite}
+              />
             ))}
           </SidebarMenu>
         </SidebarGroup>

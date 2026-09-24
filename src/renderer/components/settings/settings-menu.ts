@@ -89,7 +89,7 @@ export const NAV_TITLE_KEYS = {
 
 // Flat menu — every entry is a top-level page. The content-side Cards provide
 // the visual grouping, so the sidebar has no expandable second level. The final
-// group has no label — it holds "About Exodus", pinned to the bottom.
+// group has no label — it holds "About", pinned to the bottom.
 // `label` holds a settings.json key path (empty string for the unlabeled
 // group), not display text — settings-sidebar.tsx renders `t(group.label)`.
 export const menus = {

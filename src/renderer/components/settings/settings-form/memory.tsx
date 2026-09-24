@@ -1,3 +1,4 @@
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
 import { format } from 'date-fns'
 import {
@@ -9,7 +10,8 @@ import {
   EyeOffIcon,
   LoaderIcon,
   PlusIcon,
-  Trash2Icon
+  Trash2Icon,
+  UnplugIcon
 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Controller } from 'react-hook-form'
@@ -27,13 +29,13 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { useMemories, useSetMemoryList } from '@/hooks/use-memory'
 import { i18n } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 import {
   createMemory,
   deleteMemory,
-  getMemories,
   instructMemory,
   updateMemory,
   type MemoryItem,
@@ -168,12 +170,16 @@ function MemoryDetail({
   item,
   onBack,
   onPatched,
-  onDeleted
+  onDeleted,
+  beginWrite,
+  settleWrite
 }: {
   item: MemoryItem
   onBack: () => void
   onPatched: (next: MemoryItem) => void
   onDeleted: () => void
+  beginWrite: () => void
+  settleWrite: () => void
 }) {
   const { t } = useTranslation(['common', 'settings'])
   const [key, setKey] = useState(item.key)
@@ -220,6 +226,7 @@ function MemoryDetail({
 
   const save = useCallback(
     async (patch: MemoryPatch) => {
+      beginWrite()
       try {
         await updateMemory(item.id, patch)
         onPatched({ ...item, ...patch })
@@ -231,12 +238,15 @@ function MemoryDetail({
               ? e.message
               : t('settings:memory.genericRetryHint')
         })
+      } finally {
+        settleWrite()
       }
     },
-    [item, onPatched, t]
+    [item, onPatched, t, beginWrite, settleWrite]
   )
 
   const handleDelete = async () => {
+    beginWrite()
     try {
       await deleteMemory(item.id, true)
       onDeleted()
@@ -246,6 +256,8 @@ function MemoryDetail({
         description:
           e instanceof Error ? e.message : t('settings:memory.genericRetryHint')
       })
+    } finally {
+      settleWrite()
     }
   }
 
@@ -338,10 +350,12 @@ function MemoryDetail({
 
 function MemoryComposer({
   scopeMemoryId,
-  onApplied
+  beginWrite,
+  settleWrite
 }: {
   scopeMemoryId?: string
-  onApplied: () => void
+  beginWrite: () => void
+  settleWrite: () => void
 }) {
   const { t } = useTranslation('settings')
   const [text, setText] = useState('')
@@ -351,6 +365,7 @@ function MemoryComposer({
     const t2 = text.trim()
     if (!t2 || busy) return
     setBusy(true)
+    beginWrite()
     try {
       const { applied } = await instructMemory(t2, scopeMemoryId)
       setText('')
@@ -361,7 +376,6 @@ function MemoryComposer({
             count: applied
           })
         })
-        onApplied()
       } else {
         sileo.info({
           title: t('memory.composer.toast.noChangeTitle'),
@@ -376,6 +390,7 @@ function MemoryComposer({
       })
     } finally {
       setBusy(false)
+      settleWrite()
     }
   }
 
@@ -420,9 +435,18 @@ function MemoryComposer({
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 export function MemorySettings({ form }: { form: UseFormReturnType }) {
-  const { t } = useTranslation('settings')
-  const [memories, setMemories] = useState<MemoryItem[]>([])
-  const [loading, setLoading] = useState(true)
+  const { t } = useTranslation(['settings', 'common'])
+  const { data, isLoading, isError, refetch } = useMemories()
+  const memories = data ?? []
+  // A read that failed with nothing to show: say so and offer Retry — an
+  // empty list here would read as "you have no memories". A failed
+  // background re-read keeps showing the list it already has.
+  const loadFailed = isError && data === undefined
+  // One write counter for the whole page: it lives in this hook instance,
+  // so the detail view and the composers get this instance's
+  // `beginWrite`/`settleWrite` passed down rather than calling the hook
+  // themselves.
+  const { set: setMemoryList, beginWrite, settleWrite } = useSetMemoryList()
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const sectionGroups: { section: MemorySection; label: string }[] = useMemo(
@@ -436,37 +460,22 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
 
   const lcmEnabled = form.watch('memory.lcmEnabled') ?? true
 
-  const load = useCallback(async () => {
-    try {
-      setMemories(await getMemories())
-    } catch (e) {
-      sileo.error({
-        title: t('memory.settings.toast.loadFailedTitle'),
-        description:
-          e instanceof Error ? e.message : t('memory.genericRetryHint')
-      })
-    } finally {
-      setLoading(false)
-    }
-  }, [t])
-
-  useEffect(() => {
-    load()
-  }, [load])
-
   const selected = useMemo(
     () => memories.find((m) => m.id === selectedId) ?? null,
     [memories, selectedId]
   )
   useEffect(() => {
-    if (selectedId && !loading && !selected) setSelectedId(null)
-  }, [selectedId, selected, loading])
+    if (selectedId && !isLoading && !selected) setSelectedId(null)
+  }, [selectedId, selected, isLoading])
 
-  const patchLocal = useCallback((next: MemoryItem) => {
-    setMemories((ms) => ms.map((m) => (m.id === next.id ? next : m)))
-  }, [])
+  const patchLocal = useCallback(
+    (next: MemoryItem) =>
+      setMemoryList((ms) => ms.map((m) => (m.id === next.id ? next : m))),
+    [setMemoryList]
+  )
 
   const handleNew = async () => {
+    beginWrite()
     try {
       const row = await createMemory({
         section: 'topic',
@@ -475,7 +484,13 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
         details: [],
         source: 'explicit'
       })
-      await load()
+      // The row from the POST response, put straight into the cache — not
+      // waited on any invalidate to bring it in, which a concurrent write's
+      // own `set()` could cancel out from under us (round 3: the selection
+      // must never depend on a read that might never land).
+      await setMemoryList((ms) =>
+        ms.some((m) => m.id === row.id) ? ms : [...ms, row]
+      )
       setSelectedId(row.id)
     } catch (e) {
       sileo.error({
@@ -483,24 +498,37 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
         description:
           e instanceof Error ? e.message : t('memory.genericRetryHint')
       })
+    } finally {
+      settleWrite()
     }
   }
 
+  // `beginWrite()` comes before the optimistic change: a write already
+  // settling in between would otherwise invalidate and re-read the list
+  // before this one is counted, flickering the row back for a moment.
   const handleToggle = async (item: MemoryItem) => {
-    patchLocal({ ...item, isActive: item.isActive === false })
+    beginWrite()
     try {
+      await patchLocal({ ...item, isActive: item.isActive === false })
       await updateMemory(item.id, { isActive: item.isActive === false })
     } catch {
-      load()
+      // Silent — `settleWrite()`'s invalidate (below) resyncs to the true
+      // state either way.
+    } finally {
+      settleWrite()
     }
   }
 
   const handleDelete = async (item: MemoryItem) => {
-    setMemories((ms) => ms.filter((m) => m.id !== item.id))
+    beginWrite()
     try {
+      await setMemoryList((ms) => ms.filter((m) => m.id !== item.id))
       await deleteMemory(item.id, true)
     } catch {
-      load()
+      // Silent — `settleWrite()`'s invalidate (below) resyncs to the true
+      // state either way.
+    } finally {
+      settleWrite()
     }
   }
 
@@ -512,12 +540,15 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
           item={selected}
           onBack={() => setSelectedId(null)}
           onPatched={patchLocal}
-          onDeleted={() => {
-            setSelectedId(null)
-            load()
-          }}
+          onDeleted={() => setSelectedId(null)}
+          beginWrite={beginWrite}
+          settleWrite={settleWrite}
         />
-        <MemoryComposer scopeMemoryId={selected.id} onApplied={load} />
+        <MemoryComposer
+          scopeMemoryId={selected.id}
+          beginWrite={beginWrite}
+          settleWrite={settleWrite}
+        />
       </div>
     )
   }
@@ -655,12 +686,30 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
           </Button>
         </div>
 
-        {loading ? (
+        {isLoading ? (
           <div className="flex flex-col gap-2">
             <Skeleton className="h-10 w-full rounded-lg" />
             <Skeleton className="h-10 w-full rounded-lg" />
             <Skeleton className="h-10 w-full rounded-lg" />
           </div>
+        ) : loadFailed ? (
+          <SettingsSection>
+            <SettingsEmpty
+              icon={UnplugIcon}
+              title={t('memory.settings.loadFailedTitle')}
+              description={t('memory.settings.loadFailedHint')}
+            >
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                data-testid={TEST_IDS.memorySettings.retry}
+                onClick={() => void refetch()}
+              >
+                {t('common:action.retry')}
+              </Button>
+            </SettingsEmpty>
+          </SettingsSection>
         ) : memories.length === 0 ? (
           <SettingsSection>
             <SettingsEmpty
@@ -710,7 +759,7 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
         )}
 
         <div className="mt-1">
-          <MemoryComposer onApplied={load} />
+          <MemoryComposer beginWrite={beginWrite} settleWrite={settleWrite} />
         </div>
       </div>
     </div>

@@ -1,21 +1,16 @@
 import { useSetAtom } from 'jotai'
 import { useEffect, useMemo } from 'react'
 import { useParams } from 'react-router'
-import useSWR from 'swr'
 
 import { Chat } from '@/components/chat'
+import { useChatHistory, useChatMessages } from '@/hooks/use-chat-history'
 import { convertToUIMessages } from '@/lib/utils'
 import { openTabsAtom } from '@/stores/chat'
-import type { Chat as ChatRecord, Message as DBMessage } from '@/types/db'
 
 export function ChatDetail() {
   const { id } = useParams()
-  const { data: messagesFromDb, isLoading } = useSWR<DBMessage[]>(
-    id ? `/api/v1/chat/${id}` : null
-  )
-  const { data: history } = useSWR<ChatRecord[]>('/api/v1/history', {
-    fallbackData: []
-  })
+  const { data: messagesFromDb, isLoading } = useChatMessages(id)
+  const { data: history } = useChatHistory()
   const setOpenTabs = useSetAtom(openTabsAtom)
 
   useEffect(() => {

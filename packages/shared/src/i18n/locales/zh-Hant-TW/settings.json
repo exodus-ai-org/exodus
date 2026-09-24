@@ -93,7 +93,7 @@
       "title": "鍵盤快速鍵"
     },
     "about": {
-      "title": "關於 Exodus"
+      "title": "關於"
     },
     "devices": {
       "title": "裝置"
@@ -393,6 +393,10 @@
       "searchKnowledgeBase": {
         "label": "知識庫",
         "description": "從你的知識庫擷取內容（需要設定 LightRAG URL）"
+      },
+      "updateMemory": {
+        "label": "更新記憶",
+        "description": "當你告訴助理你的某些資訊有誤時，助理可以修正、新增或刪除記憶。"
       },
       "mapItinerary": {
         "label": "地圖行程",
@@ -738,8 +742,7 @@
       "updateFailed": "更新伺服器失敗",
       "registerFailed": "註冊失敗",
       "removeFailed": "移除伺服器失敗",
-      "toggleFailed": "切換伺服器狀態失敗",
-      "operationFailed": "操作失敗"
+      "toggleFailed": "切換伺服器狀態失敗"
     }
   },
   "memory": {
@@ -809,9 +812,10 @@
       "newButton": "新增",
       "emptyTitle": "尚無任何記憶",
       "emptyHint": "對話結束後會自動新增，也可以在下方告訴助理要記住什麼。",
+      "loadFailedTitle": "載入記憶失敗",
+      "loadFailedHint": "記憶仍然保存著，請再試一次。",
       "disabledHeading": "已停用 · {{count}}",
       "toast": {
-        "loadFailedTitle": "載入記憶失敗",
         "createFailedTitle": "建立失敗"
       }
     }

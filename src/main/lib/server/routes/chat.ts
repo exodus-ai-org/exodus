@@ -26,6 +26,7 @@ import {
   getModelFromProvider,
   getTextFromMessage
 } from '../../ai/utils/chat-message-util'
+import type { MemoryRow } from '../../db/memory-queries'
 import { getProjectById, bumpProjectUpdatedAt } from '../../db/project-queries'
 import {
   deleteChatById,
@@ -187,25 +188,37 @@ chat.post('/', async (c) => {
         .then((assembled) => assembled.messages.slice(0, -1))
     : Promise.resolve(allMessages.slice(0, -1).map(stripId))
 
-  const memoryPromise = memoryUseInChat
-    ? loadRelevantMemories(getTextFromMessage(userMessage), model, apiKey, id)
-        .then(formatMemoriesForSystem)
-        .catch((err) => {
+  // Deep Research runs on its own boot prompt, which carries no
+  // `<user_memory>` block — so it gets no read filter either: no LLM call,
+  // no usage-log rows, no `lastUsedAt` bump and no `memories_used` claiming
+  // memories the reply never saw.
+  const isDeepResearch =
+    advancedTools?.includes(AdvancedTools.DeepResearch) ?? false
+  const memoryPromise: Promise<MemoryRow[]> =
+    memoryUseInChat && !isDeepResearch
+      ? loadRelevantMemories(
+          getTextFromMessage(userMessage),
+          model,
+          apiKey,
+          id,
+          userMessage.id
+        ).catch((err) => {
           logger.warn('chat', 'Memory loading failed, continuing without', {
             error: String(err)
           })
-          return ''
+          return []
         })
-    : Promise.resolve('')
+      : Promise.resolve([])
 
   const mcpPromise = getMcpTools()
 
-  const [contextMessages, memoriesSection, , mcpTools] = await Promise.all([
+  const [contextMessages, memoryRows, , mcpTools] = await Promise.all([
     lcmPromise,
     memoryPromise,
     saveUserMsgPromise,
     mcpPromise
   ])
+  const memoriesSection = formatMemoriesForSystem(memoryRows)
 
   const tools = bindCallingTools({
     advancedTools,
@@ -244,10 +257,10 @@ chat.post('/', async (c) => {
   const personalityPrompt = buildPersonalityPrompt(setting)
   const skillsIndex = await getActiveSkillsIndex()
   logger.info('chat', 'skill injection', {
-    deepResearch: advancedTools?.includes(AdvancedTools.DeepResearch) ?? false,
+    deepResearch: isDeepResearch,
     skills: skillsIndex ? skillsIndex.split('\n').length : 0
   })
-  const systemContent = advancedTools?.includes(AdvancedTools.DeepResearch)
+  const systemContent = isDeepResearch
     ? deepResearchBootPrompt
     : getSystemPrompt({
         mcpDirectory: mcpDirectory(mcpTools),
@@ -261,7 +274,7 @@ chat.post('/', async (c) => {
   // Deep Research forces a strong reasoning effort regardless of what the
   // composer's picker requested. pi's ThinkingLevel has every tier of the
   // app's EffortLevel but 'off', which is "no reasoning option".
-  const effectiveReasoning = advancedTools?.includes(AdvancedTools.DeepResearch)
+  const effectiveReasoning = isDeepResearch
     ? 'high'
     : reasoningEffort && reasoningEffort !== 'off'
       ? reasoningEffort
@@ -295,6 +308,20 @@ chat.post('/', async (c) => {
   const stream = new ReadableStream({
     async start(controller) {
       const sse = createSseWriter(controller)
+      // Sent once, before any kernel event, and only when the read filter
+      // actually selected something — a chat with memory off or nothing
+      // relevant sends no event at all.
+      if (memoryRows.length > 0) {
+        sse.send({
+          type: 'memories_used',
+          runId: userMessage.id,
+          memories: memoryRows.map(({ id, key, section }) => ({
+            id,
+            key,
+            section
+          }))
+        })
+      }
       try {
         const events = runAgent({
           chatId: id,

@@ -17,7 +17,12 @@ import { UseChatHelpers } from '@/hooks/use-chat'
 import { useUpload } from '@/hooks/use-upload'
 import { cn } from '@/lib/utils'
 import { attachmentAtom } from '@/stores/chat'
-import { chatInputAtom, chatStatusAtom, chatStopFnAtom } from '@/stores/input'
+import {
+  chatInputAtom,
+  chatInputFocusAtom,
+  chatStatusAtom,
+  chatStopFnAtom
+} from '@/stores/input'
 
 import { AudioRecorder } from './audio-recoder'
 import { ActiveToolPills, ComposerToolsButton } from './composer-tools'
@@ -115,6 +120,22 @@ function InputBox({
       el.style.height = `${el.scrollHeight}px`
     }
   }, [])
+
+  // Someone outside the composer wrote `chatInputAtom` and asked for focus
+  // ("This is wrong" under a reply): take it, caret after the prefilled text.
+  // Only a change counts — the atom outlives this chat's composer.
+  const focusRequest = useAtomValue(chatInputFocusAtom)
+  const handledFocusRequest = useRef(focusRequest)
+  useEffect(() => {
+    if (focusRequest === handledFocusRequest.current) return
+    handledFocusRequest.current = focusRequest
+    const el = textareaRef.current
+    if (!el) return
+    el.focus()
+    el.setSelectionRange(el.value.length, el.value.length)
+    el.style.height = 'auto'
+    el.style.height = `${el.scrollHeight}px`
+  }, [focusRequest])
 
   return (
     <div

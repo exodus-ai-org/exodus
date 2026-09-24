@@ -13,7 +13,6 @@ import {
 } from 'lucide-react'
 import { ChangeEvent, useMemo, useRef, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
-import useSWR from 'swr'
 
 import Markdown from '@/components/markdown'
 import {
@@ -36,19 +35,11 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
+import { useMcpTools } from '@/hooks/use-mcp'
 import { useSettings } from '@/hooks/use-settings'
 import { useUpload } from '@/hooks/use-upload'
 import { cn } from '@/lib/utils'
 import { advancedToolsAtom, reasoningEffortAtom } from '@/stores/chat'
-
-interface McpToolInfo {
-  name: string
-  description: string
-}
-interface McpToolsGroup {
-  mcpServerName: string
-  tools: McpToolInfo[]
-}
 
 const TOGGLES = [
   {
@@ -127,7 +118,7 @@ export function ComposerToolsButton() {
   const availableEffortLevels = useAvailableEffortLevels()
   const [mcpOpen, setMcpOpen] = useState(false)
 
-  const { data } = useSWR<{ tools: McpToolsGroup[] }>('/api/v1/mcp/tools')
+  const { data } = useMcpTools()
   const mcpCount = useMemo(
     () => data?.tools?.reduce((acc, g) => acc + g.tools.length, 0) ?? 0,
     [data?.tools]

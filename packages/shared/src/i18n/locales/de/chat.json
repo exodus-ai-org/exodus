@@ -267,6 +267,27 @@
   "run": {
     "error": "Diese Antwort wurde mit einem Fehler abgebrochen: {{message}}"
   },
+  "memoryStrip": {
+    "updating": "Gedächtnis wird aktualisiert…",
+    "updated": "Gedächtnis aktualisiert · {{keys}}",
+    "partlyUpdated": "Gedächtnis teilweise aktualisiert · {{keys}}",
+    "undo": "Rückgängig",
+    "undone": "Rückgängig gemacht",
+    "partial": "{{undone}} rückgängig gemacht · {{skipped}} seitdem geändert und beibehalten",
+    "stale": "Rückgängig gemacht oder seitdem geändert",
+    "failed": "Gedächtnis konnte nicht aktualisiert werden",
+    "undoFailed": "Konnte nicht rückgängig gemacht werden",
+    "new": "Neu",
+    "deleted": "Gelöscht"
+  },
+  "usedMemories": {
+    "label_one": "{{count}} Gedächtniseintrag verwendet · {{keys}}",
+    "label_other": "{{count}} Gedächtniseinträge verwendet · {{keys}}",
+    "wrong": "Das ist falsch",
+    "openSettings": "In den Einstellungen öffnen",
+    "deleted": "Gelöscht",
+    "prefill": "Der Gedächtniseintrag zu „{{key}}“ ist falsch: "
+  },
   "renderFailed": "{{what}} konnte nicht angezeigt werden.",
   "findInPage": {
     "placeholder": "Auf der Seite suchen…",

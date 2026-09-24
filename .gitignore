@@ -101,3 +101,6 @@ blob-report/
 .superpowers/
 *.log*
 dist
+
+# Isolated workspaces for subagent-driven-development
+.worktrees/

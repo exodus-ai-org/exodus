@@ -3,7 +3,6 @@ import { SmartphoneIcon, TabletIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
-import useSWR from 'swr'
 
 import {
   AlertDialog,
@@ -16,16 +15,15 @@ import {
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
-import { useFormat } from '@/lib/format'
 import {
-  cancelPairing,
-  DEVICES_KEY,
-  getDevices,
-  openPairing,
-  type PairedDeviceInfo,
-  resetDevices,
-  revokeDevice
-} from '@/services/devices'
+  useCancelPairing,
+  useDevices,
+  useOpenPairing,
+  useResetDevices,
+  useRevokeDevice
+} from '@/hooks/use-devices'
+import { useFormat } from '@/lib/format'
+import type { PairedDeviceInfo } from '@/services/devices'
 
 import {
   ENTER_UP,
@@ -94,16 +92,16 @@ function DeviceRow({
  */
 export function Devices() {
   const { t } = useTranslation('settings')
-  const [polling, setPolling] = useState(false)
   // Confirmations are controlled from here (the house pattern): the dialog's
   // action is a plain button, so closing it is this component's job.
   const [revoking, setRevoking] = useState<PairedDeviceInfo | null>(null)
   const [resetting, setResetting] = useState(false)
-  const { data, mutate } = useSWR(DEVICES_KEY, getDevices, {
-    refreshInterval: polling ? 1500 : 0
-  })
+  const { data } = useDevices()
+  const openPairing = useOpenPairing()
+  const cancelPairing = useCancelPairing()
+  const revokeDevice = useRevokeDevice()
+  const resetDevices = useResetDevices()
   const pairing = data?.pairing ?? null
-  useEffect(() => setPolling(pairing !== null), [pairing])
 
   // The QR code vanishing is the only other sign a phone has paired, so say
   // so: a device that was not there while a window was open is the new one.
@@ -128,27 +126,17 @@ export function Devices() {
     }
   }, [data, t])
 
-  async function run(action: () => Promise<unknown>) {
-    try {
-      await action()
-    } catch (error) {
-      sileo.error({
-        title: t('devices.toast.failedTitle'),
-        description: error instanceof Error ? error.message : String(error)
-      })
-    } finally {
-      await mutate()
-    }
-  }
-
   return (
     <>
       <SettingsIntro>{t('devices.description')}</SettingsIntro>
 
       {pairing ? (
-        <PairingPanel pairing={pairing} onCancel={() => run(cancelPairing)} />
+        <PairingPanel
+          pairing={pairing}
+          onCancel={() => cancelPairing.mutate()}
+        />
       ) : (
-        <PairCard onPair={() => run(openPairing)} />
+        <PairCard onPair={() => openPairing.mutate()} />
       )}
 
       {data && (
@@ -207,7 +195,7 @@ export function Devices() {
               onClick={() => {
                 const id = revoking?.id
                 setRevoking(null)
-                if (id) void run(() => revokeDevice(id))
+                if (id) revokeDevice.mutate(id)
               }}
             >
               {t('devices.revokeDialog.confirm')}
@@ -230,7 +218,7 @@ export function Devices() {
               variant="destructive"
               onClick={() => {
                 setResetting(false)
-                void run(resetDevices)
+                resetDevices.mutate()
               }}
             >
               {t('devices.reset.confirm')}

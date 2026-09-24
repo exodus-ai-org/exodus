@@ -60,6 +60,30 @@ function isSameUsage(a: Usage | null, b: Usage): boolean {
   )
 }
 
+/** The last user message as something `sendMessage` can send again. */
+export function lastQuestionOf(
+  messages: ChatMessage[]
+): SendMessageOptions | null {
+  const last = messages.findLast((m) => m.role === 'user')
+  if (!last) return null
+  if (typeof last.content === 'string') return { text: last.content }
+
+  const text: string[] = []
+  const attachments: SendMessageOptions['attachments'] = []
+  for (const block of last.content) {
+    if (block.type === 'text') text.push(block.text)
+    else if (block.type === 'image') {
+      attachments.push({
+        name: 'image',
+        url: block.data,
+        contentType: block.mimeType
+      })
+    }
+  }
+  if (text.length === 0 && attachments.length === 0) return null
+  return { text: text.join('\n'), attachments }
+}
+
 export function useChat(options: UseChatOptions): UseChatHelpers {
   const {
     id,
@@ -228,8 +252,11 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
   // batch. With `sendMessage` reading the live list that slice would start
   // working and leave the screen disagreeing with the database until a reload,
   // so it is dropped rather than accidentally switched on.
+  // The last question comes from this visit's send when there is one, else from
+  // the transcript — a chat reopened from history has sent nothing yet.
   const regenerate = useCallback(() => {
-    if (lastUserMsgRef.current) sendMessage(lastUserMsgRef.current)
+    const opts = lastUserMsgRef.current ?? lastQuestionOf(messagesRef.current)
+    if (opts) sendMessage(opts)
   }, [sendMessage])
 
   return {

@@ -1,4 +1,9 @@
 import type { Model } from '@earendil-works/pi-ai'
+import type {
+  MemoryChange,
+  MemoryInstructionResult,
+  MemorySnapshot
+} from '@exodus/shared/types/memory'
 import z from 'zod'
 
 import {
@@ -135,7 +140,8 @@ const MEMORY_MODEL = `A memory entry is ONE topic / person / profile-area:
 - summary: a compact noun phrase naming what the entry covers — NOT a sentence, no "User is…". e.g. "Japanese equities trading, thesis, and analytical frameworks"
 - details: 2–5 bullets, each ONE durable, self-contained fact about the user, stated at a level that stays true for months — what they do, own, use, track, or have decided. Lead with specifics: names, tickers, tools, frameworks, places. Never a single purchase or one-time event, a backstory anecdote, a wish ("would like to see…"), or how they want answers formatted. Drop hedges ("interested in", "finds useful", "wants"). Merge and prune aggressively; never past 5.`
 
-const CONSOLIDATE_SYSTEM = `You maintain a durable, long-term memory of the user across conversations.
+/** Exported for the faux-boot marker test only. */
+export const CONSOLIDATE_SYSTEM = `You maintain a durable, long-term memory of the user across conversations.
 
 You are given the latest conversation and the current memory index. Decide what — if anything — to change. The default is to change NOTHING: almost every conversation teaches nothing worth keeping. The running context of THIS conversation is handled elsewhere — your only job is the handful of facts that will still change how you help this person in unrelated chats months from now.
 
@@ -169,7 +175,8 @@ Respond ONLY with a JSON object:
 
 Return { "operations": [] } when nothing durable was learned — this is the common case. Never invent an id — only use ids from the index.`
 
-const INSTRUCTION_SYSTEM = `You edit the user's long-term memory from a direct instruction. They are looking at their memory and telling you what to add, change, or remove.
+/** Exported for the faux-boot marker test only. */
+export const INSTRUCTION_SYSTEM = `You edit the user's long-term memory from a direct instruction. They are looking at their memory and telling you what to add, change, or remove.
 
 ${MEMORY_MODEL}
 
@@ -243,6 +250,18 @@ export async function runMemoryConsolidation(
 
 // ─── User instruction (manual edit) ───────────────────────────────────────────
 
+/** The field values an entry had (or now has), independent of its id — what
+ *  a `MemoryChange`'s `before`/`after` carries and undo restores. */
+export function snapshotOf(m: MemoryRow): MemorySnapshot {
+  return {
+    section: m.section,
+    key: m.key,
+    summary: m.summary,
+    details: m.details,
+    isActive: m.isActive ?? true
+  }
+}
+
 function memoryEntryBlock(m: MemoryRow): string {
   const bullets = m.details.map((d) => `- ${d}`).join('\n')
   return `[${m.id}] (${m.section}) ${m.key}\nsummary: ${m.summary}${
@@ -261,7 +280,7 @@ export async function runMemoryInstruction(
   scopeMemoryId: string | null,
   model: Model<string>,
   apiKey: string
-): Promise<{ applied: number }> {
+): Promise<MemoryInstructionResult> {
   // Include inactive entries so the user can reference / restore / delete them.
   const all = await getAllMemories(LOCAL_USER_ID)
   const scoped = scopeMemoryId
@@ -294,15 +313,21 @@ export async function runMemoryInstruction(
     throw new Error("Couldn't interpret that instruction — try rephrasing.")
   }
 
-  const validIds = new Set(all.map((m) => m.id))
-  let applied = 0
+  const byId = new Map(all.map((m) => [m.id, m]))
+  const changes: MemoryChange[] = []
 
   for (const op of parsed.data.operations) {
     if (op.op === 'delete') {
-      if (op.id && validIds.has(op.id)) {
-        await hardDeleteMemory(op.id)
-        applied++
-      }
+      const before = op.id ? byId.get(op.id) : undefined
+      if (!before) continue // unknown id (or deleted earlier this reply): ignored, not reported
+      await hardDeleteMemory(before.id)
+      byId.delete(before.id)
+      changes.push({
+        op: 'delete',
+        id: before.id,
+        before: snapshotOf(before),
+        after: null
+      })
       continue
     }
 
@@ -317,26 +342,45 @@ export async function runMemoryInstruction(
         .slice(0, 8)
     }
 
-    if (op.op === 'update' && op.id && validIds.has(op.id)) {
-      await updateMemory(op.id, { ...fields, confidence: op.confidence })
-      applied++
+    if (op.op === 'update') {
+      const before = op.id ? byId.get(op.id) : undefined
+      // unknown id, or deleted earlier this reply: ignored (never invents a create)
+      if (!before) continue
+      const updated = await updateMemory(before.id, {
+        ...fields,
+        confidence: op.confidence
+      })
+      if (!updated) continue
+      byId.set(before.id, updated)
+      changes.push({
+        op: 'update',
+        id: before.id,
+        before: snapshotOf(before),
+        after: snapshotOf(updated)
+      })
     } else {
-      await createMemory({
+      const created = await createMemory({
         userId: LOCAL_USER_ID,
         source: 'explicit',
         confidence: op.confidence ?? 0.9,
         ...fields
       })
-      applied++
+      changes.push({
+        op: 'create',
+        id: created.id,
+        before: null,
+        after: snapshotOf(created)
+      })
     }
   }
 
-  return { applied }
+  return { applied: changes.length, changes }
 }
 
 // ─── Read filter ──────────────────────────────────────────────────────────────
 
-const READ_FILTER_SYSTEM = `You select which memory entries are directly relevant to a user's message.
+/** Exported for the faux-boot marker test only. */
+export const READ_FILTER_SYSTEM = `You select which memory entries are directly relevant to a user's message.
 Be conservative: only pick entries that would NOTICEABLY improve the reply.
 Respond ONLY with JSON: { "selectedMemoryIds": ["id1", "id2"] }
 If nothing is relevant: { "selectedMemoryIds": [] }`
@@ -349,7 +393,8 @@ export async function loadRelevantMemories(
   question: string,
   model: Model<string>,
   apiKey: string,
-  sessionId: string
+  sessionId: string,
+  runId: string
 ): Promise<MemoryRow[]> {
   try {
     const all = await getActiveMemories(LOCAL_USER_ID)
@@ -386,6 +431,9 @@ export async function loadRelevantMemories(
           logMemoryUsage({
             memoryId: m.id,
             sessionId,
+            runId,
+            key: m.key,
+            section: m.section,
             reason: 'read-filter'
           }).catch(() => {})
         )

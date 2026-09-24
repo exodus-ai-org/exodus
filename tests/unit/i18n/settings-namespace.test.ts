@@ -68,7 +68,7 @@ describe('settings namespace (en)', () => {
     expect(settings.nav.dataControls.title).toBe('Data Controls')
     expect(settings.nav.logger.title).toBe('Logger')
     expect(settings.nav.keyboardShortcuts.title).toBe('Keyboard Shortcuts')
-    expect(settings.nav.about.title).toBe('About Exodus')
+    expect(settings.nav.about.title).toBe('About')
   })
 
   it('has the General colour-tone keys', () => {
@@ -572,8 +572,7 @@ describe('settings namespace (en)', () => {
       toolCount_other: '{{count}} tools'
     })
     expect(settings.mcpServers.toast).toMatchObject({
-      updated: '"{{name}}" updated — reconnecting…',
-      operationFailed: 'Operation failed'
+      updated: '"{{name}}" updated — reconnecting…'
     })
   })
 

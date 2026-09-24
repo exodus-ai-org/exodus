@@ -267,6 +267,27 @@
   "run": {
     "error": "This reply stopped with an error: {{message}}"
   },
+  "memoryStrip": {
+    "updating": "Updating memory…",
+    "updated": "Memory updated · {{keys}}",
+    "partlyUpdated": "Memory partly updated · {{keys}}",
+    "undo": "Undo",
+    "undone": "Undone",
+    "partial": "Undid {{undone}} · {{skipped}} changed since and kept",
+    "stale": "Undone or changed since",
+    "failed": "Couldn't update memory",
+    "undoFailed": "Couldn't undo",
+    "new": "New",
+    "deleted": "Deleted"
+  },
+  "usedMemories": {
+    "label_one": "Used {{count}} memory · {{keys}}",
+    "label_other": "Used {{count}} memories · {{keys}}",
+    "wrong": "This is wrong",
+    "openSettings": "Open in Settings",
+    "deleted": "Deleted",
+    "prefill": "The memory about '{{key}}' is wrong: "
+  },
   "renderFailed": "{{what}} could not be shown.",
   "findInPage": {
     "placeholder": "Find in page...",

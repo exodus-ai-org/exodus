@@ -7,9 +7,11 @@ import { fetcher } from '@exodus/shared/utils/http'
 
 const BASE = '/api/v1/analytics'
 
-export const ANALYTICS_STATUS_KEY = `${BASE}/status`
-
 export type { AnalyticsStatus, QueryResult, SnapshotMeta }
+
+export function getAnalyticsStatus(): Promise<AnalyticsStatus> {
+  return fetcher<AnalyticsStatus>(`${BASE}/status`)
+}
 
 export function buildSnapshot(): Promise<SnapshotMeta> {
   return fetcher<SnapshotMeta>(`${BASE}/snapshot`, { method: 'POST' })

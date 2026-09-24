@@ -9,14 +9,15 @@ import {
 } from 'date-fns'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
 
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
+import { useChatHistory } from '@/hooks/use-chat-history'
+import { useInstalledSkills } from '@/hooks/use-installed-skills'
 import { useSettings } from '@/hooks/use-settings'
+import { useUsage } from '@/hooks/use-usage'
 import { monthLabels } from '@/lib/heatmap-months'
 import { cn } from '@/lib/utils'
-import type { UsageSummary } from '@/services/usage'
 
 import { SettingsSection } from '../settings-row'
 import { AvatarUploader } from './avatar-uploader'
@@ -89,11 +90,9 @@ const CELL_GAP_PX = 4 // gap between cells (and between columns)
 export function Profile({ form }: { form: UseFormReturnType }) {
   const { t } = useTranslation(['common', 'settings'])
   const { data: settings } = useSettings()
-  const { data: usage } = useSWR<UsageSummary>('/api/v1/usage')
-  const { data: chats } = useSWR<{ id: string }[]>('/api/v1/history')
-  const { data: skills } = useSWR<{ isActive: boolean }[]>(
-    '/api/v1/skills/installed'
-  )
+  const { data: usage } = useUsage()
+  const { data: chats } = useChatHistory()
+  const { data: skills } = useInstalledSkills()
   const [mode, setMode] = useState<'daily' | 'cumulative'>('daily')
 
   const byDay = useMemo(() => {

@@ -259,6 +259,26 @@
   "run": {
     "error": "이 답변은 오류로 중단되었습니다: {{message}}"
   },
+  "memoryStrip": {
+    "updating": "메모리를 업데이트하는 중…",
+    "updated": "메모리 업데이트됨 · {{keys}}",
+    "partlyUpdated": "메모리 일부 업데이트됨 · {{keys}}",
+    "undo": "실행 취소",
+    "undone": "실행 취소됨",
+    "partial": "{{undone}}개 실행 취소 · {{skipped}}개는 이후 변경되어 유지됨",
+    "stale": "실행 취소되었거나 이후 변경됨",
+    "failed": "메모리를 업데이트하지 못했습니다",
+    "undoFailed": "실행 취소하지 못했습니다",
+    "new": "새 항목",
+    "deleted": "삭제됨"
+  },
+  "usedMemories": {
+    "label_other": "메모리 {{count}}개 사용 · {{keys}}",
+    "wrong": "잘못된 내용입니다",
+    "openSettings": "설정에서 열기",
+    "deleted": "삭제됨",
+    "prefill": "'{{key}}'에 대한 메모리가 잘못되었습니다: "
+  },
   "renderFailed": "{{what}}을(를) 표시할 수 없습니다.",
   "findInPage": {
     "placeholder": "페이지에서 찾기…",

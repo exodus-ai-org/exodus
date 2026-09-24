@@ -1,17 +1,15 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type {
   SkillCuratedOwner,
-  SkillCuratedResponse,
   SkillListItem
 } from '@exodus/shared/types/skills'
 import { ChevronDownIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
 
 import { Badge } from '@/components/ui/badge'
+import { useCuratedSkills } from '@/hooks/use-skills-registry'
 import { cn } from '@/lib/utils'
-import { CURATED_KEY } from '@/services/skills'
 
 import { ExpandToggle, ListCard, LoadFailed, Skeletons } from './leaderboard'
 import { Installs, SkillRow, useCompactNumber } from './skill-row'
@@ -37,11 +35,7 @@ export function CuratedOwners({
 }) {
   const { t } = useTranslation('settings')
   const compact = useCompactNumber()
-  const { data, error, isLoading, mutate } = useSWR<SkillCuratedResponse>(
-    CURATED_KEY,
-    // Regenerated upstream on its own schedule; one fetch per session is plenty.
-    { revalidateOnFocus: false, revalidateIfStale: false }
-  )
+  const { data, error, isLoading, refetch } = useCuratedSkills()
   const [open, setOpen] = useState<Set<string>>(() => new Set())
   const [showAll, setShowAll] = useState<Set<string>>(() => new Set())
 
@@ -68,7 +62,7 @@ export function CuratedOwners({
     })
 
   if (isLoading) return <Skeletons count={8} />
-  if (error || !data) return <LoadFailed onRetry={() => mutate()} />
+  if (error || !data) return <LoadFailed onRetry={() => void refetch()} />
 
   const ownerRow = (owner: SkillCuratedOwner) => {
     const isOpen = open.has(owner.owner)

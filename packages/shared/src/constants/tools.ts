@@ -89,6 +89,12 @@ export const TOOL_REGISTRY: ToolMeta[] = [
     descriptionKey: 'tools.registry.searchKnowledgeBase.description',
     group: 'AI & Data'
   },
+  {
+    key: TOOL_NAMES.updateMemory,
+    labelKey: 'tools.registry.updateMemory.label',
+    descriptionKey: 'tools.registry.updateMemory.description',
+    group: 'AI & Data'
+  },
 
   // Maps
   {

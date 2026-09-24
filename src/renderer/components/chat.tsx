@@ -7,22 +7,20 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router'
 import { sileo } from 'sileo'
-import useSWR, { mutate } from 'swr'
 import { v4 as uuidV4 } from 'uuid'
 
 import { useChat } from '@/hooks/use-chat'
+import { useInvalidateChatHistory } from '@/hooks/use-chat-history'
+import { useProject } from '@/hooks/use-projects'
 import { advancedToolsAtom, reasoningEffortAtom } from '@/stores/chat'
 import { chatInputAtom, chatStatusAtom, chatStopFnAtom } from '@/stores/input'
-import type { Project } from '@/types/db'
 
 import { LcmStatusCard } from './chat/lcm-status-card'
 import Messages from './messages'
 import MultimodalInput from './multimodel-input'
 
 function ProjectBreadcrumb({ projectId }: { projectId: string }) {
-  const { data: project } = useSWR<Project & { chatCount: number }>(
-    `/api/v1/project/${projectId}`
-  )
+  const { data: project } = useProject(projectId)
 
   if (!project) return null
 
@@ -56,6 +54,7 @@ export function Chat({
   const { t } = useTranslation('chat')
   const { id: routeId } = useParams()
   const navigate = useNavigate()
+  const invalidateChatHistory = useInvalidateChatHistory()
   // Read once on mount — quick-chat hand-off only fires for the first render of
   // a fresh chat. (A lazy `useState`, not a ref filled during render: a ref
   // that stays `null` when there is nothing pending re-read localStorage on
@@ -101,7 +100,7 @@ export function Chat({
         projectId: projectIdRef.current
       }),
       onFinish: () => {
-        mutate('/api/v1/history')
+        invalidateChatHistory()
         if (!routeId) {
           navigate(`/chat/${id}`, { replace: true })
         }
@@ -115,7 +114,7 @@ export function Chat({
       },
       onTitle: (newTitle) => {
         setTitle(newTitle)
-        mutate('/api/v1/history')
+        invalidateChatHistory()
       }
     }
   )

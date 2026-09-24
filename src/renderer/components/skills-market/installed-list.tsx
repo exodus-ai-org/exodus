@@ -1,23 +1,20 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { InstalledSkill } from '@exodus/shared/types/skills'
-import { getHttpErrorMessage, toErrorI18n } from '@exodus/shared/utils/http'
 import { PackageOpenIcon, Trash2Icon } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { sileo } from 'sileo'
-import useSWR from 'swr'
 
 import { SettingsEmpty, SettingsItem } from '@/components/settings/settings-kit'
 import { SettingsSection } from '@/components/settings/settings-row'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
-import { useFormat } from '@/lib/format'
 import {
-  INSTALLED_SKILLS_KEY,
-  toggleSkill,
-  uninstallSkill
-} from '@/services/skills'
+  useInstalledSkills,
+  useToggleSkill,
+  useUninstallSkill
+} from '@/hooks/use-installed-skills'
+import { useFormat } from '@/lib/format'
 
 import { Skeletons } from './leaderboard'
 import { refFromInstalled, type SkillRef } from './types'
@@ -28,37 +25,17 @@ export function InstalledSkillsList({
 }: {
   onOpen: (ref: SkillRef) => void
 }) {
-  const { t, i18n } = useTranslation('settings')
+  const { t } = useTranslation('settings')
   const { dateTime } = useFormat()
-  const { data, isLoading } = useSWR<InstalledSkill[]>(INSTALLED_SKILLS_KEY)
+  const { data, isLoading } = useInstalledSkills()
+  const toggle = useToggleSkill()
+  const uninstall = useUninstallSkill()
   const [pendingUninstall, setPendingUninstall] =
     useState<InstalledSkill | null>(null)
 
-  const handleToggle = async (skill: InstalledSkill, isActive: boolean) => {
-    try {
-      await toggleSkill(skill.slug, isActive)
-    } catch (err) {
-      const description = getHttpErrorMessage(err, toErrorI18n(i18n))
-      sileo.error({ title: t('skillsMarket.toast.updateFailed'), description })
-    }
-  }
-
-  const handleUninstall = async (skill: InstalledSkill) => {
+  const handleUninstall = (skill: InstalledSkill) => {
     setPendingUninstall(null)
-    try {
-      await uninstallSkill(skill.slug)
-      sileo.success({
-        title: t('skillsMarket.toast.uninstalledTitle', {
-          name: skill.displayName
-        })
-      })
-    } catch (err) {
-      const description = getHttpErrorMessage(err, toErrorI18n(i18n))
-      sileo.error({
-        title: t('skillsMarket.toast.uninstallFailed'),
-        description
-      })
-    }
+    uninstall.mutate({ slug: skill.slug, displayName: skill.displayName })
   }
 
   if (isLoading || !data) return <Skeletons count={2} />
@@ -123,7 +100,9 @@ export function InstalledSkillsList({
                   <Switch
                     data-testid={TEST_IDS.skillsMarket.activeSwitch}
                     checked={skill.isActive}
-                    onCheckedChange={(checked) => handleToggle(skill, checked)}
+                    onCheckedChange={(checked) =>
+                      toggle.mutate({ slug: skill.slug, isActive: checked })
+                    }
                     aria-label={t('skillsMarket.detail.active')}
                   />
                   <Button

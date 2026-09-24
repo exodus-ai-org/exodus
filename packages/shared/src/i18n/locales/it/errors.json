@@ -1,5 +1,6 @@
 {
   "somethingWentWrong": "Qualcosa è andato storto. Riprova.",
+  "generic": "Qualcosa è andato storto",
   "http": {
     "400": "Non è stato possibile elaborare la richiesta.",
     "404": "La risorsa richiesta non è stata trovata.",

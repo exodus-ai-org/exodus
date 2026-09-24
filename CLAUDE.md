@@ -99,6 +99,7 @@ bun run db:generate      # Generate Drizzle migrations from schema
 ```bash
 bun run i18n:check       # Verify catalog parity across all locales (also runs in the pre-commit gate)
 bun run i18n:status      # Print the translation-review status board per locale
+bun run icons            # Regenerate every icon, the tray glyph, web assets and the boot splash from brand/art.mjs
 ```
 
 ## Architecture
@@ -118,7 +119,7 @@ Exodus uses a three-process architecture:
    - React 19 application with React Router v7
    - Communicates with main process via HTTP (localhost:60223)
    - Uses Jotai for global state management
-   - SWR for server state fetching
+   - @tanstack/react-query for server state fetching
    - Entry points: main app plus the sub-apps searchbar, quick-chat, artifacts
 
 3. **Preload Process** (`src/preload/preload.ts`):
@@ -288,6 +289,62 @@ mirrors it to localStorage (`exodus-color-tone`) so every entry (`main.tsx`
   sub-apps follow via the `storage` event. The light/dark/system mode stays in
   next-themes' `vite-ui-theme` key.
 
+### Icons, tray and boot splash
+
+The mascot is **Ody the Traveller**, a marshmallow gumdrop with a polka-dot
+bindle over its shoulder, on sunflower yellow; the menu bar glyph is Ody's
+head alone, leaning in from the corner (a head reads better than the full
+figure at 22 pt). The art is SVG-building functions in `brand/art.mjs`
+(shared helpers in `brand/lib.mjs`), and `bun run icons`
+(`scripts/render-icons.mjs`: Playwright's Chromium or an installed Chrome,
+plus `iconutil`) renders everything from it:
+
+- `build/icon.icns` and `build/icon-dock.png` — from the Icon Composer export
+  `brand/liquid-glass/light.png`, on Apple's 824-in-1024 grid with a drop
+  shadow; `build/icon.ico`, `build/icon.png`, `build/<n>x<n>.png` for the
+  other packagers
+- `build/icon.icon` — a copy of `brand/Exodus.icon`, the Icon Composer
+  document (layer order, glass, shadow; the background swaps to
+  `background-dark.svg` in the dark appearance via `hidden-specializations`),
+  with its layer SVGs refreshed from `brand/icon-composer/`. @electron/packager
+  compiles it with `actool` into `Assets.car` + `CFBundleIconName`, so macOS 26
+  follows System Settings → Appearance → Icon & widget style (Default /
+  Dark / Clear / Tinted — not the light/dark appearance itself); older macOS
+  falls back to `icon.icns`. That needs macOS 26 + Xcode 26 on the packaging machine
+  and fails the build otherwise, which is why every macOS job in CI
+  (`release.yml`, `pr-check.yml`, `playwright.yml`) runs on `macos-26`, not
+  `macos-latest`
+- `src/renderer/assets/images/logo-light.png` and `logo-dark.png` — the
+  Liquid Glass exports at 256 px for the header of Settings → About (the
+  app theme picks one)
+- `resources/icon.png` (Linux window icon) and
+  `resources/trayTemplate{,@2x,@3x}.png` (22 pt, black + alpha: the
+  `Template` suffix lets macOS tint it; `tray.ts` loads the 1x name)
+- `brand/svg/` masters, `brand/icon-composer/` layers (Ody without its
+  contact shadow — Icon Composer adds its own), `brand/ios/AppIcon.appiconset`
+  (light, dark, tinted; no alpha), `brand/web/` (favicons, touch icon, PWA
+  icons + manifest, `og-image.png` set in Fredoka from `brand/fonts/`)
+- the boot splash in `index.html`, between its `boot-splash:start` /
+  `boot-splash:end` markers: Ody walks in, hops with the bindle swinging,
+  blinks, and three dots pulse while the module graph loads. It lives inside
+  `#root`, so React's first render replaces it (the e2e fixture waits for
+  `#boot-splash` to go), has no background of its own (window vibrancy), and
+  animates only `transform` / `opacity` on separate HTML layers — those run
+  on the compositor, so the motion does not freeze while the main thread is
+  busy.
+
+A dev run (`bun run start`) is node_modules' prebuilt `Electron.app`, so
+macOS shows Electron's own icon and name. `setDevDockIcon()`
+(`src/main/lib/dock-icon.ts`, first thing on `ready`, dev + macOS only)
+points the Dock at `build/icon-dock.png` (`nativeImage` cannot read
+`.icns`). The menu bar title stays "Electron":
+it is that bundle's `CFBundleName` and cannot change at runtime; patching
+its `Info.plist` would also invalidate the signature the Accessibility /
+Screen Recording grants are tied to, so it is deliberately left alone.
+
+Never edit a generated file by hand. `brand/` is deliberately outside
+`resources/`, which is copied into the app bundle whole (`extraResource`).
+
 ### Migration status
 
 `docs/migration-plan.md` records how the business code was ported from
@@ -429,7 +486,7 @@ the tool definitions, the binder, the system prompt, the renderer's dispatch
 and the settings registry (migration 0007 rewrote stored rows from the old
 camelCase; `toToolName()` maps a pre-rename `disabledTools` key):
 
-`computer_use`, `create_artifact`, `deep_research`, `edit_file`, `find_files`, `grep`, `image_generation`, `lcm_describe`, `lcm_expand`, `lcm_grep`, `list_directory`, `map_itinerary`, `read_file`, `search_knowledge_base`, `terminal`, `weather`, `web_fetch`, `web_search`, `write_file`.
+`computer_use`, `create_artifact`, `deep_research`, `edit_file`, `find_files`, `grep`, `image_generation`, `lcm_describe`, `lcm_expand`, `lcm_grep`, `list_directory`, `map_itinerary`, `read_file`, `search_knowledge_base`, `terminal`, `update_memory`, `weather`, `web_fetch`, `web_search`, `write_file`.
 
 `weather` is Open-Meteo (no key: a geocoding call, then seven days with 24
 hourly points, WMO codes, all in the place's local time). The card reads
@@ -544,7 +601,8 @@ Allows external tools/servers to be integrated via MCP protocol:
 **Memory System** (`src/main/lib/ai/memory/manager.ts`):
 
 A durable, topic-consolidated memory of the user. Key functions:
-`runMemoryConsolidation()`, `loadRelevantMemories()`, `formatMemoriesForSystem()`.
+`runMemoryConsolidation()`, `loadRelevantMemories()`, `formatMemoriesForSystem()`,
+`runMemoryInstruction()`.
 
 **Memory entries** (one row per topic/person in the `memory` table):
 
@@ -563,8 +621,45 @@ A durable, topic-consolidated memory of the user. Key functions:
 
 2. **Read filter** (`loadRelevantMemories()` / `formatMemoriesForSystem()`) —
    pre-turn when `memory.useInChat`. One LLM call picks the relevant
-   entries; selected entries are recorded in `memory_usage_log` and get
-   `lastUsedAt` bumped, then rendered into a `<user_memory>` system block.
+   entries; selected entries are recorded in `memory_usage_log` (with the
+   run's id and the entry's key/section at the time, so a later delete still
+   has a name to show) and get `lastUsedAt` bumped, then rendered into a
+   `<user_memory>` system block.
+
+3. **User correction** (`runMemoryInstruction()`, the same engine Settings →
+   Memory's instruction box uses) — one LLM call turns a free-text
+   instruction into `create`/`update`/`delete` operations and returns
+   `{ applied, changes: MemoryChange[] }` (`MemoryChange`/`MemorySnapshot` in
+   `packages/shared/src/types/memory.ts`): `before`/`after` snapshots per
+   change, `null` for a create's `before` or a delete's `after`. The
+   `update_memory` tool (`calling-tools/update-memory.ts`, bound for a chat
+   with a model and key, except in Deep Research or when switched off in
+   Built-in Tools) calls it directly and synchronously, with no
+   scope — the model corrects, adds or forgets something without asking
+   first (the system prompt's autonomy policy); "no change needed" is a
+   normal result, not an error, and draws no UI. `POST /api/v1/memory/undo`
+   (body `{ changes }`, `memory/undo.ts`) reverses a run's changes
+   newest-first, each only while the entry's current state still equals that
+   change's
+   `after` (a missing row counts as `after === null`) — an entry edited
+   since elsewhere (Settings, another chat) is skipped and reported, never
+   overwritten; running the same `changes` twice is a no-op the second time.
+
+**Which memories a run used**: the chat route sends `{ type: 'memories_used',
+runId, memories: [{ id, key, section }] }` over SSE before the first frame,
+whenever the read filter selected something (Deep Research runs no read
+filter — its prompt carries no memories); `GET /api/v1/memory/usage?chatId=`
+(`getMemoryUsageByChat()`) replays the same shape per run for a chat reopened
+from history, grouped by `runId` (a pre-migration row with a null `runId` is
+skipped, not shown). Renderer: `hooks/use-memory.ts` (`useMemories`,
+`useRunMemoryUsage`, `useUndoMemoryChanges`) backs
+`components/chat/used-memories.tsx` (the "Used N memories · keys" line and its
+popover at the run's foot — a deleted entry still shows its logged key,
+greyed; "This is wrong" prefills the composer through `chatInputFocusAtom`)
+and `components/chat/memory-change-strip.tsx` (the run-foot strip for
+`update_memory`: running → done, with per-change before/after and Undo;
+`lib/run-memory-changes.ts` derives its state from the run's own messages,
+never a separate fetch).
 
 ### Philharmonic (multi-agent Groups)
 
@@ -647,7 +742,7 @@ Their windows live in `src/main/lib/window.ts`.
 - React 19 with TypeScript
 - React Router v7 for navigation
 - Jotai for global state management (atoms in `src/renderer/stores/`)
-- SWR for server state fetching
+- @tanstack/react-query for server state fetching
 - Tailwind CSS + Radix UI components
 - @tiptap for rich text editing (Immersive Editor)
 - Monaco Editor for code display
@@ -668,7 +763,35 @@ Their windows live in `src/main/lib/window.ts`.
 
 - All API calls via `fetcher()` utility to `http://localhost:60223/api/*`
 - Streaming responses are consumed from the server's `runAgent()`-driven SSE stream (`lib/stream-manager.ts`)
-- SWR for caching and revalidation
+- @tanstack/react-query for caching and revalidation (see "Server state (React Query)" below)
+
+### Server state (React Query)
+
+- `services/*.ts` are pure `fetcher()` wrappers (no React/sileo/i18n); each domain has
+  `hooks/use-<domain>.ts` with a query-key factory plus `useQuery`/`useMutation` — components never
+  import `useQuery`/`useMutation`/`useQueryClient` directly.
+- The one client is `lib/query-client.ts` (`createAppQueryClient()`): a failed query is reported
+  (`reportRendererError`) never toasted; a failed mutation is reported, then toasted once, globally,
+  titled from `meta.errorTitle` (falling back to a localized generic message) unless `meta.silent` is
+  set, which skips the toast but not the report — hooks never catch-and-toast themselves; success
+  toasts live in the hook's own `onSuccess`. The one deliberate exception is `use-settings.ts`: its
+  save must land in the cache without a revalidating GET (a GET's freshly-bumped `updatedAt` would
+  echo through `useForm({ values: settings })` and loop the autosave), so it `try`/`catch`es the write
+  itself and toasts both outcomes directly, instead of going through a `useMutation`.
+- Defaults suit a LOCAL API: `retry: 1` at 500 ms, no focus/reconnect refetch, `networkMode:
+'always'`; `refetchOnWindowFocus: true` is opted in per query whose data an outside writer
+  (exodus-ios, exodus-cli, the phone) can change: chat history, the projects list + project chats,
+  devices, installed skills, the three logs reads, the Discover feed, and the Ollama probe
+  (`use-chat-history.ts`, `use-projects.ts`, `use-devices.ts`, `use-installed-skills.ts`,
+  `use-logs.ts`, `use-discover-feed.ts`, `use-ollama-status.ts`) — plus the memory list
+  (`use-memory.ts`'s `useMemories()`), which the chat's own `update_memory` tool and background
+  consolidation can both write with the Memory page not open. The remote skills.sh relay uses
+  `lib/relay-retry.ts`'s `RELAY_RETRY` instead. `installWindowFocusListener()` (`main.tsx`, at boot)
+  follows the window's own focus/blur, not just `visibilitychange`, and feeds every one of those
+  opted-in queries.
+- Hook tests: some wrap `renderWithQueryClient` from `tests/unit/helpers/query-test-utils.ts` for the
+  mount scaffolding (isolated client, retries off); others still roll their own — not yet a single
+  convention across every hook test. `@tanstack/react-query-devtools` is dev-only in `main.tsx`.
 
 ### Path Aliases
 
@@ -796,11 +919,18 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   (`multimodel-input.tsx`) and `ChatToc` are `memo`'d; don't pass them
   `messages` or anything else that changes per frame unless they show it
   (`ChatToc` compares user messages only).
+- **The memory foot subscribes to its own run only.** `UsedMemories` and
+  `MemoryChangeStrip` (`chat/used-memories.tsx`, `chat/memory-change-strip.tsx`)
+  render under `AssistantTurnSegment`, after the body. `MemoryChangeStrip` is
+  memoized on the turn's `messages` array — unchanged for a settled run, per
+  the identity guarantee above — and `UsedMemories` reads only its own
+  `runId`'s slice of the chat's usage record (`useRunMemoryUsage`'s `select`);
+  another run streaming touches neither.
 
 ### When Working with Frontend
 
 - Use Jotai atoms for global state (avoid prop drilling)
-- SWR hooks for server data fetching with automatic revalidation
+- React Query hooks (`hooks/use-<domain>.ts`) for server data fetching with automatic revalidation
 - Always use path alias `@` for renderer imports
 - Tailwind + Radix UI for consistent styling
 - Keyboard shortcuts go through TanStack Hotkeys (`@tanstack/react-hotkeys`,
@@ -969,7 +1099,7 @@ undefined (reading 'startTime') at …reportAllChanges` — is not app code (app
 2. Define Hono route handlers
 3. Import and register in main server setup
 4. Create corresponding service in `src/renderer/services/my-service.ts`
-5. Use SWR hook for data fetching in components
+5. Add a `hooks/use-my-domain.ts` wrapping it in `useQuery`/`useMutation` (see "Server state (React Query)") and use that hook for data fetching in components
 
 ### Adding a New Provider
 
@@ -1141,7 +1271,10 @@ Main process:
   `/api/v1/logs` (filters incl. `traceId`) + `/api/v1/logs/scopes` and the
   Settings → Logger tab; `POST /api/v1/logs` is the renderer reporting an
   error it caught (`lib/report-error.ts`), written under a
-  `renderer/<scope>` surface. See
+  `renderer/<scope>` surface — or, with `source: 'ios'` in the body, a
+  paired exodus-ios device reporting its own local errors over the LAN
+  listener, written under `ios/<scope>` instead; either accepts a single
+  report or `{ reports: [...] }` (capped at 50). See
   `docs/superpowers/specs/2026-09-06-standardized-logging-design.md`
 - `src/main/lib/computer/` — window-scoped screenshot-loop Computer Use V0: the
   `exodus-input` Swift helper (list-windows / list-apps / screenshot / activate /
@@ -1225,6 +1358,10 @@ Renderer:
   and that field is empty. (The snake_case rename once left this map on the
   old camelCase keys and the three panels vanished silently;
   `tool-config.test.ts` pins the keys to the registry now.)
+- `src/renderer/components/status-strip.tsx` — `StatusStrip` (an icon + text
+  row on the frosted surface, with an optional `Reveal`-able `details`
+  section): shared by `lcm-status-card.tsx` (compaction) and
+  `chat/memory-change-strip.tsx` (`update_memory`)
 - `src/renderer/components/morph.tsx` — `Morph` (two states in one cell, the
   height following the active one under a blurred crossfade) and `Reveal` (a
   section growing from 0fr): the in-place opening a card or a row is allowed
@@ -1234,10 +1371,22 @@ Renderer:
   the web-search list is 239 of them)
 - `src/renderer/components/skills-market/` — Settings → Skills Market (Discover grid, detail page with audit + CLI command, Installed list)
 - `src/renderer/containers/` — page-level components
-- `src/renderer/stores/` — Jotai atoms
+- `src/renderer/stores/` — Jotai atoms, incl. `input.ts`'s `chatInputAtom`
+  (the composer's draft text) and `chatInputFocusAtom` (a counter
+  `multimodel-input.tsx`'s `InputBox` watches to refocus and re-caret the
+  composer — bumped by `used-memories.tsx`'s "This is wrong")
 - `src/renderer/hooks/` — React hooks
 - `src/renderer/services/` — API call wrappers
-- `src/renderer/lib/` — renderer utilities (ipc, stream-manager, `tone.ts` — `data-tone` apply/boot cache, `mask-url.ts` — `maskUrlSecrets()` for showing a URL without its query-string credentials, `heatmap-months.ts` — month labels for the Profile heatmap, `report-error.ts` — `reportRendererError()` + `installGlobalErrorReporting()` (see Motion/render-path notes above), `menu-bridge.ts` — `installMenuBridge()`, the renderer half of the native menu's New Chat / Settings… items: `menu.ts`'s `goToMainWindow()` raises the main window and sends `menu:new-chat` / `menu:open-settings`; `router.navigate()` needs no component to answer it)
+- `src/renderer/lib/` — renderer utilities (ipc, stream-manager, `query-client.ts` — the one
+  `QueryClient` (`createAppQueryClient()`) and `installWindowFocusListener()` (see "Server state
+  (React Query)" above), `relay-retry.ts` — `RELAY_RETRY` for the remote skills.sh relay, `tone.ts`
+  — `data-tone` apply/boot cache, `mask-url.ts` — `maskUrlSecrets()` for showing a URL without its
+  query-string credentials, `heatmap-months.ts` — month labels for the Profile heatmap,
+  `report-error.ts` — `reportRendererError()` + `installGlobalErrorReporting()` (see
+  Motion/render-path notes above), `menu-bridge.ts` — `installMenuBridge()`, the renderer half of
+  the native menu's New Chat / Settings… items: `menu.ts`'s `goToMainWindow()` raises the main
+  window and sends `menu:new-chat` / `menu:open-settings`; `router.navigate()` needs no component to
+  answer it)
 - `src/renderer/components/tone-bridge.tsx` — follows `settings.colorTone` and re-applies it
 - `src/renderer/sub-apps/` — searchbar, quick-chat, artifacts entry points
 
@@ -1252,6 +1401,11 @@ Shared:
   config for both processes, JSON catalogs lazy-loaded per locale),
   `catalog-audit.ts`, `types.d.ts` (typed `t()` keys), `locales/<id>/<ns>.json`.
   See `docs/superpowers/specs/2026-09-11-i18n-design.md`.
+
+Brand:
+
+- `brand/art.mjs` — the icon art (see Icons, tray and boot splash), `brand/lib.mjs` — shared drawing helpers; `scripts/render-icons.mjs` renders them (`bun run icons`)
+- `brand/svg/`, `brand/icon-composer/`, `brand/ios/`, `brand/web/` — generated outputs; `brand/liquid-glass/` — the Icon Composer exports (light, dark); `brand/fonts/` — Fredoka (OFL) for the wordmark
 
 Tests & config:
 

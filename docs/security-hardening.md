@@ -46,6 +46,11 @@ Exodus is local-first, but three things make it a target anyway:
   breaks remote images in chat unless they are proxied through main.
 - `terminal`, `writeFile` and `editFile` run without per-call confirmation;
   the tool toggle in the composer is the only gate.
+- Memory poisoning by indirect prompt injection: a page the model reads
+  (`web_fetch`, a search result) can steer an autonomous `update_memory`, and
+  that change persists into every later chat's `<user_memory>` block. The
+  mitigation is the visible memory-change strip at the run's foot, with Undo;
+  there is no confirmation before the write.
 - The single-instance lock is keyed on Electron's `userData`, so it covers dev
   vs packaged Exodus but not universal-client, which shares `~/.exodus` from a
   `userData` of its own.

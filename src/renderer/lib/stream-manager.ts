@@ -1,12 +1,16 @@
+import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import type {
   ChatMessage,
   ChatSseEvent,
   ChatStatus,
   ToolNoticeLevel
 } from '@exodus/shared/types/chat'
+import type { UsedMemory } from '@exodus/shared/types/memory'
 import { sileo } from 'sileo'
 
+import { memoryKeys } from '@/hooks/use-memory'
 import { i18n } from '@/lib/i18n'
+import { queryClient } from '@/lib/query-client'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -139,6 +143,22 @@ async function consumeStream(stream: ActiveStream, response: Response) {
           stream.subscriber?.onTitle(event.title)
         } else if (event.type === 'notice') {
           notifyNotice(stream, event.level, event.message)
+        } else if (event.type === 'memories_used') {
+          // Which memories this run used, straight into the cache the
+          // history read (`GET /api/v1/memory/usage`) also fills — the
+          // chat's "used memories" line stays live without a refetch.
+          queryClient.setQueryData<Record<string, UsedMemory[]>>(
+            memoryKeys.usage(stream.chatId),
+            (old) => ({ ...old, [event.runId]: event.memories })
+          )
+        } else if (event.type === 'tool_call_end') {
+          if (event.toolName === TOOL_NAMES.updateMemory) {
+            // The `update_memory` tool just wrote the memory table (whether
+            // it succeeded or errored — either way the strip and an open
+            // Settings → Memory page need the current state) — same
+            // treatment as the undo mutation's `onSettled`.
+            queryClient.invalidateQueries({ queryKey: memoryKeys.all })
+          }
         } else if (event.type === 'error') {
           throw new Error(event.error)
         }

@@ -13,7 +13,6 @@ import {
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
-import useSWR from 'swr'
 
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
@@ -35,14 +34,13 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table'
+import { useAnalyticsStatus } from '@/hooks/use-analytics'
 import { useFormat } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import {
-  ANALYTICS_STATUS_KEY,
   buildSnapshot,
   resultToCsv,
   runAuditQuery,
-  type AnalyticsStatus,
   type QueryResult
 } from '@/services/analytics'
 
@@ -83,8 +81,8 @@ export function ChatAudit() {
   const {
     data: status,
     isLoading: statusLoading,
-    mutate: refreshStatus
-  } = useSWR<AnalyticsStatus>(ANALYTICS_STATUS_KEY)
+    refresh: refreshStatus
+  } = useAnalyticsStatus()
 
   const [sql, setSql] = useState(CHAT_AUDIT_PRESETS[0].sql)
   const [preset, setPreset] = useState<string | null>(CHAT_AUDIT_PRESETS[0].id)

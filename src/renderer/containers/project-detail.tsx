@@ -2,7 +2,6 @@ import type { StructuredInstructions } from '@exodus/shared/schemas/project-sche
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router'
-import useSWR from 'swr'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,22 +9,21 @@ import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  useProject,
+  useProjectChats,
+  useUpdateProject
+} from '@/hooks/use-projects'
 import { useFormat } from '@/lib/format'
-import { updateProject } from '@/services/project'
-import type { Chat, Project } from '@/types/db'
 
 export function ProjectDetail() {
   const { t } = useTranslation('chat')
   const { dateTime } = useFormat()
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { data: project, mutate: mutateProject } = useSWR<
-    Project & { chatCount: number }
-  >(id ? `/api/v1/project/${id}` : null)
-  const { data: chats } = useSWR<Chat[]>(
-    id ? `/api/v1/history?projectId=${id}` : null,
-    { fallbackData: [] }
-  )
+  const { data: project } = useProject(id)
+  const { data: chats = [] } = useProjectChats(id)
+  const { mutateAsync: updateProject } = useUpdateProject()
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -48,13 +46,20 @@ export function ProjectDetail() {
 
   const handleSave = async () => {
     if (!id) return
-    await updateProject(id, {
-      name,
-      description: description || undefined,
-      instructions: instructions || undefined,
-      structuredInstructions: useStructured ? structured : undefined
-    })
-    mutateProject()
+    try {
+      await updateProject({
+        id,
+        data: {
+          name,
+          description: description || undefined,
+          instructions: instructions || undefined,
+          structuredInstructions: useStructured ? structured : undefined
+        }
+      })
+    } catch {
+      // Already reported and toasted by the mutation cache; stays dirty to retry.
+      return
+    }
     setIsDirty(false)
   }
 

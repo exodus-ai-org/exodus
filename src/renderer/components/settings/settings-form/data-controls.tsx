@@ -8,8 +8,6 @@ import {
 } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { Trans, useTranslation } from 'react-i18next'
-import { sileo } from 'sileo'
-import useSWR from 'swr'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -23,14 +21,14 @@ import {
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Switch } from '@/components/ui/switch'
+import {
+  useBackupList,
+  useBackupStatus,
+  useCreateBackup
+} from '@/hooks/use-backup'
 import { useDbIo } from '@/hooks/use-db-io'
 import { useSettings } from '@/hooks/use-settings'
 import { cn } from '@/lib/utils'
-import {
-  createBackupNow,
-  type BackupInfo,
-  type BackupStatus
-} from '@/services/backup'
 
 import { ENTER_UP, staggerDelay } from '../settings-kit'
 import { SettingsRow, SettingsSection } from '../settings-row'
@@ -48,12 +46,9 @@ function formatDate(iso: string): string {
 export function DataControls() {
   const { t } = useTranslation(['common', 'settings'])
   const { data: settings, updateSettings } = useSettings()
-  const { data: backupStatus, mutate: mutateStatus } = useSWR<BackupStatus>(
-    '/api/v1/backup/status'
-  )
-  const { data: backups, mutate: mutateBackups } = useSWR<BackupInfo[]>(
-    '/api/v1/backup/list'
-  )
+  const { data: backupStatus } = useBackupStatus()
+  const { data: backups } = useBackupList()
+  const createBackup = useCreateBackup()
 
   const {
     exportData,
@@ -64,28 +59,11 @@ export function DataControls() {
     deleteLoading
   } = useDbIo()
 
-  const [backupLoading, setBackupLoading] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [importDialogOpen, setImportDialogOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
-
-  const handleBackupNow = async () => {
-    try {
-      setBackupLoading(true)
-      await createBackupNow()
-      mutateStatus()
-      mutateBackups()
-      sileo.success({
-        title: t('settings:dataControls.backupNow.successToast')
-      })
-    } catch {
-      sileo.error({ title: t('settings:dataControls.backupNow.errorToast') })
-    } finally {
-      setBackupLoading(false)
-    }
-  }
 
   const handleToggleAutoBackup = async (enabled: boolean) => {
     if (!settings) return
@@ -115,7 +93,7 @@ export function DataControls() {
           description={t('settings:dataControls.autoBackup.description')}
         >
           <Switch
-            checked={backupStatus?.autoBackup ?? true}
+            checked={settings?.autoBackup ?? true}
             onCheckedChange={handleToggleAutoBackup}
           />
         </SettingsRow>
@@ -131,10 +109,10 @@ export function DataControls() {
           <Button
             variant="outline"
             size="sm"
-            disabled={backupLoading}
-            onClick={handleBackupNow}
+            disabled={createBackup.isPending}
+            onClick={() => createBackup.mutate()}
           >
-            {backupLoading ? (
+            {createBackup.isPending ? (
               <Loader2 className="animate-spin" />
             ) : (
               <ShieldCheck />

@@ -26,7 +26,8 @@ vi.mock('@/components/markdown', () => ({
 // `t` must be one function, as it is in react-i18next: Messages resets its
 // segment caches whenever it changes (turn labels are translated when built).
 const t = (key: string) => key
-vi.mock('react-i18next', () => ({ useTranslation: () => ({ t }) }))
+const i18n = { language: 'en' }
+vi.mock('react-i18next', () => ({ useTranslation: () => ({ t, i18n }) }))
 vi.mock('@/lib/i18n', () => ({ i18n: { t } }))
 vi.mock('@/hooks/use-settings', () => ({
   useSettings: () => ({ data: undefined })
@@ -56,6 +57,23 @@ vi.mock('@/components/web-search/video-cards', () => ({
 }))
 vi.mock('react-medium-image-zoom', () => ({
   default: ({ children }: { children: unknown }) => children
+}))
+
+// The foot of each turn reads memory through these; counted, so a test can
+// see a settled turn's foot is not rendered again by a later turn's frames.
+const memoryReads = { list: 0, usage: new Map<string, number>() }
+const NO_USAGE: never[] = []
+vi.mock('@/hooks/use-memory', () => ({
+  useMemories: () => {
+    memoryReads.list += 1
+    return { data: undefined, isLoading: false }
+  },
+  useRunMemoryUsage: (_chatId: string, runId: string) => {
+    memoryReads.usage.set(runId, (memoryReads.usage.get(runId) ?? 0) + 1)
+    return NO_USAGE
+  },
+  useUndoMemoryChanges: () => ({ mutate: vi.fn(), isPending: false }),
+  useInvalidateMemory: () => vi.fn()
 }))
 
 const startStream = vi.fn()
@@ -119,13 +137,64 @@ const webSearch = (id: string, runId = `u${id.slice(1)}`) =>
     timestamp: 2
   }) as unknown as ChatMessage
 
+// The second turn corrected a memory: its foot carries the memory strip.
+const memoryCall = {
+  id: 'm2call',
+  runId: 'u2',
+  role: 'assistant',
+  stopReason: 'toolUse',
+  content: [
+    {
+      type: 'toolCall',
+      id: 'call-m2',
+      name: 'update_memory',
+      arguments: { instruction: 'I moved' }
+    }
+  ],
+  timestamp: 2
+} as unknown as ChatMessage
+const memoryResult = {
+  id: 'm2result',
+  runId: 'u2',
+  role: 'toolResult',
+  toolCallId: 'call-m2',
+  toolName: 'update_memory',
+  content: [{ type: 'text', text: "Updated 'Home'." }],
+  details: {
+    changes: [
+      {
+        op: 'update',
+        id: 'mem-1',
+        before: {
+          section: 'profile',
+          key: 'Home',
+          summary: 'Lives in Paris',
+          details: [],
+          isActive: true
+        },
+        after: {
+          section: 'profile',
+          key: 'Home',
+          summary: 'Lives in Lyon',
+          details: [],
+          isActive: true
+        }
+      }
+    ]
+  },
+  isError: false,
+  timestamp: 2
+} as unknown as ChatMessage
+
 // Two finished turns — the first ran a web search, so every later turn carries
-// citation sources — and a third that is streaming.
+// citation sources; the second changed a memory — and a third that is streaming.
 const HISTORY: ChatMessage[] = [
   user('u1', 'first question'),
   webSearch('t1'),
   assistant('a1', 'First answer 【1-source】'),
   user('u2', 'second question'),
+  memoryCall,
+  memoryResult,
   assistant('a2', 'Second answer'),
   user('u3', 'third question')
 ]
@@ -136,6 +205,8 @@ const frame = (text: string) => [...HISTORY, assistant('a3', text)]
 beforeEach(() => {
   markdownRenders.clear()
   sourcesSeen.clear()
+  memoryReads.list = 0
+  memoryReads.usage.clear()
 })
 
 describe('groupIntoSegments with a cache', () => {
@@ -236,6 +307,13 @@ describe('<Messages> while a reply streams', () => {
 
     expect(markdownRenders.get('First answer 【1-source】')).toBeGreaterThan(0)
     const settled = new Map(markdownRenders)
+    // The second turn's memory strip rendered (it reads the memory list);
+    // snapshot every foot's reads before the frames arrive.
+    expect(memoryReads.list).toBeGreaterThan(0)
+    const settledMemoryReads = {
+      list: memoryReads.list,
+      usage: new Map(memoryReads.usage)
+    }
     const firstTurnSources = sourcesSeen.get('First answer 【1-source】')
     expect(firstTurnSources).toEqual(SOURCES)
 
@@ -256,5 +334,10 @@ describe('<Messages> while a reply streams', () => {
       settled.get('Second answer')
     )
     expect(sourcesSeen.get('First answer 【1-source】')).toBe(firstTurnSources)
+    // …and neither is the foot of a settled turn: the memory strip of the
+    // turn that ran `update_memory`, or any finished turn's used-memories line.
+    expect(memoryReads.list).toBe(settledMemoryReads.list)
+    expect(memoryReads.usage.get('u1')).toBe(settledMemoryReads.usage.get('u1'))
+    expect(memoryReads.usage.get('u2')).toBe(settledMemoryReads.usage.get('u2'))
   })
 })

@@ -5,7 +5,6 @@ import { DownloadIcon, LoaderIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
-import useSWR from 'swr'
 
 import { Markdown } from '@/components/markdown'
 import { ShimmeringText } from '@/components/shimmering-text'
@@ -17,6 +16,7 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from '@/components/ui/tooltip'
+import { useDeepResearchResult } from '@/hooks/use-deep-research'
 import { i18n } from '@/lib/i18n'
 import { downloadFile } from '@/lib/utils'
 import { markdownToPdf } from '@/services/tools'
@@ -87,9 +87,7 @@ export function DeepResearchCard({
     activeDeepResearchIdAtom
   )
 
-  const { data: deepResearchResult } = useSWR<DeepResearch>(
-    `/api/v1/deep-research/result/${toolResult.id}`
-  )
+  const { data: deepResearchResult } = useDeepResearchResult(toolResult.id)
 
   const handleActiveDeepResearchSseId = () => {
     if (activeDeepResearchId) {

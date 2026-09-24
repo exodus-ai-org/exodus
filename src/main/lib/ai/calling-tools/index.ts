@@ -13,6 +13,7 @@ import { mapItinerary } from './map-itinerary'
 import { readFile } from './read-file'
 import { searchKnowledgeBase } from './search-knowledge-base'
 import { terminal } from './terminal'
+import { updateMemory } from './update-memory'
 import { weather } from './weather'
 import { webFetch } from './web-fetch'
 import { webSearch } from './web-search'
@@ -34,6 +35,7 @@ export {
   readFile,
   searchKnowledgeBase,
   terminal,
+  updateMemory,
   weather,
   webFetch,
   webSearch,

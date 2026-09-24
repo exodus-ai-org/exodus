@@ -23,6 +23,7 @@ import {
   readFile,
   searchKnowledgeBase,
   terminal,
+  updateMemory,
   weather,
   webFetch,
   webSearch,
@@ -109,9 +110,15 @@ export function bindCallingTools({
     }
   }
 
+  // Only for a chat (needs a model + key to run the instruction engine, and
+  // a chatId so this isn't Philharmonic, which keeps its own agent memory).
+  if (chatId && chatModel && apiKey && enabled(TOOL_NAMES.updateMemory)) {
+    tools.push(updateMemory(chatModel, apiKey))
+  }
+
   // MCP servers are reached through the two-tool toolbox, never bound one
   // by one: providers cap the tools array (OpenAI: 128) and a single server
-  // can exceed that alone. 19 built-ins plus two sit far below every limit.
+  // can exceed that alone. 20 built-ins plus two sit far below every limit.
   if (mcpTools.length > 0) tools.push(...mcpToolbox(mcpTools))
 
   return tools

@@ -2,9 +2,9 @@ import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
 import { AiProviders } from '@exodus/shared/types/ai'
 import { Controller } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import useSWR from 'swr'
 
 import { Input } from '@/components/ui/input'
+import { useOllamaStatus } from '@/hooks/use-ollama-status'
 import { useSettings } from '@/hooks/use-settings'
 
 import { SettingsRow, SettingsSection } from '../../settings-row'
@@ -13,13 +13,7 @@ import { ModelPicker } from './model-picker'
 export function Ollama({ form }: { form: UseFormReturnType }) {
   const { t } = useTranslation('settings')
   const { data: settings } = useSettings()
-  const { error } = useSWR(
-    settings?.providers?.ollamaBaseUrl
-      ? `/api/v1/tools/ping-ollama?url=${settings?.providers?.ollamaBaseUrl}`
-      : null
-  )
-
-  const isRunning = !!settings?.providers?.ollamaBaseUrl && error === undefined
+  const { isRunning } = useOllamaStatus(settings?.providers?.ollamaBaseUrl)
 
   return (
     <>

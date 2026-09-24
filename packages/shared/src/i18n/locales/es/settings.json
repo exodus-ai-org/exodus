@@ -93,7 +93,7 @@
       "title": "Atajos de teclado"
     },
     "about": {
-      "title": "Acerca de Exodus"
+      "title": "Acerca de"
     },
     "devices": {
       "title": "Dispositivos"
@@ -393,6 +393,10 @@
       "searchKnowledgeBase": {
         "label": "Base de conocimientos",
         "description": "Recuperar contexto de su base de conocimientos (requiere una URL de LightRAG configurada)"
+      },
+      "updateMemory": {
+        "label": "Actualizar memoria",
+        "description": "Permite que el asistente corrija, agregue o elimine entradas de memoria cuando le diga que algo sobre usted es incorrecto."
       },
       "mapItinerary": {
         "label": "Itinerario en mapa",
@@ -742,8 +746,7 @@
       "updateFailed": "No se pudo actualizar el servidor",
       "registerFailed": "No se pudo registrar",
       "removeFailed": "No se pudo eliminar el servidor",
-      "toggleFailed": "No se pudo alternar el servidor",
-      "operationFailed": "La operación falló"
+      "toggleFailed": "No se pudo alternar el servidor"
     }
   },
   "memory": {
@@ -814,9 +817,10 @@
       "newButton": "Nueva",
       "emptyTitle": "Aún no hay memorias",
       "emptyHint": "Se agregan automáticamente después de las conversaciones, o dile al asistente qué recordar más abajo.",
+      "loadFailedTitle": "No se pudieron cargar las memorias",
+      "loadFailedHint": "Tus memorias siguen guardadas. Inténtalo de nuevo.",
       "disabledHeading": "Desactivadas · {{count}}",
       "toast": {
-        "loadFailedTitle": "No se pudieron cargar las memorias",
         "createFailedTitle": "No se pudo crear"
       }
     }

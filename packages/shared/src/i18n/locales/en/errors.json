@@ -1,5 +1,6 @@
 {
   "somethingWentWrong": "Something went wrong. Please try again.",
+  "generic": "Something went wrong",
   "http": {
     "400": "The request could not be processed.",
     "404": "The requested resource could not be found.",

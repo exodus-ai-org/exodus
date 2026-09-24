@@ -8,6 +8,8 @@ import { ExternalLinkIcon } from 'lucide-react'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import logoDark from '@/assets/images/logo-dark.png'
+import logoLight from '@/assets/images/logo-light.png'
 import { Switch } from '@/components/ui/switch'
 import { useUpdater } from '@/hooks/use-updater'
 import { updaterSetAutoDownload } from '@/lib/ipc'
@@ -36,6 +38,34 @@ function ExternalLink({
   )
 }
 
+/**
+ * Who this is, the way a Mac app's About window opens: the icon (the Liquid
+ * Glass export, light or dark with the app's theme), the name, the version.
+ * Rendered by `bun run icons`.
+ */
+function AboutHeader() {
+  return (
+    <div className="flex items-center gap-4">
+      <img
+        src={logoLight}
+        alt=""
+        className="size-16 drop-shadow-sm dark:hidden"
+        draggable={false}
+      />
+      <img
+        src={logoDark}
+        alt=""
+        className="hidden size-16 drop-shadow-sm dark:block"
+        draggable={false}
+      />
+      <div className="flex flex-col gap-0.5">
+        <h2 className="text-xl font-semibold tracking-tight">Exodus</h2>
+        <Value>v{version}</Value>
+      </div>
+    </div>
+  )
+}
+
 /** A read-only fact on the right of a row — versions line up in mono digits. */
 function Value({ children }: { children: React.ReactNode }) {
   return (
@@ -58,6 +88,8 @@ export function SystemInfo({ form }: { form: UseFormReturnType }) {
 
   return (
     <>
+      <AboutHeader />
+
       {/* What people come here for first: which version, and is there a newer one. */}
       <SettingsSection>
         <SettingsRow label={t('about.version')}>

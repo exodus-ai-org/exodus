@@ -12,13 +12,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
-import { deleteChat } from '@/services/chat'
+import { useDeleteChat } from '@/hooks/use-chat-history'
 import { toBeDeletedChatAtom } from '@/stores/chat'
 
 export function ChatDeletionConfirmationDialog() {
   const { t } = useTranslation(['common', 'chat'])
   const { id } = useParams<{ id: string }>()
   const [toBeDeletedChat, setToBeDeletedChat] = useAtom(toBeDeletedChatAtom)
+  const { mutateAsync: deleteChat } = useDeleteChat()
 
   return (
     <AlertDialog
@@ -46,7 +47,13 @@ export function ChatDeletionConfirmationDialog() {
             className="bg-destructive hover:bg-destructive/90"
             onClick={async () => {
               if (!toBeDeletedChat) return
-              await deleteChat(toBeDeletedChat, id)
+              try {
+                await deleteChat({ chat: toBeDeletedChat, currentId: id })
+              } catch {
+                // Already reported and toasted by the mutation cache; the
+                // dialog stays open.
+                return
+              }
               setToBeDeletedChat(undefined)
             }}
           >

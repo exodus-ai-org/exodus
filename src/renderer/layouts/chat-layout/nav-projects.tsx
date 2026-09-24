@@ -9,7 +9,6 @@ import {
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate, useParams } from 'react-router'
-import useSWR from 'swr'
 
 import {
   AlertDialog,
@@ -46,14 +45,18 @@ import {
   SidebarMenuButton,
   SidebarMenuItem
 } from '@/components/ui/sidebar'
-import { createProject, deleteProject } from '@/services/project'
+import {
+  useCreateProject,
+  useDeleteProject,
+  useProjects
+} from '@/hooks/use-projects'
 import type { Project } from '@/types/db'
 
 export function NavProjects() {
   const { t } = useTranslation(['common', 'chat'])
-  const { data: projects, isLoading } = useSWR<Project[]>('/api/v1/project', {
-    fallbackData: []
-  })
+  const { data: projects, isLoading } = useProjects()
+  const { mutateAsync: createProject } = useCreateProject()
+  const { mutateAsync: deleteProject } = useDeleteProject()
   const navigate = useNavigate()
   const { id: currentId } = useParams<{ id: string }>()
 
@@ -65,7 +68,13 @@ export function NavProjects() {
 
   const handleCreateProject = async () => {
     if (!newProjectName.trim()) return
-    const project = await createProject({ name: newProjectName.trim() })
+    let project: Project
+    try {
+      project = await createProject({ name: newProjectName.trim() })
+    } catch {
+      // Already reported and toasted by the mutation cache; the dialog stays open.
+      return
+    }
     setNewProjectName('')
     setShowCreateDialog(false)
     if (project) {
@@ -75,7 +84,12 @@ export function NavProjects() {
 
   const handleDeleteProject = async () => {
     if (!toBeDeletedProject) return
-    await deleteProject(toBeDeletedProject)
+    try {
+      await deleteProject(toBeDeletedProject)
+    } catch {
+      // Already reported and toasted by the mutation cache.
+      return
+    }
     setToBeDeletedProject(null)
   }
 

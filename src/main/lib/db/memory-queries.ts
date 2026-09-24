@@ -1,10 +1,15 @@
+import type {
+  MemorySection,
+  MemorySnapshot,
+  UsedMemory
+} from '@exodus/shared/types/memory'
 import { and, desc, eq, inArray } from 'drizzle-orm'
 import { v4 as uuidV4 } from 'uuid'
 
 import { db } from './db'
 import { memory, memoryUsageLog } from './schema'
 
-export type MemorySection = 'profile' | 'topic' | 'person'
+export type { MemorySection, UsedMemory }
 export type MemorySource = 'explicit' | 'implicit' | 'system'
 
 export interface MemoryRow {
@@ -103,6 +108,30 @@ export async function hardDeleteMemory(id: string): Promise<void> {
   await db.delete(memory).where(eq(memory.id, id))
 }
 
+/** Re-inserts a snapshot under its original id — what undo uses to reverse a
+ *  `create` (the deleted row) or a `delete` (the snapshot it removed). */
+export async function restoreMemory(
+  id: string,
+  userId: string,
+  s: MemorySnapshot,
+  source: MemorySource
+): Promise<MemoryRow> {
+  const [row] = await db
+    .insert(memory)
+    .values({
+      id,
+      userId,
+      section: s.section,
+      key: s.key,
+      summary: s.summary,
+      details: s.details,
+      isActive: s.isActive,
+      source
+    })
+    .returning()
+  return row as unknown as MemoryRow
+}
+
 /** Bump `lastUsedAt` for memories that were surfaced into a chat. */
 export async function touchMemories(ids: string[]): Promise<void> {
   if (ids.length === 0) return
@@ -117,7 +146,44 @@ export async function touchMemories(ids: string[]): Promise<void> {
 export async function logMemoryUsage(data: {
   memoryId: string
   sessionId: string
+  runId: string
+  key: string
+  section: MemorySection
   reason: string
 }): Promise<void> {
   await db.insert(memoryUsageLog).values(data)
+}
+
+/** Which memories each run of a chat used, newest-logged-last within a run.
+ *  Rows from before migration 0009 (`runId IS NULL`) are skipped — old
+ *  history shows no "used memories" line rather than erroring or grouping
+ *  under a fake run. An entry logged twice in the same run is deduplicated. */
+export async function getMemoryUsageByChat(
+  chatId: string
+): Promise<Record<string, UsedMemory[]>> {
+  const rows = await db
+    .select({
+      runId: memoryUsageLog.runId,
+      memoryId: memoryUsageLog.memoryId,
+      key: memoryUsageLog.key,
+      section: memoryUsageLog.section
+    })
+    .from(memoryUsageLog)
+    .where(eq(memoryUsageLog.sessionId, chatId))
+    .orderBy(memoryUsageLog.createdAt)
+
+  const result: Record<string, UsedMemory[]> = {}
+  const seen = new Set<string>()
+  for (const row of rows) {
+    if (!row.runId || !row.memoryId) continue
+    const dedupeKey = `${row.runId}:${row.memoryId}`
+    if (seen.has(dedupeKey)) continue
+    seen.add(dedupeKey)
+    ;(result[row.runId] ??= []).push({
+      id: row.memoryId,
+      key: row.key ?? '',
+      section: (row.section as MemorySection | null) ?? 'topic'
+    })
+  }
+  return result
 }

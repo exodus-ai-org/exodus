@@ -1,6 +1,5 @@
 import { BASE_URL } from '@exodus/shared/constants/systems'
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
-import { fetcher } from '@exodus/shared/utils/http'
 import {
   ChevronLeftIcon,
   ChevronRightIcon,
@@ -13,7 +12,6 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
-import useSWR from 'swr'
 
 import {
   AlertDialog,
@@ -29,38 +27,16 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import {
+  useClearLogs,
+  useLogDates,
+  useLogs,
+  useLogScopes
+} from '@/hooks/use-logs'
 
 import { SettingsEmpty } from '../settings-kit'
 import { SettingsSection } from '../settings-row'
 import { SettingsSelect } from '../settings-select'
-
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-interface LogRecord {
-  timestamp: string
-  severityNumber: number
-  severityText: string
-  body: string
-  scope: { name: string }
-  attributes?: Record<string, unknown>
-  resource?: Record<string, unknown>
-  traceId?: string
-  originTraceId?: string
-}
-
-interface LogsResponse {
-  entries: LogRecord[]
-  total: number
-  page: number
-}
-
-interface DatesResponse {
-  dates: string[]
-}
-
-interface ScopesResponse {
-  scopes: string[]
-}
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -153,7 +129,7 @@ export function Logger() {
     }
   }, [keyword])
 
-  // Build SWR key
+  // The entries query's key: every filter is in the params string
   const params = new URLSearchParams({
     date,
     page: String(page),
@@ -164,13 +140,10 @@ export function Logger() {
   if (debouncedKeyword) params.set('keyword', debouncedKeyword)
   if (traceId) params.set('traceId', traceId)
 
-  const logsKey = `/api/v1/logs?${params.toString()}`
-
-  const { data: logsData, mutate } = useSWR<LogsResponse>(logsKey)
-  const { data: datesData } = useSWR<DatesResponse>('/api/v1/logs/dates')
-  const { data: scopesData } = useSWR<ScopesResponse>(
-    `/api/v1/logs/scopes?date=${date}`
-  )
+  const { data: logsData } = useLogs(params.toString())
+  const { data: datesData } = useLogDates()
+  const { data: scopesData } = useLogScopes(date)
+  const { mutate: clearAll } = useClearLogs()
 
   const scopeOptions = ['All', ...(scopesData?.scopes ?? [])]
 
@@ -210,19 +183,6 @@ export function Logger() {
       })
     }
   }, [date, t])
-
-  const handleClearAll = useCallback(async () => {
-    try {
-      await fetcher('/api/v1/logs', { method: 'DELETE' })
-      sileo.success({ title: t('logger.toast.cleared') })
-      mutate()
-    } catch (err) {
-      sileo.error({
-        title: t('logger.toast.clearFailed'),
-        description: err instanceof Error ? err.message : undefined
-      })
-    }
-  }, [mutate, t])
 
   return (
     <SettingsSection plain>
@@ -482,7 +442,7 @@ export function Logger() {
               variant="destructive"
               onClick={() => {
                 setClearing(false)
-                void handleClearAll()
+                clearAll()
               }}
             >
               {t('logger.actions.clearAll')}

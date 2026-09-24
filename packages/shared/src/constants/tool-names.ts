@@ -24,6 +24,7 @@ export const TOOL_NAMES = {
   readFile: 'read_file',
   webFetch: 'web_fetch',
   writeFile: 'write_file',
+  updateMemory: 'update_memory',
   // The MCP toolbox (`calling-tools/mcp-toolbox.ts`): MCP servers are not
   // bound tool by tool; the model lists a server's tools, then calls one.
   listMcpTools: 'list_mcp_tools',

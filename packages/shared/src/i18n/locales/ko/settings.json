@@ -93,7 +93,7 @@
       "title": "키보드 단축키"
     },
     "about": {
-      "title": "Exodus 정보"
+      "title": "정보"
     },
     "devices": {
       "title": "기기"
@@ -393,6 +393,10 @@
       "searchKnowledgeBase": {
         "label": "지식 베이스",
         "description": "지식 베이스에서 컨텍스트를 가져옵니다 (LightRAG URL 구성 필요)"
+      },
+      "updateMemory": {
+        "label": "메모리 업데이트",
+        "description": "당신에 대해 잘못 알고 있는 점을 알려주면 어시스턴트가 메모리를 수정, 추가 또는 삭제할 수 있습니다."
       },
       "mapItinerary": {
         "label": "지도 일정",
@@ -738,8 +742,7 @@
       "updateFailed": "서버 업데이트에 실패했습니다",
       "registerFailed": "등록에 실패했습니다",
       "removeFailed": "서버 제거에 실패했습니다",
-      "toggleFailed": "서버 전환에 실패했습니다",
-      "operationFailed": "작업에 실패했습니다"
+      "toggleFailed": "서버 전환에 실패했습니다"
     }
   },
   "memory": {
@@ -809,9 +812,10 @@
       "newButton": "새로 만들기",
       "emptyTitle": "아직 메모리가 없습니다",
       "emptyHint": "대화 후 자동으로 추가됩니다. 아래에서 어시스턴트에게 기억할 내용을 알려줄 수도 있습니다.",
+      "loadFailedTitle": "메모리를 불러오지 못했습니다",
+      "loadFailedHint": "메모리는 그대로 저장되어 있습니다. 다시 시도해 주세요.",
       "disabledHeading": "비활성화됨 · {{count}}",
       "toast": {
-        "loadFailedTitle": "메모리를 불러오지 못했습니다",
         "createFailedTitle": "생성에 실패했습니다"
       }
     }

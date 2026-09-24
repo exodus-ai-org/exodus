@@ -1,9 +1,9 @@
 import '@/assets/stylesheets/globals.css'
-import { fetcher } from '@exodus/shared/utils/http'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { Provider } from 'jotai'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider } from 'react-router'
-import { SWRConfig } from 'swr'
 
 import 'react-medium-image-zoom/dist/styles.css'
 import { I18nProvider } from '@/components/i18n-provider'
@@ -13,6 +13,7 @@ import { ToneBridge } from '@/components/tone-bridge'
 import { useLock } from '@/hooks/use-lock'
 import { i18nReady } from '@/lib/i18n'
 import { installMenuBridge } from '@/lib/menu-bridge'
+import { installWindowFocusListener, queryClient } from '@/lib/query-client'
 import { installGlobalErrorReporting } from '@/lib/report-error'
 import { bootTone } from '@/lib/tone'
 import { router } from '@/routes'
@@ -22,6 +23,11 @@ import { router } from '@/routes'
 bootTone()
 // Catches what no ErrorBoundary in the tree below can — see its docstring.
 installGlobalErrorReporting()
+// Feeds every query that opts into `refetchOnWindowFocus` (the Ollama probe
+// and the rest of the "Server state (React Query)" list in CLAUDE.md) a
+// focus signal when the window itself regains focus, not just on
+// `visibilitychange` — see query-client.ts.
+installWindowFocusListener()
 // New Chat / Settings… on the native menu — see menu-bridge.ts.
 installMenuBridge()
 
@@ -35,7 +41,7 @@ function AppRoot() {
 
 void i18nReady.finally(() => {
   ReactDOM.createRoot(document.querySelector('#root') as HTMLElement).render(
-    <SWRConfig value={{ fetcher }}>
+    <QueryClientProvider client={queryClient}>
       <Provider>
         <ThemeProvider>
           <I18nProvider>
@@ -44,6 +50,9 @@ void i18nReady.finally(() => {
           </I18nProvider>
         </ThemeProvider>
       </Provider>
-    </SWRConfig>
+      {import.meta.env.DEV && (
+        <ReactQueryDevtools buttonPosition="bottom-left" />
+      )}
+    </QueryClientProvider>
   )
 })

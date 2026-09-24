@@ -125,7 +125,21 @@ export const TEST_IDS = {
   },
   chat: {
     /** One per assistant message (= one per run). */
-    messageAction: 'chat.message-action'
+    messageAction: 'chat.message-action',
+    /** At the foot of a run that changed memory (the `update_memory` tool). */
+    memoryStrip: {
+      root: 'chat.memory-strip.root',
+      toggle: 'chat.memory-strip.toggle',
+      undo: 'chat.memory-strip.undo'
+    },
+    /** At the foot of a run that used memories: the line and its popover. */
+    usedMemories: {
+      trigger: 'chat.used-memories.trigger',
+      popover: 'chat.used-memories.popover',
+      /** One per entry in the popover. */
+      wrong: 'chat.used-memories.wrong',
+      openSettings: 'chat.used-memories.open-settings'
+    }
   },
   composer: {
     reasoningEffortItem: 'composer.reasoning-effort-item',
@@ -143,6 +157,11 @@ export const TEST_IDS = {
     details: 'weather-card.details',
     /** The readings grid, visible only once the card is open. */
     readings: 'weather-card.readings'
+  },
+  /** Settings → Memory. */
+  memorySettings: {
+    /** Retry on the stored-memories list after its read failed. */
+    retry: 'memory-settings.retry'
   },
   /** Settings → Built-in Tools. Each carries `data-tool="<wire name>"`. */
   tools: {

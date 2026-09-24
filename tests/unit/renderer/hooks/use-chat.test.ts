@@ -123,6 +123,56 @@ describe('useChat', () => {
     expect(latest.messages.map((m) => m.role)).toEqual(['assistant'])
   })
 
+  it('regenerates the last question of a chat reopened from history', async () => {
+    const history = [
+      { id: 'u1', runId: 'u1', role: 'user', content: 'first', timestamp: 1 },
+      assistantFrame('one'),
+      {
+        id: 'u2',
+        runId: 'u2',
+        role: 'user',
+        content: [
+          { type: 'text', text: 'second' },
+          {
+            type: 'image',
+            data: 'data:image/png;base64,AA',
+            mimeType: 'image/png'
+          }
+        ],
+        timestamp: 2
+      },
+      assistantFrame('two')
+    ] as ChatMessage[]
+    function Reopened() {
+      latest = useChat({
+        id: 'chat-1',
+        chatTitle: 'Title',
+        api: '/api/v1/chat',
+        messages: history
+      })
+      return null
+    }
+    root = createRoot(document.createElement('div'))
+    await act(async () => root.render(createElement(Reopened)))
+
+    await act(async () => latest.regenerate())
+
+    expect(startStream).toHaveBeenCalledTimes(1)
+    const sent = latest.messages.at(-1) as ChatMessage
+    expect(sent.role).toBe('user')
+    expect(sent.id).not.toBe('u2')
+    expect(sent.content).toEqual([
+      { type: 'text', text: 'second' },
+      { type: 'image', data: 'data:image/png;base64,AA', mimeType: 'image/png' }
+    ])
+  })
+
+  it('does nothing when there is no question to repeat', async () => {
+    await mount(() => ({}))
+    await act(async () => latest.regenerate())
+    expect(startStream).not.toHaveBeenCalled()
+  })
+
   it('does not re-render for a frame whose usage numbers did not change', async () => {
     await mount(() => ({}))
     await act(async () => latest.sendMessage({ text: 'hi' }))

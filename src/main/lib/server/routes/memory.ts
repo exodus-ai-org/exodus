@@ -1,13 +1,16 @@
 import { ErrorCode } from '@exodus/shared/constants/error-codes'
 import { NotFoundError, ValidationError } from '@exodus/shared/errors/app-error'
 import { Hono } from 'hono'
+import { z } from 'zod'
 
 import { LOCAL_USER_ID, runMemoryInstruction } from '../../ai/memory/manager'
+import { undoMemoryChanges } from '../../ai/memory/undo'
 import { getModelFromProvider } from '../../ai/utils/model-util'
 import {
   createMemory,
   getAllMemories,
   getMemoryById,
+  getMemoryUsageByChat,
   hardDeleteMemory,
   softDeleteMemory,
   updateMemory,
@@ -18,10 +21,48 @@ import { Variables } from '../types'
 import {
   deletionSuccessResponse,
   getRequiredParam,
+  getRequiredQuery,
   handleDatabaseOperation,
   successResponse,
-  updateSuccessResponse
+  updateSuccessResponse,
+  validateSchema
 } from '../utils'
+
+const memorySnapshotSchema = z.object({
+  section: z.enum(['profile', 'topic', 'person']),
+  key: z.string(),
+  summary: z.string(),
+  details: z.array(z.string()),
+  isActive: z.boolean()
+})
+
+// Each op carries exactly the snapshots its reversal reads: a create has no
+// `before`, a delete no `after`, an update both. Ids are uuids — anything else
+// is a 400 here rather than a Postgres "invalid input syntax" 500 later.
+const memoryChangeSchema = z.discriminatedUnion('op', [
+  z.object({
+    op: z.literal('create'),
+    id: z.uuid(),
+    before: z.null(),
+    after: memorySnapshotSchema
+  }),
+  z.object({
+    op: z.literal('update'),
+    id: z.uuid(),
+    before: memorySnapshotSchema,
+    after: memorySnapshotSchema
+  }),
+  z.object({
+    op: z.literal('delete'),
+    id: z.uuid(),
+    before: memorySnapshotSchema,
+    after: z.null()
+  })
+])
+
+const undoRequestSchema = z.object({
+  changes: z.array(memoryChangeSchema)
+})
 
 const memoryRouter = new Hono<{ Variables: Variables }>()
 
@@ -34,6 +75,36 @@ memoryRouter.get('/', async (c) => {
   )
   const filtered = section ? rows.filter((m) => m.section === section) : rows
   return successResponse(c, filtered)
+})
+
+// POST /api/v1/memory/undo — reverse a set of changes unless edited since.
+// Registered ahead of the /:id routes below, same as every other non-:id path.
+memoryRouter.post('/undo', async (c) => {
+  const { changes } = validateSchema(
+    undoRequestSchema,
+    await c.req.json(),
+    'changes is required'
+  )
+  const result = await handleDatabaseOperation(
+    () => undoMemoryChanges(changes),
+    'Failed to undo memory changes'
+  )
+  return successResponse(c, result)
+})
+
+// GET /api/v1/memory/usage?chatId= — which memories each run of a chat used.
+// Registered ahead of the /:id routes below, same as every other non-:id path.
+memoryRouter.get('/usage', async (c) => {
+  const chatId = validateSchema(
+    z.uuid(),
+    getRequiredQuery(c, 'chatId'),
+    'chatId must be a uuid'
+  )
+  const usage = await handleDatabaseOperation(
+    () => getMemoryUsageByChat(chatId),
+    'Failed to load memory usage'
+  )
+  return successResponse(c, usage)
 })
 
 // GET /api/v1/memory/:id

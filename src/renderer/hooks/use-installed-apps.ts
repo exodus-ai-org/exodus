@@ -1,5 +1,8 @@
-import type { InstalledApp } from '@exodus/shared/types/computer-use'
-import useSWR from 'swr'
+import { useQuery } from '@tanstack/react-query'
+
+import { getInstalledApps } from '@/services/computer-use'
+
+export const installedAppsKeys = { all: ['installed-apps'] as const }
 
 /**
  * Installed applications for the Computer Use allowlist picker. Pass
@@ -7,9 +10,15 @@ import useSWR from 'swr'
  * `list-apps` call scans the app directories and renders every icon.
  */
 export function useInstalledApps(enabled: boolean) {
-  const { data, isLoading } = useSWR<{ apps: InstalledApp[] }>(
-    enabled ? '/api/v1/computer-use/apps' : null,
-    { revalidateOnFocus: false, dedupingInterval: 60_000 }
-  )
+  const { data, isLoading } = useQuery({
+    queryKey: installedAppsKeys.all,
+    queryFn: getInstalledApps,
+    enabled,
+    // The scan is expensive and its failures (missing helper, no permission)
+    // are permanent: show the failure once instead of scanning twice.
+    retry: false,
+    refetchOnWindowFocus: false,
+    staleTime: 60_000
+  })
   return { apps: data?.apps ?? [], isLoading: enabled && isLoading }
 }

@@ -93,7 +93,7 @@
       "title": "Raccourcis clavier"
     },
     "about": {
-      "title": "À propos d'Exodus"
+      "title": "À propos"
     },
     "devices": {
       "title": "Appareils"
@@ -393,6 +393,10 @@
       "searchKnowledgeBase": {
         "label": "Base de connaissances",
         "description": "Récupérer du contexte depuis votre base de connaissances (nécessite une URL LightRAG configurée)"
+      },
+      "updateMemory": {
+        "label": "Mettre à jour la mémoire",
+        "description": "Permet à l'assistant de corriger, d'ajouter ou de supprimer des mémoires lorsque vous lui indiquez qu'une information à votre sujet est inexacte."
       },
       "mapItinerary": {
         "label": "Itinéraire cartographique",
@@ -742,8 +746,7 @@
       "updateFailed": "Échec de la mise à jour du serveur",
       "registerFailed": "Échec de l'enregistrement",
       "removeFailed": "Échec de la suppression du serveur",
-      "toggleFailed": "Échec du basculement du serveur",
-      "operationFailed": "Échec de l'opération"
+      "toggleFailed": "Échec du basculement du serveur"
     }
   },
   "memory": {
@@ -814,9 +817,10 @@
       "newButton": "Nouveau",
       "emptyTitle": "Aucune mémoire pour le moment",
       "emptyHint": "Elles sont ajoutées automatiquement après les conversations — ou dites à l’assistant quoi retenir ci-dessous.",
+      "loadFailedTitle": "Échec du chargement des mémoires",
+      "loadFailedHint": "Vos mémoires sont toujours enregistrées. Réessayez.",
       "disabledHeading": "Désactivées · {{count}}",
       "toast": {
-        "loadFailedTitle": "Échec du chargement des mémoires",
         "createFailedTitle": "Échec de la création"
       }
     }
