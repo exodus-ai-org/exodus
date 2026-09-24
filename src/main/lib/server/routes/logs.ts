@@ -103,29 +103,42 @@ logsRouter.get('/export', (c) => {
   })
 })
 
-// What one report from the renderer may carry. A stack is the biggest item;
+// What one report from a client may carry. A stack is the biggest item;
 // anything past the cap is cut, not refused, so a real error still lands.
 const MAX_MESSAGE_CHARS = 2000
 const MAX_ATTRIBUTE_CHARS = 8000
+const MAX_BATCH_REPORTS = 50
 
+// Who filed the report: the renderer (default, unchanged wire shape for
+// existing callers) or a paired exodus-ios device reporting its own local
+// errors over the LAN listener. Becomes the scope prefix below.
 const reportSchema = z.object({
   level: z.enum(['warn', 'error']),
   scope: z.string().min(1).max(64),
   message: z.string().min(1),
-  attributes: z.record(z.string(), z.unknown()).optional()
+  attributes: z.record(z.string(), z.unknown()).optional(),
+  source: z.enum(['renderer', 'ios']).optional()
 })
+
+// A single report, or a small batch — the phone flushes a buffer after being
+// offline, so it needs to send more than one report per request.
+const requestSchema = z.union([
+  reportSchema,
+  z.object({ reports: z.array(reportSchema).min(1).max(MAX_BATCH_REPORTS) })
+])
 
 const clip = (value: unknown, max: number): unknown =>
   typeof value === 'string' && value.length > max
     ? `${value.slice(0, max - 1)}…`
     : value
 
-// POST /api/v1/logs — an error the renderer caught (an error boundary, a
-// route error). Renderer errors otherwise live only in DevTools; this puts
-// them in the same JSONL the Logger tab reads, under a `renderer/<scope>`
-// surface, so a card that failed to render is diagnosable after the fact.
+// POST /api/v1/logs — an error a client caught: the renderer (an error
+// boundary, a route error) or a paired exodus-ios device. Client errors
+// otherwise live only on-device; this puts them in the same JSONL the Logger
+// tab reads, under a `renderer/<scope>` or `ios/<scope>` surface, so a card
+// that failed to render is diagnosable after the fact.
 logsRouter.post('/', async (c) => {
-  const parsed = reportSchema.safeParse(await c.req.json().catch(() => null))
+  const parsed = requestSchema.safeParse(await c.req.json().catch(() => null))
   if (!parsed.success) {
     return c.json(
       {
@@ -135,20 +148,28 @@ logsRouter.post('/', async (c) => {
       400
     )
   }
-  const { level, scope, message, attributes } = parsed.data
-  const detail = attributes
-    ? Object.fromEntries(
-        Object.entries(attributes).map(([k, v]) => [
-          k,
-          clip(v, MAX_ATTRIBUTE_CHARS)
-        ])
-      )
-    : undefined
-  logger[level](
-    `renderer/${scope}`,
-    clip(message, MAX_MESSAGE_CHARS) as string,
-    detail
-  )
+  const reports = 'reports' in parsed.data ? parsed.data.reports : [parsed.data]
+  for (const {
+    level,
+    scope,
+    message,
+    attributes,
+    source = 'renderer'
+  } of reports) {
+    const detail = attributes
+      ? Object.fromEntries(
+          Object.entries(attributes).map(([k, v]) => [
+            k,
+            clip(v, MAX_ATTRIBUTE_CHARS)
+          ])
+        )
+      : undefined
+    logger[level](
+      `${source}/${scope}`,
+      clip(message, MAX_MESSAGE_CHARS) as string,
+      detail
+    )
+  }
   return c.body(null, 204)
 })
 

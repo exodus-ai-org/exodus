@@ -1271,7 +1271,10 @@ Main process:
   `/api/v1/logs` (filters incl. `traceId`) + `/api/v1/logs/scopes` and the
   Settings → Logger tab; `POST /api/v1/logs` is the renderer reporting an
   error it caught (`lib/report-error.ts`), written under a
-  `renderer/<scope>` surface. See
+  `renderer/<scope>` surface — or, with `source: 'ios'` in the body, a
+  paired exodus-ios device reporting its own local errors over the LAN
+  listener, written under `ios/<scope>` instead; either accepts a single
+  report or `{ reports: [...] }` (capped at 50). See
   `docs/superpowers/specs/2026-09-06-standardized-logging-design.md`
 - `src/main/lib/computer/` — window-scoped screenshot-loop Computer Use V0: the
   `exodus-input` Swift helper (list-windows / list-apps / screenshot / activate /
