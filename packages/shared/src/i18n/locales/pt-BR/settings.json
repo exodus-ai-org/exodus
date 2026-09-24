@@ -328,7 +328,8 @@
       "retrieve": "Obter lista de modelos",
       "refresh": "Atualizar lista de modelos",
       "fetchErrorTitle": "Não foi possível obter a lista de modelos",
-      "fetchErrorFallback": "Falha ao obter a lista de modelos"
+      "fetchErrorFallback": "Falha ao obter a lista de modelos",
+      "reenterKey": "Digite a chave de API novamente para usá-la com a nova URL base."
     }
   },
   "tools": {
@@ -561,7 +562,7 @@
     },
     "export": {
       "label": "Exportar Dados",
-      "description": "Baixe uma cópia portátil de suas conversas, configurações e outros dados como um arquivo ZIP.",
+      "description": "Baixe uma cópia portátil de suas conversas, configurações e outros dados como um arquivo ZIP. Chaves de API e outros segredos são removidos da exportação.",
       "button": "Exportar",
       "successToast": "Dados exportados com sucesso",
       "errorToast": "Falha na exportação",
@@ -728,7 +729,14 @@
       },
       "updateButton": "Atualizar",
       "registerButton": "Registrar",
-      "addServerButton": "Adicionar Servidor"
+      "addServerButton": "Adicionar Servidor",
+      "env": {
+        "label": "Variáveis de ambiente",
+        "description": "Objeto JSON com as variáveis de ambiente passadas ao comando (opcional)."
+      },
+      "reenterHint": "Alterar o comando ou editar os argumentos exige digitar novamente os valores mascarados.",
+      "maskedHint": "•••• representa um valor salvo — deixe-o como está para mantê-lo.",
+      "reenterError": "Digite o segredo novamente aqui: ele ainda contém um valor mascarado (••••) que não pode ser mantido."
     },
     "json": {
       "description": "Visualização somente leitura da configuração atual. Use a aba Servidores para fazer alterações."
@@ -746,7 +754,8 @@
       "updateFailed": "Falha ao atualizar servidor",
       "registerFailed": "Falha ao registrar",
       "removeFailed": "Falha ao remover servidor",
-      "toggleFailed": "Falha ao alternar servidor"
+      "toggleFailed": "Falha ao alternar servidor",
+      "invalidEnv": "JSON de variáveis de ambiente inválido"
     }
   },
   "memory": {
@@ -1014,6 +1023,32 @@
     "toast": {
       "failedTitle": "Não deu certo",
       "pairedTitle": "Dispositivo pareado"
+    }
+  },
+  "secrets": {
+    "input": {
+      "saved": "Salva",
+      "reenter": "Digite esta chave novamente — a salva não pode mais ser usada."
+    },
+    "destinationHint": "Alterar este endereço apaga a chave de API salva — digite-a novamente depois de salvar.",
+    "notice": {
+      "encryptionUnavailable": "O chaveiro do sistema não está disponível; as chaves de API são armazenadas sem criptografia.",
+      "needsReentry": "Estas chaves salvas não podem mais ser lidas — digite-as novamente:"
+    },
+    "fields": {
+      "openaiApiKey": "Chave de API de OpenAI",
+      "azureOpenaiApiKey": "Chave de API de Azure OpenAI",
+      "anthropicApiKey": "Chave de API de Anthropic",
+      "googleGeminiApiKey": "Chave de API de Gemini",
+      "xAiApiKey": "Chave de API de xAI",
+      "googleApiKey": "Chave de API de Google Maps",
+      "braveApiKey": "Chave de API de Brave Search",
+      "knowledgeBaseApiKey": "Chave de API de LightRAG",
+      "elasticsearchPassword": "Senha do Elasticsearch",
+      "s3AccessKeyId": "ID da chave de acesso do Amazon S3",
+      "s3SecretAccessKey": "Chave de acesso secreta do Amazon S3",
+      "legacyMcpServers": "Configuração MCP antiga",
+      "mcp": "Servidor MCP “{{server}}”: {{field}}"
     }
   }
 }

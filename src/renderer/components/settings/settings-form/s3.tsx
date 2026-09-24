@@ -4,6 +4,7 @@ import { Trans, useTranslation } from 'react-i18next'
 
 import { Input } from '@/components/ui/input'
 
+import { SecretInput } from '../secret-fields'
 import { SettingsIntro } from '../settings-kit'
 import { SettingsRow, SettingsSection } from '../settings-row'
 
@@ -153,11 +154,10 @@ export function S3({ form }: { form: UseFormReturnType }) {
               error={fieldState.error}
               layout="vertical"
             >
-              <Input
-                type="input"
+              <SecretInput
                 id="s3-accessKeyId-input"
                 {...field}
-                value={field.value ?? ''}
+                value={field.value}
               />
             </SettingsRow>
           )}
@@ -172,11 +172,10 @@ export function S3({ form }: { form: UseFormReturnType }) {
               error={fieldState.error}
               layout="vertical"
             >
-              <Input
-                type="password"
+              <SecretInput
                 id="s3-secretAccessKey-input"
                 {...field}
-                value={field.value ?? ''}
+                value={field.value}
               />
             </SettingsRow>
           )}

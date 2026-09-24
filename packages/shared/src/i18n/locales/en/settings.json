@@ -328,7 +328,8 @@
       "retrieve": "Retrieve model list",
       "refresh": "Refresh model list",
       "fetchErrorTitle": "Could not fetch model list",
-      "fetchErrorFallback": "Failed to fetch model list"
+      "fetchErrorFallback": "Failed to fetch model list",
+      "reenterKey": "Re-enter the API key to use it with the new base URL."
     }
   },
   "tools": {
@@ -561,7 +562,7 @@
     },
     "export": {
       "label": "Export Data",
-      "description": "Download a portable copy of your conversations, settings, and other data as a ZIP archive.",
+      "description": "Download a portable copy of your conversations, settings, and other data as a ZIP archive. API keys and other secrets are removed from the export.",
       "button": "Export",
       "successToast": "Data exported successfully",
       "errorToast": "Export failed",
@@ -728,7 +729,14 @@
       },
       "updateButton": "Update",
       "registerButton": "Register",
-      "addServerButton": "Add Server"
+      "addServerButton": "Add Server",
+      "env": {
+        "label": "Environment variables",
+        "description": "JSON object of environment variables passed to the command (optional)."
+      },
+      "reenterHint": "Changing the command or editing arguments asks you to re-enter masked values.",
+      "maskedHint": "•••• stands for a saved value — leave it as it is to keep it.",
+      "reenterError": "Re-enter the secret here: it still holds a masked value (••••) that can’t be kept."
     },
     "json": {
       "description": "Read-only view of current configuration. Use the Servers tab to make changes."
@@ -746,7 +754,8 @@
       "updateFailed": "Failed to update server",
       "registerFailed": "Failed to register",
       "removeFailed": "Failed to remove server",
-      "toggleFailed": "Failed to toggle server"
+      "toggleFailed": "Failed to toggle server",
+      "invalidEnv": "Invalid environment variables JSON"
     }
   },
   "memory": {
@@ -1014,6 +1023,32 @@
     "toast": {
       "failedTitle": "That didn't work",
       "pairedTitle": "Device paired"
+    }
+  },
+  "secrets": {
+    "input": {
+      "saved": "Saved",
+      "reenter": "Enter this key again — the saved one can no longer be used."
+    },
+    "destinationHint": "Changing this address clears the saved API key — re-enter it after saving.",
+    "notice": {
+      "encryptionUnavailable": "Your system keychain isn't available; API keys are stored unencrypted.",
+      "needsReentry": "These saved keys can't be read any more — enter them again:"
+    },
+    "fields": {
+      "openaiApiKey": "OpenAI API key",
+      "azureOpenaiApiKey": "Azure OpenAI API key",
+      "anthropicApiKey": "Anthropic API key",
+      "googleGeminiApiKey": "Gemini API key",
+      "xAiApiKey": "xAI API key",
+      "googleApiKey": "Google Maps API key",
+      "braveApiKey": "Brave Search API key",
+      "knowledgeBaseApiKey": "LightRAG API key",
+      "elasticsearchPassword": "Elasticsearch password",
+      "s3AccessKeyId": "Amazon S3 access key ID",
+      "s3SecretAccessKey": "Amazon S3 secret access key",
+      "legacyMcpServers": "Legacy MCP configuration",
+      "mcp": "MCP server “{{server}}”: {{field}}"
     }
   }
 }

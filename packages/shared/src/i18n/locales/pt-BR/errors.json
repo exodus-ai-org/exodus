@@ -37,6 +37,7 @@
     "VALIDATION_INVALID_INPUT": "Entrada inválida fornecida.",
     "VALIDATION_MISSING_FIELD": "{{field}} é obrigatório.",
     "KNOWLEDGE_BASE_NOT_CONFIGURED": "A base de conhecimento não está configurada.",
+    "SECRET_REENTRY_REQUIRED": "Digite o segredo novamente: o salvo não pode ser usado aqui.",
     "RATE_LIMIT_CHAT": "Você excedeu o número máximo de mensagens. Tente novamente mais tarde.",
     "RATE_LIMIT_SKILLS": "Muitas solicitações ao registro de habilidades. Tente novamente mais tarde.",
     "SERVICE_OLLAMA_UNREACHABLE": "O serviço Ollama não está acessível. Verifique se o Ollama está em execução.",

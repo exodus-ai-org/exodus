@@ -1,3 +1,4 @@
+import { ErrorCode } from '@exodus/shared/constants/error-codes'
 import {
   type QueryClient,
   useMutation,
@@ -6,6 +7,7 @@ import {
 } from '@tanstack/react-query'
 import { sileo } from 'sileo'
 
+import { refreshSecretsStatus } from '@/hooks/use-secrets-status'
 import { i18n } from '@/lib/i18n'
 import {
   createMcpServerApi,
@@ -28,8 +30,15 @@ export const mcpKeys = {
 // Returned, not voided: the mutation then settles after the mounted lists have
 // re-read, and the form the caller closes on success never lands on a stale
 // list. A failed re-read still resolves (reported by the query cache).
+// A write can also fix (or drop) a secret the re-entry notice names.
 const refreshMcp = (queryClient: QueryClient) =>
-  queryClient.invalidateQueries({ queryKey: mcpKeys.all })
+  Promise.all([
+    queryClient.invalidateQueries({ queryKey: mcpKeys.all }),
+    refreshSecretsStatus(queryClient)
+  ])
+
+// A secret to re-enter is shown under its field by the form (mcp-servers.tsx).
+const SHOWN_INLINE = [ErrorCode.SECRET_REENTRY_REQUIRED]
 
 export function useMcpServers() {
   const { data, isLoading } = useQuery({
@@ -55,7 +64,10 @@ export function useCreateMcpServer() {
       createMcpServerApi(data),
     // The global mutation handler is the only error surface — a local catch
     // and toast would make one failed write toast twice.
-    meta: { errorTitle: i18n.t('settings:mcpServers.toast.registerFailed') },
+    meta: {
+      errorTitle: i18n.t('settings:mcpServers.toast.registerFailed'),
+      inlineCodes: SHOWN_INLINE
+    },
     onSuccess: (_server, data) => {
       sileo.success({
         title: i18n.t('settings:mcpServers.toast.registered', {
@@ -78,7 +90,10 @@ export function useUpdateMcpServer() {
       id: string
       data: Partial<McpServerItem> & { name: string }
     }) => updateMcpServerApi(id, data),
-    meta: { errorTitle: i18n.t('settings:mcpServers.toast.updateFailed') },
+    meta: {
+      errorTitle: i18n.t('settings:mcpServers.toast.updateFailed'),
+      inlineCodes: SHOWN_INLINE
+    },
     onSuccess: (_server, { data }) => {
       sileo.success({
         title: i18n.t('settings:mcpServers.toast.updated', { name: data.name })

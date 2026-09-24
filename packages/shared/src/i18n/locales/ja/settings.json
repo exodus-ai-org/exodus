@@ -328,7 +328,8 @@
       "retrieve": "モデル一覧を取得",
       "refresh": "モデル一覧を更新",
       "fetchErrorTitle": "モデル一覧を取得できませんでした",
-      "fetchErrorFallback": "モデル一覧の取得に失敗しました"
+      "fetchErrorFallback": "モデル一覧の取得に失敗しました",
+      "reenterKey": "新しいベース URL で使うには、API キーをもう一度入力してください。"
     }
   },
   "tools": {
@@ -560,7 +561,7 @@
     },
     "export": {
       "label": "データをエクスポート",
-      "description": "会話、設定などのデータをZIPアーカイブとしてダウンロードできる、ポータブルなコピーを作成します。",
+      "description": "会話、設定などのデータをZIPアーカイブとしてダウンロードできる、ポータブルなコピーを作成します。API キーなどのシークレットはエクスポートから除外されます。",
       "button": "エクスポート",
       "successToast": "データをエクスポートしました",
       "errorToast": "エクスポートに失敗しました",
@@ -724,7 +725,14 @@
       },
       "updateButton": "更新",
       "registerButton": "登録",
-      "addServerButton": "サーバーを追加"
+      "addServerButton": "サーバーを追加",
+      "env": {
+        "label": "環境変数",
+        "description": "コマンドに渡す環境変数の JSON オブジェクト（任意）。"
+      },
+      "reenterHint": "コマンドを変更したり引数を編集したりすると、マスクされた値の再入力が必要になります。",
+      "maskedHint": "•••• は保存済みの値を表します。そのままにすると値は保持されます。",
+      "reenterError": "ここにシークレットを再入力してください。保持できないマスクされた値（••••）が残っています。"
     },
     "json": {
       "description": "現在の設定の読み取り専用表示です。変更を行うには「サーバー」タブを使用してください。"
@@ -742,7 +750,8 @@
       "updateFailed": "サーバーの更新に失敗しました",
       "registerFailed": "登録に失敗しました",
       "removeFailed": "サーバーの削除に失敗しました",
-      "toggleFailed": "サーバーの切り替えに失敗しました"
+      "toggleFailed": "サーバーの切り替えに失敗しました",
+      "invalidEnv": "環境変数の JSON が無効です"
     }
   },
   "memory": {
@@ -1008,6 +1017,32 @@
     "toast": {
       "failedTitle": "操作に失敗しました",
       "pairedTitle": "デバイスをペアリングしました"
+    }
+  },
+  "secrets": {
+    "input": {
+      "saved": "保存済み",
+      "reenter": "このキーをもう一度入力してください。保存済みのキーは使用できなくなりました。"
+    },
+    "destinationHint": "このアドレスを変更すると保存済みの API キーが消去されます。保存後にもう一度入力してください。",
+    "notice": {
+      "encryptionUnavailable": "システムのキーチェーンを利用できないため、API キーは暗号化されずに保存されています。",
+      "needsReentry": "次の保存済みキーは読み取れなくなりました。もう一度入力してください:"
+    },
+    "fields": {
+      "openaiApiKey": "OpenAI API キー",
+      "azureOpenaiApiKey": "Azure OpenAI API キー",
+      "anthropicApiKey": "Anthropic API キー",
+      "googleGeminiApiKey": "Gemini API キー",
+      "xAiApiKey": "xAI API キー",
+      "googleApiKey": "Google Maps API キー",
+      "braveApiKey": "Brave Search API キー",
+      "knowledgeBaseApiKey": "LightRAG API キー",
+      "elasticsearchPassword": "Elasticsearch のパスワード",
+      "s3AccessKeyId": "Amazon S3 のアクセスキー ID",
+      "s3SecretAccessKey": "Amazon S3 のシークレットアクセスキー",
+      "legacyMcpServers": "旧形式の MCP 設定",
+      "mcp": "MCP サーバー「{{server}}」: {{field}}"
     }
   }
 }

@@ -5,7 +5,9 @@ import {
 import { Controller, FieldPath } from 'react-hook-form'
 
 import { Input } from '@/components/ui/input'
+import { destinationSecretOf } from '@/lib/secrets'
 
+import { AddressInput, SecretInput } from '../../secret-fields'
 import { SettingsRow, SettingsSection } from '../../settings-row'
 
 interface ProviderField {
@@ -36,16 +38,31 @@ export function ProviderFields({ form, fields }: ProviderFieldsProps) {
               error={fieldState.error}
               layout="vertical"
             >
-              <Input
-                type={field.type ?? 'text'}
-                autoComplete={
-                  field.type === 'password' ? 'current-password' : undefined
-                }
-                placeholder={field.placeholder}
-                autoFocus={index === 0}
-                {...formField}
-                value={formField.value ?? ''}
-              />
+              {field.type === 'password' ? (
+                <SecretInput
+                  {...formField}
+                  value={formField.value as string | null | undefined}
+                  placeholder={field.placeholder}
+                  autoFocus={index === 0}
+                />
+              ) : destinationSecretOf(field.name) ? (
+                <AddressInput
+                  {...formField}
+                  settingsForm={form}
+                  isDirty={fieldState.isDirty}
+                  placeholder={field.placeholder}
+                  autoFocus={index === 0}
+                  value={(formField.value as string | null | undefined) ?? ''}
+                />
+              ) : (
+                <Input
+                  type="text"
+                  placeholder={field.placeholder}
+                  autoFocus={index === 0}
+                  {...formField}
+                  value={formField.value ?? ''}
+                />
+              )}
             </SettingsRow>
           )}
         />

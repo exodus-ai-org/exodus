@@ -328,7 +328,8 @@
       "retrieve": "Recupera elenco modelli",
       "refresh": "Aggiorna elenco modelli",
       "fetchErrorTitle": "Impossibile recuperare l'elenco dei modelli",
-      "fetchErrorFallback": "Recupero dell'elenco dei modelli non riuscito"
+      "fetchErrorFallback": "Recupero dell'elenco dei modelli non riuscito",
+      "reenterKey": "Inserisci di nuovo la chiave API per usarla con il nuovo URL di base."
     }
   },
   "tools": {
@@ -561,7 +562,7 @@
     },
     "export": {
       "label": "Esporta dati",
-      "description": "Scarica una copia portatile delle tue conversazioni, impostazioni e altri dati come archivio ZIP.",
+      "description": "Scarica una copia portatile delle tue conversazioni, impostazioni e altri dati come archivio ZIP. Le chiavi API e gli altri segreti vengono rimossi dall’esportazione.",
       "button": "Esporta",
       "successToast": "Dati esportati con successo",
       "errorToast": "Esportazione non riuscita",
@@ -728,7 +729,14 @@
       },
       "updateButton": "Aggiorna",
       "registerButton": "Registra",
-      "addServerButton": "Aggiungi server"
+      "addServerButton": "Aggiungi server",
+      "env": {
+        "label": "Variabili d’ambiente",
+        "description": "Oggetto JSON con le variabili d’ambiente passate al comando (facoltativo)."
+      },
+      "reenterHint": "Se modifichi il comando o gli argomenti, dovrai inserire di nuovo i valori mascherati.",
+      "maskedHint": "•••• indica un valore salvato: lascialo così com’è per mantenerlo.",
+      "reenterError": "Inserisci di nuovo il segreto qui: contiene ancora un valore mascherato (••••) che non può essere mantenuto."
     },
     "json": {
       "description": "Vista di sola lettura della configurazione corrente. Usa la scheda Server per apportare modifiche."
@@ -746,7 +754,8 @@
       "updateFailed": "Aggiornamento del server non riuscito",
       "registerFailed": "Registrazione non riuscita",
       "removeFailed": "Rimozione del server non riuscita",
-      "toggleFailed": "Impossibile attivare/disattivare il server"
+      "toggleFailed": "Impossibile attivare/disattivare il server",
+      "invalidEnv": "JSON delle variabili d’ambiente non valido"
     }
   },
   "memory": {
@@ -1014,6 +1023,32 @@
     "toast": {
       "failedTitle": "Non ha funzionato",
       "pairedTitle": "Dispositivo abbinato"
+    }
+  },
+  "secrets": {
+    "input": {
+      "saved": "Salvata",
+      "reenter": "Inserisci di nuovo questa chiave: quella salvata non può più essere usata."
+    },
+    "destinationHint": "Se modifichi questo indirizzo, la chiave API salvata viene cancellata: inseriscila di nuovo dopo il salvataggio.",
+    "notice": {
+      "encryptionUnavailable": "Il portachiavi di sistema non è disponibile: le chiavi API vengono salvate senza crittografia.",
+      "needsReentry": "Queste chiavi salvate non possono più essere lette: inseriscile di nuovo:"
+    },
+    "fields": {
+      "openaiApiKey": "Chiave API OpenAI",
+      "azureOpenaiApiKey": "Chiave API Azure OpenAI",
+      "anthropicApiKey": "Chiave API Anthropic",
+      "googleGeminiApiKey": "Chiave API Gemini",
+      "xAiApiKey": "Chiave API xAI",
+      "googleApiKey": "Chiave API Google Maps",
+      "braveApiKey": "Chiave API Brave Search",
+      "knowledgeBaseApiKey": "Chiave API LightRAG",
+      "elasticsearchPassword": "Password di Elasticsearch",
+      "s3AccessKeyId": "ID chiave di accesso Amazon S3",
+      "s3SecretAccessKey": "Chiave di accesso segreta Amazon S3",
+      "legacyMcpServers": "Configurazione MCP precedente",
+      "mcp": "Server MCP «{{server}}»: {{field}}"
     }
   }
 }

@@ -328,7 +328,8 @@
       "retrieve": "取得模型清單",
       "refresh": "重新整理模型清單",
       "fetchErrorTitle": "無法取得模型清單",
-      "fetchErrorFallback": "取得模型清單失敗"
+      "fetchErrorFallback": "取得模型清單失敗",
+      "reenterKey": "請重新輸入 API 金鑰，才能搭配新的基礎 URL 使用。"
     }
   },
   "tools": {
@@ -560,7 +561,7 @@
     },
     "export": {
       "label": "匯出資料",
-      "description": "將你的對話、設定及其他資料下載為可攜式的 ZIP 封存檔。",
+      "description": "將你的對話、設定及其他資料下載為可攜式的 ZIP 封存檔。API 金鑰及其他機密資料不會包含在匯出檔案中。",
       "button": "匯出",
       "successToast": "資料匯出成功",
       "errorToast": "匯出失敗",
@@ -724,7 +725,14 @@
       },
       "updateButton": "更新",
       "registerButton": "註冊",
-      "addServerButton": "新增伺服器"
+      "addServerButton": "新增伺服器",
+      "env": {
+        "label": "環境變數",
+        "description": "傳遞給指令的環境變數 JSON 物件（選填）。"
+      },
+      "reenterHint": "變更指令或編輯參數後，需要重新輸入已遮蔽的值。",
+      "maskedHint": "•••• 代表已儲存的值，保持不變即可保留。",
+      "reenterError": "請在此重新輸入機密值：其中仍有無法保留的遮蔽值（••••）。"
     },
     "json": {
       "description": "目前設定的唯讀檢視。請至「伺服器」分頁進行變更。"
@@ -742,7 +750,8 @@
       "updateFailed": "更新伺服器失敗",
       "registerFailed": "註冊失敗",
       "removeFailed": "移除伺服器失敗",
-      "toggleFailed": "切換伺服器狀態失敗"
+      "toggleFailed": "切換伺服器狀態失敗",
+      "invalidEnv": "環境變數 JSON 格式無效"
     }
   },
   "memory": {
@@ -1008,6 +1017,32 @@
     "toast": {
       "failedTitle": "操作失敗",
       "pairedTitle": "裝置已配對"
+    }
+  },
+  "secrets": {
+    "input": {
+      "saved": "已儲存",
+      "reenter": "請重新輸入此金鑰：已儲存的金鑰無法再使用。"
+    },
+    "destinationHint": "變更此位址會清除已儲存的 API 金鑰，儲存後請重新輸入。",
+    "notice": {
+      "encryptionUnavailable": "系統鑰匙圈無法使用，API 金鑰會以未加密方式儲存。",
+      "needsReentry": "以下已儲存的金鑰已無法讀取，請重新輸入："
+    },
+    "fields": {
+      "openaiApiKey": "OpenAI API 金鑰",
+      "azureOpenaiApiKey": "Azure OpenAI API 金鑰",
+      "anthropicApiKey": "Anthropic API 金鑰",
+      "googleGeminiApiKey": "Gemini API 金鑰",
+      "xAiApiKey": "xAI API 金鑰",
+      "googleApiKey": "Google Maps API 金鑰",
+      "braveApiKey": "Brave Search API 金鑰",
+      "knowledgeBaseApiKey": "LightRAG API 金鑰",
+      "elasticsearchPassword": "Elasticsearch 密碼",
+      "s3AccessKeyId": "Amazon S3 存取金鑰 ID",
+      "s3SecretAccessKey": "Amazon S3 秘密存取金鑰",
+      "legacyMcpServers": "舊版 MCP 設定",
+      "mcp": "MCP 伺服器「{{server}}」：{{field}}"
     }
   }
 }

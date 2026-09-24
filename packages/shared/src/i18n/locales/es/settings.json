@@ -328,7 +328,8 @@
       "retrieve": "Obtener lista de modelos",
       "refresh": "Actualizar lista de modelos",
       "fetchErrorTitle": "No se pudo obtener la lista de modelos",
-      "fetchErrorFallback": "Error al obtener la lista de modelos"
+      "fetchErrorFallback": "Error al obtener la lista de modelos",
+      "reenterKey": "Vuelva a introducir la clave de API para usarla con la nueva URL base."
     }
   },
   "tools": {
@@ -561,7 +562,7 @@
     },
     "export": {
       "label": "Exportar datos",
-      "description": "Descargue una copia portátil de sus conversaciones, ajustes y demás datos como un archivo ZIP.",
+      "description": "Descargue una copia portátil de sus conversaciones, ajustes y demás datos como un archivo ZIP. Las claves de API y otros secretos se eliminan de la exportación.",
       "button": "Exportar",
       "successToast": "Datos exportados correctamente",
       "errorToast": "Error al exportar",
@@ -728,7 +729,14 @@
       },
       "updateButton": "Actualizar",
       "registerButton": "Registrar",
-      "addServerButton": "Agregar servidor"
+      "addServerButton": "Agregar servidor",
+      "env": {
+        "label": "Variables de entorno",
+        "description": "Objeto JSON con las variables de entorno que se pasan al comando (opcional)."
+      },
+      "reenterHint": "Si cambia el comando o edita los argumentos, deberá volver a introducir los valores enmascarados.",
+      "maskedHint": "•••• representa un valor guardado: déjelo como está para conservarlo.",
+      "reenterError": "Vuelva a introducir aquí el secreto: todavía contiene un valor enmascarado (••••) que no se puede conservar."
     },
     "json": {
       "description": "Vista de solo lectura de la configuración actual. Use la pestaña Servidores para hacer cambios."
@@ -746,7 +754,8 @@
       "updateFailed": "No se pudo actualizar el servidor",
       "registerFailed": "No se pudo registrar",
       "removeFailed": "No se pudo eliminar el servidor",
-      "toggleFailed": "No se pudo alternar el servidor"
+      "toggleFailed": "No se pudo alternar el servidor",
+      "invalidEnv": "JSON de variables de entorno no válido"
     }
   },
   "memory": {
@@ -1014,6 +1023,32 @@
     "toast": {
       "failedTitle": "No ha funcionado",
       "pairedTitle": "Dispositivo vinculado"
+    }
+  },
+  "secrets": {
+    "input": {
+      "saved": "Guardada",
+      "reenter": "Vuelva a introducir esta clave: la guardada ya no se puede usar."
+    },
+    "destinationHint": "Cambiar esta dirección borra la clave de API guardada: vuelva a introducirla después de guardar.",
+    "notice": {
+      "encryptionUnavailable": "El llavero del sistema no está disponible; las claves de API se guardan sin cifrar.",
+      "needsReentry": "Estas claves guardadas ya no se pueden leer; vuelva a introducirlas:"
+    },
+    "fields": {
+      "openaiApiKey": "Clave de API de OpenAI",
+      "azureOpenaiApiKey": "Clave de API de Azure OpenAI",
+      "anthropicApiKey": "Clave de API de Anthropic",
+      "googleGeminiApiKey": "Clave de API de Gemini",
+      "xAiApiKey": "Clave de API de xAI",
+      "googleApiKey": "Clave de API de Google Maps",
+      "braveApiKey": "Clave de API de Brave Search",
+      "knowledgeBaseApiKey": "Clave de API de LightRAG",
+      "elasticsearchPassword": "Contraseña de Elasticsearch",
+      "s3AccessKeyId": "ID de clave de acceso de Amazon S3",
+      "s3SecretAccessKey": "Clave de acceso secreta de Amazon S3",
+      "legacyMcpServers": "Configuración MCP heredada",
+      "mcp": "Servidor MCP «{{server}}»: {{field}}"
     }
   }
 }

@@ -37,6 +37,7 @@
     "VALIDATION_INVALID_INPUT": "入力内容が無効です。",
     "VALIDATION_MISSING_FIELD": "{{field}}は必須です。",
     "KNOWLEDGE_BASE_NOT_CONFIGURED": "ナレッジベースが設定されていません。",
+    "SECRET_REENTRY_REQUIRED": "シークレットを再入力してください。保存済みのものはここでは使用できません。",
     "RATE_LIMIT_CHAT": "メッセージの上限数を超えました。しばらくしてからもう一度お試しください。",
     "RATE_LIMIT_SKILLS": "スキルレジストリへのリクエストが多すぎます。しばらくしてからもう一度お試しください。",
     "SERVICE_OLLAMA_UNREACHABLE": "Ollamaサービスに接続できません。Ollamaが起動しているか確認してください。",

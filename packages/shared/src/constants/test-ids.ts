@@ -121,7 +121,31 @@ export const TEST_IDS = {
   },
   providerModels: {
     refreshButton: 'provider-models.refresh-button',
-    modelSelect: 'provider-models.model-select'
+    modelSelect: 'provider-models.model-select',
+    /** The refresh refused: a saved key cannot go to an unsaved base URL. */
+    reenterError: 'provider-models.reenter-error'
+  },
+  /**
+   * Stored secrets in Settings. Every key input carries `data-field="<settings
+   * path>"` and, while it shows a saved key's mask, `data-masked="true"`.
+   */
+  secrets: {
+    keyInput: 'secrets.key-input',
+    /** Under a key input whose saved key was cleared or can't be read. */
+    reenterPrompt: 'secrets.reenter-prompt',
+    /** Under a base-URL field whose key is saved: changing it clears the key. */
+    destinationHint: 'secrets.destination-hint',
+    /** Settings → General: the keychain is unavailable. */
+    encryptionNotice: 'secrets.encryption-notice',
+    /** Settings → General: the keys that need entering again. */
+    reentryNotice: 'secrets.reentry-notice'
+  },
+  /** Settings → MCP Servers, the server form. */
+  mcpServers: {
+    /** The stdio server's environment variables (JSON). */
+    envInput: 'mcp-servers.env-input',
+    /** A field the server refused (`data-field`: url, args, env, headers…). */
+    fieldError: 'mcp-servers.field-error'
   },
   chat: {
     /** One per assistant message (= one per run). */

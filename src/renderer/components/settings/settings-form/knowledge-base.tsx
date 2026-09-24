@@ -58,6 +58,7 @@ import {
   testKnowledgeBaseConnection,
   updateKnowledgeDoc
 } from '../../../services/knowledge-base'
+import { AddressInput, SecretInput } from '../secret-fields'
 import {
   ENTER_UP,
   IconTile,
@@ -425,9 +426,11 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
               error={fieldState.error}
               layout="vertical"
             >
-              <Input
+              <AddressInput
                 placeholder="http://localhost:9621"
                 {...field}
+                settingsForm={form}
+                isDirty={fieldState.isDirty}
                 value={field.value ?? ''}
               />
             </SettingsRow>
@@ -444,12 +447,7 @@ export function KnowledgeBase({ form }: { form: UseFormReturnType }) {
               error={fieldState.error}
               layout="vertical"
             >
-              <Input
-                type="password"
-                autoComplete="off"
-                {...field}
-                value={field.value ?? ''}
-              />
+              <SecretInput {...field} value={field.value} />
             </SettingsRow>
           )}
         />

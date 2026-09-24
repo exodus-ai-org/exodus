@@ -1,4 +1,7 @@
+import { ErrorCode } from '@exodus/shared/constants/error-codes'
 import { MCP_HOMEPAGE } from '@exodus/shared/constants/external-urls'
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
+import { HttpError } from '@exodus/shared/utils/http'
 import {
   ChevronDownIcon,
   CloudIcon,
@@ -45,6 +48,7 @@ import {
   useUpdateMcpServer
 } from '@/hooks/use-mcp'
 import { maskUrlSecrets } from '@/lib/mask-url'
+import { holdsMask } from '@/lib/secrets'
 import { cn } from '@/lib/utils'
 import type {
   McpServerItem,
@@ -53,6 +57,7 @@ import type {
 } from '@/services/mcp-service'
 
 import {
+  ENTER,
   ENTER_UP,
   SettingsEmpty,
   SettingsIntro,
@@ -251,11 +256,18 @@ export function McpServers() {
   // stdio
   const [command, setCommand] = useState('')
   const [args, setArgs] = useState<string[]>([])
+  const [envStr, setEnvStr] = useState('')
   // remote
   const [url, setUrl] = useState('')
   const [headersStr, setHeadersStr] = useState('')
   // extra config (arbitrary JSON object)
   const [extraConfigStr, setExtraConfigStr] = useState('{}')
+  // The field a save was refused for: it still holds a mask the server cannot
+  // restore (`SECRET_REENTRY_REQUIRED`, `params.field`: url, args, env,
+  // headers, extraConfig). Cleared once that field is edited.
+  const [refused, setRefused] = useState<string | null>(null)
+  const edited = (field: string) =>
+    setRefused((current) => (current === field ? null : current))
 
   const saving = creating || updating
 
@@ -270,9 +282,11 @@ export function McpServers() {
     setDescription('')
     setCommand('')
     setArgs([])
+    setEnvStr('')
     setUrl('')
     setHeadersStr('')
     setExtraConfigStr('{}')
+    setRefused(null)
   }, [])
 
   const startNew = useCallback(() => {
@@ -288,6 +302,14 @@ export function McpServers() {
     setDescription(server.description ?? '')
     setCommand(server.command ?? '')
     setArgs(server.args ?? [])
+    // As the API gives it: a secret value is its mask, which posted back
+    // unchanged keeps the stored value.
+    setEnvStr(
+      server.env && Object.keys(server.env).length > 0
+        ? JSON.stringify(server.env, null, 2)
+        : ''
+    )
+    setRefused(null)
     setUrl(server.url ?? '')
     setHeadersStr(server.headers ? JSON.stringify(server.headers, null, 2) : '')
     setExtraConfigStr(
@@ -308,6 +330,24 @@ export function McpServers() {
         parsedHeaders = JSON.parse(headersStr)
       } catch {
         sileo.error({ title: t('settings:mcpServers.toast.invalidHeaders') })
+        return
+      }
+    }
+
+    let parsedEnv: Record<string, string> | null = null
+    if (transportType === 'stdio' && envStr.trim()) {
+      try {
+        const parsed: unknown = JSON.parse(envStr)
+        if (
+          typeof parsed !== 'object' ||
+          Array.isArray(parsed) ||
+          parsed === null
+        ) {
+          throw new Error('not an object')
+        }
+        parsedEnv = parsed as Record<string, string>
+      } catch {
+        sileo.error({ title: t('settings:mcpServers.toast.invalidEnv') })
         return
       }
     }
@@ -347,7 +387,8 @@ export function McpServers() {
     if (transportType === 'stdio') {
       data.command = command.trim()
       data.args = args.map((a) => a.trim()).filter(Boolean)
-      data.env = null
+      // What the form shows: masks the user left alone keep the stored values.
+      data.env = parsedEnv
     } else {
       data.url = url.trim()
       data.headers = parsedHeaders
@@ -359,9 +400,16 @@ export function McpServers() {
       } else {
         await createServer(data)
       }
-    } catch {
-      // Already reported and toasted by the global mutation handler; the form
-      // stays open so the input is not lost.
+    } catch (err) {
+      // The form stays open so the input is not lost. A secret to re-enter is
+      // shown under its field (the hooks leave that code out of the global
+      // toast); anything else was already reported and toasted there.
+      if (
+        err instanceof HttpError &&
+        err.code === ErrorCode.SECRET_REENTRY_REQUIRED
+      ) {
+        setRefused(String(err.params?.field ?? 'form'))
+      }
       return
     }
     resetForm()
@@ -371,6 +419,7 @@ export function McpServers() {
     transportType,
     command,
     args,
+    envStr,
     url,
     headersStr,
     extraConfigStr,
@@ -404,6 +453,26 @@ export function McpServers() {
 
   const canSave =
     name.trim() && (transportType === 'stdio' ? command.trim() : url.trim())
+
+  const refusal = (field: string) =>
+    refused === field && (
+      <p
+        className={cn('text-destructive text-xs', ENTER)}
+        data-testid={TEST_IDS.mcpServers.fieldError}
+        data-field={field}
+      >
+        {t('settings:mcpServers.form.reenterError')}
+      </p>
+    )
+  const shownFields =
+    transportType === 'stdio'
+      ? ['args', 'env', 'extraConfig']
+      : ['url', 'headers', 'extraConfig']
+  const maskedHint = (
+    <p className="text-muted-foreground text-xs">
+      {t('settings:mcpServers.form.maskedHint')}
+    </p>
+  )
 
   return (
     <div className="flex flex-col gap-8">
@@ -543,7 +612,10 @@ export function McpServers() {
                     >
                       <Input
                         value={command}
-                        onChange={(e) => setCommand(e.target.value)}
+                        onChange={(e) => {
+                          setCommand(e.target.value)
+                          edited('args')
+                        }}
                         placeholder="e.g. npx -y @modelcontextprotocol/server-filesystem"
                       />
                     </SettingsRow>
@@ -559,13 +631,14 @@ export function McpServers() {
                           <div key={i} className="flex items-center gap-2">
                             <Input
                               value={arg}
-                              onChange={(e) =>
+                              onChange={(e) => {
                                 setArgs((prev) =>
                                   prev.map((a, j) =>
                                     j === i ? e.target.value : a
                                   )
                                 )
-                              }
+                                edited('args')
+                              }}
                               placeholder={
                                 i === 0
                                   ? 'e.g. -y'
@@ -599,7 +672,35 @@ export function McpServers() {
                           <PlusIcon className="h-3.5 w-3.5" />
                           {t('settings:mcpServers.form.args.addButton')}
                         </Button>
+                        {refusal('args')}
+                        {editing &&
+                          (args.some((a) => holdsMask(a)) ||
+                            holdsMask(envStr)) && (
+                            <p className="text-muted-foreground text-xs">
+                              {t('settings:mcpServers.form.reenterHint')}
+                            </p>
+                          )}
                       </div>
+                    </SettingsRow>
+                    <SettingsRow
+                      label={t('settings:mcpServers.form.env.label')}
+                      description={t(
+                        'settings:mcpServers.form.env.description'
+                      )}
+                      layout="vertical"
+                    >
+                      <Input
+                        value={envStr}
+                        onChange={(e) => {
+                          setEnvStr(e.target.value)
+                          edited('env')
+                        }}
+                        placeholder='{"GITHUB_TOKEN": "ghp_..."}'
+                        className="font-mono text-xs"
+                        data-testid={TEST_IDS.mcpServers.envInput}
+                      />
+                      {holdsMask(envStr) && maskedHint}
+                      {refusal('env')}
                     </SettingsRow>
                   </>
                 ) : (
@@ -616,9 +717,13 @@ export function McpServers() {
                     >
                       <Input
                         value={url}
-                        onChange={(e) => setUrl(e.target.value)}
+                        onChange={(e) => {
+                          setUrl(e.target.value)
+                          edited('url')
+                        }}
                         placeholder="e.g. https://mcp.example.com/sse"
                       />
+                      {refusal('url')}
                     </SettingsRow>
                     <SettingsRow
                       label={t('settings:mcpServers.form.headers.label')}
@@ -629,10 +734,15 @@ export function McpServers() {
                     >
                       <Input
                         value={headersStr}
-                        onChange={(e) => setHeadersStr(e.target.value)}
+                        onChange={(e) => {
+                          setHeadersStr(e.target.value)
+                          edited('headers')
+                        }}
                         placeholder='{"Authorization": "Bearer token"}'
                         className="font-mono text-xs"
                       />
+                      {holdsMask(headersStr) && maskedHint}
+                      {refusal('headers')}
                     </SettingsRow>
                   </>
                 )}
@@ -671,7 +781,10 @@ export function McpServers() {
                       <CodeEditor
                         className="h-32"
                         value={extraConfigStr}
-                        onChange={setExtraConfigStr}
+                        onChange={(value: string) => {
+                          setExtraConfigStr(value)
+                          edited('extraConfig')
+                        }}
                         monacoEditorOption={{
                           language: 'json',
                           lineNumbers: 'off',
@@ -682,7 +795,10 @@ export function McpServers() {
                       />
                     </Suspense>
                   </div>
+                  {refusal('extraConfig')}
                 </SettingsRow>
+
+                {refused && !shownFields.includes(refused) && refusal(refused)}
 
                 <div className="flex gap-2 pt-1">
                   <Button

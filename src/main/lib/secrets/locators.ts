@@ -172,8 +172,10 @@ export function maskMcpArgs(
 /** 400 for a value that holds a mask it cannot be restored from (N2). */
 export function refuseMask(where: string): never {
   throw new ValidationError(
-    ErrorCode.VALIDATION_FAILED,
-    `Re-enter the secret: the ${where} still holds a masked value (${MASK_TOKEN})`
+    ErrorCode.SECRET_REENTRY_REQUIRED,
+    `Re-enter the secret: the ${where} still holds a masked value (${MASK_TOKEN})`,
+    // The desktop form shows the error under this field.
+    { field: where }
   )
 }
 

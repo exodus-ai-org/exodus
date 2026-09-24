@@ -273,6 +273,12 @@ describe('POST /api/v1/settings/models', () => {
     expect(res.status).toBe(400)
     const text = await res.text()
     expect(text).toMatch(/re-enter the API key/iu)
+    // The model picker shows this one inline, under the key.
+    const { error } = JSON.parse(text) as {
+      error: { code: string; params?: { field?: string } }
+    }
+    expect(error.code).toBe('SECRET_REENTRY_REQUIRED')
+    expect(error.params?.field).toBe('apiKey')
     expect(text).not.toContain(plain('providers.openaiApiKey'))
     expect(listOpenAiModels).not.toHaveBeenCalled()
   })

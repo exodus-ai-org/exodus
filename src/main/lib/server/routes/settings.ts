@@ -133,8 +133,10 @@ settingsRouter.post('/models', async (c) => {
       requested !== normalizeBaseUrl(storedBaseUrl ?? fallback)
     ) {
       throw new ValidationError(
-        ErrorCode.VALIDATION_FAILED,
-        'The base URL differs from the saved one: re-enter the API key to use it with a new base URL'
+        ErrorCode.SECRET_REENTRY_REQUIRED,
+        'The base URL differs from the saved one: re-enter the API key to use it with a new base URL',
+        // The model picker shows this inline, asking for the key.
+        { field: 'apiKey' }
       )
     }
     apiKey = stored?.[PROVIDER_KEY_FIELD[provider]] ?? null

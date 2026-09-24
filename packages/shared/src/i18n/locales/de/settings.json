@@ -328,7 +328,8 @@
       "retrieve": "Modellliste abrufen",
       "refresh": "Modellliste aktualisieren",
       "fetchErrorTitle": "Modellliste konnte nicht abgerufen werden",
-      "fetchErrorFallback": "Abrufen der Modellliste fehlgeschlagen"
+      "fetchErrorFallback": "Abrufen der Modellliste fehlgeschlagen",
+      "reenterKey": "Geben Sie den API-Schlüssel erneut ein, um ihn mit der neuen Basis-URL zu verwenden."
     }
   },
   "tools": {
@@ -561,7 +562,7 @@
     },
     "export": {
       "label": "Daten exportieren",
-      "description": "Laden Sie eine portable Kopie Ihrer Unterhaltungen, Einstellungen und anderer Daten als ZIP-Archiv herunter.",
+      "description": "Laden Sie eine portable Kopie Ihrer Unterhaltungen, Einstellungen und anderer Daten als ZIP-Archiv herunter. API-Schlüssel und andere Geheimnisse werden aus dem Export entfernt.",
       "button": "Exportieren",
       "successToast": "Daten erfolgreich exportiert",
       "errorToast": "Export fehlgeschlagen",
@@ -728,7 +729,14 @@
       },
       "updateButton": "Aktualisieren",
       "registerButton": "Registrieren",
-      "addServerButton": "Server hinzufügen"
+      "addServerButton": "Server hinzufügen",
+      "env": {
+        "label": "Umgebungsvariablen",
+        "description": "JSON-Objekt mit Umgebungsvariablen, die an den Befehl übergeben werden (optional)."
+      },
+      "reenterHint": "Wenn Sie den Befehl ändern oder Argumente bearbeiten, müssen maskierte Werte erneut eingegeben werden.",
+      "maskedHint": "•••• steht für einen gespeicherten Wert – lassen Sie ihn unverändert, um ihn zu behalten.",
+      "reenterError": "Geben Sie das Geheimnis hier erneut ein: Es enthält noch einen maskierten Wert (••••), der nicht übernommen werden kann."
     },
     "json": {
       "description": "Schreibgeschützte Ansicht der aktuellen Konfiguration. Nehmen Sie Änderungen im Tab „Server“ vor."
@@ -746,7 +754,8 @@
       "updateFailed": "Server konnte nicht aktualisiert werden",
       "registerFailed": "Registrierung fehlgeschlagen",
       "removeFailed": "Server konnte nicht entfernt werden",
-      "toggleFailed": "Server konnte nicht umgeschaltet werden"
+      "toggleFailed": "Server konnte nicht umgeschaltet werden",
+      "invalidEnv": "Ungültiges JSON für Umgebungsvariablen"
     }
   },
   "memory": {
@@ -1014,6 +1023,32 @@
     "toast": {
       "failedTitle": "Das hat nicht funktioniert",
       "pairedTitle": "Gerät gekoppelt"
+    }
+  },
+  "secrets": {
+    "input": {
+      "saved": "Gespeichert",
+      "reenter": "Geben Sie diesen Schlüssel erneut ein – der gespeicherte kann nicht mehr verwendet werden."
+    },
+    "destinationHint": "Wenn Sie diese Adresse ändern, wird der gespeicherte API-Schlüssel gelöscht – geben Sie ihn nach dem Speichern erneut ein.",
+    "notice": {
+      "encryptionUnavailable": "Der Schlüsselbund Ihres Systems ist nicht verfügbar; API-Schlüssel werden unverschlüsselt gespeichert.",
+      "needsReentry": "Diese gespeicherten Schlüssel können nicht mehr gelesen werden – geben Sie sie erneut ein:"
+    },
+    "fields": {
+      "openaiApiKey": "OpenAI-API-Schlüssel",
+      "azureOpenaiApiKey": "Azure-OpenAI-API-Schlüssel",
+      "anthropicApiKey": "Anthropic-API-Schlüssel",
+      "googleGeminiApiKey": "Gemini-API-Schlüssel",
+      "xAiApiKey": "xAI-API-Schlüssel",
+      "googleApiKey": "Google-Maps-API-Schlüssel",
+      "braveApiKey": "Brave-Search-API-Schlüssel",
+      "knowledgeBaseApiKey": "LightRAG-API-Schlüssel",
+      "elasticsearchPassword": "Elasticsearch-Passwort",
+      "s3AccessKeyId": "Amazon-S3-Zugriffsschlüssel-ID",
+      "s3SecretAccessKey": "Geheimer Amazon-S3-Zugriffsschlüssel",
+      "legacyMcpServers": "Alte MCP-Konfiguration",
+      "mcp": "MCP-Server „{{server}}“: {{field}}"
     }
   }
 }

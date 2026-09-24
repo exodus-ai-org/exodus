@@ -37,6 +37,7 @@
     "VALIDATION_INVALID_INPUT": "Ungültige Eingabe.",
     "VALIDATION_MISSING_FIELD": "{{field}} ist erforderlich.",
     "KNOWLEDGE_BASE_NOT_CONFIGURED": "Die Wissensdatenbank ist nicht konfiguriert.",
+    "SECRET_REENTRY_REQUIRED": "Geben Sie das Geheimnis erneut ein: Das gespeicherte kann hier nicht verwendet werden.",
     "RATE_LIMIT_CHAT": "Sie haben die maximale Anzahl an Nachrichten überschritten. Bitte versuchen Sie es später erneut.",
     "RATE_LIMIT_SKILLS": "Zu viele Anfragen an die Skill-Registry. Bitte versuchen Sie es später erneut.",
     "SERVICE_OLLAMA_UNREACHABLE": "Der Ollama-Dienst ist nicht erreichbar. Bitte überprüfen Sie, ob Ollama ausgeführt wird.",

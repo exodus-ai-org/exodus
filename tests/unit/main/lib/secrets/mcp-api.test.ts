@@ -172,11 +172,15 @@ describe('POST /api/v1/mcp', () => {
   })
 
   it.each([
-    ['a header', { headers: { Authorization: '••••' } }],
-    ['the url', { url: 'https://h.example/sse?api_key=•••• mnop' }],
-    ['the args', { args: ['--token', '•••• 1234'] }],
-    ['extraConfig', { extraConfig: { oauth: { clientSecret: '•••• CCCC' } } }]
-  ])('refuses a create carrying a mask in %s (N2)', async (_, extra) => {
+    ['a header', 'headers', { headers: { Authorization: '••••' } }],
+    ['the url', 'url', { url: 'https://h.example/sse?api_key=•••• mnop' }],
+    ['the args', 'args', { args: ['--token', '•••• 1234'] }],
+    [
+      'extraConfig',
+      'extraConfig',
+      { extraConfig: { oauth: { clientSecret: '•••• CCCC' } } }
+    ]
+  ])('refuses a create carrying a mask in %s (N2)', async (_, field, extra) => {
     const res = await send('POST', '', {
       name: 'with-mask',
       transportType: 'sse',
@@ -184,7 +188,13 @@ describe('POST /api/v1/mcp', () => {
       ...extra
     })
     expect(res.status).toBe(400)
-    expect(await res.text()).toMatch(/re-enter the secret/iu)
+    const body = (await res.json()) as {
+      error: { code: string; message: string; params?: { field?: string } }
+    }
+    expect(body.error.message).toMatch(/re-enter the secret/iu)
+    // The form puts the error under the field it names.
+    expect(body.error.code).toBe('SECRET_REENTRY_REQUIRED')
+    expect(body.error.params?.field).toBe(field)
     const rows = await mcpQueries.getAllMcpServers()
     expect(rows.map((r) => r.name)).not.toContain('with-mask')
   })

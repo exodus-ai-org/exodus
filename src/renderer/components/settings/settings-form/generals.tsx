@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils'
 import { SettingsRow, SettingsSection } from '../settings-row'
 import { SettingsSelect } from '../settings-select'
 import { LockPrivacy } from './lock-privacy'
+import { SecretsNotices } from './secrets-notices'
 
 /** `auto` first (native name resolved from `t()` at render time, paired with
  * a globe rather than any one country's flag), then every concrete locale in
@@ -163,6 +164,7 @@ export function General({ form }: { form: UseFormReturnType }) {
 
   return (
     <>
+      <SecretsNotices />
       <SettingsSection>
         <SettingsRow
           label={t('general.theme.label')}

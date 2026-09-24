@@ -328,7 +328,8 @@
       "retrieve": "Récupérer la liste des modèles",
       "refresh": "Actualiser la liste des modèles",
       "fetchErrorTitle": "Impossible de récupérer la liste des modèles",
-      "fetchErrorFallback": "Échec de la récupération de la liste des modèles"
+      "fetchErrorFallback": "Échec de la récupération de la liste des modèles",
+      "reenterKey": "Saisissez à nouveau la clé API pour l’utiliser avec la nouvelle URL de base."
     }
   },
   "tools": {
@@ -561,7 +562,7 @@
     },
     "export": {
       "label": "Exporter les données",
-      "description": "Téléchargez une copie portable de vos conversations, paramètres et autres données sous forme d'archive ZIP.",
+      "description": "Téléchargez une copie portable de vos conversations, paramètres et autres données sous forme d'archive ZIP. Les clés API et autres secrets sont retirés de l’export.",
       "button": "Exporter",
       "successToast": "Données exportées avec succès",
       "errorToast": "Échec de l'exportation",
@@ -728,7 +729,14 @@
       },
       "updateButton": "Mettre à jour",
       "registerButton": "Enregistrer",
-      "addServerButton": "Ajouter un serveur"
+      "addServerButton": "Ajouter un serveur",
+      "env": {
+        "label": "Variables d’environnement",
+        "description": "Objet JSON des variables d’environnement transmises à la commande (facultatif)."
+      },
+      "reenterHint": "Modifier la commande ou les arguments vous demandera de saisir à nouveau les valeurs masquées.",
+      "maskedHint": "•••• représente une valeur enregistrée : laissez-la telle quelle pour la conserver.",
+      "reenterError": "Saisissez à nouveau le secret ici : il contient encore une valeur masquée (••••) qui ne peut pas être conservée."
     },
     "json": {
       "description": "Vue en lecture seule de la configuration actuelle. Utilisez l'onglet Serveurs pour apporter des modifications."
@@ -746,7 +754,8 @@
       "updateFailed": "Échec de la mise à jour du serveur",
       "registerFailed": "Échec de l'enregistrement",
       "removeFailed": "Échec de la suppression du serveur",
-      "toggleFailed": "Échec du basculement du serveur"
+      "toggleFailed": "Échec du basculement du serveur",
+      "invalidEnv": "JSON des variables d’environnement invalide"
     }
   },
   "memory": {
@@ -1014,6 +1023,32 @@
     "toast": {
       "failedTitle": "L’opération a échoué",
       "pairedTitle": "Appareil jumelé"
+    }
+  },
+  "secrets": {
+    "input": {
+      "saved": "Enregistrée",
+      "reenter": "Saisissez à nouveau cette clé : celle enregistrée ne peut plus être utilisée."
+    },
+    "destinationHint": "Modifier cette adresse efface la clé API enregistrée : saisissez-la à nouveau après l’enregistrement.",
+    "notice": {
+      "encryptionUnavailable": "Le trousseau de votre système n’est pas disponible ; les clés API sont stockées sans chiffrement.",
+      "needsReentry": "Ces clés enregistrées ne peuvent plus être lues ; saisissez-les à nouveau :"
+    },
+    "fields": {
+      "openaiApiKey": "Clé API OpenAI",
+      "azureOpenaiApiKey": "Clé API Azure OpenAI",
+      "anthropicApiKey": "Clé API Anthropic",
+      "googleGeminiApiKey": "Clé API Gemini",
+      "xAiApiKey": "Clé API xAI",
+      "googleApiKey": "Clé API Google Maps",
+      "braveApiKey": "Clé API Brave Search",
+      "knowledgeBaseApiKey": "Clé API LightRAG",
+      "elasticsearchPassword": "Mot de passe Elasticsearch",
+      "s3AccessKeyId": "ID de clé d’accès Amazon S3",
+      "s3SecretAccessKey": "Clé d’accès secrète Amazon S3",
+      "legacyMcpServers": "Ancienne configuration MCP",
+      "mcp": "Serveur MCP « {{server}} » : {{field}}"
     }
   }
 }
