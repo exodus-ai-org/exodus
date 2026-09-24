@@ -26,3 +26,13 @@ export interface MemoryInstructionResult {
   applied: number
   changes: MemoryChange[]
 }
+
+/** A memory entry as a run used it — its own copy of the title/section
+ *  (`memory_usage_log.key`/`.section`), kept even after the entry itself is
+ *  later edited or deleted. What `ChatSseEvent`'s `memories_used` carries and
+ *  `GET /api/v1/memory/usage` returns, grouped by run id. */
+export interface UsedMemory {
+  id: string
+  key: string
+  section: MemorySection
+}

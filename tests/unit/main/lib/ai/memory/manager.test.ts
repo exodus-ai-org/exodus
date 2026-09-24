@@ -144,18 +144,36 @@ describe('loadRelevantMemories', () => {
     ])
     llmReturns({ selectedMemoryIds: ['b'] })
 
-    const result = await loadRelevantMemories('hi', model, 'k', 'chat-1')
+    const result = await loadRelevantMemories(
+      'hi',
+      model,
+      'k',
+      'chat-1',
+      'run-1'
+    )
 
     expect(result.map((m) => m.id)).toEqual(['b'])
     expect(mockTouchMemories).toHaveBeenCalledWith(['b'])
     expect(mockLogMemoryUsage).toHaveBeenCalledWith(
-      expect.objectContaining({ memoryId: 'b', sessionId: 'chat-1' })
+      expect.objectContaining({
+        memoryId: 'b',
+        sessionId: 'chat-1',
+        runId: 'run-1',
+        key: 'B',
+        section: 'topic'
+      })
     )
   })
 
   it('returns [] and touches nothing when no memories exist', async () => {
     mockGetActiveMemories.mockResolvedValue([])
-    const result = await loadRelevantMemories('hi', model, 'k', 'chat-1')
+    const result = await loadRelevantMemories(
+      'hi',
+      model,
+      'k',
+      'chat-1',
+      'run-1'
+    )
     expect(result).toEqual([])
     expect(mockCompleteSimple).not.toHaveBeenCalled()
     expect(mockTouchMemories).not.toHaveBeenCalled()

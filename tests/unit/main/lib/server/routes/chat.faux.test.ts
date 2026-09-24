@@ -86,6 +86,7 @@ vi.mock('@main/lib/search/resolve-search-provider', () => ({
 
 const { default: chat } = await import('@main/lib/server/routes/chat')
 const { registerFauxProvider } = await import('@main/lib/ai/kernel/faux')
+const { loadRelevantMemories } = await import('@main/lib/ai/memory/manager')
 
 const CHAT_ID = '11111111-1111-4111-8111-111111111111'
 const USER_ID = '22222222-2222-4222-8222-222222222222'
@@ -96,6 +97,22 @@ function buildApp() {
     c.set('settings', {
       id: 'settings-1',
       memory: { lcmEnabled: true, autoCapture: true, useInChat: false }
+    } as never)
+    await next()
+  })
+  app.route('/', chat)
+  return app
+}
+
+/** Same as `buildApp()`, but with "use memory in chat" on — for the
+ *  `memories_used` SSE event tests, which need `loadRelevantMemories` to
+ *  actually be called. */
+function buildAppMemoryOn() {
+  const app = new Hono()
+  app.use('*', async (c, next) => {
+    c.set('settings', {
+      id: 'settings-1',
+      memory: { lcmEnabled: true, autoCapture: true, useInChat: true }
     } as never)
     await next()
   })
@@ -114,6 +131,7 @@ function sseEvents(
 
 beforeEach(() => {
   saveMessages.mockClear()
+  vi.mocked(loadRelevantMemories).mockReset().mockResolvedValue([])
 })
 
 describe('POST /api/v1/chat on the faux provider', () => {
@@ -187,5 +205,57 @@ describe('POST /api/v1/chat on the faux provider', () => {
       'assistant'
     ])
     expect(runRows.every((r) => r.runId === USER_ID)).toBe(true)
+  })
+
+  it('sends memories_used as the first SSE event, stamped with the run id, when the read filter selected a memory', async () => {
+    const faux = registerFauxProvider()
+    faux.setResponses([fauxAssistantMessage([fauxText('Sunny.')])])
+    getModelFromProviderMock.mockReturnValue({
+      model: faux.getModel(),
+      apiKey: 'k'
+    })
+    vi.mocked(loadRelevantMemories).mockResolvedValue([
+      { id: 'mem-1', key: 'Classical Music', section: 'topic' } as never
+    ])
+
+    const response = await buildAppMemoryOn().request('/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: CHAT_ID,
+        messages: [{ id: USER_ID, role: 'user', content: 'hi', timestamp: 1 }],
+        advancedTools: []
+      })
+    })
+    const events = sseEvents(await response.text())
+
+    expect(events[0]).toEqual({
+      type: 'memories_used',
+      runId: USER_ID,
+      memories: [{ id: 'mem-1', key: 'Classical Music', section: 'topic' }]
+    })
+  })
+
+  it('sends no memories_used event when the read filter selected nothing', async () => {
+    const faux = registerFauxProvider()
+    faux.setResponses([fauxAssistantMessage([fauxText('Sunny.')])])
+    getModelFromProviderMock.mockReturnValue({
+      model: faux.getModel(),
+      apiKey: 'k'
+    })
+    vi.mocked(loadRelevantMemories).mockResolvedValue([])
+
+    const response = await buildAppMemoryOn().request('/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: CHAT_ID,
+        messages: [{ id: USER_ID, role: 'user', content: 'hi', timestamp: 1 }],
+        advancedTools: []
+      })
+    })
+    const events = sseEvents(await response.text())
+
+    expect(events.some((e) => e.type === 'memories_used')).toBe(false)
   })
 })

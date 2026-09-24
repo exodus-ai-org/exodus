@@ -22,6 +22,7 @@ const queries = vi.hoisted(() => ({
   createMemory: vi.fn(),
   getAllMemories: vi.fn(),
   getMemoryById: vi.fn(),
+  getMemoryUsageByChat: vi.fn(),
   hardDeleteMemory: vi.fn(),
   softDeleteMemory: vi.fn(),
   updateMemory: vi.fn()
@@ -90,5 +91,35 @@ describe('POST /api/v1/memory/undo', () => {
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({ undone: ['a'], skipped: ['b'] })
     expect(undo.undoMemoryChanges).toHaveBeenCalledWith([change])
+  })
+})
+
+describe('GET /api/v1/memory/usage', () => {
+  beforeEach(() => {
+    queries.getMemoryUsageByChat.mockReset()
+  })
+
+  it('400s without a chatId query param, and never reaches the query', async () => {
+    const app = await buildApp()
+    const res = await app.request('/api/v1/memory/usage')
+    expect(res.status).toBe(400)
+    expect(queries.getMemoryUsageByChat).not.toHaveBeenCalled()
+  })
+
+  it('returns runId -> UsedMemory[] for a valid chatId, ahead of the /:id route', async () => {
+    queries.getMemoryUsageByChat.mockResolvedValue({
+      'run-1': [{ id: 'mem-1', key: 'Classical Music', section: 'topic' }]
+    })
+    const app = await buildApp()
+    const res = await app.request('/api/v1/memory/usage?chatId=chat-1')
+
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({
+      'run-1': [{ id: 'mem-1', key: 'Classical Music', section: 'topic' }]
+    })
+    expect(queries.getMemoryUsageByChat).toHaveBeenCalledWith('chat-1')
+    // Proves route ordering: "usage" was not swallowed by GET /:id, which
+    // would have called getMemoryById instead.
+    expect(queries.getMemoryById).not.toHaveBeenCalled()
   })
 })

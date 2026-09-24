@@ -645,11 +645,19 @@ export const memory = pgTable('memory', {
 })
 
 // Written whenever a memory is surfaced into a chat — powers "why did it say
-// that" traces and an age-out policy.
+// that" traces and an age-out policy. `runId`/`key`/`section` (migration
+// 0009) let a chat announce which memories a specific run used and keep
+// rendering that after the entry itself is edited or deleted — the log
+// carries its own copy of the title/section rather than joining `memory`.
+// Rows from before the migration keep them null; `getMemoryUsageByChat`
+// skips a null `runId` rather than grouping old data under "null".
 export const memoryUsageLog = pgTable('memory_usage_log', {
   id: uuid('id').defaultRandom().primaryKey(),
   memoryId: uuid('memoryId'),
   sessionId: uuid('sessionId'),
+  runId: uuid('runId'),
+  key: text('key'),
+  section: text('section').$type<'profile' | 'topic' | 'person'>(),
   reason: text('reason'),
   createdAt: timestamp('createdAt').defaultNow()
 })

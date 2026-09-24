@@ -390,7 +390,8 @@ export async function loadRelevantMemories(
   question: string,
   model: Model<string>,
   apiKey: string,
-  sessionId: string
+  sessionId: string,
+  runId: string
 ): Promise<MemoryRow[]> {
   try {
     const all = await getActiveMemories(LOCAL_USER_ID)
@@ -427,6 +428,9 @@ export async function loadRelevantMemories(
           logMemoryUsage({
             memoryId: m.id,
             sessionId,
+            runId,
+            key: m.key,
+            section: m.section,
             reason: 'read-filter'
           }).catch(() => {})
         )

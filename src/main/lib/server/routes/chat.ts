@@ -26,6 +26,7 @@ import {
   getModelFromProvider,
   getTextFromMessage
 } from '../../ai/utils/chat-message-util'
+import type { MemoryRow } from '../../db/memory-queries'
 import { getProjectById, bumpProjectUpdatedAt } from '../../db/project-queries'
 import {
   deleteChatById,
@@ -187,25 +188,30 @@ chat.post('/', async (c) => {
         .then((assembled) => assembled.messages.slice(0, -1))
     : Promise.resolve(allMessages.slice(0, -1).map(stripId))
 
-  const memoryPromise = memoryUseInChat
-    ? loadRelevantMemories(getTextFromMessage(userMessage), model, apiKey, id)
-        .then(formatMemoriesForSystem)
-        .catch((err) => {
-          logger.warn('chat', 'Memory loading failed, continuing without', {
-            error: String(err)
-          })
-          return ''
+  const memoryPromise: Promise<MemoryRow[]> = memoryUseInChat
+    ? loadRelevantMemories(
+        getTextFromMessage(userMessage),
+        model,
+        apiKey,
+        id,
+        userMessage.id
+      ).catch((err) => {
+        logger.warn('chat', 'Memory loading failed, continuing without', {
+          error: String(err)
         })
-    : Promise.resolve('')
+        return []
+      })
+    : Promise.resolve([])
 
   const mcpPromise = getMcpTools()
 
-  const [contextMessages, memoriesSection, , mcpTools] = await Promise.all([
+  const [contextMessages, memoryRows, , mcpTools] = await Promise.all([
     lcmPromise,
     memoryPromise,
     saveUserMsgPromise,
     mcpPromise
   ])
+  const memoriesSection = formatMemoriesForSystem(memoryRows)
 
   const tools = bindCallingTools({
     advancedTools,
@@ -295,6 +301,20 @@ chat.post('/', async (c) => {
   const stream = new ReadableStream({
     async start(controller) {
       const sse = createSseWriter(controller)
+      // Sent once, before any kernel event, and only when the read filter
+      // actually selected something — a chat with memory off or nothing
+      // relevant sends no event at all.
+      if (memoryRows.length > 0) {
+        sse.send({
+          type: 'memories_used',
+          runId: userMessage.id,
+          memories: memoryRows.map(({ id, key, section }) => ({
+            id,
+            key,
+            section
+          }))
+        })
+      }
       try {
         const events = runAgent({
           chatId: id,

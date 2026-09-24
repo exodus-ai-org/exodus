@@ -10,6 +10,7 @@ import {
   createMemory,
   getAllMemories,
   getMemoryById,
+  getMemoryUsageByChat,
   hardDeleteMemory,
   softDeleteMemory,
   updateMemory,
@@ -20,6 +21,7 @@ import { Variables } from '../types'
 import {
   deletionSuccessResponse,
   getRequiredParam,
+  getRequiredQuery,
   handleDatabaseOperation,
   successResponse,
   updateSuccessResponse,
@@ -71,6 +73,17 @@ memoryRouter.post('/undo', async (c) => {
     'Failed to undo memory changes'
   )
   return successResponse(c, result)
+})
+
+// GET /api/v1/memory/usage?chatId= — which memories each run of a chat used.
+// Registered ahead of the /:id routes below, same as every other non-:id path.
+memoryRouter.get('/usage', async (c) => {
+  const chatId = getRequiredQuery(c, 'chatId')
+  const usage = await handleDatabaseOperation(
+    () => getMemoryUsageByChat(chatId),
+    'Failed to load memory usage'
+  )
+  return successResponse(c, usage)
 })
 
 // GET /api/v1/memory/:id

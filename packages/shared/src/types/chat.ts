@@ -9,6 +9,8 @@ import type {
   UserMessage
 } from '@earendil-works/pi-ai'
 
+import type { UsedMemory } from './memory'
+
 export type {
   AssistantMessage,
   ImageContent,
@@ -87,6 +89,10 @@ export type ChatSseEvent =
   | { type: 'title'; title: string }
   | { type: 'error'; error: string }
   | { type: 'notice'; level: ToolNoticeLevel; message: string }
+  // Which memories were selected into this run's system prompt, sent once
+  // right after the stream opens (before any kernel event). A client that
+  // doesn't know this event type ignores it (exodus-ios).
+  | { type: 'memories_used'; runId: string; memories: UsedMemory[] }
 
 // ─── Chat UI Types ─────────────────────────────────────────────────────────
 
