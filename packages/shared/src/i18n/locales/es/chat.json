@@ -267,6 +267,9 @@
   "run": {
     "error": "Esta respuesta se detuvo con un error: {{message}}"
   },
+  "memoryStrip": {
+    "undoFailed": "No se pudo deshacer"
+  },
   "renderFailed": "No se pudo mostrar {{what}}.",
   "findInPage": {
     "placeholder": "Buscar en la página…",

@@ -267,6 +267,9 @@
   "run": {
     "error": "This reply stopped with an error: {{message}}"
   },
+  "memoryStrip": {
+    "undoFailed": "Couldn't undo"
+  },
   "renderFailed": "{{what}} could not be shown.",
   "findInPage": {
     "placeholder": "Find in page...",

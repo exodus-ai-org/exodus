@@ -27,13 +27,13 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
+import { useMemories, useSetMemoryList } from '@/hooks/use-memory'
 import { i18n } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 
 import {
   createMemory,
   deleteMemory,
-  getMemories,
   instructMemory,
   updateMemory,
   type MemoryItem,
@@ -421,8 +421,10 @@ function MemoryComposer({
 
 export function MemorySettings({ form }: { form: UseFormReturnType }) {
   const { t } = useTranslation('settings')
-  const [memories, setMemories] = useState<MemoryItem[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data, isLoading } = useMemories()
+  const memories = data ?? []
+  const { set: setMemoryList, invalidate: invalidateMemories } =
+    useSetMemoryList()
   const [selectedId, setSelectedId] = useState<string | null>(null)
 
   const sectionGroups: { section: MemorySection; label: string }[] = useMemo(
@@ -436,35 +438,20 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
 
   const lcmEnabled = form.watch('memory.lcmEnabled') ?? true
 
-  const load = useCallback(async () => {
-    try {
-      setMemories(await getMemories())
-    } catch (e) {
-      sileo.error({
-        title: t('memory.settings.toast.loadFailedTitle'),
-        description:
-          e instanceof Error ? e.message : t('memory.genericRetryHint')
-      })
-    } finally {
-      setLoading(false)
-    }
-  }, [t])
-
-  useEffect(() => {
-    load()
-  }, [load])
-
   const selected = useMemo(
     () => memories.find((m) => m.id === selectedId) ?? null,
     [memories, selectedId]
   )
   useEffect(() => {
-    if (selectedId && !loading && !selected) setSelectedId(null)
-  }, [selectedId, selected, loading])
+    if (selectedId && !isLoading && !selected) setSelectedId(null)
+  }, [selectedId, selected, isLoading])
 
-  const patchLocal = useCallback((next: MemoryItem) => {
-    setMemories((ms) => ms.map((m) => (m.id === next.id ? next : m)))
-  }, [])
+  const patchLocal = useCallback(
+    (next: MemoryItem) => {
+      setMemoryList((ms) => ms.map((m) => (m.id === next.id ? next : m)))
+    },
+    [setMemoryList]
+  )
 
   const handleNew = async () => {
     try {
@@ -475,7 +462,7 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
         details: [],
         source: 'explicit'
       })
-      await load()
+      await invalidateMemories()
       setSelectedId(row.id)
     } catch (e) {
       sileo.error({
@@ -491,16 +478,16 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
     try {
       await updateMemory(item.id, { isActive: item.isActive === false })
     } catch {
-      load()
+      invalidateMemories()
     }
   }
 
   const handleDelete = async (item: MemoryItem) => {
-    setMemories((ms) => ms.filter((m) => m.id !== item.id))
+    setMemoryList((ms) => ms.filter((m) => m.id !== item.id))
     try {
       await deleteMemory(item.id, true)
     } catch {
-      load()
+      invalidateMemories()
     }
   }
 
@@ -514,10 +501,13 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
           onPatched={patchLocal}
           onDeleted={() => {
             setSelectedId(null)
-            load()
+            invalidateMemories()
           }}
         />
-        <MemoryComposer scopeMemoryId={selected.id} onApplied={load} />
+        <MemoryComposer
+          scopeMemoryId={selected.id}
+          onApplied={invalidateMemories}
+        />
       </div>
     )
   }
@@ -655,7 +645,7 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
           </Button>
         </div>
 
-        {loading ? (
+        {isLoading ? (
           <div className="flex flex-col gap-2">
             <Skeleton className="h-10 w-full rounded-lg" />
             <Skeleton className="h-10 w-full rounded-lg" />
@@ -710,7 +700,7 @@ export function MemorySettings({ form }: { form: UseFormReturnType }) {
         )}
 
         <div className="mt-1">
-          <MemoryComposer onApplied={load} />
+          <MemoryComposer onApplied={invalidateMemories} />
         </div>
       </div>
     </div>

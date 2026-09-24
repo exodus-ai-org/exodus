@@ -259,6 +259,9 @@
   "run": {
     "error": "此回覆因錯誤而中斷：{{message}}"
   },
+  "memoryStrip": {
+    "undoFailed": "無法復原"
+  },
   "renderFailed": "無法顯示{{what}}。",
   "findInPage": {
     "placeholder": "在頁面中尋找…",

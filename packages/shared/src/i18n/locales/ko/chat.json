@@ -259,6 +259,9 @@
   "run": {
     "error": "이 답변은 오류로 중단되었습니다: {{message}}"
   },
+  "memoryStrip": {
+    "undoFailed": "실행 취소하지 못했습니다"
+  },
   "renderFailed": "{{what}}을(를) 표시할 수 없습니다.",
   "findInPage": {
     "placeholder": "페이지에서 찾기…",

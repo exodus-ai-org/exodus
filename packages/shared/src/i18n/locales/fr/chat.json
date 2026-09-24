@@ -267,6 +267,9 @@
   "run": {
     "error": "Cette réponse s'est arrêtée sur une erreur : {{message}}"
   },
+  "memoryStrip": {
+    "undoFailed": "Impossible d'annuler"
+  },
   "renderFailed": "{{what}} n'a pas pu être affiché.",
   "findInPage": {
     "placeholder": "Rechercher dans la page…",

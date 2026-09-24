@@ -259,6 +259,9 @@
   "run": {
     "error": "この回答はエラーで中断しました: {{message}}"
   },
+  "memoryStrip": {
+    "undoFailed": "元に戻せませんでした"
+  },
   "renderFailed": "{{what}} を表示できませんでした。",
   "findInPage": {
     "placeholder": "ページ内を検索…",

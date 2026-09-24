@@ -267,6 +267,9 @@
   "run": {
     "error": "Diese Antwort wurde mit einem Fehler abgebrochen: {{message}}"
   },
+  "memoryStrip": {
+    "undoFailed": "Konnte nicht rückgängig gemacht werden"
+  },
   "renderFailed": "{{what}} konnte nicht angezeigt werden.",
   "findInPage": {
     "placeholder": "Auf der Seite suchen…",

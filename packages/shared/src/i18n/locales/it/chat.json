@@ -267,6 +267,9 @@
   "run": {
     "error": "Questa risposta si è interrotta con un errore: {{message}}"
   },
+  "memoryStrip": {
+    "undoFailed": "Impossibile annullare"
+  },
   "renderFailed": "Impossibile mostrare {{what}}.",
   "findInPage": {
     "placeholder": "Trova nella pagina…",

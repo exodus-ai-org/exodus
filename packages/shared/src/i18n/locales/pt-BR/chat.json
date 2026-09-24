@@ -267,6 +267,9 @@
   "run": {
     "error": "Esta resposta foi interrompida por um erro: {{message}}"
   },
+  "memoryStrip": {
+    "undoFailed": "Não foi possível desfazer"
+  },
   "renderFailed": "Não foi possível exibir {{what}}.",
   "findInPage": {
     "placeholder": "Localizar na página…",
