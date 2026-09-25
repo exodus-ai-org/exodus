@@ -63,10 +63,18 @@ leaves open, in one place:
   (final fix wave, I5); raw data files (`~/.exodus/database`, `backups`,
   `analytics`) are refused to every tool (I4); log lines mask every known
   secret value as they are written (M4, `logger/secret-mask.ts`).
-- **Pre-encryption backups** (`~/.exodus/backups/*.tar.gz` written before
-  this pass) hold every key in plaintext until they are deleted — whether to
-  delete them is the owner's decision, still pending. The file tools cannot
-  read them now; an obfuscated `terminal` command still can.
+- **Fixed 2026-09-26 (owner said yes):** pre-encryption backups
+  (`~/.exodus/backups/*.tar.gz` written before secrets were encrypted at
+  rest, which held every key in plaintext) are now removed. The startup
+  pass's `removeOldBackupsOnce()` (`secrets/migrate.ts`) deletes every
+  auto-backup older than the purge marker's `purgedAt`, once — only after a
+  pass has recorded `purgedAt` and only while encryption reads `'on'` (with
+  no working backend a fresh backup is plaintext too, so deleting old ones
+  buys nothing); success is recorded in the marker's `oldBackupsRemovedAt`
+  so it never repeats and never touches a backup made since. A failure is
+  logged (a count, never a backup's name) and does not block startup; the
+  next launch retries. A user who upgrades but leaves Exodus closed keeps
+  the old backups on disk until the next launch that completes the purge.
 - **Encryption unavailable** (Linux without a keyring, a failed
   `safeStorage` self-check): the database, new backups and the DuckDB copy
   hold plaintext. Settings → General says so; the tools are refused the
@@ -79,8 +87,12 @@ leaves open, in one place:
   unremarkable flag name) are returned by the API as they are.
 - **`s3.accessKeyId`** is carried, by design, in every presigned URL
   `POST /api/v1/s3/presigned-url` returns (the secret key is not).
-- **The artifact sandbox's `img-src *`**: model-written artifact code can
-  beacon through an image — the owner's decision, still pending.
+- **The artifact sandbox's `img-src *`** (accepted, owner's decision
+  2026-09-26): model-written artifact code can still beacon data out through
+  an image URL. Kept on purpose, not left unfixed — artifacts legitimately
+  embed images the model found through web or image search, and narrowing
+  the policy would break that. The residual is bounded to what the model
+  put in that one artifact; see the CSP item under "Smaller items" below.
 - **The terminal heuristic is a heuristic**: an obfuscated command gets past
   it. Calls in one batch are all checked before any runs, so a symlink
   created by call 1 is not seen when call 2 is checked (the path did not
@@ -101,8 +113,11 @@ leaves open, in one place:
   wide open — and only `connect-src 'self'` is tight there; an `<img>` tag is
   not a `fetch`/`XHR`, so model-written artifact code can still exfiltrate
   through an image `src` without the user's page ever calling out. Not
-  covered by this change (artifacts are out of `Markdown`'s render path
-  entirely) and not yet fixed.
+  covered by the remote-image gate above (artifacts are out of `Markdown`'s
+  render path entirely) and kept open by design (owner's decision
+  2026-09-26, see the Residuals item above): artifacts legitimately embed
+  images the model found through web/image search, and the exposure is
+  bounded to what the model put in that one artifact.
 - MCP `args` masking is a heuristic over argument shapes (secret-named
   flags and `NAME=value`, secret headers, URLs, `-p` after `-u`): a secret
   inside a JSON-valued argument (`--config '{"apiKey":…}'`) or under a flag
@@ -210,7 +225,14 @@ leaves open, in one place:
 false`. The user can therefore open them on the main window, whose console
   can read the presence token; the model cannot open them itself except
   through the same synthetic-input residual above (keystrokes into the
-  window). Left as is: it is the field-debugging path.
+  window). Kept on purpose (owner's decision 2026-09-26), not just left as
+  the field-debugging path: it is a product principle — the code is
+  transparent to the user, and Exodus collects no user data and has no
+  remote control, so there is nothing DevTools would expose that the user
+  does not already own. The actual boundary is the remote-debugging guard
+  above, which blocks another process from attaching to the packaged app's
+  DevTools endpoint; this item is only about the user's own, local, in-app
+  access to them.
 - Philharmonic's loops (the employee loop, the PM coordinator) run the same
   matcher but cannot ask — a Group run has no chat window, a scheduled one no
   one at all — so a call the chat would ask about is refused there ("Access to
@@ -274,21 +296,24 @@ https://maps.googleapis.com`, narrowed from `*.googleapis.com`, which
   where it was on a save — by its key path, so a key holding a `.` stays one
   key, and a lost array item returns to its raw index. The envelope
   self-check caches only a real verdict: a decrypt the keychain refuses once
-  is asked again next time. The purge marker's `purgedAt` (what a backup
-  deletion would rely on) is written only by a pass that encrypted with a
-  working backend; a temp file a crash left in `~/.exodus/logs` mid-scrub is
-  removed by the next scrub.
+  is asked again next time. The purge marker's `purgedAt` (what the
+  backup-cleanup pass keys its cutoff on, below) is written only by a pass
+  that encrypted with a working backend; a temp file a crash left in
+  `~/.exodus/logs` mid-scrub is removed by the next scrub.
 - Changing the signing identity (the first Developer ID build) makes every
   stored secret undecryptable: the user re-enters each key once (see
   CLAUDE.md, "When a Developer ID exists").
-- Backups taken before the upgrade (`~/.exodus/backups`, up to seven) hold
-  every key in plaintext, and they do not age out on their own: old backups
-  are pruned only when a new one is written, and the daily backup runs only
-  while the app is open at 03:00 with auto-backup on — so a user who rarely
-  has it open then, or has auto-backup off, keeps them indefinitely.
-  `removeBackupsOlderThan()` (`backup.ts`) can delete them after the first
-  post-migration backup, but it is not called: deleting backups is the
-  owner's decision. The purge does not reach blocks the filesystem freed.
+- Backups taken before secrets were encrypted at rest held every key in
+  plaintext until deleted; fixed 2026-09-26 (see the Residuals item above) —
+  `removeOldBackupsOnce()` deletes every one older than the purge marker's
+  `purgedAt`, once, the first launch that finds `purgedAt` on record with
+  encryption `'on'`. Auto-backups are otherwise still pruned only by count
+  (the newest seven, `MAX_AUTO_BACKUPS` in `backup.ts`), not by age, and the
+  daily backup itself only runs while the app is open at 03:00 with
+  auto-backup on — so a user who rarely has it open then, or has auto-backup
+  off, still accumulates backups beyond those seven indefinitely; that
+  rotation behavior is unchanged. The purge does not reach blocks the
+  filesystem freed by a deleted backup.
 - Keys pasted into a chat or remembered by memory are not registry secrets:
   they stay plaintext in `message` / `memory`, in LCM's `lcm_summary` and in
   `session_summary`, in `index-message` job payloads (a full message row),
