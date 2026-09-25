@@ -239,6 +239,27 @@ type SecretFn = (v: string | number, label: string) => string | number | null
 
 /** Marks a sealed number, so opening it gives the number back. */
 const NUMBER_ENVELOPE = 'exodus-number:'
+/**
+ * Marks a sealed string that itself starts with one of these markers, so a
+ * secret whose text is `exodus-number:7` opens as that text, not as 7
+ * (S1 M-c). Any other string is sealed as it is (rows written before this
+ * opened the same way).
+ */
+const STRING_ENVELOPE = 'exodus-string:'
+
+function escapeSealedString(v: string): string {
+  return v.startsWith(NUMBER_ENVELOPE) || v.startsWith(STRING_ENVELOPE)
+    ? `${STRING_ENVELOPE}${v}`
+    : v
+}
+
+function openSealedValue(out: string): string | number {
+  if (out.startsWith(STRING_ENVELOPE)) return out.slice(STRING_ENVELOPE.length)
+  if (out.startsWith(NUMBER_ENVELOPE)) {
+    return Number(out.slice(NUMBER_ENVELOPE.length))
+  }
+  return out
+}
 
 /**
  * Every secret string inside `value` through `fn`: a string under a
@@ -340,11 +361,7 @@ export function decryptMcpRow<T extends McpSecretColumns>(
   const openAny: SecretFn = (v, label) => {
     if (typeof v === 'number') return v
     const out = open(v, label)
-    return out !== null &&
-      isEncryptedSecret(v) &&
-      out.startsWith(NUMBER_ENVELOPE)
-      ? Number(out.slice(NUMBER_ENVELOPE.length))
-      : out
+    return out !== null && isEncryptedSecret(v) ? openSealedValue(out) : out
   }
   const plain = mapMcpSecrets(row, openAny)
   mapMcpLocators(plain, open, 'open')
@@ -367,7 +384,15 @@ export function encryptMcpSecrets<T extends McpSecretColumns>(
     return out
   }
   const sealAny: SecretFn = (v) => {
-    if (typeof v === 'string') return seal(v)
+    if (typeof v === 'string') {
+      if (isEncryptedSecret(v)) return v
+      const escaped = escapeSealedString(v)
+      const out = encryptSecret(escaped)
+      // No backend: stored as it came, unescaped (plaintext, like the rest).
+      if (!isEncryptedSecret(out)) return v
+      if (out !== v) changed++
+      return out
+    }
     // A number: sealed as a string envelope when there is a backend; with
     // none it stays the number it was (plaintext, like every other value).
     const out = encryptSecret(`${NUMBER_ENVELOPE}${v}`)
@@ -386,6 +411,45 @@ interface McpDestination {
   command?: string | null
   args?: string[] | null
   extraConfig?: Record<string, unknown> | null
+  env?: Record<string, unknown> | null
+}
+
+/**
+ * Environment variables that change which program runs, or what it loads:
+ * editing one is a command change for the destination rule (ledger ruling,
+ * final fix wave) — `PATH` can make `npx` another binary, `NODE_OPTIONS
+ * --require` / `LD_PRELOAD` / `DYLD_INSERT_LIBRARIES` inject code into the
+ * one that runs, and either would receive the stored secrets.
+ */
+const EXECUTION_ENV =
+  /^(?:PATH|NODE_OPTIONS|NODE_PATH|PYTHONPATH|PYTHONHOME|PYTHONSTARTUP|LD_\w+|DYLD_\w+)$/iu
+
+/** The execution-affecting entries of `env`, masks read as `stored`'s. */
+function executionEnv(
+  env: Record<string, unknown> | null | undefined,
+  stored: Record<string, unknown> | null | undefined
+): string {
+  if (!isPlainObject(env)) return '[]'
+  return JSON.stringify(
+    Object.entries(env)
+      .filter(([k]) => EXECUTION_ENV.test(k))
+      .map(([k, v]) => [
+        k,
+        looksLikeMask(v) && isPlainObject(stored) ? stored[k] : v
+      ])
+      .toSorted(([a], [b]) => String(a).localeCompare(String(b)))
+  )
+}
+
+/** Whether a write changes an execution-affecting env var (`EXECUTION_ENV`). */
+function executionEnvMoved(
+  body: McpDestination,
+  stored: McpDestination
+): boolean {
+  if (body.env === undefined) return false
+  return (
+    executionEnv(body.env, stored.env) !== executionEnv(stored.env, stored.env)
+  )
 }
 
 /**
@@ -455,7 +519,8 @@ export function movedMcpSecretColumns(
       extraConfigDestinations(stored.extraConfig).toSorted().join('\n')
   const processMoved =
     (pick('command') ?? '').trim() !== (stored.command ?? '').trim() ||
-    !sameArgs(pick('args'), stored.args)
+    !sameArgs(pick('args'), stored.args) ||
+    executionEnvMoved(body, stored)
   for (const [col, dest] of Object.entries(MCP_SECRET_DESTINATIONS) as [
     keyof McpSecretsPlaintext,
     'url' | 'command'
@@ -522,8 +587,9 @@ export function planMcpUpdate<T extends McpWriteBody>(
   // the command, so only a command-only PUT starts with an empty list.
   const commandMoved =
     !!stored &&
-    body.command !== undefined &&
-    (body.command ?? '').trim() !== (stored.command ?? '').trim()
+    ((body.command !== undefined &&
+      (body.command ?? '').trim() !== (stored.command ?? '').trim()) ||
+      executionEnvMoved(body, stored))
   const located = restoreMcpLocators(body, stored, {
     restoreArgs: !commandMoved
   })

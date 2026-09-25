@@ -21,6 +21,29 @@ export function maskSecret(value: string | null | undefined): string | null {
 }
 
 /**
+ * Names that match the word rules below but hold no secret — a token budget,
+ * a session's display name, a signing-algorithm version (S1 M-a). Word-joined
+ * with `-`, so `maxTokens`, `max_tokens` and `--max-tokens` are one entry.
+ */
+const NON_SECRET_NAMES = new Set([
+  'max-tokens',
+  'max-token',
+  'max-output-tokens',
+  'max-new-tokens',
+  'max-completion-tokens',
+  'token-limit',
+  'tokens-limit',
+  'token-count',
+  'token-budget',
+  'session-name',
+  'session-title',
+  'signature-version',
+  'signature-method',
+  'pass-through',
+  'passthrough'
+])
+
+/**
  * Whether a field / header / flag name would be a secret by the look of it.
  * Judged word by word (`apiKey`, `api_key` and `X-API-KEY` are all `api` +
  * `key`), so a short marker only matches a whole word: `pat` but not `path`,
@@ -37,6 +60,7 @@ export function isSecretName(name: string): boolean {
     // A numbered one (`apiKey2`, `API_KEY2`) is the same kind of field.
     .map((w) => w.replace(/\d+$/u, ''))
     .filter(Boolean)
+  if (NON_SECRET_NAMES.has(words.join('-'))) return false
   return words.some(
     (w) =>
       /secret|passw|passphr|token|credential|cookie|bearer|jwt/u.test(w) ||
@@ -117,8 +141,15 @@ export function maskMcpUrl(url: string | null | undefined): string | null {
   return `${scheme}${host}${maskedPath}${maskedQuery}${fragment}`
 }
 
+/**
+ * A value no secret takes: all digits (`--session-timeout 30`) or a version
+ * (`--signature v4`). Shown as is, so a short setting is never masked into
+ * `••••` that the user would have to re-type (S1 M-a).
+ */
+const PLAIN_VALUE = /^(?:\d+|v\d+(?:\.\d+)*)$/iu
+
 function maskArgValue(value: string): string {
-  return value === '' || ENV_REFERENCE.test(value)
+  return value === '' || ENV_REFERENCE.test(value) || PLAIN_VALUE.test(value)
     ? value
     : (maskSecret(value) ?? value)
 }
@@ -134,7 +165,9 @@ function maskHeaderArg(header: string): string {
   const value = header.slice(colon + 1).trim()
   if (!isSecretName(name) || !value || ENV_REFERENCE.test(value)) return header
   const scheme = AUTH_SCHEME.exec(value)
-  if (scheme && !ENV_REFERENCE.test(scheme[2]!)) {
+  if (scheme) {
+    // `Bearer $TOKEN` names an env var, not the secret (S1 M-d).
+    if (ENV_REFERENCE.test(scheme[2]!.trim())) return header
     return `${name}: ${scheme[1]} ${maskSecret(scheme[2]!)}`
   }
   return `${name}: ${maskSecret(value)}`
@@ -150,6 +183,9 @@ const NAME_VALUE = /^([A-Za-z_][\w.-]*)=(.*)$/su
 function maskLooseValue(value: string): string {
   const nv = NAME_VALUE.exec(value)
   if (nv && isSecretName(nv[1]!)) return `${nv[1]}=${maskArgValue(nv[2]!)}`
+  // A non-secret name can still carry a URL with credentials in it
+  // (`DATABASE_URL=postgres://u:pw@…`, S1 M-e).
+  if (nv) return `${nv[1]}=${maskMcpUrl(nv[2]!)}`
   return maskMcpUrl(value)!
 }
 

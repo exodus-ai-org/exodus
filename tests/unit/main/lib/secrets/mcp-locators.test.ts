@@ -289,3 +289,57 @@ describe('isSecretName', () => {
     }
   })
 })
+
+describe('fewer false positives, and no misses (S1 M-a, M-d, M-e)', () => {
+  it('does not mask a token budget, a session name or a version', () => {
+    const args = [
+      '--max-tokens',
+      '4096',
+      '--token-limit=8000',
+      '--session-name',
+      'work',
+      '--signature-version',
+      'v4',
+      '--pass-through'
+    ]
+    expect(maskMcpArgs(args)).toEqual(args)
+    for (const name of [
+      'max-tokens',
+      'maxTokens',
+      'MAX_TOKENS',
+      'token_limit',
+      'sessionName',
+      'signature-version',
+      'passThrough'
+    ]) {
+      expect(isSecretName(name)).toBe(false)
+    }
+  })
+
+  it('an all-digit or version value under a secret-looking name stays visible', () => {
+    expect(maskMcpArgs(['--session-timeout', '30'])).toEqual([
+      '--session-timeout',
+      '30'
+    ])
+    expect(maskMcpArgs(['--sig=v2'])).toEqual(['--sig=v2'])
+    // A real secret under the same name is still masked.
+    expect(maskMcpArgs(['--token', 'abcdefghijklmnop'])).toEqual([
+      '--token',
+      '•••• mnop'
+    ])
+  })
+
+  it('`Bearer $TOKEN` is an env reference, not the secret', () => {
+    const args = ['--header', 'Authorization: Bearer $TOKEN']
+    expect(maskMcpArgs(args)).toEqual(args)
+    expect(
+      maskMcpArgs(['--header', 'Authorization: Bearer ${API_TOKEN}'])
+    ).toEqual(['--header', 'Authorization: Bearer ${API_TOKEN}'])
+  })
+
+  it('a URL with credentials under a non-secret NAME= is masked', () => {
+    expect(
+      maskMcpArgs(['-e', 'DATABASE_URL=postgres://app:hunter2-long@db:5432/x'])
+    ).toEqual(['-e', 'DATABASE_URL=postgres://••••@db:5432/x'])
+  })
+})

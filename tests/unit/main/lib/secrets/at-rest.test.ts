@@ -565,4 +565,20 @@ describe('secrets nested under a secret-named key (review S1 M2)', () => {
       timeout: 30
     })
   })
+
+  it('a string secret that looks like the number marker opens as that string (S1 M-c)', async () => {
+    const created = await mcpQueries.createMcpServer({
+      name: 'marker-lookalike',
+      transportType: 'stdio',
+      command: 'node',
+      env: { WEIRD: 'exodus-number:7', OTHER: 'exodus-string:x' },
+      extraConfig: { apiKey: 'exodus-number:42', pin: 42 }
+    })
+    const read = await mcpQueries.getMcpServerById(created.id)
+    expect(read!.env).toEqual({
+      WEIRD: 'exodus-number:7',
+      OTHER: 'exodus-string:x'
+    })
+    expect(read!.extraConfig).toEqual({ apiKey: 'exodus-number:42', pin: 42 })
+  })
 })

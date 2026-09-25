@@ -540,3 +540,91 @@ describe('a half-edited mask is refused, never stored (N2)', () => {
     expect(after!.env).toEqual({ GITHUB_TOKEN: ENV_SECRET })
   })
 })
+
+describe('a value typed around a mask in env / headers / extraConfig is refused (S1 M-b)', () => {
+  it.each([
+    ['env', { env: { GITHUB_TOKEN: `x${'••••'} AAAA`, SHORT: '••••' } }],
+    ['headers', { headers: { Authorization: 'Bearer •••• BBBB extra' } }],
+    [
+      'extraConfig',
+      {
+        extraConfig: {
+          oauth: { clientId: 'public-client-id', clientSecret: 'pre ••••' },
+          timeout: 30
+        }
+      }
+    ]
+  ])('%s', async (field, body) => {
+    const res = await send('PUT', `/${id}`, body)
+    expect(res.status).toBe(400)
+    const json = await res.json()
+    expect(json.error.code).toBe('SECRET_REENTRY_REQUIRED')
+    expect(json.error.params.field).toBe(field)
+    const after = await mcpQueries.getMcpServerById(id)
+    expect(after!.env).toEqual({ GITHUB_TOKEN: ENV_SECRET, SHORT: 'abc' })
+    expect(after!.headers).toEqual({ Authorization: HEADER_SECRET })
+  })
+})
+
+describe('an execution-affecting env var change is a command change (ruling)', () => {
+  async function seedWithPath() {
+    await pglite.exec('DELETE FROM mcp_server;')
+    const row = await mcpQueries.createMcpServer({
+      name: 'with-path',
+      transportType: 'stdio',
+      command: 'npx',
+      args: REMOTE_ARGS,
+      env: { GITHUB_TOKEN: ENV_SECRET, PATH: '/usr/local/bin:/usr/bin:/bin' }
+    })
+    return row!.id
+  }
+
+  const shown = async () =>
+    (
+      (await (await buildApp().request('/api/v1/mcp')).json()) as Array<{
+        env: Record<string, string>
+        args: string[]
+      }>
+    )[0]!
+
+  it.each([
+    ['PATH', { PATH: '/tmp/evil:/usr/bin' }],
+    ['NODE_OPTIONS', { NODE_OPTIONS: '--require /tmp/x.js' }],
+    ['DYLD_INSERT_LIBRARIES', { DYLD_INSERT_LIBRARIES: '/tmp/x.dylib' }]
+  ])(
+    'changing %s clears the masked env secrets and refuses the masked args',
+    async (_name, change) => {
+      const sid = await seedWithPath()
+      const { env, args } = await shown()
+      const res = await send('PUT', `/${sid}`, {
+        env: { ...env, ...change },
+        args
+      })
+      expect(res.status).toBe(400)
+      const after = await mcpQueries.getMcpServerById(sid)
+      expect(after!.env).toMatchObject({ GITHUB_TOKEN: ENV_SECRET })
+
+      // Re-sent without the masked args: the env secrets do not follow.
+      const ok = await send('PUT', `/${sid}`, {
+        env: { ...env, ...change },
+        args: ['-y', 'mcp-remote', 'https://real.example/sse']
+      })
+      expect(ok.status).toBe(200)
+      const moved = await mcpQueries.getMcpServerById(sid)
+      expect(moved!.env?.GITHUB_TOKEN).toBeUndefined()
+    }
+  )
+
+  it('the same PATH posted back as its mask moves nothing', async () => {
+    const sid = await seedWithPath()
+    const { env, args } = await shown()
+    const res = await send('PUT', `/${sid}`, { env, args })
+    expect(res.status).toBe(200)
+    const after = await mcpQueries.getMcpServerById(sid)
+    expect(after!.env).toEqual({
+      GITHUB_TOKEN: ENV_SECRET,
+      PATH: '/usr/local/bin:/usr/bin:/bin'
+    })
+    expect(after!.args).toEqual(REMOTE_ARGS)
+  })
+})

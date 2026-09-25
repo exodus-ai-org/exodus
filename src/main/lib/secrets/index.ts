@@ -1,5 +1,5 @@
 import type { CurrentPlaintext, McpSecretsPlaintext } from './current'
-import { maskMcpArgs, maskMcpUrl } from './locators'
+import { MASK_TOKEN, maskMcpArgs, maskMcpUrl, refuseMask } from './locators'
 import { maskSecret, resolvePostedSecret, looksLikeMask } from './mask'
 import {
   API_MASKED_SETTINGS_PATHS,
@@ -223,11 +223,43 @@ export function maskMcpServer<T extends McpSecretColumns>(row: T): T {
  * create). A mask under a name the stored row does not have is dropped.
  * Columns not sent stay unsent; `null` clears.
  */
+/**
+ * A secret value that holds the mask's bullets without being a mask — text
+ * typed around a mask, or a mask pasted into a longer value — cannot be
+ * restored and must never be stored: 400, like a url / args (S1 M-b).
+ */
+function refusePartialMasks(
+  value: unknown,
+  secret: boolean,
+  col: 'env' | 'headers' | 'extraConfig'
+): void {
+  if (typeof value === 'string') {
+    if (secret && value.includes(MASK_TOKEN) && !looksLikeMask(value)) {
+      refuseMask(col)
+    }
+    return
+  }
+  if (Array.isArray(value)) {
+    for (const v of value) refusePartialMasks(v, secret, col)
+    return
+  }
+  if (!isPlainObject(value)) return
+  for (const [k, v] of Object.entries(value)) {
+    refusePartialMasks(v, secret || isSecretName(k), col)
+  }
+}
+
 export function restoreMcpSecrets<T extends McpSecretColumns>(
   body: T,
   current: McpSecretsPlaintext
 ): T {
   const copy = { ...body }
+  for (const col of MCP_SECRET_RECORD_COLUMNS) {
+    refusePartialMasks(copy[col], true, col)
+  }
+  for (const col of MCP_KEY_NAMED_SECRET_COLUMNS) {
+    refusePartialMasks(copy[col], false, col)
+  }
   for (const col of MCP_SECRET_RECORD_COLUMNS) {
     const rec = copy[col]
     if (!isPlainObject(rec)) continue
