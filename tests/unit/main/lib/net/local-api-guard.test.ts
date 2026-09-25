@@ -54,6 +54,9 @@ describe('assertNotExodusApi — literal spellings, no DNS lookup', () => {
     '[::1]',
     // IPv4-mapped IPv6
     '[::ffff:127.0.0.1]',
+    // IPv4-compatible (::/96) and IPv4-translated (::ffff:0:0/96), S5 minor
+    '[::127.0.0.1]',
+    '[::ffff:0:127.0.0.1]',
     // *.localhost
     'foo.localhost',
     'bar.baz.localhost'

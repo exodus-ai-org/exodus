@@ -155,7 +155,19 @@ export function canonicalizeIp(ip: string): IpBytes | null {
   if (!v6) return null
   const mapped = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff]
   const nat64 = [0, 0x64, 0xff, 0x9b, 0, 0, 0, 0, 0, 0, 0, 0]
-  if (inPrefix(v6, mapped, 96) || inPrefix(v6, nat64, 96)) {
+  // SIIT's IPv4-translated ::ffff:0:a.b.c.d (::ffff:0:0/96, S5 minor).
+  const translated = [0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff, 0, 0]
+  if (
+    inPrefix(v6, mapped, 96) ||
+    inPrefix(v6, nat64, 96) ||
+    inPrefix(v6, translated, 96)
+  ) {
+    return { family: 4, bytes: v6.slice(12) }
+  }
+  // The deprecated IPv4-compatible ::a.b.c.d (::/96) — but not `::` or
+  // `::1`, whose last 32 bits read as 0.0.0.0 / 0.0.0.1 and are IPv6's own
+  // unspecified and loopback addresses.
+  if (inPrefix(v6, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], 96) && v6[12]! > 0) {
     return { family: 4, bytes: v6.slice(12) }
   }
   return { family: 6, bytes: v6 }

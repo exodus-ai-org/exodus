@@ -1360,7 +1360,7 @@ Main process:
 - `src/main/lib/ai/skills/` — skills.sh client, install store, and the prompt seam (see Skills)
 - `src/main/lib/analytics/` — DuckDB chat-audit snapshot + read-only query wrapper (see Chat Audit)
 - `src/main/lib/media/` — generated images on disk (`store.ts`: `mediaDirFor` — the one way to name a chat's / Group's media dir, refusing a bad id — `saveMedia`, the `resolveMediaFile` path guard the media route uses, per-chat / per-Group / all removal); see the `image_generation` note
-- `src/main/lib/net/` — `safe-fetch.ts`: `fetchPublicHttps()` / `isPublicAddress()`, the SSRF guard for a URL someone else chose (see `docs/security-hardening.md`)
+- `src/main/lib/net/` — `safe-fetch.ts`: `fetchPublicHttps()` / `isPublicAddress()`, the SSRF guard for a URL someone else chose (see `docs/security-hardening.md`); `local-api-guard.ts`: web_fetch cannot reach 60223 / 63129; `pinned-fetch.ts`: `fetchPinned()`, web_fetch's built-in loader's GET, pinned to the addresses it judged and never following a redirect itself
 - `src/main/lib/ai/philharmonic/` — multi-agent Groups
 - `src/main/lib/ai/context-management/` — LCM
 - `src/main/lib/ai/memory/` — personalization memory (consolidation + recall)

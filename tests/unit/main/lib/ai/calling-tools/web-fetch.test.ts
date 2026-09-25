@@ -64,6 +64,16 @@ describe('webFetch', () => {
     ).rejects.toThrow('Failed to fetch')
   })
 
+  it.each(['file:///etc/passwd', 'data:text/html,<b>x</b>', 'ftp://a.com/f'])(
+    'refuses %s — only http and https (S5)',
+    async (url) => {
+      await expect(webFetch().execute('c1', { url })).rejects.toThrow(
+        /only http and https/u
+      )
+      expect(loadDocument).not.toHaveBeenCalled()
+    }
+  )
+
   describe('cannot reach Exodus’s own API', () => {
     it.each([
       'http://127.0.0.1:60223/api/v1/settings',

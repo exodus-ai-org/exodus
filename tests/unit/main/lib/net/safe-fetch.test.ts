@@ -282,3 +282,25 @@ describe('fetchPublicHttps', () => {
     ).rejects.toThrow(/too large/i)
   })
 })
+
+describe('canonicalizeIp — the IPv4-in-IPv6 forms (S5 minor)', () => {
+  it('unwraps ::/96 and ::ffff:0:0/96 to the IPv4 address', async () => {
+    const { canonicalizeIp, isLoopbackOrUnspecified, isPublicAddress } =
+      await import('@main/lib/net/safe-fetch')
+    expect(canonicalizeIp('::127.0.0.1')).toEqual({
+      family: 4,
+      bytes: [127, 0, 0, 1]
+    })
+    expect(canonicalizeIp('::ffff:0:10.0.0.1')).toEqual({
+      family: 4,
+      bytes: [10, 0, 0, 1]
+    })
+    expect(isLoopbackOrUnspecified('::7f00:1')).toBe(true)
+    expect(isPublicAddress('::ffff:0:8.8.8.8')).toBe(false)
+    // `::` and `::1` stay IPv6's own unspecified and loopback.
+    expect(canonicalizeIp('::1')?.family).toBe(6)
+    expect(canonicalizeIp('::')?.family).toBe(6)
+    expect(isLoopbackOrUnspecified('::1')).toBe(true)
+    expect(isLoopbackOrUnspecified('::')).toBe(true)
+  })
+})

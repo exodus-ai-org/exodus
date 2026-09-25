@@ -55,6 +55,19 @@ export const webFetch = (
   execute: async (_toolCallId, { url }, signal) => {
     if (signal?.aborted) throw new Error('Aborted')
 
+    let parsed: URL | null = null
+    try {
+      parsed = new URL(url)
+    } catch {
+      parsed = null
+    }
+    // A web page, nothing else: `file:`, `data:`, `ftp:` … are refused (S5).
+    if (parsed && parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      throw new Error(
+        `web_fetch fetches only http and https URLs, not ${parsed.protocol}`
+      )
+    }
+
     try {
       await assertNotExodusApi(new URL(url))
     } catch (error) {

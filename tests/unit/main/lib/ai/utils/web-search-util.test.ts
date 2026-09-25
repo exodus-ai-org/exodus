@@ -9,7 +9,16 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 const fetchMock = vi.fn()
 vi.stubGlobal('fetch', fetchMock)
-afterEach(() => fetchMock.mockReset())
+// The built-in loader's one I/O: a pinned GET that never follows a redirect
+// (net/pinned-fetch.ts, tested on its own).
+const pinnedMock = vi.fn()
+vi.mock('@main/lib/net/pinned-fetch', () => ({
+  fetchPinned: (...args: unknown[]) => pinnedMock(...args)
+}))
+afterEach(() => {
+  fetchMock.mockReset()
+  pinnedMock.mockReset()
+})
 
 function htmlResponse(
   status: number,
@@ -154,7 +163,7 @@ describe('pickAgeLabel', () => {
 
 describe('loadDocumentBuiltin — cannot reach Exodus’s own API', () => {
   it('fetches a URL on another localhost port normally', async () => {
-    fetchMock.mockResolvedValue(
+    pinnedMock.mockResolvedValue(
       htmlResponse(
         200,
         { 'content-type': 'text/html' },
@@ -166,11 +175,11 @@ describe('loadDocumentBuiltin — cannot reach Exodus’s own API', () => {
 
     expect(result?.type).toBe('html')
     expect(result?.content).toContain('Hello from a local dev server')
-    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(pinnedMock).toHaveBeenCalledTimes(1)
   })
 
   it('fetches a URL on a LAN IP, non-Exodus port normally', async () => {
-    fetchMock.mockResolvedValue(
+    pinnedMock.mockResolvedValue(
       htmlResponse(
         200,
         { 'content-type': 'text/html' },
@@ -184,7 +193,7 @@ describe('loadDocumentBuiltin — cannot reach Exodus’s own API', () => {
   })
 
   it('follows an ordinary redirect to another public host', async () => {
-    fetchMock
+    pinnedMock
       .mockResolvedValueOnce(
         htmlResponse(302, { location: 'https://cdn.example/final' })
       )
@@ -199,11 +208,11 @@ describe('loadDocumentBuiltin — cannot reach Exodus’s own API', () => {
     const result = await loadDocumentBuiltin('https://a.example/start')
 
     expect(result?.content).toContain('Final content')
-    expect(fetchMock).toHaveBeenCalledTimes(2)
+    expect(pinnedMock).toHaveBeenCalledTimes(2)
   })
 
   it('refuses a redirect from a public URL to Exodus’s own loopback API', async () => {
-    fetchMock.mockResolvedValueOnce(
+    pinnedMock.mockResolvedValueOnce(
       htmlResponse(302, {
         location: 'http://127.0.0.1:60223/api/v1/settings'
       })
@@ -213,11 +222,11 @@ describe('loadDocumentBuiltin — cannot reach Exodus’s own API', () => {
       loadDocumentBuiltin('https://public.example/start')
     ).rejects.toThrow(LocalApiTargetError)
     // The redirect target itself is never actually requested.
-    expect(fetchMock).toHaveBeenCalledTimes(1)
+    expect(pinnedMock).toHaveBeenCalledTimes(1)
   })
 
   it('refuses a redirect to the LAN listener by IP too', async () => {
-    fetchMock.mockResolvedValueOnce(
+    pinnedMock.mockResolvedValueOnce(
       htmlResponse(302, { location: 'http://127.0.0.1:63129/api/v1/pair' })
     )
 
@@ -230,6 +239,16 @@ describe('loadDocumentBuiltin — cannot reach Exodus’s own API', () => {
     await expect(
       loadDocumentBuiltin('http://127.0.0.1:60223/api/v1/settings')
     ).rejects.toThrow(LocalApiTargetError)
-    expect(fetchMock).not.toHaveBeenCalled()
+    expect(pinnedMock).not.toHaveBeenCalled()
+  })
+
+  it('a hop to anything but http(s) is refused before any request', async () => {
+    pinnedMock.mockResolvedValueOnce(
+      htmlResponse(302, { location: 'file:///etc/passwd' })
+    )
+    await expect(
+      loadDocumentBuiltin('https://public.example/start')
+    ).resolves.toBeNull()
+    expect(pinnedMock).toHaveBeenCalledTimes(1)
   })
 })

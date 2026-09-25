@@ -24,17 +24,11 @@ import {
  * (another local dev server, an intranet host) stays reachable — that is a
  * supported `web_fetch` use case, not the threat this guards against.
  *
- * Residual risk (recorded, not fixed here — see spec §3 "out of scope: DNS
- * rebinding hardening of web_fetch beyond the port rule"): this pre-resolves
- * a host and judges the addresses it finds, but does not pin the actual
- * fetch to them the way `safe-fetch.ts` pins its `https.request` (that
- * module has full control of the socket; `web_fetch`'s built-in loader goes
- * through the global `fetch`, i.e. undici, where forcing every request onto
- * a pinned address needs a custom dispatcher — out of scope for this pass).
- * A DNS-rebinding attacker who answers this check with a public address and
- * the real connection with a local one could in principle slip through in
- * the gap between the two lookups. Every redirect hop is still re-checked
- * here, which is the part within this pass's scope.
+ * `assertNotExodusApi` pre-resolves a host; the connection itself is pinned
+ * by `net/pinned-fetch.ts` (`web_fetch`'s built-in loader), which resolves
+ * once, judges those addresses with `assertAddressesNotExodusApi` and
+ * connects to exactly them — so a DNS answer that rebinds between check and
+ * connect is never used. Every redirect hop is re-checked by the caller.
  */
 
 export class LocalApiTargetError extends Error {
@@ -69,6 +63,27 @@ function ownInterfaceAddresses(): string[] {
 function isThisMachine(ip: string): boolean {
   if (isLoopbackOrUnspecified(ip)) return true
   return ownInterfaceAddresses().some((own) => sameAddress(own, ip))
+}
+
+/** Whether `url`'s port is one of the two Exodus's API listens on. */
+export function isGuardedPort(url: URL): boolean {
+  const port = url.port ? Number(url.port) : defaultPortFor(url.protocol)
+  return GUARDED_PORTS.has(port)
+}
+
+/**
+ * The same rule against addresses already resolved — for a caller that pins
+ * its connection to them (`net/pinned-fetch.ts`), so the addresses judged are
+ * the ones connected to. Throws `LocalApiTargetError`.
+ */
+export function assertAddressesNotExodusApi(
+  url: URL,
+  addresses: readonly string[]
+): void {
+  if (!isGuardedPort(url)) return
+  const host = url.hostname.replace(/^\[|\]$/g, '').replace(/\.$/, '')
+  if (isLocalhostName(host)) throw new LocalApiTargetError()
+  if (addresses.some((a) => isThisMachine(a))) throw new LocalApiTargetError()
 }
 
 /**

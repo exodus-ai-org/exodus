@@ -11,6 +11,7 @@ import {
   assertNotExodusApi,
   LocalApiTargetError
 } from '../../net/local-api-guard'
+import { fetchPinned } from '../../net/pinned-fetch'
 
 /* ================= Constants ================= */
 
@@ -28,15 +29,19 @@ const MAX_BUILTIN_REDIRECTS = 5
 const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308])
 
 /**
- * `fetch`, following redirects itself (rather than the runtime's default
- * auto-follow) so every hop — including the first — passes
- * `assertNotExodusApi` before the request for it is made.
+ * A GET through `fetchPinned` (the connection pinned to the addresses it
+ * judged; it never follows a redirect), following redirects here so every
+ * hop — including the first — passes `assertNotExodusApi` before the request
+ * for it is made. Only `http:` / `https:` hops are followed.
  */
 async function fetchFollowingLocalGuard(initial: URL, signal?: AbortSignal) {
   let current = initial
   for (let hop = 0; ; hop++) {
+    if (current.protocol !== 'http:' && current.protocol !== 'https:') {
+      throw new Error(`Refused: ${current.protocol} is not http(s)`)
+    }
     await assertNotExodusApi(current)
-    const response = await fetch(current, { signal, redirect: 'manual' })
+    const response = await fetchPinned(current, { signal })
     if (!REDIRECT_STATUSES.has(response.status)) return response
     const location = response.headers.get('location')
     if (!location || hop >= MAX_BUILTIN_REDIRECTS) return response
