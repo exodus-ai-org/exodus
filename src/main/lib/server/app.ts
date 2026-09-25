@@ -14,6 +14,7 @@ import {
   createOriginGate,
   errorHandler,
   lockGate,
+  presenceGate,
   traceMiddleware
 } from './middlewares'
 import analyticsRouter from './routes/analytics'
@@ -80,6 +81,11 @@ export function createApp() {
 
   // Lock gate: reject all API access while the app is locked (423).
   app.use('/api/*', lockGate)
+
+  // Presence gate: approving a paused tool call and managing devices need the
+  // app window's own token on loopback — not just any local process (the
+  // model's `terminal` can reach loopback). See presence-gate.ts.
+  app.use('/api/*', presenceGate)
 
   // Trace gate: wrap each request in an AsyncLocalStorage trace so every
   // logger.* call while handling it shares one traceId; echo it as x-trace-id.

@@ -119,9 +119,21 @@ test.describe('LAN pairing', () => {
       mainWindow.getByTestId(TEST_IDS.devices.cancelPairingButton)
     ).toBeVisible()
 
+    // A loopback caller that is not the app's window (a `curl` the model
+    // runs) cannot read the pairing code: /devices needs the window's own
+    // presence token, which only its IPC hands out.
+    expect((await fetch('http://localhost:60223/api/v1/devices')).status).toBe(
+      403
+    )
+    const presence = (await mainWindow.evaluate(() =>
+      window.electron.ipcRenderer.invoke('api:presence-token')
+    )) as string
+
     // The link the QR code encodes, as a phone's camera would read it.
     const state = await (
-      await fetch('http://localhost:60223/api/v1/devices')
+      await fetch('http://localhost:60223/api/v1/devices', {
+        headers: { 'x-exodus-presence': presence }
+      })
     ).json()
     const link = new URL(state.pairing.link)
     const pin = link.searchParams.get('f')!

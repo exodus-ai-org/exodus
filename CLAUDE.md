@@ -388,9 +388,10 @@ The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatc
 2. CORS middleware (`hono/cors`)
 3. Auth gate (`authGate`) — on the LAN listener a request needs `Authorization: Bearer <token>` of a paired device (`401` otherwise), except `POST /api/v1/pair`, which the pairing window guards; `/api/v1/devices*` is refused there outright (`403`). Loopback passes straight through. Ahead of the lock gate so an unauthenticated request learns nothing, not even that the app is locked
 4. Lock gate (`lockGate`) — rejects all `/api/*` with `423` while the app is locked. `POST /api/v1/lock/unlock` is mounted just before it (after `authGate`), so a paired device can unlock the app from the phone
-5. Trace gate (`traceMiddleware`) — wraps each `/api/*` request in an `AsyncLocalStorage` trace (see `src/main/lib/logger/`), sets the `x-trace-id` response header
-6. Settings injection — `getSettings()` set on the Hono context per request (served from a cache in `db/queries.ts` that `updateSettings` / `updateSettingField` invalidate — write the `settings` table only through those two)
-7. Error handler (`app.onError`, returns JSON errors)
+5. Presence gate (`presenceGate`) — `POST /api/v1/chat/approval` and every `/api/v1/devices*` route stand for "the user said so", and the model can reach loopback (`curl` through `terminal`): on loopback they need the `x-exodus-presence` header, a per-launch token held in main's memory and handed only to the main window's top frame over IPC (`api:presence-token`, `src/main/lib/presence.ts`; the renderer's `lib/presence.ts` attaches it) — `403 PRESENCE_REQUIRED` otherwise, so a model can neither approve its own paused call nor pair itself a device. On the LAN `authGate` already required a paired device's token
+6. Trace gate (`traceMiddleware`) — wraps each `/api/*` request in an `AsyncLocalStorage` trace (see `src/main/lib/logger/`), sets the `x-trace-id` response header
+7. Settings injection — `getSettings()` set on the Hono context per request (served from a cache in `db/queries.ts` that `updateSettings` / `updateSettingField` invalidate — write the `settings` table only through those two)
+8. Error handler (`app.onError`, returns JSON errors)
 
 The MCP-tools middleware (injecting MCP tools into context) is **archived** (commented out in `app.ts`).
 
@@ -462,11 +463,27 @@ rendering work in.
 - `models.ts` — the `Models` collection and `streamFn` (above)
 - `run.ts` — `runAgent(input): AsyncIterable<KernelEvent>` wraps pi's `Agent`
   (`convertToLlm` asserts the run invariant, `beforeToolCall` blocks tools
-  disabled in settings) and yields the kernel's own events, each stamped with
+  disabled in settings and holds a call that touches a secret outside Exodus
+  for approval) and yields the kernel's own events, each stamped with
   `runId`: `message_update` · `message_end` · `tool_start` · `tool_update` ·
-  `tool_end` · `run_end` (always, with the messages that completed) · `error`
-  (after `run_end`, when a provider failed). Stop aborts the agent; a partial
-  answer is kept, marked `aborted`
+  `tool_end` · `approval_required` / `approval_resolved` (between a paused
+  call's `tool_start` and `tool_end`) · `run_end` (always, with the messages
+  that completed) · `error` (after `run_end`, when a provider failed). Stop
+  aborts the agent; a partial answer is kept, marked `aborted`
+- `approval.ts` — the approval gate's matcher (spec
+  `docs/superpowers/specs/2026-09-25-secrets-and-exfiltration-hardening-design.md`
+  §2.5): `sensitiveTarget(toolName, args, workspaceDir)` → `ask` (the file
+  tools on `~/.ssh`, `~/.aws`, `~/.gnupg`, `~/.kube`, `~/.docker/config.json`,
+  `~/.netrc`, `~/.config/**/credentials*`, the keychains, or a `.env*` /
+  `*.pem` / `*.key` / `id_*` outside the chat workspace — resolved through `~`,
+  the cwd and symlinks; a `terminal` command naming one of those or running
+  `security find-*-password`, a documented heuristic), `refuse`
+  (`~/.exodus/lock.dat`, `~/.exodus/tls/` — blocked, never asked) or null.
+  `pending-approvals.ts` holds each paused call until `allowed` / `denied`
+  (`POST /api/v1/chat/approval`), `timed_out` (10 minutes) or `stopped` (the
+  run's abort — Stop, or the window's request closing); anything but
+  `allowed` gives the model "The user declined access to <summary>." Allow
+  once is per call, never remembered
 - `record.ts` — `RunRecorder`: fed every event, `persist()` from the route's
   `finally` saves the run's rows with its duration and enqueues the post-run
   jobs
@@ -486,7 +503,18 @@ rendering work in.
    `message_update` snapshots are coalesced to one per
    `STREAM_FLUSH_INTERVAL_MS` (each carries the whole message so far), other
    events flush first so order holds, and writes become no-ops once the
-   client has gone. Wire shapes are unchanged; every message carries `runId`
+   client has gone. Wire shapes are unchanged; every message carries `runId`.
+   A paused call adds `approval_required` (`runId`, `toolCallId`, `toolName`,
+   `summary`, `expiresAt`; the summary is the path or command, never
+   contents) and later `approval_resolved` (`outcome`); the answer is
+   `POST /api/v1/chat/approval` with `runId`, `toolCallId` and a `decision`
+   of `allow` or `deny`
+   (behind the presence gate; `{ outcome }`, idempotent — the first answer
+   stands; `404 APPROVAL_NOT_FOUND` once nothing waits). The renderer keeps
+   them in the React Query cache `['approvals', chatId]` (`hooks/use-approvals.ts`,
+   written by `stream-manager.ts`) and shows the card at the run's foot
+   (`components/chat/run-approvals.tsx`: Allow once / Deny, then the settled
+   state), beside the memory lines
 4. However the run ends — done, a provider error midway, or Stop (which
    cancels the response stream) — `RunRecorder.persist()` saves the messages
    that completed and enqueues background jobs (LCM compaction, memory
@@ -1069,6 +1097,10 @@ audit that applied it is in the commit history (`style(motion): …`).
   where every request needs a paired device's token and the certificate is
   pinned by the device. A paired device gets the whole API (exodus-ios edits
   provider keys), which is why that path is TLS-only
+- **Loopback is not the user.** The model reaches loopback through
+  `terminal`, so a route that acts on the user's say-so (answering a tool
+  approval, managing devices) goes behind `presenceGate` — see Middleware
+  Pipeline. A new such route is added to `PRESENCE_PATHS`
 - API keys stored locally in PGlite database, encrypted with `safeStorage`
   (`enc:v1:…`; decrypted only into the in-process settings cache and the MCP
   query results); the API hands them out masked only (see
@@ -1301,7 +1333,8 @@ Main process:
 - `src/main/lib/server/middlewares/` — origin gate, lock gate, trace, error handler
 - `src/main/lib/ai/providers/` — LLM provider resolution (`resolve-model.ts`)
 - `src/main/lib/ai/providers/list-models/` — Live model catalog handlers per provider (`anthropic.ts`, `openai.ts`, `google.ts`, `xai.ts`, `ollama.ts`); each normalizes that provider's list-models API response into `{ id, displayName, snapshot: ModelSnapshot }`, dispatched by `index.ts` and called from `POST /api/v1/settings/models`
-- `src/main/lib/ai/kernel/` — the chat kernel: `models.ts` (the `Models` collection, `streamFn`), `run.ts` (`runAgent()`), `record.ts` (`RunRecorder`), `invariant.ts` (`dropBrokenRuns()`), `events.ts`, `faux.ts` + `faux-boot.ts` (pi's scripted provider; `EXODUS_FAUX_PROVIDER=1`)
+- `src/main/lib/ai/kernel/` — the chat kernel: `models.ts` (the `Models` collection, `streamFn`), `run.ts` (`runAgent()`), `record.ts` (`RunRecorder`), `invariant.ts` (`dropBrokenRuns()`), `approval.ts` + `pending-approvals.ts` (the approval gate for secrets outside Exodus), `events.ts`, `faux.ts` + `faux-boot.ts` (pi's scripted provider; `EXODUS_FAUX_PROVIDER=1`)
+- `src/main/lib/presence.ts` — the per-launch user-presence token (see Middleware Pipeline, presence gate)
 - `src/main/lib/ai/calling-tools/` — built-in agent tools (snake_case names from `packages/shared/src/constants/tool-names.ts`) and the MCP toolbox (`mcp-toolbox.ts`)
 - `src/main/lib/ai/skills/` — skills.sh client, install store, and the prompt seam (see Skills)
 - `src/main/lib/analytics/` — DuckDB chat-audit snapshot + read-only query wrapper (see Chat Audit)
@@ -1420,6 +1453,7 @@ Renderer:
 - `src/renderer/components/` — UI components
 - `src/renderer/components/ui/` — shadcn primitives (reuse these)
 - `src/renderer/components/lock/` — lock screen
+- `src/renderer/components/chat/run-approvals.tsx` — the approval card at a run's foot (see Chat Flow)
 - `src/renderer/components/philharmonic/` — Philharmonic UI
 - `src/renderer/components/philharmonic/schedule/` — Schedule tab (agenda: upcoming one-off + recurring tasks)
 - `src/renderer/components/settings/` — settings. Every page is put together

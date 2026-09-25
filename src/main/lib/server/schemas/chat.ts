@@ -13,6 +13,13 @@ export const createChatSchema = z.object({
 
 export const updateChatSchema = z.custom<Chat>()
 
+/** `POST /api/v1/chat/approval` — the answer to a paused tool call. */
+export const approvalDecisionSchema = z.object({
+  runId: z.string().min(1).max(200),
+  toolCallId: z.string().min(1).max(500),
+  decision: z.enum(['allow', 'deny'])
+})
+
 // pi-ai user message content
 const textContentSchema = z.object({
   type: z.literal('text'),

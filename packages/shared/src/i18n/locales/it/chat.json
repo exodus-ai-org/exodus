@@ -83,7 +83,8 @@
     "viewButton": "Visualizza",
     "chatFailedTitle": "Chat non riuscita",
     "genericErrorFallback": "Si è verificato un errore",
-    "headsUpTitle": "Avviso"
+    "headsUpTitle": "Avviso",
+    "approvalTitle": "In attesa della tua approvazione"
   },
   "lcm": {
     "compacting": "Compattazione della cronologia della conversazione…",
@@ -305,5 +306,18 @@
   },
   "quickChat": {
     "placeholder": "Come posso aiutarti oggi?"
+  },
+  "approval": {
+    "title": "Consentire l’accesso a un segreto?",
+    "fileHint": "Uno strumento vuole usare questo file, che può contenere credenziali:",
+    "commandHint": "Un comando vuole accedere alle credenziali di questo computer:",
+    "allow": "Consenti una volta",
+    "deny": "Nega",
+    "allowed": "Consentito una volta",
+    "denied": "Negato",
+    "timedOut": "Tempo scaduto",
+    "stopped": "Interrotto",
+    "expired": "Non più in attesa",
+    "decideFailed": "Impossibile inviare la risposta"
   }
 }

@@ -83,7 +83,8 @@
     "viewButton": "Ver",
     "chatFailedTitle": "Error en el chat",
     "genericErrorFallback": "Se produjo un error",
-    "headsUpTitle": "Aviso"
+    "headsUpTitle": "Aviso",
+    "approvalTitle": "Esperando su aprobación"
   },
   "lcm": {
     "compacting": "Compactando historial de la conversación…",
@@ -305,5 +306,18 @@
   },
   "quickChat": {
     "placeholder": "¿En qué puedo ayudarte hoy?"
+  },
+  "approval": {
+    "title": "¿Permitir el acceso a un secreto?",
+    "fileHint": "Una herramienta quiere usar este archivo, que puede contener credenciales:",
+    "commandHint": "Un comando quiere acceder a credenciales de este ordenador:",
+    "allow": "Permitir una vez",
+    "deny": "Denegar",
+    "allowed": "Permitido una vez",
+    "denied": "Denegado",
+    "timedOut": "Tiempo agotado",
+    "stopped": "Detenido",
+    "expired": "Ya no está en espera",
+    "decideFailed": "No se pudo enviar su respuesta"
   }
 }

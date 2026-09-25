@@ -130,6 +130,31 @@ export type ChatSseEvent =
   // right after the stream opens (before any kernel event). A client that
   // doesn't know this event type ignores it (exodus-ios).
   | { type: 'memories_used'; runId: string; memories: UsedMemory[] }
+  // A tool call that touches a secret outside Exodus is paused until the
+  // user answers (`POST /api/v1/chat/approval`). `summary` is the path or
+  // command, never file contents; `expiresAt` (epoch ms) is when it is
+  // declined unanswered. Unknown to exodus-ios so far, which ignores it.
+  | ApprovalRequiredEvent
+  // How that paused call was settled — by the user here or on another
+  // client, by the timeout, or by Stop.
+  | {
+      type: 'approval_resolved'
+      runId: string
+      toolCallId: string
+      outcome: ApprovalOutcome
+    }
+
+/** How a paused call ended. Anything but `allowed` declines it. */
+export type ApprovalOutcome = 'allowed' | 'denied' | 'timed_out' | 'stopped'
+
+export interface ApprovalRequiredEvent {
+  type: 'approval_required'
+  runId: string
+  toolCallId: string
+  toolName: string
+  summary: string
+  expiresAt: number
+}
 
 // ─── Chat UI Types ─────────────────────────────────────────────────────────
 

@@ -78,7 +78,8 @@
     "viewButton": "表示",
     "chatFailedTitle": "チャットに失敗しました",
     "genericErrorFallback": "エラーが発生しました",
-    "headsUpTitle": "お知らせ"
+    "headsUpTitle": "お知らせ",
+    "approvalTitle": "承認を待っています"
   },
   "lcm": {
     "compacting": "会話履歴を圧縮中…",
@@ -296,5 +297,18 @@
   },
   "quickChat": {
     "placeholder": "今日はどのようなご用件ですか？"
+  },
+  "approval": {
+    "title": "秘密情報へのアクセスを許可しますか?",
+    "fileHint": "ツールが、認証情報を含む可能性のあるこのファイルを使おうとしています:",
+    "commandHint": "コマンドが、このコンピュータの認証情報に触れようとしています:",
+    "allow": "今回のみ許可",
+    "deny": "拒否",
+    "allowed": "今回のみ許可しました",
+    "denied": "拒否しました",
+    "timedOut": "タイムアウトしました",
+    "stopped": "停止しました",
+    "expired": "待機は終了しています",
+    "decideFailed": "回答を送信できませんでした"
   }
 }

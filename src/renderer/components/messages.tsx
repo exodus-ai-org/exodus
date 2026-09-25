@@ -31,6 +31,7 @@ import { ImageGenerationCard } from './calling-tools/image-generation/image-gene
 import { ErrorBoundary, RenderFailed } from './card-error-boundary'
 import { ChatToc } from './chat-toc'
 import { MemoryChangeStrip } from './chat/memory-change-strip'
+import { RunApprovals } from './chat/run-approvals'
 import { UsedMemories } from './chat/used-memories'
 import { DiscoverFeed } from './home/discover-feed'
 import Markdown from './markdown'
@@ -247,10 +248,16 @@ const AssistantTurnSegment = memo(
             </section>
           )}
 
-          {/* The run's memory: which entries it read, and what it changed —
+          {/* The run's foot: a tool call waiting for the user's approval,
+              and the run's memory (which entries it read, what it changed) —
               here rather than in the timeline, which folds when the run ends.
               Each renders nothing when there is nothing to say (`empty:`). */}
           <div className="mt-2 flex flex-col gap-2 empty:hidden">
+            <RunApprovals
+              chatId={chatId}
+              runId={turn.runId}
+              active={isStreaming}
+            />
             <UsedMemories chatId={chatId} runId={turn.runId} />
             <MemoryChangeStrip messages={turn.messages} active={isStreaming} />
           </div>

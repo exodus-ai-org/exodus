@@ -65,7 +65,8 @@
     "AI_EMBEDDING_FAILED": "Generazione dell'embedding AI non riuscita.",
     "INTERNAL_ERROR": "Si è verificato un errore interno del server.",
     "UNKNOWN_ERROR": "Si è verificato un errore sconosciuto.",
-    "APP_LOCKED": "L'applicazione è bloccata."
+    "APP_LOCKED": "L'applicazione è bloccata.",
+    "APPROVAL_NOT_FOUND": "Questa richiesta non è più in attesa di risposta."
   },
   "routeBoundary": {
     "title": "Qualcosa è andato storto",

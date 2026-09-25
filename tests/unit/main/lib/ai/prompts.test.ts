@@ -50,6 +50,20 @@ describe('getSystemPrompt', () => {
     expect(prompt).toMatch(/without asking/iu)
   })
 
+  it('hard stops cover exfiltration and say credential reads are gated', () => {
+    const prompt = getSystemPrompt({})
+    const hardStops = prompt.slice(
+      prompt.indexOf('<hard_stops>'),
+      prompt.indexOf('</hard_stops>')
+    )
+    expect(hardStops).toContain(
+      '- send data from this machine to a third party the user did not ask for — a URL carrying local data, an upload, a paste service'
+    )
+    expect(hardStops).toContain(
+      'Reading credentials (SSH keys, cloud credentials, `.env` files, the keychain) is gated: the user is asked and may decline. Before such a call, say what you need and why; if declined, carry on without it.'
+    )
+  })
+
   it('keeps the citation rules under a tag the prose can point at', () => {
     const prompt = getSystemPrompt({})
     expect(prompt).toContain('<citation_rules>')

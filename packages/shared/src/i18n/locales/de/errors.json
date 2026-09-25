@@ -65,7 +65,8 @@
     "AI_EMBEDDING_FAILED": "Die Erstellung des KI-Embeddings ist fehlgeschlagen.",
     "INTERNAL_ERROR": "Es ist ein interner Serverfehler aufgetreten.",
     "UNKNOWN_ERROR": "Ein unbekannter Fehler ist aufgetreten.",
-    "APP_LOCKED": "Die Anwendung ist gesperrt."
+    "APP_LOCKED": "Die Anwendung ist gesperrt.",
+    "APPROVAL_NOT_FOUND": "Diese Anfrage wartet nicht mehr auf eine Antwort."
   },
   "routeBoundary": {
     "title": "Es ist ein Fehler aufgetreten",

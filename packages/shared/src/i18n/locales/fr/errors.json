@@ -65,7 +65,8 @@
     "AI_EMBEDDING_FAILED": "Échec de la génération d'embedding par l'IA.",
     "INTERNAL_ERROR": "Une erreur interne du serveur est survenue.",
     "UNKNOWN_ERROR": "Une erreur inconnue est survenue.",
-    "APP_LOCKED": "L'application est verrouillée."
+    "APP_LOCKED": "L'application est verrouillée.",
+    "APPROVAL_NOT_FOUND": "Cette demande n’attend plus de réponse."
   },
   "routeBoundary": {
     "title": "Une erreur est survenue",

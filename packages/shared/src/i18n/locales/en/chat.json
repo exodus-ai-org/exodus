@@ -83,7 +83,8 @@
     "viewButton": "View",
     "chatFailedTitle": "Chat failed",
     "genericErrorFallback": "An error occurred",
-    "headsUpTitle": "Heads up"
+    "headsUpTitle": "Heads up",
+    "approvalTitle": "Waiting for your approval"
   },
   "lcm": {
     "compacting": "Compacting conversation history…",
@@ -305,5 +306,18 @@
   },
   "quickChat": {
     "placeholder": "How can I help you today?"
+  },
+  "approval": {
+    "title": "Allow access to a secret?",
+    "fileHint": "A tool wants to use this file, which may hold credentials:",
+    "commandHint": "A command wants to touch credentials on this computer:",
+    "allow": "Allow once",
+    "deny": "Deny",
+    "allowed": "Allowed once",
+    "denied": "Denied",
+    "timedOut": "Timed out",
+    "stopped": "Stopped",
+    "expired": "No longer waiting",
+    "decideFailed": "Couldn’t send your answer"
   }
 }

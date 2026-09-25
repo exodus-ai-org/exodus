@@ -36,6 +36,8 @@ export enum ErrorCode {
   PROJECT_NOT_FOUND = 'PROJECT_NOT_FOUND',
   SKILL_NOT_FOUND = 'SKILL_NOT_FOUND',
   AUDIO_NOT_FOUND = 'AUDIO_NOT_FOUND',
+  /** Nothing is waiting for that tool approval: unknown, timed out or stopped. */
+  APPROVAL_NOT_FOUND = 'APPROVAL_NOT_FOUND',
 
   // ── Validation Errors (400) ────────────────────────────────────────────────
   VALIDATION_FAILED = 'VALIDATION_FAILED',
@@ -120,6 +122,7 @@ export const ErrorCodeToStatus: Record<ErrorCode, number> = {
   [ErrorCode.PROJECT_NOT_FOUND]: 404,
   [ErrorCode.SKILL_NOT_FOUND]: 404,
   [ErrorCode.AUDIO_NOT_FOUND]: 404,
+  [ErrorCode.APPROVAL_NOT_FOUND]: 404,
 
   // Validation Errors
   [ErrorCode.VALIDATION_FAILED]: 400,
@@ -209,6 +212,8 @@ export const ErrorMessages: Record<ErrorCode, string> = {
   [ErrorCode.PROJECT_NOT_FOUND]: 'Project not found.',
   [ErrorCode.SKILL_NOT_FOUND]: 'Skill not found.',
   [ErrorCode.AUDIO_NOT_FOUND]: 'Audio file not found.',
+  [ErrorCode.APPROVAL_NOT_FOUND]:
+    'This request is no longer waiting for an answer.',
 
   // Validation Errors
   [ErrorCode.VALIDATION_FAILED]: 'Input validation failed.',

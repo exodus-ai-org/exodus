@@ -78,7 +78,8 @@
     "viewButton": "보기",
     "chatFailedTitle": "채팅 실패",
     "genericErrorFallback": "오류가 발생했습니다",
-    "headsUpTitle": "알림"
+    "headsUpTitle": "알림",
+    "approvalTitle": "승인을 기다리는 중"
   },
   "lcm": {
     "compacting": "대화 기록 압축 중…",
@@ -296,5 +297,18 @@
   },
   "quickChat": {
     "placeholder": "오늘은 무엇을 도와드릴까요?"
+  },
+  "approval": {
+    "title": "비밀 정보에 대한 접근을 허용할까요?",
+    "fileHint": "도구가 자격 증명이 들어 있을 수 있는 이 파일을 사용하려고 합니다:",
+    "commandHint": "명령이 이 컴퓨터의 자격 증명에 접근하려고 합니다:",
+    "allow": "이번만 허용",
+    "deny": "거부",
+    "allowed": "이번만 허용됨",
+    "denied": "거부됨",
+    "timedOut": "시간 초과",
+    "stopped": "중지됨",
+    "expired": "더 이상 대기 중이 아님",
+    "decideFailed": "답변을 보낼 수 없습니다"
   }
 }

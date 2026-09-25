@@ -14,6 +14,7 @@ import {
 import { setupLockIPC } from './lock/ipc'
 import { logger } from './logger'
 import { getAnalyticsDir, getArtifactsDir, getLogsDir } from './paths'
+import { getPresenceToken } from './presence'
 import { destroyTray, setTray } from './tray'
 import {
   closeSearchBar,
@@ -47,6 +48,8 @@ function safeHandle(
 // two more listeners to the window — never removed — so every transition was
 // sent once per mount so far (and Node warned past ten).
 let fullscreenRelayWindow: BrowserWindow | null = null
+
+const PRESENCE_CHANNEL = 'api:presence-token'
 
 export function setupIPC() {
   ipcMain.on('ping', () => logger.debug('app', 'pong'))
@@ -82,6 +85,22 @@ export function setupIPC() {
   })
 
   safeHandle('close-search-bar', () => closeSearchBar())
+
+  // The user-presence token (presence.ts): only to the main window's own top
+  // frame — the page that shows approval prompts and the Devices page. A
+  // sub-app or an embedded frame never gets it.
+  ipcMain.handle(PRESENCE_CHANNEL, (event) => {
+    const main = getMainWindow()?.webContents
+    if (
+      !main ||
+      event.sender !== main ||
+      event.senderFrame !== main.mainFrame
+    ) {
+      logger.warn('app', 'Refused the presence token to another frame')
+      return null
+    }
+    return getPresenceToken()
+  })
 
   safeHandle('close-quick-chat', () => {
     const quickChatView = getQuickChatView()

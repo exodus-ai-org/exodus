@@ -150,6 +150,17 @@ export const TEST_IDS = {
   chat: {
     /** One per assistant message (= one per run). */
     messageAction: 'chat.message-action',
+    /**
+     * At the foot of a run whose tool call waits for the user's approval (a
+     * secret outside Exodus): the card, its two answers, and the settled
+     * state (`data-state`: allowed | denied | timed_out | stopped | expired).
+     */
+    approval: {
+      card: 'chat.approval.card',
+      allow: 'chat.approval.allow',
+      deny: 'chat.approval.deny',
+      state: 'chat.approval.state'
+    },
     /** At the foot of a run that changed memory (the `update_memory` tool). */
     memoryStrip: {
       root: 'chat.memory-strip.root',

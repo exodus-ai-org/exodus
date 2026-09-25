@@ -78,7 +78,8 @@
     "viewButton": "查看",
     "chatFailedTitle": "聊天失敗",
     "genericErrorFallback": "發生錯誤",
-    "headsUpTitle": "提醒"
+    "headsUpTitle": "提醒",
+    "approvalTitle": "正在等待你的批准"
   },
   "lcm": {
     "compacting": "正在壓縮對話紀錄…",
@@ -296,5 +297,18 @@
   },
   "quickChat": {
     "placeholder": "今天有什麼我可以幫你的嗎？"
+  },
+  "approval": {
+    "title": "允許存取機密資料？",
+    "fileHint": "有工具想使用這個可能含有憑證的檔案：",
+    "commandHint": "有指令想存取這部電腦上的憑證：",
+    "allow": "僅允許一次",
+    "deny": "拒絕",
+    "allowed": "已允許一次",
+    "denied": "已拒絕",
+    "timedOut": "已逾時",
+    "stopped": "已停止",
+    "expired": "已不再等待",
+    "decideFailed": "無法傳送你的回覆"
   }
 }

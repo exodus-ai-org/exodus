@@ -15,7 +15,9 @@ import { fauxHandle, registerFauxProvider, setFauxHandle } from './faux'
 import {
   MEMORY_CORRECTION_MESSAGE,
   MEMORY_CORRECTION_RESULT,
-  MEMORY_CORRECTION_SEED
+  MEMORY_CORRECTION_SEED,
+  SECRET_READ_MESSAGE,
+  SECRET_READ_PATH
 } from './faux-memory-fixtures'
 
 export const FAUX_ANSWER = 'It is sunny in Oslo.'
@@ -136,6 +138,14 @@ function respondToChatCall(ctx: Context): AssistantMessage {
           instruction: 'The user no longer uses macOS — they switched to Linux.'
         })
       ],
+      { stopReason: 'toolUse' }
+    )
+  }
+
+  // The approval gate's e2e: a read the gate pauses for the user.
+  if (last?.role === 'user' && textOf(last).includes(SECRET_READ_MESSAGE)) {
+    return fauxAssistantMessage(
+      [fauxToolCall(TOOL_NAMES.readFile, { path: SECRET_READ_PATH })],
       { stopReason: 'toolUse' }
     )
   }

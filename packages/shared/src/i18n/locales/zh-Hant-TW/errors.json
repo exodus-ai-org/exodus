@@ -65,7 +65,8 @@
     "AI_EMBEDDING_FAILED": "AI 嵌入生成失敗。",
     "INTERNAL_ERROR": "發生內部伺服器錯誤。",
     "UNKNOWN_ERROR": "發生未知錯誤。",
-    "APP_LOCKED": "應用程式已鎖定。"
+    "APP_LOCKED": "應用程式已鎖定。",
+    "APPROVAL_NOT_FOUND": "此請求已不再等待回覆。"
   },
   "routeBoundary": {
     "title": "發生錯誤",

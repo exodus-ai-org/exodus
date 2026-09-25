@@ -1,4 +1,5 @@
 import type {
+  ApprovalOutcome,
   ChatAssistantMessage,
   ChatMessage,
   ChatToolResultMessage
@@ -18,6 +19,9 @@ import type {
  * - `run_end` — always emitted, however the run ended, with the messages that
  *   completed (what the recorder persists) and the wall-clock duration
  * - `error` — after `run_end`, when the run ended in a provider failure
+ * - `approval_required` / `approval_resolved` — a call that touches a secret
+ *   outside Exodus (`approval.ts`) is paused between its `tool_start` and
+ *   `tool_end` until the user, the timeout or Stop settles it
  */
 export type KernelEvent =
   | { type: 'message_update'; runId: string; message: ChatAssistantMessage }
@@ -38,3 +42,17 @@ export type KernelEvent =
       durationMs: number
     }
   | { type: 'error'; runId: string; error: string }
+  | {
+      type: 'approval_required'
+      runId: string
+      toolCallId: string
+      toolName: string
+      summary: string
+      expiresAt: number
+    }
+  | {
+      type: 'approval_resolved'
+      runId: string
+      toolCallId: string
+      outcome: ApprovalOutcome
+    }
