@@ -37,6 +37,7 @@ const NON_SECRET_NAMES = new Set([
   'token-budget',
   'session-name',
   'session-title',
+  'session-timeout',
   'signature-version',
   'signature-method',
   'pass-through',
@@ -142,14 +143,17 @@ export function maskMcpUrl(url: string | null | undefined): string | null {
 }
 
 /**
- * A value no secret takes: all digits (`--session-timeout 30`) or a version
- * (`--signature v4`). Shown as is, so a short setting is never masked into
- * `••••` that the user would have to re-type (S1 M-a).
+ * The value of a secret flag or a secret-named `NAME=value`, as shown: masked
+ * whatever its shape. An env reference (`$TOKEN`) is left, since it names the
+ * secret rather than being it. All digits and `v4`-like versions used to be
+ * shown too, to spare `--session-timeout 30` (S1 M-a) — but that served
+ * `-u root -p 98765432`, `--password 20231231` and `DB_PASSWORD=12345678` in
+ * plaintext (N2). A name that only looks like a secret's is fixed in
+ * `NON_SECRET_NAMES` instead, where it is never masked at all; the cost is
+ * that a short setting under an unlisted secret-looking name shows as `••••`.
  */
-const PLAIN_VALUE = /^(?:\d+|v\d+(?:\.\d+)*)$/iu
-
 function maskArgValue(value: string): string {
-  return value === '' || ENV_REFERENCE.test(value) || PLAIN_VALUE.test(value)
+  return value === '' || ENV_REFERENCE.test(value)
     ? value
     : (maskSecret(value) ?? value)
 }

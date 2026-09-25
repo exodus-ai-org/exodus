@@ -316,17 +316,65 @@ describe('fewer false positives, and no misses (S1 M-a, M-d, M-e)', () => {
     }
   })
 
-  it('an all-digit or version value under a secret-looking name stays visible', () => {
+  it('a setting whose name only looks secret is listed, and stays visible', () => {
     expect(maskMcpArgs(['--session-timeout', '30'])).toEqual([
       '--session-timeout',
       '30'
     ])
-    expect(maskMcpArgs(['--sig=v2'])).toEqual(['--sig=v2'])
-    // A real secret under the same name is still masked.
+    // A real secret under a secret name is masked.
     expect(maskMcpArgs(['--token', 'abcdefghijklmnop'])).toEqual([
       '--token',
       '•••• mnop'
     ])
+  })
+
+  it.each([
+    // The re-review's probes (N2): all digits after a secret flag or under a
+    // secret name is still the secret.
+    [
+      ['-u', 'root', '-p', '98765432'],
+      ['-u', 'root', '-p', '••••']
+    ],
+    [
+      ['--password', '20231231'],
+      ['--password', '••••']
+    ],
+    [['--password=20231231'], ['--password=••••']],
+    [['DB_PASSWORD=12345678'], ['DB_PASSWORD=••••']],
+    [
+      ['-e', 'DB_PASSWORD=12345678'],
+      ['-e', 'DB_PASSWORD=••••']
+    ],
+    [
+      ['--api-key', '1234567890123456789012345'],
+      ['--api-key', '•••• 2345']
+    ],
+    [
+      ['--pin', '1234'],
+      ['--pin', '1234']
+    ],
+    // A version-shaped value under a secret name is masked too.
+    [['--sig=v2'], ['--sig=••••']],
+    [
+      ['--token', 'v1.2.3'],
+      ['--token', '••••']
+    ],
+    // Allowlisted names stay visible whatever the value.
+    [
+      ['--max-tokens', '4096'],
+      ['--max-tokens', '4096']
+    ],
+    [
+      ['--signature-version', 'v4'],
+      ['--signature-version', 'v4']
+    ],
+    // An env reference is not the secret.
+    [
+      ['--password', '$DB_PASSWORD'],
+      ['--password', '$DB_PASSWORD']
+    ]
+  ])('masks %j as %j, whatever the value looks like', (args, shown) => {
+    expect(maskMcpArgs(args)).toEqual(shown)
   })
 
   it('`Bearer $TOKEN` is an env reference, not the secret', () => {
