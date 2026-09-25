@@ -13,7 +13,7 @@ import { memo, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useClipboard } from '@/hooks/use-clipboard'
-import { useSettings } from '@/hooks/use-settings'
+import { useMapsJsKey } from '@/hooks/use-maps-key'
 import { cn } from '@/lib/utils'
 
 import { DayLayer, FocusedPlaceContext } from './day-layer'
@@ -161,7 +161,7 @@ function MapItineraryCardImpl({
   toolResult: MapItineraryDetails
 }) {
   const { t } = useTranslation('chat')
-  const { data: settings } = useSettings()
+  const apiKey = useMapsJsKey()
   const { copied, handleCopy } = useClipboard()
   const { resolvedTheme } = useTheme()
 
@@ -219,9 +219,10 @@ function MapItineraryCardImpl({
     [activeDay]
   )
 
-  const apiKey = settings?.googleCloud?.googleApiKey
   const colorScheme = resolvedTheme === 'dark' ? 'DARK' : 'LIGHT'
 
+  // Still asking the main process for the key: nothing yet, not "missing".
+  if (apiKey === undefined) return null
   if (!apiKey) {
     return (
       <div className="border-border bg-muted/30 text-muted-foreground rounded-lg border p-4 text-sm">

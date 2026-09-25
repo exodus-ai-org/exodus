@@ -2,7 +2,14 @@ import { existsSync } from 'fs'
 import { join, resolve, sep } from 'path'
 
 import { toAppError } from '@exodus/shared'
-import { app, BrowserWindow, ipcMain, nativeTheme, shell } from 'electron'
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  type IpcMainInvokeEvent,
+  nativeTheme,
+  shell
+} from 'electron'
 
 import {
   updaterCheck,
@@ -11,6 +18,7 @@ import {
   updaterInstall,
   updaterSetAutoDownload
 } from './auto-updater'
+import { getSettings } from './db/queries'
 import { setupLockIPC } from './lock/ipc'
 import { logger } from './logger'
 import { getAnalyticsDir, getArtifactsDir, getLogsDir } from './paths'
@@ -50,6 +58,13 @@ function safeHandle(
 let fullscreenRelayWindow: BrowserWindow | null = null
 
 const PRESENCE_CHANNEL = 'api:presence-token'
+const MAPS_KEY_CHANNEL = 'maps:js-key'
+
+/** Whether an IPC call comes from the main window's own top frame. */
+function fromMainFrame(event: IpcMainInvokeEvent): boolean {
+  const main = getMainWindow()?.webContents
+  return !!main && event.sender === main && event.senderFrame === main.mainFrame
+}
 
 export function setupIPC() {
   ipcMain.on('ping', () => logger.debug('app', 'pong'))
@@ -90,16 +105,28 @@ export function setupIPC() {
   // frame — the page that shows approval prompts and the Devices page. A
   // sub-app or an embedded frame never gets it.
   ipcMain.handle(PRESENCE_CHANNEL, (event) => {
-    const main = getMainWindow()?.webContents
-    if (
-      !main ||
-      event.sender !== main ||
-      event.senderFrame !== main.mainFrame
-    ) {
+    if (!fromMainFrame(event)) {
       logger.warn('app', 'Refused the presence token to another frame')
       return null
     }
     return getPresenceToken()
+  })
+
+  // The Google Maps JS key, for the map-itinerary card's `<APIProvider>`: the
+  // one registry secret the renderer itself needs. Handed over IPC to the
+  // main window's top frame only — never through the API, which any loopback
+  // caller (the model's `curl`) can read, and which masks it like every other
+  // key. Places photos go through `GET /api/v1/maps/photo` instead.
+  ipcMain.handle(MAPS_KEY_CHANNEL, async (event) => {
+    if (!fromMainFrame(event)) {
+      logger.warn('app', 'Refused the Maps key to another frame')
+      return null
+    }
+    try {
+      return (await getSettings()).googleCloud?.googleApiKey || null
+    } catch {
+      return null
+    }
   })
 
   safeHandle('close-quick-chat', () => {

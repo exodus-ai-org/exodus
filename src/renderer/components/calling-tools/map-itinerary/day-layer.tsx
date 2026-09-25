@@ -8,7 +8,6 @@ import {
   useRef
 } from 'react'
 
-import { useSettings } from '@/hooks/use-settings'
 import { cn } from '@/lib/utils'
 
 import { buildPlacePhotoUrl, type ItineraryPlace } from './types'
@@ -43,8 +42,6 @@ function computeRightPad(containerWidth: number): number {
 export function DayLayer({ places, onMarkerClick }: DayLayerProps) {
   const map = useMap()
   const focusedIdx = useContext(FocusedPlaceContext)
-  const { data: settings } = useSettings()
-  const apiKey = settings?.googleCloud?.googleApiKey
 
   // Stable per-marker position objects + click handlers — otherwise every
   // re-render of this layer (a pin focus change) hands `AdvancedMarker` fresh
@@ -126,12 +123,7 @@ export function DayLayer({ places, onMarkerClick }: DayLayerProps) {
           onClick={clickHandlers[i]}
           zIndex={focusedIdx === i ? 100 : 10}
         >
-          <ThumbnailPin
-            place={p}
-            index={i}
-            focused={focusedIdx === i}
-            apiKey={apiKey ?? undefined}
-          />
+          <ThumbnailPin place={p} index={i} focused={focusedIdx === i} />
         </AdvancedMarker>
       ))}
     </>
@@ -144,19 +136,17 @@ export function DayLayer({ places, onMarkerClick }: DayLayerProps) {
 const ThumbnailPin = memo(function ThumbnailPin({
   place,
   index,
-  focused,
-  apiKey
+  focused
 }: {
   place: ItineraryPlace
   index: number
   focused: boolean
-  apiKey: string | undefined
 }) {
   // Use a small thumbnail size (240px) instead of the detail-card size — the
   // pin is only ~32px on screen so we don't need a high-res photo.
   const photoUrl = useMemo(
-    () => buildPlacePhotoUrl(place.photoNames?.[0], apiKey, 240) ?? undefined,
-    [place.photoNames, apiKey]
+    () => buildPlacePhotoUrl(place.photoNames?.[0], 240) ?? undefined,
+    [place.photoNames]
   )
 
   return (

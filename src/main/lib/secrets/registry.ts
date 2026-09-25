@@ -39,13 +39,10 @@ export type SettingsSecretPath = (typeof SETTINGS_SECRET_PATHS)[number]
 export const API_PLAINTEXT_EXCEPTIONS: Partial<
   Record<SettingsSecretPath, string>
 > = {
-  // The renderer itself calls Google with this key: the Maps JS `APIProvider`
-  // and the Places photo URLs in `components/calling-tools/map-itinerary/`
-  // read it from `useSettings()`. A mask there breaks the map card, so until
-  // those components get the key another way (IPC to Exodus's own windows —
-  // not an API route, which any loopback caller could read) it goes out as is.
-  'googleCloud.googleApiKey':
-    'used by the renderer for Google Maps JS / Places photos'
+  // Empty. `googleCloud.googleApiKey` was here until the final review of the
+  // 2026-09-25 pass (I5): the map card now gets the Maps JS key over IPC
+  // (`maps:js-key`, main frame only) and Places photos through
+  // `GET /api/v1/maps/photo`, so the API masks it like every other key.
 }
 
 /** The registry fields `GET /api/v1/settings` answers with a mask. */

@@ -109,15 +109,15 @@ describe('GET /api/v1/settings', () => {
     expect(text).not.toContain(plain(path))
   })
 
-  it('makes one exception, the renderer-side Google Maps key', async () => {
-    // An open gap, pinned so another exception is a deliberate change.
-    expect(Object.keys(API_PLAINTEXT_EXCEPTIONS)).toEqual([
-      'googleCloud.googleApiKey'
-    ])
-    const { body } = await getJson(buildApp())
+  it('makes no exception — the Google Maps key is masked too (I5)', async () => {
+    // Pinned so an exception is a deliberate change: the map card gets its
+    // key over IPC and its photos through /api/v1/maps/photo.
+    expect(Object.keys(API_PLAINTEXT_EXCEPTIONS)).toEqual([])
+    const { text, body } = await getJson(buildApp())
     expect(getAt(body, 'googleCloud.googleApiKey')).toBe(
-      plain('googleCloud.googleApiKey')
+      maskSecret(plain('googleCloud.googleApiKey'))
     )
+    expect(text).not.toContain(plain('googleCloud.googleApiKey'))
   })
 
   it('leaves the in-process settings in plaintext', async () => {

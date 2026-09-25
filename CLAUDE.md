@@ -375,7 +375,7 @@ The main process runs a **Hono HTTP server** that handles all business logic:
 
 Every business endpoint is mounted on one versioned sub-app (`app.route('/api/v1', v1)`), so the public paths are `/api/v1/<route>`; the lock/trace/settings middlewares still match `/api/*`. A breaking API change ships as a new `/api/v2` sub-app beside v1 rather than mutating v1 in place. Any client of this backend (the renderer, `tests/api`, `exodus-ios`) must address `/api/v1/...`.
 
-`/api/v1/chat`, `/api/v1/lcm`, `/api/v1/history`, `/api/v1/knowledge-base`, `/api/v1/project`, `/api/v1/settings`, `/api/v1/skills`, `/api/v1/audio`, `/api/v1/db-io`, `/api/v1/deep-research`, `/api/v1/discover`, `/api/v1/tools`, `/api/v1/philharmonic`, `/api/v1/s3`, `/api/v1/mcp`, `/api/v1/memory`, `/api/v1/usage`, `/api/v1/logs`, `/api/v1/backup`, `/api/v1/artifacts`, `/api/v1/media`, `/api/v1/computer-use`, `/api/v1/analytics`, `/api/v1/pair`, `/api/v1/devices`, `/api/v1/lock` (mounted directly on `app`, ahead of the lock gate — see App Lock).
+`/api/v1/chat`, `/api/v1/lcm`, `/api/v1/history`, `/api/v1/knowledge-base`, `/api/v1/project`, `/api/v1/settings`, `/api/v1/skills`, `/api/v1/audio`, `/api/v1/db-io`, `/api/v1/deep-research`, `/api/v1/discover`, `/api/v1/tools`, `/api/v1/philharmonic`, `/api/v1/s3`, `/api/v1/mcp`, `/api/v1/memory`, `/api/v1/usage`, `/api/v1/logs`, `/api/v1/backup`, `/api/v1/artifacts`, `/api/v1/media`, `/api/v1/maps`, `/api/v1/computer-use`, `/api/v1/analytics`, `/api/v1/pair`, `/api/v1/devices`, `/api/v1/lock` (mounted directly on `app`, ahead of the lock gate — see App Lock).
 
 The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatches to the appropriate list-models handler based on the provider in the request body, reading the API key from the request (not from saved settings) to fetch live model catalogs; a posted mask stands for the stored key, and only with the stored (or default) base URL — a mask with another base URL is a 400 ("re-enter the API key"; code `SECRET_REENTRY_REQUIRED`, `params.field: 'apiKey'` — the model picker shows it inline under the key), so a stored key is never sent to a caller-chosen host.
 
@@ -551,6 +551,16 @@ and the settings registry (migration 0007 rewrote stored rows from the old
 camelCase; `toToolName()` maps a pre-rename `disabledTools` key):
 
 `computer_use`, `create_artifact`, `deep_research`, `edit_file`, `find_files`, `grep`, `image_generation`, `lcm_describe`, `lcm_expand`, `lcm_grep`, `list_directory`, `map_itinerary`, `read_file`, `search_knowledge_base`, `terminal`, `update_memory`, `weather`, `web_fetch`, `web_search`, `write_file`.
+
+`map_itinerary` enriches places through Google Places from main with
+`googleCloud.googleApiKey`. That key is masked by the API like every other
+secret; the card (`components/calling-tools/map-itinerary/`) gets it for
+Maps JS over IPC (`maps:js-key`, answered for the main window's top frame
+only — `hooks/use-maps-key.ts`, `lib/maps-key.ts`), and loads Places photos
+through `GET /api/v1/maps/photo?name=places/…/photos/…&maxWidth=<1–4800>`
+(`routes/maps.ts`: the name is validated, the key added in main, fetched with
+`fetchPublicHttps()` from the fixed Places host, `Cache-Control: private,
+max-age=86400`) — the same route exodus-ios uses over the LAN.
 
 `weather` is Open-Meteo (no key: a geocoding call, then seven days with 24
 hourly points, WMO codes, all in the place's local time). The card reads

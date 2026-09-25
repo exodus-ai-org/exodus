@@ -32,6 +32,7 @@ import knowledgeBaseRouter from './routes/knowledge-base'
 import lcmStatusRouter from './routes/lcm-status'
 import lockRouter from './routes/lock'
 import logsRouter from './routes/logs'
+import mapsRouter from './routes/maps'
 import mcpRouter from './routes/mcp'
 import mediaRouter from './routes/media'
 import memoryRouter from './routes/memory'
@@ -125,6 +126,7 @@ export function createApp() {
   v1.route('/backup', backupRouter)
   v1.route('/artifacts', artifactsRouter)
   v1.route('/media', mediaRouter)
+  v1.route('/maps', mapsRouter)
   v1.route('/analytics', analyticsRouter)
   v1.route('/pair', pairRouter)
   v1.route('/devices', devicesRouter)
