@@ -13,6 +13,7 @@ import {
   mkdtempSync,
   readFileSync,
   rmSync,
+  truncateSync,
   writeFileSync
 } from 'fs'
 import { tmpdir } from 'os'
@@ -264,6 +265,26 @@ describe('the marker (fix round 3)', () => {
     } finally {
       chmodSync(leaky, 0o600)
     }
+  })
+
+  it('is never completed while encryption is unavailable — nothing was encrypted (S2 minor)', async () => {
+    fakeSafeStorageState.available = false
+    const result = await secretsAtRestStartup()
+    expect(result.purged).toBe(true)
+    expect(markerState().purgedAt).toBeUndefined()
+    expect(markerState().lastAttemptAt).toBeDefined()
+  })
+
+  it('a log file skipped for its size does not keep the pass from completing (S2 minor)', async () => {
+    const big = join(logsDir, '2026-09-19.jsonl')
+    writeFileSync(big, '')
+    // Sparse: over the 64 MB cap without writing it.
+    truncateSync(big, 65 * 1024 * 1024)
+    const result = await secretsAtRestStartup()
+    expect(result.purged).toBe(true)
+    expect(result.scrubFailed).toBe(false)
+    expect(markerState().purgedAt).toBeDefined()
+    expect(JSON.stringify(logged.warn.mock.calls)).toMatch(/size cap/iu)
   })
 
   it('while a step keeps failing, the full purge is retried at most once a day', async () => {

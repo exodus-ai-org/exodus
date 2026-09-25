@@ -236,7 +236,18 @@ https://maps.googleapis.com`, narrowed from `*.googleapis.com`, which
   args) is kept as stored by every save that does not move its destination —
   posted back as a mask, unset, or as the `[]` / `null` the API showed — and
   its MCP server stays unconnected until the value is typed again.
-  `needsReentry` lists them.
+  `needsReentry` lists them. An undecryptable MCP `url` / `args` can only be
+  replaced, not edited: the form cannot show what it held, so the value typed
+  in its place is new — and a new `url` / `args` is a destination move, which
+  clears the `headers` / `env` secrets that went with the old one (they are
+  asked for again). A lost `extraConfig` / `env` / `headers` leaf is put back
+  where it was on a save — by its key path, so a key holding a `.` stays one
+  key, and a lost array item returns to its raw index. The envelope
+  self-check caches only a real verdict: a decrypt the keychain refuses once
+  is asked again next time. The purge marker's `purgedAt` (what a backup
+  deletion would rely on) is written only by a pass that encrypted with a
+  working backend; a temp file a crash left in `~/.exodus/logs` mid-scrub is
+  removed by the next scrub.
 - Changing the signing identity (the first Developer ID build) makes every
   stored secret undecryptable: the user re-enters each key once (see
   CLAUDE.md, "When a Developer ID exists").

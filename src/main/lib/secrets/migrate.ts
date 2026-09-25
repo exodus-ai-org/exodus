@@ -225,7 +225,11 @@ export async function secretsAtRestStartup(): Promise<SecretsStartupResult> {
     scrubFailed = true
     logStep('Scrubbing the log files failed', error)
   }
-  const ok = !encryptFailed && !stripFailed && !scrubFailed
+  // Without a working backend nothing was encrypted, so the database and
+  // every backup still hold plaintext: never recorded as clean (S2 minor) —
+  // `purgedAt` is what the backup-deletion decision would rely on.
+  const ok =
+    !encryptFailed && !stripFailed && !scrubFailed && encryptionState() === 'on'
   writeMarker(path, {
     version: MARKER_VERSION,
     ...(ok ? { purgedAt: now } : {}),

@@ -275,6 +275,55 @@ describe('R2-1: a save never unlocks a row it cannot decrypt', () => {
     )
   })
 
+  it('lost leaves under a dotted key, and a lost array item, come back where they were (S2 M-1)', async () => {
+    const { encryptSecret } = await import('@main/lib/secrets/crypto')
+    const created = await mcpQueries.createMcpServer({
+      name: 'remote',
+      transportType: 'streamable-http',
+      url: 'https://mcp.example.com/mcp',
+      extraConfig: {
+        'svc.v1': { apiKey: 'dotted-lost-0123456789' },
+        tokens: ['array-lost-a-0123456', 'array-b-old-0123456']
+      }
+    })
+    const before = await rawRow(created.id)
+    const beforeExtra = before.extraConfig as {
+      'svc.v1': { apiKey: string }
+      tokens: string[]
+    }
+    onAnotherMachine()
+    // Machine B can read the url and the array's second item (re-entered
+    // there); the dotted key and the first item stay lost.
+    const bItem = encryptSecret('array-b-new-0123456')
+    await db
+      .update(mcpServer)
+      .set({
+        url: 'https://mcp.example.com/mcp',
+        extraConfig: {
+          'svc.v1': beforeExtra['svc.v1'],
+          tokens: [beforeExtra.tokens[0], bItem]
+        }
+      })
+      .where(eq(mcpServer.id, created.id))
+
+    const res = await send(
+      'PUT',
+      `/api/v1/mcp/${created.id}`,
+      formPayload(await shown(created.id), { description: 'x' })
+    )
+    expect(res.status).toBe(200)
+    const after = (await rawRow(created.id)).extraConfig as {
+      'svc.v1': { apiKey: string }
+      tokens: string[]
+      svc?: unknown
+    }
+    // Under the dotted key itself, not a nested `svc: { v1: … }`.
+    expect(after['svc.v1'].apiKey).toBe(beforeExtra['svc.v1'].apiKey)
+    expect(after.svc).toBeUndefined()
+    // The lost item back at index 0, the readable one kept as stored after it.
+    expect(after.tokens).toEqual([beforeExtra.tokens[0], bItem])
+  })
+
   it('a moved destination still clears an undecryptable header', async () => {
     const created = await mcpQueries.createMcpServer({
       name: 'remote',

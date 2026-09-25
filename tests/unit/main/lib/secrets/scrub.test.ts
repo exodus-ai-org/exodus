@@ -59,6 +59,14 @@ describe('scrubLogFiles', () => {
     }
   })
 
+  it('removes the temp file a crash left mid-rewrite (S2 minor)', () => {
+    put('.a.jsonl.scrub-4242.tmp', `${SECRET}\n`)
+    put('a.jsonl', '{"body":"ok"}\n')
+    put('.notes.tmp', 'kept')
+    scrubLogFiles(dir, [SECRET])
+    expect(readdirSync(dir).toSorted()).toEqual(['.notes.tmp', 'a.jsonl'])
+  })
+
   it('leaves a file with nothing to scrub untouched', () => {
     put('clean.jsonl', '{"body":"ok"}\n')
     const before = statSync(join(dir, 'clean.jsonl')).ino

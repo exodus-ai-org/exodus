@@ -97,11 +97,13 @@ function envelopeSelfCheck(): boolean {
   } catch {
     return true
   }
-  let opens = false
+  let opens: boolean
   try {
     opens = safeStorage.decryptString(blob) === SELF_CHECK_PROBE
   } catch {
-    opens = false
+    // Refused (a locked keychain, a transient error): not a verdict either,
+    // and never cached — the next call asks again (S2 minor).
+    return true
   }
   selfCheck = opens && isEncryptedSecret(ENC_PREFIX + blob.toString('base64'))
   if (!selfCheck) {

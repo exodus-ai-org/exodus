@@ -35,6 +35,9 @@ export function scrubSecrets(text: string, secrets: readonly string[]): string {
   return out
 }
 
+/** The temp file a rewrite goes through (`.<name>.scrub-<pid>.tmp`). */
+const ORPHAN_TMP = /^\..+\.jsonl\.scrub-\d+\.tmp$/u
+
 /** Files larger than this are skipped (read whole; one must not abort the rest). */
 const MAX_SCRUB_BYTES = 64 * 1024 * 1024
 
@@ -67,7 +70,13 @@ export function scrubLogFiles(
   const result: ScrubResult = { changed: 0, skipped: 0, failed: 0 }
   let names: string[]
   try {
-    names = readdirSync(dir).filter((f) => f.endsWith('.jsonl'))
+    const all = readdirSync(dir)
+    // A temp file a crash left behind mid-rewrite holds an unscrubbed or
+    // half-scrubbed copy: removed before anything else (S2 minor).
+    for (const f of all) {
+      if (ORPHAN_TMP.test(f)) rmSync(join(dir, f), { force: true })
+    }
+    names = all.filter((f) => f.endsWith('.jsonl'))
   } catch {
     return result
   }

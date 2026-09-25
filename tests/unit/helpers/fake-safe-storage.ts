@@ -17,6 +17,8 @@ export const fakeSafeStorageState = {
   backend: 'keychain' as string,
   // Available, but the Keychain refuses this call (a denied prompt).
   denyEncrypt: false,
+  // Available, but decrypting fails this once (a transient keychain error).
+  denyDecrypt: false,
   // OSCrypt's version tag; a future Electron could change it.
   tag: 'v10',
   // Older tags it still opens (a new Electron reading its old blobs).
@@ -40,7 +42,11 @@ export const fakeSafeStorage = {
     const t = [fakeSafeStorageState.tag, ...fakeSafeStorageState.alsoOpens]
       .map((v) => Buffer.from(`${v}${fakeSafeStorageState.machine}|`))
       .find((c) => sealed.subarray(0, c.length).equals(c))
-    if (!fakeSafeStorageState.available || !t) {
+    if (
+      !fakeSafeStorageState.available ||
+      fakeSafeStorageState.denyDecrypt ||
+      !t
+    ) {
       throw new Error(
         'Error while decrypting the ciphertext provided to safeStorage.decryptString.'
       )
@@ -54,6 +60,7 @@ export function resetFakeSafeStorage(): void {
   fakeSafeStorageState.machine = 'machine-A'
   fakeSafeStorageState.backend = 'keychain'
   fakeSafeStorageState.denyEncrypt = false
+  fakeSafeStorageState.denyDecrypt = false
   fakeSafeStorageState.tag = 'v10'
   fakeSafeStorageState.alsoOpens = []
 }

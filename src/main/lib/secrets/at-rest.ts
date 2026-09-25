@@ -235,7 +235,15 @@ function mapMcpLocators<T extends McpSecretColumns>(
  * secret-named `extraConfig` key (sealed as a string envelope, opened back
  * into a number). `null` drops it.
  */
-type SecretFn = (v: string | number, label: string) => string | number | null
+type SecretFn = (
+  v: string | number,
+  label: string,
+  /** The same place as `label`, as keys — a key may itself hold a `.`. */
+  keys: ReadonlyArray<string | number>
+) => string | number | null
+
+/** Where one secret sits in a row: its column, then object keys / raw array indices. */
+export type SecretKeyPath = ReadonlyArray<string | number>
 
 /** Marks a sealed number, so opening it gives the number back. */
 const NUMBER_ENVELOPE = 'exodus-number:'
@@ -271,21 +279,28 @@ function mapKeyNamed(
   value: unknown,
   fn: SecretFn,
   path: string,
-  secret = false
+  secret = false,
+  keys: ReadonlyArray<string | number> = [path]
 ): unknown {
   if (secret && (typeof value === 'string' || typeof value === 'number')) {
-    return fn(value, path)
+    return fn(value, path, keys)
   }
   if (Array.isArray(value)) {
     return value.flatMap((v, i) => {
-      const mapped = mapKeyNamed(v, fn, `${path}.${i}`, secret)
+      const mapped = mapKeyNamed(v, fn, `${path}.${i}`, secret, [...keys, i])
       return mapped === null && v !== null ? [] : [mapped]
     })
   }
   if (!isPlainObject(value)) return value
   const out: Record<string, unknown> = {}
   for (const [k, v] of Object.entries(value)) {
-    const mapped = mapKeyNamed(v, fn, `${path}.${k}`, secret || isSecretName(k))
+    const mapped = mapKeyNamed(
+      v,
+      fn,
+      `${path}.${k}`,
+      secret || isSecretName(k),
+      [...keys, k]
+    )
     if (mapped !== null || v === null) out[k] = mapped
   }
   return out
@@ -299,7 +314,7 @@ function mapMcpSecrets<T extends McpSecretColumns>(row: T, fn: SecretFn): T {
     if (!isPlainObject(rec)) continue
     const out: Record<string, string> = {}
     for (const [k, v] of Object.entries(rec)) {
-      const mapped = typeof v === 'string' ? fn(v, `${col}.${k}`) : v
+      const mapped = typeof v === 'string' ? fn(v, `${col}.${k}`, [col, k]) : v
       if (mapped !== null) out[k] = String(mapped)
     }
     copy[col] = out
@@ -350,17 +365,25 @@ export function mcpDecryptFailures(row: object): readonly string[] {
  */
 export function decryptMcpRow<T extends McpSecretColumns>(
   row: T
-): { plain: T; undecryptable: string[] } {
+): { plain: T; undecryptable: string[]; undecryptablePaths: SecretKeyPath[] } {
   const undecryptable: string[] = []
-  const open = (v: string, label: string): string | null => {
+  // The same places as keys (S2 M-1): a dotted label cannot tell a key that
+  // holds a `.` from a nested one, nor a raw array index from a key.
+  const undecryptablePaths: SecretKeyPath[] = []
+  const open = (
+    v: string,
+    label: string,
+    keys: SecretKeyPath = [label]
+  ): string | null => {
     const out = decryptSecret(v)
     if (out.ok) return out.value
     undecryptable.push(label)
+    undecryptablePaths.push(keys)
     return null
   }
-  const openAny: SecretFn = (v, label) => {
+  const openAny: SecretFn = (v, label, keys) => {
     if (typeof v === 'number') return v
-    const out = open(v, label)
+    const out = open(v, label, keys)
     return out !== null && isEncryptedSecret(v) ? openSealedValue(out) : out
   }
   const plain = mapMcpSecrets(row, openAny)
@@ -370,7 +393,7 @@ export function decryptMcpRow<T extends McpSecretColumns>(
       ...undecryptable
     ]
   }
-  return { plain, undecryptable }
+  return { plain, undecryptable, undecryptablePaths }
 }
 
 /** A write in its stored form, and how many values it encrypted. */
@@ -653,19 +676,77 @@ function keepUnchangedLeaves(
     : write
 }
 
-/** Puts `value` at a dotted path under `root`, creating objects on the way. */
-function setDeep(
+/** The value at a key path (object keys and array indices), or undefined. */
+function getAtKeys(root: unknown, keys: SecretKeyPath): unknown {
+  let o: unknown = root
+  for (const k of keys) {
+    if (typeof k === 'number' ? !Array.isArray(o) : !isPlainObject(o)) {
+      return undefined
+    }
+    o = (o as Record<string | number, unknown>)[k]
+  }
+  return o
+}
+
+/**
+ * Puts a stored value back at its key path under `root` (S2 M-1), creating
+ * containers on the way. An object key is filled only while unset; an array
+ * item is inserted at its raw index — the API left it out of the array, so
+ * the items the form posted back after it sit one place earlier.
+ */
+function restoreAtKeys(
   root: Record<string, unknown>,
-  keys: string[],
+  keys: SecretKeyPath,
   value: unknown
 ) {
-  let o: Record<string, unknown> = root
-  for (const k of keys.slice(0, -1)) {
-    if (!isPlainObject(o[k])) o[k] = {}
-    o = o[k] as Record<string, unknown>
+  let o: Record<string | number, unknown> | unknown[] = root
+  for (let i = 0; i < keys.length - 1; i++) {
+    const k = keys[i]!
+    const nextIsIndex = typeof keys[i + 1] === 'number'
+    const child = (o as Record<string | number, unknown>)[k]
+    const fits = nextIsIndex ? Array.isArray(child) : isPlainObject(child)
+    if (!fits)
+      (o as Record<string | number, unknown>)[k] = nextIsIndex ? [] : {}
+    o = (o as Record<string | number, unknown>)[k] as typeof o
   }
   const last = keys.at(-1)!
-  if (isUnset(o[last])) o[last] = value
+  if (Array.isArray(o) && typeof last === 'number') {
+    o.splice(Math.min(last, o.length), 0, value)
+    return
+  }
+  const rec = o as Record<string | number, unknown>
+  if (isUnset(rec[last])) rec[last] = value
+}
+
+/**
+ * `root` with the value at each key path taken out — an array item spliced,
+ * so what is left lines up with the decrypted row, which dropped it too.
+ * `paths` must be sorted descending (`byKeyPath`, reversed).
+ */
+function withoutKeyPaths(root: unknown, paths: SecretKeyPath[]): unknown {
+  const copy = structuredClone(root)
+  for (const keys of paths) {
+    const parent = getAtKeys(copy, keys.slice(0, -1))
+    const last = keys.at(-1)!
+    if (Array.isArray(parent) && typeof last === 'number') {
+      parent.splice(last, 1)
+    } else if (isPlainObject(parent)) {
+      delete parent[last as string]
+    }
+  }
+  return copy
+}
+
+/** Array indices ascending, so each raw index is restored in order. */
+function byKeyPath(a: SecretKeyPath, b: SecretKeyPath): number {
+  for (let i = 0; i < Math.min(a.length, b.length); i++) {
+    const x = a[i]!
+    const y = b[i]!
+    if (x === y) continue
+    if (typeof x === 'number' && typeof y === 'number') return x - y
+    return String(x).localeCompare(String(y))
+  }
+  return a.length - b.length
 }
 
 /**
@@ -688,20 +769,26 @@ export function keepStoredMcpForms<T extends McpWriteBody>(
   write: T,
   raw: McpStoredRow
 ): T {
-  const { plain, undecryptable } = decryptMcpRow(raw)
+  const { plain, undecryptable, undecryptablePaths } = decryptMcpRow(raw)
   const failed = new Set(undecryptable)
   const out = { ...write } as Record<string, unknown>
   const moved = movedMcpSecretColumns(write, plain as McpDestination)
 
   for (const col of ['env', 'headers', 'extraConfig'] as const) {
     if (out[col] === undefined || moved.has(col)) continue
-    let value = keepUnchangedLeaves(out[col], plain[col], raw[col])
-    const lost = [...failed].filter((l) => l.startsWith(`${col}.`))
+    const lost = undecryptablePaths
+      .filter((keys) => keys[0] === col && keys.length > 1)
+      .map((keys) => keys.slice(1))
+      .toSorted(byKeyPath)
+    // The stored form lined up with the decrypted one (which left the lost
+    // values out), so an unchanged leaf takes its own ciphertext.
+    const rawAligned =
+      lost.length > 0 ? withoutKeyPaths(raw[col], lost.toReversed()) : raw[col]
+    let value = keepUnchangedLeaves(out[col], plain[col], rawAligned)
     if (lost.length > 0) {
-      const obj = isPlainObject(value) ? { ...value } : {}
-      for (const label of lost) {
-        const keys = label.split('.').slice(1)
-        setDeep(obj, keys, getAtPath(raw[col], keys.join('.')))
+      const obj = isPlainObject(value) ? structuredClone(value) : {}
+      for (const keys of lost) {
+        restoreAtKeys(obj, keys, getAtKeys(raw[col], keys))
       }
       value = obj
     }
@@ -714,8 +801,9 @@ export function keepStoredMcpForms<T extends McpWriteBody>(
   }
 
   const commandMoved =
-    write.command !== undefined &&
-    (write.command ?? '').trim() !== (plain.command ?? '').trim()
+    (write.command !== undefined &&
+      (write.command ?? '').trim() !== (plain.command ?? '').trim()) ||
+    executionEnvMoved(write, plain as McpDestination)
   if (out.args !== undefined && !commandMoved) {
     if (failed.has('args') && argsUnset(out.args)) out.args = raw.args
     else if (

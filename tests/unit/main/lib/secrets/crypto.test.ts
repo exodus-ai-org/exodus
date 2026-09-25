@@ -141,6 +141,15 @@ describe('the envelope self-check', () => {
     expect(encryptSecret(KEY)).toBe(KEY)
   })
 
+  it('a probe that fails to decrypt once is no verdict, and is not cached (S2 minor)', () => {
+    fakeSafeStorageState.denyDecrypt = true
+    expect(encryptionState()).toBe('on')
+    fakeSafeStorageState.denyDecrypt = false
+    // The next call really checks: a bad tag now turns it off.
+    fakeSafeStorageState.tag = 'v20'
+    expect(encryptionState()).toBe('unavailable')
+  })
+
   it('a Keychain refusing the probe is no verdict', () => {
     fakeSafeStorageState.denyEncrypt = true
     expect(encryptionState()).toBe('on')
