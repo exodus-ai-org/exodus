@@ -27,7 +27,7 @@ export function groupBeforeToolCall(conversationId: string) {
     toolCall,
     args
   }: BeforeToolCallContext): Promise<BeforeToolCallResult | undefined> => {
-    const target = sensitiveTarget(toolCall.name, args, workspaceDir)
+    const target = await sensitiveTarget(toolCall.name, args, workspaceDir)
     if (!target) return undefined
     return {
       block: true,

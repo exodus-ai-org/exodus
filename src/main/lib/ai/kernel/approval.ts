@@ -1,4 +1,4 @@
-import { type Dirent, lstatSync, readdirSync, realpathSync } from 'fs'
+import { type Dir, promises as fsp, realpathSync } from 'fs'
 import { homedir } from 'os'
 import { basename, dirname, isAbsolute, join, resolve, sep } from 'path'
 
@@ -75,9 +75,17 @@ const HOME_SECRET_ROOTS = [
 /** Keychains outside home. */
 const SYSTEM_SECRET_ROOTS = ['/Library/Keychains', '/System/Library/Keychains']
 
+/**
+ * A trailing marker that turns a secret-shaped name into a template/example
+ * file, never itself a secret: `.env.example`, `.env.sample`, `.env.template`,
+ * `.env.dist`, `id_rsa.example`, `server.key.template`, …
+ */
+const TEMPLATE_SUFFIXES = ['.example', '.sample', '.template', '.dist']
+
 /** A file whose name alone says it holds a secret — gated outside the workspace. */
 function isSecretFileName(name: string): boolean {
   const lower = name.toLowerCase()
+  if (TEMPLATE_SUFFIXES.some((s) => lower.endsWith(s))) return false
   return (
     lower.startsWith('.env') ||
     lower.endsWith('.pem') ||
@@ -86,24 +94,35 @@ function isSecretFileName(name: string): boolean {
   )
 }
 
-/** Set per `sensitiveTarget` call from `MatchEnv.caseInsensitive`. */
-let foldCase = process.platform === 'darwin' || process.platform === 'win32'
+/**
+ * From `MatchEnv.caseInsensitive`, defaulting to the platform. Threaded
+ * through every call explicitly (never shared module state): the matcher
+ * runs with real `await`s now (the grep tree scan), so two calls can be in
+ * flight together — a mutable module-level flag would let one call's
+ * case-folding leak into another's.
+ */
+function foldCaseOf(env: MatchEnv): boolean {
+  return (
+    env.caseInsensitive ??
+    (process.platform === 'darwin' || process.platform === 'win32')
+  )
+}
 
 /** macOS firmlinks: `/System/Volumes/Data/Users/…` is `/Users/…`. */
 const FIRMLINK_PREFIX = '/System/Volumes/Data/'
 
 /** The form paths are compared in: firmlink prefix dropped, case folded
  *  where the filesystem ignores it. Never shown to anyone. */
-function canon(path: string): string {
+function canon(path: string, env: MatchEnv): string {
   const unlinked = path.startsWith(FIRMLINK_PREFIX)
     ? path.slice(FIRMLINK_PREFIX.length - 1)
     : path
-  return foldCase ? unlinked.toLowerCase() : unlinked
+  return foldCaseOf(env) ? unlinked.toLowerCase() : unlinked
 }
 
-function isWithin(child: string, parent: string): boolean {
-  const c = canon(child)
-  const p = canon(parent)
+function isWithin(child: string, parent: string, env: MatchEnv): boolean {
+  const c = canon(child, env)
+  const p = canon(parent, env)
   return c === p || c.startsWith(p.endsWith(sep) ? p : p + sep)
 }
 
@@ -141,11 +160,12 @@ function expandHome(path: string, home: string): string {
   return path
 }
 
-function display(path: string, home: string): string {
+function display(path: string, env: MatchEnv): string {
+  const { home } = env
   const shown = path.startsWith(FIRMLINK_PREFIX)
     ? path.slice(FIRMLINK_PREFIX.length - 1)
     : path
-  return isWithin(shown, home) && canon(shown) !== canon(home)
+  return isWithin(shown, home, env) && canon(shown, env) !== canon(home, env)
     ? `~${shown.slice(home.length)}`
     : shown
 }
@@ -181,30 +201,31 @@ function rootsOf(env: MatchEnv, workspaceDir: string | undefined): Roots {
 function classifyPath(
   path: string,
   roots: Roots,
+  env: MatchEnv,
   opts: { recursive?: boolean } = {}
 ): { kind: SensitiveKind; via: string } | null {
   const candidates = forms(path)
   const refused = candidates.find((p) =>
-    roots.refused.some((r) => isWithin(p, r))
+    roots.refused.some((r) => isWithin(p, r, env))
   )
   if (refused) return { kind: 'refuse', via: refused }
   for (const p of candidates) {
     const ask = { kind: 'ask' as const, via: p }
-    if (roots.secret.some((r) => isWithin(p, r))) return ask
+    if (roots.secret.some((r) => isWithin(p, r, env))) return ask
     if (
-      roots.config.some((r) => isWithin(p, r)) &&
+      roots.config.some((r) => isWithin(p, r, env)) &&
       basename(p).toLowerCase().startsWith('credentials')
     ) {
       return ask
     }
     if (/\.keychain(-db)?$/iu.test(p)) return ask
-    const inWorkspace = roots.workspace.some((w) => isWithin(p, w))
+    const inWorkspace = roots.workspace.some((w) => isWithin(p, w, env))
     if (!inWorkspace && isSecretFileName(basename(p))) return ask
     // A recursive read (grep) of a directory that contains a credential
     // location reads that location too.
     if (
       opts.recursive &&
-      [...roots.secret, ...roots.refused].some((r) => isWithin(r, p))
+      [...roots.secret, ...roots.refused].some((r) => isWithin(r, p, env))
     ) {
       return ask
     }
@@ -215,53 +236,133 @@ function classifyPath(
 /** Entries a grep-root scan looks at before it gives up and asks anyway. */
 const MAX_SCAN_ENTRIES = 20_000
 const TOO_MANY = '\u0000too-many'
+/** A mount or cloud-sync root: asked about without ever being read (below). */
+const NETWORK_VOLUME = '\u0000network-volume'
+
+/**
+ * How long a grep-root scan may run before it gives up and asks anyway. An
+ * unresponsive network mount can block a `readdir`/`lstat` syscall for far
+ * longer than this — the scan is raced against a timer, not just counted, so
+ * that a hung mount cannot hang `beforeToolCall` (and with it the HTTP
+ * server, IPC and every other run's SSE) past this bound.
+ */
+const SCAN_DEADLINE_MS = 250
+
+/** Mount points and cloud-sync folders that can hang on an unresponsive
+ *  server — asked about without ever touching them (`lstat`/`opendir`
+ *  included). Case-folded and firmlink-normalised like every other root. */
+function isNetworkRoot(path: string, env: MatchEnv): boolean {
+  const roots = [
+    '/Volumes',
+    '/net',
+    '/Network',
+    join(env.home, 'Library', 'CloudStorage')
+  ]
+  return roots.some((r) => isWithin(path, r, env))
+}
 
 /**
  * The first file under `root` (not inside the workspace) that the file tools
  * would ask about by name — `.env*`, `*.pem`, `*.key`, `id_*`, a keychain, a
  * `credentials*` under `~/.config` — or `TOO_MANY` when the tree is too large
- * to tell. Walks as `grep` does (its skipped directories, depth 8) and, like
- * it, never follows a symlink. Null for a file or a missing root.
+ * or slow to tell, or `NETWORK_VOLUME` when `root` is a mount/cloud-sync
+ * folder never walked at all. Walks as `grep` does (its skipped directories,
+ * depth 8) and, like it, never follows a symlink. Null for a file or a
+ * missing root. Every filesystem call is async and raced against
+ * `SCAN_DEADLINE_MS`; entries still being read when the deadline wins are
+ * closed on a best-effort basis, but the walk itself does not block the
+ * caller past the deadline.
  */
-function findSecretInTree(root: string, roots: Roots): string | null {
+async function findSecretInTree(
+  root: string,
+  roots: Roots,
+  env: MatchEnv
+): Promise<string | null> {
+  if (roots.workspace.some((w) => isWithin(root, w, env))) return null
+  if (isNetworkRoot(root, env)) return NETWORK_VOLUME
+
   let seen = 0
-  const walk = (dir: string, depth: number): string | null => {
+  let deadlineHit = false
+  const openDirs = new Set<Dir>()
+
+  const walk = async (dir: string, depth: number): Promise<string | null> => {
+    if (deadlineHit) return TOO_MANY
     if (depth > 8) return null
-    let entries: Dirent[]
+    let handle: Dir
     try {
-      entries = readdirSync(dir, { withFileTypes: true })
+      handle = await fsp.opendir(dir)
     } catch {
       return null
     }
-    for (const entry of entries) {
-      if (++seen > MAX_SCAN_ENTRIES) return TOO_MANY
-      const full = join(dir, entry.name)
-      if (entry.isDirectory()) {
-        if (GREP_SKIP_DIRS.has(entry.name)) continue
-        if (roots.workspace.some((w) => isWithin(full, w))) continue
-        const found = walk(full, depth + 1)
-        if (found) return found
-      } else if (entry.isFile()) {
-        const lower = entry.name.toLowerCase()
-        if (
-          isSecretFileName(entry.name) ||
-          /\.keychain(-db)?$/u.test(lower) ||
-          (lower.startsWith('credentials') &&
-            roots.config.some((r) => isWithin(full, r)))
-        ) {
-          return full
+    if (deadlineHit) {
+      handle.close().catch(() => {})
+      return TOO_MANY
+    }
+    openDirs.add(handle)
+    try {
+      for await (const entry of handle) {
+        if (deadlineHit) return TOO_MANY
+        if (++seen > MAX_SCAN_ENTRIES) return TOO_MANY
+        const full = join(dir, entry.name)
+        if (entry.isDirectory()) {
+          if (GREP_SKIP_DIRS.has(entry.name)) continue
+          if (roots.workspace.some((w) => isWithin(full, w, env))) continue
+          const found = await walk(full, depth + 1)
+          if (found) return found
+        } else if (entry.isFile()) {
+          const lower = entry.name.toLowerCase()
+          if (
+            isSecretFileName(entry.name) ||
+            /\.keychain(-db)?$/u.test(lower) ||
+            (lower.startsWith('credentials') &&
+              roots.config.some((r) => isWithin(full, r, env)))
+          ) {
+            return full
+          }
         }
       }
+    } finally {
+      openDirs.delete(handle)
+      handle.close().catch(() => {})
     }
     return null
   }
-  if (roots.workspace.some((w) => isWithin(root, w))) return null
-  try {
-    if (!lstatSync(root).isDirectory()) return null
-  } catch {
-    return null
+
+  const scan = async (): Promise<string | null> => {
+    let isDir: boolean
+    try {
+      isDir = (await fsp.lstat(root)).isDirectory()
+    } catch {
+      return null
+    }
+    return isDir ? walk(root, 0) : null
   }
-  return walk(root, 0)
+
+  const scanPromise = scan()
+  // An abandoned scan (the deadline won the race below) must never surface
+  // as an unhandled rejection once it eventually settles.
+  scanPromise.catch(() => {})
+
+  let timer: ReturnType<typeof setTimeout> | undefined
+  const timeout = new Promise<typeof TOO_MANY>((settle) => {
+    timer = setTimeout(() => {
+      deadlineHit = true
+      settle(TOO_MANY)
+    }, SCAN_DEADLINE_MS)
+    timer.unref?.()
+  })
+
+  try {
+    return await Promise.race([scanPromise, timeout])
+  } finally {
+    clearTimeout(timer)
+    if (deadlineHit) {
+      // The scan is still running in the background; close whatever it had
+      // open at the moment the deadline won so a hung mount's handle does
+      // not linger.
+      for (const handle of openDirs) handle.close().catch(() => {})
+    }
+  }
 }
 
 const PATH_TOOLS: Record<string, string> = {
@@ -286,13 +387,13 @@ function strongest(
   return hits.find((h) => h.kind === 'refuse') ?? hits[0] ?? null
 }
 
-function matchPathTool(
+async function matchPathTool(
   toolName: string,
   raw: string,
   roots: Roots,
   env: MatchEnv,
   workspaceDir: string | undefined
-): SensitiveTarget | null {
+): Promise<SensitiveTarget | null> {
   const expanded = expandHome(raw.trim(), env.home)
   // A relative path lands where the process runs (what `fs` does); the
   // workspace is checked too, since that is where the model means it.
@@ -302,20 +403,31 @@ function matchPathTool(
   const hits: SensitiveTarget[] = []
   for (const base of bases) {
     const abs = base ? resolve(base, expanded) : resolve(expanded)
-    const hit = classifyPath(abs, roots, {
+    const hit = classifyPath(abs, roots, env, {
       recursive: toolName === TOOL_NAMES.grep
     })
     if (!hit) {
       // A grep reads every file under its root: a root outside the workspace
       // asks as `read_file` would when the tree holds a secret-named file.
       if (toolName === TOOL_NAMES.grep) {
-        const found = findSecretInTree(realish(abs), roots)
+        // A network root is never resolved through `realpathSync` either —
+        // that syscall can hang on the same unresponsive mount.
+        const scanRoot = isNetworkRoot(abs, env) ? abs : realish(abs)
+        const found = await findSecretInTree(scanRoot, roots, env)
         if (found) {
           const why =
-            found === TOO_MANY ? 'too large to check' : display(found, env.home)
+            found === TOO_MANY
+              ? 'too large to check'
+              : found === NETWORK_VOLUME
+                ? 'on a network or cloud volume, not scanned'
+                : display(found, env)
+          const suffix =
+            found === TOO_MANY || found === NETWORK_VOLUME
+              ? why
+              : `contains ${why}`
           hits.push({
             kind: 'ask',
-            summary: `${display(abs, env.home)} (${found === TOO_MANY ? why : `contains ${why}`})`
+            summary: `${display(abs, env)} (${suffix})`
           })
         }
       }
@@ -324,8 +436,8 @@ function matchPathTool(
     // A link is shown with what it points at — that is what gets read.
     const summary =
       hit.via === abs
-        ? display(abs, env.home)
-        : `${display(abs, env.home)} → ${display(hit.via, env.home)}`
+        ? display(abs, env)
+        : `${display(abs, env)} → ${display(hit.via, env)}`
     hits.push({ kind: hit.kind, summary })
   }
   return strongest(hits)
@@ -394,21 +506,21 @@ function matchCommand(
   for (const token of tokens) {
     if (!token || token.startsWith('-') || token.includes('://')) continue
     const abs = resolve(cwd, expandHome(token, env.home))
-    const hit = classifyPath(abs, roots)
+    const hit = classifyPath(abs, roots, env)
     if (hit?.kind === 'refuse') {
       return {
         kind: 'refuse',
-        summary: withTrigger(display(abs, env.home), command)
+        summary: withTrigger(display(abs, env), command)
       }
     }
-    if (hit && !pathTrigger) pathTrigger = display(abs, env.home)
+    if (hit && !pathTrigger) pathTrigger = display(abs, env)
   }
 
   const trigger =
     pathTrigger ??
     SECRET_MENTION.exec(command)?.[0].replace(/^[\s'"=:(/`]/u, '') ??
     KEYCHAIN_COMMAND.exec(command)?.[0] ??
-    (classifyPath(cwd, roots) ? display(cwd, env.home) : null)
+    (classifyPath(cwd, roots, env) ? display(cwd, env) : null)
   return trigger
     ? { kind: 'ask', summary: withTrigger(trigger, command) }
     : null
@@ -421,20 +533,17 @@ function matchCommand(
  * the model's own and pass. Pure apart from `realpath` on the paths it is
  * given; `env` is for tests.
  */
-export function sensitiveTarget(
+export async function sensitiveTarget(
   toolName: string,
   args: unknown,
   workspaceDir?: string,
   env: MatchEnv = defaultEnv()
-): SensitiveTarget | null {
-  foldCase =
-    env.caseInsensitive ??
-    (process.platform === 'darwin' || process.platform === 'win32')
+): Promise<SensitiveTarget | null> {
   const roots = rootsOf(env, workspaceDir)
   if (toolName === TOOL_NAMES.terminal) {
     const command = stringArg(args, 'command')
     if (!command) return null
-    return matchCommand(
+    return await matchCommand(
       command,
       stringArg(args, 'cwd'),
       roots,
@@ -446,7 +555,7 @@ export function sensitiveTarget(
   if (!key) return null
   const path = stringArg(args, key)
   if (!path) return null
-  return matchPathTool(toolName, path, roots, env, workspaceDir)
+  return await matchPathTool(toolName, path, roots, env, workspaceDir)
 }
 
 /** What the model reads when the user (or the clock, or Stop) says no. */

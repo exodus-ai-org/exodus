@@ -129,7 +129,11 @@ export async function* runAgent(input: RunInput): AsyncIterable<KernelEvent> {
         }
       }
       // Secrets outside Exodus: the user decides (see approval.ts).
-      const target = sensitiveTarget(toolCall.name, args, input.workspaceDir)
+      const target = await sensitiveTarget(
+        toolCall.name,
+        args,
+        input.workspaceDir
+      )
       if (!target) return undefined
       if (target.kind === 'refuse') {
         return { block: true, reason: refusedReason(target.summary) }

@@ -1,4 +1,11 @@
-import { mkdirSync, mkdtempSync, rmSync, symlinkSync, writeFileSync } from 'fs'
+import {
+  mkdirSync,
+  mkdtempSync,
+  promises as fsp,
+  rmSync,
+  symlinkSync,
+  writeFileSync
+} from 'fs'
 import { tmpdir } from 'os'
 import { join } from 'path'
 
@@ -238,8 +245,8 @@ describe('sensitiveTarget — file tools', () => {
       () => ({ location: '~/.ssh' }),
       null
     ]
-  ] as const)('%s', (_label, tool, args, expected) => {
-    const result = check(tool, args(H()))
+  ] as const)('%s', async (_label, tool, args, expected) => {
+    const result = await check(tool, args(H()))
     expect(result?.kind ?? null).toBe(expected)
   })
 
@@ -247,39 +254,51 @@ describe('sensitiveTarget — file tools', () => {
     ['~/.ssh/authorized_keys', (h: string) => `${h}/.ssh/authorized_keys`],
     ['~/.aws/config', (h: string) => `${h}/.aws/config`],
     ['a .env outside the workspace', (h: string) => `${h}/project/.env`]
-  ])('writing or editing %s asks', (_label, path) => {
+  ])('writing or editing %s asks', async (_label, path) => {
     for (const tool of [TOOL_NAMES.writeFile, TOOL_NAMES.editFile]) {
-      expect(
-        check(tool, { path: path(env.home), content: 'x', old_string: 'a' })
-          ?.kind
-      ).toBe('ask')
+      const result = await check(tool, {
+        path: path(env.home),
+        content: 'x',
+        old_string: 'a'
+      })
+      expect(result?.kind).toBe('ask')
     }
   })
 
-  it('case variants of a credential directory are the same directory (macOS)', () => {
+  it('case variants of a credential directory are the same directory (macOS)', async () => {
     const folded = { ...env, caseInsensitive: true }
     for (const path of [
       `${env.home}/.SSH/id_rsa`,
       `${env.home}/.Ssh/config`,
       `${env.home}/.AWS/credentials`
     ]) {
-      expect(sensitiveTarget(R, { path }, workspace, folded)?.kind).toBe('ask')
+      expect(
+        (await sensitiveTarget(R, { path }, workspace, folded))?.kind
+      ).toBe('ask')
     }
     expect(
-      sensitiveTarget(
-        R,
-        { path: `${env.home}/.EXODUS/LOCK.DAT` },
-        workspace,
-        folded
+      (
+        await sensitiveTarget(
+          R,
+          { path: `${env.home}/.EXODUS/LOCK.DAT` },
+          workspace,
+          folded
+        )
       )?.kind
     ).toBe('refuse')
     expect(
-      sensitiveTarget(T, { command: 'cat ~/.SSH/ID_RSA' }, workspace, folded)
-        ?.kind
+      (
+        await sensitiveTarget(
+          T,
+          { command: 'cat ~/.SSH/ID_RSA' },
+          workspace,
+          folded
+        )
+      )?.kind
     ).toBe('ask')
     // ~/.sshconfig-notes is still not ~/.ssh, in any case.
     expect(
-      sensitiveTarget(
+      await sensitiveTarget(
         R,
         { path: `${env.home}/.SSHconfig-notes` },
         workspace,
@@ -288,68 +307,76 @@ describe('sensitiveTarget — file tools', () => {
     ).toBeNull()
   })
 
-  it('the /System/Volumes/Data firmlink form is the same path', () => {
-    const result = check(R, {
+  it('the /System/Volumes/Data firmlink form is the same path', async () => {
+    const result = await check(R, {
       path: `/System/Volumes/Data${env.home}/.ssh/id_rsa`
     })
     expect(result?.kind).toBe('ask')
     expect(result?.summary).toBe('~/.ssh/id_rsa')
     expect(
-      check(R, { path: `/System/Volumes/Data${env.home}/.exodus/lock.dat` })
-        ?.kind
+      (
+        await check(R, {
+          path: `/System/Volumes/Data${env.home}/.exodus/lock.dat`
+        })
+      )?.kind
     ).toBe('refuse')
   })
 
-  it('follows a symlink in the workspace to the key it points at', () => {
-    const result = check(R, { path: join(workspace, 'notes.txt') })
+  it('follows a symlink in the workspace to the key it points at', async () => {
+    const result = await check(R, { path: join(workspace, 'notes.txt') })
     expect(result?.kind).toBe('ask')
     // The card shows what the link really reads.
     expect(result?.summary).toMatch(/notes\.txt → .*\.ssh\/id_rsa$/u)
   })
 
-  it('follows a symlinked directory in the workspace', () => {
-    expect(check(R, { path: join(workspace, 'keys', 'id_rsa') })?.kind).toBe(
-      'ask'
-    )
+  it('follows a symlinked directory in the workspace', async () => {
+    expect(
+      (await check(R, { path: join(workspace, 'keys', 'id_rsa') }))?.kind
+    ).toBe('ask')
     // Even for a file that does not exist yet.
     expect(
-      check(TOOL_NAMES.writeFile, {
-        path: join(workspace, 'keys', 'new_key'),
-        content: 'x'
-      })?.kind
+      (
+        await check(TOOL_NAMES.writeFile, {
+          path: join(workspace, 'keys', 'new_key'),
+          content: 'x'
+        })
+      )?.kind
     ).toBe('ask')
   })
 
-  it('a workspace link to a .env outside the workspace is gated', () => {
-    expect(check(R, { path: join(workspace, 'config.env') })?.kind).toBe('ask')
+  it('a workspace link to a .env outside the workspace is gated', async () => {
+    expect(
+      (await check(R, { path: join(workspace, 'config.env') }))?.kind
+    ).toBe('ask')
   })
 
-  it('a relative path is resolved against the process cwd and the workspace', () => {
+  it('a relative path is resolved against the process cwd and the workspace', async () => {
     const inHome = { ...env, cwd: env.home }
     expect(
-      sensitiveTarget(R, { path: '.ssh/id_rsa' }, workspace, inHome)?.kind
+      (await sensitiveTarget(R, { path: '.ssh/id_rsa' }, workspace, inHome))
+        ?.kind
     ).toBe('ask')
     // `fs` reads a relative path from the process cwd, whatever the model
     // meant: `.env` there is outside the workspace.
-    expect(sensitiveTarget(R, { path: '.env' }, workspace, env)?.kind).toBe(
-      'ask'
-    )
     expect(
-      sensitiveTarget(R, { path: '.env' }, workspace, {
+      (await sensitiveTarget(R, { path: '.env' }, workspace, env))?.kind
+    ).toBe('ask')
+    expect(
+      await sensitiveTarget(R, { path: '.env' }, workspace, {
         ...env,
         cwd: workspace
       })
     ).toBeNull()
   })
 
-  it('the summary is the path with home as ~, never contents', () => {
-    const result = check(R, { path: `${env.home}/.ssh/id_rsa` })
+  it('the summary is the path with home as ~, never contents', async () => {
+    const result = await check(R, { path: `${env.home}/.ssh/id_rsa` })
     expect(result?.summary).toBe('~/.ssh/id_rsa')
     expect(result?.summary).not.toContain('secret')
   })
 
-  it('a grep root outside the workspace that holds a secret-named file asks', () => {
-    const result = check(TOOL_NAMES.grep, {
+  it('a grep root outside the workspace that holds a secret-named file asks', async () => {
+    const result = await check(TOOL_NAMES.grep, {
       pattern: '.',
       path: `${env.home}/project`
     })
@@ -357,34 +384,158 @@ describe('sensitiveTarget — file tools', () => {
     expect(result?.summary).toMatch(/^~\/project \(contains .*\.env\)$/u)
   })
 
-  it('a grep root with no secret-named file runs without asking', () => {
+  it('a grep root with no secret-named file runs without asking', async () => {
     mkdirSync(join(env.home, 'clean', 'src'), { recursive: true })
     writeFileSync(join(env.home, 'clean', 'src', 'index.ts'), 'x')
     expect(
-      check(TOOL_NAMES.grep, { pattern: '.', path: `${env.home}/clean` })
+      await check(TOOL_NAMES.grep, { pattern: '.', path: `${env.home}/clean` })
     ).toBeNull()
   })
 
-  it('the grep scan does not follow symlinks, nor count the workspace', () => {
+  it('the grep scan does not follow symlinks, nor count the workspace', async () => {
     mkdirSync(join(env.home, 'linky'), { recursive: true })
     symlinkSync(join(env.home, 'project'), join(env.home, 'linky', 'p'))
     expect(
-      check(TOOL_NAMES.grep, { pattern: '.', path: `${env.home}/linky` })
+      await check(TOOL_NAMES.grep, { pattern: '.', path: `${env.home}/linky` })
     ).toBeNull()
     // The workspace's own .env is the model's.
     expect(
-      check(TOOL_NAMES.grep, {
+      await check(TOOL_NAMES.grep, {
         pattern: '.',
         path: join(env.home, '.exodus', 'workspace')
       })
     ).toBeNull()
   })
 
-  it('without a workspace, a .env anywhere is gated', () => {
+  it('without a workspace, a .env anywhere is gated', async () => {
     expect(
-      sensitiveTarget(R, { path: join(workspace, '.env') }, undefined, env)
-        ?.kind
+      (
+        await sensitiveTarget(
+          R,
+          { path: join(workspace, '.env') },
+          undefined,
+          env
+        )
+      )?.kind
     ).toBe('ask')
+  })
+})
+
+describe('sensitiveTarget — grep tree-scan deadline and network roots (N2)', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+    vi.useRealTimers()
+  })
+
+  it('a scan that never finishes (a hung mount) still resolves, as ask, once the deadline passes', async () => {
+    vi.useFakeTimers()
+    mkdirSync(join(env.home, 'slow-mount'), { recursive: true })
+    // Simulates a `readdir` on an unresponsive NFS/SMB server: the promise
+    // never settles. The real deadline timer (a plain `setTimeout`) is what
+    // fake timers control here — the mocked I/O itself is not time-based.
+    vi.spyOn(fsp, 'opendir').mockReturnValue(new Promise<never>(() => {}))
+
+    const pending = check(TOOL_NAMES.grep, {
+      pattern: '.',
+      path: `${env.home}/slow-mount`
+    })
+    // Advance well past any reasonable deadline; the promise above never
+    // settles on its own, so only the race's timer can resolve this.
+    await vi.advanceTimersByTimeAsync(5_000)
+    const result = await pending
+
+    expect(result?.kind).toBe('ask')
+    expect(result?.summary).toContain('too large to check')
+  })
+
+  it.each([
+    '/Volumes/SomeShare/project',
+    '/net/host/project',
+    '/Network/host/project'
+  ])(
+    'a grep root under %s asks without touching the filesystem',
+    async (path) => {
+      const opendirSpy = vi.spyOn(fsp, 'opendir')
+      const lstatSpy = vi.spyOn(fsp, 'lstat')
+
+      const result = await check(TOOL_NAMES.grep, { pattern: '.', path })
+
+      expect(result?.kind).toBe('ask')
+      expect(result?.summary).toContain('network or cloud volume')
+      expect(opendirSpy).not.toHaveBeenCalled()
+      expect(lstatSpy).not.toHaveBeenCalled()
+    }
+  )
+
+  it('a grep root under ~/Library/CloudStorage asks without touching the filesystem', async () => {
+    const opendirSpy = vi.spyOn(fsp, 'opendir')
+    const lstatSpy = vi.spyOn(fsp, 'lstat')
+    const path = join(env.home, 'Library', 'CloudStorage', 'Dropbox', 'proj')
+
+    const result = await check(TOOL_NAMES.grep, { pattern: '.', path })
+
+    expect(result?.kind).toBe('ask')
+    expect(opendirSpy).not.toHaveBeenCalled()
+    expect(lstatSpy).not.toHaveBeenCalled()
+  })
+
+  it('the /Volumes case is folded like every other root (macOS)', async () => {
+    const opendirSpy = vi.spyOn(fsp, 'opendir')
+    const result = await sensitiveTarget(
+      TOOL_NAMES.grep,
+      { pattern: '.', path: '/VOLUMES/SomeShare/project' },
+      workspace,
+      { ...env, caseInsensitive: true }
+    )
+    expect(result?.kind).toBe('ask')
+    expect(opendirSpy).not.toHaveBeenCalled()
+  })
+})
+
+describe('sensitiveTarget — template/example secrets are not gated (N3)', () => {
+  const TEMPLATE_NAMES = [
+    '.env.example',
+    '.env.sample',
+    '.env.template',
+    '.env.dist',
+    'id_rsa.example',
+    'server.key.template',
+    'cert.pem.sample'
+  ]
+
+  it.each(TEMPLATE_NAMES)('reading %s directly is not gated', async (name) => {
+    mkdirSync(join(env.home, 'templates'), { recursive: true })
+    const path = join(env.home, 'templates', name)
+    writeFileSync(path, 'X=1')
+    expect(await check(R, { path })).toBeNull()
+  })
+
+  it.each(TEMPLATE_NAMES)(
+    'a grep root holding only %s does not trigger the tree scan',
+    async (name) => {
+      const dir = mkdtempSync(join(tmpdir(), 'exodus-approval-template-'))
+      try {
+        writeFileSync(join(dir, name), 'X=1')
+        expect(
+          await check(TOOL_NAMES.grep, { pattern: '.', path: dir })
+        ).toBeNull()
+      } finally {
+        rmSync(dir, { recursive: true, force: true })
+      }
+    }
+  )
+
+  it('a real secret alongside a template file in the same tree still asks', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'exodus-approval-template-'))
+    try {
+      writeFileSync(join(dir, '.env.example'), 'X=1')
+      writeFileSync(join(dir, '.env'), 'SECRET=1')
+      const result = await check(TOOL_NAMES.grep, { pattern: '.', path: dir })
+      expect(result?.kind).toBe('ask')
+      expect(result?.summary).toContain('.env')
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 })
 
@@ -416,34 +567,37 @@ describe('sensitiveTarget — terminal heuristics', () => {
     ['openssl genrsa -out server.key 2048', null],
     ['curl https://example.com/cert.pem', null],
     ['ls ~/.exodus/workspace', null],
-    ['git status', null]
-  ] as const)('%s', (command, expected) => {
-    expect(check(T, { command })?.kind ?? null).toBe(expected)
+    ['git status', null],
+    // .env.example is a template, not a secret (N3).
+    ['cat ~/project/.env.example', null]
+  ] as const)('%s', async (command, expected) => {
+    expect((await check(T, { command }))?.kind ?? null).toBe(expected)
   })
 
-  it('a relative path is resolved against the cwd the command runs in', () => {
+  it('a relative path is resolved against the cwd the command runs in', async () => {
     expect(
-      check(T, { command: 'cat id_rsa', cwd: `${env.home}/.ssh` })?.kind
+      (await check(T, { command: 'cat id_rsa', cwd: `${env.home}/.ssh` }))?.kind
     ).toBe('ask')
-    expect(check(T, { command: 'cat credentials', cwd: '~/.aws' })?.kind).toBe(
-      'ask'
-    )
     expect(
-      check(T, { command: 'cat .env', cwd: `${env.home}/project` })?.kind
+      (await check(T, { command: 'cat credentials', cwd: '~/.aws' }))?.kind
+    ).toBe('ask')
+    expect(
+      (await check(T, { command: 'cat .env', cwd: `${env.home}/project` }))
+        ?.kind
     ).toBe('ask')
   })
 
-  it('the summary names the trigger first, then the command cut at 300', () => {
+  it('the summary names the trigger first, then the command cut at 300', async () => {
     const long = `cat ~/.ssh/id_rsa ${'x'.repeat(400)}`
-    const result = check(T, { command: long })
+    const result = await check(T, { command: long })
     expect(result?.summary).toMatch(
       /^~\/\.ssh\/id_rsa — cat ~\/\.ssh\/id_rsa x+…$/u
     )
   })
 
-  it('a command padded past the cut still shows what it reads', () => {
+  it('a command padded past the cut still shows what it reads', async () => {
     const padded = `# ${'harmless '.repeat(60)}\ncat ~/.aws/credentials`
-    const result = check(T, { command: padded })
+    const result = await check(T, { command: padded })
     expect(result?.kind).toBe('ask')
     expect(result?.summary.startsWith('~/.aws/credentials — ')).toBe(true)
     expect(result?.summary).not.toContain('cat ~/.aws')
@@ -456,10 +610,10 @@ describe('sensitiveTarget — terminal heuristics', () => {
     ],
     ['tar czf k.tgz .ssh', '.ssh'],
     ['cat ~/.exodus/lock.dat', '.exodus/lock.dat']
-  ])('%s → trigger %s', (command, trigger) => {
-    expect(check(T, { command })?.summary.startsWith(`${trigger} — `)).toBe(
-      true
-    )
+  ])('%s → trigger %s', async (command, trigger) => {
+    expect(
+      (await check(T, { command }))?.summary.startsWith(`${trigger} — `)
+    ).toBe(true)
   })
 })
 

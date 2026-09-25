@@ -105,9 +105,19 @@ Exodus is local-first, but three things make it a target anyway:
   `~/.ssh/id_rsa`) and with the `/System/Volumes/Data` firmlink prefix
   dropped. A `grep` root outside the workspace asks when its tree (walked as
   grep walks it, skipping symlinks, up to 20,000 entries — more asks anyway)
-  holds a secret-named file; `grep` itself never follows a symlink. A gated
-  command's summary leads with what triggered it, so padding cannot push the
-  real target past the card's 300-character cut.
+  holds a secret-named file; `grep` itself never follows a symlink. The tree
+  walk is fully async (`fs.promises.opendir`/`lstat`, no `*Sync` call in it)
+  and raced against a 250 ms deadline (`SCAN_DEADLINE_MS`), so an
+  unresponsive network share cannot block `beforeToolCall` — and with it the
+  HTTP server, IPC and every other run's SSE — past that bound; a directory
+  handle still open when the deadline wins is closed on a best-effort basis.
+  A root under `/Volumes`, `/net`, `/Network` or `~/Library/CloudStorage` is
+  asked about without being walked (or even `lstat`'d) at all, the same way a
+  hung mount would be. `.env.example` / `.env.sample` / `.env.template` /
+  `.env.dist`, and the same suffixes on `*.pem` / `*.key` / `id_*`, read as
+  templates, not secrets — outside the workspace or inside the scanned tree
+  alike. A gated command's summary leads with what triggered it, so padding
+  cannot push the real target past the card's 300-character cut.
 - Synthetic input can still click "Allow once". Computer Use can no longer
   target Exodus, but Exodus holds the Accessibility grant Computer Use needs,
   and the model's `terminal` can run `osascript` / System Events or post
