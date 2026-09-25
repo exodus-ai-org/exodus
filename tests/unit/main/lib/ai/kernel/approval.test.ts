@@ -1154,7 +1154,29 @@ describe('sanitizeSummary', () => {
     ['a C0 control (US) becomes �', 'a\u001Fb', 'a�b'],
     ['DEL becomes �', 'a\u007Fb', 'a�b'],
     ['a C1 control becomes �', 'a\u0090b', 'a�b'],
-    ['plain text is unchanged', 'cat ~/.ssh/id_rsa', 'cat ~/.ssh/id_rsa']
+    ['plain text is unchanged', 'cat ~/.ssh/id_rsa', 'cat ~/.ssh/id_rsa'],
+    // Unpaired UTF-16 surrogates (the exodus-ios `JSONDecoder` break):
+    // well-formed last, so a name/path a model wrote that happens to carry
+    // a lone surrogate can never reach a client whose native string type
+    // (Swift's) rejects one. Built with `String.fromCharCode` rather than a
+    // `\u` escape in this file's own source, so nothing in the write path
+    // can turn the escape into the very raw surrogate it names.
+    [
+      'a lone high surrogate becomes U+FFFD',
+      `a${String.fromCharCode(0xd800)}b`,
+      'a�b'
+    ],
+    [
+      'a lone low surrogate becomes U+FFFD',
+      `a${String.fromCharCode(0xdc00)}b`,
+      'a�b'
+    ],
+    [
+      'a reversed pair (low then high) becomes two U+FFFD',
+      `a${String.fromCharCode(0xdc00)}${String.fromCharCode(0xd800)}b`,
+      'a��b'
+    ],
+    ['a valid emoji surrogate pair is untouched', 'a😀b', 'a😀b']
   ] as const)('%s', (_label, input, expected) => {
     expect(sanitizeSummary(input)).toBe(expected)
   })
@@ -1193,6 +1215,83 @@ describe('sanitizeSummary', () => {
 
   it('a plain string is left as-is', () => {
     expect(sanitizeSummary('short and plain')).toBe('short and plain')
+  })
+
+  /**
+   * A stand-in for a strict decoder (Swift's `JSONDecoder`, building a
+   * `String` that can only ever hold well-formed UTF-16/Unicode scalars):
+   * unlike `JSON.parse`, this rejects a decoded string holding a UTF-16
+   * surrogate code unit that is not the first half of a valid pair — the
+   * same thing a well-formed-UTF-16-only string type refuses to hold.
+   */
+  function strictJsonDecode(json: string): unknown {
+    const hasLoneSurrogate = (s: string): boolean => {
+      for (let i = 0; i < s.length; i++) {
+        const code = s.charCodeAt(i)
+        if (code >= 0xd800 && code <= 0xdbff) {
+          const next = s.charCodeAt(i + 1)
+          if (next >= 0xdc00 && next <= 0xdfff) {
+            i++
+            continue
+          }
+          return true
+        }
+        if (code >= 0xdc00 && code <= 0xdfff) return true
+      }
+      return false
+    }
+    const walk = (v: unknown): void => {
+      if (typeof v === 'string') {
+        if (hasLoneSurrogate(v)) {
+          throw new Error('strict decode: unpaired UTF-16 surrogate in string')
+        }
+      } else if (Array.isArray(v)) {
+        v.forEach(walk)
+      } else if (v && typeof v === 'object') {
+        Object.values(v).forEach(walk)
+      }
+    }
+    const value = JSON.parse(json)
+    walk(value)
+    return value
+  }
+
+  it('JSON.parse(JSON.stringify(x)) alone does not catch an unpaired surrogate', () => {
+    // The naive round-trip a less careful test would reach for: V8's own
+    // JSON.parse/stringify pass a lone surrogate straight through without
+    // complaint, so this "round-trips" perfectly well in plain JS — which
+    // is exactly why it is not the test that matters here.
+    const lone = String.fromCharCode(0xd800)
+    const raw = { summary: `a${lone}b` }
+    const json = JSON.stringify(raw)
+    expect(JSON.parse(json)).toEqual(raw)
+    // The stricter decoder below is what actually catches it.
+    expect(() => strictJsonDecode(json)).toThrow()
+  })
+
+  it('the JSON of an approval_required-shaped event built from a sanitized summary round-trips through a strict decoder', () => {
+    const lone = String.fromCharCode(0xd800)
+    const reversed = String.fromCharCode(0xdc00) + String.fromCharCode(0xd800)
+    const summary = sanitizeSummary(
+      `cat ~/.ssh/id_rsa${lone} and ${reversed} too`
+    )
+    const event = {
+      type: 'approval_required',
+      runId: 'r1',
+      toolCallId: 't1',
+      toolName: 'terminal',
+      summary,
+      expiresAt: Date.now() + 1000
+    }
+    const json = JSON.stringify(event)
+    const decoded = strictJsonDecode(json) as typeof event
+    expect(decoded).toEqual(event)
+    // No surrogate code unit survives outside a valid pair.
+    expect(
+      /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/u.test(
+        decoded.summary
+      )
+    ).toBe(false)
   })
 })
 

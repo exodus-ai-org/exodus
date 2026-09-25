@@ -179,7 +179,15 @@ leaves open, in one place:
   otherwise still lose text after one). `capSummary()`'s cut never splits a
   UTF-16 surrogate pair — a non-BMP character (an emoji, …) straddling the
   boundary moves whole to the hidden side instead of leaving a lone
-  surrogate as the visible text's last unit (re-review N2). Accepted
+  surrogate as the visible text's last unit (re-review N2). `sanitizeSummary()`'s
+  last step well-forms the string (`String.prototype.toWellFormed()`), turning
+  any UTF-16 surrogate left unpaired — one a model wrote into a path or
+  command itself, not only one a cut could leave behind — into U+FFFD, since
+  a strict decoder elsewhere (exodus-ios's Swift `JSONDecoder`, which can only
+  build a well-formed-UTF-16 `String`) otherwise rejects the whole
+  `approval_required` frame the instant it hits one, so the card never
+  appears on the phone and the call silently auto-denies at the 10-minute
+  timeout. Accepted
   residual, not a defect against any of these: `sanitizeSummary()` does not
   strip stacked combining marks (`\p{M}` — fifty `´` (U+0301) stacked on one
   letter render as-is) or rewrite homoglyphs (a Cyrillic `а` standing in for
