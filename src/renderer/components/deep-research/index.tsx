@@ -104,7 +104,17 @@ export function DeepResearchProcess() {
             >
           )['params']?.['data'] as unknown as ReportProgressPayload
 
+          // A failure reaches a terminal jobStatus server-side too (the row
+          // is already 'failed' by the time this arrives) — refetch and stop
+          // listening the same way completion does, but still show the
+          // failure itself in the activity list first.
           if (
+            reportProgressPayload.type === DeepResearchProgress.FailDeepResearch
+          ) {
+            enqueue(deepResearchMessage)
+            refetchResult()
+            source?.close()
+          } else if (
             reportProgressPayload.type ===
             DeepResearchProgress.CompleteDeepResearch
           ) {

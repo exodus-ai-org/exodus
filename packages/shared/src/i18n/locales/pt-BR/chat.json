@@ -136,6 +136,7 @@
     "researching": "Pesquisando a fundo...",
     "completedSummary_one": "Pesquisa concluída em {{minutes}}m · {{count}} fonte",
     "completedSummary_other": "Pesquisa concluída em {{minutes}}m · {{count}} fontes",
+    "failed": "A pesquisa falhou",
     "exportAriaLabel": "Exportar como PDF",
     "downloadPdfTooltip": "Baixar PDF",
     "exportFailedTitle": "Falha na exportação",

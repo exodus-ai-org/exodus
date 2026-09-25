@@ -136,6 +136,7 @@
     "researching": "Deep Research läuft...",
     "completedSummary_one": "Recherche in {{minutes}} Min. abgeschlossen · {{count}} Quelle",
     "completedSummary_other": "Recherche in {{minutes}} Min. abgeschlossen · {{count}} Quellen",
+    "failed": "Recherche fehlgeschlagen",
     "exportAriaLabel": "Als PDF exportieren",
     "downloadPdfTooltip": "PDF herunterladen",
     "exportFailedTitle": "Export fehlgeschlagen",

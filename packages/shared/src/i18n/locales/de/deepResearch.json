@@ -33,6 +33,9 @@
     "complete": {
       "title": "Deep Research abgeschlossen",
       "description": "Der ausführliche Bericht zu „{{query}}“ wurde vollständig erstellt. Wir hoffen, er ist hilfreich für Sie!"
+    },
+    "failed": {
+      "title": "Deep Research fehlgeschlagen"
     }
   },
   "sources": {

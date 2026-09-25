@@ -136,6 +136,7 @@
     "researching": "Recherche approfondie en cours...",
     "completedSummary_one": "Recherche terminée en {{minutes}} min · {{count}} source",
     "completedSummary_other": "Recherche terminée en {{minutes}} min · {{count}} sources",
+    "failed": "La recherche a échoué",
     "exportAriaLabel": "Exporter en PDF",
     "downloadPdfTooltip": "Télécharger le PDF",
     "exportFailedTitle": "Échec de l'exportation",

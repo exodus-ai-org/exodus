@@ -129,6 +129,7 @@
   "deepResearchCard": {
     "researching": "심층 조사 중...",
     "completedSummary_other": "{{minutes}}분 만에 조사 완료 · 출처 {{count}}건",
+    "failed": "조사 실패",
     "exportAriaLabel": "PDF로 내보내기",
     "downloadPdfTooltip": "PDF 다운로드",
     "exportFailedTitle": "내보내기 실패",

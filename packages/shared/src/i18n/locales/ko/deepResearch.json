@@ -29,6 +29,9 @@
     "complete": {
       "title": "심층 조사 완료",
       "description": "\"{{query}}\"에 대한 심층 보고서 작성이 완료되었습니다. 도움이 되었으면 좋겠습니다!"
+    },
+    "failed": {
+      "title": "심층 조사에 실패했습니다"
     }
   },
   "sources": {

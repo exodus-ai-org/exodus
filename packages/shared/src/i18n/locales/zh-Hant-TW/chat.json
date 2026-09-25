@@ -129,6 +129,7 @@
   "deepResearchCard": {
     "researching": "深度研究中...",
     "completedSummary_other": "研究於 {{minutes}} 分鐘內完成 · {{count}} 個來源",
+    "failed": "研究失敗",
     "exportAriaLabel": "匯出為 PDF",
     "downloadPdfTooltip": "下載 PDF",
     "exportFailedTitle": "匯出失敗",

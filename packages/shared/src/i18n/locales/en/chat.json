@@ -136,6 +136,7 @@
     "researching": "Deep Researching...",
     "completedSummary_one": "Research completed in {{minutes}}m · {{count}} source",
     "completedSummary_other": "Research completed in {{minutes}}m · {{count}} sources",
+    "failed": "Research failed",
     "exportAriaLabel": "Export as PDF",
     "downloadPdfTooltip": "Download PDF",
     "exportFailedTitle": "Export failed",

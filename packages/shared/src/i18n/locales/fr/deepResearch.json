@@ -33,6 +33,9 @@
     "complete": {
       "title": "Recherche approfondie terminée",
       "description": "Le rapport détaillé pour « {{query}} » a été entièrement généré. En espérant qu'il vous soit utile !"
+    },
+    "failed": {
+      "title": "La recherche approfondie a échoué"
     }
   },
   "sources": {

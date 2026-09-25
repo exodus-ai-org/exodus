@@ -204,6 +204,10 @@ export const deepResearch = pgTable('deep_research', {
   jobStatus: jobStatusEnum().notNull(),
   finalReport: text('finalReport'),
   webSources: json('webSources').$type<WebSearchResult[]>(),
+  // Set only when jobStatus is 'failed': the error's class and message,
+  // scrubbed of secrets and clipped — never a secret or a whole provider
+  // response. See src/main/lib/server/routes/deep-research.ts.
+  errorMessage: text('errorMessage'),
   startTime: timestamp('startTime').defaultNow().notNull(),
   endTime: timestamp('endTime').defaultNow()
 })

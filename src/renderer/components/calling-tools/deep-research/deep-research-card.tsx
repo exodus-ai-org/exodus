@@ -1,7 +1,7 @@
 import { WebSearchResult } from '@exodus/shared/types/web-search'
 import { differenceInMinutes } from 'date-fns'
 import { useAtom } from 'jotai'
-import { DownloadIcon, LoaderIcon } from 'lucide-react'
+import { AlertCircleIcon, DownloadIcon, LoaderIcon } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
@@ -161,6 +161,12 @@ export function DeepResearchCard({
                 })}
               </div>
             )}
+          {deepResearchResult?.jobStatus === 'failed' && (
+            <div className="text-destructive flex items-center gap-1.5">
+              <AlertCircleIcon size={14} className="shrink-0" />
+              {t('deepResearchCard.failed')}
+            </div>
+          )}
         </Button>
 
         {!!deepResearchResult?.finalReport && (
@@ -202,6 +208,13 @@ export function DeepResearchCard({
           />
         </Card>
       ) : null}
+
+      {deepResearchResult?.jobStatus === 'failed' &&
+        deepResearchResult?.errorMessage && (
+          <p className="text-destructive mt-2 text-sm">
+            {deepResearchResult.errorMessage}
+          </p>
+        )}
     </section>
   )
 }

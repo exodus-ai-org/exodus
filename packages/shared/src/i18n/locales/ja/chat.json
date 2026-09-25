@@ -129,6 +129,7 @@
   "deepResearchCard": {
     "researching": "ディープリサーチ中...",
     "completedSummary_other": "{{minutes}}分でリサーチが完了 · ソース{{count}}件",
+    "failed": "リサーチに失敗しました",
     "exportAriaLabel": "PDFとしてエクスポート",
     "downloadPdfTooltip": "PDFをダウンロード",
     "exportFailedTitle": "エクスポートに失敗しました",

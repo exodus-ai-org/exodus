@@ -2,7 +2,7 @@ import {
   DeepResearchProgress,
   ReportProgressPayload
 } from '@exodus/shared/types/deep-research'
-import { BotIcon, CheckIcon, SearchIcon } from 'lucide-react'
+import { AlertCircleIcon, BotIcon, CheckIcon, SearchIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 import { DeepResearchMessage } from '@/types/db'
@@ -128,6 +128,20 @@ export function MessageItem({
             <div className="m-0! text-sm">
               {t('messages.complete.description', { query: payload.query })}
             </div>
+          </div>
+        </div>
+      )}
+
+      {payload.type === DeepResearchProgress.FailDeepResearch && (
+        <div className="flex gap-2">
+          <AlertCircleIcon
+            className="text-destructive mt-px shrink-0 rounded-full border p-1"
+            size={24}
+            strokeWidth={2.5}
+          />
+          <div className="flex flex-col gap-2">
+            {t('messages.failed.title')}
+            <div className="text-destructive m-0! text-sm">{payload.error}</div>
           </div>
         </div>
       )}

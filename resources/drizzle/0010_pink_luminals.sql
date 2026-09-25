@@ -1,0 +1,1 @@
+ALTER TABLE "deep_research" ADD COLUMN "errorMessage" text;
