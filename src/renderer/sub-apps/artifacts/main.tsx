@@ -2,8 +2,6 @@ import '@/assets/stylesheets/globals.css'
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 
-import { I18nProvider } from '@/components/i18n-provider'
-import { i18nReady } from '@/lib/i18n'
 import { bootTone, subscribeToneCache } from '@/lib/tone'
 
 import { ArtifactSandbox } from './sandbox'
@@ -45,14 +43,16 @@ window
   .matchMedia('(prefers-color-scheme: dark)')
   .addEventListener('change', applyTheme)
 
-void i18nReady.finally(() => {
-  ReactDOM.createRoot(
-    document.getElementById('artifact-root') as HTMLElement
-  ).render(
-    <React.StrictMode>
-      <I18nProvider>
-        <ArtifactSandbox />
-      </I18nProvider>
-    </React.StrictMode>
-  )
-})
+// No I18nProvider here, and no React Query client: nothing in this frame is
+// translated (the sandbox chrome is a couple of fixed status lines, and the
+// artifact is model-written code), and `I18nProvider` follows
+// `settings.language` through `useSettings()` — a request to the API. This
+// page's CSP allows no network at all and must never need it, so it gets
+// neither (see src/main/lib/artifact-protocol.ts).
+ReactDOM.createRoot(
+  document.getElementById('artifact-root') as HTMLElement
+).render(
+  <React.StrictMode>
+    <ArtifactSandbox />
+  </React.StrictMode>
+)

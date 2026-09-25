@@ -825,6 +825,14 @@ Their windows live in `src/main/lib/window.ts`.
   margin) so the pill's own shadow is not clipped.
 - Sub-app roots are not `#root`, so `h-full` collapses there — centre with
   `h-screen`.
+- **Each sub-app entry builds its own provider tree.** `quick-chat` and
+  `searchbar` wrap theirs in a `QueryClientProvider` of their own
+  (`createAppQueryClient()`): `I18nProvider` follows `settings.language`
+  through `useSettings()`, a React Query hook, and without a client the window
+  is blank. The `artifacts` sandbox has no `I18nProvider` and no query client
+  at all — nothing there is translated, and its CSP allows no network.
+  `tests/unit/renderer/sub-apps/entries.test.ts` mounts the three real entry
+  files.
 
 ### Frontend Structure
 
