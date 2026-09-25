@@ -794,8 +794,16 @@ function withTrigger(trigger: string, command: string): string {
  */
 const FORMAT_CONTROLS = /\p{Cf}/gu
 
-/** `\r\n`, `\r` and `\n` — longest match first so a CRLF pair collapses to one `⏎`. */
-const LINE_BREAK = /\r\n|\r|\n/gu
+/**
+ * `\r\n`, `\r`, `\n`, U+0085 (NEL), U+2028 (LINE SEPARATOR) and U+2029
+ * (PARAGRAPH SEPARATOR) — every character Unicode's own line-break class
+ * `BK`/`NL` treats as a forced break, not just ASCII's two (re-review N1: a
+ * UIKit/AppKit label, an older browser or any other client that honours
+ * `Zl`/`Zp`/NEL as a break would otherwise still hide text after one of
+ * these the same way a raw `\n` used to). `\r\n` is listed first so a CRLF
+ * pair collapses to one `⏎` rather than two.
+ */
+const LINE_BREAK = /\r\n|[\r\n\u0085\u2028\u2029]/gu
 
 /**
  * Every other C0/C1 control (`\n`, `\r` and `\t` are handled separately,
@@ -814,10 +822,13 @@ const OTHER_CONTROLS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/gu
  * no client sanitizes it again, and none should have to.
  *
  * Three rules, in order: strip every Unicode `Cf` character (bidi/format/
- * zero-width controls — a hidden reorder or a hidden run of text); turn a
- * line break into a visible `⏎` and a tab into `⇥` (real ones would hide
- * everything after the first line from a client that renders only that);
- * replace any other C0/C1 control with `�`.
+ * zero-width controls — a hidden reorder or a hidden run of text); turn
+ * every forced line break — `\r\n`, `\r`, `\n`, U+0085 (NEL), U+2028
+ * (LINE SEPARATOR), U+2029 (PARAGRAPH SEPARATOR) — into a visible `⏎` and a
+ * tab into `⇥` (real ones would hide everything after the first line from a
+ * client that renders only that — including a client that honours `Zl`/
+ * `Zp`/NEL as a break rather than just ASCII's two, re-review N1); replace
+ * any other C0/C1 control with `�`.
  *
  * Deliberately does *not* bound the length — that used to happen here (cut
  * at 300), which reopened the very hiding problem this function exists to
@@ -839,28 +850,50 @@ export function sanitizeSummary(text: string): string {
 export interface CappedSummary {
   text: string
   truncated: boolean
-  /** Characters cut off `text` (0 when not `truncated`). */
+  /**
+   * UTF-16 code units cut off `text` (0 when not `truncated`) — the same
+   * unit `maxLength` and `String#length` are counted in; a non-BMP
+   * character (an emoji, most CJK-extension-B+ ideographs) is a surrogate
+   * pair and so counts as 2, matching `text.length` exactly.
+   */
   hiddenChars: number
 }
 
 /**
- * Cuts `text` to `maxLength`, from the end — the matched trigger always
- * leads a summary (`withTrigger`), so the part that triggered the match is
- * what survives a cut, never what's lost. Used at two different bounds:
- * `EVENT_SUMMARY_MAX` for what the `approval_required` event (and the card)
- * carries, `MODEL_SUMMARY_MAX` for the short copy the declined/refused tool
- * result hands back to the model (`forModel()`, below) — the model has no
- * card to scroll, and by the time it reads that text the person already saw
- * the fuller one.
+ * Cuts `text` to `maxLength` UTF-16 code units, from the end — the matched
+ * trigger always leads a summary (`withTrigger`), so the part that
+ * triggered the match is what survives a cut, never what's lost. Used at
+ * two different bounds: `EVENT_SUMMARY_MAX` for what the `approval_required`
+ * event (and the card) carries, `MODEL_SUMMARY_MAX` for the short copy the
+ * declined/refused tool result hands back to the model (`forModel()`,
+ * below) — the model has no card to scroll, and by the time it reads that
+ * text the person already saw the fuller one.
+ *
+ * Never splits a surrogate pair (re-review N2): a non-BMP character (an
+ * emoji, …) straddling `maxLength` would otherwise leave a lone high
+ * surrogate as the cut text's last unit — not a crash (`JSON.stringify`
+ * escapes it, `Buffer.from(…, 'utf8')` doesn't throw) but a garbled glyph
+ * right where `truncated`/`hiddenChars` already disclose a cut happened, so
+ * the cut backs off one code unit when it would land between the two
+ * halves of a pair — the whole character moves to the hidden side instead.
  */
 export function capSummary(text: string, maxLength: number): CappedSummary {
   if (text.length <= maxLength) {
     return { text, truncated: false, hiddenChars: 0 }
   }
+  // A high surrogate (0xD800–0xDBFF) immediately before the cut means its
+  // low surrogate is the very next unit, past the cut: keep the pair
+  // together on the hidden side rather than splitting it.
+  const cut =
+    maxLength > 0 &&
+    text.charCodeAt(maxLength - 1) >= 0xd800 &&
+    text.charCodeAt(maxLength - 1) <= 0xdbff
+      ? maxLength - 1
+      : maxLength
   return {
-    text: text.slice(0, maxLength),
+    text: text.slice(0, cut),
     truncated: true,
-    hiddenChars: text.length - maxLength
+    hiddenChars: text.length - cut
   }
 }
 
@@ -1120,12 +1153,12 @@ export async function sensitiveTarget(
     const roots = await rootsOf(env, workspaceDir, resolver)
     const target = await (async (): Promise<SensitiveTarget | null> => {
       if (toolName === TOOL_NAMES.callMcpTool) {
-        return matchMcpCall(args, roots, env, workspaceDir)
+        return await matchMcpCall(args, roots, env, workspaceDir)
       }
       if (toolName === TOOL_NAMES.terminal) {
         const command = stringArg(args, 'command')
         if (!command) return null
-        return matchCommand(
+        return await matchCommand(
           command,
           stringArg(args, 'cwd'),
           roots,
@@ -1135,7 +1168,7 @@ export async function sensitiveTarget(
       }
       const path = stringArg(args, PATH_TOOLS[toolName]!)
       if (!path) return null
-      return matchPathTool(toolName, path, roots, env, workspaceDir)
+      return await matchPathTool(toolName, path, roots, env, workspaceDir)
     })()
     if (!target) return null
     // The one place every summary is sanitized before it leaves the

