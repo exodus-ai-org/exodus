@@ -1,7 +1,9 @@
 import { type Dir, promises as fsp, realpathSync } from 'fs'
 import { homedir } from 'os'
 import { basename, dirname, isAbsolute, join, resolve, sep } from 'path'
+import { fileURLToPath } from 'url'
 
+import { LAN_SERVER_PORT, SERVER_PORT } from '@exodus/shared/constants/systems'
 import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 
 import { GREP_SKIP_DIRS } from '../calling-tools/grep-skip-dirs'
@@ -16,16 +18,29 @@ import { GREP_SKIP_DIRS } from '../calling-tools/grep-skip-dirs'
  * says which calls, `pending-approvals.ts` holds each paused call until a decision
  * (`POST /api/v1/chat/approval`), a timeout or Stop settles it.
  *
- * Two files are never the user's decision: `~/.exodus/lock.dat` (the PIN
- * secret) and `~/.exodus/tls/` (the LAN certificate's key). A call that
- * touches them is refused without asking. The rest of `~/.exodus` stays
- * readable — it holds only ciphertext and non-secret data.
+ * Some of Exodus's own files are never the user's decision, and a call that
+ * touches them is refused without asking: `~/.exodus/lock.dat` (the PIN
+ * secret), `~/.exodus/tls/` (the LAN certificate's key), and the raw data —
+ * `~/.exodus/database` (PGlite), `~/.exodus/backups` (its archives) and
+ * `~/.exodus/analytics` (the DuckDB copy). Those last three are ciphertext
+ * only while encryption at rest is on: a backup written before it existed,
+ * and every file while `safeStorage` is unavailable, holds keys in plaintext
+ * — and no tool has a use for raw database files (chats are read through
+ * `lcm_*`). The rest of `~/.exodus` (the chat workspaces, media, logs) stays
+ * readable.
  *
  * The terminal rule is a documented heuristic, not a shell parser: a command
  * that names a sensitive path (`cat ~/.ssh/id_rsa`, `cd ~/.aws && cat
- * credentials`) or reads the keychain (`security find-generic-password`) is
- * gated. An obfuscated command gets past it; one that merely mentions `.ssh`
- * in an `echo` is asked about (an accepted false positive).
+ * credentials`), reads the keychain or a CLI's stored token (`security
+ * find-generic-password`, `gh auth token`), or lists other processes'
+ * arguments (`ps -axo args` — an MCP server started with `--api-key …` shows
+ * it there) is gated. An obfuscated command gets past it; one that merely
+ * mentions `.ssh` in an `echo` is asked about (an accepted false positive).
+ *
+ * `call_mcp_tool` is gated the same way: every string in its `arguments` is
+ * checked as a path and as a command, and a URL at Exodus's own API ports is
+ * refused — an MCP filesystem or fetch server is otherwise a side door past
+ * both rules.
  */
 
 export type SensitiveKind = 'ask' | 'refuse'
@@ -69,8 +84,44 @@ const HOME_SECRET_ROOTS = [
   '.kube',
   join('.docker', 'config.json'),
   '.netrc',
-  join('Library', 'Keychains')
+  join('Library', 'Keychains'),
+  // Package-registry and VCS tokens.
+  '.npmrc',
+  '.yarnrc.yml',
+  '.pypirc',
+  '.git-credentials',
+  '.vault-token',
+  // Cloud and CLI credential stores.
+  '.azure',
+  join('.config', 'gh'),
+  join('.config', 'gcloud'),
+  join('.config', 'op'),
+  '.password-store',
+  // Browser profiles: saved passwords (`Login Data`, Firefox's `logins.json`
+  // + `key4.db`, readable without a primary password) and cookies.
+  join('Library', 'Application Support', 'Google', 'Chrome'),
+  join('Library', 'Application Support', 'Chromium'),
+  join('Library', 'Application Support', 'BraveSoftware'),
+  join('Library', 'Application Support', 'Microsoft Edge'),
+  join('Library', 'Application Support', 'Firefox'),
+  join('Library', 'Application Support', 'Arc'),
+  join('Library', 'Cookies'),
+  '.mozilla',
+  join('.config', 'google-chrome'),
+  join('.config', 'chromium'),
+  join('.config', 'BraveSoftware'),
+  join('.config', 'microsoft-edge')
 ]
+
+/**
+ * Directories under home where any file with `credentials` in its name is one
+ * (`~/.config/gcloud/application_default_credentials.json`,
+ * `~/.cargo/credentials.toml`, `~/.terraform.d/credentials.tfrc.json`).
+ */
+const HOME_CREDENTIAL_NAME_DIRS = ['.config', '.cargo', '.terraform.d']
+
+/** Exodus's own files no tool ever touches (relative to `~/.exodus`). */
+const EXODUS_REFUSED = ['lock.dat', 'tls', 'database', 'backups', 'analytics']
 
 /** Keychains outside home. */
 const SYSTEM_SECRET_ROOTS = ['/Library/Keychains', '/System/Library/Keychains']
@@ -82,15 +133,34 @@ const SYSTEM_SECRET_ROOTS = ['/Library/Keychains', '/System/Library/Keychains']
  */
 const TEMPLATE_SUFFIXES = ['.example', '.sample', '.template', '.dist']
 
+/**
+ * A trailing marker that leaves a secret a secret: a backup copy of a key
+ * (`server.pem.bak`, `id_rsa.old`, `tls.key~`) holds the same key.
+ */
+const BACKUP_SUFFIXES = ['.bak', '.old', '.orig', '.backup', '.save', '~']
+
+function withoutBackupSuffixes(lower: string): string {
+  let name = lower
+  for (;;) {
+    const suffix = BACKUP_SUFFIXES.find(
+      (s) => name.endsWith(s) && name.length > s.length
+    )
+    if (!suffix) return name
+    name = name.slice(0, -suffix.length)
+  }
+}
+
 /** A file whose name alone says it holds a secret — gated outside the workspace. */
 function isSecretFileName(name: string): boolean {
-  const lower = name.toLowerCase()
+  const lower = withoutBackupSuffixes(name.toLowerCase())
   if (TEMPLATE_SUFFIXES.some((s) => lower.endsWith(s))) return false
   return (
     lower.startsWith('.env') ||
     lower.endsWith('.pem') ||
     lower.endsWith('.key') ||
-    lower.startsWith('id_')
+    lower.startsWith('id_') ||
+    lower === '.git-credentials' ||
+    lower === '.vault-token'
   )
 }
 
@@ -173,22 +243,41 @@ function display(path: string, env: MatchEnv): string {
 interface Roots {
   refused: string[]
   secret: string[]
-  config: string[]
+  /** Where a file named `*credentials*` is one. */
+  credentialDirs: string[]
+  /** `~/.exodus` itself — a copy of all of it copies the database. */
+  exodusHome: string[]
   workspace: string[]
 }
 
 function rootsOf(env: MatchEnv, workspaceDir: string | undefined): Roots {
-  const refused = [
-    join(env.exodusHome, 'lock.dat'),
-    join(env.exodusHome, 'tls')
-  ].flatMap(forms)
+  const refused = EXODUS_REFUSED.map((r) => join(env.exodusHome, r)).flatMap(
+    forms
+  )
   const secret = [
     ...HOME_SECRET_ROOTS.map((r) => join(env.home, r)),
     ...SYSTEM_SECRET_ROOTS
   ].flatMap(forms)
-  const config = forms(join(env.home, '.config'))
+  const credentialDirs = HOME_CREDENTIAL_NAME_DIRS.map((r) =>
+    join(env.home, r)
+  ).flatMap(forms)
   const workspace = workspaceDir ? forms(resolve(workspaceDir)) : []
-  return { refused, secret, config, workspace }
+  return {
+    refused,
+    secret,
+    credentialDirs,
+    exodusHome: forms(env.exodusHome),
+    workspace
+  }
+}
+
+/** A `*credentials*` file under `~/.config`, `~/.cargo` or `~/.terraform.d`. */
+function isCredentialNamed(path: string, roots: Roots, env: MatchEnv): boolean {
+  return (
+    withoutBackupSuffixes(basename(path).toLowerCase()).includes(
+      'credentials'
+    ) && roots.credentialDirs.some((r) => isWithin(path, r, env))
+  )
 }
 
 /**
@@ -212,12 +301,7 @@ function classifyPath(
   for (const p of candidates) {
     const ask = { kind: 'ask' as const, via: p }
     if (roots.secret.some((r) => isWithin(p, r, env))) return ask
-    if (
-      roots.config.some((r) => isWithin(p, r, env)) &&
-      basename(p).toLowerCase().startsWith('credentials')
-    ) {
-      return ask
-    }
+    if (isCredentialNamed(p, roots, env)) return ask
     if (/\.keychain(-db)?$/iu.test(p)) return ask
     const inWorkspace = roots.workspace.some((w) => isWithin(p, w, env))
     if (!inWorkspace && isSecretFileName(basename(p))) return ask
@@ -264,7 +348,7 @@ function isNetworkRoot(path: string, env: MatchEnv): boolean {
 /**
  * The first file under `root` (not inside the workspace) that the file tools
  * would ask about by name — `.env*`, `*.pem`, `*.key`, `id_*`, a keychain, a
- * `credentials*` under `~/.config` — or `TOO_MANY` when the tree is too large
+ * `*credentials*` under `~/.config` — or `TOO_MANY` when the tree is too large
  * or slow to tell, or `NETWORK_VOLUME` when `root` is a mount/cloud-sync
  * folder never walked at all. Walks as `grep` does (its skipped directories,
  * depth 8) and, like it, never follows a symlink. Null for a file or a
@@ -314,8 +398,7 @@ async function findSecretInTree(
           if (
             isSecretFileName(entry.name) ||
             /\.keychain(-db)?$/u.test(lower) ||
-            (lower.startsWith('credentials') &&
-              roots.config.some((r) => isWithin(full, r, env)))
+            isCredentialNamed(full, roots, env)
           ) {
             return full
           }
@@ -449,14 +532,41 @@ async function matchPathTool(
 const KEYCHAIN_COMMAND =
   /\bsecurity\s+(?:find-[a-z-]*password|dump-keychain|export)\b/u
 
+/** A CLI printing the token it has stored. */
+const CREDENTIAL_COMMAND =
+  /\b(?:gh\s+auth\s+token|gcloud\s+auth\s+(?:application-default\s+)?print-(?:access|identity)-token|aws\s+configure\s+(?:get|export-credentials)|az\s+account\s+get-access-token|op\s+(?:read|item\s+get)|git\s+credential\s+fill|vault\s+print\s+token|npm\s+token\s+list)\b/u
+
+/**
+ * Listing other processes with their arguments or environment: an MCP server
+ * started as `… --api-key sk-…` shows the key to `ps -axo args`, and on Linux
+ * `/proc/<pid>/environ` shows its environment. Any `ps` with an option (bare
+ * `ps` lists only the shell's own terminal), `pgrep -a`/`-l`, `pstree -a`,
+ * `lsof -p`, and `/proc/<pid>/cmdline` or `environ`. A documented heuristic, not a
+ * list of every tool that can read a process table.
+ */
+const PROCESS_ARGS_COMMAND =
+  /(?:^|[\s;|&(`/])(ps[ \t]+[^\s;|&)]\S*|pgrep\b[^;|&\n]*[ \t]-[a-z]*[al]\b|pstree\b[^;|&\n]*[ \t]-[a-z]*a|lsof\b[^;|&\n]*[ \t]-[a-z]*p)|(\/proc\/[^\s/]+\/(?:cmdline|environ))\b/iu
+
+function processArgsTrigger(command: string): string | undefined {
+  const m = PROCESS_ARGS_COMMAND.exec(command)
+  return m ? (m[1] ?? m[2]) : undefined
+}
+
 /** A credential location named anywhere in a command, however it is spelled. */
 const SECRET_MENTION =
-  /(?:^|[\s'"=:(/`])(?:\.ssh|\.aws|\.gnupg|\.kube|\.netrc|\.docker\/config\.json|Library\/Keychains)(?=$|[\s'"/;|&)<>`])/iu
+  /(?:^|[\s'"=:(/`])(?:\.ssh|\.aws|\.gnupg|\.kube|\.netrc|\.docker\/config\.json|Library\/Keychains|\.npmrc|\.yarnrc\.yml|\.pypirc|\.git-credentials|\.vault-token|\.azure|\.password-store|\.mozilla|\.config\/(?:gh|gcloud|op|google-chrome|chromium|BraveSoftware|microsoft-edge)|\.cargo\/credentials[\w.-]*|\.terraform\.d\/credentials[\w.-]*|Library\/Cookies|Library\/Application(?:\\?[ \t]|%20)Support\/(?:Google\/Chrome|Chromium|BraveSoftware|Microsoft(?:\\?[ \t]|%20)Edge|Firefox|Arc))(?=$|[\s'"/;|&)<>`])/iu
 
-const REFUSED_MENTION = /\.exodus\/(?:lock\.dat|tls)(?=$|[\s'"/;|&)<>`])/iu
+const EXODUS_REFUSED_WORDS = 'lock\\.dat|tls|database|backups|analytics'
+const REFUSED_MENTION = new RegExp(
+  `\\.exodus\\/(?:${EXODUS_REFUSED_WORDS})(?=$|[\\s'"/;|&)<>\`*])`,
+  'iu'
+)
 /** `cd ~/.exodus && cat lock.dat` — the directory and the file named apart. */
 const EXODUS_MENTION = /\.exodus(?=$|[\s'"/;|&)<>`])/iu
-const LOCK_OR_TLS_WORD = /(?:^|[\s'"/])(?:lock\.dat|tls)(?=$|[\s'"/;|&)<>`])/iu
+const LOCK_OR_TLS_WORD = new RegExp(
+  `(?:^|[\\s'"/])(?:${EXODUS_REFUSED_WORDS})(?=$|[\\s'"/;|&)<>\`*])`,
+  'iu'
+)
 
 /** Paths considered per command — a heredoc script is not walked word by word. */
 const MAX_COMMAND_TOKENS = 2000
@@ -513,17 +623,117 @@ function matchCommand(
         summary: withTrigger(display(abs, env), command)
       }
     }
-    if (hit && !pathTrigger) pathTrigger = display(abs, env)
+    // `tar c ~/.exodus`, `cp -r ~/.exodus …`: all of it holds the database.
+    const wholeExodus =
+      !hit && roots.exodusHome.some((r) => canon(abs, env) === canon(r, env))
+    if ((hit || wholeExodus) && !pathTrigger) pathTrigger = display(abs, env)
   }
 
   const trigger =
     pathTrigger ??
     SECRET_MENTION.exec(command)?.[0].replace(/^[\s'"=:(/`]/u, '') ??
     KEYCHAIN_COMMAND.exec(command)?.[0] ??
+    CREDENTIAL_COMMAND.exec(command)?.[0] ??
+    processArgsTrigger(command) ??
     (classifyPath(cwd, roots, env) ? display(cwd, env) : null)
   return trigger
     ? { kind: 'ask', summary: withTrigger(trigger, command) }
     : null
+}
+
+// ── call_mcp_tool ────────────────────────────────────────────────────────────
+
+/** String leaves of `arguments` checked per call; more than this asks. */
+const MAX_MCP_LEAVES = 500
+const TOO_MANY_LEAVES = Symbol('too-many-leaves')
+
+/** A URL (or `host:port`) at one of the ports Exodus's own API listens on. */
+const OWN_API_PORT = new RegExp(
+  `:(?:${SERVER_PORT}|${LAN_SERVER_PORT})(?!\\d)`,
+  'u'
+)
+
+function stringLeaves(
+  value: unknown,
+  out: string[],
+  depth = 0
+): typeof TOO_MANY_LEAVES | void {
+  if (typeof value === 'string') {
+    if (value.trim() !== '') out.push(value)
+    return out.length > MAX_MCP_LEAVES ? TOO_MANY_LEAVES : undefined
+  }
+  if (!value || typeof value !== 'object' || depth > 32) return undefined
+  const children = Array.isArray(value) ? value : Object.values(value)
+  for (const child of children) {
+    if (stringLeaves(child, out, depth + 1) === TOO_MANY_LEAVES) {
+      return TOO_MANY_LEAVES
+    }
+  }
+  return undefined
+}
+
+/** A leaf as a filesystem path, when it reads as one (`/…`, `~…`, `file://…`). */
+function leafAsPath(leaf: string, home: string): string | null {
+  const trimmed = leaf.trim()
+  if (/^file:\/\//iu.test(trimmed)) {
+    try {
+      return fileURLToPath(trimmed)
+    } catch {
+      return null
+    }
+  }
+  const expanded = expandHome(trimmed, home)
+  return isAbsolute(expanded) ? resolve(expanded) : null
+}
+
+/**
+ * `call_mcp_tool`: an MCP server can read files, run commands or fetch URLs
+ * the gate never sees. Every string leaf of `arguments` is checked — as a
+ * whole path (a recursive read, since a server may walk a directory), with
+ * the terminal heuristic (paths and credential commands inside it), and for a
+ * URL at Exodus's own API ports, which is refused. The summary names the
+ * server and tool, then what matched.
+ */
+function matchMcpCall(
+  args: unknown,
+  roots: Roots,
+  env: MatchEnv,
+  workspaceDir: string | undefined
+): SensitiveTarget | null {
+  const server = stringArg(args, 'server') ?? '?'
+  const tool = stringArg(args, 'tool') ?? '?'
+  const label = `${server}/${tool}`
+  const inner =
+    args && typeof args === 'object'
+      ? (args as Record<string, unknown>).arguments
+      : undefined
+  const leaves: string[] = []
+  if (stringLeaves(inner, leaves) === TOO_MANY_LEAVES) {
+    return { kind: 'ask', summary: `${label}: too many arguments to check` }
+  }
+  const hits: SensitiveTarget[] = []
+  for (const leaf of leaves) {
+    if (OWN_API_PORT.test(leaf)) {
+      return {
+        kind: 'refuse',
+        summary: `${label}: Exodus's own API — ${commandSummary(leaf)}`
+      }
+    }
+    const path = leafAsPath(leaf, env.home)
+    const pathHit = path
+      ? classifyPath(path, roots, env, { recursive: true })
+      : null
+    if (pathHit && path) {
+      hits.push({
+        kind: pathHit.kind,
+        summary: `${label}: ${display(path, env)}`
+      })
+      continue
+    }
+    const hit = matchCommand(leaf, null, roots, env, workspaceDir)
+    if (hit) hits.push({ kind: hit.kind, summary: `${label}: ${hit.summary}` })
+  }
+  return strongest(hits)
 }
 
 /**
@@ -540,6 +750,9 @@ export async function sensitiveTarget(
   env: MatchEnv = defaultEnv()
 ): Promise<SensitiveTarget | null> {
   const roots = rootsOf(env, workspaceDir)
+  if (toolName === TOOL_NAMES.callMcpTool) {
+    return matchMcpCall(args, roots, env, workspaceDir)
+  }
   if (toolName === TOOL_NAMES.terminal) {
     const command = stringArg(args, 'command')
     if (!command) return null
@@ -568,7 +781,8 @@ export function groupRefusedReason(summary: string): string {
   return `Access to ${summary} is not available in a Group run.`
 }
 
-/** What the model reads for Exodus's own lock/TLS secrets. */
+/** What the model reads for Exodus's own files (lock, TLS key, database,
+ *  backups) and API. */
 export function refusedReason(summary: string): string {
-  return `Access to ${summary} is refused: it touches Exodus's own lock or TLS secrets, which are never read by tools.`
+  return `Access to ${summary} is refused: it touches Exodus's own secrets, data files or API, which tools never reach.`
 }

@@ -112,7 +112,7 @@ Exodus uses a three-process architecture:
    - Manages Electron app lifecycle, window creation, and IPC
    - Runs Hono HTTP server on `localhost:60223` (constant `SERVER_PORT` in `packages/shared/src/constants/systems.ts`)
    - Initializes PGlite database with pgvector extension
-   - MCP server connection is archived (commented out in `app.ts`); an `/api/v1/mcp` route + settings remain
+   - Connects the active MCP servers on demand — each chat request (and each Philharmonic employee loop) calls `getMcpTools()` (`src/main/lib/ai/mcp.ts`, a 5-minute per-server cache); nothing connects at startup
    - Handles updates (`src/main/lib/auto-updater.ts`, which keeps the state machine the renderer's update panel speaks): Squirrel via `update-electron-app` for a signed build, a release-page link for an unsigned one — see "Updates and code signing"
 
 2. **Renderer Process** (`src/renderer/`):
@@ -393,7 +393,7 @@ The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatc
 7. Settings injection — `getSettings()` set on the Hono context per request (served from a cache in `db/queries.ts` that `updateSettings` / `updateSettingField` invalidate — write the `settings` table only through those two)
 8. Error handler (`app.onError`, returns JSON errors)
 
-The MCP-tools middleware (injecting MCP tools into context) is **archived** (commented out in `app.ts`).
+There is no MCP middleware: the chat route itself fetches the active servers' tools per request (see MCP below).
 
 ### Database Layer
 
@@ -474,12 +474,23 @@ rendering work in.
   `docs/superpowers/specs/2026-09-25-secrets-and-exfiltration-hardening-design.md`
   §2.5): `sensitiveTarget(toolName, args, workspaceDir)` → `ask` (the file
   tools on `~/.ssh`, `~/.aws`, `~/.gnupg`, `~/.kube`, `~/.docker/config.json`,
-  `~/.netrc`, `~/.config/**/credentials*`, the keychains, or a `.env*` /
-  `*.pem` / `*.key` / `id_*` outside the chat workspace — resolved through `~`,
-  the cwd and symlinks; a `terminal` command naming one of those or running
-  `security find-*-password`, a documented heuristic; a `grep` root outside
-  the workspace whose tree holds a secret-named file), `refuse`
-  (`~/.exodus/lock.dat`, `~/.exodus/tls/` — blocked, never asked) or null.
+  `~/.netrc`, `~/.npmrc`, `~/.yarnrc.yml`, `~/.pypirc`, `~/.git-credentials`,
+  `~/.vault-token`, `~/.azure`, `~/.config/{gh,gcloud,op}`,
+  `~/.password-store`, the browser profiles (Chrome, Chromium, Brave, Edge,
+  Firefox, Arc; `~/Library/Cookies`), a `*credentials*` under `~/.config`,
+  `~/.cargo` or `~/.terraform.d`, the keychains, or a `.env*` / `*.pem` /
+  `*.key` / `id_*` (and their `.bak` / `.old` / `~` … copies) outside the
+  chat workspace — resolved through `~`, the cwd and symlinks; a `terminal`
+  command naming one of those, running `security find-*-password` or a CLI's
+  print-token command (`gh auth token`, …), or listing other processes'
+  arguments (`ps` with options, `pgrep -a`, `/proc/<pid>/environ`), a
+  documented heuristic; a `grep` root outside the workspace whose tree holds
+  a secret-named file; a `call_mcp_tool` whose argument strings match any of
+  those), `refuse` (`~/.exodus/lock.dat`, `~/.exodus/tls/`, and the raw data
+  `~/.exodus/database`, `~/.exodus/backups`, `~/.exodus/analytics` — plaintext
+  in a pre-encryption backup or while encryption is unavailable; a
+  `call_mcp_tool` URL at Exodus's own API ports — blocked, never asked) or
+  null.
   Paths compare case-folded on macOS / Windows and without the
   `/System/Volumes/Data` firmlink prefix; a command's summary leads with what
   triggered it. Philharmonic's loops use the same matcher through
@@ -643,35 +654,25 @@ Multi-level recursive research with real-time progress streaming:
 
 **Integration** (`src/main/lib/ai/mcp.ts`):
 
-> Note: automatic MCP server connection at startup is **archived** (`connectMcpServers()` is commented out in `app.ts`). The `/api/v1/mcp` route and MCP settings remain. The flow below describes the intended/legacy behavior.
+MCP is live: servers are rows of the `mcp_server` table (Settings →
+Integrations → MCP, route `/api/v1/mcp`; secrets masked and encrypted like
+the settings registry).
 
-Allows external tools/servers to be integrated via MCP protocol:
-
-1. **Configuration**: Users define MCP servers in settings JSON:
-
-```json
-{
-  "mcpServers": {
-    "git": { "command": "git-mcp", "args": [] },
-    "filesystem": { "command": "fs-server", "args": [] }
-  }
-}
-```
-
-2. **Connection** (`connectMcpServers()`):
-   - Launches each server via StdIO transport
-   - Retrieves available tools from each server
-   - Stores tools in Hono context
-
-3. **Tool Execution**:
-   - MCP tools merged with built-in tools
-   - AI can call MCP tools during conversation
-   - Results returned via standard MCP protocol
-
-**Key Dependencies**:
-
-- `@ai-sdk/mcp` - MCP client
-- `@modelcontextprotocol/sdk` - MCP protocol implementation
+1. **Connection** (`getMcpTools()`, called by the chat route on every request,
+   and `getMcpToolsByNames()` for a Philharmonic employee): each active server
+   whose settings decrypt is connected over stdio (`command` / `args` /
+   `env`), SSE or streamable HTTP (`url` / `headers`) with
+   `@modelcontextprotocol/sdk`, and its tools are cached for five minutes. No
+   server is connected at startup.
+2. **Tool execution**: through the MCP toolbox (`list_mcp_tools` /
+   `call_mcp_tool`, see Tool Architecture). `call_mcp_tool` goes through the
+   approval gate like the file tools: every string leaf of its `arguments` is
+   checked as a path and with the terminal heuristic, and a URL at Exodus's own
+   API ports is refused (`kernel/approval.ts`).
+3. **stdio args are visible to other programs** while the server runs (`ps`
+   shows a process's arguments), so the MCP form warns when an argument holds a
+   recognised secret and suggests an environment variable instead; `ps`-style
+   commands in `terminal` are asked about.
 
 ### Memory & Personalization Layer
 
@@ -1442,7 +1443,12 @@ Main process:
   destination move cleared, by name, in `~/.exodus/secrets-reentry.json`,
   listed until re-entered), `url.ts` (re-exports the shared
   `normalizeBaseUrl`), `known.ts` + `scrub.ts`
-  (every current secret value, and masking them out of copied text). A
+  (every current secret value, and masking them out of copied text). The pure
+  detectors — `isSecretName`, `maskSecret`, `maskMcpUrl` / `maskMcpArgs`,
+  `argsHoldSecret` (the MCP form's "secrets in arguments are visible to
+  `ps`" notice) — live in `packages/shared/src/utils/secret-detect.ts`, so the
+  renderer judges a value by the same rules; `registry.ts`, `mask.ts` and
+  `locators.ts` re-export them. A
   startup self-check turns encryption off if `safeStorage` output is not a
   recognizable envelope. An MCP row that did not fully decrypt carries
   `mcpDecryptFailures()` and is never connected (`ai/mcp.ts`); a save keeps

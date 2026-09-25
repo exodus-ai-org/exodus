@@ -2,8 +2,10 @@ import { ErrorCode } from '@exodus/shared/constants/error-codes'
 import { MCP_HOMEPAGE } from '@exodus/shared/constants/external-urls'
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { HttpError } from '@exodus/shared/utils/http'
+import { argsHoldSecret } from '@exodus/shared/utils/secret-detect'
 import {
   ChevronDownIcon,
+  EyeIcon,
   CloudIcon,
   Loader2Icon,
   PencilIcon,
@@ -64,6 +66,7 @@ import {
   SettingsEmpty,
   SettingsIntro,
   SettingsItem,
+  SettingsNotice,
   staggerDelay
 } from '../settings-kit'
 import { SettingsRow, SettingsSection } from '../settings-row'
@@ -742,6 +745,17 @@ export function McpServers() {
                           {t('settings:mcpServers.form.args.addButton')}
                         </Button>
                         {refusal('args')}
+                        {(argsHoldSecret(args) ||
+                          args.some((a) => holdsMask(a))) && (
+                          <div
+                            className={ENTER}
+                            data-testid={TEST_IDS.mcpServers.argsSecretNotice}
+                          >
+                            <SettingsNotice icon={EyeIcon}>
+                              {t('settings:mcpServers.form.args.secretNotice')}
+                            </SettingsNotice>
+                          </div>
+                        )}
                       </div>
                     </SettingsRow>
                     <SettingsRow

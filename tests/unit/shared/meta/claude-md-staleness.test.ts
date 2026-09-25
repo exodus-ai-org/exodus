@@ -23,7 +23,12 @@ const FORBIDDEN: RegExp[] = [
   // message normaliser pi 0.85 made redundant, the MCP tool truncation cap.
   /@mariozechner\//,
   /transform-messages/,
-  /MAX_TOOLS/
+  /MAX_TOOLS/,
+  // MCP connects per chat request; the "archived" connection path and the
+  // AI SDK MCP client are gone (final review of the secrets pass, I2).
+  /MCP server connection is archived/,
+  /connectMcpServers/,
+  /@ai-sdk\/mcp/
 ]
 
 describe('CLAUDE.md staleness', () => {

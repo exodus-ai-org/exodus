@@ -709,7 +709,8 @@
         "label": "Argumente",
         "description": "Befehlsargumente, eines pro Zeile. Die Reihenfolge ist wichtig.",
         "addButton": "Argument hinzufügen",
-        "removeAria": "Argument {{index}} entfernen"
+        "removeAria": "Argument {{index}} entfernen",
+        "secretNotice": "Geheimnisse in Argumenten sind für andere Programme auf diesem Computer sichtbar, solange der Server läuft – legen Sie sie in Umgebungsvariablen ab."
       },
       "url": {
         "label": "URL",

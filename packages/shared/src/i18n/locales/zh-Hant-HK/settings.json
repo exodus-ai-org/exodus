@@ -705,7 +705,8 @@
         "label": "參數",
         "description": "指令參數，每行一個。順序會影響結果。",
         "addButton": "新增參數",
-        "removeAria": "移除參數 {{index}}"
+        "removeAria": "移除參數 {{index}}",
+        "secretNotice": "伺服器運行期間，參數中的密鑰會被這部電腦上的其他程式看到——請改放在環境變數中。"
       },
       "url": {
         "label": "URL",

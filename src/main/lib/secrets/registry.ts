@@ -63,39 +63,7 @@ export const SETTINGS_NON_SECRET_PATHS: Record<string, string> = {
   'modelCatalog.*.[].snapshot.maxOutputTokens': 'token budget, a number'
 }
 
-/**
- * Whether a field / header / flag name would be a secret by the look of it.
- * Judged word by word (`apiKey`, `api_key` and `X-API-KEY` are all `api` +
- * `key`), so a short marker only matches a whole word: `pat` but not `path`,
- * `auth` / `authoriz…` / `authentic…` but not `author`, `authority` or `oauth`,
- * `…key` but not `keyboard`, `pass` / `sig` but not `passenger` / `signal`;
- * a trailing number is ignored (`API_KEY2`). Under a secret-named key, everything is a secret
- * (a `tokens: { access, expiresIn }` object is masked whole).
- */
-export function isSecretName(name: string): boolean {
-  const words = name
-    .replaceAll(/([a-z0-9])([A-Z])/gu, '$1 $2')
-    .toLowerCase()
-    .split(/[^a-z0-9]+/u)
-    // A numbered one (`apiKey2`, `API_KEY2`) is the same kind of field.
-    .map((w) => w.replace(/\d+$/u, ''))
-    .filter(Boolean)
-  return words.some(
-    (w) =>
-      /secret|passw|passphr|token|credential|cookie|bearer|jwt/u.test(w) ||
-      w.endsWith('key') ||
-      w.endsWith('keys') ||
-      w === 'auth' ||
-      w.startsWith('authoriz') ||
-      w.startsWith('authentic') ||
-      w === 'pat' ||
-      w === 'pass' ||
-      w === 'pwd' ||
-      w === 'sig' ||
-      w.startsWith('signature') ||
-      w.startsWith('session')
-  )
-}
+export { isSecretName } from '@exodus/shared/utils/secret-detect'
 
 /**
  * `mcp_server` columns whose every value is a secret: env vars handed to a

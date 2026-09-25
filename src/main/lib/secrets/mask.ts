@@ -6,14 +6,11 @@
  * means "unchanged".
  */
 
-const BULLETS = '••••'
-const MIN_LENGTH_FOR_TAIL = 12
+import { MASK_BULLETS, maskSecret } from '@exodus/shared/utils/secret-detect'
 
-export function maskSecret(value: string | null | undefined): string | null {
-  if (!value) return null
-  if (value.length < MIN_LENGTH_FOR_TAIL) return BULLETS
-  return `${BULLETS} ${value.slice(-4)}`
-}
+export { maskSecret }
+
+const BULLETS = MASK_BULLETS
 
 /** Either mask shape — `"••••"` or `"•••• " + four characters`. */
 export function looksLikeMask(value: unknown): value is string {

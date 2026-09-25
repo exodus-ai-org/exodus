@@ -709,7 +709,8 @@
         "label": "Args",
         "description": "Command arguments, one per row. Order matters.",
         "addButton": "Add argument",
-        "removeAria": "Remove argument {{index}}"
+        "removeAria": "Remove argument {{index}}",
+        "secretNotice": "Secrets in arguments are visible to other programs on this computer while the server runs — put them in environment variables."
       },
       "url": {
         "label": "URL",

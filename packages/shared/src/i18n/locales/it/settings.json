@@ -709,7 +709,8 @@
         "label": "Argomenti",
         "description": "Argomenti del comando, uno per riga. L'ordine conta.",
         "addButton": "Aggiungi argomento",
-        "removeAria": "Rimuovi argomento {{index}}"
+        "removeAria": "Rimuovi argomento {{index}}",
+        "secretNotice": "I segreti negli argomenti sono visibili agli altri programmi di questo computer mentre il server è in esecuzione: mettili nelle variabili d’ambiente."
       },
       "url": {
         "label": "URL",

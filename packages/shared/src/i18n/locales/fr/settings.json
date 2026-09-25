@@ -709,7 +709,8 @@
         "label": "Arguments",
         "description": "Arguments de la commande, un par ligne. L'ordre compte.",
         "addButton": "Ajouter un argument",
-        "removeAria": "Supprimer l'argument {{index}}"
+        "removeAria": "Supprimer l'argument {{index}}",
+        "secretNotice": "Les secrets placés dans les arguments sont visibles par les autres programmes de cet ordinateur tant que le serveur tourne — mettez-les dans des variables d’environnement."
       },
       "url": {
         "label": "URL",

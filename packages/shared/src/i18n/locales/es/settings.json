@@ -709,7 +709,8 @@
         "label": "Argumentos",
         "description": "Argumentos del comando, uno por fila. El orden importa.",
         "addButton": "Agregar argumento",
-        "removeAria": "Eliminar argumento {{index}}"
+        "removeAria": "Eliminar argumento {{index}}",
+        "secretNotice": "Los secretos en los argumentos son visibles para otros programas de este equipo mientras el servidor se ejecuta: ponlos en variables de entorno."
       },
       "url": {
         "label": "URL",

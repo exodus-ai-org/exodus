@@ -705,7 +705,8 @@
         "label": "引数",
         "description": "コマンド引数を1行ずつ指定します。順序が重要です。",
         "addButton": "引数を追加",
-        "removeAria": "引数{{index}}を削除"
+        "removeAria": "引数{{index}}を削除",
+        "secretNotice": "引数に含めたシークレットは、サーバーの実行中このコンピュータの他のプログラムから見えます。環境変数に入れてください。"
       },
       "url": {
         "label": "URL",

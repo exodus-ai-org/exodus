@@ -114,6 +114,10 @@ test.describe('Settings — masked keys and the secrets status', () => {
     const env = mainWindow.getByTestId(TEST_IDS.mcpServers.envInput)
     await expect(env).toHaveValue(/•••• QRST/u)
     await expect(env).not.toHaveValue(new RegExp(MCP_TOKEN, 'u'))
+    // `--token <value>` is visible to `ps` while the server runs.
+    await expect(
+      mainWindow.getByTestId(TEST_IDS.mcpServers.argsSecretNotice)
+    ).toBeVisible()
 
     await mainWindow
       .getByPlaceholder(/server-filesystem/u)

@@ -145,7 +145,9 @@ export const TEST_IDS = {
     /** The stdio server's environment variables (JSON). */
     envInput: 'mcp-servers.env-input',
     /** A field the server refused (`data-field`: url, args, env, headers…). */
-    fieldError: 'mcp-servers.field-error'
+    fieldError: 'mcp-servers.field-error',
+    /** Shown while a stdio server's args hold a secret (`ps` shows args). */
+    argsSecretNotice: 'mcp-servers.args-secret-notice'
   },
   chat: {
     /** One per assistant message (= one per run). */

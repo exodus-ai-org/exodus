@@ -79,10 +79,17 @@ machine are **intercepted and left to the user** — real work sometimes needs t
   `~/.kube`, the macOS keychains, or a `.env*` / `*.pem` / `*.key` / `id_*` file outside the chat workspace; and
   `terminal` commands that mention one of those paths or call `security find-*-password`, `cat`/`cp`/`scp` on them
   (a documented heuristic, not a parser). One shared matcher, table-tested.
-- **`~/.exodus` itself is not a "user decides" path:** the data files hold only ciphertext (2.3) and the API hands out
-  masks (2.2), so reading them yields nothing secret; `lock.dat` and `tls/` are refused outright.
+- **`~/.exodus` itself is not a "user decides" path:** `lock.dat` and `tls/` are refused outright, and so are the raw
+  data files — `database/`, `backups/`, `analytics/`. Those hold only ciphertext while encryption at rest is on (2.3),
+  but not in two states: a backup written before encryption existed holds every key in plaintext, and while
+  `safeStorage` is unavailable so does everything new. No tool needs them (chats are read through `lcm_*`). The rest
+  of `~/.exodus` (workspaces, media, logs) stays readable. (Amended by the final review, I4.)
+- **Beyond the first list (final review, I2 + I3):** the credential table also covers the common token files
+  (`.npmrc`, `.git-credentials`, `.config/gh`, `.config/gcloud`, cloud CLIs, `.password-store`, browser profiles, backup
+  copies of key files), the terminal heuristic covers CLI print-token commands and process-argument listings (`ps`),
+  and `call_mcp_tool` is matched on every string leaf of its `arguments`.
 - **Approval flow:** the paused call emits an SSE event `{ type: 'approval_required', runId, toolCallId, toolName,
-  summary }` (summary = the path or command, never file contents); the run waits; the renderer shows an approval card
+summary }` (summary = the path or command, never file contents); the run waits; the renderer shows an approval card
   in the timeline — **Allow once**, **Deny** — and `POST /api/v1/chat/approval { runId, toolCallId, decision }`
   resumes it. Deny → the tool returns "The user declined access to <path>." to the model. No answer within 10
   minutes → denied. Stop → denied. Allowed-once is per call, not remembered.

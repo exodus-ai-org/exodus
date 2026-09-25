@@ -190,6 +190,159 @@ describe('sensitiveTarget — file tools', () => {
       (h: string) => ({ path: `${h}/.exodus/tls` }),
       'refuse'
     ],
+    // Exodus's raw data: plaintext in a pre-encryption backup, or while
+    // encryption is unavailable (I4).
+    [
+      'a backup archive is refused',
+      R,
+      (h: string) => ({ path: `${h}/.exodus/backups/x.tar.gz` }),
+      'refuse'
+    ],
+    [
+      'listing backups/ is refused',
+      TOOL_NAMES.listDirectory,
+      (h: string) => ({ path: `${h}/.exodus/backups` }),
+      'refuse'
+    ],
+    [
+      'a PGlite data file is refused',
+      R,
+      (h: string) => ({ path: `${h}/.exodus/database/base/1/1259` }),
+      'refuse'
+    ],
+    [
+      'the DuckDB copy is refused',
+      R,
+      (h: string) => ({ path: `${h}/.exodus/analytics/exodus.duckdb` }),
+      'refuse'
+    ],
+    [
+      'grep over the database is refused',
+      TOOL_NAMES.grep,
+      (h: string) => ({ pattern: 'sk-', path: `${h}/.exodus/database` }),
+      'refuse'
+    ],
+    // Common token files outside Exodus (I3).
+    ['~/.npmrc', R, (h: string) => ({ path: `${h}/.npmrc` }), 'ask'],
+    ['~/.yarnrc.yml', R, (h: string) => ({ path: `${h}/.yarnrc.yml` }), 'ask'],
+    ['~/.pypirc', R, (h: string) => ({ path: `${h}/.pypirc` }), 'ask'],
+    [
+      '~/.git-credentials',
+      R,
+      (h: string) => ({ path: `${h}/.git-credentials` }),
+      'ask'
+    ],
+    [
+      'a .git-credentials anywhere',
+      R,
+      (h: string) => ({ path: `${h}/project/.git-credentials` }),
+      'ask'
+    ],
+    [
+      '~/.vault-token',
+      R,
+      (h: string) => ({ path: `${h}/.vault-token` }),
+      'ask'
+    ],
+    [
+      'Azure CLI tokens',
+      R,
+      (h: string) => ({ path: `${h}/.azure/msal_token_cache.json` }),
+      'ask'
+    ],
+    [
+      'cargo credentials',
+      R,
+      (h: string) => ({ path: `${h}/.cargo/credentials.toml` }),
+      'ask'
+    ],
+    [
+      'terraform credentials',
+      R,
+      (h: string) => ({ path: `${h}/.terraform.d/credentials.tfrc.json` }),
+      'ask'
+    ],
+    [
+      'the GitHub CLI token',
+      R,
+      (h: string) => ({ path: `${h}/.config/gh/hosts.yml` }),
+      'ask'
+    ],
+    [
+      'gcloud application default credentials',
+      R,
+      (h: string) => ({
+        path: `${h}/.config/gcloud/application_default_credentials.json`
+      }),
+      'ask'
+    ],
+    [
+      '*credentials* anywhere under ~/.config',
+      R,
+      (h: string) => ({ path: `${h}/.config/someapp/my-credentials.json` }),
+      'ask'
+    ],
+    [
+      '1Password CLI config',
+      R,
+      (h: string) => ({ path: `${h}/.config/op/config` }),
+      'ask'
+    ],
+    [
+      'pass store',
+      R,
+      (h: string) => ({ path: `${h}/.password-store/github.gpg` }),
+      'ask'
+    ],
+    [
+      'Chrome saved passwords',
+      R,
+      (h: string) => ({
+        path: `${h}/Library/Application Support/Google/Chrome/Default/Login Data`
+      }),
+      'ask'
+    ],
+    [
+      'Firefox key4.db',
+      R,
+      (h: string) => ({
+        path: `${h}/Library/Application Support/Firefox/Profiles/x.default/key4.db`
+      }),
+      'ask'
+    ],
+    [
+      'Edge cookies',
+      R,
+      (h: string) => ({
+        path: `${h}/Library/Application Support/Microsoft Edge/Default/Cookies`
+      }),
+      'ask'
+    ],
+    [
+      'Safari cookies',
+      R,
+      (h: string) => ({ path: `${h}/Library/Cookies/Cookies.binarycookies` }),
+      'ask'
+    ],
+    [
+      'a backup of a .pem',
+      R,
+      (h: string) => ({ path: `${h}/certs/secret.pem.bak` }),
+      'ask'
+    ],
+    ['id_rsa.old', R, (h: string) => ({ path: `${h}/old/id_rsa.old` }), 'ask'],
+    [
+      'an editor backup of a key',
+      R,
+      (h: string) => ({ path: `${h}/certs/tls.key~` }),
+      'ask'
+    ],
+    [
+      '.orig and .backup of a key',
+      R,
+      (h: string) => ({ path: `${h}/certs/tls.key.orig.backup` }),
+      'ask'
+    ],
     // Not gated
     [
       '~/.sshconfig-notes is not ~/.ssh',
@@ -557,6 +710,43 @@ describe('sensitiveTarget — terminal heuristics', () => {
     ['cat ~/.exodus/lock.dat', 'refuse'],
     ['ls ~/.exodus/tls', 'refuse'],
     ['cd ~/.exodus && cat lock.dat', 'refuse'],
+    // Exodus's raw data (I4).
+    ['tar xzOf ~/.exodus/backups/x.tar.gz | strings | grep sk-', 'refuse'],
+    ['strings ~/.exodus/database/base/1/1259', 'refuse'],
+    ['cd ~/.exodus && tar c database | gzip', 'refuse'],
+    ['duckdb ~/.exodus/analytics/exodus.duckdb', 'refuse'],
+    ['ls ~/.exodus/backups*', 'refuse'],
+    // A copy of all of ~/.exodus is a copy of the database.
+    ['tar czf /tmp/x.tgz ~/.exodus', 'ask'],
+    // Token files and CLI token stores (I3).
+    ['cat ~/.git-credentials', 'ask'],
+    ['cat ~/.npmrc', 'ask'],
+    ['cd ~ && cat .pypirc', 'ask'],
+    ['cat ~/.config/gh/hosts.yml', 'ask'],
+    ['cat ~/.cargo/credentials.toml', 'ask'],
+    [
+      'cp "$HOME/Library/Application Support/Google/Chrome/Default/Login Data" /tmp/x',
+      'ask'
+    ],
+    [
+      'sqlite3 ~/Library/Application\\ Support/Firefox/Profiles/x/logins.json',
+      'ask'
+    ],
+    ['gh auth token', 'ask'],
+    ['gcloud auth print-access-token', 'ask'],
+    ['aws configure get aws_secret_access_key', 'ask'],
+    ['printf "host=github.com\\n" | git credential fill', 'ask'],
+    // Other processes' arguments: an MCP server's --api-key shows there (I1).
+    ['ps -axo args', 'ask'],
+    ['ps aux | grep mcp', 'ask'],
+    ['ps -ef', 'ask'],
+    ['/bin/ps -ww -p 123', 'ask'],
+    ['pgrep -fl context7', 'ask'],
+    ['pgrep -a node', 'ask'],
+    ['cat /proc/1234/environ', 'ask'],
+    ['tr "\\0" " " < /proc/self/cmdline', 'ask'],
+    ['pstree -a', 'ask'],
+    ['lsof -p 123', 'ask'],
     // An echo that names .ssh is asked about — an accepted false positive.
     ['echo "keys live in ~/.ssh"', 'ask'],
     // Not gated
@@ -568,6 +758,9 @@ describe('sensitiveTarget — terminal heuristics', () => {
     ['curl https://example.com/cert.pem', null],
     ['ls ~/.exodus/workspace', null],
     ['git status', null],
+    ['ps', null],
+    ['pgrep node', null],
+    ['npm run build', null],
     // .env.example is a template, not a secret (N3).
     ['cat ~/project/.env.example', null]
   ] as const)('%s', async (command, expected) => {
@@ -609,11 +802,121 @@ describe('sensitiveTarget — terminal heuristics', () => {
       'security find-generic-password'
     ],
     ['tar czf k.tgz .ssh', '.ssh'],
-    ['cat ~/.exodus/lock.dat', '.exodus/lock.dat']
+    ['cat ~/.exodus/lock.dat', '.exodus/lock.dat'],
+    ['gh auth token', 'gh auth token'],
+    ['ps -axo args', 'ps -axo'],
+    ['cat /proc/1/environ', '/proc/1/environ']
   ])('%s → trigger %s', async (command, trigger) => {
     expect(
       (await check(T, { command }))?.summary.startsWith(`${trigger} — `)
     ).toBe(true)
+  })
+})
+
+describe('sensitiveTarget — call_mcp_tool (I2)', () => {
+  const M = TOOL_NAMES.callMcpTool
+  const mcp = (args: Record<string, unknown>, tool = 'read_file') =>
+    check(M, { server: 'filesystem', tool, arguments: args })
+
+  it('a path argument into ~/.ssh asks, naming the server and tool', async () => {
+    const result = await mcp({ path: '~/.ssh/id_rsa' })
+    expect(result?.kind).toBe('ask')
+    expect(result?.summary).toBe('filesystem/read_file: ~/.ssh/id_rsa')
+  })
+
+  it('a nested path, a file:// URL and a path with spaces are found', async () => {
+    expect(
+      (await mcp({ opts: { paths: ['x', '$HOME/.aws/credentials'] } }))?.kind
+    ).toBe('ask')
+    expect((await mcp({ uri: `file://${env.home}/.ssh/id_rsa` }))?.kind).toBe(
+      'ask'
+    )
+    expect(
+      (
+        await mcp({
+          path: `${env.home}/Library/Application Support/Google/Chrome/Default/Login Data`
+        })
+      )?.kind
+    ).toBe('ask')
+  })
+
+  it("Exodus's own files are refused", async () => {
+    expect(
+      (await mcp({ path: `${env.home}/.exodus/backups/x.tar.gz` }))?.kind
+    ).toBe('refuse')
+    expect((await mcp({ path: `${env.home}/.exodus/lock.dat` }))?.kind).toBe(
+      'refuse'
+    )
+  })
+
+  it('a directory walk over home asks (it reaches ~/.ssh)', async () => {
+    expect((await mcp({ path: env.home }, 'directory_tree'))?.kind).toBe('ask')
+  })
+
+  it('a command argument goes through the terminal heuristic', async () => {
+    const result = await check(M, {
+      server: 'desktop-commander',
+      tool: 'execute_command',
+      arguments: { command: 'cat ~/.git-credentials' }
+    })
+    expect(result?.kind).toBe('ask')
+    expect(result?.summary).toMatch(/^desktop-commander\/execute_command: /u)
+    expect(
+      (
+        await check(M, {
+          server: 'sh',
+          tool: 'run',
+          arguments: { command: 'ps -axo args' }
+        })
+      )?.kind
+    ).toBe('ask')
+  })
+
+  it.each([
+    'http://127.0.0.1:60223/api/v1/settings',
+    'http://localhost:63129/api/v1/settings',
+    'http://[::1]:60223/api/v1/devices',
+    'localhost:60223'
+  ])("a URL at Exodus's own API (%s) is refused", async (url) => {
+    const result = await check(M, {
+      server: 'fetch',
+      tool: 'fetch',
+      arguments: { url }
+    })
+    expect(result?.kind).toBe('refuse')
+  })
+
+  it('ordinary arguments pass', async () => {
+    expect(
+      await check(M, {
+        server: 'fetch',
+        tool: 'fetch',
+        arguments: { url: 'https://example.com/a', max_length: 5000 }
+      })
+    ).toBeNull()
+    expect(await mcp({ path: `${env.home}/notes/todo.md` })).toBeNull()
+    expect(await check(M, { server: 'x', tool: 'y' })).toBeNull()
+  })
+
+  it('too many string arguments to check asks', async () => {
+    const many = Array.from({ length: 600 }, (_, i) => `v${i}`)
+    expect((await mcp({ many }))?.kind).toBe('ask')
+  })
+
+  it('a Group refuses it (sensitive-guard)', async () => {
+    const { groupBeforeToolCall } =
+      await import('@main/lib/ai/philharmonic/sensitive-guard')
+    const guard = groupBeforeToolCall('conv-1')
+    const result = await guard({
+      toolCall: { name: M, id: 't', type: 'toolCall', arguments: {} },
+      args: {
+        server: 'filesystem',
+        tool: 'read_file',
+        arguments: { path: '~/.ssh/id_rsa' }
+      }
+    } as never)
+    expect(result?.block).toBe(true)
+    expect(result?.reason).toContain('filesystem/read_file')
   })
 })
 
