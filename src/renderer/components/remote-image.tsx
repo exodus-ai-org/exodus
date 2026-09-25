@@ -54,7 +54,7 @@ function dataUrlMimeType(src: string): string | null {
   return mime.trim()
 }
 
-function isRasterDataUrl(src: string): boolean {
+export function isRasterDataUrl(src: string): boolean {
   const mime = dataUrlMimeType(src)
   return mime !== null && RASTER_DATA_IMAGE_TYPES.has(mime)
 }

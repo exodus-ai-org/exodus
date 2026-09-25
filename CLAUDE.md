@@ -594,7 +594,8 @@ must match what `saveMedia` writes and resolve inside the media dir, else
 chat, a project's chats or a Group removes its media dir (best-effort,
 logged); "reset all data" removes `~/.exodus/media`; `db-io` export does not
 carry media. Rows written before this (`url`: a `data:` URL or an expired
-DALL·E link) still render through `imageSrcOf()`'s legacy branch. The card
+DALL·E link) still render through `imageSrcOf()`'s legacy branch (a `data:` URL only
+when it is a raster image, the chat's remote-image rule). The card
 (`components/calling-tools/image-generation/`, built on the beui.dev
 `image-generation-loading.tsx`) is rendered by `AssistantTurnSegment` from
 the run's calls (`collectImageGenerations`), not by `MessageCallingTools`,

@@ -14,6 +14,7 @@ import {
   ImageGeneration,
   type ImageGenerationStatus
 } from '@/components/image-generation-loading'
+import { isRasterDataUrl } from '@/components/remote-image'
 import { useSettings } from '@/hooks/use-settings'
 
 // Placeholders shown while a call runs, one per image the settings ask for.
@@ -45,7 +46,9 @@ export function parseImageSize(size: string | null | undefined): {
  * Where an image loads from: a saved image from the local media route; a row
  * written before images were saved (a base64 `data:` URL, or a DALL·E link —
  * dead an hour after it was made, which `onError` turns into "unavailable")
- * from its `url`. Anything else has nothing to show.
+ * from its `url`. A `data:` URL only when it is a raster image — the same rule
+ * as the chat's remote images: an SVG rendered as `<img>` still fetches its
+ * own `<image href>` / `url()` references. Anything else has nothing to show.
  */
 export function imageSrcOf(
   image: Partial<GeneratedImage> & LegacyGeneratedImage
@@ -56,7 +59,9 @@ export function imageSrcOf(
       : undefined
   }
   const url = image.url
-  return url && /^(https?:|data:image\/)/u.test(url) ? url : undefined
+  if (!url) return undefined
+  if (/^data:/iu.test(url)) return isRasterDataUrl(url) ? url : undefined
+  return /^https?:/iu.test(url) ? url : undefined
 }
 
 function imagesOf(result: ChatToolResultMessage | undefined) {

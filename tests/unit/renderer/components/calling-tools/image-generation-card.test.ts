@@ -146,6 +146,14 @@ describe('imageSrcOf', () => {
     ).toBeUndefined()
     expect(imageSrcOf({})).toBeUndefined()
     expect(imageSrcOf({ url: 'javascript:alert(1)' })).toBeUndefined()
+    // Raster data: only — an SVG <img> fetches its own references (iOS C3).
+    expect(
+      imageSrcOf({ url: 'data:image/svg+xml;base64,PHN2Zy8+' })
+    ).toBeUndefined()
+    expect(imageSrcOf({ url: 'data:text/html,<b>x</b>' })).toBeUndefined()
+    expect(imageSrcOf({ url: 'data:image/webp;base64,QUJD' })).toBe(
+      'data:image/webp;base64,QUJD'
+    )
   })
 })
 
