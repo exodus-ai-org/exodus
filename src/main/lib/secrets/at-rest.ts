@@ -437,25 +437,14 @@ interface McpDestination {
   env?: Record<string, unknown> | null
 }
 
-/**
- * Environment variables that change which program runs, or what it loads:
- * editing one is a command change for the destination rule (ledger ruling,
- * final fix wave) — `PATH` can make `npx` another binary, `NODE_OPTIONS
- * --require` / `LD_PRELOAD` / `DYLD_INSERT_LIBRARIES` inject code into the
- * one that runs, and either would receive the stored secrets.
- */
-const EXECUTION_ENV =
-  /^(?:PATH|NODE_OPTIONS|NODE_PATH|PYTHONPATH|PYTHONHOME|PYTHONSTARTUP|LD_\w+|DYLD_\w+)$/iu
-
-/** The execution-affecting entries of `env`, masks read as `stored`'s. */
-function executionEnv(
+/** `env` as comparable text, each posted mask read as the value it stands for. */
+function effectiveEnv(
   env: Record<string, unknown> | null | undefined,
   stored: Record<string, unknown> | null | undefined
 ): string {
   if (!isPlainObject(env)) return '[]'
   return JSON.stringify(
     Object.entries(env)
-      .filter(([k]) => EXECUTION_ENV.test(k))
       .map(([k, v]) => [
         k,
         looksLikeMask(v) && isPlainObject(stored) ? stored[k] : v
@@ -464,14 +453,21 @@ function executionEnv(
   )
 }
 
-/** Whether a write changes an execution-affecting env var (`EXECUTION_ENV`). */
-function executionEnvMoved(
-  body: McpDestination,
-  stored: McpDestination
-): boolean {
+/**
+ * Whether a write changes `env` at all — an entry added, removed or given a
+ * new value. That is a command change (ruling N3): `PATH`, `NODE_OPTIONS`,
+ * `npm_config_registry`, `HOME`, `BASH_ENV`, `JAVA_TOOL_OPTIONS`… each swaps
+ * or injects the program that receives the stored secrets, and no denylist of
+ * such names stays complete (the one this replaced missed the last four). So
+ * any env edit clears the stored env secrets and masked args unless they are
+ * re-sent in plaintext; the cost is re-entering them after an env edit.
+ * Applied whatever the transport (fail closed; a remote server's env is not
+ * used, so nothing is lost there).
+ */
+function envChanged(body: McpDestination, stored: McpDestination): boolean {
   if (body.env === undefined) return false
   return (
-    executionEnv(body.env, stored.env) !== executionEnv(stored.env, stored.env)
+    effectiveEnv(body.env, stored.env) !== effectiveEnv(stored.env, stored.env)
   )
 }
 
@@ -543,7 +539,7 @@ export function movedMcpSecretColumns(
   const processMoved =
     (pick('command') ?? '').trim() !== (stored.command ?? '').trim() ||
     !sameArgs(pick('args'), stored.args) ||
-    executionEnvMoved(body, stored)
+    envChanged(body, stored)
   for (const [col, dest] of Object.entries(MCP_SECRET_DESTINATIONS) as [
     keyof McpSecretsPlaintext,
     'url' | 'command'
@@ -612,7 +608,7 @@ export function planMcpUpdate<T extends McpWriteBody>(
     !!stored &&
     ((body.command !== undefined &&
       (body.command ?? '').trim() !== (stored.command ?? '').trim()) ||
-      executionEnvMoved(body, stored))
+      envChanged(body, stored))
   const located = restoreMcpLocators(body, stored, {
     restoreArgs: !commandMoved
   })
@@ -803,7 +799,7 @@ export function keepStoredMcpForms<T extends McpWriteBody>(
   const commandMoved =
     (write.command !== undefined &&
       (write.command ?? '').trim() !== (plain.command ?? '').trim()) ||
-    executionEnvMoved(write, plain as McpDestination)
+    envChanged(write, plain as McpDestination)
   if (out.args !== undefined && !commandMoved) {
     if (failed.has('args') && argsUnset(out.args)) out.args = raw.args
     else if (

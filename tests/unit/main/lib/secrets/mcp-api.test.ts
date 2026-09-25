@@ -566,7 +566,7 @@ describe('a value typed around a mask in env / headers / extraConfig is refused 
   })
 })
 
-describe('an execution-affecting env var change is a command change (ruling)', () => {
+describe('any env change is a command change (ruling N3)', () => {
   async function seedWithPath() {
     await pglite.exec('DELETE FROM mcp_server;')
     const row = await mcpQueries.createMcpServer({
@@ -590,7 +590,16 @@ describe('an execution-affecting env var change is a command change (ruling)', (
   it.each([
     ['PATH', { PATH: '/tmp/evil:/usr/bin' }],
     ['NODE_OPTIONS', { NODE_OPTIONS: '--require /tmp/x.js' }],
-    ['DYLD_INSERT_LIBRARIES', { DYLD_INSERT_LIBRARIES: '/tmp/x.dylib' }]
+    ['DYLD_INSERT_LIBRARIES', { DYLD_INSERT_LIBRARIES: '/tmp/x.dylib' }],
+    // The re-review's misses of the old denylist.
+    ['NPM_CONFIG_REGISTRY', { NPM_CONFIG_REGISTRY: 'https://evil.example' }],
+    ['npm_config_registry', { npm_config_registry: 'https://evil.example' }],
+    ['HOME', { HOME: '/tmp/workspace' }],
+    ['BASH_ENV', { BASH_ENV: '/tmp/x.sh' }],
+    ['JAVA_TOOL_OPTIONS', { JAVA_TOOL_OPTIONS: '-javaagent:/tmp/x.jar' }],
+    // And any other entry, by name or not.
+    ['an ordinary new var', { LOG_LEVEL: 'debug' }],
+    ['an existing var', { PATH: '/usr/bin:/bin' }]
   ])(
     'changing %s clears the masked env secrets and refuses the masked args',
     async (_name, change) => {
@@ -614,6 +623,52 @@ describe('an execution-affecting env var change is a command change (ruling)', (
       expect(moved!.env?.GITHUB_TOKEN).toBeUndefined()
     }
   )
+
+  it("the re-review's scenario: a registry swap with only env sent carries no key", async () => {
+    const sid = await seedWithPath()
+    const { env } = await shown()
+    const res = await send('PUT', `/${sid}`, {
+      env: { ...env, NPM_CONFIG_REGISTRY: 'https://evil.example' }
+    })
+    expect(res.status).toBe(200)
+    const after = await mcpQueries.getMcpServerById(sid)
+    expect(after!.env?.GITHUB_TOKEN).toBeUndefined()
+    expect(after!.env?.NPM_CONFIG_REGISTRY).toBe('https://evil.example')
+    // No stored args follow a command change either.
+    expect(after!.args).toEqual([])
+  })
+
+  it('removing an entry is a change too', async () => {
+    const sid = await seedWithPath()
+    const { env } = await shown()
+    const { PATH: _dropped, ...rest } = env
+    const res = await send('PUT', `/${sid}`, {
+      env: rest,
+      args: ['-y', 'mcp-remote', 'https://real.example/sse']
+    })
+    expect(res.status).toBe(200)
+    const after = await mcpQueries.getMcpServerById(sid)
+    expect(after!.env?.GITHUB_TOKEN).toBeUndefined()
+  })
+
+  it('a secret re-sent in plaintext with the change survives it', async () => {
+    const sid = await seedWithPath()
+    const { env } = await shown()
+    const res = await send('PUT', `/${sid}`, {
+      env: {
+        ...env,
+        GITHUB_TOKEN: 'ghp_newvalue1234567890',
+        LOG_LEVEL: 'debug'
+      },
+      args: ['-y', 'mcp-remote', 'https://real.example/sse']
+    })
+    expect(res.status).toBe(200)
+    const after = await mcpQueries.getMcpServerById(sid)
+    expect(after!.env).toMatchObject({
+      GITHUB_TOKEN: 'ghp_newvalue1234567890',
+      LOG_LEVEL: 'debug'
+    })
+  })
 
   it('the same PATH posted back as its mask moves nothing', async () => {
     const sid = await seedWithPath()
