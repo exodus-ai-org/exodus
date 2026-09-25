@@ -68,3 +68,32 @@ describe('logger.write', () => {
     expect(lastRecord().scope.name).toBe('brand-new-surface')
   })
 })
+
+describe('logger — known secrets are masked at write time (M4)', () => {
+  beforeEach(() => appendMock.mockClear())
+
+  it('an error quoting a key is written masked', async () => {
+    const { addLogSecrets, resetLogSecretsForTests } =
+      await import('@main/lib/logger/secret-mask')
+    const key = 'sk-test-abcdefghijklmnop1234'
+    addLogSecrets([key])
+    try {
+      logger.error('chat', `Provider said: invalid key ${key}`, {
+        error: new Error(`401 for https://x.example/v1?key=${key}`)
+      })
+      const line = appendMock.mock.calls.at(-1)![1] as string
+      expect(line).not.toContain(key)
+      expect(line).toContain('•••• 1234')
+      // Still one valid JSON record.
+      expect(JSON.parse(line.trim()).body).toContain('•••• 1234')
+    } finally {
+      resetLogSecretsForTests()
+    }
+  })
+
+  it('writes lines unchanged while no secret is known', () => {
+    logger.info('chat', 'nothing secret here sk-not-registered-abcdefgh')
+    const line = appendMock.mock.calls.at(-1)![1] as string
+    expect(line).toContain('sk-not-registered-abcdefgh')
+  })
+})

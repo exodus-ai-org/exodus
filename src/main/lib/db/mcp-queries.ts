@@ -1,5 +1,6 @@
 import { asc, eq, inArray } from 'drizzle-orm'
 
+import { addLogSecrets } from '../logger/secret-mask'
 import { secretSafeWriteError } from '../secrets'
 import {
   decryptMcpRow,
@@ -12,6 +13,7 @@ import {
   forgetMcpServer,
   recordMcpDecryptFailures
 } from '../secrets/status'
+import { mcpServerSecretValues } from '../secrets/values'
 import { db } from './db'
 import { mcpServer, type McpServer } from './schema'
 
@@ -25,6 +27,8 @@ function decrypted(row: McpServer | undefined): McpServer | undefined
 function decrypted(row: McpServer | undefined): McpServer | undefined {
   if (!row) return row
   const { plain, undecryptable } = decryptMcpRow(row)
+  // The logger masks these from now on (M4).
+  addLogSecrets(mcpServerSecretValues(plain))
   recordMcpDecryptFailures(
     row.id,
     undecryptable.map((label) => `mcp:${row.name}:${label}`)

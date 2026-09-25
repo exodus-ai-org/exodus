@@ -20,6 +20,7 @@ import {
   awaitApproval,
   cancelApprovals,
   decideApproval,
+  isApprovalPending,
   pendingApprovalCount,
   resetApprovalsForTests
 } from '@main/lib/ai/kernel/pending-approvals'
@@ -943,6 +944,19 @@ describe('pending approvals', () => {
     expect(decideApproval('r', 'a', 'deny')).toBe('denied')
     expect(decideApproval('r', 'a', 'allow')).toBe('denied')
     await expect(p).resolves.toBe('denied')
+  })
+
+  it('a second pause under a pending id is refused; the first keeps waiting (M1)', async () => {
+    const first = awaitApproval({ runId: 'r', toolCallId: 'dup' })
+    expect(isApprovalPending('r', 'dup')).toBe(true)
+    await expect(
+      awaitApproval({ runId: 'r', toolCallId: 'dup' })
+    ).resolves.toBe('stopped')
+    // The first is untouched: still pending, and the user's answer reaches it.
+    expect(pendingApprovalCount()).toBe(1)
+    expect(decideApproval('r', 'dup', 'allow')).toBe('allowed')
+    await expect(first).resolves.toBe('allowed')
+    expect(isApprovalPending('r', 'dup')).toBe(false)
   })
 
   it('an unknown call is null', () => {

@@ -56,7 +56,7 @@ googleGeminiApiKey, xAiApiKey}`, `googleCloud.googleApiKey`, `webSearch.braveApi
 - **Decrypt failure** (a different machine, a changed code-signing identity, a restored backup from elsewhere): the
   field reads as unset, a Settings notice says which keys need re-entering; never crash, never send the ciphertext as
   a key.
-- **Backups / export:** `~/.exodus/backups` dumps carry ciphertext (fine on the same machine). `db-io` export: check
+- **Backups / export:** `~/.exodus/backups` dumps carry ciphertext (fine on the same machine) — except a backup written before this pass, and any written while encryption is unavailable, which carry plaintext; the tools are refused `backups/` (2.5, final review I4/M7). `db-io` export: check
   whether settings are exported; if they are, export secrets **masked out** (not plaintext, not ciphertext) and say so
   in the export UI copy.
 - CLAUDE.md's "When a Developer ID exists" checklist already lists safeStorage data; add the settings secrets to it.

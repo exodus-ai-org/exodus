@@ -1,23 +1,6 @@
 import { getAllMcpServers } from '../db/mcp-queries'
 import { getSettings } from '../db/queries'
-import { mcpLocatorSecrets } from './locators'
-import { isSecretName, SETTINGS_SECRET_PATHS } from './registry'
-import { getAtPath, isPlainObject } from './tree'
-
-function secretStrings(value: unknown, secret: boolean, out: string[]): void {
-  if (typeof value === 'string') {
-    if (secret && value) out.push(value)
-    return
-  }
-  if (Array.isArray(value)) {
-    for (const v of value) secretStrings(v, secret, out)
-    return
-  }
-  if (!isPlainObject(value)) return
-  for (const [k, v] of Object.entries(value)) {
-    secretStrings(v, secret || isSecretName(k), out)
-  }
-}
+import { mcpServerSecretValues, settingsSecretValues } from './values'
 
 /**
  * Every secret value Exodus holds right now, in plaintext: the settings
@@ -26,17 +9,9 @@ function secretStrings(value: unknown, secret: boolean, out: string[]): void {
  * leaves the process.
  */
 export async function knownSecretValues(): Promise<string[]> {
-  const out: string[] = []
-  const settings = await getSettings()
-  for (const path of SETTINGS_SECRET_PATHS) {
-    const v = getAtPath(settings, path)
-    if (typeof v === 'string' && v) out.push(v)
-  }
+  const out = settingsSecretValues(await getSettings())
   for (const server of await getAllMcpServers()) {
-    secretStrings(server.env, true, out)
-    secretStrings(server.headers, true, out)
-    secretStrings(server.extraConfig, false, out)
-    out.push(...mcpLocatorSecrets(server.url, server.args as string[] | null))
+    out.push(...mcpServerSecretValues(server))
   }
   return out
 }

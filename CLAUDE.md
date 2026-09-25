@@ -1390,7 +1390,9 @@ Main process:
   legacy mapping), `resource.ts` (service/process identity), `trace-context.ts`
   (`AsyncLocalStorage` per-unit-of-work trace ids — `withTrace` /
   `currentTrace` / `bindTraceAttributes`), `index.ts` (the `logger` API,
-  call signature unchanged). `withTrace` wraps the `/api/*` middleware, the
+  call signature unchanged), `secret-mask.ts` (every secret value decrypted
+  so far — fed by the settings cache fill and each MCP row read — masked in
+  each line before it is written). `withTrace` wraps the `/api/*` middleware, the
   job worker, and the scheduler. JSONL at `~/.exodus/logs/`; read via
   `/api/v1/logs` (filters incl. `traceId`) + `/api/v1/logs/scopes` and the
   Settings → Logger tab; `POST /api/v1/logs` is the renderer reporting an

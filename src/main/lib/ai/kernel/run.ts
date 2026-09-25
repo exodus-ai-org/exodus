@@ -32,7 +32,8 @@ import { streamFn } from './models'
 import {
   APPROVAL_TIMEOUT_MS,
   awaitApproval,
-  cancelApprovals
+  cancelApprovals,
+  isApprovalPending
 } from './pending-approvals'
 
 export interface RunInput {
@@ -137,6 +138,15 @@ export async function* runAgent(input: RunInput): AsyncIterable<KernelEvent> {
       if (!target) return undefined
       if (target.kind === 'refuse') {
         return { block: true, reason: refusedReason(target.summary) }
+      }
+      // A duplicate id (model-chosen ids can repeat) while the first call
+      // still waits: blocked without a second card, so the card on screen
+      // keeps answering the call it was shown for.
+      if (isApprovalPending(runId, toolCall.id)) {
+        return {
+          block: true,
+          reason: `Another call with the id ${toolCall.id} is already waiting for the user's approval.`
+        }
       }
       const timeoutMs = input.approvalTimeoutMs ?? APPROVAL_TIMEOUT_MS
       push({

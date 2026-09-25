@@ -15,6 +15,7 @@ import {
   toAttributes
 } from './record'
 import { getResource } from './resource'
+import { maskLogText } from './secret-mask'
 import { currentTrace } from './trace-context'
 
 export type { LogLevel, LogRecord }
@@ -102,7 +103,13 @@ function write(
     ...(originTraceId ? { originTraceId } : {})
   }
 
-  const line = JSON.stringify(record) + '\n'
+  // Known secret values are masked before the line is written (M4).
+  let line: string
+  try {
+    line = maskLogText(JSON.stringify(record)) + '\n'
+  } catch {
+    line = JSON.stringify(record) + '\n'
+  }
   // Fire-and-forget async write.
   appendFile(join(getLogsDir(), todayFileName()), line, 'utf-8').catch(() => {})
 

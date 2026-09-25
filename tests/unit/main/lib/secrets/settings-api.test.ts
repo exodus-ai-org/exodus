@@ -120,6 +120,17 @@ describe('GET /api/v1/settings', () => {
     expect(text).not.toContain(plain('googleCloud.googleApiKey'))
   })
 
+  it('every registry value read from the row is masked in log lines (M4)', async () => {
+    const { maskLogText } = await import('@main/lib/logger/secret-mask')
+    queries.invalidateSettingsCache()
+    await queries.getSettings()
+    for (const p of SETTINGS_SECRET_PATHS) {
+      const v = plain(p)
+      if (v.length < 8) continue
+      expect(maskLogText(`failed with ${v}`)).not.toContain(v)
+    }
+  })
+
   it('leaves the in-process settings in plaintext', async () => {
     const s = await queries.getSettings()
     for (const p of SETTINGS_SECRET_PATHS) expect(getAt(s, p)).toBe(plain(p))

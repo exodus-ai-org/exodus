@@ -3,6 +3,7 @@ import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import { and, asc, desc, eq, ilike, inArray, sql } from 'drizzle-orm'
 
 import { logger } from '../logger'
+import { addLogSecrets } from '../logger/secret-mask'
 import { extractSearchableText } from '../search/extract-searchable-text'
 import { secretSafeWriteError, settingsColumnHasSecrets } from '../secrets'
 import {
@@ -13,6 +14,7 @@ import {
 import { recordSettingsWrite } from '../secrets/moved'
 import { SETTINGS_SECRET_PATHS } from '../secrets/registry'
 import { recordSettingsDecryptFailures } from '../secrets/status'
+import { settingsSecretValues } from '../secrets/values'
 import { db, pglite } from './db'
 import {
   chat,
@@ -366,6 +368,8 @@ async function loadSettingsState(): Promise<StoredSettingsState<Settings>> {
   const [data] = await db.select().from(settings)
   const state = decryptSettingsRow(data!)
   recordSettingsDecryptFailures(state.undecryptable)
+  // The logger masks these from now on (M4).
+  addLogSecrets(settingsSecretValues(state.plain))
   if (version === settingsVersion) settingsCache = state
   return state
 }

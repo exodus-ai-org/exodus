@@ -56,8 +56,14 @@ export function awaitApproval({
       return
     }
     const key = keyOf(runId, toolCallId)
-    // A second pause for the same call (never expected) supersedes the first.
-    pending.get(key)?.settle('stopped')
+    // A second pause under an id still waiting (a model-chosen duplicate id)
+    // never replaces the first: the card on screen and the entry it answers
+    // must stay the same call. The newcomer settles `stopped` at once — the
+    // kernel checks `isApprovalPending` first and blocks it without a card.
+    if (pending.has(key)) {
+      resolvePromise('stopped')
+      return
+    }
 
     let timer: ReturnType<typeof setTimeout> | undefined
     const onAbort = () => entry.settle('stopped')
@@ -98,6 +104,11 @@ export function decideApproval(
   const known = decided.get(key)
   if (!known || Date.now() - known.at > DECIDED_TTL_MS) return null
   return known.outcome
+}
+
+/** Whether a call with this id is already waiting for the user. */
+export function isApprovalPending(runId: string, toolCallId: string): boolean {
+  return pending.has(keyOf(runId, toolCallId))
 }
 
 /** Stops every call of a run still waiting — the run's own cleanup. */

@@ -26,6 +26,10 @@ vi.mock('@main/lib/ai/context-management', () => ({
   }
 }))
 vi.mock('@main/lib/ai/mcp', () => ({ getMcpTools: vi.fn(async () => []) }))
+// Nothing here touches the database; a real PGlite booting in the background
+// (pulled in transitively) intermittently failed to initialise under the
+// parallel suite and surfaced as an unhandled rejection in this file.
+vi.mock('@main/lib/db/db', () => ({ db: {}, pglite: {} }))
 vi.mock('@main/lib/ai/memory/manager', () => ({
   loadRelevantMemories: vi.fn(async () => []),
   formatMemoriesForSystem: vi.fn(() => '')
