@@ -667,7 +667,8 @@
       "editAria": "Editar servidor",
       "deleteAria": "Excluir servidor",
       "showTools": "Mostrar ferramentas",
-      "hideTools": "Ocultar ferramentas"
+      "hideTools": "Ocultar ferramentas",
+      "reenter": "Precisa ser digitado novamente: {{fields}}"
     },
     "intro": "Registre servidores <2>MCP</2> (locais ou remotos) e, em seguida, ative o botão para habilitar suas ferramentas no chat.",
     "activeSummary": "Atualmente <strong>{{totalToolCount}} ferramentas</strong> de <strong>{{activeCount}} servidores</strong> ativas.",
@@ -736,7 +737,9 @@
       },
       "reenterHint": "Alterar o comando ou editar os argumentos exige digitar novamente os valores mascarados.",
       "maskedHint": "•••• representa um valor salvo — deixe-o como está para mantê-lo.",
-      "reenterError": "Digite o segredo novamente aqui: ele ainda contém um valor mascarado (••••) que não pode ser mantido."
+      "reenterError": "Digite o segredo novamente aqui: ele ainda contém um valor mascarado (••••) que não pode ser mantido.",
+      "urlHint": "Alterar este endereço apaga os cabeçalhos salvos — digite-os novamente depois de salvar.",
+      "reenterFields": "Digite-os novamente — os valores salvos foram apagados ou não podem ser lidos: {{fields}}"
     },
     "json": {
       "description": "Visualização somente leitura da configuração atual. Use a aba Servidores para fazer alterações."
@@ -1028,12 +1031,15 @@
   "secrets": {
     "input": {
       "saved": "Salva",
-      "reenter": "Digite esta chave novamente — a salva não pode mais ser usada."
+      "reenter": "Digite esta chave novamente — a salva não pode mais ser usada.",
+      "savedAria": "Chave salva terminada em {{last4}}",
+      "savedShortAria": "Chave salva",
+      "noneAria": "Nenhuma chave salva"
     },
     "destinationHint": "Alterar este endereço apaga a chave de API salva — digite-a novamente depois de salvar.",
     "notice": {
       "encryptionUnavailable": "O chaveiro do sistema não está disponível; as chaves de API são armazenadas sem criptografia.",
-      "needsReentry": "Estas chaves salvas não podem mais ser lidas — digite-as novamente:"
+      "needsReentry": "Digite estas chaves novamente — elas não podem mais ser lidas ou foram apagadas quando o endereço mudou:"
     },
     "fields": {
       "openaiApiKey": "Chave de API de OpenAI",

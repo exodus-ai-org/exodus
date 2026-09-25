@@ -23,7 +23,10 @@ vi.mock('@/services/settings', () => ({
   updateSettings: vi.fn()
 }))
 vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key })
+  useTranslation: () => ({
+    t: (key: string, params?: Record<string, string>) =>
+      params ? `${key}${JSON.stringify(params)}` : key
+  })
 }))
 
 const { ProviderFields } =
@@ -160,6 +163,34 @@ describe('SecretInput: a saved key', () => {
     }
     await render({ openaiApiKey: null, openaiBaseUrl: null })
     expect(byTestId(TEST_IDS.secrets.reenterPrompt)).toHaveLength(1)
+  })
+})
+
+describe('SecretInput: what a screen reader hears', () => {
+  const describedBy = () =>
+    document.getElementById(keyInput().getAttribute('aria-describedby') ?? '')
+      ?.textContent
+
+  it('a saved key is named by its last four, not read out as bullets', async () => {
+    await render({ openaiApiKey: '•••• abcd', openaiBaseUrl: null })
+    const expected = 'secrets.input.savedAria{"last4":"abcd"}'
+    expect(keyInput().getAttribute('aria-label')).toBe(expected)
+    expect(describedBy()).toBe(expected)
+  })
+
+  it('a short saved key (no tail) is "a saved key"', async () => {
+    await render({ openaiApiKey: '••••', openaiBaseUrl: null })
+    expect(keyInput().getAttribute('aria-label')).toBe(
+      'secrets.input.savedShortAria'
+    )
+  })
+
+  it('an empty field says no key is saved; a typed key says nothing extra', async () => {
+    await render({ openaiApiKey: null, openaiBaseUrl: null })
+    expect(describedBy()).toBe('secrets.input.noneAria')
+    expect(keyInput().getAttribute('aria-label')).toBeNull()
+    type(keyInput(), 'sk-new')
+    expect(keyInput().getAttribute('aria-describedby')).toBeNull()
   })
 })
 

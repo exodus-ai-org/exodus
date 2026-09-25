@@ -667,7 +667,8 @@
       "editAria": "Server bearbeiten",
       "deleteAria": "Server löschen",
       "showTools": "Tools anzeigen",
-      "hideTools": "Tools ausblenden"
+      "hideTools": "Tools ausblenden",
+      "reenter": "Muss erneut eingegeben werden: {{fields}}"
     },
     "intro": "Registrieren Sie <2>MCP</2>-Server (lokal oder remote) und aktivieren Sie anschließend den Schalter, um deren Tools im Chat zu nutzen.",
     "activeSummary": "Derzeit sind <strong>{{totalToolCount}} Tools</strong> von <strong>{{activeCount}} Servern</strong> aktiv.",
@@ -736,7 +737,9 @@
       },
       "reenterHint": "Wenn Sie den Befehl ändern oder Argumente bearbeiten, müssen maskierte Werte erneut eingegeben werden.",
       "maskedHint": "•••• steht für einen gespeicherten Wert – lassen Sie ihn unverändert, um ihn zu behalten.",
-      "reenterError": "Geben Sie das Geheimnis hier erneut ein: Es enthält noch einen maskierten Wert (••••), der nicht übernommen werden kann."
+      "reenterError": "Geben Sie das Geheimnis hier erneut ein: Es enthält noch einen maskierten Wert (••••), der nicht übernommen werden kann.",
+      "urlHint": "Wenn Sie diese Adresse ändern, werden die gespeicherten Header gelöscht – geben Sie sie nach dem Speichern erneut ein.",
+      "reenterFields": "Geben Sie diese erneut ein – die gespeicherten Werte wurden gelöscht oder können nicht gelesen werden: {{fields}}"
     },
     "json": {
       "description": "Schreibgeschützte Ansicht der aktuellen Konfiguration. Nehmen Sie Änderungen im Tab „Server“ vor."
@@ -1028,12 +1031,15 @@
   "secrets": {
     "input": {
       "saved": "Gespeichert",
-      "reenter": "Geben Sie diesen Schlüssel erneut ein – der gespeicherte kann nicht mehr verwendet werden."
+      "reenter": "Geben Sie diesen Schlüssel erneut ein – der gespeicherte kann nicht mehr verwendet werden.",
+      "savedAria": "Gespeicherter Schlüssel, endet auf {{last4}}",
+      "savedShortAria": "Gespeicherter Schlüssel",
+      "noneAria": "Kein Schlüssel gespeichert"
     },
     "destinationHint": "Wenn Sie diese Adresse ändern, wird der gespeicherte API-Schlüssel gelöscht – geben Sie ihn nach dem Speichern erneut ein.",
     "notice": {
       "encryptionUnavailable": "Der Schlüsselbund Ihres Systems ist nicht verfügbar; API-Schlüssel werden unverschlüsselt gespeichert.",
-      "needsReentry": "Diese gespeicherten Schlüssel können nicht mehr gelesen werden – geben Sie sie erneut ein:"
+      "needsReentry": "Geben Sie diese Schlüssel erneut ein – sie können nicht mehr gelesen werden oder wurden beim Ändern ihrer Adresse gelöscht:"
     },
     "fields": {
       "openaiApiKey": "OpenAI-API-Schlüssel",

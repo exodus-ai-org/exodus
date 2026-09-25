@@ -663,7 +663,8 @@
       "editAria": "編輯伺服器",
       "deleteAria": "刪除伺服器",
       "showTools": "顯示工具",
-      "hideTools": "隱藏工具"
+      "hideTools": "隱藏工具",
+      "reenter": "需要重新輸入：{{fields}}"
     },
     "intro": "註冊 <2>MCP</2> 伺服器（本機或遠端），然後切換開關以在聊天中啟用其工具。",
     "activeSummary": "目前有來自 <strong>{{activeCount}} 個伺服器</strong>的 <strong>{{totalToolCount}} 個工具</strong>已啟用。",
@@ -732,7 +733,9 @@
       },
       "reenterHint": "更改指令或編輯參數後，需要重新輸入已遮蔽的值。",
       "maskedHint": "•••• 代表已儲存的值，保持不變即可保留。",
-      "reenterError": "請在此重新輸入機密值：其中仍有無法保留的遮蔽值（••••）。"
+      "reenterError": "請在此重新輸入機密值：其中仍有無法保留的遮蔽值（••••）。",
+      "urlHint": "更改此位址會清除已儲存的標頭，儲存後請重新輸入。",
+      "reenterFields": "請重新輸入以下項目：已儲存的值已被清除或無法讀取：{{fields}}"
     },
     "json": {
       "description": "目前設定的唯讀檢視。請至「伺服器」分頁進行變更。"
@@ -1022,12 +1025,15 @@
   "secrets": {
     "input": {
       "saved": "已儲存",
-      "reenter": "請重新輸入此金鑰：已儲存的金鑰無法再使用。"
+      "reenter": "請重新輸入此金鑰：已儲存的金鑰無法再使用。",
+      "savedAria": "已儲存的金鑰，結尾為 {{last4}}",
+      "savedShortAria": "已儲存的金鑰",
+      "noneAria": "未儲存金鑰"
     },
     "destinationHint": "更改此位址會清除已儲存的 API 金鑰，儲存後請重新輸入。",
     "notice": {
       "encryptionUnavailable": "系統鑰匙圈無法使用，API 金鑰會以未加密方式儲存。",
-      "needsReentry": "以下已儲存的金鑰已無法讀取，請重新輸入："
+      "needsReentry": "請重新輸入以下金鑰：它們已無法讀取，或在更改位址時已被清除："
     },
     "fields": {
       "openaiApiKey": "OpenAI API 金鑰",

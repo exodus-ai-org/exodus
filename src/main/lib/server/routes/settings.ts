@@ -5,10 +5,15 @@ import { Hono } from 'hono'
 
 import { listModelsByProvider } from '../../ai/providers/list-models'
 import { getAllMcpServers } from '../../db/mcp-queries'
-import { getAllSearchableMessages, updateSettings } from '../../db/queries'
+import {
+  getAllSearchableMessages,
+  getSettings,
+  updateSettings
+} from '../../db/queries'
 import { Settings as DBSettings } from '../../db/schema'
 import { resolveSearchProvider } from '../../search/resolve-search-provider'
 import { looksLikeMask, maskSettings, normalizeBaseUrl } from '../../secrets'
+import { pendingMovedSecrets } from '../../secrets/moved'
 import { PROVIDER_BASE_URL, PROVIDER_KEY_FIELD } from '../../secrets/registry'
 import { getSecretsStatus } from '../../secrets/status'
 import {
@@ -35,8 +40,10 @@ settingsRouter.get('/', (c) => {
 // settings row was decrypted for this request already; the MCP rows are read
 // so their failures are current too.
 settingsRouter.get('/secrets-status', async (c) => {
-  await getAllMcpServers()
-  return successResponse(c, getSecretsStatus())
+  const rows = await getAllMcpServers()
+  // Plus what a destination move cleared (`secrets/moved.ts`), until re-entered.
+  const moved = pendingMovedSecrets(await getSettings(), rows)
+  return successResponse(c, getSecretsStatus(moved))
 })
 
 settingsRouter.post('/', async (c) => {

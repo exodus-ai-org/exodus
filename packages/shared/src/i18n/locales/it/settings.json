@@ -667,7 +667,8 @@
       "editAria": "Modifica server",
       "deleteAria": "Elimina server",
       "showTools": "Mostra strumenti",
-      "hideTools": "Nascondi strumenti"
+      "hideTools": "Nascondi strumenti",
+      "reenter": "Da inserire di nuovo: {{fields}}"
     },
     "intro": "Registra server <2>MCP</2> (locali o remoti), poi attiva l'interruttore per abilitare i loro strumenti nella chat.",
     "activeSummary": "Attualmente <strong>{{totalToolCount}} strumenti</strong> attivi da <strong>{{activeCount}} server</strong>.",
@@ -736,7 +737,9 @@
       },
       "reenterHint": "Se modifichi il comando o gli argomenti, dovrai inserire di nuovo i valori mascherati.",
       "maskedHint": "•••• indica un valore salvato: lascialo così com’è per mantenerlo.",
-      "reenterError": "Inserisci di nuovo il segreto qui: contiene ancora un valore mascherato (••••) che non può essere mantenuto."
+      "reenterError": "Inserisci di nuovo il segreto qui: contiene ancora un valore mascherato (••••) che non può essere mantenuto.",
+      "urlHint": "Se modifichi questo indirizzo, le intestazioni salvate vengono cancellate: inseriscile di nuovo dopo il salvataggio.",
+      "reenterFields": "Inseriscili di nuovo: i valori salvati sono stati cancellati o non possono essere letti: {{fields}}"
     },
     "json": {
       "description": "Vista di sola lettura della configurazione corrente. Usa la scheda Server per apportare modifiche."
@@ -1028,12 +1031,15 @@
   "secrets": {
     "input": {
       "saved": "Salvata",
-      "reenter": "Inserisci di nuovo questa chiave: quella salvata non può più essere usata."
+      "reenter": "Inserisci di nuovo questa chiave: quella salvata non può più essere usata.",
+      "savedAria": "Chiave salvata che termina con {{last4}}",
+      "savedShortAria": "Chiave salvata",
+      "noneAria": "Nessuna chiave salvata"
     },
     "destinationHint": "Se modifichi questo indirizzo, la chiave API salvata viene cancellata: inseriscila di nuovo dopo il salvataggio.",
     "notice": {
       "encryptionUnavailable": "Il portachiavi di sistema non è disponibile: le chiavi API vengono salvate senza crittografia.",
-      "needsReentry": "Queste chiavi salvate non possono più essere lette: inseriscile di nuovo:"
+      "needsReentry": "Inserisci di nuovo queste chiavi: non possono più essere lette o sono state cancellate quando è cambiato il loro indirizzo:"
     },
     "fields": {
       "openaiApiKey": "Chiave API OpenAI",

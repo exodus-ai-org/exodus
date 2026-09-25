@@ -84,6 +84,15 @@ export function getSecretsPurgeMarkerPath(): string {
   return join(getExodusHome(), 'secrets-purge.json')
 }
 
+/**
+ * The secrets a write cleared because their destination moved (a new base
+ * URL, MCP url or command), by name only — never a value — so the re-entry
+ * prompt survives a restart (`secrets/moved.ts`).
+ */
+export function getSecretsReentryPath(): string {
+  return join(getExodusHome(), 'secrets-reentry.json')
+}
+
 /** DuckDB chat-audit snapshot (`exodus.duckdb` + `snapshot.json`) — Settings → Developer. */
 export function getAnalyticsDir(): string {
   const dir = join(getExodusHome(), 'analytics')

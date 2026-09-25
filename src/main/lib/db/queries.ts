@@ -7,9 +7,10 @@ import { extractSearchableText } from '../search/extract-searchable-text'
 import { secretSafeWriteError, settingsColumnHasSecrets } from '../secrets'
 import {
   decryptSettingsRow,
-  prepareSettingsWrite,
+  planSettingsWrite,
   type StoredSettingsState
 } from '../secrets/at-rest'
+import { recordSettingsWrite } from '../secrets/moved'
 import { SETTINGS_SECRET_PATHS } from '../secrets/registry'
 import { recordSettingsDecryptFailures } from '../secrets/status'
 import { db, pglite } from './db'
@@ -381,16 +382,16 @@ export async function getSettings(): Promise<Settings> {
  * whole columns — means "unchanged"), a secret whose destination moves
  * cleared, and every secret encrypted. See `prepareSettingsWrite`.
  */
-async function toStoredForm<T extends object>(payload: T): Promise<T> {
-  return prepareSettingsWrite(payload, await loadSettingsState())
+async function toStoredForm<T extends object>(payload: T) {
+  return planSettingsWrite(payload, await loadSettingsState())
 }
 
 export async function updateSettings(payload: Settings) {
+  const plan = await toStoredForm(payload)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { createdAt, updatedAt, lastBackupAt, ...rest } =
-    await toStoredForm(payload)
+  const { createdAt, updatedAt, lastBackupAt, ...rest } = plan.write
   try {
-    return await db
+    const result = await db
       .update(settings)
       .set({
         ...rest,
@@ -401,6 +402,9 @@ export async function updateSettings(payload: Settings) {
         updatedAt: new Date()
       })
       .where(eq(settings.id, payload.id))
+    // A key cleared for a new base URL is asked for again, across restarts.
+    recordSettingsWrite(plan)
+    return result
   } catch (error) {
     const safe = secretSafeWriteError('Failed to update settings', error)
     logDbError(safe.message, safe)
@@ -414,14 +418,17 @@ export async function updateSettingField(
   field: keyof Settings,
   value: unknown
 ) {
-  const resolved = settingsColumnHasSecrets(field)
-    ? (await toStoredForm({ [field]: value }))[field]
-    : value
+  const plan = settingsColumnHasSecrets(field)
+    ? await toStoredForm({ [field]: value })
+    : null
+  const resolved = plan ? plan.write[field] : value
   try {
-    return await db
+    const result = await db
       .update(settings)
       .set({ [field]: resolved, updatedAt: new Date() })
       .where(eq(settings.id, 'global'))
+    if (plan) recordSettingsWrite(plan)
+    return result
   } catch (error) {
     const safe = secretSafeWriteError(
       `Failed to update setting field: ${field}`,

@@ -2,8 +2,9 @@ import { encryptionState, type EncryptionState } from './crypto'
 
 /**
  * What the Settings notice needs (`GET /api/v1/settings/secrets-status`):
- * whether secrets are encrypted at rest, and which stored secrets did not
- * decrypt — each reads as unset until the user enters it again.
+ * whether secrets are encrypted at rest, and which stored secrets need
+ * entering again — those that did not decrypt (each reads as unset), and
+ * those a destination move cleared (`moved.ts`).
  *
  * Names are the registry path for a settings field
  * (`providers.openaiApiKey`) and `mcp:<server>:<column>.<name>` for an MCP
@@ -40,9 +41,20 @@ export interface SecretsStatus {
   needsReentry: string[]
 }
 
-export function getSecretsStatus(): SecretsStatus {
+/**
+ * `moved`: what a destination move cleared (`moved.ts`) — listed with the
+ * decrypt failures, one name each. The list stays plain names (the desktop
+ * notice and exodus-ios read it as such); the notice's copy covers both.
+ */
+export function getSecretsStatus(moved: string[] = []): SecretsStatus {
   return {
     encryption: encryptionState(),
-    needsReentry: [...settingsFailures, ...[...mcpFailures.values()].flat()]
+    needsReentry: [
+      ...new Set([
+        ...settingsFailures,
+        ...[...mcpFailures.values()].flat(),
+        ...moved
+      ])
+    ]
   }
 }

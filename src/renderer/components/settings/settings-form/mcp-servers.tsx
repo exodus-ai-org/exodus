@@ -47,6 +47,7 @@ import {
   useToggleMcpServer,
   useUpdateMcpServer
 } from '@/hooks/use-mcp'
+import { useSecretsStatus } from '@/hooks/use-secrets-status'
 import { maskUrlSecrets } from '@/lib/mask-url'
 import { holdsMask } from '@/lib/secrets'
 import { cn } from '@/lib/utils'
@@ -56,6 +57,7 @@ import type {
   McpTransportType
 } from '@/services/mcp-service'
 
+import { DestinationInput } from '../secret-fields'
 import {
   ENTER,
   ENTER_UP,
@@ -108,6 +110,23 @@ export function McpIntroNotice() {
   )
 }
 
+// ─── Secrets to enter again ──────────────────────────────────────────────────
+
+/**
+ * `<column>.<name>` of each secret of this server the status lists for
+ * re-entry (`mcp:<server>:<column>.<name>` — a destination move cleared it,
+ * or it will not decrypt).
+ */
+function pendingSecrets(
+  needsReentry: readonly string[] | undefined,
+  serverName: string
+): string[] {
+  const prefix = `mcp:${serverName}:`
+  return (needsReentry ?? [])
+    .filter((label) => label.startsWith(prefix))
+    .map((label) => label.slice(prefix.length))
+}
+
 // ─── Server Card with Tools Preview ─────────────────────────────────────────
 
 function ServerCard({
@@ -115,13 +134,16 @@ function ServerCard({
   tools,
   onToggle,
   onEdit,
-  onDelete
+  onDelete,
+  reenter
 }: {
   server: McpServerItem
   tools: McpToolInfo[]
   onToggle: () => void
   onEdit: () => void
   onDelete: () => void
+  /** Its secrets to enter again (`pendingSecrets`). */
+  reenter: string[]
 }) {
   const { t } = useTranslation('settings')
   const [expanded, setExpanded] = useState(false)
@@ -172,6 +194,15 @@ function ServerCard({
         </>
       }
     >
+      {reenter.length > 0 && (
+        <p
+          className={cn('text-destructive pl-[54px] text-xs', ENTER)}
+          data-testid={TEST_IDS.secrets.reenterPrompt}
+          data-field={`mcp:${server.name}`}
+        >
+          {t('mcpServers.serverCard.reenter', { fields: reenter.join(', ') })}
+        </p>
+      )}
       {(server.description || tools.length > 0) && (
         // Lined up under the name, past the icon tile.
         <div className="flex min-w-0 flex-col items-start gap-2 pl-[54px]">
@@ -231,6 +262,7 @@ export function McpServers() {
   const { t } = useTranslation(['common', 'settings'])
   const { data: servers } = useMcpServers()
   const { data: toolsData } = useMcpTools()
+  const { data: secretsStatus } = useSecretsStatus()
   const { mutateAsync: createServer, isPending: creating } =
     useCreateMcpServer()
   const { mutateAsync: updateServer, isPending: updating } =
@@ -468,6 +500,29 @@ export function McpServers() {
     transportType === 'stdio'
       ? ['args', 'env', 'extraConfig']
       : ['url', 'headers', 'extraConfig']
+  // After a save that cleared some (a new url or command), the status lists
+  // them: each column's names, under that column's field.
+  const pendingHere = editing
+    ? pendingSecrets(secretsStatus?.needsReentry, editing.name)
+    : []
+  const reenterFields = (column: 'env' | 'headers' | 'extraConfig') => {
+    const names = pendingHere
+      .filter((label) => label.startsWith(`${column}.`))
+      .map((label) => label.slice(column.length + 1))
+    return (
+      names.length > 0 && (
+        <p
+          className={cn('text-destructive text-xs', ENTER)}
+          data-testid={TEST_IDS.secrets.reenterPrompt}
+          data-field={column}
+        >
+          {t('settings:mcpServers.form.reenterFields', {
+            fields: names.join(', ')
+          })}
+        </p>
+      )
+    )
+  }
   const maskedHint = (
     <p className="text-muted-foreground text-xs">
       {t('settings:mcpServers.form.maskedHint')}
@@ -540,6 +595,10 @@ export function McpServers() {
                       onToggle={() => toggleServer(server)}
                       onEdit={() => startEdit(server)}
                       onDelete={() => setDeleting(server)}
+                      reenter={pendingSecrets(
+                        secretsStatus?.needsReentry,
+                        server.name
+                      )}
                     />
                   ))
                 )}
@@ -610,13 +669,23 @@ export function McpServers() {
                       )}
                       layout="vertical"
                     >
-                      <Input
+                      <DestinationInput
                         value={command}
                         onChange={(e) => {
                           setCommand(e.target.value)
                           edited('args')
                         }}
                         placeholder="e.g. npx -y @modelcontextprotocol/server-filesystem"
+                        guarded={
+                          args.some((a) => holdsMask(a)) || holdsMask(envStr)
+                        }
+                        isDirty={
+                          !!editing &&
+                          (command !== (editing.command ?? '') ||
+                            JSON.stringify(args) !==
+                              JSON.stringify(editing.args ?? []))
+                        }
+                        hint={t('settings:mcpServers.form.reenterHint')}
                       />
                     </SettingsRow>
                     <SettingsRow
@@ -673,13 +742,6 @@ export function McpServers() {
                           {t('settings:mcpServers.form.args.addButton')}
                         </Button>
                         {refusal('args')}
-                        {editing &&
-                          (args.some((a) => holdsMask(a)) ||
-                            holdsMask(envStr)) && (
-                            <p className="text-muted-foreground text-xs">
-                              {t('settings:mcpServers.form.reenterHint')}
-                            </p>
-                          )}
                       </div>
                     </SettingsRow>
                     <SettingsRow
@@ -700,6 +762,7 @@ export function McpServers() {
                         data-testid={TEST_IDS.mcpServers.envInput}
                       />
                       {holdsMask(envStr) && maskedHint}
+                      {reenterFields('env')}
                       {refusal('env')}
                     </SettingsRow>
                   </>
@@ -715,13 +778,22 @@ export function McpServers() {
                       )}
                       layout="vertical"
                     >
-                      <Input
+                      <DestinationInput
                         value={url}
                         onChange={(e) => {
                           setUrl(e.target.value)
                           edited('url')
                         }}
                         placeholder="e.g. https://mcp.example.com/sse"
+                        guarded={
+                          holdsMask(headersStr) || holdsMask(extraConfigStr)
+                        }
+                        isDirty={
+                          !!editing &&
+                          (url !== (editing.url ?? '') ||
+                            transportType !== editing.transportType)
+                        }
+                        hint={t('settings:mcpServers.form.urlHint')}
                       />
                       {refusal('url')}
                     </SettingsRow>
@@ -742,6 +814,7 @@ export function McpServers() {
                         className="font-mono text-xs"
                       />
                       {holdsMask(headersStr) && maskedHint}
+                      {reenterFields('headers')}
                       {refusal('headers')}
                     </SettingsRow>
                   </>
@@ -795,6 +868,7 @@ export function McpServers() {
                       />
                     </Suspense>
                   </div>
+                  {reenterFields('extraConfig')}
                   {refusal('extraConfig')}
                 </SettingsRow>
 

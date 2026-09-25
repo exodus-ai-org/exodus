@@ -5,7 +5,7 @@ import type {
 } from '@exodus/shared/schemas/settings-schema'
 import { useAtom } from 'jotai'
 import type React from 'react'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { type FieldPath, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
@@ -50,6 +50,15 @@ export function SecretInput({
   const [cleared, setCleared] = useAtom(clearedSecretsAtom)
   const { data: status } = useSecretsStatus()
   const masked = looksLikeMask(value)
+  const statusId = useId()
+  // What a screen reader hears instead of "bullet bullet bullet bullet".
+  const spoken = masked
+    ? value.length > 4
+      ? t('secrets.input.savedAria', { last4: value.slice(-4) })
+      : t('secrets.input.savedShortAria')
+    : value
+      ? null
+      : t('secrets.input.noneAria')
   const needsKey =
     !value && (cleared.includes(name) || !!status?.needsReentry.includes(name))
 
@@ -66,6 +75,8 @@ export function SecretInput({
           data-testid={TEST_IDS.secrets.keyInput}
           data-field={name}
           data-masked={masked || undefined}
+          aria-label={masked ? (spoken ?? undefined) : props['aria-label']}
+          aria-describedby={spoken ? statusId : undefined}
           onFocus={(e) => {
             // Selected, so the first key typed (or a paste) replaces the mask.
             if (masked) e.currentTarget.select()
@@ -89,12 +100,68 @@ export function SecretInput({
           </InputGroupAddon>
         )}
       </InputGroup>
+      {spoken && (
+        <span id={statusId} className="sr-only">
+          {spoken}
+        </span>
+      )}
       {needsKey && (
         <p
           className={cn('text-destructive text-xs', ENTER)}
           data-testid={TEST_IDS.secrets.reenterPrompt}
         >
           {t('secrets.input.reenter')}
+        </p>
+      )}
+    </>
+  )
+}
+
+type DestinationInputProps = React.ComponentProps<typeof Input> & {
+  /** A saved secret is sent to this address: changing it clears the secret. */
+  guarded: boolean
+  /** An edit not saved yet. */
+  isDirty?: boolean
+  /** What the change clears — shown from focus until the edit is saved. */
+  hint: string
+}
+
+/**
+ * An address (or command) a saved secret is sent to. Changing it clears the
+ * secret on save — it never follows a new host or process — so the field
+ * says so from the moment it is focused, and while its edit is unsaved:
+ * before the save, not after. Used by the Settings form (`AddressInput`) and
+ * the MCP form (url, command).
+ */
+export function DestinationInput({
+  guarded,
+  isDirty,
+  hint,
+  onFocus,
+  onBlur,
+  ...props
+}: DestinationInputProps) {
+  const [focused, setFocused] = useState(false)
+  const showHint = guarded && (focused || !!isDirty)
+  return (
+    <>
+      <Input
+        {...props}
+        onFocus={(e) => {
+          setFocused(true)
+          onFocus?.(e)
+        }}
+        onBlur={(e) => {
+          setFocused(false)
+          onBlur?.(e)
+        }}
+      />
+      {showHint && (
+        <p
+          className={cn('text-muted-foreground text-xs', ENTER)}
+          data-testid={TEST_IDS.secrets.destinationHint}
+        >
+          {hint}
         </p>
       )}
     </>
@@ -110,50 +177,29 @@ type AddressInputProps = Omit<React.ComponentProps<typeof Input>, 'form'> & {
 }
 
 /**
- * The address a stored key is sent to (a provider base URL, the Azure
- * endpoint, Elasticsearch, LightRAG). Changing it while the key is saved
- * clears the key on save (it never follows a new host), so the field says so
- * from the moment it is focused — before the save, not after.
+ * A Settings address a stored key is sent to (a provider base URL, the Azure
+ * endpoint, Elasticsearch, LightRAG): a `DestinationInput` guarded while that
+ * key is saved (shown as its mask).
  */
 export function AddressInput({
   settingsForm,
   name,
   isDirty,
-  onFocus,
-  onBlur,
   ...props
 }: AddressInputProps) {
   const { t } = useTranslation('settings')
-  const [focused, setFocused] = useState(false)
   const secret = destinationSecretOf(name)
   const key = useWatch({
     control: settingsForm.control,
     name: (secret ?? name) as FieldPath<SettingsInput>
   })
-  const showHint = !!secret && looksLikeMask(key) && (focused || !!isDirty)
-
   return (
-    <>
-      <Input
-        {...props}
-        name={name}
-        onFocus={(e) => {
-          setFocused(true)
-          onFocus?.(e)
-        }}
-        onBlur={(e) => {
-          setFocused(false)
-          onBlur?.(e)
-        }}
-      />
-      {showHint && (
-        <p
-          className={cn('text-muted-foreground text-xs', ENTER)}
-          data-testid={TEST_IDS.secrets.destinationHint}
-        >
-          {t('secrets.destinationHint')}
-        </p>
-      )}
-    </>
+    <DestinationInput
+      {...props}
+      name={name}
+      guarded={!!secret && looksLikeMask(key)}
+      isDirty={isDirty}
+      hint={t('secrets.destinationHint')}
+    />
   )
 }

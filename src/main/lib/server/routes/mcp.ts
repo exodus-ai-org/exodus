@@ -20,7 +20,8 @@ import {
   refuseMasksOnCreate,
   restoreMcpSecrets
 } from '../../secrets'
-import { prepareMcpUpdate } from '../../secrets/at-rest'
+import { mcpSecretLabels, planMcpUpdate } from '../../secrets/at-rest'
+import { recordMcpWrite } from '../../secrets/moved'
 import { Variables } from '../types'
 import {
   deletionSuccessResponse,
@@ -92,10 +93,21 @@ mcp.put('/:id', async (c) => {
   // Masked url / args / secrets posted back stand for the stored ones, but
   // no stored secret follows a move of its destination (prepareMcpUpdate).
   const stored = await getMcpServerById(id)
+  const plan = planMcpUpdate(data, stored)
   const result = await handleDatabaseOperation(
-    () => updateMcpServer(id, prepareMcpUpdate(data, stored)),
+    () => updateMcpServer(id, plan.write),
     'Failed to update MCP server'
   )
+  // A secret dropped because its destination moved is asked for again, by
+  // name, across restarts (`secrets/moved.ts`); one typed again drops off.
+  if (stored && result) {
+    const after = mcpSecretLabels(result)
+    const moved = [...mcpSecretLabels(stored)].filter(
+      (label) =>
+        plan.moved.has(label.split('.')[0] as never) && !after.has(label)
+    )
+    recordMcpWrite(id, { moved, filled: [...after] })
+  }
   if (data.name) invalidateMcpCache(data.name)
   return successResponse(c, result && maskMcpServer(result))
 })

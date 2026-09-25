@@ -663,7 +663,8 @@
       "editAria": "서버 편집",
       "deleteAria": "서버 삭제",
       "showTools": "도구 표시",
-      "hideTools": "도구 숨기기"
+      "hideTools": "도구 숨기기",
+      "reenter": "다시 입력 필요: {{fields}}"
     },
     "intro": "<2>MCP</2> 서버(로컬 또는 원격)를 등록한 다음, 스위치를 켜서 채팅에서 해당 도구를 사용하도록 설정하세요.",
     "activeSummary": "현재 <strong>서버 {{activeCount}}개</strong>에서 제공하는 <strong>도구 {{totalToolCount}}개</strong>가 활성화되어 있습니다.",
@@ -732,7 +733,9 @@
       },
       "reenterHint": "명령을 변경하거나 인수를 편집하면 가려진 값을 다시 입력해야 합니다.",
       "maskedHint": "••••는 저장된 값을 나타냅니다. 그대로 두면 값이 유지됩니다.",
-      "reenterError": "여기에 비밀 값을 다시 입력해 주세요. 유지할 수 없는 가려진 값(••••)이 남아 있습니다."
+      "reenterError": "여기에 비밀 값을 다시 입력해 주세요. 유지할 수 없는 가려진 값(••••)이 남아 있습니다.",
+      "urlHint": "이 주소를 변경하면 저장된 헤더가 지워집니다. 저장한 뒤 다시 입력해 주세요.",
+      "reenterFields": "다음 값을 다시 입력해 주세요. 저장된 값이 지워졌거나 읽을 수 없습니다: {{fields}}"
     },
     "json": {
       "description": "현재 구성을 읽기 전용으로 표시합니다. 변경하려면 서버 탭을 사용하세요."
@@ -1022,12 +1025,15 @@
   "secrets": {
     "input": {
       "saved": "저장됨",
-      "reenter": "이 키를 다시 입력해 주세요. 저장된 키는 더 이상 사용할 수 없습니다."
+      "reenter": "이 키를 다시 입력해 주세요. 저장된 키는 더 이상 사용할 수 없습니다.",
+      "savedAria": "{{last4}}(으)로 끝나는 저장된 키",
+      "savedShortAria": "저장된 키",
+      "noneAria": "저장된 키 없음"
     },
     "destinationHint": "이 주소를 변경하면 저장된 API 키가 지워집니다. 저장한 뒤 다시 입력해 주세요.",
     "notice": {
       "encryptionUnavailable": "시스템 키체인을 사용할 수 없어 API 키가 암호화되지 않은 채 저장됩니다.",
-      "needsReentry": "다음 저장된 키를 더 이상 읽을 수 없습니다. 다시 입력해 주세요:"
+      "needsReentry": "다음 키를 다시 입력해 주세요. 더 이상 읽을 수 없거나 주소가 변경되어 지워졌습니다:"
     },
     "fields": {
       "openaiApiKey": "OpenAI API 키",

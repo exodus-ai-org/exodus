@@ -667,7 +667,8 @@
       "editAria": "Editar servidor",
       "deleteAria": "Eliminar servidor",
       "showTools": "Mostrar herramientas",
-      "hideTools": "Ocultar herramientas"
+      "hideTools": "Ocultar herramientas",
+      "reenter": "Hay que volver a introducir: {{fields}}"
     },
     "intro": "Registre servidores <2>MCP</2> (locales o remotos) y luego active el interruptor para habilitar sus herramientas en el chat.",
     "activeSummary": "Actualmente hay <strong>{{totalToolCount}} herramientas</strong> activas de <strong>{{activeCount}} servidores</strong>.",
@@ -736,7 +737,9 @@
       },
       "reenterHint": "Si cambia el comando o edita los argumentos, deberá volver a introducir los valores enmascarados.",
       "maskedHint": "•••• representa un valor guardado: déjelo como está para conservarlo.",
-      "reenterError": "Vuelva a introducir aquí el secreto: todavía contiene un valor enmascarado (••••) que no se puede conservar."
+      "reenterError": "Vuelva a introducir aquí el secreto: todavía contiene un valor enmascarado (••••) que no se puede conservar.",
+      "urlHint": "Cambiar esta dirección borra los encabezados guardados: vuelva a introducirlos después de guardar.",
+      "reenterFields": "Vuelva a introducirlos: los valores guardados se borraron o no se pueden leer: {{fields}}"
     },
     "json": {
       "description": "Vista de solo lectura de la configuración actual. Use la pestaña Servidores para hacer cambios."
@@ -1028,12 +1031,15 @@
   "secrets": {
     "input": {
       "saved": "Guardada",
-      "reenter": "Vuelva a introducir esta clave: la guardada ya no se puede usar."
+      "reenter": "Vuelva a introducir esta clave: la guardada ya no se puede usar.",
+      "savedAria": "Clave guardada que termina en {{last4}}",
+      "savedShortAria": "Clave guardada",
+      "noneAria": "No hay ninguna clave guardada"
     },
     "destinationHint": "Cambiar esta dirección borra la clave de API guardada: vuelva a introducirla después de guardar.",
     "notice": {
       "encryptionUnavailable": "El llavero del sistema no está disponible; las claves de API se guardan sin cifrar.",
-      "needsReentry": "Estas claves guardadas ya no se pueden leer; vuelva a introducirlas:"
+      "needsReentry": "Vuelva a introducir estas claves: ya no se pueden leer o se borraron al cambiar su dirección:"
     },
     "fields": {
       "openaiApiKey": "Clave de API de OpenAI",

@@ -14,6 +14,8 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['tests/unit/**/*.test.ts'],
+    // A scratch data dir per test file, under the default below.
+    setupFiles: ['tests/unit/setup/isolated-home.ts'],
     env: {
       // Dev builds use the real ~/.exodus, so a test that imports the real
       // db/db.ts (instead of mocking it) would open — and could write to — the

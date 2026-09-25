@@ -10,7 +10,15 @@ import type { McpServerItem } from '@/services/mcp-service'
   globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true
 
-const state = vi.hoisted(() => ({ servers: [] as unknown[] }))
+const state = vi.hoisted(() => ({
+  servers: [] as unknown[],
+  needsReentry: [] as string[]
+}))
+vi.mock('@/hooks/use-secrets-status', () => ({
+  useSecretsStatus: () => ({
+    data: { encryption: 'on', needsReentry: state.needsReentry }
+  })
+}))
 const updateServer = vi.fn()
 const createServer = vi.fn()
 vi.mock('@/hooks/use-mcp', () => ({
@@ -27,7 +35,10 @@ vi.mock('@/components/code-editor.js', () => ({
 }))
 vi.mock('@/components/markdown', () => ({ default: () => null }))
 vi.mock('react-i18next', () => ({
-  useTranslation: () => ({ t: (key: string) => key }),
+  useTranslation: () => ({
+    t: (key: string, params?: Record<string, string>) =>
+      params ? `${key}${JSON.stringify(params)}` : key
+  }),
   Trans: ({ children }: { children?: unknown }) => children ?? null
 }))
 const sileoError = vi.fn()
@@ -107,7 +118,33 @@ afterEach(() => {
   updateServer.mockReset()
   createServer.mockReset()
   sileoError.mockClear()
+  state.needsReentry = []
 })
+
+const hints = () =>
+  [
+    ...host.querySelectorAll<HTMLElement>(
+      `[data-testid="${TEST_IDS.secrets.destinationHint}"]`
+    )
+  ].map((h) => h.textContent)
+const prompts = () =>
+  [
+    ...host.querySelectorAll<HTMLElement>(
+      `[data-testid="${TEST_IDS.secrets.reenterPrompt}"]`
+    )
+  ].map((p) => [p.dataset.field, p.textContent])
+const remoteServer = () =>
+  stdioServer({
+    name: 'remote',
+    transportType: 'sse',
+    command: '',
+    args: [],
+    env: null,
+    url: 'https://h.example/sse',
+    headers: { Authorization: '•••• BBBB' }
+  })
+const inputByPlaceholder = (placeholder: string) =>
+  host.querySelector<HTMLInputElement>(`input[placeholder="${placeholder}"]`)!
 
 describe('MCP form: a stdio server’s environment', () => {
   it('shows the env it was given, masks and all', async () => {
@@ -148,9 +185,21 @@ describe('MCP form: a stdio server’s environment', () => {
     })
   })
 
-  it('says masked values must be re-entered after a command or argument change', async () => {
+  it('the command warns, from focus, that a change asks for the masked values again', async () => {
     await openEditor(stdioServer())
-    expect(host.textContent).toContain('settings:mcpServers.form.reenterHint')
+    expect(hints()).toEqual([])
+    act(() =>
+      inputByPlaceholder(
+        'e.g. npx -y @modelcontextprotocol/server-filesystem'
+      ).focus()
+    )
+    expect(hints()).toEqual(['settings:mcpServers.form.reenterHint'])
+  })
+
+  it('an edited argument keeps the warning up until the save', async () => {
+    await openEditor(stdioServer())
+    type(inputByPlaceholder('e.g. -y'), '--yes')
+    expect(hints()).toEqual(['settings:mcpServers.form.reenterHint'])
   })
 
   it('an env that is not a JSON object is not posted', async () => {
@@ -159,6 +208,61 @@ describe('MCP form: a stdio server’s environment', () => {
     await save()
     expect(updateServer).not.toHaveBeenCalled()
     expect(sileoError).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('MCP form: a remote server’s address', () => {
+  it('warns, from focus, that changing it clears the saved headers', async () => {
+    await openEditor(remoteServer())
+    expect(hints()).toEqual([])
+    act(() => inputByPlaceholder('e.g. https://mcp.example.com/sse').focus())
+    expect(hints()).toEqual(['settings:mcpServers.form.urlHint'])
+  })
+
+  it('keeps warning while the new address is unsaved, focus gone', async () => {
+    await openEditor(remoteServer())
+    const url = inputByPlaceholder('e.g. https://mcp.example.com/sse')
+    act(() => url.focus())
+    type(url, 'https://elsewhere.example/sse')
+    act(() => url.blur())
+    expect(hints()).toEqual(['settings:mcpServers.form.urlHint'])
+  })
+
+  it('says nothing when no header is saved', async () => {
+    await openEditor({ ...remoteServer(), headers: null })
+    act(() => inputByPlaceholder('e.g. https://mcp.example.com/sse').focus())
+    expect(hints()).toEqual([])
+  })
+
+  it('after the save, the server — and its form — ask for the cleared headers', async () => {
+    state.needsReentry = [
+      'mcp:remote:headers.Authorization',
+      'mcp:other:env.TOKEN',
+      'providers.openaiApiKey'
+    ]
+    state.servers = [{ ...remoteServer(), headers: null }]
+    await act(async () => {
+      root.render(createElement(McpServers))
+    })
+    expect(prompts()).toEqual([
+      [
+        'mcp:remote',
+        'mcpServers.serverCard.reenter{"fields":"headers.Authorization"}'
+      ]
+    ])
+    await act(async () => {
+      host
+        .querySelector<HTMLButtonElement>(
+          '[aria-label="mcpServers.serverCard.editAria"]'
+        )!
+        .click()
+    })
+    expect(prompts()).toEqual([
+      [
+        'headers',
+        'settings:mcpServers.form.reenterFields{"fields":"Authorization"}'
+      ]
+    ])
   })
 })
 

@@ -309,7 +309,7 @@ describe('R2-2: fail closed while encryption is unavailable', () => {
       Record<string, unknown>
     >
     s.providers = {
-      ...(s.providers ?? {}),
+      ...s.providers,
       openaiApiKey: 'sk-live-openai-0123456789',
       anthropicApiKey: 'sk-ant-live-0123456789'
     }

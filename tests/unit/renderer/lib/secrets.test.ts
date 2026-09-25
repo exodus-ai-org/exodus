@@ -56,17 +56,10 @@ describe('the destination rule, as the form mirrors it', () => {
     expect(SECRET_DESTINATIONS).toEqual(MAIN_DESTINATIONS)
   })
 
-  it('normalizes a base URL exactly as the main process does', () => {
-    for (const url of [
-      'https://API.openai.com/v1/',
-      ' https://api.openai.com/v1 ',
-      'http://localhost:9200//',
-      'not a url/',
-      '',
-      null
-    ]) {
-      expect(normalizeBaseUrl(url)).toBe(mainNormalize(url))
-    }
+  it('compares base URLs with the very function the main process uses', () => {
+    // One implementation (`@exodus/shared/utils/base-url`), its cases in
+    // tests/unit/shared/utils/base-url.test.ts.
+    expect(normalizeBaseUrl).toBe(mainNormalize)
   })
 
   it('finds the secret an address field carries', () => {

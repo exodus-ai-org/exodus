@@ -6,6 +6,7 @@ import {
   encryptMcpSecrets,
   keepStoredMcpForms
 } from '../secrets/at-rest'
+import { forgetMcpServerMoves } from '../secrets/moved'
 import {
   clearMcpDecryptFailures,
   forgetMcpServer,
@@ -92,5 +93,6 @@ export async function updateMcpServer(
 
 export async function deleteMcpServer(id: string) {
   forgetMcpServer(id)
+  forgetMcpServerMoves(id)
   return db.delete(mcpServer).where(eq(mcpServer.id, id))
 }

@@ -667,7 +667,8 @@
       "editAria": "Edit server",
       "deleteAria": "Delete server",
       "showTools": "Show tools",
-      "hideTools": "Hide tools"
+      "hideTools": "Hide tools",
+      "reenter": "Needs entering again: {{fields}}"
     },
     "intro": "Register <2>MCP</2> servers (local or remote), then toggle the switch to enable their tools in chat.",
     "activeSummary": "Currently <strong>{{totalToolCount}} tools</strong> from <strong>{{activeCount}} servers</strong> active.",
@@ -736,7 +737,9 @@
       },
       "reenterHint": "Changing the command or editing arguments asks you to re-enter masked values.",
       "maskedHint": "•••• stands for a saved value — leave it as it is to keep it.",
-      "reenterError": "Re-enter the secret here: it still holds a masked value (••••) that can’t be kept."
+      "reenterError": "Re-enter the secret here: it still holds a masked value (••••) that can’t be kept.",
+      "urlHint": "Changing this address clears the saved headers — re-enter them after saving.",
+      "reenterFields": "Enter these again — the saved values were cleared or can’t be read: {{fields}}"
     },
     "json": {
       "description": "Read-only view of current configuration. Use the Servers tab to make changes."
@@ -1028,12 +1031,15 @@
   "secrets": {
     "input": {
       "saved": "Saved",
-      "reenter": "Enter this key again — the saved one can no longer be used."
+      "reenter": "Enter this key again — the saved one can no longer be used.",
+      "savedAria": "Saved key ending in {{last4}}",
+      "savedShortAria": "Saved key",
+      "noneAria": "No key saved"
     },
     "destinationHint": "Changing this address clears the saved API key — re-enter it after saving.",
     "notice": {
       "encryptionUnavailable": "Your system keychain isn't available; API keys are stored unencrypted.",
-      "needsReentry": "These saved keys can't be read any more — enter them again:"
+      "needsReentry": "Enter these keys again — they can't be read any more, or were cleared when their address changed:"
     },
     "fields": {
       "openaiApiKey": "OpenAI API key",

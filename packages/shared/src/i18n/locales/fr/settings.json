@@ -667,7 +667,8 @@
       "editAria": "Modifier le serveur",
       "deleteAria": "Supprimer le serveur",
       "showTools": "Afficher les outils",
-      "hideTools": "Masquer les outils"
+      "hideTools": "Masquer les outils",
+      "reenter": "À saisir à nouveau : {{fields}}"
     },
     "intro": "Enregistrez des serveurs <2>MCP</2> (locaux ou distants), puis activez l'interrupteur pour utiliser leurs outils dans la conversation.",
     "activeSummary": "Actuellement <strong>{{totalToolCount}} outils</strong> actifs provenant de <strong>{{activeCount}} serveurs</strong>.",
@@ -736,7 +737,9 @@
       },
       "reenterHint": "Modifier la commande ou les arguments vous demandera de saisir à nouveau les valeurs masquées.",
       "maskedHint": "•••• représente une valeur enregistrée : laissez-la telle quelle pour la conserver.",
-      "reenterError": "Saisissez à nouveau le secret ici : il contient encore une valeur masquée (••••) qui ne peut pas être conservée."
+      "reenterError": "Saisissez à nouveau le secret ici : il contient encore une valeur masquée (••••) qui ne peut pas être conservée.",
+      "urlHint": "Modifier cette adresse efface les en-têtes enregistrés : saisissez-les à nouveau après l’enregistrement.",
+      "reenterFields": "Saisissez-les à nouveau : les valeurs enregistrées ont été effacées ou ne peuvent pas être lues : {{fields}}"
     },
     "json": {
       "description": "Vue en lecture seule de la configuration actuelle. Utilisez l'onglet Serveurs pour apporter des modifications."
@@ -1028,12 +1031,15 @@
   "secrets": {
     "input": {
       "saved": "Enregistrée",
-      "reenter": "Saisissez à nouveau cette clé : celle enregistrée ne peut plus être utilisée."
+      "reenter": "Saisissez à nouveau cette clé : celle enregistrée ne peut plus être utilisée.",
+      "savedAria": "Clé enregistrée se terminant par {{last4}}",
+      "savedShortAria": "Clé enregistrée",
+      "noneAria": "Aucune clé enregistrée"
     },
     "destinationHint": "Modifier cette adresse efface la clé API enregistrée : saisissez-la à nouveau après l’enregistrement.",
     "notice": {
       "encryptionUnavailable": "Le trousseau de votre système n’est pas disponible ; les clés API sont stockées sans chiffrement.",
-      "needsReentry": "Ces clés enregistrées ne peuvent plus être lues ; saisissez-les à nouveau :"
+      "needsReentry": "Saisissez à nouveau ces clés : elles ne peuvent plus être lues ou ont été effacées lors du changement de leur adresse :"
     },
     "fields": {
       "openaiApiKey": "Clé API OpenAI",

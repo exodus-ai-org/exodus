@@ -100,6 +100,18 @@ export function prepareSettingsWrite<T extends object>(
   payload: T,
   stored: StoredSettingsState
 ): T {
+  return planSettingsWrite(payload, stored).write
+}
+
+/**
+ * `prepareSettingsWrite`, plus what the write does to each secret for the
+ * re-entry list (`moved.ts`): `moved` — cleared because its destination moved;
+ * `filled` — holds a value after the write.
+ */
+export function planSettingsWrite<T extends object>(
+  payload: T,
+  stored: StoredSettingsState
+): { write: T; moved: string[]; filled: string[] } {
   const copy = structuredClone(payload)
   const moved = new Set<string>()
   for (const [path, dest] of Object.entries(SECRET_DESTINATIONS)) {
@@ -109,7 +121,12 @@ export function prepareSettingsWrite<T extends object>(
     const unopened =
       isUnset(posted) &&
       stored.undecryptable.includes(path as SettingsSecretPath)
-    if (!looksLikeMask(posted) && !unopened) continue
+    // Posted unset while a key is stored, with the move: the desktop form
+    // clears the key itself for a new base URL (its mirror of this rule) —
+    // still a key the move took, to be asked for again.
+    const clearedWithMove =
+      isUnset(posted) && !isUnset(getAtPath(stored.plain, path))
+    if (!looksLikeMask(posted) && !unopened && !clearedWithMove) continue
     const destAt = parentOf(copy, dest.field)
     const before = asUrl(getAtPath(stored.plain, dest.field)) ?? dest.fallback
     const after =
@@ -135,8 +152,12 @@ export function prepareSettingsWrite<T extends object>(
   }
 
   keepUnchangedAsStored(restored, stored)
+  const filled = SETTINGS_SECRET_PATHS.filter((path) => {
+    const at = parentOf(restored, path)
+    return !!at && !isUnset(at.parent[at.key])
+  })
   encryptSettingsSecretsInPlace(restored)
-  return restored
+  return { write: restored, moved: [...moved], filled }
 }
 
 /**
@@ -268,6 +289,19 @@ function mapMcpSecrets<T extends McpSecretColumns>(row: T, fn: SecretFn): T {
     }
   }
   return copy
+}
+
+/**
+ * The labels (`env.X`, `headers.Authorization`, `extraConfig.oauth.secret`)
+ * of every secret an MCP row holds a value for — names only.
+ */
+export function mcpSecretLabels(row: McpSecretColumns): Set<string> {
+  const labels = new Set<string>()
+  mapMcpSecrets(row, (value, label) => {
+    if (value !== '') labels.add(label)
+    return value
+  })
+  return labels
 }
 
 /**
@@ -467,6 +501,20 @@ export function prepareMcpUpdate<T extends McpWriteBody>(
     | null
     | undefined
 ): T {
+  return planMcpUpdate(body, stored).write
+}
+
+/**
+ * `prepareMcpUpdate`, plus the secret columns whose destination the write
+ * moves — what a stored value in them lost (`moved.ts`).
+ */
+export function planMcpUpdate<T extends McpWriteBody>(
+  body: T,
+  stored:
+    | (Pick<McpServer, 'env' | 'headers' | 'extraConfig'> & McpDestination)
+    | null
+    | undefined
+): { write: T; moved: Set<keyof McpSecretsPlaintext> } {
   // N1: args are handed to the command. A new command gets none of the
   // stored args: masked ones are refused, and left-out ones are not carried
   // over at all — stripping them by shape could miss a secret the masker does
@@ -484,15 +532,16 @@ export function prepareMcpUpdate<T extends McpWriteBody>(
     located,
     mcpPlaintextForWrite(located, stored)
   )
-  if (!stored) return restored
-  for (const col of movedMcpSecretColumns(located, stored)) {
+  if (!stored) return { write: restored, moved: new Set() }
+  const moved = movedMcpSecretColumns(located, stored)
+  for (const col of moved) {
     if (restored[col] !== undefined) continue
     ;(restored as Record<string, unknown>)[col] = stripMcpSecrets(
       col,
       stored[col]
     )
   }
-  return restored
+  return { write: restored, moved }
 }
 
 // ─── what a save keeps as stored (rulings R2-1 / R2-2) ───────────────────────
