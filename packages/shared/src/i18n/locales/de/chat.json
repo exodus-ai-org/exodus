@@ -293,7 +293,8 @@
   },
   "renderFailed": "{{what}} konnte nicht angezeigt werden.",
   "remoteImage": {
-    "loadButton": "Bild laden"
+    "loadButton": "Bild laden",
+    "inlineImage": "Eingebettetes Bild"
   },
   "findInPage": {
     "placeholder": "Auf der Seite suchen…",

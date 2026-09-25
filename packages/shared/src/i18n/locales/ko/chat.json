@@ -284,7 +284,8 @@
   },
   "renderFailed": "{{what}}을(를) 표시할 수 없습니다.",
   "remoteImage": {
-    "loadButton": "이미지 불러오기"
+    "loadButton": "이미지 불러오기",
+    "inlineImage": "인라인 이미지"
   },
   "findInPage": {
     "placeholder": "페이지에서 찾기…",

@@ -14,14 +14,47 @@ import { cn } from '@/lib/utils'
  * docs/security-hardening.md, "Remote images in chat". exodus-ios applies the
  * same rule (`MarkdownImagePolicy.tapToLoadRemote`).
  *
- * What loads without a tap: a `data:` URL, the app's own media route
- * (loopback only), and an `https:` image whose host is one of the run's own
- * web-search results — already trusted enough to be cited. Everything else
- * — including any `http:` (non-TLS) remote image, even from a search-result
- * host — shows a compact placeholder instead.
+ * What loads without a tap: a `data:` URL whose MIME is a raster image type,
+ * the app's own media route (loopback only), and an `https:` image whose
+ * host is one of the run's own web-search results — already trusted enough
+ * to be cited. Everything else — an `http:` (non-TLS) remote image even from
+ * a search-result host, a `data:` URL that is not a recognised raster type
+ * (an SVG rendered as `<img>` still resolves `<image href>`, `feImage` and
+ * `url()` references as its own image fetches — a zero-click exfiltration
+ * beacon — and any other or missing MIME, or a malformed `data:` URL, get the
+ * same treatment) — shows a compact placeholder instead.
  */
 
 const MEDIA_ROUTE_PREFIX = `${BASE_URL}/api/v1/media/`
+
+// `data:` MIME types safe to auto-load: plain raster formats with no way to
+// reference another URL from inside their own bytes (unlike `image/svg+xml`).
+const RASTER_DATA_IMAGE_TYPES = new Set([
+  'image/png',
+  'image/jpeg',
+  'image/jpg',
+  'image/gif',
+  'image/webp',
+  'image/avif'
+])
+
+/** The MIME of a `data:` URL, lowercased and without any `;base64` /
+ *  charset parameters — `null` when `src` is not `data:`-scheme or is
+ *  missing the `,` that separates its header from its payload. */
+function dataUrlMimeType(src: string): string | null {
+  const lower = src.toLowerCase()
+  if (!lower.startsWith('data:')) return null
+  const rest = lower.slice('data:'.length)
+  const comma = rest.indexOf(',')
+  if (comma === -1) return null
+  const [mime] = rest.slice(0, comma).split(';')
+  return mime.trim()
+}
+
+function isRasterDataUrl(src: string): boolean {
+  const mime = dataUrlMimeType(src)
+  return mime !== null && RASTER_DATA_IMAGE_TYPES.has(mime)
+}
 
 // Provided by `Markdown` from the run's `webSearchResults` prop, in its own
 // context rather than through the ReactMarkdown `components` map: threading
@@ -59,7 +92,7 @@ export function loadsAutomatically(
   src: string,
   allowedHosts: ReadonlySet<string> | null
 ): boolean {
-  if (src.startsWith('data:')) return true
+  if (isRasterDataUrl(src)) return true
   if (src.startsWith(MEDIA_ROUTE_PREFIX)) return true
   if (!allowedHosts) return false
   let url: URL
@@ -113,7 +146,12 @@ export function RemoteImage({
     )
   }
 
-  const host = hostnameOf(src) ?? src
+  // A `data:` URL has no host to show (and, unlike a remote URL, nothing to
+  // fetch by tapping "Load image" either — it just stops being hidden): the
+  // label says what it is instead of a blank or the raw payload.
+  const label = src.toLowerCase().startsWith('data:')
+    ? t('remoteImage.inlineImage')
+    : (hostnameOf(src) ?? src)
 
   return (
     <span
@@ -122,7 +160,7 @@ export function RemoteImage({
     >
       <ImageIcon className="size-3.5 shrink-0" aria-hidden />
       <span className="text-foreground min-w-0 truncate font-medium">
-        {host}
+        {label}
       </span>
       {alt && <span className="min-w-0 flex-1 truncate">{alt}</span>}
       <button

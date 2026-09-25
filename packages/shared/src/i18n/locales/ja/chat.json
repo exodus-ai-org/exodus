@@ -284,7 +284,8 @@
   },
   "renderFailed": "{{what}} を表示できませんでした。",
   "remoteImage": {
-    "loadButton": "画像を読み込む"
+    "loadButton": "画像を読み込む",
+    "inlineImage": "インライン画像"
   },
   "findInPage": {
     "placeholder": "ページ内を検索…",
