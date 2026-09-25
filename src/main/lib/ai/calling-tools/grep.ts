@@ -1,21 +1,13 @@
-import { readFile, readdir, stat } from 'fs/promises'
+import { lstat, readFile, readdir, stat } from 'fs/promises'
 import path from 'path'
 
 import type { AgentTool } from '@earendil-works/pi-agent-core'
 import { Type } from '@earendil-works/pi-ai'
 import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 
-const MAX_RESULTS = 100
-const SKIP_DIRS = new Set([
-  'node_modules',
-  '.git',
-  'dist',
-  'build',
-  '.next',
-  'out',
-  '__pycache__'
-])
+import { GREP_SKIP_DIRS } from './grep-skip-dirs'
 
+const MAX_RESULTS = 100
 interface GrepMatch {
   lineNumber: number
   line: string
@@ -49,15 +41,18 @@ async function grepDir(
     if (results.length >= MAX_RESULTS || signal?.aborted) break
     const fullPath = path.join(dir, entry)
 
+    // lstat: a symlink is neither a directory nor a file here, so it is
+    // never followed — a link inside the tree cannot pull in a file from
+    // outside it (a key the approval gate would have asked about).
     let entryStat
     try {
-      entryStat = await stat(fullPath)
+      entryStat = await lstat(fullPath)
     } catch {
       continue
     }
 
     if (entryStat.isDirectory()) {
-      if (!SKIP_DIRS.has(entry)) {
+      if (!GREP_SKIP_DIRS.has(entry)) {
         await grepDir(
           fullPath,
           regex,

@@ -3,6 +3,7 @@ import { Hono } from 'hono'
 import { computerAskRegistry } from '../../computer/ask-registry'
 import { getHelper } from '../../computer/helper'
 import { liveness } from '../../computer/liveness'
+import { isSelfTarget } from '../../computer/self'
 import type { InstalledApp } from '../../computer/types'
 import { Variables } from '../types'
 import { successResponse } from '../utils'
@@ -17,7 +18,12 @@ let appsCache: { at: number; apps: InstalledApp[] } | null = null
 // GET /api/v1/computer-use/apps — installed applications for the allowlist picker.
 router.get('/apps', async (c) => {
   if (!appsCache || Date.now() - appsCache.at > APPS_TTL_MS) {
-    appsCache = { at: Date.now(), apps: await getHelper().listApps() }
+    // Exodus itself is never a Computer Use target (computer/self.ts).
+    const apps = await getHelper().listApps()
+    appsCache = {
+      at: Date.now(),
+      apps: apps.filter((a) => !isSelfTarget({ bundleId: a.bundleId }))
+    }
   }
   return successResponse(c, { apps: appsCache.apps })
 })

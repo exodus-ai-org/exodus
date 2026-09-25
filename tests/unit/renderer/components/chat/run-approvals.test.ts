@@ -19,6 +19,12 @@ vi.mock('@/services/chat', () => ({
   decideApproval: (...args: unknown[]) => decideService(...args)
 }))
 vi.mock('@/lib/report-error', () => ({ reportRendererError: vi.fn() }))
+// happy-dom's dispatched clicks are untrusted, as a page script's would be;
+// the tests say which kind each click is.
+let trusted = true
+vi.mock('@/lib/trusted-input', () => ({
+  isTrustedActivation: () => trusted
+}))
 const sileoError = vi.fn()
 vi.mock('sileo', () => ({
   sileo: { error: (...args: unknown[]) => sileoError(...args) }
@@ -38,6 +44,7 @@ const RUN = 'run-1'
 const mounted: Array<() => Promise<void>> = []
 
 afterEach(async () => {
+  trusted = true
   for (const unmount of mounted.splice(0)) await unmount()
   decideService.mockReset()
   sileoError.mockReset()
@@ -85,6 +92,14 @@ async function requireApproval(
     })
   })
   await flush()
+}
+
+async function waitArmed() {
+  await act(async () => {
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 650)
+    })
+  })
 }
 
 async function flush() {
@@ -138,11 +153,36 @@ describe('RunApprovals', () => {
     decideService.mockResolvedValue({ outcome: 'allowed' })
     const { queryClient } = await mount()
     await requireApproval(queryClient)
+    await waitArmed()
     await click(byTestId(TEST_IDS.chat.approval.allow))
     await flush()
     expect(byTestId(TEST_IDS.chat.approval.state)?.dataset.state).toBe(
       'allowed'
     )
+  })
+
+  it('Allow once is disabled for its first 600 ms, then enabled', async () => {
+    const { queryClient } = await mount()
+    await requireApproval(queryClient)
+    const allow = () =>
+      byTestId(TEST_IDS.chat.approval.allow) as HTMLButtonElement | null
+    expect(allow()?.disabled).toBe(true)
+    expect(
+      (byTestId(TEST_IDS.chat.approval.deny) as HTMLButtonElement).disabled
+    ).toBe(false)
+    await waitArmed()
+    expect(allow()?.disabled).toBe(false)
+  })
+
+  it('an untrusted click (a page script) never allows', async () => {
+    const { queryClient } = await mount()
+    await requireApproval(queryClient)
+    await waitArmed()
+    trusted = false
+    await click(byTestId(TEST_IDS.chat.approval.allow))
+    await flush()
+    expect(decideService).not.toHaveBeenCalled()
+    expect(byTestId(TEST_IDS.chat.approval.card)).not.toBeNull()
   })
 
   it('a timeout from the stream shows Timed out', async () => {
@@ -176,6 +216,7 @@ describe('RunApprovals', () => {
     )
     const { queryClient } = await mount()
     await requireApproval(queryClient)
+    await waitArmed()
     await click(byTestId(TEST_IDS.chat.approval.allow))
     await flush()
     expect(byTestId(TEST_IDS.chat.approval.state)?.dataset.state).toBe(

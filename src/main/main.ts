@@ -1,3 +1,7 @@
+// First import: a packaged build never starts with Chromium remote debugging
+// (it would hand the main frame — and the presence token — to whichever local
+// process relaunched us with the switch). See remote-debugging-guard.ts.
+import './lib/remote-debugging-guard'
 import { join } from 'path'
 
 import { app, BrowserWindow, globalShortcut, powerMonitor } from 'electron'

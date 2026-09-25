@@ -19,6 +19,7 @@ import { hashPng, screenshotWindow } from './capture'
 import { AbortedByUser, ForbiddenChord, Guard, OutOfBounds } from './guard'
 import * as hands from './hands'
 import { getHelper } from './helper'
+import { isSelfTarget, SELF_TARGET_MESSAGE } from './self'
 import { refreshBounds, resolveOrLaunch } from './target'
 import type {
   Action,
@@ -218,6 +219,12 @@ export async function runComputerSession(
       if (err instanceof AbortedByUser) return finish('aborted', err.message)
       // TargetNotFound (or a timeout) — nothing to drive.
       return finish('failed', errText(err))
+    }
+
+    // Never Exodus's own window, allowlisted or not (see self.ts): a session
+    // there could click "Allow once" on its own approval prompt.
+    if (isSelfTarget(target)) {
+      return finish('failed', SELF_TARGET_MESSAGE)
     }
 
     // Re-check the RESOLVED window against the allowlist. The outer tool matches

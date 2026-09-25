@@ -118,3 +118,49 @@ describe('runEmployeeLoop', () => {
     ).rejects.toThrow('boom')
   })
 })
+
+describe('runEmployeeLoop — secrets outside Exodus', () => {
+  it('refuses a sensitive call outright (no one can approve in a Group run)', async () => {
+    agentLoopMock.mockReset()
+    agentLoopMock.mockReturnValue(fakeStream([]))
+    await runEmployeeLoop({
+      agent: {
+        id: 'a',
+        name: 'A',
+        skillSlugs: [],
+        mcpServerNames: [],
+        toolAllowList: []
+      } as never,
+      instructions: 'x',
+      executionId: 'e',
+      conversationId: 'c1',
+      emit: vi.fn()
+    }).catch(() => {})
+    const config = agentLoopMock.mock.calls[0][2] as {
+      beforeToolCall: (ctx: unknown) => Promise<unknown>
+    }
+    const call = (name: string, args: unknown) =>
+      config.beforeToolCall({ toolCall: { id: 't', name }, args })
+
+    await expect(call('read_file', { path: '~/.ssh/id_rsa' })).resolves.toEqual(
+      {
+        block: true,
+        reason: 'Access to ~/.ssh/id_rsa is not available in a Group run.'
+      }
+    )
+    await expect(
+      call('terminal', { command: 'cat ~/.aws/credentials' })
+    ).resolves.toMatchObject({
+      block: true,
+      reason: expect.stringContaining('is not available in a Group run')
+    })
+    // Exodus's home (a scratch EXODUS_HOME in tests).
+    const { getExodusHome } = await import('@main/lib/paths')
+    await expect(
+      call('read_file', { path: `${getExodusHome()}/lock.dat` })
+    ).resolves.toMatchObject({ reason: expect.stringContaining('is refused') })
+    await expect(call('read_file', { path: '/tmp/notes.md' })).resolves.toBe(
+      undefined
+    )
+  })
+})

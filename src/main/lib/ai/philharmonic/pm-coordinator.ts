@@ -41,6 +41,7 @@ import {
 import { createDelegateTaskTool, createRecruitEmployeeTool } from './pm-tools'
 import { autoCreateEmployee } from './recruit'
 import { createReportTool, type PendingArtifact } from './report-tools'
+import { groupBeforeToolCall } from './sensitive-guard'
 
 const PM_SYSTEM_PROMPT = `You are the PM (project manager) of a virtual team working in a group chat.
 
@@ -374,7 +375,9 @@ export async function runPmCoordinator(args: RunPmArgs): Promise<void> {
               (m as Message).role === 'user' ||
               (m as Message).role === 'assistant' ||
               (m as Message).role === 'toolResult'
-          )
+          ),
+        // Secrets outside Exodus: refused in a Group run (sensitive-guard.ts).
+        beforeToolCall: groupBeforeToolCall(conversationId)
       },
       signal,
       streamFn

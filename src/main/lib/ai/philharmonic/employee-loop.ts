@@ -24,6 +24,7 @@ import {
   getModelFromProvider
 } from '../utils/chat-message-util'
 import { calculateCost } from '../utils/cost'
+import { groupBeforeToolCall } from './sensitive-guard'
 
 export type SseEmitter = (event: PhilharmonicSseEvent) => void
 
@@ -135,7 +136,9 @@ export async function runEmployeeLoop(
             (m as Message).role === 'user' ||
             (m as Message).role === 'assistant' ||
             (m as Message).role === 'toolResult'
-        )
+        ),
+      // Secrets outside Exodus: refused in a Group run (sensitive-guard.ts).
+      beforeToolCall: groupBeforeToolCall(conversationId)
     },
     signal,
     streamFn

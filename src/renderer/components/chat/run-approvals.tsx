@@ -7,7 +7,7 @@ import {
   OctagonXIcon,
   SquareIcon
 } from 'lucide-react'
-import { memo } from 'react'
+import { memo, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { StatusStrip } from '@/components/status-strip'
@@ -17,8 +17,16 @@ import {
   useDecideApproval,
   useRunApprovals
 } from '@/hooks/use-approvals'
+import { isTrustedActivation } from '@/lib/trusted-input'
 
 const ICON = 'size-3.5 shrink-0'
+
+/**
+ * Allow once stays disabled this long after the card appears (as a browser's
+ * permission prompt does), so a click already on its way — the user's, or one
+ * staged in advance — cannot land on it the moment it shows.
+ */
+export const ALLOW_ENABLE_DELAY_MS = 600
 
 /**
  * The foot of a run whose tool call touched a secret outside Exodus (an SSH
@@ -73,6 +81,11 @@ function ApprovalCard({
 }) {
   const { t } = useTranslation('chat')
   const decide = useDecideApproval(chatId)
+  const [armed, setArmed] = useState(false)
+  useEffect(() => {
+    const timer = setTimeout(() => setArmed(true), ALLOW_ENABLE_DELAY_MS)
+    return () => clearTimeout(timer)
+  }, [])
   const state =
     approval.state === 'pending' && !active ? 'stopped' : approval.state
   const isCommand = approval.toolName === TOOL_NAMES.terminal
@@ -137,8 +150,12 @@ function ApprovalCard({
             <Button
               size="xs"
               data-testid={TEST_IDS.chat.approval.allow}
-              disabled={decide.isPending}
-              onClick={() => answer('allow')}
+              disabled={decide.isPending || !armed}
+              onClick={(event) => {
+                // A script in the page (`el.click()`) never allows.
+                if (!isTrustedActivation(event)) return
+                answer('allow')
+              }}
             >
               {t('approval.allow')}
             </Button>

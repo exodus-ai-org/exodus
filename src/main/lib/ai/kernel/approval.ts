@@ -1,8 +1,10 @@
-import { realpathSync } from 'fs'
+import { type Dirent, lstatSync, readdirSync, realpathSync } from 'fs'
 import { homedir } from 'os'
 import { basename, dirname, isAbsolute, join, resolve, sep } from 'path'
 
 import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
+
+import { GREP_SKIP_DIRS } from '../calling-tools/grep-skip-dirs'
 
 /**
  * The approval gate for secrets outside Exodus (spec 2026-09-25 §2.5).
@@ -40,6 +42,12 @@ export interface MatchEnv {
   exodusHome: string
   /** Where a relative path given to a file tool lands (the process's cwd). */
   cwd: string
+  /**
+   * Whether the filesystem ignores case — macOS's (and Windows') default
+   * does, so `~/.SSH/id_rsa` opens `~/.ssh/id_rsa` and must match it.
+   * Defaults to the platform.
+   */
+  caseInsensitive?: boolean
 }
 
 function defaultEnv(): MatchEnv {
@@ -78,11 +86,25 @@ function isSecretFileName(name: string): boolean {
   )
 }
 
+/** Set per `sensitiveTarget` call from `MatchEnv.caseInsensitive`. */
+let foldCase = process.platform === 'darwin' || process.platform === 'win32'
+
+/** macOS firmlinks: `/System/Volumes/Data/Users/…` is `/Users/…`. */
+const FIRMLINK_PREFIX = '/System/Volumes/Data/'
+
+/** The form paths are compared in: firmlink prefix dropped, case folded
+ *  where the filesystem ignores it. Never shown to anyone. */
+function canon(path: string): string {
+  const unlinked = path.startsWith(FIRMLINK_PREFIX)
+    ? path.slice(FIRMLINK_PREFIX.length - 1)
+    : path
+  return foldCase ? unlinked.toLowerCase() : unlinked
+}
+
 function isWithin(child: string, parent: string): boolean {
-  return (
-    child === parent ||
-    child.startsWith(parent.endsWith(sep) ? parent : parent + sep)
-  )
+  const c = canon(child)
+  const p = canon(parent)
+  return c === p || c.startsWith(p.endsWith(sep) ? p : p + sep)
 }
 
 /**
@@ -120,9 +142,12 @@ function expandHome(path: string, home: string): string {
 }
 
 function display(path: string, home: string): string {
-  return isWithin(path, home) && path !== home
-    ? `~${path.slice(home.length)}`
+  const shown = path.startsWith(FIRMLINK_PREFIX)
+    ? path.slice(FIRMLINK_PREFIX.length - 1)
     : path
+  return isWithin(shown, home) && canon(shown) !== canon(home)
+    ? `~${shown.slice(home.length)}`
+    : shown
 }
 
 interface Roots {
@@ -187,6 +212,58 @@ function classifyPath(
   return null
 }
 
+/** Entries a grep-root scan looks at before it gives up and asks anyway. */
+const MAX_SCAN_ENTRIES = 20_000
+const TOO_MANY = '\u0000too-many'
+
+/**
+ * The first file under `root` (not inside the workspace) that the file tools
+ * would ask about by name — `.env*`, `*.pem`, `*.key`, `id_*`, a keychain, a
+ * `credentials*` under `~/.config` — or `TOO_MANY` when the tree is too large
+ * to tell. Walks as `grep` does (its skipped directories, depth 8) and, like
+ * it, never follows a symlink. Null for a file or a missing root.
+ */
+function findSecretInTree(root: string, roots: Roots): string | null {
+  let seen = 0
+  const walk = (dir: string, depth: number): string | null => {
+    if (depth > 8) return null
+    let entries: Dirent[]
+    try {
+      entries = readdirSync(dir, { withFileTypes: true })
+    } catch {
+      return null
+    }
+    for (const entry of entries) {
+      if (++seen > MAX_SCAN_ENTRIES) return TOO_MANY
+      const full = join(dir, entry.name)
+      if (entry.isDirectory()) {
+        if (GREP_SKIP_DIRS.has(entry.name)) continue
+        if (roots.workspace.some((w) => isWithin(full, w))) continue
+        const found = walk(full, depth + 1)
+        if (found) return found
+      } else if (entry.isFile()) {
+        const lower = entry.name.toLowerCase()
+        if (
+          isSecretFileName(entry.name) ||
+          /\.keychain(-db)?$/u.test(lower) ||
+          (lower.startsWith('credentials') &&
+            roots.config.some((r) => isWithin(full, r)))
+        ) {
+          return full
+        }
+      }
+    }
+    return null
+  }
+  if (roots.workspace.some((w) => isWithin(root, w))) return null
+  try {
+    if (!lstatSync(root).isDirectory()) return null
+  } catch {
+    return null
+  }
+  return walk(root, 0)
+}
+
 const PATH_TOOLS: Record<string, string> = {
   [TOOL_NAMES.readFile]: 'path',
   [TOOL_NAMES.writeFile]: 'path',
@@ -228,7 +305,22 @@ function matchPathTool(
     const hit = classifyPath(abs, roots, {
       recursive: toolName === TOOL_NAMES.grep
     })
-    if (!hit) continue
+    if (!hit) {
+      // A grep reads every file under its root: a root outside the workspace
+      // asks as `read_file` would when the tree holds a secret-named file.
+      if (toolName === TOOL_NAMES.grep) {
+        const found = findSecretInTree(realish(abs), roots)
+        if (found) {
+          const why =
+            found === TOO_MANY ? 'too large to check' : display(found, env.home)
+          hits.push({
+            kind: 'ask',
+            summary: `${display(abs, env.home)} (${found === TOO_MANY ? why : `contains ${why}`})`
+          })
+        }
+      }
+      continue
+    }
     // A link is shown with what it points at — that is what gets read.
     const summary =
       hit.via === abs
@@ -247,12 +339,12 @@ const KEYCHAIN_COMMAND =
 
 /** A credential location named anywhere in a command, however it is spelled. */
 const SECRET_MENTION =
-  /(?:^|[\s'"=:(/`])(?:\.ssh|\.aws|\.gnupg|\.kube|\.netrc|\.docker\/config\.json|Library\/Keychains)(?=$|[\s'"/;|&)<>`])/u
+  /(?:^|[\s'"=:(/`])(?:\.ssh|\.aws|\.gnupg|\.kube|\.netrc|\.docker\/config\.json|Library\/Keychains)(?=$|[\s'"/;|&)<>`])/iu
 
-const REFUSED_MENTION = /\.exodus\/(?:lock\.dat|tls)(?=$|[\s'"/;|&)<>`])/u
+const REFUSED_MENTION = /\.exodus\/(?:lock\.dat|tls)(?=$|[\s'"/;|&)<>`])/iu
 /** `cd ~/.exodus && cat lock.dat` — the directory and the file named apart. */
-const EXODUS_MENTION = /\.exodus(?=$|[\s'"/;|&)<>`])/u
-const LOCK_OR_TLS_WORD = /(?:^|[\s'"/])(?:lock\.dat|tls)(?=$|[\s'"/;|&)<>`])/u
+const EXODUS_MENTION = /\.exodus(?=$|[\s'"/;|&)<>`])/iu
+const LOCK_OR_TLS_WORD = /(?:^|[\s'"/])(?:lock\.dat|tls)(?=$|[\s'"/;|&)<>`])/iu
 
 /** Paths considered per command — a heredoc script is not walked word by word. */
 const MAX_COMMAND_TOKENS = 2000
@@ -264,6 +356,15 @@ function commandSummary(command: string): string {
     : oneLine
 }
 
+/**
+ * The summary of a gated command: what triggered it first — the path or the
+ * keychain call — then the command, cut at 300 characters. A command padded
+ * so its real target falls past the cut still shows why it paused.
+ */
+function withTrigger(trigger: string, command: string): string {
+  return `${trigger} — ${commandSummary(command)}`
+}
+
 function matchCommand(
   command: string,
   cwdArg: string | null,
@@ -271,34 +372,46 @@ function matchCommand(
   env: MatchEnv,
   workspaceDir: string | undefined
 ): SensitiveTarget | null {
-  const summary = commandSummary(command)
-  if (
-    REFUSED_MENTION.test(command) ||
-    (EXODUS_MENTION.test(command) && LOCK_OR_TLS_WORD.test(command))
-  ) {
-    return { kind: 'refuse', summary }
+  const refusedMention =
+    REFUSED_MENTION.exec(command)?.[0] ??
+    (EXODUS_MENTION.test(command)
+      ? LOCK_OR_TLS_WORD.exec(command)?.[0].trim()
+      : undefined)
+  if (refusedMention) {
+    return { kind: 'refuse', summary: withTrigger(refusedMention, command) }
   }
 
   const cwd = cwdArg
     ? resolve(expandHome(cwdArg, env.home))
     : (workspaceDir ?? env.home)
-  let ask =
-    KEYCHAIN_COMMAND.test(command) ||
-    SECRET_MENTION.test(command) ||
-    classifyPath(cwd, roots) !== null
 
   // Every word that could be a path, resolved as the shell would from `cwd`.
+  // A path is the most telling trigger, so it is looked for first.
+  let pathTrigger: string | null = null
   const tokens = command
     .split(/[\s'"`;|&<>(),=]+/u)
     .slice(0, MAX_COMMAND_TOKENS)
   for (const token of tokens) {
     if (!token || token.startsWith('-') || token.includes('://')) continue
-    const expanded = expandHome(token, env.home)
-    const kind = classifyPath(resolve(cwd, expanded), roots)?.kind
-    if (kind === 'refuse') return { kind: 'refuse', summary }
-    if (kind === 'ask') ask = true
+    const abs = resolve(cwd, expandHome(token, env.home))
+    const hit = classifyPath(abs, roots)
+    if (hit?.kind === 'refuse') {
+      return {
+        kind: 'refuse',
+        summary: withTrigger(display(abs, env.home), command)
+      }
+    }
+    if (hit && !pathTrigger) pathTrigger = display(abs, env.home)
   }
-  return ask ? { kind: 'ask', summary } : null
+
+  const trigger =
+    pathTrigger ??
+    SECRET_MENTION.exec(command)?.[0].replace(/^[\s'"=:(/`]/u, '') ??
+    KEYCHAIN_COMMAND.exec(command)?.[0] ??
+    (classifyPath(cwd, roots) ? display(cwd, env.home) : null)
+  return trigger
+    ? { kind: 'ask', summary: withTrigger(trigger, command) }
+    : null
 }
 
 /**
@@ -314,6 +427,9 @@ export function sensitiveTarget(
   workspaceDir?: string,
   env: MatchEnv = defaultEnv()
 ): SensitiveTarget | null {
+  foldCase =
+    env.caseInsensitive ??
+    (process.platform === 'darwin' || process.platform === 'win32')
   const roots = rootsOf(env, workspaceDir)
   if (toolName === TOOL_NAMES.terminal) {
     const command = stringArg(args, 'command')
@@ -336,6 +452,11 @@ export function sensitiveTarget(
 /** What the model reads when the user (or the clock, or Stop) says no. */
 export function declinedReason(summary: string): string {
   return `The user declined access to ${summary}.`
+}
+
+/** What a Philharmonic Group run reads: no one can approve there. */
+export function groupRefusedReason(summary: string): string {
+  return `Access to ${summary} is not available in a Group run.`
 }
 
 /** What the model reads for Exodus's own lock/TLS secrets. */

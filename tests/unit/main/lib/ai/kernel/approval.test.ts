@@ -243,6 +243,63 @@ describe('sensitiveTarget — file tools', () => {
     expect(result?.kind ?? null).toBe(expected)
   })
 
+  it.each([
+    ['~/.ssh/authorized_keys', (h: string) => `${h}/.ssh/authorized_keys`],
+    ['~/.aws/config', (h: string) => `${h}/.aws/config`],
+    ['a .env outside the workspace', (h: string) => `${h}/project/.env`]
+  ])('writing or editing %s asks', (_label, path) => {
+    for (const tool of [TOOL_NAMES.writeFile, TOOL_NAMES.editFile]) {
+      expect(
+        check(tool, { path: path(env.home), content: 'x', old_string: 'a' })
+          ?.kind
+      ).toBe('ask')
+    }
+  })
+
+  it('case variants of a credential directory are the same directory (macOS)', () => {
+    const folded = { ...env, caseInsensitive: true }
+    for (const path of [
+      `${env.home}/.SSH/id_rsa`,
+      `${env.home}/.Ssh/config`,
+      `${env.home}/.AWS/credentials`
+    ]) {
+      expect(sensitiveTarget(R, { path }, workspace, folded)?.kind).toBe('ask')
+    }
+    expect(
+      sensitiveTarget(
+        R,
+        { path: `${env.home}/.EXODUS/LOCK.DAT` },
+        workspace,
+        folded
+      )?.kind
+    ).toBe('refuse')
+    expect(
+      sensitiveTarget(T, { command: 'cat ~/.SSH/ID_RSA' }, workspace, folded)
+        ?.kind
+    ).toBe('ask')
+    // ~/.sshconfig-notes is still not ~/.ssh, in any case.
+    expect(
+      sensitiveTarget(
+        R,
+        { path: `${env.home}/.SSHconfig-notes` },
+        workspace,
+        folded
+      )
+    ).toBeNull()
+  })
+
+  it('the /System/Volumes/Data firmlink form is the same path', () => {
+    const result = check(R, {
+      path: `/System/Volumes/Data${env.home}/.ssh/id_rsa`
+    })
+    expect(result?.kind).toBe('ask')
+    expect(result?.summary).toBe('~/.ssh/id_rsa')
+    expect(
+      check(R, { path: `/System/Volumes/Data${env.home}/.exodus/lock.dat` })
+        ?.kind
+    ).toBe('refuse')
+  })
+
   it('follows a symlink in the workspace to the key it points at', () => {
     const result = check(R, { path: join(workspace, 'notes.txt') })
     expect(result?.kind).toBe('ask')
@@ -289,6 +346,38 @@ describe('sensitiveTarget — file tools', () => {
     const result = check(R, { path: `${env.home}/.ssh/id_rsa` })
     expect(result?.summary).toBe('~/.ssh/id_rsa')
     expect(result?.summary).not.toContain('secret')
+  })
+
+  it('a grep root outside the workspace that holds a secret-named file asks', () => {
+    const result = check(TOOL_NAMES.grep, {
+      pattern: '.',
+      path: `${env.home}/project`
+    })
+    expect(result?.kind).toBe('ask')
+    expect(result?.summary).toMatch(/^~\/project \(contains .*\.env\)$/u)
+  })
+
+  it('a grep root with no secret-named file runs without asking', () => {
+    mkdirSync(join(env.home, 'clean', 'src'), { recursive: true })
+    writeFileSync(join(env.home, 'clean', 'src', 'index.ts'), 'x')
+    expect(
+      check(TOOL_NAMES.grep, { pattern: '.', path: `${env.home}/clean` })
+    ).toBeNull()
+  })
+
+  it('the grep scan does not follow symlinks, nor count the workspace', () => {
+    mkdirSync(join(env.home, 'linky'), { recursive: true })
+    symlinkSync(join(env.home, 'project'), join(env.home, 'linky', 'p'))
+    expect(
+      check(TOOL_NAMES.grep, { pattern: '.', path: `${env.home}/linky` })
+    ).toBeNull()
+    // The workspace's own .env is the model's.
+    expect(
+      check(TOOL_NAMES.grep, {
+        pattern: '.',
+        path: join(env.home, '.exodus', 'workspace')
+      })
+    ).toBeNull()
   })
 
   it('without a workspace, a .env anywhere is gated', () => {
@@ -344,11 +433,33 @@ describe('sensitiveTarget — terminal heuristics', () => {
     ).toBe('ask')
   })
 
-  it('the summary is the command, cut at 300 characters', () => {
+  it('the summary names the trigger first, then the command cut at 300', () => {
     const long = `cat ~/.ssh/id_rsa ${'x'.repeat(400)}`
     const result = check(T, { command: long })
-    expect(result?.summary.length).toBe(301)
-    expect(result?.summary.startsWith('cat ~/.ssh/id_rsa')).toBe(true)
+    expect(result?.summary).toMatch(
+      /^~\/\.ssh\/id_rsa — cat ~\/\.ssh\/id_rsa x+…$/u
+    )
+  })
+
+  it('a command padded past the cut still shows what it reads', () => {
+    const padded = `# ${'harmless '.repeat(60)}\ncat ~/.aws/credentials`
+    const result = check(T, { command: padded })
+    expect(result?.kind).toBe('ask')
+    expect(result?.summary.startsWith('~/.aws/credentials — ')).toBe(true)
+    expect(result?.summary).not.toContain('cat ~/.aws')
+  })
+
+  it.each([
+    [
+      'security find-generic-password -s foo -w',
+      'security find-generic-password'
+    ],
+    ['tar czf k.tgz .ssh', '.ssh'],
+    ['cat ~/.exodus/lock.dat', '.exodus/lock.dat']
+  ])('%s → trigger %s', (command, trigger) => {
+    expect(check(T, { command })?.summary.startsWith(`${trigger} — `)).toBe(
+      true
+    )
   })
 })
 

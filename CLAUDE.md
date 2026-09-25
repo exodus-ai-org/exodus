@@ -477,13 +477,20 @@ rendering work in.
   `~/.netrc`, `~/.config/**/credentials*`, the keychains, or a `.env*` /
   `*.pem` / `*.key` / `id_*` outside the chat workspace — resolved through `~`,
   the cwd and symlinks; a `terminal` command naming one of those or running
-  `security find-*-password`, a documented heuristic), `refuse`
+  `security find-*-password`, a documented heuristic; a `grep` root outside
+  the workspace whose tree holds a secret-named file), `refuse`
   (`~/.exodus/lock.dat`, `~/.exodus/tls/` — blocked, never asked) or null.
+  Paths compare case-folded on macOS / Windows and without the
+  `/System/Volumes/Data` firmlink prefix; a command's summary leads with what
+  triggered it. Philharmonic's loops use the same matcher through
+  `philharmonic/sensitive-guard.ts` but refuse instead of asking (no window
+  to ask in).
   `pending-approvals.ts` holds each paused call until `allowed` / `denied`
   (`POST /api/v1/chat/approval`), `timed_out` (10 minutes) or `stopped` (the
   run's abort — Stop, or the window's request closing); anything but
   `allowed` gives the model "The user declined access to <summary>." Allow
-  once is per call, never remembered
+  once is per call, never remembered. The card's Allow button is disabled
+  for its first 600 ms and ignores untrusted (script-dispatched) clicks
 - `record.ts` — `RunRecorder`: fed every event, `persist()` from the route's
   `finally` saves the run's rows with its duration and enqueues the post-run
   jobs
@@ -1335,6 +1342,7 @@ Main process:
 - `src/main/lib/ai/providers/list-models/` — Live model catalog handlers per provider (`anthropic.ts`, `openai.ts`, `google.ts`, `xai.ts`, `ollama.ts`); each normalizes that provider's list-models API response into `{ id, displayName, snapshot: ModelSnapshot }`, dispatched by `index.ts` and called from `POST /api/v1/settings/models`
 - `src/main/lib/ai/kernel/` — the chat kernel: `models.ts` (the `Models` collection, `streamFn`), `run.ts` (`runAgent()`), `record.ts` (`RunRecorder`), `invariant.ts` (`dropBrokenRuns()`), `approval.ts` + `pending-approvals.ts` (the approval gate for secrets outside Exodus), `events.ts`, `faux.ts` + `faux-boot.ts` (pi's scripted provider; `EXODUS_FAUX_PROVIDER=1`)
 - `src/main/lib/presence.ts` — the per-launch user-presence token (see Middleware Pipeline, presence gate)
+- `src/main/lib/remote-debugging-guard.ts` — `main.ts`'s first import: a packaged build exits when started with a Chromium remote-debugging switch (`remote-debugging.ts`), which would expose the main frame and its presence token
 - `src/main/lib/ai/calling-tools/` — built-in agent tools (snake_case names from `packages/shared/src/constants/tool-names.ts`) and the MCP toolbox (`mcp-toolbox.ts`)
 - `src/main/lib/ai/skills/` — skills.sh client, install store, and the prompt seam (see Skills)
 - `src/main/lib/analytics/` — DuckDB chat-audit snapshot + read-only query wrapper (see Chat Audit)
@@ -1383,7 +1391,9 @@ Main process:
   `exodus-input` Swift helper (list-windows / list-apps / screenshot / activate /
   CGEvent input), `capture`/`target`/`hands`/`guard`, `runComputerSession` (the
   perceive→act loop), `liveness` (the ⌥⇧⎋ kill switch); `target.resolveOrLaunch`
-  opens an allowlisted app that isn't running. The inner-loop agent is
+  opens an allowlisted app that isn't running; `self.ts` — Exodus itself (its
+  bundle id, its own windows) is never a target, whatever the allowlist says,
+  and never offered in the picker. The inner-loop agent is
   `src/main/lib/ai/computer-use/`. Bound as the `computerUse` calling-tool,
   gated on `settings.computerUse.enabled`. `GET /api/v1/computer-use/apps` feeds the
   Settings allowlist picker. See
