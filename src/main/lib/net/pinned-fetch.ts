@@ -1,6 +1,8 @@
 import type { IncomingMessage } from 'http'
 import { request as httpRequest } from 'http'
 import { request as httpsRequest } from 'https'
+import type { Readable } from 'stream'
+import { createBrotliDecompress, createGunzip, createInflate } from 'zlib'
 
 import { assertAddressesNotExodusApi } from './local-api-guard'
 import { resolveAddresses, UnsafeUrlError } from './safe-fetch'
@@ -46,14 +48,34 @@ function toHeaders(res: IncomingMessage): Headers {
   return headers
 }
 
+/**
+ * The body as the page sent it, decoded: the global `fetch` this replaced
+ * asked for and undid gzip / deflate / br itself, `http.request` does not.
+ * An unknown coding is passed through as it is.
+ */
+function decoded(res: IncomingMessage): Readable {
+  const coding = String(res.headers['content-encoding'] ?? '')
+    .trim()
+    .toLowerCase()
+  const decoder =
+    coding === 'gzip' || coding === 'x-gzip'
+      ? createGunzip()
+      : coding === 'deflate'
+        ? createInflate()
+        : coding === 'br'
+          ? createBrotliDecompress()
+          : null
+  return decoder ? res.pipe(decoder) : res
+}
+
 async function readCapped(
-  res: IncomingMessage,
+  body: Readable,
   maxBytes: number,
   abort: () => void
 ): Promise<Buffer> {
   const chunks: Buffer[] = []
   let total = 0
-  for await (const chunk of res) {
+  for await (const chunk of body) {
     const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk)
     total += buf.length
     if (total > maxBytes) {
@@ -97,7 +119,10 @@ export async function fetchPinned(
       {
         method: 'GET',
         signal: combined,
-        headers: { 'User-Agent': 'Mozilla/5.0 (Exodus web_fetch)' },
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Exodus web_fetch)',
+          'Accept-Encoding': 'gzip, deflate, br'
+        },
         // Pinned: the socket connects to an address judged above, never to
         // a fresh DNS answer.
         lookup: (_host, options, cb) => {
@@ -122,7 +147,21 @@ export async function fetchPinned(
     res.resume()
     return new Response(null, { status: status || 502, headers })
   }
-  const bytes = await readCapped(res, maxBytes, abort)
+  const body = decoded(res)
+  let bytes: Buffer
+  try {
+    // Capped after decoding: a small compressed body cannot expand past it.
+    bytes = await readCapped(body, maxBytes, () => {
+      body.destroy()
+      abort()
+    })
+  } catch (error) {
+    if (body !== res) body.destroy()
+    throw error
+  }
+  // Decoded: the length and coding no longer describe these bytes.
+  headers.delete('content-encoding')
+  headers.delete('content-length')
   return new Response(bytes.length > 0 ? new Uint8Array(bytes) : null, {
     status: status >= 200 && status <= 599 ? status : 502,
     headers

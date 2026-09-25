@@ -4,6 +4,7 @@
 // below exist only here.
 import { createServer, type Server } from 'http'
 import type { AddressInfo } from 'net'
+import { gzipSync } from 'zlib'
 
 import {
   afterAll,
@@ -33,6 +34,22 @@ beforeAll(async () => {
     if (req.url === '/redirect') {
       res.writeHead(302, { Location: 'https://elsewhere.example/next' })
       res.end('x'.repeat(100_000))
+      return
+    }
+    if (req.url === '/gzip') {
+      res.writeHead(200, {
+        'Content-Type': 'text/html',
+        'Content-Encoding': 'gzip'
+      })
+      res.end(gzipSync('<html><body>compressed page</body></html>'))
+      return
+    }
+    if (req.url === '/bomb') {
+      res.writeHead(200, {
+        'Content-Type': 'text/html',
+        'Content-Encoding': 'gzip'
+      })
+      res.end(gzipSync('x'.repeat(50_000)))
       return
     }
     if (req.url === '/big') {
@@ -86,6 +103,20 @@ describe('fetchPinned', () => {
       fetchPinned(new URL('http://localhost:60223/api/v1/settings'))
     ).rejects.toBeInstanceOf(LocalApiTargetError)
     expect(seen).toHaveLength(0)
+  })
+
+  it('decodes a gzip body, as the global fetch it replaced did', async () => {
+    const res = await fetchPinned(new URL(`http://pinned.invalid:${port}/gzip`))
+    expect(await res.text()).toContain('compressed page')
+    expect(res.headers.get('content-encoding')).toBeNull()
+  })
+
+  it('caps the decoded size, not the compressed one', async () => {
+    await expect(
+      fetchPinned(new URL(`http://pinned.invalid:${port}/bomb`), {
+        maxBytes: 10_000
+      })
+    ).rejects.toThrow(/too large/u)
   })
 
   it('caps the body', async () => {
