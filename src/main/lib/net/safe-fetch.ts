@@ -137,7 +137,76 @@ export function isPublicAddress(ip: string): boolean {
   return false
 }
 
-type Resolved = Array<{ address: string; family: number }>
+export type IpBytes = { family: 4; bytes: Bytes } | { family: 6; bytes: Bytes }
+
+/**
+ * `ip` reduced to comparable bytes: an IPv4 address as its 4 bytes, an IPv6
+ * address as its 16 — except an IPv4-mapped (`::ffff:a.b.c.d`) or NAT64
+ * (`64:ff9b::a.b.c.d`) spelling of an IPv4 address, which canonicalizes to
+ * that address's 4 bytes, so two different notations of the same host
+ * compare equal. `null` for anything that is not an IP address. Exported so
+ * callers that need to compare two addresses (e.g. "is this one of this
+ * machine's own interfaces?") don't reimplement the mapped/NAT64 unwrap.
+ */
+export function canonicalizeIp(ip: string): IpBytes | null {
+  const v4 = v4Bytes(ip)
+  if (v4) return { family: 4, bytes: v4 }
+  const v6 = v6Bytes(ip)
+  if (!v6) return null
+  const mapped = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff]
+  const nat64 = [0, 0x64, 0xff, 0x9b, 0, 0, 0, 0, 0, 0, 0, 0]
+  if (inPrefix(v6, mapped, 96) || inPrefix(v6, nat64, 96)) {
+    return { family: 4, bytes: v6.slice(12) }
+  }
+  return { family: 6, bytes: v6 }
+}
+
+/**
+ * Loopback (127.0.0.0/8, `::1`) or unspecified (`0.0.0.0`, `::`) — including
+ * an IPv4-mapped/NAT64 IPv6 spelling of either. `false` for anything that is
+ * not an IP address.
+ */
+export function isLoopbackOrUnspecified(ip: string): boolean {
+  const c = canonicalizeIp(ip)
+  if (!c) return false
+  if (c.family === 4) {
+    return c.bytes[0] === 127 || c.bytes.every((b) => b === 0)
+  }
+  return (
+    c.bytes.every((b) => b === 0) ||
+    (c.bytes.slice(0, 15).every((b) => b === 0) && c.bytes[15] === 1)
+  )
+}
+
+/**
+ * True for `localhost` and any `*.localhost` name (case-insensitively, a
+ * trailing dot ignored) — refused without a DNS lookup, since `localhost`
+ * needn't even be in DNS to reach the loopback interface.
+ */
+export function isLocalhostName(hostname: string): boolean {
+  const lower = hostname.toLowerCase().replace(/\.$/, '')
+  return lower === 'localhost' || lower.endsWith('.localhost')
+}
+
+export type ResolvedAddress = { address: string; family: number }
+
+/**
+ * The addresses `host` may be reached at: itself, if it is an IP literal,
+ * else every address its name resolves to. Throws if a name has none. Does
+ * not judge whether any of them is safe to reach — callers do that (see
+ * `vetHost` below and `net/local-api-guard.ts`).
+ */
+export async function resolveAddresses(
+  host: string
+): Promise<ResolvedAddress[]> {
+  const family = isIP(host)
+  if (family) return [{ address: host, family }]
+  const addrs = await dnsLookup(host, { all: true })
+  if (addrs.length === 0) throw new UnsafeUrlError(`${host} has no address`)
+  return addrs.map(({ address, family: f }) => ({ address, family: f }))
+}
+
+type Resolved = ResolvedAddress[]
 
 /** The addresses a URL's host may be reached at — every one of them public. */
 async function vetHost(url: URL): Promise<Resolved> {
@@ -145,26 +214,17 @@ async function vetHost(url: URL): Promise<Resolved> {
     throw new UnsafeUrlError(`${url.protocol} is not https`)
   }
   const host = url.hostname.replace(/^\[|\]$/g, '').replace(/\.$/, '')
-  const lower = host.toLowerCase()
-  if (lower === 'localhost' || lower.endsWith('.localhost')) {
+  if (isLocalhostName(host)) {
     throw new UnsafeUrlError(`${host} is local`)
   }
-  const family = isIP(host)
-  if (family) {
-    if (!isPublicAddress(host)) {
-      throw new UnsafeUrlError(`${host} is not a public address`)
-    }
-    return [{ address: host, family }]
-  }
-  const addrs = await dnsLookup(host, { all: true })
-  if (addrs.length === 0) throw new UnsafeUrlError(`${host} has no address`)
+  const addrs = await resolveAddresses(host)
   const bad = addrs.find((a) => !isPublicAddress(a.address))
   if (bad) {
     throw new UnsafeUrlError(
       `${host} resolves to ${bad.address}, not a public address`
     )
   }
-  return addrs.map(({ address, family: f }) => ({ address, family: f }))
+  return addrs
 }
 
 function get(

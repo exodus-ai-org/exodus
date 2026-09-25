@@ -3,6 +3,10 @@ import { Type } from '@earendil-works/pi-ai'
 import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
 
+import {
+  assertNotExodusApi,
+  LocalApiTargetError
+} from '../../net/local-api-guard'
 import { loadDocument } from '../utils/web-search-util'
 
 const webFetchSchema = Type.Object({
@@ -50,6 +54,15 @@ export const webFetch = (
   parameters: webFetchSchema,
   execute: async (_toolCallId, { url }, signal) => {
     if (signal?.aborted) throw new Error('Aborted')
+
+    try {
+      await assertNotExodusApi(new URL(url))
+    } catch (error) {
+      if (error instanceof LocalApiTargetError) throw error
+      // Not a parseable URL — fall through and let loadDocument's own
+      // handling produce the usual "failed to fetch" error below.
+    }
+
     const result = await loadDocument(url, signal)
 
     if (!result) {
