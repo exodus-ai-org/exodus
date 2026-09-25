@@ -4,7 +4,7 @@
 // below exist only here.
 import { createServer, type Server } from 'http'
 import type { AddressInfo } from 'net'
-import { gzipSync } from 'zlib'
+import { brotliCompressSync, deflateRawSync, deflateSync, gzipSync } from 'zlib'
 
 import {
   afterAll,
@@ -50,6 +50,37 @@ beforeAll(async () => {
         'Content-Encoding': 'gzip'
       })
       res.end(gzipSync('x'.repeat(50_000)))
+      return
+    }
+    if (req.url === '/stall-gzip' || req.url === '/reset-gzip') {
+      // Half a gzip body, then silence — or a reset.
+      const full = gzipSync('y'.repeat(200_000))
+      res.writeHead(200, {
+        'Content-Type': 'text/html',
+        'Content-Encoding': 'gzip'
+      })
+      res.write(full.subarray(0, Math.floor(full.length / 2)))
+      if (req.url === '/reset-gzip') {
+        setTimeout(() => req.socket.destroy(), 50)
+      }
+      return
+    }
+    if (req.url === '/deflate' || req.url === '/raw-deflate') {
+      const text = '<html><body>deflated page</body></html>'
+      res.writeHead(200, {
+        'Content-Type': 'text/html',
+        'Content-Encoding': 'deflate'
+      })
+      res.end(req.url === '/deflate' ? deflateSync(text) : deflateRawSync(text))
+      return
+    }
+    if (req.url === '/stacked') {
+      // Applied gzip first, then br: undone br first, then gzip.
+      res.writeHead(200, {
+        'Content-Type': 'text/html',
+        'Content-Encoding': 'gzip, br'
+      })
+      res.end(brotliCompressSync(gzipSync('<html>stacked page</html>')))
       return
     }
     if (req.url === '/big') {
@@ -117,6 +148,52 @@ describe('fetchPinned', () => {
         maxBytes: 10_000
       })
     ).rejects.toThrow(/too large/u)
+  })
+
+  it('a compressed body that stalls rejects at the timeout (N1)', async () => {
+    const started = Date.now()
+    await expect(
+      fetchPinned(new URL(`http://pinned.invalid:${port}/stall-gzip`), {
+        timeoutMs: 400
+      })
+    ).rejects.toThrow()
+    expect(Date.now() - started).toBeLessThan(3000)
+  })
+
+  it('a compressed body that stalls rejects when the caller aborts (N1)', async () => {
+    const controller = new AbortController()
+    setTimeout(() => controller.abort(), 200)
+    await expect(
+      fetchPinned(new URL(`http://pinned.invalid:${port}/stall-gzip`), {
+        signal: controller.signal,
+        timeoutMs: 20_000
+      })
+    ).rejects.toThrow()
+  })
+
+  it('a compressed body whose connection is reset mid-way rejects (N1)', async () => {
+    await expect(
+      fetchPinned(new URL(`http://pinned.invalid:${port}/reset-gzip`), {
+        timeoutMs: 20_000
+      })
+    ).rejects.toThrow()
+  })
+
+  it('decodes zlib and raw deflate alike', async () => {
+    for (const path of ['/deflate', '/raw-deflate']) {
+      const res = await fetchPinned(
+        new URL(`http://pinned.invalid:${port}${path}`)
+      )
+      expect(await res.text()).toContain('deflated page')
+    }
+  })
+
+  it('undoes stacked codings last-applied first', async () => {
+    const res = await fetchPinned(
+      new URL(`http://pinned.invalid:${port}/stacked`)
+    )
+    expect(await res.text()).toContain('stacked page')
+    expect(res.headers.get('content-encoding')).toBeNull()
   })
 
   it('caps the body', async () => {
