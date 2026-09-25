@@ -24,9 +24,11 @@ if (
   })
 ) {
   // Right now, before the next module is evaluated. In Electron's main
-  // process `process.exit` is `app.exit`, which only schedules the exit: the
-  // rest of the bundle (db/db.ts opening PGlite, …) would still run first.
-  // `reallyExit` is Node's own, synchronous exit.
+  // process `process.exit` is `app.exit`, which is not documented as a
+  // synchronous exit (single-instance.ts observed it stopping what followed,
+  // in its own context; this guard does not rely on that): the rest of the
+  // bundle (db/db.ts opening PGlite, …) could still run first. `reallyExit`
+  // is Node's own, synchronous exit.
   const { reallyExit } = process as unknown as {
     reallyExit?: (code: number) => never
   }

@@ -480,7 +480,9 @@ rendering work in.
   Firefox, Arc; `~/Library/Cookies`), a `*credentials*` under `~/.config`,
   `~/.cargo` or `~/.terraform.d`, the keychains, or a `.env*` / `*.pem` /
   `*.key` / `id_*` (and their `.bak` / `.old` / `~` … copies) outside the
-  chat workspace — resolved through `~`, the cwd and symlinks; a `terminal`
+  chat workspace — resolved through `~`, the cwd and symlinks (async, one
+  250 ms budget per call: a path not resolved in time is asked about, a
+  network root is never resolved); a `terminal`
   command naming one of those, running `security find-*-password` or a CLI's
   print-token command (`gh auth token`, …), or listing other processes'
   arguments (`ps` with options, `pgrep -a`, `/proc/<pid>/environ`), a

@@ -587,12 +587,17 @@ describe('sensitiveTarget — grep tree-scan deadline and network roots (N2)', (
     // Simulates a `readdir` on an unresponsive NFS/SMB server: the promise
     // never settles. The real deadline timer (a plain `setTimeout`) is what
     // fake timers control here — the mocked I/O itself is not time-based.
-    vi.spyOn(fsp, 'opendir').mockReturnValue(new Promise<never>(() => {}))
+    const opendir = vi
+      .spyOn(fsp, 'opendir')
+      .mockReturnValue(new Promise<never>(() => {}))
 
     const pending = check(TOOL_NAMES.grep, {
       pattern: '.',
       path: `${env.home}/slow-mount`
     })
+    // Symlink resolution is real I/O: let it finish (the scan has started)
+    // before moving the clock.
+    await vi.waitFor(() => expect(opendir).toHaveBeenCalled())
     // Advance well past any reasonable deadline; the promise above never
     // settles on its own, so only the race's timer can resolve this.
     await vi.advanceTimersByTimeAsync(5_000)
@@ -600,6 +605,41 @@ describe('sensitiveTarget — grep tree-scan deadline and network roots (N2)', (
 
     expect(result?.kind).toBe('ask')
     expect(result?.summary).toContain('too large to check')
+  })
+
+  it('a realpath that never returns asks, as not checked in time (S6)', async () => {
+    vi.useFakeTimers()
+    vi.spyOn(fsp, 'realpath').mockReturnValue(new Promise<never>(() => {}))
+    const pending = check(R, { path: `${env.home}/notes/todo.md` })
+    await vi.advanceTimersByTimeAsync(5_000)
+    const result = await pending
+    expect(result?.kind).toBe('ask')
+    expect(result?.summary).toBe('~/notes/todo.md (not checked in time)')
+  })
+
+  it('a credential path is still named, not just "not checked", when realpath hangs', async () => {
+    vi.useFakeTimers()
+    vi.spyOn(fsp, 'realpath').mockReturnValue(new Promise<never>(() => {}))
+    const pending = check(R, { path: `${env.home}/.ssh/id_rsa` })
+    await vi.advanceTimersByTimeAsync(5_000)
+    expect((await pending)?.summary).toBe('~/.ssh/id_rsa')
+  })
+
+  it('a walk that fails midway asks (S6)', async () => {
+    mkdirSync(join(env.home, 'flaky'), { recursive: true })
+    vi.spyOn(fsp, 'opendir').mockResolvedValue({
+      close: async () => {},
+      [Symbol.asyncIterator]: async function* () {
+        yield* []
+        throw Object.assign(new Error('EIO'), { code: 'EIO' })
+      }
+    } as never)
+    const result = await check(TOOL_NAMES.grep, {
+      pattern: '.',
+      path: `${env.home}/flaky`
+    })
+    expect(result?.kind).toBe('ask')
+    expect(result?.summary).toContain('could not be read in full')
   })
 
   it.each([
@@ -611,6 +651,7 @@ describe('sensitiveTarget — grep tree-scan deadline and network roots (N2)', (
     async (path) => {
       const opendirSpy = vi.spyOn(fsp, 'opendir')
       const lstatSpy = vi.spyOn(fsp, 'lstat')
+      const realpathSpy = vi.spyOn(fsp, 'realpath')
 
       const result = await check(TOOL_NAMES.grep, { pattern: '.', path })
 
@@ -618,6 +659,10 @@ describe('sensitiveTarget — grep tree-scan deadline and network roots (N2)', (
       expect(result?.summary).toContain('network or cloud volume')
       expect(opendirSpy).not.toHaveBeenCalled()
       expect(lstatSpy).not.toHaveBeenCalled()
+      // Not even resolved: realpath can hang on the same mount.
+      expect(realpathSpy.mock.calls.some(([p]) => String(p) === path)).toBe(
+        false
+      )
     }
   )
 

@@ -71,8 +71,11 @@ function readAck(): number | null {
 
 /**
  * Takes the lock, or ends this process. Synchronous on purpose — it runs while
- * `db.ts` is being imported, and `app.exit()` there stops everything after it
- * (verified: no later statement, microtask or immediate runs).
+ * `db.ts` is being imported. Here `app.exit()` was observed to stop everything
+ * after it (no later statement, microtask or immediate ran), but Electron
+ * documents it only as quitting "immediately", not as a synchronous exit:
+ * `remote-debugging-guard.ts`, which must stop before the next module is even
+ * evaluated, does not rely on it and calls Node's own `reallyExit` instead.
  */
 export function holdSingleInstanceLock(): void {
   if (outcome !== undefined) return

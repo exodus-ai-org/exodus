@@ -1,4 +1,4 @@
-import { type Dir, promises as fsp, realpathSync } from 'fs'
+import { type Dir, promises as fsp } from 'fs'
 import { homedir } from 'os'
 import { basename, dirname, isAbsolute, join, resolve, sep } from 'path'
 import { fileURLToPath } from 'url'
@@ -197,29 +197,89 @@ function isWithin(child: string, parent: string, env: MatchEnv): boolean {
 }
 
 /**
- * The path with every symlink resolved — of the path itself when it exists,
- * else of its nearest existing ancestor (so a new file under a symlinked
- * directory still resolves). Never throws.
+ * How long one call's symlink resolution may take in all. `realpath` on an
+ * unresponsive network mount can block far longer; every resolution is async
+ * and raced against this, and a path still unresolved when it passes is asked
+ * about (S6 minor) — never waited on, which would hold `beforeToolCall` (and
+ * the HTTP server, IPC, every other run's SSE) behind the mount.
  */
-function realish(path: string): string {
-  let current = path
-  const rest: string[] = []
-  for (;;) {
-    try {
-      return join(realpathSync(current), ...rest)
-    } catch {
+const RESOLVE_DEADLINE_MS = 250
+const TIMED_OUT = Symbol('timed-out')
+
+/** A path and its symlink-resolved form, and whether resolving it timed out. */
+interface PathForms {
+  forms: string[]
+  unchecked: boolean
+}
+
+/**
+ * Symlink resolution for one `sensitiveTarget` call: memoized, async, and
+ * bounded by one shared deadline. A path under a network root is never
+ * resolved at all (`realpath` itself can hang there).
+ */
+class PathResolver {
+  private readonly cache = new Map<string, Promise<string | typeof TIMED_OUT>>()
+  private readonly deadline: Promise<typeof TIMED_OUT>
+  private timer: ReturnType<typeof setTimeout> | undefined
+
+  constructor(
+    private readonly env: MatchEnv,
+    ms = RESOLVE_DEADLINE_MS
+  ) {
+    this.deadline = new Promise((settle) => {
+      this.timer = setTimeout(() => settle(TIMED_OUT), ms)
+      this.timer.unref?.()
+    })
+  }
+
+  dispose(): void {
+    clearTimeout(this.timer)
+  }
+
+  /**
+   * The path with every symlink resolved — of the path itself when it
+   * exists, else of its nearest existing ancestor (so a new file under a
+   * symlinked directory still resolves) — or `TIMED_OUT`. Never throws.
+   */
+  real(path: string): Promise<string | typeof TIMED_OUT> {
+    if (isNetworkRoot(path, this.env)) return Promise.resolve(path)
+    let hit = this.cache.get(path)
+    if (!hit) {
+      hit = this.resolve(path)
+      this.cache.set(path, hit)
+    }
+    return hit
+  }
+
+  private async resolve(path: string): Promise<string | typeof TIMED_OUT> {
+    let current = path
+    const rest: string[] = []
+    for (;;) {
+      const attempt = fsp.realpath(current).then(
+        (value) => ({ ok: true as const, value }),
+        () => ({ ok: false as const })
+      )
+      const r = await Promise.race([attempt, this.deadline])
+      if (r === TIMED_OUT) return TIMED_OUT
+      if (r.ok) return join(r.value, ...rest)
       const parent = dirname(current)
       if (parent === current) return path
       rest.unshift(basename(current))
       current = parent
     }
   }
-}
 
-/** A path and its symlink-resolved form (one entry when they agree). */
-function forms(path: string): string[] {
-  const real = realish(path)
-  return real === path ? [path] : [path, real]
+  /** A path and its symlink-resolved form (one entry when they agree). */
+  async forms(path: string): Promise<PathForms> {
+    const real = await this.real(path)
+    if (real === TIMED_OUT) return { forms: [path], unchecked: true }
+    return { forms: real === path ? [path] : [path, real], unchecked: false }
+  }
+
+  /** `forms` for a root: a root not resolved in time is used as written. */
+  async rootForms(path: string): Promise<string[]> {
+    return (await this.forms(path)).forms
+  }
 }
 
 function expandHome(path: string, home: string): string {
@@ -241,6 +301,7 @@ function display(path: string, env: MatchEnv): string {
 }
 
 interface Roots {
+  resolver: PathResolver
   refused: string[]
   secret: string[]
   /** Where a file named `*credentials*` is one. */
@@ -250,23 +311,30 @@ interface Roots {
   workspace: string[]
 }
 
-function rootsOf(env: MatchEnv, workspaceDir: string | undefined): Roots {
-  const refused = EXODUS_REFUSED.map((r) => join(env.exodusHome, r)).flatMap(
-    forms
-  )
-  const secret = [
-    ...HOME_SECRET_ROOTS.map((r) => join(env.home, r)),
-    ...SYSTEM_SECRET_ROOTS
-  ].flatMap(forms)
-  const credentialDirs = HOME_CREDENTIAL_NAME_DIRS.map((r) =>
-    join(env.home, r)
-  ).flatMap(forms)
-  const workspace = workspaceDir ? forms(resolve(workspaceDir)) : []
+async function rootsOf(
+  env: MatchEnv,
+  workspaceDir: string | undefined,
+  resolver: PathResolver
+): Promise<Roots> {
+  const all = async (paths: string[]) =>
+    (await Promise.all(paths.map((p) => resolver.rootForms(p)))).flat()
+  const [refused, secret, credentialDirs, workspace, exodusHome] =
+    await Promise.all([
+      all(EXODUS_REFUSED.map((r) => join(env.exodusHome, r))),
+      all([
+        ...HOME_SECRET_ROOTS.map((r) => join(env.home, r)),
+        ...SYSTEM_SECRET_ROOTS
+      ]),
+      all(HOME_CREDENTIAL_NAME_DIRS.map((r) => join(env.home, r))),
+      workspaceDir ? all([resolve(workspaceDir)]) : Promise.resolve([]),
+      all([env.exodusHome])
+    ])
   return {
+    resolver,
     refused,
     secret,
     credentialDirs,
-    exodusHome: forms(env.exodusHome),
+    exodusHome,
     workspace
   }
 }
@@ -287,13 +355,13 @@ function isCredentialNamed(path: string, roots: Roots, env: MatchEnv): boolean {
  * are checked, so a link in the workspace pointing at `~/.ssh/id_rsa` is
  * caught, and a real `.env` in the workspace is not.
  */
-function classifyPath(
+async function classifyPath(
   path: string,
   roots: Roots,
   env: MatchEnv,
   opts: { recursive?: boolean } = {}
-): { kind: SensitiveKind; via: string } | null {
-  const candidates = forms(path)
+): Promise<{ kind: SensitiveKind; via: string; unchecked?: boolean } | null> {
+  const { forms: candidates, unchecked } = await roots.resolver.forms(path)
   const refused = candidates.find((p) =>
     roots.refused.some((r) => isWithin(p, r, env))
   )
@@ -314,6 +382,9 @@ function classifyPath(
       return ask
     }
   }
+  // Where it really points could not be told in time: asked about, never
+  // waited on (fail closed).
+  if (unchecked) return { kind: 'ask', via: path, unchecked: true }
   return null
 }
 
@@ -322,6 +393,8 @@ const MAX_SCAN_ENTRIES = 20_000
 const TOO_MANY = '\u0000too-many'
 /** A mount or cloud-sync root: asked about without ever being read (below). */
 const NETWORK_VOLUME = '\u0000network-volume'
+/** A tree whose walk failed midway (EIO, a vanished mount): asked about. */
+const UNREADABLE = '\u0000unreadable'
 
 /**
  * How long a grep-root scan may run before it gives up and asks anyway. An
@@ -418,7 +491,14 @@ async function findSecretInTree(
     } catch {
       return null
     }
-    return isDir ? walk(root, 0) : null
+    if (!isDir) return null
+    try {
+      return await walk(root, 0)
+    } catch {
+      // A read that failed midway (not an unopenable directory, which grep
+      // cannot read either): what was left unread is unknown — fail closed.
+      return UNREADABLE
+    }
   }
 
   const scanPromise = scan()
@@ -486,26 +566,33 @@ async function matchPathTool(
   const hits: SensitiveTarget[] = []
   for (const base of bases) {
     const abs = base ? resolve(base, expanded) : resolve(expanded)
-    const hit = classifyPath(abs, roots, env, {
+    const hit = await classifyPath(abs, roots, env, {
       recursive: toolName === TOOL_NAMES.grep
     })
     if (!hit) {
       // A grep reads every file under its root: a root outside the workspace
       // asks as `read_file` would when the tree holds a secret-named file.
       if (toolName === TOOL_NAMES.grep) {
-        // A network root is never resolved through `realpathSync` either —
-        // that syscall can hang on the same unresponsive mount.
-        const scanRoot = isNetworkRoot(abs, env) ? abs : realish(abs)
-        const found = await findSecretInTree(scanRoot, roots, env)
+        // A network root is never resolved (`PathResolver.real`) — realpath
+        // can hang on the same unresponsive mount.
+        const real = await roots.resolver.real(abs)
+        const found =
+          real === TIMED_OUT
+            ? TOO_MANY
+            : await findSecretInTree(real, roots, env)
         if (found) {
           const why =
             found === TOO_MANY
               ? 'too large to check'
               : found === NETWORK_VOLUME
                 ? 'on a network or cloud volume, not scanned'
-                : display(found, env)
+                : found === UNREADABLE
+                  ? 'could not be read in full'
+                  : display(found, env)
           const suffix =
-            found === TOO_MANY || found === NETWORK_VOLUME
+            found === TOO_MANY ||
+            found === NETWORK_VOLUME ||
+            found === UNREADABLE
               ? why
               : `contains ${why}`
           hits.push({
@@ -517,8 +604,9 @@ async function matchPathTool(
       continue
     }
     // A link is shown with what it points at — that is what gets read.
-    const summary =
-      hit.via === abs
+    const summary = hit.unchecked
+      ? `${display(abs, env)} (not checked in time)`
+      : hit.via === abs
         ? display(abs, env)
         : `${display(abs, env)} → ${display(hit.via, env)}`
     hits.push({ kind: hit.kind, summary })
@@ -587,13 +675,13 @@ function withTrigger(trigger: string, command: string): string {
   return `${trigger} — ${commandSummary(command)}`
 }
 
-function matchCommand(
+async function matchCommand(
   command: string,
   cwdArg: string | null,
   roots: Roots,
   env: MatchEnv,
   workspaceDir: string | undefined
-): SensitiveTarget | null {
+): Promise<SensitiveTarget | null> {
   const refusedMention =
     REFUSED_MENTION.exec(command)?.[0] ??
     (EXODUS_MENTION.test(command)
@@ -613,10 +701,15 @@ function matchCommand(
   const tokens = command
     .split(/[\s'"`;|&<>(),=]+/u)
     .slice(0, MAX_COMMAND_TOKENS)
-  for (const token of tokens) {
-    if (!token || token.startsWith('-') || token.includes('://')) continue
-    const abs = resolve(cwd, expandHome(token, env.home))
-    const hit = classifyPath(abs, roots, env)
+  const candidates = tokens
+    .filter((t) => t && !t.startsWith('-') && !t.includes('://'))
+    .map((t) => resolve(cwd, expandHome(t, env.home)))
+  // Resolved together (one shared deadline), judged in order.
+  const hits = await Promise.all(
+    candidates.map((abs) => classifyPath(abs, roots, env))
+  )
+  for (const [i, abs] of candidates.entries()) {
+    const hit = hits[i]
     if (hit?.kind === 'refuse') {
       return {
         kind: 'refuse',
@@ -635,7 +728,7 @@ function matchCommand(
     KEYCHAIN_COMMAND.exec(command)?.[0] ??
     CREDENTIAL_COMMAND.exec(command)?.[0] ??
     processArgsTrigger(command) ??
-    (classifyPath(cwd, roots, env) ? display(cwd, env) : null)
+    ((await classifyPath(cwd, roots, env)) ? display(cwd, env) : null)
   return trigger
     ? { kind: 'ask', summary: withTrigger(trigger, command) }
     : null
@@ -694,12 +787,12 @@ function leafAsPath(leaf: string, home: string): string | null {
  * URL at Exodus's own API ports, which is refused. The summary names the
  * server and tool, then what matched.
  */
-function matchMcpCall(
+async function matchMcpCall(
   args: unknown,
   roots: Roots,
   env: MatchEnv,
   workspaceDir: string | undefined
-): SensitiveTarget | null {
+): Promise<SensitiveTarget | null> {
   const server = stringArg(args, 'server') ?? '?'
   const tool = stringArg(args, 'tool') ?? '?'
   const label = `${server}/${tool}`
@@ -721,7 +814,7 @@ function matchMcpCall(
     }
     const path = leafAsPath(leaf, env.home)
     const pathHit = path
-      ? classifyPath(path, roots, env, { recursive: true })
+      ? await classifyPath(path, roots, env, { recursive: true })
       : null
     if (pathHit && path) {
       hits.push({
@@ -730,7 +823,7 @@ function matchMcpCall(
       })
       continue
     }
-    const hit = matchCommand(leaf, null, roots, env, workspaceDir)
+    const hit = await matchCommand(leaf, null, roots, env, workspaceDir)
     if (hit) hits.push({ kind: hit.kind, summary: `${label}: ${hit.summary}` })
   }
   return strongest(hits)
@@ -749,26 +842,37 @@ export async function sensitiveTarget(
   workspaceDir?: string,
   env: MatchEnv = defaultEnv()
 ): Promise<SensitiveTarget | null> {
-  const roots = rootsOf(env, workspaceDir)
-  if (toolName === TOOL_NAMES.callMcpTool) {
-    return matchMcpCall(args, roots, env, workspaceDir)
+  const isPathTool = toolName in PATH_TOOLS
+  if (
+    toolName !== TOOL_NAMES.callMcpTool &&
+    toolName !== TOOL_NAMES.terminal &&
+    !isPathTool
+  ) {
+    return null
   }
-  if (toolName === TOOL_NAMES.terminal) {
-    const command = stringArg(args, 'command')
-    if (!command) return null
-    return await matchCommand(
-      command,
-      stringArg(args, 'cwd'),
-      roots,
-      env,
-      workspaceDir
-    )
+  const resolver = new PathResolver(env)
+  try {
+    const roots = await rootsOf(env, workspaceDir, resolver)
+    if (toolName === TOOL_NAMES.callMcpTool) {
+      return await matchMcpCall(args, roots, env, workspaceDir)
+    }
+    if (toolName === TOOL_NAMES.terminal) {
+      const command = stringArg(args, 'command')
+      if (!command) return null
+      return await matchCommand(
+        command,
+        stringArg(args, 'cwd'),
+        roots,
+        env,
+        workspaceDir
+      )
+    }
+    const path = stringArg(args, PATH_TOOLS[toolName]!)
+    if (!path) return null
+    return await matchPathTool(toolName, path, roots, env, workspaceDir)
+  } finally {
+    resolver.dispose()
   }
-  const key = PATH_TOOLS[toolName]
-  if (!key) return null
-  const path = stringArg(args, key)
-  if (!path) return null
-  return await matchPathTool(toolName, path, roots, env, workspaceDir)
 }
 
 /** What the model reads when the user (or the clock, or Stop) says no. */
