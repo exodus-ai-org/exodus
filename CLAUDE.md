@@ -661,7 +661,8 @@ Multi-level recursive research with real-time progress streaming:
    - Configurable breadth (default: 4 queries per level)
 
 2. **Search Execution** (`deep-research.ts`):
-   - Executes Serper API searches recursively
+   - Executes Brave Search API searches recursively (`braveApiKey`,
+     `web-search.ts`)
    - Depth parameter controls recursion levels (default: 2)
    - Processes results and extracts learnings
 
@@ -677,7 +678,11 @@ Multi-level recursive research with real-time progress streaming:
 
 5. **Progress Streaming** (`src/main/lib/server/routes/deep-research.ts`):
    - SSE connection for real-time updates
-   - Status: `streaming` → `completed` or `failed`
+   - `jobStatus`: `streaming` → `archived` on success, or `failed` (with an
+     `errorMessage`) for any thrown error — search, an LLM call, a dropped
+     connection, or the run being stopped — so a job never stays `streaming`
+     forever (the desktop card and exodus-ios's 15-minute stall check both
+     key off it)
    - Frontend polls for progress messages
 
 ### MCP (Model Context Protocol)
@@ -1480,7 +1485,12 @@ Main process:
   and three `pg_switch_wal()` / `CHECKPOINT` rounds so no plaintext survives in
   the heap, the WAL or a `dumpDataDir()` backup, and the raw log files are
   rewritten with secrets masked; each step fails on its own; marker
-  `~/.exodus/secrets-purge.json`), `status.ts` (what
+  `~/.exodus/secrets-purge.json` — once that marker's `purgedAt` is on record
+  and encryption reads `'on'`, `removeOldBackupsOnce()` also deletes every
+  `~/.exodus/backups` auto-backup older than it (the pre-encryption ones,
+  which held every key in the clear — owner's call 2026-09-26), once,
+  recording `oldBackupsRemovedAt` in the same marker so it never repeats and
+  never touches a backup made since), `status.ts` (what
   `GET /api/v1/settings/secrets-status` reports), `moved.ts` (the secrets a
   destination move cleared, by name, in `~/.exodus/secrets-reentry.json`,
   listed until re-entered), `url.ts` (re-exports the shared
