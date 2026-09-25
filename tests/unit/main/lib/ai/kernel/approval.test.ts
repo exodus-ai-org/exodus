@@ -618,23 +618,18 @@ describe('sensitiveTarget — grep tree-scan deadline and network roots (N2)', (
   })
 
   it('the deadline is per path: slow but finishing resolutions never time out (m6)', async () => {
-    const dir = join(env.home, 'notes-m6')
-    mkdirSync(dir, { recursive: true })
-    for (const n of ['one', 'two', 'three']) {
-      writeFileSync(join(dir, `${n}.md`), n)
-    }
     vi.useFakeTimers()
-    const real = fsp.realpath.bind(fsp)
+    // Every realpath answers after 150 ms of (fake) time, as itself: no real
+    // I/O, so a loaded machine cannot move the result.
     vi.spyOn(fsp, 'realpath').mockImplementation(
       (p) =>
-        new Promise((resolve, reject) => {
-          setTimeout(() => {
-            real(p as string).then(resolve, reject)
-          }, 150)
+        new Promise((resolve) => {
+          setTimeout(() => resolve(p as string), 150)
         }) as never
     )
     // Each leaf is resolved in turn; under one 250 ms budget for the call
     // the second and third would read as "not checked in time".
+    const dir = join(env.home, 'notes-m6')
     const pending = check(TOOL_NAMES.callMcpTool, {
       server: 'fs',
       tool: 'read',
@@ -644,7 +639,7 @@ describe('sensitiveTarget — grep tree-scan deadline and network roots (N2)', (
         c: `${dir}/three.md`
       }
     })
-    for (let i = 0; i < 40; i++) await vi.advanceTimersByTimeAsync(100)
+    for (let i = 0; i < 40; i++) await vi.advanceTimersByTimeAsync(50)
     expect(await pending).toBeNull()
   })
 
