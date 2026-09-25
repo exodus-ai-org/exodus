@@ -59,11 +59,17 @@ function result(
   }
 }
 
-async function render(toolResult: ChatToolResultMessage) {
+async function render(toolResult: ChatToolResultMessage, isStreaming = true) {
   const host = document.createElement('div')
   const root = createRoot(host)
   await act(async () =>
-    root.render(createElement(MessageCallingTools, { chatId: 'c', toolResult }))
+    root.render(
+      createElement(MessageCallingTools, {
+        chatId: 'c',
+        toolResult,
+        isStreaming
+      })
+    )
   )
   return host
 }

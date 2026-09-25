@@ -1,0 +1,159 @@
+// safeStorage encryption of one secret value (spec 2026-09-25 §2.3): the
+// `enc:v1:` envelope, the unavailable backend (plaintext + a status) and a
+// decrypt failure (never the ciphertext as a key). safeStorage is faked.
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+import {
+  fakeSafeStorageState,
+  resetFakeSafeStorage
+} from '../../../helpers/fake-safe-storage'
+
+const warn = vi.hoisted(() => vi.fn())
+vi.mock('electron', async () => {
+  const { fakeSafeStorage } = await import('../../../helpers/fake-safe-storage')
+  return { app: { getPath: () => '/tmp' }, safeStorage: fakeSafeStorage }
+})
+vi.mock('@main/lib/logger', () => ({
+  logger: { info: vi.fn(), warn, error: vi.fn(), debug: vi.fn() }
+}))
+
+const {
+  ENC_PREFIX,
+  decryptSecret,
+  encryptSecret,
+  encryptionState,
+  isEncryptedSecret,
+  resetEncryptionWarning
+} = await import('@main/lib/secrets/crypto')
+
+const KEY = 'sk-proj-abcdefghijklmnop-1234'
+const realPlatform = process.platform
+
+beforeEach(() => {
+  resetFakeSafeStorage()
+  resetEncryptionWarning()
+  warn.mockClear()
+})
+afterEach(() => {
+  Object.defineProperty(process, 'platform', { value: realPlatform })
+})
+
+describe('encryptSecret / decryptSecret', () => {
+  it('round-trips through an enc:v1: envelope that hides the value', () => {
+    const sealed = encryptSecret(KEY)
+    expect(sealed.startsWith(ENC_PREFIX)).toBe(true)
+    expect(sealed).not.toContain(KEY)
+    expect(sealed).not.toContain(KEY.slice(-4))
+    expect(isEncryptedSecret(sealed)).toBe(true)
+    expect(decryptSecret(sealed)).toEqual({ ok: true, value: KEY })
+  })
+
+  it('leaves an already-encrypted value alone', () => {
+    const sealed = encryptSecret(KEY)
+    expect(encryptSecret(sealed)).toBe(sealed)
+  })
+
+  it('leaves an empty value alone', () => {
+    expect(encryptSecret('')).toBe('')
+  })
+
+  it('reads a plaintext value (not yet migrated) as itself', () => {
+    expect(decryptSecret(KEY)).toEqual({ ok: true, value: KEY })
+    expect(isEncryptedSecret(KEY)).toBe(false)
+  })
+
+  it('reports a ciphertext it cannot open as a failure, never as a value', () => {
+    const sealed = encryptSecret(KEY)
+    fakeSafeStorageState.machine = 'machine-B'
+    const out = decryptSecret(sealed)
+    expect(out).toEqual({ ok: false })
+    expect(JSON.stringify(out)).not.toContain(ENC_PREFIX)
+  })
+
+  // M1: only a well-formed envelope counts as encrypted — the prefix, valid
+  // base64, and an OSCrypt `v10` / `v11` blob inside. A plaintext that merely
+  // starts with `enc:v1:` is encrypted like any other value.
+  it.each([
+    'enc:v1:hello',
+    'enc:v1:!!!not base64',
+    `enc:v1:${Buffer.from('plain bytes, no tag').toString('base64')}`,
+    'enc:v1:'
+  ])('encrypts a plaintext that only looks like an envelope: %s', (v) => {
+    expect(isEncryptedSecret(v)).toBe(false)
+    const sealed = encryptSecret(v)
+    expect(sealed).not.toBe(v)
+    expect(isEncryptedSecret(sealed)).toBe(true)
+    expect(decryptSecret(sealed)).toEqual({ ok: true, value: v })
+  })
+
+  it('reads such a value stored with no backend as the plaintext it is', () => {
+    expect(decryptSecret('enc:v1:!!!not base64')).toEqual({
+      ok: true,
+      value: 'enc:v1:!!!not base64'
+    })
+  })
+
+  it("still treats another machine's well-formed ciphertext as encrypted", () => {
+    const sealed = encryptSecret(KEY)
+    fakeSafeStorageState.machine = 'machine-B'
+    expect(isEncryptedSecret(sealed)).toBe(true)
+    expect(encryptSecret(sealed)).toBe(sealed)
+  })
+})
+
+describe('an unavailable backend', () => {
+  it('keeps plaintext, says so, and warns once', async () => {
+    fakeSafeStorageState.available = false
+    expect(encryptSecret(KEY)).toBe(KEY)
+    expect(encryptSecret(KEY)).toBe(KEY)
+    expect(encryptionState()).toBe('unavailable')
+    await vi.waitFor(() => expect(warn).toHaveBeenCalled())
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(JSON.stringify(warn.mock.calls)).not.toContain(KEY)
+  })
+
+  it("treats Linux's basic_text backend as unavailable", () => {
+    Object.defineProperty(process, 'platform', { value: 'linux' })
+    fakeSafeStorageState.backend = 'basic_text'
+    expect(encryptSecret(KEY)).toBe(KEY)
+    expect(encryptionState()).toBe('unavailable')
+  })
+
+  it('is on with a real backend', () => {
+    Object.defineProperty(process, 'platform', { value: 'linux' })
+    fakeSafeStorageState.backend = 'gnome_libsecret'
+    expect(encryptionState()).toBe('on')
+    expect(encryptSecret(KEY).startsWith(ENC_PREFIX)).toBe(true)
+  })
+
+  it('cannot open a ciphertext either', () => {
+    const sealed = encryptSecret(KEY)
+    fakeSafeStorageState.available = false
+    expect(decryptSecret(sealed)).toEqual({ ok: false })
+  })
+})
+
+describe('the envelope self-check', () => {
+  it('a backend whose blobs are not v10 / v11 envelopes counts as unavailable', () => {
+    fakeSafeStorageState.tag = 'v20'
+    expect(encryptionState()).toBe('unavailable')
+    // Kept as it is, never wrapped into an envelope nothing would recognize.
+    expect(encryptSecret(KEY)).toBe(KEY)
+  })
+
+  it('a probe that fails to decrypt once is no verdict, and is not cached (S2 minor)', () => {
+    fakeSafeStorageState.denyDecrypt = true
+    expect(encryptionState()).toBe('on')
+    fakeSafeStorageState.denyDecrypt = false
+    // The next call really checks: a bad tag now turns it off.
+    fakeSafeStorageState.tag = 'v20'
+    expect(encryptionState()).toBe('unavailable')
+  })
+
+  it('a Keychain refusing the probe is no verdict', () => {
+    fakeSafeStorageState.denyEncrypt = true
+    expect(encryptionState()).toBe('on')
+    fakeSafeStorageState.denyEncrypt = false
+    expect(encryptSecret(KEY).startsWith(ENC_PREFIX)).toBe(true)
+  })
+})

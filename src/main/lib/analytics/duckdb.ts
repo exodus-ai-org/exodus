@@ -14,6 +14,12 @@ import { getAnalyticsDbPath } from '../paths'
  *   read-write, and every DuckDB operation is serialised on one promise chain
  *   so the two modes never overlap (DuckDB refuses to open one file twice in
  *   the same process anyway).
+ * - No file access from the console: the read-only instance — opened only
+ *   after the snapshot's tables exist — runs with `enable_external_access =
+ *   false` and `lock_configuration = true`, so `read_text` / `read_blob` /
+ *   `read_json` / `COPY` / `ATTACH` of any path (the PGlite files, `~/.ssh`)
+ *   fail, and no query can turn it back on. The snapshot is all it can read;
+ *   that is why `logs` is a table copied at rebuild, not a view over the files.
  */
 
 type DuckDBModule = typeof import('@duckdb/node-api')
@@ -74,9 +80,16 @@ async function openInstance(mode: AccessMode): Promise<DuckDBInstance> {
   if (instance && instanceMode === mode) return instance
   closeInstanceSync()
   const { DuckDBInstance } = await loadDuckDB()
-  instance = await DuckDBInstance.create(getAnalyticsDbPath(), {
-    access_mode: mode
-  })
+  instance = await DuckDBInstance.create(
+    getAnalyticsDbPath(),
+    mode === 'READ_ONLY'
+      ? {
+          access_mode: mode,
+          enable_external_access: 'false',
+          lock_configuration: 'true'
+        }
+      : { access_mode: mode }
+  )
   instanceMode = mode
   return instance
 }

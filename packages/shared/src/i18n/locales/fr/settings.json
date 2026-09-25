@@ -328,7 +328,8 @@
       "retrieve": "Récupérer la liste des modèles",
       "refresh": "Actualiser la liste des modèles",
       "fetchErrorTitle": "Impossible de récupérer la liste des modèles",
-      "fetchErrorFallback": "Échec de la récupération de la liste des modèles"
+      "fetchErrorFallback": "Échec de la récupération de la liste des modèles",
+      "reenterKey": "Saisissez à nouveau la clé API pour l’utiliser avec la nouvelle URL de base."
     }
   },
   "tools": {
@@ -561,7 +562,7 @@
     },
     "export": {
       "label": "Exporter les données",
-      "description": "Téléchargez une copie portable de vos conversations, paramètres et autres données sous forme d'archive ZIP.",
+      "description": "Téléchargez une copie portable de vos conversations, paramètres et autres données sous forme d'archive ZIP. Les clés API et autres secrets sont retirés de l’export.",
       "button": "Exporter",
       "successToast": "Données exportées avec succès",
       "errorToast": "Échec de l'exportation",
@@ -666,7 +667,8 @@
       "editAria": "Modifier le serveur",
       "deleteAria": "Supprimer le serveur",
       "showTools": "Afficher les outils",
-      "hideTools": "Masquer les outils"
+      "hideTools": "Masquer les outils",
+      "reenter": "À saisir à nouveau : {{fields}}"
     },
     "intro": "Enregistrez des serveurs <2>MCP</2> (locaux ou distants), puis activez l'interrupteur pour utiliser leurs outils dans la conversation.",
     "activeSummary": "Actuellement <strong>{{totalToolCount}} outils</strong> actifs provenant de <strong>{{activeCount}} serveurs</strong>.",
@@ -707,7 +709,8 @@
         "label": "Arguments",
         "description": "Arguments de la commande, un par ligne. L'ordre compte.",
         "addButton": "Ajouter un argument",
-        "removeAria": "Supprimer l'argument {{index}}"
+        "removeAria": "Supprimer l'argument {{index}}",
+        "secretNotice": "Les secrets placés dans les arguments sont visibles par les autres programmes de cet ordinateur tant que le serveur tourne — mettez-les dans des variables d’environnement."
       },
       "url": {
         "label": "URL",
@@ -728,7 +731,16 @@
       },
       "updateButton": "Mettre à jour",
       "registerButton": "Enregistrer",
-      "addServerButton": "Ajouter un serveur"
+      "addServerButton": "Ajouter un serveur",
+      "env": {
+        "label": "Variables d’environnement",
+        "description": "Objet JSON des variables d’environnement transmises à la commande (facultatif)."
+      },
+      "reenterHint": "Modifier la commande ou les arguments vous demandera de saisir à nouveau les valeurs masquées.",
+      "maskedHint": "•••• représente une valeur enregistrée : laissez-la telle quelle pour la conserver.",
+      "reenterError": "Saisissez à nouveau le secret ici : il contient encore une valeur masquée (••••) qui ne peut pas être conservée.",
+      "urlHint": "Modifier cette adresse efface les en-têtes enregistrés : saisissez-les à nouveau après l’enregistrement.",
+      "reenterFields": "Saisissez-les à nouveau : les valeurs enregistrées ont été effacées ou ne peuvent pas être lues : {{fields}}"
     },
     "json": {
       "description": "Vue en lecture seule de la configuration actuelle. Utilisez l'onglet Serveurs pour apporter des modifications."
@@ -746,7 +758,8 @@
       "updateFailed": "Échec de la mise à jour du serveur",
       "registerFailed": "Échec de l'enregistrement",
       "removeFailed": "Échec de la suppression du serveur",
-      "toggleFailed": "Échec du basculement du serveur"
+      "toggleFailed": "Échec du basculement du serveur",
+      "invalidEnv": "JSON des variables d’environnement invalide"
     }
   },
   "memory": {
@@ -931,7 +944,7 @@
       "building": "Création…",
       "builtAt": "Créé {{when}}",
       "engine": "DuckDB {{version}}",
-      "logsIncluded": "logs (vue sur les fichiers journaux)",
+      "logsIncluded": "logs (copiés depuis les fichiers journaux)",
       "logsMissing": "logs (aucun fichier journal trouvé)",
       "openFolder": "Ouvrir le dossier",
       "unavailable": "Impossible de démarrer DuckDB",
@@ -952,7 +965,7 @@
       "title": "Requête",
       "run": "Exécuter",
       "running": "Exécution…",
-      "tables": "Tables : chats, messages, projects, logs (vue)"
+      "tables": "Tables : chats, messages, projects, logs"
     },
     "results": {
       "rowCount_one": "{{count}} ligne",
@@ -1014,6 +1027,35 @@
     "toast": {
       "failedTitle": "L’opération a échoué",
       "pairedTitle": "Appareil jumelé"
+    }
+  },
+  "secrets": {
+    "input": {
+      "saved": "Enregistrée",
+      "reenter": "Saisissez à nouveau cette clé : celle enregistrée ne peut plus être utilisée.",
+      "savedAria": "Clé enregistrée se terminant par {{last4}}",
+      "savedShortAria": "Clé enregistrée",
+      "noneAria": "Aucune clé enregistrée"
+    },
+    "destinationHint": "Modifier cette adresse efface la clé API enregistrée : saisissez-la à nouveau après l’enregistrement.",
+    "notice": {
+      "encryptionUnavailable": "Le trousseau de votre système n’est pas disponible ; les clés API sont stockées sans chiffrement.",
+      "needsReentry": "Saisissez à nouveau ces clés : elles ne peuvent plus être lues ou ont été effacées lors du changement de leur adresse :"
+    },
+    "fields": {
+      "openaiApiKey": "Clé API OpenAI",
+      "azureOpenaiApiKey": "Clé API Azure OpenAI",
+      "anthropicApiKey": "Clé API Anthropic",
+      "googleGeminiApiKey": "Clé API Gemini",
+      "xAiApiKey": "Clé API xAI",
+      "googleApiKey": "Clé API Google Maps",
+      "braveApiKey": "Clé API Brave Search",
+      "knowledgeBaseApiKey": "Clé API LightRAG",
+      "elasticsearchPassword": "Mot de passe Elasticsearch",
+      "s3AccessKeyId": "ID de clé d’accès Amazon S3",
+      "s3SecretAccessKey": "Clé d’accès secrète Amazon S3",
+      "legacyMcpServers": "Ancienne configuration MCP",
+      "mcp": "Serveur MCP « {{server}} » : {{field}}"
     }
   }
 }

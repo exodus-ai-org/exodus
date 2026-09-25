@@ -4,8 +4,15 @@ import {
 } from '@exodus/shared/schemas/settings-schema'
 import { cloneDeep, get, isEqual, set } from 'lodash-es'
 
+import { clearMovedSecrets } from '@/lib/secrets'
+
 export type SettingsSaveResult =
-  | { status: 'save'; payload: Settings }
+  | {
+      status: 'save'
+      payload: Settings
+      /** Masked keys this save clears because their address moved. */
+      clearedSecrets: string[]
+    }
   | { status: 'noop' }
   | { status: 'invalid'; errors: string[] }
 
@@ -36,6 +43,9 @@ export function buildSettingsSave(
     }
   }
   if (!dirty) return { status: 'noop' }
+  // A key shown as its mask cannot follow a new base URL (the server clears
+  // it); clearing it here too keeps the cache — and the form — truthful.
+  const clearedSecrets = clearMovedSecrets(persisted, candidate)
 
   const parsed = SettingsSchema.safeParse(candidate)
   if (!parsed.success) {
@@ -47,6 +57,7 @@ export function buildSettingsSave(
   }
   return {
     status: 'save',
-    payload: { ...parsed.data, id: persisted.id } as Settings
+    payload: { ...parsed.data, id: persisted.id } as Settings,
+    clearedSecrets
   }
 }

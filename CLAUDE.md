@@ -112,7 +112,7 @@ Exodus uses a three-process architecture:
    - Manages Electron app lifecycle, window creation, and IPC
    - Runs Hono HTTP server on `localhost:60223` (constant `SERVER_PORT` in `packages/shared/src/constants/systems.ts`)
    - Initializes PGlite database with pgvector extension
-   - MCP server connection is archived (commented out in `app.ts`); an `/api/v1/mcp` route + settings remain
+   - Connects the active MCP servers on demand — each chat request (and each Philharmonic employee loop) calls `getMcpTools()` (`src/main/lib/ai/mcp.ts`, a 5-minute per-server cache); nothing connects at startup
    - Handles updates (`src/main/lib/auto-updater.ts`, which keeps the state machine the renderer's update panel speaks): Squirrel via `update-electron-app` for a signed build, a release-page link for an unsigned one — see "Updates and code signing"
 
 2. **Renderer Process** (`src/renderer/`):
@@ -135,7 +135,10 @@ Exodus is the successor of the older `universal-client` app and shares its
 - **Data dir**: `~/.exodus` for packaged _and_ unpackaged runs (`bun run start`,
   `electron .`) — `getExodusHome()` in `src/main/lib/paths.ts`; startup logs the
   directory in use (`Data directory`); `~/.exodus/analytics` holds the DuckDB
-  chat-audit snapshot. **PGlite is single-process: never run two
+  chat-audit snapshot; `~/.exodus/media/<chatId>/` holds generated images
+  (`getMediaDir()`, and a chat's or Group's own dir only through
+  `mediaDirFor()` in `media/store.ts`, which refuses an id that would leave
+  it; a Philharmonic Group's go to `media/_groups/<conversationId>/`). **PGlite is single-process: never run two
   Exodus processes (a dev build, the packaged app, universal-client) against it
   at the same time** — the database can be corrupted (backups live in
   `~/.exodus/backups`). Between Exodus builds this is enforced:
@@ -203,6 +206,13 @@ the executable — that was the exact error every downloaded update failed with.
   `safeStorage` data (`lock.dat`, the LAN certificate's private key — a lost key
   means a new fingerprint and every paired device has to re-pair), and the
   Accessibility / Screen Recording grants Computer Use needs.
+- The settings secrets are `safeStorage`-bound too: every registry value in
+  `settings` and every MCP secret is stored `enc:v1:…` under the same key
+  (`src/main/lib/secrets/`). If the new identity cannot open them, nothing
+  crashes and no ciphertext is ever sent — each key reads as unset,
+  `GET /api/v1/settings/secrets-status` lists it in `needsReentry`, and the
+  user pastes each API key (and MCP token) in again once; a save that does not
+  touch a key keeps its old ciphertext until then.
 - `quitAndInstall()` together with the "closing the window only hides it"
   handler in `window.ts` has never run (no update has ever got past validation):
   test it with two consecutive signed builds.
@@ -257,11 +267,16 @@ snapshot of the user's data (`src/main/lib/analytics/`, route
 `/api/v1/analytics`, page `settings-form/chat-audit.tsx`). `snapshot.ts`
 copies `chat` / `message` / `project` out of PGlite via NDJSON into
 `~/.exodus/analytics/exodus.duckdb` (usage flattened to `*_tokens` /
-`cost_usd` columns, `content` kept as JSON) and adds a `logs` view straight
-over `~/.exodus/logs/*.jsonl`; `duckdb.ts` lazy-`import()`s
+`cost_usd` columns, `content` kept as JSON) and copies
+`~/.exodus/logs/*.jsonl` into a `logs` table; `duckdb.ts` lazy-`import()`s
 `@duckdb/node-api` on first use (never at boot), opens the file
 `READ_ONLY` for queries and `READ_WRITE` only while rebuilding, serialised
-on one promise chain, and caps results at 500 rows. The editor is Monaco
+on one promise chain, and caps results at 500 rows. The query instance runs
+with `enable_external_access = false` + `lock_configuration = true`, so no
+query can read a file (`read_text`, `read_json`, `COPY`, `ATTACH`) — which is
+why `logs` is a table built at rebuild, not a view over the files. The copy
+masks every current secret value (`secrets/scrub.ts`): an old log line could
+quote a key. The editor is Monaco
 (`settings-form/chat-audit-editor.tsx`, SQL language, ⌘↩ bound via the editor,
 completions from `packages/shared/src/constants/chat-audit-schema.ts`, which
 is also what `snapshot.ts` builds the tables from). Presets live in
@@ -360,9 +375,12 @@ The main process runs a **Hono HTTP server** that handles all business logic:
 
 Every business endpoint is mounted on one versioned sub-app (`app.route('/api/v1', v1)`), so the public paths are `/api/v1/<route>`; the lock/trace/settings middlewares still match `/api/*`. A breaking API change ships as a new `/api/v2` sub-app beside v1 rather than mutating v1 in place. Any client of this backend (the renderer, `tests/api`, `exodus-ios`) must address `/api/v1/...`.
 
-`/api/v1/chat`, `/api/v1/lcm`, `/api/v1/history`, `/api/v1/knowledge-base`, `/api/v1/project`, `/api/v1/settings`, `/api/v1/skills`, `/api/v1/audio`, `/api/v1/db-io`, `/api/v1/deep-research`, `/api/v1/discover`, `/api/v1/tools`, `/api/v1/philharmonic`, `/api/v1/s3`, `/api/v1/mcp`, `/api/v1/memory`, `/api/v1/usage`, `/api/v1/logs`, `/api/v1/backup`, `/api/v1/artifacts`, `/api/v1/computer-use`, `/api/v1/analytics`, `/api/v1/pair`, `/api/v1/devices`, `/api/v1/lock` (mounted directly on `app`, ahead of the lock gate — see App Lock).
+`/api/v1/chat`, `/api/v1/lcm`, `/api/v1/history`, `/api/v1/knowledge-base`, `/api/v1/project`, `/api/v1/settings`, `/api/v1/skills`, `/api/v1/audio`, `/api/v1/db-io`, `/api/v1/deep-research`, `/api/v1/discover`, `/api/v1/tools`, `/api/v1/philharmonic`, `/api/v1/s3`, `/api/v1/mcp`, `/api/v1/memory`, `/api/v1/usage`, `/api/v1/logs`, `/api/v1/backup`, `/api/v1/artifacts`, `/api/v1/media`, `/api/v1/maps`, `/api/v1/computer-use`, `/api/v1/analytics`, `/api/v1/pair`, `/api/v1/devices`, `/api/v1/lock` (mounted directly on `app`, ahead of the lock gate — see App Lock).
 
-The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatches to the appropriate list-models handler based on the provider in the request body, reading the API key from the request (not from saved settings) to fetch live model catalogs.
+The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatches to the appropriate list-models handler based on the provider in the request body, reading the API key from the request (not from saved settings) to fetch live model catalogs; a posted mask stands for the stored key, and only with the stored (or default) base URL — a mask with another base URL is a 400 ("re-enter the API key"; code `SECRET_REENTRY_REQUIRED`, `params.field: 'apiKey'` — the model picker shows it inline under the key), so a stored key is never sent to a caller-chosen host.
+
+**Secrets leave the main process as masks only** (`src/main/lib/secrets/`): `GET /api/v1/settings` and the `/api/v1/mcp` responses turn every registry field (`registry.ts` — provider keys, Google / Brave / LightRAG keys, the Elasticsearch password, S3 credentials, the legacy `mcpServers` blob; `mcp_server.env` / `headers` values, everything under a secret-named `extraConfig` key, and secrets inside an MCP `url` / `args`: userinfo, secret-named query values, capability path segments, `--token` / `--api-key=` / `--header "Authorization: …"` values) into `"•••• " + last4` (`"••••"` under 12 characters). A posted mask means "unchanged": `updateSettings` / `updateSettingField` and the MCP create/update swap it back for the stored value (read through `current.ts`'s plaintext accessors — the seam at-rest encryption plugs into), `null` / `""` clear, anything else sets — so the desktop autosave and exodus-ios, which post whole sections/columns back, need no knowledge of masks. `getSettings()` / `c.get('settings')` stay plaintext inside main. A write that moves a secret's destination (`SECRET_DESTINATIONS`: a provider base URL / Azure endpoint, the Elasticsearch or LightRAG URL; for MCP the effective `url` / `transportType` for `headers` and the `extraConfig` secrets, `command` / `args` — and any edit to `env` itself (an entry added, removed or changed: `PATH`, `npm_config_registry`, `HOME`, `BASH_ENV`… each can swap the program), which counts as a new command — for `env` — a partial PUT that leaves the secrets out clears them too, `prepareMcpUpdate` in `at-rest.ts`) while the secret comes back as its mask, or is not re-sent, clears it — a stored key is never carried to a new host. Secret `args` go only to the command they were saved with: a new `command` refuses masked args, and a PUT that changes `command` without sending `args` writes `args: []` (none of the stored ones follow). A url / args / env / headers / secret `extraConfig` value (or anything on an MCP create) that holds `••••` without being the exact mask is a 400 "re-enter the secret" (`SECRET_REENTRY_REQUIRED`, `params.field` naming the column: `url` / `args` / `env` / `headers` / `extraConfig`) — a mask is never stored. At rest the values are `enc:v1:…` (see Security Considerations); `GET /api/v1/settings/secrets-status` answers `{ encryption: 'on' | 'unavailable', needsReentry: string[] }` for the Settings notices — `needsReentry` holds both the secrets that do not decrypt and those a destination move cleared (`moved.ts`), as plain names. A new schema field whose name `isSecretName()` flags (`…key`, secret, password, token, auth, bearer, credential, cookie, session, `pat` — word by word, so `path` / `author` / `keyboard` are not, nor the allowlisted `max-tokens` / `token-limit` / `session-name` / `session-timeout` / `signature-version` / `pass-through`; a value after a secret flag or under a secret name is masked whatever its shape — all digits (`-u root -p 98765432`, `DB_PASSWORD=12345678`) included) fails `registry.test.ts` until it is put in the registry or on its commented non-secret list.
+**The desktop Settings form and masks** (`components/settings/secret-fields.tsx`, `lib/secrets.ts`): every key input is a `SecretInput` — the mask shows as text with a "Saved" addon (and is named for a screen reader as "Saved key ending in abcd" / "No key saved", never read out as bullets); typing (or pasting) replaces the whole mask and deleting from it clears the key (`replaceMask`); an untouched mask posts back as "unchanged", so the per-field autosave is unaware of it. A field a saved secret is sent to is a `DestinationInput`, which says from focus until its edit is saved that changing it clears the secret: `AddressInput` for the provider base URLs, the Azure endpoint, the Elasticsearch and LightRAG URLs, and in the MCP form the url (clears the headers) and the command (with the args: clears the env and masked args). `buildSettingsSave` applies the same destination rule to the payload (`clearMovedSecrets`, a copy of `SECRET_DESTINATIONS` that `tests/unit/renderer/lib/secrets.test.ts` holds equal to main's, and the one shared `normalizeBaseUrl` from `@exodus/shared/utils/base-url`) and posts that key as `null`. The server records every secret a destination move cleared — settings keys and MCP `env` / `headers` / `extraConfig` values — in `needsReentry` until a new value is saved (`secrets/moved.ts`, names only, in `~/.exodus/secrets-reentry.json`, so the prompt survives a restart and reaches exodus-ios; a data reset clears it); the key input asks for it (`clearedSecretsAtom` only mirrors the move until that read lands), and the MCP server card and its form fields list theirs. The MCP form posts the `env` it shows (masks included — never `null`), and shows a `SECRET_REENTRY_REQUIRED` 400 under the field it names (the create/update hooks list that code in `meta.inlineCodes`, so it is not toasted too). Settings → General opens with the notices from `secrets-status` (`settings-form/secrets-notices.tsx`: keychain unavailable; each key to re-enter, by name, MCP servers included).
 
 **Middleware Pipeline** (order in `app.ts`):
 
@@ -370,11 +388,12 @@ The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatc
 2. CORS middleware (`hono/cors`)
 3. Auth gate (`authGate`) — on the LAN listener a request needs `Authorization: Bearer <token>` of a paired device (`401` otherwise), except `POST /api/v1/pair`, which the pairing window guards; `/api/v1/devices*` is refused there outright (`403`). Loopback passes straight through. Ahead of the lock gate so an unauthenticated request learns nothing, not even that the app is locked
 4. Lock gate (`lockGate`) — rejects all `/api/*` with `423` while the app is locked. `POST /api/v1/lock/unlock` is mounted just before it (after `authGate`), so a paired device can unlock the app from the phone
-5. Trace gate (`traceMiddleware`) — wraps each `/api/*` request in an `AsyncLocalStorage` trace (see `src/main/lib/logger/`), sets the `x-trace-id` response header
-6. Settings injection — `getSettings()` set on the Hono context per request (served from a cache in `db/queries.ts` that `updateSettings` / `updateSettingField` invalidate — write the `settings` table only through those two)
-7. Error handler (`app.onError`, returns JSON errors)
+5. Presence gate (`presenceGate`) — `POST /api/v1/chat/approval` and every `/api/v1/devices*` route stand for "the user said so", and the model can reach loopback (`curl` through `terminal`): on loopback they need the `x-exodus-presence` header, a per-launch token held in main's memory and handed only to the main window's top frame over IPC (`api:presence-token`, `src/main/lib/presence.ts`; the renderer's `lib/presence.ts` attaches it) — `403 PRESENCE_REQUIRED` otherwise, so a model can neither approve its own paused call nor pair itself a device. On the LAN `authGate` already required a paired device's token
+6. Trace gate (`traceMiddleware`) — wraps each `/api/*` request in an `AsyncLocalStorage` trace (see `src/main/lib/logger/`), sets the `x-trace-id` response header
+7. Settings injection — `getSettings()` set on the Hono context per request (served from a cache in `db/queries.ts` that `updateSettings` / `updateSettingField` invalidate — write the `settings` table only through those two)
+8. Error handler (`app.onError`, returns JSON errors)
 
-The MCP-tools middleware (injecting MCP tools into context) is **archived** (commented out in `app.ts`).
+There is no MCP middleware: the chat route itself fetches the active servers' tools per request (see MCP below).
 
 ### Database Layer
 
@@ -444,11 +463,50 @@ rendering work in.
 - `models.ts` — the `Models` collection and `streamFn` (above)
 - `run.ts` — `runAgent(input): AsyncIterable<KernelEvent>` wraps pi's `Agent`
   (`convertToLlm` asserts the run invariant, `beforeToolCall` blocks tools
-  disabled in settings) and yields the kernel's own events, each stamped with
+  disabled in settings and holds a call that touches a secret outside Exodus
+  for approval) and yields the kernel's own events, each stamped with
   `runId`: `message_update` · `message_end` · `tool_start` · `tool_update` ·
-  `tool_end` · `run_end` (always, with the messages that completed) · `error`
-  (after `run_end`, when a provider failed). Stop aborts the agent; a partial
-  answer is kept, marked `aborted`
+  `tool_end` · `approval_required` / `approval_resolved` (between a paused
+  call's `tool_start` and `tool_end`) · `run_end` (always, with the messages
+  that completed) · `error` (after `run_end`, when a provider failed). Stop
+  aborts the agent; a partial answer is kept, marked `aborted`
+- `approval.ts` — the approval gate's matcher (spec
+  `docs/superpowers/specs/2026-09-25-secrets-and-exfiltration-hardening-design.md`
+  §2.5): `sensitiveTarget(toolName, args, workspaceDir)` → `ask` (the file
+  tools on `~/.ssh`, `~/.aws`, `~/.gnupg`, `~/.kube`, `~/.docker/config.json`,
+  `~/.netrc`, `~/.npmrc`, `~/.yarnrc.yml`, `~/.pypirc`, `~/.git-credentials`,
+  `~/.vault-token`, `~/.azure`, `~/.config/{gh,gcloud,op}`,
+  `~/.password-store`, `~/.pgpass`, `~/.my.cnf`, `~/.s3cfg`, `~/.boto`,
+  `~/.gem/credentials`, `~/.m2/settings.xml`, `~/.config/{hub,rclone}`,
+  `~/.local/share/keyrings`, the browser profiles (Chrome and its channels,
+  Chromium, Brave, Edge, Firefox, Arc, Vivaldi, Opera; `~/Library/Cookies`), a `*credentials*` under `~/.config`,
+  `~/.cargo` or `~/.terraform.d`, the keychains, or a `.env*` / `*.pem` /
+  `*.key` / `id_*` (and their `.bak` / `.old` / `~` … copies) outside the
+  chat workspace — resolved through `~`, the cwd and symlinks (async, 250 ms per path
+  and 3 s per call: a path not resolved in time is asked about, a
+  network root is never resolved); a `terminal`
+  command naming one of those, running `security find-*-password` or a CLI's
+  print-token command (`gh auth token`, …), or listing other processes'
+  arguments (`ps` with options, `pgrep -a` / `-lf`, `/proc/<pid>/environ`), a
+  documented heuristic; a `grep` root outside the workspace whose tree holds
+  a secret-named file; a `call_mcp_tool` whose argument strings match any of
+  those), `refuse` (`~/.exodus/lock.dat`, `~/.exodus/tls/`, and the raw data
+  `~/.exodus/database`, `~/.exodus/backups`, `~/.exodus/analytics` — plaintext
+  in a pre-encryption backup or while encryption is unavailable, and a glob
+  that can expand into them; a `call_mcp_tool` URL or bare port number at
+  Exodus's own API ports — blocked, never asked) or
+  null.
+  Paths compare case-folded on macOS / Windows and without the
+  `/System/Volumes/Data` firmlink prefix; a command's summary leads with what
+  triggered it. Philharmonic's loops use the same matcher through
+  `philharmonic/sensitive-guard.ts` but refuse instead of asking (no window
+  to ask in).
+  `pending-approvals.ts` holds each paused call until `allowed` / `denied`
+  (`POST /api/v1/chat/approval`), `timed_out` (10 minutes) or `stopped` (the
+  run's abort — Stop, or the window's request closing); anything but
+  `allowed` gives the model "The user declined access to <summary>." Allow
+  once is per call, never remembered. The card's Allow button is disabled
+  for its first 600 ms and ignores untrusted (script-dispatched) clicks
 - `record.ts` — `RunRecorder`: fed every event, `persist()` from the route's
   `finally` saves the run's rows with its duration and enqueues the post-run
   jobs
@@ -468,7 +526,32 @@ rendering work in.
    `message_update` snapshots are coalesced to one per
    `STREAM_FLUSH_INTERVAL_MS` (each carries the whole message so far), other
    events flush first so order holds, and writes become no-ops once the
-   client has gone. Wire shapes are unchanged; every message carries `runId`
+   client has gone. Wire shapes are unchanged; every message carries `runId`.
+   A paused call adds `approval_required` (`runId`, `toolCallId`, `toolName`,
+   `summary`, `expiresAt`; the summary is the path or command, never
+   contents, and is sanitized once at the source — `sanitizeSummary()` in
+   `kernel/approval.ts` strips bidi/format controls, shows a line break as
+   `⏎` and a tab as `⇥` — then bounded once, centrally, by `capSummary()`:
+   `EVENT_SUMMARY_MAX` (8000 chars) for this event, cut from the end so the
+   matched trigger survives, with `truncated` / `hiddenChars` set when it
+   was; a shorter `MODEL_SUMMARY_MAX` (300) applies only to the separate copy
+   the model reads back on decline/refuse (`declinedReason` /
+   `refusedReason` / `groupRefusedReason`), never to what the card shows —
+   cutting the event summary itself at 300 previously hid a long command's
+   dangerous tail from the person approving it (I1 re-review). The desktop
+   card renders the event's copy in full, wrapped (`break-all`), never
+   CSS-truncated, in a scrolling max-height region, with a "N more
+   characters not shown" note when `truncated`; a future exodus-ios client
+   mirrors the same rules) and later `approval_resolved` (`outcome`); the
+   answer is
+   `POST /api/v1/chat/approval` with `runId`, `toolCallId` and a `decision`
+   of `allow` or `deny`
+   (behind the presence gate; `{ outcome }`, idempotent — the first answer
+   stands; `404 APPROVAL_NOT_FOUND` once nothing waits). The renderer keeps
+   them in the React Query cache `['approvals', chatId]` (`hooks/use-approvals.ts`,
+   written by `stream-manager.ts`) and shows the card at the run's foot
+   (`components/chat/run-approvals.tsx`: Allow once / Deny, then the settled
+   state), beside the memory lines
 4. However the run ends — done, a provider error midway, or Stop (which
    cancels the response stream) — `RunRecorder.persist()` saves the messages
    that completed and enqueues background jobs (LCM compaction, memory
@@ -488,6 +571,16 @@ camelCase; `toToolName()` maps a pre-rename `disabledTools` key):
 
 `computer_use`, `create_artifact`, `deep_research`, `edit_file`, `find_files`, `grep`, `image_generation`, `lcm_describe`, `lcm_expand`, `lcm_grep`, `list_directory`, `map_itinerary`, `read_file`, `search_knowledge_base`, `terminal`, `update_memory`, `weather`, `web_fetch`, `web_search`, `write_file`.
 
+`map_itinerary` enriches places through Google Places from main with
+`googleCloud.googleApiKey`. That key is masked by the API like every other
+secret; the card (`components/calling-tools/map-itinerary/`) gets it for
+Maps JS over IPC (`maps:js-key`, answered for the main window's top frame
+only — `hooks/use-maps-key.ts`, `lib/maps-key.ts`), and loads Places photos
+through `GET /api/v1/maps/photo?name=places/…/photos/…&maxWidth=<1–4800>`
+(`routes/maps.ts`: the name is validated, the key added in main, fetched with
+`fetchPublicHttps()` from the fixed Places host, `Cache-Control: private,
+max-age=86400`) — the same route exodus-ios uses over the LAN.
+
 `weather` is Open-Meteo (no key: a geocoding call, then seven days with 24
 hourly points, WMO codes, all in the place's local time). The card reads
 `details` (everything); the model reads the text block, which is
@@ -501,6 +594,31 @@ WMO and WWO codes alike and `weatherClockHours()` reads ISO, "06:52 AM" and
 transcript — a line of now, the day's temperature curve on the colour tone's
 accent, three segmented days — and opens in place on Details to the
 headline, the readings and the week as range-bar rows.
+
+`image_generation` saves every image the moment it has it — a GPT image
+model's base64 decoded, a DALL·E link fetched at once (it expires in an hour)
+through `fetchPublicHttps()` (`src/main/lib/net/safe-fetch.ts`: https only,
+no loopback / private / link-local / metadata address, redirects re-checked,
+the connection pinned to the vetted address) — as `~/.exodus/media/<chatId>/<uuid>.<png|jpg|webp>` (`src/main/lib/media/
+store.ts`; typed by magic bytes; one failed image fails the call and removes
+the files it already wrote). `ImageGenerationDetails` (`types/chat.ts`)
+carries per image `{ mediaId, chatId?, mimeType, width?, height?,
+revisedPrompt? }` and never bytes; the model's text block gets only the count
+and revised prompts. `GET /api/v1/media/:chatId/:file` (`routes/media.ts`)
+serves the file — no index, the path is the storage layout; both segments
+must match what `saveMedia` writes and resolve inside the media dir, else
+400 — with `Cache-Control: private, max-age=31536000, immutable`. Deleting a
+chat, a project's chats or a Group removes its media dir (best-effort,
+logged); "reset all data" removes `~/.exodus/media`; `db-io` export does not
+carry media. Rows written before this (`url`: a `data:` URL or an expired
+DALL·E link) still render through `imageSrcOf()`'s legacy branch (a `data:` URL only
+when it is a raster image, the chat's remote-image rule). The card
+(`components/calling-tools/image-generation/`, built on the beui.dev
+`image-generation-loading.tsx`) is rendered by `AssistantTurnSegment` from
+the run's calls (`collectImageGenerations`), not by `MessageCallingTools`,
+so the frame that shows the dither field while the call runs is the same
+element the image resolves in (with its zoom); a call left without a result
+by Stop shows nothing.
 
 **MCP toolbox** (`calling-tools/mcp-toolbox.ts`): MCP servers are not bound
 tool by tool (providers cap the tools array — OpenAI at 128 — and one server
@@ -543,7 +661,8 @@ Multi-level recursive research with real-time progress streaming:
    - Configurable breadth (default: 4 queries per level)
 
 2. **Search Execution** (`deep-research.ts`):
-   - Executes Serper API searches recursively
+   - Executes Brave Search API searches recursively (`braveApiKey`,
+     `web-search.ts`)
    - Depth parameter controls recursion levels (default: 2)
    - Processes results and extracts learnings
 
@@ -559,42 +678,36 @@ Multi-level recursive research with real-time progress streaming:
 
 5. **Progress Streaming** (`src/main/lib/server/routes/deep-research.ts`):
    - SSE connection for real-time updates
-   - Status: `streaming` → `completed` or `failed`
+   - `jobStatus`: `streaming` → `archived` on success, or `failed` (with an
+     `errorMessage`) for any thrown error — search, an LLM call, a dropped
+     connection, or the run being stopped — so a job never stays `streaming`
+     forever (the desktop card and exodus-ios's 15-minute stall check both
+     key off it)
    - Frontend polls for progress messages
 
 ### MCP (Model Context Protocol)
 
 **Integration** (`src/main/lib/ai/mcp.ts`):
 
-> Note: automatic MCP server connection at startup is **archived** (`connectMcpServers()` is commented out in `app.ts`). The `/api/v1/mcp` route and MCP settings remain. The flow below describes the intended/legacy behavior.
+MCP is live: servers are rows of the `mcp_server` table (Settings →
+Integrations → MCP, route `/api/v1/mcp`; secrets masked and encrypted like
+the settings registry).
 
-Allows external tools/servers to be integrated via MCP protocol:
-
-1. **Configuration**: Users define MCP servers in settings JSON:
-
-```json
-{
-  "mcpServers": {
-    "git": { "command": "git-mcp", "args": [] },
-    "filesystem": { "command": "fs-server", "args": [] }
-  }
-}
-```
-
-2. **Connection** (`connectMcpServers()`):
-   - Launches each server via StdIO transport
-   - Retrieves available tools from each server
-   - Stores tools in Hono context
-
-3. **Tool Execution**:
-   - MCP tools merged with built-in tools
-   - AI can call MCP tools during conversation
-   - Results returned via standard MCP protocol
-
-**Key Dependencies**:
-
-- `@ai-sdk/mcp` - MCP client
-- `@modelcontextprotocol/sdk` - MCP protocol implementation
+1. **Connection** (`getMcpTools()`, called by the chat route on every request,
+   and `getMcpToolsByNames()` for a Philharmonic employee): each active server
+   whose settings decrypt is connected over stdio (`command` / `args` /
+   `env`), SSE or streamable HTTP (`url` / `headers`) with
+   `@modelcontextprotocol/sdk`, and its tools are cached for five minutes. No
+   server is connected at startup.
+2. **Tool execution**: through the MCP toolbox (`list_mcp_tools` /
+   `call_mcp_tool`, see Tool Architecture). `call_mcp_tool` goes through the
+   approval gate like the file tools: every string leaf of its `arguments` is
+   checked as a path and with the terminal heuristic, and a URL at Exodus's own
+   API ports is refused (`kernel/approval.ts`).
+3. **stdio args are visible to other programs** while the server runs (`ps`
+   shows a process's arguments), so the MCP form warns when an argument holds a
+   recognised secret and suggests an environment variable instead; `ps`-style
+   commands in `terminal` are asked about.
 
 ### Memory & Personalization Layer
 
@@ -734,6 +847,14 @@ Their windows live in `src/main/lib/window.ts`.
   margin) so the pill's own shadow is not clipped.
 - Sub-app roots are not `#root`, so `h-full` collapses there — centre with
   `h-screen`.
+- **Each sub-app entry builds its own provider tree.** `quick-chat` and
+  `searchbar` wrap theirs in a `QueryClientProvider` of their own
+  (`createAppQueryClient()`): `I18nProvider` follows `settings.language`
+  through `useSettings()`, a React Query hook, and without a client the window
+  is blank. The `artifacts` sandbox has no `I18nProvider` and no query client
+  at all — nothing there is translated, and its CSP allows no network.
+  `tests/unit/renderer/sub-apps/entries.test.ts` mounts the three real entry
+  files.
 
 ### Frontend Structure
 
@@ -773,7 +894,9 @@ Their windows live in `src/main/lib/window.ts`.
 - The one client is `lib/query-client.ts` (`createAppQueryClient()`): a failed query is reported
   (`reportRendererError`) never toasted; a failed mutation is reported, then toasted once, globally,
   titled from `meta.errorTitle` (falling back to a localized generic message) unless `meta.silent` is
-  set, which skips the toast but not the report — hooks never catch-and-toast themselves; success
+  set, which skips the toast but not the report (`meta.inlineCodes` does the same for an `HttpError`
+  whose code the caller shows in place — the MCP form's `SECRET_REENTRY_REQUIRED`) — hooks never
+  catch-and-toast themselves; success
   toasts live in the hook's own `onSuccess`. The one deliberate exception is `use-settings.ts`: its
   save must land in the cache without a revalidating GET (a GET's freshly-bumped `updatedAt` would
   echo through `useForm({ values: settings })` and loop the autosave), so it `try`/`catch`es the write
@@ -783,7 +906,8 @@ Their windows live in `src/main/lib/window.ts`.
   (exodus-ios, exodus-cli, the phone) can change: chat history, the projects list + project chats,
   devices, installed skills, the three logs reads, the Discover feed, and the Ollama probe
   (`use-chat-history.ts`, `use-projects.ts`, `use-devices.ts`, `use-installed-skills.ts`,
-  `use-logs.ts`, `use-discover-feed.ts`, `use-ollama-status.ts`) — plus the memory list
+  `use-logs.ts`, `use-discover-feed.ts`, `use-ollama-status.ts`, and the secrets status —
+  `use-secrets-status.ts`, its own `['secrets-status']` root, never under `['settings']`) — plus the memory list
   (`use-memory.ts`'s `useMemories()`), which the chat's own `update_memory` tool and background
   consolidation can both write with the Memory page not open. The remote skills.sh relay uses
   `lib/relay-retry.ts`'s `RELAY_RETRY` instead. `installWindowFocusListener()` (`main.tsx`, at boot)
@@ -900,6 +1024,19 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   parses in ~1 ms a frame, the same as streamdown's own; markdown-to-jsx has
   no math; md4x emits HTML, not a React tree. streamdown was tried behind a
   switch and dropped — its styling did not drop in over ours.)
+- **A remote image loads on tap, not by itself.** The `img` override
+  (`remote-image.tsx`'s `RemoteImage`) auto-loads only a `data:` URL, the
+  app's own media route, or an `https:` image URL the run's own
+  `webSearchResults` carried, exactly (`allowedImageUrls()`: thumbnails,
+  favicons, image results — never a result's host, since the injecting page
+  is itself a result; threaded through its own context, the same reason
+  `WebSearchRankMapContext` exists, so streaming results in never invalidates
+  the memoized `components` map); anything else — including `http:` —
+  shows a placeholder until tapped. "Loaded" is a module-level
+  `Set` keyed by `src`, not React state, so the same URL stays loaded across
+  a remount. Shared by every `<Markdown>` caller (chat, Philharmonic, deep
+  research, skill READMEs). See docs/security-hardening.md, "Remote images in
+  chat" — the CSP stays `img-src *`, so the gate lives here, not there.
 - **A render failure stays inside its piece.** Every tool card and every
   answer body is wrapped in `ErrorBoundary` (`card-error-boundary.tsx`): a
   card reading a field its result did not carry shows `RenderFailed` in its
@@ -1013,7 +1150,17 @@ audit that applied it is in the commit history (`style(motion): …`).
   where every request needs a paired device's token and the certificate is
   pinned by the device. A paired device gets the whole API (exodus-ios edits
   provider keys), which is why that path is TLS-only
-- API keys stored locally in PGlite database
+- **Loopback is not the user.** The model reaches loopback through
+  `terminal`, so a route that acts on the user's say-so (answering a tool
+  approval, managing devices) goes behind `presenceGate` — see Middleware
+  Pipeline. A new such route is added to `PRESENCE_PATHS`
+- API keys stored locally in PGlite database, encrypted with `safeStorage`
+  (`enc:v1:…`; decrypted only into the in-process settings cache and the MCP
+  query results); the API hands them out masked only (see
+  `src/main/lib/secrets/` under Backend Server Architecture) — never add a
+  route or response that serializes the settings row or an `mcp_server` row
+  without `maskSettings()` / `maskMcpServer()`, and never read either table
+  except through `db/queries.ts` / `db/mcp-queries.ts`
 
 ## Testing
 
@@ -1023,6 +1170,10 @@ Vitest v4 with the following configuration (`vitest.config.ts`):
 
 - Path aliases: `@main` → `src/main`, `@` → `src/renderer` (shared code is imported as `@exodus/shared/...` through the workspace package)
 - Test files: `tests/unit/**/*.test.ts`
+- Data dir: every test file gets its own scratch `EXODUS_HOME`
+  (`tests/unit/setup/isolated-home.ts`, a `setupFiles` entry, under the config's
+  scratch default) — files run in parallel and must never read each other's
+  `~/.exodus` state (logs, `secrets-reentry.json`)
 - Coverage: V8 provider targeting `packages/shared/src/` and `src/main/lib/`
 
 ### Writing Tests
@@ -1235,10 +1386,14 @@ Main process:
 - `src/main/lib/server/middlewares/` — origin gate, lock gate, trace, error handler
 - `src/main/lib/ai/providers/` — LLM provider resolution (`resolve-model.ts`)
 - `src/main/lib/ai/providers/list-models/` — Live model catalog handlers per provider (`anthropic.ts`, `openai.ts`, `google.ts`, `xai.ts`, `ollama.ts`); each normalizes that provider's list-models API response into `{ id, displayName, snapshot: ModelSnapshot }`, dispatched by `index.ts` and called from `POST /api/v1/settings/models`
-- `src/main/lib/ai/kernel/` — the chat kernel: `models.ts` (the `Models` collection, `streamFn`), `run.ts` (`runAgent()`), `record.ts` (`RunRecorder`), `invariant.ts` (`dropBrokenRuns()`), `events.ts`, `faux.ts` + `faux-boot.ts` (pi's scripted provider; `EXODUS_FAUX_PROVIDER=1`)
+- `src/main/lib/ai/kernel/` — the chat kernel: `models.ts` (the `Models` collection, `streamFn`), `run.ts` (`runAgent()`), `record.ts` (`RunRecorder`), `invariant.ts` (`dropBrokenRuns()`), `approval.ts` + `pending-approvals.ts` (the approval gate for secrets outside Exodus), `events.ts`, `faux.ts` + `faux-boot.ts` (pi's scripted provider; `EXODUS_FAUX_PROVIDER=1`)
+- `src/main/lib/presence.ts` — the per-launch user-presence token (see Middleware Pipeline, presence gate)
+- `src/main/lib/remote-debugging-guard.ts` — `main.ts`'s first import: a packaged build exits when started with a Chromium remote-debugging switch (`remote-debugging.ts`), which would expose the main frame and its presence token
 - `src/main/lib/ai/calling-tools/` — built-in agent tools (snake_case names from `packages/shared/src/constants/tool-names.ts`) and the MCP toolbox (`mcp-toolbox.ts`)
 - `src/main/lib/ai/skills/` — skills.sh client, install store, and the prompt seam (see Skills)
 - `src/main/lib/analytics/` — DuckDB chat-audit snapshot + read-only query wrapper (see Chat Audit)
+- `src/main/lib/media/` — generated images on disk (`store.ts`: `mediaDirFor` — the one way to name a chat's / Group's media dir, refusing a bad id — `saveMedia`, the `resolveMediaFile` path guard the media route uses, per-chat / per-Group / all removal); see the `image_generation` note
+- `src/main/lib/net/` — `safe-fetch.ts`: `fetchPublicHttps()` / `isPublicAddress()`, the SSRF guard for a URL someone else chose (see `docs/security-hardening.md`); `local-api-guard.ts`: web_fetch cannot reach 60223 / 63129; `pinned-fetch.ts`: `fetchPinned()`, web_fetch's built-in loader's GET, pinned to the addresses it judged and never following a redirect itself
 - `src/main/lib/ai/philharmonic/` — multi-agent Groups
 - `src/main/lib/ai/context-management/` — LCM
 - `src/main/lib/ai/memory/` — personalization memory (consolidation + recall)
@@ -1255,7 +1410,9 @@ Main process:
   (enqueue/read/delete/archive/purge), `handlers.ts` (per-queue job logic),
   `worker.ts` (`enqueueAndProcess()` + periodic sweep). A finished job is
   deleted; only a job given up on is archived, and archives are truncated at
-  launch — payloads carry `apiKey` and whole conversations. Decouples chat.ts's post-turn
+  launch — payloads carry whole conversations. No payload carries an API key:
+  the handler reads it from settings when it runs (`job-api-key.ts`), and
+  launch strips one an earlier build queued. Decouples chat.ts's post-turn
   side effects (search indexing, LCM compaction, memory consolidation,
   `kb-sync`, `discover-refresh`) from the request/response cycle.
   `queries.ts`'s `enqueueJob` stamps the ambient `traceId` onto the payload
@@ -1266,7 +1423,9 @@ Main process:
   legacy mapping), `resource.ts` (service/process identity), `trace-context.ts`
   (`AsyncLocalStorage` per-unit-of-work trace ids — `withTrace` /
   `currentTrace` / `bindTraceAttributes`), `index.ts` (the `logger` API,
-  call signature unchanged). `withTrace` wraps the `/api/*` middleware, the
+  call signature unchanged), `secret-mask.ts` (every secret value decrypted
+  so far — fed by the settings cache fill and each MCP row read — masked in
+  each line before it is written). `withTrace` wraps the `/api/*` middleware, the
   job worker, and the scheduler. JSONL at `~/.exodus/logs/`; read via
   `/api/v1/logs` (filters incl. `traceId`) + `/api/v1/logs/scopes` and the
   Settings → Logger tab; `POST /api/v1/logs` is the renderer reporting an
@@ -1280,7 +1439,9 @@ Main process:
   `exodus-input` Swift helper (list-windows / list-apps / screenshot / activate /
   CGEvent input), `capture`/`target`/`hands`/`guard`, `runComputerSession` (the
   perceive→act loop), `liveness` (the ⌥⇧⎋ kill switch); `target.resolveOrLaunch`
-  opens an allowlisted app that isn't running. The inner-loop agent is
+  opens an allowlisted app that isn't running; `self.ts` — Exodus itself (its
+  bundle id, its own windows) is never a target, whatever the allowlist says,
+  and never offered in the picker. The inner-loop agent is
   `src/main/lib/ai/computer-use/`. Bound as the `computerUse` calling-tool,
   gated on `settings.computerUse.enabled`. `GET /api/v1/computer-use/apps` feeds the
   Settings allowlist picker. See
@@ -1311,6 +1472,41 @@ Main process:
   packaged; a proxy to the Vite dev server in dev)
 - `src/main/lib/single-instance.ts` — the single-instance lock, taken by
   `db/db.ts` before it opens PGlite (see Data directory, ports and isolation)
+- `src/main/lib/secrets/` — the secret registry (`registry.ts`, incl.
+  `SECRET_DESTINATIONS`), the mask (`mask.ts`), `maskSettings` /
+  `restoreSettingsSecrets` / `maskMcpServer` / `restoreMcpSecrets`
+  (`index.ts`), the stored-plaintext accessors (`current.ts`), and encryption
+  at rest: `crypto.ts` (`enc:v1:` over `safeStorage`; only a well-formed
+  envelope counts as encrypted), `at-rest.ts` (decrypt a row on read,
+  `prepareSettingsWrite` / `prepareMcpUpdate` on write; MCP `url` and `args`
+  are encrypted whole), `migrate.ts` (`secretsAtRestStartup()`, the idempotent
+  pass `main.ts` runs after the schema migrations: encrypt, strip job keys,
+  then — once, or whenever it changed something — `purge.ts`: `VACUUM FULL`
+  and three `pg_switch_wal()` / `CHECKPOINT` rounds so no plaintext survives in
+  the heap, the WAL or a `dumpDataDir()` backup, and the raw log files are
+  rewritten with secrets masked; each step fails on its own; marker
+  `~/.exodus/secrets-purge.json` — once that marker's `purgedAt` is on record
+  and encryption reads `'on'`, `removeOldBackupsOnce()` also deletes every
+  `~/.exodus/backups` auto-backup older than it (the pre-encryption ones,
+  which held every key in the clear — owner's call 2026-09-26), once,
+  recording `oldBackupsRemovedAt` in the same marker so it never repeats and
+  never touches a backup made since), `status.ts` (what
+  `GET /api/v1/settings/secrets-status` reports), `moved.ts` (the secrets a
+  destination move cleared, by name, in `~/.exodus/secrets-reentry.json`,
+  listed until re-entered), `url.ts` (re-exports the shared
+  `normalizeBaseUrl`), `known.ts` + `scrub.ts`
+  (every current secret value, and masking them out of copied text). The pure
+  detectors — `isSecretName`, `maskSecret`, `maskMcpUrl` / `maskMcpArgs`,
+  `argsHoldSecret` (the MCP form's "secrets in arguments are visible to
+  `ps`" notice) — live in `packages/shared/src/utils/secret-detect.ts`, so the
+  renderer judges a value by the same rules; `registry.ts`, `mask.ts` and
+  `locators.ts` re-export them. A
+  startup self-check turns encryption off if `safeStorage` output is not a
+  recognizable envelope. An MCP row that did not fully decrypt carries
+  `mcpDecryptFailures()` and is never connected (`ai/mcp.ts`); a save keeps
+  what did not decrypt, and writes what it leaves unchanged as stored, never
+  as the plaintext it opened to (`keepStoredMcpForms`, fail closed while
+  encryption is unavailable)
 - `src/main/lib/security.ts` — renderer hardening (`hardenRenderers()`:
   navigation guard, window-open handler, permission handler) and
   `openExternalSafely` / `isSafeExternalUrl`
@@ -1325,6 +1521,7 @@ Renderer:
 - `src/renderer/components/` — UI components
 - `src/renderer/components/ui/` — shadcn primitives (reuse these)
 - `src/renderer/components/lock/` — lock screen
+- `src/renderer/components/chat/run-approvals.tsx` — the approval card at a run's foot (see Chat Flow)
 - `src/renderer/components/philharmonic/` — Philharmonic UI
 - `src/renderer/components/philharmonic/schedule/` — Schedule tab (agenda: upcoming one-off + recurring tasks)
 - `src/renderer/components/settings/` — settings. Every page is put together
@@ -1362,6 +1559,13 @@ Renderer:
   row on the frosted surface, with an optional `Reveal`-able `details`
   section): shared by `lcm-status-card.tsx` (compaction) and
   `chat/memory-change-strip.tsx` (`update_memory`)
+- `src/renderer/components/settings/secret-fields.tsx` — `SecretInput` (a stored
+  key's input: its mask, replaced whole by typing), `DestinationInput` (a field a
+  saved secret is sent to, warning that a change clears it — the MCP url and
+  command use it) and `AddressInput` (the Settings base-URL fields' wrapper); `settings-form/secrets-notices.tsx` — the
+  keychain / re-entry notices on Settings → General; `src/renderer/lib/secrets.ts`
+  (the mask shape and the destination rule, mirrored) and `src/renderer/stores/secrets.ts`
+  (`clearedSecretsAtom`). See "The desktop Settings form and masks"
 - `src/renderer/components/morph.tsx` — `Morph` (two states in one cell, the
   height following the active one under a blurred crossfade) and `Reveal` (a
   section growing from 0fr): the in-place opening a card or a row is allowed

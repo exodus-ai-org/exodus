@@ -328,7 +328,8 @@
       "retrieve": "Recupera elenco modelli",
       "refresh": "Aggiorna elenco modelli",
       "fetchErrorTitle": "Impossibile recuperare l'elenco dei modelli",
-      "fetchErrorFallback": "Recupero dell'elenco dei modelli non riuscito"
+      "fetchErrorFallback": "Recupero dell'elenco dei modelli non riuscito",
+      "reenterKey": "Inserisci di nuovo la chiave API per usarla con il nuovo URL di base."
     }
   },
   "tools": {
@@ -561,7 +562,7 @@
     },
     "export": {
       "label": "Esporta dati",
-      "description": "Scarica una copia portatile delle tue conversazioni, impostazioni e altri dati come archivio ZIP.",
+      "description": "Scarica una copia portatile delle tue conversazioni, impostazioni e altri dati come archivio ZIP. Le chiavi API e gli altri segreti vengono rimossi dall’esportazione.",
       "button": "Esporta",
       "successToast": "Dati esportati con successo",
       "errorToast": "Esportazione non riuscita",
@@ -666,7 +667,8 @@
       "editAria": "Modifica server",
       "deleteAria": "Elimina server",
       "showTools": "Mostra strumenti",
-      "hideTools": "Nascondi strumenti"
+      "hideTools": "Nascondi strumenti",
+      "reenter": "Da inserire di nuovo: {{fields}}"
     },
     "intro": "Registra server <2>MCP</2> (locali o remoti), poi attiva l'interruttore per abilitare i loro strumenti nella chat.",
     "activeSummary": "Attualmente <strong>{{totalToolCount}} strumenti</strong> attivi da <strong>{{activeCount}} server</strong>.",
@@ -707,7 +709,8 @@
         "label": "Argomenti",
         "description": "Argomenti del comando, uno per riga. L'ordine conta.",
         "addButton": "Aggiungi argomento",
-        "removeAria": "Rimuovi argomento {{index}}"
+        "removeAria": "Rimuovi argomento {{index}}",
+        "secretNotice": "I segreti negli argomenti sono visibili agli altri programmi di questo computer mentre il server è in esecuzione: mettili nelle variabili d’ambiente."
       },
       "url": {
         "label": "URL",
@@ -728,7 +731,16 @@
       },
       "updateButton": "Aggiorna",
       "registerButton": "Registra",
-      "addServerButton": "Aggiungi server"
+      "addServerButton": "Aggiungi server",
+      "env": {
+        "label": "Variabili d’ambiente",
+        "description": "Oggetto JSON con le variabili d’ambiente passate al comando (facoltativo)."
+      },
+      "reenterHint": "Se modifichi il comando o gli argomenti, dovrai inserire di nuovo i valori mascherati.",
+      "maskedHint": "•••• indica un valore salvato: lascialo così com’è per mantenerlo.",
+      "reenterError": "Inserisci di nuovo il segreto qui: contiene ancora un valore mascherato (••••) che non può essere mantenuto.",
+      "urlHint": "Se modifichi questo indirizzo, le intestazioni salvate vengono cancellate: inseriscile di nuovo dopo il salvataggio.",
+      "reenterFields": "Inseriscili di nuovo: i valori salvati sono stati cancellati o non possono essere letti: {{fields}}"
     },
     "json": {
       "description": "Vista di sola lettura della configurazione corrente. Usa la scheda Server per apportare modifiche."
@@ -746,7 +758,8 @@
       "updateFailed": "Aggiornamento del server non riuscito",
       "registerFailed": "Registrazione non riuscita",
       "removeFailed": "Rimozione del server non riuscita",
-      "toggleFailed": "Impossibile attivare/disattivare il server"
+      "toggleFailed": "Impossibile attivare/disattivare il server",
+      "invalidEnv": "JSON delle variabili d’ambiente non valido"
     }
   },
   "memory": {
@@ -931,7 +944,7 @@
       "building": "Creazione…",
       "builtAt": "Creato {{when}}",
       "engine": "DuckDB {{version}}",
-      "logsIncluded": "logs (vista sui file di log)",
+      "logsIncluded": "logs (copiati dai file di log)",
       "logsMissing": "logs (nessun file di log trovato)",
       "openFolder": "Apri cartella",
       "unavailable": "Impossibile avviare DuckDB",
@@ -952,7 +965,7 @@
       "title": "Query",
       "run": "Esegui query",
       "running": "In esecuzione…",
-      "tables": "Tabelle: chats, messages, projects, logs (vista)"
+      "tables": "Tabelle: chats, messages, projects, logs"
     },
     "results": {
       "rowCount_one": "{{count}} riga",
@@ -1014,6 +1027,35 @@
     "toast": {
       "failedTitle": "Non ha funzionato",
       "pairedTitle": "Dispositivo abbinato"
+    }
+  },
+  "secrets": {
+    "input": {
+      "saved": "Salvata",
+      "reenter": "Inserisci di nuovo questa chiave: quella salvata non può più essere usata.",
+      "savedAria": "Chiave salvata che termina con {{last4}}",
+      "savedShortAria": "Chiave salvata",
+      "noneAria": "Nessuna chiave salvata"
+    },
+    "destinationHint": "Se modifichi questo indirizzo, la chiave API salvata viene cancellata: inseriscila di nuovo dopo il salvataggio.",
+    "notice": {
+      "encryptionUnavailable": "Il portachiavi di sistema non è disponibile: le chiavi API vengono salvate senza crittografia.",
+      "needsReentry": "Inserisci di nuovo queste chiavi: non possono più essere lette o sono state cancellate quando è cambiato il loro indirizzo:"
+    },
+    "fields": {
+      "openaiApiKey": "Chiave API OpenAI",
+      "azureOpenaiApiKey": "Chiave API Azure OpenAI",
+      "anthropicApiKey": "Chiave API Anthropic",
+      "googleGeminiApiKey": "Chiave API Gemini",
+      "xAiApiKey": "Chiave API xAI",
+      "googleApiKey": "Chiave API Google Maps",
+      "braveApiKey": "Chiave API Brave Search",
+      "knowledgeBaseApiKey": "Chiave API LightRAG",
+      "elasticsearchPassword": "Password di Elasticsearch",
+      "s3AccessKeyId": "ID chiave di accesso Amazon S3",
+      "s3SecretAccessKey": "Chiave di accesso segreta Amazon S3",
+      "legacyMcpServers": "Configurazione MCP precedente",
+      "mcp": "Server MCP «{{server}}»: {{field}}"
     }
   }
 }

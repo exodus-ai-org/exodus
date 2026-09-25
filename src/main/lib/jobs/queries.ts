@@ -2,7 +2,7 @@ import { sql } from 'drizzle-orm'
 
 import { db } from '../db/db'
 import { applyOriginTraceId } from './origin-trace'
-import type { JobMessage, QueueName } from './types'
+import { QUEUE_NAMES, type JobMessage, type QueueName } from './types'
 
 export async function enqueueJob(
   queueName: QueueName,
@@ -71,4 +71,30 @@ export async function deleteMessage(
  */
 export async function purgeArchive(queueName: QueueName): Promise<void> {
   await db.execute(sql.raw(`TRUNCATE TABLE pgmq."a_${queueName}"`))
+}
+
+/**
+ * Removes the `apiKey` a build before ledger ruling R3 put in `lcm-post-turn` /
+ * `memory-consolidate` payloads, from the live queues and their archives —
+ * run once at launch, before the worker starts. Idempotent; a queue this
+ * instance never created is skipped. Returns how many payloads it changed.
+ */
+export async function stripApiKeysFromQueuedJobs(): Promise<number> {
+  let stripped = 0
+  for (const queueName of QUEUE_NAMES) {
+    for (const prefix of ['q', 'a']) {
+      const table = `pgmq."${prefix}_${queueName}"`
+      const exists = await db.execute(sql`SELECT to_regclass(${table}) AS t`)
+      const rows = (exists as unknown as { rows: Array<{ t: unknown }> }).rows
+      if (!rows?.[0]?.t) continue
+      const result = await db.execute(
+        sql.raw(
+          `UPDATE ${table} SET message = message - 'apiKey' WHERE message ? 'apiKey'`
+        )
+      )
+      stripped +=
+        (result as unknown as { affectedRows?: number }).affectedRows ?? 0
+    }
+  }
+  return stripped
 }

@@ -5,10 +5,13 @@
       "generating": "圖片生成中",
       "refining": "細節調整中",
       "complete": "圖片已完成",
-      "error": "生成失敗"
+      "error": "生成失敗",
+      "unavailable": "圖片無法顯示"
     },
     "retry": "重試",
-    "generatedImageAlt": "生成的圖片"
+    "generatedImageAlt": "生成的圖片",
+    "labelWithPrompt": "{{status}}：{{prompt}}",
+    "quotedPrompt": "「{{prompt}}」"
   },
   "composer": {
     "placeholder": "有什麼想問的？",
@@ -75,7 +78,8 @@
     "viewButton": "查看",
     "chatFailedTitle": "聊天失敗",
     "genericErrorFallback": "發生錯誤",
-    "headsUpTitle": "提醒"
+    "headsUpTitle": "提醒",
+    "approvalTitle": "正在等待你的批准"
   },
   "lcm": {
     "compacting": "正在壓縮對話紀錄…",
@@ -125,6 +129,7 @@
   "deepResearchCard": {
     "researching": "深度研究中...",
     "completedSummary_other": "研究於 {{minutes}} 分鐘內完成 · {{count}} 個來源",
+    "failed": "研究失敗",
     "exportAriaLabel": "匯出為 PDF",
     "downloadPdfTooltip": "下載 PDF",
     "exportFailedTitle": "匯出失敗",
@@ -280,6 +285,10 @@
     "prefill": "關於「{{key}}」的記憶有誤："
   },
   "renderFailed": "無法顯示{{what}}。",
+  "remoteImage": {
+    "loadButton": "載入圖片",
+    "inlineImage": "內嵌圖片"
+  },
   "findInPage": {
     "placeholder": "在頁面中尋找…",
     "noResults": "沒有結果",
@@ -289,5 +298,19 @@
   },
   "quickChat": {
     "placeholder": "今天有什麼我可以幫你的嗎？"
+  },
+  "approval": {
+    "title": "允許存取機密資料？",
+    "fileHint": "有工具想使用這個可能含有憑證的檔案：",
+    "commandHint": "有指令想存取這部電腦上的憑證：",
+    "allow": "僅允許一次",
+    "deny": "拒絕",
+    "allowed": "已允許一次",
+    "denied": "已拒絕",
+    "timedOut": "已逾時",
+    "stopped": "已停止",
+    "expired": "已不再等待",
+    "decideFailed": "無法傳送你的回覆",
+    "truncatedNote_other": "另有 {{count}} 個字元未顯示"
   }
 }

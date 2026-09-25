@@ -13,6 +13,7 @@ import {
 } from '../../db/project-queries'
 import { getAllChats } from '../../db/queries'
 import { logger } from '../../logger'
+import { removeChatMedia } from '../../media/store'
 import { resolveSearchProvider } from '../../search/resolve-search-provider'
 import { Variables } from '../types'
 import {
@@ -75,20 +76,21 @@ projectRouter.delete('/:id', async (c) => {
   // `deleteProject()` also deletes every child chat's messages, so the
   // Elasticsearch index has to be cascaded the same way `DELETE /api/v1/chat/:id`
   // does. Collect the chat ids first — after the delete they're gone.
+  // Their generated media goes too, so the ids are needed either way.
   const { elasticsearch } = resolveSearchProvider(c.get('settings'))
-  const projectChatIds = elasticsearch
-    ? (
-        await handleDatabaseOperation(
-          () => getAllChats(id),
-          'Failed to get project chats'
-        )
-      ).map((chat) => chat.id)
-    : []
+  const projectChatIds = (
+    await handleDatabaseOperation(
+      () => getAllChats(id),
+      'Failed to get project chats'
+    )
+  ).map((chat) => chat.id)
 
   await handleDatabaseOperation(
     () => deleteProject({ id }),
     'Failed to delete project'
   )
+
+  for (const chatId of projectChatIds) await removeChatMedia(chatId)
 
   if (elasticsearch) {
     for (const chatId of projectChatIds) {

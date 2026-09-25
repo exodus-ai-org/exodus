@@ -1,10 +1,21 @@
+import { unlink } from 'fs/promises'
+import { join } from 'path'
+
 import type { AgentTool } from '@earendil-works/pi-agent-core'
 import { Type } from '@earendil-works/pi-ai'
 import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
+import type { ImageGenerationDetails } from '@exodus/shared/types/chat'
 import OpenAI from 'openai'
 import { ImageGenerateParams } from 'openai/resources/images'
 
 import { Settings } from '../../db/schema'
+import {
+  mediaDirFor,
+  saveMedia,
+  type MediaTarget,
+  type SavedMedia
+} from '../../media/store'
+import { fetchPublicHttps } from '../../net/safe-fetch'
 
 const imageGenerationSchema = Type.Object({
   prompt: Type.String({
@@ -12,8 +23,26 @@ const imageGenerationSchema = Type.Object({
   })
 })
 
+/** Where the images are saved: a chat's media dir, or a Group's. */
+export type ImageGenerationTarget = MediaTarget
+
+// A DALL·E link is fetched the moment it arrives (it expires in an hour).
+const DOWNLOAD_TIMEOUT_MS = 60_000
+const MAX_DOWNLOAD_BYTES = 50 * 1024 * 1024
+
+// The link comes from whatever answers at the OpenAI base URL (a setting),
+// so it is fetched through the public-internet-only guard: https, no
+// loopback / LAN / metadata address, every redirect re-checked.
+const download = (url: string, signal?: AbortSignal) =>
+  fetchPublicHttps(url, {
+    signal,
+    maxBytes: MAX_DOWNLOAD_BYTES,
+    timeoutMs: DOWNLOAD_TIMEOUT_MS
+  })
+
 export const imageGeneration = (
-  setting: Settings
+  setting: Settings,
+  target: ImageGenerationTarget
 ): AgentTool<typeof imageGenerationSchema> => ({
   name: TOOL_NAMES.imageGeneration,
   label: 'Image Generation',
@@ -26,6 +55,9 @@ export const imageGeneration = (
         'Image Generation requires an OpenAI API Key. Please add it in Settings → Providers.'
       )
     }
+    // Checked before the API is paid: an id that would leave the media dir
+    // fails the call here, and nothing is written.
+    const dir = mediaDirFor(target)
     try {
       const openai = new OpenAI({
         baseURL: setting.providers?.openaiBaseUrl,
@@ -44,14 +76,64 @@ export const imageGeneration = (
         },
         { signal }
       )
-      const details = {
-        images: (response.data ?? []).map((img) => ({
-          url: img.url,
-          revisedPrompt: img.revised_prompt
+      // GPT image models only answer in base64; DALL·E answers with a URL.
+      // Either way the image is saved under ~/.exodus/media right now, and
+      // `details` carries only its id: base64 in the row would add megabytes
+      // to every history load, and a DALL·E link is dead in an hour.
+      const outputMime = `image/${response.output_format ?? 'png'}`
+      const data = response.data ?? []
+      const saved: SavedMedia[] = []
+      try {
+        for (const [i, img] of data.entries()) {
+          try {
+            const { bytes, contentType } = img.b64_json
+              ? {
+                  bytes: Buffer.from(img.b64_json, 'base64'),
+                  contentType: outputMime
+                }
+              : img.url
+                ? await download(img.url, signal)
+                : { bytes: Buffer.alloc(0), contentType: null }
+            saved.push(await saveMedia(target, bytes, contentType))
+          } catch (e) {
+            throw new Error(
+              `Image ${i + 1} of ${data.length} could not be saved: ${
+                e instanceof Error ? e.message : String(e)
+              }`,
+              { cause: e }
+            )
+          }
+        }
+      } catch (e) {
+        // All or nothing: a failed image fails the call, so the ones already
+        // written would be referenced by no row.
+        await Promise.all(
+          saved.map((m) => unlink(join(dir, m.mediaId)).catch(() => {}))
+        )
+        throw e
+      }
+
+      const details: ImageGenerationDetails = {
+        images: saved.map((media, i) => ({
+          ...media,
+          ...('chatId' in target ? { chatId: target.chatId } : {}),
+          ...(data[i].revised_prompt
+            ? { revisedPrompt: data[i].revised_prompt }
+            : {})
+        })),
+        size: setting.image?.size ?? undefined
+      }
+      // The card shows the images; the model gets what it can talk about.
+      // A data URL would put megabytes of base64 into the context for good.
+      const forModel = {
+        shownToUser: details.images.length,
+        images: data.map(({ url, revised_prompt: revisedPrompt }) => ({
+          ...(url?.startsWith('http') ? { url } : {}),
+          ...(revisedPrompt ? { revisedPrompt } : {})
         }))
       }
       return {
-        content: [{ type: 'text' as const, text: JSON.stringify(details) }],
+        content: [{ type: 'text' as const, text: JSON.stringify(forModel) }],
         details
       }
     } catch (e) {

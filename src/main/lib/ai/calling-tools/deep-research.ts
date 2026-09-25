@@ -27,6 +27,7 @@ export const deepResearch: AgentTool<typeof deepResearchSchema> = {
         jobStatus: 'streaming',
         finalReport: null,
         webSources: null,
+        errorMessage: null,
         startTime: new Date(),
         endTime: null
       }

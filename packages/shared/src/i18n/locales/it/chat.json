@@ -5,10 +5,13 @@
       "generating": "Generazione immagine in corso",
       "refining": "Rifinitura dei dettagli",
       "complete": "Immagine pronta",
-      "error": "Generazione non riuscita"
+      "error": "Generazione non riuscita",
+      "unavailable": "Immagine non disponibile"
     },
     "retry": "Riprova",
-    "generatedImageAlt": "Immagine generata"
+    "generatedImageAlt": "Immagine generata",
+    "labelWithPrompt": "{{status}}: {{prompt}}",
+    "quotedPrompt": "«{{prompt}}»"
   },
   "composer": {
     "placeholder": "Chiedi qualsiasi cosa",
@@ -80,7 +83,8 @@
     "viewButton": "Visualizza",
     "chatFailedTitle": "Chat non riuscita",
     "genericErrorFallback": "Si è verificato un errore",
-    "headsUpTitle": "Avviso"
+    "headsUpTitle": "Avviso",
+    "approvalTitle": "In attesa della tua approvazione"
   },
   "lcm": {
     "compacting": "Compattazione della cronologia della conversazione…",
@@ -132,6 +136,7 @@
     "researching": "Ricerca approfondita in corso...",
     "completedSummary_one": "Ricerca completata in {{minutes}}m · {{count}} fonte",
     "completedSummary_other": "Ricerca completata in {{minutes}}m · {{count}} fonti",
+    "failed": "Ricerca non riuscita",
     "exportAriaLabel": "Esporta come PDF",
     "downloadPdfTooltip": "Scarica PDF",
     "exportFailedTitle": "Esportazione non riuscita",
@@ -289,6 +294,10 @@
     "prefill": "La memoria su '{{key}}' è sbagliata: "
   },
   "renderFailed": "Impossibile mostrare {{what}}.",
+  "remoteImage": {
+    "loadButton": "Carica immagine",
+    "inlineImage": "Immagine incorporata"
+  },
   "findInPage": {
     "placeholder": "Trova nella pagina…",
     "noResults": "Nessun risultato",
@@ -298,5 +307,20 @@
   },
   "quickChat": {
     "placeholder": "Come posso aiutarti oggi?"
+  },
+  "approval": {
+    "title": "Consentire l’accesso a un segreto?",
+    "fileHint": "Uno strumento vuole usare questo file, che può contenere credenziali:",
+    "commandHint": "Un comando vuole accedere alle credenziali di questo computer:",
+    "allow": "Consenti una volta",
+    "deny": "Nega",
+    "allowed": "Consentito una volta",
+    "denied": "Negato",
+    "timedOut": "Tempo scaduto",
+    "stopped": "Interrotto",
+    "expired": "Non più in attesa",
+    "decideFailed": "Impossibile inviare la risposta",
+    "truncatedNote_one": "{{count}} carattere in più non mostrato",
+    "truncatedNote_other": "{{count}} caratteri in più non mostrati"
   }
 }

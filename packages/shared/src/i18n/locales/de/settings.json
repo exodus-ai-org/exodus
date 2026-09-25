@@ -328,7 +328,8 @@
       "retrieve": "Modellliste abrufen",
       "refresh": "Modellliste aktualisieren",
       "fetchErrorTitle": "Modellliste konnte nicht abgerufen werden",
-      "fetchErrorFallback": "Abrufen der Modellliste fehlgeschlagen"
+      "fetchErrorFallback": "Abrufen der Modellliste fehlgeschlagen",
+      "reenterKey": "Geben Sie den API-Schlüssel erneut ein, um ihn mit der neuen Basis-URL zu verwenden."
     }
   },
   "tools": {
@@ -561,7 +562,7 @@
     },
     "export": {
       "label": "Daten exportieren",
-      "description": "Laden Sie eine portable Kopie Ihrer Unterhaltungen, Einstellungen und anderer Daten als ZIP-Archiv herunter.",
+      "description": "Laden Sie eine portable Kopie Ihrer Unterhaltungen, Einstellungen und anderer Daten als ZIP-Archiv herunter. API-Schlüssel und andere Geheimnisse werden aus dem Export entfernt.",
       "button": "Exportieren",
       "successToast": "Daten erfolgreich exportiert",
       "errorToast": "Export fehlgeschlagen",
@@ -666,7 +667,8 @@
       "editAria": "Server bearbeiten",
       "deleteAria": "Server löschen",
       "showTools": "Tools anzeigen",
-      "hideTools": "Tools ausblenden"
+      "hideTools": "Tools ausblenden",
+      "reenter": "Muss erneut eingegeben werden: {{fields}}"
     },
     "intro": "Registrieren Sie <2>MCP</2>-Server (lokal oder remote) und aktivieren Sie anschließend den Schalter, um deren Tools im Chat zu nutzen.",
     "activeSummary": "Derzeit sind <strong>{{totalToolCount}} Tools</strong> von <strong>{{activeCount}} Servern</strong> aktiv.",
@@ -707,7 +709,8 @@
         "label": "Argumente",
         "description": "Befehlsargumente, eines pro Zeile. Die Reihenfolge ist wichtig.",
         "addButton": "Argument hinzufügen",
-        "removeAria": "Argument {{index}} entfernen"
+        "removeAria": "Argument {{index}} entfernen",
+        "secretNotice": "Geheimnisse in Argumenten sind für andere Programme auf diesem Computer sichtbar, solange der Server läuft – legen Sie sie in Umgebungsvariablen ab."
       },
       "url": {
         "label": "URL",
@@ -728,7 +731,16 @@
       },
       "updateButton": "Aktualisieren",
       "registerButton": "Registrieren",
-      "addServerButton": "Server hinzufügen"
+      "addServerButton": "Server hinzufügen",
+      "env": {
+        "label": "Umgebungsvariablen",
+        "description": "JSON-Objekt mit Umgebungsvariablen, die an den Befehl übergeben werden (optional)."
+      },
+      "reenterHint": "Wenn Sie den Befehl ändern oder Argumente bearbeiten, müssen maskierte Werte erneut eingegeben werden.",
+      "maskedHint": "•••• steht für einen gespeicherten Wert – lassen Sie ihn unverändert, um ihn zu behalten.",
+      "reenterError": "Geben Sie das Geheimnis hier erneut ein: Es enthält noch einen maskierten Wert (••••), der nicht übernommen werden kann.",
+      "urlHint": "Wenn Sie diese Adresse ändern, werden die gespeicherten Header gelöscht – geben Sie sie nach dem Speichern erneut ein.",
+      "reenterFields": "Geben Sie diese erneut ein – die gespeicherten Werte wurden gelöscht oder können nicht gelesen werden: {{fields}}"
     },
     "json": {
       "description": "Schreibgeschützte Ansicht der aktuellen Konfiguration. Nehmen Sie Änderungen im Tab „Server“ vor."
@@ -746,7 +758,8 @@
       "updateFailed": "Server konnte nicht aktualisiert werden",
       "registerFailed": "Registrierung fehlgeschlagen",
       "removeFailed": "Server konnte nicht entfernt werden",
-      "toggleFailed": "Server konnte nicht umgeschaltet werden"
+      "toggleFailed": "Server konnte nicht umgeschaltet werden",
+      "invalidEnv": "Ungültiges JSON für Umgebungsvariablen"
     }
   },
   "memory": {
@@ -931,7 +944,7 @@
       "building": "Wird erstellt…",
       "builtAt": "Erstellt {{when}}",
       "engine": "DuckDB {{version}}",
-      "logsIncluded": "logs (Sicht auf die Logdateien)",
+      "logsIncluded": "logs (aus den Logdateien kopiert)",
       "logsMissing": "logs (keine Logdateien gefunden)",
       "openFolder": "Ordner öffnen",
       "unavailable": "DuckDB konnte nicht gestartet werden",
@@ -952,7 +965,7 @@
       "title": "Abfrage",
       "run": "Abfrage ausführen",
       "running": "Läuft…",
-      "tables": "Tabellen: chats, messages, projects, logs (Sicht)"
+      "tables": "Tabellen: chats, messages, projects, logs"
     },
     "results": {
       "rowCount_one": "{{count}} Zeile",
@@ -1014,6 +1027,35 @@
     "toast": {
       "failedTitle": "Das hat nicht funktioniert",
       "pairedTitle": "Gerät gekoppelt"
+    }
+  },
+  "secrets": {
+    "input": {
+      "saved": "Gespeichert",
+      "reenter": "Geben Sie diesen Schlüssel erneut ein – der gespeicherte kann nicht mehr verwendet werden.",
+      "savedAria": "Gespeicherter Schlüssel, endet auf {{last4}}",
+      "savedShortAria": "Gespeicherter Schlüssel",
+      "noneAria": "Kein Schlüssel gespeichert"
+    },
+    "destinationHint": "Wenn Sie diese Adresse ändern, wird der gespeicherte API-Schlüssel gelöscht – geben Sie ihn nach dem Speichern erneut ein.",
+    "notice": {
+      "encryptionUnavailable": "Der Schlüsselbund Ihres Systems ist nicht verfügbar; API-Schlüssel werden unverschlüsselt gespeichert.",
+      "needsReentry": "Geben Sie diese Schlüssel erneut ein – sie können nicht mehr gelesen werden oder wurden beim Ändern ihrer Adresse gelöscht:"
+    },
+    "fields": {
+      "openaiApiKey": "OpenAI-API-Schlüssel",
+      "azureOpenaiApiKey": "Azure-OpenAI-API-Schlüssel",
+      "anthropicApiKey": "Anthropic-API-Schlüssel",
+      "googleGeminiApiKey": "Gemini-API-Schlüssel",
+      "xAiApiKey": "xAI-API-Schlüssel",
+      "googleApiKey": "Google-Maps-API-Schlüssel",
+      "braveApiKey": "Brave-Search-API-Schlüssel",
+      "knowledgeBaseApiKey": "LightRAG-API-Schlüssel",
+      "elasticsearchPassword": "Elasticsearch-Passwort",
+      "s3AccessKeyId": "Amazon-S3-Zugriffsschlüssel-ID",
+      "s3SecretAccessKey": "Geheimer Amazon-S3-Zugriffsschlüssel",
+      "legacyMcpServers": "Alte MCP-Konfiguration",
+      "mcp": "MCP-Server „{{server}}“: {{field}}"
     }
   }
 }

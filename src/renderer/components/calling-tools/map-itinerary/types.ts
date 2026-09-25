@@ -1,6 +1,7 @@
 /** Shared place + day shapes for the map-itinerary card.
  *  Mirrors the server-side schema in
  *  `src/main/lib/ai/calling-tools/map-itinerary.ts` — keep them in sync. */
+import { BASE_URL } from '@exodus/shared/constants/systems'
 import type { ToolNotice } from '@exodus/shared/types/chat'
 
 export type ItineraryReview = {
@@ -28,9 +29,9 @@ export type ItineraryPlace = {
   address?: string
   openNow?: boolean
   openingHours?: string[]
-  /** Photo reference paths from Places API. The renderer constructs full
-   *  URLs by prepending GOOGLE_PLACES_API_BASE and appending the user's
-   *  Google API key (via useSettings). */
+  /** Photo reference paths from Places API (`places/…/photos/…`). The
+   *  renderer loads each through `GET /api/v1/maps/photo`, which adds the
+   *  user's key in the main process (`buildPlacePhotoUrl`). */
   photoNames?: string[]
   reviews?: ItineraryReview[]
 }
@@ -53,14 +54,17 @@ export type MapItineraryDetails = {
   notice?: ToolNotice
 }
 
-/** Build a Places API photo URL from a photo reference path. The user's
- *  API key is appended client-side so the server response stays
- *  cache-friendly and key-free. Returns `null` if either input missing. */
+/** The URL of a Places photo through Exodus's own proxy
+ *  (`GET /api/v1/maps/photo`): the main process adds the user's key, so the
+ *  key never reaches the renderer or an `<img src>`. `null` without a name. */
 export function buildPlacePhotoUrl(
   photoName: string | undefined,
-  apiKey: string | undefined,
   maxWidthPx = 800
 ): string | null {
-  if (!photoName || !apiKey) return null
-  return `https://places.googleapis.com/v1/${photoName}/media?maxWidthPx=${maxWidthPx}&key=${apiKey}`
+  if (!photoName) return null
+  const query = new URLSearchParams({
+    name: photoName,
+    maxWidth: String(maxWidthPx)
+  })
+  return `${BASE_URL}/api/v1/maps/photo?${query.toString()}`
 }

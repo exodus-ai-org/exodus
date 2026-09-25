@@ -65,6 +65,34 @@ export function getGroupDir(conversationId: string): string {
   return dir
 }
 
+/**
+ * Generated media (image_generation results), `~/.exodus/media`. Files are
+ * written once and never edited — `<uuid>.<ext>` — and served read-only by
+ * `GET /api/v1/media/:chatId/:file`. A chat's or a Group's own dir is named
+ * only by `mediaDirFor()` in `src/main/lib/media/store.ts`, which refuses an
+ * id that would leave this one.
+ */
+export function getMediaDir(): string {
+  return join(getExodusHome(), 'media')
+}
+
+/**
+ * Written once the plaintext left on disk by pre-encryption builds has been
+ * purged (`secrets/migrate.ts`); holds `{ purgedAt }`.
+ */
+export function getSecretsPurgeMarkerPath(): string {
+  return join(getExodusHome(), 'secrets-purge.json')
+}
+
+/**
+ * The secrets a write cleared because their destination moved (a new base
+ * URL, MCP url or command), by name only — never a value — so the re-entry
+ * prompt survives a restart (`secrets/moved.ts`).
+ */
+export function getSecretsReentryPath(): string {
+  return join(getExodusHome(), 'secrets-reentry.json')
+}
+
 /** DuckDB chat-audit snapshot (`exodus.duckdb` + `snapshot.json`) — Settings → Developer. */
 export function getAnalyticsDir(): string {
   const dir = join(getExodusHome(), 'analytics')

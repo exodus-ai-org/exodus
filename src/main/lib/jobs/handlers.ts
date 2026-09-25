@@ -8,8 +8,10 @@ import type { Message } from '../db/schema'
 import { runDiscoverRefresh } from '../discover/manager'
 import { contentHash } from '../knowledge-base/reconcile'
 import { resolveKnowledgeBase } from '../knowledge-base/resolve-knowledge-base'
+import { logger } from '../logger'
 import { extractSearchableText } from '../search/extract-searchable-text'
 import { resolveSearchProvider } from '../search/resolve-search-provider'
+import { jobApiKey } from './job-api-key'
 import type { KbSyncPayload, QueueName } from './types'
 
 interface IndexMessagePayload {
@@ -20,10 +22,12 @@ interface IndexMessagePayload {
   createdAt: Date
 }
 
+// No `apiKey` in a payload (ledger ruling R3): `jobApiKey` reads it from
+// settings when the job runs. A payload queued by an earlier build may still
+// carry one; it is ignored (and stripped at launch, `queries.ts`).
 interface LcmPostTurnPayload {
   chatId: string
   model: Model<string>
-  apiKey: string
   freshTailRuns: number
   contextWindowPercent: number
   newMessages: Array<{ id: string; content: unknown }>
@@ -32,7 +36,20 @@ interface LcmPostTurnPayload {
 interface MemoryConsolidatePayload {
   messages: Array<{ role: string; content: unknown }>
   model: Model<string>
-  apiKey: string
+}
+
+async function keyFor(
+  queue: QueueName,
+  model: Model<string>
+): Promise<string | null> {
+  const key = jobApiKey(model, await getSettings())
+  if (!key) {
+    logger.warn('jobs', 'No API key saved for the job model — skipped', {
+      queue,
+      provider: model.provider
+    })
+  }
+  return key
 }
 
 export const handlers: Record<QueueName, (payload: unknown) => Promise<void>> =
@@ -51,7 +68,9 @@ export const handlers: Record<QueueName, (payload: unknown) => Promise<void>> =
 
     'lcm-post-turn': async (payload) => {
       const p = payload as LcmPostTurnPayload
-      const lcm = new LcmManager(p.chatId, p.model, p.apiKey, {
+      const apiKey = await keyFor('lcm-post-turn', p.model)
+      if (!apiKey) return
+      const lcm = new LcmManager(p.chatId, p.model, apiKey, {
         freshTailRuns: p.freshTailRuns,
         contextWindowPercent: p.contextWindowPercent
       })
@@ -61,7 +80,9 @@ export const handlers: Record<QueueName, (payload: unknown) => Promise<void>> =
 
     'memory-consolidate': async (payload) => {
       const p = payload as MemoryConsolidatePayload
-      await runMemoryConsolidation(p.messages, p.model, p.apiKey)
+      const apiKey = await keyFor('memory-consolidate', p.model)
+      if (!apiKey) return
+      await runMemoryConsolidation(p.messages, p.model, apiKey)
     },
 
     'kb-sync': async (payload) => {

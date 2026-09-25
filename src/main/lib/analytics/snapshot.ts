@@ -2,6 +2,7 @@ import { existsSync, readdirSync, statSync } from 'fs'
 import { mkdir, readFile, rm, writeFile } from 'fs/promises'
 import { join } from 'path'
 
+import type { DuckDBConnection } from '@duckdb/node-api'
 import type { Usage } from '@earendil-works/pi-ai'
 import { CHAT_AUDIT_SCHEMA } from '@exodus/shared/constants/chat-audit-schema'
 import type { SnapshotMeta } from '@exodus/shared/types/analytics'
@@ -11,11 +12,12 @@ import { db } from '../db/db'
 import { chat, message, project } from '../db/schema'
 import { logger } from '../logger'
 import { getAnalyticsDbPath, getAnalyticsDir, getLogsDir } from '../paths'
+import { scrubSecrets } from '../secrets/scrub'
 import { closeDuckDB, withReadWrite } from './duckdb'
 
 /**
  * Copies chats / messages / projects out of PGlite into the DuckDB file the
- * Chat Audit console queries, plus a `logs` view straight over the JSONL log
+ * Chat Audit console queries, plus a `logs` table copied from the JSONL log
  * files. Rows are staged as NDJSON and loaded with `read_json(..., columns)`
  * so every column has an explicit type (no inference surprises on an empty
  * or all-null column), then the staging files are deleted.
@@ -150,8 +152,17 @@ export function loadTableSql(
   return `CREATE OR REPLACE TABLE ${table} AS SELECT * FROM read_json(${sqlString(file)}, format = 'newline_delimited', columns = ${columnsClause(columns)})`
 }
 
-export function logsViewSql(logsDir: string): string {
-  return `CREATE OR REPLACE VIEW logs AS SELECT * FROM read_json(${sqlString(join(logsDir, '*.jsonl'))}, format = 'newline_delimited', union_by_name = true, ignore_errors = true, columns = ${columnsClause(LOG_COLUMNS)})`
+/**
+ * `logs` as a table copied from the JSONL files at rebuild. It used to be a
+ * view over the files, but console queries run with file access disabled
+ * (`duckdb.ts`), where a view that reads files fails — so the logs are as of
+ * the last rebuild, like every other table. It is loaded from a staged copy
+ * of the files with every current secret value masked (`stageLogs`): a line
+ * logged before the secret-safe errors could quote a key, and this copy
+ * outlives the log file (review S2 M3).
+ */
+export function logsTableSql(stagedFile: string): string {
+  return `CREATE TABLE logs AS SELECT * FROM read_json(${sqlString(stagedFile)}, format = 'newline_delimited', union_by_name = true, ignore_errors = true, columns = ${columnsClause(LOG_COLUMNS)})`
 }
 
 // ─── Source ──────────────────────────────────────────────────────────────────
@@ -210,16 +221,60 @@ function ndjson(rows: unknown[]): string {
   )
 }
 
-function hasLogFiles(dir: string): boolean {
+function logFiles(dir: string): string[] {
   try {
-    return readdirSync(dir).some((f) => f.endsWith('.jsonl'))
+    return readdirSync(dir)
+      .filter((f) => f.endsWith('.jsonl'))
+      .toSorted()
+      .map((f) => join(dir, f))
   } catch {
-    return false
+    return []
   }
 }
 
+/**
+ * The log files concatenated into one staging file, every current secret
+ * value masked (`scrubSecrets`). False when there are no logs.
+ */
+async function stageLogs(
+  dir: string,
+  target: string,
+  secrets: readonly string[]
+): Promise<boolean> {
+  const files = logFiles(dir)
+  if (files.length === 0) return false
+  const parts: string[] = []
+  for (const file of files) {
+    const text = await readFile(file, 'utf-8')
+    parts.push(text.endsWith('\n') || text === '' ? text : `${text}\n`)
+  }
+  await writeFile(target, scrubSecrets(parts.join(''), secrets), 'utf-8')
+  return true
+}
+
+async function currentSecrets(): Promise<string[]> {
+  const { knownSecretValues } = await import('../secrets/known')
+  return knownSecretValues()
+}
+
+/** Drops `logs`, whether a table or (an older snapshot's) view. */
+async function dropLogs(conn: DuckDBConnection): Promise<void> {
+  const views = await conn.runAndReadAll(
+    "SELECT 1 FROM duckdb_views() WHERE view_name = 'logs' AND NOT internal"
+  )
+  await conn.run(
+    views.getRowObjectsJson().length > 0
+      ? 'DROP VIEW logs'
+      : 'DROP TABLE IF EXISTS logs'
+  )
+}
+
 export async function buildSnapshot(
-  opts: { source?: () => Promise<SourceRows> } = {}
+  opts: {
+    source?: () => Promise<SourceRows>
+    /** The secret values to mask in the logs copy (default: every current one). */
+    secrets?: () => Promise<string[]>
+  } = {}
 ): Promise<SnapshotMeta> {
   const started = performance.now()
   const dir = getAnalyticsDir()
@@ -243,8 +298,22 @@ export async function buildSnapshot(
   )
 
   const logsDir = getLogsDir()
+  const stagedLogs = join(tmp, 'logs.ndjson')
   let logsIncluded = false
   try {
+    // The logs table is optional (re-review S2 N3): without the current
+    // secrets to scrub with, the rebuild goes on without it — never with an
+    // unscrubbed copy.
+    let secrets: string[] | null = null
+    try {
+      secrets = await (opts.secrets ?? currentSecrets)()
+    } catch (err) {
+      logger.warn('analytics', 'logs table skipped: secrets unreadable', {
+        error: err instanceof Error ? err.name : 'unknown'
+      })
+    }
+    const haveLogs =
+      secrets !== null && (await stageLogs(logsDir, stagedLogs, secrets))
     await withReadWrite(async (conn) => {
       await conn.run(
         loadTableSql(
@@ -270,16 +339,18 @@ export async function buildSnapshot(
           staged.projects.rows.length
         )
       )
-      if (hasLogFiles(logsDir)) {
+      // A snapshot built before `logs` became a table has it as a view.
+      await dropLogs(conn)
+      if (haveLogs) {
         try {
-          await conn.run(logsViewSql(logsDir))
+          await conn.run(logsTableSql(stagedLogs))
           logsIncluded = true
         } catch (err) {
-          logger.warn('analytics', 'logs view skipped', { error: String(err) })
-          await conn.run('DROP VIEW IF EXISTS logs')
+          logger.warn('analytics', 'logs table skipped', {
+            error: String(err)
+          })
+          await dropLogs(conn)
         }
-      } else {
-        await conn.run('DROP VIEW IF EXISTS logs')
       }
     })
   } finally {

@@ -1,3 +1,7 @@
+// First import: a packaged build never starts with Chromium remote debugging
+// (it would hand the main frame — and the presence token — to whichever local
+// process relaunched us with the switch). See remote-debugging-guard.ts.
+import './lib/remote-debugging-guard'
 import { join } from 'path'
 
 import { app, BrowserWindow, globalShortcut, powerMonitor } from 'electron'
@@ -29,6 +33,8 @@ import { hasPin as lockHasPin } from './lib/lock/pin-store'
 import { cleanupOldLogs, logger } from './lib/logger'
 import { setupMenu } from './lib/menu'
 import { getExodusHome, migrateFromLegacyLocation } from './lib/paths'
+import { secretSafeWriteError } from './lib/secrets'
+import { secretsAtRestStartup } from './lib/secrets/migrate'
 import { hardenRenderers } from './lib/security'
 import { connectHttpServer } from './lib/server/app'
 import { getServer, setServer } from './lib/server/instance'
@@ -82,6 +88,17 @@ app.on('ready', async () => {
   // Must run before setupIPC() / createWindow() — both assume the schema
   // is already migrated once a renderer can issue DB queries.
   await runMigrate()
+
+  // Secrets at rest (spec 2026-09-25 §2.3), before anything reads settings:
+  // encrypt what an earlier build left plaintext, strip keys from queued job
+  // payloads, and purge the plaintext both leave on disk. Idempotent; it must
+  // not keep the app from starting.
+  await secretsAtRestStartup().catch((err) => {
+    logger.error(
+      'secrets',
+      secretSafeWriteError('Startup pass failed', err).message
+    )
+  })
 
   // Resolves the effective locale from settings + OS and registers the
   // get/set-app-locale IPC. Must run after migrations (it reads settings)

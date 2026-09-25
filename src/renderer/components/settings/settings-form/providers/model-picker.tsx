@@ -1,3 +1,4 @@
+import { ErrorCode } from '@exodus/shared/constants/error-codes'
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import {
   CachedModelEntry,
@@ -8,6 +9,7 @@ import { AiProviders } from '@exodus/shared/types/ai'
 import {
   fetcher,
   getHttpErrorMessage,
+  HttpError,
   toErrorI18n
 } from '@exodus/shared/utils/http'
 import { AstroidIcon } from 'lucide-react'
@@ -26,6 +28,8 @@ import {
   ComboboxList
 } from '@/components/ui/combobox'
 import { InputGroupAddon } from '@/components/ui/input-group'
+import { ENTER } from '@/lib/motion'
+import { cn } from '@/lib/utils'
 
 import { SettingsRow, SettingsSection } from '../../settings-row'
 
@@ -52,6 +56,9 @@ export function ModelPicker({
 }: ModelPickerProps) {
   const { t, i18n } = useTranslation(['errors', 'settings'])
   const [loading, setLoading] = useState(false)
+  // The key value a refresh was refused for (a saved key cannot go to an
+  // unsaved base URL): the inline prompt stays until the key field changes.
+  const [refusedKey, setRefusedKey] = useState<string | null>(null)
 
   const apiKey = form.watch(apiKeyField) as string | undefined
   const baseUrl = baseUrlField
@@ -113,7 +120,15 @@ export function ModelPicker({
         }
       )
       form.setValue(modelCatalogField, result.models, { shouldDirty: true })
+      setRefusedKey(null)
     } catch (error) {
+      if (
+        error instanceof HttpError &&
+        error.code === ErrorCode.SECRET_REENTRY_REQUIRED
+      ) {
+        setRefusedKey(apiKey ?? '')
+        return
+      }
       sileo.error({
         title: t('settings:providers.model.fetchErrorTitle'),
         description:
@@ -206,6 +221,14 @@ export function ModelPicker({
         )}
         {staleWarning && (
           <p className="text-destructive text-xs">{staleWarning}</p>
+        )}
+        {refusedKey !== null && refusedKey === (apiKey ?? '') && (
+          <p
+            className={cn('text-destructive text-xs', ENTER)}
+            data-testid={TEST_IDS.providerModels.reenterError}
+          >
+            {t('settings:providers.model.reenterKey')}
+          </p>
         )}
       </SettingsRow>
     </SettingsSection>

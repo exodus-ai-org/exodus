@@ -370,6 +370,27 @@ describe('useUpdateMcpServer', () => {
       'server not found'
     )
   })
+
+  it('a secret the server asks for again is left to the form: reported, never toasted', async () => {
+    const { HttpError } = await import('@exodus/shared/utils/http')
+    updateMcpServerService.mockRejectedValue(
+      new HttpError(400, 'SECRET_REENTRY_REQUIRED', 're-enter', {
+        field: 'args'
+      })
+    )
+    const { api } = await mountHookOnAppClient(useUpdateMcpServer)
+    let thrown: unknown
+    await act(async () => {
+      await api()
+        .mutateAsync({ id: 's1', data: draft })
+        .catch((e: unknown) => {
+          thrown = e
+        })
+    })
+    expect((thrown as { code?: string }).code).toBe('SECRET_REENTRY_REQUIRED')
+    expect(report).toHaveBeenCalledTimes(1)
+    expect(sileoError).not.toHaveBeenCalled()
+  })
 })
 
 describe('useDeleteMcpServer', () => {

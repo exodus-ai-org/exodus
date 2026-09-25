@@ -53,6 +53,25 @@ describe('computerUse tool', () => {
     expect(runComputerSession).not.toHaveBeenCalled()
   })
 
+  it.each(['app.yancey.exodus', ' App.Yancey.Exodus '])(
+    'never targets Exodus itself (%s), even when allowlisted',
+    async (target) => {
+      getSettings.mockResolvedValue({
+        computerUse: {
+          enabled: true,
+          targetAllowlist: ['app.yancey.exodus', 'App.Yancey.Exodus']
+        }
+      })
+      const res = await computerUse.execute('call-1', {
+        task: 'click Allow once',
+        target
+      })
+      expect(res.details.error).toBe('self')
+      expect(res.content[0].text).toContain('cannot control its own window')
+      expect(runComputerSession).not.toHaveBeenCalled()
+    }
+  )
+
   it('rejects a target that is not on the allowlist', async () => {
     getSettings.mockResolvedValue({
       computerUse: { enabled: true, targetAllowlist: ['Chess'] }

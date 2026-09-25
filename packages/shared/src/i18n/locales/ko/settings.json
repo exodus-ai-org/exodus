@@ -328,7 +328,8 @@
       "retrieve": "모델 목록 가져오기",
       "refresh": "모델 목록 새로고침",
       "fetchErrorTitle": "모델 목록을 가져올 수 없습니다",
-      "fetchErrorFallback": "모델 목록을 가져오지 못했습니다"
+      "fetchErrorFallback": "모델 목록을 가져오지 못했습니다",
+      "reenterKey": "새 기본 URL에서 사용하려면 API 키를 다시 입력해 주세요."
     }
   },
   "tools": {
@@ -560,7 +561,7 @@
     },
     "export": {
       "label": "데이터 내보내기",
-      "description": "대화, 설정 및 기타 데이터를 ZIP 아카이브로 다운로드합니다.",
+      "description": "대화, 설정 및 기타 데이터를 ZIP 아카이브로 다운로드합니다. API 키와 기타 비밀 값은 내보내기에서 제외됩니다.",
       "button": "내보내기",
       "successToast": "데이터를 내보냈습니다",
       "errorToast": "내보내기 실패",
@@ -662,7 +663,8 @@
       "editAria": "서버 편집",
       "deleteAria": "서버 삭제",
       "showTools": "도구 표시",
-      "hideTools": "도구 숨기기"
+      "hideTools": "도구 숨기기",
+      "reenter": "다시 입력 필요: {{fields}}"
     },
     "intro": "<2>MCP</2> 서버(로컬 또는 원격)를 등록한 다음, 스위치를 켜서 채팅에서 해당 도구를 사용하도록 설정하세요.",
     "activeSummary": "현재 <strong>서버 {{activeCount}}개</strong>에서 제공하는 <strong>도구 {{totalToolCount}}개</strong>가 활성화되어 있습니다.",
@@ -703,7 +705,8 @@
         "label": "인자",
         "description": "명령 인자, 한 줄에 하나씩. 순서가 중요합니다.",
         "addButton": "인자 추가",
-        "removeAria": "인자 {{index}} 제거"
+        "removeAria": "인자 {{index}} 제거",
+        "secretNotice": "인수에 넣은 비밀 값은 서버가 실행되는 동안 이 컴퓨터의 다른 프로그램에서 볼 수 있습니다. 환경 변수에 넣으세요."
       },
       "url": {
         "label": "URL",
@@ -724,7 +727,16 @@
       },
       "updateButton": "업데이트",
       "registerButton": "등록",
-      "addServerButton": "서버 추가"
+      "addServerButton": "서버 추가",
+      "env": {
+        "label": "환경 변수",
+        "description": "명령에 전달할 환경 변수의 JSON 객체(선택 사항)."
+      },
+      "reenterHint": "명령을 변경하거나 인수를 편집하면 가려진 값을 다시 입력해야 합니다.",
+      "maskedHint": "••••는 저장된 값을 나타냅니다. 그대로 두면 값이 유지됩니다.",
+      "reenterError": "여기에 비밀 값을 다시 입력해 주세요. 유지할 수 없는 가려진 값(••••)이 남아 있습니다.",
+      "urlHint": "이 주소를 변경하면 저장된 헤더가 지워집니다. 저장한 뒤 다시 입력해 주세요.",
+      "reenterFields": "다음 값을 다시 입력해 주세요. 저장된 값이 지워졌거나 읽을 수 없습니다: {{fields}}"
     },
     "json": {
       "description": "현재 구성을 읽기 전용으로 표시합니다. 변경하려면 서버 탭을 사용하세요."
@@ -742,7 +754,8 @@
       "updateFailed": "서버 업데이트에 실패했습니다",
       "registerFailed": "등록에 실패했습니다",
       "removeFailed": "서버 제거에 실패했습니다",
-      "toggleFailed": "서버 전환에 실패했습니다"
+      "toggleFailed": "서버 전환에 실패했습니다",
+      "invalidEnv": "환경 변수 JSON이 올바르지 않습니다"
     }
   },
   "memory": {
@@ -925,7 +938,7 @@
       "building": "만드는 중…",
       "builtAt": "{{when}} 생성",
       "engine": "DuckDB {{version}}",
-      "logsIncluded": "logs (로그 파일 뷰)",
+      "logsIncluded": "logs (로그 파일에서 복사)",
       "logsMissing": "logs (로그 파일 없음)",
       "openFolder": "폴더 열기",
       "unavailable": "DuckDB를 시작할 수 없습니다",
@@ -946,7 +959,7 @@
       "title": "쿼리",
       "run": "쿼리 실행",
       "running": "실행 중…",
-      "tables": "테이블: chats, messages, projects, logs (뷰)"
+      "tables": "테이블: chats, messages, projects, logs"
     },
     "results": {
       "rowCount_one": "{{count}}행",
@@ -1008,6 +1021,35 @@
     "toast": {
       "failedTitle": "작업에 실패했습니다",
       "pairedTitle": "기기 페어링 완료"
+    }
+  },
+  "secrets": {
+    "input": {
+      "saved": "저장됨",
+      "reenter": "이 키를 다시 입력해 주세요. 저장된 키는 더 이상 사용할 수 없습니다.",
+      "savedAria": "{{last4}}(으)로 끝나는 저장된 키",
+      "savedShortAria": "저장된 키",
+      "noneAria": "저장된 키 없음"
+    },
+    "destinationHint": "이 주소를 변경하면 저장된 API 키가 지워집니다. 저장한 뒤 다시 입력해 주세요.",
+    "notice": {
+      "encryptionUnavailable": "시스템 키체인을 사용할 수 없어 API 키가 암호화되지 않은 채 저장됩니다.",
+      "needsReentry": "다음 키를 다시 입력해 주세요. 더 이상 읽을 수 없거나 주소가 변경되어 지워졌습니다:"
+    },
+    "fields": {
+      "openaiApiKey": "OpenAI API 키",
+      "azureOpenaiApiKey": "Azure OpenAI API 키",
+      "anthropicApiKey": "Anthropic API 키",
+      "googleGeminiApiKey": "Gemini API 키",
+      "xAiApiKey": "xAI API 키",
+      "googleApiKey": "Google Maps API 키",
+      "braveApiKey": "Brave Search API 키",
+      "knowledgeBaseApiKey": "LightRAG API 키",
+      "elasticsearchPassword": "Elasticsearch 비밀번호",
+      "s3AccessKeyId": "Amazon S3 액세스 키 ID",
+      "s3SecretAccessKey": "Amazon S3 비밀 액세스 키",
+      "legacyMcpServers": "이전 MCP 구성",
+      "mcp": "MCP 서버 “{{server}}”: {{field}}"
     }
   }
 }

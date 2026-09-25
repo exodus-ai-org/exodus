@@ -121,11 +121,48 @@ export const TEST_IDS = {
   },
   providerModels: {
     refreshButton: 'provider-models.refresh-button',
-    modelSelect: 'provider-models.model-select'
+    modelSelect: 'provider-models.model-select',
+    /** The refresh refused: a saved key cannot go to an unsaved base URL. */
+    reenterError: 'provider-models.reenter-error'
+  },
+  /**
+   * Stored secrets in Settings. Every key input carries `data-field="<settings
+   * path>"` and, while it shows a saved key's mask, `data-masked="true"`.
+   */
+  secrets: {
+    keyInput: 'secrets.key-input',
+    /** Under a key input whose saved key was cleared or can't be read. */
+    reenterPrompt: 'secrets.reenter-prompt',
+    /** Under a base-URL field whose key is saved: changing it clears the key. */
+    destinationHint: 'secrets.destination-hint',
+    /** Settings → General: the keychain is unavailable. */
+    encryptionNotice: 'secrets.encryption-notice',
+    /** Settings → General: the keys that need entering again. */
+    reentryNotice: 'secrets.reentry-notice'
+  },
+  /** Settings → MCP Servers, the server form. */
+  mcpServers: {
+    /** The stdio server's environment variables (JSON). */
+    envInput: 'mcp-servers.env-input',
+    /** A field the server refused (`data-field`: url, args, env, headers…). */
+    fieldError: 'mcp-servers.field-error',
+    /** Shown while a stdio server's args hold a secret (`ps` shows args). */
+    argsSecretNotice: 'mcp-servers.args-secret-notice'
   },
   chat: {
     /** One per assistant message (= one per run). */
     messageAction: 'chat.message-action',
+    /**
+     * At the foot of a run whose tool call waits for the user's approval (a
+     * secret outside Exodus): the card, its two answers, and the settled
+     * state (`data-state`: allowed | denied | timed_out | stopped | expired).
+     */
+    approval: {
+      card: 'chat.approval.card',
+      allow: 'chat.approval.allow',
+      deny: 'chat.approval.deny',
+      state: 'chat.approval.state'
+    },
     /** At the foot of a run that changed memory (the `update_memory` tool). */
     memoryStrip: {
       root: 'chat.memory-strip.root',
@@ -139,6 +176,11 @@ export const TEST_IDS = {
       /** One per entry in the popover. */
       wrong: 'chat.used-memories.wrong',
       openSettings: 'chat.used-memories.open-settings'
+    },
+    /** A remote markdown image that has not been loaded yet (see remote-image.tsx). */
+    remoteImage: {
+      placeholder: 'chat.remote-image.placeholder',
+      loadButton: 'chat.remote-image.load-button'
     }
   },
   composer: {
@@ -157,6 +199,11 @@ export const TEST_IDS = {
     details: 'weather-card.details',
     /** The readings grid, visible only once the card is open. */
     readings: 'weather-card.readings'
+  },
+  /** The `image_generation` tool's card in a chat. */
+  imageGeneration: {
+    /** One frame (its `data-state`: generating / complete / error). */
+    card: 'image-generation.card'
   },
   /** Settings → Memory. */
   memorySettings: {

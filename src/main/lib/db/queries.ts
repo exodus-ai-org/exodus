@@ -3,7 +3,18 @@ import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import { and, asc, desc, eq, ilike, inArray, sql } from 'drizzle-orm'
 
 import { logger } from '../logger'
+import { addLogSecrets } from '../logger/secret-mask'
 import { extractSearchableText } from '../search/extract-searchable-text'
+import { secretSafeWriteError, settingsColumnHasSecrets } from '../secrets'
+import {
+  decryptSettingsRow,
+  planSettingsWrite,
+  type StoredSettingsState
+} from '../secrets/at-rest'
+import { recordSettingsWrite } from '../secrets/moved'
+import { SETTINGS_SECRET_PATHS } from '../secrets/registry'
+import { recordSettingsDecryptFailures } from '../secrets/status'
+import { settingsSecretValues } from '../secrets/values'
 import { db, pglite } from './db'
 import {
   chat,
@@ -336,31 +347,55 @@ export async function getVotesByChatId({ id }: { id: string }) {
 // upsert-if-missing plus the select — on a single-threaded WASM database that
 // every other query queues behind. It only ever changes through the two
 // update functions below, so it is read through a cache they invalidate.
-let settingsCache: Settings | null = null
+//
+// The row holds every registry secret encrypted (`secrets/at-rest.ts`); the
+// cache keeps the row as stored and as decrypted, so the rest of the process
+// sees plaintext and a write can still find a ciphertext that would not open.
+let settingsCache: StoredSettingsState<Settings> | null = null
 // Bumped on every write. A read that was already in flight when a write landed
 // carries the old row; the version check keeps it from re-filling the cache.
 let settingsVersion = 0
 
-function invalidateSettingsCache() {
+export function invalidateSettingsCache() {
   settingsCache = null
   settingsVersion++
 }
 
-export async function getSettings(): Promise<Settings> {
-  // A copy, so a caller that edits what it got can't rewrite everyone's view.
-  if (settingsCache) return structuredClone(settingsCache)
+async function loadSettingsState(): Promise<StoredSettingsState<Settings>> {
+  if (settingsCache) return settingsCache
   const version = settingsVersion
   await db.insert(settings).values({ id: 'global' }).onConflictDoNothing()
   const [data] = await db.select().from(settings)
-  if (version === settingsVersion) settingsCache = data!
-  return structuredClone(data!)
+  const state = decryptSettingsRow(data!)
+  recordSettingsDecryptFailures(state.undecryptable)
+  // The logger masks these from now on (M4).
+  addLogSecrets(settingsSecretValues(state.plain))
+  if (version === settingsVersion) settingsCache = state
+  return state
+}
+
+export async function getSettings(): Promise<Settings> {
+  // A copy, so a caller that edits what it got can't rewrite everyone's view.
+  return structuredClone((await loadSettingsState()).plain)
+}
+
+/**
+ * A settings write in its stored form (spec 2026-09-25 §2.2–2.3): posted masks
+ * back to the stored plaintext (the API hands out masks only, and a client
+ * that posts one back — the desktop autosave posts whole sections, exodus-ios
+ * whole columns — means "unchanged"), a secret whose destination moves
+ * cleared, and every secret encrypted. See `prepareSettingsWrite`.
+ */
+async function toStoredForm<T extends object>(payload: T) {
+  return planSettingsWrite(payload, await loadSettingsState())
 }
 
 export async function updateSettings(payload: Settings) {
+  const plan = await toStoredForm(payload)
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { createdAt, updatedAt, lastBackupAt, ...rest } = payload
+  const { createdAt, updatedAt, lastBackupAt, ...rest } = plan.write
   try {
-    return await db
+    const result = await db
       .update(settings)
       .set({
         ...rest,
@@ -371,6 +406,13 @@ export async function updateSettings(payload: Settings) {
         updatedAt: new Date()
       })
       .where(eq(settings.id, payload.id))
+    // A key cleared for a new base URL is asked for again, across restarts.
+    recordSettingsWrite(plan)
+    return result
+  } catch (error) {
+    const safe = secretSafeWriteError('Failed to update settings', error)
+    logDbError(safe.message, safe)
+    throw safe
   } finally {
     invalidateSettingsCache()
   }
@@ -380,14 +422,24 @@ export async function updateSettingField(
   field: keyof Settings,
   value: unknown
 ) {
+  const plan = settingsColumnHasSecrets(field)
+    ? await toStoredForm({ [field]: value })
+    : null
+  const resolved = plan ? plan.write[field] : value
   try {
-    return await db
+    const result = await db
       .update(settings)
-      .set({ [field]: value, updatedAt: new Date() })
+      .set({ [field]: resolved, updatedAt: new Date() })
       .where(eq(settings.id, 'global'))
+    if (plan) recordSettingsWrite(plan)
+    return result
   } catch (error) {
-    logDbError(`Failed to update setting field: ${field}`, error)
-    throw error
+    const safe = secretSafeWriteError(
+      `Failed to update setting field: ${field}`,
+      error
+    )
+    logDbError(safe.message, safe)
+    throw safe
   } finally {
     invalidateSettingsCache()
   }
@@ -426,10 +478,41 @@ export async function importData(tableName: string, blob: Blob) {
 }
 
 export async function exportData(tableName: string) {
+  if (tableName === 'settings') return exportSettingsWithoutSecrets()
   const ret = await pglite.query(
     `COPY "${tableName}" TO '/dev/blob' DELIMITER ',' CSV HEADER;`
   )
   return ret.blob
+}
+
+/**
+ * The settings table for a db-io export, with every registry secret removed
+ * (spec 2026-09-25 §2.2–2.3: an export carries neither plaintext nor
+ * ciphertext). A copy in a temp table has the secret keys deleted from its
+ * jsonb columns (`#-`) and a whole-value secret column nulled, then that copy
+ * is what COPY writes — same columns, same order, as before.
+ */
+function exportSettingsWithoutSecrets() {
+  const byColumn = new Map<string, string[][]>()
+  for (const path of SETTINGS_SECRET_PATHS) {
+    const [column, ...rest] = path.split('.')
+    byColumn.set(column, [...(byColumn.get(column) ?? []), rest])
+  }
+  const sets = [...byColumn].map(([column, rests]) =>
+    rests.some((r) => r.length === 0)
+      ? `"${column}" = NULL`
+      : `"${column}" = "${column}"${rests.map((r) => ` #- '{${r.join(',')}}'`).join('')}`
+  )
+  return pglite.transaction(async (tx) => {
+    await tx.exec(
+      `CREATE TEMP TABLE settings_export ON COMMIT DROP AS SELECT * FROM settings;
+       UPDATE settings_export SET ${sets.join(', ')};`
+    )
+    const ret = await tx.query(
+      `COPY settings_export TO '/dev/blob' DELIMITER ',' CSV HEADER;`
+    )
+    return ret.blob
+  })
 }
 
 export async function saveDeepResearch(payload: DeepResearch) {

@@ -46,7 +46,8 @@ export function bindCallingTools({
   chatModel,
   apiKey,
   mcpTools = [],
-  chatId
+  chatId,
+  groupId
 }: {
   advancedTools: AdvancedTools[]
   setting: Settings
@@ -56,6 +57,9 @@ export function bindCallingTools({
   // Optional: Philharmonic task execution has no owning chat, so the artifact
   // tool is skipped there (artifacts are a chat-UI affordance).
   chatId?: string
+  // Philharmonic's conversation id: where a Group's generated images are
+  // saved (`~/.exodus/media/_groups/<id>`), since it has no chat.
+  groupId?: string
 }): ErasedTool[] {
   if (advancedTools.includes(AdvancedTools.DeepResearch)) {
     return [deepResearch]
@@ -74,7 +78,12 @@ export function bindCallingTools({
     tools.push(fauxHandle() ? fauxWeatherTool : weather)
   }
   if (enabled(TOOL_NAMES.mapItinerary)) tools.push(mapItinerary(setting))
-  if (enabled(TOOL_NAMES.imageGeneration)) tools.push(imageGeneration(setting))
+  // Every generated image is saved to disk at once, into the chat's media dir
+  // (or the Group's); with neither there is nowhere to put it.
+  const imageTarget = chatId ? { chatId } : groupId ? { groupId } : undefined
+  if (enabled(TOOL_NAMES.imageGeneration) && imageTarget) {
+    tools.push(imageGeneration(setting, imageTarget))
+  }
   // The chat's workspace is where its shell and file tools work by default;
   // Philharmonic binds without a chatId and keeps the user's home.
   const workspaceDir = chatId ? getChatWorkspaceDir(chatId) : undefined

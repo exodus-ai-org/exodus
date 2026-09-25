@@ -37,6 +37,7 @@
     "VALIDATION_INVALID_INPUT": "Entrée invalide fournie.",
     "VALIDATION_MISSING_FIELD": "{{field}} est requis.",
     "KNOWLEDGE_BASE_NOT_CONFIGURED": "La base de connaissances n'est pas configurée.",
+    "SECRET_REENTRY_REQUIRED": "Saisissez à nouveau le secret : celui enregistré ne peut pas être utilisé ici.",
     "RATE_LIMIT_CHAT": "Vous avez dépassé votre nombre maximal de messages. Veuillez réessayer plus tard.",
     "RATE_LIMIT_SKILLS": "Trop de requêtes vers le registre de compétences. Veuillez réessayer plus tard.",
     "SERVICE_OLLAMA_UNREACHABLE": "Le service Ollama est injoignable. Veuillez vérifier qu'Ollama est en cours d'exécution.",
@@ -64,7 +65,8 @@
     "AI_EMBEDDING_FAILED": "Échec de la génération d'embedding par l'IA.",
     "INTERNAL_ERROR": "Une erreur interne du serveur est survenue.",
     "UNKNOWN_ERROR": "Une erreur inconnue est survenue.",
-    "APP_LOCKED": "L'application est verrouillée."
+    "APP_LOCKED": "L'application est verrouillée.",
+    "APPROVAL_NOT_FOUND": "Cette demande n’attend plus de réponse."
   },
   "routeBoundary": {
     "title": "Une erreur est survenue",

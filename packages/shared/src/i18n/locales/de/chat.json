@@ -5,10 +5,13 @@
       "generating": "Bild wird generiert",
       "refining": "Details werden verfeinert",
       "complete": "Bild fertig",
-      "error": "Generierung fehlgeschlagen"
+      "error": "Generierung fehlgeschlagen",
+      "unavailable": "Bild nicht verfügbar"
     },
     "retry": "Erneut versuchen",
-    "generatedImageAlt": "Generiertes Bild"
+    "generatedImageAlt": "Generiertes Bild",
+    "labelWithPrompt": "{{status}}: {{prompt}}",
+    "quotedPrompt": "„{{prompt}}“"
   },
   "composer": {
     "placeholder": "Fragen Sie mich etwas",
@@ -80,7 +83,8 @@
     "viewButton": "Anzeigen",
     "chatFailedTitle": "Chat fehlgeschlagen",
     "genericErrorFallback": "Ein Fehler ist aufgetreten",
-    "headsUpTitle": "Hinweis"
+    "headsUpTitle": "Hinweis",
+    "approvalTitle": "Wartet auf Ihre Zustimmung"
   },
   "lcm": {
     "compacting": "Unterhaltungsverlauf wird komprimiert…",
@@ -132,6 +136,7 @@
     "researching": "Deep Research läuft...",
     "completedSummary_one": "Recherche in {{minutes}} Min. abgeschlossen · {{count}} Quelle",
     "completedSummary_other": "Recherche in {{minutes}} Min. abgeschlossen · {{count}} Quellen",
+    "failed": "Recherche fehlgeschlagen",
     "exportAriaLabel": "Als PDF exportieren",
     "downloadPdfTooltip": "PDF herunterladen",
     "exportFailedTitle": "Export fehlgeschlagen",
@@ -289,6 +294,10 @@
     "prefill": "Der Gedächtniseintrag zu „{{key}}“ ist falsch: "
   },
   "renderFailed": "{{what}} konnte nicht angezeigt werden.",
+  "remoteImage": {
+    "loadButton": "Bild laden",
+    "inlineImage": "Eingebettetes Bild"
+  },
   "findInPage": {
     "placeholder": "Auf der Seite suchen…",
     "noResults": "Keine Ergebnisse",
@@ -298,5 +307,20 @@
   },
   "quickChat": {
     "placeholder": "Wie kann ich dir heute helfen?"
+  },
+  "approval": {
+    "title": "Zugriff auf ein Geheimnis erlauben?",
+    "fileHint": "Ein Werkzeug möchte diese Datei verwenden, die Zugangsdaten enthalten kann:",
+    "commandHint": "Ein Befehl möchte auf Zugangsdaten auf diesem Computer zugreifen:",
+    "allow": "Einmal erlauben",
+    "deny": "Ablehnen",
+    "allowed": "Einmal erlaubt",
+    "denied": "Abgelehnt",
+    "timedOut": "Zeit abgelaufen",
+    "stopped": "Gestoppt",
+    "expired": "Wartet nicht mehr",
+    "decideFailed": "Ihre Antwort konnte nicht gesendet werden",
+    "truncatedNote_one": "{{count}} weiteres Zeichen nicht angezeigt",
+    "truncatedNote_other": "{{count}} weitere Zeichen nicht angezeigt"
   }
 }

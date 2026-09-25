@@ -5,6 +5,7 @@ import { v4 as uuidV4 } from 'uuid'
 
 import { Guard } from '../../computer/guard'
 import { liveness } from '../../computer/liveness'
+import { isSelfTarget, SELF_TARGET_MESSAGE } from '../../computer/self'
 import { runComputerSession } from '../../computer/session'
 import { getSettings } from '../../db/queries'
 import { ClaudeComputerAgent } from '../computer-use/agent'
@@ -45,6 +46,15 @@ export const computerUse: AgentTool<typeof schema> = {
             }
           ],
           details: { error: 'disabled' }
+        }
+      }
+
+      // Never Exodus itself, whatever the allowlist says: it could click its
+      // own approval prompt. The session re-checks the resolved window too.
+      if (isSelfTarget({ bundleId: target })) {
+        return {
+          content: [{ type: 'text' as const, text: SELF_TARGET_MESSAGE }],
+          details: { error: 'self' }
         }
       }
 

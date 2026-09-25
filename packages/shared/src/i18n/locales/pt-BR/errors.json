@@ -37,6 +37,7 @@
     "VALIDATION_INVALID_INPUT": "Entrada inválida fornecida.",
     "VALIDATION_MISSING_FIELD": "{{field}} é obrigatório.",
     "KNOWLEDGE_BASE_NOT_CONFIGURED": "A base de conhecimento não está configurada.",
+    "SECRET_REENTRY_REQUIRED": "Digite o segredo novamente: o salvo não pode ser usado aqui.",
     "RATE_LIMIT_CHAT": "Você excedeu o número máximo de mensagens. Tente novamente mais tarde.",
     "RATE_LIMIT_SKILLS": "Muitas solicitações ao registro de habilidades. Tente novamente mais tarde.",
     "SERVICE_OLLAMA_UNREACHABLE": "O serviço Ollama não está acessível. Verifique se o Ollama está em execução.",
@@ -64,7 +65,8 @@
     "AI_EMBEDDING_FAILED": "Falha na geração de embedding da IA.",
     "INTERNAL_ERROR": "Ocorreu um erro interno no servidor.",
     "UNKNOWN_ERROR": "Ocorreu um erro desconhecido.",
-    "APP_LOCKED": "O aplicativo está bloqueado."
+    "APP_LOCKED": "O aplicativo está bloqueado.",
+    "APPROVAL_NOT_FOUND": "Esta solicitação não está mais aguardando resposta."
   },
   "routeBoundary": {
     "title": "Algo deu errado",

@@ -37,6 +37,7 @@
     "VALIDATION_INVALID_INPUT": "Invalid input provided.",
     "VALIDATION_MISSING_FIELD": "{{field}} is required.",
     "KNOWLEDGE_BASE_NOT_CONFIGURED": "The knowledge base is not configured.",
+    "SECRET_REENTRY_REQUIRED": "Re-enter the secret: the saved one can't be used here.",
     "RATE_LIMIT_CHAT": "You have exceeded your maximum number of messages. Please try again later.",
     "RATE_LIMIT_SKILLS": "Too many requests to the skill registry. Please try again later.",
     "SERVICE_OLLAMA_UNREACHABLE": "Ollama service is not reachable. Please check if Ollama is running.",
@@ -64,7 +65,8 @@
     "AI_EMBEDDING_FAILED": "AI embedding generation failed.",
     "INTERNAL_ERROR": "Internal server error occurred.",
     "UNKNOWN_ERROR": "An unknown error occurred.",
-    "APP_LOCKED": "Application is locked."
+    "APP_LOCKED": "Application is locked.",
+    "APPROVAL_NOT_FOUND": "This request is no longer waiting for an answer."
   },
   "routeBoundary": {
     "title": "Something went wrong",

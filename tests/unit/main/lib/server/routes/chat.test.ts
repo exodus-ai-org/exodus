@@ -94,6 +94,11 @@ vi.mock('@main/lib/search/resolve-search-provider', () => ({
   searchWithFallback: vi.fn(async () => [])
 }))
 
+const removeChatMediaMock = vi.fn(async () => {})
+vi.mock('@main/lib/media/store', () => ({
+  removeChatMedia: (...args: unknown[]) => removeChatMediaMock(...args)
+}))
+
 const { default: chat } = await import('@main/lib/server/routes/chat')
 const { saveMessages } = await import('@main/lib/db/queries')
 const { resolveSearchProvider } =
@@ -242,7 +247,9 @@ describe('POST /api/v1/chat', () => {
     expect(input.reasoning).toBe('high')
   })
 
-  it('enqueues lcm-post-turn and memory-consolidate payloads with the renamed model field', async () => {
+  // No `apiKey` in either payload (ledger ruling R3): the handler reads the
+  // key from settings when the job runs.
+  it('enqueues lcm-post-turn and memory-consolidate payloads with the renamed model field and no key', async () => {
     const response = await postChat({ reasoningEffort: 'low' })
     await response.text()
 
@@ -252,16 +259,12 @@ describe('POST /api/v1/chat', () => {
     const memoryCall = enqueueAndProcessMock.mock.calls.find(
       (c) => c[0] === 'memory-consolidate'
     )
-    expect(lcmCall?.[1]).toMatchObject({
-      model: FAKE_MODEL,
-      apiKey: 'test-key'
-    })
+    expect(lcmCall?.[1]).toMatchObject({ model: FAKE_MODEL })
     expect(lcmCall?.[1]).not.toHaveProperty('chatModel')
-    expect(memoryCall?.[1]).toMatchObject({
-      model: FAKE_MODEL,
-      apiKey: 'test-key'
-    })
+    expect(lcmCall?.[1]).not.toHaveProperty('apiKey')
+    expect(memoryCall?.[1]).toMatchObject({ model: FAKE_MODEL })
     expect(memoryCall?.[1]).not.toHaveProperty('chatModel')
+    expect(memoryCall?.[1]).not.toHaveProperty('apiKey')
   })
 
   describe('index-message job', () => {
@@ -456,5 +459,17 @@ describe('POST /api/v1/chat', () => {
 
       await vi.waitFor(() => expect(savedAssistantRows()).toHaveLength(1))
     })
+  })
+})
+
+describe('DELETE /api/v1/chat/:id', () => {
+  it('removes the chat’s generated media along with its rows', async () => {
+    const { deleteChatById } = await import('@main/lib/db/queries')
+    removeChatMediaMock.mockClear()
+    const res = await buildApp().request(`/${CHAT_ID}`, { method: 'DELETE' })
+
+    expect(res.status).toBe(200)
+    expect(vi.mocked(deleteChatById)).toHaveBeenCalledWith({ id: CHAT_ID })
+    expect(removeChatMediaMock).toHaveBeenCalledWith(CHAT_ID)
   })
 })

@@ -8,6 +8,10 @@ import type {
 import type { UsedMemory } from '@exodus/shared/types/memory'
 import { sileo } from 'sileo'
 
+import {
+  recordApprovalRequired,
+  recordApprovalResolved
+} from '@/hooks/use-approvals'
 import { memoryKeys } from '@/hooks/use-memory'
 import { i18n } from '@/lib/i18n'
 import { queryClient } from '@/lib/query-client'
@@ -58,6 +62,19 @@ function notifyError(chatId: string, title: string, error: Error) {
     title: i18n.t('chat:toast.chatFailedTitle'),
     description:
       error.message || title || i18n.t('chat:toast.genericErrorFallback'),
+    button: {
+      title: i18n.t('chat:toast.viewButton'),
+      onClick: () => {
+        window.location.hash = `#/chat/${chatId}`
+      }
+    }
+  })
+}
+
+function notifyApproval(chatId: string, title: string) {
+  sileo.warning({
+    title: i18n.t('chat:toast.approvalTitle'),
+    description: title || i18n.t('chat:toast.chatFallbackTitle'),
     button: {
       title: i18n.t('chat:toast.viewButton'),
       onClick: () => {
@@ -151,6 +168,15 @@ async function consumeStream(stream: ActiveStream, response: Response) {
             memoryKeys.usage(stream.chatId),
             (old) => ({ ...old, [event.runId]: event.memories })
           )
+        } else if (event.type === 'approval_required') {
+          // A tool call waits for the user (a secret outside Exodus): the
+          // run's foot shows the card. Someone looking at another chat is
+          // told where to answer.
+          recordApprovalRequired(queryClient, stream.chatId, event)
+          if (!stream.subscriber)
+            notifyApproval(stream.chatId, stream.chatTitle)
+        } else if (event.type === 'approval_resolved') {
+          recordApprovalResolved(queryClient, stream.chatId, event)
         } else if (event.type === 'tool_call_end') {
           if (event.toolName === TOOL_NAMES.updateMemory) {
             // The `update_memory` tool just wrote the memory table (whether

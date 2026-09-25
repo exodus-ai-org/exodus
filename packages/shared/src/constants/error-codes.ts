@@ -36,6 +36,8 @@ export enum ErrorCode {
   PROJECT_NOT_FOUND = 'PROJECT_NOT_FOUND',
   SKILL_NOT_FOUND = 'SKILL_NOT_FOUND',
   AUDIO_NOT_FOUND = 'AUDIO_NOT_FOUND',
+  /** Nothing is waiting for that tool approval: unknown, timed out or stopped. */
+  APPROVAL_NOT_FOUND = 'APPROVAL_NOT_FOUND',
 
   // ── Validation Errors (400) ────────────────────────────────────────────────
   VALIDATION_FAILED = 'VALIDATION_FAILED',
@@ -43,6 +45,12 @@ export enum ErrorCode {
   VALIDATION_INVALID_INPUT = 'VALIDATION_INVALID_INPUT',
   VALIDATION_MISSING_FIELD = 'VALIDATION_MISSING_FIELD',
   KNOWLEDGE_BASE_NOT_CONFIGURED = 'KNOWLEDGE_BASE_NOT_CONFIGURED',
+  /**
+   * A saved secret (shown as its `••••` mask) cannot be used as posted — a
+   * mask sent toward a new base URL, a URL or argument edited around its
+   * mask. `params.field` names the field; the client asks for the value.
+   */
+  SECRET_REENTRY_REQUIRED = 'SECRET_REENTRY_REQUIRED',
 
   // ── Rate Limit Errors (429) ────────────────────────────────────────────────
   RATE_LIMIT_CHAT = 'RATE_LIMIT_CHAT',
@@ -114,6 +122,7 @@ export const ErrorCodeToStatus: Record<ErrorCode, number> = {
   [ErrorCode.PROJECT_NOT_FOUND]: 404,
   [ErrorCode.SKILL_NOT_FOUND]: 404,
   [ErrorCode.AUDIO_NOT_FOUND]: 404,
+  [ErrorCode.APPROVAL_NOT_FOUND]: 404,
 
   // Validation Errors
   [ErrorCode.VALIDATION_FAILED]: 400,
@@ -121,6 +130,7 @@ export const ErrorCodeToStatus: Record<ErrorCode, number> = {
   [ErrorCode.VALIDATION_INVALID_INPUT]: 400,
   [ErrorCode.VALIDATION_MISSING_FIELD]: 400,
   [ErrorCode.KNOWLEDGE_BASE_NOT_CONFIGURED]: 400,
+  [ErrorCode.SECRET_REENTRY_REQUIRED]: 400,
 
   // Rate Limit Errors
   [ErrorCode.RATE_LIMIT_CHAT]: 429,
@@ -202,6 +212,8 @@ export const ErrorMessages: Record<ErrorCode, string> = {
   [ErrorCode.PROJECT_NOT_FOUND]: 'Project not found.',
   [ErrorCode.SKILL_NOT_FOUND]: 'Skill not found.',
   [ErrorCode.AUDIO_NOT_FOUND]: 'Audio file not found.',
+  [ErrorCode.APPROVAL_NOT_FOUND]:
+    'This request is no longer waiting for an answer.',
 
   // Validation Errors
   [ErrorCode.VALIDATION_FAILED]: 'Input validation failed.',
@@ -211,6 +223,8 @@ export const ErrorMessages: Record<ErrorCode, string> = {
   [ErrorCode.VALIDATION_MISSING_FIELD]: '{{field}} is required.',
   [ErrorCode.KNOWLEDGE_BASE_NOT_CONFIGURED]:
     'The knowledge base is not configured.',
+  [ErrorCode.SECRET_REENTRY_REQUIRED]:
+    "Re-enter the secret: the saved one can't be used here.",
 
   // Rate Limit Errors
   [ErrorCode.RATE_LIMIT_CHAT]:

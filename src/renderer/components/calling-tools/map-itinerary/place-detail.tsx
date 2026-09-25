@@ -17,7 +17,6 @@ import {
   CarouselContent,
   CarouselItem
 } from '@/components/ui/carousel'
-import { useSettings } from '@/hooks/use-settings'
 import { cn } from '@/lib/utils'
 
 import { buildPlacePhotoUrl, type ItineraryPlace } from './types'
@@ -53,18 +52,16 @@ export function PlaceDetail({
   onClose
 }: PlaceDetailProps) {
   const { t } = useTranslation('chat')
-  const { data: settings } = useSettings()
-  const apiKey = settings?.googleCloud?.googleApiKey
   const [tab, setTab] = useState<Tab>('overview')
   const [carouselApi, setCarouselApi] = useState<CarouselApi>()
   const [photoIdx, setPhotoIdx] = useState(0)
 
   const photoUrls = useMemo(() => {
-    if (!apiKey || !place.photoNames?.length) return []
+    if (!place.photoNames?.length) return []
     return place.photoNames
-      .map((n) => buildPlacePhotoUrl(n, apiKey, 800))
+      .map((n) => buildPlacePhotoUrl(n, 800))
       .filter((u): u is string => !!u)
-  }, [apiKey, place.photoNames])
+  }, [place.photoNames])
 
   // Track the carousel's current slide index for the "1/N" counter.
   useEffect(() => {

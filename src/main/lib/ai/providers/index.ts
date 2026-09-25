@@ -57,6 +57,21 @@ const SPECS: Record<Exclude<AiProviders, AiProviders.Ollama>, ProviderSpec> = {
   }
 }
 
+type SpecProvider = Exclude<AiProviders, AiProviders.Ollama>
+
+/** The app's provider for a pi-ai `model.provider` string, if it has one. */
+export function aiProviderOf(piProvider: string): SpecProvider | null {
+  const hit = (Object.keys(SPECS) as SpecProvider[]).find(
+    (p) => SPECS[p].provider === piProvider
+  )
+  return hit ?? null
+}
+
+/** Where a provider's requests go under these settings (base URL or default). */
+export function providerBaseUrl(p: SpecProvider, setting: Settings): string {
+  return SPECS[p].baseUrl(setting)
+}
+
 function fromSpec(spec: ProviderSpec): ProviderFn {
   return (setting) => {
     const baseUrl = spec.baseUrl(setting)

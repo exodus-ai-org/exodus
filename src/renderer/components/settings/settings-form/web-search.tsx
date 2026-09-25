@@ -22,6 +22,7 @@ import { InputGroupAddon } from '@/components/ui/input-group'
 import { Switch } from '@/components/ui/switch'
 import { countryOptions } from '@/lib/country-names'
 
+import { SecretInput } from '../secret-fields'
 import { SettingsRow, SettingsSection } from '../settings-row'
 import { SettingsSelect } from '../settings-select'
 
@@ -70,13 +71,7 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
             error={fieldState.error}
             layout="vertical"
           >
-            <Input
-              type="password"
-              autoComplete="current-password"
-              placeholder="BSA..."
-              {...field}
-              value={field.value ?? ''}
-            />
+            <SecretInput placeholder="BSA..." {...field} value={field.value} />
           </SettingsRow>
         )}
       />

@@ -2,8 +2,7 @@ import { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
 import { Controller } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
-import { Input } from '@/components/ui/input'
-
+import { SecretInput } from '../secret-fields'
 import { SettingsRow, SettingsSection } from '../settings-row'
 
 export function GoogleMaps({ form }: { form: UseFormReturnType }) {
@@ -21,13 +20,11 @@ export function GoogleMaps({ form }: { form: UseFormReturnType }) {
             error={fieldState.error}
             layout="vertical"
           >
-            <Input
+            <SecretInput
               placeholder={t('tools.googleMaps.apiKey.placeholder')}
-              type="password"
-              autoComplete="current-password"
               id="google-search-api-key-input"
               {...field}
-              value={field.value ?? ''}
+              value={field.value}
             />
           </SettingsRow>
         )}

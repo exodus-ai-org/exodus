@@ -7,6 +7,12 @@ import { WebPDFLoader } from '@langchain/community/document_loaders/web/pdf'
 import * as cheerio from 'cheerio'
 import TurndownService from 'turndown'
 
+import {
+  assertNotExodusApi,
+  LocalApiTargetError
+} from '../../net/local-api-guard'
+import { fetchPinned } from '../../net/pinned-fetch'
+
 /* ================= Constants ================= */
 
 const TURNDOWN_OPTIONS = {
@@ -15,6 +21,33 @@ const TURNDOWN_OPTIONS = {
 } as const
 
 const BRAVE_API_BASE = 'https://api.search.brave.com/res/v1'
+
+// A page webFetch loads directly (not through Jina) may redirect; each hop
+// is re-checked against assertNotExodusApi (see loadDocumentBuiltin) so a
+// redirect can't land on Exodus's own API even when the original URL didn't.
+const MAX_BUILTIN_REDIRECTS = 5
+const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308])
+
+/**
+ * A GET through `fetchPinned` (the connection pinned to the addresses it
+ * judged; it never follows a redirect), following redirects here so every
+ * hop — including the first — passes `assertNotExodusApi` before the request
+ * for it is made. Only `http:` / `https:` hops are followed.
+ */
+async function fetchFollowingLocalGuard(initial: URL, signal?: AbortSignal) {
+  let current = initial
+  for (let hop = 0; ; hop++) {
+    if (current.protocol !== 'http:' && current.protocol !== 'https:') {
+      throw new Error(`Refused: ${current.protocol} is not http(s)`)
+    }
+    await assertNotExodusApi(current)
+    const response = await fetchPinned(current, { signal })
+    if (!REDIRECT_STATUSES.has(response.status)) return response
+    const location = response.headers.get('location')
+    if (!location || hop >= MAX_BUILTIN_REDIRECTS) return response
+    current = new URL(location, current)
+  }
+}
 
 // Map our recency-filter values onto Brave's `freshness` codes.
 // Brave has no past-hour bucket; collapse 'hour' to 'pd' (past day).
@@ -74,12 +107,26 @@ function htmlToMarkdown(html: string) {
   return turndown.turndown(html)
 }
 
-/** Built-in loader: cheerio + turndown (HTML) or LangChain (PDF) */
+/**
+ * Built-in loader: cheerio + turndown (HTML) or LangChain (PDF). Fetches
+ * directly from this process (unlike the Jina loader, which asks Jina's
+ * servers to fetch on our behalf), so it is the one loader that must not be
+ * allowed to reach Exodus's own API — `fetchFollowingLocalGuard` checks the
+ * initial URL and every redirect hop.
+ */
 export async function loadDocumentBuiltin(link: string, signal?: AbortSignal) {
   try {
-    const response = await fetch(link, { signal })
+    let initial: URL
+    try {
+      initial = new URL(link)
+    } catch {
+      return null
+    }
+    const response = await fetchFollowingLocalGuard(initial, signal)
     // A 4xx/5xx body is an error page, not the document — turning it into
     // markdown would hand the agent "404 Not Found" as if it were content.
+    // A redirect left unresolved (no Location, or too many hops) is not
+    // `ok` either, so it falls into the same case.
     if (!response.ok) return null
     const contentType = response.headers.get('content-type') ?? ''
 
@@ -100,7 +147,8 @@ export async function loadDocumentBuiltin(link: string, signal?: AbortSignal) {
     }
 
     return null
-  } catch {
+  } catch (error) {
+    if (error instanceof LocalApiTargetError) throw error
     return null
   }
 }

@@ -10,9 +10,18 @@ import {
   createMcpServer,
   deleteMcpServer,
   getAllMcpServers,
+  getMcpServerById,
   updateMcpServer
 } from '../../db/mcp-queries'
 import { logger } from '../../logger'
+import {
+  maskMcpServer,
+  mcpPlaintext,
+  refuseMasksOnCreate,
+  restoreMcpSecrets
+} from '../../secrets'
+import { mcpSecretLabels, planMcpUpdate } from '../../secrets/at-rest'
+import { recordMcpWrite } from '../../secrets/moved'
 import { Variables } from '../types'
 import {
   deletionSuccessResponse,
@@ -45,7 +54,12 @@ mcp.get('/', async (c) => {
     () => getAllMcpServers(),
     'Failed to get MCP servers'
   )
-  return successResponse(c, servers)
+  // `env` / `headers` values (and secret-named `extraConfig` values) leave as
+  // masks only (spec 2026-09-25 §2.2); a posted mask means "unchanged".
+  return successResponse(
+    c,
+    servers.map((s) => maskMcpServer(s))
+  )
 })
 
 mcp.post('/', async (c) => {
@@ -54,12 +68,14 @@ mcp.post('/', async (c) => {
     await c.req.json(),
     'Invalid MCP server data'
   )
+  // Nothing is stored yet, so a mask here has nothing to stand for (N2).
+  refuseMasksOnCreate(data)
   const result = await handleDatabaseOperation(
-    () => createMcpServer(data),
+    () => createMcpServer(restoreMcpSecrets(data, mcpPlaintext(null))),
     'Failed to create MCP server'
   )
   invalidateAllMcpCache()
-  return successResponse(c, result, 201)
+  return successResponse(c, result && maskMcpServer(result), 201)
 })
 
 mcp.put('/:id', async (c) => {
@@ -74,12 +90,26 @@ mcp.put('/:id', async (c) => {
   const old = servers.find((s) => s.id === id)
   if (old) invalidateMcpCache(old.name)
 
+  // Masked url / args / secrets posted back stand for the stored ones, but
+  // no stored secret follows a move of its destination (prepareMcpUpdate).
+  const stored = await getMcpServerById(id)
+  const plan = planMcpUpdate(data, stored)
   const result = await handleDatabaseOperation(
-    () => updateMcpServer(id, data),
+    () => updateMcpServer(id, plan.write),
     'Failed to update MCP server'
   )
+  // A secret dropped because its destination moved is asked for again, by
+  // name, across restarts (`secrets/moved.ts`); one typed again drops off.
+  if (stored && result) {
+    const after = mcpSecretLabels(result)
+    const moved = [...mcpSecretLabels(stored)].filter(
+      (label) =>
+        plan.moved.has(label.split('.')[0] as never) && !after.has(label)
+    )
+    recordMcpWrite(id, { moved, filled: [...after] })
+  }
   if (data.name) invalidateMcpCache(data.name)
-  return successResponse(c, result)
+  return successResponse(c, result && maskMcpServer(result))
 })
 
 mcp.delete('/:id', async (c) => {

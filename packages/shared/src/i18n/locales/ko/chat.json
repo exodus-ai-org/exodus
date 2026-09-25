@@ -5,10 +5,13 @@
       "generating": "이미지 생성 중",
       "refining": "세부 사항 다듬는 중",
       "complete": "이미지 준비 완료",
-      "error": "생성 실패"
+      "error": "생성 실패",
+      "unavailable": "이미지를 표시할 수 없음"
     },
     "retry": "다시 시도",
-    "generatedImageAlt": "생성된 이미지"
+    "generatedImageAlt": "생성된 이미지",
+    "labelWithPrompt": "{{status}}: {{prompt}}",
+    "quotedPrompt": "“{{prompt}}”"
   },
   "composer": {
     "placeholder": "무엇이든 물어보세요",
@@ -75,7 +78,8 @@
     "viewButton": "보기",
     "chatFailedTitle": "채팅 실패",
     "genericErrorFallback": "오류가 발생했습니다",
-    "headsUpTitle": "알림"
+    "headsUpTitle": "알림",
+    "approvalTitle": "승인을 기다리는 중"
   },
   "lcm": {
     "compacting": "대화 기록 압축 중…",
@@ -125,6 +129,7 @@
   "deepResearchCard": {
     "researching": "심층 조사 중...",
     "completedSummary_other": "{{minutes}}분 만에 조사 완료 · 출처 {{count}}건",
+    "failed": "조사 실패",
     "exportAriaLabel": "PDF로 내보내기",
     "downloadPdfTooltip": "PDF 다운로드",
     "exportFailedTitle": "내보내기 실패",
@@ -280,6 +285,10 @@
     "prefill": "'{{key}}'에 대한 메모리가 잘못되었습니다: "
   },
   "renderFailed": "{{what}}을(를) 표시할 수 없습니다.",
+  "remoteImage": {
+    "loadButton": "이미지 불러오기",
+    "inlineImage": "인라인 이미지"
+  },
   "findInPage": {
     "placeholder": "페이지에서 찾기…",
     "noResults": "결과 없음",
@@ -289,5 +298,19 @@
   },
   "quickChat": {
     "placeholder": "오늘은 무엇을 도와드릴까요?"
+  },
+  "approval": {
+    "title": "비밀 정보에 대한 접근을 허용할까요?",
+    "fileHint": "도구가 자격 증명이 들어 있을 수 있는 이 파일을 사용하려고 합니다:",
+    "commandHint": "명령이 이 컴퓨터의 자격 증명에 접근하려고 합니다:",
+    "allow": "이번만 허용",
+    "deny": "거부",
+    "allowed": "이번만 허용됨",
+    "denied": "거부됨",
+    "timedOut": "시간 초과",
+    "stopped": "중지됨",
+    "expired": "더 이상 대기 중이 아님",
+    "decideFailed": "답변을 보낼 수 없습니다",
+    "truncatedNote_other": "표시되지 않은 문자가 {{count}}자 더 있습니다"
   }
 }

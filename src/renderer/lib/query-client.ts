@@ -1,4 +1,8 @@
-import { getHttpErrorMessage, toErrorI18n } from '@exodus/shared/utils/http'
+import {
+  getHttpErrorMessage,
+  HttpError,
+  toErrorI18n
+} from '@exodus/shared/utils/http'
 import {
   focusManager,
   MutationCache,
@@ -15,10 +19,14 @@ import { reportRendererError } from '@/lib/report-error'
  * below. `errorTitle` is the toast title on failure (falls back to the
  * catalog's `errors:generic`); `silent: true` skips the toast entirely
  * (reporting still happens — this never means "don't tell the log").
+ * `inlineCodes` does the same for an `HttpError` whose code is listed: the
+ * caller shows that one in place (a field the server refused), so a toast
+ * would say it twice.
  */
 export interface MutationMeta extends Record<string, unknown> {
   errorTitle?: string
   silent?: boolean
+  inlineCodes?: readonly string[]
 }
 
 /**
@@ -44,6 +52,11 @@ export function createAppQueryClient(): QueryClient {
         })
         const meta = mutation.meta as MutationMeta | undefined
         if (meta?.silent) return
+        if (
+          error instanceof HttpError &&
+          meta?.inlineCodes?.includes(error.code)
+        )
+          return
         sileo.error({
           title: meta?.errorTitle ?? i18n.t('errors:generic'),
           description:

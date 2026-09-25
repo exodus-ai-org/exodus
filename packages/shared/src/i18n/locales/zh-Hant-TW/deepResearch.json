@@ -29,6 +29,9 @@
     "complete": {
       "title": "深度研究已完成",
       "description": "針對「{{query}}」的深入報告已完整生成，希望對你有所幫助！"
+    },
+    "failed": {
+      "title": "深度研究失敗"
     }
   },
   "sources": {

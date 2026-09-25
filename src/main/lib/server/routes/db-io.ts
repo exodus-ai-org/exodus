@@ -1,5 +1,5 @@
 import { ErrorCode } from '@exodus/shared/constants/error-codes'
-import { DatabaseError } from '@exodus/shared/errors/app-error'
+import { DatabaseError, ValidationError } from '@exodus/shared/errors/app-error'
 import { Hono } from 'hono'
 import JSZip from 'jszip'
 
@@ -7,7 +7,9 @@ import { createAutoBackup } from '../../backup'
 import { exportData, importData, resetAllData } from '../../db/queries'
 import type { Settings } from '../../db/schema'
 import { logger } from '../../logger'
+import { removeAllMedia } from '../../media/store'
 import { resolveSearchProvider } from '../../search/resolve-search-provider'
+import { forgetAllMovedSecrets } from '../../secrets/moved'
 import { importDataSchema } from '../schemas/db-io'
 import { Variables } from '../types'
 import {
@@ -28,6 +30,14 @@ const tableNames = [
   'deep_research',
   'deep_research_message'
 ]
+
+/**
+ * What an import may write: the tables an export writes, bar `settings`. A
+ * zip from another machine carries that machine's ciphertext (safeStorage is
+ * bound to it), and a crafted one could carry anything — neither may land in
+ * `settings`, `mcp_server` or `paired_device` as if it were this machine's.
+ */
+const importableTables = new Set(tableNames.filter((t) => t !== 'settings'))
 
 /**
  * Fire-and-forget: `resetAllData()` TRUNCATEs the `message` table, so the
@@ -74,6 +84,13 @@ dbIo.post('/import', async (c) => {
     },
     'Invalid request body'
   )
+
+  if (!importableTables.has(tableName)) {
+    throw new ValidationError(
+      ErrorCode.VALIDATION_FAILED,
+      'This table cannot be imported'
+    )
+  }
 
   await handleDatabaseOperation(
     () => importData(tableName, file),
@@ -127,7 +144,8 @@ dbIo.post('/import-all', async (c) => {
   for (const [fileName, zipEntry] of Object.entries(zip.files)) {
     if (!fileName.endsWith('.csv') || zipEntry.dir) continue
     const tableName = fileName.replace('.csv', '')
-    if (tableName === 'settings') continue // Don't overwrite settings
+    // Settings, or a table an export never writes.
+    if (!importableTables.has(tableName)) continue
     const csvBlob = new Blob([await zipEntry.async('arraybuffer')])
     await importData(tableName, csvBlob)
   }
@@ -139,7 +157,12 @@ dbIo.post('/import-all', async (c) => {
 dbIo.delete('/reset', async (c) => {
   await createAutoBackup()
   await handleDatabaseOperation(() => resetAllData(), 'Failed to reset data')
+  // A reset starts over: no "re-enter this key" prompt outlives it.
+  forgetAllMovedSecrets()
   clearSearchIndexInBackground(c.get('settings'))
+  // The chats that referenced it are gone. (Not on /import-all: that restores
+  // chats, possibly this machine's own, whose images are still on disk.)
+  await removeAllMedia()
   return successResponse(c, { success: true })
 })
 

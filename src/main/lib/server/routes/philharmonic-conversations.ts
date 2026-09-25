@@ -17,6 +17,7 @@ import {
 import { getPhilharmonicCostRows } from '../../db/philharmonic-queries'
 import { getActivePlanByConversationId } from '../../db/plan-queries'
 import { logger } from '../../logger'
+import { removeGroupMedia } from '../../media/store'
 // src/main/lib/server/routes/philharmonic-conversations.ts
 import type { Variables } from '../types'
 import {
@@ -141,6 +142,7 @@ router.delete('/conversations/:id', async (c) => {
     () => deleteConversation(id),
     'Failed to delete conversation'
   )
+  await removeGroupMedia(id)
   return deletionSuccessResponse(c, 'Conversation')
 })
 

@@ -116,3 +116,47 @@ describe('buildSettingsSave — colorTone', () => {
     expect(bad.status).toBe('invalid')
   })
 })
+
+describe('buildSettingsSave: a saved key whose address moves', () => {
+  const withKey = () =>
+    persisted({
+      providers: {
+        openaiApiKey: '•••• abcd',
+        openaiBaseUrl: null
+      }
+    } as Partial<Settings>)
+
+  it('posts the key cleared, and names it, when the base URL changes under a masked key', () => {
+    const r = buildSettingsSave(
+      withKey(),
+      new Map([['providers.openaiBaseUrl', 'https://proxy.example/v1']])
+    )
+    if (r.status !== 'save') throw new Error('expected save')
+    expect(r.payload.providers?.openaiApiKey).toBeNull()
+    expect(r.payload.providers?.openaiBaseUrl).toBe('https://proxy.example/v1')
+    expect(r.clearedSecrets).toEqual(['providers.openaiApiKey'])
+  })
+
+  it('keeps a key typed in the same save as the new address', () => {
+    const r = buildSettingsSave(
+      withKey(),
+      new Map([
+        ['providers.openaiBaseUrl', 'https://proxy.example/v1'],
+        ['providers.openaiApiKey', 'sk-typed-for-the-proxy']
+      ])
+    )
+    if (r.status !== 'save') throw new Error('expected save')
+    expect(r.payload.providers?.openaiApiKey).toBe('sk-typed-for-the-proxy')
+    expect(r.clearedSecrets).toEqual([])
+  })
+
+  it('an unrelated change posts the mask back untouched (the server keeps the key)', () => {
+    const r = buildSettingsSave(
+      withKey(),
+      new Map([['personality.nickname', 'Yancey']])
+    )
+    if (r.status !== 'save') throw new Error('expected save')
+    expect(r.payload.providers?.openaiApiKey).toBe('•••• abcd')
+    expect(r.clearedSecrets).toEqual([])
+  })
+})

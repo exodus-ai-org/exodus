@@ -26,9 +26,12 @@ import { ENTER, ENTER_UP } from '@/lib/motion'
 import { userMessageText } from '@/lib/user-message-text'
 import { cn } from '@/lib/utils'
 
+import { collectImageGenerations } from './calling-tools/image-generation/collect-image-generations'
+import { ImageGenerationCard } from './calling-tools/image-generation/image-generation-card'
 import { ErrorBoundary, RenderFailed } from './card-error-boundary'
 import { ChatToc } from './chat-toc'
 import { MemoryChangeStrip } from './chat/memory-change-strip'
+import { RunApprovals } from './chat/run-approvals'
 import { UsedMemories } from './chat/used-memories'
 import { DiscoverFeed } from './home/discover-feed'
 import Markdown from './markdown'
@@ -143,6 +146,15 @@ const AssistantTurnSegment = memo(
       () => collectGalleryVideos(turn.webSearchResults),
       [turn.webSearchResults]
     )
+    // A call still waiting for its result is forming only while the run
+    // streams; in a run that was stopped it never will, so it shows nothing.
+    const imageGenerations = useMemo(
+      () =>
+        collectImageGenerations(turn.messages).filter(
+          (call) => call.result || isStreaming
+        ),
+      [turn.messages, isStreaming]
+    )
 
     return (
       <div
@@ -172,7 +184,27 @@ const AssistantTurnSegment = memo(
                 <RenderFailed what={capitalCase(toolResult.toolName)} />
               }
             >
-              <MessageCallingTools chatId={chatId} toolResult={toolResult} />
+              <MessageCallingTools
+                chatId={chatId}
+                toolResult={toolResult}
+                isStreaming={isStreaming}
+              />
+            </ErrorBoundary>
+          ))}
+
+          {imageGenerations.map((call) => (
+            <ErrorBoundary
+              key={call.toolCallId}
+              scope="tool-card"
+              attributes={{
+                toolName: TOOL_NAMES.imageGeneration,
+                toolCallId: call.toolCallId
+              }}
+              fallback={
+                <RenderFailed what={capitalCase(TOOL_NAMES.imageGeneration)} />
+              }
+            >
+              <ImageGenerationCard prompt={call.prompt} result={call.result} />
             </ErrorBoundary>
           ))}
 
@@ -220,10 +252,16 @@ const AssistantTurnSegment = memo(
             </section>
           )}
 
-          {/* The run's memory: which entries it read, and what it changed —
+          {/* The run's foot: a tool call waiting for the user's approval,
+              and the run's memory (which entries it read, what it changed) —
               here rather than in the timeline, which folds when the run ends.
               Each renders nothing when there is nothing to say (`empty:`). */}
           <div className="mt-2 flex flex-col gap-2 empty:hidden">
+            <RunApprovals
+              chatId={chatId}
+              runId={turn.runId}
+              active={isStreaming}
+            />
             <UsedMemories chatId={chatId} runId={turn.runId} />
             <MemoryChangeStrip messages={turn.messages} active={isStreaming} />
           </div>

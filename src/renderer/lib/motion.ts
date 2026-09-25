@@ -30,6 +30,13 @@ export const ROW_ENTER =
 export const PAGE_ENTER =
   'transition-[opacity,translate] duration-200 ease-out starting:translate-y-1 starting:opacity-0'
 
+/**
+ * The same curves for `motion/react`'s `ease`, which takes the four numbers
+ * rather than a class. Keep them equal to `--ease-out` / `--ease-in-out`.
+ */
+export const EASE_OUT_CURVE = [0.23, 1, 0.32, 1] as const
+export const EASE_IN_OUT_CURVE = [0.77, 0, 0.175, 1] as const
+
 const STAGGER_MS = 40
 // A long list staggered all the way down would still be arriving a second
 // later; past this many items the rest come in together.

@@ -1,5 +1,7 @@
 import { fetcher } from '@exodus/shared/utils/http'
 
+import { presenceHeaders } from '@/lib/presence'
+
 export interface PairedDeviceInfo {
   id: string
   name: string
@@ -22,16 +24,24 @@ export interface DevicesState {
 
 export const DEVICES_URL = '/api/v1/devices'
 
-export const getDevices = () => fetcher<DevicesState>(DEVICES_URL)
+// Every devices request carries the window's presence token: the API refuses
+// this prefix to any other local process (a pairing code must not reach a
+// `curl` the model runs).
+const withPresence = async <T>(
+  url: string,
+  options: { method?: 'GET' | 'POST' | 'DELETE' } = {}
+) => fetcher<T>(url, { ...options, headers: await presenceHeaders() })
+
+export const getDevices = () => withPresence<DevicesState>(DEVICES_URL)
 
 export const openPairing = () =>
-  fetcher<PairingInfo>(`${DEVICES_URL}/pairing`, { method: 'POST' })
+  withPresence<PairingInfo>(`${DEVICES_URL}/pairing`, { method: 'POST' })
 
 export const cancelPairing = () =>
-  fetcher(`${DEVICES_URL}/pairing`, { method: 'DELETE' })
+  withPresence(`${DEVICES_URL}/pairing`, { method: 'DELETE' })
 
 export const revokeDevice = (id: string) =>
-  fetcher(`${DEVICES_URL}/${id}`, { method: 'DELETE' })
+  withPresence(`${DEVICES_URL}/${id}`, { method: 'DELETE' })
 
 export const resetDevices = () =>
-  fetcher(`${DEVICES_URL}/reset`, { method: 'POST' })
+  withPresence(`${DEVICES_URL}/reset`, { method: 'POST' })

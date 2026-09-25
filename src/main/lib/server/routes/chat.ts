@@ -7,6 +7,7 @@ import { Hono } from 'hono'
 
 import { mcpDirectory } from '../../ai/calling-tools/mcp-toolbox'
 import { LcmManager, freshTailRuns } from '../../ai/context-management'
+import { decideApproval } from '../../ai/kernel/pending-approvals'
 import { RunRecorder } from '../../ai/kernel/record'
 import { runAgent } from '../../ai/kernel/run'
 import { getMcpTools } from '../../ai/mcp'
@@ -40,12 +41,17 @@ import {
 import { enqueueAndProcess, logEnqueueFailure } from '../../jobs/worker'
 import { logger } from '../../logger'
 import { bindTraceAttributes } from '../../logger/trace-context'
+import { removeChatMedia } from '../../media/store'
 import { getChatWorkspaceDir } from '../../paths'
 import {
   resolveSearchProvider,
   searchWithFallback
 } from '../../search/resolve-search-provider'
-import { postRequestBodySchema, updateChatSchema } from '../schemas/chat'
+import {
+  approvalDecisionSchema,
+  postRequestBodySchema,
+  updateChatSchema
+} from '../schemas/chat'
 import { Variables } from '../types'
 import {
   deletionSuccessResponse,
@@ -82,6 +88,35 @@ chat.get('/search', async (c) => {
     'Failed to search messages'
   )
   return successResponse(c, result)
+})
+
+/**
+ * The user's answer to a paused tool call (`approval_required`). Behind the
+ * presence gate: on loopback only the app's own window can answer, on the
+ * LAN only a paired device — never a process the model started. Idempotent:
+ * a repeat gets the outcome already recorded. 404 once nothing waits under
+ * that id (unknown, timed out, or the run stopped).
+ */
+chat.post('/approval', async (c) => {
+  const { runId, toolCallId, decision } = validateSchema(
+    approvalDecisionSchema,
+    await c.req.json(),
+    'Invalid request body'
+  )
+  const outcome = decideApproval(runId, toolCallId, decision)
+  if (!outcome) {
+    throw new NotFoundError(
+      ErrorCode.APPROVAL_NOT_FOUND,
+      'Nothing is waiting for that approval.'
+    )
+  }
+  logger.info('chat', 'Tool approval answered', {
+    runId,
+    toolCallId,
+    outcome,
+    via: c.get('deviceId') ? 'device' : 'app'
+  })
+  return successResponse(c, { outcome })
 })
 
 chat.get('/:id', async (c) => {
@@ -291,7 +326,6 @@ chat.post('/', async (c) => {
   const recorder = new RunRecorder({
     chatId: id,
     model,
-    apiKey,
     lcm: lcm
       ? {
           freshTailRuns: freshTailRuns(memoryConfig),
@@ -333,7 +367,8 @@ chat.post('/', async (c) => {
           apiKey,
           reasoning: effectiveReasoning,
           signal: c.req.raw.signal,
-          disabledTools
+          disabledTools,
+          workspaceDir: getChatWorkspaceDir(id)
         })
         for await (const event of events) {
           recorder.observe(event)
@@ -393,6 +428,29 @@ chat.post('/', async (c) => {
                 messages: [...history, ...event.messages]
               })
               break
+            case 'approval_required':
+              // The path or command only — never contents. The run waits;
+              // any client may answer (the window, or a paired phone).
+              sse.send({
+                type: 'approval_required',
+                runId: event.runId,
+                toolCallId: event.toolCallId,
+                toolName: event.toolName,
+                summary: event.summary,
+                ...(event.truncated
+                  ? { truncated: true, hiddenChars: event.hiddenChars }
+                  : {}),
+                expiresAt: event.expiresAt
+              })
+              break
+            case 'approval_resolved':
+              sse.send({
+                type: 'approval_resolved',
+                runId: event.runId,
+                toolCallId: event.toolCallId,
+                outcome: event.outcome
+              })
+              break
             case 'error':
               logger.error('chat', 'Chat stream error', { error: event.error })
               sse.send({
@@ -438,6 +496,9 @@ chat.delete('/:id', async (c) => {
     () => deleteChatById({ id }),
     'Failed to delete chat'
   )
+
+  // Best-effort, like the search index below: the chat is gone either way.
+  await removeChatMedia(id)
 
   const { elasticsearch } = resolveSearchProvider(c.get('settings'))
   if (elasticsearch) {

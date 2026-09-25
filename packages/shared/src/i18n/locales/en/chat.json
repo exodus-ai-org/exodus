@@ -5,10 +5,13 @@
       "generating": "Generating image",
       "refining": "Refining details",
       "complete": "Image ready",
-      "error": "Generation failed"
+      "error": "Generation failed",
+      "unavailable": "Image unavailable"
     },
     "retry": "Try again",
-    "generatedImageAlt": "Generated image"
+    "generatedImageAlt": "Generated image",
+    "labelWithPrompt": "{{status}}: {{prompt}}",
+    "quotedPrompt": "“{{prompt}}”"
   },
   "composer": {
     "placeholder": "Ask anything",
@@ -80,7 +83,8 @@
     "viewButton": "View",
     "chatFailedTitle": "Chat failed",
     "genericErrorFallback": "An error occurred",
-    "headsUpTitle": "Heads up"
+    "headsUpTitle": "Heads up",
+    "approvalTitle": "Waiting for your approval"
   },
   "lcm": {
     "compacting": "Compacting conversation history…",
@@ -132,6 +136,7 @@
     "researching": "Deep Researching...",
     "completedSummary_one": "Research completed in {{minutes}}m · {{count}} source",
     "completedSummary_other": "Research completed in {{minutes}}m · {{count}} sources",
+    "failed": "Research failed",
     "exportAriaLabel": "Export as PDF",
     "downloadPdfTooltip": "Download PDF",
     "exportFailedTitle": "Export failed",
@@ -289,6 +294,10 @@
     "prefill": "The memory about '{{key}}' is wrong: "
   },
   "renderFailed": "{{what}} could not be shown.",
+  "remoteImage": {
+    "loadButton": "Load image",
+    "inlineImage": "Inline image"
+  },
   "findInPage": {
     "placeholder": "Find in page...",
     "noResults": "No results",
@@ -298,5 +307,20 @@
   },
   "quickChat": {
     "placeholder": "How can I help you today?"
+  },
+  "approval": {
+    "title": "Allow access to a secret?",
+    "fileHint": "A tool wants to use this file, which may hold credentials:",
+    "commandHint": "A command wants to touch credentials on this computer:",
+    "allow": "Allow once",
+    "deny": "Deny",
+    "allowed": "Allowed once",
+    "denied": "Denied",
+    "timedOut": "Timed out",
+    "stopped": "Stopped",
+    "expired": "No longer waiting",
+    "decideFailed": "Couldn’t send your answer",
+    "truncatedNote_one": "{{count}} more character not shown",
+    "truncatedNote_other": "{{count}} more characters not shown"
   }
 }

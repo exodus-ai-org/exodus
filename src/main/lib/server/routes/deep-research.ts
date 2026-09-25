@@ -17,7 +17,9 @@ import {
   saveDeepResearchMessage,
   updateDeepResearch
 } from '../../db/queries'
+import { logger } from '../../logger'
 import { bindTraceAttributes } from '../../logger/trace-context'
+import { scrubSecrets } from '../../secrets/scrub'
 import { createDeepResearchSchema } from '../schemas/deep-research'
 import { Variables } from '../types'
 import {
@@ -31,6 +33,28 @@ import { SSE_HEADERS, SseManager } from '../utils/sse-manager'
 
 const deepResearch = new Hono<{ Variables: Variables }>()
 const sseManager = new SseManager<string>()
+
+/** A stored error message this long is already more than enough to diagnose. */
+const MAX_ERROR_MESSAGE_LENGTH = 300
+
+/**
+ * The error a failed job stores: the thrown value's class and message only —
+ * never a whole provider response, and scrubbed of any secret this request
+ * held (a provider API key, the Brave key) in case the error text echoed it
+ * back (e.g. a proxy or gateway quoting the failed request). Clipped so one
+ * runaway message can't bloat the row.
+ */
+export function summarizeDeepResearchError(
+  error: unknown,
+  secrets: readonly string[]
+): string {
+  const err = error instanceof Error ? error : new Error(String(error))
+  const raw = `${err.constructor.name}: ${err.message || 'unknown error'}`
+  const scrubbed = scrubSecrets(raw, secrets)
+  return scrubbed.length > MAX_ERROR_MESSAGE_LENGTH
+    ? `${scrubbed.slice(0, MAX_ERROR_MESSAGE_LENGTH)}…`
+    : scrubbed
+}
 
 async function notifyClients(
   deepResearchId: string,
@@ -79,48 +103,88 @@ deepResearch.post('/', async (c) => {
 
   const { model, apiKey } = getModelFromProvider(setting)
 
-  await notifyClients(deepResearchId, {
-    type: DeepResearchProgress.StartDeepResearch
-  })
-  const { learnings, webSources } = await deepResearchAgent(
-    {
-      query,
-      breadth: setting.deepResearch?.breadth ?? 4,
-      depth: setting.deepResearch?.depth ?? 2
-    },
-    {
-      braveApiKey,
-      model,
+  try {
+    await notifyClients(deepResearchId, {
+      type: DeepResearchProgress.StartDeepResearch
+    })
+    const { learnings, webSources } = await deepResearchAgent(
+      {
+        query,
+        breadth: setting.deepResearch?.breadth ?? 4,
+        depth: setting.deepResearch?.depth ?? 2
+      },
+      {
+        braveApiKey,
+        model,
+        apiKey,
+        notify: (data) => notifyClients(deepResearchId, data)
+      }
+    )
+
+    await notifyClients(deepResearchId, {
+      type: DeepResearchProgress.StartWritingFinalReport
+    })
+    const report = await writeFinalReport(
+      {
+        prompt: query,
+        learnings
+      },
+      { model, apiKey }
+    )
+
+    const deepResearchById = await getDeepResearchById({ id: deepResearchId })
+    const finalDeepResearch = await updateDeepResearch({
+      ...deepResearchById,
+      finalReport: report,
+      webSources: [...webSources.values()],
+      jobStatus: 'archived',
+      endTime: new Date()
+    })
+    await notifyClients(deepResearchId, {
+      type: DeepResearchProgress.CompleteDeepResearch,
+      query
+    })
+
+    return successResponse(c, finalDeepResearch)
+  } catch (error) {
+    // Whatever step threw — search, the LLM calls, a dropped connection, or
+    // the run being aborted (the chat it was launched from was stopped) —
+    // the job must not stay 'streaming' forever (the desktop card, and
+    // exodus-ios's 15-minute stall check, both key off jobStatus).
+    const errorMessage = summarizeDeepResearchError(error, [
       apiKey,
-      notify: (data) => notifyClients(deepResearchId, data)
+      braveApiKey
+    ])
+    logger.error('deep-research', 'Deep research job failed', {
+      deepResearchId,
+      error: errorMessage
+    })
+
+    try {
+      const deepResearchById = await getDeepResearchById({
+        id: deepResearchId
+      })
+      const failedDeepResearch = await updateDeepResearch({
+        ...deepResearchById,
+        jobStatus: 'failed',
+        errorMessage,
+        endTime: new Date()
+      })
+      await notifyClients(deepResearchId, {
+        type: DeepResearchProgress.FailDeepResearch,
+        error: errorMessage
+      })
+      return successResponse(c, failedDeepResearch)
+    } catch (persistError) {
+      // The job row itself couldn't be updated — log and fall through to the
+      // generic error response rather than leaving this silent.
+      logger.error('deep-research', 'Failed to persist deep research failure', {
+        deepResearchId,
+        error: String(persistError)
+      })
+      throw error
     }
-  )
-
-  await notifyClients(deepResearchId, {
-    type: DeepResearchProgress.StartWritingFinalReport
-  })
-  const report = await writeFinalReport(
-    {
-      prompt: query,
-      learnings
-    },
-    { model, apiKey }
-  )
-
-  const deepResearchById = await getDeepResearchById({ id: deepResearchId })
-  const finalDeepResearch = await updateDeepResearch({
-    ...deepResearchById,
-    finalReport: report,
-    webSources: [...webSources.values()],
-    jobStatus: 'archived',
-    endTime: new Date()
-  })
-  await notifyClients(deepResearchId, {
-    type: DeepResearchProgress.CompleteDeepResearch,
-    query
-  })
-
-  return successResponse(c, finalDeepResearch)
+  }
 })
 
 deepResearch.get('/sse', async (c) => {

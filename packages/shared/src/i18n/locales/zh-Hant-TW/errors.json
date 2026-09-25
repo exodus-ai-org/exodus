@@ -37,6 +37,7 @@
     "VALIDATION_INVALID_INPUT": "提供的輸入無效。",
     "VALIDATION_MISSING_FIELD": "{{field}} 為必填欄位。",
     "KNOWLEDGE_BASE_NOT_CONFIGURED": "尚未設定知識庫。",
+    "SECRET_REENTRY_REQUIRED": "請重新輸入機密值：已儲存的值無法在此使用。",
     "RATE_LIMIT_CHAT": "你已超過訊息數量上限，請稍後再試。",
     "RATE_LIMIT_SKILLS": "技能庫請求次數過多，請稍後再試。",
     "SERVICE_OLLAMA_UNREACHABLE": "無法連線至 Ollama 服務，請確認 Ollama 是否正在執行。",
@@ -64,7 +65,8 @@
     "AI_EMBEDDING_FAILED": "AI 嵌入生成失敗。",
     "INTERNAL_ERROR": "發生內部伺服器錯誤。",
     "UNKNOWN_ERROR": "發生未知錯誤。",
-    "APP_LOCKED": "應用程式已鎖定。"
+    "APP_LOCKED": "應用程式已鎖定。",
+    "APPROVAL_NOT_FOUND": "此請求已不再等待回覆。"
   },
   "routeBoundary": {
     "title": "發生錯誤",

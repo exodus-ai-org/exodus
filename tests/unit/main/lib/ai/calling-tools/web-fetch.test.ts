@@ -63,4 +63,45 @@ describe('webFetch', () => {
       webFetch().execute('c1', { url: 'https://a.com' })
     ).rejects.toThrow('Failed to fetch')
   })
+
+  it.each(['file:///etc/passwd', 'data:text/html,<b>x</b>', 'ftp://a.com/f'])(
+    'refuses %s — only http and https (S5)',
+    async (url) => {
+      await expect(webFetch().execute('c1', { url })).rejects.toThrow(
+        /only http and https/u
+      )
+      expect(loadDocument).not.toHaveBeenCalled()
+    }
+  )
+
+  describe('cannot reach Exodus’s own API', () => {
+    it.each([
+      'http://127.0.0.1:60223/api/v1/settings',
+      'http://localhost:60223/api/v1/settings',
+      'http://[::1]:63129/api/v1/pair',
+      'http://127.0.0.1:63129/api/v1/pair'
+    ])('refuses %s without ever loading it', async (url) => {
+      await expect(webFetch().execute('c1', { url })).rejects.toThrow(
+        'Exodus cannot fetch its own API.'
+      )
+      expect(loadDocument).not.toHaveBeenCalled()
+    })
+
+    it('allows a different port on the same loopback address', async () => {
+      loadDocument.mockResolvedValue({
+        ogImage: '',
+        type: 'html',
+        content: 'a local dev server'
+      })
+      const out = await webFetch().execute('c1', {
+        url: 'http://127.0.0.1:3000/x'
+      })
+      const text = out.content[0].type === 'text' ? out.content[0].text : ''
+      expect(text).toContain('a local dev server')
+      expect(loadDocument).toHaveBeenCalledWith(
+        'http://127.0.0.1:3000/x',
+        undefined
+      )
+    })
+  })
 })

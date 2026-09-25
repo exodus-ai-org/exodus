@@ -1,11 +1,13 @@
 import type { UseFormReturnType } from '@exodus/shared/schemas/settings-schema'
-import { get, isEqual } from 'lodash-es'
+import { useSetAtom } from 'jotai'
+import { get, isEqual, union } from 'lodash-es'
 import { useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { sileo } from 'sileo'
 
 import { useSettings } from '@/hooks/use-settings'
 import { buildSettingsSave } from '@/lib/settings-autosave'
+import { clearedSecretsAtom } from '@/stores/secrets'
 
 // A text edit coalesces on a longer idle window (it also flushes on blur, see
 // `flushNow`), so typing never fires a save mid-word. A Switch/Select/radio has
@@ -40,6 +42,7 @@ function isTextEntryActive(): boolean {
 export function useSettingsAutosave(form: UseFormReturnType) {
   const { t } = useTranslation('settings')
   const { data: settings, updateSettings } = useSettings()
+  const setClearedSecrets = useSetAtom(clearedSecretsAtom)
 
   const settingsRef = useRef(settings)
   settingsRef.current = settings
@@ -67,7 +70,10 @@ export function useSettingsAutosave(form: UseFormReturnType) {
       sileo.error({ title: t('toast.notSaved'), description: result.errors[0] })
       return
     }
-    await updateRef.current(result.payload)
+    const saved = await updateRef.current(result.payload)
+    if (saved && result.clearedSecrets.length > 0) {
+      setClearedSecrets((prev) => union(prev, result.clearedSecrets))
+    }
   })
 
   useEffect(() => {

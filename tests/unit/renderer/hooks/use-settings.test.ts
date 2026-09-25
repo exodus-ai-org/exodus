@@ -167,4 +167,32 @@ describe('useSettings', () => {
     )
     expect(sileoSuccess).toHaveBeenCalledTimes(1)
   })
+
+  it('says whether the save landed, and marks the secrets status stale after one', async () => {
+    updateSettingsService.mockResolvedValueOnce(null)
+    const { queryClient, api } = await mountSettled()
+    queryClient.setQueryData(['secrets-status'], {
+      encryption: 'on',
+      needsReentry: ['providers.openaiApiKey']
+    })
+
+    let saved: boolean | undefined
+    await act(async () => {
+      saved = await api().updateSettings({
+        language: 'ja'
+      } as unknown as Settings)
+    })
+    expect(saved).toBe(true)
+    expect(queryClient.getQueryState(['secrets-status'])?.isInvalidated).toBe(
+      true
+    )
+
+    updateSettingsService.mockRejectedValueOnce(new HttpError(500, 'x', 'down'))
+    await act(async () => {
+      saved = await api().updateSettings({
+        language: 'de'
+      } as unknown as Settings)
+    })
+    expect(saved).toBe(false)
+  })
 })

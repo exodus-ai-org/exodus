@@ -76,6 +76,17 @@ vi.mock('@/hooks/use-memory', () => ({
   useInvalidateMemory: () => vi.fn()
 }))
 
+// The approval card at each turn's foot, counted the same way.
+const approvalReads = new Map<string, number>()
+const NO_APPROVALS: never[] = []
+vi.mock('@/hooks/use-approvals', () => ({
+  useRunApprovals: (_chatId: string, runId: string) => {
+    approvalReads.set(runId, (approvalReads.get(runId) ?? 0) + 1)
+    return NO_APPROVALS
+  },
+  useDecideApproval: () => ({ mutate: vi.fn(), isPending: false })
+}))
+
 const startStream = vi.fn()
 vi.mock('@/lib/stream-manager', () => ({
   startStream: (...args: unknown[]) => startStream(...args),
@@ -207,6 +218,7 @@ beforeEach(() => {
   sourcesSeen.clear()
   memoryReads.list = 0
   memoryReads.usage.clear()
+  approvalReads.clear()
 })
 
 describe('groupIntoSegments with a cache', () => {
@@ -314,6 +326,8 @@ describe('<Messages> while a reply streams', () => {
       list: memoryReads.list,
       usage: new Map(memoryReads.usage)
     }
+    expect(approvalReads.get('u1')).toBeGreaterThan(0)
+    const settledApprovalReads = new Map(approvalReads)
     const firstTurnSources = sourcesSeen.get('First answer 【1-source】')
     expect(firstTurnSources).toEqual(SOURCES)
 
@@ -339,5 +353,8 @@ describe('<Messages> while a reply streams', () => {
     expect(memoryReads.list).toBe(settledMemoryReads.list)
     expect(memoryReads.usage.get('u1')).toBe(settledMemoryReads.usage.get('u1'))
     expect(memoryReads.usage.get('u2')).toBe(settledMemoryReads.usage.get('u2'))
+    // …nor its approval card.
+    expect(approvalReads.get('u1')).toBe(settledApprovalReads.get('u1'))
+    expect(approvalReads.get('u2')).toBe(settledApprovalReads.get('u2'))
   })
 })

@@ -5,10 +5,13 @@
       "generating": "Gerando imagem",
       "refining": "Refinando detalhes",
       "complete": "Imagem pronta",
-      "error": "Falha na geração"
+      "error": "Falha na geração",
+      "unavailable": "Imagem indisponível"
     },
     "retry": "Tentar novamente",
-    "generatedImageAlt": "Imagem gerada"
+    "generatedImageAlt": "Imagem gerada",
+    "labelWithPrompt": "{{status}}: {{prompt}}",
+    "quotedPrompt": "“{{prompt}}”"
   },
   "composer": {
     "placeholder": "Pergunte qualquer coisa",
@@ -80,7 +83,8 @@
     "viewButton": "Ver",
     "chatFailedTitle": "Falha no chat",
     "genericErrorFallback": "Ocorreu um erro",
-    "headsUpTitle": "Aviso"
+    "headsUpTitle": "Aviso",
+    "approvalTitle": "Aguardando sua aprovação"
   },
   "lcm": {
     "compacting": "Compactando histórico da conversa…",
@@ -132,6 +136,7 @@
     "researching": "Pesquisando a fundo...",
     "completedSummary_one": "Pesquisa concluída em {{minutes}}m · {{count}} fonte",
     "completedSummary_other": "Pesquisa concluída em {{minutes}}m · {{count}} fontes",
+    "failed": "A pesquisa falhou",
     "exportAriaLabel": "Exportar como PDF",
     "downloadPdfTooltip": "Baixar PDF",
     "exportFailedTitle": "Falha na exportação",
@@ -289,6 +294,10 @@
     "prefill": "A memória sobre '{{key}}' está errada: "
   },
   "renderFailed": "Não foi possível exibir {{what}}.",
+  "remoteImage": {
+    "loadButton": "Carregar imagem",
+    "inlineImage": "Imagem incorporada"
+  },
   "findInPage": {
     "placeholder": "Localizar na página…",
     "noResults": "Nenhum resultado",
@@ -298,5 +307,20 @@
   },
   "quickChat": {
     "placeholder": "Como posso ajudar você hoje?"
+  },
+  "approval": {
+    "title": "Permitir acesso a um segredo?",
+    "fileHint": "Uma ferramenta quer usar este arquivo, que pode conter credenciais:",
+    "commandHint": "Um comando quer acessar credenciais deste computador:",
+    "allow": "Permitir uma vez",
+    "deny": "Negar",
+    "allowed": "Permitido uma vez",
+    "denied": "Negado",
+    "timedOut": "Tempo esgotado",
+    "stopped": "Interrompido",
+    "expired": "Não está mais aguardando",
+    "decideFailed": "Não foi possível enviar sua resposta",
+    "truncatedNote_one": "mais {{count}} caractere não exibido",
+    "truncatedNote_other": "mais {{count}} caracteres não exibidos"
   }
 }

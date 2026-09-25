@@ -40,3 +40,9 @@ export const MEMORY_USAGE_SEED = {
 }
 
 export const MEMORY_USAGE_QUESTION = 'What kind of music do I like?'
+
+/** The chat message `tests/e2e/chat-approval.spec.ts` sends; `faux-boot.ts`
+ *  answers it with a `read_file` of `~/.ssh/id_rsa`, which the approval gate
+ *  pauses (the e2e's `$HOME` is a scratch directory). */
+export const SECRET_READ_MESSAGE = 'Read my SSH private key, please.'
+export const SECRET_READ_PATH = '~/.ssh/id_rsa'

@@ -330,6 +330,20 @@ describe('createAppQueryClient', () => {
       expect(sileoError).not.toHaveBeenCalled()
       expect(report).toHaveBeenCalledTimes(1)
     })
+
+    it('meta.inlineCodes skips the toast only for those codes (the form shows them), and still reports', async () => {
+      await fail(
+        new HttpError(400, 'SECRET_REENTRY_REQUIRED', 'raw', { field: 'url' }),
+        { inlineCodes: ['SECRET_REENTRY_REQUIRED'] }
+      )
+      expect(sileoError).not.toHaveBeenCalled()
+      expect(report).toHaveBeenCalledTimes(1)
+
+      await fail(new HttpError(500, 'DB_SAVE_FAILED', 'raw'), {
+        inlineCodes: ['SECRET_REENTRY_REQUIRED']
+      })
+      expect(sileoError).toHaveBeenCalledTimes(1)
+    })
   })
 
   describe('while the OS reports no network', () => {

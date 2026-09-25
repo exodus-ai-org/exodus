@@ -328,7 +328,8 @@
       "retrieve": "Retrieve model list",
       "refresh": "Refresh model list",
       "fetchErrorTitle": "Could not fetch model list",
-      "fetchErrorFallback": "Failed to fetch model list"
+      "fetchErrorFallback": "Failed to fetch model list",
+      "reenterKey": "Re-enter the API key to use it with the new base URL."
     }
   },
   "tools": {
@@ -561,7 +562,7 @@
     },
     "export": {
       "label": "Export Data",
-      "description": "Download a portable copy of your conversations, settings, and other data as a ZIP archive.",
+      "description": "Download a portable copy of your conversations, settings, and other data as a ZIP archive. API keys and other secrets are removed from the export.",
       "button": "Export",
       "successToast": "Data exported successfully",
       "errorToast": "Export failed",
@@ -666,7 +667,8 @@
       "editAria": "Edit server",
       "deleteAria": "Delete server",
       "showTools": "Show tools",
-      "hideTools": "Hide tools"
+      "hideTools": "Hide tools",
+      "reenter": "Needs entering again: {{fields}}"
     },
     "intro": "Register <2>MCP</2> servers (local or remote), then toggle the switch to enable their tools in chat.",
     "activeSummary": "Currently <strong>{{totalToolCount}} tools</strong> from <strong>{{activeCount}} servers</strong> active.",
@@ -707,7 +709,8 @@
         "label": "Args",
         "description": "Command arguments, one per row. Order matters.",
         "addButton": "Add argument",
-        "removeAria": "Remove argument {{index}}"
+        "removeAria": "Remove argument {{index}}",
+        "secretNotice": "Secrets in arguments are visible to other programs on this computer while the server runs — put them in environment variables."
       },
       "url": {
         "label": "URL",
@@ -728,7 +731,16 @@
       },
       "updateButton": "Update",
       "registerButton": "Register",
-      "addServerButton": "Add Server"
+      "addServerButton": "Add Server",
+      "env": {
+        "label": "Environment variables",
+        "description": "JSON object of environment variables passed to the command (optional)."
+      },
+      "reenterHint": "Changing the command or editing arguments asks you to re-enter masked values.",
+      "maskedHint": "•••• stands for a saved value — leave it as it is to keep it.",
+      "reenterError": "Re-enter the secret here: it still holds a masked value (••••) that can’t be kept.",
+      "urlHint": "Changing this address clears the saved headers — re-enter them after saving.",
+      "reenterFields": "Enter these again — the saved values were cleared or can’t be read: {{fields}}"
     },
     "json": {
       "description": "Read-only view of current configuration. Use the Servers tab to make changes."
@@ -746,7 +758,8 @@
       "updateFailed": "Failed to update server",
       "registerFailed": "Failed to register",
       "removeFailed": "Failed to remove server",
-      "toggleFailed": "Failed to toggle server"
+      "toggleFailed": "Failed to toggle server",
+      "invalidEnv": "Invalid environment variables JSON"
     }
   },
   "memory": {
@@ -931,7 +944,7 @@
       "building": "Building…",
       "builtAt": "Built {{when}}",
       "engine": "DuckDB {{version}}",
-      "logsIncluded": "logs (view over the log files)",
+      "logsIncluded": "logs (copied from the log files)",
       "logsMissing": "logs (no log files found)",
       "openFolder": "Open folder",
       "unavailable": "DuckDB could not be started",
@@ -952,7 +965,7 @@
       "title": "Query",
       "run": "Run query",
       "running": "Running…",
-      "tables": "Tables: chats, messages, projects, logs (view)"
+      "tables": "Tables: chats, messages, projects, logs"
     },
     "results": {
       "rowCount_one": "{{count}} row",
@@ -1014,6 +1027,35 @@
     "toast": {
       "failedTitle": "That didn't work",
       "pairedTitle": "Device paired"
+    }
+  },
+  "secrets": {
+    "input": {
+      "saved": "Saved",
+      "reenter": "Enter this key again — the saved one can no longer be used.",
+      "savedAria": "Saved key ending in {{last4}}",
+      "savedShortAria": "Saved key",
+      "noneAria": "No key saved"
+    },
+    "destinationHint": "Changing this address clears the saved API key — re-enter it after saving.",
+    "notice": {
+      "encryptionUnavailable": "Your system keychain isn't available; API keys are stored unencrypted.",
+      "needsReentry": "Enter these keys again — they can't be read any more, or were cleared when their address changed:"
+    },
+    "fields": {
+      "openaiApiKey": "OpenAI API key",
+      "azureOpenaiApiKey": "Azure OpenAI API key",
+      "anthropicApiKey": "Anthropic API key",
+      "googleGeminiApiKey": "Gemini API key",
+      "xAiApiKey": "xAI API key",
+      "googleApiKey": "Google Maps API key",
+      "braveApiKey": "Brave Search API key",
+      "knowledgeBaseApiKey": "LightRAG API key",
+      "elasticsearchPassword": "Elasticsearch password",
+      "s3AccessKeyId": "Amazon S3 access key ID",
+      "s3SecretAccessKey": "Amazon S3 secret access key",
+      "legacyMcpServers": "Legacy MCP configuration",
+      "mcp": "MCP server “{{server}}”: {{field}}"
     }
   }
 }

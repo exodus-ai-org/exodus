@@ -14,6 +14,7 @@ import { sileo } from 'sileo'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
+import { AddressInput, SecretInput } from '../secret-fields'
 import { SettingsIntro, SwapLabel } from '../settings-kit'
 import { SettingsRow, SettingsSection } from '../settings-row'
 
@@ -98,9 +99,11 @@ export function FullTextSearch({ form }: { form: UseFormReturnType }) {
               error={fieldState.error}
               layout="vertical"
             >
-              <Input
+              <AddressInput
                 placeholder="https://localhost:9200"
                 {...field}
+                settingsForm={form}
+                isDirty={fieldState.isDirty}
                 value={field.value ?? ''}
               />
             </SettingsRow>
@@ -132,12 +135,7 @@ export function FullTextSearch({ form }: { form: UseFormReturnType }) {
               error={fieldState.error}
               layout="vertical"
             >
-              <Input
-                type="password"
-                autoComplete="current-password"
-                {...field}
-                value={field.value ?? ''}
-              />
+              <SecretInput {...field} value={field.value} />
             </SettingsRow>
           )}
         />

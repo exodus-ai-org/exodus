@@ -124,3 +124,36 @@ describe('runPmCoordinator', () => {
     )
   })
 })
+
+describe('runPmCoordinator — secrets outside Exodus', () => {
+  it('refuses a sensitive call outright, and the Group workspace .env is its own', async () => {
+    agentLoopMock.mockReset()
+    agentLoopMock.mockReturnValue(fakeStream([]))
+    await runPmCoordinator({
+      conversationId: 'c1',
+      userText: 'read my key',
+      emit: vi.fn()
+    }).catch(() => {})
+    const config = agentLoopMock.mock.calls[0][2] as {
+      beforeToolCall: (ctx: unknown) => Promise<unknown>
+    }
+    const call = (name: string, args: unknown) =>
+      config.beforeToolCall({ toolCall: { id: 't', name }, args })
+    await expect(call('read_file', { path: '~/.ssh/id_rsa' })).resolves.toEqual(
+      {
+        block: true,
+        reason: 'Access to ~/.ssh/id_rsa is not available in a Group run.'
+      }
+    )
+    const { getExodusHome, getGroupsDir } = await import('@main/lib/paths')
+    await expect(
+      call('write_file', {
+        path: `${getExodusHome()}/tls/key.pem`,
+        content: 'x'
+      })
+    ).resolves.toMatchObject({ reason: expect.stringContaining('is refused') })
+    await expect(
+      call('read_file', { path: `${getGroupsDir()}/c1/.env` })
+    ).resolves.toBe(undefined)
+  })
+})

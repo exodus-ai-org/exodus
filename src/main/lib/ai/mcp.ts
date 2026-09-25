@@ -12,6 +12,7 @@ import {
 } from '../db/philharmonic-queries'
 import type { McpServer } from '../db/schema'
 import { logger } from '../logger'
+import { mcpDecryptFailures } from '../secrets/at-rest'
 import { validateToolArgs } from './utils/tool-validation'
 
 // Cache stores tools, client, and a timestamp for TTL-based expiration.
@@ -50,30 +51,60 @@ export async function invalidateAllMcpCache() {
   mcpCache.clear()
 }
 
-function createTransport(server: McpServer) {
+/**
+ * The transport a server is configured for — and nothing else. An http / sse
+ * server without a url is an error, never a stdio fallback (a stale
+ * `command` left from an earlier stdio setup would be spawned); a stdio
+ * server needs a command (re-review S2 N1).
+ */
+export function createTransport(server: McpServer) {
   const type = server.transportType ?? 'stdio'
+  const requestInit = server.headers
+    ? { headers: server.headers as Record<string, string> }
+    : undefined
 
-  if (type === 'streamable-http' && server.url) {
-    return new StreamableHTTPClientTransport(new URL(server.url), {
-      requestInit: server.headers
-        ? { headers: server.headers as Record<string, string> }
-        : undefined
-    })
+  if (type === 'streamable-http' || type === 'sse') {
+    if (!server.url?.trim()) {
+      throw new Error(`MCP server "${server.name}" has no url`)
+    }
+    return type === 'sse'
+      ? new SSEClientTransport(new URL(server.url), { requestInit })
+      : new StreamableHTTPClientTransport(new URL(server.url), { requestInit })
   }
 
-  if (type === 'sse' && server.url) {
-    return new SSEClientTransport(new URL(server.url), {
-      requestInit: server.headers
-        ? { headers: server.headers as Record<string, string> }
-        : undefined
-    })
+  if (type !== 'stdio') {
+    throw new Error(`MCP server "${server.name}" has an unknown transport`)
   }
-
-  // Default: stdio
+  if (!server.command?.trim()) {
+    throw new Error(`MCP server "${server.name}" has no command`)
+  }
   return new StdioClientTransport({
-    command: server.command ?? '',
+    command: server.command,
     args: (server.args as string[]) ?? [],
     env: (server.env as Record<string, string>) ?? undefined
+  })
+}
+
+/**
+ * The active servers that can be connected as configured: one whose url,
+ * args or a secret did not decrypt (another machine, a denied Keychain
+ * prompt) is skipped — it stays listed for re-entry
+ * (`GET /api/v1/settings/secrets-status`) until the user enters it again.
+ */
+function connectable(servers: McpServer[]): McpServer[] {
+  return servers.filter((s) => {
+    if (!s.isActive) return false
+    const failed = mcpDecryptFailures(s)
+    if (failed.length === 0) return true
+    logger.warn(
+      'mcp',
+      'Skipping an MCP server whose settings did not decrypt',
+      {
+        server: s.name,
+        fields: failed
+      }
+    )
+    return false
   })
 }
 
@@ -169,7 +200,7 @@ async function connectMcpServer(server: McpServer): Promise<McpTools> {
  */
 export async function getMcpTools(): Promise<McpTools[]> {
   const servers = await getAllMcpServers()
-  const active = servers.filter((s) => s.isActive)
+  const active = connectable(servers)
   if (active.length === 0) return []
 
   const results = await Promise.allSettled(
@@ -199,7 +230,7 @@ export async function getMcpTools(): Promise<McpTools[]> {
 export async function getMcpToolsByNames(names: string[]): Promise<McpTools[]> {
   if (names.length === 0) return []
   const servers = await getMcpServersByNames(names)
-  const active = servers.filter((s) => s.isActive)
+  const active = connectable(servers)
   if (active.length === 0) return []
 
   const results = await Promise.allSettled(

@@ -5,10 +5,13 @@
       "generating": "Generando imagen",
       "refining": "Refinando detalles",
       "complete": "Imagen lista",
-      "error": "Error al generar"
+      "error": "Error al generar",
+      "unavailable": "Imagen no disponible"
     },
     "retry": "Intentar de nuevo",
-    "generatedImageAlt": "Imagen generada"
+    "generatedImageAlt": "Imagen generada",
+    "labelWithPrompt": "{{status}}: {{prompt}}",
+    "quotedPrompt": "«{{prompt}}»"
   },
   "composer": {
     "placeholder": "Pregunte lo que quiera",
@@ -80,7 +83,8 @@
     "viewButton": "Ver",
     "chatFailedTitle": "Error en el chat",
     "genericErrorFallback": "Se produjo un error",
-    "headsUpTitle": "Aviso"
+    "headsUpTitle": "Aviso",
+    "approvalTitle": "Esperando su aprobación"
   },
   "lcm": {
     "compacting": "Compactando historial de la conversación…",
@@ -132,6 +136,7 @@
     "researching": "Investigando a fondo...",
     "completedSummary_one": "Investigación completada en {{minutes}} min · {{count}} fuente",
     "completedSummary_other": "Investigación completada en {{minutes}} min · {{count}} fuentes",
+    "failed": "La investigación falló",
     "exportAriaLabel": "Exportar como PDF",
     "downloadPdfTooltip": "Descargar PDF",
     "exportFailedTitle": "Error al exportar",
@@ -289,6 +294,10 @@
     "prefill": "La memoria sobre «{{key}}» es incorrecta: "
   },
   "renderFailed": "No se pudo mostrar {{what}}.",
+  "remoteImage": {
+    "loadButton": "Cargar imagen",
+    "inlineImage": "Imagen incrustada"
+  },
   "findInPage": {
     "placeholder": "Buscar en la página…",
     "noResults": "Sin resultados",
@@ -298,5 +307,20 @@
   },
   "quickChat": {
     "placeholder": "¿En qué puedo ayudarte hoy?"
+  },
+  "approval": {
+    "title": "¿Permitir el acceso a un secreto?",
+    "fileHint": "Una herramienta quiere usar este archivo, que puede contener credenciales:",
+    "commandHint": "Un comando quiere acceder a credenciales de este ordenador:",
+    "allow": "Permitir una vez",
+    "deny": "Denegar",
+    "allowed": "Permitido una vez",
+    "denied": "Denegado",
+    "timedOut": "Tiempo agotado",
+    "stopped": "Detenido",
+    "expired": "Ya no está en espera",
+    "decideFailed": "No se pudo enviar su respuesta",
+    "truncatedNote_one": "{{count}} carácter más no mostrado",
+    "truncatedNote_other": "{{count}} caracteres más no mostrados"
   }
 }

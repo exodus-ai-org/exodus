@@ -5,10 +5,13 @@
       "generating": "Génération de l'image",
       "refining": "Affinement des détails",
       "complete": "Image prête",
-      "error": "Échec de la génération"
+      "error": "Échec de la génération",
+      "unavailable": "Image indisponible"
     },
     "retry": "Réessayer",
-    "generatedImageAlt": "Image générée"
+    "generatedImageAlt": "Image générée",
+    "labelWithPrompt": "{{status}} : {{prompt}}",
+    "quotedPrompt": "« {{prompt}} »"
   },
   "composer": {
     "placeholder": "Posez n'importe quelle question",
@@ -80,7 +83,8 @@
     "viewButton": "Afficher",
     "chatFailedTitle": "Échec de la conversation",
     "genericErrorFallback": "Une erreur est survenue",
-    "headsUpTitle": "À noter"
+    "headsUpTitle": "À noter",
+    "approvalTitle": "En attente de votre accord"
   },
   "lcm": {
     "compacting": "Compactage de l'historique de conversation…",
@@ -132,6 +136,7 @@
     "researching": "Recherche approfondie en cours...",
     "completedSummary_one": "Recherche terminée en {{minutes}} min · {{count}} source",
     "completedSummary_other": "Recherche terminée en {{minutes}} min · {{count}} sources",
+    "failed": "La recherche a échoué",
     "exportAriaLabel": "Exporter en PDF",
     "downloadPdfTooltip": "Télécharger le PDF",
     "exportFailedTitle": "Échec de l'exportation",
@@ -289,6 +294,10 @@
     "prefill": "La mémoire « {{key}} » est inexacte : "
   },
   "renderFailed": "{{what}} n'a pas pu être affiché.",
+  "remoteImage": {
+    "loadButton": "Charger l'image",
+    "inlineImage": "Image intégrée"
+  },
   "findInPage": {
     "placeholder": "Rechercher dans la page…",
     "noResults": "Aucun résultat",
@@ -298,5 +307,20 @@
   },
   "quickChat": {
     "placeholder": "Comment puis-je vous aider aujourd'hui ?"
+  },
+  "approval": {
+    "title": "Autoriser l’accès à un secret ?",
+    "fileHint": "Un outil veut utiliser ce fichier, qui peut contenir des identifiants :",
+    "commandHint": "Une commande veut accéder à des identifiants sur cet ordinateur :",
+    "allow": "Autoriser une fois",
+    "deny": "Refuser",
+    "allowed": "Autorisé une fois",
+    "denied": "Refusé",
+    "timedOut": "Délai dépassé",
+    "stopped": "Arrêté",
+    "expired": "N’attend plus",
+    "decideFailed": "Impossible d’envoyer votre réponse",
+    "truncatedNote_one": "{{count}} caractère supplémentaire non affiché",
+    "truncatedNote_other": "{{count}} caractères supplémentaires non affichés"
   }
 }

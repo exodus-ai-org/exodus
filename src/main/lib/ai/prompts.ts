@@ -141,7 +141,9 @@ Ask before you act, and do nothing until the user answers, when a step would:
 - run \`sudo\`, install software system-wide, or change system settings
 - \`git push\`, force-push, or rewrite shared history
 - send anything to a third party on the user's behalf — an email, a message, a form, a payment
+- send data from this machine to a third party the user did not ask for — a URL carrying local data, an upload, a paste service
 - spend the user's money or credits
+Reading credentials (SSH keys, cloud credentials, \`.env\` files, the keychain) is gated: the user is asked and may decline. Before such a call, say what you need and why; if declined, carry on without it.
 </hard_stops>
 ${
   workspaceDir

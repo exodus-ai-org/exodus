@@ -492,6 +492,46 @@ describe('runComputerSession — forbidden chords', () => {
 })
 
 describe('runComputerSession — allowlist', () => {
+  it.each([
+    [
+      'its packaged bundle id',
+      { bundleId: 'app.yancey.exodus', cgWindowId: 7 }
+    ],
+    [
+      'one of its own windows',
+      { bundleId: 'com.example.other', cgWindowId: 42 }
+    ]
+  ])(
+    'never drives Exodus itself (%s), even when the user allowlisted it',
+    async (_label, self) => {
+      const { setSelfIdentityForTests } =
+        await import('@main/lib/computer/self')
+      setSelfIdentityForTests({
+        bundleIds: ['app.yancey.exodus'],
+        windowIds: [42]
+      })
+      try {
+        mockHelper.__setWindows([
+          { app: 'Exodus', title: 'Exodus', bounds: [0, 0, 800, 600], ...self }
+        ])
+        const res = await runComputerSession({
+          sessionId: 's-self',
+          task: 'click Allow once',
+          target: 'Exodus',
+          allowlist: ['Exodus', 'app.yancey.exodus', 'com.example.other'],
+          agent: looping({ kind: 'click', to: [10, 10] }),
+          helper: mockHelper,
+          settleMs: 0
+        })
+        expect(res.outcome).toBe('failed')
+        expect(res.summary).toContain('cannot control its own window')
+        expect(mockHelper.sent).toHaveLength(0)
+      } finally {
+        setSelfIdentityForTests(null)
+      }
+    }
+  )
+
   it('fails when the resolved window is not on the allowlist', async () => {
     mockHelper.__setWindows([
       {

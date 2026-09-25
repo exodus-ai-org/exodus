@@ -37,6 +37,7 @@
     "VALIDATION_INVALID_INPUT": "Ungültige Eingabe.",
     "VALIDATION_MISSING_FIELD": "{{field}} ist erforderlich.",
     "KNOWLEDGE_BASE_NOT_CONFIGURED": "Die Wissensdatenbank ist nicht konfiguriert.",
+    "SECRET_REENTRY_REQUIRED": "Geben Sie das Geheimnis erneut ein: Das gespeicherte kann hier nicht verwendet werden.",
     "RATE_LIMIT_CHAT": "Sie haben die maximale Anzahl an Nachrichten überschritten. Bitte versuchen Sie es später erneut.",
     "RATE_LIMIT_SKILLS": "Zu viele Anfragen an die Skill-Registry. Bitte versuchen Sie es später erneut.",
     "SERVICE_OLLAMA_UNREACHABLE": "Der Ollama-Dienst ist nicht erreichbar. Bitte überprüfen Sie, ob Ollama ausgeführt wird.",
@@ -64,7 +65,8 @@
     "AI_EMBEDDING_FAILED": "Die Erstellung des KI-Embeddings ist fehlgeschlagen.",
     "INTERNAL_ERROR": "Es ist ein interner Serverfehler aufgetreten.",
     "UNKNOWN_ERROR": "Ein unbekannter Fehler ist aufgetreten.",
-    "APP_LOCKED": "Die Anwendung ist gesperrt."
+    "APP_LOCKED": "Die Anwendung ist gesperrt.",
+    "APPROVAL_NOT_FOUND": "Diese Anfrage wartet nicht mehr auf eine Antwort."
   },
   "routeBoundary": {
     "title": "Es ist ein Fehler aufgetreten",

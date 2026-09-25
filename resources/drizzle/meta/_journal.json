@@ -71,6 +71,13 @@
       "when": 1790244465786,
       "tag": "0009_quick_screwball",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1790360179343,
+      "tag": "0010_pink_luminals",
+      "breakpoints": true
     }
   ]
 }

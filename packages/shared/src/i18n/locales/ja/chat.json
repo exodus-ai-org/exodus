@@ -5,10 +5,13 @@
       "generating": "画像を生成中",
       "refining": "詳細を調整中",
       "complete": "画像が完成しました",
-      "error": "生成に失敗しました"
+      "error": "生成に失敗しました",
+      "unavailable": "画像を表示できません"
     },
     "retry": "再試行",
-    "generatedImageAlt": "生成された画像"
+    "generatedImageAlt": "生成された画像",
+    "labelWithPrompt": "{{status}}：{{prompt}}",
+    "quotedPrompt": "「{{prompt}}」"
   },
   "composer": {
     "placeholder": "何でも聞いてください",
@@ -75,7 +78,8 @@
     "viewButton": "表示",
     "chatFailedTitle": "チャットに失敗しました",
     "genericErrorFallback": "エラーが発生しました",
-    "headsUpTitle": "お知らせ"
+    "headsUpTitle": "お知らせ",
+    "approvalTitle": "承認を待っています"
   },
   "lcm": {
     "compacting": "会話履歴を圧縮中…",
@@ -125,6 +129,7 @@
   "deepResearchCard": {
     "researching": "ディープリサーチ中...",
     "completedSummary_other": "{{minutes}}分でリサーチが完了 · ソース{{count}}件",
+    "failed": "リサーチに失敗しました",
     "exportAriaLabel": "PDFとしてエクスポート",
     "downloadPdfTooltip": "PDFをダウンロード",
     "exportFailedTitle": "エクスポートに失敗しました",
@@ -280,6 +285,10 @@
     "prefill": "「{{key}}」についてのメモリーは間違っています: "
   },
   "renderFailed": "{{what}} を表示できませんでした。",
+  "remoteImage": {
+    "loadButton": "画像を読み込む",
+    "inlineImage": "インライン画像"
+  },
   "findInPage": {
     "placeholder": "ページ内を検索…",
     "noResults": "見つかりません",
@@ -289,5 +298,19 @@
   },
   "quickChat": {
     "placeholder": "今日はどのようなご用件ですか？"
+  },
+  "approval": {
+    "title": "秘密情報へのアクセスを許可しますか?",
+    "fileHint": "ツールが、認証情報を含む可能性のあるこのファイルを使おうとしています:",
+    "commandHint": "コマンドが、このコンピュータの認証情報に触れようとしています:",
+    "allow": "今回のみ許可",
+    "deny": "拒否",
+    "allowed": "今回のみ許可しました",
+    "denied": "拒否しました",
+    "timedOut": "タイムアウトしました",
+    "stopped": "停止しました",
+    "expired": "待機は終了しています",
+    "decideFailed": "回答を送信できませんでした",
+    "truncatedNote_other": "さらに{{count}}文字が表示されていません"
   }
 }

@@ -45,10 +45,18 @@ const SILENT_TOOL_NAMES = new Set<string>(
 
 function CallingTools({
   chatId,
-  toolResult
+  toolResult,
+  isStreaming
 }: {
   chatId: string
   toolResult: ChatToolResultMessage
+  /**
+   * Whether the run this tool result belongs to is still streaming — only
+   * `computer_use` reads it: an in-progress session (no `outcome`/`error`
+   * yet) reads as running while the run streams and as stopped once it
+   * doesn't, matching a run cut short by Stop leaving the call unresolved.
+   */
+  isStreaming: boolean
 }) {
   const { t } = useTranslation('chat')
   const toolName = toolResult.toolName ?? ''
@@ -167,7 +175,7 @@ function CallingTools({
         <DeepResearchCard toolResult={output} />
       )}
       {toolName === TOOL_NAMES.computerUse && (
-        <ComputerUseCard toolResult={output} />
+        <ComputerUseCard toolResult={output} isStreaming={isStreaming} />
       )}
       {toolName === 'terminal' && <TerminalCard toolResult={output} />}
       {toolName === TOOL_NAMES.createArtifact &&
@@ -192,9 +200,14 @@ export const MessageCallingTools = memo(
     // object identity and still skips — while a `computerUse` card whose
     // streamed `details` advanced gets a fresh object and re-renders. (Old
     // turns are already gated upstream by AssistantTurnSegment's memo.)
+    // `isStreaming` is compared too: a computer_use call left without a
+    // result keeps the same `toolResult` object when its run stops, and
+    // only the flip from running to stopped tells the card to stop saying
+    // "running…".
     return (
       prevProps.chatId === nextProps.chatId &&
-      prevProps.toolResult === nextProps.toolResult
+      prevProps.toolResult === nextProps.toolResult &&
+      prevProps.isStreaming === nextProps.isStreaming
     )
   }
 )

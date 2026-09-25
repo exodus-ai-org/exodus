@@ -30,6 +30,11 @@ import {
   TextWithCitations,
   WebSearchRankMapContext
 } from './markdown-citations'
+import {
+  AllowedImageUrlsContext,
+  RemoteImage,
+  allowedImageUrls
+} from './remote-image'
 
 const themes = {
   light: { codeTheme: oneLight },
@@ -121,6 +126,15 @@ export function Markdown({
     return new Map(webSearchResults.map((r) => [r.rank, r]))
   }, [webSearchResults])
 
+  // Which exact image URLs this run's own web search returned — see
+  // remote-image.tsx. Kept out of `components` below for the same reason
+  // `rankMap` is: it would otherwise invalidate that memo (and every
+  // memoized block) whenever search results streamed in.
+  const allowedUrls = useMemo(
+    () => allowedImageUrls(webSearchResults),
+    [webSearchResults]
+  )
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ReactMarkdown component overrides use broad prop types
   const components: Record<string, any> = useMemo(
     () => ({
@@ -201,14 +215,7 @@ export function Markdown({
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
       img({ className, node, alt, ...rest }: any) {
-        return (
-          <img
-            {...rest}
-            alt={alt ?? ''}
-            loading="lazy"
-            className={cn('mb-3', className)}
-          />
-        )
+        return <RemoteImage {...rest} alt={alt} className={className} />
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
       a({ className, children, node, href, ...rest }: any) {
@@ -310,15 +317,17 @@ export function Markdown({
 
   return (
     <WebSearchRankMapContext.Provider value={rankMap}>
-      <section className="markdown max-w-none">
-        {/* Blocks are only ever appended or grown in place — never reordered
-            — so the index is their identity. They render as fragments: the DOM
-            under .markdown is the same flat run of elements as before. */}
-        {blocks.map((block, i) => (
-          // eslint-disable-next-line react/no-array-index-key -- see above
-          <MarkdownBlock key={i} src={block} components={components} />
-        ))}
-      </section>
+      <AllowedImageUrlsContext.Provider value={allowedUrls}>
+        <section className="markdown max-w-none">
+          {/* Blocks are only ever appended or grown in place — never reordered
+              — so the index is their identity. They render as fragments: the DOM
+              under .markdown is the same flat run of elements as before. */}
+          {blocks.map((block, i) => (
+            // eslint-disable-next-line react/no-array-index-key -- see above
+            <MarkdownBlock key={i} src={block} components={components} />
+          ))}
+        </section>
+      </AllowedImageUrlsContext.Provider>
     </WebSearchRankMapContext.Provider>
   )
 }

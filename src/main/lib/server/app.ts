@@ -14,6 +14,7 @@ import {
   createOriginGate,
   errorHandler,
   lockGate,
+  presenceGate,
   traceMiddleware
 } from './middlewares'
 import analyticsRouter from './routes/analytics'
@@ -31,7 +32,9 @@ import knowledgeBaseRouter from './routes/knowledge-base'
 import lcmStatusRouter from './routes/lcm-status'
 import lockRouter from './routes/lock'
 import logsRouter from './routes/logs'
+import mapsRouter from './routes/maps'
 import mcpRouter from './routes/mcp'
+import mediaRouter from './routes/media'
 import memoryRouter from './routes/memory'
 import pairRouter from './routes/pair'
 import philharmonicRouter, { emitToAll } from './routes/philharmonic'
@@ -80,6 +83,11 @@ export function createApp() {
   // Lock gate: reject all API access while the app is locked (423).
   app.use('/api/*', lockGate)
 
+  // Presence gate: approving a paused tool call and managing devices need the
+  // app window's own token on loopback — not just any local process (the
+  // model's `terminal` can reach loopback). See presence-gate.ts.
+  app.use('/api/*', presenceGate)
+
   // Trace gate: wrap each request in an AsyncLocalStorage trace so every
   // logger.* call while handling it shares one traceId; echo it as x-trace-id.
   app.use('/api/*', traceMiddleware)
@@ -117,6 +125,8 @@ export function createApp() {
   v1.route('/logs', logsRouter)
   v1.route('/backup', backupRouter)
   v1.route('/artifacts', artifactsRouter)
+  v1.route('/media', mediaRouter)
+  v1.route('/maps', mapsRouter)
   v1.route('/analytics', analyticsRouter)
   v1.route('/pair', pairRouter)
   v1.route('/devices', devicesRouter)

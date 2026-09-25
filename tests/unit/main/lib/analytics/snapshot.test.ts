@@ -28,6 +28,8 @@ vi.mock('@main/lib/paths', () => ({
   getLogsDir: () => logsDir
 }))
 
+const noSecrets = async () => [] as string[]
+
 const now = new Date('2026-09-19T10:00:00.000Z')
 const usage = {
   input: 120,
@@ -194,7 +196,7 @@ describe('buildSnapshot + runQuery (real DuckDB)', () => {
     const { runQuery, MAX_RESULT_ROWS } =
       await import('@main/lib/analytics/duckdb')
 
-    const meta = await buildSnapshot({ source })
+    const meta = await buildSnapshot({ source, secrets: noSecrets })
     expect(meta.tables).toEqual([
       { name: 'chats', rows: 2 },
       { name: 'messages', rows: 3 },
@@ -224,5 +226,92 @@ describe('buildSnapshot + runQuery (real DuckDB)', () => {
     // Read-only: the console cannot mutate the snapshot.
     await expect(runQuery('delete from messages')).rejects.toThrow(/read-only/i)
     await expect(runQuery('select nope from messages')).rejects.toThrow(/nope/)
+
+    // No file access from the console (ledger ruling R2): the snapshot is all
+    // it can read — not the PGlite files, not the keys, not /etc.
+    await expect(
+      runQuery("select * from read_text('/etc/hosts')")
+    ).rejects.toThrow(/disabled by configuration|Permission/i)
+    await expect(
+      runQuery(`select * from read_json('${join(logsDir, '*.jsonl')}')`)
+    ).rejects.toThrow(/disabled by configuration|Permission/i)
+    await expect(
+      runQuery("attach '/tmp/exodus-attach-probe.db' as x")
+    ).rejects.toThrow()
+    await expect(runQuery('set enable_external_access = true')).rejects.toThrow(
+      /locked/i
+    )
+  }, 60_000)
+
+  it('a rebuild over a snapshot that still has the old logs view', async () => {
+    const { buildSnapshot } = await import('@main/lib/analytics/snapshot')
+    const { runQuery, withReadWrite, closeDuckDB } =
+      await import('@main/lib/analytics/duckdb')
+    await withReadWrite(async (conn) => {
+      await conn.run('DROP TABLE IF EXISTS logs')
+      await conn.run('CREATE OR REPLACE VIEW logs AS SELECT 1 AS old')
+    })
+    closeDuckDB()
+    const meta = await buildSnapshot({ source, secrets: noSecrets })
+    expect(meta.logsIncluded).toBe(true)
+    const logs = await runQuery('select count(*) as n from logs')
+    expect(logs.rows[0].n).toBe(1)
+  }, 60_000)
+
+  // Review S2 M3: a log line written before S1's secret-safe errors could
+  // quote a key (drizzle's `params: …`); the logs table outlives the file, so
+  // the copy scrubs every current secret value to its mask.
+  it('scrubs current secret values out of the copied logs', async () => {
+    const LEAK = 'sk-proj-LOGGED-secret-value-9f8e7d6c'
+    const QUOTE = 'pa"ss\\word-LOGGED-5a4b3c2d'
+    writeFileSync(
+      join(logsDir, '2026-09-20.jsonl'),
+      JSON.stringify({
+        timestamp: '2026-09-20T07:34:02.819Z',
+        severityNumber: 17,
+        severityText: 'ERROR',
+        body: `Failed query: update "settings" params: ${LEAK},${QUOTE}`,
+        scope: { name: 'database' },
+        attributes: { error: `cause ${LEAK}`, nested: { v: QUOTE } },
+        resource: { 'service.name': 'exodus' },
+        traceId: 't2'
+      }) + '\n'
+    )
+    const { buildSnapshot } = await import('@main/lib/analytics/snapshot')
+    const { runQuery } = await import('@main/lib/analytics/duckdb')
+    const { maskSecret } = await import('@main/lib/secrets/mask')
+    await buildSnapshot({ source, secrets: async () => [LEAK, QUOTE] })
+
+    const rows = await runQuery(
+      "select body, attributes::varchar as a from logs where scope.name = 'database'"
+    )
+    const text = JSON.stringify(rows.rows)
+    expect(text).not.toContain('LOGGED-secret-value')
+    expect(text).not.toContain('LOGGED-5a4b3c2d')
+    expect(text).toContain(maskSecret(LEAK)!)
+    const { readFileSync } = await import('fs')
+    const file = readFileSync(join(analyticsDir, 'exodus.duckdb'))
+    expect(file.includes(Buffer.from(LEAK))).toBe(false)
+  }, 60_000)
+
+  // Re-review S2 N3: the logs table is optional. If the current secrets
+  // cannot be read, the rebuild goes on without it rather than failing, and
+  // never copies the logs unscrubbed.
+  it('rebuilds without the logs table when the secrets cannot be read', async () => {
+    const { buildSnapshot } = await import('@main/lib/analytics/snapshot')
+    const { runQuery } = await import('@main/lib/analytics/duckdb')
+    const { logger } = await import('@main/lib/logger')
+    const meta = await buildSnapshot({
+      source,
+      secrets: async () => {
+        throw new Error('settings unreadable')
+      }
+    })
+    expect(meta.logsIncluded).toBe(false)
+    await expect(runQuery('select count(*) from logs')).rejects.toThrow()
+    expect(
+      (await runQuery('select count(*) as n from messages')).rows[0].n
+    ).toBe(3)
+    expect(JSON.stringify(vi.mocked(logger.warn).mock.calls)).toMatch(/logs/u)
   }, 60_000)
 })

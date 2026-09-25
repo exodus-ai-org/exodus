@@ -22,7 +22,10 @@ export enum DeepResearchProgress {
   EmitSearchResults,
   EmitLearnings,
   StartWritingFinalReport,
-  CompleteDeepResearch
+  CompleteDeepResearch,
+  // Appended, never inserted — these numeric values are persisted verbatim
+  // in `deep_research_message.message` and read back by older rows.
+  FailDeepResearch
 }
 
 export interface StartDeepResearch {
@@ -56,6 +59,12 @@ export interface CompleteDeepResearch {
   query: string
 }
 
+/** The job threw or was aborted; `error` is a short, secret-scrubbed summary. */
+export interface FailDeepResearch {
+  type: DeepResearchProgress.FailDeepResearch
+  error: string
+}
+
 export type ReportProgressPayload =
   | StartDeepResearch
   | EmitSearchQueries
@@ -63,3 +72,4 @@ export type ReportProgressPayload =
   | EmitLearnings
   | StartWritingFinalReport
   | CompleteDeepResearch
+  | FailDeepResearch
