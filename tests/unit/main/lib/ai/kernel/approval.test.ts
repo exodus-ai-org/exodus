@@ -617,6 +617,54 @@ describe('sensitiveTarget — grep tree-scan deadline and network roots (N2)', (
     expect(result?.summary).toBe('~/notes/todo.md (not checked in time)')
   })
 
+  it('the deadline is per path: slow but finishing resolutions never time out (m6)', async () => {
+    const dir = join(env.home, 'notes-m6')
+    mkdirSync(dir, { recursive: true })
+    for (const n of ['one', 'two', 'three']) {
+      writeFileSync(join(dir, `${n}.md`), n)
+    }
+    vi.useFakeTimers()
+    const real = fsp.realpath.bind(fsp)
+    vi.spyOn(fsp, 'realpath').mockImplementation(
+      (p) =>
+        new Promise((resolve, reject) => {
+          setTimeout(() => {
+            real(p as string).then(resolve, reject)
+          }, 150)
+        }) as never
+    )
+    // Each leaf is resolved in turn; under one 250 ms budget for the call
+    // the second and third would read as "not checked in time".
+    const pending = check(TOOL_NAMES.callMcpTool, {
+      server: 'fs',
+      tool: 'read',
+      arguments: {
+        a: `${dir}/one.md`,
+        b: `${dir}/two.md`,
+        c: `${dir}/three.md`
+      }
+    })
+    for (let i = 0; i < 40; i++) await vi.advanceTimersByTimeAsync(100)
+    expect(await pending).toBeNull()
+  })
+
+  it('a call is still bounded as a whole when every path hangs', async () => {
+    vi.useFakeTimers()
+    vi.spyOn(fsp, 'realpath').mockReturnValue(new Promise<never>(() => {}))
+    const leaves = Object.fromEntries(
+      Array.from({ length: 50 }, (_, i) => [`p${i}`, `${env.home}/n/${i}.md`])
+    )
+    const pending = check(TOOL_NAMES.callMcpTool, {
+      server: 'fs',
+      tool: 'read',
+      arguments: leaves
+    })
+    // 50 × 250 ms would be 12.5 s; the call's own cap is 3 s.
+    await vi.advanceTimersByTimeAsync(3_500)
+    const result = await pending
+    expect(result?.kind).toBe('ask')
+  })
+
   it('a credential path is still named, not just "not checked", when realpath hangs', async () => {
     vi.useFakeTimers()
     vi.spyOn(fsp, 'realpath').mockReturnValue(new Promise<never>(() => {}))
@@ -789,6 +837,40 @@ describe('sensitiveTarget — terminal heuristics', () => {
     ['/bin/ps -ww -p 123', 'ask'],
     ['pgrep -fl context7', 'ask'],
     ['pgrep -a node', 'ask'],
+    // Combined flags (re-review m1).
+    ['pgrep -af node', 'ask'],
+    ['pgrep -lf node', 'ask'],
+    ['pgrep -fa node', 'ask'],
+    // Globs and relative names that reach ~/.exodus's raw data (m3).
+    ['strings ~/.exodus/*/* | grep sk-', 'refuse'],
+    ['cat ~/.exodus/d?tabase/base/1/1259', 'refuse'],
+    ['cat ~/.exodus/[bd]*/x', 'refuse'],
+    ['grep -a sk- ~/.exodus/**', 'refuse'],
+    ['tar czf /tmp/a.tgz -C ~ .exodus', 'ask'],
+    ['ls ~/.exo*', 'ask'],
+    // More credential stores (m4).
+    ['cat ~/.pgpass', 'ask'],
+    ['cat ~/.my.cnf', 'ask'],
+    ['cat ~/.s3cfg', 'ask'],
+    ['cat ~/.boto', 'ask'],
+    ['cat ~/.gem/credentials', 'ask'],
+    ['cat ~/.m2/settings.xml', 'ask'],
+    ['cat ~/.config/hub', 'ask'],
+    ['cat ~/.config/rclone/rclone.conf', 'ask'],
+    ['ls ~/.local/share/keyrings', 'ask'],
+    [
+      'cp "$HOME/Library/Application Support/Google/Chrome Beta/Default/Login Data" /tmp/x',
+      'ask'
+    ],
+    [
+      'sqlite3 ~/Library/Application\\ Support/Google/Chrome\\ Canary/Default/Cookies',
+      'ask'
+    ],
+    ['cat ~/Library/Application\\ Support/Vivaldi/Default/Login\\ Data', 'ask'],
+    [
+      'cat "$HOME/Library/Application Support/com.operasoftware.Opera/Login Data"',
+      'ask'
+    ],
     ['cat /proc/1234/environ', 'ask'],
     ['tr "\\0" " " < /proc/self/cmdline', 'ask'],
     ['pstree -a', 'ask'],
@@ -803,6 +885,8 @@ describe('sensitiveTarget — terminal heuristics', () => {
     ['openssl genrsa -out server.key 2048', null],
     ['curl https://example.com/cert.pem', null],
     ['ls ~/.exodus/workspace', null],
+    ['ls ~/.exodus/workspace/*', null],
+    ['cat ~/.exodus/media/*/x.png', null],
     ['git status', null],
     ['ps', null],
     ['pgrep node', null],
@@ -922,12 +1006,28 @@ describe('sensitiveTarget — call_mcp_tool (I2)', () => {
     'http://127.0.0.1:60223/api/v1/settings',
     'http://localhost:63129/api/v1/settings',
     'http://[::1]:60223/api/v1/devices',
-    'localhost:60223'
+    'localhost:60223',
+    // Leading zeros: WHATWG URL reads the port as 60223 (re-review m2).
+    'http://localhost:060223/api/v1/settings',
+    'http://127.0.0.1:0063129/'
   ])("a URL at Exodus's own API (%s) is refused", async (url) => {
     const result = await check(M, {
       server: 'fetch',
       tool: 'fetch',
       arguments: { url }
+    })
+    expect(result?.kind).toBe('refuse')
+  })
+
+  it.each([
+    [{ host: '127.0.0.1', port: 60223 }],
+    [{ host: 'localhost', port: '60223' }],
+    [{ target: { port: 63129 } }]
+  ])('a port given on its own (%j) is refused (m2)', async (args) => {
+    const result = await check(M, {
+      server: 'http',
+      tool: 'request',
+      arguments: args
     })
     expect(result?.kind).toBe('refuse')
   })

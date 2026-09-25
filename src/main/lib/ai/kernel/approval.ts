@@ -97,9 +97,24 @@ const HOME_SECRET_ROOTS = [
   join('.config', 'gcloud'),
   join('.config', 'op'),
   '.password-store',
+  // Database, storage and package-publishing credentials (re-review m4).
+  '.pgpass',
+  '.my.cnf',
+  '.s3cfg',
+  '.boto',
+  join('.gem', 'credentials'),
+  join('.m2', 'settings.xml'),
+  join('.config', 'hub'),
+  join('.config', 'rclone', 'rclone.conf'),
+  join('.local', 'share', 'keyrings'),
   // Browser profiles: saved passwords (`Login Data`, Firefox's `logins.json`
   // + `key4.db`, readable without a primary password) and cookies.
   join('Library', 'Application Support', 'Google', 'Chrome'),
+  join('Library', 'Application Support', 'Google', 'Chrome Beta'),
+  join('Library', 'Application Support', 'Google', 'Chrome Canary'),
+  join('Library', 'Application Support', 'Google', 'Chrome Dev'),
+  join('Library', 'Application Support', 'Vivaldi'),
+  join('Library', 'Application Support', 'com.operasoftware.Opera'),
   join('Library', 'Application Support', 'Chromium'),
   join('Library', 'Application Support', 'BraveSoftware'),
   join('Library', 'Application Support', 'Microsoft Edge'),
@@ -110,7 +125,11 @@ const HOME_SECRET_ROOTS = [
   join('.config', 'google-chrome'),
   join('.config', 'chromium'),
   join('.config', 'BraveSoftware'),
-  join('.config', 'microsoft-edge')
+  join('.config', 'microsoft-edge'),
+  join('.config', 'google-chrome-beta'),
+  join('.config', 'google-chrome-unstable'),
+  join('.config', 'vivaldi'),
+  join('.config', 'opera')
 ]
 
 /**
@@ -197,13 +216,20 @@ function isWithin(child: string, parent: string, env: MatchEnv): boolean {
 }
 
 /**
- * How long one call's symlink resolution may take in all. `realpath` on an
+ * How long one path's symlink resolution may take. `realpath` on an
  * unresponsive network mount can block far longer; every resolution is async
  * and raced against this, and a path still unresolved when it passes is asked
  * about (S6 minor) — never waited on, which would hold `beforeToolCall` (and
  * the HTTP server, IPC, every other run's SSE) behind the mount.
+ *
+ * Per path, not per call (re-review m6): `call_mcp_tool` walks its leaves one
+ * after another, and under one shared 250 ms budget every leaf after the
+ * first quarter-second read as "not checked in time" on a merely busy
+ * machine. `CALL_DEADLINE_MS` still bounds the call as a whole, so a string
+ * of slow paths cannot hold the gate for leaves × 250 ms.
  */
 const RESOLVE_DEADLINE_MS = 250
+const CALL_DEADLINE_MS = 3000
 const TIMED_OUT = Symbol('timed-out')
 
 /** A path and its symlink-resolved form, and whether resolving it timed out. */
@@ -213,27 +239,38 @@ interface PathForms {
 }
 
 /**
- * Symlink resolution for one `sensitiveTarget` call: memoized, async, and
- * bounded by one shared deadline. A path under a network root is never
- * resolved at all (`realpath` itself can hang there).
+ * Symlink resolution for one `sensitiveTarget` call: memoized, async, each
+ * path bounded by its own deadline and all of them by the call's. A path
+ * under a network root is never resolved at all (`realpath` itself can hang
+ * there).
  */
 class PathResolver {
   private readonly cache = new Map<string, Promise<string | typeof TIMED_OUT>>()
   private readonly deadline: Promise<typeof TIMED_OUT>
-  private timer: ReturnType<typeof setTimeout> | undefined
+  private readonly timers = new Set<ReturnType<typeof setTimeout>>()
 
   constructor(
     private readonly env: MatchEnv,
-    ms = RESOLVE_DEADLINE_MS
+    private readonly pathMs = RESOLVE_DEADLINE_MS,
+    callMs = CALL_DEADLINE_MS
   ) {
-    this.deadline = new Promise((settle) => {
-      this.timer = setTimeout(() => settle(TIMED_OUT), ms)
-      this.timer.unref?.()
+    this.deadline = this.after(callMs)
+  }
+
+  private after(ms: number): Promise<typeof TIMED_OUT> {
+    return new Promise((settle) => {
+      const timer = setTimeout(() => {
+        this.timers.delete(timer)
+        settle(TIMED_OUT)
+      }, ms)
+      timer.unref?.()
+      this.timers.add(timer)
     })
   }
 
   dispose(): void {
-    clearTimeout(this.timer)
+    for (const timer of this.timers) clearTimeout(timer)
+    this.timers.clear()
   }
 
   /**
@@ -252,6 +289,7 @@ class PathResolver {
   }
 
   private async resolve(path: string): Promise<string | typeof TIMED_OUT> {
+    const own = this.after(this.pathMs)
     let current = path
     const rest: string[] = []
     for (;;) {
@@ -259,7 +297,7 @@ class PathResolver {
         (value) => ({ ok: true as const, value }),
         () => ({ ok: false as const })
       )
-      const r = await Promise.race([attempt, this.deadline])
+      const r = await Promise.race([attempt, own, this.deadline])
       if (r === TIMED_OUT) return TIMED_OUT
       if (r.ok) return join(r.value, ...rest)
       const parent = dirname(current)
@@ -628,12 +666,13 @@ const CREDENTIAL_COMMAND =
  * Listing other processes with their arguments or environment: an MCP server
  * started as `… --api-key sk-…` shows the key to `ps -axo args`, and on Linux
  * `/proc/<pid>/environ` shows its environment. Any `ps` with an option (bare
- * `ps` lists only the shell's own terminal), `pgrep -a`/`-l`, `pstree -a`,
+ * `ps` lists only the shell's own terminal), `pgrep` with `a` or `l`
+ * anywhere in a flag group (`-a`, `-l`, `-af`, `-lf`), `pstree -a`,
  * `lsof -p`, and `/proc/<pid>/cmdline` or `environ`. A documented heuristic, not a
  * list of every tool that can read a process table.
  */
 const PROCESS_ARGS_COMMAND =
-  /(?:^|[\s;|&(`/])(ps[ \t]+[^\s;|&)]\S*|pgrep\b[^;|&\n]*[ \t]-[a-z]*[al]\b|pstree\b[^;|&\n]*[ \t]-[a-z]*a|lsof\b[^;|&\n]*[ \t]-[a-z]*p)|(\/proc\/[^\s/]+\/(?:cmdline|environ))\b/iu
+  /(?:^|[\s;|&(`/])(ps[ \t]+[^\s;|&)]\S*|pgrep\b[^;|&\n]*[ \t]-[a-z]*[al][a-z]*\b|pstree\b[^;|&\n]*[ \t]-[a-z]*a|lsof\b[^;|&\n]*[ \t]-[a-z]*p)|(\/proc\/[^\s/]+\/(?:cmdline|environ))\b/iu
 
 function processArgsTrigger(command: string): string | undefined {
   const m = PROCESS_ARGS_COMMAND.exec(command)
@@ -642,7 +681,7 @@ function processArgsTrigger(command: string): string | undefined {
 
 /** A credential location named anywhere in a command, however it is spelled. */
 const SECRET_MENTION =
-  /(?:^|[\s'"=:(/`])(?:\.ssh|\.aws|\.gnupg|\.kube|\.netrc|\.docker\/config\.json|Library\/Keychains|\.npmrc|\.yarnrc\.yml|\.pypirc|\.git-credentials|\.vault-token|\.azure|\.password-store|\.mozilla|\.config\/(?:gh|gcloud|op|google-chrome|chromium|BraveSoftware|microsoft-edge)|\.cargo\/credentials[\w.-]*|\.terraform\.d\/credentials[\w.-]*|Library\/Cookies|Library\/Application(?:\\?[ \t]|%20)Support\/(?:Google\/Chrome|Chromium|BraveSoftware|Microsoft(?:\\?[ \t]|%20)Edge|Firefox|Arc))(?=$|[\s'"/;|&)<>`])/iu
+  /(?:^|[\s'"=:(/`])(?:\.ssh|\.aws|\.gnupg|\.kube|\.netrc|\.docker\/config\.json|Library\/Keychains|\.npmrc|\.yarnrc\.yml|\.pypirc|\.git-credentials|\.vault-token|\.azure|\.password-store|\.pgpass|\.my\.cnf|\.s3cfg|\.boto|\.gem\/credentials|\.m2\/settings\.xml|\.local\/share\/keyrings|\.mozilla|\.config\/(?:gh|gcloud|op|hub|rclone\/rclone\.conf|google-chrome(?:-beta|-unstable)?|chromium|BraveSoftware|microsoft-edge|vivaldi|opera)|\.cargo\/credentials[\w.-]*|\.terraform\.d\/credentials[\w.-]*|Library\/Cookies|Library\/Application(?:\\?[ \t]|%20)Support\/(?:Google\/Chrome(?:\\?[ \t](?:Beta|Canary|Dev))?|Vivaldi|com\.operasoftware\.Opera|Chromium|BraveSoftware|Microsoft(?:\\?[ \t]|%20)Edge|Firefox|Arc))(?=$|[\s'"/;|&)<>`])/iu
 
 const EXODUS_REFUSED_WORDS = 'lock\\.dat|tls|database|backups|analytics'
 const REFUSED_MENTION = new RegExp(
@@ -655,6 +694,59 @@ const LOCK_OR_TLS_WORD = new RegExp(
   `(?:^|[\\s'"/])(?:${EXODUS_REFUSED_WORDS})(?=$|[\\s'"/;|&)<>\`*])`,
   'iu'
 )
+
+const GLOB_CHARS = /[*?[]/u
+
+/** One shell glob segment as a regex (`*`, `?`, `[…]` / `[!…]`). */
+function globSegment(segment: string): RegExp {
+  let out = ''
+  for (let i = 0; i < segment.length; i++) {
+    const ch = segment[i]!
+    if (ch === '*') out += '[^/]*'
+    else if (ch === '?') out += '[^/]'
+    else if (ch === '[') {
+      const end = segment.indexOf(']', i + 2)
+      if (end === -1) {
+        out += '\\['
+        continue
+      }
+      const body = segment.slice(i + 1, end)
+      out += `[${body.startsWith('!') ? `^${body.slice(1)}` : body}]`
+      i = end
+    } else out += ch.replaceAll(/[.+^${}()|\\\]]/gu, '\\$&')
+  }
+  return new RegExp(`^${out}$`, 'u')
+}
+
+/**
+ * Whether a path with glob characters can expand to `root` or into it — a
+ * `strings` over `~/.exodus` with a `*` for each level reads the database the
+ * literal forms are refused for (re-review m3). Compared segment by segment, case-folded like
+ * every other path here; a `**` segment reaches everything below it.
+ */
+function globReaches(pattern: string, root: string, env: MatchEnv): boolean {
+  const pat = canon(pattern, env).split(sep)
+  const target = canon(root, env).split(sep)
+  for (const [i, want] of target.entries()) {
+    const seg = pat[i]
+    if (seg === undefined) return false
+    if (seg === '**') return true
+    if (!GLOB_CHARS.test(seg)) {
+      if (seg !== want) return false
+      continue
+    }
+    try {
+      if (!globSegment(seg).test(want)) return false
+    } catch {
+      // A class the regex engine will not take: assume it matches (fail
+      // closed).
+    }
+  }
+  return true
+}
+
+/** `tar czf out.tgz -C ~ .exodus`: the data directory named on its own. */
+const BARE_EXODUS_WORD = /^\.exodus\/?$/iu
 
 /** Paths considered per command — a heredoc script is not walked word by word. */
 const MAX_COMMAND_TOKENS = 2000
@@ -709,6 +801,25 @@ async function matchCommand(
     candidates.map((abs) => classifyPath(abs, roots, env))
   )
   for (const [i, abs] of candidates.entries()) {
+    if (GLOB_CHARS.test(abs)) {
+      const refusedRoot = roots.refused.find((r) => globReaches(abs, r, env))
+      if (refusedRoot) {
+        return {
+          kind: 'refuse',
+          summary: withTrigger(display(abs, env), command)
+        }
+      }
+      // `~/.exo*` is all of ~/.exodus; `~/.exodus/workspace/*` is not.
+      const reachesSecret =
+        roots.secret.some((r) => globReaches(abs, r, env)) ||
+        roots.exodusHome.some(
+          (r) =>
+            globReaches(abs, r, env) &&
+            canon(abs, env).split(sep).length ===
+              canon(r, env).split(sep).length
+        )
+      if (reachesSecret && !pathTrigger) pathTrigger = display(abs, env)
+    }
     const hit = hits[i]
     if (hit?.kind === 'refuse') {
       return {
@@ -724,6 +835,7 @@ async function matchCommand(
 
   const trigger =
     pathTrigger ??
+    tokens.find((t) => BARE_EXODUS_WORD.test(t)) ??
     SECRET_MENTION.exec(command)?.[0].replace(/^[\s'"=:(/`]/u, '') ??
     KEYCHAIN_COMMAND.exec(command)?.[0] ??
     CREDENTIAL_COMMAND.exec(command)?.[0] ??
@@ -740,11 +852,43 @@ async function matchCommand(
 const MAX_MCP_LEAVES = 500
 const TOO_MANY_LEAVES = Symbol('too-many-leaves')
 
-/** A URL (or `host:port`) at one of the ports Exodus's own API listens on. */
+/**
+ * A URL (or `host:port`) at one of the ports Exodus's own API listens on —
+ * leading zeros included: WHATWG `new URL` reads `:060223` as 60223 and the
+ * request reaches the API (re-review m2).
+ */
+const OWN_API_PORTS = new Set([SERVER_PORT, LAN_SERVER_PORT])
 const OWN_API_PORT = new RegExp(
-  `:(?:${SERVER_PORT}|${LAN_SERVER_PORT})(?!\\d)`,
+  `:0*(?:${SERVER_PORT}|${LAN_SERVER_PORT})(?!\\d)`,
   'u'
 )
+
+/** Whether a string leaf names Exodus's own API port. */
+function leafAtOwnApi(leaf: string): boolean {
+  const trimmed = leaf.trim()
+  if (OWN_API_PORT.test(trimmed)) return true
+  // `{ host: '127.0.0.1', port: '60223' }`: the port on its own.
+  if (/^\d{1,10}$/u.test(trimmed) && OWN_API_PORTS.has(Number(trimmed))) {
+    return true
+  }
+  if (/^[a-z][a-z\d+.-]*:\/\//iu.test(trimmed)) {
+    try {
+      const { port } = new URL(trimmed)
+      if (port && OWN_API_PORTS.has(Number(port))) return true
+    } catch {
+      // Not a URL after all: the regex above has had its look.
+    }
+  }
+  return false
+}
+
+/** Whether any number in `value` is one of the API's ports (`{ port: 60223 }`). */
+function holdsOwnApiPortNumber(value: unknown, depth = 0): boolean {
+  if (typeof value === 'number') return OWN_API_PORTS.has(value)
+  if (!value || typeof value !== 'object' || depth > 32) return false
+  const children = Array.isArray(value) ? value : Object.values(value)
+  return children.some((child) => holdsOwnApiPortNumber(child, depth + 1))
+}
 
 function stringLeaves(
   value: unknown,
@@ -804,9 +948,15 @@ async function matchMcpCall(
   if (stringLeaves(inner, leaves) === TOO_MANY_LEAVES) {
     return { kind: 'ask', summary: `${label}: too many arguments to check` }
   }
+  if (holdsOwnApiPortNumber(inner)) {
+    return {
+      kind: 'refuse',
+      summary: `${label}: Exodus's own API — port ${SERVER_PORT} / ${LAN_SERVER_PORT}`
+    }
+  }
   const hits: SensitiveTarget[] = []
   for (const leaf of leaves) {
-    if (OWN_API_PORT.test(leaf)) {
+    if (leafAtOwnApi(leaf)) {
       return {
         kind: 'refuse',
         summary: `${label}: Exodus's own API — ${commandSummary(leaf)}`

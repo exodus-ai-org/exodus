@@ -476,22 +476,25 @@ rendering work in.
   tools on `~/.ssh`, `~/.aws`, `~/.gnupg`, `~/.kube`, `~/.docker/config.json`,
   `~/.netrc`, `~/.npmrc`, `~/.yarnrc.yml`, `~/.pypirc`, `~/.git-credentials`,
   `~/.vault-token`, `~/.azure`, `~/.config/{gh,gcloud,op}`,
-  `~/.password-store`, the browser profiles (Chrome, Chromium, Brave, Edge,
-  Firefox, Arc; `~/Library/Cookies`), a `*credentials*` under `~/.config`,
+  `~/.password-store`, `~/.pgpass`, `~/.my.cnf`, `~/.s3cfg`, `~/.boto`,
+  `~/.gem/credentials`, `~/.m2/settings.xml`, `~/.config/{hub,rclone}`,
+  `~/.local/share/keyrings`, the browser profiles (Chrome and its channels,
+  Chromium, Brave, Edge, Firefox, Arc, Vivaldi, Opera; `~/Library/Cookies`), a `*credentials*` under `~/.config`,
   `~/.cargo` or `~/.terraform.d`, the keychains, or a `.env*` / `*.pem` /
   `*.key` / `id_*` (and their `.bak` / `.old` / `~` … copies) outside the
-  chat workspace — resolved through `~`, the cwd and symlinks (async, one
-  250 ms budget per call: a path not resolved in time is asked about, a
+  chat workspace — resolved through `~`, the cwd and symlinks (async, 250 ms per path
+  and 3 s per call: a path not resolved in time is asked about, a
   network root is never resolved); a `terminal`
   command naming one of those, running `security find-*-password` or a CLI's
   print-token command (`gh auth token`, …), or listing other processes'
-  arguments (`ps` with options, `pgrep -a`, `/proc/<pid>/environ`), a
+  arguments (`ps` with options, `pgrep -a` / `-lf`, `/proc/<pid>/environ`), a
   documented heuristic; a `grep` root outside the workspace whose tree holds
   a secret-named file; a `call_mcp_tool` whose argument strings match any of
   those), `refuse` (`~/.exodus/lock.dat`, `~/.exodus/tls/`, and the raw data
   `~/.exodus/database`, `~/.exodus/backups`, `~/.exodus/analytics` — plaintext
-  in a pre-encryption backup or while encryption is unavailable; a
-  `call_mcp_tool` URL at Exodus's own API ports — blocked, never asked) or
+  in a pre-encryption backup or while encryption is unavailable, and a glob
+  that can expand into them; a `call_mcp_tool` URL or bare port number at
+  Exodus's own API ports — blocked, never asked) or
   null.
   Paths compare case-folded on macOS / Windows and without the
   `/System/Volumes/Data` firmlink prefix; a command's summary leads with what
