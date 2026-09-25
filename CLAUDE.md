@@ -993,11 +993,13 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   switch and dropped — its styling did not drop in over ours.)
 - **A remote image loads on tap, not by itself.** The `img` override
   (`remote-image.tsx`'s `RemoteImage`) auto-loads only a `data:` URL, the
-  app's own media route, or an `https:` image whose host is one of the run's
-  own `webSearchResults` (threaded through its own context, the same reason
+  app's own media route, or an `https:` image URL the run's own
+  `webSearchResults` carried, exactly (`allowedImageUrls()`: thumbnails,
+  favicons, image results — never a result's host, since the injecting page
+  is itself a result; threaded through its own context, the same reason
   `WebSearchRankMapContext` exists, so streaming results in never invalidates
-  the memoized `components` map); anything else — including `http:` from a
-  trusted host — shows a placeholder until tapped. "Loaded" is a module-level
+  the memoized `components` map); anything else — including `http:` —
+  shows a placeholder until tapped. "Loaded" is a module-level
   `Set` keyed by `src`, not React state, so the same URL stays loaded across
   a remount. Shared by every `<Markdown>` caller (chat, Philharmonic, deep
   research, skill READMEs). See docs/security-hardening.md, "Remote images in

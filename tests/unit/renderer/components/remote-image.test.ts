@@ -10,9 +10,9 @@ const t = (key: string) => key
 vi.mock('react-i18next', () => ({ useTranslation: () => ({ t }) }))
 
 const {
-  AllowedImageHostsContext,
+  AllowedImageUrlsContext,
   RemoteImage,
-  allowedImageHosts,
+  allowedImageUrls,
   loadsAutomatically
 } = await import('@/components/remote-image')
 
@@ -26,7 +26,9 @@ const SOURCES: WebSearchResult[] = [
     link: 'https://example.com/a',
     title: 'A',
     content: 'a',
-    snippet: 'a'
+    snippet: 'a',
+    thumbnail: 'https://imgs.search.brave.com/thumb-a.jpg',
+    favicon: 'https://imgs.search.brave.com/fav-a.png'
   },
   {
     rank: 2,
@@ -34,37 +36,65 @@ const SOURCES: WebSearchResult[] = [
     title: 'B',
     content: 'b',
     snippet: 'b',
-    hostname: 'other.example'
+    hostname: 'other.example',
+    media: [
+      {
+        kind: 'image',
+        title: 'pic',
+        url: 'https://other.example/photo.png',
+        sourceUrl: 'https://other.example/b',
+        thumbnailUrl: 'https://imgs.search.brave.com/thumb-b.jpg'
+      },
+      {
+        kind: 'video',
+        title: 'vid',
+        url: 'https://video.example/watch?v=1',
+        sourceUrl: 'https://video.example/watch?v=1'
+      }
+    ]
+  },
+  {
+    rank: 3,
+    link: 'https://plain.example/c',
+    title: 'C',
+    content: 'c',
+    snippet: 'c',
+    thumbnail: 'http://insecure.example/t.jpg'
   }
 ] as WebSearchResult[]
 
 function render(
   src: string | undefined,
   alt: string,
-  allowedHosts: ReadonlySet<string> | null = null
+  allowedUrls: ReadonlySet<string> | null = null
 ) {
   const host = document.createElement('div')
   const root = createRoot(host)
   const tree = createElement(
-    AllowedImageHostsContext.Provider,
-    { value: allowedHosts },
+    AllowedImageUrlsContext.Provider,
+    { value: allowedUrls },
     createElement(RemoteImage, { src, alt })
   )
   return { host, root, tree }
 }
 
-describe('allowedImageHosts', () => {
-  it('collects hosts from webSearchResults, preferring the given hostname', () => {
-    const hosts = allowedImageHosts(SOURCES)
-    expect(hosts).not.toBeNull()
-    expect([...hosts!]).toEqual(
-      expect.arrayContaining(['example.com', 'other.example'])
+describe('allowedImageUrls', () => {
+  it('collects the exact https image URLs the search returned — never pages or hosts', () => {
+    const urls = allowedImageUrls(SOURCES)
+    expect(urls).not.toBeNull()
+    expect([...urls!].sort()).toEqual(
+      [
+        'https://imgs.search.brave.com/fav-a.png',
+        'https://imgs.search.brave.com/thumb-a.jpg',
+        'https://imgs.search.brave.com/thumb-b.jpg',
+        'https://other.example/photo.png'
+      ].sort()
     )
   })
 
   it('returns null with no results', () => {
-    expect(allowedImageHosts(undefined)).toBeNull()
-    expect(allowedImageHosts([])).toBeNull()
+    expect(allowedImageUrls(undefined)).toBeNull()
+    expect(allowedImageUrls([])).toBeNull()
   })
 })
 
@@ -111,21 +141,41 @@ describe('loadsAutomatically', () => {
     expect(loadsAutomatically('data:image/png;base64', null)).toBe(false)
   })
 
-  it('loads an https image from an allowed host only', () => {
-    const hosts = new Set(['example.com'])
-    expect(loadsAutomatically('https://example.com/a.png', hosts)).toBe(true)
-    expect(loadsAutomatically('https://evil.example/a.png', hosts)).toBe(false)
+  it('loads only an exact image URL the search returned (I6)', () => {
+    const urls = allowedImageUrls(SOURCES)
+    expect(
+      loadsAutomatically('https://imgs.search.brave.com/thumb-a.jpg', urls)
+    ).toBe(true)
+    expect(loadsAutomatically('https://other.example/photo.png', urls)).toBe(
+      true
+    )
+    // The injecting page's own host, beaconing chat data: not trusted.
+    expect(
+      loadsAutomatically('https://other.example/p.png?d=secret', urls)
+    ).toBe(false)
+    expect(loadsAutomatically('https://example.com/a.png', urls)).toBe(false)
+    // A result page itself is not an image the search returned.
+    expect(loadsAutomatically('https://example.com/a', urls)).toBe(false)
+    // A Google Forms GET on a host a search surfaced.
+    expect(
+      loadsAutomatically(
+        'https://docs.google.com/forms/d/e/x/formResponse?entry.1=data',
+        new Set(['https://docs.google.com/forms/d/e/x/viewform'])
+      )
+    ).toBe(false)
   })
 
-  it('never auto-loads http:, even from an allowed host', () => {
-    const hosts = new Set(['example.com'])
-    expect(loadsAutomatically('http://example.com/a.png', hosts)).toBe(false)
+  it('never auto-loads http:, even when the search returned it', () => {
+    const urls = allowedImageUrls(SOURCES)
+    expect(loadsAutomatically('http://insecure.example/t.jpg', urls)).toBe(
+      false
+    )
   })
 
   it('refuses an unparsable src', () => {
-    expect(loadsAutomatically('not a url', new Set(['example.com']))).toBe(
-      false
-    )
+    expect(
+      loadsAutomatically('not a url', new Set(['https://example.com/']))
+    ).toBe(false)
   })
 })
 
@@ -161,16 +211,26 @@ describe('<RemoteImage>', () => {
     expect(host.querySelector('img')?.getAttribute('src')).toBe(src)
   })
 
-  it('renders <img> for an https image from a search-result host', async () => {
+  it('renders <img> for an image URL the search returned', async () => {
     const { host, root, tree } = render(
-      'https://example.com/photo.png',
+      'https://other.example/photo.png',
       'a pic',
-      allowedImageHosts(SOURCES)
+      allowedImageUrls(SOURCES)
     )
     await act(async () => root.render(tree))
     expect(host.querySelector('img')?.getAttribute('src')).toBe(
-      'https://example.com/photo.png'
+      'https://other.example/photo.png'
     )
+  })
+
+  it("renders a placeholder for another URL on a search result's host", async () => {
+    const { host, root, tree } = render(
+      'https://other.example/pixel.png?d=chat-data',
+      'a pic',
+      allowedImageUrls(SOURCES)
+    )
+    await act(async () => root.render(tree))
+    expect(host.querySelector('img')).toBeNull()
   })
 
   it('renders a placeholder (no <img>) for an unknown host — no request is made', async () => {
@@ -197,7 +257,7 @@ describe('<RemoteImage>', () => {
     const { host, root, tree } = render(
       'http://example.com/photo.png',
       'a pic',
-      new Set(['example.com'])
+      new Set(['http://example.com/photo.png'])
     )
     await act(async () => root.render(tree))
     expect(host.querySelector('img')).toBeNull()
@@ -237,12 +297,12 @@ describe('<RemoteImage>', () => {
     const root = createRoot(host)
     const unknown = 'https://tracker.example/never-loaded.png'
     const known = 'https://example.com/known.png'
-    const allowed = new Set(['example.com'])
+    const allowed = new Set(['https://example.com/known.png'])
 
     await act(async () =>
       root.render(
         createElement(
-          AllowedImageHostsContext.Provider,
+          AllowedImageUrlsContext.Provider,
           { value: allowed },
           createElement(RemoteImage, { src: unknown, alt: 'x' })
         )
@@ -253,7 +313,7 @@ describe('<RemoteImage>', () => {
     await act(async () =>
       root.render(
         createElement(
-          AllowedImageHostsContext.Provider,
+          AllowedImageUrlsContext.Provider,
           { value: allowed },
           createElement(RemoteImage, { src: known, alt: 'x' })
         )
