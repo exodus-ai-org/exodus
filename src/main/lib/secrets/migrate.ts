@@ -3,6 +3,7 @@ import { dirname } from 'path'
 
 import { eq } from 'drizzle-orm'
 
+import { removeBackupsOlderThan } from '../backup'
 import { db } from '../db/db'
 import { invalidateSettingsCache } from '../db/queries'
 import { mcpServer, settings } from '../db/schema'
@@ -116,6 +117,12 @@ interface PurgeMarker {
   purgedAt?: string
   /** The last pass that ran (complete or not). */
   lastAttemptAt?: string
+  /**
+   * Set once the auto-backups written before `purgedAt` have been deleted
+   * (owner's decision 2026-09-26, `removeOldBackupsOnce` below) — never
+   * cleared, so the deletion runs at most once per data directory.
+   */
+  oldBackupsRemovedAt?: string
 }
 
 function readMarker(path: string): PurgeMarker {
@@ -151,7 +158,7 @@ function writeMarker(path: string, marker: PurgeMarker): void {
  * (encrypt, strip, purge, scrub); its `purgedAt` is the moment backups older
  * than it may still hold plaintext (`removeBackupsOlderThan` in `backup.ts`).
  */
-export async function secretsAtRestStartup(): Promise<SecretsStartupResult> {
+async function runSecretsAtRestPass(): Promise<SecretsStartupResult> {
   let counts = { settings: 0, mcp: 0 }
   let encryptFailed = false
   try {
@@ -202,7 +209,13 @@ export async function secretsAtRestStartup(): Promise<SecretsStartupResult> {
     await purgeResidualPlaintext()
   } catch (error) {
     logStep('Purging plaintext residue failed', error)
-    writeMarker(path, { version: MARKER_VERSION, lastAttemptAt: now })
+    writeMarker(path, {
+      version: MARKER_VERSION,
+      lastAttemptAt: now,
+      ...(marker.oldBackupsRemovedAt
+        ? { oldBackupsRemovedAt: marker.oldBackupsRemovedAt }
+        : {})
+    })
     return skipped
   }
   let logsScrubbed = 0
@@ -233,11 +246,61 @@ export async function secretsAtRestStartup(): Promise<SecretsStartupResult> {
   writeMarker(path, {
     version: MARKER_VERSION,
     ...(ok ? { purgedAt: now } : {}),
-    lastAttemptAt: now
+    lastAttemptAt: now,
+    ...(marker.oldBackupsRemovedAt
+      ? { oldBackupsRemovedAt: marker.oldBackupsRemovedAt }
+      : {})
   })
   logger.info('secrets', 'Purged plaintext residue from the database files', {
     logsScrubbed,
     complete: ok
   })
   return { ...result, purged: true, logsScrubbed, scrubFailed }
+}
+
+/**
+ * Deletes the auto-backups written before secrets were last known to be
+ * fully purged of plaintext (owner's decision 2026-09-26): pre-encryption
+ * backups hold every API key in the clear (review S2 C2). Runs at most once
+ * per data directory — once the marker's `purgedAt` names a completed pass
+ * and encryption is confirmed `'on'` (with no working backend a fresh
+ * backup is plaintext too, so deleting old ones would buy nothing), and
+ * only while `oldBackupsRemovedAt` is not yet set. Success is recorded
+ * there so a later pass — even one that moves `purgedAt` forward, e.g. a
+ * newly-saved key getting encrypted — never repeats it and never deletes a
+ * backup made since. A failure here (or an unwritable marker) is logged —
+ * the count only, never a backup's name or path — and leaves the field
+ * unset, so the next launch tries again; it never blocks startup.
+ */
+function removeOldBackupsOnce(): void {
+  const path = getSecretsPurgeMarkerPath()
+  const marker = readMarker(path)
+  if (!marker.purgedAt || marker.oldBackupsRemovedAt) return
+  if (encryptionState() !== 'on') return
+  try {
+    const removed = removeBackupsOlderThan(new Date(marker.purgedAt))
+    writeMarker(path, {
+      ...marker,
+      oldBackupsRemovedAt: new Date().toISOString()
+    })
+    if (removed.length > 0) {
+      logger.info('secrets', 'Removed pre-encryption backups', {
+        count: removed.length
+      })
+    }
+  } catch (error) {
+    logStep('Removing pre-encryption backups failed', error)
+  }
+}
+
+/**
+ * The public entry point `main.ts` calls: the purge pass above, then the
+ * one-time pre-encryption-backup cleanup. Kept separate from
+ * `runSecretsAtRestPass` so every one of that pass's several return points
+ * still reaches the cleanup step, without threading it through each one.
+ */
+export async function secretsAtRestStartup(): Promise<SecretsStartupResult> {
+  const result = await runSecretsAtRestPass()
+  removeOldBackupsOnce()
+  return result
 }

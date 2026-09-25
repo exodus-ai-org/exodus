@@ -11,9 +11,11 @@ import {
   existsSync,
   mkdirSync,
   mkdtempSync,
+  readdirSync,
   readFileSync,
   rmSync,
   truncateSync,
+  utimesSync,
   writeFileSync
 } from 'fs'
 import { tmpdir } from 'os'
@@ -29,6 +31,7 @@ import {
 const root = mkdtempSync(join(tmpdir(), 'exodus-startup-'))
 const logsDir = join(root, 'logs')
 const marker = join(root, 'secrets-purge.json')
+const backupsDir = join(root, 'backups')
 
 vi.mock('electron', async () => {
   const { fakeSafeStorage } = await import('../../../helpers/fake-safe-storage')
@@ -43,7 +46,8 @@ const logged = vi.hoisted(() => ({
 vi.mock('@main/lib/logger', () => ({ logger: logged }))
 vi.mock('@main/lib/paths', () => ({
   getSecretsPurgeMarkerPath: () => join(root, 'secrets-purge.json'),
-  getLogsDir: () => join(root, 'logs')
+  getLogsDir: () => join(root, 'logs'),
+  getAutoBackupsDir: () => join(root, 'backups')
 }))
 vi.mock('@main/lib/db/db', async () => {
   const { drizzle } = await import('drizzle-orm/pglite')
@@ -96,8 +100,18 @@ function markerState(): {
   version?: number
   purgedAt?: string
   lastAttemptAt?: string
+  oldBackupsRemovedAt?: string
 } {
   return existsSync(marker) ? JSON.parse(readFileSync(marker, 'utf8')) : {}
+}
+
+/** Writes a fake `.tar.gz` backup with the given mtime (ISO). */
+function backupFile(name: string, iso: string) {
+  mkdirSync(backupsDir, { recursive: true })
+  const path = join(backupsDir, name)
+  writeFileSync(path, 'x')
+  const t = new Date(iso)
+  utimesSync(path, t, t)
 }
 
 async function queue(payload: object, q = 'lcm-post-turn') {
@@ -122,6 +136,12 @@ beforeEach(async () => {
   rmSync(marker, { force: true })
   rmSync(logsDir, { recursive: true, force: true })
   mkdirSync(logsDir, { recursive: true })
+  try {
+    chmodSync(backupsDir, 0o755)
+  } catch {
+    // Doesn't exist yet — nothing to restore.
+  }
+  rmSync(backupsDir, { recursive: true, force: true })
   await seed()
 })
 
@@ -306,5 +326,86 @@ describe('the marker (fix round 3)', () => {
     // Something changed (a new key to strip): no waiting.
     await queue({ chatId: 'b', apiKey: JOB_KEY })
     expect((await secretsAtRestStartup()).purged).toBe(true)
+  })
+})
+
+describe('pre-encryption backups are deleted once, per the purge marker', () => {
+  it('removes backups older than purgedAt and keeps newer ones, in the same launch that first completes', async () => {
+    // Backups from before secrets were ever encrypted, sitting on disk when
+    // the first successful pass runs.
+    backupFile('old.tar.gz', '2020-01-01T00:00:00Z')
+    backupFile('newer.tar.gz', '2030-01-01T00:00:00Z')
+
+    await secretsAtRestStartup()
+
+    expect(markerState().purgedAt).toBeDefined()
+    expect(readdirSync(backupsDir).toSorted()).toEqual(['newer.tar.gz'])
+    expect(markerState().oldBackupsRemovedAt).toBeDefined()
+  })
+
+  it('runs once — a backup added later, dated before purgedAt, is left alone', async () => {
+    await secretsAtRestStartup()
+    const purgedAt = markerState().purgedAt!
+    const removedAt = markerState().oldBackupsRemovedAt
+    expect(purgedAt).toBeDefined()
+    expect(removedAt).toBeDefined()
+
+    backupFile(
+      'late.tar.gz',
+      new Date(Date.parse(purgedAt) - 60_000).toISOString()
+    )
+    await secretsAtRestStartup()
+
+    expect(readdirSync(backupsDir)).toContain('late.tar.gz')
+    expect(markerState().oldBackupsRemovedAt).toBe(removedAt)
+  })
+
+  it('is skipped while encryption is unavailable, even with a purgedAt on record', async () => {
+    // A marker left by an earlier, already-completed pass — before this
+    // launch, and before this field existed.
+    const purgedAt = '2026-09-20T00:00:00Z'
+    writeFileSync(
+      marker,
+      JSON.stringify({ version: 2, purgedAt, lastAttemptAt: purgedAt })
+    )
+    backupFile('old.tar.gz', '2020-01-01T00:00:00Z')
+
+    fakeSafeStorageState.available = false
+    expect(encryptionState()).not.toBe('on')
+    await secretsAtRestStartup()
+
+    expect(readdirSync(backupsDir)).toContain('old.tar.gz')
+    expect(markerState().oldBackupsRemovedAt).toBeUndefined()
+  })
+
+  it('is skipped while no pass has ever completed (no purgedAt)', async () => {
+    fakeSafeStorageState.denyEncrypt = true
+    backupFile('old.tar.gz', '2020-01-01T00:00:00Z')
+
+    await secretsAtRestStartup()
+
+    expect(markerState().purgedAt).toBeUndefined()
+    expect(readdirSync(backupsDir)).toContain('old.tar.gz')
+    expect(markerState().oldBackupsRemovedAt).toBeUndefined()
+  })
+
+  it('a failure removing old backups is logged, leaves the field unset, and does not block startup', async () => {
+    backupFile('old.tar.gz', '2020-01-01T00:00:00Z')
+    // Deleting a file needs write permission on its parent directory —
+    // chmod after creating the file, so the write above still succeeds.
+    chmodSync(backupsDir, 0o500)
+    try {
+      const result = await secretsAtRestStartup()
+      // The purge pass itself (encrypt/strip/purge/scrub) is unaffected.
+      expect(result.purged).toBe(true)
+      expect(markerState().purgedAt).toBeDefined()
+      expect(markerState().oldBackupsRemovedAt).toBeUndefined()
+      expect(JSON.stringify(logged.error.mock.calls)).toMatch(
+        /removing pre-encryption backups failed/iu
+      )
+      expect(readdirSync(backupsDir)).toContain('old.tar.gz')
+    } finally {
+      chmodSync(backupsDir, 0o755)
+    }
   })
 })

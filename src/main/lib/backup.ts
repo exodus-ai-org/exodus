@@ -44,10 +44,9 @@ export async function createAutoBackup(): Promise<string> {
 /**
  * Deletes the auto-backups written before `cutoff` and returns their names.
  * Meant for the backups taken before secrets were encrypted at rest: they
- * hold every API key in plaintext (review S2 C2). NOT CALLED YET — deleting
- * a user's backups is the owner's decision; once made, it is one line after
- * a fresh post-migration backup succeeds:
- * `removeBackupsOlderThan(new Date(readJson(getSecretsPurgeMarkerPath()).purgedAt))`.
+ * hold every API key in plaintext (review S2 C2). Called once, from
+ * `secrets/migrate.ts`'s startup pass, with the purge marker's `purgedAt` as
+ * the cutoff — owner's decision 2026-09-26.
  */
 export function removeBackupsOlderThan(cutoff: Date): string[] {
   const dir = getAutoBackupsDir()
