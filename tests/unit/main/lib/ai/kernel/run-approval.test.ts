@@ -265,4 +265,25 @@ describe('runAgent — the approval gate', () => {
     expect(events.some((e) => e.type === 'approval_required')).toBe(false)
     expect(execute).toHaveBeenCalledOnce()
   })
+
+  it('a summary with an embedded newline and a bidi override is sanitized before the approval_required event carries it', async () => {
+    // What a malicious tool call can put in a path: a real newline (to hide
+    // the rest of the summary from a client that renders only the first
+    // line) and a bidi override (to display it reversed). No `/` in the
+    // payload — the path still has to resolve to the same sensitive file.
+    const evilPath = `${keyPath}\nrm -rf ~‮`
+    const faux = scripted(evilPath)
+    const events = await run({ model: faux.getModel() }, (e) =>
+      queueMicrotask(() => decideApproval(e.runId, e.toolCallId, 'deny'))
+    )
+    const required = events.find((e) => e.type === 'approval_required')
+    if (required?.type !== 'approval_required') {
+      throw new Error('no approval_required')
+    }
+    expect(required.summary).not.toContain('\n')
+    expect(required.summary).not.toContain('‮')
+    expect(required.summary).toContain('⏎')
+    expect(required.summary).toContain('rm -rf ~')
+    expect(required.summary).toMatch(/id_rsa⏎rm -rf ~$/u)
+  })
 })

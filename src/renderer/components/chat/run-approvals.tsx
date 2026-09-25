@@ -121,7 +121,10 @@ function ApprovalCard({
         icon={settled.icon}
       >
         <span className="shrink-0">{settled.label}</span>
-        <code className="min-w-0 truncate font-mono text-[11px]">
+        {/* The full summary, wrapped — never CSS-truncated with an
+            ellipsis: a client that clips text can hide the part of a
+            command that matters (see approval.ts's `sanitizeSummary`). */}
+        <code className="min-w-0 font-mono text-[11px] break-all whitespace-pre-wrap">
           {approval.summary}
         </code>
       </StatusStrip>

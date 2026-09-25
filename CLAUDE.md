@@ -529,7 +529,11 @@ rendering work in.
    client has gone. Wire shapes are unchanged; every message carries `runId`.
    A paused call adds `approval_required` (`runId`, `toolCallId`, `toolName`,
    `summary`, `expiresAt`; the summary is the path or command, never
-   contents) and later `approval_resolved` (`outcome`); the answer is
+   contents, and is sanitized once at the source — `sanitizeSummary()` in
+   `kernel/approval.ts` strips bidi/format controls, shows a line break as
+   `⏎` and a tab as `⇥`, and every client (the desktop card, a future
+   exodus-ios one) renders the result in full, wrapped, never
+   CSS-truncated) and later `approval_resolved` (`outcome`); the answer is
    `POST /api/v1/chat/approval` with `runId`, `toolCallId` and a `decision`
    of `allow` or `deny`
    (behind the presence gate; `{ outcome }`, idempotent — the first answer

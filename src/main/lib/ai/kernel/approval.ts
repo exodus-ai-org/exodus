@@ -74,6 +74,8 @@ function defaultEnv(): MatchEnv {
   }
 }
 
+/** Also `sanitizeSummary()`'s own bound, below — the ceiling every summary
+ *  that reaches a client is held to, whichever tool produced it. */
 const MAX_COMMAND_SUMMARY = 300
 
 /** Directories (and single files) under home whose contents are credentials. */
@@ -767,6 +769,61 @@ function withTrigger(trigger: string, command: string): string {
   return `${trigger} — ${commandSummary(command)}`
 }
 
+// ── summary sanitization ───────────────────────────────────────────────────
+
+/**
+ * Unicode `Cf` (Format) characters: the bidi embedding/override/isolate
+ * controls (U+202A–U+202E, U+2066–U+2069), the bidi marks (U+200E, U+200F,
+ * U+061C), the zero-width joiners/spaces (U+200B–U+200D) and byte-order mark
+ * (U+FEFF), and every other character in the category. A name like `.env`
+ * followed by U+202E (RIGHT-TO-LEFT OVERRIDE) and then `txt.exe` uses one of
+ * these to display reversed — stripping the category, not just the
+ * well-known members, is what keeps a client from ever rendering the trick.
+ */
+const FORMAT_CONTROLS = /\p{Cf}/gu
+
+/** `\r\n`, `\r` and `\n` — longest match first so a CRLF pair collapses to one `⏎`. */
+const LINE_BREAK = /\r\n|\r|\n/gu
+
+/**
+ * Every other C0/C1 control (`\n`, `\r` and `\t` are handled separately,
+ * above/below): NUL–BS, VT, FF, SO–US, DEL, and the C1 range.
+ */
+// oxlint-disable-next-line no-control-regex -- matching control characters is the point.
+const OTHER_CONTROLS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/gu
+
+/**
+ * Makes a `SensitiveTarget.summary` safe to render as literal text on any
+ * client — the desktop approval card, and any other surface (a paired
+ * phone) that shows the string as-is. `sensitiveTarget()` is the one place
+ * this runs, on its way out, so every caller (`run.ts`'s
+ * `approval_required` event and `declinedReason()`, `sensitive-guard.ts`'s
+ * `refusedReason()` / `groupRefusedReason()`) already gets sanitized text —
+ * no client sanitizes it again, and none should have to.
+ *
+ * Three rules, in order: strip every Unicode `Cf` character (bidi/format/
+ * zero-width controls — a hidden reorder or a hidden run of text); turn a
+ * line break into a visible `⏎` and a tab into `⇥` (real ones would hide
+ * everything after the first line from a client that renders only that);
+ * replace any other C0/C1 control with `�`. Finally re-bound the result to
+ * `MAX_COMMAND_SUMMARY`, cut from the end — the matched trigger always
+ * leads the summary (`withTrigger`), so the part that triggered the match
+ * survives.
+ *
+ * A client outside this repo (exodus-ios) that renders its own copy of the
+ * summary must apply the same three rules before display.
+ */
+export function sanitizeSummary(text: string): string {
+  const sanitized = text
+    .replaceAll(FORMAT_CONTROLS, '')
+    .replaceAll(LINE_BREAK, '⏎')
+    .replaceAll('\t', '⇥')
+    .replaceAll(OTHER_CONTROLS, '�')
+  return sanitized.length > MAX_COMMAND_SUMMARY
+    ? `${sanitized.slice(0, MAX_COMMAND_SUMMARY)}…`
+    : sanitized
+}
+
 async function matchCommand(
   command: string,
   cwdArg: string | null,
@@ -1003,23 +1060,30 @@ export async function sensitiveTarget(
   const resolver = new PathResolver(env)
   try {
     const roots = await rootsOf(env, workspaceDir, resolver)
-    if (toolName === TOOL_NAMES.callMcpTool) {
-      return await matchMcpCall(args, roots, env, workspaceDir)
-    }
-    if (toolName === TOOL_NAMES.terminal) {
-      const command = stringArg(args, 'command')
-      if (!command) return null
-      return await matchCommand(
-        command,
-        stringArg(args, 'cwd'),
-        roots,
-        env,
-        workspaceDir
-      )
-    }
-    const path = stringArg(args, PATH_TOOLS[toolName]!)
-    if (!path) return null
-    return await matchPathTool(toolName, path, roots, env, workspaceDir)
+    const target = await (async (): Promise<SensitiveTarget | null> => {
+      if (toolName === TOOL_NAMES.callMcpTool) {
+        return matchMcpCall(args, roots, env, workspaceDir)
+      }
+      if (toolName === TOOL_NAMES.terminal) {
+        const command = stringArg(args, 'command')
+        if (!command) return null
+        return matchCommand(
+          command,
+          stringArg(args, 'cwd'),
+          roots,
+          env,
+          workspaceDir
+        )
+      }
+      const path = stringArg(args, PATH_TOOLS[toolName]!)
+      if (!path) return null
+      return matchPathTool(toolName, path, roots, env, workspaceDir)
+    })()
+    // The one place every summary is sanitized before it leaves the
+    // matcher — see `sanitizeSummary()`.
+    return target
+      ? { ...target, summary: sanitizeSummary(target.summary) }
+      : null
   } finally {
     resolver.dispose()
   }
