@@ -309,6 +309,7 @@
     "timedOut": "已逾時",
     "stopped": "已停止",
     "expired": "已不再等待",
-    "decideFailed": "無法傳送你的回覆"
+    "decideFailed": "無法傳送你的回覆",
+    "truncatedNote_other": "另有 {{count}} 個字符未顯示"
   }
 }

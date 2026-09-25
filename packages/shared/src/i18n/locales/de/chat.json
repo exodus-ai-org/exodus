@@ -318,6 +318,8 @@
     "timedOut": "Zeit abgelaufen",
     "stopped": "Gestoppt",
     "expired": "Wartet nicht mehr",
-    "decideFailed": "Ihre Antwort konnte nicht gesendet werden"
+    "decideFailed": "Ihre Antwort konnte nicht gesendet werden",
+    "truncatedNote_one": "{{count}} weiteres Zeichen nicht angezeigt",
+    "truncatedNote_other": "{{count}} weitere Zeichen nicht angezeigt"
   }
 }

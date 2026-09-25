@@ -318,6 +318,8 @@
     "timedOut": "Délai dépassé",
     "stopped": "Arrêté",
     "expired": "N’attend plus",
-    "decideFailed": "Impossible d’envoyer votre réponse"
+    "decideFailed": "Impossible d’envoyer votre réponse",
+    "truncatedNote_one": "{{count}} caractère supplémentaire non affiché",
+    "truncatedNote_other": "{{count}} caractères supplémentaires non affichés"
   }
 }

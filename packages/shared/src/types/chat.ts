@@ -152,7 +152,14 @@ export interface ApprovalRequiredEvent {
   runId: string
   toolCallId: string
   toolName: string
+  /** Sanitized, cut at 8000 characters when longer (`truncated` / `hiddenChars`
+   *  say so) — never at the shorter bound the model's own declined-access
+   *  text uses, so the card shows more than the model ever needs to. */
   summary: string
+  /** Present (`true`) only when `summary` was cut. */
+  truncated?: boolean
+  /** Present only when `truncated`: how many sanitized characters were cut. */
+  hiddenChars?: number
   expiresAt: number
 }
 

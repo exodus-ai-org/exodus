@@ -309,6 +309,7 @@
     "timedOut": "タイムアウトしました",
     "stopped": "停止しました",
     "expired": "待機は終了しています",
-    "decideFailed": "回答を送信できませんでした"
+    "decideFailed": "回答を送信できませんでした",
+    "truncatedNote_other": "さらに{{count}}文字が表示されていません"
   }
 }

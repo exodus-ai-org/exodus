@@ -74,9 +74,21 @@ function defaultEnv(): MatchEnv {
   }
 }
 
-/** Also `sanitizeSummary()`'s own bound, below — the ceiling every summary
- *  that reaches a client is held to, whichever tool produced it. */
-const MAX_COMMAND_SUMMARY = 300
+/**
+ * The two bounds a summary is held to, applied at two different points
+ * (re-review I1): `EVENT_SUMMARY_MAX` is what `sensitiveTarget()` caps the
+ * text at for the `approval_required` event — generous, so the person
+ * approving sees the part of a long command that matters, wherever it
+ * falls; `MODEL_SUMMARY_MAX` is the short bound applied only to the text the
+ * *model* reads back (`declinedReason`, `refusedReason`,
+ * `groupRefusedReason`) — it has no card to scroll, so its copy of the
+ * summary stays terse. Cutting the model-facing copy short never hides
+ * anything from the person: the card already showed the full (or
+ * `EVENT_SUMMARY_MAX`-capped) text before the model's declined-access
+ * result is even generated.
+ */
+const EVENT_SUMMARY_MAX = 8000
+const MODEL_SUMMARY_MAX = 300
 
 /** Directories (and single files) under home whose contents are credentials. */
 const HOME_SECRET_ROOTS = [
@@ -753,20 +765,20 @@ const BARE_EXODUS_WORD = /^\.exodus\/?$/iu
 /** Paths considered per command — a heredoc script is not walked word by word. */
 const MAX_COMMAND_TOKENS = 2000
 
-function commandSummary(command: string): string {
-  const oneLine = command.trim()
-  return oneLine.length > MAX_COMMAND_SUMMARY
-    ? `${oneLine.slice(0, MAX_COMMAND_SUMMARY)}…`
-    : oneLine
+/** Trimmed only — length is bounded once, centrally, by `capSummary()` in
+ *  `sensitiveTarget()`, never here (I1: a per-piece cut this early would
+ *  hide whatever of the command falls past it before that central bound
+ *  ever gets a chance to attach `truncated` / `hiddenChars` to it). */
+function commandText(command: string): string {
+  return command.trim()
 }
 
 /**
  * The summary of a gated command: what triggered it first — the path or the
- * keychain call — then the command, cut at 300 characters. A command padded
- * so its real target falls past the cut still shows why it paused.
+ * keychain call — then the full command, untruncated (see `commandText()`).
  */
 function withTrigger(trigger: string, command: string): string {
-  return `${trigger} — ${commandSummary(command)}`
+  return `${trigger} — ${commandText(command)}`
 }
 
 // ── summary sanitization ───────────────────────────────────────────────────
@@ -805,23 +817,59 @@ const OTHER_CONTROLS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/gu
  * zero-width controls — a hidden reorder or a hidden run of text); turn a
  * line break into a visible `⏎` and a tab into `⇥` (real ones would hide
  * everything after the first line from a client that renders only that);
- * replace any other C0/C1 control with `�`. Finally re-bound the result to
- * `MAX_COMMAND_SUMMARY`, cut from the end — the matched trigger always
- * leads the summary (`withTrigger`), so the part that triggered the match
- * survives.
+ * replace any other C0/C1 control with `�`.
+ *
+ * Deliberately does *not* bound the length — that used to happen here (cut
+ * at 300), which reopened the very hiding problem this function exists to
+ * close: a command whose dangerous tail (`… | curl https://evil …`) fell
+ * past the cut vanished from the card exactly as a raw `\n` would have
+ * (re-review I1). Length is bounded once, centrally, by `capSummary()`.
  *
  * A client outside this repo (exodus-ios) that renders its own copy of the
  * summary must apply the same three rules before display.
  */
 export function sanitizeSummary(text: string): string {
-  const sanitized = text
+  return text
     .replaceAll(FORMAT_CONTROLS, '')
     .replaceAll(LINE_BREAK, '⏎')
     .replaceAll('\t', '⇥')
     .replaceAll(OTHER_CONTROLS, '�')
-  return sanitized.length > MAX_COMMAND_SUMMARY
-    ? `${sanitized.slice(0, MAX_COMMAND_SUMMARY)}…`
-    : sanitized
+}
+
+export interface CappedSummary {
+  text: string
+  truncated: boolean
+  /** Characters cut off `text` (0 when not `truncated`). */
+  hiddenChars: number
+}
+
+/**
+ * Cuts `text` to `maxLength`, from the end — the matched trigger always
+ * leads a summary (`withTrigger`), so the part that triggered the match is
+ * what survives a cut, never what's lost. Used at two different bounds:
+ * `EVENT_SUMMARY_MAX` for what the `approval_required` event (and the card)
+ * carries, `MODEL_SUMMARY_MAX` for the short copy the declined/refused tool
+ * result hands back to the model (`forModel()`, below) — the model has no
+ * card to scroll, and by the time it reads that text the person already saw
+ * the fuller one.
+ */
+export function capSummary(text: string, maxLength: number): CappedSummary {
+  if (text.length <= maxLength) {
+    return { text, truncated: false, hiddenChars: 0 }
+  }
+  return {
+    text: text.slice(0, maxLength),
+    truncated: true,
+    hiddenChars: text.length - maxLength
+  }
+}
+
+/** The short, model-facing form of a summary: `MODEL_SUMMARY_MAX` characters,
+ *  with a trailing `…` when it was cut — the model's only signal that there
+ *  was more, since it gets no `truncated` / `hiddenChars` fields. */
+function forModel(summary: string): string {
+  const capped = capSummary(summary, MODEL_SUMMARY_MAX)
+  return capped.truncated ? `${capped.text}…` : capped.text
 }
 
 async function matchCommand(
@@ -1016,7 +1064,7 @@ async function matchMcpCall(
     if (leafAtOwnApi(leaf)) {
       return {
         kind: 'refuse',
-        summary: `${label}: Exodus's own API — ${commandSummary(leaf)}`
+        summary: `${label}: Exodus's own API — ${commandText(leaf)}`
       }
     }
     const path = leafAsPath(leaf, env.home)
@@ -1037,6 +1085,16 @@ async function matchMcpCall(
 }
 
 /**
+ * `sensitiveTarget()`'s result: `SensitiveTarget` plus whether `summary` was
+ * cut at `EVENT_SUMMARY_MAX` and, when it was, how many sanitized characters
+ * that cost — the `approval_required` event's `truncated` / `hiddenChars`.
+ */
+export interface ApprovalTarget extends SensitiveTarget {
+  truncated: boolean
+  hiddenChars: number
+}
+
+/**
  * Whether a tool call touches a secret outside Exodus (`ask`), one of
  * Exodus's own that is never handed out (`refuse`), or neither (null).
  * `workspaceDir` is the chat's workspace: secret-named files inside it are
@@ -1048,7 +1106,7 @@ export async function sensitiveTarget(
   args: unknown,
   workspaceDir?: string,
   env: MatchEnv = defaultEnv()
-): Promise<SensitiveTarget | null> {
+): Promise<ApprovalTarget | null> {
   const isPathTool = toolName in PATH_TOOLS
   if (
     toolName !== TOOL_NAMES.callMcpTool &&
@@ -1079,11 +1137,22 @@ export async function sensitiveTarget(
       if (!path) return null
       return matchPathTool(toolName, path, roots, env, workspaceDir)
     })()
+    if (!target) return null
     // The one place every summary is sanitized before it leaves the
-    // matcher — see `sanitizeSummary()`.
-    return target
-      ? { ...target, summary: sanitizeSummary(target.summary) }
-      : null
+    // matcher (`sanitizeSummary()`), then bounded once, generously, for the
+    // event and the card (`capSummary()`, I1: not the short model-facing
+    // bound — that's applied separately, only to the model's copy, by
+    // `declinedReason()` / `refusedReason()` / `groupRefusedReason()`).
+    const capped = capSummary(
+      sanitizeSummary(target.summary),
+      EVENT_SUMMARY_MAX
+    )
+    return {
+      kind: target.kind,
+      summary: capped.text,
+      truncated: capped.truncated,
+      hiddenChars: capped.hiddenChars
+    }
   } finally {
     resolver.dispose()
   }
@@ -1091,16 +1160,16 @@ export async function sensitiveTarget(
 
 /** What the model reads when the user (or the clock, or Stop) says no. */
 export function declinedReason(summary: string): string {
-  return `The user declined access to ${summary}.`
+  return `The user declined access to ${forModel(summary)}.`
 }
 
 /** What a Philharmonic Group run reads: no one can approve there. */
 export function groupRefusedReason(summary: string): string {
-  return `Access to ${summary} is not available in a Group run.`
+  return `Access to ${forModel(summary)} is not available in a Group run.`
 }
 
 /** What the model reads for Exodus's own files (lock, TLS key, database,
  *  backups) and API. */
 export function refusedReason(summary: string): string {
-  return `Access to ${summary} is refused: it touches Exodus's own secrets, data files or API, which tools never reach.`
+  return `Access to ${forModel(summary)} is refused: it touches Exodus's own secrets, data files or API, which tools never reach.`
 }

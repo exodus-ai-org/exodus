@@ -25,6 +25,10 @@ export interface RunApproval {
   toolCallId: string
   toolName: string
   summary: string
+  /** Set when `summary` was cut server-side (I1 follow-up): the card shows
+   *  a "N more characters not shown" note instead of silently clipping it. */
+  truncated?: boolean
+  hiddenChars?: number
   expiresAt: number
   state: 'pending' | ApprovalOutcome | 'expired'
 }
@@ -89,6 +93,8 @@ export function recordApprovalRequired(
       toolCallId: event.toolCallId,
       toolName: event.toolName,
       summary: event.summary,
+      truncated: event.truncated,
+      hiddenChars: event.hiddenChars,
       expiresAt: event.expiresAt,
       state: 'pending'
     }

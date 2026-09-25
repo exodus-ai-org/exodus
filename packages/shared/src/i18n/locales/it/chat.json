@@ -318,6 +318,8 @@
     "timedOut": "Tempo scaduto",
     "stopped": "Interrotto",
     "expired": "Non più in attesa",
-    "decideFailed": "Impossibile inviare la risposta"
+    "decideFailed": "Impossibile inviare la risposta",
+    "truncatedNote_one": "{{count}} carattere in più non mostrato",
+    "truncatedNote_other": "{{count}} caratteri in più non mostrati"
   }
 }

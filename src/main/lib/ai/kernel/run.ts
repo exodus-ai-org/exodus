@@ -155,6 +155,11 @@ export async function* runAgent(input: RunInput): AsyncIterable<KernelEvent> {
         toolCallId: toolCall.id,
         toolName: toolCall.name,
         summary: target.summary,
+        // Only present when the summary was actually cut (I1 follow-up):
+        // most calls carry the full text, so most events carry neither.
+        ...(target.truncated
+          ? { truncated: true, hiddenChars: target.hiddenChars }
+          : {}),
         expiresAt: Date.now() + timeoutMs
       })
       const outcome = await awaitApproval({

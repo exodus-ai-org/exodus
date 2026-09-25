@@ -286,4 +286,26 @@ describe('runAgent — the approval gate', () => {
     expect(required.summary).toContain('rm -rf ~')
     expect(required.summary).toMatch(/id_rsa⏎rm -rf ~$/u)
   })
+
+  it('a 9000+ character path arrives capped at 8000 with truncated/hiddenChars on the approval_required event (I1 follow-up)', async () => {
+    // No `/` in the padding, so the whole thing stays one path segment named
+    // like the real key (`isSecretFileName` matches on `id_` alone).
+    const evilPath = `${keyPath}${'x'.repeat(9000)}`
+    const faux = scripted(evilPath)
+    const events = await run({ model: faux.getModel() }, (e) =>
+      queueMicrotask(() => decideApproval(e.runId, e.toolCallId, 'deny'))
+    )
+    const required = events.find((e) => e.type === 'approval_required')
+    if (required?.type !== 'approval_required') {
+      throw new Error('no approval_required')
+    }
+    expect(required.truncated).toBe(true)
+    expect(required.summary.length).toBe(8000)
+    expect(required.hiddenChars).toBeGreaterThan(0)
+    expect(required.summary).toContain('id_rsa')
+    // What the model reads back stays short regardless.
+    const toolResult = toolEnd(events)
+    const modelText = (toolResult.content[0] as { text: string }).text
+    expect(modelText.length).toBeLessThan(400)
+  })
 })

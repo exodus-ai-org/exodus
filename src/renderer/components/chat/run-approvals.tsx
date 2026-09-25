@@ -29,6 +29,30 @@ const ICON = 'size-3.5 shrink-0'
 export const ALLOW_ENABLE_DELAY_MS = 600
 
 /**
+ * The summary, in full, in a scroll region — the card never CSS-truncates it
+ * (`break-all` + `whitespace-pre-wrap`, no `truncate`): a client that clips
+ * text can hide the part of a command that matters (see `approval.ts`'s
+ * `sanitizeSummary`). A max height instead keeps a very long one from
+ * pushing the rest of the transcript down; when the server itself cut the
+ * text (`truncated`, past `EVENT_SUMMARY_MAX`), a note says how much.
+ */
+function ApprovalSummary({ approval }: { approval: RunApproval }) {
+  const { t } = useTranslation('chat')
+  return (
+    <div className="flex min-w-0 flex-col gap-1">
+      <code className="bg-muted/60 max-h-40 overflow-y-auto rounded-md px-2 py-1 font-mono text-[11px] break-all whitespace-pre-wrap">
+        {approval.summary}
+      </code>
+      {approval.truncated ? (
+        <p className="text-muted-foreground text-[11px]">
+          {t('approval.truncatedNote', { count: approval.hiddenChars ?? 0 })}
+        </p>
+      ) : null}
+    </div>
+  )
+}
+
+/**
  * The foot of a run whose tool call touched a secret outside Exodus (an SSH
  * key, cloud credentials, a `.env` elsewhere): what it wants to read, with
  * Allow once / Deny — at the foot rather than in the timeline, so it shows
@@ -121,12 +145,7 @@ function ApprovalCard({
         icon={settled.icon}
       >
         <span className="shrink-0">{settled.label}</span>
-        {/* The full summary, wrapped — never CSS-truncated with an
-            ellipsis: a client that clips text can hide the part of a
-            command that matters (see approval.ts's `sanitizeSummary`). */}
-        <code className="min-w-0 font-mono text-[11px] break-all whitespace-pre-wrap">
-          {approval.summary}
-        </code>
+        <ApprovalSummary approval={approval} />
       </StatusStrip>
     )
   }
@@ -146,9 +165,7 @@ function ApprovalCard({
           <p className="text-muted-foreground">
             {isCommand ? t('approval.commandHint') : t('approval.fileHint')}
           </p>
-          <code className="bg-muted/60 rounded-md px-2 py-1 font-mono text-[11px] break-all whitespace-pre-wrap">
-            {approval.summary}
-          </code>
+          <ApprovalSummary approval={approval} />
           <div className="flex gap-2">
             <Button
               size="xs"

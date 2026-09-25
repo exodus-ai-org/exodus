@@ -47,7 +47,10 @@ export type KernelEvent =
       runId: string
       toolCallId: string
       toolName: string
+      /** Sanitized, cut at `EVENT_SUMMARY_MAX` (`approval.ts`) when longer. */
       summary: string
+      truncated?: boolean
+      hiddenChars?: number
       expiresAt: number
     }
   | {

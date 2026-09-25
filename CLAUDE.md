@@ -531,9 +531,19 @@ rendering work in.
    `summary`, `expiresAt`; the summary is the path or command, never
    contents, and is sanitized once at the source — `sanitizeSummary()` in
    `kernel/approval.ts` strips bidi/format controls, shows a line break as
-   `⏎` and a tab as `⇥`, and every client (the desktop card, a future
-   exodus-ios one) renders the result in full, wrapped, never
-   CSS-truncated) and later `approval_resolved` (`outcome`); the answer is
+   `⏎` and a tab as `⇥` — then bounded once, centrally, by `capSummary()`:
+   `EVENT_SUMMARY_MAX` (8000 chars) for this event, cut from the end so the
+   matched trigger survives, with `truncated` / `hiddenChars` set when it
+   was; a shorter `MODEL_SUMMARY_MAX` (300) applies only to the separate copy
+   the model reads back on decline/refuse (`declinedReason` /
+   `refusedReason` / `groupRefusedReason`), never to what the card shows —
+   cutting the event summary itself at 300 previously hid a long command's
+   dangerous tail from the person approving it (I1 re-review). The desktop
+   card renders the event's copy in full, wrapped (`break-all`), never
+   CSS-truncated, in a scrolling max-height region, with a "N more
+   characters not shown" note when `truncated`; a future exodus-ios client
+   mirrors the same rules) and later `approval_resolved` (`outcome`); the
+   answer is
    `POST /api/v1/chat/approval` with `runId`, `toolCallId` and a `decision`
    of `allow` or `deny`
    (behind the presence gate; `{ outcome }`, idempotent — the first answer

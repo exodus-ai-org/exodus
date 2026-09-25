@@ -309,6 +309,7 @@
     "timedOut": "시간 초과",
     "stopped": "중지됨",
     "expired": "더 이상 대기 중이 아님",
-    "decideFailed": "답변을 보낼 수 없습니다"
+    "decideFailed": "답변을 보낼 수 없습니다",
+    "truncatedNote_other": "표시되지 않은 문자가 {{count}}자 더 있습니다"
   }
 }

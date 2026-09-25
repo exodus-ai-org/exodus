@@ -11,6 +11,7 @@ import { join } from 'path'
 
 import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import {
+  capSummary,
   declinedReason,
   sanitizeSummary,
   sensitiveTarget,
@@ -906,20 +907,52 @@ describe('sensitiveTarget — terminal heuristics', () => {
     ).toBe('ask')
   })
 
-  it('the summary names the trigger first, then the command cut at 300', async () => {
+  it('the summary names the trigger first, then the full command — no 300-character cut (I1 follow-up)', async () => {
     const long = `cat ~/.ssh/id_rsa ${'x'.repeat(400)}`
     const result = await check(T, { command: long })
-    expect(result?.summary).toMatch(
-      /^~\/\.ssh\/id_rsa — cat ~\/\.ssh\/id_rsa x+…$/u
+    expect(result?.summary).toBe(
+      `~/.ssh/id_rsa — cat ~/.ssh/id_rsa ${'x'.repeat(400)}`
     )
+    expect(result?.truncated).toBe(false)
+    expect(result?.hiddenChars).toBe(0)
   })
 
-  it('a command padded past the cut still shows what it reads', async () => {
+  it('a command padded past where a 300-character cut used to fall still shows the whole thing (I1 follow-up)', async () => {
     const padded = `# ${'harmless '.repeat(60)}\ncat ~/.aws/credentials`
     const result = await check(T, { command: padded })
     expect(result?.kind).toBe('ask')
     expect(result?.summary.startsWith('~/.aws/credentials — ')).toBe(true)
-    expect(result?.summary).not.toContain('cat ~/.aws')
+    // The real target used to fall past the old per-command 300-char cut and
+    // vanish from the card; now the full (sanitized) command arrives.
+    expect(result?.summary).toContain('cat ~/.aws/credentials')
+    expect(result?.truncated).toBe(false)
+  })
+
+  it('a 1000-character command whose trigger is found deep in it (past 300) arrives whole', async () => {
+    const padding = 'x'.repeat(900)
+    const command = `echo ${padding} && cat ~/.ssh/id_rsa`
+    const result = await check(T, { command })
+    expect(result?.kind).toBe('ask')
+    expect(result?.truncated).toBe(false)
+    expect(result?.hiddenChars).toBe(0)
+    // The trigger still leads (`withTrigger`), but the full original command
+    // — padding and all — follows it, not just the first 300 characters.
+    expect(result?.summary).toBe(`~/.ssh/id_rsa — ${command}`)
+    expect(result?.summary.length).toBeGreaterThan(900)
+  })
+
+  it('a 9000-character command arrives capped at 8000 with truncated/hiddenChars set', async () => {
+    const command = `cat ~/.ssh/id_rsa ${'x'.repeat(9000)}`
+    const result = await check(T, { command })
+    expect(result?.kind).toBe('ask')
+    expect(result?.truncated).toBe(true)
+    expect(result?.summary.length).toBe(8000)
+    const fullLength = `~/.ssh/id_rsa — ${command}`.length
+    expect(result?.hiddenChars).toBe(fullLength - 8000)
+    // Cut from the end, so the trigger (and the start of the command) survives.
+    expect(
+      result?.summary.startsWith('~/.ssh/id_rsa — cat ~/.ssh/id_rsa')
+    ).toBe(true)
   })
 
   it.each([
@@ -1113,16 +1146,46 @@ describe('sanitizeSummary', () => {
     expect(sanitizeSummary(malicious)).toBe('.envtxt.exe')
   })
 
-  it('keeps the leading (matched) part when the result is still too long', () => {
-    const long = `~/.ssh/id_rsa — ${'x'.repeat(400)}`
-    const result = sanitizeSummary(long)
-    expect(result.length).toBe(301)
-    expect(result.startsWith('~/.ssh/id_rsa — ')).toBe(true)
-    expect(result.endsWith('…')).toBe(true)
+  it('does not bound the length — that is capSummary()’s job now (I1 follow-up)', () => {
+    // sanitizeSummary() used to cut at 300 itself; that reopened I1 (a
+    // command's dangerous tail past the cut vanished from the card).
+    // Length is bounded once, centrally, by capSummary() — never here.
+    const long = `~/.ssh/id_rsa — ${'x'.repeat(9000)}`
+    expect(sanitizeSummary(long)).toBe(long)
+    expect(sanitizeSummary(long).length).toBe(long.length)
   })
 
-  it('a string already within the bound is left as-is', () => {
+  it('a plain string is left as-is', () => {
     expect(sanitizeSummary('short and plain')).toBe('short and plain')
+  })
+})
+
+describe('capSummary', () => {
+  it('a string within the bound is returned untouched, not truncated', () => {
+    expect(capSummary('short and plain', 300)).toEqual({
+      text: 'short and plain',
+      truncated: false,
+      hiddenChars: 0
+    })
+  })
+
+  it('a string exactly at the bound is not truncated', () => {
+    const exact = 'x'.repeat(300)
+    expect(capSummary(exact, 300)).toEqual({
+      text: exact,
+      truncated: false,
+      hiddenChars: 0
+    })
+  })
+
+  it('cuts from the end, keeping the leading (matched) part, and reports how much was hidden', () => {
+    const trigger = '~/.ssh/id_rsa — '
+    const long = `${trigger}${'x'.repeat(400)}`
+    const result = capSummary(long, 300)
+    expect(result.text.length).toBe(300)
+    expect(result.text.startsWith(trigger)).toBe(true)
+    expect(result.truncated).toBe(true)
+    expect(result.hiddenChars).toBe(long.length - 300)
   })
 })
 
@@ -1215,5 +1278,16 @@ describe('pending approvals', () => {
     expect(declinedReason('~/.ssh/id_rsa')).toBe(
       'The user declined access to ~/.ssh/id_rsa.'
     )
+  })
+
+  it('the declined text stays short (300 chars) even for an event-sized (8000-char) summary (I1 follow-up)', () => {
+    const eventSummary = `~/.ssh/id_rsa — cat ~/.ssh/id_rsa ${'x'.repeat(7900)}`
+    const reason = declinedReason(eventSummary)
+    // "The user declined access to " (28) + 300 + "…" (1) + "." (1).
+    expect(reason.length).toBe(28 + 300 + 1 + 1)
+    expect(reason.startsWith('The user declined access to ~/.ssh/id_rsa')).toBe(
+      true
+    )
+    expect(reason.endsWith('….')).toBe(true)
   })
 })

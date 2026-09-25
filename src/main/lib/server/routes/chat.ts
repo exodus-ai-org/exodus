@@ -437,6 +437,9 @@ chat.post('/', async (c) => {
                 toolCallId: event.toolCallId,
                 toolName: event.toolName,
                 summary: event.summary,
+                ...(event.truncated
+                  ? { truncated: true, hiddenChars: event.hiddenChars }
+                  : {}),
                 expiresAt: event.expiresAt
               })
               break

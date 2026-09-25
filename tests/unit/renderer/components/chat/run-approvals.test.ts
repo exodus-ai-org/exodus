@@ -174,6 +174,32 @@ describe('RunApprovals', () => {
     expect(settledCode?.className).toContain('break-all')
   })
 
+  it('shows the "more characters not shown" note when truncated is set', async () => {
+    const { queryClient } = await mount()
+    await act(async () => {
+      recordApprovalRequired(queryClient, CHAT, {
+        type: 'approval_required',
+        runId: RUN,
+        toolCallId: 'call_3',
+        toolName: 'terminal',
+        summary: 'x'.repeat(8000),
+        truncated: true,
+        hiddenChars: 1234,
+        expiresAt: Date.now() + 600_000
+      })
+    })
+    await flush()
+    const card = byTestId(TEST_IDS.chat.approval.card)
+    expect(card?.textContent).toContain('approval.truncatedNote')
+  })
+
+  it('shows no truncation note when the summary arrived whole', async () => {
+    const { queryClient } = await mount()
+    await requireApproval(queryClient)
+    const card = byTestId(TEST_IDS.chat.approval.card)
+    expect(card?.textContent).not.toContain('approval.truncatedNote')
+  })
+
   it('Allow once shows the outcome the server recorded', async () => {
     decideService.mockResolvedValue({ outcome: 'allowed' })
     const { queryClient } = await mount()
