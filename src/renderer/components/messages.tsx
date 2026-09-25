@@ -184,7 +184,11 @@ const AssistantTurnSegment = memo(
                 <RenderFailed what={capitalCase(toolResult.toolName)} />
               }
             >
-              <MessageCallingTools chatId={chatId} toolResult={toolResult} />
+              <MessageCallingTools
+                chatId={chatId}
+                toolResult={toolResult}
+                isStreaming={isStreaming}
+              />
             </ErrorBoundary>
           ))}
 

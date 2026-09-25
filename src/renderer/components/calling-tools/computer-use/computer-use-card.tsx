@@ -37,14 +37,26 @@ const OUTCOME_TONE: Record<string, string> = {
 }
 
 export function ComputerUseCard({
-  toolResult
+  toolResult,
+  isStreaming
 }: {
   toolResult: ComputerUseDetails | null | undefined
+  /**
+   * Whether the run this call belongs to is still streaming. A call with no
+   * `outcome`/`error` is "running" only while that holds — once the run has
+   * ended (Stop, or the stream otherwise closing) with the call still
+   * unresolved, pi-agent-core never delivers its terminal event (see
+   * `image_generation`'s same rule in CLAUDE.md), so the card must say
+   * "stopped" on its own rather than show "running…" forever.
+   */
+  isStreaming: boolean
 }) {
   const { t } = useTranslation('chat')
   const details = toolResult ?? {}
   const [answer, setAnswer] = useState('')
-  const running = !details.outcome && !details.error
+  const pending = !details.outcome && !details.error
+  const running = pending && isStreaming
+  const stopped = pending && !isStreaming
 
   const stop = () => {
     abortComputerUse().catch(() => {
@@ -72,9 +84,11 @@ export function ComputerUseCard({
     ? t('computerUseCard.error')
     : details.outcome
       ? t(`computerUseCard.outcome.${details.outcome}`)
-      : typeof details.step === 'number'
-        ? t('computerUseCard.stepBadge', { step: details.step })
-        : t('computerUseCard.running')
+      : stopped
+        ? t('approval.stopped')
+        : typeof details.step === 'number'
+          ? t('computerUseCard.stepBadge', { step: details.step })
+          : t('computerUseCard.running')
 
   return (
     <div className="overflow-hidden rounded-lg border text-xs">
@@ -122,8 +136,9 @@ export function ComputerUseCard({
           </div>
         )}
 
-        {/* Inline askHuman prompt */}
-        {details.awaitingHuman && (
+        {/* Inline askHuman prompt — only while the session can still act on
+            an answer; once the run has stopped, replying would do nothing. */}
+        {details.awaitingHuman && running && (
           <div className="border-primary/30 bg-primary/5 flex flex-col gap-2 rounded-md border p-2">
             <p className="text-foreground/90">
               {details.awaitingHuman.question}
