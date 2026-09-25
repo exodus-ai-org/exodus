@@ -142,11 +142,19 @@ export function DestinationInput({
   ...props
 }: DestinationInputProps) {
   const [focused, setFocused] = useState(false)
+  const hintId = useId()
   const showHint = guarded && (focused || !!isDirty)
+  // A screen reader hears the warning as the field's description whenever it
+  // applies — not only once it is painted on focus, which would come too late.
+  const describedBy =
+    [props['aria-describedby'], guarded ? hintId : undefined]
+      .filter(Boolean)
+      .join(' ') || undefined
   return (
     <>
       <Input
         {...props}
+        aria-describedby={describedBy}
         onFocus={(e) => {
           setFocused(true)
           onFocus?.(e)
@@ -156,13 +164,20 @@ export function DestinationInput({
           onBlur?.(e)
         }}
       />
-      {showHint && (
+      {showHint ? (
         <p
+          id={hintId}
           className={cn('text-muted-foreground text-xs', ENTER)}
           data-testid={TEST_IDS.secrets.destinationHint}
         >
           {hint}
         </p>
+      ) : (
+        guarded && (
+          <span id={hintId} className="sr-only">
+            {hint}
+          </span>
+        )
       )}
     </>
   )

@@ -272,3 +272,37 @@ describe('MCP secrets cleared by a destination move', () => {
     expect(await needsReentry()).toEqual([])
   })
 })
+
+describe('the re-entry file itself (S3 minors)', () => {
+  it('a corrupt or mis-shaped file reads as nothing to re-enter, and never throws', async () => {
+    const { writeFileSync } = await import('fs')
+    const path = join(home, 'secrets-reentry.json')
+    for (const body of [
+      '{not json',
+      '[]',
+      JSON.stringify({ settings: 'providers.openaiApiKey', mcp: [] }),
+      JSON.stringify({ settings: [1, 2], mcp: { x: 'y' } })
+    ]) {
+      writeFileSync(path, body)
+      restart()
+      await expect(needsReentry()).resolves.toEqual([])
+    }
+  })
+
+  it('forgetAllMovedSecrets (a data reset) drops every prompt', async () => {
+    const { forgetAllMovedSecrets } = await import('@main/lib/secrets/moved')
+    const current = await shownSettings()
+    await send('POST', '/api/v1/settings', {
+      ...current,
+      providers: {
+        ...(current.providers as object),
+        openaiBaseUrl: 'https://proxy.example/v1'
+      }
+    })
+    expect(await needsReentry()).toContain('providers.openaiApiKey')
+    forgetAllMovedSecrets()
+    restart()
+    expect(await needsReentry()).not.toContain('providers.openaiApiKey')
+    expect(existsSync(join(home, 'secrets-reentry.json'))).toBe(false)
+  })
+})

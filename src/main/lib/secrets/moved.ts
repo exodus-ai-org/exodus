@@ -105,6 +105,14 @@ export function recordMcpWrite(
   writeStore({ ...store, mcp })
 }
 
+/**
+ * Forget every recorded move — a data reset (`DELETE /api/v1/db-io/reset`)
+ * starts the re-entry prompts over (S3 minor).
+ */
+export function forgetAllMovedSecrets(): void {
+  writeStore({ settings: [], mcp: {} })
+}
+
 export function forgetMcpServerMoves(serverId: string): void {
   const store = readStore()
   if (!store.mcp[serverId]) return

@@ -218,3 +218,24 @@ describe('the base-URL hint', () => {
     expect(byTestId(TEST_IDS.secrets.destinationHint)).toHaveLength(0)
   })
 })
+
+describe('the base-URL hint, for a screen reader (S3 minor)', () => {
+  it('describes the field whenever a key is saved — before focus, and after', async () => {
+    await render({ openaiApiKey: '•••• abcd', openaiBaseUrl: null })
+    const describedBy = urlInput().getAttribute('aria-describedby')
+    expect(describedBy).toBeTruthy()
+    expect(host.querySelector(`[id="${describedBy}"]`)?.textContent).toBe(
+      'secrets.destinationHint'
+    )
+    act(() => urlInput().focus())
+    const id = urlInput().getAttribute('aria-describedby')
+    expect(host.querySelector(`[id="${id}"]`)?.textContent).toBe(
+      'secrets.destinationHint'
+    )
+  })
+
+  it('describes nothing when there is no saved key to lose', async () => {
+    await render({ openaiApiKey: null, openaiBaseUrl: null })
+    expect(urlInput().getAttribute('aria-describedby')).toBeNull()
+  })
+})

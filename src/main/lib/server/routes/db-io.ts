@@ -9,6 +9,7 @@ import type { Settings } from '../../db/schema'
 import { logger } from '../../logger'
 import { removeAllMedia } from '../../media/store'
 import { resolveSearchProvider } from '../../search/resolve-search-provider'
+import { forgetAllMovedSecrets } from '../../secrets/moved'
 import { importDataSchema } from '../schemas/db-io'
 import { Variables } from '../types'
 import {
@@ -156,6 +157,8 @@ dbIo.post('/import-all', async (c) => {
 dbIo.delete('/reset', async (c) => {
   await createAutoBackup()
   await handleDatabaseOperation(() => resetAllData(), 'Failed to reset data')
+  // A reset starts over: no "re-enter this key" prompt outlives it.
+  forgetAllMovedSecrets()
   clearSearchIndexInBackground(c.get('settings'))
   // The chats that referenced it are gone. (Not on /import-all: that restores
   // chats, possibly this machine's own, whose images are still on disk.)

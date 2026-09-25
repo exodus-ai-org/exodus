@@ -18,6 +18,8 @@ vi.mock('@main/lib/search/resolve-search-provider', () => ({
 }))
 const removeAllMedia = vi.fn(async () => {})
 vi.mock('@main/lib/media/store', () => ({ removeAllMedia }))
+const forgetAllMovedSecrets = vi.fn()
+vi.mock('@main/lib/secrets/moved', () => ({ forgetAllMovedSecrets }))
 
 const { default: dbIo } = await import('@main/lib/server/routes/db-io')
 const { importData, resetAllData } = await import('@main/lib/db/queries')
@@ -41,6 +43,8 @@ describe('DELETE /api/v1/db-io/reset', () => {
     expect(res.status).toBe(200)
     expect(vi.mocked(resetAllData)).toHaveBeenCalledOnce()
     expect(removeAllMedia).toHaveBeenCalledOnce()
+    // No "re-enter this key" prompt outlives a reset (S3 minor).
+    expect(forgetAllMovedSecrets).toHaveBeenCalledOnce()
   })
 
   it('keeps the media when the reset itself failed', async () => {
