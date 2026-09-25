@@ -14,25 +14,47 @@ import { maskSecret } from './mask'
 /** Shorter values are too likely to match ordinary text to be scrubbed. */
 const MIN_SCRUB_LENGTH = 8
 
+/** One value `scrubWith` replaces: as written, JSON-escaped, and its mask. */
+export interface ScrubEntry {
+  secret: string
+  escaped: string
+  mask: string
+}
+
 /**
- * `text` with every occurrence of each `secrets` value — as written, and as
- * it appears inside a JSON string (quotes / backslashes escaped) — replaced
- * by its mask. For copies of text that may predate the secret-safe errors
- * (the Chat Audit `logs` table, review S2 M3). Longest first, so a secret
- * that contains another is masked whole.
+ * `secrets` ready for `scrubWith`: de-duplicated, the too-short dropped,
+ * longest first (so a secret that contains another is masked whole). Build it
+ * once for a set that does not change (the logger caches it).
  */
-export function scrubSecrets(text: string, secrets: readonly string[]): string {
-  let out = text
-  const values = [...new Set(secrets)]
+export function scrubList(secrets: readonly string[]): ScrubEntry[] {
+  return [...new Set(secrets)]
     .filter((s) => s.length >= MIN_SCRUB_LENGTH)
     .toSorted((a, b) => b.length - a.length)
-  for (const secret of values) {
-    const mask = maskSecret(secret)!
-    const escaped = JSON.stringify(secret).slice(1, -1)
+    .map((secret) => ({
+      secret,
+      escaped: JSON.stringify(secret).slice(1, -1),
+      mask: maskSecret(secret)!
+    }))
+}
+
+/** `text` with every entry of a `scrubList` replaced by its mask. */
+export function scrubWith(text: string, list: readonly ScrubEntry[]): string {
+  let out = text
+  for (const { secret, escaped, mask } of list) {
     out = out.replaceAll(secret, mask)
     if (escaped !== secret) out = out.replaceAll(escaped, mask)
   }
   return out
+}
+
+/**
+ * `text` with every occurrence of each `secrets` value — as written, and as
+ * it appears inside a JSON string (quotes / backslashes escaped) — replaced
+ * by its mask. For copies of text that may predate the secret-safe errors
+ * (the Chat Audit `logs` table, review S2 M3).
+ */
+export function scrubSecrets(text: string, secrets: readonly string[]): string {
+  return scrubWith(text, scrubList(secrets))
 }
 
 /** The temp file a rewrite goes through (`.<name>.scrub-<pid>.tmp`). */

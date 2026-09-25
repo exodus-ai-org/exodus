@@ -1,4 +1,4 @@
-import { scrubSecrets } from '../secrets/scrub'
+import { scrubList, scrubWith, type ScrubEntry } from '../secrets/scrub'
 
 /**
  * Secret values the logger masks in every line it writes (final review M4):
@@ -11,7 +11,8 @@ import { scrubSecrets } from '../secrets/scrub'
  * value keeps being masked. In memory only.
  */
 const values = new Set<string>()
-let sorted: string[] | null = []
+// Built once per change to `values`, not per line (re-review m5).
+let list: ScrubEntry[] | null = []
 
 export function addLogSecrets(secrets: readonly string[]): void {
   let changed = false
@@ -21,18 +22,18 @@ export function addLogSecrets(secrets: readonly string[]): void {
       changed = true
     }
   }
-  if (changed) sorted = null
+  if (changed) list = null
 }
 
 /** `text` with every known secret masked (as `scrubSecrets` does). */
 export function maskLogText(text: string): string {
   if (values.size === 0) return text
-  sorted ??= [...values]
-  return scrubSecrets(text, sorted)
+  list ??= scrubList([...values])
+  return scrubWith(text, list)
 }
 
 /** Tests only. */
 export function resetLogSecretsForTests(): void {
   values.clear()
-  sorted = []
+  list = []
 }
