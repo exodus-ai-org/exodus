@@ -73,7 +73,7 @@
     "country-flag-icons": "^1.6.20",
     "cron-parser": "^5.10.1",
     "date-fns": "^4.4.0",
-    "drizzle-orm": "^0.45.2",
+    "drizzle-orm": "^0.45.3",
     "electron-squirrel-startup": "^1.0.1",
     "embla-carousel-react": "^8.6.0",
     "hono": "^4.13.8",
