@@ -141,7 +141,7 @@
     "dotenv": "^18.0.1",
     "drizzle-kit": "^0.31.10",
     "electron": "44.4.3",
-    "framer-motion": "^13.4.0",
+    "framer-motion": "^13.4.3",
     "happy-dom": "^20.14.5",
     "husky": "^9.1.7",
     "immer": "^11.1.18",
