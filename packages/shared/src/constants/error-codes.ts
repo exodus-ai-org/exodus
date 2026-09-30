@@ -38,6 +38,8 @@ export enum ErrorCode {
   AUDIO_NOT_FOUND = 'AUDIO_NOT_FOUND',
   /** Nothing is waiting for that tool approval: unknown, timed out or stopped. */
   APPROVAL_NOT_FOUND = 'APPROVAL_NOT_FOUND',
+  /** No run with that id in this chat (the choose route). */
+  RUN_NOT_FOUND = 'RUN_NOT_FOUND',
 
   // ── Validation Errors (400) ────────────────────────────────────────────────
   VALIDATION_FAILED = 'VALIDATION_FAILED',
@@ -92,7 +94,11 @@ export enum ErrorCode {
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
 
   // ── Application State Errors ────────────────────────────────────────────────
-  APP_LOCKED = 'APP_LOCKED'
+  APP_LOCKED = 'APP_LOCKED',
+
+  // ── Conflict Errors (409) ──────────────────────────────────────────────────
+  /** A regenerate group's choice can no longer change: a later run exists. */
+  ATTEMPT_LOCKED = 'ATTEMPT_LOCKED'
 }
 
 /**
@@ -123,6 +129,7 @@ export const ErrorCodeToStatus: Record<ErrorCode, number> = {
   [ErrorCode.SKILL_NOT_FOUND]: 404,
   [ErrorCode.AUDIO_NOT_FOUND]: 404,
   [ErrorCode.APPROVAL_NOT_FOUND]: 404,
+  [ErrorCode.RUN_NOT_FOUND]: 404,
 
   // Validation Errors
   [ErrorCode.VALIDATION_FAILED]: 400,
@@ -172,7 +179,10 @@ export const ErrorCodeToStatus: Record<ErrorCode, number> = {
   [ErrorCode.UNKNOWN_ERROR]: 500,
 
   // Application State Errors
-  [ErrorCode.APP_LOCKED]: 423
+  [ErrorCode.APP_LOCKED]: 423,
+
+  // Conflict Errors
+  [ErrorCode.ATTEMPT_LOCKED]: 409
 }
 
 /**
@@ -214,6 +224,7 @@ export const ErrorMessages: Record<ErrorCode, string> = {
   [ErrorCode.AUDIO_NOT_FOUND]: 'Audio file not found.',
   [ErrorCode.APPROVAL_NOT_FOUND]:
     'This request is no longer waiting for an answer.',
+  [ErrorCode.RUN_NOT_FOUND]: 'That answer is no longer in this chat.',
 
   // Validation Errors
   [ErrorCode.VALIDATION_FAILED]: 'Input validation failed.',
@@ -277,5 +288,9 @@ export const ErrorMessages: Record<ErrorCode, string> = {
   [ErrorCode.UNKNOWN_ERROR]: 'An unknown error occurred.',
 
   // Application State Errors
-  [ErrorCode.APP_LOCKED]: 'Application is locked.'
+  [ErrorCode.APP_LOCKED]: 'Application is locked.',
+
+  // Conflict Errors
+  [ErrorCode.ATTEMPT_LOCKED]:
+    'The conversation has moved on, so this answer can no longer be swapped.'
 }

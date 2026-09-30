@@ -7,6 +7,7 @@ import { memo, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { useClipboard } from '@/hooks/use-clipboard'
+import { withReferences } from '@/lib/citation-references'
 import { compactRelativeTime } from '@/lib/relative-time'
 import { sourcesPanelAtom } from '@/stores/chat'
 
@@ -68,11 +69,18 @@ export const MessageAction = memo(function MessageAction({
   content,
   regenerate,
   webSearchResults,
+  citationSources,
   timestamp
 }: {
   content: string
-  regenerate: () => void
+  /** Absent for an answer that cannot be asked again where it is shown. */
+  regenerate?: () => void
   webSearchResults?: WebSearchResult[]
+  /**
+   * What the answer's 【N-source】 markers resolve against — every source
+   * seen up to this turn, as for the chips. Copy writes them as references.
+   */
+  citationSources?: WebSearchResult[]
   /** When the reply was generated (epoch ms). Shown as a compact relative
    *  time, matching the sidebar. */
   timestamp?: number
@@ -81,7 +89,17 @@ export const MessageAction = memo(function MessageAction({
   const { copied, handleCopy } = useClipboard()
   const setSourcesPanel = useSetAtom(sourcesPanelAtom)
 
-  const onCopy = useCallback(() => handleCopy(content), [handleCopy, content])
+  // What leaves the app carries its sources, not the chips' markers.
+  const copyText = useMemo(
+    () =>
+      withReferences(
+        content,
+        citationSources ?? [],
+        t('deepResearchCard.referencesHeading')
+      ),
+    [content, citationSources, t]
+  )
+  const onCopy = useCallback(() => handleCopy(copyText), [handleCopy, copyText])
   const onSourcesClick = useCallback(
     () =>
       setSourcesPanel({
@@ -102,17 +120,23 @@ export const MessageAction = memo(function MessageAction({
       >
         <MessageActionItem tooltipContent={t('messageAction.copy')}>
           <IconWrapper onClick={onCopy}>
-            {copied !== content ? <CopyIcon /> : <CheckIcon />}
+            {copied === copyText ? <CheckIcon /> : <CopyIcon />}
           </IconWrapper>
         </MessageActionItem>
 
         <AudioPlayer content={content} />
 
-        <MessageActionItem tooltipContent={t('messageAction.regenerate')}>
-          <IconWrapper onClick={regenerate}>
-            <RefreshCwIcon />
-          </IconWrapper>
-        </MessageActionItem>
+        {regenerate && (
+          <MessageActionItem tooltipContent={t('messageAction.regenerate')}>
+            <IconWrapper
+              onClick={regenerate}
+              label={t('messageAction.regenerate')}
+              testId={TEST_IDS.chat.regenerate}
+            >
+              <RefreshCwIcon />
+            </IconWrapper>
+          </MessageActionItem>
+        )}
 
         {hasSources && (
           <SourcesButton

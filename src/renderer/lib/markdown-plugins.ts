@@ -2,6 +2,9 @@ import rehypeKatex from 'rehype-katex'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 
+import { remarkCitations } from './remark-citations'
+import { remarkHtmlBreaks } from './remark-html-breaks'
+
 // One definition of the markdown pipeline, shared by the renderer
 // (components/markdown.tsx) and the block splitter (lib/markdown-blocks.ts) —
 // the splitter is only correct while it parses exactly what the renderer does.
@@ -29,7 +32,11 @@ export const remarkPluginsStable: any[] = [
       // e.g. "When writing mathematical formulas using KaTeX format, enclose them within **$$** symbols."
       singleDollarTextMath: false
     }
-  ]
+  ],
+  // `<br>` is a line break, not the text "<br>".
+  remarkHtmlBreaks,
+  // 【N-source】 is a citation wherever it stands.
+  remarkCitations
 ]
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

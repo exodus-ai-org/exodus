@@ -50,7 +50,7 @@ function clearSearchIndexInBackground(settings: Settings): void {
 
   elasticsearch.deleteAll().catch((error) => {
     logger.error('search', 'Failed to clear the Elasticsearch index', {
-      error: String(error)
+      error
     })
   })
 }

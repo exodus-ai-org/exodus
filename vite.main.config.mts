@@ -18,7 +18,18 @@ export default defineConfig({
       'process.getBuiltinModule("node:url").pathToFileURL(__filename).href'
   },
   build: {
+    // A `.map` beside every built file and no `sourceMappingURL` comment in
+    // it, so nothing loads one by itself (Node would parse them at startup,
+    // DevTools would fetch them). The logger reads a map when it writes an
+    // error — src/main/lib/logger/source-map.ts — so a stack in the log says
+    // `src/main/lib/…ts:line:column`, not `chat-Cw3ZonVn.js:1:91`. Same in
+    // vite.preload.config.mts and vite.renderer.config.mts; forge.config.ts
+    // packages everything under `.vite/`, maps included.
+    sourcemap: 'hidden',
     rollupOptions: {
+      // Positions only: the sources' text is two thirds of a map, and the
+      // logger never reads it (the repo is public — it is there to read).
+      output: { sourcemapExcludeSources: true },
       // PGlite resolves its own WASM/data assets relative to its package's
       // location inside node_modules (via import.meta.url internally).
       // Bundling it into the single main.js output breaks that resolution

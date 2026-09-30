@@ -9,13 +9,14 @@ import { Link, useNavigate, useParams } from 'react-router'
 import { sileo } from 'sileo'
 import { v4 as uuidV4 } from 'uuid'
 
+import { useChooseAttempt } from '@/hooks/use-attempts'
 import { useChat } from '@/hooks/use-chat'
-import { useInvalidateChatHistory } from '@/hooks/use-chat-history'
 import { useProject } from '@/hooks/use-projects'
 import { advancedToolsAtom, reasoningEffortAtom } from '@/stores/chat'
 import { chatInputAtom, chatStatusAtom, chatStopFnAtom } from '@/stores/input'
 
 import { LcmStatusCard } from './chat/lcm-status-card'
+import { SelectionAsk } from './chat/selection-ask'
 import Messages from './messages'
 import MultimodalInput from './multimodel-input'
 
@@ -54,7 +55,6 @@ export function Chat({
   const { t } = useTranslation('chat')
   const { id: routeId } = useParams()
   const navigate = useNavigate()
-  const invalidateChatHistory = useInvalidateChatHistory()
   // Read once on mount — quick-chat hand-off only fires for the first render of
   // a fresh chat. (A lazy `useState`, not a ref filled during render: a ref
   // that stays `null` when there is nothing pending re-read localStorage on
@@ -84,40 +84,44 @@ export function Chat({
 
   const [title, setTitle] = useState(chatTitle)
 
-  const { messages, sendMessage, status, stop, regenerate, runError } = useChat(
-    {
+  const {
+    messages,
+    setMessages,
+    sendMessage,
+    status,
+    stop,
+    regenerate,
+    runError
+  } = useChat({
+    id,
+    chatTitle: title,
+    api: `${BASE_URL}/api/v1/chat`,
+    messages: initialMessages,
+    generateId: uuidV4,
+    prepareBody: ({ id, messages, body }) => ({
+      ...body,
       id,
-      chatTitle: title,
-      api: `${BASE_URL}/api/v1/chat`,
-      messages: initialMessages,
-      generateId: uuidV4,
-      prepareBody: ({ id, messages, body }) => ({
-        ...body,
-        id,
-        messages,
-        advancedTools: getAdvancedTools(),
-        reasoningEffort: getReasoningEffort(),
-        projectId: projectIdRef.current
-      }),
-      onFinish: () => {
-        invalidateChatHistory()
-        if (!routeId) {
-          navigate(`/chat/${id}`, { replace: true })
-        }
-      },
-      onError: (e) => {
-        sileo.error({
-          title: t('toast.sendFailedTitle'),
-          description:
-            e instanceof Error ? e.message : t('toast.sendFailedDescription')
-        })
-      },
-      onTitle: (newTitle) => {
-        setTitle(newTitle)
-        invalidateChatHistory()
+      messages,
+      advancedTools: getAdvancedTools(),
+      reasoningEffort: getReasoningEffort(),
+      projectId: projectIdRef.current
+    }),
+    onFinish: () => {
+      if (!routeId) {
+        navigate(`/chat/${id}`, { replace: true })
       }
-    }
-  )
+    },
+    onError: (e) => {
+      sileo.error({
+        title: t('toast.sendFailedTitle'),
+        description:
+          e instanceof Error ? e.message : t('toast.sendFailedDescription')
+      })
+    },
+    onTitle: setTitle
+  })
+
+  const { choose: chooseAttempt } = useChooseAttempt(id, setMessages)
 
   useEffect(() => {
     setChatStatus(status)
@@ -149,6 +153,7 @@ export function Chat({
     <>
       <LcmStatusCard chatId={id} />
       <MultimodalInput chatId={id} sendMessage={sendMessage} />
+      <SelectionAsk chatId={id} />
     </>
   )
 
@@ -161,6 +166,7 @@ export function Chat({
           status={status}
           messages={messages}
           regenerate={regenerate}
+          chooseAttempt={chooseAttempt}
           showDiscover={showDiscover}
           runError={runError}
         />

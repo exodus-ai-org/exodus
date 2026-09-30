@@ -240,7 +240,7 @@ function TeamSection({
             <button
               type="button"
               onClick={() => onAddEmployeeToTeam(team.id)}
-              className="border-border text-muted-foreground hover:text-primary flex min-h-[88px] items-center justify-center gap-2 rounded-xl border-2 border-dashed text-xs transition-colors"
+              className="border-border text-muted-foreground hover:text-primary-ink flex min-h-[88px] items-center justify-center gap-2 rounded-xl border-2 border-dashed text-xs transition-colors"
             >
               <Plus className="h-3.5 w-3.5" />
               {t('workforce.teamSection.addEmployeeButton')}

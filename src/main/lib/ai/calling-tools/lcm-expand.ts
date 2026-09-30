@@ -9,9 +9,15 @@ import {
   searchSummaries
 } from '../context-management/queries'
 import { completeSimple } from '../utils/complete'
+import { conversationTarget } from './lcm-conversation'
 
 const lcmExpandSchema = Type.Object({
-  chatId: Type.String({ description: 'The chat session ID.' }),
+  chatId: Type.Optional(
+    Type.String({
+      description:
+        'Only to recall from ANOTHER conversation: the conversation id the user gave you. Omit it for this conversation.'
+    })
+  ),
   query: Type.String({
     description:
       'The question or topic to investigate deeply in the compressed conversation history.'
@@ -41,21 +47,32 @@ const lcmExpandSchema = Type.Object({
  */
 export const lcmExpand = (
   model: Model<string>,
-  apiKey: string
+  apiKey: string,
+  /** The chat the tool is bound for: what it reads unless another is named. */
+  currentChatId?: string
 ): AgentTool<typeof lcmExpandSchema> => ({
   name: TOOL_NAMES.lcmExpand,
   label: 'LCM Deep Recall',
   description:
     'Deeply recall information from compressed conversation history by walking the LCM summary DAG. ' +
     'This is the most thorough (and expensive) recall operation. ' +
-    'Use lcm_grep first, then lcm_describe, and only use this for complex recall needs.',
+    'Use lcm_grep first, then lcm_describe, and only use this for complex recall needs. ' +
+    'It reads this conversation, or another one whose id the user gave you (pass it as chatId).',
   parameters: lcmExpandSchema,
   execute: async (
     _toolCallId,
-    { chatId, query, summaryIds: startIds, maxTokens = 2000 },
+    { chatId: named, query, summaryIds: startIds, maxTokens = 2000 },
     signal
   ) => {
     if (signal?.aborted) throw new Error('Aborted')
+    const target = await conversationTarget(named, currentChatId)
+    if (target.problem !== undefined) {
+      return {
+        content: [{ type: 'text' as const, text: target.problem }],
+        details: { answer: target.problem, citedIds: [] }
+      }
+    }
+    const { chatId } = target
     // Step 1: Find relevant summaries
     let targetIds: string[] = startIds ?? []
     if (targetIds.length === 0) {

@@ -12,12 +12,14 @@ const mockUpdateMemory = vi.fn()
 const mockGetActiveMemories = vi.fn()
 const mockTouchMemories = vi.fn()
 const mockLogMemoryUsage = vi.fn()
+const mockSoftDeleteMemory = vi.fn()
 vi.mock('@main/lib/db/memory-queries', () => ({
   createMemory: mockCreateMemory,
   updateMemory: mockUpdateMemory,
   getActiveMemories: mockGetActiveMemories,
   touchMemories: mockTouchMemories,
-  logMemoryUsage: mockLogMemoryUsage
+  logMemoryUsage: mockLogMemoryUsage,
+  softDeleteMemory: mockSoftDeleteMemory
 }))
 
 const mockCompleteSimple = vi.fn()
@@ -28,6 +30,7 @@ vi.mock('@main/lib/ai/kernel/models', () => ({
 }))
 
 const {
+  CONSOLIDATE_SYSTEM,
   runMemoryConsolidation,
   loadRelevantMemories,
   formatMemoriesForSystem
@@ -126,6 +129,66 @@ describe('runMemoryConsolidation', () => {
 
     expect(mockCreateMemory).toHaveBeenCalledTimes(1)
     expect(mockUpdateMemory).not.toHaveBeenCalled()
+  })
+
+  // A fact that stopped being true (a position sold, a tool dropped) leaves
+  // the memory. Nobody watches this job to undo it, so the entry is only
+  // switched off — Settings → Memory can still restore it.
+  it('switches off an existing entry for a delete op', async () => {
+    mockGetActiveMemories.mockResolvedValue([
+      {
+        id: 'mem-1',
+        section: 'topic',
+        key: 'Old Job',
+        summary: 's',
+        details: []
+      }
+    ])
+    llmReturns({ operations: [{ op: 'delete', id: 'mem-1' }] })
+
+    await runMemoryConsolidation([{ role: 'user', content: 'x' }], model, 'k')
+
+    expect(mockSoftDeleteMemory).toHaveBeenCalledWith('mem-1')
+    expect(mockCreateMemory).not.toHaveBeenCalled()
+    expect(mockUpdateMemory).not.toHaveBeenCalled()
+  })
+
+  it('ignores a delete of an unknown id', async () => {
+    llmReturns({ operations: [{ op: 'delete', id: 'ghost' }] })
+    await runMemoryConsolidation([{ role: 'user', content: 'x' }], model, 'k')
+    expect(mockSoftDeleteMemory).not.toHaveBeenCalled()
+  })
+
+  it('still applies the other operations of a reply that deletes', async () => {
+    mockGetActiveMemories.mockResolvedValue([
+      { id: 'a', section: 'topic', key: 'A', summary: 's', details: [] },
+      { id: 'b', section: 'topic', key: 'A again', summary: 's', details: [] }
+    ])
+    llmReturns({
+      operations: [
+        {
+          op: 'update',
+          id: 'a',
+          section: 'topic',
+          key: 'A',
+          summary: 'merged',
+          details: ['x']
+        },
+        { op: 'delete', id: 'b' }
+      ]
+    })
+
+    await runMemoryConsolidation([{ role: 'user', content: 'x' }], model, 'k')
+
+    expect(mockUpdateMemory).toHaveBeenCalledWith(
+      'a',
+      expect.objectContaining({ summary: 'merged' })
+    )
+    expect(mockSoftDeleteMemory).toHaveBeenCalledWith('b')
+  })
+
+  it('tells the model it may remove what stopped being true', () => {
+    expect(CONSOLIDATE_SYSTEM).toContain('"op": "delete"')
   })
 
   it('writes nothing for an empty operations list', async () => {

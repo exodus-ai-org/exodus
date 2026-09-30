@@ -72,7 +72,7 @@ export function Composer({
 
   return (
     <div className="bg-muted border-border border-t px-4 pt-3 pb-4">
-      <div className="border-border bg-card focus-within:border-primary focus-within:ring-accent flex flex-col gap-1 rounded-xl border p-2 pl-3.5 transition-shadow focus-within:ring-[3px]">
+      <div className="border-border bg-card focus-within:border-primary-ink focus-within:ring-accent flex flex-col gap-1 rounded-xl border p-2 pl-3.5 transition-shadow focus-within:ring-[3px]">
         <AttachmentPreview />
         <div className="flex items-end gap-2">
           <Textarea

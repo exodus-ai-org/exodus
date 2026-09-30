@@ -47,7 +47,8 @@ export function bindCallingTools({
   apiKey,
   mcpTools = [],
   chatId,
-  groupId
+  groupId,
+  sourceRankBase = 0
 }: {
   advancedTools: AdvancedTools[]
   setting: Settings
@@ -60,6 +61,9 @@ export function bindCallingTools({
   // Philharmonic's conversation id: where a Group's generated images are
   // saved (`~/.exodus/media/_groups/<id>`), since it has no chat.
   groupId?: string
+  // The highest number a source of the chat carries so far
+  // (`highestSourceRank`): this request's sources are numbered after it.
+  sourceRankBase?: number
 }): ErasedTool[] {
   if (advancedTools.includes(AdvancedTools.DeepResearch)) {
     return [deepResearch]
@@ -97,10 +101,12 @@ export function bindCallingTools({
   // webSearch + webFetch share one rank registry so 【N-source】 citations
   // resolve regardless of which tool produced source N.
   const webSources = new Map<string, WebSearchResult>()
-  if (enabled(TOOL_NAMES.webFetch)) tools.push(webFetch(webSources))
+  if (enabled(TOOL_NAMES.webFetch))
+    tools.push(webFetch(webSources, sourceRankBase))
   if (enabled(TOOL_NAMES.createArtifact) && chatId)
     tools.push(createArtifact(chatId))
-  if (enabled(TOOL_NAMES.webSearch)) tools.push(webSearch(setting, webSources))
+  if (enabled(TOOL_NAMES.webSearch))
+    tools.push(webSearch(setting, webSources, sourceRankBase))
   if (setting.computerUse?.enabled && enabled(TOOL_NAMES.computerUse))
     tools.push(computerUse)
 
@@ -109,13 +115,14 @@ export function bindCallingTools({
     tools.push(searchKnowledgeBase(kb, setting.knowledgeBase))
   }
 
-  // LCM recall tools: available when LCM is enabled
+  // LCM recall tools: available when LCM is enabled. Bound to the chat, which
+  // is what they read unless the model names another conversation by its id.
   const lcmEnabled = setting.memory?.lcmEnabled !== false
   if (lcmEnabled) {
-    tools.push(lcmGrep)
+    tools.push(lcmGrep(chatId))
     tools.push(lcmDescribe)
     if (chatModel && apiKey) {
-      tools.push(lcmExpand(chatModel, apiKey))
+      tools.push(lcmExpand(chatModel, apiKey, chatId))
     }
   }
 

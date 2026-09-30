@@ -1,4 +1,11 @@
+import { REPORTED_STACK_MAX_CHARS } from '@exodus/shared/constants/systems'
 import { fetcher } from '@exodus/shared/utils/http'
+
+/** A stack as it is sent: its head, the frames nearest the throw. */
+const bounded = (stack: unknown): string | undefined =>
+  typeof stack === 'string' && stack !== ''
+    ? stack.slice(0, REPORTED_STACK_MAX_CHARS)
+    : undefined
 
 /**
  * Sends an error the renderer caught to the main process's log
@@ -7,6 +14,12 @@ import { fetcher } from '@exodus/shared/utils/http'
  * so a refused request is dropped silently — including from the artifact
  * sandbox origin, whose CSP allows no network at all; the call is harmless
  * there, it just never leaves.
+ *
+ * Two stacks ride along as attributes: `stack`, the error's own, and
+ * `componentStack` when the caller has one (an error boundary's
+ * `info.componentStack`). Both are sent as the browser gave them — in a
+ * packaged build their frames point into the built files — and the main
+ * process maps them to source positions before it writes them.
  */
 export function reportRendererError(
   scope: string,
@@ -15,14 +28,20 @@ export function reportRendererError(
 ): void {
   const message =
     error instanceof Error ? error.message : String(error ?? 'unknown')
-  const stack = error instanceof Error ? error.stack : undefined
+  const stack = bounded(error instanceof Error ? error.stack : undefined)
+  const { componentStack: given, ...rest } = attributes
+  const componentStack = bounded(given)
   fetcher<void>('/api/v1/logs', {
     method: 'POST',
     body: {
       level: 'error',
       scope,
       message,
-      attributes: stack ? { ...attributes, stack } : attributes
+      attributes: {
+        ...rest,
+        ...(stack ? { stack } : {}),
+        ...(componentStack ? { componentStack } : {})
+      }
     },
     responseType: 'text'
   }).catch(() => {})

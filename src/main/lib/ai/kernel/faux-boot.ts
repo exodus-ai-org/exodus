@@ -13,6 +13,8 @@ import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import { logger } from '../../logger'
 import { fauxHandle, registerFauxProvider, setFauxHandle } from './faux'
 import {
+  COMPARE_QUESTION,
+  compareAnswer,
   MEMORY_CORRECTION_MESSAGE,
   MEMORY_CORRECTION_RESULT,
   MEMORY_CORRECTION_SEED,
@@ -114,6 +116,9 @@ function respondToEngineCall(ctx: Context): AssistantMessage {
   return fauxAssistantMessage([fauxText('')])
 }
 
+/** How often the comparison question has been asked since boot. */
+let compareTakes = 0
+
 /**
  * The main chat's agent loop (tools are always bound — at least `weather`).
  * The default, outside the memory scenarios, is unchanged: a call to
@@ -150,6 +155,12 @@ function respondToChatCall(ctx: Context): AssistantMessage {
     )
   }
 
+  // The regenerate e2e: the same question, a different answer each time.
+  if (last?.role === 'user' && textOf(last).includes(COMPARE_QUESTION)) {
+    compareTakes += 1
+    return fauxAssistantMessage([fauxText(compareAnswer(compareTakes))])
+  }
+
   // The read filter already chose an entry for this turn (its result is
   // folded into the system prompt before the agent loop runs): just answer,
   // no tool call.
@@ -173,7 +184,9 @@ function respondToChatCall(ctx: Context): AssistantMessage {
  *
  * `tests/e2e/chat-memory-edit.spec.ts` additionally scripts a correction
  * (an `update_memory` tool call and the engine call underneath it) and a
- * question the memory read filter answers for — see the two branches above.
+ * question the memory read filter answers for, and
+ * `tests/e2e/regenerate-compare.spec.ts` a question answered differently
+ * each time it is asked — see the branches above.
  */
 export function bootFauxProviderIfRequested(): FauxProviderHandle | null {
   if (process.env.EXODUS_FAUX_PROVIDER !== '1') return null

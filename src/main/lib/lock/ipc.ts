@@ -43,7 +43,7 @@ export function setupLockIPC(): void {
       return { ok: true }
     } catch (err) {
       logger.info('app', 'Touch ID unlock cancelled/failed', {
-        error: String(err)
+        error: err
       })
       return { ok: false }
     }

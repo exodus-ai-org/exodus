@@ -4,7 +4,7 @@ import type { Model } from '@earendil-works/pi-ai'
 
 import type { LcmContextItem } from '../../db/schema'
 import { completeSimple } from '../utils/complete'
-import { groupItemsIntoRuns, type RunGroup } from './context-assembler'
+import { contextRuns, type RunGroup } from './context-assembler'
 import { getSummaryPromptForDepth } from './prompts'
 import {
   getContextItems,
@@ -119,8 +119,11 @@ async function summarizeWithFallback(
 }
 
 /**
- * The context items before the fresh tail — the last `freshTailRuns` runs
- * (see `groupItemsIntoRuns`) are never compacted.
+ * The runs before the fresh tail — the last `freshTailRuns` runs are never
+ * compacted. Runs the model does not see (`contextRuns`: a regenerate
+ * group's folded and hidden attempts) are not among them, so such an answer
+ * never reaches a summary; the span a summary replaces takes their context
+ * items with it.
  */
 async function compactableRuns(
   items: LcmContextItem[],
@@ -129,10 +132,7 @@ async function compactableRuns(
   const rows = await getMessagesByIds(
     items.filter((i) => i.kind === 'message').map((i) => i.refId)
   )
-  const runs = groupItemsIntoRuns(
-    items,
-    new Map(rows.map((m) => [m.id, m.runId]))
-  )
+  const runs = contextRuns(items, rows)
   return runs.slice(0, Math.max(0, runs.length - freshTailRuns))
 }
 

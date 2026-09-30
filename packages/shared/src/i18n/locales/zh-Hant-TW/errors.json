@@ -66,7 +66,9 @@
     "INTERNAL_ERROR": "發生內部伺服器錯誤。",
     "UNKNOWN_ERROR": "發生未知錯誤。",
     "APP_LOCKED": "應用程式已鎖定。",
-    "APPROVAL_NOT_FOUND": "此請求已不再等待回覆。"
+    "APPROVAL_NOT_FOUND": "此請求已不再等待回覆。",
+    "RUN_NOT_FOUND": "此回答已不在這個對話中。",
+    "ATTEMPT_LOCKED": "對話已繼續進行，無法再更換此回答。"
   },
   "routeBoundary": {
     "title": "發生錯誤",

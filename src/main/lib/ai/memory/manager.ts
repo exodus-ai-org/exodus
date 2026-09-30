@@ -12,6 +12,7 @@ import {
   getAllMemories,
   hardDeleteMemory,
   logMemoryUsage,
+  softDeleteMemory,
   touchMemories,
   updateMemory,
   type MemoryRow,
@@ -28,15 +29,18 @@ const SectionEnum = z.enum(['profile', 'topic', 'person'])
 
 const ConsolidationSchema = z.object({
   operations: z.array(
-    z.object({
-      op: z.enum(['create', 'update']),
-      id: z.string().optional(),
-      section: SectionEnum,
-      key: z.string().min(1),
-      summary: z.string().min(1),
-      details: z.array(z.string()).default([]),
-      confidence: z.number().min(0).max(1).optional()
-    })
+    z.discriminatedUnion('op', [
+      z.object({
+        op: z.enum(['create', 'update']),
+        id: z.string().optional(),
+        section: SectionEnum,
+        key: z.string().min(1),
+        summary: z.string().min(1),
+        details: z.array(z.string()).default([]),
+        confidence: z.number().min(0).max(1).optional()
+      }),
+      z.object({ op: z.literal('delete'), id: z.string() })
+    ])
   )
 })
 
@@ -165,15 +169,20 @@ Example: the user says they watched a film last night and loved it → { "operat
 
 Prefer UPDATE over CREATE. If the conversation genuinely adds to an existing entry, update it and return its FULL revised summary + details (not just the new part). If your new fact belongs in an entry that already exists, update that one — don't create a near-duplicate. Only CREATE when no existing entry fits and the subject clearly clears all five tests.
 
+Keep what is already there true. The five tests above are for NEW subjects; an entry in the index has already passed them, so when the conversation shows one of its facts has changed — a position sold or resized, a tool or city switched, a project finished, a plan dropped — UPDATE it to the new state, or DELETE it when nothing of it holds any more. Two entries that turn out to be one subject: UPDATE one with everything, DELETE the other. Change an entry only on what the user said, never on a guess.
+
+Changes the assistant already made during the conversation (update_memory calls) are already in the index — don't make them again.
+
 Respond ONLY with a JSON object:
 {
   "operations": [
     { "op": "create", "section": "topic", "key": "Classical Music", "summary": "...", "details": ["...", "..."] },
-    { "op": "update", "id": "<existing entry id>", "section": "topic", "key": "Classical Music", "summary": "...", "details": ["...", "..."] }
+    { "op": "update", "id": "<existing entry id>", "section": "topic", "key": "Classical Music", "summary": "...", "details": ["...", "..."] },
+    { "op": "delete", "id": "<existing entry id>" }
   ]
 }
 
-Return { "operations": [] } when nothing durable was learned — this is the common case. Never invent an id — only use ids from the index.`
+Return { "operations": [] } when nothing durable was learned and nothing known has changed — this is the common case. Never invent an id — only use ids from the index.`
 
 /** Exported for the faux-boot marker test only. */
 export const INSTRUCTION_SYSTEM = `You edit the user's long-term memory from a direct instruction. They are looking at their memory and telling you what to add, change, or remove.
@@ -220,6 +229,12 @@ export async function runMemoryConsolidation(
     const validIds = new Set(existing.map((m) => m.id))
 
     for (const op of parsed.data.operations) {
+      if (op.op === 'delete') {
+        // Nobody watches this job to undo it: the entry is switched off, not
+        // removed, and Settings → Memory can restore it.
+        if (validIds.has(op.id)) await softDeleteMemory(op.id)
+        continue
+      }
       const fields = {
         section: op.section as MemorySection,
         key: op.key.trim(),
@@ -244,7 +259,7 @@ export async function runMemoryConsolidation(
       }
     }
   } catch (err) {
-    logger.error('memory', 'Consolidation failed', { error: String(err) })
+    logger.error('memory', 'Consolidation failed', { error: err })
   }
 }
 
@@ -442,7 +457,7 @@ export async function loadRelevantMemories(
 
     return selected
   } catch (err) {
-    logger.error('memory', 'Read filter failed', { error: String(err) })
+    logger.error('memory', 'Read filter failed', { error: err })
     return []
   }
 }

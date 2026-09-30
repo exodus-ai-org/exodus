@@ -72,7 +72,13 @@ describe('ErrorBoundary', () => {
     ]
     expect(scope).toBe('tool-card')
     expect(error.message).toMatch(/weatherCode/u)
-    expect(attributes).toEqual({ toolName: 'weather' })
+    // React's component stack rides along: which component, under which.
+    expect(attributes).toEqual({
+      toolName: 'weather',
+      componentStack: expect.stringMatching(
+        /at Boom\b[\s\S]*at ErrorBoundary\b/u
+      )
+    })
   })
 
   it('a fallback can be built from the error', async () => {

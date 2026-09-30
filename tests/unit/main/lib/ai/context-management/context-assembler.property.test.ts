@@ -6,7 +6,7 @@ vi.mock('@main/lib/db/db', async () => {
   const { drizzle } = await import('drizzle-orm/pglite')
   const { createMigratedPglite } =
     await import('../../../../helpers/migrated-pglite')
-  const pglite = await createMigratedPglite('0008')
+  const pglite = await createMigratedPglite('0011')
   return { pglite, db: drizzle(pglite) }
 })
 
@@ -31,13 +31,22 @@ function rng(seed: number) {
 const at = (n: number) => new Date(Date.UTC(2026, 0, 1, 0, 0, n)).toISOString()
 const q = (v: unknown) => `'${JSON.stringify(v).replaceAll("'", "''")}'`
 
-/** `runs` runs, each 0–3 tool steps then an answer, with random text sizes. */
+type Attempt = 'chosen' | 'folded' | 'hidden'
+
+/**
+ * `runs` exchanges, each 0–3 tool steps then an answer, with random text
+ * sizes. About one exchange in three is a settled regenerate group: up to
+ * three attempts at it, one of them `chosen` — the rest `folded` (one) and
+ * `hidden`, their text written in `#` so it can be told if any of it gets
+ * out. Returns how many runs the model may see.
+ */
 async function seedChat(chatId: string, random: () => number, runs: number) {
   await pglite.exec(
     `INSERT INTO "chat" ("id","title") VALUES ('${chatId}','t')`
   )
   let t = 0
   const rows: string[] = []
+  const sql = (v: string | null) => (v === null ? 'NULL' : `'${v}'`)
   const row = (
     runId: string,
     role: string,
@@ -47,18 +56,25 @@ async function seedChat(chatId: string, random: () => number, runs: number) {
   ) =>
     rows.push(
       `('${crypto.randomUUID()}','${chatId}','${runId}','${role}',${q(content)},` +
-        `${toolCallId ? `'${toolCallId}'` : 'NULL'},${toolName ? `'${toolName}'` : 'NULL'},` +
-        `${toolCallId ? 'false' : 'NULL'},'${at(t++)}')`
+        `${sql(toolCallId)},${sql(toolName)},` +
+        `${toolCallId ? 'false' : 'NULL'},NULL,NULL,'${at(t++)}')`
     )
   const text = (c: string) => c.repeat(1 + Math.floor(random() * 400))
-  for (let r = 0; r < runs; r++) {
+
+  const run = (
+    index: string,
+    seen: boolean,
+    alternateOf: string | null,
+    attempt: Attempt | null
+  ) => {
     const runId = crypto.randomUUID()
+    const c = (visible: string) => (seen ? visible : '#')
     rows.push(
-      `('${runId}','${chatId}','${runId}','user',${q([{ type: 'text', text: text('q') }])},NULL,NULL,NULL,'${at(t++)}')`
+      `('${runId}','${chatId}','${runId}','user',${q([{ type: 'text', text: text(c('q')) }])},NULL,NULL,NULL,${sql(alternateOf)},${sql(attempt)},'${at(t++)}')`
     )
     const steps = Math.floor(random() * 4)
     for (let s = 0; s < steps; s++) {
-      const callId = `call_${r}_${s}`
+      const callId = `call_${index}_${s}`
       row(
         runId,
         'assistant',
@@ -69,15 +85,34 @@ async function seedChat(chatId: string, random: () => number, runs: number) {
       row(
         runId,
         'toolResult',
-        [{ type: 'text', text: text('r').repeat(2) }],
+        [{ type: 'text', text: text(c('r')).repeat(2) }],
         callId,
         'weather'
       )
     }
-    row(runId, 'assistant', [{ type: 'text', text: text('a') }], null, null)
+    row(runId, 'assistant', [{ type: 'text', text: text(c('a')) }], null, null)
+    return runId
+  }
+
+  for (let r = 0; r < runs; r++) {
+    if (random() >= 1 / 3) {
+      run(`${r}`, true, null, null)
+      continue
+    }
+    const attempts = 2 + Math.floor(random() * 2)
+    const chosen = Math.floor(random() * attempts)
+    const folded =
+      (chosen + 1 + Math.floor(random() * (attempts - 1))) % attempts
+    let first: string | null = null
+    for (let a = 0; a < attempts; a++) {
+      const state: Attempt =
+        a === chosen ? 'chosen' : a === folded ? 'folded' : 'hidden'
+      const id = run(`${r}_${a}`, a === chosen, first, state)
+      first ??= id
+    }
   }
   await pglite.exec(
-    `INSERT INTO "message" ("id","chatId","runId","role","content","toolCallId","toolName","isError","createdAt") VALUES ${rows.join(',')}`
+    `INSERT INTO "message" ("id","chatId","runId","role","content","toolCallId","toolName","isError","alternateOf","attempt","createdAt") VALUES ${rows.join(',')}`
   )
 }
 
@@ -100,9 +135,12 @@ describe('assembleContext keeps runs whole', () => {
       expect(dropBrokenRuns(messages)).toEqual({ messages, dropped: 0 })
       // Whole runs only: the last message is the last run's final answer.
       expect(messages.at(-1)?.role).toBe('assistant')
-      // And the tail really is the last `tail` runs (or all of them).
+      // And the tail really is the last `tail` runs (or all of them): every
+      // exchange has one run the model sees, regenerated or not.
       const userCount = messages.filter((m) => m.role === 'user').length
       expect(userCount).toBeGreaterThanOrEqual(Math.min(tail, runs))
+      // Nothing of an attempt that was folded or hidden gets out.
+      expect(JSON.stringify(messages.map((m) => m.content))).not.toContain('#')
     })
   }
 })

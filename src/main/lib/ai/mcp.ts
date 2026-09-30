@@ -31,7 +31,7 @@ export async function invalidateMcpCache(serverName: string) {
     cached.client.close().catch((err) => {
       logger.warn('mcp', 'Failed to close MCP client', {
         server: serverName,
-        error: String(err)
+        error: err
       })
     })
     mcpCache.delete(serverName)
@@ -44,7 +44,7 @@ export async function invalidateAllMcpCache() {
     cached.client.close().catch((err) => {
       logger.warn('mcp', 'Failed to close MCP client', {
         server: name,
-        error: String(err)
+        error: err
       })
     })
   }
@@ -211,8 +211,7 @@ export async function getMcpTools(): Promise<McpTools[]> {
     if (r.status === 'rejected') {
       logger.error('mcp', 'Failed to connect MCP server', {
         server: active[i].name,
-        error: String(r.reason),
-        stack: r.reason instanceof Error ? r.reason.stack : undefined
+        error: r.reason
       })
     }
   })
@@ -241,8 +240,7 @@ export async function getMcpToolsByNames(names: string[]): Promise<McpTools[]> {
     if (r.status === 'rejected') {
       logger.error('mcp', 'Failed to connect MCP server', {
         server: active[i].name,
-        error: String(r.reason),
-        stack: r.reason instanceof Error ? r.reason.stack : undefined
+        error: r.reason
       })
     }
   })

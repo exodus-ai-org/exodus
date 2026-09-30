@@ -140,8 +140,7 @@ mcp.get('/tools', async (c) => {
     })
   } catch (err) {
     logger.error('mcp', 'Failed to load MCP tools', {
-      error: String(err),
-      stack: err instanceof Error ? err.stack : undefined
+      error: err
     })
     return successResponse(c, { tools: [] })
   }

@@ -76,9 +76,10 @@ maps.get('/photo', async (c) => {
       signal: c.req.raw.signal
     })
   } catch (error) {
-    // The message of a safe-fetch error never carries the URL (or the key).
+    // The message of a safe-fetch error never carries the URL (or the key),
+    // and a stack holds no more than the message and code positions.
     logger.warn('maps', 'Places photo fetch failed', {
-      error: error instanceof Error ? error.message : 'unknown'
+      error: error instanceof Error ? error : 'unknown'
     })
     throw new ServiceError(
       ErrorCode.SERVICE_UNAVAILABLE,

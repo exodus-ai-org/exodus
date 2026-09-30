@@ -451,12 +451,12 @@ describe('settings namespace (en)', () => {
     })
     expect(settings.tools.webSearch.maxResults).toMatchObject({
       label: 'Max Results',
-      description: 'Number of search results per query (1-50). Default: 10.'
+      description: 'Sources a search brings back (1–20). Default: 10.'
     })
     expect(settings.tools.webSearch.deepRecall).toMatchObject({
       label: 'Deep recall',
       description:
-        'Run a second, broader web search alongside the grounding call and merge in the extra results — forums, news, and pages the grounding filter drops. Higher recall, ~2× Brave API usage per search.'
+        'Search three phrasings of the question and add a broader pass — forums, news, pages the first search drops. More sources and more tokens per search, and about six Brave requests instead of one.'
     })
     expect(settings.tools.webSearch.recency.label).toBe('Recency Filter')
     expect(settings.tools.webSearch.recency.description).toBe(

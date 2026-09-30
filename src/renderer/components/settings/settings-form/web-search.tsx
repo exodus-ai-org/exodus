@@ -217,8 +217,9 @@ export function WebSearch({ form }: { form: UseFormReturnType }) {
             label={t('tools.webSearch.deepRecall.label')}
             description={t('tools.webSearch.deepRecall.description')}
           >
+            {/* Off unless switched on, as the search tool reads it. */}
             <Switch
-              checked={field.value ?? true}
+              checked={field.value ?? false}
               onCheckedChange={field.onChange}
             />
           </SettingsRow>

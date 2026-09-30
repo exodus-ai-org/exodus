@@ -9,7 +9,7 @@ import { openTabsAtom } from '@/stores/chat'
 
 export function ChatDetail() {
   const { id } = useParams()
-  const { data: messagesFromDb, isLoading } = useChatMessages(id)
+  const { data: messagesFromDb, isFresh } = useChatMessages(id)
   const { data: history } = useChatHistory()
   const setOpenTabs = useSetAtom(openTabsAtom)
 
@@ -31,7 +31,7 @@ export function ChatDetail() {
 
   const chatRecord = history?.find((c) => c.id === id)
 
-  if (!id || isLoading || !messagesFromDb) return null
+  if (!id || !isFresh || !messagesFromDb) return null
 
   return (
     <Chat

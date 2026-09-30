@@ -65,6 +65,15 @@ vi.mock('@main/lib/db/project-queries', () => ({
   bumpProjectUpdatedAt: vi.fn(async () => {})
 }))
 
+// Regenerate-group transitions (lib/chat/attempts.ts) are tested on a real
+// PGlite in attempts.test.ts; no run here is a regenerate.
+vi.mock('@main/lib/chat/attempts', () => ({
+  applyAttempts: (messages: unknown[]) => messages,
+  chooseAttempt: vi.fn(),
+  getChatAttempts: vi.fn(async () => ({})),
+  recordRegenerate: vi.fn(async () => {}),
+  settleOpenComparison: vi.fn(async () => {})
+}))
 vi.mock('@main/lib/db/queries', () => ({
   deleteChatById: vi.fn(async () => {}),
   getChatById: vi.fn(async () => null),

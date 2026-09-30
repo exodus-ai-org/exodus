@@ -63,7 +63,7 @@ export function resolveSearchProvider(
         logger.error(
           'search',
           'Invalid Elasticsearch configuration, falling back to PGlite',
-          { error: String(error) }
+          { error }
         )
         elasticsearch = null
       }
@@ -92,7 +92,7 @@ export async function searchWithFallback(
       logger.error(
         'search',
         'Elasticsearch query failed, falling back to PGlite',
-        { error: String(error) }
+        { error }
       )
     }
   }

@@ -18,6 +18,7 @@ import {
   ToolsSchema,
   WebSearchSchema
 } from '@exodus/shared/schemas/settings-schema'
+import type { Attempt } from '@exodus/shared/types/chat'
 import type { DiscoverGroup } from '@exodus/shared/types/discover'
 import { WebSearchResult } from '@exodus/shared/types/web-search'
 import { sql, type InferSelectModel } from 'drizzle-orm'
@@ -109,6 +110,13 @@ export const message = pgTable(
     // precise duration even for single-message turns where message timestamps
     // can't span the response (pi-ai sets timestamp at stream START).
     durationMs: integer('durationMs'),
+    // Regenerate groups — meaningful on a run's user row only (null on every
+    // other row). `alternateOf`: the group's first run, set on every run a
+    // Regenerate created; `attempt`: 'comparing' | 'chosen' | 'folded' |
+    // 'hidden', null for an ordinary run (and a group's first run before its
+    // first regenerate). Written only by `lib/chat/attempts.ts`.
+    alternateOf: uuid('alternateOf'),
+    attempt: varchar('attempt').$type<Attempt>(),
     createdAt: timestamp('createdAt').defaultNow().notNull()
   },
   (table) => [

@@ -9,11 +9,11 @@ import {
   CircleCheckBigIcon,
   ClockFadingIcon,
   GlobeIcon,
-  LoaderIcon,
   XCircleIcon
 } from 'lucide-react'
 import { memo, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { ThinkingOrb } from 'thinking-orbs'
 
 import { i18n } from '@/lib/i18n'
 import { ROW_ENTER } from '@/lib/motion'
@@ -171,7 +171,7 @@ export function ThinkingTimeline({
       return hasThinking
         ? t('thinkingTimeline.thinking')
         : t('thinkingTimeline.working')
-    return getStepTitle(steps[steps.length - 1])
+    return getStepTitle(steps.at(-1) as TimelineStep)
   }, [steps, hasThinking, t])
 
   if (steps.length === 0 && !isStreaming) return null
@@ -198,9 +198,9 @@ export function ThinkingTimeline({
         onClick={toggleExpanded}
       >
         {isStreaming ? (
-          <LoaderIcon size={16} className="shrink-0 animate-spin" />
+          <ThinkingOrb state="working" size={20} className="shrink-0" />
         ) : hasThinking ? (
-          <BrainIcon size={16} className="shrink-0" />
+          <ThinkingOrb state="solving" size={20} className="shrink-0" />
         ) : (
           <CheckIcon size={16} className="shrink-0" />
         )}
@@ -239,11 +239,11 @@ export function ThinkingTimeline({
               stable id field. Steps are append-only during streaming (they never
               reorder or get removed while visible), so index keys are safe here. */}
             {steps.map((step, i) => {
-              const status: StepStatus = !isStreaming
-                ? 'complete'
-                : i === steps.length - 1
+              const status: StepStatus = isStreaming
+                ? i === steps.length - 1
                   ? 'active'
                   : 'complete'
+                : 'complete'
               return (
                 <TimelineNode
                   key={i}

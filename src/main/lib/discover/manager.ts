@@ -145,7 +145,7 @@ export async function runDiscoverRefresh(
       if (outcome.status !== 'fulfilled') {
         logger.warn('discover', 'Brave News query failed', {
           query: item.query,
-          error: String(outcome.reason)
+          error: outcome.reason
         })
         return
       }

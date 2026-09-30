@@ -47,7 +47,8 @@ function buildGoogleMapsUrl(day: ItineraryDay): string | null {
     return `https://www.google.com/maps/search/?api=1&query=${p.lat},${p.lng}`
   }
   const origin = places[0]
-  const destination = places[places.length - 1]
+  // Two places or more here, so there is a last one; `at()` cannot know.
+  const destination = places.at(-1) ?? origin
   const waypoints = places.slice(1, -1)
   const url = new URL('https://www.google.com/maps/dir/')
   url.searchParams.set('api', '1')
@@ -79,7 +80,7 @@ function buildDayMarkdown(day: ItineraryDay): string {
       if (p.type) meta.push(p.type)
       if (p.rating !== undefined) meta.push(`★ ${p.rating.toFixed(1)}`)
       if (p.timeLabel) meta.push(p.timeLabel)
-      if (meta.length) lines.push(`   ${meta.join(' · ')}`)
+      if (meta.length > 0) lines.push(`   ${meta.join(' · ')}`)
       if (p.note) lines.push(`   ${p.note}`)
       if (p.address) lines.push(`   ${p.address}`)
       if (p.phone) lines.push(`   ${p.phone}`)
@@ -234,7 +235,7 @@ function MapItineraryCardImpl({
   if (!activeDay) return null
 
   const focusedPlace =
-    focusedPlaceIdx != null ? activeDay.places[focusedPlaceIdx] : null
+    focusedPlaceIdx == null ? null : activeDay.places[focusedPlaceIdx]
   const copyMarkdown = buildDayMarkdown(activeDay)
 
   return (

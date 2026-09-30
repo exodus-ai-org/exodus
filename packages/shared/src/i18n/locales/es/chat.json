@@ -212,7 +212,9 @@
       "favoritesGroup": "Favoritos",
       "chats": "Chats",
       "more": "Más",
-      "rename": "Renombrar"
+      "rename": "Renombrar",
+      "copyId": "Copiar ID de la conversación",
+      "idCopied": "ID de la conversación copiado"
     },
     "projects": {
       "title": "Proyectos",
@@ -322,5 +324,26 @@
     "decideFailed": "No se pudo enviar su respuesta",
     "truncatedNote_one": "{{count}} carácter más no mostrado",
     "truncatedNote_other": "{{count}} caracteres más no mostrados"
+  },
+  "compare": {
+    "useThis": "Usar esta",
+    "useInstead": "Usar esta en su lugar",
+    "otherVersion_one": "{{count}} versión más",
+    "otherVersion_other": "{{count}} versiones más",
+    "answerTab": "Respuesta {{n}}",
+    "tabsLabel": "Respuestas",
+    "otherVersionTitle": "La otra versión",
+    "otherVersionDescription": "La respuesta que no conservaste.",
+    "locked": "La conversación ha continuado, así que esta respuesta ya no se puede usar.",
+    "chooseFailed": "No se pudo cambiar la respuesta"
+  },
+  "citation": {
+    "previous": "Fuente anterior",
+    "next": "Fuente siguiente",
+    "position": "{{current}}/{{total}}"
+  },
+  "ask": {
+    "button": "Preguntar a Exodus",
+    "remove": "Quitar cita"
   }
 }

@@ -86,16 +86,17 @@ function AppearanceSwitcher() {
   )
 }
 
-// The dot for each tone is its `--primary` (see the `[data-tone]` blocks in
-// globals.css); neutral is the default look.
-const TONE_SWATCHES: Record<ColorTone, string> = {
-  neutral: 'oklch(0.52 0 0)',
-  emerald: 'oklch(0.52 0.17 160)',
-  blue: 'oklch(0.52 0.17 230)',
-  violet: 'oklch(0.52 0.17 285)',
-  rose: 'oklch(0.52 0.17 350)',
-  orange: 'oklch(0.52 0.17 55)',
-  yellow: 'oklch(0.52 0.17 85)'
+// The dot for each tone is its fill, `--primary` of its `[data-tone]` block
+// in globals.css (`tone-palette.test.ts` holds the two equal); neutral is
+// the default look — black, and white in the dark.
+export const TONE_SWATCHES: Record<ColorTone, string> = {
+  neutral: 'var(--tone-neutral)',
+  emerald: '#6CB362',
+  blue: '#5480F0',
+  violet: '#8553E7',
+  rose: '#E17EAD',
+  orange: '#DE8344',
+  yellow: '#EDC859'
 }
 
 function ColorTonePicker({

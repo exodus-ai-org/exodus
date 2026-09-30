@@ -2,10 +2,10 @@ import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import { useAtom } from 'jotai'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
+import removeMd from 'remove-markdown'
 
 import { sourcesPanelAtom } from '@/stores/chat'
 
-import { LazyLoadImage } from './lazy-load-image'
 import { parseCitations } from './markdown-citations'
 import { SheetPanel } from './sheet-panel'
 import { SourceFavicon } from './source-favicon'
@@ -28,31 +28,22 @@ function SourceLink({ item }: { item: WebSearchResult }) {
       rel="noopener noreferrer"
       className="hover:bg-accent flex gap-3 rounded-lg px-3 py-2"
     >
-      {item.thumbnail && (
-        <div className="h-12 w-16 shrink-0 overflow-hidden rounded-md">
-          <LazyLoadImage
-            src={item.thumbnail}
-            alt={item.title}
-            className="size-full"
-          />
-        </div>
-      )}
-      <div className="min-w-0 flex-1">
-        <div className="line-clamp-2 text-sm leading-snug font-semibold">
-          {item.title}
-        </div>
-        <div className="text-muted-foreground mt-1 flex items-center gap-1.5 text-xs">
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
           <SourceFavicon
             link={item.link}
             favicon={item.favicon}
             className="size-3.5"
           />
           <span className="truncate">{item.siteName || hostname}</span>
-          {item.age && <span className="shrink-0">· {item.age}</span>}
         </div>
+        <div className="line-clamp-2 text-sm leading-snug font-semibold">
+          {item.title}
+        </div>
+
         {item.snippet && (
-          <div className="text-muted-foreground mt-1 line-clamp-2 text-xs leading-snug">
-            {item.snippet}
+          <div className="text-muted-foreground line-clamp-2 text-xs leading-snug">
+            {removeMd(item.snippet)}
           </div>
         )}
       </div>

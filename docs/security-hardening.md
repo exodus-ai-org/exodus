@@ -118,6 +118,16 @@ leaves open, in one place:
   2026-09-26, see the Residuals item above): artifacts legitimately embed
   images the model found through web/image search, and the exposure is
   bounded to what the model put in that one artifact.
+- The recall tools read any conversation whose id the model passes
+  (`lcm_describe` with a conversation id, `lcm_grep` / `lcm_expand` with
+  `chatId`; added 2026-09-29 so a user can point one chat at another with
+  the sidebar's Copy conversation ID). The ids are random uuids and the
+  model is given none (its own chat's shows in its workspace path, which
+  leads nowhere new), so it reads another conversation only when the user — or text it was given to read, which is
+  the exposure — supplies the id: an injected page that carried a real id
+  could have the conversation read and then needs a channel out (see #1).
+  The raw store (`~/.exodus/database`) stays refused to the file tools, so
+  ids cannot be listed from there.
 - MCP `args` masking is a heuristic over argument shapes (secret-named
   flags and `NAME=value`, secret headers, URLs, `-p` after `-u`): a secret
   inside a JSON-valued argument (`--config '{"apiKey":…}'`) or under a flag

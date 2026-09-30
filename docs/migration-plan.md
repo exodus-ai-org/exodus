@@ -225,7 +225,7 @@ getResourcePath('drizzle') })`.
   "different `~/.exodus/database` state isn't shared... regardless" is
   only true for separate END USERS. On this machine, in dev, exodus and
   `universal-client` both resolve `getExodusHome()` to the literal same
-  `~/.exodus`. Running exodus's `bun run start` after wiring the DB layer
+  `~/.exodus`. Running exodus's `bun run dev` after wiring the DB layer
   ran real migrations and the new task-cleanup UPDATE against
   `universal-client`'s live dev database (confirmed: 14 real chats, 176
   messages). No data loss resulted (the `task` table was empty, and the
@@ -236,7 +236,7 @@ getResourcePath('drizzle') })`.
   leaving the packaged (production) path unsuffixed and unchanged — exodus
   is meant to eventually ship AS the real Exodus app, sharing that
   directory with other installs by design; only unpackaged dev runs needed
-  isolating. **Standing rule**: never run `bun run start`/`package`/`make`
+  isolating. **Standing rule**: never run `bun run dev`/`package`/`make`
   for this repo against the real `~/.exodus` — always verify the active
   binary resolved the suffixed dev path (or a sandboxed `$HOME` for
   packaged-build testing) before trusting a DB-touching test.
@@ -356,7 +356,7 @@ Port together since they're peer-level and lightly cross-dependent:
   **not** been checked against a live LightRAG server, so the re-verify
   requirement above is still open.
 
-Verified: full typecheck/lint/fmt/test sweep clean, real `bun run start`
+Verified: full typecheck/lint/fmt/test sweep clean, real `bun run dev`
 boots cleanly against the isolated `-dev` database with `Migrations
 completed` and `Lock IPC ready { safeStorage: true, touchId: true }` both
 logged, no errors.
@@ -433,7 +433,7 @@ Land roughly in this sub-order (later items depend on earlier ones):
       attempt it until everything it imports already compiles.
 
 Verified (items 1–3): full typecheck/lint/fmt/test sweep clean, real
-`bun run start` still boots cleanly (these three land as standalone modules
+`bun run dev` still boots cleanly (these three land as standalone modules
 with no consumer yet, so this is a build-compiles-cleanly smoke test, not a
 runtime exercise of the new code — the first real exercise comes once
 `jobs/handlers.ts` or `philharmonic/` actually calls into `LcmManager`/
@@ -505,7 +505,7 @@ runtime exercise of the new code — the first real exercise comes once
   third pass below.
 
 Verified: `typecheck` (node/web/shared), `lint` (0 errors), `fmt:check` and
-`test` (19 files / 116 tests) all clean; a real `bun run start` boots
+`test` (19 files / 116 tests) all clean; a real `bun run dev` boots
 cleanly against `~/.exodus-dev` with `Migrations completed` + `Lock IPC
 ready` and no errors, and `~/.exodus-dev/artifacts` was created by the
 updated `ensureExodusDirs()`. As with items 1–3, the new modules have no
@@ -551,7 +551,7 @@ code runs — the unit tests are the real evidence for these.
 - **Tests:** the 13 upstream philharmonic test files came along; the suite
   is now 32 files / 163 tests, all passing.
 - **Verified:** `typecheck`, `lint` and `fmt:check` all exit 0; `test`
-  32 files / 163 tests. No fresh `bun run start` this pass — nothing new is
+  32 files / 163 tests. No fresh `bun run dev` this pass — nothing new is
   wired into boot and `ensureExodusDirs()` is unchanged. Like the rest of
   this phase, philharmonic has no consumer yet (Phase 4's server routes and
   `initScheduler()` are what will call it), so the tests are the only
@@ -991,7 +991,7 @@ locales`), `claude-md-freshness` (exodus's config files), the
   `tests/fixtures`, `tests/helpers`, `playwright.config.ts`) are ported. The
   Electron fixture launches the repo root (`electron .`, so `package.json`'s
   `main` → the production build in `.vite/`), and `bun run test:e2e:electron`
-  runs `electron-forge package` first: a `bun run start` session overwrites
+  runs `electron-forge package` first: a `bun run dev` session overwrites
   `.vite/build` with a dev build, which broke a run mid-session. It runs
   **unpackaged on purpose** — the packaged app's Electron fuses disable the
   inspector Playwright attaches through. Isolation: `playwright.config.ts`
@@ -1159,7 +1159,7 @@ the thing listed on the right:
   forge `target`. Any new top-level entry (a new sub-app's `main.tsx`, say)
   needs a basename that doesn't collide with an existing one in the same
   output directory. → _Verify by running `bun run package`, not just
-  `bun run start`_ — dev mode doesn't exercise this path.
+  `bun run dev`_ — dev mode doesn't exercise this path.
 - **`packagerConfig.extraResource` nests under the source folder's own
   basename** (`Contents/Resources/resources/*`, not flattened) — don't
   assume a resource path without checking the actual packaged output.
@@ -1193,7 +1193,7 @@ the thing listed on the right:
   content (a literal string you know should be there), not just "the
   build didn't error."_
 - **Verification bar for "this works"**: `bun run typecheck && bun run
-lint && bun run fmt:check && bun run test`, _then_ `bun run start` with
+lint && bun run fmt:check && bun run test`, _then_ `bun run dev` with
   full log output actually read (not just "process is alive"), _then_
   `bun run package` (and ideally `bun run make`) with the real binary
   launched and its console output captured, _and_ for anything involving
@@ -1206,19 +1206,19 @@ lint && bun run fmt:check && bun run test`, _then_ `bun run start` with
   lint and every unit test, then killed the app with
   `fileURLToPath(undefined)` because `import.meta.url` compiles to `{}.url`
   in the single bundled CJS `main.js` (see Phase 4). After adding any runtime
-  dependency to `src/main`, run `bun run start` (or a Playwright launch) and
+  dependency to `src/main`, run `bun run dev` (or a Playwright launch) and
   read the log. → _Verify by booting, not by the green gates._
 - **Dev mode is a separate pipeline from the production build, and
   everything else here only exercises the latter.** Vite-only macros
   (`import.meta.glob`, `?worker`, …) inside a workspace package are silently
   broken by the dev pre-bundler unless the package is in
   `optimizeDeps.exclude`. After touching the renderer build config or
-  `packages/shared`, render the real UI from `bun run start` (or a standalone
+  `packages/shared`, render the real UI from `bun run dev` (or a standalone
   Vite instance on another port + a stub Electron shell), not just from a
   package build. Dev also serves anything under `node_modules` as immutable
   (`?v=` + a year of caching): keep workspace packages out of that path
   (`preserveSymlinks: false`). → _Verify by rendering in dev._
-- **`.vite/` is shared by `bun run start` (dev bundles, dev-server URL baked
+- **`.vite/` is shared by `bun run dev` (dev bundles, dev-server URL baked
   in) and `bun run package` (production bundles).** Whoever ran last wins, and
   an app launched with `electron .` silently loads the wrong one
   (`ERR_CONNECTION_REFUSED` on `localhost:5173`). `test:e2e:electron`

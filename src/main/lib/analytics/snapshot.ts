@@ -347,7 +347,7 @@ export async function buildSnapshot(
           logsIncluded = true
         } catch (err) {
           logger.warn('analytics', 'logs table skipped', {
-            error: String(err)
+            error: err
           })
           await dropLogs(conn)
         }

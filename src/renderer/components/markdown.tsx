@@ -27,7 +27,7 @@ import {
 import { cn } from '@/lib/utils'
 
 import {
-  TextWithCitations,
+  citationComponents,
   WebSearchRankMapContext
 } from './markdown-citations'
 import {
@@ -138,6 +138,8 @@ export function Markdown({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- ReactMarkdown component overrides use broad prop types
   const components: Record<string, any> = useMemo(
     () => ({
+      // 【N-source】, wherever it stands (see lib/remark-citations.ts).
+      ...citationComponents,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any
       code({ className, children, node, ...rest }: any) {
         const match = /language-(\w+)/.exec(className || 'javascript')
@@ -151,14 +153,14 @@ export function Markdown({
               <span>{match[1]}</span>
               <div className="flex cursor-default items-center gap-6">
                 {copied === children ? (
-                  <span className="hover:text-primary flex items-center gap-1.5">
+                  <span className="hover:text-primary-ink flex items-center gap-1.5">
                     <CheckIcon size={10} strokeWidth={2.5} />
                     {t('state.copied')}
                   </span>
                 ) : (
                   <button
                     type="button"
-                    className="hover:text-primary flex items-center gap-1.5"
+                    className="hover:text-primary-ink flex items-center gap-1.5"
                     onClick={() => {
                       if (typeof children === 'string') {
                         handleCopy(children)
@@ -201,7 +203,7 @@ export function Markdown({
       li({ className, node, children, ...rest }: any) {
         return (
           <li {...rest} className={className}>
-            <TextWithCitations>{children}</TextWithCitations>
+            {children}
           </li>
         )
       },
@@ -209,7 +211,7 @@ export function Markdown({
       p({ className, node, children, ...rest }: any) {
         return (
           <p {...rest} className={className}>
-            <TextWithCitations>{children}</TextWithCitations>
+            {children}
           </p>
         )
       },
@@ -290,7 +292,7 @@ export function Markdown({
               className
             )}
           >
-            <TextWithCitations>{children}</TextWithCitations>
+            {children}
           </th>
         )
       },
@@ -304,7 +306,7 @@ export function Markdown({
               className
             )}
           >
-            <TextWithCitations>{children}</TextWithCitations>
+            {children}
           </td>
         )
       }

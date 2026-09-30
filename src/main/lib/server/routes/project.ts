@@ -96,7 +96,7 @@ projectRouter.delete('/:id', async (c) => {
     for (const chatId of projectChatIds) {
       elasticsearch.deleteByChatId(chatId).catch((error) => {
         logger.error('search', 'Failed to delete chat from Elasticsearch', {
-          error: String(error)
+          error
         })
       })
     }

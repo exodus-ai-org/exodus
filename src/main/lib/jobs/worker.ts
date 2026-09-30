@@ -3,6 +3,7 @@ import cron from 'node-cron'
 import { resetStuckDiscoverRefresh } from '../discover/manager'
 import { reconcileKnowledgeIndexStatus } from '../knowledge-base/reconcile'
 import { logger } from '../logger'
+import { stackFramesOf } from '../logger/record'
 import { bindTraceAttributes, withTrace } from '../logger/trace-context'
 import { handlers } from './handlers'
 import { extractOriginTraceId } from './origin-trace'
@@ -86,7 +87,7 @@ export async function processQueue(queueName: QueueName): Promise<void> {
       logger.error('jobs', `Job handler failed for ${queueName}`, {
         msgId: msg.msgId,
         readCt: msg.readCt,
-        error: String(error)
+        error
       })
       if (msg.readCt >= MAX_READ_COUNT) {
         logger.error(
@@ -100,7 +101,7 @@ export async function processQueue(queueName: QueueName): Promise<void> {
         await archiveMessage(queueName, msg.msgId).catch((archiveError) => {
           logger.error('jobs', `Failed to archive gave-up ${queueName} job`, {
             msgId: msg.msgId,
-            error: String(archiveError)
+            error: archiveError
           })
         })
       }
@@ -121,7 +122,7 @@ export async function enqueueAndProcess(
   await enqueueJob(queueName, payload)
   processQueue(queueName).catch((error) => {
     logger.error('jobs', `Immediate processing kick failed for ${queueName}`, {
-      error: String(error)
+      error
     })
   })
 }
@@ -134,12 +135,13 @@ export async function enqueueAndProcess(
  * parameters*, and job payloads carry `apiKey` (three of the four queues) and
  * full message content (`index-message`) — all of which would otherwise land in
  * plaintext in `~/.exodus/logs/*.jsonl`. `error.name` alone is safe and still
- * distinguishes error types.
+ * distinguishes error types; the stack's frames (no message) say where.
  */
 export function logEnqueueFailure(queueName: QueueName, error: unknown): void {
   logger.error('jobs', `Failed to enqueue ${queueName} job`, {
     queueName,
-    errorName: error instanceof Error ? error.name : typeof error
+    errorName: error instanceof Error ? error.name : typeof error,
+    'exception.stacktrace': stackFramesOf(error)
   })
 }
 
@@ -156,7 +158,8 @@ export function initJobQueue(): void {
   for (const queueName of QUEUE_NAMES) {
     purgeArchive(queueName).catch((error) => {
       logger.error('jobs', `Failed to purge the ${queueName} archive`, {
-        errorName: error instanceof Error ? error.name : typeof error
+        errorName: error instanceof Error ? error.name : typeof error,
+        'exception.stacktrace': stackFramesOf(error)
       })
     })
   }
@@ -168,7 +171,7 @@ export function initJobQueue(): void {
       'discover',
       'failed to reset stuck refresh status on startup',
       {
-        error: String(error)
+        error
       }
     )
   })
@@ -177,7 +180,7 @@ export function initJobQueue(): void {
     for (const queueName of QUEUE_NAMES) {
       processQueue(queueName).catch((error) => {
         logger.error('jobs', `Sweep failed for ${queueName}`, {
-          error: String(error)
+          error
         })
       })
     }
@@ -188,7 +191,7 @@ export function initJobQueue(): void {
   cron.schedule('*/30 * * * * *', () => {
     reconcileKnowledgeIndexStatus().catch((error) => {
       logger.error('knowledge-base', 'index-status reconcile sweep failed', {
-        error: String(error)
+        error
       })
     })
   })
@@ -200,7 +203,7 @@ export function initJobQueue(): void {
   cron.schedule('*/30 * * * *', () => {
     enqueueAndProcess('discover-refresh', {}).catch((error) => {
       logger.error('discover', 'periodic refresh enqueue failed', {
-        error: String(error)
+        error
       })
     })
   })

@@ -1,3 +1,5 @@
+import type { Model } from '@earendil-works/pi-ai'
+import { clampMaxTokensToContext } from '@earendil-works/pi-ai/api/simple-options'
 import type { ConversationMessage } from '@main/lib/db/schema'
 // src/main/lib/ai/philharmonic/lcm/index.test.ts
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -137,6 +139,25 @@ describe('assembleContext', () => {
     const lcm = new PhilharmonicLcm('c1', fakeModel, 'k', {})
     const out = await lcm.assembleContext()
     expect(out).toHaveLength(2)
+  })
+
+  // Every provider estimates the context from the `usage` of its assistant
+  // messages before it sends anything; a Group's rows record none.
+  it('hands pi assistant messages its max-token clamp can read', async () => {
+    const rows = [
+      makeMessage({ id: 'a', role: 'user', content: 'first' }),
+      makeMessage({ id: 'b', role: 'pm', content: 'second' }),
+      makeMessage({ id: 'c', role: 'user', content: 'third' })
+    ]
+    getMessagesByConversationId.mockResolvedValue(rows)
+    getSessionSummary.mockResolvedValue(null)
+    const lcm = new PhilharmonicLcm('c1', fakeModel, 'k', {})
+    const messages = await lcm.assembleContext()
+
+    const model = { contextWindow: 200_000 } as Model<string>
+    expect(
+      clampMaxTokensToContext(model, { systemPrompt: 's', messages }, 8192)
+    ).toBe(8192)
   })
 })
 

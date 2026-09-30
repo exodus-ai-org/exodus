@@ -20,6 +20,11 @@ export const approvalDecisionSchema = z.object({
   decision: z.enum(['allow', 'deny'])
 })
 
+/** `POST /api/v1/chat/:chatId/choose` — keep one answer of a regenerate group. */
+export const chooseAttemptSchema = z.object({
+  runId: z.uuid()
+})
+
 // pi-ai user message content
 const textContentSchema = z.object({
   type: z.literal('text'),
@@ -51,6 +56,10 @@ const messageSchema = z.looseObject({
   // Stamped by the server (a user message's runId is its own id); a client
   // that sends it is echoing what it was given.
   runId: z.string().optional(),
+  // On the new user message: the regenerate group it re-asks (spec
+  // 2026-09-26). `attempt` may ride along on echoed history; the server's
+  // stored state always wins over it.
+  alternateOf: z.uuid().nullable().optional(),
   role: z.string(),
   content: z.any()
 })

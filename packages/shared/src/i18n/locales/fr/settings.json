@@ -457,11 +457,11 @@
       },
       "maxResults": {
         "label": "Nombre maximal de résultats",
-        "description": "Nombre de résultats de recherche par requête (1 à 50). Par défaut : 10."
+        "description": "Sources renvoyées par une recherche (1–20). Par défaut : 10."
       },
       "deepRecall": {
         "label": "Rappel approfondi",
-        "description": "Effectue une seconde recherche web plus large en parallèle de l'appel de contextualisation et fusionne les résultats supplémentaires — forums, actualités et pages écartés par le filtre de contextualisation. Rappel plus élevé, environ 2× l'utilisation de l'API Brave par recherche."
+        "description": "Recherche trois formulations de la question et ajoute une passe plus large : forums, actualités, pages que la première recherche écarte. Plus de sources et plus de tokens par recherche, et environ six requêtes Brave au lieu d’une."
       },
       "recency": {
         "label": "Filtre de récence",
@@ -658,6 +658,10 @@
       "pageOf": "Page {{page}} sur {{totalPages}}",
       "prev": "Préc.",
       "next": "Suiv."
+    },
+    "details": {
+      "stack": "Trace de la pile",
+      "componentStack": "Pile de composants"
     }
   },
   "mcpServers": {

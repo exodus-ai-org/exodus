@@ -39,7 +39,7 @@ if (
 
 /**
  * The renderer always talks to localhost:SERVER_PORT. If another Exodus (a
- * `bun run start` dev build, the installed app) is already serving it, the
+ * `bun run dev` dev build, the installed app) is already serving it, the
  * app under test silently drives THAT process — reading and writing the
  * developer's real ~/.exodus through it, sandboxed HOME or not. Refuse.
  */
@@ -70,7 +70,7 @@ export const electronTest = base.extend<ElectronFixtures>({
     // The repo root: Electron resolves `main` (.vite/build/main.js) from
     // package.json, and loads the built renderer from .vite/renderer. Run
     // `bun run package` first — it produces those production bundles (a
-    // `bun run start` session leaves dev-server builds in .vite instead).
+    // `bun run dev` session leaves dev-server builds in .vite instead).
     // Unpackaged, so the app keeps its data in ~/.exodus — which is the
     // scratch dir's, because playwright.config.ts points $HOME there.
     const appPath = path.resolve(__dirname, '../..')

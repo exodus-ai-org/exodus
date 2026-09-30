@@ -84,15 +84,14 @@ export function createWindow(): void {
   mainWindow.webContents.on('preload-error', (_event, preloadPath, error) => {
     logger.error('app', 'Preload script failed to load', {
       preloadPath,
-      error: String(error),
-      stack: error?.stack
+      error
     })
   })
 
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL).catch((err) => {
       logger.error('app', 'Failed to load main window URL', {
-        error: String(err)
+        error: err
       })
     })
     mainWindow.webContents.openDevTools({ mode: 'detach' })
@@ -103,7 +102,7 @@ export function createWindow(): void {
       )
       .catch((err) => {
         logger.error('app', 'Failed to load main window file', {
-          error: String(err)
+          error: err
         })
       })
   }
@@ -141,7 +140,7 @@ function loadSubApp(
 ): void {
   const page = `${SUB_APP_DIR}/${name}/index.html`
   const onError = (err: unknown) =>
-    logger.error('app', `Failed to load ${name}`, { error: String(err) })
+    logger.error('app', `Failed to load ${name}`, { error: err })
 
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     webContents

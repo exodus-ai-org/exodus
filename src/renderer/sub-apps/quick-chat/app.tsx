@@ -1,8 +1,9 @@
 import { useHotkeys } from '@tanstack/react-hotkeys'
-import { BotIcon, CornerDownLeftIcon } from 'lucide-react'
+import { CornerDownLeftIcon } from 'lucide-react'
 import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
+import { MenuBarApp } from '@/components/icons/menubar-app'
 import { Input } from '@/components/ui/input'
 import { Kbd } from '@/components/ui/kbd'
 import { closeQuickChat, transferQuickChat } from '@/lib/ipc'
@@ -73,7 +74,7 @@ export function QuickChat() {
           ENTER_UP
         )}
       >
-        <BotIcon className="text-muted-foreground shrink-0" size={18} />
+        <MenuBarApp className="text-muted-foreground shrink-0" />
         <Input
           ref={inputRef}
           className="h-10 w-full border-none bg-transparent px-1 py-0 text-base shadow-none focus-visible:ring-0 dark:bg-transparent"

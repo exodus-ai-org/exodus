@@ -57,6 +57,25 @@ describe('shouldShowMessageSpinner', () => {
     expect(shouldShowMessageSpinner(segments, true)).toBe(false)
   })
 
+  it('leaves the waiting to the comparison when a regenerate is in flight', () => {
+    // The new answer has not started: its column waits, not the list.
+    const segments = groupIntoSegments([
+      { ...user('g'), runId: 'g', attempt: 'comparing' } as ChatMessage,
+      {
+        ...assistant('a1', [{ type: 'text', text: 'first' }]),
+        runId: 'g'
+      } as ChatMessage,
+      {
+        ...user('r1'),
+        runId: 'r1',
+        alternateOf: 'g',
+        attempt: 'comparing'
+      } as ChatMessage
+    ])
+    expect(segments.at(-1)?.type).toBe('compare')
+    expect(shouldShowMessageSpinner(segments, true)).toBe(false)
+  })
+
   it('never shows when not loading', () => {
     const segments = groupIntoSegments([user('u1')])
     expect(shouldShowMessageSpinner(segments, false)).toBe(false)

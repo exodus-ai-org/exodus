@@ -73,7 +73,7 @@ export function scheduleTask(taskId: string, cronExpression: string): boolean {
     runScheduledRound(taskId, globalEmit).catch((err) =>
       logger.error('scheduler', 'Scheduled round error', {
         taskId,
-        error: String(err)
+        error: err
       })
     )
   })
@@ -114,7 +114,7 @@ export async function runDueOneOffTasks(emit: SseEmitter): Promise<void> {
     } catch (err) {
       logger.error('scheduler', 'Failed to claim one-off task', {
         taskId: t.id,
-        error: String(err)
+        error: err
       })
       continue
     }
@@ -125,7 +125,7 @@ export async function runDueOneOffTasks(emit: SseEmitter): Promise<void> {
     } catch (err) {
       logger.error('scheduler', 'One-off task failed', {
         taskId: t.id,
-        error: String(err)
+        error: err
       })
       await updateTask(t.id, { status: 'failed' })
     }
@@ -141,12 +141,12 @@ export async function initScheduler(emit: SseEmitter): Promise<void> {
   }
   cron.schedule('* * * * *', () => {
     runDueOneOffTasks(globalEmit).catch((err) =>
-      logger.error('scheduler', 'One-off sweep error', { error: String(err) })
+      logger.error('scheduler', 'One-off sweep error', { error: err })
     )
   })
   await runDueOneOffTasks(emit).catch((err) =>
     logger.error('scheduler', 'Initial one-off sweep error', {
-      error: String(err)
+      error: err
     })
   )
   logger.info('scheduler', 'Initialized', { activeTasks: count })

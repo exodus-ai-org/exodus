@@ -57,7 +57,9 @@ export function updateMemory(
     label: 'Update Memory',
     description:
       "Change the user's long-term memory: correct, add or remove what you know about them. " +
-      'Call it when the user corrects something you know about them, or asks you to remember or forget something.',
+      'Call it when the user corrects something you know about them, asks you to remember or forget something, ' +
+      'or states a lasting fact about themselves — or a change to one you already hold (a new holding, a switch of tools, a project done). ' +
+      'Not for one-off details, passing mentions or the specifics of the task at hand.',
     parameters: updateMemorySchema,
     execute: async (_toolCallId, { instruction }, signal) => {
       if (signal?.aborted) throw new Error('Aborted')

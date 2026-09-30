@@ -203,7 +203,7 @@ async function removeDir(dir: () => string, what: Record<string, string>) {
   } catch (error) {
     logger.error('media', 'Failed to remove generated media', {
       ...what,
-      error: String(error)
+      error
     })
   }
 }

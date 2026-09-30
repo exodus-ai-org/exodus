@@ -355,7 +355,7 @@ export function GroupChat({
         {askUser && (
           <div className="border-border bg-muted mx-auto my-3 max-w-2xl rounded-xl border p-3">
             <div className="text-foreground mb-2 flex items-start gap-2 text-sm">
-              <HelpCircleIcon className="text-primary mt-0.5 h-4 w-4 shrink-0" />
+              <HelpCircleIcon className="text-primary-ink mt-0.5 h-4 w-4 shrink-0" />
               <span>{askUser.question}</span>
             </div>
             <div className="flex gap-2">

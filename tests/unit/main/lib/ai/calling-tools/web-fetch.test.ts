@@ -33,6 +33,25 @@ describe('webFetch', () => {
     expect(text).toContain('Final demand rose 0.4 percent')
   })
 
+  it("numbers the page after the sources of the chat's earlier runs", async () => {
+    // The registry is made anew for every request; without a base, a page
+    // fetched in a later run is [1] again and its 【1-source】 cannot be told
+    // from the first run's.
+    loadDocument.mockResolvedValue({
+      ogImage: '',
+      type: 'html',
+      content: 'body'
+    })
+    const sources = new Map<string, WebSearchResult>()
+    const out = await webFetch(sources, 12).execute('c1', {
+      url: 'https://a.example/x'
+    })
+
+    expect(sources.get('https://a.example/x')?.rank).toBe(13)
+    const text = out.content[0].type === 'text' ? out.content[0].text : ''
+    expect(text).toContain('【13-source】')
+  })
+
   it('reuses the existing rank when the same URL is fetched twice', async () => {
     loadDocument.mockResolvedValue({
       ogImage: '',

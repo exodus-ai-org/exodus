@@ -162,7 +162,7 @@ const ThumbnailPin = memo(function ThumbnailPin({
           <div
             className={cn(
               'border-background size-8 overflow-hidden rounded-md border-2 shadow-md',
-              focused && 'ring-primary ring-2'
+              focused && 'ring-primary-ink ring-2'
             )}
           >
             <img
@@ -176,7 +176,7 @@ const ThumbnailPin = memo(function ThumbnailPin({
           <div
             className={cn(
               'border-background bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-md border-2 text-xs font-semibold shadow-md',
-              focused && 'ring-primary ring-2'
+              focused && 'ring-primary-ink ring-2'
             )}
           >
             {index + 1}

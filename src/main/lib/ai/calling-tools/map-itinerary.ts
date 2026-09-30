@@ -321,7 +321,7 @@ export const mapItinerary = (
       } else {
         logger.warn('tools', 'Places enrichment failed for place', {
           placeName: flat[i].place.name,
-          error: String(settled.reason)
+          error: settled.reason
         })
         byKey[`${dayIdx}-${placeIdx}`] = {}
         placesFailureReason ??= classifyPlacesFailure(settled.reason)

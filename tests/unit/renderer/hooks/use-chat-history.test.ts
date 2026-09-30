@@ -38,8 +38,7 @@ const {
   useChatHistory,
   useChatMessages,
   useUpdateChat,
-  useDeleteChat,
-  useInvalidateChatHistory
+  useDeleteChat
 } = await import('@/hooks/use-chat-history')
 const { createAppQueryClient } = await import('@/lib/query-client')
 
@@ -208,22 +207,6 @@ describe('useChatMessages', () => {
     expect(fetcherMock).not.toHaveBeenCalled()
     expect(api().isLoading).toBe(false)
     expect(api().data).toBeUndefined()
-  })
-})
-
-describe('useInvalidateChatHistory', () => {
-  it('marks the list stale without touching any chat detail', async () => {
-    const { queryClient, api } = await mountHook(useInvalidateChatHistory)
-    seedCaches(queryClient)
-
-    act(() => {
-      api()()
-    })
-
-    expect(queryClient.getQueryState(historyKeys.all)?.isInvalidated).toBe(true)
-    expect(
-      queryClient.getQueryState(historyKeys.detail('c1'))?.isInvalidated
-    ).toBe(false)
   })
 })
 

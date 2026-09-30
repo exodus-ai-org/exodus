@@ -141,11 +141,17 @@ describe('logEnqueueFailure', () => {
     expect(logger.error).toHaveBeenCalledWith(
       'jobs',
       'Failed to enqueue memory-consolidate job',
-      { queueName: 'memory-consolidate', errorName: 'DrizzleQueryError' }
+      {
+        queueName: 'memory-consolidate',
+        errorName: 'DrizzleQueryError',
+        // Where it was thrown: frames only.
+        'exception.stacktrace': expect.stringMatching(/^ {4}at /u)
+      }
     )
-    expect(JSON.stringify(vi.mocked(logger.error).mock.calls)).not.toContain(
-      'sk-super-secret'
-    )
+    const written = JSON.stringify(vi.mocked(logger.error).mock.calls)
+    expect(written).not.toContain('sk-super-secret')
+    expect(written).not.toContain('Failed query')
+    expect(written).toContain('worker.test.ts')
   })
 
   it('falls back to typeof for non-Error rejections', () => {

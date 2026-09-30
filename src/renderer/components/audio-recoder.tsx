@@ -98,7 +98,9 @@ export function AudioRecorder({
   return (
     <Button
       size="icon"
-      className="rounded-full"
+      // As the send button whose place it takes while the field is empty:
+      // the tone's ink with a white icon in light, the fill in dark.
+      className="bg-primary-ink hover:bg-primary-ink/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 rounded-full text-white"
       aria-label={
         isRecording ? t('recorder.stopRecording') : t('recorder.dictate')
       }

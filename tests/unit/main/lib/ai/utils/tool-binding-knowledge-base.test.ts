@@ -12,7 +12,7 @@ vi.mock('@main/lib/ai/calling-tools', () => ({
   imageGeneration: () => stub('image_generation'),
   lcmDescribe: stub('lcm_describe'),
   lcmExpand: () => stub('lcm_expand'),
-  lcmGrep: stub('lcm_grep'),
+  lcmGrep: () => stub('lcm_grep'),
   listDirectory: stub('list_directory'),
   mapItinerary: () => stub('map_itinerary'),
   readFile: stub('read_file'),

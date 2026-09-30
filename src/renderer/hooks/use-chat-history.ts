@@ -5,7 +5,6 @@ import {
   useQuery,
   useQueryClient
 } from '@tanstack/react-query'
-import { useCallback } from 'react'
 import { sileo } from 'sileo'
 
 import { i18n } from '@/lib/i18n'
@@ -20,7 +19,7 @@ export const historyKeys = {
 // `exact`: only the list. Every chat's messages sit under the same root, and a
 // prefix match would re-GET the open chat's messages too — a 404 when it is the
 // chat that was just deleted.
-const invalidateHistory = (queryClient: QueryClient) =>
+export const invalidateHistory = (queryClient: QueryClient) =>
   queryClient.invalidateQueries({ queryKey: historyKeys.all, exact: true })
 
 export function useChatHistory() {
@@ -35,22 +34,19 @@ export function useChatHistory() {
   return { data, isLoading }
 }
 
+/**
+ * A chat's messages, to open it with. `isFresh` says they were fetched for
+ * this visit: `<Chat>` is seeded once, on mount, so a copy cached by an
+ * earlier visit — without the runs sent since, with a regenerate group's
+ * state as it was — must not be what seeds it.
+ */
 export function useChatMessages(id: string | undefined) {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isFetchedAfterMount } = useQuery({
     queryKey: historyKeys.detail(id ?? ''),
     queryFn: () => fetcher<Message[]>(`/api/v1/chat/${id}`),
     enabled: !!id
   })
-  return { data, isLoading }
-}
-
-// For the chat stream's own callbacks (a finished run, a generated title),
-// which change the list without going through a mutation.
-export function useInvalidateChatHistory() {
-  const queryClient = useQueryClient()
-  return useCallback(() => {
-    void invalidateHistory(queryClient)
-  }, [queryClient])
+  return { data, isLoading, isFresh: isFetchedAfterMount }
 }
 
 export function useUpdateChat() {

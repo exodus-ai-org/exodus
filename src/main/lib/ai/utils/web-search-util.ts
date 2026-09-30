@@ -312,6 +312,46 @@ type BraveVideoSearchResponse = {
   results?: BraveVideoResult[]
 }
 
+/**
+ * How much one search brings back. A search result stays in the context for
+ * the rest of the chat, and sixty sources of one story mostly repeat each
+ * other: a person reads a page or two of results (owner's call, 2026-09-29).
+ * The industry's defaults are in the same place — Tavily 5 results, Exa 10,
+ * Brave's own `llm/context` 20 URLs and 8192 tokens. The model searches again
+ * with a sharper query when it needs more.
+ */
+export interface SearchLimits {
+  /** Sources with content handed to the model. */
+  sources: number
+  /** Results of one site among them, and among the breadth extras. */
+  perSite: number
+  /** `llm/context`: the token budget of a request, and of one source in it. */
+  contextTokens: number
+  tokensPerSource: number
+  /** Snippet-only sources the breadth pass may add (deep recall). */
+  breadth: number
+}
+
+export const SEARCH_LIMITS: SearchLimits = {
+  sources: 10,
+  perSite: 2,
+  contextTokens: 8192,
+  tokensPerSource: 2048,
+  breadth: 5
+}
+
+/** The most sources a search may be set to (Settings → Web Search). */
+export const MAX_SEARCH_SOURCES = 20
+
+/** A site, for counting its results: the host without `www.`. */
+function siteOf(url: string): string {
+  try {
+    return new URL(url).hostname.toLowerCase().replace(/^www\./u, '')
+  } catch {
+    return url
+  }
+}
+
 function buildCommonParams({
   query,
   country,
@@ -348,7 +388,8 @@ async function fetchBraveLlmContext({
   country,
   languages,
   recencyFilter,
-  maxResults,
+  sources,
+  limits,
   threshold,
   signal
 }: {
@@ -357,7 +398,9 @@ async function fetchBraveLlmContext({
   country?: string | null
   languages?: string[] | null
   recencyFilter?: string | null
-  maxResults?: number | null
+  /** How many sources to ask for. */
+  sources: number
+  limits: SearchLimits
   threshold?: 'broad' | 'strict'
   signal?: AbortSignal
 }): Promise<BraveLlmContextResponse | null> {
@@ -365,19 +408,15 @@ async function fetchBraveLlmContext({
     query,
     country,
     languages,
-    recencyFilter,
-    maxResults
+    recencyFilter
   })
-  // Consider a wide candidate pool (llm/context allows up to 50, vs the shared
-  // helper's 20 default) so the relevance ranker has more to draw from.
-  const urls = Math.min(Math.max(maxResults ?? 20, 20), 50)
-  params.set('count', String(urls))
-  params.set('maximum_number_of_urls', String(urls))
-  // Total token budget defaults to 8192 — with per-URL also at 8192 the first
-  // source can eat the whole budget and the rest come back empty. Raise the
-  // total so several sources carry real depth.
-  params.set('maximum_number_of_tokens', '16384')
-  params.set('maximum_number_of_tokens_per_url', '8192')
+  params.set('count', String(sources))
+  params.set('maximum_number_of_urls', String(sources))
+  // The budget of one source is a fraction of the request's: with both at the
+  // same number the first source can eat the whole budget and the rest come
+  // back empty.
+  params.set('maximum_number_of_tokens', String(limits.contextTokens))
+  params.set('maximum_number_of_tokens_per_url', String(limits.tokensPerSource))
   // Enrich each source with site metadata (favicon, site_name, thumbnail, age).
   params.set('enable_source_metadata', 'true')
   // Our queries are model-authored with correct spelling; Brave's spellchecker
@@ -701,6 +740,8 @@ export async function fetchWebSearch({
   deep = false,
   threshold,
   expandedQueries,
+  limits = SEARCH_LIMITS,
+  rankBase = 0,
   signal
 }: {
   query: string
@@ -709,6 +750,7 @@ export async function fetchWebSearch({
   media?: 'none' | WebSearchMediaKind | 'all'
   country?: string | null
   languages?: string[] | null
+  /** Settings → Web Search → Max results: sources per search, 1–20. */
   maxResults?: number | null
   recencyFilter?: string | null
   domainFilter?: string[] | null
@@ -716,12 +758,23 @@ export async function fetchWebSearch({
   threshold?: 'broad' | 'strict'
   /** Fan-out reformulations searched alongside `query` and merged. */
   expandedQueries?: string[] | null
+  /** How much to bring back; the chat's by default (see `SEARCH_LIMITS`). */
+  limits?: SearchLimits
+  /**
+   * The number the chat's earlier runs got to (`highestSourceRank`): this
+   * search's sources are numbered after it.
+   */
+  rankBase?: number
   signal?: AbortSignal
 }): Promise<WebSearchResult[] | null> {
   try {
     const includeImages = media === 'image' || media === 'all'
     const includeVideos = media === 'video' || media === 'all'
     const queries = [query, ...(expandedQueries ?? [])].slice(0, 3)
+    const sources = Math.min(
+      Math.max(Math.trunc(maxResults ?? limits.sources), 1),
+      MAX_SEARCH_SOURCES
+    )
 
     // Text search fans out across the query variants; media only ever runs on
     // the primary query. Cap 3 concurrent Brave calls (free tier is 1 req/s;
@@ -735,7 +788,8 @@ export async function fetchWebSearch({
             country,
             languages,
             recencyFilter,
-            maxResults,
+            sources,
+            limits,
             threshold,
             signal
           }),
@@ -808,7 +862,7 @@ export async function fetchWebSearch({
       ...videoResultsToMedia(videoResp, passesDomainFilter)
     ]
 
-    const baseRank = webSources ? webSources.size : 0
+    const baseRank = rankBase + (webSources ? webSources.size : 0)
     const alreadyHave = (url: string) =>
       (webSources && webSources.has(url)) || !passesDomainFilter(url)
 
@@ -845,12 +899,24 @@ export async function fetchWebSearch({
     }
 
     const results: WebSearchResult[] = []
+    // Results of one site say much the same: a site gets `perSite` places,
+    // among the grounded sources and the breadth extras together.
+    const perSite = new Map<string, number>()
+    const takesPlace = (url: string): boolean => {
+      const site = siteOf(url)
+      const taken = perSite.get(site) ?? 0
+      if (taken >= limits.perSite) return false
+      perSite.set(site, taken + 1)
+      return true
+    }
     const ranked = [...grounded.entries()].toSorted(
       (a, b) => b[1].hits - a[1].hits || a[1].order - b[1].order
     )
     for (const [url, g] of ranked) {
+      if (results.length >= sources) break
       const content = g.snippets.join('\n\n')
       if (!content) continue
+      if (!takesPlace(url)) continue
       results.push({
         rank: baseRank + results.length + 1,
         link: url,
@@ -874,12 +940,13 @@ export async function fetchWebSearch({
     const extras: FlatWebSource[] = []
     for (const { web } of perQuery) {
       for (const s of webResultsToSources(web)) {
+        if (extras.length >= limits.breadth) break
         if (seen.has(s.url) || !passesDomainFilter(s.url)) continue
         seen.add(s.url)
+        if (!takesPlace(s.url)) continue
         extras.push(s)
-        if (extras.length >= 15) break
       }
-      if (extras.length >= 15) break
+      if (extras.length >= limits.breadth) break
     }
     for (const s of extras) {
       results.push({

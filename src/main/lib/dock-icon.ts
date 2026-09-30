@@ -3,7 +3,7 @@ import { join } from 'path'
 import { app, nativeImage } from 'electron'
 
 /**
- * `bun run start` runs node_modules' prebuilt Electron.app, so the Dock would
+ * `bun run dev` runs node_modules' prebuilt Electron.app, so the Dock would
  * show Electron's icon; the packaged app gets build/icon.icns from forge
  * instead. In dev, point the Dock at build/icon-dock.png (the same art,
  * rendered by `bun run icons`). The menu bar title still reads "Electron" —

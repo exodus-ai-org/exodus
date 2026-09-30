@@ -32,7 +32,7 @@ const QuerySchema = z.object({ sql: z.string().trim().min(1).max(20_000) })
 function toAnalyticsError(err: unknown): never {
   if (isAppError(err)) throw err
   if (err instanceof DuckDBUnavailableError) {
-    logger.error('analytics', 'duckdb unavailable', { error: err.message })
+    logger.error('analytics', 'duckdb unavailable', { error: err })
     throw new ServiceError(ErrorCode.ANALYTICS_UNAVAILABLE)
   }
   // DuckDB's own message names the offending column / token — show it.
@@ -54,7 +54,7 @@ analyticsRouter.get('/status', async (c) => {
       version
     } satisfies AnalyticsStatus)
   } catch (err) {
-    logger.error('analytics', 'duckdb unavailable', { error: String(err) })
+    logger.error('analytics', 'duckdb unavailable', { error: err })
     return successResponse(c, {
       ...base,
       available: false,

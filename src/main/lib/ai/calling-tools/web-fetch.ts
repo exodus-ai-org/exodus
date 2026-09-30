@@ -42,7 +42,9 @@ function plainExcerpt(markdown: string, n: number): string {
  * can carry a real 【N-source】 citation even when webSearch never ran.
  */
 export const webFetch = (
-  webSources?: Map<string, WebSearchResult>
+  webSources?: Map<string, WebSearchResult>,
+  // The number the chat's earlier runs got to: this run counts on from it.
+  rankBase = 0
 ): AgentTool<typeof webFetchSchema> => ({
   name: TOOL_NAMES.webFetch,
   label: 'Web Fetch',
@@ -88,7 +90,7 @@ export const webFetch = (
     if (webSources) {
       const existing = webSources.get(url)
       source = existing ?? {
-        rank: webSources.size + 1,
+        rank: rankBase + webSources.size + 1,
         link: url,
         title,
         // Only a preview is kept here — the model gets the full page via the

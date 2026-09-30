@@ -1,10 +1,12 @@
 import type { AgentTool } from '@earendil-works/pi-agent-core'
 import {
+  type Message,
   Type,
   fauxAssistantMessage,
   fauxText,
   fauxToolCall
 } from '@earendil-works/pi-ai'
+import { clampMaxTokensToContext } from '@earendil-works/pi-ai/api/simple-options'
 import type { KernelEvent } from '@main/lib/ai/kernel/events'
 import { registerFauxProvider } from '@main/lib/ai/kernel/faux'
 import { runAgent, type RunInput } from '@main/lib/ai/kernel/run'
@@ -230,6 +232,60 @@ describe('runAgent', () => {
     expect(events.some((e) => e.type === 'error')).toBe(false)
   })
 
+  // A chat saves an attachment as the data URL the renderer shows; the
+  // provider wants bare base64 (Anthropic: 400 "invalid base64 data").
+  it('convertToLlm sends a stored data-URL image as bare base64', async () => {
+    const faux = registerFauxProvider()
+    let seen: unknown
+    faux.setResponses([
+      (ctx) => {
+        seen = ctx.messages.flatMap((m) =>
+          typeof m.content === 'string'
+            ? []
+            : m.content.filter((p) => p.type === 'image')
+        )
+        return fauxAssistantMessage([fauxText('ok')])
+      }
+    ])
+    await collect(
+      runAgent(
+        input({
+          model: faux.getModel(),
+          contextMessages: [
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'image',
+                  data: 'data:image/png;base64,AAAA',
+                  mimeType: 'image/png'
+                }
+              ],
+              timestamp: 0
+            }
+          ],
+          userMessage: {
+            id: RUN_ID,
+            runId: RUN_ID,
+            role: 'user',
+            content: [
+              {
+                type: 'image',
+                data: 'data:image/jpeg;base64,BBBB',
+                mimeType: 'image/jpeg'
+              }
+            ],
+            timestamp: 1
+          }
+        })
+      )
+    )
+    expect(seen).toEqual([
+      { type: 'image', data: 'AAAA', mimeType: 'image/png' },
+      { type: 'image', data: 'BBBB', mimeType: 'image/jpeg' }
+    ])
+  })
+
   it('convertToLlm drops a broken run from the context instead of sending it', async () => {
     const faux = registerFauxProvider()
     faux.setResponses([
@@ -283,6 +339,43 @@ describe('runAgent', () => {
     // earlier user + earlier answer + this prompt = 3; the orphan is gone.
     expect(end.messages[0].content).toEqual([
       { type: 'text', text: 'saw 3 messages' }
+    ])
+  })
+
+  // With LCM off the history is what the client posted. Every real provider
+  // runs pi's max-token clamp over the context before it sends anything, and
+  // the clamp reads `usage` off each assistant message.
+  it('convertToLlm gives an assistant message that came without usage one pi can read', async () => {
+    const faux = registerFauxProvider()
+    const model = faux.getModel()
+    faux.setResponses([
+      (ctx) =>
+        fauxAssistantMessage([
+          fauxText(
+            `clamped to ${clampMaxTokensToContext({ ...model, contextWindow: 200_000 }, ctx, 8192)}`
+          )
+        ])
+    ])
+    const events = await collect(
+      runAgent(
+        input({
+          model,
+          contextMessages: [
+            { role: 'user', content: 'earlier', timestamp: 0 },
+            {
+              role: 'assistant',
+              content: [{ type: 'text', text: 'earlier answer' }],
+              timestamp: 0
+            } as unknown as Message
+          ]
+        })
+      )
+    )
+    expect(events.filter((e) => e.type === 'error')).toEqual([])
+    const end = events.find((e) => e.type === 'run_end')!
+    if (end.type !== 'run_end') throw new Error('no run_end')
+    expect(end.messages[0].content).toEqual([
+      { type: 'text', text: 'clamped to 8192' }
     ])
   })
 })

@@ -16,12 +16,12 @@ import { logger } from '../../logger'
 export async function errorHandler(err: Error, c: Context) {
   const appError: AppError = isAppError(err) ? err : toAppError(err)
 
-  // Always log non-operational (unexpected) errors with full detail
+  // Always log non-operational (unexpected) errors with full detail — the
+  // Error as it was caught, so its stack lands in `exception.stacktrace`.
   if (!appError.isOperational) {
     logger.error('server', 'Unhandled error', {
       code: appError.code,
-      error: String(err),
-      stack: err?.stack
+      error: err
     })
   }
 

@@ -1,5 +1,6 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { ChatMessage } from '@exodus/shared/types/chat'
+import { splitQuoted } from '@exodus/shared/utils/quoted-text'
 import { memo, type RefObject, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -52,13 +53,19 @@ export const ChatToc = memo(ChatTocImpl, (prev, next) => {
   )
 })
 
+/** A message asked about a selection is named by its question. */
+function outlineText(text: string): string {
+  const { quote, body } = splitQuoted(text)
+  return body || quote || ''
+}
+
 function ChatTocImpl({ scrollContainerRef, messages }: ChatTocProps) {
   const { t } = useTranslation('chat')
   const entries: TocEntry[] = messages
     .filter((m) => m.role === 'user')
     .map((m) => ({
       id: m.id,
-      text: userMessageText(m) || t('toc.fallbackLabel')
+      text: outlineText(userMessageText(m)) || t('toc.fallbackLabel')
     }))
 
   const [activeId, setActiveId] = useState<string | null>(null)

@@ -457,11 +457,11 @@
       },
       "maxResults": {
         "label": "Risultati massimi",
-        "description": "Numero di risultati di ricerca per query (1-50). Predefinito: 10."
+        "description": "Fonti restituite da una ricerca (1–20). Predefinito: 10."
       },
       "deepRecall": {
         "label": "Recall approfondito",
-        "description": "Esegue una seconda ricerca web più ampia insieme alla chiamata di grounding e unisce i risultati aggiuntivi — forum, notizie e pagine che il filtro di grounding scarta. Recall più alto, circa il doppio dell'utilizzo dell'API Brave per ricerca."
+        "description": "Cerca con tre formulazioni della domanda e aggiunge un passaggio più ampio: forum, notizie, pagine che la prima ricerca scarta. Più fonti e più token per ricerca, e circa sei richieste a Brave invece di una."
       },
       "recency": {
         "label": "Filtro di recenza",
@@ -658,6 +658,10 @@
       "pageOf": "Pagina {{page}} di {{totalPages}}",
       "prev": "Prec",
       "next": "Succ"
+    },
+    "details": {
+      "stack": "Traccia dello stack",
+      "componentStack": "Stack dei componenti"
     }
   },
   "mcpServers": {

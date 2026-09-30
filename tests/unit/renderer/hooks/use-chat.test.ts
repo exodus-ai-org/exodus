@@ -167,6 +167,132 @@ describe('useChat', () => {
     ])
   })
 
+  // Regenerate groups (spec 2026-09-26). The server decides and stores the
+  // states; what the hook sets here is what the screen shows until it answers.
+  describe('regenerate groups', () => {
+    const asked = (id: string, extra: object = {}) =>
+      ({
+        id,
+        runId: id,
+        role: 'user',
+        content: 'why is the sky blue',
+        timestamp: 1,
+        ...extra
+      }) as ChatMessage
+    const answered = (runId: string, stopReason = 'stop') =>
+      ({
+        id: `${runId}-answer`,
+        runId,
+        role: 'assistant',
+        content: [{ type: 'text', text: 'because' }],
+        stopReason,
+        timestamp: 2
+      }) as unknown as ChatMessage
+
+    async function reopen(history: ChatMessage[]) {
+      function Reopened() {
+        latest = useChat({
+          id: 'chat-1',
+          chatTitle: 'Title',
+          api: '/api/v1/chat',
+          messages: history
+        })
+        return null
+      }
+      root = createRoot(document.createElement('div'))
+      await act(async () => root.render(createElement(Reopened)))
+    }
+
+    const states = () =>
+      latest.messages
+        .filter((m) => m.role === 'user')
+        .map((m) => [
+          m.id === latest.messages.at(-1)?.id ? 'new' : m.id,
+          m.attempt ?? null
+        ])
+    const sentBody = () =>
+      startStream.mock.calls.at(-1)![0].body as { messages: ChatMessage[] }
+
+    it('names the run it re-asks, and compares it with the new one', async () => {
+      await reopen([asked('u0'), answered('u0'), asked('g'), answered('g')])
+
+      await act(async () => latest.regenerate())
+
+      const sent = sentBody().messages.at(-1)!
+      expect(sent).toMatchObject({ role: 'user', alternateOf: 'g' })
+      expect(sent.id).not.toBe('g')
+      expect(states()).toEqual([
+        ['u0', null],
+        ['g', 'comparing'],
+        ['new', 'comparing']
+      ])
+    })
+
+    it('names the group, not the attempt, when regenerating again', async () => {
+      await reopen([
+        asked('g', { attempt: 'comparing' }),
+        answered('g'),
+        asked('r1', { alternateOf: 'g', attempt: 'comparing' }),
+        answered('r1')
+      ])
+
+      await act(async () => latest.regenerate())
+
+      expect(sentBody().messages.at(-1)).toMatchObject({ alternateOf: 'g' })
+      expect(states()).toEqual([
+        ['g', 'hidden'],
+        ['r1', 'comparing'],
+        ['new', 'comparing']
+      ])
+    })
+
+    it('an ordinary message sent mid-comparison keeps the newer answer', async () => {
+      await reopen([
+        asked('g', { attempt: 'comparing' }),
+        answered('g'),
+        asked('r1', { alternateOf: 'g', attempt: 'comparing' }),
+        answered('r1')
+      ])
+
+      await act(async () => latest.sendMessage({ text: 'and at sunset?' }))
+
+      const sent = sentBody().messages.at(-1)!
+      expect(sent.alternateOf ?? null).toBeNull()
+      expect(states()).toEqual([
+        ['g', 'folded'],
+        ['r1', 'chosen'],
+        ['new', null]
+      ])
+    })
+
+    it('leaves the messages of a chat with no group untouched', async () => {
+      const history = [asked('u0'), answered('u0')]
+      await reopen(history)
+
+      await act(async () => latest.sendMessage({ text: 'next' }))
+
+      expect(latest.messages[0]).toBe(history[0])
+      expect(latest.messages[1]).toBe(history[1])
+    })
+
+    it('keeps regenerate stable while the new answer streams', async () => {
+      await reopen([asked('g'), answered('g')])
+      await act(async () => latest.regenerate())
+      const { regenerate, sendMessage } = latest
+      const subscriber = startStream.mock.calls[0][0]
+        .subscriber as StreamSubscriber
+      const before = latest.messages
+
+      for (const text of ['b', 'be', 'because']) {
+        await act(async () =>
+          subscriber.onMessages([...before, assistantFrame(text)])
+        )
+        expect(latest.regenerate).toBe(regenerate)
+        expect(latest.sendMessage).toBe(sendMessage)
+      }
+    })
+  })
+
   it('does nothing when there is no question to repeat', async () => {
     await mount(() => ({}))
     await act(async () => latest.regenerate())

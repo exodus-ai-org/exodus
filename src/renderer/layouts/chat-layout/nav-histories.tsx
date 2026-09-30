@@ -1,6 +1,8 @@
+import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { useSetAtom } from 'jotai'
 import {
   ChevronRightIcon,
+  CopyIcon,
   Edit2Icon,
   MoreHorizontalIcon,
   StarIcon,
@@ -9,6 +11,7 @@ import {
 import { memo, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useParams } from 'react-router'
+import { sileo } from 'sileo'
 
 import {
   Collapsible,
@@ -34,6 +37,7 @@ import {
 } from '@/components/ui/sidebar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useChatHistory, useUpdateChat } from '@/hooks/use-chat-history'
+import { useClipboard } from '@/hooks/use-clipboard'
 import { compactRelativeTime } from '@/lib/relative-time'
 import { cn } from '@/lib/utils'
 import {
@@ -91,6 +95,15 @@ export const NavItems = memo(function NavItems({
   const setRenamedChatTitle = useSetAtom(renamedChatTitleAtom)
   const setToBeDeletedChat = useSetAtom(toBeDeletedChatAtom)
   const setOpenTabs = useSetAtom(openTabsAtom)
+  const { handleCopy } = useClipboard()
+
+  // The id is what another chat is given to read this one: pasted into a
+  // message, it lets the model look this conversation up (`lcm_describe`).
+  const copyId = async () => {
+    if (await handleCopy(chat.id)) {
+      sileo.success({ title: t('chat:sidebar.history.idCopied') })
+    }
+  }
 
   return (
     <SidebarMenuItem className={cn(className, 'h-8')}>
@@ -122,7 +135,10 @@ export const NavItems = memo(function NavItems({
       <DropdownMenu>
         <DropdownMenuTrigger
           render={
-            <SidebarMenuAction showOnHover>
+            <SidebarMenuAction
+              showOnHover
+              data-testid={TEST_IDS.chatLayout.historyItemMenu}
+            >
               <MoreHorizontalIcon />
               <span className="sr-only">{t('chat:sidebar.history.more')}</span>
             </SidebarMenuAction>
@@ -156,6 +172,13 @@ export const NavItems = memo(function NavItems({
           >
             <Edit2Icon className="text-muted-foreground" />
             <span>{t('chat:sidebar.history.rename')}</span>
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={copyId}
+            data-testid={TEST_IDS.chatLayout.copyChatId}
+          >
+            <CopyIcon className="text-muted-foreground" />
+            <span>{t('chat:sidebar.history.copyId')}</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => setToBeDeletedChat(chat)}>

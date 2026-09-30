@@ -18,6 +18,7 @@ import {
   updateDeepResearch
 } from '../../db/queries'
 import { logger } from '../../logger'
+import { stackFramesOf } from '../../logger/record'
 import { bindTraceAttributes } from '../../logger/trace-context'
 import { scrubSecrets } from '../../secrets/scrub'
 import { createDeepResearchSchema } from '../schemas/deep-research'
@@ -155,9 +156,11 @@ deepResearch.post('/', async (c) => {
       apiKey,
       braveApiKey
     ])
+    // The summary stands in for the message; the frames say where.
     logger.error('deep-research', 'Deep research job failed', {
       deepResearchId,
-      error: errorMessage
+      error: errorMessage,
+      'exception.stacktrace': stackFramesOf(error)
     })
 
     try {
@@ -180,7 +183,7 @@ deepResearch.post('/', async (c) => {
       // generic error response rather than leaving this silent.
       logger.error('deep-research', 'Failed to persist deep research failure', {
         deepResearchId,
-        error: String(persistError)
+        error: persistError
       })
       throw error
     }

@@ -143,10 +143,12 @@ describe('auto mode (a signed build)', () => {
       errorMessage: message,
       mode: 'auto'
     })
-    expect(logger.error).toHaveBeenCalledWith(
-      'app',
-      'Updater: error',
-      expect.objectContaining({ error: message })
+    // The Error itself, so the log carries its stack.
+    expect(logger.error).toHaveBeenCalledWith('app', 'Updater: error', {
+      error: expect.objectContaining({ message })
+    })
+    expect(vi.mocked(logger.error).mock.calls.at(-1)![2]!.error).toBeInstanceOf(
+      Error
     )
   })
 
@@ -296,7 +298,7 @@ describe('manual mode (an ad-hoc build that cannot validate its own updates)', (
     expect(logger.warn).toHaveBeenCalledWith(
       'app',
       'Updater: feed check failed',
-      { error: 'net::ERR_PROXY_CONNECTION_FAILED' }
+      { error: new Error('net::ERR_PROXY_CONNECTION_FAILED') }
     )
 
     netFetch.mockResolvedValueOnce(feedResponse(204))

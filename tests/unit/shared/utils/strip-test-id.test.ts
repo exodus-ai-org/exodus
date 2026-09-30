@@ -45,6 +45,32 @@ describe('stripDataTestId', () => {
     expect(out).toContain('aria-label={label}')
   })
 
+  it('keeps every line where it was, so a source map still names the right one', () => {
+    // The transform hands Vite no map of its own: what it removes must not
+    // move the lines after it.
+    const src = [
+      '<button',
+      '  type="button"',
+      '  data-testid={TEST_IDS.logger.traceFilterChip}',
+      '  onClick={() => {',
+      '    throw new Error("line 5")',
+      '  }}',
+      '>',
+      '  <b',
+      '    data-testid="x"',
+      '  />',
+      '</button>'
+    ].join('\n')
+    const out = stripDataTestId(src).split('\n')
+    expect(out).toHaveLength(src.split('\n').length)
+    expect(out.join('\n')).not.toContain('data-testid')
+    expect(out[4]).toBe('    throw new Error("line 5")')
+    expect(out[9]).toBe('  />')
+    // The attribute's own line is left empty.
+    expect(out[2]).toBe('')
+    expect(out[8]).toBe('')
+  })
+
   it('does not touch other attributes that hold template literals', () => {
     const src = '<label htmlFor={`row-${id}`} className="x" />'
     expect(stripDataTestId(src)).toBe(src)

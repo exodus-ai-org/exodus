@@ -10,12 +10,6 @@ export function subscribeQuickChatInput(
   window.electron.ipcRenderer.on('quick-chat-input', callback)
 }
 
-export function unsubscribeQuickChatInput(
-  callback: (_: IpcRendererEvent, input: string) => void
-) {
-  window.electron.ipcRenderer.removeListener('quick-chat-input', callback)
-}
-
 export function unsubscribeFindInPageResult(
   callback: (_: IpcRendererEvent, result: Result) => void
 ) {

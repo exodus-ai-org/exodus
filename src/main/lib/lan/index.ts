@@ -39,7 +39,7 @@ export function initLan(
 export async function syncLan(): Promise<void> {
   await listener?.sync().catch((error) => {
     logger.error('lan', 'Failed to sync the LAN listener', {
-      error: String(error)
+      error
     })
   })
 }

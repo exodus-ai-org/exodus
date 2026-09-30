@@ -7,6 +7,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 vi.mock('@main/lib/ai/utils/web-search-util', () => ({
   fetchWebSearch: vi.fn()
 }))
+const expandQuery = vi.fn()
+vi.mock('@main/lib/ai/utils/query-expansion', () => ({
+  expandQuery: (...args: unknown[]) => expandQuery(...args)
+}))
+vi.mock('@main/lib/ai/utils/model-util', () => ({
+  getModelFromProvider: () => ({ model: { id: 'm' }, apiKey: 'k' })
+}))
 
 const mockedFetchWebSearch = vi.mocked(fetchWebSearch)
 
@@ -34,6 +41,35 @@ const settings = {
 describe('webSearch tool', () => {
   beforeEach(() => {
     mockedFetchWebSearch.mockReset()
+    expandQuery.mockReset()
+    expandQuery.mockResolvedValue(['phrasing two', 'phrasing three'])
+  })
+
+  it('searches once, as asked, unless deep recall is switched on', async () => {
+    mockedFetchWebSearch.mockResolvedValue([result(1, 'https://example.com/1')])
+
+    await webSearch(settings).execute('call-1', { query: 'first query' })
+
+    expect(expandQuery).not.toHaveBeenCalled()
+    expect(mockedFetchWebSearch.mock.calls[0][0]).toMatchObject({
+      deep: false,
+      expandedQueries: []
+    })
+  })
+
+  it('fans out and adds the breadth pass with deep recall on', async () => {
+    mockedFetchWebSearch.mockResolvedValue([result(1, 'https://example.com/1')])
+    const deep = {
+      webSearch: { ...settings.webSearch, deepRecall: true }
+    } as Settings
+
+    await webSearch(deep).execute('call-1', { query: 'first query' })
+
+    expect(expandQuery).toHaveBeenCalledTimes(1)
+    expect(mockedFetchWebSearch.mock.calls[0][0]).toMatchObject({
+      deep: true,
+      expandedQueries: ['phrasing two', 'phrasing three']
+    })
   })
 
   it('keeps source ranks unique across searches in one tool binding', async () => {

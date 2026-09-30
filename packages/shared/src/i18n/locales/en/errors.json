@@ -66,7 +66,9 @@
     "INTERNAL_ERROR": "Internal server error occurred.",
     "UNKNOWN_ERROR": "An unknown error occurred.",
     "APP_LOCKED": "Application is locked.",
-    "APPROVAL_NOT_FOUND": "This request is no longer waiting for an answer."
+    "APPROVAL_NOT_FOUND": "This request is no longer waiting for an answer.",
+    "RUN_NOT_FOUND": "That answer is no longer in this chat.",
+    "ATTEMPT_LOCKED": "The conversation has moved on, so this answer can no longer be swapped."
   },
   "routeBoundary": {
     "title": "Something went wrong",

@@ -191,7 +191,7 @@ export async function connectHttpServer() {
 
       // Initialize cron scheduler after server is up
       initScheduler(emitToAll).catch((err) =>
-        logger.error('scheduler', 'Init error', { error: String(err) })
+        logger.error('scheduler', 'Init error', { error: err })
       )
       initJobQueue()
     }

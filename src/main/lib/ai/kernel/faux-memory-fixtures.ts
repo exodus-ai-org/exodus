@@ -46,3 +46,11 @@ export const MEMORY_USAGE_QUESTION = 'What kind of music do I like?'
  *  pauses (the e2e's `$HOME` is a scratch directory). */
 export const SECRET_READ_MESSAGE = 'Read my SSH private key, please.'
 export const SECRET_READ_PATH = '~/.ssh/id_rsa'
+
+/** The question `tests/e2e/regenerate-compare.spec.ts` asks and then asks
+ *  again (Regenerate). `faux-boot.ts` answers it with the next take each
+ *  time, so the two sides of a comparison can be told apart — a regenerate's
+ *  request is the first ask's, word for word. */
+export const COMPARE_QUESTION = 'Give me your take on tabs versus spaces.'
+export const compareAnswer = (take: number) =>
+  `Take ${take}: it depends on the team.`

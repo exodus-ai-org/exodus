@@ -2,6 +2,7 @@ import { TOOL_NAMES } from '@exodus/shared/constants/tool-names'
 import type {
   AssistantTurn,
   ChatAssistantMessage,
+  CompareSegment,
   ChatMessage,
   ChatStatus,
   ChatToolResultMessage,
@@ -9,9 +10,11 @@ import type {
   RunError,
   Segment,
   TextContent,
-  TimelineStep
+  TimelineStep,
+  TurnBlock
 } from '@exodus/shared/types/chat'
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
+import { isLocked, runAttemptInfos } from '@exodus/shared/utils/attempts'
 import { capitalCase } from 'change-case'
 import { ArrowDownIcon } from 'lucide-react'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -22,39 +25,50 @@ import { Button } from '@/components/ui/button'
 import { useDiscoverFeed } from '@/hooks/use-discover-feed'
 import { useSettings } from '@/hooks/use-settings'
 import { i18n } from '@/lib/i18n'
-import { ENTER, ENTER_UP } from '@/lib/motion'
+import { ENTER_UP } from '@/lib/motion'
 import { userMessageText } from '@/lib/user-message-text'
 import { cn } from '@/lib/utils'
 
-import { collectImageGenerations } from './calling-tools/image-generation/collect-image-generations'
-import { ImageGenerationCard } from './calling-tools/image-generation/image-generation-card'
-import { ErrorBoundary, RenderFailed } from './card-error-boundary'
+import { hasToolCard } from './calling-tools/tool-cards'
 import { ChatToc } from './chat-toc'
-import { MemoryChangeStrip } from './chat/memory-change-strip'
-import { RunApprovals } from './chat/run-approvals'
-import { UsedMemories } from './chat/used-memories'
+import { AssistantTurnSegment } from './chat/assistant-turn-segment'
+import { COMPARE_FRAME, CompareTurns } from './chat/compare-turns'
+import { UserBubble } from './chat/user-bubble'
 import { DiscoverFeed } from './home/discover-feed'
-import Markdown from './markdown'
-import { MessageAction } from './massage-action'
 import { MessageSpinner, shouldShowMessageSpinner } from './message-spinner'
-import { MessageCallingTools } from './messages-calling-tools'
-import { ThinkingTimeline } from './thinking-timeline'
-import { collectGalleryImages } from './web-search/collect-gallery-images'
-import { collectGalleryVideos } from './web-search/collect-gallery-videos'
-import { ImageGallery } from './web-search/image-gallery'
-import { VideoCards } from './web-search/video-cards'
 
 type MessagesProps = {
   chatId: string
   status: ChatStatus
   messages: ChatMessage[]
   regenerate: () => void
+  /** Keeps one answer of a regenerate group (`useChooseAttempt`). */
+  chooseAttempt: (runId: string) => void
   showDiscover?: boolean
   /** The run that failed last; its message shows the error at its foot. */
   runError?: RunError | null
 }
 
 const AT_BOTTOM_THRESHOLD = 80
+
+/** Whether a run has an answer on screen, its own or in a comparison. */
+function showsRun(segments: Segment[], runId: string): boolean {
+  return segments.some((s) =>
+    s.type === 'assistantTurn'
+      ? s.turn.runId === runId
+      : s.type === 'compare' && s.columns.some((turn) => turn.runId === runId)
+  )
+}
+
+/** The questions on screen, in order: what the navigation rail lists. */
+function questionsOf(segments: Segment[]): ChatMessage[] {
+  const questions: ChatMessage[] = []
+  for (const segment of segments) {
+    if (segment.type === 'user') questions.push(segment.message)
+    else if (segment.type === 'compare') questions.push(segment.question)
+  }
+  return questions
+}
 
 const UserSegment = memo(function UserSegment({
   message,
@@ -95,205 +109,10 @@ const UserSegment = memo(function UserSegment({
             )}
           </div>
         )}
-      <p className="bg-secondary text-foreground max-w-[75%] rounded-2xl rounded-br-sm px-4 py-2.5 text-base leading-relaxed wrap-break-word whitespace-pre-wrap">
-        {userMessageText(message)}
-      </p>
+      <UserBubble text={userMessageText(message)} />
     </div>
   )
 })
-
-type AssistantTurnSegmentProps = {
-  chatId: string
-  turn: AssistantTurn
-  // All web-search sources seen in the chat up to and including this turn.
-  // Citations (【N-source】) can reference searches run in earlier turns, so
-  // badge resolution must use this cumulative set, not just the turn's own
-  // results. Built in chat order, so the rank map ends up last-wins for the
-  // rare case where a later turn re-runs a search with reset numbering.
-  citationSources?: WebSearchResult[]
-  isStreaming: boolean
-  regenerate: () => void
-  /** The provider's error, when this run ended in one. */
-  error?: string
-  /** A reply to a message sent during this visit: it fades in under the dots. */
-  fresh: boolean
-}
-
-const AssistantTurnSegment = memo(
-  function AssistantTurnSegment({
-    chatId,
-    turn,
-    citationSources,
-    isStreaming,
-    regenerate,
-    error,
-    fresh
-  }: AssistantTurnSegmentProps) {
-    const { t } = useTranslation('chat')
-    // The turn's own searches drive the per-turn "Sources" panel; the
-    // cumulative set drives inline citation badges.
-    const ownSources =
-      turn.webSearchResults.length > 0 ? turn.webSearchResults : undefined
-    const citationResults =
-      citationSources && citationSources.length > 0
-        ? citationSources
-        : undefined
-    const galleryImages = useMemo(
-      () => collectGalleryImages(turn.webSearchResults),
-      [turn.webSearchResults]
-    )
-    const galleryVideos = useMemo(
-      () => collectGalleryVideos(turn.webSearchResults),
-      [turn.webSearchResults]
-    )
-    // A call still waiting for its result is forming only while the run
-    // streams; in a run that was stopped it never will, so it shows nothing.
-    const imageGenerations = useMemo(
-      () =>
-        collectImageGenerations(turn.messages).filter(
-          (call) => call.result || isStreaming
-        ),
-      [turn.messages, isStreaming]
-    )
-
-    return (
-      <div
-        className={cn(
-          'mb-8 flex flex-col items-start last:mb-4',
-          fresh && ENTER
-        )}
-      >
-        <div className="w-full min-w-0">
-          {(turn.steps.length > 0 || isStreaming) && (
-            <ThinkingTimeline
-              steps={turn.steps}
-              durationMs={turn.durationMs}
-              isStreaming={isStreaming && turn.body.length === 0}
-            />
-          )}
-
-          {turn.toolCards.map((toolResult) => (
-            <ErrorBoundary
-              key={toolResult.id}
-              scope="tool-card"
-              attributes={{
-                toolName: toolResult.toolName,
-                toolCallId: toolResult.toolCallId
-              }}
-              fallback={
-                <RenderFailed what={capitalCase(toolResult.toolName)} />
-              }
-            >
-              <MessageCallingTools
-                chatId={chatId}
-                toolResult={toolResult}
-                isStreaming={isStreaming}
-              />
-            </ErrorBoundary>
-          ))}
-
-          {imageGenerations.map((call) => (
-            <ErrorBoundary
-              key={call.toolCallId}
-              scope="tool-card"
-              attributes={{
-                toolName: TOOL_NAMES.imageGeneration,
-                toolCallId: call.toolCallId
-              }}
-              fallback={
-                <RenderFailed what={capitalCase(TOOL_NAMES.imageGeneration)} />
-              }
-            >
-              <ImageGenerationCard prompt={call.prompt} result={call.result} />
-            </ErrorBoundary>
-          ))}
-
-          {/* One run, one body: every assistant text block of the run joined
-              in order — the text after a tool step is the next paragraph,
-              not the next message — with one action bar. */}
-          {(turn.body.length > 0 || error) && (
-            <section className="group relative">
-              {turn.body.length > 0 && (
-                <ErrorBoundary
-                  scope="markdown"
-                  attributes={{ runId: turn.runId }}
-                  // The words are still worth reading when the markup is not.
-                  fallback={
-                    <pre className="font-sans whitespace-pre-wrap">
-                      {turn.body}
-                    </pre>
-                  }
-                >
-                  <Markdown
-                    src={turn.body}
-                    webSearchResults={citationResults}
-                  />
-                </ErrorBoundary>
-              )}
-              {galleryImages.length > 0 && (
-                <ImageGallery images={galleryImages} />
-              )}
-              {galleryVideos.length > 0 && (
-                <VideoCards videos={galleryVideos} />
-              )}
-              {error && (
-                <p role="alert" className="text-destructive mt-3 text-sm">
-                  {t('run.error', { message: error })}
-                </p>
-              )}
-              {turn.body.length > 0 && (
-                <MessageAction
-                  regenerate={regenerate}
-                  content={turn.body}
-                  webSearchResults={ownSources}
-                  timestamp={turn.timestamp}
-                />
-              )}
-            </section>
-          )}
-
-          {/* The run's foot: a tool call waiting for the user's approval,
-              and the run's memory (which entries it read, what it changed) —
-              here rather than in the timeline, which folds when the run ends.
-              Each renders nothing when there is nothing to say (`empty:`). */}
-          <div className="mt-2 flex flex-col gap-2 empty:hidden">
-            <RunApprovals
-              chatId={chatId}
-              runId={turn.runId}
-              active={isStreaming}
-            />
-            <UsedMemories chatId={chatId} runId={turn.runId} />
-            <MemoryChangeStrip messages={turn.messages} active={isStreaming} />
-          </div>
-        </div>
-      </div>
-    )
-  },
-  // During streaming, only the active turn changes — older turns rebuild structurally
-  // equal `turn` objects each token. Skip them by checking message references.
-  function arePropsEqual(
-    prev: AssistantTurnSegmentProps,
-    next: AssistantTurnSegmentProps
-  ) {
-    if (
-      prev.chatId !== next.chatId ||
-      prev.isStreaming !== next.isStreaming ||
-      prev.regenerate !== next.regenerate ||
-      prev.citationSources !== next.citationSources ||
-      prev.error !== next.error ||
-      prev.fresh !== next.fresh
-    ) {
-      return false
-    }
-    const prevMsgs = prev.turn.messages
-    const nextMsgs = next.turn.messages
-    if (prevMsgs.length !== nextMsgs.length) return false
-    for (let i = 0; i < prevMsgs.length; i++) {
-      if (prevMsgs[i] !== nextMsgs[i]) return false
-    }
-    return true
-  }
-)
 
 /**
  * Build a timeline preview for a tool call. Most tools get an inline
@@ -366,9 +185,61 @@ function withInline(label: string, value: string): { text: string } {
   return { text: value ? `${label}: ${value}` : label }
 }
 
+type CardBlock = Exclude<TurnBlock, { kind: 'text' }>
+
+/**
+ * A turn's blocks as they are built: text goes to the text before it when
+ * nothing with a card stands between them, and a card's place is where its
+ * call was made — so a block is only ever added at the end, and a run that
+ * called nothing with a card is one text, as it always was.
+ */
+function createBlocks() {
+  const blocks: TurnBlock[] = []
+  const cards = new Map<string, CardBlock>()
+  let texts = 0
+
+  const card = (block: CardBlock) => {
+    blocks.push(block)
+    cards.set(block.key, block)
+  }
+
+  return {
+    blocks,
+    text(text: string) {
+      const last = blocks.at(-1)
+      if (last?.kind === 'text') last.text += `\n\n${text}`
+      else blocks.push({ kind: 'text', key: `text:${texts++}`, text })
+    },
+    call(id: string, name: string, args?: Record<string, unknown>) {
+      if (name === TOOL_NAMES.imageGeneration) {
+        const prompt = typeof args?.prompt === 'string' ? args.prompt : ''
+        card({ kind: 'image', key: id, prompt })
+      } else if (hasToolCard(name)) {
+        card({ kind: 'tool', key: id, toolName: name })
+      }
+    },
+    result(result: ChatToolResultMessage) {
+      const { toolCallId: id, toolName } = result
+      const held = cards.get(id)
+      if (held?.kind === 'tool' && result.isError) {
+        // A failed tool is a line of the timeline, not a card.
+        blocks.splice(blocks.indexOf(held), 1)
+      } else if (held) {
+        held.result = result
+      } else if (toolName === TOOL_NAMES.imageGeneration) {
+        // A result whose call the run does not hold: a row from before calls
+        // were kept. Its card goes where the result arrived.
+        card({ kind: 'image', key: id, prompt: '', result })
+      } else if (!result.isError && hasToolCard(toolName ?? '')) {
+        card({ kind: 'tool', key: id, toolName, result })
+      }
+    }
+  }
+}
+
 /**
  * A run's assistant/toolResult messages as one turn: thinking and tools as a
- * timeline above one body of text.
+ * timeline above the answer — its text and its tools' cards, in run order.
  */
 function buildAssistantTurn(
   runId: string,
@@ -376,6 +247,7 @@ function buildAssistantTurn(
 ): AssistantTurn {
   const steps: TimelineStep[] = []
   const texts: string[] = []
+  const answer = createBlocks()
   let timestamp = 0
   const pendingToolCalls: AssistantTurn['pendingToolCalls'] = []
   const toolCards: ChatToolResultMessage[] = []
@@ -397,8 +269,10 @@ function buildAssistantTurn(
             codeArgument: preview.codeArgument
           })
           pendingToolCalls.push({ name: block.name, id: block.id })
+          answer.call(block.id, block.name, block.arguments)
         } else if (block.type === 'text' && block.text.trim()) {
           texts.push(block.text)
+          answer.text(block.text)
         }
       }
     } else if (msg.role === 'toolResult') {
@@ -410,6 +284,7 @@ function buildAssistantTurn(
         (tc) => tc.id === toolResult.toolCallId
       )
       if (pendingIdx >= 0) pendingToolCalls.splice(pendingIdx, 1)
+      answer.result(toolResult)
 
       if (toolResult.isError) {
         // react-doctor/js-index-maps: false positive — one-shot lookup on a
@@ -490,6 +365,7 @@ function buildAssistantTurn(
     runId,
     messages: turnMessages,
     steps,
+    blocks: answer.blocks,
     body,
     timestamp,
     pendingToolCalls,
@@ -523,46 +399,70 @@ function sameMessages(a: ChatMessage[], b: ChatMessage[]): boolean {
 }
 
 /**
- * Group messages into segments: a user message, or the assistant + toolResult
- * messages of one run (keyed by `runId`). A message without a `runId` — a
- * fixture, a row older than the column — joins the run of the user message
- * before it, which is the same grouping.
+ * Group messages into segments: a user message, the assistant + toolResult
+ * messages of one run (keyed by `runId`), or a regenerate group — its question
+ * and the answers on show — where the group's first run stands. A message
+ * without a `runId` — a fixture, a row older than the column — joins the run
+ * of the user message before it, which is the same grouping.
  */
 // eslint-disable-next-line react-refresh/only-export-components -- pure helper, exported for tests
 export function groupIntoSegments(
   messages: ChatMessage[],
   cache?: SegmentCache
 ): Segment[] {
-  const segments: Segment[] = []
+  // `null` holds the place of a group until all of its messages are in.
+  const segments: Array<Segment | null> = []
   const seen: SegmentCache = new Map()
   let turnBuffer: ChatMessage[] = []
   let turnRunId = ''
   let currentRun = ''
 
+  const runs = runAttemptInfos(messages)
+  const groupOfRun = regenerateGroups(runs)
+  const groups = new Map<string, { at: number; messages: ChatMessage[] }>()
+
+  const turnOf = (runId: string, turnMessages: ChatMessage[]) => {
+    const key = `run:${runId}`
+    const cached = cache?.get(key)
+    const segment: Segment =
+      cached?.type === 'assistantTurn' &&
+      sameMessages(cached.turn.messages, turnMessages)
+        ? cached
+        : {
+            type: 'assistantTurn',
+            turn: buildAssistantTurn(runId, turnMessages)
+          }
+    seen.set(key, segment)
+    return segment
+  }
+
   const flushTurn = () => {
     if (turnBuffer.length > 0) {
-      const key = `run:${turnRunId}`
-      const cached = cache?.get(key)
-      const segment: Segment =
-        cached?.type === 'assistantTurn' &&
-        sameMessages(cached.turn.messages, turnBuffer)
-          ? cached
-          : {
-              type: 'assistantTurn',
-              turn: buildAssistantTurn(turnRunId, turnBuffer)
-            }
-      seen.set(key, segment)
-      if (segment.type === 'assistantTurn' && segment.turn.hasContent) {
-        segments.push(segment)
-      }
+      const segment = turnOf(turnRunId, turnBuffer)
+      if (segment.turn.hasContent) segments.push(segment)
       turnBuffer = []
     }
   }
 
   for (const msg of messages) {
-    if (msg.role === 'user') {
+    const runId =
+      msg.role === 'user'
+        ? (msg.runId ?? msg.id)
+        : (msg.runId ?? currentRun ?? msg.id)
+    const groupId = groupOfRun.get(runId)
+    if (groupId) {
       flushTurn()
-      currentRun = msg.runId ?? msg.id
+      if (msg.role === 'user') currentRun = runId
+      let group = groups.get(groupId)
+      if (!group) {
+        group = { at: segments.length, messages: [] }
+        groups.set(groupId, group)
+        segments.push(null)
+      }
+      group.messages.push(msg)
+    } else if (msg.role === 'user') {
+      flushTurn()
+      currentRun = runId
       const key = `user:${msg.id}`
       const cached = cache?.get(key)
       const segment: Segment =
@@ -572,7 +472,6 @@ export function groupIntoSegments(
       seen.set(key, segment)
       segments.push(segment)
     } else {
-      const runId = msg.runId ?? currentRun ?? msg.id
       if (turnBuffer.length > 0 && runId !== turnRunId) flushTurn()
       turnRunId = runId
       turnBuffer.push(msg)
@@ -580,18 +479,113 @@ export function groupIntoSegments(
   }
   flushTurn()
 
+  for (const [groupId, group] of groups) {
+    const key = `group:${groupId}`
+    const locked = isLocked(runs, groupId)
+    const cached = cache?.get(key)
+    const segment =
+      cached?.type === 'compare' &&
+      cached.locked === locked &&
+      sameMessages(cached.messages, group.messages)
+        ? cached
+        : buildCompareSegment(groupId, group.messages, locked, turnOf)
+    if (!segment) continue
+    // A reused segment's turns are in use too: they stay in the cache.
+    if (segment === cached) {
+      for (const turn of [...segment.columns, segment.folded]) {
+        if (turn) turnOf(turn.runId, turn.messages)
+      }
+    }
+    seen.set(key, segment)
+    segments[group.at] = segment
+  }
+
   // Keep only what this pass saw, so a long-lived cache can't outgrow the chat.
   if (cache) {
     cache.clear()
     for (const [key, segment] of seen) cache.set(key, segment)
   }
 
-  return segments
+  return segments.filter((segment) => segment !== null)
+}
+
+/**
+ * The group each run of a regenerate group belongs to, by run id: every run
+ * that re-asks another (`alternateOf`) or carries a state, and the run they
+ * name. An ordinary run is in no group.
+ */
+function regenerateGroups(
+  runs: ReturnType<typeof runAttemptInfos>
+): Map<string, string> {
+  const groupIds = new Set<string>()
+  for (const run of runs) {
+    if (run.alternateOf || run.attempt) {
+      groupIds.add(run.alternateOf ?? run.runId)
+    }
+  }
+  const groupOfRun = new Map<string, string>()
+  if (groupIds.size === 0) return groupOfRun
+  for (const run of runs) {
+    const groupId = run.alternateOf ?? run.runId
+    if (groupIds.has(groupId)) groupOfRun.set(run.runId, groupId)
+  }
+  return groupOfRun
+}
+
+/**
+ * A regenerate group's messages as what is on show: the newest two answers
+ * that are neither folded nor hidden (one, once the group is settled), and
+ * the folded one. `null` for a group with nothing to show.
+ */
+function buildCompareSegment(
+  groupId: string,
+  messages: ChatMessage[],
+  locked: boolean,
+  turnOf: (
+    runId: string,
+    messages: ChatMessage[]
+  ) => Extract<Segment, { type: 'assistantTurn' }>
+): CompareSegment | null {
+  const runs = new Map<string, { asked: ChatMessage; rest: ChatMessage[] }>()
+  let current = ''
+  for (const msg of messages) {
+    if (msg.role === 'user') {
+      current = msg.runId ?? msg.id
+      runs.set(current, { asked: msg, rest: [] })
+    } else {
+      runs.get(msg.runId ?? current)?.rest.push(msg)
+    }
+  }
+
+  const shown: Array<{ asked: ChatMessage; turn: AssistantTurn }> = []
+  let folded: AssistantTurn | null = null
+  for (const [runId, { asked, rest }] of runs) {
+    const attempt = asked.role === 'user' ? asked.attempt : null
+    if (attempt === 'hidden') continue
+    const { turn } = turnOf(runId, rest)
+    if (attempt === 'folded') folded = turn
+    else shown.push({ asked, turn })
+  }
+  if (shown.length === 0 && folded === null) return null
+
+  const columns = shown.slice(-2)
+  return {
+    type: 'compare',
+    groupId,
+    question: columns[0]?.asked ?? messages[0],
+    columns:
+      columns.length > 0
+        ? columns.map((c) => c.turn)
+        : [folded as AssistantTurn],
+    folded: columns.length > 0 ? folded : null,
+    locked,
+    messages
+  }
 }
 
 /** What `buildCitationSources` returned last time, to reuse arrays from. */
 export interface CitationSourcesCache {
-  turns: Segment[]
+  turns: AssistantTurn[]
   sources: WebSearchResult[][]
 }
 
@@ -602,29 +596,43 @@ export interface CitationSourcesCache {
  * did; otherwise the previous array is handed back, because `Markdown` is
  * memoized on its identity: a fresh array per frame re-parsed every message in
  * any chat that had run a web search.
+ *
+ * The answers of a regenerate group are attempts at one question: each sees
+ * what came before the group and its own sources, never the other's; what
+ * follows the group sees the answers on show.
  */
 // eslint-disable-next-line react-refresh/only-export-components -- pure helper, exported for tests
 export function buildCitationSources(
   segments: Segment[],
   cache?: CitationSourcesCache
-): Map<Segment, WebSearchResult[]> {
-  const map = new Map<Segment, WebSearchResult[]>()
-  const turns: Segment[] = []
+): Map<AssistantTurn, WebSearchResult[]> {
+  const map = new Map<AssistantTurn, WebSearchResult[]>()
+  const turns: AssistantTurn[] = []
   const sources: WebSearchResult[][] = []
   const acc: WebSearchResult[] = []
   let prefixUnchanged = cache !== undefined
 
-  for (const segment of segments) {
-    if (segment.type !== 'assistantTurn') continue
-    if (segment.turn.webSearchResults.length > 0) {
-      acc.push(...segment.turn.webSearchResults)
-    }
+  const record = (turn: AssistantTurn, build: () => WebSearchResult[]) => {
     const i = turns.length
-    prefixUnchanged = prefixUnchanged && cache?.turns[i] === segment
-    const forTurn = prefixUnchanged && cache ? cache.sources[i] : acc.slice()
-    turns.push(segment)
+    prefixUnchanged = prefixUnchanged && cache?.turns[i] === turn
+    const forTurn = prefixUnchanged && cache ? cache.sources[i] : build()
+    turns.push(turn)
     sources.push(forTurn)
-    map.set(segment, forTurn)
+    map.set(turn, forTurn)
+  }
+
+  for (const segment of segments) {
+    if (segment.type === 'assistantTurn') {
+      acc.push(...segment.turn.webSearchResults)
+      record(segment.turn, () => acc.slice())
+    } else if (segment.type === 'compare') {
+      const before = acc.slice()
+      for (const turn of [...segment.columns, segment.folded]) {
+        if (!turn) continue
+        record(turn, () => [...before, ...turn.webSearchResults])
+      }
+      for (const turn of segment.columns) acc.push(...turn.webSearchResults)
+    }
   }
 
   if (cache) {
@@ -639,6 +647,7 @@ function Messages({
   status,
   messages,
   regenerate,
+  chooseAttempt,
   showDiscover,
   runError
 }: MessagesProps) {
@@ -686,6 +695,10 @@ function Messages({
   const [openedWith] = useState(() => new Set(messages.map((m) => m.id)))
   const isFresh = (runId: string) => !openedWith.has(runId)
 
+  // The rail lists what is on screen: a regenerate group asks its question
+  // once, however many attempts stand behind it.
+  const questions = useMemo(() => questionsOf(segments), [segments])
+
   // Keyed by the segment object (same memoized refs used in render below).
   const citationSourcesByTurn = useMemo(
     () => buildCitationSources(segments, caches.citations),
@@ -730,7 +743,9 @@ function Messages({
     <div className="relative flex min-w-0 flex-1 flex-col overflow-hidden">
       <section
         className={cn(
-          'no-scrollbar flex flex-1 flex-col items-center gap-8 overflow-y-scroll px-16 pt-4 transition-[padding] duration-200 ease-out',
+          // A query container: a comparison takes its width from the chat
+          // area (`cqw`), not from the reading column it stands in.
+          'no-scrollbar @container flex flex-1 flex-col items-center gap-8 overflow-y-scroll px-16 pt-4 transition-[padding] duration-200 ease-out',
           // Room for the floating composer to clear the last message — but
           // only once it's floating (the landing screen keeps it in flow).
           messages.length === 0 ? 'pb-6' : 'pb-36'
@@ -778,12 +793,38 @@ function Messages({
             const isLastSegment = segIdx === segments.length - 1
             const turnIsStreaming = isLoading && isLastSegment
 
+            if (segment.type === 'compare') {
+              // While two answers are compared the group — its question
+              // too — takes the width of the chat.
+              return (
+                <div
+                  key={`group-${segment.groupId}`}
+                  className={cn(segment.columns.length > 1 && COMPARE_FRAME)}
+                >
+                  <UserSegment
+                    message={segment.question}
+                    fresh={isFresh(segment.groupId)}
+                  />
+                  <CompareTurns
+                    chatId={chatId}
+                    segment={segment}
+                    citationSources={citationSourcesByTurn}
+                    streaming={turnIsStreaming}
+                    regenerate={regenerate}
+                    choose={chooseAttempt}
+                    runError={runError}
+                    opened={openedWith}
+                  />
+                </div>
+              )
+            }
+
             return (
               <AssistantTurnSegment
                 key={`run-${segment.turn.runId}`}
                 chatId={chatId}
                 turn={segment.turn}
-                citationSources={citationSourcesByTurn.get(segment)}
+                citationSources={citationSourcesByTurn.get(segment.turn)}
                 isStreaming={turnIsStreaming}
                 regenerate={regenerate}
                 fresh={isFresh(segment.turn.runId)}
@@ -798,28 +839,24 @@ function Messages({
 
           {/* A run that failed before any step completed has no turn to
               carry its error; it shows under the prompt. */}
-          {runError &&
-            !segments.some(
-              (s) =>
-                s.type === 'assistantTurn' && s.turn.runId === runError.runId
-            ) && (
-              <p role="alert" className="text-destructive mb-8 text-sm">
-                {t('run.error', { message: runError.message })}
-              </p>
-            )}
+          {runError && !showsRun(segments, runError.runId) && (
+            <p role="alert" className="text-destructive mb-8 text-sm">
+              {t('run.error', { message: runError.message })}
+            </p>
+          )}
 
           {shouldShowMessageSpinner(segments, isLoading) && <MessageSpinner />}
         </div>
       </section>
 
-      <ChatToc scrollContainerRef={chatBoxRef} messages={messages} />
+      <ChatToc scrollContainerRef={chatBoxRef} messages={questions} />
 
       {showScrollButton && messages.length > 0 && (
         <Button
           variant="secondary"
           size="icon-lg"
           onClick={() => scrollToBottom('smooth')}
-          className="absolute bottom-24 left-1/2 z-30 -translate-x-1/2 rounded-full border shadow-md"
+          className="absolute bottom-24 left-1/2 z-10 -translate-x-1/2 rounded-full border shadow-md"
           aria-label={t('messageList.scrollToBottom')}
         >
           <ArrowDownIcon />

@@ -181,6 +181,24 @@ describe('POST /api/v1/deep-research', () => {
       expect.objectContaining({ deepResearchId: DEEP_RESEARCH_ID })
     )
   })
+
+  it('logs where it was thrown: the frames, under the scrubbed summary', async () => {
+    deepResearchAgent.mockRejectedValue(
+      new Error(`upstream rejected key ${API_KEY} and brave key ${BRAVE_KEY}`)
+    )
+    await post({ deepResearchId: DEEP_RESEARCH_ID, query: 'x' })
+    const [, , detail] = error.mock.calls.find(
+      ([, message]) => message === 'Deep research job failed'
+    ) as [string, string, Record<string, string>]
+    expect(detail.error).toContain('••••')
+    expect(detail['exception.stacktrace']).toMatch(/^ {4}at /u)
+    expect(detail['exception.stacktrace']).toContain('deep-research.test.ts')
+    const written = JSON.stringify(detail)
+    expect(written).not.toContain(API_KEY)
+    expect(written).not.toContain(BRAVE_KEY)
+    // The message is in the summary, scrubbed; the frames carry none of it.
+    expect(detail['exception.stacktrace']).not.toContain('upstream rejected')
+  })
 })
 
 describe('summarizeDeepResearchError', () => {

@@ -101,7 +101,7 @@ export async function initMainI18n(): Promise<void> {
     } catch (err) {
       logger.error('i18n', 'Failed to change main-process locale', {
         locale: next,
-        error: String(err)
+        error: err
       })
     }
     return effective

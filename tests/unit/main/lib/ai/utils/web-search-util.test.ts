@@ -93,6 +93,158 @@ describe('fetchWebSearch — query fan-out merge', () => {
   })
 })
 
+// Owner's call, 2026-09-29: a person reads a page or two of results and
+// most articles repeat each other, so a search hands the model about ten
+// sources, not sixty. One request unless deep recall is on.
+describe('fetchWebSearch — how much one search brings back', () => {
+  const grounded = (n: number, host = (i: number) => `site${i}.example`) =>
+    Array.from({ length: n }, (_, i) => ({
+      url: `https://${host(i)}/page-${i}`,
+      title: `T${i}`,
+      snippets: [`s${i}`]
+    }))
+
+  const requests = () =>
+    fetchMock.mock.calls.map(([url]) => new URL(url as string))
+
+  it('is one request to the grounding endpoint, for ten sources', async () => {
+    fetchMock.mockResolvedValue(ctxResponse(grounded(3)))
+
+    await fetchWebSearch({ query: 'q', braveApiKey: 'k' })
+
+    expect(requests()).toHaveLength(1)
+    const [request] = requests()
+    expect(request.pathname).toBe('/res/v1/llm/context')
+    expect(request.searchParams.get('count')).toBe('10')
+    expect(request.searchParams.get('maximum_number_of_urls')).toBe('10')
+    expect(request.searchParams.get('maximum_number_of_tokens')).toBe('8192')
+    expect(request.searchParams.get('maximum_number_of_tokens_per_url')).toBe(
+      '2048'
+    )
+  })
+
+  it('takes the number of sources from the setting, up to twenty', async () => {
+    fetchMock.mockResolvedValue(ctxResponse(grounded(3)))
+
+    await fetchWebSearch({ query: 'q', braveApiKey: 'k', maxResults: 5 })
+    await fetchWebSearch({ query: 'q', braveApiKey: 'k', maxResults: 50 })
+
+    expect(requests().map((r) => r.searchParams.get('count'))).toEqual([
+      '5',
+      '20'
+    ])
+  })
+
+  it('hands over no more sources than that, however many came back', async () => {
+    fetchMock.mockResolvedValue(ctxResponse(grounded(15)))
+
+    const results = await fetchWebSearch({ query: 'q', braveApiKey: 'k' })
+
+    expect(results).toHaveLength(10)
+    expect(results?.map((r) => r.rank)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+  })
+
+  it('keeps two results of a site: the rest say the same thing', async () => {
+    fetchMock.mockResolvedValue(
+      ctxResponse([
+        ...grounded(5, () => 'finance.yahoo.com'),
+        ...grounded(2, () => 'www.yahoo.com').map((g, i) => ({
+          ...g,
+          url: `https://www.cnbc.com/story-${i}`
+        })),
+        {
+          url: 'https://reuters.example/x',
+          title: 'R',
+          snippets: ['r']
+        }
+      ])
+    )
+
+    const results = await fetchWebSearch({ query: 'q', braveApiKey: 'k' })
+
+    expect(results?.map((r) => r.link)).toEqual([
+      'https://finance.yahoo.com/page-0',
+      'https://finance.yahoo.com/page-1',
+      'https://www.cnbc.com/story-0',
+      'https://www.cnbc.com/story-1',
+      'https://reuters.example/x'
+    ])
+  })
+
+  it('with deep recall: three phrasings, a breadth pass, and still a bounded list', async () => {
+    fetchMock.mockImplementation((url: string) => {
+      const u = new URL(url)
+      const q = u.searchParams.get('q')
+      if (u.pathname.endsWith('/llm/context')) {
+        return Promise.resolve(
+          ctxResponse(grounded(8, (i) => `${q}-${i}.example`))
+        )
+      }
+      return Promise.resolve({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          web: {
+            results: Array.from({ length: 12 }, (_, i) => ({
+              url: `https://breadth-${q}-${i}.example/p`,
+              title: `B${i}`,
+              description: 'snippet'
+            }))
+          }
+        })
+      } as Response)
+    })
+
+    const results = await fetchWebSearch({
+      query: 'a',
+      braveApiKey: 'k',
+      deep: true,
+      expandedQueries: ['b', 'c']
+    })
+
+    expect(requests()).toHaveLength(6)
+    // Ten grounded sources and five breadth extras, not 24 + 15.
+    expect(results).toHaveLength(15)
+    expect(results?.filter((r) => r.link.includes('breadth-')).length).toBe(5)
+  })
+
+  it("numbers its sources after those of the chat's earlier runs", async () => {
+    fetchMock.mockResolvedValue(ctxResponse(grounded(3)))
+
+    const results = await fetchWebSearch({
+      query: 'q',
+      braveApiKey: 'k',
+      webSources: new Map(),
+      rankBase: 12
+    })
+
+    expect(results?.map((r) => r.rank)).toEqual([13, 14, 15])
+  })
+
+  it('brings back what it is asked to when the caller sets the limits', async () => {
+    fetchMock.mockResolvedValue(
+      ctxResponse(grounded(24, () => 'one-site.example'))
+    )
+
+    const results = await fetchWebSearch({
+      query: 'q',
+      braveApiKey: 'k',
+      limits: {
+        sources: 20,
+        perSite: Number.POSITIVE_INFINITY,
+        contextTokens: 16_384,
+        tokensPerSource: 8192,
+        breadth: 15
+      }
+    })
+
+    const [request] = requests()
+    expect(request.searchParams.get('count')).toBe('20')
+    expect(request.searchParams.get('maximum_number_of_tokens')).toBe('16384')
+    expect(results).toHaveLength(20)
+  })
+})
+
 describe('webResultsToSources', () => {
   it('flattens web + news + discussions, deduping by url', () => {
     const flat = webResultsToSources({

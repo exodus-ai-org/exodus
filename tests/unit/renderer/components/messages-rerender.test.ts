@@ -358,3 +358,70 @@ describe('<Messages> while a reply streams', () => {
     expect(approvalReads.get('u2')).toBe(settledApprovalReads.get('u2'))
   })
 })
+
+// A regenerate group above the run that streams: settled or still being
+// compared, its answers are not rendered again by the frames below them.
+describe('<Messages> with a regenerate group above a streaming run', () => {
+  const asked = (id: string, text: string, extra: object) =>
+    ({ ...user(id, text), ...extra }) as ChatMessage
+  const GROUP: ChatMessage[] = [
+    asked('g1', 'why is the sky blue', { attempt: 'folded' }),
+    webSearch('tg', 'g1'),
+    assistant('ag', 'First attempt 【1-source】', 'g1'),
+    asked('g2', 'why is the sky blue', {
+      alternateOf: 'g1',
+      attempt: 'chosen'
+    }),
+    assistant('ah', 'Second attempt', 'g2'),
+    user('u9', 'and at sunset?')
+  ]
+  const choose = vi.fn()
+  const regenerate = vi.fn()
+
+  it('renders the chosen answer once, whatever streams after it', async () => {
+    const root = createRoot(document.createElement('div'))
+    const show = (messages: ChatMessage[]) =>
+      act(async () =>
+        root.render(
+          createElement(Messages, {
+            chatId: 'chat-1',
+            status: 'streaming',
+            messages,
+            regenerate,
+            chooseAttempt: choose
+          })
+        )
+      )
+
+    await show(GROUP)
+    expect(markdownRenders.get('Second attempt')).toBe(1)
+    // The folded answer is behind its link: not drawn until it is opened.
+    expect(markdownRenders.get('First attempt 【1-source】')).toBeUndefined()
+
+    for (const text of ['Re', 'Redder', 'Redder, for the same reason.']) {
+      await show([...GROUP, assistant('a9', text, 'u9')])
+      expect(markdownRenders.get(text)).toBe(1)
+    }
+
+    expect(markdownRenders.get('Second attempt')).toBe(1)
+  })
+
+  it('gives the run after the group the sources of the answer that was kept', async () => {
+    const root = createRoot(document.createElement('div'))
+    await act(async () =>
+      root.render(
+        createElement(Messages, {
+          chatId: 'chat-1',
+          status: 'ready',
+          messages: [...GROUP, assistant('a9', 'Redder.', 'u9')],
+          regenerate,
+          chooseAttempt: choose
+        } as never)
+      )
+    )
+
+    // The folded attempt's search is not something a later answer can cite.
+    expect(sourcesSeen.get('Second attempt')).toBeUndefined()
+    expect(sourcesSeen.get('Redder.')).toBeUndefined()
+  })
+})

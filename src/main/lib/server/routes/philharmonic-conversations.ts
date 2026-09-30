@@ -234,7 +234,7 @@ router.post('/conversations/:id/messages', async (c) => {
     signal: controller.signal
   })
     .catch((err) =>
-      logger.error('philharmonic', 'PM loop error', { error: String(err) })
+      logger.error('philharmonic', 'PM loop error', { error: err })
     )
     .finally(() => {
       pmRunRegistry.clear(id)

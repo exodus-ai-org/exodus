@@ -210,6 +210,27 @@ export async function getMessagesByIds(ids: string[]) {
   return db.select().from(message).where(inArray(message.id, ids))
 }
 
+/** Every row of a chat, oldest first. */
+export async function getChatMessages(chatId: string) {
+  return db
+    .select()
+    .from(message)
+    .where(eq(message.chatId, chatId))
+    .orderBy(asc(message.createdAt))
+}
+
+/** The messages of a chat that a summary stands for. */
+export async function getSummarizedMessageIds(
+  chatId: string
+): Promise<Set<string>> {
+  const rows = await db
+    .select({ messageId: lcmSummaryMessages.messageId })
+    .from(lcmSummaryMessages)
+    .innerJoin(lcmSummary, eq(lcmSummary.id, lcmSummaryMessages.summaryId))
+    .where(eq(lcmSummary.chatId, chatId))
+  return new Set(rows.map((r) => r.messageId))
+}
+
 export async function getMessageById(id: string) {
   const [row] = await db.select().from(message).where(eq(message.id, id))
   return row ?? null

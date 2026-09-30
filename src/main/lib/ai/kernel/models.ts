@@ -12,6 +12,8 @@ import { googleProvider } from '@earendil-works/pi-ai/providers/google'
 import { openaiProvider } from '@earendil-works/pi-ai/providers/openai'
 import { xaiProvider } from '@earendil-works/pi-ai/providers/xai'
 
+import { loggingThrows } from './log-throws'
+
 /**
  * The process's one `Models` collection. pi 0.85 routes every request by
  * `model.provider` to a registered provider, which resolves auth and owns the
@@ -53,6 +55,18 @@ export function getKernelModels(): MutableModels {
   return models
 }
 
-/** What every `Agent` / `agentLoop` in the app streams through. */
-export const streamFn: StreamFn = (model, context, options) =>
-  getKernelModels().streamSimple(model, context, options)
+/**
+ * What every `Agent` / `agentLoop` in the app streams through. A throw from
+ * here is logged as the Error it is before pi reduces it to its message
+ * (`log-throws.ts`); a failure inside a provider never throws — pi resolves it
+ * to an `error` event on the stream.
+ */
+export const streamFn: StreamFn = loggingThrows<
+  Parameters<StreamFn>,
+  ReturnType<StreamFn>
+>(
+  'streamFn',
+  (model, context, options) =>
+    getKernelModels().streamSimple(model, context, options),
+  (model) => ({ provider: model.provider, model: model.id })
+)

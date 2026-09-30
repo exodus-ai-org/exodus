@@ -36,7 +36,24 @@ export interface CostBreakdown {
  * model step and tool result that answered it; the renderer groups by it and
  * the database indexes it (`message.runId`).
  */
-export type ChatUserMessage = UserMessage & { id: string; runId: string }
+export type ChatUserMessage = UserMessage & {
+  id: string
+  runId: string
+  /** Regenerate groups (spec 2026-09-26): the group's first run, on every
+   *  run a Regenerate created; null/absent on an ordinary run. */
+  alternateOf?: string | null
+  /** Where this run stands in its regenerate group; null/absent for an
+   *  ordinary run. Set only by the server. */
+  attempt?: Attempt | null
+}
+
+/**
+ * A regenerate group's run state, on its user row: `comparing` (one of the
+ * two answers shown side by side), `chosen` (the one kept), `folded` (the
+ * other one, behind "1 other version"), `hidden` (older than the newest two:
+ * never shown, never sent to the model).
+ */
+export type Attempt = 'comparing' | 'chosen' | 'folded' | 'hidden'
 export type ChatAssistantMessage = AssistantMessage & {
   id: string
   runId: string
@@ -198,12 +215,45 @@ export interface RunError {
   message: string
 }
 
-/** One run as the renderer shows it: a timeline of steps above one body. */
+/**
+ * One piece of a run's answer, top to bottom: a stretch of the model's text,
+ * or the card of a tool it called, placed where the call was made. Keys hold
+ * while the run streams — blocks are only added at the end, and the last text
+ * grows in place.
+ */
+export type TurnBlock =
+  | { kind: 'text'; key: string; text: string }
+  | {
+      kind: 'tool'
+      /** The call's id. */
+      key: string
+      toolName: string
+      /** Absent until the tool has answered. */
+      result?: ChatToolResultMessage
+    }
+  | {
+      kind: 'image'
+      /** The call's id. */
+      key: string
+      /** The prompt from the call's arguments ('' while it still streams). */
+      prompt: string
+      result?: ChatToolResultMessage
+    }
+
+/**
+ * One run as the renderer shows it: a timeline of steps above the answer's
+ * blocks.
+ */
 export interface AssistantTurn {
   runId: string
   messages: ChatMessage[]
   steps: TimelineStep[]
-  /** Every assistant text block of the run, in order, joined as paragraphs. */
+  /** The answer in the run's own order: text, a card, text… */
+  blocks: TurnBlock[]
+  /**
+   * Every assistant text block of the run, in order, joined as paragraphs —
+   * what Copy, read-aloud and the Sources panel take as "the answer".
+   */
   body: string
   /** Timestamp of the last assistant message (stream start). */
   timestamp: number
@@ -218,6 +268,28 @@ export interface AssistantTurn {
   webSearchResults: WebSearchResult[]
 }
 
+/**
+ * A regenerate group as the renderer shows it (spec 2026-09-26): the question
+ * once, and under it the answers on show — two side by side while they are
+ * compared, the chosen one after, with the other behind "1 other version".
+ */
+export interface CompareSegment {
+  type: 'compare'
+  /** The group's first run. */
+  groupId: string
+  /** The question, as the first answer on show asked it. */
+  question: ChatMessage
+  /** The answers on show, the earlier first: two while comparing, else one. */
+  columns: AssistantTurn[]
+  /** The answer that was not chosen. */
+  folded: AssistantTurn | null
+  /** A later run exists: the choice can no longer move. */
+  locked: boolean
+  /** Every message of the group's runs, in order: what this was built from. */
+  messages: ChatMessage[]
+}
+
 export type Segment =
   | { type: 'user'; message: ChatMessage }
   | { type: 'assistantTurn'; turn: AssistantTurn }
+  | CompareSegment

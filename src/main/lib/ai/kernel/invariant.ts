@@ -1,5 +1,18 @@
 import type { Message } from '@earendil-works/pi-ai'
 
+import { storedUsage } from '../utils/usage'
+
+/**
+ * An assistant message pi can read: pi takes `usage` off every one in a
+ * request. Context assembly puts it on the messages it rebuilds; this covers
+ * the history a client posted (LCM off), where nothing else has.
+ */
+export function withUsage(message: Message): Message {
+  if (message.role !== 'assistant') return message
+  const usage = storedUsage(message.usage)
+  return usage === message.usage ? message : { ...message, usage }
+}
+
 /**
  * The one shape a provider accepts: the list starts with a user message, and
  * every tool result follows its tool call. Context assembly builds lists in

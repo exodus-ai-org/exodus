@@ -41,10 +41,11 @@ function safeHandle(
       return await handler(...args)
     } catch (err) {
       const appError = toAppError(err)
+      // What was caught, not `appError`: wrapping gives a plain Error a new
+      // stack that starts here rather than where it was thrown.
       logger.error('app', `IPC handler "${channel}" failed`, {
         code: appError.code,
-        error: appError.message,
-        stack: appError.stack
+        error: err
       })
       throw appError
     }

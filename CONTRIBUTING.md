@@ -8,7 +8,7 @@ Exodus is an Electron app built on [electron-forge](https://www.electronforge.io
 
 ```bash
 bun install
-bun run start      # launch the app in dev mode
+bun run dev      # launch the app in dev mode
 bun run lint       # oxlint
 bun run fmt:check  # oxfmt
 bun run typecheck  # tsc, split across main/preload, renderer, and packages/shared

@@ -1,4 +1,4 @@
-import type { ApprovalOutcome } from '@exodus/shared/types/chat'
+import type { ApprovalOutcome, Attempt } from '@exodus/shared/types/chat'
 import { fetcher } from '@exodus/shared/utils/http'
 
 import { presenceHeaders } from '@/lib/presence'
@@ -24,3 +24,13 @@ export const decideApproval = async (payload: {
     body: payload,
     headers: await presenceHeaders()
   })
+
+/**
+ * Keep one answer of a regenerate group ("Use this one" / "Use this
+ * instead"). Answers with the states of the group's runs as stored.
+ */
+export const chooseAttempt = (chatId: string, runId: string) =>
+  fetcher<{ attempts: Record<string, Attempt> }>(
+    `/api/v1/chat/${chatId}/choose`,
+    { method: 'POST', body: { runId } }
+  )

@@ -52,7 +52,7 @@ you must uphold.
 ### Running the Application
 
 ```bash
-bun run start              # Start the dev build via electron-forge (Vite dev servers, hot reload)
+bun run dev              # Start the dev build via electron-forge (Vite dev servers, hot reload)
 ```
 
 ### Building
@@ -63,6 +63,11 @@ bun run make             # Build installers/archives (Squirrel, ZIP, DMG, deb, r
 bun run publish          # Publish a release to GitHub (needs GITHUB_TOKEN)
 bun run build:helper     # Rebuild the macOS Swift computer-use helper into resources/bin/exodus-input
 ```
+
+Every build (dev, `package`, `make`) writes hidden source maps beside the
+files in `.vite/`, and they ship inside `app.asar`: an error in the log names
+`src/…:line:column` instead of a position in a minified chunk. See
+`src/main/lib/logger/` and the Vite configs under Code Structure.
 
 ### Code Quality
 
@@ -132,7 +137,7 @@ Exodus uses a three-process architecture:
 Exodus is the successor of the older `universal-client` app and shares its
 `~/.exodus` layout, so a dev build sees the same chats, settings and memories:
 
-- **Data dir**: `~/.exodus` for packaged _and_ unpackaged runs (`bun run start`,
+- **Data dir**: `~/.exodus` for packaged _and_ unpackaged runs (`bun run dev`,
   `electron .`) — `getExodusHome()` in `src/main/lib/paths.ts`; startup logs the
   directory in use (`Data directory`); `~/.exodus/analytics` holds the DuckDB
   chat-audit snapshot; `~/.exodus/media/<chatId>/` holds generated images
@@ -160,7 +165,7 @@ Exodus is the successor of the older `universal-client` app and shares its
   (`<tmpdir>/exodus-e2e-home`); the electron fixture wipes `~/.exodus` under it
   before every test and throws at import unless `$HOME` is that dir. It also
   refuses to launch while anything answers on `localhost:60223`: the renderer
-  always talks to that port, so a running dev build (`bun run start`) would be
+  always talks to that port, so a running dev build (`bun run dev`) would be
   driven by the suite instead of the app under test — reading and writing the
   real `~/.exodus` through it. To test a
   packaged build by hand, sandbox `$HOME` and pass `--user-data-dir` the same way.
@@ -291,6 +296,28 @@ asar (the `.node` dlopens `libduckdb` beside itself). Research notes:
 
 ### Colour tone
 
+The accents are the owner's reference of 2026-09-29 (ChatGPT's accent
+colours) and the ones exodus-ios draws; neutral is shadcn's black and white.
+They are too light to be text, so a tone is a fill (`--primary`, with
+`--primary-foreground` on it) and an ink (`--primary-ink`: links, tinted
+text, focus rings, thin lines — `text-primary-ink`, never `text-primary`),
+plus `--bubble` for the user's message. `tests/unit/renderer/tone-palette.test.ts`
+holds the colours, their contrast and the class rule.
+
+**What leaves the app** (same date): Copy writes an answer's `【N-source】`
+markers as `[n]` with a References list under it (`lib/citation-references.ts`,
+the rule of the Deep Research PDF and of exodus-ios's copy); a `web_search`
+brings back about ten sources in one Brave request — two per site, 8k
+tokens — and deep recall (three phrasings plus a breadth pass, six requests)
+is off unless switched on (`SEARCH_LIMITS` in `ai/utils/web-search-util.ts`;
+Deep Research keeps its own volume, `DEEP_RESEARCH_LIMITS`). Sources are
+numbered through a chat, not per run: the tools' rank registry is made anew
+for every request, so the chat route hands `bindCallingTools` the highest
+number the conversation has got to (`highestSourceRank()` in
+`ai/utils/web-sources.ts`, read from the posted history's `web_search` /
+`web_fetch` results) and the run counts on from it — a `【3-source】` means
+one source in the whole chat.
+
 Settings → General → Color tone (`generals.tsx`) persists `settings.colorTone`
 (`ColorToneSchema`: neutral | emerald | blue | violet | rose | orange | yellow;
 a `text` column defaulting to `neutral`). The value becomes `data-tone` on
@@ -348,7 +375,7 @@ plus `iconutil`) renders everything from it:
   on the compositor, so the motion does not freeze while the main thread is
   busy.
 
-A dev run (`bun run start`) is node_modules' prebuilt `Electron.app`, so
+A dev run (`bun run dev`) is node_modules' prebuilt `Electron.app`, so
 macOS shows Electron's own icon and name. `setDevDockIcon()`
 (`src/main/lib/dock-icon.ts`, first thing on `ready`, dev + macOS only)
 points the Dock at `build/icon-dock.png` (`nativeImage` cannot read
@@ -378,6 +405,8 @@ Every business endpoint is mounted on one versioned sub-app (`app.route('/api/v1
 `/api/v1/chat`, `/api/v1/lcm`, `/api/v1/history`, `/api/v1/knowledge-base`, `/api/v1/project`, `/api/v1/settings`, `/api/v1/skills`, `/api/v1/audio`, `/api/v1/db-io`, `/api/v1/deep-research`, `/api/v1/discover`, `/api/v1/tools`, `/api/v1/philharmonic`, `/api/v1/s3`, `/api/v1/mcp`, `/api/v1/memory`, `/api/v1/usage`, `/api/v1/logs`, `/api/v1/backup`, `/api/v1/artifacts`, `/api/v1/media`, `/api/v1/maps`, `/api/v1/computer-use`, `/api/v1/analytics`, `/api/v1/pair`, `/api/v1/devices`, `/api/v1/lock` (mounted directly on `app`, ahead of the lock gate — see App Lock).
 
 The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatches to the appropriate list-models handler based on the provider in the request body, reading the API key from the request (not from saved settings) to fetch live model catalogs; a posted mask stands for the stored key, and only with the stored (or default) base URL — a mask with another base URL is a 400 ("re-enter the API key"; code `SECRET_REENTRY_REQUIRED`, `params.field: 'apiKey'` — the model picker shows it inline under the key), so a stored key is never sent to a caller-chosen host.
+
+The `/api/v1/chat` route includes `POST /api/v1/chat/:chatId/choose` (`{ runId }` → `{ attempts }`) — keeps one answer of a regenerate group (see Chat Flow); `404 RUN_NOT_FOUND` for a run not in a group of that chat, `409 ATTEMPT_LOCKED` once a later run exists (repeating the current choice always answers). Deliberately not in `PRESENCE_PATHS`: it only picks which of the user's own answers the model sees next, and exodus-ios calls it over the LAN.
 
 **Secrets leave the main process as masks only** (`src/main/lib/secrets/`): `GET /api/v1/settings` and the `/api/v1/mcp` responses turn every registry field (`registry.ts` — provider keys, Google / Brave / LightRAG keys, the Elasticsearch password, S3 credentials, the legacy `mcpServers` blob; `mcp_server.env` / `headers` values, everything under a secret-named `extraConfig` key, and secrets inside an MCP `url` / `args`: userinfo, secret-named query values, capability path segments, `--token` / `--api-key=` / `--header "Authorization: …"` values) into `"•••• " + last4` (`"••••"` under 12 characters). A posted mask means "unchanged": `updateSettings` / `updateSettingField` and the MCP create/update swap it back for the stored value (read through `current.ts`'s plaintext accessors — the seam at-rest encryption plugs into), `null` / `""` clear, anything else sets — so the desktop autosave and exodus-ios, which post whole sections/columns back, need no knowledge of masks. `getSettings()` / `c.get('settings')` stay plaintext inside main. A write that moves a secret's destination (`SECRET_DESTINATIONS`: a provider base URL / Azure endpoint, the Elasticsearch or LightRAG URL; for MCP the effective `url` / `transportType` for `headers` and the `extraConfig` secrets, `command` / `args` — and any edit to `env` itself (an entry added, removed or changed: `PATH`, `npm_config_registry`, `HOME`, `BASH_ENV`… each can swap the program), which counts as a new command — for `env` — a partial PUT that leaves the secrets out clears them too, `prepareMcpUpdate` in `at-rest.ts`) while the secret comes back as its mask, or is not re-sent, clears it — a stored key is never carried to a new host. Secret `args` go only to the command they were saved with: a new `command` refuses masked args, and a PUT that changes `command` without sending `args` writes `args: []` (none of the stored ones follow). A url / args / env / headers / secret `extraConfig` value (or anything on an MCP create) that holds `••••` without being the exact mask is a 400 "re-enter the secret" (`SECRET_REENTRY_REQUIRED`, `params.field` naming the column: `url` / `args` / `env` / `headers` / `extraConfig`) — a mask is never stored. At rest the values are `enc:v1:…` (see Security Considerations); `GET /api/v1/settings/secrets-status` answers `{ encryption: 'on' | 'unavailable', needsReentry: string[] }` for the Settings notices — `needsReentry` holds both the secrets that do not decrypt and those a destination move cleared (`moved.ts`), as plain names. A new schema field whose name `isSecretName()` flags (`…key`, secret, password, token, auth, bearer, credential, cookie, session, `pat` — word by word, so `path` / `author` / `keyboard` are not, nor the allowlisted `max-tokens` / `token-limit` / `session-name` / `session-timeout` / `signature-version` / `pass-through`; a value after a secret flag or under a secret name is masked whatever its shape — all digits (`-u root -p 98765432`, `DB_PASSWORD=12345678`) included) fails `registry.test.ts` until it is put in the registry or on its commented non-secret list.
 **The desktop Settings form and masks** (`components/settings/secret-fields.tsx`, `lib/secrets.ts`): every key input is a `SecretInput` — the mask shows as text with a "Saved" addon (and is named for a screen reader as "Saved key ending in abcd" / "No key saved", never read out as bullets); typing (or pasting) replaces the whole mask and deleting from it clears the key (`replaceMask`); an untouched mask posts back as "unchanged", so the per-field autosave is unaware of it. A field a saved secret is sent to is a `DestinationInput`, which says from focus until its edit is saved that changing it clears the secret: `AddressInput` for the provider base URLs, the Azure endpoint, the Elasticsearch and LightRAG URLs, and in the MCP form the url (clears the headers) and the command (with the args: clears the env and masked args). `buildSettingsSave` applies the same destination rule to the payload (`clearMovedSecrets`, a copy of `SECRET_DESTINATIONS` that `tests/unit/renderer/lib/secrets.test.ts` holds equal to main's, and the one shared `normalizeBaseUrl` from `@exodus/shared/utils/base-url`) and posts that key as `null`. The server records every secret a destination move cleared — settings keys and MCP `env` / `headers` / `extraConfig` values — in `needsReentry` until a new value is saved (`secrets/moved.ts`, names only, in `~/.exodus/secrets-reentry.json`, so the prompt survives a restart and reaches exodus-ios; a data reset clears it); the key input asks for it (`clearedSecretsAtom` only mirrors the move until that read lands), and the MCP server card and its form fields list theirs. The MCP form posts the `env` it shows (masks included — never `null`), and shows a `SECRET_REENTRY_REQUIRED` 400 under the field it names (the create/update hooks list that code in `meta.inlineCodes`, so it is not toasted too). Settings → General opens with the notices from `secrets-status` (`settings-form/secrets-notices.tsx`: keychain unavailable; each key to re-enter, by name, MCP servers included).
@@ -410,17 +439,30 @@ There is no MCP middleware: the chat route itself fetches the active servers' to
 - `knowledge_doc` - Knowledge base source documents + per-doc LightRAG sync status
 - `deep_research` / `deep_research_message` - Deep research jobs and progress updates
 - `memory` / `memory_usage_log` - User memory and audit trail
-- `session_summary` - Summarized conversation context
 - `project` - Projects
 - `mcp_server` - Configured MCP servers
 - `paired_device` - Devices allowed onto the LAN listener: a name and the SHA-256 of
   the device's token, never the token. Machine-local — deliberately not part of
   `db-io` export/import or of a data reset
-- `lcm_summary` - Lossless context-management summaries
+- `lcm_summary` - a conversation's own memory: what compaction wrote of its
+  older part. The text is `content`, one row per summary, by `chatId` (`kind`
+  `leaf` | `condensed`, `depth`, the span it covers in `earliestAt` /
+  `latestAt`); `lcm_summary_messages` names the messages a leaf stands for,
+  `lcm_summary_parents` the summaries a condensed one was made of, and
+  `lcm_context_items` is what the chat's context is made of now, in order (a
+  `refId` is a `message.id` or an `lcm_summary.id`). A conversation that never
+  outgrew its budget has no summaries: its messages are its memory.
+  Philharmonic keeps its own in `philharmonic_session_summary`
 - `message.runId` - the run a row belongs to: the id of the run's user message
   (backfilled by migration 0008 by walking each chat in `createdAt` order; a
   row with no user row before it is a run of its own). `runId` is on every
   `ChatMessage` on the wire too
+- `message.alternateOf` / `message.attempt` - regenerate groups, meaningful on
+  a run's user row only (migration 0011, no backfill): `alternateOf` is the
+  group's first run, on every run a Regenerate created; `attempt` is
+  `comparing` | `chosen` | `folded` | `hidden` (null for an ordinary run).
+  Written only by `src/main/lib/chat/attempts.ts`; on the wire as optional
+  fields of `ChatUserMessage` (`GET /api/v1/chat/:id` returns them on every row)
 - Philharmonic: `agent`, `agent_memory`, `team`, `task`, `task_execution`, `task_execution_event`, `conversation_plan`, `plan_step`
 
 The full chat/message tables and indexes are defined in `src/main/lib/db/schema.ts`.
@@ -518,9 +560,27 @@ rendering work in.
 
 **Chat Flow** (`src/main/lib/server/routes/chat.ts`):
 
-1. Retrieve user settings (model selection, API keys)
+1. Retrieve user settings (model selection, API keys); settle regenerate
+   groups (`src/main/lib/chat/attempts.ts`, spec
+   `docs/superpowers/specs/2026-09-26-regenerate-compare-design.md`) before
+   any context is assembled: a user message with `alternateOf` is a
+   Regenerate — its row is saved, it and the group's newest other visible run
+   become `comparing`, older attempts `hidden`
+   (`recordRegenerate`); an ordinary message first closes an open comparison
+   (`settleOpenComparison`: the newest answer that did not fail or stop is
+   `chosen`, else the older; the other `folded`). A client-sent `attempt` is
+   ignored, and `done` echoes the history with the stored states
 2. Assemble the context (LCM, in whole runs) and bind built-in tools based on
-   the `AdvancedTools` selection and `settings.tools.disabledTools`
+   the `AdvancedTools` selection and `settings.tools.disabledTools`. The
+   context leaves out the runs a regenerate group keeps from the model
+   (`excludedRuns` in `packages/shared/src/utils/attempts.ts`): `folded` and
+   `hidden` attempts and, for a Regenerate, every other run of its group —
+   the new answer sees neither the answer it stands beside nor the question
+   twice. One filter for both paths: the LCM assembler and compaction start
+   from `contextRuns()` (so the fresh tail counts runs the model sees, and a
+   folded answer never reaches a summary — the span a summary replaces takes
+   its context items with it), and with LCM off the posted history goes
+   through `runsForContext()` with the stored states
 3. `for await` over `runAgent()`, mapping each kernel event onto one SSE
    event through `createSseWriter` (`routes/chat-sse.ts`): streaming
    `message_update` snapshots are coalesced to one per
@@ -614,11 +674,11 @@ carry media. Rows written before this (`url`: a `data:` URL or an expired
 DALL·E link) still render through `imageSrcOf()`'s legacy branch (a `data:` URL only
 when it is a raster image, the chat's remote-image rule). The card
 (`components/calling-tools/image-generation/`, built on the beui.dev
-`image-generation-loading.tsx`) is rendered by `AssistantTurnSegment` from
-the run's calls (`collectImageGenerations`), not by `MessageCallingTools`,
-so the frame that shows the dither field while the call runs is the same
-element the image resolves in (with its zoom); a call left without a result
-by Stop shows nothing.
+`image-generation-loading.tsx`) is a block of the turn of its own kind
+(`TurnBlock` `image`, keyed by the call's id and placed where the call was
+made), not something `MessageCallingTools` draws, so the frame that shows
+the dither field while the call runs is the same element the image resolves
+in (with its zoom); a call left without a result by Stop shows nothing.
 
 **MCP toolbox** (`calling-tools/mcp-toolbox.ts`): MCP servers are not bound
 tool by tool (providers cap the tools array — OpenAI at 128 — and one server
@@ -728,9 +788,16 @@ A durable, topic-consolidated memory of the user. Key functions:
 
 1. **Consolidation** (`runMemoryConsolidation()`) — `memory-consolidate` job
    after each turn when `memory.autoCapture`. One LLM call sees the
-   conversation + the existing memory index and returns `create`/`update`
-   operations. Prefers updating an existing entry (returning its full revised
-   summary + details) over inserting a duplicate.
+   conversation + the existing memory index and returns `create`/`update`/
+   `delete` operations. Prefers updating an existing entry (returning its full revised
+   summary + details) over inserting a duplicate. The bar for a new subject
+   is high (five tests in `CONSOLIDATE_SYSTEM`), but an entry already held is
+   kept true: a fact the conversation shows has changed is updated, one that
+   no longer holds is deleted, and two entries that are one subject are
+   merged (update one, delete the other) — the owner's aim of 2026-09-30, the
+   more you talk to Exodus the better it knows you. Nobody watches this job,
+   so its `delete` only switches the entry off (`softDeleteMemory`) and
+   Settings → Memory can restore it.
 
 2. **Read filter** (`loadRelevantMemories()` / `formatMemoriesForSystem()`) —
    pre-turn when `memory.useInChat`. One LLM call picks the relevant
@@ -749,7 +816,11 @@ A durable, topic-consolidated memory of the user. Key functions:
    with a model and key, except in Deep Research or when switched off in
    Built-in Tools) calls it directly and synchronously, with no
    scope — the model corrects, adds or forgets something without asking
-   first (the system prompt's autonomy policy); "no change needed" is a
+   first (the system prompt's autonomy policy), and not only when told: a
+   lasting fact the user states about themselves, or a change to one it
+   holds, goes in as it is said (never a one-off detail or the task's own
+   specifics); what it did is already in the index the post-run
+   consolidation reads, which leaves it alone; "no change needed" is a
    normal result, not an error, and draws no UI. `POST /api/v1/memory/undo`
    (body `{ changes }`, `memory/undo.ts`) reverses a run's changes
    newest-first, each only while the entry's current state still equals that
@@ -811,6 +882,27 @@ Compacts long conversations without losing information, surfacing summaries the 
 - Main process: `src/main/lib/ai/context-management/` (compaction, context assembler, token counter, status bus)
 - Route: `/api/v1/lcm`
 - Related built-in tools: `lcm_describe`, `lcm_expand`, `lcm_grep`
+- **The recall tools read a conversation: this one, or one the user names.**
+  `lcm_grep(chatId)` and `lcm_expand(model, apiKey, chatId)` are bound to the
+  chat (`bindCallingTools`) and read it when the model passes no `chatId` —
+  the model is not handed its chat's id and does not need it (until
+  2026-09-29 `chatId` was a required argument nothing supplied; the id does
+  show in the workspace path). A `chatId`
+  the model does pass is another conversation's, handed over by the user: the
+  sidebar's menu of a chat has **Copy conversation ID**
+  (`layouts/chat-layout/nav-histories.tsx`), and the system prompt says what
+  to do with one — `lcm_describe` with the id first, then `lcm_grep` /
+  `lcm_expand` with `chatId`. `lcm_describe` takes a summary id or a
+  conversation id; for the latter `describeConversation()`
+  (`context-management/conversation-overview.ts`) returns the title, the
+  summaries in the chat's context and the text of what was said and not
+  compacted — all of it for a conversation that never was — bounded
+  (`OVERVIEW_LIMITS`), newest kept, with the ids of what did not fit. It is
+  read-only (another chat's context tracking is never bootstrapped from a
+  read), leaves out tool results and the runs a regenerate group keeps out of
+  sight, and `calling-tools/lcm-conversation.ts` answers — never throws — for
+  an id that is not a uuid or names no chat. This is how one conversation's
+  memory reaches another without becoming long-term memory
 - **The run is the atom.** `assembleContext(chatId, budget, freshTailRuns)`
   groups context items by `message.runId` (`groupItemsIntoRuns`): the fresh
   tail is the most recent N runs, whole; back-fill adds whole older runs,
@@ -845,6 +937,17 @@ Their windows live in `src/main/lib/window.ts`.
   it whether or not the main window exists. It opens on the display under the
   cursor, and the window is deliberately larger than the pill (transparent
   margin) so the pill's own shadow is not clipped.
+  What is typed there is handed to the main window: main's
+  `transfer-quick-chat` raises it and sends `quick-chat-input`, and
+  `installQuickChatBridge()` (`src/renderer/lib/quick-chat-bridge.ts`,
+  installed once at boot like the menu bridge — not from a layout, so it
+  works from Settings and Philharmonic too) leaves the text for the next new
+  chat and navigates to `/`. `Home` gives every visit — every navigation to
+  `/`, from `/` itself too — a chat id and a fresh `<Chat>` of its own
+  (keyed by the location key), and `Chat` sends the text it finds on mount.
+  Before 2026-09-29 `Home` made a new id on every render and never
+  remounted `<Chat>`, so with the window already on the landing page the
+  text waited in localStorage until a reload.
 - Sub-app roots are not `#root`, so `h-full` collapses there — centre with
   `h-screen`.
 - **Each sub-app entry builds its own provider tree.** `quick-chat` and
@@ -913,6 +1016,12 @@ Their windows live in `src/main/lib/window.ts`.
   `lib/relay-retry.ts`'s `RELAY_RETRY` instead. `installWindowFocusListener()` (`main.tsx`, at boot)
   follows the window's own focus/blur, not just `visibilitychange`, and feeds every one of those
   opted-in queries.
+- The chat list and a chat's messages are what a run changes without a mutation. The list is
+  refreshed by the stream manager (`lib/stream-manager.ts`: on the `title` event and however a run
+  ends) rather than by the chat page, which is gone when the user has opened another chat. A chat's
+  messages seed `<Chat>` once, on mount, so `ChatDetail` waits for the fetch of this visit
+  (`useChatMessages().isFresh`) instead of seeding it with the copy an earlier visit cached —
+  without the runs sent since, with a regenerate group's state as it was.
 - Hook tests: some wrap `renderWithQueryClient` from `tests/unit/helpers/query-test-utils.ts` for the
   mount scaffolding (isolated client, retries off); others still roll their own — not yet a single
   convention across every hook test. `@tanstack/react-query-devtools` is dev-only in `main.tsx`.
@@ -995,11 +1104,45 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   callbacks from refs synced in an effect. `regenerate` is a prop of every
   assistant turn: when it changed per frame, the whole transcript re-rendered
   per frame, straight through its `memo`.
-- **One run, one assistant message.** `groupIntoSegments` groups by
-  `runId` (segment key `run:<runId>`); `buildAssistantTurn` joins every
-  assistant text block of the run into one `body` under one
-  `ThinkingTimeline`, with one action bar. A provider error is pinned to the
-  run it ended (`useChat().runError`) and shown at that message's foot.
+- **One run, one assistant message — in the run's own order.**
+  `groupIntoSegments` groups by `runId` (segment key `run:<runId>`);
+  `buildAssistantTurn` lays the answer out as `blocks` (`TurnBlock`): the
+  model's text and the cards of the tools it called, each card where its
+  call was made — text, a card, text — under one `ThinkingTimeline`, with
+  one action bar. Text joins the text before it unless a card stands
+  between them, so a run that called nothing with a card (a web search, a
+  file read — `hasToolCard()` in `calling-tools/tool-cards.ts`) is one
+  `Markdown`, as it always was; a tool that failed is a line of the
+  timeline, not a card. Blocks are only ever added at the end and the last
+  text grows in place, which is what lets the text above a card sit out the
+  frames of the text streaming below it. `body` — every text block joined —
+  is what Copy, read-aloud and the Sources panel take as the answer. A
+  provider error is pinned to the run it ended (`useChat().runError`) and
+  shown at that message's foot.
+- **A regenerate group is one segment** (`type: 'compare'`, key
+  `group:<firstRunId>`; spec
+  `docs/superpowers/specs/2026-09-26-regenerate-compare-design.md`): the
+  question once and the answers on show — two while they are compared, the
+  chosen one after, with the folded one behind "1 other version" (that
+  link is hidden for now, `SHOWS_OTHER_VERSION` in `compare-turns.tsx` and
+  `TurnFoot.showsOtherVersions` on iOS — owner, 2026-09-30; the dialog and
+  the choose route still work); `hidden`
+  attempts are drawn nowhere. `components/chat/compare-turns.tsx` draws it
+  with an `AssistantTurnSegment` (`chat/assistant-turn-segment.tsx`) per
+  answer: side by side where the group is at least 880 px wide — it takes
+  the chat's width then, not the reading column's (`COMPARE_FRAME`, `cqw`
+  of the scroll area) — and behind shadcn `Tabs` below that; which one is
+  measured (`hooks/use-min-width.ts`), since it changes what is mounted.
+  The states are the server's: `useChat().regenerate` sends the last
+  question with `alternateOf` and applies the same rules locally until
+  `done` answers (`attemptsAfterRegenerate`, and `attemptsAfterSettling`
+  for an ordinary send mid-comparison), and `useChooseAttempt`
+  (`hooks/use-attempts.ts`) applies a choice on the click, takes the stored
+  states from `POST /api/v1/chat/:chatId/choose` and puts the old ones back
+  on a refusal. `CompareTurns` is memoized on the segment and on what it
+  reads from the sources map, so a settled group sits out the frames of a
+  run streaming below it; each answer of a group cites what came before the
+  group and its own sources, never the other's.
 - **Unchanged segments keep their identity.** `groupIntoSegments` and
   `buildCitationSources` (`messages.tsx`) take a cache and return the same
   segment objects / source arrays for turns a frame did not touch.
@@ -1015,11 +1158,29 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   added to `markdown-plugins.ts`, not to `markdown.tsx` — that file also holds
   the two "prose is not markup" settings: `singleDollarTextMath: false`
   (`$200 - $300` is money) and GFM's `singleTilde: false` (`19~32°C` is a
-  range; only `~~` strikes through). The last block is
+  range; only `~~` strikes through) — and `remarkHtmlBreaks`
+  (`lib/remark-html-breaks.ts`): raw HTML is shown as the text it is, except
+  `<br>`, which models write and which becomes the line break it asks for
+  (on a line of its own it leaves nothing). The last block is
   passed through `healStreamingTail` (`remend` closes an open `**`, `*`,
   `~~`, `` ` `` or `$$` and neutralises a half-typed link; a half-streamed
   `【N-source】` marker is dropped) so nothing flashes as literal markup. The
-  `【N-source】` citation chips live in `markdown-citations.tsx`. (A 2026-09-22
+  `【N-source】` citation chips live in `markdown-citations.tsx`. The
+  markers are made nodes of the syntax tree by `remarkCitations`
+  (`lib/remark-citations.ts`, in `markdown-plugins.ts`), so a marker is a
+  citation wherever the model wrote it — bold, a heading, a link's text, a
+  table cell — and stays text only in code; `citationComponents` draws the
+  node, looking its numbers up at render from `WebSearchRankMapContext`
+  (never through `components`). One chip per place cited (`splitMarkers()`
+  in `lib/citation-chips.ts` — a marker naming several sources, or markers
+  side by side, are one chip, "Reuters +2", whose hover card shows one
+  source at a time under a pager, ← → and "2/3"), drawn as small print so
+  the sources
+  do not outweigh the sentence — 9px muted text, an 11px round icon, a faint
+  pill 16px high raised 2px to the middle of the line (owner's call
+  2026-09-29; exodus-ios draws the same chip). The punctuation that closes
+  the sentence stays on the chip's line (`tail`): a chip is a box, and no
+  line starts with "。". (A 2026-09-22
   spike compared streamdown, markdown-to-jsx and md4x: the splitter already
   parses in ~1 ms a frame, the same as streamdown's own; markdown-to-jsx has
   no math; md4x emits HTML, not a React tree. streamdown was tried behind a
@@ -1052,6 +1213,16 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   and the searchbar/quick-chat sub-apps, never the artifact sandbox (a
   distinct origin whose CSP allows no network at all — the call would just
   be dead weight there).
+- **Asking about selected text** (2026-09-29): text selected inside an
+  element marked `data-askable` (an answer's section, a user bubble) gets an
+  "Ask Exodus" button (`chat/selection-ask.tsx`, mounted once per chat, it
+  listens to the document and holds no messages). The selection goes to
+  `chatQuoteAtom` (keyed by chat), is shown over the composer, and is sent
+  as plain markdown — `composeQuoted()` in
+  `packages/shared/src/utils/quoted-text.ts`: `> ` lines, a blank line, the
+  question — so no message shape changes and every provider reads it;
+  `chat/user-bubble.tsx` draws it back as a quote via `splitQuoted()`.
+  exodus-ios implements the same three functions to the same vectors.
 - **Memoized leaves take only what they render.** The composer
   (`multimodel-input.tsx`) and `ChatToc` are `memo`'d; don't pass them
   `messages` or anything else that changes per frame unless they show it
@@ -1116,8 +1287,15 @@ audit that applied it is in the commit history (`style(motion): …`).
   during a drag — the one layout-property animation); a fresh run's user
   bubble and reply enter, what the chat opened with does not; tooltips wait
   500 ms for the first and are instant (`data-instant`, no animation) for
-  the neighbours; the "thinking" dots are `bg-foreground/40` staggered
-  `animate-pulse`; the compaction card lingers 150 ms to fade out.
+  the neighbours; the compaction card lingers 150 ms to fade out; the
+  thinking timeline's icon is `thinking-orbs`' `ThinkingOrb` (`working`
+  while the run streams, `solving` once it has thought), and waiting for
+  the first step is the same orb in the same place (`MessageSpinner`), so
+  the two are one figure that stays put; the composer
+  is wrapped in `border-beam`'s `BorderBeam` (`pulse-outside` in light,
+  `pulse-inner` in dark) — the owner's choice of 2026-09-27, from
+  libraries.dev; the find bar has no focus ring: the pill is the field, and
+  it only exists while it has focus.
 - **Never `transition-all`** — name the properties. Animate `transform` and
   `opacity`; a `width`/`padding`/`grid-template-rows` transition needs a
   reason in a comment. `prefers-reduced-motion` in `globals.css` removes
@@ -1218,11 +1396,13 @@ Reusable AI utilities that should be used (and tested) instead of inline impleme
 - `src/main/lib/ai/utils/llm-response-util.ts` — `extractTextFromCompletion()` and `parseJsonFromLlmResponse()` for parsing LLM outputs
 - `src/main/lib/ai/utils/conversation-util.ts` — `extractConversationText()` for converting messages to text
 - `src/main/lib/ai/providers/resolve-model.ts` — Shared `resolveModel()` with per-provider fallback defaults
+- `src/main/lib/ai/utils/image-data.ts` — `bareImageData()` / `withBareImages()`: a chat saves an image attachment as the data URL the renderer shows (`data:image/png;base64,…`), and pi hands an image part's `data` to the provider as it is — Anthropic answered 400 "invalid base64 data", OpenAI got the prefix twice. The kernel's `convertToLlm` strips it from every message it sends (so old chats need no migration), and Philharmonic builds its image parts through `bareImageData()`
+- `src/main/lib/ai/utils/usage.ts` — `storedUsage()`: the `usage` of an assistant message rebuilt from a stored row. pi reads `usage` off **every** assistant message of a request (each provider clamps its max tokens through `estimateContextTokens`), so a message without one fails the request before it is sent — every request after a chat's first did, 2026-09-23 to 09-29 (`Cannot read properties of undefined (reading 'totalTokens')`). Anything that hands pi an assistant message it did not produce goes through it (chat LCM, Philharmonic LCM); the kernel's `convertToLlm` applies it once more (`withUsage` in `kernel/invariant.ts`) for history a client posted
 
 ## Testing Locally
 
 1. Install dependencies: `bun install`
-2. Start dev server: `bun run start`
+2. Start dev server: `bun run dev`
 3. The app will launch with hot reload enabled
 4. Database automatically initialized on first run
 5. Configure at least one AI provider in settings before chatting
@@ -1386,7 +1566,8 @@ Main process:
 - `src/main/lib/server/middlewares/` — origin gate, lock gate, trace, error handler
 - `src/main/lib/ai/providers/` — LLM provider resolution (`resolve-model.ts`)
 - `src/main/lib/ai/providers/list-models/` — Live model catalog handlers per provider (`anthropic.ts`, `openai.ts`, `google.ts`, `xai.ts`, `ollama.ts`); each normalizes that provider's list-models API response into `{ id, displayName, snapshot: ModelSnapshot }`, dispatched by `index.ts` and called from `POST /api/v1/settings/models`
-- `src/main/lib/ai/kernel/` — the chat kernel: `models.ts` (the `Models` collection, `streamFn`), `run.ts` (`runAgent()`), `record.ts` (`RunRecorder`), `invariant.ts` (`dropBrokenRuns()`), `approval.ts` + `pending-approvals.ts` (the approval gate for secrets outside Exodus), `events.ts`, `faux.ts` + `faux-boot.ts` (pi's scripted provider; `EXODUS_FAUX_PROVIDER=1`)
+- `src/main/lib/ai/kernel/` — the chat kernel: `models.ts` (the `Models` collection, `streamFn`), `run.ts` (`runAgent()`), `record.ts` (`RunRecorder`), `invariant.ts` (`dropBrokenRuns()`), `approval.ts` + `pending-approvals.ts` (the approval gate for secrets outside Exodus), `events.ts`, `log-throws.ts` (`loggingThrows()`: pi keeps only the message of what is thrown into it, so `streamFn`, `convertToLlm`, `beforeToolCall` and the listener log the Error — scope `kernel`, once, with the chat and the run — and throw it on), `faux.ts` + `faux-boot.ts` (pi's scripted provider; `EXODUS_FAUX_PROVIDER=1`)
+- `src/main/lib/chat/attempts.ts` — regenerate-group transitions (`recordRegenerate`, `chooseAttempt`, `settleOpenComparison`, `pickAutoChoice`); the only writer of `message.alternateOf` / `message.attempt`
 - `src/main/lib/presence.ts` — the per-launch user-presence token (see Middleware Pipeline, presence gate)
 - `src/main/lib/remote-debugging-guard.ts` — `main.ts`'s first import: a packaged build exits when started with a Chromium remote-debugging switch (`remote-debugging.ts`), which would expose the main frame and its presence token
 - `src/main/lib/ai/calling-tools/` — built-in agent tools (snake_case names from `packages/shared/src/constants/tool-names.ts`) and the MCP toolbox (`mcp-toolbox.ts`)
@@ -1434,7 +1615,31 @@ Main process:
   paired exodus-ios device reporting its own local errors over the LAN
   listener, written under `ios/<scope>` instead; either accepts a single
   report or `{ reports: [...] }` (capped at 50). See
-  `docs/superpowers/specs/2026-09-06-standardized-logging-design.md`
+  `docs/superpowers/specs/2026-09-06-standardized-logging-design.md`.
+  **Errors and stacks:** whatever is caught is logged under `error` as it
+  was caught — `{ error: err }`, never `String(err)` or `err.message`, which
+  is where a stack is lost. `toAttributes` (`record.ts`) turns an Error into
+  `exception.type` / `exception.message` / `exception.stacktrace`: the stack
+  with every frame that points into a built file rewritten to its source
+  position (`at e (src/main/lib/ai/utils/cost.ts:7:27)`, not
+  `chat-Cw3ZonVn.js:1:91`; the function name stays the built one — the maps
+  carry no names), and `exception.stacktrace_raw`, the stack as thrown, only
+  when mapping changed it. `source-map.ts` does the rewriting from the hidden
+  source maps the build writes (see the Vite configs under Tests & config):
+  it reads a `.map` only when an error is being logged, only for a file under
+  the running build's own `.vite/` (a client names the paths in what it
+  reports), holds the parsed map until five minutes pass without an error,
+  and never throws — a frame it cannot map stays as it was. A site that logs
+  an error's name alone because its message can quote a conversation or a
+  key (a failed drizzle write: the chat route's persist, the job queue's
+  enqueue) adds `'exception.stacktrace': stackFramesOf(error)`: the frames,
+  no message. `POST /api/v1/logs` maps a renderer report's `stack` /
+  `componentStack` the same way, before clipping them (what was sent stays
+  under `stack_raw` / `componentStack_raw`); an `ios/` report is written as
+  sent. Stacks pass through `secret-mask.ts` like every other line. What is
+  thrown inside pi's own code (a provider's request builder) never reaches
+  the logger as an Error — pi catches it and keeps its message; what the
+  kernel's own functions throw is logged first (`kernel/log-throws.ts`)
 - `src/main/lib/computer/` — window-scoped screenshot-loop Computer Use V0: the
   `exodus-input` Swift helper (list-windows / list-apps / screenshot / activate /
   CGEvent input), `capture`/`target`/`hands`/`guard`, `runComputerSession` (the
@@ -1522,6 +1727,8 @@ Renderer:
 - `src/renderer/components/ui/` — shadcn primitives (reuse these)
 - `src/renderer/components/lock/` — lock screen
 - `src/renderer/components/chat/run-approvals.tsx` — the approval card at a run's foot (see Chat Flow)
+- `src/renderer/components/chat/assistant-turn-segment.tsx` — `AssistantTurnSegment`: one run's answer (timeline, blocks in run order, action bar, foot); `chat/compare-turns.tsx` + `chat/other-version-dialog.tsx` — a regenerate group's answers (see the render-path notes)
+- `src/renderer/components/calling-tools/tool-cards.ts` — which tools draw a card (`hasToolCard()`), shared by the card dispatch and the turn builder
 - `src/renderer/components/philharmonic/` — Philharmonic UI
 - `src/renderer/components/philharmonic/schedule/` — Schedule tab (agenda: upcoming one-off + recurring tasks)
 - `src/renderer/components/settings/` — settings. Every page is put together
@@ -1545,6 +1752,11 @@ Renderer:
   or — while a window is open — numbered steps beside the QR code and a
   countdown drawn from the shared `PAIRING_TTL_MS`
   (`packages/shared/src/constants/systems.ts`, enforced by the main process)
+- `src/renderer/components/settings/settings-form/log-attributes.tsx` — an
+  expanded row of Settings → Logger: the stack (`exception.stacktrace`, or a
+  client report's `stack`) and the `componentStack` as blocks of their own —
+  text with real line breaks, mono, scrolling both ways — above the JSON of
+  the other attributes (the `…_raw` stacks stay in there)
 - `src/renderer/components/settings/settings-form/tools.tsx` — Settings →
   Built-in Tools: one hairline row per `TOOL_REGISTRY` entry (name, what it
   does, its switch). A tool with something to set up carries its panel under
@@ -1584,10 +1796,13 @@ Renderer:
 - `src/renderer/lib/` — renderer utilities (ipc, stream-manager, `query-client.ts` — the one
   `QueryClient` (`createAppQueryClient()`) and `installWindowFocusListener()` (see "Server state
   (React Query)" above), `relay-retry.ts` — `RELAY_RETRY` for the remote skills.sh relay, `tone.ts`
-  — `data-tone` apply/boot cache, `mask-url.ts` — `maskUrlSecrets()` for showing a URL without its
+  — `data-tone` apply/boot cache, `quick-chat-bridge.ts` — `installQuickChatBridge()`, the main
+  window's end of the quick-chat hand-off (see Sub-apps), `mask-url.ts` — `maskUrlSecrets()` for showing a URL without its
   query-string credentials, `heatmap-months.ts` — month labels for the Profile heatmap,
   `report-error.ts` — `reportRendererError()` + `installGlobalErrorReporting()` (see
-  Motion/render-path notes above), `menu-bridge.ts` — `installMenuBridge()`, the renderer half of
+  Motion/render-path notes above; a report carries the error's `stack` and, from an error
+  boundary, React's `componentStack`, as the browser gave them — the main process maps them to
+  source positions), `menu-bridge.ts` — `installMenuBridge()`, the renderer half of
   the native menu's New Chat / Settings… items: `menu.ts`'s `goToMainWindow()` raises the main
   window and sends `menu:new-chat` / `menu:open-settings`; `router.navigate()` needs no component to
   answer it)
@@ -1599,7 +1814,7 @@ Shared:
 - `packages/shared/src/types/` — cross-process types
 - `packages/shared/src/constants/` — constants (`test-ids.ts`, `systems.ts`, `tool-names.ts`)
 - `packages/shared/src/schemas/` — Zod schemas
-- `packages/shared/src/utils/` — shared utilities
+- `packages/shared/src/utils/` — shared utilities, incl. `attempts.ts`: regenerate groups as pure functions — which runs the model sees (`excludedRuns`, `runsForContext`) and what a client shows before the server has answered (`attemptsAfterRegenerate` / `attemptsAfterChoice` / `attemptsAfterSettling`, the rules of `src/main/lib/chat/attempts.ts`)
 - `packages/shared/src/i18n/` — application i18n: `locales.ts` (the 10 locale IDs +
   `resolveLocale`), `namespaces.ts`, `index.ts` (`createI18n` — one i18next
   config for both processes, JSON catalogs lazy-loaded per locale),
@@ -1621,7 +1836,7 @@ Tests & config:
 - `tests/helpers/` — test helpers
 - `tsconfig.test.json` — editor/type support for `tests/unit/**/*` (not part of the `bun run typecheck` gate)
 - `forge.config.ts` — electron-forge config (packager, makers, publisher, Vite plugin, fuses)
-- `vite.main.config.mts` / `vite.preload.config.mts` / `vite.renderer.config.mts` — Vite configs per target (the renderer one has the `data-testid` strip and the sub-app HTML entries)
+- `vite.main.config.mts` / `vite.preload.config.mts` / `vite.renderer.config.mts` — Vite configs per target (the renderer one has the `data-testid` strip and the sub-app HTML entries). All three write **hidden source maps** (`build.sourcemap: 'hidden'`: a `.map` beside every built file, no `sourceMappingURL` comment, so neither Node nor Chromium loads one by itself), positions only (`sourcemapExcludeSources` — the sources' text is two thirds of a map and the repo is public); the renderer drops the maps of Monaco's workers (26 MB for code that reports nothing). `forge.config.ts` packages everything under `.vite/`, so they ship inside `app.asar`: about 18.7 MB there, 3.8 MB compressed. The logger reads them (`src/main/lib/logger/`); the `data-testid` strip leaves the line breaks of what it removes, so a release build's maps still name the right line
 - `vitest.config.ts` — unit test config
 - `playwright.config.ts` — E2E config
 
@@ -1629,6 +1844,8 @@ Docs:
 
 - `docs/superpowers/specs/` — design specs
 - `docs/superpowers/plans/` — implementation plans
+- `docs/manual-qa-checklist.md` — the owner's hand-run acceptance checklist
+  (every feature but Philharmonic, P0/P1/P2); add a line when a feature ships
 - `docs/security-hardening.md` — threat model, protections in place, and the
   open security items with their intended fixes
 - `docs/pi-ai-review.md` — review of the pi-ai usage against the upstream

@@ -136,6 +136,19 @@ export function cleanupOldLogs() {
   }
 }
 
+/**
+ * `logger.<level>(surface, message, detail?)`.
+ *
+ * What was caught goes in `detail` under `error`, as it was caught —
+ * `{ error: err }`, never `String(err)` or `err.message`: the Error is where
+ * the stack is. It is written as `exception.type`, `exception.message` and
+ * `exception.stacktrace` — the stack with the frames that point into a built
+ * file mapped to `source:line:column` (`source-map.ts`) — plus
+ * `exception.stacktrace_raw`, the stack as it was thrown, when mapping
+ * changed it. Where the message must not be written (it can quote a failed
+ * statement's parameters), log the name and
+ * `'exception.stacktrace': stackFramesOf(error)` instead (`record.ts`).
+ */
 export const logger = {
   debug: (
     surface: LogSurface,

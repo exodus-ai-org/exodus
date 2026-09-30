@@ -23,7 +23,7 @@ lcmStatus.get('/:chatId/status', (c) => {
         } catch (err) {
           logger.warn('lcm', 'Failed to enqueue SSE frame', {
             chatId,
-            error: String(err)
+            error: err
           })
         }
       }

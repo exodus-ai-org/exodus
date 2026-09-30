@@ -34,7 +34,7 @@ export function openExternalSafely(url: string): void {
     return
   }
   shell.openExternal(url).catch((error) => {
-    logger.warn('app', 'Failed to open external URL', { error: String(error) })
+    logger.warn('app', 'Failed to open external URL', { error })
   })
 }
 

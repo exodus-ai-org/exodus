@@ -64,10 +64,51 @@ describe('getSystemPrompt', () => {
     )
   })
 
+  it('says what to do with a conversation id the user hands over', () => {
+    const prompt = getSystemPrompt({})
+    const memory = prompt.slice(
+      prompt.indexOf('Memory of conversations'),
+      prompt.indexOf("The user's computer")
+    )
+    // The recall tools read this conversation unless another is named…
+    expect(memory).toMatch(/this conversation/u)
+    expect(memory).toContain('conversation id')
+    // …and another conversation is read before it is talked about: the
+    // overview first, then the details, by passing its id.
+    expect(memory).toMatch(/`lcm_describe` with (the|that) id/u)
+    expect(memory).toContain('`chatId`')
+  })
+
+  it('says one numbering runs through the conversation and a marker holds nothing else', () => {
+    const prompt = getSystemPrompt({})
+    const rules = prompt.slice(
+      prompt.indexOf('<citation_rules>'),
+      prompt.indexOf('</citation_rules>')
+    )
+    // An earlier turn's source is cited the same way: the model once wrote
+    // 【1-source，前次检索】, which no chip can read.
+    expect(rules).toMatch(/whole conversation/u)
+    expect(rules).toMatch(/earlier (turn|search)/u)
+    expect(rules).toContain('【1-source，前次检索】')
+    expect(rules).toMatch(/nothing else inside/u)
+  })
+
   it('keeps the citation rules under a tag the prose can point at', () => {
     const prompt = getSystemPrompt({})
     expect(prompt).toContain('<citation_rules>')
     expect(prompt).toContain('【N-source】')
+  })
+
+  // The more the user talks to Exodus, the better it knows them: a lasting
+  // fact goes into memory when it is said, not only when the user asks.
+  it('has the model keep the memory current as facts come up', () => {
+    const prompt = getSystemPrompt({})
+    const line = prompt
+      .split('\n')
+      .find((l) => l.startsWith('- `update_memory`'))
+    expect(line).toContain('lasting fact')
+    expect(line).toContain('change to one you hold')
+    expect(line).toContain('Not for one-off')
   })
 
   it('stays within budget', () => {

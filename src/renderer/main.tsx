@@ -14,6 +14,7 @@ import { useLock } from '@/hooks/use-lock'
 import { i18nReady } from '@/lib/i18n'
 import { installMenuBridge } from '@/lib/menu-bridge'
 import { installWindowFocusListener, queryClient } from '@/lib/query-client'
+import { installQuickChatBridge } from '@/lib/quick-chat-bridge'
 import { installGlobalErrorReporting } from '@/lib/report-error'
 import { bootTone } from '@/lib/tone'
 import { router } from '@/routes'
@@ -30,6 +31,8 @@ installGlobalErrorReporting()
 installWindowFocusListener()
 // New Chat / Settings… on the native menu — see menu-bridge.ts.
 installMenuBridge()
+// The text handed over by the quick-chat window — see quick-chat-bridge.ts.
+installQuickChatBridge()
 
 function AppRoot() {
   const { status, refresh, locked } = useLock()

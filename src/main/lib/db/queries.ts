@@ -33,8 +33,7 @@ import {
 
 function logDbError(logMessage: string, error: unknown) {
   logger.error('database', logMessage, {
-    error: String(error),
-    stack: error instanceof Error ? error.stack : undefined
+    error
   })
 }
 

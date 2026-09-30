@@ -67,7 +67,7 @@ export function SearchDialog() {
                   }}
                 >
                   <div className="hover:bg-accent relative flex flex-col rounded-lg px-4 py-3 transition-colors">
-                    <p className="text-primary truncate text-sm">
+                    <p className="text-primary-ink truncate text-sm">
                       {item.title}
                     </p>
                     <p className="text-ring line-clamp-2 pt-1 text-xs">

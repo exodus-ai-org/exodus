@@ -2,6 +2,7 @@ export {
   AIError,
   AppError,
   ConfigurationError,
+  ConflictError,
   DatabaseError,
   FileError,
   InternalError,

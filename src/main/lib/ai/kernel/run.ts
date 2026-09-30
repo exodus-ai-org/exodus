@@ -25,9 +25,11 @@ import {
   isEmptyAssistantTurn
 } from '../../server/routes/chat-errors'
 import { calculateCost } from '../utils/cost'
+import { withBareImages } from '../utils/image-data'
 import { declinedReason, refusedReason, sensitiveTarget } from './approval'
 import type { KernelEvent } from './events'
-import { dropBrokenRuns } from './invariant'
+import { dropBrokenRuns, withUsage } from './invariant'
+import { loggingThrows, logThrown } from './log-throws'
 import { streamFn } from './models'
 import {
   APPROVAL_TIMEOUT_MS,
@@ -95,7 +97,7 @@ export async function* runAgent(input: RunInput): AsyncIterable<KernelEvent> {
   const declined = new Map<string, string>()
   let failure: string | null = null
 
-  const agent = new Agent({
+  const options: ConstructorParameters<typeof Agent>[0] = {
     initialState: {
       systemPrompt: input.systemPrompt,
       model: input.model,
@@ -120,7 +122,9 @@ export async function* runAgent(input: RunInput): AsyncIterable<KernelEvent> {
           { chatId: input.chatId, runId, dropped }
         )
       }
-      return safe
+      // A saved attachment is the data URL the renderer shows; pi sends
+      // `data` as it is and a provider wants bare base64.
+      return safe.map((m) => withBareImages(withUsage(m)))
     },
     beforeToolCall: async ({ toolCall, args }, signal) => {
       if (input.disabledTools?.has(toolCall.name)) {
@@ -179,9 +183,29 @@ export async function* runAgent(input: RunInput): AsyncIterable<KernelEvent> {
       declined.set(toolCall.id, reason)
       return { block: true, reason }
     }
+  }
+  // pi keeps only the message of what these two throw, and of what the
+  // listener below throws: the Error is logged first, then thrown on.
+  const ids = () => ({ chatId: input.chatId, runId })
+  const agent = new Agent({
+    ...options,
+    convertToLlm:
+      options.convertToLlm &&
+      loggingThrows('convertToLlm', options.convertToLlm, ids),
+    beforeToolCall:
+      options.beforeToolCall &&
+      loggingThrows(
+        'beforeToolCall',
+        options.beforeToolCall,
+        ({ toolCall }) => ({
+          ...ids(),
+          toolName: toolCall.name,
+          toolCallId: toolCall.id
+        })
+      )
   })
 
-  const unsubscribe = agent.subscribe((event: AgentEvent) => {
+  const listener = (event: AgentEvent) => {
     switch (event.type) {
       case 'message_update': {
         const m = event.message as Message
@@ -278,7 +302,13 @@ export async function* runAgent(input: RunInput): AsyncIterable<KernelEvent> {
       default:
         return
     }
-  })
+  }
+  const unsubscribe = agent.subscribe(
+    loggingThrows('listener', listener, (event) => ({
+      ...ids(),
+      event: event.type
+    }))
+  )
 
   let finished = false
   const onAbort = () => agent.abort()
@@ -287,6 +317,7 @@ export async function* runAgent(input: RunInput): AsyncIterable<KernelEvent> {
   const running = agent
     .prompt(stripForAgent(input.userMessage))
     .catch((error: unknown) => {
+      logThrown('run', error, ids)
       failure = error instanceof Error ? error.message : String(error)
     })
     .finally(() => {

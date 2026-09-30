@@ -99,7 +99,7 @@ function closeInstanceSync(): void {
   try {
     instance.closeSync()
   } catch (err) {
-    logger.warn('analytics', 'duckdb close failed', { error: String(err) })
+    logger.warn('analytics', 'duckdb close failed', { error: err })
   }
   instance = null
   instanceMode = null

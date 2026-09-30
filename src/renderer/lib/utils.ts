@@ -37,7 +37,10 @@ export function convertToUIMessages(
         runId: dbMsg.runId,
         role: 'user' as const,
         content: dbMsg.content as UserMessage['content'],
-        timestamp
+        timestamp,
+        // Regenerate-group state (spec 2026-09-26), only when the run has one.
+        ...(dbMsg.alternateOf ? { alternateOf: dbMsg.alternateOf } : {}),
+        ...(dbMsg.attempt ? { attempt: dbMsg.attempt } : {})
       }
     }
     if (dbMsg.role === 'assistant') {

@@ -204,7 +204,9 @@
       "favoritesGroup": "お気に入り",
       "chats": "チャット",
       "more": "もっと見る",
-      "rename": "名前を変更"
+      "rename": "名前を変更",
+      "copyId": "会話 ID をコピー",
+      "idCopied": "会話 ID をコピーしました"
     },
     "projects": {
       "title": "プロジェクト",
@@ -312,5 +314,25 @@
     "expired": "待機は終了しています",
     "decideFailed": "回答を送信できませんでした",
     "truncatedNote_other": "さらに{{count}}文字が表示されていません"
+  },
+  "compare": {
+    "useThis": "これを使う",
+    "useInstead": "代わりにこれを使う",
+    "otherVersion_other": "他のバージョン {{count}} 件",
+    "answerTab": "回答 {{n}}",
+    "tabsLabel": "回答",
+    "otherVersionTitle": "もう一方のバージョン",
+    "otherVersionDescription": "採用しなかった回答です。",
+    "locked": "会話が先に進んだため、この回答はもう使用できません。",
+    "chooseFailed": "回答を切り替えられませんでした"
+  },
+  "citation": {
+    "previous": "前のソース",
+    "next": "次のソース",
+    "position": "{{current}}/{{total}}"
+  },
+  "ask": {
+    "button": "Exodus に質問",
+    "remove": "引用を削除"
   }
 }

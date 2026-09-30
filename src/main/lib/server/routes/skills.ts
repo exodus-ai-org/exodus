@@ -52,7 +52,7 @@ function toRegistryError(err: unknown): never {
       err.message
     )
   }
-  logger.warn('skills', 'registry request failed', { error: String(err) })
+  logger.warn('skills', 'registry request failed', { error: err })
   throw new ServiceError(ErrorCode.SERVICE_SKILLS_REGISTRY_FAILED)
 }
 

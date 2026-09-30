@@ -1,6 +1,23 @@
 // POST /api/v1/logs — the renderer reporting an error it caught.
+import { join } from 'node:path'
+import { pathToFileURL } from 'node:url'
+
 import { Hono } from 'hono'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi
+} from 'vitest'
+
+import {
+  buildThrowingBundle,
+  type BuiltBundle
+} from '../../../../helpers/built-bundle'
 
 vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
 const error = vi.fn()
@@ -10,6 +27,8 @@ vi.mock('@main/lib/logger', () => ({
 }))
 
 const { default: logsRouter } = await import('@main/lib/server/routes/logs')
+const { resetSourceMapsForTests, setSourceMapRootForTests } =
+  await import('@main/lib/logger/source-map')
 
 function post(body: unknown) {
   const app = new Hono()
@@ -144,5 +163,123 @@ describe('POST /api/v1/logs', () => {
     ]
     expect(message.length).toBeLessThanOrEqual(2000)
     expect(attributes.stack.length).toBeLessThanOrEqual(8000)
+  })
+})
+
+describe('POST /api/v1/logs — stacks from the packaged renderer', () => {
+  let built: BuiltBundle
+  let url: string
+
+  beforeAll(async () => {
+    // Stands in for `.vite/renderer/main_window/assets/index-<hash>.js`.
+    built = await buildThrowingBundle('.vite/renderer/main_window/assets')
+    url = pathToFileURL(built.file).href
+  })
+  afterAll(() => built.remove())
+  beforeEach(() => setSourceMapRootForTests(join(built.app, '.vite')))
+  afterEach(() => resetSourceMapsForTests())
+
+  const stack = () =>
+    `TypeError: x is undefined\n    at WeatherCard (${url}:1:91)\n    at div`
+
+  it('maps the stack and the component stack, and keeps what was sent', async () => {
+    const componentStack = `\n    at WeatherCard (${url}:1:91)\n    at div`
+    const res = await post({
+      level: 'error',
+      scope: 'tool-card',
+      message: 'x is undefined',
+      attributes: { toolName: 'weather', stack: stack(), componentStack }
+    })
+    expect(res.status).toBe(204)
+    const [surface, , attributes] = error.mock.calls[0] as [
+      string,
+      string,
+      Record<string, string>
+    ]
+    expect(surface).toBe('renderer/tool-card')
+    expect(attributes.toolName).toBe('weather')
+    expect(attributes.stack.split('\n')).toEqual([
+      'TypeError: x is undefined',
+      expect.stringMatching(
+        /^ {4}at WeatherCard \(src\/main\/lib\/boom\.ts:7:\d+\)$/u
+      ),
+      '    at div'
+    ])
+    expect(attributes.stack_raw).toBe(stack())
+    expect(attributes.componentStack).toMatch(
+      /at WeatherCard \(src\/main\/lib\/boom\.ts:7:\d+\)/u
+    )
+    expect(attributes.componentStack_raw).toBe(componentStack)
+  })
+
+  it('adds no second copy when nothing in the stack maps', async () => {
+    const dev =
+      'Error: boom\n    at Chat (http://localhost:5173/src/renderer/components/chat.tsx:12:3)'
+    await post({
+      level: 'error',
+      scope: 'route',
+      message: 'boom',
+      attributes: { stack: dev }
+    })
+    expect(error).toHaveBeenCalledWith('renderer/route', 'boom', {
+      stack: dev
+    })
+  })
+
+  it('leaves an ios report as it was sent', async () => {
+    await post({
+      level: 'error',
+      scope: 'chat',
+      message: 'boom',
+      source: 'ios',
+      attributes: { stack: stack() }
+    })
+    expect(error).toHaveBeenCalledWith('ios/chat', 'boom', {
+      stack: stack()
+    })
+  })
+
+  it('maps before it clips, so a long stack keeps more of its frames', async () => {
+    const frames = Array.from(
+      { length: 120 },
+      (_, i) => `    at Component${i} (${url}:1:91)`
+    )
+    const long = ['Error: deep', ...frames].join('\n')
+    expect(long.length).toBeGreaterThan(8000)
+    await post({
+      level: 'error',
+      scope: 'tool-card',
+      message: 'deep',
+      attributes: { componentStack: long }
+    })
+    const [, , attributes] = error.mock.calls[0] as [
+      string,
+      string,
+      Record<string, string>
+    ]
+    expect(attributes.componentStack.length).toBeLessThanOrEqual(8000)
+    expect(attributes.componentStack_raw.length).toBeLessThanOrEqual(8000)
+    const kept = (text: string) => text.match(/at Component\d+ /gu)?.length ?? 0
+    expect(kept(attributes.componentStack)).toBe(120)
+    expect(kept(attributes.componentStack_raw)).toBeLessThan(120)
+  })
+
+  it('does not map past a bound on what it reads', async () => {
+    const frame = `    at Component (${url}:1:91)\n`
+    const huge = frame.repeat(Math.ceil(200_000 / frame.length))
+    const res = await post({
+      level: 'error',
+      scope: 'tool-card',
+      message: 'huge',
+      attributes: { stack: huge }
+    })
+    expect(res.status).toBe(204)
+    const [, , attributes] = error.mock.calls[0] as [
+      string,
+      string,
+      Record<string, string>
+    ]
+    expect(attributes.stack.length).toBeLessThanOrEqual(8000)
+    expect(attributes.stack).toMatch(/boom\.ts:7:/u)
   })
 })

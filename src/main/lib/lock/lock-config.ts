@@ -14,7 +14,7 @@ export function readConfig(): LockConfig {
     return { ...DEFAULT_LOCK_CONFIG, ...parsed }
   } catch (err) {
     logger.warn('app', 'Failed to read lock config, using defaults', {
-      error: String(err)
+      error: err
     })
     return { ...DEFAULT_LOCK_CONFIG }
   }

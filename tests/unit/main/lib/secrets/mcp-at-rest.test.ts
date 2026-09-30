@@ -314,7 +314,9 @@ describe('a Keychain that refuses to encrypt (M2)', () => {
       /keychain/iu.test(String(c[1]))
     )
     expect(calls).toHaveLength(1)
-    expect(JSON.stringify(logged.error.mock.calls)).not.toContain(KEY)
+    // As the logger writes them: an Error's message and stack included.
+    const { writtenBy } = await import('../../../helpers/logged')
+    expect(writtenBy(logged.error.mock.calls)).not.toContain(KEY)
   })
 
   it('fails an MCP save with the same message, not a generic one', async () => {

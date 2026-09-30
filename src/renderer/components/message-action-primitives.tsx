@@ -10,9 +10,14 @@ import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
 
 export function IconWrapper({
   onClick,
+  label,
+  testId,
   children
 }: {
   onClick?: () => void
+  /** The button's name for a screen reader: the icon alone says nothing. */
+  label?: string
+  testId?: string
   children: ReactNode
 }) {
   return (
@@ -21,6 +26,8 @@ export function IconWrapper({
       size="icon-sm"
       className="text-muted-foreground hover:bg-muted hover:text-foreground rounded-lg [&_svg]:size-4"
       onClick={onClick}
+      aria-label={label}
+      data-testid={testId}
     >
       {children}
     </Button>

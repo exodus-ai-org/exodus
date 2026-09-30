@@ -1,9 +1,14 @@
 import type { Message } from '@earendil-works/pi-ai'
-import type { ChatMessage } from '@exodus/shared/types/chat'
+import type { Attempt, ChatMessage } from '@exodus/shared/types/chat'
 
 export function stripId(msg: ChatMessage): Message {
+  // Regenerate-group state (`alternateOf`, `attempt`) is ours, not the
+  // provider's: it goes with the ids.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { id, runId, ...rest } = msg
+  const { id, runId, alternateOf, attempt, ...rest } = msg as ChatMessage & {
+    alternateOf?: unknown
+    attempt?: unknown
+  }
   return rest as Message
 }
 
@@ -19,6 +24,9 @@ export function toDbRow(msg: ChatMessage, chatId: string) {
     runId: msg.runId,
     role: msg.role,
     content: msg.content,
+    // Regenerate-group state lives on a run's user row only (below).
+    alternateOf: null as string | null,
+    attempt: null as Attempt | null,
     createdAt: isNaN(ts.getTime()) ? new Date() : ts
   }
 
@@ -59,6 +67,8 @@ export function toDbRow(msg: ChatMessage, chatId: string) {
   // user
   return {
     ...base,
+    alternateOf: msg.alternateOf ?? null,
+    attempt: msg.attempt ?? null,
     usage: null,
     api: null,
     provider: null,

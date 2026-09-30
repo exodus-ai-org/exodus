@@ -1,9 +1,15 @@
 import type { Message } from '@earendil-works/pi-ai'
+import {
+  type CurrentRun,
+  excludedRuns,
+  type RunAttemptInfo
+} from '@exodus/shared/utils/attempts'
 import { asc, eq } from 'drizzle-orm'
 
 import { db } from '../../db/db'
 import type { LcmContextItem, LcmSummary } from '../../db/schema'
 import { message as messageTable } from '../../db/schema'
+import { storedUsage } from '../utils/usage'
 import { formatSummaryAsXml } from './prompts'
 import {
   getContextItems,
@@ -54,12 +60,48 @@ export function groupItemsIntoRuns(
 
 type MessageRow = typeof messageTable.$inferSelect
 
+/** The runs among `rows`, as their user rows describe them. */
+function runInfosOf(rows: MessageRow[]): RunAttemptInfo[] {
+  return rows
+    .filter((row) => row.role === 'user' && row.id === row.runId)
+    .map((row) => ({
+      runId: row.runId,
+      alternateOf: row.alternateOf,
+      attempt: row.attempt
+    }))
+}
+
+/**
+ * The context items as the runs the model may see: `groupItemsIntoRuns`,
+ * less the runs a regenerate group keeps from it (`excludedRuns` — the answer
+ * that was not kept, the attempts older than the newest two and, for a
+ * regenerate, every other run of its group). Assembly and compaction both
+ * start here, so the fresh tail counts runs the model sees and a run that is
+ * out of sight is neither sent nor summarized.
+ */
+export function contextRuns(
+  items: LcmContextItem[],
+  rows: MessageRow[],
+  current?: CurrentRun
+): RunGroup[] {
+  const runs = groupItemsIntoRuns(
+    items,
+    new Map(rows.map((row) => [row.id, row.runId]))
+  )
+  const excluded = excludedRuns(runInfosOf(rows), current)
+  return excluded.size === 0
+    ? runs
+    : runs.filter((run) => !excluded.has(run.key))
+}
+
 /**
  * Assembles the LLM context for a chat session.
  *
  * Flow:
  * 1. If no context items exist for this chat, bootstrap from message table
- * 2. Group items into runs; the fresh tail is the most recent N runs
+ * 2. Group items into runs, less those a regenerate group keeps out of
+ *    sight (`current` is the run being answered); the fresh tail is the most
+ *    recent N of them
  * 3. Fill the token budget: the fresh tail whole, then whole older runs
  *    newest first, stopping at the first that does not fit
  * 4. Inject summaries as user messages with XML markers
@@ -67,7 +109,8 @@ type MessageRow = typeof messageTable.$inferSelect
 export async function assembleContext(
   chatId: string,
   tokenBudget: number,
-  freshTailRuns: number
+  freshTailRuns: number,
+  current?: CurrentRun
 ): Promise<AssembledContext> {
   // Bootstrap: if no context items tracked yet, seed from DB messages
   let items = await getContextItems(chatId)
@@ -86,8 +129,7 @@ export async function assembleContext(
 
   const rows = await getMessagesByIds(Array.from(trackedMessageIds))
   const rowById = new Map(rows.map((m) => [m.id, m]))
-  const runIdOf = new Map(rows.map((m) => [m.id, m.runId]))
-  const runs = groupItemsIntoRuns(items, runIdOf)
+  const runs = contextRuns(items, rows, current)
 
   const materialize = async (
     group: RunGroup
@@ -149,8 +191,16 @@ function dbMessageToLlmMessage(msg: MessageRow): Message {
       timestamp: msg.createdAt.getTime()
     } as Message
   }
+  if (msg.role === 'assistant') {
+    return {
+      role: 'assistant',
+      content: msg.content as Message['content'],
+      usage: storedUsage(msg.usage),
+      timestamp: msg.createdAt.getTime()
+    } as Message
+  }
   return {
-    role: msg.role as 'user' | 'assistant',
+    role: 'user',
     content: msg.content as Message['content'],
     timestamp: msg.createdAt.getTime()
   } as Message

@@ -1,5 +1,5 @@
 import { AlertCircleIcon } from 'lucide-react'
-import { Component, type ReactNode } from 'react'
+import { Component, type ErrorInfo, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { ROW_ENTER } from '@/lib/motion'
@@ -11,7 +11,8 @@ import { cn } from '@/lib/utils'
  * card reading a field its result did not carry took the whole chat page
  * down to the route's "Something went wrong" — the reply had streamed and
  * persisted fine. The error is reported to the main-process log under
- * `renderer/<scope>` with `attributes`, and the fallback stands in.
+ * `renderer/<scope>` with `attributes` and React's component stack (which
+ * component threw, under which), and the fallback stands in.
  */
 export class ErrorBoundary extends Component<
   {
@@ -28,8 +29,11 @@ export class ErrorBoundary extends Component<
     return { error }
   }
 
-  componentDidCatch(error: Error) {
-    reportRendererError(this.props.scope, error, this.props.attributes)
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    reportRendererError(this.props.scope, error, {
+      ...this.props.attributes,
+      ...(info.componentStack ? { componentStack: info.componentStack } : {})
+    })
   }
 
   render() {

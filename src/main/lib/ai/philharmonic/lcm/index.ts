@@ -16,6 +16,8 @@ import {
   estimateMessageTokens,
   estimateTokens
 } from '../../context-management/token-counter'
+import { bareImageData } from '../../utils/image-data'
+import { storedUsage } from '../../utils/usage'
 import { getSessionSummary, upsertSessionSummary } from './queries'
 import { summarizeMessages } from './summarize'
 
@@ -71,7 +73,10 @@ function buildUserContent(
   if (text.length > 0) parts.push({ type: 'text', text })
   for (const a of attachments) {
     if (a.contentType.startsWith('image/')) {
-      parts.push({ type: 'image', data: a.url, mimeType: a.contentType })
+      parts.push({
+        type: 'image',
+        ...bareImageData(a.url, a.contentType)
+      })
     }
   }
   return parts.length > 0 ? parts : [{ type: 'text', text: '' }]
@@ -91,6 +96,8 @@ function rowToLlmMessage(row: ConversationMessage): Message {
   return {
     role: 'assistant',
     content: [{ type: 'text', text: row.content }],
+    // A Group's rows record no usage; pi needs one on every assistant message.
+    usage: storedUsage(null),
     timestamp: new Date(row.createdAt).getTime()
   } as Message
 }
@@ -187,7 +194,7 @@ export class PhilharmonicLcm {
       } catch (err) {
         logger.error('philharmonic', 'LCM compaction failed', {
           conversationId,
-          error: String(err)
+          error: err
         })
       }
     })

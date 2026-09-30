@@ -113,7 +113,7 @@ async function checkFeed(): Promise<void> {
     setState('available', { availableVersion: release.name ?? null })
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
-    logger.warn('app', 'Updater: feed check failed', { error: message })
+    logger.warn('app', 'Updater: feed check failed', { error: err })
     setState('error', { errorMessage: message })
   }
 }
@@ -145,10 +145,7 @@ function startSquirrel(): void {
     })
   })
   autoUpdater.on('error', (err) => {
-    logger.error('app', 'Updater: error', {
-      error: err.message ?? 'Unknown error',
-      stack: err.stack
-    })
+    logger.error('app', 'Updater: error', { error: err })
     setState('error', { errorMessage: err.message ?? 'Unknown error' })
   })
 
@@ -168,7 +165,7 @@ function startSquirrel(): void {
     })
   } catch (err) {
     logger.warn('app', 'Auto-update not available', {
-      error: String(err)
+      error: err
     })
   }
 }

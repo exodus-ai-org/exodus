@@ -12,6 +12,7 @@ import {
   recordApprovalRequired,
   recordApprovalResolved
 } from '@/hooks/use-approvals'
+import { invalidateHistory } from '@/hooks/use-chat-history'
 import { memoryKeys } from '@/hooks/use-memory'
 import { i18n } from '@/lib/i18n'
 import { queryClient } from '@/lib/query-client'
@@ -158,6 +159,7 @@ async function consumeStream(stream: ActiveStream, response: Response) {
         } else if (event.type === 'title') {
           stream.chatTitle = event.title
           stream.subscriber?.onTitle(event.title)
+          void invalidateHistory(queryClient)
         } else if (event.type === 'notice') {
           notifyNotice(stream, event.level, event.message)
         } else if (event.type === 'memories_used') {
@@ -280,6 +282,10 @@ export function startStream(opts: {
       }
     } finally {
       streams.delete(stream.chatId)
+      // However the run ended — the chat was saved before it started, and
+      // the list orders by the latest message. Done here rather than by the
+      // chat page, which is gone when the user has opened another chat.
+      void invalidateHistory(queryClient)
     }
   })()
 }

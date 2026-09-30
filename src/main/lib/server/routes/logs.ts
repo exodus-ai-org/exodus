@@ -2,6 +2,7 @@ import { existsSync, readdirSync, readFileSync, unlinkSync } from 'fs'
 import { join } from 'path'
 
 import { ErrorCode } from '@exodus/shared/constants/error-codes'
+import { REPORTED_STACK_MAX_CHARS } from '@exodus/shared/constants/systems'
 import { NotFoundError } from '@exodus/shared/errors/app-error'
 import { Hono } from 'hono'
 import { z } from 'zod'
@@ -12,6 +13,7 @@ import {
   type LogRecord,
   normalizeToLogRecord
 } from '../../logger'
+import { mapStackTrace } from '../../logger/source-map'
 import { getLogsDir } from '../../paths'
 import { filterRecords, minSeverityFromLevel } from './logs-filter'
 
@@ -132,6 +134,34 @@ const clip = (value: unknown, max: number): unknown =>
     ? `${value.slice(0, max - 1)}…`
     : value
 
+// The attributes of a renderer report that hold a stack: the error's own,
+// and React's component stack from an error boundary.
+const STACK_ATTRIBUTES = ['stack', 'componentStack'] as const
+
+/**
+ * A renderer report's stacks, with the frames that point into the packaged
+ * renderer's built files rewritten to their source positions (a dev build's
+ * frames are `http://localhost:5173/src/…` already and stay). What was sent
+ * is kept under `<name>_raw`, only when mapping changed it.
+ */
+function withMappedStacks(
+  attributes: Record<string, unknown>
+): Record<string, unknown> {
+  const mapped: Record<string, unknown> = {}
+  for (const name of STACK_ATTRIBUTES) {
+    const sent = attributes[name]
+    if (typeof sent !== 'string') continue
+    // Mapped before it is clipped to what an attribute is stored under: the
+    // source positions are shorter than the URLs, so more frames are kept.
+    const bounded = sent.slice(0, REPORTED_STACK_MAX_CHARS)
+    const stack = mapStackTrace(bounded)
+    if (stack === bounded) continue
+    mapped[name] = stack
+    mapped[`${name}_raw`] = sent
+  }
+  return { ...attributes, ...mapped }
+}
+
 // POST /api/v1/logs — an error a client caught: the renderer (an error
 // boundary, a route error) or a paired exodus-ios device. Client errors
 // otherwise live only on-device; this puts them in the same JSONL the Logger
@@ -158,10 +188,9 @@ logsRouter.post('/', async (c) => {
   } of reports) {
     const detail = attributes
       ? Object.fromEntries(
-          Object.entries(attributes).map(([k, v]) => [
-            k,
-            clip(v, MAX_ATTRIBUTE_CHARS)
-          ])
+          Object.entries(
+            source === 'renderer' ? withMappedStacks(attributes) : attributes
+          ).map(([k, v]) => [k, clip(v, MAX_ATTRIBUTE_CHARS)])
         )
       : undefined
     logger[level](

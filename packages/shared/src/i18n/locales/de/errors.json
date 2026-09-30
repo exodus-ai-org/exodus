@@ -66,7 +66,9 @@
     "INTERNAL_ERROR": "Es ist ein interner Serverfehler aufgetreten.",
     "UNKNOWN_ERROR": "Ein unbekannter Fehler ist aufgetreten.",
     "APP_LOCKED": "Die Anwendung ist gesperrt.",
-    "APPROVAL_NOT_FOUND": "Diese Anfrage wartet nicht mehr auf eine Antwort."
+    "APPROVAL_NOT_FOUND": "Diese Anfrage wartet nicht mehr auf eine Antwort.",
+    "RUN_NOT_FOUND": "Diese Antwort ist nicht mehr in diesem Chat.",
+    "ATTEMPT_LOCKED": "Das Gespräch ist weitergegangen, daher kann diese Antwort nicht mehr getauscht werden."
   },
   "routeBoundary": {
     "title": "Es ist ein Fehler aufgetreten",

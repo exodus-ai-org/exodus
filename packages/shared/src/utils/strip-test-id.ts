@@ -1,3 +1,5 @@
+const lineBreaksOf = (removed: string): string => removed.replace(/[^\n]+/g, '')
+
 /**
  * Remove `data-testid` JSX attributes from a source string.
  *
@@ -17,10 +19,14 @@
  * interpolation that itself contains a template interpolation) is not matched;
  * that would fail the release build loudly rather than ship a stale marker, and
  * no such usage exists here.
+ *
+ * What is removed leaves its line breaks behind, so every line after it stays
+ * where it was: the transform hands Vite no source map of its own, and a
+ * release build's maps would otherwise name a line a few above the real one.
  */
 export function stripDataTestId(code: string): string {
   return code
-    .replace(/\s+data-testid=\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g, '')
-    .replace(/\s+data-testid="[^"]*"/g, '')
-    .replace(/\s+data-testid='[^']*'/g, '')
+    .replace(/\s+data-testid=\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}/g, lineBreaksOf)
+    .replace(/\s+data-testid="[^"]*"/g, lineBreaksOf)
+    .replace(/\s+data-testid='[^']*'/g, lineBreaksOf)
 }

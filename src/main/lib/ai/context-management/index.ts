@@ -1,4 +1,5 @@
 import type { Message, Model } from '@earendil-works/pi-ai'
+import type { CurrentRun } from '@exodus/shared/utils/attempts'
 
 import { logger } from '../../logger'
 import { runFullCompaction } from './compaction'
@@ -81,14 +82,20 @@ export class LcmManager {
 
   /**
    * Assembles the LLM message array for this chat session.
-   * Bootstraps context tracking on first call.
+   * Bootstraps context tracking on first call. `current` is the run being
+   * answered: a regenerate sees no other run of its group.
    */
-  async assembleContext(): Promise<{
+  async assembleContext(current?: CurrentRun): Promise<{
     messages: Message[]
     totalTokens: number
     trackedMessageIds: Set<string>
   }> {
-    return assembleContext(this.chatId, this.tokenBudget, this.freshTailRuns)
+    return assembleContext(
+      this.chatId,
+      this.tokenBudget,
+      this.freshTailRuns,
+      current
+    )
   }
 
   /**

@@ -1,7 +1,4 @@
-import { QUICK_CHAT_KEY } from '@exodus/shared/constants/misc'
-import { IpcRendererEvent } from 'electron'
-import { useCallback, useEffect } from 'react'
-import { Outlet, useNavigate } from 'react-router'
+import { Outlet } from 'react-router'
 
 import { AppToaster } from '@/components/app-toaster'
 import { DeepResearchProcess } from '@/components/deep-research'
@@ -15,7 +12,6 @@ import {
 import { useIsFullscreen } from '@/hooks/use-is-full-screen'
 import { useKeyboardShortcuts } from '@/hooks/use-keyboard-shortcuts'
 import { ResizableSidebarShell } from '@/layouts/shared/resizable-sidebar'
-import { subscribeQuickChatInput, unsubscribeQuickChatInput } from '@/lib/ipc'
 import { cn } from '@/lib/utils'
 
 import { AppSidebar } from './app-sidebar'
@@ -64,22 +60,6 @@ function ChatWorkspace() {
 }
 
 export function Layout() {
-  const navigate = useNavigate()
-
-  // Listen for quick-chat input at layout level so it works regardless of current route
-  const onQuickChatInput = useCallback(
-    (_: IpcRendererEvent, text: string) => {
-      window.localStorage.setItem(QUICK_CHAT_KEY, text)
-      navigate('/')
-    },
-    [navigate]
-  )
-
-  useEffect(() => {
-    subscribeQuickChatInput(onQuickChatInput)
-    return () => unsubscribeQuickChatInput(onQuickChatInput)
-  }, [onQuickChatInput])
-
   // Central keyboard shortcuts (Mod+N, Mod+W, Mod+,, Mod+Shift+F, Escape, etc.)
   useKeyboardShortcuts()
 

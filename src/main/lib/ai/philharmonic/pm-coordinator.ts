@@ -26,6 +26,7 @@ import { notifyIfBackground } from '../../philharmonic-notifications'
 import { searchKnowledgeBase } from '../calling-tools/search-knowledge-base'
 import { streamFn } from '../kernel/models'
 import { getModelFromProvider } from '../utils/chat-message-util'
+import { bareImageData } from '../utils/image-data'
 import { createEscalateToUserTool } from './agent-tools'
 import { askUserRegistry } from './ask-user-registry'
 import type { SseEmitter } from './employee-loop'
@@ -95,7 +96,10 @@ function buildUserContent(
   if (attachments) {
     for (const a of attachments) {
       if (a.contentType.startsWith('image/')) {
-        parts.push({ type: 'image', data: a.url, mimeType: a.contentType })
+        parts.push({
+          type: 'image',
+          ...bareImageData(a.url, a.contentType)
+        })
       }
     }
   }

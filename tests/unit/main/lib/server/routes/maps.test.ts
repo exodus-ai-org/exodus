@@ -95,7 +95,22 @@ describe('GET /api/v1/maps/photo', () => {
     const text = await res.text()
     expect(text).not.toContain(KEY)
     expect(text).not.toContain('places.googleapis.com')
-    expect(JSON.stringify(warn.mock.calls)).not.toContain(KEY)
+    // As the logger writes it: the Error's message and stack, no more.
+    const { writtenBy } = await import('../../../../helpers/logged')
+    const written = writtenBy(warn.mock.calls)
+    expect(written).toContain('HTTP 403')
+    expect(written).toContain('exception.stacktrace')
+    expect(written).not.toContain(KEY)
+    expect(written).not.toContain('places.googleapis.com')
+  })
+
+  it('logs nothing of a failure that is not an Error', async () => {
+    fetchPublicHttps.mockRejectedValue(`https://x.example/?key=${KEY}`)
+    const res = await photo(`name=${encodeURIComponent(NAME)}`)
+    expect(res.status).toBe(503)
+    expect(warn).toHaveBeenCalledWith('maps', 'Places photo fetch failed', {
+      error: 'unknown'
+    })
   })
 
   it('a non-image answer is refused', async () => {

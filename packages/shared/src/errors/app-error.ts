@@ -105,6 +105,17 @@ export class ValidationError extends AppError {
   }
 }
 
+/** The request is valid but the resource's current state refuses it (409). */
+export class ConflictError extends AppError {
+  constructor(
+    code: ErrorCode,
+    message?: string,
+    params?: Record<string, string | number>
+  ) {
+    super(code, message, true, params)
+  }
+}
+
 export class ServiceError extends AppError {
   constructor(
     code: ErrorCode = ErrorCode.SERVICE_UNAVAILABLE,

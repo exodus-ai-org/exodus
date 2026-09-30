@@ -118,7 +118,7 @@ We have chosen [Electron](https://www.electronjs.org/) as our cross-platform fra
 
 | Command                     | Description                                                           |
 | --------------------------- | --------------------------------------------------------------------- |
-| `bun run start`             | Start the app in development (Vite dev servers, hot reload)           |
+| `bun run dev`               | Start the app in development (Vite dev servers, hot reload)           |
 | `bun run package`           | Package the app for the current platform into `out/`                  |
 | `bun run make`              | Build distributables (macOS ZIP/DMG, Windows Squirrel, Linux deb/rpm) |
 | `bun run build:helper`      | Build the `exodus-input` helper for Computer Use (macOS, needs Xcode) |

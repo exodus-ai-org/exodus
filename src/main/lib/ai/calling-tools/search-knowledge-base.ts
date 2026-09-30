@@ -47,7 +47,7 @@ export function searchKnowledgeBase(
       } catch (error) {
         logger.warn('knowledge-base', 'retrieval failed', {
           query,
-          error: String(error)
+          error
         })
         return {
           content: [

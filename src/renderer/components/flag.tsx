@@ -52,7 +52,7 @@ export function Flag({
       // The hairline ring keeps mostly-white flags (Japan, Korea) from
       // dissolving into a white surface.
       className={cn(
-        'h-3 w-[18px] shrink-0 rounded-[2px] object-cover ring-1 ring-black/10 dark:ring-white/15',
+        'h-3 w-4.5 shrink-0 rounded-xs object-cover ring-1 ring-black/10 dark:ring-white/15',
         className
       )}
     />

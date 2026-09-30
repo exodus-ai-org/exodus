@@ -114,8 +114,7 @@ export function startBackupScheduler(): void {
       await createAutoBackup()
     } catch (err) {
       logger.error('app', 'Scheduled backup failed', {
-        error: String(err),
-        stack: err instanceof Error ? err.stack : undefined
+        error: err
       })
     }
   })

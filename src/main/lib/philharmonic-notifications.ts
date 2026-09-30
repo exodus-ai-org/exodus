@@ -50,7 +50,7 @@ export function notifyIfBackground(opts: NotifyOpts): void {
   } catch (err) {
     // Some Linux distros can throw if no notification daemon is running.
     logger.warn('philharmonic', 'notification show failed', {
-      err: String(err)
+      error: err
     })
   }
 }

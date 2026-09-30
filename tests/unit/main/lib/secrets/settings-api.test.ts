@@ -344,9 +344,11 @@ describe('a failed write', () => {
     expect(String(err.stack)).not.toContain('sk-in-a-failing-write-1234')
     // …and neither does what was logged about it.
     const { logger } = await import('@main/lib/logger')
+    const { writtenBy } = await import('../../../helpers/logged')
     expect(vi.mocked(logger.error)).toHaveBeenCalled()
-    expect(JSON.stringify(vi.mocked(logger.error).mock.calls)).not.toContain(
-      'sk-in-a-failing-write-1234'
-    )
+    // As the logger writes it: the Error it was handed, message and stack.
+    const written = writtenBy(vi.mocked(logger.error).mock.calls)
+    expect(written).toContain('exception.stacktrace')
+    expect(written).not.toContain('sk-in-a-failing-write-1234')
   })
 })

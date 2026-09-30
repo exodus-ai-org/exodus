@@ -184,7 +184,7 @@ export function CostAnalysis() {
       ({
         cost: {
           label: t('costAnalysis.chart.costLabel'),
-          color: 'var(--primary)'
+          color: 'var(--primary-ink)'
         }
       }) satisfies ChartConfig,
     [t]
@@ -307,12 +307,12 @@ export function CostAnalysis() {
                   <linearGradient id="ph-cost-fill" x1="0" y1="0" x2="0" y2="1">
                     <stop
                       offset="0%"
-                      stopColor="var(--primary)"
+                      stopColor="var(--primary-ink)"
                       stopOpacity={0.4}
                     />
                     <stop
                       offset="100%"
-                      stopColor="var(--primary)"
+                      stopColor="var(--primary-ink)"
                       stopOpacity={0}
                     />
                   </linearGradient>
@@ -347,7 +347,7 @@ export function CostAnalysis() {
                   dataKey="cost"
                   type="natural"
                   fill="url(#ph-cost-fill)"
-                  stroke="var(--primary)"
+                  stroke="var(--primary-ink)"
                   strokeWidth={2}
                 />
               </AreaChart>

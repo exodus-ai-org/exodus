@@ -71,7 +71,7 @@ function readRecord(): PinRecord | null {
       logger.warn(
         'app',
         'Could not decrypt lock secret — treating the app as unlocked. Re-set your PIN in Settings.',
-        { error: String(err) }
+        { error: err }
       )
       return null
     }
@@ -87,7 +87,7 @@ function readRecord(): PinRecord | null {
     return null
   } catch (err) {
     logger.warn('app', 'Lock secret is not valid JSON — ignoring it.', {
-      error: String(err)
+      error: err
     })
     return null
   }

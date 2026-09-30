@@ -32,6 +32,23 @@ function stripTestIdPlugin(): Plugin {
   }
 }
 
+/**
+ * Monaco's language workers (`ts.worker`, `css.worker`, …) are three quarters
+ * of the renderer's source maps — 26 MB — for code that is not ours and that
+ * reports nothing to the log (a worker has no error reporter). Their maps are
+ * not written.
+ */
+function dropWorkerSourceMaps(): Plugin {
+  return {
+    name: 'drop-worker-source-maps',
+    generateBundle(_options, bundle) {
+      for (const file of Object.keys(bundle)) {
+        if (/\.worker-[\w-]+\.js\.map$/.test(file)) delete bundle[file]
+      }
+    }
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig({
   resolve: {
@@ -61,7 +78,8 @@ export default defineConfig({
   plugins: [
     ...(stripTestIds ? [stripTestIdPlugin()] : []),
     react(),
-    tailwindcss()
+    tailwindcss(),
+    dropWorkerSourceMaps()
   ],
   optimizeDeps: {
     // Belt and braces alongside `preserveSymlinks: false` above. If the
@@ -75,7 +93,13 @@ export default defineConfig({
     exclude: ['@exodus/shared']
   },
   build: {
+    // Hidden source maps, without the sources' text — see the note in
+    // vite.main.config.mts. The renderer reports a stack as the browser gave
+    // it (`file:///…/assets/index-<hash>.js:1:N`); the main process maps it
+    // when it writes the report (`POST /api/v1/logs`).
+    sourcemap: 'hidden',
     rollupOptions: {
+      output: { sourcemapExcludeSources: true },
       // Vite's root is the repo root (the @electron-forge/plugin-vite
       // default), so the sub-apps keep their `src/renderer/sub-apps/` prefix
       // in the output — window.ts (search bar, quick-chat) and

@@ -33,7 +33,7 @@ export function resolveKnowledgeBase(
     return cachedClient
   } catch (error) {
     logger.warn('knowledge-base', 'Failed to build LightRAG client', {
-      error: String(error)
+      error
     })
     return null
   }

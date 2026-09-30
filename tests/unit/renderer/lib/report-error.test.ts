@@ -1,4 +1,5 @@
 // @vitest-environment happy-dom
+import { REPORTED_STACK_MAX_CHARS } from '@exodus/shared/constants/systems'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const { installGlobalErrorReporting, reportRendererError } =
@@ -40,6 +41,44 @@ describe('reportRendererError', () => {
     })
     expect(body.attributes.toolName).toBe('weather')
     expect(body.attributes.stack).toContain('boom')
+  })
+
+  it('sends a component stack beside the stack of the error', () => {
+    const componentStack = '\n    at WeatherCard\n    at ErrorBoundary'
+    reportRendererError('tool-card', new Error('boom'), {
+      toolName: 'weather',
+      componentStack
+    })
+    const { body } = lastRequest()
+    expect(body.attributes).toMatchObject({
+      toolName: 'weather',
+      componentStack
+    })
+    expect(body.attributes.stack).toContain('boom')
+  })
+
+  it('sends no empty component stack', () => {
+    reportRendererError('tool-card', new Error('boom'), {
+      componentStack: ''
+    })
+    expect(lastRequest().body.attributes).not.toHaveProperty('componentStack')
+    reportRendererError('tool-card', new Error('boom'), {
+      componentStack: null
+    })
+    expect(lastRequest().body.attributes).not.toHaveProperty('componentStack')
+  })
+
+  it('bounds the stacks it sends to what the main process reads', () => {
+    const error = new Error('deep')
+    error.stack = `Error: deep\n${'    at Frame (file:///app/x.js:1:1)\n'.repeat(5000)}`
+    reportRendererError('tool-card', error, {
+      componentStack: '    at Component (file:///app/x.js:1:1)\n'.repeat(5000)
+    })
+    const { body } = lastRequest()
+    expect(body.attributes.stack.length).toBe(REPORTED_STACK_MAX_CHARS)
+    expect(body.attributes.componentStack.length).toBe(REPORTED_STACK_MAX_CHARS)
+    // The head is what is kept: the frames nearest the throw.
+    expect(body.attributes.stack.startsWith('Error: deep\n')).toBe(true)
   })
 
   it('never throws, even when the request itself fails', () => {

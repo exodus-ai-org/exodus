@@ -26,7 +26,7 @@ function toggleQuickChat() {
     view.destroy()
   } catch (err) {
     logger.warn('app', 'Failed to close quick-chat from tray', {
-      error: String(err)
+      error: err
     })
   }
   setQuickChatView(null)
@@ -80,8 +80,7 @@ export function setTray() {
     })
   } catch (err) {
     logger.error('app', 'Failed to create tray icon', {
-      error: String(err),
-      stack: err instanceof Error ? err.stack : undefined
+      error: err
     })
   }
 }
@@ -96,7 +95,7 @@ export function destroyTray() {
       tray.destroy()
     } catch (err) {
       logger.warn('app', 'Failed to destroy tray icon', {
-        error: String(err)
+        error: err
       })
     }
     tray = null

@@ -2,8 +2,14 @@ import { ErrorCode } from '@exodus/shared/constants/error-codes'
 import { TOOL_NAMES, toToolName } from '@exodus/shared/constants/tool-names'
 import { NotFoundError, ValidationError } from '@exodus/shared/errors/app-error'
 import { AdvancedTools } from '@exodus/shared/types/ai'
-import type { ChatMessage, ToolNotice } from '@exodus/shared/types/chat'
+import type {
+  ChatMessage,
+  ChatUserMessage,
+  ToolNotice
+} from '@exodus/shared/types/chat'
+import { runAttemptInfos, runsForContext } from '@exodus/shared/utils/attempts'
 import { Hono } from 'hono'
+import { z } from 'zod'
 
 import { mcpDirectory } from '../../ai/calling-tools/mcp-toolbox'
 import { LcmManager, freshTailRuns } from '../../ai/context-management'
@@ -27,6 +33,15 @@ import {
   getModelFromProvider,
   getTextFromMessage
 } from '../../ai/utils/chat-message-util'
+import { highestSourceRank } from '../../ai/utils/web-sources'
+import {
+  applyAttempts,
+  chooseAttempt,
+  getChatAttempts,
+  recordRegenerate,
+  resolveRegenerateGroup,
+  settleOpenComparison
+} from '../../chat/attempts'
 import type { MemoryRow } from '../../db/memory-queries'
 import { getProjectById, bumpProjectUpdatedAt } from '../../db/project-queries'
 import {
@@ -40,6 +55,7 @@ import {
 } from '../../db/queries'
 import { enqueueAndProcess, logEnqueueFailure } from '../../jobs/worker'
 import { logger } from '../../logger'
+import { stackFramesOf } from '../../logger/record'
 import { bindTraceAttributes } from '../../logger/trace-context'
 import { removeChatMedia } from '../../media/store'
 import { getChatWorkspaceDir } from '../../paths'
@@ -49,6 +65,7 @@ import {
 } from '../../search/resolve-search-provider'
 import {
   approvalDecisionSchema,
+  chooseAttemptSchema,
   postRequestBodySchema,
   updateChatSchema
 } from '../schemas/chat'
@@ -119,6 +136,29 @@ chat.post('/approval', async (c) => {
   return successResponse(c, { outcome })
 })
 
+/**
+ * Keep one answer of a regenerate group: `runId` → `chosen`, the other shown
+ * answer → `folded` (`lib/chat/attempts.ts`). 404 `RUN_NOT_FOUND`, 409
+ * `ATTEMPT_LOCKED` once a later run exists. Not behind the presence gate
+ * (`PRESENCE_PATHS`): it only picks which of the user's own answers the model
+ * sees next — no secret, no approval — and exodus-ios calls it over the LAN.
+ */
+chat.post('/:chatId/choose', async (c) => {
+  const chatId = validateSchema(
+    z.uuid(),
+    getRequiredParam(c, 'chatId'),
+    'Invalid chat id'
+  )
+  const { runId } = validateSchema(
+    chooseAttemptSchema,
+    await c.req.json(),
+    'Invalid request body'
+  )
+  const result = await chooseAttempt(chatId, runId)
+  logger.info('chat', 'Regenerate attempt chosen', { chatId, runId })
+  return successResponse(c, result)
+})
+
 chat.get('/:id', async (c) => {
   const id = getRequiredParam(c, 'id')
   const messages = await handleDatabaseOperation(
@@ -153,9 +193,21 @@ chat.post('/', async (c) => {
       'The last message must be the user prompt'
     )
   }
-  const userMessage = withRunId(last, last.id)
-  /** The conversation as the client sent it, with the prompt stamped. */
-  const history: ChatMessage[] = [...allMessages.slice(0, -1), userMessage]
+  // A Regenerate names the group it re-asks (`alternateOf`); any `attempt`
+  // the client sent is dropped — only lib/chat/attempts.ts sets one.
+  const {
+    alternateOf: requestedGroup,
+    attempt: _clientAttempt,
+    ...prompt
+  } = last as ChatUserMessage
+  // Resolved to the group's first run (404 before anything is written).
+  const regenerateOf = requestedGroup
+    ? await resolveRegenerateGroup(id, requestedGroup)
+    : null
+  const userMessage: ChatUserMessage = withRunId(
+    regenerateOf ? { ...prompt, alternateOf: regenerateOf } : prompt,
+    last.id
+  )
 
   // Create chat record if new
   const existingChat = await getChatById({ id })
@@ -166,7 +218,7 @@ chat.post('/', async (c) => {
       bumpProjectUpdatedAt({ id: projectId }).catch((err) => {
         logger.warn('chat', 'Failed to bump project updatedAt', {
           projectId,
-          error: String(err)
+          error: err
         })
       })
     }
@@ -198,9 +250,32 @@ chat.post('/', async (c) => {
       })
     : null
 
-  const saveUserMsgPromise = saveMessages({
-    messages: [toDbRow(userMessage, id)]
-  })
+  // Regenerate groups settle before any context is assembled, so the model
+  // never sees the answer a Regenerate replaces nor both sides of an open
+  // comparison. A Regenerate needs its own row saved first (the transition
+  // writes it); an ordinary run's row is saved alongside the rest below.
+  let saveUserMsgPromise: Promise<unknown>
+  if (regenerateOf) {
+    await saveMessages({ messages: [toDbRow(userMessage, id)] })
+    await recordRegenerate(id, userMessage.id, regenerateOf)
+    userMessage.attempt = 'comparing'
+    saveUserMsgPromise = Promise.resolve()
+  } else {
+    await settleOpenComparison(id)
+    saveUserMsgPromise = saveMessages({
+      messages: [toDbRow(userMessage, id)]
+    })
+  }
+  /** The conversation as the client sent it, with the prompt stamped and
+   *  every regenerate group's state as stored now. */
+  const priorMessages = allMessages.slice(0, -1)
+  const history: ChatMessage[] = [
+    ...(regenerateOf ||
+    priorMessages.some((m) => m.role === 'user' && m.attempt)
+      ? applyAttempts(priorMessages, await getChatAttempts(id))
+      : priorMessages),
+    userMessage
+  ]
   // `index-message` only feeds Elasticsearch — the built-in PGlite search reads
   // the `message` table directly. Without ES there is no job to run, so don't
   // queue (and have the worker read, resolve settings for, and clear) one per
@@ -214,14 +289,25 @@ chat.post('/', async (c) => {
   }
   indexMessage(toDbRow(userMessage, id))
 
+  // What the model is sent leaves out the runs a regenerate group keeps
+  // from it: the answers not kept and, for a Regenerate, every other attempt
+  // at its question (`excludedRuns`). With LCM the assembler reads the states
+  // from the database; without, they are the ones just put on `history`.
+  const currentRun = { runId: userMessage.id, alternateOf: regenerateOf }
   const lcmPromise = lcm
     ? lcm
         .trackNewMessages([
           { id: userMessage.id, content: userMessage.content }
         ])
-        .then(() => lcm.assembleContext())
+        .then(() => lcm.assembleContext(currentRun))
         .then((assembled) => assembled.messages.slice(0, -1))
-    : Promise.resolve(allMessages.slice(0, -1).map(stripId))
+    : Promise.resolve(
+        runsForContext(
+          history.slice(0, -1),
+          runAttemptInfos(history),
+          currentRun
+        ).map(stripId)
+      )
 
   // Deep Research runs on its own boot prompt, which carries no
   // `<user_memory>` block — so it gets no read filter either: no LLM call,
@@ -239,7 +325,7 @@ chat.post('/', async (c) => {
           userMessage.id
         ).catch((err) => {
           logger.warn('chat', 'Memory loading failed, continuing without', {
-            error: String(err)
+            error: err
           })
           return []
         })
@@ -261,7 +347,9 @@ chat.post('/', async (c) => {
     chatModel: model,
     apiKey,
     mcpTools,
-    chatId: id
+    chatId: id,
+    // Sources are numbered through the chat, not per run.
+    sourceRankBase: highestSourceRank(history)
   })
   // Load project instructions if applicable
   let projectInstructions = ''
@@ -419,7 +507,7 @@ chat.post('/', async (c) => {
                 updateChatTitleById({ id, title }).catch((err) => {
                   logger.error('chat', 'Failed to persist chat title', {
                     chatId: id,
-                    error: String(err)
+                    error: err
                   })
                 })
               }
@@ -462,7 +550,8 @@ chat.post('/', async (c) => {
         }
       } catch (err) {
         const raw = err instanceof Error ? err.message : String(err)
-        logger.error('chat', 'Chat stream error', { error: raw })
+        // The Error itself: its stack is what says which line threw.
+        logger.error('chat', 'Chat stream error', { error: err })
         sse.send({ type: 'error', error: toFriendlyChatError(raw) })
       } finally {
         // Runs however the run ended — done, a provider error midway, or Stop
@@ -472,7 +561,8 @@ chat.post('/', async (c) => {
         await recorder.persist().catch((error) => {
           logger.error('chat', 'Failed to persist chat run', {
             chatId: id,
-            errorName: error instanceof Error ? error.name : typeof error
+            errorName: error instanceof Error ? error.name : typeof error,
+            'exception.stacktrace': stackFramesOf(error)
           })
         })
         sse.close()
@@ -504,7 +594,7 @@ chat.delete('/:id', async (c) => {
   if (elasticsearch) {
     elasticsearch.deleteByChatId(id).catch((error) => {
       logger.error('search', 'Failed to delete chat from Elasticsearch', {
-        error: String(error)
+        error
       })
     })
   }

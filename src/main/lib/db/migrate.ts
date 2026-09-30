@@ -44,7 +44,7 @@ export const runMigrate = async () => {
         // is not guaranteed idempotent across versions, so tolerate it rather
         // than checking existence first. Logged so a genuine failure is visible.
         logger.error('jobs', `Failed to create queue ${queueName}`, {
-          error: String(error)
+          error
         })
       }
     }
@@ -55,9 +55,8 @@ export const runMigrate = async () => {
     })
   } catch (error) {
     logger.error('migration', 'Migration failed', {
-      error: String(error),
-      cause: error instanceof Error ? String(error.cause) : undefined,
-      stack: error instanceof Error ? error.stack : undefined
+      error,
+      cause: error instanceof Error ? String(error.cause) : undefined
     })
     new Notification({
       title: 'Exodus',

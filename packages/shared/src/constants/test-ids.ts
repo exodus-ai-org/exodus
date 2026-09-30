@@ -113,7 +113,11 @@ export const TEST_IDS = {
     searchButton: 'chat-layout.search-button',
     newChat: 'chat-layout.new-chat',
     account: 'chat-layout.account',
-    accountSettings: 'chat-layout.account-settings'
+    accountSettings: 'chat-layout.account-settings',
+    /** One per chat in the sidebar: the "…" that opens its menu. */
+    historyItemMenu: 'chat-layout.history-item-menu',
+    /** In that menu: puts the conversation's id on the clipboard. */
+    copyChatId: 'chat-layout.copy-chat-id'
   },
   philharmonic: {
     newGroup: 'philharmonic.new-group',
@@ -152,6 +156,8 @@ export const TEST_IDS = {
   chat: {
     /** One per assistant message (= one per run). */
     messageAction: 'chat.message-action',
+    /** In that bar: asks the last question again, as a comparison. */
+    regenerate: 'chat.regenerate',
     /**
      * At the foot of a run whose tool call waits for the user's approval (a
      * secret outside Exodus): the card, its two answers, and the settled
@@ -162,6 +168,21 @@ export const TEST_IDS = {
       allow: 'chat.approval.allow',
       deny: 'chat.approval.deny',
       state: 'chat.approval.state'
+    },
+    /** Over text selected in a message: asks about it (see composer.quote). */
+    ask: {
+      button: 'chat.ask.button'
+    },
+    /**
+     * A regenerate group: "Use this one" over each of the two answers (and
+     * the tab of each, in a narrow window), the link to the answer not kept,
+     * and "Use this instead" in the dialog it opens.
+     */
+    compare: {
+      useThis: 'chat.compare.use-this',
+      tab: 'chat.compare.tab',
+      otherVersionLink: 'chat.compare.other-version-link',
+      useInstead: 'chat.compare.use-instead'
     },
     /** At the foot of a run that changed memory (the `update_memory` tool). */
     memoryStrip: {
@@ -184,6 +205,9 @@ export const TEST_IDS = {
     }
   },
   composer: {
+    /** The text selected in a message, over the field, and its ✕. */
+    quote: 'composer.quote',
+    quoteRemove: 'composer.quote-remove',
     reasoningEffortItem: 'composer.reasoning-effort-item',
     reasoningEffortLevel: 'composer.reasoning-effort-level',
     textarea: 'composer.textarea'

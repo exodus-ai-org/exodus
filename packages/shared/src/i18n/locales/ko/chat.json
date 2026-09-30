@@ -204,7 +204,9 @@
       "favoritesGroup": "즐겨찾기",
       "chats": "채팅",
       "more": "더 보기",
-      "rename": "이름 바꾸기"
+      "rename": "이름 바꾸기",
+      "copyId": "대화 ID 복사",
+      "idCopied": "대화 ID를 복사했습니다"
     },
     "projects": {
       "title": "프로젝트",
@@ -312,5 +314,25 @@
     "expired": "더 이상 대기 중이 아님",
     "decideFailed": "답변을 보낼 수 없습니다",
     "truncatedNote_other": "표시되지 않은 문자가 {{count}}자 더 있습니다"
+  },
+  "compare": {
+    "useThis": "이 답변 사용",
+    "useInstead": "대신 이 답변 사용",
+    "otherVersion_other": "다른 버전 {{count}}개",
+    "answerTab": "답변 {{n}}",
+    "tabsLabel": "답변",
+    "otherVersionTitle": "다른 버전",
+    "otherVersionDescription": "선택하지 않은 답변입니다.",
+    "locked": "대화가 이어져 이 답변은 더 이상 사용할 수 없습니다.",
+    "chooseFailed": "답변을 바꾸지 못했습니다"
+  },
+  "citation": {
+    "previous": "이전 출처",
+    "next": "다음 출처",
+    "position": "{{current}}/{{total}}"
+  },
+  "ask": {
+    "button": "Exodus에 질문",
+    "remove": "인용 제거"
   }
 }

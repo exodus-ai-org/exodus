@@ -6,6 +6,11 @@ import type {
   SendMessageOptions,
   Usage
 } from '@exodus/shared/types/chat'
+import {
+  applyAttempts,
+  attemptsAfterRegenerate,
+  attemptsAfterSettling
+} from '@exodus/shared/utils/attempts'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { v4 as uuidV4 } from 'uuid'
 
@@ -185,8 +190,12 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
     setStatus('idle')
   }, [id])
 
-  const sendMessage = useCallback(
-    async (opts: SendMessageOptions) => {
+  // `regenerateOf` is the run a Regenerate re-asks: the message then names
+  // its group, and the list shows the comparison at once. The server decides
+  // the states for good (`done` brings them); until then these are the same
+  // rules, applied here.
+  const send = useCallback(
+    async (opts: SendMessageOptions, regenerateOf: string | null) => {
       const { text = '', attachments = [] } = opts
       lastUserMsgRef.current = opts
 
@@ -218,10 +227,17 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
           content.length === 1 && content[0].type === 'text'
             ? content[0].text
             : content,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        ...(regenerateOf ? { alternateOf: regenerateOf } : {})
       }
 
-      const newMessages = [...messagesRef.current, userMsg]
+      const asked = [...messagesRef.current, userMsg]
+      const newMessages = applyAttempts(
+        asked,
+        regenerateOf
+          ? attemptsAfterRegenerate(asked, userId)
+          : attemptsAfterSettling(asked)
+      )
       setMessages(newMessages)
 
       const prepare = prepareBodyRef.current
@@ -245,6 +261,11 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
     [id, api, generateId, makeSubscriber, setMessages]
   )
 
+  const sendMessage = useCallback(
+    (opts: SendMessageOptions) => send(opts, null),
+    [send]
+  )
+
   // Re-asks the last question as a new turn; the previous answer stays in the
   // transcript (the server has it saved either way). This used to first slice
   // the last answer off with a functional update — which never took effect:
@@ -254,10 +275,13 @@ export function useChat(options: UseChatOptions): UseChatHelpers {
   // so it is dropped rather than accidentally switched on.
   // The last question comes from this visit's send when there is one, else from
   // the transcript — a chat reopened from history has sent nothing yet.
+  // It re-asks the last run's group — that run itself when it is no
+  // attempt of another.
   const regenerate = useCallback(() => {
+    const last = messagesRef.current.findLast((m) => m.role === 'user')
     const opts = lastUserMsgRef.current ?? lastQuestionOf(messagesRef.current)
-    if (opts) sendMessage(opts)
-  }, [sendMessage])
+    if (last && opts) send(opts, last.alternateOf ?? last.id)
+  }, [send])
 
   return {
     messages,

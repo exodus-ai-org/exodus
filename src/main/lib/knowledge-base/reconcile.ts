@@ -46,7 +46,7 @@ export async function reconcileKnowledgeIndexStatus(): Promise<void> {
     } catch (error) {
       logger.warn('knowledge-base', 'reconcile: track_status failed', {
         docId: row.id,
-        error: String(error)
+        error
       })
     }
   }

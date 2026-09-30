@@ -66,7 +66,9 @@
     "INTERNAL_ERROR": "Se produjo un error interno del servidor.",
     "UNKNOWN_ERROR": "Se produjo un error desconocido.",
     "APP_LOCKED": "La aplicación está bloqueada.",
-    "APPROVAL_NOT_FOUND": "Esta solicitud ya no espera una respuesta."
+    "APPROVAL_NOT_FOUND": "Esta solicitud ya no espera una respuesta.",
+    "RUN_NOT_FOUND": "Esa respuesta ya no está en este chat.",
+    "ATTEMPT_LOCKED": "La conversación ha avanzado, así que esta respuesta ya no se puede cambiar."
   },
   "routeBoundary": {
     "title": "Se produjo un error",

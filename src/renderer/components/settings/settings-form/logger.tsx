@@ -37,6 +37,7 @@ import {
 import { SettingsEmpty } from '../settings-kit'
 import { SettingsSection } from '../settings-row'
 import { SettingsSelect } from '../settings-select'
+import { LogAttributes } from './log-attributes'
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -366,12 +367,8 @@ export function Logger() {
               </button>
               {expandedIndex === idx && (
                 <div className="bg-muted/20 space-y-2 border-t px-3 py-2">
-                  {entry.attributes &&
-                    Object.keys(entry.attributes).length > 0 && (
-                      <pre className="text-muted-foreground max-h-[240px] overflow-auto text-xs whitespace-pre-wrap">
-                        {JSON.stringify(entry.attributes, null, 2)}
-                      </pre>
-                    )}
+                  {/* A stack as a block of its own, then the rest as JSON. */}
+                  <LogAttributes attributes={entry.attributes} />
                   {(entry.traceId || entry.originTraceId) && (
                     <div className="text-muted-foreground font-mono text-[11px]">
                       {entry.traceId && <div>traceId: {entry.traceId}</div>}

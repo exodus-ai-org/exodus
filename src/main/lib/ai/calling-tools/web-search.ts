@@ -33,14 +33,16 @@ export const webSearch = (
   setting: Settings,
   // Shared rank registry — webFetch writes into the same map so citation
   // numbers ([N]) stay coherent across both tools.
-  webSources: Map<string, WebSearchResult> = new Map()
+  webSources: Map<string, WebSearchResult> = new Map(),
+  // The number the chat's earlier runs got to: this run counts on from it.
+  rankBase = 0
 ): AgentTool<typeof webSearchSchema> => {
   let searchQueue = Promise.resolve()
 
   return {
     name: TOOL_NAMES.webSearch,
     label: 'Web Search',
-    description: `Search the web for up-to-date information. Results are numbered [1],[2],… — you MUST cite every factual sentence in your reply using 【N-source】 markers. Higher-numbered results are snippet-only breadth hits; call web_fetch on one to read it in full. Set media="images", "videos", or "all" when the user asks for a visual artifact, visual comparison, product/place explanation, tutorial, or any answer that would be better with media. Today is ${new Date().toISOString()}`,
+    description: `Search the web for up-to-date information. Results are numbered [1],[2],… — you MUST cite every factual sentence in your reply using 【N-source】 markers. Numbers run through the whole conversation: sources from earlier searches keep theirs and are cited the same way. A search brings back about ten sources: search again with a sharper query when they are not enough, and call web_fetch to read one in full. Set media="images", "videos", or "all" when the user asks for a visual artifact, visual comparison, product/place explanation, tutorial, or any answer that would be better with media. Today is ${new Date().toISOString()}`,
     parameters: webSearchSchema,
     execute: async (_toolCallId, { query, media, precision }, signal) => {
       const search = async () => {
@@ -51,7 +53,10 @@ export const webSearch = (
           )
         }
         const ws = setting.webSearch
-        const deep = ws.deepRecall !== false
+        // Off unless switched on: one request and about ten sources is what
+        // a search is; deep recall is three phrasings and a breadth pass —
+        // six requests — for the questions that need it.
+        const deep = ws.deepRecall === true
 
         // Fan-out: expand the query into complementary phrasings so recall
         // isn't bounded by one wording. Best-effort — a resolution or LLM
@@ -70,6 +75,7 @@ export const webSearch = (
           query,
           braveApiKey: ws.braveApiKey!,
           webSources,
+          rankBase,
           expandedQueries,
           media:
             media === 'images' ? 'image' : media === 'videos' ? 'video' : media,
@@ -83,8 +89,6 @@ export const webSearch = (
                 .map((d) => d.trim())
                 .filter(Boolean)
             : null,
-          // Deep recall (grounding + web/search breadth pass) is on unless the
-          // user turned it off to conserve Brave API quota.
           deep,
           threshold: precision,
           signal
@@ -106,7 +110,7 @@ export const webSearch = (
         // Format results as structured text so the LLM knows each source's citation index.
         // IMPORTANT: you MUST cite every factual sentence using 【N-source】 where N is the source number below.
         const formatted =
-          `IMPORTANT: cite every factual sentence with 【N-source】 where N is the source number.\n\n` +
+          `IMPORTANT: cite every factual sentence with 【N-source】 where N is the source number — exactly that, nothing else inside the brackets. Sources of earlier searches in this conversation keep their numbers and stay citable.\n\n` +
           details
             .map((r) => {
               const text = `[${r.rank}] ${r.title}\nURL: ${r.link}\n${r.content}`

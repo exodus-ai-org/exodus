@@ -66,7 +66,9 @@
     "INTERNAL_ERROR": "内部サーバーエラーが発生しました。",
     "UNKNOWN_ERROR": "不明なエラーが発生しました。",
     "APP_LOCKED": "アプリケーションはロックされています。",
-    "APPROVAL_NOT_FOUND": "このリクエストはもう回答を待っていません。"
+    "APPROVAL_NOT_FOUND": "このリクエストはもう回答を待っていません。",
+    "RUN_NOT_FOUND": "その回答はこのチャットにもうありません。",
+    "ATTEMPT_LOCKED": "会話が先に進んだため、この回答はもう入れ替えられません。"
   },
   "routeBoundary": {
     "title": "問題が発生しました",

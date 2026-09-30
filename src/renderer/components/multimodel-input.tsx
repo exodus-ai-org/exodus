@@ -1,6 +1,14 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
+import { composeQuoted } from '@exodus/shared/utils/quoted-text'
+import { BorderBeam } from 'border-beam'
 import { useAtom, useAtomValue } from 'jotai'
-import { ArrowUpIcon, SquareIcon } from 'lucide-react'
+import {
+  ArrowUpIcon,
+  CornerDownRightIcon,
+  SquareIcon,
+  XIcon
+} from 'lucide-react'
+import { useTheme } from 'next-themes'
 import {
   ChangeEvent,
   ClipboardEvent,
@@ -20,6 +28,7 @@ import { attachmentAtom } from '@/stores/chat'
 import {
   chatInputAtom,
   chatInputFocusAtom,
+  chatQuoteAtom,
   chatStatusAtom,
   chatStopFnAtom
 } from '@/stores/input'
@@ -49,6 +58,10 @@ function InputBox({
   // atom: picked images showed in the preview but weren't sent and weren't
   // cleared on submit.)
   const [attachments, setAttachments] = useAtom(attachmentAtom)
+  // "Ask about this": text selected in a message of this chat (see
+  // `SelectionAsk`), sent with the next message as a quote.
+  const [anyQuote, setQuote] = useAtom(chatQuoteAtom)
+  const quote = anyQuote?.chatId === chatId ? anyQuote.text : null
   const status = useAtomValue(chatStatusAtom)
   const stop = useAtomValue(chatStopFnAtom)
   const { id } = useParams()
@@ -57,6 +70,7 @@ function InputBox({
   // isTyping tracks IME composition state; never shown on screen, so useRef
   // avoids the unnecessary re-render that useState would cause on each keystroke.
   const isTypingRef = useRef(false)
+  const { resolvedTheme } = useTheme()
 
   const adjustHeight = () => {
     if (textareaRef.current) {
@@ -92,13 +106,17 @@ function InputBox({
       window.history.replaceState({}, '', `/chat/${chatId}`)
     }
 
+    // A quote is sent with a question about it, not by itself.
+    if (quote !== null && input.trim() === '') return
+
     sendMessage({
-      text: input,
+      text: quote === null ? input : composeQuoted(quote, input),
       attachments: attachments ?? []
     })
 
     setAttachments(undefined)
     setInput('')
+    if (quote !== null) setQuote(null)
     // Inline reset so we don't add a recreated-each-render function to deps.
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto'
@@ -107,9 +125,11 @@ function InputBox({
     attachments,
     chatId,
     input,
+    quote,
     sendMessage,
     setAttachments,
     setInput,
+    setQuote,
     textareaRef
   ])
 
@@ -138,13 +158,38 @@ function InputBox({
   }, [focusRequest])
 
   return (
-    <div
+    <BorderBeam
+      size={resolvedTheme === 'light' ? 'pulse-outside' : 'pulse-inner'}
       className={cn(
         'mx-auto flex w-[calc(100%-8rem)] flex-col md:max-w-3xl',
         !id && 'mb-4'
       )}
     >
-      <div className="border-border/60 bg-card focus-within:border-border/90 z-1 flex flex-col gap-1.5 rounded-[28px] border px-2.5 py-2 shadow-[0_2px_6px_rgb(0_0_0/0.04),0_10px_28px_rgb(0_0_0/0.06)] transition-colors">
+      <div className="border-border/60 focus-within:border-border/90 z-1 flex flex-col gap-1.5 rounded-[28px] border bg-transparent px-2.5 py-2 shadow-[0_2px_6px_rgb(0_0_0/0.04),0_10px_28px_rgb(0_0_0/0.06)] backdrop-blur-md transition-colors">
+        {quote !== null && (
+          <div
+            data-testid={TEST_IDS.composer.quote}
+            className="bg-muted/60 text-muted-foreground flex items-start gap-2 rounded-[20px] py-2 pr-1.5 pl-3 text-sm"
+          >
+            <CornerDownRightIcon className="mt-0.5 size-4 shrink-0" />
+            <p
+              title={quote}
+              className="line-clamp-2 min-w-0 flex-1 wrap-break-word whitespace-pre-wrap"
+            >
+              {quote}
+            </p>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              className="size-6 shrink-0 rounded-full [&_svg]:size-3.5"
+              aria-label={t('ask.remove')}
+              data-testid={TEST_IDS.composer.quoteRemove}
+              onClick={() => setQuote(null)}
+            >
+              <XIcon />
+            </Button>
+          </div>
+        )}
         <FilePreview />
         <ActiveToolPills />
         <div className="flex items-end gap-1">
@@ -194,7 +239,10 @@ function InputBox({
           {status === 'submitted' || status === 'streaming' ? (
             <Button
               size="icon"
-              className="rounded-full"
+              // Neutral, whatever the tone, as ChatGPT's: a dark square on a
+              // soft tone fill (emerald, yellow) read as a stray black blot,
+              // and a stop that differs from send says a reply is running.
+              className="bg-foreground text-background hover:bg-foreground/85 rounded-full"
               aria-label={t('composer.stop')}
               onClick={stop ?? undefined}
             >
@@ -205,7 +253,9 @@ function InputBox({
           ) : (
             <Button
               size="icon"
-              className="rounded-full"
+              // Light: the tone's ink with a white arrow (a white arrow on the
+              // soft fill is 1.6:1 in yellow). Dark: the fill and its glyph.
+              className="bg-primary-ink hover:bg-primary-ink/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 rounded-full text-white"
               type="button"
               aria-label={t('composer.send')}
               onClick={submitForm}
@@ -225,7 +275,7 @@ function InputBox({
           )}
         </div>
       )} */}
-    </div>
+    </BorderBeam>
   )
 }
 

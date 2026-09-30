@@ -204,7 +204,9 @@
       "favoritesGroup": "最愛",
       "chats": "聊天",
       "more": "更多",
-      "rename": "重新命名"
+      "rename": "重新命名",
+      "copyId": "複製對話 ID",
+      "idCopied": "已複製對話 ID"
     },
     "projects": {
       "title": "專案",
@@ -312,5 +314,25 @@
     "expired": "已不再等待",
     "decideFailed": "無法傳送你的回覆",
     "truncatedNote_other": "另有 {{count}} 個字元未顯示"
+  },
+  "compare": {
+    "useThis": "使用這個",
+    "useInstead": "改用這個",
+    "otherVersion_other": "另有 {{count}} 個版本",
+    "answerTab": "回答 {{n}}",
+    "tabsLabel": "回答",
+    "otherVersionTitle": "另一個版本",
+    "otherVersionDescription": "你沒有保留的回答。",
+    "locked": "對話已繼續，無法再使用這個回答。",
+    "chooseFailed": "無法切換回答"
+  },
+  "citation": {
+    "previous": "上一個來源",
+    "next": "下一個來源",
+    "position": "{{current}}/{{total}}"
+  },
+  "ask": {
+    "button": "問 Exodus",
+    "remove": "移除引用"
   }
 }

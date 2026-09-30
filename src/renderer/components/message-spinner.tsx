@@ -1,4 +1,5 @@
 import type { Segment } from '@exodus/shared/types/chat'
+import { ThinkingOrb } from 'thinking-orbs'
 
 /**
  * Whether to show the "waiting for the assistant" spinner.
@@ -15,35 +16,33 @@ import type { Segment } from '@exodus/shared/types/chat'
  * step, a tool call, or streamed text — lands, the last segment is still the
  * user message and the spinner stays up. The moment progress appears, the
  * assistant turn renders its own timeline and the spinner goes away.
+ *
+ * A regenerate group ends the list with its own segment, new answer or not:
+ * the column the answer will arrive in does the waiting there.
  */
 export function shouldShowMessageSpinner(
   segments: Segment[],
   isLoading: boolean
 ): boolean {
   if (!isLoading) return false
-  return segments[segments.length - 1]?.type !== 'assistantTurn'
+  const last = segments.at(-1)
+  return last === undefined || last.type === 'user'
 }
 
 /**
- * Three dots of the foreground colour, breathing in turn — a wave, not a
- * blink. Seen on every send, so it is the palette and nothing else: it
- * follows the colour tone and never reads as a status light. The wave is
- * `animate-pulse` offset by a third of its period per dot.
+ * The orb of the thinking timeline, at work — where the timeline's own orb
+ * will be once the run shows its first step, so waiting and thinking are one
+ * figure that stays put rather than dots that give way to something else.
+ * Same box as the timeline's header (`mb-3`, a 20px row).
  */
 export function MessageSpinner() {
   return (
     <div
-      className="flex items-center justify-start gap-1.5 px-2 py-3"
+      className="mb-3 flex h-5 items-center"
       role="status"
       aria-live="polite"
     >
-      {[0, 1, 2].map((i) => (
-        <span
-          key={i}
-          className="bg-foreground/40 size-1.5 animate-pulse rounded-full"
-          style={{ animationDelay: `${i * 240}ms` }}
-        />
-      ))}
+      <ThinkingOrb state="working" size={20} className="shrink-0" />
     </div>
   )
 }

@@ -56,15 +56,13 @@ if (started) {
 // Capture unhandled runtime errors into the log file
 process.on('uncaughtException', (error) => {
   logger.error('app', 'Uncaught exception', {
-    error: String(error),
-    stack: error?.stack
+    error
   })
 })
 
 process.on('unhandledRejection', (reason) => {
   logger.error('app', 'Unhandled promise rejection', {
-    error: String(reason),
-    stack: reason instanceof Error ? reason.stack : undefined
+    error: reason
   })
 })
 
@@ -109,15 +107,14 @@ app.on('ready', async () => {
     logger.error(
       'i18n',
       'Failed to initialize main-process i18n; continuing with English defaults',
-      { error: String(err) }
+      { error: err }
     )
   })
 
   // One-time migration of legacy `shared/` artifacts into per-chat folders
   await migrateSharedArtifacts().catch((err) => {
     logger.warn('app', 'Failed to migrate legacy artifacts', {
-      error: String(err),
-      stack: err instanceof Error ? err.stack : undefined
+      error: err
     })
   })
 
@@ -126,14 +123,12 @@ app.on('ready', async () => {
   // the `task` table is guaranteed to exist.
   await cleanupStaleWaitingTasks().catch((err) => {
     logger.warn('app', 'Failed to cleanup stale waiting tasks', {
-      error: String(err),
-      stack: err instanceof Error ? err.stack : undefined
+      error: err
     })
   })
   await cleanupStaleRunningTasks().catch((err) => {
     logger.warn('app', 'Failed to cleanup stale running tasks', {
-      error: String(err),
-      stack: err instanceof Error ? err.stack : undefined
+      error: err
     })
   })
 
@@ -277,8 +272,7 @@ app.on('will-quit', (event) => {
   Promise.race([
     pglite.close().catch((err) => {
       logger.error('app', 'Failed to close PGlite cleanly on quit', {
-        error: String(err),
-        stack: err instanceof Error ? err.stack : undefined
+        error: err
       })
     }),
     timeout

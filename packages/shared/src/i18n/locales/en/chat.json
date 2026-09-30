@@ -212,7 +212,9 @@
       "favoritesGroup": "Favorites",
       "chats": "Chats",
       "more": "More",
-      "rename": "Rename"
+      "rename": "Rename",
+      "copyId": "Copy conversation ID",
+      "idCopied": "Conversation ID copied"
     },
     "projects": {
       "title": "Projects",
@@ -322,5 +324,26 @@
     "decideFailed": "Couldn’t send your answer",
     "truncatedNote_one": "{{count}} more character not shown",
     "truncatedNote_other": "{{count}} more characters not shown"
+  },
+  "compare": {
+    "useThis": "Use this one",
+    "useInstead": "Use this instead",
+    "otherVersion_one": "{{count}} other version",
+    "otherVersion_other": "{{count}} other versions",
+    "answerTab": "Answer {{n}}",
+    "tabsLabel": "Answers",
+    "otherVersionTitle": "The other version",
+    "otherVersionDescription": "The answer you did not keep.",
+    "locked": "The conversation has moved on, so this answer can no longer be used.",
+    "chooseFailed": "Could not switch the answer"
+  },
+  "citation": {
+    "previous": "Previous source",
+    "next": "Next source",
+    "position": "{{current}}/{{total}}"
+  },
+  "ask": {
+    "button": "Ask Exodus",
+    "remove": "Remove quote"
   }
 }
