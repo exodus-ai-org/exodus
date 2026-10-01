@@ -17,6 +17,7 @@
     "./types/lock": "./src/types/lock.ts",
     "./types/ai": "./src/types/ai.ts",
     "./types/chat": "./src/types/chat.ts",
+    "./types/health": "./src/types/health.ts",
     "./types/deep-research": "./src/types/deep-research.ts",
     "./types/computer-use": "./src/types/computer-use.ts",
     "./constants/systems": "./src/constants/systems.ts",
