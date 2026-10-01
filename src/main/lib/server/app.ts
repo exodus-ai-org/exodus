@@ -18,6 +18,7 @@ import {
   traceMiddleware
 } from './middlewares'
 import analyticsRouter from './routes/analytics'
+import artifactSandboxRouter from './routes/artifact-sandbox'
 import artifactsRouter from './routes/artifacts'
 import audioRouter from './routes/audio'
 import backupRouter from './routes/backup'
@@ -125,6 +126,8 @@ export function createApp() {
   v1.route('/usage', usageRouter)
   v1.route('/logs', logsRouter)
   v1.route('/backup', backupRouter)
+  // Ahead of `/artifacts/:chatId/:artifactId`, which would take `sandbox/x`.
+  v1.route('/artifacts/sandbox', artifactSandboxRouter)
   v1.route('/artifacts', artifactsRouter)
   v1.route('/media', mediaRouter)
   v1.route('/maps', mapsRouter)
