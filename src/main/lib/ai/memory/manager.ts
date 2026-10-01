@@ -87,7 +87,7 @@ function formatMessages(
     .join('\n\n')
 }
 
-function parseJsonFromResponse(text: string): unknown {
+export function parseJsonFromResponse(text: string): unknown {
   const jsonMatch =
     text.match(/```(?:json)?\s*([\s\S]*?)```/) ?? text.match(/(\{[\s\S]*\})/)
   if (jsonMatch) {
@@ -104,7 +104,7 @@ function parseJsonFromResponse(text: string): unknown {
   }
 }
 
-async function callLlm(
+export async function callLlm(
   model: Model<string>,
   apiKey: string,
   systemPrompt: string,

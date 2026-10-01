@@ -27,6 +27,7 @@ import dbIoRouter from './routes/db-io'
 import deepResearchRouter from './routes/deep-research'
 import devicesRouter from './routes/devices'
 import discoverRouter from './routes/discover'
+import healthRouter from './routes/health'
 import historyRouter from './routes/history'
 import knowledgeBaseRouter from './routes/knowledge-base'
 import lcmStatusRouter from './routes/lcm-status'
@@ -127,6 +128,7 @@ export function createApp() {
   v1.route('/artifacts', artifactsRouter)
   v1.route('/media', mediaRouter)
   v1.route('/maps', mapsRouter)
+  v1.route('/health', healthRouter)
   v1.route('/analytics', analyticsRouter)
   v1.route('/pair', pairRouter)
   v1.route('/devices', devicesRouter)
