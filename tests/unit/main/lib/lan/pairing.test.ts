@@ -1,8 +1,10 @@
 import {
   buildPairingLink,
   createPairing,
+  isTailnetAddress,
   lanHosts,
   MAX_PAIRING_ATTEMPTS,
+  pairingHosts,
   PAIRING_TTL_MS,
   randomPairingCode
 } from '@main/lib/lan/pairing'
@@ -121,5 +123,79 @@ describe('lanHosts', () => {
 
   it('appends .local to a bare hostname', () => {
     expect(lanHosts({}, 'studio')).toEqual(['studio.local'])
+  })
+})
+
+describe('isTailnetAddress', () => {
+  it('is the 100.64.0.0/10 range Tailscale hands out, and nothing next to it', () => {
+    expect(isTailnetAddress('100.64.0.1')).toBe(true)
+    expect(isTailnetAddress('100.124.60.124')).toBe(true)
+    expect(isTailnetAddress('100.127.255.254')).toBe(true)
+    expect(isTailnetAddress('100.63.255.255')).toBe(false)
+    expect(isTailnetAddress('100.128.0.1')).toBe(false)
+    expect(isTailnetAddress('192.168.1.10')).toBe(false)
+    expect(isTailnetAddress('10.100.64.1')).toBe(false)
+  })
+})
+
+describe('pairingHosts', () => {
+  const interfaces = {
+    en0: [{ family: 'IPv4', address: '192.168.1.10', internal: false }],
+    utun4: [{ family: 'IPv4', address: '100.124.60.124', internal: false }]
+  } as never
+
+  it('leads with the tailnet name and drops the bare tailnet address a phone cannot use', async () => {
+    const hosts = await pairingHosts(
+      interfaces,
+      'Yanceys-Mac.local',
+      async (ip) =>
+        ip === '100.124.60.124' ? ['yanceys-mac.tail1234.ts.net.'] : []
+    )
+    expect(hosts).toEqual([
+      'yanceys-mac.tail1234.ts.net',
+      '192.168.1.10',
+      'Yanceys-Mac.local'
+    ])
+  })
+
+  it('without a name for the tailnet address (MagicDNS off, lookup failed), lists the LAN as before', async () => {
+    const failing = await pairingHosts(
+      interfaces,
+      'Yanceys-Mac.local',
+      async () => {
+        throw new Error('ETIMEOUT')
+      }
+    )
+    expect(failing).toEqual([
+      '192.168.1.10',
+      '100.124.60.124',
+      'Yanceys-Mac.local'
+    ])
+    const empty = await pairingHosts(
+      interfaces,
+      'Yanceys-Mac.local',
+      async () => []
+    )
+    expect(empty).toEqual([
+      '192.168.1.10',
+      '100.124.60.124',
+      'Yanceys-Mac.local'
+    ])
+  })
+
+  it('does not ask anyone when there is no tailnet address', async () => {
+    let asked = 0
+    const hosts = await pairingHosts(
+      {
+        en0: [{ family: 'IPv4', address: '192.168.1.10', internal: false }]
+      } as never,
+      'studio',
+      async () => {
+        asked += 1
+        return []
+      }
+    )
+    expect(asked).toBe(0)
+    expect(hosts).toEqual(['192.168.1.10', 'studio.local'])
   })
 })

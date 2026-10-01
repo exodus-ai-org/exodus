@@ -11,7 +11,7 @@ import {
 import { listDevices, revokeAllDevices, revokeDevice } from '../../lan/devices'
 import {
   buildPairingLink,
-  lanHosts,
+  pairingHosts,
   type PairingWindow
 } from '../../lan/pairing'
 import type { Variables } from '../types'
@@ -27,7 +27,7 @@ async function describeWindow(window: PairingWindow | null) {
   return {
     expiresAt: window.expiresAt,
     link: buildPairingLink({
-      hosts: lanHosts(networkInterfaces(), hostname()),
+      hosts: await pairingHosts(networkInterfaces(), hostname()),
       port: LAN_SERVER_PORT,
       code: window.code,
       fingerprint,

@@ -1,4 +1,5 @@
 import { randomBytes, timingSafeEqual } from 'crypto'
+import { Resolver } from 'dns/promises'
 import type { NetworkInterfaceInfo } from 'os'
 
 import { PAIRING_TTL_MS } from '@exodus/shared/constants/systems'
@@ -107,4 +108,46 @@ export function lanHosts(
     .map((i) => i.address)
   const local = hostname.endsWith('.local') ? hostname : `${hostname}.local`
   return [...addresses, local]
+}
+
+/** Tailscale's addresses: the 100.64.0.0/10 shared range it hands every node. */
+export function isTailnetAddress(address: string): boolean {
+  const [a, b] = address.split('.').map(Number)
+  return a === 100 && b >= 64 && b <= 127
+}
+
+/** This machine's names for an address, as Tailscale's own resolver (MagicDNS) gives them. */
+async function magicDnsReverse(address: string): Promise<string[]> {
+  const resolver = new Resolver({ timeout: 1000, tries: 1 })
+  resolver.setServers(['100.100.100.100'])
+  return resolver.reverse(address)
+}
+
+/**
+ * The addresses a pairing QR code lists. A phone away from home reaches this
+ * machine over Tailscale by its MagicDNS name (`name.tailnet.ts.net`), never by
+ * its bare 100.x address: iOS only lets an app trust a self-signed certificate
+ * by its pin where App Transport Security allows it — local networks, and the
+ * `ts.net` exception exodus-ios carries — and 100.64.0.0/10 is neither. So the
+ * name leads the list and the bare tailnet address it stands for is left out;
+ * without a name (MagicDNS off, the lookup failing) the list is `lanHosts`'.
+ */
+export async function pairingHosts(
+  interfaces: NodeJS.Dict<NetworkInterfaceInfo[]>,
+  hostname: string,
+  reverse: (address: string) => Promise<string[]> = magicDnsReverse
+): Promise<string[]> {
+  const hosts = lanHosts(interfaces, hostname)
+  const named: string[] = []
+  const covered = new Set<string>()
+  for (const address of hosts.filter(isTailnetAddress)) {
+    const names = await reverse(address).catch(() => [] as string[])
+    const name = names
+      .map((n) => n.replace(/\.$/, ''))
+      .find((n) => n.length > 0)
+    if (!name) continue
+    if (!named.includes(name)) named.push(name)
+    covered.add(address)
+  }
+  return [...named, ...hosts.filter((h) => !covered.has(h))]
 }
