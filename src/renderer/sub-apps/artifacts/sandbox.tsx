@@ -1,6 +1,6 @@
 import * as Motion from 'framer-motion'
 import * as LucideIcons from 'lucide-react'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import * as ReactJsxDevRuntime from 'react/jsx-dev-runtime'
 import * as ReactJsxRuntime from 'react/jsx-runtime'
 import * as Recharts from 'recharts'
@@ -42,6 +42,24 @@ const MODULE_REGISTRY: Record<string, unknown> = {
   '@/ui/tabs': { Tabs, TabsContent, TabsList, TabsTrigger }
 }
 
+/**
+ * Tells the embedder how the last render went: `artifact-sandbox-rendered`, or
+ * `artifact-sandbox-error` with the message the page shows. The desktop's card
+ * ignores both; exodus-ios, which loads this page as its own top-level window
+ * (so `window.parent` is the page itself), waits for one of them before it
+ * shows the preview, and falls back to the source when it is an error.
+ */
+function reportOutcome(
+  outcome: { type: 'rendered' } | { type: 'error'; message: string }
+) {
+  window.parent?.postMessage(
+    outcome.type === 'rendered'
+      ? { type: 'artifact-sandbox-rendered' }
+      : { type: 'artifact-sandbox-error', message: outcome.message },
+    '*'
+  )
+}
+
 function artifactRequire(moduleId: string): unknown {
   const resolved = MODULE_REGISTRY[moduleId]
   if (resolved !== undefined) {
@@ -54,6 +72,7 @@ function artifactRequire(moduleId: string): unknown {
 interface ErrorBoundaryProps {
   children: React.ReactNode
   fallback: (error: Error) => React.ReactNode
+  onError?: (error: Error) => void
 }
 
 interface ErrorBoundaryState {
@@ -75,6 +94,7 @@ class ErrorBoundary extends React.Component<
 
   override componentDidCatch(error: Error, info: React.ErrorInfo): void {
     console.error('[artifact-sandbox] Render error:', error, info)
+    this.props.onError?.(error)
   }
 
   override render() {
@@ -109,6 +129,9 @@ export function ArtifactSandbox() {
   const [Component, setComponent] = useState<React.ComponentType | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [key, setKey] = useState(0)
+  // Set by the boundary during the commit that caught, so the effect that
+  // follows it does not also report the render as a success.
+  const renderFailed = useRef(false)
 
   const handleMessage = useCallback((event: MessageEvent) => {
     // Only the embedding window may hand this frame code to run — not a frame
@@ -174,11 +197,14 @@ export function ArtifactSandbox() {
         moduleObj.exports
 
       if (typeof exported !== 'function') {
-        setError('Artifact code did not export a valid React component.')
+        const message = 'Artifact code did not export a valid React component.'
+        setError(message)
         setComponent(null)
+        reportOutcome({ type: 'error', message })
         return
       }
 
+      renderFailed.current = false
       setError(null)
       setComponent(() => exported as React.ComponentType)
       setKey((k) => k + 1)
@@ -188,7 +214,20 @@ export function ArtifactSandbox() {
       console.error('[artifact-sandbox] Transpile/eval error:', err)
       setError(message)
       setComponent(null)
+      reportOutcome({ type: 'error', message })
     }
+  }, [])
+
+  // After each new component has committed: rendered, unless the boundary
+  // caught it on the way in (it has reported the error itself).
+  useEffect(() => {
+    if (key === 0 || renderFailed.current) return
+    reportOutcome({ type: 'rendered' })
+  }, [key])
+
+  const handleRenderError = useCallback((err: Error) => {
+    renderFailed.current = true
+    reportOutcome({ type: 'error', message: err.message })
   }, [])
 
   useEffect(() => {
@@ -221,6 +260,7 @@ export function ArtifactSandbox() {
   return (
     <ErrorBoundary
       key={key}
+      onError={handleRenderError}
       fallback={(err) => (
         <div className="p-4">
           <p className="text-destructive font-mono text-sm">{err.message}</p>
