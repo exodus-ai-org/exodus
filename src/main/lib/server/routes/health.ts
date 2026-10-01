@@ -6,7 +6,7 @@ import { ErrorCode } from '@exodus/shared/constants/error-codes'
 import { AIError } from '@exodus/shared/errors/app-error'
 import {
   healthSnapshotSchema,
-  healthSummarySchema,
+  parseHealthSummary,
   type HealthSnapshot
 } from '@exodus/shared/types/health'
 import { Hono } from 'hono'
@@ -27,7 +27,7 @@ Rules:
 - Write in the language named by "locale" (a BCP-47 tag).
 - Use only the numbers in the snapshot and quote them exactly. A category that is null has no data: say nothing about it and set its line to null.
 - Never diagnose, never name a condition, never give medical advice beyond everyday habits (sleep, walking, water, rest).
-- "headline": at most 12 words, no trailing punctuation.
+- "headline": at most 60 characters, no trailing punctuation.
 - "summary": 2 to 4 sentences of Markdown; bold (**...**) the one or two numbers that matter most.
 - "categories": one short sentence per category, or null.
 - "memorySuggestion": only when the snapshot and the known memories show a lasting pattern worth remembering long-term — never a one-day event, never something the memories already say. Shape: {"section":"profile","key":"kebab-case-key","summary":"one sentence"}. Otherwise null.
@@ -76,13 +76,13 @@ health.post('/summary', async (c) => {
 
   for (let attempt = 1; attempt <= 2; attempt++) {
     const text = await callLlm(model, apiKey, HEALTH_SUMMARY_SYSTEM, prompt)
-    const parsed = healthSummarySchema.safeParse(parseJsonFromResponse(text))
-    if (parsed.success) {
+    const parsed = parseHealthSummary(parseJsonFromResponse(text))
+    if (parsed) {
       logger.info('health', 'Summary written', {
         ms: Date.now() - started,
         attempt
       })
-      return c.json(parsed.data)
+      return c.json(parsed)
     }
   }
   logger.warn('health', 'Summary output invalid twice', {

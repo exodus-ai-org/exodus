@@ -127,6 +127,26 @@ describe('POST /api/v1/health/summary', () => {
     expect(manager.callLlm).toHaveBeenCalledTimes(2)
   })
 
+  it('keeps the report when only the suggestion is invalid', async () => {
+    manager.callLlm.mockResolvedValue(
+      JSON.stringify({
+        ...SUMMARY,
+        memorySuggestion: { section: 'person', key: 'x y', summary: 'z' }
+      })
+    )
+    const res = await post(SNAPSHOT)
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.memorySuggestion).toBeNull()
+    expect(body.headline).toBe(SUMMARY.headline)
+    expect(manager.callLlm).toHaveBeenCalledTimes(1)
+  })
+
+  it('asks for a headline of at most 60 characters', async () => {
+    await post(SNAPSHOT)
+    expect(manager.callLlm.mock.calls[0][2]).toContain('at most 60 characters')
+  })
+
   it('fails with AI_GENERATION_FAILED after two bad outputs', async () => {
     manager.callLlm.mockResolvedValue('{"headline": ""}')
     const res = await post(SNAPSHOT)

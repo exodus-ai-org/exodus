@@ -1,6 +1,7 @@
 import {
   healthSnapshotSchema,
-  healthSummarySchema
+  healthSummarySchema,
+  parseHealthSummary
 } from '@exodus/shared/types/health'
 import { describe, expect, it } from 'vitest'
 
@@ -57,5 +58,31 @@ describe('healthSummarySchema', () => {
       memorySuggestion: { ...SUMMARY.memorySuggestion, key: 'Weekday Sleep' }
     }
     expect(healthSummarySchema.safeParse(badKey).success).toBe(false)
+  })
+})
+
+describe('parseHealthSummary', () => {
+  it('keeps a long headline in a wordy language', () => {
+    const sixty = 'Wenig Schlaf, aber dein Herz hat sich erholt – geh spazieren'
+    expect(sixty).toHaveLength(60)
+    expect(parseHealthSummary({ ...SUMMARY, headline: sixty })?.headline).toBe(
+      sixty
+    )
+  })
+
+  it('drops a bad suggestion but keeps the report', () => {
+    const r = parseHealthSummary({
+      ...SUMMARY,
+      memorySuggestion: { section: 'topic', key: 'Bad Key', summary: '' }
+    })
+    expect(r).not.toBeNull()
+    expect(r?.memorySuggestion).toBeNull()
+    expect(r?.headline).toBe(SUMMARY.headline)
+  })
+
+  it('still rejects a bad report', () => {
+    expect(parseHealthSummary({ ...SUMMARY, headline: '' })).toBeNull()
+    expect(parseHealthSummary('not an object')).toBeNull()
+    expect(parseHealthSummary(null)).toBeNull()
   })
 })

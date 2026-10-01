@@ -94,7 +94,8 @@ export const healthSnapshotSchema = z
 const line = z.string().min(1).max(200).nullable()
 
 export const healthSummarySchema = z.object({
-  headline: z.string().min(1).max(40),
+  // The prompt asks for 60; the slack keeps a slightly long headline in a wordy language.
+  headline: z.string().min(1).max(80),
   summary: z.string().min(1).max(1200),
   categories: z.object({
     sleep: line,
@@ -116,3 +117,19 @@ export const healthSummarySchema = z.object({
 
 export type HealthSnapshot = z.infer<typeof healthSnapshotSchema>
 export type HealthSummary = z.infer<typeof healthSummarySchema>
+
+/**
+ * Reads a model's report. A suggestion is optional, so one that is malformed is dropped rather than failing the
+ * whole report; anything else wrong is still a failure (null).
+ */
+export function parseHealthSummary(value: unknown): HealthSummary | null {
+  const parsed = healthSummarySchema.safeParse(value)
+  if (parsed.success) return parsed.data
+  if (value === null || typeof value !== 'object' || Array.isArray(value))
+    return null
+  const withoutSuggestion = healthSummarySchema.safeParse({
+    ...value,
+    memorySuggestion: null
+  })
+  return withoutSuggestion.success ? withoutSuggestion.data : null
+}
