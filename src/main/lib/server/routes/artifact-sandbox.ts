@@ -1,6 +1,7 @@
 import { readFile, stat } from 'fs/promises'
 import { extname, join, relative, resolve, sep } from 'path'
 
+import { net } from 'electron'
 import { Hono } from 'hono'
 
 import { resolveArtifactFile } from '../../artifact-protocol'
@@ -72,7 +73,15 @@ export function resolveSandboxFile(
 export function createArtifactSandboxRouter(opts: {
   rendererDir?: string
   devServerUrl?: string
+  /**
+   * How the dev server is asked. Electron's `net.fetch` in the app: Vite
+   * listens on `localhost`, which may be IPv6 only, and the main process's
+   * Node `fetch` does not fall back to it — Chromium's stack does, as the
+   * desktop's own artifact protocol relies on.
+   */
+  fetchUpstream?: (url: string) => Promise<Response>
 }) {
+  const fetchUpstream = opts.fetchUpstream ?? ((url: string) => fetch(url))
   const router = new Hono<{ Variables: Variables }>()
 
   router.get('/*', async (c) => {
@@ -87,8 +96,11 @@ export function createArtifactSandboxRouter(opts: {
     if (opts.devServerUrl) {
       // Dev only: the page is the Vite dev server's, with its module graph.
       const base = opts.devServerUrl.replace(/\/$/u, '')
-      const upstream = await fetch(`${base}${pathname}`).catch(() => null)
-      if (!upstream) return c.text('Not found', 404)
+      const upstream = await fetchUpstream(`${base}${pathname}`).catch(
+        () => null
+      )
+      // Unreachable is not "no such route": a 404 tells the phone to update.
+      if (!upstream) return c.text('Dev server unreachable', 502)
       return new Response(upstream.body, {
         status: upstream.status,
         headers: {
@@ -132,5 +144,6 @@ export default createArtifactSandboxRouter({
   devServerUrl:
     typeof MAIN_WINDOW_VITE_DEV_SERVER_URL === 'string'
       ? MAIN_WINDOW_VITE_DEV_SERVER_URL
-      : undefined
+      : undefined,
+  fetchUpstream: (url) => net.fetch(url)
 })

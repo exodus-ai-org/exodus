@@ -145,6 +145,31 @@ describe('GET /api/v1/artifacts/sandbox/*', () => {
     expect(res.headers.get('content-type')).toBe('text/javascript')
     fetchSpy.mockRestore()
   })
+
+  it('asks the dev server the way it is given, and answers 502 when it cannot be reached', async () => {
+    const asked: string[] = []
+    const reachable = makeApp({
+      devServerUrl: 'http://localhost:5173',
+      fetchUpstream: async (url) => {
+        asked.push(url)
+        return new Response('<!doctype html>', {
+          headers: { 'content-type': 'text/html' }
+        })
+      }
+    })
+    const page = await reachable.request(
+      `/api/v1/artifacts/sandbox/${SANDBOX_PAGE}`
+    )
+    expect(asked).toEqual([`http://localhost:5173/${SANDBOX_PAGE}`])
+    expect(page.status).toBe(200)
+
+    const down = makeApp({
+      devServerUrl: 'http://localhost:5173',
+      fetchUpstream: () => Promise.reject(new Error('ECONNREFUSED'))
+    })
+    const res = await down.request(`/api/v1/artifacts/sandbox/${SANDBOX_PAGE}`)
+    expect(res.status).toBe(502)
+  })
 })
 
 describe('resolveSandboxFile', () => {
