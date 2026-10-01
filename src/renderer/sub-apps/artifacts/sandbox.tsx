@@ -154,6 +154,15 @@ export function ArtifactSandbox() {
       return
     }
 
+    // A phone shows the artifact as a page of its own, not a card in a chat:
+    // its outermost card loses its frame (index.html). The desktop never
+    // sends this, so its card is unchanged.
+    if (data?.type === 'layout' && typeof data.layout === 'string') {
+      document.documentElement.dataset.layout =
+        data.layout === 'page' ? 'page' : 'card'
+      return
+    }
+
     if (!isArtifactMessage(data)) return
 
     try {

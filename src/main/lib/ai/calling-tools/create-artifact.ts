@@ -57,8 +57,16 @@ STYLING:
 - Tailwind utility classes. For dimensions, prefer inline style={{}} over arbitrary values like h-[380px] — arbitrary values are NOT available in the sandbox CSS.
 - For colors, follow the THEME ADAPTATION rules above — every surface/text/border goes through theme tokens. \`primary\` is the user's chosen colour tone (it may be emerald, blue, violet, rose, orange, yellow or plain neutral) — the one accent an artifact needs, and it already matches the app around it.
 - The app's easing tokens are in scope: \`var(--ease-out)\` = cubic-bezier(0.23, 1, 0.32, 1) for anything entering or leaving, \`var(--ease-in-out)\` = cubic-bezier(0.77, 0, 0.175, 1) for something moving on screen. In framer-motion write them as \`ease: [0.23, 1, 0.32, 1]\` / \`[0.77, 0, 0.175, 1]\`.
-- Recharts: pass width and height as numbers directly on the chart component. Do NOT rely on ResponsiveContainer with percentage heights. Wire \`stroke\` / \`fill\` to \`var(--chart-1..5)\`, axes to \`var(--muted-foreground)\`, gridlines to \`var(--border)\`.
+- Recharts: wrap every chart in \`<ResponsiveContainer width="100%" height={220}>\` — the width follows the screen, the height is always a number. Never a fixed pixel width on the chart, never a percentage height. Wire \`stroke\` / \`fill\` to \`var(--chart-1..5)\`, axes to \`var(--muted-foreground)\`, gridlines to \`var(--border)\`.
 - Export default a React component via module.exports.
+
+PHONE AND DESKTOP (every artifact is seen in both):
+The same component renders in a ~720px card on the desktop and full screen on a phone, 340–430px wide. It must read well at 340px without zooming or sideways scrolling of the page:
+- No fixed widths over 300px on anything; let blocks take the width they are given. Charts follow the rule above.
+- Side by side only when there is room: lay out columns with inline \`style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16 }}\` (or \`flexWrap: 'wrap'\`), which stacks them on a phone. Do not use \`sm:\` / \`md:\` / \`lg:\` prefixes — the sandbox CSS does not guarantee them.
+- A table with more than three columns sits in \`<div style={{ overflowX: 'auto' }}>\` so only the table scrolls; keep its first column short.
+- A header row of title + numbers wraps (\`flexWrap: 'wrap'\`) rather than squeezing; tab and segment labels stay one or two words.
+- Tap targets at least 40px tall; nothing that only appears on hover — a tooltip may enrich, never carry, the information.
 
 CRAFT (this is what makes an artifact feel designed rather than generated — apply all of it, every time):
 
@@ -115,7 +123,7 @@ const React = require('react')
 const { useState } = React
 const { motion, useReducedMotion } = require('framer-motion')
 const { Card, CardContent } = require('@/ui/card')
-const { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } = require('recharts')
+const { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid } = require('recharts')
 
 const SERIES = {
   ytd: [
@@ -144,7 +152,7 @@ function Performance() {
     >
       <Card className="bg-card border-border rounded-lg shadow-xs">
         <CardContent className="divide-y divide-border" style={{ padding: 0 }}>
-          <div style={{ padding: '20px 24px 16px', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16 }}>
+          <div style={{ padding: '20px 24px 16px', display: 'flex', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: 16 }}>
             <div>
               <div className="text-muted-foreground" style={{ fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
                 Indexed performance · base 100
@@ -160,7 +168,8 @@ function Performance() {
           </div>
 
           <div style={{ padding: '16px 16px 8px' }}>
-            <LineChart width={600} height={220} data={data} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+            <ResponsiveContainer width="100%" height={220}>
+            <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
               <CartesianGrid strokeDasharray="2 4" stroke="var(--border)" vertical={false} />
               <XAxis dataKey="d" stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} />
               <YAxis stroke="var(--muted-foreground)" fontSize={11} tickLine={false} axisLine={false} domain={['dataMin - 4', 'dataMax + 4']} />
@@ -168,6 +177,7 @@ function Performance() {
               <Line key={range + '-a'} type="monotone" dataKey="a" stroke="var(--primary)" strokeWidth={2} dot={false} isAnimationActive={!reduced} animationDuration={300} animationEasing="ease-out" />
               <Line key={range + '-b'} type="monotone" dataKey="b" stroke="var(--muted-foreground)" strokeWidth={1.5} dot={false} isAnimationActive={!reduced} animationDuration={300} animationEasing="ease-out" />
             </LineChart>
+            </ResponsiveContainer>
           </div>
 
           <div className="bg-muted/40" style={{ display: 'flex', gap: 4, padding: 4 }}>

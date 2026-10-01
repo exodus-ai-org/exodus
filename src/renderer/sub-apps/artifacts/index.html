@@ -4,6 +4,27 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Exodus Artifact</title>
+    <style>
+      /* Page layout (a phone, full screen): the artifact's outermost card is
+         the page itself — no border, corners, shadow or surface — and the
+         wrapper that only held it loses its padding, so the card's own
+         padding is the page's margin. */
+      html[data-layout='page'] #artifact-root > [data-slot='card'],
+      html[data-layout='page']
+        #artifact-root
+        > *
+        > [data-slot='card']:only-child {
+        border: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        background: transparent !important;
+      }
+      html[data-layout='page']
+        #artifact-root
+        > *:has(> [data-slot='card']:only-child) {
+        padding: 0 !important;
+      }
+    </style>
     <meta
       http-equiv="Content-Security-Policy"
       content="default-src 'self'; script-src 'self' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src * data: blob:; connect-src 'self'; font-src 'self' data:;"
