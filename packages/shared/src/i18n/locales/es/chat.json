@@ -290,7 +290,9 @@
   "usedMemories": {
     "label_one": "Se usó {{count}} memoria · {{keys}}",
     "label_other": "Se usaron {{count}} memorias · {{keys}}",
-    "wrong": "Esto es incorrecto",
+    "intro": "Estos recuerdos dieron forma a la respuesta.",
+    "wrong": "¿Incorrecto?",
+    "fixHint": "¿Algún recuerdo es incorrecto? Toca «¿Incorrecto?» y corrígelo en el chat: Exodus lo actualizará.",
     "openSettings": "Abrir en Configuración",
     "deleted": "Eliminado",
     "prefill": "La memoria sobre «{{key}}» es incorrecta: "

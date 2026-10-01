@@ -1,7 +1,7 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { UsedMemory } from '@exodus/shared/types/memory'
 import { useSetAtom } from 'jotai'
-import { BrainIcon } from 'lucide-react'
+import { BrainIcon, PencilLineIcon } from 'lucide-react'
 import { memo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
@@ -46,7 +46,7 @@ function UsedMemoriesLine({ used }: { used: UsedMemory[] }) {
   const { t } = useTranslation('chat')
   const format = useFormat()
   const [open, setOpen] = useState(false)
-  // "This is wrong" hands focus to the composer; the popover must not take it
+  // "Wrong?" hands focus to the composer; the popover must not take it
   // back to its trigger as it closes.
   const toComposer = useRef(false)
 
@@ -119,6 +119,7 @@ function UsedMemoriesList({
 
   return (
     <>
+      <p className="text-muted-foreground text-xs">{t('usedMemories.intro')}</p>
       <ul className="flex max-h-80 flex-col gap-3 overflow-y-auto">
         {used.map((m) => {
           const current = list?.find((item) => item.id === m.id)
@@ -131,12 +132,30 @@ function UsedMemoriesList({
               data-deleted={deleted || undefined}
               className={cn('flex flex-col gap-1', deleted && 'opacity-50')}
             >
+              {/* The entry's own fix sits in its title row: it is this
+                  entry's action, not a line of the card. */}
               <div className="flex items-center gap-2">
-                <span className="text-foreground font-medium">{key}</span>
+                <span className="text-foreground min-w-0 flex-1 truncate font-medium">
+                  {key}
+                </span>
                 {deleted && (
                   <span className="text-muted-foreground text-xs">
                     {t('usedMemories.deleted')}
                   </span>
+                )}
+                {!deleted && (
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    data-testid={TEST_IDS.chat.usedMemories.wrong}
+                    onClick={() => wrong(key)}
+                    // A capsule in the tone: the one thing to do with an
+                    // entry, so it reads as a button at a glance.
+                    className="bg-primary/12 text-primary-ink hover:bg-primary/20 hover:text-primary-ink dark:bg-primary/20 dark:hover:bg-primary/30 shrink-0 rounded-full"
+                  >
+                    <PencilLineIcon />
+                    {t('usedMemories.wrong')}
+                  </Button>
                 )}
               </div>
               {current && (
@@ -151,30 +170,26 @@ function UsedMemoriesList({
                   ))}
                 </ul>
               )}
-              {!deleted && (
-                <Button
-                  variant="ghost"
-                  size="xs"
-                  data-testid={TEST_IDS.chat.usedMemories.wrong}
-                  onClick={() => wrong(key)}
-                  className="-ml-2.5 self-start"
-                >
-                  {t('usedMemories.wrong')}
-                </Button>
-              )}
             </li>
           )
         })}
       </ul>
-      <Button
-        variant="outline"
-        size="sm"
-        data-testid={TEST_IDS.chat.usedMemories.openSettings}
-        onClick={() => void navigate(MEMORY_SETTINGS_PATH)}
-        className="self-start"
-      >
-        {t('usedMemories.openSettings')}
-      </Button>
+      {/* How a wrong entry gets fixed, in a sentence; Settings is the
+          secondary way, a link under it. */}
+      <div className="flex flex-col items-start gap-1">
+        <p className="text-muted-foreground text-xs">
+          {t('usedMemories.fixHint')}
+        </p>
+        <Button
+          variant="link"
+          size="xs"
+          data-testid={TEST_IDS.chat.usedMemories.openSettings}
+          onClick={() => void navigate(MEMORY_SETTINGS_PATH)}
+          className="h-auto px-0"
+        >
+          {t('usedMemories.openSettings')}
+        </Button>
+      </div>
     </>
   )
 }

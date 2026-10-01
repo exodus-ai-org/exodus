@@ -290,7 +290,9 @@
   "usedMemories": {
     "label_one": "Used {{count}} memory · {{keys}}",
     "label_other": "Used {{count}} memories · {{keys}}",
-    "wrong": "This is wrong",
+    "intro": "These shaped this answer.",
+    "wrong": "Wrong?",
+    "fixHint": "A memory wrong? Tap Wrong? and fix it in chat — Exodus updates it.",
     "openSettings": "Open in Settings",
     "deleted": "Deleted",
     "prefill": "The memory about '{{key}}' is wrong: "

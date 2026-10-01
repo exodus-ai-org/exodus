@@ -77,7 +77,7 @@ test.describe('editing memory from the chat', () => {
     expect(restored?.summary).toBe(MEMORY_CORRECTION_SEED.summary)
   })
 
-  test('the used-memories line lists them and "This is wrong" prefills the composer', async ({
+  test('the used-memories line lists them and "Wrong?" prefills the composer', async ({
     mainWindow
   }) => {
     const api = new ApiClient()
@@ -100,7 +100,7 @@ test.describe('editing memory from the chat', () => {
     await expect(popover).toBeVisible()
     await expect(popover).toContainText(MEMORY_USAGE_SEED.summary)
 
-    // "This is wrong" prefills the composer, caret at the end, focused.
+    // "Wrong?" prefills the composer, caret at the end, focused.
     await mainWindow
       .getByTestId(TEST_IDS.chat.usedMemories.wrong)
       .first()

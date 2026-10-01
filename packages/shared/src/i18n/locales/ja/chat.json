@@ -281,7 +281,9 @@
   },
   "usedMemories": {
     "label_other": "{{count}} 件のメモリーを使用 · {{keys}}",
-    "wrong": "これは間違っています",
+    "intro": "この回答はこれらの記憶をもとにしています。",
+    "wrong": "違う？",
+    "fixHint": "記憶が違っていたら、「違う？」をタップしてチャットで修正してください。Exodus が記憶を更新します。",
     "openSettings": "設定で開く",
     "deleted": "削除済み",
     "prefill": "「{{key}}」についてのメモリーは間違っています: "

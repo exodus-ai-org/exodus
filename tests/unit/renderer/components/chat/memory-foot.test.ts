@@ -421,7 +421,52 @@ describe('<UsedMemories>', () => {
     expect(gone?.textContent).toContain('usedMemories.deleted')
   })
 
-  it('"This is wrong" prefills the composer and asks it to focus', async () => {
+  // "This is wrong" under an entry read as a verdict, not a button (owner,
+  // 2026-09-30): each entry now carries a tinted "Wrong?" beside its title,
+  // and the card's foot says in a sentence how a fix works.
+  it('says what the memories were for, and puts the fix beside each title', async () => {
+    usage.set('u1', [{ id: 'm1', key: 'Work setup', section: 'profile' }])
+    memories.data = [item('m1', snap('Work setup', 'Uses a Mac'))]
+    const { ready } = mount(
+      createElement(UsedMemories, { chatId: 'chat-1', runId: 'u1' })
+    )
+    await ready
+    await click(byTestId(TEST_IDS.chat.usedMemories.trigger))
+    const popover = byTestId(TEST_IDS.chat.usedMemories.popover)
+    expect(popover?.textContent).toContain('usedMemories.intro')
+    const fix = byTestId(TEST_IDS.chat.usedMemories.wrong)
+    expect(fix?.textContent).toContain('usedMemories.wrong')
+    // In the entry's title row, not on a line of its own under it.
+    expect(fix?.parentElement?.textContent).toContain('Work setup')
+    // Tinted in the tone, so it reads as a button.
+    expect(fix?.className).toContain('text-primary-ink')
+    expect(popover?.textContent).toContain('usedMemories.fixHint')
+  })
+
+  it('offers no fix for a deleted entry', async () => {
+    usage.set('u1', [
+      { id: 'm1', key: 'Work setup', section: 'profile' },
+      { id: 'm9', key: 'Gone', section: 'topic' }
+    ])
+    memories.data = [item('m1', snap('Work setup', 'Uses a Mac'))]
+    const { ready } = mount(
+      createElement(UsedMemories, { chatId: 'chat-1', runId: 'u1' })
+    )
+    await ready
+    await click(byTestId(TEST_IDS.chat.usedMemories.trigger))
+    const popover = byTestId(TEST_IDS.chat.usedMemories.popover)
+    const fixes = popover?.querySelectorAll(
+      `[data-testid="${TEST_IDS.chat.usedMemories.wrong}"]`
+    )
+    expect(fixes).toHaveLength(1)
+    expect(
+      popover
+        ?.querySelector('[data-deleted]')
+        ?.querySelector(`[data-testid="${TEST_IDS.chat.usedMemories.wrong}"]`)
+    ).toBeNull()
+  })
+
+  it('"Wrong?" prefills the composer and asks it to focus', async () => {
     usage.set('u1', [{ id: 'm1', key: 'Work setup', section: 'profile' }])
     memories.data = [item('m1', snap('Work setup', 'Uses a Mac'))]
     const { store, ready } = mount(

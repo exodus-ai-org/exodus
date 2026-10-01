@@ -281,7 +281,9 @@
   },
   "usedMemories": {
     "label_other": "메모리 {{count}}개 사용 · {{keys}}",
-    "wrong": "잘못된 내용입니다",
+    "intro": "이 답변은 이 기억들을 바탕으로 했습니다.",
+    "wrong": "틀렸나요?",
+    "fixHint": "기억이 틀렸나요? '틀렸나요?'를 탭해 채팅에서 고치면 Exodus가 기억을 업데이트합니다.",
     "openSettings": "설정에서 열기",
     "deleted": "삭제됨",
     "prefill": "'{{key}}'에 대한 메모리가 잘못되었습니다: "
