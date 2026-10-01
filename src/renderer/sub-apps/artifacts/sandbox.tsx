@@ -19,6 +19,8 @@ import {
 } from '@/components/ui/table'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
+import { observeSize } from './size-report'
+
 const MODULE_REGISTRY: Record<string, unknown> = {
   react: React,
   // Required by the automatic JSX runtime: sucrase compiles JSX to
@@ -47,7 +49,7 @@ const MODULE_REGISTRY: Record<string, unknown> = {
  * `artifact-sandbox-error` with the message the page shows. The desktop's card
  * ignores both; exodus-ios, which loads this page as its own top-level window
  * (so `window.parent` is the page itself), waits for one of them before it
- * shows the preview, and falls back to the source when it is an error.
+ * shows the artifact, and says to view it on the computer when it is an error.
  */
 function reportOutcome(
   outcome: { type: 'rendered' } | { type: 'error'; message: string }
@@ -132,6 +134,7 @@ export function ArtifactSandbox() {
   // Set by the boundary during the commit that caught, so the effect that
   // follows it does not also report the render as a success.
   const renderFailed = useRef(false)
+  const size = useRef<ReturnType<typeof observeSize> | null>(null)
 
   const handleMessage = useCallback((event: MessageEvent) => {
     // Only the embedding window may hand this frame code to run — not a frame
@@ -232,6 +235,7 @@ export function ArtifactSandbox() {
   useEffect(() => {
     if (key === 0 || renderFailed.current) return
     reportOutcome({ type: 'rendered' })
+    size.current?.report()
   }, [key])
 
   const handleRenderError = useCallback((err: Error) => {
@@ -247,7 +251,16 @@ export function ArtifactSandbox() {
     // "Waiting for artifact...". Worst seen on fullscreen, where a fresh
     // iframe mounts every time.
     window.parent?.postMessage({ type: 'artifact-sandbox-ready' }, '*')
-    return () => window.removeEventListener('message', handleMessage)
+    // The artifact's height, as it changes (see size-report.ts).
+    const root = document.getElementById('artifact-root')
+    size.current = root
+      ? observeSize(root, (message) => window.parent?.postMessage(message, '*'))
+      : null
+    return () => {
+      window.removeEventListener('message', handleMessage)
+      size.current?.disconnect()
+      size.current = null
+    }
   }, [handleMessage])
 
   if (error) {
