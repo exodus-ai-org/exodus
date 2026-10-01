@@ -197,6 +197,12 @@ describe('parseHealthSummary — structured report', () => {
     expect(r?.insights).toBeUndefined()
   })
 
+  it('reads "insights": null as the old shape', () => {
+    const r = parseHealthSummary({ ...SUMMARY, insights: null })
+    expect(r).not.toBeNull()
+    expect(r && 'insights' in r).toBe(false)
+  })
+
   it('rejects a report with neither insights nor a summary', () => {
     const { summary: _s, ...bare } = SUMMARY
     expect(parseHealthSummary(bare)).toBeNull()

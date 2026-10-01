@@ -199,7 +199,11 @@ function boldHighlights({ text, highlights }: HealthInsight): string {
  * null when insights were given but none survive.
  */
 function normaliseStructured(value: Loose): Loose | null {
-  if (value.insights === null || value.insights === undefined) return value
+  if (value.insights === null || value.insights === undefined) {
+    // An explicit null is the older shape too; the schema's optional() takes absent, not null.
+    const { insights: _absent, ...older } = value
+    return older
+  }
   const seen = new Set<string>()
   const insights: HealthInsight[] = []
   for (const raw of Array.isArray(value.insights) ? value.insights : []) {

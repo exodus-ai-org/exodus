@@ -85,11 +85,13 @@ health.post('/summary', async (c) => {
   for (let attempt = 1; attempt <= 2; attempt++) {
     const text = await callLlm(model, apiKey, HEALTH_SUMMARY_SYSTEM, prompt)
     const parsed = parseHealthSummary(parseJsonFromResponse(text))
-    // The older summary-only shape is fine to read but not what we ask for: retry it.
-    if (parsed?.insights) {
+    // The older summary-only shape is not what we ask for, so the first answer in it is retried; on the last
+    // attempt it still beats no note at all (the phone shows its Markdown summary).
+    if (parsed && (parsed.insights || attempt === 2)) {
       logger.info('health', 'Summary written', {
         ms: Date.now() - started,
-        attempt
+        attempt,
+        stories: Boolean(parsed.insights)
       })
       return c.json(parsed)
     }

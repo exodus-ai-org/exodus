@@ -182,6 +182,19 @@ describe('POST /api/v1/health/summary', () => {
       .mockResolvedValueOnce(JSON.stringify(REPORT))
     const res = await post(SNAPSHOT)
     expect(res.status).toBe(200)
+    expect((await res.json()).insights).toEqual(REPORT.insights)
+    expect(manager.callLlm).toHaveBeenCalledTimes(2)
+  })
+
+  it('accepts an old-shape answer on the second attempt, without insights', async () => {
+    manager.callLlm.mockResolvedValue(
+      JSON.stringify({ ...SUMMARY, insights: null })
+    )
+    const res = await post(SNAPSHOT)
+    expect(res.status).toBe(200)
+    const body = await res.json()
+    expect(body.summary).toBe(SUMMARY.summary)
+    expect('insights' in body).toBe(false)
     expect(manager.callLlm).toHaveBeenCalledTimes(2)
   })
 
