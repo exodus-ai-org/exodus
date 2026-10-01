@@ -15,6 +15,7 @@ import type {
 } from '@exodus/shared/types/chat'
 import type { WebSearchResult } from '@exodus/shared/types/web-search'
 import { isLocked, runAttemptInfos } from '@exodus/shared/utils/attempts'
+import { splitThinkingTagsInContent } from '@exodus/shared/utils/thinking-tags'
 import { capitalCase } from 'change-case'
 import { ArrowDownIcon } from 'lucide-react'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -390,6 +391,28 @@ function buildAssistantTurn(
  */
 export type SegmentCache = Map<string, Segment>
 
+const splitMessages = new WeakMap<ChatMessage, ChatMessage>()
+
+/**
+ * An assistant message with a `<thinking>` span the model wrote into its text
+ * split out as a thinking block, for the timeline — the kernel does this as it
+ * streams, but messages saved before it did hold the span as text. The same
+ * object for the same message (and the message itself when there is nothing
+ * to split), so the segment cache still sees the turn as unchanged.
+ */
+function withThinkingTagsSplit(message: ChatMessage): ChatMessage {
+  if (message.role !== 'assistant') return message
+  const cached = splitMessages.get(message)
+  if (cached) return cached
+  const content = splitThinkingTagsInContent(message.content)
+  const split =
+    content === message.content
+      ? message
+      : ({ ...message, content } as ChatAssistantMessage)
+  splitMessages.set(message, split)
+  return split
+}
+
 function sameMessages(a: ChatMessage[], b: ChatMessage[]): boolean {
   if (a.length !== b.length) return false
   for (let i = 0; i < a.length; i++) {
@@ -421,9 +444,10 @@ export function groupIntoSegments(
   const groupOfRun = regenerateGroups(runs)
   const groups = new Map<string, { at: number; messages: ChatMessage[] }>()
 
-  const turnOf = (runId: string, turnMessages: ChatMessage[]) => {
+  const turnOf = (runId: string, raw: ChatMessage[]) => {
     const key = `run:${runId}`
     const cached = cache?.get(key)
+    const turnMessages = raw.map((m) => withThinkingTagsSplit(m))
     const segment: Segment =
       cached?.type === 'assistantTurn' &&
       sameMessages(cached.turn.messages, turnMessages)

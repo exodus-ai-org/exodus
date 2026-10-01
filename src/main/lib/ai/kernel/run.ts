@@ -16,6 +16,7 @@ import type {
   ChatToolResultMessage,
   ChatUserMessage
 } from '@exodus/shared/types/chat'
+import { splitThinkingTagsInContent } from '@exodus/shared/utils/thinking-tags'
 import { v4 as uuidV4 } from 'uuid'
 
 import { logger } from '../../logger'
@@ -213,7 +214,7 @@ export async function* runAgent(input: RunInput): AsyncIterable<KernelEvent> {
         push({
           type: 'message_update',
           runId,
-          message: toAssistant(m, assistantId, runId, input.model)
+          message: toAssistant(m, assistantId, runId, input.model, false)
         })
         return
       }
@@ -360,18 +361,27 @@ function hasContent(m: AssistantMessage): boolean {
   )
 }
 
-/** Every message on the wire and in the database carries its run. */
+/**
+ * Every message on the wire and in the database carries its run. A
+ * `<thinking>` span the model wrote into its text goes out as a thinking
+ * block (`thinking-tags.ts`); `final` is false while the step still streams,
+ * so a tag cut at a chunk's end waits for the next one.
+ */
 function toAssistant(
   m: AssistantMessage,
   id: string,
   runId: string,
-  model: Model<string>
+  model: Model<string>,
+  final = true
 ): ChatAssistantMessage {
   return {
     id,
     runId,
     role: 'assistant',
-    content: m.content,
+    content: splitThinkingTagsInContent(
+      m.content,
+      final
+    ) as AssistantMessage['content'],
     usage: m.usage,
     cost: calculateCost(m.usage, model),
     api: m.api,
