@@ -50,3 +50,32 @@ export const SUMMARY = {
     summary: '工作日平均只睡 6 小時左右'
   }
 }
+
+// A structured report as the model writes it (no `summary` — the desktop fills that in for older clients).
+export const REPORT = {
+  headline: '有點沒睡飽，記得多走走。',
+  headlineHighlight: '有點沒睡飽',
+  headlineCategory: 'sleep',
+  insights: [
+    {
+      category: 'sleep',
+      text: '昨晚只睡了 6 小時 12 分，比平時少了將近一小時。',
+      highlights: ['6 小時 12 分'],
+      stat: { value: '6:12', unit: '小時', caption: '平時 7:05' }
+    },
+    {
+      category: 'recovery',
+      text: 'HRV 38 ms，低於你的 44 基線，身體還在恢復。',
+      highlights: ['38 ms', '身體還在恢復']
+    },
+    {
+      category: 'activity',
+      text: '今天走了 5,840 步，離 8,000 的目標還差 2,160 步。',
+      highlights: ['5,840 步'],
+      stat: { value: '5,840', unit: '步', caption: '目標 8,000' }
+    }
+  ],
+  nudge: '今晚早點上床，睡前少看螢幕。',
+  categories: SUMMARY.categories,
+  memorySuggestion: SUMMARY.memorySuggestion
+}

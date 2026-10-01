@@ -22,16 +22,24 @@ import { logger } from '../../logger'
 import { Variables } from '../types'
 import { validateSchema } from '../utils'
 
-export const HEALTH_SUMMARY_SYSTEM = `You write a short, warm daily health note for one person from the numbers you are given.
+export const HEALTH_SUMMARY_SYSTEM = `You write a short, warm daily health note for one person from the numbers you are given. The phone shows it as a headline, a few one-sentence insights, and one small idea; it colours the phrases you mark.
 Rules:
 - Write in the language named by "locale" (a BCP-47 tag).
 - Use only the numbers in the snapshot and quote them exactly. A category that is null has no data: say nothing about it and set its line to null.
 - Never diagnose, never name a condition, never give medical advice beyond everyday habits (sleep, walking, water, rest).
-- "headline": at most 60 characters, no trailing punctuation.
-- "summary": 2 to 4 sentences of Markdown; bold (**...**) the one or two numbers that matter most.
+- "headline": one short sentence that sets the tone of the day, at most 60 characters.
+- "headlineHighlight": the key phrase of the headline, copied verbatim from it (character for character); "headlineCategory" is the category it is about (sleep, activity, recovery or body).
+- "insights": 1 to 4, most important first, at most one per category, only for categories with data. Each has:
+  - "category": sleep, activity, recovery or body;
+  - "text": one sentence, at most 160 characters, built around the numbers that matter;
+  - "highlights": 0 to 3 short phrases (at most 40 characters each) copied verbatim from that same "text" — usually the numbers and the verdict;
+  - "stat" (optional): the one number of the insight, {"value": at most 12 characters, "unit": at most 16, "caption": a few words of context, at most 40}.
+- "nudge": one everyday habit to try today, one sentence, at most 140 characters. No medical advice.
 - "categories": one short sentence per category, or null.
 - "memorySuggestion": only when the snapshot and the known memories show a lasting pattern worth remembering long-term — never a one-day event, never something the memories already say. Shape: {"section":"profile","key":"kebab-case-key","summary":"one sentence"}. Otherwise null.
-Respond ONLY with JSON: {"headline":"...","summary":"...","categories":{"sleep":...,"activity":...,"recovery":...,"body":...},"memorySuggestion":...}`
+Example (for a different person; write your own from the snapshot):
+{"headline":"睡得很足，动得有点少。","headlineHighlight":"动得有点少","headlineCategory":"activity","insights":[{"category":"sleep","text":"昨晚睡了 11 小时 22 分，比平时多出将近 5 小时。","highlights":["11 小时 22 分"],"stat":{"value":"11:22","unit":"小时","caption":"比平时 +5h"}},{"category":"recovery","text":"HRV 56.7 ms，高于你的 46.9 基线，身体恢复得不错。","highlights":["56.7 ms","身体恢复得不错"],"stat":{"value":"56.7","unit":"ms HRV","caption":"高于基线 46.9"}},{"category":"activity","text":"今天只走了 1,198 步，离 8,000 的目标还差不少。","highlights":["1,198 步"],"stat":{"value":"1,198","unit":"步","caption":"目标 8,000"}}],"nudge":"傍晚前散步 20 分钟，给这一天收个尾。","categories":{"sleep":"睡得比平时久很多。","activity":"步数离目标还远。","recovery":"HRV 高于基线。","body":null},"memorySuggestion":null}
+Respond ONLY with JSON in exactly that shape.`
 
 /** What the memory read-filter is asked about: the day in one line. */
 export function memoryQuestion(s: HealthSnapshot): string {
@@ -77,7 +85,8 @@ health.post('/summary', async (c) => {
   for (let attempt = 1; attempt <= 2; attempt++) {
     const text = await callLlm(model, apiKey, HEALTH_SUMMARY_SYSTEM, prompt)
     const parsed = parseHealthSummary(parseJsonFromResponse(text))
-    if (parsed) {
+    // The older summary-only shape is fine to read but not what we ask for: retry it.
+    if (parsed?.insights) {
       logger.info('health', 'Summary written', {
         ms: Date.now() - started,
         attempt

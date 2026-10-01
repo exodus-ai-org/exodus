@@ -2,7 +2,11 @@ import { isAppError } from '@exodus/shared/errors/app-error'
 import { Hono } from 'hono'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { SNAPSHOT, SUMMARY } from '../../../../shared/types/health-fixtures'
+import {
+  REPORT,
+  SNAPSHOT,
+  SUMMARY
+} from '../../../../shared/types/health-fixtures'
 
 vi.mock('electron', () => ({ app: { getPath: () => '/tmp' } }))
 const logger = vi.hoisted(() => ({
@@ -74,14 +78,18 @@ beforeEach(() => {
       details: []
     }
   ])
-  manager.callLlm.mockResolvedValue(JSON.stringify(SUMMARY))
+  manager.callLlm.mockResolvedValue(JSON.stringify(REPORT))
 })
 
 describe('POST /api/v1/health/summary', () => {
   it('returns the model report and passes the relevant memories in', async () => {
     const res = await post(SNAPSHOT)
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual(SUMMARY)
+    const body = await res.json()
+    expect(body.insights).toEqual(REPORT.insights)
+    expect(body.headlineHighlight).toBe(REPORT.headlineHighlight)
+    expect(body.nudge).toBe(REPORT.nudge)
+    expect(body.summary).toContain('**6 小時 12 分**')
     expect(manager.loadRelevantMemories).toHaveBeenCalledWith(
       expect.stringContaining('Daily health report'),
       { id: 'm' },
@@ -130,7 +138,7 @@ describe('POST /api/v1/health/summary', () => {
   it('keeps the report when only the suggestion is invalid', async () => {
     manager.callLlm.mockResolvedValue(
       JSON.stringify({
-        ...SUMMARY,
+        ...REPORT,
         memorySuggestion: { section: 'person', key: 'x y', summary: 'z' }
       })
     )
@@ -138,8 +146,57 @@ describe('POST /api/v1/health/summary', () => {
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.memorySuggestion).toBeNull()
-    expect(body.headline).toBe(SUMMARY.headline)
+    expect(body.headline).toBe(REPORT.headline)
     expect(manager.callLlm).toHaveBeenCalledTimes(1)
+  })
+
+  it('drops a highlight the model did not copy verbatim, keeps the report', async () => {
+    manager.callLlm.mockResolvedValue(
+      JSON.stringify({
+        ...REPORT,
+        insights: [{ ...REPORT.insights[0], highlights: ['六小時'] }]
+      })
+    )
+    const res = await post(SNAPSHOT)
+    expect(res.status).toBe(200)
+    expect((await res.json()).insights[0].highlights).toEqual([])
+    expect(manager.callLlm).toHaveBeenCalledTimes(1)
+  })
+
+  it('retries when no insight survives, then fails', async () => {
+    manager.callLlm.mockResolvedValue(
+      JSON.stringify({
+        ...REPORT,
+        insights: [{ ...REPORT.insights[0], category: 'mood' }]
+      })
+    )
+    const res = await post(SNAPSHOT)
+    expect(res.status).toBe(500)
+    expect((await res.json()).error.code).toBe('AI_GENERATION_FAILED')
+    expect(manager.callLlm).toHaveBeenCalledTimes(2)
+  })
+
+  it('treats an old-shape answer (no insights) as invalid and retries', async () => {
+    manager.callLlm
+      .mockResolvedValueOnce(JSON.stringify(SUMMARY))
+      .mockResolvedValueOnce(JSON.stringify(REPORT))
+    const res = await post(SNAPSHOT)
+    expect(res.status).toBe(200)
+    expect(manager.callLlm).toHaveBeenCalledTimes(2)
+  })
+
+  it('asks for the structured report with one full example', async () => {
+    await post(SNAPSHOT)
+    const system = manager.callLlm.mock.calls[0][2] as string
+    for (const key of [
+      '"insights"',
+      '"highlights"',
+      '"headlineHighlight"',
+      '"nudge"',
+      '"stat"'
+    ])
+      expect(system).toContain(key)
+    expect(system).toContain('verbatim')
   })
 
   it('asks for a headline of at most 60 characters', async () => {
