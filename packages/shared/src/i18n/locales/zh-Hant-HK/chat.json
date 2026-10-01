@@ -334,5 +334,63 @@
   "ask": {
     "button": "問 Exodus",
     "remove": "移除引用"
+  },
+  "health": {
+    "attached": "隨此問題傳送的健康資料：{{values}}",
+    "fallback": "健康",
+    "asOf": "{{date}} {{time}}",
+    "lastDays_other": "{{category}}，最近 {{count}} 日",
+    "noData": "沒有資料",
+    "withUsual": "{{value}} · 平時 {{usual}}",
+    "ofGoal": "{{value}} / {{goal}}",
+    "bpm": "{{value}} 次/分",
+    "ms": "{{value}} 毫秒",
+    "kg": "{{value}} 公斤",
+    "kcal": "{{value}} 千卡",
+    "perMin": "每分鐘 {{value}} 次",
+    "cups_other": "{{count}} 杯",
+    "hours_other": "{{count}} 小時",
+    "category": {
+      "sleep": "睡眠",
+      "activity": "活動",
+      "recovery": "心臟與恢復",
+      "body": "身體與心情"
+    },
+    "field": {
+      "asleep": "睡眠時間",
+      "inBed": "上床",
+      "deep": "深層",
+      "core": "核心",
+      "rem": "REM",
+      "awake": "清醒",
+      "wake": "起床",
+      "steps": "步數",
+      "activeEnergy": "活動能量",
+      "exercise": "運動",
+      "stand": "站立",
+      "workouts": "體能訓練",
+      "level": "恢復",
+      "hrv": "心率變異",
+      "restingHr": "靜止心率",
+      "respRate": "呼吸速率",
+      "water": "飲水",
+      "weight": "體重",
+      "weightTrend": "30 日變化",
+      "mood": "心情"
+    },
+    "level": {
+      "good": "良好",
+      "fair": "一般",
+      "low": "偏低"
+    },
+    "mood": {
+      "veryUnpleasant": "非常不愉快",
+      "unpleasant": "不愉快",
+      "slightlyUnpleasant": "有點不愉快",
+      "neutral": "平常",
+      "slightlyPleasant": "有點愉快",
+      "pleasant": "愉快",
+      "veryPleasant": "非常愉快"
+    }
   }
 }

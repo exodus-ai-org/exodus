@@ -334,5 +334,63 @@
   "ask": {
     "button": "Exodus에 질문",
     "remove": "인용 제거"
+  },
+  "health": {
+    "attached": "이 질문과 함께 보낸 건강 데이터: {{values}}",
+    "fallback": "건강",
+    "asOf": "{{date}} {{time}}",
+    "lastDays_other": "{{category}}, 최근 {{count}}일",
+    "noData": "데이터 없음",
+    "withUsual": "{{value}} · 평소 {{usual}}",
+    "ofGoal": "{{value}} / {{goal}}",
+    "bpm": "{{value}}bpm",
+    "ms": "{{value}}ms",
+    "kg": "{{value}}kg",
+    "kcal": "{{value}}kcal",
+    "perMin": "분당 {{value}}회",
+    "cups_other": "{{count}}잔",
+    "hours_other": "{{count}}시간",
+    "category": {
+      "sleep": "수면",
+      "activity": "활동",
+      "recovery": "심장 및 회복",
+      "body": "신체 및 기분"
+    },
+    "field": {
+      "asleep": "수면 시간",
+      "inBed": "취침",
+      "deep": "깊은 수면",
+      "core": "코어 수면",
+      "rem": "REM 수면",
+      "awake": "깸",
+      "wake": "기상",
+      "steps": "걸음 수",
+      "activeEnergy": "활동 에너지",
+      "exercise": "운동",
+      "stand": "서 있기",
+      "workouts": "운동 기록",
+      "level": "회복",
+      "hrv": "심박 변이",
+      "restingHr": "안정 시 심박수",
+      "respRate": "호흡수",
+      "water": "물",
+      "weight": "체중",
+      "weightTrend": "30일 변화",
+      "mood": "기분"
+    },
+    "level": {
+      "good": "좋음",
+      "fair": "보통",
+      "low": "낮음"
+    },
+    "mood": {
+      "veryUnpleasant": "매우 불쾌함",
+      "unpleasant": "불쾌함",
+      "slightlyUnpleasant": "약간 불쾌함",
+      "neutral": "보통",
+      "slightlyPleasant": "약간 기분 좋음",
+      "pleasant": "기분 좋음",
+      "veryPleasant": "매우 기분 좋음"
+    }
   }
 }

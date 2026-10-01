@@ -345,5 +345,66 @@
   "ask": {
     "button": "Ask Exodus",
     "remove": "Remove quote"
+  },
+  "health": {
+    "attached": "Health data sent with this question: {{values}}",
+    "fallback": "Health",
+    "asOf": "{{date}}, {{time}}",
+    "lastDays_one": "{{category}}, last {{count}} day",
+    "lastDays_other": "{{category}}, last {{count}} days",
+    "noData": "No data",
+    "withUsual": "{{value}} · usual {{usual}}",
+    "ofGoal": "{{value}} of {{goal}}",
+    "bpm": "{{value}} bpm",
+    "ms": "{{value}} ms",
+    "kg": "{{value}} kg",
+    "kcal": "{{value}} kcal",
+    "perMin": "{{value}}/min",
+    "cups_one": "{{count}} cup",
+    "cups_other": "{{count}} cups",
+    "hours_one": "{{count}} hour",
+    "hours_other": "{{count}} hours",
+    "category": {
+      "sleep": "Sleep",
+      "activity": "Activity",
+      "recovery": "Heart & recovery",
+      "body": "Body & mood"
+    },
+    "field": {
+      "asleep": "Asleep",
+      "inBed": "In bed",
+      "deep": "Deep",
+      "core": "Core",
+      "rem": "REM",
+      "awake": "Awake",
+      "wake": "Woke up",
+      "steps": "Steps",
+      "activeEnergy": "Active energy",
+      "exercise": "Exercise",
+      "stand": "Stand",
+      "workouts": "Workouts",
+      "level": "Recovery",
+      "hrv": "HRV",
+      "restingHr": "Resting heart rate",
+      "respRate": "Respiratory rate",
+      "water": "Water",
+      "weight": "Weight",
+      "weightTrend": "30-day change",
+      "mood": "Mood"
+    },
+    "level": {
+      "good": "Good",
+      "fair": "Fair",
+      "low": "Low"
+    },
+    "mood": {
+      "veryUnpleasant": "Very unpleasant",
+      "unpleasant": "Unpleasant",
+      "slightlyUnpleasant": "Slightly unpleasant",
+      "neutral": "Neutral",
+      "slightlyPleasant": "Slightly pleasant",
+      "pleasant": "Pleasant",
+      "veryPleasant": "Very pleasant"
+    }
   }
 }

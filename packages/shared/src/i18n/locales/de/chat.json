@@ -345,5 +345,66 @@
   "ask": {
     "button": "Exodus fragen",
     "remove": "Zitat entfernen"
+  },
+  "health": {
+    "attached": "Mit dieser Frage gesendete Gesundheitsdaten: {{values}}",
+    "fallback": "Gesundheit",
+    "asOf": "{{date}}, {{time}}",
+    "lastDays_one": "{{category}}, letzter {{count}} Tag",
+    "lastDays_other": "{{category}}, letzte {{count}} Tage",
+    "noData": "Keine Daten",
+    "withUsual": "{{value}} · üblich {{usual}}",
+    "ofGoal": "{{value}} von {{goal}}",
+    "bpm": "{{value}} S/min",
+    "ms": "{{value}} ms",
+    "kg": "{{value}} kg",
+    "kcal": "{{value}} kcal",
+    "perMin": "{{value}}/min",
+    "cups_one": "{{count}} Glas",
+    "cups_other": "{{count}} Gläser",
+    "hours_one": "{{count}} Stunde",
+    "hours_other": "{{count}} Stunden",
+    "category": {
+      "sleep": "Schlaf",
+      "activity": "Aktivität",
+      "recovery": "Herz & Erholung",
+      "body": "Körper & Stimmung"
+    },
+    "field": {
+      "asleep": "Geschlafen",
+      "inBed": "Im Bett",
+      "deep": "Tief",
+      "core": "Kern",
+      "rem": "REM",
+      "awake": "Wach",
+      "wake": "Aufgewacht",
+      "steps": "Schritte",
+      "activeEnergy": "Aktivitätsenergie",
+      "exercise": "Training",
+      "stand": "Stehen",
+      "workouts": "Trainings",
+      "level": "Erholung",
+      "hrv": "HFV",
+      "restingHr": "Ruhepuls",
+      "respRate": "Atemfrequenz",
+      "water": "Wasser",
+      "weight": "Gewicht",
+      "weightTrend": "Veränderung in 30 Tagen",
+      "mood": "Stimmung"
+    },
+    "level": {
+      "good": "Gut",
+      "fair": "Mittel",
+      "low": "Niedrig"
+    },
+    "mood": {
+      "veryUnpleasant": "Sehr unangenehm",
+      "unpleasant": "Unangenehm",
+      "slightlyUnpleasant": "Etwas unangenehm",
+      "neutral": "Neutral",
+      "slightlyPleasant": "Etwas angenehm",
+      "pleasant": "Angenehm",
+      "veryPleasant": "Sehr angenehm"
+    }
   }
 }

@@ -334,5 +334,63 @@
   "ask": {
     "button": "Exodus に質問",
     "remove": "引用を削除"
+  },
+  "health": {
+    "attached": "この質問と一緒に送ったヘルスケアデータ：{{values}}",
+    "fallback": "ヘルスケア",
+    "asOf": "{{date}} {{time}}",
+    "lastDays_other": "{{category}}、直近 {{count}} 日間",
+    "noData": "データなし",
+    "withUsual": "{{value}} · 普段 {{usual}}",
+    "ofGoal": "{{value}} / {{goal}}",
+    "bpm": "{{value}} bpm",
+    "ms": "{{value}} ミリ秒",
+    "kg": "{{value}} kg",
+    "kcal": "{{value}} kcal",
+    "perMin": "{{value}} 回/分",
+    "cups_other": "{{count}} 杯",
+    "hours_other": "{{count}} 時間",
+    "category": {
+      "sleep": "睡眠",
+      "activity": "アクティビティ",
+      "recovery": "心臓と回復",
+      "body": "体と気分"
+    },
+    "field": {
+      "asleep": "睡眠時間",
+      "inBed": "就寝",
+      "deep": "深い睡眠",
+      "core": "コア睡眠",
+      "rem": "レム睡眠",
+      "awake": "覚醒",
+      "wake": "起床",
+      "steps": "歩数",
+      "activeEnergy": "アクティブエネルギー",
+      "exercise": "エクササイズ",
+      "stand": "スタンド",
+      "workouts": "ワークアウト",
+      "level": "回復",
+      "hrv": "心拍変動",
+      "restingHr": "安静時心拍数",
+      "respRate": "呼吸数",
+      "water": "水分",
+      "weight": "体重",
+      "weightTrend": "30日間の変化",
+      "mood": "気分"
+    },
+    "level": {
+      "good": "良好",
+      "fair": "ふつう",
+      "low": "低め"
+    },
+    "mood": {
+      "veryUnpleasant": "とても不快",
+      "unpleasant": "不快",
+      "slightlyUnpleasant": "やや不快",
+      "neutral": "ふつう",
+      "slightlyPleasant": "やや快適",
+      "pleasant": "快適",
+      "veryPleasant": "とても快適"
+    }
   }
 }

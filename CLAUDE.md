@@ -1223,6 +1223,14 @@ hundreds of times per answer. What keeps it cheap — all of it guarded by
   question — so no message shape changes and every provider reads it;
   `chat/user-bubble.tsx` draws it back as a quote via `splitQuoted()`.
   exodus-ios implements the same three functions to the same vectors.
+- **Questions from the phone's Health workspace** arrive opening with a
+  fenced `exodus-health` block of JSON (the day's snapshot, or a detail
+  page's week), then the question. `splitHealth()`
+  (`packages/shared/src/utils/health-context.ts`, exodus-ios's
+  `HealthContext.split`) takes it off before `splitQuoted()`; the bubble
+  draws it as chips (`chat/health-context-card.tsx`, rules in
+  `chat/health-context.ts`) that open into a labelled list. Display only —
+  the message sent to the model is unchanged.
 - **Memoized leaves take only what they render.** The composer
   (`multimodel-input.tsx`) and `ChatToc` are `memo`'d; don't pass them
   `messages` or anything else that changes per frame unless they show it

@@ -345,5 +345,66 @@
   "ask": {
     "button": "Chiedi a Exodus",
     "remove": "Rimuovi citazione"
+  },
+  "health": {
+    "attached": "Dati sulla salute inviati con questa domanda: {{values}}",
+    "fallback": "Salute",
+    "asOf": "{{date}}, {{time}}",
+    "lastDays_one": "{{category}}, ultimo {{count}} giorno",
+    "lastDays_other": "{{category}}, ultimi {{count}} giorni",
+    "noData": "Nessun dato",
+    "withUsual": "{{value}} · di solito {{usual}}",
+    "ofGoal": "{{value}} su {{goal}}",
+    "bpm": "{{value}} bpm",
+    "ms": "{{value}} ms",
+    "kg": "{{value}} kg",
+    "kcal": "{{value}} kcal",
+    "perMin": "{{value}}/min",
+    "cups_one": "{{count}} bicchiere",
+    "cups_other": "{{count}} bicchieri",
+    "hours_one": "{{count}} ora",
+    "hours_other": "{{count}} ore",
+    "category": {
+      "sleep": "Sonno",
+      "activity": "Attività",
+      "recovery": "Cuore e recupero",
+      "body": "Corpo e umore"
+    },
+    "field": {
+      "asleep": "Dormito",
+      "inBed": "A letto",
+      "deep": "Profondo",
+      "core": "Essenziale",
+      "rem": "REM",
+      "awake": "Sveglio",
+      "wake": "Risveglio",
+      "steps": "Passi",
+      "activeEnergy": "Energia attiva",
+      "exercise": "Esercizio",
+      "stand": "In piedi",
+      "workouts": "Allenamenti",
+      "level": "Recupero",
+      "hrv": "HRV",
+      "restingHr": "Frequenza cardiaca a riposo",
+      "respRate": "Frequenza respiratoria",
+      "water": "Acqua",
+      "weight": "Peso",
+      "weightTrend": "Variazione in 30 giorni",
+      "mood": "Umore"
+    },
+    "level": {
+      "good": "Buono",
+      "fair": "Discreto",
+      "low": "Basso"
+    },
+    "mood": {
+      "veryUnpleasant": "Molto spiacevole",
+      "unpleasant": "Spiacevole",
+      "slightlyUnpleasant": "Leggermente spiacevole",
+      "neutral": "Neutro",
+      "slightlyPleasant": "Leggermente piacevole",
+      "pleasant": "Piacevole",
+      "veryPleasant": "Molto piacevole"
+    }
   }
 }

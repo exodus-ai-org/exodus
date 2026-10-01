@@ -174,6 +174,14 @@ export const TEST_IDS = {
       button: 'chat.ask.button'
     },
     /**
+     * In a user bubble whose message was asked from the phone's Health
+     * workspace: the chips of the numbers it carried, and what they open.
+     */
+    health: {
+      trigger: 'chat.health.trigger',
+      details: 'chat.health.details'
+    },
+    /**
      * A regenerate group: "Use this one" over each of the two answers (and
      * the tab of each, in a narrow window), the link to the answer not kept,
      * and "Use this instead" in the dialog it opens.
