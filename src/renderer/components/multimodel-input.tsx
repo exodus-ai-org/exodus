@@ -23,6 +23,7 @@ import { sileo } from 'sileo'
 
 import { UseChatHelpers } from '@/hooks/use-chat'
 import { useUpload } from '@/hooks/use-upload'
+import { pastedFiles, pasteKeepsText } from '@/lib/clipboard-paste'
 import { cn } from '@/lib/utils'
 import { attachmentAtom } from '@/stores/chat'
 import {
@@ -85,19 +86,21 @@ function InputBox({
   }
 
   const handlePaste = (event: ClipboardEvent<HTMLTextAreaElement>) => {
-    const items = event.clipboardData.items
+    const { clipboardData } = event
+    const { images, fileNames } = pastedFiles(clipboardData.items)
+    if (images.length === 0) return
 
-    const files: File[] = []
-    for (const item of items) {
-      if (item.kind === 'file' && item.type.startsWith('image/')) {
-        const file = item.getAsFile()
-        if (file) {
-          files.push(file)
-        }
-      }
+    // Not the clipboard's text when it only names the files (Finder's copy).
+    if (
+      !pasteKeepsText({
+        fileNames,
+        plain: clipboardData.getData('text/plain'),
+        html: clipboardData.getData('text/html')
+      })
+    ) {
+      event.preventDefault()
     }
-
-    uploadFile(files)
+    uploadFile(images)
   }
 
   const submitForm = useCallback(() => {
