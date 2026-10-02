@@ -35,6 +35,7 @@ import {
   RemoteImage,
   allowedImageUrls
 } from './remote-image'
+import { WorkspacePathCode } from './workspace-path-code'
 
 const themes = {
   light: { codeTheme: oneLight },
@@ -186,9 +187,10 @@ export function Markdown({
             </SyntaxHighlighter>
           </>
         ) : (
-          <code {...rest} className={className}>
+          // A path to a file the chat wrote becomes a link that opens it.
+          <WorkspacePathCode {...rest} className={className}>
             {children}
-          </code>
+          </WorkspacePathCode>
         )
       },
       // eslint-disable-next-line @typescript-eslint/no-unused-vars, @typescript-eslint/no-explicit-any

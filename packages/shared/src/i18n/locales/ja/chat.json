@@ -394,5 +394,32 @@
       "pleasant": "快適",
       "veryPleasant": "とても快適"
     }
+  },
+  "workspaceFile": {
+    "created": "作成",
+    "edited": "編集",
+    "meta": "{{change}} · {{size}}",
+    "open": "開く",
+    "quickLook": "クイックルック",
+    "revealInFinder": "Finderで表示",
+    "showInExplorer": "エクスプローラーで表示",
+    "showInFolder": "フォルダで表示",
+    "missing": "見つかりません",
+    "outside": "ワークスペースの外",
+    "untitled": "ファイル",
+    "linkTitle": "クリックで開く · 右クリックでその他の操作",
+    "previewMeta": "{{size}} · 読み取り専用",
+    "readOnly": "読み取り専用",
+    "copy": "コピー",
+    "copied": "コピーしました",
+    "tooLarge": "このファイルは大きすぎてプレビューできません。対応するアプリで開いてください。",
+    "binary": "このファイルはテキストではないため、ここではプレビューできません。対応するアプリで開いてください。",
+    "readFailed": "このファイルを読み込めませんでした。",
+    "missingDescription": "移動または削除された可能性があります。",
+    "outsideDescription": "ここから開けるのはチャットのワークスペース内のファイルだけです。",
+    "unsafeTitle": "代わりにフォルダで表示しました",
+    "unsafeDescription": "このファイルは開くと実行されるため、開きませんでした。",
+    "openFailed": "ファイルを開けませんでした",
+    "revealFailed": "ファイルを表示できませんでした"
   }
 }

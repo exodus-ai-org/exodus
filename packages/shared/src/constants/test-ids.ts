@@ -167,6 +167,19 @@ export const TEST_IDS = {
   chat: {
     /** One per assistant message (= one per run). */
     messageAction: 'chat.message-action',
+    /**
+     * A file a turn wrote or edited in the chat's workspace: its card, the
+     * card's actions, the Quick look dialog, and a path in an answer that
+     * names such a file (a link that opens it).
+     */
+    workspaceFile: {
+      card: 'chat.workspace-file.card',
+      open: 'chat.workspace-file.open',
+      reveal: 'chat.workspace-file.reveal',
+      quickLook: 'chat.workspace-file.quick-look',
+      preview: 'chat.workspace-file.preview',
+      pathLink: 'chat.workspace-file.path-link'
+    },
     /** In that bar: asks the last question again, as a comparison. */
     regenerate: 'chat.regenerate',
     /**

@@ -33,6 +33,12 @@ vi.mock('@/components/calling-tools/terminal/terminal-card', () => ({
 vi.mock('@/components/calling-tools/weather/weather-card', () => ({
   WeatherCard: card('weather')
 }))
+vi.mock(
+  '@/components/calling-tools/workspace-file/workspace-file-card',
+  () => ({
+    WorkspaceFileCard: card('workspace-file')
+  })
+)
 
 const { MessageCallingTools } =
   await import('@/components/messages-calling-tools')
@@ -87,8 +93,6 @@ describe('MessageCallingTools', () => {
     for (const name of [
       'read_file',
       'list_directory',
-      'write_file',
-      'edit_file',
       'find_files',
       'grep',
       'web_fetch',
@@ -98,6 +102,16 @@ describe('MessageCallingTools', () => {
     ]) {
       const host = await render(result(name))
       expect(host.innerHTML, name).toBe('')
+    }
+  })
+
+  it('write_file and edit_file show the workspace file card', async () => {
+    for (const name of ['write_file', 'edit_file']) {
+      const host = await render(
+        result(name, { details: { path: '/w/c/notes.md', bytes: 12 } })
+      )
+      expect(host.querySelectorAll('section'), name).toHaveLength(1)
+      expect(host.querySelector('[data-card="workspace-file"]')).not.toBeNull()
     }
   })
 

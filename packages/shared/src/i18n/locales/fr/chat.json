@@ -408,5 +408,32 @@
       "pleasant": "Agréable",
       "veryPleasant": "Très agréable"
     }
+  },
+  "workspaceFile": {
+    "created": "Créé",
+    "edited": "Modifié",
+    "meta": "{{change}} · {{size}}",
+    "open": "Ouvrir",
+    "quickLook": "Coup d’œil",
+    "revealInFinder": "Afficher dans le Finder",
+    "showInExplorer": "Afficher dans l’Explorateur",
+    "showInFolder": "Afficher dans le dossier",
+    "missing": "Introuvable",
+    "outside": "Hors de l’espace de travail",
+    "untitled": "Fichier",
+    "linkTitle": "Cliquez pour ouvrir · clic droit pour plus d’options",
+    "previewMeta": "{{size}} · Lecture seule",
+    "readOnly": "Lecture seule",
+    "copy": "Copier",
+    "copied": "Copié",
+    "tooLarge": "Ce fichier est trop volumineux pour l’aperçu. Ouvrez-le plutôt dans son app.",
+    "binary": "Ce fichier n’est pas du texte et ne peut pas être affiché ici. Ouvrez-le plutôt dans son app.",
+    "readFailed": "Impossible de lire ce fichier.",
+    "missingDescription": "Il a peut-être été déplacé ou supprimé.",
+    "outsideDescription": "Seuls les fichiers de l’espace de travail d’un chat peuvent être ouverts d’ici.",
+    "unsafeTitle": "Affiché dans son dossier",
+    "unsafeDescription": "Ouvrir ce fichier l’exécuterait : il n’a donc pas été ouvert.",
+    "openFailed": "Impossible d’ouvrir le fichier",
+    "revealFailed": "Impossible d’afficher le fichier"
   }
 }

@@ -408,5 +408,32 @@
       "pleasant": "Pleasant",
       "veryPleasant": "Very pleasant"
     }
+  },
+  "workspaceFile": {
+    "created": "Created",
+    "edited": "Edited",
+    "meta": "{{change}} · {{size}}",
+    "open": "Open",
+    "quickLook": "Quick look",
+    "revealInFinder": "Reveal in Finder",
+    "showInExplorer": "Show in Explorer",
+    "showInFolder": "Show in folder",
+    "missing": "No longer there",
+    "outside": "Outside the workspace",
+    "untitled": "File",
+    "linkTitle": "Click to open · right-click for more",
+    "previewMeta": "{{size}} · Read-only",
+    "readOnly": "Read-only",
+    "copy": "Copy",
+    "copied": "Copied",
+    "tooLarge": "This file is too large to preview. Open it in its app instead.",
+    "binary": "This file isn't text, so it can't be previewed here. Open it in its app instead.",
+    "readFailed": "Couldn't read this file.",
+    "missingDescription": "It may have been moved or deleted.",
+    "outsideDescription": "Only files in a chat's workspace can be opened from here.",
+    "unsafeTitle": "Shown in its folder instead",
+    "unsafeDescription": "Opening this file would run it, so it wasn't opened.",
+    "openFailed": "Couldn't open the file",
+    "revealFailed": "Couldn't show the file"
   }
 }

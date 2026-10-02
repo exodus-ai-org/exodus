@@ -22,5 +22,12 @@
     "saveImageAs": "다른 이름으로 이미지 저장…",
     "copyImage": "이미지 복사",
     "saveAs": "다른 이름으로 저장…"
+  },
+  "workspaceFile": {
+    "open": "열기",
+    "revealInFinder": "Finder에서 보기",
+    "showInExplorer": "탐색기에서 보기",
+    "showInFolder": "폴더에서 보기",
+    "quickLook": "훑어보기"
   }
 }

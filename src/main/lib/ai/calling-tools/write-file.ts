@@ -1,4 +1,4 @@
-import { writeFile as fsWriteFile, mkdir } from 'fs/promises'
+import { writeFile as fsWriteFile, mkdir, stat } from 'fs/promises'
 import { dirname } from 'path'
 
 import type { AgentTool } from '@earendil-works/pi-agent-core'
@@ -26,6 +26,11 @@ export const writeFile: AgentTool<typeof writeFileSchema> = {
   execute: async (_toolCallId, { path, content, append }, signal) => {
     if (signal?.aborted) throw new Error('Aborted')
     try {
+      // Whether the file is new, for the card's "Created" / "Edited".
+      const existed = await stat(path).then(
+        () => true,
+        () => false
+      )
       await mkdir(dirname(path), { recursive: true })
       if (append) {
         // fs/promises.appendFile's options type doesn't include `signal`
@@ -38,7 +43,8 @@ export const writeFile: AgentTool<typeof writeFileSchema> = {
       const details = {
         path,
         bytes: Buffer.byteLength(content),
-        appended: append ?? false
+        appended: append ?? false,
+        created: !existed
       }
       return {
         content: [{ type: 'text' as const, text: JSON.stringify(details) }],

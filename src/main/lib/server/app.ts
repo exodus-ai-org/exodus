@@ -46,6 +46,7 @@ import settingsRouter from './routes/settings'
 import skillsRouter from './routes/skills'
 import toolsRouter from './routes/tools'
 import usageRouter from './routes/usage'
+import workspaceRouter from './routes/workspace'
 import type { Bindings, Variables } from './types'
 
 // A Vite define, so only present in a build made by electron-forge — not under
@@ -135,6 +136,7 @@ export function createApp() {
   v1.route('/analytics', analyticsRouter)
   v1.route('/pair', pairRouter)
   v1.route('/devices', devicesRouter)
+  v1.route('/workspace', workspaceRouter)
   app.route('/api/v1', v1)
 
   // Ping

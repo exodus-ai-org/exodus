@@ -394,5 +394,32 @@
       "pleasant": "愉快",
       "veryPleasant": "非常愉快"
     }
+  },
+  "workspaceFile": {
+    "created": "已建立",
+    "edited": "已編輯",
+    "meta": "{{change}} · {{size}}",
+    "open": "打開",
+    "quickLook": "快速查看",
+    "revealInFinder": "在 Finder 中顯示",
+    "showInExplorer": "在檔案總管中顯示",
+    "showInFolder": "在資料夾中顯示",
+    "missing": "已不存在",
+    "outside": "不在工作區內",
+    "untitled": "檔案",
+    "linkTitle": "按一下打開 · 按右鍵查看更多",
+    "previewMeta": "{{size}} · 唯讀",
+    "readOnly": "唯讀",
+    "copy": "拷貝",
+    "copied": "已拷貝",
+    "tooLarge": "這個檔案太大，無法預覽。請改用對應的 App 打開。",
+    "binary": "這個檔案不是文字，無法在這裡預覽。請改用對應的 App 打開。",
+    "readFailed": "無法讀取這個檔案。",
+    "missingDescription": "它可能已被移動或刪除。",
+    "outsideDescription": "這裡只能打開聊天工作區中的檔案。",
+    "unsafeTitle": "已改為在資料夾中顯示",
+    "unsafeDescription": "打開這個檔案會執行它，因此沒有打開。",
+    "openFailed": "無法打開檔案",
+    "revealFailed": "無法顯示檔案"
   }
 }

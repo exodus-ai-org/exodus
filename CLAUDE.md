@@ -402,7 +402,7 @@ The main process runs a **Hono HTTP server** that handles all business logic:
 
 Every business endpoint is mounted on one versioned sub-app (`app.route('/api/v1', v1)`), so the public paths are `/api/v1/<route>`; the lock/trace/settings middlewares still match `/api/*`. A breaking API change ships as a new `/api/v2` sub-app beside v1 rather than mutating v1 in place. Any client of this backend (the renderer, `tests/api`, `exodus-ios`) must address `/api/v1/...`.
 
-`/api/v1/chat`, `/api/v1/lcm`, `/api/v1/history`, `/api/v1/knowledge-base`, `/api/v1/project`, `/api/v1/settings`, `/api/v1/skills`, `/api/v1/audio`, `/api/v1/db-io`, `/api/v1/deep-research`, `/api/v1/discover`, `/api/v1/tools`, `/api/v1/philharmonic`, `/api/v1/s3`, `/api/v1/mcp`, `/api/v1/memory`, `/api/v1/usage`, `/api/v1/logs`, `/api/v1/backup`, `/api/v1/artifacts`, `/api/v1/media`, `/api/v1/maps`, `/api/v1/computer-use`, `/api/v1/analytics`, `/api/v1/pair`, `/api/v1/devices`, `/api/v1/lock` (mounted directly on `app`, ahead of the lock gate — see App Lock).
+`/api/v1/chat`, `/api/v1/lcm`, `/api/v1/history`, `/api/v1/knowledge-base`, `/api/v1/project`, `/api/v1/settings`, `/api/v1/skills`, `/api/v1/audio`, `/api/v1/db-io`, `/api/v1/deep-research`, `/api/v1/discover`, `/api/v1/tools`, `/api/v1/philharmonic`, `/api/v1/s3`, `/api/v1/mcp`, `/api/v1/memory`, `/api/v1/usage`, `/api/v1/logs`, `/api/v1/backup`, `/api/v1/artifacts`, `/api/v1/media`, `/api/v1/maps`, `/api/v1/computer-use`, `/api/v1/analytics`, `/api/v1/pair`, `/api/v1/devices`, `/api/v1/workspace`, `/api/v1/lock` (mounted directly on `app`, ahead of the lock gate — see App Lock).
 
 The `/api/v1/settings` route includes `POST /api/v1/settings/models` — dispatches to the appropriate list-models handler based on the provider in the request body, reading the API key from the request (not from saved settings) to fetch live model catalogs; a posted mask stands for the stored key, and only with the stored (or default) base URL — a mask with another base URL is a 400 ("re-enter the API key"; code `SECRET_REENTRY_REQUIRED`, `params.field: 'apiKey'` — the model picker shows it inline under the key), so a stored key is never sent to a caller-chosen host.
 
@@ -705,6 +705,29 @@ HTML and anything visual goes through `create_artifact`. `<workspace>`,
 `findFiles(defaultRoot)` are factories, bound to the workspace when
 `bindCallingTools` gets a `chatId` and to the user's home otherwise
 (Philharmonic keeps `~/.exodus/groups/<id>` as its own).
+
+**Workspace files, opened from the chat** (`src/main/lib/workspace-files.ts`,
+shared contract `packages/shared/src/types/workspace-files.ts`): a write_file /
+edit_file call draws a compact file card (`calling-tools/workspace-file/`,
+one per file a turn touched — `createBlocks` in `messages.tsx` keeps the first
+call's card; write_file's `details.created` says Created / Edited) with Open
+(the system's app), Reveal in Finder and Quick look (an in-app read-only
+preview: Markdown through `Markdown`, anything else monospaced; past
+`WORKSPACE_FILE_MAX_BYTES` (1 MB) or binary it says so and offers Open). An
+inline code span in an answer that is an absolute or `~/` path to an existing
+file under `~/.exodus/workspace` becomes a link (`components/workspace-path-code.tsx`:
+click opens, right-click is the native Open / Reveal / Quick Look menu); the
+lexical rule is `workspacePathCandidate`, then main's cached stat
+(`hooks/use-workspace-files.ts`). Every action goes over IPC
+(`WORKSPACE_FILE_CHANNELS`, `src/main/lib/workspace-file-actions.ts`, top
+frames only) and through `statWorkspaceFile` first: a regular file whose real
+path — every symlink resolved — is inside the root, else refused. Open never
+runs a file (`opensSafely`: an app, a script, an installer, an executable bit
+→ revealed instead). The phone reads one through `GET
+/api/v1/workspace/:chatId/file?path=…` (`routes/workspace.ts`; path absolute,
+`~/` or relative to that chat's workspace, confined to it; `{ path, name, size,
+modifiedAt, kind, content }`; `400 INVALID_PATH`, `403 OUTSIDE_WORKSPACE`,
+`404 FILE_NOT_FOUND`, `413 FILE_TOO_LARGE`, `415 FILE_NOT_TEXT`).
 
 ### Knowledge Base (LightRAG)
 

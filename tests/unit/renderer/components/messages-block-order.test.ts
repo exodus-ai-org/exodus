@@ -197,3 +197,47 @@ describe('<Messages>: a turn in the order the run produced it', () => {
     ])
   })
 })
+
+describe('<Messages>: one file card per file a turn wrote', () => {
+  const failed = (toolCallId: string, toolName: string) =>
+    ({
+      ...(result(toolCallId, toolName) as object),
+      isError: true,
+      content: [{ type: 'text', text: 'EACCES' }]
+    }) as unknown as ChatMessage
+  const file = { path: '/w/chat-1/rules.md' }
+
+  it('keeps the first card of a file and draws none for the edits after it', async () => {
+    await show('ready', [
+      user,
+      step('a1', [text('Writing the rules.'), call('w1', 'write_file', file)]),
+      result('w1', 'write_file'),
+      step('a2', [call('e1', 'edit_file', file)]),
+      result('e1', 'edit_file'),
+      step('a3', [call('e2', 'edit_file', { path: '/w/chat-1/other.md' })]),
+      result('e2', 'edit_file'),
+      step('a4', [text('Saved.')])
+    ])
+
+    expect(pieces()).toEqual([
+      'text:Writing the rules.',
+      'card:w1',
+      'card:e2',
+      'text:Saved.',
+      'actions'
+    ])
+  })
+
+  it('gives the file a card at its next call when the first one failed', async () => {
+    await show('ready', [
+      user,
+      step('a1', [call('w1', 'write_file', file)]),
+      failed('w1', 'write_file'),
+      step('a2', [call('w2', 'write_file', file)]),
+      result('w2', 'write_file'),
+      step('a3', [text('Done.')])
+    ])
+
+    expect(pieces()).toEqual(['card:w2', 'text:Done.', 'actions'])
+  })
+})

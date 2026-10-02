@@ -394,5 +394,32 @@
       "pleasant": "기분 좋음",
       "veryPleasant": "매우 기분 좋음"
     }
+  },
+  "workspaceFile": {
+    "created": "생성됨",
+    "edited": "편집됨",
+    "meta": "{{change}} · {{size}}",
+    "open": "열기",
+    "quickLook": "훑어보기",
+    "revealInFinder": "Finder에서 보기",
+    "showInExplorer": "탐색기에서 보기",
+    "showInFolder": "폴더에서 보기",
+    "missing": "더 이상 없음",
+    "outside": "작업 공간 밖",
+    "untitled": "파일",
+    "linkTitle": "클릭하여 열기 · 오른쪽 클릭으로 더 보기",
+    "previewMeta": "{{size}} · 읽기 전용",
+    "readOnly": "읽기 전용",
+    "copy": "복사",
+    "copied": "복사됨",
+    "tooLarge": "이 파일은 너무 커서 미리 볼 수 없습니다. 해당 앱에서 여세요.",
+    "binary": "이 파일은 텍스트가 아니어서 여기서 미리 볼 수 없습니다. 해당 앱에서 여세요.",
+    "readFailed": "이 파일을 읽을 수 없습니다.",
+    "missingDescription": "이동되었거나 삭제되었을 수 있습니다.",
+    "outsideDescription": "여기서는 채팅 작업 공간에 있는 파일만 열 수 있습니다.",
+    "unsafeTitle": "대신 폴더에서 표시함",
+    "unsafeDescription": "이 파일을 열면 실행되므로 열지 않았습니다.",
+    "openFailed": "파일을 열 수 없음",
+    "revealFailed": "파일을 표시할 수 없음"
   }
 }

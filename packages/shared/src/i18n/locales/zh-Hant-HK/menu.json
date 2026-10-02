@@ -22,5 +22,12 @@
     "saveImageAs": "將圖片另存為…",
     "copyImage": "複製圖片",
     "saveAs": "另存為…"
+  },
+  "workspaceFile": {
+    "open": "打開",
+    "revealInFinder": "在 Finder 中顯示",
+    "showInExplorer": "在檔案總管中顯示",
+    "showInFolder": "在資料夾中顯示",
+    "quickLook": "快速查看"
   }
 }

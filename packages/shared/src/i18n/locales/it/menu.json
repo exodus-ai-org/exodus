@@ -22,5 +22,12 @@
     "saveImageAs": "Salva immagine come…",
     "copyImage": "Copia immagine",
     "saveAs": "Salva come…"
+  },
+  "workspaceFile": {
+    "open": "Apri",
+    "revealInFinder": "Mostra nel Finder",
+    "showInExplorer": "Mostra in Esplora file",
+    "showInFolder": "Mostra nella cartella",
+    "quickLook": "Anteprima rapida"
   }
 }

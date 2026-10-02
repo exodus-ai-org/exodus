@@ -22,5 +22,12 @@
     "saveImageAs": "名前を付けて画像を保存…",
     "copyImage": "画像をコピー",
     "saveAs": "名前を付けて保存…"
+  },
+  "workspaceFile": {
+    "open": "開く",
+    "revealInFinder": "Finderで表示",
+    "showInExplorer": "エクスプローラーで表示",
+    "showInFolder": "フォルダで表示",
+    "quickLook": "クイックルック"
   }
 }

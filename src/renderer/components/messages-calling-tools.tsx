@@ -18,6 +18,7 @@ import {
   SILENT_TOOL_NAMES
 } from './calling-tools/tool-cards'
 import { WeatherCard } from './calling-tools/weather/weather-card'
+import { WorkspaceFileCard } from './calling-tools/workspace-file/workspace-file-card'
 
 function CallingTools({
   chatId,
@@ -154,6 +155,12 @@ function CallingTools({
         <ComputerUseCard toolResult={output} isStreaming={isStreaming} />
       )}
       {toolName === 'terminal' && <TerminalCard toolResult={output} />}
+      {(toolName === TOOL_NAMES.writeFile ||
+        toolName === TOOL_NAMES.editFile) &&
+        output &&
+        typeof output === 'object' && (
+          <WorkspaceFileCard toolName={toolName} output={output} />
+        )}
       {toolName === TOOL_NAMES.createArtifact &&
         output?.type === 'artifact' && (
           <ArtifactCard chatId={chatId} toolResult={output} />

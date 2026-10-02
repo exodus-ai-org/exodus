@@ -408,5 +408,32 @@
       "pleasant": "Piacevole",
       "veryPleasant": "Molto piacevole"
     }
+  },
+  "workspaceFile": {
+    "created": "Creato",
+    "edited": "Modificato",
+    "meta": "{{change}} · {{size}}",
+    "open": "Apri",
+    "quickLook": "Anteprima rapida",
+    "revealInFinder": "Mostra nel Finder",
+    "showInExplorer": "Mostra in Esplora file",
+    "showInFolder": "Mostra nella cartella",
+    "missing": "Non più presente",
+    "outside": "Fuori dallo spazio di lavoro",
+    "untitled": "File",
+    "linkTitle": "Fai clic per aprire · clic destro per altre opzioni",
+    "previewMeta": "{{size}} · Sola lettura",
+    "readOnly": "Sola lettura",
+    "copy": "Copia",
+    "copied": "Copiato",
+    "tooLarge": "Questo file è troppo grande per l’anteprima. Aprilo nella sua app.",
+    "binary": "Questo file non è testo, quindi non è possibile mostrarne l’anteprima qui. Aprilo nella sua app.",
+    "readFailed": "Impossibile leggere questo file.",
+    "missingDescription": "Potrebbe essere stato spostato o eliminato.",
+    "outsideDescription": "Da qui si possono aprire solo i file nello spazio di lavoro di una chat.",
+    "unsafeTitle": "Mostrato nella sua cartella",
+    "unsafeDescription": "Aprire questo file lo eseguirebbe, quindi non è stato aperto.",
+    "openFailed": "Impossibile aprire il file",
+    "revealFailed": "Impossibile mostrare il file"
   }
 }

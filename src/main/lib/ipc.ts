@@ -31,6 +31,7 @@ import {
   getQuickChatView,
   setQuickChatView
 } from './window'
+import { setupWorkspaceFileIPC } from './workspace-file-actions'
 
 /** Wrap an IPC handler so that any thrown error is logged instead of silently lost. */
 function safeHandle(
@@ -72,6 +73,7 @@ export function setupIPC() {
   ipcMain.on('ping', () => logger.debug('app', 'pong'))
   setupLockIPC()
   setupAttachmentIPC()
+  setupWorkspaceFileIPC()
 
   safeHandle('find-in-page', (_, keyword) => {
     if (keyword === '') {
