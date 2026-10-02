@@ -858,7 +858,7 @@ function Messages({
                     segment={segment}
                     citationSources={citationSourcesByTurn}
                     streaming={turnIsStreaming}
-                    regenerate={regenerate}
+                    regenerate={isLastSegment ? regenerate : undefined}
                     choose={chooseAttempt}
                     runError={runError}
                     opened={openedWith}
@@ -874,7 +874,9 @@ function Messages({
                 turn={segment.turn}
                 citationSources={citationSourcesByTurn.get(segment.turn)}
                 isStreaming={turnIsStreaming}
-                regenerate={regenerate}
+                // Only the last question can be asked again: Regenerate
+                // re-asks it, whichever answer the button stands under.
+                regenerate={isLastSegment ? regenerate : undefined}
                 fresh={isFresh(segment.turn.runId)}
                 error={
                   runError?.runId === segment.turn.runId

@@ -33,7 +33,8 @@ type CompareTurnsProps = {
   citationSources: Map<AssistantTurn, WebSearchResult[]>
   /** The run in flight is this group's newest answer. */
   streaming: boolean
-  regenerate: () => void
+  /** Absent unless this group is the chat's last question: only that one can be asked again. */
+  regenerate?: () => void
   choose: (runId: string) => void
   runError?: RunError | null
   /** The messages the chat opened with: what is not among them is fresh. */
