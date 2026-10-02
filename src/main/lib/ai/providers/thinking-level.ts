@@ -13,11 +13,12 @@ import type {
  * recommends low effort over disabling there.
  */
 export function thinkingLevelFor(
-  model: Model<string>,
+  model: Model<string> | undefined,
   level: ThinkingLevel | undefined
 ): ThinkingLevel | undefined {
   if (level) return level
-  return model.reasoning && model.thinkingLevelMap?.off === null
+  // No model (a caller that has not resolved one, or a test double): nothing to adjust.
+  return model?.reasoning && model.thinkingLevelMap?.off === null
     ? 'low'
     : undefined
 }
@@ -27,7 +28,7 @@ export function thinkingLevelFor(
  * when nothing changes.
  */
 export function withThinkingLevel<T extends SimpleStreamOptions>(
-  model: Model<string>,
+  model: Model<string> | undefined,
   options: T | undefined
 ): T | undefined {
   const reasoning = thinkingLevelFor(model, options?.reasoning)
