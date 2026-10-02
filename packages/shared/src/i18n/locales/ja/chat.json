@@ -36,7 +36,8 @@
     "greetingTitle": "こんにちは!",
     "greetingSubtitle": "今日はどのようなご用件ですか?",
     "attachmentAlt": "添付ファイル",
-    "scrollToBottom": "最下部へスクロール"
+    "scrollToBottom": "最下部へスクロール",
+    "moreImages": "さらに{{count}}件を表示"
   },
   "toolPreview": {
     "mapItineraryDayCount_other": "{{count}}日間",

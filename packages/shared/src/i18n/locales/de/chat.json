@@ -36,7 +36,8 @@
     "greetingTitle": "Hallo!",
     "greetingSubtitle": "Wie kann ich Ihnen heute helfen?",
     "attachmentAlt": "Anhang",
-    "scrollToBottom": "Nach unten scrollen"
+    "scrollToBottom": "Nach unten scrollen",
+    "moreImages": "{{count}} weitere anzeigen"
   },
   "toolPreview": {
     "mapItineraryDayCount_one": "{{count}} Tag",

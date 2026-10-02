@@ -71,6 +71,62 @@ function questionsOf(segments: Segment[]): ChatMessage[] {
   return questions
 }
 
+/** How many of a question's pictures show before the rest fold into "+N". */
+export const USER_IMAGES_SHOWN = 4
+
+/**
+ * A question's pictures as the composer shows them while attaching: rounded
+ * squares, whatever their shape, so several sit in an even row. Past
+ * `USER_IMAGES_SHOWN` the last square reads "+N" and opens the rest in place.
+ * Each one zooms on a click.
+ */
+function UserImages({ message }: { message: ChatMessage }) {
+  const { t } = useTranslation('chat')
+  const [expanded, setExpanded] = useState(false)
+  if (!Array.isArray(message.content)) return null
+  const images = (message.content as Array<TextContent | ImageContent>).filter(
+    (part): part is ImageContent => part.type === 'image'
+  )
+  if (images.length === 0) return null
+  const folds = !expanded && images.length > USER_IMAGES_SHOWN
+  const shown = folds ? images.slice(0, USER_IMAGES_SHOWN - 1) : images
+  const hidden = images.length - shown.length
+  return (
+    <div className="mb-4 flex max-w-full flex-wrap justify-end gap-2">
+      {shown.map((part) => (
+        // part.data is the base64 data URL, unique per image attachment
+        <ZoomableAttachment
+          key={part.data}
+          attachment={{ url: part.data, kind: 'image' }}
+        >
+          <img
+            className="size-24 rounded-xl object-cover"
+            src={part.data}
+            alt={t('messageList.attachmentAlt')}
+          />
+        </ZoomableAttachment>
+      ))}
+      {folds && (
+        <button
+          type="button"
+          onClick={() => setExpanded(true)}
+          aria-label={t('messageList.moreImages', { count: hidden })}
+          className="focus-visible:ring-ring relative size-24 overflow-hidden rounded-xl focus-visible:ring-2 focus-visible:outline-none"
+        >
+          <img
+            className="size-full object-cover"
+            src={images[shown.length].data}
+            alt=""
+          />
+          <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-lg font-semibold text-white tabular-nums">
+            +{hidden}
+          </span>
+        </button>
+      )}
+    </div>
+  )
+}
+
 const UserSegment = memo(function UserSegment({
   message,
   fresh
@@ -79,7 +135,6 @@ const UserSegment = memo(function UserSegment({
   /** Sent during this visit (not loaded with the chat): it rises in. */
   fresh: boolean
 }) {
-  const { t } = useTranslation('chat')
   return (
     <div
       data-user-msg-id={message.id}
@@ -88,31 +143,7 @@ const UserSegment = memo(function UserSegment({
         fresh && ENTER_UP
       )}
     >
-      {Array.isArray(message.content) &&
-        message.content.some((c) => c.type === 'image') && (
-          <div className="mb-4 flex gap-4">
-            {(message.content as Array<TextContent | ImageContent>).map(
-              (part) => {
-                if (part.type === 'image') {
-                  return (
-                    // part.data is the base64 data URL, unique per image attachment
-                    <ZoomableAttachment
-                      key={part.data}
-                      attachment={{ url: part.data, kind: 'image' }}
-                    >
-                      <img
-                        className="max-h-96 max-w-64 rounded-lg object-cover"
-                        src={part.data}
-                        alt={t('messageList.attachmentAlt')}
-                      />
-                    </ZoomableAttachment>
-                  )
-                }
-                return null
-              }
-            )}
-          </div>
-        )}
+      <UserImages message={message} />
       <UserBubble text={userMessageText(message)} />
     </div>
   )
