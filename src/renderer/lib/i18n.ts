@@ -10,6 +10,11 @@ export function getBootLocale(): string {
   return isLocaleId(w) ? w : 'en'
 }
 
-const created = createI18n(getBootLocale(), { isRenderer: true })
+const bootLocale = getBootLocale()
+// `<LocaleBridge>` sets `lang` only when the language changes: at boot the
+// page had none, and `lang` picks the regional CJK face (globals.css).
+if (typeof document !== 'undefined') document.documentElement.lang = bootLocale
+
+const created = createI18n(bootLocale, { isRenderer: true })
 export const i18n = created.i18n
 export const i18nReady = created.ready
