@@ -3,6 +3,7 @@ import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 
 import { remarkCitations } from './remark-citations'
+import { remarkCjkEmphasis } from './remark-cjk-emphasis'
 import { remarkHtmlBreaks } from './remark-html-breaks'
 
 // One definition of the markdown pipeline, shared by the renderer
@@ -22,6 +23,9 @@ export const remarkPluginsStable: any[] = [
       singleTilde: false
     }
   ],
+  // `而是**"引号"**` is bold: beside punctuation, a CJK letter counts as the
+  // boundary a space is in English (CommonMark left `**` literal there).
+  remarkCjkEmphasis,
   [
     remarkMath,
     {
