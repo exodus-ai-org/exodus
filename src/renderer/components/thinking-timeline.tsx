@@ -13,7 +13,12 @@ import {
 } from 'lucide-react'
 import { memo, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ThinkingOrb } from 'thinking-orbs'
+import {
+  MODE_FRAMES,
+  type ModeFrame,
+  resolvePreset,
+  ThinkingOrb
+} from 'thinking-orbs'
 
 import { i18n } from '@/lib/i18n'
 import { ROW_ENTER } from '@/lib/motion'
@@ -32,6 +37,27 @@ interface ThinkingTimelineProps {
 }
 
 type StepStatus = 'complete' | 'active' | 'pending'
+
+/**
+ * What the header's icon is: the moving orb only while this turn's thinking
+ * is in flight; once it is over, a still one (or a check when the run only
+ * worked, never thought). A settled turn must not look like it is loading.
+ */
+export type HeaderIcon = 'live' | 'resting' | 'done'
+
+export function headerIcon(
+  isStreaming: boolean,
+  hasThinking: boolean
+): HeaderIcon {
+  if (isStreaming) return 'live'
+  return hasThinking ? 'resting' : 'done'
+}
+
+// The settled orb holds one representative pose: the frame the library itself
+// paints under prefers-reduced-motion, rather than wherever the clock was.
+const RESTING_MODE = resolvePreset('solving', 20).mode
+const RESTING_FRAME: ModeFrame = (size, _t, opts) =>
+  MODE_FRAMES[RESTING_MODE](size, 0.6, opts)
 
 // Matches AI SDK Elements' chain-of-thought status grading: the step in flight
 // reads at full strength, settled steps recede.
@@ -185,6 +211,7 @@ export function ThinkingTimeline({
     : duration
       ? t('thinkingTimeline.thoughtFor', { verb, duration })
       : verb
+  const icon = headerIcon(isStreaming, hasThinking)
 
   return (
     // min-w-0 lets the timeline shrink inside flex parents instead of pushing
@@ -197,10 +224,17 @@ export function ThinkingTimeline({
         className="text-muted-foreground hover:text-foreground flex max-w-full items-center gap-1.5 overflow-hidden text-sm transition-colors"
         onClick={toggleExpanded}
       >
-        {isStreaming ? (
+        {icon === 'live' ? (
           <ThinkingOrb state="working" size={20} className="shrink-0" />
-        ) : hasThinking ? (
-          <ThinkingOrb state="solving" size={20} className="shrink-0" />
+        ) : icon === 'resting' ? (
+          <ThinkingOrb
+            state="solving"
+            size={20}
+            paused
+            frame={RESTING_FRAME}
+            aria-hidden
+            className="shrink-0"
+          />
         ) : (
           <CheckIcon size={16} className="shrink-0" />
         )}
