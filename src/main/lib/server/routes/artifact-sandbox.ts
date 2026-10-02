@@ -87,7 +87,8 @@ export function createArtifactSandboxRouter(opts: {
   router.get('/*', async (c) => {
     // The path after the mount point, still percent-encoded: the resolver
     // decodes it once, so an encoded `..%2F` is caught rather than folded.
-    const raw = new URL(c.req.url).pathname
+    const requested = new URL(c.req.url)
+    const raw = requested.pathname
     const marker = '/artifacts/sandbox'
     const at = raw.indexOf(marker)
     const pathname = at >= 0 ? raw.slice(at + marker.length) : ''
@@ -96,9 +97,12 @@ export function createArtifactSandboxRouter(opts: {
     if (opts.devServerUrl) {
       // Dev only: the page is the Vite dev server's, with its module graph.
       const base = opts.devServerUrl.replace(/\/$/u, '')
-      const upstream = await fetchUpstream(`${base}${pathname}`).catch(
-        () => null
-      )
+      // With its query: Vite names pre-bundled modules `react.js?v=<hash>`, and
+      // one asked for without it comes back as another module — a second
+      // React, whose hooks then have no dispatcher.
+      const upstream = await fetchUpstream(
+        `${base}${pathname}${requested.search}`
+      ).catch(() => null)
       // Unreachable is not "no such route": a 404 tells the phone to update.
       if (!upstream) return c.text('Dev server unreachable', 502)
       return new Response(upstream.body, {

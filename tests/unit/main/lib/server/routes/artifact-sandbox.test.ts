@@ -172,6 +172,27 @@ describe('GET /api/v1/artifacts/sandbox/*', () => {
   })
 })
 
+describe('dev server relay keeps the query', () => {
+  it('asks Vite for the module the page named, query and all', async () => {
+    const asked: string[] = []
+    const app = makeApp({
+      devServerUrl: 'http://localhost:5173',
+      fetchUpstream: async (url) => {
+        asked.push(url)
+        return new Response('export {}', {
+          headers: { 'content-type': 'text/javascript' }
+        })
+      }
+    })
+    await app.request(
+      '/api/v1/artifacts/sandbox/node_modules/.vite/deps/react.js?v=1a2b3c'
+    )
+    expect(asked).toEqual([
+      'http://localhost:5173/node_modules/.vite/deps/react.js?v=1a2b3c'
+    ])
+  })
+})
+
 describe('resolveSandboxFile', () => {
   it('keeps to the sandbox page and the assets', () => {
     expect(resolveSandboxFile(rendererDir, `/${SANDBOX_PAGE}`)).toBe(
