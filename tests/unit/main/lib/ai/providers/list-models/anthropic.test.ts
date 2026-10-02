@@ -81,6 +81,52 @@ describe('listAnthropicModels', () => {
     expect(models[0].snapshot.reasoningLevels).toEqual([])
   })
 
+  it('reads which thinking types the model accepts', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            data: [
+              {
+                id: 'claude-opus-5-5',
+                display_name: 'Claude Opus 5.5',
+                max_input_tokens: 1_000_000,
+                max_tokens: 128_000,
+                capabilities: {
+                  effort: { supported: true, high: { supported: true } },
+                  thinking: {
+                    supported: true,
+                    types: {
+                      adaptive: { supported: true },
+                      enabled: { supported: false }
+                    }
+                  }
+                }
+              },
+              {
+                id: 'claude-legacy',
+                display_name: 'Legacy',
+                max_input_tokens: 200_000,
+                max_tokens: 64_000,
+                capabilities: { effort: { supported: false } }
+              }
+            ]
+          }),
+          { status: 200 }
+        )
+      )
+    )
+    const models = await listAnthropicModels({ apiKey: 'sk-ant-test' })
+    expect(models[0].snapshot).toMatchObject({
+      adaptiveThinking: true,
+      budgetThinking: false
+    })
+    // Not reported → left unset, so resolveModel falls back to its id rule.
+    expect(models[1].snapshot.adaptiveThinking).toBeUndefined()
+    expect(models[1].snapshot.budgetThinking).toBeUndefined()
+  })
+
   it('throws with the raw error body on a non-2xx response', async () => {
     vi.stubGlobal(
       'fetch',

@@ -24,6 +24,13 @@ interface AnthropicModel {
       xhigh?: { supported: boolean } | null
       max?: { supported: boolean }
     }
+    thinking?: {
+      supported: boolean
+      types?: {
+        adaptive?: { supported: boolean } | null
+        enabled?: { supported: boolean } | null
+      } | null
+    } | null
   } | null
 }
 
@@ -50,6 +57,7 @@ export const listAnthropicModels: ListModelsFn = async ({
 
   return data.map((m): NormalizedModel => {
     const effort = m.capabilities?.effort
+    const thinkingTypes = m.capabilities?.thinking?.types
     const levels: EffortLevel[] = effort?.supported
       ? [
           'off',
@@ -63,7 +71,14 @@ export const listAnthropicModels: ListModelsFn = async ({
         contextWindow: m.max_input_tokens,
         maxOutputTokens: m.max_tokens,
         reasoningLevels: levels,
-        cost: null // Anthropic's list API doesn't report price
+        cost: null, // Anthropic's list API doesn't report price
+        // Left unset when the API doesn't say (resolveModel's id rule).
+        ...(thinkingTypes
+          ? {
+              adaptiveThinking: thinkingTypes.adaptive?.supported === true,
+              budgetThinking: thinkingTypes.enabled?.supported === true
+            }
+          : {})
       }
     }
   })

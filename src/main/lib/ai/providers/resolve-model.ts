@@ -61,6 +61,50 @@ export const MODEL_METADATA_FALLBACK: Record<string, Partial<ModelSnapshot>> = {
   // Anthropic needs no entries — its list API is complete (see spec §Context).
 }
 
+type ThinkingLevelMap = NonNullable<Model<string>['thinkingLevelMap']>
+
+/**
+ * Claude families that take adaptive thinking (`{type:"adaptive"}` plus an
+ * effort). A snapshot saved before list-models read the Models API's
+ * `capabilities.thinking.types` has no say, so for an id pi-ai's registry
+ * doesn't carry (a dated or newer release) this conservative rule decides:
+ * these families get adaptive thinking — the budget form 400s on the newest
+ * ones and is deprecated on the rest.
+ */
+const ADAPTIVE_CLAUDE =
+  /^claude-(opus-5|sonnet-5|fable-|mythos-|opus-4-[6-9]|sonnet-4-6)/
+/**
+ * The subset of those where thinking can't be turned off — a
+ * `{type:"disabled"}` request 400s or the model writes its thinking into the
+ * answer instead. The 4.6–4.8 generation can still disable it.
+ */
+const ALWAYS_THINKING_CLAUDE = /^claude-(opus-5|sonnet-5|fable-|mythos-)/
+
+/**
+ * How an Anthropic model not in pi-ai's registry thinks: from the snapshot's
+ * live capability when it has one, else from the id rule above. Adaptive-only
+ * (adaptive, no budget form) also means thinking can't be disabled.
+ */
+function claudeThinking(
+  provider: KnownProvider,
+  id: string,
+  snapshot: ModelSnapshot
+): { adaptive: boolean; canDisable: boolean } | undefined {
+  if (provider !== 'anthropic') return undefined
+  if (typeof snapshot.adaptiveThinking === 'boolean') {
+    const adaptiveOnly =
+      snapshot.adaptiveThinking && snapshot.budgetThinking !== true
+    return {
+      adaptive: adaptiveOnly,
+      canDisable: !adaptiveOnly
+    }
+  }
+  return {
+    adaptive: ADAPTIVE_CLAUDE.test(id),
+    canDisable: !ALWAYS_THINKING_CLAUDE.test(id)
+  }
+}
+
 export function resolveModel(
   provider: KnownProvider,
   id: string,
@@ -81,21 +125,39 @@ export function resolveModel(
   if (snapshot) {
     const hasReasoning = snapshot.reasoningLevels.some((l) => l !== 'off')
 
-    // pi-ai's clampThinkingLevel() silently clamps a requested 'xhigh' down to
-    // 'high' whenever a model has no thinkingLevelMap entry for 'xhigh' (see
-    // getSupportedThinkingLevels in @earendil-works/pi-ai/dist/models.js — a
-    // missing map entry means the level isn't "supported"). Our app-level
-    // EffortLevel 'max' already collapses to pi-ai's 'xhigh' before it gets
-    // here (see chat.ts), so a model whose snapshot reports 'max' or 'xhigh'
-    // support needs an explicit thinkingLevelMap.xhigh entry or those top two
-    // composer tiers silently do nothing.
-    const thinkingLevelMap = hasReasoning
-      ? snapshot.reasoningLevels.includes('max')
-        ? { xhigh: 'max' }
-        : snapshot.reasoningLevels.includes('xhigh')
-          ? { xhigh: 'xhigh' }
-          : undefined
+    // pi-ai sends `thinkingLevelMap[level]` as the effort, and treats a level
+    // with no 'xhigh'/'max' entry as unsupported (its default for an unmapped
+    // level is "high"). The composer passes 'xhigh' and 'max' through as they
+    // are (see chat.ts), so each tier the snapshot reports maps to itself.
+    const levelMap: ThinkingLevelMap = {}
+    if (hasReasoning) {
+      for (const level of ['xhigh', 'max'] as const) {
+        if (snapshot.reasoningLevels.includes(level)) levelMap[level] = level
+      }
+    }
+
+    // How the request asks for thinking (adaptive + effort vs. a token
+    // budget, and whether it can be turned off) is API behaviour the snapshot
+    // doesn't carry — pi-ai's registry does, for the models it knows.
+    const registered = getKernelModels().getModel(provider, id) as
+      | Model<string>
+      | undefined
+    const known = registered?.api === api ? registered : undefined
+    const derived = known ? undefined : claudeThinking(provider, id, snapshot)
+
+    const thinkingLevelMap: ThinkingLevelMap | undefined = hasReasoning
+      ? {
+          ...levelMap,
+          ...known?.thinkingLevelMap,
+          ...(derived?.canDisable === false ? { off: null } : {})
+        }
       : undefined
+
+    const compat = known?.compat
+      ? known.compat
+      : derived?.adaptive
+        ? { forceAdaptiveThinking: true }
+        : undefined
 
     return {
       id,
@@ -103,9 +165,14 @@ export function resolveModel(
       provider,
       api,
       baseUrl,
-      input: ['text', 'image'],
+      input: known?.input ?? ['text', 'image'],
       reasoning: hasReasoning,
-      thinkingLevelMap,
+      thinkingLevelMap:
+        thinkingLevelMap && Object.keys(thinkingLevelMap).length > 0
+          ? thinkingLevelMap
+          : undefined,
+      ...(known?.headers ? { headers: known.headers } : {}),
+      ...(compat ? { compat } : {}),
       contextWindow: snapshot.contextWindow ?? defaults.contextWindow,
       maxTokens: snapshot.maxOutputTokens ?? defaults.maxTokens,
       // ModelSnapshotSchema (packages/shared/src/schemas/settings-schema.ts)
@@ -118,7 +185,7 @@ export function resolveModel(
       cost: snapshot.cost
         ? { ...snapshot.cost, cacheRead: 0, cacheWrite: 0 }
         : { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 }
-    }
+    } as Model<string>
   }
 
   // The model id is user-configured and may not be in the provider's

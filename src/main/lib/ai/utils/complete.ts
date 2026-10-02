@@ -6,6 +6,7 @@ import type {
 } from '@earendil-works/pi-ai'
 
 import { getKernelModels } from '../kernel/models'
+import { withThinkingLevel } from '../providers/thinking-level'
 
 /** A model request that pi-ai reported as failed or cancelled. */
 export class LlmRequestError extends Error {
@@ -37,7 +38,11 @@ export async function completeSimple(
   context: Context,
   options?: SimpleStreamOptions
 ): Promise<AssistantMessage> {
-  const result = await getKernelModels().completeSimple(model, context, options)
+  const result = await getKernelModels().completeSimple(
+    model,
+    context,
+    withThinkingLevel(model, options)
+  )
   if (result.stopReason === 'error' || result.stopReason === 'aborted') {
     throw new LlmRequestError(
       result.errorMessage ||

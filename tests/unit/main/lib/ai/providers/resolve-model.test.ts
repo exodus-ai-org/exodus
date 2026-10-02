@@ -1,4 +1,9 @@
+import {
+  ModelSnapshotSchema,
+  type ModelSnapshot
+} from '@exodus/shared/schemas/settings-schema'
 import { resolveModel } from '@main/lib/ai/providers/resolve-model'
+import { thinkingLevelFor } from '@main/lib/ai/providers/thinking-level'
 import { describe, expect, it } from 'vitest'
 
 describe('resolveModel', () => {
@@ -118,10 +123,12 @@ describe('resolveModel', () => {
     expect(model.reasoning).toBe(false)
   })
 
-  it('maps thinkingLevelMap.xhigh to "max" when reasoningLevels includes max', () => {
+  it("maps the composer's xhigh and max tiers to themselves for an unregistered model", () => {
+    // pi-ai reads thinkingLevelMap[level] for the effort it sends, so 'max'
+    // must map to 'max' (not fall through to pi's default of "high").
     const model = resolveModel(
       'anthropic',
-      'claude-opus-5',
+      'claude-opus-99-unreleased',
       'https://api.anthropic.com',
       'anthropic-messages',
       {
@@ -131,13 +138,13 @@ describe('resolveModel', () => {
         cost: { input: 5, output: 25 }
       }
     )
-    expect(model.thinkingLevelMap).toEqual({ xhigh: 'max' })
+    expect(model.thinkingLevelMap).toEqual({ xhigh: 'xhigh', max: 'max' })
   })
 
   it('maps thinkingLevelMap.xhigh to "xhigh" when reasoningLevels includes xhigh but not max', () => {
     const model = resolveModel(
       'anthropic',
-      'claude-opus-5',
+      'claude-opus-99-unreleased',
       'https://api.anthropic.com',
       'anthropic-messages',
       {
@@ -164,5 +171,148 @@ describe('resolveModel', () => {
       }
     )
     expect(model.thinkingLevelMap).toBeUndefined()
+  })
+
+  describe('thinking mode for Claude', () => {
+    const live = (extra: Partial<ModelSnapshot> = {}): ModelSnapshot => ({
+      contextWindow: 900_000,
+      maxOutputTokens: 100_000,
+      reasoningLevels: ['off', 'low', 'medium', 'high', 'xhigh', 'max'],
+      cost: { input: 5, output: 25 },
+      ...extra
+    })
+
+    it("merges the registry's compat and level map into a live snapshot (claude-opus-5)", () => {
+      const model = resolveModel(
+        'anthropic',
+        'claude-opus-5',
+        'https://api.anthropic.com',
+        'anthropic-messages',
+        live()
+      )
+      expect(model.compat).toMatchObject({
+        forceAdaptiveThinking: true,
+        supportsMidConvoEffort: true
+      })
+      expect(model.thinkingLevelMap).toEqual({
+        off: null,
+        xhigh: 'xhigh',
+        max: 'max'
+      })
+      // The live numbers still win.
+      expect(model.contextWindow).toBe(900_000)
+      expect(model.maxTokens).toBe(100_000)
+      expect(model.cost.input).toBe(5)
+    })
+
+    it("derives adaptive-only thinking for an unregistered id from the snapshot's capability", () => {
+      const model = resolveModel(
+        'anthropic',
+        'claude-opus-5-5',
+        'https://api.anthropic.com',
+        'anthropic-messages',
+        live({ adaptiveThinking: true, budgetThinking: false })
+      )
+      expect(model.compat).toMatchObject({ forceAdaptiveThinking: true })
+      expect(model.thinkingLevelMap).toMatchObject({ off: null, max: 'max' })
+    })
+
+    it('keeps budget thinking for a model the API reports as enabled-only', () => {
+      const model = resolveModel(
+        'anthropic',
+        'claude-haiku-4-5-20991231',
+        'https://api.anthropic.com',
+        'anthropic-messages',
+        live({
+          reasoningLevels: ['off', 'low', 'high'],
+          adaptiveThinking: false,
+          budgetThinking: true
+        })
+      )
+      expect(model.compat?.forceAdaptiveThinking).toBeUndefined()
+      expect(model.thinkingLevelMap?.off).toBeUndefined()
+    })
+
+    it("keeps budget thinking for the registry's claude-haiku-4-5", () => {
+      const model = resolveModel(
+        'anthropic',
+        'claude-haiku-4-5',
+        'https://api.anthropic.com',
+        'anthropic-messages',
+        live({ reasoningLevels: ['off', 'low', 'high'] })
+      )
+      expect(model.compat?.forceAdaptiveThinking).toBeUndefined()
+      expect(model.thinkingLevelMap?.off).toBeUndefined()
+    })
+
+    it('falls back to the id rule for a stored snapshot saved before the capability fields', () => {
+      const stored = ModelSnapshotSchema.parse({
+        contextWindow: 1_000_000,
+        maxOutputTokens: 128_000,
+        reasoningLevels: ['off', 'low', 'high', 'max'],
+        cost: null
+      })
+      const opus = resolveModel(
+        'anthropic',
+        'claude-sonnet-5-5',
+        'https://api.anthropic.com',
+        'anthropic-messages',
+        stored
+      )
+      expect(opus.compat).toMatchObject({ forceAdaptiveThinking: true })
+      expect(opus.thinkingLevelMap?.off).toBeNull()
+
+      // Adaptive, but these can still turn thinking off.
+      const sonnet46 = resolveModel(
+        'anthropic',
+        'claude-sonnet-4-6-20990101',
+        'https://api.anthropic.com',
+        'anthropic-messages',
+        stored
+      )
+      expect(sonnet46.compat).toMatchObject({ forceAdaptiveThinking: true })
+      expect(sonnet46.thinkingLevelMap?.off).toBeUndefined()
+
+      const older = resolveModel(
+        'anthropic',
+        'claude-sonnet-4-5-20990101',
+        'https://api.anthropic.com',
+        'anthropic-messages',
+        stored
+      )
+      expect(older.compat?.forceAdaptiveThinking).toBeUndefined()
+    })
+  })
+
+  describe('thinkingLevelFor', () => {
+    const snap: ModelSnapshot = {
+      contextWindow: 1_000_000,
+      maxOutputTokens: 128_000,
+      reasoningLevels: ['off', 'low', 'high'],
+      cost: null
+    }
+
+    it('turns "off" into the lowest effort when the model cannot disable thinking', () => {
+      const model = resolveModel(
+        'anthropic',
+        'claude-opus-5',
+        'https://api.anthropic.com',
+        'anthropic-messages',
+        snap
+      )
+      expect(thinkingLevelFor(model, undefined)).toBe('low')
+      expect(thinkingLevelFor(model, 'high')).toBe('high')
+    })
+
+    it('leaves "off" off where thinking can be disabled', () => {
+      const model = resolveModel(
+        'anthropic',
+        'claude-opus-4-7',
+        'https://api.anthropic.com',
+        'anthropic-messages',
+        snap
+      )
+      expect(thinkingLevelFor(model, undefined)).toBeUndefined()
+    })
   })
 })

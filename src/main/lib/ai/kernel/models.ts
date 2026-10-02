@@ -12,6 +12,7 @@ import { googleProvider } from '@earendil-works/pi-ai/providers/google'
 import { openaiProvider } from '@earendil-works/pi-ai/providers/openai'
 import { xaiProvider } from '@earendil-works/pi-ai/providers/xai'
 
+import { withThinkingLevel } from '../providers/thinking-level'
 import { loggingThrows } from './log-throws'
 
 /**
@@ -67,6 +68,10 @@ export const streamFn: StreamFn = loggingThrows<
 >(
   'streamFn',
   (model, context, options) =>
-    getKernelModels().streamSimple(model, context, options),
+    getKernelModels().streamSimple(
+      model,
+      context,
+      withThinkingLevel(model, options)
+    ),
   (model) => ({ provider: model.provider, model: model.id })
 )
