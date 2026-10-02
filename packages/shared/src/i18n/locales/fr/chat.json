@@ -292,7 +292,7 @@
     "label_other": "{{count}} mémoires utilisées · {{keys}}",
     "intro": "Ces souvenirs ont guidé cette réponse.",
     "wrong": "Erroné ?",
-    "fixHint": "Un souvenir est erroné ? Touchez « Erroné ? » et corrigez-le dans le chat — Exodus le met à jour.",
+    "fixHint": "Un souvenir est erroné ? Cliquez sur « Erroné ? » et corrigez-le dans le chat — Exodus le met à jour.",
     "openSettings": "Ouvrir dans les réglages",
     "deleted": "Supprimée",
     "prefill": "La mémoire « {{key}} » est inexacte : "

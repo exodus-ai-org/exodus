@@ -292,7 +292,7 @@
     "label_other": "{{count}} memórias usadas · {{keys}}",
     "intro": "Estas memórias orientaram a resposta.",
     "wrong": "Errado?",
-    "fixHint": "Alguma memória errada? Toque em “Errado?” e corrija no chat — o Exodus a atualiza.",
+    "fixHint": "Alguma memória errada? Clique em “Errado?” e corrija no chat — o Exodus a atualiza.",
     "openSettings": "Abrir nas Configurações",
     "deleted": "Excluída",
     "prefill": "A memória sobre '{{key}}' está errada: "

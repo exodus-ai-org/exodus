@@ -292,7 +292,7 @@
     "label_other": "Usate {{count}} memorie · {{keys}}",
     "intro": "Questi ricordi hanno guidato la risposta.",
     "wrong": "Sbagliata?",
-    "fixHint": "Una memoria è sbagliata? Tocca «Sbagliata?» e correggila in chat: Exodus la aggiorna.",
+    "fixHint": "Una memoria è sbagliata? Fai clic su «Sbagliata?» e correggila in chat: Exodus la aggiorna.",
     "openSettings": "Apri nelle Impostazioni",
     "deleted": "Eliminata",
     "prefill": "La memoria su '{{key}}' è sbagliata: "
