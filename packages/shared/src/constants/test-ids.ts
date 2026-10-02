@@ -24,7 +24,18 @@ export const TEST_IDS = {
     lightboxClose: 'gallery.lightbox-close',
     lightboxPrev: 'gallery.lightbox-prev',
     lightboxNext: 'gallery.lightbox-next',
-    lightboxDot: 'gallery.lightbox-dot'
+    lightboxDot: 'gallery.lightbox-dot',
+    /** In the lightbox's toolbar: saves the image on the stage. */
+    lightboxDownload: 'gallery.lightbox-download'
+  },
+  /**
+   * An image in the transcript (sent, generated, a search result's): the
+   * download button at its corner on hover/focus, and the one in the zoomed
+   * view's toolbar.
+   */
+  attachment: {
+    download: 'attachment.download',
+    zoomDownload: 'attachment.zoom-download'
   },
   video: {
     card: 'video.card'

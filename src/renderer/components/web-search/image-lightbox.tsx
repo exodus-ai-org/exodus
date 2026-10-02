@@ -1,5 +1,6 @@
 // src/renderer/components/web-search/image-lightbox.tsx
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
+import type { AttachmentRequest } from '@exodus/shared/types/attachment-actions'
 import { useHotkeys } from '@tanstack/react-hotkeys'
 import {
   ChevronLeftIcon,
@@ -12,6 +13,10 @@ import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 
+import {
+  AttachmentDownloadButton,
+  useAttachmentContextMenu
+} from '@/components/attachment-frame'
 import { SourceFavicon } from '@/components/source-favicon'
 import { cn } from '@/lib/utils'
 
@@ -19,6 +24,11 @@ import type { GalleryImage } from './collect-gallery-images'
 
 // Dots only stay legible up to a handful; Brave caps image media at 8 anyway.
 const MAX_DOTS = 8
+
+/** A search image to save: the copy on screen, named after its title. */
+export function galleryAttachment(image: GalleryImage): AttachmentRequest {
+  return { url: image.thumbnailUrl, name: image.title, kind: 'image' }
+}
 
 /**
  * The stage image. External URLs load slowly, so we never blank out or leave
@@ -173,6 +183,9 @@ export function ImageLightbox({
   }, [index, images])
 
   const current = images[index]
+  const onStageContextMenu = useAttachmentContextMenu(
+    current ? galleryAttachment(current) : null
+  )
   if (!current) return null
 
   const closeOnBackdrop = (e: React.MouseEvent) => {
@@ -194,6 +207,11 @@ export function ImageLightbox({
         >
           <XIcon size={18} />
         </button>
+        <AttachmentDownloadButton
+          attachment={galleryAttachment(current)}
+          testId={TEST_IDS.gallery.lightboxDownload}
+          className="ml-auto size-8"
+        />
       </div>
 
       <div
@@ -208,7 +226,10 @@ export function ImageLightbox({
           />
         )}
 
-        <LightboxImage key={current.url} image={current} />
+        {/* `contents`: the stage image keeps its place in the flex row. */}
+        <div className="contents" onContextMenu={onStageContextMenu}>
+          <LightboxImage key={current.url} image={current} />
+        </div>
 
         {!atEnd && (
           <NavButton

@@ -17,5 +17,10 @@
   "notification": {
     "philharmonicGroupError": "群組「{{title}}」發生錯誤",
     "philharmonicGroupFinished": "群組「{{title}}」已完成"
+  },
+  "attachment": {
+    "saveImageAs": "將影像另存為…",
+    "copyImage": "拷貝影像",
+    "saveAs": "另存新檔…"
   }
 }

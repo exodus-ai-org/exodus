@@ -11,6 +11,7 @@ import {
   shell
 } from 'electron'
 
+import { setupAttachmentIPC } from './attachment-actions'
 import {
   updaterCheck,
   updaterDownload,
@@ -70,6 +71,7 @@ function fromMainFrame(event: IpcMainInvokeEvent): boolean {
 export function setupIPC() {
   ipcMain.on('ping', () => logger.debug('app', 'pong'))
   setupLockIPC()
+  setupAttachmentIPC()
 
   safeHandle('find-in-page', (_, keyword) => {
     if (keyword === '') {

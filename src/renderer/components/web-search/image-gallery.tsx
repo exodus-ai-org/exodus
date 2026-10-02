@@ -3,10 +3,11 @@ import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import { PlusIcon } from 'lucide-react'
 import { useState } from 'react'
 
+import { AttachmentFrame } from '@/components/attachment-frame'
 import { LazyLoadImage } from '@/components/lazy-load-image'
 
 import type { GalleryImage } from './collect-gallery-images'
-import { ImageLightbox } from './image-lightbox'
+import { galleryAttachment, ImageLightbox } from './image-lightbox'
 
 const MAX_THUMBS = 3
 
@@ -23,24 +24,31 @@ export function ImageGallery({ images }: { images: GalleryImage[] }) {
         {thumbs.map((img, i) => {
           const isLastWithMore = i === MAX_THUMBS - 1 && hasMore
           return (
-            <button
+            // The copy Brave fetched is what is shown, so it is what is saved:
+            // the site's own file may refuse a hotlink, be gone, or not answer.
+            <AttachmentFrame
               key={img.url}
-              type="button"
-              onClick={() => setOpenAt(i)}
-              data-testid={TEST_IDS.gallery.thumbnail}
-              className="relative h-36 flex-1 overflow-hidden rounded-xl"
+              attachment={galleryAttachment(img)}
+              className="h-36 flex-1"
             >
-              <LazyLoadImage
-                src={img.thumbnailUrl}
-                alt={img.title}
-                className="size-full"
-              />
-              {isLastWithMore && (
-                <div className="absolute inset-0 flex items-center justify-center gap-0.5 bg-black/50 text-sm font-medium text-white">
-                  <PlusIcon size={16} /> {images.length}
-                </div>
-              )}
-            </button>
+              <button
+                type="button"
+                onClick={() => setOpenAt(i)}
+                data-testid={TEST_IDS.gallery.thumbnail}
+                className="relative size-full overflow-hidden rounded-xl"
+              >
+                <LazyLoadImage
+                  src={img.thumbnailUrl}
+                  alt={img.title}
+                  className="size-full"
+                />
+                {isLastWithMore && (
+                  <div className="absolute inset-0 flex items-center justify-center gap-0.5 bg-black/50 text-sm font-medium text-white">
+                    <PlusIcon size={16} /> {images.length}
+                  </div>
+                )}
+              </button>
+            </AttachmentFrame>
           )
         })}
       </div>

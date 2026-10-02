@@ -42,5 +42,11 @@
   "clipboard": {
     "failedTitle": "複製失敗",
     "genericError": "請再試一次！"
+  },
+  "attachment": {
+    "download": "下載",
+    "copied": "已拷貝影像",
+    "saveFailed": "無法儲存檔案",
+    "copyFailed": "無法拷貝影像"
   }
 }

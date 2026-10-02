@@ -17,5 +17,10 @@
   "notification": {
     "philharmonicGroupError": "그룹 \"{{title}}\"에서 오류가 발생했습니다",
     "philharmonicGroupFinished": "그룹 \"{{title}}\"이(가) 완료되었습니다"
+  },
+  "attachment": {
+    "saveImageAs": "다른 이름으로 이미지 저장…",
+    "copyImage": "이미지 복사",
+    "saveAs": "다른 이름으로 저장…"
   }
 }

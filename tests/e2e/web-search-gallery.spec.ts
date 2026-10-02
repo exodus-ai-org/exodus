@@ -13,6 +13,9 @@ test('web-search gallery checkpoints are addressable', async ({
     TEST_IDS.gallery.lightboxPrev,
     TEST_IDS.gallery.lightboxNext,
     TEST_IDS.gallery.lightboxDot,
+    TEST_IDS.gallery.lightboxDownload,
+    TEST_IDS.attachment.download,
+    TEST_IDS.attachment.zoomDownload,
     TEST_IDS.video.card
   ]) {
     expect(await mainWindow.getByTestId(id).count()).toBeGreaterThanOrEqual(0)

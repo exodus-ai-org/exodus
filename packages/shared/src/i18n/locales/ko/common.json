@@ -42,5 +42,11 @@
   "clipboard": {
     "failedTitle": "복사에 실패했습니다",
     "genericError": "다시 시도해 주세요!"
+  },
+  "attachment": {
+    "download": "다운로드",
+    "copied": "이미지를 복사했습니다",
+    "saveFailed": "파일을 저장하지 못했습니다",
+    "copyFailed": "이미지를 복사하지 못했습니다"
   }
 }

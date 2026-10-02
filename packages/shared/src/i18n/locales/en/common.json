@@ -42,5 +42,11 @@
   "clipboard": {
     "failedTitle": "Failed to copy",
     "genericError": "Please try again!"
+  },
+  "attachment": {
+    "download": "Download",
+    "copied": "Image copied",
+    "saveFailed": "Couldn’t save the file",
+    "copyFailed": "Couldn’t copy the image"
   }
 }

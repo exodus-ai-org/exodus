@@ -20,7 +20,6 @@ import { capitalCase } from 'change-case'
 import { ArrowDownIcon } from 'lucide-react'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import Zoom from 'react-medium-image-zoom'
 
 import { Button } from '@/components/ui/button'
 import { useDiscoverFeed } from '@/hooks/use-discover-feed'
@@ -30,6 +29,7 @@ import { ENTER_UP } from '@/lib/motion'
 import { userMessageText } from '@/lib/user-message-text'
 import { cn } from '@/lib/utils'
 
+import { ZoomableAttachment } from './attachment-frame'
 import { hasToolCard } from './calling-tools/tool-cards'
 import { ChatToc } from './chat-toc'
 import { AssistantTurnSegment } from './chat/assistant-turn-segment'
@@ -96,13 +96,16 @@ const UserSegment = memo(function UserSegment({
                 if (part.type === 'image') {
                   return (
                     // part.data is the base64 data URL, unique per image attachment
-                    <Zoom key={part.data}>
+                    <ZoomableAttachment
+                      key={part.data}
+                      attachment={{ url: part.data, kind: 'image' }}
+                    >
                       <img
                         className="max-h-96 max-w-64 rounded-lg object-cover"
                         src={part.data}
                         alt={t('messageList.attachmentAlt')}
                       />
-                    </Zoom>
+                    </ZoomableAttachment>
                   )
                 }
                 return null

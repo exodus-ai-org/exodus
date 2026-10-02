@@ -1662,6 +1662,17 @@ Main process:
 - `src/main/lib/i18n.ts` — the main-process i18next instance (`mainI18n`),
   `resolveEffectiveLocale`, and the `get-app-locale` / `set-app-locale` IPC
 - `src/main/lib/ipc.ts` — main-process IPC handlers
+- `src/main/lib/attachment-actions.ts` — Save / Copy for a chat attachment
+  (`ATTACHMENT_CHANNELS`, `packages/shared/src/types/attachment-actions.ts`):
+  the renderer names the attachment (its `data:` / media-route / `https:` URL
+  and file name), main shows the native save dialog and writes only where the
+  user chose, pops the native right-click menu (Save Image As… / Copy Image,
+  or Save As…) and puts a copied image on the clipboard as a PNG. A media URL
+  is read off disk through `resolveMediaFile`; any other loopback URL is
+  refused; 64 MB cap; a window's top frame only. Renderer side:
+  `src/renderer/lib/attachment-actions.ts` and
+  `src/renderer/components/attachment-frame.tsx` (the hover/focus download
+  button, the zoomed view's toolbar button)
 - `src/main/lib/lan/` — access from the LAN (exodus-ios on a device). The app is
   served twice (`server/app.ts`): plaintext on loopback, and over HTTPS on
   `LAN_SERVER_PORT` behind `authGate` — but only while a device is paired or a

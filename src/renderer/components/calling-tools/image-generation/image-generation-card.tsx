@@ -8,8 +8,8 @@ import type {
 } from '@exodus/shared/types/chat'
 import { memo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import Zoom from 'react-medium-image-zoom'
 
+import { ZoomableAttachment } from '@/components/attachment-frame'
 import {
   ImageGeneration,
   type ImageGenerationStatus
@@ -105,9 +105,15 @@ function Frame({
       className="w-52"
     >
       {url && !failed ? (
-        <Zoom>
+        <ZoomableAttachment
+          attachment={{ url, kind: 'image' }}
+          // Fills the frame as the zoom did when it was the frame's child.
+          className="[&>[data-rmiz]]:size-full"
+          // Under the size badge, which holds the corner.
+          buttonClassName={resolution ? 'top-9 right-2' : undefined}
+        >
           <img src={url} alt={alt} onError={() => setFailed(true)} />
-        </Zoom>
+        </ZoomableAttachment>
       ) : null}
     </ImageGeneration>
   )

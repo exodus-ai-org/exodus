@@ -15,6 +15,7 @@
     "./types/discover": "./src/types/discover.ts",
     "./types/web-search": "./src/types/web-search.ts",
     "./types/lock": "./src/types/lock.ts",
+    "./types/attachment-actions": "./src/types/attachment-actions.ts",
     "./types/ai": "./src/types/ai.ts",
     "./types/chat": "./src/types/chat.ts",
     "./types/health": "./src/types/health.ts",

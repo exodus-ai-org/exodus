@@ -17,5 +17,10 @@
   "notification": {
     "philharmonicGroupError": "El grupo \"{{title}}\" encontró un error",
     "philharmonicGroupFinished": "El grupo \"{{title}}\" terminó"
+  },
+  "attachment": {
+    "saveImageAs": "Guardar imagen como…",
+    "copyImage": "Copiar imagen",
+    "saveAs": "Guardar como…"
   }
 }
