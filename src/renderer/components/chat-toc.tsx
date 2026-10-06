@@ -1,6 +1,7 @@
 import { TEST_IDS } from '@exodus/shared/constants/test-ids'
 import type { ChatMessage } from '@exodus/shared/types/chat'
 import { splitHealth } from '@exodus/shared/utils/health-context'
+import { splitAnswer } from '@exodus/shared/utils/interactive-answer'
 import { splitQuoted } from '@exodus/shared/utils/quoted-text'
 import { memo, type RefObject, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -56,11 +57,13 @@ export const ChatToc = memo(ChatTocImpl, (prev, next) => {
 
 /**
  * A message asked about a selection, or from the phone's Health workspace,
- * is named by its question.
+ * is named by its question; an answer to a questionnaire or a confirmation
+ * by its lines, without the fence (or by the block's title).
  */
-function outlineText(text: string): string {
-  const { quote, body } = splitQuoted(splitHealth(text).body)
-  return body || quote || ''
+export function outlineText(text: string): string {
+  const { answer, body: answered } = splitAnswer(text)
+  const { quote, body } = splitQuoted(splitHealth(answered).body)
+  return body || quote || answer?.title || ''
 }
 
 function ChatTocImpl({ scrollContainerRef, messages }: ChatTocProps) {
