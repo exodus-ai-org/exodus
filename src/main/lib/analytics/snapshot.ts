@@ -290,7 +290,7 @@ export async function buildSnapshot(
           staged.messages.rows.length
         )
       )
-      // Projects are gone; a snapshot built before keeps their table.
+      // A snapshot built before projects were removed still has their table.
       await conn.run('DROP TABLE IF EXISTS projects')
       // A snapshot built before `logs` became a table has it as a view.
       await dropLogs(conn)
