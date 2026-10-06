@@ -1,10 +1,12 @@
 import { splitHealth } from '@exodus/shared/utils/health-context'
+import { splitAnswer } from '@exodus/shared/utils/interactive-answer'
 import { splitQuoted } from '@exodus/shared/utils/quoted-text'
 import { memo, useLayoutEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { ErrorBoundary } from '@/components/card-error-boundary'
 import { HealthContextCard } from '@/components/chat/health-context-card'
+import { AnswerTitle } from '@/components/chat/interactive/answer-title'
 import Markdown from '@/components/markdown'
 import { cn } from '@/lib/utils'
 
@@ -34,7 +36,10 @@ function capPx(): number {
  * selection opens with it as a markdown quote (`composeQuoted`): drawn as the
  * quote it is, small and to the side of a rule, over the question. One asked
  * from the phone's Health workspace opens with the numbers it was about
- * (`splitHealth`), before any quote: drawn as a card of chips.
+ * (`splitHealth`), before any quote: drawn as a card of chips. One that
+ * answers a questionnaire or a confirmation opens with its answer fence
+ * (`splitAnswer`): drawn as a card — the block's title, then the answers,
+ * quieter.
  *
  * A long message is clipped to `CAP_LINES` lines under a fade, with "Show
  * more" below it; opened, it stays open. Whether it is long is measured — the
@@ -43,7 +48,8 @@ function capPx(): number {
  */
 export const UserBubble = memo(function UserBubble({ text }: { text: string }) {
   const { t } = useTranslation('chat')
-  const health = splitHealth(text)
+  const { answer, body: answered } = splitAnswer(text)
+  const health = splitHealth(answered)
   const { quote, body } = splitQuoted(health.body)
 
   const contentRef = useRef<HTMLDivElement>(null)
@@ -68,6 +74,7 @@ export const UserBubble = memo(function UserBubble({ text }: { text: string }) {
   return (
     <div
       data-askable=""
+      data-answer={answer?.block}
       className="bg-bubble text-foreground max-w-[75%] rounded-2xl rounded-br-sm px-4 py-2.5 text-base leading-relaxed wrap-break-word"
     >
       <div
@@ -76,6 +83,7 @@ export const UserBubble = memo(function UserBubble({ text }: { text: string }) {
         style={expanded ? undefined : { maxHeight: `${CAP_REM}rem` }}
         className={cn('relative', !expanded && 'overflow-hidden')}
       >
+        {answer !== null && <AnswerTitle head={answer} />}
         {health.json !== null && <HealthContextCard json={health.json} />}
         {quote !== null && (
           <blockquote
@@ -87,7 +95,13 @@ export const UserBubble = memo(function UserBubble({ text }: { text: string }) {
         )}
         {/* Inline code's chip is `muted`, which neutral's bubble already is. */}
         {body !== '' && (
-          <div className="[&_.markdown_:not(pre)>code]:bg-foreground/7 [&_.markdown]:leading-relaxed [&_.markdown_p]:whitespace-pre-wrap">
+          <div
+            className={cn(
+              '[&_.markdown_:not(pre)>code]:bg-foreground/7 [&_.markdown]:leading-relaxed [&_.markdown_p]:whitespace-pre-wrap',
+              // An answer's lines are quieter than its title.
+              answer !== null && 'text-muted-foreground text-sm'
+            )}
+          >
             <ErrorBoundary
               scope="markdown"
               fallback={<p className="whitespace-pre-wrap">{body}</p>}
