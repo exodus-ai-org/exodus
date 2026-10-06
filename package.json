@@ -65,7 +65,7 @@
     "@jridgewell/trace-mapping": "^0.3.31",
     "@langchain/community": "^1.1.29",
     "@langchain/core": "^1.2.11",
-    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@modelcontextprotocol/sdk": "^1.32.0",
     "@peculiar/x509": "^2.1.0",
     "@shadcn/react": "^0.3.1",
     "@tailwindcss/vite": "^4.3.3",
