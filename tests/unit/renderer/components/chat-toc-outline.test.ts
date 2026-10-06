@@ -22,7 +22,7 @@ const LABELS: AnswerLabels = {
 }
 
 describe('outlineText', () => {
-  it('names an answer by its lines, without the fence', () => {
+  it('names an answer by its lines as plain text, without the fence or bold markers', () => {
     const answer = composeConfirmAnswer(
       { title: 'Send the report?' },
       'run-1',
@@ -31,8 +31,9 @@ describe('outlineText', () => {
       LABELS
     )
     const text = outlineText(answer)
-    expect(text).toBe('**Send the report?** Approved')
+    expect(text).toBe('Send the report? Approved')
     expect(text).not.toContain('exodus-answer')
+    expect(text).not.toContain('**')
   })
 
   it("falls back to the block's title when an answer has no lines", () => {

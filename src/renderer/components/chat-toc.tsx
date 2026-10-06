@@ -58,11 +58,13 @@ export const ChatToc = memo(ChatTocImpl, (prev, next) => {
 /**
  * A message asked about a selection, or from the phone's Health workspace,
  * is named by its question; an answer to a questionnaire or a confirmation
- * by its lines, without the fence (or by the block's title).
+ * by its lines as plain text, without the fence (or by the block's title).
  */
 export function outlineText(text: string): string {
   const { answer, body: answered } = splitAnswer(text)
-  const { quote, body } = splitQuoted(splitHealth(answered).body)
+  // An answer's lines bold their questions (`**Where?** Arms`): plain here.
+  const plain = answer ? answered.replaceAll('**', '') : answered
+  const { quote, body } = splitQuoted(splitHealth(plain).body)
   return body || quote || answer?.title || ''
 }
 
